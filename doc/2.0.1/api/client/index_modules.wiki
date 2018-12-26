@@ -1,0 +1,92 @@
+=Index of modules=
+
+|@@ @style="tet-align: left;"@@\\C|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Channels"| module Eliom_comet.Channels >> ~[<<a_api subproject="client" | module Eliom_comet >>~]|<<div class="odocwiki_info"|after <<span class="odocwiki_inlinecode"|set~_time~_between~_request t v>>~, the main loop will wait for
+      <<span class="odocwiki_inlinecode"|v>> seconds between two requests~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Configuration"| module Eliom_comet.Configuration >> ~[<<a_api subproject="client" | module Eliom_comet >>~]|<<div class="odocwiki_info"|~Change the reactivity of channels~.
+>>
+|
+|@@ @style="tet-align: left;"@@\\D|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Down"| module Eliom_react.S.Down >> ~[<<a_api subproject="client" | module Eliom_react.S >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Down"| module Eliom_react.Down >> ~[<<a_api subproject="client" | module Eliom_react >>~]||
+|@@ @style="tet-align: left;"@@\\E|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_bus"| module Eliom_bus >> |<<div class="odocwiki_info"|~Broadcasting facilities between clients and server
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_client"| module Eliom_client >> |<<div class="odocwiki_info"|~Call server side services and change the current page~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_comet"| module Eliom_comet >> |<<div class="odocwiki_info"|~Handle unsolicited server to client communications~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_lazy"| module Eliom_lazy >> ||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_mkforms"| module Eliom_mkforms >> |<<div class="odocwiki_info"|~This module defines the functor to use to creates modules
+   generating form widgets for your own types of pages~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_output"| module Eliom_output >> |<<div class="odocwiki_info"|~Creating links and forms with <<span class="odocwiki_inlinecode"|~H~T~M~L~5~.~M>>
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_output_base"| module Eliom_output_base >> |<<div class="odocwiki_info"|~Links and forms
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_pervasives"| module Eliom_pervasives >> |<<div class="odocwiki_info"|~Pervasives module for ~Eliom extending stdlib~, should always be opened~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_react"| module Eliom_react >> |<<div class="odocwiki_info"|~Client side type declarations for ~React event propagation~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_request"| module Eliom_request >> ||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_services"| module Eliom_services >> |<<div class="odocwiki_info"|~Functions to add non localised parameters to services and
+    client side declaration of void coservices~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_types_base"| module Eliom_types_base >> |<<div class="odocwiki_info"|~/~*
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_unwrap"| module Eliom_unwrap >> |<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|register~_unwrapper id f>> register an unwrapping function <<span class="odocwiki_inlinecode"|f>> to
+    be called when a value is marked with the id <<span class="odocwiki_inlinecode"|id>>
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_uri"| module Eliom_uri >> |<<div class="odocwiki_info"|~/~*
+>>
+|
+|@@ @style="tet-align: left;"@@\\H|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="HTML5"| module Eliom_pervasives.HTML5 >> ~[<<a_api subproject="client" | module Eliom_pervasives >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Html5"| module Eliom_client.Html5 >> ~[<<a_api subproject="client" | module Eliom_client >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Html5"| module Eliom_output.Html5 >> ~[<<a_api subproject="client" | module Eliom_output >>~]|<<div class="odocwiki_info"|~Eliom service registration and forms creation for ~H~T~M~L~5 page
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Html5_forms"| module Eliom_output_base.Html5_forms >> ~[<<a_api subproject="client" | module Eliom_output_base >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Html5_forms"| module Eliom_output.Html5_forms >> ~[<<a_api subproject="client" | module Eliom_output >>~]|<<div class="odocwiki_info"|~Eliom forms creation for ~H~T~M~L~5
+>>
+|
+|@@ @style="tet-align: left;"@@\\L|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="List"| module Eliom_pervasives.List >> ~[<<a_api subproject="client" | module Eliom_pervasives >>~]||
+|@@ @style="tet-align: left;"@@\\M|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="M"| module Eliom_pervasives.HTML5.M >> ~[<<a_api subproject="client" | module Eliom_pervasives.HTML5 >>~]|<<div class="odocwiki_info"|type safe ~H~T~M~L~5 creation~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="M"| module Eliom_pervasives.SVG.M >> ~[<<a_api subproject="client" | module Eliom_pervasives.SVG >>~]|<<div class="odocwiki_info"|type safe ~S~V~G creation~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="MakeForms"| module Eliom_mkforms.MakeForms >> ~[<<a_api subproject="client" | module Eliom_mkforms >>~]||
+|@@ @style="tet-align: left;"@@\\P|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Printexc"| module Eliom_pervasives.Printexc >> ~[<<a_api subproject="client" | module Eliom_pervasives >>~]||
+|@@ @style="tet-align: left;"@@\\S|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="S"| module Eliom_react.S >> ~[<<a_api subproject="client" | module Eliom_react >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="SVG"| module Eliom_pervasives.SVG >> ~[<<a_api subproject="client" | module Eliom_pervasives >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Set"| module Eliom_pervasives.String.Set >> ~[<<a_api subproject="client" | module Eliom_pervasives.String >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="String"| module Eliom_pervasives.String >> ~[<<a_api subproject="client" | module Eliom_pervasives >>~]||
+|@@ @style="tet-align: left;"@@\\T|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Table"| module Eliom_pervasives.String.Table >> ~[<<a_api subproject="client" | module Eliom_pervasives.String >>~]||
+|@@ @style="tet-align: left;"@@\\U|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Up"| module Eliom_react.Up >> ~[<<a_api subproject="client" | module Eliom_react >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Url"| module Eliom_pervasives.Url >> ~[<<a_api subproject="client" | module Eliom_pervasives >>~]||
+|@@ @style="tet-align: left;"@@\\X|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="XML"| module Eliom_pervasives.XML >> ~[<<a_api subproject="client" | module Eliom_pervasives >>~]|<<div class="odocwiki_info"|~X~M~L building and deconstructing~.
+>>
+|
+\\

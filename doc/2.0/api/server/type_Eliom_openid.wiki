@@ -1,0 +1,94 @@
+<<code language="ocaml" | sig
+  type openid_error =
+      Invalid_XRDS_File of string * string
+    | Discovery_Error of string * string
+    | Missing_parameter of string
+    | Invalid_signature of string * string
+    | Invalid_association of string
+    | Invalid_argument of string * string * string
+    | Server_error of string
+    | Invalid_answer of string
+    | Invalid_html_doc of string
+  val string_of_openid_error : Eliom_openid.openid_error -> string
+  exception Error of Eliom_openid.openid_error
+  type field =
+      Email
+    | Fullname
+    | DateOfBirth
+    | PostCode
+    | Timezone
+    | Language
+    | Country
+    | Gender
+    | Nickname
+  type 'a extension = {
+    headers : (string * string) list;
+    parse : (string * string) list -> 'a Lwt.t;
+  }
+  val sreg :
+    ?policy_url:string ->
+    required:Eliom_openid.field list ->
+    optional:Eliom_openid.field list ->
+    unit -> (Eliom_openid.field * string) list Eliom_openid.extension
+  val ax :
+    required:Eliom_openid.field list ->
+    optional:Eliom_openid.field list ->
+    unit -> (Eliom_openid.field * string) list Eliom_openid.extension
+  type pape = {
+    auth_time : string option;
+    policies : string list option;
+    nist_level : int option;
+  }
+  val pape :
+    ?max_auth_age:int ->
+    ?auth_policies:string list ->
+    unit -> Eliom_openid.pape Eliom_openid.extension
+  val ( *** ) :
+    'a Eliom_openid.extension ->
+    'b Eliom_openid.extension -> ('a * 'b) Eliom_openid.extension
+  type 'a authentication_result = Canceled | Setup_needed | Result of 'a
+  val perform_discovery : string -> (string * string option) Lwt.t
+  module type HiddenServiceInfo =
+    sig
+      val path : string list
+      val f :
+        (string * string) list ->
+        unit ->
+        (Eliom_output.browser_content, Eliom_output.http_service)
+        Eliom_output.kind Lwt.t
+    end
+  module Make :
+    functor (S : HiddenServiceInfo) ->
+      sig
+        val authenticate :
+          mode:string ->
+          ext:'a Eliom_openid.extension ->
+          handler:('a Eliom_openid.authentication_result ->
+                   (Eliom_output.browser_content, Eliom_output.http_service)
+                   Eliom_output.kind Lwt.t) ->
+          discovery:string * string option -> XHTML.M.uri Lwt.t
+      end
+  type result = {
+    fields : (Eliom_openid.field * string) list;
+    pape : Eliom_openid.pape;
+  }
+  type check_fun =
+      ?immediate:bool ->
+      ?policy_url:string ->
+      ?max_auth_age:int ->
+      ?auth_policies:string list ->
+      ?required:Eliom_openid.field list ->
+      ?optional:Eliom_openid.field list ->
+      string ->
+      (Eliom_openid.result Eliom_openid.authentication_result ->
+       (Eliom_output.browser_content, Eliom_output.http_service)
+       Eliom_output.kind Lwt.t) ->
+      XHTML.M.uri Lwt.t
+  val init :
+    path:string list ->
+    f:((string * string) list ->
+       unit ->
+       (Eliom_output.browser_content, Eliom_output.http_service)
+       Eliom_output.kind Lwt.t) ->
+    Eliom_openid.check_fun
+end >>

@@ -1,0 +1,18 @@
+<<code language="ocaml" | sig
+  type appl_service = [ `Appl ]
+  type http_service = [ `Http ]
+  type non_caml_service = [ `Appl | `Http ]
+  module type Base = sig type return = Eliom_registration.http_service end
+  module Html5 : Base
+  module Redirection : Base
+  module Block5 : Base
+  module Html_text : Base
+  module CssText : Base
+  module Text : Base
+  module Action : Base
+  module Unit : Base
+  module String_redirection : Base
+  module Any : Base
+  module Streamlist : Base
+  module Ocaml : Base
+end >>

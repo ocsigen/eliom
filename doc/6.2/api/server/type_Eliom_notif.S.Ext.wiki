@@ -1,0 +1,6 @@
+<<code language="ocaml" | sig
+  val unlisten :
+    ?sitedata:Eliom_common.sitedata ->
+    ([< `Client_process ], [< `Data ]) Eliom_state.Ext.state ->
+    Eliom_notif.S.key -> unit
+end >>

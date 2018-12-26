@@ -1,0 +1,12 @@
+<<code language="ocaml" | sig
+  type t = [ `Html ] XHTML.M.elt
+  type options =
+      [ `Doctype of string
+      | `HTML_v03_02
+      | `HTML_v04_01
+      | `XHTML_01_00
+      | `XHTML_01_01 ]
+  val result_of_content :
+    ?options:options -> t -> Ocsigen_http_frame.result Lwt.t
+  val get_etag : t -> Ocsigen_http_frame.etag option
+end >>

@@ -1,0 +1,244 @@
+<<code language="ocaml" | sig
+  val service :
+    ?rt:'rt Eliom_service.rt ->
+    ?https:bool ->
+    path:Eliom_lib.Url.path ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?priority:int ->
+    get_params:('get, [< Eliom_service.suff ] as 'a, 'gn)
+               Eliom_parameter.params_type ->
+    unit ->
+    ('get, unit,
+     [> `Attached of
+          ([> `Internal of [> `Service ] ], [> `Get ]) Eliom_service.a_s ],
+     'a, 'gn, unit, [< Eliom_service.registrable > `Registrable ],
+     [> Eliom_service.appl_service ])
+    Eliom_service.service
+  val post_service :
+    ?rt:'rt Eliom_service.rt ->
+    ?https:bool ->
+    fallback:('get, unit,
+              [ `Attached of
+                  ([ `Internal of [ `Coservice | `Service ] ], [ `Get ])
+                  Eliom_service.a_s ],
+              [< Eliom_service.suff ] as 'a, 'gn, unit, [< `Registrable ],
+              [< Eliom_service.non_ocaml_service ])
+             Eliom_service.service ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?priority:int ->
+    post_params:('post, [ `WithoutSuffix ], 'pn) Eliom_parameter.params_type ->
+    unit ->
+    ('get, 'post,
+     [> `Attached of
+          ([> `Internal of [ `Coservice | `Service ] ], [> `Post ])
+          Eliom_service.a_s ],
+     'a, 'gn, 'pn, [< Eliom_service.registrable > `Registrable ],
+     [> Eliom_service.appl_service ])
+    Eliom_service.service
+  val put_service :
+    ?rt:'rt Eliom_service.rt ->
+    ?https:bool ->
+    path:Eliom_lib.Url.path ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?priority:int ->
+    get_params:('get, [< Eliom_service.suff ] as 'a, 'gn)
+               Eliom_parameter.params_type ->
+    unit ->
+    ('get, Eliom_parameter.raw_post_data,
+     [> `Attached of
+          ([> `Internal of [> `Service ] ], [> `Put ]) Eliom_service.a_s ],
+     'a, 'gn, Eliom_parameter.no_param_name,
+     [< Eliom_service.registrable > `Registrable ],
+     [> Eliom_service.appl_service ])
+    Eliom_service.service
+  val delete_service :
+    ?rt:'rt Eliom_service.rt ->
+    ?https:bool ->
+    path:Eliom_lib.Url.path ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?priority:int ->
+    get_params:('get, [< Eliom_service.suff ] as 'a, 'gn)
+               Eliom_parameter.params_type ->
+    unit ->
+    ('get, Eliom_parameter.raw_post_data,
+     [> `Attached of
+          ([> `Internal of [> `Service ] ], [> `Delete ]) Eliom_service.a_s ],
+     'a, 'gn, Eliom_parameter.no_param_name,
+     [< Eliom_service.registrable > `Registrable ],
+     [> Eliom_service.appl_service ])
+    Eliom_service.service
+  val coservice :
+    ?rt:'rt Eliom_service.rt ->
+    ?name:string ->
+    ?csrf_safe:bool ->
+    ?csrf_scope:[< Eliom_common.user_scope ] ->
+    ?csrf_secure:bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    fallback:(unit, unit,
+              [ `Attached of
+                  ([ `Internal of [ `Service ] ], [ `Get ]) Eliom_service.a_s ],
+              [ `WithoutSuffix ], unit, unit, [< Eliom_service.registrable ],
+              [< Eliom_service.non_ocaml_service ])
+             Eliom_service.service ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    get_params:('get, [ `WithoutSuffix ], 'gn) Eliom_parameter.params_type ->
+    unit ->
+    ('get, unit,
+     [> `Attached of
+          ([> `Internal of [> `Coservice ] ], [> `Get ]) Eliom_service.a_s ],
+     [ `WithoutSuffix ], 'gn, unit,
+     [< Eliom_service.registrable > `Registrable ],
+     [> Eliom_service.appl_service ])
+    Eliom_service.service
+  val post_coservice :
+    ?rt:'rt Eliom_service.rt ->
+    ?name:string ->
+    ?csrf_safe:bool ->
+    ?csrf_scope:[< Eliom_common.user_scope ] ->
+    ?csrf_secure:bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    fallback:('get, unit,
+              [ `Attached of
+                  ([ `Internal of [< `Coservice | `Service ] ], [ `Get ])
+                  Eliom_service.a_s ],
+              [< Eliom_service.suff ] as 'a, 'gn, unit, [< `Registrable ],
+              [< Eliom_service.non_ocaml_service ])
+             Eliom_service.service ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    post_params:('post, [ `WithoutSuffix ], 'pn) Eliom_parameter.params_type ->
+    unit ->
+    ('get, 'post,
+     [> `Attached of
+          ([> `Internal of [> `Coservice ] ], [> `Post ]) Eliom_service.a_s ],
+     'a, 'gn, 'pn, [< Eliom_service.registrable > `Registrable ],
+     [> Eliom_service.appl_service ])
+    Eliom_service.service
+  val put_coservice :
+    ?rt:'rt Eliom_service.rt ->
+    ?name:string ->
+    ?csrf_safe:bool ->
+    ?csrf_scope:[< Eliom_common.user_scope ] ->
+    ?csrf_secure:bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    fallback:(unit, Eliom_parameter.raw_post_data,
+              [ `Attached of
+                  ([ `Internal of [ `Service ] ], [ `Put ]) Eliom_service.a_s ],
+              [ `WithoutSuffix ], unit, Eliom_parameter.no_param_name,
+              [< Eliom_service.registrable ],
+              [< Eliom_service.non_ocaml_service ])
+             Eliom_service.service ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    get_params:('get, [ `WithoutSuffix ], 'gn) Eliom_parameter.params_type ->
+    unit ->
+    ('get, Eliom_parameter.raw_post_data,
+     [> `Attached of
+          ([> `Internal of [> `Coservice ] ], [> `Put ]) Eliom_service.a_s ],
+     [ `WithoutSuffix ], 'gn, Eliom_parameter.no_param_name,
+     [< Eliom_service.registrable > `Registrable ],
+     [> Eliom_service.appl_service ])
+    Eliom_service.service
+  val delete_coservice :
+    ?rt:'rt Eliom_service.rt ->
+    ?name:string ->
+    ?csrf_safe:bool ->
+    ?csrf_scope:[< Eliom_common.user_scope ] ->
+    ?csrf_secure:bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    fallback:(unit, Eliom_parameter.raw_post_data,
+              [ `Attached of
+                  ([ `Internal of [ `Service ] ], [ `Delete ])
+                  Eliom_service.a_s ],
+              [ `WithoutSuffix ], unit, Eliom_parameter.no_param_name,
+              [< Eliom_service.registrable ],
+              [< Eliom_service.non_ocaml_service ])
+             Eliom_service.service ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    get_params:('get, [ `WithoutSuffix ], 'gn) Eliom_parameter.params_type ->
+    unit ->
+    ('get, Eliom_parameter.raw_post_data,
+     [> `Attached of
+          ([> `Internal of [> `Coservice ] ], [> `Delete ]) Eliom_service.a_s ],
+     [ `WithoutSuffix ], 'gn, Eliom_parameter.no_param_name,
+     [< Eliom_service.registrable > `Registrable ],
+     [> Eliom_service.appl_service ])
+    Eliom_service.service
+  val coservice' :
+    ?rt:'rt Eliom_service.rt ->
+    ?name:string ->
+    ?csrf_safe:bool ->
+    ?csrf_scope:[< Eliom_common.user_scope ] ->
+    ?csrf_secure:bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    get_params:('get, [ `WithoutSuffix ], 'gn) Eliom_parameter.params_type ->
+    unit ->
+    ('get, unit, [> `Nonattached of [> `Get ] Eliom_service.na_s ],
+     [ `WithoutSuffix ], 'gn, unit,
+     [< Eliom_service.registrable > `Registrable ],
+     [> Eliom_service.appl_service ])
+    Eliom_service.service
+  val post_coservice' :
+    ?rt:'rt Eliom_service.rt ->
+    ?name:string ->
+    ?csrf_safe:bool ->
+    ?csrf_scope:[< Eliom_common.user_scope ] ->
+    ?csrf_secure:bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?keep_get_na_params:bool ->
+    post_params:('post, [ `WithoutSuffix ], 'pn) Eliom_parameter.params_type ->
+    unit ->
+    (unit, 'post, [> `Nonattached of [> `Post ] Eliom_service.na_s ],
+     [ `WithoutSuffix ], unit, 'pn,
+     [< Eliom_service.registrable > `Registrable ],
+     [> Eliom_service.appl_service ])
+    Eliom_service.service
+  val put_coservice' :
+    ?rt:'rt Eliom_service.rt ->
+    ?name:string ->
+    ?csrf_safe:bool ->
+    ?csrf_scope:[< Eliom_common.user_scope ] ->
+    ?csrf_secure:bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    get_params:('get, [ `WithoutSuffix ], 'gn) Eliom_parameter.params_type ->
+    unit ->
+    ('get, Eliom_parameter.raw_post_data,
+     [> `Nonattached of [> `Put ] Eliom_service.na_s ], [ `WithoutSuffix ],
+     'gn, Eliom_parameter.no_param_name,
+     [< Eliom_service.registrable > `Registrable ],
+     [> Eliom_service.appl_service ])
+    Eliom_service.service
+  val delete_coservice' :
+    ?rt:'rt Eliom_service.rt ->
+    ?name:string ->
+    ?csrf_safe:bool ->
+    ?csrf_scope:[< Eliom_common.user_scope ] ->
+    ?csrf_secure:bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    get_params:('get, [ `WithoutSuffix ], 'gn) Eliom_parameter.params_type ->
+    unit ->
+    ('get, Eliom_parameter.raw_post_data,
+     [> `Nonattached of [> `Delete ] Eliom_service.na_s ],
+     [ `WithoutSuffix ], 'gn, Eliom_parameter.no_param_name,
+     [< Eliom_service.registrable > `Registrable ],
+     [> Eliom_service.appl_service ])
+    Eliom_service.service
+end >>

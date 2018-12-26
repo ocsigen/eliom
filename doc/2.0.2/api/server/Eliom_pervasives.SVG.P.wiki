@@ -1,0 +1,5 @@
+=Module <<a_api_type subproject="server" | module Eliom_pervasives.SVG.P >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|P>>>> <<span class="ocsforge_color_delimiter"|~:>> \\  <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|XML_sigs.TypedSimplePrinter>>>><<span class="odocwiki_type"| with type 'a elt := 'a M.elt\\					  and type doc := M.doc>>>>~S~V~G printer~.
+      ~See <<a_api project="tyxml" | module type XML_sigs.TypedSimplePrinter >> ~.
+
+----

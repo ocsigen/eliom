@@ -1,0 +1,6 @@
+<<code language="ocaml" | sig
+  type 'a client_value = 'a Eliom_lib.client_value
+  type 'a fragment = 'a Eliom_pervasives.client_value
+  type ('a, 'b) server_function = 'a -> 'b Lwt.t
+  val _force_link : unit
+end >>

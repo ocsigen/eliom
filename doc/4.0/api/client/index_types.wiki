@@ -1,0 +1,72 @@
+=Index of types=
+
+|@@ @style="tet-align: left;"@@\\A|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="answer"| type Eliom_comet_base.answer >> ~[<<a_api subproject="client" | module Eliom_comet_base >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="attrib"| type Eliom_content.Html5.attrib >> ~[<<a_api subproject="client" | module Eliom_content.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="attrib"| type Eliom_content.Svg.attrib >> ~[<<a_api subproject="client" | module Eliom_content.Svg >>~]||
+|@@ @style="tet-align: left;"@@\\B|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="bus_send_service"| type Eliom_comet_base.bus_send_service >> ~[<<a_api subproject="client" | module Eliom_comet_base >>~]||
+|@@ @style="tet-align: left;"@@\\C|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="chan_id"| type Eliom_comet_base.chan_id >> ~[<<a_api subproject="client" | module Eliom_comet_base >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="channel_data"| type Eliom_comet_base.channel_data >> ~[<<a_api subproject="client" | module Eliom_comet_base >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="comet_request"| type Eliom_comet_base.comet_request >> ~[<<a_api subproject="client" | module Eliom_comet_base >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="comet_service"| type Eliom_comet_base.comet_service >> ~[<<a_api subproject="client" | module Eliom_comet_base >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="comet_stateful_request"| type Eliom_comet_base.comet_stateful_request >> ~[<<a_api subproject="client" | module Eliom_comet_base >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="comet_stateless_request"| type Eliom_comet_base.comet_stateless_request >> ~[<<a_api subproject="client" | module Eliom_comet_base >>~]|<<div class="odocwiki_info"|~None means ~'newest channel~'
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="command"| type Eliom_comet_base.command >> ~[<<a_api subproject="client" | module Eliom_comet_base >>~]||
+|@@ @style="tet-align: left;"@@\\E|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="elt"| type Eliom_content.Html5.elt >> ~[<<a_api subproject="client" | module Eliom_content.Html5 >>~]|<<div class="odocwiki_info"|~See the ~Eliom manual for more information on <<a_manual
+      chapter="clientserver-html" fragment="unique"| dom semantics vs. functional
+      semantics>>  for ~H~T~M~L~5 tree manipulated by client~/server
+      application~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="elt"| type Eliom_content.Svg.elt >> ~[<<a_api subproject="client" | module Eliom_content.Svg >>~]|<<div class="odocwiki_info"|~See the ~Eliom manual for more information on <<a_manual
+      chapter="clientserver-html" fragment="unique"| dom semantics vs. functional
+      semantics>>  for ~H~T~M~L~5 tree manipulated by client~/server
+      application~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="ev"| type Eliom_content.Html5.Manip.Ev.ev >> ~[<<a_api subproject="client" | module Eliom_content.Html5.Manip.Ev >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="ev_unit"| type Eliom_content.Html5.Manip.Ev.ev_unit >> ~[<<a_api subproject="client" | module Eliom_content.Html5.Manip.Ev >>~]||
+|@@ @style="tet-align: left;"@@\\I|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="id"| type Eliom_content.Html5.Id.id >> ~[<<a_api subproject="client" | module Eliom_content.Html5.Id >>~]|<<div class="odocwiki_info"|~The type of global ~H~T~M~L~5 element identifier~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="id"| type Eliom_content.Svg.Id.id >> ~[<<a_api subproject="client" | module Eliom_content.Svg.Id >>~]|<<div class="odocwiki_info"|~The type of global ~S~V~G element identifier~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="internal_comet_service"| type Eliom_comet_base.internal_comet_service >> ~[<<a_api subproject="client" | module Eliom_comet_base >>~]||
+|@@ @style="tet-align: left;"@@\\P|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="position"| type Eliom_comet_base.position >> ~[<<a_api subproject="client" | module Eliom_comet_base >>~]||
+|@@ @style="tet-align: left;"@@\\S|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="select_opt"| type Eliom_content.Html5.D.select_opt >> ~[<<a_api subproject="client" | module Eliom_content.Html5.D >>~]|<<div class="odocwiki_info"|~The type for <<span class="odocwiki_inlinecode"|~<select~>>> options and groups of options~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="select_opt"| type Eliom_content.Html5.F.select_opt >> ~[<<a_api subproject="client" | module Eliom_content.Html5.F >>~]|<<div class="odocwiki_info"|~The type for <<span class="odocwiki_inlinecode"|~<select~>>> options and groups of options~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="server_params"| type Eliom_types_base.server_params >> ~[<<a_api subproject="client" | module Eliom_types_base >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="sitedata"| type Eliom_types_base.sitedata >> ~[<<a_api subproject="client" | module Eliom_types_base >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="soption"| type Eliom_content.Html5.D.soption >> ~[<<a_api subproject="client" | module Eliom_content.Html5.D >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="soption"| type Eliom_content.Html5.F.soption >> ~[<<a_api subproject="client" | module Eliom_content.Html5.F >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="stateless_kind"| type Eliom_comet_base.stateless_kind >> ~[<<a_api subproject="client" | module Eliom_comet_base >>~]||
+|@@ @style="tet-align: left;"@@\\T|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="t"| type Eliom_bus.t >> ~[<<a_api subproject="client" | module Eliom_bus >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="t"| type Eliom_react.S.Down.t >> ~[<<a_api subproject="client" | module Eliom_react.S.Down >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="t"| type Eliom_react.Up.t >> ~[<<a_api subproject="client" | module Eliom_react.Up >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="t"| type Eliom_react.Down.t >> ~[<<a_api subproject="client" | module Eliom_react.Down >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="t"| type Eliom_comet.Channel.t >> ~[<<a_api subproject="client" | module Eliom_comet.Channel >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="t"| type Eliom_comet.Configuration.t >> ~[<<a_api subproject="client" | module Eliom_comet.Configuration >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="t"| type Eliom_content.Html5.Custom_data.t >> ~[<<a_api subproject="client" | module Eliom_content.Html5.Custom_data >>~]|<<div class="odocwiki_info"|~Custom data with values of type <<span class="odocwiki_inlinecode"|~'a>>~.
+>>
+|
+|@@ @style="tet-align: left;"@@\\U|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uri"| type Eliom_content.Html5.uri >> ~[<<a_api subproject="client" | module Eliom_content.Html5 >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uri"| type Eliom_content.Svg.uri >> ~[<<a_api subproject="client" | module Eliom_content.Svg >>~]||
+|@@ @style="tet-align: left;"@@\\W|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="wrapped_bus"| type Eliom_comet_base.wrapped_bus >> ~[<<a_api subproject="client" | module Eliom_comet_base >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="wrapped_channel"| type Eliom_comet_base.wrapped_channel >> ~[<<a_api subproject="client" | module Eliom_comet_base >>~]||
+\\

@@ -1,0 +1,359 @@
+=Module <<a_api_type | module Ocsigen_extensions >> =
+<<div class="code"|<<span class="keyword"|module>> Ocsigen_extensions: <<span class='code'|sig>><<a_api text=".." | module Ocsigen_extensions >><<span class='code'|end>>>>~Writing extensions for ~Ocsigen\\
+
+----
+<<div  id="EXCEPTIONOcsigen_http_error" class="code"|<<span class="keyword"|exception>> Ocsigen_http_error <<span class="keyword"|of>> <<span class="code type"|(<<a_api text="Ocsigen_http_frame.cookieset" | type Ocsigen_http_frame.cookieset >> * int)>>>>
+<<div  id="EXCEPTIONOcsigen_Internal_Error" class="code"|<<span class="keyword"|exception>> Ocsigen_Internal_Error <<span class="keyword"|of>> <<span class="code type"|string>>>>
+<<div  id="EXCEPTIONBad_config_tag_for_extension" class="code"|<<span class="keyword"|exception>> Bad_config_tag_for_extension <<span class="keyword"|of>> <<span class="code type"|string>>>>
+<<div class="info"|~Xml tag not recognized by an extension ~(usually not a real error~)\\
+>>
+<<div  id="EXCEPTIONError_in_config_file" class="code"|<<span class="keyword"|exception>> Error_in_config_file <<span class="keyword"|of>> <<span class="code type"|string>>>>
+<<div class="info"|~Error in a ~<site~> tag inside the main ocsigen~.conf file\\
+>>
+<<div  id="EXCEPTIONError_in_user_config_file" class="code"|<<span class="keyword"|exception>> Error_in_user_config_file <<span class="keyword"|of>> <<span class="code type"|string>>>>
+<<div class="info"|~Option incorrect in a userconf file\\
+>>
+<<div id="VALbadconfig" class="code"|<<span class="keyword"|val>> badconfig : <<span class="code type"|('a, unit, string, 'b) Pervasives.format4 -> 'a>>>><<div class="info"|~Convenient function for raising ~Error~_in~_config~_file exceptions with
+    a sprintf~-formatted argument~.\\
+>>
+<<div class="code" id="TYPEurl_path"|<<span class="keyword"|type>> url~_path = <<span class="code type"|string list>> >>
+<<div class="info"|~The type of ~U~R~L paths~. <<span class='code'|~["plop"~;"plip"~]>> corresponds to <<span class='code'|plop~/plip>>~.\\
+>>
+
+<<div id="VALstring_of_url_path" class="code"|<<span class="keyword"|val>> string~_of~_url~_path : <<span class="code type"|encode:bool -> <<a_api text="url_path" | type Ocsigen_extensions.url_path >> -> string>>>><<div class="code" id="TYPEvirtual_host_part"|<<span class="keyword"|type>> virtual~_host~_part = 
+|@@class="typetable"@ @class="lefttop"@@<<span class="keyword"|{{{|}}}>>|@@class="lefttop"@@<<span class="constructor"|Text>> <<span class="keyword"|of>> <<span class="code type"|string * int>>|
+|@@class="lefttop"@@<<span class="keyword"|{{{|}}}>>|@@class="lefttop"@@<<span class="constructor"|Wildcard>>|>>
+
+<<div class="code" id="TYPEvirtual_hosts"|<<span class="keyword"|type>> virtual~_hosts = <<span class="code type"|(<<a_api text="virtual_host_part" | type Ocsigen_extensions.virtual_host_part >> list * int option) list>> >>
+
+<<div class="code" id="TYPEdo_not_serve"|<<span class="keyword"|type>> do~_not~_serve = { 
+|@@class="typetable"@ @class="lefttop"@@{{{   }}}|@@class="lefttop"@@do_not_serve_regexps : <<span class="code type"|string list>>;|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@do_not_serve_files : <<span class="code type"|string list>>;|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@do_not_serve_extensions : <<span class="code type"|string list>>;|
+
+}
+>>
+<<div class="info"|~Configuration to hide~/forbid local files\\
+>>
+
+<<div  id="EXCEPTIONIncorrectRegexpes" class="code"|<<span class="keyword"|exception>> IncorrectRegexpes <<span class="keyword"|of>> <<span class="code type"|<<a_api text="do_not_serve" | type Ocsigen_extensions.do_not_serve >>>>>>
+<<div id="VALdo_not_serve_to_regexp" class="code"|<<span class="keyword"|val>> do~_not~_serve~_to~_regexp : <<span class="code type"|<<a_api text="do_not_serve" | type Ocsigen_extensions.do_not_serve >> -> Netstring_pcre.regexp>>>><<div class="info"|~Compile a do~_not~_serve structure into a regexp~. ~Raises
+    <<span class='code'|~Incorrect~Regexpes>> if the compilation fails~. ~The result is
+    memoized for subsequent calls with the same argument\\
+>>
+<<div id="VALjoin_do_not_serve" class="code"|<<span class="keyword"|val>> join~_do~_not~_serve : <<span class="code type"|\\{{{   }}}<<a_api text="do_not_serve" | type Ocsigen_extensions.do_not_serve >> ->\\{{{   }}}  <<a_api text="do_not_serve" | type Ocsigen_extensions.do_not_serve >> -> <<a_api text="do_not_serve" | type Ocsigen_extensions.do_not_serve >>>>>><<div class="code" id="TYPEconfig_info"|<<span class="keyword"|type>> config~_info = { 
+|@@class="typetable"@ @class="lefttop"@@{{{   }}}|@@class="lefttop"@@default_hostname : <<span class="code type"|string>>;|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@default_httpport : <<span class="code type"|int>>;|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@default_httpsport : <<span class="code type"|int>>;|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@mime_assoc : <<span class="code type"|<<a_api text="Ocsigen_charset_mime.mime_assoc" | type Ocsigen_charset_mime.mime_assoc >>>>;|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@charset_assoc : <<span class="code type"|<<a_api text="Ocsigen_charset_mime.charset_assoc" | type Ocsigen_charset_mime.charset_assoc >>>>;|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@default_directory_index : <<span class="code type"|string list>>;|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@list_directory_content : <<span class="code type"|bool>>;|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@follow_symlinks : <<span class="code type"|<<a_api text="follow_symlink" | type Ocsigen_extensions.follow_symlink >>>>;|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@do_not_serve_404 : <<span class="code type"|<<a_api text="do_not_serve" | type Ocsigen_extensions.do_not_serve >>>>;|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@do_not_serve_403 : <<span class="code type"|<<a_api text="do_not_serve" | type Ocsigen_extensions.do_not_serve >>>>;|
+
+}
+>>
+<<div class="info"|~Configuration options~, passed to ~(and modified by~) extensions\\
+>>
+
+<<div class="code" id="TYPEfollow_symlink"|<<span class="keyword"|type>> follow~_symlink = 
+|@@class="typetable"@ @class="lefttop"@@<<span class="keyword"|{{{|}}}>>|@@class="lefttop"@@<<span class="constructor"|DoNotFollowSymlinks>>|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Never follow a symlink|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@<<span class="keyword"|{{{|}}}>>|@@class="lefttop"@@<<span class="constructor"|FollowSymlinksIfOwnerMatch>>|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Follow a symlink if the symlink and its
+                          target have the same owner|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@<<span class="keyword"|{{{|}}}>>|@@class="lefttop"@@<<span class="constructor"|AlwaysFollowSymlinks>>|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Always follow symlinks|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|>>
+
+<<div class="code" id="TYPEfile_info"|<<span class="keyword"|type>> file~_info = { 
+|@@class="typetable"@ @class="lefttop"@@{{{   }}}|@@class="lefttop"@@tmp_filename : <<span class="code type"|string>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Where the file is stored on the server|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@filesize : <<span class="code type"|int64>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Size~, in bytes|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@raw_original_filename : <<span class="code type"|string>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Original file name~, as given by the client~.|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@original_basename : <<span class="code type"|string>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Original file name|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+
+}
+>>
+<<div class="info"|~The files sent in the request\\
+
+~Note that the files are cancelled once the request has been fulfilled\\
+>>
+
+\\
+~Only ~I~E is known to make <<span class='code'|raw~_original~_filename>> and
+    <<span class='code'|original~_basename>> differ~, as it sends the full original path
+    of uploaded files~.  ~In all cases~, <<span class='code'|original~_basename>> is the
+    basename of the file~. ~More precisely~, it is the part of the
+    filename after the last <<span class='code'|~/>> or <<span class='code'|~\ >>~, if any~, or <<span class='code'|"none">> if one of
+    these characters is the last one~. ~You should probably never use
+    <<span class='code'|raw~_original~_filename>>~.\\
+<<div class="code" id="TYPEclient"|<<span class="keyword"|type>> client>>
+<<div class="info"|~A value of this type represents the client who did the request~.\\
+>>
+
+<<div id="VALclient_id" class="code"|<<span class="keyword"|val>> client~_id : <<span class="code type"|<<a_api text="client" | type Ocsigen_extensions.client >> -> int>>>><<div class="info"|~Returns the id number of the connection\\
+>>
+<<div id="VALclient_connection" class="code"|<<span class="keyword"|val>> client~_connection : <<span class="code type"|<<a_api text="client" | type Ocsigen_extensions.client >> -> <<a_api text="Ocsigen_http_com.connection" | type Ocsigen_http_com.connection >>>>>><<div class="info"|~Returns the connection\\
+>>
+<<div class="code" id="TYPEifrange"|<<span class="keyword"|type>> ifrange = 
+|@@class="typetable"@ @class="lefttop"@@<<span class="keyword"|{{{|}}}>>|@@class="lefttop"@@<<span class="constructor"|IR_No>>|
+|@@class="lefttop"@@<<span class="keyword"|{{{|}}}>>|@@class="lefttop"@@<<span class="constructor"|IR_Ifunmodsince>> <<span class="keyword"|of>> <<span class="code type"|float>>|
+|@@class="lefttop"@@<<span class="keyword"|{{{|}}}>>|@@class="lefttop"@@<<span class="constructor"|IR_ifmatch>> <<span class="keyword"|of>> <<span class="code type"|string>>|>>
+
+<<div class="code" id="TYPErequest_info"|<<span class="keyword"|type>> request~_info = { 
+|@@class="typetable"@ @class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_url_string : <<span class="code type"|string>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@full ~U~R~L|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_url : <<span class="code type"|Neturl.url>>;|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_method : <<span class="code type"|<<a_api text="Ocsigen_http_frame.Http_header.http_method" | type Ocsigen_http_frame.Http_header.http_method >>>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~G~E~T~, ~P~O~S~T~, ~H~E~A~D~.~.~.|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_protocol : <<span class="code type"|<<a_api text="Ocsigen_http_frame.Http_header.proto" | type Ocsigen_http_frame.Http_header.proto >>>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~H~T~T~P protocol used by client ~(~1~.~0 or ~1~.~1~)|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_ssl : <<span class="code type"|bool>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@true if ~H~T~T~P~S~, false if ~H~T~T~P|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_full_path_string : <<span class="code type"|string>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@full path of the ~U~R~L|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_full_path : <<span class="code type"|string list>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@full path of the ~U~R~L|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_original_full_path_string : <<span class="code type"|string>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@full path of the ~U~R~L~, as first sent by the client~. ~Should not be changed by extensions~, even rewritemod~. ~It is used to create relative links~.|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_original_full_path : <<span class="code type"|string list>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@full path of the ~U~R~L~, as first sent by the client~. ~See below~.|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_sub_path : <<span class="code type"|string list>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@path of the ~U~R~L ~(only part concerning the site~)|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_sub_path_string : <<span class="code type"|string>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@path of the ~U~R~L ~(only part concerning the site~)|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_get_params_string : <<span class="code type"|string option>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@string containing ~G~E~T parameters|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_host : <<span class="code type"|string option>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Host field of the request ~(if any~)~, without port|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_port_from_host_field : <<span class="code type"|int option>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Port in the host field of the request ~(if any~)|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_get_params : <<span class="code type"|(string * string) list Lazy.t>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Association list of get parameters|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_initial_get_params : <<span class="code type"|(string * string) list Lazy.t>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Association list of get parameters~, as sent by the browser ~(must not be modified by extensions~)|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_post_params : <<span class="code type"|(string * string) list Lwt.t Lazy.t>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Association list of post parameters|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_files : <<span class="code type"|(string * <<a_api text="file_info" | type Ocsigen_extensions.file_info >>) list Lwt.t Lazy.t>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Files sent in the request|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_remote_inet_addr : <<span class="code type"|Unix.inet_addr>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~I~P of the client|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_remote_ip : <<span class="code type"|string>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~I~P of the client|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_remote_ip_parsed : <<span class="code type"|Ocsigen_lib.ip_address Lazy.t>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~I~P of the client~, parsed|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_remote_port : <<span class="code type"|int>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Port used by the client|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_server_port : <<span class="code type"|int>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Port of the request ~(server~)|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_user_agent : <<span class="code type"|string>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~User~_agent of the browser|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_cookies_string : <<span class="code type"|string option Lazy.t>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Cookies sent by the browser|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_cookies : <<span class="code type"|string Ocsigen_http_frame.Cookievalues.t Lazy.t>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Cookies sent by the browser|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_ifmodifiedsince : <<span class="code type"|float option>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@if~-modified~-since field|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_ifunmodifiedsince : <<span class="code type"|float option>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@if~-unmodified~-since field|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_ifnonematch : <<span class="code type"|string list option>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@if~-none~-match field ~( ~* and weak entity tags not implemented~)|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_ifmatch : <<span class="code type"|string list option>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@if~-match field ~( ~* not implemented~)|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_content_type : <<span class="code type"|((string * string) * (string * string) list) option>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Content~-~Type ~H~T~T~P header|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_content_type_string : <<span class="code type"|string option>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Content~-~Type ~H~T~T~P header|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_content_length : <<span class="code type"|int64 option>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Content~-~Length ~H~T~T~P header|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_referer : <<span class="code type"|string option Lazy.t>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Referer ~H~T~T~P header|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_accept : <<span class="code type"|\\{{{   }}}((string option * string option) * float option * (string * string) list)\\{{{   }}}  list Lazy.t>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Accept ~H~T~T~P header~. ~For example <<span class='code'|~(~Some "text"~, ~None~)>> means <<span class='code'|"text~/~*">>~. ~The float is the "quality" value~, if any~. ~The last association list is for other extensions~.|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_accept_charset : <<span class="code type"|(string option * float option) list Lazy.t>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Accept~-~Charset ~H~T~T~P header~. <<span class='code'|~None>> for the first value means "~*"~. ~The float is the "quality" value~, if any~.|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_accept_encoding : <<span class="code type"|(string option * float option) list Lazy.t>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Accept~-~Encoding ~H~T~T~P header~. <<span class='code'|~None>> for the first value means "~*"~. ~The float is the "quality" value~, if any~.|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_accept_language : <<span class="code type"|(string * float option) list Lazy.t>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Accept~-~Language ~H~T~T~P header~. ~The float is the "quality" value~, if any~.|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_http_frame : <<span class="code type"|<<a_api text="Ocsigen_http_frame.t" | type Ocsigen_http_frame.t >>>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~The full http~_frame|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_extension_info : <<span class="code type"|exn list>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Use this to put anything you want~,
+                                      for example~, information for subsequent
+                                      extensions|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_client : <<span class="code type"|<<a_api text="client" | type Ocsigen_extensions.client >>>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~The request connection|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@ri_range : <<span class="code type"|\\{{{   }}}((int64 * int64) list * int64 option * <<a_api text="ifrange" | type Ocsigen_extensions.ifrange >>) option\\{{{   }}}  Lazy.t>>;|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Range ~H~T~T~P header~. <<span class='code'|~None>> means all the document~. 
+         ~List of intervals ~+ possibly from an index to the end of the document~.|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+
+}
+>>
+<<div class="info"|~The request\\
+
+~If you force <<span class='code'|ri~_files>> or <<span class='code'|ri~_post~_params>>~, the request is fully read~,
+   so it is not possible any more to read it from <<span class='code'|ri~_http~_frame>>
+   ~(and vice versa~)~.\\
+>>
+
+<<div class="code" id="TYPErequest"|<<span class="keyword"|type>> request = { 
+|@@class="typetable"@ @class="lefttop"@@{{{   }}}|@@class="lefttop"@@request_info : <<span class="code type"|<<a_api text="request_info" | type Ocsigen_extensions.request_info >>>>;|
+|@@class="lefttop"@@{{{   }}}|@@class="lefttop"@@request_config : <<span class="code type"|<<a_api text="config_info" | type Ocsigen_extensions.config_info >>>>;|
+
+}
+>>
+
+<<div  id="EXCEPTIONOcsigen_Is_a_directory" class="code"|<<span class="keyword"|exception>> Ocsigen_Is_a_directory <<span class="keyword"|of>> <<span class="code type"|<<a_api text="request" | type Ocsigen_extensions.request >>>>>>
+<<div class="code" id="TYPEanswer"|<<span class="keyword"|type>> answer = 
+|@@class="typetable"@ @class="lefttop"@@<<span class="keyword"|{{{|}}}>>|@@class="lefttop"@@<<span class="constructor"|Ext_do_nothing>>|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Do nothing|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@<<span class="keyword"|{{{|}}}>>|@@class="lefttop"@@<<span class="constructor"|Ext_found>> <<span class="keyword"|of>> <<span class="code type"|(unit -> <<a_api text="Ocsigen_http_frame.result" | type Ocsigen_http_frame.result >> Lwt.t)>>|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@"~O~K stop! ~I will take the page~.
+          ~You can start the following request of the same pipelined connection~.
+          ~Here is the function to generate the page"~.
+          ~The extension must return ~Ext~_found as soon as possible
+          when it is sure it is safe to start next request~.
+          ~Usually as soon as you know tha the result will be ~Ext~_found~.
+          ~But in some case~, for example proxies~, you don~'t want the request of
+          one connection to be handled in different order~.
+          ~In that case~, wait to be sure that the new request will not
+          overtake this one~.|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@<<span class="keyword"|{{{|}}}>>|@@class="lefttop"@@<<span class="constructor"|Ext_found_stop>> <<span class="keyword"|of>> <<span class="code type"|(unit -> <<a_api text="Ocsigen_http_frame.result" | type Ocsigen_http_frame.result >> Lwt.t)>>|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Found but do not try next extensions|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@<<span class="keyword"|{{{|}}}>>|@@class="lefttop"@@<<span class="constructor"|Ext_next>> <<span class="keyword"|of>> <<span class="code type"|int>>|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Page not found~. ~Try next extension~.
+                        ~The integer is the ~H~T~T~P error code~.
+                        ~It is usally ~4~0~4~, but may be for ex ~4~0~3 ~(forbidden~)
+                        if you want another extension to try after a ~4~0~3~.
+                        ~Same as ~Ext~_continue~_with but does not change
+                        the request~.|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@<<span class="keyword"|{{{|}}}>>|@@class="lefttop"@@<<span class="constructor"|Ext_stop_site>> <<span class="keyword"|of>> <<span class="code type"|(<<a_api text="Ocsigen_http_frame.cookieset" | type Ocsigen_http_frame.cookieset >> * int)>>|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Error~. ~Do not try next extension~, but
+                        try next site~.
+                        ~The integer is the ~H~T~T~P error code~, usally ~4~0~3~.|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@<<span class="keyword"|{{{|}}}>>|@@class="lefttop"@@<<span class="constructor"|Ext_stop_host>> <<span class="keyword"|of>> <<span class="code type"|(<<a_api text="Ocsigen_http_frame.cookieset" | type Ocsigen_http_frame.cookieset >> * int)>>|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Error~. ~Do not try next extension~,
+                        do not try next site~,
+                        but try next host~.
+                        ~The integer is the ~H~T~T~P error code~, usally ~4~0~3~.|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@<<span class="keyword"|{{{|}}}>>|@@class="lefttop"@@<<span class="constructor"|Ext_stop_all>> <<span class="keyword"|of>> <<span class="code type"|(<<a_api text="Ocsigen_http_frame.cookieset" | type Ocsigen_http_frame.cookieset >> * int)>>|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Error~. ~Do not try next extension ~(even filters~)~,
+                        do not try next site~,
+                        do not try next host~,
+                        do not ~.
+                        ~The integer is the ~H~T~T~P error code~, usally ~4~0~3~.|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@<<span class="keyword"|{{{|}}}>>|@@class="lefttop"@@<<span class="constructor"|Ext_continue_with>> <<span class="keyword"|of>> <<span class="code type"|(<<a_api text="request" | type Ocsigen_extensions.request >> * <<a_api text="Ocsigen_http_frame.cookieset" | type Ocsigen_http_frame.cookieset >> * int)>>|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Used to modify the request before giving it to next extension~.
+            ~The extension returns the request~_info ~(possibly modified~)
+            and a set of cookies if it wants to set or cookies
+            ~(<<span class='code'|!~Ocsigen~_http~_frame~.~Cookies~.empty>> for no cookies~)~.
+            ~You must add these cookies yourself in request~_info if you
+            want them to be seen by subsequent extensions~,
+            for example using <<a_api | val Ocsigen_http_frame.compute_new_ri_cookies >>~.
+            ~The integer is usually equal to the error code received
+            from preceding extension ~(but you may want to modify it~)~.|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@<<span class="keyword"|{{{|}}}>>|@@class="lefttop"@@<<span class="constructor"|Ext_retry_with>> <<span class="keyword"|of>> <<span class="code type"|<<a_api text="request" | type Ocsigen_extensions.request >> * <<a_api text="Ocsigen_http_frame.cookieset" | type Ocsigen_http_frame.cookieset >>>>|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Used to retry all the extensions with a new request~_info~.
+            ~The extension returns the request~_info ~(possibly modified~)
+            and a set of cookies if it wants to set or cookies
+            ~(<<span class='code'|!~Ocsigen~_http~_frame~.~Cookies~.empty>> for no cookies~)~.
+            ~You must add these cookies yourself in request~_info if you
+            want them to be seen by subsequent extensions~,
+            for example using <<a_api | val Ocsigen_http_frame.compute_new_ri_cookies >>~.|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@<<span class="keyword"|{{{|}}}>>|@@class="lefttop"@@<<span class="constructor"|Ext_sub_result>> <<span class="keyword"|of>> <<span class="code type"|<<a_api text="extension2" | type Ocsigen_extensions.extension2 >>>>|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Used if your extension want to define option that may contain
+            other options from other extensions~.
+            ~In that case~, while parsing the configuration file~, call
+            the parsing function ~(of type <<span class='code'|parse~_fun>>~)~,
+            that will return something of type <<span class='code'|extension~2>>~.|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@<<span class="keyword"|{{{|}}}>>|@@class="lefttop"@@<<span class="constructor"|Ext_found_continue_with>> <<span class="keyword"|of>> <<span class="code type"|(unit -> (<<a_api text="Ocsigen_http_frame.result" | type Ocsigen_http_frame.result >> * <<a_api text="request" | type Ocsigen_extensions.request >>) Lwt.t)>>|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Same as <<span class='code'|~Ext~_found>> but may modify the request~.|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|
+|@@class="lefttop"@@<<span class="keyword"|{{{|}}}>>|@@class="lefttop"@@<<span class="constructor"|Ext_found_continue_with'>> <<span class="keyword"|of>> <<span class="code type"|(<<a_api text="Ocsigen_http_frame.result" | type Ocsigen_http_frame.result >> * <<a_api text="request" | type Ocsigen_extensions.request >>)>>|@@class="typefieldcomment lefttop startcom"@@{{{(*}}}|@@class="typefieldcomment lefttop"@@~Same as <<span class='code'|~Ext~_found~_continue~_with>> but does not allow to delay
+            the computation of the page~. ~You should probably not use it~,
+            but for output filters~.|@@class="typefieldcomment leftbottom endcom"@@{{{*)}}}|>>
+
+<<div class="code" id="TYPErequest_state"|<<span class="keyword"|type>> request~_state = 
+|@@class="typetable"@ @class="lefttop"@@<<span class="keyword"|{{{|}}}>>|@@class="lefttop"@@<<span class="constructor"|Req_not_found>> <<span class="keyword"|of>> <<span class="code type"|(int * <<a_api text="request" | type Ocsigen_extensions.request >>)>>|
+|@@class="lefttop"@@<<span class="keyword"|{{{|}}}>>|@@class="lefttop"@@<<span class="constructor"|Req_found>> <<span class="keyword"|of>> <<span class="code type"|(<<a_api text="request" | type Ocsigen_extensions.request >> * <<a_api text="Ocsigen_http_frame.result" | type Ocsigen_http_frame.result >>)>>|>>
+
+<<div class="code" id="TYPEextension2"|<<span class="keyword"|type>> extension~2 = <<span class="code type"|\\{{{   }}}(unit -> unit) ->\\{{{   }}}  <<a_api text="Ocsigen_http_frame.cookieset" | type Ocsigen_http_frame.cookieset >> ->\\{{{   }}}  <<a_api text="request_state" | type Ocsigen_extensions.request_state >> ->\\{{{   }}}  (<<a_api text="answer" | type Ocsigen_extensions.answer >> * <<a_api text="Ocsigen_http_frame.cookieset" | type Ocsigen_http_frame.cookieset >>) Lwt.t>> >>
+
+<<div class="code" id="TYPEextension"|<<span class="keyword"|type>> extension = <<span class="code type"|<<a_api text="request_state" | type Ocsigen_extensions.request_state >> -> <<a_api text="answer" | type Ocsigen_extensions.answer >> Lwt.t>> >>
+<<div class="info"|~For each ~<site~> tag in the configuration file~,
+    you can set the extensions you want~.
+    ~Each extension is implemented as a function~, taking
+    the charset found in configuration file~,
+    the current state of the request~,
+    and returning an answer~.
+    ~If no page has been generated so far ~(<<span class='code'|~Req~_not~_found>>~)~, it receive
+    the error code given by the previous extension ~(default ~4~0~4~)~,
+    and the request information~.
+    ~If a page has been generated by previous extensions ~(case <<span class='code'|~Req~_found>>~)~,
+    the extension may want to modify the result ~(filters~)~.\\
+>>
+
+<<div class="code" id="TYPEparse_fun"|<<span class="keyword"|type>> parse~_fun = <<span class="code type"|<<a_api text="Simplexmlparser.xml" | type Simplexmlparser.xml >> list -> <<a_api text="extension2" | type Ocsigen_extensions.extension2 >>>> >>
+
+<<div class="code" id="TYPEparse_host"|<<span class="keyword"|type>> parse~_host>>
+<<div class="info"|~Type of the functions parsing the content of a ~<host~> tag\\
+>>
+
+<<div class="code" id="TYPEuserconf_info"|<<span class="keyword"|type>> userconf~_info = { 
+|@@class="typetable"@ @class="lefttop"@@{{{   }}}|@@class="lefttop"@@localfiles_root : <<span class="code type"|string>>;|
+
+}
+>>
+<<div class="info"|~Information received by extensions accepting userconf files~.\\
+
+
+   ~The parameter <<span class='code'|localfiles~_root>> is an absolute path to the
+   directory that the user is allowed to serve~. ~This is used
+   by staticmod~, to disallow the user from allowing access to
+   outside of this directory\\
+>>
+
+<<div class="code" id="TYPEparse_config"|<<span class="keyword"|type>> parse~_config = <<span class="code type"|<<a_api text="virtual_hosts" | type Ocsigen_extensions.virtual_hosts >> -> <<a_api text="parse_config_aux" | type Ocsigen_extensions.parse_config_aux >>>> >>
+<<div class="info"|<<span class='code'|parse~_config>> is the type of the functions parsing a ~<site~> tag
+    ~(and returning an extension~)~.  ~Those are functions taking
+   * the name of the virtual ~<host~>
+
+
+     that will be called for each ~<host~>~,
+     and that will generate a function taking~:
+   * the path attribute of a ~<site~> tag
+
+
+     that will be called for each ~<site~>~,
+     and that will generate a function taking~:
+   * an item of the config file
+
+
+     that will be called on each tag inside ~<site~> and~:
+   * raise <<span class='code'|~Bad~_config~_tag~_for~_extension>> if it does not recognize that tag
+* return something of type <<span class='code'|extension>> ~(filter or page generator~)
+
+\\
+
+
+    <<span class='code'|parse~_config~_user>> is the type of functions parsing a site tag
+    inside an userconf file~. ~They take one more parameter~, of type userconf~_info\\
+>>
+
+<<div class="code" id="TYPEparse_config_user"|<<span class="keyword"|type>> parse~_config~_user = <<span class="code type"|<<a_api text="userconf_info" | type Ocsigen_extensions.userconf_info >> -> <<a_api text="parse_config" | type Ocsigen_extensions.parse_config >>>> >>
+
+<<div class="code" id="TYPEparse_config_aux"|<<span class="keyword"|type>> parse~_config~_aux = <<span class="code type"|\\{{{   }}}<<a_api text="url_path" | type Ocsigen_extensions.url_path >> ->\\{{{   }}}  <<a_api text="parse_host" | type Ocsigen_extensions.parse_host >> ->\\{{{   }}}  <<a_api text="parse_fun" | type Ocsigen_extensions.parse_fun >> ->\\{{{   }}}  <<a_api text="Simplexmlparser.xml" | type Simplexmlparser.xml >> -> <<a_api text="extension" | type Ocsigen_extensions.extension >>>> >>
+
+<<div id="VALregister_extension" class="code"|<<span class="keyword"|val>> register~_extension : <<span class="code type"|\\{{{   }}}name:string ->\\{{{   }}}  ?fun_site:<<a_api text="parse_config" | type Ocsigen_extensions.parse_config >> ->\\{{{   }}}  ?user_fun_site:<<a_api text="parse_config_user" | type Ocsigen_extensions.parse_config_user >> ->\\{{{   }}}  ?begin_init:(unit -> unit) ->\\{{{   }}}  ?end_init:(unit -> unit) ->\\{{{   }}}  ?init_fun:(<<a_api text="Simplexmlparser.xml" | type Simplexmlparser.xml >> list -> unit) ->\\{{{   }}}  ?exn_handler:(exn -> string) -> ?respect_pipeline:bool -> unit -> unit>>>><<div class="info"|~For each extension generating pages~, we register its name and six functions~:* a function <<span class='code'|fun~_site>> of type <<span class='code'|parse~_config>>~. ~This function
+will be responsible for handling the options of the configuration
+files that are recognized by the extension~, and potentially generating
+a page~.
+* a function <<span class='code'|user~_fun~_site>> of type <<span class='code'|parse~_user~_config>> which has the
+same role as <<span class='code'|fun~_site>>~, but inside userconf files~. ~Specify nothing
+if your extension is disallowed in userconf files~. ~Otherwise~, compared
+to <<span class='code'|fun~_site>>~, you can selectively disallow some options~,
+as <<span class='code'|user~_fun~_site>> must define only safe options ~(for example it is not
+safe to allow such options to load a cmo specified by a user~, or to
+execute a program~, as this program will be executed by ocsigen~'s user~)~.
+~Note that <<span class='code'|user~_fun~_site>> will be called for every request~, whereas the
+<<span class='code'|fun~_site>> is called only when starting or reloading the server~.
+* a function <<span class='code'|begin~_init>> that will be called at the beginning
+of the initialisation phase of each site~, and each time the config file is
+reloaded~.
+* a function <<span class='code'|end~_init>> that will be called at the end of the initialisation
+phase of each site
+* a function <<span class='code'|init~_fun>> that will be called just before registering the
+extension~, taking as parameter the configuration options between
+<<span class='code'|~<extension~>>> and <<span class='code'|~<~/extension~>>>~. ~This allows to give configuration options
+to extensions~. ~If no function is supplied~, the extension is supposed to
+accept no option ~(and loading will fail if an option is supplied~)
+* a function <<span class='code'|exn~_handler>> that will create an error message from the
+exceptions that may be raised during the initialisation phase~, and raise again
+all other exceptions
+
+
+~Moreover~, if the optional parameter <<span class='code'|~?respect~_pipeline>> is <<span class='code'|true>>~,
+the extension will ask the server to respect the order of the
+pipeline~. ~That means that it will wait to be sure that the previous
+request from the same connection has been taken by an extension
+before giving a request to an extension~.  ~Use this to write proxies
+extensions~, when you want to be able to pipeline the requests you
+to another server~. ~It is false by default~.\\
+>>
+<<div id="VALget_hostname" class="code"|<<span class="keyword"|val>> get~_hostname : <<span class="code type"|<<a_api text="request" | type Ocsigen_extensions.request >> -> string>>>><<div class="info"|~Returns the hostname to be used for absolute links or redirections~.
+    ~It is either the ~Host header or the hostname set in 
+    the configuration file~.\\
+>>
+<<div id="VALget_port" class="code"|<<span class="keyword"|val>> get~_port : <<span class="code type"|<<a_api text="request" | type Ocsigen_extensions.request >> -> int>>>><<div class="info"|~Returns the port to be used for absolute links or redirections~.
+    ~It is either the port the server is listening at or the default port set in
+    the configuration file~.\\
+>>
+<<div id="VALri_of_url" class="code"|<<span class="keyword"|val>> ri~_of~_url : <<span class="code type"|string -> <<a_api text="request_info" | type Ocsigen_extensions.request_info >> -> <<a_api text="request_info" | type Ocsigen_extensions.request_info >>>>>><<div class="info"|~Parsing ~U~R~Ls~.
+   ~This allows to modify the ~U~R~L in the request~_info~.
+   ~(to be used for example with ~Ext~_retry~_with or ~Ext~_continue~_with~)\\
+>>
+\\
+
+===@@id="3_Userdirectories"@@~User directories===
+\\
+\\
+~Exception raised when an non~-existing user is found\\
+<<div  id="EXCEPTIONNoSuchUser" class="code"|<<span class="keyword"|exception>> NoSuchUser>>
+<<div class="code" id="TYPEud_string"|<<span class="keyword"|type>> ud~_string>>
+<<div class="info"|~The type for string that may contain a ~$u~(~.~.~.~)\\
+>>
+
+<<div id="VALparse_user_dir" class="code"|<<span class="keyword"|val>> parse~_user~_dir : <<span class="code type"|string -> <<a_api text="ud_string" | type Ocsigen_extensions.ud_string >>>>>><<div id="VALreplace_user_dir" class="code"|<<span class="keyword"|val>> replace~_user~_dir : <<span class="code type"|Netstring_pcre.regexp -> <<a_api text="ud_string" | type Ocsigen_extensions.ud_string >> -> string -> string>>>><<div class="info"|raises <<span class='code'|~Not~_found>> is the directory does not exist\\
+>>
+<<div  id="EXCEPTIONNot_concerned" class="code"|<<span class="keyword"|exception>> Not_concerned>>
+<<div class="info"|
+===@@id="3_Regularexpressionsforredirections"@@~Regular expressions for redirections===
+\\
+>>
+<<div id="VALfind_redirection" class="code"|<<span class="keyword"|val>> find~_redirection : <<span class="code type"|\\{{{   }}}Netstring_pcre.regexp ->\\{{{   }}}  bool ->\\{{{   }}}  string ->\\{{{   }}}  bool -> string option -> int -> string option -> string -> string -> string>>>>

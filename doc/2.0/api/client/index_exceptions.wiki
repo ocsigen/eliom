@@ -1,0 +1,28 @@
+=Index of exceptions=
+
+|@@ @style="tet-align: left;"@@\\C|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Channel_closed"| exception Eliom_comet.Channel_closed >> ~[<<a_api subproject="client" | module Eliom_comet >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|~Process~_closed>> is raised when reading on a channel and the
+    server side of the application closed the client process~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Channel_full"| exception Eliom_comet.Channel_full >> ~[<<a_api subproject="client" | module Eliom_comet >>~]|<<div class="odocwiki_info"|when the page is not active the client stops making comet requests
+    to the server~, implying that the client can~'t be notified by the
+    server anymore~.
+>>
+|
+|@@ @style="tet-align: left;"@@\\E|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_Internal_Error"| exception Eliom_pervasives.Eliom_Internal_Error >> ~[<<a_api subproject="client" | module Eliom_pervasives >>~]||
+|@@ @style="tet-align: left;"@@\\F|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Failed_request"| exception Eliom_request.Failed_request >> ~[<<a_api subproject="client" | module Eliom_request >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="False"| exception Eliom_pervasives.False >> ~[<<a_api subproject="client" | module Eliom_pervasives >>~]||
+|@@ @style="tet-align: left;"@@\\L|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Looping_redirection"| exception Eliom_request.Looping_redirection >> ~[<<a_api subproject="client" | module Eliom_request >>~]||
+|@@ @style="tet-align: left;"@@\\N|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Non_xml_content"| exception Eliom_request.Non_xml_content >> ~[<<a_api subproject="client" | module Eliom_request >>~]||
+|@@ @style="tet-align: left;"@@\\P|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Process_closed"| exception Eliom_comet.Process_closed >> ~[<<a_api subproject="client" | module Eliom_comet >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|~Channel~_full>> is raised when trying to read on a channel marked
+    full by the server~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Program_terminated"| exception Eliom_request.Program_terminated >> ~[<<a_api subproject="client" | module Eliom_request >>~]||
+\\

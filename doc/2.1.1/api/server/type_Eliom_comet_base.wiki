@@ -1,0 +1,146 @@
+<<code language="ocaml" | sig
+  type 'a chan_id
+  val string_of_chan_id : 'a Eliom_comet_base.chan_id -> string
+  val chan_id_of_string : string -> 'a Eliom_comet_base.chan_id
+  type position = Newest of int | After of int | Last of int option
+  module Json_position :
+    sig
+      type a = position
+      val t : a Deriving_Json.t
+      val write : Buffer.t -> a -> unit
+      val read : Deriving_Json_lexer.lexbuf -> a
+      val to_string : a -> string
+      val from_string : string -> a
+      val match_variant : [ `Cst of int | `NCst of int ] -> bool
+      val read_variant :
+        Deriving_Json_lexer.lexbuf -> [ `Cst of int | `NCst of int ] -> a
+    end
+  type comet_stateless_request = (string * Eliom_comet_base.position) array
+  module Json_comet_stateless_request :
+    sig
+      type a = (string * position) array
+      val t : a Deriving_Json.t
+      val write : Buffer.t -> a -> unit
+      val read : Deriving_Json_lexer.lexbuf -> a
+      val to_string : a -> string
+      val from_string : string -> a
+      val match_variant : [ `Cst of int | `NCst of int ] -> bool
+      val read_variant :
+        Deriving_Json_lexer.lexbuf -> [ `Cst of int | `NCst of int ] -> a
+    end
+  type command = Register of string | Close of string
+  module Json_command :
+    sig
+      type a = command
+      val t : a Deriving_Json.t
+      val write : Buffer.t -> a -> unit
+      val read : Deriving_Json_lexer.lexbuf -> a
+      val to_string : a -> string
+      val from_string : string -> a
+      val match_variant : [ `Cst of int | `NCst of int ] -> bool
+      val read_variant :
+        Deriving_Json_lexer.lexbuf -> [ `Cst of int | `NCst of int ] -> a
+    end
+  type comet_statefull_request =
+      Request_data of int
+    | Commands of Eliom_comet_base.command array
+  module Json_comet_statefull_request :
+    sig
+      type a = comet_statefull_request
+      val t : a Deriving_Json.t
+      val write : Buffer.t -> a -> unit
+      val read : Deriving_Json_lexer.lexbuf -> a
+      val to_string : a -> string
+      val from_string : string -> a
+      val match_variant : [ `Cst of int | `NCst of int ] -> bool
+      val read_variant :
+        Deriving_Json_lexer.lexbuf -> [ `Cst of int | `NCst of int ] -> a
+    end
+  type comet_request =
+      Stateless of Eliom_comet_base.comet_stateless_request
+    | Statefull of Eliom_comet_base.comet_statefull_request
+  module Json_comet_request :
+    sig
+      type a = comet_request
+      val t : a Deriving_Json.t
+      val write : Buffer.t -> a -> unit
+      val read : Deriving_Json_lexer.lexbuf -> a
+      val to_string : a -> string
+      val from_string : string -> a
+      val match_variant : [ `Cst of int | `NCst of int ] -> bool
+      val read_variant :
+        Deriving_Json_lexer.lexbuf -> [ `Cst of int | `NCst of int ] -> a
+    end
+  val comet_request_param :
+    (Eliom_comet_base.comet_request, [ `WithoutSuffix ],
+     [ `One of Eliom_comet_base.comet_request Eliom_parameters.caml ]
+     Eliom_parameters.param_name)
+    Eliom_parameters.params_type
+  type 'a channel_data = Data of 'a | Full | Closed
+  module Json_channel_data :
+    functor (M_a : Deriving_Json.Json) ->
+      sig
+        type a = M_a.a channel_data
+        val t : a Deriving_Json.t
+        val write : Buffer.t -> a -> unit
+        val read : Deriving_Json_lexer.lexbuf -> a
+        val to_string : a -> string
+        val from_string : string -> a
+        val match_variant : [ `Cst of int | `NCst of int ] -> bool
+        val read_variant :
+          Deriving_Json_lexer.lexbuf -> [ `Cst of int | `NCst of int ] -> a
+      end
+  type answer =
+      Stateless_messages of
+        (string * (string * int) Eliom_comet_base.channel_data) array
+    | Statefull_messages of
+        (string * string Eliom_comet_base.channel_data) array
+    | Timeout
+    | Process_closed
+    | Comet_error of string
+  module Json_answer :
+    sig
+      type a = answer
+      val t : a Deriving_Json.t
+      val write : Buffer.t -> a -> unit
+      val read : Deriving_Json_lexer.lexbuf -> a
+      val to_string : a -> string
+      val from_string : string -> a
+      val match_variant : [ `Cst of int | `NCst of int ] -> bool
+      val read_variant :
+        Deriving_Json_lexer.lexbuf -> [ `Cst of int | `NCst of int ] -> a
+    end
+  type comet_service =
+      (unit, Eliom_comet_base.comet_request, Eliom_services.service_kind,
+       [ `WithoutSuffix ], unit,
+       [ `One of Eliom_comet_base.comet_request Eliom_parameters.caml ]
+       Eliom_parameters.param_name, Eliom_services.registrable,
+       Eliom_output.http_service)
+      Eliom_services.service
+  type internal_comet_service =
+      (unit, Eliom_comet_base.comet_request,
+       Eliom_services.internal_service_kind, [ `WithoutSuffix ], unit,
+       [ `One of Eliom_comet_base.comet_request Eliom_parameters.caml ]
+       Eliom_parameters.param_name, [ `Registrable ],
+       Eliom_output.http_service)
+      Eliom_services.service
+  type stateless_kind =
+      After_kind of int
+    | Newest_kind of int
+    | Last_kind of int option
+  type 'a wrapped_channel =
+      Statefull_channel of
+        (Eliom_comet_base.comet_service * 'a Eliom_comet_base.chan_id)
+    | Stateless_channel of
+        (Eliom_comet_base.comet_service * 'a Eliom_comet_base.chan_id *
+         Eliom_comet_base.stateless_kind)
+  type 'a bus_send_service =
+      (unit, 'a list, [ `Nonattached of [ `Post ] Eliom_services.na_s ],
+       [ `WithoutSuffix ], unit,
+       [ `One of 'a list Eliom_parameters.caml ] Eliom_parameters.param_name,
+       [ `Registrable ], Eliom_output.http_service)
+      Eliom_services.service
+  type 'a wrapped_bus =
+      'a Eliom_comet_base.wrapped_channel *
+      'a Eliom_comet_base.bus_send_service
+end >>

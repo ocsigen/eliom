@@ -1,0 +1,5 @@
+=Module <<a_api_type subproject="client" | module Eliom_pervasives.SVG.DOM >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|DOM>>>> <<span class="ocsforge_color_delimiter"|~:>> \\  <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|SVG_sigs.T>>>><<span class="odocwiki_type"| with module XML := XML and type 'a elt = 'a elt\\      and type 'a attrib = 'a attrib and type uri = uri>>>>~Typed interface for building valid ~S~V~G tree ~(~D~O~M semantics~)~. ~See
+      <<a_api project="tyxml" | module type SVG_sigs.T >> ~.
+
+----

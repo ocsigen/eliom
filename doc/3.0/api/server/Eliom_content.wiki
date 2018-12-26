@@ -1,0 +1,55 @@
+=Module <<a_api_type subproject="server" | module Eliom_content >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_content>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_content >><<span class="ocsforge_color_keyword"|end>>>>~This module provides the creation of valid ~X~M~L content~, i~.e~. ~X~M~L~, ~S~V~G~,
+    and ~(~X~)~H~T~M~L~5~.
+    ~X~M~L tree manipulation within ~Eliom is based on the ~Ty~X~M~L library
+    but use a custom representation for ~X~M~L values ~(see
+    <<a_api subproject="server" | module Eliom_content.Xml >>~)~. ~Then~, <<span class="odocwiki_inlinecode"|~Eliom~_content>> redefines the three high level
+    interfaces ~(<<a_api subproject="server" | module Eliom_content.Svg >>~, <<a_api subproject="server" | module Eliom_content.Html5 >>~) that are provided by
+    ~Ty~X~M~L for valid ~X~M~L tree creation and printing~.
+
+
+    ~Modules <<a_api subproject="server" | module Eliom_content.Html5 >>~, <<a_api subproject="server" | module Eliom_content.Svg >> contain two
+    implementing sub~-modules~: <<a_api subproject="server" | module Eliom_content.Html5.F >> and <<a_api subproject="server" | module Eliom_content.Html5.D >>~.
+
+
+    
+=====@@id="5_Functionalsemantics"@@~Functional semantics=====
+
+
+
+    ~The <<span class="odocwiki_inlinecode"|~F>> modules provide functions to create elements with //f//unctional
+    semantics~: ~On the one hand side~, those values do not have an identifier~,
+    which means utilizations of those values are independent of each other~.
+    ~On the other hand side~, they cannot be referred to~, neither by client code
+    when created on the server~, nor for usage in the functions of
+    <<a_api subproject="client"|module Eliom_content.Html5.To_dom>>  and
+    <<a_api subproject="client"|module Eliom_content.Html5.Manip>> ~.
+
+
+    
+=====@@id="5_DOMsemantics"@@~D~O~M semantics=====
+
+
+
+    ~The <<span class="odocwiki_inlinecode"|~D>> modules provide functions to create elements with //~D//~O~M semantics~:
+    ~Firstly~, they behave like ~D~O~M nodes~, e~.g~. they can only be added once to the
+    ~D~O~M tree even when appended several times~.
+    ~Secondly~, those values have an identifier~,
+    which means they can be referred to
+    on the client side ~(by <<span class="odocwiki_inlinecode"|~%variable>>~) or used with the functions in
+    <<a_api subproject="client"|module Eliom_content.Html5.To_dom>>  and
+    <<a_api subproject="client"|module Eliom_content.Html5.Manip>> ~.
+
+
+    ~In case of doubt~, use the modules with ~D~O~M~-like semantics <<a_api subproject="server" | module Eliom_content.Html5.D >>~.
+
+----
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module type>> <<a_api subproject="server" text="Forms" | module type Eliom_content.Forms >> <<span class="ocsforge_color_delimiter"|~=>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module type Eliom_content.Forms >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Abstract signature for links and forms creation functions~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Xml" | module Eliom_content.Xml >> <<span class="ocsforge_color_delimiter"|~:>> \\  <<span class="odocwiki_type"|module type of <<a_api subproject="server" text="Eliom_content_core.Xml" | module Eliom_content_core.Xml >>>><<span class="odocwiki_type"| with\\    type uri = <<a_api subproject="server" text="Eliom_content_core.Xml" | module Eliom_content_core.Xml >>.uri\\  and type attrib = <<a_api subproject="server" text="Eliom_content_core.Xml" | module Eliom_content_core.Xml >>.attrib\\  and type elt = <<a_api subproject="server" text="Eliom_content_core.Xml" | module Eliom_content_core.Xml >>.elt\\  and type event_handler = <<a_api subproject="server" text="Eliom_content_core.Xml" | module Eliom_content_core.Xml >>.event_handler\\  and type event_handler_table = <<a_api subproject="server" text="Eliom_content_core.Xml" | module Eliom_content_core.Xml >>.event_handler_table\\  and\\    type (-'a) caml_event_handler =\\      'a <<a_api subproject="server" text="Eliom_content_core.Xml" | module Eliom_content_core.Xml >>.caml_event_handler>>>><<div class="odocwiki_info"|~Low~-level ~X~M~L manipulation~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Svg" | module Eliom_content.Svg >> <<span class="ocsforge_color_delimiter"|~:>> \\  <<span class="odocwiki_type"|module type of <<a_api subproject="server" text="Eliom_content_core.Svg" | module Eliom_content_core.Svg >>>><<span class="odocwiki_type"| with\\    type uri = <<a_api subproject="server" text="Eliom_content_core.Svg" | module Eliom_content_core.Svg >>.uri\\  and type 'a attrib = 'a <<a_api subproject="server" text="Eliom_content_core.Svg" | module Eliom_content_core.Svg >>.attrib\\  and type (+'a) elt = 'a <<a_api subproject="server" text="Eliom_content_core.Svg" | module Eliom_content_core.Svg >>.elt>>>><<div class="odocwiki_info"|~Building and pretty~-printing valid ~S~V~G tree~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Html5" | module Eliom_content.Html5 >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_content.Html5 >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Building and printing valid ~(~X~)~H~T~M~L~5 tree~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Html_text" | module Eliom_content.Html_text >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_content.Html_text >><<span class="ocsforge_color_keyword"|end>>>>

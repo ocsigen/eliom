@@ -1,0 +1,11 @@
+<<code language="ocaml" | sig
+  type 'a t = 'a Eliom_content_core.Html5.Custom_data.t
+  val create :
+    name:string ->
+    ?default:'a ->
+    to_string:('a -> string) -> of_string:(string -> 'a) -> unit -> 'a t
+  val create_json : name:string -> ?default:'a -> 'a Deriving_Json.t -> 'a t
+  val attrib : 'a t -> 'a -> [> `User_data ] Eliom_content_core.Html5.attrib
+  val get_dom : Dom_html.element Js.t -> 'a t -> 'a
+  val set_dom : Dom_html.element Js.t -> 'a t -> 'a -> unit
+end >>

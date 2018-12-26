@@ -1,0 +1,25 @@
+=Module <<a_api_type | module Polytables >> =
+<<div class="code"|<<span class="keyword"|module>> Polytables: <<span class='code'|sig>><<a_api text=".." | module Polytables >><<span class='code'|end>>>>~Polymorphic tables ~(using ~Map~)\\
+**Author(s):** Vincent Balat, Jérôme Vouillon\\
+
+----
+\\
+~Warning~: this module is not thread safe!\\
+<<div class="code" id="TYPEkey"|<<span class="keyword"|type>> <<span class="code type"|'a>> key>>
+<<div class="info"|~The type of key for a piece of data of type ~'a\\
+>>
+
+<<div class="code" id="TYPEt"|<<span class="keyword"|type>> t>>
+<<div class="info"|~The type of tables\\
+>>
+
+<<div id="VALcreate" class="code"|<<span class="keyword"|val>> create : <<span class="code type"|unit -> <<a_api text="t" | type Polytables.t >>>>>><<div class="info"|creates a new table\\
+>>
+<<div id="VALmake_key" class="code"|<<span class="keyword"|val>> make~_key : <<span class="code type"|unit -> 'a <<a_api text="key" | type Polytables.key >>>>>><<div class="info"|create a new key for each data you want to save\\
+>>
+<<div id="VALset" class="code"|<<span class="keyword"|val>> set : <<span class="code type"|table:<<a_api text="t" | type Polytables.t >> -> key:'a <<a_api text="key" | type Polytables.key >> -> value:'a -> unit>>>><<div class="info"|<<span class='code'|set t k v>> associates <<span class='code'|v>> to <<span class='code'|k>> in <<span class='code'|t>>\\
+>>
+<<div id="VALget" class="code"|<<span class="keyword"|val>> get : <<span class="code type"|table:<<a_api text="t" | type Polytables.t >> -> key:'a <<a_api text="key" | type Polytables.key >> -> 'a>>>><<div class="info"|<<span class='code'|get t k>> returns the current binding of <<span class='code'|k>> in <<span class='code'|t>> or raises <<span class='code'|~Not~_found>>\\
+>>
+<<div id="VALclear" class="code"|<<span class="keyword"|val>> clear : <<span class="code type"|table:<<a_api text="t" | type Polytables.t >> -> unit>>>><<div class="info"|<<span class='code'|clear t>> remove all data from t\\
+>>

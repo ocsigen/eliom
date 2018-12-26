@@ -1,0 +1,5 @@
+=Module <<a_api_type subproject="server" | module Eliom_pervasives.XHTML.M >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|M>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_pervasives.XHTML.M >><<span class="ocsforge_color_keyword"|end>>>>~Typed interface for building valid ~X~H~T~M~L ~(~Strict~) tree~.
+
+----
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> XHTML_sigs.T>>

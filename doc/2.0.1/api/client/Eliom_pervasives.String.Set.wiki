@@ -1,0 +1,3 @@
+=Module <<a_api_type subproject="client" | module Eliom_pervasives.String.Set >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Set>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Set.S>>>><<span class="odocwiki_type"| with type elt = string>>>>
+----

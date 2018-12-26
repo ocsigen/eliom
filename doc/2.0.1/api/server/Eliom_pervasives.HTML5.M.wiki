@@ -1,0 +1,9 @@
+=Module <<a_api_type subproject="server" | module Eliom_pervasives.HTML5.M >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|M>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_pervasives.HTML5.M >><<span class="ocsforge_color_keyword"|end>>>>~Type safe ~H~T~M~L~5 creation~.\\
+
+----
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> HTML5_sigs.T>>
+<<div class="odocwiki_info"|~See <<a_api project="tyxml" | module type HTML5_sigs.T >> ~.\\
+>>
+<<pre id="VALunique" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|unique>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_label"| ?copy: >>'a elt <<span class="ocsforge_color_delimiter"| -> >> 'a elt <<span class="ocsforge_color_delimiter"| -> >> 'a elt>>>><<div class="odocwiki_info"|~<~<wip~| ~.~.~. ~>~>\\
+>>

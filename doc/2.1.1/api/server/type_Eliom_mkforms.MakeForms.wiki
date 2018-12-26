@@ -1,0 +1,432 @@
+<<code language="ocaml" | functor (Pages : FORMS_PARAM) ->
+  sig
+    type uri = Pages.uri
+    val make_uri :
+      ?absolute:bool ->
+      ?absolute_path:bool ->
+      ?https:bool ->
+      service:('a, unit, [< Eliom_services.get_service_kind ],
+               [< Eliom_services.suff ], 'b, unit,
+               [< Eliom_services.registrable ], 'c)
+              Eliom_services.service ->
+      ?hostname:string ->
+      ?port:int ->
+      ?fragment:string ->
+      ?keep_nl_params:[ `All | `None | `Persistent ] ->
+      ?nl_params:Eliom_parameters.nl_params_set -> 'a -> Pages.uri
+    val make_string_uri :
+      ?absolute:bool ->
+      ?absolute_path:bool ->
+      ?https:bool ->
+      service:('a, unit, [< Eliom_services.get_service_kind ],
+               [< Eliom_services.suff ], 'b, unit,
+               [< Eliom_services.registrable ], 'c)
+              Eliom_services.service ->
+      ?hostname:string ->
+      ?port:int ->
+      ?fragment:string ->
+      ?keep_nl_params:[ `All | `None | `Persistent ] ->
+      ?nl_params:Eliom_parameters.nl_params_set -> 'a -> string
+    val uri_of_string : (unit -> string) -> Pages.uri
+    val make_uri_components :
+      ?absolute:bool ->
+      ?absolute_path:bool ->
+      ?https:bool ->
+      service:('a, unit, [< Eliom_services.get_service_kind ],
+               [< Eliom_services.suff ], 'b, unit,
+               [< Eliom_services.registrable ], 'c)
+              Eliom_services.service ->
+      ?hostname:string ->
+      ?port:int ->
+      ?fragment:string ->
+      ?keep_nl_params:[ `All | `None | `Persistent ] ->
+      ?nl_params:Eliom_parameters.nl_params_set ->
+      'a -> string * (string * string) list * string option
+    val make_post_uri_components :
+      ?absolute:bool ->
+      ?absolute_path:bool ->
+      ?https:bool ->
+      service:('a, 'b, [< Eliom_services.post_service_kind ],
+               [< Eliom_services.suff ], 'c, 'd,
+               [< Eliom_services.registrable ], 'e)
+              Eliom_services.service ->
+      ?hostname:string ->
+      ?port:int ->
+      ?fragment:string ->
+      ?keep_nl_params:[ `All | `None | `Persistent ] ->
+      ?nl_params:Eliom_parameters.nl_params_set ->
+      ?keep_get_na_params:bool ->
+      'a ->
+      'b ->
+      string * (string * string) list * string option *
+      (string * string) list
+    val make_proto_prefix : ?hostname:string -> ?port:int -> bool -> string
+    val a :
+      ?absolute:bool ->
+      ?absolute_path:bool ->
+      ?https:bool ->
+      ?a:Pages.a_attrib_t ->
+      service:('a, unit, [< Eliom_services.get_service_kind ],
+               [< Eliom_services.suff ], 'b, unit,
+               [< Eliom_services.registrable ], 'c)
+              Eliom_services.service ->
+      ?hostname:string ->
+      ?port:int ->
+      ?fragment:string ->
+      ?keep_nl_params:[ `All | `None | `Persistent ] ->
+      ?nl_params:Eliom_parameters.nl_params_set ->
+      ?xhr:bool -> 'd Pages.a_content_elt_list -> 'a -> 'd Pages.a_elt
+    val css_link :
+      ?a:Pages.link_attrib_t -> uri:Pages.uri -> unit -> Pages.link_elt
+    val js_script :
+      ?a:Pages.script_attrib_t -> uri:Pages.uri -> unit -> Pages.script_elt
+    val get_form :
+      ?absolute:bool ->
+      ?absolute_path:bool ->
+      ?https:bool ->
+      ?a:Pages.form_attrib_t ->
+      service:('a, unit, [< Eliom_services.get_service_kind ],
+               [< Eliom_services.suff ], 'b, 'c,
+               [< Eliom_services.registrable ], 'd)
+              Eliom_services.service ->
+      ?hostname:string ->
+      ?port:int ->
+      ?fragment:string ->
+      ?keep_nl_params:[ `All | `None | `Persistent ] ->
+      ?nl_params:Eliom_parameters.nl_params_set ->
+      ?xhr:bool -> ('b -> Pages.form_content_elt_list) -> Pages.form_elt
+    val lwt_get_form :
+      ?absolute:bool ->
+      ?absolute_path:bool ->
+      ?https:bool ->
+      ?a:Pages.form_attrib_t ->
+      service:('a, unit, [< Eliom_services.get_service_kind ],
+               [< Eliom_services.suff ], 'b, 'c,
+               [< Eliom_services.registrable ], 'd)
+              Eliom_services.service ->
+      ?hostname:string ->
+      ?port:int ->
+      ?fragment:string ->
+      ?keep_nl_params:[ `All | `None | `Persistent ] ->
+      ?nl_params:Eliom_parameters.nl_params_set ->
+      ?xhr:bool ->
+      ('b -> Pages.form_content_elt_list Lwt.t) -> Pages.form_elt Lwt.t
+    val post_form :
+      ?absolute:bool ->
+      ?absolute_path:bool ->
+      ?https:bool ->
+      ?a:Pages.form_attrib_t ->
+      service:('a, 'b, [< Eliom_services.post_service_kind ],
+               [< Eliom_services.suff ], 'c, 'd,
+               [< Eliom_services.registrable ], 'e)
+              Eliom_services.service ->
+      ?hostname:string ->
+      ?port:int ->
+      ?fragment:string ->
+      ?keep_nl_params:[ `All | `None | `Persistent ] ->
+      ?keep_get_na_params:bool ->
+      ?nl_params:Eliom_parameters.nl_params_set ->
+      ?xhr:bool ->
+      ('d -> Pages.form_content_elt_list) -> 'a -> Pages.form_elt
+    val lwt_post_form :
+      ?absolute:bool ->
+      ?absolute_path:bool ->
+      ?https:bool ->
+      ?a:Pages.form_attrib_t ->
+      service:('a, 'b, [< Eliom_services.post_service_kind ],
+               [< Eliom_services.suff ], 'c, 'd,
+               [< Eliom_services.registrable ], 'e)
+              Eliom_services.service ->
+      ?hostname:string ->
+      ?port:int ->
+      ?fragment:string ->
+      ?keep_nl_params:[ `All | `None | `Persistent ] ->
+      ?keep_get_na_params:bool ->
+      ?nl_params:Eliom_parameters.nl_params_set ->
+      ?xhr:bool ->
+      ('d -> Pages.form_content_elt_list Lwt.t) -> 'a -> Pages.form_elt Lwt.t
+    val int_input :
+      ?a:Pages.input_attrib_t ->
+      input_type:Pages.input_type_t ->
+      ?name:[< int Eliom_parameters.setoneradio ] Eliom_parameters.param_name ->
+      ?value:int -> unit -> Pages.input_elt
+    val int32_input :
+      ?a:Pages.input_attrib_t ->
+      input_type:Pages.input_type_t ->
+      ?name:[< int32 Eliom_parameters.setoneradio ]
+            Eliom_parameters.param_name ->
+      ?value:int32 -> unit -> Pages.input_elt
+    val int64_input :
+      ?a:Pages.input_attrib_t ->
+      input_type:Pages.input_type_t ->
+      ?name:[< int64 Eliom_parameters.setoneradio ]
+            Eliom_parameters.param_name ->
+      ?value:int64 -> unit -> Pages.input_elt
+    val float_input :
+      ?a:Pages.input_attrib_t ->
+      input_type:Pages.input_type_t ->
+      ?name:[< float Eliom_parameters.setoneradio ]
+            Eliom_parameters.param_name ->
+      ?value:float -> unit -> Pages.input_elt
+    val string_input :
+      ?a:Pages.input_attrib_t ->
+      input_type:Pages.input_type_t ->
+      ?name:[< string Eliom_parameters.setoneradio ]
+            Eliom_parameters.param_name ->
+      ?value:string -> unit -> Pages.input_elt
+    val user_type_input :
+      ('a -> string) ->
+      ?a:Pages.input_attrib_t ->
+      input_type:Pages.input_type_t ->
+      ?name:[< 'a Eliom_parameters.setoneradio ] Eliom_parameters.param_name ->
+      ?value:'a -> unit -> Pages.input_elt
+    val raw_input :
+      ?a:Pages.input_attrib_t ->
+      input_type:Pages.input_type_t ->
+      ?name:string -> ?value:string -> unit -> Pages.input_elt
+    val file_input :
+      ?a:Pages.input_attrib_t ->
+      name:[< Eliom_pervasives.file_info Eliom_parameters.setoneradio ]
+           Eliom_parameters.param_name ->
+      unit -> Pages.input_elt
+    val image_input :
+      ?a:Pages.input_attrib_t ->
+      name:[< Eliom_parameters.coordinates Eliom_parameters.oneradio ]
+           Eliom_parameters.param_name ->
+      ?src:Pages.uri -> unit -> Pages.input_elt
+    val int_image_input :
+      ?a:Pages.input_attrib_t ->
+      name:[< (int * Eliom_parameters.coordinates) Eliom_parameters.oneradio ]
+           Eliom_parameters.param_name ->
+      value:int -> ?src:Pages.uri -> unit -> Pages.input_elt
+    val int32_image_input :
+      ?a:Pages.input_attrib_t ->
+      name:[< (int32 * Eliom_parameters.coordinates)
+              Eliom_parameters.oneradio ]
+           Eliom_parameters.param_name ->
+      value:int32 -> ?src:Pages.uri -> unit -> Pages.input_elt
+    val int64_image_input :
+      ?a:Pages.input_attrib_t ->
+      name:[< (int64 * Eliom_parameters.coordinates)
+              Eliom_parameters.oneradio ]
+           Eliom_parameters.param_name ->
+      value:int64 -> ?src:Pages.uri -> unit -> Pages.input_elt
+    val float_image_input :
+      ?a:Pages.input_attrib_t ->
+      name:[< (float * Eliom_parameters.coordinates)
+              Eliom_parameters.oneradio ]
+           Eliom_parameters.param_name ->
+      value:float -> ?src:Pages.uri -> unit -> Pages.input_elt
+    val string_image_input :
+      ?a:Pages.input_attrib_t ->
+      name:[< (string * Eliom_parameters.coordinates)
+              Eliom_parameters.oneradio ]
+           Eliom_parameters.param_name ->
+      value:string -> ?src:Pages.uri -> unit -> Pages.input_elt
+    val user_type_image_input :
+      ('a -> string) ->
+      ?a:Pages.input_attrib_t ->
+      name:[< ('a * Eliom_parameters.coordinates) Eliom_parameters.oneradio ]
+           Eliom_parameters.param_name ->
+      value:'a -> ?src:Pages.uri -> unit -> Pages.input_elt
+    val raw_image_input :
+      ?a:Pages.input_attrib_t ->
+      name:string ->
+      value:string -> ?src:Pages.uri -> unit -> Pages.input_elt
+    val bool_checkbox :
+      ?a:Pages.input_attrib_t ->
+      ?checked:bool ->
+      name:[ `One of bool ] Eliom_parameters.param_name ->
+      unit -> Pages.input_elt
+    val int_checkbox :
+      ?a:Pages.input_attrib_t ->
+      ?checked:bool ->
+      name:[ `Set of int ] Eliom_parameters.param_name ->
+      value:int -> unit -> Pages.input_elt
+    val int32_checkbox :
+      ?a:Pages.input_attrib_t ->
+      ?checked:bool ->
+      name:[ `Set of int32 ] Eliom_parameters.param_name ->
+      value:int32 -> unit -> Pages.input_elt
+    val int64_checkbox :
+      ?a:Pages.input_attrib_t ->
+      ?checked:bool ->
+      name:[ `Set of int64 ] Eliom_parameters.param_name ->
+      value:int64 -> unit -> Pages.input_elt
+    val float_checkbox :
+      ?a:Pages.input_attrib_t ->
+      ?checked:bool ->
+      name:[ `Set of float ] Eliom_parameters.param_name ->
+      value:float -> unit -> Pages.input_elt
+    val string_checkbox :
+      ?a:Pages.input_attrib_t ->
+      ?checked:bool ->
+      name:[ `Set of string ] Eliom_parameters.param_name ->
+      value:string -> unit -> Pages.input_elt
+    val user_type_checkbox :
+      ('a -> string) ->
+      ?a:Pages.input_attrib_t ->
+      ?checked:bool ->
+      name:[ `Set of 'a ] Eliom_parameters.param_name ->
+      value:'a -> unit -> Pages.input_elt
+    val raw_checkbox :
+      ?a:Pages.input_attrib_t ->
+      ?checked:bool -> name:string -> value:string -> unit -> Pages.input_elt
+    val string_radio :
+      ?a:Pages.input_attrib_t ->
+      ?checked:bool ->
+      name:[ `Radio of string ] Eliom_parameters.param_name ->
+      value:string -> unit -> Pages.input_elt
+    val int_radio :
+      ?a:Pages.input_attrib_t ->
+      ?checked:bool ->
+      name:[ `Radio of int ] Eliom_parameters.param_name ->
+      value:int -> unit -> Pages.input_elt
+    val int32_radio :
+      ?a:Pages.input_attrib_t ->
+      ?checked:bool ->
+      name:[ `Radio of int32 ] Eliom_parameters.param_name ->
+      value:int32 -> unit -> Pages.input_elt
+    val int64_radio :
+      ?a:Pages.input_attrib_t ->
+      ?checked:bool ->
+      name:[ `Radio of int64 ] Eliom_parameters.param_name ->
+      value:int64 -> unit -> Pages.input_elt
+    val float_radio :
+      ?a:Pages.input_attrib_t ->
+      ?checked:bool ->
+      name:[ `Radio of float ] Eliom_parameters.param_name ->
+      value:float -> unit -> Pages.input_elt
+    val user_type_radio :
+      ('a -> string) ->
+      ?a:Pages.input_attrib_t ->
+      ?checked:bool ->
+      name:[ `Radio of 'a ] Eliom_parameters.param_name ->
+      value:'a -> unit -> Pages.input_elt
+    val raw_radio :
+      ?a:Pages.input_attrib_t ->
+      ?checked:bool -> name:string -> value:string -> unit -> Pages.input_elt
+    val string_button :
+      ?a:Pages.button_attrib_t ->
+      name:[< string Eliom_parameters.setone ] Eliom_parameters.param_name ->
+      value:string -> Pages.button_content_elt_list -> Pages.button_elt
+    val int_button :
+      ?a:Pages.button_attrib_t ->
+      name:[< int Eliom_parameters.setone ] Eliom_parameters.param_name ->
+      value:int -> Pages.button_content_elt_list -> Pages.button_elt
+    val int32_button :
+      ?a:Pages.button_attrib_t ->
+      name:[< int32 Eliom_parameters.setone ] Eliom_parameters.param_name ->
+      value:int32 -> Pages.button_content_elt_list -> Pages.button_elt
+    val int64_button :
+      ?a:Pages.button_attrib_t ->
+      name:[< int64 Eliom_parameters.setone ] Eliom_parameters.param_name ->
+      value:int64 -> Pages.button_content_elt_list -> Pages.button_elt
+    val float_button :
+      ?a:Pages.button_attrib_t ->
+      name:[< float Eliom_parameters.setone ] Eliom_parameters.param_name ->
+      value:float -> Pages.button_content_elt_list -> Pages.button_elt
+    val user_type_button :
+      ('a -> string) ->
+      ?a:Pages.button_attrib_t ->
+      name:[< 'a Eliom_parameters.setone ] Eliom_parameters.param_name ->
+      value:'a -> Pages.button_content_elt_list -> Pages.button_elt
+    val raw_button :
+      ?a:Pages.button_attrib_t ->
+      button_type:Pages.button_type_t ->
+      name:string ->
+      value:string -> Pages.button_content_elt_list -> Pages.button_elt
+    val button :
+      ?a:Pages.button_attrib_t ->
+      button_type:Pages.button_type_t ->
+      Pages.button_content_elt_list -> Pages.button_elt
+    val textarea :
+      ?a:Pages.textarea_attrib_t ->
+      name:[< string Eliom_parameters.setoneradio ]
+           Eliom_parameters.param_name ->
+      ?value:string -> rows:int -> cols:int -> unit -> Pages.textarea_elt
+    val raw_textarea :
+      ?a:Pages.textarea_attrib_t ->
+      name:string ->
+      ?value:string -> rows:int -> cols:int -> unit -> Pages.textarea_elt
+    type 'a soption =
+        Pages.option_attrib_t * 'a * Pages.pcdata_elt option * bool
+    type 'a select_opt =
+        Optgroup of Pages.optgroup_attrib_t * string *
+          'a Eliom_mkforms.MakeForms.soption *
+          'a Eliom_mkforms.MakeForms.soption list
+      | Option of 'a Eliom_mkforms.MakeForms.soption
+    val int_select :
+      ?a:Pages.select_attrib_t ->
+      name:[< `One of int ] Eliom_parameters.param_name ->
+      int Eliom_mkforms.MakeForms.select_opt ->
+      int Eliom_mkforms.MakeForms.select_opt list -> Pages.select_elt
+    val int32_select :
+      ?a:Pages.select_attrib_t ->
+      name:[< `One of int32 ] Eliom_parameters.param_name ->
+      int32 Eliom_mkforms.MakeForms.select_opt ->
+      int32 Eliom_mkforms.MakeForms.select_opt list -> Pages.select_elt
+    val int64_select :
+      ?a:Pages.select_attrib_t ->
+      name:[< `One of int64 ] Eliom_parameters.param_name ->
+      int64 Eliom_mkforms.MakeForms.select_opt ->
+      int64 Eliom_mkforms.MakeForms.select_opt list -> Pages.select_elt
+    val float_select :
+      ?a:Pages.select_attrib_t ->
+      name:[< `One of float ] Eliom_parameters.param_name ->
+      float Eliom_mkforms.MakeForms.select_opt ->
+      float Eliom_mkforms.MakeForms.select_opt list -> Pages.select_elt
+    val string_select :
+      ?a:Pages.select_attrib_t ->
+      name:[< `One of string ] Eliom_parameters.param_name ->
+      string Eliom_mkforms.MakeForms.select_opt ->
+      string Eliom_mkforms.MakeForms.select_opt list -> Pages.select_elt
+    val user_type_select :
+      ('a -> string) ->
+      ?a:Pages.select_attrib_t ->
+      name:[< `One of 'a ] Eliom_parameters.param_name ->
+      'a Eliom_mkforms.MakeForms.select_opt ->
+      'a Eliom_mkforms.MakeForms.select_opt list -> Pages.select_elt
+    val raw_select :
+      ?a:Pages.select_attrib_t ->
+      name:string ->
+      string Eliom_mkforms.MakeForms.select_opt ->
+      string Eliom_mkforms.MakeForms.select_opt list -> Pages.select_elt
+    val int_multiple_select :
+      ?a:Pages.select_attrib_t ->
+      name:[< `Set of int ] Eliom_parameters.param_name ->
+      int Eliom_mkforms.MakeForms.select_opt ->
+      int Eliom_mkforms.MakeForms.select_opt list -> Pages.select_elt
+    val int32_multiple_select :
+      ?a:Pages.select_attrib_t ->
+      name:[< `Set of int32 ] Eliom_parameters.param_name ->
+      int32 Eliom_mkforms.MakeForms.select_opt ->
+      int32 Eliom_mkforms.MakeForms.select_opt list -> Pages.select_elt
+    val int64_multiple_select :
+      ?a:Pages.select_attrib_t ->
+      name:[< `Set of int64 ] Eliom_parameters.param_name ->
+      int64 Eliom_mkforms.MakeForms.select_opt ->
+      int64 Eliom_mkforms.MakeForms.select_opt list -> Pages.select_elt
+    val float_multiple_select :
+      ?a:Pages.select_attrib_t ->
+      name:[< `Set of float ] Eliom_parameters.param_name ->
+      float Eliom_mkforms.MakeForms.select_opt ->
+      float Eliom_mkforms.MakeForms.select_opt list -> Pages.select_elt
+    val string_multiple_select :
+      ?a:Pages.select_attrib_t ->
+      name:[< `Set of string ] Eliom_parameters.param_name ->
+      string Eliom_mkforms.MakeForms.select_opt ->
+      string Eliom_mkforms.MakeForms.select_opt list -> Pages.select_elt
+    val user_type_multiple_select :
+      ('a -> string) ->
+      ?a:Pages.select_attrib_t ->
+      name:[< `Set of 'a ] Eliom_parameters.param_name ->
+      'a Eliom_mkforms.MakeForms.select_opt ->
+      'a Eliom_mkforms.MakeForms.select_opt list -> Pages.select_elt
+    val raw_multiple_select :
+      ?a:Pages.select_attrib_t ->
+      name:string ->
+      string Eliom_mkforms.MakeForms.select_opt ->
+      string Eliom_mkforms.MakeForms.select_opt list -> Pages.select_elt
+    val a_for : 'a Eliom_parameters.param_name -> Pages.for_attrib
+  end >>

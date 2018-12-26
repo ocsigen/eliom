@@ -1,0 +1,16 @@
+<<code language="ocaml" | sig
+  val appendChild :
+    ?before:'a Eliom_content.Svg.elt ->
+    'b Eliom_content.Svg.Id.id -> 'c Eliom_content.Svg.elt -> unit
+  val appendChildren :
+    ?before:'a Eliom_content.Svg.elt ->
+    'b Eliom_content.Svg.Id.id -> 'c Eliom_content.Svg.elt list -> unit
+  val removeChild :
+    'a Eliom_content.Svg.Id.id -> 'b Eliom_content.Svg.elt -> unit
+  val replaceChild :
+    'a Eliom_content.Svg.Id.id ->
+    'b Eliom_content.Svg.elt -> 'c Eliom_content.Svg.elt -> unit
+  val removeChildren : 'a Eliom_content.Svg.Id.id -> unit
+  val replaceChildren :
+    'a Eliom_content.Svg.Id.id -> 'b Eliom_content.Svg.elt list -> unit
+end >>

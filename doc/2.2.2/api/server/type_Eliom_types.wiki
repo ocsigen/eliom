@@ -1,0 +1,22 @@
+<<code language="ocaml" | sig
+  type sitedata = { site_dir : string list; site_dir_string : string; }
+  type server_params
+  val sp : Eliom_types.server_params
+  val jsmarshal : 'a -> string
+  type eliom_js_page_data = {
+    ejs_event_handler_table : Eliom_content_core.Xml.event_handler_table;
+    ejs_onload :
+      Dom_html.event Eliom_content_core.Xml.caml_event_handler list;
+    ejs_onunload :
+      Dom_html.event Eliom_content_core.Xml.caml_event_handler list;
+    ejs_sess_info : Eliom_common.sess_info;
+  }
+  type 'a eliom_caml_service_data = {
+    ecs_onload :
+      Dom_html.event Eliom_content_core.Xml.caml_event_handler list;
+    ecs_data : 'a;
+  }
+  type 'a eliom_comet_data_type = 'a Eliom_wrap.wrapped_value
+  val encode_eliom_data : 'a -> string
+  val string_escape : string -> string
+end >>

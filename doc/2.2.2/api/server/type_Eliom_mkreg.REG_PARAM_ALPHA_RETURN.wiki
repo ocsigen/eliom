@@ -1,0 +1,18 @@
+<<code language="ocaml" | sig
+  type ('a, 'b) page
+  type 'a return
+  type ('a, 'b) result
+  type options
+  val send :
+    ?options:Eliom_mkreg.REG_PARAM_ALPHA_RETURN.options ->
+    ?charset:string ->
+    ?code:int ->
+    ?content_type:string ->
+    ?headers:Http_headers.t ->
+    ('a, 'b) Eliom_mkreg.REG_PARAM_ALPHA_RETURN.page ->
+    Ocsigen_http_frame.result Lwt.t
+  val send_appl_content : Eliom_service.send_appl_content
+  val result_of_http_result :
+    Ocsigen_http_frame.result ->
+    ('a, 'b) Eliom_mkreg.REG_PARAM_ALPHA_RETURN.result
+end >>

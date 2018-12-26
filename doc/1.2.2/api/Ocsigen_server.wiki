@@ -1,0 +1,6 @@
+=Module <<a_api_type | module Ocsigen_server >> =
+<<div class="code"|<<span class="keyword"|module>> Ocsigen_server: <<span class='code'|sig>><<a_api text=".." | module Ocsigen_server >><<span class='code'|end>>>>~Reload the configuration of the server\\
+
+----
+<<div id="VALreload" class="code"|<<span class="keyword"|val>> reload : <<span class="code type"|unit -> unit>>>><<div id="VALstart_server" class="code"|<<span class="keyword"|val>> start~_server : <<span class="code type"|unit -> unit>>>><<div class="info"|~Start the server ~(does not return~)\\
+>>

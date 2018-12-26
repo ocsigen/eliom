@@ -1,0 +1,26 @@
+=Module <<a_api_type subproject="server" | module Eliom_bus >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_bus>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_bus >><<span class="ocsforge_color_keyword"|end>>>>~Broadcasting facilities between clients and server
+
+----
+<<pre class="ocsforge_color odocwiki_code" id="TYPEt"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|'a>> <<span class="odocwiki_name"|t>>>><<div class="odocwiki_info"|~The type of bus~'s carrying values of type <<span class="odocwiki_inlinecode"|~'a>>~. ~Bus~'s are values
+    that can be easily shared among clients~. ~Each of these clients
+    along with the server can send a value on the bus~. ~Values can be
+    received by each of the participants as a stream~. ~Note that no
+    effort is put to order message receptions on the different
+    participants~.
+>>
+<<pre id="VALcreate" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|create>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?scope: >>[< <<a_api subproject="server" text="Eliom_comet.Channels.comet_scope" | type Eliom_comet.Channels.comet_scope >> ] <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?name: >>string <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_label"| ?size: >>int <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_uid"|Deriving_Json>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>> <<span class="ocsforge_color_delimiter"| -> >> 'a <<a_api subproject="server" text="t" | type Eliom_bus.t >>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|create ~?scope ~?name>> makes a fresh bus~. ~The <<span class="odocwiki_inlinecode"|name>> optional
+    parameter can be used to make persistent ~(as in server restart
+    persistent~) bus~'s~. ~The <<span class="odocwiki_inlinecode"|scope>> parameter is used to chose the kind
+    of channel on which the bus rely ~(~See <<span class="odocwiki_inlinecode"|~Eliom~_comet~.create>> for
+    more information~)~. ~The <<span class="odocwiki_inlinecode"|~?name>> argument allow one to make bus~'s
+    persistent over server restart~.
+>>
+<<pre id="VALstream" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|stream>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|'a <<a_api subproject="server" text="t" | type Eliom_bus.t >> <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_uid"|Lwt_stream>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|stream b>> returns the stream of datas sent to bus <<span class="odocwiki_inlinecode"|b>>~. ~Notice you
+    sould not use that function multiple times on the same bus~, it will
+    return the same stream~. ~If you want to receive mutiple times the
+    same datas~, you sould copy the stream with <<span class="odocwiki_inlinecode"|~Lwt~_stream~.clone>>
+>>
+<<pre id="VALwrite" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|write>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|'a <<a_api subproject="server" text="t" | type Eliom_bus.t >> <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|write b x>> sends the value <<span class="odocwiki_inlinecode"|x>> on the bus <<span class="odocwiki_inlinecode"|b>>~. ~Every participant~,
+    including the server~, will receive <<span class="odocwiki_inlinecode"|x>>~.
+>>

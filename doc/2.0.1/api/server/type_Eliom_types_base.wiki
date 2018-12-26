@@ -1,0 +1,15 @@
+<<code language="ocaml" | sig
+  type sitedata = {
+    site_dir : Eliom_pervasives.Url.path;
+    site_dir_string : string;
+  }
+  type server_params
+  val sp : Eliom_types_base.server_params
+  type eliom_js_page_data = {
+    ejs_ref_tree : Eliom_pervasives.XML.ref_tree;
+    ejs_onload : Eliom_pervasives.XML.event list;
+    ejs_onunload : Eliom_pervasives.XML.event list;
+    ejs_sess_info : Eliom_common.sess_info;
+  }
+  type 'a eliom_comet_data_type = 'a Eliom_wrap.wrapped_value
+end >>

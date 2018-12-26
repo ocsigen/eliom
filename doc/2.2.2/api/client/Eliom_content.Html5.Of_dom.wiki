@@ -1,0 +1,5 @@
+=Module <<a_api_type subproject="client" | module Eliom_content.Html5.Of_dom >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Of_dom>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|module type of <<a_api subproject="client" text="Eliom_content_core.Html5.Of_dom" | module Eliom_content_core.Html5.Of_dom >>>>>>~Conversion functions from ~D~O~M nodes ~(<<a_api project="js_of_ocaml"| type Dom_html.element>>  <<a_api
+      project="js_of_ocaml"| type Js.t>> ~) to ~Eliom nodes ~(<<a_api | type Eliom_content.Html5.elt>> ~)~.
+
+----

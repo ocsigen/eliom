@@ -1,0 +1,5 @@
+<<code language="ocaml" | sig
+  type 'a t = 'a React.E.t
+  val set_handle_react_exn_function :
+    (?exn:exn -> unit -> unit Lwt.t) -> unit
+end >>

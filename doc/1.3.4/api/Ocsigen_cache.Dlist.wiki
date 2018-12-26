@@ -1,0 +1,38 @@
+=Module <<a_api_type | module Ocsigen_cache.Dlist >> =
+<<div class="code"|<<span class="keyword"|module>> Dlist: <<span class='code'|sig>><<a_api text=".." | module Ocsigen_cache.Dlist >><<span class='code'|end>>>>~Doubly~-linked lists with maximum size~.\\
+
+----
+<<div class="code" id="TYPEt"|<<span class="keyword"|type>> <<span class="code type"|'a>> t>>
+
+<<div class="code" id="TYPEnode"|<<span class="keyword"|type>> <<span class="code type"|'a>> node>>
+
+<<div id="VALcreate" class="code"|<<span class="keyword"|val>> create : <<span class="code type"|int -> 'a <<a_api text="t" | type Ocsigen_cache.Dlist.t >>>>>><<div id="VALadd" class="code"|<<span class="keyword"|val>> add : <<span class="code type"|'a -> 'a <<a_api text="t" | type Ocsigen_cache.Dlist.t >> -> 'a option>>>><<div class="info"|~Adds an element to the list~, 
+      and possibly returns the element that has been removed if the maximum
+      size was exceeded~.\\
+>>
+<<div id="VALremove" class="code"|<<span class="keyword"|val>> remove : <<span class="code type"|'a <<a_api text="node" | type Ocsigen_cache.Dlist.node >> -> unit>>>><<div class="info"|~Removes an element from its list~.
+      ~If it is not in a list~, it does nothing~.
+      ~If it is in a list~, it calls the finaliser~, then removes the element~.
+      ~If the finaliser fails with an exception~, 
+      the element is removed and the exception is raised again~.\\
+>>
+<<div id="VALup" class="code"|<<span class="keyword"|val>> up : <<span class="code type"|'a <<a_api text="node" | type Ocsigen_cache.Dlist.node >> -> unit>>>><<div class="info"|~Removes the element from its list without finalising~, 
+      then adds it as newest~.\\
+>>
+<<div id="VALnewest" class="code"|<<span class="keyword"|val>> newest : <<span class="code type"|'a <<a_api text="t" | type Ocsigen_cache.Dlist.t >> -> 'a <<a_api text="node" | type Ocsigen_cache.Dlist.node >> option>>>><<div id="VALoldest" class="code"|<<span class="keyword"|val>> oldest : <<span class="code type"|'a <<a_api text="t" | type Ocsigen_cache.Dlist.t >> -> 'a <<a_api text="node" | type Ocsigen_cache.Dlist.node >> option>>>><<div id="VALsize" class="code"|<<span class="keyword"|val>> size : <<span class="code type"|'a <<a_api text="t" | type Ocsigen_cache.Dlist.t >> -> int>>>><<div id="VALmaxsize" class="code"|<<span class="keyword"|val>> maxsize : <<span class="code type"|'a <<a_api text="t" | type Ocsigen_cache.Dlist.t >> -> int>>>><<div id="VALvalue" class="code"|<<span class="keyword"|val>> value : <<span class="code type"|'a <<a_api text="node" | type Ocsigen_cache.Dlist.node >> -> 'a>>>><<div id="VALlist_of" class="code"|<<span class="keyword"|val>> list~_of : <<span class="code type"|'a <<a_api text="node" | type Ocsigen_cache.Dlist.node >> -> 'a <<a_api text="t" | type Ocsigen_cache.Dlist.t >> option>>>><<div class="info"|~The list to which the node belongs\\
+>>
+<<div id="VALremove_n_oldest" class="code"|<<span class="keyword"|val>> remove~_n~_oldest : <<span class="code type"|'a <<a_api text="t" | type Ocsigen_cache.Dlist.t >> -> int -> 'a list>>>><<div class="info"|remove the n oldest values ~(or less if the list is not long enough~) ~;
+      returns the list of removed values\\
+>>
+<<div id="VALmove" class="code"|<<span class="keyword"|val>> move : <<span class="code type"|'a <<a_api text="node" | type Ocsigen_cache.Dlist.node >> -> 'a <<a_api text="t" | type Ocsigen_cache.Dlist.t >> -> 'a option>>>><<div class="info"|~Move a node from one dlist to another one~, without finalizing~.
+      ~If one value is removed from the destination list ~(because its
+      maximum size is reached~)~, it is returned ~(after finalisation~)~.\\
+>>
+<<div id="VALset_maxsize" class="code"|<<span class="keyword"|val>> set~_maxsize : <<span class="code type"|'a <<a_api text="t" | type Ocsigen_cache.Dlist.t >> -> int -> 'a list>>>><<div class="info"|change the maximum size ~;
+      returns the list of removed values~, if any~.\\
+>>
+<<div id="VALset_finaliser" class="code"|<<span class="keyword"|val>> set~_finaliser : <<span class="code type"|('a <<a_api text="node" | type Ocsigen_cache.Dlist.node >> -> unit) -> 'a <<a_api text="t" | type Ocsigen_cache.Dlist.t >> -> unit>>>><<div class="info"|set a function to be called automatically on a piece of data
+      just before it disappears from the list
+      ~(either by explicit removal or because the maximum size is exceeded~)\\
+>>
+<<div id="VALget_finaliser" class="code"|<<span class="keyword"|val>> get~_finaliser : <<span class="code type"|'a <<a_api text="t" | type Ocsigen_cache.Dlist.t >> -> 'a <<a_api text="node" | type Ocsigen_cache.Dlist.node >> -> unit>>>>

@@ -1,0 +1,3 @@
+=Module <<a_api_type subproject="server" | module Eliom_pervasives.XHTML.P_01_00_compat >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|P_01_00_compat>>>> <<span class="ocsforge_color_delimiter"|~:>> \\  <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|XML_sigs.TypedSimplePrinter>>>><<span class="odocwiki_type"|\\                   with type 'a elt := 'a M_01_00.elt\\		    and type doc := M_01_00.doc>>>>
+----

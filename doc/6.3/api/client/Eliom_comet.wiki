@@ -1,0 +1,41 @@
+=Module <<a_api_type subproject="client" | module Eliom_comet >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_comet>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_comet >><<span class="ocsforge_color_keyword"|end>>>>~Handle unsolicited server to client communications~.
+
+
+    ~See the ~Eliom manual for a detailed introduction to the concept of
+    <<a_manual chapter="clientserver-communication"|client server communication>>~.
+
+----
+
+~When the page is not active the client stops making comet requests
+    to the server~, implying that the client can~'t be notified by the
+    server anymore~. ~The activity status is changed when the page is
+    focused or unfocused~.
+
+
+    ~To stop receiving inputs from a channel~, use ~Lwt~.cancel on a
+    thread waiting for data~. ~For instance~, if you iterate with
+    <<span class="odocwiki_inlinecode"| let t ~= ~Lwt~_stream~.iter f ~%channel >> calling <<span class="odocwiki_inlinecode"|~Lwt~.cancel t>>
+    will close the channel~.
+<<pre id="EXCEPTIONChannel_full" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|exception>> <<span class="odocwiki_name"|Channel_full>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|~Channel~_full>> is raised when trying to read on a channel marked
+    full by the server~. ~It is not possible to read anything else from a
+    full channel~.
+>>
+<<pre id="EXCEPTIONChannel_closed" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|exception>> <<span class="odocwiki_name"|Channel_closed>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|~Channel~_closed>> is raised when reading on a channel and the
+    server side of the application closed channel ~( the server was restarted~,
+    a session was closed~, or a stateless channel was garbage collected~)~.
+>>
+<<pre id="VALis_active" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|is~_active>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> [ `Active | `Idle | `Inactive ]>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|is~_active ~(~)>> returns the current activity state
+>>
+<<pre id="VALactivate" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|activate>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|if the client is inactive <<span class="odocwiki_inlinecode"|activate ~(~)>> launch a new xhr
+    connection to start receiving server messages
+>>
+<<pre id="VALset_handle_exn_function" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|set~_handle~_exn~_function>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >><<span class="ocsforge_color_label"| ?exn: >>exn <<span class="ocsforge_color_delimiter"| -> >> unit <<span class="ocsforge_color_delimiter"| -> >> unit <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>><<span class="ocsforge_color_delimiter"| ) >> <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|~Makes possible to customize the function called when comet fails
+    for unknown reason~.
+    ~The usual practice is to warn the user and ask to reload the page~.
+    ~This function is not called when a channel is full or closed~.
+    ~It is called only once~, for the first exception~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="client" text="Configuration" | module Eliom_comet.Configuration >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_comet.Configuration >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Change the reactivity of channels~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="client" text="Channel" | module Eliom_comet.Channel >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_comet.Channel >><<span class="ocsforge_color_keyword"|end>>>>

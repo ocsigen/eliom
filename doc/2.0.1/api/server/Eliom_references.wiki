@@ -1,0 +1,44 @@
+=Module <<a_api_type subproject="server" | module Eliom_references >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_references>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_references >><<span class="ocsforge_color_keyword"|end>>>>
+==@@id="2_ServersidestatedataEliomreferences"@@~Server side state data~: ~Eliom references==
+\\
+
+----
+\\
+//~Warning~: ~Eliom references of scope <<span class="odocwiki_inlinecode"|`~Global>> or <<span class="odocwiki_inlinecode"|`~Request>> may be created
+    and accessed at any time~.
+    ~For other scopes~, they must be created or accessed when the site
+    information is available to ~Eliom~, that is~, either during the initialization
+    phase of the server ~(while reading the configuration file~) or during
+    a request~. ~Otherwise~, it will raise the exception
+    <<a_api subproject="server" | exception Eliom_common.Eliom_site_information_not_available >>~.
+    ~If you are using static linking~, you must delay the call to this function
+    until the configuration file is read~, using
+    <<a_api subproject="server" | val Eliom_services.register_eliom_module >>~. ~Otherwise you will also get
+    this exception~.//\\
+<<pre class="ocsforge_color odocwiki_code" id="TYPEeref"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|'a>> <<span class="odocwiki_name"|eref>>>><<div class="odocwiki_info"|~The type of ~Eliom references~.\\
+>>
+<<pre id="VALeref" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|eref>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| scope: >>[< <<a_api subproject="server" text="Eliom_common.all_scope" | type Eliom_common.all_scope >> ] <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?secure: >>bool <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_label"| ?persistent: >>string <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_delimiter"| -> >> 'a <<a_api subproject="server" text="eref" | type Eliom_references.eref >>>>>><<div class="odocwiki_info"|~Create an ~Eliom reference for the given scope~.\\
+
+
+    ~Use the optional parameter <<span class="odocwiki_inlinecode"|~?persistent>> if you want the data to survive
+    after relaunching the server~. ~You must give an unique name to the
+    table in which it will be stored on the hard disk ~(using ~Ocsipersist~)~.
+    ~Be very careful to use unique names~, and to change the name if
+    you change the type of the data~, otherwise the server may crash
+    ~(unsafe unmarshaling~)~.
+    ~This parameter has no effect for scope <<span class="odocwiki_inlinecode"|`~Request>>~.\\
+
+
+    ~Use the optional parameter <<span class="odocwiki_inlinecode"|~?secure>> if you want the data to be available
+    only using ~H~T~T~P~S ~(default~: false~)~. ~It has no effect for scopes <<span class="odocwiki_inlinecode"|`~Global>>
+    and <<span class="odocwiki_inlinecode"|`~Request>>~.\\
+>>
+<<pre id="VALget" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|'a <<a_api subproject="server" text="eref" | type Eliom_references.eref >> <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|~Get the value of an ~Eliom reference~.\\
+>>
+<<pre id="VALset" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|set>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|'a <<a_api subproject="server" text="eref" | type Eliom_references.eref >> <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_delimiter"| -> >> unit <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|~Change the value of an ~Eliom reference~.\\
+>>
+<<pre id="VALunset" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|unset>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|'a <<a_api subproject="server" text="eref" | type Eliom_references.eref >> <<span class="ocsforge_color_delimiter"| -> >> unit <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|~Turn back to the default value
+    ~(by removing the entry in the server side table in the case where
+    they are stored in a table~)~.\\
+>>

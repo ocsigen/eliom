@@ -1,0 +1,138 @@
+=@@id="wrapping"@@Wrapping =
+
+Reading of this chapter isn't mandatory for writing eliom
+application. It's worth a reading however before hacking in the eliom
+codebase.
+
+<<outline depth="2"| <<header| **Table of contents** >> >>
+
+
+== Basics ==
+
+The server side of Eliom can communicates to the client other kind of
+data than the raw XML contents of the pages. The wrapper mecanism is
+used to allow the browser side to access to the contents of variables
+declared on server side. For instance when we write
+<<code language="ocaml"| ignore {unit{ Dom_html.window##alert(Js.string %text) }} >>
+the contents of the {{{text}}} variable is sent along the page for the client code to access it.
+
+Server side, when <<code language="ocaml"| {{ Dom_html.window##alert(Js.string %text) }} >>
+is executed, the variable {{{text}}} is registered into a table and an id is associated to it.
+This table will containt all the datas references by variables annotated with % in a page, and
+will be sent marshalled to the client. On client side the id will be used to retrieve {{{text}}}.
+
+Since all datas are sent in one table, if a variable is referenced
+multiples times, it will be sent only once, and sharing will be preserved:
+
+<<code language="ocaml"|let a = ref 0 in
+let b = (1,a) in
+ignore {unit{
+  %a := 42;
+  Dom_html.window##alert(Js.string (string_of_int (snd (%b))))
+}}
+>>
+
+This code will display 42. After being sent, the client and server
+side values are distinct: the server side version of {{{a}}} won't be
+modified by the client side affectation and conversly the client side
+value won't change if {{{a}}} is changed later on server side.
+
+== Special types ==
+
+=== Custom wrappers ===
+
+Usualy, client and server side values are represented the same way,
+and it is sufficient to only copy their content ( marshalled ) to the
+client. But certain types can't be transmitted this easilly: for
+instance, services.
+
+Those values must be transformed before marshalling: We need for this to use
+custom wrappers. This wrapping mechanism is defined in
+<<a_api | module Eliom_wrap >>.
+
+Before sending, the values goes throught <<a_api | val Eliom_wrap.wrap>>
+which transform marked values. A value marked is a value which have as its last field
+a value of type <<a_api | type Eliom_wrap.wrapper >>. For instance
+<<code language="ocaml"|type marked_tupple = ( int * ... * marked_tupple Eliom_wrap.wrapper )
+type marked_record =
+     { f1 : int;
+          ...
+       fn : marked_record Eliom_wrap.wrapper }
+>>
+but not
+<<code language="ocaml"|type not_marked_tupple = ( int * ... * marked_tupple Eliom_wrap.wrapper * float )
+type not_marked_tupple = ( int * ... * ( int * marked_tupple Eliom_wrap.wrapper ) )
+type not_marked_tupple = ( int * ... * marked_tupple Eliom_wrap.wrapper list )
+type not_marked_record =
+     { f1 : int;
+          ...
+       fn : marked_record Eliom_wrap.wrapper;
+       fk : float; }>>
+
+A wrapper is created by the <<a_api | val Eliom_wrap.create_wrapper>>
+function. It takes a function as parameter which will be called to
+transform the value during the wrapping. There is also a special
+wrapper <<a_api | val Eliom_wrap.empty_wrapper>> which does nothing. It
+is usefull to stop calling the wrapper on a value: If there is still a
+wrapper in a value after its transformation, it will be called another
+time, potentially leading to an infinite loop.
+
+For instance
+
+<<code language="ocaml"|type v = Fun of unit -> int | Value of int
+type wrapped_type = ( v * wrapped_type Eliom_wrap.wrapper)
+let wrapper = Eliom_wrap.create_wrapper (function
+     | Value i,wrapper -> Value i, Eliom_wrap.empty_wrapper
+     | Fun f,wrapper -> Value (f ()), Eliom_wrap.empty_wrapper)
+let v = ( Fun (fun () -> 1), wrapper )
+let (v', empty_wrapper) = Eliom_wrap.wrap v>>
+
+At that time {{{v'}}} will be {{{Value 1}}}. Notice that
+<<a_api | val Eliom_wrap.create_wrapper>> does not enforce the output
+type of the wrapping function to be the same as the input type:
+Eliom_wrap is to be use with much caution! Do not use it if you don't
+understand how it works, it may lead to unpredictable segmentation faults
+and corrupted memory.
+
+=== Custom unwrappers ===
+
+We may also want to modify the value at unwrapping time. It is the
+case for instance of the type <<a_api | type Eliom_react.Up.t>>. On server
+side, it is transformed to a service, and the service is transformed to a
+function which call it on client side.
+
+To do this, we use custom unwrappers. A value is marked by an unwrapper
+the same way as with wrappers: A value is marked if its last field is a
+value of type <<a_api | type Eliom_wrap.unwrapper >>. An unwrapper does
+not contain functions, it only contains an identifier of type
+<<a_api | type Eliom_wrap.unwrap_id >>. On client side a function can
+be registered to transformed values marked with an id:
+<<a_api subproject="client" | val Eliom_unwrap.register_unwrapper >>.
+
+<<code language="ocaml"|type marked_int = (int * marked_int Eliom_wrap.unwrapper)
+
+{shared{let marked_int_id = 123456}}
+
+let v : marked_int = ( 10, Eliom_wrap.create_unwrapper (Eliom_wrap.id_of_int marked_int_id))
+
+{client{
+  let marked_int_unwrapper ( i, unwrapper ) = ( fun j -> i + j )
+  let id = Eliom_client_unwrap.id_of_int marked_int_id
+  let () = Eliom_client_unwrap.register_unwrapper id marked_int_unwrapper
+}}
+>>
+When the client will receive the value {{{v}}} it will transform it to {{{fun j -> j + 10}}}
+
+Thoses id are globals, take care of not using an existing one, you
+could for instance use the name of you type hashed as id. Consider
+those below 1024 to be reserved to Eliom internals.
+
+== Eliom types with predefined custom wrappers ==
+
+The Eliom types that are marked are:
+
+* <<a_api | type Eliom_service.service>> transformed to <<a_api | type Eliom_service.service>> (but the client side representation)
+* <<a_api | type Eliom_comet.Channel.t>> transformed to <<a_api project="lwt" | type Lwt_stream.t>>
+* <<a_api | type Eliom_react.Up.t>> transformed to {{{ 'a -> unit }}}
+* <<a_api | type Eliom_react.Down.t>> transformed to {{{ 'a React.E.t }}}
+* <<a_api | type Eliom_bus.t>> transformed to <<a_api | type Eliom_bus.t>>

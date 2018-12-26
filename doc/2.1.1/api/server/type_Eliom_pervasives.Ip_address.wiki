@@ -1,0 +1,13 @@
+<<code language="ocaml" | sig
+  type t =
+    Ocsigen_pervasives.Ip_address.t =
+      IPv4 of int32
+    | IPv6 of int64 * int64
+  val parse :
+    string ->
+    Eliom_pervasives.Ip_address.t * Eliom_pervasives.Ip_address.t option
+  val network_of_ip :
+    Eliom_pervasives.Ip_address.t ->
+    int32 -> int64 * int64 -> Eliom_pervasives.Ip_address.t
+  val inet6_addr_loopback : Eliom_pervasives.Ip_address.t
+end >>

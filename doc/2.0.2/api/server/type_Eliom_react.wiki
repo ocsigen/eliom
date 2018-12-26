@@ -1,0 +1,32 @@
+<<code language="ocaml" | sig
+  module Down :
+    sig
+      type 'a t
+      val of_react :
+        ?scope:[< Eliom_comet.Channels.comet_scope ] ->
+        ?throttling:float ->
+        ?name:string -> 'a React.E.t -> 'a Eliom_react.Down.t
+    end
+  module Up :
+    sig
+      type 'a t
+      val to_react : 'a Eliom_react.Up.t -> 'a React.E.t
+      val create :
+        ?scope:Eliom_common.scope ->
+        ?name:string ->
+        ('a, [ `WithoutSuffix ],
+         [ `One of 'a Eliom_parameters.caml ] Eliom_parameters.param_name)
+        Eliom_parameters.params_type -> 'a Eliom_react.Up.t
+    end
+  module S :
+    sig
+      module Down :
+        sig
+          type 'a t
+          val of_react :
+            ?scope:[< Eliom_comet.Channels.comet_scope ] ->
+            ?throttling:float ->
+            ?name:string -> 'a React.S.t -> 'a Eliom_react.S.Down.t
+        end
+    end
+end >>

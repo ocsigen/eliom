@@ -1,0 +1,4 @@
+=Module <<a_api_type subproject="server" | module Eliom_content.Html5.F.Raw >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Raw>>>> <<span class="ocsforge_color_delimiter"|~:>> \\  \\  <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Html5_sigs.T>>>><<span class="odocwiki_type"| with type Xml.uri = Xml.uri\\              and type Xml.event_handler = Xml.event_handler\\              and type Xml.attrib = Xml.attrib and type Xml.elt = Xml.elt\\              and type 'a Xml.wrap = 'a>><<span class="odocwiki_type"| with module Svg := <<span class="ocsforge_color_uid"|Svg.F.Raw>>>><<span class="odocwiki_type"| with\\            type (+'a) elt = 'a elt\\          and type 'a wrap = 'a and type (+'a) attrib = 'a attrib\\          and type uri = uri>>>>~See <<a_api project="tyxml" | module Html5_sigs.T >> ~.
+
+----

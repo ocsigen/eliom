@@ -1,0 +1,17 @@
+<<code language="ocaml" | sig
+  type t
+  type flag = Global_search | Case_insensitive | Multi_line
+  val last_index : Eliom_pervasives.Regexp.t -> int
+  val make :
+    ?global:bool ->
+    ?case_insensitive:bool ->
+    ?multi_line:bool -> string -> Eliom_pervasives.Regexp.t
+  val test : Eliom_pervasives.Regexp.t -> string -> bool
+  val exec : Eliom_pervasives.Regexp.t -> string -> string array
+  val index : Eliom_pervasives.Regexp.t -> string -> int
+  val replace : Eliom_pervasives.Regexp.t -> string -> string -> string
+  val replace_fun :
+    Eliom_pervasives.Regexp.t ->
+    (int -> string array -> string) -> string -> string
+  val split : Eliom_pervasives.Regexp.t -> string -> string array
+end >>

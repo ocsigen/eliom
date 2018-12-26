@@ -1,0 +1,6 @@
+=Module <<a_api_type subproject="server" | module Eliom_duce.Xhtml >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Xhtml>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_duce.Xhtml >><<span class="ocsforge_color_keyword"|end>>>>~Register service and create form for ~Xhtml\\
+
+----
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> XHTML_REGISTRATION>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> XHTML_FORMS>>

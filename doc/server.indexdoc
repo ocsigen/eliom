@@ -1,0 +1,52 @@
+{1 Server API}
+
+{!modules:
+Eliom_lib
+Eliom_client
+Eliom_client_value
+Eliom_common
+Eliom_config
+Eliom_request_info
+Eliom_reference
+Eliom_state
+}
+
+{2 Content and form creation}
+
+{!modules:
+Eliom_content
+Eliom_content.Html
+Eliom_content.Svg
+Eliom_content.Xml
+Eliom_tools
+}
+
+{2 Service creation}
+
+{!modules:
+Eliom_service
+Eliom_parameter
+Eliom_registration
+Eliom_registration.Html
+Eliom_registration.Action
+Eliom_registration.Ocaml
+Eliom_registration.App
+Eliom_registration.File
+Eliom_registration.Any
+Eliom_registration.Redirection
+}
+
+{2 Client/server communication}
+
+{!modules:
+Eliom_shared
+Eliom_notif
+Eliom_cscache
+Eliom_bus
+Eliom_comet
+Eliom_react
+}
+
+{2 Index}
+
+{!indexlist}

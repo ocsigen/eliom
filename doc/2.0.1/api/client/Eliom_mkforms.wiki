@@ -1,0 +1,11 @@
+=Module <<a_api_type subproject="client" | module Eliom_mkforms >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_mkforms>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_mkforms >><<span class="ocsforge_color_keyword"|end>>>>~This module defines the functor to use to creates modules
+   generating form widgets for your own types of pages~.
+   ~It is used for example in <<a_api subproject="client" | module Eliom_output >>~.\\
+
+----
+\\
+~This module defines the functor to use to creates modules
+   generating form widgets for your own types of pages~.
+   ~It is used for example in <<a_api subproject="client" | module Eliom_output >>~.\\
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module type>> <<a_api subproject="client" text="FORMS_PARAM" | module type Eliom_mkforms.FORMS_PARAM >> <<span class="ocsforge_color_delimiter"|~=>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module type Eliom_mkforms.FORMS_PARAM >><<span class="ocsforge_color_keyword"|end>>>><<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="client" text="MakeForms" | module Eliom_mkforms.MakeForms >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_sig_block"|<<span class="ocsforge_color_keyword"|functor>> <<span class="ocsforge_color_delimiter"|(>>Pages <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<a_api subproject="client" text="FORMS_PARAM" | module Eliom_mkforms.FORMS_PARAM >>>><<span class="ocsforge_color_delimiter"|)>> <<span class="ocsforge_color_delimiter"|-~>>> \\  <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_mkforms.MakeForms >><<span class="ocsforge_color_keyword"|end>>>>>>

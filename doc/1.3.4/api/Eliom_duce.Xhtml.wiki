@@ -1,0 +1,6 @@
+=Module <<a_api_type | module Eliom_duce.Xhtml >> =
+<<div class="code"|<<span class="keyword"|module>> Xhtml: <<span class="code type"|<<a_api text="XhtmlSig" | module Eliom_duce.XhtmlSig >>>><<span class="code type"|{{{  }}} with type page = html>>>>~Register and create form for ~Xhtml\\
+
+----
+<<div class="code"|<<span class="keyword"|include>> <<a_api | module type Eliom_mkreg.ELIOMREGSIG >>>>
+<<div class="code"|<<span class="keyword"|include>> <<a_api | module type Eliom_duce.XhtmlFormsSig >>>>

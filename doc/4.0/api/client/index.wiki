@@ -1,0 +1,63 @@
+==
+
+=@@id="1_EliomclientAPI"@@~Eliom client ~A~P~I=
+
+
+
+
+|Eliom_pervasives||
+|Eliom_lib||
+|Eliom_client||
+
+
+
+
+
+==@@id="2_Contentandformcreation"@@~Content and form creation==
+
+
+
+
+|<<a_api subproject="client" | module Eliom_content.Html5 >>|<<div class="odocwiki_info"|~Building valid ~(~X~)~H~T~M~L~5~.
+>>
+|
+|<<a_api subproject="client" | module Eliom_content.Svg >>|<<div class="odocwiki_info"|~Building valid ~S~V~G ~.
+>>
+|
+|<<a_api subproject="client" | module Eliom_content.Xml >>|<<div class="odocwiki_info"|~Low~-level ~X~M~L manipulation~.
+>>
+|
+
+
+
+
+
+==@@id="2_Clientservercommunication"@@~Client~/server communication==
+
+
+
+
+|Eliom_service||
+|<<a_api subproject="client" | module Eliom_bus >>|<<div class="odocwiki_info"|~Broadcasting facilities between clients and server~.
+>>
+|
+|<<a_api subproject="client" | module Eliom_comet >>|<<div class="odocwiki_info"|~Handle unsolicited server to client communications~.
+>>
+|
+|<<a_api subproject="client" | module Eliom_react >>|<<div class="odocwiki_info"|~Client side type declarations for ~React event propagation~.
+>>
+|
+
+
+
+
+
+==@@id="2_Index"@@~Index==
+
+
+
+* <<a_api subproject="client" text="Index of types" | index types >>
+* <<a_api subproject="client" text="Index of exceptions" | index exceptions >>
+* <<a_api subproject="client" text="Index of values" | index values >>
+* <<a_api subproject="client" text="Index of modules" | index modules >>
+

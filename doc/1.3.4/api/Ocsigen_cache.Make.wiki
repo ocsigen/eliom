@@ -1,0 +1,11 @@
+=Functor <<a_api_type | module Ocsigen_cache.Make >> =
+<<div class="code"|<<span class="keyword"|module>> Make: <<div class="sig_block"|<<span class='code'|functor ~(>><<span class='code'|~A>><<span class='code'| ~: >><<span class='code'|sig>><<div class="sig_block"|<<div class="code" id="TYPEkey"|<<span class="keyword"|type>> key>>
+
+<<div class="code" id="TYPEvalue"|<<span class="keyword"|type>> value>>
+
+>><<span class='code'|end>><<span class='code'|~) ~-~> >><<span class='code'|sig>><<a_api text=".." | module Ocsigen_cache.Make >><<span class='code'|end>>>>>><<div class="module_param_list" | <<span class="param_title" |Parameters :>><<div|
+|@@class="paramstable"@ @class="centertop fifteen code"@@{{{A}}}|@@class="centertop"@@:|<<span class="code type"|sig type key type value end>>|
+>>
+
+----
+<<div class="code"|<<span name="TYPEcache"|<<span class="keyword"|class>> <<a_api text="cache" | class Ocsigen_cache.Make.cache >>>> : <<span class="code type"|(A.key -> A.value Lwt.t) -> int -> >><<span class='code'|object>><<a_api text=".." | class Ocsigen_cache.Make.cache >><<span class='code'|end>>>>

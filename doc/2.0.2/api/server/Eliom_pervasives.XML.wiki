@@ -1,0 +1,32 @@
+=Module <<a_api_type subproject="server" | module Eliom_pervasives.XML >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|XML>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_pervasives.XML >><<span class="ocsforge_color_keyword"|end>>>>~Low~-level ~X~M~L manipulation~.
+
+----
+
+
+==@@id="2_Basefunctions"@@~Base functions ==
+
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> XML_sigs.Iterable>>
+<<div class="odocwiki_info"|~See <<a_api project="tyxml" | module type XML_sigs.Iterable >> ~.
+>>
+
+
+==@@id="2_Uniquenodes"@@~Unique nodes ==
+
+
+~Unique nodes are ~X~M~L nodes that are manipulated ~'by reference~'
+      when sent to the client part of an ~Eliom~-application~: the
+      created element is allocated only one time in each instance of
+      an application~. ~See <<a_manual chapter="client"
+      fragment="unique" |the eliom manual>> for more
+      details~.
+<<pre id="VALmake_unique" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|make~_unique>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_label"| ?copy: >>elt <<span class="ocsforge_color_delimiter"| -> >> elt <<span class="ocsforge_color_delimiter"| -> >> elt>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|make~_unique elt>> create a copy of the node <<span class="odocwiki_inlinecode"|elt>>
+      that will be manipulated ~'by reference~' when sent to the
+      client~. ~When the optional argument <<span class="odocwiki_inlinecode"|~~copy~:ref~_elt>> is provided~,
+      the returned node share the same "reference id" as <<span class="odocwiki_inlinecode"|ref~_elt>>~.
+      ~This allows the definition of multiple "initial contents" for a
+      unique node~, depending on which mode is first sent~.
+>>
+<<pre id="VALis_unique" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|is~_unique>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|elt <<span class="ocsforge_color_delimiter"| -> >> bool>>>><<div class="odocwiki_info"|~The predicate <<span class="odocwiki_inlinecode"|is~_unique elt>> is valid when <<span class="odocwiki_inlinecode"|elt>> is node
+      created with the function <<span class="odocwiki_inlinecode"|make~_unique>>~.
+>>

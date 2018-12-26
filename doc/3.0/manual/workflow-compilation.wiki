@@ -1,0 +1,80 @@
+=Compiling client-server Eliom applications
+
+The build process for client-server Eliom applications is rather
+tricky. To ease development of such application, we recommend you to
+create your project with <<a_manual
+chapter="workflow-destillery"|Eliom's destillery>>: It contains a
+Makefile with rules for compiling, testing, installing, and running.
+
+This chapter, however, gives a bit more overview on the compilation
+process.
+
+<<outline depth="2">>
+
+==@@id="compilation"@@ Compilation overview
+
+Here is first of all a small overview of the compilation
+process of a (single file) Eliom program. The source code of an Eliom
+application is stored in a file with the extension ##.eliom##. In this
+manner, it is detected by the Eliom compilers, ##eliomc## and ##js_of_eliom##.
+The compilation of an eliom program is carried out in three steps.
+
+First, necessary type information of the server program is extracted
+from the source code by ##eliomc -infer##. This information is
+necessary for the actual compilation of the client and server
+program. It is typically stored in a file ##_server/program.type_mli##
+for an Eliom module in a file ##program.eliom##.
+
+Secondly, the server program (or rather, the library to be dynamically
+loaden into the Ocsigen server) is compiled by the program ##eliomc -c##.
+It filters the source code for the parts relevant to the server
+and compiles it against the libraries available server. The resulting
+bytecode object file is stored in ##_server/program.type_mli## by default.
+
+Thirdly, the client program is compiled by ##js_of_eliom##. It filters
+the source code for the parts relevant for the client program and
+compiles it against the libraries available for client.  The
+program ##js_of_eliom -c## creates a bytecode object file (stored
+in ##_client/program.cmo## by default) and ##js_of_eliom -o program.js##
+is used to actually compile and link the //JavaScript// program to run on
+the client.
+
+{{@@style="width:100%;"@@site:eliom/compilation.png|The Compilation process}}
+
+So much for the compilation process, here comes what you gain from
+Eliom for the integrated development of client/server applications.
+
+
+==Using {{{eliomc}}} and {{{js_of_eliom}}}
+
+The easiest way to build a client-server Eliom application is to used
+the scripts {{{eliomc}}} and {{{js_of_eliom}}}. Those scripts are
+basic wrappers around {{{ocamlfind}}}, {{{ocamlc}}} and
+{{{js_of_ocaml}}}.
+
+You can compile your application with the following two commands:
+
+{{{
+eliomc -a -o appl.cma server_module.ml appl.eliom ...
+js_of_eliom -o appl.js client_module.ml appl.eliom ...
+}}}
+
+The first command compile the server-specific part of the
+application. The second one compile the client-specific part. Each
+command accept multiple {{{.ml}}} and {{{.eliom}}} files.
+
+Temporary files will be written in the {{{_server}}} and
+{{{_client}}} directory. Those directory may be changed with command
+line option of the environment variable {{{ELIOM_SERVER_DIR}}} and
+{{{ELIOM_CLIENT_DIR}}}.
+
+Those commands accepts the same set of arguments as {{{ocamlc}}}, plus
+the following specific options:
+
+* {{{-package}}} is the same to the {{{ocamlfind}}} option.
+* {{{-predicates <p>}}} is the same to the {{{ocamlfind}}} option.
+* {{{-dir <dir>}}} set default directory for temporary files.
+* {{{-jsopt <opt>}}} pass {{{opt}}} to the {{{js_of_ocaml}}} compiler **{{{js_of_eliom}}} only**
+
+If you want to use the native version of ocsigen server, you may
+replace {{{eliomc}}} by {{{eliomopt}}}.

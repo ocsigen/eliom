@@ -1,0 +1,22 @@
+<<code language="ocaml" | functor (A : ARG) ->
+  sig
+    type identity = A.identity
+    type key = A.key
+    type server_notif = A.server_notif
+    type client_notif = A.client_notif
+    val init : unit -> unit Lwt.t
+    val deinit : unit -> unit
+    val listen : key -> unit
+    val unlisten : key -> unit
+    module Ext :
+      sig
+        val unlisten :
+          ?sitedata:Eliom_common.sitedata ->
+          ([< `Client_process ], [< `Data ]) Eliom_state.Ext.state ->
+          key -> unit
+      end
+    val notify :
+      ?notfor:[ `Id of identity | `Me ] -> key -> server_notif -> unit
+    val client_ev : unit -> (key * client_notif) Eliom_react.Down.t
+    val clean : unit -> unit
+  end >>

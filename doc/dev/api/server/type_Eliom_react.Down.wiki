@@ -1,0 +1,7 @@
+<<code language="ocaml" | sig
+  type 'a t
+  val of_react :
+    ?scope:[< Eliom_comet.Channel.comet_scope ] ->
+    ?throttling:float ->
+    ?name:string -> ?size:int -> 'a React.E.t -> 'a Eliom_react.Down.t
+end >>

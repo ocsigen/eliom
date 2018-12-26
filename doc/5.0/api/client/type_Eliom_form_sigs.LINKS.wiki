@@ -1,0 +1,48 @@
+<<code language="ocaml" | sig
+  type +'a elt
+  type +'a attrib
+  type uri
+  val make_uri :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('get, unit, [< Eliom_service.get_service_kind ],
+             [< Eliom_service.attached ], [< Eliom_service.service_kind ],
+             [< Eliom_service.suff ], 'gn, unit,
+             [< Eliom_service.registrable ], 'return)
+            Eliom_service.service ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameter.nl_params_set ->
+    'get -> Eliom_form_sigs.LINKS.uri
+  val uri_of_string : (unit -> string) -> Eliom_form_sigs.LINKS.uri
+  val css_link :
+    ?a:Html5_types.link_attrib Eliom_form_sigs.LINKS.attrib list ->
+    uri:Eliom_form_sigs.LINKS.uri ->
+    unit -> [> Html5_types.link ] Eliom_form_sigs.LINKS.elt
+  val js_script :
+    ?a:Html5_types.script_attrib Eliom_form_sigs.LINKS.attrib list ->
+    uri:Eliom_form_sigs.LINKS.uri ->
+    unit -> [> Html5_types.script ] Eliom_form_sigs.LINKS.elt
+  val a :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    ?a:Html5_types.a_attrib Eliom_form_sigs.LINKS.attrib list ->
+    service:('get, unit, [< Eliom_service.get_service_kind ],
+             [< Eliom_service.attached ], [< Eliom_service.service_kind ],
+             [< Eliom_service.suff ], 'd, unit,
+             [< Eliom_service.registrable ],
+             [< Eliom_service.non_ocaml_service ])
+            Eliom_service.service ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameter.nl_params_set ->
+    ?xhr:bool ->
+    'a Eliom_form_sigs.LINKS.elt list ->
+    'get -> [> 'a Html5_types.a ] Eliom_form_sigs.LINKS.elt
+end >>

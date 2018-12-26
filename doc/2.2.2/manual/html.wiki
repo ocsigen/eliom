@@ -1,0 +1,176 @@
+=@@id="server_generating_html"@@Generating HTML pages=
+
+Ocsigen provides several ways to generate and type xhtml pages.
+
+* The default technique to produce HTML5 pages using Eliom is the
+   <<a_api | module Eliom_content.Html5.F >> and
+   <<a_api | module Eliom_content.Html5.D >>
+   module. It is the only one supported for client side Eliom programs.
+   This module provides a typing based on OCaml's polymorphic variants,
+   which ensures at compile time, that the pages you will generate will
+   respect the recommendations of the W3C (or be very close).
+   There also exists another module, <<a_api | module Eliom_content.Xhtml.F >>
+   that implements XHTML 1.1.
+* It is also possible to use a syntax extension to write your pages with the
+   usual XHTML syntax. This solution is also typed with polymorphic variants
+   and is compatible with the previous one.
+* The most powerful typing of pages is done with OcamlDuce.
+  To take benefit of it, use OCamlDuce instead of OCaml.
+* You can also choose to generate untyped html as text.
+
+===Html5 and Xhtml===
+
+The types in OCaml closest to XML types are //polymorphic variants//.
+Ocsigen uses them to provide a module with very good HTML5 typing.
+The full documentation is available <<a_api text="in
+the TyXML documentation" project="tyxml" | module Html5.M >>.
+<<wip|put it here (?!)>>
+
+===XHTML syntax extension===
+
+<<wip|Compatibility with HTML5?>>
+
+Ocsigen also has a syntax extension for OCaml that allows you to write pages
+using HTML syntax (but you are free not to use it).
+This is convenient for example if
+you want to include (parts of) HTML pages that have been
+created by third party.
+To choose actual XML-implementation you have to provide a module named [Html5]
+(or [Xhtml] or [Svg] respectively):
+
+For example, the following code:
+{{{
+
+module Xhtml = Xhtml.F (* NB this is TyXML's Xhtml; could also be Eliom_content.Xhtml.F *)
+
+<< <html>
+     <head><title></title></head>
+     <body><h1>plop</h1></body>
+   </html> >>
+}}}
+is a caml value of type {{{Xhtmltypes5.xhtml Xhtml.M.elt}}}.
+
+To compile a module containing this syntax, you need the camlp4 preprocessor:
+{{{
+ocamlc -I /path_to/ocsigen/
+ -pp "camlp4o /path_to/ocsigen/xhtmlsyntax.cma -loc loc"
+ -c your_module.ml
+}}}
+You can insert OCaml expressions of type {{{'a Xhtml.M.elt}}} inside html using {{{$...$}}}, like this:
+{{{
+let oc = << <em>Ocsigen</em> >> in
+<< <p>$oc$ will revolutionize web programming.</p> >>
+}}}
+<<wip| remove \ before $, _ in code, everywhere in pdf version!!!!!!!!!! >>
+
+You can insert OCaml expressions of type string inside html using
+{{{$str:... $}}}, like this:
+{{{
+let i = 4 in
+<< <p>i is equal to $str:string_of_int i$</p> >>
+}}}
+If you want to use a dollar in your page, just write it twice.
+
+You can write a list of xhtml expressions using the syntax {{{<:xmllist<...>>}}}, for example:
+{{{
+<:xmllist< <p>hello</p> <div></div> >>
+}}}
+Here are some other examples showing what you can do:
+{{{
+<< <ul class=$ulclass$ $list:other_attrs$>
+     $first_il$
+     $list:items$
+   </ul> >>
+}}}
+Warning: lists antiquotations are allowed only at the end (before a closing tag). For example, the following is not valid:
+{{{
+<< <ul $list:other_attrs$ class=$ulclass$>
+     $list:items$
+     $last_il$
+   </ul> >>
+}}}
+The syntax extension is not allowed in patterns for now.
+
+//Warning:// The two syntaxes are not equivalent for typing.
+ Using the syntax extension will do less checking.
+ For example the following code is accepted but not valid
+ regarding HTML5 standard (because <<span class="code"|<head>>>
+ must contain a title):
+
+<<code language="ocaml"|
+  << <html>
+     <head></head>
+     <body><h1>plop</h1></body>
+   </html> ~>>
+>>
+
+We recommend you use the functions from <<a_api project="tyxml"
+| module Html5.F>>, as you will (almost) always get valid HTML5. Use
+the syntax extension for example to enclose already created pieces of
+HTML, and check your pages validity with the
+[[http://validator.w3.org/| W3C validator]].
+
+
+
+
+===OCamlduce===
+
+OCaml's type system is not powerful enough to type XML. The OCamlduce
+manual says: //"The goal of the OCamlDuce project is to extend the
+OCaml language with features to make it easier to write safe and
+efficient complex applications that need to deal with XML documents.
+In particular, it relies on a notion of types and patterns to
+guarantee statically that all the possible input documents are
+correctly processed, and that only valid output documents are
+produced."//
+
+Ocamlduce's full documentation is available from
+[[http://www.cduce.org/ocaml.html|here]].
+
+If OCamlDuce is installed on your system, it is now possible to use
+it instead of Xhtml.M
+to typecheck your pages. You will get a stronger type checking
+and more flexibility (easier to use other XML types, to parse
+incoming XML data, etc.).
+
+However, Ocamlduce is not compatible with Camlp4 syntax extensions
+and client server Eliom applications support only HTML5 (for now).
+
+
+To use it, make sure that you have Eliom compiled with OCamlDuce
+support. Then dynlink <<span class="code"|ocamlduce.cma>> and <<span
+class="code"|eliomduce.cma>> from the configuration file (after <<span
+class="code"|eliom.cma>>).  Then use <<a_api | module Eliom_duce.Xhtml >>
+instead of <<a_api | module Eliom_registration.Xhtml>> to register your pages.
+
+Here is an example:
+<<code language="ocaml"|
+let s =
+  Eliom_duce.Xhtml.register_service
+    ~path:[""]
+    ~get_params:unit
+    (fun () () ->
+      Lwt.return
+        {{ <html>
+             [<head> [<title> ""]
+              <body> [<h1> "Page type checked by OCamlDuce"]] }})
+>>
+
+
+
+===Text XHTML===
+
+The last possibility is to use untyped xhtml. Just build strings
+containing your pages. Here is an example:
+
+<<code language="ocaml"|let coucoutext =
+  Eliom_registration.HtmlText.register_service
+    ~path:["coucoutext"]
+    ~get_params:Eliom_parameter.unit
+    (fun () () ->
+      Lwt.return
+        ("<html>n'importe quoi "^
+         (Eliom_registration.HtmlText.a coucou "clic" ())^
+         "</html>"))
+>>
+

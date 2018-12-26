@@ -1,0 +1,31 @@
+=Functor <<a_api_type subproject="server" | module Eliom_registration.App >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|App>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_sig_block"|<<span class="ocsforge_color_keyword"|functor>> <<span class="ocsforge_color_delimiter"|(>>App_params <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<a_api subproject="server" text="Eliom_registration_sigs.APP_PARAM" | module Eliom_registration_sigs.APP_PARAM >>>><<span class="ocsforge_color_delimiter"|)>> <<span class="ocsforge_color_delimiter"|-~>>> \\  <<span class="odocwiki_type"|<<a_api subproject="server" text="APP" | module Eliom_registration.APP >>>><<span class="odocwiki_type"| >>>>>>~Functor for application creation~.
+    ~See <<a_manual chapter="clientserver-applications" | the chapter on applications >> 
+    in the ~Eliom manual for details~.
+<<div class="odocwiki_module_param_list" | <<span class="odocwiki_param_title" |Parameters :>><<div|
+|@@class="odocwiki_paramstable"@ @class="centertop fifteen code"@@{{{App_params}}}|@@class="centertop"@@:|<<span class="odocwiki_type"|Eliom_registration_sigs.APP_PARAM>>|
+>>>>
+
+----
+<<pre id="VALapplication_script" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|application~_script>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?defer: >>bool <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?async: >>bool <<span class="ocsforge_color_delimiter"| -> >> unit <<span class="ocsforge_color_delimiter"| -> >> [> `Script ] <<a_api subproject="server" text="Eliom_content.Html.elt" | type Eliom_content.Html.elt >>>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|application~_name ~(~)>> returns a <<span class="odocwiki_inlinecode"|~<script~>>> node
+      that represents the javascript part of the application~. ~If you
+      do not include this script in the <<span class="odocwiki_inlinecode"|~<head~>>> node of your page~, it
+      will be automatically added at the end of the <<span class="odocwiki_inlinecode"|~<head~>>> node~.
+>>
+<<pre id="VALapplication_name" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|application~_name>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|string>>>><<div class="odocwiki_info"|~Unique identifier for this application~. ~Currently~, it is just
+      the application name as defined by
+      <<span class="odocwiki_inlinecode"|~Appl~_params~.application~_name>>~.
+
+
+      //~Warning~: do not mix up with the "application instance id"~,
+      that is unique for each instance of the application on a
+      client~.//
+>>
+<<pre id="VALis_initial_request" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|is~_initial~_request>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> bool>>>><<div class="odocwiki_info"|~Checks during a request whether it is the initial request of the
+      client process in this ~Eliom application~.
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEapp_id"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|app~_id>>>><<div class="odocwiki_info"|~The type <<span class="odocwiki_inlinecode"|appl>> is an abstract type for identifying an
+      application~. ~It usually used a phantom parameter for
+      <<a_api subproject="server" | type Eliom_registration.application_content >>~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> <<a_api subproject="server" | module type Eliom_registration_sigs.S_with_create >>>>

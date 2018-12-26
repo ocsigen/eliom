@@ -1,0 +1,22 @@
+=~Server ~A~P~I
+==[[server/Eliom_pervasives|Eliom_pervasives]]
+==[[server/Eliom_pervasives.XHTML.M|Eliom_pervasives.XHTML.M]]
+==[[server/Eliom_pervasives.HTML5.M|Eliom_pervasives.HTML5.M]]
+==~Services creation and manipulation
+===[[server/Eliom_output|Eliom_output]]
+===[[server/Eliom_parameters|Eliom_parameters]]
+===[[server/Eliom_references|Eliom_references]]
+===[[server/Eliom_services|Eliom_services]]
+==~Client~/server communication
+===[[server/Eliom_bus|Eliom_bus]]
+===[[server/Eliom_comet|Eliom_comet]]
+===[[server/Eliom_react|Eliom_react]]
+==~Extensions
+===[[server/Eliom_atom|Eliom_atom]]
+===[[server/Eliom_openid|Eliom_openid]]
+==~Index
+=== <<a_api subproject="server" text="Index of types" | index types >>
+=== <<a_api subproject="server" text="Index of exceptions" | index exceptions >>
+=== <<a_api subproject="server" text="Index of values" | index values >>
+=== <<a_api subproject="server" text="Index of modules" | index modules >>
+=== <<a_api subproject="server" text="Index of module types" | index module types >>

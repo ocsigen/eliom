@@ -1,0 +1,19 @@
+<<code language="ocaml" | sig
+  module Channels :
+    sig
+      type 'a t
+      type comet_scope =
+          [ `Client_process of Eliom_common.scope_name | `Global ]
+      val create :
+        ?scope:[< Eliom_comet.Channels.comet_scope ] ->
+        ?name:string ->
+        ?size:int -> 'a Lwt_stream.t -> 'a Eliom_comet.Channels.t
+      val create_unlimited :
+        ?scope:Eliom_common.client_process_scope ->
+        ?name:string -> 'a Lwt_stream.t -> 'a Eliom_comet.Channels.t
+      val create_newest :
+        ?name:string -> 'a Lwt_stream.t -> 'a Eliom_comet.Channels.t
+      val get_wrapped :
+        'a Eliom_comet.Channels.t -> 'a Eliom_comet_base.wrapped_channel
+    end
+end >>

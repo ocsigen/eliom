@@ -1,0 +1,151 @@
+=Index of modules=
+
+|@@ @style="tet-align: left;"@@\\A|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Attr"| module Eliom_content.Html5.Manip.Attr >> ~[<<a_api subproject="client" | module Eliom_content.Html5.Manip >>~]||
+|@@ @style="tet-align: left;"@@\\C|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="C"| module Eliom_content.Html5.C >> ~[<<a_api subproject="client" | module Eliom_content.Html5 >>~]|<<div class="odocwiki_info"|~Creation of ~H~T~M~L~5 content from client~-side values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="C"| module Eliom_content.Svg.C >> ~[<<a_api subproject="client" | module Eliom_content.Svg >>~]|<<div class="odocwiki_info"|~Creation of content from client~-side values~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Channel"| module Eliom_comet.Channel >> ~[<<a_api subproject="client" | module Eliom_comet >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Class"| module Eliom_content.Html5.Manip.Class >> ~[<<a_api subproject="client" | module Eliom_content.Html5.Manip >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Class"| module Eliom_content.Svg.Manip.Class >> ~[<<a_api subproject="client" | module Eliom_content.Svg.Manip >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Configuration"| module Eliom_comet.Configuration >> ~[<<a_api subproject="client" | module Eliom_comet >>~]|<<div class="odocwiki_info"|~Change the reactivity of channels~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Css"| module Eliom_content.Html5.Manip.Css >> ~[<<a_api subproject="client" | module Eliom_content.Html5.Manip >>~]|<<div class="odocwiki_info"|~Read the ~C~S~S properties of ~D~O~M elements~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Custom_data"| module Eliom_content.Html5.Custom_data >> ~[<<a_api subproject="client" | module Eliom_content.Html5 >>~]||
+|@@ @style="tet-align: left;"@@\\D|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="D"| module Eliom_content.Html5.D >> ~[<<a_api subproject="client" | module Eliom_content.Html5 >>~]|<<div class="odocwiki_info"|~Creation of ~H~T~M~L~5 content with //~D//~O~M semantics ~(referable~)
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="D"| module Eliom_content.Svg.D >> ~[<<a_api subproject="client" | module Eliom_content.Svg >>~]|<<div class="odocwiki_info"|~Creation of content with //~D//~O~M semantics ~(referable
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Down"| module Eliom_react.S.Down >> ~[<<a_api subproject="client" | module Eliom_react.S >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Down"| module Eliom_react.Down >> ~[<<a_api subproject="client" | module Eliom_react >>~]||
+|@@ @style="tet-align: left;"@@\\E|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_bus"| module Eliom_bus >> |<<div class="odocwiki_info"|~Broadcasting facilities between clients and server~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_comet"| module Eliom_comet >> |<<div class="odocwiki_info"|~Handle unsolicited server to client communications~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_comet_base"| module Eliom_comet_base >> |<<div class="odocwiki_info"|~None means ~'newest channel~'
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_content"| module Eliom_content >> |<<div class="odocwiki_info"|~This module provides the creation of valid ~X~M~L content~, i~.e~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_react"| module Eliom_react >> |<<div class="odocwiki_info"|~Client side type declarations for ~React event propagation~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_tools"| module Eliom_tools >> |<<div class="odocwiki_info"|~Record an ~(external~) ~Java~Script file to be included in <<span class="odocwiki_inlinecode"|~Eliom~_tools~.~F~.html>>~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_types_base"| module Eliom_types_base >> |<<div class="odocwiki_info"|~/~*
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Elt"| module Eliom_content.Html5.Manip.Elt >> ~[<<a_api subproject="client" | module Eliom_content.Html5.Manip >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Ev"| module Eliom_content.Html5.Manip.Ev >> ~[<<a_api subproject="client" | module Eliom_content.Html5.Manip >>~]||
+|@@ @style="tet-align: left;"@@\\F|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="F"| module Eliom_content.Html5.F >> ~[<<a_api subproject="client" | module Eliom_content.Html5 >>~]|<<div class="odocwiki_info"|~Creation of //f//unctional ~H~T~M~L~5 content ~(copy~-able but not referable~)~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="F"| module Eliom_content.Svg.F >> ~[<<a_api subproject="client" | module Eliom_content.Svg >>~]|<<div class="odocwiki_info"|~Creation of //f//unctional content ~(copy~-able but not referable~)~.
+>>
+|
+|@@ @style="tet-align: left;"@@\\H|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Html5"| module Eliom_content.Html5 >> ~[<<a_api subproject="client" | module Eliom_content >>~]|<<div class="odocwiki_info"|~Building valid ~(~X~)~H~T~M~L~5~.
+>>
+|
+|@@ @style="tet-align: left;"@@\\I|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Id"| module Eliom_content.Html5.Id >> ~[<<a_api subproject="client" | module Eliom_content.Html5 >>~]|<<div class="odocwiki_info"|~Node identifiers
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Id"| module Eliom_content.Svg.Id >> ~[<<a_api subproject="client" | module Eliom_content.Svg >>~]|<<div class="odocwiki_info"|~Node identifiers
+>>
+|
+|@@ @style="tet-align: left;"@@\\J|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Json_answer"| module Eliom_comet_base.Json_answer >> ~[<<a_api subproject="client" | module Eliom_comet_base >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Json_channel_data"| module Eliom_comet_base.Json_channel_data >> ~[<<a_api subproject="client" | module Eliom_comet_base >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Json_comet_request"| module Eliom_comet_base.Json_comet_request >> ~[<<a_api subproject="client" | module Eliom_comet_base >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Json_comet_stateful_request"| module Eliom_comet_base.Json_comet_stateful_request >> ~[<<a_api subproject="client" | module Eliom_comet_base >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Json_comet_stateless_request"| module Eliom_comet_base.Json_comet_stateless_request >> ~[<<a_api subproject="client" | module Eliom_comet_base >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Json_command"| module Eliom_comet_base.Json_command >> ~[<<a_api subproject="client" | module Eliom_comet_base >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Json_position"| module Eliom_comet_base.Json_position >> ~[<<a_api subproject="client" | module Eliom_comet_base >>~]||
+|@@ @style="tet-align: left;"@@\\M|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Manip"| module Eliom_content.Html5.Manip >> ~[<<a_api subproject="client" | module Eliom_content.Html5 >>~]|<<div class="odocwiki_info"|~D~O~M~-like manipulation functions~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Manip"| module Eliom_content.Svg.Manip >> ~[<<a_api subproject="client" | module Eliom_content.Svg >>~]|<<div class="odocwiki_info"|~D~O~M~-like manipulation functions~.
+>>
+|
+|@@ @style="tet-align: left;"@@\\N|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Named"| module Eliom_content.Html5.Manip.Named >> ~[<<a_api subproject="client" | module Eliom_content.Html5.Manip >>~]|<<div class="odocwiki_info"|~Dom manipulation by element identifier~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Named"| module Eliom_content.Svg.Manip.Named >> ~[<<a_api subproject="client" | module Eliom_content.Svg.Manip >>~]|<<div class="odocwiki_info"|~Dom manipulation by element identifier~.
+>>
+|
+|@@ @style="tet-align: left;"@@\\O|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Of_dom"| module Eliom_content.Html5.Of_dom >> ~[<<a_api subproject="client" | module Eliom_content.Html5 >>~]|<<div class="odocwiki_info"|~Conversion functions from ~D~O~M nodes ~(<<a_api project="js_of_ocaml"| type Dom_html.element>>  <<a_api
+      project="js_of_ocaml"| type Js.t>> ~) to ~Eliom nodes ~(<<a_api | type Eliom_content.Html5.elt>> ~)~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Of_dom"| module Eliom_content.Svg.Of_dom >> ~[<<a_api subproject="client" | module Eliom_content.Svg >>~]|<<div class="odocwiki_info"|~Conversion functions from ~D~O~M nodes ~(<<a_api project="js_of_ocaml"| type Dom_html.element>>  <<a_api
+      project="js_of_ocaml"| type Js.t>> ~) to ~Eliom nodes ~(<<a_api | type Eliom_content.Html5.elt>> ~)~.
+>>
+|
+|@@ @style="tet-align: left;"@@\\R|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="R"| module Eliom_content.Html5.R >> ~[<<a_api subproject="client" | module Eliom_content.Html5 >>~]|<<div class="odocwiki_info"|~Creation of ~H~T~M~L~5 content from
+      [[ http://erratique.ch/software/react| ~React ]] signals~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="R"| module Eliom_content.Svg.R >> ~[<<a_api subproject="client" | module Eliom_content.Svg >>~]|<<div class="odocwiki_info"|~Creation of reactive content
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Raw"| module Eliom_content.Html5.R.Raw >> ~[<<a_api subproject="client" | module Eliom_content.Html5.R >>~]|<<div class="odocwiki_info"|~Cf~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Raw"| module Eliom_content.Html5.D.Raw >> ~[<<a_api subproject="client" | module Eliom_content.Html5.D >>~]|<<div class="odocwiki_info"|~Cf~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Raw"| module Eliom_content.Html5.F.Raw >> ~[<<a_api subproject="client" | module Eliom_content.Html5.F >>~]|<<div class="odocwiki_info"|~Cf~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Raw"| module Eliom_content.Svg.R.Raw >> ~[<<a_api subproject="client" | module Eliom_content.Svg.R >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Raw"| module Eliom_content.Svg.D.Raw >> ~[<<a_api subproject="client" | module Eliom_content.Svg.D >>~]|<<div class="odocwiki_info"|~Cf~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Raw"| module Eliom_content.Svg.F.Raw >> ~[<<a_api subproject="client" | module Eliom_content.Svg.F >>~]|<<div class="odocwiki_info"|~Cf~.
+>>
+|
+|@@ @style="tet-align: left;"@@\\S|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="S"| module Eliom_react.S >> ~[<<a_api subproject="client" | module Eliom_react >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="SetCss"| module Eliom_content.Html5.Manip.SetCss >> ~[<<a_api subproject="client" | module Eliom_content.Html5.Manip >>~]|<<div class="odocwiki_info"|~Modify the ~C~S~S properties of ~D~O~M elements~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Svg"| module Eliom_content.Svg >> ~[<<a_api subproject="client" | module Eliom_content >>~]|<<div class="odocwiki_info"|~Building valid ~S~V~G ~.
+>>
+|
+|@@ @style="tet-align: left;"@@\\T|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="To_dom"| module Eliom_content.Html5.To_dom >> ~[<<a_api subproject="client" | module Eliom_content.Html5 >>~]|<<div class="odocwiki_info"|~Conversion from ~H~T~M~L~5 <<span class="odocwiki_inlinecode"|elt>>s to ~Javascript ~D~O~M elements ~(<<span class="odocwiki_inlinecode"|~<~:>> <<a_api
+      project="js_of_ocaml"| class Dom_html.element >> ~)~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="To_dom"| module Eliom_content.Svg.To_dom >> ~[<<a_api subproject="client" | module Eliom_content.Svg >>~]|<<div class="odocwiki_info"|~Conversion from ~Svg <<span class="odocwiki_inlinecode"|elt>>s to ~Javascript ~D~O~M elements ~(<<span class="odocwiki_inlinecode"|~<~:>> <<a_api
+      project="js_of_ocaml"| class Dom_html.element >> ~)~.
+>>
+|
+|@@ @style="tet-align: left;"@@\\U|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Up"| module Eliom_react.Up >> ~[<<a_api subproject="client" | module Eliom_react >>~]||
+|@@ @style="tet-align: left;"@@\\X|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Xml"| module Eliom_content.Xml >> ~[<<a_api subproject="client" | module Eliom_content >>~]|<<div class="odocwiki_info"|~Low~-level ~X~M~L manipulation~.
+>>
+|
+\\

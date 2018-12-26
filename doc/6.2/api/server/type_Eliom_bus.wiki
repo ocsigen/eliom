@@ -1,0 +1,13 @@
+<<code language="ocaml" | sig
+  type ('a, 'b) t
+  val create :
+    ?scope:[< Eliom_comet.Channel.comet_scope ] ->
+    ?name:string -> ?size:int -> 'a Deriving_Json.t -> ('a, 'a) Eliom_bus.t
+  val create_filtered :
+    ?scope:[< Eliom_comet.Channel.comet_scope ] ->
+    ?name:string ->
+    ?size:int ->
+    filter:('a -> 'b Lwt.t) -> 'a Deriving_Json.t -> ('a, 'b) Eliom_bus.t
+  val stream : ('a, 'b) Eliom_bus.t -> 'b Lwt_stream.t
+  val write : ('a, 'b) Eliom_bus.t -> 'a -> unit Lwt.t
+end >>

@@ -1,0 +1,4676 @@
+<<code language="ocaml" | sig
+  module F :
+    sig
+      module Raw :
+        sig
+          module Xml :
+            sig
+              type uri = Xml.uri
+              val string_of_uri : uri -> string
+              val uri_of_string : string -> uri
+              type aname = string
+              type event_handler = Xml.event_handler
+              type attrib = Xml.attrib
+              val float_attrib : aname -> float -> attrib
+              val int_attrib : aname -> int -> attrib
+              val string_attrib : aname -> string -> attrib
+              val space_sep_attrib : aname -> string list -> attrib
+              val comma_sep_attrib : aname -> string list -> attrib
+              val event_handler_attrib : aname -> event_handler -> attrib
+              val uri_attrib : aname -> uri -> attrib
+              val uris_attrib : aname -> uri list -> attrib
+              type elt = Xml.elt
+              type ename = string
+              val empty : unit -> elt
+              val comment : string -> elt
+              val pcdata : string -> elt
+              val encodedpcdata : string -> elt
+              val entity : string -> elt
+              val leaf : ?a:attrib list -> ename -> elt
+              val node : ?a:attrib list -> ename -> elt list -> elt
+              val cdata : string -> elt
+              val cdata_script : string -> elt
+              val cdata_style : string -> elt
+            end
+          module Info : Xml_sigs.Info
+          type uri = Xml.uri
+          val string_of_uri : uri -> string
+          val uri_of_string : string -> uri
+          type +'a attrib
+          val to_xmlattribs : 'a attrib list -> Xml.attrib list
+          val to_attrib : Xml.attrib -> 'a attrib
+          val a_class : Xhtml_types.nmtokens -> [> `Class ] attrib
+          val a_id : Xhtml_types.id -> [> `Id ] attrib
+          val a_title : Xhtml_types.cdata -> [> `Title ] attrib
+          val a_xml_lang : Xhtml_types.nmtoken -> [> `XML_lang ] attrib
+          val a_onblur : Xml.event_handler -> [> `OnBlur ] attrib
+          val a_onclick : Xml.event_handler -> [> `OnClick ] attrib
+          val a_ondblclick : Xml.event_handler -> [> `OnDblClick ] attrib
+          val a_onchange : Xml.event_handler -> [> `OnChange ] attrib
+          val a_onfocus : Xml.event_handler -> [> `OnFocus ] attrib
+          val a_onload : Xml.event_handler -> [> `OnLoad ] attrib
+          val a_onunload : Xml.event_handler -> [> `OnUnload ] attrib
+          val a_onreset : Xml.event_handler -> [> `OnReset ] attrib
+          val a_onselect : Xml.event_handler -> [> `OnSelect ] attrib
+          val a_onsubmit : Xml.event_handler -> [> `OnSubmit ] attrib
+          val a_onmousedown : Xml.event_handler -> [> `OnMouseDown ] attrib
+          val a_onmouseup : Xml.event_handler -> [> `OnMouseUp ] attrib
+          val a_onmouseover : Xml.event_handler -> [> `OnMouseOver ] attrib
+          val a_onmousemove : Xml.event_handler -> [> `OnMouseMove ] attrib
+          val a_onmouseout : Xml.event_handler -> [> `OnMouseOut ] attrib
+          val a_onkeypress : Xml.event_handler -> [> `OnKeyPress ] attrib
+          val a_onkeydown : Xml.event_handler -> [> `OnKeyDown ] attrib
+          val a_onkeyup : Xml.event_handler -> [> `OnKeyUp ] attrib
+          val a_profile : Xml.uri -> [> `Profile ] attrib
+          val a_version : Xhtml_types.cdata -> [> `Version ] attrib
+          val a_xmlns : [< `W3_org_1999_xhtml ] -> [> `XMLns ] attrib
+          val a_cite : Xml.uri -> [> `Cite ] attrib
+          val a_xml_space : [< `Preserve ] -> [> `XML_space ] attrib
+          val a_accesskey : Xhtml_types.character -> [> `Accesskey ] attrib
+          val a_charset : Xhtml_types.charset -> [> `Charset ] attrib
+          val a_accept_charset :
+            Xhtml_types.charset -> [> `Accept_charset ] attrib
+          val a_accept : Xhtml_types.contenttype -> [> `Accept ] attrib
+          val a_href : Xml.uri -> [> `Href ] attrib
+          val a_hreflang : Xhtml_types.languagecode -> [> `Hreflang ] attrib
+          val a_rel : Xhtml_types.linktypes -> [> `Rel ] attrib
+          val a_rev : Xhtml_types.linktypes -> [> `Rev ] attrib
+          val a_tabindex : Xhtml_types.number -> [> `Tabindex ] attrib
+          val a_type : Xhtml_types.contenttype -> [> `Type ] attrib
+          val a_datetime : Xhtml_types.cdata -> [> `Datetime ] attrib
+          val a_dir : [< `Ltr | `Rtl ] -> [> `Dir ] attrib
+          val a_action : Xml.uri -> [> `Action ] attrib
+          val a_checked : [< `Checked ] -> [> `Checked ] attrib
+          val a_cols : Xhtml_types.number -> [> `Cols ] attrib
+          val a_enctype : Xhtml_types.contenttype -> [> `Enctype ] attrib
+          val a_for : Xhtml_types.idref -> [> `For ] attrib
+          val a_maxlength : Xhtml_types.number -> [> `Maxlength ] attrib
+          val a_method : [< `Get | `Post ] -> [> `Method ] attrib
+          val a_multiple : [< `Multiple ] -> [> `Multiple ] attrib
+          val a_name : Xhtml_types.cdata -> [> `Name ] attrib
+          val a_rows : Xhtml_types.number -> [> `Rows ] attrib
+          val a_selected : [< `Selected ] -> [> `Selected ] attrib
+          val a_size : Xhtml_types.number -> [> `Size ] attrib
+          val a_src : Xml.uri -> [> `Src ] attrib
+          val a_input_type :
+            [< `Button
+             | `Checkbox
+             | `File
+             | `Hidden
+             | `Image
+             | `Password
+             | `Radio
+             | `Reset
+             | `Submit
+             | `Text ] ->
+            [> `Input_Type ] attrib
+          val a_value : Xhtml_types.cdata -> [> `Value ] attrib
+          val a_value_type :
+            [< `Data | `Object | `Ref ] -> [> `Value_Type ] attrib
+          val a_disabled : [< `Disabled ] -> [> `Disabled ] attrib
+          val a_readonly : [< `ReadOnly ] -> [> `ReadOnly ] attrib
+          val a_button_type :
+            [< `Button | `Reset | `Submit ] -> [> `Button_Type ] attrib
+          val a_label : Xhtml_types.text -> [> `Label ] attrib
+          val a_abbr : Xhtml_types.text -> [> `Abbr ] attrib
+          val a_align :
+            [< `Center | `Char | `Justify | `Left | `Right ] ->
+            [> `Align ] attrib
+          val a_axis : Xhtml_types.cdata -> [> `Axis ] attrib
+          val a_colspan : Xhtml_types.number -> [> `Colspan ] attrib
+          val a_headers : Xhtml_types.idrefs -> [> `Headers ] attrib
+          val a_rowspan : Xhtml_types.number -> [> `Rowspan ] attrib
+          val a_scope :
+            [< `Col | `Colgroup | `Row | `Rowgroup ] -> [> `Scope ] attrib
+          val a_summary : Xhtml_types.text -> [> `Summary ] attrib
+          val a_valign :
+            [< `Baseline | `Bottom | `Middle | `Top ] -> [> `Valign ] attrib
+          val a_border : Xhtml_types.pixels -> [> `Border ] attrib
+          val a_cellpadding : Xhtml_types.length -> [> `Cellpadding ] attrib
+          val a_cellspacing : Xhtml_types.length -> [> `Cellspacing ] attrib
+          val a_datapagesize : Xhtml_types.cdata -> [> `Datapagesize ] attrib
+          val a_frame :
+            [< `Above
+             | `Below
+             | `Border
+             | `Box
+             | `Hsides
+             | `LHS
+             | `RHS
+             | `Void
+             | `Vsides ] ->
+            [> `Frame ] attrib
+          val a_rules :
+            [< `All | `Cols | `Groups | `None | `Rows ] -> [> `Rules ] attrib
+          val a_char : Xhtml_types.character -> [> `Char ] attrib
+          val a_charoff : Xhtml_types.length -> [> `Charoff ] attrib
+          val a_span : Xhtml_types.number -> [> `Span ] attrib
+          val a_alt : Xhtml_types.text -> [> `Alt ] attrib
+          val a_height : Xhtml_types.length -> [> `Height ] attrib
+          val a_longdesc : Xml.uri -> [> `Longdesc ] attrib
+          val a_width : Xhtml_types.length -> [> `Width ] attrib
+          type shape = [ `Circle | `Default | `Poly | `Rect ]
+          val a_shape : shape -> [> `Shape ] attrib
+          val a_coords : int list -> [> `Coords ] attrib
+          val a_nohref : [< `Nohref ] -> [> `Nohref ] attrib
+          val a_usemap : Xhtml_types.idref -> [> `Usemap ] attrib
+          val a_ismap : [< `Ismap ] -> [> `Ismap ] attrib
+          val a_declare : [< `Declare ] -> [> `Declare ] attrib
+          val a_classid : Xml.uri -> [> `Classid ] attrib
+          val a_codebase : Xml.uri -> [> `Codebase ] attrib
+          val a_data : Xml.uri -> [> `Data ] attrib
+          val a_codetype : Xhtml_types.contenttype -> [> `Codetype ] attrib
+          val a_archive : Xml.uri list -> [> `Archive ] attrib
+          val a_standby : Xhtml_types.text -> [> `Standby ] attrib
+          val a_fs_rows : Xhtml_types.multilengths -> [> `FS_Rows ] attrib
+          val a_fs_cols : Xhtml_types.multilengths -> [> `FS_Cols ] attrib
+          val a_frameborder : [< `One | `Zero ] -> [> `Frameborder ] attrib
+          val a_marginheight :
+            Xhtml_types.pixels -> [> `Marginheight ] attrib
+          val a_marginwidth : Xhtml_types.pixels -> [> `Marginwidth ] attrib
+          val a_noresize : [< `Noresize ] -> [> `Noresize ] attrib
+          val a_scrolling : [< `Auto | `No | `Yes ] -> [> `Scrolling ] attrib
+          val a_target : Xhtml_types.frametarget -> [> `Target ] attrib
+          val a_content : Xhtml_types.cdata -> [> `Content ] attrib
+          val a_http_equiv : Xhtml_types.nmtoken -> [> `Http_equiv ] attrib
+          val a_scheme : Xhtml_types.cdata -> [> `Scheme ] attrib
+          val a_defer : [< `Defer ] -> [> `Defer ] attrib
+          val a_media : Xhtml_types.mediadesc -> [> `Media ] attrib
+          val a_style : string -> [> `Style_Attr ] attrib
+          type +'a elt
+          type ('a, 'b) nullary = ?a:'a attrib list -> unit -> 'b elt
+          type ('a, 'b, 'c) unary = ?a:'a attrib list -> 'b elt -> 'c elt
+          type ('a, 'b, 'c, 'd) binary =
+              ?a:'a attrib list -> 'b elt -> 'c elt -> 'd elt
+          type ('a, 'b, 'c, 'd, 'e, 'f) quadry =
+              ?a:'a attrib list ->
+              'b elt -> 'c elt -> 'd elt -> 'e elt -> 'f elt
+          type ('a, 'b, 'c) star = ?a:'a attrib list -> 'b elt list -> 'c elt
+          type ('a, 'b, 'c) plus =
+              ?a:'a attrib list -> 'b elt -> 'b elt list -> 'c elt
+          type html = [ `Html ] elt
+          val html :
+            ?a:[< `Dir | `Id | `Version | `XML_lang | `XMLns ] attrib list ->
+            [< `Head ] elt -> [< `Body | `Frameset ] elt -> html
+          val head :
+            ?a:[< `Dir | `Id | `Profile | `XML_lang ] attrib list ->
+            [< `Base | `Title ] elt ->
+            [< `Link | `Meta | `Object | `Script | `Style ] elt list ->
+            [> `Head ] elt
+          val title :
+            ([< Xhtml_types.title_attrib ], [< Xhtml_types.title_content ],
+             [> Xhtml_types.title ])
+            unary
+          val body :
+            ([< Xhtml_types.body_attrib ], [< Xhtml_types.body_content ],
+             [> Xhtml_types.body ])
+            star
+          val pcdata : string -> [> `PCDATA ] elt
+          val entity : string -> [> `PCDATA ] elt
+          val space : unit -> [> `PCDATA ] elt
+          val cdata : string -> [> `PCDATA ] elt
+          val cdata_script : string -> [> `PCDATA ] elt
+          val cdata_style : string -> [> `PCDATA ] elt
+          val unsafe_data : string -> 'a elt
+          val h1 :
+            ([< Xhtml_types.h1_attrib ], [< Xhtml_types.h1_content ],
+             [> Xhtml_types.h1 ])
+            star
+          val h2 :
+            ([< Xhtml_types.h2_attrib ], [< Xhtml_types.h2_content ],
+             [> Xhtml_types.h2 ])
+            star
+          val h3 :
+            ([< Xhtml_types.h3_attrib ], [< Xhtml_types.h3_content ],
+             [> Xhtml_types.h3 ])
+            star
+          val h4 :
+            ([< Xhtml_types.h4_attrib ], [< Xhtml_types.h4_content ],
+             [> Xhtml_types.h4 ])
+            star
+          val h5 :
+            ([< Xhtml_types.h5_attrib ], [< Xhtml_types.h5_content ],
+             [> Xhtml_types.h5 ])
+            star
+          val h6 :
+            ([< Xhtml_types.h6_attrib ], [< Xhtml_types.h6_content ],
+             [> Xhtml_types.h6 ])
+            star
+          val address :
+            ([< Xhtml_types.address_attrib ],
+             [< Xhtml_types.address_content ], [> Xhtml_types.address ])
+            star
+          val blockquote :
+            ([< `Cite
+              | `Class
+              | `Dir
+              | `Id
+              | `OnClick
+              | `OnDblClick
+              | `OnKeyDown
+              | `OnKeyPress
+              | `OnKeyUp
+              | `OnMouseDown
+              | `OnMouseMove
+              | `OnMouseOut
+              | `OnMouseOver
+              | `OnMouseUp
+              | `Style_Attr
+              | `Title
+              | `XML_lang
+              | `XML_space ],
+             [< `Address
+              | `Blockquote
+              | `Del
+              | `Div
+              | `Dl
+              | `Fieldset
+              | `Form
+              | `H1
+              | `H2
+              | `H3
+              | `H4
+              | `H5
+              | `H6
+              | `Hr
+              | `Ins
+              | `Noscript
+              | `Ol
+              | `P
+              | `PCDATA
+              | `Pre
+              | `Script
+              | `Table
+              | `Ul ],
+             [> `Blockquote ])
+            star
+          val div :
+            ([< Xhtml_types.div_attrib ], [< Xhtml_types.div_content ],
+             [> Xhtml_types.div ])
+            star
+          val p :
+            ([< Xhtml_types.p_attrib ], [< Xhtml_types.p_content ],
+             [> Xhtml_types.p ])
+            star
+          val pre :
+            ([< `Class
+              | `Dir
+              | `Id
+              | `OnClick
+              | `OnDblClick
+              | `OnKeyDown
+              | `OnKeyPress
+              | `OnKeyUp
+              | `OnMouseDown
+              | `OnMouseMove
+              | `OnMouseOut
+              | `OnMouseOver
+              | `OnMouseUp
+              | `Style_Attr
+              | `Title
+              | `XML_lang
+              | `XML_space ],
+             [< `A
+              | `Abbr
+              | `Acronym
+              | `B
+              | `Bdo
+              | `Big
+              | `Br
+              | `Button
+              | `Cite
+              | `Code
+              | `Del
+              | `Dfn
+              | `Em
+              | `I
+              | `Iframe
+              | `Img
+              | `Input
+              | `Ins
+              | `Kbd
+              | `Label
+              | `Map
+              | `Noscript
+              | `Object
+              | `PCDATA
+              | `Q
+              | `Ruby_complex
+              | `Ruby_simple1
+              | `Ruby_simple2
+              | `Samp
+              | `Script
+              | `Select
+              | `Small
+              | `Span
+              | `Strong
+              | `Sub
+              | `Sup
+              | `Textarea
+              | `Tt
+              | `Var ],
+             [> `Pre ])
+            star
+          val abbr :
+            ([< Xhtml_types.abbr_attrib ], [< Xhtml_types.abbr_content ],
+             [> Xhtml_types.abbr ])
+            star
+          val acronym :
+            ([< Xhtml_types.acronym_attrib ],
+             [< Xhtml_types.acronym_content ], [> Xhtml_types.acronym ])
+            star
+          val br : ([< Xhtml_types.br_attrib ], [> Xhtml_types.br ]) nullary
+          val cite :
+            ([< Xhtml_types.cite_attrib ], [< Xhtml_types.cite_content ],
+             [> Xhtml_types.cite ])
+            star
+          val code :
+            ([< Xhtml_types.code_attrib ], [< Xhtml_types.code_content ],
+             [> Xhtml_types.code ])
+            star
+          val dfn :
+            ([< Xhtml_types.dfn_attrib ], [< Xhtml_types.dfn_content ],
+             [> Xhtml_types.dfn ])
+            star
+          val em :
+            ([< Xhtml_types.em_attrib ], [< Xhtml_types.em_content ],
+             [> Xhtml_types.em ])
+            star
+          val kbd :
+            ([< Xhtml_types.kbd_attrib ], [< Xhtml_types.kbd_content ],
+             [> Xhtml_types.kbd ])
+            star
+          val q :
+            ([< Xhtml_types.q_attrib ], [< Xhtml_types.q_content ],
+             [> Xhtml_types.q ])
+            star
+          val samp :
+            ([< Xhtml_types.samp_attrib ], [< Xhtml_types.samp_content ],
+             [> Xhtml_types.samp ])
+            star
+          val span :
+            ([< Xhtml_types.span_attrib ], [< Xhtml_types.span_content ],
+             [> Xhtml_types.span ])
+            star
+          val strong :
+            ([< Xhtml_types.strong_attrib ], [< Xhtml_types.strong_content ],
+             [> Xhtml_types.strong ])
+            star
+          val var :
+            ([< Xhtml_types.var_attrib ], [< Xhtml_types.var_content ],
+             [> Xhtml_types.var ])
+            star
+          val a :
+            ([< Xhtml_types.a_attrib ], [< Xhtml_types.a_content ],
+             [> Xhtml_types.a ])
+            star
+          val dl :
+            ([< Xhtml_types.dl_attrib ], [< Xhtml_types.dl_content ],
+             [> Xhtml_types.dl ])
+            plus
+          val ol :
+            ([< Xhtml_types.ol_attrib ], [< Xhtml_types.ol_content ],
+             [> Xhtml_types.ol ])
+            plus
+          val ul :
+            ([< Xhtml_types.ul_attrib ], [< Xhtml_types.ul_content ],
+             [> Xhtml_types.ul ])
+            plus
+          val dd :
+            ([< Xhtml_types.dd_attrib ], [< Xhtml_types.dd_content ],
+             [> Xhtml_types.dd ])
+            star
+          val dt :
+            ([< Xhtml_types.dt_attrib ], [< Xhtml_types.dt_content ],
+             [> Xhtml_types.dt ])
+            star
+          val li :
+            ([< Xhtml_types.li_attrib ], [< Xhtml_types.li_content ],
+             [> Xhtml_types.li ])
+            star
+          val hr : ([< Xhtml_types.hr_attrib ], [> Xhtml_types.hr ]) nullary
+          val b :
+            ([< Xhtml_types.b_attrib ], [< Xhtml_types.b_content ],
+             [> Xhtml_types.b ])
+            star
+          val big :
+            ([< Xhtml_types.big_attrib ], [< Xhtml_types.big_content ],
+             [> Xhtml_types.big ])
+            star
+          val i :
+            ([< Xhtml_types.i_attrib ], [< Xhtml_types.i_content ],
+             [> Xhtml_types.i ])
+            star
+          val small :
+            ([< Xhtml_types.small_attrib ], [< Xhtml_types.small_content ],
+             [> Xhtml_types.small ])
+            star
+          val sub :
+            ([< Xhtml_types.sub_attrib ], [< Xhtml_types.sub_content ],
+             [> Xhtml_types.sub ])
+            star
+          val sup :
+            ([< Xhtml_types.sup_attrib ], [< Xhtml_types.sup_content ],
+             [> Xhtml_types.sup ])
+            star
+          val tt :
+            ([< Xhtml_types.tt_attrib ], [< Xhtml_types.tt_content ],
+             [> Xhtml_types.tt ])
+            star
+          val bdo :
+            dir:[< `Ltr | `Rtl ] ->
+            ([< Xhtml_types.bdo_attrib ], [< Xhtml_types.bdo_content ],
+             [> Xhtml_types.bdo ])
+            star
+          val area :
+            alt:Xhtml_types.text ->
+            ([< Xhtml_types.area_attrib ], [> Xhtml_types.area ]) nullary
+          val map :
+            id:Xhtml_types.id ->
+            ([< Xhtml_types.map_attrib ], [< Xhtml_types.map_content ],
+             [> Xhtml_types.map ])
+            plus
+          val del :
+            ([< Xhtml_types.del_attrib ], [< Xhtml_types.del_content ],
+             [> Xhtml_types.del ])
+            star
+          val ins :
+            ([< Xhtml_types.ins_attrib ], [< Xhtml_types.ins_content ],
+             [> Xhtml_types.ins ])
+            star
+          val script :
+            contenttype:Xhtml_types.contenttype ->
+            ([< Xhtml_types.script_attrib ], [< Xhtml_types.script_content ],
+             [> Xhtml_types.script ])
+            unary
+          val noscript :
+            ([< Xhtml_types.noscript_attrib ],
+             [< Xhtml_types.noscript_content ], [> Xhtml_types.noscript ])
+            plus
+          module Basic_Forms :
+            sig
+              val form :
+                action:Xml.uri ->
+                ([< Xhtml_types.form_attrib ], [< Xhtml_types.form_content ],
+                 [> Xhtml_types.form ])
+                plus
+              val input :
+                ([< Xhtml_types.input_attrib ], [> Xhtml_types.input ])
+                nullary
+              val label :
+                ([< Xhtml_types.label_attrib ],
+                 [< Xhtml_types.label_content ], [> Xhtml_types.label ])
+                star
+              val option :
+                ([< Xhtml_types.option_attrib ],
+                 [< Xhtml_types.option_content ],
+                 [> Xhtml_types.selectoption ])
+                unary
+              val select :
+                ([< Xhtml_types.select_attrib ],
+                 [< Xhtml_types.select_content ], [> Xhtml_types.select ])
+                plus
+              val textarea :
+                rows:Xhtml_types.number ->
+                cols:Xhtml_types.number ->
+                ([< Xhtml_types.textarea_attrib ],
+                 [< Xhtml_types.textarea_content ],
+                 [> Xhtml_types.textarea ])
+                unary
+            end
+          val form :
+            action:Xml.uri ->
+            ([< Xhtml_types.form_attrib ], [< Xhtml_types.form_content ],
+             [> Xhtml_types.form ])
+            plus
+          val input :
+            ([< Xhtml_types.input_attrib ], [> Xhtml_types.input ]) nullary
+          val label :
+            ([< Xhtml_types.label_attrib ], [< Xhtml_types.label_content ],
+             [> Xhtml_types.label ])
+            star
+          val optgroup :
+            label:Xhtml_types.text ->
+            ([< Xhtml_types.optgroup_attrib ],
+             [< Xhtml_types.optgroup_content ], [> Xhtml_types.optgroup ])
+            plus
+          val option :
+            ([< Xhtml_types.option_attrib ], [< Xhtml_types.option_content ],
+             [> Xhtml_types.selectoption ])
+            unary
+          val select :
+            ([< Xhtml_types.select_attrib ], [< Xhtml_types.select_content ],
+             [> Xhtml_types.select ])
+            plus
+          val textarea :
+            rows:Xhtml_types.number ->
+            cols:Xhtml_types.number ->
+            ([< Xhtml_types.textarea_attrib ],
+             [< Xhtml_types.textarea_content ], [> Xhtml_types.textarea ])
+            unary
+          val fieldset :
+            ([< Xhtml_types.fieldset_attrib ],
+             [< Xhtml_types.fieldset_content ], [> Xhtml_types.fieldset ])
+            star
+          val legend :
+            ([< Xhtml_types.legend_attrib ], [< Xhtml_types.legend_content ],
+             [> Xhtml_types.legend ])
+            star
+          val button :
+            ([< Xhtml_types.button_attrib ], [< Xhtml_types.button_content ],
+             [> Xhtml_types.button ])
+            star
+          module Basic_Tables :
+            sig
+              val a_align :
+                [< `Center | `Left | `Right ] -> [> `Align ] attrib
+              val a_scope : [< `Col | `Row ] -> [> `Scope ] attrib
+              val a_valign :
+                [< `Bottom | `Middle | `Top ] -> [> `Valign ] attrib
+              val caption :
+                ([< Xhtml_types.caption_attrib ],
+                 [< Xhtml_types.caption_content ], [> Xhtml_types.caption ])
+                star
+              val table :
+                ?caption:[< `Caption ] elt ->
+                ([< Xhtml_types.table_attrib ],
+                 [< Xhtml_types.table_content ], [> Xhtml_types.table ])
+                plus
+              val td :
+                ([< Xhtml_types.td_attrib ], [< Xhtml_types.td_content ],
+                 [> Xhtml_types.td ])
+                star
+              val th :
+                ([< Xhtml_types.th_attrib ], [< Xhtml_types.th_content ],
+                 [> Xhtml_types.th ])
+                star
+              val tr :
+                ([< Xhtml_types.tr_attrib ], [< Xhtml_types.tr_content ],
+                 [> Xhtml_types.tr ])
+                plus
+            end
+          val caption :
+            ([< Xhtml_types.caption_attrib ],
+             [< Xhtml_types.caption_content ], [> Xhtml_types.caption ])
+            star
+          val table :
+            ?caption:[< `Caption ] elt ->
+            ?columns:[< `Colgroups of [< `Colgroup ] elt list
+                      | `Cols of [< `Col ] elt list ] ->
+            ([< `Border
+              | `Cellpadding
+              | `Cellspacing
+              | `Class
+              | `Datapagesize
+              | `Dir
+              | `Frame
+              | `Id
+              | `OnClick
+              | `OnDblClick
+              | `OnKeyDown
+              | `OnKeyPress
+              | `OnKeyUp
+              | `OnMouseDown
+              | `OnMouseMove
+              | `OnMouseOut
+              | `OnMouseOver
+              | `OnMouseUp
+              | `Rules
+              | `Style_Attr
+              | `Summary
+              | `Title
+              | `Width
+              | `XML_lang
+              | `XML_space ],
+             [< `Tr ], [> `Table ])
+            plus
+          val tablex :
+            ?caption:[< `Caption ] elt ->
+            ?columns:[< `Colgroups of [< `Colgroup ] elt list
+                      | `Cols of [< `Col ] elt list ] ->
+            ?thead:[< `Thead ] elt ->
+            ?tfoot:[< `Tfoot ] elt ->
+            ([< `Border
+              | `Cellpadding
+              | `Cellspacing
+              | `Class
+              | `Datapagesize
+              | `Dir
+              | `Frame
+              | `Id
+              | `OnClick
+              | `OnDblClick
+              | `OnKeyDown
+              | `OnKeyPress
+              | `OnKeyUp
+              | `OnMouseDown
+              | `OnMouseMove
+              | `OnMouseOut
+              | `OnMouseOver
+              | `OnMouseUp
+              | `Rules
+              | `Style_Attr
+              | `Summary
+              | `Title
+              | `Width
+              | `XML_lang
+              | `XML_space ],
+             [< `Tbody ], [> `Table ])
+            plus
+          val td :
+            ([< Xhtml_types.td_attrib ], [< Xhtml_types.td_content ],
+             [> Xhtml_types.td ])
+            star
+          val th :
+            ([< Xhtml_types.th_attrib ], [< Xhtml_types.th_content ],
+             [> Xhtml_types.th ])
+            star
+          val tr :
+            ([< Xhtml_types.tr_attrib ], [< Xhtml_types.tr_content ],
+             [> Xhtml_types.tr ])
+            plus
+          val col :
+            ([< Xhtml_types.col_attrib ], [> Xhtml_types.col ]) nullary
+          val colgroup :
+            ([< Xhtml_types.colgroup_attrib ],
+             [< Xhtml_types.colgroup_content ], [> Xhtml_types.colgroup ])
+            star
+          val thead :
+            ([< Xhtml_types.thead_attrib ], [< Xhtml_types.thead_content ],
+             [> Xhtml_types.thead ])
+            plus
+          val tbody :
+            ([< Xhtml_types.tbody_attrib ], [< Xhtml_types.tbody_content ],
+             [> Xhtml_types.tbody ])
+            plus
+          val tfoot :
+            ([< Xhtml_types.tfoot_attrib ], [< Xhtml_types.tfoot_content ],
+             [> Xhtml_types.tfoot ])
+            plus
+          val img :
+            src:Xml.uri ->
+            alt:Xhtml_types.text ->
+            ([< Xhtml_types.img_attrib ], [> Xhtml_types.img ]) nullary
+          val object_ :
+            ([< Xhtml_types.object__attrib ],
+             [< Xhtml_types.object__content ], [> Xhtml_types.object_ ])
+            star
+          val param :
+            name:Xhtml_types.text ->
+            ([< Xhtml_types.param_attrib ], [> Xhtml_types.param ]) nullary
+          val frameset :
+            ?noframes:[< `Noframes ] elt ->
+            ([< Xhtml_types.frameset_attrib ],
+             [< Xhtml_types.frameset_content ], [> Xhtml_types.frameset ])
+            plus
+          val frame :
+            src:Xml.uri ->
+            ([< Xhtml_types.frame_attrib ], [> Xhtml_types.frame ]) nullary
+          val noframes :
+            ([< Xhtml_types.noframes_attrib ],
+             [< Xhtml_types.noframes_content ], [> Xhtml_types.noframes ])
+            unary
+          val iframe :
+            ([< Xhtml_types.iframe_attrib ], [< Xhtml_types.iframe_content ],
+             [> Xhtml_types.iframe ])
+            star
+          val meta :
+            content:Xhtml_types.cdata ->
+            ([< Xhtml_types.meta_attrib ], [> Xhtml_types.meta ]) nullary
+          val style :
+            contenttype:Xhtml_types.contenttype ->
+            ([< Xhtml_types.style_attrib ], [< Xhtml_types.style_content ],
+             [> Xhtml_types.style ])
+            star
+          val link :
+            ([< Xhtml_types.link_attrib ], [> Xhtml_types.link ]) nullary
+          val base :
+            href:Xml.uri ->
+            ([< Xhtml_types.base_attrib ], [> Xhtml_types.base ]) nullary
+          val ruby_simple1 :
+            ?a:[< Xhtml_types.common ] attrib list ->
+            [< `Rb ] elt -> [< `Rt ] elt -> [> `Ruby_simple1 ] elt
+          val ruby_simple2 :
+            ?a:[< Xhtml_types.common ] attrib list ->
+            [< `Rb ] elt ->
+            [< `Rp ] elt ->
+            [< `Rt ] elt -> [< `Rp ] elt -> [> `Ruby_simple2 ] elt
+          val ruby_complex :
+            ?a:[< Xhtml_types.common ] attrib list ->
+            [< `Rbc ] elt -> [< `Rtc_complex ] elt -> [> `Ruby_complex ] elt
+          val rbc :
+            ([< Xhtml_types.rbc_attrib ], [< Xhtml_types.rbc_content ],
+             [> Xhtml_types.rbc ])
+            plus
+          val rtc :
+            ([< Xhtml_types.rtc_attrib ], [< Xhtml_types.rtc_content ],
+             [> Xhtml_types.rtc ])
+            plus
+          val rtc_complex :
+            ([< Xhtml_types.rtc_complex_attrib ],
+             [< Xhtml_types.rtc_complex_content ],
+             [> Xhtml_types.rtc_complex ])
+            plus
+          val rb :
+            ([< Xhtml_types.rb_attrib ], [< Xhtml_types.rb_content ],
+             [> Xhtml_types.rb ])
+            star
+          val rt :
+            ([< Xhtml_types.rt_attrib ], [< Xhtml_types.rt_content ],
+             [> Xhtml_types.rt ])
+            star
+          val rt_complex :
+            ([< Xhtml_types.rt_complex_attrib ],
+             [< Xhtml_types.rt_complex_content ],
+             [> Xhtml_types.rt_complex ])
+            star
+          val rp :
+            ([< Xhtml_types.rp_attrib ], [< Xhtml_types.rp_content ],
+             [> Xhtml_types.rp ])
+            star
+          val a_rbspan : Xhtml_types.number -> [> `Rbspan ] attrib
+          val tot : Xml.elt -> 'a elt
+          val totl : Xml.elt list -> 'a elt list
+          val toelt : 'a elt -> Xml.elt
+          val toeltl : 'a elt list -> Xml.elt list
+          type doc = [ `Html ] elt
+          val doc_toelt : doc -> Xml.elt
+        end
+      module Xml :
+        sig
+          type uri = Xml.uri
+          val string_of_uri : uri -> string
+          val uri_of_string : string -> uri
+          type aname = string
+          type event_handler = Xml.event_handler
+          type attrib = Xml.attrib
+          val float_attrib : aname -> float -> attrib
+          val int_attrib : aname -> int -> attrib
+          val string_attrib : aname -> string -> attrib
+          val space_sep_attrib : aname -> string list -> attrib
+          val comma_sep_attrib : aname -> string list -> attrib
+          val event_handler_attrib : aname -> event_handler -> attrib
+          val uri_attrib : aname -> uri -> attrib
+          val uris_attrib : aname -> uri list -> attrib
+          type elt = Xml.elt
+          type ename = string
+          val empty : unit -> elt
+          val comment : string -> elt
+          val pcdata : string -> elt
+          val encodedpcdata : string -> elt
+          val entity : string -> elt
+          val leaf : ?a:attrib list -> ename -> elt
+          val node : ?a:attrib list -> ename -> elt list -> elt
+          val cdata : string -> elt
+          val cdata_script : string -> elt
+          val cdata_style : string -> elt
+        end
+      module Info : Xml_sigs.Info
+      type uri = Xml.uri
+      val string_of_uri : uri -> string
+      val uri_of_string : string -> uri
+      type +'a attrib
+      val to_xmlattribs : 'a attrib list -> Xml.attrib list
+      val to_attrib : Xml.attrib -> 'a attrib
+      val a_class : Xhtml_types.nmtokens -> [> `Class ] attrib
+      val a_id : Xhtml_types.id -> [> `Id ] attrib
+      val a_title : Xhtml_types.cdata -> [> `Title ] attrib
+      val a_xml_lang : Xhtml_types.nmtoken -> [> `XML_lang ] attrib
+      val a_onblur : Xml.event_handler -> [> `OnBlur ] attrib
+      val a_onclick : Xml.event_handler -> [> `OnClick ] attrib
+      val a_ondblclick : Xml.event_handler -> [> `OnDblClick ] attrib
+      val a_onchange : Xml.event_handler -> [> `OnChange ] attrib
+      val a_onfocus : Xml.event_handler -> [> `OnFocus ] attrib
+      val a_onload : Xml.event_handler -> [> `OnLoad ] attrib
+      val a_onunload : Xml.event_handler -> [> `OnUnload ] attrib
+      val a_onreset : Xml.event_handler -> [> `OnReset ] attrib
+      val a_onselect : Xml.event_handler -> [> `OnSelect ] attrib
+      val a_onsubmit : Xml.event_handler -> [> `OnSubmit ] attrib
+      val a_onmousedown : Xml.event_handler -> [> `OnMouseDown ] attrib
+      val a_onmouseup : Xml.event_handler -> [> `OnMouseUp ] attrib
+      val a_onmouseover : Xml.event_handler -> [> `OnMouseOver ] attrib
+      val a_onmousemove : Xml.event_handler -> [> `OnMouseMove ] attrib
+      val a_onmouseout : Xml.event_handler -> [> `OnMouseOut ] attrib
+      val a_onkeypress : Xml.event_handler -> [> `OnKeyPress ] attrib
+      val a_onkeydown : Xml.event_handler -> [> `OnKeyDown ] attrib
+      val a_onkeyup : Xml.event_handler -> [> `OnKeyUp ] attrib
+      val a_profile : Xml.uri -> [> `Profile ] attrib
+      val a_version : Xhtml_types.cdata -> [> `Version ] attrib
+      val a_xmlns : [< `W3_org_1999_xhtml ] -> [> `XMLns ] attrib
+      val a_cite : Xml.uri -> [> `Cite ] attrib
+      val a_xml_space : [< `Preserve ] -> [> `XML_space ] attrib
+      val a_accesskey : Xhtml_types.character -> [> `Accesskey ] attrib
+      val a_charset : Xhtml_types.charset -> [> `Charset ] attrib
+      val a_accept_charset :
+        Xhtml_types.charset -> [> `Accept_charset ] attrib
+      val a_accept : Xhtml_types.contenttype -> [> `Accept ] attrib
+      val a_href : Xml.uri -> [> `Href ] attrib
+      val a_hreflang : Xhtml_types.languagecode -> [> `Hreflang ] attrib
+      val a_rel : Xhtml_types.linktypes -> [> `Rel ] attrib
+      val a_rev : Xhtml_types.linktypes -> [> `Rev ] attrib
+      val a_tabindex : Xhtml_types.number -> [> `Tabindex ] attrib
+      val a_type : Xhtml_types.contenttype -> [> `Type ] attrib
+      val a_datetime : Xhtml_types.cdata -> [> `Datetime ] attrib
+      val a_dir : [< `Ltr | `Rtl ] -> [> `Dir ] attrib
+      val a_action : Xml.uri -> [> `Action ] attrib
+      val a_checked : [< `Checked ] -> [> `Checked ] attrib
+      val a_cols : Xhtml_types.number -> [> `Cols ] attrib
+      val a_enctype : Xhtml_types.contenttype -> [> `Enctype ] attrib
+      val a_for : Xhtml_types.idref -> [> `For ] attrib
+      val a_maxlength : Xhtml_types.number -> [> `Maxlength ] attrib
+      val a_method : [< `Get | `Post ] -> [> `Method ] attrib
+      val a_multiple : [< `Multiple ] -> [> `Multiple ] attrib
+      val a_name : Xhtml_types.cdata -> [> `Name ] attrib
+      val a_rows : Xhtml_types.number -> [> `Rows ] attrib
+      val a_selected : [< `Selected ] -> [> `Selected ] attrib
+      val a_size : Xhtml_types.number -> [> `Size ] attrib
+      val a_src : Xml.uri -> [> `Src ] attrib
+      val a_input_type :
+        [< `Button
+         | `Checkbox
+         | `File
+         | `Hidden
+         | `Image
+         | `Password
+         | `Radio
+         | `Reset
+         | `Submit
+         | `Text ] ->
+        [> `Input_Type ] attrib
+      val a_value : Xhtml_types.cdata -> [> `Value ] attrib
+      val a_value_type :
+        [< `Data | `Object | `Ref ] -> [> `Value_Type ] attrib
+      val a_disabled : [< `Disabled ] -> [> `Disabled ] attrib
+      val a_readonly : [< `ReadOnly ] -> [> `ReadOnly ] attrib
+      val a_button_type :
+        [< `Button | `Reset | `Submit ] -> [> `Button_Type ] attrib
+      val a_label : Xhtml_types.text -> [> `Label ] attrib
+      val a_abbr : Xhtml_types.text -> [> `Abbr ] attrib
+      val a_align :
+        [< `Center | `Char | `Justify | `Left | `Right ] ->
+        [> `Align ] attrib
+      val a_axis : Xhtml_types.cdata -> [> `Axis ] attrib
+      val a_colspan : Xhtml_types.number -> [> `Colspan ] attrib
+      val a_headers : Xhtml_types.idrefs -> [> `Headers ] attrib
+      val a_rowspan : Xhtml_types.number -> [> `Rowspan ] attrib
+      val a_scope :
+        [< `Col | `Colgroup | `Row | `Rowgroup ] -> [> `Scope ] attrib
+      val a_summary : Xhtml_types.text -> [> `Summary ] attrib
+      val a_valign :
+        [< `Baseline | `Bottom | `Middle | `Top ] -> [> `Valign ] attrib
+      val a_border : Xhtml_types.pixels -> [> `Border ] attrib
+      val a_cellpadding : Xhtml_types.length -> [> `Cellpadding ] attrib
+      val a_cellspacing : Xhtml_types.length -> [> `Cellspacing ] attrib
+      val a_datapagesize : Xhtml_types.cdata -> [> `Datapagesize ] attrib
+      val a_frame :
+        [< `Above
+         | `Below
+         | `Border
+         | `Box
+         | `Hsides
+         | `LHS
+         | `RHS
+         | `Void
+         | `Vsides ] ->
+        [> `Frame ] attrib
+      val a_rules :
+        [< `All | `Cols | `Groups | `None | `Rows ] -> [> `Rules ] attrib
+      val a_char : Xhtml_types.character -> [> `Char ] attrib
+      val a_charoff : Xhtml_types.length -> [> `Charoff ] attrib
+      val a_span : Xhtml_types.number -> [> `Span ] attrib
+      val a_alt : Xhtml_types.text -> [> `Alt ] attrib
+      val a_height : Xhtml_types.length -> [> `Height ] attrib
+      val a_longdesc : Xml.uri -> [> `Longdesc ] attrib
+      val a_width : Xhtml_types.length -> [> `Width ] attrib
+      type shape = [ `Circle | `Default | `Poly | `Rect ]
+      val a_shape : shape -> [> `Shape ] attrib
+      val a_coords : int list -> [> `Coords ] attrib
+      val a_nohref : [< `Nohref ] -> [> `Nohref ] attrib
+      val a_usemap : Xhtml_types.idref -> [> `Usemap ] attrib
+      val a_ismap : [< `Ismap ] -> [> `Ismap ] attrib
+      val a_declare : [< `Declare ] -> [> `Declare ] attrib
+      val a_classid : Xml.uri -> [> `Classid ] attrib
+      val a_codebase : Xml.uri -> [> `Codebase ] attrib
+      val a_data : Xml.uri -> [> `Data ] attrib
+      val a_codetype : Xhtml_types.contenttype -> [> `Codetype ] attrib
+      val a_archive : Xml.uri list -> [> `Archive ] attrib
+      val a_standby : Xhtml_types.text -> [> `Standby ] attrib
+      val a_fs_rows : Xhtml_types.multilengths -> [> `FS_Rows ] attrib
+      val a_fs_cols : Xhtml_types.multilengths -> [> `FS_Cols ] attrib
+      val a_frameborder : [< `One | `Zero ] -> [> `Frameborder ] attrib
+      val a_marginheight : Xhtml_types.pixels -> [> `Marginheight ] attrib
+      val a_marginwidth : Xhtml_types.pixels -> [> `Marginwidth ] attrib
+      val a_noresize : [< `Noresize ] -> [> `Noresize ] attrib
+      val a_scrolling : [< `Auto | `No | `Yes ] -> [> `Scrolling ] attrib
+      val a_target : Xhtml_types.frametarget -> [> `Target ] attrib
+      val a_content : Xhtml_types.cdata -> [> `Content ] attrib
+      val a_http_equiv : Xhtml_types.nmtoken -> [> `Http_equiv ] attrib
+      val a_scheme : Xhtml_types.cdata -> [> `Scheme ] attrib
+      val a_defer : [< `Defer ] -> [> `Defer ] attrib
+      val a_media : Xhtml_types.mediadesc -> [> `Media ] attrib
+      val a_style : string -> [> `Style_Attr ] attrib
+      type +'a elt
+      type ('a, 'b) nullary = ?a:'a attrib list -> unit -> 'b elt
+      type ('a, 'b, 'c) unary = ?a:'a attrib list -> 'b elt -> 'c elt
+      type ('a, 'b, 'c, 'd) binary =
+          ?a:'a attrib list -> 'b elt -> 'c elt -> 'd elt
+      type ('a, 'b, 'c, 'd, 'e, 'f) quadry =
+          ?a:'a attrib list -> 'b elt -> 'c elt -> 'd elt -> 'e elt -> 'f elt
+      type ('a, 'b, 'c) star = ?a:'a attrib list -> 'b elt list -> 'c elt
+      type ('a, 'b, 'c) plus =
+          ?a:'a attrib list -> 'b elt -> 'b elt list -> 'c elt
+      type html = [ `Html ] elt
+      val html :
+        ?a:[< `Dir | `Id | `Version | `XML_lang | `XMLns ] attrib list ->
+        [< `Head ] elt -> [< `Body | `Frameset ] elt -> html
+      val head :
+        ?a:[< `Dir | `Id | `Profile | `XML_lang ] attrib list ->
+        [< `Base | `Title ] elt ->
+        [< `Link | `Meta | `Object | `Script | `Style ] elt list ->
+        [> `Head ] elt
+      val title :
+        ([< Xhtml_types.title_attrib ], [< Xhtml_types.title_content ],
+         [> Xhtml_types.title ])
+        unary
+      val body :
+        ([< Xhtml_types.body_attrib ], [< Xhtml_types.body_content ],
+         [> Xhtml_types.body ])
+        star
+      val pcdata : string -> [> `PCDATA ] elt
+      val entity : string -> [> `PCDATA ] elt
+      val space : unit -> [> `PCDATA ] elt
+      val cdata : string -> [> `PCDATA ] elt
+      val cdata_script : string -> [> `PCDATA ] elt
+      val cdata_style : string -> [> `PCDATA ] elt
+      val unsafe_data : string -> 'a elt
+      val h1 :
+        ([< Xhtml_types.h1_attrib ], [< Xhtml_types.h1_content ],
+         [> Xhtml_types.h1 ])
+        star
+      val h2 :
+        ([< Xhtml_types.h2_attrib ], [< Xhtml_types.h2_content ],
+         [> Xhtml_types.h2 ])
+        star
+      val h3 :
+        ([< Xhtml_types.h3_attrib ], [< Xhtml_types.h3_content ],
+         [> Xhtml_types.h3 ])
+        star
+      val h4 :
+        ([< Xhtml_types.h4_attrib ], [< Xhtml_types.h4_content ],
+         [> Xhtml_types.h4 ])
+        star
+      val h5 :
+        ([< Xhtml_types.h5_attrib ], [< Xhtml_types.h5_content ],
+         [> Xhtml_types.h5 ])
+        star
+      val h6 :
+        ([< Xhtml_types.h6_attrib ], [< Xhtml_types.h6_content ],
+         [> Xhtml_types.h6 ])
+        star
+      val address :
+        ([< Xhtml_types.address_attrib ], [< Xhtml_types.address_content ],
+         [> Xhtml_types.address ])
+        star
+      val blockquote :
+        ([< `Cite
+          | `Class
+          | `Dir
+          | `Id
+          | `OnClick
+          | `OnDblClick
+          | `OnKeyDown
+          | `OnKeyPress
+          | `OnKeyUp
+          | `OnMouseDown
+          | `OnMouseMove
+          | `OnMouseOut
+          | `OnMouseOver
+          | `OnMouseUp
+          | `Style_Attr
+          | `Title
+          | `XML_lang
+          | `XML_space ],
+         [< `Address
+          | `Blockquote
+          | `Del
+          | `Div
+          | `Dl
+          | `Fieldset
+          | `Form
+          | `H1
+          | `H2
+          | `H3
+          | `H4
+          | `H5
+          | `H6
+          | `Hr
+          | `Ins
+          | `Noscript
+          | `Ol
+          | `P
+          | `PCDATA
+          | `Pre
+          | `Script
+          | `Table
+          | `Ul ],
+         [> `Blockquote ])
+        star
+      val div :
+        ([< Xhtml_types.div_attrib ], [< Xhtml_types.div_content ],
+         [> Xhtml_types.div ])
+        star
+      val p :
+        ([< Xhtml_types.p_attrib ], [< Xhtml_types.p_content ],
+         [> Xhtml_types.p ])
+        star
+      val pre :
+        ([< `Class
+          | `Dir
+          | `Id
+          | `OnClick
+          | `OnDblClick
+          | `OnKeyDown
+          | `OnKeyPress
+          | `OnKeyUp
+          | `OnMouseDown
+          | `OnMouseMove
+          | `OnMouseOut
+          | `OnMouseOver
+          | `OnMouseUp
+          | `Style_Attr
+          | `Title
+          | `XML_lang
+          | `XML_space ],
+         [< `A
+          | `Abbr
+          | `Acronym
+          | `B
+          | `Bdo
+          | `Big
+          | `Br
+          | `Button
+          | `Cite
+          | `Code
+          | `Del
+          | `Dfn
+          | `Em
+          | `I
+          | `Iframe
+          | `Img
+          | `Input
+          | `Ins
+          | `Kbd
+          | `Label
+          | `Map
+          | `Noscript
+          | `Object
+          | `PCDATA
+          | `Q
+          | `Ruby_complex
+          | `Ruby_simple1
+          | `Ruby_simple2
+          | `Samp
+          | `Script
+          | `Select
+          | `Small
+          | `Span
+          | `Strong
+          | `Sub
+          | `Sup
+          | `Textarea
+          | `Tt
+          | `Var ],
+         [> `Pre ])
+        star
+      val abbr :
+        ([< Xhtml_types.abbr_attrib ], [< Xhtml_types.abbr_content ],
+         [> Xhtml_types.abbr ])
+        star
+      val acronym :
+        ([< Xhtml_types.acronym_attrib ], [< Xhtml_types.acronym_content ],
+         [> Xhtml_types.acronym ])
+        star
+      val br : ([< Xhtml_types.br_attrib ], [> Xhtml_types.br ]) nullary
+      val cite :
+        ([< Xhtml_types.cite_attrib ], [< Xhtml_types.cite_content ],
+         [> Xhtml_types.cite ])
+        star
+      val code :
+        ([< Xhtml_types.code_attrib ], [< Xhtml_types.code_content ],
+         [> Xhtml_types.code ])
+        star
+      val dfn :
+        ([< Xhtml_types.dfn_attrib ], [< Xhtml_types.dfn_content ],
+         [> Xhtml_types.dfn ])
+        star
+      val em :
+        ([< Xhtml_types.em_attrib ], [< Xhtml_types.em_content ],
+         [> Xhtml_types.em ])
+        star
+      val kbd :
+        ([< Xhtml_types.kbd_attrib ], [< Xhtml_types.kbd_content ],
+         [> Xhtml_types.kbd ])
+        star
+      val q :
+        ([< Xhtml_types.q_attrib ], [< Xhtml_types.q_content ],
+         [> Xhtml_types.q ])
+        star
+      val samp :
+        ([< Xhtml_types.samp_attrib ], [< Xhtml_types.samp_content ],
+         [> Xhtml_types.samp ])
+        star
+      val span :
+        ([< Xhtml_types.span_attrib ], [< Xhtml_types.span_content ],
+         [> Xhtml_types.span ])
+        star
+      val strong :
+        ([< Xhtml_types.strong_attrib ], [< Xhtml_types.strong_content ],
+         [> Xhtml_types.strong ])
+        star
+      val var :
+        ([< Xhtml_types.var_attrib ], [< Xhtml_types.var_content ],
+         [> Xhtml_types.var ])
+        star
+      val a :
+        ([< Xhtml_types.a_attrib ], [< Xhtml_types.a_content ],
+         [> Xhtml_types.a ])
+        star
+      val dl :
+        ([< Xhtml_types.dl_attrib ], [< Xhtml_types.dl_content ],
+         [> Xhtml_types.dl ])
+        plus
+      val ol :
+        ([< Xhtml_types.ol_attrib ], [< Xhtml_types.ol_content ],
+         [> Xhtml_types.ol ])
+        plus
+      val ul :
+        ([< Xhtml_types.ul_attrib ], [< Xhtml_types.ul_content ],
+         [> Xhtml_types.ul ])
+        plus
+      val dd :
+        ([< Xhtml_types.dd_attrib ], [< Xhtml_types.dd_content ],
+         [> Xhtml_types.dd ])
+        star
+      val dt :
+        ([< Xhtml_types.dt_attrib ], [< Xhtml_types.dt_content ],
+         [> Xhtml_types.dt ])
+        star
+      val li :
+        ([< Xhtml_types.li_attrib ], [< Xhtml_types.li_content ],
+         [> Xhtml_types.li ])
+        star
+      val hr : ([< Xhtml_types.hr_attrib ], [> Xhtml_types.hr ]) nullary
+      val b :
+        ([< Xhtml_types.b_attrib ], [< Xhtml_types.b_content ],
+         [> Xhtml_types.b ])
+        star
+      val big :
+        ([< Xhtml_types.big_attrib ], [< Xhtml_types.big_content ],
+         [> Xhtml_types.big ])
+        star
+      val i :
+        ([< Xhtml_types.i_attrib ], [< Xhtml_types.i_content ],
+         [> Xhtml_types.i ])
+        star
+      val small :
+        ([< Xhtml_types.small_attrib ], [< Xhtml_types.small_content ],
+         [> Xhtml_types.small ])
+        star
+      val sub :
+        ([< Xhtml_types.sub_attrib ], [< Xhtml_types.sub_content ],
+         [> Xhtml_types.sub ])
+        star
+      val sup :
+        ([< Xhtml_types.sup_attrib ], [< Xhtml_types.sup_content ],
+         [> Xhtml_types.sup ])
+        star
+      val tt :
+        ([< Xhtml_types.tt_attrib ], [< Xhtml_types.tt_content ],
+         [> Xhtml_types.tt ])
+        star
+      val bdo :
+        dir:[< `Ltr | `Rtl ] ->
+        ([< Xhtml_types.bdo_attrib ], [< Xhtml_types.bdo_content ],
+         [> Xhtml_types.bdo ])
+        star
+      val area :
+        alt:Xhtml_types.text ->
+        ([< Xhtml_types.area_attrib ], [> Xhtml_types.area ]) nullary
+      val map :
+        id:Xhtml_types.id ->
+        ([< Xhtml_types.map_attrib ], [< Xhtml_types.map_content ],
+         [> Xhtml_types.map ])
+        plus
+      val del :
+        ([< Xhtml_types.del_attrib ], [< Xhtml_types.del_content ],
+         [> Xhtml_types.del ])
+        star
+      val ins :
+        ([< Xhtml_types.ins_attrib ], [< Xhtml_types.ins_content ],
+         [> Xhtml_types.ins ])
+        star
+      val script :
+        contenttype:Xhtml_types.contenttype ->
+        ([< Xhtml_types.script_attrib ], [< Xhtml_types.script_content ],
+         [> Xhtml_types.script ])
+        unary
+      val noscript :
+        ([< Xhtml_types.noscript_attrib ], [< Xhtml_types.noscript_content ],
+         [> Xhtml_types.noscript ])
+        plus
+      module Basic_Forms :
+        sig
+          val form :
+            action:Xml.uri ->
+            ([< Xhtml_types.form_attrib ], [< Xhtml_types.form_content ],
+             [> Xhtml_types.form ])
+            plus
+          val input :
+            ([< Xhtml_types.input_attrib ], [> Xhtml_types.input ]) nullary
+          val label :
+            ([< Xhtml_types.label_attrib ], [< Xhtml_types.label_content ],
+             [> Xhtml_types.label ])
+            star
+          val option :
+            ([< Xhtml_types.option_attrib ], [< Xhtml_types.option_content ],
+             [> Xhtml_types.selectoption ])
+            unary
+          val select :
+            ([< Xhtml_types.select_attrib ], [< Xhtml_types.select_content ],
+             [> Xhtml_types.select ])
+            plus
+          val textarea :
+            rows:Xhtml_types.number ->
+            cols:Xhtml_types.number ->
+            ([< Xhtml_types.textarea_attrib ],
+             [< Xhtml_types.textarea_content ], [> Xhtml_types.textarea ])
+            unary
+        end
+      val form :
+        action:Xml.uri ->
+        ([< Xhtml_types.form_attrib ], [< Xhtml_types.form_content ],
+         [> Xhtml_types.form ])
+        plus
+      val input :
+        ([< Xhtml_types.input_attrib ], [> Xhtml_types.input ]) nullary
+      val label :
+        ([< Xhtml_types.label_attrib ], [< Xhtml_types.label_content ],
+         [> Xhtml_types.label ])
+        star
+      val optgroup :
+        label:Xhtml_types.text ->
+        ([< Xhtml_types.optgroup_attrib ], [< Xhtml_types.optgroup_content ],
+         [> Xhtml_types.optgroup ])
+        plus
+      val option :
+        ([< Xhtml_types.option_attrib ], [< Xhtml_types.option_content ],
+         [> Xhtml_types.selectoption ])
+        unary
+      val select :
+        ([< Xhtml_types.select_attrib ], [< Xhtml_types.select_content ],
+         [> Xhtml_types.select ])
+        plus
+      val textarea :
+        rows:Xhtml_types.number ->
+        cols:Xhtml_types.number ->
+        ([< Xhtml_types.textarea_attrib ], [< Xhtml_types.textarea_content ],
+         [> Xhtml_types.textarea ])
+        unary
+      val fieldset :
+        ([< Xhtml_types.fieldset_attrib ], [< Xhtml_types.fieldset_content ],
+         [> Xhtml_types.fieldset ])
+        star
+      val legend :
+        ([< Xhtml_types.legend_attrib ], [< Xhtml_types.legend_content ],
+         [> Xhtml_types.legend ])
+        star
+      val button :
+        ([< Xhtml_types.button_attrib ], [< Xhtml_types.button_content ],
+         [> Xhtml_types.button ])
+        star
+      module Basic_Tables :
+        sig
+          val a_align : [< `Center | `Left | `Right ] -> [> `Align ] attrib
+          val a_scope : [< `Col | `Row ] -> [> `Scope ] attrib
+          val a_valign : [< `Bottom | `Middle | `Top ] -> [> `Valign ] attrib
+          val caption :
+            ([< Xhtml_types.caption_attrib ],
+             [< Xhtml_types.caption_content ], [> Xhtml_types.caption ])
+            star
+          val table :
+            ?caption:[< `Caption ] elt ->
+            ([< Xhtml_types.table_attrib ], [< Xhtml_types.table_content ],
+             [> Xhtml_types.table ])
+            plus
+          val td :
+            ([< Xhtml_types.td_attrib ], [< Xhtml_types.td_content ],
+             [> Xhtml_types.td ])
+            star
+          val th :
+            ([< Xhtml_types.th_attrib ], [< Xhtml_types.th_content ],
+             [> Xhtml_types.th ])
+            star
+          val tr :
+            ([< Xhtml_types.tr_attrib ], [< Xhtml_types.tr_content ],
+             [> Xhtml_types.tr ])
+            plus
+        end
+      val caption :
+        ([< Xhtml_types.caption_attrib ], [< Xhtml_types.caption_content ],
+         [> Xhtml_types.caption ])
+        star
+      val table :
+        ?caption:[< `Caption ] elt ->
+        ?columns:[< `Colgroups of [< `Colgroup ] elt list
+                  | `Cols of [< `Col ] elt list ] ->
+        ([< `Border
+          | `Cellpadding
+          | `Cellspacing
+          | `Class
+          | `Datapagesize
+          | `Dir
+          | `Frame
+          | `Id
+          | `OnClick
+          | `OnDblClick
+          | `OnKeyDown
+          | `OnKeyPress
+          | `OnKeyUp
+          | `OnMouseDown
+          | `OnMouseMove
+          | `OnMouseOut
+          | `OnMouseOver
+          | `OnMouseUp
+          | `Rules
+          | `Style_Attr
+          | `Summary
+          | `Title
+          | `Width
+          | `XML_lang
+          | `XML_space ],
+         [< `Tr ], [> `Table ])
+        plus
+      val tablex :
+        ?caption:[< `Caption ] elt ->
+        ?columns:[< `Colgroups of [< `Colgroup ] elt list
+                  | `Cols of [< `Col ] elt list ] ->
+        ?thead:[< `Thead ] elt ->
+        ?tfoot:[< `Tfoot ] elt ->
+        ([< `Border
+          | `Cellpadding
+          | `Cellspacing
+          | `Class
+          | `Datapagesize
+          | `Dir
+          | `Frame
+          | `Id
+          | `OnClick
+          | `OnDblClick
+          | `OnKeyDown
+          | `OnKeyPress
+          | `OnKeyUp
+          | `OnMouseDown
+          | `OnMouseMove
+          | `OnMouseOut
+          | `OnMouseOver
+          | `OnMouseUp
+          | `Rules
+          | `Style_Attr
+          | `Summary
+          | `Title
+          | `Width
+          | `XML_lang
+          | `XML_space ],
+         [< `Tbody ], [> `Table ])
+        plus
+      val td :
+        ([< Xhtml_types.td_attrib ], [< Xhtml_types.td_content ],
+         [> Xhtml_types.td ])
+        star
+      val th :
+        ([< Xhtml_types.th_attrib ], [< Xhtml_types.th_content ],
+         [> Xhtml_types.th ])
+        star
+      val tr :
+        ([< Xhtml_types.tr_attrib ], [< Xhtml_types.tr_content ],
+         [> Xhtml_types.tr ])
+        plus
+      val col : ([< Xhtml_types.col_attrib ], [> Xhtml_types.col ]) nullary
+      val colgroup :
+        ([< Xhtml_types.colgroup_attrib ], [< Xhtml_types.colgroup_content ],
+         [> Xhtml_types.colgroup ])
+        star
+      val thead :
+        ([< Xhtml_types.thead_attrib ], [< Xhtml_types.thead_content ],
+         [> Xhtml_types.thead ])
+        plus
+      val tbody :
+        ([< Xhtml_types.tbody_attrib ], [< Xhtml_types.tbody_content ],
+         [> Xhtml_types.tbody ])
+        plus
+      val tfoot :
+        ([< Xhtml_types.tfoot_attrib ], [< Xhtml_types.tfoot_content ],
+         [> Xhtml_types.tfoot ])
+        plus
+      val img :
+        src:Xml.uri ->
+        alt:Xhtml_types.text ->
+        ([< Xhtml_types.img_attrib ], [> Xhtml_types.img ]) nullary
+      val object_ :
+        ([< Xhtml_types.object__attrib ], [< Xhtml_types.object__content ],
+         [> Xhtml_types.object_ ])
+        star
+      val param :
+        name:Xhtml_types.text ->
+        ([< Xhtml_types.param_attrib ], [> Xhtml_types.param ]) nullary
+      val frameset :
+        ?noframes:[< `Noframes ] elt ->
+        ([< Xhtml_types.frameset_attrib ], [< Xhtml_types.frameset_content ],
+         [> Xhtml_types.frameset ])
+        plus
+      val frame :
+        src:Xml.uri ->
+        ([< Xhtml_types.frame_attrib ], [> Xhtml_types.frame ]) nullary
+      val noframes :
+        ([< Xhtml_types.noframes_attrib ], [< Xhtml_types.noframes_content ],
+         [> Xhtml_types.noframes ])
+        unary
+      val iframe :
+        ([< Xhtml_types.iframe_attrib ], [< Xhtml_types.iframe_content ],
+         [> Xhtml_types.iframe ])
+        star
+      val meta :
+        content:Xhtml_types.cdata ->
+        ([< Xhtml_types.meta_attrib ], [> Xhtml_types.meta ]) nullary
+      val style :
+        contenttype:Xhtml_types.contenttype ->
+        ([< Xhtml_types.style_attrib ], [< Xhtml_types.style_content ],
+         [> Xhtml_types.style ])
+        star
+      val link :
+        ([< Xhtml_types.link_attrib ], [> Xhtml_types.link ]) nullary
+      val base :
+        href:Xml.uri ->
+        ([< Xhtml_types.base_attrib ], [> Xhtml_types.base ]) nullary
+      val ruby_simple1 :
+        ?a:[< Xhtml_types.common ] attrib list ->
+        [< `Rb ] elt -> [< `Rt ] elt -> [> `Ruby_simple1 ] elt
+      val ruby_simple2 :
+        ?a:[< Xhtml_types.common ] attrib list ->
+        [< `Rb ] elt ->
+        [< `Rp ] elt ->
+        [< `Rt ] elt -> [< `Rp ] elt -> [> `Ruby_simple2 ] elt
+      val ruby_complex :
+        ?a:[< Xhtml_types.common ] attrib list ->
+        [< `Rbc ] elt -> [< `Rtc_complex ] elt -> [> `Ruby_complex ] elt
+      val rbc :
+        ([< Xhtml_types.rbc_attrib ], [< Xhtml_types.rbc_content ],
+         [> Xhtml_types.rbc ])
+        plus
+      val rtc :
+        ([< Xhtml_types.rtc_attrib ], [< Xhtml_types.rtc_content ],
+         [> Xhtml_types.rtc ])
+        plus
+      val rtc_complex :
+        ([< Xhtml_types.rtc_complex_attrib ],
+         [< Xhtml_types.rtc_complex_content ], [> Xhtml_types.rtc_complex ])
+        plus
+      val rb :
+        ([< Xhtml_types.rb_attrib ], [< Xhtml_types.rb_content ],
+         [> Xhtml_types.rb ])
+        star
+      val rt :
+        ([< Xhtml_types.rt_attrib ], [< Xhtml_types.rt_content ],
+         [> Xhtml_types.rt ])
+        star
+      val rt_complex :
+        ([< Xhtml_types.rt_complex_attrib ],
+         [< Xhtml_types.rt_complex_content ], [> Xhtml_types.rt_complex ])
+        star
+      val rp :
+        ([< Xhtml_types.rp_attrib ], [< Xhtml_types.rp_content ],
+         [> Xhtml_types.rp ])
+        star
+      val a_rbspan : Xhtml_types.number -> [> `Rbspan ] attrib
+      val tot : Xml.elt -> 'a elt
+      val totl : Xml.elt list -> 'a elt list
+      val toelt : 'a elt -> Xml.elt
+      val toeltl : 'a elt list -> Xml.elt list
+      type doc = [ `Html ] elt
+      val doc_toelt : doc -> Xml.elt
+      type ('a, 'b, 'c) lazy_plus =
+          ?a:'a attrib list ->
+          'b elt Eliom_lazy.request ->
+          'b elt list Eliom_lazy.request -> 'c elt
+      val lazy_form :
+        action:Eliom_content_core.Xml.uri ->
+        ([< Xhtml_types.form_attrib ], [< Xhtml_types.form_content ],
+         [> Xhtml_types.form ])
+        Eliom_content_core.Xhtml.F.lazy_plus
+    end
+  module F_01_00 :
+    sig
+      module Raw :
+        sig
+          module Xml :
+            sig
+              type uri = Xml.uri
+              val string_of_uri : uri -> string
+              val uri_of_string : string -> uri
+              type aname = string
+              type event_handler = Xml.event_handler
+              type attrib = Xml.attrib
+              val float_attrib : aname -> float -> attrib
+              val int_attrib : aname -> int -> attrib
+              val string_attrib : aname -> string -> attrib
+              val space_sep_attrib : aname -> string list -> attrib
+              val comma_sep_attrib : aname -> string list -> attrib
+              val event_handler_attrib : aname -> event_handler -> attrib
+              val uri_attrib : aname -> uri -> attrib
+              val uris_attrib : aname -> uri list -> attrib
+              type elt = Xml.elt
+              type ename = string
+              val empty : unit -> elt
+              val comment : string -> elt
+              val pcdata : string -> elt
+              val encodedpcdata : string -> elt
+              val entity : string -> elt
+              val leaf : ?a:attrib list -> ename -> elt
+              val node : ?a:attrib list -> ename -> elt list -> elt
+              val cdata : string -> elt
+              val cdata_script : string -> elt
+              val cdata_style : string -> elt
+            end
+          module Info : Xml_sigs.Info
+          type uri = Xml.uri
+          val string_of_uri : uri -> string
+          val uri_of_string : string -> uri
+          type +'a attrib
+          val to_xmlattribs : 'a attrib list -> Xml.attrib list
+          val to_attrib : Xml.attrib -> 'a attrib
+          val a_class : Xhtml_types.nmtokens -> [> `Class ] attrib
+          val a_id : Xhtml_types.id -> [> `Id ] attrib
+          val a_title : Xhtml_types.cdata -> [> `Title ] attrib
+          val a_xml_lang : Xhtml_types.nmtoken -> [> `XML_lang ] attrib
+          val a_onblur : Xml.event_handler -> [> `OnBlur ] attrib
+          val a_onclick : Xml.event_handler -> [> `OnClick ] attrib
+          val a_ondblclick : Xml.event_handler -> [> `OnDblClick ] attrib
+          val a_onchange : Xml.event_handler -> [> `OnChange ] attrib
+          val a_onfocus : Xml.event_handler -> [> `OnFocus ] attrib
+          val a_onload : Xml.event_handler -> [> `OnLoad ] attrib
+          val a_onunload : Xml.event_handler -> [> `OnUnload ] attrib
+          val a_onreset : Xml.event_handler -> [> `OnReset ] attrib
+          val a_onselect : Xml.event_handler -> [> `OnSelect ] attrib
+          val a_onsubmit : Xml.event_handler -> [> `OnSubmit ] attrib
+          val a_onmousedown : Xml.event_handler -> [> `OnMouseDown ] attrib
+          val a_onmouseup : Xml.event_handler -> [> `OnMouseUp ] attrib
+          val a_onmouseover : Xml.event_handler -> [> `OnMouseOver ] attrib
+          val a_onmousemove : Xml.event_handler -> [> `OnMouseMove ] attrib
+          val a_onmouseout : Xml.event_handler -> [> `OnMouseOut ] attrib
+          val a_onkeypress : Xml.event_handler -> [> `OnKeyPress ] attrib
+          val a_onkeydown : Xml.event_handler -> [> `OnKeyDown ] attrib
+          val a_onkeyup : Xml.event_handler -> [> `OnKeyUp ] attrib
+          val a_profile : Xml.uri -> [> `Profile ] attrib
+          val a_version : Xhtml_types.cdata -> [> `Version ] attrib
+          val a_xmlns : [< `W3_org_1999_xhtml ] -> [> `XMLns ] attrib
+          val a_cite : Xml.uri -> [> `Cite ] attrib
+          val a_xml_space : [< `Preserve ] -> [> `XML_space ] attrib
+          val a_accesskey : Xhtml_types.character -> [> `Accesskey ] attrib
+          val a_charset : Xhtml_types.charset -> [> `Charset ] attrib
+          val a_accept_charset :
+            Xhtml_types.charset -> [> `Accept_charset ] attrib
+          val a_accept : Xhtml_types.contenttype -> [> `Accept ] attrib
+          val a_href : Xml.uri -> [> `Href ] attrib
+          val a_hreflang : Xhtml_types.languagecode -> [> `Hreflang ] attrib
+          val a_rel : Xhtml_types.linktypes -> [> `Rel ] attrib
+          val a_rev : Xhtml_types.linktypes -> [> `Rev ] attrib
+          val a_tabindex : Xhtml_types.number -> [> `Tabindex ] attrib
+          val a_type : Xhtml_types.contenttype -> [> `Type ] attrib
+          val a_datetime : Xhtml_types.cdata -> [> `Datetime ] attrib
+          val a_dir : [< `Ltr | `Rtl ] -> [> `Dir ] attrib
+          val a_action : Xml.uri -> [> `Action ] attrib
+          val a_checked : [< `Checked ] -> [> `Checked ] attrib
+          val a_cols : Xhtml_types.number -> [> `Cols ] attrib
+          val a_enctype : Xhtml_types.contenttype -> [> `Enctype ] attrib
+          val a_for : Xhtml_types.idref -> [> `For ] attrib
+          val a_maxlength : Xhtml_types.number -> [> `Maxlength ] attrib
+          val a_method : [< `Get | `Post ] -> [> `Method ] attrib
+          val a_multiple : [< `Multiple ] -> [> `Multiple ] attrib
+          val a_name : Xhtml_types.cdata -> [> `Name ] attrib
+          val a_rows : Xhtml_types.number -> [> `Rows ] attrib
+          val a_selected : [< `Selected ] -> [> `Selected ] attrib
+          val a_size : Xhtml_types.number -> [> `Size ] attrib
+          val a_src : Xml.uri -> [> `Src ] attrib
+          val a_input_type :
+            [< `Button
+             | `Checkbox
+             | `File
+             | `Hidden
+             | `Image
+             | `Password
+             | `Radio
+             | `Reset
+             | `Submit
+             | `Text ] ->
+            [> `Input_Type ] attrib
+          val a_value : Xhtml_types.cdata -> [> `Value ] attrib
+          val a_value_type :
+            [< `Data | `Object | `Ref ] -> [> `Value_Type ] attrib
+          val a_disabled : [< `Disabled ] -> [> `Disabled ] attrib
+          val a_readonly : [< `ReadOnly ] -> [> `ReadOnly ] attrib
+          val a_button_type :
+            [< `Button | `Reset | `Submit ] -> [> `Button_Type ] attrib
+          val a_label : Xhtml_types.text -> [> `Label ] attrib
+          val a_abbr : Xhtml_types.text -> [> `Abbr ] attrib
+          val a_align :
+            [< `Center | `Char | `Justify | `Left | `Right ] ->
+            [> `Align ] attrib
+          val a_axis : Xhtml_types.cdata -> [> `Axis ] attrib
+          val a_colspan : Xhtml_types.number -> [> `Colspan ] attrib
+          val a_headers : Xhtml_types.idrefs -> [> `Headers ] attrib
+          val a_rowspan : Xhtml_types.number -> [> `Rowspan ] attrib
+          val a_scope :
+            [< `Col | `Colgroup | `Row | `Rowgroup ] -> [> `Scope ] attrib
+          val a_summary : Xhtml_types.text -> [> `Summary ] attrib
+          val a_valign :
+            [< `Baseline | `Bottom | `Middle | `Top ] -> [> `Valign ] attrib
+          val a_border : Xhtml_types.pixels -> [> `Border ] attrib
+          val a_cellpadding : Xhtml_types.length -> [> `Cellpadding ] attrib
+          val a_cellspacing : Xhtml_types.length -> [> `Cellspacing ] attrib
+          val a_datapagesize : Xhtml_types.cdata -> [> `Datapagesize ] attrib
+          val a_frame :
+            [< `Above
+             | `Below
+             | `Border
+             | `Box
+             | `Hsides
+             | `LHS
+             | `RHS
+             | `Void
+             | `Vsides ] ->
+            [> `Frame ] attrib
+          val a_rules :
+            [< `All | `Cols | `Groups | `None | `Rows ] -> [> `Rules ] attrib
+          val a_char : Xhtml_types.character -> [> `Char ] attrib
+          val a_charoff : Xhtml_types.length -> [> `Charoff ] attrib
+          val a_span : Xhtml_types.number -> [> `Span ] attrib
+          val a_alt : Xhtml_types.text -> [> `Alt ] attrib
+          val a_height : Xhtml_types.length -> [> `Height ] attrib
+          val a_longdesc : Xml.uri -> [> `Longdesc ] attrib
+          val a_width : Xhtml_types.length -> [> `Width ] attrib
+          type shape = [ `Circle | `Default | `Poly | `Rect ]
+          val a_shape : shape -> [> `Shape ] attrib
+          val a_coords : int list -> [> `Coords ] attrib
+          val a_nohref : [< `Nohref ] -> [> `Nohref ] attrib
+          val a_usemap : Xhtml_types.idref -> [> `Usemap ] attrib
+          val a_ismap : [< `Ismap ] -> [> `Ismap ] attrib
+          val a_declare : [< `Declare ] -> [> `Declare ] attrib
+          val a_classid : Xml.uri -> [> `Classid ] attrib
+          val a_codebase : Xml.uri -> [> `Codebase ] attrib
+          val a_data : Xml.uri -> [> `Data ] attrib
+          val a_codetype : Xhtml_types.contenttype -> [> `Codetype ] attrib
+          val a_archive : Xml.uri list -> [> `Archive ] attrib
+          val a_standby : Xhtml_types.text -> [> `Standby ] attrib
+          val a_fs_rows : Xhtml_types.multilengths -> [> `FS_Rows ] attrib
+          val a_fs_cols : Xhtml_types.multilengths -> [> `FS_Cols ] attrib
+          val a_frameborder : [< `One | `Zero ] -> [> `Frameborder ] attrib
+          val a_marginheight :
+            Xhtml_types.pixels -> [> `Marginheight ] attrib
+          val a_marginwidth : Xhtml_types.pixels -> [> `Marginwidth ] attrib
+          val a_noresize : [< `Noresize ] -> [> `Noresize ] attrib
+          val a_scrolling : [< `Auto | `No | `Yes ] -> [> `Scrolling ] attrib
+          val a_target : Xhtml_types.frametarget -> [> `Target ] attrib
+          val a_content : Xhtml_types.cdata -> [> `Content ] attrib
+          val a_http_equiv : Xhtml_types.nmtoken -> [> `Http_equiv ] attrib
+          val a_scheme : Xhtml_types.cdata -> [> `Scheme ] attrib
+          val a_defer : [< `Defer ] -> [> `Defer ] attrib
+          val a_media : Xhtml_types.mediadesc -> [> `Media ] attrib
+          val a_style : string -> [> `Style_Attr ] attrib
+          type +'a elt
+          type ('a, 'b) nullary = ?a:'a attrib list -> unit -> 'b elt
+          type ('a, 'b, 'c) unary = ?a:'a attrib list -> 'b elt -> 'c elt
+          type ('a, 'b, 'c, 'd) binary =
+              ?a:'a attrib list -> 'b elt -> 'c elt -> 'd elt
+          type ('a, 'b, 'c, 'd, 'e, 'f) quadry =
+              ?a:'a attrib list ->
+              'b elt -> 'c elt -> 'd elt -> 'e elt -> 'f elt
+          type ('a, 'b, 'c) star = ?a:'a attrib list -> 'b elt list -> 'c elt
+          type ('a, 'b, 'c) plus =
+              ?a:'a attrib list -> 'b elt -> 'b elt list -> 'c elt
+          type html = [ `Html ] elt
+          val html :
+            ?a:[< `Dir | `Id | `Version | `XML_lang | `XMLns ] attrib list ->
+            [< `Head ] elt -> [< `Body | `Frameset ] elt -> html
+          val head :
+            ?a:[< `Dir | `Id | `Profile | `XML_lang ] attrib list ->
+            [< `Base | `Title ] elt ->
+            [< `Link | `Meta | `Object | `Script | `Style ] elt list ->
+            [> `Head ] elt
+          val title :
+            ([< Xhtml_types.title_attrib ], [< Xhtml_types.title_content ],
+             [> Xhtml_types.title ])
+            unary
+          val body :
+            ([< Xhtml_types.body_attrib ], [< Xhtml_types.body_content ],
+             [> Xhtml_types.body ])
+            star
+          val pcdata : string -> [> `PCDATA ] elt
+          val entity : string -> [> `PCDATA ] elt
+          val space : unit -> [> `PCDATA ] elt
+          val cdata : string -> [> `PCDATA ] elt
+          val cdata_script : string -> [> `PCDATA ] elt
+          val cdata_style : string -> [> `PCDATA ] elt
+          val unsafe_data : string -> 'a elt
+          val h1 :
+            ([< Xhtml_types.h1_attrib ], [< Xhtml_types.h1_content ],
+             [> Xhtml_types.h1 ])
+            star
+          val h2 :
+            ([< Xhtml_types.h2_attrib ], [< Xhtml_types.h2_content ],
+             [> Xhtml_types.h2 ])
+            star
+          val h3 :
+            ([< Xhtml_types.h3_attrib ], [< Xhtml_types.h3_content ],
+             [> Xhtml_types.h3 ])
+            star
+          val h4 :
+            ([< Xhtml_types.h4_attrib ], [< Xhtml_types.h4_content ],
+             [> Xhtml_types.h4 ])
+            star
+          val h5 :
+            ([< Xhtml_types.h5_attrib ], [< Xhtml_types.h5_content ],
+             [> Xhtml_types.h5 ])
+            star
+          val h6 :
+            ([< Xhtml_types.h6_attrib ], [< Xhtml_types.h6_content ],
+             [> Xhtml_types.h6 ])
+            star
+          val address :
+            ([< Xhtml_types.address_attrib ],
+             [< Xhtml_types.address_content ], [> Xhtml_types.address ])
+            star
+          val blockquote :
+            ([< `Cite
+              | `Class
+              | `Dir
+              | `Id
+              | `OnClick
+              | `OnDblClick
+              | `OnKeyDown
+              | `OnKeyPress
+              | `OnKeyUp
+              | `OnMouseDown
+              | `OnMouseMove
+              | `OnMouseOut
+              | `OnMouseOver
+              | `OnMouseUp
+              | `Style_Attr
+              | `Title
+              | `XML_lang
+              | `XML_space ],
+             [< `Address
+              | `Blockquote
+              | `Del
+              | `Div
+              | `Dl
+              | `Fieldset
+              | `Form
+              | `H1
+              | `H2
+              | `H3
+              | `H4
+              | `H5
+              | `H6
+              | `Hr
+              | `Ins
+              | `Noscript
+              | `Ol
+              | `P
+              | `PCDATA
+              | `Pre
+              | `Script
+              | `Table
+              | `Ul ],
+             [> `Blockquote ])
+            star
+          val div :
+            ([< Xhtml_types.div_attrib ], [< Xhtml_types.div_content ],
+             [> Xhtml_types.div ])
+            star
+          val p :
+            ([< Xhtml_types.p_attrib ], [< Xhtml_types.p_content ],
+             [> Xhtml_types.p ])
+            star
+          val pre :
+            ([< `Class
+              | `Dir
+              | `Id
+              | `OnClick
+              | `OnDblClick
+              | `OnKeyDown
+              | `OnKeyPress
+              | `OnKeyUp
+              | `OnMouseDown
+              | `OnMouseMove
+              | `OnMouseOut
+              | `OnMouseOver
+              | `OnMouseUp
+              | `Style_Attr
+              | `Title
+              | `XML_lang
+              | `XML_space ],
+             [< `A
+              | `Abbr
+              | `Acronym
+              | `B
+              | `Bdo
+              | `Big
+              | `Br
+              | `Button
+              | `Cite
+              | `Code
+              | `Del
+              | `Dfn
+              | `Em
+              | `I
+              | `Iframe
+              | `Img
+              | `Input
+              | `Ins
+              | `Kbd
+              | `Label
+              | `Map
+              | `Noscript
+              | `Object
+              | `PCDATA
+              | `Q
+              | `Ruby_complex
+              | `Ruby_simple1
+              | `Ruby_simple2
+              | `Samp
+              | `Script
+              | `Select
+              | `Small
+              | `Span
+              | `Strong
+              | `Sub
+              | `Sup
+              | `Textarea
+              | `Tt
+              | `Var ],
+             [> `Pre ])
+            star
+          val abbr :
+            ([< Xhtml_types.abbr_attrib ], [< Xhtml_types.abbr_content ],
+             [> Xhtml_types.abbr ])
+            star
+          val acronym :
+            ([< Xhtml_types.acronym_attrib ],
+             [< Xhtml_types.acronym_content ], [> Xhtml_types.acronym ])
+            star
+          val br : ([< Xhtml_types.br_attrib ], [> Xhtml_types.br ]) nullary
+          val cite :
+            ([< Xhtml_types.cite_attrib ], [< Xhtml_types.cite_content ],
+             [> Xhtml_types.cite ])
+            star
+          val code :
+            ([< Xhtml_types.code_attrib ], [< Xhtml_types.code_content ],
+             [> Xhtml_types.code ])
+            star
+          val dfn :
+            ([< Xhtml_types.dfn_attrib ], [< Xhtml_types.dfn_content ],
+             [> Xhtml_types.dfn ])
+            star
+          val em :
+            ([< Xhtml_types.em_attrib ], [< Xhtml_types.em_content ],
+             [> Xhtml_types.em ])
+            star
+          val kbd :
+            ([< Xhtml_types.kbd_attrib ], [< Xhtml_types.kbd_content ],
+             [> Xhtml_types.kbd ])
+            star
+          val q :
+            ([< Xhtml_types.q_attrib ], [< Xhtml_types.q_content ],
+             [> Xhtml_types.q ])
+            star
+          val samp :
+            ([< Xhtml_types.samp_attrib ], [< Xhtml_types.samp_content ],
+             [> Xhtml_types.samp ])
+            star
+          val span :
+            ([< Xhtml_types.span_attrib ], [< Xhtml_types.span_content ],
+             [> Xhtml_types.span ])
+            star
+          val strong :
+            ([< Xhtml_types.strong_attrib ], [< Xhtml_types.strong_content ],
+             [> Xhtml_types.strong ])
+            star
+          val var :
+            ([< Xhtml_types.var_attrib ], [< Xhtml_types.var_content ],
+             [> Xhtml_types.var ])
+            star
+          val a :
+            ([< Xhtml_types.a_attrib ], [< Xhtml_types.a_content ],
+             [> Xhtml_types.a ])
+            star
+          val dl :
+            ([< Xhtml_types.dl_attrib ], [< Xhtml_types.dl_content ],
+             [> Xhtml_types.dl ])
+            plus
+          val ol :
+            ([< Xhtml_types.ol_attrib ], [< Xhtml_types.ol_content ],
+             [> Xhtml_types.ol ])
+            plus
+          val ul :
+            ([< Xhtml_types.ul_attrib ], [< Xhtml_types.ul_content ],
+             [> Xhtml_types.ul ])
+            plus
+          val dd :
+            ([< Xhtml_types.dd_attrib ], [< Xhtml_types.dd_content ],
+             [> Xhtml_types.dd ])
+            star
+          val dt :
+            ([< Xhtml_types.dt_attrib ], [< Xhtml_types.dt_content ],
+             [> Xhtml_types.dt ])
+            star
+          val li :
+            ([< Xhtml_types.li_attrib ], [< Xhtml_types.li_content ],
+             [> Xhtml_types.li ])
+            star
+          val hr : ([< Xhtml_types.hr_attrib ], [> Xhtml_types.hr ]) nullary
+          val b :
+            ([< Xhtml_types.b_attrib ], [< Xhtml_types.b_content ],
+             [> Xhtml_types.b ])
+            star
+          val big :
+            ([< Xhtml_types.big_attrib ], [< Xhtml_types.big_content ],
+             [> Xhtml_types.big ])
+            star
+          val i :
+            ([< Xhtml_types.i_attrib ], [< Xhtml_types.i_content ],
+             [> Xhtml_types.i ])
+            star
+          val small :
+            ([< Xhtml_types.small_attrib ], [< Xhtml_types.small_content ],
+             [> Xhtml_types.small ])
+            star
+          val sub :
+            ([< Xhtml_types.sub_attrib ], [< Xhtml_types.sub_content ],
+             [> Xhtml_types.sub ])
+            star
+          val sup :
+            ([< Xhtml_types.sup_attrib ], [< Xhtml_types.sup_content ],
+             [> Xhtml_types.sup ])
+            star
+          val tt :
+            ([< Xhtml_types.tt_attrib ], [< Xhtml_types.tt_content ],
+             [> Xhtml_types.tt ])
+            star
+          val bdo :
+            dir:[< `Ltr | `Rtl ] ->
+            ([< Xhtml_types.bdo_attrib ], [< Xhtml_types.bdo_content ],
+             [> Xhtml_types.bdo ])
+            star
+          val area :
+            alt:Xhtml_types.text ->
+            ([< Xhtml_types.area_attrib ], [> Xhtml_types.area ]) nullary
+          val map :
+            id:Xhtml_types.id ->
+            ([< Xhtml_types.map_attrib ], [< Xhtml_types.map_content ],
+             [> Xhtml_types.map ])
+            plus
+          val del :
+            ([< Xhtml_types.del_attrib ], [< Xhtml_types.del_content ],
+             [> Xhtml_types.del ])
+            star
+          val ins :
+            ([< Xhtml_types.ins_attrib ], [< Xhtml_types.ins_content ],
+             [> Xhtml_types.ins ])
+            star
+          val script :
+            contenttype:Xhtml_types.contenttype ->
+            ([< Xhtml_types.script_attrib ], [< Xhtml_types.script_content ],
+             [> Xhtml_types.script ])
+            unary
+          val noscript :
+            ([< Xhtml_types.noscript_attrib ],
+             [< Xhtml_types.noscript_content ], [> Xhtml_types.noscript ])
+            plus
+          module Basic_Forms :
+            sig
+              val form :
+                action:Xml.uri ->
+                ([< Xhtml_types.form_attrib ], [< Xhtml_types.form_content ],
+                 [> Xhtml_types.form ])
+                plus
+              val input :
+                ([< Xhtml_types.input_attrib ], [> Xhtml_types.input ])
+                nullary
+              val label :
+                ([< Xhtml_types.label_attrib ],
+                 [< Xhtml_types.label_content ], [> Xhtml_types.label ])
+                star
+              val option :
+                ([< Xhtml_types.option_attrib ],
+                 [< Xhtml_types.option_content ],
+                 [> Xhtml_types.selectoption ])
+                unary
+              val select :
+                ([< Xhtml_types.select_attrib ],
+                 [< Xhtml_types.select_content ], [> Xhtml_types.select ])
+                plus
+              val textarea :
+                rows:Xhtml_types.number ->
+                cols:Xhtml_types.number ->
+                ([< Xhtml_types.textarea_attrib ],
+                 [< Xhtml_types.textarea_content ],
+                 [> Xhtml_types.textarea ])
+                unary
+            end
+          val form :
+            action:Xml.uri ->
+            ([< Xhtml_types.form_attrib ], [< Xhtml_types.form_content ],
+             [> Xhtml_types.form ])
+            plus
+          val input :
+            ([< Xhtml_types.input_attrib ], [> Xhtml_types.input ]) nullary
+          val label :
+            ([< Xhtml_types.label_attrib ], [< Xhtml_types.label_content ],
+             [> Xhtml_types.label ])
+            star
+          val optgroup :
+            label:Xhtml_types.text ->
+            ([< Xhtml_types.optgroup_attrib ],
+             [< Xhtml_types.optgroup_content ], [> Xhtml_types.optgroup ])
+            plus
+          val option :
+            ([< Xhtml_types.option_attrib ], [< Xhtml_types.option_content ],
+             [> Xhtml_types.selectoption ])
+            unary
+          val select :
+            ([< Xhtml_types.select_attrib ], [< Xhtml_types.select_content ],
+             [> Xhtml_types.select ])
+            plus
+          val textarea :
+            rows:Xhtml_types.number ->
+            cols:Xhtml_types.number ->
+            ([< Xhtml_types.textarea_attrib ],
+             [< Xhtml_types.textarea_content ], [> Xhtml_types.textarea ])
+            unary
+          val fieldset :
+            ([< Xhtml_types.fieldset_attrib ],
+             [< Xhtml_types.fieldset_content ], [> Xhtml_types.fieldset ])
+            star
+          val legend :
+            ([< Xhtml_types.legend_attrib ], [< Xhtml_types.legend_content ],
+             [> Xhtml_types.legend ])
+            star
+          val button :
+            ([< Xhtml_types.button_attrib ], [< Xhtml_types.button_content ],
+             [> Xhtml_types.button ])
+            star
+          module Basic_Tables :
+            sig
+              val a_align :
+                [< `Center | `Left | `Right ] -> [> `Align ] attrib
+              val a_scope : [< `Col | `Row ] -> [> `Scope ] attrib
+              val a_valign :
+                [< `Bottom | `Middle | `Top ] -> [> `Valign ] attrib
+              val caption :
+                ([< Xhtml_types.caption_attrib ],
+                 [< Xhtml_types.caption_content ], [> Xhtml_types.caption ])
+                star
+              val table :
+                ?caption:[< `Caption ] elt ->
+                ([< Xhtml_types.table_attrib ],
+                 [< Xhtml_types.table_content ], [> Xhtml_types.table ])
+                plus
+              val td :
+                ([< Xhtml_types.td_attrib ], [< Xhtml_types.td_content ],
+                 [> Xhtml_types.td ])
+                star
+              val th :
+                ([< Xhtml_types.th_attrib ], [< Xhtml_types.th_content ],
+                 [> Xhtml_types.th ])
+                star
+              val tr :
+                ([< Xhtml_types.tr_attrib ], [< Xhtml_types.tr_content ],
+                 [> Xhtml_types.tr ])
+                plus
+            end
+          val caption :
+            ([< Xhtml_types.caption_attrib ],
+             [< Xhtml_types.caption_content ], [> Xhtml_types.caption ])
+            star
+          val table :
+            ?caption:[< `Caption ] elt ->
+            ?columns:[< `Colgroups of [< `Colgroup ] elt list
+                      | `Cols of [< `Col ] elt list ] ->
+            ([< `Border
+              | `Cellpadding
+              | `Cellspacing
+              | `Class
+              | `Datapagesize
+              | `Dir
+              | `Frame
+              | `Id
+              | `OnClick
+              | `OnDblClick
+              | `OnKeyDown
+              | `OnKeyPress
+              | `OnKeyUp
+              | `OnMouseDown
+              | `OnMouseMove
+              | `OnMouseOut
+              | `OnMouseOver
+              | `OnMouseUp
+              | `Rules
+              | `Style_Attr
+              | `Summary
+              | `Title
+              | `Width
+              | `XML_lang
+              | `XML_space ],
+             [< `Tr ], [> `Table ])
+            plus
+          val tablex :
+            ?caption:[< `Caption ] elt ->
+            ?columns:[< `Colgroups of [< `Colgroup ] elt list
+                      | `Cols of [< `Col ] elt list ] ->
+            ?thead:[< `Thead ] elt ->
+            ?tfoot:[< `Tfoot ] elt ->
+            ([< `Border
+              | `Cellpadding
+              | `Cellspacing
+              | `Class
+              | `Datapagesize
+              | `Dir
+              | `Frame
+              | `Id
+              | `OnClick
+              | `OnDblClick
+              | `OnKeyDown
+              | `OnKeyPress
+              | `OnKeyUp
+              | `OnMouseDown
+              | `OnMouseMove
+              | `OnMouseOut
+              | `OnMouseOver
+              | `OnMouseUp
+              | `Rules
+              | `Style_Attr
+              | `Summary
+              | `Title
+              | `Width
+              | `XML_lang
+              | `XML_space ],
+             [< `Tbody ], [> `Table ])
+            plus
+          val td :
+            ([< Xhtml_types.td_attrib ], [< Xhtml_types.td_content ],
+             [> Xhtml_types.td ])
+            star
+          val th :
+            ([< Xhtml_types.th_attrib ], [< Xhtml_types.th_content ],
+             [> Xhtml_types.th ])
+            star
+          val tr :
+            ([< Xhtml_types.tr_attrib ], [< Xhtml_types.tr_content ],
+             [> Xhtml_types.tr ])
+            plus
+          val col :
+            ([< Xhtml_types.col_attrib ], [> Xhtml_types.col ]) nullary
+          val colgroup :
+            ([< Xhtml_types.colgroup_attrib ],
+             [< Xhtml_types.colgroup_content ], [> Xhtml_types.colgroup ])
+            star
+          val thead :
+            ([< Xhtml_types.thead_attrib ], [< Xhtml_types.thead_content ],
+             [> Xhtml_types.thead ])
+            plus
+          val tbody :
+            ([< Xhtml_types.tbody_attrib ], [< Xhtml_types.tbody_content ],
+             [> Xhtml_types.tbody ])
+            plus
+          val tfoot :
+            ([< Xhtml_types.tfoot_attrib ], [< Xhtml_types.tfoot_content ],
+             [> Xhtml_types.tfoot ])
+            plus
+          val img :
+            src:Xml.uri ->
+            alt:Xhtml_types.text ->
+            ([< Xhtml_types.img_attrib ], [> Xhtml_types.img ]) nullary
+          val object_ :
+            ([< Xhtml_types.object__attrib ],
+             [< Xhtml_types.object__content ], [> Xhtml_types.object_ ])
+            star
+          val param :
+            name:Xhtml_types.text ->
+            ([< Xhtml_types.param_attrib ], [> Xhtml_types.param ]) nullary
+          val frameset :
+            ?noframes:[< `Noframes ] elt ->
+            ([< Xhtml_types.frameset_attrib ],
+             [< Xhtml_types.frameset_content ], [> Xhtml_types.frameset ])
+            plus
+          val frame :
+            src:Xml.uri ->
+            ([< Xhtml_types.frame_attrib ], [> Xhtml_types.frame ]) nullary
+          val noframes :
+            ([< Xhtml_types.noframes_attrib ],
+             [< Xhtml_types.noframes_content ], [> Xhtml_types.noframes ])
+            unary
+          val iframe :
+            ([< Xhtml_types.iframe_attrib ], [< Xhtml_types.iframe_content ],
+             [> Xhtml_types.iframe ])
+            star
+          val meta :
+            content:Xhtml_types.cdata ->
+            ([< Xhtml_types.meta_attrib ], [> Xhtml_types.meta ]) nullary
+          val style :
+            contenttype:Xhtml_types.contenttype ->
+            ([< Xhtml_types.style_attrib ], [< Xhtml_types.style_content ],
+             [> Xhtml_types.style ])
+            star
+          val link :
+            ([< Xhtml_types.link_attrib ], [> Xhtml_types.link ]) nullary
+          val base :
+            href:Xml.uri ->
+            ([< Xhtml_types.base_attrib ], [> Xhtml_types.base ]) nullary
+          val ruby_simple1 :
+            ?a:[< Xhtml_types.common ] attrib list ->
+            [< `Rb ] elt -> [< `Rt ] elt -> [> `Ruby_simple1 ] elt
+          val ruby_simple2 :
+            ?a:[< Xhtml_types.common ] attrib list ->
+            [< `Rb ] elt ->
+            [< `Rp ] elt ->
+            [< `Rt ] elt -> [< `Rp ] elt -> [> `Ruby_simple2 ] elt
+          val ruby_complex :
+            ?a:[< Xhtml_types.common ] attrib list ->
+            [< `Rbc ] elt -> [< `Rtc_complex ] elt -> [> `Ruby_complex ] elt
+          val rbc :
+            ([< Xhtml_types.rbc_attrib ], [< Xhtml_types.rbc_content ],
+             [> Xhtml_types.rbc ])
+            plus
+          val rtc :
+            ([< Xhtml_types.rtc_attrib ], [< Xhtml_types.rtc_content ],
+             [> Xhtml_types.rtc ])
+            plus
+          val rtc_complex :
+            ([< Xhtml_types.rtc_complex_attrib ],
+             [< Xhtml_types.rtc_complex_content ],
+             [> Xhtml_types.rtc_complex ])
+            plus
+          val rb :
+            ([< Xhtml_types.rb_attrib ], [< Xhtml_types.rb_content ],
+             [> Xhtml_types.rb ])
+            star
+          val rt :
+            ([< Xhtml_types.rt_attrib ], [< Xhtml_types.rt_content ],
+             [> Xhtml_types.rt ])
+            star
+          val rt_complex :
+            ([< Xhtml_types.rt_complex_attrib ],
+             [< Xhtml_types.rt_complex_content ],
+             [> Xhtml_types.rt_complex ])
+            star
+          val rp :
+            ([< Xhtml_types.rp_attrib ], [< Xhtml_types.rp_content ],
+             [> Xhtml_types.rp ])
+            star
+          val a_rbspan : Xhtml_types.number -> [> `Rbspan ] attrib
+          val tot : Xml.elt -> 'a elt
+          val totl : Xml.elt list -> 'a elt list
+          val toelt : 'a elt -> Xml.elt
+          val toeltl : 'a elt list -> Xml.elt list
+          type doc = [ `Html ] elt
+          val doc_toelt : doc -> Xml.elt
+        end
+      module Xml :
+        sig
+          type uri = Xml.uri
+          val string_of_uri : uri -> string
+          val uri_of_string : string -> uri
+          type aname = string
+          type event_handler = Xml.event_handler
+          type attrib = Xml.attrib
+          val float_attrib : aname -> float -> attrib
+          val int_attrib : aname -> int -> attrib
+          val string_attrib : aname -> string -> attrib
+          val space_sep_attrib : aname -> string list -> attrib
+          val comma_sep_attrib : aname -> string list -> attrib
+          val event_handler_attrib : aname -> event_handler -> attrib
+          val uri_attrib : aname -> uri -> attrib
+          val uris_attrib : aname -> uri list -> attrib
+          type elt = Xml.elt
+          type ename = string
+          val empty : unit -> elt
+          val comment : string -> elt
+          val pcdata : string -> elt
+          val encodedpcdata : string -> elt
+          val entity : string -> elt
+          val leaf : ?a:attrib list -> ename -> elt
+          val node : ?a:attrib list -> ename -> elt list -> elt
+          val cdata : string -> elt
+          val cdata_script : string -> elt
+          val cdata_style : string -> elt
+        end
+      module Info : Xml_sigs.Info
+      type uri = Xml.uri
+      val string_of_uri : uri -> string
+      val uri_of_string : string -> uri
+      type +'a attrib
+      val to_xmlattribs : 'a attrib list -> Xml.attrib list
+      val to_attrib : Xml.attrib -> 'a attrib
+      val a_class : Xhtml_types.nmtokens -> [> `Class ] attrib
+      val a_id : Xhtml_types.id -> [> `Id ] attrib
+      val a_title : Xhtml_types.cdata -> [> `Title ] attrib
+      val a_xml_lang : Xhtml_types.nmtoken -> [> `XML_lang ] attrib
+      val a_onblur : Xml.event_handler -> [> `OnBlur ] attrib
+      val a_onclick : Xml.event_handler -> [> `OnClick ] attrib
+      val a_ondblclick : Xml.event_handler -> [> `OnDblClick ] attrib
+      val a_onchange : Xml.event_handler -> [> `OnChange ] attrib
+      val a_onfocus : Xml.event_handler -> [> `OnFocus ] attrib
+      val a_onload : Xml.event_handler -> [> `OnLoad ] attrib
+      val a_onunload : Xml.event_handler -> [> `OnUnload ] attrib
+      val a_onreset : Xml.event_handler -> [> `OnReset ] attrib
+      val a_onselect : Xml.event_handler -> [> `OnSelect ] attrib
+      val a_onsubmit : Xml.event_handler -> [> `OnSubmit ] attrib
+      val a_onmousedown : Xml.event_handler -> [> `OnMouseDown ] attrib
+      val a_onmouseup : Xml.event_handler -> [> `OnMouseUp ] attrib
+      val a_onmouseover : Xml.event_handler -> [> `OnMouseOver ] attrib
+      val a_onmousemove : Xml.event_handler -> [> `OnMouseMove ] attrib
+      val a_onmouseout : Xml.event_handler -> [> `OnMouseOut ] attrib
+      val a_onkeypress : Xml.event_handler -> [> `OnKeyPress ] attrib
+      val a_onkeydown : Xml.event_handler -> [> `OnKeyDown ] attrib
+      val a_onkeyup : Xml.event_handler -> [> `OnKeyUp ] attrib
+      val a_profile : Xml.uri -> [> `Profile ] attrib
+      val a_version : Xhtml_types.cdata -> [> `Version ] attrib
+      val a_xmlns : [< `W3_org_1999_xhtml ] -> [> `XMLns ] attrib
+      val a_cite : Xml.uri -> [> `Cite ] attrib
+      val a_xml_space : [< `Preserve ] -> [> `XML_space ] attrib
+      val a_accesskey : Xhtml_types.character -> [> `Accesskey ] attrib
+      val a_charset : Xhtml_types.charset -> [> `Charset ] attrib
+      val a_accept_charset :
+        Xhtml_types.charset -> [> `Accept_charset ] attrib
+      val a_accept : Xhtml_types.contenttype -> [> `Accept ] attrib
+      val a_href : Xml.uri -> [> `Href ] attrib
+      val a_hreflang : Xhtml_types.languagecode -> [> `Hreflang ] attrib
+      val a_rel : Xhtml_types.linktypes -> [> `Rel ] attrib
+      val a_rev : Xhtml_types.linktypes -> [> `Rev ] attrib
+      val a_tabindex : Xhtml_types.number -> [> `Tabindex ] attrib
+      val a_type : Xhtml_types.contenttype -> [> `Type ] attrib
+      val a_datetime : Xhtml_types.cdata -> [> `Datetime ] attrib
+      val a_dir : [< `Ltr | `Rtl ] -> [> `Dir ] attrib
+      val a_action : Xml.uri -> [> `Action ] attrib
+      val a_checked : [< `Checked ] -> [> `Checked ] attrib
+      val a_cols : Xhtml_types.number -> [> `Cols ] attrib
+      val a_enctype : Xhtml_types.contenttype -> [> `Enctype ] attrib
+      val a_for : Xhtml_types.idref -> [> `For ] attrib
+      val a_maxlength : Xhtml_types.number -> [> `Maxlength ] attrib
+      val a_method : [< `Get | `Post ] -> [> `Method ] attrib
+      val a_multiple : [< `Multiple ] -> [> `Multiple ] attrib
+      val a_name : Xhtml_types.cdata -> [> `Name ] attrib
+      val a_rows : Xhtml_types.number -> [> `Rows ] attrib
+      val a_selected : [< `Selected ] -> [> `Selected ] attrib
+      val a_size : Xhtml_types.number -> [> `Size ] attrib
+      val a_src : Xml.uri -> [> `Src ] attrib
+      val a_input_type :
+        [< `Button
+         | `Checkbox
+         | `File
+         | `Hidden
+         | `Image
+         | `Password
+         | `Radio
+         | `Reset
+         | `Submit
+         | `Text ] ->
+        [> `Input_Type ] attrib
+      val a_value : Xhtml_types.cdata -> [> `Value ] attrib
+      val a_value_type :
+        [< `Data | `Object | `Ref ] -> [> `Value_Type ] attrib
+      val a_disabled : [< `Disabled ] -> [> `Disabled ] attrib
+      val a_readonly : [< `ReadOnly ] -> [> `ReadOnly ] attrib
+      val a_button_type :
+        [< `Button | `Reset | `Submit ] -> [> `Button_Type ] attrib
+      val a_label : Xhtml_types.text -> [> `Label ] attrib
+      val a_abbr : Xhtml_types.text -> [> `Abbr ] attrib
+      val a_align :
+        [< `Center | `Char | `Justify | `Left | `Right ] ->
+        [> `Align ] attrib
+      val a_axis : Xhtml_types.cdata -> [> `Axis ] attrib
+      val a_colspan : Xhtml_types.number -> [> `Colspan ] attrib
+      val a_headers : Xhtml_types.idrefs -> [> `Headers ] attrib
+      val a_rowspan : Xhtml_types.number -> [> `Rowspan ] attrib
+      val a_scope :
+        [< `Col | `Colgroup | `Row | `Rowgroup ] -> [> `Scope ] attrib
+      val a_summary : Xhtml_types.text -> [> `Summary ] attrib
+      val a_valign :
+        [< `Baseline | `Bottom | `Middle | `Top ] -> [> `Valign ] attrib
+      val a_border : Xhtml_types.pixels -> [> `Border ] attrib
+      val a_cellpadding : Xhtml_types.length -> [> `Cellpadding ] attrib
+      val a_cellspacing : Xhtml_types.length -> [> `Cellspacing ] attrib
+      val a_datapagesize : Xhtml_types.cdata -> [> `Datapagesize ] attrib
+      val a_frame :
+        [< `Above
+         | `Below
+         | `Border
+         | `Box
+         | `Hsides
+         | `LHS
+         | `RHS
+         | `Void
+         | `Vsides ] ->
+        [> `Frame ] attrib
+      val a_rules :
+        [< `All | `Cols | `Groups | `None | `Rows ] -> [> `Rules ] attrib
+      val a_char : Xhtml_types.character -> [> `Char ] attrib
+      val a_charoff : Xhtml_types.length -> [> `Charoff ] attrib
+      val a_span : Xhtml_types.number -> [> `Span ] attrib
+      val a_alt : Xhtml_types.text -> [> `Alt ] attrib
+      val a_height : Xhtml_types.length -> [> `Height ] attrib
+      val a_longdesc : Xml.uri -> [> `Longdesc ] attrib
+      val a_width : Xhtml_types.length -> [> `Width ] attrib
+      type shape = [ `Circle | `Default | `Poly | `Rect ]
+      val a_shape : shape -> [> `Shape ] attrib
+      val a_coords : int list -> [> `Coords ] attrib
+      val a_nohref : [< `Nohref ] -> [> `Nohref ] attrib
+      val a_usemap : Xhtml_types.idref -> [> `Usemap ] attrib
+      val a_ismap : [< `Ismap ] -> [> `Ismap ] attrib
+      val a_declare : [< `Declare ] -> [> `Declare ] attrib
+      val a_classid : Xml.uri -> [> `Classid ] attrib
+      val a_codebase : Xml.uri -> [> `Codebase ] attrib
+      val a_data : Xml.uri -> [> `Data ] attrib
+      val a_codetype : Xhtml_types.contenttype -> [> `Codetype ] attrib
+      val a_archive : Xml.uri list -> [> `Archive ] attrib
+      val a_standby : Xhtml_types.text -> [> `Standby ] attrib
+      val a_fs_rows : Xhtml_types.multilengths -> [> `FS_Rows ] attrib
+      val a_fs_cols : Xhtml_types.multilengths -> [> `FS_Cols ] attrib
+      val a_frameborder : [< `One | `Zero ] -> [> `Frameborder ] attrib
+      val a_marginheight : Xhtml_types.pixels -> [> `Marginheight ] attrib
+      val a_marginwidth : Xhtml_types.pixels -> [> `Marginwidth ] attrib
+      val a_noresize : [< `Noresize ] -> [> `Noresize ] attrib
+      val a_scrolling : [< `Auto | `No | `Yes ] -> [> `Scrolling ] attrib
+      val a_target : Xhtml_types.frametarget -> [> `Target ] attrib
+      val a_content : Xhtml_types.cdata -> [> `Content ] attrib
+      val a_http_equiv : Xhtml_types.nmtoken -> [> `Http_equiv ] attrib
+      val a_scheme : Xhtml_types.cdata -> [> `Scheme ] attrib
+      val a_defer : [< `Defer ] -> [> `Defer ] attrib
+      val a_media : Xhtml_types.mediadesc -> [> `Media ] attrib
+      val a_style : string -> [> `Style_Attr ] attrib
+      type +'a elt
+      type ('a, 'b) nullary = ?a:'a attrib list -> unit -> 'b elt
+      type ('a, 'b, 'c) unary = ?a:'a attrib list -> 'b elt -> 'c elt
+      type ('a, 'b, 'c, 'd) binary =
+          ?a:'a attrib list -> 'b elt -> 'c elt -> 'd elt
+      type ('a, 'b, 'c, 'd, 'e, 'f) quadry =
+          ?a:'a attrib list -> 'b elt -> 'c elt -> 'd elt -> 'e elt -> 'f elt
+      type ('a, 'b, 'c) star = ?a:'a attrib list -> 'b elt list -> 'c elt
+      type ('a, 'b, 'c) plus =
+          ?a:'a attrib list -> 'b elt -> 'b elt list -> 'c elt
+      type html = [ `Html ] elt
+      val html :
+        ?a:[< `Dir | `Id | `Version | `XML_lang | `XMLns ] attrib list ->
+        [< `Head ] elt -> [< `Body | `Frameset ] elt -> html
+      val head :
+        ?a:[< `Dir | `Id | `Profile | `XML_lang ] attrib list ->
+        [< `Base | `Title ] elt ->
+        [< `Link | `Meta | `Object | `Script | `Style ] elt list ->
+        [> `Head ] elt
+      val title :
+        ([< Xhtml_types.title_attrib ], [< Xhtml_types.title_content ],
+         [> Xhtml_types.title ])
+        unary
+      val body :
+        ([< Xhtml_types.body_attrib ], [< Xhtml_types.body_content ],
+         [> Xhtml_types.body ])
+        star
+      val pcdata : string -> [> `PCDATA ] elt
+      val entity : string -> [> `PCDATA ] elt
+      val space : unit -> [> `PCDATA ] elt
+      val cdata : string -> [> `PCDATA ] elt
+      val cdata_script : string -> [> `PCDATA ] elt
+      val cdata_style : string -> [> `PCDATA ] elt
+      val unsafe_data : string -> 'a elt
+      val h1 :
+        ([< Xhtml_types.h1_attrib ], [< Xhtml_types.h1_content ],
+         [> Xhtml_types.h1 ])
+        star
+      val h2 :
+        ([< Xhtml_types.h2_attrib ], [< Xhtml_types.h2_content ],
+         [> Xhtml_types.h2 ])
+        star
+      val h3 :
+        ([< Xhtml_types.h3_attrib ], [< Xhtml_types.h3_content ],
+         [> Xhtml_types.h3 ])
+        star
+      val h4 :
+        ([< Xhtml_types.h4_attrib ], [< Xhtml_types.h4_content ],
+         [> Xhtml_types.h4 ])
+        star
+      val h5 :
+        ([< Xhtml_types.h5_attrib ], [< Xhtml_types.h5_content ],
+         [> Xhtml_types.h5 ])
+        star
+      val h6 :
+        ([< Xhtml_types.h6_attrib ], [< Xhtml_types.h6_content ],
+         [> Xhtml_types.h6 ])
+        star
+      val address :
+        ([< Xhtml_types.address_attrib ], [< Xhtml_types.address_content ],
+         [> Xhtml_types.address ])
+        star
+      val blockquote :
+        ([< `Cite
+          | `Class
+          | `Dir
+          | `Id
+          | `OnClick
+          | `OnDblClick
+          | `OnKeyDown
+          | `OnKeyPress
+          | `OnKeyUp
+          | `OnMouseDown
+          | `OnMouseMove
+          | `OnMouseOut
+          | `OnMouseOver
+          | `OnMouseUp
+          | `Style_Attr
+          | `Title
+          | `XML_lang
+          | `XML_space ],
+         [< `Address
+          | `Blockquote
+          | `Del
+          | `Div
+          | `Dl
+          | `Fieldset
+          | `Form
+          | `H1
+          | `H2
+          | `H3
+          | `H4
+          | `H5
+          | `H6
+          | `Hr
+          | `Ins
+          | `Noscript
+          | `Ol
+          | `P
+          | `PCDATA
+          | `Pre
+          | `Script
+          | `Table
+          | `Ul ],
+         [> `Blockquote ])
+        star
+      val div :
+        ([< Xhtml_types.div_attrib ], [< Xhtml_types.div_content ],
+         [> Xhtml_types.div ])
+        star
+      val p :
+        ([< Xhtml_types.p_attrib ], [< Xhtml_types.p_content ],
+         [> Xhtml_types.p ])
+        star
+      val pre :
+        ([< `Class
+          | `Dir
+          | `Id
+          | `OnClick
+          | `OnDblClick
+          | `OnKeyDown
+          | `OnKeyPress
+          | `OnKeyUp
+          | `OnMouseDown
+          | `OnMouseMove
+          | `OnMouseOut
+          | `OnMouseOver
+          | `OnMouseUp
+          | `Style_Attr
+          | `Title
+          | `XML_lang
+          | `XML_space ],
+         [< `A
+          | `Abbr
+          | `Acronym
+          | `B
+          | `Bdo
+          | `Big
+          | `Br
+          | `Button
+          | `Cite
+          | `Code
+          | `Del
+          | `Dfn
+          | `Em
+          | `I
+          | `Iframe
+          | `Img
+          | `Input
+          | `Ins
+          | `Kbd
+          | `Label
+          | `Map
+          | `Noscript
+          | `Object
+          | `PCDATA
+          | `Q
+          | `Ruby_complex
+          | `Ruby_simple1
+          | `Ruby_simple2
+          | `Samp
+          | `Script
+          | `Select
+          | `Small
+          | `Span
+          | `Strong
+          | `Sub
+          | `Sup
+          | `Textarea
+          | `Tt
+          | `Var ],
+         [> `Pre ])
+        star
+      val abbr :
+        ([< Xhtml_types.abbr_attrib ], [< Xhtml_types.abbr_content ],
+         [> Xhtml_types.abbr ])
+        star
+      val acronym :
+        ([< Xhtml_types.acronym_attrib ], [< Xhtml_types.acronym_content ],
+         [> Xhtml_types.acronym ])
+        star
+      val br : ([< Xhtml_types.br_attrib ], [> Xhtml_types.br ]) nullary
+      val cite :
+        ([< Xhtml_types.cite_attrib ], [< Xhtml_types.cite_content ],
+         [> Xhtml_types.cite ])
+        star
+      val code :
+        ([< Xhtml_types.code_attrib ], [< Xhtml_types.code_content ],
+         [> Xhtml_types.code ])
+        star
+      val dfn :
+        ([< Xhtml_types.dfn_attrib ], [< Xhtml_types.dfn_content ],
+         [> Xhtml_types.dfn ])
+        star
+      val em :
+        ([< Xhtml_types.em_attrib ], [< Xhtml_types.em_content ],
+         [> Xhtml_types.em ])
+        star
+      val kbd :
+        ([< Xhtml_types.kbd_attrib ], [< Xhtml_types.kbd_content ],
+         [> Xhtml_types.kbd ])
+        star
+      val q :
+        ([< Xhtml_types.q_attrib ], [< Xhtml_types.q_content ],
+         [> Xhtml_types.q ])
+        star
+      val samp :
+        ([< Xhtml_types.samp_attrib ], [< Xhtml_types.samp_content ],
+         [> Xhtml_types.samp ])
+        star
+      val span :
+        ([< Xhtml_types.span_attrib ], [< Xhtml_types.span_content ],
+         [> Xhtml_types.span ])
+        star
+      val strong :
+        ([< Xhtml_types.strong_attrib ], [< Xhtml_types.strong_content ],
+         [> Xhtml_types.strong ])
+        star
+      val var :
+        ([< Xhtml_types.var_attrib ], [< Xhtml_types.var_content ],
+         [> Xhtml_types.var ])
+        star
+      val a :
+        ([< Xhtml_types.a_attrib ], [< Xhtml_types.a_content ],
+         [> Xhtml_types.a ])
+        star
+      val dl :
+        ([< Xhtml_types.dl_attrib ], [< Xhtml_types.dl_content ],
+         [> Xhtml_types.dl ])
+        plus
+      val ol :
+        ([< Xhtml_types.ol_attrib ], [< Xhtml_types.ol_content ],
+         [> Xhtml_types.ol ])
+        plus
+      val ul :
+        ([< Xhtml_types.ul_attrib ], [< Xhtml_types.ul_content ],
+         [> Xhtml_types.ul ])
+        plus
+      val dd :
+        ([< Xhtml_types.dd_attrib ], [< Xhtml_types.dd_content ],
+         [> Xhtml_types.dd ])
+        star
+      val dt :
+        ([< Xhtml_types.dt_attrib ], [< Xhtml_types.dt_content ],
+         [> Xhtml_types.dt ])
+        star
+      val li :
+        ([< Xhtml_types.li_attrib ], [< Xhtml_types.li_content ],
+         [> Xhtml_types.li ])
+        star
+      val hr : ([< Xhtml_types.hr_attrib ], [> Xhtml_types.hr ]) nullary
+      val b :
+        ([< Xhtml_types.b_attrib ], [< Xhtml_types.b_content ],
+         [> Xhtml_types.b ])
+        star
+      val big :
+        ([< Xhtml_types.big_attrib ], [< Xhtml_types.big_content ],
+         [> Xhtml_types.big ])
+        star
+      val i :
+        ([< Xhtml_types.i_attrib ], [< Xhtml_types.i_content ],
+         [> Xhtml_types.i ])
+        star
+      val small :
+        ([< Xhtml_types.small_attrib ], [< Xhtml_types.small_content ],
+         [> Xhtml_types.small ])
+        star
+      val sub :
+        ([< Xhtml_types.sub_attrib ], [< Xhtml_types.sub_content ],
+         [> Xhtml_types.sub ])
+        star
+      val sup :
+        ([< Xhtml_types.sup_attrib ], [< Xhtml_types.sup_content ],
+         [> Xhtml_types.sup ])
+        star
+      val tt :
+        ([< Xhtml_types.tt_attrib ], [< Xhtml_types.tt_content ],
+         [> Xhtml_types.tt ])
+        star
+      val bdo :
+        dir:[< `Ltr | `Rtl ] ->
+        ([< Xhtml_types.bdo_attrib ], [< Xhtml_types.bdo_content ],
+         [> Xhtml_types.bdo ])
+        star
+      val area :
+        alt:Xhtml_types.text ->
+        ([< Xhtml_types.area_attrib ], [> Xhtml_types.area ]) nullary
+      val map :
+        id:Xhtml_types.id ->
+        ([< Xhtml_types.map_attrib ], [< Xhtml_types.map_content ],
+         [> Xhtml_types.map ])
+        plus
+      val del :
+        ([< Xhtml_types.del_attrib ], [< Xhtml_types.del_content ],
+         [> Xhtml_types.del ])
+        star
+      val ins :
+        ([< Xhtml_types.ins_attrib ], [< Xhtml_types.ins_content ],
+         [> Xhtml_types.ins ])
+        star
+      val script :
+        contenttype:Xhtml_types.contenttype ->
+        ([< Xhtml_types.script_attrib ], [< Xhtml_types.script_content ],
+         [> Xhtml_types.script ])
+        unary
+      val noscript :
+        ([< Xhtml_types.noscript_attrib ], [< Xhtml_types.noscript_content ],
+         [> Xhtml_types.noscript ])
+        plus
+      module Basic_Forms :
+        sig
+          val form :
+            action:Xml.uri ->
+            ([< Xhtml_types.form_attrib ], [< Xhtml_types.form_content ],
+             [> Xhtml_types.form ])
+            plus
+          val input :
+            ([< Xhtml_types.input_attrib ], [> Xhtml_types.input ]) nullary
+          val label :
+            ([< Xhtml_types.label_attrib ], [< Xhtml_types.label_content ],
+             [> Xhtml_types.label ])
+            star
+          val option :
+            ([< Xhtml_types.option_attrib ], [< Xhtml_types.option_content ],
+             [> Xhtml_types.selectoption ])
+            unary
+          val select :
+            ([< Xhtml_types.select_attrib ], [< Xhtml_types.select_content ],
+             [> Xhtml_types.select ])
+            plus
+          val textarea :
+            rows:Xhtml_types.number ->
+            cols:Xhtml_types.number ->
+            ([< Xhtml_types.textarea_attrib ],
+             [< Xhtml_types.textarea_content ], [> Xhtml_types.textarea ])
+            unary
+        end
+      val form :
+        action:Xml.uri ->
+        ([< Xhtml_types.form_attrib ], [< Xhtml_types.form_content ],
+         [> Xhtml_types.form ])
+        plus
+      val input :
+        ([< Xhtml_types.input_attrib ], [> Xhtml_types.input ]) nullary
+      val label :
+        ([< Xhtml_types.label_attrib ], [< Xhtml_types.label_content ],
+         [> Xhtml_types.label ])
+        star
+      val optgroup :
+        label:Xhtml_types.text ->
+        ([< Xhtml_types.optgroup_attrib ], [< Xhtml_types.optgroup_content ],
+         [> Xhtml_types.optgroup ])
+        plus
+      val option :
+        ([< Xhtml_types.option_attrib ], [< Xhtml_types.option_content ],
+         [> Xhtml_types.selectoption ])
+        unary
+      val select :
+        ([< Xhtml_types.select_attrib ], [< Xhtml_types.select_content ],
+         [> Xhtml_types.select ])
+        plus
+      val textarea :
+        rows:Xhtml_types.number ->
+        cols:Xhtml_types.number ->
+        ([< Xhtml_types.textarea_attrib ], [< Xhtml_types.textarea_content ],
+         [> Xhtml_types.textarea ])
+        unary
+      val fieldset :
+        ([< Xhtml_types.fieldset_attrib ], [< Xhtml_types.fieldset_content ],
+         [> Xhtml_types.fieldset ])
+        star
+      val legend :
+        ([< Xhtml_types.legend_attrib ], [< Xhtml_types.legend_content ],
+         [> Xhtml_types.legend ])
+        star
+      val button :
+        ([< Xhtml_types.button_attrib ], [< Xhtml_types.button_content ],
+         [> Xhtml_types.button ])
+        star
+      module Basic_Tables :
+        sig
+          val a_align : [< `Center | `Left | `Right ] -> [> `Align ] attrib
+          val a_scope : [< `Col | `Row ] -> [> `Scope ] attrib
+          val a_valign : [< `Bottom | `Middle | `Top ] -> [> `Valign ] attrib
+          val caption :
+            ([< Xhtml_types.caption_attrib ],
+             [< Xhtml_types.caption_content ], [> Xhtml_types.caption ])
+            star
+          val table :
+            ?caption:[< `Caption ] elt ->
+            ([< Xhtml_types.table_attrib ], [< Xhtml_types.table_content ],
+             [> Xhtml_types.table ])
+            plus
+          val td :
+            ([< Xhtml_types.td_attrib ], [< Xhtml_types.td_content ],
+             [> Xhtml_types.td ])
+            star
+          val th :
+            ([< Xhtml_types.th_attrib ], [< Xhtml_types.th_content ],
+             [> Xhtml_types.th ])
+            star
+          val tr :
+            ([< Xhtml_types.tr_attrib ], [< Xhtml_types.tr_content ],
+             [> Xhtml_types.tr ])
+            plus
+        end
+      val caption :
+        ([< Xhtml_types.caption_attrib ], [< Xhtml_types.caption_content ],
+         [> Xhtml_types.caption ])
+        star
+      val table :
+        ?caption:[< `Caption ] elt ->
+        ?columns:[< `Colgroups of [< `Colgroup ] elt list
+                  | `Cols of [< `Col ] elt list ] ->
+        ([< `Border
+          | `Cellpadding
+          | `Cellspacing
+          | `Class
+          | `Datapagesize
+          | `Dir
+          | `Frame
+          | `Id
+          | `OnClick
+          | `OnDblClick
+          | `OnKeyDown
+          | `OnKeyPress
+          | `OnKeyUp
+          | `OnMouseDown
+          | `OnMouseMove
+          | `OnMouseOut
+          | `OnMouseOver
+          | `OnMouseUp
+          | `Rules
+          | `Style_Attr
+          | `Summary
+          | `Title
+          | `Width
+          | `XML_lang
+          | `XML_space ],
+         [< `Tr ], [> `Table ])
+        plus
+      val tablex :
+        ?caption:[< `Caption ] elt ->
+        ?columns:[< `Colgroups of [< `Colgroup ] elt list
+                  | `Cols of [< `Col ] elt list ] ->
+        ?thead:[< `Thead ] elt ->
+        ?tfoot:[< `Tfoot ] elt ->
+        ([< `Border
+          | `Cellpadding
+          | `Cellspacing
+          | `Class
+          | `Datapagesize
+          | `Dir
+          | `Frame
+          | `Id
+          | `OnClick
+          | `OnDblClick
+          | `OnKeyDown
+          | `OnKeyPress
+          | `OnKeyUp
+          | `OnMouseDown
+          | `OnMouseMove
+          | `OnMouseOut
+          | `OnMouseOver
+          | `OnMouseUp
+          | `Rules
+          | `Style_Attr
+          | `Summary
+          | `Title
+          | `Width
+          | `XML_lang
+          | `XML_space ],
+         [< `Tbody ], [> `Table ])
+        plus
+      val td :
+        ([< Xhtml_types.td_attrib ], [< Xhtml_types.td_content ],
+         [> Xhtml_types.td ])
+        star
+      val th :
+        ([< Xhtml_types.th_attrib ], [< Xhtml_types.th_content ],
+         [> Xhtml_types.th ])
+        star
+      val tr :
+        ([< Xhtml_types.tr_attrib ], [< Xhtml_types.tr_content ],
+         [> Xhtml_types.tr ])
+        plus
+      val col : ([< Xhtml_types.col_attrib ], [> Xhtml_types.col ]) nullary
+      val colgroup :
+        ([< Xhtml_types.colgroup_attrib ], [< Xhtml_types.colgroup_content ],
+         [> Xhtml_types.colgroup ])
+        star
+      val thead :
+        ([< Xhtml_types.thead_attrib ], [< Xhtml_types.thead_content ],
+         [> Xhtml_types.thead ])
+        plus
+      val tbody :
+        ([< Xhtml_types.tbody_attrib ], [< Xhtml_types.tbody_content ],
+         [> Xhtml_types.tbody ])
+        plus
+      val tfoot :
+        ([< Xhtml_types.tfoot_attrib ], [< Xhtml_types.tfoot_content ],
+         [> Xhtml_types.tfoot ])
+        plus
+      val img :
+        src:Xml.uri ->
+        alt:Xhtml_types.text ->
+        ([< Xhtml_types.img_attrib ], [> Xhtml_types.img ]) nullary
+      val object_ :
+        ([< Xhtml_types.object__attrib ], [< Xhtml_types.object__content ],
+         [> Xhtml_types.object_ ])
+        star
+      val param :
+        name:Xhtml_types.text ->
+        ([< Xhtml_types.param_attrib ], [> Xhtml_types.param ]) nullary
+      val frameset :
+        ?noframes:[< `Noframes ] elt ->
+        ([< Xhtml_types.frameset_attrib ], [< Xhtml_types.frameset_content ],
+         [> Xhtml_types.frameset ])
+        plus
+      val frame :
+        src:Xml.uri ->
+        ([< Xhtml_types.frame_attrib ], [> Xhtml_types.frame ]) nullary
+      val noframes :
+        ([< Xhtml_types.noframes_attrib ], [< Xhtml_types.noframes_content ],
+         [> Xhtml_types.noframes ])
+        unary
+      val iframe :
+        ([< Xhtml_types.iframe_attrib ], [< Xhtml_types.iframe_content ],
+         [> Xhtml_types.iframe ])
+        star
+      val meta :
+        content:Xhtml_types.cdata ->
+        ([< Xhtml_types.meta_attrib ], [> Xhtml_types.meta ]) nullary
+      val style :
+        contenttype:Xhtml_types.contenttype ->
+        ([< Xhtml_types.style_attrib ], [< Xhtml_types.style_content ],
+         [> Xhtml_types.style ])
+        star
+      val link :
+        ([< Xhtml_types.link_attrib ], [> Xhtml_types.link ]) nullary
+      val base :
+        href:Xml.uri ->
+        ([< Xhtml_types.base_attrib ], [> Xhtml_types.base ]) nullary
+      val ruby_simple1 :
+        ?a:[< Xhtml_types.common ] attrib list ->
+        [< `Rb ] elt -> [< `Rt ] elt -> [> `Ruby_simple1 ] elt
+      val ruby_simple2 :
+        ?a:[< Xhtml_types.common ] attrib list ->
+        [< `Rb ] elt ->
+        [< `Rp ] elt ->
+        [< `Rt ] elt -> [< `Rp ] elt -> [> `Ruby_simple2 ] elt
+      val ruby_complex :
+        ?a:[< Xhtml_types.common ] attrib list ->
+        [< `Rbc ] elt -> [< `Rtc_complex ] elt -> [> `Ruby_complex ] elt
+      val rbc :
+        ([< Xhtml_types.rbc_attrib ], [< Xhtml_types.rbc_content ],
+         [> Xhtml_types.rbc ])
+        plus
+      val rtc :
+        ([< Xhtml_types.rtc_attrib ], [< Xhtml_types.rtc_content ],
+         [> Xhtml_types.rtc ])
+        plus
+      val rtc_complex :
+        ([< Xhtml_types.rtc_complex_attrib ],
+         [< Xhtml_types.rtc_complex_content ], [> Xhtml_types.rtc_complex ])
+        plus
+      val rb :
+        ([< Xhtml_types.rb_attrib ], [< Xhtml_types.rb_content ],
+         [> Xhtml_types.rb ])
+        star
+      val rt :
+        ([< Xhtml_types.rt_attrib ], [< Xhtml_types.rt_content ],
+         [> Xhtml_types.rt ])
+        star
+      val rt_complex :
+        ([< Xhtml_types.rt_complex_attrib ],
+         [< Xhtml_types.rt_complex_content ], [> Xhtml_types.rt_complex ])
+        star
+      val rp :
+        ([< Xhtml_types.rp_attrib ], [< Xhtml_types.rp_content ],
+         [> Xhtml_types.rp ])
+        star
+      val a_rbspan : Xhtml_types.number -> [> `Rbspan ] attrib
+      val tot : Xml.elt -> 'a elt
+      val totl : Xml.elt list -> 'a elt list
+      val toelt : 'a elt -> Xml.elt
+      val toeltl : 'a elt list -> Xml.elt list
+      type doc = [ `Html ] elt
+      val doc_toelt : doc -> Xml.elt
+      type ('a, 'b, 'c) lazy_plus =
+          ?a:'a attrib list ->
+          'b elt Eliom_lazy.request ->
+          'b elt list Eliom_lazy.request -> 'c elt
+      val lazy_form :
+        action:Eliom_content_core.Xml.uri ->
+        ([< Xhtml_types.form_attrib ], [< Xhtml_types.form_content ],
+         [> Xhtml_types.form ])
+        Eliom_content_core.Xhtml.F_01_00.lazy_plus
+    end
+  module F_01_01 :
+    sig
+      module Raw :
+        sig
+          module Xml :
+            sig
+              type uri = Xml.uri
+              val string_of_uri : uri -> string
+              val uri_of_string : string -> uri
+              type aname = string
+              type event_handler = Xml.event_handler
+              type attrib = Xml.attrib
+              val float_attrib : aname -> float -> attrib
+              val int_attrib : aname -> int -> attrib
+              val string_attrib : aname -> string -> attrib
+              val space_sep_attrib : aname -> string list -> attrib
+              val comma_sep_attrib : aname -> string list -> attrib
+              val event_handler_attrib : aname -> event_handler -> attrib
+              val uri_attrib : aname -> uri -> attrib
+              val uris_attrib : aname -> uri list -> attrib
+              type elt = Xml.elt
+              type ename = string
+              val empty : unit -> elt
+              val comment : string -> elt
+              val pcdata : string -> elt
+              val encodedpcdata : string -> elt
+              val entity : string -> elt
+              val leaf : ?a:attrib list -> ename -> elt
+              val node : ?a:attrib list -> ename -> elt list -> elt
+              val cdata : string -> elt
+              val cdata_script : string -> elt
+              val cdata_style : string -> elt
+            end
+          module Info : Xml_sigs.Info
+          type uri = Xml.uri
+          val string_of_uri : uri -> string
+          val uri_of_string : string -> uri
+          type +'a attrib
+          val to_xmlattribs : 'a attrib list -> Xml.attrib list
+          val to_attrib : Xml.attrib -> 'a attrib
+          val a_class : Xhtml_types.nmtokens -> [> `Class ] attrib
+          val a_id : Xhtml_types.id -> [> `Id ] attrib
+          val a_title : Xhtml_types.cdata -> [> `Title ] attrib
+          val a_xml_lang : Xhtml_types.nmtoken -> [> `XML_lang ] attrib
+          val a_onblur : Xml.event_handler -> [> `OnBlur ] attrib
+          val a_onclick : Xml.event_handler -> [> `OnClick ] attrib
+          val a_ondblclick : Xml.event_handler -> [> `OnDblClick ] attrib
+          val a_onchange : Xml.event_handler -> [> `OnChange ] attrib
+          val a_onfocus : Xml.event_handler -> [> `OnFocus ] attrib
+          val a_onload : Xml.event_handler -> [> `OnLoad ] attrib
+          val a_onunload : Xml.event_handler -> [> `OnUnload ] attrib
+          val a_onreset : Xml.event_handler -> [> `OnReset ] attrib
+          val a_onselect : Xml.event_handler -> [> `OnSelect ] attrib
+          val a_onsubmit : Xml.event_handler -> [> `OnSubmit ] attrib
+          val a_onmousedown : Xml.event_handler -> [> `OnMouseDown ] attrib
+          val a_onmouseup : Xml.event_handler -> [> `OnMouseUp ] attrib
+          val a_onmouseover : Xml.event_handler -> [> `OnMouseOver ] attrib
+          val a_onmousemove : Xml.event_handler -> [> `OnMouseMove ] attrib
+          val a_onmouseout : Xml.event_handler -> [> `OnMouseOut ] attrib
+          val a_onkeypress : Xml.event_handler -> [> `OnKeyPress ] attrib
+          val a_onkeydown : Xml.event_handler -> [> `OnKeyDown ] attrib
+          val a_onkeyup : Xml.event_handler -> [> `OnKeyUp ] attrib
+          val a_profile : Xml.uri -> [> `Profile ] attrib
+          val a_version : Xhtml_types.cdata -> [> `Version ] attrib
+          val a_xmlns : [< `W3_org_1999_xhtml ] -> [> `XMLns ] attrib
+          val a_cite : Xml.uri -> [> `Cite ] attrib
+          val a_xml_space : [< `Preserve ] -> [> `XML_space ] attrib
+          val a_accesskey : Xhtml_types.character -> [> `Accesskey ] attrib
+          val a_charset : Xhtml_types.charset -> [> `Charset ] attrib
+          val a_accept_charset :
+            Xhtml_types.charset -> [> `Accept_charset ] attrib
+          val a_accept : Xhtml_types.contenttype -> [> `Accept ] attrib
+          val a_href : Xml.uri -> [> `Href ] attrib
+          val a_hreflang : Xhtml_types.languagecode -> [> `Hreflang ] attrib
+          val a_rel : Xhtml_types.linktypes -> [> `Rel ] attrib
+          val a_rev : Xhtml_types.linktypes -> [> `Rev ] attrib
+          val a_tabindex : Xhtml_types.number -> [> `Tabindex ] attrib
+          val a_type : Xhtml_types.contenttype -> [> `Type ] attrib
+          val a_datetime : Xhtml_types.cdata -> [> `Datetime ] attrib
+          val a_dir : [< `Ltr | `Rtl ] -> [> `Dir ] attrib
+          val a_action : Xml.uri -> [> `Action ] attrib
+          val a_checked : [< `Checked ] -> [> `Checked ] attrib
+          val a_cols : Xhtml_types.number -> [> `Cols ] attrib
+          val a_enctype : Xhtml_types.contenttype -> [> `Enctype ] attrib
+          val a_for : Xhtml_types.idref -> [> `For ] attrib
+          val a_maxlength : Xhtml_types.number -> [> `Maxlength ] attrib
+          val a_method : [< `Get | `Post ] -> [> `Method ] attrib
+          val a_multiple : [< `Multiple ] -> [> `Multiple ] attrib
+          val a_name : Xhtml_types.cdata -> [> `Name ] attrib
+          val a_rows : Xhtml_types.number -> [> `Rows ] attrib
+          val a_selected : [< `Selected ] -> [> `Selected ] attrib
+          val a_size : Xhtml_types.number -> [> `Size ] attrib
+          val a_src : Xml.uri -> [> `Src ] attrib
+          val a_input_type :
+            [< `Button
+             | `Checkbox
+             | `File
+             | `Hidden
+             | `Image
+             | `Password
+             | `Radio
+             | `Reset
+             | `Submit
+             | `Text ] ->
+            [> `Input_Type ] attrib
+          val a_value : Xhtml_types.cdata -> [> `Value ] attrib
+          val a_value_type :
+            [< `Data | `Object | `Ref ] -> [> `Value_Type ] attrib
+          val a_disabled : [< `Disabled ] -> [> `Disabled ] attrib
+          val a_readonly : [< `ReadOnly ] -> [> `ReadOnly ] attrib
+          val a_button_type :
+            [< `Button | `Reset | `Submit ] -> [> `Button_Type ] attrib
+          val a_label : Xhtml_types.text -> [> `Label ] attrib
+          val a_abbr : Xhtml_types.text -> [> `Abbr ] attrib
+          val a_align :
+            [< `Center | `Char | `Justify | `Left | `Right ] ->
+            [> `Align ] attrib
+          val a_axis : Xhtml_types.cdata -> [> `Axis ] attrib
+          val a_colspan : Xhtml_types.number -> [> `Colspan ] attrib
+          val a_headers : Xhtml_types.idrefs -> [> `Headers ] attrib
+          val a_rowspan : Xhtml_types.number -> [> `Rowspan ] attrib
+          val a_scope :
+            [< `Col | `Colgroup | `Row | `Rowgroup ] -> [> `Scope ] attrib
+          val a_summary : Xhtml_types.text -> [> `Summary ] attrib
+          val a_valign :
+            [< `Baseline | `Bottom | `Middle | `Top ] -> [> `Valign ] attrib
+          val a_border : Xhtml_types.pixels -> [> `Border ] attrib
+          val a_cellpadding : Xhtml_types.length -> [> `Cellpadding ] attrib
+          val a_cellspacing : Xhtml_types.length -> [> `Cellspacing ] attrib
+          val a_datapagesize : Xhtml_types.cdata -> [> `Datapagesize ] attrib
+          val a_frame :
+            [< `Above
+             | `Below
+             | `Border
+             | `Box
+             | `Hsides
+             | `LHS
+             | `RHS
+             | `Void
+             | `Vsides ] ->
+            [> `Frame ] attrib
+          val a_rules :
+            [< `All | `Cols | `Groups | `None | `Rows ] -> [> `Rules ] attrib
+          val a_char : Xhtml_types.character -> [> `Char ] attrib
+          val a_charoff : Xhtml_types.length -> [> `Charoff ] attrib
+          val a_span : Xhtml_types.number -> [> `Span ] attrib
+          val a_alt : Xhtml_types.text -> [> `Alt ] attrib
+          val a_height : Xhtml_types.length -> [> `Height ] attrib
+          val a_longdesc : Xml.uri -> [> `Longdesc ] attrib
+          val a_width : Xhtml_types.length -> [> `Width ] attrib
+          type shape = [ `Circle | `Default | `Poly | `Rect ]
+          val a_shape : shape -> [> `Shape ] attrib
+          val a_coords : int list -> [> `Coords ] attrib
+          val a_nohref : [< `Nohref ] -> [> `Nohref ] attrib
+          val a_usemap : Xhtml_types.idref -> [> `Usemap ] attrib
+          val a_ismap : [< `Ismap ] -> [> `Ismap ] attrib
+          val a_declare : [< `Declare ] -> [> `Declare ] attrib
+          val a_classid : Xml.uri -> [> `Classid ] attrib
+          val a_codebase : Xml.uri -> [> `Codebase ] attrib
+          val a_data : Xml.uri -> [> `Data ] attrib
+          val a_codetype : Xhtml_types.contenttype -> [> `Codetype ] attrib
+          val a_archive : Xml.uri list -> [> `Archive ] attrib
+          val a_standby : Xhtml_types.text -> [> `Standby ] attrib
+          val a_fs_rows : Xhtml_types.multilengths -> [> `FS_Rows ] attrib
+          val a_fs_cols : Xhtml_types.multilengths -> [> `FS_Cols ] attrib
+          val a_frameborder : [< `One | `Zero ] -> [> `Frameborder ] attrib
+          val a_marginheight :
+            Xhtml_types.pixels -> [> `Marginheight ] attrib
+          val a_marginwidth : Xhtml_types.pixels -> [> `Marginwidth ] attrib
+          val a_noresize : [< `Noresize ] -> [> `Noresize ] attrib
+          val a_scrolling : [< `Auto | `No | `Yes ] -> [> `Scrolling ] attrib
+          val a_target : Xhtml_types.frametarget -> [> `Target ] attrib
+          val a_content : Xhtml_types.cdata -> [> `Content ] attrib
+          val a_http_equiv : Xhtml_types.nmtoken -> [> `Http_equiv ] attrib
+          val a_scheme : Xhtml_types.cdata -> [> `Scheme ] attrib
+          val a_defer : [< `Defer ] -> [> `Defer ] attrib
+          val a_media : Xhtml_types.mediadesc -> [> `Media ] attrib
+          val a_style : string -> [> `Style_Attr ] attrib
+          type +'a elt
+          type ('a, 'b) nullary = ?a:'a attrib list -> unit -> 'b elt
+          type ('a, 'b, 'c) unary = ?a:'a attrib list -> 'b elt -> 'c elt
+          type ('a, 'b, 'c, 'd) binary =
+              ?a:'a attrib list -> 'b elt -> 'c elt -> 'd elt
+          type ('a, 'b, 'c, 'd, 'e, 'f) quadry =
+              ?a:'a attrib list ->
+              'b elt -> 'c elt -> 'd elt -> 'e elt -> 'f elt
+          type ('a, 'b, 'c) star = ?a:'a attrib list -> 'b elt list -> 'c elt
+          type ('a, 'b, 'c) plus =
+              ?a:'a attrib list -> 'b elt -> 'b elt list -> 'c elt
+          type html = [ `Html ] elt
+          val html :
+            ?a:[< `Dir | `Id | `Version | `XML_lang | `XMLns ] attrib list ->
+            [< `Head ] elt -> [< `Body | `Frameset ] elt -> html
+          val head :
+            ?a:[< `Dir | `Id | `Profile | `XML_lang ] attrib list ->
+            [< `Base | `Title ] elt ->
+            [< `Link | `Meta | `Object | `Script | `Style ] elt list ->
+            [> `Head ] elt
+          val title :
+            ([< Xhtml_types.title_attrib ], [< Xhtml_types.title_content ],
+             [> Xhtml_types.title ])
+            unary
+          val body :
+            ([< Xhtml_types.body_attrib ], [< Xhtml_types.body_content ],
+             [> Xhtml_types.body ])
+            star
+          val pcdata : string -> [> `PCDATA ] elt
+          val entity : string -> [> `PCDATA ] elt
+          val space : unit -> [> `PCDATA ] elt
+          val cdata : string -> [> `PCDATA ] elt
+          val cdata_script : string -> [> `PCDATA ] elt
+          val cdata_style : string -> [> `PCDATA ] elt
+          val unsafe_data : string -> 'a elt
+          val h1 :
+            ([< Xhtml_types.h1_attrib ], [< Xhtml_types.h1_content ],
+             [> Xhtml_types.h1 ])
+            star
+          val h2 :
+            ([< Xhtml_types.h2_attrib ], [< Xhtml_types.h2_content ],
+             [> Xhtml_types.h2 ])
+            star
+          val h3 :
+            ([< Xhtml_types.h3_attrib ], [< Xhtml_types.h3_content ],
+             [> Xhtml_types.h3 ])
+            star
+          val h4 :
+            ([< Xhtml_types.h4_attrib ], [< Xhtml_types.h4_content ],
+             [> Xhtml_types.h4 ])
+            star
+          val h5 :
+            ([< Xhtml_types.h5_attrib ], [< Xhtml_types.h5_content ],
+             [> Xhtml_types.h5 ])
+            star
+          val h6 :
+            ([< Xhtml_types.h6_attrib ], [< Xhtml_types.h6_content ],
+             [> Xhtml_types.h6 ])
+            star
+          val address :
+            ([< Xhtml_types.address_attrib ],
+             [< Xhtml_types.address_content ], [> Xhtml_types.address ])
+            star
+          val blockquote :
+            ([< `Cite
+              | `Class
+              | `Dir
+              | `Id
+              | `OnClick
+              | `OnDblClick
+              | `OnKeyDown
+              | `OnKeyPress
+              | `OnKeyUp
+              | `OnMouseDown
+              | `OnMouseMove
+              | `OnMouseOut
+              | `OnMouseOver
+              | `OnMouseUp
+              | `Style_Attr
+              | `Title
+              | `XML_lang
+              | `XML_space ],
+             [< `Address
+              | `Blockquote
+              | `Del
+              | `Div
+              | `Dl
+              | `Fieldset
+              | `Form
+              | `H1
+              | `H2
+              | `H3
+              | `H4
+              | `H5
+              | `H6
+              | `Hr
+              | `Ins
+              | `Noscript
+              | `Ol
+              | `P
+              | `PCDATA
+              | `Pre
+              | `Script
+              | `Table
+              | `Ul ],
+             [> `Blockquote ])
+            star
+          val div :
+            ([< Xhtml_types.div_attrib ], [< Xhtml_types.div_content ],
+             [> Xhtml_types.div ])
+            star
+          val p :
+            ([< Xhtml_types.p_attrib ], [< Xhtml_types.p_content ],
+             [> Xhtml_types.p ])
+            star
+          val pre :
+            ([< `Class
+              | `Dir
+              | `Id
+              | `OnClick
+              | `OnDblClick
+              | `OnKeyDown
+              | `OnKeyPress
+              | `OnKeyUp
+              | `OnMouseDown
+              | `OnMouseMove
+              | `OnMouseOut
+              | `OnMouseOver
+              | `OnMouseUp
+              | `Style_Attr
+              | `Title
+              | `XML_lang
+              | `XML_space ],
+             [< `A
+              | `Abbr
+              | `Acronym
+              | `B
+              | `Bdo
+              | `Big
+              | `Br
+              | `Button
+              | `Cite
+              | `Code
+              | `Del
+              | `Dfn
+              | `Em
+              | `I
+              | `Iframe
+              | `Img
+              | `Input
+              | `Ins
+              | `Kbd
+              | `Label
+              | `Map
+              | `Noscript
+              | `Object
+              | `PCDATA
+              | `Q
+              | `Ruby_complex
+              | `Ruby_simple1
+              | `Ruby_simple2
+              | `Samp
+              | `Script
+              | `Select
+              | `Small
+              | `Span
+              | `Strong
+              | `Sub
+              | `Sup
+              | `Textarea
+              | `Tt
+              | `Var ],
+             [> `Pre ])
+            star
+          val abbr :
+            ([< Xhtml_types.abbr_attrib ], [< Xhtml_types.abbr_content ],
+             [> Xhtml_types.abbr ])
+            star
+          val acronym :
+            ([< Xhtml_types.acronym_attrib ],
+             [< Xhtml_types.acronym_content ], [> Xhtml_types.acronym ])
+            star
+          val br : ([< Xhtml_types.br_attrib ], [> Xhtml_types.br ]) nullary
+          val cite :
+            ([< Xhtml_types.cite_attrib ], [< Xhtml_types.cite_content ],
+             [> Xhtml_types.cite ])
+            star
+          val code :
+            ([< Xhtml_types.code_attrib ], [< Xhtml_types.code_content ],
+             [> Xhtml_types.code ])
+            star
+          val dfn :
+            ([< Xhtml_types.dfn_attrib ], [< Xhtml_types.dfn_content ],
+             [> Xhtml_types.dfn ])
+            star
+          val em :
+            ([< Xhtml_types.em_attrib ], [< Xhtml_types.em_content ],
+             [> Xhtml_types.em ])
+            star
+          val kbd :
+            ([< Xhtml_types.kbd_attrib ], [< Xhtml_types.kbd_content ],
+             [> Xhtml_types.kbd ])
+            star
+          val q :
+            ([< Xhtml_types.q_attrib ], [< Xhtml_types.q_content ],
+             [> Xhtml_types.q ])
+            star
+          val samp :
+            ([< Xhtml_types.samp_attrib ], [< Xhtml_types.samp_content ],
+             [> Xhtml_types.samp ])
+            star
+          val span :
+            ([< Xhtml_types.span_attrib ], [< Xhtml_types.span_content ],
+             [> Xhtml_types.span ])
+            star
+          val strong :
+            ([< Xhtml_types.strong_attrib ], [< Xhtml_types.strong_content ],
+             [> Xhtml_types.strong ])
+            star
+          val var :
+            ([< Xhtml_types.var_attrib ], [< Xhtml_types.var_content ],
+             [> Xhtml_types.var ])
+            star
+          val a :
+            ([< Xhtml_types.a_attrib ], [< Xhtml_types.a_content ],
+             [> Xhtml_types.a ])
+            star
+          val dl :
+            ([< Xhtml_types.dl_attrib ], [< Xhtml_types.dl_content ],
+             [> Xhtml_types.dl ])
+            plus
+          val ol :
+            ([< Xhtml_types.ol_attrib ], [< Xhtml_types.ol_content ],
+             [> Xhtml_types.ol ])
+            plus
+          val ul :
+            ([< Xhtml_types.ul_attrib ], [< Xhtml_types.ul_content ],
+             [> Xhtml_types.ul ])
+            plus
+          val dd :
+            ([< Xhtml_types.dd_attrib ], [< Xhtml_types.dd_content ],
+             [> Xhtml_types.dd ])
+            star
+          val dt :
+            ([< Xhtml_types.dt_attrib ], [< Xhtml_types.dt_content ],
+             [> Xhtml_types.dt ])
+            star
+          val li :
+            ([< Xhtml_types.li_attrib ], [< Xhtml_types.li_content ],
+             [> Xhtml_types.li ])
+            star
+          val hr : ([< Xhtml_types.hr_attrib ], [> Xhtml_types.hr ]) nullary
+          val b :
+            ([< Xhtml_types.b_attrib ], [< Xhtml_types.b_content ],
+             [> Xhtml_types.b ])
+            star
+          val big :
+            ([< Xhtml_types.big_attrib ], [< Xhtml_types.big_content ],
+             [> Xhtml_types.big ])
+            star
+          val i :
+            ([< Xhtml_types.i_attrib ], [< Xhtml_types.i_content ],
+             [> Xhtml_types.i ])
+            star
+          val small :
+            ([< Xhtml_types.small_attrib ], [< Xhtml_types.small_content ],
+             [> Xhtml_types.small ])
+            star
+          val sub :
+            ([< Xhtml_types.sub_attrib ], [< Xhtml_types.sub_content ],
+             [> Xhtml_types.sub ])
+            star
+          val sup :
+            ([< Xhtml_types.sup_attrib ], [< Xhtml_types.sup_content ],
+             [> Xhtml_types.sup ])
+            star
+          val tt :
+            ([< Xhtml_types.tt_attrib ], [< Xhtml_types.tt_content ],
+             [> Xhtml_types.tt ])
+            star
+          val bdo :
+            dir:[< `Ltr | `Rtl ] ->
+            ([< Xhtml_types.bdo_attrib ], [< Xhtml_types.bdo_content ],
+             [> Xhtml_types.bdo ])
+            star
+          val area :
+            alt:Xhtml_types.text ->
+            ([< Xhtml_types.area_attrib ], [> Xhtml_types.area ]) nullary
+          val map :
+            id:Xhtml_types.id ->
+            ([< Xhtml_types.map_attrib ], [< Xhtml_types.map_content ],
+             [> Xhtml_types.map ])
+            plus
+          val del :
+            ([< Xhtml_types.del_attrib ], [< Xhtml_types.del_content ],
+             [> Xhtml_types.del ])
+            star
+          val ins :
+            ([< Xhtml_types.ins_attrib ], [< Xhtml_types.ins_content ],
+             [> Xhtml_types.ins ])
+            star
+          val script :
+            contenttype:Xhtml_types.contenttype ->
+            ([< Xhtml_types.script_attrib ], [< Xhtml_types.script_content ],
+             [> Xhtml_types.script ])
+            unary
+          val noscript :
+            ([< Xhtml_types.noscript_attrib ],
+             [< Xhtml_types.noscript_content ], [> Xhtml_types.noscript ])
+            plus
+          module Basic_Forms :
+            sig
+              val form :
+                action:Xml.uri ->
+                ([< Xhtml_types.form_attrib ], [< Xhtml_types.form_content ],
+                 [> Xhtml_types.form ])
+                plus
+              val input :
+                ([< Xhtml_types.input_attrib ], [> Xhtml_types.input ])
+                nullary
+              val label :
+                ([< Xhtml_types.label_attrib ],
+                 [< Xhtml_types.label_content ], [> Xhtml_types.label ])
+                star
+              val option :
+                ([< Xhtml_types.option_attrib ],
+                 [< Xhtml_types.option_content ],
+                 [> Xhtml_types.selectoption ])
+                unary
+              val select :
+                ([< Xhtml_types.select_attrib ],
+                 [< Xhtml_types.select_content ], [> Xhtml_types.select ])
+                plus
+              val textarea :
+                rows:Xhtml_types.number ->
+                cols:Xhtml_types.number ->
+                ([< Xhtml_types.textarea_attrib ],
+                 [< Xhtml_types.textarea_content ],
+                 [> Xhtml_types.textarea ])
+                unary
+            end
+          val form :
+            action:Xml.uri ->
+            ([< Xhtml_types.form_attrib ], [< Xhtml_types.form_content ],
+             [> Xhtml_types.form ])
+            plus
+          val input :
+            ([< Xhtml_types.input_attrib ], [> Xhtml_types.input ]) nullary
+          val label :
+            ([< Xhtml_types.label_attrib ], [< Xhtml_types.label_content ],
+             [> Xhtml_types.label ])
+            star
+          val optgroup :
+            label:Xhtml_types.text ->
+            ([< Xhtml_types.optgroup_attrib ],
+             [< Xhtml_types.optgroup_content ], [> Xhtml_types.optgroup ])
+            plus
+          val option :
+            ([< Xhtml_types.option_attrib ], [< Xhtml_types.option_content ],
+             [> Xhtml_types.selectoption ])
+            unary
+          val select :
+            ([< Xhtml_types.select_attrib ], [< Xhtml_types.select_content ],
+             [> Xhtml_types.select ])
+            plus
+          val textarea :
+            rows:Xhtml_types.number ->
+            cols:Xhtml_types.number ->
+            ([< Xhtml_types.textarea_attrib ],
+             [< Xhtml_types.textarea_content ], [> Xhtml_types.textarea ])
+            unary
+          val fieldset :
+            ([< Xhtml_types.fieldset_attrib ],
+             [< Xhtml_types.fieldset_content ], [> Xhtml_types.fieldset ])
+            star
+          val legend :
+            ([< Xhtml_types.legend_attrib ], [< Xhtml_types.legend_content ],
+             [> Xhtml_types.legend ])
+            star
+          val button :
+            ([< Xhtml_types.button_attrib ], [< Xhtml_types.button_content ],
+             [> Xhtml_types.button ])
+            star
+          module Basic_Tables :
+            sig
+              val a_align :
+                [< `Center | `Left | `Right ] -> [> `Align ] attrib
+              val a_scope : [< `Col | `Row ] -> [> `Scope ] attrib
+              val a_valign :
+                [< `Bottom | `Middle | `Top ] -> [> `Valign ] attrib
+              val caption :
+                ([< Xhtml_types.caption_attrib ],
+                 [< Xhtml_types.caption_content ], [> Xhtml_types.caption ])
+                star
+              val table :
+                ?caption:[< `Caption ] elt ->
+                ([< Xhtml_types.table_attrib ],
+                 [< Xhtml_types.table_content ], [> Xhtml_types.table ])
+                plus
+              val td :
+                ([< Xhtml_types.td_attrib ], [< Xhtml_types.td_content ],
+                 [> Xhtml_types.td ])
+                star
+              val th :
+                ([< Xhtml_types.th_attrib ], [< Xhtml_types.th_content ],
+                 [> Xhtml_types.th ])
+                star
+              val tr :
+                ([< Xhtml_types.tr_attrib ], [< Xhtml_types.tr_content ],
+                 [> Xhtml_types.tr ])
+                plus
+            end
+          val caption :
+            ([< Xhtml_types.caption_attrib ],
+             [< Xhtml_types.caption_content ], [> Xhtml_types.caption ])
+            star
+          val table :
+            ?caption:[< `Caption ] elt ->
+            ?columns:[< `Colgroups of [< `Colgroup ] elt list
+                      | `Cols of [< `Col ] elt list ] ->
+            ([< `Border
+              | `Cellpadding
+              | `Cellspacing
+              | `Class
+              | `Datapagesize
+              | `Dir
+              | `Frame
+              | `Id
+              | `OnClick
+              | `OnDblClick
+              | `OnKeyDown
+              | `OnKeyPress
+              | `OnKeyUp
+              | `OnMouseDown
+              | `OnMouseMove
+              | `OnMouseOut
+              | `OnMouseOver
+              | `OnMouseUp
+              | `Rules
+              | `Style_Attr
+              | `Summary
+              | `Title
+              | `Width
+              | `XML_lang
+              | `XML_space ],
+             [< `Tr ], [> `Table ])
+            plus
+          val tablex :
+            ?caption:[< `Caption ] elt ->
+            ?columns:[< `Colgroups of [< `Colgroup ] elt list
+                      | `Cols of [< `Col ] elt list ] ->
+            ?thead:[< `Thead ] elt ->
+            ?tfoot:[< `Tfoot ] elt ->
+            ([< `Border
+              | `Cellpadding
+              | `Cellspacing
+              | `Class
+              | `Datapagesize
+              | `Dir
+              | `Frame
+              | `Id
+              | `OnClick
+              | `OnDblClick
+              | `OnKeyDown
+              | `OnKeyPress
+              | `OnKeyUp
+              | `OnMouseDown
+              | `OnMouseMove
+              | `OnMouseOut
+              | `OnMouseOver
+              | `OnMouseUp
+              | `Rules
+              | `Style_Attr
+              | `Summary
+              | `Title
+              | `Width
+              | `XML_lang
+              | `XML_space ],
+             [< `Tbody ], [> `Table ])
+            plus
+          val td :
+            ([< Xhtml_types.td_attrib ], [< Xhtml_types.td_content ],
+             [> Xhtml_types.td ])
+            star
+          val th :
+            ([< Xhtml_types.th_attrib ], [< Xhtml_types.th_content ],
+             [> Xhtml_types.th ])
+            star
+          val tr :
+            ([< Xhtml_types.tr_attrib ], [< Xhtml_types.tr_content ],
+             [> Xhtml_types.tr ])
+            plus
+          val col :
+            ([< Xhtml_types.col_attrib ], [> Xhtml_types.col ]) nullary
+          val colgroup :
+            ([< Xhtml_types.colgroup_attrib ],
+             [< Xhtml_types.colgroup_content ], [> Xhtml_types.colgroup ])
+            star
+          val thead :
+            ([< Xhtml_types.thead_attrib ], [< Xhtml_types.thead_content ],
+             [> Xhtml_types.thead ])
+            plus
+          val tbody :
+            ([< Xhtml_types.tbody_attrib ], [< Xhtml_types.tbody_content ],
+             [> Xhtml_types.tbody ])
+            plus
+          val tfoot :
+            ([< Xhtml_types.tfoot_attrib ], [< Xhtml_types.tfoot_content ],
+             [> Xhtml_types.tfoot ])
+            plus
+          val img :
+            src:Xml.uri ->
+            alt:Xhtml_types.text ->
+            ([< Xhtml_types.img_attrib ], [> Xhtml_types.img ]) nullary
+          val object_ :
+            ([< Xhtml_types.object__attrib ],
+             [< Xhtml_types.object__content ], [> Xhtml_types.object_ ])
+            star
+          val param :
+            name:Xhtml_types.text ->
+            ([< Xhtml_types.param_attrib ], [> Xhtml_types.param ]) nullary
+          val frameset :
+            ?noframes:[< `Noframes ] elt ->
+            ([< Xhtml_types.frameset_attrib ],
+             [< Xhtml_types.frameset_content ], [> Xhtml_types.frameset ])
+            plus
+          val frame :
+            src:Xml.uri ->
+            ([< Xhtml_types.frame_attrib ], [> Xhtml_types.frame ]) nullary
+          val noframes :
+            ([< Xhtml_types.noframes_attrib ],
+             [< Xhtml_types.noframes_content ], [> Xhtml_types.noframes ])
+            unary
+          val iframe :
+            ([< Xhtml_types.iframe_attrib ], [< Xhtml_types.iframe_content ],
+             [> Xhtml_types.iframe ])
+            star
+          val meta :
+            content:Xhtml_types.cdata ->
+            ([< Xhtml_types.meta_attrib ], [> Xhtml_types.meta ]) nullary
+          val style :
+            contenttype:Xhtml_types.contenttype ->
+            ([< Xhtml_types.style_attrib ], [< Xhtml_types.style_content ],
+             [> Xhtml_types.style ])
+            star
+          val link :
+            ([< Xhtml_types.link_attrib ], [> Xhtml_types.link ]) nullary
+          val base :
+            href:Xml.uri ->
+            ([< Xhtml_types.base_attrib ], [> Xhtml_types.base ]) nullary
+          val ruby_simple1 :
+            ?a:[< Xhtml_types.common ] attrib list ->
+            [< `Rb ] elt -> [< `Rt ] elt -> [> `Ruby_simple1 ] elt
+          val ruby_simple2 :
+            ?a:[< Xhtml_types.common ] attrib list ->
+            [< `Rb ] elt ->
+            [< `Rp ] elt ->
+            [< `Rt ] elt -> [< `Rp ] elt -> [> `Ruby_simple2 ] elt
+          val ruby_complex :
+            ?a:[< Xhtml_types.common ] attrib list ->
+            [< `Rbc ] elt -> [< `Rtc_complex ] elt -> [> `Ruby_complex ] elt
+          val rbc :
+            ([< Xhtml_types.rbc_attrib ], [< Xhtml_types.rbc_content ],
+             [> Xhtml_types.rbc ])
+            plus
+          val rtc :
+            ([< Xhtml_types.rtc_attrib ], [< Xhtml_types.rtc_content ],
+             [> Xhtml_types.rtc ])
+            plus
+          val rtc_complex :
+            ([< Xhtml_types.rtc_complex_attrib ],
+             [< Xhtml_types.rtc_complex_content ],
+             [> Xhtml_types.rtc_complex ])
+            plus
+          val rb :
+            ([< Xhtml_types.rb_attrib ], [< Xhtml_types.rb_content ],
+             [> Xhtml_types.rb ])
+            star
+          val rt :
+            ([< Xhtml_types.rt_attrib ], [< Xhtml_types.rt_content ],
+             [> Xhtml_types.rt ])
+            star
+          val rt_complex :
+            ([< Xhtml_types.rt_complex_attrib ],
+             [< Xhtml_types.rt_complex_content ],
+             [> Xhtml_types.rt_complex ])
+            star
+          val rp :
+            ([< Xhtml_types.rp_attrib ], [< Xhtml_types.rp_content ],
+             [> Xhtml_types.rp ])
+            star
+          val a_rbspan : Xhtml_types.number -> [> `Rbspan ] attrib
+          val tot : Xml.elt -> 'a elt
+          val totl : Xml.elt list -> 'a elt list
+          val toelt : 'a elt -> Xml.elt
+          val toeltl : 'a elt list -> Xml.elt list
+          type doc = [ `Html ] elt
+          val doc_toelt : doc -> Xml.elt
+        end
+      module Xml :
+        sig
+          type uri = Xml.uri
+          val string_of_uri : uri -> string
+          val uri_of_string : string -> uri
+          type aname = string
+          type event_handler = Xml.event_handler
+          type attrib = Xml.attrib
+          val float_attrib : aname -> float -> attrib
+          val int_attrib : aname -> int -> attrib
+          val string_attrib : aname -> string -> attrib
+          val space_sep_attrib : aname -> string list -> attrib
+          val comma_sep_attrib : aname -> string list -> attrib
+          val event_handler_attrib : aname -> event_handler -> attrib
+          val uri_attrib : aname -> uri -> attrib
+          val uris_attrib : aname -> uri list -> attrib
+          type elt = Xml.elt
+          type ename = string
+          val empty : unit -> elt
+          val comment : string -> elt
+          val pcdata : string -> elt
+          val encodedpcdata : string -> elt
+          val entity : string -> elt
+          val leaf : ?a:attrib list -> ename -> elt
+          val node : ?a:attrib list -> ename -> elt list -> elt
+          val cdata : string -> elt
+          val cdata_script : string -> elt
+          val cdata_style : string -> elt
+        end
+      module Info : Xml_sigs.Info
+      type uri = Xml.uri
+      val string_of_uri : uri -> string
+      val uri_of_string : string -> uri
+      type +'a attrib
+      val to_xmlattribs : 'a attrib list -> Xml.attrib list
+      val to_attrib : Xml.attrib -> 'a attrib
+      val a_class : Xhtml_types.nmtokens -> [> `Class ] attrib
+      val a_id : Xhtml_types.id -> [> `Id ] attrib
+      val a_title : Xhtml_types.cdata -> [> `Title ] attrib
+      val a_xml_lang : Xhtml_types.nmtoken -> [> `XML_lang ] attrib
+      val a_onblur : Xml.event_handler -> [> `OnBlur ] attrib
+      val a_onclick : Xml.event_handler -> [> `OnClick ] attrib
+      val a_ondblclick : Xml.event_handler -> [> `OnDblClick ] attrib
+      val a_onchange : Xml.event_handler -> [> `OnChange ] attrib
+      val a_onfocus : Xml.event_handler -> [> `OnFocus ] attrib
+      val a_onload : Xml.event_handler -> [> `OnLoad ] attrib
+      val a_onunload : Xml.event_handler -> [> `OnUnload ] attrib
+      val a_onreset : Xml.event_handler -> [> `OnReset ] attrib
+      val a_onselect : Xml.event_handler -> [> `OnSelect ] attrib
+      val a_onsubmit : Xml.event_handler -> [> `OnSubmit ] attrib
+      val a_onmousedown : Xml.event_handler -> [> `OnMouseDown ] attrib
+      val a_onmouseup : Xml.event_handler -> [> `OnMouseUp ] attrib
+      val a_onmouseover : Xml.event_handler -> [> `OnMouseOver ] attrib
+      val a_onmousemove : Xml.event_handler -> [> `OnMouseMove ] attrib
+      val a_onmouseout : Xml.event_handler -> [> `OnMouseOut ] attrib
+      val a_onkeypress : Xml.event_handler -> [> `OnKeyPress ] attrib
+      val a_onkeydown : Xml.event_handler -> [> `OnKeyDown ] attrib
+      val a_onkeyup : Xml.event_handler -> [> `OnKeyUp ] attrib
+      val a_profile : Xml.uri -> [> `Profile ] attrib
+      val a_version : Xhtml_types.cdata -> [> `Version ] attrib
+      val a_xmlns : [< `W3_org_1999_xhtml ] -> [> `XMLns ] attrib
+      val a_cite : Xml.uri -> [> `Cite ] attrib
+      val a_xml_space : [< `Preserve ] -> [> `XML_space ] attrib
+      val a_accesskey : Xhtml_types.character -> [> `Accesskey ] attrib
+      val a_charset : Xhtml_types.charset -> [> `Charset ] attrib
+      val a_accept_charset :
+        Xhtml_types.charset -> [> `Accept_charset ] attrib
+      val a_accept : Xhtml_types.contenttype -> [> `Accept ] attrib
+      val a_href : Xml.uri -> [> `Href ] attrib
+      val a_hreflang : Xhtml_types.languagecode -> [> `Hreflang ] attrib
+      val a_rel : Xhtml_types.linktypes -> [> `Rel ] attrib
+      val a_rev : Xhtml_types.linktypes -> [> `Rev ] attrib
+      val a_tabindex : Xhtml_types.number -> [> `Tabindex ] attrib
+      val a_type : Xhtml_types.contenttype -> [> `Type ] attrib
+      val a_datetime : Xhtml_types.cdata -> [> `Datetime ] attrib
+      val a_dir : [< `Ltr | `Rtl ] -> [> `Dir ] attrib
+      val a_action : Xml.uri -> [> `Action ] attrib
+      val a_checked : [< `Checked ] -> [> `Checked ] attrib
+      val a_cols : Xhtml_types.number -> [> `Cols ] attrib
+      val a_enctype : Xhtml_types.contenttype -> [> `Enctype ] attrib
+      val a_for : Xhtml_types.idref -> [> `For ] attrib
+      val a_maxlength : Xhtml_types.number -> [> `Maxlength ] attrib
+      val a_method : [< `Get | `Post ] -> [> `Method ] attrib
+      val a_multiple : [< `Multiple ] -> [> `Multiple ] attrib
+      val a_name : Xhtml_types.cdata -> [> `Name ] attrib
+      val a_rows : Xhtml_types.number -> [> `Rows ] attrib
+      val a_selected : [< `Selected ] -> [> `Selected ] attrib
+      val a_size : Xhtml_types.number -> [> `Size ] attrib
+      val a_src : Xml.uri -> [> `Src ] attrib
+      val a_input_type :
+        [< `Button
+         | `Checkbox
+         | `File
+         | `Hidden
+         | `Image
+         | `Password
+         | `Radio
+         | `Reset
+         | `Submit
+         | `Text ] ->
+        [> `Input_Type ] attrib
+      val a_value : Xhtml_types.cdata -> [> `Value ] attrib
+      val a_value_type :
+        [< `Data | `Object | `Ref ] -> [> `Value_Type ] attrib
+      val a_disabled : [< `Disabled ] -> [> `Disabled ] attrib
+      val a_readonly : [< `ReadOnly ] -> [> `ReadOnly ] attrib
+      val a_button_type :
+        [< `Button | `Reset | `Submit ] -> [> `Button_Type ] attrib
+      val a_label : Xhtml_types.text -> [> `Label ] attrib
+      val a_abbr : Xhtml_types.text -> [> `Abbr ] attrib
+      val a_align :
+        [< `Center | `Char | `Justify | `Left | `Right ] ->
+        [> `Align ] attrib
+      val a_axis : Xhtml_types.cdata -> [> `Axis ] attrib
+      val a_colspan : Xhtml_types.number -> [> `Colspan ] attrib
+      val a_headers : Xhtml_types.idrefs -> [> `Headers ] attrib
+      val a_rowspan : Xhtml_types.number -> [> `Rowspan ] attrib
+      val a_scope :
+        [< `Col | `Colgroup | `Row | `Rowgroup ] -> [> `Scope ] attrib
+      val a_summary : Xhtml_types.text -> [> `Summary ] attrib
+      val a_valign :
+        [< `Baseline | `Bottom | `Middle | `Top ] -> [> `Valign ] attrib
+      val a_border : Xhtml_types.pixels -> [> `Border ] attrib
+      val a_cellpadding : Xhtml_types.length -> [> `Cellpadding ] attrib
+      val a_cellspacing : Xhtml_types.length -> [> `Cellspacing ] attrib
+      val a_datapagesize : Xhtml_types.cdata -> [> `Datapagesize ] attrib
+      val a_frame :
+        [< `Above
+         | `Below
+         | `Border
+         | `Box
+         | `Hsides
+         | `LHS
+         | `RHS
+         | `Void
+         | `Vsides ] ->
+        [> `Frame ] attrib
+      val a_rules :
+        [< `All | `Cols | `Groups | `None | `Rows ] -> [> `Rules ] attrib
+      val a_char : Xhtml_types.character -> [> `Char ] attrib
+      val a_charoff : Xhtml_types.length -> [> `Charoff ] attrib
+      val a_span : Xhtml_types.number -> [> `Span ] attrib
+      val a_alt : Xhtml_types.text -> [> `Alt ] attrib
+      val a_height : Xhtml_types.length -> [> `Height ] attrib
+      val a_longdesc : Xml.uri -> [> `Longdesc ] attrib
+      val a_width : Xhtml_types.length -> [> `Width ] attrib
+      type shape = [ `Circle | `Default | `Poly | `Rect ]
+      val a_shape : shape -> [> `Shape ] attrib
+      val a_coords : int list -> [> `Coords ] attrib
+      val a_nohref : [< `Nohref ] -> [> `Nohref ] attrib
+      val a_usemap : Xhtml_types.idref -> [> `Usemap ] attrib
+      val a_ismap : [< `Ismap ] -> [> `Ismap ] attrib
+      val a_declare : [< `Declare ] -> [> `Declare ] attrib
+      val a_classid : Xml.uri -> [> `Classid ] attrib
+      val a_codebase : Xml.uri -> [> `Codebase ] attrib
+      val a_data : Xml.uri -> [> `Data ] attrib
+      val a_codetype : Xhtml_types.contenttype -> [> `Codetype ] attrib
+      val a_archive : Xml.uri list -> [> `Archive ] attrib
+      val a_standby : Xhtml_types.text -> [> `Standby ] attrib
+      val a_fs_rows : Xhtml_types.multilengths -> [> `FS_Rows ] attrib
+      val a_fs_cols : Xhtml_types.multilengths -> [> `FS_Cols ] attrib
+      val a_frameborder : [< `One | `Zero ] -> [> `Frameborder ] attrib
+      val a_marginheight : Xhtml_types.pixels -> [> `Marginheight ] attrib
+      val a_marginwidth : Xhtml_types.pixels -> [> `Marginwidth ] attrib
+      val a_noresize : [< `Noresize ] -> [> `Noresize ] attrib
+      val a_scrolling : [< `Auto | `No | `Yes ] -> [> `Scrolling ] attrib
+      val a_target : Xhtml_types.frametarget -> [> `Target ] attrib
+      val a_content : Xhtml_types.cdata -> [> `Content ] attrib
+      val a_http_equiv : Xhtml_types.nmtoken -> [> `Http_equiv ] attrib
+      val a_scheme : Xhtml_types.cdata -> [> `Scheme ] attrib
+      val a_defer : [< `Defer ] -> [> `Defer ] attrib
+      val a_media : Xhtml_types.mediadesc -> [> `Media ] attrib
+      val a_style : string -> [> `Style_Attr ] attrib
+      type +'a elt
+      type ('a, 'b) nullary = ?a:'a attrib list -> unit -> 'b elt
+      type ('a, 'b, 'c) unary = ?a:'a attrib list -> 'b elt -> 'c elt
+      type ('a, 'b, 'c, 'd) binary =
+          ?a:'a attrib list -> 'b elt -> 'c elt -> 'd elt
+      type ('a, 'b, 'c, 'd, 'e, 'f) quadry =
+          ?a:'a attrib list -> 'b elt -> 'c elt -> 'd elt -> 'e elt -> 'f elt
+      type ('a, 'b, 'c) star = ?a:'a attrib list -> 'b elt list -> 'c elt
+      type ('a, 'b, 'c) plus =
+          ?a:'a attrib list -> 'b elt -> 'b elt list -> 'c elt
+      type html = [ `Html ] elt
+      val html :
+        ?a:[< `Dir | `Id | `Version | `XML_lang | `XMLns ] attrib list ->
+        [< `Head ] elt -> [< `Body | `Frameset ] elt -> html
+      val head :
+        ?a:[< `Dir | `Id | `Profile | `XML_lang ] attrib list ->
+        [< `Base | `Title ] elt ->
+        [< `Link | `Meta | `Object | `Script | `Style ] elt list ->
+        [> `Head ] elt
+      val title :
+        ([< Xhtml_types.title_attrib ], [< Xhtml_types.title_content ],
+         [> Xhtml_types.title ])
+        unary
+      val body :
+        ([< Xhtml_types.body_attrib ], [< Xhtml_types.body_content ],
+         [> Xhtml_types.body ])
+        star
+      val pcdata : string -> [> `PCDATA ] elt
+      val entity : string -> [> `PCDATA ] elt
+      val space : unit -> [> `PCDATA ] elt
+      val cdata : string -> [> `PCDATA ] elt
+      val cdata_script : string -> [> `PCDATA ] elt
+      val cdata_style : string -> [> `PCDATA ] elt
+      val unsafe_data : string -> 'a elt
+      val h1 :
+        ([< Xhtml_types.h1_attrib ], [< Xhtml_types.h1_content ],
+         [> Xhtml_types.h1 ])
+        star
+      val h2 :
+        ([< Xhtml_types.h2_attrib ], [< Xhtml_types.h2_content ],
+         [> Xhtml_types.h2 ])
+        star
+      val h3 :
+        ([< Xhtml_types.h3_attrib ], [< Xhtml_types.h3_content ],
+         [> Xhtml_types.h3 ])
+        star
+      val h4 :
+        ([< Xhtml_types.h4_attrib ], [< Xhtml_types.h4_content ],
+         [> Xhtml_types.h4 ])
+        star
+      val h5 :
+        ([< Xhtml_types.h5_attrib ], [< Xhtml_types.h5_content ],
+         [> Xhtml_types.h5 ])
+        star
+      val h6 :
+        ([< Xhtml_types.h6_attrib ], [< Xhtml_types.h6_content ],
+         [> Xhtml_types.h6 ])
+        star
+      val address :
+        ([< Xhtml_types.address_attrib ], [< Xhtml_types.address_content ],
+         [> Xhtml_types.address ])
+        star
+      val blockquote :
+        ([< `Cite
+          | `Class
+          | `Dir
+          | `Id
+          | `OnClick
+          | `OnDblClick
+          | `OnKeyDown
+          | `OnKeyPress
+          | `OnKeyUp
+          | `OnMouseDown
+          | `OnMouseMove
+          | `OnMouseOut
+          | `OnMouseOver
+          | `OnMouseUp
+          | `Style_Attr
+          | `Title
+          | `XML_lang
+          | `XML_space ],
+         [< `Address
+          | `Blockquote
+          | `Del
+          | `Div
+          | `Dl
+          | `Fieldset
+          | `Form
+          | `H1
+          | `H2
+          | `H3
+          | `H4
+          | `H5
+          | `H6
+          | `Hr
+          | `Ins
+          | `Noscript
+          | `Ol
+          | `P
+          | `PCDATA
+          | `Pre
+          | `Script
+          | `Table
+          | `Ul ],
+         [> `Blockquote ])
+        star
+      val div :
+        ([< Xhtml_types.div_attrib ], [< Xhtml_types.div_content ],
+         [> Xhtml_types.div ])
+        star
+      val p :
+        ([< Xhtml_types.p_attrib ], [< Xhtml_types.p_content ],
+         [> Xhtml_types.p ])
+        star
+      val pre :
+        ([< `Class
+          | `Dir
+          | `Id
+          | `OnClick
+          | `OnDblClick
+          | `OnKeyDown
+          | `OnKeyPress
+          | `OnKeyUp
+          | `OnMouseDown
+          | `OnMouseMove
+          | `OnMouseOut
+          | `OnMouseOver
+          | `OnMouseUp
+          | `Style_Attr
+          | `Title
+          | `XML_lang
+          | `XML_space ],
+         [< `A
+          | `Abbr
+          | `Acronym
+          | `B
+          | `Bdo
+          | `Big
+          | `Br
+          | `Button
+          | `Cite
+          | `Code
+          | `Del
+          | `Dfn
+          | `Em
+          | `I
+          | `Iframe
+          | `Img
+          | `Input
+          | `Ins
+          | `Kbd
+          | `Label
+          | `Map
+          | `Noscript
+          | `Object
+          | `PCDATA
+          | `Q
+          | `Ruby_complex
+          | `Ruby_simple1
+          | `Ruby_simple2
+          | `Samp
+          | `Script
+          | `Select
+          | `Small
+          | `Span
+          | `Strong
+          | `Sub
+          | `Sup
+          | `Textarea
+          | `Tt
+          | `Var ],
+         [> `Pre ])
+        star
+      val abbr :
+        ([< Xhtml_types.abbr_attrib ], [< Xhtml_types.abbr_content ],
+         [> Xhtml_types.abbr ])
+        star
+      val acronym :
+        ([< Xhtml_types.acronym_attrib ], [< Xhtml_types.acronym_content ],
+         [> Xhtml_types.acronym ])
+        star
+      val br : ([< Xhtml_types.br_attrib ], [> Xhtml_types.br ]) nullary
+      val cite :
+        ([< Xhtml_types.cite_attrib ], [< Xhtml_types.cite_content ],
+         [> Xhtml_types.cite ])
+        star
+      val code :
+        ([< Xhtml_types.code_attrib ], [< Xhtml_types.code_content ],
+         [> Xhtml_types.code ])
+        star
+      val dfn :
+        ([< Xhtml_types.dfn_attrib ], [< Xhtml_types.dfn_content ],
+         [> Xhtml_types.dfn ])
+        star
+      val em :
+        ([< Xhtml_types.em_attrib ], [< Xhtml_types.em_content ],
+         [> Xhtml_types.em ])
+        star
+      val kbd :
+        ([< Xhtml_types.kbd_attrib ], [< Xhtml_types.kbd_content ],
+         [> Xhtml_types.kbd ])
+        star
+      val q :
+        ([< Xhtml_types.q_attrib ], [< Xhtml_types.q_content ],
+         [> Xhtml_types.q ])
+        star
+      val samp :
+        ([< Xhtml_types.samp_attrib ], [< Xhtml_types.samp_content ],
+         [> Xhtml_types.samp ])
+        star
+      val span :
+        ([< Xhtml_types.span_attrib ], [< Xhtml_types.span_content ],
+         [> Xhtml_types.span ])
+        star
+      val strong :
+        ([< Xhtml_types.strong_attrib ], [< Xhtml_types.strong_content ],
+         [> Xhtml_types.strong ])
+        star
+      val var :
+        ([< Xhtml_types.var_attrib ], [< Xhtml_types.var_content ],
+         [> Xhtml_types.var ])
+        star
+      val a :
+        ([< Xhtml_types.a_attrib ], [< Xhtml_types.a_content ],
+         [> Xhtml_types.a ])
+        star
+      val dl :
+        ([< Xhtml_types.dl_attrib ], [< Xhtml_types.dl_content ],
+         [> Xhtml_types.dl ])
+        plus
+      val ol :
+        ([< Xhtml_types.ol_attrib ], [< Xhtml_types.ol_content ],
+         [> Xhtml_types.ol ])
+        plus
+      val ul :
+        ([< Xhtml_types.ul_attrib ], [< Xhtml_types.ul_content ],
+         [> Xhtml_types.ul ])
+        plus
+      val dd :
+        ([< Xhtml_types.dd_attrib ], [< Xhtml_types.dd_content ],
+         [> Xhtml_types.dd ])
+        star
+      val dt :
+        ([< Xhtml_types.dt_attrib ], [< Xhtml_types.dt_content ],
+         [> Xhtml_types.dt ])
+        star
+      val li :
+        ([< Xhtml_types.li_attrib ], [< Xhtml_types.li_content ],
+         [> Xhtml_types.li ])
+        star
+      val hr : ([< Xhtml_types.hr_attrib ], [> Xhtml_types.hr ]) nullary
+      val b :
+        ([< Xhtml_types.b_attrib ], [< Xhtml_types.b_content ],
+         [> Xhtml_types.b ])
+        star
+      val big :
+        ([< Xhtml_types.big_attrib ], [< Xhtml_types.big_content ],
+         [> Xhtml_types.big ])
+        star
+      val i :
+        ([< Xhtml_types.i_attrib ], [< Xhtml_types.i_content ],
+         [> Xhtml_types.i ])
+        star
+      val small :
+        ([< Xhtml_types.small_attrib ], [< Xhtml_types.small_content ],
+         [> Xhtml_types.small ])
+        star
+      val sub :
+        ([< Xhtml_types.sub_attrib ], [< Xhtml_types.sub_content ],
+         [> Xhtml_types.sub ])
+        star
+      val sup :
+        ([< Xhtml_types.sup_attrib ], [< Xhtml_types.sup_content ],
+         [> Xhtml_types.sup ])
+        star
+      val tt :
+        ([< Xhtml_types.tt_attrib ], [< Xhtml_types.tt_content ],
+         [> Xhtml_types.tt ])
+        star
+      val bdo :
+        dir:[< `Ltr | `Rtl ] ->
+        ([< Xhtml_types.bdo_attrib ], [< Xhtml_types.bdo_content ],
+         [> Xhtml_types.bdo ])
+        star
+      val area :
+        alt:Xhtml_types.text ->
+        ([< Xhtml_types.area_attrib ], [> Xhtml_types.area ]) nullary
+      val map :
+        id:Xhtml_types.id ->
+        ([< Xhtml_types.map_attrib ], [< Xhtml_types.map_content ],
+         [> Xhtml_types.map ])
+        plus
+      val del :
+        ([< Xhtml_types.del_attrib ], [< Xhtml_types.del_content ],
+         [> Xhtml_types.del ])
+        star
+      val ins :
+        ([< Xhtml_types.ins_attrib ], [< Xhtml_types.ins_content ],
+         [> Xhtml_types.ins ])
+        star
+      val script :
+        contenttype:Xhtml_types.contenttype ->
+        ([< Xhtml_types.script_attrib ], [< Xhtml_types.script_content ],
+         [> Xhtml_types.script ])
+        unary
+      val noscript :
+        ([< Xhtml_types.noscript_attrib ], [< Xhtml_types.noscript_content ],
+         [> Xhtml_types.noscript ])
+        plus
+      module Basic_Forms :
+        sig
+          val form :
+            action:Xml.uri ->
+            ([< Xhtml_types.form_attrib ], [< Xhtml_types.form_content ],
+             [> Xhtml_types.form ])
+            plus
+          val input :
+            ([< Xhtml_types.input_attrib ], [> Xhtml_types.input ]) nullary
+          val label :
+            ([< Xhtml_types.label_attrib ], [< Xhtml_types.label_content ],
+             [> Xhtml_types.label ])
+            star
+          val option :
+            ([< Xhtml_types.option_attrib ], [< Xhtml_types.option_content ],
+             [> Xhtml_types.selectoption ])
+            unary
+          val select :
+            ([< Xhtml_types.select_attrib ], [< Xhtml_types.select_content ],
+             [> Xhtml_types.select ])
+            plus
+          val textarea :
+            rows:Xhtml_types.number ->
+            cols:Xhtml_types.number ->
+            ([< Xhtml_types.textarea_attrib ],
+             [< Xhtml_types.textarea_content ], [> Xhtml_types.textarea ])
+            unary
+        end
+      val form :
+        action:Xml.uri ->
+        ([< Xhtml_types.form_attrib ], [< Xhtml_types.form_content ],
+         [> Xhtml_types.form ])
+        plus
+      val input :
+        ([< Xhtml_types.input_attrib ], [> Xhtml_types.input ]) nullary
+      val label :
+        ([< Xhtml_types.label_attrib ], [< Xhtml_types.label_content ],
+         [> Xhtml_types.label ])
+        star
+      val optgroup :
+        label:Xhtml_types.text ->
+        ([< Xhtml_types.optgroup_attrib ], [< Xhtml_types.optgroup_content ],
+         [> Xhtml_types.optgroup ])
+        plus
+      val option :
+        ([< Xhtml_types.option_attrib ], [< Xhtml_types.option_content ],
+         [> Xhtml_types.selectoption ])
+        unary
+      val select :
+        ([< Xhtml_types.select_attrib ], [< Xhtml_types.select_content ],
+         [> Xhtml_types.select ])
+        plus
+      val textarea :
+        rows:Xhtml_types.number ->
+        cols:Xhtml_types.number ->
+        ([< Xhtml_types.textarea_attrib ], [< Xhtml_types.textarea_content ],
+         [> Xhtml_types.textarea ])
+        unary
+      val fieldset :
+        ([< Xhtml_types.fieldset_attrib ], [< Xhtml_types.fieldset_content ],
+         [> Xhtml_types.fieldset ])
+        star
+      val legend :
+        ([< Xhtml_types.legend_attrib ], [< Xhtml_types.legend_content ],
+         [> Xhtml_types.legend ])
+        star
+      val button :
+        ([< Xhtml_types.button_attrib ], [< Xhtml_types.button_content ],
+         [> Xhtml_types.button ])
+        star
+      module Basic_Tables :
+        sig
+          val a_align : [< `Center | `Left | `Right ] -> [> `Align ] attrib
+          val a_scope : [< `Col | `Row ] -> [> `Scope ] attrib
+          val a_valign : [< `Bottom | `Middle | `Top ] -> [> `Valign ] attrib
+          val caption :
+            ([< Xhtml_types.caption_attrib ],
+             [< Xhtml_types.caption_content ], [> Xhtml_types.caption ])
+            star
+          val table :
+            ?caption:[< `Caption ] elt ->
+            ([< Xhtml_types.table_attrib ], [< Xhtml_types.table_content ],
+             [> Xhtml_types.table ])
+            plus
+          val td :
+            ([< Xhtml_types.td_attrib ], [< Xhtml_types.td_content ],
+             [> Xhtml_types.td ])
+            star
+          val th :
+            ([< Xhtml_types.th_attrib ], [< Xhtml_types.th_content ],
+             [> Xhtml_types.th ])
+            star
+          val tr :
+            ([< Xhtml_types.tr_attrib ], [< Xhtml_types.tr_content ],
+             [> Xhtml_types.tr ])
+            plus
+        end
+      val caption :
+        ([< Xhtml_types.caption_attrib ], [< Xhtml_types.caption_content ],
+         [> Xhtml_types.caption ])
+        star
+      val table :
+        ?caption:[< `Caption ] elt ->
+        ?columns:[< `Colgroups of [< `Colgroup ] elt list
+                  | `Cols of [< `Col ] elt list ] ->
+        ([< `Border
+          | `Cellpadding
+          | `Cellspacing
+          | `Class
+          | `Datapagesize
+          | `Dir
+          | `Frame
+          | `Id
+          | `OnClick
+          | `OnDblClick
+          | `OnKeyDown
+          | `OnKeyPress
+          | `OnKeyUp
+          | `OnMouseDown
+          | `OnMouseMove
+          | `OnMouseOut
+          | `OnMouseOver
+          | `OnMouseUp
+          | `Rules
+          | `Style_Attr
+          | `Summary
+          | `Title
+          | `Width
+          | `XML_lang
+          | `XML_space ],
+         [< `Tr ], [> `Table ])
+        plus
+      val tablex :
+        ?caption:[< `Caption ] elt ->
+        ?columns:[< `Colgroups of [< `Colgroup ] elt list
+                  | `Cols of [< `Col ] elt list ] ->
+        ?thead:[< `Thead ] elt ->
+        ?tfoot:[< `Tfoot ] elt ->
+        ([< `Border
+          | `Cellpadding
+          | `Cellspacing
+          | `Class
+          | `Datapagesize
+          | `Dir
+          | `Frame
+          | `Id
+          | `OnClick
+          | `OnDblClick
+          | `OnKeyDown
+          | `OnKeyPress
+          | `OnKeyUp
+          | `OnMouseDown
+          | `OnMouseMove
+          | `OnMouseOut
+          | `OnMouseOver
+          | `OnMouseUp
+          | `Rules
+          | `Style_Attr
+          | `Summary
+          | `Title
+          | `Width
+          | `XML_lang
+          | `XML_space ],
+         [< `Tbody ], [> `Table ])
+        plus
+      val td :
+        ([< Xhtml_types.td_attrib ], [< Xhtml_types.td_content ],
+         [> Xhtml_types.td ])
+        star
+      val th :
+        ([< Xhtml_types.th_attrib ], [< Xhtml_types.th_content ],
+         [> Xhtml_types.th ])
+        star
+      val tr :
+        ([< Xhtml_types.tr_attrib ], [< Xhtml_types.tr_content ],
+         [> Xhtml_types.tr ])
+        plus
+      val col : ([< Xhtml_types.col_attrib ], [> Xhtml_types.col ]) nullary
+      val colgroup :
+        ([< Xhtml_types.colgroup_attrib ], [< Xhtml_types.colgroup_content ],
+         [> Xhtml_types.colgroup ])
+        star
+      val thead :
+        ([< Xhtml_types.thead_attrib ], [< Xhtml_types.thead_content ],
+         [> Xhtml_types.thead ])
+        plus
+      val tbody :
+        ([< Xhtml_types.tbody_attrib ], [< Xhtml_types.tbody_content ],
+         [> Xhtml_types.tbody ])
+        plus
+      val tfoot :
+        ([< Xhtml_types.tfoot_attrib ], [< Xhtml_types.tfoot_content ],
+         [> Xhtml_types.tfoot ])
+        plus
+      val img :
+        src:Xml.uri ->
+        alt:Xhtml_types.text ->
+        ([< Xhtml_types.img_attrib ], [> Xhtml_types.img ]) nullary
+      val object_ :
+        ([< Xhtml_types.object__attrib ], [< Xhtml_types.object__content ],
+         [> Xhtml_types.object_ ])
+        star
+      val param :
+        name:Xhtml_types.text ->
+        ([< Xhtml_types.param_attrib ], [> Xhtml_types.param ]) nullary
+      val frameset :
+        ?noframes:[< `Noframes ] elt ->
+        ([< Xhtml_types.frameset_attrib ], [< Xhtml_types.frameset_content ],
+         [> Xhtml_types.frameset ])
+        plus
+      val frame :
+        src:Xml.uri ->
+        ([< Xhtml_types.frame_attrib ], [> Xhtml_types.frame ]) nullary
+      val noframes :
+        ([< Xhtml_types.noframes_attrib ], [< Xhtml_types.noframes_content ],
+         [> Xhtml_types.noframes ])
+        unary
+      val iframe :
+        ([< Xhtml_types.iframe_attrib ], [< Xhtml_types.iframe_content ],
+         [> Xhtml_types.iframe ])
+        star
+      val meta :
+        content:Xhtml_types.cdata ->
+        ([< Xhtml_types.meta_attrib ], [> Xhtml_types.meta ]) nullary
+      val style :
+        contenttype:Xhtml_types.contenttype ->
+        ([< Xhtml_types.style_attrib ], [< Xhtml_types.style_content ],
+         [> Xhtml_types.style ])
+        star
+      val link :
+        ([< Xhtml_types.link_attrib ], [> Xhtml_types.link ]) nullary
+      val base :
+        href:Xml.uri ->
+        ([< Xhtml_types.base_attrib ], [> Xhtml_types.base ]) nullary
+      val ruby_simple1 :
+        ?a:[< Xhtml_types.common ] attrib list ->
+        [< `Rb ] elt -> [< `Rt ] elt -> [> `Ruby_simple1 ] elt
+      val ruby_simple2 :
+        ?a:[< Xhtml_types.common ] attrib list ->
+        [< `Rb ] elt ->
+        [< `Rp ] elt ->
+        [< `Rt ] elt -> [< `Rp ] elt -> [> `Ruby_simple2 ] elt
+      val ruby_complex :
+        ?a:[< Xhtml_types.common ] attrib list ->
+        [< `Rbc ] elt -> [< `Rtc_complex ] elt -> [> `Ruby_complex ] elt
+      val rbc :
+        ([< Xhtml_types.rbc_attrib ], [< Xhtml_types.rbc_content ],
+         [> Xhtml_types.rbc ])
+        plus
+      val rtc :
+        ([< Xhtml_types.rtc_attrib ], [< Xhtml_types.rtc_content ],
+         [> Xhtml_types.rtc ])
+        plus
+      val rtc_complex :
+        ([< Xhtml_types.rtc_complex_attrib ],
+         [< Xhtml_types.rtc_complex_content ], [> Xhtml_types.rtc_complex ])
+        plus
+      val rb :
+        ([< Xhtml_types.rb_attrib ], [< Xhtml_types.rb_content ],
+         [> Xhtml_types.rb ])
+        star
+      val rt :
+        ([< Xhtml_types.rt_attrib ], [< Xhtml_types.rt_content ],
+         [> Xhtml_types.rt ])
+        star
+      val rt_complex :
+        ([< Xhtml_types.rt_complex_attrib ],
+         [< Xhtml_types.rt_complex_content ], [> Xhtml_types.rt_complex ])
+        star
+      val rp :
+        ([< Xhtml_types.rp_attrib ], [< Xhtml_types.rp_content ],
+         [> Xhtml_types.rp ])
+        star
+      val a_rbspan : Xhtml_types.number -> [> `Rbspan ] attrib
+      val tot : Xml.elt -> 'a elt
+      val totl : Xml.elt list -> 'a elt list
+      val toelt : 'a elt -> Xml.elt
+      val toeltl : 'a elt list -> Xml.elt list
+      type doc = [ `Html ] elt
+      val doc_toelt : doc -> Xml.elt
+      type ('a, 'b, 'c) lazy_plus =
+          ?a:'a attrib list ->
+          'b elt Eliom_lazy.request ->
+          'b elt list Eliom_lazy.request -> 'c elt
+      val lazy_form :
+        action:Eliom_content_core.Xml.uri ->
+        ([< Xhtml_types.form_attrib ], [< Xhtml_types.form_content ],
+         [> Xhtml_types.form ])
+        Eliom_content_core.Xhtml.F_01_01.lazy_plus
+    end
+  module Printer :
+    sig
+      val print_list :
+        output:(string -> unit) ->
+        ?encode:(string -> string) -> 'a F.elt list -> unit
+      val print :
+        output:(string -> unit) ->
+        ?encode:(string -> string) -> ?advert:string -> F.doc -> unit
+    end
+  module Printer_01_00 :
+    sig
+      val print_list :
+        output:(string -> unit) ->
+        ?encode:(string -> string) -> 'a F_01_00.elt list -> unit
+      val print :
+        output:(string -> unit) ->
+        ?encode:(string -> string) -> ?advert:string -> F_01_00.doc -> unit
+    end
+  module Printer_01_01 :
+    sig
+      val print_list :
+        output:(string -> unit) ->
+        ?encode:(string -> string) -> 'a F_01_01.elt list -> unit
+      val print :
+        output:(string -> unit) ->
+        ?encode:(string -> string) -> ?advert:string -> F_01_01.doc -> unit
+    end
+end >>

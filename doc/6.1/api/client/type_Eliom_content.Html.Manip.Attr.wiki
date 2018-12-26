@@ -1,0 +1,8 @@
+<<code language="ocaml" | sig
+  val clientWidth : 'a Eliom_content.Html.elt -> int
+  val clientHeight : 'a Eliom_content.Html.elt -> int
+  val offsetWidth : 'a Eliom_content.Html.elt -> int
+  val offsetHeight : 'a Eliom_content.Html.elt -> int
+  val clientLeft : 'a Eliom_content.Html.elt -> int
+  val clientTop : 'a Eliom_content.Html.elt -> int
+end >>

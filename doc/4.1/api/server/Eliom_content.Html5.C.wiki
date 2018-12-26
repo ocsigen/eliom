@@ -1,0 +1,14 @@
+=Module <<a_api_type subproject="server" | module Eliom_content.Html5.C >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|C>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_content.Html5.C >><<span class="ocsforge_color_keyword"|end>>>>~Creation of ~H~T~M~L~5 content from client~-side values~.
+      ~This makes possible to insert in server side generated pages some
+      nodes that will be computed on client side ~(for example reactive nodes~)~.
+
+----
+
+
+==@@id="2_Contentinjection"@@~Content injection==
+
+<<pre id="VALnode" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|node>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?init: >>'a <<a_api subproject="server" text="Eliom_content.Html5.elt" | type Eliom_content.Html5.elt >> <<span class="ocsforge_color_delimiter"| -> >>\\  'a <<a_api subproject="server" text="Eliom_content.Html5.elt" | type Eliom_content.Html5.elt >> <<a_api subproject="server" text="Eliom_lib.client_value" | type Eliom_lib.client_value >> <<span class="ocsforge_color_delimiter"| -> >>\\  'a <<a_api subproject="server" text="Eliom_content.Html5.elt" | type Eliom_content.Html5.elt >>>>>><<div class="odocwiki_info"|~See ~Eliom manual for more detail on
+        <<a_manual chapter="clientserver-html" fragment="inject" | Dom & Client-values >>~.
+>>
+<<pre id="VALattr" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|attr>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?init: >>'a <<a_api subproject="server" text="Eliom_content.Html5.attrib" | type Eliom_content.Html5.attrib >> <<span class="ocsforge_color_delimiter"| -> >>\\  'a <<a_api subproject="server" text="Eliom_content.Html5.attrib" | type Eliom_content.Html5.attrib >> <<a_api subproject="server" text="Eliom_lib.client_value" | type Eliom_lib.client_value >> <<span class="ocsforge_color_delimiter"| -> >>\\  'a <<a_api subproject="server" text="Eliom_content.Html5.attrib" | type Eliom_content.Html5.attrib >>>>>>

@@ -1,0 +1,8 @@
+=Module <<a_api_type subproject="server" | module Eliom_pervasives.SVG >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|SVG>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_pervasives.SVG >><<span class="ocsforge_color_keyword"|end>>>>~Building and pretty~-printing valid ~S~V~G tree~.
+
+----
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="M" | module Eliom_pervasives.SVG.M >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_pervasives.SVG.M >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Typed interface for building valid ~S~V~G tree~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="P" | module Eliom_pervasives.SVG.P >> <<span class="ocsforge_color_delimiter"|~:>> \\  <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|XML_sigs.TypedSimplePrinter>>>><<span class="odocwiki_type"| with type 'a elt := 'a M.elt\\					  and type doc := M.doc>>>><<div class="odocwiki_info"|~S~V~G printer~.
+>>

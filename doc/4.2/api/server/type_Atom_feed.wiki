@@ -1,0 +1,311 @@
+<<code language="ocaml" | sig
+  type uri = Xml.uri
+  type lang = string
+  type base = Atom_feed.uri
+  type ncname = string
+  type dateConstruct = string
+  type emailAddress = string
+  type mediaType = string
+  type length = int
+  type href = Xml.uri
+  type hrefLang = string
+  type rel = string
+  type ltitle = string
+  type scheme = string
+  type label = string
+  type term = string
+  type metaAttr = [ `Base of Atom_feed.base | `Lang of Atom_feed.lang ]
+  type personConstruct =
+      [ `Email of Atom_feed.emailAddress | `Uri of Atom_feed.uri ]
+  type author
+  type contributor
+  type generator
+  type id
+  type icon
+  type category
+  type link
+  type logo
+  type published
+  type updated
+  type source
+  type entry
+  type feed
+  type content
+  type textConstruct
+  type linkOAttr =
+      [ `Base of Atom_feed.base
+      | `Hrefl of Atom_feed.hrefLang
+      | `Lang of Atom_feed.lang
+      | `Length of Atom_feed.length
+      | `Medtype of Atom_feed.mediaType
+      | `Rel of Atom_feed.rel
+      | `Title of Atom_feed.ltitle
+      | `Type of string ]
+  type sourceOAttr =
+      [ `Authors of Atom_feed.author list
+      | `Base of Atom_feed.base
+      | `Cats of Atom_feed.category list
+      | `Contribs of Atom_feed.contributor list
+      | `Gen of Atom_feed.generator
+      | `Icon of Atom_feed.icon
+      | `Lang of Atom_feed.lang
+      | `Links of Atom_feed.link list
+      | `Logo of Atom_feed.logo
+      | `Rights of Atom_feed.textConstruct
+      | `Sub of Atom_feed.textConstruct ]
+  type entryOAttr =
+      [ `Authors of Atom_feed.author list
+      | `Base of Atom_feed.base
+      | `Cats of Atom_feed.category list
+      | `Content of Atom_feed.content
+      | `Contribs of Atom_feed.contributor list
+      | `Lang of Atom_feed.lang
+      | `Links of Atom_feed.link list
+      | `Pub of Atom_feed.published
+      | `Rights of Atom_feed.textConstruct
+      | `Source of Atom_feed.source
+      | `Sum of Atom_feed.textConstruct ]
+  type feedOAttr =
+      [ `Authors of Atom_feed.author list
+      | `Base of Atom_feed.base
+      | `Cats of Atom_feed.category list
+      | `Contribs of Atom_feed.contributor list
+      | `Gen of Atom_feed.generator
+      | `Icon of Atom_feed.icon
+      | `Lang of Atom_feed.lang
+      | `Links of Atom_feed.link list
+      | `Logo of Atom_feed.logo
+      | `Rights of Atom_feed.textConstruct
+      | `Sub of Atom_feed.textConstruct ]
+  val xml_of_feed : Atom_feed.feed -> Xml.elt
+  val inlineC :
+    ?meta:[> Atom_feed.metaAttr ] list ->
+    ?html:bool -> string list -> [> `Content of Atom_feed.content ]
+  val html5C :
+    ?meta:[> Atom_feed.metaAttr ] list ->
+    [ `A of Html5_types.flow5_without_interactive
+    | `Abbr
+    | `Address
+    | `Article
+    | `Aside
+    | `Audio of Html5_types.flow5_without_media
+    | `Audio_interactive of Html5_types.flow5_without_media
+    | `B
+    | `Bdo
+    | `Blockquote
+    | `Br
+    | `Button
+    | `Canvas of Html5_types.flow5
+    | `Cite
+    | `Code
+    | `Command
+    | `Datalist
+    | `Del of Html5_types.flow5
+    | `Details
+    | `Dfn
+    | `Div
+    | `Dl
+    | `Em
+    | `Embed
+    | `Fieldset
+    | `Figure
+    | `Footer
+    | `Form
+    | `H1
+    | `H2
+    | `H3
+    | `H4
+    | `H5
+    | `H6
+    | `Header
+    | `Hgroup
+    | `Hr
+    | `I
+    | `Iframe
+    | `Img
+    | `Img_interactive
+    | `Input
+    | `Ins of Html5_types.flow5
+    | `Kbd
+    | `Keygen
+    | `Label
+    | `Map of Html5_types.flow5
+    | `Mark
+    | `Menu
+    | `Meter
+    | `Nav
+    | `Noscript of Html5_types.flow5_without_noscript
+    | `Object of Html5_types.flow5
+    | `Object_interactive of Html5_types.flow5
+    | `Ol
+    | `Output
+    | `P
+    | `PCDATA
+    | `Pre
+    | `Progress
+    | `Q
+    | `Ruby
+    | `Samp
+    | `Script
+    | `Section
+    | `Select
+    | `Small
+    | `Span
+    | `Strong
+    | `Style
+    | `Sub
+    | `Sup
+    | `Svg
+    | `Table
+    | `Textarea
+    | `Time
+    | `U
+    | `Ul
+    | `Var
+    | `Video of Html5_types.flow5_without_media
+    | `Video_interactive of Html5_types.flow5_without_media
+    | `Wbr ] Eliom_content.Html5.elt list ->
+    [> `Content of Atom_feed.content ]
+  val inlineOtherC :
+    ?meta:[> Atom_feed.metaAttr ] list ->
+    string * Xml.elt list -> [> `Content of Atom_feed.content ]
+  val outOfLineC :
+    ?meta:[> Atom_feed.metaAttr ] list ->
+    string * Atom_feed.uri -> [> `Content of Atom_feed.content ]
+  val plain :
+    ?meta:[> Atom_feed.metaAttr ] list ->
+    ?html:bool -> string -> Atom_feed.textConstruct
+  val html5 :
+    ?meta:[> Atom_feed.metaAttr ] list ->
+    [ `A of Html5_types.flow5_without_interactive
+    | `Abbr
+    | `Address
+    | `Article
+    | `Aside
+    | `Audio of Html5_types.flow5_without_media
+    | `Audio_interactive of Html5_types.flow5_without_media
+    | `B
+    | `Bdo
+    | `Blockquote
+    | `Br
+    | `Button
+    | `Canvas of Html5_types.flow5
+    | `Cite
+    | `Code
+    | `Command
+    | `Datalist
+    | `Del of Html5_types.flow5
+    | `Details
+    | `Dfn
+    | `Div
+    | `Dl
+    | `Em
+    | `Embed
+    | `Fieldset
+    | `Figure
+    | `Footer
+    | `Form
+    | `H1
+    | `H2
+    | `H3
+    | `H4
+    | `H5
+    | `H6
+    | `Header
+    | `Hgroup
+    | `Hr
+    | `I
+    | `Iframe
+    | `Img
+    | `Img_interactive
+    | `Input
+    | `Ins of Html5_types.flow5
+    | `Kbd
+    | `Keygen
+    | `Label
+    | `Map of Html5_types.flow5
+    | `Mark
+    | `Menu
+    | `Meter
+    | `Nav
+    | `Noscript of Html5_types.flow5_without_noscript
+    | `Object of Html5_types.flow5
+    | `Object_interactive of Html5_types.flow5
+    | `Ol
+    | `Output
+    | `P
+    | `PCDATA
+    | `Pre
+    | `Progress
+    | `Q
+    | `Ruby
+    | `Samp
+    | `Script
+    | `Section
+    | `Select
+    | `Small
+    | `Span
+    | `Strong
+    | `Style
+    | `Sub
+    | `Sup
+    | `Svg
+    | `Table
+    | `Textarea
+    | `Time
+    | `U
+    | `Ul
+    | `Var
+    | `Video of Html5_types.flow5_without_media
+    | `Video_interactive of Html5_types.flow5_without_media
+    | `Wbr ] Eliom_content.Html5.elt list -> Atom_feed.textConstruct
+  val rights :
+    Atom_feed.textConstruct -> [> `Rights of Atom_feed.textConstruct ]
+  val subtitle :
+    Atom_feed.textConstruct -> [> `Sub of Atom_feed.textConstruct ]
+  val summary :
+    Atom_feed.textConstruct -> [> `Sum of Atom_feed.textConstruct ]
+  val feed :
+    updated:CalendarLib.Calendar.t ->
+    id:Atom_feed.uri ->
+    title:Atom_feed.textConstruct ->
+    ?fields:[> Atom_feed.feedOAttr ] list ->
+    Atom_feed.entry list -> Atom_feed.feed
+  val entry :
+    updated:CalendarLib.Calendar.t ->
+    id:Atom_feed.uri ->
+    title:Atom_feed.textConstruct ->
+    [> Atom_feed.entryOAttr ] list -> Atom_feed.entry
+  val source :
+    updated:CalendarLib.Calendar.t ->
+    id:Atom_feed.uri ->
+    title:Atom_feed.textConstruct ->
+    [> Atom_feed.sourceOAttr ] list -> [> `Source of Atom_feed.source ]
+  val link :
+    ?elt:[> Atom_feed.linkOAttr ] list -> Atom_feed.href -> Atom_feed.link
+  val links : Atom_feed.link list -> [> `Links of Atom_feed.link list ]
+  val email : string -> [> `Email of string ]
+  val uri : Atom_feed.uri -> [> `Uri of Atom_feed.uri ]
+  val author :
+    ?elt:[> Atom_feed.personConstruct ] list -> string -> Atom_feed.author
+  val authors :
+    Atom_feed.author list -> [> `Authors of Atom_feed.author list ]
+  val contributor :
+    ?elt:[> Atom_feed.personConstruct ] list ->
+    string -> Atom_feed.contributor
+  val contributors :
+    Atom_feed.contributor list ->
+    [> `Contribs of Atom_feed.contributor list ]
+  val icon : Atom_feed.uri -> [> `Icon of Atom_feed.icon ]
+  val logo : Atom_feed.uri -> [> `Logo of Atom_feed.logo ]
+  val category :
+    ?meta:[> Atom_feed.metaAttr ] list ->
+    ?scheme:Atom_feed.scheme ->
+    ?label:Atom_feed.label ->
+    Atom_feed.term -> Xml.elt list -> Atom_feed.category
+  val categories :
+    Atom_feed.category list -> [> `Cats of Atom_feed.category list ]
+  val published : CalendarLib.Calendar.t -> [> `Pub of Atom_feed.published ]
+  val insert_hub_links :
+    Atom_feed.uri list -> Atom_feed.feed -> Atom_feed.feed
+end >>

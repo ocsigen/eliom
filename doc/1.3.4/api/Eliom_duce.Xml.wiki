@@ -1,0 +1,6 @@
+=Module <<a_api_type | module Eliom_duce.Xml >> =
+<<div class="code"|<<span class="keyword"|module>> Xml: <<span class="code type"|<<a_api text="XhtmlSig" | module Eliom_duce.XhtmlSig >>>><<span class="code type"|{{{  }}} with type page = Ocamlduce.Load.anyxml>>>>~Register and create form for any ~X~M~L data type\\
+
+----
+<<div class="code"|<<span class="keyword"|include>> <<a_api | module type Eliom_mkreg.ELIOMREGSIG >>>>
+<<div class="code"|<<span class="keyword"|include>> <<a_api | module type Eliom_duce.XhtmlFormsSig >>>>

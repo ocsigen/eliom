@@ -1,0 +1,4 @@
+<<code language="ocaml" | sig
+  type inline = [ `Ruby_complex | `Ruby_simple1 | `Ruby_simple2 ]
+  type flow = XHTML.T.RUBY.inline
+end >>

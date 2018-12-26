@@ -1,0 +1,13 @@
+<<code language="ocaml" | sig
+  type page
+  type options
+  val send :
+    ?options:Eliom_mkreg.REGCREATE.options ->
+    ?cookies:Eliom_services.cookie list ->
+    ?charset:string ->
+    ?code:int ->
+    ?content_type:string ->
+    ?headers:Http_headers.t ->
+    sp:Eliom_sessions.server_params ->
+    Eliom_mkreg.REGCREATE.page -> Ocsigen_http_frame.result Lwt.t
+end >>

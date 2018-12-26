@@ -1,0 +1,8 @@
+<<code language="ocaml" | sig
+  val path : string list
+  val f :
+    (string * string) list ->
+    unit ->
+    (Eliom_output.browser_content, Eliom_output.http_service)
+    Eliom_output.kind Lwt.t
+end >>

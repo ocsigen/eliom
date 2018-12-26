@@ -1,0 +1,38 @@
+=Module <<a_api_type subproject="client" | module Eliom_bus >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_bus>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_bus >><<span class="ocsforge_color_keyword"|end>>>>~Broadcasting facilities between clients and server~.
+
+
+    ~See the ~Eliom manual for a detailed introduction to the concept of
+    <<a_manual chapter="clientserver-communication"|client server communication>>~.
+
+----
+<<pre class="ocsforge_color odocwiki_code" id="TYPEt"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>'a, 'b<<span class="ocsforge_color_delimiter"| ) >>>> <<span class="odocwiki_name"|t>>>><<pre id="VALstream" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|stream>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>'a, 'b<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="client" text="t" | type Eliom_bus.t >> <<span class="ocsforge_color_delimiter"| -> >> 'b <<span class="ocsforge_color_uid"|Lwt_stream>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|stream b>> returns the stream of data sent to bus <<span class="odocwiki_inlinecode"|b>>~. ~A new
+    stream is created each time this function is called~. ~Some messages
+    from the bus can be lost if they were sent before the call to
+    <<span class="odocwiki_inlinecode"|stream>>~. ~If you need to receive every message~, use original stream
+    instead~.
+>>
+<<pre id="VALoriginal_stream" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|original~_stream>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>'a, 'b<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="client" text="t" | type Eliom_bus.t >> <<span class="ocsforge_color_delimiter"| -> >> 'b <<span class="ocsforge_color_uid"|Lwt_stream>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|stream b>> returns the stream of data sent to bus <<span class="odocwiki_inlinecode"|b>>~. ~A new
+    stream is created each time this function is called~. ~Every
+    messages sent to the bus after the generation of the page are
+    received~. ~This function can be called only in the onload event
+    handler~, if called outside~, it will raise a ~Failure~.
+>>
+<<pre id="VALwrite" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|write>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>'a, 'b<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="client" text="t" | type Eliom_bus.t >> <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_delimiter"| -> >> unit <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|write b v>> send <<span class="odocwiki_inlinecode"|v>> to the bus <<span class="odocwiki_inlinecode"|b>>~. ~Every participant of the bus
+    will receive <<span class="odocwiki_inlinecode"|v>>~, including the sender~.
+>>
+<<pre id="VALclose" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|close>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>'a, 'b<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="client" text="t" | type Eliom_bus.t >> <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|after <<span class="odocwiki_inlinecode"|close b>>~, <<span class="odocwiki_inlinecode"|stream b>> stops receiving new messages from the
+    bus~, but it is still possible to write to the bus~. ~It is also
+    possible to close the bus by canceling a thread reading on the
+    stream~.
+>>
+<<pre id="VALset_queue_size" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|set~_queue~_size>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>'a, 'b<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="client" text="t" | type Eliom_bus.t >> <<span class="ocsforge_color_delimiter"| -> >> int <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|~To reduce traffic from the client busses try to send messages by
+    group~. <<span class="odocwiki_inlinecode"|set~_queue~_size bus size>> set the maximum number of
+    messages that are accumulated before forcing a flush~.
+    default is ~2~0
+>>
+<<pre id="VALset_time_before_flush" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|set~_time~_before~_flush>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>'a, 'b<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="client" text="t" | type Eliom_bus.t >> <<span class="ocsforge_color_delimiter"| -> >> float <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|set~_time~_before~_flush bus time>> set the maximum time to wait for
+    a new message to enqueue before flushing~. ~Set this to a small
+    value to make your app more responsive~, but remember that it will
+    consume more bandwidth~. default is ~0~.~0~5 second~.
+>>

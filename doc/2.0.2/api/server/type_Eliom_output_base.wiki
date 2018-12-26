@@ -1,0 +1,605 @@
+<<code language="ocaml" | sig
+  module Html5_forms :
+    sig
+      val make_uri :
+        ?absolute:bool ->
+        ?absolute_path:bool ->
+        ?https:bool ->
+        service:('a, unit, [< Eliom_services.get_service_kind ],
+                 [< Eliom_services.suff ], 'b, unit,
+                 [< Eliom_services.registrable ], 'c)
+                Eliom_services.service ->
+        ?hostname:string ->
+        ?port:int ->
+        ?fragment:string ->
+        ?keep_nl_params:[ `All | `None | `Persistent ] ->
+        ?nl_params:Eliom_parameters.nl_params_set ->
+        'a -> Eliom_pervasives.XML.uri
+      val make_string_uri :
+        ?absolute:bool ->
+        ?absolute_path:bool ->
+        ?https:bool ->
+        service:('a, unit, [< Eliom_services.get_service_kind ],
+                 [< Eliom_services.suff ], 'b, unit,
+                 [< Eliom_services.registrable ], 'c)
+                Eliom_services.service ->
+        ?hostname:string ->
+        ?port:int ->
+        ?fragment:string ->
+        ?keep_nl_params:[ `All | `None | `Persistent ] ->
+        ?nl_params:Eliom_parameters.nl_params_set -> 'a -> string
+      val uri_of_string : (unit -> string) -> Eliom_pervasives.XML.uri
+      val make_uri_components :
+        ?absolute:bool ->
+        ?absolute_path:bool ->
+        ?https:bool ->
+        service:('a, unit, [< Eliom_services.get_service_kind ],
+                 [< Eliom_services.suff ], 'b, unit,
+                 [< Eliom_services.registrable ], 'c)
+                Eliom_services.service ->
+        ?hostname:string ->
+        ?port:int ->
+        ?fragment:string ->
+        ?keep_nl_params:[ `All | `None | `Persistent ] ->
+        ?nl_params:Eliom_parameters.nl_params_set ->
+        'a -> string * (string * string) list * string option
+      val make_post_uri_components :
+        ?absolute:bool ->
+        ?absolute_path:bool ->
+        ?https:bool ->
+        service:('a, 'b, [< Eliom_services.post_service_kind ],
+                 [< Eliom_services.suff ], 'c, 'd,
+                 [< Eliom_services.registrable ], 'e)
+                Eliom_services.service ->
+        ?hostname:string ->
+        ?port:int ->
+        ?fragment:string ->
+        ?keep_nl_params:[ `All | `None | `Persistent ] ->
+        ?nl_params:Eliom_parameters.nl_params_set ->
+        ?keep_get_na_params:bool ->
+        'a ->
+        'b ->
+        string * (string * string) list * string option *
+        (string * string) list
+      val make_proto_prefix : ?hostname:string -> ?port:int -> bool -> string
+      val a :
+        ?absolute:bool ->
+        ?absolute_path:bool ->
+        ?https:bool ->
+        ?a:HTML5_types.a_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        service:('a, unit, [< Eliom_services.get_service_kind ],
+                 [< Eliom_services.suff ], 'b, unit,
+                 [< Eliom_services.registrable ], 'c)
+                Eliom_services.service ->
+        ?hostname:string ->
+        ?port:int ->
+        ?fragment:string ->
+        ?keep_nl_params:[ `All | `None | `Persistent ] ->
+        ?nl_params:Eliom_parameters.nl_params_set ->
+        ?no_appl:bool ->
+        'd Eliom_pervasives.HTML5.M.elt list ->
+        'a -> [> 'd HTML5_types.a ] Eliom_pervasives.HTML5.M.elt
+      val css_link :
+        ?a:HTML5_types.link_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        uri:Eliom_pervasives.XML.uri ->
+        unit -> [> HTML5_types.link ] Eliom_pervasives.HTML5.M.elt
+      val js_script :
+        ?a:HTML5_types.script_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        uri:Eliom_pervasives.XML.uri ->
+        unit -> [> HTML5_types.script ] Eliom_pervasives.HTML5.M.elt
+      val get_form :
+        ?absolute:bool ->
+        ?absolute_path:bool ->
+        ?https:bool ->
+        ?a:HTML5_types.form_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        service:('a, unit, [< Eliom_services.get_service_kind ],
+                 [< Eliom_services.suff ], 'b, 'c,
+                 [< Eliom_services.registrable ], 'd)
+                Eliom_services.service ->
+        ?hostname:string ->
+        ?port:int ->
+        ?fragment:string ->
+        ?keep_nl_params:[ `All | `None | `Persistent ] ->
+        ?nl_params:Eliom_parameters.nl_params_set ->
+        ?no_appl:bool ->
+        ('b -> HTML5_types.form_content Eliom_pervasives.HTML5.M.elt list) ->
+        [> HTML5_types.form ] Eliom_pervasives.HTML5.M.elt
+      val lwt_get_form :
+        ?absolute:bool ->
+        ?absolute_path:bool ->
+        ?https:bool ->
+        ?a:HTML5_types.form_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        service:('a, unit, [< Eliom_services.get_service_kind ],
+                 [< Eliom_services.suff ], 'b, 'c,
+                 [< Eliom_services.registrable ], 'd)
+                Eliom_services.service ->
+        ?hostname:string ->
+        ?port:int ->
+        ?fragment:string ->
+        ?keep_nl_params:[ `All | `None | `Persistent ] ->
+        ?nl_params:Eliom_parameters.nl_params_set ->
+        ?no_appl:bool ->
+        ('b ->
+         HTML5_types.form_content Eliom_pervasives.HTML5.M.elt list Lwt.t) ->
+        [> HTML5_types.form ] Eliom_pervasives.HTML5.M.elt Lwt.t
+      val post_form :
+        ?absolute:bool ->
+        ?absolute_path:bool ->
+        ?https:bool ->
+        ?a:HTML5_types.form_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        service:('a, 'b, [< Eliom_services.post_service_kind ],
+                 [< Eliom_services.suff ], 'c, 'd,
+                 [< Eliom_services.registrable ], 'e)
+                Eliom_services.service ->
+        ?hostname:string ->
+        ?port:int ->
+        ?fragment:string ->
+        ?keep_nl_params:[ `All | `None | `Persistent ] ->
+        ?keep_get_na_params:bool ->
+        ?nl_params:Eliom_parameters.nl_params_set ->
+        ?no_appl:bool ->
+        ('d -> HTML5_types.form_content Eliom_pervasives.HTML5.M.elt list) ->
+        'a -> [> HTML5_types.form ] Eliom_pervasives.HTML5.M.elt
+      val lwt_post_form :
+        ?absolute:bool ->
+        ?absolute_path:bool ->
+        ?https:bool ->
+        ?a:HTML5_types.form_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        service:('a, 'b, [< Eliom_services.post_service_kind ],
+                 [< Eliom_services.suff ], 'c, 'd,
+                 [< Eliom_services.registrable ], 'e)
+                Eliom_services.service ->
+        ?hostname:string ->
+        ?port:int ->
+        ?fragment:string ->
+        ?keep_nl_params:[ `All | `None | `Persistent ] ->
+        ?keep_get_na_params:bool ->
+        ?nl_params:Eliom_parameters.nl_params_set ->
+        ?no_appl:bool ->
+        ('d ->
+         HTML5_types.form_content Eliom_pervasives.HTML5.M.elt list Lwt.t) ->
+        'a -> [> HTML5_types.form ] Eliom_pervasives.HTML5.M.elt Lwt.t
+      val int_input :
+        ?a:HTML5_types.input_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        input_type:[< `Hidden | `Password | `Submit | `Text ] ->
+        ?name:[< int Eliom_parameters.setoneradio ]
+              Eliom_parameters.param_name ->
+        ?value:int ->
+        unit -> [> HTML5_types.input ] Eliom_pervasives.HTML5.M.elt
+      val int32_input :
+        ?a:HTML5_types.input_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        input_type:[< `Hidden | `Password | `Submit | `Text ] ->
+        ?name:[< int32 Eliom_parameters.setoneradio ]
+              Eliom_parameters.param_name ->
+        ?value:int32 ->
+        unit -> [> HTML5_types.input ] Eliom_pervasives.HTML5.M.elt
+      val int64_input :
+        ?a:HTML5_types.input_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        input_type:[< `Hidden | `Password | `Submit | `Text ] ->
+        ?name:[< int64 Eliom_parameters.setoneradio ]
+              Eliom_parameters.param_name ->
+        ?value:int64 ->
+        unit -> [> HTML5_types.input ] Eliom_pervasives.HTML5.M.elt
+      val float_input :
+        ?a:HTML5_types.input_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        input_type:[< `Hidden | `Password | `Submit | `Text ] ->
+        ?name:[< float Eliom_parameters.setoneradio ]
+              Eliom_parameters.param_name ->
+        ?value:float ->
+        unit -> [> HTML5_types.input ] Eliom_pervasives.HTML5.M.elt
+      val string_input :
+        ?a:HTML5_types.input_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        input_type:[< `Hidden | `Password | `Submit | `Text ] ->
+        ?name:[< string Eliom_parameters.setoneradio ]
+              Eliom_parameters.param_name ->
+        ?value:string ->
+        unit -> [> HTML5_types.input ] Eliom_pervasives.HTML5.M.elt
+      val user_type_input :
+        ('a -> string) ->
+        ?a:HTML5_types.input_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        input_type:[< `Hidden | `Password | `Submit | `Text ] ->
+        ?name:[< 'a Eliom_parameters.setoneradio ]
+              Eliom_parameters.param_name ->
+        ?value:'a ->
+        unit -> [> HTML5_types.input ] Eliom_pervasives.HTML5.M.elt
+      val raw_input :
+        ?a:HTML5_types.input_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        input_type:[< `Button
+                    | `Hidden
+                    | `Password
+                    | `Reset
+                    | `Submit
+                    | `Text ] ->
+        ?name:string ->
+        ?value:string ->
+        unit -> [> HTML5_types.input ] Eliom_pervasives.HTML5.M.elt
+      val file_input :
+        ?a:HTML5_types.input_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        name:[< Eliom_pervasives.file_info Eliom_parameters.setoneradio ]
+             Eliom_parameters.param_name ->
+        unit -> [> HTML5_types.input ] Eliom_pervasives.HTML5.M.elt
+      val image_input :
+        ?a:HTML5_types.input_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        name:[< Eliom_parameters.coordinates Eliom_parameters.oneradio ]
+             Eliom_parameters.param_name ->
+        ?src:Eliom_pervasives.XML.uri ->
+        unit -> [> HTML5_types.input ] Eliom_pervasives.HTML5.M.elt
+      val int_image_input :
+        ?a:HTML5_types.input_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        name:[< (int * Eliom_parameters.coordinates)
+                Eliom_parameters.oneradio ]
+             Eliom_parameters.param_name ->
+        value:int ->
+        ?src:Eliom_pervasives.XML.uri ->
+        unit -> [> HTML5_types.input ] Eliom_pervasives.HTML5.M.elt
+      val int32_image_input :
+        ?a:HTML5_types.input_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        name:[< (int32 * Eliom_parameters.coordinates)
+                Eliom_parameters.oneradio ]
+             Eliom_parameters.param_name ->
+        value:int32 ->
+        ?src:Eliom_pervasives.XML.uri ->
+        unit -> [> HTML5_types.input ] Eliom_pervasives.HTML5.M.elt
+      val int64_image_input :
+        ?a:HTML5_types.input_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        name:[< (int64 * Eliom_parameters.coordinates)
+                Eliom_parameters.oneradio ]
+             Eliom_parameters.param_name ->
+        value:int64 ->
+        ?src:Eliom_pervasives.XML.uri ->
+        unit -> [> HTML5_types.input ] Eliom_pervasives.HTML5.M.elt
+      val float_image_input :
+        ?a:HTML5_types.input_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        name:[< (float * Eliom_parameters.coordinates)
+                Eliom_parameters.oneradio ]
+             Eliom_parameters.param_name ->
+        value:float ->
+        ?src:Eliom_pervasives.XML.uri ->
+        unit -> [> HTML5_types.input ] Eliom_pervasives.HTML5.M.elt
+      val string_image_input :
+        ?a:HTML5_types.input_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        name:[< (string * Eliom_parameters.coordinates)
+                Eliom_parameters.oneradio ]
+             Eliom_parameters.param_name ->
+        value:string ->
+        ?src:Eliom_pervasives.XML.uri ->
+        unit -> [> HTML5_types.input ] Eliom_pervasives.HTML5.M.elt
+      val user_type_image_input :
+        ('a -> string) ->
+        ?a:HTML5_types.input_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        name:[< ('a * Eliom_parameters.coordinates) Eliom_parameters.oneradio ]
+             Eliom_parameters.param_name ->
+        value:'a ->
+        ?src:Eliom_pervasives.XML.uri ->
+        unit -> [> HTML5_types.input ] Eliom_pervasives.HTML5.M.elt
+      val raw_image_input :
+        ?a:HTML5_types.input_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        name:string ->
+        value:string ->
+        ?src:Eliom_pervasives.XML.uri ->
+        unit -> [> HTML5_types.input ] Eliom_pervasives.HTML5.M.elt
+      val bool_checkbox :
+        ?a:HTML5_types.input_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        ?checked:bool ->
+        name:[ `One of bool ] Eliom_parameters.param_name ->
+        unit -> [> HTML5_types.input ] Eliom_pervasives.HTML5.M.elt
+      val int_checkbox :
+        ?a:HTML5_types.input_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        ?checked:bool ->
+        name:[ `Set of int ] Eliom_parameters.param_name ->
+        value:int ->
+        unit -> [> HTML5_types.input ] Eliom_pervasives.HTML5.M.elt
+      val int32_checkbox :
+        ?a:HTML5_types.input_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        ?checked:bool ->
+        name:[ `Set of int32 ] Eliom_parameters.param_name ->
+        value:int32 ->
+        unit -> [> HTML5_types.input ] Eliom_pervasives.HTML5.M.elt
+      val int64_checkbox :
+        ?a:HTML5_types.input_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        ?checked:bool ->
+        name:[ `Set of int64 ] Eliom_parameters.param_name ->
+        value:int64 ->
+        unit -> [> HTML5_types.input ] Eliom_pervasives.HTML5.M.elt
+      val float_checkbox :
+        ?a:HTML5_types.input_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        ?checked:bool ->
+        name:[ `Set of float ] Eliom_parameters.param_name ->
+        value:float ->
+        unit -> [> HTML5_types.input ] Eliom_pervasives.HTML5.M.elt
+      val string_checkbox :
+        ?a:HTML5_types.input_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        ?checked:bool ->
+        name:[ `Set of string ] Eliom_parameters.param_name ->
+        value:string ->
+        unit -> [> HTML5_types.input ] Eliom_pervasives.HTML5.M.elt
+      val user_type_checkbox :
+        ('a -> string) ->
+        ?a:HTML5_types.input_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        ?checked:bool ->
+        name:[ `Set of 'a ] Eliom_parameters.param_name ->
+        value:'a ->
+        unit -> [> HTML5_types.input ] Eliom_pervasives.HTML5.M.elt
+      val raw_checkbox :
+        ?a:HTML5_types.input_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        ?checked:bool ->
+        name:string ->
+        value:string ->
+        unit -> [> HTML5_types.input ] Eliom_pervasives.HTML5.M.elt
+      val string_radio :
+        ?a:HTML5_types.input_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        ?checked:bool ->
+        name:[ `Radio of string ] Eliom_parameters.param_name ->
+        value:string ->
+        unit -> [> HTML5_types.input ] Eliom_pervasives.HTML5.M.elt
+      val int_radio :
+        ?a:HTML5_types.input_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        ?checked:bool ->
+        name:[ `Radio of int ] Eliom_parameters.param_name ->
+        value:int ->
+        unit -> [> HTML5_types.input ] Eliom_pervasives.HTML5.M.elt
+      val int32_radio :
+        ?a:HTML5_types.input_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        ?checked:bool ->
+        name:[ `Radio of int32 ] Eliom_parameters.param_name ->
+        value:int32 ->
+        unit -> [> HTML5_types.input ] Eliom_pervasives.HTML5.M.elt
+      val int64_radio :
+        ?a:HTML5_types.input_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        ?checked:bool ->
+        name:[ `Radio of int64 ] Eliom_parameters.param_name ->
+        value:int64 ->
+        unit -> [> HTML5_types.input ] Eliom_pervasives.HTML5.M.elt
+      val float_radio :
+        ?a:HTML5_types.input_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        ?checked:bool ->
+        name:[ `Radio of float ] Eliom_parameters.param_name ->
+        value:float ->
+        unit -> [> HTML5_types.input ] Eliom_pervasives.HTML5.M.elt
+      val user_type_radio :
+        ('a -> string) ->
+        ?a:HTML5_types.input_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        ?checked:bool ->
+        name:[ `Radio of 'a ] Eliom_parameters.param_name ->
+        value:'a ->
+        unit -> [> HTML5_types.input ] Eliom_pervasives.HTML5.M.elt
+      val raw_radio :
+        ?a:HTML5_types.input_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        ?checked:bool ->
+        name:string ->
+        value:string ->
+        unit -> [> HTML5_types.input ] Eliom_pervasives.HTML5.M.elt
+      val string_button :
+        ?a:HTML5_types.button_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        name:[< string Eliom_parameters.setone ] Eliom_parameters.param_name ->
+        value:string ->
+        HTML5_types.button_content Eliom_pervasives.HTML5.M.elt list ->
+        [> HTML5_types.button ] Eliom_pervasives.HTML5.M.elt
+      val int_button :
+        ?a:HTML5_types.button_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        name:[< int Eliom_parameters.setone ] Eliom_parameters.param_name ->
+        value:int ->
+        HTML5_types.button_content Eliom_pervasives.HTML5.M.elt list ->
+        [> HTML5_types.button ] Eliom_pervasives.HTML5.M.elt
+      val int32_button :
+        ?a:HTML5_types.button_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        name:[< int32 Eliom_parameters.setone ] Eliom_parameters.param_name ->
+        value:int32 ->
+        HTML5_types.button_content Eliom_pervasives.HTML5.M.elt list ->
+        [> HTML5_types.button ] Eliom_pervasives.HTML5.M.elt
+      val int64_button :
+        ?a:HTML5_types.button_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        name:[< int64 Eliom_parameters.setone ] Eliom_parameters.param_name ->
+        value:int64 ->
+        HTML5_types.button_content Eliom_pervasives.HTML5.M.elt list ->
+        [> HTML5_types.button ] Eliom_pervasives.HTML5.M.elt
+      val float_button :
+        ?a:HTML5_types.button_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        name:[< float Eliom_parameters.setone ] Eliom_parameters.param_name ->
+        value:float ->
+        HTML5_types.button_content Eliom_pervasives.HTML5.M.elt list ->
+        [> HTML5_types.button ] Eliom_pervasives.HTML5.M.elt
+      val user_type_button :
+        ('a -> string) ->
+        ?a:HTML5_types.button_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        name:[< 'a Eliom_parameters.setone ] Eliom_parameters.param_name ->
+        value:'a ->
+        HTML5_types.button_content Eliom_pervasives.HTML5.M.elt list ->
+        [> HTML5_types.button ] Eliom_pervasives.HTML5.M.elt
+      val raw_button :
+        ?a:HTML5_types.button_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        button_type:[< `Button | `Reset | `Submit ] ->
+        name:string ->
+        value:string ->
+        HTML5_types.button_content Eliom_pervasives.HTML5.M.elt list ->
+        [> HTML5_types.button ] Eliom_pervasives.HTML5.M.elt
+      val button :
+        ?a:HTML5_types.button_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        button_type:[< `Button | `Reset | `Submit ] ->
+        HTML5_types.button_content Eliom_pervasives.HTML5.M.elt list ->
+        [> HTML5_types.button ] Eliom_pervasives.HTML5.M.elt
+      val textarea :
+        ?a:HTML5_types.textarea_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        name:[< string Eliom_parameters.setoneradio ]
+             Eliom_parameters.param_name ->
+        ?value:string ->
+        rows:int ->
+        cols:int ->
+        unit -> [> HTML5_types.textarea ] Eliom_pervasives.HTML5.M.elt
+      val raw_textarea :
+        ?a:HTML5_types.textarea_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        name:string ->
+        ?value:string ->
+        rows:int ->
+        cols:int ->
+        unit -> [> HTML5_types.textarea ] Eliom_pervasives.HTML5.M.elt
+      type 'a soption =
+          HTML5_types.option_attrib Eliom_pervasives.HTML5.M.attrib list *
+          'a * HTML5_types.pcdata Eliom_pervasives.HTML5.M.elt option * 
+          bool
+      type 'a select_opt =
+          Optgroup of
+            [ `Accesskey
+            | `Class
+            | `Contenteditable
+            | `Contextmenu
+            | `Dir
+            | `Disabled
+            | `Draggable
+            | `Hidden
+            | `Id
+            | `OnAbort
+            | `OnBlur
+            | `OnCanPlay
+            | `OnCanPlayThrough
+            | `OnChange
+            | `OnClick
+            | `OnContextMenu
+            | `OnDblClick
+            | `OnDrag
+            | `OnDragEnd
+            | `OnDragEnter
+            | `OnDragLeave
+            | `OnDragOver
+            | `OnDragStart
+            | `OnDrop
+            | `OnDurationChange
+            | `OnEmptied
+            | `OnEnded
+            | `OnError
+            | `OnFocus
+            | `OnFormChange
+            | `OnFormInput
+            | `OnInput
+            | `OnInvalid
+            | `OnKeyDown
+            | `OnKeyPress
+            | `OnKeyUp
+            | `OnLoad
+            | `OnLoadStart
+            | `OnLoadedData
+            | `OnLoadedMetaData
+            | `OnMouseDown
+            | `OnMouseMove
+            | `OnMouseOut
+            | `OnMouseOver
+            | `OnMouseUp
+            | `OnMouseWheel
+            | `OnPause
+            | `OnPlay
+            | `OnPlaying
+            | `OnProgress
+            | `OnRateChange
+            | `OnReadyStateChange
+            | `OnScroll
+            | `OnSeeked
+            | `OnSeeking
+            | `OnSelect
+            | `OnShow
+            | `OnStalled
+            | `OnSubmit
+            | `OnSuspend
+            | `OnTimeUpdate
+            | `OnVolumeChange
+            | `OnWaiting
+            | `Spellcheck
+            | `Style_Attr
+            | `Tabindex
+            | `Title
+            | `User_data
+            | `XML_lang
+            | `XMLns ] Eliom_pervasives.HTML5.M.attrib list * string *
+            'a Eliom_output_base.Html5_forms.soption *
+            'a Eliom_output_base.Html5_forms.soption list
+        | Option of 'a Eliom_output_base.Html5_forms.soption
+      val int_select :
+        ?a:HTML5_types.select_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        name:[< `One of int ] Eliom_parameters.param_name ->
+        int Eliom_output_base.Html5_forms.select_opt ->
+        int Eliom_output_base.Html5_forms.select_opt list ->
+        [> HTML5_types.select ] Eliom_pervasives.HTML5.M.elt
+      val int32_select :
+        ?a:HTML5_types.select_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        name:[< `One of int32 ] Eliom_parameters.param_name ->
+        int32 Eliom_output_base.Html5_forms.select_opt ->
+        int32 Eliom_output_base.Html5_forms.select_opt list ->
+        [> HTML5_types.select ] Eliom_pervasives.HTML5.M.elt
+      val int64_select :
+        ?a:HTML5_types.select_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        name:[< `One of int64 ] Eliom_parameters.param_name ->
+        int64 Eliom_output_base.Html5_forms.select_opt ->
+        int64 Eliom_output_base.Html5_forms.select_opt list ->
+        [> HTML5_types.select ] Eliom_pervasives.HTML5.M.elt
+      val float_select :
+        ?a:HTML5_types.select_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        name:[< `One of float ] Eliom_parameters.param_name ->
+        float Eliom_output_base.Html5_forms.select_opt ->
+        float Eliom_output_base.Html5_forms.select_opt list ->
+        [> HTML5_types.select ] Eliom_pervasives.HTML5.M.elt
+      val string_select :
+        ?a:HTML5_types.select_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        name:[< `One of string ] Eliom_parameters.param_name ->
+        string Eliom_output_base.Html5_forms.select_opt ->
+        string Eliom_output_base.Html5_forms.select_opt list ->
+        [> HTML5_types.select ] Eliom_pervasives.HTML5.M.elt
+      val user_type_select :
+        ('a -> string) ->
+        ?a:HTML5_types.select_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        name:[< `One of 'a ] Eliom_parameters.param_name ->
+        'a Eliom_output_base.Html5_forms.select_opt ->
+        'a Eliom_output_base.Html5_forms.select_opt list ->
+        [> HTML5_types.select ] Eliom_pervasives.HTML5.M.elt
+      val raw_select :
+        ?a:HTML5_types.select_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        name:string ->
+        string Eliom_output_base.Html5_forms.select_opt ->
+        string Eliom_output_base.Html5_forms.select_opt list ->
+        [> HTML5_types.select ] Eliom_pervasives.HTML5.M.elt
+      val int_multiple_select :
+        ?a:HTML5_types.select_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        name:[< `Set of int ] Eliom_parameters.param_name ->
+        int Eliom_output_base.Html5_forms.select_opt ->
+        int Eliom_output_base.Html5_forms.select_opt list ->
+        [> HTML5_types.select ] Eliom_pervasives.HTML5.M.elt
+      val int32_multiple_select :
+        ?a:HTML5_types.select_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        name:[< `Set of int32 ] Eliom_parameters.param_name ->
+        int32 Eliom_output_base.Html5_forms.select_opt ->
+        int32 Eliom_output_base.Html5_forms.select_opt list ->
+        [> HTML5_types.select ] Eliom_pervasives.HTML5.M.elt
+      val int64_multiple_select :
+        ?a:HTML5_types.select_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        name:[< `Set of int64 ] Eliom_parameters.param_name ->
+        int64 Eliom_output_base.Html5_forms.select_opt ->
+        int64 Eliom_output_base.Html5_forms.select_opt list ->
+        [> HTML5_types.select ] Eliom_pervasives.HTML5.M.elt
+      val float_multiple_select :
+        ?a:HTML5_types.select_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        name:[< `Set of float ] Eliom_parameters.param_name ->
+        float Eliom_output_base.Html5_forms.select_opt ->
+        float Eliom_output_base.Html5_forms.select_opt list ->
+        [> HTML5_types.select ] Eliom_pervasives.HTML5.M.elt
+      val string_multiple_select :
+        ?a:HTML5_types.select_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        name:[< `Set of string ] Eliom_parameters.param_name ->
+        string Eliom_output_base.Html5_forms.select_opt ->
+        string Eliom_output_base.Html5_forms.select_opt list ->
+        [> HTML5_types.select ] Eliom_pervasives.HTML5.M.elt
+      val user_type_multiple_select :
+        ('a -> string) ->
+        ?a:HTML5_types.select_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        name:[< `Set of 'a ] Eliom_parameters.param_name ->
+        'a Eliom_output_base.Html5_forms.select_opt ->
+        'a Eliom_output_base.Html5_forms.select_opt list ->
+        [> HTML5_types.select ] Eliom_pervasives.HTML5.M.elt
+      val raw_multiple_select :
+        ?a:HTML5_types.select_attrib Eliom_pervasives.HTML5.M.attrib list ->
+        name:string ->
+        string Eliom_output_base.Html5_forms.select_opt ->
+        string Eliom_output_base.Html5_forms.select_opt list ->
+        [> HTML5_types.select ] Eliom_pervasives.HTML5.M.elt
+    end
+  type appl_service = [ `Appl ]
+  type http_service = [ `Http ]
+  type non_caml_service = [ `Appl | `Http ]
+end >>

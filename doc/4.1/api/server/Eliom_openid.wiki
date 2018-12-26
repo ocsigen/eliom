@@ -1,0 +1,180 @@
+=Module <<a_api_type subproject="server" | module Eliom_openid >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_openid>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_openid >><<span class="ocsforge_color_keyword"|end>>>>~Open~I~D identification
+
+----
+
+~This module implements the ~Relying ~Party of the ~Open~I~D specification~,
+    in stateful mode~.
+
+
+==@@id="2_Librarydescription"@@~Library description==
+
+
+~The library provides means to authenticate an user
+    to a remote provider using the ~Open~I~D protocol~.
+    ~Basically~, you need to ask the user its ~Open~I~D url~, and
+    the fields you want to require ~(or none~, if you just want to
+    authenticate an user~)~, along with other information~.
+
+
+    ~The library uses an "hidden service" that is needed when the provider
+    redirects back to your site~. ~This service is registered in the library~, all you have
+    to do is to give a path for that service and a default handler
+    ~(if the user connects to that service without being in an authentication process~.~)
+    ~Here is a short example of how to use the library
+    
+<<code language='ocaml'|open Eliom_openid
+let messages = Eliom_state.create_volatile_table ()
+(* The login form *)
+let login_form = Eliom_service.new_service
+  ~path:["login-form"]
+  ~get_params: Eliom_parameter.unit
+  ()
+
+(* Initialize the library, and getting the authenticate function *)
+let authenticate = Eliom_openid.init ~path:["__openid_return_service"]
+    ~f: (fun _ _ -> Eliom_registration.Redirection.send login_form)
+
+(* Create the handler for the form *)
+(* We have to use Eliom_registration.String_redirection as we
+   redirect the user to her provider *)
+let form_handler = Eliom_registration.String_redirection.register_new_post_coservice
+    ~fallback: login_form
+    ~post_params: (Eliom_parameter.string "url")
+    (fun _ url ->
+       authenticate
+    ~max_auth_age: 4 (* Requires that if the user logged in more that 4 seconds ago
+                        he needs to relog in *)
+    ~required: [Eliom_openid.Email] (* Requires his e-mail *)
+    ~immediate: false
+   url
+   (fun result ->
+     let string =
+       match result with
+         | Setup_needed -> "setup needed" | Canceled -> "canceled"
+         | Result result ->
+           try List.assoc Email result.fields with Not_found -> "No e-mail :("
+     in
+     Eliom_state.set_volatile_session_data ~table:messages string;
+     Eliom_registration.Redirection.send login_form))
+
+open XHTML
+let _ = Eliom_registration.Xhtml.register
+    ~service: login_form
+    (fun _ _ ->
+    (match Eliom_state.get_volatile_session_data ~table: messages () with
+     | Eliom_state.Data s ->
+       Eliom_state.discard () ~>>= fun () ->
+       Lwt.return [p [pcdata ("Authentication result: "^ s)]]
+     | _ -> Lwt.return []) ~>>= fun message ->
+    let form =
+    Eliom_registration.Xhtml.post_form ~service:form_handler
+      (fun url ->
+        [p [pcdata "Your OpenID identifier: ";
+            Eliom_registration.Xhtml.string_input ~input_type:`Text ~name:url ();
+            Eliom_registration.Xhtml.string_input ~input_type:`Submit ~value:"Login" ();
+           ]]) ()
+    in
+    Lwt.return
+      (html
+           (head (title (pcdata "A sample test")) [])
+           (body
+              (message @ [form]))))
+>>
+
+
+
+==@@id="2_Documentation"@@~Documentation==
+
+
+
+===@@id="3_Miscallenous"@@~Miscallenous===
+
+<<pre class="ocsforge_color odocwiki_code" id="TYPEopenid_error"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|openid~_error>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_variants"|<<span class="odocwiki_variant"|<<span class="odocwiki_variant_constr"|<<span class="ocsforge_color_keyword"| ~|>> <<span class="ocsforge_color_uid"|Invalid_XRDS_File>> <<span class="ocsforge_color_keyword"|of>> <<span class="odocwiki_type"|string * string>>>><<span class="odocwiki_comments"|<<span class="odocwiki_comments_open"|(*>> <<span|~The provider ~X~R~D~S file was not valid>><<span class="odocwiki_comments_close"| ~*)>>>>>><<span class="odocwiki_variant"|<<span class="odocwiki_variant_constr"|<<span class="ocsforge_color_keyword"| ~|>> <<span class="ocsforge_color_uid"|Discovery_Error>> <<span class="ocsforge_color_keyword"|of>> <<span class="odocwiki_type"|string * string>>>><<span class="odocwiki_comments"|<<span class="odocwiki_comments_open"|(*>> <<span|~An error occured during the discovery of the provider>><<span class="odocwiki_comments_close"| ~*)>>>>>><<span class="odocwiki_variant"|<<span class="odocwiki_variant_constr"|<<span class="ocsforge_color_keyword"| ~|>> <<span class="ocsforge_color_uid"|Missing_parameter>> <<span class="ocsforge_color_keyword"|of>> <<span class="odocwiki_type"|string>>>><<span class="odocwiki_comments"|<<span class="odocwiki_comments_open"|(*>> <<span|~The remote server forgot a parameter in its request>><<span class="odocwiki_comments_close"| ~*)>>>>>><<span class="odocwiki_variant"|<<span class="odocwiki_variant_constr"|<<span class="ocsforge_color_keyword"| ~|>> <<span class="ocsforge_color_uid"|Invalid_signature>> <<span class="ocsforge_color_keyword"|of>> <<span class="odocwiki_type"|string * string>>>><<span class="odocwiki_comments"|<<span class="odocwiki_comments_open"|(*>> <<span|~We disagree with the server~'s signature>><<span class="odocwiki_comments_close"| ~*)>>>>>><<span class="odocwiki_variant"|<<span class="odocwiki_variant_constr"|<<span class="ocsforge_color_keyword"| ~|>> <<span class="ocsforge_color_uid"|Invalid_association>> <<span class="ocsforge_color_keyword"|of>> <<span class="odocwiki_type"|string>>>><<span class="odocwiki_comments"|<<span class="odocwiki_comments_open"|(*>> <<span|~We were unable to associate with a provider>><<span class="odocwiki_comments_close"| ~*)>>>>>><<span class="odocwiki_variant"|<<span class="odocwiki_variant_constr"|<<span class="ocsforge_color_keyword"| ~|>> <<span class="ocsforge_color_uid"|Invalid_argument>> <<span class="ocsforge_color_keyword"|of>> <<span class="odocwiki_type"|string * string * string>>>><<span class="odocwiki_comments"|<<span class="odocwiki_comments_open"|(*>> <<span|~The argument provided were not set to a correct value>><<span class="odocwiki_comments_close"| ~*)>>>>>><<span class="odocwiki_variant"|<<span class="odocwiki_variant_constr"|<<span class="ocsforge_color_keyword"| ~|>> <<span class="ocsforge_color_uid"|Server_error>> <<span class="ocsforge_color_keyword"|of>> <<span class="odocwiki_type"|string>>>><<span class="odocwiki_comments"|<<span class="odocwiki_comments_open"|(*>> <<span|~The server threw an explicit error>><<span class="odocwiki_comments_close"| ~*)>>>>>><<span class="odocwiki_variant"|<<span class="odocwiki_variant_constr"|<<span class="ocsforge_color_keyword"| ~|>> <<span class="ocsforge_color_uid"|Invalid_answer>> <<span class="ocsforge_color_keyword"|of>> <<span class="odocwiki_type"|string>>>><<span class="odocwiki_comments"|<<span class="odocwiki_comments_open"|(*>> <<span|~The answer code was not correct>><<span class="odocwiki_comments_close"| ~*)>>>>>><<span class="odocwiki_variant"|<<span class="odocwiki_variant_constr"|<<span class="ocsforge_color_keyword"| ~|>> <<span class="ocsforge_color_uid"|Invalid_html_doc>> <<span class="ocsforge_color_keyword"|of>> <<span class="odocwiki_type"|string>>>>>>>>>><<div class="odocwiki_info"|~Error that may happen when identifiying an user
+>>
+
+~An error occured during the parsing of an user url in html format
+<<pre id="VALstring_of_openid_error" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|string~_of~_openid~_error>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<a_api subproject="server" text="openid_error" | type Eliom_openid.openid_error >> <<span class="ocsforge_color_delimiter"| -> >> string>>>><<div class="odocwiki_info"|~Prettyprint an ~Open~I~D ~Error
+>>
+<<pre id="EXCEPTIONError" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|exception>> <<span class="odocwiki_name"|Error>> <<span class="ocsforge_color_keyword"|of>> <<span class="odocwiki_type"|<<a_api subproject="server" text="openid_error" | type Eliom_openid.openid_error >>>>>><<div class="odocwiki_info"|~Exception thrown by this module~'s function~.
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEfield"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|field>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_variants"|<<span class="odocwiki_variant"|<<span class="odocwiki_variant_constr"|<<span class="ocsforge_color_keyword"| ~|>> <<span class="ocsforge_color_uid"|Email>>>>>><<span class="odocwiki_variant"|<<span class="odocwiki_variant_constr"|<<span class="ocsforge_color_keyword"| ~|>> <<span class="ocsforge_color_uid"|Fullname>>>>>><<span class="odocwiki_variant"|<<span class="odocwiki_variant_constr"|<<span class="ocsforge_color_keyword"| ~|>> <<span class="ocsforge_color_uid"|DateOfBirth>>>>>><<span class="odocwiki_variant"|<<span class="odocwiki_variant_constr"|<<span class="ocsforge_color_keyword"| ~|>> <<span class="ocsforge_color_uid"|PostCode>>>>>><<span class="odocwiki_variant"|<<span class="odocwiki_variant_constr"|<<span class="ocsforge_color_keyword"| ~|>> <<span class="ocsforge_color_uid"|Timezone>>>>>><<span class="odocwiki_variant"|<<span class="odocwiki_variant_constr"|<<span class="ocsforge_color_keyword"| ~|>> <<span class="ocsforge_color_uid"|Language>>>>>><<span class="odocwiki_variant"|<<span class="odocwiki_variant_constr"|<<span class="ocsforge_color_keyword"| ~|>> <<span class="ocsforge_color_uid"|Country>>>>>><<span class="odocwiki_variant"|<<span class="odocwiki_variant_constr"|<<span class="ocsforge_color_keyword"| ~|>> <<span class="ocsforge_color_uid"|Gender>>>>>><<span class="odocwiki_variant"|<<span class="odocwiki_variant_constr"|<<span class="ocsforge_color_keyword"| ~|>> <<span class="ocsforge_color_uid"|Nickname>>>>>>>>>><<div class="odocwiki_info"|~A field you can request to the provider
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEextension"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|'a>> <<span class="odocwiki_name"|extension>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="ocsforge_color_delimiter"|~{>>
+<<span class="odocwiki_record"|<<span class="odocwiki_field"|<<span class="odocwiki_field_descr"|  <<span class="ocsforge_color_label"|headers:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>string * string<<span class="ocsforge_color_delimiter"| ) >> list>><<span class="ocsforge_color_delimiter"|~;>> >>>><<span class="odocwiki_field"|<<span class="odocwiki_field_descr"|  <<span class="ocsforge_color_label"|parse:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>string * string<<span class="ocsforge_color_delimiter"| ) >> list <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>><<span class="ocsforge_color_delimiter"|~;>> >>>>>><<span class="ocsforge_color_delimiter"|~}>>>><<div class="odocwiki_info"|~An extension yielding values of type ~'a
+>>
+<<pre id="VALsreg" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|sreg>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?policy_url: >>string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| required: >><<a_api subproject="server" text="field" | type Eliom_openid.field >> list <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| optional: >><<a_api subproject="server" text="field" | type Eliom_openid.field >> list <<span class="ocsforge_color_delimiter"| -> >>\\  unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_delimiter"| ( >><<a_api subproject="server" text="field" | type Eliom_openid.field >> * string<<span class="ocsforge_color_delimiter"| ) >> list <<a_api subproject="server" text="extension" | type Eliom_openid.extension >>>>>><<div class="odocwiki_info"|~The ~S~R~E~G extension
+**See also** [[http://openid.net/specs/openid-simple-registration-extension-1_1-01.html|~S~R~E~G]]\\
+>>
+<<pre id="VALax" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|ax>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| required: >><<a_api subproject="server" text="field" | type Eliom_openid.field >> list <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| optional: >><<a_api subproject="server" text="field" | type Eliom_openid.field >> list <<span class="ocsforge_color_delimiter"| -> >>\\  unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_delimiter"| ( >><<a_api subproject="server" text="field" | type Eliom_openid.field >> * string<<span class="ocsforge_color_delimiter"| ) >> list <<a_api subproject="server" text="extension" | type Eliom_openid.extension >>>>>><<div class="odocwiki_info"|~The ~A~X extension
+**See also** [[http://openid.net/specs/openid-attribute-exchange-1_0.html|~A~X]]\\
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEpape"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|pape>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="ocsforge_color_delimiter"|~{>>
+<<span class="odocwiki_record"|<<span class="odocwiki_field"|<<span class="odocwiki_field_descr"|  <<span class="ocsforge_color_label"|auth_time:>> <<span class="odocwiki_type"|string option>><<span class="ocsforge_color_delimiter"|~;>> >><<span class="odocwiki_comments"|<<span class="odocwiki_comments_open"|(*>> <<span|~The time at which the user last logged in>><<span class="odocwiki_comments_close"| ~*)>>>>>><<span class="odocwiki_field"|<<span class="odocwiki_field_descr"|  <<span class="ocsforge_color_label"|policies:>> <<span class="odocwiki_type"|string list option>><<span class="ocsforge_color_delimiter"|~;>> >><<span class="odocwiki_comments"|<<span class="odocwiki_comments_open"|(*>> <<span|~A list of policies ~(url~) describing your usage of the data>><<span class="odocwiki_comments_close"| ~*)>>>>>><<span class="odocwiki_field"|<<span class="odocwiki_field_descr"|  <<span class="ocsforge_color_label"|nist_level:>> <<span class="odocwiki_type"|int option>><<span class="ocsforge_color_delimiter"|~;>> >>>>>><<span class="ocsforge_color_delimiter"|~}>>>><<div class="odocwiki_info"|~The pape data returned by the server
+>>
+<<pre id="VALpape" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|pape>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?max_auth_age: >>int <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?auth_policies: >>string list <<span class="ocsforge_color_delimiter"| -> >>\\  unit <<span class="ocsforge_color_delimiter"| -> >> <<a_api subproject="server" text="pape" | type Eliom_openid.pape >> <<a_api subproject="server" text="extension" | type Eliom_openid.extension >>>>>><<div class="odocwiki_info"|~The nist level
+>>
+<<pre id="VAL( *** )" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|~( ~*~*~* ~)>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  'a <<a_api subproject="server" text="extension" | type Eliom_openid.extension >> <<span class="ocsforge_color_delimiter"| -> >>\\  'b <<a_api subproject="server" text="extension" | type Eliom_openid.extension >> <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_delimiter"| ( >>'a * 'b<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="extension" | type Eliom_openid.extension >>>>>><<div class="odocwiki_info"|~The ~P~A~P~E extension~.
+**See also** [[http://openid.net/specs/openid-provider-authentication-policy-extension-1_0-01.html|~P~A~P~E]]\\
+>>
+
+~Product of two extension
+<<pre class="ocsforge_color odocwiki_code" id="TYPEauthentication_result"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|'a>> <<span class="odocwiki_name"|authentication~_result>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_variants"|<<span class="odocwiki_variant"|<<span class="odocwiki_variant_constr"|<<span class="ocsforge_color_keyword"| ~|>> <<span class="ocsforge_color_uid"|Canceled>>>><<span class="odocwiki_comments"|<<span class="odocwiki_comments_open"|(*>> <<span|~The user canceled the login ~(or failed~)>><<span class="odocwiki_comments_close"| ~*)>>>>>><<span class="odocwiki_variant"|<<span class="odocwiki_variant_constr"|<<span class="ocsforge_color_keyword"| ~|>> <<span class="ocsforge_color_uid"|Setup_needed>>>><<span class="odocwiki_comments"|<<span class="odocwiki_comments_open"|(*>> <<span|~The provider has not enough information to complete an immediate
+                     request~. ~Only returned when using an immediate authentication~.>><<span class="odocwiki_comments_close"| ~*)>>>>>><<span class="odocwiki_variant"|<<span class="odocwiki_variant_constr"|<<span class="ocsforge_color_keyword"| ~|>> <<span class="ocsforge_color_uid"|Result>> <<span class="ocsforge_color_keyword"|of>> <<span class="odocwiki_type"|'a>>>>>>>>>><<div class="odocwiki_info"|~The result of an authentication~.
+>>
+
+~All went ok~.
+
+
+===@@id="3_Lowlevelinterface"@@~Low~-level interface~.===
+
+<<pre id="VALperform_discovery" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|perform~_discovery>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|string <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_delimiter"| ( >>string * string option<<span class="ocsforge_color_delimiter"| ) >> <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|~Perform discovery on an user~-supplied url
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module type>> <<a_api subproject="server" text="HiddenServiceInfo" | module type Eliom_openid.HiddenServiceInfo >> <<span class="ocsforge_color_delimiter"|~=>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module type Eliom_openid.HiddenServiceInfo >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Information about the hidden service
+>>
+
+~The function called when an user connects to the hidden service
+    ~(not that hidden~) without being in an identication process~.
+    ~Typically you should redirect the user to the login page~.
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Make" | module Eliom_openid.Make >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_sig_block"|<<span class="ocsforge_color_keyword"|functor>> <<span class="ocsforge_color_delimiter"|(>>S <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<a_api subproject="server" text="HiddenServiceInfo" | module Eliom_openid.HiddenServiceInfo >>>><<span class="ocsforge_color_delimiter"|)>> <<span class="ocsforge_color_delimiter"|-~>>> \\  <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_openid.Make >><<span class="ocsforge_color_keyword"|end>>>>>><<div class="odocwiki_info"|~This functor build a hidden service that will be used
+    to receive the remote server~'s data~.
+>>
+
+~Authenticate an user~.
+* mode~: can be <<span class="odocwiki_inlinecode"|checkid~_setup>> or <<span class="odocwiki_inlinecode"|checkid~_immediate>>
+                    whether you want immediate identification or not~.
+* ext~: the extensions you want to use~.
+* handler~: the handler called with the result of the authentication~.
+* discovery~: ~The discovery information
+           ~In return you get an ~U~R~I you have to redirect the user to~.
+
+
+
+===@@id="3_Highlevelinterface"@@~High~-level interface===
+
+
+~The high~-level interface takes care of creating
+    the extension you want~, without to use them directly~.
+    ~It yields a <<span class="odocwiki_inlinecode"|result>>~.
+<<pre class="ocsforge_color odocwiki_code" id="TYPEresult"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|result>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="ocsforge_color_delimiter"|~{>>
+<<span class="odocwiki_record"|<<span class="odocwiki_field"|<<span class="odocwiki_field_descr"|  <<span class="ocsforge_color_label"|fields:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >><<a_api subproject="server" text="field" | type Eliom_openid.field >> * string<<span class="ocsforge_color_delimiter"| ) >> list>><<span class="ocsforge_color_delimiter"|~;>> >><<span class="odocwiki_comments"|<<span class="odocwiki_comments_open"|(*>> <<span|~The fields you requested>><<span class="odocwiki_comments_close"| ~*)>>>>>><<span class="odocwiki_field"|<<span class="odocwiki_field_descr"|  <<span class="ocsforge_color_label"|pape:>> <<span class="odocwiki_type"|<<a_api subproject="server" text="pape" | type Eliom_openid.pape >>>><<span class="ocsforge_color_delimiter"|~;>> >>>>>><<span class="ocsforge_color_delimiter"|~}>>>><<div class="odocwiki_info"|~The result yielded by the authentication process
+>>
+
+~The pape information
+<<pre class="ocsforge_color odocwiki_code" id="TYPEcheck_fun"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|check~_fun>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?immediate: >>bool <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?policy_url: >>string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?max_auth_age: >>int <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?auth_policies: >>string list <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?required: >><<a_api subproject="server" text="field" | type Eliom_openid.field >> list <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?optional: >><<a_api subproject="server" text="field" | type Eliom_openid.field >> list <<span class="ocsforge_color_delimiter"| -> >>\\  string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >><<a_api subproject="server" text="result" | type Eliom_openid.result >> <<a_api subproject="server" text="authentication_result" | type Eliom_openid.authentication_result >> <<span class="ocsforge_color_delimiter"| -> >>\\   <<a_api subproject="server" text="Eliom_registration.browser_content" | type Eliom_registration.browser_content >> <<a_api subproject="server" text="Eliom_registration.kind" | type Eliom_registration.kind >> <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>><<span class="ocsforge_color_delimiter"| ) >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_uid"|Eliom_lib>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Url>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>> <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>> >><<div class="odocwiki_info"|~The type of the authenticate function~.
+* immediate~: whether to use immediate identification or not ~(default~: true~)
+* policy~_url~: an optional policy url to describe what you do with the data ~(sreg~) ~(default~:none~)
+* required~: optional fields you really need ~(although the provier may not provide them~) ~(default~:empty~)
+* optional~: optional fields you don~'t really need ~(default~: empty~)
+* max~_auth~_age~: ~Requires that the user logged in less than <<span class="odocwiki_inlinecode"|n>> seconds ago~. ~(default~: up to the provider~)
+* auth~_policies~: ~A list of url describing your policies regarding the data ~(default~: empty~)
+* the url the user gave you
+* an handler~, that~'ll be called after checking the parameters with the result
+      and the server params of the ~G~E~T request~. ~You can send whatever page you want
+      but you should redirect the user to a page so he can~'t bookmark it~, or
+      send some piece of html to interface with javascript~.
+
+>>
+<<pre id="VALinit" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|init>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| path: >>string list <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| f: >><<span class="ocsforge_color_delimiter"| ( >><<span class="ocsforge_color_delimiter"| ( >>string * string<<span class="ocsforge_color_delimiter"| ) >> list <<span class="ocsforge_color_delimiter"| -> >>\\     unit <<span class="ocsforge_color_delimiter"| -> >>\\     <<a_api subproject="server" text="Eliom_registration.browser_content" | type Eliom_registration.browser_content >> <<a_api subproject="server" text="Eliom_registration.kind" | type Eliom_registration.kind >> <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>><<span class="ocsforge_color_delimiter"| ) >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<a_api subproject="server" text="check_fun" | type Eliom_openid.check_fun >>>>>><<div class="odocwiki_info"|~Init the ~Open~I~D for your site~.
+    ~Takes a path and a handler for the hidden service
+>>

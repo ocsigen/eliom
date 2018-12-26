@@ -1,0 +1,6 @@
+=Module <<a_api_type subproject="server" | module Eliom_cookies.Cookies >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Cookies>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Map.S>>>><<span class="odocwiki_type"| with type key = Url.path>>>>~This table is to store cookie values for each path~.
+    ~The key has type ~Url~.path option~:
+    it is for the path ~(default~: root of the site~)~,\\
+
+----

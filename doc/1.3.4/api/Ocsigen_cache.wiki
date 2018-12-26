@@ -1,0 +1,25 @@
+=Module <<a_api_type | module Ocsigen_cache >> =
+<<div class="code"|<<span class="keyword"|module>> Ocsigen_cache: <<span class='code'|sig>><<a_api text=".." | module Ocsigen_cache >><<span class='code'|end>>>>~Cache~.
+~Association tables ~(from any kind of database~)
+that keep the most recently used values in memory~.\\
+
+
+~It is based on a structure of doubly linked lists with maximum size~,
+that keeps only the mostly recently used values first~, if you call the <<span class='code'|up>>
+function each time you use a value~.
+~(~Insertion~, remove and "up" in time ~1~)~.
+~This structure is exported~, so that it can be used in other cases~.\\
+
+
+~Not ~(preemptive~) thread safe~.\\
+**Author(s):** Vincent Balat\\
+
+----
+<<div class="code"|<<span class="keyword"|module>> <<a_api text="Make" | module Ocsigen_cache.Make >>: <<div class="sig_block"|<<span class='code'|functor ~(>><<span class='code'|~A>><<span class='code'| ~: >><<span class='code'|sig>><<div class="sig_block"|<<div class="code" id="TYPEkey"|<<span class="keyword"|type>> key>>
+
+<<div class="code" id="TYPEvalue"|<<span class="keyword"|type>> value>>
+
+>><<span class='code'|end>><<span class='code'|~) ~-~> >><<span class='code'|sig>><<a_api text=".." | module Ocsigen_cache.Make >><<span class='code'|end>>>>>><<div id="VALclear_all_caches" class="code"|<<span class="keyword"|val>> clear~_all~_caches : <<span class="code type"|unit -> unit>>>><<div class="info"|~Clear the contents of all the existing caches\\
+>>
+<<div class="code"|<<span class="keyword"|module>> <<a_api text="Dlist" | module Ocsigen_cache.Dlist >>: <<span class='code'|sig>><<a_api text=".." | module Ocsigen_cache.Dlist >><<span class='code'|end>>>><<div class="info"|~Doubly~-linked lists with maximum size~.
+>>

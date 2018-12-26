@@ -1,0 +1,49 @@
+<<code language="ocaml" | sig
+  val urldecode : string -> string
+  val urlencode : ?with_plus:bool -> string -> string
+  type http_url = {
+    hu_host : string;
+    hu_port : int;
+    hu_path : string list;
+    hu_path_string : string;
+    hu_arguments : (string * string) list;
+    hu_fragment : string;
+  }
+  type file_url = {
+    fu_path : string list;
+    fu_path_string : string;
+    fu_arguments : (string * string) list;
+    fu_fragment : string;
+  }
+  type url = Http of http_url | Https of http_url | File of file_url
+  val default_http_port : int
+  val default_https_port : int
+  val path_of_path_string : string -> string list
+  val encode_arguments : (string * string) list -> string
+  val decode_arguments : string -> (string * string) list
+  val url_of_string : string -> url option
+  val string_of_url : url -> string
+  module Current :
+    sig
+      val host : string
+      val port : int option
+      val path_string : string
+      val path : string list
+      val arguments : (string * string) list
+      val get_fragment : unit -> string
+      val set_fragment : string -> unit
+      val get : unit -> url option
+      val set : url -> unit
+      val as_string : string
+    end
+  type t = string
+  type path = string list
+  val make_absolute_url :
+    https:bool -> host:string -> port:int -> string -> Eliom_pervasives.Url.t
+  val remove_internal_slash : string list -> string list
+  val remove_slash_at_beginning : string list -> string list
+  val decode : string -> string
+  val encode : ?plus:bool -> string -> string
+  val make_encoded_parameters : (string * string) list -> string
+  val split_path : string -> string list
+end >>

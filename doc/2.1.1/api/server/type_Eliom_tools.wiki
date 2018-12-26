@@ -1,0 +1,124 @@
+<<code language="ocaml" | sig
+  type ('a, 'b, 'c) one_page =
+      (unit, unit, 'a, [ `WithoutSuffix ], unit, unit, 'b, 'c)
+      Eliom_services.service
+    constraint 'b = [< Eliom_services.registrable ]
+    constraint 'c = [< Eliom_output.non_caml_service ]
+  type get_page =
+      (Eliom_services.get_service_kind, Eliom_services.registrable,
+       Eliom_output.non_caml_service)
+      Eliom_tools.one_page
+  type ('a, 'b, 'c) hierarchical_site =
+      ('a, 'b) Eliom_tools.main_page *
+      ('c * ('a, 'b, 'c) Eliom_tools.hierarchical_site_item) list
+    constraint 'b = [< Eliom_services.registrable ]
+  and ('a, 'b) main_page =
+      Main_page of
+        ('a, 'b, Eliom_output.non_caml_service) Eliom_tools.one_page
+    | Default_page of
+        ('a, 'b, Eliom_output.non_caml_service) Eliom_tools.one_page
+    | Not_clickable constraint 'b = [< Eliom_services.registrable ]
+  and ('a, 'b, 'c) hierarchical_site_item =
+      Disabled
+    | Site_tree of ('a, 'b, 'c) Eliom_tools.hierarchical_site
+    constraint 'b = [< Eliom_services.registrable ]
+  module Html5 :
+    sig
+      val menu :
+        ?classe:HTML5_types.nmtoken list ->
+        ?id:string ->
+        (([< Eliom_services.get_service_kind ] as 'a,
+          [< Eliom_services.registrable ] as 'b,
+          [< Eliom_output.non_caml_service ] as 'c)
+         Eliom_tools.one_page *
+         HTML5_types.flow5_without_interactive Eliom_pervasives.HTML5.elt
+         list)
+        list ->
+        ?service:('a, 'b, 'c) Eliom_tools.one_page ->
+        unit -> [> `Ul ] Eliom_pervasives.HTML5.elt
+      val hierarchical_menu_depth_first :
+        ?classe:HTML5_types.nmtoken list ->
+        ?id:string ->
+        ?whole_tree:bool ->
+        ([< Eliom_services.get_service_kind ] as 'a,
+         [< Eliom_services.registrable ] as 'b,
+         HTML5_types.a_content Eliom_pervasives.HTML5.elt list)
+        Eliom_tools.hierarchical_site ->
+        ?service:('a, 'b, [< Eliom_output.non_caml_service ])
+                 Eliom_tools.one_page ->
+        unit -> [> `Ul ] Eliom_pervasives.HTML5.elt list
+      val hierarchical_menu_breadth_first :
+        ?classe:HTML5_types.nmtoken list ->
+        ?id:string ->
+        ([< Eliom_services.get_service_kind ] as 'a,
+         [< Eliom_services.registrable ] as 'b,
+         HTML5_types.a_content Eliom_pervasives.HTML5.elt list)
+        Eliom_tools.hierarchical_site ->
+        ?service:('a, 'b, [< Eliom_output.non_caml_service ])
+                 Eliom_tools.one_page ->
+        unit -> [> `Ul ] Eliom_pervasives.HTML5.elt list
+      val structure_links :
+        ([< Eliom_services.get_service_kind ] as 'a,
+         [< Eliom_services.registrable ] as 'b,
+         HTML5_types.a_content Eliom_pervasives.HTML5.elt list)
+        Eliom_tools.hierarchical_site ->
+        ?service:('a, 'b, [< Eliom_output.non_caml_service ])
+                 Eliom_tools.one_page ->
+        unit -> [> `Link ] Eliom_pervasives.HTML5.elt list
+      val head :
+        title:string ->
+        ?css:string list list ->
+        ?js:string list list ->
+        unit -> HTML5_types.head Eliom_pervasives.HTML5.elt
+    end
+  module Xhtml :
+    sig
+      val menu :
+        ?classe:XHTML_types.nmtoken list ->
+        ?id:string ->
+        ([< Eliom_services.get_service_kind ] as 'a,
+         [< Eliom_services.registrable ] as 'b,
+         [< Eliom_output.non_caml_service ] as 'c)
+        Eliom_tools.one_page *
+        XHTML_types.a_content Eliom_pervasives.XHTML.M.elt list ->
+        (('a, 'b, 'c) Eliom_tools.one_page *
+         XHTML_types.a_content Eliom_pervasives.XHTML.M.elt list)
+        list ->
+        ?service:('a, 'b, 'c) Eliom_tools.one_page ->
+        unit -> [> `Ul ] Eliom_pervasives.XHTML.M.elt
+      val hierarchical_menu_depth_first :
+        ?classe:XHTML_types.nmtoken list ->
+        ?id:string ->
+        ?whole_tree:bool ->
+        ([< Eliom_services.get_service_kind ] as 'a,
+         [< Eliom_services.registrable ] as 'b,
+         XHTML_types.a_content Eliom_pervasives.XHTML.M.elt list)
+        Eliom_tools.hierarchical_site ->
+        ?service:('a, 'b, [< Eliom_output.non_caml_service ])
+                 Eliom_tools.one_page ->
+        unit -> [> `Ul ] Eliom_pervasives.XHTML.M.elt list
+      val hierarchical_menu_breadth_first :
+        ?classe:XHTML_types.nmtoken list ->
+        ?id:string ->
+        ([< Eliom_services.get_service_kind ] as 'a,
+         [< Eliom_services.registrable ] as 'b,
+         XHTML_types.a_content Eliom_pervasives.XHTML.M.elt list)
+        Eliom_tools.hierarchical_site ->
+        ?service:('a, 'b, [< Eliom_output.non_caml_service ])
+                 Eliom_tools.one_page ->
+        unit -> [> `Ul ] Eliom_pervasives.XHTML.M.elt list
+      val structure_links :
+        ([< Eliom_services.get_service_kind ] as 'a,
+         [< Eliom_services.registrable ] as 'b,
+         XHTML_types.a_content Eliom_pervasives.XHTML.M.elt list)
+        Eliom_tools.hierarchical_site ->
+        ?service:('a, 'b, [< Eliom_output.non_caml_service ])
+                 Eliom_tools.one_page ->
+        unit -> [> `Link ] Eliom_pervasives.XHTML.M.elt list
+      val head :
+        title:string ->
+        ?css:string list list ->
+        ?js:string list list ->
+        unit -> XHTML_types.head Eliom_pervasives.XHTML.M.elt
+    end
+end >>

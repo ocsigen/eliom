@@ -1,0 +1,7 @@
+=Module <<a_api_type subproject="client" | module Eliom_lib.String >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|String>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_lib.String >><<span class="ocsforge_color_keyword"|end>>>>~Extension of <<a_api project="ocsigenserver"| module
+    Ocsigen_lib_base.String_base >> ~.
+
+----
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> String_base>>
+<<pre id="VALremove_eols" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|remove~_eols>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|string <<span class="ocsforge_color_delimiter"| -> >> string>>>>

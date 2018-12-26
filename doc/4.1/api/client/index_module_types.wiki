@@ -1,0 +1,8 @@
+=Index of module types=
+
+|@@ @style="tet-align: left;"@@\\F|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="FORMS_PARAM"| module type Eliom_mkforms.FORMS_PARAM >> ~[<<a_api subproject="client" | module Eliom_mkforms >>~]|<<div class="odocwiki_info"|~This module defines the functor to use to creates modules
+   generating form widgets for your own types of pages~.
+>>
+|
+\\

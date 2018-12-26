@@ -1,0 +1,25 @@
+=Index of exceptions=
+
+|@@ @style="tet-align: left;"@@\\E|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_404"| exception Eliom_common.Eliom_404 >> ~[<<a_api subproject="server" | module Eliom_common >>~]|<<div class="odocwiki_info"|~Page not found
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_Internal_Error"| exception Eliom_pervasives.Eliom_Internal_Error >> ~[<<a_api subproject="server" | module Eliom_pervasives >>~]|<<div class="odocwiki_info"|~Pervasives
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_Session_expired"| exception Eliom_common.Eliom_Session_expired >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_Typing_Error"| exception Eliom_common.Eliom_Typing_Error >> ~[<<a_api subproject="server" | module Eliom_common >>~]|<<div class="odocwiki_info"|~The service ~(~G~E~T or ~P~O~S~T~) parameters do not match expected type
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_Wrong_parameter"| exception Eliom_common.Eliom_Wrong_parameter >> ~[<<a_api subproject="server" | module Eliom_common >>~]|<<div class="odocwiki_info"|~Service called with wrong parameter names
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_site_information_not_available"| exception Eliom_common.Eliom_site_information_not_available >> ~[<<a_api subproject="server" | module Eliom_common >>~]|<<div class="odocwiki_info"|~That function cannot be used when the site information is not available~,
+    that is~, outside a request or the initialisation phase of your ~Eliom module
+    ~(while reading the configuration file~)~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Error"| exception Eliom_openid.Error >> ~[<<a_api subproject="server" | module Eliom_openid >>~]|<<div class="odocwiki_info"|~Exception thrown by this module~'s function~.
+>>
+|
+\\

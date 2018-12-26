@@ -1,0 +1,4 @@
+<<code language="ocaml" | sig
+  val with_js_file : string list -> unit
+  val with_css_file : string list -> unit
+end >>

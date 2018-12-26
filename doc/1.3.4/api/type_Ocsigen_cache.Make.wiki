@@ -1,0 +1,14 @@
+<<code language="ocaml" | functor (A : sig type key type value end) ->
+  sig
+    class cache :
+      (A.key -> A.value Lwt.t) ->
+      int ->
+      object
+        method add : A.key -> A.value -> unit
+        method clear : unit -> unit
+        method find : A.key -> A.value Lwt.t
+        method find_in_cache : A.key -> A.value
+        method remove : A.key -> unit
+        method size : int
+      end
+  end >>

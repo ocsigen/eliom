@@ -1,0 +1,309 @@
+<<code language="ocaml" | sig
+  exception Wrong_session_table_for_CSRF_safe_coservice
+  val sync : ('a -> 'b -> 'c -> 'd) -> 'a -> 'b -> 'c -> 'd Lwt.t
+  type cookie =
+      Set of Ocsigen_lib.url_path option * float option * string * string *
+        bool
+    | Unset of Ocsigen_lib.url_path option * string
+  val cookie_table_of_eliom_cookies :
+    ?oldtable:Ocsigen_http_frame.cookieset ->
+    sp:Eliom_sessions.server_params ->
+    Eliom_services.cookie list -> Ocsigen_http_frame.cookieset
+  type suff = [ `WithSuffix | `WithoutSuffix ]
+  type servcoserv = [ `Coservice | `Service ]
+  type getpost = [ `Get | `Post ]
+  type attached_service_kind =
+      [ `External
+      | `Internal of Eliom_services.servcoserv * Eliom_services.getpost ]
+  type get_attached_service_kind =
+      [ `External | `Internal of Eliom_services.servcoserv * [ `Get ] ]
+  type post_attached_service_kind =
+      [ `External | `Internal of Eliom_services.servcoserv * [ `Post ] ]
+  type internal =
+      [ `Internal of Eliom_services.servcoserv * Eliom_services.getpost ]
+  type registrable = [ `Registrable | `Unregistrable ]
+  type +'a a_s
+  type +'a na_s
+  type service_kind =
+      [ `Attached of Eliom_services.attached_service_kind Eliom_services.a_s
+      | `Nonattached of Eliom_services.getpost Eliom_services.na_s ]
+  type get_service_kind =
+      [ `Attached of
+          Eliom_services.get_attached_service_kind Eliom_services.a_s
+      | `Nonattached of [ `Get ] Eliom_services.na_s ]
+  type post_service_kind =
+      [ `Attached of
+          Eliom_services.post_attached_service_kind Eliom_services.a_s
+      | `Nonattached of [ `Post ] Eliom_services.na_s ]
+  type internal_service_kind =
+      [ `Attached of Eliom_services.internal Eliom_services.a_s
+      | `Nonattached of Eliom_services.getpost Eliom_services.na_s ]
+  type attached =
+      [ `Attached of Eliom_services.attached_service_kind Eliom_services.a_s ]
+  type nonattached =
+      [ `Nonattached of Eliom_services.getpost Eliom_services.na_s ]
+  type ('a, 'b, +'c, +'d, +'e, +'f, +'g) service
+  val register_eliom_module : string -> (unit -> unit) -> unit
+  val new_service :
+    ?sp:Eliom_sessions.server_params ->
+    ?https:bool ->
+    path:Ocsigen_lib.url_path ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    get_params:('a, [< Eliom_services.suff ] as 'b, 'c)
+               Eliom_parameters.params_type ->
+    unit ->
+    ('a, unit,
+     [> `Attached of
+          [> `Internal of [> `Service ] * [> `Get ] ] Eliom_services.a_s ],
+     'b, 'c, unit, [> `Registrable ])
+    Eliom_services.service
+  val new_external_service :
+    prefix:string ->
+    path:Ocsigen_lib.url_path ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    get_params:('a, [< Eliom_services.suff ] as 'b, 'c)
+               Eliom_parameters.params_type ->
+    post_params:('d, [ `WithoutSuffix ], 'e) Eliom_parameters.params_type ->
+    unit ->
+    ('a, 'd, [> `Attached of [> `External ] Eliom_services.a_s ], 'b, 'c, 'e,
+     [> `Unregistrable ])
+    Eliom_services.service
+  val new_post_service :
+    ?sp:Eliom_sessions.server_params ->
+    ?https:bool ->
+    fallback:('a, unit,
+              [ `Attached of
+                  [ `Internal of [ `Coservice | `Service ] * [ `Get ] ]
+                  Eliom_services.a_s ],
+              [< Eliom_services.suff ] as 'b, 'c, unit, [< `Registrable ])
+             Eliom_services.service ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    post_params:('d, [ `WithoutSuffix ], 'e) Eliom_parameters.params_type ->
+    unit ->
+    ('a, 'd,
+     [> `Attached of
+          [> `Internal of [ `Coservice | `Service ] * [> `Post ] ]
+          Eliom_services.a_s ],
+     'b, 'c, 'e, [> `Registrable ])
+    Eliom_services.service
+  val new_coservice :
+    ?name:string ->
+    ?csrf_safe:bool ->
+    ?csrf_session_name:string ->
+    ?csrf_secure_session:bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    fallback:(unit, unit,
+              [ `Attached of
+                  [ `Internal of [ `Service ] * [ `Get ] ] Eliom_services.a_s ],
+              [ `WithoutSuffix ], unit, unit,
+              [< Eliom_services.registrable ])
+             Eliom_services.service ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    get_params:('a, [ `WithoutSuffix ], 'b) Eliom_parameters.params_type ->
+    unit ->
+    ('a, unit,
+     [> `Attached of
+          [> `Internal of [> `Coservice ] * [> `Get ] ] Eliom_services.a_s ],
+     [ `WithoutSuffix ], 'b, unit, [> `Registrable ])
+    Eliom_services.service
+  val new_post_coservice :
+    ?name:string ->
+    ?csrf_safe:bool ->
+    ?csrf_session_name:string ->
+    ?csrf_secure_session:bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    fallback:('a, unit,
+              [ `Attached of
+                  [ `Internal of [< `Coservice | `Service ] * [ `Get ] ]
+                  Eliom_services.a_s ],
+              [< Eliom_services.suff ] as 'b, 'c, unit, [< `Registrable ])
+             Eliom_services.service ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    post_params:('d, [ `WithoutSuffix ], 'e) Eliom_parameters.params_type ->
+    unit ->
+    ('a, 'd,
+     [> `Attached of
+          [> `Internal of [> `Coservice ] * [> `Post ] ] Eliom_services.a_s ],
+     'b, 'c, 'e, [> `Registrable ])
+    Eliom_services.service
+  val new_coservice' :
+    ?name:string ->
+    ?csrf_safe:bool ->
+    ?csrf_session_name:string ->
+    ?csrf_secure_session:bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    get_params:('a, [ `WithoutSuffix ], 'b) Eliom_parameters.params_type ->
+    unit ->
+    ('a, unit, [> `Nonattached of [> `Get ] Eliom_services.na_s ],
+     [ `WithoutSuffix ], 'b, unit, [> `Registrable ])
+    Eliom_services.service
+  val new_post_coservice' :
+    ?name:string ->
+    ?csrf_safe:bool ->
+    ?csrf_session_name:string ->
+    ?csrf_secure_session:bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?keep_get_na_params:bool ->
+    post_params:('a, [ `WithoutSuffix ], 'b) Eliom_parameters.params_type ->
+    unit ->
+    (unit, 'a, [> `Nonattached of [> `Post ] Eliom_services.na_s ],
+     [ `WithoutSuffix ], unit, 'b, [> `Registrable ])
+    Eliom_services.service
+  val static_dir :
+    sp:Eliom_sessions.server_params ->
+    (string list, unit,
+     [> `Attached of
+          [> `Internal of [> `Service ] * [> `Get ] ] Eliom_services.a_s ],
+     [ `WithSuffix ], [ `One of string list ] Eliom_parameters.param_name,
+     unit, [> `Unregistrable ])
+    Eliom_services.service
+  val https_static_dir :
+    sp:Eliom_sessions.server_params ->
+    (string list, unit,
+     [> `Attached of
+          [> `Internal of [> `Service ] * [> `Get ] ] Eliom_services.a_s ],
+     [ `WithSuffix ], [ `One of string list ] Eliom_parameters.param_name,
+     unit, [> `Unregistrable ])
+    Eliom_services.service
+  val static_dir_with_params :
+    sp:Eliom_sessions.server_params ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    get_params:('a, [ `WithoutSuffix ], 'b) Eliom_parameters.params_type ->
+    unit ->
+    (string list * 'a, unit,
+     [> `Attached of
+          [> `Internal of [> `Service ] * [> `Get ] ] Eliom_services.a_s ],
+     [ `WithSuffix ],
+     [ `One of string list ] Eliom_parameters.param_name * 'b, unit,
+     [> `Unregistrable ])
+    Eliom_services.service
+  val https_static_dir_with_params :
+    sp:Eliom_sessions.server_params ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    get_params:('a, [ `WithoutSuffix ], 'b) Eliom_parameters.params_type ->
+    unit ->
+    (string list * 'a, unit,
+     [> `Attached of
+          [> `Internal of [> `Service ] * [> `Get ] ] Eliom_services.a_s ],
+     [ `WithSuffix ],
+     [ `One of string list ] Eliom_parameters.param_name * 'b, unit,
+     [> `Unregistrable ])
+    Eliom_services.service
+  val void_coservice' :
+    (unit, unit, [> `Nonattached of 'a Eliom_services.na_s ],
+     [ `WithoutSuffix ], unit, unit, [> `Unregistrable ])
+    Eliom_services.service
+  val https_void_coservice' :
+    (unit, unit, [> `Nonattached of 'a Eliom_services.na_s ],
+     [ `WithoutSuffix ], unit, unit, [> `Unregistrable ])
+    Eliom_services.service
+  val void_hidden_coservice' :
+    (unit, unit, [> `Nonattached of 'a Eliom_services.na_s ],
+     [ `WithoutSuffix ], unit, unit, [> `Unregistrable ])
+    Eliom_services.service
+  val https_void_hidden_coservice' :
+    (unit, unit, [> `Nonattached of 'a Eliom_services.na_s ],
+     [ `WithoutSuffix ], unit, unit, [> `Unregistrable ])
+    Eliom_services.service
+  val preapply :
+    service:('a, 'b, [> `Attached of 'd Eliom_services.a_s ] as 'c,
+             [< Eliom_services.suff ], 'e, 'f, 'g)
+            Eliom_services.service ->
+    'a ->
+    (unit, 'b, 'c, [ `WithoutSuffix ], unit, 'f, [> `Unregistrable ])
+    Eliom_services.service
+  val add_non_localized_get_parameters :
+    params:('a, [ `WithoutSuffix ], 'b) Eliom_parameters.non_localized_params ->
+    service:('c, 'd, 'e, 'f, 'g, 'h, 'i) Eliom_services.service ->
+    ('c * 'a, 'd, 'e, 'f, 'g * 'b, 'h, 'i) Eliom_services.service
+  val add_non_localized_post_parameters :
+    params:('a, [ `WithoutSuffix ], 'b) Eliom_parameters.non_localized_params ->
+    service:('c, 'd, 'e, 'f, 'g, 'h, 'i) Eliom_services.service ->
+    ('c, 'd * 'a, 'e, 'f, 'g, 'h * 'b, 'i) Eliom_services.service
+  val unregister :
+    ?sp:Eliom_sessions.server_params ->
+    ('a, 'b,
+     [< `Attached of [> `Internal of 'c * [> `Get ] ] Eliom_services.a_s
+      | `Nonattached of 'd Eliom_services.na_s ],
+     'e, 'f, 'g, 'h)
+    Eliom_services.service -> unit
+  val unregister_for_session :
+    sp:Eliom_sessions.server_params ->
+    ?session_name:string ->
+    ?secure:bool ->
+    ('a, 'b,
+     [< `Attached of [> `Internal of 'c * [> `Get ] ] Eliom_services.a_s
+      | `Nonattached of 'd Eliom_services.na_s ],
+     'e, 'f, 'g, 'h)
+    Eliom_services.service -> unit
+  val set_exn_handler :
+    ?sp:Eliom_sessions.server_params ->
+    (Eliom_sessions.server_params -> exn -> Ocsigen_http_frame.result Lwt.t) ->
+    unit
+  val get_kind_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) Eliom_services.service -> 'c
+  val get_pre_applied_parameters_ :
+    ('a, 'b, 'c, 'd, 'e, 'f, 'g) Eliom_services.service ->
+    (string * string) list Ocsigen_lib.String_Table.t *
+    (string * string) list
+  val get_get_params_type_ :
+    ('a, 'b, 'c, 'd, 'e, 'f, 'g) Eliom_services.service ->
+    ('a, 'd, 'e) Eliom_parameters.params_type
+  val get_post_params_type_ :
+    ('a, 'b, 'c, 'd, 'e, 'f, 'g) Eliom_services.service ->
+    ('b, [ `WithoutSuffix ], 'f) Eliom_parameters.params_type
+  val get_att_kind_ : 'a Eliom_services.a_s -> 'a
+  val get_sub_path_ : 'a Eliom_services.a_s -> Ocsigen_lib.url_path
+  val get_full_path_ : 'a Eliom_services.a_s -> Ocsigen_lib.url_path
+  val get_prefix_ : 'a Eliom_services.a_s -> string
+  val get_get_name_ : 'a Eliom_services.a_s -> Eliom_common.att_key_serv
+  val get_post_name_ : 'a Eliom_services.a_s -> Eliom_common.att_key_serv
+  val get_redirect_suffix_ : 'a Eliom_services.a_s -> bool
+  val get_na_name_ : 'a Eliom_services.na_s -> Eliom_common.na_key_serv
+  val get_na_kind_ : 'a Eliom_services.na_s -> [ `Get | `Post of bool ]
+  val get_max_use_ :
+    ('a, 'b, 'c, 'd, 'e, 'f, 'g) Eliom_services.service -> int option
+  val get_timeout_ :
+    ('a, 'b, 'c, 'd, 'e, 'f, 'g) Eliom_services.service -> float option
+  val get_https : ('a, 'b, 'c, 'd, 'e, 'f, 'g) Eliom_services.service -> bool
+  val escookiel_of_eccookiel :
+    Eliom_common.cookie list -> Eliom_services.cookie list
+  val eccookiel_of_escookiel :
+    Eliom_services.cookie list -> Eliom_common.cookie list
+  val keep_nl_params :
+    ('a, 'b, 'c, 'd, 'e, 'f, 'g) Eliom_services.service ->
+    [ `All | `None | `Persistent ]
+  val get_or_post :
+    [> `Internal of 'a * [> `Get ] ] ->
+    Ocsigen_http_frame.Http_header.http_method
+  val change_get_num :
+    ('a, 'b, 'c, 'd, 'e, 'f, 'g) Eliom_services.service ->
+    'h Eliom_services.a_s ->
+    Eliom_common.att_key_serv ->
+    ('a, 'b, [> `Attached of 'h Eliom_services.a_s ], 'd, 'e, 'f, 'i)
+    Eliom_services.service
+  val new_state : unit -> string
+  val register_delayed_get_or_na_coservice :
+    sp:Eliom_sessions.server_params ->
+    int * string option * bool option -> string
+  val register_delayed_post_coservice :
+    sp:Eliom_sessions.server_params ->
+    int * string option * bool option -> Eliom_common.att_key_serv -> string
+  val set_delayed_get_or_na_registration_function :
+    Eliom_common.tables ->
+    int -> (sp:Eliom_common.server_params -> string) -> unit
+  val set_delayed_post_registration_function :
+    Eliom_common.tables ->
+    int ->
+    (sp:Eliom_common.server_params -> Eliom_common.att_key_serv -> string) ->
+    unit
+end >>

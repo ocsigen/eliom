@@ -1,0 +1,185 @@
+<<code language="ocaml" | sig
+  val form :
+    action:XHTML.T.uri ->
+    ([< `Class
+      | `Enctype
+      | `Id
+      | `Method
+      | `Name_01_00
+      | `OnClick
+      | `OnDblClick
+      | `OnKeyDown
+      | `OnKeyPress
+      | `OnKeyUp
+      | `OnMouseDown
+      | `OnMouseMove
+      | `OnMouseOut
+      | `OnMouseOver
+      | `OnMouseUp
+      | `OnReset
+      | `OnSubmit
+      | `Style_Attr
+      | `Target
+      | `Title
+      | `XML_lang ],
+     [< XHTML.T.block_sans_form ], [> `Form ])
+    XHTML.T.plus
+  val input :
+    ([< `Accesskey
+      | `Checked
+      | `Class
+      | `Id
+      | `Input_Type
+      | `Maxlength
+      | `Name
+      | `OnBlur
+      | `OnChange
+      | `OnClick
+      | `OnDblClick
+      | `OnFocus
+      | `OnKeyDown
+      | `OnKeyPress
+      | `OnKeyUp
+      | `OnMouseDown
+      | `OnMouseMove
+      | `OnMouseOut
+      | `OnMouseOver
+      | `OnMouseUp
+      | `OnSelect
+      | `Size
+      | `Src
+      | `Style_Attr
+      | `Tabindex
+      | `Title
+      | `Usemap
+      | `Value
+      | `XML_lang ],
+     [> `Input ])
+    XHTML.T.nullary
+  val label :
+    ([< `Accesskey
+      | `Class
+      | `For
+      | `Id
+      | `OnClick
+      | `OnDblClick
+      | `OnKeyDown
+      | `OnKeyPress
+      | `OnKeyUp
+      | `OnMouseDown
+      | `OnMouseMove
+      | `OnMouseOut
+      | `OnMouseOver
+      | `OnMouseUp
+      | `Style_Attr
+      | `Title
+      | `XML_lang ],
+     [< `A
+      | `Abbr
+      | `Acronym
+      | `B
+      | `Bdo
+      | `Big
+      | `Br
+      | `Button
+      | `Cite
+      | `Code
+      | `Del
+      | `Dfn
+      | `Em
+      | `I
+      | `Img
+      | `Input
+      | `Ins
+      | `Kbd
+      | `Map
+      | `Noscript
+      | `Object
+      | `PCDATA
+      | `Q
+      | `Samp
+      | `Script
+      | `Select
+      | `Small
+      | `Span
+      | `Strong
+      | `Sub
+      | `Sup
+      | `Textarea
+      | `Tt
+      | `Var ],
+     [> `Label ])
+    XHTML.T.star
+  val option :
+    ([< `Class
+      | `Id
+      | `OnClick
+      | `OnDblClick
+      | `OnKeyDown
+      | `OnKeyPress
+      | `OnKeyUp
+      | `OnMouseDown
+      | `OnMouseMove
+      | `OnMouseOut
+      | `OnMouseOver
+      | `OnMouseUp
+      | `Selected
+      | `Style_Attr
+      | `Title
+      | `Value
+      | `XML_lang ],
+     [< `PCDATA ], [> `Option ])
+    XHTML.T.unary
+  val select :
+    ([< `Class
+      | `Id
+      | `Multiple
+      | `Name
+      | `OnBlur
+      | `OnChange
+      | `OnClick
+      | `OnDblClick
+      | `OnFocus
+      | `OnKeyDown
+      | `OnKeyPress
+      | `OnKeyUp
+      | `OnMouseDown
+      | `OnMouseMove
+      | `OnMouseOut
+      | `OnMouseOver
+      | `OnMouseUp
+      | `Size
+      | `Style_Attr
+      | `Tabindex
+      | `Title
+      | `XML_lang ],
+     [< `Option ], [> `Select ])
+    XHTML.T.plus
+  val textarea :
+    rows:XHTML.T.number ->
+    cols:XHTML.T.number ->
+    ([< `Accesskey
+      | `Class
+      | `Id
+      | `Name
+      | `OnBlur
+      | `OnChange
+      | `OnClick
+      | `OnDblClick
+      | `OnFocus
+      | `OnKeyDown
+      | `OnKeyPress
+      | `OnKeyUp
+      | `OnMouseDown
+      | `OnMouseMove
+      | `OnMouseOut
+      | `OnMouseOver
+      | `OnMouseUp
+      | `OnSelect
+      | `Style_Attr
+      | `Tabindex
+      | `Title
+      | `XML_lang ],
+     [< `PCDATA ], [> `Textarea ])
+    XHTML.T.unary
+end >>

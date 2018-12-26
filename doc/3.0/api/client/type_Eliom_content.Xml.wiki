@@ -1,0 +1,116 @@
+<<code language="ocaml" | sig
+  type uri = Eliom_content_core.Xml.uri
+  val uri_of_string : uri -> string
+  val string_of_uri : string -> uri
+  val uri_of_fun : (unit -> string) -> uri
+  type aname = string
+  type attrib = Eliom_content_core.Xml.attrib
+  type -'a caml_event_handler =
+      CE_registered_closure of string *
+        ('a Js.t -> unit) Eliom_lib.Client_value_server_repr.t
+    | CE_client_closure of ('a Js.t -> unit)
+    | CE_call_service of
+        ([ `A | `Form_get | `Form_post ] * (bool * string list) option *
+         string option)
+        option Eliom_lazy.request
+    constraint 'a = #Dom_html.event
+  type event_handler =
+      Raw of string
+    | Caml of Dom_html.event caml_event_handler
+  type ename = string
+  type elt = Eliom_content_core.Xml.elt
+  type econtent = private
+      Empty
+    | Comment of string
+    | EncodedPCDATA of string
+    | PCDATA of string
+    | Entity of string
+    | Leaf of ename * attrib list
+    | Node of ename * attrib list * elt list
+  val event_handler_of_service :
+    ([ `A | `Form_get | `Form_post ] * (bool * string list) option *
+     string option)
+    option Eliom_lazy.request -> event_handler
+  val event_handler_of_function :
+    (#Dom_html.event Js.t -> unit) -> event_handler
+  type separator = Space | Comma
+  type acontent = private
+      AFloat of float
+    | AInt of int
+    | AStr of string
+    | AStrL of separator * string list
+  val acontent : attrib -> acontent
+  type racontent =
+      RA of acontent
+    | RACamlEventHandler of Dom_html.event caml_event_handler
+    | RALazyStr of string Eliom_lazy.request
+    | RALazyStrL of separator * string Eliom_lazy.request list
+  val racontent : attrib -> racontent
+  val aname : attrib -> aname
+  val float_attrib : aname -> float -> attrib
+  val int_attrib : aname -> int -> attrib
+  val string_attrib : aname -> string -> attrib
+  val space_sep_attrib : aname -> string list -> attrib
+  val comma_sep_attrib : aname -> string list -> attrib
+  val event_handler_attrib : aname -> event_handler -> attrib
+  val uri_attrib : aname -> uri -> attrib
+  val uris_attrib : aname -> uri list -> attrib
+  val content : elt -> econtent
+  val pcdata : string -> elt
+  val encodedpcdata : string -> elt
+  val entity : string -> elt
+  val empty : unit -> elt
+  val comment : string -> elt
+  val leaf : ?a:attrib list -> ename -> elt
+  val node : ?a:attrib list -> ename -> elt list -> elt
+  val lazy_node :
+    ?a:attrib list -> ename -> elt list Eliom_lazy.request -> elt
+  val cdata : string -> elt
+  val cdata_script : string -> elt
+  val cdata_style : string -> elt
+  type node_id = NoId | ProcessId of string | RequestId of string
+  val string_of_node_id : node_id -> string
+  val make : ?id:node_id -> econtent -> elt
+  val make_dom : ?id:node_id -> Dom.node Js.t -> elt
+  val make_lazy : ?id:node_id -> elt lazy_t -> elt
+  val force_lazy : elt -> unit
+  val make_process_node : ?id:string -> elt -> elt
+  val make_request_node : elt -> elt
+  val get_node_id : elt -> node_id
+  type node = DomNode of Dom.node Js.t | TyXMLNode of econtent
+  val get_node : elt -> node
+  val set_dom_node : elt -> Dom.node Js.t -> unit
+  module ClosureMap :
+    sig
+      type key = string
+      type +'a t
+      val empty : 'a t
+      val is_empty : 'a t -> bool
+      val mem : key -> 'a t -> bool
+      val add : key -> 'a -> 'a t -> 'a t
+      val singleton : key -> 'a -> 'a t
+      val remove : key -> 'a t -> 'a t
+      val merge :
+        (key -> 'a option -> 'b option -> 'c option) -> 'a t -> 'b t -> 'c t
+      val compare : ('a -> 'a -> int) -> 'a t -> 'a t -> int
+      val equal : ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
+      val iter : (key -> 'a -> unit) -> 'a t -> unit
+      val fold : (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
+      val for_all : (key -> 'a -> bool) -> 'a t -> bool
+      val exists : (key -> 'a -> bool) -> 'a t -> bool
+      val filter : (key -> 'a -> bool) -> 'a t -> 'a t
+      val partition : (key -> 'a -> bool) -> 'a t -> 'a t * 'a t
+      val cardinal : 'a t -> int
+      val bindings : 'a t -> (key * 'a) list
+      val min_binding : 'a t -> key * 'a
+      val max_binding : 'a t -> key * 'a
+      val choose : 'a t -> key * 'a
+      val split : key -> 'a t -> 'a t * 'a option * 'a t
+      val find : key -> 'a t -> 'a
+      val map : ('a -> 'b) -> 'a t -> 'b t
+      val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
+    end
+  type event_handler_table =
+      (Dom_html.event Js.t -> unit) Eliom_lib.Client_value_server_repr.t
+      ClosureMap.t
+end >>

@@ -1,0 +1,171 @@
+= Programming client-server applications with Eliom
+
+<<outline depth="2">>
+
+== General principles
+=== What is a client/server Eliom application
+
+An Eliom application is a distributed application that runs partly on the
+server, partly on a browser. The program is fully written in OCaml, with
+a syntax extension to distinguish between server and client code.
+Both parts are extracted during the compilation process, the server part
+is compiled as usual for an Eliom website, and the client part is compiled
+to Javascript to be run in the browser.
+
+An intersting feature of Eliom applications is that the client side process
+does not stop when you click on a link or send a form, and it is possible to
+keep the traditional Web interaction (with URLs, bookmarks, back button, etc).
+For example if the page is playing music, it won't stop when the user continue
+his visit on the Web site.
+
+Client side parts are using {{{Lwt}}} for concurrency, making possible
+to have concurrent programs in the browser very easily.
+
+As both parts are implemented in OCaml, it is very easy to use client side
+OCaml data on server side, and vice-versa. Eliom handle the communication
+between client and server automatically in both direction. For example
+it possible to use a server-side variable in the client program.
+
+Eliom also implements an "HTTP-push" mechanism, allowing the server
+to send messages to a client.
+
+Client-side parts of the program can use most Eliom features, exactly
+as usual, for example to create HTML, or links, forms from services.
+
+On server side, it is possible to save data (some state) for each client
+process (that is, one tab in a browser),
+simply by using Eliom references with scope {{{`Client_process}}}.
+You can register services for one client process, or even set cookies
+for one tab.
+
+=== How it works
+
+The code of an Eliom application is written in OCaml, with <<a_manual
+chapter="clientserver-language"|a syntax extension>> to distinguish
+between server and client code. The files using this syntax
+usually have the extension {{{.eliom}}}. As the compling process is quite
+complex, we provide commands called {{{eliomc}}} and {{{js_of_eliom}}} that
+does everything for you (separating client and server parts, calling
+{{{ocamlc}}}, {{{js_of_ocaml}}}, etc).
+
+Services belonging to the application are registered using the module
+{{{Eliom_registration.App}}}. More precisely, this is a functor that
+needs to be applied for each application you create.
+These services just return HTML5 pages as usual (using {{{Eliom_content.Html5}}})
+The client side program (compiled in JavaScript) is added automatically by Eliom,
+with all its data, and run automatically when the page is loaded.
+
+The module <<a_api subproject="client"|module Eliom_client>> provides some useful functions for
+client side programming with Eliom: e.g. <<a_api
+subproject="client"|val Eliom_client.change_page>> for switching to
+another page.
+
+The module {{{Eliom_comet}}} allows for the server to send notifications
+to the client (even if the client is not explicitely doing a request).
+The module {{{Eliom_react}}} use this to make client-server reactive
+programming (using the React external library).
+
+
+=== The App functor
+
+For each Eliom application, you must create a service registration module
+by applying the {{{App}}} functor:
+
+<<code language="ocaml"|
+module My_appl =
+  Eliom_registration.App (
+    struct
+      let application_name = "the name of your application"
+    end)
+>>
+
+the {{{application_name}}} parameter is the name of the javascript file
+containing the application.
+
+Then you can do for example:
+<<code language="ocaml"|
+let my_service =
+  My_appl.register_service
+    ~path:[""]
+    ~get_params:unit
+    (fun () () -> Lwt.return (html
+                               (head (title (pcdata "Hi!")) [])
+                               (body [p [pcdata "Hey."]])))
+>>
+
+Eliom will add automatically the required headers to send the client side
+program and all its data.
+
+== Application, life and death
+
+When an user enter the page of a service registered by an application
+module ( created with the {{{App}}} functor ), the application
+is started. During the life of the application, a single ocaml program
+will run on the browser: Lwt thread will keep running, global
+variables will stay available, etc...  until the application is
+closed. The application will keep running when the user clicks on
+links to pages inside the same application.
+
+This application will be closed when:
+* the user closes the browser tab containing the application
+* the user goes to a page outside of the application
+* the user change the current url by another mean than the
+  application interraction ( reload the page with {{{F5}}},
+  type an url, ... )
+* the application call the {{{Eliom_client.exit_to}}} function
+
+It is possible to prevent the application from launching when visiting
+an application page by setting the {{{do_not_launch}}} to {{{true}}}
+at the service registration:
+<<code language="ocaml"|
+let no_launch_service =
+  My_appl.register_service
+    ~option:{ Eliom_registration.default_appl_service_options with
+              do_not_launch = true }
+    ~path:[""]
+    ~get_params:unit
+    (fun () () -> Lwt.return (html
+                               (head (title (pcdata "Hi!")) [])
+                               (body [p [pcdata "Hey."]])))
+>>
+That way, you can delay the javascript loading until it is really needed.
+Visiting a service registered with {{{do_not_launch=true}}} will not stop
+a running application.
+
+It is possible to force reloading an application when clicking a link
+by creating the link with the {{{xhr}}} option set to false.
+
+=== Navigating in and out of the application.
+
+Two function are available on client side to change the current page
+without interraction of the user. The function
+<<a_api | val Eliom_client.change_page >> goes to the service
+taken as parameter. If the service is in another application or not in
+an application it will stop the current one.
+The function <<a_api | val Eliom_client.window_open >> opens an
+Eliom service in a new browser window (cf. Javascript's ##window.open##).
+<<a_api | val Eliom_client.exit_to >> changes the current page
+and always leave the application.
+
+
+== Using Eliom on client side
+
+<<wip|
+
+Liens, formulaires, utilisation des services côté client
+Le module Eliom_client
+Modules Eliom disponibles des deux côtés (et différences)
+
+parler de Eliom_service.void_coservice ?
+
+>>
+
+== Misc ==
+
+=== Leaving application and going back
+
+Usualy, when going to an application page, a new client process is
+launched on the server, but there are situations where an old client
+process is used instead: Browsers tend to take the result from their
+cache when using the back button even if the page was marked ( by HTTP
+headers ) as non-cacheable.

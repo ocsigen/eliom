@@ -1,0 +1,85 @@
+<<code language="ocaml" | sig
+  val change_page :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('a, 'b, [< Eliom_service.service_kind ],
+             [< Eliom_service.suff ], 'c, 'd, [< Eliom_service.registrable ],
+             Eliom_registration.appl_service)
+            Eliom_service.service ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameter.nl_params_set ->
+    ?keep_get_na_params:bool -> 'a -> 'b -> unit Lwt.t
+  val call_caml_service :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('a, 'b, [< Eliom_service.service_kind ],
+             [< Eliom_service.suff ], 'c, 'd, [< Eliom_service.registrable ],
+             'e Eliom_parameter.caml)
+            Eliom_service.service ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameter.nl_params_set ->
+    ?keep_get_na_params:bool -> 'a -> 'b -> 'e Lwt.t
+  val exit_to :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('a, 'b, [< Eliom_service.service_kind ],
+             [< Eliom_service.suff ], 'c, 'd, [< Eliom_service.registrable ],
+             [< Eliom_registration.non_caml_service ])
+            Eliom_service.service ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameter.nl_params_set ->
+    ?keep_get_na_params:bool -> 'a -> 'b -> unit
+  val window_open :
+    window_name:Js.js_string Js.t ->
+    ?window_features:Js.js_string Js.t ->
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('a, unit, [< Eliom_service.get_service_kind ],
+             [< Eliom_service.suff ], 'b, unit,
+             [< Eliom_service.registrable ], 'c)
+            Eliom_service.service ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameter.nl_params_set ->
+    ?keep_get_na_params:bool -> 'a -> Dom_html.window Js.t
+  val call_service :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('a, 'b, [< Eliom_service.service_kind ],
+             [< Eliom_service.suff ], 'c, 'd, [< Eliom_service.registrable ],
+             'e)
+            Eliom_service.service ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameter.nl_params_set ->
+    ?keep_get_na_params:bool -> 'a -> 'b -> string Lwt.t
+  val wait_load_end : unit -> unit Lwt.t
+  val in_onload : unit -> bool
+  val on_unload : (unit -> unit) -> unit
+  val relink_request_nodes : Dom_html.htmlElement Js.t -> unit
+  val reset_request_node : unit -> unit
+  val load_eliom_data :
+    Eliom_types.eliom_js_page_data ->
+    Dom_html.htmlElement Js.t -> (Dom_html.event Js.t -> bool) list
+  val register_closure : int64 -> ('a -> Dom_html.event Js.t -> unit) -> unit
+  val getElementById : string -> Dom.node Js.t
+  val rebuild_node : 'a Eliom_content_core.Html5.elt -> < .. > Js.t
+end >>

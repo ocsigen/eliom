@@ -1,0 +1,1 @@
+<<code language="ocaml" | sig val body : [ `Body ] Eliom_content.client.Html5.elt end >>

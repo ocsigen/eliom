@@ -1,0 +1,68 @@
+=Module <<a_api_type subproject="server" | module Eliom_comet.Channels >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Channels>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_comet.Channels >><<span class="ocsforge_color_keyword"|end>>>>~Basic primitives needed for server push~.
+
+----
+<<pre class="ocsforge_color odocwiki_code" id="TYPEt"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|'a>> <<span class="odocwiki_name"|t>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|v t>> is the type of server~-to~-client communication channels
+      transporting data of type <<span class="odocwiki_inlinecode"|v>>
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEcomet_scope"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|comet~_scope>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|[ `Client_process of <<a_api subproject="server" text="Eliom_common.scope_name" | type Eliom_common.scope_name >> | `Global ]>> >><<pre id="VALcreate" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|create>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?scope: >>[< <<a_api subproject="server" text="comet_scope" | type Eliom_comet.Channels.comet_scope >> ] <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?name: >>string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?size: >>int <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_uid"|Lwt_stream>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>> <<span class="ocsforge_color_delimiter"| -> >> 'a <<a_api subproject="server" text="t" | type Eliom_comet.Channels.t >>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|create s>> returns a channel sending values from <<span class="odocwiki_inlinecode"|s>>~.
+
+
+      ~There are two kind of channels created depending on the given
+      scope ~( defaults to <<span class="odocwiki_inlinecode"|~Eliom~_common~.comet~_client~_process>> ~)~.
+
+
+      ~With scope <<a_api subproject="server" | val Eliom_common.global >> all user knowing the name of
+      the channel can access it~. ~Only one message queue is created~: it
+      is what we call a stateless channel in the sense that the memory
+      used by the channel doesn~'t depend on the number of users~.  ~The
+      channel can be reclaimed when there is no more reference to it~.
+      ~The buffer channel has a limited buffer of size <<span class="odocwiki_inlinecode"|size>> ~(default~:
+      ~1~0~0~0~)~.  ~If the client request too old messages~, it raise ~( on
+      client side ~) ~Channel~_full~.
+
+
+      ~With a scope of level <<a_api subproject="server" | type Eliom_common.client_process_scope >> the
+      channel can only be accessed by the user which created it~. ~It
+      can only be created when client application datas are
+      available~. ~The eliom service created to communicate with the
+      client is only available in the scope of the client process~. ~To
+      avoid memory leak when the client do not read the sent datas~,
+      the channel has a limited <<span class="odocwiki_inlinecode"|size>>~. ~When a channel is full~, no
+      data can be read from it anymore~.
+
+
+      ~A channel can be used only one time on client side~. ~To be able
+      to receive the same data multiples times on client side~, use
+      <<span class="odocwiki_inlinecode"|create ~(~Lwt~_stream~.clone s~)>> each time~.
+
+
+      ~To enforce the limit on the buffer size~, the data are read into
+      <<span class="odocwiki_inlinecode"|stream>> as soon as possible~: ~If you want a channel that read
+      data to the stream only when the client request it~, use
+      <<span class="odocwiki_inlinecode"|create~_unlimited>> instead~, but be carefull to memory leaks~.
+>>
+<<pre id="VALcreate_unlimited" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|create~_unlimited>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?scope: >><<a_api subproject="server" text="Eliom_common.client_process_scope" | type Eliom_common.client_process_scope >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?name: >>string <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_uid"|Lwt_stream>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>> <<span class="ocsforge_color_delimiter"| -> >> 'a <<a_api subproject="server" text="t" | type Eliom_comet.Channels.t >>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|create~_unlimited s>> creates a channel wich does not read
+      immediately on the stream it is read only when the client
+      request it~: use it if the data you send depends on the time of
+      the request ~( for instance the number of unread mails ~)~. ~Be
+      carefull the size of this stream is not limited~: if the size of
+      the stream increase and your clients don~'t read it~, you may have
+      memory leaks~.
+>>
+<<pre id="VALcreate_newest" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|create~_newest>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_label"| ?name: >>string <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_uid"|Lwt_stream>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>> <<span class="ocsforge_color_delimiter"| -> >> 'a <<a_api subproject="server" text="t" | type Eliom_comet.Channels.t >>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|create~_newest s>> is similar to <<span class="odocwiki_inlinecode"|create
+      ~~scope~:~Eliom~_common~.global s>> but only the last message is
+      returned to the client~.
+>>
+<<pre id="VALexternal_channel" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|external~_channel>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?history: >>int <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?newest: >>bool <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| prefix: >>string <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_label"| name: >>string <<span class="ocsforge_color_delimiter"| -> >> unit <<span class="ocsforge_color_delimiter"| -> >> 'a <<a_api subproject="server" text="t" | type Eliom_comet.Channels.t >>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|external~_channel ~~prefix ~~name ~(~)>> declares an external
+      channel~. ~The channel was created by an instance of ~Eliom serving
+      the prefix <<span class="odocwiki_inlinecode"|prefix>> ~(the prefix configured in the ~<site~> tag of
+      the configuration file~)~. ~The channel was named by <<span class="odocwiki_inlinecode"|name>>~. ~Both
+      servers must run the exact same version of ~Eliom~.
+
+
+      ~The optionnal <<span class="odocwiki_inlinecode"|newest>> parameters tells wethere the channel is a
+      newest one~. if the channel is not newest <<span class="odocwiki_inlinecode"|history>> is the maximum
+      number of messages retrieved at the first request~. ~The default
+      is <<span class="odocwiki_inlinecode"|~1>>~.
+>>

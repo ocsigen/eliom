@@ -1,0 +1,1220 @@
+<<code language="ocaml" | sig
+  module type XHTML_FORMS =
+    sig
+      val make_string_uri :
+        ?absolute:bool ->
+        ?absolute_path:bool ->
+        ?https:bool ->
+        service:('a, unit, [< Eliom_services.get_service_kind ],
+                 [< Eliom_services.suff ], 'b, unit,
+                 [< Eliom_services.registrable ], 'c)
+                Eliom_services.service ->
+        ?hostname:string ->
+        ?port:int ->
+        ?fragment:string ->
+        ?keep_nl_params:[ `All | `None | `Persistent ] ->
+        ?nl_params:Eliom_parameters.nl_params_set -> 'a -> string
+      val make_uri :
+        ?absolute:bool ->
+        ?absolute_path:bool ->
+        ?https:bool ->
+        service:('a, unit, [< Eliom_services.get_service_kind ],
+                 [< Eliom_services.suff ], 'b, unit,
+                 [< Eliom_services.registrable ], 'c)
+                Eliom_services.service ->
+        ?hostname:string ->
+        ?port:int ->
+        ?fragment:string ->
+        ?keep_nl_params:[ `All | `None | `Persistent ] ->
+        ?nl_params:Eliom_parameters.nl_params_set ->
+        'a -> Eliom_duce_types.uri
+      val make_uri_components :
+        ?absolute:bool ->
+        ?absolute_path:bool ->
+        ?https:bool ->
+        service:('a, unit, [< Eliom_services.get_service_kind ],
+                 [< Eliom_services.suff ], 'b, unit,
+                 [< Eliom_services.registrable ], 'c)
+                Eliom_services.service ->
+        ?hostname:string ->
+        ?port:int ->
+        ?fragment:string ->
+        ?keep_nl_params:[ `All | `None | `Persistent ] ->
+        ?nl_params:Eliom_parameters.nl_params_set ->
+        'a -> string * (string * string) list * string option
+      val make_post_uri_components :
+        ?absolute:bool ->
+        ?absolute_path:bool ->
+        ?https:bool ->
+        service:('a, 'b, [< Eliom_services.post_service_kind ],
+                 [< Eliom_services.suff ], 'c, 'd,
+                 [< Eliom_services.registrable ], 'e)
+                Eliom_services.service ->
+        ?hostname:string ->
+        ?port:int ->
+        ?fragment:string ->
+        ?keep_nl_params:[ `All | `None | `Persistent ] ->
+        ?nl_params:Eliom_parameters.nl_params_set ->
+        ?keep_get_na_params:bool ->
+        'a ->
+        'b ->
+        string * (string * string) list * string option *
+        (string * string) list
+      val make_proto_prefix : ?hostname:string -> ?port:int -> bool -> string
+      val a :
+        ?absolute:bool ->
+        ?absolute_path:bool ->
+        ?https:bool ->
+        ?a:Eliom_duce_types.a_attrib_t ->
+        service:('a, unit, [< Eliom_services.get_service_kind ],
+                 [< Eliom_services.suff ], 'b, unit,
+                 [< Eliom_services.registrable ], 'c)
+                Eliom_services.service ->
+        ?hostname:string ->
+        ?port:int ->
+        ?fragment:string ->
+        ?keep_nl_params:[ `All | `None | `Persistent ] ->
+        ?nl_params:Eliom_parameters.nl_params_set ->
+        ?no_appl:bool ->
+        'd Eliom_duce_types.a_content_elt_list ->
+        'a -> 'd Eliom_duce_types.a_elt
+      val css_link :
+        ?a:Eliom_duce_types.link_attrib_t ->
+        uri:Eliom_duce_types.uri -> unit -> Eliom_duce_types.link_elt
+      val js_script :
+        ?a:Eliom_duce_types.script_attrib_t ->
+        uri:Eliom_duce_types.uri -> unit -> Eliom_duce_types.script_elt
+      val get_form :
+        ?absolute:bool ->
+        ?absolute_path:bool ->
+        ?https:bool ->
+        ?a:Eliom_duce_types.form_attrib_t ->
+        service:('a, unit, [< Eliom_services.get_service_kind ],
+                 [< Eliom_services.suff ], 'b, 'c,
+                 [< Eliom_services.registrable ], 'd)
+                Eliom_services.service ->
+        ?hostname:string ->
+        ?port:int ->
+        ?fragment:string ->
+        ?keep_nl_params:[ `All | `None | `Persistent ] ->
+        ?nl_params:Eliom_parameters.nl_params_set ->
+        ?no_appl:bool ->
+        ('b -> Eliom_duce_types.form_content_elt_list) ->
+        Eliom_duce_types.form_elt
+      val lwt_get_form :
+        ?absolute:bool ->
+        ?absolute_path:bool ->
+        ?https:bool ->
+        ?a:Eliom_duce_types.form_attrib_t ->
+        service:('a, unit, [< Eliom_services.get_service_kind ],
+                 [< Eliom_services.suff ], 'b, 'c,
+                 [< Eliom_services.registrable ], 'd)
+                Eliom_services.service ->
+        ?hostname:string ->
+        ?port:int ->
+        ?fragment:string ->
+        ?keep_nl_params:[ `All | `None | `Persistent ] ->
+        ?nl_params:Eliom_parameters.nl_params_set ->
+        ?no_appl:bool ->
+        ('b -> Eliom_duce_types.form_content_elt_list Lwt.t) ->
+        Eliom_duce_types.form_elt Lwt.t
+      val post_form :
+        ?absolute:bool ->
+        ?absolute_path:bool ->
+        ?https:bool ->
+        ?a:Eliom_duce_types.form_attrib_t ->
+        service:('a, 'b, [< Eliom_services.post_service_kind ],
+                 [< Eliom_services.suff ], 'c, 'd,
+                 [< Eliom_services.registrable ], 'e)
+                Eliom_services.service ->
+        ?hostname:string ->
+        ?port:int ->
+        ?fragment:string ->
+        ?keep_nl_params:[ `All | `None | `Persistent ] ->
+        ?keep_get_na_params:bool ->
+        ?nl_params:Eliom_parameters.nl_params_set ->
+        ?no_appl:bool ->
+        ('d -> Eliom_duce_types.form_content_elt_list) ->
+        'a -> Eliom_duce_types.form_elt
+      val lwt_post_form :
+        ?absolute:bool ->
+        ?absolute_path:bool ->
+        ?https:bool ->
+        ?a:Eliom_duce_types.form_attrib_t ->
+        service:('a, 'b, [< Eliom_services.post_service_kind ],
+                 [< Eliom_services.suff ], 'c, 'd,
+                 [< Eliom_services.registrable ], 'e)
+                Eliom_services.service ->
+        ?hostname:string ->
+        ?port:int ->
+        ?fragment:string ->
+        ?keep_nl_params:[ `All | `None | `Persistent ] ->
+        ?keep_get_na_params:bool ->
+        ?nl_params:Eliom_parameters.nl_params_set ->
+        ?no_appl:bool ->
+        ('d -> Eliom_duce_types.form_content_elt_list Lwt.t) ->
+        'a -> Eliom_duce_types.form_elt Lwt.t
+      val int_input :
+        ?a:Eliom_duce_types.input_attrib_t ->
+        input_type:Eliom_duce_types.input_type_t ->
+        ?name:[< int Eliom_parameters.setoneradio ]
+              Eliom_parameters.param_name ->
+        ?value:int -> unit -> Eliom_duce_types.input_elt
+      val int32_input :
+        ?a:Eliom_duce_types.input_attrib_t ->
+        input_type:Eliom_duce_types.input_type_t ->
+        ?name:[< int32 Eliom_parameters.setoneradio ]
+              Eliom_parameters.param_name ->
+        ?value:int32 -> unit -> Eliom_duce_types.input_elt
+      val int64_input :
+        ?a:Eliom_duce_types.input_attrib_t ->
+        input_type:Eliom_duce_types.input_type_t ->
+        ?name:[< int64 Eliom_parameters.setoneradio ]
+              Eliom_parameters.param_name ->
+        ?value:int64 -> unit -> Eliom_duce_types.input_elt
+      val float_input :
+        ?a:Eliom_duce_types.input_attrib_t ->
+        input_type:Eliom_duce_types.input_type_t ->
+        ?name:[< float Eliom_parameters.setoneradio ]
+              Eliom_parameters.param_name ->
+        ?value:float -> unit -> Eliom_duce_types.input_elt
+      val string_input :
+        ?a:Eliom_duce_types.input_attrib_t ->
+        input_type:Eliom_duce_types.input_type_t ->
+        ?name:[< string Eliom_parameters.setoneradio ]
+              Eliom_parameters.param_name ->
+        ?value:string -> unit -> Eliom_duce_types.input_elt
+      val user_type_input :
+        ('a -> string) ->
+        ?a:Eliom_duce_types.input_attrib_t ->
+        input_type:Eliom_duce_types.input_type_t ->
+        ?name:[< 'a Eliom_parameters.setoneradio ]
+              Eliom_parameters.param_name ->
+        ?value:'a -> unit -> Eliom_duce_types.input_elt
+      val raw_input :
+        ?a:Eliom_duce_types.input_attrib_t ->
+        input_type:Eliom_duce_types.raw_input_type_t ->
+        ?name:string -> ?value:string -> unit -> Eliom_duce_types.input_elt
+      val file_input :
+        ?a:Eliom_duce_types.input_attrib_t ->
+        name:[< Eliom_pervasives.file_info Eliom_parameters.setoneradio ]
+             Eliom_parameters.param_name ->
+        unit -> Eliom_duce_types.input_elt
+      val image_input :
+        ?a:Eliom_duce_types.input_attrib_t ->
+        name:[< Eliom_parameters.coordinates Eliom_parameters.oneradio ]
+             Eliom_parameters.param_name ->
+        ?src:Eliom_duce_types.uri -> unit -> Eliom_duce_types.input_elt
+      val int_image_input :
+        ?a:Eliom_duce_types.input_attrib_t ->
+        name:[< (int * Eliom_parameters.coordinates)
+                Eliom_parameters.oneradio ]
+             Eliom_parameters.param_name ->
+        value:int ->
+        ?src:Eliom_duce_types.uri -> unit -> Eliom_duce_types.input_elt
+      val int32_image_input :
+        ?a:Eliom_duce_types.input_attrib_t ->
+        name:[< (int32 * Eliom_parameters.coordinates)
+                Eliom_parameters.oneradio ]
+             Eliom_parameters.param_name ->
+        value:int32 ->
+        ?src:Eliom_duce_types.uri -> unit -> Eliom_duce_types.input_elt
+      val int64_image_input :
+        ?a:Eliom_duce_types.input_attrib_t ->
+        name:[< (int64 * Eliom_parameters.coordinates)
+                Eliom_parameters.oneradio ]
+             Eliom_parameters.param_name ->
+        value:int64 ->
+        ?src:Eliom_duce_types.uri -> unit -> Eliom_duce_types.input_elt
+      val float_image_input :
+        ?a:Eliom_duce_types.input_attrib_t ->
+        name:[< (float * Eliom_parameters.coordinates)
+                Eliom_parameters.oneradio ]
+             Eliom_parameters.param_name ->
+        value:float ->
+        ?src:Eliom_duce_types.uri -> unit -> Eliom_duce_types.input_elt
+      val string_image_input :
+        ?a:Eliom_duce_types.input_attrib_t ->
+        name:[< (string * Eliom_parameters.coordinates)
+                Eliom_parameters.oneradio ]
+             Eliom_parameters.param_name ->
+        value:string ->
+        ?src:Eliom_duce_types.uri -> unit -> Eliom_duce_types.input_elt
+      val user_type_image_input :
+        ('a -> string) ->
+        ?a:Eliom_duce_types.input_attrib_t ->
+        name:[< ('a * Eliom_parameters.coordinates) Eliom_parameters.oneradio ]
+             Eliom_parameters.param_name ->
+        value:'a ->
+        ?src:Eliom_duce_types.uri -> unit -> Eliom_duce_types.input_elt
+      val raw_image_input :
+        ?a:Eliom_duce_types.input_attrib_t ->
+        name:string ->
+        value:string ->
+        ?src:Eliom_duce_types.uri -> unit -> Eliom_duce_types.input_elt
+      val bool_checkbox :
+        ?a:Eliom_duce_types.input_attrib_t ->
+        ?checked:bool ->
+        name:[ `One of bool ] Eliom_parameters.param_name ->
+        unit -> Eliom_duce_types.input_elt
+      val int_checkbox :
+        ?a:Eliom_duce_types.input_attrib_t ->
+        ?checked:bool ->
+        name:[ `Set of int ] Eliom_parameters.param_name ->
+        value:int -> unit -> Eliom_duce_types.input_elt
+      val int32_checkbox :
+        ?a:Eliom_duce_types.input_attrib_t ->
+        ?checked:bool ->
+        name:[ `Set of int32 ] Eliom_parameters.param_name ->
+        value:int32 -> unit -> Eliom_duce_types.input_elt
+      val int64_checkbox :
+        ?a:Eliom_duce_types.input_attrib_t ->
+        ?checked:bool ->
+        name:[ `Set of int64 ] Eliom_parameters.param_name ->
+        value:int64 -> unit -> Eliom_duce_types.input_elt
+      val float_checkbox :
+        ?a:Eliom_duce_types.input_attrib_t ->
+        ?checked:bool ->
+        name:[ `Set of float ] Eliom_parameters.param_name ->
+        value:float -> unit -> Eliom_duce_types.input_elt
+      val string_checkbox :
+        ?a:Eliom_duce_types.input_attrib_t ->
+        ?checked:bool ->
+        name:[ `Set of string ] Eliom_parameters.param_name ->
+        value:string -> unit -> Eliom_duce_types.input_elt
+      val user_type_checkbox :
+        ('a -> string) ->
+        ?a:Eliom_duce_types.input_attrib_t ->
+        ?checked:bool ->
+        name:[ `Set of 'a ] Eliom_parameters.param_name ->
+        value:'a -> unit -> Eliom_duce_types.input_elt
+      val raw_checkbox :
+        ?a:Eliom_duce_types.input_attrib_t ->
+        ?checked:bool ->
+        name:string -> value:string -> unit -> Eliom_duce_types.input_elt
+      val string_radio :
+        ?a:Eliom_duce_types.input_attrib_t ->
+        ?checked:bool ->
+        name:[ `Radio of string ] Eliom_parameters.param_name ->
+        value:string -> unit -> Eliom_duce_types.input_elt
+      val int_radio :
+        ?a:Eliom_duce_types.input_attrib_t ->
+        ?checked:bool ->
+        name:[ `Radio of int ] Eliom_parameters.param_name ->
+        value:int -> unit -> Eliom_duce_types.input_elt
+      val int32_radio :
+        ?a:Eliom_duce_types.input_attrib_t ->
+        ?checked:bool ->
+        name:[ `Radio of int32 ] Eliom_parameters.param_name ->
+        value:int32 -> unit -> Eliom_duce_types.input_elt
+      val int64_radio :
+        ?a:Eliom_duce_types.input_attrib_t ->
+        ?checked:bool ->
+        name:[ `Radio of int64 ] Eliom_parameters.param_name ->
+        value:int64 -> unit -> Eliom_duce_types.input_elt
+      val float_radio :
+        ?a:Eliom_duce_types.input_attrib_t ->
+        ?checked:bool ->
+        name:[ `Radio of float ] Eliom_parameters.param_name ->
+        value:float -> unit -> Eliom_duce_types.input_elt
+      val user_type_radio :
+        ('a -> string) ->
+        ?a:Eliom_duce_types.input_attrib_t ->
+        ?checked:bool ->
+        name:[ `Radio of 'a ] Eliom_parameters.param_name ->
+        value:'a -> unit -> Eliom_duce_types.input_elt
+      val raw_radio :
+        ?a:Eliom_duce_types.input_attrib_t ->
+        ?checked:bool ->
+        name:string -> value:string -> unit -> Eliom_duce_types.input_elt
+      val string_button :
+        ?a:Eliom_duce_types.button_attrib_t ->
+        name:[< string Eliom_parameters.setone ] Eliom_parameters.param_name ->
+        value:string ->
+        Eliom_duce_types.button_content_elt_list ->
+        Eliom_duce_types.button_elt
+      val int_button :
+        ?a:Eliom_duce_types.button_attrib_t ->
+        name:[< int Eliom_parameters.setone ] Eliom_parameters.param_name ->
+        value:int ->
+        Eliom_duce_types.button_content_elt_list ->
+        Eliom_duce_types.button_elt
+      val int32_button :
+        ?a:Eliom_duce_types.button_attrib_t ->
+        name:[< int32 Eliom_parameters.setone ] Eliom_parameters.param_name ->
+        value:int32 ->
+        Eliom_duce_types.button_content_elt_list ->
+        Eliom_duce_types.button_elt
+      val int64_button :
+        ?a:Eliom_duce_types.button_attrib_t ->
+        name:[< int64 Eliom_parameters.setone ] Eliom_parameters.param_name ->
+        value:int64 ->
+        Eliom_duce_types.button_content_elt_list ->
+        Eliom_duce_types.button_elt
+      val float_button :
+        ?a:Eliom_duce_types.button_attrib_t ->
+        name:[< float Eliom_parameters.setone ] Eliom_parameters.param_name ->
+        value:float ->
+        Eliom_duce_types.button_content_elt_list ->
+        Eliom_duce_types.button_elt
+      val user_type_button :
+        ('a -> string) ->
+        ?a:Eliom_duce_types.button_attrib_t ->
+        name:[< 'a Eliom_parameters.setone ] Eliom_parameters.param_name ->
+        value:'a ->
+        Eliom_duce_types.button_content_elt_list ->
+        Eliom_duce_types.button_elt
+      val raw_button :
+        ?a:Eliom_duce_types.button_attrib_t ->
+        button_type:Eliom_duce_types.button_type_t ->
+        name:string ->
+        value:string ->
+        Eliom_duce_types.button_content_elt_list ->
+        Eliom_duce_types.button_elt
+      val button :
+        ?a:Eliom_duce_types.button_attrib_t ->
+        button_type:Eliom_duce_types.button_type_t ->
+        Eliom_duce_types.button_content_elt_list ->
+        Eliom_duce_types.button_elt
+      val textarea :
+        ?a:Eliom_duce_types.textarea_attrib_t ->
+        name:[< string Eliom_parameters.setoneradio ]
+             Eliom_parameters.param_name ->
+        ?value:string ->
+        rows:int -> cols:int -> unit -> Eliom_duce_types.textarea_elt
+      val raw_textarea :
+        ?a:Eliom_duce_types.textarea_attrib_t ->
+        name:string ->
+        ?value:string ->
+        rows:int -> cols:int -> unit -> Eliom_duce_types.textarea_elt
+      type 'a soption =
+          Eliom_duce_types.option_attrib_t * 'a *
+          Eliom_duce_types.pcdata_elt option * bool
+      type 'a select_opt =
+          Optgroup of Eliom_duce_types.optgroup_attrib_t * string *
+            'a Eliom_duce_sigs.XHTML_FORMS.soption *
+            'a Eliom_duce_sigs.XHTML_FORMS.soption list
+        | Option of 'a Eliom_duce_sigs.XHTML_FORMS.soption
+      val int_select :
+        ?a:Eliom_duce_types.select_attrib_t ->
+        name:[< `One of int ] Eliom_parameters.param_name ->
+        int Eliom_duce_sigs.XHTML_FORMS.select_opt ->
+        int Eliom_duce_sigs.XHTML_FORMS.select_opt list ->
+        Eliom_duce_types.select_elt
+      val int32_select :
+        ?a:Eliom_duce_types.select_attrib_t ->
+        name:[< `One of int32 ] Eliom_parameters.param_name ->
+        int32 Eliom_duce_sigs.XHTML_FORMS.select_opt ->
+        int32 Eliom_duce_sigs.XHTML_FORMS.select_opt list ->
+        Eliom_duce_types.select_elt
+      val int64_select :
+        ?a:Eliom_duce_types.select_attrib_t ->
+        name:[< `One of int64 ] Eliom_parameters.param_name ->
+        int64 Eliom_duce_sigs.XHTML_FORMS.select_opt ->
+        int64 Eliom_duce_sigs.XHTML_FORMS.select_opt list ->
+        Eliom_duce_types.select_elt
+      val float_select :
+        ?a:Eliom_duce_types.select_attrib_t ->
+        name:[< `One of float ] Eliom_parameters.param_name ->
+        float Eliom_duce_sigs.XHTML_FORMS.select_opt ->
+        float Eliom_duce_sigs.XHTML_FORMS.select_opt list ->
+        Eliom_duce_types.select_elt
+      val string_select :
+        ?a:Eliom_duce_types.select_attrib_t ->
+        name:[< `One of string ] Eliom_parameters.param_name ->
+        string Eliom_duce_sigs.XHTML_FORMS.select_opt ->
+        string Eliom_duce_sigs.XHTML_FORMS.select_opt list ->
+        Eliom_duce_types.select_elt
+      val user_type_select :
+        ('a -> string) ->
+        ?a:Eliom_duce_types.select_attrib_t ->
+        name:[< `One of 'a ] Eliom_parameters.param_name ->
+        'a Eliom_duce_sigs.XHTML_FORMS.select_opt ->
+        'a Eliom_duce_sigs.XHTML_FORMS.select_opt list ->
+        Eliom_duce_types.select_elt
+      val raw_select :
+        ?a:Eliom_duce_types.select_attrib_t ->
+        name:string ->
+        string Eliom_duce_sigs.XHTML_FORMS.select_opt ->
+        string Eliom_duce_sigs.XHTML_FORMS.select_opt list ->
+        Eliom_duce_types.select_elt
+      val int_multiple_select :
+        ?a:Eliom_duce_types.select_attrib_t ->
+        name:[< `Set of int ] Eliom_parameters.param_name ->
+        int Eliom_duce_sigs.XHTML_FORMS.select_opt ->
+        int Eliom_duce_sigs.XHTML_FORMS.select_opt list ->
+        Eliom_duce_types.select_elt
+      val int32_multiple_select :
+        ?a:Eliom_duce_types.select_attrib_t ->
+        name:[< `Set of int32 ] Eliom_parameters.param_name ->
+        int32 Eliom_duce_sigs.XHTML_FORMS.select_opt ->
+        int32 Eliom_duce_sigs.XHTML_FORMS.select_opt list ->
+        Eliom_duce_types.select_elt
+      val int64_multiple_select :
+        ?a:Eliom_duce_types.select_attrib_t ->
+        name:[< `Set of int64 ] Eliom_parameters.param_name ->
+        int64 Eliom_duce_sigs.XHTML_FORMS.select_opt ->
+        int64 Eliom_duce_sigs.XHTML_FORMS.select_opt list ->
+        Eliom_duce_types.select_elt
+      val float_multiple_select :
+        ?a:Eliom_duce_types.select_attrib_t ->
+        name:[< `Set of float ] Eliom_parameters.param_name ->
+        float Eliom_duce_sigs.XHTML_FORMS.select_opt ->
+        float Eliom_duce_sigs.XHTML_FORMS.select_opt list ->
+        Eliom_duce_types.select_elt
+      val string_multiple_select :
+        ?a:Eliom_duce_types.select_attrib_t ->
+        name:[< `Set of string ] Eliom_parameters.param_name ->
+        string Eliom_duce_sigs.XHTML_FORMS.select_opt ->
+        string Eliom_duce_sigs.XHTML_FORMS.select_opt list ->
+        Eliom_duce_types.select_elt
+      val user_type_multiple_select :
+        ('a -> string) ->
+        ?a:Eliom_duce_types.select_attrib_t ->
+        name:[< `Set of 'a ] Eliom_parameters.param_name ->
+        'a Eliom_duce_sigs.XHTML_FORMS.select_opt ->
+        'a Eliom_duce_sigs.XHTML_FORMS.select_opt list ->
+        Eliom_duce_types.select_elt
+      val raw_multiple_select :
+        ?a:Eliom_duce_types.select_attrib_t ->
+        name:string ->
+        string Eliom_duce_sigs.XHTML_FORMS.select_opt ->
+        string Eliom_duce_sigs.XHTML_FORMS.select_opt list ->
+        Eliom_duce_types.select_elt
+    end
+  module type XHTML_REGISTRATION =
+    sig
+      type page = Eliom_duce_types.html
+      type options = unit
+      type return = Eliom_output.http_service
+      type result = Ocsigen_http_frame.result
+      val send :
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        Eliom_duce_types.html -> Ocsigen_http_frame.result Lwt.t
+      val register :
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        ?secure_session:bool ->
+        service:('a, 'b, [< Eliom_services.internal_service_kind ],
+                 [< Eliom_services.suff ], 'c, 'd, [ `Registrable ],
+                 Eliom_output.http_service)
+                Eliom_services.service ->
+        ?error_handler:((string * exn) list -> Eliom_duce_types.html Lwt.t) ->
+        ('a -> 'b -> Eliom_duce_types.html Lwt.t) -> unit
+      val register_service :
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?priority:int ->
+        path:Eliom_pervasives.Url.path ->
+        get_params:('a, [< Eliom_services.suff ] as 'b, 'c)
+                   Eliom_parameters.params_type ->
+        ?error_handler:((string * exn) list -> Eliom_duce_types.html Lwt.t) ->
+        ('a -> unit -> Eliom_duce_types.html Lwt.t) ->
+        ('a, unit,
+         [> `Attached of
+              ([> `Internal of [> `Service ] ], [> `Get ]) Eliom_services.a_s ],
+         'b, 'c, unit, [> `Registrable ], Eliom_output.http_service)
+        Eliom_services.service
+      val register_coservice :
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        ?secure_session:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        ?https:bool ->
+        fallback:(unit, unit,
+                  [ `Attached of
+                      ([ `Internal of [ `Service ] ], [ `Get ])
+                      Eliom_services.a_s ],
+                  [ `WithoutSuffix ], unit, unit,
+                  [< Eliom_services.registrable ], Eliom_output.http_service)
+                 Eliom_services.service ->
+        get_params:('a, [ `WithoutSuffix ], 'b) Eliom_parameters.params_type ->
+        ?error_handler:((string * exn) list -> Eliom_duce_types.html Lwt.t) ->
+        ('a -> unit -> Eliom_duce_types.html Lwt.t) ->
+        ('a, unit,
+         [> `Attached of
+              ([> `Internal of [> `Coservice ] ], [> `Get ])
+              Eliom_services.a_s ],
+         [ `WithoutSuffix ], 'b, unit, [> `Registrable ],
+         Eliom_output.http_service)
+        Eliom_services.service
+      val register_coservice' :
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        ?secure_session:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        ?https:bool ->
+        get_params:('a, [ `WithoutSuffix ], 'b) Eliom_parameters.params_type ->
+        ?error_handler:((string * exn) list -> Eliom_duce_types.html Lwt.t) ->
+        ('a -> unit -> Eliom_duce_types.html Lwt.t) ->
+        ('a, unit, [> `Nonattached of [> `Get ] Eliom_services.na_s ],
+         [ `WithoutSuffix ], 'b, unit, [> `Registrable ],
+         Eliom_output.http_service)
+        Eliom_services.service
+      val register_post_service :
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?priority:int ->
+        fallback:('a, unit,
+                  [ `Attached of
+                      ([ `Internal of [ `Coservice | `Service ] ], [ `Get ])
+                      Eliom_services.a_s ],
+                  [< Eliom_services.suff ] as 'b, 'c, unit,
+                  [< `Registrable ], 'd)
+                 Eliom_services.service ->
+        post_params:('e, [ `WithoutSuffix ], 'f) Eliom_parameters.params_type ->
+        ?error_handler:((string * exn) list -> Eliom_duce_types.html Lwt.t) ->
+        ('a -> 'e -> Eliom_duce_types.html Lwt.t) ->
+        ('a, 'e,
+         [> `Attached of
+              ([> `Internal of [ `Coservice | `Service ] ], [> `Post ])
+              Eliom_services.a_s ],
+         'b, 'c, 'f, [> `Registrable ], Eliom_output.http_service)
+        Eliom_services.service
+      val register_post_coservice :
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        ?secure_session:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        ?https:bool ->
+        fallback:('a, unit,
+                  [ `Attached of
+                      ([ `Internal of [< `Coservice | `Service ] ], [ `Get ])
+                      Eliom_services.a_s ],
+                  [< Eliom_services.suff ] as 'b, 'c, unit,
+                  [< `Registrable ], Eliom_output.http_service)
+                 Eliom_services.service ->
+        post_params:('d, [ `WithoutSuffix ], 'e) Eliom_parameters.params_type ->
+        ?error_handler:((string * exn) list -> Eliom_duce_types.html Lwt.t) ->
+        ('a -> 'd -> Eliom_duce_types.html Lwt.t) ->
+        ('a, 'd,
+         [> `Attached of
+              ([> `Internal of [> `Coservice ] ], [> `Post ])
+              Eliom_services.a_s ],
+         'b, 'c, 'e, [> `Registrable ], Eliom_output.http_service)
+        Eliom_services.service
+      val register_post_coservice' :
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        ?secure_session:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        ?keep_get_na_params:bool ->
+        ?https:bool ->
+        post_params:('a, [ `WithoutSuffix ], 'b) Eliom_parameters.params_type ->
+        ?error_handler:((string * exn) list -> Eliom_duce_types.html Lwt.t) ->
+        (unit -> 'a -> Eliom_duce_types.html Lwt.t) ->
+        (unit, 'a, [> `Nonattached of [> `Post ] Eliom_services.na_s ],
+         [ `WithoutSuffix ], unit, 'b, [> `Registrable ],
+         Eliom_output.http_service)
+        Eliom_services.service
+    end
+  module type XML_REGISTRATION =
+    sig
+      type page = Eliom_duce_types.anyxml
+      type options = unit
+      type return = Eliom_output.http_service
+      type result = Ocsigen_http_frame.result
+      val send :
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        Eliom_duce_types.anyxml -> Ocsigen_http_frame.result Lwt.t
+      val register :
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        ?secure_session:bool ->
+        service:('a, 'b, [< Eliom_services.internal_service_kind ],
+                 [< Eliom_services.suff ], 'c, 'd, [ `Registrable ],
+                 Eliom_output.http_service)
+                Eliom_services.service ->
+        ?error_handler:((string * exn) list -> Eliom_duce_types.anyxml Lwt.t) ->
+        ('a -> 'b -> Eliom_duce_types.anyxml Lwt.t) -> unit
+      val register_service :
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?priority:int ->
+        path:Eliom_pervasives.Url.path ->
+        get_params:('a, [< Eliom_services.suff ] as 'b, 'c)
+                   Eliom_parameters.params_type ->
+        ?error_handler:((string * exn) list -> Eliom_duce_types.anyxml Lwt.t) ->
+        ('a -> unit -> Eliom_duce_types.anyxml Lwt.t) ->
+        ('a, unit,
+         [> `Attached of
+              ([> `Internal of [> `Service ] ], [> `Get ]) Eliom_services.a_s ],
+         'b, 'c, unit, [> `Registrable ], Eliom_output.http_service)
+        Eliom_services.service
+      val register_coservice :
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        ?secure_session:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        ?https:bool ->
+        fallback:(unit, unit,
+                  [ `Attached of
+                      ([ `Internal of [ `Service ] ], [ `Get ])
+                      Eliom_services.a_s ],
+                  [ `WithoutSuffix ], unit, unit,
+                  [< Eliom_services.registrable ], Eliom_output.http_service)
+                 Eliom_services.service ->
+        get_params:('a, [ `WithoutSuffix ], 'b) Eliom_parameters.params_type ->
+        ?error_handler:((string * exn) list -> Eliom_duce_types.anyxml Lwt.t) ->
+        ('a -> unit -> Eliom_duce_types.anyxml Lwt.t) ->
+        ('a, unit,
+         [> `Attached of
+              ([> `Internal of [> `Coservice ] ], [> `Get ])
+              Eliom_services.a_s ],
+         [ `WithoutSuffix ], 'b, unit, [> `Registrable ],
+         Eliom_output.http_service)
+        Eliom_services.service
+      val register_coservice' :
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        ?secure_session:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        ?https:bool ->
+        get_params:('a, [ `WithoutSuffix ], 'b) Eliom_parameters.params_type ->
+        ?error_handler:((string * exn) list -> Eliom_duce_types.anyxml Lwt.t) ->
+        ('a -> unit -> Eliom_duce_types.anyxml Lwt.t) ->
+        ('a, unit, [> `Nonattached of [> `Get ] Eliom_services.na_s ],
+         [ `WithoutSuffix ], 'b, unit, [> `Registrable ],
+         Eliom_output.http_service)
+        Eliom_services.service
+      val register_post_service :
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?priority:int ->
+        fallback:('a, unit,
+                  [ `Attached of
+                      ([ `Internal of [ `Coservice | `Service ] ], [ `Get ])
+                      Eliom_services.a_s ],
+                  [< Eliom_services.suff ] as 'b, 'c, unit,
+                  [< `Registrable ], 'd)
+                 Eliom_services.service ->
+        post_params:('e, [ `WithoutSuffix ], 'f) Eliom_parameters.params_type ->
+        ?error_handler:((string * exn) list -> Eliom_duce_types.anyxml Lwt.t) ->
+        ('a -> 'e -> Eliom_duce_types.anyxml Lwt.t) ->
+        ('a, 'e,
+         [> `Attached of
+              ([> `Internal of [ `Coservice | `Service ] ], [> `Post ])
+              Eliom_services.a_s ],
+         'b, 'c, 'f, [> `Registrable ], Eliom_output.http_service)
+        Eliom_services.service
+      val register_post_coservice :
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        ?secure_session:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        ?https:bool ->
+        fallback:('a, unit,
+                  [ `Attached of
+                      ([ `Internal of [< `Coservice | `Service ] ], [ `Get ])
+                      Eliom_services.a_s ],
+                  [< Eliom_services.suff ] as 'b, 'c, unit,
+                  [< `Registrable ], Eliom_output.http_service)
+                 Eliom_services.service ->
+        post_params:('d, [ `WithoutSuffix ], 'e) Eliom_parameters.params_type ->
+        ?error_handler:((string * exn) list -> Eliom_duce_types.anyxml Lwt.t) ->
+        ('a -> 'd -> Eliom_duce_types.anyxml Lwt.t) ->
+        ('a, 'd,
+         [> `Attached of
+              ([> `Internal of [> `Coservice ] ], [> `Post ])
+              Eliom_services.a_s ],
+         'b, 'c, 'e, [> `Registrable ], Eliom_output.http_service)
+        Eliom_services.service
+      val register_post_coservice' :
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        ?secure_session:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        ?keep_get_na_params:bool ->
+        ?https:bool ->
+        post_params:('a, [ `WithoutSuffix ], 'b) Eliom_parameters.params_type ->
+        ?error_handler:((string * exn) list -> Eliom_duce_types.anyxml Lwt.t) ->
+        (unit -> 'a -> Eliom_duce_types.anyxml Lwt.t) ->
+        (unit, 'a, [> `Nonattached of [> `Post ] Eliom_services.na_s ],
+         [ `WithoutSuffix ], unit, 'b, [> `Registrable ],
+         Eliom_output.http_service)
+        Eliom_services.service
+    end
+  module type XML_LIST_REGISTRATION =
+    sig
+      type page = Eliom_duce_types.anyxml list
+      type options = unit
+      type return = Eliom_output.http_service
+      type result = Ocsigen_http_frame.result
+      val send :
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        Eliom_duce_types.anyxml list -> Ocsigen_http_frame.result Lwt.t
+      val register :
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        ?secure_session:bool ->
+        service:('a, 'b, [< Eliom_services.internal_service_kind ],
+                 [< Eliom_services.suff ], 'c, 'd, [ `Registrable ],
+                 Eliom_output.http_service)
+                Eliom_services.service ->
+        ?error_handler:((string * exn) list ->
+                        Eliom_duce_types.anyxml list Lwt.t) ->
+        ('a -> 'b -> Eliom_duce_types.anyxml list Lwt.t) -> unit
+      val register_service :
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?priority:int ->
+        path:Eliom_pervasives.Url.path ->
+        get_params:('a, [< Eliom_services.suff ] as 'b, 'c)
+                   Eliom_parameters.params_type ->
+        ?error_handler:((string * exn) list ->
+                        Eliom_duce_types.anyxml list Lwt.t) ->
+        ('a -> unit -> Eliom_duce_types.anyxml list Lwt.t) ->
+        ('a, unit,
+         [> `Attached of
+              ([> `Internal of [> `Service ] ], [> `Get ]) Eliom_services.a_s ],
+         'b, 'c, unit, [> `Registrable ], Eliom_output.http_service)
+        Eliom_services.service
+      val register_coservice :
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        ?secure_session:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        ?https:bool ->
+        fallback:(unit, unit,
+                  [ `Attached of
+                      ([ `Internal of [ `Service ] ], [ `Get ])
+                      Eliom_services.a_s ],
+                  [ `WithoutSuffix ], unit, unit,
+                  [< Eliom_services.registrable ], Eliom_output.http_service)
+                 Eliom_services.service ->
+        get_params:('a, [ `WithoutSuffix ], 'b) Eliom_parameters.params_type ->
+        ?error_handler:((string * exn) list ->
+                        Eliom_duce_types.anyxml list Lwt.t) ->
+        ('a -> unit -> Eliom_duce_types.anyxml list Lwt.t) ->
+        ('a, unit,
+         [> `Attached of
+              ([> `Internal of [> `Coservice ] ], [> `Get ])
+              Eliom_services.a_s ],
+         [ `WithoutSuffix ], 'b, unit, [> `Registrable ],
+         Eliom_output.http_service)
+        Eliom_services.service
+      val register_coservice' :
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        ?secure_session:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        ?https:bool ->
+        get_params:('a, [ `WithoutSuffix ], 'b) Eliom_parameters.params_type ->
+        ?error_handler:((string * exn) list ->
+                        Eliom_duce_types.anyxml list Lwt.t) ->
+        ('a -> unit -> Eliom_duce_types.anyxml list Lwt.t) ->
+        ('a, unit, [> `Nonattached of [> `Get ] Eliom_services.na_s ],
+         [ `WithoutSuffix ], 'b, unit, [> `Registrable ],
+         Eliom_output.http_service)
+        Eliom_services.service
+      val register_post_service :
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?priority:int ->
+        fallback:('a, unit,
+                  [ `Attached of
+                      ([ `Internal of [ `Coservice | `Service ] ], [ `Get ])
+                      Eliom_services.a_s ],
+                  [< Eliom_services.suff ] as 'b, 'c, unit,
+                  [< `Registrable ], 'd)
+                 Eliom_services.service ->
+        post_params:('e, [ `WithoutSuffix ], 'f) Eliom_parameters.params_type ->
+        ?error_handler:((string * exn) list ->
+                        Eliom_duce_types.anyxml list Lwt.t) ->
+        ('a -> 'e -> Eliom_duce_types.anyxml list Lwt.t) ->
+        ('a, 'e,
+         [> `Attached of
+              ([> `Internal of [ `Coservice | `Service ] ], [> `Post ])
+              Eliom_services.a_s ],
+         'b, 'c, 'f, [> `Registrable ], Eliom_output.http_service)
+        Eliom_services.service
+      val register_post_coservice :
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        ?secure_session:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        ?https:bool ->
+        fallback:('a, unit,
+                  [ `Attached of
+                      ([ `Internal of [< `Coservice | `Service ] ], [ `Get ])
+                      Eliom_services.a_s ],
+                  [< Eliom_services.suff ] as 'b, 'c, unit,
+                  [< `Registrable ], Eliom_output.http_service)
+                 Eliom_services.service ->
+        post_params:('d, [ `WithoutSuffix ], 'e) Eliom_parameters.params_type ->
+        ?error_handler:((string * exn) list ->
+                        Eliom_duce_types.anyxml list Lwt.t) ->
+        ('a -> 'd -> Eliom_duce_types.anyxml list Lwt.t) ->
+        ('a, 'd,
+         [> `Attached of
+              ([> `Internal of [> `Coservice ] ], [> `Post ])
+              Eliom_services.a_s ],
+         'b, 'c, 'e, [> `Registrable ], Eliom_output.http_service)
+        Eliom_services.service
+      val register_post_coservice' :
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        ?secure_session:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        ?keep_get_na_params:bool ->
+        ?https:bool ->
+        post_params:('a, [ `WithoutSuffix ], 'b) Eliom_parameters.params_type ->
+        ?error_handler:((string * exn) list ->
+                        Eliom_duce_types.anyxml list Lwt.t) ->
+        (unit -> 'a -> Eliom_duce_types.anyxml list Lwt.t) ->
+        (unit, 'a, [> `Nonattached of [> `Post ] Eliom_services.na_s ],
+         [ `WithoutSuffix ], unit, 'b, [> `Registrable ],
+         Eliom_output.http_service)
+        Eliom_services.service
+    end
+  module type BLOCKS_REGISTRATION =
+    sig
+      type page = Eliom_duce_types.blocks
+      type options = unit
+      type return = Eliom_output.http_service
+      type result = Ocsigen_http_frame.result
+      val send :
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        Eliom_duce_types.blocks -> Ocsigen_http_frame.result Lwt.t
+      val register :
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        ?secure_session:bool ->
+        service:('a, 'b, [< Eliom_services.internal_service_kind ],
+                 [< Eliom_services.suff ], 'c, 'd, [ `Registrable ],
+                 Eliom_output.http_service)
+                Eliom_services.service ->
+        ?error_handler:((string * exn) list -> Eliom_duce_types.blocks Lwt.t) ->
+        ('a -> 'b -> Eliom_duce_types.blocks Lwt.t) -> unit
+      val register_service :
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?priority:int ->
+        path:Eliom_pervasives.Url.path ->
+        get_params:('a, [< Eliom_services.suff ] as 'b, 'c)
+                   Eliom_parameters.params_type ->
+        ?error_handler:((string * exn) list -> Eliom_duce_types.blocks Lwt.t) ->
+        ('a -> unit -> Eliom_duce_types.blocks Lwt.t) ->
+        ('a, unit,
+         [> `Attached of
+              ([> `Internal of [> `Service ] ], [> `Get ]) Eliom_services.a_s ],
+         'b, 'c, unit, [> `Registrable ], Eliom_output.http_service)
+        Eliom_services.service
+      val register_coservice :
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        ?secure_session:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        ?https:bool ->
+        fallback:(unit, unit,
+                  [ `Attached of
+                      ([ `Internal of [ `Service ] ], [ `Get ])
+                      Eliom_services.a_s ],
+                  [ `WithoutSuffix ], unit, unit,
+                  [< Eliom_services.registrable ], Eliom_output.http_service)
+                 Eliom_services.service ->
+        get_params:('a, [ `WithoutSuffix ], 'b) Eliom_parameters.params_type ->
+        ?error_handler:((string * exn) list -> Eliom_duce_types.blocks Lwt.t) ->
+        ('a -> unit -> Eliom_duce_types.blocks Lwt.t) ->
+        ('a, unit,
+         [> `Attached of
+              ([> `Internal of [> `Coservice ] ], [> `Get ])
+              Eliom_services.a_s ],
+         [ `WithoutSuffix ], 'b, unit, [> `Registrable ],
+         Eliom_output.http_service)
+        Eliom_services.service
+      val register_coservice' :
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        ?secure_session:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        ?https:bool ->
+        get_params:('a, [ `WithoutSuffix ], 'b) Eliom_parameters.params_type ->
+        ?error_handler:((string * exn) list -> Eliom_duce_types.blocks Lwt.t) ->
+        ('a -> unit -> Eliom_duce_types.blocks Lwt.t) ->
+        ('a, unit, [> `Nonattached of [> `Get ] Eliom_services.na_s ],
+         [ `WithoutSuffix ], 'b, unit, [> `Registrable ],
+         Eliom_output.http_service)
+        Eliom_services.service
+      val register_post_service :
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?priority:int ->
+        fallback:('a, unit,
+                  [ `Attached of
+                      ([ `Internal of [ `Coservice | `Service ] ], [ `Get ])
+                      Eliom_services.a_s ],
+                  [< Eliom_services.suff ] as 'b, 'c, unit,
+                  [< `Registrable ], 'd)
+                 Eliom_services.service ->
+        post_params:('e, [ `WithoutSuffix ], 'f) Eliom_parameters.params_type ->
+        ?error_handler:((string * exn) list -> Eliom_duce_types.blocks Lwt.t) ->
+        ('a -> 'e -> Eliom_duce_types.blocks Lwt.t) ->
+        ('a, 'e,
+         [> `Attached of
+              ([> `Internal of [ `Coservice | `Service ] ], [> `Post ])
+              Eliom_services.a_s ],
+         'b, 'c, 'f, [> `Registrable ], Eliom_output.http_service)
+        Eliom_services.service
+      val register_post_coservice :
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        ?secure_session:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        ?https:bool ->
+        fallback:('a, unit,
+                  [ `Attached of
+                      ([ `Internal of [< `Coservice | `Service ] ], [ `Get ])
+                      Eliom_services.a_s ],
+                  [< Eliom_services.suff ] as 'b, 'c, unit,
+                  [< `Registrable ], Eliom_output.http_service)
+                 Eliom_services.service ->
+        post_params:('d, [ `WithoutSuffix ], 'e) Eliom_parameters.params_type ->
+        ?error_handler:((string * exn) list -> Eliom_duce_types.blocks Lwt.t) ->
+        ('a -> 'd -> Eliom_duce_types.blocks Lwt.t) ->
+        ('a, 'd,
+         [> `Attached of
+              ([> `Internal of [> `Coservice ] ], [> `Post ])
+              Eliom_services.a_s ],
+         'b, 'c, 'e, [> `Registrable ], Eliom_output.http_service)
+        Eliom_services.service
+      val register_post_coservice' :
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:unit ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Http_headers.t ->
+        ?secure_session:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        ?keep_get_na_params:bool ->
+        ?https:bool ->
+        post_params:('a, [ `WithoutSuffix ], 'b) Eliom_parameters.params_type ->
+        ?error_handler:((string * exn) list -> Eliom_duce_types.blocks Lwt.t) ->
+        (unit -> 'a -> Eliom_duce_types.blocks Lwt.t) ->
+        (unit, 'a, [> `Nonattached of [> `Post ] Eliom_services.na_s ],
+         [ `WithoutSuffix ], unit, 'b, [> `Registrable ],
+         Eliom_output.http_service)
+        Eliom_services.service
+    end
+end >>

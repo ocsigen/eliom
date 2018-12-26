@@ -1,0 +1,208 @@
+=Module type <<a_api_type subproject="server" | module type Eliom_parameter_sigs.S >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module type>> <<span class="ocsforge_color_uid"|S>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module type Eliom_parameter_sigs.S >><<span class="ocsforge_color_keyword"|end>>>>
+----
+<<pre class="ocsforge_color odocwiki_code" id="TYPEsuff"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|suff>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|[ `Endsuffix | `WithSuffix | `WithoutSuffix ]>> >><<div class="odocwiki_info"|~This type is used as a phantom type in <<a_api subproject="server" | type Eliom_parameter_sigs.S.params_type >> to
+      describe whether a parameter is encoded in the path of the ~U~R~I as
+      a suffix parameter~.
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEparams_type"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>'a, +[< <<a_api subproject="server" text="suff" | type Eliom_parameter_sigs.S.suff >> ], 'c<<span class="ocsforge_color_delimiter"| ) >>>> <<span class="odocwiki_name"|params~_type>>>><<div class="odocwiki_info"|~Abstract type for service parameters~. ~See for example the
+      parameter <<span class="odocwiki_inlinecode"|~~get~_param>> of <<span class="odocwiki_inlinecode"|~Eliom~_service~.~Http~.service>>~.
+
+
+* <<span class="odocwiki_inlinecode"| ~'a>> is the type for the ~O~Caml type of the
+        parameter as expected by the service handler~.
+
+* <<span class="odocwiki_inlinecode"| ~'b>> is a phantom type~, subtype of <<a_api subproject="server" | type Eliom_parameter_sigs.S.suff >>~, stating the kind
+        of the parameter~: suffix or not~.
+
+* <<span class="odocwiki_inlinecode"| ~'c>> is the type of the parameter name~, usually an instance
+        of <<span class="odocwiki_inlinecode"|~Eliom~_parameter~.param~_name>>~, as used by forms
+        construction functions ~(e~.g~.~, the last parameter of
+        <<span class="odocwiki_inlinecode"|~Eliom~_content~.~Html~.~D~.get~_form>>~)~, and specialized form
+        widget ~(see for example the section
+        ~Form widget of
+        <<span class="odocwiki_inlinecode"|~Eliom~_content~.~H~T~M~L~5~.~D>>~)~. ~)
+
+>>
+
+
+==@@id="2_Typedparametersname"@@~Typed parameter~'s name==
+
+<<pre class="ocsforge_color odocwiki_code" id="TYPEparam_name"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|+'a>> <<span class="odocwiki_name"|param~_name>>>><<div class="odocwiki_info"|~Abstract type for parameters~' name~. ~The <<span class="odocwiki_inlinecode"|~'a>> type parameter is a
+      phantom type~, usually a subtype of <<a_api subproject="server" | type Eliom_parameter_sigs.S.setoneradio >>~, used to
+      denotes the parameter~'s arity~.
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEno_param_name"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|no~_param~_name>>>><<div class="odocwiki_info"|~Empty type used to denotes it is not possible to use the
+      parameter in a form~. ~See for example <<a_api subproject="server" | val Eliom_parameter_sigs.S.raw_post_data >>~.
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEsetoneradio"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|'a>> <<span class="odocwiki_name"|setoneradio>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|[ `One of 'a | `Radio of 'a | `Set of 'a ]>> >><<div class="odocwiki_info"|~A parameter arity could either be~:
+* <<span class="odocwiki_inlinecode"|`~Set of ~'a>> means~: any number of <<span class="odocwiki_inlinecode"|~'a>>~.
+* <<span class="odocwiki_inlinecode"|`~One of ~'a>> means~: exactly one <<span class="odocwiki_inlinecode"|~'a>>~.
+* <<span class="odocwiki_inlinecode"|`~Radio of ~'a>> means~: zero or one <<span class="odocwiki_inlinecode"|~'a>>~.
+
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEoneradio"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|'a>> <<span class="odocwiki_name"|oneradio>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|[ `One of 'a | `Radio of 'a ]>> >><<div class="odocwiki_info"|~Restriction of <<a_api subproject="server" | type Eliom_parameter_sigs.S.setoneradio >> unary and optional parameters~.
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEsetone"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|'a>> <<span class="odocwiki_name"|setone>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|[ `One of 'a | `Set of 'a ]>> >><<div class="odocwiki_info"|~Restriction of <<a_api subproject="server" | type Eliom_parameter_sigs.S.setoneradio >> unary and set parameters~.
+>>
+
+
+==@@id="2_Typehelpers"@@~Type helpers==
+
+<<pre class="ocsforge_color odocwiki_code" id="TYPEbinsum"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>'a, 'b<<span class="ocsforge_color_delimiter"| ) >>>> <<span class="odocwiki_name"|binsum>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_variants"|<<span class="odocwiki_variant"|<<span class="odocwiki_variant_constr"|<<span class="ocsforge_color_keyword"| ~|>> <<span class="ocsforge_color_uid"|Inj1>> <<span class="ocsforge_color_keyword"|of>> <<span class="odocwiki_type"|'a>>>>>><<span class="odocwiki_variant"|<<span class="odocwiki_variant_constr"|<<span class="ocsforge_color_keyword"| ~|>> <<span class="ocsforge_color_uid"|Inj2>> <<span class="ocsforge_color_keyword"|of>> <<span class="odocwiki_type"|'b>>>>>>>>>><<div class="odocwiki_info"|~Helpers type used for parameters of type binary sum~, see
+      <<a_api subproject="server" | val Eliom_parameter_sigs.S.sum >>~.
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPElistnames"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|'an>> <<span class="odocwiki_name"|listnames>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="ocsforge_color_delimiter"|~{>>
+<<span class="odocwiki_record"|<<span class="odocwiki_field"|<<span class="odocwiki_field_descr"|  <<span class="ocsforge_color_label"|it:>> <<span class="odocwiki_type"|'el 'a. <<span class="ocsforge_color_delimiter"| ( >>'an <<span class="ocsforge_color_delimiter"| -> >> 'el <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_delimiter"| -> >> 'a<<span class="ocsforge_color_delimiter"| ) >> <<span class="ocsforge_color_delimiter"| -> >> 'el list <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_delimiter"| -> >> 'a>><<span class="ocsforge_color_delimiter"|~;>> >>>>>><<span class="ocsforge_color_delimiter"|~}>>>><<div class="odocwiki_info"|~Helpers type used to construct forms from lists~, see <<a_api subproject="server" | val Eliom_parameter_sigs.S.list >>~.
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEto_and_of"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|'a>> <<span class="odocwiki_name"|to~_and~_of>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="ocsforge_color_delimiter"|~{>>
+<<span class="odocwiki_record"|<<span class="odocwiki_field"|<<span class="odocwiki_field_descr"|  <<span class="ocsforge_color_label"|of_string:>> <<span class="odocwiki_type"|string <<span class="ocsforge_color_delimiter"| -> >> 'a>><<span class="ocsforge_color_delimiter"|~;>> >>>><<span class="odocwiki_field"|<<span class="odocwiki_field_descr"|  <<span class="ocsforge_color_label"|to_string:>> <<span class="odocwiki_type"|'a <<span class="ocsforge_color_delimiter"| -> >> string>><<span class="ocsforge_color_delimiter"|~;>> >>>>>><<span class="ocsforge_color_delimiter"|~}>>>>
+
+==@@id="2_Basictypesofpagesparameters"@@~Basic types of pages parameters==
+
+<<pre id="VALint" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|int>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>int, [ `WithoutSuffix ],\\   [ `One of int ] <<a_api subproject="server" text="param_name" | type Eliom_parameter_sigs.S.param_name >><<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|int s>> means that the service takes an integer as the parameter
+      named <<span class="odocwiki_inlinecode"|s>>~.
+>>
+<<pre id="VALint32" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|int~3~2>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>int32, [ `WithoutSuffix ],\\   [ `One of int32 ] <<a_api subproject="server" text="param_name" | type Eliom_parameter_sigs.S.param_name >><<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|int~3~2 s>> means that the service takes a ~3~2~-bit integer as the
+      parameter named <<span class="odocwiki_inlinecode"|s>>~.
+>>
+<<pre id="VALint64" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|int~6~4>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>int64, [ `WithoutSuffix ],\\   [ `One of int64 ] <<a_api subproject="server" text="param_name" | type Eliom_parameter_sigs.S.param_name >><<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|int~6~4 s>> means that the service takes a ~6~4~-bit integer as the
+      parameter named <<span class="odocwiki_inlinecode"|s>>~.
+>>
+<<pre id="VALfloat" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|float>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>float, [ `WithoutSuffix ],\\   [ `One of float ] <<a_api subproject="server" text="param_name" | type Eliom_parameter_sigs.S.param_name >><<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|float s>> means that the service takes a float as the parameter
+      named <<span class="odocwiki_inlinecode"|s>>~.
+>>
+<<pre id="VALstring" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|string>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>string, [ `WithoutSuffix ],\\   [ `One of string ] <<a_api subproject="server" text="param_name" | type Eliom_parameter_sigs.S.param_name >><<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|string s>> means that the service takes a string as the parameter
+      named <<span class="odocwiki_inlinecode"|s>>~.
+>>
+<<pre id="VALbool" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|bool>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>bool, [ `WithoutSuffix ],\\   [ `One of bool ] <<a_api subproject="server" text="param_name" | type Eliom_parameter_sigs.S.param_name >><<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|bool s>> means that the service takes a ~Boolean as the parameter
+      named <<span class="odocwiki_inlinecode"|s>>~. ~(~To be used~, for example~, with ~Boolean
+      checkboxes~.~)
+>>
+<<pre id="VALfile" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|file>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >><<a_api subproject="server" text="Eliom_lib.file_info" | type Eliom_lib.file_info >>, [ `WithoutSuffix ],\\   [ `One of <<a_api subproject="server" text="Eliom_lib.file_info" | type Eliom_lib.file_info >> ] <<a_api subproject="server" text="param_name" | type Eliom_parameter_sigs.S.param_name >><<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|file s>> means that the service takes a file as the parameter
+      named <<span class="odocwiki_inlinecode"|s>>~.
+>>
+<<pre id="VALunit" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|unit>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>unit, [ `WithoutSuffix ], unit<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >>>>>><<div class="odocwiki_info"|~Specifying parameter as <<span class="odocwiki_inlinecode"|unit>> is used for services that don~'t
+      have any parameters
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEcoordinates"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|coordinates>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="ocsforge_color_delimiter"|~{>>
+<<span class="odocwiki_record"|<<span class="odocwiki_field"|<<span class="odocwiki_field_descr"|  <<span class="ocsforge_color_label"|abscissa:>> <<span class="odocwiki_type"|int>><<span class="ocsforge_color_delimiter"|~;>> >>>><<span class="odocwiki_field"|<<span class="odocwiki_field_descr"|  <<span class="ocsforge_color_label"|ordinate:>> <<span class="odocwiki_type"|int>><<span class="ocsforge_color_delimiter"|~;>> >>>>>><<span class="ocsforge_color_delimiter"|~}>>>><<div class="odocwiki_info"|~The type <<span class="odocwiki_inlinecode"|coordinates>> represents the data sent by an <<span class="odocwiki_inlinecode"|~<input
+      type~="image" ~.~.~.~>>>~.
+>>
+<<pre id="VALcoordinates" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|coordinates>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >><<a_api subproject="server" text="coordinates" | type Eliom_parameter_sigs.S.coordinates >>, [ `WithoutSuffix ],\\   [ `One of <<a_api subproject="server" text="coordinates" | type Eliom_parameter_sigs.S.coordinates >> ]\\   <<a_api subproject="server" text="param_name" | type Eliom_parameter_sigs.S.param_name >><<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|coordinates s>> means that the service takes as parameters the
+      coordinates of a point in an <<span class="odocwiki_inlinecode"|~<input type~="image" ~.~.~.~>>>~.
+>>
+
+
+==@@id="2_Composingtypesofpagesparameters"@@~Composing types of pages parameters==
+
+<<pre id="VAL( ** )" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|~( ~*~* ~)>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_delimiter"| ( >>'a, [ `WithoutSuffix ], 'b<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>'c, [< `Endsuffix | `WithoutSuffix ] as 'e, 'd<<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>'a * 'c, 'e, 'b * 'd<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >>>>>><<div class="odocwiki_info"|~The combinator <<span class="odocwiki_inlinecode"|p~1 ~*~* p~2>> allows one to define a service that
+      takes a pair of parameters~. ~The associated service handler
+      should expect a pair <<span class="odocwiki_inlinecode"|~(p~1~, p~2~)>>~.
+>>
+<<pre id="VALprod" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|prod>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_delimiter"| ( >>'a, [ `WithoutSuffix ], 'b<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>'c, [< `Endsuffix | `WithoutSuffix ] as 'e, 'd<<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>'a * 'c, 'e, 'b * 'd<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >>>>>><<div class="odocwiki_info"|~Same as <<a_api subproject="server" | val Eliom_parameter_sigs.S.( ** ) >>~.
+>>
+<<pre id="VALsum" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|sum>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_delimiter"| ( >>'a, [ `WithoutSuffix ], 'b<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>'c, [ `WithoutSuffix ], 'd<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >><<span class="ocsforge_color_delimiter"| ( >>'a, 'c<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="binsum" | type Eliom_parameter_sigs.S.binsum >>, [ `WithoutSuffix ], 'b * 'd<<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >>>>>><<div class="odocwiki_info"|~The combinator <<span class="odocwiki_inlinecode"|sum p~1 p~2>> allows one to define service that
+      expect either the parameter <<span class="odocwiki_inlinecode"|p~1>> or the parameter <<span class="odocwiki_inlinecode"|p~2>>~.
+>>
+<<pre id="VALopt" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|opt>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_delimiter"| ( >>'a, [ `WithoutSuffix ], 'b<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>'a option, [ `WithoutSuffix ], 'b<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >>>>>><<div class="odocwiki_info"|~The combinator <<span class="odocwiki_inlinecode"|opt p>> allows defining optional parameters~.
+>>
+<<pre id="VALneopt" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|neopt>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_delimiter"| ( >>'a, [ `WithoutSuffix ], 'b<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>'a option, [ `WithoutSuffix ], 'b<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >>>>>><<div class="odocwiki_info"|~The combinator <<span class="odocwiki_inlinecode"|neopt p>> allows defining an optional parameter
+      assumed to be ~None if empty~.
+>>
+<<pre id="VALradio" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|radio>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_delimiter"| ( >>string <<span class="ocsforge_color_delimiter"| -> >>\\   <<span class="ocsforge_color_delimiter"| ( >>'a, [ `WithoutSuffix ],\\    [ `One of 'b ] <<a_api subproject="server" text="param_name" | type Eliom_parameter_sigs.S.param_name >><<span class="ocsforge_color_delimiter"| ) >>\\   <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >><<span class="ocsforge_color_delimiter"| ) >> <<span class="ocsforge_color_delimiter"| -> >>\\  string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>'a option, [ `WithoutSuffix ],\\   [ `Radio of 'b ] <<a_api subproject="server" text="param_name" | type Eliom_parameter_sigs.S.param_name >><<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >>>>>><<div class="odocwiki_info"|~A parameter as <<span class="odocwiki_inlinecode"|radio f s>> specifies that the service takes an
+      optional argument labeled <<span class="odocwiki_inlinecode"|s>>~, of type <<span class="odocwiki_inlinecode"|f s>>~.  ~Use <<span class="odocwiki_inlinecode"|radio>>
+      instead of <<a_api subproject="server" | val Eliom_parameter_sigs.S.opt >> if you want to use this parameter with a radio
+      button~.
+>>
+<<pre id="VALany" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|any>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_delimiter"| ( >><<span class="ocsforge_color_delimiter"| ( >>string * string<<span class="ocsforge_color_delimiter"| ) >> list, [ `WithoutSuffix ], unit<<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >>>>>><<div class="odocwiki_info"|~Use this if you want to take any parameters~.  ~The service will
+      answer to all the request~, and get all parameters as an
+      association list of strings~.
+>>
+<<pre id="VALset" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|set>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_delimiter"| ( >>string <<span class="ocsforge_color_delimiter"| -> >>\\   <<span class="ocsforge_color_delimiter"| ( >>'a, [ `WithoutSuffix ],\\    [ `One of 'b ] <<a_api subproject="server" text="param_name" | type Eliom_parameter_sigs.S.param_name >><<span class="ocsforge_color_delimiter"| ) >>\\   <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >><<span class="ocsforge_color_delimiter"| ) >> <<span class="ocsforge_color_delimiter"| -> >>\\  string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>'a list, [ `WithoutSuffix ],\\   [ `Set of 'b ] <<a_api subproject="server" text="param_name" | type Eliom_parameter_sigs.S.param_name >><<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >>>>>><<div class="odocwiki_info"|~Use this if you want your service to take several parameters
+      with the same name~. ~The service handler will receive a list of
+      values~.  ~To create the form~, just use the same name several
+      times~.  ~For example <<span class="odocwiki_inlinecode"|set int "i">> will match the parameter
+      string <<span class="odocwiki_inlinecode"|i~=~4~&i~=~2~2~&i~=~1~1~1>> and send to the service handler a list
+      containing the three integers ~4~, ~2~2 and ~1~1~1~. ~The order is
+      unspecified~.
+>>
+<<pre id="VALlist" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|list>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>'a, [ `WithoutSuffix ], 'b<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>'a list, [ `WithoutSuffix ], 'b <<a_api subproject="server" text="listnames" | type Eliom_parameter_sigs.S.listnames >><<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >>>>>><<div class="odocwiki_info"|~The service takes a list of parameters~. ~The first parameter of
+      this function is the name of the list~. ~The service handler will
+      receive a list of values~. ~To create the form~, an iterator of
+      type <<span class="odocwiki_inlinecode"|~Eliom~_parameter~.listnames>> is given to generate the name
+      for each value~.
+>>
+<<pre id="VALsuffix" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|suffix>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?redirect_if_not_suffix: >>bool <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>'s, [< `Endsuffix | `WithoutSuffix ], 'sn<<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>'s, [ `WithSuffix ], 'sn<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >>>>>><<div class="odocwiki_info"|~Tells that the parameter of the service handler is the suffix of
+      the ~U~R~L of the current service~.  e~.g~. <<span class="odocwiki_inlinecode"|suffix ~(int "i" ~*~* string
+      "s"~)>> will match an ~U~R~L ending by <<span class="odocwiki_inlinecode"|~3~8~0~/yo>>~.  and send <<span class="odocwiki_inlinecode"|~(~3~8~0~,
+      "yo"~)>> to the service handler~.
+
+
+      ~For each service with suffix~, there is also a service with
+      regular parameters ~(without suffix~) that will be used if you
+      create a form towards a service with suffix~.  ~If
+      <<span class="odocwiki_inlinecode"|redirect~_if~_not~_suffix>> is <<span class="odocwiki_inlinecode"|true>> ~(default~)~, this service
+      without suffix will be redirected to the suffix version~.
+>>
+<<pre id="VALall_suffix" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|all~_suffix>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>string list, [ `Endsuffix ],\\   [ `One of string list ] <<a_api subproject="server" text="param_name" | type Eliom_parameter_sigs.S.param_name >><<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >>>>>><<div class="odocwiki_info"|~Takes the whole suffix~, as long as possible~, as a ~(slash
+      separated~) string list
+>>
+<<pre id="VALall_suffix_string" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|all~_suffix~_string>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>string, [ `Endsuffix ],\\   [ `One of string ] <<a_api subproject="server" text="param_name" | type Eliom_parameter_sigs.S.param_name >><<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >>>>>><<div class="odocwiki_info"|~Takes the whole suffix~, as long as possible~, as a string
+>>
+<<pre id="VALsuffix_prod" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|suffix~_prod>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?redirect_if_not_suffix: >>bool <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>'s, [< `Endsuffix | `WithoutSuffix ], 'sn<<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>'a, [ `WithoutSuffix ], 'an<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>'s * 'a, [ `WithSuffix ], 'sn * 'an<<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >>>>>><<div class="odocwiki_info"|~Tells that the function that will generate the service takes a
+      pair whose first element is the suffix of the ~U~R~L of the current
+      service~, and the second element corresponds to other ~(regular~)
+      parameters~.  e~.g~.~: <<span class="odocwiki_inlinecode"|suffix~_prod ~(int "suff" ~*~* all~_suffix
+      "endsuff"~) ~(int "i"~)>> will match an ~U~R~L ending by
+      <<span class="odocwiki_inlinecode"|~7~7~7~/go~/go~/go~?i~=~3~2~0>> and send the value <<span class="odocwiki_inlinecode"|~(~(~7~7~7~, ~["go"~;"go"~;"go"~]~)~,
+      ~3~2~0~)>> to the service handler~.
+>>
+<<pre id="VALsuffix_const" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|suffix~_const>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>unit, [ `WithoutSuffix ],\\   [ `One of unit ] <<a_api subproject="server" text="param_name" | type Eliom_parameter_sigs.S.param_name >><<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|suffix~_const v>> is used only inside suffixes~. ~It does nothing
+      for regular parameters~. ~It specifies that the service takes a
+      constant parameter inside the suffix~, whose value must be <<span class="odocwiki_inlinecode"|v>>~.
+      ~It is used for putting constant directory names inside suffix
+      parameters ~(and thus allows suffix parameters that are anywhere
+      in the path~, e~.g~. <<span class="odocwiki_inlinecode"|~/param~1~/const~/param~2>>~)~.
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEocaml"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|'a>> <<span class="odocwiki_name"|ocaml>>>><<div class="odocwiki_info"|marshaled ~O~Caml values of type ~'a
+>>
+<<pre id="VALocaml" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|ocaml>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  string <<span class="ocsforge_color_delimiter"| -> >>\\  'a <<span class="ocsforge_color_uid"|Deriving_Json>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>'a, [ `WithoutSuffix ],\\   [ `One of 'a <<a_api subproject="server" text="ocaml" | type Eliom_parameter_sigs.S.ocaml >> ]\\   <<a_api subproject="server" text="param_name" | type Eliom_parameter_sigs.S.param_name >><<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|ocaml s>> tells that the service is expecting some caml ~(client
+      side~) program to send some value of type ~'a~, marshaled~.  ~As usual
+      <<span class="odocwiki_inlinecode"|s>> is the name of the parameter~.
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEraw_post_data"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|raw~_post~_data>>>><<div class="odocwiki_info"|~When the content type is neither ~U~R~Lencoded form data nor
+      multipart data~, it is possible to get it as a stream of strings~.
+      ~The first element of the pair is the content~-type~.  ~This kind of
+      parameter cannot be combined with others~. ~It is not possible to
+      create a form towards a service taking such a parameter~.
+>>
+<<pre id="VALraw_post_data" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|raw~_post~_data>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_delimiter"| ( >><<a_api subproject="server" text="raw_post_data" | type Eliom_parameter_sigs.S.raw_post_data >>, [ `WithoutSuffix ],\\   <<a_api subproject="server" text="no_param_name" | type Eliom_parameter_sigs.S.no_param_name >><<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >>>>>>
+
+==@@id="2_Nonlocalizedparameters"@@~Non localized parameters==
+
+<<pre class="ocsforge_color odocwiki_code" id="TYPEnon_localized_params"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>'a, +[< <<a_api subproject="server" text="suff" | type Eliom_parameter_sigs.S.suff >> ], 'names<<span class="ocsforge_color_delimiter"| ) >>>> <<span class="odocwiki_name"|non~_localized~_params>>>><<pre id="VALmake_non_localized_parameters" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|make~_non~_localized~_parameters>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| prefix: >>string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| name: >>string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?persistent: >>bool <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>'a, [ `WithoutSuffix ], 'b<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>'a, [ `WithoutSuffix ], 'b<<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="non_localized_params" | type Eliom_parameter_sigs.S.non_localized_params >>>>>><<div class="odocwiki_info"|~Create a new specification for non localized parameters~. ~You
+      must give a name to this set of parameters~. ~Warning~: the names
+      must be unique for the whole application~. ~That~'s why the name is
+      composed by a prefix ~(the name of your project~) and another
+      string ~(the name of your non localized parameters~)~.
+
+
+      ~Will fail with exception <<span class="odocwiki_inlinecode"|~Failure ~_>> if the name contains a dot~.
+      ~If <<span class="odocwiki_inlinecode"|~?persistent>> is <<span class="odocwiki_inlinecode"|true>>~, the non localized parameter may
+      remain if you call another service~, if this service allows this
+      ~(default <<span class="odocwiki_inlinecode"|false>>~)~.
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEnl_params_set"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|nl~_params~_set>>>><<div class="odocwiki_info"|~Use this type to give non localized parameters to a link or a
+      form
+>>
+<<pre id="VALempty_nl_params_set" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|empty~_nl~_params~_set>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<a_api subproject="server" text="nl_params_set" | type Eliom_parameter_sigs.S.nl_params_set >>>>>><<pre id="VALadd_nl_parameter" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|add~_nl~_parameter>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<a_api subproject="server" text="nl_params_set" | type Eliom_parameter_sigs.S.nl_params_set >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>'a, [< `WithSuffix | `WithoutSuffix ], 'b<<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="non_localized_params" | type Eliom_parameter_sigs.S.non_localized_params >> <<span class="ocsforge_color_delimiter"| -> >>\\  'a <<span class="ocsforge_color_delimiter"| -> >> <<a_api subproject="server" text="nl_params_set" | type Eliom_parameter_sigs.S.nl_params_set >>>>>><<pre id="VALget_nl_params_names" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_nl~_params~_names>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_delimiter"| ( >>'b, [< `WithSuffix | `WithoutSuffix ], 'a<<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="non_localized_params" | type Eliom_parameter_sigs.S.non_localized_params >> <<span class="ocsforge_color_delimiter"| -> >> 'a>>>><<pre id="VALget_to_and_of" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_to~_and~_of>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_delimiter"| ( >>'a, [< <<a_api subproject="server" text="suff" | type Eliom_parameter_sigs.S.suff >> ], 'c<<span class="ocsforge_color_delimiter"| ) >>\\  <<a_api subproject="server" text="params_type" | type Eliom_parameter_sigs.S.params_type >> <<span class="ocsforge_color_delimiter"| -> >>\\  'a <<a_api subproject="server" text="to_and_of" | type Eliom_parameter_sigs.S.to_and_of >>>>>><<div class="odocwiki_info"|~Given a parameter type~, get the two functions that converts from
+      and to strings~. ~You should only use this function on
+* options ~;
+* basic types ~: int~, int~3~2~, int~6~4~, float~, string
+* marshal
+* unit
+* string
+* bool
+
+>>

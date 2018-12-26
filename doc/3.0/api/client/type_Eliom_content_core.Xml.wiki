@@ -1,0 +1,154 @@
+<<code language="ocaml" | sig
+  type uri = string
+  val uri_of_string : Eliom_content_core.Xml.uri -> string
+  val string_of_uri : string -> Eliom_content_core.Xml.uri
+  val uri_of_fun : (unit -> string) -> Eliom_content_core.Xml.uri
+  type aname = string
+  type attrib
+  type -'a caml_event_handler =
+      CE_registered_closure of string *
+        ('a Js.t -> unit) Eliom_lib.Client_value_server_repr.t
+    | CE_client_closure of ('a Js.t -> unit)
+    | CE_call_service of
+        ([ `A | `Form_get | `Form_post ] * (bool * string list) option *
+         string option)
+        option Eliom_lazy.request
+    constraint 'a = #Dom_html.event
+  type event_handler =
+      Raw of string
+    | Caml of Dom_html.event Eliom_content_core.Xml.caml_event_handler
+  type ename = string
+  type elt
+  type econtent = private
+      Empty
+    | Comment of string
+    | EncodedPCDATA of string
+    | PCDATA of string
+    | Entity of string
+    | Leaf of Eliom_content_core.Xml.ename *
+        Eliom_content_core.Xml.attrib list
+    | Node of Eliom_content_core.Xml.ename *
+        Eliom_content_core.Xml.attrib list * Eliom_content_core.Xml.elt list
+  val event_handler_of_service :
+    ([ `A | `Form_get | `Form_post ] * (bool * string list) option *
+     string option)
+    option Eliom_lazy.request -> Eliom_content_core.Xml.event_handler
+  val event_handler_of_function :
+    (#Dom_html.event Js.t -> unit) -> Eliom_content_core.Xml.event_handler
+  type separator = Space | Comma
+  type acontent = private
+      AFloat of float
+    | AInt of int
+    | AStr of string
+    | AStrL of Eliom_content_core.Xml.separator * string list
+  val acontent :
+    Eliom_content_core.Xml.attrib -> Eliom_content_core.Xml.acontent
+  type racontent =
+      RA of Eliom_content_core.Xml.acontent
+    | RACamlEventHandler of
+        Dom_html.event Eliom_content_core.Xml.caml_event_handler
+    | RALazyStr of string Eliom_lazy.request
+    | RALazyStrL of Eliom_content_core.Xml.separator *
+        string Eliom_lazy.request list
+  val racontent :
+    Eliom_content_core.Xml.attrib -> Eliom_content_core.Xml.racontent
+  val aname : Eliom_content_core.Xml.attrib -> Eliom_content_core.Xml.aname
+  val float_attrib :
+    Eliom_content_core.Xml.aname -> float -> Eliom_content_core.Xml.attrib
+  val int_attrib :
+    Eliom_content_core.Xml.aname -> int -> Eliom_content_core.Xml.attrib
+  val string_attrib :
+    Eliom_content_core.Xml.aname -> string -> Eliom_content_core.Xml.attrib
+  val space_sep_attrib :
+    Eliom_content_core.Xml.aname ->
+    string list -> Eliom_content_core.Xml.attrib
+  val comma_sep_attrib :
+    Eliom_content_core.Xml.aname ->
+    string list -> Eliom_content_core.Xml.attrib
+  val event_handler_attrib :
+    Eliom_content_core.Xml.aname ->
+    Eliom_content_core.Xml.event_handler -> Eliom_content_core.Xml.attrib
+  val uri_attrib :
+    Eliom_content_core.Xml.aname ->
+    Eliom_content_core.Xml.uri -> Eliom_content_core.Xml.attrib
+  val uris_attrib :
+    Eliom_content_core.Xml.aname ->
+    Eliom_content_core.Xml.uri list -> Eliom_content_core.Xml.attrib
+  val content : Eliom_content_core.Xml.elt -> Eliom_content_core.Xml.econtent
+  val pcdata : string -> Eliom_content_core.Xml.elt
+  val encodedpcdata : string -> Eliom_content_core.Xml.elt
+  val entity : string -> Eliom_content_core.Xml.elt
+  val empty : unit -> Eliom_content_core.Xml.elt
+  val comment : string -> Eliom_content_core.Xml.elt
+  val leaf :
+    ?a:Eliom_content_core.Xml.attrib list ->
+    Eliom_content_core.Xml.ename -> Eliom_content_core.Xml.elt
+  val node :
+    ?a:Eliom_content_core.Xml.attrib list ->
+    Eliom_content_core.Xml.ename ->
+    Eliom_content_core.Xml.elt list -> Eliom_content_core.Xml.elt
+  val lazy_node :
+    ?a:Eliom_content_core.Xml.attrib list ->
+    Eliom_content_core.Xml.ename ->
+    Eliom_content_core.Xml.elt list Eliom_lazy.request ->
+    Eliom_content_core.Xml.elt
+  val cdata : string -> Eliom_content_core.Xml.elt
+  val cdata_script : string -> Eliom_content_core.Xml.elt
+  val cdata_style : string -> Eliom_content_core.Xml.elt
+  type node_id = NoId | ProcessId of string | RequestId of string
+  val string_of_node_id : Eliom_content_core.Xml.node_id -> string
+  val make :
+    ?id:Eliom_content_core.Xml.node_id ->
+    Eliom_content_core.Xml.econtent -> Eliom_content_core.Xml.elt
+  val make_dom :
+    ?id:Eliom_content_core.Xml.node_id ->
+    Dom.node Js.t -> Eliom_content_core.Xml.elt
+  val make_lazy :
+    ?id:Eliom_content_core.Xml.node_id ->
+    Eliom_content_core.Xml.elt lazy_t -> Eliom_content_core.Xml.elt
+  val force_lazy : Eliom_content_core.Xml.elt -> unit
+  val make_process_node :
+    ?id:string -> Eliom_content_core.Xml.elt -> Eliom_content_core.Xml.elt
+  val make_request_node :
+    Eliom_content_core.Xml.elt -> Eliom_content_core.Xml.elt
+  val get_node_id :
+    Eliom_content_core.Xml.elt -> Eliom_content_core.Xml.node_id
+  type node =
+      DomNode of Dom.node Js.t
+    | TyXMLNode of Eliom_content_core.Xml.econtent
+  val get_node : Eliom_content_core.Xml.elt -> Eliom_content_core.Xml.node
+  val set_dom_node : Eliom_content_core.Xml.elt -> Dom.node Js.t -> unit
+  module ClosureMap :
+    sig
+      type key = string
+      type +'a t
+      val empty : 'a t
+      val is_empty : 'a t -> bool
+      val mem : key -> 'a t -> bool
+      val add : key -> 'a -> 'a t -> 'a t
+      val singleton : key -> 'a -> 'a t
+      val remove : key -> 'a t -> 'a t
+      val merge :
+        (key -> 'a option -> 'b option -> 'c option) -> 'a t -> 'b t -> 'c t
+      val compare : ('a -> 'a -> int) -> 'a t -> 'a t -> int
+      val equal : ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
+      val iter : (key -> 'a -> unit) -> 'a t -> unit
+      val fold : (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
+      val for_all : (key -> 'a -> bool) -> 'a t -> bool
+      val exists : (key -> 'a -> bool) -> 'a t -> bool
+      val filter : (key -> 'a -> bool) -> 'a t -> 'a t
+      val partition : (key -> 'a -> bool) -> 'a t -> 'a t * 'a t
+      val cardinal : 'a t -> int
+      val bindings : 'a t -> (key * 'a) list
+      val min_binding : 'a t -> key * 'a
+      val max_binding : 'a t -> key * 'a
+      val choose : 'a t -> key * 'a
+      val split : key -> 'a t -> 'a t * 'a option * 'a t
+      val find : key -> 'a t -> 'a
+      val map : ('a -> 'b) -> 'a t -> 'b t
+      val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
+    end
+  type event_handler_table =
+      (Dom_html.event Js.t -> unit) Eliom_lib.Client_value_server_repr.t
+      Eliom_content_core.Xml.ClosureMap.t
+end >>

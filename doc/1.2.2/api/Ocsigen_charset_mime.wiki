@@ -1,0 +1,43 @@
+=Module <<a_api_type | module Ocsigen_charset_mime >> =
+<<div class="code"|<<span class="keyword"|module>> Ocsigen_charset_mime: <<span class='code'|sig>><<a_api text=".." | module Ocsigen_charset_mime >><<span class='code'|end>>>>~Charset\\
+
+----
+<<div class="code" id="TYPEextension"|<<span class="keyword"|type>> extension = <<span class="code type"|string>> >>
+
+<<div class="code" id="TYPEfile"|<<span class="keyword"|type>> file = <<span class="code type"|string>> >>
+
+<<div class="code" id="TYPEfilename"|<<span class="keyword"|type>> filename = <<span class="code type"|string>> >>
+
+\\
+~Charset\\
+<<div class="code" id="TYPEcharset"|<<span class="keyword"|type>> charset = <<span class="code type"|string>> >>
+<<div class="info"|~By convention~, "no specified charset" is represented by the empty
+    string\\
+>>
+
+<<div id="VALno_charset" class="code"|<<span class="keyword"|val>> no~_charset : <<span class="code type"|<<a_api text="charset" | type Ocsigen_charset_mime.charset >>>>>><<div class="code" id="TYPEcharset_assoc"|<<span class="keyword"|type>> charset~_assoc>>
+<<div class="info"|~Association between extensions and charset~, with a default value~.\\
+>>
+
+<<div id="VALempty_charset_assoc" class="code"|<<span class="keyword"|val>> empty~_charset~_assoc : <<span class="code type"|\\{{{   }}}?default:<<a_api text="charset" | type Ocsigen_charset_mime.charset >> ->\\{{{   }}}  unit -> <<a_api text="charset_assoc" | type Ocsigen_charset_mime.charset_assoc >>>>>><<div class="info"|~All files are mapped to <<span class='code'|no~_charset>>\\
+>>
+<<div id="VALfind_charset" class="code"|<<span class="keyword"|val>> find~_charset : <<span class="code type"|string -> <<a_api text="charset_assoc" | type Ocsigen_charset_mime.charset_assoc >> -> <<a_api text="charset" | type Ocsigen_charset_mime.charset >>>>>><<div id="VALdefault_charset" class="code"|<<span class="keyword"|val>> default~_charset : <<span class="code type"|<<a_api text="charset_assoc" | type Ocsigen_charset_mime.charset_assoc >> -> <<a_api text="charset" | type Ocsigen_charset_mime.charset >>>>>><<div class="info"|~Functions related to the default charset in the association\\
+>>
+<<div id="VALset_default_charset" class="code"|<<span class="keyword"|val>> set~_default~_charset : <<span class="code type"|\\{{{   }}}<<a_api text="charset_assoc" | type Ocsigen_charset_mime.charset_assoc >> ->\\{{{   }}}  <<a_api text="charset" | type Ocsigen_charset_mime.charset >> -> <<a_api text="charset_assoc" | type Ocsigen_charset_mime.charset_assoc >>>>>><<div id="VALupdate_charset_ext" class="code"|<<span class="keyword"|val>> update~_charset~_ext : <<span class="code type"|\\{{{   }}}<<a_api text="charset_assoc" | type Ocsigen_charset_mime.charset_assoc >> ->\\{{{   }}}  <<a_api text="extension" | type Ocsigen_charset_mime.extension >> ->\\{{{   }}}  <<a_api text="charset" | type Ocsigen_charset_mime.charset >> -> <<a_api text="charset_assoc" | type Ocsigen_charset_mime.charset_assoc >>>>>><<div class="info"|~Updates the mapping between extensions from a file to its charset~.
+    ~The update can be specified using the extension of the file~,
+    the name of the file~, or the entire file ~(with its path~)\\
+>>
+<<div id="VALupdate_charset_file" class="code"|<<span class="keyword"|val>> update~_charset~_file : <<span class="code type"|\\{{{   }}}<<a_api text="charset_assoc" | type Ocsigen_charset_mime.charset_assoc >> ->\\{{{   }}}  <<a_api text="filename" | type Ocsigen_charset_mime.filename >> ->\\{{{   }}}  <<a_api text="charset" | type Ocsigen_charset_mime.charset >> -> <<a_api text="charset_assoc" | type Ocsigen_charset_mime.charset_assoc >>>>>><<div id="VALupdate_charset_regexp" class="code"|<<span class="keyword"|val>> update~_charset~_regexp : <<span class="code type"|\\{{{   }}}<<a_api text="charset_assoc" | type Ocsigen_charset_mime.charset_assoc >> ->\\{{{   }}}  Netstring_pcre.regexp ->\\{{{   }}}  <<a_api text="charset" | type Ocsigen_charset_mime.charset >> -> <<a_api text="charset_assoc" | type Ocsigen_charset_mime.charset_assoc >>>>>><<div class="code" id="TYPEmime_type"|<<span class="keyword"|type>> mime~_type = <<span class="code type"|string>> >>
+<<div class="info"|~M~I~M~E types~; the default value is <<span class='code'|"application~/octet~-stream">>\\
+>>
+
+<<div id="VALdefault_mime_type" class="code"|<<span class="keyword"|val>> default~_mime~_type : <<span class="code type"|<<a_api text="mime_type" | type Ocsigen_charset_mime.mime_type >>>>>><<div class="code" id="TYPEmime_assoc"|<<span class="keyword"|type>> mime~_assoc>>
+<<div class="info"|association between extensions and mime types~, with default value\\
+>>
+
+<<div id="VALdefault_mime_assoc" class="code"|<<span class="keyword"|val>> default~_mime~_assoc : <<span class="code type"|unit -> <<a_api text="mime_assoc" | type Ocsigen_charset_mime.mime_assoc >>>>>><<div class="info"|~Default values~, obtained by reading the file specified by
+    <<span class='code'|~Ocsigen~_config~.get~_mimefile>>\\
+>>
+<<div id="VALparse_mime_types" class="code"|<<span class="keyword"|val>> parse~_mime~_types : <<span class="code type"|filename:string -> <<a_api text="mime_assoc" | type Ocsigen_charset_mime.mime_assoc >>>>>><<div class="info"|~Parsing of a file containing mime associations~, such as ~/etc~/mime~-types\\
+>>
+<<div id="VALfind_mime" class="code"|<<span class="keyword"|val>> find~_mime : <<span class="code type"|<<a_api text="file" | type Ocsigen_charset_mime.file >> -> <<a_api text="mime_assoc" | type Ocsigen_charset_mime.mime_assoc >> -> string>>>><<div id="VALdefault_mime" class="code"|<<span class="keyword"|val>> default~_mime : <<span class="code type"|<<a_api text="mime_assoc" | type Ocsigen_charset_mime.mime_assoc >> -> <<a_api text="mime_type" | type Ocsigen_charset_mime.mime_type >>>>>><<div id="VALset_default_mime" class="code"|<<span class="keyword"|val>> set~_default~_mime : <<span class="code type"|\\{{{   }}}<<a_api text="mime_assoc" | type Ocsigen_charset_mime.mime_assoc >> ->\\{{{   }}}  <<a_api text="mime_type" | type Ocsigen_charset_mime.mime_type >> -> <<a_api text="mime_assoc" | type Ocsigen_charset_mime.mime_assoc >>>>>><<div id="VALupdate_mime_ext" class="code"|<<span class="keyword"|val>> update~_mime~_ext : <<span class="code type"|\\{{{   }}}<<a_api text="mime_assoc" | type Ocsigen_charset_mime.mime_assoc >> ->\\{{{   }}}  <<a_api text="extension" | type Ocsigen_charset_mime.extension >> ->\\{{{   }}}  <<a_api text="mime_type" | type Ocsigen_charset_mime.mime_type >> -> <<a_api text="mime_assoc" | type Ocsigen_charset_mime.mime_assoc >>>>>><<div id="VALupdate_mime_file" class="code"|<<span class="keyword"|val>> update~_mime~_file : <<span class="code type"|\\{{{   }}}<<a_api text="mime_assoc" | type Ocsigen_charset_mime.mime_assoc >> ->\\{{{   }}}  <<a_api text="filename" | type Ocsigen_charset_mime.filename >> ->\\{{{   }}}  <<a_api text="mime_type" | type Ocsigen_charset_mime.mime_type >> -> <<a_api text="mime_assoc" | type Ocsigen_charset_mime.mime_assoc >>>>>><<div id="VALupdate_mime_regexp" class="code"|<<span class="keyword"|val>> update~_mime~_regexp : <<span class="code type"|\\{{{   }}}<<a_api text="mime_assoc" | type Ocsigen_charset_mime.mime_assoc >> ->\\{{{   }}}  Netstring_pcre.regexp ->\\{{{   }}}  <<a_api text="mime_type" | type Ocsigen_charset_mime.mime_type >> -> <<a_api text="mime_assoc" | type Ocsigen_charset_mime.mime_assoc >>>>>>

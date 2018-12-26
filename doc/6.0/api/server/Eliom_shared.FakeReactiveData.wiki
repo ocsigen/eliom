@@ -1,0 +1,7 @@
+=Module <<a_api_type subproject="server" | module Eliom_shared.FakeReactiveData >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|FakeReactiveData>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_shared.FakeReactiveData >><<span class="ocsforge_color_keyword"|end>>>>~This is a dummy ~Reactive~Data module that allows us to refer to
+    client~-side ~Reactive~Data types on the server side~, without
+    actually linking against ~Reactive~Data~.
+
+----
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="RList" | module Eliom_shared.FakeReactiveData.RList >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_shared.FakeReactiveData.RList >><<span class="ocsforge_color_keyword"|end>>>>

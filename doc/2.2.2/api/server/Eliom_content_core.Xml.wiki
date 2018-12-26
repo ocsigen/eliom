@@ -1,0 +1,34 @@
+=Module <<a_api_type subproject="server" | module Eliom_content_core.Xml >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Xml>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_content_core.Xml >><<span class="ocsforge_color_keyword"|end>>>>~Low~-level ~X~M~L manipulation~.
+
+----
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> Xml_sigs.Iterable>>
+<<div class="odocwiki_info"|
+==@@id="2_Basefunctions"@@~Base functions==
+
+      ~Cf~. <<a_api project="tyxml" | module Xml_sigs.Iterable >> ~.
+>>
+
+
+==@@id="2_Uniquenodes"@@~Unique nodes ==
+
+
+~Unique nodes are ~X~M~L nodes that are manipulated ~'by reference~'
+      when sent to the client part of an ~Eliom~-application~: the
+      created element is allocated only one time in each instance of
+      an application~. ~See <<a_manual chapter="client"
+      fragment="unique" |the eliom manual>> for more
+      details~.
+
+~Event handlers
+<<pre class="ocsforge_color odocwiki_code" id="TYPEcaml_event_handler"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|-#<<span class="ocsforge_color_uid"|Dom_html>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|event>>>> <<span class="odocwiki_name"|caml~_event~_handler>>>><<div class="odocwiki_info"|~Values of type <<span class="odocwiki_inlinecode"|~'a caml~_event~_handler>> represents event handler
+      build with the <<span class="odocwiki_inlinecode"|~{~{ ~.~.~. ~}~}>> syntax ~(see the ~Eliom manual for more
+      information on <<a_manual chapter="client"
+      fragment="syntax"|syntax extension>>~)~. ~Such values are expected
+      by functions like <<span class="odocwiki_inlinecode"|~Eliom~_service~.on~_load>> or
+      <<span class="odocwiki_inlinecode"|~Eliom~_content~.~Html~5~.a~_onclick>>~. ~The type parameter is the
+      type of the javascript event expected by the handler~, for
+      example <<a_api project="js_of_ocaml" | type
+      Dom_html.mouseEvent>> or <<a_api project="js_of_ocaml" | type
+      Dom_html.keyboardEvent >>~.
+>>

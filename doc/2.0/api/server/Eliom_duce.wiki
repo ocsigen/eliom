@@ -1,0 +1,16 @@
+=Module <<a_api_type subproject="server" | module Eliom_duce >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_duce>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_duce >><<span class="ocsforge_color_keyword"|end>>>>~Using ~O~Camlduce for page generation~.\\
+
+----
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Xhtml" | module Eliom_duce.Xhtml >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_duce.Xhtml >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Register service and create form for ~Xhtml
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Xhtml_registration" | module Eliom_duce.Xhtml_registration >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<a_api subproject="server" text="Eliom_duce_sigs.XHTML_REGISTRATION" | module Eliom_duce_sigs.XHTML_REGISTRATION >>>><<span class="odocwiki_type"|>>>><<div class="odocwiki_info"|~Register service for ~Xhtml
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Xhtml_forms" | module Eliom_duce.Xhtml_forms >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<a_api subproject="server" text="Eliom_duce_sigs.XHTML_FORMS" | module Eliom_duce_sigs.XHTML_FORMS >>>><<span class="odocwiki_type"|>>>><<div class="odocwiki_info"|~Create form for ~Xhtml
+>>
+\\
+~Register and create form for any ~X~M~L data type\\
+\\
+~Register and create form for list of ~X~M~L data type\\
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Blocks" | module Eliom_duce.Blocks >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_duce.Blocks >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Register and create form for list of <<span class="odocwiki_inlinecode"|blocks>> ~(subtype of xhtml~)
+>>

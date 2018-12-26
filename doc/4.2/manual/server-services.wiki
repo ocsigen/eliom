@@ -1,0 +1,700 @@
+
+= Services =
+
+<<outline depth="2"| <<header| **Table of contents** >> >>
+
+== Introduction ==
+
+<<outline depth="2" >>
+
+Services are entry points to your web site. In general, services are
+attached to an URL and generate a web page ; but there is also, for
+example, services identified by specific GET or POST parameters or
+services representing redirections.
+
+A service is composed of:
+
+* some identification data, allowing Eliom to choose which service
+  should answer an incoming request;
+* a service handler that will generate the answer.
+
+<<paragraph| Service creation >>
+
+Manipulation of Eliom services can be done throught the values of type
+<<a_api | type Eliom_service.service >>. The most common service
+creation function is <<a_api | val Eliom_registration.Html5.register_service
+>>. It allows creation of services attached to a given path that may
+expect some GET parameters and that return some HTML5 contents using
+the TyXML library.
+
+<<paragraph| Registrable service >>
+
+The service creation could be split in two steps:
+
+* create a value of type service, e.g. using
+  <<a_api | val Eliom_service.Http.service >>,
+  <<a_api | val Eliom_service.App.service >> or
+  <<a_api | val Eliom_service.OCaml.service >>
+  (depending on the type of service you want to create)
+* register a service handler, e.g. using <<a_api | val
+  Eliom_registration.HTML5.register >>
+
+
+This chapter focuses on value of type {{{service}}}, see chapter
+<<a_manual chapter="server-outputs"| Writing service handlers>> for more
+information on service registration.
+
+Some services can be registered multiple times with different options.
+This allows for example choice between different handlers when the
+request is done in a particular session or protocol (HTTP or HTTPS).
+
+<<div style="font-style: italic;"| Warning: in this manual, we use the
+term //service// both to denote a value of type {{{service}}} --that
+only contains some location information about a service--, or a fully
+//registered// service, that is also composed of a service handler. In
+case of ambiguities, we will use {{{service}}} --in green monotype--
+to designate a value of type {{{service}}}.
+
+>>
+
+<<paragraph| Creating link and forms >>
+
+Value of type {{{service}}} may be used to create links and forms
+towards a service, using for example the function <<a_api | val
+Eliom_content.Html5.D.a >>. See chapter <<a_manual
+chapter="server-links"|Creating links and forms>> for more information.
+
+<<paragraph| Unregistrable services >>
+
+Some specific values of type {{{service}}} aren't associated to any
+service handlers. Such values are called //unregistrable services//,
+and represent, for example, links towards external sites or registrable
+service pre-applied to some parameters. This allows use of
+{{{service}}} consistently for creating links. See chapter <<a_manual
+chapter="server-services" fragment="unregistrable_services"| Unregistrable
+services >>.
+
+
+== Registrable services ==
+
+<<outline depth="2" >>
+
+
+=== Service identification ===
+
+Eliom has a sophisticated //service identification mechanism// to
+choose the service handler to be executed --given an incoming
+request-- with respect to many criteria:
+
+* the path of the requested URL,
+* the names of the (GET or POST) parameters,
+* some internal (GET or POST) parameter, added automatically,
+* the HTTP method,
+* the session the client belongs to (or client side process, or session group),
+* ...
+
+But the user does not usually need to bother with this. Eliom abstracts
+this mechanism by its three main kind of services. They differ by the
+subset of these criteria used to identified them:
+
+* <<a_manual chapter="server-services" fragment="regular_services" | Regular services>>
+  are the main entry points of sites.
+  They are identified by the path of the URL and by (GET or POST) parameters.
+  They correspond to classical URLs, and will last forever once registered.
+* <<a_manual chapter="server-services" fragment="attached_coservices" | Attached coservices>>
+  are services that share their
+  location (URL) with a regular service (called //fallback//).
+  They are identified by the path of the URL and a special parameter
+  (added automatically by Eliom). They can be created dynamically. When
+  an attached coservice is not available anymore (timeout, session closed,~ ...)
+  it falls back to the corresponding regular service.
+* <<a_manual chapter="server-services" fragment="non-attached_coservices" | Non-attached coservices>>
+  are coservices only identified by a special parameter
+  whatever be the path and other parameters in the URL.
+  They are used to implement some behaviour that should not be attached to
+  a particular URL. A link to a non-attached coservice will go to the current
+  URL with just an additional special parameter.
+  It is useful when you want the same link or form on
+  several pages (for example, a login box) but you don't want to
+  go to another URL. Non-attached coservices are often used with
+  <<a_manual chapter="server-outputs" fragment="actions" |actions>>.
+
+
+==== Path ====
+
+Paths are represented in Eliom by a list of string. For example:
+
+{{{["foo"; "bar"]}}} corresponds to the URL
+{{{foo/bar}}}.  \\
+{{{["dir"; ""]}}} corresponds to the URL {{{dir/}}}
+(that is: the default page of the directory {{{dir}}}).   \\
+The empty list {{{[]}}} is equivalent to {{{[""]}}}.\\
+
+//Warning://
+
+ * You cannot create a service on path {{{["foo"]}}}
+   (URL {{{foo}}}, without slash at the end)
+   and another on path {{{["foo";"bar"]}}}
+   (URL {{{foo/bar}}}) because {{{foo}}} can not be
+   both a directory and a file.
+   Be also careful not to use a path as a directory with
+   Eliom, if it is a file for Staticmod (and vice versa).
+ * {{{["foo";"bar"]}}} is not equivalent to
+   {{{["foo/bar"]}}}.
+   In the latter, the {{{"/"}}} will be encoded in the URL.\\
+
+
+
+==== Service parameters ====
+
+A service is partially identified by the name of its GET and POST
+parameters.
+
+The parameters of services are specified using the {{{~get_params}}}
+and {{{~post_params}}} options of service creation functions. These
+options expect values of type <<a_api | type
+Eliom_parameter.params_type >> that represent the set of expected
+arguments with their types. They are built using combinators from the
+<<a_api | module Eliom_parameter >> module. See chapter <<a_manual
+chapter="server-params"| Service parameters >> for a detailled description of
+this module.
+
+Type informations associated to each argument allow Eliom to
+automatically convert the actual parameters into the corresponding
+OCaml types. If the parameter can't be converted, the exception
+<<a_api | exception Eliom_common.Eliom_Typing_Error >> is raised.  The
+handling of those error may be customized by providing the argument
+{{{~error_handler}}} when registering the service.
+
+
+
+====@@id="service_scope"@@ Service scopes ====
+
+By default, services and coservices are accessible to anybody (scope
+site).  It is possible to restrict the //scope// of a service, making
+it available only to a session, a client side process, or a group of
+sessions.
+
+To limit the scope of a service, just add the argument {{{~scope}}} to
+the <<a_api | val Eliom_registration.Html5.register>> function (or other
+{{{register}}} variants: <<a_api | val Eliom_registration.Xhtml.register>>,
+...). The default scope is <<a_api | val Eliom_common.site_scope>>.
+
+The same service can be registered with several scopes.  This makes it
+possible, for example, to generate custom services for a specific
+user.  Eliom will try to find the service by trying the following (in
+order):
+
+* scope client-side process,
+* scope session,
+* scope group of session,
+* and finally site scope.
+
+
+====@@id="get_and_post"@@ GET services and POST services ====
+
+Regular services, attached and non-attached coservices all come in two
+versions, GET service or POST service, corresponding to the HTTP
+method you want to be used to call them.
+
+* The GET method is intended to be used to retrieve a document from
+  the server. The page is generated mainly according to the
+  information contained in the URL.  URLs may contain parameters
+  (consisting of name-value pairs in the URL string), and these
+  parameters may come from HTML forms (or not).
+* The POST method is used to send data to the server (files, for
+  example), but also values coming from an HTML form. Data is sent in
+  the body of the HTTP request. It is possible to use the POST method
+  with an empty body.
+
+In HTML, it is not possible to mix GET and POST parameters in forms,
+but it is possible to use a POST form with (fixed) GET parameters in
+the URL.
+
+Eliom also allows to other methods: PUT and DELETE.
+They are often used to write RESTful applications (see below).
+
+<<concept
+
+  title="POST or GET?" |
+
+  POST and GET methods are not equivalent, and you must be very
+  careful if you want to use one or the other. Remember that only GET
+  services are bookmarkable. The HTTP method and POST parameters are
+  not stored in bookmarks.
+
+  * Use the GET method if you want the user to be able to come back to
+    the service later or to write the URL manually.
+  * Use the POST method for //hidden service//, that is when you want
+    a different behaviour between the first click and a reload of the
+    page. Usually using POST method triggers an action on server side
+    (like a payment, or adding something in a database), and you don't
+    want it to succeed several times if the page is reloaded or
+    bookmarked.
+
+>>
+
+
+
+
+
+
+
+
+===@@id="regular_services"@@ Regular services ===
+
+Regular services with GET method are the main entry points of
+sites. They correspond to actual URLs and may be bookmarked. The other
+kinds of services (POST, coservices) are using the URL of existing
+regular GET services.
+
+Regular services are created using the function
+<<a_api | val Eliom_service.App.service>> or <<a_api | val Eliom_service.Http.service>>.
+
+POST services must be accessible even when the request was done
+without the POST parameters (for instance, when typing the URL in the
+browser, reloading, using bookmarks,~ ...). Hence every POST service
+has a //fallback// GET service.
+
+POST services are created using
+<<a_api | val Eliom_service.App.post_service>> or <<a_api | val Eliom_service.Http.post_service>>.
+
+<<concept
+
+  title="URLs and ergonomics of your web site"|
+
+  While designing a web site, one of the first things to think about
+  are the URLs you want to use.  URLs are the entry points for your
+  site. Assume that they will be bookmarked.
+
+  Eliom has a very precise management of URLs, and let you choose
+  exactly the URLs and parameter names you want. Parts of the path may
+  also be used as parameters.
+
+  Avoid dummy URLs that will always perform a redirection.  Be very
+  careful about the HTTP method you are using.  Use clearly readable
+  URLs.
+
+  And be very attentive to the ergonomics of your web site!  The
+  different kinds of services offered by Eliom make possible all the
+  precise behaviours you need!
+
+>>
+
+<<concept
+
+  title="Priority of regular services"|
+
+  When creating a regular service you can add the optional {{{int}}}
+  parameter {{{~priority}}} to set the priority of the service.  The
+  default priority is 0. Services with higher priority will be tried
+  by Eliom before the ones with lower priority.  Use this when several
+  services are configured to respond to the same request.  This can
+  happen for instance when using <<a_manual chapter="server-params"
+  fragment="suffix" | suffix parameters>>.
+
+>>
+
+
+
+===@@id="attached_coservices"@@ Attached coservices ===
+
+GET attached coservices are created using function
+<<a_api| val Eliom_service.App.coservice>> or <<a_api| val Eliom_service.Http.coservice>>.
+
+Anonymous GET attached coservices are often created dynamically with
+respect to previous interaction with the user (e.g. filling forms in
+multiple steps). They handle correctly the classical web interactions
+("back" button, bookmark, tab,~ ...): you create a new coservice each
+time you want to record a precise point in the interaction with a
+user, to be able to come back there later.
+
+Often, they should be used with a restricted scope (see the section
+<<a_manual chapter="server-services" fragment="service_scope"| scope of
+services>>).
+
+POST attached coservices are created using
+<<a_api| val Eliom_service.App.post_coservice>> or <<a_api| val Eliom_service.Http.post_coservice>>.
+
+They can be used to customize the behaviour of an URL.  Some of their
+usages are:
+
+* For the same purpose as GET coservices but when you don't want this
+  service to be bookmarkable.
+* For performing side effects before serving a page.  For example say
+  you want a disconnection button that leads to the main page of the
+  site, but with the side effect of disconnecting the user.  You will
+  use a (named) POST (attached) coservice.
+
+If a coservice does not exist anymore (e.g. if its timeout has expired
+or the session to which it belongs was closed ... ), the fallback is
+called.
+
+The fallback of a GET coservice cannot take parameters. But
+it is possible to use a <<a_manual chapter="server-services"
+fragment="preapplied" | pre-applied>> service as fallback.
+
+
+===@@id="non-attached_coservices"@@Non-attached coservices ===
+
+Non-attached coservices are coservices that are not attached to an URL
+path.  Service identification is performed only according to the
+coservice identifier, whatever be the path.  When you point a link or
+a form towards such a service, the URL path and the main parameters do
+not change.  The parameters of the non-attached coservice are sent as
+special parameters.
+
+To create a non-attached coservice, use <<a_api| val
+ Eliom_service.App.coservice'>> or <<a_api| val
+ Eliom_service.App.post_coservice'>> (note the "prime" at the end)
+ or the same functions in <<a_api| module Eliom_service.Http >>.
+
+Use POST non-attached coservices for example if you want a link or
+form to be present on every page but you don't want the URL to change
+when the link is followed. Typically, non-attached POST coservices are
+used with <<a_manual chapter="server-outputs" fragment="actions"|actions>> or
+<<a_manual chapter="server-outputs" fragment="redirections"|redirections>>.
+
+Here is one simple example. Suppose you wrote a function <<code-inline
+language="ocaml"|remove>> to remove one piece of data from a database
+(taking an identifier of the data).  If you want to put a link on your
+page to call this function and redisplay the page, just create an
+action on a non-attached coservices like this:
+
+<<code language="ocaml"|
+
+let remove_action =
+  Eliom_registration.Action.register_post_coservice'
+    ~post_params:(Eliom_parameter.int "id")
+    (fun () id -> remove id)
+
+>>
+
+Then wherever you want to add a button to do that action (on data
+{{{id}}}), create a form like:
+
+<<code language="ocaml"|
+
+Html5.D.(post_form remove_action
+          (fun id_name -> [
+             int_input
+               ~input_type:`Hidden ~name:id_name ~value:id ();
+             string_input
+               ~input_type:`Submit ~value:("remove "^string_of_int id) ();
+           ]))
+
+>>
+
+====Changing URL when calling a non-attached coservice====
+
+By default, the URL of links or forms to non-attached coservices
+is the current page.
+If you want to combine the call to a non-attached coservice
+with an URL change, it is possible to attach a non-attached service
+to another service using function
+<<a_api| val Eliom_service.attach_coservice'>>.
+
+Example:
+
+<<code language="ocaml"|
+
+      let service = Eliom_service.attach_coservice'
+        ~fallback:myfirstservice
+        ~service:myget_coserv'
+      in
+      a ~service [pcdata "click"] ()
+
+>>
+
+It works with GET or POST coservices.
+The fallback must be a GET service without parameter
+(but you can preapply it).
+
+=== Common options for coservices ===
+
+==== Timeouts for coservices =====
+
+It is possible to use timeouts with coservices using the optional
+parameter {{{?timeout}}} of creation functions.  For example if your
+coservice is here to show the results of a search, you probably want
+it to be available only for a short time. The following example shows
+a coservice with timeout.
+
+//Warning:// forgetting timeouts may cause memory leaks!
+
+
+==== Disposable coservices ====
+
+It is possible to set a limit to the number of uses of (attached or
+non-attached) coservices. Just give the maximum number of uses with
+the optional {{{?max_use}}} parameter while creating your
+coservices.
+
+
+==@@id="unregistrable_services"@@ Unregistrable services ==
+
+<<outline depth="2" >>
+
+===External services===
+
+It is possible to define external services, that is, services that
+belong to an external web site (on the same server or not).  To do
+that, use the functions <<a_api| val Eliom_service.Http.external_service
+>> (for using the GET method), or <<a_api| val
+Eliom_service.Http.external_post_service>> (for using the POST method).
+
+For example, the following code defines a link to the OCaml Wikipedia
+page:
+
+<<code language="ocaml"|
+
+Eliom_content.Html5.D.a
+  (Eliom_service.Http.external_service
+     ~prefix:"http://en.wikipedia.org/wiki/OCaml"
+     ~path:["wiki";""]
+     ~get_params:Eliom_parameter.(suffix (all_suffix "suff"))
+     ())
+  [pcdata "OCaml on wikipedia"]
+  ["OCaml"]
+
+>>
+
+===@@id="staticparts"@@ Static files service===
+
+<<a_manual project="ocsigenserver" chapter="staticmod" | Staticmod>>
+is an Ocsigen Server extension serving static (non-generated) files
+(for examples images and stylesheets). It can be used together with
+Eliom. The predefined service <<a_api| val Eliom_service.static_dir
+>> can be used to make links to static files. It takes as parameter
+the path of the file.
+
+For example, the following code will create this link: [[site:ocsigen10.png|download image]].
+
+<<code language="ocaml"|
+let open Eliom_content.Html5.F in
+a (static_dir ()) [pcdata "download image"] ["ocsigen10.png"]
+>>
+
+It is also possible to send static files using Eliom, with <<a_api|
+module Eliom_registration.File>> (see <<a_manual chapter="server-outputs"
+fragment="eliomfiles" |Sending files>>).
+
+
+
+===@@id="preapplied"@@Pre-applied services
+
+It is possible to preapply the GET parameters of a service to obtain a
+service without parameters, or only the POST ones. It is done using
+<<a_api |val Eliom_service.preapply>>. Example:
+
+<<code language="ocaml"|
+
+let some_service =
+  Eliom_service.Http.service ~path:["serv"]
+    ~get_params:Eliom_parameter.int ()
+
+let preappl = Eliom_service.preapply some_service 3
+
+>>
+
+It is not possible to register a handler on a preapplied service, but
+you can use them in links or as fallbacks for coservices.
+
+
+===@@id="void"@@Void coservices
+
+<<a_api| val Eliom_service.void_coservice'>> is a special
+non-attached action, with special behaviour: it has no parameter at
+all, even non-attached parameters.  Use it if you want to make a link
+to the current page without non-attached parameters.  It is almost
+equivalent to a POST non-attached coservice without POST parameters,
+on which you register an action that does nothing, but it is using GET
+method, so that you can use it with {{{<a>}}} links,
+not only forms.  Example:
+
+<<code language="ocaml"|
+
+a Eliom_service.void_coservice' [pcdata "cancel"] ()
+
+>>
+
+There is also <<a_api| val Eliom_service.https_void_coservice'>>
+(same, but forces use of HTTPS), <<a_api| val
+Eliom_service.void_hidden_coservice'>>, and <<a_api| val
+Eliom_service.https_void_hidden_coservice'>>. "Hidden" means that
+they keep GET non attached parameters.
+
+Use <<a_api| val Eliom_service.void_hidden_coservice'>> for example
+after a POST request if you want to do a redirection towards the same
+page without POST parameters (and thus prevent from reposting data if
+the user reloads the page).
+
+<<wip|Example: link to fragment of the current page>>
+
+
+
+== RESTful apps: PUT and DELETE services
+
+This is an example showing how to define RESTful services with Eliom.
+The purpose of this sample application is to provide a HTTP REST API to a
+very simple key / value store. Supported operations are:
+* {{{GET http://<URL>/}}} List all available keys.
+* {{{GET http://<URL>/<KEY>}}} Retrieve the value associated to KEY.
+* {{{POST http://<URL>/<KEY>}}} (with {{{<VALUE>}}} in content)
+   Set a new pair {{{KEY / VALUE}}}, or replace it if the {{{KEY}}} exists.
+* {{{PUT http://<URL>/<KEY>}}} (with {{{<VALUE>}}} in content)
+  Update the {{{VALUE}}} associated to {{{KEY}}}.
+  Fail if {{{KEY}}} doesn't exist.
+* {{{DELETE http://<URL>/<KEY>}}} (content is ignored)
+  Delete the pair {{{KEY / VALUE}}}.
+
+
+{{{
+open Lwt
+open Eliom_parameter
+
+(* Initialize the key / value store (a simple Hashtbl) *)
+let store = Hashtbl.create 100
+
+(* Our API path is root, since the only purpose of our application is to
+ * provide a sample API. *)
+let path = []
+
+let () =
+
+  (* GET service: retrieve resources *)
+  let retrieve_service =
+    Eliom_registration.Any.register_service
+      ~path
+      ~get_params:(suffix (neopt (string "key")))
+      (fun key_opt () ->
+        match key_opt with
+        | None ->
+          (* List all keys *)
+          let keys = Hashtbl.fold (fun k _ acc -> k :: acc) store [] in
+          let content = String.concat "\n" keys in
+          Eliom_registration.String.send ~code:200 (content, "text/plain")
+        | Some key ->
+          (* Retrieve the value associated to [key] *)
+          try
+            let value = Hashtbl.find store key in
+            Eliom_registration.String.send ~code:200 (value, "text/plain")
+          with
+          | Not_found ->
+            Eliom_registration.String.send ~code:404
+              ("Error: Not found", "text/plain"))
+  in
+
+  (* POST service: create or update resources *)
+  let _create_service =
+    Eliom_registration.Any.register_post_service
+      ~fallback:retrieve_service
+      ~post_params:raw_post_data
+      (fun key_opt (_content_type, raw_content_opt) ->
+        match key_opt, raw_content_opt with
+        | None, _ ->
+          (* Get parameter key is missing *)
+          Eliom_registration.String.send ~code:400
+            ("Error: No key provided", "plain/text")
+        | _, None ->
+          (* Request content is missing *)
+          Eliom_registration.String.send ~code:400
+            ("Error: No content provided", "plain/text")
+        | Some key, Some raw_content ->
+          let content_stream = Ocsigen_stream.get raw_content in
+          Ocsigen_stream.string_of_stream 1024 content_stream >>= fun value ->
+          Hashtbl.replace store key value;
+          Eliom_registration.String.send ~code:200 ("", "plain/text"))
+  in
+
+  (* PUT service: update a resource *)
+  let _put_service =
+    Eliom_registration.Any.register_put_service
+      ~path
+      ~get_params:(suffix (string "key"))
+      (fun key (_content_type, raw_content_opt) ->
+        let key_exists = Hashtbl.mem store key in
+        match key_exists, raw_content_opt with
+        | false, _ ->
+          (* Provided key doesn't exist *)
+          Eliom_registration.String.send ~code:404
+            ("Error: Not found", "plain/text")
+        | true, None ->
+          (* Request content is missing *)
+          Eliom_registration.String.send ~code:400
+            ("Error: No content provided", "plain/text")
+        | true, Some raw_content ->
+          let content_stream = Ocsigen_stream.get raw_content in
+          Ocsigen_stream.string_of_stream 1024 content_stream >>= fun value ->
+          Hashtbl.replace store key value;
+          Eliom_registration.String.send ~code:200 ("", "plain/text"))
+  in
+
+  (* DELETE service: delete a resource *)
+  let _delete_service =
+    Eliom_registration.Any.register_delete_service
+      ~path
+      ~get_params:(suffix (string "key"))
+      (fun key (_content_type, _raw_content_opt) ->
+        if Hashtbl.mem store key then (
+          Hashtbl.remove store key;
+          Eliom_registration.String.send ~code:200 ("", "plain/text"))
+        else
+          (* Provided key doesn't exist *)
+          Eliom_registration.String.send ~code:404
+            ("Error: Not found", "plain/text"))
+  in
+
+  ()
+}}}
+
+
+== Tips and advices
+
+* All services created during initialization must be registered (with
+  site scope) during the initialization phase of your module.  If
+  not, the server will not start (providing an appropriate error
+  message in the logs).  This will prevent broken links.
+* Services may be registered only during the server's initialization
+  phase (while reading the site configuration) or while processing a
+  request, because Eliom must know the information about the site. Be
+  very careful about this if you want to use static linking (see the
+  section on <<a_manual chapter="clientserver-configuration"
+  fragment="static_linking"|static linking>> in the chapter about
+  Compiling and configuring Eliom modules).
+* All main services (but not coservices) must be created in a module
+  loaded inside a {{{<host>}}} tag of the configuration file.  It is
+  not possible to accomplish this using modules loaded inside
+  {{{<extension>}}} or {{{<library>}}}.
+* If you create new main services dynamically, you will dynamically
+  create new URLs!  This may be dangerous as they will disappear if
+  you stop the server.  Be very careful to re-create these URLs when
+  you relaunch the server, otherwise, some external links or bookmarks
+  will be broken!\\ The use of that feature is discouraged for
+  coservices without timeout, as such coservices will be available
+  only until the end of the server process (and it is not possible to
+  re-create them with the same key).
+* Do not register the same service in the same scope twice, and do
+  not replace a service by a directory (or vice versa). If this
+  happens during the initialization phase, the server won't start.  If
+  this happens after server startup, it will be ignored (with a
+  warning in the logs).
+* GET coservices (without POST parameters) can be registered only with
+  a main service without GET/POST parameters as fallback.  But it may
+  be <<a_manual chapter="server-services" fragment="preapplied"
+  |//preapplied//>>.
+* Services with POST parameters (main service or coservice) can be
+  registered with a (main or co-) service without POST parameters as
+  fallback.
+* The registration of (main) services must be completed before the end
+  of the loading of the module. It is not possible to launch a (Lwt)
+  thread with the intention that it will register a service later, as
+  registering a service needs access to config file information (for
+  example the directory of the site).  If you do this, the server will
+  raise <<a_api | exception
+  Eliom_common.Eliom_function_forbidden_outside_site_loading>> most of
+  the time, but you may also get unexpected results (if the thread is
+  executed while another site is loaded).  If you use threads in the
+  initialization phase of your module (for example if you need
+  information from a database), use <<a_api project="lwt" | val
+  Lwt_unix.run>> to wait the end of the thread.

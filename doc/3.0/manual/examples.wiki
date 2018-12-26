@@ -1,0 +1,4 @@
+=@@id="examples"@@Demos=
+
+* [[https://github.com/ocsigen/graffiti/|A collaborative drawing application]]
+  (see <<a_manual project="tutorial" chapter="application"| its description>>)

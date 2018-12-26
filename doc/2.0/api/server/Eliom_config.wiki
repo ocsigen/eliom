@@ -1,0 +1,26 @@
+=Module <<a_api_type subproject="server" | module Eliom_config >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_config>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_config >><<span class="ocsforge_color_keyword"|end>>>>returns the hostname declared in the config file 
+    ~(<<span class="odocwiki_inlinecode"|~<host defaulthostname~="~.~.~."~>>>~)~.\\
+
+----
+<<pre id="VALget_default_hostname" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_default~_hostname>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> string>>>><<pre id="VALget_default_port" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_default~_port>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> int>>>><<div class="odocwiki_info"|returns the port number declared in the config file ~(<<span class="odocwiki_inlinecode"|~<host defaulthttpport~="~.~.~."~>>>~)~.\\
+>>
+<<pre id="VALget_default_sslport" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_default~_sslport>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> int>>>><<div class="odocwiki_info"|returns the https port number declared in the config file ~(<<span class="odocwiki_inlinecode"|~<host defaulthttpsport~="~.~.~."~>>>~)~.\\
+>>
+<<pre id="VALget_config_default_charset" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_config~_default~_charset>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> string>>>><<div class="odocwiki_info"|returns the default charset for this site\\
+>>
+<<pre id="VALget_config" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_config>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Simplexmlparser>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|xml>> list>>>><<div class="odocwiki_info"|returns the information of the configuration file concerning that site
+   ~(between <<span class="odocwiki_inlinecode"|~<site~>>> and <<span class="odocwiki_inlinecode"|~<~/site~>>>~)~.\\
+
+
+   //~Warning~: ~You must call that function during the initialisation of
+   your module ~(not during a ~Lwt thread or a service~)
+   otherwise it will raise the exception
+   <<a_api subproject="server" | exception Eliom_common.Eliom_site_information_not_available >>~.
+   ~If you want to build a statically linkable module~, you must call this
+   function inside the initialisation function given to
+   <<a_api subproject="server" | val Eliom_services.register_eliom_module >>~.//\\
+>>
+<<pre id="VALget_config_info" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_config~_info>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Ocsigen_extensions>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|config_info>>>>>><<div class="odocwiki_info"|returns the information concerning the request
+    from the configuration files~.\\
+>>

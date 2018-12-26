@@ -1,0 +1,9 @@
+<<code language="ocaml" | sig
+  type 'a key
+  type t
+  val create : unit -> Polytables.t
+  val make_key : unit -> 'a Polytables.key
+  val set : table:Polytables.t -> key:'a Polytables.key -> value:'a -> unit
+  val get : table:Polytables.t -> key:'a Polytables.key -> 'a
+  val clear : table:Polytables.t -> unit
+end >>

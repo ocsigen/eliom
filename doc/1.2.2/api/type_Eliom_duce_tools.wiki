@@ -1,0 +1,36 @@
+<<code language="ocaml" | sig
+  val menu :
+    ?classe:string list ->
+    ([< Eliom_services.get_service_kind ] as 'a,
+     [< Eliom_services.registrable ] as 'b)
+    Eliom_tools_common.one_page * Eliom_duce.Blocks.a_content_elt_list ->
+    (('a, 'b) Eliom_tools_common.one_page *
+     Eliom_duce.Blocks.a_content_elt_list)
+    list ->
+    ?service:('a, 'b) Eliom_tools_common.one_page ->
+    sp:Eliom_sessions.server_params -> Xhtmltypes_duce.ul
+  val hierarchical_menu_depth_first :
+    ?classe:string list ->
+    ?whole_tree:bool ->
+    ([< Eliom_services.get_service_kind ] as 'a,
+     [< Eliom_services.registrable ] as 'b,
+     Eliom_duce.Blocks.a_content_elt_list)
+    Eliom_tools_common.hierarchical_site ->
+    ?service:('a, 'b) Eliom_tools_common.one_page ->
+    sp:Eliom_sessions.server_params -> {{[ ul* ]}}
+  val hierarchical_menu_breadth_first :
+    ?classe:string list ->
+    ([< Eliom_services.get_service_kind ] as 'a,
+     [< Eliom_services.registrable ] as 'b,
+     Eliom_duce.Blocks.a_content_elt_list)
+    Eliom_tools_common.hierarchical_site ->
+    ?service:('a, 'b) Eliom_tools_common.one_page ->
+    sp:Eliom_sessions.server_params -> {{[ ul* ]}}
+  val structure_links :
+    ([< Eliom_services.get_service_kind ] as 'a,
+     [< Eliom_services.registrable ] as 'b,
+     Eliom_duce.Blocks.a_content_elt_list)
+    Eliom_tools_common.hierarchical_site ->
+    ?service:('a, 'b) Eliom_tools_common.one_page ->
+    sp:Eliom_sessions.server_params -> {{[ link* ]}}
+end >>
