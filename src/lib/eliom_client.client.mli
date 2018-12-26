@@ -199,6 +199,12 @@ val call_service :
     each time the service has been called; the former is executed only
     once; but each at a time where the document is in place:
 
+    Beware of using [onload] when using the DOM caching functionality,
+    i.e. [push_history_dom]. When switching to a cached page (e.g. by going
+    back) the onload event is not triggered (as the page is not loaded). To
+    avoid this problem rely on [Page_status.onactive] which is triggered for
+    freshly generated pages as well as pages served from the DOM cache.
+
     {% <<code language="ocaml"|
     [%%shared open Eliom_lib]
     [%%client
@@ -226,7 +232,8 @@ val onload : (unit -> unit) -> unit
 val lwt_onload : unit -> unit Lwt.t
 
 (** [changepage_event] is a record of some parameters related to
-    page changes. [in_cache] is true if the dom of the page is cached.
+    page changes. [in_cache] is true if the dom of the page is cached by
+    [push_history_dom].
     [origin_uri] is the uri of the current page and [target_uri]
     is the uri of the next page. [origin_id] is the state_id of
     the current page and [target_id] is the state_id of the next page.
@@ -265,6 +272,8 @@ module Page_status : sig
     val active : unit -> unit React.E.t
     val cached : unit -> unit React.E.t
     val dead : unit -> unit React.E.t
+    (** [inactive] occurs when the [Active] state is left ([Cached] or [Dead]) *)
+    val inactive : unit -> unit React.E.t
   end
 
   (** convenience function that attaches a handler to [Events.active].
@@ -283,6 +292,7 @@ module Page_status : sig
   val onactive : ?now:bool -> ?once:bool -> (unit -> unit) -> unit
   val oncached : ?once:bool -> (unit -> unit) -> unit
   val ondead : (unit -> unit) -> unit
+  val oninactive : ?once:bool -> (unit -> unit) -> unit
 end
 
 (** [onbeforeunload f] registers [f] as a handler to be called before

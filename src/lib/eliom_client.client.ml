@@ -540,6 +540,7 @@ module Page_status = struct
       changes () |> React.E.fmap @@ function Cached -> Some () | _ -> None
     let dead () =
       changes () |> React.E.fmap @@ function Dead -> Some () | _ -> None
+    let inactive () = React.E.select [cached (); dead ()]
   end
 
   let maybe_just_once ~once e = if once then React.E.once e else e
@@ -556,6 +557,9 @@ module Page_status = struct
     ignore @@ React.E.map action @@ maybe_just_once ~once @@ Events.cached ()
 
   let ondead action = ignore @@ React.E.map action (Events.dead ())
+
+  let oninactive ?(once = false) action =
+    ignore @@ React.E.map action @@ maybe_just_once ~once @@ Events.inactive ()
 end
 
 let is_in_cache state_id =
