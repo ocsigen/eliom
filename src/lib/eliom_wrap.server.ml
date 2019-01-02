@@ -129,7 +129,10 @@ module Tbl = struct
                                     table was accurate *)
       mutable on_resize : (int -> unit) list } (* Functions called on resize *)
 
-  let hash tbl x =  (Obj.magic x * 0x4F1BBCDCBFA53E09) lsr tbl.shift
+  let cst = (* Fibonacci hash: 2 ^ Sys.int_size / phi *)
+    Int64.to_int (Int64.shift_right 0x4F1BBCDCBFA53E09L (63 - Sys.int_size))
+
+  let hash tbl x =  (Obj.magic x * cst) lsr tbl.shift
 
   let gc_count () = Gc.((quick_stat ()).minor_collections)
 
@@ -172,7 +175,7 @@ module Tbl = struct
     let on_resize = List.map DynArray.check_size tbls in
     let gc = gc_count () in
     { size;
-      shift = 63 - bits;
+      shift = Sys.int_size - bits;
       occupancy = 0;
       obj; idx; gc; on_resize }
 
