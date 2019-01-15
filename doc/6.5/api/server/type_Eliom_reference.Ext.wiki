@@ -1,0 +1,15 @@
+<<code language="ocaml" | sig
+  val get :
+    ([< `Client_process | `Session | `Session_group ], [< `Data | `Pers ])
+    Eliom_state.Ext.state -> 'a Eliom_reference.eref -> 'a Lwt.t
+  val set :
+    ([< `Client_process | `Session | `Session_group ], [< `Data | `Pers ])
+    Eliom_state.Ext.state -> 'a Eliom_reference.eref -> 'a -> unit Lwt.t
+  val modify :
+    ([< `Client_process | `Session | `Session_group ], [< `Data | `Pers ])
+    Eliom_state.Ext.state ->
+    'a Eliom_reference.eref -> ('a -> 'a) -> unit Lwt.t
+  val unset :
+    ([< `Client_process | `Session | `Session_group ], [< `Data | `Pers ])
+    Eliom_state.Ext.state -> 'a Eliom_reference.eref -> unit Lwt.t
+end >>

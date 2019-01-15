@@ -42,8 +42,8 @@
       type ename = string
       val empty : unit -> elt
       val comment : string -> elt
-      val pcdata : string wrap -> elt
-      val encodedpcdata : string wrap -> elt
+      val txt : string wrap -> elt
+      val encodedtxt : string wrap -> elt
       val entity : string -> elt
       val leaf : ?a:attrib list -> ename -> elt
       val node : ?a:attrib list -> ename -> elt list_wrap -> elt
@@ -419,7 +419,7 @@
   val a_onmouseover : Xml.mouse_event_handler -> [> `OnMouseOver ] attrib
   val a_onmouseout : Xml.mouse_event_handler -> [> `OnMouseOut ] attrib
   val a_onmousemove : Xml.mouse_event_handler -> [> `OnMouseMove ] attrib
-  val pcdata : string wrap -> [> `PCDATA ] elt
+  val txt : string wrap -> [> `TXT ] elt
   val svg :
     ([< Svg_types.svg_attr ], [< Svg_types.svg_content ], [> Svg_types.svg ])
     star

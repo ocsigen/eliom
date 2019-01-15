@@ -45,8 +45,8 @@
           type ename = string
           val empty : unit -> elt
           val comment : string -> elt
-          val pcdata : string wrap -> elt
-          val encodedpcdata : string wrap -> elt
+          val txt : string wrap -> elt
+          val encodedtxt : string wrap -> elt
           val entity : string -> elt
           val leaf : ?a:attrib list -> ename -> elt
           val node : ?a:attrib list -> ename -> elt list_wrap -> elt
@@ -334,7 +334,7 @@
       val a_media : Html_types.mediadesc wrap -> [> `Media ] attrib
       val a_style : string wrap -> [> `Style_Attr ] attrib
       val a_property : string wrap -> [> `Property ] attrib
-      val pcdata : string wrap -> [> `PCDATA ] elt
+      val txt : string wrap -> [> `TXT ] elt
       val html :
         ?a:Html_types.html_attrib attrib list ->
         [< `Head ] elt wrap -> [< `Body ] elt wrap -> [> `Html ] elt
@@ -631,7 +631,7 @@
           | `Width
           | `XML_lang
           | `XMLns ],
-         [< `PCDATA ], [> `Iframe ])
+         [< `TXT ], [> `Iframe ])
         star
       val object_ :
         ?params:[< `Param ] elt list_wrap ->
@@ -1138,11 +1138,11 @@
         ([< Html_types.output_elt_attrib ],
          [< Html_types.output_elt_content_fun ], [> Html_types.output_elt ])
         star
-      val entity : string -> [> `PCDATA ] elt
-      val space : unit -> [> `PCDATA ] elt
-      val cdata : string -> [> `PCDATA ] elt
-      val cdata_script : string -> [> `PCDATA ] elt
-      val cdata_style : string -> [> `PCDATA ] elt
+      val entity : string -> [> `TXT ] elt
+      val space : unit -> [> `TXT ] elt
+      val cdata : string -> [> `TXT ] elt
+      val cdata_script : string -> [> `TXT ] elt
+      val cdata_style : string -> [> `TXT ] elt
       val details :
         [< `Summary ] elt wrap ->
         ([< `Accesskey
@@ -1549,8 +1549,8 @@
       type ename = string
       val empty : unit -> elt
       val comment : string -> elt
-      val pcdata : string wrap -> elt
-      val encodedpcdata : string wrap -> elt
+      val txt : string wrap -> elt
+      val encodedtxt : string wrap -> elt
       val entity : string -> elt
       val leaf : ?a:attrib list -> ename -> elt
       val node : ?a:attrib list -> ename -> elt list_wrap -> elt
@@ -1825,7 +1825,7 @@
   val a_media : Html_types.mediadesc wrap -> [> `Media ] attrib
   val a_style : string wrap -> [> `Style_Attr ] attrib
   val a_property : string wrap -> [> `Property ] attrib
-  val pcdata : string wrap -> [> `PCDATA ] elt
+  val txt : string wrap -> [> `TXT ] elt
   val html :
     ?a:Html_types.html_attrib attrib list ->
     [< `Head ] elt wrap -> [< `Body ] elt wrap -> [> `Html ] elt
@@ -2121,7 +2121,7 @@
       | `Width
       | `XML_lang
       | `XMLns ],
-     [< `PCDATA ], [> `Iframe ])
+     [< `TXT ], [> `Iframe ])
     star
   val object_ :
     ?params:[< `Param ] elt list_wrap ->
@@ -2626,11 +2626,11 @@
     ([< Html_types.output_elt_attrib ],
      [< Html_types.output_elt_content_fun ], [> Html_types.output_elt ])
     star
-  val entity : string -> [> `PCDATA ] elt
-  val space : unit -> [> `PCDATA ] elt
-  val cdata : string -> [> `PCDATA ] elt
-  val cdata_script : string -> [> `PCDATA ] elt
-  val cdata_style : string -> [> `PCDATA ] elt
+  val entity : string -> [> `TXT ] elt
+  val space : unit -> [> `TXT ] elt
+  val cdata : string -> [> `TXT ] elt
+  val cdata_script : string -> [> `TXT ] elt
+  val cdata_style : string -> [> `TXT ] elt
   val details :
     [< `Summary ] elt wrap ->
     ([< `Accesskey
@@ -3183,7 +3183,7 @@
         ?value:string -> unit -> [> Html_types.textarea ] elt
       type 'a soption =
           Html_types.option_attrib attrib list * 'a *
-          Html_types.pcdata elt option * bool
+          Html_types.txt elt option * bool
       type 'a select_opt =
           Optgroup of
             [ `Accesskey
@@ -3260,13 +3260,13 @@
         | Option of 'a soption
       val select :
         ?a:[< Html_types.select_attrib ] attrib list ->
-        ?required:Html_types.pcdata elt ->
+        ?required:Html_types.txt elt ->
         name:[ `One of 'a ] Eliom_parameter.param_name ->
         'a param ->
         'a select_opt -> 'a select_opt list -> [> Html_types.select ] elt
       val multiple_select :
         ?a:[< Html_types.select_attrib ] attrib list ->
-        ?required:Html_types.pcdata elt ->
+        ?required:Html_types.txt elt ->
         name:[ `Set of 'a ] Eliom_parameter.param_name ->
         'a param ->
         'a select_opt -> 'a select_opt list -> [> Html_types.select ] elt

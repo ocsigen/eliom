@@ -1,0 +1,4 @@
+<<code language="ocaml" | sig
+  val find : instance_id:int -> Eliom_lib.poly option
+  val initialize : Eliom_runtime.client_value_datum -> unit
+end >>

@@ -1,0 +1,76 @@
+==Migration from Camlp4 to PPX==
+
+Recent versions of OCaml (4.02 and newer) provide PPX, which is a new
+mechanism for extending the language. Eliom 5.0 utilizes PPX to
+provide a superset of OCaml, which is suitable for developing
+client-server Web applications.
+
+This document provides a migration guide from our older Camlp4-based
+language to the new PPX-based language. While our Camlp4 language is
+still supported, future development will focus on PPX, and therefore
+users are advised to migrate.
+
+For more extensive information on the PPX extension itself, refer to
+the <<a_manual chapter="ppx-syntax"|corresponding manual page>>.
+
+==Source code conversion==
+
+The [[https://github.com/janestreet/camlp4-to-ppx|camlp4-to-ppx]] tool
+can be used to translate source code using Camlp4 syntax extensions to
+PPX. We [[https://github.com/ocsigen/camlp4-to-ppx|provide a
+version]] of camlp4-to-ppx that handles all the Ocsigen extensions.
+
+You need to run our version of camlp4-to-ppx on all the {{{.eliom}}} and
+{{{.eliomi}}} files in your project, e.g., with the following shell
+snippet:
+
+<<code language="shell"|
+for FILE in *.eliom *.eliomi; do
+  camlp4-to-ppx $FILE > $FILE.ppx
+  mv $FILE.ppx $FILE
+done
+>>
+
+==Build system changes==
+
+Eliom provides wrappers around the standard OCaml and js_of_ocaml
+tools, e.g., {{{eliomc}}}, {{{eliomopt}}}, {{{js_of_eliom}}}, and
+{{{eliomdep}}}. Starting from Eliom 5.0, these tools accept a
+{{{-ppx}}} flag, which specifies that our PPX syntax extension is to
+be used. (The default is Camlp4 at this time.) The build configuration
+needs to be adapted accordingly.
+
+Our tools do not automatically load PPX extensions for js_of_ocaml,
+Lwt, etc.; these need to be loaded explicitly, e.g., by loading
+Ocamlfind packages like {{{js_of_ocaml.ppx}}} and {{{lwt_ppx}}} (via
+the {{{-package}}} argument). Similarly, Ocamlfind packages need to be
+loaded for any {{{ppx_deriving}}} plugins that apply. Note that
+{{{ppx_deriving}}} needs to be installed manually, since it is only an
+optional dependency of Eliom and js_of_ocaml.
+
+Camlp4 and PPX extensions cannot be used in the same file. Code
+relying on Camlp4 extensions with no PPX equivalents (as is the case
+for Macaque and PGOcaml) needs to be moved to separate files that are
+preprocessed through Camlp4.
+
+==Good style==
+
+Our PPX language is more flexible than our Camlp4
+language. Specifically, the {{{[%%client.start]}}},
+{{{[%%server.start]}}}, and {{{[%%shared.start]}}} can be used to
+specify the default location of all the signature or structure items
+that follow in the file, while locations can apply to single structure
+or signature items (overriding the default), e.g.,
+
+<<code language="ocaml"|
+let%client x = 0
+>>
+
+The code produced by {{{camlp4-to-ppx}}} is a literal translation of
+the original code, and thus does not use the additional features. It
+is advised that future development utilizes the new constructs, for
+example by using one of {{{[%%client.start]}}}, {{{[%%server.start]}}},
+and {{{[%%shared.start]}}} in the beginning of the file to specify a
+sane default for the functionality implemented, and to explicitly
+override with {{{let%client}}}, {{{let%server}}}, {{{let%shared}}}
+only when necessary.

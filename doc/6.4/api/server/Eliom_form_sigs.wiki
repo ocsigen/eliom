@@ -1,0 +1,85 @@
+=Module <<a_api_type subproject="server" | module Eliom_form_sigs >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_form_sigs>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_form_sigs >><<span class="ocsforge_color_keyword"|end>>>>~The function <<span class="odocwiki_inlinecode"|make~_uri service get~_params>> returns the ~U~R~L of
+      the service <<span class="odocwiki_inlinecode"|service>> applied to the ~G~E~T parameters
+      <<span class="odocwiki_inlinecode"|get~_params>>~. ~By default the returned ~U~R~L is relative to the
+      current request ~U~R~L but it is absolute when one of the following
+      conditions is met~:
+
+
+* the optional parameter <<span class="odocwiki_inlinecode"|~~absolute~_path>> is <<span class="odocwiki_inlinecode"|true>>~.
+* the optional parameter <<span class="odocwiki_inlinecode"|~~absolute>> is <<span class="odocwiki_inlinecode"|true>>~.
+* the optional parameter <<span class="odocwiki_inlinecode"|~~https>> is <<span class="odocwiki_inlinecode"|true>> ~(resp~. <<span class="odocwiki_inlinecode"|false>>~) and
+        the current request protocol is <<span class="odocwiki_inlinecode"|http>> ~(resp~. <<span class="odocwiki_inlinecode"|https>>~)~.
+* the optional parameter <<span class="odocwiki_inlinecode"|~~https>> is <<span class="odocwiki_inlinecode"|true>> and the function is
+        used outside of a service handler
+* the <<span class="odocwiki_inlinecode"|service>> has been created with <<span class="odocwiki_inlinecode"|~~https~:true>> and the
+        current request protocol is <<span class="odocwiki_inlinecode"|http>>~.
+* the <<span class="odocwiki_inlinecode"|service>> has been created with <<span class="odocwiki_inlinecode"|~~https~:true>> and the
+        function is used outside of a service handler~.
+
+      ~When only the first condition is met ~(<<span class="odocwiki_inlinecode"|~~absolute~_path>> is
+      <<span class="odocwiki_inlinecode"|true>>~) the returned ~U~R~L is just the absolute path~, but when any
+      other condition is satisfied the returned ~U~R~L is prefixed with
+      <<span class="odocwiki_inlinecode"|protocol~:~/~/hostname~[~:port~]>>~, where~:
+
+
+* <<span class="odocwiki_inlinecode"|protocol>> is~:
+        
+** <<span class="odocwiki_inlinecode"|https>> if the <<span class="odocwiki_inlinecode"|service>> has been created with
+             <<span class="odocwiki_inlinecode"|~~https~:true>> or the optional parameter <<span class="odocwiki_inlinecode"|~~https>> is
+             <<span class="odocwiki_inlinecode"|true>>~;
+** <<span class="odocwiki_inlinecode"|http>> if the optional parameter <<span class="odocwiki_inlinecode"|~~https>> is <<span class="odocwiki_inlinecode"|false>>~;
+** the current request protocol if available~;
+** <<span class="odocwiki_inlinecode"|http>> in any other case~.
+
+* <<span class="odocwiki_inlinecode"|hostname>> is~:
+        
+** the optional parameter <<span class="odocwiki_inlinecode"|~~hostname>> if given~;
+** the attribute <<span class="odocwiki_inlinecode"|defaulthostname>> of <<span class="odocwiki_inlinecode"|~<host~>>> tag in
+               configuration file or the machine hostname if the
+               option <<span class="odocwiki_inlinecode"|~<usedefaulthostname~/~>>> is set~;
+** the <<span class="odocwiki_inlinecode"|~Host>> http header of the current request if
+               available~;
+** the attribute <<span class="odocwiki_inlinecode"|defaulthostname>> of <<span class="odocwiki_inlinecode"|~<host~>>> tag in
+               configuration file or the machine hostname in any other
+               case~.
+
+* <<span class="odocwiki_inlinecode"|port>> is~:
+        
+** the optional parameter <<span class="odocwiki_inlinecode"|~~port>> if given~;
+** the attribute <<span class="odocwiki_inlinecode"|defaulthttpsport>>
+               ~(resp~. <<span class="odocwiki_inlinecode"|defaulthttpport>>~) of <<span class="odocwiki_inlinecode"|~<host~>>> tag in
+               configuration file or <<span class="odocwiki_inlinecode"|~4~4~3>> ~(resp~. ~8~0~) if <<span class="odocwiki_inlinecode"|protocol>> is
+               <<span class="odocwiki_inlinecode"|https>> ~(resp~. <<span class="odocwiki_inlinecode"|http>>~) and the current request protocol
+               is <<span class="odocwiki_inlinecode"|http>> ~(resp~. <<span class="odocwiki_inlinecode"|https>>~)~;
+** the attribute <<span class="odocwiki_inlinecode"|defaulthttpsport>>
+               ~(resp~. <<span class="odocwiki_inlinecode"|defaulthttpsport>>~) of <<span class="odocwiki_inlinecode"|~<host~>>> tag in
+               configuration file or <<span class="odocwiki_inlinecode"|~4~4~3>> ~(resp~. ~8~0~) if the option
+               <<span class="odocwiki_inlinecode"|~<usedefaulthostname~/~>>> is set and <<span class="odocwiki_inlinecode"|protocol>> is
+               <<span class="odocwiki_inlinecode"|https>> ~(resp~. <<span class="odocwiki_inlinecode"|http>>~)~;
+** the port associated to the <<span class="odocwiki_inlinecode"|~Host>> http header of the
+               current request if available~;
+** the incoming port of the current request if available~;
+** the attribute <<span class="odocwiki_inlinecode"|defaulthttpport>>
+               ~(resp~. <<span class="odocwiki_inlinecode"|defaulthttpsport>>~) of <<span class="odocwiki_inlinecode"|~<host~>>> tag in
+               configuration file or <<span class="odocwiki_inlinecode"|~8~0>> ~(resp~. <<span class="odocwiki_inlinecode"|~4~4~3>>~) in any other
+               case~.
+
+
+      ~If given the optional parameter <<span class="odocwiki_inlinecode"|~~fragment>> is prefixed by <<span class="odocwiki_inlinecode"|~#>>
+      and appended to the ~U~R~L~.
+
+
+      ~The optional parameter <<span class="odocwiki_inlinecode"|keep~_nl~_params>> allows one to override
+      the <<span class="odocwiki_inlinecode"|keep~_nl~_params>> parameter used when creating the <<span class="odocwiki_inlinecode"|service>>~,
+      see <<a_api subproject="server" | val Eliom_service.create >> for a detailled description~.
+
+
+      ~The optional parameter <<span class="odocwiki_inlinecode"|nl~_params>> allows one to add non
+      localized ~G~E~T parameter to the ~U~R~L~.  ~See the eliom manual for
+      more information about <<a_manual chapter="server-params"
+      fragment="nonlocalizedparameters"|non localized
+      parameters>>~.
+
+----
+<<pre class="ocsforge_color odocwiki_code" id="TYPEbutton_type"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|button~_type>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|[ `Button | `Reset | `Submit ]>> >><<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module type>> <<a_api subproject="server" text="LINKS" | module type Eliom_form_sigs.LINKS >> <<span class="ocsforge_color_delimiter"|~=>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module type Eliom_form_sigs.LINKS >><<span class="ocsforge_color_keyword"|end>>>><<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module type>> <<a_api subproject="server" text="S" | module type Eliom_form_sigs.S >> <<span class="ocsforge_color_delimiter"|~=>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module type Eliom_form_sigs.S >><<span class="ocsforge_color_keyword"|end>>>>

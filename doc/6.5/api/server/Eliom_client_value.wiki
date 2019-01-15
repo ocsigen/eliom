@@ -1,0 +1,23 @@
+=Module <<a_api_type subproject="server" | module Eliom_client_value >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_client_value>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_client_value >><<span class="ocsforge_color_keyword"|end>>>>
+==@@id="2_Clientandsharedvalues"@@~Client and shared values==
+
+
+
+    ~See the <<a_manual chapter="clientserver-language"|manual>>
+    ~.
+
+----
+<<pre class="ocsforge_color odocwiki_code" id="TYPEt"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|+'a>> <<span class="odocwiki_name"|t>>>><<div class="odocwiki_info"|~Client values on the server are created by the syntax <<span class="odocwiki_inlinecode"|~{typ~{ expr
+    ~}~}>> in the server section ~(cf~. <<a_manual
+    chapter="clientserver-language" fragment="clientvalues"|the
+    manual>> ~)~.  ~They are abstract~, but become concrete once sent to
+    the client~. ~See also <<a_api subproject="client" text="the
+    concrete representation on the client" |type
+    Eliom_client_value.t>> ~.
+>>
+<<pre id="EXCEPTIONClient_value_creation_invalid_context" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|exception>> <<span class="odocwiki_name"|Client_value_creation_invalid_context>> <<span class="ocsforge_color_keyword"|of>> <<span class="odocwiki_type"|string>>>><<div class="odocwiki_info"|~Raised if a client value of the given closure ~I~D is created at a
+    point in time where it is neither global ~(i~.e~. during the
+    initialization of the server program~)~, nor request ~(i~.e~. during
+    the processing of a request~)~.
+>>

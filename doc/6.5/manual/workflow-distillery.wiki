@@ -1,0 +1,119 @@
+
+= Eliom's Distillery==
+
+The easiest way to initialize, compile, and run an Ocsigen/Eliom
+project is to use {{{eliom-distillery}}}.
+
+{{{eliom-distillery}}} is self-documenting (refer to
+{{{eliom-distillery -help}}} and the generated {{{README}}}), but here
+is a bit information on how to work with it.
+
+<<outline depth="2"| <<header| **Table of contents** >> >>
+
+
+
+=== Project Initialization
+
+{{{eliom-distillery}}} creates projects from templates.
+To see all available templates, you can use
+<<code language="shell"|
+$ eliom-distillery -list-templates
+>>
+
+Template "basic" create a very simple project (makefiles and configuration file
+and main service).
+
+To create your project, do:
+
+<<code language="shell"|
+$ eliom-distillery -name <name> -template basic.ppx [-target-directory <dir>]
+>>
+
+This creates a project named {{{<name>}}} from the {{{"basic.ppx"}}}
+template in the directory {{{<dir>}}} or {{{<name>}}} by default.
+The project name should be a valid name for an OCaml compilation unit.
+The project directory contains the following files
+
+ * {{{<name>.eliom}}} \\
+   This is your initial source file.
+   All Eliom files (*.eliom, *.eliomi) in this directory are
+   automatically considered.  To add a .ml/.mli file to your project,
+   add it to the variable SERVER_FILES or CLIENT_FILES in
+   {{{Makefile.options}}}.
+
+ * {{{static/}}} \\
+   The content of this folder is statically served. It contains
+   initially a basic CSS file for your project.
+
+ * {{{Makefile.options}}} \\
+   Configure your project here!
+
+ * {{{name.conf.in}}} \\
+   This file is a template for the configuration file for
+   ocsigenserver. You will rarely need to edit it: it can be
+   personalized through variables in {{{Makefile.options}}}.
+   In particular, this way, the installation rules and the
+   configuration files remains coherent.
+
+ * {{{Makefile}}} \\
+   This contains all rules necessary to build, test, and run your
+   Eliom application. You should avoid modifying it. See below for the
+   relevant targets.
+
+ * {{{README}}} \\
+   An explanation of how to compile, test, install, and run your
+   application
+
+=== Compilation & Running: Read the README
+
+You can just run
+<<code language="shell"|
+$ make test.byte
+>>
+or
+<<code language="shell"|
+$ make test.opt
+>>
+to compile your project and run ocsigenserver with it.
+
+Please refer to the generated README file for further hints
+on how to work with your project.
+
+=== Using other templates
+
+If you want to start from a more complete or more specific template,
+you can get other templates from the internet, such as
+"ocsigen-start". You can either install these templates into eliom's
+own directory (this is what their installer generally does), or, if
+doing so is not practical, you can use the {{{ELIOM_DISTILLERY_PATH}}}
+environment variable to point to your templates. This environment
+variable is a colon-separated list of absolute paths (that is, {{{export ELIOM_DISTILLERY_PATH=/usr/lib/template1:/usr/local/lib/template2}}}).
+
+A template's name is its directory basename ({{{template1}}} and
+{{{template2}}} for the preceding example). If you want to create a
+new project based on {{{template1}}}, you can use
+
+<<code language="shell"|
+$ eliom-distillery -name example -template template1
+>>
+
+=== Write other templates
+
+You can also write your own templates and install them by using the
+previous described method.
+
+By default, {{{eliom-distillery}}} copies all files in the template
+directory. If you want to ignore some files, you can list them in the
+special file {{{.eliomignore}}}.
+
+For some templates, e.g., the one of {{{Ocsigen Start}}}, some project
+names are reserved to avoid conflicts. For a new template, you need to
+list all reserved project names in the special file
+{{{.eliomreserve}}}.
+
+{{{eliom-distillery}}} also replaces {{{%%%PROJECT_NAME%%%}}} (resp.
+{{{%%%MODULE_NAME%%%}}}) by the project name (resp. by the project
+name with the first letter capitalized).
+
+For examples, see pre-defined templates like {{{basic.ppx}}} and
+{{{os.pgocaml}}}.
