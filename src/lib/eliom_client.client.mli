@@ -390,7 +390,23 @@ val set_reload_function : (unit -> unit -> unit Lwt.t) -> unit
     A typical use case of this function is storing the dom when loading
     a page. i.e.
     {% <<code language="ocaml"|
-    [Eliom_client.onload Eliom_client.push_history_dom]
+    let%shared service_handler =
+        fun () () ->
+            ignore [%client (Eliom_client.onload Eliom_client.push_history_dom : unit)];
+            Lwt.return
+                [div [h1 [pcdata "Hello"];
+                      p [pcdata "Blablablabla"] ]
+
+    (* In case you want to cache all pages, you can register a global
+       onload handler. *)
+    let%client () =
+        let rec register () =
+            Eliom_client.onload (
+                fun () ->
+                    Eliom_client.push_history_dom ();
+                    register ())
+        in
+        register ()
     >> %}
 *)
 val push_history_dom : unit -> unit
