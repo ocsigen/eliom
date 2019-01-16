@@ -1,0 +1,11 @@
+=Module type <<a_api_type subproject="client" | module type Eliom_registration_sigs.APP_PARAM >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module type>> <<span class="ocsforge_color_uid"|APP_PARAM>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module type Eliom_registration_sigs.APP_PARAM >><<span class="ocsforge_color_keyword"|end>>>>~Signature for application creation~.
+
+----
+<<pre id="VALapplication_name" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|application~_name>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|string>>>><<div class="odocwiki_info"|~Name of the application~. ~Applications must have distinct
+      names~.
+>>
+<<pre id="VALglobal_data_path" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|global~_data~_path>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|string list option>>>><<div class="odocwiki_info"|~If a path is provided~, we export through it a service for
+      accessing the global data~. ~Reading this data makes global
+      injections work in client apps~.
+>>

@@ -1,0 +1,9 @@
+=Module <<a_api_type subproject="server" | module Eliom_extension >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_extension>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_extension >><<span class="ocsforge_color_keyword"|end>>>>~Allows ~Ocsigen~'s extension to access ~Eliom data~. ~See the ~Eliom
+    manual for more information about <<a_manual chapter="workflow-configuration"
+    fragment="extensions"| Eliom's extensions>>
+
+----
+<<pre class="ocsforge_color odocwiki_code" id="TYPEeliom_extension_sig"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|eliom~_extension~_sig>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Ocsigen_extensions>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|answer>> <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>> >><<div class="odocwiki_info"|~Type of the function that must be registered to declare an eliom extension~.
+>>
+<<pre id="VALregister_eliom_extension" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|register~_eliom~_extension>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<a_api subproject="server" text="eliom_extension_sig" | type Eliom_extension.eliom_extension_sig >> <<span class="ocsforge_color_delimiter"| -> >> unit>>>>

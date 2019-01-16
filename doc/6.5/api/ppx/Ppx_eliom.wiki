@@ -1,0 +1,5 @@
+=Module <<a_api_type subproject="ppx" | module Ppx_eliom >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Ppx_eliom>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="ppx" text=".." | module Ppx_eliom >><<span class="ocsforge_color_keyword"|end>>>>~Eliom ~P~P~X syntax extension~. ~For documentation~, refer to
+<<a_manual chapter="ppx-syntax"|the corresponding manual page.>>
+
+----

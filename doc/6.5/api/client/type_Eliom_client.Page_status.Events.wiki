@@ -1,0 +1,5 @@
+<<code language="ocaml" | sig
+  val active : unit -> unit React.E.t
+  val cached : unit -> unit React.E.t
+  val dead : unit -> unit React.E.t
+end >>

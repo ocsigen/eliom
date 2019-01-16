@@ -1,0 +1,117 @@
+<<code language="ocaml" | sig
+  val make_string_uri :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('get, unit, Eliom_service.get, 'a, 'b, 'c, 'd,
+             [< `WithSuffix | `WithoutSuffix ], 'e, unit, 'return)
+            Eliom_service.t ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameter.nl_params_set -> 'get -> string
+  val make_uri_components :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('get, 'a, Eliom_service.get, 'b, 'c, 'd, 'e,
+             [< `WithSuffix | `WithoutSuffix ], 'f, 'g, 'h)
+            Eliom_service.t ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameter.nl_params_set ->
+    'get ->
+    string * (string * Eliommod_parameters.param) list * string option
+  val make_post_uri_components :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('get, 'post, Eliom_service.post, 'a, 'b, 'c, 'd,
+             [< `WithSuffix | `WithoutSuffix ], 'e, 'f, 'g)
+            Eliom_service.t ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameter.nl_params_set ->
+    ?keep_get_na_params:bool ->
+    'get ->
+    'post ->
+    string * (string * Eliommod_parameters.param) list * string option *
+    (string * Eliommod_parameters.param) list
+  val make_string_uri_from_components :
+    string * (string * Eliommod_parameters.param) list * string option ->
+    string
+  val reconstruct_relative_url_path :
+    string list -> string list -> string list
+  val make_string_uri_ :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('get, 'a, 'b, 'c, 'd, 'e, 'f, [< `WithSuffix | `WithoutSuffix ],
+             'g, 'h, 'i)
+            Eliom_service.t ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameter.nl_params_set -> 'get -> string
+  val make_post_uri_components__ :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('get, 'post, 'a, 'b, 'c, 'd, 'e,
+             [< `WithSuffix | `WithoutSuffix ], 'f, 'g, 'h)
+            Eliom_service.t ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameter.nl_params_set ->
+    ?keep_get_na_params:bool ->
+    'get ->
+    'post ->
+    string * (string * Eliommod_parameters.param) list * string option *
+    (string * Eliommod_parameters.param) list
+  val make_uri_components_ :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('a, 'b, 'c, 'd, 'e, 'f, 'g, [< `WithSuffix | `WithoutSuffix ],
+             'h, 'i, 'j)
+            Eliom_service.t ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameter.nl_params_set ->
+    unit ->
+    string * (string * Eliommod_parameters.param) list * string option
+  val make_post_uri_components_ :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('get, 'post, 'a, 'b, 'c, 'd, 'e,
+             [< `WithSuffix | `WithoutSuffix ], 'f, 'g, 'h)
+            Eliom_service.t ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameter.nl_params_set ->
+    ?keep_get_na_params:bool ->
+    'get ->
+    unit ->
+    string * (string * Eliommod_parameters.param) list * string option *
+    (string * Eliommod_parameters.param) list
+  val make_actual_path : string list -> string list
+  val make_proto_prefix : ?hostname:string -> ?port:int -> bool -> string
+  val make_cookies_info :
+    bool option *
+    ('a, 'b, 'c, 'd, 'e, 'f, 'g, [< `WithSuffix | `WithoutSuffix ], 'h, 'i,
+     'j)
+    Eliom_service.t -> (bool * Eliom_lib.Url.path) option
+end >>

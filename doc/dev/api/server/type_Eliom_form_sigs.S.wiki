@@ -156,7 +156,7 @@
     ?value:string -> unit -> [> Html_types.textarea ] Eliom_form_sigs.S.elt
   type 'a soption =
       Html_types.option_attrib Eliom_form_sigs.S.attrib list * 'a *
-      Html_types.pcdata Eliom_form_sigs.S.elt option * bool
+      Html_types.txt Eliom_form_sigs.S.elt option * bool
   type 'a select_opt =
       Optgroup of
         [ `Accesskey
@@ -234,7 +234,7 @@
     | Option of 'a Eliom_form_sigs.S.soption
   val select :
     ?a:[< Html_types.select_attrib ] Eliom_form_sigs.S.attrib list ->
-    ?required:Html_types.pcdata Eliom_form_sigs.S.elt ->
+    ?required:Html_types.txt Eliom_form_sigs.S.elt ->
     name:[ `One of 'a ] Eliom_parameter.param_name ->
     'a Eliom_form_sigs.S.param ->
     'a Eliom_form_sigs.S.select_opt ->
@@ -242,7 +242,7 @@
     [> Html_types.select ] Eliom_form_sigs.S.elt
   val multiple_select :
     ?a:[< Html_types.select_attrib ] Eliom_form_sigs.S.attrib list ->
-    ?required:Html_types.pcdata Eliom_form_sigs.S.elt ->
+    ?required:Html_types.txt Eliom_form_sigs.S.elt ->
     name:[ `Set of 'a ] Eliom_parameter.param_name ->
     'a Eliom_form_sigs.S.param ->
     'a Eliom_form_sigs.S.select_opt ->
