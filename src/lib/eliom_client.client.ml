@@ -544,22 +544,29 @@ module Page_status = struct
   end
 
   let maybe_just_once ~once e = if once then React.E.once e else e
+  let stop_event ?(stop = React.E.never) e =
+    ignore @@ React.E.map (fun () -> React.E.stop ~strong:true e) stop
 
-  let onactive ?(now = true) ?(once = false) action =
+  let onactive ?(now = true) ?(once = false) ?stop action =
     let on_event () =
-      ignore @@ React.E.map action @@ maybe_just_once ~once @@ Events.active ()
+      stop_event ?stop @@
+        React.E.map action @@ maybe_just_once ~once @@ Events.active ()
     in
     if now && React.S.value (signal ()) = Active
       then (action (); if not once then on_event ())
       else on_event ()
 
-  let oncached ?(once = false) action =
-    ignore @@ React.E.map action @@ maybe_just_once ~once @@ Events.cached ()
+  let oncached ?(once = false) ?stop action =
+    stop_event ?stop @@
+      React.E.map action @@ maybe_just_once ~once @@ Events.cached ()
 
-  let ondead action = ignore @@ React.E.map action (Events.dead ())
+  let ondead ?stop action =
+    stop_event ?stop @@
+      React.E.map action (Events.dead ())
 
-  let oninactive ?(once = false) action =
-    ignore @@ React.E.map action @@ maybe_just_once ~once @@ Events.inactive ()
+  let oninactive ?(once = false) ?stop action =
+    stop_event ?stop @@
+      React.E.map action @@ maybe_just_once ~once @@ Events.inactive ()
 end
 
 let is_in_cache state_id =

@@ -276,23 +276,38 @@ module Page_status : sig
     val inactive : unit -> unit React.E.t
   end
 
-  (** convenience function that attaches a handler to [Events.active].
-      Behaves exactly like [fun f -> React.E.map f Events.active]. If [now] is
-      [true] (default) and the page is currenly active the function is also
-      invoked right away. This is useful to ensure that the function is invoked
-      also on server-generated pages which are active right from the start and
-      thus have no transition to the active state.
+  (** [onactive] is convenience function that attaches a handler to
+      [Events.active], which behaves exactly like [fun f -> React.E.map f
+      Events.active].
+      If [now] is [true] (default) and the page is currenly active the function
+      is also invoked right away. This is useful to ensure that the function
+      is invoked also on server-generated pages which are active right from
+      the start and thus have no transition to the active state.
       If [once] is [true] ([false] by default) the action is executed only once.
+      By [stop] one can supply an event that will deinstall the handler when
+      triggered.
 
       Typical use cases for this function are processes that need to run
       continually while a page is being viewed. Such processes (including event
       listeners of [Dom_html.window]) are killed on a page change and not
       automatically restored with the DOM (contrary to event listeners attached
       to DOM elements). *)
-  val onactive : ?now:bool -> ?once:bool -> (unit -> unit) -> unit
-  val oncached : ?once:bool -> (unit -> unit) -> unit
-  val ondead : (unit -> unit) -> unit
-  val oninactive : ?once:bool -> (unit -> unit) -> unit
+  val onactive :
+    ?now:bool ->
+    ?once:bool ->
+    ?stop:(unit React.E.t) ->
+    (unit -> unit) -> unit
+  val oncached :
+    ?once:bool ->
+    ?stop:(unit React.E.t) ->
+    (unit -> unit) -> unit
+  val ondead :
+    ?stop:(unit React.E.t) ->
+    (unit -> unit) -> unit
+  val oninactive :
+    ?once:bool ->
+    ?stop:(unit React.E.t) ->
+    (unit -> unit) -> unit
 end
 
 (** [onbeforeunload f] registers [f] as a handler to be called before
