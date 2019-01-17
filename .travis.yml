@@ -10,3 +10,7 @@ env:
 os:
   - linux
   - osx
+
+branches:
+  except:
+  - wikidoc
