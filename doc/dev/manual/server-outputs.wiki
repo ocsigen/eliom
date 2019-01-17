@@ -85,7 +85,7 @@ module Eliom_content.Html.F >> or the syntax extension (useful for {{{XMLHttpReq
 
 === Advanced output modules
 
-<<outline depth="2" >>
+<<|outline depth="2" >>
 
 ====@@id="eliomfiles"@@ Sending files ===
 

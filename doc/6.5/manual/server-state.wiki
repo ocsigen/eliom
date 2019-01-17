@@ -132,7 +132,7 @@ chapter="workflow-configuration" fragment="reload"|command
 
 ==@@id="scopes"@@ Scopes, cookies and sessions ==
 
-<<outline depth="2">>
+<<|outline depth="2">>
 
 === Basics ===
 
