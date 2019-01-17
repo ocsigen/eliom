@@ -1,3 +1,10 @@
+===== 6.6 (2018-01-17) =====
+
+* Add missing function Eliom_request_info.get_remote_port
+* Eliom_client.Page_status.oninactive
+* Some documentation on DOM caching
+* Eliom_wrap: fix compilation on 32-bit architectures
+
 ===== 6.5 (2018-12-18) =====
 
 * Compatibility with tyxml.4.3.x and js_of_caml.3.3.x
