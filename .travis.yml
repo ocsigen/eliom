@@ -1,8 +1,8 @@
 language: c
 
-env: HOW_DOC=doc HOW_CONFIG=how.json HOW_OUT=_doc 
+env: HOW_DOC=doc HOW_CONFIG=how.json HOW_OUT=_doc
 
-install: 
+install:
     - wget https://ocsigen.org/how.sh
     - . how.sh
     - how-install
@@ -26,3 +26,7 @@ deploy:
   local-dir: _doc
   on:
     branch: wikidoc
+
+branches:
+  only:
+  - wikidoc
