@@ -4,7 +4,7 @@
 
 == Introduction ==
 
-<<outline depth="2" >>
+<<|outline depth="2" >>
 
 Services are entry points to your Web site. A service is usually
 attached to a URL, and it generates a Web page. There are other kinds
@@ -445,7 +445,7 @@ order):
 * scope //"group of session"//,
 * and finally scope //"site"//.
 
-<<outline depth="2" >>
+<<|outline depth="2" >>
 
 == Tips
 
