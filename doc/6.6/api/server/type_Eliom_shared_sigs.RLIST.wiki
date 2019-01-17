@@ -1,0 +1,40 @@
+<<code language="ocaml" | sig
+  type 'a t
+  type 'a handle
+  type 'a signal
+  type 'a sv
+  type 'a ct
+  type 'a chandle
+  val create :
+    ?default:('a Eliom_shared_sigs.RLIST.ct *
+              'a Eliom_shared_sigs.RLIST.chandle)
+             option Eliom_client_value.t ->
+    ?reset_default:bool ->
+    'a list ->
+    'a Eliom_shared_sigs.RLIST.t * 'a Eliom_shared_sigs.RLIST.handle
+  val concat :
+    'a Eliom_shared_sigs.RLIST.t ->
+    'a Eliom_shared_sigs.RLIST.t -> 'a Eliom_shared_sigs.RLIST.t
+  val value :
+    'a Eliom_shared_sigs.RLIST.t -> 'a list Eliom_shared_sigs.RLIST.sv
+  val signal :
+    ?eq:('a -> 'a -> bool) Eliom_shared_sigs.RLIST.sv ->
+    'a Eliom_shared_sigs.RLIST.t -> 'a list Eliom_shared_sigs.RLIST.signal
+  val singleton_s :
+    'a Eliom_shared_sigs.RLIST.signal -> 'a Eliom_shared_sigs.RLIST.t
+  val map :
+    ('a -> 'b) Eliom_shared_sigs.RLIST.sv ->
+    'a Eliom_shared_sigs.RLIST.t -> 'b Eliom_shared_sigs.RLIST.t
+  val from_signal :
+    ?eq:('a -> 'a -> bool) Eliom_shared_sigs.RLIST.sv ->
+    'a list Eliom_shared_sigs.RLIST.signal -> 'a Eliom_shared_sigs.RLIST.t
+  val acc_e :
+    ?init:'a Eliom_shared_sigs.RLIST.t * 'a Eliom_shared_sigs.RLIST.handle ->
+    'a React.E.t Eliom_client_value.t -> 'a Eliom_shared_sigs.RLIST.t
+  module Lwt :
+    sig
+      val map_p :
+        ('a -> 'b Lwt.t) Eliom_shared_sigs.RLIST.sv ->
+        'a Eliom_shared_sigs.RLIST.t -> 'b Eliom_shared_sigs.RLIST.t Lwt.t
+    end
+end >>

@@ -1,0 +1,9 @@
+=Index of modules=
+
+|@@ @style="tet-align: left;"@@\\M|
+|@@class="odocwiki_index"@ @@<<a_api subproject="ocamlbuild" text="Make"| module Ocamlbuild_eliom.Make >> ~[<<a_api subproject="ocamlbuild" | module Ocamlbuild_eliom >>~]||
+|@@ @style="tet-align: left;"@@\\O|
+|@@class="odocwiki_index"@ @@<<a_api subproject="ocamlbuild" text="Ocamlbuild_eliom"| module Ocamlbuild_eliom >> |<<div class="odocwiki_info"|~The paths to each eliom directories
+>>
+|
+\\
