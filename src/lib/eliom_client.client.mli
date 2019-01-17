@@ -308,6 +308,13 @@ module Page_status : sig
     ?once:bool ->
     ?stop:(unit React.E.t) ->
     (unit -> unit) -> unit
+
+  (** [while_active] initiates an action as [onactive] but cancels it whenever
+      the page is not active anymore. *)
+  val while_active :
+    ?now:bool ->
+    ?stop:(unit React.E.t) ->
+    (unit -> unit Lwt.t) -> unit
 end
 
 (** [onbeforeunload f] registers [f] as a handler to be called before

@@ -567,6 +567,12 @@ module Page_status = struct
   let oninactive ?(once = false) ?stop action =
     stop_event ?stop @@
       React.E.map action @@ maybe_just_once ~once @@ Events.inactive ()
+
+  let while_active ?now ?(stop = React.E.never) action =
+    let thread = ref Lwt.return_unit in
+    onactive ?now ~stop (fun () -> thread := action ());
+    oninactive ~stop (fun () -> Lwt.cancel !thread);
+    ignore @@ React.E.map (fun () -> Lwt.cancel !thread) stop
 end
 
 let is_in_cache state_id =
