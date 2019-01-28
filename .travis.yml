@@ -17,6 +17,7 @@ script:
     - how-redirect-manual 2.2.2 2.0.1
     - how-redirect-manual 2.2.2 2.0.2
     - how-redirect-manual 2.2.2 2.1.1
+    - how-redirect-manual $HOW_LATEST latest
 
 deploy:
   provider: pages
