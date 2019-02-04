@@ -495,22 +495,37 @@ let history_doms : history_dom HistCache.t ref = ref HistCache.empty
 
 let max_dist_history_doms = ref None
 
-(* TODO: history is linear, keep only DOMs on the history line *)
 let garbage_collect_cached_doms () =
   !max_dist_history_doms |> Opt.iter @@ fun n ->
     let cur_index = !active_page.page_id.state_index in
-    let l,cur,r = HistCache.split cur_index !history_doms in
-    let l', lgarbage =
-      Eliom_lib.List.split_at n @@ List.rev @@ HistCache.bindings l in
-    let r', rgarbage = Eliom_lib.List.split_at n @@ HistCache.bindings r in
-    let cur' = List.map (fun cur -> cur_index, cur) (Opt.to_list cur) in
-    let history_doms' =
-      List.fold_left (fun hc (idx, dom) -> HistCache.add idx dom hc)
-                     HistCache.empty
-                     (cur' @ l' @ r')
+    let history_doms' = ref HistCache.empty in
+    let size = ref 0 in
+    let add idx dom =
+      history_doms' := HistCache.add idx dom !history_doms';
+      history_doms := HistCache.remove idx !history_doms;
+      size := !size + 1
     in
-    List.iter (fun (_,g) -> set_page_status g.page Dead) (lgarbage @ rgarbage);
-    history_doms := history_doms'
+    let rec accum_past = function
+      | Some idx when !size < n ->
+          try
+            let dom = HistCache.find idx !history_doms in
+            add idx dom;
+            accum_past dom.page.previous_page
+          with Not_found -> ()
+      | _ -> ()
+    in
+    let _, _, future = HistCache.split cur_index !history_doms in
+    let prev = ref cur_index in
+    let accum_future idx dom =
+      if !size < n then begin
+        if dom.page.previous_page = Some !prev then add idx dom;
+        prev := idx
+      end (* else abort *)
+    in
+    accum_past (Some cur_index);
+    HistCache.iter accum_future future;
+    HistCache.iter (fun _ g -> set_page_status g.page Dead) !history_doms;
+    history_doms := !history_doms'
 
 let set_max_dist_history_doms limit =
   max_dist_history_doms := limit;
@@ -544,22 +559,35 @@ module Page_status = struct
   end
 
   let maybe_just_once ~once e = if once then React.E.once e else e
+  let stop_event ?(stop = React.E.never) e =
+    ignore @@ React.E.map (fun () -> React.E.stop ~strong:true e) stop
 
-  let onactive ?(now = true) ?(once = false) action =
+  let onactive ?(now = true) ?(once = false) ?stop action =
     let on_event () =
-      ignore @@ React.E.map action @@ maybe_just_once ~once @@ Events.active ()
+      stop_event ?stop @@
+        React.E.map action @@ maybe_just_once ~once @@ Events.active ()
     in
     if now && React.S.value (signal ()) = Active
       then (action (); if not once then on_event ())
       else on_event ()
 
-  let oncached ?(once = false) action =
-    ignore @@ React.E.map action @@ maybe_just_once ~once @@ Events.cached ()
+  let oncached ?(once = false) ?stop action =
+    stop_event ?stop @@
+      React.E.map action @@ maybe_just_once ~once @@ Events.cached ()
 
-  let ondead action = ignore @@ React.E.map action (Events.dead ())
+  let ondead ?stop action =
+    stop_event ?stop @@
+      React.E.map action (Events.dead ())
 
-  let oninactive ?(once = false) action =
-    ignore @@ React.E.map action @@ maybe_just_once ~once @@ Events.inactive ()
+  let oninactive ?(once = false) ?stop action =
+    stop_event ?stop @@
+      React.E.map action @@ maybe_just_once ~once @@ Events.inactive ()
+
+  let while_active ?now ?(stop = React.E.never) action =
+    let thread = ref Lwt.return_unit in
+    onactive ?now ~stop (fun () -> thread := action ());
+    oninactive ~stop (fun () -> Lwt.cancel !thread);
+    ignore @@ React.E.map (fun () -> Lwt.cancel !thread) stop
 end
 
 let is_in_cache state_id =

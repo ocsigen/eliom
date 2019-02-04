@@ -711,6 +711,7 @@ type page = {
   mutable page_id : state_id;
   page_status : Page_status_t.t React.S.t;
   page_is_cached : bool ref;
+  previous_page : int option;
   set_page_status : ?step:React.step -> Page_status_t.t -> unit
 }
 
@@ -732,10 +733,13 @@ let mk_page ?(state_id = next_state_id ()) ~status () =
   Lwt_log.ign_debug_f ~section:section_page "Create page %d/%d"
     !last_page_id state_id.state_index;
   let page_status, set_page_status = React.S.create status in
+  (* protect page_status from React.S.stop ~strong:true *)
+  ignore @@ React.S.map (fun _ -> ()) page_status;
   {page_unique_id = !last_page_id;
    page_id = state_id;
    page_status;
    page_is_cached = ref false;
+   previous_page = None;
    set_page_status}
 
 let active_page = ref @@ mk_page ~status:Active ()
@@ -767,7 +771,10 @@ let with_new_page ?state_id ~replace () f =
 
 let advance_page () =
   let new_page = get_this_page () in
-  if new_page != !active_page then set_active_page new_page
+  if new_page != !active_page then begin
+    let previous_id = !active_page.page_id.state_index in
+    set_active_page {new_page with previous_page = Some previous_id}
+  end
 
 let state_key {session_id; state_index} =
   Js.string (Printf.sprintf "state_history_%x_%x" session_id state_index)
