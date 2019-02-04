@@ -733,6 +733,8 @@ let mk_page ?(state_id = next_state_id ()) ~status () =
   Lwt_log.ign_debug_f ~section:section_page "Create page %d/%d"
     !last_page_id state_id.state_index;
   let page_status, set_page_status = React.S.create status in
+  (* protect page_status from React.S.stop ~strong:true *)
+  ignore @@ React.S.map (fun _ -> ()) page_status;
   {page_unique_id = !last_page_id;
    page_id = state_id;
    page_status;
