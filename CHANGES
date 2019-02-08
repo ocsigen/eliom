@@ -1,3 +1,8 @@
+===== 6.7 (2018-02-08) =====
+
+* Eliom_client.Page_status: function while_active; ?stop parameter
+* DOM caching: treat history as linear and keep only reachable pages in cache
+
 ===== 6.6 (2018-01-17) =====
 
 * Add missing function Eliom_request_info.get_remote_port
