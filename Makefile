@@ -4,6 +4,9 @@ BUILD=ocaml pkg/build.ml
 
 .PHONY: all byte opt builder
 all: $(BUILDER)
+ifeq ($(shell uname -o), Cygwin)
+	chmod -R 755 $OPAM_SWITCH_PREFIX/lib/js_of_ocaml-ppx_deriving_json
+endif
 	$(BUILD) manpage=false native=true native-dynlink=true
 byte: $(BUILDER)
 	$(BUILD) manpage=false native=false native-dynlink=false
