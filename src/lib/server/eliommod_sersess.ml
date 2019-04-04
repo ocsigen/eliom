@@ -39,7 +39,7 @@ let close_service_state ~scope ~secure_o ?sp () =
     let ((cookie_info, _, _), secure_ci) =
       Eliom_common.get_cookie_info sp cookie_level
     in
-    let sitedata = Eliom_request_info.get_sitedata_sp sp in
+    let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
     let cookie_info, secure =
       compute_cookie_info sitedata secure_o secure_ci cookie_info
     in
@@ -64,7 +64,7 @@ let close_service_state ~scope ~secure_o ?sp () =
                     !(c.Eliom_common.sc_session_group)
                 with
                   | None -> Lwt_log.ign_error ~section:Lwt_log.eliom "No group of groups. Please report this problem."
-                  | Some (service_table, g) ->
+                  | Some (_service_table, g) ->
                     Eliommod_sessiongroups.Serv.remove g
               end
             | `Session _
@@ -80,7 +80,7 @@ let close_service_state ~scope ~secure_o ?sp () =
 
 
 let fullsessgrp ~cookie_level ~sp set_session_group =
-  let sitedata = Eliom_request_info.get_sitedata_sp sp in
+  let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
   Eliommod_sessiongroups.make_full_group_name
     ~cookie_level
     (Eliom_request_info.get_request_sp sp).Ocsigen_extensions.request_info
@@ -155,7 +155,7 @@ let rec find_or_create_service_cookie_ ?set_session_group
   let ((cookie_info, _, _), secure_ci) =
     Eliom_common.get_cookie_info sp cookie_level
   in
-  let sitedata = Eliom_request_info.get_sitedata_sp sp in
+  let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
   let cookie_info, secure =
     compute_cookie_info sitedata secure_o secure_ci cookie_info
   in
@@ -164,7 +164,7 @@ let rec find_or_create_service_cookie_ ?set_session_group
 
   try
 
-    let (old, ior) =
+    let (_old, ior) =
       Eliom_common.Full_state_name_table.find full_st_name !cookie_info
     in
     match !ior with
@@ -182,7 +182,7 @@ let rec find_or_create_service_cookie_ ?set_session_group
     | Eliom_common.SC c ->
       (match set_session_group with
         | None -> ()
-        | Some session_group ->
+        | Some _session_group ->
           let fullsessgrp = fullsessgrp ~cookie_level ~sp set_session_group in
           let node = Eliommod_sessiongroups.Serv.move
             sitedata
@@ -236,7 +236,7 @@ let find_service_cookie_only ~cookie_scope ~secure_o ?sp () =
     Eliom_common.get_cookie_info sp
       (Eliom_common.cookie_level_of_user_scope cookie_scope)
   in
-  let sitedata = Eliom_request_info.get_sitedata_sp sp in
+  let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
   let cookie_info, secure =
     compute_cookie_info sitedata secure_o secure_ci cookie_info
   in

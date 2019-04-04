@@ -69,11 +69,11 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
 
   let get_eliom_syntax_ppx = function
     | `Client ->
-      "eliom.ppx.client"
+      "ppx_eliom.ppx.client"
     | `Server ->
-      "eliom.ppx.server"
+      "ppx_eliom.ppx.server"
     | `Type ->
-      "eliom.ppx.type"
+      "ppx_eliom.ppx.type"
 
   let get_syntaxes_p4 with_eliom_syntax eliom_syntax src =
     let eliom_syntax = get_eliom_syntax_p4 eliom_syntax in

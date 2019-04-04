@@ -77,7 +77,7 @@ let close_persistent_state ~scope ~secure_o ?sp () =
       let ((_, _, cookie_info), secure_ci) =
         Eliom_common.get_cookie_info sp cookie_level
       in
-      let sitedata = Eliom_request_info.get_sitedata_sp sp in
+      let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
       let cookie_info, secure =
         compute_cookie_info sitedata secure_o secure_ci cookie_info
       in
@@ -167,7 +167,7 @@ let rec find_or_create_persistent_cookie_
   let ((_, _, cookie_info), secure_ci) =
     Eliom_common.get_cookie_info sp cookie_level
   in
-  let sitedata = Eliom_request_info.get_sitedata_sp sp in
+  let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
   let cookie_info, secure =
     compute_cookie_info sitedata secure_o secure_ci cookie_info
   in
@@ -177,7 +177,7 @@ let rec find_or_create_persistent_cookie_
     (fun () ->
       Lazy.force
         (Eliom_common.Full_state_name_table.find full_st_name !cookie_info)
-      >>= fun (old, ior) ->
+      >>= fun (_old, ior) ->
       match !ior with
       | Eliom_common.SCData_session_expired
           (* We do not trust the value sent by the client,
@@ -232,7 +232,7 @@ let find_persistent_cookie_only ~cookie_scope ~secure_o ?sp () =
   let ((_, _, cookie_info), secure_ci) =
     Eliom_common.get_cookie_info sp cookie_level
   in
-  let sitedata = Eliom_request_info.get_sitedata_sp sp in
+  let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
   let cookie_info, secure =
     compute_cookie_info sitedata secure_o secure_ci cookie_info
   in

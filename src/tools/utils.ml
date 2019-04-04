@@ -375,9 +375,9 @@ let preprocess_opt ?(ocaml = false) ?kind opts =
     []
   | `Ppx ->
     let pkg = match simplify_kind ?kind () with
-      | `Client -> "eliom.ppx.client"
-      | `Server -> "eliom.ppx.server"
-      | `Types  -> "eliom.ppx.type"
+      | `Client -> "ppx_eliom.ppx.client"
+      | `Server -> "ppx_eliom.ppx.server"
+      | `Types  -> "ppx_eliom.ppx.type"
     in
     [ "-ppx"; get_ppx pkg ^ " " ^ String.concat " " opts ]
 

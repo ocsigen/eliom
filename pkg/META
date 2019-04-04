@@ -109,15 +109,15 @@ package "ppx" (
   directory = "ppx"
   package "server" (
     description = "Ppx syntax extension: server side"
-    ppx = "ppx_eliom_server"
+    ppx = "ppx_eliom_server_standalone.exe"
   )
   package "client" (
     description = "Ppx syntax extension: client side"
-    ppx = "ppx_eliom_client"
+    ppx = "ppx_eliom_client_standalone.exe"
   )
   package "type" (
     description = "Ppx syntax extension: type inference"
-    ppx = "ppx_eliom_types"
+    ppx = "ppx_eliom_types_standalone.exe"
   )
 )
 

@@ -50,7 +50,7 @@ let get_cookie_info
     Eliom_common.Full_state_name_table.fold
       (fun name value (oktable, failedlist) ->
         try
-          let full_state_name, ta, expref, timeout_ref, sessgrpref, sessgrpnode =
+          let _full_state_name, ta, expref, timeout_ref, sessgrpref, sessgrpnode =
             Eliom_common.SessionCookies.find
               sitedata.Eliom_common.session_services value
           in
@@ -106,7 +106,7 @@ let get_cookie_info
       (fun value ->
         lazy
           (try
-            let full_state_name, expref, timeout_ref, sessgrpref, sessgrpnode =
+            let _full_state_name, expref, timeout_ref, sessgrpref, sessgrpnode =
               Eliom_common.SessionCookies.find
                 sitedata.Eliom_common.session_data value
             in
@@ -154,7 +154,7 @@ let get_cookie_info
              (fun () ->
                Lazy.force Eliom_common.persistent_cookies_table >>= fun table ->
                Ocsipersist.find table value >>=
-               fun (full_state_name, persexp, perstimeout, sessgrp) ->
+               fun (_full_state_name, persexp, perstimeout, sessgrp) ->
 
                  Eliommod_sessiongroups.Pers.up value sessgrp >>= fun () ->
                  match persexp with
@@ -391,12 +391,12 @@ let compute_new_ri_cookies'
 (*VVV We always keep secure cookies, event if the protocol is not secure,
   because this function is for actions only. Is that right? *)
             match v with
-              | Ocsigen_cookies.OSet (Some exp, value, secure)
+              | Ocsigen_cookies.OSet (Some exp, value, _secure)
                   when exp>now ->
                 CookiesTable.add name value cookies
-              | Ocsigen_cookies.OSet (None, value, secure) ->
+              | Ocsigen_cookies.OSet (None, value, _secure) ->
                 CookiesTable.add name value cookies
-              | Ocsigen_cookies.OSet (Some exp, value, secure)
+              | Ocsigen_cookies.OSet (Some exp, _value, _secure)
                   when exp<=now ->
                 CookiesTable.remove name cookies
               | Ocsigen_cookies.OUnset ->
@@ -425,7 +425,7 @@ let compute_new_ri_cookies
     compute_new_ri_cookies' now ripath ricookies cookies_set_by_page
   in
   (* then session cookies: *)
-  let f secure (service_cookie_info, data_cookie_info, pers_cookie_info) ric =
+  let f _secure (service_cookie_info, data_cookie_info, pers_cookie_info) ric =
     let ric =
       Eliom_common.Full_state_name_table.fold
         (fun ((sc, _, _) as full_st_name) (_, v) beg ->

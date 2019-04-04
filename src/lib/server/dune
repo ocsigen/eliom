@@ -1,0 +1,101 @@
+(library
+  (name server)
+  (public_name eliom.server)
+  (wrapped false)
+  (libraries
+    eliom.common
+    eliom.server.common
+    ipaddr
+    lwt
+    lwt_log
+    lwt_react
+    netstring-pcre
+    ocsigenserver
+    ocsigenserver.cookies
+    ocsigenserver.ext
+    react
+    tyxml)
+  (preprocess
+    (pps
+      lwt_ppx
+      js_of_ocaml-ppx
+      js_of_ocaml-ppx_deriving_json))
+  (modules_without_implementation
+    eliom_content_sigs
+    eliom_form_sigs
+    eliom_parameter_sigs
+    eliom_registration_sigs
+    eliom_service_sigs
+    eliom_shared_sigs))
+
+(rule
+  (targets eliom_content.ml)
+  (deps ../eliom/eliom_content.eliom)
+  (action
+    (with-stdout-to
+      %{targets}
+      (run %{bin:ppxfind} -legacy ppx_eliom.ppx.server --impl %{deps}))))
+
+(rule
+  (targets eliom_cscache.ml)
+  (deps ../eliom/eliom_cscache.eliom)
+  (action
+    (with-stdout-to
+      %{targets}
+      (run %{bin:ppxfind} -legacy ppx_eliom.ppx.server --impl %{deps}))))
+
+(rule
+  (targets eliom_cscache.mli)
+  (deps ../eliom/eliom_cscache.eliomi)
+  (action
+    (with-stdout-to
+      %{targets}
+      (run %{bin:ppxfind} -legacy ppx_eliom.ppx.server --intf %{deps}))))
+
+(rule
+  (targets eliom_form.ml)
+  (deps ../eliom/eliom_form.eliom)
+  (action
+    (with-stdout-to
+      %{targets}
+      (run %{bin:ppxfind} -legacy ppx_eliom.ppx.server --impl %{deps}))))
+
+(rule
+  (targets eliom_form.mli)
+  (deps ../eliom/eliom_form.eliomi)
+  (action
+    (with-stdout-to
+      %{targets}
+      (run %{bin:ppxfind} -legacy ppx_eliom.ppx.server --intf %{deps}))))
+
+(rule
+  (targets eliom_service_base.ml)
+  (deps ../eliom/eliom_service_base.eliom)
+  (action
+    (with-stdout-to
+      %{targets}
+      (run %{bin:ppxfind} -legacy ppx_eliom.ppx.server --impl %{deps}))))
+
+(rule
+  (targets eliom_shared.ml)
+  (deps ../eliom/eliom_shared.eliom)
+  (action
+    (with-stdout-to
+      %{targets}
+      (run %{bin:ppxfind} -legacy ppx_eliom.ppx.server --impl %{deps}))))
+
+(rule
+  (targets eliom_shared_content.ml)
+  (deps ../eliom/eliom_shared_content.eliom)
+  (action
+    (with-stdout-to
+      %{targets}
+      (run %{bin:ppxfind} -legacy ppx_eliom.ppx.server --impl %{deps}))))
+
+(rule
+  (targets eliom_tools.ml)
+  (deps ../eliom/eliom_tools.eliom)
+  (action
+    (with-stdout-to
+      %{targets}
+      (run %{bin:ppxfind} -legacy ppx_eliom.ppx.server --impl %{deps}))))

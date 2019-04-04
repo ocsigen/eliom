@@ -41,7 +41,7 @@ let close_data_state ~scope ~secure_o ?sp () =
     let ((_, cookie_info, _), secure_ci) =
       Eliom_common.get_cookie_info sp cookie_level
     in
-    let sitedata = Eliom_request_info.get_sitedata_sp sp in
+    let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
     let cookie_info, secure =
       compute_cookie_info sitedata secure_o secure_ci cookie_info
     in
@@ -156,14 +156,14 @@ let rec find_or_create_data_cookie ?set_session_group
   let ((_, cookie_info, _), secure_ci) =
     Eliom_common.get_cookie_info sp cookie_level
   in
-  let sitedata = Eliom_request_info.get_sitedata_sp sp in
+  let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
   let cookie_info, secure =
     compute_cookie_info sitedata secure_o secure_ci cookie_info
   in
   let full_st_name =
     Eliom_common.make_full_state_name ~sp ~secure ~scope:cookie_scope in
   try
-    let (old, ior) =
+    let (_old, ior) =
       Lazy.force
         (Eliom_common.Full_state_name_table.find full_st_name !cookie_info)
     in
@@ -182,7 +182,7 @@ let rec find_or_create_data_cookie ?set_session_group
     | Eliom_common.SC c ->
         (match set_session_group with
           | None -> ()
-          | Some session_group ->
+          | Some _session_group ->
             let fullsessgrp = fullsessgrp ~cookie_level ~sp set_session_group in
             let node = Eliommod_sessiongroups.Data.move
               sitedata
@@ -228,7 +228,7 @@ let find_data_cookie_only ~cookie_scope ~secure_o ?sp () =
   let ((_, cookie_info, _), secure_ci) =
     Eliom_common.get_cookie_info sp cookie_level
   in
-  let sitedata = Eliom_request_info.get_sitedata_sp sp in
+  let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
   let cookie_info, secure =
     compute_cookie_info sitedata secure_o secure_ci cookie_info
   in
