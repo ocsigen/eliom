@@ -105,3 +105,7 @@
     (with-stdout-to
       %{targets}
       (run %{bin:ppxfind} -legacy ppx_eliom.ppx.client --impl %{deps}))))
+
+(install
+  (section lib)
+  (files (eliom_client.js as client/eliom_client.js)))
