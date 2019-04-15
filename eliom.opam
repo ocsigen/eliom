@@ -22,7 +22,8 @@ depends: [
   "deriving" {>= "0.6"}
   "ppx_deriving"
   "ppx_tools" {>= "0.99.3"}
-  "ppx_eliom" {>= "6.7.0"}
+  "ppx_eliom" {>= "1.0.0"}
+  "eliom_camlp4"
   "js_of_ocaml" {>= "3.3"}
   "js_of_ocaml-lwt" {>= "3.3"}
   "js_of_ocaml-ocamlbuild" {build}

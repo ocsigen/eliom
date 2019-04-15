@@ -8,6 +8,7 @@
     ipaddr
     lwt
     lwt_log
+    lwt_log.core
     lwt_react
     netstring-pcre
     ocsigenserver
