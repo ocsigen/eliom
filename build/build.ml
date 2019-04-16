@@ -15,9 +15,9 @@ module Intern = struct
   end
 
   let with_package = function
-    | "eliom.ppx.type" -> "pkg_ppx_eliom_types"
-    | "eliom.ppx.client"
-    | "eliom.ppx.server"
+    | "ppx_eliom.ppx.type" -> "pkg_ppx_eliom_types"
+    | "ppx_eliom.ppx.client"
+    | "ppx_eliom.ppx.server"
     | "eliom.syntax.predef"
     | "eliom.client"
     | "eliom.server" -> (* do noting in this case *) "pkg_dummy"

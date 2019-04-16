@@ -1,0 +1,98 @@
+(library
+  (name client)
+  (public_name eliom.client)
+  (wrapped false)
+  (libraries
+    eliom.common
+    eliom.client.common
+    lwt
+    js_of_ocaml-lwt
+    lwt_react)
+  (preprocess
+    (pps
+      js_of_ocaml-ppx
+      js_of_ocaml-ppx_deriving_json
+      lwt_ppx))
+  (modules_without_implementation
+    eliom_content_sigs
+    eliom_form_sigs
+    eliom_parameter_sigs
+    eliom_registration_sigs
+    eliom_service_sigs
+    eliom_shared_sigs))
+
+(rule
+  (targets eliom_content.ml)
+  (deps ../eliom/eliom_content.eliom)
+  (action
+    (with-stdout-to
+      %{targets}
+      (run %{bin:ppxfind} -legacy ppx_eliom.ppx.client --impl %{deps}))))
+
+(rule
+  (targets eliom_cscache.ml)
+  (deps ../eliom/eliom_cscache.eliom)
+  (action
+    (with-stdout-to
+      %{targets}
+      (run %{bin:ppxfind} -legacy ppx_eliom.ppx.client --impl %{deps}))))
+
+(rule
+  (targets eliom_cscache.mli)
+  (deps ../eliom/eliom_cscache.eliomi)
+  (action
+    (with-stdout-to
+      %{targets}
+      (run %{bin:ppxfind} -legacy ppx_eliom.ppx.client --intf %{deps}))))
+
+(rule
+  (targets eliom_form.ml)
+  (deps ../eliom/eliom_form.eliom)
+  (action
+    (with-stdout-to
+      %{targets}
+      (run %{bin:ppxfind} -legacy ppx_eliom.ppx.client --impl %{deps}))))
+
+(rule
+  (targets eliom_form.mli)
+  (deps ../eliom/eliom_form.eliomi)
+  (action
+    (with-stdout-to
+      %{targets}
+      (run %{bin:ppxfind} -legacy ppx_eliom.ppx.client --intf %{deps}))))
+
+(rule
+  (targets eliom_service_base.ml)
+  (deps ../eliom/eliom_service_base.eliom)
+  (action
+    (with-stdout-to
+      %{targets}
+      (run %{bin:ppxfind} -legacy ppx_eliom.ppx.client --impl %{deps}))))
+
+(rule
+  (targets eliom_shared.ml)
+  (deps ../eliom/eliom_shared.eliom)
+  (action
+    (with-stdout-to
+      %{targets}
+      (run %{bin:ppxfind} -legacy ppx_eliom.ppx.client --impl %{deps}))))
+
+(rule
+  (targets eliom_shared_content.ml)
+  (deps ../eliom/eliom_shared_content.eliom)
+  (action
+    (with-stdout-to
+      %{targets}
+      (run %{bin:ppxfind} -legacy ppx_eliom.ppx.client --impl %{deps}))))
+
+(rule
+  (targets eliom_tools.ml)
+  (deps ../eliom/eliom_tools.eliom)
+  (action
+    (with-stdout-to
+      %{targets}
+      (run %{bin:ppxfind} -legacy ppx_eliom.ppx.client --impl %{deps}))))
+
+(install
+  (section lib)
+  (files (eliom_client.js as client/eliom_client.js)))

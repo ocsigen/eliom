@@ -111,7 +111,7 @@ let with_autoload all_pkgs =
   if !autoload_predef
   then begin
     (* Format.eprintf "\nAUTOLOADING PREDEF PKGS\n%s\n@." (String.concat ", " all_pkgs); *)
-    let l = "eliom.syntax.predef"::all_pkgs in
+    let l = "eliom_camlp4.syntax.predef"::all_pkgs in
     if !type_conv
     then "deriving.syntax.tc"::"type_conv"::l
     else "deriving.syntax.std"::l
@@ -366,18 +366,18 @@ let preprocess_opt ?(ocaml = false) ?kind opts =
   | `Camlp4 ->
     let pkg = match ocaml, simplify_kind ?kind () with
       | true, _ -> []
-      | false, `Client -> ["eliom.syntax.client"]
-      | false, `Server -> ["eliom.syntax.server"]
-      | false, `Types  -> ["eliom.syntax.type"]
+      | false, `Client -> ["eliom_camlp4.syntax.client"]
+      | false, `Server -> ["eliom_camlp4.syntax.server"]
+      | false, `Types  -> ["eliom_camlp4.syntax.type"]
     in
     [ "-pp"; get_pp pkg ^ " " ^ String.concat " " opts ]
   | `Ppx when ocaml ->
     []
   | `Ppx ->
     let pkg = match simplify_kind ?kind () with
-      | `Client -> "eliom.ppx.client"
-      | `Server -> "eliom.ppx.server"
-      | `Types  -> "eliom.ppx.type"
+      | `Client -> "ppx_eliom.ppx.client"
+      | `Server -> "ppx_eliom.ppx.server"
+      | `Types  -> "ppx_eliom.ppx.type"
     in
     [ "-ppx"; get_ppx pkg ^ " " ^ String.concat " " opts ]
 

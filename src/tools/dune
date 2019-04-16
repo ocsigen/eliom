@@ -1,0 +1,47 @@
+(library
+  (name tools_utils)
+  (wrapped false)
+  (modules utils)
+  (libraries findlib unix))
+
+(executable
+  (name eliomdep)
+  (public_name eliomdep)
+  (libraries
+    findlib
+    tools_utils
+    unix)
+  (modules
+    eliomdep))
+
+(executable
+  (name distillery)
+  (public_name eliom-distillery)
+  (libraries
+    findlib
+    str
+    tools_utils)
+  (modules
+    distillery))
+
+(executable
+  (name eliomc)
+  (public_name eliomc)
+  (libraries
+    findlib
+    tools_utils
+    unix)
+  (modules
+    eliomc))
+
+(install
+  (section bin)
+  (files (eliomc.exe as js_of_eliom)))
+
+(install
+  (section bin)
+  (files (eliomc.exe as eliomopt)))
+
+(install
+  (section bin)
+  (files (eliomc.exe as eliomcp)))

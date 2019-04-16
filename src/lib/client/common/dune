@@ -1,0 +1,14 @@
+(library
+  (name internalclient)
+  (wrapped false)
+  (public_name eliom.client.common)
+  (libraries
+    eliom.common
+    js_of_ocaml.tyxml
+    js_of_ocaml-lwt.logger
+    react
+    reactiveData)
+  (preprocess
+    (pps
+      js_of_ocaml-ppx
+      js_of_ocaml-ppx_deriving_json)))
