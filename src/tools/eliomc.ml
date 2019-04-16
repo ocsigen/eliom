@@ -330,7 +330,7 @@ let process_eliom ~impl_intf file =
   | _ ->
     compile_eliom ~impl_intf file
 
-let build_server ?name:_ () =
+let build_server ?(name = "a.out") () =
   fail "Linking eliom server is not yet supported"
 (* TODO ? Build a staticaly linked ocsigenserver. *)
 
