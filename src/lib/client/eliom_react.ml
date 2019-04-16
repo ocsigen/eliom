@@ -42,17 +42,17 @@ struct
   ((fun ?exn () -> !r ?exn ()),
    (fun f -> r := f))
 
-  let internal_unwrap ( channel, _unwrapper ) =
+  let internal_unwrap ( channel, unwrapper ) =
     (* We want to catch more exceptions here than the usual exceptions caught
        in Eliom_comet. For example Channel_full. *)
     (* We transform the stream into a stream with exception: *)
-    let stream = Lwt_stream.wrap_exn channel in
+    let stream = Lwt_stream.map_exn channel in
     Lwt.async (fun () -> Lwt_stream.iter_s
                   (function
-                    | Error exn ->
+                    | Lwt_stream.Error exn ->
                       let%lwt () = handle_react_exn ~exn () in
                       Lwt.fail exn
-                    | Ok _ -> Lwt.return_unit)
+                    | Lwt_stream.Value _ -> Lwt.return_unit)
                   stream);
     E.of_stream channel
 
@@ -67,7 +67,7 @@ struct
 
   type 'a t = ('a -> unit Lwt.t)
 
-  let internal_unwrap ( service, _unwrapper ) =
+  let internal_unwrap ( service, unwrapper ) =
     fun x -> Eliom_client.call_service ~service () x >|= fun _ -> ()
 
   let () =
@@ -82,7 +82,7 @@ struct
   struct
     type 'a t = 'a React.S.t
 
-    let internal_unwrap ( channel, value, _unwrapper ) =
+    let internal_unwrap ( channel, value, unwrapper ) =
       let e = E.of_stream channel in
       S.hold ~eq:(fun _ _ -> false) value e
 

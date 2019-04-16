@@ -27,7 +27,7 @@
 
 let _ = 
   Eliom_extension.register_eliom_extension
-    (fun _sp ->
+    (fun sp ->
       Lwt.return 
         (Ocsigen_extensions.Ext_found
            (fun () ->

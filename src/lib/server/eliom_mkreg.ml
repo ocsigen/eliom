@@ -120,7 +120,6 @@ let check_process_redir sp f param =
                      (Lazy.force
                         (Ocsigen_extensions.Ocsigen_request_info.get_params ri))
                   ))))]
-    [@ocaml.warning "-22"]
   (* We do not put hostname and port.
      It is ok with half or full xhr redirections. *)
   (* If an action occured before,
@@ -206,7 +205,7 @@ let register_aux pages
             | None -> None
             | Some t -> Some (t, ref (t +. Unix.time ()))
           in
-          let f table attsernames =
+          let f table ((attserget, attserpost) as attsernames) =
             Eliom_route.add_service
               priority
               table
@@ -519,7 +518,7 @@ let send pages
   Lwt.return (pages.result_of_http_result result)
 
 let register pages
-    ?app:_
+    ?app
     ?scope
     ?options
     ?charset
@@ -557,8 +556,8 @@ let register pages
         | _ -> raise
           (Eliom_common.Eliom_site_information_not_available
              "register"))
-    | None, Some _sp
-    | Some `Site, Some _sp ->
+    | None, Some sp
+    | Some `Site, Some sp ->
       register_aux pages
         ?options
         ?charset

@@ -72,7 +72,7 @@ module Xml = struct
        Lazy.force elt.elt
     in
     { node_id = id; elt = Lazy.from_fun f }
-  let force_lazy { elt; _ } = ignore (Lazy.force elt)
+  let force_lazy { elt } = ignore (Lazy.force elt)
 
   let make_react ?(id = NoId) signal =
     {elt = Lazy.from_val (ReactNode signal); node_id = id; }

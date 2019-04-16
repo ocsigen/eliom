@@ -5,17 +5,7 @@
   (libraries
     eliom.common
     eliom.server.common
-    ipaddr
-    lwt
-    lwt_log
-    lwt_log.core
-    lwt_react
-    netstring-pcre
-    ocsigenserver
-    ocsigenserver.cookies
-    ocsigenserver.ext
-    react
-    tyxml)
+    lwt_react)
   (preprocess
     (pps
       lwt_ppx

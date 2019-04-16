@@ -56,7 +56,7 @@ let internal_wrap (bus: ('a, 'b) t)
       match Eliom_state.get_volatile_data ~table () with
       | Eliom_state.Data true -> ()
       | _ ->
-        let {service = Ecb.Bus_send_service srv; _} = bus in
+        let {service = Ecb.Bus_send_service srv} = bus in
         register_sender bus.scope
           (srv :>
              (_, _ list, _, _, _, Eliom_service.non_ext, _, _, _, _, _)

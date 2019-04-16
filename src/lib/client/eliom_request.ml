@@ -56,9 +56,9 @@ let get_cookie_info_for_uri_js uri_js =
             (Eliom_request_info.get_csp_ssl (), path)
          )
       )
-    | Some (Url.Https { Url.hu_path = path; _ }) -> (true,  path)
-    | Some (Url.Http  { Url.hu_path = path; _ }) -> (false, path)
-    | Some (Url.File  { Url.fu_path = path; _ }) -> (false, path)
+    | Some (Url.Https { Url.hu_path = path }) -> (true,  path)
+    | Some (Url.Http  { Url.hu_path = path }) -> (false, path)
+    | Some (Url.File  { Url.fu_path = path }) -> (false, path)
 
 let get_cookie_info_for_uri uri =
   let uri_js = Js.bytestring uri in
@@ -89,7 +89,7 @@ let redirect_post url params =
           in
           i##.value := v;
           Dom.appendChild f i
-        | `File _i ->
+        | `File i ->
           Lwt_log.raise_error ~section "redirect_post not implemented for files")
     params;
   f##.style##.display := (Js.string "none");
@@ -258,7 +258,7 @@ let send
             (match r.XmlHttpRequest.headers Eliom_common.half_xhr_redir_header
              with
                | None | Some "" -> Lwt.return (r.XmlHttpRequest.url, None)
-               | Some _uri ->
+               | Some uri ->
                  redirect_post url
                    (match post_args with
                     | Some post_args -> post_args

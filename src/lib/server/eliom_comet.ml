@@ -150,7 +150,6 @@ struct
       match Weak.get channel 0 with
         | None ->
           [%lwt raise ( Not_found)]
-          [@warning "-22"]
           (* terminates the loop: remove reference on the stream, etc ... *)
         | Some channel ->
           channel.ch_index <- succ channel.ch_index;
@@ -232,17 +231,17 @@ struct
     | Eliom_lib.Left (channel, position) ->
       match position with
       | Eliom_comet_base.Newest i when i > channel.ch_index -> false
-      | Eliom_comet_base.Newest _i -> true
+      | Eliom_comet_base.Newest i -> true
       | Eliom_comet_base.After i when i > channel.ch_index -> false
-      | Eliom_comet_base.After _i -> true
-      | Eliom_comet_base.Last _n when (Dlist.size channel.ch_content) > 0 -> true
-      | Eliom_comet_base.Last _n -> false
+      | Eliom_comet_base.After i -> true
+      | Eliom_comet_base.Last n when (Dlist.size channel.ch_content) > 0 -> true
+      | Eliom_comet_base.Last n -> false
 
   let really_wait_data requests =
     let rec make_list = function
       | [] -> []
       | (Eliom_lib.Left (channel,_))::q -> (Lwt_condition.wait channel.ch_wakeup)::(make_list q)
-      | Eliom_lib.Right _ :: _q ->
+      | Eliom_lib.Right _ :: q ->
         assert false (* closed channels are considered to have data *)
     in
     Lwt.pick (make_list requests)
@@ -284,9 +283,9 @@ struct
     Eliom_comet_base.Comet_service
       (Eliom_common.force_lazy_site_value global_service)
 
-  let get_id {ch_id;_} = ch_id
+  let get_id {ch_id} = ch_id
 
-  let get_kind ~newest {ch_index;_} =
+  let get_kind ~newest {ch_index} =
     if newest
     then Eliom_comet_base.Newest_kind (ch_index + 1)
     else Eliom_comet_base.After_kind (ch_index + 1)
@@ -494,7 +493,6 @@ end = struct
     let ri = Eliom_request_info.get_ri () in
     let%lwt () = Ocsigen_extensions.Ocsigen_request_info.connection_closed ri in
     [%lwt raise ( Connection_closed)]
-    [@ocaml.warning "-22"]
 
   (* register the service handler.hd_service *)
   let run_handler handler =
@@ -550,7 +548,7 @@ end = struct
         Lwt.return (encode_downgoing [])
     in
     let
-      {hd_service = Eliom_comet_base.Internal_comet_service service; _} =
+      {hd_service = Eliom_comet_base.Internal_comet_service service} =
       handler
     in
     Comet.register ~scope:handler.hd_scope ~service f
@@ -669,11 +667,11 @@ end = struct
       ch_stream = stream;
       ch_id = name; }
 
-  let get_id {ch_id;_} =
+  let get_id {ch_id} =
     ch_id
 
-  let get_service {ch_handler;_} =
-    let {hd_service = Ecb.Internal_comet_service srv; _} = ch_handler in
+  let get_service {ch_handler} =
+    let {hd_service = Ecb.Internal_comet_service srv} = ch_handler in
     Ecb.Comet_service srv
 
 end
@@ -820,7 +818,7 @@ end = struct
   let create ?scope ?name ?(size=1000) stream =
     match scope with
       | None -> create_stateful ?name ~size stream
-      | Some ((`Client_process _n) as scope) -> create_stateful ~scope ?name ~size stream
+      | Some ((`Client_process n) as scope) -> create_stateful ~scope ?name ~size stream
       | Some `Site -> create_stateless ?name ~size stream
 
   let external_channel ?(history=1) ?(newest=false) ~prefix ~name () =

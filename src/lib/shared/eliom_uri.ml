@@ -44,10 +44,10 @@ let reconstruct_absolute_url_path = string_of_url_path_suff
 
 let reconstruct_relative_url_path current_url u =
   let rec drop cururl desturl = match cururl, desturl with
-    | _a::l, [_b] -> l, desturl
-    | [_a], m -> [], m
+    | a::l, [b] -> l, desturl
+    | [a], m -> [], m
     | a::l, b::m when a = b -> drop l m
-    | _a::l, m -> l, m
+    | a::l, m -> l, m
     | [], m -> [], m
   in let rec makedotdot = function
     | [] -> []
@@ -101,7 +101,7 @@ let make_proto_prefix
       then Eliom_config.get_default_sslport ()
       else Eliom_config.get_default_port ()
   in
-  Eliom_lib.Url.make_absolute_url ~https ~host ~port "/"
+  Eliom_lib.Url.make_absolute_url https host port "/"
 
 let is_https https ssl service =
   https = Some true ||
@@ -354,7 +354,7 @@ let make_uri_components
 
 let make_string_uri_from_components (uri, params, fragment) =
   let s =
-    Eliom_lib.String.may_concat uri ~sep:"?"
+    Eliom_lib.String.may_concat uri "?"
       (Eliom_parameter.construct_params_string params)
   in
   match fragment with
@@ -507,7 +507,7 @@ let make_post_uri_components_
 
 
     (* for getparams and non localized params: *)
-    let _suff, params =
+    let suff, params =
       Eliom_parameter.construct_params_list
         nlp (Eliom_service.get_params_type service) getparams
         (* if nl params were already present, they will be replaced
@@ -674,7 +674,7 @@ let make_cookies_info (https, service) =
         None
       else
         Some (Eliom_service.full_path attser)
-    | Eliom_service.Nonattached _naser ->
+    | Eliom_service.Nonattached naser ->
       Some (Eliom_request_info.get_csp_original_full_path ())
   in
   match get_path_ ~service with

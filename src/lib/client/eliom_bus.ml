@@ -46,7 +46,6 @@ let consume (t,u) s =
         | Lwt.Sleep -> Lwt.wakeup_exn u e;
         | _ -> ());
       [%lwt raise ( e)]
-      [@ocaml.warning "-22"]
   in
   Lwt.choose [Lwt.bind t (fun _ -> Lwt.return_unit);t']
 
@@ -58,8 +57,7 @@ let clone_exn (t,u) s =
       (match Lwt.state t with
         | Lwt.Sleep -> Lwt.wakeup_exn u e;
         | _ -> ());
-      [%lwt raise ( e)]
-      [@ocaml.warning "-22"])
+      [%lwt raise ( e)])
 
 type ('a, 'att, 'co, 'ext, 'reg) callable_bus_service =
   (unit, 'a list, Eliom_service.post,
@@ -80,7 +78,7 @@ let create service channel waiter =
   in
   let error_h =
     let t,u = Lwt.wait () in
-    (try%lwt let%lwt _ = t in assert false with e -> [%lwt raise ( e)][@ocaml.warning "-22"]), u in
+    (try%lwt let%lwt _ = t in assert false with e -> [%lwt raise ( e)]), u in
   let stream =
     lazy (
       let stream = Eliom_comet.register channel in
@@ -110,7 +108,7 @@ let create service channel waiter =
   in
   t
 
-let internal_unwrap ((wrapped_bus:('a, 'b) Ecb.wrapped_bus),_unwrapper) =
+let internal_unwrap ((wrapped_bus:('a, 'b) Ecb.wrapped_bus),unwrapper) =
   let waiter () = Lwt_js.sleep 0.05 in
   let channel, Eliom_comet_base.Bus_send_service service = wrapped_bus in
   create service channel waiter
@@ -143,7 +141,7 @@ let write t v =
   Queue.add v t.queue;
   try_flush t
 
-let close {channel; _} = Eliom_comet.close channel
+let close {channel} = Eliom_comet.close channel
 
 let set_queue_size b s =
   b.max_size <- s

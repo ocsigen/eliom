@@ -121,7 +121,7 @@ module Make (P : PARAM) = struct
       | [] ->
         Lwt.return ((Eliom_common.Notfound
                        Eliom_common.Eliom_Wrong_parameter), [])
-      | ({ Eliom_common.s_max_use ; s_expire ; s_f; _ } as a) :: l ->
+      | ({ Eliom_common.s_max_use ; s_expire ; s_f } as a) :: l ->
         match s_expire with
         | Some (_, e) when !e < now ->
           (* Service expired. Removing it. *)
@@ -202,11 +202,11 @@ module Make (P : PARAM) = struct
     | Eliom_common.Notfound e -> fail e
 
   let remove_id services id =
-    List.filter (fun {Eliom_common.s_id; _} -> s_id <> id) services
+    List.filter (fun {Eliom_common.s_id} -> s_id <> id) services
 
   let find_and_remove_id services id =
     let found, l =
-      let f (found, l) ({Eliom_common.s_id; _} as x) =
+      let f (found, l) ({Eliom_common.s_id} as x) =
         if id = s_id then
           Some x, l
         else
@@ -221,7 +221,7 @@ module Make (P : PARAM) = struct
       raise Not_found
 
   let add_page_table tables url_act tref key
-      ({Eliom_common.s_id ; s_expire; _} as service) =
+      ({Eliom_common.s_id ; s_expire} as service) =
 
     let sp = Eliom_common.get_sp_option () in
 
@@ -239,7 +239,7 @@ module Make (P : PARAM) = struct
          - only one for each key
          - we add a node in the dlist to limit their number *)
       (try
-         let (nodeopt, _l), newt =
+         let (nodeopt, l), newt =
            P.Table.find key !tref, P.Table.remove key !tref
          in
          (match nodeopt with
@@ -250,10 +250,9 @@ module Make (P : PARAM) = struct
          let node = P.Container.dlist_add ?sp tables (Left (tref, key)) in
          tref := P.Table.add key (Some node, [service]) !tref)
     | { Eliom_common.key_state =
-          Eliom_common.SAtt_no, Eliom_common.SAtt_no
-      ; _ } ->
+          Eliom_common.SAtt_no, Eliom_common.SAtt_no } ->
       (try
-         let _nodeopt, l = P.Table.find key !tref
+         let nodeopt, l = P.Table.find key !tref
          and newt = P.Table.remove key !tref in
          (* nodeopt should be None *)
          try
@@ -276,7 +275,7 @@ module Make (P : PARAM) = struct
          tref := P.Table.add key (None, [service]) !tref)
     | _ ->
       try
-        let _nodeopt, l = P.Table.find key !tref
+        let nodeopt, l = P.Table.find key !tref
         and newt = P.Table.remove key !tref in
         let _, oldl = find_and_remove_id l s_id in
         (* if there was an old version with the same id, we remove it *)
@@ -329,7 +328,7 @@ module Make (P : PARAM) = struct
         let direltref = find_dircontent !dircontentref a in
         match !direltref with
         | Eliom_common.Dir dcr -> search_page_table_ref dcr l
-        | Eliom_common.File _ptr ->
+        | Eliom_common.File ptr ->
           raise (Eliom_common.Eliom_page_erasing a)
       with
       | Not_found ->
@@ -439,7 +438,7 @@ module Make (P : PARAM) = struct
               | Eliom_common.File page_table_ref ->
                 (match l with
                  | [] -> find false page_table_ref None
-                 | _l -> (* We have a file with suffix *)
+                 | l -> (* We have a file with suffix *)
                    raise Eliom_common.Eliom_Wrong_parameter)))
           (function
             | Exn1 | Eliom_common.Eliom_Wrong_parameter as e ->

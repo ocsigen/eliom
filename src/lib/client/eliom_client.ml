@@ -59,7 +59,7 @@ let get_global_data () =
   match
     Eliom_unwrap.unwrap (Url.decode (Js.to_string v)) 0
   with
-  | {Eliom_runtime.ecs_data = `Success v; _} ->
+  | {Eliom_runtime.ecs_data = `Success v} ->
     Lwt_log.ign_debug_f "Unwrap __global_data success";
     Some v
   | _ ->
@@ -153,12 +153,12 @@ let init () =
     match
       Url.url_of_string (Js.to_string (Js.Unsafe.global##.___eliom_server_))
     with
-    | Some (Http { hu_host; hu_port; hu_path = _; _ }) ->
+    | Some (Http { hu_host; hu_port; hu_path; _ }) ->
       init_client_app
         ~app_name
         ~ssl:false ~hostname:hu_host ~port:hu_port ~site_dir
         ()
-    | Some (Https { hu_host; hu_port; hu_path = _; _ }) ->
+    | Some (Https { hu_host; hu_port; hu_path; _ }) ->
       init_client_app
         ~app_name
         ~ssl:true ~hostname:hu_host ~port:hu_port ~site_dir ()
@@ -196,7 +196,7 @@ let init () =
 
   let onload_handler = ref None in
 
-  let onload _ev =
+  let onload ev =
     let js_data = Lazy.force js_data in
     Lwt_log.ign_debug ~section "onload (client main)";
     begin match !onload_handler with
@@ -361,7 +361,7 @@ let raw_call_service
         ?progress ?upload_progress ?override_mime_type
         uri post_params Eliom_request.string_result in
   match content with
-  | None -> [%lwt raise ( (Eliom_request.Failed_request 204))][@ocaml.warning "-22"]
+  | None -> [%lwt raise ( (Eliom_request.Failed_request 204))]
   | Some content -> Lwt.return (uri, content)
 
 let call_service
@@ -507,13 +507,11 @@ let garbage_collect_cached_doms () =
     in
     let rec accum_past = function
       | Some idx when !size < n ->
-          begin
           try
             let dom = HistCache.find idx !history_doms in
             add idx dom;
             accum_past dom.page.previous_page
           with Not_found -> ()
-          end
       | _ -> ()
     in
     let _, _, future = HistCache.split cur_index !history_doms in
@@ -699,7 +697,8 @@ let set_template_content ~replace ~uri ?fragment =
     (match fragment with
      | None -> change_url_string ~replace uri
      | Some fragment ->
-       change_url_string ~replace (uri ^ "#" ^ fragment));
+       change_url_string ~replace (uri ^ "#" ^ fragment)
+     | _ -> ());
     let%lwt () = Lwt_mutex.lock load_mutex in
     let%lwt (), request_data = unwrap_caml_content content in
     do_request_data request_data;
@@ -783,7 +782,6 @@ let set_content_local ?offset ?fragment new_page =
     recover ();
     Lwt_log.ign_debug ~section ~exn "set_content_local";
     [%lwt raise ( exn)]
-    [@@ocaml.warning "-22"]
 
 (* Function to be called for server side services: *)
 let set_content ~replace ~uri ?offset ?fragment content =
@@ -887,7 +885,6 @@ let set_content ~replace ~uri ?offset ?fragment content =
       recover ();
       Lwt_log.ign_debug ~section ~exn "set_content";
       [%lwt raise ( exn)]
-      [@@ocaml.warning "-22"]
 
 let ocamlify_params =
   List.map
@@ -942,7 +939,7 @@ let make_uri subpath params =
   Eliom_uri.make_string_uri_from_components (base, params, None)
 
 let route ~replace ?(keep_url = false)
-    ({ Eliom_route.i_subpath ; i_get_params ; i_post_params; _ } as info) =
+    ({ Eliom_route.i_subpath ; i_get_params ; i_post_params } as info) =
   Lwt_log.ign_debug ~section:section_page "Route";
   let r = !Eliom_request_info.get_sess_info
   and info, i_subpath =
@@ -969,7 +966,7 @@ let perform_reload () =
   Lwt_log.ign_debug ~section:section_page "Perform reload";
   let uri = !current_uri in
   let
-    ({ Eliom_common.si_all_get_params ; si_all_post_params = _; _ }
+    ({ Eliom_common.si_all_get_params ; si_all_post_params }
      as i_sess_info) =
     !Eliom_request_info.get_sess_info ()
   and i_subpath = Url.path_of_url_string uri in
@@ -1114,7 +1111,7 @@ type _ redirection =
     'a redirection
 
 let change_page_unknown
-    ?meth ?hostname:_ ?(replace = false) i_subpath i_get_params i_post_params =
+    ?meth ?hostname ?(replace = false) i_subpath i_get_params i_post_params =
   Lwt_log.ign_debug ~section:section_page "Change page unknown";
   let i_sess_info = !Eliom_request_info.get_sess_info ()
   and i_meth =

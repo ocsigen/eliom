@@ -2,6 +2,10 @@
   (name internalserver)
   (wrapped false)
   (public_name eliom.server.common)
-  (libraries eliom.common js_of_ocaml ocsigenserver ocsigenserver.ext react)
+  (libraries
+    eliom.common
+    js_of_ocaml
+    ocsigenserver.ext
+    react)
   (preprocess
     (pps js_of_ocaml-ppx_deriving_json lwt_ppx)))

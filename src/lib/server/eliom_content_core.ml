@@ -56,7 +56,7 @@ module Xml = struct
     wrapper_mark : elt Eliom_wrap.wrapper
   }
 
-  let content { elt; _ } = match elt.recontent with
+  let content { elt } = match elt.recontent with
     | RE e -> e
     | RELazy e -> Eliom_lazy.force e
 
@@ -64,14 +64,14 @@ module Xml = struct
   let node_ids_in_content = ref Node_id_set.empty
   let wrapper_mark =
     Eliom_wrap.create_wrapper
-      (fun { elt; _ } ->
+      (fun { elt } ->
         if Node_id_set.mem elt.node_id !node_ids_in_content then
           { elt with recontent = RE Empty }
         else elt)
   let wrap page value =
     let node_ids = ref [] in
-    let rec collect_node_ids ({elt; _} as elt') =
-      let {node_id; _} = elt in
+    let rec collect_node_ids ({elt} as elt') =
+      let {node_id} = elt in
       if node_id <> NoId then
         node_ids := node_id :: !node_ids;
       match content elt' with
@@ -85,7 +85,7 @@ module Xml = struct
     node_ids_in_content := Node_id_set.empty;
     res
 
-  let get_node_id { elt; _ } = elt.node_id
+  let get_node_id { elt } = elt.node_id
 
   let tyxml_unwrap_id =
     Eliom_wrap.id_of_int Eliom_runtime.tyxml_unwrap_id_int
@@ -242,7 +242,7 @@ module Xml = struct
     | Node (ename, attribs, sons) ->
       Node (ename, filter_class_attribs node_id attribs, sons)
 
-  let content { elt; _ } =
+  let content { elt } =
     let c = match elt.recontent with
       | RE e -> e
       | RELazy e -> Eliom_lazy.force e

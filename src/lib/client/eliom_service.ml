@@ -53,10 +53,8 @@ let reload_fun :
     match Eliom_parameter.is_unit (post_params_type service) with
     | Eliom_parameter.U_yes ->
       (match service with
-       | { client_fun = Some {contents = Some f}
-         ; reload_fun = Rf_client_fun
-         ; _
-         } ->
+       | { client_fun = Some {contents = Some f} ;
+           reload_fun = Rf_client_fun } ->
          Some f
        | _ ->
          None)
@@ -65,8 +63,8 @@ let reload_fun :
 
 let reset_reload_fun service = service.reload_fun <- Rf_keep
 
-let register_delayed_get_or_na_coservice ~sp:_ _s =
+let register_delayed_get_or_na_coservice ~sp s =
   failwith "CSRF coservice not implemented client side for now"
 
-let register_delayed_post_coservice  ~sp:_ _s _getname =
+let register_delayed_post_coservice  ~sp s getname =
   failwith "CSRF coservice not implemented client side for now"

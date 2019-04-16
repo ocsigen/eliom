@@ -94,7 +94,6 @@ module Html_make_reg_base
                        | Some headers ->
                            Http_headers.with_defaults headers (Ocsigen_http_frame.Result.headers r))
          ())
-  [@@ocaml.warning "-27"]
 
 end
 
@@ -159,7 +158,6 @@ module Make_typed_xml_registration
                 Http_headers.with_defaults
                   headers (Ocsigen_http_frame.Result.headers r))
             ())
-      [@@ocaml.warning "-27"]
 
     end
 
@@ -283,7 +281,6 @@ module HtmlText_reg_base = struct
           | Some headers ->
             Http_headers.with_defaults headers (Ocsigen_http_frame.Result.headers r))
         ())
-  [@@ocaml.warning "-27"]
 
 end
 
@@ -312,13 +309,11 @@ module Action_reg_base = struct
      in the configuration file (they have already been taken into account) *)
     fun ri res ->
       Polytables.set
-        ~table:(Ocsigen_extensions.Ocsigen_request_info.request_cache ri)
-        ~key:Eliom_common.found_stop_key
-        ~value:();
+        (Ocsigen_extensions.Ocsigen_request_info.request_cache ri) Eliom_common.found_stop_key ();
       res
 
   let send
-      ?(options = `Reload) ?charset:_ ?(code = 204)
+      ?(options = `Reload) ?charset ?(code = 204)
       ?content_type ?headers () =
     let user_cookies = Eliom_request_info.get_user_cookies () in
     if options = `NoReload
@@ -359,7 +354,7 @@ module Action_reg_base = struct
       *)
       (* be very careful while re-reading this *)
       let sp = Eliom_common.get_sp () in
-      let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
+      let sitedata = Eliom_request_info.get_sitedata_sp sp in
       let si = Eliom_request_info.get_si sp in
       let ri = Eliom_request_info.get_request_sp sp in
       let open Ocsigen_extensions in
@@ -418,9 +413,9 @@ module Action_reg_base = struct
               (* no post params, GET attached coservice *)
               ->
               Polytables.set
-                ~table:(Ocsigen_extensions.Ocsigen_request_info.request_cache ri.Ocsigen_extensions.request_info)
-                ~key:Eliom_common.eliom_params_after_action
-                ~value:(si.Eliom_common.si_all_get_params,
+                (Ocsigen_extensions.Ocsigen_request_info.request_cache ri.Ocsigen_extensions.request_info)
+                Eliom_common.eliom_params_after_action
+                (si.Eliom_common.si_all_get_params,
                  si.Eliom_common.si_all_post_params, (* is Some [] *)
                  si.Eliom_common.si_all_file_params, (* is Some [] *)
                  si.Eliom_common.si_nl_get_params,
@@ -448,9 +443,9 @@ module Action_reg_base = struct
               (* retry without POST params *)
 
               Polytables.set
-                ~table:(Ocsigen_extensions.Ocsigen_request_info.request_cache ri.Ocsigen_extensions.request_info)
-                ~key:Eliom_common.eliom_params_after_action
-                ~value:(si.Eliom_common.si_all_get_params,
+                (Ocsigen_extensions.Ocsigen_request_info.request_cache ri.Ocsigen_extensions.request_info)
+                Eliom_common.eliom_params_after_action
+                (si.Eliom_common.si_all_get_params,
                  si.Eliom_common.si_all_post_params,
                  si.Eliom_common.si_all_file_params,
                  si.Eliom_common.si_nl_get_params,
@@ -480,9 +475,9 @@ module Action_reg_base = struct
                 (we impose GET to prevent that)
               *)
               Polytables.set
-                ~table:(Ocsigen_extensions.Ocsigen_request_info.request_cache ri.Ocsigen_extensions.request_info)
-                ~key:Eliom_common.eliom_params_after_action
-                ~value:(si.Eliom_common.si_all_get_params,
+                (Ocsigen_extensions.Ocsigen_request_info.request_cache ri.Ocsigen_extensions.request_info)
+                Eliom_common.eliom_params_after_action
+                (si.Eliom_common.si_all_get_params,
                  si.Eliom_common.si_all_post_params,
                  si.Eliom_common.si_all_file_params,
                  si.Eliom_common.si_nl_get_params,
@@ -523,8 +518,8 @@ module Unit_reg_base = struct
 
   let send_appl_content = Eliom_service.XAlways
 
-  let send ?options:_ ?charset:_ ?(code = 204)
-      ?content_type ?headers _content =
+  let send ?options ?charset ?(code = 204)
+      ?content_type ?headers content =
     let empty_result = Ocsigen_http_frame.Result.empty () in
     Lwt.return
       (Ocsigen_http_frame.Result.update empty_result
@@ -556,7 +551,7 @@ module Any_reg_base = struct
   (* let send_appl_content = Eliom_service.XNever *)
   let send_appl_content = Eliom_service.XAlways
 
-  let send ?options:_ ?charset ?code:_
+  let send ?options ?charset ?code
       ?content_type ?headers (res:'a kind) =
     let res = Result_types.cast_kind res in
     Lwt.return
@@ -624,7 +619,7 @@ module File_reg_base = struct
     let sp = Eliom_common.get_sp () in
     let request = Eliom_request_info.get_request_sp sp in
     let file =
-      try Ocsigen_local_files.resolve ~request ~filename ()
+      try Ocsigen_local_files.resolve request filename ()
       with
         | Ocsigen_local_files.Failed_403 (* XXXBY : maybe we should signal a true 403? *)
         | Ocsigen_local_files.Failed_404
@@ -662,7 +657,7 @@ struct
     let sp = Eliom_common.get_sp () in
     let request = Eliom_request_info.get_request_sp sp in
     try
-      ignore (Ocsigen_local_files.resolve ~request ~filename ()
+      ignore (Ocsigen_local_files.resolve request filename ()
                 : Ocsigen_local_files.resolved);
       true
     with
@@ -687,7 +682,7 @@ module File_ct_reg_base = struct
     let sp = Eliom_common.get_sp () in
     let request = Eliom_request_info.get_request_sp sp in
     let file =
-      try Ocsigen_local_files.resolve ~request ~filename ()
+      try Ocsigen_local_files.resolve request filename ()
       with
         | Ocsigen_local_files.Failed_403 (* XXXBY : maybe we should signal a true 403? *)
         | Ocsigen_local_files.Failed_404
@@ -725,7 +720,7 @@ struct
     let sp = Eliom_common.get_sp () in
     let request = Eliom_request_info.get_request_sp sp in
     try
-      ignore (Ocsigen_local_files.resolve ~request ~filename ()
+      ignore (Ocsigen_local_files.resolve request filename ()
                 : Ocsigen_local_files.resolved);
       true
     with
@@ -745,7 +740,7 @@ module Streamlist_reg_base = struct
 
   let send_appl_content = Eliom_service.XNever
 
-  let send ?options:_ ?charset ?code
+  let send ?options ?charset ?code
       ?content_type ?headers content =
     Ocsigen_senders.Streamlist_content.result_of_content content >>= fun r ->
     Lwt.return
@@ -949,7 +944,7 @@ module Ocaml_reg_base = struct
 
   let send_appl_content = Eliom_service.XNever
 
-  let send ?options:_ ?charset ?code
+  let send ?options ?charset ?code
       ?content_type ?headers content =
     Result_types.cast_kind_lwt
       (Text.send ?charset ?code
@@ -1353,7 +1348,7 @@ module Eliom_appl_reg_make_param
         @
         [Eliom_content.Html.F.a_src uri]
       in
-      Eliom_content.Html.F.script ~a (Eliom_content.Html.F.txt "") :: rem
+      Eliom_content.Html.F.script ~a (Eliom_content.Html.F.pcdata "") :: rem
     end else
       rem
 
@@ -1655,7 +1650,7 @@ module String_redir_reg_base = struct
   let send_appl_content = Eliom_service.XAlways
   (* actually, the service will decide itself *)
 
-  let send ?(options = `Found) ?charset:_ ?code
+  let send ?(options = `Found) ?charset ?code
       ?content_type ?headers content =
     let uri = content in
     let empty_result = Ocsigen_http_frame.Result.empty () in
@@ -1734,7 +1729,7 @@ module Redir_reg_base = struct
   let send_appl_content = Eliom_service.XAlways
   (* actually, the service will decide itself *)
 
-  let send ?(options = `Found) ?charset:_ ?code
+  let send ?(options = `Found) ?charset ?code
       ?content_type ?headers (Redirection service) =
     let uri = Eliom_uri.make_string_uri ~service () in
     let empty_result = Ocsigen_http_frame.Result.empty () in

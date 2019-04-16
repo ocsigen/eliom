@@ -59,8 +59,8 @@ struct
     (channel,Eliom_common.make_unwrapper Eliom_common.react_down_unwrap_id)
 
   let internal_wrap = function
-    | { t = Stateful v ; _} -> wrap_stateful v
-    | { t = Stateless v ; _} -> wrap_stateless v
+    | { t = Stateful v } -> wrap_stateful v
+    | { t = Stateless v } -> wrap_stateless v
 
   let react_down_mark () = Eliom_common.make_wrapper internal_wrap
 
@@ -87,7 +87,7 @@ struct
       match scope with
         | Some `Site -> stateless ?throttling ?name ?size e
         | None -> stateful ?throttling ?name ?size e
-        | Some ((`Client_process _n) as scope) ->
+        | Some ((`Client_process n) as scope) ->
           stateful ~scope ?throttling ?name ?size e
     in
     { t; react_down_mark=react_down_mark () }
@@ -212,8 +212,7 @@ struct
     let wrap_stateful
         {throttling=t;
          signal=s;
-         name=name;
-         _} =
+         name=name} =
       let s : 'a S.t =
         (match t with
           | None -> s
@@ -227,14 +226,13 @@ struct
 
     let wrap_stateless
         {sl_signal=s;
-         channel;
-         _} =
+         channel} =
       let value : 'a = S.value s in
       (channel,value,Eliom_common.make_unwrapper Eliom_common.signal_down_unwrap_id)
 
     let internal_wrap = function
-      | { t = Stateful v; _ } -> wrap_stateful v
-      | { t = Stateless v; _ } -> wrap_stateless v
+      | { t = Stateful v } -> wrap_stateful v
+      | { t = Stateless v } -> wrap_stateless v
 
     let signal_down_mark () = Eliom_common.make_wrapper internal_wrap
 
@@ -266,7 +264,7 @@ struct
         match scope with
           | Some `Site -> stateless ?throttling ?name s
           | None -> stateful ?throttling ?name s
-          | Some ((`Client_process _n) as scope) ->
+          | Some ((`Client_process n) as scope) ->
             stateful ~scope ?throttling ?name s
       in
       { t; signal_down_mark=signal_down_mark () }

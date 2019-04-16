@@ -193,7 +193,7 @@ end = struct
             Lwt_log.raise_error_f "Did not find injection %s" name))
 
   let initialize ~compilation_unit_id
-        { Eliom_runtime.injection_id; injection_value; _ } =
+        { Eliom_runtime.injection_id; injection_value } =
     Lwt_log.ign_debug_f ~section "Initialize injection %d" injection_id;
     (* BBB One should assert that injection_value doesn't contain any
        value marked for late unwrapping. How to do this efficiently? *)
@@ -269,7 +269,7 @@ let check_global_data global_data =
        "Code generating the following client values is not linked on the client:\n%s"
        (String.concat "\n"
           (List.rev_map
-             (fun {Eliom_runtime.closure_id; value; _} ->
+             (fun {Eliom_runtime.closure_id; value} ->
                 let instance_id =
                   Eliom_runtime.Client_value_server_repr.instance_id value
                 in
@@ -404,14 +404,14 @@ let in_onload, broadcast_load_end, wait_load_end, set_loading_phase =
 (* forward declaration... *)
 let change_page_uri_
   : (?cookies_info:bool * string list -> ?tmpl:string -> string -> unit) ref
-  = ref (fun ?cookies_info:_ ?tmpl:_ _href -> assert false)
+  = ref (fun ?cookies_info ?tmpl href -> assert false)
 let change_page_get_form_
   : (?cookies_info:bool * string list ->
      ?tmpl:string -> Dom_html.formElement Js.t -> string -> unit)
       ref
-  = ref (fun ?cookies_info:_ ?tmpl:_ _form _href -> assert false)
+  = ref (fun ?cookies_info ?tmpl form href -> assert false)
 let change_page_post_form_ =
-  ref (fun ?cookies_info:_ ?tmpl:_ _form _href -> assert false)
+  ref (fun ?cookies_info ?tmpl form href -> assert false)
 
 type client_form_handler = Dom_html.event Js.t -> bool Lwt.t
 
@@ -540,7 +540,7 @@ let rebuild_attrib_val = function
 let class_list_of_racontent = function
   | Xml.AStr s ->
     [s]
-  | Xml.AStrL (_space, l) ->
+  | Xml.AStrL (space, l) ->
     l
   | _ ->
     failwith "attribute class is not a string"
@@ -861,7 +861,7 @@ let form_handler
            (fun () -> Lwt_log.raise_error_f ~section "not a form element")
        in
        let kind =
-         if String.lowercase_ascii(Js.to_string form##._method) = "get"
+         if String.lowercase(Js.to_string form##._method) = "get"
          then `Form_get
          else `Form_post
        and f _ = Lwt.return_false in
@@ -1008,7 +1008,7 @@ let is_attrib_attrib,get_attrib_id =
      attr##.name##(substring (0) n_len) = n_prefix_js),
   (fun attr -> attr##.value##(substring_toEnd v_len))
 
-let relink_attrib _root table (node:Dom_html.element Js.t) =
+let relink_attrib root table (node:Dom_html.element Js.t) =
   Lwt_log.ign_debug ~section "Relink attribute";
   let aux attr =
     if is_attrib_attrib attr

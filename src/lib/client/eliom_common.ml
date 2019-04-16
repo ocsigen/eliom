@@ -26,7 +26,7 @@ let get_sp_option () = Some ()
 
 type 'a wrapper = unit
 
-let make_wrapper _f :'a wrapper = ()
+let make_wrapper f :'a wrapper = ()
 let empty_wrapper () :'a wrapper = ()
 
 type unwrap_id = Eliom_unwrap.unwrap_id
@@ -54,9 +54,9 @@ module To_and_of_shared = struct
 
   type 'a t = 'a to_and_of
 
-  let of_string {of_string; _} = of_string
+  let of_string {of_string} = of_string
 
-  let to_string {to_string; _} = to_string
+  let to_string {to_string} = to_string
 
   let to_and_of tao = tao
 

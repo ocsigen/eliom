@@ -24,7 +24,6 @@ type 'a chan_id = string
 external string_of_chan_id : 'a chan_id -> string = "%identity"
 external chan_id_of_string : string -> 'a chan_id = "%identity"
 
-[@@@ocaml.warning "-39"]
 type position =
   | Newest of int
   | After of int
@@ -65,7 +64,6 @@ type answer =
   | State_closed
   | Comet_error of string
 [@@deriving json]
-[@@@ocaml.warning "+39"]
 
 type comet_service =
     Comet_service :

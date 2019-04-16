@@ -51,7 +51,7 @@ module Value = struct
     sh_mark : 'a t Eliom_wrap.wrapper
   }
 
-  let internal_wrap {sh_client; _} = sh_client
+  let internal_wrap {sh_client} = sh_client
 
   let shared_value_mark () : 'a t Eliom_wrap.wrapper =
     Eliom_wrap.create_wrapper internal_wrap
@@ -62,9 +62,9 @@ module Value = struct
     sh_mark = shared_value_mark ()
   }
 
-  let client {sh_client; _} = sh_client
+  let client {sh_client} = sh_client
 
-  let local {sh_server; _} = sh_server
+  let local {sh_server} = sh_server
 
 end
 ]
@@ -72,11 +72,7 @@ end
 [%%client
 module React = struct
 
-  [@@@ocaml.warning "-34"]
-
   type step = React.step
-
-  [@@@ocaml.warning "+34"]
 
   module S = struct
 
@@ -165,7 +161,7 @@ module ReactiveData = struct
                let new_waiter = Lwt.wait () in
                waiter := new_waiter;
                let%lwt new_msg = map_msg_p_lwt f msg in
-               let%lwt _rr, rhandle = r_th in
+               let%lwt rr, rhandle = r_th in
                let%lwt () = fst waiter1 in
                (match new_msg with
                 | ReactiveData.RList.Set s ->
@@ -202,7 +198,7 @@ module ReactiveData = struct
           Lwt.return (ReactiveData.RList.create r)
         in
         let effectul_event = map_p_aux r_th f l in
-        let%lwt rr, _rhandle = r_th in
+        let%lwt rr, rhandle = r_th in
         (* We keep a reference to the effectul_event in the resulting
            reactive list in order that the effectul_event is garbage
            collected only if the resulting list is garbage
@@ -276,26 +272,26 @@ module FakeReact = struct
     type 'a t = 'a * bool
     let create ?synced:(synced = false) x =
       ((x, synced),
-       fun ?step:_ _ ->
+       fun ?step _ ->
          failwith "Fact react values cannot be changed on server side")
     let value (x, _) = x
     let const ?synced:(synced = false) x = (x, synced)
     let synced (_, b) = b
-    let map ?eq:_ (f : 'a -> 'b) ((x, b) : 'a t) : 'b t = f x, b
-    let fmap ?eq:_ f i (s, b) =
+    let map ?eq (f : 'a -> 'b) ((x, b) : 'a t) : 'b t = f x, b
+    let fmap ?eq f i (s, b) =
       (match f s with Some v -> v | None -> i), b
-    let merge ?eq:_ f acc l =
+    let merge ?eq f acc l =
       let f (acc, acc_b) (x, b) = f acc x, acc_b && b in
       List.fold_left f (acc, true) l
-    let l2 ?eq:_ f (x1, b1) (x2, b2) =
+    let l2 ?eq f (x1, b1) (x2, b2) =
       f x1 x2, b1 && b2
-    let l3 ?eq:_ f (x1, b1) (x2, b2) (x3, b3) =
+    let l3 ?eq f (x1, b1) (x2, b2) (x3, b3) =
       f x1 x2 x3, b1 && b2 && b3
-    let l4 ?eq:_ f (x1, b1) (x2, b2) (x3, b3) (x4, b4) =
+    let l4 ?eq f (x1, b1) (x2, b2) (x3, b3) (x4, b4) =
       f x1 x2 x3 x4, b1 && b2 && b3 && b4
-    let l5 ?eq:_ f (x1, b1) (x2, b2) (x3, b3) (x4, b4) (x5, b5) =
+    let l5 ?eq f (x1, b1) (x2, b2) (x3, b3) (x4, b4) (x5, b5) =
       f x1 x2 x3 x4 x5, b1 && b2 && b3 && b4 && b5
-    let l6 ?eq:_ f (x1, b1) (x2, b2) (x3, b3) (x4, b4) (x5, b5) (x6, b6) =
+    let l6 ?eq f (x1, b1) (x2, b2) (x3, b3) (x4, b4) (x5, b5) (x6, b6) =
       f x1 x2 x3 x4 x5 x6, b1 && b2 && b3 && b4 && b5 && b6
   end
 end
@@ -322,9 +318,9 @@ module FakeReactiveData = struct
     let singleton_s s = [FakeReact.S.value s], FakeReact.S.synced s
     let value (l, _) = l
     let synced (_, b) = b
-    let signal ?eq:_ (l, synced) = fst (FakeReact.S.create ~synced l)
+    let signal ?eq (l, synced) = fst (FakeReact.S.create ~synced l)
     let map f (l, b) = List.map f l, b
-    let from_signal ?eq:_ s = FakeReact.S.(value s, synced s)
+    let from_signal ?eq s = FakeReact.S.(value s, synced s)
   end
 end
 ]
@@ -589,7 +585,7 @@ module React = struct
       let merge_s ?eq (f : ('a -> 'b -> 'a Lwt.t) Value.t)
           (acc : 'a) (l : 'b t list) : 'a t Lwt.t =
         let%lwt server_result, synced =
-          let f (acc, _acc_b) v =
+          let f (acc, acc_b) v =
             let v = Value.local v and f = Value.local f in
             let%lwt acc = f acc (FakeReact.S.value v) in
             let acc_b = FakeReact.S.synced v in

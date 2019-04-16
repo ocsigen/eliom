@@ -435,7 +435,7 @@ module Html = struct
     include
       Eliom_content_core.Html.Make(Xml)(Wrapped_functions)(Svg.R)
 
-    let pcdata x = txt x |> Unsafe.coerce_elt
+    let pcdata x = pcdata x |> Unsafe.coerce_elt
 
   end
 

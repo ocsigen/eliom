@@ -161,7 +161,7 @@ let set_global_persistent_data_state_timeout
 
 let get_global_service_state_timeout ?secure ~cookie_scope () =
   let sitedata = Eliom_request_info.find_sitedata "get_global_timeout" in
-  let secure = Eliom_common.get_secure ~secure_o:secure ~sitedata () in
+  let secure = Eliom_common.get_secure secure sitedata () in
   Eliommod_timeouts.get_global
     ~kind:`Service ~cookie_scope ~secure sitedata
 
@@ -394,7 +394,7 @@ let rec close_volatile_state_if_empty ~scope ?secure () =
 
 
 
-let close_persistent_state_if_empty ~scope:_ ?secure:_ () =
+let close_persistent_state_if_empty ~scope ?secure () =
   Lwt.return_unit
 (*VVV Can we implement this function? *)
 
@@ -481,7 +481,7 @@ let get_service_session_group_size
     in
     match !(c.Eliom_common.sc_session_group) with
       | _, _, Right _ -> None
-      | _, _, Left _v ->
+      | _, _, Left v ->
         Some (Eliommod_sessiongroups.Serv.group_size !(c.Eliom_common.sc_session_group))
   with
     | Not_found
@@ -564,7 +564,7 @@ let get_volatile_data_session_group_size
     in
     match !(c.Eliom_common.dc_session_group) with
       | _, _, Right _ -> None
-      | _, _, Left _v ->
+      | _, _, Left v ->
         Some (Eliommod_sessiongroups.Data.group_size !(c.Eliom_common.dc_session_group))
   with
     | Not_found
@@ -971,7 +971,7 @@ let create_volatile_table ~scope ?secure () =
       | None -> raise
             (Eliom_common.Eliom_site_information_not_available
                "create_volatile_table"))
-  | Some _sp ->
+  | Some sp ->
     let sp = Eliom_common.get_sp () in
     let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
     let secure = Eliom_common.get_secure ~secure_o:secure ~sitedata () in
@@ -1276,16 +1276,16 @@ module Ext = struct
         in
         Eliommod_sessiongroups.Pers.remove_group
           ~cookie_level:`Session sitedata sgr_o
-      | (_, `Service, (_cookie : string)) ->
+      | (_, `Service, (cookie : string)) ->
         let (_, (_, _, _, _, _sgr, sgrnode)) = get_service_cookie_info state in
         Eliommod_sessiongroups.Serv.remove sgrnode;
         Lwt.return_unit
-      | (_, `Data, _cookie) ->
+      | (_, `Data, cookie) ->
         let (_, (_, _, _, _sgr, sgrnode)) =
           get_volatile_data_cookie_info state in
         Eliommod_sessiongroups.Data.remove sgrnode;
         Lwt.return_unit
-      | (_, `Pers, _cookie) ->
+      | (_, `Pers, cookie) ->
         get_persistent_cookie_info state
         >>= fun (cookie, ((scope, _, _), _, _, sgr_o)) ->
         let sitedata = get_sitedata () in
@@ -1307,8 +1307,8 @@ module Ext = struct
         | `Client_process _ -> failwith "fold_sub_states"
       in
       let reduce_level = function
-        | `Session_group _n -> `Session
-        | `Session _n -> `Client_process
+        | `Session_group n -> `Session
+        | `Session n -> `Client_process
         | `Client_process _ -> failwith "fold_sub_states"
       in
       let sub_states_level = reduce_level s in
@@ -1338,7 +1338,7 @@ module Ext = struct
       ~(state : Eliom_common.user_scope * [> `Data | `Service ] * string)
       f e =
     let state' = (state :> ('aa, 'bb) state) in
-    let (_sitedata, _sub_states_level, _id, _f) as a =
+    let (sitedata, sub_states_level, id, f) as a =
       fold_sub_states_aux_aux ?sitedata ~state:state' f
     in
     fold_sub_states_aux Ocsigen_cache.Dlist.fold Ocsigen_lib.id a e state
@@ -1350,7 +1350,7 @@ module Ext = struct
       | (_, `Pers, _) ->
         (Eliommod_sessiongroups.Pers.find
            (Eliom_common.make_persistent_full_group_name
-              ~cookie_level:sub_states_level sitedata.Eliom_common.site_dir_string (Some id))
+              sub_states_level sitedata.Eliom_common.site_dir_string (Some id))
          >>= fun l ->
          Lwt_list.fold_left_s f e l)
       | _ ->
@@ -1384,7 +1384,7 @@ module Ext = struct
     (*VVV Does not work with volatile group data *)
     let get_volatile_data
         ~state:((state_scope, _, cookie) : ('s, [ `Data ]) state)
-        ~table:(table_scope, _secure, t : 'a volatile_table) =
+        ~table:(table_scope, secure, t : 'a volatile_table) =
       check_scopes table_scope state_scope;
       Eliom_common.SessionCookies.find t cookie
 
@@ -1396,7 +1396,7 @@ module Ext = struct
 
     let set_volatile_data
         ~state:((state_scope, _, cookie) : ('s, [ `Data ]) state)
-        ~table:(table_scope, _secure, t : 'a volatile_table)
+        ~table:(table_scope, secure, t : 'a volatile_table)
         value =
       check_scopes table_scope state_scope;
       Eliom_common.SessionCookies.replace t cookie value
@@ -1464,7 +1464,7 @@ module Ext = struct
   let unset_service_cookie_timeout ~cookie:(_, (_, _, _, r, _, _)) =
     r := TGlobal
 
-  let unset_volatile_data_cookie_timeout ~cookie:(_cookie, (_, _, r, _, _)) =
+  let unset_volatile_data_cookie_timeout ~cookie:(cookie, (_, _, r, _, _)) =
     r := TGlobal
 
   let unset_persistent_data_cookie_timeout

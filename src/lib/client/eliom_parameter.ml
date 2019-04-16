@@ -110,7 +110,7 @@ and reconstruct_params_form :
       Some ((x1, x2), m)
     | TUnit ->
       Some ((), m)
-    | TOption (TAtom (_, TString) as y, _b) ->
+    | TOption (TAtom (_, TString) as y, b) ->
       (match reconstruct_params_form m y with
        | Some ("", m) ->
          Some (None, m)
@@ -118,7 +118,7 @@ and reconstruct_params_form :
          Some (Some s, m)
        | None ->
          Some (None, m))
-    | TOption (y, _b) ->
+    | TOption (y, b) ->
       (match reconstruct_params_form m y with
        | Some (x, m) ->
          Some (Some x, m)
@@ -141,7 +141,7 @@ and reconstruct_params_form :
       reconstruct_atom ~f m (name ^ ".x") >>= fun (abscissa, m) ->
       reconstruct_atom ~f m (name ^ ".y") >>= fun (ordinate, m) ->
       Some ({abscissa ; ordinate}, m)
-    | TUserType (name, {of_string = f; _}) ->
+    | TUserType (name, {of_string = f}) ->
       reconstruct_atom ~f m name
     | _ ->
       None
@@ -156,7 +156,7 @@ let reconstruct_params_form l y =
   reconstruct_params_form (M.of_assoc_list l) y >>= fun (v, _) ->
   Some v
 
-let get_non_localized_get_parameters { name ; param ; _ } =
+let get_non_localized_get_parameters { name ; param } =
   (* Simplified version of the server-side code that
      - only deals with GET params
      - doesn't cache the result

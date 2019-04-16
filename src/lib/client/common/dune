@@ -4,10 +4,8 @@
   (public_name eliom.client.common)
   (libraries
     eliom.common
-    js_of_ocaml
     js_of_ocaml.tyxml
     js_of_ocaml-lwt.logger
-    ocsigenserver
     react
     reactiveData)
   (preprocess

@@ -170,7 +170,7 @@ let pre_wrap s = {
 
 let service_mark () = Eliom_common.make_wrapper pre_wrap
 
-let info {info; _} = info
+let info {info} = info
 
 let pre_applied_parameters s = s.pre_applied_parameters
 let get_params_type s = s.get_params_type
@@ -191,11 +191,11 @@ let priority s = s.priority
 let internal_set_client_fun ~service f =
   service.client_fun <- Some [%client ref (Some ~%f)]
 
-let is_external = function {kind = `External; _} -> true | _ -> false
+let is_external = function {kind = `External} -> true | _ -> false
 
 let default_priority = 0
 
-let meth {meth; _} = meth
+let meth {meth} = meth
 
 let change_get_num service attser n = {
   service with
@@ -288,7 +288,7 @@ type clvpreapp = {
 }
 
 let preapply_client_fun = {
-  clvpreapp_f = fun _f _getparams -> failwith "preapply_client_fun"
+  clvpreapp_f = fun f getparams -> failwith "preapply_client_fun"
 }
 
 (* will be initialized later (in Eliom_content for now), when client
@@ -299,7 +299,7 @@ let rec append_suffix l m =
   match l with
   | [] ->
     m
-  | [_eliom_suffix_internal_name] ->
+  | [eliom_suffix_internal_name] ->
     m
   | a :: ll ->
     a :: append_suffix ll m
@@ -328,7 +328,7 @@ let preapply ~service getparams =
                | Some suff -> append_suffix k.fullpath suff
                | _ -> k.fullpath);
            };
-       | _ -> .);
+       | k -> k);
     client_fun =
       Some
         [%client ref
@@ -444,16 +444,16 @@ let default_csrf_scope = function
 exception Unreachable_exn
 
 let attached_info = function
-  | {info = Attached k; _} ->
+  | {info = Attached k} ->
     k
   | _ ->
-    .
+    failwith "attached_info"
 
 let non_attached_info = function
-  | {info = Nonattached k; _} ->
+  | {info = Nonattached k} ->
     k
   | _ ->
-    .
+    failwith "non_attached_info"
 
 (** Create a main service (not a coservice), internal or external *)
 let main_service
@@ -521,7 +521,7 @@ let extern
     ~reload_fun:Rf_keep
     ()
 
-let which_meth {meth; _} = meth
+let which_meth {meth} = meth
 
 let which_meth_untyped
     (type m) (s : (_, _, m, _, _, _, _, _, _, _, _) t) =

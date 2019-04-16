@@ -1,5 +1,5 @@
 (library
   (name common)
   (public_name eliom.common)
-  (libraries lwt_log lwt_log.core ocsigenserver)
+  (libraries lwt_log ocsigenserver)
   (wrapped false))

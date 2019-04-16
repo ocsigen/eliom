@@ -21,11 +21,11 @@ module A = struct
 
   let site_data _ = ()
 
-  let sess_info_of_info {i_sess_info; _} = i_sess_info
+  let sess_info_of_info {i_sess_info} = i_sess_info
 
-  let subpath_of_info {i_subpath; _} = i_subpath
+  let subpath_of_info {i_subpath} = i_subpath
 
-  let meth_of_info {i_meth; _} = i_meth
+  let meth_of_info {i_meth} = i_meth
 
   let make_params _ _ suffix _ = suffix
 
@@ -54,15 +54,15 @@ module A = struct
 
     type t = table
 
-    let add {Eliom_common.key_meth; _} p m =
+    let add {Eliom_common.key_meth} p m =
       Raw_table.add key_meth (`Ptc p) m
 
-    let find {Eliom_common.key_meth; _} m =
+    let find {Eliom_common.key_meth} m =
       let `Ptc v = Raw_table.find key_meth m in v
 
     let empty () = Raw_table.empty
 
-    let remove {Eliom_common.key_meth; _} = Raw_table.remove key_meth
+    let remove {Eliom_common.key_meth} = Raw_table.remove key_meth
 
   end
 
@@ -71,9 +71,9 @@ module A = struct
 
     type t = unit
 
-    let up _n = ()
+    let up n = ()
 
-    let remove _n = ()
+    let remove n = ()
 
   end
 
@@ -90,7 +90,7 @@ module A = struct
         ) Hashtbl.t
     }
 
-    let get {t_services; _} = t_services
+    let get {t_services} = t_services
 
     let set_contains_timeout a b =
       a.t_contains_timeout <- b
@@ -98,7 +98,7 @@ module A = struct
     let set tables l =
       tables.t_services <- l
 
-    let dlist_add ?sp:_ _tables _srv = ()
+    let dlist_add ?sp:_ tables srv = ()
 
   end
 
@@ -114,19 +114,19 @@ let global_tables = A.Container.{
   t_na_services      = Hashtbl.create 256
 }
 
-let add_naservice {A.Container.t_na_services; _} k f =
+let add_naservice {A.Container.t_na_services} k f =
   Hashtbl.add t_na_services k f
 
-let call_naservice {A.Container.t_na_services; _} k =
+let call_naservice {A.Container.t_na_services} k =
   try
     (Hashtbl.find t_na_services k) true None
   with Not_found ->
     Lwt.fail Eliom_common.Eliom_404
 
 let rec na_key_of_params ~get = function
-  | (k, v) :: _l when k = Eliom_common.naservice_name ->
+  | (k, v) :: l when k = Eliom_common.naservice_name ->
     Some (if get then Eliom_common.SNa_get_ v else Eliom_common.SNa_post_ v)
-  | (k, v) :: _l when k = Eliom_common.naservice_num ->
+  | (k, v) :: l when k = Eliom_common.naservice_num ->
     Some (if get then Eliom_common.SNa_get' v else Eliom_common.SNa_post' v)
   | _ :: l ->
     na_key_of_params ~get l
@@ -142,7 +142,7 @@ let rec remove_site_dir p p' =
   | _ ->
     None
 
-let call_service ({i_get_params ; i_post_params ; i_subpath; _} as info) =
+let call_service ({i_get_params ; i_post_params ; i_subpath} as info) =
   let info =
     match
       remove_site_dir

@@ -34,7 +34,7 @@ let map : (Obj.t,Obj.t) weakMap Js.t = jsnew weakMap ()
 open Js_of_ocaml
 open Eliom_lib
 
-let _section = Lwt_log.Section.make "eliom:unwrap"
+let section = Lwt_log.Section.make "eliom:unwrap"
 
 module Mark : sig
   type t

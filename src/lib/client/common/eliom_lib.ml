@@ -67,9 +67,9 @@ module Url = struct
     String.concat "/" l
 
   let path_of_url = function
-    | Url.Http  {Url.hu_path = path; _}
-    | Url.Https {Url.hu_path = path; _}
-    | Url.File  {Url.fu_path = path; _} ->
+    | Url.Http  {Url.hu_path = path}
+    | Url.Https {Url.hu_path = path}
+    | Url.File  {Url.fu_path = path} ->
       path
 
   let path_of_url_string s =
@@ -148,8 +148,8 @@ end
 (* We do not use the deriving (un)marshaling even if typ is available
    because direct jsn (un)marshaling is very fast client side
 *)
-let to_json ?typ:_ s = Js.to_string (Json.output s)
-let of_json ?typ:_ v = Json.unsafe_input (Js.string v)
+let to_json ?typ s = Js.to_string (Json.output s)
+let of_json ?typ v = Json.unsafe_input (Js.string v)
 
 (* to marshal data and put it in a form *)
 let encode_form_value x = to_json x
@@ -166,5 +166,5 @@ let unmarshal_js var =
 
 type file_info = File.file Js.t
 
-let make_cryptographic_safe_string ?len:_ () =
+let make_cryptographic_safe_string ?len () =
   failwith "make_cryptographic_safe_string not implemented client-side"

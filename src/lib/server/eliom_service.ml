@@ -242,7 +242,7 @@ let attach :
   ('get, 'post, 'gp, att, co, non_ext, non_reg,
    'sf, 'gn, 'pn, 'return) t =
   fun ~fallback ~service () ->
-    let {na_name; _} = non_attached_info service in
+    let {na_name} = non_attached_info service in
     let fallbackkind = attached_info fallback in
     let open Eliom_common in
     let error_msg =
@@ -253,16 +253,16 @@ let attach :
       | SNa_get_ s -> SAtt_na_named s
       | SNa_get' s -> SAtt_na_anon s
       | SNa_get_csrf_safe a -> SAtt_na_csrf_safe a
-      | SNa_post_ _s -> fallbackkind.get_name (*VVV check *)
-      | SNa_post' _s -> fallbackkind.get_name (*VVV check *)
-      | SNa_post_csrf_safe _a -> fallbackkind.get_name (*VVV check *)
+      | SNa_post_ s -> fallbackkind.get_name (*VVV check *)
+      | SNa_post' s -> fallbackkind.get_name (*VVV check *)
+      | SNa_post_csrf_safe a -> fallbackkind.get_name (*VVV check *)
       | _ -> failwith error_msg
     (*VVV Do we want to make possible to attach POST na coservices
           on GET attached coservices? *)
     and post_name = match na_name with
-      | SNa_get_ _s -> SAtt_no
-      | SNa_get' _s -> SAtt_no
-      | SNa_get_csrf_safe _a -> SAtt_no
+      | SNa_get_ s -> SAtt_no
+      | SNa_get' s -> SAtt_no
+      | SNa_get_csrf_safe a -> SAtt_no
       | SNa_post_ s -> SAtt_na_named s
       | SNa_post' s -> SAtt_na_anon s
       | SNa_post_csrf_safe a -> SAtt_na_csrf_safe a
@@ -393,7 +393,7 @@ let unregister ?scope ?secure
            raise
              (Eliom_common.Eliom_site_information_not_available
                 "unregister"))
-      | Some _sp ->
+      | Some sp ->
         Eliom_state.get_global_table ()
     in
     remove_service table service

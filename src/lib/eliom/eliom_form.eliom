@@ -168,7 +168,7 @@ module Make_links (Html : Html) = struct
       Html.a_src uri ::
       (a :> Html_types.script_attrib attrib list)
     in
-    Html.script ~a (Html.txt "")
+    Html.script ~a (Html.pcdata "")
 
 end
 
@@ -248,7 +248,7 @@ module Make (Html : Html) = struct
 
   let make_textarea ?(a = []) ~name ?(value = "") () =
     let a = a_name name :: (a :> Html_types.textarea_attrib attrib list) in
-    textarea ~a (txt value)
+    textarea ~a (pcdata value)
 
   let make_select ?(a = []) ~multiple ~name elt elts =
     let a = if multiple then a_multiple () :: a else a in
@@ -327,7 +327,7 @@ module Make (Html : Html) = struct
 
   let get_form
       ?absolute ?absolute_path ?https ?a ~service ?hostname ?port
-      ?fragment ?keep_nl_params ?nl_params ?xhr:_ f =
+      ?fragment ?keep_nl_params ?nl_params ?xhr f =
     get_form_
       (fun x f -> f x) (fun x -> x)
       ?absolute ?absolute_path
@@ -375,7 +375,7 @@ module Make (Html : Html) = struct
 
   let post_form
       ?absolute ?absolute_path ?https ?a ~service ?hostname ?port
-      ?fragment ?keep_nl_params ?keep_get_na_params ?nl_params ?xhr:_
+      ?fragment ?keep_nl_params ?keep_get_na_params ?nl_params ?xhr
       f getparams =
     post_form_ (fun x f -> f x) (fun x -> x)
       ?absolute ?absolute_path ?https ?a ~service ?hostname ?port
@@ -531,7 +531,7 @@ module Make (Html : Html) = struct
     let make_opt (a, cv, co, sel) =
       (match co with
        | None ->
-         make_option ~a ~selected:sel (txt (string_of cv))
+         make_option ~a ~selected:sel (pcdata (string_of cv))
        | Some c -> make_option ~a ~selected:sel ~value:(string_of cv) c)
     in
     let make_optg = function

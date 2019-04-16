@@ -48,9 +48,7 @@ module RawXML = struct
     | Space -> " "
     | Comma -> ", "
 
-  [@@@ocaml.warning "-39"]
   type cookie_info = (bool * string list) [@@deriving json]
-  [@@@ocaml.warning "+39"]
 
   type caml_event_handler =
     | CE_registered_closure of
@@ -114,10 +112,10 @@ module RawXML = struct
   and attrib = aname * racontent
 
   let aname = function
-    | name, RACamlEventHandler (CE_registered_closure (_crypto, _)) ->
+    | name, RACamlEventHandler (CE_registered_closure (crypto, _)) ->
       closure_name_prefix^name
-    | _, RAClient (_s, Some (name,_), _c)
-    | name, RAClient (_s, None, _c) -> client_name_prefix^name
+    | _, RAClient (s, Some (name,_), c)
+    | name, RAClient (s, None, c) -> client_name_prefix^name
     | name, _ -> name
   let acontent = function
     | _ ,RAReact s -> (match React.S.value s with None -> AStr "" | Some x -> x)
@@ -165,7 +163,7 @@ module RawXML = struct
   let filter_class_value acc = function
     | AStr v ->
       v :: acc
-    | AStrL (_space, v) ->
+    | AStrL (space, v) ->
       v @ acc
     | _ ->
       failwith "attribute class is not a string"
@@ -179,7 +177,7 @@ module RawXML = struct
       begin
         match Eliom_lazy.force link_info with
           | None -> freepos, acc_class, acc_attr
-          | Some (_kind, cookie_info, tmpl, _) ->
+          | Some (kind, cookie_info, tmpl, _) ->
             let acc_class = ce_call_service_class::acc_class in
             let acc_attr =
               match cookie_info with

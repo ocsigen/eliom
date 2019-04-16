@@ -84,7 +84,7 @@ let current_path_ = ref (remove_first_slash Url.Current.path)
 let set_current_path uri =
   current_path_ := Url.path_of_url_string (if uri = "./" then "" else uri)
 
-let get_original_full_path_sp _sp =
+let get_original_full_path_sp sp =
   (* returns current path, not the one when application started *)
   if Eliom_process.history_api && not !client_app_initialised then
     match Url.Current.get () with

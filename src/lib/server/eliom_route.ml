@@ -12,7 +12,7 @@ include Eliom_route_base.Make (struct
 
     let sess_info_of_info (_, i, _, _, _) = i
 
-    let meth_of_info ({request_info; _}, _, _, _, _) =
+    let meth_of_info ({request_info}, _, _, _, _) =
       match Ocsigen_request_info.meth request_info with
       | Ocsigen_http_frame.Http_header.GET ->
         `Get
@@ -25,7 +25,7 @@ include Eliom_route_base.Make (struct
       | _ ->
         `Other
 
-    let subpath_of_info ({request_info; _}, _, _, _, _) =
+    let subpath_of_info ({request_info}, _, _, _, _) =
       Ocsigen_request_info.sub_path request_info
 
     module Container = struct
@@ -34,7 +34,7 @@ include Eliom_route_base.Make (struct
 
       let set t v = t.Eliom_common.table_services <- v
 
-      let get {Eliom_common.table_services; _} = table_services
+      let get {Eliom_common.table_services} = table_services
 
       let dlist_add ?sp tables lr =
         tables.Eliom_common.service_dlist_add ?sp lr
@@ -87,7 +87,7 @@ include Eliom_route_base.Make (struct
 
   end)
 
-let find_aux now sitedata info _e sci : Ocsigen_http_frame.Result.result Lwt.t =
+let find_aux now sitedata info e sci : Ocsigen_http_frame.Result.result Lwt.t =
   Eliom_common.Full_state_name_table.fold
     (fun fullsessname (_, r) beg ->
        try%lwt
@@ -174,9 +174,9 @@ let get_page
                   *)
                   Lwt_log.ign_info ~section "Link too old. Try without POST parameters:";
                   Polytables.set
-                    ~table:(Ocsigen_request_info.request_cache ri.request_info)
-                    ~key:Eliom_common.eliom_link_too_old
-                    ~value:true;
+                    (Ocsigen_request_info.request_cache ri.request_info)
+                    Eliom_common.eliom_link_too_old
+                    true;
                   fail (Eliom_common.Eliom_retry_with
                           ({ri with request_info =
                                       Ocsigen_request_info.update ri.request_info
@@ -208,9 +208,9 @@ let get_page
                   *)
                   Lwt_log.ign_info ~section "Link to old. Trying without GET state parameters and POST parameters:";
                   Polytables.set
-                    ~table:(Ocsigen_request_info.request_cache ri.request_info)
-                    ~key:Eliom_common.eliom_link_too_old
-                    ~value:true;
+                    (Ocsigen_request_info.request_cache ri.request_info)
+                    Eliom_common.eliom_link_too_old
+                    true;
                   fail (Eliom_common.Eliom_retry_with
                           ({ri with request_info =
                                       Ocsigen_request_info.update ri.request_info
@@ -401,9 +401,9 @@ let make_naservice
      (*VVV (Some, Some) or (_, Some)? *)
      Lwt_log.ign_info ~section "Link too old to a non-attached POST coservice. Try without POST parameters:";
      Polytables.set
-       ~table:(Ocsigen_request_info.request_cache ri.request_info)
-       ~key:Eliom_common.eliom_link_too_old
-       ~value:true;
+       (Ocsigen_request_info.request_cache ri.request_info)
+       Eliom_common.eliom_link_too_old
+       true;
      Eliom_common.get_session_info
        {ri with Ocsigen_extensions.request_info =
                   Ocsigen_request_info.update ri.request_info
@@ -418,7 +418,7 @@ let make_naservice
                     ()
        }
        si.Eliom_common.si_previous_extension_error
-     >>= fun (ri', si', _previous_tab_cookies_info) ->
+     >>= fun (ri', si', previous_tab_cookies_info) ->
      Lwt.fail (Eliom_common.Eliom_retry_with (ri',
                                               si',
                                               all_cookie_info,
@@ -429,9 +429,9 @@ let make_naservice
    | Eliom_common.RNa_get' _ ->
      Lwt_log.ign_info ~section "Link too old. Try without non-attached parameters:";
      Polytables.set
-       ~table:(Ocsigen_request_info.request_cache ri.request_info)
-       ~key:Eliom_common.eliom_link_too_old
-       ~value:true;
+       (Ocsigen_request_info.request_cache ri.request_info)
+       Eliom_common.eliom_link_too_old
+       true;
      Eliom_common.get_session_info
        {ri with request_info =
                   Ocsigen_request_info.update ri.request_info
@@ -446,7 +446,7 @@ let make_naservice
                     ()
        }
        si.Eliom_common.si_previous_extension_error
-     >>= fun (ri', si', _previous_tab_cookies_info) ->
+     >>= fun (ri', si', previous_tab_cookies_info) ->
      Lwt.fail (Eliom_common.Eliom_retry_with (ri', si',
                                               all_cookie_info,
                                               all_tab_cookie_info,

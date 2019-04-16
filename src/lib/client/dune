@@ -5,22 +5,9 @@
   (libraries
     eliom.common
     eliom.client.common
-    ipaddr
     lwt
-    js_of_ocaml
     js_of_ocaml-lwt
-    js_of_ocaml-lwt.logger
-    js_of_ocaml.tyxml
-    lwt_log
-    lwt_log.core
-    lwt_react
-    netstring-pcre
-    ocsigenserver
-    ocsigenserver.cookies
-    ocsigenserver.ext
-    react
-    reactiveData
-    tyxml)
+    lwt_react)
   (preprocess
     (pps
       js_of_ocaml-ppx

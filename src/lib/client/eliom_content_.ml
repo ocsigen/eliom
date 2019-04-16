@@ -27,9 +27,7 @@ module Xml = Xml
 module MakeManip
     (Kind : sig
        type +'a elt
-
-       val tot: Xml.elt -> 'a elt [@@ocaml.warning "-32"]
-
+       val tot: Xml.elt -> 'a elt
        val toelt: 'a elt -> Xml.elt
      end)
     (To_dom : sig
@@ -50,9 +48,9 @@ module MakeManip
     let get_unique_node context (elt: 'a Kind.elt) : Dom.node Js.t =
       match Xml.get_node (Kind.toelt elt) with
       | Xml.DomNode node -> node
-      | Xml.ReactNode _s -> get_node elt
-      | Xml.ReactChildren (_node,_rl) -> get_node elt
-      | Xml.TyXMLNode _desc ->
+      | Xml.ReactNode s -> get_node elt
+      | Xml.ReactChildren (node,rl) -> get_node elt
+      | Xml.TyXMLNode desc ->
         let elt' = Kind.toelt elt in
           match Xml.get_node_id elt' with
           | Xml.NoId ->
@@ -323,8 +321,8 @@ module Svg = struct
   module D = Svg.D
   module R = Svg.R
   module C = struct
-    let node ?init:_ x = x
-    let attr ?init:_ x = x
+    let node ?init x = x
+    let attr ?init x = x
   end
 
   type +'a elt = 'a F.elt
@@ -421,8 +419,8 @@ module Html = struct
   end
 
   module C = struct
-    let node ?init:_ x = x
-    let attr ?init:_ x = x
+    let node ?init x = x
+    let attr ?init x = x
   end
 
   type +'a elt = 'a F.elt

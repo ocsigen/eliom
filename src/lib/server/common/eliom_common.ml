@@ -523,7 +523,7 @@ let make_full_state_name2
    site_dir_string)
 
 let make_full_state_name ~sp ~secure ~(scope:[< user_scope ]) =
-  make_full_state_name2 sp.sp_sitedata.site_dir_string secure ~scope
+  make_full_state_name2 sp.sp_sitedata.site_dir_string secure scope
 
 let get_cookie_info sp = function
   | `Session -> sp.sp_cookie_info
@@ -794,7 +794,7 @@ let empty_tables max forsession =
       then
         let dlist = Ocsigen_cache.Dlist.create max in
         Ocsigen_cache.Dlist.set_finaliser_before (dlist_finaliser t2) dlist;
-        fun ?sp:_ v -> add_dlist_ dlist v
+        fun ?sp v -> add_dlist_ dlist v
       else
         fun ?sp v ->
           let ip, max, sitedata =
@@ -846,7 +846,7 @@ sessionkind|S?|sitedirstring|"ref" ou "comet" ou ""|hiername
 *)
 
 let full_state_name_of_cookie_name cookie_level cookiename =
-  let _pref, cookiename = Ocsigen_lib.String.sep '|' cookiename in
+  let pref, cookiename = Ocsigen_lib.String.sep '|' cookiename in
   let secure, cookiename = Ocsigen_lib.String.sep '|' cookiename in
   let sitedirstring, cookiename = Ocsigen_lib.String.sep '|' cookiename in
   let hier1, hiername = Ocsigen_lib.String.sep '|' cookiename in
@@ -887,16 +887,12 @@ let eliom_params_after_action = Polytables.make_key ()
 (* After an action, we get tab_cookies info from rc: *)
 let tab_cookie_action_info_key = Polytables.make_key ()
 
-[@@@ocaml.warning "-39-32"]
-
 type cpi = client_process_info =  {
   cpi_ssl : bool;
   cpi_hostname : string;
   cpi_server_port : int;
   cpi_original_full_path : string list;
 } [@@deriving json]
-
-[@@@ocaml.warning "+39+32"]
 
 let get_session_info req previous_extension_err =
   let req_whole = req
@@ -1363,19 +1359,19 @@ module To_and_of_shared = struct
 
   let wrapper : wrapper = Obj.magic @@
     Eliom_wrap.create_wrapper @@ function
-    | {client = Some tao; _} ->
+    | {client = Some tao} ->
       tao
-    | {client = None; _} ->
+    | {client = None} ->
       failwith
         "Cannot wrap user type parameter.\n\
          Use the ?client_to_and_of parameter of Eliom_parameter.user_type\n\
          or (Eliom_parameter.all_suffix_user)"
 
-  let to_string {server = {to_string; _}; _} = to_string
+  let to_string {server = {to_string}} = to_string
 
-  let of_string {server = {of_string; _}; _} = of_string
+  let of_string {server = {of_string}} = of_string
 
-  let to_and_of {server; _} = server
+  let to_and_of {server} = server
 
   let create ?client_to_and_of server = {
     server ;
