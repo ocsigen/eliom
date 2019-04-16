@@ -50,7 +50,7 @@ let update_cookie_table ?now sitedata (ci, sci) =
   (* Update service expiration date and value *)
     Eliom_common.Full_state_name_table.iter
 
-      (fun name (_oldvalue, newr) ->
+      (fun name (oldvalue, newr) ->
       (* catch fun () -> *)
         match !newr with
           | Eliom_common.SCData_session_expired
@@ -82,7 +82,7 @@ let update_cookie_table ?now sitedata (ci, sci) =
            Keeping same duration is important for example for comet
            (which is using both service and volatile data sessions).
         *)
-         let (_oldvalue, newr) = Lazy.force v in
+         let (oldvalue, newr) = Lazy.force v in
          match !newr with
          | Eliom_common.SCData_session_expired
          | Eliom_common.SCNo_data -> () (* The cookie has been removed *)
@@ -144,7 +144,7 @@ let update_cookie_table ?now sitedata (ci, sci) =
                           oldgrp = !(newc.Eliom_common.pc_session_group) &&
                           oldv = newc.Eliom_common.pc_value) -> return_unit
                 (* nothing to do *)
-                  | Some (oldv, _oldti, _oldexp, _oldgrp) when
+                  | Some (oldv, oldti, oldexp, oldgrp) when
                       oldv = newc.Eliom_common.pc_value ->
                     catch
                       (fun () ->
@@ -195,13 +195,13 @@ let update_cookie_table ?now sitedata (ci, sci) =
 let execute
     now
     generate_page
-    ((_ri,
-      _si,
+    ((ri,
+      si,
       ((service_cookies_info, data_cookies_info, pers_cookies_info),
        secure_ci),
       ((service_tab_cookies_info, data_tab_cookies_info, pers_tab_cookies_info),
        secure_ci_tab),
-      _user_tab_cookies) as info)
+      user_tab_cookies) as info)
     sitedata =
 
   catch
@@ -225,10 +225,10 @@ let set_expired_sessions ri closedservsessions =
   then ()
   else
     Polytables.set
-      ~table:(Ocsigen_extensions.Ocsigen_request_info.request_cache
+      (Ocsigen_extensions.Ocsigen_request_info.request_cache
         ri.Ocsigen_extensions.request_info)
-      ~key:Eliom_common.eliom_service_session_expired
-      ~value:closedservsessions
+      Eliom_common.eliom_service_session_expired
+      closedservsessions
 
 
 open Ocsigen_extensions
@@ -280,8 +280,8 @@ let gen is_eliom_extension sitedata = function
   set_expired_sessions ri (closedsessions, closedsessions_tab);
   let rec gen_aux ((ri, si,
                     all_cookie_info,
-                    _all_tab_cookie_info,
-                    _user_tab_cookies) as info) =
+                    all_tab_cookie_info,
+                    user_tab_cookies) as info) =
     match is_eliom_extension with
       | Some ext ->
           Eliom_extension.run_eliom_extension ext now info sitedata
@@ -417,5 +417,5 @@ let gen is_eliom_extension sitedata = function
                | e -> fail e)
   in
   gen_aux (ri, si, all_cookie_info, all_tab_cookie_info, user_tab_cookies)
-  | Ocsigen_extensions.Req_not_found (_, _ri) ->
+  | Ocsigen_extensions.Req_not_found (_, ri) ->
       Lwt.return Ocsigen_extensions.Ext_do_nothing
