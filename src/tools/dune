@@ -15,6 +15,16 @@
     eliomdep))
 
 (executable
+  (name distillery)
+  (public_name eliom-distillery)
+  (libraries
+    findlib
+    str
+    tools_utils)
+  (modules
+    distillery))
+
+(executable
   (name eliomc)
   (public_name eliomc)
   (libraries
