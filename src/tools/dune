@@ -31,3 +31,7 @@
 (install
   (section bin)
   (files (eliomc.exe as eliomopt)))
+
+(install
+  (section bin)
+  (files (eliomc.exe as eliomcp)))
