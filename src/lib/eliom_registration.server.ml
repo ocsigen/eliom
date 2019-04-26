@@ -989,15 +989,16 @@ module Ocaml = struct
         try%lwt
           let%lwt res = f g p in
           Lwt.return (`Success res)
-          Lwt.return (`Failure (Printexc.to_string exc))
         with exn ->
+          let code = Printf.sprintf "%0x" (Random.int 0x1000000) in
           begin match name with
             | Some name ->
               Lwt_log_core.ign_error_f ~exn
-                "Uncaught exception in service %s" name
+                "Uncaught exception in service %s [%s]" name code
             | None ->
-              Lwt_log_core.ign_error_f ~exn "Uncaught exception"
+              Lwt_log_core.ign_error_f ~exn "Uncaught exception [%s]" code
           end;
+          Lwt.return (`Failure code)
       in
       prepare_data data
 
