@@ -983,16 +983,21 @@ module Ocaml = struct
     | Some eh ->
         Some (fun l -> eh l >>= prepare_data)
 
-  let make_service_handler f =
+  let make_service_handler ~name f =
     fun g p ->
       let%lwt data =
         try%lwt
           let%lwt res = f g p in
           Lwt.return (`Success res)
-        with exc ->
-          (* prints exception and stack trace on the server console *)
-          Lwt.async (fun () -> Lwt.fail exc);
           Lwt.return (`Failure (Printexc.to_string exc))
+        with exn ->
+          begin match name with
+            | Some name ->
+              Lwt_log_core.ign_error_f ~exn
+                "Uncaught exception in service %s" name
+            | None ->
+              Lwt_log_core.ign_error_f ~exn "Uncaught exception"
+          end;
       in
       prepare_data data
 
@@ -1027,7 +1032,7 @@ module Ocaml = struct
       ?secure_session
       ~service:(Eliom_service.untype service)
       ?error_handler:(make_eh error_handler)
-      (make_service_handler f)
+      (make_service_handler ~name:None f)
 
   let create
       ?app
@@ -1069,7 +1074,7 @@ module Ocaml = struct
       ~meth
       ~path
       ?error_handler:(make_eh error_handler)
-      (make_service_handler f)
+      (make_service_handler ~name f)
 
   let create_attached_get
       ?app
@@ -1111,7 +1116,7 @@ module Ocaml = struct
       ~fallback:(Eliom_service.untype fallback)
       ~get_params
       ?error_handler:(make_eh error_handler)
-      (make_service_handler f)
+      (make_service_handler ~name f)
 
   let create_attached_post
       ?app
@@ -1153,7 +1158,7 @@ module Ocaml = struct
       ~fallback:(Eliom_service.untype fallback)
       ~post_params
       ?error_handler:(make_eh error_handler)
-      (make_service_handler f)
+      (make_service_handler ~name f)
 
 end
 
