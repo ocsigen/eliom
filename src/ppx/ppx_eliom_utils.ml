@@ -37,6 +37,8 @@ let pat_args = function
   | [p] -> p
   | l -> Pat.tuple l
 
+let override_file_name = ref None
+
 (* We use a strong hash (MD5) of the file name.
    We only keep the first 36 bit, which should be well enough: with
    256 files, the likelihood of a collision is about one in two
@@ -44,7 +46,14 @@ let pat_args = function
    These bits are encoded using an OCaml-compatible variant of Base
    64, as the hash is used to generate OCaml identifiers. *)
 let file_hash loc =
-  let s = Digest.string loc.Location.loc_start.pos_fname in
+  let file_name =
+    match !override_file_name with
+    | Some file_name ->
+      file_name
+    | None ->
+      loc.Location.loc_start.pos_fname
+  in
+  let s = Digest.string file_name in
   let e = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_'" in
   let o = Bytes.create 6 in
   let g p = Char.code s.[p] in
@@ -293,10 +302,17 @@ module Context = struct
 end
 
 
-let match_args = function
+let rec match_args = function
   | [ ] -> ()
-  | [ "-type" ; type_file ] -> Mli.type_file := Some type_file
-  | [ "-notype" ] -> Mli.type_file := None
+  | "-orig-file-name" :: file_name :: args ->
+    override_file_name := Some file_name;
+    match_args args
+  | "-type" :: type_file :: args ->
+    Mli.type_file := Some type_file;
+    match_args args
+  | "-notype" :: args ->
+    Mli.type_file := None;
+    match_args args
   | args -> Location.raise_errorf ~loc:Location.(in_file !input_name)
            "Wrong arguments:@ %s" (String.concat " " args)
 

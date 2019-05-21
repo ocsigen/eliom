@@ -190,11 +190,6 @@ let compile_obj file =
 
 (* Process eliom and eliomi files *)
 
-let run_command s =
-  let v = Sys.command s in
-  if v != 0 then
-    failwith (Printf.sprintf "Warning: command [%s] returned %d" s v)
-
 (* WARNING: if you change this, also change inferred_type_prefix in
    ppx/ppx_eliom_utils.ml and ocamlbuild/ocamlbuild_eliom.ml *)
 let inferred_type_prefix = "eliom_inferred_type_"
@@ -235,7 +230,8 @@ let compile_server_type_eliom file =
   let out = Unix.openfile obj [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_TRUNC] 0o666 in
   let on_error _ =
     Unix.close out;
-    Sys.remove obj
+    Sys.remove obj;
+    Utils.exit_no_refmt ()
   in
   create_process ~out ~on_error !compiler (
     [ "-i" ]
@@ -303,14 +299,17 @@ let compile_eliom ~impl_intf file =
       | `Server | `ServerOpt -> obj_ext ()
     in
     output_prefix file ^ ext
+  and ppopts = get_ppopts ~impl_intf file in
+  let on_error _ =
+    Sys.remove obj;
+    Utils.exit_no_refmt ()
   in
-  let ppopts = get_ppopts ~impl_intf file in
   (* if !do_dump then begin *)
   (*   let camlp4, ppopt = get_pp_dump pkg ("-printer" :: "o" :: ppopts @ [file]) in *)
   (*   create_process camlp4 ppopt; *)
   (*   exit 0 *)
   (* end; *)
-  create_process !compiler (
+  create_process ~on_error !compiler (
     [ "-c" ; "-o"  ; obj ]
     @ preprocess_opt ppopts
     @ [ "-intf-suffix"; ".eliomi" ]
@@ -322,6 +321,7 @@ let compile_eliom ~impl_intf file =
   args := !args @ [obj]
 
 let process_eliom ~impl_intf file =
+  if !Utils.use_refmt then Utils.orig_file_name := Some file;
   match !mode with
   | `Infer when impl_intf = `Impl ->
     compile_server_type_eliom file
@@ -423,6 +423,9 @@ let process_option () =
       if !i+1 >= Array.length Sys.argv then usage ();
       process_eliom ~impl_intf:`Impl Sys.argv.(!i+1);
       i := !i+2
+    | "-reason" ->
+      use_refmt := true;
+      incr i
     | arg when Filename.check_suffix arg ".mli" ->
       process_ocaml ~impl_intf:`Intf arg;
       incr i
