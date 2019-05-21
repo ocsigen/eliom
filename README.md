@@ -70,6 +70,6 @@ If you want to compile manually,
 * Jacques-Pascal Deplaix
 
 [ocsigen]: https://www.ocsigen.org/
-[tutorial]: https://ocsigen.org/tuto/6.3/manual/intro
+[tutorial]: https://ocsigen.org/tuto/
 [opam]: https://opam.ocaml.org/
 [opaminst]: https://opam.ocaml.org/doc/Install.html
