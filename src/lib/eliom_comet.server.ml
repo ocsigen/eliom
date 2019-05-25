@@ -299,7 +299,7 @@ let () =
     ignore (Eliom_common.force_lazy_site_value fallback_service);
     ignore (Stateless.get_service ()))
 
-(** String channels on wich is build the module Channel *)
+(** String channels on which is build the module Channel *)
 module Stateful : sig
 
   type t
@@ -453,7 +453,7 @@ end = struct
     handler.hd_active_streams <- streams;
     acc
 
-  (** wait for data on any channel that the client asks. It correcly
+  (** wait for data on any channel that the client asks. It correctly
       handles new channels the server creates after that the client
       registered them *)
   let rec wait_data wait_closed_connection handler =

@@ -119,7 +119,7 @@ struct
 
   let up_event_wrapper () = Eliom_common.make_wrapper internal_wrap
 
-  (* An event is created along with a service responsible for it's occurences.
+  (* An event is created along with a service responsible for it's occurrences.
    * function takes a param_type *)
   let create ?scope ?name post_params =
     let (e, push) = E.create () in

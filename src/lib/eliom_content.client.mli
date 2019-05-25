@@ -347,7 +347,7 @@ module Html : sig
         see {{:http://ocsigen.org/howto/forms/}"how to make forms"} *)
 
     (** Function [node s] create an HTML5 [elt] from a signal [s].
-        The resulting HTML5 [elt] can then be used like anyother HTML5 [elt] *)
+        The resulting HTML5 [elt] can then be used like any other HTML5 [elt] *)
     val node : 'a elt React.signal Eliom_client_value.t -> 'a elt
 
     (** [filter_attrib att on] returns an attrib that

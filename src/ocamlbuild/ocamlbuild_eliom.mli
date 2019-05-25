@@ -40,7 +40,7 @@ end
 (**/**)
 module type INTERNALS = sig
   val with_eliom_ppx : ([< `Client | `Server] -> string) option
-  (** Internally built client and server ppx executables are invoked explicitely
+  (** Internally built client and server ppx executables are invoked explicitly
       in order to pass the right -type arguments. Other syntax extensions are
       handled by {!with_package} *)
 

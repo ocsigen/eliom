@@ -1600,7 +1600,7 @@ let make_body () =
        let (aname, sname) =
          Eliom_parameter.get_nl_params_names my_nl_params
        in
-       [p [pcdata "form with nl params fiels";
+       [p [pcdata "form with nl params fields";
            Html.D.Form.input
              ~input_type:`Text ~name:iname Html.D.Form.int;
            Html.D.Form.input

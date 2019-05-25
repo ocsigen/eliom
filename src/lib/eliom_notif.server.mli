@@ -52,7 +52,7 @@ sig
 
   (** Initialise the notification module for the current client. This function
       needs to be called before using most other functions of this module. It
-      isn't called implicitely during module instantiation because it relies on
+      isn't called implicitly during module instantiation because it relies on
       identity data which might not be available yet. *)
   val init : unit -> unit Lwt.t
 
@@ -128,7 +128,7 @@ module type ARG = sig
 
   (** [prepare f] transforms server notifications into client
       notifications. It provides the [identity] as a parameter which identifies
-      the client. You can surpress notifications for a specific client (for
+      the client. You can suppress notifications for a specific client (for
       instance because of missing authorisation) by having [f] return [None]. *)
   val prepare : identity -> server_notif -> client_notif option Lwt.t
 

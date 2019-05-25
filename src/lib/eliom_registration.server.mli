@@ -289,7 +289,7 @@ end
 
     The default returned HTTP code is [302 Found]. You could use the
     optional parameter [~options] to change this value, see
-    {!Redirections} for a detailled description. *)
+    {!Redirections} for a detailed description. *)
 module String_redirection : Eliom_registration_sigs.S_with_create
   with type page = Eliom_lib.Url.uri
    and type options =

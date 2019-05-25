@@ -55,7 +55,7 @@ val ancessor : #Dom.node Js.t -> #Dom.node Js.t -> bool
 val createEvent : Js.js_string Js.t -> #Dom_html.event Js.t
 
 (** [copy_element e] creates recursively a fresh html from any xml
-    element avoiding brower bugs *)
+    element avoiding browser bugs *)
 val copy_element : Dom.element Js.t ->
   (Js.js_string Js.t -> bool) -> Dom_html.element Js.t
 

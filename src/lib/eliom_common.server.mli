@@ -68,7 +68,7 @@ val level_of_user_scope : [< user_scope ] -> [> user_level ]
     use [~scope:Eliom_common.default_process_scope].
 
     You can create new scope
-    hierachies with {!Eliom_common.create_scope_hierarchy}.
+    hierarchies with {!Eliom_common.create_scope_hierarchy}.
     Thus it is possible to have for example several sessions that can
     be opened or closed independently. They use different cookies.
 

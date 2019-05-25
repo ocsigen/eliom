@@ -19,7 +19,7 @@
 
 module type TYPES = sig
 
-  (** {2 Auxilliary service-related types} *)
+  (** {2 Auxiliary service-related types} *)
 
   type get = Get_method
   type put = Put_method
@@ -114,7 +114,7 @@ module type S = sig
 
   include TYPES
 
-  (** {3 Auxilliary types} *)
+  (** {3 Auxiliary types} *)
 
   type att
   type non_att
@@ -136,7 +136,7 @@ module type S = sig
       - ['co] co-service or regular service
       - ['ext] external or internal
       - ['reg]: possible to register a handler on this service
-      - ['tipo] the type paremeter of subtype {!suff} states the kind
+      - ['tipo] the type parameter of subtype {!suff} states the kind
         of parameters it uses: suffix or not.
       - ['gn] is the type of GET parameters names. See
         {!Eliom_parameter.param_name} and form generation functions
@@ -230,7 +230,7 @@ module type S = sig
 
   (** {3 Miscellaneous} *)
 
-  (** The function [preapply ~service paramaters] creates a new
+  (** The function [preapply ~service parameters] creates a new
       service by preapplying [service] to the GET [parameters]. It is
       not possible to register a handler on an preapplied service;
       preapplied services may be used in links or as fallbacks. *)

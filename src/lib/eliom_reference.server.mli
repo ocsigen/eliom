@@ -155,7 +155,7 @@ val unset : 'a eref -> unit Lwt.t
     for non-persistent Eliom references. *)
 module Volatile : sig
   (** The type of volatile Eliom references.
-      Note that [('a Eliom_reference.Volatile.eref :> 'a Eliom_reference.eref)], i.e. whereever you can use an ['a
+      Note that [('a Eliom_reference.Volatile.eref :> 'a Eliom_reference.eref)], i.e. wherever you can use an ['a
       Eliom_reference.eref] you can also use an ['a Eliom_reference.Volatile.eref :> 'a Eliom_reference.eref].  *)
   type 'a eref = ('a, [`Volatile]) eref'
   val eref : scope:[< Eliom_common.all_scope] -> ?secure:bool -> 'a -> 'a eref

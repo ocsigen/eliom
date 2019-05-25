@@ -173,7 +173,7 @@ let send
        to do that It is needed to change that part a bit to be able to
        send the process name to every host serving eliom pages.
        Do not send it to everybody: when doing a cross domain request
-       with additionnal headers like thoose, an OPTION request is done
+       with additional headers like thoose, an OPTION request is done
        before to check if the request is authorized. Some server does
        not support it ( like google ones for instance ) *)
     let headers =

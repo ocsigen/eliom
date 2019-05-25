@@ -89,7 +89,7 @@ module type LINKS = sig
 
       The optional parameter [keep_nl_params] allows one to override
       the [keep_nl_params] parameter used when creating the [service],
-      see {!Eliom_service.create} for a detailled description.
+      see {!Eliom_service.create} for a detailed description.
 
       The optional parameter [nl_params] allows one to add non
       localized GET parameter to the URL.  See the eliom manual for
@@ -120,7 +120,7 @@ module type LINKS = sig
       value). Hence, the function is always evaluated in the context
       of a service handler.
 
-      For other module, the function [f] is immediatly applied. *)
+      For other module, the function [f] is immediately applied. *)
   val uri_of_string : (unit -> string) -> uri
 
   (** The function [css_link ~uri ()] creates a [<link>] node that

@@ -377,7 +377,7 @@ let rec close_volatile_state_if_empty ~scope ?secure () =
               c.Eliom_common.dc_session_group_node
           | _ -> ())
       | `Client_process _ -> ()
-(* This should never occure, because we always have tab session data
+(* This should never occur, because we always have tab session data
    when we have a tab session (at least the change_page_event).
         if (sitedata.Eliom_common.not_bound_in_data_tables
               c.Eliom_common.dc_value)
@@ -1156,7 +1156,7 @@ module Ext = struct
 
   type timeout = Eliom_common.timeout =
     | TGlobal (** see global setting *)
-    | TNone   (** explicitely set no timeout *)
+    | TNone   (** explicitly set no timeout *)
     | TSome of float (** timeout duration in seconds *)
 
   type (+'a (* scope *), +'b (* `Data, `Service or `Pers *)) state =

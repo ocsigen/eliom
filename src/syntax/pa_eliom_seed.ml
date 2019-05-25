@@ -352,7 +352,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
           let id = int_of_string (String.sub id escaped_ident_prefix_len len) in
           List.assoc id (fst_3 (Lazy.force inferred_sig))
         with Not_found ->
-          Printf.eprintf "Error: Infered type of escaped ident not found (%s). \
+          Printf.eprintf "Error: Inferred type of escaped ident not found (%s). \
                           You need to regenerate %s.\n"
             id (get_type_file ());
           exit 1
@@ -365,7 +365,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
           let (_, id) = get_injected_ident_info id in
           List.assoc id (snd_3 (Lazy.force inferred_sig))
         with Not_found ->
-          Printf.eprintf "Error: Infered type of injected ident not found (%s). \
+          Printf.eprintf "Error: Inferred type of injected ident not found (%s). \
                           You need to regenerate %s.\n"
             id (get_type_file ());
           exit 1
@@ -374,7 +374,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
         try
           List.assoc id (trd_3 (Lazy.force inferred_sig))
         with Not_found ->
-          Printf.eprintf "Error: Infered type client value not found (%s). \
+          Printf.eprintf "Error: Inferred type client value not found (%s). \
                           You need to regenerate %s.\n"
             id (get_type_file ());
           exit 1
@@ -475,7 +475,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
           let is_left_delimitor str = List.mem str.[0] ['('; '['; '{'] in
           let ends_with_percent_sign str = str.[String.length str-1] = '%' in
           match other with
-            | (* Allow %-sign to for injection directly after left delimitors *)
+            | (* Allow %-sign to for injection directly after left delimiters *)
               SYMBOL str, loc0
               when String.length str > 0 &&
                    is_left_delimitor str &&

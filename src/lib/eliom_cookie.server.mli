@@ -20,7 +20,7 @@
 
 open Eliom_lib
 
-(** Map adressed by URL path, used for {!cookieset}. *)
+(** Map addressed by URL path, used for {!cookieset}. *)
 module Cookies : Map.S with type key = Url.path
 
 (** HTTP cookies representation. *)

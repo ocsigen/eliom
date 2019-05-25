@@ -376,7 +376,7 @@ let copy_element (e:Dom.element Js.t)
   : Dom_html.element Js.t =
   let rec aux (e:Dom.element Js.t) =
     let copy = Dom_html.document##(createElement e##.tagName) in
-    (* IE<9: Copy className seperatly, it's not updated when displayed *)
+    (* IE<9: Copy className separately, it's not updated when displayed *)
     Js.Opt.iter (Dom_html.CoerceTo.element e)
       (fun e -> copy##.className := e##.className);
     let node_id = Js.Opt.to_option
@@ -725,12 +725,12 @@ let touch_base () =
 (* BEGIN FORMDATA HACK: This is only needed if FormData is not available in the browser.
    When it will be commonly available, remove all sections marked by "FORMDATA HACK" !
    Notice: this hack is used to circumvent a limitation in FF4 implementation of formdata:
-     if the user click on a button in a form, formdatas created in the onsubmit callback normaly contains the value of the button. ( it is the behaviour of chromium )
-     in FF4, it is not the case: we must do this hack to find wich button was clicked.
+     if the user click on a button in a form, formdatas created in the onsubmit callback normally contains the value of the button. ( it is the behaviour of chromium )
+     in FF4, it is not the case: we must do this hack to find which button was clicked.
 
    NOTICE: this may not be corrected the way we want:
      see https://bugzilla.mozilla.org/show_bug.cgi?id=647231
-     html5 will explicitely specify that chromium behaviour is wrong...
+     html5 will explicitly specify that chromium behaviour is wrong...
 
    This is implemented in:
    * this file -> here and called in load_eliom_data
