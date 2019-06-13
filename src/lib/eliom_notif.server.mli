@@ -105,6 +105,7 @@ sig
   *)
   val client_ev : unit -> (key * client_notif) Eliom_react.Down.t
 
+  val server_ev : (key * server_notif) React.event
 
   (** Call [clean ()] to clear the tables from empty data. *)
   val clean : unit -> unit
