@@ -2064,7 +2064,7 @@ let _ =
 
 
 %<code language="ocaml"|
-let r = Netstring_pcre.regexp "\\\\[(.*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@)\\\\]"
+let r = Pcre.regexp "\\\\[(.*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@)\\\\]"
 
 let regexp =
   Eliom_registration.Html.register_service
@@ -2080,7 +2080,7 @@ let regexp =
 
 *wiki*)
 (*zap* *)
-let myregexp = Netstring_pcre.regexp "\\[(.*)\\]"
+let myregexp = Pcre.regexp "\\[(.*)\\]"
 
 let regexpserv =
   register_service
