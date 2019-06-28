@@ -861,7 +861,7 @@ let form_handler
            (fun () -> Lwt_log.raise_error_f ~section "not a form element")
        in
        let kind =
-         if String.lowercase(Js.to_string form##._method) = "get"
+         if String.lowercase_ascii (Js.to_string form##._method) = "get"
          then `Form_get
          else `Form_post
        and f _ = Lwt.return_false in
@@ -1211,7 +1211,7 @@ let rec rebuild_node_with_state ns ?state elt =
     node
   | Xml.ReactChildren (node,elts) ->
     let dom = raw_rebuild_node ns node in
-    Tyxml_js.Util.update_children
+    Js_of_ocaml_tyxml.Tyxml_js.Util.update_children
       dom
       (ReactiveData.RList.map (rebuild_node' ns) elts);
     Xml.set_dom_node elt dom;

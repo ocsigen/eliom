@@ -168,7 +168,7 @@ module Make_links (Html : Html) = struct
       Html.a_src uri ::
       (a :> Html_types.script_attrib attrib list)
     in
-    Html.script ~a (Html.pcdata "")
+    Html.script ~a (Html.txt "")
 
 end
 
@@ -248,7 +248,7 @@ module Make (Html : Html) = struct
 
   let make_textarea ?(a = []) ~name ?(value = "") () =
     let a = a_name name :: (a :> Html_types.textarea_attrib attrib list) in
-    textarea ~a (pcdata value)
+    textarea ~a (txt value)
 
   let make_select ?(a = []) ~multiple ~name elt elts =
     let a = if multiple then a_multiple () :: a else a in
@@ -531,7 +531,7 @@ module Make (Html : Html) = struct
     let make_opt (a, cv, co, sel) =
       (match co with
        | None ->
-         make_option ~a ~selected:sel (pcdata (string_of cv))
+         make_option ~a ~selected:sel (txt (string_of cv))
        | Some c -> make_option ~a ~selected:sel ~value:(string_of cv) c)
     in
     let make_optg = function

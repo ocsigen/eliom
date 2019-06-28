@@ -57,7 +57,7 @@ let rec yes_no : default:bool -> string -> bool =
     printf "%s (%s/%s) " msg
       (if default then "YES" else "yes")
       (if default then "no" else "NO");
-    match String.(lowercase (read_line ())) with
+    match String.(lowercase_ascii (read_line ())) with
     | "yes" | "y" -> true
     | "no" | "n" -> false
     | "" -> default
@@ -100,7 +100,7 @@ let copy_file_plain input_name output_name =
   and fd_out =
     let {Unix.st_perm} = Unix.stat input_name in
     Unix.openfile output_name [O_WRONLY; O_CREAT; O_TRUNC] st_perm
-  and buffer = String.create buffer_size in
+  and buffer = Bytes.create buffer_size in
   let rec copy_loop () =
     match Unix.read fd_in buffer 0 buffer_size with
     | 0 -> ()
@@ -226,7 +226,7 @@ let env name =
     else "dbm" in
   [
     "PROJECT_NAME", name;
-    "MODULE_NAME", String.capitalize name;
+    "MODULE_NAME", String.capitalize_ascii name;
     "PROJECT_DB", db
   ]
 
@@ -297,7 +297,7 @@ let main () =
   in
   let dest_dir = ref None in
   let check_name name =
-    let name' = String.lowercase name in
+    let name' = String.lowercase_ascii name in
     if name' <> name then
       Printf.eprintf
         "Warning: \"%s\" converted to \"%s\"\n%!"

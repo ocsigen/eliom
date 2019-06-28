@@ -436,7 +436,7 @@ module Html : sig
   (** Conversion from HTML5 [elt]s to Javascript DOM elements ([<:] {% <<a_api
       project="js_of_ocaml"| class Dom_html.element >> %}).
       One conversion function per source type (stressed by the [of_] prefix). *)
-  module To_dom : Tyxml_cast_sigs.TO with type 'a elt = 'a elt
+  module To_dom : Js_of_ocaml_tyxml.Tyxml_cast_sigs.TO with type 'a elt = 'a elt
 
   (** DOM-like manipulation functions.
 
@@ -870,7 +870,7 @@ module Html : sig
 
   (** Conversion functions from DOM nodes ({% <<a_api project="js_of_ocaml"| type Dom_html.element>> %} {% <<a_api
       project="js_of_ocaml"| type Js.t>> %}) to Eliom nodes ({% <<a_api | type Eliom_content.Html.elt>> %}). *)
-  module Of_dom : Tyxml_cast_sigs.OF with type 'a elt = 'a elt
+  module Of_dom : Js_of_ocaml_tyxml.Tyxml_cast_sigs.OF with type 'a elt = 'a elt
 
 end
 

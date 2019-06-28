@@ -196,7 +196,7 @@ module Xml = struct
       let f = Eliom_client_core.rebuild_node' ~%ns in
       let e = f ~%e
       and l = ReactiveData.RList.map f ~%l in
-      Tyxml_js.Util.update_children e l
+      Js_of_ocaml_tyxml.Tyxml_js.Util.update_children e l
     : unit)] in
     e
 
@@ -435,7 +435,7 @@ module Html = struct
     include
       Eliom_content_core.Html.Make(Xml)(Wrapped_functions)(Svg.R)
 
-    let pcdata x = pcdata x |> Unsafe.coerce_elt
+    let pcdata x = txt x |> Unsafe.coerce_elt
 
   end
 

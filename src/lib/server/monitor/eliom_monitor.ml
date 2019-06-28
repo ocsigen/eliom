@@ -31,7 +31,7 @@ let fd ~pid =
     `Ok a
   with e -> `Error (Printexc.to_string e)
 
-let ppf fmt = Printf.ksprintf Eliom_content.Html.D.pcdata fmt
+let ppf fmt = Printf.ksprintf Eliom_content.Html.D.txt fmt
 
 let format_duration t =
   let open Unix in
@@ -109,7 +109,7 @@ let http_stats () =
     ul [
       li [ppf "%d open connection" (Ocsigen_extensions.get_number_of_connected ())]
     ];
-    h3 [pcdata "Hosts"];
+    h3 [txt "Hosts"];
     ul (List.map (fun (vhosts,config,_) ->
         let all_vhost = String.concat ", " (List.map (fun (vhost,_,vport) ->
             let optport = match vport with
@@ -122,7 +122,7 @@ let http_stats () =
               config.Ocsigen_extensions.default_httpsport
           ) vhosts) in
         li [
-          pcdata (all_vhost : string)
+          txt (all_vhost : string)
         ]
       ) hosts)
 
@@ -146,7 +146,7 @@ let eliom_stats () =
             (Eliom_state.number_of_persistent_tables ())];
     ];
     h3 [ppf "Client processes"];
-    p [em [pcdata "Not implemented yet"]];
+    p [em [txt "Not implemented yet"]];
     h3 [ppf "Session groups"];
     ul [
       li [ppf "%d service session groups."
@@ -176,7 +176,7 @@ let content_html () =
   let%lwt content_div = content_div () in
   Lwt.return (
     html
-      (head (title (pcdata "Server monitoring")) [
+      (head (title (txt "Server monitoring")) [
           link
             ~rel:[`Stylesheet]
             ~href:(uri_of_string (fun () -> "//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"))

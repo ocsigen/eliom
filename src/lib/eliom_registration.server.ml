@@ -1354,7 +1354,7 @@ module Eliom_appl_reg_make_param
         @
         [Eliom_content.Html.F.a_src uri]
       in
-      Eliom_content.Html.F.script ~a (Eliom_content.Html.F.pcdata "") :: rem
+      Eliom_content.Html.F.script ~a (Eliom_content.Html.F.txt "") :: rem
     end else
       rem
 

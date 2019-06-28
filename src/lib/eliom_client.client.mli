@@ -272,8 +272,8 @@ module Page_status : sig
     val active : unit -> unit React.E.t
     val cached : unit -> unit React.E.t
     val dead : unit -> unit React.E.t
-    (** [inactive] occurs when the [Active] state is left ([Cached] or [Dead]) *)
     val inactive : unit -> unit React.E.t
+    (** [inactive] occurs when the [Active] state is left ([Cached] or [Dead]) *)
   end
 
   (** [onactive] is convenience function that attaches a handler to

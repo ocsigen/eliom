@@ -97,7 +97,6 @@ let bits = 8
 let none = Obj.repr 0 (* Unallocated entry in an array or in a hash-table *)
 
 module DynArray = struct
-  type 'a t = 'a array ref
   let rec check_size a i =
     let len = Array.length !a in
     if i > len then begin
@@ -235,34 +234,7 @@ module Tbl = struct
      slight chance to perform an allocation; in which case, the table
      will no longer be up to date... *)
   let was_up_to_date tbl = tbl.gc = gc_count ()
-
-  let add_on_resize tbl f = tbl.on_resize <- f :: tbl.on_resize;
 end
-
-(* Returns whether we should recursively scan the value or should
-   consider it as opaque. Also check for values that cannot be
-   serialized. *)
-let can_scan v =
-  Obj.is_block v &&
-  let tag = Obj.tag v in
-  if tag >= Obj.no_scan_tag then
-    false
-  else if
-    tag <= Obj.last_non_constant_constructor_tag || tag = Obj.forward_tag
-  then
-    true
-  else begin
-    if tag = Obj.lazy_tag then
-      failwith "lazy values must be forced before wrapping";
-    if tag = Obj.object_tag then failwith "cannot wrap object values";
-    if tag = Obj.closure_tag then failwith "cannot wrap functional values";
-    if tag = Obj.infix_tag then
-      failwith "cannot wrap functional values: infix tag";
-    (* Should not happen (in case a new kind of value is added) *)
-    failwith (Printf.sprintf "cannot wrap value (unexpected tag %d)" tag)
-  end
-
-type kind = Opaque | Scannable | Forward
 
 let obj_kind v =
   if not (Obj.is_block v) then

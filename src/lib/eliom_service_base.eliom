@@ -188,7 +188,8 @@ let timeout s = s.timeout
 let https s = s.https
 let priority s = s.priority
 
-let internal_set_client_fun ~service f =
+let internal_set_client_fun
+      ~service (f : ('get -> 'post -> unit Lwt.t) Eliom_client_value.t) =
   service.client_fun <- Some [%client ref (Some ~%f)]
 
 let is_external = function {kind = `External} -> true | _ -> false
@@ -327,8 +328,7 @@ let preapply ~service getparams =
               (match suff with
                | Some suff -> append_suffix k.fullpath suff
                | _ -> k.fullpath);
-           };
-       | k -> k);
+           });
     client_fun =
       Some
         [%client ref
@@ -446,14 +446,10 @@ exception Unreachable_exn
 let attached_info = function
   | {info = Attached k} ->
     k
-  | _ ->
-    failwith "attached_info"
 
 let non_attached_info = function
   | {info = Nonattached k} ->
     k
-  | _ ->
-    failwith "non_attached_info"
 
 (** Create a main service (not a coservice), internal or external *)
 let main_service

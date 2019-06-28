@@ -481,7 +481,7 @@ module Make(DorF : module type of Eliom_content.Html.F) : HTML5_TOOLS = struct
       let uri = make_uri  (Eliom_service.static_dir ()) path in
       js_script ~a:[a_defer ()] ~uri () in
     DorF.head
-      (title (pcdata ttl))
+      (title (txt ttl))
       List.(map mk_css_link css @ map mk_js_script js @
             (other :> head_content_fun elt list))
 
