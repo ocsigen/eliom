@@ -437,7 +437,7 @@ let _ = Eliom_registration.Html.register Eliom_testsuite_base.main
               br ();
               a domnodes_timings [pcdata "Speed test for TyXMl nodes with dom semantics (previously known as unique node of scope request)"] (2,10);
               br ();
-              a shared_dom_nodes [pcdata "Multiple occurences of unique nodes."] ();
+              a shared_dom_nodes [pcdata "Multiple occurrences of unique nodes."] ();
               br ();
               a nl_serv [pcdata "Non localised parameters and eliom appl"] ();
               br ();

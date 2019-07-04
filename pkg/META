@@ -62,7 +62,7 @@ package "client" (
 package "syntax" (
   directory = "syntax"
   package "common" (
-    description = "Syntax extension: spliting client and server code (base)"
+    description = "Syntax extension: splitting client and server code (base)"
     version = "[distributed with Eliom]"
     requires = "camlp4, bytes"
     requires(preprocessor, syntax, pkg_type_conv) = "type_conv"
@@ -70,7 +70,7 @@ package "syntax" (
   )
 
   package "client" (
-    description = "Syntax extension: spliting client and server code (client side)"
+    description = "Syntax extension: splitting client and server code (client side)"
     version = "[distributed with Eliom]"
     requires(syntax, preprocessor) = "eliom.syntax.common"
     requires(syntax, toploop) = "eliom.syntax.common"
@@ -79,7 +79,7 @@ package "syntax" (
   )
 
   package "server" (
-    description = "Syntax extension: spliting client and server code (server side)"
+    description = "Syntax extension: splitting client and server code (server side)"
     version = "[distributed with Eliom]"
     requires(syntax, preprocessor) = "eliom.syntax.common"
     requires(syntax, toploop) = "eliom.syntax.common"
@@ -88,7 +88,7 @@ package "syntax" (
   )
 
   package "type" (
-    description = "Syntax extension: spliting client and server code (type inference)"
+    description = "Syntax extension: splitting client and server code (type inference)"
     version = "[distributed with Eliom]"
     requires(syntax, preprocessor) = "eliom.syntax.common"
     archive(syntax, preprocessor) = "pa_eliom_type_filter.cmo"

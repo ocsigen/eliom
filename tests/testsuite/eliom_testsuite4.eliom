@@ -204,7 +204,7 @@ let data_sharing =
     ~title:"Data sharing"
     ~path:["holes"; "data_sharing"]
     ~description:Html.F.([
-      p [pcdata "Checks wheather data in the eliom request data is shared"];
+      p [pcdata "Checks whether data in the eliom request data is shared"];
       p [pcdata "The string of request data is given below."];
       p [pcdata "There are three elements on the server, which contain the strings
                  \"VVVVVVVVVVV\", \"WWWWWWWWWWW\", and \"XXXXXXXXXXX\" respectively.

@@ -49,14 +49,14 @@ val do_cache : ('a, 'b) t -> 'a -> 'b -> unit
 
 (** Find a piece of data in local cache, without trying to fetch it
     from server. Raises [Not_found] instead.  If the value is currently
-    beeing retrieved, it waits for it to be ready before returning.  *)
+    being retrieved, it waits for it to be ready before returning.  *)
 val local_find : ('a, 'b) t -> 'a -> 'b Lwt.t
 
 exception Not_ready
 
 (** Find a piece of data in local cache, without trying to fetch it
     from server. Raises [Not_found] instead.  If the value is currently
-    beeing retrieved, it raises [Not_ready].  *)
+    being retrieved, it raises [Not_ready].  *)
 val find_if_ready : ('a, 'b) t -> 'a -> 'b
 
 [%%client.start]

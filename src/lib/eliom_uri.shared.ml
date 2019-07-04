@@ -651,7 +651,7 @@ let make_post_uri_components__ = make_post_uri_components
 
   WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
   We do not take into account the suffix for computing process cookies
-  of GET forms (beacause the suffix is taken from the form).
+  of GET forms (because the suffix is taken from the form).
   This corresponds to what the browser is doing with session cookies.
   For links and POST forms, the url already contains the suffix.
   It is taken into account for computing process cookies.

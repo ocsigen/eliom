@@ -100,7 +100,7 @@ let default_client_cookie_exp () =
 
 type timeout =
   | TGlobal (** see global setting *)
-  | TNone   (** explicitely set no timeout *)
+  | TNone   (** explicitly set no timeout *)
   | TSome of float (** timeout duration in seconds *)
 
 

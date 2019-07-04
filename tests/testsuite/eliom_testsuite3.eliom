@@ -34,7 +34,7 @@ This part of the manuel describes how to use Eliom for mixing client side
 and server side programming.
 Eliom allows one to write the client and server parts of a Web application
 fully in Objectice Caml.
-Running OCaml in the client's browser is acheived by compiling OCaml bytecode
+Running OCaml in the client's browser is achieved by compiling OCaml bytecode
 into Javascript. Check the [[wiki(30):/|js_of_ocaml]] project for news and
 information.
 
@@ -314,7 +314,7 @@ where and {{{id}}} an identifier for the value.
 
 
 (*wiki*
-====Refering to parts of the page in client side code
+====Referring to parts of the page in client side code
 *wiki*)
 
           (let container = Html.D.ul [ item () ; item () ; item ()] in
@@ -330,7 +330,7 @@ where and {{{id}}} an identifier for the value.
                 container]);
 
 (*wiki*
-====Refering to server side data in client side code
+====Referring to server side data in client side code
   In the case you want to send some server side value with your page,
   just do:
 *wiki*)
@@ -735,7 +735,7 @@ end
 let v1 =
   { Wrapping_test.v_int = 42;
     v_float = 42.42;
-    v_string = "fourty two";
+    v_string = "forty two";
     (* v_int64 = 0x4200000000000000L; *)
     v_service = eliom_caml_tree }
 
@@ -774,8 +774,8 @@ let () =
         Eliom_client.onload
           (fun _ ->
             let v = %v1 in
-            put_li %list "The following item must be: \"42=42 42.42=42.420000 fourty two=fourty two\"";
-            put_li %list "42=%i 42.42=%f fourty two=%s"
+            put_li %list "The following item must be: \"42=42 42.42=42.420000 forty two=forty two\"";
+            put_li %list "42=%i 42.42=%f forty two=%s"
               v.Wrapping_test.v_int v.Wrapping_test.v_float v.Wrapping_test.v_string;
             put_li %list "The following line must be: \"1::2::3::1::2::3::1::...\"";
             ( match %rec_list with
@@ -1002,7 +1002,7 @@ let caml_service_wrapping =
                 | exn -> Lwt_log.ign_debug ~exn "global_channel_wrapping_service"; Lwt.fail exn
                     )
                   }}]
-            [pcdata "click to create a channel with scope site: it has a lifetime of 3 seconds: after 3 seconds, there is no garanty on availability of this channel"];
+            [pcdata "click to create a channel with scope site: it has a lifetime of 3 seconds: after 3 seconds, there is no guarantee on availability of this channel"];
           pcdata "when clicking on this link, messages should be received every 1 second";
         ])
     )
@@ -1485,11 +1485,11 @@ let event2_service =
       let target14 = make_target "Drag with long handler" in
       let target15 = make_target "Annuler le précédent" in
       let target16 = make_target "Mouse over change color" in
-      let target17 = make_target "Mouse wheel (browser dependant - test in several browsers)" in
+      let target17 = make_target "Mouse wheel (browser dependent - test in several browsers)" in
       let target18 = Html.D.textarea ~a:[a_name "a"] (pcdata "") in
-      let target19 = make_target "If you click very quickly after having entered a letter below, my handler (short) will occure, and the long handler for the keypress will be cancelled (event if it already started)." in
+      let target19 = make_target "If you click very quickly after having entered a letter below, my handler (short) will occur, and the long handler for the keypress will be cancelled (event if it already started)." in
       let target20 = Html.D.textarea ~a:[a_name "b"] (pcdata "") in
-      let target21 = make_target "If you click very quickly after having entered a letter below, my handler will not occure because the long handler for the keypress below is detached." in
+      let target21 = make_target "If you click very quickly after having entered a letter below, my handler will not occur because the long handler for the keypress below is detached." in
 
       let targetresult = Html.D.p [] in
       ignore {unit{
@@ -2822,7 +2822,7 @@ let live_description =
 let live_links =
   div [ ul [li [Html.D.a ~service:live1 [pcdata "Page one"] ()];
             li [Html.D.a ~service:live2 [pcdata "Page two"] ()];
-            li [Html.D.a ~service:live3 [pcdata "Page threee"] ()]]]
+            li [Html.D.a ~service:live3 [pcdata "Page three"] ()]]]
 
 let dead_links =
   div [ ul [li [Html.D.a ~service:Eliom_testsuite1.coucou
@@ -2856,7 +2856,7 @@ let () = My_appl.register ~service:live3 (fun () () ->
         (fun _ -> Lwt_log.ign_debug "Page 3 unloading")
   }};
     Lwt.return
-      (make_page [h1 [pcdata "Page threee"]; live_description; live_links; dead_links]))
+      (make_page [h1 [pcdata "Page three"]; live_description; live_links; dead_links]))
 
 
 let formc = My_appl.register_service ["formc"] unit
@@ -3113,7 +3113,7 @@ let () =
     (fun choice () -> make_any choice)
 
 (*****************************************************************************)
-(* Gracefull fail to external content *)
+(* Graceful fail to external content *)
 
 let never_shown_service =
   My_appl.register_service
@@ -3122,7 +3122,7 @@ let never_shown_service =
     (fun () () ->
       return
         (make_page
-           [pcdata "this page should never appear: a file with the same name is hidding it";]))
+           [pcdata "this page should never appear: a file with the same name is hiding it";]))
 
 let gracefull_fail_with_file =
   My_appl.register_service
@@ -3544,12 +3544,12 @@ let div_tree w h = div_tree (ref 0) w h
 
 let domnodes_timings = Eliom_service.App.service
   ~path:["domnodes_timings"]
-  ~get_params:(int "widht" ** int "height")
+  ~get_params:(int "width" ** int "height")
   ()
 
 let nodes_timings = Eliom_service.App.service
   ~path:["nodes_timings"]
-  ~get_params:(int "widht" ** int "height")
+  ~get_params:(int "width" ** int "height")
   ()
 
 let rec power n m =
@@ -3639,8 +3639,8 @@ let shared_dom_nodes = My_appl.register_service
     let li_appl = Html.Id.create_global_elt (Html.F.li [pcdata "Shared item"]) in
     Lwt.return
       (make_page
-         [Html.F.h2 [pcdata "Multiple occurences of a unique node"];
-          Html.F.p [pcdata "The following list contains two occurences of a unique node items (of scope request). ";
+         [Html.F.h2 [pcdata "Multiple occurrences of a unique node"];
+          Html.F.p [pcdata "The following list contains two occurrences of a unique node items (of scope request). ";
                      pcdata "One between item A and item B ; one between B and C. ";
                      pcdata "Only the second one should be displayed."];
           Html.F.ul [ Html.F.li [pcdata "Non-shared item A"];
@@ -3649,7 +3649,7 @@ let shared_dom_nodes = My_appl.register_service
                        li;
                        Html.F.li [pcdata "Non-shared item C"];];
           Html.F.p [pcdata "It is possible that for a very short period of time the first one appears. ";
-                     pcdata "However, programmer probably do not want to use multiple occurences of a unique node ";
+                     pcdata "However, programmer probably do not want to use multiple occurrences of a unique node ";
                      pcdata "and this \"blink\" will be a good reminder of unique node misuse..."];
           Html.F.p [pcdata "Same game with scope application."];
           Html.F.ul [ Html.F.li [pcdata "Non-shared item A"];
@@ -3850,7 +3850,7 @@ let _ = My_appl.register
            a ~service:Eliom_service.reload_action_hidden
              [pcdata "without nl params"]
              ();
-           pcdata "there is a problem here: click many times on \"witout nl params\" and inspect it";
+           pcdata "there is a problem here: click many times on \"without nl params\" and inspect it";
           ];
       ]))
 
@@ -4164,7 +4164,7 @@ let () = My_appl.register states_test_bis
             h1 [pcdata ("Testing states for different scopes — This browser session belongs to group "^group)];
             p [ pcdata ("These (persistent and data) sessions belongs to a group called \""^group^"\".")];
             p [
-              pcdata "Here are the values of differents Eliom references. To update the values after a test, ";
+              pcdata "Here are the values of different Eliom references. To update the values after a test, ";
               strong [Raw.a
                          ~a:[a_class ["clickable"];
                            a_onclick

@@ -279,7 +279,7 @@ module Page_status : sig
   (** [onactive] is convenience function that attaches a handler to
       [Events.active], which behaves exactly like [fun f -> React.E.map f
       Events.active].
-      If [now] is [true] (default) and the page is currenly active the function
+      If [now] is [true] (default) and the page is currently active the function
       is also invoked right away. This is useful to ensure that the function
       is invoked also on server-generated pages which are active right from
       the start and thus have no transition to the active state.
@@ -322,7 +322,7 @@ end
     ask the user to confirm quitting. We try to use [s] in the
     confirmation pop-up. [None] means no confirmation needed.
 
-    The callback [f] is sometimes trigerred by internal service calls,
+    The callback [f] is sometimes triggered by internal service calls,
     and sometimes by the browser [onbeforeunload] event. In the
     [onbeforeunload] case, the confirmation pop-up is managed by the
     browser. For Firefox, the string [s] returned by [f] is ignored:
@@ -332,7 +332,7 @@ end
 val onbeforeunload : (unit -> string option) -> unit
 
 (** [onunload f] registers [f] as a handler to be called before page
-    change. The callback [f] is sometimes trigerred by internal
+    change. The callback [f] is sometimes triggered by internal
     service calls, and sometimes by the browser [onunload] event.
     [onunload] can be used to register multiple callbacks. *)
 val onunload : (unit -> unit) -> unit

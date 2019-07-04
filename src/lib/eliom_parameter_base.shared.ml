@@ -367,7 +367,7 @@ let rec walk_parameter_tree : type a c. string -> (a,'b,c) params_type -> a to_a
     | TRaw_post_data -> failwith "walk_parameter_tree with raw post data"
 
 
-(* contruct the string of parameters (& separated) for GET and POST *)
+(* construct the string of parameters (& separated) for GET and POST *)
 let construct_params_string l =
   Url.make_encoded_parameters (Eliommod_parameters.get_param_list l)
 

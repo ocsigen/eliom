@@ -107,7 +107,7 @@ sig
       between two requests when the the windows does not have the focus,
       after the timeout.
       This amount of time is computed using an affine function
-      (a * T + b), where T is the amount of time elapsed since the begining
+      (a * T + b), where T is the amount of time elapsed since the beginning
       of the idle phase, with a maximal time of c.
       If you want no request at all, do [set_always_active false].
       Setting this to [(0., 0., 0.)] is equivalent
@@ -132,14 +132,14 @@ val register : ?wake:bool -> 'a Eliom_comet_base.wrapped_channel ->
 
 (** [restart ()] Restarts the loop waiting for server messages. It is
     only useful after that a formulary is sent. Indeed browsers stops
-    all xhr requests in that case. It is normaly not needed, but some
+    all xhr requests in that case. It is normally not needed, but some
     browsers (based on webkit) also destroy the xhr object in that
     case, preventing client code from receiving the failure
     notification. This shouldn't be used by average user. *)
 val restart : unit -> unit
 
 (** [close c] closes the channel c. This function should be only use
-    internaly. The normal way to close a channel is to cancel a thread
+    internally. The normal way to close a channel is to cancel a thread
     waiting on inputs. *)
 val close : 'a Eliom_comet_base.wrapped_channel -> unit
 

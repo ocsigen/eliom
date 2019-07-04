@@ -45,7 +45,7 @@ open Eliom_parameter
     to the GET parameters [get_params].
 
     See {!Eliom_registration.Html.make_string_uri} or any other
-    {!Eliom_registration}[.*.make_string_uri] for a detailled
+    {!Eliom_registration}[.*.make_string_uri] for a detailed
     description of optional parameters.
 
     {e Warning: The function [make_string_uri] should not be called
@@ -76,7 +76,7 @@ val make_string_uri :
     [get_params].
 
     See {!Eliom_registration.Html.make_uri_components} or any other
-    {!Eliom_registration}[.*.make_uri_components] for a detailled
+    {!Eliom_registration}[.*.make_uri_components] for a detailed
     description. *)
 val make_uri_components :
   ?absolute:bool ->

@@ -71,7 +71,7 @@ let gc_timeouted_services now tables =
                        have length 1 here *)
                       when !e < now ->
                       Ocsigen_cache.Dlist.remove node
-                  | Some node, [] (* should not occure *) ->
+                  | Some node, [] (* should not occur *) ->
                       Ocsigen_cache.Dlist.remove node
                   | _ ->
                       (* We find the data associated to ptk once again,

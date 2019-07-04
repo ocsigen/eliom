@@ -504,7 +504,7 @@ end
 module Action = Eliom_mkreg.Make(Action_reg_base)
 
 (** Unit services are like services, do not generate any page, and do not
-    reload the page. To be used carefully. Probably not usefull at all.
+    reload the page. To be used carefully. Probably not useful at all.
     (Same as {!Action} with [`NoReload] option).
  *)
 

@@ -10,7 +10,7 @@
 module type Env = sig
   val bool : string -> bool
   (** [bool key] declares [key] as being a boolean key in the environment.
-      Specifing key=(true|false) on the command line becomes mandatory. *)
+      Specifying key=(true|false) on the command line becomes mandatory. *)
 
   val native : bool
   (** [native] is [bool "native"]. *)

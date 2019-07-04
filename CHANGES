@@ -18,7 +18,7 @@
 
 * Compatibility with Lwt 4.x
 * New configuration option to set html content type
-* Comet: desactivate when window does not have the focus; desactivate polling when idle
+* Comet: deactivate when window does not have the focus; deactivate polling when idle
 * eliom_request_info.in_request_handler
 * Client-side non-localized parameters
 * Provide a way to serve global data separately from the initial page
@@ -221,7 +221,7 @@ Addendum to the great renaming
 
 ===== 2.1.0 (2012-02-24) =====
 
- * Page loading rewriten.
+ * Page loading rewritten.
  ** We do not traverse the HTML tree anymore for retrieving links
    and putting events handlers, it use querySelectorAll instead.
    (with a fallback for older browsers)
@@ -720,7 +720,7 @@ Addendum to the great renaming
        browsers).
     ** Eliom: More secure cookies.
     ** Eliom: new version of the tutorial.
-    ** Eliom splitted in several modules.
+    ** Eliom split in several modules.
     ** Eliom: Nurpawiki example now called Miniwiki.
     ** Eliom: {{{any_...}}} form widgets now called {{{raw_...}}}
     ** Eliom: {{{~url}}} parameter (for {{{new_service}}}, etc.) now
@@ -819,11 +819,11 @@ Addendum to the great renaming
     of type body content.
   * Eliom: Module {{{Text}}} replaced by {{{HtmlText}}}, and adding
     {{{CssText}}} and {{{Text}}} (for any content type).
-  * Eliom: Bugfix - Typing errors of parameters are now catched only
+  * Eliom: Bugfix - Typing errors of parameters are now caught only
     if the names of parameters fit exactly.
   * Eliom: {{{register_service}}} now called {{{register}}}.
   * Eliom: EXPERIMENTAL Fallbacks can now get a "Session expired" from
-    previous pages and actions may send informations to the page
+    previous pages and actions may send information to the page
     generated (using exception).
   * Eliom: Now possible to pre-apply services (to make links or to be
     used as fallbacks for coservices)
@@ -842,7 +842,7 @@ Addendum to the great renaming
   * Ocsigen: Simplifying parsing of configuration file (could be
     improved).
   * Ocsigen: EXPERIMENTAL It is now possible to reload the modules
-    without stoping the server.
+    without stopping the server.
   * Staticmod: Rewriting of URLs using regular expressions.
 
 ===== 0.6.0 (2007-03-14) =====
@@ -933,7 +933,7 @@ Addendum to the great renaming
     parameters. Note that {{{**}}} is used to create **pairs** and not
     tuples.
   * The {{{a}}} and {{{post_form}}} functions now take a fix number of
-    parameters, correponding to GET parameters.
+    parameters, corresponding to GET parameters.
   * //URLs// are now called //services//,
   * //state URLs// are now called //auxiliary services//,
   * {{{register_post_url}}} does not exist anymore. use

@@ -122,7 +122,7 @@ let check_process_redir sp f param =
                   ))))]
   (* We do not put hostname and port.
      It is ok with half or full xhr redirections. *)
-  (* If an action occured before,
+  (* If an action occurred before,
      it may have removed some get params form ri *)
   else Lwt.return_unit
 

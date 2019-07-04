@@ -679,7 +679,7 @@ let handle_init_exn = function
          "\nPlease correct your modules and make sure you have linked in all the modules...")
   | Eliom_common.Eliom_site_information_not_available f ->
       ("Eliom: Bad use of function \""^f^
-          "\". Must be used only during site intialisation phase (or, sometimes, also during request).")
+          "\". Must be used only during site initialisation phase (or, sometimes, also during request).")
   | Eliom_common.Eliom_page_erasing s ->
       ("Eliom: You cannot create a page or directory here. "^s^
        " already exists. Please correct your modules.")
@@ -898,7 +898,7 @@ let parse_config hostpattern conf_info site_dir =
                     Ipaddr.(V6 V6.localhost)
                   in
                   ignore (Ocsigen_cache.Dlist.set_maxsize dlist v)
-                with Not_found -> () (* should not occure *)
+                with Not_found -> () (* should not occur *)
              ),
              (fun v ->
                ignore (Ocsigen_cache.Dlist.set_maxsize
@@ -943,7 +943,7 @@ let parse_config hostpattern conf_info site_dir =
         else begin
           if not !eliommodulewarningdisplayed
           then Lwt_log.ign_warning ~section:Lwt_log.eliom
-              "Tag <eliom> used several times in the same site: will run Eliom only the first time. Prefer <eliommodule> to load a module, and <eliom/> without attibute only once at the position you want to generate your Eliom pages for this site.";
+              "Tag <eliom> used several times in the same site: will run Eliom only the first time. Prefer <eliommodule> to load a module, and <eliom/> without attribute only once at the position you want to generate your Eliom pages for this site.";
           eliommodulewarningdisplayed := true;
           gen_nothing ()
         end

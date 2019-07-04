@@ -93,7 +93,7 @@ module type S = sig
       request, and should return the corresponding page.
 
       The optional parameter [~scope] is {!Eliom_common.global_scope}
-      by default. See the Eliom manual for detailled description {%
+      by default. See the Eliom manual for detailed description {%
       <<a_manual chapter="server-services" fragment="scope"|of
       different scopes>>%}.
 

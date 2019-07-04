@@ -43,7 +43,7 @@ type ('a, 'storage) eref' = (unit -> 'a) * bool * 'a eref_kind
    * a boolean true means "it is safe to execute the function from an
      external context" (for example if it is a constant function - eref created
      from a value)
-   * the kind of reference (scope, persistance)
+   * the kind of reference (scope, persistence)
  *)
 
 type 'a eref = ('a, [ volatile | persistent ]) eref'

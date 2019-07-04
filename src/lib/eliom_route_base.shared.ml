@@ -243,7 +243,7 @@ module Make (P : PARAM) = struct
            P.Table.find key !tref, P.Table.remove key !tref
          in
          (match nodeopt with
-          | None -> () (* should not occure *)
+          | None -> () (* should not occur *)
           | Some node -> P.Node.up node);
          tref := P.Table.add key (nodeopt, [service]) newt
        with Not_found ->
@@ -262,7 +262,7 @@ module Make (P : PARAM) = struct
               it? *)
            if sp = None then
              (* but if there was already one with same generation, we
-                fail (if during intialisation) *)
+                fail (if during initialisation) *)
              raise (Eliom_common.Eliom_duplicate_registration
                       (Url.string_of_url_path ~encode:false url_act))
            else

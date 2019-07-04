@@ -61,9 +61,9 @@ val create_filtered :
   -> ('a, 'b) t
 
 (** [stream b] returns the stream of data sent to bus [b]. Notice you
-    sould not use that function multiple times on the same bus, it will
+    should not use that function multiple times on the same bus, it will
     return the same stream. If you want to receive multiple times the
-    same data, you sould copy the stream with [Lwt_stream.clone] *)
+    same data, you should copy the stream with [Lwt_stream.clone] *)
 val stream : ('a, 'b) t -> 'b Lwt_stream.t
 
 (** [write b x] sends the value [x] on the bus [b]. Every participant,

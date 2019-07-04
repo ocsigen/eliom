@@ -92,7 +92,7 @@ let wrap_locally o =
 let bits = 8
 (* We use a hash-table with open addressing (which minimize
    allocations) and resizable arrays. The initial size of the hash
-   table is 2 ** bits; the intial size of arrays is half this *)
+   table is 2 ** bits; the initial size of arrays is half this *)
 
 let none = Obj.repr 0 (* Unallocated entry in an array or in a hash-table *)
 

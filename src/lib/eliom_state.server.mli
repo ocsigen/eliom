@@ -72,7 +72,7 @@ val discard_data :
   unit ->
   unit Lwt.t
 
-(** Remove all services registered for the given scope (the default beeing
+(** Remove all services registered for the given scope (the default being
     [`Session]). *)
 val discard_services :
   scope:[< Eliom_common.user_scope ] ->
@@ -799,7 +799,7 @@ module Ext : sig
     unit
 
   (** Fold all sessions in a groups, or all client processes in a session
-      (volatile and persistant).
+      (volatile and persistent).
       See {!fold_volatile_sub_states} for explanation about the [?sitedata]
       parameter.
   *)
@@ -811,7 +811,7 @@ module Ext : sig
     'a -> 'a Lwt.t
 
   (** Iter on all sessions in a groups, or all client processes in a session
-      (volatile and persistant).
+      (volatile and persistent).
       See {!fold_volatile_sub_states} for explanation about the [?sitedata]
       parameter.
   *)

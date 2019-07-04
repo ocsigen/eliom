@@ -302,7 +302,7 @@ let get_client_js () =
     "+eliom.client/eliom_client.js" ;
   ]
 
-(* Should be calld only with -dump... *)
+(* Should be called only with -dump... *)
 let get_pp_dump pkg opt = match !pp with
   | None -> (!camlp4, get_common_syntax pkg @ opt)
   | Some pp ->
@@ -393,7 +393,7 @@ let rec wait ?(on_error=fun _ -> ()) pid =
     on_error e;
     exit 255
   | Unix.WSTOPPED i ->
-    Printf.eprintf "Child stoped with signal: %d" i;
+    Printf.eprintf "Child stopped with signal: %d" i;
     on_error e;
     wait pid
 

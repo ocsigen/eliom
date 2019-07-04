@@ -336,7 +336,7 @@ let (register_process_node, find_process_node) =
       (fun () -> Js.to_string) id;
     let node =
       if node##.nodeName##toLowerCase == Js.string "script" then
-        (* We don't wan't to reexecute global scripts. *)
+        (* We don't want to reexecute global scripts. *)
         (Dom_html.document##(createTextNode (Js.string "")) :> Dom.node Js.t)
       else
         node
@@ -364,7 +364,7 @@ let register_request_node, find_request_node, reset_request_nodes =
   let reset () =
     Lwt_log.ign_debug ~section "Reset request nodes";
     (* Unwrapped elements must be forced
-       before reseting the request node table. *)
+       before resetting the request node table. *)
     force_unwrapped_elts ();
     request_nodes := Jstable.create () in
   (register, find, reset)
@@ -373,7 +373,7 @@ let register_request_node, find_request_node, reset_request_nodes =
 
 (* == Organize the phase of loading or change_page
 
-   In the following functions, onload referers the initial loading phase
+   In the following functions, onload referrers the initial loading phase
    *and* to the change_page phase
    *and* to the loading phase after caml services (added 2016-03 --V). *)
 
@@ -562,18 +562,18 @@ let rebuild_class_string l1 l2 l3 =
   rebuild_class_list l1 l2 l3 |> String.concat " " |> Js.string
 
 (* html attributes and dom properties use different names
-   **exemple**: maxlength vs maxLenght (case sensitive).
-   - Before dom react, it was enought to set html attributes only as
+   **example**: maxlength vs maxLenght (case sensitive).
+   - Before dom react, it was enough to set html attributes only as
    there were no update after creation.
    - Dom React may update attributes later.
    Html attrib changes are not taken into account if the corresponding
    Dom property is defined.
-   **exemple**: udpating html attribute `value` has no effect
+   **example**: updating html attribute `value` has no effect
    if the dom property `value` has be set by the user.
 
    =WE NEED TO SET DOM PROPERTIES=
    -Tyxml only gives us html attribute names and we can set them safely.
-   -The name for dom properties is maybe differant.
+   -The name for dom properties is maybe different.
     We set it only if we find out that the property
     match_the_attribute_name / is_already_defined (get_prop).
 *)
@@ -1115,7 +1115,7 @@ end = struct
   (*
      ISSUE
      =====
-     There is a confict when many dom react are inside each other.
+     There is a conflict when many dom react are inside each other.
 
      let s_lvl1 = S.map (function
      | case1 -> ..
