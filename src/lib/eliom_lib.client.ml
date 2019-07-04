@@ -100,7 +100,11 @@ end
 
 let _ =
   Lwt_log.default := Lwt_log.console;
-  Lwt.async_exception_hook := (fun exn -> Lwt_log.ign_error ~section:Lwt_log.eliom ~exn "Async" )
+  Lwt.async_exception_hook :=
+    fun exn ->
+      Firebug.console##error_3 (Js.string "Lwt.async:")
+        (Js.string (Printexc.to_string exn))
+        exn
 
 (* Deprecated ON *)
 let debug_exn fmt exn = Lwt_log.ign_info_f ~exn fmt
