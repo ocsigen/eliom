@@ -206,9 +206,13 @@ let inferred_type_prefix = "eliom_inferred_type_"
    _[< ... ]
    _[> ... ]
 
+   It also removes type indices foo/2 (in case of ambiguity in
+   module interfaces).
+
    These appear in type_mli files, but they are not accepted by
    the OCaml parser.  *)
 let run_sed file =
+  run_command ("sed -i -e 's$/[1-9][0-9]*$$g' " ^ file);
   run_command ("sed -i -e 's/_\\[\\([<>]\\)/[\\1/g' " ^ file);
   run_command
     (Printf.sprintf
