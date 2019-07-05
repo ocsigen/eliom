@@ -75,12 +75,6 @@ let () =
     Pkg.bin ~auto:true ~dst:"eliom-distillery" "src/tools/distillery";
     Pkg.bin ~auto:true "src/ocamlbuild/eliombuild";
 
-    (* SYNTAXES *)
-    Pkg.lib ~exts:exts_syntax ~dst:"syntax/pa_eliom_seed" "src/syntax/pa_eliom_seed";
-    Pkg.lib ~exts:exts_syntax ~dst:"syntax/pa_eliom_client_client" "src/syntax/pa_eliom_client_client";
-    Pkg.lib ~exts:exts_syntax ~dst:"syntax/pa_eliom_client_server" "src/syntax/pa_eliom_client_server";
-    Pkg.lib ~exts:exts_syntax ~dst:"syntax/pa_eliom_type_filter" "src/syntax/pa_eliom_type_filter";
-
     Pkg.lib ~exts:exts_modlib ~dst:"ocamlbuild/ocamlbuild_eliom" "src/ocamlbuild/ocamlbuild_eliom";
 
     (* PPX *)
