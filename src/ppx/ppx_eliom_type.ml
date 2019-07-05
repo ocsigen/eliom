@@ -75,7 +75,7 @@ module Pass = struct
       then
         typing_strs :=
           (id,
-           [%stri let [%p Pat.var id] = Pervasives.ref None]
+           [%stri let [%p Pat.var id] = Stdlib.ref None]
            [@metaloc orig_expr.pexp_loc]
           ) :: !typing_strs
     in

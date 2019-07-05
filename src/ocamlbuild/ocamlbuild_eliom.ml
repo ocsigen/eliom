@@ -188,7 +188,8 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
         sed_rule ".inferred.mli -> .inferred_gen.mli"
           ~dep:"%(path)/%(file).inferred.mli"
           ~prod:"%(path)/%(file).inferred_gen.mli"
-          ["s/_\\[\\([<>]\\)/[\\1/g";
+          ["s$/[1-9][0-9]*$$g";
+           "s/_\\[\\([<>]\\)/[\\1/g";
            Printf.sprintf "s/'\\(_[a-z0-9_]*\\)/'%s\\1/g" inferred_type_prefix];
 
         (* eliom files *)
