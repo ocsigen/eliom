@@ -3,7 +3,6 @@ B _build/src/*
 S src/*
 
 PKG js_of_ocaml
-PKG deriving
 PKG lwt
 PKG calendar
 PKG ocsigenserver

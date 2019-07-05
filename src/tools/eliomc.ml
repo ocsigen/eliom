@@ -13,8 +13,6 @@ let usage () =
   Printf.eprintf "SPECIFIC OPTIONS:\n";
   Printf.eprintf "  -package <name>\tRefer to package when compiling\n";
   Printf.eprintf "  -no-autoload\t\tDo not load commonly used syntax extensions (deriving, lwt, js_of_ocaml, tyxml)\n";
-  Printf.eprintf "  -type-conv\t\tUse type_conv syntax extensions instead of deriving one\n";
-  Printf.eprintf "\t\t\tIt has no effect if used in conjunction with -no-autoload\n";
   if !kind <> `Client then
     Printf.eprintf "  -infer\t\tOnly infer the type of values sent by the server\n";
   Printf.eprintf "  -dir <dir>\t\tThe directory for generated files (default %S)\n"
@@ -228,7 +226,7 @@ let compile_server_type_eliom file =
   and ppopts = !ppopt @ (if !pp_mode = `Ppx then [] else ["-impl"]) in
   if !do_dump then begin
     let camlp4, ppopt =
-      get_pp_dump ["eliom.syntax.type"] ("-printer" :: "o" :: ppopts @ [file]) in
+      get_pp_dump [] ("-printer" :: "o" :: ppopts @ [file]) in
     create_process camlp4 ppopt;
     exit 0
   end;
@@ -358,7 +356,6 @@ let process_option () =
     match Sys.argv.(!i) with
     | "-help" | "--help" -> usage ()
     | "-no-autoload" -> autoload_predef := false; incr i
-    | "-type-conv" -> type_conv := true; incr i
     | "-dont-force-linkall"->
       if !kind <> `Client then usage ();
       force_link_all := false; incr i
