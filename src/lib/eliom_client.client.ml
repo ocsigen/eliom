@@ -210,7 +210,7 @@ let init () =
          then Firebug.console##(time (Js.string "onload"));
          Eliom_request_info.set_session_info js_data.Eliom_common.ejs_sess_info;
          (* Give the browser the chance to actually display the page NOW *)
-         let%lwt () = Lwt_js.sleep 0.001 in
+         let%lwt () = Js_of_ocaml_lwt.Lwt_js.sleep 0.001 in
          (* Ordering matters. See [Eliom_client.set_content] for explanations *)
          relink_request_nodes (Dom_html.document##.documentElement);
          let root = Dom_html.document##.documentElement in
@@ -361,7 +361,7 @@ let raw_call_service
         ?progress ?upload_progress ?override_mime_type
         uri post_params Eliom_request.string_result in
   match content with
-  | None -> [%lwt raise ( (Eliom_request.Failed_request 204))]
+  | None -> Lwt.fail (Eliom_request.Failed_request 204)
   | Some content -> Lwt.return (uri, content)
 
 let call_service
@@ -507,11 +507,12 @@ let garbage_collect_cached_doms () =
     in
     let rec accum_past = function
       | Some idx when !size < n ->
-          try
+          begin try
             let dom = HistCache.find idx !history_doms in
             add idx dom;
             accum_past dom.page.previous_page
-          with Not_found -> ()
+            with Not_found -> ()
+          end
       | _ -> ()
     in
     let _, _, future = HistCache.split cur_index !history_doms in
@@ -697,8 +698,7 @@ let set_template_content ~replace ~uri ?fragment =
     (match fragment with
      | None -> change_url_string ~replace uri
      | Some fragment ->
-       change_url_string ~replace (uri ^ "#" ^ fragment)
-     | _ -> ());
+       change_url_string ~replace (uri ^ "#" ^ fragment));
     let%lwt () = Lwt_mutex.lock load_mutex in
     let%lwt (), request_data = unwrap_caml_content content in
     do_request_data request_data;
@@ -781,7 +781,7 @@ let set_content_local ?offset ?fragment new_page =
   with exn ->
     recover ();
     Lwt_log.ign_debug ~section ~exn "set_content_local";
-    [%lwt raise ( exn)]
+    Lwt.fail exn
 
 (* Function to be called for server side services: *)
 let set_content ~replace ~uri ?offset ?fragment content =
@@ -884,7 +884,7 @@ let set_content ~replace ~uri ?offset ?fragment content =
     with exn ->
       recover ();
       Lwt_log.ign_debug ~section ~exn "set_content";
-      [%lwt raise ( exn)]
+      Lwt.fail exn
 
 let ocamlify_params =
   List.map
@@ -1277,10 +1277,12 @@ let () =
                 if not (is_in_cache state_id) then raise Not_found;
                 let%lwt () = run_lwt_callbacks ev (flush_onchangepage ()) in
                 restore_history_dom target_id;
-                let%lwt () = Lwt_js_events.request_animation_frame () in
+                let%lwt () =
+                  Js_of_ocaml_lwt.Lwt_js_events.request_animation_frame () in
                 scroll_to_fragment ~offset:state.position fragment;
                 (* Wait for the dom to be repainted before scrolling *)
-                let%lwt () = Lwt_js_events.request_animation_frame () in
+                let%lwt () =
+                  Js_of_ocaml_lwt.Lwt_js_events.request_animation_frame () in
                 scroll_to_fragment ~offset:state.position fragment;
                 (* When we use iPhone, we need to wait for one more
                    [request_animation_frame] before scrolling.The

@@ -45,7 +45,7 @@ let consume (t,u) s =
       (match Lwt.state t with
         | Lwt.Sleep -> Lwt.wakeup_exn u e;
         | _ -> ());
-      [%lwt raise ( e)]
+      Lwt.fail e
   in
   Lwt.choose [Lwt.bind t (fun _ -> Lwt.return_unit);t']
 
@@ -57,7 +57,7 @@ let clone_exn (t,u) s =
       (match Lwt.state t with
         | Lwt.Sleep -> Lwt.wakeup_exn u e;
         | _ -> ());
-      [%lwt raise ( e)])
+      Lwt.fail e)
 
 type ('a, 'att, 'co, 'ext, 'reg) callable_bus_service =
   (unit, 'a list, Eliom_service.post,
@@ -78,7 +78,7 @@ let create service channel waiter =
   in
   let error_h =
     let t,u = Lwt.wait () in
-    (try%lwt let%lwt _ = t in assert false with e -> [%lwt raise ( e)]), u in
+    (try%lwt let%lwt _ = t in assert false with e -> Lwt.fail e), u in
   let stream =
     lazy (
       let stream = Eliom_comet.register channel in
@@ -109,7 +109,7 @@ let create service channel waiter =
   t
 
 let internal_unwrap ((wrapped_bus:('a, 'b) Ecb.wrapped_bus),unwrapper) =
-  let waiter () = Lwt_js.sleep 0.05 in
+  let waiter () = Js_of_ocaml_lwt.Lwt_js.sleep 0.05 in
   let channel, Eliom_comet_base.Bus_send_service service = wrapped_bus in
   create service channel waiter
 
@@ -150,6 +150,6 @@ let set_time_before_flush b t =
   b.waiter <-
     if t <= 0.
     then Lwt.pause
-    else (fun () -> Lwt_js.sleep t)
+    else (fun () -> Js_of_ocaml_lwt.Lwt_js.sleep t)
 
 let force_link = ()

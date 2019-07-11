@@ -825,9 +825,9 @@ let parse_config hostpattern conf_info site_dir =
             let state_hier : Eliom_common.scope_hierarchy =
               match state_hier with
               | None -> Eliom_common_base.Default_ref_hier
-              | Some s when String.lowercase s = "default" ->
+              | Some s when String.lowercase_ascii s = "default" ->
                 Eliom_common_base.Default_ref_hier
-              | Some s when String.lowercase s = "comet" ->
+              | Some s when String.lowercase_ascii s = "comet" ->
                 Eliom_common_base.Default_comet_hier
               | Some s -> Eliom_common_base.User_hier s
             in

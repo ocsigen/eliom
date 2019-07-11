@@ -147,7 +147,7 @@ struct
       else (get ()).time_between_request
     in
     let rec aux t =
-      let%lwt () = Lwt.pick [Lwt_js.sleep t;
+      let%lwt () = Lwt.pick [Js_of_ocaml_lwt.Lwt_js.sleep t;
                          !update_configuration_waiter;
                          (active_waiter ())] in
       let remaining_time = sleep_duration () -. (Sys.time () -. time) in
@@ -542,7 +542,7 @@ struct
                  set_activity hd `Inactive;
                  aux 0)
               else
-                (let%lwt () = Lwt_js.sleep (delay retries) in
+                (let%lwt () = Js_of_ocaml_lwt.Lwt_js.sleep (delay retries) in
                  aux (retries + 1))
             | Restart -> Eliom_lib.Lwt_log.ign_info ~section "restart";
               aux 0

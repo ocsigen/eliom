@@ -108,7 +108,7 @@ let check_process_redir sp f param =
   if redir
   then
     let ri = Eliom_request_info.get_ri_sp sp in
-    [%lwt raise (
+    Lwt.fail
       (* we answer to the xhr
          by asking an HTTP redirection *)
       (Eliom_common.Eliom_do_half_xhr_redirection
@@ -119,7 +119,7 @@ let check_process_redir sp f param =
                   (Eliom_parameter.construct_params_string
                      (Lazy.force
                         (Ocsigen_extensions.Ocsigen_request_info.get_params ri))
-                  ))))]
+                  )))
   (* We do not put hostname and port.
      It is ok with half or full xhr redirections. *)
   (* If an action occurred before,

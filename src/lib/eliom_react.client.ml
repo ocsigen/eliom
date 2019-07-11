@@ -46,13 +46,13 @@ struct
     (* We want to catch more exceptions here than the usual exceptions caught
        in Eliom_comet. For example Channel_full. *)
     (* We transform the stream into a stream with exception: *)
-    let stream = Lwt_stream.map_exn channel in
+    let stream = Lwt_stream.wrap_exn channel in
     Lwt.async (fun () -> Lwt_stream.iter_s
                   (function
-                    | Lwt_stream.Error exn ->
+                    | Error exn ->
                       let%lwt () = handle_react_exn ~exn () in
                       Lwt.fail exn
-                    | Lwt_stream.Value _ -> Lwt.return_unit)
+                    | Ok () -> Lwt.return_unit)
                   stream);
     E.of_stream channel
 

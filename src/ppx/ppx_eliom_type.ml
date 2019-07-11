@@ -39,7 +39,6 @@ open Asttypes
 open Ast_helper
 
 module AC = Ast_convenience
-module AM = Ast_mapper
 
 open Ppx_eliom_utils
 

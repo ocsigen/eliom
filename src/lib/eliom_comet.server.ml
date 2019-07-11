@@ -149,7 +149,7 @@ struct
     let f msg =
       match Weak.get channel 0 with
         | None ->
-          [%lwt raise ( Not_found)]
+          Lwt.fail Not_found
           (* terminates the loop: remove reference on the stream, etc ... *)
         | Some channel ->
           channel.ch_index <- succ channel.ch_index;
@@ -492,7 +492,7 @@ end = struct
   let wait_closed_connection () =
     let ri = Eliom_request_info.get_ri () in
     let%lwt () = Ocsigen_extensions.Ocsigen_request_info.connection_closed ri in
-    [%lwt raise ( Connection_closed)]
+    Lwt.fail Connection_closed
 
   (* register the service handler.hd_service *)
   let run_handler handler =

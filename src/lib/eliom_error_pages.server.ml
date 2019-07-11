@@ -22,15 +22,15 @@ open Html.F
 
 let page_error_param_type l =
   let s = match l with
-    [] -> [pcdata "Wrong type for parameter"]
-  | [(n,_)] -> [pcdata "Wrong type for parameter ";em [pcdata n];pcdata "."]
+    [] -> [txt "Wrong type for parameter"]
+  | [(n,_)] -> [txt "Wrong type for parameter ";em [txt n];txt "."]
   | (n,_)::ll ->
-      (pcdata "Wrong type for parameters ")::
-      (List.fold_left (fun deb (n,_) -> (em [pcdata n])::(pcdata ", ")::deb)
-         [em [pcdata n];pcdata "."] ll)
+      (txt "Wrong type for parameters ")::
+      (List.fold_left (fun deb (n,_) -> (em [txt n])::(txt ", ")::deb)
+         [em [txt n];txt "."] ll)
   in
   html
-    (head (title (pcdata "")) [])
+    (head (title (txt "")) [])
     (body
        [h1 s]
     )
@@ -38,36 +38,36 @@ let page_error_param_type l =
 let page_bad_param after_action gl pl =
   let s = "Wrong parameters" in
   html
-    (head (title (pcdata s)) [])
+    (head (title (txt s)) [])
     (body
-       ((h1 [pcdata s])::
+       ((h1 [txt s])::
           (if Ocsigen_config.get_debugmode ()
            then
-             [h2 [pcdata "Debugging information:"];
+             [h2 [txt "Debugging information:"];
               (if after_action
                then
-                 (p [pcdata "An action occurred successfully. But Eliom was unable to find the service for displaying the page."])
+                 (p [txt "An action occurred successfully. But Eliom was unable to find the service for displaying the page."])
                else
-                 (p [pcdata "Eliom was unable to find a service matching these parameters."]));
+                 (p [txt "Eliom was unable to find a service matching these parameters."]));
               (match gl with
-                 | [] -> p [pcdata "No GET parameters have been given to services."]
+                 | [] -> p [txt "No GET parameters have been given to services."]
                  | (n, a)::l ->
-                     p ((pcdata "GET parameters given to services: ")::
+                     p ((txt "GET parameters given to services: ")::
                           [em
-                             ((pcdata n)::(pcdata "=")::(pcdata a)::
+                             ((txt n)::(txt "=")::(txt a)::
                                 (List.fold_right
                                    (fun (n, a) b ->
-                                      (pcdata "&")::
-                                        (pcdata n)::(pcdata "=")::(pcdata a)::b)
-                                   l [pcdata "."]))]));
+                                      (txt "&")::
+                                        (txt n)::(txt "=")::(txt a)::b)
+                                   l [txt "."]))]));
               (match pl with
-                 | [] -> p [pcdata "No POST parameters have been given to services."]
+                 | [] -> p [txt "No POST parameters have been given to services."]
                  | a::l ->
-                     p ((pcdata "Names of POST parameters given to services: ")::
-                          (em [pcdata a])::
+                     p ((txt "Names of POST parameters given to services: ")::
+                          (em [txt a])::
                           (List.fold_right
-                             (fun n b -> (pcdata ", ")::(em [pcdata n])::b)
-                             l [pcdata "."])))]
+                             (fun n b -> (txt ", ")::(em [txt n])::b)
+                             l [txt "."])))]
            else [])
        )
     )
@@ -75,7 +75,7 @@ let page_bad_param after_action gl pl =
 let page_session_expired  =
   let s = "Session expired" in
   html
-    (head (title (pcdata s)) [])
+    (head (title (txt s)) [])
     (body
-       [h1 [pcdata s]]
+       [h1 [txt s]]
     )

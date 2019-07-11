@@ -164,7 +164,7 @@ end
 
 module Xml_wed : sig
 
-  include Xml_sigs.T with module W = Tyxml_js.Wrap
+  include Xml_sigs.T with module W = Js_of_ocaml_tyxml.Tyxml_js.Wrap
                       and type elt = Xml.elt
                       and type aname = Xml.aname
                       and type attrib = Xml.attrib
@@ -422,7 +422,7 @@ module Html : sig
 
   (** Conversion of Javascript DOM elements to HTML5 elts (with DOM semantics of course).
       One conversion function per source type (stressed by the [of_] prefix). *)
-  module Of_dom : Tyxml_cast_sigs.OF with type 'a elt = 'a elt
+  module Of_dom : Js_of_ocaml_tyxml.Tyxml_cast_sigs.OF with type 'a elt = 'a elt
   (**/**)
 
   val set_classes_of_elt : 'a elt -> 'a elt

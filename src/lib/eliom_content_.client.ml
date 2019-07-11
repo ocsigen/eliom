@@ -27,7 +27,6 @@ module Xml = Xml
 module MakeManip
     (Kind : sig
        type +'a elt
-       val tot: Xml.elt -> 'a elt
        val toelt: 'a elt -> Xml.elt
      end)
     (To_dom : sig
@@ -432,7 +431,7 @@ module Html = struct
 
   module Of_dom = Eliom_content_core.Html.Of_dom
 
-  module To_dom = Tyxml_cast.MakeTo(struct
+  module To_dom = Js_of_ocaml_tyxml.Tyxml_cast.MakeTo(struct
       type 'a elt = 'a F.elt
       let elt x = Js.Unsafe.coerce (Eliom_client_core.rebuild_node "n/a" x)
     end)

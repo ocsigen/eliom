@@ -178,7 +178,7 @@ end
 
 module Xml_wed =
 struct
-  module W = Tyxml_js.Wrap
+  module W = Js_of_ocaml_tyxml.Tyxml_js.Wrap
   type 'a wrap = 'a W.t
   type 'a list_wrap = 'a W.tlist
   type uri = Xml.uri
@@ -192,7 +192,9 @@ struct
   type attrib = Xml.attrib
 
   let float_attrib name s : attrib =
-    name, Xml.RAReact (Tyxml_js.Wrap.fmap (fun f -> Some (Xml.AFloat f)) s)
+    name,
+    Xml.RAReact (Js_of_ocaml_tyxml.Tyxml_js.Wrap.fmap
+                   (fun f -> Some (Xml.AFloat f)) s)
   let int_attrib name s =
     name, Xml.RAReact (React.S.map (fun f -> Some (Xml.AInt f)) s)
   let string_attrib name s =
@@ -435,7 +437,7 @@ module Html = struct
 
   end
 
-  module Of_dom = Tyxml_cast.MakeOf(struct
+  module Of_dom = Js_of_ocaml_tyxml.Tyxml_cast.MakeOf(struct
       type 'a elt = 'a F.elt
       let elt (node: 'a Js.t) : 'a elt = Xml.make_dom (node :> Dom.node Js.t)
     end)
