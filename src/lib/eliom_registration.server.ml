@@ -23,17 +23,26 @@ open Lwt.Infix
 let headers_with_content_type ?charset ?content_type headers =
   match content_type with
   | Some content_type ->
-    let charset =
-      match charset with
-      | None ->
-        Eliom_config.get_config_default_charset ()
-      | Some charset ->
-        charset
+     let charset =
+       if charset <> None then
+         charset
+       else if
+         String.length content_type >= 5 &&
+           (String.sub content_type 0 5 = "text/" ||
+            let suffix =
+              String.sub content_type (String.length content_type - 4) 4 in
+            suffix = "/xml" || suffix = "=xml")
+       then
+         Some (Eliom_config.get_config_default_charset ())
+       else
+         None
     in
     Cohttp.Header.replace
       headers
       Ocsigen_header.Name.(to_string content_type)
-      (Printf.sprintf "%s; charset=%s" content_type charset)
+      (match charset with
+       | Some charset -> Printf.sprintf "%s; charset=%s" content_type charset
+       | None         -> content_type)
   | None ->
     headers
 
