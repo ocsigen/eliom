@@ -8,7 +8,6 @@ package "server" (
 
   requires = "ocsigenserver,
               ocsigenserver.ext,
-              ppx_deriving.runtime,
               js_of_ocaml.deriving,
               react,
               reactiveData,
@@ -43,7 +42,6 @@ package "client" (
   requires = "ocsigenserver.cookies,
               ocsigenserver.polytables,
               ocsigenserver.baselib.base,
-              ppx_deriving.runtime,
               js_of_ocaml,
               js_of_ocaml.deriving,
               js_of_ocaml-tyxml,
@@ -84,7 +82,7 @@ package "ocamlbuild" (
   description = "Eliom ocamlbuild plugin (js_of_ocaml part included)"
   version = "[distributed with Eliom]"
   directory = "ocamlbuild"
-  requires = "js_of_ocaml.ocamlbuild"
+  requires = "js_of_ocaml-ocamlbuild"
   archive(byte) = "ocamlbuild_eliom.cma"
   archive(byte, plugin) = "ocamlbuild_eliom.cma"
   archive(native) = "ocamlbuild_eliom.cmxa"

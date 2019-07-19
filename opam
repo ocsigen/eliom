@@ -13,7 +13,6 @@ build: [make]
 depends: [
   "ocaml" {>= "4.08.0"}
   "ocamlfind"
-  "ppx_deriving"
   "ppx_tools" {>= "0.99.3"}
   "js_of_ocaml" {>= "3.3"}
   "js_of_ocaml-lwt" {>= "3.3"}

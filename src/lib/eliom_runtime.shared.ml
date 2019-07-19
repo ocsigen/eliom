@@ -183,7 +183,7 @@ module RawXML = struct
               match cookie_info with
               | None -> acc_attr
               | Some v ->
-                (ce_call_service_attrib, RA (AStr ([%derive.to_json: cookie_info] v)))
+                (ce_call_service_attrib, RA (AStr ([%json_of: cookie_info] v)))
                 :: acc_attr
             in
             let acc_attr =
