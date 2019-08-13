@@ -34,11 +34,13 @@
      $global_id$ := Some $expr$
 
 *)
+open Migrate_parsetree
+open Ast_408
 open Parsetree
 open Asttypes
 open Ast_helper
 
-module AC = Ast_convenience
+module AC = Ast_convenience_408
 
 open Ppx_eliom_utils
 

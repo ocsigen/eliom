@@ -20,11 +20,13 @@
 
 (* This prepocessor generates the module to be loaded by Ocsigen server *)
 
+open Migrate_parsetree
+open Ast_408
 open Parsetree
 open Asttypes
 open Ast_helper
 
-module AC = Ast_convenience
+module AC = Ast_convenience_408
 module AM = Ast_mapper
 
 open Ppx_eliom_utils

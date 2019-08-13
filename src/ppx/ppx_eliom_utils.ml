@@ -1,8 +1,10 @@
+open Migrate_parsetree
+open Ast_408
 open Parsetree
 open Ast_helper
 
 module AM = Ast_mapper
-module AC = Ast_convenience
+module AC = Ast_convenience_408
 
 (** Various misc functions *)
 
@@ -231,9 +233,14 @@ module Mli = struct
 
   let load_file file =
     try
+      let ch = open_in file in
       let items =
-        Pparse.parse_interface ~tool_name:"eliom" file
+        Parse.interface Versions.ocaml_current (Lexing.from_channel ch)
       in
+      close_in ch;
+      let migration =
+        Versions.migrate Versions.ocaml_current Versions.ocaml_408 in
+      let items = migration.copy_signature items in
       let h = Hashtbl.create 17 in
       let f item = match get_binding item with
         | Some (s, typ) -> Hashtbl.add h s typ

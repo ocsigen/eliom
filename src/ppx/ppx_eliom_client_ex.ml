@@ -1,2 +1,8 @@
+open Migrate_parsetree
 
-let () = Ast_mapper.run_main Ppx_eliom_client.mapper
+let migration =
+  Versions.migrate Versions.ocaml_408 Versions.ocaml_current
+
+let () =
+  Compiler_libs.Ast_mapper.run_main
+    (fun args -> migration.copy_mapper (Ppx_eliom_client.mapper args))
