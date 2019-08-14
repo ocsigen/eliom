@@ -13,7 +13,6 @@ build: [make]
 depends: [
   "ocaml" {>= "4.06.1"}
   "ocamlfind"
-  "deriving" {>= "0.6"}
   "ppx_deriving"
   "ppx_tools" {>= "0.99.3"}
   "js_of_ocaml" {>= "3.3"}
@@ -24,7 +23,6 @@ depends: [
   "js_of_ocaml-tyxml" {>= "3.3"}
   "lwt_log"
   "lwt_ppx"
-  "lwt_camlp4"
   "tyxml" {>= "4.3.0"}
   "ocsigenserver" {>= "2.10"}
   "ipaddr" {>= "2.1"}

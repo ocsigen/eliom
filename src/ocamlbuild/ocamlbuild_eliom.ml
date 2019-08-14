@@ -59,14 +59,6 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
     else
       not (Tags.mem no_extra_syntaxes (tags_of_pathname src))
 
-  let get_eliom_syntax_p4 = function
-    | `Client ->
-      "eliom.syntax.client"
-    | `Server ->
-      "eliom.syntax.server"
-    | `Type ->
-      "eliom.syntax.type"
-
   let get_eliom_syntax_ppx = function
     | `Client ->
       "eliom.ppx.client"
@@ -75,15 +67,8 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
     | `Type ->
       "eliom.ppx.type"
 
-  let get_syntaxes_p4 with_eliom_syntax eliom_syntax src =
-    let eliom_syntax = get_eliom_syntax_p4 eliom_syntax in
+  let get_syntaxes_p4 _ eliom_syntax src =
     let s = if use_all_syntaxes src then syntaxes_p4 else [] in
-    let s =
-      if with_eliom_syntax then
-        I.with_package eliom_syntax :: s
-      else
-        s
-    in
     let s = if s = [] then [] else "thread" :: "syntax(camlp4o)" :: s in
     s @ Tags.elements (tags_of_pathname src)
 
@@ -188,7 +173,8 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
         sed_rule ".inferred.mli -> .inferred_gen.mli"
           ~dep:"%(path)/%(file).inferred.mli"
           ~prod:"%(path)/%(file).inferred_gen.mli"
-          ["s/_\\[\\([<>]\\)/[\\1/g";
+          ["s$/[1-9][0-9]*$$g";
+           "s/_\\[\\([<>]\\)/[\\1/g";
            Printf.sprintf "s/'\\(_[a-z0-9_]*\\)/'%s\\1/g" inferred_type_prefix];
 
         (* eliom files *)

@@ -8,8 +8,6 @@ let usage () =
   Printf.eprintf "  -eliom-inc <dir>\tAdd <dir> to the list of eliom include directories (prepend eliom build directories)\n";
   Printf.eprintf "  -package <name>\tRefer to package when compiling\n";
   Printf.eprintf "  -no-autoload\t\tDo not load commonly used syntax extensions (deriving, lwt, js_of_ocaml, tyxml)\n";
-  Printf.eprintf "  -type-conv\t\tUse type_conv syntax extensions instead of deriving one\n";
-  Printf.eprintf "\t\t\tIt has no effect if used in conjunction with -no-autoload\n";
   Printf.eprintf "  -ppopt <p>\t\tAppend option <opt> to preprocessor invocation\n";
   Printf.eprintf "  -predicates <p>\tAdd predicate <p> when resolving package properties\n";
   Printf.eprintf "  -verbose\t\tPrint calls to external commands\n";
@@ -138,7 +136,6 @@ let process_option () =
     match Sys.argv.(!i) with
     | "-verbose" -> verbose := true; incr i
     | "-no-autoload" -> autoload_predef := false; incr i
-    | "-type-conv" -> type_conv := true; incr i
     | "-eliom-inc" ->
       if !i+1 >= Array.length Sys.argv then usage ();
       let dir = Sys.argv.(!i+1) in

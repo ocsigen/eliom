@@ -1,8 +1,10 @@
+open Migrate_parsetree
+open Ast_408
 open Parsetree
 open Ast_helper
 
 module AM = Ast_mapper
-module AC = Ast_convenience
+module AC = Ast_convenience_408
 
 (** Various misc functions *)
 
@@ -231,9 +233,14 @@ module Mli = struct
 
   let load_file file =
     try
+      let ch = open_in file in
       let items =
-        Pparse.parse_interface ~tool_name:"eliom" Format.err_formatter file
+        Parse.interface Versions.ocaml_current (Lexing.from_channel ch)
       in
+      close_in ch;
+      let migration =
+        Versions.migrate Versions.ocaml_current Versions.ocaml_408 in
+      let items = migration.copy_signature items in
       let h = Hashtbl.create 17 in
       let f item = match get_binding item with
         | Some (s, typ) -> Hashtbl.add h s typ
@@ -382,7 +389,7 @@ module Cannot_have_fragment = struct
     | Pexp_construct (_,e)
     | Pexp_variant (_,e) -> opt_forall expression e
     | Pexp_let (_,l,e) -> vb_forall expression l && expression e
-    | Pexp_open (_,x,e) -> longident x.txt && expression e
+    | Pexp_open (i,e) -> module_expr i.popen_expr && expression e
     | Pexp_letmodule (_,me,e) -> module_expr me && expression e
 
     (* We could be more precise on those constructs *)
@@ -430,7 +437,7 @@ module Cannot_have_fragment = struct
     | Pstr_primitive _ -> true
     | Pstr_module mb -> module_binding mb
     | Pstr_recmodule mbl -> List.for_all module_binding mbl
-    | Pstr_open x -> longident x.popen_lid.txt
+    | Pstr_open x -> module_expr x.popen_expr
     | Pstr_include x -> module_expr x.pincl_mod
 
     | _ -> false
