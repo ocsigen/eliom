@@ -1,3 +1,10 @@
+===== 6.8 (2019-09-11) =====
+* Use directly Pcre instead of relying on Netstring_pcre
+* Improved async exception handler
+* Remove camlp4 syntax
+* Adapt to OCaml 4.08
+* PPX extension: use migrate-parse-tree
+
 ===== 6.7 (2018-02-08) =====
 
 * Eliom_client.Page_status: function while_active; ?stop parameter
