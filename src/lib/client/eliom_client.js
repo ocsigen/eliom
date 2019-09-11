@@ -181,6 +181,8 @@ var caml_unwrap_value_from_string = function (){
             caml_failwith ("unwrap_value: code pointer");
             break;
           case cst.CODE_CUSTOM:
+          case 0x18: //cst.CODE_CUSTOM_LEN:
+          case 0x19: //cst.CODE_CUSTOM_FIXED:
             var c, s = "";
             while ((c = reader.read8u ()) != 0) s += String.fromCharCode (c);
             switch(s) {
