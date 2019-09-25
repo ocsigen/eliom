@@ -600,7 +600,7 @@ let stash_reload_function f =
   let state_id = page.page_id in
   let id = state_id.state_index in
   Lwt_log.ign_debug_f ~section:section_page
-    "Update reload function for page %d" id;
+    "Update reload function for page %d/%d" id page.page_id.state_index;
   reload_functions :=
     (id, f) ::
     (List.filter (fun (id', _) -> id <> id') !reload_functions)
