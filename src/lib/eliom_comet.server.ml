@@ -21,6 +21,10 @@
 
 (* TODO: handle ended stream ( and on client side too ) *)
 
+let handler_count = ref 0
+let active_stream_count = ref 0
+let unregistered_stream_count = ref 0
+
 open Lwt.Infix
 module Ecb = Eliom_comet_base
 
@@ -450,6 +454,9 @@ end = struct
           aux stream_acc (l'@acc) rest other_streams
     in
     let (streams, acc) = aux [] [] n streams in
+    active_stream_count :=
+      !active_stream_count + List.length streams
+      - List.length handler.hd_active_streams;
     handler.hd_active_streams <- streams;
     acc
 
@@ -466,6 +473,7 @@ end = struct
       | `Update -> wait_data wait_closed_connection handler )
 
   let launch_stream handler (chan_id,stream) =
+    incr active_stream_count;
     handler.hd_active_streams <- (chan_id,stream)::handler.hd_active_streams;
     signal_update handler
 
@@ -475,8 +483,12 @@ end = struct
     then
       try
         let stream = List.assoc chan_id handler.hd_unregistered_streams in
-        handler.hd_unregistered_streams <-
-          List.remove_assoc chan_id handler.hd_unregistered_streams;
+        let streams =
+          List.remove_assoc chan_id handler.hd_unregistered_streams in
+        unregistered_stream_count :=
+          !unregistered_stream_count + List.length streams
+          - List.length handler.hd_unregistered_streams;
+        handler.hd_unregistered_streams <- streams;
         launch_stream handler (chan_id,stream)
       with
         | Not_found ->
@@ -484,8 +496,16 @@ end = struct
 
   let close_channel' handler chan_id =
     Lwt_log.ign_info_f ~section "close channel %s" chan_id;
-    handler.hd_active_streams <- List.remove_assoc chan_id handler.hd_active_streams;
-    handler.hd_unregistered_streams <- List.remove_assoc chan_id handler.hd_unregistered_streams;
+    let streams = List.remove_assoc chan_id handler.hd_active_streams in
+    active_stream_count :=
+      !active_stream_count + List.length streams
+      - List.length handler.hd_active_streams;
+    handler.hd_active_streams <- streams;
+    let streams = List.remove_assoc chan_id handler.hd_unregistered_streams in
+    unregistered_stream_count :=
+      !unregistered_stream_count + List.length streams
+      - List.length handler.hd_unregistered_streams;
+    handler.hd_unregistered_streams <- streams;
     handler.hd_registered_chan_id <- List.filter ((<>) chan_id) handler.hd_registered_chan_id;
     signal_update handler
 
@@ -621,6 +641,14 @@ end = struct
             hd_activity = Inactive (Unix.gettimeofday ());
           }
           in
+          incr handler_count;
+          Gc.finalise (fun h ->
+              active_stream_count :=
+                !active_stream_count - List.length h.hd_active_streams;
+              unregistered_stream_count :=
+                !unregistered_stream_count
+                - List.length h.hd_unregistered_streams;
+              decr handler_count) handler;
           set_ref eref (Some handler);
           run_handler handler;
           handler
@@ -661,8 +689,9 @@ end = struct
           List.filter ((<>) name) handler.hd_registered_chan_id;
         launch_stream handler (name,(stream, waiter))
       end
-    else
+    else (
       handler.hd_unregistered_streams <- (name,(stream, waiter))::handler.hd_unregistered_streams;
+      incr unregistered_stream_count);
     { ch_handler = handler;
       ch_stream = stream;
       ch_id = name; }
@@ -843,3 +872,10 @@ end = struct
   let wait_timeout = Stateful.wait_timeout
 
 end
+
+let rec loop () =
+  let%lwt () = Lwt_unix.sleep 60. in
+  Format.eprintf "COMET %d %d %d@." !handler_count !active_stream_count !unregistered_stream_count;
+  loop ()
+
+let _ = loop ()
