@@ -742,7 +742,7 @@ let replace_page ~do_insert_base new_page =
   then Firebug.console##(timeEnd (Js.string "replace_page"))
 
 (* Function to be called for client side services: *)
-let set_content_local ?offset ?fragment new_page =
+let set_content_local new_page =
   Lwt_log.ign_debug ~section:section_page "Set content local";
   let locked = ref true in
   let recover () =
@@ -766,7 +766,6 @@ let set_content_local ?offset ?fragment new_page =
     Lwt_mutex.unlock load_mutex;
     (* run callbacks upon page activation (or now), but just once *)
     Page_status.onactive ~once:true (fun () -> run_callbacks load_callbacks);
-    scroll_to_fragment ?offset fragment;
     if !Eliom_config.debug_timings
     then Firebug.console##(timeEnd (Js.string "set_content_local"));
     Lwt.return_unit
@@ -1066,7 +1065,9 @@ let change_page (type m)
            in
            with_new_page ~replace () @@ fun () ->
            change_url_string ~replace uri;
-           f get_params post_params
+           let%lwt () = f get_params post_params in
+           scroll_to_fragment fragment;
+           Lwt.return_unit
          | None when is_client_app () ->
            Lwt.return @@ exit_to
              ?absolute ?absolute_path ?https ~service ?hostname ?port

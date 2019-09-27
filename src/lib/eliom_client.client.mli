@@ -449,9 +449,7 @@ val log_section : Lwt_log.section
 (** Is it a middle-click event? *)
 val middleClick : Dom_html.mouseEvent Js.t -> bool
 
-val set_content_local :
-  ?offset:Eliommod_dom.position ->
-  ?fragment:string -> Dom_html.element Js.t -> unit Lwt.t
+val set_content_local : Dom_html.element Js.t -> unit Lwt.t
 
 type client_form_handler = Dom_html.event Js.t -> bool Lwt.t
 
