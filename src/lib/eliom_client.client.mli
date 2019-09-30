@@ -451,4 +451,5 @@ val middleClick : Dom_html.mouseEvent Js.t -> bool
 
 type client_form_handler = Dom_html.event Js.t -> bool Lwt.t
 
-val current_uri : string ref
+val get_current_uri : unit -> string
+val set_current_uri : string -> unit

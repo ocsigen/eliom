@@ -462,8 +462,17 @@ let call_ocaml_service
    changes.
 
 *)
-let current_uri =
-  ref (fst (Url.split_fragment (Js.to_string Dom_html.window##.location##.href)))
+
+let set_current_uri, get_current_uri =
+  let current_uri =
+    ref (fst (Url.split_fragment (Js.to_string Dom_html.window##.location##.href)))
+  in
+  let set_current_uri uri =
+    current_uri := fst (Url.split_fragment uri);
+    Eliom_request_info.set_current_path !current_uri
+  in
+  let get_current_uri () = !current_uri in
+  set_current_uri, get_current_uri
 
 (* == Function [change_url_string] changes the URL, without doing a request.
 
@@ -607,8 +616,7 @@ let stash_reload_function f =
 
 let change_url_string ~replace uri =
   Lwt_log.ign_debug_f ~section:section_page "Change url string: %s" uri;
-  current_uri := fst (Url.split_fragment uri);
-  Eliom_request_info.set_current_path !current_uri;
+  set_current_uri @@ fst (Url.split_fragment uri);
   if Eliom_process.history_api then begin
     if replace then begin
       Opt.iter stash_reload_function !reload_function;
@@ -790,7 +798,7 @@ let set_content ~replace ~uri ?offset ?fragment content =
   let%lwt () =
     run_lwt_callbacks
       { in_cache = is_in_cache !active_page.page_id;
-        origin_uri = !current_uri;
+        origin_uri = get_current_uri ();
         target_uri;
         origin_id = !active_page.page_id.state_index;
         target_id = None}
@@ -965,7 +973,7 @@ let route ({ Eliom_route.i_subpath ; i_get_params ; i_post_params } as info) =
 
 let perform_reload () =
   Lwt_log.ign_debug ~section:section_page "Perform reload";
-  let uri = !current_uri in
+  let uri = get_current_uri () in
   let
     ({ Eliom_common.si_all_get_params ; si_all_post_params }
      as i_sess_info) =
@@ -998,7 +1006,7 @@ let current_path_and_args () =
     | path ->
       path
   in
-  let uri = !current_uri in
+  let uri = get_current_uri () in
   match Url.url_of_string uri with
   | Some (Url.Http url | Url.Https url) ->
     url.Url.hu_path, url.Url.hu_arguments
@@ -1137,7 +1145,7 @@ and change_page :
            let%lwt () =
              run_lwt_callbacks
                {in_cache = is_in_cache !active_page.page_id;
-                origin_uri = !current_uri;
+                origin_uri = get_current_uri ();
                 target_uri = uri;
                 origin_id = !active_page.page_id.state_index;
                 target_id = None}
@@ -1235,7 +1243,7 @@ let change_page_uri_a ?cookies_info ?tmpl ?(get_params = []) full_uri =
   Lwt_log.ign_debug ~section:section_page "Change page uri";
   with_progress_cursor
     (let uri, fragment = Url.split_fragment full_uri in
-     if uri <> !current_uri || fragment = None
+     if uri <> get_current_uri () || fragment = None
      then begin
        match tmpl with
        | Some t when tmpl = Eliom_request_info.get_request_template () ->
@@ -1354,7 +1362,7 @@ let () =
       let target_id = state_id.state_index in
       let ev =
         {in_cache = is_in_cache state_id;
-         origin_uri = !current_uri;
+         origin_uri = get_current_uri ();
          target_uri = full_uri;
          origin_id = !active_page.page_id.state_index;
          target_id = Some target_id } in
@@ -1362,15 +1370,14 @@ let () =
       Lwt.ignore_result @@
         with_progress_cursor @@
           let uri, fragment = Url.split_fragment full_uri in
-          if uri = !current_uri
+          if uri = get_current_uri ()
           then begin
               !active_page.page_id <- state_id;
               scroll_to_fragment ~offset:state.position fragment;
               Lwt.return_unit
             end
             else begin
-              current_uri := uri;
-              Eliom_request_info.set_current_path uri;
+              set_current_uri (uri);
               try (* serve cached page from the from history_doms *)
                 if not (is_in_cache state_id) then raise Not_found;
                 let%lwt () = run_lwt_callbacks ev (flush_onchangepage ()) in
@@ -1403,7 +1410,7 @@ let () =
                   | Eliom_service.Dom d ->
                      set_content_local d
                   | _ ->
-                     handle_result ~uri:!current_uri ~replace:true result
+                     handle_result ~uri:(get_current_uri ()) ~replace:true result
                 in
                 let%lwt () = loop (rf () ()) in
                 scroll_to_fragment ~offset:state.position fragment;
