@@ -39,7 +39,7 @@ let current_path_and_args () =
     | path ->
       path
   in
-  let uri = !Eliom_client.current_uri in
+  let uri = Eliom_client.get_current_uri () in
   match Url.url_of_string uri with
   | Some (Url.Http url | Url.Https url) ->
     url.Url.hu_path, url.Url.hu_arguments
