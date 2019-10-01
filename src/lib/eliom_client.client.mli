@@ -67,6 +67,7 @@ val is_client_app : unit -> bool
     application. The last two parameters are respectively the GET and
     POST parameters to send to the service. *)
 val change_page :
+  ?redirection:bool ->
   ?ignore_client_fun:bool ->
   ?replace:bool ->
   ?absolute:bool ->

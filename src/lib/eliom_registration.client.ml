@@ -293,7 +293,7 @@ module Redirection = struct
   let send
       ?options:_ ?charset:_ ?code:_ ?content_type:_ ?headers:_
       (Redirection service) =
-    Eliom_client.change_page ~replace:true ~service () ()
+    Eliom_client.change_page ~redirection:true ~replace:true ~service () ()
 
   let register
       ?app ?scope:_ ?options ?charset:_ ?code:_ ?content_type:_
