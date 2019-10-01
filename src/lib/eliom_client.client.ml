@@ -614,15 +614,16 @@ let stash_reload_function f =
     (id, f) ::
     (List.filter (fun (id', _) -> id <> id') !reload_functions)
 
-let change_url_string ~replace uri =
+let change_url_string ?(advance = true) ~replace uri =
   Lwt_log.ign_debug_f ~section:section_page "Change url string: %s" uri;
   set_current_uri @@ fst (Url.split_fragment uri);
   if Eliom_process.history_api then begin
+    let this_page = get_this_page () in
     if replace then begin
       Opt.iter stash_reload_function !reload_function;
-      advance_page ();
+      if advance then advance_page ();
       Dom_html.window##.history##replaceState
-        (Js.Opt.return (!active_page.page_id,
+        (Js.Opt.return (this_page.page_id,
                         Js.string (if !Eliom_common.is_client_app then uri
                                    else Url.resolve uri)))
         (Js.string "")
@@ -631,7 +632,7 @@ let change_url_string ~replace uri =
     end
     else begin
       update_state();
-      let state_id = !active_page.page_id in
+      let state_id = this_page.page_id in
       let erase_future () =
         let current_doms, garbage =
           HistCache.partition (fun id _ -> id <= state_id.state_index) !history_doms
@@ -643,9 +644,9 @@ let change_url_string ~replace uri =
             !reload_functions;
       in erase_future ();
       Opt.iter stash_reload_function !reload_function;
-      advance_page ();
+      if advance then advance_page ();
       Dom_html.window##.history##pushState
-        (Js.Opt.return (!active_page.page_id,
+        (Js.Opt.return (this_page.page_id,
                         Js.string (if !Eliom_common.is_client_app then uri
                                    else Url.resolve uri)))
         (Js.string "")
@@ -723,10 +724,10 @@ let set_template_content ~replace ~uri ?fragment =
     run_onunload_wrapper (really_set content) cancel
 
 let set_uri ~replace ?fragment uri =
-  (* Changing url: *)
+  let advance = not replace in
   match fragment with
-  | None -> change_url_string ~replace uri
-  | Some fragment -> change_url_string ~replace (uri ^ "#" ^ fragment)
+  | None -> change_url_string ~advance ~replace uri
+  | Some fragment -> change_url_string ~advance ~replace (uri ^ "#" ^ fragment)
 
 let replace_page ~do_insert_base new_page =
   if !Eliom_config.debug_timings
@@ -774,7 +775,7 @@ let set_content_local ?offset ?fragment new_page =
     Lwt_mutex.unlock load_mutex;
     (* run callbacks upon page activation (or now), but just once *)
     Page_status.onactive ~once:true (fun () -> run_callbacks load_callbacks);
-    scroll_to_fragment ?offset fragment;
+    Page_status.onactive ~once:true (fun () -> scroll_to_fragment ?offset fragment);
     if !Eliom_config.debug_timings
     then Firebug.console##(timeEnd (Js.string "set_content_local"));
     Lwt.return_unit
@@ -1023,8 +1024,8 @@ let change_page (type m)
          ?keep_nl_params ~nl_params ?keep_get_na_params
          get_params post_params)
   else
-    with_progress_cursor
-      (match xhr with
+    with_progress_cursor @@
+       match xhr with
        | Some (Some tmpl as t) when t = Eliom_request_info.get_request_template () ->
          let nl_params =
            Eliom_parameter.add_nl_parameter
@@ -1072,9 +1073,17 @@ let change_page (type m)
                 target_id = None}
                (flush_onchangepage ())
            in
-           with_new_page ~replace () @@ fun () ->
-           change_url_string ~replace uri;
-           f get_params post_params
+           if replace
+             then begin
+               change_url_string ~advance:false ~replace uri;
+               let%lwt () = f get_params post_params in
+               Lwt.return_unit
+             end
+             else with_new_page ~replace () @@ fun () ->
+               change_url_string ~advance:false ~replace uri;
+               let%lwt () = f get_params post_params in
+               advance_page ();
+               Lwt.return_unit
          | None when is_client_app () ->
            Lwt.return @@ exit_to
              ?absolute ?absolute_path ?https ~service ?hostname ?port
@@ -1082,35 +1091,39 @@ let change_page (type m)
              get_params post_params
          | _ ->
            (* No client-side implementation *)
-           with_new_page ~replace () @@ fun () ->
            reload_function := None;
-           let cookies_info = Eliom_uri.make_cookies_info (https, service) in
-           let%lwt (uri, content) =
-             match
-               create_request_
-                 ?absolute ?absolute_path ?https ~service ?hostname ?port
-                 ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
-                 get_params post_params
-             with
-             | `Get (uri, _) ->
-               Eliom_request.http_get
-                 ~expecting_process_page:true ?cookies_info uri []
-                 Eliom_request.xml_result
-             | `Post (uri, _, p) ->
-               Eliom_request.http_post
-                 ~expecting_process_page:true ?cookies_info uri p
-                 Eliom_request.xml_result
-             | `Put (uri, _, p) ->
-               Eliom_request.http_put
-                 ~expecting_process_page:true ?cookies_info uri p
-                 Eliom_request.xml_result
-             | `Delete (uri, _, p) ->
-               Eliom_request.http_delete
-                 ~expecting_process_page:true ?cookies_info uri p
-                 Eliom_request.xml_result
+           let get_content_from_server ~replace () =
+             let cookies_info = Eliom_uri.make_cookies_info (https, service) in
+             let%lwt (uri, content) =
+               match
+                 create_request_
+                   ?absolute ?absolute_path ?https ~service ?hostname ?port
+                   ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
+                   get_params post_params
+               with
+               | `Get (uri, _) ->
+                 Eliom_request.http_get
+                   ~expecting_process_page:true ?cookies_info uri []
+                   Eliom_request.xml_result
+               | `Post (uri, _, p) ->
+                 Eliom_request.http_post
+                   ~expecting_process_page:true ?cookies_info uri p
+                   Eliom_request.xml_result
+               | `Put (uri, _, p) ->
+                 Eliom_request.http_put
+                   ~expecting_process_page:true ?cookies_info uri p
+                   Eliom_request.xml_result
+               | `Delete (uri, _, p) ->
+                 Eliom_request.http_delete
+                   ~expecting_process_page:true ?cookies_info uri p
+                   Eliom_request.xml_result
+             in
+             let uri, fragment = Url.split_fragment uri in
+             set_content ~replace ~uri ?fragment content
            in
-           let uri, fragment = Url.split_fragment uri in
-           set_content ~replace ~uri ?fragment content)
+           with_new_page ~replace:false ()
+             (fun () -> get_content_from_server ~replace ())
+
 
 type _ redirection =
     Redirection :
