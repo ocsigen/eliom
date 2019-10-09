@@ -762,7 +762,8 @@ let get_this_page () = match Lwt.get this_page with
     !active_page
 
 let with_new_page ?state_id ~replace () f =
-  let state_id = if replace then Some (!active_page).page_id else state_id in
+  let current_page = get_this_page () in
+  let state_id = if replace then Some current_page.page_id else state_id in
   let page = mk_page ?state_id ~status:Generating () in
   let%lwt v = Lwt.with_value this_page (Some page) @@ f in
   Lwt_log.ign_debug_f ~section:section_page "Done with page %d/%d"

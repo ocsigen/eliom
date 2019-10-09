@@ -1121,8 +1121,8 @@ let change_page (type m)
              let uri, fragment = Url.split_fragment uri in
              set_content ~replace ~uri ?fragment content
            in
-           with_new_page ~replace:false ()
-             (fun () -> get_content_from_server ~replace ())
+           with_new_page ~replace ()
+             (fun () -> get_content_from_server ~replace:false ())
 
 
 type _ redirection =
