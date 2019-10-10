@@ -31,7 +31,7 @@ include Eliom_service_sigs.S
 val set_client_fun :
   ?app:string ->
   service:('a, 'b, _, _, _, _, _, _, _, _, _) t ->
-  ('a -> 'b -> unit Lwt.t) ->
+  ('a -> 'b -> result Lwt.t) ->
   unit
 
 (**/**)
@@ -45,4 +45,4 @@ val pre_applied_parameters :
 
 val reload_fun :
   ('a, _, _, _, _, _, _, _, _, _, _) t ->
-  ('a -> unit -> unit Lwt.t) Eliom_client_value.t option
+  ('a -> unit -> result Lwt.t) Eliom_client_value.t option

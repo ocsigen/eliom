@@ -399,7 +399,7 @@ val change_page_unknown :
 
 val init : unit -> unit
 
-val set_reload_function : (unit -> unit -> unit Lwt.t) -> unit
+val set_reload_function : (unit -> unit -> Eliom_service.result Lwt.t) -> unit
 
 (** [push_history_dom] stores the document/body of the current page so
     that the next time when we encounter the page while navigating through the
@@ -449,18 +449,6 @@ val log_section : Lwt_log.section
 (** Is it a middle-click event? *)
 val middleClick : Dom_html.mouseEvent Js.t -> bool
 
-val set_content_local :
-  ?offset:Eliommod_dom.position ->
-  ?fragment:string -> Dom_html.element Js.t -> unit Lwt.t
-
 type client_form_handler = Dom_html.event Js.t -> bool Lwt.t
 
 val current_uri : string ref
-
-type _ redirection =
-    Redirection :
-      (unit, unit, Eliom_service.get , _, _, _, _,
-       [ `WithoutSuffix ], unit, unit, 'a) Eliom_service.t ->
-    'a redirection
-
-val perform_reload : unit -> unit Lwt.t

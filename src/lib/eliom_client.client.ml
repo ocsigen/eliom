@@ -612,7 +612,6 @@ let change_url_string ~replace uri =
   if Eliom_process.history_api then begin
     if replace then begin
       Opt.iter stash_reload_function !reload_function;
-      advance_page ();
       Dom_html.window##.history##replaceState
         (Js.Opt.return (!active_page.page_id,
                         Js.string (if !Eliom_common.is_client_app then uri
@@ -635,7 +634,6 @@ let change_url_string ~replace uri =
             !reload_functions;
       in erase_future ();
       Opt.iter stash_reload_function !reload_function;
-      advance_page ();
       Dom_html.window##.history##pushState
         (Js.Opt.return (!active_page.page_id,
                         Js.string (if !Eliom_common.is_client_app then uri
@@ -767,6 +765,7 @@ let set_content_local ?offset ?fragment new_page =
     (* run callbacks upon page activation (or now), but just once *)
     Page_status.onactive ~once:true (fun () -> run_callbacks load_callbacks);
     scroll_to_fragment ?offset fragment;
+    advance_page ();
     if !Eliom_config.debug_timings
     then Firebug.console##(timeEnd (Js.string "set_content_local"));
     Lwt.return_unit
@@ -866,6 +865,7 @@ let set_content ~replace ~uri ?offset ?fragment content =
       Lwt_mutex.unlock load_mutex;
       run_callbacks load_callbacks;
       scroll_to_fragment ?offset fragment;
+      advance_page ();
       if !Eliom_config.debug_timings then
         Firebug.console##(timeEnd (Js.string "set_content"));
       Lwt.return_unit
@@ -938,8 +938,7 @@ let make_uri subpath params =
   and params = List.map (fun (s, s') -> s, `String (Js.string s')) params in
   Eliom_uri.make_string_uri_from_components (base, params, None)
 
-let route ~replace ?(keep_url = false)
-    ({ Eliom_route.i_subpath ; i_get_params ; i_post_params } as info) =
+let route ({ Eliom_route.i_subpath ; i_get_params ; i_post_params } as info) =
   Lwt_log.ign_debug ~section:section_page "Route";
   let r = !Eliom_request_info.get_sess_info
   and info, i_subpath =
@@ -950,14 +949,16 @@ let route ~replace ?(keep_url = false)
       info, i_subpath
   in
   try%lwt
-    if not keep_url then
-      change_url_string ~replace (make_uri i_subpath i_get_params);
+    let uri = make_uri i_subpath i_get_params in
     update_session_info i_get_params (Some i_post_params);
-    Eliom_route.call_service
-      { info with
-        Eliom_route.i_get_params =
-          Eliom_common.(remove_prefixed_param nl_param_prefix)
-            i_get_params }
+    let%lwt result =
+      Eliom_route.call_service
+        { info with
+          Eliom_route.i_get_params =
+            Eliom_common.(remove_prefixed_param nl_param_prefix)
+              i_get_params }
+    in
+    Lwt.return (uri, result)
   with e ->
     Eliom_request_info.get_sess_info := r;
     Lwt.fail e
@@ -981,19 +982,97 @@ let perform_reload () =
   (* similar (but simpler) sequence of attempts as server; see
      server-side [Eliom_registration.Action.send] *)
   try%lwt
-    route ~replace:false ~keep_url:true info
+        Lwt.map snd (route info)
   with _ ->
     let info = {info with Eliom_route.i_get_params = []} in
     try%lwt
-      route ~replace:false ~keep_url:true info
+          Lwt.map snd (route info)
     with _ ->
-      Lwt.return_unit
+      Lwt.return Eliom_service.No_contents
+
+let current_path_and_args () =
+  let path_of_string s =
+    match Url.path_of_path_string s with
+    | "." :: path ->
+      path
+    | path ->
+      path
+  in
+  let uri = !current_uri in
+  match Url.url_of_string uri with
+  | Some (Url.Http url | Url.Https url) ->
+    url.Url.hu_path, url.Url.hu_arguments
+  | _ ->
+    match
+      try
+        Some (String.index uri '?')
+      with Not_found ->
+        None
+    with
+    | Some n ->
+      path_of_string String.(sub uri 0 n),
+      Url.decode_arguments String.(sub uri (n + 1) (length uri - n - 1))
+    | None ->
+      path_of_string uri, []
+
+let switch_to_https () =
+  let info = Eliom_process.get_info () in
+  Eliom_process.set_info {info with Eliom_common.cpi_ssl = true }
+
+let rec handle_result ~replace ~uri result =
+  match%lwt result with
+  | Eliom_service.No_contents ->
+     Lwt.return_unit
+  | Dom d ->
+     change_url_string ~replace uri;
+     set_content_local d
+  | Reload ->
+     handle_result ~replace ~uri (perform_reload ())
+  | Redirect service ->
+     change_page ~replace ~service () ()
+  | Reload_action {hidden; https} ->
+     match hidden, https with
+     | false, false ->
+        reload_without_na_params
+          ~replace ~fallback:Eliom_service.reload_action
+     | false, true ->
+        switch_to_https ();
+        reload_without_na_params
+          ~replace ~fallback:Eliom_service.reload_action_https
+     | true, false ->
+        reload ~replace ~fallback:Eliom_service.reload_action_hidden
+     | true, true ->
+        switch_to_https ();
+        reload ~replace ~fallback:Eliom_service.reload_action_https_hidden
 
 (* == Main (exported) function: change the content of the page without
    leaving the javascript application. See [change_page_uri] for the
    function used to change page when clicking a link and
    [change_page_{get,post}_form] when submiting a form. *)
-let change_page (type m)
+and change_page :
+      'get 'post 'meth 'attached 'co 'ext 'reg 'tipo 'gn 'pn.
+      ?ignore_client_fun:bool ->
+      ?replace:bool ->
+      ?absolute:bool ->
+      ?absolute_path:bool ->
+      ?https:bool ->
+      service:
+        ('get, 'post, 'meth, 'attached, 'co, 'ext, 'reg, 'tipo, 'gn, 'pn,
+         Eliom_service.non_ocaml)
+        Eliom_service.t ->
+      ?hostname:string ->
+      ?port:int ->
+      ?fragment:string ->
+      ?keep_nl_params:[ `All | `None | `Persistent ] ->
+      ?nl_params:Eliom_parameter.nl_params_set ->
+      ?keep_get_na_params:bool ->
+      ?progress:(int -> int -> unit) ->
+      ?upload_progress:(int -> int -> unit) ->
+      ?override_mime_type:string ->
+      'get -> 'post -> unit Lwt.t
+  =
+  fun
+  (type m)
     ?(ignore_client_fun = false)
     ?(replace = false)
     ?absolute ?absolute_path ?https
@@ -1002,7 +1081,7 @@ let change_page (type m)
     ?keep_nl_params ?(nl_params = Eliom_parameter.empty_nl_params_set)
     ?keep_get_na_params
     ?progress ?upload_progress ?override_mime_type
-    get_params post_params =
+    get_params post_params ->
   Lwt_log.ign_debug ~section:section_page "Change page";
   let xhr = Eliom_service.xhr_with_cookies service in
   if xhr = None
@@ -1065,8 +1144,7 @@ let change_page (type m)
                (flush_onchangepage ())
            in
            with_new_page ~replace () @@ fun () ->
-           change_url_string ~replace uri;
-           f get_params post_params
+           handle_result ~replace ~uri (f get_params post_params)
          | None when is_client_app () ->
            Lwt.return @@ exit_to
              ?absolute ?absolute_path ?https ~service ?hostname ?port
@@ -1104,13 +1182,7 @@ let change_page (type m)
            let uri, fragment = Url.split_fragment uri in
            set_content ~replace ~uri ?fragment content)
 
-type _ redirection =
-    Redirection :
-      (unit, unit, Eliom_service.get , _, _, _, _,
-       [ `WithoutSuffix ], unit, unit, 'a) Eliom_service.t ->
-    'a redirection
-
-let change_page_unknown
+and change_page_unknown
     ?meth ?hostname ?(replace = false) i_subpath i_get_params i_post_params =
   Lwt_log.ign_debug ~section:section_page "Change page unknown";
   let i_sess_info = !Eliom_request_info.get_sess_info ()
@@ -1124,13 +1196,39 @@ let change_page_unknown
       `Post
   in
   with_new_page ~replace () @@ fun () ->
-  route ~replace {
-    Eliom_route.i_sess_info ;
-    i_subpath ;
-    i_meth ;
-    i_get_params ;
-    i_post_params
-  }
+  let%lwt (uri, result) =
+    route {
+        Eliom_route.i_sess_info ;
+        i_subpath ;
+        i_meth ;
+        i_get_params ;
+        i_post_params
+      }
+  in
+  handle_result ~replace ~uri (Lwt.return result)
+
+and reload ~replace ~fallback =
+  let path, args = current_path_and_args () in
+  try%lwt
+    change_page_unknown ~replace path args []
+  with _ ->
+    change_page
+      ~replace
+      ~ignore_client_fun:true
+      ~service:fallback
+      () ()
+
+and reload_without_na_params ~replace ~fallback =
+  let path, args = current_path_and_args () in
+  let args = Eliom_common.remove_na_prefix_params args in
+  try%lwt
+    change_page_unknown ~replace path args []
+  with _ ->
+    change_page
+      ~replace
+      ~ignore_client_fun:true
+      ~service:fallback
+      () ()
 
 (* Function used in "onclick" event handler of <a>.  *)
 let change_page_uri_a ?cookies_info ?tmpl ?(get_params = []) full_uri =
@@ -1300,8 +1398,14 @@ let () =
                 reload_function := Some rf;
                 let%lwt () = run_lwt_callbacks ev (flush_onchangepage ()) in
                 with_new_page ~state_id ~replace:false () @@ fun () ->
-                advance_page ();
-                let%lwt () = rf () () in
+                let rec loop result =
+                  match%lwt result with
+                  | Eliom_service.Dom d ->
+                     set_content_local d
+                  | _ ->
+                     handle_result ~uri:!current_uri ~replace:true result
+                in
+                let%lwt () = loop (rf () ()) in
                 scroll_to_fragment ~offset:state.position fragment;
                 Lwt.return_unit
               with Not_found -> (* different session ID *)
