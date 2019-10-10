@@ -881,12 +881,8 @@ val force_link : unit
 val set_client_fun :
   ?app:string ->
   service:('a, 'b, _, _, _, _, _, _, _, _, _) Eliom_service.t ->
-  ('a -> 'b -> unit Lwt.t) ->
+  ('a -> 'b -> Eliom_service.result Lwt.t) ->
   unit
-
-val wrap_client_fun :
-  ('g -> 'p -> Html_types.html Html.elt Lwt.t)
-  -> ('g -> 'p -> unit Lwt.t)
 
 (** With [set_form_error_handler f], [f] becomes the action to be
     called when we are unable to call a client-side service due to

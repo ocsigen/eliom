@@ -19,17 +19,6 @@
 
 (* Manipulation of services - this code can be use on server or client side. *)
 
-let%server no_client_fun () : _ ref Eliom_client_value.t option =
-  (* It only makes sense to create a client value when in a global
-     context. *)
-  if Eliom_syntax.global_context () then
-    Some [%client ref None]
-  else
-    None
-
-let%client no_client_fun () : _ ref Eliom_client_value.t option =
-  Some (ref None)
-
 [%%shared.start]
 
 module rec Types : Eliom_service_sigs.TYPES = Types
@@ -146,7 +135,7 @@ type ('get, 'post, 'meth, 'attached, 'co, 'ext, 'reg,
   (* If the service has a client-side implementation, we put the
      generating function here: *)
   mutable client_fun :
-    ('get -> 'post -> unit Lwt.t) option ref Eliom_client_value.t option;
+    ('get -> 'post -> result Lwt.t) option ref Eliom_client_value.t option;
   (* The function is in a client-side reference, so that it is shared
      by all occurrences of the service sent from the server.
      For some service, we cannot create the client value immediately;
@@ -160,6 +149,15 @@ type ('get, 'post, 'meth, 'attached, 'co, 'ext, 'reg,
       t Eliom_common.wrapper;
 }
   constraint 'tipo = [< suff ]
+
+and result =
+    No_contents
+  | Dom of Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  | Reload
+  | Redirect :
+      (unit, unit, get , _, _, _, _,
+       [ `WithoutSuffix ], unit, unit, non_ocaml) t -> result
+  | Reload_action of {hidden: bool; https : bool}
 
 let pre_wrap s = {
   s with
@@ -189,7 +187,7 @@ let https s = s.https
 let priority s = s.priority
 
 let internal_set_client_fun
-      ~service (f : ('get -> 'post -> unit Lwt.t) Eliom_client_value.t) =
+      ~service (f : ('get -> 'post -> result Lwt.t) Eliom_client_value.t) =
   service.client_fun <- Some [%client ref (Some ~%f)]
 
 let is_external = function {kind = `External} -> true | _ -> false
@@ -450,6 +448,17 @@ let attached_info = function
 let non_attached_info = function
   | {info = Nonattached k} ->
     k
+
+let%server no_client_fun () : _ ref Eliom_client_value.t option =
+  (* It only makes sense to create a client value when in a global
+     context. *)
+  if Eliom_syntax.global_context () then
+    Some [%client ref None]
+  else
+    None
+
+let%client no_client_fun () : _ ref Eliom_client_value.t option =
+  Some (ref None)
 
 (** Create a main service (not a coservice), internal or external *)
 let main_service

@@ -17,7 +17,7 @@ module A = struct
   (* the suffix is the only thing we seem to need *)
   type params = string list option
 
-  type result = unit
+  type result = Eliom_service.result
 
   let site_data _ = ()
 
@@ -102,7 +102,7 @@ module A = struct
 
   end
 
-  let handle_directory _ = Lwt.return_unit
+  let handle_directory _ = Lwt.return Eliom_service.No_contents
 
 end
 

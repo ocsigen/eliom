@@ -150,6 +150,15 @@ module type S = sig
         +'tipo, 'gn, 'pn, 'ret) t
     constraint 'tipo = [< `WithSuffix | `WithoutSuffix ]
 
+  and result =
+      No_contents
+    | Dom of Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+    | Reload
+    | Redirect :
+        (unit, unit, get , _, _, _, _,
+         [ `WithoutSuffix ], unit, unit, non_ocaml) t -> result
+    | Reload_action of {hidden: bool; https : bool}
+
   (** {b Optional service path} *)
   type (_, _, _) path_option =
     | Path    : Eliom_lib.Url.path -> (att, non_co, _) path_option
@@ -329,7 +338,7 @@ module type S = sig
 
   val client_fun :
     ('a, 'b, _, _, _, _, _, _, _, _, _) t ->
-    ('a -> 'b -> unit Lwt.t) Eliom_client_value.t option
+    ('a -> 'b -> result Lwt.t) Eliom_client_value.t option
 
   val has_client_fun :
     (_, _, _, _, _, _, _, _, _, _, _) t -> bool
@@ -383,7 +392,7 @@ module type S = sig
 
   val internal_set_client_fun :
     service : ('a, 'b, _, _, _, _, _, _, _, _, _) t ->
-    ('a -> 'b -> unit Lwt.t) Eliom_client_value.t ->
+    ('a -> 'b -> result Lwt.t) Eliom_client_value.t ->
     unit
 
 end

@@ -40,7 +40,7 @@ module Ocaml = struct
   type 'a return = 'a Eliom_service.ocaml
 end
 
-type 'a kind = unit
+type 'a kind = Eliom_service.result
 type browser_content = [`Browser]
 type 'a application_content = [`Appl of 'a]
 
@@ -53,7 +53,7 @@ module type PARAM = sig
 
   val reset_reload_fun : bool
 
-  val send : ?options:options -> page -> unit Lwt.t
+  val send : ?options:options -> page -> [`Browser] kind Lwt.t
 
 end
 
@@ -204,8 +204,7 @@ module Html = Make (struct
     let reset_reload_fun = false
 
     let send ?options:_ page =
-      Eliom_client.set_content_local
-        (Eliom_content.Html.To_dom.of_element page)
+      Lwt.return (Eliom_service.Dom (Eliom_content.Html.To_dom.of_element page))
 
   end)
 
@@ -221,9 +220,9 @@ module Action = Make (struct
   let send ?options page =
     match options with
     | Some `Reload | None ->
-      Eliom_client.perform_reload ()
+      Lwt.return Eliom_service.Reload
     | _ ->
-      Lwt.return ()
+      Lwt.return Eliom_service.No_contents
 
 end)
 
@@ -237,7 +236,7 @@ module Unit = Make (struct
     let reset_reload_fun = true
 
     let send ?options:_ page =
-      Lwt.return_unit
+      Lwt.return Eliom_service.No_contents
 
   end)
 
@@ -259,14 +258,15 @@ module App (P : Eliom_registration_sigs.APP_PARAM) = struct
       let reset_reload_fun = false
 
       let send ?options:_ page =
-        Eliom_client.set_content_local
-          (Eliom_content.Html.To_dom.of_element page)
+        Lwt.return
+          (Eliom_service.Dom
+          (Eliom_content.Html.To_dom.of_element page))
 
     end)
 
 end
 
-type 'a redirection = 'a Eliom_client.redirection =
+type 'a redirection =
     Redirection :
       (unit, unit, Eliom_service.get , _, _, _, _,
        [ `WithoutSuffix ], unit, unit, 'a) Eliom_service.t ->
@@ -293,7 +293,7 @@ module Redirection = struct
   let send
       ?options:_ ?charset:_ ?code:_ ?content_type:_ ?headers:_
       (Redirection service) =
-    Eliom_client.change_page ~replace:true ~service () ()
+    Lwt.return (Eliom_service.Redirect service)
 
   let register
       ?app ?scope:_ ?options ?charset:_ ?code:_ ?content_type:_
