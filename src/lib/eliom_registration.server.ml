@@ -990,13 +990,28 @@ module Ocaml = struct
           let%lwt res = f g p in
           Lwt.return (`Success res)
         with exn ->
-          let code = Printf.sprintf "%0x" (Random.int 0x1000000) in
+          let code = Printf.sprintf "%06x" (Random.int 0x1000000) in
+          let argument =
+            let sp = Eliom_common.get_sp () in
+            let si = Eliom_request_info.get_si sp in
+            let post_params =
+              match si.Eliom_common.si_all_post_params with
+              | None -> []
+              | Some l -> l
+            in
+            try
+              Printf.sprintf " (%s)"
+                (List.assoc "argument" post_params)
+            with Not_found ->
+              ""
+          in
           begin match name with
-            | Some name ->
-              Lwt_log_core.ign_error_f ~exn
-                "Uncaught exception in service %s [%s]" name code
-            | None ->
-              Lwt_log_core.ign_error_f ~exn "Uncaught exception [%s]" code
+          | Some name ->
+             Lwt_log_core.ign_error_f ~exn
+               "Uncaught exception in service %s [%s]%s" name code argument
+          | None ->
+             Lwt_log_core.ign_error_f ~exn
+               "Uncaught exception [%s]%s" code argument
           end;
           Lwt.return (`Failure code)
       in
