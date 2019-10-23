@@ -618,10 +618,11 @@ let change_url_string ~replace uri =
   Lwt_log.ign_debug_f ~section:section_page "Change url string: %s" uri;
   set_current_uri @@ fst (Url.split_fragment uri);
   if Eliom_process.history_api then begin
+    let this_page = get_this_page () in
     if replace then begin
       Opt.iter stash_reload_function !reload_function;
       Dom_html.window##.history##replaceState
-        (Js.Opt.return (!active_page.page_id,
+        (Js.Opt.return (this_page.page_id,
                         Js.string (if !Eliom_common.is_client_app then uri
                                    else Url.resolve uri)))
         (Js.string "")
@@ -630,7 +631,7 @@ let change_url_string ~replace uri =
     end
     else begin
       update_state();
-      let state_id = !active_page.page_id in
+      let state_id = this_page.page_id in
       let erase_future () =
         let current_doms, garbage =
           HistCache.partition (fun id _ -> id <= state_id.state_index) !history_doms
@@ -643,7 +644,7 @@ let change_url_string ~replace uri =
       in erase_future ();
       Opt.iter stash_reload_function !reload_function;
       Dom_html.window##.history##pushState
-        (Js.Opt.return (!active_page.page_id,
+        (Js.Opt.return (this_page.page_id,
                         Js.string (if !Eliom_common.is_client_app then uri
                                    else Url.resolve uri)))
         (Js.string "")
