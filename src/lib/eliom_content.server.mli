@@ -99,7 +99,8 @@ module Xml : sig
      and type keyboard_event_handler =
            (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
      and type touch_event_handler =
-           (Dom_html.touchEvent Js.t -> unit) Eliom_client_value.t
+                (Dom_html.touchEvent Js.t -> unit) Eliom_client_value.t
+     and type uri = Eliom_content_xml.Xml.uri
 
   (** {2 Unique nodes } *)
 
@@ -171,6 +172,7 @@ module Xml_shared : Xml_sigs.T
          (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
    and type touch_event_handler =
          (Dom_html.touchEvent Js.t -> unit) Eliom_client_value.t
+   and type uri = Eliom_content_xml.Xml.uri
 
 (** Building and pretty-printing valid SVG tree.
 Information about Svg api can be found at {% <<a_api project="tyxml" | module Svg_sigs.T >> %}*)

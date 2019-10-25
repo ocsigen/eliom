@@ -21,6 +21,7 @@ module type RAW =
    and type Xml.attrib = Eliom_content_xml.Xml.attrib
    and type 'a elt = 'a elt
    and type 'a attrib = 'a attrib
+   and type uri = Eliom_content_xml.Xml.uri
    and module Svg := Eliom_content_svg_raw.F
 
 module F : RAW
@@ -46,6 +47,7 @@ module R : sig
    and type Xml.attrib = Eliom_content_xml.Xml.attrib
    and type 'a elt = 'a elt
    and type 'a attrib = 'a attrib
+   and type uri = Eliom_content_xml.Xml.uri
    and module Svg := Eliom_content_svg_raw.R
 
 (** [pcdata s] produces a node of type
