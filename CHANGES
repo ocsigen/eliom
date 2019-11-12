@@ -1,3 +1,8 @@
+===== 6.9 (2019-11-12) =====
+* fix scrolling bug: scrolling to top happens before page change
+* Server functions: log function argument on uncaught exceptions
+* Compile Eliom libraries with the linkall option
+
 ===== 6.8 (2019-09-11) =====
 * Use directly Pcre instead of relying on Netstring_pcre
 * Improved async exception handler
