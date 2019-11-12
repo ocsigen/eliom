@@ -20,8 +20,6 @@
 
 [%%client.start]
 
-open Js_of_ocaml
-
 let _ = Eliom_client.init ()
 
 (* The following lines are for Eliom_bus, Eliom_comet and Eliom_react
@@ -31,85 +29,29 @@ let _force_link =
   Eliom_comet.force_link,
   Eliom_bus.force_link
 
-let current_path_and_args () =
-  let path_of_string s =
-    match Url.path_of_path_string s with
-    | "." :: path ->
-      path
-    | path ->
-      path
-  in
-  let uri = !Eliom_client.current_uri in
-  match Url.url_of_string uri with
-  | Some (Url.Http url | Url.Https url) ->
-    url.Url.hu_path, url.Url.hu_arguments
-  | _ ->
-    match
-      try
-        Some (String.index uri '?')
-      with Not_found ->
-        None
-    with
-    | Some n ->
-      path_of_string String.(sub uri 0 n),
-      Url.decode_arguments String.(sub uri (n + 1) (length uri - n - 1))
-    | None ->
-      path_of_string uri, []
-
-let reload ~fallback () =
-  let path, args = current_path_and_args () in
-  try%lwt
-    Eliom_client.change_page_unknown ~replace:true path args []
-  with _ ->
-    Eliom_client.change_page
-      ~replace:true
-      ~ignore_client_fun:true
-      ~service:fallback
-      () ()
-
-let reload_without_na_params ~fallback () () =
-  let path, args = current_path_and_args () in
-  let args = Eliom_common.remove_na_prefix_params args in
-  try%lwt
-    Eliom_client.change_page_unknown ~replace:true path args []
-  with _ ->
-    Eliom_client.change_page
-      ~replace:true
-      ~ignore_client_fun:true
-      ~service:fallback
-      () ()
-
-let switch_to_https () =
-  let info = Eliom_process.get_info () in
-  Eliom_process.set_info {info with Eliom_common.cpi_ssl = true }
-
 (* Client side implementation of reload actions *)
 let%shared _ =
   Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action
     [%client
-      reload_without_na_params
-        ~fallback:Eliom_service.reload_action
+      fun () () ->
+        Lwt.return (Eliom_service.Reload_action {hidden = false; https = false})
     ];
   Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action_https
     [%client
       fun () () ->
-        switch_to_https ();
-        reload_without_na_params
-          ~fallback:Eliom_service.reload_action_https
-          () ()
+        Lwt.return (Eliom_service.Reload_action {hidden = false; https = true})
     ];
   Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action_hidden
     [%client
       fun () () ->
-        reload ~fallback:Eliom_service.reload_action_hidden ()
+        Lwt.return (Eliom_service.Reload_action {hidden = true; https = false})
     ];
   Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action_https_hidden
     [%client
       fun () () ->
-        switch_to_https ();
-        reload ~fallback:Eliom_service.reload_action_https_hidden ()
+        Lwt.return (Eliom_service.Reload_action {hidden = true; https = true})
     ]

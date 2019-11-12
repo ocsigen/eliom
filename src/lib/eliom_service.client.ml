@@ -48,7 +48,7 @@ let set_client_fun ?app ~service f =
 let reload_fun :
   type gp pp .
   (gp, pp, _, _, _, _, _, _, _, _, _) t ->
-  (gp -> unit -> unit Lwt.t) option =
+  (gp -> unit -> result Lwt.t) option =
   fun service ->
     match Eliom_parameter.is_unit (post_params_type service) with
     | Eliom_parameter.U_yes ->
