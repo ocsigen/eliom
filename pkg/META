@@ -49,7 +49,6 @@ package "client" (
               js_of_ocaml-tyxml,
               js_of_ocaml-lwt,
               js_of_ocaml-lwt.logger,
-              js_of_ocaml.weak,
               lwt_react,
               react,
               reactiveData,
@@ -111,7 +110,7 @@ package "ocamlbuild" (
   description = "Eliom ocamlbuild plugin (js_of_ocaml part included)"
   version = "[distributed with Eliom]"
   directory = "ocamlbuild"
-  requires = "js_of_ocaml.ocamlbuild"
+  requires = "js_of_ocaml-ocamlbuild"
   archive(byte) = "ocamlbuild_eliom.cma"
   archive(byte, plugin) = "ocamlbuild_eliom.cma"
   archive(native) = "ocamlbuild_eliom.cmxa"
