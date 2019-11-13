@@ -932,7 +932,7 @@ let get_session_info req previous_extension_err =
           let (tc, pp) =
             List.assoc_remove tab_cookies_param_name post_params
           in
-          let tc = [%derive.of_json: (string * string) list] tc in
+          let tc = [%of_json: (string * string) list] tc in
           (List.fold_left (fun t (k,v) -> CookiesTable.add k v t) CookiesTable.empty tc, pp)
           (*Marshal.from_string (Ocsigen_lib.decode tc) 0, pp*)
         with Not_found ->
@@ -940,7 +940,7 @@ let get_session_info req previous_extension_err =
             let tc = Ocsigen_headers.find tab_cookies_header_name
               (Ocsigen_extensions.Ocsigen_request_info.http_frame ri)
             in
-            let tc = [%derive.of_json: (string * string) list] tc in
+            let tc = [%of_json: (string * string) list] tc in
             (List.fold_left (fun t (k,v) -> CookiesTable.add k v t) CookiesTable.empty tc,
              post_params)
           with Not_found -> CookiesTable.empty, post_params
@@ -955,7 +955,7 @@ let get_session_info req previous_extension_err =
         Ocsigen_headers.find
           tab_cpi_header_name
           (Ocsigen_extensions.Ocsigen_request_info.http_frame ri) in
-      Some ([%derive.of_json: cpi] cpi)
+      Some ([%of_json: cpi] cpi)
     with Not_found -> None
   in
 
@@ -965,7 +965,7 @@ let get_session_info req previous_extension_err =
               expecting_process_page_name
               (Ocsigen_extensions.Ocsigen_request_info.http_frame ri)
             in
-            [%derive.of_json: bool] epd
+            [%of_json: bool] epd
       with Not_found -> false)
   in
 
@@ -1023,7 +1023,7 @@ let get_session_info req previous_extension_err =
     try (* Cookie substitutes for iOS WKWebView *)
       let tc = Ocsigen_headers.find cookie_substitutes_header_name
           (Ocsigen_extensions.Ocsigen_request_info.http_frame ri) in
-      let tc = [%derive.of_json: (string * string) list] tc in
+      let tc = [%of_json: (string * string) list] tc in
         List.fold_left (fun t (k,v) -> CookiesTable.add k v t)
           CookiesTable.empty tc
     with Not_found ->

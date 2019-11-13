@@ -18,10 +18,10 @@ let cookieset_to_json set =
   in
   let add key v l = (Array.of_list key, cookietable_array v)::l in
   let a = Array.of_list (Cookies.fold add set []) in
-  Deriving_Json.to_string [%derive.json: cookie_array] a
+  Deriving_Json.to_string [%json: cookie_array] a
 
 let cookieset_of_json json =
-  let array = Deriving_Json.from_string [%derive.json: cookie_array] json in
+  let array = Deriving_Json.from_string [%json: cookie_array] json in
   let cookietable_array array =
     Array.fold_left (fun set (name, cookie) -> CookiesTable.add name cookie set)
       CookiesTable.empty array

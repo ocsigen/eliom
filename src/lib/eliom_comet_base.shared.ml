@@ -49,7 +49,7 @@ type comet_request =
 [@@deriving json]
 
 let comet_request_param =
-  Eliom_parameter.ocaml "comet_request" [%derive.json: comet_request]
+  Eliom_parameter.ocaml "comet_request" [%json: comet_request]
 
 type 'a channel_data =
   | Data of 'a

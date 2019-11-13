@@ -85,7 +85,7 @@ sig
 
       Example of use:
       [let e_up = Eliom_react.Up.create
-        (Eliom_parameter.ocaml "a" [%derive.json: string])
+        (Eliom_parameter.ocaml "a" [%json: string])
       in
       ... {{ ignore ( %e_up "A") }} ...
       ]
