@@ -983,6 +983,8 @@ module Ocaml = struct
     | Some eh ->
         Some (fun l -> eh l >>= prepare_data)
 
+  let string_regexp = Str.regexp "\"\\([^\\\"]\\|\\\\.\\)*\""
+
   let make_service_handler ~name f =
     fun g p ->
       let%lwt data =
@@ -1008,7 +1010,8 @@ module Ocaml = struct
           begin match name with
           | Some name ->
              Lwt_log_core.ign_error_f ~exn
-               "Uncaught exception in service %s [%s]%s" name code argument
+               "Uncaught exception in service %s [%s]%s" name code
+               (Str.global_replace string_regexp "\"xxx\"" argument)
           | None ->
              Lwt_log_core.ign_error_f ~exn
                "Uncaught exception [%s]%s" code argument
