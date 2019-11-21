@@ -977,7 +977,7 @@ let route ({ Eliom_route.i_subpath ; i_get_params ; i_post_params } as info) =
   in
   Lwt.return (uri, result)
 
-let current_path_and_args () =
+let path_and_args_of_uri uri =
   let path_of_string s =
     match Url.path_of_path_string s with
     | "." :: path ->
@@ -985,7 +985,6 @@ let current_path_and_args () =
     | path ->
       path
   in
-  let uri = get_current_uri () in
   match Url.url_of_string uri with
   | Some (Url.Http url | Url.Https url) ->
     url.Url.hu_path, url.Url.hu_arguments
@@ -1019,16 +1018,16 @@ let rec handle_result ~replace ~uri result =
      match hidden, https with
      | false, false ->
         reload_without_na_params
-          ~replace ~fallback:Eliom_service.reload_action
+          ~replace ~uri ~fallback:Eliom_service.reload_action
      | false, true ->
         switch_to_https ();
         reload_without_na_params
-          ~replace ~fallback:Eliom_service.reload_action_https
+          ~replace ~uri ~fallback:Eliom_service.reload_action_https
      | true, false ->
-        reload ~replace ~fallback:Eliom_service.reload_action_hidden
+        reload ~replace ~uri ~fallback:Eliom_service.reload_action_hidden
      | true, true ->
         switch_to_https ();
-        reload ~replace ~fallback:Eliom_service.reload_action_https_hidden
+        reload ~replace ~uri ~fallback:Eliom_service.reload_action_https_hidden
 
 (* == Main (exported) function: change the content of the page without
    leaving the javascript application. See [change_page_uri] for the
@@ -1192,8 +1191,8 @@ and change_page_unknown
   in
   handle_result ~replace ~uri (Lwt.return result)
 
-and reload ~replace ~fallback =
-  let path, args = current_path_and_args () in
+and reload ~replace ~uri ~fallback =
+  let path, args = path_and_args_of_uri uri in
   try%lwt
     change_page_unknown ~replace path args []
   with _ ->
@@ -1203,8 +1202,8 @@ and reload ~replace ~fallback =
       ~service:fallback
       () ()
 
-and reload_without_na_params ~replace ~fallback =
-  let path, args = current_path_and_args () in
+and reload_without_na_params ~replace ~uri ~fallback =
+  let path, args = path_and_args_of_uri uri in
   let args = Eliom_common.remove_na_prefix_params args in
   try%lwt
     change_page_unknown ~replace path args []
