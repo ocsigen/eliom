@@ -972,33 +972,6 @@ let route ({ Eliom_route.i_subpath ; i_get_params ; i_post_params } as info) =
     Eliom_request_info.get_sess_info := r;
     Lwt.fail e
 
-let perform_reload () =
-  Lwt_log.ign_debug ~section:section_page "Perform reload";
-  let uri = get_current_uri () in
-  let
-    ({ Eliom_common.si_all_get_params ; si_all_post_params }
-     as i_sess_info) =
-    !Eliom_request_info.get_sess_info ()
-  and i_subpath = Url.path_of_url_string uri in
-  let info = {
-    Eliom_route.i_sess_info ;
-    i_subpath;
-    i_meth = `Get;
-    i_get_params =
-      Eliom_common.remove_na_prefix_params si_all_get_params;
-    i_post_params = []
-  } in
-  (* similar (but simpler) sequence of attempts as server; see
-     server-side [Eliom_registration.Action.send] *)
-  try%lwt
-        Lwt.map snd (route info)
-  with _ ->
-    let info = {info with Eliom_route.i_get_params = []} in
-    try%lwt
-          Lwt.map snd (route info)
-    with _ ->
-      Lwt.return Eliom_service.No_contents
-
 let current_path_and_args () =
   let path_of_string s =
     match Url.path_of_path_string s with
@@ -1035,8 +1008,6 @@ let rec handle_result ~replace ~uri result =
   | Dom d ->
      change_url_string ~replace uri;
      set_content_local d
-  | Reload ->
-     handle_result ~replace ~uri (perform_reload ())
   | Redirect service ->
      change_page ~replace ~service () ()
   | Reload_action {hidden; https} ->
