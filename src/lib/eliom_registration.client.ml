@@ -220,7 +220,7 @@ module Action = Make (struct
   let send ?options page =
     match options with
     | Some `Reload | None ->
-      Lwt.return Eliom_service.Reload
+      Lwt.return Eliom_service.(Reload_action {hidden = false; https = false})
     | _ ->
       Lwt.return Eliom_service.No_contents
 
