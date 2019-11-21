@@ -1001,6 +1001,7 @@ let switch_to_https () =
   Eliom_process.set_info {info with Eliom_common.cpi_ssl = true }
 
 let rec handle_result ~replace ~uri result =
+Firebug.console##log uri;
   match%lwt result with
   | Eliom_service.No_contents ->
      Lwt.return_unit
@@ -1008,8 +1009,10 @@ let rec handle_result ~replace ~uri result =
      change_url_string ~replace uri;
      set_content_local d
   | Redirect service ->
+Firebug.console##log (Js.string "redirect");
      change_page ~replace ~service () ()
   | Reload_action {hidden; https} ->
+Firebug.console##log (Js.string "reload");
      match hidden, https with
      | false, false ->
         reload_without_na_params
