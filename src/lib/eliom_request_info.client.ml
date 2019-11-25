@@ -1,3 +1,4 @@
+
 (* Ocsigen
  * http://www.ocsigen.org
  * Module eliom_sessions.ml
@@ -35,12 +36,37 @@ include Eliom_types
 
 let client_app_initialised = ref false
 
-let get_sess_info = ref (fun () ->
-  failwith "Eliom_request_info.get_sess_info called before initialization")
+type t = {path: string list; si : Eliom_common.sess_info }
 
-let set_session_info si = get_sess_info := fun () -> si
+let default_ri = ref None
+
+let ri_key = Lwt.new_key ()
+
+let get_ri () =
+  match Lwt.get ri_key with
+  | Some p -> p
+  | None ->
+     match !default_ri with
+     | Some p -> p
+     | None ->
+        failwith "Eliom_request_info.get_sess_info called before initialization"
+
+let get_sess_info () = (get_ri ()).si
+
+let set_session_info ~uri si f =
+  let path = Url.path_of_url_string (if uri = "./" then "" else uri) in
+  let ri = Some {path; si} in
+  default_ri := ri;
+  Lwt.with_value ri_key ri f
+
+let set_current_path uri =
+  let path = Url.path_of_url_string (if uri = "./" then "" else uri) in
+  match !default_ri with
+  | Some ri -> default_ri := Some {ri with path}
+  | None -> ()
 
 let update_session_info
+    ~uri
     ?other_get_params
     ?all_get_params
     ?na_get_params
@@ -49,9 +75,10 @@ let update_session_info
     ?all_post_params
     ?all_get_but_nl
     ?all_get_but_na_nl
-    () =
+    cont =
+  let path = Url.path_of_url_string (if uri = "./" then "" else uri) in
   let f ~default = function Some x -> x | None -> default in
-  let si = !get_sess_info () in
+  let {si} = get_ri () in
   let si = {
     si with
     Eliom_common.
@@ -71,18 +98,15 @@ let update_session_info
       f ~default:si.Eliom_common.si_all_get_but_nl all_get_but_nl;
     si_all_get_but_na_nl =
       f ~default:si.Eliom_common.si_all_get_but_na_nl all_get_but_na_nl;
-  } in
-  get_sess_info := fun () -> si
+    } in
+  let ri = Some {path; si} in
+  default_ri := ri;
+  Lwt.with_value ri_key ri cont
 
 let remove_first_slash path =
   match path with
   | ""::l -> l
   | l -> l
-
-let current_path_ = ref (remove_first_slash Url.Current.path)
-
-let set_current_path uri =
-  current_path_ := Url.path_of_url_string (if uri = "./" then "" else uri)
 
 let get_original_full_path_sp sp =
   (* returns current path, not the one when application started *)
@@ -94,7 +118,7 @@ let get_original_full_path_sp sp =
       | l -> l)
     | None -> assert false
   else
-    !current_path_
+    (get_ri()).path
 
 let get_original_full_path_string () =
   String.concat "/" (get_original_full_path_sp sp)
@@ -102,18 +126,18 @@ let get_original_full_path_string () =
 let get_original_full_path_string_sp = get_original_full_path_string
 
 let get_other_get_params () =
-  (!get_sess_info ()).Eliom_common.si_other_get_params
-let get_nl_get_params () = (!get_sess_info ()).Eliom_common.si_nl_get_params
+  (get_sess_info ()).Eliom_common.si_other_get_params
+let get_nl_get_params () = (get_sess_info ()).Eliom_common.si_nl_get_params
 let get_nl_get_params_sp = get_nl_get_params
 
 let get_persistent_nl_get_params () =
-  Lazy.force (!get_sess_info ()).Eliom_common.si_persistent_nl_get_params
+  Lazy.force (get_sess_info ()).Eliom_common.si_persistent_nl_get_params
 let get_persistent_nl_get_params_sp = get_persistent_nl_get_params
 
 let get_nl_post_params () =
-  (!get_sess_info ()).Eliom_common.si_nl_post_params
+  (get_sess_info ()).Eliom_common.si_nl_post_params
 
-let get_si () = !get_sess_info ()
+let get_si () = get_sess_info ()
 
 let get_site_dir () = (Eliom_process.get_sitedata ()).site_dir
 let get_site_dir_sp () = (Eliom_process.get_sitedata ()).site_dir
