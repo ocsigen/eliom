@@ -244,28 +244,29 @@ module FakeReact = struct
   module S : sig
     type 'a t
     val create :
-      ?synced:bool -> 'a -> 'a t * (?step:React.step -> 'a -> unit)
+      ?synced:bool -> 'a ->
+      'a t * (?step:React.step -> 'a -> unit)
     val value : 'a t -> 'a
     val const : ?synced:bool -> 'a -> 'a t
     val synced : 'a t -> bool
-    val map : ?eq:('b -> 'b -> bool) -> ('a -> 'b) -> 'a t -> 'b t
-    val fmap : ?eq:('b -> 'b -> bool) ->
+    val map : ('a -> 'b) -> 'a t -> 'b t
+    val fmap :
       ('a -> 'b option) -> 'b -> 'a t -> 'b t
-    val merge : ?eq:('a -> 'a -> bool) ->
+    val merge :
       ('a -> 'b -> 'a) -> 'a -> 'b t list -> 'a t
-    val l2 : ?eq:('d -> 'd -> bool) ->
+    val l2 :
       ('a -> 'b -> 'c) ->
       'a t -> 'b t -> 'c t
-    val l3 : ?eq:('d -> 'd -> bool) ->
+    val l3 :
       ('a -> 'b -> 'c -> 'd) ->
       'a t -> 'b t -> 'c t -> 'd t
-    val l4 : ?eq:('e -> 'e -> bool) ->
+    val l4 :
       ('a -> 'b -> 'c -> 'd -> 'e) ->
       'a t -> 'b t -> 'c t -> 'd t -> 'e t
-    val l5 : ?eq:('f -> 'f -> bool) ->
+    val l5 :
       ('a -> 'b -> 'c -> 'd -> 'e -> 'f) ->
       'a t -> 'b t -> 'c t -> 'd t -> 'e t -> 'f t
-    val l6 : ?eq:('g -> 'g -> bool) ->
+    val l6 :
       ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g) ->
       'a t -> 'b t -> 'c t -> 'd t -> 'e t -> 'f t -> 'g t
   end = struct
@@ -277,21 +278,21 @@ module FakeReact = struct
     let value (x, _) = x
     let const ?synced:(synced = false) x = (x, synced)
     let synced (_, b) = b
-    let map ?eq (f : 'a -> 'b) ((x, b) : 'a t) : 'b t = f x, b
-    let fmap ?eq f i (s, b) =
+    let map (f : 'a -> 'b) ((x, b) : 'a t) : 'b t = f x, b
+    let fmap f i (s, b) =
       (match f s with Some v -> v | None -> i), b
-    let merge ?eq f acc l =
+    let merge f acc l =
       let f (acc, acc_b) (x, b) = f acc x, acc_b && b in
       List.fold_left f (acc, true) l
-    let l2 ?eq f (x1, b1) (x2, b2) =
+    let l2 f (x1, b1) (x2, b2) =
       f x1 x2, b1 && b2
-    let l3 ?eq f (x1, b1) (x2, b2) (x3, b3) =
+    let l3 f (x1, b1) (x2, b2) (x3, b3) =
       f x1 x2 x3, b1 && b2 && b3
-    let l4 ?eq f (x1, b1) (x2, b2) (x3, b3) (x4, b4) =
+    let l4 f (x1, b1) (x2, b2) (x3, b3) (x4, b4) =
       f x1 x2 x3 x4, b1 && b2 && b3 && b4
-    let l5 ?eq f (x1, b1) (x2, b2) (x3, b3) (x4, b4) (x5, b5) =
+    let l5 f (x1, b1) (x2, b2) (x3, b3) (x4, b4) (x5, b5) =
       f x1 x2 x3 x4 x5, b1 && b2 && b3 && b4 && b5
-    let l6 ?eq f (x1, b1) (x2, b2) (x3, b3) (x4, b4) (x5, b5) (x6, b6) =
+    let l6 f (x1, b1) (x2, b2) (x3, b3) (x4, b4) (x5, b5) (x6, b6) =
       f x1 x2 x3 x4 x5 x6, b1 && b2 && b3 && b4 && b5 && b6
   end
 end
@@ -373,19 +374,10 @@ module React = struct
     let fmap ?(eq : ('b -> 'b -> bool) Value.t option)
         (f : ('a -> 'b option) Value.t) (i : 'b Value.t) (s : 'a t)
       : 'b t =
-      match eq with
-      | Some eq ->
-        Value.create
-          (FakeReact.S.fmap ~eq:(Value.local eq)
-             (Value.local f) (Value.local i) (Value.local s))
-           [%client  FakeReact.S.fmap ~eq:(Value.local ~%eq)
-               (Value.local ~%f) (Value.local ~%i) (Value.local ~%s) ]
-      | None ->
-        Value.create
-          (FakeReact.S.fmap
-             (Value.local f) (Value.local i) (Value.local s))
-           [%client  FakeReact.S.fmap
-               (Value.local ~%f) (Value.local ~%i) (Value.local ~%s) ]
+      Value.create
+        (FakeReact.S.fmap
+           (Value.local f) (Value.local i) (Value.local s))
+        [%client ( FakeReact.S.fmap ?eq:~%eq ~%f ~%i ~%s : 'b FakeReact.S.t)]
 
     let merge ?eq (f : ('a -> 'b -> 'a) Value.t)
         (acc : 'a) (l : 'b t list) : 'a t =
