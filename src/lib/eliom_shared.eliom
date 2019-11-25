@@ -336,10 +336,10 @@ module React = struct
     (*VVV What is the good default value for reset_default?  Setting
       default to true may be difficult to understand.  I prefer
       false.  *)
-    let create ?default ?(reset_default = false) x =
+    let create ?default ?(reset_default = false) ?(eq : _ Value.t option) x =
       let cv, synced = match default with
         | None ->
-           [%client  FakeReact.S.create ~%x ], true
+           [%client  FakeReact.S.create ?eq:~%eq ~%x ], true
         | Some v ->
           [%client (
             match (~%v : (_ * (?step:_ -> _ -> _)) option) with
@@ -349,7 +349,7 @@ module React = struct
                   the signal. *)
                if ~%reset_default then set ?step:None ~%x; s
              | None ->
-               FakeReact.S.create ~%x
+               FakeReact.S.create ?eq:~%eq ~%x
                (*VVV Make possible to disable this?  Warning: removing
                  this or changing the default will break some existing
                  code relying on this!  Do not change the default
