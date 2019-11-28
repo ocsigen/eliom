@@ -126,6 +126,8 @@ let set_base_url () =
        ; Js.to_string (Dom_html.window##.location##.host)
        ; Js.to_string (Dom_html.window##.location##.pathname) ])
 
+let dom_history_ready = ref false
+
 (* Function called (in Eliom_client_main), once when starting the app.
    Either when sent by a server or initiated on client side.
 
@@ -232,6 +234,8 @@ let init () =
          in
          reset_request_nodes ();
          Eliommod_dom.add_formdata_hack_onclick_handler ();
+         if not (is_client_app ()) then
+           dom_history_ready := true;
          let load_callbacks =
            flush_onload () @ [ onload_closure_nodes; broadcast_load_end ] in
          Lwt_mutex.unlock load_mutex;
@@ -542,15 +546,17 @@ let set_max_dist_history_doms limit =
   garbage_collect_cached_doms ()
 
 let push_history_dom () =
-  let page = !active_page in
-  let id = page.page_id.state_index in
-  let dom =
-    if !only_replace_body
-    then Dom_html.document##.body
-    else Dom_html.document##.documentElement in
-  page.page_is_cached := true;
-  history_doms := HistCache.add id {dom; page} !history_doms;
-  garbage_collect_cached_doms ()
+  if !dom_history_ready then begin
+    let page = !active_page in
+    let id = page.page_id.state_index in
+    let dom =
+      if !only_replace_body
+      then Dom_html.document##.body
+      else Dom_html.document##.documentElement in
+    page.page_is_cached := true;
+    history_doms := HistCache.add id {dom; page} !history_doms;
+    garbage_collect_cached_doms ()
+  end
 
 module Page_status = struct
   include Page_status_t
@@ -768,6 +774,7 @@ let set_content_local ?offset ?fragment new_page =
     (* Really change page contents *)
     replace_page ~do_insert_base:true new_page;
     Eliommod_dom.add_formdata_hack_onclick_handler ();
+    dom_history_ready := true;
     let load_callbacks = flush_onload () @ [broadcast_load_end] in
     locked := false;
     Lwt_mutex.unlock load_mutex;
@@ -868,6 +875,7 @@ let set_content ~replace ~uri ?offset ?fragment content =
          call_ocaml_service are unwrapped. *)
       reset_request_nodes ();
       Eliommod_dom.add_formdata_hack_onclick_handler ();
+      dom_history_ready := true;
       locked := false;
       let load_callbacks =
         flush_onload () @ [onload_closure_nodes; broadcast_load_end] in
