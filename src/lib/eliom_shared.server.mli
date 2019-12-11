@@ -63,6 +63,7 @@ module React : sig
           option
           Eliom_client_value.t ->
       ?reset_default : bool ->
+      ?eq:('a -> 'a -> bool) Value.t ->
       'a ->
       'a t * (?step:React.step -> 'a -> unit) Value.t
 
