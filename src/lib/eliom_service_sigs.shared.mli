@@ -153,7 +153,6 @@ module type S = sig
   and result =
       No_contents
     | Dom of Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
-    | Reload
     | Redirect :
         (unit, unit, get , _, _, _, _,
          [ `WithoutSuffix ], unit, unit, non_ocaml) t -> result

@@ -210,7 +210,8 @@ let init () =
       (fun () ->
          if !Eliom_config.debug_timings
          then Firebug.console##(time (Js.string "onload"));
-         Eliom_request_info.set_session_info js_data.Eliom_common.ejs_sess_info;
+         Eliom_request_info.set_session_info
+           ~uri:"" js_data.Eliom_common.ejs_sess_info @@ fun () ->
          (* Give the browser the chance to actually display the page NOW *)
          let%lwt () = Js_of_ocaml_lwt.Lwt_js.sleep 0.001 in
          (* Ordering matters. See [Eliom_client.set_content] for explanations *)
@@ -854,8 +855,8 @@ let set_content ~replace ~uri ?offset ?fragment content =
       let closure_nodeList, attrib_nodeList =
         relink_page_but_client_values fake_page
       in
-      Eliom_request_info.set_session_info
-        js_data.Eliom_common.ejs_sess_info;
+      Eliom_request_info.set_session_info ~uri
+        js_data.Eliom_common.ejs_sess_info @@ fun () ->
       (* Really change page contents *)
       replace_page ~do_insert_base:false fake_page;
       (* Initialize and provide client values. May need to access to
@@ -909,7 +910,7 @@ let ocamlify_params =
       | v, `String s -> v, Js.to_string s
       | _, _ -> assert false)
 
-let update_session_info all_get_params all_post_params =
+let update_session_info uri all_get_params all_post_params cont =
   let nl_get_params, all_get_but_nl =
     Eliom_common.split_nl_prefix_param all_get_params
   in
@@ -919,13 +920,14 @@ let update_session_info all_get_params all_post_params =
     lazy (Eliom_common.filter_na_get_params all_get_but_nl)
   in
   Eliom_request_info.update_session_info
+    ~uri
     ~all_get_params
     ~all_post_params
     ~na_get_params
     ~nl_get_params
     ~all_get_but_nl
     ~all_get_but_na_nl
-    ()
+    cont
 
 let make_uri subpath params =
   let base =
@@ -957,57 +959,25 @@ let make_uri subpath params =
 
 let route ({ Eliom_route.i_subpath ; i_get_params ; i_post_params } as info) =
   Lwt_log.ign_debug ~section:section_page "Route";
-  let r = !Eliom_request_info.get_sess_info
-  and info, i_subpath =
+  let info, i_subpath =
     match i_subpath with
     | ["."; ""] ->
       {info with i_subpath = []}, []
     | i_subpath ->
       info, i_subpath
   in
-  try%lwt
-    let uri = make_uri i_subpath i_get_params in
-    update_session_info i_get_params (Some i_post_params);
-    let%lwt result =
-      Eliom_route.call_service
-        { info with
-          Eliom_route.i_get_params =
-            Eliom_common.(remove_prefixed_param nl_param_prefix)
-              i_get_params }
-    in
-    Lwt.return (uri, result)
-  with e ->
-    Eliom_request_info.get_sess_info := r;
-    Lwt.fail e
+  let uri = make_uri i_subpath i_get_params in
+  update_session_info uri i_get_params (Some i_post_params) @@ fun () ->
+  let%lwt result =
+    Eliom_route.call_service
+      { info with
+        Eliom_route.i_get_params =
+          Eliom_common.(remove_prefixed_param nl_param_prefix)
+            i_get_params }
+  in
+  Lwt.return (uri, result)
 
-let perform_reload () =
-  Lwt_log.ign_debug ~section:section_page "Perform reload";
-  let uri = get_current_uri () in
-  let
-    ({ Eliom_common.si_all_get_params ; si_all_post_params }
-     as i_sess_info) =
-    !Eliom_request_info.get_sess_info ()
-  and i_subpath = Url.path_of_url_string uri in
-  let info = {
-    Eliom_route.i_sess_info ;
-    i_subpath;
-    i_meth = `Get;
-    i_get_params =
-      Eliom_common.remove_na_prefix_params si_all_get_params;
-    i_post_params = []
-  } in
-  (* similar (but simpler) sequence of attempts as server; see
-     server-side [Eliom_registration.Action.send] *)
-  try%lwt
-        Lwt.map snd (route info)
-  with _ ->
-    let info = {info with Eliom_route.i_get_params = []} in
-    try%lwt
-          Lwt.map snd (route info)
-    with _ ->
-      Lwt.return Eliom_service.No_contents
-
-let current_path_and_args () =
+let path_and_args_of_uri uri =
   let path_of_string s =
     match Url.path_of_path_string s with
     | "." :: path ->
@@ -1015,7 +985,6 @@ let current_path_and_args () =
     | path ->
       path
   in
-  let uri = get_current_uri () in
   match Url.url_of_string uri with
   | Some (Url.Http url | Url.Https url) ->
     url.Url.hu_path, url.Url.hu_arguments
@@ -1043,24 +1012,22 @@ let rec handle_result ~replace ~uri result =
   | Dom d ->
      change_url_string ~replace uri;
      set_content_local d
-  | Reload ->
-     handle_result ~replace ~uri (perform_reload ())
   | Redirect service ->
      change_page ~replace ~service () ()
   | Reload_action {hidden; https} ->
      match hidden, https with
      | false, false ->
         reload_without_na_params
-          ~replace ~fallback:Eliom_service.reload_action
+          ~replace ~uri ~fallback:Eliom_service.reload_action
      | false, true ->
         switch_to_https ();
         reload_without_na_params
-          ~replace ~fallback:Eliom_service.reload_action_https
+          ~replace ~uri ~fallback:Eliom_service.reload_action_https
      | true, false ->
-        reload ~replace ~fallback:Eliom_service.reload_action_hidden
+        reload ~replace ~uri ~fallback:Eliom_service.reload_action_hidden
      | true, true ->
         switch_to_https ();
-        reload ~replace ~fallback:Eliom_service.reload_action_https_hidden
+        reload ~replace ~uri ~fallback:Eliom_service.reload_action_https_hidden
 
 (* == Main (exported) function: change the content of the page without
    leaving the javascript application. See [change_page_uri] for the
@@ -1150,7 +1117,7 @@ and change_page :
                uri, l, Some (ocamlify_params l')
            in
            let l = ocamlify_params l in
-           update_session_info l l';
+           update_session_info uri l l' @@ fun () ->
            let%lwt () =
              run_lwt_callbacks
                {in_cache = is_in_cache !active_page.page_id;
@@ -1202,7 +1169,7 @@ and change_page :
 and change_page_unknown
     ?meth ?hostname ?(replace = false) i_subpath i_get_params i_post_params =
   Lwt_log.ign_debug ~section:section_page "Change page unknown";
-  let i_sess_info = !Eliom_request_info.get_sess_info ()
+  let i_sess_info = Eliom_request_info.get_sess_info ()
   and i_meth =
     match meth, i_post_params with
     | Some meth, _ ->
@@ -1224,8 +1191,8 @@ and change_page_unknown
   in
   handle_result ~replace ~uri (Lwt.return result)
 
-and reload ~replace ~fallback =
-  let path, args = current_path_and_args () in
+and reload ~replace ~uri ~fallback =
+  let path, args = path_and_args_of_uri uri in
   try%lwt
     change_page_unknown ~replace path args []
   with _ ->
@@ -1235,8 +1202,8 @@ and reload ~replace ~fallback =
       ~service:fallback
       () ()
 
-and reload_without_na_params ~replace ~fallback =
-  let path, args = current_path_and_args () in
+and reload_without_na_params ~replace ~uri ~fallback =
+  let path, args = path_and_args_of_uri uri in
   let args = Eliom_common.remove_na_prefix_params args in
   try%lwt
     change_page_unknown ~replace path args []
