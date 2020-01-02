@@ -987,9 +987,17 @@ module Ocaml = struct
 
   let make_service_handler ~name f =
     fun g p ->
+      begin match name with
+      | Some name -> Format.eprintf ">>> %s@." name
+      | None -> ()
+      end;
       let%lwt data =
         try%lwt
           let%lwt res = f g p in
+          begin match name with
+          | Some name -> Format.eprintf "<<< %s@." name
+          | None -> ()
+          end;
           Lwt.return (`Success res)
         with exn ->
           let code = Printf.sprintf "%06x" (Random.int 0x1000000) in
