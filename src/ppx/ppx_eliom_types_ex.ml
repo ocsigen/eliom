@@ -1,8 +1,2 @@
-open Migrate_parsetree
-
-let migration =
-  Versions.migrate Versions.ocaml_408 Versions.ocaml_current
-
-let () =
-  Compiler_libs.Ast_mapper.run_main
-    (fun args -> migration.copy_mapper (Ppx_eliom_type.mapper args))
+open Ppx_eliom_type [@@warning "-33"]
+let () = Migrate_parsetree.Driver.run_as_ppx_rewriter ()

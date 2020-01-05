@@ -300,12 +300,12 @@ module Context = struct
 end
 
 
-let match_args = function
-  | [ ] -> ()
-  | [ "-type" ; type_file ] -> Mli.type_file := Some type_file
-  | [ "-notype" ] -> Mli.type_file := None
-  | args -> Location.raise_errorf ~loc:Location.(in_file !input_name)
-           "Wrong arguments:@ %s" (String.concat " " args)
+let driver_args = [
+  "-type", Arg.String (fun type_file -> Mli.type_file := Some type_file),
+    "FILE Load inferred types from FILE.";
+  "-notype", Arg.Unit (fun () -> Mli.type_file := None),
+    " Unset explicitly set path from which to load inferred types.";
+]
 
 (** Signature of specific code of a preprocessor. *)
 module type Pass = sig
@@ -678,8 +678,7 @@ module Make (Pass : Pass) = struct
     in
     flatmap f sigs
 
-  let mapper args =
-    let () = match_args args in
+  let mapper _config _cookies =
     let c = ref `Server in
     {AM.default_mapper
      with

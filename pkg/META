@@ -75,15 +75,30 @@ package "ppx" (
   directory = "ppx"
   package "server" (
     description = "Ppx syntax extension: server side"
-    ppx = "ppx_eliom_server"
+    ppx(-ppx_driver,-custom_ppx) = "ppx_eliom_server"
+    archive(ppx_driver,byte) = "ppx_eliom_server.cma"
+    archive(ppx_driver,native) = "ppx_eliom_server.cmxa"
+    plugin(ppx_driver,byte) = "ppx_eliom_server.cma"
+    plugin(ppx_driver,native) = "ppx_eliom_server.cmxs"
+    requires(ppx_driver) = "ocaml-migrate-parsetree ppx_tools_versioned"
   )
   package "client" (
     description = "Ppx syntax extension: client side"
-    ppx = "ppx_eliom_client"
+    ppx(-ppx_driver,-custom_ppx) = "ppx_eliom_client"
+    archive(ppx_driver,byte) = "ppx_eliom_client.cma"
+    archive(ppx_driver,native) = "ppx_eliom_client.cmxa"
+    plugin(ppx_driver,byte) = "ppx_eliom_client.cma"
+    plugin(ppx_driver,native) = "ppx_eliom_client.cmxs"
+    requires(ppx_driver) = "ocaml-migrate-parsetree ppx_tools_versioned"
   )
   package "type" (
     description = "Ppx syntax extension: type inference"
-    ppx = "ppx_eliom_types"
+    ppx(-ppx_driver,-custom_ppx) = "ppx_eliom_types"
+    archive(ppx_driver,byte) = "ppx_eliom_type.cma"
+    archive(ppx_driver,native) = "ppx_eliom_type.cmxa"
+    plugin(ppx_driver,byte) = "ppx_eliom_type.cma"
+    plugin(ppx_driver,native) = "ppx_eliom_type.cmxs"
+    requires(ppx_driver) = "ocaml-migrate-parsetree ppx_tools_versioned"
   )
 )
 
