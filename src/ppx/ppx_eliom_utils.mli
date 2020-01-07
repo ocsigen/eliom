@@ -85,6 +85,9 @@ module type Pass = sig
 
 end
 
+val driver_args : (Arg.key * Arg.spec * Arg.doc) list
+
 module Make (P : Pass) : sig
-  val mapper : string list -> Ast_mapper.mapper
+  val mapper :
+    Migrate_parsetree.Versions.OCaml_408.types Migrate_parsetree.Driver.rewriter
 end

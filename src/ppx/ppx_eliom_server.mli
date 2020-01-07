@@ -1,2 +1,2 @@
-
-val mapper : string list -> Migrate_parsetree.Ast_408.Ast_mapper.mapper
+val mapper :
+  Migrate_parsetree.Versions.OCaml_408.types Migrate_parsetree.Driver.rewriter

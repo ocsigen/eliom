@@ -141,3 +141,7 @@ module Pass = struct
 end
 
 include Make(Pass)
+
+let () =
+  Migrate_parsetree.Driver.register ~name:"ppx_eliom_types" ~args:driver_args
+    Migrate_parsetree.Versions.ocaml_408 mapper
