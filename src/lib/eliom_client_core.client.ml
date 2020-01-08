@@ -779,7 +779,9 @@ let advance_page () =
 let state_key {session_id; state_index} =
   Js.string (Printf.sprintf "state_history_%x_%x" session_id state_index)
 
-let get_state ({session_id; state_index} as state_id) : state =
+let h = Hashtbl.create 1024
+
+let get_state ({session_id = session_id'; state_index} as state_id) : state =
   Js.Opt.case
     (Js.Optdef.case ( Dom_html.window##.sessionStorage )
        (fun () ->
@@ -789,13 +791,15 @@ let get_state ({session_id; state_index} as state_id) : state =
           Lwt_log.raise_error_f ~section "sessionStorage not available")
        (fun s -> s##(getItem (state_key state_id))))
     (fun () -> Lwt_log.raise_error_f ~section
-                 "State id not found %x/%x in sessionStorage"
-                 session_id state_index)
+                 "State id not found %x/%x in sessionStorage \
+                  (current session: %x; in hashtbl: %b)"
+                 session_id' state_index session_id (Hashtbl.mem h (state_key state_id)))
     (fun s -> Json.unsafe_input s)
 let set_state i (v:state) =
   Js.Optdef.case ( Dom_html.window##.sessionStorage )
     (fun () -> () )
-    (fun s -> s##(setItem (state_key i) (Json.output v)))
+    (fun s -> Hashtbl.replace h (state_key i) ();
+              s##(setItem (state_key i) (Json.output v)))
 let update_state () =
   set_state !active_page.page_id
     { template = Eliom_request_info.get_request_template ();
