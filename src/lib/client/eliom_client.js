@@ -203,7 +203,7 @@ var caml_unwrap_value_from_string = function (){
             }
           default:
             caml_failwith ("unwrap_value: ill-formed message "
-                           + reader.i + " " + btoa(reader.s.slice(0,1024)));
+                           + reader.i + " " + window.btoa(reader.s.slice(0,1024)));
           }
         }
       }
@@ -243,7 +243,7 @@ var caml_unwrap_value_from_string = function (){
     s.offset = reader.i;
     if(intern_obj_table[0][0].length != 3)
       caml_failwith ("unwrap_value: incorrect value "
-                     + reader.i + " " + btoa(reader.s.slice(0,1024)));
+                     + reader.i + " " + window.btoa(reader.s.slice(0,1024)));
     return intern_obj_table[0][0][2];
   }
 }();
