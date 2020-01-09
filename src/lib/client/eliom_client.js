@@ -44,6 +44,9 @@ var caml_unwrap_value_from_string = function (){
   return function (apply_unwrapper, s, ofs) {
     var reader = new StringReader (s, ofs);
     var magic = reader.read32u ();
+    if (magic != 0x8495A6BE)
+      caml_failwith("unwrap_value: bad object "
+                    + window.btoa(reader.s.slice(0,1024)));
     var block_len = reader.read32u ();
     var num_objects = reader.read32u ();
     var size_32 = reader.read32u ();
