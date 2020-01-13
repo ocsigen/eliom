@@ -1387,8 +1387,8 @@ let () =
               let session_changed = state_id.session_id <> session_id in
               if session_changed && is_client_app () then
                 failwith (Printf.sprintf
-                            "revisit: session changed on client: %d => %d"
-                            state_id.session_id session_id);
+                            "revisit: session changed on client: %d => %d (%s)"
+                            state_id.session_id session_id full_uri);
               try (* same session *)
                 if session_changed then raise Not_found;
                 let rf = List.assq state_id.state_index !reload_functions in
@@ -1420,7 +1420,7 @@ let () =
                 Lwt.return_unit
               | _ ->
                  if is_client_app () then
-                   failwith "revisit: could not generate page client-side";
+                   failwith "revisit: could not generate page client-side (%s)" full_uri;
                 with_new_page
                   ?state_id:(if session_changed then None else Some state_id)
                   ~replace:false () @@ fun () ->
