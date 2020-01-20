@@ -156,7 +156,7 @@ let send
       | _ -> [ Eliom_common.tab_cookies_header_name,
                encode_header_value cookies ] in
     let headers =
-      if Js.Unsafe.global##.___eliom_use_cookie_substitutes_ <> Js.undefined then
+      if Js.Optdef.test Js.Unsafe.global##.___eliom_use_cookie_substitutes_ then
         (* Cookie substitutes are for iOS WKWebView *)
         let cookies =
           Eliommod_cookies.get_cookies_to_send
@@ -234,7 +234,7 @@ let send
           ?contents ~get_args ~check_headers
           ?progress ?upload_progress ?override_mime_type url
       in
-      (if Js.Unsafe.global##.___eliom_use_cookie_substitutes_ <> Js.undefined
+      (if Js.Optdef.test Js.Unsafe.global##.___eliom_use_cookie_substitutes_
        then
          match (* Cookie substitutes are for iOS WKWebView *)
            r.XmlHttpRequest.headers

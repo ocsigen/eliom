@@ -1424,7 +1424,7 @@ let add_string_event_listener o e f capt : unit =
   in
   let f = Js.Unsafe.callback f in
   ignore @@
-  if (Js.Unsafe.coerce o)##.addEventListener == Js.undefined then
+  if not (Js.Optdef.test (Js.Unsafe.coerce o)##.addEventListener) then
     let e = (Js.string "on")##(concat e)
     and cb e = Js.Unsafe.call (f, e, [||]) in
     (Js.Unsafe.coerce o)##(attachEvent e cb)

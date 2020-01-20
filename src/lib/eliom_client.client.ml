@@ -108,7 +108,7 @@ let is_client_app () = !Eliom_common.is_client_app
 let _ =
   Eliom_common.is_client_app :=
     (* Testing if variable __eliom_appl_process_info exists: *)
-    Js.Unsafe.global##.___eliom_appl_process_info_foo = Js.undefined
+    not (Js.Optdef.test Js.Unsafe.global##.___eliom_appl_process_info_foo)
 
 let onunload_fun _ =
   update_state ();
@@ -142,8 +142,8 @@ let dom_history_ready = ref false
 let init () =
   (* Initialize client app if the __eliom_server variable is defined *)
   if is_client_app ()
-  && Js.Unsafe.global##.___eliom_server_ <> Js.undefined
-  && Js.Unsafe.global##.___eliom_app_name_ <> Js.undefined
+  && Js.Optdef.test Js.Unsafe.global##.___eliom_server_
+  && Js.Optdef.test Js.Unsafe.global##.___eliom_app_name_
   then begin
     let app_name = Js.to_string (Js.Unsafe.global##.___eliom_app_name_)
     and site_dir =
