@@ -1020,14 +1020,21 @@ let get_session_info req previous_extension_err =
   in
 
   let browser_cookies =
+    let cookies =
+      Lazy.force (Ocsigen_extensions.Ocsigen_request_info.cookies ri) in
     try (* Cookie substitutes for iOS WKWebView *)
       let tc = Ocsigen_headers.find cookie_substitutes_header_name
           (Ocsigen_extensions.Ocsigen_request_info.http_frame ri) in
       let tc = [%derive.of_json: (string * string) list] tc in
+      if tc = [] then begin
+        Format.eprintf "COOKIES:";
+        CookiesTable.iter (fun k v -> Format.eprintf " %s=%s;" k v) cookies;
+        Format.eprintf "@."
+      end;
         List.fold_left (fun t (k,v) -> CookiesTable.add k v t)
           CookiesTable.empty tc
     with Not_found ->
-      Lazy.force (Ocsigen_extensions.Ocsigen_request_info.cookies ri) in
+       cookies in
 
   let data_cookies = getcookies false `Session datacookiename browser_cookies in
   let service_cookies = getcookies false `Session servicecookiename browser_cookies in
