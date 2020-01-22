@@ -49,8 +49,8 @@ open Eliom_parameter
     description of optional parameters.
 
     {e Warning: The function [make_string_uri] should not be called
-    outside of a service handler, unless one of the following
-    condition is met:}
+    outside of a service handler, unless [hostname] is not [None] and
+    one of the following condition is met:}
 
     - the optional parameter [~absolute_path] is [true].
     - the optional parameter [~absolute] is [true].
