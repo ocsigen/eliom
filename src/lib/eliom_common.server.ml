@@ -1026,11 +1026,26 @@ let get_session_info req previous_extension_err =
       let tc = Ocsigen_headers.find cookie_substitutes_header_name
           (Ocsigen_extensions.Ocsigen_request_info.http_frame ri) in
       let tc = [%derive.of_json: (string * string) list] tc in
-      if tc = [] then begin
-        Format.eprintf "COOKIES:";
-        CookiesTable.iter (fun k v -> Format.eprintf " %s=%s;" k v) cookies;
-        Format.eprintf "@."
-      end;
+      let src =
+        try
+          let open Ocsigen_http_frame in
+          let http_frame = Ocsigen_request_info.http_frame ri in
+          http_frame.frame_header
+          |> (fun h ->
+            Http_header.get_headers_value h
+              (Http_headers.name "x-forwarded-for"))
+        with Not_found | Failure _ ->
+          Ocsigen_request_info.remote_ip ri
+      in
+      let pr k v =
+        Format.eprintf " %s=%s" k
+          (String.sub (Digest.to_hex (Digest.string v)) 0 3)
+      in
+      Format.eprintf "SUBST";
+      List.iter (fun (k, v) -> pr k v) (List.rev tc);
+      Format.eprintf " / COOKIES";
+      CookiesTable.iter pr cookies;
+      Format.eprintf "(%s)@." src;
         List.fold_left (fun t (k,v) -> CookiesTable.add k v t)
           CookiesTable.empty tc
     with Not_found ->
