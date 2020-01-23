@@ -90,12 +90,14 @@ let get_cookies_to_send ?(in_local_storage=false) host https path =
           (Url.remove_slash_at_beginning path)
       then CookiesTable.fold
         (fun name (exp, value, secure) cookies_to_send ->
+(*
           match exp with
             | Some exp when exp <= now ->
               set_table ~in_local_storage host
                 (remove_cookie cpath name (get_table host));
               cookies_to_send
             | _ ->
+ *)
               if (not secure) || https
               then (name,value)::cookies_to_send
               else cookies_to_send
