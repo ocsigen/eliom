@@ -788,9 +788,7 @@ let get_state ({session_id; state_index} as state_id) : state =
              everywhere the history API exists. *)
           Lwt_log.raise_error_f ~section "sessionStorage not available")
        (fun s -> s##(getItem (state_key state_id))))
-    (fun () -> Lwt_log.raise_error_f ~section
-                 "State id not found %x/%x in sessionStorage"
-                 session_id state_index)
+    (fun () -> raise Not_found)
     (fun s -> Json.unsafe_input s)
 let set_state i (v:state) =
   Js.Optdef.case ( Dom_html.window##.sessionStorage )
