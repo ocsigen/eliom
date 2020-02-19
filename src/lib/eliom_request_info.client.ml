@@ -30,8 +30,6 @@
 open Js_of_ocaml
 open Eliom_lib
 
-let (>>>) x f = f x
-
 include Eliom_types
 
 let client_app_initialised = ref false
@@ -59,45 +57,31 @@ let set_session_info ~uri si f =
   default_ri := ri;
   Lwt.with_value ri_key ri f
 
-let set_current_path uri =
-  let path = Url.path_of_url_string (if uri = "./" then "" else uri) in
-  match !default_ri with
-  | Some ri -> default_ri := Some {ri with path}
-  | None -> ()
-
 let update_session_info
-    ~uri
-    ?other_get_params
-    ?all_get_params
-    ?na_get_params
-    ?nl_get_params
-    ?nl_post_params
-    ?all_post_params
-    ?all_get_but_nl
-    ?all_get_but_na_nl
+    ~path
+    ~all_get_params
+    ~all_post_params
     cont =
-  let path = Url.path_of_url_string (if uri = "./" then "" else uri) in
-  let f ~default = function Some x -> x | None -> default in
+  let nl_get_params, all_get_but_nl =
+    Eliom_common.split_nl_prefix_param all_get_params
+  in
+  let all_get_but_na_nl =
+    lazy (Eliom_common.remove_na_prefix_params all_get_but_nl)
+  and na_get_params =
+    lazy (Eliom_common.filter_na_get_params all_get_but_nl)
+  in
   let {si} = get_ri () in
   let si = {
     si with
     Eliom_common.
-    si_other_get_params =
-      f ~default:si.Eliom_common.si_other_get_params other_get_params;
-    si_all_get_params =
-      f ~default:si.Eliom_common.si_all_get_params all_get_params;
-    si_na_get_params =
-      f ~default:si.Eliom_common.si_na_get_params na_get_params;
-    si_nl_get_params =
-      f ~default:si.Eliom_common.si_nl_get_params nl_get_params;
-    si_nl_post_params =
-      f ~default:si.Eliom_common.si_nl_post_params nl_post_params;
-    si_all_post_params =
-      f ~default:si.Eliom_common.si_all_post_params all_post_params;
-    si_all_get_but_nl =
-      f ~default:si.Eliom_common.si_all_get_but_nl all_get_but_nl;
-    si_all_get_but_na_nl =
-      f ~default:si.Eliom_common.si_all_get_but_na_nl all_get_but_na_nl;
+    si_other_get_params = [];
+    si_all_get_params = all_get_params;
+    si_na_get_params = na_get_params;
+    si_nl_get_params = nl_get_params;
+    si_nl_post_params = Eliom_lib.String.Table.empty;
+    si_all_post_params = all_post_params;
+    si_all_get_but_nl = all_get_but_nl;
+    si_all_get_but_na_nl = all_get_but_na_nl
     } in
   let ri = Some {path; si} in
   default_ri := ri;
@@ -110,7 +94,7 @@ let remove_first_slash path =
 
 let get_original_full_path_sp sp =
   (* returns current path, not the one when application started *)
-  if Eliom_process.history_api && not !client_app_initialised then
+  if not (Eliom_process.history_api || !client_app_initialised) then
     match Url.Current.get () with
     | Some (Url.Http url) | Some (Url.Https url) -> url.Url.hu_path
     | Some (Url.File url) -> (match url.Url.fu_path with

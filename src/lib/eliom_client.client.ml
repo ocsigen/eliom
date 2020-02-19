@@ -210,8 +210,12 @@ let init () =
       (fun () ->
          if !Eliom_config.debug_timings
          then Firebug.console##(time (Js.string "onload"));
-         Eliom_request_info.set_session_info
-           ~uri:"" js_data.Eliom_common.ejs_sess_info @@ fun () ->
+         let%lwt () =
+           Eliom_request_info.set_session_info
+             ~uri:(String.concat "/" (Eliom_request_info.get_csp_original_full_path ()))
+             js_data.Eliom_common.ejs_sess_info @@ fun () ->
+           Lwt.return_unit
+         in
          (* Give the browser the chance to actually display the page NOW *)
          let%lwt () = Js_of_ocaml_lwt.Lwt_js.sleep 0.001 in
          (* Ordering matters. See [Eliom_client.set_content] for explanations *)
@@ -468,13 +472,40 @@ let call_ocaml_service
 
 *)
 
+let path_and_args_of_uri uri =
+  let path_of_string s =
+    match Url.path_of_path_string s with
+    | "." :: path ->
+      path
+    | path ->
+      path
+  in
+  match Url.url_of_string uri with
+  | Some (Url.Http url | Url.Https url) ->
+    url.Url.hu_path, url.Url.hu_arguments
+  | _ ->
+    match
+      try
+        Some (String.index uri '?')
+      with Not_found ->
+        None
+    with
+    | Some n ->
+      path_of_string String.(sub uri 0 n),
+      Url.decode_arguments String.(sub uri (n + 1) (length uri - n - 1))
+    | None ->
+      path_of_string uri, []
+
 let set_current_uri, get_current_uri =
   let current_uri =
     ref (fst (Url.split_fragment (Js.to_string Dom_html.window##.location##.href)))
   in
   let set_current_uri uri =
     current_uri := fst (Url.split_fragment uri);
-    Eliom_request_info.set_current_path !current_uri
+    let (path, all_get_params) = path_and_args_of_uri !current_uri in
+    Lwt.async @@ fun () ->
+    Eliom_request_info.update_session_info ~path
+      ~all_get_params ~all_post_params:None (fun () -> Lwt.return_unit)
   in
   let get_current_uri () = !current_uri in
   set_current_uri, get_current_uri
@@ -623,15 +654,16 @@ let stash_reload_function f =
 
 let change_url_string ~replace uri =
   Lwt_log.ign_debug_f ~section:section_page "Change url string: %s" uri;
-  set_current_uri @@ fst (Url.split_fragment uri);
+  let full_uri =
+    if !Eliom_common.is_client_app then uri else Url.resolve uri in
+  set_current_uri full_uri;
   if Eliom_process.history_api then begin
     let this_page = get_this_page () in
     if replace then begin
       Opt.iter stash_reload_function !reload_function;
       Dom_html.window##.history##replaceState
         (Js.Opt.return (this_page.page_id,
-                        Js.string (if !Eliom_common.is_client_app then uri
-                                   else Url.resolve uri)))
+                        Js.string full_uri))
         (Js.string "")
         (if !Eliom_common.is_client_app then Js.null else
          Js.Opt.return (Js.string uri))
@@ -651,9 +683,7 @@ let change_url_string ~replace uri =
       in erase_future ();
       Opt.iter stash_reload_function !reload_function;
       Dom_html.window##.history##pushState
-        (Js.Opt.return (this_page.page_id,
-                        Js.string (if !Eliom_common.is_client_app then uri
-                                   else Url.resolve uri)))
+        (Js.Opt.return (this_page.page_id, Js.string full_uri))
         (Js.string "")
         (if !Eliom_common.is_client_app then Js.null else
          Js.Opt.return (Js.string uri))
@@ -910,25 +940,6 @@ let ocamlify_params =
       | v, `String s -> v, Js.to_string s
       | _, _ -> assert false)
 
-let update_session_info uri all_get_params all_post_params cont =
-  let nl_get_params, all_get_but_nl =
-    Eliom_common.split_nl_prefix_param all_get_params
-  in
-  let all_get_but_na_nl =
-    lazy (Eliom_common.remove_na_prefix_params all_get_but_nl)
-  and na_get_params =
-    lazy (Eliom_common.filter_na_get_params all_get_but_nl)
-  in
-  Eliom_request_info.update_session_info
-    ~uri
-    ~all_get_params
-    ~all_post_params
-    ~na_get_params
-    ~nl_get_params
-    ~all_get_but_nl
-    ~all_get_but_na_nl
-    cont
-
 let make_uri subpath params =
   let base =
     if is_client_app () then
@@ -967,7 +978,9 @@ let route ({ Eliom_route.i_subpath ; i_get_params ; i_post_params } as info) =
       info, i_subpath
   in
   let uri = make_uri i_subpath i_get_params in
-  update_session_info uri i_get_params (Some i_post_params) @@ fun () ->
+  Eliom_request_info.update_session_info ~path:i_subpath
+    ~all_get_params:i_get_params ~all_post_params:(Some i_post_params)
+  @@ fun () ->
   let%lwt result =
     Eliom_route.call_service
       { info with
@@ -976,30 +989,6 @@ let route ({ Eliom_route.i_subpath ; i_get_params ; i_post_params } as info) =
             i_get_params }
   in
   Lwt.return (uri, result)
-
-let path_and_args_of_uri uri =
-  let path_of_string s =
-    match Url.path_of_path_string s with
-    | "." :: path ->
-      path
-    | path ->
-      path
-  in
-  match Url.url_of_string uri with
-  | Some (Url.Http url | Url.Https url) ->
-    url.Url.hu_path, url.Url.hu_arguments
-  | _ ->
-    match
-      try
-        Some (String.index uri '?')
-      with Not_found ->
-        None
-    with
-    | Some n ->
-      path_of_string String.(sub uri 0 n),
-      Url.decode_arguments String.(sub uri (n + 1) (length uri - n - 1))
-    | None ->
-      path_of_string uri, []
 
 let switch_to_https () =
   let info = Eliom_process.get_info () in
@@ -1117,7 +1106,10 @@ and change_page :
                uri, l, Some (ocamlify_params l')
            in
            let l = ocamlify_params l in
-           update_session_info uri l l' @@ fun () ->
+           Eliom_request_info.update_session_info
+             ~path:(Url.path_of_url_string uri)
+             ~all_get_params:l ~all_post_params:l'
+           @@ fun () ->
            let%lwt () =
              run_lwt_callbacks
                {in_cache = is_in_cache !active_page.page_id;
@@ -1367,7 +1359,7 @@ let () =
               Lwt.return_unit
             end
             else begin
-              set_current_uri (uri);
+              set_current_uri uri;
               try (* serve cached page from the from history_doms *)
                 if not (is_in_cache state_id) then raise Not_found;
                 let%lwt () = run_lwt_callbacks ev (flush_onchangepage ()) in
