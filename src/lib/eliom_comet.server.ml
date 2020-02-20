@@ -62,7 +62,9 @@ let fallback_service =
   Comet.create
     ~meth:(Eliom_service.Get Eliom_parameter.unit)
     ~path:(Eliom_service.Path comet_path)
-    (fun () () -> Lwt.return state_closed_msg)
+    (fun () () ->
+      prerr_endline "COMET: no session";
+      Lwt.return state_closed_msg)
 
 let fallback_global_service =
   Eliom_common.lazy_site_value_from_fun @@ fun () ->
@@ -441,6 +443,10 @@ end = struct
             Lwt.with_value Eliom_common.sp_key None @@ fun () ->
             Lwt_stream.get_available_up_to n stream
           in
+          List.iter
+            (fun v ->
+              if v = Eliom_comet_base.Full then
+                prerr_endline "COMET: sending full") l;
           let l' = List.map (fun v -> id,v) l in
           let rest = n - (List.length l) in
           let stream_acc =
@@ -748,6 +754,7 @@ end = struct
             loop true
           else if pusher#count = size then begin
             ignore (Lwt_stream.get_available res);
+prerr_endline "COMET: full";
             let%lwt () = pusher#push (Eliom_comet_base.Full) in
             pusher#close;
             pusher#set_reference ();
