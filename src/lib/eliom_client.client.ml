@@ -1135,6 +1135,10 @@ and change_page :
              ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
              get_params post_params
          | _ ->
+           if is_client_app () then
+             failwith
+               (Printf.sprintf "change page: no client-side service (%b)"
+                  ignore_client_fun);
            (* No client-side implementation *)
            with_new_page ~replace () @@ fun () ->
            reload_function := None;
@@ -1221,6 +1225,8 @@ let change_page_uri_a ?cookies_info ?tmpl ?(get_params = []) full_uri =
     (let uri, fragment = Url.split_fragment full_uri in
      if uri <> get_current_uri () || fragment = None
      then begin
+       if is_client_app () then
+         failwith "Change_page_uri_a called on client app";
        match tmpl with
        | Some t when tmpl = Eliom_request_info.get_request_template () ->
          let%lwt (uri, content) = Eliom_request.http_get
@@ -1251,8 +1257,8 @@ let change_page_uri ?replace full_uri =
       failwith "invalid url"
   with _ ->
     if is_client_app () then
-      (Lwt_log.ign_debug ~section "Change page uri: can't find service";
-       Lwt.return_unit)
+      failwith (Printf.sprintf
+                  "Change page uri: can't find service for %s" full_uri)
     else
       (Lwt_log.ign_debug ~section "Change page uri: resort to server";
        change_page_uri_a full_uri)
@@ -1334,7 +1340,15 @@ let () =
   then
 
     let revisit full_uri state_id =
-      let state = get_state state_id in
+      let state =
+        try
+          get_state state_id
+        with Not_found ->
+          failwith
+            (Printf.sprintf
+               "revisit: state id %x/%x not found in sessionStorage (%s)"
+               state_id.session_id state_id.state_index full_uri)
+      in
       let target_id = state_id.state_index in
       let ev =
         {in_cache = is_in_cache state_id;
@@ -1375,6 +1389,10 @@ let () =
                 Lwt.return_unit
               with Not_found ->
               let session_changed = state_id.session_id <> session_id in
+              if session_changed && is_client_app () then
+                failwith (Printf.sprintf
+                            "revisit: session changed on client: %d => %d (%s)"
+                            state_id.session_id session_id full_uri);
               try (* same session *)
                 if session_changed then raise Not_found;
                 let rf = List.assq state_id.state_index !reload_functions in
@@ -1405,6 +1423,8 @@ let () =
                 scroll_to_fragment ~offset:state.position fragment;
                 Lwt.return_unit
               | _ ->
+                 if is_client_app () then
+                   failwith (Printf.sprintf "revisit: could not generate page client-side (%s)" full_uri);
                 with_new_page
                   ?state_id:(if session_changed then None else Some state_id)
                   ~replace:false () @@ fun () ->
