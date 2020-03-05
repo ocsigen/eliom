@@ -165,6 +165,11 @@ let pre_wrap s = {
   service_mark = Eliom_common.empty_wrapper ();
 }
 
+
+type%shared unit_service =
+  (unit, unit, get, att, non_co, non_ext,
+   non_reg, [`WithoutSuffix], unit, unit, non_ocaml) t
+
 let service_mark () = Eliom_common.make_wrapper pre_wrap
 
 let info {info} = info

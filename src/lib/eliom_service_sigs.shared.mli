@@ -158,6 +158,10 @@ module type S = sig
          [ `WithoutSuffix ], unit, unit, non_ocaml) t -> result
     | Reload_action of {hidden: bool; https : bool}
 
+  type unit_service =
+    (unit, unit, get, att, non_co, non_ext,
+     non_reg, [`WithoutSuffix], unit, unit, non_ocaml) t
+
   (** {b Optional service path} *)
   type (_, _, _) path_option =
     | Path    : Eliom_lib.Url.path -> (att, non_co, _) path_option
