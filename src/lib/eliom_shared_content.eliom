@@ -390,6 +390,9 @@ module Html = struct
     let unoption_string () =
       [%shared  Raw_wrapped_functions.unoption_string ]
 
+    let string_of_referrerpolicy () =
+      [%shared  Raw_wrapped_functions.string_of_referrerpolicy ]
+
   end
 
   module R = struct
