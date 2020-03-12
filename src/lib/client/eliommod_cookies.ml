@@ -93,7 +93,7 @@ let get_cookies_to_send ?(in_local_storage=false) host https path =
           match exp with
             | Some exp when exp <= now ->
               set_table ~in_local_storage host
-                (remove_cookie cpath name (get_table host));
+                (remove_cookie cpath name (get_table ~in_local_storage host));
               cookies_to_send
             | _ ->
               if (not secure) || https
