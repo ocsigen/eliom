@@ -34,6 +34,10 @@ type 'a result
 val xml_result : Dom.element Dom.document Js.t result
 val string_result : string result
 
+val locked : bool React.signal
+val lock : unit -> unit
+val unlock : unit -> unit
+
 val send :
   ?with_credentials:bool ->
   ?expecting_process_page:bool ->
