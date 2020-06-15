@@ -242,7 +242,6 @@ var caml_unwrap_value_from_string = function (){
         v[d] = intern_rec (v, d);
       }
     }
-    s.offset = reader.i;
     if(intern_obj_table[0][0].length != 3)
       caml_failwith ("unwrap_value: incorrect value");
     return intern_obj_table[0][0][2];
