@@ -38,6 +38,8 @@ let pat_args = function
   | [] -> AC.punit ()
   | [p] -> p
   | l -> Pat.tuple l
+let argstyp (list : Parsetree.core_type list) : Parsetree.core_type =
+  match list with [] -> assert false | [p] -> p | l -> Typ.tuple l
 
 (* We use a strong hash (MD5) of the file name.
    We only keep the first 36 bit, which should be well enough: with
@@ -461,8 +463,120 @@ end
      ]
    ]
 *)
-module Shared = struct
+module Rpc = struct
+  let function_name fun_name_pattern =
+    let loc = fun_name_pattern.ppat_loc in
+    match fun_name_pattern with
+    | [%pat? [%p? {ppat_desc= Ppat_var ident}]] ->
+      ident.txt
+    | _ ->
+      Location.raise_errorf ~loc "syntaxe error: function name expected"
 
+  let rpc_name fun_name_pattern =
+    let filename =
+      Filename.(!Location.input_name |> chop_extension |> basename)
+    in
+    Format.sprintf "%s.%s" filename (function_name fun_name_pattern)
+
+  let pat_to_exp pattern =
+    match pattern with
+    | {ppat_desc= Ppat_var ident; _} ->
+      Exp.ident (Location.mkloc (Longident.parse ident.txt) pattern.ppat_loc)
+    | {ppat_desc= Ppat_construct _; _} ->
+      AC.unit ()
+    | _ ->
+      Location.raise_errorf ~loc:pattern.ppat_loc "invalid argument"
+
+  let rec args_parser expr arg_list =
+    (*let loc = expr.pexp_loc in*)
+    match expr with
+    | [%expr fun ([%p? pattern] : [%t? typ]) -> [%e? expr']] ->
+      args_parser expr' ((pattern, typ, Asttypes.Nolabel) :: arg_list)
+    | [%expr fun () -> [%e? expr']] ->
+      args_parser expr'
+        ((AC.punit (), AC.tconstr "unit" [], Asttypes.Nolabel) :: arg_list)
+    | { pexp_desc=
+          Pexp_fun
+            ( Asttypes.Labelled s
+            , None
+            , {ppat_desc= Ppat_constraint (pattern, typ)}
+            , expr' ) } ->
+      args_parser expr' ((pattern, typ, Asttypes.Labelled s) :: arg_list)
+    | { pexp_desc=
+          Pexp_fun
+            ( Asttypes.Optional s
+            , None
+            , {ppat_desc= Ppat_constraint (pattern, typ)}
+            , expr' ) } ->
+      args_parser expr' ((pattern, typ, Asttypes.Optional s) :: arg_list)
+    | [%expr fun [%p? p] -> [%e? _]]
+    | { pexp_desc=
+          Pexp_fun ((Asttypes.Optional _ | Asttypes.Labelled _), None, p, _) }
+      ->
+      Location.raise_errorf ~loc:p.ppat_loc
+        "Unexpected argument, (argument:type) format expected"
+    | _ ->
+      List.rev arg_list
+
+  let client_expr fun_name_pattern expr =
+    let args_list = args_parser expr [] in
+    let _args =
+      List.map (fun (pattern, _, _) -> pattern) args_list |> pat_args
+    in
+    let _argstyp = List.map (fun (_, typ, _) -> typ) args_list |> argstyp in
+    let _formatargs =
+      List.map (fun (pattern, _, _) -> pat_to_exp pattern) args_list
+      |> format_args
+    in
+    let rec expr_mapper expr =
+      let loc = expr.pexp_loc in
+      match expr with
+      | [%expr fun ([%p? pattern] : [%t? _]) -> [%e? expr']] ->
+        [%expr fun [%p pattern] -> [%e expr_mapper expr']]
+      | {pexp_desc= Pexp_fun (Asttypes.Labelled s, None, pattern, expr')} ->
+        Exp.fun_ (Asttypes.Labelled s) None pattern (expr_mapper expr')
+      | {pexp_desc= Pexp_fun (Asttypes.Optional s, None, pattern, expr')} ->
+        Exp.fun_ (Asttypes.Labelled s) None pattern (expr_mapper expr')
+      | _ -> (
+          [%expr
+            let aux =
+              ~%(Eliom_client.server_function
+                   ~name:
+                     [%e
+                       Exp.constant
+                         (Pconst_string (rpc_name fun_name_pattern, None))]
+                   [%json: [%t _argstyp]]
+                   (Os_session.connected_wrapper (fun [%p _args] ->
+                      [%e
+                        Exp.apply
+                          (Exp.ident
+                             (Location.mkloc
+                                (Longident.parse
+                                     (function_name fun_name_pattern))
+                                fun_name_pattern.ppat_loc))
+                          (List.map
+                             (fun (pattern, _, label) ->
+                                (label, pat_to_exp pattern))
+                             args_list)])))
+            in
+            [%e
+              Exp.apply
+                (Exp.ident (Location.mkloc (Longident.parse "aux") loc))
+                [(Asttypes.Nolabel, _formatargs)]]] [@metaloc loc] )
+    in
+    expr_mapper expr
+
+  let client_structure_stri stri =
+    let loc = stri.pstr_loc in
+    match stri with
+    | [%stri let [%p? pattern] = [%e? expr]] -> (
+        ([ [%stri let [%p pattern] = [%e client_expr pattern expr]]
+         ] [@metaloc loc]) )
+    | _ -> (
+        ([stri] [@metaloc loc]) )
+end
+
+module Shared = struct
   let server_expr mapper expr =
     match expr with
     | [%expr [%client [%e? _ ]]] -> expr
@@ -654,6 +768,22 @@ module Make (Pass : Pass) = struct
         let c = Context.of_string txt in
         let l = flatmap (dispatch_str c mapper) strs in
         maybe_reset_injected_idents c ; l
+      | Pstr_extension (({txt}, PStr strs), _) when is_annotation txt ["rpc"] ->
+        let c = `Server in
+        let l = flatmap (dispatch_str c mapper) strs in
+        let c = `Client in
+        let l' =
+          flatmap (dispatch_str c mapper)
+            (flatmap Rpc.client_structure_stri strs)
+        in
+        let list = List.flatten [l; l'] in
+        let migrate =
+          Versions.migrate (module OCaml_408) (module OCaml_current)
+        in
+        Format.eprintf "%s@." @@ Pprintast.string_of_structure
+        @@ migrate.Versions.copy_structure list ;
+        maybe_reset_injected_idents c ;
+        list
       | _ ->
         dispatch_str !context mapper pstr
     in
