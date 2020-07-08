@@ -324,7 +324,7 @@ module type Pass = sig
   val client_sig: signature_item -> signature_item list
   val server_sig: signature_item -> signature_item list
 
-  (** How to handle "[%client ...]" and "[%shared ...]" expr. *)
+  (** How to handle "[\%client ...]" and "[\%shared ...]" expr. *)
   val fragment:
     ?typ:core_type -> context:Context.server ->
     num:string -> id:string Location.loc ->
@@ -464,13 +464,22 @@ end
    ]
 *)
 module Rpc = struct
+  (*type error= 
+    |No_arguments
+    |Missing_argument_type
+
+  let print_error e=
+    match e with 
+    |No_arguments -> "yyy"
+    |Missing_argument_type -> "Missing argument type, (argument:type) format expected "*)
+  
   let function_name fun_name_pattern =
     let loc = fun_name_pattern.ppat_loc in
     match fun_name_pattern with
     | [%pat? [%p? {ppat_desc= Ppat_var ident}]] ->
       ident.txt
     | _ ->
-      Location.raise_errorf ~loc "syntaxe error: function name expected"
+      Location.raise_errorf ~loc "function name expected"
 
   let rpc_name fun_name_pattern =
     let filename =
@@ -488,7 +497,6 @@ module Rpc = struct
       Location.raise_errorf ~loc:pattern.ppat_loc "invalid argument"
 
   let rec args_parser expr arg_list =
-    (*let loc = expr.pexp_loc in*)
     match expr with
     | [%expr fun ([%p? pattern] : [%t? typ]) -> [%e? expr']] ->
       args_parser expr' ((pattern, typ, Asttypes.Nolabel) :: arg_list)
@@ -515,8 +523,10 @@ module Rpc = struct
       ->
       Location.raise_errorf ~loc:p.ppat_loc
         "Unexpected argument, (argument:type) format expected"
-    | _ ->
-      List.rev arg_list
+    | e -> begin match arg_list with 
+            |[]-> Location.raise_errorf ~loc:e.pexp_loc "No argements"
+            |arg_list -> List.rev arg_list
+          end 
 
   let client_expr fun_name_pattern expr =
     let args_list = args_parser expr [] in
@@ -533,6 +543,8 @@ module Rpc = struct
       match expr with
       | [%expr fun ([%p? pattern] : [%t? _]) -> [%e? expr']] ->
         [%expr fun [%p pattern] -> [%e expr_mapper expr']]
+      | [%expr fun () -> [%e? expr']] ->
+        [%expr fun () -> [%e expr_mapper expr']]
       | {pexp_desc= Pexp_fun (Asttypes.Labelled s, None, pattern, expr')} ->
         Exp.fun_ (Asttypes.Labelled s) None pattern (expr_mapper expr')
       | {pexp_desc= Pexp_fun (Asttypes.Optional s, None, pattern, expr')} ->
