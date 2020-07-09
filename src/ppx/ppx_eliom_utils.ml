@@ -464,14 +464,19 @@ end
    ]
 *)
 module Rpc = struct
-  (*type error= 
+  type error=
     |No_arguments
     |Missing_argument_type
+    |Fatal_error
 
-  let print_error e=
-    match e with 
-    |No_arguments -> "yyy"
-    |Missing_argument_type -> "Missing argument type, (argument:type) format expected "*)
+  let print_error ~loc (e:error) =
+    let string_of_error =
+     match e with 
+      |No_arguments -> "No arguments"
+      |Missing_argument_type -> "Missing argument type, (argument:type) format expected"
+      |Fatal_error -> "Fatal error"
+    in 
+    Location.raise_errorf ~loc "%s" string_of_error
   
   let function_name fun_name_pattern =
     let loc = fun_name_pattern.ppat_loc in
@@ -479,7 +484,7 @@ module Rpc = struct
     | [%pat? [%p? {ppat_desc= Ppat_var ident}]] ->
       ident.txt
     | _ ->
-      Location.raise_errorf ~loc "function name expected"
+      print_error ~loc Fatal_error 
 
   let rpc_name fun_name_pattern =
     let filename =
@@ -494,7 +499,7 @@ module Rpc = struct
     | {ppat_desc= Ppat_construct _; _} ->
       AC.unit ()
     | _ ->
-      Location.raise_errorf ~loc:pattern.ppat_loc "invalid argument"
+      print_error ~loc:pattern.ppat_loc Fatal_error
 
   let rec args_parser expr arg_list =
     match expr with
@@ -521,10 +526,9 @@ module Rpc = struct
     | { pexp_desc=
           Pexp_fun ((Asttypes.Optional _ | Asttypes.Labelled _), None, p, _) }
       ->
-      Location.raise_errorf ~loc:p.ppat_loc
-        "Unexpected argument, (argument:type) format expected"
+      print_error ~loc:p.ppat_loc Missing_argument_type
     | e -> begin match arg_list with 
-            |[]-> Location.raise_errorf ~loc:e.pexp_loc "No argements"
+            |[]-> print_error ~loc:e.pexp_loc No_arguments
             |arg_list -> List.rev arg_list
           end 
 
@@ -548,7 +552,7 @@ module Rpc = struct
       | {pexp_desc= Pexp_fun (Asttypes.Labelled s, None, pattern, expr')} ->
         Exp.fun_ (Asttypes.Labelled s) None pattern (expr_mapper expr')
       | {pexp_desc= Pexp_fun (Asttypes.Optional s, None, pattern, expr')} ->
-        Exp.fun_ (Asttypes.Labelled s) None pattern (expr_mapper expr')
+        Exp.fun_ (Asttypes.Optional s) None pattern (expr_mapper expr')
       | _ -> (
           [%expr
             let aux =
@@ -789,11 +793,11 @@ module Make (Pass : Pass) = struct
             (flatmap Rpc.client_structure_stri strs)
         in
         let list = List.flatten [l; l'] in
-        let migrate =
+        (*let migrate =
           Versions.migrate (module OCaml_408) (module OCaml_current)
         in
         Format.eprintf "%s@." @@ Pprintast.string_of_structure
-        @@ migrate.Versions.copy_structure list ;
+        @@ migrate.Versions.copy_structure list ;*)
         maybe_reset_injected_idents c ;
         list
       | _ ->
