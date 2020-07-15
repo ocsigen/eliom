@@ -29,6 +29,9 @@ open Js_of_ocaml
 open Eliom_lib
 module Opt = Eliom_lib.Option
 
+let lock_request_handling = Eliom_request.lock
+let unlock_request_handling = Eliom_request.unlock
+
 type ('a, +'b) server_function = 'a -> 'b Lwt.t
 
 let only_replace_body = ref false

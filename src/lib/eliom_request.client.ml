@@ -113,6 +113,10 @@ let nl_template =
 let nl_template_string = "__nl_n_eliom-template.name"
 
 
+let locked, set_locked = React.S.create false
+
+let lock () = set_locked true
+let unlock () = set_locked false
 
 (** Same as XmlHttpRequest.perform_raw_url, but:
     - sends tab cookies in an HTTP header
@@ -234,6 +238,13 @@ let send
           ?contents ~get_args ~check_headers
           ?progress ?upload_progress ?override_mime_type url
       in
+      let wait_for_unlock, unlock = Lwt.wait () in
+      if not @@ React.S.value locked then Lwt.wakeup unlock ()
+      else begin
+        let unlock_event = React.E.once @@ React.S.changes locked in
+        ignore @@ React.E.map (fun _ -> Lwt.wakeup unlock ()) unlock_event
+      end;
+      let%lwt () = wait_for_unlock in
       (if Js.Optdef.test Js.Unsafe.global##.___eliom_use_cookie_substitutes_
        then
          match (* Cookie substitutes are for iOS WKWebView *)

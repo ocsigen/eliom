@@ -23,6 +23,9 @@
 open Js_of_ocaml
 open Eliom_lib
 
+val lock_request_handling : unit -> unit
+val unlock_request_handling : unit -> unit
+
 (** {2 Mobile applications} *)
 
 (** Call this function if you want to be able to run your client side
