@@ -502,7 +502,7 @@ module Rpc = struct
     match pattern with
     | {ppat_desc= Ppat_var ident; _} ->
         Exp.ident (Location.mkloc (Longident.parse ident.txt) pattern.ppat_loc)
-    | {ppat_desc= Ppat_construct _; _} ->
+    | {ppat_desc= Ppat_construct ({txt = Lident "()"},_); _} ->
         AC.unit ()
     | _ ->
         print_error ~loc:pattern.ppat_loc Fatal_error
@@ -514,22 +514,17 @@ module Rpc = struct
 
   let rec args_parser expr arg_list =
     match expr with
-    | [%expr fun ([%p? pattern] : [%t? typ]) -> [%e? expr']] ->
-        args_parser expr' ((pattern, typ, Asttypes.Nolabel) :: arg_list)
     | [%expr fun () -> [%e? expr']] ->
         args_parser expr'
           ((AC.punit (), AC.tconstr "unit" [], Asttypes.Nolabel) :: arg_list)
-    | { pexp_desc=
+    | { pexp_desc =
           Pexp_fun
-            ( (Asttypes.Labelled _ | Asttypes.Optional _) as arg
+            (label
             , None
-            , {ppat_desc= Ppat_constraint (pattern, typ)}
+            , {ppat_desc = Ppat_constraint (pattern, typ)}
             , expr' ) } ->
-        args_parser expr' ((pattern, typ, arg) :: arg_list)
-    | [%expr fun [%p? p] -> [%e? _]]
-    | { pexp_desc=
-          Pexp_fun ((Asttypes.Optional _ | Asttypes.Labelled _), None, p, _) }
-      ->
+        args_parser expr' ((pattern, typ, label) :: arg_list)
+    | { pexp_desc = Pexp_fun (_, None, p, _) } ->
         print_error ~loc:p.ppat_loc Missing_argument_type
     | e -> (
       match arg_list with
@@ -538,12 +533,15 @@ module Rpc = struct
       | arg_list ->
           List.rev arg_list )
 
-  let connected_wrapper ~loc rpc_name fun_name args_list _pat_of_args _typ_of_args aux_apply =
+  let connected_wrapper ~loc (rpc_name, fun_name, args_list, _pat_of_args, _typ_of_args, _expr_of_args) =
     let apply =
       apply_function_expr ~loc fun_name
         (List.map
            (fun (pattern, _, label) -> (label, pat_to_exp pattern))
            args_list)
+    in
+    let aux_apply =
+      apply_function_expr ~loc "aux" [(Asttypes.Nolabel, _expr_of_args)]
     in
     [%expr
       let aux =
@@ -554,13 +552,16 @@ module Rpc = struct
       in
       [%e aux_apply]]
 
-  let connected_rpc ~id ~loc rpc_name fun_name args_list _pat_of_args _typ_of_args aux_apply =
+  let connected_rpc ~id ~label ~loc (rpc_name,fun_name, args_list, _pat_of_args, _typ_of_args, _expr_of_args) =
     let apply =
       apply_function_expr ~loc fun_name
-        ( (Asttypes.Nolabel, pat_to_exp id)
+        ( (label, pat_to_exp id)
         :: List.map
              (fun (pattern, _, label) -> (label, pat_to_exp pattern))
              args_list )
+    in
+    let aux_apply =
+      apply_function_expr ~loc "aux" [(Asttypes.Nolabel, _expr_of_args)]
     in
     [%expr
       let aux =
@@ -571,14 +572,17 @@ module Rpc = struct
       in
       [%e aux_apply]]
 
-  let connected_rpc_o ~id ~loc rpc_name fun_name args_list _pat_of_args _typ_of_args aux_apply
+  let connected_rpc_o ~id ~label ~loc (rpc_name, fun_name, args_list, _pat_of_args, _typ_of_args, _expr_of_args)
       =
     let apply =
       apply_function_expr ~loc fun_name
-        ( (Asttypes.Nolabel, pat_to_exp id)
+        ( (label, pat_to_exp id)
         :: List.map
              (fun (pattern, _, label) -> (label, pat_to_exp pattern))
              args_list )
+    in
+    let aux_apply =
+      apply_function_expr ~loc "aux" [(Asttypes.Nolabel, _expr_of_args)]
     in
     [%expr
       let aux =
@@ -590,44 +594,36 @@ module Rpc = struct
       [%e aux_apply]]
 
   let generate_client_expression fun_name_pattern expr apply_rpc =
-    let args_list = args_parser expr [] in
+    let loc = expr.pexp_loc in
+    let _args_list = args_parser expr [] in
     let _pat_of_args =
-      List.map (fun (pattern, _, _) -> pattern) args_list |> pat_args
+      List.map (fun (pattern, _, _) -> pattern) _args_list |> pat_args
     in
     let _typ_of_args =
-      List.map (fun (_, typ, _) -> typ) args_list |> format_typ
+      List.map (fun (_, typ, _) -> typ) _args_list |> format_typ
     in
     let _expr_of_args =
-      List.map (fun (pattern, _, _) -> pat_to_exp pattern) args_list
+      List.map (fun (pattern, _, _) -> pat_to_exp pattern) _args_list
       |> format_args
     in
-    let rec expr_mapper expr =
-      let loc = expr.pexp_loc in
-      match expr with
-      | [%expr fun ([%p? pattern] : [%t? _]) -> [%e? expr']] ->
-          [%expr fun [%p pattern] -> [%e expr_mapper expr']]
-      | [%expr fun () -> [%e? expr']] ->
-          [%expr fun () -> [%e expr_mapper expr']]
-      | {pexp_desc= Pexp_fun ((Asttypes.Labelled _ | Asttypes.Optional _) as arg , None, pattern, expr')} ->
-          Exp.fun_ arg None pattern (expr_mapper expr')
-      | _ ->
+    let rec expr_mapper args_list =
+        match args_list with 
+      | [] ->
           let rpc_name =
             Exp.constant (Pconst_string (rpc_name fun_name_pattern, None))
           in
           let fun_name = function_name fun_name_pattern in
-          let aux_apply =
-            apply_function_expr ~loc "aux" [(Asttypes.Nolabel, _expr_of_args)]
-          in
-          apply_rpc ~loc rpc_name fun_name args_list _pat_of_args _typ_of_args aux_apply
+          apply_rpc ~loc (rpc_name, fun_name, _args_list, _pat_of_args, _typ_of_args, _expr_of_args)
+      |(pattern,_,label)::args_list' -> Exp.fun_ label None pattern (expr_mapper args_list')
     in
-    expr_mapper expr
+    expr_mapper _args_list [@metaloc loc]
 
   let generate_server_struct_item rpc_type stri =
     let loc = stri.pstr_loc in
     match stri with
     | [%stri
         let [%p? {ppat_desc= Ppat_var ident} as pattern] =
-          [%e? [%expr fun [%p? _] -> [%e? expr']]]] ->
+          [%e? {pexp_desc= Pexp_fun (label, None, _, expr')}]] ->
         let args_list = args_parser expr' [] in
         let _args =
           List.map (fun (pattern, _, _) -> pattern) args_list |> pat_args
@@ -635,22 +631,25 @@ module Rpc = struct
         let _apply =
           match rpc_type with
           | `Connected_rpc_o ->
-              ( Asttypes.Nolabel
+              ( label
               , [%expr Os_current_user.Opt.get_current_userid ()] )
               :: List.map
                    (fun (pattern, _, label) -> (label, pat_to_exp pattern))
                    args_list
           | _ ->
-              (Asttypes.Nolabel, [%expr Os_current_user.get_current_userid ()])
+              (label, [%expr Os_current_user.get_current_userid ()])
               :: List.map
                    (fun (pattern, _, label) -> (label, pat_to_exp pattern))
                    args_list
         in
+        let rec expr_mapper args_list =
+          match args_list with 
+          |[] -> apply_function_expr ~loc ident.txt _apply
+          |(pattern,_,label):: args_list'-> Exp.fun_ label None pattern (expr_mapper args_list')
+        in 
         ([ [%stri
-             let [%p pattern] =
-                 fun [%p _args] ->
-                   [%e apply_function_expr ~loc ident.txt _apply]]
-        ] [@metaloc loc])
+             let [%p pattern] = [%e expr_mapper args_list]]
+        [@metaloc loc]])
     | _ -> (
         ([stri] [@metaloc loc]) )
 
@@ -662,23 +661,23 @@ module Rpc = struct
         begin match stri with 
         | [%stri
         let [%p? pattern] = [%e? expr]] ->
-        ([[%stri let [%p pattern] = [%e generate_client_expression pattern expr connected_wrapper]]] [@metaloc loc]) 
+        ([[%stri let [%p pattern] = [%e generate_client_expression pattern expr connected_wrapper]][@metaloc loc]]) 
         | _ -> (
         ([stri] [@metaloc loc]) )
       end 
       | `Connected_rpc ->
         begin match stri with 
         |[%stri
-        let [%p? pattern] = [%e? [%expr fun [%p? id] -> [%e? expr']]]] ->
-        ([[%stri let [%p pattern] = [%e generate_client_expression pattern expr' (connected_rpc ~id)]]] [@metaloc loc]) 
+        let [%p? pattern] = [%e? {pexp_desc= Pexp_fun (label, None, id, expr')}]] ->
+        ([[%stri let [%p pattern] = [%e generate_client_expression pattern expr' (connected_rpc ~id ~label)]][@metaloc loc]]) 
         |_ -> (
         ([stri] [@metaloc loc]) )
       end 
       | `Connected_rpc_o ->
         begin match stri with 
         |[%stri
-        let [%p? pattern] = [%e? [%expr fun [%p? id] -> [%e? expr']]]] ->
-        ([[%stri let [%p pattern] = [%e generate_client_expression pattern expr' (connected_rpc_o ~id)]]] [@metaloc loc])    
+        let [%p? pattern] = [%e? {pexp_desc= Pexp_fun (label, None, id, expr')}]] ->
+        ([[%stri let [%p pattern] = [%e generate_client_expression pattern expr' (connected_rpc_o ~id ~label)]][@metaloc loc]])    
         |    _ -> (
         ([stri] [@metaloc loc]) )
       end   
@@ -895,6 +894,11 @@ module Make (Pass : Pass) = struct
         else [] 
         in
         let list = List.flatten [l;l';l''] in
+        (*let migrate =
+          Versions.migrate (module OCaml_408) (module OCaml_current)
+        in
+        Format.eprintf "%s@." @@ Pprintast.string_of_structure 
+        @@ migrate.Versions.copy_structure list ;*)
         maybe_reset_injected_idents c ;
         list
       | _ ->
