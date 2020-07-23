@@ -314,25 +314,30 @@ struct
       calls to the server only if it is active *)
   let handle_focus handler =
     let resume_activity () =
+      prerr_endline "resume_activity";
       if handler.hd_activity.focused <> None then begin
         handler.hd_activity.focused <- None;
+        prerr_endline "set active";
         set_activity handler `Active
       end
     in
     let suspend_activity () =
+      prerr_endline "suspend_activity";
       if handler.hd_activity.focused = None then
         handler.hd_activity.focused <-
           Some (new%js Js.date_now)##getTime
     in
     let focus_callback () =
+      prerr_endline "focus";
       if not (document_hidden ()) then resume_activity ()
     in
-    let blur_callback = suspend_activity in
+    let blur_callback () =       prerr_endline "blur";
+suspend_activity () in
     let visibility_change_callback () =
       if document_hidden () then
-        suspend_activity ()
+(prerr_endline "not visible";         suspend_activity ())
       else
-        if has_focus () then resume_activity ()
+(prerr_endline "visible";        if has_focus () then resume_activity ())
     in
     add_focus_listener focus_callback;
     add_blur_listener blur_callback;
@@ -341,6 +346,7 @@ struct
   let expected_activity hd =
     match hd.hd_activity.focused with
     | None ->
+prerr_endline "expected active";
       `Active
     | Some t ->
       let tbru =
@@ -353,14 +359,18 @@ struct
         if now -. t <
            (Configuration.get ()).Configuration.time_after_unfocus *. 1000.
         then
-          `Active
+(prerr_endline "expected active (unfocused)";
+          `Active)
         else if tbru = None (* Always inactive when idle *) then
           `Inactive
         else
-          `Idle
+(prerr_endline "idle";
+          `Idle)
 
   let activate hd =
+prerr_endline "activate";
     if hd.hd_activity.active = `Inactive then begin
+prerr_endline "  was inactive";
       (* Set initial focus status *)
       if
         hd.hd_activity.focused = None &&
@@ -498,6 +508,7 @@ struct
     List.map aux
 
   let update_activity ?(timeout=false) hd =
+prerr_endline "update_activity";
     if
       hd.hd_activity.active <> `Inactive
       &&
