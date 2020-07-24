@@ -83,6 +83,7 @@ module GroupTable = Hashtbl.Make(struct
 end)
 
 module Make(A: sig
+  val kind : string
   type group_of_group_data
   val table :
     (group_of_group_data option *
@@ -164,6 +165,15 @@ struct
       let cl = Ocsigen_cache.Dlist.create size in
       Ocsigen_cache.Dlist.set_finaliser_after
         (fun node ->
+          Format.eprintf "CLOSING SESSION %s (%s): %d/%d@."
+            A.kind
+            (match set_max, sess_grp with
+             | Some v, _ -> "other"
+             | _, (_, `Session, Left _) -> "session per group"
+             | _, (_, `Client_process, Left _) -> "tab per session"
+             | _, (_, `Session, Right _) -> "session"
+             | _ -> "???")
+         (Ocsigen_cache.Dlist.size cl) (Ocsigen_cache.Dlist.maxsize cl);
           let name = Ocsigen_cache.Dlist.value node in
           (* First we close all subsessions
              (that is, all sessions in the group associated to the session) *)
@@ -240,6 +250,8 @@ module Data =
   Make (struct
     type group_of_group_data =
       [ `Session ] Eliom_common.sessgrp Ocsigen_cache.Dlist.node
+
+    let kind = "data"
 
     let table : (group_of_group_data option *
                    (string Ocsigen_cache.Dlist.t)) GroupTable.t =
@@ -326,6 +338,8 @@ module Serv =
     type group_of_group_data =
         Eliom_common.tables ref *
           [ `Session ] Eliom_common.sessgrp Ocsigen_cache.Dlist.node
+
+    let kind = "service"
 
     let table : (group_of_group_data option *
                     (string Ocsigen_cache.Dlist.t)) GroupTable.t =
