@@ -508,11 +508,12 @@ module Rpc = struct
         print_error ~loc:pattern.ppat_loc Fatal_error
 
   let apply_function_expr ~loc fun_name args_list =
-    Exp.apply
+    Exp.apply ~loc
       (Exp.ident (Location.mkloc (Longident.parse fun_name) loc))
       args_list
 
   let rec args_parser expr arg_list =
+    let loc = expr.pexp_loc in 
     match expr with
     | [%expr fun () -> [%e? expr']] ->
         args_parser expr'
@@ -526,12 +527,13 @@ module Rpc = struct
         args_parser expr' ((pattern, typ, label) :: arg_list)
     | { pexp_desc = Pexp_fun (_, None, p, _) } ->
         print_error ~loc:p.ppat_loc Missing_argument_type
-    | e -> (
+    | e -> 
+      (
       match arg_list with
       | [] ->
           print_error ~loc:e.pexp_loc No_arguments
       | arg_list ->
-          List.rev arg_list )
+          List.rev arg_list, loc )
 
   let connected_wrapper ~loc (rpc_name, fun_name, args_list, _pat_of_args, _typ_of_args, _expr_of_args) =
     let apply =
@@ -594,8 +596,7 @@ module Rpc = struct
       [%e aux_apply]]
 
   let generate_client_expression fun_name_pattern expr apply_rpc =
-    let loc = expr.pexp_loc in
-    let _args_list = args_parser expr [] in
+    let _args_list,loc = args_parser  expr [] in
     let _pat_of_args =
       List.map (fun (pattern, _, _) -> pattern) _args_list |> pat_args
     in
@@ -619,12 +620,12 @@ module Rpc = struct
     expr_mapper _args_list [@metaloc loc]
 
   let generate_server_struct_item rpc_type stri =
-    let loc = stri.pstr_loc in
+    (*let loc = stri.pstr_loc in*)
     match stri with
     | [%stri
         let [%p? {ppat_desc= Ppat_var ident} as pattern] =
           [%e? {pexp_desc= Pexp_fun (label, None, _, expr')}]] ->
-        let args_list = args_parser expr' [] in
+        let args_list,loc = args_parser expr' [] in
         let _args =
           List.map (fun (pattern, _, _) -> pattern) args_list |> pat_args
         in
