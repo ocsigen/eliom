@@ -283,9 +283,11 @@ struct
         (Eliom_common.force_lazy_site_value fallback_global_service)
       handle_request
 
-  let get_service () =
+  let get_service =
+    let queue = ref [] in
+    fun () ->
     Eliom_comet_base.Comet_service
-      (Eliom_common.force_lazy_site_value global_service)
+      (Eliom_common.force_lazy_site_value global_service, queue)
 
   let get_id {ch_id} = ch_id
 
@@ -568,7 +570,7 @@ end = struct
         Lwt.return (encode_downgoing [])
     in
     let
-      {hd_service = Eliom_comet_base.Internal_comet_service service} =
+      {hd_service = Eliom_comet_base.Internal_comet_service (service, _)} =
       handler
     in
     Comet.register ~scope:handler.hd_scope ~service f
@@ -626,7 +628,7 @@ end = struct
                    (Eliom_common.force_lazy_site_value
                       fallback_service)
                  (*~name:"comet" (* CCC faut il mettre un nom ? *)*)
-                 ())
+                 (),  ref [])
           in
           let hd_update_streams,hd_update_streams_w = Lwt.task () in
           let handler = {
@@ -700,8 +702,8 @@ end = struct
     ch_id
 
   let get_service {ch_handler} =
-    let {hd_service = Ecb.Internal_comet_service srv} = ch_handler in
-    Ecb.Comet_service srv
+    let {hd_service = Ecb.Internal_comet_service (srv, queue)} = ch_handler in
+    Ecb.Comet_service (srv, queue)
 
 end
 
@@ -864,7 +866,7 @@ end = struct
     in
     let last = if newest then None else Some history in
     { channel = External (Eliom_comet_base.Stateless_channel
-                            (Eliom_comet_base.Comet_service service,
+                            (Eliom_comet_base.Comet_service (service, ref []),
                              Stateless.chan_id_of_string name,
                              Eliom_comet_base.Last_kind last));
       channel_mark = channel_mark () }

@@ -376,9 +376,23 @@ struct
     (min max_delay (initial_delay *. (multiplier ** float i)))
      *. (1. +. jitter *. (Random.float 2. -. 1.))
 
-  let call_service_after_load_end service p1 p2 =
-    let%lwt () = Eliom_client.wait_load_end () in
-    Eliom_client.call_service service p1 p2
+  let call_service_after_load_end service queue p =
+    match p with
+    | (_, Ecb.Stateful (Ecb.Commands commands)) ->
+       queue := List.rev_append (Array.to_list commands) !queue;
+       let%lwt () = Eliom_client.wait_load_end () in
+       let q = !queue in
+       if q <> [] then (
+         queue := [];
+Firebug.console##log (List.length q);
+         Eliom_client.call_service service
+           () (false,
+               Ecb.Stateful (Ecb.Commands (Array.of_list (List.rev q))))
+       ) else
+         Lwt.return ""
+    | _ ->
+       let%lwt () = Eliom_client.wait_load_end () in
+       Eliom_client.call_service service () p
 
   let make_request hd =
     match hd.hd_state with
@@ -453,7 +467,7 @@ struct
         raise (Comet_error ("update_stateless_state on stateful one"))
 
   let call_service
-      ({ hd_activity; hd_service = Ecb.Comet_service srv } as hd) =
+      ({ hd_activity; hd_service = Ecb.Comet_service (srv, queue) } as hd) =
     let%lwt () =
       Configuration.sleep_before_next_request
         (fun () -> hd_activity.focused)
@@ -463,7 +477,7 @@ struct
     let request = make_request hd in
     let%lwt s =
       call_service_after_load_end
-        srv () (hd_activity.active = `Idle, request) in
+        srv queue (hd_activity.active = `Idle, request) in
     Lwt.return (Deriving_Json.from_string Ecb.answer_json s)
 
   let drop_message_index =
@@ -539,10 +553,10 @@ struct
     update_activity hd;
     aux 0
 
-  let call_commands {hd_service = Ecb.Comet_service srv} command =
+  let call_commands {hd_service = Ecb.Comet_service (srv, queue)} command =
     ignore
       (try%lwt
-         call_service_after_load_end srv ()
+         call_service_after_load_end srv queue
            (false, Ecb.Stateful (Ecb.Commands command))
        with
        | exn ->

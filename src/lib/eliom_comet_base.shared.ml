@@ -72,7 +72,7 @@ type comet_service =
        [ `One of bool ] Eliom_parameter.param_name *
        [ `One of comet_request Eliom_parameter.ocaml ]
          Eliom_parameter.param_name,
-       Eliom_service.non_ocaml) Eliom_service.t ->
+       Eliom_service.non_ocaml) Eliom_service.t * command list ref ->
     comet_service
 
 type internal_comet_service =
@@ -83,7 +83,7 @@ type internal_comet_service =
        [ `One of bool ] Eliom_parameter.param_name *
        [ `One of comet_request Eliom_parameter.ocaml ]
          Eliom_parameter.param_name,
-       Eliom_service.non_ocaml) Eliom_service.t ->
+       Eliom_service.non_ocaml) Eliom_service.t * command list ref ->
     internal_comet_service
 
 type stateless_kind =
