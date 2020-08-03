@@ -289,7 +289,8 @@ module Context = struct
   let rpc_of_string = function
     | "crpc"-> `Connected_rpc
     | "crpc_opt" -> `Connected_rpc_o
-    | "rpc"-> `Connected_wrapper
+    | "cw_rpc"-> `Connected_wrapper
+    | "rpc" -> `Eliom_rpc
     | _-> invalid_arg "Eliom ppx: Not a context"
 
   type escape_inject = [
@@ -534,6 +535,25 @@ module Rpc = struct
           print_error ~loc:e.pexp_loc No_arguments
       | arg_list ->
           List.rev arg_list, loc )
+  
+  let eliom_rpc_expression ~loc (rpc_name, fun_name, args_list, _pat_of_args, _typ_of_args, _expr_of_args)=
+    let apply =
+      apply_function_expr ~loc fun_name
+        (List.map
+           (fun (pattern, _, label) -> (label, pat_to_exp pattern))
+           args_list)
+    in
+    let aux_apply =
+      apply_function_expr ~loc "aux" [(Asttypes.Nolabel, _expr_of_args)]
+    in
+    [%expr
+      let aux =
+        ~%(Eliom_client.server_function ~name:[%e rpc_name]
+             [%json: [%t _typ_of_args]]
+              (fun [%p _pat_of_args] ->
+                  [%e apply]))
+      in
+      [%e aux_apply]]
 
   let connected_wrapper ~loc (rpc_name, fun_name, args_list, _pat_of_args, _typ_of_args, _expr_of_args) =
     let apply =
@@ -620,7 +640,6 @@ module Rpc = struct
     expr_mapper _args_list [@metaloc loc]
 
   let generate_server_struct_item rpc_type stri =
-    (*let loc = stri.pstr_loc in*)
     match stri with
     | [%stri
         let [%p? {ppat_desc= Ppat_var ident} as pattern] =
@@ -658,6 +677,14 @@ module Rpc = struct
     let loc = stri.pstr_loc in
    
        match rpc_type with
+      | `Eliom_rpc ->
+        begin match stri with 
+        | [%stri
+        let [%p? pattern] = [%e? expr]] ->
+        ([[%stri let [%p pattern] = [%e generate_client_expression pattern expr eliom_rpc_expression]][@metaloc loc]]) 
+        | _ -> (
+        ([stri] [@metaloc loc]) )
+      end 
       | `Connected_wrapper ->
         begin match stri with 
         | [%stri
@@ -681,7 +708,7 @@ module Rpc = struct
         ([[%stri let [%p pattern] = [%e generate_client_expression pattern expr' (connected_rpc_o ~id ~label)]][@metaloc loc]])    
         |    _ -> (
         ([stri] [@metaloc loc]) )
-      end   
+      end
       | _ ->
           print_error ~loc Fatal_error 
 end
@@ -879,7 +906,7 @@ module Make (Pass : Pass) = struct
         let l = flatmap (dispatch_str c mapper) strs in
         maybe_reset_injected_idents c ; l
       | Pstr_extension (({txt}, PStr strs), _) 
-        when is_annotation txt ["rpc"; "crpc" ;"crpc_opt"] ->
+        when is_annotation txt ["cw_rpc"; "crpc" ;"crpc_opt";"rpc"] ->
         let rpc_type = Context.rpc_of_string txt in 
         let c = `Server in
         let l = flatmap (dispatch_str c mapper) strs in 
@@ -888,18 +915,13 @@ module Make (Pass : Pass) = struct
           flatmap (dispatch_str c mapper)
             (flatmap (Rpc.generate_client_struct_item rpc_type) strs) 
         in 
-        let l''= if rpc_type !=`Connected_wrapper
+        let l''= if (rpc_type =`Connected_rpc || rpc_type =`Connected_rpc_o)
         then let c = `Server in 
               flatmap (dispatch_str c mapper)
             (flatmap (Rpc.generate_server_struct_item rpc_type) strs)
         else [] 
         in
         let list = List.flatten [l;l';l''] in
-        (*let migrate =
-          Versions.migrate (module OCaml_408) (module OCaml_current)
-        in
-        Format.eprintf "%s@." @@ Pprintast.string_of_structure 
-        @@ migrate.Versions.copy_structure list ;*)
         maybe_reset_injected_idents c ;
         list
       | _ ->
