@@ -675,42 +675,26 @@ module Rpc = struct
 
   let generate_client_struct_item rpc_type stri =
     let loc = stri.pstr_loc in
-   
-       match rpc_type with
-      | `Eliom_rpc ->
-        begin match stri with 
-        | [%stri
-        let [%p? pattern] = [%e? expr]] ->
-        ([[%stri let [%p pattern] = [%e generate_client_expression pattern expr eliom_rpc_expression]][@metaloc loc]]) 
-        | _ -> (
-        ([stri] [@metaloc loc]) )
-      end 
-      | `Connected_wrapper ->
-        begin match stri with 
-        | [%stri
-        let [%p? pattern] = [%e? expr]] ->
-        ([[%stri let [%p pattern] = [%e generate_client_expression pattern expr connected_wrapper]][@metaloc loc]]) 
-        | _ -> (
-        ([stri] [@metaloc loc]) )
-      end 
-      | `Connected_rpc ->
-        begin match stri with 
-        |[%stri
-        let [%p? pattern] = [%e? {pexp_desc= Pexp_fun (label, None, id, expr')}]] ->
-        ([[%stri let [%p pattern] = [%e generate_client_expression pattern expr' (connected_rpc ~id ~label)]][@metaloc loc]]) 
-        |_ -> (
-        ([stri] [@metaloc loc]) )
-      end 
-      | `Connected_rpc_o ->
-        begin match stri with 
-        |[%stri
-        let [%p? pattern] = [%e? {pexp_desc= Pexp_fun (label, None, id, expr')}]] ->
-        ([[%stri let [%p pattern] = [%e generate_client_expression pattern expr' (connected_rpc_o ~id ~label)]][@metaloc loc]])    
-        |    _ -> (
-        ([stri] [@metaloc loc]) )
-      end
-      | _ ->
-          print_error ~loc Fatal_error 
+    let pattern, expr =
+      match rpc_type, stri with
+      | `Eliom_rpc, [%stri let [%p? pattern] = [%e? expr]] ->
+        pattern, generate_client_expression pattern expr eliom_rpc_expression
+      | `Connected_wrapper, [%stri let [%p? pattern] = [%e? expr]] ->
+        pattern, generate_client_expression pattern expr connected_wrapper
+      | `Connected_rpc, [%stri
+          let [%p? pattern] =
+            [%e? {pexp_desc= Pexp_fun (label, None, id, expr')}]]
+        ->
+        (pattern
+        , generate_client_expression pattern expr' (connected_rpc ~id ~label))
+      | `Connected_rpc_o, [%stri
+          let [%p? pattern] =
+            [%e? {pexp_desc= Pexp_fun (label, None, id, expr')}] ]
+        ->
+        (pattern, generate_client_expression pattern expr'
+           (connected_rpc_o ~id ~label))
+      | _ -> print_error ~loc Fatal_error
+    in [[%stri let [%p pattern] = [%e expr]][@metaloc loc]]
 end
 
 module Shared = struct
