@@ -1,2 +1,0 @@
-=~Ppx syntax
-==[[ppx/Ppx_eliom|Ppx_eliom]]

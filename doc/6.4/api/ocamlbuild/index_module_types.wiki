@@ -1,5 +1,0 @@
-=Index of module types=
-
-|@@ @style="tet-align: left;"@@\\E|
-|@@class="odocwiki_index"@ @@<<a_api subproject="ocamlbuild" text="ELIOM"| module type Ocamlbuild_eliom.ELIOM >> ~[<<a_api subproject="ocamlbuild" | module Ocamlbuild_eliom >>~]||
-\\

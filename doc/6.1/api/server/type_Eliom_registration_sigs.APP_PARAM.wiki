@@ -1,4 +1,0 @@
-<<code language="ocaml" | sig
-  val application_name : string
-  val global_data_path : string list option
-end >>

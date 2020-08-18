@@ -1,4 +1,0 @@
-<<code language="ocaml" | sig
-  type t = Generating | Active | Cached | Dead
-  val to_string : Eliom_client_core.Page_status_t.t -> string
-end >>
