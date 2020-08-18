@@ -546,14 +546,14 @@ module Rpc = struct
     let aux_apply =
       apply_function_expr ~loc "aux" [(Asttypes.Nolabel, _expr_of_args)]
     in
-    [%expr
-      let aux =
+    let inject =
+      [%expr
         ~%(Eliom_client.server_function ~name:[%e rpc_name]
              [%json: [%t _typ_of_args]]
               (fun [%p _pat_of_args] ->
                   [%e apply]))
-      in
-      [%e aux_apply]]
+      ][@metaloc loc]
+    in [%expr let aux = [%e inject] in [%e aux_apply]]
 
   let connected_wrapper ~loc (rpc_name, fun_name, args_list, _pat_of_args, _typ_of_args, _expr_of_args) =
     let apply =
@@ -565,14 +565,15 @@ module Rpc = struct
     let aux_apply =
       apply_function_expr ~loc "aux" [(Asttypes.Nolabel, _expr_of_args)]
     in
-    [%expr
-      let aux =
+    let inject =
+      [%expr
         ~%(Eliom_client.server_function ~name:[%e rpc_name]
              [%json: [%t _typ_of_args]]
              (Os_session.connected_wrapper (fun [%p _pat_of_args] ->
                   [%e apply])))
-      in
-      [%e aux_apply]]
+      ][@metaloc loc]
+    in
+    [%expr let aux = [%e inject] in [%e aux_apply]]
 
   let connected_rpc ~id ~label ~loc (rpc_name,fun_name, args_list, _pat_of_args, _typ_of_args, _expr_of_args) =
     let apply =
@@ -585,16 +586,16 @@ module Rpc = struct
     let aux_apply =
       apply_function_expr ~loc "aux" [(Asttypes.Nolabel, _expr_of_args)]
     in
-    [%expr
-      let aux =
-        ~%(Eliom_client.server_function ~name:[%e rpc_name]
-             [%json: [%t _typ_of_args]]
-             (Os_session.connected_rpc (fun [%p id] [%p _pat_of_args] ->
-                  [%e apply])))
-      in
-      [%e aux_apply]]
+    let inject = [%expr
+      ~%(Eliom_client.server_function ~name:[%e rpc_name]
+           [%json: [%t _typ_of_args]]
+           (Os_session.connected_rpc (fun [%p id] [%p _pat_of_args] ->
+              [%e apply])))
+      ][@metaloc loc]
+    in [%expr let aux = [%e inject] in [%e aux_apply]]
 
   let connected_rpc_o ~id ~label ~loc (rpc_name, fun_name, args_list, _pat_of_args, _typ_of_args, _expr_of_args)
+
       =
     let apply =
       apply_function_expr ~loc fun_name
@@ -606,14 +607,14 @@ module Rpc = struct
     let aux_apply =
       apply_function_expr ~loc "aux" [(Asttypes.Nolabel, _expr_of_args)]
     in
-    [%expr
-      let aux =
+    let inject =
+      [%expr
         ~%(Eliom_client.server_function ~name:[%e rpc_name]
              [%json: [%t _typ_of_args]]
              (Os_session.Opt.connected_rpc (fun [%p id] [%p _pat_of_args] ->
                   [%e apply])))
-      in
-      [%e aux_apply]]
+    ][@metaloc loc]
+    in [%expr let aux = [%e inject] in [%e aux_apply]]
 
   let generate_client_expression fun_name_pattern expr apply_rpc =
     let _args_list,loc = args_parser  expr [] in
