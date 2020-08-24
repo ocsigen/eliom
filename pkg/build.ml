@@ -42,7 +42,8 @@ let nothing =
   then "-nothing-should-be-rebuilt"
   else ""
 
-let builder = `Other ("_build/build/build.native","_build")
+let best = if Env.native then "native" else "byte"
+let builder = `Other ("_build/build/build." ^ best,"_build")
 
 let with_man3 = Env.bool "manpage"
 

@@ -1,6 +1,8 @@
 open Ocamlbuild_plugin
 module Pack = Ocamlbuild_pack
 
+let best = if Sys.command "command -v ocamlopt > /dev/null" = 0 then "native" else "byte"
+
 module Conf = struct
   let server_dir = "server"
   let client_dir = "client"
@@ -10,8 +12,8 @@ end
 module Intern = struct
 
   let with_eliom_ppx = Some begin function
-    | `Client -> "src/ppx/ppx_eliom_client_ex.native"
-    | `Server -> "src/ppx/ppx_eliom_server_ex.native"
+    | `Client -> "src/ppx/ppx_eliom_client_ex." ^ best
+    | `Server -> "src/ppx/ppx_eliom_server_ex." ^ best
   end
 
   let with_package = function
@@ -46,10 +48,10 @@ let _ = dispatch (fun x ->
       let bytes_dep = Findlib.(link_flags_byte [query "bytes"]) in
       (* hack : not dep when "compile" to avoid the extension syntax to be link with binaries *)
       (* the dep with ocamldep make sure the extension syntax is compiled before *)
-      flag ["ocaml";"compile";"pkg_"^name] (S [A "-ppx" ;P (path ^ name ^ "_ex.native") ]);
-      flag_and_dep ["ocaml";"ocamldep";"pkg_"^name] (S [A "-ppx" ;P (path ^ name ^ "_ex.native") ]);
-      flag_and_dep ["ocaml";"infer_interface";"pkg_"^name] (S [A "-ppx" ;P (path ^ name ^ "_ex.native") ]);
-      flag_and_dep ["doc";"pkg_"^name] (S [A "-ppx" ;P (path ^ name ^ "_ex.native") ]) in
+      flag ["ocaml";"compile";"pkg_"^name] (S [A "-ppx" ;P (path ^ name ^ "_ex." ^ best) ]);
+      flag_and_dep ["ocaml";"ocamldep";"pkg_"^name] (S [A "-ppx" ;P (path ^ name ^ "_ex." ^ best) ]);
+      flag_and_dep ["ocaml";"infer_interface";"pkg_"^name] (S [A "-ppx" ;P (path ^ name ^ "_ex." ^ best) ]);
+      flag_and_dep ["doc";"pkg_"^name] (S [A "-ppx" ;P (path ^ name ^ "_ex." ^ best) ]) in
 
     add_syntax "ppx_eliom_utils" "src/ppx/";
     add_syntax "ppx_eliom_types" "src/ppx/";

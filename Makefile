@@ -1,17 +1,20 @@
 ### Building
-BUILDER=_build/build/build.native
+BEST=$(if $(shell command -v ocamlopt),native,byte)
+BUILDER=_build/build/build.$(BEST)
 BUILD=ocaml pkg/build.ml
 
-.PHONY: all byte opt builder
-all: $(BUILDER)
-	$(BUILD) manpage=false native=true native-dynlink=true
+.PHONY: all byte native builder
+all: $(BEST)
+
 byte: $(BUILDER)
+	# strange, see https://sympa.inria.fr/sympa/arc/ocsigen/2016-01/msg00016.html
+	$(BUILDER) src/lib/server/eliommod_sessiongroups.cmi
 	$(BUILD) manpage=false native=false native-dynlink=false
-opt: $(BUILDER)
+native: $(BUILDER)
 	$(BUILD) manpage=false native=true native-dynlink=true
 
 $(BUILDER): $(wildcard build/*.ml)
-	ocamlbuild -no-plugin -I src/ocamlbuild -no-links -use-ocamlfind build/build.native 1> /dev/null
+	ocamlbuild -no-plugin -I src/ocamlbuild -no-links -use-ocamlfind build/build.$(BEST) 1> /dev/null
 builder: $(BUILDER)
 ### Doc
 .PHONY: doc wikidoc doc man alldoc
