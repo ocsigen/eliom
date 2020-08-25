@@ -345,18 +345,16 @@ struct
           `Idle
 
   let activate hd =
-    if hd.hd_activity.active = `Inactive then begin
-      (* Set initial visibility status *)
-      if
-        hd.hd_activity.focused = None &&
-        document_hidden ()
-      then
+    (* Make sure visibility status is up to date *)
+    if document_hidden () then begin
+      if hd.hd_activity.focused = None then
         hd.hd_activity.focused <-
           Some ((new%js Js.date_now)##getTime
                 -. (Configuration.get ()).Configuration.time_after_unfocus
-                   *. 1000.);
-      set_activity hd (expected_activity hd)
-    end
+                   *. 1000.)
+    end else
+      hd.hd_activity.focused <- None;
+    set_activity hd (expected_activity hd)
 
   let restart hd =
     let act = hd.hd_activity in
