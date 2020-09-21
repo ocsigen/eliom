@@ -133,6 +133,8 @@ module Make (A : ARG) : S
      its client side counterpart,
      and the server side function to trigger it. *)
   let notif_e : notification_react Eliom_reference.Volatile.eref =
+    let counter = ref 0 in
+    let i = ref 0 in
     Eliom_reference.Volatile.eref_from_fun
       ~scope:Eliom_common.default_process_scope
       (fun () ->
@@ -144,6 +146,10 @@ module Make (A : ARG) : S
              ~scope:Eliom_common.default_process_scope
              e
          in
+         incr counter;
+         incr i;
+         if !i mod 100 = 0 then Format.eprintf "NOTIFS: %d@." !counter;
+         Gc.finalise_last (fun () -> decr counter) send_e;
          (client_ev, send_e))
 
   let set_identity identity =
