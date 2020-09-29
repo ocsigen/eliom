@@ -1,5 +1,5 @@
 ### Building
-BEST=$(if $(shell command -v ocamlopt),native,byte)
+BEST=$(if $(shell command -v ocamlopt 2> /dev/null),native,byte)
 BUILDER=_build/build/build.$(BEST)
 BUILD=ocaml pkg/build.ml
 
