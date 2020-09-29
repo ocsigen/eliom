@@ -231,10 +231,10 @@ struct
             Idle means that the window is not active but we want to
             keep updated from time to time. *)
         mutable focused : float option;
-        (** [focused] is None when the page is focused and Some [t]
-            when the page lost focus at time [t] (in ms) *)
+        (** [focused] is None when the page is visible and Some [t]
+            when the page became hidden at time [t] (in ms) *)
         mutable active_waiter : unit Lwt.t;
-        (** [active_waiter] terminates when the page get focused *)
+        (** [active_waiter] terminates when the page get visible *)
         mutable active_wakener : unit Lwt.u;
         mutable restart_waiter : Ecb.answer Lwt.t;
         mutable restart_wakener : Ecb.answer Lwt.u;
@@ -277,10 +277,6 @@ struct
     let listener = Dom_html.handler (fun _ -> f (); Js._true) in
     ignore @@ Dom_html.(addEventListener target event listener Js._false)
 
-  let add_focus_listener f = Dom_html.(add_listener window Event.focus f)
-
-  let add_blur_listener f = Dom_html.(add_listener window Event.blur f)
-
   let add_visibility_change_listener f =
     Dom_html.(add_listener document (Event.make "visibilitychange") f)
 
@@ -304,15 +300,10 @@ struct
     Js.Optdef.case (Js.Unsafe.global##.document##.hidden)
       (fun () -> false) Js.to_bool
 
-  let has_focus () =
-    not (Js.Optdef.test (Js.Unsafe.global##.document##.hasFocus))
-      ||
-    Js.to_bool (Js.Unsafe.global##.document##hasFocus)
-
-  (** register callbacks to 'blur' and 'focus' events of the root
+  (** register callbacks to 'visibility' events of the root
       window. That way, we can tell when the client is active or not and do
       calls to the server only if it is active *)
-  let handle_focus handler =
+  let handle_visibility handler =
     let resume_activity () =
       if handler.hd_activity.focused <> None then begin
         handler.hd_activity.focused <- None;
@@ -324,18 +315,12 @@ struct
         handler.hd_activity.focused <-
           Some (new%js Js.date_now)##getTime
     in
-    let focus_callback () =
-      if not (document_hidden ()) then resume_activity ()
-    in
-    let blur_callback = suspend_activity in
     let visibility_change_callback () =
       if document_hidden () then
         suspend_activity ()
       else
-        if has_focus () then resume_activity ()
+        resume_activity ()
     in
-    add_focus_listener focus_callback;
-    add_blur_listener blur_callback;
     add_visibility_change_listener visibility_change_callback
 
   let expected_activity hd =
@@ -360,18 +345,16 @@ struct
           `Idle
 
   let activate hd =
-    if hd.hd_activity.active = `Inactive then begin
-      (* Set initial focus status *)
-      if
-        hd.hd_activity.focused = None &&
-        (document_hidden () || not (has_focus ()))
-      then
+    (* Make sure visibility status is up to date *)
+    if document_hidden () then begin
+      if hd.hd_activity.focused = None then
         hd.hd_activity.focused <-
           Some ((new%js Js.date_now)##getTime
                 -. (Configuration.get ()).Configuration.time_after_unfocus
-                   *. 1000.);
-      set_activity hd (expected_activity hd)
-    end
+                   *. 1000.)
+    end else
+      hd.hd_activity.focused <- None;
+    set_activity hd (expected_activity hd)
 
   let restart hd =
     let act = hd.hd_activity in
@@ -641,7 +624,7 @@ struct
       hd_kind;
       hd_activity = init_activity ();
     } in
-    handle_focus hd;
+    handle_visibility hd;
     hd
 
 end
