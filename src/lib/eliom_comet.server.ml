@@ -363,9 +363,8 @@ end = struct
         (** streams that are created on the server side, but client did not register *)
         mutable hd_registered_chan_id : chan_id list;
         (** the fusion of all the streams from hd_active_channels *)
-        mutable hd_update_streams : waiter;
-        (** thread that wakeup when there are new active streams. *)
-        mutable hd_update_streams_w : [`Data | `Update] Lwt.u;
+        mutable hd_update_streams_w : [`Data | `Update] Lwt.u option;
+        (** used to signal new data or new active streams. *)
         hd_service : internal_comet_service;
         mutable hd_last : string * int;
         (** the last message sent to the client, if he sends a request
@@ -422,22 +421,22 @@ end = struct
       opened when the client wants to listen to new channels for
       instance. *)
   let new_connection handler =
-    let t,w = Lwt.wait () in
-    let wakener = handler.hd_update_streams_w in
-    handler.hd_update_streams <- t;
-    handler.hd_update_streams_w <- w;
     set_active handler;
-    Lwt.wakeup_exn wakener New_connection
+    match handler.hd_update_streams_w with
+    | None -> ()
+    | Some wakener ->
+       handler.hd_update_streams_w <- None;
+       Lwt.wakeup_exn wakener New_connection
 
   (** called when a new channel is made active. It restarts the thread
       wainting for inputs ( wait_data ) such that it can receive the messages from
       the new channel *)
   let signal_update handler event =
-    let t,w = Lwt.wait () in
-    let wakener = handler.hd_update_streams_w in
-    handler.hd_update_streams <- t;
-    handler.hd_update_streams_w <- w;
-    Lwt.wakeup wakener event
+    match handler.hd_update_streams_w with
+    | None -> ()
+    | Some wakener ->
+       handler.hd_update_streams_w <- None;
+       Lwt.wakeup wakener event
 
   let stream_waiter s =
     Lwt.with_value Eliom_common.sp_key None @@ fun () ->
@@ -480,12 +479,14 @@ end = struct
       registered them *)
   let rec wait_data wait_closed_connection handler =
     match%lwt
+      let hd_update_streams, hd_update_streams_w = Lwt.task () in
+      handler.hd_update_streams_w <- Some hd_update_streams_w;
       Lwt.choose
         (wait_closed_connection ::
-         handler.hd_update_streams ::
+         hd_update_streams ::
          wait_channels handler)
     with
-    | `Data -> Lwt.return_unit
+    | `Data -> handler.hd_update_streams_w <- None; Lwt.return_unit
     | `Update -> wait_data wait_closed_connection handler
 
   let launch_channel handler chan_id channel =
@@ -634,15 +635,13 @@ end = struct
                  (*~name:"comet" (* CCC faut il mettre un nom ? *)*)
                  (),  ref [])
           in
-          let hd_update_streams,hd_update_streams_w = Lwt.task () in
           let handler = {
             hd_scope = scope;
             hd_active_channels = [];
             hd_unregistered_channels = [];
             hd_registered_chan_id = [];
             hd_service;
-            hd_update_streams;
-            hd_update_streams_w;
+            hd_update_streams_w = None;
             hd_last = "", -1;
             hd_activity = Inactive (Unix.gettimeofday ());
           }
