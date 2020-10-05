@@ -50,9 +50,8 @@ struct
         | None -> e
         | Some t -> E.limit (fun () -> Lwt_unix.sleep t) e)
     in
-    let stream =
-      Lwt.with_value Eliom_common.sp_key None @@ fun () -> E.to_stream ee in
-    let channel = Eliom_comet.Channel.create ?scope ?name ?size stream in
+    let channel =
+      Eliom_comet.Channel.create_from_events ?scope ?name ?size ee in
     (channel,Eliom_common.make_unwrapper Eliom_common.react_down_unwrap_id)
 
   let wrap_stateless channel =
@@ -79,8 +78,8 @@ struct
         | None -> e
         | Some t -> E.limit (fun () -> Lwt_unix.sleep t) e)
     in
-    let stream = E.to_stream ee in
-    Stateless (Eliom_comet.Channel.create ~scope:`Site ?name ?size stream)
+    Stateless (Eliom_comet.Channel.create_from_events
+                 ~scope:`Site ?name ?size ee)
 
   let of_react ?scope ?throttling ?name ?size (e : 'a E.t) =
     let t =

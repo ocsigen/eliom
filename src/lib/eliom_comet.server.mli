@@ -74,6 +74,11 @@ module Channel : sig
   val create : ?scope:[< comet_scope ] ->
     ?name:string -> ?size:int -> 'a Lwt_stream.t -> 'a t
 
+  (** [create_from_events e] returns a channel sending the values returned
+      by the event stream [e]. *)
+  val create_from_events : ?scope:[< comet_scope ] ->
+    ?name:string -> ?size:int -> 'a React.event -> 'a t
+
   (** [create_unlimited s] creates a channel which does not read
       immediately on the stream. It is read only when the client
       requests it: use it if the data you send depends on the time of
