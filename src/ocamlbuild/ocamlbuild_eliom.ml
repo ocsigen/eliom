@@ -227,6 +227,10 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
         copy_rule_server ~eliom:false "shared.ml -> server.mli"
           "%(path)/%(file).shared.mli" ("%(path)/" ^ Eliom.server_dir ^ "/%(file:<*>).mli");
 
+        (* Include C stubs in client.cma *)
+        flag ["link"; "eliomstubs"]
+          (S[A"-dllib"; A"-leliom_stubs"; A"-cclib"; A"-leliom_stubs"]);
+        dep ["link"; "eliomstubs"] ["src/lib/client/libeliom_stubs.a"]
     | _ -> ()
 
   let dispatcher ?oasis_executables hook =

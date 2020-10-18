@@ -1,6 +1,6 @@
 // Unmarshall and unwrapping.
 
-//Provides: caml_unwrap_value_from_string mutable
+//Provides: caml_unwrap_value_from_string
 //Requires: caml_failwith, caml_marshal_constants
 //Requires: caml_int64_float_of_bits, caml_int64_of_bytes, caml_new_string
 //Requires: caml_jsbytes_of_string

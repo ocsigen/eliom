@@ -93,6 +93,8 @@ let () =
     Pkg.lib ~dst:"client/client" ~exts:[".cma"] "src/lib/client/client" ::
     Pkg.lib ~dst:"client/eliom_client_main.cmo" "src/lib/client/eliom_client_main.cmo" ::
     Pkg.lib ~dst:"client/eliom_client.js" "src/lib/client/eliom_client.js" ::
+    Pkg.lib ~dst:"client/libeliom_stubs.a" "src/lib/client/libeliom_stubs.a" ::
+    Pkg.stublibs "src/lib/client/dlleliom_stubs.so" ::
     List.map (fun x -> Pkg.lib ~dst:(spf "client/%s" x) (spf "src/lib/client/%s" x)) client_extra
   ) @ (
     (* SERVER LIBS *)
