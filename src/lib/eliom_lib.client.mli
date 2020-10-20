@@ -23,7 +23,7 @@ open Js_of_ocaml
 
 (** See {% <<a_api project="ocsigenserver"| module Ocsigen_lib_base >> %}. *)
 include module type of Ocsigen_lib_base
-  with type poly = Ocsigen_lib.poly
+  with type poly = Ocsigen_lib_base.poly
   and type yesnomaybe = Ocsigen_lib_base.yesnomaybe
   and type ('a, 'b) leftright = ('a, 'b) Ocsigen_lib_base.leftright
   and type 'a Clist.t = 'a Ocsigen_lib_base.Clist.t

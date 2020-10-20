@@ -649,7 +649,7 @@ module ReactiveData = struct
 
     let signal ?eq (s : 'a t) =
       let sv =
-        let eq = Ocsigen_lib.Option.map Value.local eq in
+        let eq = match eq with Some eq -> Some (Value.local eq) | None -> None in
         FakeReactiveData.RList.signal ?eq (Value.local s)
       and cv =
         [%client.unsafe (
@@ -665,7 +665,7 @@ module ReactiveData = struct
 
     let from_signal ?eq (s : 'a list React.S.t) : 'a t =
       let sv =
-        let eq = Ocsigen_lib.Option.map Value.local eq in
+        let eq = match eq with Some eq -> Some (Value.local eq) | None -> None in
         FakeReactiveData.RList.from_signal ?eq (Value.local s)
       and cv =
         [%client.unsafe

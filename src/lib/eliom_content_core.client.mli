@@ -52,7 +52,7 @@ module Xml : sig
         ( [ `A | `Form_get | `Form_post] *
           ((bool * string list) option) *
           string option *
-          Ocsigen_lib.poly (* (unit -> bool) client_value *)
+          Ocsigen_lib_base.poly (* (unit -> bool) client_value *)
         ) option Eliom_lazy.request
 
   type internal_event_handler = Raw of string | Caml of caml_event_handler
