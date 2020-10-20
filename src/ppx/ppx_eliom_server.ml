@@ -27,24 +27,31 @@ open Asttypes
 open Ast_helper
 
 module AC = Ast_convenience_408
-module AM = Ast_mapper
 
 open Ppx_eliom_utils
 
 module Pass = struct
 
+  let one_char_location loc =
+    {loc
+    with Location.loc_end =
+           {loc.Location.loc_start
+            with pos_cnum = loc.Location.loc_start.Lexing.pos_cnum + 1}}
+
   let push_escaped_binding, flush_escaped_bindings =
     let args = ref [] in
-    let push orig_expr id =
-      if List.for_all (function id', _ -> id.txt <> id'.txt) !args then
-        args := (id, orig_expr) :: !args;
+    let push loc orig_expr id =
+      if List.for_all (function _, id', _ -> id.txt <> id'.txt) !args then
+        args := (loc, id, orig_expr) :: !args;
     in
     let flush () =
       let res = List.rev !args in
       args := [];
-      let aux (_, arg) =
-        [%expr Eliom_syntax.escaped_value [%e arg ] ]
-        [@metaloc arg.pexp_loc]
+      let aux (loc, id, arg) =
+        [%expr Eliom_syntax.escaped_value
+            [%e [%expr ((fun x -> x) [%e arg ])]
+                [@metaloc one_char_location loc]]]
+        [@metaloc loc]
       in
       List.map aux res
     in
@@ -53,12 +60,12 @@ module Pass = struct
   module SSet = Set.Make (String)
 
   let push_injection, flush_injections =
-    let buffer : (_ * _ * _) list ref = ref [] in
+    let buffer : (_ * _ * _ * _) list ref = ref [] in
     let gen_ids = ref SSet.empty in
-    let push ?ident id orig_expr =
+    let push loc ?ident id orig_expr =
       if not (SSet.mem id !gen_ids) then
         (gen_ids := SSet.add id !gen_ids;
-         buffer := (id, orig_expr,ident) :: !buffer)
+         buffer := (loc, id, orig_expr,ident) :: !buffer)
     in
     let flush_all () =
       let res = List.rev !buffer in
@@ -70,13 +77,13 @@ module Pass = struct
     let flush () =
       let all = flush_all () in
       let novel =
-        let is_fresh (gen_id, _,_) =
+        let is_fresh (_, gen_id, _,_) =
           not (SSet.mem gen_id !global_known)
         in
         List.filter is_fresh all
       in
       List.iter
-        (function gen_id, _, _ ->
+        (function _, gen_id, _, _ ->
            global_known := SSet.add gen_id !global_known)
         novel;
       all
@@ -90,7 +97,7 @@ module Pass = struct
     assert (injections <> []);
     let bindings =
       List.map
-        (fun (txt, expr,_) ->
+        (fun (_, txt, expr,_) ->
            let loc = expr.pexp_loc in
            Vb.mk ~loc (Pat.var ~loc {txt;loc}) expr)
         injections
@@ -114,7 +121,7 @@ module Pass = struct
     assert (injections <> []) ;
     let injection_list =
       List.fold_right
-        (fun (txt, expr, ident) sofar ->
+        (fun (loc0, txt, expr, ident) sofar ->
            let loc = expr.pexp_loc in
            let loc_expr = position loc in
            let frag_eid = eid {txt;loc} in
@@ -124,7 +131,10 @@ module Pass = struct
            let (_, num) = Mli.get_injected_ident_info txt in
            [%expr
              ([%e AC.int num],
-              Eliom_lib.to_poly [%e frag_eid ],
+              Eliom_lib.to_poly [%e
+                                    [%expr (fun x -> x) [%e frag_eid ]]
+                                    [@metaloc one_char_location loc0]
+                ],
               [%e loc_expr], [%e ident ]) :: [%e sofar ]
            ])
         injections
@@ -168,38 +178,33 @@ module Pass = struct
       cl @
       [ close_client_section loc all_injections ]
 
-  let fragment ?typ ~context:_ ~num ~id expr =
+  let fragment ~loc ?typ ~context:_ ~num ~id _ =
     let typ =
       match typ with
       | Some typ -> typ
-      | None when not (Mli.exists ()) ->
-        [%type: _]
-      | None ->
-        match Mli.find_fragment id with
-        | { ptyp_desc = Ptyp_var _ } ->
-          let loc = expr.pexp_loc in
-          Typ.extension ~loc @@ AM.extension_of_error @@ Location.errorf ~loc
-            "The types of client values must be monomorphic from its usage \
-             or from its type annotation"
-        | typ -> typ
+      | None -> [%type: _]
     in
-    let loc = expr.pexp_loc in
     let e = format_args @@ flush_escaped_bindings () in
     [%expr
-      (Eliom_syntax.client_value
-         ~pos:([%e position loc ])
-         [%e AC.str num ]
-         [%e e ]
-       : [%t typ ] Eliom_client_value.t)
+        (fun x -> (x : _ Eliom_client_value.t :> _ Eliom_client_value.t))
+        [%e
+            [%expr
+                ( (Eliom_syntax.client_value
+                     ~pos:([%e position loc ])
+                     [%e AC.str num ]
+                     [%e e ])
+                  : [%t typ ] Eliom_client_value.t)
+            ][@metaloc one_char_location loc]
+        ]
     ][@metaloc loc]
 
-  let escape_inject ?ident ~(context:Context.escape_inject) ~id expr =
+  let escape_inject ~loc ?ident ~(context:Context.escape_inject) ~id expr =
     match context with
     | `Escaped_value _ ->
-      push_escaped_binding expr id;
+      push_escaped_binding loc expr id;
       [%expr assert false ]
     | `Injection _ ->
-      push_injection ?ident id.txt expr;
+      push_injection loc ?ident id.txt expr;
       eid id
 
   let set_global ~loc b =

@@ -49,6 +49,16 @@ module Mli : sig
 
 end
 
+module Cmo : sig
+
+  val exists : unit -> bool
+
+  val find_escaped_ident : Location.t -> core_type
+  val find_injected_ident : Location.t -> core_type
+  val find_fragment : Location.t -> core_type
+
+end
+
 (** Signature of specific code of a preprocessor. *)
 module type Pass = sig
 
@@ -70,13 +80,13 @@ module type Pass = sig
 
   (** How to handle "[%client ...]" and "[%shared ...]" expr. *)
   val fragment:
-    ?typ:core_type -> context:Context.server ->
+    loc:Location.t -> ?typ:core_type -> context:Context.server ->
     num:string -> id:string Location.loc ->
     expression -> expression
 
   (** How to handle escaped "~%ident" inside a fragment. *)
   val escape_inject:
-    ?ident:string -> context:Context.escape_inject ->
+    loc:Location.t -> ?ident:string -> context:Context.escape_inject ->
     id:string Location.loc ->
     expression -> expression
 
