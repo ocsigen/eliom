@@ -38,7 +38,7 @@ module Client_value_server_repr = struct
   let to_poly v = v
 end
 
-type escaped_value = Ocsigen_lib.poly
+type escaped_value = Ocsigen_lib_base.poly
 
 module RawXML = struct
 
@@ -52,7 +52,7 @@ module RawXML = struct
 
   type caml_event_handler =
     | CE_registered_closure of
-        string * Ocsigen_lib.poly (* 'a Js.t -> unit) client_value *)
+        string * Ocsigen_lib_base.poly (* 'a Js.t -> unit) client_value *)
     | CE_client_closure of
         (Dom_html.event Js.t -> unit) (* Client side-only *)
     | CE_client_closure_mouse of
@@ -65,7 +65,7 @@ module RawXML = struct
         ( [ `A | `Form_get | `Form_post] *
           (cookie_info option) *
           string option *
-          Ocsigen_lib.poly (* (event -> bool) client_value *)
+          Ocsigen_lib_base.poly (* (event -> bool) client_value *)
         ) option Eliom_lazy.request
 
   type internal_event_handler =
@@ -108,7 +108,7 @@ module RawXML = struct
     | RACamlEventHandler of caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
-    | RAClient of string * attrib option * Ocsigen_lib.poly (*attrib client_value *)
+    | RAClient of string * attrib option * Ocsigen_lib_base.poly (*attrib client_value *)
   and attrib = aname * racontent
 
   let aname = function
@@ -156,9 +156,9 @@ module RawXML = struct
   module ClosureMap = Map.Make(struct type t = string let compare = compare end)
 
   type event_handler_table =
-    Ocsigen_lib.poly (* (biggest_event Js.t -> unit) client_value *) ClosureMap.t
+    Ocsigen_lib_base.poly (* (biggest_event Js.t -> unit) client_value *) ClosureMap.t
 
-  type client_attrib_table = Ocsigen_lib.poly (* attrib client_value *) ClosureMap.t
+  type client_attrib_table = Ocsigen_lib_base.poly (* attrib client_value *) ClosureMap.t
 
   let filter_class_value acc = function
     | AStr v ->
@@ -228,14 +228,14 @@ let client_value_unwrap_id_int = 7
 
 type client_value_datum = {
   closure_id : string;
-  args : Ocsigen_lib.poly;
-  value : Ocsigen_lib.poly Client_value_server_repr.t
+  args : Ocsigen_lib_base.poly;
+  value : Ocsigen_lib_base.poly Client_value_server_repr.t
 }
 
 type injection_datum = {
   injection_dbg : (Eliom_lib_base.pos * string option) option;
   injection_id : int;
-  injection_value : Ocsigen_lib.poly;
+  injection_value : Ocsigen_lib_base.poly;
 }
 
 type compilation_unit_global_data = {

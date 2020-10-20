@@ -39,13 +39,13 @@ module Client_value_server_repr : sig
   val instance_id: _ t -> int
   val loc : _ t -> Eliom_lib_base.pos option
   val clear_loc : _ t -> unit
-  val to_poly : _ t -> Ocsigen_lib.poly t
+  val to_poly : _ t -> Ocsigen_lib_base.poly t
 
 end
 
 (** The representation of escaped values (values injected into client
     values) is opaque. *)
-type escaped_value = Ocsigen_lib.poly
+type escaped_value = Ocsigen_lib_base.poly
 
 module RawXML : sig
 
@@ -57,7 +57,7 @@ module RawXML : sig
 
   type caml_event_handler =
     | CE_registered_closure of
-        string * Ocsigen_lib.poly (* 'a Js.t -> unit) client_value *)
+        string * Ocsigen_lib_base.poly (* 'a Js.t -> unit) client_value *)
     | CE_client_closure of
         (Dom_html.event Js.t -> unit) (* Client side-only *)
     | CE_client_closure_mouse of
@@ -70,7 +70,7 @@ module RawXML : sig
         ( [ `A | `Form_get | `Form_post] *
           (cookie_info option) *
           string option *
-          Ocsigen_lib.poly (* (unit -> bool) client_value *)
+          Ocsigen_lib_base.poly (* (unit -> bool) client_value *)
         ) option Eliom_lazy.request
 
   type internal_event_handler =
@@ -119,7 +119,7 @@ module RawXML : sig
     | RACamlEventHandler of caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
-    | RAClient of string * attrib option * Ocsigen_lib.poly
+    | RAClient of string * attrib option * Ocsigen_lib_base.poly
     (* attrib Eliom_client_value.t *)
   and attrib = aname * racontent
 
@@ -152,9 +152,9 @@ module RawXML : sig
   module ClosureMap : Map.S with type key = string (* crypto *)
 
   type event_handler_table =
-    Ocsigen_lib.poly (* (biggest_event Js.t -> unit) client_value*) ClosureMap.t
+    Ocsigen_lib_base.poly (* (biggest_event Js.t -> unit) client_value*) ClosureMap.t
 
-  type client_attrib_table = Ocsigen_lib.poly (* attrib client_value *) ClosureMap.t
+  type client_attrib_table = Ocsigen_lib_base.poly (* attrib client_value *) ClosureMap.t
 
   val filter_class_attribs : node_id -> (string * racontent) list -> (string * racontent) list
 end
@@ -165,15 +165,15 @@ val client_value_unwrap_id_int : int
 (** Data for initializing one client value *)
 type client_value_datum = {
   closure_id : string;
-  args : Ocsigen_lib.poly;
-  value : Ocsigen_lib.poly Client_value_server_repr.t
+  args : Ocsigen_lib_base.poly;
+  value : Ocsigen_lib_base.poly Client_value_server_repr.t
 }
 
 (** Data for initializing one injection *)
 type injection_datum = {
   injection_dbg : (Eliom_lib_base.pos * string option) option;
   injection_id : int;
-  injection_value : Ocsigen_lib.poly;
+  injection_value : Ocsigen_lib_base.poly;
 }
 
 (** Data for initializing client values and injections of one compilation unit *)
