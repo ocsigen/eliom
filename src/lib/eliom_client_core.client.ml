@@ -249,11 +249,14 @@ let check_global_data global_data =
   let missing_client_values = ref [] in
   let missing_injections = ref [] in
   String_map.iter
-    (fun _ { server_section; client_section } ->
+    (fun compilation_unit_id { server_section; client_section } ->
        List.iter
          (fun data ->
             missing_client_values :=
-              List.rev_append (Array.to_list data) !missing_client_values)
+              List.rev_append
+                (List.map (fun cv -> compilation_unit_id, cv)
+                   (Array.to_list data))
+                !missing_client_values)
          server_section;
        List.iter
          (fun data ->
@@ -269,16 +272,19 @@ let check_global_data global_data =
        "Code generating the following client values is not linked on the client:\n%s"
        (String.concat "\n"
           (List.rev_map
-             (fun {Eliom_runtime.closure_id; value} ->
+             (fun (compilation_unit_id, {Eliom_runtime.closure_id; value}) ->
                 let instance_id =
                   Eliom_runtime.Client_value_server_repr.instance_id value
                 in
                 match Eliom_runtime.Client_value_server_repr.loc value
                 with
-                | None -> Printf.sprintf "%s/%d" closure_id instance_id
+                | None ->
+                   Printf.sprintf "%s:%s/%d"
+                     compilation_unit_id closure_id instance_id
                 | Some pos ->
-                  Printf.sprintf "%s/%d at %s" closure_id instance_id
-                    (Eliom_lib.pos_to_string pos)
+                   Printf.sprintf "%s:%s/%d at %s" compilation_unit_id
+                     closure_id instance_id
+                     (Eliom_lib.pos_to_string pos)
              )
              l
           )));
