@@ -203,7 +203,7 @@ module Mli = struct
     in
     (object
       inherit Ppxlib.Ast_traverse.map as super
-      method core_type ty =
+      method! core_type ty =
         match ty.ptyp_desc with
       (* | Ptyp_constr  (_, Ast.TyAny _, ty) *)
       (* | Ptyp_constr (_, ty, Ast.TyAny _) -> ty *)
@@ -648,7 +648,7 @@ module Shared = struct
   let server =
     (object
        inherit Ppxlib.Ast_traverse.map as super
-       method expression expr =
+       method! expression expr =
          match expr with
          | [%expr [%client [%e? _ ]]] -> expr
          | [%expr [%client.unsafe [%e? _ ]]] -> expr
@@ -660,7 +660,7 @@ module Shared = struct
     let context = (ref `Top) in
     (object (self)
        inherit Ppxlib.Ast_traverse.map as super
-       method expression expr =
+       method! expression expr =
          match expr with
          | [%expr [%client [%e? fragment_expr ]]]
            | [%expr [%client.unsafe [%e? fragment_expr ]]] ->
@@ -696,7 +696,7 @@ module Make (Pass : Pass) = struct
     let context = ref (context :> Context.t) in
     (object (self)
       inherit Ppxlib.Ast_traverse.map as super
-      method expression expr =
+      method! expression expr =
         let loc = expr.pexp_loc in
         let attr = expr.pexp_attributes in
         match expr, !context with
@@ -789,7 +789,7 @@ module Make (Pass : Pass) = struct
            end
         | _ -> super#expression expr
 
-  method structure_item str =
+  method! structure_item str =
     let loc = str.pstr_loc in
     match str.pstr_desc with
     | Pstr_extension (({txt=("server"|"shared"|"client")}, _), _) ->
@@ -797,7 +797,7 @@ module Make (Pass : Pass) = struct
         "Sections are only allowed at toplevel."
     | _ -> super#structure_item str
 
-  method signature_item sig_ =
+  method! signature_item sig_ =
     let loc = sig_.psig_loc in
     match sig_.psig_desc with
     | Psig_extension (({txt=("server"|"shared"|"client")}, _), _) ->
@@ -898,8 +898,8 @@ module Make (Pass : Pass) = struct
     let c = ref `Server in
     object
       inherit Ppxlib.Ast_traverse.map
-      method structure s = toplevel_structure c s
-      method signature s = toplevel_signature c s
+      method! structure s = toplevel_structure c s
+      method! signature s = toplevel_signature c s
     end
 
 end

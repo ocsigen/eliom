@@ -69,10 +69,6 @@ let get_all_current_get_params () =
   let sp = Eliom_common.get_sp () in
   get_all_current_get_params_sp sp
 
-let get_get_params_string () =
-  let sp = Eliom_common.get_sp () in
-  Ocsigen_request.query sp.Eliom_common.sp_request.request_info
-
 let get_post_params_sp sp =
   Ocsigen_request.post_params
     sp.Eliom_common.sp_request.request_info
@@ -118,10 +114,6 @@ let get_original_full_path_sp sp =
 let get_original_full_path () =
   let sp = Eliom_common.get_sp () in
   get_original_full_path_sp sp
-
-let get_current_path_string () =
-  let sp = Eliom_common.get_sp () in
-  Ocsigen_request.path_string sp.Eliom_common.sp_request.request_info
 
 let get_current_sub_path () =
   let sp = Eliom_common.get_sp () in

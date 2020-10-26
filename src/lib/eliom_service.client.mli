@@ -46,3 +46,5 @@ val pre_applied_parameters :
 val reload_fun :
   ('a, _, _, _, _, _, _, _, _, _, _) t ->
   ('a -> unit -> result Lwt.t) Eliom_client_value.t option
+
+module Cohttp: sig module Header : sig type t end end

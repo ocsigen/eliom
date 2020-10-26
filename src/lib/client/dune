@@ -1,0 +1,20 @@
+(library
+  (name eliom_client)
+  (public_name eliom.client)
+  (wrapped false)
+  (modules_without_implementation eliom_content_sigs eliom_form_sigs
+   eliom_parameter_sigs eliom_registration_sigs eliom_service_sigs
+   eliom_shared_sigs eliom_wrap)
+  (preprocess (pps lwt_ppx js_of_ocaml-ppx js_of_ocaml-ppx_deriving_json))
+  (libraries ocsigenserver.cookies ocsigenserver.polytables js_of_ocaml
+             js_of_ocaml-tyxml js_of_ocaml-lwt js_of_ocaml-lwt.logger
+             lwt_react ocsigenserver.baselib.base cohttp tyxml
+             reactiveData)
+  (foreign_stubs (language c) (names eliom_stubs))
+  (js_of_ocaml (javascript_files eliom_client.js)))
+
+(include dune.client)
+
+(env
+ (_
+  (flags (:standard -w -9 -warn-error -6-16-22-27-32-37-39))))

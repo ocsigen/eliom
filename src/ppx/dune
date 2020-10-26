@@ -1,0 +1,59 @@
+(library
+  (name ppx_server)
+  (public_name eliom.ppx.server)
+  (wrapped false)
+  (kind ppx_rewriter)
+  (modules ppx_eliom_server)
+  (preprocess (pps ppxlib.metaquot))
+  (libraries ppx_utils))
+
+(library
+  (name ppx_client)
+  (public_name eliom.ppx.client)
+  (wrapped false)
+  (kind ppx_rewriter)
+  (modules ppx_eliom_client)
+  (preprocess (pps ppxlib.metaquot))
+  (libraries ppx_utils))
+
+(library
+  (name ppx_type)
+  (wrapped false)
+  (public_name eliom.ppx.type)
+  (kind ppx_rewriter)
+  (modules ppx_eliom_type)
+  (preprocess (pps ppxlib.metaquot))
+  (libraries ppx_utils))
+
+(library
+  (name ppx_utils)
+  (public_name eliom.ppx.utils)
+  (wrapped false)
+  (modules ppx_eliom_utils)
+  (preprocess (pps ppxlib.metaquot))
+  (libraries ppxlib))
+
+(executable
+  (name ppx_eliom_server_ex)
+  (public_name ppx_eliom_server)
+  (libraries ppx_server)
+  (preprocess (pps ppxlib.metaquot))
+  (modules ppx_eliom_server_ex))
+
+(executable
+  (name ppx_eliom_client_ex)
+  (public_name ppx_eliom_client)
+  (libraries ppx_client)
+  (preprocess (pps ppxlib.metaquot))
+  (modules ppx_eliom_client_ex))
+
+(executable
+  (name ppx_eliom_types_ex)
+  (public_name ppx_eliom_types)
+  (libraries ppx_type)
+  (preprocess (pps ppxlib.metaquot))
+  (modules ppx_eliom_types_ex))
+
+(env
+ (_
+  (flags (:standard -w -9 -warn-error -3-6))))

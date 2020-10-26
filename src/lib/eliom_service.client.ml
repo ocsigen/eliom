@@ -68,3 +68,5 @@ let register_delayed_get_or_na_coservice ~sp s =
 
 let register_delayed_post_coservice  ~sp s getname =
   failwith "CSRF coservice not implemented client side for now"
+
+module Cohttp = struct module Header = struct type t end end

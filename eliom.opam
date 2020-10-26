@@ -15,7 +15,10 @@ homepage: "http://ocsigen.org/eliom/"
 bug-reports: "https://github.com/ocsigen/eliom/issues/"
 license: "LGPL-2.1-only WITH OCaml-LGPL-linking-exception"
 dev-repo: "git+https://github.com/ocsigen/eliom.git"
-build: [make]
+build: [
+  ["make" "gen-dune"]
+  ["dune" "build" "-p" name "-j" jobs]
+]
 depends: [
   "ocaml" {>= "4.08.0"}
   "ocamlfind"

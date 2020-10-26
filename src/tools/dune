@@ -1,0 +1,14 @@
+(executables
+   (names eliomc eliomdep eliomdoc eliompp distillery)
+   (public_names eliomc eliomdep eliomdoc eliompp eliom-distillery)
+   (libraries str unix findlib))
+
+(ocamllex eliompp_lexer)
+
+(install
+ (section bin)
+ (files (eliomc.exe as eliomopt) (eliomc.exe as eliomcp)
+        (eliomc.exe as js_of_eliom)))
+(env
+ (_
+  (flags (:standard -w -9 -warn-error -27))))

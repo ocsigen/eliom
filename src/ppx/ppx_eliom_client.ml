@@ -17,7 +17,7 @@ module Pass = struct
   let map_get_escaped_values expr =
     (object
        inherit Ppxlib.Ast_traverse.map as super
-       method expression e =
+       method! expression e =
          match e.pexp_desc with
          | Pexp_ident {txt}
               when Mli.is_escaped_ident @@ Longident.last_exn txt ->
@@ -224,7 +224,7 @@ module Pass = struct
   let check_no_variable =
     (object
        inherit Ppxlib.Ast_traverse.map as super
-       method core_type typ =
+       method! core_type typ =
          match typ with
          | {ptyp_desc = Ptyp_var _ ; ptyp_loc = loc} ->
             let attr =

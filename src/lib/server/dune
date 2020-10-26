@@ -1,0 +1,26 @@
+(library
+  (name eliom_server)
+  (public_name eliom.server)
+  (wrapped false)
+  (modules_without_implementation eliom_content_sigs eliom_form_sigs
+   eliom_parameter_sigs eliom_registration_sigs eliom_service_sigs
+   eliom_shared_sigs)
+  (preprocess (pps lwt_ppx js_of_ocaml-ppx_deriving_json))
+  (flags (:standard (:include type_includes)))
+  (libraries lwt_react ocsigenserver ocsipersist tyxml))
+
+(include dune.server)
+
+(rule (target includes)
+  (action
+    (with-stdout-to %{target}
+      (system "ocamlfind query -r -i-format lwt_react,ocsigenserver,ocsigenserver.ext,js_of_ocaml,tyxml | tr ' ' '\n'"))))
+
+(rule (target type_includes)
+  (action
+    (with-stdout-to %{target}
+      (system "echo -n '('; ocamlfind query -i-format js_of_ocaml; echo -n ')'"))))
+
+(env
+ (_
+  (flags (:standard -w -9 -warn-error -6-9-16-27-39))))
