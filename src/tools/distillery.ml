@@ -8,7 +8,10 @@ let eliomignore_filename = ".eliomignore"
 
 (* File containing files which must be copied without modifications *)
 let eliomverbatim_filename = ".eliomverbatim"
-let eliom_template_dir = Findlib.package_directory "eliom.templates"
+
+let eliom_template_dir =
+  Filename.concat (Findlib.package_directory "eliom") "templates"
+
 let distillery_basic = "basic.ppx", eliom_template_dir
 let template_path (tname, tpath) = tpath ^ "/" ^ tname
 

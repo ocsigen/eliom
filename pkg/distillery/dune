@@ -1,0 +1,3 @@
+(install
+  (section lib)
+  (files (glob_files templates/basic.ppx/*)))

@@ -49,15 +49,30 @@ let _ =
             (* the dep with ocamldep make sure the extension syntax is compiled before *)
             flag
               ["ocaml"; "compile"; "pkg_" ^ name]
-              (S [A "-ppx"; P (path ^ name ^ "_ex." ^ best)]);
-            flag_and_dep
+              (S
+                 [ A "-ppx"
+                 ; Quote (S [P (path ^ name ^ "_ex." ^ best); A "-as-ppx"]) ]);
+            flag
               ["ocaml"; "ocamldep"; "pkg_" ^ name]
-              (S [A "-ppx"; P (path ^ name ^ "_ex." ^ best)]);
+              (S
+                 [ A "-ppx"
+                 ; Quote (S [P (path ^ name ^ "_ex." ^ best); A "-as-ppx"]) ]);
+            dep
+              ["ocaml"; "ocamldep"; "pkg_" ^ name]
+              [path ^ name ^ "_ex." ^ best];
             flag_and_dep
               ["ocaml"; "infer_interface"; "pkg_" ^ name]
-              (S [A "-ppx"; P (path ^ name ^ "_ex." ^ best)]);
+              (S
+                 [ A "-ppx"
+                 ; Quote (S [P (path ^ name ^ "_ex." ^ best); A "-as-ppx"]) ]);
+            dep
+              ["ocaml"; "infer_interface"; "pkg_" ^ name]
+              [path ^ name ^ "_ex." ^ best];
             flag_and_dep ["doc"; "pkg_" ^ name]
-              (S [A "-ppx"; P (path ^ name ^ "_ex." ^ best)])
+              (S
+                 [ A "-ppx"
+                 ; Quote (S [P (path ^ name ^ "_ex." ^ best); A "-as-ppx"]) ]);
+            dep ["doc"; "pkg_" ^ name] [path ^ name ^ "_ex." ^ best]
           in
           add_syntax "ppx_eliom_utils" "src/ppx/";
           add_syntax "ppx_eliom_types" "src/ppx/";

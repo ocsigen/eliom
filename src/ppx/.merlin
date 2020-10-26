@@ -1,4 +1,0 @@
-PKG compiler-libs.common
-PKG ppxlib ppxlib.metaquot compiler-libs.bytecomp
-
-REC

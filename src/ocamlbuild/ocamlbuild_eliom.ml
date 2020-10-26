@@ -98,8 +98,10 @@ module MakeIntern (I : INTERNALS) (Eliom : ELIOM) = struct
             , S [A "-ppxopt"; A (pkg ^ ",-notype")] )
         | Some f ->
             let ppx = f eliom_syntax in
-            ( S [A "-ppx"; Quote (S [P ppx; A "-type"; P type_inferred])]
-            , S [A "-ppx"; Quote (S [P ppx; A "-notype"])] )
+            ( S
+                [ A "-ppx"
+                ; Quote (S [P ppx; A "-as-ppx"; A "-type"; P type_inferred]) ]
+            , S [A "-ppx"; Quote (S [P ppx; A "-as-ppx"; A "-notype"])] )
       else
         ( S [A "-ppopt"; A "-type"; A "-ppopt"; P type_inferred]
         , S [A "-ppopt"; A "-notype"] )
