@@ -1,10 +1,10 @@
 open Migrate_parsetree
-open Ast_408
+open Ast_411
 open Parsetree
 open Ast_helper
 
 module AM = Ast_mapper
-module AC = Ast_convenience_408
+module AC = Ast_convenience_411
 
 (** Various misc functions *)
 
@@ -241,7 +241,7 @@ module Mli = struct
       in
       close_in ch;
       let migration =
-        Versions.migrate Versions.ocaml_current Versions.ocaml_408 in
+        Versions.migrate Versions.ocaml_current Versions.ocaml_411 in
       let items = migration.copy_signature items in
       let h = Hashtbl.create 17 in
       let f item = match get_binding item with
@@ -632,7 +632,7 @@ module Rpc = struct
         match args_list with 
       | [] ->
           let rpc_name =
-            Exp.constant (Pconst_string (rpc_name fun_name_pattern, None))
+            Exp.constant (Pconst_string (rpc_name fun_name_pattern, loc, None))
           in
           let fun_name = function_name fun_name_pattern in
           apply_rpc ~loc (rpc_name, fun_name, _args_list, _pat_of_args, _typ_of_args, _expr_of_args)

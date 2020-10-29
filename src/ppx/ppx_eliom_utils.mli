@@ -1,4 +1,4 @@
-open Migrate_parsetree.Ast_408
+open Migrate_parsetree.Ast_411
 open Parsetree
 
 (** {2 Various helping functions} *)
@@ -89,5 +89,5 @@ val driver_args : (Arg.key * Arg.spec * Arg.doc) list
 
 module Make (P : Pass) : sig
   val mapper :
-    Migrate_parsetree.Versions.OCaml_408.types Migrate_parsetree.Driver.rewriter
+    Migrate_parsetree.Versions.OCaml_411.types Migrate_parsetree.Driver.rewriter
 end

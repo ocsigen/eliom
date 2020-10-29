@@ -35,12 +35,12 @@
 
 *)
 open Migrate_parsetree
-open Ast_408
+open Ast_411
 open Parsetree
 open Asttypes
 open Ast_helper
 
-module AC = Ast_convenience_408
+module AC = Ast_convenience_411
 
 open Ppx_eliom_utils
 
@@ -144,4 +144,4 @@ include Make(Pass)
 
 let () =
   Migrate_parsetree.Driver.register ~name:"ppx_eliom_types" ~args:driver_args
-    Migrate_parsetree.Versions.ocaml_408 mapper
+    Migrate_parsetree.Versions.ocaml_411 mapper
