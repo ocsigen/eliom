@@ -415,7 +415,7 @@ let keep_nl_params s = s.keep_nl_params
 let untype s =
   (s
    :  ('get, 'post, 'meth, 'attached, 'co, 'ext,
-       'tipo, 'getnames, 'postnames, 'register, _) t
+       'tipo, 'getnames, 'postnames, 'register, _) t 
    :> ('get, 'post, 'meth, 'attached, 'co, 'ext,
        'tipo, 'getnames, 'postnames,'register, _) t)
 
