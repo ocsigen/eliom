@@ -32,6 +32,32 @@ open Ppx_eliom_utils
 
 module Pass = struct
 
+  let push_nongen_str_item, flush_nongen_str_item =
+    let typing_strs = ref [] in
+    let add loc id is_fragment =
+      let typ =
+        if is_fragment then [%type: _ Eliom_client_value.t ][@metaloc loc]
+        else [%type: _][@metaloc loc]
+      in
+      typing_strs :=
+        (if Mli.exists () then
+           [%stri let [%p Pat.var id] = fun y -> (y : [%t typ] :> [%t typ])]
+         else
+           [%stri let [%p Pat.var id] =
+              let x = Stdlib.ref None in
+              fun y ->
+              if false then x := Some y;
+              (y : [%t typ] :> [%t typ])
+           ])
+        :: !typing_strs
+    in
+    let flush () =
+      let res = !typing_strs in
+      typing_strs := [];
+      [%stri open struct [%%s res] end]
+    in
+    add, flush
+
   let one_char_location loc =
     {loc
     with Location.loc_end =
@@ -48,8 +74,9 @@ module Pass = struct
       let res = List.rev !args in
       args := [];
       let aux (loc, id, arg) =
+        push_nongen_str_item loc id false;
         [%expr Eliom_syntax.escaped_value
-            [%e [%expr ((fun x -> x) [%e arg ])]
+            [%e [%expr ([%e eid id] [%e arg ])]
                 [@metaloc one_char_location loc]]]
         [@metaloc loc]
       in
@@ -129,10 +156,12 @@ module Pass = struct
              | None -> [%expr None]
              | Some i -> [%expr Some [%e AC.str i ]] in
            let (_, num) = Mli.get_injected_ident_info txt in
+           let f_id = {txt = txt ^ "_f"; loc} in
+           push_nongen_str_item loc f_id false;
            [%expr
              ([%e AC.int num],
               Eliom_lib.to_poly [%e
-                                    [%expr (fun x -> x) [%e frag_eid ]]
+                                    [%expr [%e eid f_id] [%e frag_eid ]]
                                     [@metaloc one_char_location loc0]
                 ],
               [%e loc_expr], [%e ident ]) :: [%e sofar ]
@@ -153,13 +182,17 @@ module Pass = struct
   let client_str item =
     let all_injections = flush_injections () in
     let loc = item.pstr_loc in
+    let str =
     match all_injections with
     | [] -> []
     | l  ->
       bind_injected_idents l ::
-      [ close_client_section loc all_injections ]
+        [ close_client_section loc all_injections ]
+    in
+    flush_nongen_str_item () :: str
 
   let server_str no_fragment item =
+    flush_nongen_str_item () ::
     let loc = item.pstr_loc in
     item ::
     may_close_server_section ~no_fragment loc
@@ -172,12 +205,15 @@ module Pass = struct
       may_close_server_section
         ~no_fragment:(no_fragment || all_injections <> []) loc
     in
-    match all_injections with
-    | [] -> cl
-    | l ->
-      bind_injected_idents l ::
-      cl @
-      [ close_client_section loc all_injections ]
+    let str =
+      match all_injections with
+      | [] -> cl
+      | l ->
+         bind_injected_idents l ::
+           cl @
+           [ close_client_section loc all_injections ]
+    in
+    flush_nongen_str_item () :: str
 
   let fragment ~loc ?typ ~context:_ ~num ~id _ =
     let typ =
@@ -186,8 +222,9 @@ module Pass = struct
       | None -> [%type: _]
     in
     let e = format_args @@ flush_escaped_bindings () in
+    push_nongen_str_item loc id true;
     [%expr
-        (fun x -> (x : _ Eliom_client_value.t :> _ Eliom_client_value.t))
+        [%e eid id]
         [%e
             [%expr
                 ( (Eliom_syntax.client_value

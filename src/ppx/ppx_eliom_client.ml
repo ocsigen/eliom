@@ -235,7 +235,8 @@ module Pass = struct
               "The type of this injected value contains a type variable \
                that could be wrongly inferred."
           in
-          { typ with ptyp_attributes = attr :: typ.ptyp_attributes }
+          { typ with ptyp_attributes = attr :: typ.ptyp_attributes;
+                     ptyp_loc = loc }
         | typ -> AM.default_mapper.typ mapper typ
       in
       let m = { AM.default_mapper with typ } in
