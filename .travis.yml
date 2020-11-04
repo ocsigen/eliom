@@ -7,7 +7,7 @@ env:
 #  - OCAML_VERSION=4.04 PINS="ocsigenserver:https://github.com/ocsigen/ocsigenserver.git deriving:https://github.com/ocsigen/deriving.git" PACKAGE=eliom
 #  - OCAML_VERSION=4.05 PINS="ocsigenserver:https://github.com/ocsigen/ocsigenserver.git deriving:https://github.com/ocsigen/deriving.git" PACKAGE=eliom
 #  - OCAML_VERSION=4.06 PINS="ocsigenserver:https://github.com/ocsigen/ocsigenserver.git deriving:https://github.com/ocsigen/deriving.git" PACKAGE=eliom
-  - OCAML_VERSION=4.07 PACKAGE=eliom
+  - OCAML_VERSION=4.08 PACKAGE=eliom
 os:
   - linux
   - osx
