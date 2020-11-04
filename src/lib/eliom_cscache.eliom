@@ -15,7 +15,7 @@ let%server create_ () =
   fun () -> Eliom_reference.Volatile.get c
 
 let%server create () =
-  Eliom_shared.Value.create (create_ ())  [%client  create_ () ]
+  Eliom_shared.Value.create (create_ ())  [%client.unsafe create_ () ]
 
 let do_cache_raw cache id data =
   let c = Eliom_shared.Value.local cache () in
@@ -27,14 +27,14 @@ let do_cache cache id data = do_cache_raw cache id (Lwt.return data)
 
 let%server do_cache cache id v =
   do_cache cache id v;
-  ignore [%client ( do_cache ~%cache ~%id ~%v : unit)]
+  ignore [%client.unsafe ( do_cache ~%cache ~%id ~%v : unit)]
 
 let%server find cache get_data id =
   try Hashtbl.find ((Eliom_shared.Value.local cache) ()) id
   with Not_found ->
     let th =
       let%lwt v = get_data id in
-      ignore [%client ( do_cache ~%cache ~%id ~%v : unit)];
+      ignore [%client.unsafe ( do_cache ~%cache ~%id ~%v : unit)];
       Lwt.return v
     in
     (* On server side, we put immediately in table the thread that is

@@ -192,7 +192,7 @@ module Xml = struct
       Eliom_content_core.Xml.node ?a name |>
       name_node
     in
-    let _ = [%client (
+    let _ = [%client.unsafe (
       let f = Eliom_client_core.rebuild_node' ~%ns in
       let e = f ~%e
       and l = ReactiveData.RList.map f ~%l in
@@ -310,7 +310,7 @@ module Svg = struct
         Eliom_content_core.Svg.D.toelt |>
         Eliom_content_core.Xml.make_request_node ~reset:false
       and synced = React.S.synced s in
-      let _ = [%client (
+      let _ = [%client.unsafe (
         let s =
           Eliom_shared.React.S.map
             (fun s ->
@@ -436,7 +436,7 @@ module Html = struct
         Eliom_content_core.Html.D.toelt |>
         Eliom_content_core.Xml.make_request_node ~reset:false
       and synced = React.S.synced s in
-      let _ = [%client (
+      let _ = [%client.unsafe (
         let s =
           Eliom_shared.React.S.map
             (fun s ->
@@ -463,7 +463,8 @@ module Html = struct
 
     let filter_attrib a s =
       let init = if local_value s then Some a else None
-      and c =  [%client  Eliom_content_core.Html.R.filter_attrib ~%a ~%s ] in
+      and c =
+        [%client.unsafe Eliom_content_core.Html.R.filter_attrib ~%a ~%s ] in
       Eliom_content_core.Html.D.client_attrib ?init c
 
     include
