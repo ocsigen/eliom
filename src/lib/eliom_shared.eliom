@@ -332,7 +332,7 @@ module React = struct
     let value (x : 'a t) =
       Value.create
         (FakeReact.S.value (Value.local x))
-        [%client ( FakeReact.S.value (Value.local ~%x) : 'a)]
+        [%client.unsafe ( FakeReact.S.value (Value.local ~%x) : 'a)]
 
     (*VVV What is the good default value for reset_default?  Setting
       default to true may be difficult to understand.  I prefer
@@ -340,9 +340,9 @@ module React = struct
     let create ?default ?(reset_default = false) ?(eq : _ Value.t option) x =
       let cv, synced = match default with
         | None ->
-           [%client  FakeReact.S.create ?eq:~%eq ~%x ], true
+           [%client.unsafe  FakeReact.S.create ?eq:~%eq ~%x ], true
         | Some v ->
-          [%client (
+          [%client.unsafe (
             match (~%v : (_ * (?step:_ -> _ -> _)) option) with
              | Some ((_, set) as s) ->
                (* The reactive data is already on client side.  But
@@ -359,17 +359,17 @@ module React = struct
       in
       let v, f = FakeReact.S.create ~synced x in
       let si =
-        Value.create v [%client ( fst ~%cv : 'a FakeReact.S.t)]
+        Value.create v [%client.unsafe ( fst ~%cv : 'a FakeReact.S.t)]
       and up =
         Value.create f
-          [%client ( snd ~%cv : ?step:React.step -> 'a -> unit)]
+          [%client.unsafe ( snd ~%cv : ?step:React.step -> 'a -> unit)]
       in
       (si, up)
 
     let map ?eq (f : ('a -> 'b) Value.t) (s : 'a t) : 'b t =
       Value.create
         (FakeReact.S.map (Value.local f) (Value.local s))
-        [%client ( FakeReact.S.map ?eq:~%eq ~%f ~%s : 'b FakeReact.S.t)]
+        [%client.unsafe ( FakeReact.S.map ?eq:~%eq ~%f ~%s : 'b FakeReact.S.t)]
 
     let fmap ?(eq : ('b -> 'b -> bool) Value.t option)
         (f : ('a -> 'b option) Value.t) (i : 'b Value.t) (s : 'a t)
@@ -377,32 +377,35 @@ module React = struct
       Value.create
         (FakeReact.S.fmap
            (Value.local f) (Value.local i) (Value.local s))
-        [%client ( FakeReact.S.fmap ?eq:~%eq ~%f ~%i ~%s : 'b FakeReact.S.t)]
+        [%client.unsafe
+            ( FakeReact.S.fmap ?eq:~%eq ~%f ~%i ~%s : 'b FakeReact.S.t)]
 
     let merge ?eq (f : ('a -> 'b -> 'a) Value.t)
         (acc : 'a) (l : 'b t list) : 'a t =
       Value.create
         (FakeReact.S.merge (Value.local f) acc (List.map Value.local l))
-        [%client ( FakeReact.S.merge ?eq:~%eq ~%f ~%acc ~%l : 'a FakeReact.S.t)]
+        [%client.unsafe
+            ( FakeReact.S.merge ?eq:~%eq ~%f ~%acc ~%l : 'a FakeReact.S.t)]
 
     let const (v : 'a) : 'a t =
       Value.create
         (FakeReact.S.const ~synced:true v)
-        [%client ( React.S.const ~%v : 'a FakeReact.S.t)]
+        [%client.unsafe ( React.S.const ~%v : 'a FakeReact.S.t)]
 
     let l2 ?eq (f : ('a -> 'b -> 'c) Value.t)
         (s1 : 'a t) (s2 : 'b t) : 'c t =
       Value.create
         (FakeReact.S.l2 (Value.local f)
            (Value.local s1) (Value.local s2))
-        [%client ( React.S.l2 ?eq:~%eq ~%f ~%s1 ~%s2 : 'd FakeReact.S.t)]
+        [%client.unsafe ( React.S.l2 ?eq:~%eq ~%f ~%s1 ~%s2 : 'd FakeReact.S.t)]
 
     let l3 ?eq (f : ('a -> 'b -> 'c -> 'd) Value.t)
         (s1 : 'a t) (s2 : 'b t) (s3 : 'c t) : 'd t =
       Value.create
         (FakeReact.S.l3 (Value.local f)
            (Value.local s1) (Value.local s2) (Value.local s3))
-        [%client ( React.S.l3 ?eq:~%eq ~%f ~%s1 ~%s2 ~%s3 : 'd FakeReact.S.t)]
+        [%client.unsafe
+            ( React.S.l3 ?eq:~%eq ~%f ~%s1 ~%s2 ~%s3 : 'd FakeReact.S.t)]
 
     let l4 ?eq (f : ('a -> 'b -> 'c -> 'd -> 'e) Value.t)
         (s1 : 'a t) (s2 : 'b t) (s3 : 'c t) (s4 : 'd t) : 'e t =
@@ -410,7 +413,8 @@ module React = struct
         (FakeReact.S.l4 (Value.local f)
            (Value.local s1) (Value.local s2) (Value.local s3)
            (Value.local s4))
-        [%client ( React.S.l4 ?eq:~%eq ~%f ~%s1 ~%s2 ~%s3 ~%s4 : 'e FakeReact.S.t)]
+        [%client.unsafe
+            ( React.S.l4 ?eq:~%eq ~%f ~%s1 ~%s2 ~%s3 ~%s4 : 'e FakeReact.S.t)]
 
     let l5 ?eq (f : ('a -> 'b -> 'c -> 'd -> 'e -> 'f) Value.t)
         (s1 : 'a t) (s2 : 'b t) (s3 : 'c t) (s4 : 'd t) (s5 : 'e t)
@@ -419,7 +423,7 @@ module React = struct
         (FakeReact.S.l5 (Value.local f)
            (Value.local s1) (Value.local s2) (Value.local s3)
            (Value.local s4) (Value.local s5))
-        [%client (
+        [%client.unsafe (
            React.S.l5 ?eq:~%eq ~%f ~%s1 ~%s2 ~%s3 ~%s4 ~%s5 : 'f FakeReact.S.t)]
 
     let l6 ?eq
@@ -431,7 +435,7 @@ module React = struct
         (FakeReact.S.l6 (Value.local f)
            (Value.local s1) (Value.local s2) (Value.local s3)
            (Value.local s4) (Value.local s5) (Value.local s6))
-        [%client (
+        [%client.unsafe (
            React.S.l6 ?eq:~%eq ~%f ~%s1 ~%s2 ~%s3 ~%s4 ~%s5 ~%s6 : 'g FakeReact.S.t)]
 
     let switch ?eq (s : 'a t t) : 'a t =
@@ -444,7 +448,7 @@ module React = struct
          FakeReact.S.value |>
          FakeReact.S.create ~synced:false |>
          fst)
-        [%client ( React.S.switch ?eq:~%eq ~%s : 'a FakeReact.S.t)]
+        [%client.unsafe ( React.S.switch ?eq:~%eq ~%s : 'a FakeReact.S.t)]
 
     let synced s = Value.local s |> FakeReact.S.synced
 
@@ -462,7 +466,7 @@ module React = struct
         Lwt.return
           (Value.create
              (fst (FakeReact.S.create ~synced server_result))
-             [%client (
+             [%client.unsafe (
                 React.S.Lwt.map_s_init
                   ~init:~%server_result ?eq:~%eq ~%f ~%s : 'b FakeReact.S.t)])
 
@@ -476,7 +480,7 @@ module React = struct
         Lwt.return
           (Value.create
              (fst (FakeReact.S.create ~synced server_result))
-             [%client (
+             [%client.unsafe (
                 React.S.Lwt.l2_s_init
                   ~init:~%server_result ?eq:~%eq ~%f ~%s1 ~%s2 : 'c FakeReact.S.t)])
 
@@ -498,7 +502,7 @@ module React = struct
         Lwt.return
           (Value.create
              (fst (FakeReact.S.create ~synced server_result))
-             [%client (
+             [%client.unsafe (
                 React.S.Lwt.l3_s_init ?eq:~%eq
                   ~init:~%server_result
                   ~%f ~%s1 ~%s2 ~%s3 : 'd FakeReact.S.t)])
@@ -521,7 +525,7 @@ module React = struct
         Lwt.return
           (Value.create
              (fst (FakeReact.S.create ~synced server_result))
-             [%client (
+             [%client.unsafe (
                 React.S.Lwt.l4_s_init ?eq:~%eq ~init:~%server_result
                   ~%f ~%s1 ~%s2 ~%s3 ~%s4 : 'e FakeReact.S.t)])
 
@@ -545,7 +549,7 @@ module React = struct
         Lwt.return
           (Value.create
              (fst (FakeReact.S.create ~synced server_result))
-             [%client (
+             [%client.unsafe (
                 React.S.Lwt.l5_s_init ?eq:~%eq ~init:~%server_result
                   ~%f ~%s1 ~%s2 ~%s3 ~%s4 ~%s5 : 'f FakeReact.S.t)])
 
@@ -570,7 +574,7 @@ module React = struct
         Lwt.return
           (Value.create
              (fst (FakeReact.S.create ~synced server_result))
-             [%client (
+             [%client.unsafe (
                 React.S.Lwt.l6_s_init ?eq:~%eq ~init:~%server_result
                   ~%f ~%s1 ~%s2 ~%s3 ~%s4 ~%s5 ~%s6 : 'g FakeReact.S.t)])
 
@@ -588,7 +592,7 @@ module React = struct
         Lwt.return
           (Value.create
              (fst (FakeReact.S.create ~synced server_result))
-             [%client (
+             [%client.unsafe (
                 React.S.Lwt.merge_s_init
                   ~init:~%server_result ?eq:~%eq ~%f ~%acc ~%l : 'a FakeReact.S.t)])
 
@@ -603,9 +607,9 @@ module ReactiveData = struct
     let create ?default ?(reset_default = false) x =
       let cv, synced = match default with
         | None ->
-           [%client  FakeReactiveData.RList.create ~%x ], true
+           [%client.unsafe  FakeReactiveData.RList.create ~%x ], true
         | Some v ->
-          [%client (
+          [%client.unsafe (
              match ~%v with
              | Some ((_, handle) as s) ->
                if ~%reset_default then ReactiveData.RList.set handle ~%x;
@@ -617,16 +621,16 @@ module ReactiveData = struct
       in
       let sv = FakeReactiveData.RList.create ~synced x in
       Value.create (fst sv)
-        [%client ( fst ~%cv : 'a FakeReactiveData.RList.t)],
+        [%client.unsafe ( fst ~%cv : 'a FakeReactiveData.RList.t)],
       Value.create (snd sv)
-        [%client ( snd ~%cv : 'b FakeReactiveData.RList.handle)]
+        [%client.unsafe ( snd ~%cv : 'b FakeReactiveData.RList.handle)]
 
     let concat a b =
       let sv =
         FakeReactiveData.RList.concat
           (Value.local a)
           (Value.local b)
-      and cv = [%client (
+      and cv = [%client.unsafe (
         FakeReactiveData.RList.concat ~%a ~%b
       : 'a FakeReactiveData.RList.t)] in
       Value.create sv cv
@@ -634,20 +638,21 @@ module ReactiveData = struct
     let singleton_s s =
       Value.create
         (FakeReactiveData.RList.singleton_s (Value.local s))
-        [%client (
+        [%client.unsafe (
            FakeReactiveData.RList.singleton_s (Value.local ~%s) : 'a FakeReactiveData.RList.t)]
 
     let value (s : 'a t) =
       Value.create
         (FakeReactiveData.RList.value (Value.local s))
-        [%client ( FakeReactiveData.RList.value (Value.local ~%s) : 'a list)]
+        [%client.unsafe
+            ( FakeReactiveData.RList.value (Value.local ~%s) : 'a list)]
 
     let signal ?eq (s : 'a t) =
       let sv =
         let eq = Ocsigen_lib.Option.map Value.local eq in
         FakeReactiveData.RList.signal ?eq (Value.local s)
       and cv =
-        [%client (
+        [%client.unsafe (
           FakeReactiveData.RList.signal ?eq:~%eq (Value.local ~%s) : 'a list FakeReact.S.t)]
       in
       Value.create sv cv
@@ -655,7 +660,7 @@ module ReactiveData = struct
     let map f s =
       Value.create
         (FakeReactiveData.RList.map (Value.local f) (Value.local s))
-        [%client (
+        [%client.unsafe (
            FakeReactiveData.RList.map (Value.local ~%f) (Value.local ~%s) : 'a FakeReactiveData.RList.t)]
 
     let from_signal ?eq (s : 'a list React.S.t) : 'a t =
@@ -663,7 +668,8 @@ module ReactiveData = struct
         let eq = Ocsigen_lib.Option.map Value.local eq in
         FakeReactiveData.RList.from_signal ?eq (Value.local s)
       and cv =
-         [%client  ReactiveData.RList.from_signal ?eq:~%eq (Value.local ~%s) ]
+        [%client.unsafe
+            ReactiveData.RList.from_signal ?eq:~%eq (Value.local ~%s) ]
       in
       Value.create sv cv
 
@@ -675,7 +681,7 @@ module ReactiveData = struct
         | None ->
           create []
       in
-      let _ = [%client (
+      let _ = [%client.unsafe (
         let f x = ReactiveData.RList.cons x (Value.local ~%h) in
         ignore (React.E.map f ~%e)
       : unit)] in
@@ -693,7 +699,7 @@ module ReactiveData = struct
         Lwt.return
           (Value.create
              (fst (FakeReactiveData.RList.create ~synced server_result))
-              [%client  ReactiveData.RList.Lwt.map_p_init
+              [%client.unsafe  ReactiveData.RList.Lwt.map_p_init
                   ~init:~%server_result ~%f ~%l ])
 
     end
