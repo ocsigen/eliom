@@ -105,7 +105,7 @@ module Pass = struct
     [%str let () = [%e flush_typing_expr () ] ] [@metaloc loc] @
     [ item ]
 
-  let fragment ~loc ?typ ~context:_ ~num:_ ~id expr =
+  let fragment ~loc ?typ ~context:_ ~num:_ ~id ~unsafe:_ expr =
     let frag_eid = eid id in
     push_typing_str_item expr id;
     let typ = match typ with
@@ -122,7 +122,8 @@ module Pass = struct
       | None -> assert false
     ]
 
-  let escape_inject ~loc:_ ?ident:_ ~(context:Context.escape_inject) ~id expr =
+  let escape_inject
+        ~loc:_ ?ident:_ ~(context:Context.escape_inject) ~id ~unsafe:_ expr =
     push_typing_str_item expr id;
     push_typing_expr expr id;
     match context with

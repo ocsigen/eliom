@@ -405,10 +405,11 @@ module Cmo = struct
     in
     type_of_out_type ty
 
+  module Convert = Versions.Convert(OCaml_current)(OCaml_408)
+
   let typ ty =
-    let open Versions.Convert(OCaml_current)(OCaml_408) in
     let ty = Printtyp.tree_of_type_scheme ty in
-    type_of_out_type (copy_out_type ty)
+    type_of_out_type (Convert.copy_out_type ty)
 
   let find err loc =
     let {Lexing.pos_fname; pos_cnum} = loc.Location.loc_start in
@@ -459,7 +460,7 @@ module Context = struct
     | `Server (* [%%server ... ] *)
     | `Client (* [%%client ... ] *)
     | `Shared (* [%%shared  ... ] *)
-    | `Fragment of server (* [%client ... ] *)
+    | `Fragment of server * bool (* [%client ... ] *)
     | `Escaped_value of server (* [%shared ~%( ... ) ] *)
     | `Injection of client (* [%%client ~%( ... ) ] *)
   ]
@@ -493,13 +494,13 @@ module type Pass = sig
   (** How to handle "[\%client ...]" and "[\%shared ...]" expr. *)
   val fragment:
     loc:Location.t -> ?typ:core_type -> context:Context.server ->
-    num:string -> id:string Location.loc ->
+    num:string -> id:string Location.loc -> unsafe:bool ->
     expression -> expression
 
   (** How to handle escaped "~%ident" inside a fragment. *)
   val escape_inject:
     loc:Location.t -> ?ident:string -> context:Context.escape_inject ->
-    id:string Location.loc ->
+    id:string Location.loc -> unsafe:bool ->
     expression -> expression
 
   val prelude : loc -> structure
@@ -861,13 +862,15 @@ module Shared = struct
   let server_expr mapper expr =
     match expr with
     | [%expr [%client [%e? _ ]]] -> expr
+    | [%expr [%client.unsafe [%e? _ ]]] -> expr
     | [%expr ~% [%e? injection_expr ]] -> injection_expr
     | _ -> AM.default_mapper.expr mapper expr
   let server = {AM.default_mapper with expr = server_expr}
 
   let client_expr context mapper expr =
     match expr with
-    | [%expr [%client [%e? fragment_expr ]]] ->
+    | [%expr [%client [%e? fragment_expr ]]]
+    | [%expr [%client.unsafe [%e? fragment_expr ]]] ->
       in_context context `Fragment
         (mapper.AM.expr mapper) fragment_expr
     | [%expr ~% [%e? injection_expr ]] ->
@@ -878,14 +881,21 @@ module Shared = struct
     | _ -> AM.default_mapper.expr mapper expr
   let client = {AM.default_mapper with expr = client_expr (ref `Top)}
 
-  let expr loc expr =
+  let expr loc ~unsafe expr =
     let server_expr = server.AM.expr server expr in
     let client_expr = client.AM.expr client expr in
-    [%expr
-      Eliom_shared.Value.create
-        [%e server_expr]
-        [%client [%e client_expr]]
-    ] [@metaloc loc]
+    if unsafe then
+      [%expr
+          Eliom_shared.Value.create
+          [%e server_expr]
+          [%client.unsafe [%e client_expr]]
+      ] [@metaloc loc]
+    else
+      [%expr
+          Eliom_shared.Value.create
+          [%e server_expr]
+          [%client [%e client_expr]]
+      ] [@metaloc loc]
 end
 
 module Make (Pass : Pass) = struct
@@ -896,14 +906,16 @@ module Make (Pass : Pass) = struct
     match expr, !context with
     | {pexp_desc = Pexp_extension ({txt},_)},
       `Client
-      when is_annotation txt ["client"; "shared"] ->
+         when is_annotation txt ["client"; "shared";
+                                 "client.unsafe"; "shared.unsafe"] ->
       let side = get_extension expr in
       Exp.extension @@ AM.extension_of_error @@ Location.errorf ~loc
         "The syntax [%%%s ...] is not allowed inside client code."
         side
     | {pexp_desc = Pexp_extension ({txt},_)}
     , (`Fragment _ | `Escaped_value _ | `Injection _)
-      when is_annotation txt ["client"; "shared"] ->
+         when is_annotation txt ["client"; "shared";
+                                 "client.unsafe"; "shared.unsafe"] ->
       let side = get_extension expr in
       Exp.extension @@ AM.extension_of_error @@ Location.errorf ~loc
         "The syntax [%%%s ...] can not be nested."
@@ -912,14 +924,15 @@ module Make (Pass : Pass) = struct
     (* [%shared ... ] *)
     | {pexp_desc = Pexp_extension ({txt},PStr [{pstr_desc = Pstr_eval (side_val,attr')}])},
       (`Server | `Shared)
-      when is_annotation txt ["shared"] ->
-      let e = Shared.expr loc side_val in
+      when is_annotation txt ["shared"; "shared.unsafe"] ->
+      let unsafe = is_annotation txt ["shared.unsafe"] in
+      let e = Shared.expr loc ~unsafe side_val in
       mapper.AM.expr mapper @@ exp_add_attrs (attr@attr') e
 
     (* [%client ... ] *)
     | {pexp_desc = Pexp_extension ({txt},PStr [{pstr_desc = Pstr_eval (side_val,attr)}])},
       (`Server | `Shared as c)
-      when is_annotation txt ["client"] ->
+      when is_annotation txt ["client"; "client.unsafe"] ->
       Name.reset_escaped_ident () ;
       let side_val, typ = match side_val with
         | [%expr ([%e? cval]:[%t? typ]) ] -> (cval, Some typ)
@@ -927,8 +940,10 @@ module Make (Pass : Pass) = struct
       in
       let num = Name.fragment_num side_val.pexp_loc in
       let id = Location.mkloc (Name.fragment_ident num) side_val.pexp_loc in
-      in_context context (`Fragment c)
-        (Pass.fragment ~loc ?typ ~context:c ~num ~id % mapper.AM.expr mapper)
+      let unsafe = is_annotation txt ["client.unsafe"] in
+      in_context context (`Fragment (c, unsafe))
+        (Pass.fragment ~loc ?typ ~context:c ~num ~id ~unsafe
+         % mapper.AM.expr mapper)
         (exp_add_attrs attr side_val)
 
     (* ~%( ... ) ] *)
@@ -945,17 +960,18 @@ module Make (Pass : Pass) = struct
           in
           let new_context = `Injection c in
           in_context context new_context
-            (Pass.escape_inject ~loc ?ident ~context:new_context ~id %
+            (Pass.escape_inject ~loc ?ident ~context:new_context ~id
+               ~unsafe:false %
              mapper.AM.expr mapper)
             inj
-        | `Fragment c ->
+        | `Fragment (c, unsafe) ->
           let id = match ident with
             | None -> Name.escaped_expr loc
             | Some id -> Name.escaped_ident loc id
           in
           let new_context = `Escaped_value c in
           in_context context new_context
-            (Pass.escape_inject ~loc ?ident ~context:new_context ~id %
+            (Pass.escape_inject ~loc ?ident ~context:new_context ~id ~unsafe %
              mapper.AM.expr mapper)
             inj
         | `Server ->

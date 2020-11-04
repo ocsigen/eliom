@@ -177,7 +177,7 @@ module Pass = struct
     [ item ] @
     may_close_server_section ~no_fragment item
 
-  let fragment ~loc ?typ ~context ~num ~id expr =
+  let fragment ~loc ?typ ~context ~num ~id ~unsafe expr =
 
     let frag_eid = eid id in
     let escaped_bindings = flush_escaped_bindings () in
@@ -187,7 +187,7 @@ module Pass = struct
       | None when not (Mli.exists () || Cmo.exists ()) -> ()
       | None ->
         match find_fragment loc id with
-        | { ptyp_desc = Ptyp_var _ } ->
+        | { ptyp_desc = Ptyp_var _ } when not unsafe ->
           Location.raise_errorf ~loc
             "The types of client values must be monomorphic from its usage \
              or from its type annotation"
@@ -222,7 +222,8 @@ module Pass = struct
 
 
 
-  let escape_inject ~loc:loc0 ?ident ~(context:Context.escape_inject) ~id expr =
+  let escape_inject
+        ~loc:loc0 ?ident ~(context:Context.escape_inject) ~id ~unsafe expr =
     let loc = expr.pexp_loc in
     let frag_eid = eid id in
 
@@ -238,8 +239,11 @@ module Pass = struct
                      ptyp_loc = loc }
         | typ -> AM.default_mapper.typ mapper typ
       in
-      let m = { AM.default_mapper with typ } in
-      m.AM.typ m t
+      if unsafe then
+        t
+      else
+        let m = { AM.default_mapper with typ } in
+        m.AM.typ m t
     in
 
     match context with
