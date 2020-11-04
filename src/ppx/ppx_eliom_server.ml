@@ -34,13 +34,13 @@ module Pass = struct
 
   let push_nongen_str_item, flush_nongen_str_item =
     let typing_strs = ref [] in
-    let add loc id is_fragment =
+    let add ~fragment ~unsafe loc id =
       let typ =
-        if is_fragment then [%type: _ Eliom_client_value.t ][@metaloc loc]
+        if fragment then [%type: _ Eliom_client_value.t ][@metaloc loc]
         else [%type: _][@metaloc loc]
       in
       typing_strs :=
-        (if Mli.exists () then
+        (if unsafe || Mli.exists () then
            [%stri let [%p Pat.var id] = fun y -> (y : [%t typ] :> [%t typ])]
          else
            [%stri let [%p Pat.var id] =
@@ -66,15 +66,15 @@ module Pass = struct
 
   let push_escaped_binding, flush_escaped_bindings =
     let args = ref [] in
-    let push loc orig_expr id =
-      if List.for_all (function _, id', _ -> id.txt <> id'.txt) !args then
-        args := (loc, id, orig_expr) :: !args;
+    let push loc orig_expr id ~unsafe =
+      if List.for_all (function _, id', _, _ -> id.txt <> id'.txt) !args then
+        args := (loc, id, orig_expr, unsafe) :: !args;
     in
     let flush () =
       let res = List.rev !args in
       args := [];
-      let aux (loc, id, arg) =
-        push_nongen_str_item loc id false;
+      let aux (loc, id, arg, unsafe) =
+        push_nongen_str_item ~fragment:false ~unsafe loc id;
         [%expr Eliom_syntax.escaped_value
             [%e [%expr ([%e eid id] [%e arg ])]
                 [@metaloc one_char_location loc]]]
@@ -87,12 +87,12 @@ module Pass = struct
   module SSet = Set.Make (String)
 
   let push_injection, flush_injections =
-    let buffer : (_ * _ * _ * _) list ref = ref [] in
+    let buffer : (_ * _ * _ * _ * _) list ref = ref [] in
     let gen_ids = ref SSet.empty in
-    let push loc ?ident id orig_expr =
+    let push loc ?ident id ~unsafe orig_expr =
       if not (SSet.mem id !gen_ids) then
         (gen_ids := SSet.add id !gen_ids;
-         buffer := (loc, id, orig_expr,ident) :: !buffer)
+         buffer := (loc, id, orig_expr, ident, unsafe) :: !buffer)
     in
     let flush_all () =
       let res = List.rev !buffer in
@@ -104,13 +104,13 @@ module Pass = struct
     let flush () =
       let all = flush_all () in
       let novel =
-        let is_fresh (_, gen_id, _,_) =
+        let is_fresh (_, gen_id, _,_, _) =
           not (SSet.mem gen_id !global_known)
         in
         List.filter is_fresh all
       in
       List.iter
-        (function _, gen_id, _, _ ->
+        (function _, gen_id, _, _, _ ->
            global_known := SSet.add gen_id !global_known)
         novel;
       all
@@ -124,7 +124,7 @@ module Pass = struct
     assert (injections <> []);
     let bindings =
       List.map
-        (fun (_, txt, expr,_) ->
+        (fun (_, txt, expr, _, _) ->
            let loc = expr.pexp_loc in
            Vb.mk ~loc (Pat.var ~loc {txt;loc}) expr)
         injections
@@ -148,7 +148,7 @@ module Pass = struct
     assert (injections <> []) ;
     let injection_list =
       List.fold_right
-        (fun (loc0, txt, expr, ident) sofar ->
+        (fun (loc0, txt, expr, ident, unsafe) sofar ->
            let loc = expr.pexp_loc in
            let loc_expr = position loc in
            let frag_eid = eid {txt;loc} in
@@ -157,7 +157,7 @@ module Pass = struct
              | Some i -> [%expr Some [%e AC.str i ]] in
            let (_, num) = Mli.get_injected_ident_info txt in
            let f_id = {txt = txt ^ "_f"; loc} in
-           push_nongen_str_item loc f_id false;
+           push_nongen_str_item ~fragment:false ~unsafe loc f_id;
            [%expr
              ([%e AC.int num],
               Eliom_lib.to_poly [%e
@@ -215,14 +215,14 @@ module Pass = struct
     in
     flush_nongen_str_item () :: str
 
-  let fragment ~loc ?typ ~context:_ ~num ~id _ =
+  let fragment ~loc ?typ ~context:_ ~num ~id ~unsafe _ =
     let typ =
       match typ with
       | Some typ -> typ
       | None -> [%type: _]
     in
     let e = format_args @@ flush_escaped_bindings () in
-    push_nongen_str_item loc id true;
+    push_nongen_str_item ~fragment:true ~unsafe loc id;
     [%expr
         [%e eid id]
         [%e
@@ -236,13 +236,14 @@ module Pass = struct
         ]
     ][@metaloc loc]
 
-  let escape_inject ~loc ?ident ~(context:Context.escape_inject) ~id expr =
+  let escape_inject
+        ~loc ?ident ~(context:Context.escape_inject) ~id ~unsafe expr =
     match context with
     | `Escaped_value _ ->
-      push_escaped_binding loc expr id;
+      push_escaped_binding loc expr id ~unsafe;
       [%expr assert false ]
     | `Injection _ ->
-      push_injection loc ?ident id.txt expr;
+      push_injection loc ?ident id.txt ~unsafe expr;
       eid id
 
   let set_global ~loc b =

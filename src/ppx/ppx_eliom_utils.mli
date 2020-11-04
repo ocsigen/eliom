@@ -29,7 +29,7 @@ module Context : sig
     | `Server (* [%%server ... ] *)
     | `Client (* [%%client ... ] *)
     | `Shared (* [%%shared  ... ] *)
-    | `Fragment of server (* [%client ... ] *)
+    | `Fragment of server * bool (* [%client ... ] *)
     | `Escaped_value of server (* [%%server [%client ~%( ... ) ] ] *)
     | `Injection of client (* [%%client ~%( ... ) ] *)
   ]
@@ -81,13 +81,13 @@ module type Pass = sig
   (** How to handle "[%client ...]" and "[%shared ...]" expr. *)
   val fragment:
     loc:Location.t -> ?typ:core_type -> context:Context.server ->
-    num:string -> id:string Location.loc ->
+    num:string -> id:string Location.loc -> unsafe:bool ->
     expression -> expression
 
   (** How to handle escaped "~%ident" inside a fragment. *)
   val escape_inject:
     loc:Location.t -> ?ident:string -> context:Context.escape_inject ->
-    id:string Location.loc ->
+    id:string Location.loc -> unsafe:bool ->
     expression -> expression
 
   val prelude : Location.t -> structure
