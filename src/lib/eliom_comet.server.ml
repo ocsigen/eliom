@@ -462,9 +462,10 @@ end = struct
              Lwt_stream.get_available_up_to n stream
            in
            if l <> [] then s.waiter <- stream_waiter stream;
-           take (n - List.length l) (List.map (fun v -> (id, v)) l @ acc) rem
+           take
+             (n - List.length l) (List.rev_map (fun v -> (id, v)) l @ acc) rem
     in
-    take n [] handler.hd_active_channels
+    List.rev (take n [] handler.hd_active_channels)
 
   let wait_channels handler =
     List.fold_left
