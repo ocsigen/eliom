@@ -1444,6 +1444,7 @@ module Syntax_helpers = struct
     Client_closure.register ~closure_id ~closure
 
   let open_client_section compilation_unit_id =
+    do_next_server_section_data ~compilation_unit_id;
     do_next_client_section_data ~compilation_unit_id
 
   let close_server_section compilation_unit_id =
