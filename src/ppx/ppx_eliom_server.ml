@@ -159,7 +159,8 @@ module Pass = struct
     let loc = item.pstr_loc in
     let cl =
       item ::
-      may_close_server_section ~no_fragment loc
+      may_close_server_section
+        ~no_fragment:(no_fragment || all_injections <> []) loc
     in
     match all_injections with
     | [] -> cl
