@@ -18,11 +18,22 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Eliom_common
+
 val perstables : string list ref
-val persistent_cookies_table :
-  (Eliom_common.full_state_name * float option * Eliom_common.timeout *
-   Eliom_common.perssessgrp option)
-  Ocsipersist.table Lwt.t Lazy.t
+
+module Persistent_cookies : sig
+  type cookie = full_state_name * float option * timeout * perssessgrp option
+  module Cookies : Ocsipersist.TABLE
+    with type key = string and type value = cookie
+  module Expiry_dates : Ocsipersist.TABLE
+    with type key = float and type value = string
+  val add : string -> cookie -> unit Lwt.t
+  val replace_if_exists : string -> cookie -> unit Lwt.t
+  val garbage_collect :
+    section:Lwt_log_core.Section.t -> (Cookies.key -> unit Lwt.t) -> unit Lwt.t
+end
+
 val number_of_persistent_tables : unit -> int
 val number_of_persistent_table_elements : unit -> (string * int) list Lwt.t
 val close_persistent_state2 :

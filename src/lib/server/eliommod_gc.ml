@@ -301,27 +301,26 @@ let data_session_gc sitedata =
 (* garbage collection of timeouted persistent sessions *)
 (* This is a thread that will work every hour/day *)
 let persistent_session_gc sitedata =
+  let gc () =
+    let now = Unix.time () in
+    let gc_cookie cookie =
+      Eliom_common.Persistent_cookies.Cookies.find cookie >>=
+      fun ((scope, _, _), exp, _, session_group) ->
+        match exp with
+        | Some exp when exp <= now ->
+          Lwt_log.ign_notice_f ~section "remove expired cookie %s" cookie;
+          Eliommod_persess.close_persistent_state2
+            ~scope
+            sitedata
+            session_group cookie
+        (*WAS: remove_from_all_persistent_tables k *)
+        | _ ->
+            Lwt_log.ign_notice_f ~section "cookie not expired: %s" cookie;
+            return_unit
+    in
+    Lwt_log.ign_info ~section "GC of persistent sessions";
+    Eliom_common.Persistent_cookies.garbage_collect ~section gc_cookie
+  in
   match get_persistentsessiongcfrequency () with
   | None -> () (* No garbage collection *)
-  | Some t ->
-      let rec f () =
-        Lwt_unix.sleep t >>=
-        (fun () ->
-          let now = Unix.time () in
-          Lwt_log.ign_info ~section "GC of persistent sessions";
-          Lazy.force Eliommod_persess.persistent_cookies_table >>=
-          Ocsipersist.iter_table
-             (fun k ((scope, _, _), exp, _, session_group) ->
-               (match exp with
-               | Some exp when exp < now ->
-(*VVV ? *)
-                 Eliommod_persess.close_persistent_state2
-                   ~scope
-                   sitedata
-                   session_group k
-               (*WAS: remove_from_all_persistent_tables k *)
-               | _ -> return_unit)
-             ))
-          >>=
-        f
-      in ignore (f ())
+  | Some t -> let rec f () = Lwt_unix.sleep t >>= gc >>= f in ignore (f ())
