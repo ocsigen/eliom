@@ -80,10 +80,10 @@ let late_unwrap_value old_value new_value =
       Js.Unsafe.set parent field new_value)
     (Obj.obj (Obj.field (Obj.field old_value (Obj.size old_value - 1)) 2))
 
-let raw_unmarshal_and_unwrap
+external raw_unmarshal_and_unwrap
   : (unwrapper -> _ -> _ option) ->
     string -> int -> _
-        = Js.Unsafe.variable "caml_unwrap_value_from_string"
+  = "caml_unwrap_value_from_string"
 
 let unwrap s i =
   if !Eliom_config.debug_timings then

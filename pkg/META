@@ -55,6 +55,7 @@ package "client" (
               tyxml.functor"
   archive(byte) = "client.cma eliom_client_main.cmo"
 
+  jsoo_runtime = "eliom_client.js"
   linkopts(javascript) = "+eliom.client/eliom_client.js"
 )
 
