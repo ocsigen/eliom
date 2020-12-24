@@ -1270,24 +1270,72 @@ let create_persistent_table name =
   perstables := Perstables.add name !perstables;
   Ocsipersist.open_table name
 
-let persistent_cookies_table :
-    (full_state_name * float option * timeout * perssessgrp option)
-    Ocsipersist.table Lwt.t Lazy.t =
-  lazy (create_persistent_table eliom_persistent_cookie_table)
-(* Another tables, containing the session info for each cookie *)
-(* the table contains:
-   - the expiration date (by timeout), changed at each access to the table
-     (float option) None -> no expiration
-   - the timeout for the user (float option option) None -> see global config
-     Some None -> no timeout
- *)
-(* It is lazy, because we must delay the creation of the table until
-   the initialization of eliom in case we use static linking with
-   sqlite backend ... *)
+module Persistent_cookies = struct
+  (* Another table, containing the session info for each cookie *)
+  (* the table contains:
+     - the expiration date (by timeout), changed at each access to the table
+       (float option) None -> no expiration
+     - the timeout for the user (float option option) None -> see global config
+       Some None -> no timeout
+   *)
+  (* It is lazy, because we must delay the creation of the table until
+     the initialization of eliom in case we use static linking with
+     sqlite backend ... *)
+
+  type date = float
+  type cookie = full_state_name * date option * timeout * perssessgrp option
+
+  module Cookies =
+    Ocsipersist.Table
+      (struct let name = eliom_persistent_cookie_table end)
+      (Ocsipersist.Column.String)
+      (Ocsipersist.Column.Marshal (struct type t = cookie end))
+
+  (* maps expiry dates to cookie IDs; may have superfluous entries, i.e cookies
+     that will not actually expire on the given date. *)
+  module Expiry_dates = struct
+    include Ocsipersist.Table
+              (struct let name = "eliom_persist_cookies_expiry_dates" end)
+              (Ocsipersist.Column.Float)
+              (Ocsipersist.Column.String)
+
+    let add_cookie exp cookie =
+      modify_opt exp @@
+        function
+          | None -> Some cookie
+          | Some cookies_str ->
+              let cookies = String.split_on_char ',' cookies_str in
+              if List.mem cookie cookies
+              then Some cookies_str
+              else Some (cookies_str ^ "," ^ cookie)
+  end
+
+  let find = Cookies.find
+
+  let add cookie ((_, exp, _, _) as content) =
+    Eliom_lib.Option.Lwt.iter (fun t -> Expiry_dates.add_cookie t cookie) exp
+    >>= fun _ ->
+    Cookies.add cookie content
+
+  let replace_if_exists cookie ((_, exp, _, _) as content) =
+    Eliom_lib.Option.Lwt.iter (fun t -> Expiry_dates.add_cookie t cookie) exp
+    >>= fun _ ->
+    Cookies.replace_if_exists cookie content
+
+  let garbage_collect ~section gc_cookie =
+    let now = Unix.time () in
+    Expiry_dates.iter ~until:now @@ fun date cookies ->
+      Lwt_log.ign_notice_f ~section "potentially expired cookies %.0f: %s"
+                                    date cookies;
+      Lwt_list.iter_s gc_cookie (String.split_on_char ',' cookies) >>= fun _ ->
+      Expiry_dates.remove date
+end
 
 
 (** removes the entry from all opened tables *)
 let remove_from_all_persistent_tables key =
+  (* doesn't remove entry from Persistent_cookies_expiry_dates; not a problem *)
+  Persistent_cookies.Cookies.remove key >>= fun () ->
   Perstables.fold (* could be replaced by a parallel map *)
     (fun thr t -> thr >>= fun () ->
       Ocsipersist.open_table t >>= fun table ->

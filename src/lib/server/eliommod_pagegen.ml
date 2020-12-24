@@ -148,9 +148,7 @@ let update_cookie_table ?now sitedata (ci, sci) =
                       oldv = newc.Eliom_common.pc_value ->
                     catch
                       (fun () ->
-                        Lazy.force Eliommod_persess.persistent_cookies_table >>= fun table ->
-                        Ocsipersist.replace_if_exists
-                          table
+                        Eliom_common.Persistent_cookies.replace_if_exists
                           newc.Eliom_common.pc_value
                           (name,
                            newexp,
@@ -161,9 +159,7 @@ let update_cookie_table ?now sitedata (ci, sci) =
                         (* someone else closed the session *)
                         | e -> fail e)
                   | _ ->
-                    Lazy.force Eliommod_persess.persistent_cookies_table >>= fun table ->
-                    Ocsipersist.add
-                      table
+                    Eliom_common.Persistent_cookies.add
                       newc.Eliom_common.pc_value
                       (name,
                        newexp,
@@ -249,7 +245,7 @@ let gen is_eliom_extension sitedata = function
                        .Ocsigen_request_info
                        .meth req.Ocsigen_extensions.request_info) ->
   let req = Eliom_common.patch_request_info req in
-  let now = Unix.time () in
+  let now = Unix.gettimeofday () in
   Eliom_common.get_session_info req previous_extension_err
   >>= fun (ri, si, previous_tab_cookies_info) ->
   let (all_cookie_info, closedsessions) =

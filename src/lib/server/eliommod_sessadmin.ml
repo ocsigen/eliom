@@ -94,8 +94,7 @@ let close_all_data_states ~scope ~secure sitedata =
 
 
 let close_all_persistent_states2 full_st_name sitedata =
-  Lazy.force Eliommod_persess.persistent_cookies_table >>=
-  Ocsipersist.iter_table
+  Eliom_common.Persistent_cookies.Cookies.iter
     (fun k ((scope, _, _) as full_st_name2, old_exp, old_t, sessiongrp) ->
       if full_st_name = full_st_name2 && old_t = Eliom_common.TGlobal
       then Eliommod_persess.close_persistent_state2
@@ -195,8 +194,7 @@ let update_pers_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
       close_all_persistent_states2 full_st_name sitedata
   | _ ->
     let now = Unix.time () in
-    Lazy.force Eliommod_persess.persistent_cookies_table >>= fun table ->
-    Ocsipersist.iter_table
+    Eliom_common.Persistent_cookies.Cookies.iter
       (fun k ((scope, _, _) as full_st_name2, old_exp, old_t, sessgrp) ->
         if full_st_name = full_st_name2 && old_t =
           Eliom_common.TGlobal
@@ -211,8 +209,9 @@ let update_pers_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
           | Some t when t <= now ->
               Eliommod_persess.close_persistent_state2
                 ~scope sitedata sessgrp k
-          | _ -> Ocsipersist.add table k (full_st_name2, newexp,
-                   Eliom_common.TGlobal, sessgrp) >>= Lwt_unix.yield
+          | _ ->
+            Eliom_common.Persistent_cookies.add k
+              (full_st_name2, newexp, Eliom_common.TGlobal, sessgrp) >>=
+            Lwt_unix.yield
         else return_unit
       )
-      table

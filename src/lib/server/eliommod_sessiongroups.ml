@@ -504,8 +504,7 @@ module Pers = struct
                                       belonging to the group grp *)
             (* group_name is the cookie value *)
             remove sitedata group_name grp >>= fun () ->
-            !!Eliom_common.persistent_cookies_table >>= fun table ->
-            Ocsipersist.remove table group_name
+            Eliom_common.Persistent_cookies.Cookies.remove group_name
           | _ -> Lwt.return_unit)
         >>= fun () ->
 
@@ -529,9 +528,7 @@ module Pers = struct
         match cookie_level with
           | `Client_process -> begin
             (* We remove cookie info from the table *)
-            !!Eliom_common.persistent_cookies_table >>= fun table ->
-            Ocsipersist.remove table cookie
-            >>= fun () ->
+            Eliom_common.Persistent_cookies.Cookies.remove cookie >>= fun () ->
 
             (* We remove the session from its group: *)
             remove sitedata cookie fullsessgrp >>= fun () ->
