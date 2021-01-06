@@ -192,7 +192,7 @@ let priority s = s.priority
 
 let internal_set_client_fun
       ~service (f : ('get -> 'post -> result Lwt.t) Eliom_client_value.t) =
-  service.client_fun <- Some [%client ref (Some ~%f)]
+  service.client_fun <- Some [%client.unsafe ref (Some ~%f)]
 
 let is_external = function {kind = `External} -> true | _ -> false
 
@@ -333,7 +333,7 @@ let preapply ~service getparams =
            });
     client_fun =
       Some
-        [%client ref
+        [%client.unsafe ref
             (match ~%service.client_fun with
              | Some {contents = Some f} -> Some (fun () pp -> f ~%getparams pp)
              | _ -> None)
@@ -390,7 +390,7 @@ let add_non_localized_get_parameters ~params ~service = {
     Eliom_parameter.nl_prod service.get_params_type params;
   client_fun =
     Some
-    [%client
+    [%client.unsafe
        ref
          (match ~%service.client_fun with
           | Some {contents = Some f} -> Some (fun (g, _) p -> f g p)
@@ -403,7 +403,7 @@ let add_non_localized_post_parameters ~params ~service = {
     Eliom_parameter.nl_prod service.post_params_type params;
   client_fun =
     Some
-    [%client
+    [%client.unsafe
       ref
         (match ~%service.client_fun with
          | Some {contents = Some f} -> Some (fun g (p, _) -> f g p)
@@ -415,7 +415,7 @@ let keep_nl_params s = s.keep_nl_params
 let untype s =
   (s
    :  ('get, 'post, 'meth, 'attached, 'co, 'ext,
-       'tipo, 'getnames, 'postnames, 'register, _) t
+       'tipo, 'getnames, 'postnames, 'register, _) t 
    :> ('get, 'post, 'meth, 'attached, 'co, 'ext,
        'tipo, 'getnames, 'postnames,'register, _) t)
 
@@ -457,7 +457,7 @@ let%server no_client_fun () : _ ref Eliom_client_value.t option =
   (* It only makes sense to create a client value when in a global
      context. *)
   if Eliom_syntax.global_context () then
-    Some [%client ref None]
+    Some [%client.unsafe ref None]
   else
     None
 

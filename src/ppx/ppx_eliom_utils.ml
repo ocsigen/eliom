@@ -1,3 +1,4 @@
+open Config
 open Migrate_parsetree
 open Ast_408
 open Parsetree
@@ -271,6 +272,163 @@ module Mli = struct
 
 end
 
+module Cmo = struct
+
+  let file = ref None
+
+  let exists () = !file <> None
+
+  let record_events events evl =
+    let open Instruct in
+    List.iter
+      (fun ev ->
+        match ev with
+        | {ev_loc = {loc_start = {Lexing.pos_fname; pos_cnum};
+                     loc_end = {Lexing.pos_cnum = pos_cnum'}};
+           ev_kind = Event_after ty} ->
+           if pos_cnum' = pos_cnum + 1 then
+             Hashtbl.add events (pos_fname, pos_cnum) ty
+        | _ -> ())
+      evl
+
+  let get_file () = match !file with Some f -> f | None -> assert false
+
+  let load () =
+    let file = get_file () in
+    match open_in file with
+    | exception Sys_error s ->
+      Location.raise_errorf
+        ~loc:(Location.in_file file)
+        "Eliom: Error while loading types: %s" s
+    | ic ->
+       let open Cmo_format in
+       let buffer = really_input_string ic (String.length cmo_magic_number) in
+       if buffer <> cmo_magic_number then
+         Location.raise_errorf
+           ~loc:(Location.in_file file)
+           "Eliom: Error while loading types: not an object file";
+       let cu_pos = input_binary_int ic in
+       seek_in ic cu_pos;
+       let cu = (input_value ic : compilation_unit) in
+       if cu.cu_debug = 0 then
+         Location.raise_errorf
+           ~loc:(Location.in_file file)
+           "Eliom: Error while loading types: no debugging information";
+       seek_in ic cu.cu_debug;
+       let evl = (input_value ic : Instruct.debug_event list) in
+       let events = Hashtbl.create 100 in
+       record_events events evl;
+       close_in ic;
+       events
+
+  let events = lazy (load ())
+
+  let label_of_string s =
+    if s = "" then
+      Asttypes.Nolabel
+    else if s.[0] = '?' then
+      Asttypes.Optional (String.sub s 1 (String.length s - 1))
+    else
+      Asttypes.Labelled s
+
+  let rec ident_of_out_ident id =
+    let open Outcometree in
+    let open Longident in
+    match id with
+    | Oide_apply (id, id') ->
+       Lapply (ident_of_out_ident id, ident_of_out_ident id')
+    | Oide_dot (id, nm) ->
+       Ldot (ident_of_out_ident id, nm)
+    | Oide_ident {printed_name = nm} ->
+       Lident nm
+
+  let counter = ref 0
+
+  let rec type_of_out_type ty =
+    let open Outcometree in
+    let open Parsetree in
+    let map = Hashtbl.create 1 in
+    let var x =
+      try Hashtbl.find map x with Not_found ->
+        let x' = Printf.sprintf "%s%s_%d" inferred_type_prefix x !counter in
+        incr counter;
+        Hashtbl.add map x x';
+        x'
+    in
+    let rec type_of_out_type ty =
+      match ty with
+      | Otyp_var (_, s) ->
+         Typ.var (var s)
+      | Otyp_arrow (lab, ty1, ty2) ->
+         Typ.arrow (label_of_string lab)
+           (type_of_out_type ty1) (type_of_out_type ty2)
+      | Otyp_tuple tyl ->
+         Typ.tuple (List.map type_of_out_type tyl)
+      | Otyp_constr (id, tyl) ->
+         Typ.constr (Location.mkloc (ident_of_out_ident id) Location.none)
+           (List.map type_of_out_type tyl)
+      | Otyp_object (fields, rest) ->
+         let fields =
+           List.map
+             (fun (label, ty) ->
+               {pof_desc = Otag (Location.mkloc label Location.none,
+                                 type_of_out_type ty);
+                pof_loc = Location.none;
+                pof_attributes = []})
+             fields
+         in
+         Typ.object_ (fields) (if rest = None then Closed else Open)
+      | Otyp_class (_, id, tyl) ->
+         Typ.class_ (Location.mkloc (ident_of_out_ident id) Location.none)
+           (List.map type_of_out_type tyl)
+      | Otyp_alias (ty, s) ->
+         Typ.alias (type_of_out_type ty) (var s)
+      | Otyp_variant (_, Ovar_typ ty, closed, tags) ->
+         Typ.variant [Rf.mk (Rinherit (type_of_out_type ty))]
+           (if closed then Closed else Open) tags
+      | Otyp_variant (_, Ovar_fields lst, closed, tags) ->
+         let row_fields =
+           List.map
+             (fun (label, const, tyl) ->
+               Rf.mk (Rtag (Location.mkloc label Location.none,
+                            const,
+                            List.map type_of_out_type tyl)))
+             lst
+         in
+         Typ.variant row_fields (if closed then Closed else Open) tags
+      | Otyp_poly (sl, ty) ->
+         Typ.poly (List.map (fun v -> Location.mkloc (var v) Location.none) sl)
+           (type_of_out_type ty)
+      | Otyp_abstract | Otyp_open | Otyp_sum _ | Otyp_manifest _
+        | Otyp_record _ | Otyp_module _ | Otyp_attribute _ | Otyp_stuff _ ->
+         assert false
+    in
+    type_of_out_type ty
+
+  module Convert = Versions.Convert(OCaml_current)(OCaml_408)
+
+  let typ ty =
+    let ty = Printtyp.tree_of_type_scheme ty in
+    type_of_out_type (Convert.copy_out_type ty)
+
+  let find err loc =
+    let {Lexing.pos_fname; pos_cnum} = loc.Location.loc_start in
+    try
+      typ (Hashtbl.find (Lazy.force events) (pos_fname, pos_cnum))
+    with Not_found ->
+      Typ.extension ~loc @@ AM.extension_of_error @@ Location.errorf ~loc
+        "Error: Inferred type of %s not found. You need to regenerate %s."
+        err (get_file ())
+
+  let find_escaped_ident = find "escaped ident"
+  let find_injected_ident = find "injected ident"
+  let find_fragment loc =
+    match Mli.get_fragment_type (find "client value" loc) with
+    | Some ty -> ty
+    | None -> assert false
+
+end
+
 (** Context convenience module. *)
 module Context = struct
 
@@ -285,7 +443,7 @@ module Context = struct
     | "client" | "client.start"
     | "eliom.client" | "eliom.client.start" -> `Client
     | _ -> invalid_arg "Eliom ppx: Not a context"
-  
+
   let rpc_of_string = function
     | "crpc"-> `Connected_rpc
     | "crpc_opt" -> `Connected_rpc_o
@@ -302,7 +460,7 @@ module Context = struct
     | `Server (* [%%server ... ] *)
     | `Client (* [%%client ... ] *)
     | `Shared (* [%%shared  ... ] *)
-    | `Fragment of server (* [%client ... ] *)
+    | `Fragment of server * bool (* [%client ... ] *)
     | `Escaped_value of server (* [%shared ~%( ... ) ] *)
     | `Injection of client (* [%%client ~%( ... ) ] *)
   ]
@@ -314,6 +472,8 @@ let driver_args = [
     "FILE Load inferred types from FILE.";
   "-notype", Arg.Unit (fun () -> Mli.type_file := None),
     " Unset explicitly set path from which to load inferred types.";
+  "-server-cmo", Arg.String (fun file -> Cmo.file := Some file),
+    "FILE Load inferred types from server cmo file FILE."
 ]
 
 (** Signature of specific code of a preprocessor. *)
@@ -333,14 +493,14 @@ module type Pass = sig
 
   (** How to handle "[\%client ...]" and "[\%shared ...]" expr. *)
   val fragment:
-    ?typ:core_type -> context:Context.server ->
-    num:string -> id:string Location.loc ->
+    loc:Location.t -> ?typ:core_type -> context:Context.server ->
+    num:string -> id:string Location.loc -> unsafe:bool ->
     expression -> expression
 
   (** How to handle escaped "~%ident" inside a fragment. *)
   val escape_inject:
-    ?ident:string -> context:Context.escape_inject ->
-    id:string Location.loc ->
+    loc:Location.t -> ?ident:string -> context:Context.escape_inject ->
+    id:string Location.loc -> unsafe:bool ->
     expression -> expression
 
   val prelude : loc -> structure
@@ -514,7 +674,7 @@ module Rpc = struct
       args_list
 
   let rec args_parser expr arg_list =
-    let loc = expr.pexp_loc in 
+    let loc = expr.pexp_loc in
     match expr with
     | [%expr fun () -> [%e? expr']] ->
         args_parser expr'
@@ -528,14 +688,14 @@ module Rpc = struct
         args_parser expr' ((pattern, typ, label) :: arg_list)
     | { pexp_desc = Pexp_fun (_, None, p, _) } ->
         print_error ~loc:p.ppat_loc Missing_argument_type
-    | e -> 
+    | e ->
       (
       match arg_list with
       | [] ->
           print_error ~loc:e.pexp_loc No_arguments
       | arg_list ->
           List.rev arg_list, loc )
-  
+
   let eliom_rpc_expression ~loc (rpc_name, fun_name, args_list, _pat_of_args, _typ_of_args, _expr_of_args)=
     let apply =
       apply_function_expr ~loc fun_name
@@ -629,7 +789,7 @@ module Rpc = struct
       |> format_args
     in
     let rec expr_mapper args_list =
-        match args_list with 
+        match args_list with
       | [] ->
           let rpc_name =
             Exp.constant (Pconst_string (rpc_name fun_name_pattern, None))
@@ -664,10 +824,10 @@ module Rpc = struct
                    args_list
         in
         let rec expr_mapper args_list =
-          match args_list with 
+          match args_list with
           |[] -> apply_function_expr ~loc ident.txt _apply
           |(pattern,_,label):: args_list'-> Exp.fun_ label None pattern (expr_mapper args_list')
-        in 
+        in
         ([ [%stri
              let [%p pattern] = [%e expr_mapper args_list]]
         [@metaloc loc]])
@@ -702,13 +862,15 @@ module Shared = struct
   let server_expr mapper expr =
     match expr with
     | [%expr [%client [%e? _ ]]] -> expr
+    | [%expr [%client.unsafe [%e? _ ]]] -> expr
     | [%expr ~% [%e? injection_expr ]] -> injection_expr
     | _ -> AM.default_mapper.expr mapper expr
   let server = {AM.default_mapper with expr = server_expr}
 
   let client_expr context mapper expr =
     match expr with
-    | [%expr [%client [%e? fragment_expr ]]] ->
+    | [%expr [%client [%e? fragment_expr ]]]
+    | [%expr [%client.unsafe [%e? fragment_expr ]]] ->
       in_context context `Fragment
         (mapper.AM.expr mapper) fragment_expr
     | [%expr ~% [%e? injection_expr ]] ->
@@ -719,14 +881,21 @@ module Shared = struct
     | _ -> AM.default_mapper.expr mapper expr
   let client = {AM.default_mapper with expr = client_expr (ref `Top)}
 
-  let expr loc expr =
+  let expr loc ~unsafe expr =
     let server_expr = server.AM.expr server expr in
     let client_expr = client.AM.expr client expr in
-    [%expr
-      Eliom_shared.Value.create
-        [%e server_expr]
-        [%client [%e client_expr]]
-    ] [@metaloc loc]
+    if unsafe then
+      [%expr
+          Eliom_shared.Value.create
+          [%e server_expr]
+          [%client.unsafe [%e client_expr]]
+      ] [@metaloc loc]
+    else
+      [%expr
+          Eliom_shared.Value.create
+          [%e server_expr]
+          [%client [%e client_expr]]
+      ] [@metaloc loc]
 end
 
 module Make (Pass : Pass) = struct
@@ -737,14 +906,16 @@ module Make (Pass : Pass) = struct
     match expr, !context with
     | {pexp_desc = Pexp_extension ({txt},_)},
       `Client
-      when is_annotation txt ["client"; "shared"] ->
+         when is_annotation txt ["client"; "shared";
+                                 "client.unsafe"; "shared.unsafe"] ->
       let side = get_extension expr in
       Exp.extension @@ AM.extension_of_error @@ Location.errorf ~loc
         "The syntax [%%%s ...] is not allowed inside client code."
         side
     | {pexp_desc = Pexp_extension ({txt},_)}
     , (`Fragment _ | `Escaped_value _ | `Injection _)
-      when is_annotation txt ["client"; "shared"] ->
+         when is_annotation txt ["client"; "shared";
+                                 "client.unsafe"; "shared.unsafe"] ->
       let side = get_extension expr in
       Exp.extension @@ AM.extension_of_error @@ Location.errorf ~loc
         "The syntax [%%%s ...] can not be nested."
@@ -753,14 +924,15 @@ module Make (Pass : Pass) = struct
     (* [%shared ... ] *)
     | {pexp_desc = Pexp_extension ({txt},PStr [{pstr_desc = Pstr_eval (side_val,attr')}])},
       (`Server | `Shared)
-      when is_annotation txt ["shared"] ->
-      let e = Shared.expr loc side_val in
+      when is_annotation txt ["shared"; "shared.unsafe"] ->
+      let unsafe = is_annotation txt ["shared.unsafe"] in
+      let e = Shared.expr loc ~unsafe side_val in
       mapper.AM.expr mapper @@ exp_add_attrs (attr@attr') e
 
     (* [%client ... ] *)
     | {pexp_desc = Pexp_extension ({txt},PStr [{pstr_desc = Pstr_eval (side_val,attr)}])},
       (`Server | `Shared as c)
-      when is_annotation txt ["client"] ->
+      when is_annotation txt ["client"; "client.unsafe"] ->
       Name.reset_escaped_ident () ;
       let side_val, typ = match side_val with
         | [%expr ([%e? cval]:[%t? typ]) ] -> (cval, Some typ)
@@ -768,8 +940,10 @@ module Make (Pass : Pass) = struct
       in
       let num = Name.fragment_num side_val.pexp_loc in
       let id = Location.mkloc (Name.fragment_ident num) side_val.pexp_loc in
-      in_context context (`Fragment c)
-        (Pass.fragment ?typ ~context:c ~num ~id % mapper.AM.expr mapper)
+      let unsafe = is_annotation txt ["client.unsafe"] in
+      in_context context (`Fragment (c, unsafe))
+        (Pass.fragment ~loc ?typ ~context:c ~num ~id ~unsafe
+         % mapper.AM.expr mapper)
         (exp_add_attrs attr side_val)
 
     (* ~%( ... ) ] *)
@@ -786,17 +960,18 @@ module Make (Pass : Pass) = struct
           in
           let new_context = `Injection c in
           in_context context new_context
-            (Pass.escape_inject ?ident ~context:new_context ~id %
+            (Pass.escape_inject ~loc ?ident ~context:new_context ~id
+               ~unsafe:false %
              mapper.AM.expr mapper)
             inj
-        | `Fragment c ->
+        | `Fragment (c, unsafe) ->
           let id = match ident with
             | None -> Name.escaped_expr loc
             | Some id -> Name.escaped_ident loc id
           in
           let new_context = `Escaped_value c in
           in_context context new_context
-            (Pass.escape_inject ?ident ~context:new_context ~id %
+            (Pass.escape_inject ~loc ?ident ~context:new_context ~id ~unsafe %
              mapper.AM.expr mapper)
             inj
         | `Server ->
@@ -890,21 +1065,21 @@ module Make (Pass : Pass) = struct
         let c = Context.of_string txt in
         let l = flatmap (dispatch_str c mapper) strs in
         maybe_reset_injected_idents c ; l
-      | Pstr_extension (({txt}, PStr strs), _) 
+      | Pstr_extension (({txt}, PStr strs), _)
         when is_annotation txt ["cw_rpc"; "crpc" ;"crpc_opt";"rpc"] ->
-        let rpc_type = Context.rpc_of_string txt in 
+        let rpc_type = Context.rpc_of_string txt in
         let c = `Server in
-        let l = flatmap (dispatch_str c mapper) strs in 
+        let l = flatmap (dispatch_str c mapper) strs in
         let c = `Client in
         let l' =
           flatmap (dispatch_str c mapper)
-            (flatmap (Rpc.generate_client_struct_item rpc_type) strs) 
-        in 
+            (flatmap (Rpc.generate_client_struct_item rpc_type) strs)
+        in
         let l''= if (rpc_type =`Connected_rpc || rpc_type =`Connected_rpc_o)
-        then let c = `Server in 
+        then let c = `Server in
               flatmap (dispatch_str c mapper)
             (flatmap (Rpc.generate_server_struct_item rpc_type) strs)
-        else [] 
+        else []
         in
         let list = List.flatten [l;l';l''] in
         maybe_reset_injected_idents c ;

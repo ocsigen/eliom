@@ -31,14 +31,16 @@ module Pass = struct
 
   let push_escaped_binding, flush_escaped_bindings =
     let server_arg_ids = ref [] in
-    let is_unknown gen_id =
-      List.for_all
-        (fun (gen_id', _) -> gen_id.txt <> gen_id'.txt)
-        !server_arg_ids
-    in
-    let push gen_id (expr : expression) =
-      if is_unknown gen_id then
-        server_arg_ids := (gen_id, expr) :: !server_arg_ids
+    let push gen_id (expr : expression) get_type =
+      match
+        List.find_opt (fun (gen_id', _, _) -> gen_id.txt = gen_id'.txt)
+          !server_arg_ids
+      with
+      | Some (_, _, typ) -> typ
+      | None ->
+         let typ = get_type () in
+         server_arg_ids := (gen_id, expr, typ) :: !server_arg_ids;
+         typ
     in
     let flush () =
       let res = List.rev !server_arg_ids in
@@ -59,9 +61,9 @@ module Pass = struct
 
   let push_client_value_data, flush_client_value_datas =
     let client_value_datas = ref [] in
-    let push gen_num gen_id expr (args : string Location.loc list) =
+    let push loc gen_num gen_id expr (args : string Location.loc list) =
       client_value_datas :=
-        (gen_num, gen_id, expr, args) :: !client_value_datas
+        (loc, gen_num, gen_id, expr, args) :: !client_value_datas
     in
     let flush () =
       let res = List.rev !client_value_datas in
@@ -70,20 +72,26 @@ module Pass = struct
     in
     push, flush
 
-  let find_escaped_ident id =
-    if Mli.exists () then Mli.find_escaped_ident id else [%type: _]
+  let find_escaped_ident loc id =
+    if Mli.exists () then Mli.find_escaped_ident id
+    else if Cmo.exists () then Cmo.find_escaped_ident loc
+    else [%type: _]
 
-  let find_injected_ident id =
-    if Mli.exists () then Mli.find_injected_ident id else [%type: _]
+  let find_injected_ident loc id =
+    if Mli.exists () then Mli.find_injected_ident id
+    else if Cmo.exists () then Cmo.find_injected_ident loc
+    else [%type: _]
 
-  let find_fragment id =
-    if Mli.exists () then Mli.find_fragment id else [%type: _]
+  let find_fragment loc id =
+    if Mli.exists () then Mli.find_fragment id
+    else if Cmo.exists () then Cmo.find_fragment loc
+    else [%type: _]
 
   let register_client_closures client_value_datas =
     let registrations =
       List.map
-        (fun (num, id, expr, args) ->
-           let typ = find_fragment id in
+        (fun (loc, num, id, expr, args) ->
+           let typ = find_fragment loc id in
            let args = List.map Pat.var args in
            [%expr
              Eliom_client_core.Syntax_helpers.register_client_closure
@@ -108,9 +116,9 @@ module Pass = struct
     | _ ->
       let bindings =
         List.map
-          (fun (_num, id, expr, args) ->
+          (fun (loc, _num, id, expr, args) ->
              let patt = Pat.var id in
-             let typ = find_fragment id in
+             let typ = find_fragment loc id in
              let args = List.map Pat.var args in
              let expr =
                [%expr
@@ -170,14 +178,25 @@ module Pass = struct
     [ item ] @
     may_close_server_section ~no_fragment:(no_fragment || op <> []) item
 
-  let fragment ?typ:_ ~context ~num ~id expr =
+  let fragment ~loc ?typ ~context ~num ~id ~unsafe expr =
 
-    let loc = expr.pexp_loc in
     let frag_eid = eid id in
     let escaped_bindings = flush_escaped_bindings () in
 
-    push_client_value_data num id expr
-      (List.map fst escaped_bindings);
+    begin match typ with
+      | Some _ -> ()
+      | None when not (Mli.exists () || Cmo.exists ()) -> ()
+      | None ->
+        match find_fragment loc id with
+        | { ptyp_desc = Ptyp_var _ } when not unsafe ->
+          Location.raise_errorf ~loc
+            "The types of client values must be monomorphic from its usage \
+             or from its type annotation"
+        | _ -> ()
+    end;
+
+    push_client_value_data loc num id expr
+      (List.map (fun (gen_id, _, _) -> gen_id) escaped_bindings);
 
     match context, escaped_bindings with
     | `Server, _ ->
@@ -188,13 +207,13 @@ module Pass = struct
     | `Shared, _ ->
       let bindings =
         List.map
-          (fun (gen_id, expr) ->
+          (fun (gen_id, expr, _) ->
              Vb.mk ~loc:expr.pexp_loc (Pat.var gen_id) expr )
           escaped_bindings
       in
       let args =
         format_args @@ List.map
-          (fun (id, _) -> eid id)
+          (fun (id, _, _) -> eid id)
           escaped_bindings
       in
       Exp.let_ ~loc
@@ -204,7 +223,8 @@ module Pass = struct
 
 
 
-  let escape_inject ?ident ~(context:Context.escape_inject) ~id expr =
+  let escape_inject
+        ~loc:loc0 ?ident ~(context:Context.escape_inject) ~id ~unsafe expr =
     let loc = expr.pexp_loc in
     let frag_eid = eid id in
 
@@ -216,27 +236,33 @@ module Pass = struct
               "The type of this injected value contains a type variable \
                that could be wrongly inferred."
           in
-          { typ with ptyp_attributes = attr :: typ.ptyp_attributes }
+          { typ with ptyp_attributes = attr :: typ.ptyp_attributes;
+                     ptyp_loc = loc }
         | typ -> AM.default_mapper.typ mapper typ
       in
-      let m = { AM.default_mapper with typ } in
-      m.AM.typ m t
+      if unsafe then
+        t
+      else
+        let m = { AM.default_mapper with typ } in
+        m.AM.typ m t
     in
 
     match context with
 
     (* [%%server [%client ~%( ... ) ] ] *)
     | `Escaped_value _section ->
-      let typ = find_escaped_ident id in
-      let typ = assert_no_variables typ in
-      push_escaped_binding id expr;
-      [%expr ([%e frag_eid] : [%t typ]) ][@metaloc loc]
-
+       let typ =
+         push_escaped_binding id expr (fun () ->
+             let typ = find_escaped_ident loc0 id in
+             let typ = assert_no_variables typ in
+             typ)
+       in
+       [%expr ([%e frag_eid] : [%t typ]) ][@metaloc loc]
 
     (* [%%server ... %x ... ] *)
     | `Injection _section ->
       mark_injection () ;
-      let typ = find_injected_ident id in
+      let typ = find_injected_ident loc0 id in
       let typ = assert_no_variables typ in
       let ident = match ident with
         | None   -> [%expr None]

@@ -132,7 +132,7 @@ module Make_links (Html : Html) = struct
       in
       let href = Html.a_href href in
       if get_xhr xhr then
-        let f = [%client fun ev ->
+        let f = [%client.unsafe fun ev ->
           if not (Eliom_client.middleClick ev) then begin
             Dom.preventDefault ev;
             Dom_html.stopPropagation ev;
@@ -588,7 +588,7 @@ module Make (Html : Html) = struct
     let a =
       let a = (a :> Html_types.form_attrib attrib list) in
       if get_xhr xhr then
-        let hdlr = [%client
+        let hdlr = [%client.unsafe
           (make_hdlr_get ~%service : client_form_handler)
         ] in
         let info = make_info ~https `Form_get service hdlr in
@@ -608,7 +608,7 @@ module Make (Html : Html) = struct
     let a =
       let a = (a :> Html_types.form_attrib attrib list) in
       if get_xhr xhr then
-        let hdlr = [%client
+        let hdlr = [%client.unsafe
           (make_hdlr_get ~%service : client_form_handler)
         ] in
         let info = make_info ~https `Form_get service hdlr in
@@ -628,7 +628,7 @@ module Make (Html : Html) = struct
     let a =
       let a = (a :> Html_types.form_attrib attrib list) in
       if get_xhr xhr then
-        let hdlr = [%client
+        let hdlr = [%client.unsafe
           (make_hdlr_post ~%service ~%getparams : client_form_handler)
         ] in
         let info = make_info ~https `Form_post service hdlr in
@@ -649,7 +649,7 @@ module Make (Html : Html) = struct
     let a =
       let a = (a :> Html_types.form_attrib attrib list) in
       if get_xhr xhr then
-        let hdlr = [%client
+        let hdlr = [%client.unsafe
           (make_hdlr_post ~%service ~%getparams : client_form_handler)
         ] in
         let info = make_info ~https `Form_post service hdlr in
