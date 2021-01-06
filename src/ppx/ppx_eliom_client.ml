@@ -163,11 +163,12 @@ module Pass = struct
   let shared_str no_fragment item =
     let loc = item.pstr_loc in
     let client_expr_data = flush_client_value_datas () in
-    may_open_client_section loc @
+    let op = may_open_client_section loc in
+    op @
     register_client_closures client_expr_data @
     define_client_functions loc client_expr_data @
     [ item ] @
-    may_close_server_section ~no_fragment item
+    may_close_server_section ~no_fragment:(no_fragment || op <> []) item
 
   let fragment ?typ:_ ~context ~num ~id expr =
 

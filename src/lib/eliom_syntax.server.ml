@@ -84,6 +84,7 @@ let close_server_section compilation_unit_id =
   current_server_section_data := []
 
 let close_client_section compilation_unit_id injection_data =
+  close_server_section compilation_unit_id;
   let data = get_compilation_unit_global_data compilation_unit_id in
   let injection_datum (injection_id, injection_value, loc, ident) =
     { Eliom_runtime.injection_id;
