@@ -1,11 +1,10 @@
-open Config
-open Migrate_parsetree
-open Ast_408
-open Parsetree
-open Ast_helper
 
-module AM = Ast_mapper
-module AC = Ast_convenience_408
+module Parsetree = Ppxlib.Parsetree
+module Asttypes = Ppxlib.Asttypes
+open Parsetree
+open Ppxlib.Ast_helper
+
+module AM = Migrate_parsetree.OCaml_410.Ast.Ast_mapper
 
 (** Various misc functions *)
 
@@ -30,13 +29,13 @@ let exp_add_attrs attr e =
 let eid {Location. txt ; loc } =
   Exp.ident ~loc { loc ; txt = Longident.Lident txt }
 
-let format_args = function
-  | [] -> AC.unit ()
+let format_args ~loc = function
+  | [] -> [%expr ()]
   | [e] -> e
-  | l -> Exp.tuple l
+  | l -> Exp.tuple ~loc l
 
-let pat_args = function
-  | [] -> AC.punit ()
+let pat_args ~loc = function
+  | [] -> [%pat? ()]
   | [p] -> p
   | l -> Pat.tuple l
 let format_typ (list : Parsetree.core_type list) : Parsetree.core_type =
@@ -76,7 +75,8 @@ let id_file_hash loc =
 *)
 let module_hash_declaration loc =
   let id = Pat.var ~loc @@ id_file_hash loc in
-  Str.value ~loc Nonrecursive [Vb.mk ~loc id @@ AC.str @@ file_hash loc]
+  Str.value ~loc Nonrecursive
+    [Vb.mk ~loc id @@ Exp.constant ~loc @@ Const.string @@ file_hash loc]
 
 (** The first position in a file, if it exists.
     We avoid {!Location.input_name}, as it's unreliable when reading multiple files.
@@ -87,11 +87,15 @@ let file_position str = match str with
 
 let lexing_position ~loc l =
   [%expr
-    { Lexing.pos_fname = [%e AC.str l.Lexing.pos_fname];
-      Lexing.pos_lnum = [%e AC.int @@ l.Lexing.pos_lnum];
-      Lexing.pos_bol = [%e AC.int @@ l.Lexing.pos_bol];
-      Lexing.pos_cnum = [%e AC.int @@ l.Lexing.pos_cnum]; }
-  ] [@metaloc loc]
+    { Lexing.pos_fname =
+        [%e Exp.constant ~loc @@ Const.string l.Lexing.pos_fname];
+      Lexing.pos_lnum =
+        [%e Exp.constant ~loc @@ Const.int l.Lexing.pos_lnum];
+      Lexing.pos_bol =
+        [%e Exp.constant ~loc @@ Const.int l.Lexing.pos_bol];
+      Lexing.pos_cnum =
+        [%e Exp.constant ~loc @@ Const.int l.Lexing.pos_cnum] }
+  ]
 
 let position loc =
   let start = loc.Location.loc_start in
@@ -238,12 +242,9 @@ module Mli = struct
     try
       let ch = open_in file in
       let items =
-        Parse.interface Versions.ocaml_current (Lexing.from_channel ch)
+        Ppxlib.Parse.interface (Lexing.from_channel ch)
       in
       close_in ch;
-      let migration =
-        Versions.migrate Versions.ocaml_current Versions.ocaml_408 in
-      let items = migration.copy_signature items in
       let h = Hashtbl.create 17 in
       let f item = match get_binding item with
         | Some (s, typ) -> Hashtbl.add h s typ
@@ -302,8 +303,9 @@ module Cmo = struct
         "Eliom: Error while loading types: %s" s
     | ic ->
        let open Cmo_format in
-       let buffer = really_input_string ic (String.length cmo_magic_number) in
-       if buffer <> cmo_magic_number then
+       let buffer =
+         really_input_string ic (String.length Config.cmo_magic_number) in
+       if buffer <> Config.cmo_magic_number then
          Location.raise_errorf
            ~loc:(Location.in_file file)
            "Eliom: Error while loading types: not an object file";
@@ -344,9 +346,8 @@ module Cmo = struct
 
   let counter = ref 0
 
-  let rec type_of_out_type ty =
+  let type_of_out_type ty =
     let open Outcometree in
-    let open Parsetree in
     let map = Hashtbl.create 1 in
     let var x =
       try Hashtbl.find map x with Not_found ->
@@ -405,11 +406,9 @@ module Cmo = struct
     in
     type_of_out_type ty
 
-  module Convert = Versions.Convert(OCaml_current)(OCaml_408)
-
   let typ ty =
     let ty = Printtyp.tree_of_type_scheme ty in
-    type_of_out_type (Convert.copy_out_type ty)
+    type_of_out_type ty
 
   let find err loc =
     let {Lexing.pos_fname; pos_cnum} = loc.Location.loc_start in
@@ -475,6 +474,11 @@ let driver_args = [
   "-server-cmo", Arg.String (fun file -> Cmo.file := Some file),
     "FILE Load inferred types from server cmo file FILE."
 ]
+
+let () =
+  List.iter
+    (fun (key, spec, doc) -> Ppxlib.Driver.add_arg key spec ~doc) driver_args
+
 
 (** Signature of specific code of a preprocessor. *)
 module type Pass = sig
@@ -660,17 +664,18 @@ module Rpc = struct
     Format.sprintf "%s.%s" filename (function_name fun_name_pattern)
 
   let pat_to_exp pattern =
+    let loc = pattern.ppat_loc in
     match pattern with
     | {ppat_desc= Ppat_var ident; _} ->
-        Exp.ident (Location.mkloc (Longident.parse ident.txt) pattern.ppat_loc)
+        Exp.ident ~loc (Location.mkloc (Longident.Lident ident.txt) loc)
     | {ppat_desc= Ppat_construct ({txt = Lident "()"},_); _} ->
-        AC.unit ()
+        [%expr ()]
     | _ ->
         print_error ~loc:pattern.ppat_loc Fatal_error
 
   let apply_function_expr ~loc fun_name args_list =
     Exp.apply ~loc
-      (Exp.ident (Location.mkloc (Longident.parse fun_name) loc))
+      (Exp.ident ~loc (Location.mkloc (Longident.Lident fun_name) loc))
       args_list
 
   let rec args_parser expr arg_list =
@@ -678,7 +683,7 @@ module Rpc = struct
     match expr with
     | [%expr fun () -> [%e? expr']] ->
         args_parser expr'
-          ((AC.punit (), AC.tconstr "unit" [], Asttypes.Nolabel) :: arg_list)
+          (([%pat? ()], [%type: unit], Asttypes.Nolabel) :: arg_list)
     | { pexp_desc =
           Pexp_fun
             (label
@@ -712,7 +717,7 @@ module Rpc = struct
              [%json: [%t _typ_of_args]]
               (fun [%p _pat_of_args] ->
                   [%e apply]))
-      ][@metaloc loc]
+      ]
     in [%expr let aux = [%e inject] in [%e aux_apply]]
 
   let connected_wrapper ~loc (rpc_name, fun_name, args_list, _pat_of_args, _typ_of_args, _expr_of_args) =
@@ -731,7 +736,7 @@ module Rpc = struct
              [%json: [%t _typ_of_args]]
              (Os_session.connected_wrapper (fun [%p _pat_of_args] ->
                   [%e apply])))
-      ][@metaloc loc]
+      ]
     in
     [%expr let aux = [%e inject] in [%e aux_apply]]
 
@@ -751,7 +756,7 @@ module Rpc = struct
            [%json: [%t _typ_of_args]]
            (Os_session.connected_rpc (fun [%p id] [%p _pat_of_args] ->
               [%e apply])))
-      ][@metaloc loc]
+      ]
     in [%expr let aux = [%e inject] in [%e aux_apply]]
 
   let connected_rpc_o ~id ~label ~loc (rpc_name, fun_name, args_list, _pat_of_args, _typ_of_args, _expr_of_args)
@@ -773,32 +778,32 @@ module Rpc = struct
              [%json: [%t _typ_of_args]]
              (Os_session.Opt.connected_rpc (fun [%p id] [%p _pat_of_args] ->
                   [%e apply])))
-    ][@metaloc loc]
+    ]
     in [%expr let aux = [%e inject] in [%e aux_apply]]
 
   let generate_client_expression fun_name_pattern expr apply_rpc =
     let _args_list,loc = args_parser  expr [] in
     let _pat_of_args =
-      List.map (fun (pattern, _, _) -> pattern) _args_list |> pat_args
+      List.map (fun (pattern, _, _) -> pattern) _args_list |> pat_args ~loc
     in
     let _typ_of_args =
       List.map (fun (_, typ, _) -> typ) _args_list |> format_typ
     in
     let _expr_of_args =
       List.map (fun (pattern, _, _) -> pat_to_exp pattern) _args_list
-      |> format_args
+      |> format_args ~loc
     in
     let rec expr_mapper args_list =
         match args_list with
       | [] ->
           let rpc_name =
-            Exp.constant (Pconst_string (rpc_name fun_name_pattern, None))
+            Exp.constant ~loc (Const.string (rpc_name fun_name_pattern))
           in
           let fun_name = function_name fun_name_pattern in
           apply_rpc ~loc (rpc_name, fun_name, _args_list, _pat_of_args, _typ_of_args, _expr_of_args)
       |(pattern,_,label)::args_list' -> Exp.fun_ label None pattern (expr_mapper args_list')
     in
-    expr_mapper _args_list [@metaloc loc]
+    expr_mapper _args_list
 
   let generate_server_struct_item rpc_type stri =
     match stri with
@@ -807,7 +812,7 @@ module Rpc = struct
           [%e? {pexp_desc= Pexp_fun (label, None, _, expr')}]] ->
         let args_list,loc = args_parser expr' [] in
         let _args =
-          List.map (fun (pattern, _, _) -> pattern) args_list |> pat_args
+          List.map (fun (pattern, _, _) -> pattern) args_list |> pat_args ~loc
         in
         let _apply =
           match rpc_type with
@@ -830,9 +835,9 @@ module Rpc = struct
         in
         ([ [%stri
              let [%p pattern] = [%e expr_mapper args_list]]
-        [@metaloc loc]])
+        ])
     | _ -> (
-        ([stri] [@metaloc loc]) )
+        ([stri]) )
 
   let generate_client_struct_item rpc_type stri =
     let loc = stri.pstr_loc in
@@ -855,7 +860,7 @@ module Rpc = struct
         (pattern, generate_client_expression pattern expr'
            (connected_rpc_o ~id ~label))
       | _ -> print_error ~loc Fatal_error
-    in [[%stri let [%p pattern] = [%e expr]][@metaloc loc]]
+    in [[%stri let [%p pattern] = [%e expr]]]
 end
 
 module Shared = struct
@@ -889,13 +894,13 @@ module Shared = struct
           Eliom_shared.Value.create
           [%e server_expr]
           [%client.unsafe [%e client_expr]]
-      ] [@metaloc loc]
+      ]
     else
       [%expr
           Eliom_shared.Value.create
           [%e server_expr]
           [%client [%e client_expr]]
-      ] [@metaloc loc]
+      ]
 end
 
 module Make (Pass : Pass) = struct
@@ -1000,9 +1005,9 @@ module Make (Pass : Pass) = struct
 
   let eliom_mapper context =
     let context = ref (context :> Context.t) in
-    { Ast_mapper.default_mapper
+    { AM.default_mapper
       with
-        Ast_mapper.
+        AM.
 
         expr = eliom_expr context ;
 
@@ -1108,7 +1113,7 @@ module Make (Pass : Pass) = struct
     in
     flatmap f sigs
 
-  let mapper _config _cookies =
+  let mapper =
     let c = ref `Server in
     {AM.default_mapper
      with

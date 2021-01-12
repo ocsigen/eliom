@@ -20,13 +20,11 @@
 
 (* This prepocessor generates the module to be loaded by Ocsigen server *)
 
-open Migrate_parsetree
-open Ast_408
-open Parsetree
-open Asttypes
-open Ast_helper
+open Ppxlib.Parsetree
+open Ppxlib.Asttypes
+open Ppxlib.Ast_helper
 
-module AC = Ast_convenience_408
+module AM = Migrate_parsetree.OCaml_410.Ast.Ast_mapper
 
 open Ppx_eliom_utils
 
@@ -36,8 +34,8 @@ module Pass = struct
     let typing_strs = ref [] in
     let add ~fragment ~unsafe loc id =
       let typ =
-        if fragment then [%type: _ Eliom_client_value.t ][@metaloc loc]
-        else [%type: _][@metaloc loc]
+        if fragment then [%type: _ Eliom_client_value.t ]
+        else [%type: _]
       in
       typing_strs :=
         (if unsafe || Mli.exists () then
@@ -54,7 +52,8 @@ module Pass = struct
     let flush () =
       let res = !typing_strs in
       typing_strs := [];
-      [%stri open struct [%%s res] end]
+      let loc = Location.none in
+      [%stri open [%m Mod.structure res]]
     in
     add, flush
 
@@ -76,9 +75,8 @@ module Pass = struct
       let aux (loc, id, arg, unsafe) =
         push_nongen_str_item ~fragment:false ~unsafe loc id;
         [%expr Eliom_syntax.escaped_value
-            [%e [%expr ([%e eid id] [%e arg ])]
-                [@metaloc one_char_location loc]]]
-        [@metaloc loc]
+            [%e let loc = one_char_location loc in
+                [%expr ([%e eid id] [%e arg ])]]]
       in
       List.map aux res
     in
@@ -136,7 +134,7 @@ module Pass = struct
       let () =
         Eliom_syntax.close_server_section
           [%e eid @@ id_file_hash loc]
-    ] [@metaloc loc]
+    ]
 
   let may_close_server_section ~no_fragment loc =
     if no_fragment
@@ -154,16 +152,14 @@ module Pass = struct
            let frag_eid = eid {txt;loc} in
            let ident = match ident with
              | None -> [%expr None]
-             | Some i -> [%expr Some [%e AC.str i ]] in
+             | Some i -> [%expr Some [%e Exp.constant @@ Const.string i ]] in
            let (_, num) = Mli.get_injected_ident_info txt in
            let f_id = {txt = txt ^ "_f"; loc} in
            push_nongen_str_item ~fragment:false ~unsafe loc f_id;
            [%expr
-             ([%e AC.int num],
-              Eliom_lib.to_poly [%e
-                                    [%expr [%e eid f_id] [%e frag_eid ]]
-                                    [@metaloc one_char_location loc0]
-                ],
+             ([%e Exp.constant @@ Const.int num],
+              Eliom_lib.to_poly [%e let loc = one_char_location loc0 in
+                                    [%expr [%e eid f_id] [%e frag_eid ]]],
               [%e loc_expr], [%e ident ]) :: [%e sofar ]
            ])
         injections
@@ -174,7 +170,7 @@ module Pass = struct
         Eliom_syntax.close_client_section
           [%e eid @@ id_file_hash loc ]
           [%e injection_list ]
-    ][@metaloc loc]
+    ]
 
 
   (** Syntax extension *)
@@ -221,20 +217,20 @@ module Pass = struct
       | Some typ -> typ
       | None -> [%type: _]
     in
-    let e = format_args @@ flush_escaped_bindings () in
+    let e = format_args ~loc @@ flush_escaped_bindings () in
     push_nongen_str_item ~fragment:true ~unsafe loc id;
     [%expr
         [%e eid id]
-        [%e
+        [%e let loc = one_char_location loc in
             [%expr
                 ( (Eliom_syntax.client_value
                      ~pos:([%e position loc ])
-                     [%e AC.str num ]
+                     [%e Exp.constant @@ Const.string num ]
                      [%e e ])
                   : [%t typ ] Eliom_client_value.t)
-            ][@metaloc one_char_location loc]
+            ]
         ]
-    ][@metaloc loc]
+    ]
 
   let escape_inject
         ~loc ?ident ~(context:Context.escape_inject) ~id ~unsafe expr =
@@ -264,5 +260,8 @@ end
 include Make(Pass)
 
 let () =
-  Migrate_parsetree.Driver.register ~name:"ppx_eliom_server" ~args:driver_args
-    Migrate_parsetree.Versions.ocaml_408 mapper
+  Ppxlib.Driver.register_transformation
+    ~preprocess_impl:(fun str -> mapper.AM.structure mapper str)
+    ~preprocess_intf:(fun sig_ ->
+      mapper.AM.signature mapper sig_)
+     "ppx_eliom_server"

@@ -34,13 +34,11 @@
      $global_id$ := Some $expr$
 
 *)
-open Migrate_parsetree
-open Ast_408
-open Parsetree
-open Asttypes
-open Ast_helper
+open Ppxlib.Parsetree
+open Ppxlib.Asttypes
+open Ppxlib.Ast_helper
 
-module AC = Ast_convenience_408
+module AM = Migrate_parsetree.OCaml_410.Ast.Ast_mapper
 
 open Ppx_eliom_utils
 
@@ -56,14 +54,16 @@ module Pass = struct
         let frag_eid = eid id in
         typing_expr :=
           (id,
+           let loc = orig_expr.pexp_loc in
            [%expr [%e frag_eid] := Some [%e orig_expr]]
-             [@metaloc orig_expr.pexp_loc]
           ) :: !typing_expr
     in
     let flush () =
       let res = List.rev (List.map snd !typing_expr) in
       typing_expr := [];
-      AC.sequence res
+      match res with
+      | []    -> let loc = Location.none in [%expr ()]
+      | r:: l -> List.fold_left Exp.sequence r l
     in
     add, flush
 
@@ -77,8 +77,8 @@ module Pass = struct
       then
         typing_strs :=
           (id,
+           let loc = orig_expr.pexp_loc in
            [%stri let [%p Pat.var id] = Stdlib.ref None]
-           [@metaloc orig_expr.pexp_loc]
           ) :: !typing_strs
     in
     let flush () =
@@ -93,7 +93,7 @@ module Pass = struct
   let client_str item =
     let loc = item.pstr_loc in
     flush_typing_str_item () @
-    [%str let () = [%e flush_typing_expr () ] ] [@metaloc loc]
+    [%str let () = [%e flush_typing_expr () ] ]
 
   let server_str _ item =
     flush_typing_str_item () @
@@ -102,7 +102,7 @@ module Pass = struct
   let shared_str _ item =
     let loc = item.pstr_loc in
     flush_typing_str_item () @
-    [%str let () = [%e flush_typing_expr () ] ] [@metaloc loc] @
+    [%str let () = [%e flush_typing_expr () ] ] @
     [ item ]
 
   let fragment ~loc ?typ ~context:_ ~num:_ ~id ~unsafe:_ expr =
@@ -126,6 +126,7 @@ module Pass = struct
         ~loc:_ ?ident:_ ~(context:Context.escape_inject) ~id ~unsafe:_ expr =
     push_typing_str_item expr id;
     push_typing_expr expr id;
+    let loc = expr.pexp_loc in
     match context with
     | `Escaped_value _ -> [%expr assert false]
     | `Injection `Shared -> expr
@@ -143,5 +144,8 @@ end
 include Make(Pass)
 
 let () =
-  Migrate_parsetree.Driver.register ~name:"ppx_eliom_types" ~args:driver_args
-    Migrate_parsetree.Versions.ocaml_408 mapper
+  Ppxlib.Driver.register_transformation
+    ~preprocess_impl:(fun str -> mapper.AM.structure mapper str)
+    ~preprocess_intf:(fun sig_ ->
+      mapper.AM.signature mapper sig_)
+     "ppx_eliom_types"

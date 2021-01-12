@@ -1,11 +1,9 @@
-open Migrate_parsetree
-open Ast_408
-open Parsetree
-open Asttypes
-open Ast_helper
 
-module AC = Ast_convenience_408
-module AM = Ast_mapper
+open Ppxlib.Parsetree
+open Ppxlib.Asttypes
+open Ppxlib.Ast_helper
+
+module AM = Migrate_parsetree.OCaml_410.Ast.Ast_mapper
 
 open Ppx_eliom_utils
 
@@ -17,12 +15,12 @@ module Pass = struct
      [Eliom_client_core.Syntax_helpers.get_escaped_value v] *)
   let map_get_escaped_values =
     let mapper =
-      {Ast_mapper.default_mapper with
+      {AM.default_mapper with
        expr = (fun mapper e ->
          match e.pexp_desc with
          | Pexp_ident {txt} when Mli.is_escaped_ident @@ Longident.last txt ->
-           [%expr Eliom_client_core.Syntax_helpers.get_escaped_value [%e e] ]
-           [@metaloc e.pexp_loc]
+            let loc = e.pexp_loc in
+            [%expr Eliom_client_core.Syntax_helpers.get_escaped_value [%e e] ]
          | _ -> AM.default_mapper.expr mapper e
        );
       }
@@ -93,18 +91,19 @@ module Pass = struct
         (fun (loc, num, id, expr, args) ->
            let typ = find_fragment loc id in
            let args = List.map Pat.var args in
+           let loc = expr.pexp_loc in
            [%expr
              Eliom_client_core.Syntax_helpers.register_client_closure
-               [%e AC.str num]
-               (fun [%p pat_args args] ->
+               [%e Exp.constant ~loc @@ Const.string (*~loc*) num]
+               (fun [%p pat_args ~loc args] ->
                   ([%e map_get_escaped_values expr] : [%t typ]))
-           ] [@metaloc expr.pexp_loc]
+           ]
         )
         client_value_datas
     in
     match registrations with
     | [] -> []
-    | _ -> [Str.eval (AC.sequence registrations)]
+    | r :: l -> [Str.eval (List.fold_left Exp.sequence r l)]
 
   (* We hoist the body of client fragments to enforce the correct scoping:
      Identifiers declared earlier in the client section should not be
@@ -122,8 +121,8 @@ module Pass = struct
              let args = List.map Pat.var args in
              let expr =
                [%expr
-                 fun [%p pat_args args] -> ([%e expr] : [%t typ])
-               ] [@metaloc loc]
+                 fun [%p pat_args loc args] -> ([%e expr] : [%t typ])
+               ]
              in
              Vb.mk ~loc patt expr)
           client_value_datas
@@ -212,7 +211,7 @@ module Pass = struct
           escaped_bindings
       in
       let args =
-        format_args @@ List.map
+        format_args ~loc @@ List.map
           (fun (id, _, _) -> eid id)
           escaped_bindings
       in
@@ -266,10 +265,13 @@ module Pass = struct
       let typ = assert_no_variables typ in
       let ident = match ident with
         | None   -> [%expr None]
-        | Some i -> [%expr Some [%e AC.str i]]
+        | Some i -> [%expr Some [%e Exp.constant ~loc @@ Const.string (*~loc*) i]]
       in
       let (u, d) = Mli.get_injected_ident_info id.txt in
-      let es = (AC.str @@ Printf.sprintf "%s%d" u d)[@metaloc id.loc] in
+      let es =
+        let loc = id.loc in
+        Exp.constant ~loc @@ Const.string (*~loc*) @@ Printf.sprintf "%s%d" u d
+      in
       [%expr
         (Eliom_client_core.Syntax_helpers.get_injection
            ?ident:([%e ident])
@@ -290,5 +292,8 @@ end
 include Make(Pass)
 
 let () =
-  Migrate_parsetree.Driver.register ~name:"ppx_eliom_client" ~args:driver_args
-    Migrate_parsetree.Versions.ocaml_408 mapper
+  Ppxlib.Driver.register_transformation
+    ~preprocess_impl:(fun str -> mapper.AM.structure mapper str)
+    ~preprocess_intf:(fun sig_ ->
+      mapper.AM.signature mapper sig_)
+     "ppx_eliom_client"

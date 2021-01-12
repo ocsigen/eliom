@@ -1,5 +1,4 @@
-open Migrate_parsetree.Ast_408
-open Parsetree
+open Ppxlib.Parsetree
 
 (** {2 Various helping functions} *)
 
@@ -10,9 +9,9 @@ val eid : string Location.loc -> expression
 
 val position : Location.t -> expression
 
-val format_args : expression list -> expression
+val format_args : loc:Location.t -> expression list -> expression
 
-val pat_args : pattern list -> pattern
+val pat_args : loc:Location.t -> pattern list -> pattern
 
 (** Context convenience module. *)
 module Context : sig
@@ -97,7 +96,6 @@ end
 
 val driver_args : (Arg.key * Arg.spec * Arg.doc) list
 
-module Make (P : Pass) : sig
-  val mapper :
-    Migrate_parsetree.Versions.OCaml_408.types Migrate_parsetree.Driver.rewriter
+module Make (_ : Pass) : sig
+  val mapper : Migrate_parsetree.OCaml_410.Ast.Ast_mapper.mapper
 end
