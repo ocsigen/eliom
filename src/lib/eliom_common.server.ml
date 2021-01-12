@@ -1310,8 +1310,6 @@ module Persistent_cookies = struct
               else Some (cookies_str ^ "," ^ cookie)
   end
 
-  let find = Cookies.find
-
   let add cookie ((_, exp, _, _) as content) =
     Eliom_lib.Option.Lwt.iter (fun t -> Expiry_dates.add_cookie t cookie) exp
     >>= fun _ ->
