@@ -30,4 +30,5 @@ depends: [
   "reactiveData" {>= "0.2.1"}
   "dbm" | "sqlite3"
   "base-bytes"
+  "ppx_tools_versioned"
 ]
