@@ -1,8 +1,8 @@
-type cookie =
-  [ `Set of float option (* exp date *) *
+type cookie = Ocsigen_cookie_map.cookie =
+  | OSet of float option (* exp date *) *
             string (* value *) *
             bool (* secure *)
-  | `Unset ]
+  | OUnset
 [@@deriving json]
 
 type cookie_array =

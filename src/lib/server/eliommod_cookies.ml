@@ -326,7 +326,7 @@ let compute_session_cookies_to_send
                     sitedata.Eliom_common.site_dir
                     (Eliom_common.make_full_cookie_name
                        cookiekind full_st_name)
-                    `Unset
+                    OUnset
                     beg
               (* the path is always site_dir because the cookie cannot
                  have been unset by a service outside
@@ -336,7 +336,7 @@ let compute_session_cookies_to_send
                     sitedata.Eliom_common.site_dir
                     (Eliom_common.make_full_cookie_name
                        cookiekind full_st_name)
-                    (`Set (ch_exp exp, v, secure))
+                    (OSet (ch_exp exp, v, secure))
                     beg
                 | Some oldv, Some (newv, exp) ->
                   if exp = Eliom_common.CENothing && oldv = newv
@@ -346,7 +346,7 @@ let compute_session_cookies_to_send
                       sitedata.Eliom_common.site_dir
                       (Eliom_common.make_full_cookie_name
                          cookiekind full_st_name)
-                      (`Set (ch_exp exp, newv, secure))
+                      (OSet (ch_exp exp, newv, secure))
                       beg
               )
           )
@@ -392,15 +392,15 @@ let compute_new_ri_cookies'
 (*VVV We always keep secure cookies, event if the protocol is not secure,
   because this function is for actions only. Is that right? *)
             match v with
-              | `Set (Some exp, value, secure)
+              | OSet (Some exp, value, secure)
                   when exp>now ->
                 Ocsigen_cookie_map.Map_inner.add name value cookies
-              | `Set (None, value, secure) ->
+              | OSet (None, value, secure) ->
                 Ocsigen_cookie_map.Map_inner.add name value cookies
-              | `Set (Some exp, value, secure)
+              | OSet (Some exp, value, secure)
                   when exp<=now ->
                 Ocsigen_cookie_map.Map_inner.remove name cookies
-              | `Unset ->
+              | OUnset ->
                 Ocsigen_cookie_map.Map_inner.remove name cookies
               | _ -> cookies)
           t

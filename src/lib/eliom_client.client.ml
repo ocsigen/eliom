@@ -99,7 +99,7 @@ let init_client_app
   Eliom_process.set_request_cookies
     (Ocsigen_cookie_map.add ~path:[]
        Eliom_common.appl_name_cookie_name
-       (`Set (None, app_name, false))
+       (Ocsigen_cookie_map.OSet (None, app_name, false))
        Ocsigen_cookie_map.empty);
   ignore (get_global_data ())
 
