@@ -69,15 +69,15 @@ let update_cookie_table ?(in_local_storage=false) host cookies =
     (fun path table ->
        Ocsigen_cookie_map.Map_inner.iter
          (fun name -> function
-            | `Set (Some exp, _, _) when exp <= now ->
+            | OSet (Some exp, _, _) when exp <= now ->
               set_table ~in_local_storage host
                 (Ocsigen_cookie_map.Poly.remove ~path name
                    (get_table ~in_local_storage host))
-            | `Unset ->
+            | OUnset ->
               set_table ~in_local_storage host
                 (Ocsigen_cookie_map.Poly.remove ~path name
                    (get_table ~in_local_storage host))
-            | `Set (exp, value, secure) ->
+            | OSet (exp, value, secure) ->
               set_table ~in_local_storage host
                 (Ocsigen_cookie_map.Poly.add ~path name
                    (exp, value, secure)

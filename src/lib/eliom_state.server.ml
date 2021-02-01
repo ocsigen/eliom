@@ -1577,11 +1577,11 @@ let set_cookie
   match cookie_level with
     | `Session ->
       sp.Eliom_common.sp_user_cookies <- Ocsigen_cookie_map.add
-        path name (`Set (exp, value, secure))
+        path name (OSet (exp, value, secure))
         sp.Eliom_common.sp_user_cookies
     | `Client_process ->
       sp.Eliom_common.sp_user_tab_cookies <- Ocsigen_cookie_map.add
-        path name (`Set (exp, value, secure))
+        path name (OSet (exp, value, secure))
         sp.Eliom_common.sp_user_tab_cookies
 
 let unset_cookie
@@ -1591,7 +1591,7 @@ let unset_cookie
   match cookie_level with
     | `Session ->
       sp.Eliom_common.sp_user_cookies <- Ocsigen_cookie_map.add
-        path name `Unset sp.Eliom_common.sp_user_cookies
+        path name OUnset sp.Eliom_common.sp_user_cookies
     | `Client_process ->
       sp.Eliom_common.sp_user_tab_cookies <- Ocsigen_cookie_map.add
-        path name `Unset sp.Eliom_common.sp_user_tab_cookies
+        path name OUnset sp.Eliom_common.sp_user_tab_cookies
