@@ -112,6 +112,15 @@ let nl_template =
 (* Warning: it must correspond to [nl_template]. *)
 let nl_template_string = "__nl_n_eliom-template.name"
 
+module Additional_headers = struct
+  module Headers = Map.Make (String)
+  let headers = ref Headers.empty
+  let add header value =
+    headers :=
+    Headers.update (String.lowercase_ascii header) (fun _ -> Some value) !headers
+  let remove header = headers := Headers.remove header !headers
+  let to_list () = Headers.bindings !headers
+end
 
 let locked, set_locked = React.S.create false
 
@@ -171,6 +180,7 @@ let send
       else
         headers
     in
+    let headers = Additional_headers.to_list () @ headers in
     (* CCC *
        For now we assume that an eliom application is not distributed
        among different server with different hostnames:

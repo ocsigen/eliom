@@ -38,6 +38,11 @@ val locked : bool React.signal
 val lock : unit -> unit
 val unlock : unit -> unit
 
+module Additional_headers : sig
+  val add : string -> string -> unit
+  val remove : string -> unit
+end
+
 val send :
   ?with_credentials:bool ->
   ?expecting_process_page:bool ->

@@ -453,3 +453,9 @@ val log_section : Lwt_log.section
 val middleClick : Dom_html.mouseEvent Js.t -> bool
 
 type client_form_handler = Dom_html.event Js.t -> bool Lwt.t
+
+(** headers to add to each of Eliom's HTTP requests. *)
+module Additional_headers : sig
+  val add : string -> string -> unit
+  val remove : string -> unit
+end
