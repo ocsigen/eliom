@@ -140,7 +140,7 @@ module Make (A : ARG) : S
          let client_ev = Eliom_react.Down.of_react
              (*VVV If we add throttling, some events may be lost
                even if buffer size is not 1 :O *)
-             ~size: 100 (*VVV ? *)
+             ~size: 20 (*VVV ? *)
              ~scope:Eliom_common.default_process_scope
              e
          in
