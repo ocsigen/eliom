@@ -857,7 +857,7 @@ let a_handler =
                   (get_element_template node) ev))
 
 let form_handler
-  : (Dom_html.element Js.t, Dom_html.event Js.t) Dom_html.event_listener
+  : (Dom_html.element Js.t, #Dom_html.event Js.t) Dom_html.event_listener
   =
   Dom_html.full_handler
     (fun node ev ->
