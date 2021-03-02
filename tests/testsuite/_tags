@@ -1,5 +1,0 @@
-<type_dir/*.ml{,i}>:package(eliom.server,eliom.server.monitor)
-<server/*.ml{,i}>:package(eliom.server,eliom.server.monitor)
-<**/*.ml{,i}>: syntax(camlp4o),package(ocsigenserver.baselib,js_of_ocaml-camlp4.deriving,deriving.syntax.std,tyxml.syntax,reactiveData,react),package(lwt_camlp4.log),ppopt(-lwt-debug)
-<testsuite_client.{byte,js}>:package(eliom.client)
-true: debug

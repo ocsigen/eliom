@@ -1,4 +1,0 @@
-S .
-B _build
-PKG ocamlbuild
-PKG js_of_ocaml-ocamlbuild

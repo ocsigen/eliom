@@ -1,0 +1,418 @@
+<html><head><title></title><meta charset="utf8"/><meta content="width=device-width, initial-scale=1" name="viewport"/><link rel="stylesheet" href="https://ocsigen.org/css/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script type="text/javascript" src="https://ocsigen.org/js/client.js">
+//<![CDATA[
+
+//]]>
+</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js">
+//<![CDATA[
+
+//]]>
+</script></head><body class="type_Eliom_client eliom"><div class="project-page"><div class="page-header"><p class="logo-ocsigen"><a href="../.././../../" class="ocsimore_phrasing_link"><img src="../.././../../img/ocsigen-white.svg" alt="Ocsigen"/></a>
+</p><p class="logo-subproject">Eliom</p><div class="mainmenu"><p class="mainmenu-home"><a href="../.././../../" class="ocsimore_phrasing_link">Home</a></p><p class="mainmenu-doc"><a href="../.././../../tuto/" class="ocsimore_phrasing_link">Doc</a></p><p class="mainmenu-current"><a href="../.././../../eliom/" class="ocsimore_phrasing_link">Eliom</a></p><p><a href="../.././../../js_of_ocaml/" class="ocsimore_phrasing_link">Js_of_ocaml</a></p><p><a href="../.././../../lwt/" class="ocsimore_phrasing_link">Lwt</a></p><p><a href="../.././../../tyxml/" class="ocsimore_phrasing_link">Tyxml</a></p><p><a href="../.././../../ocsigen-start/" class="ocsimore_phrasing_link">Start</a></p></div><form id="googlesearch" action="https://google.com/search"><input name="q" id="gsearch-box" placeholder="Search using Google"/><label for="gsearch-box"><img src="/img/search.svg" alt="" id="gsearch-icon"/></label><input type="submit" id="gsearch-submit" onclick="document.getElementById('gsearch-box').value += ' site:ocsigen.org';"/></form><aside class="how-drawer"><input id="how-drawer-toggle" type="checkbox"/><label for="how-drawer-toggle" id="how-drawer-label"><span class="how-drawer-icon"></span></label><nav class="how-drawer-content"><ul class="drawermainmenu"><li class="drawermainmenu-home"><a href="../.././../../" class="ocsimore_phrasing_link">Home</a>
+</li><li class="drawermainmenu-doc"><a href="../.././../../tuto/" class="ocsimore_phrasing_link">Doc</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../eliom/" class="ocsimore_phrasing_link">Eliom</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../js_of_ocaml/" class="ocsimore_phrasing_link">Js_of_ocaml</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../ocsigenserver/" class="ocsimore_phrasing_link">Server</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../lwt/" class="ocsimore_phrasing_link">Lwt</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../tyxml/" class="ocsimore_phrasing_link">Tyxml</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../ocsigen-toolkit/" class="ocsimore_phrasing_link">Toolkit</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../ocsigen-start/" class="ocsimore_phrasing_link">Start</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../html_of_wiki/" class="ocsimore_phrasing_link">html_of_wiki</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../deriving/" class="ocsimore_phrasing_link">deriving</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../ocsimore/" class="ocsimore_phrasing_link">Ocsimore (<em>deprecated</em>)</a>
+</li><li class="drawermainmenu-page"><a href="../.././../../projects" class="ocsimore_phrasing_link">Other projects</a>
+</li><li class="drawermainmenu-page"><a href="../.././../../papers" class="ocsimore_phrasing_link">Research papers</a>
+</li><li class="drawermainmenu-page"><a href="../.././../../credits" class="ocsimore_phrasing_link">Who does Ocsigen?</a>
+</li><li class="drawermainmenu-page"><a href="../.././../../contributing" class="ocsimore_phrasing_link">Contributing</a>
+</li><li class="drawermainmenu-page"><a href="../.././../../blog" class="ocsimore_phrasing_link">Blog</a>
+</li><li class="drawermainmenu-page"><a href="../.././../../install" class="ocsimore_phrasing_link">Installation</a>
+</li><li class="drawermainmenu-page"><a href="https://github.com/ocsigen" class="ocsimore_phrasing_link">Source code</a>
+</li></ul><nav class="how-doctree"><h1>Eliom client API</h1><h2><a href="../.././api/client/Eliom_pervasives" class="ocsimore_phrasing_link">Eliom_pervasives</a></h2><h2>HTML</h2><h3><a href="../.././api/client/Eliom_pervasives.HTML5" class="ocsimore_phrasing_link">Eliom_pervasives.HTML5</a></h3><h3><a href="../.././api/client/Eliom_output.Html5" class="ocsimore_phrasing_link">Eliom_output.Html5</a></h3><h3><a href="../.././api/client/Eliom_dom" class="ocsimore_phrasing_link">Eliom_dom</a></h3><h2>Services creation and manipulation</h2><h3><a href="../.././api/client/Eliom_services" class="ocsimore_phrasing_link">Eliom_services</a></h3><h3><a href="../.././api/client/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h3><h3><a href="../.././api/client/Eliom_client.Html5" class="ocsimore_phrasing_link">Eliom_client.Html5</a></h3><h2>Client/server communication</h2><h3><a href="../.././api/client/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href="../.././api/client/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h2>Index</h2><h3> <span><a href="../.././api/client/index_types">Index of types</a></span></h3><h3> <span><a href="../.././api/client/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href="../.././api/client/index_values">Index of values</a></span></h3><h3> <span><a href="../.././api/client/index_modules">Index of modules</a></span></h3><h3> <span><a href="../.././api/client/index_module_types">Index of module types</a></span></h3><h1>Server API</h1><h2><a href="../.././api/server/Eliom_pervasives" class="ocsimore_phrasing_link">Eliom_pervasives</a></h2><h2><a href="../.././api/server/Eliom_common" class="ocsimore_phrasing_link">Eliom_common</a></h2><h2><a href="../.././api/server/Eliom_config" class="ocsimore_phrasing_link">Eliom_config</a></h2><h2><a href="../.././api/server/Eliom_request_info" class="ocsimore_phrasing_link">Eliom_request_info</a></h2><h2>HTML</h2><h3><a href="../.././api/server/Eliom_pervasives.HTML5" class="ocsimore_phrasing_link">Eliom_pervasives.HTML5</a></h3><h3><a href="../.././api/server/Eliom_output.Html5" class="ocsimore_phrasing_link">Eliom_output.Html5</a></h3><h3><a href="../.././api/server/Eliom_pervasives.XHTML" class="ocsimore_phrasing_link">Eliom_pervasives.XHTML</a></h3><h2>Services creation and service handler</h2><h3><a href="../.././api/server/Eliom_services" class="ocsimore_phrasing_link">Eliom_services</a></h3><h3><a href="../.././api/server/Eliom_parameters" class="ocsimore_phrasing_link">Eliom_parameters</a></h3><h3><a href="../.././api/server/Eliom_output" class="ocsimore_phrasing_link">Eliom_output</a></h3><h3><a href="../.././api/server/Eliom_references" class="ocsimore_phrasing_link">Eliom_references</a></h3><h3><a href="../.././api/server/Eliom_state" class="ocsimore_phrasing_link">Eliom_state</a></h3><h2>Client/server communication</h2><h3><a href="../.././api/server/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href="../.././api/server/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href="../.././api/server/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Extensions</h2><h3><a href="../.././api/server/Eliom_atom" class="ocsimore_phrasing_link">Eliom_atom</a></h3><h3><a href="../.././api/server/Eliom_openid" class="ocsimore_phrasing_link">Eliom_openid</a></h3><h2>Index</h2><h3> <span><a href="../.././api/server/index_types">Index of types</a></span></h3><h3> <span><a href="../.././api/server/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href="../.././api/server/index_values">Index of values</a></span></h3><h3> <span><a href="../.././api/server/index_modules">Index of modules</a></span></h3><h3> <span><a href="../.././api/server/index_module_types">Index of module types</a></span></h3></nav></nav></aside></div><p class="reasonwarning">Warning: Reason support is experimental.
+We are looking for beta-tester and contributors.
+</p><button id="reason">Switch to </button><div class="twocols"><nav class="leftcol">Version <select class="how-versions" onchange="location = this.value;"><option value="../.././../1.1.0/api/client/type_Eliom_client">1.1.0</option><option value="../.././../1.2.2/api/client/type_Eliom_client">1.2.2</option><option value="../.././../1.3.4/api/client/type_Eliom_client">1.3.4</option><option value="../.././../2.0.2/api/client/type_Eliom_client">2.0.2</option><option value="../.././../2.1.1/api/client/type_Eliom_client" selected="selected">2.1.1</option><option value="../.././../2.2.2/api/client/type_Eliom_client">2.2.2</option><option value="../.././../3.0/api/client/type_Eliom_client">3.0</option><option value="../.././../4.2/api/client/type_Eliom_client">4.2</option><option value="../.././../5.0/api/client/type_Eliom_client">5.0</option><option value="../.././../6.x/api/client/type_Eliom_client">6.x</option><option value="../.././../dev/api/client/type_Eliom_client">dev</option></select><nav class="how-doctree"><h1>Eliom client API</h1><h2><a href="../.././api/client/Eliom_pervasives" class="ocsimore_phrasing_link">Eliom_pervasives</a></h2><h2>HTML</h2><h3><a href="../.././api/client/Eliom_pervasives.HTML5" class="ocsimore_phrasing_link">Eliom_pervasives.HTML5</a></h3><h3><a href="../.././api/client/Eliom_output.Html5" class="ocsimore_phrasing_link">Eliom_output.Html5</a></h3><h3><a href="../.././api/client/Eliom_dom" class="ocsimore_phrasing_link">Eliom_dom</a></h3><h2>Services creation and manipulation</h2><h3><a href="../.././api/client/Eliom_services" class="ocsimore_phrasing_link">Eliom_services</a></h3><h3><a href="../.././api/client/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h3><h3><a href="../.././api/client/Eliom_client.Html5" class="ocsimore_phrasing_link">Eliom_client.Html5</a></h3><h2>Client/server communication</h2><h3><a href="../.././api/client/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href="../.././api/client/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h2>Index</h2><h3> <span><a href="../.././api/client/index_types">Index of types</a></span></h3><h3> <span><a href="../.././api/client/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href="../.././api/client/index_values">Index of values</a></span></h3><h3> <span><a href="../.././api/client/index_modules">Index of modules</a></span></h3><h3> <span><a href="../.././api/client/index_module_types">Index of module types</a></span></h3><h1>Server API</h1><h2><a href="../.././api/server/Eliom_pervasives" class="ocsimore_phrasing_link">Eliom_pervasives</a></h2><h2><a href="../.././api/server/Eliom_common" class="ocsimore_phrasing_link">Eliom_common</a></h2><h2><a href="../.././api/server/Eliom_config" class="ocsimore_phrasing_link">Eliom_config</a></h2><h2><a href="../.././api/server/Eliom_request_info" class="ocsimore_phrasing_link">Eliom_request_info</a></h2><h2>HTML</h2><h3><a href="../.././api/server/Eliom_pervasives.HTML5" class="ocsimore_phrasing_link">Eliom_pervasives.HTML5</a></h3><h3><a href="../.././api/server/Eliom_output.Html5" class="ocsimore_phrasing_link">Eliom_output.Html5</a></h3><h3><a href="../.././api/server/Eliom_pervasives.XHTML" class="ocsimore_phrasing_link">Eliom_pervasives.XHTML</a></h3><h2>Services creation and service handler</h2><h3><a href="../.././api/server/Eliom_services" class="ocsimore_phrasing_link">Eliom_services</a></h3><h3><a href="../.././api/server/Eliom_parameters" class="ocsimore_phrasing_link">Eliom_parameters</a></h3><h3><a href="../.././api/server/Eliom_output" class="ocsimore_phrasing_link">Eliom_output</a></h3><h3><a href="../.././api/server/Eliom_references" class="ocsimore_phrasing_link">Eliom_references</a></h3><h3><a href="../.././api/server/Eliom_state" class="ocsimore_phrasing_link">Eliom_state</a></h3><h2>Client/server communication</h2><h3><a href="../.././api/server/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href="../.././api/server/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href="../.././api/server/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Extensions</h2><h3><a href="../.././api/server/Eliom_atom" class="ocsimore_phrasing_link">Eliom_atom</a></h3><h3><a href="../.././api/server/Eliom_openid" class="ocsimore_phrasing_link">Eliom_openid</a></h3><h2>Index</h2><h3> <span><a href="../.././api/server/index_types">Index of types</a></span></h3><h3> <span><a href="../.././api/server/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href="../.././api/server/index_values">Index of values</a></span></h3><h3> <span><a href="../.././api/server/index_modules">Index of modules</a></span></h3><h3> <span><a href="../.././api/server/index_module_types">Index of module types</a></span></h3></nav></nav><article class="rightcol"><pre class=""><code class="language-ocaml translatable">sig
+  val change_page :
+    ?absolute:bool -&gt;
+    ?absolute_path:bool -&gt;
+    ?https:bool -&gt;
+    service:('a, 'b, [&lt; Eliom_services.service_kind ],
+             [&lt; Eliom_services.suff ], 'c, 'd,
+             [&lt; Eliom_services.registrable ], Eliom_output.appl_service)
+            Eliom_services.service -&gt;
+    ?hostname:string -&gt;
+    ?port:int -&gt;
+    ?fragment:string -&gt;
+    ?keep_nl_params:[ `All | `None | `Persistent ] -&gt;
+    ?nl_params:Eliom_parameters.nl_params_set -&gt;
+    ?keep_get_na_params:bool -&gt; 'a -&gt; 'b -&gt; unit Lwt.t
+  val call_caml_service :
+    ?absolute:bool -&gt;
+    ?absolute_path:bool -&gt;
+    ?https:bool -&gt;
+    service:('a, 'b, [&lt; Eliom_services.service_kind ],
+             [&lt; Eliom_services.suff ], 'c, 'd,
+             [&lt; Eliom_services.registrable ], 'e Eliom_parameters.caml)
+            Eliom_services.service -&gt;
+    ?hostname:string -&gt;
+    ?port:int -&gt;
+    ?fragment:string -&gt;
+    ?keep_nl_params:[ `All | `None | `Persistent ] -&gt;
+    ?nl_params:Eliom_parameters.nl_params_set -&gt;
+    ?keep_get_na_params:bool -&gt; 'a -&gt; 'b -&gt; 'e Lwt.t
+  val exit_to :
+    ?absolute:bool -&gt;
+    ?absolute_path:bool -&gt;
+    ?https:bool -&gt;
+    service:('a, 'b, [&lt; Eliom_services.service_kind ],
+             [&lt; Eliom_services.suff ], 'c, 'd,
+             [&lt; Eliom_services.registrable ],
+             [&lt; Eliom_output.non_caml_service ])
+            Eliom_services.service -&gt;
+    ?hostname:string -&gt;
+    ?port:int -&gt;
+    ?fragment:string -&gt;
+    ?keep_nl_params:[ `All | `None | `Persistent ] -&gt;
+    ?nl_params:Eliom_parameters.nl_params_set -&gt;
+    ?keep_get_na_params:bool -&gt; 'a -&gt; 'b -&gt; unit
+  val window_open :
+    window_name:Js.js_string Js.t -&gt;
+    ?window_features:Js.js_string Js.t -&gt;
+    ?absolute:bool -&gt;
+    ?absolute_path:bool -&gt;
+    ?https:bool -&gt;
+    service:('a, unit, [&lt; Eliom_services.get_service_kind ],
+             [&lt; Eliom_services.suff ], 'b, unit,
+             [&lt; Eliom_services.registrable ], 'c)
+            Eliom_services.service -&gt;
+    ?hostname:string -&gt;
+    ?port:int -&gt;
+    ?fragment:string -&gt;
+    ?keep_nl_params:[ `All | `None | `Persistent ] -&gt;
+    ?nl_params:Eliom_parameters.nl_params_set -&gt;
+    ?keep_get_na_params:bool -&gt; 'a -&gt; Dom_html.window Js.t
+  val call_service :
+    ?absolute:bool -&gt;
+    ?absolute_path:bool -&gt;
+    ?https:bool -&gt;
+    service:('a, 'b, [&lt; Eliom_services.service_kind ],
+             [&lt; Eliom_services.suff ], 'c, 'd,
+             [&lt; Eliom_services.registrable ], 'e)
+            Eliom_services.service -&gt;
+    ?hostname:string -&gt;
+    ?port:int -&gt;
+    ?fragment:string -&gt;
+    ?keep_nl_params:[ `All | `None | `Persistent ] -&gt;
+    ?nl_params:Eliom_parameters.nl_params_set -&gt;
+    ?keep_get_na_params:bool -&gt; 'a -&gt; 'b -&gt; string Lwt.t
+  val wait_load_end : unit -&gt; unit Lwt.t
+  val in_onload : unit -&gt; bool
+  val on_unload : (unit -&gt; unit) -&gt; unit
+  module Html5 :
+    sig
+      val of_element : 'a Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_heading :
+        HTML5_types.heading Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.headingElement Js.t
+      val of_abbr :
+        [&gt; `Abbr ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_acronym :
+        [&gt; `Acronym ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_address :
+        [&gt; `Address ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_applet :
+        [&gt; `Applet ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_article :
+        [&gt; `Article ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_aside :
+        [&gt; `Aside ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_audio :
+        [&gt; `Audio ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_b : [&gt; `B ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_basefont :
+        [&gt; `basefont ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_bdi :
+        [&gt; `Bdi ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_bdo :
+        [&gt; `Bdo ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_big :
+        [&gt; `Big ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_center :
+        [&gt; `Center ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_cite :
+        [&gt; `Cite ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_code :
+        [&gt; `Code ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_colgroup :
+        [&gt; `Colgroup ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_command :
+        [&gt; `Command ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_datalist :
+        [&gt; `Datalist ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_dd :
+        [&gt; `Dd ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_del :
+        [&gt; `Del ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_details :
+        [&gt; `Details ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_dfn :
+        [&gt; `Dfn ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_dir :
+        [&gt; `Dir ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_dt :
+        [&gt; `Dt ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_em :
+        [&gt; `Em ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_embed :
+        [&gt; `Embed ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_figcaption :
+        [&gt; `Figcaption ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_figure :
+        [&gt; `Figure ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_font :
+        [&gt; `Font ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_footer :
+        [&gt; `Footer ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_frame :
+        [&gt; `Frame ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_frameset :
+        [&gt; `Frameset ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_h1 :
+        HTML5_types.heading Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.headingElement Js.t
+      val of_h2 :
+        HTML5_types.heading Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.headingElement Js.t
+      val of_h3 :
+        HTML5_types.heading Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.headingElement Js.t
+      val of_h4 :
+        HTML5_types.heading Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.headingElement Js.t
+      val of_h5 :
+        HTML5_types.heading Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.headingElement Js.t
+      val of_h6 :
+        HTML5_types.heading Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.headingElement Js.t
+      val of_header :
+        [&gt; `Header ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_hgroup :
+        [&gt; `Hgroup ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_i : [&gt; `I ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_ins :
+        [&gt; `Ins ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_keygen :
+        [&gt; `Keygen ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_kbd :
+        [&gt; `Kbd ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_mark :
+        [&gt; `Mark ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_menu :
+        [&gt; `Menu ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_meter :
+        [&gt; `Meter ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_nav :
+        [&gt; `Nav ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_noframes :
+        [&gt; `Noframes ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_noscript :
+        [&gt; `Noscript ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_output :
+        [&gt; `Output ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_progress :
+        [&gt; `Progress ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_q : [&gt; `Q ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_rp :
+        [&gt; `Rp ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_rt :
+        [&gt; `Rt ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_ruby :
+        [&gt; `Ruby ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_s : [&gt; `S ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_samp :
+        [&gt; `Samp ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_section :
+        [&gt; `Section ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_small :
+        [&gt; `Small ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_source :
+        [&gt; `Source ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_span :
+        [&gt; `Span ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_strike :
+        [&gt; `Strike ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_strong :
+        [&gt; `Strong ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_sub :
+        [&gt; `Sub ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_summary :
+        [&gt; `Summary ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_sup :
+        [&gt; `Sup ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_th :
+        [&gt; `Th ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_time :
+        [&gt; `Time ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_track :
+        [&gt; `Track ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_tt :
+        [&gt; `Tt ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_u : [&gt; `U ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_var :
+        [&gt; `Var ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_video :
+        [&gt; `Video ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_wbr :
+        [&gt; `Wbr ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.element Js.t
+      val of_html :
+        HTML5_types.html Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.htmlElement Js.t
+      val of_head :
+        HTML5_types.head Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.headElement Js.t
+      val of_link :
+        HTML5_types.link Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.linkElement Js.t
+      val of_title :
+        HTML5_types.title Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.titleElement Js.t
+      val of_meta :
+        HTML5_types.meta Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.metaElement Js.t
+      val of_base :
+        HTML5_types.base Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.baseElement Js.t
+      val of_style :
+        HTML5_types.style Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.styleElement Js.t
+      val of_body :
+        HTML5_types.body Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.bodyElement Js.t
+      val of_form :
+        HTML5_types.form Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.formElement Js.t
+      val of_optgroup :
+        HTML5_types.optgroup Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.optGroupElement Js.t
+      val of_option :
+        HTML5_types.selectoption Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.optionElement Js.t
+      val of_select :
+        HTML5_types.select Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.selectElement Js.t
+      val of_input :
+        HTML5_types.input Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.inputElement Js.t
+      val of_textarea :
+        HTML5_types.textarea Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.textAreaElement Js.t
+      val of_button :
+        HTML5_types.button Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.buttonElement Js.t
+      val of_label :
+        HTML5_types.label Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.labelElement Js.t
+      val of_fieldset :
+        HTML5_types.fieldset Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.fieldSetElement Js.t
+      val of_legend :
+        HTML5_types.legend Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.legendElement Js.t
+      val of_ul :
+        HTML5_types.ul Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.uListElement Js.t
+      val of_ol :
+        HTML5_types.ol Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.oListElement Js.t
+      val of_dl :
+        [ `Dl ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.dListElement Js.t
+      val of_li :
+        HTML5_types.li Eliom_pervasives.HTML5.elt -&gt; Dom_html.liElement Js.t
+      val of_div :
+        HTML5_types.div Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.divElement Js.t
+      val of_p :
+        HTML5_types.p Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.paragraphElement Js.t
+      val of_blockquote :
+        HTML5_types.blockquote Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.quoteElement Js.t
+      val of_pre :
+        HTML5_types.pre Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.preElement Js.t
+      val of_br :
+        HTML5_types.br Eliom_pervasives.HTML5.elt -&gt; Dom_html.brElement Js.t
+      val of_hr :
+        HTML5_types.hr Eliom_pervasives.HTML5.elt -&gt; Dom_html.hrElement Js.t
+      val of_a :
+        'a HTML5_types.a Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.anchorElement Js.t
+      val of_img :
+        [ `Img ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.imageElement Js.t
+      val of_object :
+        'a HTML5_types.object_ Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.objectElement Js.t
+      val of_param :
+        HTML5_types.param Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.paramElement Js.t
+      val of_area :
+        HTML5_types.area Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.areaElement Js.t
+      val of_map :
+        'a HTML5_types.map Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.mapElement Js.t
+      val of_script :
+        HTML5_types.script Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.scriptElement Js.t
+      val of_td :
+        [ `Td ] Eliom_pervasives.HTML5.elt -&gt; Dom_html.tableCellElement Js.t
+      val of_tr :
+        HTML5_types.tr Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.tableRowElement Js.t
+      val of_col :
+        HTML5_types.col Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.tableColElement Js.t
+      val of_tfoot :
+        HTML5_types.tfoot Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.tableSectionElement Js.t
+      val of_thead :
+        HTML5_types.thead Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.tableSectionElement Js.t
+      val of_tbody :
+        HTML5_types.tbody Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.tableSectionElement Js.t
+      val of_caption :
+        HTML5_types.caption Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.tableCaptionElement Js.t
+      val of_table :
+        HTML5_types.table Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.tableElement Js.t
+      val of_canvas :
+        'a HTML5_types.canvas Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.canvasElement Js.t
+      val of_iframe :
+        HTML5_types.iframe Eliom_pervasives.HTML5.elt -&gt;
+        Dom_html.iFrameElement Js.t
+    end
+  val relink_request_nodes : Dom_html.htmlElement Js.t -&gt; unit
+  val reset_request_node : unit -&gt; unit
+  val load_eliom_data :
+    Eliom_types.eliom_js_page_data -&gt;
+    Dom_html.htmlElement Js.t -&gt; (Dom_html.event Js.t -&gt; bool) list
+  val register_closure : int64 -&gt; ('a -&gt; Dom_html.event Js.t -&gt; unit) -&gt; unit
+  val getElementById : string -&gt; Dom.node Js.t
+end</code></pre></article></div></div></body></html>

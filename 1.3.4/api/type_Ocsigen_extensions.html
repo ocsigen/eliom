@@ -1,0 +1,255 @@
+<html><head><title></title><meta charset="utf8"/><meta content="width=device-width, initial-scale=1" name="viewport"/><link rel="stylesheet" href="https://ocsigen.org/css/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script type="text/javascript" src="https://ocsigen.org/js/client.js">
+//<![CDATA[
+
+//]]>
+</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js">
+//<![CDATA[
+
+//]]>
+</script></head><body class="type_Ocsigen_extensions eliom"><div class="project-page"><div class="page-header"><p class="logo-ocsigen"><a href=".././../../" class="ocsimore_phrasing_link"><img src=".././../../img/ocsigen-white.svg" alt="Ocsigen"/></a>
+</p><p class="logo-subproject">Eliom</p><div class="mainmenu"><p class="mainmenu-home"><a href=".././../../" class="ocsimore_phrasing_link">Home</a></p><p class="mainmenu-doc"><a href=".././../../tuto/" class="ocsimore_phrasing_link">Doc</a></p><p class="mainmenu-current"><a href=".././../../eliom/" class="ocsimore_phrasing_link">Eliom</a></p><p><a href=".././../../js_of_ocaml/" class="ocsimore_phrasing_link">Js_of_ocaml</a></p><p><a href=".././../../lwt/" class="ocsimore_phrasing_link">Lwt</a></p><p><a href=".././../../tyxml/" class="ocsimore_phrasing_link">Tyxml</a></p><p><a href=".././../../ocsigen-start/" class="ocsimore_phrasing_link">Start</a></p></div><form id="googlesearch" action="https://google.com/search"><input name="q" id="gsearch-box" placeholder="Search using Google"/><label for="gsearch-box"><img src="/img/search.svg" alt="" id="gsearch-icon"/></label><input type="submit" id="gsearch-submit" onclick="document.getElementById('gsearch-box').value += ' site:ocsigen.org';"/></form><aside class="how-drawer"><input id="how-drawer-toggle" type="checkbox"/><label for="how-drawer-toggle" id="how-drawer-label"><span class="how-drawer-icon"></span></label><nav class="how-drawer-content"><ul class="drawermainmenu"><li class="drawermainmenu-home"><a href=".././../../" class="ocsimore_phrasing_link">Home</a>
+</li><li class="drawermainmenu-doc"><a href=".././../../tuto/" class="ocsimore_phrasing_link">Doc</a>
+</li><li class="drawermainmenu-project"><a href=".././../../eliom/" class="ocsimore_phrasing_link">Eliom</a>
+</li><li class="drawermainmenu-project"><a href=".././../../js_of_ocaml/" class="ocsimore_phrasing_link">Js_of_ocaml</a>
+</li><li class="drawermainmenu-project"><a href=".././../../ocsigenserver/" class="ocsimore_phrasing_link">Server</a>
+</li><li class="drawermainmenu-project"><a href=".././../../lwt/" class="ocsimore_phrasing_link">Lwt</a>
+</li><li class="drawermainmenu-project"><a href=".././../../tyxml/" class="ocsimore_phrasing_link">Tyxml</a>
+</li><li class="drawermainmenu-project"><a href=".././../../ocsigen-toolkit/" class="ocsimore_phrasing_link">Toolkit</a>
+</li><li class="drawermainmenu-project"><a href=".././../../ocsigen-start/" class="ocsimore_phrasing_link">Start</a>
+</li><li class="drawermainmenu-project"><a href=".././../../html_of_wiki/" class="ocsimore_phrasing_link">html_of_wiki</a>
+</li><li class="drawermainmenu-project"><a href=".././../../deriving/" class="ocsimore_phrasing_link">deriving</a>
+</li><li class="drawermainmenu-project"><a href=".././../../ocsimore/" class="ocsimore_phrasing_link">Ocsimore (<em>deprecated</em>)</a>
+</li><li class="drawermainmenu-page"><a href=".././../../projects" class="ocsimore_phrasing_link">Other projects</a>
+</li><li class="drawermainmenu-page"><a href=".././../../papers" class="ocsimore_phrasing_link">Research papers</a>
+</li><li class="drawermainmenu-page"><a href=".././../../credits" class="ocsimore_phrasing_link">Who does Ocsigen?</a>
+</li><li class="drawermainmenu-page"><a href=".././../../contributing" class="ocsimore_phrasing_link">Contributing</a>
+</li><li class="drawermainmenu-page"><a href=".././../../blog" class="ocsimore_phrasing_link">Blog</a>
+</li><li class="drawermainmenu-page"><a href=".././../../install" class="ocsimore_phrasing_link">Installation</a>
+</li><li class="drawermainmenu-page"><a href="https://github.com/ocsigen" class="ocsimore_phrasing_link">Source code</a>
+</li></ul><nav class="how-doctree"><h1>Ocsigen - Reference manual</h1><h2>Ocsigen</h2><h3>Persistent data, writing in the logs, configuration file extension, Xhtml pretty printing, polymorphic tables</h3><h4><a href=".././api/Ocsipersist" class="ocsimore_phrasing_link">Ocsipersist</a></h4><h4><a href=".././api/Ocsigen_messages" class="ocsimore_phrasing_link">Ocsigen_messages</a></h4><h4><a href=".././api/Ocsigen_parseconfig" class="ocsimore_phrasing_link">Ocsigen_parseconfig</a></h4><h4><a href=".././api/Simplexmlparser" class="ocsimore_phrasing_link">Simplexmlparser</a></h4><h4><a href=".././api/Xhtmlpretty" class="ocsimore_phrasing_link">Xhtmlpretty</a></h4><h4><a href=".././api/Xhtmlcompact" class="ocsimore_phrasing_link">Xhtmlcompact</a></h4><h4><a href=".././api/Polytables" class="ocsimore_phrasing_link">Polytables</a></h4><h4><a href=".././api/Ocsigen_cache" class="ocsimore_phrasing_link">Ocsigen_cache</a></h4><h3>Extending Ocsigen</h3><h4><a href=".././api/Ocsigen_extensions" class="ocsimore_phrasing_link">Ocsigen_extensions</a></h4><h4><a href=".././api/Ocsigen_headers" class="ocsimore_phrasing_link">Ocsigen_headers</a></h4><h4><a href=".././api/Ocsigen_senders" class="ocsimore_phrasing_link">Ocsigen_senders</a></h4><h4><a href=".././api/Ocsigen_http_frame" class="ocsimore_phrasing_link">Ocsigen_http_frame</a></h4><h4><a href=".././api/Ocsigen_http_client" class="ocsimore_phrasing_link">Ocsigen_http_client</a></h4><h4><a href=".././api/Ocsigen_http_com" class="ocsimore_phrasing_link">Ocsigen_http_com</a></h4><h4><a href=".././api/Ocsigen_stream" class="ocsimore_phrasing_link">Ocsigen_stream</a></h4><h4><a href=".././api/Authbasic" class="ocsimore_phrasing_link">Authbasic</a></h4><h2>Eliom</h2><h3>Main modules</h3><h4><a href=".././api/Eliom_services" class="ocsimore_phrasing_link">Eliom_services</a></h4><h4><a href=".././api/Eliom_parameters" class="ocsimore_phrasing_link">Eliom_parameters</a></h4><h4><a href=".././api/Eliom_sessions" class="ocsimore_phrasing_link">Eliom_sessions</a></h4><h4><a href=".././api/Eliom_common" class="ocsimore_phrasing_link">Eliom_common</a></h4><h4><a href=".././api/Eliom_obrowser" class="ocsimore_phrasing_link">Eliom_obrowser</a></h4><h3>Generating pages with OcamlDuce</h3><h4><a href=".././api/Eliom_duce" class="ocsimore_phrasing_link">Eliom_duce</a></h4><h4><a href=".././api/Xhtmltypes_duce" class="ocsimore_phrasing_link">Xhtmltypes_duce</a></h4><h4><a href=".././api/Eliom_duce_tools" class="ocsimore_phrasing_link">Eliom_duce_tools</a></h4><h3>Generating pages typed with polymorphic variants</h3><h4><a href=".././api/Eliom_predefmod.Xhtml" class="ocsimore_phrasing_link">Eliom_predefmod.Xhtml</a></h4><h4><a href=".././api/XHTML" class="ocsimore_phrasing_link">XHTML</a></h4><h4><a href=".././api/Xhtmltypes" class="ocsimore_phrasing_link">Xhtmltypes</a></h4><h4><a href=".././api/Eliom_tools" class="ocsimore_phrasing_link">Eliom_tools</a></h4><h4><a href=".././api/Eliom_tools_common" class="ocsimore_phrasing_link">Eliom_tools_common</a></h4><h3>Other kinds of pages</h3><h4><a href=".././api/Eliom_predefmod" class="ocsimore_phrasing_link">Eliom_predefmod</a></h4><h3>Creating your own kinds of pages</h3><h4><a href=".././api/Eliom_mkforms" class="ocsimore_phrasing_link">Eliom_mkforms</a></h4><h4><a href=".././api/Eliom_mkreg" class="ocsimore_phrasing_link">Eliom_mkreg</a></h4><h4><a href=".././api/Xhtmlpretty" class="ocsimore_phrasing_link">Xhtmlpretty</a></h4></nav></nav></aside></div><p class="reasonwarning">Warning: Reason support is experimental.
+We are looking for beta-tester and contributors.
+</p><button id="reason">Switch to </button><div class="twocols"><nav class="leftcol">Version <select class="how-versions" onchange="location = this.value;"><option value=".././../1.1.0/api/type_Ocsigen_extensions">1.1.0</option><option value=".././../1.2.2/api/type_Ocsigen_extensions">1.2.2</option><option value=".././../1.3.4/api/type_Ocsigen_extensions" selected="selected">1.3.4</option><option value=".././../2.0.2/api/type_Ocsigen_extensions">2.0.2</option><option value=".././../2.1.1/api/type_Ocsigen_extensions">2.1.1</option><option value=".././../2.2.2/api/type_Ocsigen_extensions">2.2.2</option><option value=".././../3.0/api/type_Ocsigen_extensions">3.0</option><option value=".././../4.2/api/type_Ocsigen_extensions">4.2</option><option value=".././../5.0/api/type_Ocsigen_extensions">5.0</option><option value=".././../6.x/api/type_Ocsigen_extensions">6.x</option><option value=".././../dev/api/type_Ocsigen_extensions">dev</option></select><nav class="how-doctree"><h1>Ocsigen - Reference manual</h1><h2>Ocsigen</h2><h3>Persistent data, writing in the logs, configuration file extension, Xhtml pretty printing, polymorphic tables</h3><h4><a href=".././api/Ocsipersist" class="ocsimore_phrasing_link">Ocsipersist</a></h4><h4><a href=".././api/Ocsigen_messages" class="ocsimore_phrasing_link">Ocsigen_messages</a></h4><h4><a href=".././api/Ocsigen_parseconfig" class="ocsimore_phrasing_link">Ocsigen_parseconfig</a></h4><h4><a href=".././api/Simplexmlparser" class="ocsimore_phrasing_link">Simplexmlparser</a></h4><h4><a href=".././api/Xhtmlpretty" class="ocsimore_phrasing_link">Xhtmlpretty</a></h4><h4><a href=".././api/Xhtmlcompact" class="ocsimore_phrasing_link">Xhtmlcompact</a></h4><h4><a href=".././api/Polytables" class="ocsimore_phrasing_link">Polytables</a></h4><h4><a href=".././api/Ocsigen_cache" class="ocsimore_phrasing_link">Ocsigen_cache</a></h4><h3>Extending Ocsigen</h3><h4><a href=".././api/Ocsigen_extensions" class="ocsimore_phrasing_link">Ocsigen_extensions</a></h4><h4><a href=".././api/Ocsigen_headers" class="ocsimore_phrasing_link">Ocsigen_headers</a></h4><h4><a href=".././api/Ocsigen_senders" class="ocsimore_phrasing_link">Ocsigen_senders</a></h4><h4><a href=".././api/Ocsigen_http_frame" class="ocsimore_phrasing_link">Ocsigen_http_frame</a></h4><h4><a href=".././api/Ocsigen_http_client" class="ocsimore_phrasing_link">Ocsigen_http_client</a></h4><h4><a href=".././api/Ocsigen_http_com" class="ocsimore_phrasing_link">Ocsigen_http_com</a></h4><h4><a href=".././api/Ocsigen_stream" class="ocsimore_phrasing_link">Ocsigen_stream</a></h4><h4><a href=".././api/Authbasic" class="ocsimore_phrasing_link">Authbasic</a></h4><h2>Eliom</h2><h3>Main modules</h3><h4><a href=".././api/Eliom_services" class="ocsimore_phrasing_link">Eliom_services</a></h4><h4><a href=".././api/Eliom_parameters" class="ocsimore_phrasing_link">Eliom_parameters</a></h4><h4><a href=".././api/Eliom_sessions" class="ocsimore_phrasing_link">Eliom_sessions</a></h4><h4><a href=".././api/Eliom_common" class="ocsimore_phrasing_link">Eliom_common</a></h4><h4><a href=".././api/Eliom_obrowser" class="ocsimore_phrasing_link">Eliom_obrowser</a></h4><h3>Generating pages with OcamlDuce</h3><h4><a href=".././api/Eliom_duce" class="ocsimore_phrasing_link">Eliom_duce</a></h4><h4><a href=".././api/Xhtmltypes_duce" class="ocsimore_phrasing_link">Xhtmltypes_duce</a></h4><h4><a href=".././api/Eliom_duce_tools" class="ocsimore_phrasing_link">Eliom_duce_tools</a></h4><h3>Generating pages typed with polymorphic variants</h3><h4><a href=".././api/Eliom_predefmod.Xhtml" class="ocsimore_phrasing_link">Eliom_predefmod.Xhtml</a></h4><h4><a href=".././api/XHTML" class="ocsimore_phrasing_link">XHTML</a></h4><h4><a href=".././api/Xhtmltypes" class="ocsimore_phrasing_link">Xhtmltypes</a></h4><h4><a href=".././api/Eliom_tools" class="ocsimore_phrasing_link">Eliom_tools</a></h4><h4><a href=".././api/Eliom_tools_common" class="ocsimore_phrasing_link">Eliom_tools_common</a></h4><h3>Other kinds of pages</h3><h4><a href=".././api/Eliom_predefmod" class="ocsimore_phrasing_link">Eliom_predefmod</a></h4><h3>Creating your own kinds of pages</h3><h4><a href=".././api/Eliom_mkforms" class="ocsimore_phrasing_link">Eliom_mkforms</a></h4><h4><a href=".././api/Eliom_mkreg" class="ocsimore_phrasing_link">Eliom_mkreg</a></h4><h4><a href=".././api/Xhtmlpretty" class="ocsimore_phrasing_link">Xhtmlpretty</a></h4></nav></nav><article class="rightcol"><pre class=""><code class="language-ocaml translatable">sig
+  exception Ocsigen_http_error of (Ocsigen_http_frame.cookieset * int)
+  exception Bad_config_tag_for_extension of string
+  exception Error_in_config_file of string
+  exception Error_in_user_config_file of string
+  val badconfig : ('a, unit, string, 'b) Pervasives.format4 -&gt; 'a
+  type virtual_hosts = (string * Netstring_pcre.regexp * int option) list
+  val hash_virtual_hosts : Ocsigen_extensions.virtual_hosts -&gt; int
+  val equal_virtual_hosts :
+    Ocsigen_extensions.virtual_hosts -&gt;
+    Ocsigen_extensions.virtual_hosts -&gt; bool
+  val host_match :
+    virtual_hosts:Ocsigen_extensions.virtual_hosts -&gt;
+    host:string option -&gt; port:int -&gt; bool
+  type do_not_serve = {
+    do_not_serve_regexps : string list;
+    do_not_serve_files : string list;
+    do_not_serve_extensions : string list;
+  }
+  exception IncorrectRegexpes of Ocsigen_extensions.do_not_serve
+  val do_not_serve_to_regexp :
+    Ocsigen_extensions.do_not_serve -&gt; Netstring_pcre.regexp
+  val join_do_not_serve :
+    Ocsigen_extensions.do_not_serve -&gt;
+    Ocsigen_extensions.do_not_serve -&gt; Ocsigen_extensions.do_not_serve
+  type config_info = {
+    default_hostname : string;
+    default_httpport : int;
+    default_httpsport : int;
+    mime_assoc : Ocsigen_charset_mime.mime_assoc;
+    charset_assoc : Ocsigen_charset_mime.charset_assoc;
+    default_directory_index : string list;
+    list_directory_content : bool;
+    follow_symlinks : Ocsigen_extensions.follow_symlink;
+    do_not_serve_404 : Ocsigen_extensions.do_not_serve;
+    do_not_serve_403 : Ocsigen_extensions.do_not_serve;
+    uploaddir : string option;
+    maxuploadfilesize : int64 option;
+  }
+  and follow_symlink =
+      DoNotFollowSymlinks
+    | FollowSymlinksIfOwnerMatch
+    | AlwaysFollowSymlinks
+  type client
+  val client_id : Ocsigen_extensions.client -&gt; int
+  val client_connection :
+    Ocsigen_extensions.client -&gt; Ocsigen_http_com.connection
+  type ifrange = IR_No | IR_Ifunmodsince of float | IR_ifmatch of string
+  type request_info = {
+    ri_url_string : string;
+    ri_method : Ocsigen_http_frame.Http_header.http_method;
+    ri_protocol : Ocsigen_http_frame.Http_header.proto;
+    ri_ssl : bool;
+    ri_full_path_string : string;
+    ri_full_path : string list;
+    ri_original_full_path_string : string;
+    ri_original_full_path : string list;
+    ri_sub_path : string list;
+    ri_sub_path_string : string;
+    ri_get_params_string : string option;
+    ri_host : string option;
+    ri_port_from_host_field : int option;
+    ri_get_params : (string * string) list Lazy.t;
+    ri_initial_get_params : (string * string) list Lazy.t;
+    ri_post_params :
+      Ocsigen_extensions.config_info -&gt; (string * string) list Lwt.t;
+    ri_files :
+      Ocsigen_extensions.config_info -&gt;
+      (string * Ocsigen_lib.file_info) list Lwt.t;
+    ri_remote_inet_addr : Unix.inet_addr;
+    ri_remote_ip : string;
+    ri_remote_ip_parsed : Ocsigen_lib.ip_address Lazy.t;
+    ri_remote_port : int;
+    ri_server_port : int;
+    ri_user_agent : string;
+    ri_cookies_string : string option Lazy.t;
+    ri_cookies : string Ocsigen_lib.String_Table.t Lazy.t;
+    ri_ifmodifiedsince : float option;
+    ri_ifunmodifiedsince : float option;
+    ri_ifnonematch : string list option;
+    ri_ifmatch : string list option;
+    ri_content_type : ((string * string) * (string * string) list) option;
+    ri_content_type_string : string option;
+    ri_content_length : int64 option;
+    ri_referer : string option Lazy.t;
+    ri_accept :
+      ((string option * string option) * float option *
+       (string * string) list)
+      list Lazy.t;
+    ri_accept_charset : (string option * float option) list Lazy.t;
+    ri_accept_encoding : (string option * float option) list Lazy.t;
+    ri_accept_language : (string * float option) list Lazy.t;
+    ri_http_frame : Ocsigen_http_frame.t;
+    mutable ri_request_cache : Polytables.t;
+    ri_client : Ocsigen_extensions.client;
+    ri_range :
+      ((int64 * int64) list * int64 option * Ocsigen_extensions.ifrange)
+      option Lazy.t;
+    mutable ri_nb_tries : int;
+  }
+  and request = {
+    request_info : Ocsigen_extensions.request_info;
+    request_config : Ocsigen_extensions.config_info;
+  }
+  exception Ocsigen_Is_a_directory of Ocsigen_extensions.request
+  type answer =
+      Ext_do_nothing
+    | Ext_found of (unit -&gt; Ocsigen_http_frame.result Lwt.t)
+    | Ext_found_stop of (unit -&gt; Ocsigen_http_frame.result Lwt.t)
+    | Ext_next of int
+    | Ext_stop_site of (Ocsigen_http_frame.cookieset * int)
+    | Ext_stop_host of (Ocsigen_http_frame.cookieset * int)
+    | Ext_stop_all of (Ocsigen_http_frame.cookieset * int)
+    | Ext_continue_with of
+        (Ocsigen_extensions.request * Ocsigen_http_frame.cookieset * int)
+    | Ext_retry_with of Ocsigen_extensions.request *
+        Ocsigen_http_frame.cookieset
+    | Ext_sub_result of Ocsigen_extensions.extension2
+    | Ext_found_continue_with of
+        (unit -&gt;
+         (Ocsigen_http_frame.result * Ocsigen_extensions.request) Lwt.t)
+    | Ext_found_continue_with' of
+        (Ocsigen_http_frame.result * Ocsigen_extensions.request)
+  and request_state =
+      Req_not_found of (int * Ocsigen_extensions.request)
+    | Req_found of (Ocsigen_extensions.request * Ocsigen_http_frame.result)
+  and extension2 =
+      (unit -&gt; unit) -&gt;
+      Ocsigen_http_frame.cookieset -&gt;
+      Ocsigen_extensions.request_state -&gt;
+      (Ocsigen_extensions.answer * Ocsigen_http_frame.cookieset) Lwt.t
+  type extension =
+      Ocsigen_extensions.request_state -&gt; Ocsigen_extensions.answer Lwt.t
+  type parse_fun = Simplexmlparser.xml list -&gt; Ocsigen_extensions.extension2
+  type parse_host
+  type userconf_info = { localfiles_root : string; }
+  type parse_config =
+      Ocsigen_extensions.virtual_hosts -&gt; Ocsigen_extensions.parse_config_aux
+  and parse_config_user =
+      Ocsigen_extensions.userconf_info -&gt; Ocsigen_extensions.parse_config
+  and parse_config_aux =
+      Ocsigen_lib.url_path -&gt;
+      Ocsigen_extensions.parse_host -&gt;
+      Ocsigen_extensions.parse_fun -&gt;
+      Simplexmlparser.xml -&gt; Ocsigen_extensions.extension
+  val register_extension :
+    name:string -&gt;
+    ?fun_site:Ocsigen_extensions.parse_config -&gt;
+    ?user_fun_site:Ocsigen_extensions.parse_config_user -&gt;
+    ?begin_init:(unit -&gt; unit) -&gt;
+    ?end_init:(unit -&gt; unit) -&gt;
+    ?init_fun:(Simplexmlparser.xml list -&gt; unit) -&gt;
+    ?exn_handler:(exn -&gt; string) -&gt; ?respect_pipeline:bool -&gt; unit -&gt; unit
+  val get_hostname : Ocsigen_extensions.request -&gt; string
+  val get_port : Ocsigen_extensions.request -&gt; int
+  val ri_of_url :
+    ?full_rewrite:bool -&gt;
+    string -&gt;
+    Ocsigen_extensions.request_info -&gt; Ocsigen_extensions.request_info
+  exception NoSuchUser
+  type ud_string
+  val parse_user_dir : string -&gt; Ocsigen_extensions.ud_string
+  val replace_user_dir :
+    Netstring_pcre.regexp -&gt; Ocsigen_extensions.ud_string -&gt; string -&gt; string
+  exception Not_concerned
+  val find_redirection :
+    Netstring_pcre.regexp -&gt;
+    bool -&gt;
+    string -&gt;
+    bool -&gt;
+    string option -&gt; int -&gt; string option -&gt; string -&gt; string -&gt; string
+  exception Unknown_command
+  val register_command_function :
+    ?prefix:string -&gt; (string -&gt; string list -&gt; unit) -&gt; unit
+  val get_command_function :
+    unit -&gt; ?prefix:string -&gt; string -&gt; string list -&gt; unit
+  val make_parse_config :
+    Ocsigen_lib.url_path -&gt;
+    Ocsigen_extensions.parse_config_aux -&gt; Ocsigen_extensions.parse_fun
+  val parse_config_item : Ocsigen_extensions.parse_config
+  val parse_user_site_item : Ocsigen_extensions.parse_config_user
+  val set_hosts :
+    (Ocsigen_extensions.virtual_hosts * Ocsigen_extensions.config_info *
+     Ocsigen_extensions.extension2)
+    list -&gt; unit
+  val get_hosts :
+    unit -&gt;
+    (Ocsigen_extensions.virtual_hosts * Ocsigen_extensions.config_info *
+     Ocsigen_extensions.extension2)
+    list
+  val serve_request :
+    ?previous_cookies:Ocsigen_http_frame.cookieset -&gt;
+    ?awake_next_request:bool -&gt;
+    Ocsigen_extensions.request_info -&gt; Ocsigen_http_frame.result Lwt.t
+  val get_number_of_connected : unit -&gt; int
+  val incr_connected : int -&gt; unit
+  val decr_connected : unit -&gt; unit Lwt.t
+  val wait_fewer_connected : int -&gt; unit Lwt.t
+  val during_initialisation : unit -&gt; bool
+  val start_initialisation : unit -&gt; unit
+  val end_initialisation : unit -&gt; unit
+  val get_numberofreloads : unit -&gt; int
+  val get_init_exn_handler : unit -&gt; exn -&gt; string
+  val set_config : Simplexmlparser.xml list -&gt; unit
+  val client_of_connection :
+    Ocsigen_http_com.connection -&gt; Ocsigen_extensions.client
+  val sockets : Lwt_unix.file_descr list Pervasives.ref
+  val sslsockets : Lwt_unix.file_descr list Pervasives.ref
+end</code></pre></article></div></div></body></html>

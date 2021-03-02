@@ -1,0 +1,670 @@
+<html><head><title></title><meta charset="utf8"/><meta content="width=device-width, initial-scale=1" name="viewport"/><link rel="stylesheet" href="https://ocsigen.org/css/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script type="text/javascript" src="https://ocsigen.org/js/client.js">
+//<![CDATA[
+
+//]]>
+</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js">
+//<![CDATA[
+
+//]]>
+</script></head><body class="type_Eliom_pervasives.SVG eliom"><div class="project-page"><div class="page-header"><p class="logo-ocsigen"><a href="../.././../../" class="ocsimore_phrasing_link"><img src="../.././../../img/ocsigen-white.svg" alt="Ocsigen"/></a>
+</p><p class="logo-subproject">Eliom</p><div class="mainmenu"><p class="mainmenu-home"><a href="../.././../../" class="ocsimore_phrasing_link">Home</a></p><p class="mainmenu-doc"><a href="../.././../../tuto/" class="ocsimore_phrasing_link">Doc</a></p><p class="mainmenu-current"><a href="../.././../../eliom/" class="ocsimore_phrasing_link">Eliom</a></p><p><a href="../.././../../js_of_ocaml/" class="ocsimore_phrasing_link">Js_of_ocaml</a></p><p><a href="../.././../../lwt/" class="ocsimore_phrasing_link">Lwt</a></p><p><a href="../.././../../tyxml/" class="ocsimore_phrasing_link">Tyxml</a></p><p><a href="../.././../../ocsigen-start/" class="ocsimore_phrasing_link">Start</a></p></div><form id="googlesearch" action="https://google.com/search"><input name="q" id="gsearch-box" placeholder="Search using Google"/><label for="gsearch-box"><img src="/img/search.svg" alt="" id="gsearch-icon"/></label><input type="submit" id="gsearch-submit" onclick="document.getElementById('gsearch-box').value += ' site:ocsigen.org';"/></form><aside class="how-drawer"><input id="how-drawer-toggle" type="checkbox"/><label for="how-drawer-toggle" id="how-drawer-label"><span class="how-drawer-icon"></span></label><nav class="how-drawer-content"><ul class="drawermainmenu"><li class="drawermainmenu-home"><a href="../.././../../" class="ocsimore_phrasing_link">Home</a>
+</li><li class="drawermainmenu-doc"><a href="../.././../../tuto/" class="ocsimore_phrasing_link">Doc</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../eliom/" class="ocsimore_phrasing_link">Eliom</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../js_of_ocaml/" class="ocsimore_phrasing_link">Js_of_ocaml</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../ocsigenserver/" class="ocsimore_phrasing_link">Server</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../lwt/" class="ocsimore_phrasing_link">Lwt</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../tyxml/" class="ocsimore_phrasing_link">Tyxml</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../ocsigen-toolkit/" class="ocsimore_phrasing_link">Toolkit</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../ocsigen-start/" class="ocsimore_phrasing_link">Start</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../html_of_wiki/" class="ocsimore_phrasing_link">html_of_wiki</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../deriving/" class="ocsimore_phrasing_link">deriving</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../ocsimore/" class="ocsimore_phrasing_link">Ocsimore (<em>deprecated</em>)</a>
+</li><li class="drawermainmenu-page"><a href="../.././../../projects" class="ocsimore_phrasing_link">Other projects</a>
+</li><li class="drawermainmenu-page"><a href="../.././../../papers" class="ocsimore_phrasing_link">Research papers</a>
+</li><li class="drawermainmenu-page"><a href="../.././../../credits" class="ocsimore_phrasing_link">Who does Ocsigen?</a>
+</li><li class="drawermainmenu-page"><a href="../.././../../contributing" class="ocsimore_phrasing_link">Contributing</a>
+</li><li class="drawermainmenu-page"><a href="../.././../../blog" class="ocsimore_phrasing_link">Blog</a>
+</li><li class="drawermainmenu-page"><a href="../.././../../install" class="ocsimore_phrasing_link">Installation</a>
+</li><li class="drawermainmenu-page"><a href="https://github.com/ocsigen" class="ocsimore_phrasing_link">Source code</a>
+</li></ul><nav class="how-doctree"><h1>Eliom client API</h1><h2><a href="../.././api/client/Eliom_pervasives" class="ocsimore_phrasing_link">Eliom_pervasives</a></h2><h2><a href="../.././api/client/Eliom_pervasives.HTML5.M" class="ocsimore_phrasing_link">Eliom_pervasives.HTML5.M</a></h2><h2>Services creation and manipulation</h2><h3><a href="../.././api/client/Eliom_output.Html5" class="ocsimore_phrasing_link">Eliom_output.Html5</a></h3><h3><a href="../.././api/client/Eliom_services" class="ocsimore_phrasing_link">Eliom_services</a></h3><h3><a href="../.././api/client/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h3><h2>Client/server communication</h2><h3><a href="../.././api/client/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href="../.././api/client/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h2>Index</h2><h3> <span><a href="../.././api/client/index_types">Index of types</a></span></h3><h3> <span><a href="../.././api/client/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href="../.././api/client/index_values">Index of values</a></span></h3><h3> <span><a href="../.././api/client/index_modules">Index of modules</a></span></h3><h3> <span><a href="../.././api/client/index_module_types">Index of module types</a></span></h3><h1>Server API</h1><h2><a href="../.././api/server/Eliom_pervasives" class="ocsimore_phrasing_link">Eliom_pervasives</a></h2><h2><a href="../.././api/server/Eliom_pervasives.XHTML.M" class="ocsimore_phrasing_link">Eliom_pervasives.XHTML.M</a></h2><h2><a href="../.././api/server/Eliom_pervasives.HTML5.M" class="ocsimore_phrasing_link">Eliom_pervasives.HTML5.M</a></h2><h2>Services creation and service handler</h2><h3><a href="../.././api/server/Eliom_services" class="ocsimore_phrasing_link">Eliom_services</a></h3><h3><a href="../.././api/server/Eliom_parameters" class="ocsimore_phrasing_link">Eliom_parameters</a></h3><h3><a href="../.././api/server/Eliom_output" class="ocsimore_phrasing_link">Eliom_output</a></h3><h3><a href="../.././api/server/Eliom_output.Html5" class="ocsimore_phrasing_link">Eliom_output.Html5</a></h3><h3><a href="../.././api/server/Eliom_references" class="ocsimore_phrasing_link">Eliom_references</a></h3><h3><a href="../.././api/server/Eliom_state" class="ocsimore_phrasing_link">Eliom_state</a></h3><h2>Client/server communication</h2><h3><a href="../.././api/server/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href="../.././api/server/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href="../.././api/server/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Extensions</h2><h3><a href="../.././api/server/Eliom_atom" class="ocsimore_phrasing_link">Eliom_atom</a></h3><h3><a href="../.././api/server/Eliom_openid" class="ocsimore_phrasing_link">Eliom_openid</a></h3><h2>Index</h2><h3> <span><a href="../.././api/server/index_types">Index of types</a></span></h3><h3> <span><a href="../.././api/server/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href="../.././api/server/index_values">Index of values</a></span></h3><h3> <span><a href="../.././api/server/index_modules">Index of modules</a></span></h3><h3> <span><a href="../.././api/server/index_module_types">Index of module types</a></span></h3></nav></nav></aside></div><p class="reasonwarning">Warning: Reason support is experimental.
+We are looking for beta-tester and contributors.
+</p><button id="reason">Switch to </button><div class="twocols"><nav class="leftcol">Version <select class="how-versions" onchange="location = this.value;"><option value="../.././../1.1.0/api/client/type_Eliom_pervasives.SVG">1.1.0</option><option value="../.././../1.2.2/api/client/type_Eliom_pervasives.SVG">1.2.2</option><option value="../.././../1.3.4/api/client/type_Eliom_pervasives.SVG">1.3.4</option><option value="../.././../2.0.2/api/client/type_Eliom_pervasives.SVG" selected="selected">2.0.2</option><option value="../.././../2.1.1/api/client/type_Eliom_pervasives.SVG">2.1.1</option><option value="../.././../2.2.2/api/client/type_Eliom_pervasives.SVG">2.2.2</option><option value="../.././../3.0/api/client/type_Eliom_pervasives.SVG">3.0</option><option value="../.././../4.2/api/client/type_Eliom_pervasives.SVG">4.2</option><option value="../.././../5.0/api/client/type_Eliom_pervasives.SVG">5.0</option><option value="../.././../6.x/api/client/type_Eliom_pervasives.SVG">6.x</option><option value="../.././../dev/api/client/type_Eliom_pervasives.SVG">dev</option></select><nav class="how-doctree"><h1>Eliom client API</h1><h2><a href="../.././api/client/Eliom_pervasives" class="ocsimore_phrasing_link">Eliom_pervasives</a></h2><h2><a href="../.././api/client/Eliom_pervasives.HTML5.M" class="ocsimore_phrasing_link">Eliom_pervasives.HTML5.M</a></h2><h2>Services creation and manipulation</h2><h3><a href="../.././api/client/Eliom_output.Html5" class="ocsimore_phrasing_link">Eliom_output.Html5</a></h3><h3><a href="../.././api/client/Eliom_services" class="ocsimore_phrasing_link">Eliom_services</a></h3><h3><a href="../.././api/client/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h3><h2>Client/server communication</h2><h3><a href="../.././api/client/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href="../.././api/client/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h2>Index</h2><h3> <span><a href="../.././api/client/index_types">Index of types</a></span></h3><h3> <span><a href="../.././api/client/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href="../.././api/client/index_values">Index of values</a></span></h3><h3> <span><a href="../.././api/client/index_modules">Index of modules</a></span></h3><h3> <span><a href="../.././api/client/index_module_types">Index of module types</a></span></h3><h1>Server API</h1><h2><a href="../.././api/server/Eliom_pervasives" class="ocsimore_phrasing_link">Eliom_pervasives</a></h2><h2><a href="../.././api/server/Eliom_pervasives.XHTML.M" class="ocsimore_phrasing_link">Eliom_pervasives.XHTML.M</a></h2><h2><a href="../.././api/server/Eliom_pervasives.HTML5.M" class="ocsimore_phrasing_link">Eliom_pervasives.HTML5.M</a></h2><h2>Services creation and service handler</h2><h3><a href="../.././api/server/Eliom_services" class="ocsimore_phrasing_link">Eliom_services</a></h3><h3><a href="../.././api/server/Eliom_parameters" class="ocsimore_phrasing_link">Eliom_parameters</a></h3><h3><a href="../.././api/server/Eliom_output" class="ocsimore_phrasing_link">Eliom_output</a></h3><h3><a href="../.././api/server/Eliom_output.Html5" class="ocsimore_phrasing_link">Eliom_output.Html5</a></h3><h3><a href="../.././api/server/Eliom_references" class="ocsimore_phrasing_link">Eliom_references</a></h3><h3><a href="../.././api/server/Eliom_state" class="ocsimore_phrasing_link">Eliom_state</a></h3><h2>Client/server communication</h2><h3><a href="../.././api/server/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href="../.././api/server/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href="../.././api/server/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Extensions</h2><h3><a href="../.././api/server/Eliom_atom" class="ocsimore_phrasing_link">Eliom_atom</a></h3><h3><a href="../.././api/server/Eliom_openid" class="ocsimore_phrasing_link">Eliom_openid</a></h3><h2>Index</h2><h3> <span><a href="../.././api/server/index_types">Index of types</a></span></h3><h3> <span><a href="../.././api/server/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href="../.././api/server/index_values">Index of values</a></span></h3><h3> <span><a href="../.././api/server/index_modules">Index of modules</a></span></h3><h3> <span><a href="../.././api/server/index_module_types">Index of module types</a></span></h3></nav></nav><article class="rightcol"><label class="csw-switch"><input type="checkbox" onchange="location = '.././server/type_Eliom_pervasives.SVG';" checked="checked"/><span class="csw-slider csw-slider-style-round"></span><span class="csw-slider-no">Server version</span><span class="csw-slider-yes">Client version</span></label><pre class=""><code class="language-ocaml translatable">sig
+  module M :
+    sig
+      module Info : XML_sigs.Info
+      type uri = XML.uri
+      val string_of_uri : uri -&gt; string
+      val uri_of_string : string -&gt; uri
+      type 'a attrib
+      type +'a elt
+      type +'a elts
+      type ('a, 'b) nullary = ?a:'a attrib list -&gt; unit -&gt; 'b elt
+      type ('a, 'b, 'c) unary = ?a:'a attrib list -&gt; 'b elt -&gt; 'c elt
+      type ('a, 'b, 'c) star = ?a:'a attrib list -&gt; 'b elt list -&gt; 'c elt
+      type ('a, 'b, 'c) plus =
+          ?a:'a attrib list -&gt; 'b elt -&gt; 'b elt list -&gt; 'c elt
+      type altglyphdef_content =
+          [ `Item of SVG_types.altglyphitem elt list
+          | `Ref of SVG_types.glyphref elt list ]
+      val a_version : string -&gt; [ `Version ] attrib
+      val a_baseprofile : string -&gt; [ `BaseProfile ] attrib
+      val a_x : SVG_types.coord -&gt; [ `X ] attrib
+      val a_y : SVG_types.coord -&gt; [ `Y ] attrib
+      val a_width : SVG_types.Unit.length -&gt; [ `Width ] attrib
+      val a_height : SVG_types.Unit.length -&gt; [ `Height ] attrib
+      val a_preserveaspectratio : string -&gt; [ `PreserveAspectRatio ] attrib
+      val a_contentscripttype : string -&gt; [ `ContentScriptType ] attrib
+      val a_contentstyletype : string -&gt; [ `ContentStyleType ] attrib
+      val a_zoomAndPan : [ `Disable | `Magnify ] -&gt; [ `ZoomAndSpan ] attrib
+      val a_xlink_href : SVG_types.iri -&gt; [ `Xlink_href ] attrib
+      val a_requiredfeatures :
+        SVG_types.spacestrings -&gt; [ `RequiredFeatures ] attrib
+      val a_requiredextensions :
+        SVG_types.spacestrings -&gt; [ `RequiredExtension ] attrib
+      val a_systemlanguage :
+        SVG_types.commastrings -&gt; [ `SystemLanguage ] attrib
+      val a_externalressourcesrequired :
+        bool -&gt; [ `ExternalRessourcesRequired ] attrib
+      val a_id : string -&gt; [ `Id ] attrib
+      val a_xml_base : SVG_types.iri -&gt; [ `Xml_Base ] attrib
+      val a_xml_lang : SVG_types.iri -&gt; [ `Xml_Lang ] attrib
+      val a_xml_space : [ `Default | `Preserve ] -&gt; [ `Xml_Space ] attrib
+      val a_type : string -&gt; [ `Type ] attrib
+      val a_media : SVG_types.commastrings -&gt; [ `Media ] attrib
+      val a_title : string -&gt; [ `Title ] attrib
+      val a_class : SVG_types.spacestrings -&gt; [ `Class ] attrib
+      val a_style : string -&gt; [ `Style ] attrib
+      val a_transform : SVG_types.transform -&gt; [ `Transform ] attrib
+      val a_viewbox : SVG_types.fourfloats -&gt; [ `Viewbox ] attrib
+      val a_d : string -&gt; [ `D ] attrib
+      val a_pathlength : float -&gt; [ `PathLength ] attrib
+      val a_rx : SVG_types.Unit.length -&gt; [ `Rx ] attrib
+      val a_ry : SVG_types.Unit.length -&gt; [ `Ry ] attrib
+      val a_cx : SVG_types.Unit.length -&gt; [ `Cx ] attrib
+      val a_cy : SVG_types.Unit.length -&gt; [ `Cy ] attrib
+      val a_r : SVG_types.Unit.length -&gt; [ `R ] attrib
+      val a_x1 : SVG_types.coord -&gt; [ `X1 ] attrib
+      val a_y1 : SVG_types.coord -&gt; [ `Y1 ] attrib
+      val a_x2 : SVG_types.coord -&gt; [ `X2 ] attrib
+      val a_y2 : SVG_types.coord -&gt; [ `Y2 ] attrib
+      val a_points : SVG_types.coords -&gt; [ `Points ] attrib
+      val a_x_list : SVG_types.lengths -&gt; [ `X__list ] attrib
+      val a_y_list : SVG_types.lengths -&gt; [ `Y__list ] attrib
+      val a_dx : SVG_types.lengths -&gt; [ `Dx ] attrib
+      val a_dy : SVG_types.lengths -&gt; [ `Dy ] attrib
+      val a_dx_single : SVG_types.Unit.length -&gt; [ `Dx__single ] attrib
+      val a_dy_single : SVG_types.Unit.length -&gt; [ `Dy__single ] attrib
+      val a_dx_number : SVG_types.number -&gt; [ `Dx__number ] attrib
+      val a_dy_number : SVG_types.number -&gt; [ `Dy__number ] attrib
+      val a_lengthadjust :
+        [ `Spacing | `SpacingAndGlyphs ] -&gt; [ `LengthAdjust ] attrib
+      val a_textlength : SVG_types.Unit.length -&gt; [ `TextLength ] attrib
+      val a_rotate : SVG_types.numbers -&gt; [ `Rotate ] attrib
+      val a_startoffset : SVG_types.Unit.length -&gt; [ `StartOffset ] attrib
+      val a_method : [ `Align | `Stretch ] -&gt; [ `Method ] attrib
+      val a_spacing : [ `Auto | `Exact ] -&gt; [ `Spacing ] attrib
+      val a_glyphref : string -&gt; [ `GlyphRef ] attrib
+      val a_format : string -&gt; [ `Format ] attrib
+      val a_markerunits :
+        [ `StrokeWidth | `UserSpaceOnUse ] -&gt; [ `MarkerUnits ] attrib
+      val a_refx : SVG_types.coord -&gt; [ `RefX ] attrib
+      val a_refy : SVG_types.coord -&gt; [ `RefY ] attrib
+      val a_markerwidth : SVG_types.Unit.length -&gt; [ `MarkerWidth ] attrib
+      val a_markerheight : SVG_types.Unit.length -&gt; [ `MarkerHeight ] attrib
+      val a_orient :
+        [ `Angle of SVG_types.Unit.angle | `Auto ] -&gt; [ `Orient ] attrib
+      val a_local : string -&gt; [ `Local ] attrib
+      val a_renderingindent :
+        [ `Absolute_colorimetric
+        | `Auto
+        | `Perceptual
+        | `Relative_colorimetric
+        | `Saturation ] -&gt; [ `Rendering_Indent ] attrib
+      val a_gradientunits :
+        [ `ObjectBoundingBox | `UserSpaceOnUse ] -&gt; [ `GradientUnits ] attrib
+      val a_gradienttransform :
+        SVG_types.transforms -&gt; [ `Gradient_Transform ] attrib
+      val a_spreadmethod :
+        [ `Pad | `Reflect | `Repeat ] -&gt; [ `SpreadMethod ] attrib
+      val a_fx : SVG_types.coord -&gt; [ `Fx ] attrib
+      val a_fy : SVG_types.coord -&gt; [ `Fy ] attrib
+      val a_offset :
+        [ `Number of SVG_types.number | `Percentage of SVG_types.percentage ] -&gt;
+        [ `Offset ] attrib
+      val a_patternunits :
+        [ `ObjectBoundingBox | `UserSpaceOnUse ] -&gt; [ `PatternUnits ] attrib
+      val a_patterncontentunits :
+        [ `ObjectBoundingBox | `UserSpaceOnUse ] -&gt;
+        [ `PatternContentUnits ] attrib
+      val a_patterntransform :
+        SVG_types.transforms -&gt; [ `PatternTransform ] attrib
+      val a_clippathunits :
+        [ `ObjectBoundingBox | `UserSpaceOnUse ] -&gt; [ `ClipPathUnits ] attrib
+      val a_maskunits :
+        [ `ObjectBoundingBox | `UserSpaceOnUse ] -&gt; [ `MaskUnits ] attrib
+      val a_maskcontentunits :
+        [ `ObjectBoundingBox | `UserSpaceOnUse ] -&gt;
+        [ `MaskContentUnits ] attrib
+      val a_primitiveunits :
+        [ `ObjectBoundingBox | `UserSpaceOnUse ] -&gt;
+        [ `PrimitiveUnits ] attrib
+      val a_filterres :
+        SVG_types.number_optional_number -&gt; [ `FilterResUnits ] attrib
+      val a_result : string -&gt; [ `Result ] attrib
+      val a_in :
+        [ `BackgroundAlpha
+        | `BackgroundImage
+        | `FillPaint
+        | `Ref of string
+        | `SourceAlpha
+        | `SourceGraphic
+        | `StrokePaint ] -&gt; [ `In ] attrib
+      val a_in2 :
+        [ `BackgroundAlpha
+        | `BackgroundImage
+        | `FillPaint
+        | `Ref of string
+        | `SourceAlpha
+        | `SourceGraphic
+        | `StrokePaint ] -&gt; [ `In2 ] attrib
+      val a_aizmuth : float -&gt; [ `Azimuth ] attrib
+      val a_elevation : float -&gt; [ `Elevation ] attrib
+      val a_pointatx : float -&gt; [ `PointsAtX ] attrib
+      val a_pointaty : float -&gt; [ `PointsAtY ] attrib
+      val a_pointatz : float -&gt; [ `PointsAtZ ] attrib
+      val a_specularexponent : float -&gt; [ `SpecularExponent ] attrib
+      val a_specularconstant : float -&gt; [ `SpecularConstant ] attrib
+      val a_limitingconeangle : float -&gt; [ `LimitingConeAngle ] attrib
+      val a_mode :
+        [ `Darken | `Lighten | `Multiply | `Normal | `Screen ] -&gt;
+        [ `Mode ] attrib
+      val a_typefecolor :
+        [ `HueRotate | `LuminanceToAlpha | `Matrix | `Saturate ] -&gt;
+        [ `Type__fecolor ] attrib
+      val a_values : SVG_types.numbers -&gt; [ `Values ] attrib
+      val a_transferttype :
+        [ `Discrete | `Gamma | `Identity | `Linear | `Table ] -&gt;
+        [ `Type__transfert ] attrib
+      val a_tablevalues : SVG_types.numbers -&gt; [ `TableValues ] attrib
+      val a_intercept : SVG_types.number -&gt; [ `Intercept ] attrib
+      val a_amplitude : SVG_types.number -&gt; [ `Amplitude ] attrib
+      val a_exponent : SVG_types.number -&gt; [ `Exponent ] attrib
+      val a_offsettransfer : SVG_types.number -&gt; [ `Offset__transfer ] attrib
+      val a_operator :
+        [ `Arithmetic | `Atop | `In | `Out | `Over | `Xor ] -&gt;
+        [ `Operator ] attrib
+      val a_k1 : SVG_types.number -&gt; [ `K1 ] attrib
+      val a_k2 : SVG_types.number -&gt; [ `K2 ] attrib
+      val a_k3 : SVG_types.number -&gt; [ `K3 ] attrib
+      val a_k4 : SVG_types.number -&gt; [ `K4 ] attrib
+      val a_order : SVG_types.number_optional_number -&gt; [ `Order ] attrib
+      val a_kernelmatrix : SVG_types.numbers -&gt; [ `KernelMatrix ] attrib
+      val a_divisor : SVG_types.number -&gt; [ `Divisor ] attrib
+      val a_bias : SVG_types.number -&gt; [ `Bias ] attrib
+      val a_kernelunitlength :
+        SVG_types.number_optional_number -&gt; [ `KernelUnitLength ] attrib
+      val a_targetX : int -&gt; [ `TargetX ] attrib
+      val a_targetY : int -&gt; [ `TargetY ] attrib
+      val a_edgemode : [ `Duplicate | `None | `Wrap ] -&gt; [ `TargetY ] attrib
+      val a_preservealpha : bool -&gt; [ `TargetY ] attrib
+      val a_surfacescale : SVG_types.number -&gt; [ `SurfaceScale ] attrib
+      val a_diffuseconstant : SVG_types.number -&gt; [ `DiffuseConstant ] attrib
+      val a_scale : SVG_types.number -&gt; [ `Scale ] attrib
+      val a_xchannelselector :
+        [ `A | `B | `G | `R ] -&gt; [ `XChannelSelector ] attrib
+      val a_ychannelselector :
+        [ `A | `B | `G | `R ] -&gt; [ `YChannelSelector ] attrib
+      val a_stddeviation :
+        SVG_types.number_optional_number -&gt; [ `StdDeviation ] attrib
+      val a_operatormorphology :
+        [ `Dilate | `Erode ] -&gt; [ `OperatorMorphology ] attrib
+      val a_radius : SVG_types.number_optional_number -&gt; [ `Radius ] attrib
+      val a_basefrenquency :
+        SVG_types.number_optional_number -&gt; [ `BaseFrequency ] attrib
+      val a_numoctaves : int -&gt; [ `NumOctaves ] attrib
+      val a_seed : SVG_types.number -&gt; [ `Seed ] attrib
+      val a_stitchtiles : [ `NoStitch | `Stitch ] -&gt; [ `StitchTiles ] attrib
+      val a_stitchtype :
+        [ `FractalNoise | `Turbulence ] -&gt; [ `TypeStitch ] attrib
+      val a_xlinkshow : [ `New | `Replace ] -&gt; [ `Xlink_show ] attrib
+      val a_xlinkactuate : [ `OnRequest ] -&gt; [ `Xlink_actuate ] attrib
+      val a_target : string -&gt; [ `Xlink_target ] attrib
+      val a_viewtarget : string -&gt; [ `ViewTarget ] attrib
+      val a_attributename : string -&gt; [ `AttributeName ] attrib
+      val a_attributetype :
+        [ `Auto | `CSS | `XML ] -&gt; [ `AttributeType ] attrib
+      val a_begin : string -&gt; [ `Begin ] attrib
+      val a_dur : string -&gt; [ `Dur ] attrib
+      val a_min : string -&gt; [ `Min ] attrib
+      val a_max : string -&gt; [ `Max ] attrib
+      val a_restart :
+        [ `Always | `Never | `WhenNotActive ] -&gt; [ `Restart ] attrib
+      val a_repeatcount : string -&gt; [ `RepeatCount ] attrib
+      val a_repeatdur : string -&gt; [ `RepeatDur ] attrib
+      val a_fill : [ `Freeze | `Remove ] -&gt; [ `Fill ] attrib
+      val a_calcmode :
+        [ `Discrete | `Linear | `Paced | `Spline ] -&gt; [ `CalcMode ] attrib
+      val a_values_anim : SVG_types.strings -&gt; [ `Values__anim ] attrib
+      val a_keytimes : SVG_types.strings -&gt; [ `KeyTimes ] attrib
+      val a_keysplines : SVG_types.strings -&gt; [ `KeySplines ] attrib
+      val a_from : string -&gt; [ `From ] attrib
+      val a_to : string -&gt; [ `To ] attrib
+      val a_by : string -&gt; [ `By ] attrib
+      val a_additive : [ `Replace | `Sum ] -&gt; [ `Additive ] attrib
+      val a_accumulate : [ `None | `Sum ] -&gt; [ `Accumulate ] attrib
+      val a_keypoints : SVG_types.numbers_semicolon -&gt; [ `KeyPoints ] attrib
+      val a_path : string -&gt; [ `Path ] attrib
+      val a_typeanimatecolor :
+        [ `Rotate | `Scale | `SkewX | `SkewY | `Translate ] -&gt;
+        [ `Type__animatecolor ] attrib
+      val a_horiz_origin_x :
+        SVG_types.number -&gt; [ `Horiz___origin___x ] attrib
+      val a_horiz_origin_y :
+        SVG_types.number -&gt; [ `Horiz___origin___y ] attrib
+      val a_horiz_adv_x : SVG_types.number -&gt; [ `Horiz___adv___x ] attrib
+      val a_vert_origin_x : SVG_types.number -&gt; [ `Vert___origin___x ] attrib
+      val a_vert_origin_y : SVG_types.number -&gt; [ `Vert___origin___y ] attrib
+      val a_vert_adv_y : SVG_types.number -&gt; [ `Vert___adv___y ] attrib
+      val a_unicode : string -&gt; [ `Unicode ] attrib
+      val a_glyphname : string -&gt; [ `glyphname ] attrib
+      val a_orientation : [ `H | `V ] -&gt; [ `Orientation ] attrib
+      val a_arabicform :
+        [ `Initial | `Isolated | `Medial | `Terminal ] -&gt;
+        [ `Arabic___form ] attrib
+      val a_lang : string -&gt; [ `Lang ] attrib
+      val a_u1 : string -&gt; [ `U1 ] attrib
+      val a_u2 : string -&gt; [ `U2 ] attrib
+      val a_g1 : string -&gt; [ `G1 ] attrib
+      val a_g2 : string -&gt; [ `G2 ] attrib
+      val a_k : string -&gt; [ `K ] attrib
+      val a_fontfamily : string -&gt; [ `Font___Family ] attrib
+      val a_fontstyle : string -&gt; [ `Font___Style ] attrib
+      val a_fontvariant : string -&gt; [ `Font___Variant ] attrib
+      val a_fontweight : string -&gt; [ `Font___Weight ] attrib
+      val a_fontstretch : string -&gt; [ `Font___Stretch ] attrib
+      val a_fontsize : string -&gt; [ `Font___Size ] attrib
+      val a_unicoderange : string -&gt; [ `Unicode___Range ] attrib
+      val a_unitsperem : string -&gt; [ `Units___Per___Em ] attrib
+      val a_stemv : SVG_types.number -&gt; [ `Stemv ] attrib
+      val a_stemh : SVG_types.number -&gt; [ `Stemh ] attrib
+      val a_slope : SVG_types.number -&gt; [ `Slope ] attrib
+      val a_capheight : SVG_types.number -&gt; [ `Cap___Height ] attrib
+      val a_xheight : SVG_types.number -&gt; [ `X___Height ] attrib
+      val a_accentheight : SVG_types.number -&gt; [ `Accent___Height ] attrib
+      val a_ascent : SVG_types.number -&gt; [ `Ascent ] attrib
+      val a_widths : string -&gt; [ `Widths ] attrib
+      val a_bbox : string -&gt; [ `Bbox ] attrib
+      val a_ideographic : SVG_types.number -&gt; [ `Ideographic ] attrib
+      val a_alphabetic : SVG_types.number -&gt; [ `Alphabetic ] attrib
+      val a_mathematical : SVG_types.number -&gt; [ `Mathematical ] attrib
+      val a_hanging : SVG_types.number -&gt; [ `Hanging ] attrib
+      val a_videographic : SVG_types.number -&gt; [ `V___Ideographic ] attrib
+      val a_valphabetic : SVG_types.number -&gt; [ `V___Alphabetic ] attrib
+      val a_vmathematical : SVG_types.number -&gt; [ `V___Mathematical ] attrib
+      val a_vhanging : SVG_types.number -&gt; [ `V___Hanging ] attrib
+      val a_underlineposition :
+        SVG_types.number -&gt; [ `Underline___Position ] attrib
+      val a_underlinethickness :
+        SVG_types.number -&gt; [ `Underline___Thickness ] attrib
+      val a_strikethroughposition :
+        SVG_types.number -&gt; [ `Strikethrough___Position ] attrib
+      val a_strikethroughthickness :
+        SVG_types.number -&gt; [ `Strikethrough___Thickness ] attrib
+      val a_overlineposition :
+        SVG_types.number -&gt; [ `Overline___Position ] attrib
+      val a_overlinethickness :
+        SVG_types.number -&gt; [ `Overline___Thickness ] attrib
+      val a_string : string -&gt; [ `String ] attrib
+      val a_name : string -&gt; [ `Name ] attrib
+      val a_onabort : string -&gt; [ `Onabort ] attrib
+      val a_onactivate : string -&gt; [ `Onactivate ] attrib
+      val a_onbegin : string -&gt; [ `Onbegin ] attrib
+      val a_onclick : string -&gt; [ `Onclick ] attrib
+      val a_onend : string -&gt; [ `Onend ] attrib
+      val a_onerror : string -&gt; [ `Onerror ] attrib
+      val a_onfocusin : string -&gt; [ `Onfocusin ] attrib
+      val a_onfocusout : string -&gt; [ `Onfocusout ] attrib
+      val a_onload : string -&gt; [ `Onload ] attrib
+      val a_onmousedown : string -&gt; [ `Onmousdown ] attrib
+      val a_onmouseup : string -&gt; [ `Onmouseup ] attrib
+      val a_onmouseover : string -&gt; [ `Onmouseover ] attrib
+      val a_onmouseout : string -&gt; [ `Onmouseout ] attrib
+      val a_onmousemove : string -&gt; [ `Onmousemove ] attrib
+      val a_onrepeat : string -&gt; [ `Onrepeat ] attrib
+      val a_onresize : string -&gt; [ `Onresize ] attrib
+      val a_onscroll : string -&gt; [ `Onscroll ] attrib
+      val a_onunload : string -&gt; [ `Onunload ] attrib
+      val a_onzoom : string -&gt; [ `Onzoom ] attrib
+      val metadata :
+        ?a:SVG_types.metadata_attr attrib list -&gt;
+        XML.elt list -&gt; [&gt; SVG_types.metadata ] elt
+      val foreignobject :
+        ?a:SVG_types.foreignobject_attr attrib list -&gt;
+        XML.elt list -&gt; [&gt; SVG_types.foreignobject ] elt
+      val svg :
+        ([&lt; SVG_types.svg_attr ], [&lt; SVG_types.svg_content ],
+         [&gt; SVG_types.svg ])
+        star
+      val g :
+        ([&lt; SVG_types.g_attr ], [&lt; SVG_types.g_content ], [&gt; SVG_types.g ])
+        star
+      val defs :
+        ([&lt; SVG_types.defs_attr ], [&lt; SVG_types.defs_content ],
+         [&gt; SVG_types.defs ])
+        star
+      val desc :
+        ([&lt; SVG_types.desc_attr ], [&lt; SVG_types.desc_content ],
+         [&gt; SVG_types.desc ])
+        unary
+      val title :
+        ([&lt; SVG_types.title_attr ], [&lt; SVG_types.title_content ],
+         [&gt; SVG_types.title ])
+        unary
+      val symbol :
+        ([&lt; SVG_types.symbol_attr ], [&lt; SVG_types.symbol_content ],
+         [&gt; SVG_types.symbol ])
+        star
+      val use :
+        ([&lt; SVG_types.use_attr ], [&lt; SVG_types.use_content ],
+         [&gt; SVG_types.use ])
+        star
+      val image :
+        ([&lt; SVG_types.image_attr ], [&lt; SVG_types.image_content ],
+         [&gt; SVG_types.image ])
+        star
+      val switch :
+        ([&lt; SVG_types.switch_attr ], [&lt; SVG_types.switch_content ],
+         [&gt; SVG_types.switch ])
+        star
+      val style :
+        ([&lt; SVG_types.style_attr ], [&lt; SVG_types.style_content ],
+         [&gt; SVG_types.style ])
+        unary
+      val path :
+        ([&lt; SVG_types.path_attr ], [&lt; SVG_types.path_content ],
+         [&gt; SVG_types.path ])
+        star
+      val rect :
+        ([&lt; SVG_types.rect_attr ], [&lt; SVG_types.rect_content ],
+         [&gt; SVG_types.rect ])
+        star
+      val circle :
+        ([&lt; SVG_types.circle_attr ], [&lt; SVG_types.circle_content ],
+         [&gt; SVG_types.circle ])
+        star
+      val ellipse :
+        ([&lt; SVG_types.ellipse_attr ], [&lt; SVG_types.ellipse_content ],
+         [&gt; SVG_types.ellipse ])
+        star
+      val line :
+        ([&lt; SVG_types.line_attr ], [&lt; SVG_types.line_content ],
+         [&gt; SVG_types.line ])
+        star
+      val polyline :
+        ([&lt; SVG_types.polyline_attr ], [&lt; SVG_types.polyline_content ],
+         [&gt; SVG_types.polyline ])
+        star
+      val polygon :
+        ([&lt; SVG_types.polygon_attr ], [&lt; SVG_types.polygon_content ],
+         [&gt; SVG_types.polygon ])
+        star
+      val text :
+        ([&lt; SVG_types.text_attr ], [&lt; SVG_types.text_content ],
+         [&gt; SVG_types.text ])
+        star
+      val tspan :
+        ([&lt; SVG_types.tspan_attr ], [&lt; SVG_types.tspan_content ],
+         [&gt; SVG_types.tspan ])
+        star
+      val tref :
+        ([&lt; SVG_types.tref_attr ], [&lt; SVG_types.tref_content ],
+         [&gt; SVG_types.tref ])
+        star
+      val textpath :
+        ([&lt; SVG_types.textpath_attr ], [&lt; SVG_types.textpath_content ],
+         [&gt; SVG_types.textpath ])
+        star
+      val altglyph :
+        ([&lt; SVG_types.altglyph_attr ], [&lt; SVG_types.altglyph_content ],
+         [&gt; SVG_types.altglyph ])
+        unary
+      val altglyphdef :
+        ([&lt; SVG_types.altglyphdef_attr ], [&lt; altglyphdef_content ],
+         [&gt; SVG_types.altglyphdef ])
+        unary
+      val altglyphitem :
+        ([&lt; SVG_types.altglyphitem_attr ],
+         [&lt; SVG_types.altglyphitem_content ], [&gt; SVG_types.altglyphitem ])
+        plus
+      val glyphref :
+        ([&lt; SVG_types.glyphref_attr ], [&gt; SVG_types.glyphref ]) nullary
+      val marker :
+        ([&lt; SVG_types.marker_attr ], [&lt; SVG_types.marker_content ],
+         [&gt; SVG_types.marker ])
+        star
+      val colorprofile :
+        ([&lt; SVG_types.colorprofile_attr ],
+         [&lt; SVG_types.colorprofile_content ], [&gt; SVG_types.colorprofile ])
+        star
+      val lineargradient :
+        ([&lt; SVG_types.lineargradient_attr ],
+         [&lt; SVG_types.lineargradient_content ],
+         [&gt; SVG_types.lineargradient ])
+        star
+      val radialgradient :
+        ([&lt; SVG_types.radialgradient_attr ],
+         [&lt; SVG_types.radialgradient_content ],
+         [&gt; SVG_types.radialgradient ])
+        star
+      val gradientstop :
+        ([&lt; SVG_types.gradientstop_attr ],
+         [&lt; SVG_types.gradientstop_content ], [&gt; SVG_types.gradientstop ])
+        star
+      val pattern :
+        ([&lt; SVG_types.pattern_attr ], [&lt; SVG_types.pattern_content ],
+         [&gt; SVG_types.pattern ])
+        star
+      val clippath :
+        ([&lt; SVG_types.clippath_attr ], [&lt; SVG_types.clippath_content ],
+         [&gt; SVG_types.clippath ])
+        star
+      val filter :
+        ([&lt; SVG_types.filter_attr ], [&lt; SVG_types.filter_content ],
+         [&gt; SVG_types.filter ])
+        star
+      val fedistantlight :
+        ([&lt; SVG_types.fedistantlight_attr ],
+         [&lt; SVG_types.fedistantlight_content ],
+         [&gt; SVG_types.fedistantlight ])
+        star
+      val fepointlight :
+        ([&lt; SVG_types.fepointlight_attr ],
+         [&lt; SVG_types.fepointlight_content ], [&gt; SVG_types.fepointlight ])
+        star
+      val fespotlight :
+        ([&lt; SVG_types.fespotlight_attr ], [&lt; SVG_types.fespotlight_content ],
+         [&gt; SVG_types.fespotlight ])
+        star
+      val feblend :
+        ([&lt; SVG_types.feblend_attr ], [&lt; SVG_types.feblend_content ],
+         [&gt; SVG_types.feblend ])
+        star
+      val fecolormatrix :
+        ([&lt; SVG_types.fecolormatrix_attr ],
+         [&lt; SVG_types.fecolormatrix_content ], [&gt; SVG_types.fecolormatrix ])
+        star
+      val fecomponenttransfer :
+        ([&lt; SVG_types.fecomponenttransfer_attr ],
+         [&lt; SVG_types.fecomponenttransfer_content ],
+         [&gt; SVG_types.fecomponenttransfer ])
+        star
+      val fefunca :
+        ([&lt; SVG_types.fefunca_attr ], [&lt; SVG_types.fefunca_content ],
+         [&gt; SVG_types.fefunca ])
+        star
+      val fefuncg :
+        ([&lt; SVG_types.fefuncg_attr ], [&lt; SVG_types.fefuncg_content ],
+         [&gt; SVG_types.fefuncg ])
+        star
+      val fefuncb :
+        ([&lt; SVG_types.fefuncb_attr ], [&lt; SVG_types.fefuncb_content ],
+         [&gt; SVG_types.fefuncb ])
+        star
+      val fefuncr :
+        ([&lt; SVG_types.fefuncr_attr ], [&lt; SVG_types.fefuncr_content ],
+         [&gt; SVG_types.fefuncr ])
+        star
+      val fecomposite :
+        ([&lt; SVG_types.fecomposite_attr ], [&lt; SVG_types.fecomposite_content ],
+         [&gt; SVG_types.fecomposite ])
+        star
+      val feconvolvematrix :
+        ([&lt; SVG_types.feconvolvematrix_attr ],
+         [&lt; SVG_types.feconvolvematrix_content ],
+         [&gt; SVG_types.feconvolvematrix ])
+        star
+      val fediffuselighting :
+        ([&lt; SVG_types.fediffuselighting_attr ],
+         [&lt; SVG_types.fediffuselighting_content ],
+         [&gt; SVG_types.fediffuselighting ])
+        star
+      val fedisplacementmap :
+        ([&lt; SVG_types.fedisplacementmap_attr ],
+         [&lt; SVG_types.fedisplacementmap_content ],
+         [&gt; SVG_types.fedisplacementmap ])
+        star
+      val feflood :
+        ([&lt; SVG_types.feflood_attr ], [&lt; SVG_types.feflood_content ],
+         [&gt; SVG_types.feflood ])
+        star
+      val fegaussianblur :
+        ([&lt; SVG_types.fegaussianblur_attr ],
+         [&lt; SVG_types.fegaussianblur_content ],
+         [&gt; SVG_types.fegaussianblur ])
+        star
+      val feimage :
+        ([&lt; SVG_types.feimage_attr ], [&lt; SVG_types.feimage_content ],
+         [&gt; SVG_types.feimage ])
+        star
+      val femerge :
+        ([&lt; SVG_types.femerge_attr ], [&lt; SVG_types.femerge_content ],
+         [&gt; SVG_types.femerge ])
+        star
+      val femorphology :
+        ([&lt; SVG_types.femorphology_attr ],
+         [&lt; SVG_types.femorphology_content ], [&gt; SVG_types.femorphology ])
+        star
+      val feoffset :
+        ([&lt; SVG_types.feoffset_attr ], [&lt; SVG_types.feoffset_content ],
+         [&gt; SVG_types.feoffset ])
+        star
+      val fespecularlighting :
+        ([&lt; SVG_types.fespecularlighting_attr ],
+         [&lt; SVG_types.fespecularlighting_content ],
+         [&gt; SVG_types.fespecularlighting ])
+        star
+      val fetile :
+        ([&lt; SVG_types.fetile_attr ], [&lt; SVG_types.fetile_content ],
+         [&gt; SVG_types.fetile ])
+        star
+      val feturbulence :
+        ([&lt; SVG_types.feturbulence_attr ],
+         [&lt; SVG_types.feturbulence_content ], [&gt; SVG_types.feturbulence ])
+        star
+      val cursor :
+        ([&lt; SVG_types.cursor_attr ], [&lt; SVG_types.cursor_content ],
+         [&gt; SVG_types.cursor ])
+        star
+      val a :
+        ([&lt; SVG_types.a_attr ], [&lt; SVG_types.a_content ], [&gt; SVG_types.a ])
+        star
+      val view :
+        ([&lt; SVG_types.view_attr ], [&lt; SVG_types.view_content ],
+         [&gt; SVG_types.view ])
+        star
+      val script :
+        ([&lt; SVG_types.script_attr ], [&lt; SVG_types.script_content ],
+         [&gt; SVG_types.script ])
+        unary
+      val animation :
+        ([&lt; SVG_types.animation_attr ], [&lt; SVG_types.animation_content ],
+         [&gt; SVG_types.animation ])
+        star
+      val set :
+        ([&lt; SVG_types.set_attr ], [&lt; SVG_types.set_content ],
+         [&gt; SVG_types.set ])
+        star
+      val animatemotion :
+        ([&lt; SVG_types.animatemotion_attr ],
+         [&lt; SVG_types.animatemotion_content ], [&gt; SVG_types.animatemotion ])
+        star
+      val mpath :
+        ([&lt; SVG_types.mpath_attr ], [&lt; SVG_types.mpath_content ],
+         [&gt; SVG_types.mpath ])
+        star
+      val animatecolor :
+        ([&lt; SVG_types.animatecolor_attr ],
+         [&lt; SVG_types.animatecolor_content ], [&gt; SVG_types.animatecolor ])
+        star
+      val animatetransform :
+        ([&lt; SVG_types.animatetransform_attr ],
+         [&lt; SVG_types.animatetransform_content ],
+         [&gt; SVG_types.animatetransform ])
+        star
+      val font :
+        ([&lt; SVG_types.font_attr ], [&lt; SVG_types.font_content ],
+         [&gt; SVG_types.font ])
+        star
+      val glyph :
+        ([&lt; SVG_types.glyph_attr ], [&lt; SVG_types.glyph_content ],
+         [&gt; SVG_types.glyph ])
+        star
+      val missingglyph :
+        ([&lt; SVG_types.missingglyph_attr ],
+         [&lt; SVG_types.missingglyph_content ], [&gt; SVG_types.missingglyph ])
+        star
+      val hkern : ([&lt; SVG_types.hkern_attr ], [&gt; SVG_types.hkern ]) nullary
+      val vkern : ([&lt; SVG_types.vkern_attr ], [&gt; SVG_types.vkern ]) nullary
+      val fontface :
+        ([&lt; SVG_types.fontface_attr ], [&gt; SVG_types.fontface ]) nullary
+      val fontfacesrc :
+        ([&lt; SVG_types.fontfacesrc_attr ], [&lt; SVG_types.fontfacesrc_content ],
+         [&gt; SVG_types.fontfacesrc ])
+        star
+      val fontfaceuri :
+        ([&lt; SVG_types.fontfaceuri_attr ], [&lt; SVG_types.fontfaceuri_content ],
+         [&gt; SVG_types.fontfaceuri ])
+        star
+      val fontfaceformat :
+        ([&lt; SVG_types.fontfaceformat_attr ], [&gt; SVG_types.fontfaceformat ])
+        nullary
+      val fontfacename :
+        ([&lt; SVG_types.fontfacename_attr ], [&gt; SVG_types.fontfacename ])
+        nullary
+      val tot : XML.elt -&gt; 'a elt
+      val totl : XML.elt list -&gt; 'a elt list
+      val toelt : 'a elt -&gt; XML.elt
+      val toeltl : 'a elt list -&gt; XML.elt list
+      val to_xmlattribs : 'a attrib list -&gt; XML.attrib list
+      val to_attrib : XML.attrib -&gt; 'a attrib
+      type doc = [ `Svg ] elt
+      val doc_toelt : doc -&gt; XML.elt
+      val unique : ?copy:'a elt -&gt; 'a elt -&gt; 'a elt
+    end
+end</code></pre></article></div></div></body></html>

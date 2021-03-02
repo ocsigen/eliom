@@ -1,0 +1,1577 @@
+<html><head><title></title><meta charset="utf8"/><meta content="width=device-width, initial-scale=1" name="viewport"/><link rel="stylesheet" href="https://ocsigen.org/css/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script type="text/javascript" src="https://ocsigen.org/js/client.js">
+//<![CDATA[
+
+//]]>
+</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js">
+//<![CDATA[
+
+//]]>
+</script></head><body class="type_Eliom_content_core.Xhtml.F eliom"><div class="project-page"><div class="page-header"><p class="logo-ocsigen"><a href="../.././../../" class="ocsimore_phrasing_link"><img src="../.././../../img/ocsigen-white.svg" alt="Ocsigen"/></a>
+</p><p class="logo-subproject">Eliom</p><div class="mainmenu"><p class="mainmenu-home"><a href="../.././../../" class="ocsimore_phrasing_link">Home</a></p><p class="mainmenu-doc"><a href="../.././../../tuto/" class="ocsimore_phrasing_link">Doc</a></p><p class="mainmenu-current"><a href="../.././../../eliom/" class="ocsimore_phrasing_link">Eliom</a></p><p><a href="../.././../../js_of_ocaml/" class="ocsimore_phrasing_link">Js_of_ocaml</a></p><p><a href="../.././../../lwt/" class="ocsimore_phrasing_link">Lwt</a></p><p><a href="../.././../../tyxml/" class="ocsimore_phrasing_link">Tyxml</a></p><p><a href="../.././../../ocsigen-start/" class="ocsimore_phrasing_link">Start</a></p></div><form id="googlesearch" action="https://google.com/search"><input name="q" id="gsearch-box" placeholder="Search using Google"/><label for="gsearch-box"><img src="/img/search.svg" alt="" id="gsearch-icon"/></label><input type="submit" id="gsearch-submit" onclick="document.getElementById('gsearch-box').value += ' site:ocsigen.org';"/></form><aside class="how-drawer"><input id="how-drawer-toggle" type="checkbox"/><label for="how-drawer-toggle" id="how-drawer-label"><span class="how-drawer-icon"></span></label><nav class="how-drawer-content"><ul class="drawermainmenu"><li class="drawermainmenu-home"><a href="../.././../../" class="ocsimore_phrasing_link">Home</a>
+</li><li class="drawermainmenu-doc"><a href="../.././../../tuto/" class="ocsimore_phrasing_link">Doc</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../eliom/" class="ocsimore_phrasing_link">Eliom</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../js_of_ocaml/" class="ocsimore_phrasing_link">Js_of_ocaml</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../ocsigenserver/" class="ocsimore_phrasing_link">Server</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../lwt/" class="ocsimore_phrasing_link">Lwt</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../tyxml/" class="ocsimore_phrasing_link">Tyxml</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../ocsigen-toolkit/" class="ocsimore_phrasing_link">Toolkit</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../ocsigen-start/" class="ocsimore_phrasing_link">Start</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../html_of_wiki/" class="ocsimore_phrasing_link">html_of_wiki</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../deriving/" class="ocsimore_phrasing_link">deriving</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../ocsimore/" class="ocsimore_phrasing_link">Ocsimore (<em>deprecated</em>)</a>
+</li><li class="drawermainmenu-page"><a href="../.././../../projects" class="ocsimore_phrasing_link">Other projects</a>
+</li><li class="drawermainmenu-page"><a href="../.././../../papers" class="ocsimore_phrasing_link">Research papers</a>
+</li><li class="drawermainmenu-page"><a href="../.././../../credits" class="ocsimore_phrasing_link">Who does Ocsigen?</a>
+</li><li class="drawermainmenu-page"><a href="../.././../../contributing" class="ocsimore_phrasing_link">Contributing</a>
+</li><li class="drawermainmenu-page"><a href="../.././../../blog" class="ocsimore_phrasing_link">Blog</a>
+</li><li class="drawermainmenu-page"><a href="../.././../../install" class="ocsimore_phrasing_link">Installation</a>
+</li><li class="drawermainmenu-page"><a href="https://github.com/ocsigen" class="ocsimore_phrasing_link">Source code</a>
+</li></ul><nav class="how-doctree"><h1>Eliom's Reference manual</h1><h2><a href="../.././manual/intro" class="ocsimore_phrasing_link">Introduction</a></h2><h2>Server side concepts</h2><h3>Services</h3><h4><a href="../.././manual/services" class="ocsimore_phrasing_link">The different types of services</a></h4><h4><a href="../.././manual/params" class="ocsimore_phrasing_link">Typing service parameters</a></h4><h4><a href="../.././manual/outputs" class="ocsimore_phrasing_link">Writing service handlers</a></h4><h4><a href="../.././manual/links" class="ocsimore_phrasing_link">Creating links and forms</a></h4><h3><a href="../.././manual/state" class="ocsimore_phrasing_link">Sessions and server side state</a></h3><h3><a href="../.././manual/config" class="ocsimore_phrasing_link">Configuring and running Eliom</a></h3><h2>Client-server application</h2><h3><a href="../.././manual/client" class="ocsimore_phrasing_link">Applications</a></h3><h3><a href="../.././manual/client-communication" class="ocsimore_phrasing_link">Client/server communication</a></h3><h3><a href="../.././manual/client-compiling" class="ocsimore_phrasing_link">Compilation process</a></h3><h2>Miscellaneous</h2><h3><a href="../.././manual/html" class="ocsimore_phrasing_link">Writing HTML</a></h3><h3><a href="../.././manual/security" class="ocsimore_phrasing_link">Security considerations</a></h3><h3><a href="../.././manual/wrapping" class="ocsimore_phrasing_link">Custom wrapping</a></h3><h3><a href="../.././manual/examples" class="ocsimore_phrasing_link">Examples</a></h3><h1>Eliom client API</h1><h2><a href="../.././api/client/Eliom_lib" class="ocsimore_phrasing_link">Eliom_lib</a></h2><h2><a href="../.././api/client/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h2><h2>Content and form creation</h2><h3><a href="../.././api/client/Eliom_content.Html5" class="ocsimore_phrasing_link">Eliom_content.Html5</a></h3><h3><a href="../.././api/client/Eliom_content.Svg" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href="../.././api/client/Eliom_content.Xml" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h2>Client/server communication</h2><h3><a href="../.././api/client/Eliom_service" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href="../.././api/client/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href="../.././api/client/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h2>Index</h2><h3> <span><a href="../.././api/client/index_types">Index of types</a></span></h3><h3> <span><a href="../.././api/client/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href="../.././api/client/index_values">Index of values</a></span></h3><h3> <span><a href="../.././api/client/index_modules">Index of modules</a></span></h3><h3> <span><a href="../.././api/client/index_module_types">Index of module types</a></span></h3><h1>Server API</h1><h2><a href="../.././api/server/Eliom_lib" class="ocsimore_phrasing_link">Eliom_lib</a></h2><h2><a href="../.././api/server/Eliom_common" class="ocsimore_phrasing_link">Eliom_common</a></h2><h2><a href="../.././api/server/Eliom_config" class="ocsimore_phrasing_link">Eliom_config</a></h2><h2><a href="../.././api/server/Eliom_request_info" class="ocsimore_phrasing_link">Eliom_request_info</a></h2><h2><a href="../.././api/server/Eliom_reference" class="ocsimore_phrasing_link">Eliom_reference</a></h2><h2><a href="../.././api/server/Eliom_state" class="ocsimore_phrasing_link">Eliom_state</a></h2><h2>Content and form creation</h2><h3><a href="../.././api/server/Eliom_content.Html5" class="ocsimore_phrasing_link">Eliom_content.Html5</a></h3><h3><a href="../.././api/server/Eliom_content.Xhtml" class="ocsimore_phrasing_link">Eliom_content.Xhtml</a></h3><h3><a href="../.././api/server/Eliom_content.Svg" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href="../.././api/server/Eliom_content.Xml" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h2>Services creation</h2><h3><a href="../.././api/server/Eliom_service" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href="../.././api/server/Eliom_parameter" class="ocsimore_phrasing_link">Eliom_parameter</a></h3><h3><a href="../.././api/server/Eliom_registration" class="ocsimore_phrasing_link">Eliom_registration</a></h3><h3><a href="../.././api/server/Eliom_registration.Html5" class="ocsimore_phrasing_link">Eliom_registration.Html5</a></h3><h3><a href="../.././api/server/Eliom_registration.Action" class="ocsimore_phrasing_link">Eliom_registration.Action</a></h3><h3><a href="../.././api/server/Eliom_registration.Ocaml" class="ocsimore_phrasing_link">Eliom_registration.Ocaml</a></h3><h3><a href="../.././api/server/Eliom_registration.App" class="ocsimore_phrasing_link">Eliom_registration.App</a></h3><h2>Client/server communication</h2><h3><a href="../.././api/server/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href="../.././api/server/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href="../.././api/server/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Extensions</h2><h3><a href="../.././api/server/Eliom_atom" class="ocsimore_phrasing_link">Eliom_atom</a></h3><h3><a href="../.././api/server/Eliom_openid" class="ocsimore_phrasing_link">Eliom_openid</a></h3><h2>Index</h2><h3> <span><a href="../.././api/server/index_types">Index of types</a></span></h3><h3> <span><a href="../.././api/server/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href="../.././api/server/index_values">Index of values</a></span></h3><h3> <span><a href="../.././api/server/index_modules">Index of modules</a></span></h3><h3> <span><a href="../.././api/server/index_module_types">Index of module types</a></span></h3></nav></nav></aside></div><p class="reasonwarning">Warning: Reason support is experimental.
+We are looking for beta-tester and contributors.
+</p><button id="reason">Switch to </button><div class="twocols"><nav class="leftcol">Version <select class="how-versions" onchange="location = this.value;"><option value="../.././../1.1.0/api/server/type_Eliom_content_core.Xhtml.F">1.1.0</option><option value="../.././../1.2.2/api/server/type_Eliom_content_core.Xhtml.F">1.2.2</option><option value="../.././../1.3.4/api/server/type_Eliom_content_core.Xhtml.F">1.3.4</option><option value="../.././../2.0.2/api/server/type_Eliom_content_core.Xhtml.F">2.0.2</option><option value="../.././../2.1.1/api/server/type_Eliom_content_core.Xhtml.F">2.1.1</option><option value="../.././../2.2.2/api/server/type_Eliom_content_core.Xhtml.F" selected="selected">2.2.2</option><option value="../.././../3.0/api/server/type_Eliom_content_core.Xhtml.F">3.0</option><option value="../.././../4.2/api/server/type_Eliom_content_core.Xhtml.F">4.2</option><option value="../.././../5.0/api/server/type_Eliom_content_core.Xhtml.F">5.0</option><option value="../.././../6.x/api/server/type_Eliom_content_core.Xhtml.F">6.x</option><option value="../.././../dev/api/server/type_Eliom_content_core.Xhtml.F">dev</option></select><nav class="how-doctree"><h1>Eliom's Reference manual</h1><h2><a href="../.././manual/intro" class="ocsimore_phrasing_link">Introduction</a></h2><h2>Server side concepts</h2><h3>Services</h3><h4><a href="../.././manual/services" class="ocsimore_phrasing_link">The different types of services</a></h4><h4><a href="../.././manual/params" class="ocsimore_phrasing_link">Typing service parameters</a></h4><h4><a href="../.././manual/outputs" class="ocsimore_phrasing_link">Writing service handlers</a></h4><h4><a href="../.././manual/links" class="ocsimore_phrasing_link">Creating links and forms</a></h4><h3><a href="../.././manual/state" class="ocsimore_phrasing_link">Sessions and server side state</a></h3><h3><a href="../.././manual/config" class="ocsimore_phrasing_link">Configuring and running Eliom</a></h3><h2>Client-server application</h2><h3><a href="../.././manual/client" class="ocsimore_phrasing_link">Applications</a></h3><h3><a href="../.././manual/client-communication" class="ocsimore_phrasing_link">Client/server communication</a></h3><h3><a href="../.././manual/client-compiling" class="ocsimore_phrasing_link">Compilation process</a></h3><h2>Miscellaneous</h2><h3><a href="../.././manual/html" class="ocsimore_phrasing_link">Writing HTML</a></h3><h3><a href="../.././manual/security" class="ocsimore_phrasing_link">Security considerations</a></h3><h3><a href="../.././manual/wrapping" class="ocsimore_phrasing_link">Custom wrapping</a></h3><h3><a href="../.././manual/examples" class="ocsimore_phrasing_link">Examples</a></h3><h1>Eliom client API</h1><h2><a href="../.././api/client/Eliom_lib" class="ocsimore_phrasing_link">Eliom_lib</a></h2><h2><a href="../.././api/client/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h2><h2>Content and form creation</h2><h3><a href="../.././api/client/Eliom_content.Html5" class="ocsimore_phrasing_link">Eliom_content.Html5</a></h3><h3><a href="../.././api/client/Eliom_content.Svg" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href="../.././api/client/Eliom_content.Xml" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h2>Client/server communication</h2><h3><a href="../.././api/client/Eliom_service" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href="../.././api/client/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href="../.././api/client/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h2>Index</h2><h3> <span><a href="../.././api/client/index_types">Index of types</a></span></h3><h3> <span><a href="../.././api/client/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href="../.././api/client/index_values">Index of values</a></span></h3><h3> <span><a href="../.././api/client/index_modules">Index of modules</a></span></h3><h3> <span><a href="../.././api/client/index_module_types">Index of module types</a></span></h3><h1>Server API</h1><h2><a href="../.././api/server/Eliom_lib" class="ocsimore_phrasing_link">Eliom_lib</a></h2><h2><a href="../.././api/server/Eliom_common" class="ocsimore_phrasing_link">Eliom_common</a></h2><h2><a href="../.././api/server/Eliom_config" class="ocsimore_phrasing_link">Eliom_config</a></h2><h2><a href="../.././api/server/Eliom_request_info" class="ocsimore_phrasing_link">Eliom_request_info</a></h2><h2><a href="../.././api/server/Eliom_reference" class="ocsimore_phrasing_link">Eliom_reference</a></h2><h2><a href="../.././api/server/Eliom_state" class="ocsimore_phrasing_link">Eliom_state</a></h2><h2>Content and form creation</h2><h3><a href="../.././api/server/Eliom_content.Html5" class="ocsimore_phrasing_link">Eliom_content.Html5</a></h3><h3><a href="../.././api/server/Eliom_content.Xhtml" class="ocsimore_phrasing_link">Eliom_content.Xhtml</a></h3><h3><a href="../.././api/server/Eliom_content.Svg" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href="../.././api/server/Eliom_content.Xml" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h2>Services creation</h2><h3><a href="../.././api/server/Eliom_service" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href="../.././api/server/Eliom_parameter" class="ocsimore_phrasing_link">Eliom_parameter</a></h3><h3><a href="../.././api/server/Eliom_registration" class="ocsimore_phrasing_link">Eliom_registration</a></h3><h3><a href="../.././api/server/Eliom_registration.Html5" class="ocsimore_phrasing_link">Eliom_registration.Html5</a></h3><h3><a href="../.././api/server/Eliom_registration.Action" class="ocsimore_phrasing_link">Eliom_registration.Action</a></h3><h3><a href="../.././api/server/Eliom_registration.Ocaml" class="ocsimore_phrasing_link">Eliom_registration.Ocaml</a></h3><h3><a href="../.././api/server/Eliom_registration.App" class="ocsimore_phrasing_link">Eliom_registration.App</a></h3><h2>Client/server communication</h2><h3><a href="../.././api/server/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href="../.././api/server/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href="../.././api/server/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Extensions</h2><h3><a href="../.././api/server/Eliom_atom" class="ocsimore_phrasing_link">Eliom_atom</a></h3><h3><a href="../.././api/server/Eliom_openid" class="ocsimore_phrasing_link">Eliom_openid</a></h3><h2>Index</h2><h3> <span><a href="../.././api/server/index_types">Index of types</a></span></h3><h3> <span><a href="../.././api/server/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href="../.././api/server/index_values">Index of values</a></span></h3><h3> <span><a href="../.././api/server/index_modules">Index of modules</a></span></h3><h3> <span><a href="../.././api/server/index_module_types">Index of module types</a></span></h3></nav></nav><article class="rightcol"><pre class=""><code class="language-ocaml translatable">sig
+  module Raw :
+    sig
+      module Xml :
+        sig
+          type uri = Xml.uri
+          val string_of_uri : uri -&gt; string
+          val uri_of_string : string -&gt; uri
+          type aname = string
+          type event_handler = Xml.event_handler
+          type attrib = Xml.attrib
+          val float_attrib : aname -&gt; float -&gt; attrib
+          val int_attrib : aname -&gt; int -&gt; attrib
+          val string_attrib : aname -&gt; string -&gt; attrib
+          val space_sep_attrib : aname -&gt; string list -&gt; attrib
+          val comma_sep_attrib : aname -&gt; string list -&gt; attrib
+          val event_handler_attrib : aname -&gt; event_handler -&gt; attrib
+          val uri_attrib : aname -&gt; uri -&gt; attrib
+          val uris_attrib : aname -&gt; uri list -&gt; attrib
+          type elt = Xml.elt
+          type ename = string
+          val empty : unit -&gt; elt
+          val comment : string -&gt; elt
+          val pcdata : string -&gt; elt
+          val encodedpcdata : string -&gt; elt
+          val entity : string -&gt; elt
+          val leaf : ?a:attrib list -&gt; ename -&gt; elt
+          val node : ?a:attrib list -&gt; ename -&gt; elt list -&gt; elt
+          val cdata : string -&gt; elt
+          val cdata_script : string -&gt; elt
+          val cdata_style : string -&gt; elt
+        end
+      module Info : Xml_sigs.Info
+      type uri = Xml.uri
+      val string_of_uri : uri -&gt; string
+      val uri_of_string : string -&gt; uri
+      type +'a attrib
+      val to_xmlattribs : 'a attrib list -&gt; Xml.attrib list
+      val to_attrib : Xml.attrib -&gt; 'a attrib
+      val a_class : Xhtml_types.nmtokens -&gt; [&gt; `Class ] attrib
+      val a_id : Xhtml_types.id -&gt; [&gt; `Id ] attrib
+      val a_title : Xhtml_types.cdata -&gt; [&gt; `Title ] attrib
+      val a_xml_lang : Xhtml_types.nmtoken -&gt; [&gt; `XML_lang ] attrib
+      val a_onblur : Xml.event_handler -&gt; [&gt; `OnBlur ] attrib
+      val a_onclick : Xml.event_handler -&gt; [&gt; `OnClick ] attrib
+      val a_ondblclick : Xml.event_handler -&gt; [&gt; `OnDblClick ] attrib
+      val a_onchange : Xml.event_handler -&gt; [&gt; `OnChange ] attrib
+      val a_onfocus : Xml.event_handler -&gt; [&gt; `OnFocus ] attrib
+      val a_onload : Xml.event_handler -&gt; [&gt; `OnLoad ] attrib
+      val a_onunload : Xml.event_handler -&gt; [&gt; `OnUnload ] attrib
+      val a_onreset : Xml.event_handler -&gt; [&gt; `OnReset ] attrib
+      val a_onselect : Xml.event_handler -&gt; [&gt; `OnSelect ] attrib
+      val a_onsubmit : Xml.event_handler -&gt; [&gt; `OnSubmit ] attrib
+      val a_onmousedown : Xml.event_handler -&gt; [&gt; `OnMouseDown ] attrib
+      val a_onmouseup : Xml.event_handler -&gt; [&gt; `OnMouseUp ] attrib
+      val a_onmouseover : Xml.event_handler -&gt; [&gt; `OnMouseOver ] attrib
+      val a_onmousemove : Xml.event_handler -&gt; [&gt; `OnMouseMove ] attrib
+      val a_onmouseout : Xml.event_handler -&gt; [&gt; `OnMouseOut ] attrib
+      val a_onkeypress : Xml.event_handler -&gt; [&gt; `OnKeyPress ] attrib
+      val a_onkeydown : Xml.event_handler -&gt; [&gt; `OnKeyDown ] attrib
+      val a_onkeyup : Xml.event_handler -&gt; [&gt; `OnKeyUp ] attrib
+      val a_profile : Xml.uri -&gt; [&gt; `Profile ] attrib
+      val a_version : Xhtml_types.cdata -&gt; [&gt; `Version ] attrib
+      val a_xmlns : [&lt; `W3_org_1999_xhtml ] -&gt; [&gt; `XMLns ] attrib
+      val a_cite : Xml.uri -&gt; [&gt; `Cite ] attrib
+      val a_xml_space : [&lt; `Preserve ] -&gt; [&gt; `XML_space ] attrib
+      val a_accesskey : Xhtml_types.character -&gt; [&gt; `Accesskey ] attrib
+      val a_charset : Xhtml_types.charset -&gt; [&gt; `Charset ] attrib
+      val a_accept_charset :
+        Xhtml_types.charset -&gt; [&gt; `Accept_charset ] attrib
+      val a_accept : Xhtml_types.contenttype -&gt; [&gt; `Accept ] attrib
+      val a_href : Xml.uri -&gt; [&gt; `Href ] attrib
+      val a_hreflang : Xhtml_types.languagecode -&gt; [&gt; `Hreflang ] attrib
+      val a_rel : Xhtml_types.linktypes -&gt; [&gt; `Rel ] attrib
+      val a_rev : Xhtml_types.linktypes -&gt; [&gt; `Rev ] attrib
+      val a_tabindex : Xhtml_types.number -&gt; [&gt; `Tabindex ] attrib
+      val a_type : Xhtml_types.contenttype -&gt; [&gt; `Type ] attrib
+      val a_datetime : Xhtml_types.cdata -&gt; [&gt; `Datetime ] attrib
+      val a_dir : [&lt; `Ltr | `Rtl ] -&gt; [&gt; `Dir ] attrib
+      val a_action : Xml.uri -&gt; [&gt; `Action ] attrib
+      val a_checked : [&lt; `Checked ] -&gt; [&gt; `Checked ] attrib
+      val a_cols : Xhtml_types.number -&gt; [&gt; `Cols ] attrib
+      val a_enctype : Xhtml_types.contenttype -&gt; [&gt; `Enctype ] attrib
+      val a_for : Xhtml_types.idref -&gt; [&gt; `For ] attrib
+      val a_maxlength : Xhtml_types.number -&gt; [&gt; `Maxlength ] attrib
+      val a_method : [&lt; `Get | `Post ] -&gt; [&gt; `Method ] attrib
+      val a_multiple : [&lt; `Multiple ] -&gt; [&gt; `Multiple ] attrib
+      val a_name : Xhtml_types.cdata -&gt; [&gt; `Name ] attrib
+      val a_rows : Xhtml_types.number -&gt; [&gt; `Rows ] attrib
+      val a_selected : [&lt; `Selected ] -&gt; [&gt; `Selected ] attrib
+      val a_size : Xhtml_types.number -&gt; [&gt; `Size ] attrib
+      val a_src : Xml.uri -&gt; [&gt; `Src ] attrib
+      val a_input_type :
+        [&lt; `Button
+         | `Checkbox
+         | `File
+         | `Hidden
+         | `Image
+         | `Password
+         | `Radio
+         | `Reset
+         | `Submit
+         | `Text ] -&gt;
+        [&gt; `Input_Type ] attrib
+      val a_value : Xhtml_types.cdata -&gt; [&gt; `Value ] attrib
+      val a_value_type :
+        [&lt; `Data | `Object | `Ref ] -&gt; [&gt; `Value_Type ] attrib
+      val a_disabled : [&lt; `Disabled ] -&gt; [&gt; `Disabled ] attrib
+      val a_readonly : [&lt; `ReadOnly ] -&gt; [&gt; `ReadOnly ] attrib
+      val a_button_type :
+        [&lt; `Button | `Reset | `Submit ] -&gt; [&gt; `Button_Type ] attrib
+      val a_label : Xhtml_types.text -&gt; [&gt; `Label ] attrib
+      val a_abbr : Xhtml_types.text -&gt; [&gt; `Abbr ] attrib
+      val a_align :
+        [&lt; `Center | `Char | `Justify | `Left | `Right ] -&gt;
+        [&gt; `Align ] attrib
+      val a_axis : Xhtml_types.cdata -&gt; [&gt; `Axis ] attrib
+      val a_colspan : Xhtml_types.number -&gt; [&gt; `Colspan ] attrib
+      val a_headers : Xhtml_types.idrefs -&gt; [&gt; `Headers ] attrib
+      val a_rowspan : Xhtml_types.number -&gt; [&gt; `Rowspan ] attrib
+      val a_scope :
+        [&lt; `Col | `Colgroup | `Row | `Rowgroup ] -&gt; [&gt; `Scope ] attrib
+      val a_summary : Xhtml_types.text -&gt; [&gt; `Summary ] attrib
+      val a_valign :
+        [&lt; `Baseline | `Bottom | `Middle | `Top ] -&gt; [&gt; `Valign ] attrib
+      val a_border : Xhtml_types.pixels -&gt; [&gt; `Border ] attrib
+      val a_cellpadding : Xhtml_types.length -&gt; [&gt; `Cellpadding ] attrib
+      val a_cellspacing : Xhtml_types.length -&gt; [&gt; `Cellspacing ] attrib
+      val a_datapagesize : Xhtml_types.cdata -&gt; [&gt; `Datapagesize ] attrib
+      val a_frame :
+        [&lt; `Above
+         | `Below
+         | `Border
+         | `Box
+         | `Hsides
+         | `LHS
+         | `RHS
+         | `Void
+         | `Vsides ] -&gt;
+        [&gt; `Frame ] attrib
+      val a_rules :
+        [&lt; `All | `Cols | `Groups | `None | `Rows ] -&gt; [&gt; `Rules ] attrib
+      val a_char : Xhtml_types.character -&gt; [&gt; `Char ] attrib
+      val a_charoff : Xhtml_types.length -&gt; [&gt; `Charoff ] attrib
+      val a_span : Xhtml_types.number -&gt; [&gt; `Span ] attrib
+      val a_alt : Xhtml_types.text -&gt; [&gt; `Alt ] attrib
+      val a_height : Xhtml_types.length -&gt; [&gt; `Height ] attrib
+      val a_longdesc : Xml.uri -&gt; [&gt; `Longdesc ] attrib
+      val a_width : Xhtml_types.length -&gt; [&gt; `Width ] attrib
+      type shape = [ `Circle | `Default | `Poly | `Rect ]
+      val a_shape : shape -&gt; [&gt; `Shape ] attrib
+      val a_coords : int list -&gt; [&gt; `Coords ] attrib
+      val a_nohref : [&lt; `Nohref ] -&gt; [&gt; `Nohref ] attrib
+      val a_usemap : Xhtml_types.idref -&gt; [&gt; `Usemap ] attrib
+      val a_ismap : [&lt; `Ismap ] -&gt; [&gt; `Ismap ] attrib
+      val a_declare : [&lt; `Declare ] -&gt; [&gt; `Declare ] attrib
+      val a_classid : Xml.uri -&gt; [&gt; `Classid ] attrib
+      val a_codebase : Xml.uri -&gt; [&gt; `Codebase ] attrib
+      val a_data : Xml.uri -&gt; [&gt; `Data ] attrib
+      val a_codetype : Xhtml_types.contenttype -&gt; [&gt; `Codetype ] attrib
+      val a_archive : Xml.uri list -&gt; [&gt; `Archive ] attrib
+      val a_standby : Xhtml_types.text -&gt; [&gt; `Standby ] attrib
+      val a_fs_rows : Xhtml_types.multilengths -&gt; [&gt; `FS_Rows ] attrib
+      val a_fs_cols : Xhtml_types.multilengths -&gt; [&gt; `FS_Cols ] attrib
+      val a_frameborder : [&lt; `One | `Zero ] -&gt; [&gt; `Frameborder ] attrib
+      val a_marginheight : Xhtml_types.pixels -&gt; [&gt; `Marginheight ] attrib
+      val a_marginwidth : Xhtml_types.pixels -&gt; [&gt; `Marginwidth ] attrib
+      val a_noresize : [&lt; `Noresize ] -&gt; [&gt; `Noresize ] attrib
+      val a_scrolling : [&lt; `Auto | `No | `Yes ] -&gt; [&gt; `Scrolling ] attrib
+      val a_target : Xhtml_types.frametarget -&gt; [&gt; `Target ] attrib
+      val a_content : Xhtml_types.cdata -&gt; [&gt; `Content ] attrib
+      val a_http_equiv : Xhtml_types.nmtoken -&gt; [&gt; `Http_equiv ] attrib
+      val a_scheme : Xhtml_types.cdata -&gt; [&gt; `Scheme ] attrib
+      val a_defer : [&lt; `Defer ] -&gt; [&gt; `Defer ] attrib
+      val a_media : Xhtml_types.mediadesc -&gt; [&gt; `Media ] attrib
+      val a_style : string -&gt; [&gt; `Style_Attr ] attrib
+      type +'a elt
+      type ('a, 'b) nullary = ?a:'a attrib list -&gt; unit -&gt; 'b elt
+      type ('a, 'b, 'c) unary = ?a:'a attrib list -&gt; 'b elt -&gt; 'c elt
+      type ('a, 'b, 'c, 'd) binary =
+          ?a:'a attrib list -&gt; 'b elt -&gt; 'c elt -&gt; 'd elt
+      type ('a, 'b, 'c, 'd, 'e, 'f) quadry =
+          ?a:'a attrib list -&gt; 'b elt -&gt; 'c elt -&gt; 'd elt -&gt; 'e elt -&gt; 'f elt
+      type ('a, 'b, 'c) star = ?a:'a attrib list -&gt; 'b elt list -&gt; 'c elt
+      type ('a, 'b, 'c) plus =
+          ?a:'a attrib list -&gt; 'b elt -&gt; 'b elt list -&gt; 'c elt
+      type html = [ `Html ] elt
+      val html :
+        ?a:[&lt; `Dir | `Id | `Version | `XML_lang | `XMLns ] attrib list -&gt;
+        [&lt; `Head ] elt -&gt; [&lt; `Body | `Frameset ] elt -&gt; html
+      val head :
+        ?a:[&lt; `Dir | `Id | `Profile | `XML_lang ] attrib list -&gt;
+        [&lt; `Base | `Title ] elt -&gt;
+        [&lt; `Link | `Meta | `Object | `Script | `Style ] elt list -&gt;
+        [&gt; `Head ] elt
+      val title :
+        ([&lt; Xhtml_types.title_attrib ], [&lt; Xhtml_types.title_content ],
+         [&gt; Xhtml_types.title ])
+        unary
+      val body :
+        ([&lt; Xhtml_types.body_attrib ], [&lt; Xhtml_types.body_content ],
+         [&gt; Xhtml_types.body ])
+        star
+      val pcdata : string -&gt; [&gt; `PCDATA ] elt
+      val entity : string -&gt; [&gt; `PCDATA ] elt
+      val space : unit -&gt; [&gt; `PCDATA ] elt
+      val cdata : string -&gt; [&gt; `PCDATA ] elt
+      val cdata_script : string -&gt; [&gt; `PCDATA ] elt
+      val cdata_style : string -&gt; [&gt; `PCDATA ] elt
+      val unsafe_data : string -&gt; 'a elt
+      val h1 :
+        ([&lt; Xhtml_types.h1_attrib ], [&lt; Xhtml_types.h1_content ],
+         [&gt; Xhtml_types.h1 ])
+        star
+      val h2 :
+        ([&lt; Xhtml_types.h2_attrib ], [&lt; Xhtml_types.h2_content ],
+         [&gt; Xhtml_types.h2 ])
+        star
+      val h3 :
+        ([&lt; Xhtml_types.h3_attrib ], [&lt; Xhtml_types.h3_content ],
+         [&gt; Xhtml_types.h3 ])
+        star
+      val h4 :
+        ([&lt; Xhtml_types.h4_attrib ], [&lt; Xhtml_types.h4_content ],
+         [&gt; Xhtml_types.h4 ])
+        star
+      val h5 :
+        ([&lt; Xhtml_types.h5_attrib ], [&lt; Xhtml_types.h5_content ],
+         [&gt; Xhtml_types.h5 ])
+        star
+      val h6 :
+        ([&lt; Xhtml_types.h6_attrib ], [&lt; Xhtml_types.h6_content ],
+         [&gt; Xhtml_types.h6 ])
+        star
+      val address :
+        ([&lt; Xhtml_types.address_attrib ], [&lt; Xhtml_types.address_content ],
+         [&gt; Xhtml_types.address ])
+        star
+      val blockquote :
+        ([&lt; `Cite
+          | `Class
+          | `Dir
+          | `Id
+          | `OnClick
+          | `OnDblClick
+          | `OnKeyDown
+          | `OnKeyPress
+          | `OnKeyUp
+          | `OnMouseDown
+          | `OnMouseMove
+          | `OnMouseOut
+          | `OnMouseOver
+          | `OnMouseUp
+          | `Style_Attr
+          | `Title
+          | `XML_lang
+          | `XML_space ],
+         [&lt; `Address
+          | `Blockquote
+          | `Del
+          | `Div
+          | `Dl
+          | `Fieldset
+          | `Form
+          | `H1
+          | `H2
+          | `H3
+          | `H4
+          | `H5
+          | `H6
+          | `Hr
+          | `Ins
+          | `Noscript
+          | `Ol
+          | `P
+          | `PCDATA
+          | `Pre
+          | `Script
+          | `Table
+          | `Ul ],
+         [&gt; `Blockquote ])
+        star
+      val div :
+        ([&lt; Xhtml_types.div_attrib ], [&lt; Xhtml_types.div_content ],
+         [&gt; Xhtml_types.div ])
+        star
+      val p :
+        ([&lt; Xhtml_types.p_attrib ], [&lt; Xhtml_types.p_content ],
+         [&gt; Xhtml_types.p ])
+        star
+      val pre :
+        ([&lt; `Class
+          | `Dir
+          | `Id
+          | `OnClick
+          | `OnDblClick
+          | `OnKeyDown
+          | `OnKeyPress
+          | `OnKeyUp
+          | `OnMouseDown
+          | `OnMouseMove
+          | `OnMouseOut
+          | `OnMouseOver
+          | `OnMouseUp
+          | `Style_Attr
+          | `Title
+          | `XML_lang
+          | `XML_space ],
+         [&lt; `A
+          | `Abbr
+          | `Acronym
+          | `B
+          | `Bdo
+          | `Big
+          | `Br
+          | `Button
+          | `Cite
+          | `Code
+          | `Del
+          | `Dfn
+          | `Em
+          | `I
+          | `Iframe
+          | `Img
+          | `Input
+          | `Ins
+          | `Kbd
+          | `Label
+          | `Map
+          | `Noscript
+          | `Object
+          | `PCDATA
+          | `Q
+          | `Ruby_complex
+          | `Ruby_simple1
+          | `Ruby_simple2
+          | `Samp
+          | `Script
+          | `Select
+          | `Small
+          | `Span
+          | `Strong
+          | `Sub
+          | `Sup
+          | `Textarea
+          | `Tt
+          | `Var ],
+         [&gt; `Pre ])
+        star
+      val abbr :
+        ([&lt; Xhtml_types.abbr_attrib ], [&lt; Xhtml_types.abbr_content ],
+         [&gt; Xhtml_types.abbr ])
+        star
+      val acronym :
+        ([&lt; Xhtml_types.acronym_attrib ], [&lt; Xhtml_types.acronym_content ],
+         [&gt; Xhtml_types.acronym ])
+        star
+      val br : ([&lt; Xhtml_types.br_attrib ], [&gt; Xhtml_types.br ]) nullary
+      val cite :
+        ([&lt; Xhtml_types.cite_attrib ], [&lt; Xhtml_types.cite_content ],
+         [&gt; Xhtml_types.cite ])
+        star
+      val code :
+        ([&lt; Xhtml_types.code_attrib ], [&lt; Xhtml_types.code_content ],
+         [&gt; Xhtml_types.code ])
+        star
+      val dfn :
+        ([&lt; Xhtml_types.dfn_attrib ], [&lt; Xhtml_types.dfn_content ],
+         [&gt; Xhtml_types.dfn ])
+        star
+      val em :
+        ([&lt; Xhtml_types.em_attrib ], [&lt; Xhtml_types.em_content ],
+         [&gt; Xhtml_types.em ])
+        star
+      val kbd :
+        ([&lt; Xhtml_types.kbd_attrib ], [&lt; Xhtml_types.kbd_content ],
+         [&gt; Xhtml_types.kbd ])
+        star
+      val q :
+        ([&lt; Xhtml_types.q_attrib ], [&lt; Xhtml_types.q_content ],
+         [&gt; Xhtml_types.q ])
+        star
+      val samp :
+        ([&lt; Xhtml_types.samp_attrib ], [&lt; Xhtml_types.samp_content ],
+         [&gt; Xhtml_types.samp ])
+        star
+      val span :
+        ([&lt; Xhtml_types.span_attrib ], [&lt; Xhtml_types.span_content ],
+         [&gt; Xhtml_types.span ])
+        star
+      val strong :
+        ([&lt; Xhtml_types.strong_attrib ], [&lt; Xhtml_types.strong_content ],
+         [&gt; Xhtml_types.strong ])
+        star
+      val var :
+        ([&lt; Xhtml_types.var_attrib ], [&lt; Xhtml_types.var_content ],
+         [&gt; Xhtml_types.var ])
+        star
+      val a :
+        ([&lt; Xhtml_types.a_attrib ], [&lt; Xhtml_types.a_content ],
+         [&gt; Xhtml_types.a ])
+        star
+      val dl :
+        ([&lt; Xhtml_types.dl_attrib ], [&lt; Xhtml_types.dl_content ],
+         [&gt; Xhtml_types.dl ])
+        plus
+      val ol :
+        ([&lt; Xhtml_types.ol_attrib ], [&lt; Xhtml_types.ol_content ],
+         [&gt; Xhtml_types.ol ])
+        plus
+      val ul :
+        ([&lt; Xhtml_types.ul_attrib ], [&lt; Xhtml_types.ul_content ],
+         [&gt; Xhtml_types.ul ])
+        plus
+      val dd :
+        ([&lt; Xhtml_types.dd_attrib ], [&lt; Xhtml_types.dd_content ],
+         [&gt; Xhtml_types.dd ])
+        star
+      val dt :
+        ([&lt; Xhtml_types.dt_attrib ], [&lt; Xhtml_types.dt_content ],
+         [&gt; Xhtml_types.dt ])
+        star
+      val li :
+        ([&lt; Xhtml_types.li_attrib ], [&lt; Xhtml_types.li_content ],
+         [&gt; Xhtml_types.li ])
+        star
+      val hr : ([&lt; Xhtml_types.hr_attrib ], [&gt; Xhtml_types.hr ]) nullary
+      val b :
+        ([&lt; Xhtml_types.b_attrib ], [&lt; Xhtml_types.b_content ],
+         [&gt; Xhtml_types.b ])
+        star
+      val big :
+        ([&lt; Xhtml_types.big_attrib ], [&lt; Xhtml_types.big_content ],
+         [&gt; Xhtml_types.big ])
+        star
+      val i :
+        ([&lt; Xhtml_types.i_attrib ], [&lt; Xhtml_types.i_content ],
+         [&gt; Xhtml_types.i ])
+        star
+      val small :
+        ([&lt; Xhtml_types.small_attrib ], [&lt; Xhtml_types.small_content ],
+         [&gt; Xhtml_types.small ])
+        star
+      val sub :
+        ([&lt; Xhtml_types.sub_attrib ], [&lt; Xhtml_types.sub_content ],
+         [&gt; Xhtml_types.sub ])
+        star
+      val sup :
+        ([&lt; Xhtml_types.sup_attrib ], [&lt; Xhtml_types.sup_content ],
+         [&gt; Xhtml_types.sup ])
+        star
+      val tt :
+        ([&lt; Xhtml_types.tt_attrib ], [&lt; Xhtml_types.tt_content ],
+         [&gt; Xhtml_types.tt ])
+        star
+      val bdo :
+        dir:[&lt; `Ltr | `Rtl ] -&gt;
+        ([&lt; Xhtml_types.bdo_attrib ], [&lt; Xhtml_types.bdo_content ],
+         [&gt; Xhtml_types.bdo ])
+        star
+      val area :
+        alt:Xhtml_types.text -&gt;
+        ([&lt; Xhtml_types.area_attrib ], [&gt; Xhtml_types.area ]) nullary
+      val map :
+        id:Xhtml_types.id -&gt;
+        ([&lt; Xhtml_types.map_attrib ], [&lt; Xhtml_types.map_content ],
+         [&gt; Xhtml_types.map ])
+        plus
+      val del :
+        ([&lt; Xhtml_types.del_attrib ], [&lt; Xhtml_types.del_content ],
+         [&gt; Xhtml_types.del ])
+        star
+      val ins :
+        ([&lt; Xhtml_types.ins_attrib ], [&lt; Xhtml_types.ins_content ],
+         [&gt; Xhtml_types.ins ])
+        star
+      val script :
+        contenttype:Xhtml_types.contenttype -&gt;
+        ([&lt; Xhtml_types.script_attrib ], [&lt; Xhtml_types.script_content ],
+         [&gt; Xhtml_types.script ])
+        unary
+      val noscript :
+        ([&lt; Xhtml_types.noscript_attrib ], [&lt; Xhtml_types.noscript_content ],
+         [&gt; Xhtml_types.noscript ])
+        plus
+      module Basic_Forms :
+        sig
+          val form :
+            action:Xml.uri -&gt;
+            ([&lt; Xhtml_types.form_attrib ], [&lt; Xhtml_types.form_content ],
+             [&gt; Xhtml_types.form ])
+            plus
+          val input :
+            ([&lt; Xhtml_types.input_attrib ], [&gt; Xhtml_types.input ]) nullary
+          val label :
+            ([&lt; Xhtml_types.label_attrib ], [&lt; Xhtml_types.label_content ],
+             [&gt; Xhtml_types.label ])
+            star
+          val option :
+            ([&lt; Xhtml_types.option_attrib ], [&lt; Xhtml_types.option_content ],
+             [&gt; Xhtml_types.selectoption ])
+            unary
+          val select :
+            ([&lt; Xhtml_types.select_attrib ], [&lt; Xhtml_types.select_content ],
+             [&gt; Xhtml_types.select ])
+            plus
+          val textarea :
+            rows:Xhtml_types.number -&gt;
+            cols:Xhtml_types.number -&gt;
+            ([&lt; Xhtml_types.textarea_attrib ],
+             [&lt; Xhtml_types.textarea_content ], [&gt; Xhtml_types.textarea ])
+            unary
+        end
+      val form :
+        action:Xml.uri -&gt;
+        ([&lt; Xhtml_types.form_attrib ], [&lt; Xhtml_types.form_content ],
+         [&gt; Xhtml_types.form ])
+        plus
+      val input :
+        ([&lt; Xhtml_types.input_attrib ], [&gt; Xhtml_types.input ]) nullary
+      val label :
+        ([&lt; Xhtml_types.label_attrib ], [&lt; Xhtml_types.label_content ],
+         [&gt; Xhtml_types.label ])
+        star
+      val optgroup :
+        label:Xhtml_types.text -&gt;
+        ([&lt; Xhtml_types.optgroup_attrib ], [&lt; Xhtml_types.optgroup_content ],
+         [&gt; Xhtml_types.optgroup ])
+        plus
+      val option :
+        ([&lt; Xhtml_types.option_attrib ], [&lt; Xhtml_types.option_content ],
+         [&gt; Xhtml_types.selectoption ])
+        unary
+      val select :
+        ([&lt; Xhtml_types.select_attrib ], [&lt; Xhtml_types.select_content ],
+         [&gt; Xhtml_types.select ])
+        plus
+      val textarea :
+        rows:Xhtml_types.number -&gt;
+        cols:Xhtml_types.number -&gt;
+        ([&lt; Xhtml_types.textarea_attrib ], [&lt; Xhtml_types.textarea_content ],
+         [&gt; Xhtml_types.textarea ])
+        unary
+      val fieldset :
+        ([&lt; Xhtml_types.fieldset_attrib ], [&lt; Xhtml_types.fieldset_content ],
+         [&gt; Xhtml_types.fieldset ])
+        star
+      val legend :
+        ([&lt; Xhtml_types.legend_attrib ], [&lt; Xhtml_types.legend_content ],
+         [&gt; Xhtml_types.legend ])
+        star
+      val button :
+        ([&lt; Xhtml_types.button_attrib ], [&lt; Xhtml_types.button_content ],
+         [&gt; Xhtml_types.button ])
+        star
+      module Basic_Tables :
+        sig
+          val a_align : [&lt; `Center | `Left | `Right ] -&gt; [&gt; `Align ] attrib
+          val a_scope : [&lt; `Col | `Row ] -&gt; [&gt; `Scope ] attrib
+          val a_valign : [&lt; `Bottom | `Middle | `Top ] -&gt; [&gt; `Valign ] attrib
+          val caption :
+            ([&lt; Xhtml_types.caption_attrib ],
+             [&lt; Xhtml_types.caption_content ], [&gt; Xhtml_types.caption ])
+            star
+          val table :
+            ?caption:[&lt; `Caption ] elt -&gt;
+            ([&lt; Xhtml_types.table_attrib ], [&lt; Xhtml_types.table_content ],
+             [&gt; Xhtml_types.table ])
+            plus
+          val td :
+            ([&lt; Xhtml_types.td_attrib ], [&lt; Xhtml_types.td_content ],
+             [&gt; Xhtml_types.td ])
+            star
+          val th :
+            ([&lt; Xhtml_types.th_attrib ], [&lt; Xhtml_types.th_content ],
+             [&gt; Xhtml_types.th ])
+            star
+          val tr :
+            ([&lt; Xhtml_types.tr_attrib ], [&lt; Xhtml_types.tr_content ],
+             [&gt; Xhtml_types.tr ])
+            plus
+        end
+      val caption :
+        ([&lt; Xhtml_types.caption_attrib ], [&lt; Xhtml_types.caption_content ],
+         [&gt; Xhtml_types.caption ])
+        star
+      val table :
+        ?caption:[&lt; `Caption ] elt -&gt;
+        ?columns:[&lt; `Colgroups of [&lt; `Colgroup ] elt list
+                  | `Cols of [&lt; `Col ] elt list ] -&gt;
+        ([&lt; `Border
+          | `Cellpadding
+          | `Cellspacing
+          | `Class
+          | `Datapagesize
+          | `Dir
+          | `Frame
+          | `Id
+          | `OnClick
+          | `OnDblClick
+          | `OnKeyDown
+          | `OnKeyPress
+          | `OnKeyUp
+          | `OnMouseDown
+          | `OnMouseMove
+          | `OnMouseOut
+          | `OnMouseOver
+          | `OnMouseUp
+          | `Rules
+          | `Style_Attr
+          | `Summary
+          | `Title
+          | `Width
+          | `XML_lang
+          | `XML_space ],
+         [&lt; `Tr ], [&gt; `Table ])
+        plus
+      val tablex :
+        ?caption:[&lt; `Caption ] elt -&gt;
+        ?columns:[&lt; `Colgroups of [&lt; `Colgroup ] elt list
+                  | `Cols of [&lt; `Col ] elt list ] -&gt;
+        ?thead:[&lt; `Thead ] elt -&gt;
+        ?tfoot:[&lt; `Tfoot ] elt -&gt;
+        ([&lt; `Border
+          | `Cellpadding
+          | `Cellspacing
+          | `Class
+          | `Datapagesize
+          | `Dir
+          | `Frame
+          | `Id
+          | `OnClick
+          | `OnDblClick
+          | `OnKeyDown
+          | `OnKeyPress
+          | `OnKeyUp
+          | `OnMouseDown
+          | `OnMouseMove
+          | `OnMouseOut
+          | `OnMouseOver
+          | `OnMouseUp
+          | `Rules
+          | `Style_Attr
+          | `Summary
+          | `Title
+          | `Width
+          | `XML_lang
+          | `XML_space ],
+         [&lt; `Tbody ], [&gt; `Table ])
+        plus
+      val td :
+        ([&lt; Xhtml_types.td_attrib ], [&lt; Xhtml_types.td_content ],
+         [&gt; Xhtml_types.td ])
+        star
+      val th :
+        ([&lt; Xhtml_types.th_attrib ], [&lt; Xhtml_types.th_content ],
+         [&gt; Xhtml_types.th ])
+        star
+      val tr :
+        ([&lt; Xhtml_types.tr_attrib ], [&lt; Xhtml_types.tr_content ],
+         [&gt; Xhtml_types.tr ])
+        plus
+      val col : ([&lt; Xhtml_types.col_attrib ], [&gt; Xhtml_types.col ]) nullary
+      val colgroup :
+        ([&lt; Xhtml_types.colgroup_attrib ], [&lt; Xhtml_types.colgroup_content ],
+         [&gt; Xhtml_types.colgroup ])
+        star
+      val thead :
+        ([&lt; Xhtml_types.thead_attrib ], [&lt; Xhtml_types.thead_content ],
+         [&gt; Xhtml_types.thead ])
+        plus
+      val tbody :
+        ([&lt; Xhtml_types.tbody_attrib ], [&lt; Xhtml_types.tbody_content ],
+         [&gt; Xhtml_types.tbody ])
+        plus
+      val tfoot :
+        ([&lt; Xhtml_types.tfoot_attrib ], [&lt; Xhtml_types.tfoot_content ],
+         [&gt; Xhtml_types.tfoot ])
+        plus
+      val img :
+        src:Xml.uri -&gt;
+        alt:Xhtml_types.text -&gt;
+        ([&lt; Xhtml_types.img_attrib ], [&gt; Xhtml_types.img ]) nullary
+      val object_ :
+        ([&lt; Xhtml_types.object__attrib ], [&lt; Xhtml_types.object__content ],
+         [&gt; Xhtml_types.object_ ])
+        star
+      val param :
+        name:Xhtml_types.text -&gt;
+        ([&lt; Xhtml_types.param_attrib ], [&gt; Xhtml_types.param ]) nullary
+      val frameset :
+        ?noframes:[&lt; `Noframes ] elt -&gt;
+        ([&lt; Xhtml_types.frameset_attrib ], [&lt; Xhtml_types.frameset_content ],
+         [&gt; Xhtml_types.frameset ])
+        plus
+      val frame :
+        src:Xml.uri -&gt;
+        ([&lt; Xhtml_types.frame_attrib ], [&gt; Xhtml_types.frame ]) nullary
+      val noframes :
+        ([&lt; Xhtml_types.noframes_attrib ], [&lt; Xhtml_types.noframes_content ],
+         [&gt; Xhtml_types.noframes ])
+        unary
+      val iframe :
+        ([&lt; Xhtml_types.iframe_attrib ], [&lt; Xhtml_types.iframe_content ],
+         [&gt; Xhtml_types.iframe ])
+        star
+      val meta :
+        content:Xhtml_types.cdata -&gt;
+        ([&lt; Xhtml_types.meta_attrib ], [&gt; Xhtml_types.meta ]) nullary
+      val style :
+        contenttype:Xhtml_types.contenttype -&gt;
+        ([&lt; Xhtml_types.style_attrib ], [&lt; Xhtml_types.style_content ],
+         [&gt; Xhtml_types.style ])
+        star
+      val link :
+        ([&lt; Xhtml_types.link_attrib ], [&gt; Xhtml_types.link ]) nullary
+      val base :
+        href:Xml.uri -&gt;
+        ([&lt; Xhtml_types.base_attrib ], [&gt; Xhtml_types.base ]) nullary
+      val ruby_simple1 :
+        ?a:[&lt; Xhtml_types.common ] attrib list -&gt;
+        [&lt; `Rb ] elt -&gt; [&lt; `Rt ] elt -&gt; [&gt; `Ruby_simple1 ] elt
+      val ruby_simple2 :
+        ?a:[&lt; Xhtml_types.common ] attrib list -&gt;
+        [&lt; `Rb ] elt -&gt;
+        [&lt; `Rp ] elt -&gt;
+        [&lt; `Rt ] elt -&gt; [&lt; `Rp ] elt -&gt; [&gt; `Ruby_simple2 ] elt
+      val ruby_complex :
+        ?a:[&lt; Xhtml_types.common ] attrib list -&gt;
+        [&lt; `Rbc ] elt -&gt; [&lt; `Rtc_complex ] elt -&gt; [&gt; `Ruby_complex ] elt
+      val rbc :
+        ([&lt; Xhtml_types.rbc_attrib ], [&lt; Xhtml_types.rbc_content ],
+         [&gt; Xhtml_types.rbc ])
+        plus
+      val rtc :
+        ([&lt; Xhtml_types.rtc_attrib ], [&lt; Xhtml_types.rtc_content ],
+         [&gt; Xhtml_types.rtc ])
+        plus
+      val rtc_complex :
+        ([&lt; Xhtml_types.rtc_complex_attrib ],
+         [&lt; Xhtml_types.rtc_complex_content ], [&gt; Xhtml_types.rtc_complex ])
+        plus
+      val rb :
+        ([&lt; Xhtml_types.rb_attrib ], [&lt; Xhtml_types.rb_content ],
+         [&gt; Xhtml_types.rb ])
+        star
+      val rt :
+        ([&lt; Xhtml_types.rt_attrib ], [&lt; Xhtml_types.rt_content ],
+         [&gt; Xhtml_types.rt ])
+        star
+      val rt_complex :
+        ([&lt; Xhtml_types.rt_complex_attrib ],
+         [&lt; Xhtml_types.rt_complex_content ], [&gt; Xhtml_types.rt_complex ])
+        star
+      val rp :
+        ([&lt; Xhtml_types.rp_attrib ], [&lt; Xhtml_types.rp_content ],
+         [&gt; Xhtml_types.rp ])
+        star
+      val a_rbspan : Xhtml_types.number -&gt; [&gt; `Rbspan ] attrib
+      val tot : Xml.elt -&gt; 'a elt
+      val totl : Xml.elt list -&gt; 'a elt list
+      val toelt : 'a elt -&gt; Xml.elt
+      val toeltl : 'a elt list -&gt; Xml.elt list
+      type doc = [ `Html ] elt
+      val doc_toelt : doc -&gt; Xml.elt
+    end
+  module Xml :
+    sig
+      type uri = Xml.uri
+      val string_of_uri : uri -&gt; string
+      val uri_of_string : string -&gt; uri
+      type aname = string
+      type event_handler = Xml.event_handler
+      type attrib = Xml.attrib
+      val float_attrib : aname -&gt; float -&gt; attrib
+      val int_attrib : aname -&gt; int -&gt; attrib
+      val string_attrib : aname -&gt; string -&gt; attrib
+      val space_sep_attrib : aname -&gt; string list -&gt; attrib
+      val comma_sep_attrib : aname -&gt; string list -&gt; attrib
+      val event_handler_attrib : aname -&gt; event_handler -&gt; attrib
+      val uri_attrib : aname -&gt; uri -&gt; attrib
+      val uris_attrib : aname -&gt; uri list -&gt; attrib
+      type elt = Xml.elt
+      type ename = string
+      val empty : unit -&gt; elt
+      val comment : string -&gt; elt
+      val pcdata : string -&gt; elt
+      val encodedpcdata : string -&gt; elt
+      val entity : string -&gt; elt
+      val leaf : ?a:attrib list -&gt; ename -&gt; elt
+      val node : ?a:attrib list -&gt; ename -&gt; elt list -&gt; elt
+      val cdata : string -&gt; elt
+      val cdata_script : string -&gt; elt
+      val cdata_style : string -&gt; elt
+    end
+  module Info : Xml_sigs.Info
+  type uri = Xml.uri
+  val string_of_uri : uri -&gt; string
+  val uri_of_string : string -&gt; uri
+  type +'a attrib
+  val to_xmlattribs : 'a attrib list -&gt; Xml.attrib list
+  val to_attrib : Xml.attrib -&gt; 'a attrib
+  val a_class : Xhtml_types.nmtokens -&gt; [&gt; `Class ] attrib
+  val a_id : Xhtml_types.id -&gt; [&gt; `Id ] attrib
+  val a_title : Xhtml_types.cdata -&gt; [&gt; `Title ] attrib
+  val a_xml_lang : Xhtml_types.nmtoken -&gt; [&gt; `XML_lang ] attrib
+  val a_onblur : Xml.event_handler -&gt; [&gt; `OnBlur ] attrib
+  val a_onclick : Xml.event_handler -&gt; [&gt; `OnClick ] attrib
+  val a_ondblclick : Xml.event_handler -&gt; [&gt; `OnDblClick ] attrib
+  val a_onchange : Xml.event_handler -&gt; [&gt; `OnChange ] attrib
+  val a_onfocus : Xml.event_handler -&gt; [&gt; `OnFocus ] attrib
+  val a_onload : Xml.event_handler -&gt; [&gt; `OnLoad ] attrib
+  val a_onunload : Xml.event_handler -&gt; [&gt; `OnUnload ] attrib
+  val a_onreset : Xml.event_handler -&gt; [&gt; `OnReset ] attrib
+  val a_onselect : Xml.event_handler -&gt; [&gt; `OnSelect ] attrib
+  val a_onsubmit : Xml.event_handler -&gt; [&gt; `OnSubmit ] attrib
+  val a_onmousedown : Xml.event_handler -&gt; [&gt; `OnMouseDown ] attrib
+  val a_onmouseup : Xml.event_handler -&gt; [&gt; `OnMouseUp ] attrib
+  val a_onmouseover : Xml.event_handler -&gt; [&gt; `OnMouseOver ] attrib
+  val a_onmousemove : Xml.event_handler -&gt; [&gt; `OnMouseMove ] attrib
+  val a_onmouseout : Xml.event_handler -&gt; [&gt; `OnMouseOut ] attrib
+  val a_onkeypress : Xml.event_handler -&gt; [&gt; `OnKeyPress ] attrib
+  val a_onkeydown : Xml.event_handler -&gt; [&gt; `OnKeyDown ] attrib
+  val a_onkeyup : Xml.event_handler -&gt; [&gt; `OnKeyUp ] attrib
+  val a_profile : Xml.uri -&gt; [&gt; `Profile ] attrib
+  val a_version : Xhtml_types.cdata -&gt; [&gt; `Version ] attrib
+  val a_xmlns : [&lt; `W3_org_1999_xhtml ] -&gt; [&gt; `XMLns ] attrib
+  val a_cite : Xml.uri -&gt; [&gt; `Cite ] attrib
+  val a_xml_space : [&lt; `Preserve ] -&gt; [&gt; `XML_space ] attrib
+  val a_accesskey : Xhtml_types.character -&gt; [&gt; `Accesskey ] attrib
+  val a_charset : Xhtml_types.charset -&gt; [&gt; `Charset ] attrib
+  val a_accept_charset : Xhtml_types.charset -&gt; [&gt; `Accept_charset ] attrib
+  val a_accept : Xhtml_types.contenttype -&gt; [&gt; `Accept ] attrib
+  val a_href : Xml.uri -&gt; [&gt; `Href ] attrib
+  val a_hreflang : Xhtml_types.languagecode -&gt; [&gt; `Hreflang ] attrib
+  val a_rel : Xhtml_types.linktypes -&gt; [&gt; `Rel ] attrib
+  val a_rev : Xhtml_types.linktypes -&gt; [&gt; `Rev ] attrib
+  val a_tabindex : Xhtml_types.number -&gt; [&gt; `Tabindex ] attrib
+  val a_type : Xhtml_types.contenttype -&gt; [&gt; `Type ] attrib
+  val a_datetime : Xhtml_types.cdata -&gt; [&gt; `Datetime ] attrib
+  val a_dir : [&lt; `Ltr | `Rtl ] -&gt; [&gt; `Dir ] attrib
+  val a_action : Xml.uri -&gt; [&gt; `Action ] attrib
+  val a_checked : [&lt; `Checked ] -&gt; [&gt; `Checked ] attrib
+  val a_cols : Xhtml_types.number -&gt; [&gt; `Cols ] attrib
+  val a_enctype : Xhtml_types.contenttype -&gt; [&gt; `Enctype ] attrib
+  val a_for : Xhtml_types.idref -&gt; [&gt; `For ] attrib
+  val a_maxlength : Xhtml_types.number -&gt; [&gt; `Maxlength ] attrib
+  val a_method : [&lt; `Get | `Post ] -&gt; [&gt; `Method ] attrib
+  val a_multiple : [&lt; `Multiple ] -&gt; [&gt; `Multiple ] attrib
+  val a_name : Xhtml_types.cdata -&gt; [&gt; `Name ] attrib
+  val a_rows : Xhtml_types.number -&gt; [&gt; `Rows ] attrib
+  val a_selected : [&lt; `Selected ] -&gt; [&gt; `Selected ] attrib
+  val a_size : Xhtml_types.number -&gt; [&gt; `Size ] attrib
+  val a_src : Xml.uri -&gt; [&gt; `Src ] attrib
+  val a_input_type :
+    [&lt; `Button
+     | `Checkbox
+     | `File
+     | `Hidden
+     | `Image
+     | `Password
+     | `Radio
+     | `Reset
+     | `Submit
+     | `Text ] -&gt;
+    [&gt; `Input_Type ] attrib
+  val a_value : Xhtml_types.cdata -&gt; [&gt; `Value ] attrib
+  val a_value_type : [&lt; `Data | `Object | `Ref ] -&gt; [&gt; `Value_Type ] attrib
+  val a_disabled : [&lt; `Disabled ] -&gt; [&gt; `Disabled ] attrib
+  val a_readonly : [&lt; `ReadOnly ] -&gt; [&gt; `ReadOnly ] attrib
+  val a_button_type :
+    [&lt; `Button | `Reset | `Submit ] -&gt; [&gt; `Button_Type ] attrib
+  val a_label : Xhtml_types.text -&gt; [&gt; `Label ] attrib
+  val a_abbr : Xhtml_types.text -&gt; [&gt; `Abbr ] attrib
+  val a_align :
+    [&lt; `Center | `Char | `Justify | `Left | `Right ] -&gt; [&gt; `Align ] attrib
+  val a_axis : Xhtml_types.cdata -&gt; [&gt; `Axis ] attrib
+  val a_colspan : Xhtml_types.number -&gt; [&gt; `Colspan ] attrib
+  val a_headers : Xhtml_types.idrefs -&gt; [&gt; `Headers ] attrib
+  val a_rowspan : Xhtml_types.number -&gt; [&gt; `Rowspan ] attrib
+  val a_scope :
+    [&lt; `Col | `Colgroup | `Row | `Rowgroup ] -&gt; [&gt; `Scope ] attrib
+  val a_summary : Xhtml_types.text -&gt; [&gt; `Summary ] attrib
+  val a_valign :
+    [&lt; `Baseline | `Bottom | `Middle | `Top ] -&gt; [&gt; `Valign ] attrib
+  val a_border : Xhtml_types.pixels -&gt; [&gt; `Border ] attrib
+  val a_cellpadding : Xhtml_types.length -&gt; [&gt; `Cellpadding ] attrib
+  val a_cellspacing : Xhtml_types.length -&gt; [&gt; `Cellspacing ] attrib
+  val a_datapagesize : Xhtml_types.cdata -&gt; [&gt; `Datapagesize ] attrib
+  val a_frame :
+    [&lt; `Above
+     | `Below
+     | `Border
+     | `Box
+     | `Hsides
+     | `LHS
+     | `RHS
+     | `Void
+     | `Vsides ] -&gt;
+    [&gt; `Frame ] attrib
+  val a_rules :
+    [&lt; `All | `Cols | `Groups | `None | `Rows ] -&gt; [&gt; `Rules ] attrib
+  val a_char : Xhtml_types.character -&gt; [&gt; `Char ] attrib
+  val a_charoff : Xhtml_types.length -&gt; [&gt; `Charoff ] attrib
+  val a_span : Xhtml_types.number -&gt; [&gt; `Span ] attrib
+  val a_alt : Xhtml_types.text -&gt; [&gt; `Alt ] attrib
+  val a_height : Xhtml_types.length -&gt; [&gt; `Height ] attrib
+  val a_longdesc : Xml.uri -&gt; [&gt; `Longdesc ] attrib
+  val a_width : Xhtml_types.length -&gt; [&gt; `Width ] attrib
+  type shape = [ `Circle | `Default | `Poly | `Rect ]
+  val a_shape : shape -&gt; [&gt; `Shape ] attrib
+  val a_coords : int list -&gt; [&gt; `Coords ] attrib
+  val a_nohref : [&lt; `Nohref ] -&gt; [&gt; `Nohref ] attrib
+  val a_usemap : Xhtml_types.idref -&gt; [&gt; `Usemap ] attrib
+  val a_ismap : [&lt; `Ismap ] -&gt; [&gt; `Ismap ] attrib
+  val a_declare : [&lt; `Declare ] -&gt; [&gt; `Declare ] attrib
+  val a_classid : Xml.uri -&gt; [&gt; `Classid ] attrib
+  val a_codebase : Xml.uri -&gt; [&gt; `Codebase ] attrib
+  val a_data : Xml.uri -&gt; [&gt; `Data ] attrib
+  val a_codetype : Xhtml_types.contenttype -&gt; [&gt; `Codetype ] attrib
+  val a_archive : Xml.uri list -&gt; [&gt; `Archive ] attrib
+  val a_standby : Xhtml_types.text -&gt; [&gt; `Standby ] attrib
+  val a_fs_rows : Xhtml_types.multilengths -&gt; [&gt; `FS_Rows ] attrib
+  val a_fs_cols : Xhtml_types.multilengths -&gt; [&gt; `FS_Cols ] attrib
+  val a_frameborder : [&lt; `One | `Zero ] -&gt; [&gt; `Frameborder ] attrib
+  val a_marginheight : Xhtml_types.pixels -&gt; [&gt; `Marginheight ] attrib
+  val a_marginwidth : Xhtml_types.pixels -&gt; [&gt; `Marginwidth ] attrib
+  val a_noresize : [&lt; `Noresize ] -&gt; [&gt; `Noresize ] attrib
+  val a_scrolling : [&lt; `Auto | `No | `Yes ] -&gt; [&gt; `Scrolling ] attrib
+  val a_target : Xhtml_types.frametarget -&gt; [&gt; `Target ] attrib
+  val a_content : Xhtml_types.cdata -&gt; [&gt; `Content ] attrib
+  val a_http_equiv : Xhtml_types.nmtoken -&gt; [&gt; `Http_equiv ] attrib
+  val a_scheme : Xhtml_types.cdata -&gt; [&gt; `Scheme ] attrib
+  val a_defer : [&lt; `Defer ] -&gt; [&gt; `Defer ] attrib
+  val a_media : Xhtml_types.mediadesc -&gt; [&gt; `Media ] attrib
+  val a_style : string -&gt; [&gt; `Style_Attr ] attrib
+  type +'a elt
+  type ('a, 'b) nullary = ?a:'a attrib list -&gt; unit -&gt; 'b elt
+  type ('a, 'b, 'c) unary = ?a:'a attrib list -&gt; 'b elt -&gt; 'c elt
+  type ('a, 'b, 'c, 'd) binary =
+      ?a:'a attrib list -&gt; 'b elt -&gt; 'c elt -&gt; 'd elt
+  type ('a, 'b, 'c, 'd, 'e, 'f) quadry =
+      ?a:'a attrib list -&gt; 'b elt -&gt; 'c elt -&gt; 'd elt -&gt; 'e elt -&gt; 'f elt
+  type ('a, 'b, 'c) star = ?a:'a attrib list -&gt; 'b elt list -&gt; 'c elt
+  type ('a, 'b, 'c) plus =
+      ?a:'a attrib list -&gt; 'b elt -&gt; 'b elt list -&gt; 'c elt
+  type html = [ `Html ] elt
+  val html :
+    ?a:[&lt; `Dir | `Id | `Version | `XML_lang | `XMLns ] attrib list -&gt;
+    [&lt; `Head ] elt -&gt; [&lt; `Body | `Frameset ] elt -&gt; html
+  val head :
+    ?a:[&lt; `Dir | `Id | `Profile | `XML_lang ] attrib list -&gt;
+    [&lt; `Base | `Title ] elt -&gt;
+    [&lt; `Link | `Meta | `Object | `Script | `Style ] elt list -&gt;
+    [&gt; `Head ] elt
+  val title :
+    ([&lt; Xhtml_types.title_attrib ], [&lt; Xhtml_types.title_content ],
+     [&gt; Xhtml_types.title ])
+    unary
+  val body :
+    ([&lt; Xhtml_types.body_attrib ], [&lt; Xhtml_types.body_content ],
+     [&gt; Xhtml_types.body ])
+    star
+  val pcdata : string -&gt; [&gt; `PCDATA ] elt
+  val entity : string -&gt; [&gt; `PCDATA ] elt
+  val space : unit -&gt; [&gt; `PCDATA ] elt
+  val cdata : string -&gt; [&gt; `PCDATA ] elt
+  val cdata_script : string -&gt; [&gt; `PCDATA ] elt
+  val cdata_style : string -&gt; [&gt; `PCDATA ] elt
+  val unsafe_data : string -&gt; 'a elt
+  val h1 :
+    ([&lt; Xhtml_types.h1_attrib ], [&lt; Xhtml_types.h1_content ],
+     [&gt; Xhtml_types.h1 ])
+    star
+  val h2 :
+    ([&lt; Xhtml_types.h2_attrib ], [&lt; Xhtml_types.h2_content ],
+     [&gt; Xhtml_types.h2 ])
+    star
+  val h3 :
+    ([&lt; Xhtml_types.h3_attrib ], [&lt; Xhtml_types.h3_content ],
+     [&gt; Xhtml_types.h3 ])
+    star
+  val h4 :
+    ([&lt; Xhtml_types.h4_attrib ], [&lt; Xhtml_types.h4_content ],
+     [&gt; Xhtml_types.h4 ])
+    star
+  val h5 :
+    ([&lt; Xhtml_types.h5_attrib ], [&lt; Xhtml_types.h5_content ],
+     [&gt; Xhtml_types.h5 ])
+    star
+  val h6 :
+    ([&lt; Xhtml_types.h6_attrib ], [&lt; Xhtml_types.h6_content ],
+     [&gt; Xhtml_types.h6 ])
+    star
+  val address :
+    ([&lt; Xhtml_types.address_attrib ], [&lt; Xhtml_types.address_content ],
+     [&gt; Xhtml_types.address ])
+    star
+  val blockquote :
+    ([&lt; `Cite
+      | `Class
+      | `Dir
+      | `Id
+      | `OnClick
+      | `OnDblClick
+      | `OnKeyDown
+      | `OnKeyPress
+      | `OnKeyUp
+      | `OnMouseDown
+      | `OnMouseMove
+      | `OnMouseOut
+      | `OnMouseOver
+      | `OnMouseUp
+      | `Style_Attr
+      | `Title
+      | `XML_lang
+      | `XML_space ],
+     [&lt; `Address
+      | `Blockquote
+      | `Del
+      | `Div
+      | `Dl
+      | `Fieldset
+      | `Form
+      | `H1
+      | `H2
+      | `H3
+      | `H4
+      | `H5
+      | `H6
+      | `Hr
+      | `Ins
+      | `Noscript
+      | `Ol
+      | `P
+      | `PCDATA
+      | `Pre
+      | `Script
+      | `Table
+      | `Ul ],
+     [&gt; `Blockquote ])
+    star
+  val div :
+    ([&lt; Xhtml_types.div_attrib ], [&lt; Xhtml_types.div_content ],
+     [&gt; Xhtml_types.div ])
+    star
+  val p :
+    ([&lt; Xhtml_types.p_attrib ], [&lt; Xhtml_types.p_content ],
+     [&gt; Xhtml_types.p ])
+    star
+  val pre :
+    ([&lt; `Class
+      | `Dir
+      | `Id
+      | `OnClick
+      | `OnDblClick
+      | `OnKeyDown
+      | `OnKeyPress
+      | `OnKeyUp
+      | `OnMouseDown
+      | `OnMouseMove
+      | `OnMouseOut
+      | `OnMouseOver
+      | `OnMouseUp
+      | `Style_Attr
+      | `Title
+      | `XML_lang
+      | `XML_space ],
+     [&lt; `A
+      | `Abbr
+      | `Acronym
+      | `B
+      | `Bdo
+      | `Big
+      | `Br
+      | `Button
+      | `Cite
+      | `Code
+      | `Del
+      | `Dfn
+      | `Em
+      | `I
+      | `Iframe
+      | `Img
+      | `Input
+      | `Ins
+      | `Kbd
+      | `Label
+      | `Map
+      | `Noscript
+      | `Object
+      | `PCDATA
+      | `Q
+      | `Ruby_complex
+      | `Ruby_simple1
+      | `Ruby_simple2
+      | `Samp
+      | `Script
+      | `Select
+      | `Small
+      | `Span
+      | `Strong
+      | `Sub
+      | `Sup
+      | `Textarea
+      | `Tt
+      | `Var ],
+     [&gt; `Pre ])
+    star
+  val abbr :
+    ([&lt; Xhtml_types.abbr_attrib ], [&lt; Xhtml_types.abbr_content ],
+     [&gt; Xhtml_types.abbr ])
+    star
+  val acronym :
+    ([&lt; Xhtml_types.acronym_attrib ], [&lt; Xhtml_types.acronym_content ],
+     [&gt; Xhtml_types.acronym ])
+    star
+  val br : ([&lt; Xhtml_types.br_attrib ], [&gt; Xhtml_types.br ]) nullary
+  val cite :
+    ([&lt; Xhtml_types.cite_attrib ], [&lt; Xhtml_types.cite_content ],
+     [&gt; Xhtml_types.cite ])
+    star
+  val code :
+    ([&lt; Xhtml_types.code_attrib ], [&lt; Xhtml_types.code_content ],
+     [&gt; Xhtml_types.code ])
+    star
+  val dfn :
+    ([&lt; Xhtml_types.dfn_attrib ], [&lt; Xhtml_types.dfn_content ],
+     [&gt; Xhtml_types.dfn ])
+    star
+  val em :
+    ([&lt; Xhtml_types.em_attrib ], [&lt; Xhtml_types.em_content ],
+     [&gt; Xhtml_types.em ])
+    star
+  val kbd :
+    ([&lt; Xhtml_types.kbd_attrib ], [&lt; Xhtml_types.kbd_content ],
+     [&gt; Xhtml_types.kbd ])
+    star
+  val q :
+    ([&lt; Xhtml_types.q_attrib ], [&lt; Xhtml_types.q_content ],
+     [&gt; Xhtml_types.q ])
+    star
+  val samp :
+    ([&lt; Xhtml_types.samp_attrib ], [&lt; Xhtml_types.samp_content ],
+     [&gt; Xhtml_types.samp ])
+    star
+  val span :
+    ([&lt; Xhtml_types.span_attrib ], [&lt; Xhtml_types.span_content ],
+     [&gt; Xhtml_types.span ])
+    star
+  val strong :
+    ([&lt; Xhtml_types.strong_attrib ], [&lt; Xhtml_types.strong_content ],
+     [&gt; Xhtml_types.strong ])
+    star
+  val var :
+    ([&lt; Xhtml_types.var_attrib ], [&lt; Xhtml_types.var_content ],
+     [&gt; Xhtml_types.var ])
+    star
+  val a :
+    ([&lt; Xhtml_types.a_attrib ], [&lt; Xhtml_types.a_content ],
+     [&gt; Xhtml_types.a ])
+    star
+  val dl :
+    ([&lt; Xhtml_types.dl_attrib ], [&lt; Xhtml_types.dl_content ],
+     [&gt; Xhtml_types.dl ])
+    plus
+  val ol :
+    ([&lt; Xhtml_types.ol_attrib ], [&lt; Xhtml_types.ol_content ],
+     [&gt; Xhtml_types.ol ])
+    plus
+  val ul :
+    ([&lt; Xhtml_types.ul_attrib ], [&lt; Xhtml_types.ul_content ],
+     [&gt; Xhtml_types.ul ])
+    plus
+  val dd :
+    ([&lt; Xhtml_types.dd_attrib ], [&lt; Xhtml_types.dd_content ],
+     [&gt; Xhtml_types.dd ])
+    star
+  val dt :
+    ([&lt; Xhtml_types.dt_attrib ], [&lt; Xhtml_types.dt_content ],
+     [&gt; Xhtml_types.dt ])
+    star
+  val li :
+    ([&lt; Xhtml_types.li_attrib ], [&lt; Xhtml_types.li_content ],
+     [&gt; Xhtml_types.li ])
+    star
+  val hr : ([&lt; Xhtml_types.hr_attrib ], [&gt; Xhtml_types.hr ]) nullary
+  val b :
+    ([&lt; Xhtml_types.b_attrib ], [&lt; Xhtml_types.b_content ],
+     [&gt; Xhtml_types.b ])
+    star
+  val big :
+    ([&lt; Xhtml_types.big_attrib ], [&lt; Xhtml_types.big_content ],
+     [&gt; Xhtml_types.big ])
+    star
+  val i :
+    ([&lt; Xhtml_types.i_attrib ], [&lt; Xhtml_types.i_content ],
+     [&gt; Xhtml_types.i ])
+    star
+  val small :
+    ([&lt; Xhtml_types.small_attrib ], [&lt; Xhtml_types.small_content ],
+     [&gt; Xhtml_types.small ])
+    star
+  val sub :
+    ([&lt; Xhtml_types.sub_attrib ], [&lt; Xhtml_types.sub_content ],
+     [&gt; Xhtml_types.sub ])
+    star
+  val sup :
+    ([&lt; Xhtml_types.sup_attrib ], [&lt; Xhtml_types.sup_content ],
+     [&gt; Xhtml_types.sup ])
+    star
+  val tt :
+    ([&lt; Xhtml_types.tt_attrib ], [&lt; Xhtml_types.tt_content ],
+     [&gt; Xhtml_types.tt ])
+    star
+  val bdo :
+    dir:[&lt; `Ltr | `Rtl ] -&gt;
+    ([&lt; Xhtml_types.bdo_attrib ], [&lt; Xhtml_types.bdo_content ],
+     [&gt; Xhtml_types.bdo ])
+    star
+  val area :
+    alt:Xhtml_types.text -&gt;
+    ([&lt; Xhtml_types.area_attrib ], [&gt; Xhtml_types.area ]) nullary
+  val map :
+    id:Xhtml_types.id -&gt;
+    ([&lt; Xhtml_types.map_attrib ], [&lt; Xhtml_types.map_content ],
+     [&gt; Xhtml_types.map ])
+    plus
+  val del :
+    ([&lt; Xhtml_types.del_attrib ], [&lt; Xhtml_types.del_content ],
+     [&gt; Xhtml_types.del ])
+    star
+  val ins :
+    ([&lt; Xhtml_types.ins_attrib ], [&lt; Xhtml_types.ins_content ],
+     [&gt; Xhtml_types.ins ])
+    star
+  val script :
+    contenttype:Xhtml_types.contenttype -&gt;
+    ([&lt; Xhtml_types.script_attrib ], [&lt; Xhtml_types.script_content ],
+     [&gt; Xhtml_types.script ])
+    unary
+  val noscript :
+    ([&lt; Xhtml_types.noscript_attrib ], [&lt; Xhtml_types.noscript_content ],
+     [&gt; Xhtml_types.noscript ])
+    plus
+  module Basic_Forms :
+    sig
+      val form :
+        action:Xml.uri -&gt;
+        ([&lt; Xhtml_types.form_attrib ], [&lt; Xhtml_types.form_content ],
+         [&gt; Xhtml_types.form ])
+        plus
+      val input :
+        ([&lt; Xhtml_types.input_attrib ], [&gt; Xhtml_types.input ]) nullary
+      val label :
+        ([&lt; Xhtml_types.label_attrib ], [&lt; Xhtml_types.label_content ],
+         [&gt; Xhtml_types.label ])
+        star
+      val option :
+        ([&lt; Xhtml_types.option_attrib ], [&lt; Xhtml_types.option_content ],
+         [&gt; Xhtml_types.selectoption ])
+        unary
+      val select :
+        ([&lt; Xhtml_types.select_attrib ], [&lt; Xhtml_types.select_content ],
+         [&gt; Xhtml_types.select ])
+        plus
+      val textarea :
+        rows:Xhtml_types.number -&gt;
+        cols:Xhtml_types.number -&gt;
+        ([&lt; Xhtml_types.textarea_attrib ], [&lt; Xhtml_types.textarea_content ],
+         [&gt; Xhtml_types.textarea ])
+        unary
+    end
+  val form :
+    action:Xml.uri -&gt;
+    ([&lt; Xhtml_types.form_attrib ], [&lt; Xhtml_types.form_content ],
+     [&gt; Xhtml_types.form ])
+    plus
+  val input : ([&lt; Xhtml_types.input_attrib ], [&gt; Xhtml_types.input ]) nullary
+  val label :
+    ([&lt; Xhtml_types.label_attrib ], [&lt; Xhtml_types.label_content ],
+     [&gt; Xhtml_types.label ])
+    star
+  val optgroup :
+    label:Xhtml_types.text -&gt;
+    ([&lt; Xhtml_types.optgroup_attrib ], [&lt; Xhtml_types.optgroup_content ],
+     [&gt; Xhtml_types.optgroup ])
+    plus
+  val option :
+    ([&lt; Xhtml_types.option_attrib ], [&lt; Xhtml_types.option_content ],
+     [&gt; Xhtml_types.selectoption ])
+    unary
+  val select :
+    ([&lt; Xhtml_types.select_attrib ], [&lt; Xhtml_types.select_content ],
+     [&gt; Xhtml_types.select ])
+    plus
+  val textarea :
+    rows:Xhtml_types.number -&gt;
+    cols:Xhtml_types.number -&gt;
+    ([&lt; Xhtml_types.textarea_attrib ], [&lt; Xhtml_types.textarea_content ],
+     [&gt; Xhtml_types.textarea ])
+    unary
+  val fieldset :
+    ([&lt; Xhtml_types.fieldset_attrib ], [&lt; Xhtml_types.fieldset_content ],
+     [&gt; Xhtml_types.fieldset ])
+    star
+  val legend :
+    ([&lt; Xhtml_types.legend_attrib ], [&lt; Xhtml_types.legend_content ],
+     [&gt; Xhtml_types.legend ])
+    star
+  val button :
+    ([&lt; Xhtml_types.button_attrib ], [&lt; Xhtml_types.button_content ],
+     [&gt; Xhtml_types.button ])
+    star
+  module Basic_Tables :
+    sig
+      val a_align : [&lt; `Center | `Left | `Right ] -&gt; [&gt; `Align ] attrib
+      val a_scope : [&lt; `Col | `Row ] -&gt; [&gt; `Scope ] attrib
+      val a_valign : [&lt; `Bottom | `Middle | `Top ] -&gt; [&gt; `Valign ] attrib
+      val caption :
+        ([&lt; Xhtml_types.caption_attrib ], [&lt; Xhtml_types.caption_content ],
+         [&gt; Xhtml_types.caption ])
+        star
+      val table :
+        ?caption:[&lt; `Caption ] elt -&gt;
+        ([&lt; Xhtml_types.table_attrib ], [&lt; Xhtml_types.table_content ],
+         [&gt; Xhtml_types.table ])
+        plus
+      val td :
+        ([&lt; Xhtml_types.td_attrib ], [&lt; Xhtml_types.td_content ],
+         [&gt; Xhtml_types.td ])
+        star
+      val th :
+        ([&lt; Xhtml_types.th_attrib ], [&lt; Xhtml_types.th_content ],
+         [&gt; Xhtml_types.th ])
+        star
+      val tr :
+        ([&lt; Xhtml_types.tr_attrib ], [&lt; Xhtml_types.tr_content ],
+         [&gt; Xhtml_types.tr ])
+        plus
+    end
+  val caption :
+    ([&lt; Xhtml_types.caption_attrib ], [&lt; Xhtml_types.caption_content ],
+     [&gt; Xhtml_types.caption ])
+    star
+  val table :
+    ?caption:[&lt; `Caption ] elt -&gt;
+    ?columns:[&lt; `Colgroups of [&lt; `Colgroup ] elt list
+              | `Cols of [&lt; `Col ] elt list ] -&gt;
+    ([&lt; `Border
+      | `Cellpadding
+      | `Cellspacing
+      | `Class
+      | `Datapagesize
+      | `Dir
+      | `Frame
+      | `Id
+      | `OnClick
+      | `OnDblClick
+      | `OnKeyDown
+      | `OnKeyPress
+      | `OnKeyUp
+      | `OnMouseDown
+      | `OnMouseMove
+      | `OnMouseOut
+      | `OnMouseOver
+      | `OnMouseUp
+      | `Rules
+      | `Style_Attr
+      | `Summary
+      | `Title
+      | `Width
+      | `XML_lang
+      | `XML_space ],
+     [&lt; `Tr ], [&gt; `Table ])
+    plus
+  val tablex :
+    ?caption:[&lt; `Caption ] elt -&gt;
+    ?columns:[&lt; `Colgroups of [&lt; `Colgroup ] elt list
+              | `Cols of [&lt; `Col ] elt list ] -&gt;
+    ?thead:[&lt; `Thead ] elt -&gt;
+    ?tfoot:[&lt; `Tfoot ] elt -&gt;
+    ([&lt; `Border
+      | `Cellpadding
+      | `Cellspacing
+      | `Class
+      | `Datapagesize
+      | `Dir
+      | `Frame
+      | `Id
+      | `OnClick
+      | `OnDblClick
+      | `OnKeyDown
+      | `OnKeyPress
+      | `OnKeyUp
+      | `OnMouseDown
+      | `OnMouseMove
+      | `OnMouseOut
+      | `OnMouseOver
+      | `OnMouseUp
+      | `Rules
+      | `Style_Attr
+      | `Summary
+      | `Title
+      | `Width
+      | `XML_lang
+      | `XML_space ],
+     [&lt; `Tbody ], [&gt; `Table ])
+    plus
+  val td :
+    ([&lt; Xhtml_types.td_attrib ], [&lt; Xhtml_types.td_content ],
+     [&gt; Xhtml_types.td ])
+    star
+  val th :
+    ([&lt; Xhtml_types.th_attrib ], [&lt; Xhtml_types.th_content ],
+     [&gt; Xhtml_types.th ])
+    star
+  val tr :
+    ([&lt; Xhtml_types.tr_attrib ], [&lt; Xhtml_types.tr_content ],
+     [&gt; Xhtml_types.tr ])
+    plus
+  val col : ([&lt; Xhtml_types.col_attrib ], [&gt; Xhtml_types.col ]) nullary
+  val colgroup :
+    ([&lt; Xhtml_types.colgroup_attrib ], [&lt; Xhtml_types.colgroup_content ],
+     [&gt; Xhtml_types.colgroup ])
+    star
+  val thead :
+    ([&lt; Xhtml_types.thead_attrib ], [&lt; Xhtml_types.thead_content ],
+     [&gt; Xhtml_types.thead ])
+    plus
+  val tbody :
+    ([&lt; Xhtml_types.tbody_attrib ], [&lt; Xhtml_types.tbody_content ],
+     [&gt; Xhtml_types.tbody ])
+    plus
+  val tfoot :
+    ([&lt; Xhtml_types.tfoot_attrib ], [&lt; Xhtml_types.tfoot_content ],
+     [&gt; Xhtml_types.tfoot ])
+    plus
+  val img :
+    src:Xml.uri -&gt;
+    alt:Xhtml_types.text -&gt;
+    ([&lt; Xhtml_types.img_attrib ], [&gt; Xhtml_types.img ]) nullary
+  val object_ :
+    ([&lt; Xhtml_types.object__attrib ], [&lt; Xhtml_types.object__content ],
+     [&gt; Xhtml_types.object_ ])
+    star
+  val param :
+    name:Xhtml_types.text -&gt;
+    ([&lt; Xhtml_types.param_attrib ], [&gt; Xhtml_types.param ]) nullary
+  val frameset :
+    ?noframes:[&lt; `Noframes ] elt -&gt;
+    ([&lt; Xhtml_types.frameset_attrib ], [&lt; Xhtml_types.frameset_content ],
+     [&gt; Xhtml_types.frameset ])
+    plus
+  val frame :
+    src:Xml.uri -&gt;
+    ([&lt; Xhtml_types.frame_attrib ], [&gt; Xhtml_types.frame ]) nullary
+  val noframes :
+    ([&lt; Xhtml_types.noframes_attrib ], [&lt; Xhtml_types.noframes_content ],
+     [&gt; Xhtml_types.noframes ])
+    unary
+  val iframe :
+    ([&lt; Xhtml_types.iframe_attrib ], [&lt; Xhtml_types.iframe_content ],
+     [&gt; Xhtml_types.iframe ])
+    star
+  val meta :
+    content:Xhtml_types.cdata -&gt;
+    ([&lt; Xhtml_types.meta_attrib ], [&gt; Xhtml_types.meta ]) nullary
+  val style :
+    contenttype:Xhtml_types.contenttype -&gt;
+    ([&lt; Xhtml_types.style_attrib ], [&lt; Xhtml_types.style_content ],
+     [&gt; Xhtml_types.style ])
+    star
+  val link : ([&lt; Xhtml_types.link_attrib ], [&gt; Xhtml_types.link ]) nullary
+  val base :
+    href:Xml.uri -&gt;
+    ([&lt; Xhtml_types.base_attrib ], [&gt; Xhtml_types.base ]) nullary
+  val ruby_simple1 :
+    ?a:[&lt; Xhtml_types.common ] attrib list -&gt;
+    [&lt; `Rb ] elt -&gt; [&lt; `Rt ] elt -&gt; [&gt; `Ruby_simple1 ] elt
+  val ruby_simple2 :
+    ?a:[&lt; Xhtml_types.common ] attrib list -&gt;
+    [&lt; `Rb ] elt -&gt;
+    [&lt; `Rp ] elt -&gt; [&lt; `Rt ] elt -&gt; [&lt; `Rp ] elt -&gt; [&gt; `Ruby_simple2 ] elt
+  val ruby_complex :
+    ?a:[&lt; Xhtml_types.common ] attrib list -&gt;
+    [&lt; `Rbc ] elt -&gt; [&lt; `Rtc_complex ] elt -&gt; [&gt; `Ruby_complex ] elt
+  val rbc :
+    ([&lt; Xhtml_types.rbc_attrib ], [&lt; Xhtml_types.rbc_content ],
+     [&gt; Xhtml_types.rbc ])
+    plus
+  val rtc :
+    ([&lt; Xhtml_types.rtc_attrib ], [&lt; Xhtml_types.rtc_content ],
+     [&gt; Xhtml_types.rtc ])
+    plus
+  val rtc_complex :
+    ([&lt; Xhtml_types.rtc_complex_attrib ],
+     [&lt; Xhtml_types.rtc_complex_content ], [&gt; Xhtml_types.rtc_complex ])
+    plus
+  val rb :
+    ([&lt; Xhtml_types.rb_attrib ], [&lt; Xhtml_types.rb_content ],
+     [&gt; Xhtml_types.rb ])
+    star
+  val rt :
+    ([&lt; Xhtml_types.rt_attrib ], [&lt; Xhtml_types.rt_content ],
+     [&gt; Xhtml_types.rt ])
+    star
+  val rt_complex :
+    ([&lt; Xhtml_types.rt_complex_attrib ], [&lt; Xhtml_types.rt_complex_content ],
+     [&gt; Xhtml_types.rt_complex ])
+    star
+  val rp :
+    ([&lt; Xhtml_types.rp_attrib ], [&lt; Xhtml_types.rp_content ],
+     [&gt; Xhtml_types.rp ])
+    star
+  val a_rbspan : Xhtml_types.number -&gt; [&gt; `Rbspan ] attrib
+  val tot : Xml.elt -&gt; 'a elt
+  val totl : Xml.elt list -&gt; 'a elt list
+  val toelt : 'a elt -&gt; Xml.elt
+  val toeltl : 'a elt list -&gt; Xml.elt list
+  type doc = [ `Html ] elt
+  val doc_toelt : doc -&gt; Xml.elt
+  type ('a, 'b, 'c) lazy_plus =
+      ?a:'a attrib list -&gt;
+      'b elt Eliom_lazy.request -&gt; 'b elt list Eliom_lazy.request -&gt; 'c elt
+  val lazy_form :
+    action:Eliom_content_core.Xml.uri -&gt;
+    ([&lt; Xhtml_types.form_attrib ], [&lt; Xhtml_types.form_content ],
+     [&gt; Xhtml_types.form ])
+    Eliom_content_core.Xhtml.F.lazy_plus
+end</code></pre></article></div></div></body></html>
