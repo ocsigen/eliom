@@ -1,0 +1,67 @@
+<<code language="ocaml" | sig
+  val appendChild :
+    ?before:'a Eliom_content.Svg.elt ->
+    'b Eliom_content.Svg.elt -> 'c Eliom_content.Svg.elt -> unit
+  val appendChildren :
+    ?before:'a Eliom_content.Svg.elt ->
+    'b Eliom_content.Svg.elt -> 'c Eliom_content.Svg.elt list -> unit
+  val insertFirstChild :
+    'b Eliom_content.Svg.elt -> 'c Eliom_content.Svg.elt -> unit
+  val nth :
+    'a Eliom_content.Svg.elt -> int -> 'b Eliom_content.Svg.elt option
+  val childLength : 'a Eliom_content.Svg.elt -> int
+  val removeChild :
+    'a Eliom_content.Svg.elt -> 'b Eliom_content.Svg.elt -> unit
+  val replaceChild :
+    'a Eliom_content.Svg.elt ->
+    'b Eliom_content.Svg.elt -> 'c Eliom_content.Svg.elt -> unit
+  val removeChildren : 'a Eliom_content.Svg.elt -> unit
+  val removeSelf : 'a Eliom_content.Svg.elt -> unit
+  val replaceChildren :
+    'a Eliom_content.Svg.elt -> 'b Eliom_content.Svg.elt list -> unit
+  val parentNode :
+    'a Eliom_content.Svg.elt -> 'b Eliom_content.Svg.elt option
+  val nextSibling :
+    'a Eliom_content.Svg.elt -> 'b Eliom_content.Svg.elt option
+  val previousSibling :
+    'a Eliom_content.Svg.elt -> 'b Eliom_content.Svg.elt option
+  val insertBefore :
+    before:'a Eliom_content.Svg.elt -> 'b Eliom_content.Svg.elt -> unit
+  val insertAfter :
+    after:'a Eliom_content.Svg.elt -> 'b Eliom_content.Svg.elt -> unit
+  val replaceSelf :
+    'a Eliom_content.Svg.elt -> 'b Eliom_content.Svg.elt -> unit
+  module Named :
+    sig
+      val appendChild :
+        ?before:'a Eliom_content.Svg.elt ->
+        'b Eliom_content.Svg.Id.id -> 'c Eliom_content.Svg.elt -> unit
+      val appendChildren :
+        ?before:'a Eliom_content.Svg.elt ->
+        'b Eliom_content.Svg.Id.id -> 'c Eliom_content.Svg.elt list -> unit
+      val removeChild :
+        'a Eliom_content.Svg.Id.id -> 'b Eliom_content.Svg.elt -> unit
+      val replaceChild :
+        'a Eliom_content.Svg.Id.id ->
+        'b Eliom_content.Svg.elt -> 'c Eliom_content.Svg.elt -> unit
+      val removeChildren : 'a Eliom_content.Svg.Id.id -> unit
+      val replaceChildren :
+        'a Eliom_content.Svg.Id.id -> 'b Eliom_content.Svg.elt list -> unit
+    end
+  val childNodes :
+    'a Eliom_content.Svg.elt -> Js_of_ocaml.Dom.node Js_of_ocaml.Js.t list
+  val childElements :
+    'a Eliom_content.Svg.elt -> Js_of_ocaml.Dom.element Js_of_ocaml.Js.t list
+  module Class :
+    sig
+      val contain : 'a Eliom_content.Svg.elt -> string -> bool
+      val remove : 'a Eliom_content.Svg.elt -> string -> unit
+      val removes : 'a Eliom_content.Svg.elt -> string list -> unit
+      val add : 'a Eliom_content.Svg.elt -> string -> unit
+      val adds : 'a Eliom_content.Svg.elt -> string list -> unit
+      val replace : 'a Eliom_content.Svg.elt -> string -> string -> unit
+      val clear : 'a Eliom_content.Svg.elt -> unit
+      val toggle : 'a Eliom_content.Svg.elt -> string -> unit
+      val toggle2 : 'a Eliom_content.Svg.elt -> string -> string -> unit
+    end
+end >>

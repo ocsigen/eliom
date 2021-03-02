@@ -1,0 +1,9 @@
+<<code language="ocaml" | sig
+  val pp_elt :
+    ?encode:(string -> string) ->
+    ?indent:bool -> unit -> Format.formatter -> 'a elt -> unit
+  val pp :
+    ?encode:(string -> string) ->
+    ?indent:bool ->
+    ?advert:string -> unit -> Format.formatter -> F.doc -> unit
+end >>

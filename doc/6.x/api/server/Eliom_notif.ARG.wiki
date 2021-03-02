@@ -1,0 +1,36 @@
+=Module type <<a_api_type subproject="server" | module type Eliom_notif.ARG >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module type>> <<span class="ocsforge_color_uid"|ARG>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module type Eliom_notif.ARG >><<span class="ocsforge_color_keyword"|end>>>><<span class="odocwiki_inlinecode"|~A~R~G>> is for making <<span class="odocwiki_inlinecode"|~Make>>
+
+----
+<<pre class="ocsforge_color odocwiki_code" id="TYPEidentity"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|identity>>>><<div class="odocwiki_info"|see <<span class="odocwiki_inlinecode"|~S~.identity>>
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEkey"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|key>>>><<div class="odocwiki_info"|see <<span class="odocwiki_inlinecode"|~S~.key>>
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEserver_notif"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|server~_notif>>>><<div class="odocwiki_info"|see <<span class="odocwiki_inlinecode"|~S~.server~_notif>>
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEclient_notif"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|client~_notif>>>><<div class="odocwiki_info"|see <<span class="odocwiki_inlinecode"|~S~.client~_notif>>
+>>
+<<pre id="VALprepare" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|prepare>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<a_api subproject="server" text="identity" | type Eliom_notif.ARG.identity >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<a_api subproject="server" text="server_notif" | type Eliom_notif.ARG.server_notif >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<a_api subproject="server" text="client_notif" | type Eliom_notif.ARG.client_notif >> option <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|prepare f>> transforms server notifications into client
+      notifications~. ~It provides the <<span class="odocwiki_inlinecode"|identity>> as a parameter which identifies
+      the client~. ~You can suppress notifications for a specific client ~(for
+      instance because of missing authorisation~) by having <<span class="odocwiki_inlinecode"|f>> return <<span class="odocwiki_inlinecode"|~None>>~.
+>>
+<<pre id="VALequal_key" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|equal~_key>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<a_api subproject="server" text="key" | type Eliom_notif.ARG.key >> <<span class="ocsforge_color_delimiter"| -> >> <<a_api subproject="server" text="key" | type Eliom_notif.ARG.key >> <<span class="ocsforge_color_delimiter"| -> >> bool>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|equal~_key>> is a function testing the equality between two values
+      of type <<span class="odocwiki_inlinecode"|key>>~.
+>>
+<<pre id="VALequal_identity" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|equal~_identity>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<a_api subproject="server" text="identity" | type Eliom_notif.ARG.identity >> <<span class="ocsforge_color_delimiter"| -> >> <<a_api subproject="server" text="identity" | type Eliom_notif.ARG.identity >> <<span class="ocsforge_color_delimiter"| -> >> bool>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|equal~_identity>> is the same as <<span class="odocwiki_inlinecode"|equal~_key>> but for values of type
+      <<span class="odocwiki_inlinecode"|identity>>~.
+>>
+<<pre id="VALget_identity" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_identity>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<a_api subproject="server" text="identity" | type Eliom_notif.ARG.identity >> <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|get~_identity>> is a function returning a value of type <<span class="odocwiki_inlinecode"|identity>>
+      corresponding to a client~.
+>>
+<<pre id="VALmax_resource" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|max~_resource>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|int>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|max~_resource>> is the initial size for the hash table storing the data of
+      clients listening on resources~, for best results it should be on the
+      order of the expected number of different resources one may want to be
+      able to listen to~.
+>>
+<<pre id="VALmax_identity_per_resource" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|max~_identity~_per~_resource>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|int>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|max~_identity~_per~_resource>> is the initial size for the tables storing the
+      data of clients listening on one given resource~, fo best results it
+      should be on the order of the expected number of clients that may listen
+      on a given resource~.
+>>

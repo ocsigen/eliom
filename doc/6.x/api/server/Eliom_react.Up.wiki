@@ -1,0 +1,31 @@
+=Module <<a_api_type subproject="server" | module Eliom_react.Up >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Up>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_react.Up >><<span class="ocsforge_color_keyword"|end>>>>~Event from client to server~.
+
+----
+
+~Up events are quite different from ~Down events~. ~Because of the
+      asymmetrical nature of web programming and because of the reactive model
+      used~, an ~Up event must be created on the server and wrapped into a
+      callback ~(or something the client can build a callback with~)~.
+
+
+      ~Example of use~:
+      <<span class="odocwiki_inlinecode"|let e~_up ~= ~Eliom~_react~.~Up~.create
+        ~(~Eliom~_parameter~.ocaml "a" ~[~%json~: string~]~)
+      in
+      ~.~.~. ~{~{ ignore ~( ~%e~_up "~A"~) ~}~} ~.~.~.
+      >>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEt"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|'a>> <<span class="odocwiki_name"|t>>>><<div class="odocwiki_info"|~The type of events that~, while being "on the server"~, are triggered by
+      clients~. ~On the server such an event is ~/primitive~/ ~(hence the <<span class="odocwiki_inlinecode"|create>>
+      function~) whereas it is ~/effect~-full~/ on the client~.
+>>
+<<pre id="VALto_react" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|to~_react>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|'a <<a_api subproject="server" text="t" | type Eliom_react.Up.t >> <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_uid"|React>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|E>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|to~_react e>> injects the up events <<span class="odocwiki_inlinecode"|e>> into react events so that it can
+      be manipulated as a standard event~.
+>>
+<<pre id="VALcreate" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|create>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?scope: >><<a_api subproject="server" text="Eliom_common.scope" | type Eliom_common.scope >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?name: >>string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>'a, [ `WithoutSuffix ],\\   [ `One of 'a <<span class="ocsforge_color_uid"|Eliom_parameter>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|ocaml>> ] <<span class="ocsforge_color_uid"|Eliom_parameter>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|param_name>><<span class="ocsforge_color_delimiter"| ) >>\\  <<span class="ocsforge_color_uid"|Eliom_parameter>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|params_type>> <<span class="ocsforge_color_delimiter"| -> >> 'a <<a_api subproject="server" text="t" | type Eliom_react.Up.t >>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|create param>> creates an ~Up event~.
+      ~If <<span class="odocwiki_inlinecode"|~~name>> is present~, the coservice used to transmit the event will
+      always have the same name~, even if the server is restarted~.
+      <<span class="odocwiki_inlinecode"|~~scope>> describes the visibility of the event~. ~By default~, it is
+      <<span class="odocwiki_inlinecode"|`~Site>> if it is called during initialisation~,
+      <<span class="odocwiki_inlinecode"|`~Client~_process>> otherwise~.
+>>

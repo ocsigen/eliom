@@ -1,0 +1,21 @@
+=Module <<a_api_type subproject="client" | module Eliom_content >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_content>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_content >><<span class="ocsforge_color_keyword"|end>>>>
+----
+
+~This module provides the creation of valid ~X~M~L content~, i~.e~. ~X~M~L~, ~S~V~G~,
+    and ~(~X~)~H~T~M~L~5~.
+
+
+    **~Please read
+    <<a_manual chapter="clientserver-html"|Eliom's manual>>
+    for more information on ~H~T~M~L generation~. **
+    ~You can also have a look at the server ~A~P~I of
+    <<a_api subproject="server" | module Eliom_content >> 
+    for an explication of the modules <<span class="odocwiki_inlinecode"|~F>> and <<span class="odocwiki_inlinecode"|~D>>~.
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="client" text="Xml" | module Eliom_content.Xml >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|module type of <<a_api subproject="client" text="Eliom_content_core.Xml" | module Eliom_content_core.Xml >>>>>><<div class="odocwiki_info"|~Low~-level ~X~M~L manipulation~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="client" text="Svg" | module Eliom_content.Svg >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_content.Svg >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Building valid ~S~V~G ~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="client" text="Html" | module Eliom_content.Html >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_content.Html >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Building valid ~(~X~)~H~T~M~L~5~.
+>>
+<<pre id="VALforce_link" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|force~_link>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit>>>>

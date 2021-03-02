@@ -1,0 +1,72 @@
+<<code language="ocaml" | sig
+  type 'a t
+  val const : 'a -> 'a t
+  val value : 'a t -> 'a Value.t
+  val map :
+    ?eq:('b -> 'b -> bool) Value.t -> ('a -> 'b) Value.t -> 'a t -> 'b t
+  val fmap :
+    ?eq:('b -> 'b -> bool) Value.t ->
+    ('a -> 'b option) Value.t -> 'b Value.t -> 'a t -> 'b t
+  val merge :
+    ?eq:('a -> 'a -> bool) Value.t ->
+    ('a -> 'b -> 'a) Value.t -> 'a -> 'b t list -> 'a t
+  val l2 :
+    ?eq:('c -> 'c -> bool) Value.t ->
+    ('a -> 'b -> 'c) Value.t -> 'a t -> 'b t -> 'c t
+  val l3 :
+    ?eq:('d -> 'd -> bool) Value.t ->
+    ('a -> 'b -> 'c -> 'd) Value.t -> 'a t -> 'b t -> 'c t -> 'd t
+  val l4 :
+    ?eq:('e -> 'e -> bool) Value.t ->
+    ('a -> 'b -> 'c -> 'd -> 'e) Value.t ->
+    'a t -> 'b t -> 'c t -> 'd t -> 'e t
+  val l5 :
+    ?eq:('f -> 'f -> bool) Value.t ->
+    ('a -> 'b -> 'c -> 'd -> 'e -> 'f) Value.t ->
+    'a t -> 'b t -> 'c t -> 'd t -> 'e t -> 'f t
+  val l6 :
+    ?eq:('g -> 'g -> bool) Value.t ->
+    ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g) Value.t ->
+    'a t -> 'b t -> 'c t -> 'd t -> 'e t -> 'f t -> 'g t
+  val switch : ?eq:('a -> 'a -> bool) Value.t -> 'a t t -> 'a t
+  module Infix :
+    sig
+      val ( >|= ) : 'a t -> ('a -> 'b) Value.t -> 'b t
+      val ( =|< ) : ('a -> 'b) Value.t -> 'a t -> 'b t
+    end
+  module Lwt :
+    sig
+      val map_s :
+        ?eq:('b -> 'b -> bool) Value.t ->
+        ('a -> 'b Lwt.t) Value.t -> 'a t -> 'b t Lwt.t
+      val l2_s :
+        ?eq:('c -> 'c -> bool) Value.t ->
+        ('a -> 'b -> 'c Lwt.t) Value.t -> 'a t -> 'b t -> 'c t Lwt.t
+      val l3_s :
+        ?eq:('d -> 'd -> bool) Value.t ->
+        ('a -> 'b -> 'c -> 'd Lwt.t) Value.t ->
+        'a t -> 'b t -> 'c t -> 'd t Lwt.t
+      val l4_s :
+        ?eq:('e -> 'e -> bool) Value.t ->
+        ('a -> 'b -> 'c -> 'd -> 'e Lwt.t) Value.t ->
+        'a t -> 'b t -> 'c t -> 'd t -> 'e t Lwt.t
+      val l5_s :
+        ?eq:('f -> 'f -> bool) Value.t ->
+        ('a -> 'b -> 'c -> 'd -> 'e -> 'f Lwt.t) Value.t ->
+        'a t -> 'b t -> 'c t -> 'd t -> 'e t -> 'f t Lwt.t
+      val l6_s :
+        ?eq:('g -> 'g -> bool) Value.t ->
+        ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g Lwt.t) Value.t ->
+        'a t -> 'b t -> 'c t -> 'd t -> 'e t -> 'f t -> 'g t Lwt.t
+      val merge_s :
+        ?eq:('a -> 'a -> bool) Value.t ->
+        ('a -> 'b -> 'a Lwt.t) Value.t -> 'a -> 'b t list -> 'a t Lwt.t
+    end
+  val create :
+    ?default:('a React.S.t * (?step:React.step -> 'a -> unit)) option
+             Eliom_client_value.t ->
+    ?reset_default:bool ->
+    ?eq:('a -> 'a -> bool) Value.t ->
+    'a -> 'a t * (?step:React.step -> 'a -> unit) Value.t
+  val synced : 'a t -> bool
+end >>

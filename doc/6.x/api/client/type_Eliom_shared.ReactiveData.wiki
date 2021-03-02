@@ -1,0 +1,50 @@
+<<code language="ocaml" | sig
+  module RList :
+    sig
+      type 'a p = I of int * 'a | R of int | U of int * 'a | X of int * int
+      type 'a patch = 'a p list
+      type 'a t = 'a ReactiveData.RList.t
+      type 'a data = 'a list
+      type 'a msg = Patch of 'a patch | Set of 'a data
+      type 'a handle = 'a ReactiveData.RList.handle
+      val empty : 'a t
+      val from_event : 'a data -> 'a msg React.E.t -> 'a t
+      val const : 'a data -> 'a t
+      val patch : 'a handle -> 'a patch -> unit
+      val set : 'a handle -> 'a data -> unit
+      val map_msg : ('a -> 'b) -> 'a msg -> 'b msg
+      val fold : ('a -> 'b msg -> 'a) -> 'b t -> 'a -> 'a React.signal
+      val event : 'a t -> 'a msg React.E.t
+      val cons : 'a -> 'a handle -> unit
+      val snoc : 'a -> 'a handle -> unit
+      val insert : 'a -> int -> 'a handle -> unit
+      val remove : int -> 'a handle -> unit
+      val remove_last : 'a t * 'a handle -> unit
+      val remove_eq :
+        ?eq:('a -> 'a -> bool) -> 'a t * 'a handle -> 'a -> unit
+      val update : 'a -> int -> 'a handle -> unit
+      val update_eq :
+        ?eq:('a -> 'a -> bool) -> 'a t * 'a handle -> 'a -> 'a -> unit
+      val move : int -> int -> 'a handle -> unit
+      val singleton : 'a -> 'a t
+      val rev : 'a t -> 'a t
+      val filter : ('a -> bool) -> 'a t -> 'a t
+      val for_all : ('a -> bool) -> 'a t -> bool React.S.t
+      val create :
+        ?default:('a ReactiveData.RList.t * 'a ReactiveData.RList.handle)
+                 option Eliom_client_value.t ->
+        ?reset_default:bool -> 'a list -> 'a t * 'a handle
+      val concat : 'a t -> 'a t -> 'a t
+      val value : 'a t -> 'a list Value.t
+      val signal :
+        ?eq:('a -> 'a -> bool) Value.t -> 'a t -> 'a list React.S.t
+      val singleton_s : 'a React.S.t -> 'a t
+      val map : ('a -> 'b) Value.t -> 'a t -> 'b t
+      val from_signal :
+        ?eq:('a -> 'a -> bool) Value.t -> 'a list React.S.t -> 'a t
+      val acc_e :
+        ?init:'a t * 'a handle -> 'a React.E.t Eliom_client_value.t -> 'a t
+      module Lwt :
+        sig val map_p : ('a -> 'b Lwt.t) Value.t -> 'a t -> 'b t Lwt.t end
+    end
+end >>

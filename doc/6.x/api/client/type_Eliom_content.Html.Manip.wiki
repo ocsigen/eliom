@@ -1,0 +1,383 @@
+<<code language="ocaml" | sig
+  val appendChild :
+    ?before:'a Eliom_content.Html.elt ->
+    'b Eliom_content.Html.elt -> 'c Eliom_content.Html.elt -> unit
+  val appendToBody :
+    ?before:'a Eliom_content.Html.elt -> 'c Eliom_content.Html.elt -> unit
+  val appendChildren :
+    ?before:'a Eliom_content.Html.elt ->
+    'b Eliom_content.Html.elt -> 'c Eliom_content.Html.elt list -> unit
+  val insertFirstChild :
+    'b Eliom_content.Html.elt -> 'c Eliom_content.Html.elt -> unit
+  val nth :
+    'a Eliom_content.Html.elt -> int -> 'b Eliom_content.Html.elt option
+  val childLength : 'a Eliom_content.Html.elt -> int
+  val removeChild :
+    'a Eliom_content.Html.elt -> 'b Eliom_content.Html.elt -> unit
+  val replaceChild :
+    'a Eliom_content.Html.elt ->
+    'b Eliom_content.Html.elt -> 'c Eliom_content.Html.elt -> unit
+  val removeChildren : 'a Eliom_content.Html.elt -> unit
+  val removeSelf : 'a Eliom_content.Html.elt -> unit
+  val replaceChildren :
+    'a Eliom_content.Html.elt -> 'b Eliom_content.Html.elt list -> unit
+  val parentNode :
+    'a Eliom_content.Html.elt -> 'b Eliom_content.Html.elt option
+  val nextSibling :
+    'a Eliom_content.Html.elt -> 'b Eliom_content.Html.elt option
+  val previousSibling :
+    'a Eliom_content.Html.elt -> 'b Eliom_content.Html.elt option
+  val insertBefore :
+    before:'a Eliom_content.Html.elt -> 'b Eliom_content.Html.elt -> unit
+  val insertAfter :
+    after:'a Eliom_content.Html.elt -> 'b Eliom_content.Html.elt -> unit
+  val replaceSelf :
+    'a Eliom_content.Html.elt -> 'b Eliom_content.Html.elt -> unit
+  val children : 'a Eliom_content.Html.elt -> 'b Eliom_content.Html.elt list
+  val addEventListener :
+    ?capture:bool ->
+    'a Eliom_content.Html.elt ->
+    (#Js_of_ocaml.Dom_html.event as 'b) Js_of_ocaml.Js.t
+    Js_of_ocaml.Dom_html.Event.typ ->
+    ('a Eliom_content.Html.elt -> 'b Js_of_ocaml.Js.t -> bool) ->
+    Js_of_ocaml.Dom_html.event_listener_id
+  module Named :
+    sig
+      val appendChild :
+        ?before:'a Eliom_content.Html.elt ->
+        'b Eliom_content.Html.Id.id -> 'c Eliom_content.Html.elt -> unit
+      val appendChildren :
+        ?before:'a Eliom_content.Html.elt ->
+        'b Eliom_content.Html.Id.id -> 'c Eliom_content.Html.elt list -> unit
+      val removeChild :
+        'a Eliom_content.Html.Id.id -> 'b Eliom_content.Html.elt -> unit
+      val replaceChild :
+        'a Eliom_content.Html.Id.id ->
+        'b Eliom_content.Html.elt -> 'c Eliom_content.Html.elt -> unit
+      val removeChildren : 'a Eliom_content.Html.Id.id -> unit
+      val replaceChildren :
+        'a Eliom_content.Html.Id.id -> 'b Eliom_content.Html.elt list -> unit
+      val addEventListener :
+        ?capture:bool ->
+        'a Eliom_content.Html.Id.id ->
+        (#Js_of_ocaml.Dom_html.event as 'b) Js_of_ocaml.Js.t
+        Js_of_ocaml.Dom_html.Event.typ ->
+        ('a Eliom_content.Html.elt -> 'b Js_of_ocaml.Js.t -> bool) ->
+        Js_of_ocaml.Dom_html.event_listener_id
+    end
+  val scrollIntoView : ?bottom:bool -> 'a Eliom_content.Html.elt -> unit
+  val childNodes :
+    'a Eliom_content.Html.elt -> Js_of_ocaml.Dom.node Js_of_ocaml.Js.t list
+  val childElements :
+    'a Eliom_content.Html.elt ->
+    Js_of_ocaml.Dom.element Js_of_ocaml.Js.t list
+  module Class :
+    sig
+      val contain : 'a Eliom_content.Html.elt -> string -> bool
+      val remove : 'a Eliom_content.Html.elt -> string -> unit
+      val removes : 'a Eliom_content.Html.elt -> string list -> unit
+      val add : 'a Eliom_content.Html.elt -> string -> unit
+      val adds : 'a Eliom_content.Html.elt -> string list -> unit
+      val replace : 'a Eliom_content.Html.elt -> string -> string -> unit
+      val clear : 'a Eliom_content.Html.elt -> unit
+      val toggle : 'a Eliom_content.Html.elt -> string -> unit
+      val toggle2 : 'a Eliom_content.Html.elt -> string -> string -> unit
+    end
+  module Elt : sig val body : unit -> [ `Body ] Eliom_content.Html.elt end
+  module Ev :
+    sig
+      type ('a, 'b) ev =
+          'a Eliom_content.Html.elt -> ('b Js_of_ocaml.Js.t -> bool) -> unit
+      type ('a, 'b) ev_unit =
+          'a Eliom_content.Html.elt -> ('b Js_of_ocaml.Js.t -> unit) -> unit
+      val onkeyup :
+        ('a, Js_of_ocaml.Dom_html.keyboardEvent)
+        Eliom_content.Html.Manip.Ev.ev
+      val onkeydown :
+        ('a, Js_of_ocaml.Dom_html.keyboardEvent)
+        Eliom_content.Html.Manip.Ev.ev
+      val onmouseup :
+        ('a, Js_of_ocaml.Dom_html.mouseEvent) Eliom_content.Html.Manip.Ev.ev
+      val onmousedown :
+        ('a, Js_of_ocaml.Dom_html.mouseEvent) Eliom_content.Html.Manip.Ev.ev
+      val onmouseout :
+        ('a, Js_of_ocaml.Dom_html.mouseEvent) Eliom_content.Html.Manip.Ev.ev
+      val onmouseover :
+        ('a, Js_of_ocaml.Dom_html.mouseEvent) Eliom_content.Html.Manip.Ev.ev
+      val onclick :
+        ('a, Js_of_ocaml.Dom_html.mouseEvent) Eliom_content.Html.Manip.Ev.ev
+      val ondblclick :
+        ('a, Js_of_ocaml.Dom_html.mouseEvent) Eliom_content.Html.Manip.Ev.ev
+      val onload :
+        ('a, Js_of_ocaml.Dom_html.event) Eliom_content.Html.Manip.Ev.ev
+      val onerror :
+        ('a, Js_of_ocaml.Dom_html.event) Eliom_content.Html.Manip.Ev.ev
+      val onabort :
+        ('a, Js_of_ocaml.Dom_html.event) Eliom_content.Html.Manip.Ev.ev
+      val onfocus :
+        ('a, Js_of_ocaml.Dom_html.event) Eliom_content.Html.Manip.Ev.ev
+      val onblur :
+        ('a, Js_of_ocaml.Dom_html.event) Eliom_content.Html.Manip.Ev.ev
+      val onfocus_textarea :
+        ('a, Js_of_ocaml.Dom_html.event) Eliom_content.Html.Manip.Ev.ev
+      val onblur_textarea :
+        ('a, Js_of_ocaml.Dom_html.event) Eliom_content.Html.Manip.Ev.ev
+      val onscroll :
+        ('a, Js_of_ocaml.Dom_html.event) Eliom_content.Html.Manip.Ev.ev
+      val onreturn :
+        ('a, Js_of_ocaml.Dom_html.keyboardEvent)
+        Eliom_content.Html.Manip.Ev.ev_unit
+      val onchange :
+        ('a, Js_of_ocaml.Dom_html.event) Eliom_content.Html.Manip.Ev.ev
+      val onchange_select :
+        ('a, Js_of_ocaml.Dom_html.event) Eliom_content.Html.Manip.Ev.ev
+    end
+  module Attr :
+    sig
+      val clientWidth : 'a Eliom_content.Html.elt -> int
+      val clientHeight : 'a Eliom_content.Html.elt -> int
+      val offsetWidth : 'a Eliom_content.Html.elt -> int
+      val offsetHeight : 'a Eliom_content.Html.elt -> int
+      val clientLeft : 'a Eliom_content.Html.elt -> int
+      val clientTop : 'a Eliom_content.Html.elt -> int
+    end
+  module Css :
+    sig
+      val background : 'a Eliom_content.Html.elt -> string
+      val backgroundAttachment : 'a Eliom_content.Html.elt -> string
+      val backgroundColor : 'a Eliom_content.Html.elt -> string
+      val backgroundImage : 'a Eliom_content.Html.elt -> string
+      val backgroundPosition : 'a Eliom_content.Html.elt -> string
+      val backgroundRepeat : 'a Eliom_content.Html.elt -> string
+      val border : 'a Eliom_content.Html.elt -> string
+      val borderBottom : 'a Eliom_content.Html.elt -> string
+      val borderBottomColor : 'a Eliom_content.Html.elt -> string
+      val borderBottomStyle : 'a Eliom_content.Html.elt -> string
+      val borderBottomWidth : 'a Eliom_content.Html.elt -> string
+      val borderBottomWidthPx : 'a Eliom_content.Html.elt -> int
+      val borderCollapse : 'a Eliom_content.Html.elt -> string
+      val borderColor : 'a Eliom_content.Html.elt -> string
+      val borderLeft : 'a Eliom_content.Html.elt -> string
+      val borderLeftColor : 'a Eliom_content.Html.elt -> string
+      val borderLeftStyle : 'a Eliom_content.Html.elt -> string
+      val borderLeftWidth : 'a Eliom_content.Html.elt -> string
+      val borderLeftWidthPx : 'a Eliom_content.Html.elt -> int
+      val borderRight : 'a Eliom_content.Html.elt -> string
+      val borderRightColor : 'a Eliom_content.Html.elt -> string
+      val borderRightStyle : 'a Eliom_content.Html.elt -> string
+      val borderRightWidth : 'a Eliom_content.Html.elt -> string
+      val borderRightWidthPx : 'a Eliom_content.Html.elt -> int
+      val borderSpacing : 'a Eliom_content.Html.elt -> string
+      val borderStyle : 'a Eliom_content.Html.elt -> string
+      val borderTop : 'a Eliom_content.Html.elt -> string
+      val borderTopColor : 'a Eliom_content.Html.elt -> string
+      val borderTopStyle : 'a Eliom_content.Html.elt -> string
+      val borderTopWidth : 'a Eliom_content.Html.elt -> string
+      val borderTopWidthPx : 'a Eliom_content.Html.elt -> int
+      val borderWidth : 'a Eliom_content.Html.elt -> string
+      val bottom : 'a Eliom_content.Html.elt -> string
+      val captionSide : 'a Eliom_content.Html.elt -> string
+      val clear : 'a Eliom_content.Html.elt -> string
+      val clip : 'a Eliom_content.Html.elt -> string
+      val color : 'a Eliom_content.Html.elt -> string
+      val content : 'a Eliom_content.Html.elt -> string
+      val counterIncrement : 'a Eliom_content.Html.elt -> string
+      val counterReset : 'a Eliom_content.Html.elt -> string
+      val cssFloat : 'a Eliom_content.Html.elt -> string
+      val cssText : 'a Eliom_content.Html.elt -> string
+      val cursor : 'a Eliom_content.Html.elt -> string
+      val direction : 'a Eliom_content.Html.elt -> string
+      val display : 'a Eliom_content.Html.elt -> string
+      val emptyCells : 'a Eliom_content.Html.elt -> string
+      val font : 'a Eliom_content.Html.elt -> string
+      val fontFamily : 'a Eliom_content.Html.elt -> string
+      val fontSize : 'a Eliom_content.Html.elt -> string
+      val fontStyle : 'a Eliom_content.Html.elt -> string
+      val fontVariant : 'a Eliom_content.Html.elt -> string
+      val fontWeight : 'a Eliom_content.Html.elt -> string
+      val height : 'a Eliom_content.Html.elt -> string
+      val heightPx : 'a Eliom_content.Html.elt -> int
+      val left : 'a Eliom_content.Html.elt -> string
+      val leftPx : 'a Eliom_content.Html.elt -> int
+      val letterSpacing : 'a Eliom_content.Html.elt -> string
+      val lineHeight : 'a Eliom_content.Html.elt -> string
+      val listStyle : 'a Eliom_content.Html.elt -> string
+      val listStyleImage : 'a Eliom_content.Html.elt -> string
+      val listStylePosition : 'a Eliom_content.Html.elt -> string
+      val listStyleType : 'a Eliom_content.Html.elt -> string
+      val margin : 'a Eliom_content.Html.elt -> string
+      val marginBottom : 'a Eliom_content.Html.elt -> string
+      val marginBottomPx : 'a Eliom_content.Html.elt -> int
+      val marginLeft : 'a Eliom_content.Html.elt -> string
+      val marginLeftPx : 'a Eliom_content.Html.elt -> int
+      val marginRight : 'a Eliom_content.Html.elt -> string
+      val marginRightPx : 'a Eliom_content.Html.elt -> int
+      val marginTop : 'a Eliom_content.Html.elt -> string
+      val marginTopPx : 'a Eliom_content.Html.elt -> int
+      val maxHeight : 'a Eliom_content.Html.elt -> string
+      val maxHeightPx : 'a Eliom_content.Html.elt -> int
+      val maxWidth : 'a Eliom_content.Html.elt -> string
+      val maxWidthPx : 'a Eliom_content.Html.elt -> int
+      val minHeight : 'a Eliom_content.Html.elt -> string
+      val minHeightPx : 'a Eliom_content.Html.elt -> int
+      val minWidth : 'a Eliom_content.Html.elt -> string
+      val minWidthPx : 'a Eliom_content.Html.elt -> int
+      val opacity : 'a Eliom_content.Html.elt -> string option
+      val outline : 'a Eliom_content.Html.elt -> string
+      val outlineColor : 'a Eliom_content.Html.elt -> string
+      val outlineOffset : 'a Eliom_content.Html.elt -> string
+      val outlineStyle : 'a Eliom_content.Html.elt -> string
+      val outlineWidth : 'a Eliom_content.Html.elt -> string
+      val overflow : 'a Eliom_content.Html.elt -> string
+      val overflowX : 'a Eliom_content.Html.elt -> string
+      val overflowY : 'a Eliom_content.Html.elt -> string
+      val padding : 'a Eliom_content.Html.elt -> string
+      val paddingBottom : 'a Eliom_content.Html.elt -> string
+      val paddingBottomPx : 'a Eliom_content.Html.elt -> int
+      val paddingLeft : 'a Eliom_content.Html.elt -> string
+      val paddingLeftPx : 'a Eliom_content.Html.elt -> int
+      val paddingRight : 'a Eliom_content.Html.elt -> string
+      val paddingRightPx : 'a Eliom_content.Html.elt -> int
+      val paddingTop : 'a Eliom_content.Html.elt -> string
+      val paddingTopPx : 'a Eliom_content.Html.elt -> int
+      val pageBreakAfter : 'a Eliom_content.Html.elt -> string
+      val pageBreakBefore : 'a Eliom_content.Html.elt -> string
+      val position : 'a Eliom_content.Html.elt -> string
+      val right : 'a Eliom_content.Html.elt -> string
+      val rightPx : 'a Eliom_content.Html.elt -> int
+      val tableLayout : 'a Eliom_content.Html.elt -> string
+      val textAlign : 'a Eliom_content.Html.elt -> string
+      val textDecoration : 'a Eliom_content.Html.elt -> string
+      val textIndent : 'a Eliom_content.Html.elt -> string
+      val textTransform : 'a Eliom_content.Html.elt -> string
+      val top : 'a Eliom_content.Html.elt -> string
+      val topPx : 'a Eliom_content.Html.elt -> int
+      val verticalAlign : 'a Eliom_content.Html.elt -> string
+      val visibility : 'a Eliom_content.Html.elt -> string
+      val whiteSpace : 'a Eliom_content.Html.elt -> string
+      val width : 'a Eliom_content.Html.elt -> string
+      val widthPx : 'a Eliom_content.Html.elt -> int
+      val wordSpacing : 'a Eliom_content.Html.elt -> string
+      val zIndex : 'a Eliom_content.Html.elt -> string
+    end
+  module SetCss :
+    sig
+      val background : 'a Eliom_content.Html.elt -> string -> unit
+      val backgroundAttachment : 'a Eliom_content.Html.elt -> string -> unit
+      val backgroundColor : 'a Eliom_content.Html.elt -> string -> unit
+      val backgroundImage : 'a Eliom_content.Html.elt -> string -> unit
+      val backgroundPosition : 'a Eliom_content.Html.elt -> string -> unit
+      val backgroundRepeat : 'a Eliom_content.Html.elt -> string -> unit
+      val border : 'a Eliom_content.Html.elt -> string -> unit
+      val borderBottom : 'a Eliom_content.Html.elt -> string -> unit
+      val borderBottomColor : 'a Eliom_content.Html.elt -> string -> unit
+      val borderBottomStyle : 'a Eliom_content.Html.elt -> string -> unit
+      val borderBottomWidth : 'a Eliom_content.Html.elt -> string -> unit
+      val borderBottomWidthPx : 'a Eliom_content.Html.elt -> int -> unit
+      val borderCollapse : 'a Eliom_content.Html.elt -> string -> unit
+      val borderColor : 'a Eliom_content.Html.elt -> string -> unit
+      val borderLeft : 'a Eliom_content.Html.elt -> string -> unit
+      val borderLeftColor : 'a Eliom_content.Html.elt -> string -> unit
+      val borderLeftStyle : 'a Eliom_content.Html.elt -> string -> unit
+      val borderLeftWidth : 'a Eliom_content.Html.elt -> string -> unit
+      val borderLeftWidthPx : 'a Eliom_content.Html.elt -> int -> unit
+      val borderRight : 'a Eliom_content.Html.elt -> string -> unit
+      val borderRightColor : 'a Eliom_content.Html.elt -> string -> unit
+      val borderRightStyle : 'a Eliom_content.Html.elt -> string -> unit
+      val borderRightWidth : 'a Eliom_content.Html.elt -> string -> unit
+      val borderRightWidthPx : 'a Eliom_content.Html.elt -> int -> unit
+      val borderSpacing : 'a Eliom_content.Html.elt -> string -> unit
+      val borderStyle : 'a Eliom_content.Html.elt -> string -> unit
+      val borderTop : 'a Eliom_content.Html.elt -> string -> unit
+      val borderTopColor : 'a Eliom_content.Html.elt -> string -> unit
+      val borderTopStyle : 'a Eliom_content.Html.elt -> string -> unit
+      val borderTopWidth : 'a Eliom_content.Html.elt -> string -> unit
+      val borderTopWidthPx : 'a Eliom_content.Html.elt -> int -> unit
+      val borderWidth : 'a Eliom_content.Html.elt -> string -> unit
+      val bottom : 'a Eliom_content.Html.elt -> string -> unit
+      val bottomPx : 'a Eliom_content.Html.elt -> int -> unit
+      val captionSide : 'a Eliom_content.Html.elt -> string -> unit
+      val clear : 'a Eliom_content.Html.elt -> string -> unit
+      val clip : 'a Eliom_content.Html.elt -> string -> unit
+      val color : 'a Eliom_content.Html.elt -> string -> unit
+      val content : 'a Eliom_content.Html.elt -> string -> unit
+      val counterIncrement : 'a Eliom_content.Html.elt -> string -> unit
+      val counterReset : 'a Eliom_content.Html.elt -> string -> unit
+      val cssFloat : 'a Eliom_content.Html.elt -> string -> unit
+      val cssText : 'a Eliom_content.Html.elt -> string -> unit
+      val cursor : 'a Eliom_content.Html.elt -> string -> unit
+      val direction : 'a Eliom_content.Html.elt -> string -> unit
+      val display : 'a Eliom_content.Html.elt -> string -> unit
+      val emptyCells : 'a Eliom_content.Html.elt -> string -> unit
+      val font : 'a Eliom_content.Html.elt -> string -> unit
+      val fontFamily : 'a Eliom_content.Html.elt -> string -> unit
+      val fontSize : 'a Eliom_content.Html.elt -> string -> unit
+      val fontStyle : 'a Eliom_content.Html.elt -> string -> unit
+      val fontVariant : 'a Eliom_content.Html.elt -> string -> unit
+      val fontWeight : 'a Eliom_content.Html.elt -> string -> unit
+      val height : 'a Eliom_content.Html.elt -> string -> unit
+      val heightPx : 'a Eliom_content.Html.elt -> int -> unit
+      val left : 'a Eliom_content.Html.elt -> string -> unit
+      val leftPx : 'a Eliom_content.Html.elt -> int -> unit
+      val letterSpacing : 'a Eliom_content.Html.elt -> string -> unit
+      val lineHeight : 'a Eliom_content.Html.elt -> string -> unit
+      val listStyle : 'a Eliom_content.Html.elt -> string -> unit
+      val listStyleImage : 'a Eliom_content.Html.elt -> string -> unit
+      val listStylePosition : 'a Eliom_content.Html.elt -> string -> unit
+      val listStyleType : 'a Eliom_content.Html.elt -> string -> unit
+      val margin : 'a Eliom_content.Html.elt -> string -> unit
+      val marginBottom : 'a Eliom_content.Html.elt -> string -> unit
+      val marginBottomPx : 'a Eliom_content.Html.elt -> int -> unit
+      val marginLeft : 'a Eliom_content.Html.elt -> string -> unit
+      val marginLeftPx : 'a Eliom_content.Html.elt -> int -> unit
+      val marginRight : 'a Eliom_content.Html.elt -> string -> unit
+      val marginRightPx : 'a Eliom_content.Html.elt -> int -> unit
+      val marginTop : 'a Eliom_content.Html.elt -> string -> unit
+      val marginTopPx : 'a Eliom_content.Html.elt -> int -> unit
+      val maxHeight : 'a Eliom_content.Html.elt -> string -> unit
+      val maxHeightPx : 'a Eliom_content.Html.elt -> int -> unit
+      val maxWidth : 'a Eliom_content.Html.elt -> string -> unit
+      val maxWidthPx : 'a Eliom_content.Html.elt -> int -> unit
+      val minHeight : 'a Eliom_content.Html.elt -> string -> unit
+      val minHeightPx : 'a Eliom_content.Html.elt -> int -> unit
+      val minWidth : 'a Eliom_content.Html.elt -> string -> unit
+      val minWidthPx : 'a Eliom_content.Html.elt -> int -> unit
+      val opacity : 'a Eliom_content.Html.elt -> string -> unit
+      val outline : 'a Eliom_content.Html.elt -> string -> unit
+      val outlineColor : 'a Eliom_content.Html.elt -> string -> unit
+      val outlineOffset : 'a Eliom_content.Html.elt -> string -> unit
+      val outlineStyle : 'a Eliom_content.Html.elt -> string -> unit
+      val outlineWidth : 'a Eliom_content.Html.elt -> string -> unit
+      val overflow : 'a Eliom_content.Html.elt -> string -> unit
+      val overflowX : 'a Eliom_content.Html.elt -> string -> unit
+      val overflowY : 'a Eliom_content.Html.elt -> string -> unit
+      val padding : 'a Eliom_content.Html.elt -> string -> unit
+      val paddingBottom : 'a Eliom_content.Html.elt -> string -> unit
+      val paddingBottomPx : 'a Eliom_content.Html.elt -> int -> unit
+      val paddingLeft : 'a Eliom_content.Html.elt -> string -> unit
+      val paddingLeftPx : 'a Eliom_content.Html.elt -> int -> unit
+      val paddingRight : 'a Eliom_content.Html.elt -> string -> unit
+      val paddingRightPx : 'a Eliom_content.Html.elt -> int -> unit
+      val paddingTop : 'a Eliom_content.Html.elt -> string -> unit
+      val paddingTopPx : 'a Eliom_content.Html.elt -> int -> unit
+      val pageBreakAfter : 'a Eliom_content.Html.elt -> string -> unit
+      val pageBreakBefore : 'a Eliom_content.Html.elt -> string -> unit
+      val position : 'a Eliom_content.Html.elt -> string -> unit
+      val right : 'a Eliom_content.Html.elt -> string -> unit
+      val rightPx : 'a Eliom_content.Html.elt -> int -> unit
+      val tableLayout : 'a Eliom_content.Html.elt -> string -> unit
+      val textAlign : 'a Eliom_content.Html.elt -> string -> unit
+      val textDecoration : 'a Eliom_content.Html.elt -> string -> unit
+      val textIndent : 'a Eliom_content.Html.elt -> string -> unit
+      val textTransform : 'a Eliom_content.Html.elt -> string -> unit
+      val top : 'a Eliom_content.Html.elt -> string -> unit
+      val topPx : 'a Eliom_content.Html.elt -> int -> unit
+      val verticalAlign : 'a Eliom_content.Html.elt -> string -> unit
+      val visibility : 'a Eliom_content.Html.elt -> string -> unit
+      val whiteSpace : 'a Eliom_content.Html.elt -> string -> unit
+      val width : 'a Eliom_content.Html.elt -> string -> unit
+      val widthPx : 'a Eliom_content.Html.elt -> int -> unit
+      val wordSpacing : 'a Eliom_content.Html.elt -> string -> unit
+      val zIndex : 'a Eliom_content.Html.elt -> string -> unit
+    end
+end >>

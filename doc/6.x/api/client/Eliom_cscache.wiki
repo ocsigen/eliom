@@ -1,0 +1,56 @@
+=Module <<a_api_type subproject="client" | module Eliom_cscache >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_cscache>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_cscache >><<span class="ocsforge_color_keyword"|end>>>>~Client~-server cache for ~Eliom applications~, that is used both for
+    keeping data on client side or keeping values in memory during a
+    request~.
+
+
+    ~When you get a piece of data through ~Eliom~_cscache from client~-side~,
+    the request to the server is done only if the data is not already in
+    the client~-side cache~.
+
+
+    ~On server side~, ~Eliom~_cscache is using a temporary cache
+    ~(with "request" scope~) to avoid fetching the data several time from the
+    database during the same request~. ~This server~-side cache is
+    automatically sent to the client to fill the client~-side
+    cache~. ~If you want to avoid too many requests from the
+    client~, prefill the server~-side cache with the data the
+    client program will need~.
+
+
+    ~This module hides many subtelties that are useful for
+    client~-server ~(possibly reactive~) applications~, like~, for example~,
+    handling delays correctly both on client and server sides~.
+
+
+    ~In the near future~, ~Eliom~_cscache will make it possible to save persistent
+    data~, which is useful for implementing off~-line applications~.
+
+----
+<<pre class="ocsforge_color odocwiki_code" id="TYPEt"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>'a, 'b<<span class="ocsforge_color_delimiter"| ) >>>> <<span class="odocwiki_name"|t>>>><<div class="odocwiki_info"|~The type of association tables ~(implemented using ~Hashtbl~)
+>>
+<<pre id="VALfind" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|find>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>'a, 'b<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="client" text="t" | type Eliom_cscache.t >> <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_delimiter"| ( >>'a <<span class="ocsforge_color_delimiter"| -> >> 'b <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>><<span class="ocsforge_color_delimiter"| ) >> <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_delimiter"| -> >> 'b <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|find cache get~_from~_db key>> returns the value associated to <<span class="odocwiki_inlinecode"|key>>
+    in cache~.  ~If not present~, it calls <<span class="odocwiki_inlinecode"|get~_from~_db>> to fetch the
+    data from the database~. <<span class="odocwiki_inlinecode"|get~_from~_db>> must be implemented both
+    server and client sides~.  ~Several simultaneous call to <<span class="odocwiki_inlinecode"|find>> will
+    result in a single call to <<span class="odocwiki_inlinecode"|get~_from~_db>>~. ~Exceptions are not
+    cached~.
+>>
+<<pre id="VALdo_cache" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|do~_cache>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>'a, 'b<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="client" text="t" | type Eliom_cscache.t >> <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_delimiter"| -> >> 'b <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|do~_cache cache key value>> adds the association from <<span class="odocwiki_inlinecode"|key>> to
+    <<span class="odocwiki_inlinecode"|value>> in <<span class="odocwiki_inlinecode"|cache>>~, or replaces it if not already present~.  ~Called
+    from client side~, it affects only client side cache~.  ~Called from
+    server side~, it will have effect both on the server cache ~(scope~:
+    request~) and the client side cache~.
+>>
+<<pre id="VALlocal_find" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|local~_find>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>'a, 'b<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="client" text="t" | type Eliom_cscache.t >> <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_delimiter"| -> >> 'b <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|~Find a piece of data in local cache~, without trying to fetch it
+    from server~. ~Raises <<span class="odocwiki_inlinecode"|~Not~_found>> instead~.  ~If the value is currently
+    being retrieved~, it waits for it to be ready before returning~.
+>>
+<<pre id="EXCEPTIONNot_ready" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|exception>> <<span class="odocwiki_name"|Not_ready>>>><<pre id="VALfind_if_ready" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|find~_if~_ready>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>'a, 'b<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="client" text="t" | type Eliom_cscache.t >> <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_delimiter"| -> >> 'b>>>><<div class="odocwiki_info"|~Find a piece of data in local cache~, without trying to fetch it
+    from server~. ~Raises <<span class="odocwiki_inlinecode"|~Not~_found>> instead~.  ~If the value is currently
+    being retrieved~, it raises <<span class="odocwiki_inlinecode"|~Not~_ready>>~.
+>>
+<<pre id="VALload" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|load>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>'a, 'b<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="client" text="t" | type Eliom_cscache.t >> <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_delimiter"| ( >>'a <<span class="ocsforge_color_delimiter"| -> >> 'b <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>><<span class="ocsforge_color_delimiter"| ) >> <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_delimiter"| -> >> 'b <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|~Load ~(or reload~) in cache the piece of data from server
+>>
+
+~Create a new table~. ~Must be called from server side~.

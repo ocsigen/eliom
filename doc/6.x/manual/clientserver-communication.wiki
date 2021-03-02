@@ -1,0 +1,365 @@
+=@@id="communication"@@ Communication between the client and the server
+
+<<outline depth="2"| <<header| **Table of contents** >> >>
+
+Besides injections and client values, as described in the
+documentation of our
+<<a_manual chapter="ppx-syntax"|PPX syntax extension>>,
+there are multiple ways for the client and the server to exchange values.
+
+==@@id="rpc"@@ Remote Procedure Calls
+
+Eliom provides an easy way to call server functions from the client:
+<<a_api subproject="server" | type Eliom_client.server_function>>.
+
+A function ##'a -> 'b Lwt.t## can be wrapped on the server by
+<<a_api subproject="server" | val Eliom_client.server_function>>.
+When the result is injected to the client, it appears as a plain function
+{{{'a -> 'b Lwt}}}.
+
+It is necessary to provide an instance of
+<<a_api project="js_of_ocaml"|module Deriving_Json>>
+for the argument type, to safely send the argument from the client to
+the server.
+
+Every call to {{{server_function}}} creates a new pathless POST
+service. If you want to use a server function in multiple places, it
+is thus advisable to only apply {{{server_function}}} once and bind it
+to an identifier.
+
+Example:
+<<code language="ocaml"|
+let%server log str = Lwt_io.write_line Lwt_io.stdout str
+
+let%client log =
+  ~%(Eliom_client.server_function [%derive.json: string] log)
+
+let%client () =
+  Eliom_client.onload
+    (* NB The service underlying the server_function isn't available
+       on the client before loading the page. *)
+    (fun () ->
+       Lwt.async
+         (fun () -> log "Hello from the client to the server!"))
+>>
+
+Exceptions raised in the server-side function cannot be handled
+directly on the client; it is impossible to marshal them in OCaml to
+send them to the client. Instead, if an exception is raised in the
+server function, the function application fails (in Lwt) on the client
+with the exception <<a_api subproject="client"|exception
+Eliom_client_value.Exception_on_server>> whose argument describes the original
+exception (according to {{{Printexc.to_string}}}).
+
+==@@id="notifs"@@ Notifications from server to clients
+
+Module <<a_api subproject="server" | module Eliom_notif >>
+makes it possible for a server to send values to clients with a very simple
+interface. See later in this chapter for lower level server push notifications.
+
+Create a module for each kind of notifications you want using the
+<<a_api subproject="server" | module Eliom_notif.Make_Simple >> functor.
+For example, there would be a module for new message notifications in a chat.
+
+Each client process must subscribe to each resource for which it wants
+to receive the notifications
+(each chat currently opened, in our example), using function
+<<a_api subproject="server" | val Eliom_notif.Make_Simple.listen >>.
+
+Then, the server can send a notification to all the clients listening
+on a resource, using function
+<<a_api subproject="server" | val Eliom_notif.Make_Simple.notify >>.
+
+More details in the API documentation of module
+<<a_api subproject="server" | module Eliom_notif >>.
+
+
+== Services returning OCaml values
+
+Server functions are implemented using special services that take and
+return OCaml values. In this section we will see how to define
+services returning OCaml data. This is a lower level interface to
+do remote procedure calls, and you won't probably need this for
+basic use.
+
+These services are registered using
+<<a_api subproject="server" | module Eliom_registration.Ocaml >>
+and can be called using
+<<a_api subproject="client" | val Eliom_client.call_ocaml_service >>.
+
+Such services cannot be visited by the browser as Web pages. You
+usually want POST pathless services for this use case. This
+corresponds to remote function calls, that are typically handled by
+pathless POST services.
+
+Example of use:
+<<code language="ocaml"|
+open Eliom_content
+
+let pi_service =
+  Eliom_registration.Ocaml.create
+    ~path:Eliom_service.No_path
+    ~meth:(Eliom_service.Post (Eliom_parameter.unit, Eliom_parameter.unit))
+    (fun () () -> Lwt.return 3.1415926535)
+
+let _ =
+  My_appl.create
+    ~path:(Eliom_service.Path ["pi"])
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+    (fun () () ->
+       ignore [%client
+         (Lwt.ignore_result (
+            let%lwt pi =
+              Eliom_client.call_ocaml_service ~service:~%pi_service () ()
+            in
+            Lwt.return (
+              Dom_html.window##alert
+                (Js.string ("pi = "^ string_of_float pi))))
+          : unit)
+       ];
+       Lwt.return
+         Html.D.(
+           html
+             (head (title (txt "pi")) [])
+             (body [])))
+>>
+
+Since the client-side representation of values differs from the
+server-side representation, there are restrictions on what can be
+sent. The restrictions are the same as for the {{{~%variable}}}
+mechanism. (See <<a_manual chapter="clientserver-wrapping"| chapter
+Wrapping>>.)
+
+==@@id="client_sending_data"@@Send OCaml values to services
+
+The client can send OCaml values as parameters to services.
+To do that, declare the expected parameter type using
+{{{Eliom_parameter.ocaml}}} (see
+<<a_api subproject="server" | val Eliom_parameter_sigs.S.ocaml >>).
+
+This is used for example to implement server functions.
+
+Since the server cannot trust the client to send correctly-formed
+data, Eliom is not using the standard OCaml marshalling
+mechanism. (The server needs to be able to check that the value is of
+the expected type.) For this reason, you must declare the types of the
+data you want to be able to send to the server using our
+{{{ppx_deriving}}} syntax extension:
+
+<<code language="ocaml"|
+[%%shared
+  type some_type = (int * string list) [@@deriving json]
+  type another_type =
+    | A of some_type
+    | B of another_type
+    [@@deriving json]
+]
+>>
+
+This type can now be used as a parameter for a service:
+
+<<code language="ocaml"|
+open Eliom_content
+
+let s =
+  My_appl.create
+    ~path:(Eliom_service.Path ["s1"])
+    ~meth:
+      (Eliom_service.Get
+         (Eliom_parameter.ocaml "param" [%derive.json: another_type]))
+    (fun v () ->
+       Lwt.return Html.D.(
+         html
+           (head (title (txt "title")) [])
+           (body [
+              match v with
+              | A _ -> txt "A"
+              | B _ -> txt "B"
+            ])))
+
+let _ =
+  My_appl.create
+    ~path:(Eliom_service.Path ["s2"])
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+    (fun () () ->
+       Lwt.return Html.D.(
+         html
+           (head (title (txt "title")) [])
+           (body
+              [p ~a:[a_onclick
+                       [%client
+                         (fun _ ->
+                            Lwt.async (fun () ->
+                              Eliom_client.change_page ~service:~%s
+                                (A (1, ["s"])) ()))
+                       ]]
+                 [txt "Click to send Ocaml data"]])))
+>>
+
+It works for the datatypes you define, and the data types from OCaml's
+standard library. For types defined in third-party libraries, have a
+look at deriving's
+[[href:http://code.google.com/p/deriving/wiki/Introduction|documentation]]
+and Js_of_ocaml's <<a_api project="js_of_ocaml"|module Deriving_Json>>.
+
+== Server sending data (lower level interfaces for notifications)
+
+Module <<a_api subproject="server" | module Eliom_notif >>
+described above is implemented on top of a mechanism to allow the
+server to send data to a client.
+We call this mechanism //Comet//. The same idea is also known as
+//HTTP push//.
+
+The simple low-level version above which all other following mechanisms are
+implemented is provided in the <<a_api | module Eliom_comet.Channel >>
+module.
+
+Comet defines channels which can transfer data. A channel is created
+using an Lwt stream. It is a kind of cooperative lazy list.
+
+The two main methods to create a stream are through the functions
+<<a_api project="lwt" | val Lwt_stream.from >> and
+<<a_api project="lwt" | val Lwt_stream.create >>.
+
+<<code language="ocaml"|
+val from : (unit -> 'a option Lwt.t) -> 'a t
+val create : unit -> 'a t * ('a option -> unit)
+>>
+
+Function <<a_api project="lwt" | val Lwt_stream.from >> makes possible
+to create a stream where a new value is added each time a function returns.
+Function <<a_api project="lwt" | val Lwt_stream.create >>
+returns a stream and a function to push new values to the stream.
+
+On client-side, the type
+<<a_api subproject="client" | type Eliom_comet.Channel.t >>
+is just an Lwt stream <<a_api project="lwt" | type Lwt_stream.t >>.
+
+There are 3 kinds of channels, depending on how you want to send data.
+
+* Channels created with
+  <<a_api | val Eliom_comet.Channel.create >>
+  have a buffer with a limited size. Message are read from the stream as
+  soon as they are available, i.e. for stream created with
+  <<a_api project="lwt" | val Lwt_stream.from >>, that means that the
+  function is called another time as soon as the previous one terminates.
+  For stream created with <<a_api project="lwt" | val Lwt_stream.create >>,
+  this is as soon as they are pushed. If the client misses too many
+  messages (more than the size of the buffer) it will receive an exception
+  <<a_api subproject="client" | exception Eliom_comet.Channel_full >>
+  when reading data from the stream.
+
+* Channels created with
+  <<a_api | val Eliom_comet.Channel.create_newest >> have no buffering
+  and can lose messages, but the client will always receive the last value:
+  For instance, if many messages are sent in a short time,
+  the client may receive only the last one. Those channels never raise
+  <<a_api subproject="client" | exception Eliom_comet.Channel_full >>.
+
+* Channels created with <<a_api | val Eliom_comet.Channel.create_unlimited >>
+  consume data on the stream only when their is a request from the client.
+
+Channels can be closed on client side by cancelling a thread waiting
+for data on it.
+
+Like services, channels have a scope (only site or client process).
+The constraints vary with respect to the scope you choose:
+
+* Channels created with scope
+<<a_api subproject="server" | val Eliom_common.site_scope >> or
+using
+<<a_api subproject="server" | val Eliom_comet.Channel.create_newest >>
+are stateless channels: the memory consumption does not depend on
+the number of users requesting data on it. When the channels are not
+reachable from the server code, they are garbage-collected and closed.
+Named stateless channels can be accessed from
+<<a_manual chapter="clientserver-applications" fragment="cors_channels"|other servers>>.
+
+* Channels created with scope
+  <<a_api subproject="server" | val Eliom_common.default_process_scope >>
+must be created inside a service handler. They
+are assigned to a particular client process. Different channels
+created with the same stream do not share memory. They are closed
+when requested or when the client process is closed. It is possible
+to know when a client stop requesting data on those channels using
+<<a_api subproject="server" | val Eliom_comet.Channel.wait_timeout >>.
+Be careful about memory consumption when using
+client process channels.
+
+=== Comet configuration
+
+The server can push data to a client only when the client has an open
+HTTP connection waiting for a response. As of now, a comet request can
+only last at most 10 seconds. After that, the client can either do a
+new request or stale for some time: this is the activity
+behavior. This can be configured on client-side, using the functions from
+<<a_api subproject="client" | module Eliom_comet.Configuration >>
+
+For instance, if you receive data which doesn't need frequent
+updates, you can set the time between different requests to a high value,
+and stop requesting data as soon as the browser loses the focus.
+
+<<code language="ocaml"|
+open Eliom_comet.Configuration
+let slow_c = new_configuration () in
+set_active_until_timeout slow_c false;
+set_time_between_request slow_c 60.
+>>
+
+If you need more reactivity for a few seconds, do:
+<<code language="ocaml"|
+open Eliom_comet.Configuration
+let fast_c = new_configuration () in
+set_set_always_active fast_c true;
+set_set_time_between_request fast_c 0.;
+ignore (Lwt_js.sleep 10. >|= (fun () -> drop_configuration fast_c))
+>>
+
+The original setting will be reset after the drop.
+
+== Reactive values
+
+A common usage of comet is for the server to update a value available
+on client side. A convenient way to implement this is to use reactive
+programming. Eliom provides a reactive interface for channels, using
+the [[http://erratique.ch/software/react| react]]. library.
+
+To share a React event or signal with the client, use functions
+<<a_api subproject="server" | val Eliom_react.Down.of_react >> or
+<<a_api subproject="server" | val Eliom_react.S.Down.of_react >>
+
+On client-side, the value returned by those functions is directly
+a React event or signal.
+
+The opposite is also available using
+<<a_api subproject="server" | val Eliom_react.Up.create >>.
+
+Since this is implemented using Comet, tuning Comet configuration will
+also affect the behaviour of shared react variables.
+
+== Client-Server shared bus
+
+It is sometimes useful to have a bidirectional channel shared between
+multiple clients.
+This is the purpose of buses. Those are created using
+<<a_api subproject="server" | val Eliom_bus.create >>.
+Since the server will also receive data on the bus, the description of
+the type (using {{{deriving}}}) is needed to create a bus.
+
+Like comet channels, the behaviour of buses can be tuned using the module
+<<a_api subproject="client" | module Eliom_comet.Configuration >>.
+There are additionnal configuration options available for buses to tune
+the client-side buffering.
+
+==@@id="cors_channels"@@ Another Server sending data (Comet on another server)
+
+It is possible to access a named stateless channel created on another
+server. It has to be declared using
+<<a_api subproject="server" | val Eliom_comet.Channel.external_channel>>.
+The declaration of the channel must match exactly the creation. The
+server generating the page and the server that created the channel
+must run exactly the same version of Eliom. By default a browser can't
+do requests to a different server, to allow that the server serving
+the channel must allow Cross-Origin Resource Sharing using the
+<<a_manual project="ocsigenserver" chapter="cors"|CORS Ocsigenserver
+extension>>.

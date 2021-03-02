@@ -1,0 +1,30 @@
+<<code language="ocaml" | sig
+  type 'a eref = ('a, [ `Volatile ]) Eliom_reference.eref'
+  val eref :
+    scope:[< Eliom_common.all_scope ] ->
+    ?secure:bool -> 'a -> 'a Eliom_reference.Volatile.eref
+  val eref_from_fun :
+    scope:[< Eliom_common.all_scope ] ->
+    ?secure:bool -> (unit -> 'a) -> 'a Eliom_reference.Volatile.eref
+  val get : 'a Eliom_reference.Volatile.eref -> 'a
+  val set : 'a Eliom_reference.Volatile.eref -> 'a -> unit
+  val modify : 'a Eliom_reference.Volatile.eref -> ('a -> 'a) -> unit
+  val unset : 'a Eliom_reference.Volatile.eref -> unit
+  module Ext :
+    sig
+      val get :
+        ([< `Client_process | `Session | `Session_group ], [< `Data ])
+        Eliom_state.Ext.state -> 'a Eliom_reference.Volatile.eref -> 'a
+      val set :
+        ([< `Client_process | `Session | `Session_group ], [< `Data ])
+        Eliom_state.Ext.state ->
+        'a Eliom_reference.Volatile.eref -> 'a -> unit
+      val modify :
+        ([< `Client_process | `Session | `Session_group ], [< `Data ])
+        Eliom_state.Ext.state ->
+        'a Eliom_reference.Volatile.eref -> ('a -> 'a) -> unit
+      val unset :
+        ([< `Client_process | `Session | `Session_group ], [< `Data ])
+        Eliom_state.Ext.state -> 'a Eliom_reference.Volatile.eref -> unit
+    end
+end >>

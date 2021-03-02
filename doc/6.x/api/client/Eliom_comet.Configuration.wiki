@@ -1,0 +1,45 @@
+=Module <<a_api_type subproject="client" | module Eliom_comet.Configuration >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Configuration>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_comet.Configuration >><<span class="ocsforge_color_keyword"|end>>>>~Change the reactivity of channels~. ~Multiples configurations ~( of
+    type <<span class="odocwiki_inlinecode"|t>> ~) can be created~. ~The resulting behaviour is the minimal
+    ~( in the meaning of maximal reactivity ~) between all
+    configurations
+
+----
+<<pre class="ocsforge_color odocwiki_code" id="TYPEt"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|t>>>><<pre id="VALnew_configuration" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|new~_configuration>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<a_api subproject="client" text="t" | type Eliom_comet.Configuration.t >>>>>><<div class="odocwiki_info"|~Creates a new configuration with default value~. ~It modifies the
+      current behaviour immediately
+>>
+<<pre id="VALdrop_configuration" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|drop~_configuration>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<a_api subproject="client" text="t" | type Eliom_comet.Configuration.t >> <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|drop~_configuration t>> restores the behaviour to the minimum of
+      configuration without <<span class="odocwiki_inlinecode"|t>>~. ~If there is no other configuration
+      than <<span class="odocwiki_inlinecode"|t>>~, it is restored to the defaults~.
+>>
+<<pre id="VALset_always_active" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|set~_always~_active>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<a_api subproject="client" text="t" | type Eliom_comet.Configuration.t >> <<span class="ocsforge_color_delimiter"| -> >> bool <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|set~_always~_active c b>> if b is true~, tells the client to always
+      stay active~.
+      ~Default value is false~.
+>>
+<<pre id="VALset_timeout" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|set~_timeout>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<a_api subproject="client" text="t" | type Eliom_comet.Configuration.t >> <<span class="ocsforge_color_delimiter"| -> >> float <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|set~_timeout c t>> tells the client to stay active at least <<span class="odocwiki_inlinecode"|t>>
+      seconds when the application lose the focus~.
+      ~Default value is ~1~8~0~.
+>>
+<<pre id="VALset_active_until_timeout" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|set~_active~_until~_timeout>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<a_api subproject="client" text="t" | type Eliom_comet.Configuration.t >> <<span class="ocsforge_color_delimiter"| -> >> bool <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|set~_active~_until~_timeout c v>> sets the activity changing
+      behaviour~. if <<span class="odocwiki_inlinecode"|v>> is <<span class="odocwiki_inlinecode"|true>> the page is kept active even if not
+      focused until the client receive a timeout message from the
+      server~. ~It implies that if the server keeps sending data to the
+      client~, the comet connection will never be closed~.
+      ~Default value is false~.
+>>
+<<pre id="VALset_time_between_requests" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|set~_time~_between~_requests>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<a_api subproject="client" text="t" | type Eliom_comet.Configuration.t >> <<span class="ocsforge_color_delimiter"| -> >> float <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|after <<span class="odocwiki_inlinecode"|set~_time~_between~_requests t v>>~, the main loop will wait for
+      <<span class="odocwiki_inlinecode"|v>> seconds between two requests~. ~It is taken into account
+      immediately~.
+      ~Default value is ~0~.
+>>
+<<pre id="VALset_time_between_requests_when_idle" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|set~_time~_between~_requests~_when~_idle>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<a_api subproject="client" text="t" | type Eliom_comet.Configuration.t >> <<span class="ocsforge_color_delimiter"| -> >> float * float * float <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|set~_time~_between~_requests~_when~_idle t ~(a~, b~, c~)>> sets the time
+      between two requests when the the windows does not have the focus~,
+      after the timeout~.
+      ~This amount of time is computed using an affine function
+      ~(a ~* ~T ~+ b~)~, where ~T is the amount of time elapsed since the beginning
+      of the idle phase~, with a maximal time of c~.
+      ~If you want no request at all~, do <<span class="odocwiki_inlinecode"|set~_always~_active false>>~.
+      ~Setting this to <<span class="odocwiki_inlinecode"|~(~0~.~, ~0~.~, ~0~.~)>> is equivalent
+      to <<span class="odocwiki_inlinecode"|set~_always~_active true>>~.
+      ~Default value is <<span class="odocwiki_inlinecode"|~(~0~.~5~, ~6~0~.~, ~6~0~0~.~)>>~.
+>>

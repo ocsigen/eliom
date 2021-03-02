@@ -1,0 +1,45 @@
+<<code language="ocaml" | sig
+  type ('a, 'b) ev =
+      'a Eliom_content.Html.elt -> ('b Js_of_ocaml.Js.t -> bool) -> unit
+  type ('a, 'b) ev_unit =
+      'a Eliom_content.Html.elt -> ('b Js_of_ocaml.Js.t -> unit) -> unit
+  val onkeyup :
+    ('a, Js_of_ocaml.Dom_html.keyboardEvent) Eliom_content.Html.Manip.Ev.ev
+  val onkeydown :
+    ('a, Js_of_ocaml.Dom_html.keyboardEvent) Eliom_content.Html.Manip.Ev.ev
+  val onmouseup :
+    ('a, Js_of_ocaml.Dom_html.mouseEvent) Eliom_content.Html.Manip.Ev.ev
+  val onmousedown :
+    ('a, Js_of_ocaml.Dom_html.mouseEvent) Eliom_content.Html.Manip.Ev.ev
+  val onmouseout :
+    ('a, Js_of_ocaml.Dom_html.mouseEvent) Eliom_content.Html.Manip.Ev.ev
+  val onmouseover :
+    ('a, Js_of_ocaml.Dom_html.mouseEvent) Eliom_content.Html.Manip.Ev.ev
+  val onclick :
+    ('a, Js_of_ocaml.Dom_html.mouseEvent) Eliom_content.Html.Manip.Ev.ev
+  val ondblclick :
+    ('a, Js_of_ocaml.Dom_html.mouseEvent) Eliom_content.Html.Manip.Ev.ev
+  val onload :
+    ('a, Js_of_ocaml.Dom_html.event) Eliom_content.Html.Manip.Ev.ev
+  val onerror :
+    ('a, Js_of_ocaml.Dom_html.event) Eliom_content.Html.Manip.Ev.ev
+  val onabort :
+    ('a, Js_of_ocaml.Dom_html.event) Eliom_content.Html.Manip.Ev.ev
+  val onfocus :
+    ('a, Js_of_ocaml.Dom_html.event) Eliom_content.Html.Manip.Ev.ev
+  val onblur :
+    ('a, Js_of_ocaml.Dom_html.event) Eliom_content.Html.Manip.Ev.ev
+  val onfocus_textarea :
+    ('a, Js_of_ocaml.Dom_html.event) Eliom_content.Html.Manip.Ev.ev
+  val onblur_textarea :
+    ('a, Js_of_ocaml.Dom_html.event) Eliom_content.Html.Manip.Ev.ev
+  val onscroll :
+    ('a, Js_of_ocaml.Dom_html.event) Eliom_content.Html.Manip.Ev.ev
+  val onreturn :
+    ('a, Js_of_ocaml.Dom_html.keyboardEvent)
+    Eliom_content.Html.Manip.Ev.ev_unit
+  val onchange :
+    ('a, Js_of_ocaml.Dom_html.event) Eliom_content.Html.Manip.Ev.ev
+  val onchange_select :
+    ('a, Js_of_ocaml.Dom_html.event) Eliom_content.Html.Manip.Ev.ev
+end >>

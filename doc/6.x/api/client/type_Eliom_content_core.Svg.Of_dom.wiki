@@ -1,0 +1,5 @@
+<<code language="ocaml" | sig
+  val of_element :
+    Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t ->
+    'a Eliom_content_core.Svg.elt
+end >>
