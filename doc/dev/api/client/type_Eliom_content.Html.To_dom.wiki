@@ -2,8 +2,8 @@
   type 'a elt = 'a elt
   val of_element : 'a elt -> Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
   val of_node : 'a elt -> Js_of_ocaml.Dom.node Js_of_ocaml.Js.t
-  val of_txt :
-    [< Html_types.txt ] elt -> Js_of_ocaml.Dom.text Js_of_ocaml.Js.t
+  val of_pcdata :
+    [< Html_types.pcdata ] elt -> Js_of_ocaml.Dom.text Js_of_ocaml.Js.t
   val of_html :
     [< Html_types.html ] elt ->
     Js_of_ocaml.Dom_html.htmlElement Js_of_ocaml.Js.t

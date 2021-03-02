@@ -32,14 +32,14 @@
       immediately~.
       ~Default value is ~0~.
 >>
-<<pre id="VALset_time_between_requests_when_idle" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|set~_time~_between~_requests~_when~_idle>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<a_api subproject="client" text="t" | type Eliom_comet.Configuration.t >> <<span class="ocsforge_color_delimiter"| -> >> float * float <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|set~_time~_between~_requests~_when~_idle c ~(a~, b~)>> sets the time
+<<pre id="VALset_time_between_requests_when_idle" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|set~_time~_between~_requests~_when~_idle>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<a_api subproject="client" text="t" | type Eliom_comet.Configuration.t >> <<span class="ocsforge_color_delimiter"| -> >> float * float * float <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|set~_time~_between~_requests~_when~_idle t ~(a~, b~, c~)>> sets the time
       between two requests when the the windows does not have the focus~,
       after the timeout~.
       ~This amount of time is computed using an affine function
-      ~(a ~* t ~+ b~)~, where t is the amount of time elapsed since the begining
-      of the idle phase~.
+      ~(a ~* ~T ~+ b~)~, where ~T is the amount of time elapsed since the beginning
+      of the idle phase~, with a maximal time of c~.
       ~If you want no request at all~, do <<span class="odocwiki_inlinecode"|set~_always~_active false>>~.
-      ~Setting this to <<span class="odocwiki_inlinecode"|~(~0~.~, ~0~.~)>> is equivalent
+      ~Setting this to <<span class="odocwiki_inlinecode"|~(~0~.~, ~0~.~, ~0~.~)>> is equivalent
       to <<span class="odocwiki_inlinecode"|set~_always~_active true>>~.
-      ~Default value is <<span class="odocwiki_inlinecode"|~(~0~.~0~0~7~8~1~2~5~, ~0~.~)>>~.
+      ~Default value is <<span class="odocwiki_inlinecode"|~(~0~.~5~, ~6~0~.~, ~6~0~0~.~)>>~.
 >>

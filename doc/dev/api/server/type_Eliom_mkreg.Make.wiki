@@ -12,7 +12,8 @@
                page -> Ocsigen_http_frame.result Lwt.t
              val send_appl_content : Eliom_service.send_appl_content
              val result_of_http_result : Ocsigen_http_frame.result -> result
-           end) ->
+           end)
+  ->
   sig
     type page = Pages.page
     type options = Pages.options

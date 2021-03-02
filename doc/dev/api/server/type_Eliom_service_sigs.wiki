@@ -24,8 +24,8 @@
                                                                unit, 
                                                                unit,
                                                                [< `WithSuffix
-                                                                | `WithoutSuffix ]
-                                                               as 'a, 
+                                                                | `WithoutSuffix
+                                                               ] as 'a, 
                                                                unit)
                                                               Eliom_service_sigs.TYPES.meth
         | Post : ('gp, 'b, 'gn) Eliom_service_sigs.TYPES.params *
@@ -39,8 +39,8 @@
                                                                Eliom_parameter.raw_post_data,
                                                                Eliom_parameter.no_param_name,
                                                                [< `WithSuffix
-                                                                | `WithoutSuffix ]
-                                                               as 'c, 
+                                                                | `WithoutSuffix
+                                                               ] as 'c, 
                                                                unit)
                                                               Eliom_service_sigs.TYPES.meth
         | Delete :
@@ -49,8 +49,8 @@
                                                                Eliom_parameter.raw_post_data,
                                                                Eliom_parameter.no_param_name,
                                                                [< `WithSuffix
-                                                                | `WithoutSuffix ]
-                                                               as 'd, 
+                                                                | `WithoutSuffix
+                                                               ] as 'd, 
                                                                unit)
                                                               Eliom_service_sigs.TYPES.meth
       type 'm which_meth =
@@ -127,6 +127,18 @@
             'ret)
            t
         constraint 'a = [< `WithSuffix | `WithoutSuffix ]
+      and result =
+          No_contents
+        | Dom of Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+        | Redirect :
+            (unit, unit, get, 'a, 'b, 'c, 'd, [ `WithoutSuffix ], unit, 
+             unit, non_ocaml)
+            Eliom_service_sigs.S.t -> Eliom_service_sigs.S.result
+        | Reload_action of { hidden : bool; https : bool; }
+      type unit_service =
+          (unit, unit, get, Eliom_service_sigs.S.att, non_co, non_ext,
+           non_reg, [ `WithoutSuffix ], unit, unit, non_ocaml)
+          Eliom_service_sigs.S.t
       type (_, _, _) path_option =
           Path :
             Eliom_lib.Url.path -> (Eliom_service_sigs.S.att, non_co, 'a)
@@ -267,7 +279,8 @@
         ('a, 'b, 'c, 'd, 'e, 'f, 'g, [< `WithSuffix | `WithoutSuffix ], 'h,
          'i, 'j)
         Eliom_service_sigs.S.t ->
-        ('a -> 'b -> unit Lwt.t) Eliom_client_value.t option
+        ('a -> 'b -> Eliom_service_sigs.S.result Lwt.t) Eliom_client_value.t
+        option
       val has_client_fun :
         ('a, 'b, 'c, 'd, 'e, 'f, 'g, [< `WithSuffix | `WithoutSuffix ], 'h,
          'i, 'j)
@@ -308,6 +321,7 @@
         service:('a, 'b, 'c, 'd, 'e, 'f, 'g,
                  [< `WithSuffix | `WithoutSuffix ], 'h, 'i, 'j)
                 Eliom_service_sigs.S.t ->
-        ('a -> 'b -> unit Lwt.t) Eliom_client_value.t -> unit
+        ('a -> 'b -> Eliom_service_sigs.S.result Lwt.t) Eliom_client_value.t ->
+        unit
     end
 end >>

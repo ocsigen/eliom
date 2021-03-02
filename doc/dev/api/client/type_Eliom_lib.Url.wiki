@@ -14,7 +14,8 @@
   val split_fragment : string -> string * string option
   val urldecode : string -> string
   val urlencode : ?with_plus:bool -> string -> string
-  type http_url = {
+  type http_url =
+    Js_of_ocaml__Url.http_url = {
     hu_host : string;
     hu_port : int;
     hu_path : string list;
@@ -22,13 +23,18 @@
     hu_arguments : (string * string) list;
     hu_fragment : string;
   }
-  type file_url = {
+  type file_url =
+    Js_of_ocaml__Url.file_url = {
     fu_path : string list;
     fu_path_string : string;
     fu_arguments : (string * string) list;
     fu_fragment : string;
   }
-  type url = Http of http_url | Https of http_url | File of file_url
+  type url =
+    Js_of_ocaml__Url.url =
+      Http of http_url
+    | Https of http_url
+    | File of file_url
   val default_http_port : int
   val default_https_port : int
   val path_of_path_string : string -> string list

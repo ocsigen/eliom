@@ -44,11 +44,11 @@
 >>
 <<pre id="VALlocal_find" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|local~_find>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>'a, 'b<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="t" | type Eliom_cscache.t >> <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_delimiter"| -> >> 'b <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|~Find a piece of data in local cache~, without trying to fetch it
     from server~. ~Raises <<span class="odocwiki_inlinecode"|~Not~_found>> instead~.  ~If the value is currently
-    beeing retrieved~, it waits for it to be ready before returning~.
+    being retrieved~, it waits for it to be ready before returning~.
 >>
 <<pre id="EXCEPTIONNot_ready" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|exception>> <<span class="odocwiki_name"|Not_ready>>>><<pre id="VALfind_if_ready" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|find~_if~_ready>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>'a, 'b<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="t" | type Eliom_cscache.t >> <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_delimiter"| -> >> 'b>>>><<div class="odocwiki_info"|~Find a piece of data in local cache~, without trying to fetch it
     from server~. ~Raises <<span class="odocwiki_inlinecode"|~Not~_found>> instead~.  ~If the value is currently
-    beeing retrieved~, it raises <<span class="odocwiki_inlinecode"|~Not~_ready>>~.
+    being retrieved~, it raises <<span class="odocwiki_inlinecode"|~Not~_ready>>~.
 >>
 
 ~Load ~(or reload~) in cache the piece of data from server

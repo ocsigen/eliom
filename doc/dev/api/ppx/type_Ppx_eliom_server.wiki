@@ -1,1 +1,5 @@
-<<code language="ocaml" | sig val mapper : string list -> Ast_mapper.mapper end >>
+<<code language="ocaml" | sig
+  val mapper :
+    Migrate_parsetree.Versions.OCaml_408.types
+    Migrate_parsetree.Driver.rewriter
+end >>

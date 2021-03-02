@@ -42,7 +42,7 @@
     remove both volatile and persistent data~. ~Otherwise only volatile
     or persistent data~.
 >>
-<<pre id="VALdiscard_services" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|discard~_services>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| scope: >>[< <<a_api subproject="server" text="Eliom_common.user_scope" | type Eliom_common.user_scope >> ] <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_label"| ?secure: >>bool <<span class="ocsforge_color_delimiter"| -> >> unit <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|~Remove all services registered for the given scope ~(the default beeing
+<<pre id="VALdiscard_services" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|discard~_services>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| scope: >>[< <<a_api subproject="server" text="Eliom_common.user_scope" | type Eliom_common.user_scope >> ] <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_label"| ?secure: >>bool <<span class="ocsforge_color_delimiter"| -> >> unit <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|~Remove all services registered for the given scope ~(the default being
     <<span class="odocwiki_inlinecode"|`~Session>>~)~.
 >>
 

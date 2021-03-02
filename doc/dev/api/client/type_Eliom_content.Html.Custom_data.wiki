@@ -12,8 +12,9 @@
     'a Eliom_content.Html.Custom_data.t ->
     'a -> [> `User_data ] Eliom_content.Html.attrib
   val get_dom :
-    Dom_html.element Js.t -> 'a Eliom_content.Html.Custom_data.t -> 'a
+    Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t ->
+    'a Eliom_content.Html.Custom_data.t -> 'a
   val set_dom :
-    Dom_html.element Js.t ->
+    Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t ->
     'a Eliom_content.Html.Custom_data.t -> 'a -> unit
 end >>

@@ -29,9 +29,9 @@
     some information~, like ~I~P address~, or user id~.
 >>
 <<pre id="VALstream" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|stream>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>'a, 'b<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="t" | type Eliom_bus.t >> <<span class="ocsforge_color_delimiter"| -> >> 'b <<span class="ocsforge_color_uid"|Lwt_stream>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|stream b>> returns the stream of data sent to bus <<span class="odocwiki_inlinecode"|b>>~. ~Notice you
-    sould not use that function multiple times on the same bus~, it will
+    should not use that function multiple times on the same bus~, it will
     return the same stream~. ~If you want to receive multiple times the
-    same data~, you sould copy the stream with <<span class="odocwiki_inlinecode"|~Lwt~_stream~.clone>>
+    same data~, you should copy the stream with <<span class="odocwiki_inlinecode"|~Lwt~_stream~.clone>>
 >>
 <<pre id="VALwrite" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|write>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>'a, 'b<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="t" | type Eliom_bus.t >> <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_delimiter"| -> >> unit <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|write b x>> sends the value <<span class="odocwiki_inlinecode"|x>> on the bus <<span class="odocwiki_inlinecode"|b>>~. ~Every participant~,
     including the server~, will receive <<span class="odocwiki_inlinecode"|x>>~.

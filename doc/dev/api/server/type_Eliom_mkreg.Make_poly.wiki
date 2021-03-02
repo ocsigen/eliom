@@ -11,7 +11,8 @@
                ?headers:Http_headers.t ->
                'a page -> Ocsigen_http_frame.result Lwt.t
              val send_appl_content : Eliom_service.send_appl_content
-           end) ->
+           end)
+  ->
   sig
     type 'a page = 'a Pages.page
     type options = Pages.options

@@ -1,5 +1,6 @@
 <<code language="ocaml" | sig
-  val to_signal : init:'a -> 'a React.S.t Lwt.t -> 'a React.S.t
+  val to_signal :
+    init:'a -> ?eq:('a -> 'a -> bool) -> 'a React.S.t Lwt.t -> 'a React.S.t
   module Value : Eliom_shared_sigs.VALUE
   module React :
     sig
@@ -74,6 +75,7 @@
             ?default:('a React.S.t * (?step:React.step -> 'a -> unit)) option
                      Eliom_client_value.t ->
             ?reset_default:bool ->
+            ?eq:('a -> 'a -> bool) Value.t ->
             'a -> 'a t * (?step:React.step -> 'a -> unit) Value.t
           val synced : 'a t -> bool
         end

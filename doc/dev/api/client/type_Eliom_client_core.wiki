@@ -1,1 +1,1 @@
-<<code language="ocaml" | sig  end >>
+<<code language="ocaml" | sig end >>

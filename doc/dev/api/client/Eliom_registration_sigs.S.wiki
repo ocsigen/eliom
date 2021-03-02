@@ -12,7 +12,7 @@
 
 
       ~The optional parameter <<span class="odocwiki_inlinecode"|~~scope>> is <<span class="odocwiki_inlinecode"|~Eliom~_common~.global~_scope>>
-      by default~. ~See the ~Eliom manual for detailled description       <<a_manual chapter="server-services" fragment="scope"|of
+      by default~. ~See the ~Eliom manual for detailed description       <<a_manual chapter="server-services" fragment="scope"|of
       different scopes>>~.
 
 

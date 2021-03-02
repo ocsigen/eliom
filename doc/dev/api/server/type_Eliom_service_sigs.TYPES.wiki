@@ -20,8 +20,8 @@
                                                            'gp, 'gn, 
                                                            unit, unit,
                                                            [< `WithSuffix
-                                                            | `WithoutSuffix ]
-                                                           as 'a, unit)
+                                                            | `WithoutSuffix
+                                                           ] as 'a, unit)
                                                           Eliom_service_sigs.TYPES.meth
     | Post : ('gp, 'b, 'gn) Eliom_service_sigs.TYPES.params *
         ('pp, [ `WithoutSuffix ], 'pn) Eliom_service_sigs.TYPES.params -> 
@@ -34,8 +34,8 @@
                                                            Eliom_parameter.raw_post_data,
                                                            Eliom_parameter.no_param_name,
                                                            [< `WithSuffix
-                                                            | `WithoutSuffix ]
-                                                           as 'c, unit)
+                                                            | `WithoutSuffix
+                                                           ] as 'c, unit)
                                                           Eliom_service_sigs.TYPES.meth
     | Delete :
         ('gp, 'd, 'gn) Eliom_service_sigs.TYPES.params -> (Eliom_service_sigs.TYPES.delete,
@@ -43,8 +43,8 @@
                                                            Eliom_parameter.raw_post_data,
                                                            Eliom_parameter.no_param_name,
                                                            [< `WithSuffix
-                                                            | `WithoutSuffix ]
-                                                           as 'd, unit)
+                                                            | `WithoutSuffix
+                                                           ] as 'd, unit)
                                                           Eliom_service_sigs.TYPES.meth
   type 'm which_meth =
       Get' : Eliom_service_sigs.TYPES.get Eliom_service_sigs.TYPES.which_meth

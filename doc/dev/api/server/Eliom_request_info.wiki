@@ -7,6 +7,8 @@
 
 ==@@id="2_Gettinginformationabouttherequest"@@~Getting information about the request==
 
+<<pre id="VALin_request_handler" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|in~_request~_handler>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> bool>>>><<div class="odocwiki_info"|returns <<span class="odocwiki_inlinecode"|true>> when currently handling a request~.
+>>
 <<pre id="VALget_http_method" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_http~_method>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Ocsigen_http_frame>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Http_header>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|http_method>>>>>><<div class="odocwiki_info"|returns the ~H~T~T~P method used for the request ~(usually ~G~E~T or ~P~O~S~T~)~.
 >>
 <<pre id="VALget_http_header" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_http~_header>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Ocsigen_http_frame>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Http_header>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|http_header>>>>>><<div class="odocwiki_info"|returns the ~H~T~T~P header of the request
@@ -17,6 +19,8 @@
 <<pre id="VALget_full_url" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_full~_url>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> string>>>><<div class="odocwiki_info"|returns the full ~U~R~L as a string
 >>
 <<pre id="VALget_remote_ip" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_remote~_ip>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> string>>>><<div class="odocwiki_info"|returns the internet address of the client as a string
+>>
+<<pre id="VALget_remote_port" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_remote~_port>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> int>>>><<div class="odocwiki_info"|returns client~'s port
 >>
 <<pre id="VALget_remote_inet_addr" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_remote~_inet~_addr>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Unix>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|inet_addr>>>>>><<div class="odocwiki_info"|returns the internet address of the client~,
    using the type <<span class="odocwiki_inlinecode"|~Unix~.inet~_addr>> ~(defined in ~O~Caml~'s standard library~)~.

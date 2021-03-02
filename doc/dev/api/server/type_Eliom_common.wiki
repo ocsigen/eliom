@@ -58,6 +58,7 @@
       val is_empty : 'a t -> bool
       val mem : key -> 'a t -> bool
       val add : key -> 'a -> 'a t -> 'a t
+      val update : key -> ('a option -> 'a option) -> 'a t -> 'a t
       val singleton : key -> 'a -> 'a t
       val remove : key -> 'a t -> 'a t
       val merge :
@@ -70,16 +71,29 @@
       val for_all : (key -> 'a -> bool) -> 'a t -> bool
       val exists : (key -> 'a -> bool) -> 'a t -> bool
       val filter : (key -> 'a -> bool) -> 'a t -> 'a t
+      val filter_map : (key -> 'a -> 'b option) -> 'a t -> 'b t
       val partition : (key -> 'a -> bool) -> 'a t -> 'a t * 'a t
       val cardinal : 'a t -> int
       val bindings : 'a t -> (key * 'a) list
       val min_binding : 'a t -> key * 'a
+      val min_binding_opt : 'a t -> (key * 'a) option
       val max_binding : 'a t -> key * 'a
+      val max_binding_opt : 'a t -> (key * 'a) option
       val choose : 'a t -> key * 'a
+      val choose_opt : 'a t -> (key * 'a) option
       val split : key -> 'a t -> 'a t * 'a option * 'a t
       val find : key -> 'a t -> 'a
+      val find_opt : key -> 'a t -> 'a option
+      val find_first : (key -> bool) -> 'a t -> key * 'a
+      val find_first_opt : (key -> bool) -> 'a t -> (key * 'a) option
+      val find_last : (key -> bool) -> 'a t -> key * 'a
+      val find_last_opt : (key -> bool) -> 'a t -> (key * 'a) option
       val map : ('a -> 'b) -> 'a t -> 'b t
       val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
+      val to_seq : 'a t -> (key * 'a) Seq.t
+      val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
+      val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
+      val of_seq : (key * 'a) Seq.t -> 'a t
     end
   val eliom_link_too_old : bool Polytables.key
   val eliom_service_session_expired :
@@ -177,17 +191,17 @@
     si_nonatt_info : Eliom_common.na_key_req;
     si_state_info : Eliom_common.att_key_req * Eliom_common.att_key_req;
     si_previous_extension_error : int;
-    si_na_get_params : (string * string) list Lazy.t;
+    si_na_get_params : (string * string) list Stdlib.Lazy.t;
     si_nl_get_params : (string * string) list Eliom_lib.String.Table.t;
     si_nl_post_params : (string * string) list Eliom_lib.String.Table.t;
     si_nl_file_params :
       (string * Eliom_lib.file_info) list Eliom_lib.String.Table.t;
     si_persistent_nl_get_params :
-      (string * string) list Eliom_lib.String.Table.t Lazy.t;
-    si_all_get_but_na_nl : (string * string) list Lazy.t;
+      (string * string) list Eliom_lib.String.Table.t Stdlib.Lazy.t;
+    si_all_get_but_na_nl : (string * string) list Stdlib.Lazy.t;
     si_all_get_but_nl : (string * string) list;
     si_client_process_info : Eliom_common.client_process_info option;
-    si_expect_process_data : bool Lazy.t;
+    si_expect_process_data : bool Stdlib.Lazy.t;
   }
   module SessionCookies :
     sig
@@ -200,6 +214,7 @@
       val add : 'a t -> key -> 'a -> unit
       val remove : 'a t -> key -> unit
       val find : 'a t -> key -> 'a
+      val find_opt : 'a t -> key -> 'a option
       val find_all : 'a t -> key -> 'a list
       val replace : 'a t -> key -> 'a -> unit
       val mem : 'a t -> key -> bool
@@ -208,6 +223,12 @@
       val fold : (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
       val length : 'a t -> int
       val stats : 'a t -> Hashtbl.statistics
+      val to_seq : 'a t -> (key * 'a) Seq.t
+      val to_seq_keys : 'a t -> key Seq.t
+      val to_seq_values : 'a t -> 'a Seq.t
+      val add_seq : 'a t -> (key * 'a) Seq.t -> unit
+      val replace_seq : 'a t -> (key * 'a) Seq.t -> unit
+      val of_seq : (key * 'a) Seq.t -> 'a t
     end
   type 'a sessgrp =
       string * Eliom_common.cookie_level *
@@ -227,58 +248,62 @@
   type timeout = TGlobal | TNone | TSome of float
   type 'a one_service_cookie_info = {
     sc_value : string;
-    sc_table : 'a Pervasives.ref;
-    sc_timeout : Eliom_common.timeout Pervasives.ref;
-    sc_exp : float option Pervasives.ref;
-    sc_cookie_exp : Eliom_common.cookie_exp Pervasives.ref;
+    sc_table : 'a Stdlib.ref;
+    sc_timeout : Eliom_common.timeout Stdlib.ref;
+    sc_exp : float option Stdlib.ref;
+    sc_cookie_exp : Eliom_common.cookie_exp Stdlib.ref;
     sc_session_group :
-      Eliom_common.cookie_level Eliom_common.sessgrp Pervasives.ref;
+      (string * Eliom_common.cookie_level *
+       (string, Ipaddr.t) Eliom_lib.leftright)
+      Stdlib.ref;
     mutable sc_session_group_node : string Ocsigen_cache.Dlist.node;
   }
   type one_data_cookie_info = {
     dc_value : string;
-    dc_timeout : Eliom_common.timeout Pervasives.ref;
-    dc_exp : float option Pervasives.ref;
-    dc_cookie_exp : Eliom_common.cookie_exp Pervasives.ref;
+    dc_timeout : Eliom_common.timeout Stdlib.ref;
+    dc_exp : float option Stdlib.ref;
+    dc_cookie_exp : Eliom_common.cookie_exp Stdlib.ref;
     dc_session_group :
-      Eliom_common.cookie_level Eliom_common.sessgrp Pervasives.ref;
+      (string * Eliom_common.cookie_level *
+       (string, Ipaddr.t) Eliom_lib.leftright)
+      Stdlib.ref;
     mutable dc_session_group_node : string Ocsigen_cache.Dlist.node;
   }
   type one_persistent_cookie_info = {
     pc_value : string;
-    pc_timeout : Eliom_common.timeout Pervasives.ref;
-    pc_cookie_exp : Eliom_common.cookie_exp Pervasives.ref;
-    pc_session_group : Eliom_common.perssessgrp option Pervasives.ref;
+    pc_timeout : Eliom_common.timeout Stdlib.ref;
+    pc_cookie_exp : Eliom_common.cookie_exp Stdlib.ref;
+    pc_session_group : Eliom_common.perssessgrp option Stdlib.ref;
   }
   type 'a cookie_info1 =
       (string option *
        'a Eliom_common.one_service_cookie_info Eliom_common.session_cookie
-       Pervasives.ref)
-      Eliom_common.Full_state_name_table.t Pervasives.ref *
+       Stdlib.ref)
+      Eliom_common.Full_state_name_table.t Stdlib.ref *
       (string option *
        Eliom_common.one_data_cookie_info Eliom_common.session_cookie
-       Pervasives.ref)
-      Lazy.t Eliom_common.Full_state_name_table.t Pervasives.ref *
+       Stdlib.ref)
+      Stdlib.Lazy.t Eliom_common.Full_state_name_table.t Stdlib.ref *
       ((string * Eliom_common.timeout * float option *
         Eliom_common.perssessgrp option)
        option *
        Eliom_common.one_persistent_cookie_info Eliom_common.session_cookie
-       Pervasives.ref)
-      Lwt.t Lazy.t Eliom_common.Full_state_name_table.t Pervasives.ref
+       Stdlib.ref)
+      Lwt.t Stdlib.Lazy.t Eliom_common.Full_state_name_table.t Stdlib.ref
   type 'a cookie_info =
       'a Eliom_common.cookie_info1 * 'a Eliom_common.cookie_info1
   type 'a servicecookiestablecontent =
-      Eliom_common.full_state_name * 'a * float option Pervasives.ref *
-      Eliom_common.timeout Pervasives.ref *
-      Eliom_common.cookie_level Eliom_common.sessgrp Pervasives.ref *
+      Eliom_common.full_state_name * 'a * float option Stdlib.ref *
+      Eliom_common.timeout Stdlib.ref *
+      Eliom_common.cookie_level Eliom_common.sessgrp Stdlib.ref *
       string Ocsigen_cache.Dlist.node
   type 'a servicecookiestable =
       'a Eliom_common.servicecookiestablecontent
       Eliom_common.SessionCookies.t
   type datacookiestablecontent =
-      Eliom_common.full_state_name * float option Pervasives.ref *
-      Eliom_common.timeout Pervasives.ref *
-      Eliom_common.cookie_level Eliom_common.sessgrp Pervasives.ref *
+      Eliom_common.full_state_name * float option Stdlib.ref *
+      Eliom_common.timeout Stdlib.ref *
+      Eliom_common.cookie_level Eliom_common.sessgrp Stdlib.ref *
       string Ocsigen_cache.Dlist.node
   type datacookiestable =
       Eliom_common.datacookiestablecontent Eliom_common.SessionCookies.t
@@ -295,6 +320,7 @@
       val is_empty : 'a t -> bool
       val mem : key -> 'a t -> bool
       val add : key -> 'a -> 'a t -> 'a t
+      val update : key -> ('a option -> 'a option) -> 'a t -> 'a t
       val singleton : key -> 'a -> 'a t
       val remove : key -> 'a t -> 'a t
       val merge :
@@ -307,16 +333,29 @@
       val for_all : (key -> 'a -> bool) -> 'a t -> bool
       val exists : (key -> 'a -> bool) -> 'a t -> bool
       val filter : (key -> 'a -> bool) -> 'a t -> 'a t
+      val filter_map : (key -> 'a -> 'b option) -> 'a t -> 'b t
       val partition : (key -> 'a -> bool) -> 'a t -> 'a t * 'a t
       val cardinal : 'a t -> int
       val bindings : 'a t -> (key * 'a) list
       val min_binding : 'a t -> key * 'a
+      val min_binding_opt : 'a t -> (key * 'a) option
       val max_binding : 'a t -> key * 'a
+      val max_binding_opt : 'a t -> (key * 'a) option
       val choose : 'a t -> key * 'a
+      val choose_opt : 'a t -> (key * 'a) option
       val split : key -> 'a t -> 'a t * 'a option * 'a t
       val find : key -> 'a t -> 'a
+      val find_opt : key -> 'a t -> 'a option
+      val find_first : (key -> bool) -> 'a t -> key * 'a
+      val find_first_opt : (key -> bool) -> 'a t -> (key * 'a) option
+      val find_last : (key -> bool) -> 'a t -> key * 'a
+      val find_last_opt : (key -> bool) -> 'a t -> (key * 'a) option
       val map : ('a -> 'b) -> 'a t -> 'b t
       val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
+      val to_seq : 'a t -> (key * 'a) Seq.t
+      val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
+      val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
+      val of_seq : (key * 'a) Seq.t -> 'a t
     end
   module Serv_Table :
     sig
@@ -326,6 +365,7 @@
       val is_empty : 'a t -> bool
       val mem : key -> 'a t -> bool
       val add : key -> 'a -> 'a t -> 'a t
+      val update : key -> ('a option -> 'a option) -> 'a t -> 'a t
       val singleton : key -> 'a -> 'a t
       val remove : key -> 'a t -> 'a t
       val merge :
@@ -338,16 +378,29 @@
       val for_all : (key -> 'a -> bool) -> 'a t -> bool
       val exists : (key -> 'a -> bool) -> 'a t -> bool
       val filter : (key -> 'a -> bool) -> 'a t -> 'a t
+      val filter_map : (key -> 'a -> 'b option) -> 'a t -> 'b t
       val partition : (key -> 'a -> bool) -> 'a t -> 'a t * 'a t
       val cardinal : 'a t -> int
       val bindings : 'a t -> (key * 'a) list
       val min_binding : 'a t -> key * 'a
+      val min_binding_opt : 'a t -> (key * 'a) option
       val max_binding : 'a t -> key * 'a
+      val max_binding_opt : 'a t -> (key * 'a) option
       val choose : 'a t -> key * 'a
+      val choose_opt : 'a t -> (key * 'a) option
       val split : key -> 'a t -> 'a t * 'a option * 'a t
       val find : key -> 'a t -> 'a
+      val find_opt : key -> 'a t -> 'a option
+      val find_first : (key -> bool) -> 'a t -> key * 'a
+      val find_first_opt : (key -> bool) -> 'a t -> (key * 'a) option
+      val find_last : (key -> bool) -> 'a t -> key * 'a
+      val find_last_opt : (key -> bool) -> 'a t -> (key * 'a) option
       val map : ('a -> 'b) -> 'a t -> 'b t
       val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
+      val to_seq : 'a t -> (key * 'a) Seq.t
+      val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
+      val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
+      val of_seq : (key * 'a) Seq.t -> 'a t
     end
   type dlist_ip_table
   type anon_params_type = int
@@ -356,14 +409,14 @@
   module Hier_set : Set.S
   type 'a dircontent =
       Vide
-    | Table of 'a Eliom_common.direlt Pervasives.ref Eliom_lib.String.Table.t
+    | Table of 'a Eliom_common.direlt Stdlib.ref Eliom_lib.String.Table.t
   and 'a direlt =
-      Dir of 'a Eliom_common.dircontent Pervasives.ref
-    | File of 'a Pervasives.ref
+      Dir of 'a Eliom_common.dircontent Stdlib.ref
+    | File of 'a Stdlib.ref
   type ('params, 'result) service = {
     s_id : Eliom_common.anon_params_type * Eliom_common.anon_params_type;
     mutable s_max_use : int option;
-    s_expire : (float * float Pervasives.ref) option;
+    s_expire : (float * float Stdlib.ref) option;
     s_f : bool -> 'params -> 'result Lwt.t;
   }
   type server_params = {
@@ -382,16 +435,15 @@
   and page_table = Eliom_common.page_table_content Eliom_common.Serv_Table.t
   and page_table_content =
       [ `Ptc of
-          (Eliom_common.page_table Pervasives.ref *
-           Eliom_common.page_table_key, Eliom_common.na_key_serv)
+          (Eliom_common.page_table Stdlib.ref * Eliom_common.page_table_key,
+           Eliom_common.na_key_serv)
           Eliom_lib.leftright Ocsigen_cache.Dlist.node option *
           (Eliom_common.server_params, Ocsigen_http_frame.result)
           Eliom_common.service list ]
   and naservice_table_content =
-      int * int Pervasives.ref option *
-      (float * float Pervasives.ref) option *
+      int * int Stdlib.ref option * (float * float Stdlib.ref) option *
       (Eliom_common.server_params -> Ocsigen_http_frame.result Lwt.t) *
-      (Eliom_common.page_table Pervasives.ref * Eliom_common.page_table_key,
+      (Eliom_common.page_table Stdlib.ref * Eliom_common.page_table_key,
        Eliom_common.na_key_serv)
       Eliom_lib.leftright Ocsigen_cache.Dlist.node option
   and naservice_table =
@@ -400,10 +452,9 @@
         Eliom_common.naservice_table_content Eliom_common.NAserv_Table.t
   and tables = {
     mutable table_services :
-      (int * int *
-       Eliom_common.page_table Eliom_common.dircontent Pervasives.ref)
+      (int * int * Eliom_common.page_table Eliom_common.dircontent Stdlib.ref)
       list;
-    table_naservices : Eliom_common.naservice_table Pervasives.ref;
+    table_naservices : Eliom_common.naservice_table Stdlib.ref;
     mutable table_contains_services_with_timeout : bool;
     mutable table_contains_naservices_with_timeout : bool;
     mutable csrf_get_or_na_registration_functions :
@@ -413,10 +464,10 @@
       Eliom_lib.Int.Table.t;
     service_dlist_add :
       ?sp:Eliom_common.server_params ->
-      (Eliom_common.page_table Pervasives.ref * Eliom_common.page_table_key,
+      (Eliom_common.page_table Stdlib.ref * Eliom_common.page_table_key,
        Eliom_common.na_key_serv)
       Eliom_lib.leftright ->
-      (Eliom_common.page_table Pervasives.ref * Eliom_common.page_table_key,
+      (Eliom_common.page_table Stdlib.ref * Eliom_common.page_table_key,
        Eliom_common.na_key_serv)
       Eliom_lib.leftright Ocsigen_cache.Dlist.node;
   }
@@ -440,7 +491,9 @@
     session_services : Eliom_common.tables Eliom_common.servicecookiestable;
     session_data : Eliom_common.datacookiestable;
     group_of_groups :
-      [ `Session_group ] Eliom_common.sessgrp Ocsigen_cache.Dlist.t;
+      (string * Eliom_common.cookie_level *
+       (string, Ipaddr.t) Eliom_lib.leftright)
+      Ocsigen_cache.Dlist.t;
     mutable remove_session_data : string -> unit;
     mutable not_bound_in_data_tables : string -> bool;
     mutable exn_handler : exn -> Ocsigen_http_frame.result Lwt.t;
@@ -462,6 +515,7 @@
     mutable ipv6mask : int option * bool;
     mutable application_script : bool * bool;
     mutable cache_global_data : (string list * int) option;
+    mutable html_content_type : string option;
   }
   type 'a lazy_site_value
   val force_lazy_site_value : 'a Eliom_common.lazy_site_value -> 'a
@@ -512,12 +566,84 @@
       val add : 'a -> 'a list -> 'a list
       val fold : ('a -> 'b -> 'a) -> 'a -> 'b list -> 'a
     end
-  val perstables : string list Pervasives.ref
+  val perstables : string list Stdlib.ref
   val create_persistent_table : string -> 'a Ocsipersist.table Lwt.t
-  val persistent_cookies_table :
-    (Eliom_common.full_state_name * float option * Eliom_common.timeout *
-     Eliom_common.perssessgrp option)
-    Ocsipersist.table Lwt.t Lazy.t
+  module Persistent_cookies :
+    sig
+      type date = float
+      type cookie =
+          Eliom_common.full_state_name *
+          Eliom_common.Persistent_cookies.date option *
+          Eliom_common.timeout * Eliom_common.perssessgrp option
+      module Cookies :
+        sig
+          type key = string
+          type value = cookie
+          val name : string
+          val find : key -> value Lwt.t
+          val add : key -> value -> unit Lwt.t
+          val replace_if_exists : key -> value -> unit Lwt.t
+          val remove : key -> unit Lwt.t
+          val modify_opt :
+            key -> (value option -> value option) -> unit Lwt.t
+          val length : unit -> int Lwt.t
+          val iter :
+            ?count:int64 ->
+            ?gt:key ->
+            ?geq:key ->
+            ?lt:key -> ?leq:key -> (key -> value -> unit Lwt.t) -> unit Lwt.t
+          val fold :
+            ?count:int64 ->
+            ?gt:key ->
+            ?geq:key ->
+            ?lt:key ->
+            ?leq:key -> (key -> value -> 'a -> 'a Lwt.t) -> 'a -> 'a Lwt.t
+          val iter_block :
+            ?count:int64 ->
+            ?gt:key ->
+            ?geq:key ->
+            ?lt:key -> ?leq:key -> (key -> value -> unit) -> unit Lwt.t
+        end
+      module Expiry_dates :
+        sig
+          type key = date
+          type value = string
+          val name : string
+          val find : key -> value Lwt.t
+          val add : key -> value -> unit Lwt.t
+          val replace_if_exists : key -> value -> unit Lwt.t
+          val remove : key -> unit Lwt.t
+          val modify_opt :
+            key -> (value option -> value option) -> unit Lwt.t
+          val length : unit -> int Lwt.t
+          val iter :
+            ?count:int64 ->
+            ?gt:key ->
+            ?geq:key ->
+            ?lt:key -> ?leq:key -> (key -> value -> unit Lwt.t) -> unit Lwt.t
+          val fold :
+            ?count:int64 ->
+            ?gt:key ->
+            ?geq:key ->
+            ?lt:key ->
+            ?leq:key -> (key -> value -> 'a -> 'a Lwt.t) -> 'a -> 'a Lwt.t
+          val iter_block :
+            ?count:int64 ->
+            ?gt:key ->
+            ?geq:key ->
+            ?lt:key -> ?leq:key -> (key -> value -> unit) -> unit Lwt.t
+          val add_cookie :
+            Eliom_common.Persistent_cookies.date -> string -> unit Lwt.t
+        end
+      val add :
+        string -> Eliom_common.Persistent_cookies.cookie -> unit Lwt.t
+      val replace_if_exists :
+        string -> Eliom_common.Persistent_cookies.cookie -> unit Lwt.t
+      val garbage_collect :
+        section:Lwt_log_core.Section.t ->
+        (Eliom_common.Persistent_cookies.Cookies.key -> unit Lwt.t) ->
+        unit Lwt.t
+    end
   val remove_from_all_persistent_tables : string -> unit Lwt.t
   val absolute_change_sitedata : Eliom_common.sitedata -> unit
   val get_current_sitedata : unit -> Eliom_common.sitedata
@@ -554,15 +680,15 @@
   val get_mask4 : Eliom_common.sitedata -> int
   val get_mask6 : Eliom_common.sitedata -> int
   val network_of_ip : Ipaddr.t -> int -> int -> Ipaddr.t
-  val ipv4mask : int Pervasives.ref
-  val ipv6mask : int Pervasives.ref
+  val ipv4mask : int Stdlib.ref
+  val ipv6mask : int Stdlib.ref
   val create_dlist_ip_table : int -> Eliom_common.dlist_ip_table
   val find_dlist_ip_table :
     int option * 'a ->
     int option * 'a ->
     Eliom_common.dlist_ip_table ->
     Ipaddr.t ->
-    (Eliom_common.page_table Pervasives.ref * Eliom_common.page_table_key,
+    (Eliom_common.page_table Stdlib.ref * Eliom_common.page_table_key,
      Eliom_common.na_key_serv)
     Eliom_lib.leftright Ocsigen_cache.Dlist.t
   val get_cookie_info :
@@ -606,7 +732,7 @@
   val get_site_dir_string : Eliom_common.sitedata -> string
   val get_secure :
     secure_o:bool option -> sitedata:Eliom_common.sitedata -> unit -> bool
-  val is_client_app : bool Pervasives.ref
+  val is_client_app : bool Stdlib.ref
   val make_actual_path : string list -> string list
   type 'a to_and_of = { of_string : string -> 'a; to_string : 'a -> string; }
   module To_and_of_shared :

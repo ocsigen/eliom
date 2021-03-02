@@ -40,7 +40,7 @@
   val broadcast : logger list -> logger
   val dispatch : (section -> level -> logger) -> logger
   val null : logger
-  val console : Lwt_log.logger
+  val console : Lwt_log_core.logger
   val log :
     ?inspect:'v ->
     ?exn:exn ->
@@ -208,6 +208,6 @@
     ?exn:exn ->
     ?section:section ->
     ?location:string * int * int ->
-    ?logger:logger -> ('a, unit, string, 'any) Pervasives.format4 -> 'a
+    ?logger:logger -> ('a, unit, string, 'any) Stdlib.format4 -> 'a
   val eliom : section
 end >>

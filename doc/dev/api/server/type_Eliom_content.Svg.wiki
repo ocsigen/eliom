@@ -35,6 +35,7 @@
               type event_handler = Xml.event_handler
               type mouse_event_handler = Xml.mouse_event_handler
               type keyboard_event_handler = Xml.keyboard_event_handler
+              type touch_event_handler = Xml.touch_event_handler
               type attrib = Xml.attrib
               val float_attrib : aname -> float wrap -> attrib
               val int_attrib : aname -> int wrap -> attrib
@@ -46,14 +47,16 @@
                 aname -> mouse_event_handler -> attrib
               val keyboard_event_handler_attrib :
                 aname -> keyboard_event_handler -> attrib
+              val touch_event_handler_attrib :
+                aname -> touch_event_handler -> attrib
               val uri_attrib : aname -> uri wrap -> attrib
               val uris_attrib : aname -> uri list wrap -> attrib
               type elt = Xml.elt
               type ename = string
               val empty : unit -> elt
               val comment : string -> elt
-              val txt : string wrap -> elt
-              val encodedtxt : string wrap -> elt
+              val pcdata : string wrap -> elt
+              val encodedpcdata : string wrap -> elt
               val entity : string -> elt
               val leaf : ?a:attrib list -> ename -> elt
               val node : ?a:attrib list -> ename -> elt list_wrap -> elt
@@ -97,6 +100,7 @@
           val a_externalRessourcesRequired :
             bool wrap -> [> `ExternalRessourcesRequired ] attrib
           val a_id : string wrap -> [> `Id ] attrib
+          val a_user_data : string -> string wrap -> [> `User_data ] attrib
           val a_xml_base : Svg_types.iri wrap -> [> `Xml_Base ] attrib
           val a_xml_lang : Svg_types.iri wrap -> [> `Xml_Lang ] attrib
           val a_xml_space :
@@ -485,7 +489,15 @@
             Xml.mouse_event_handler -> [> `OnMouseOut ] attrib
           val a_onmousemove :
             Xml.mouse_event_handler -> [> `OnMouseMove ] attrib
-          val txt : string wrap -> [> `TXT ] elt
+          val a_ontouchstart :
+            Xml.touch_event_handler -> [> `OnTouchStart ] attrib
+          val a_ontouchend :
+            Xml.touch_event_handler -> [> `OnTouchEnd ] attrib
+          val a_ontouchmove :
+            Xml.touch_event_handler -> [> `OnTouchMove ] attrib
+          val a_ontouchcancel :
+            Xml.touch_event_handler -> [> `OnTouchCancel ] attrib
+          val txt : string wrap -> [> Svg_types.txt ] elt
           val svg :
             ([< Svg_types.svg_attr ], [< Svg_types.svg_content ],
              [> Svg_types.svg ])
@@ -812,6 +824,8 @@
           val foreignObject :
             ?a:Svg_types.foreignobject_attr attrib list ->
             Xml.elt list_wrap -> [> Svg_types.foreignobject ] elt
+          val pcdata : string wrap -> [> Svg_types.txt ] elt
+          val of_seq : Xml_stream.signal Seq.t -> 'a elt list_wrap
           val tot : Xml.elt -> 'a elt
           val totl : Xml.elt list_wrap -> 'a elt list_wrap
           val toelt : 'a elt -> Xml.elt
@@ -861,6 +875,7 @@
           type event_handler = Xml.event_handler
           type mouse_event_handler = Xml.mouse_event_handler
           type keyboard_event_handler = Xml.keyboard_event_handler
+          type touch_event_handler = Xml.touch_event_handler
           type attrib = Xml.attrib
           val float_attrib : aname -> float wrap -> attrib
           val int_attrib : aname -> int wrap -> attrib
@@ -872,14 +887,16 @@
             aname -> mouse_event_handler -> attrib
           val keyboard_event_handler_attrib :
             aname -> keyboard_event_handler -> attrib
+          val touch_event_handler_attrib :
+            aname -> touch_event_handler -> attrib
           val uri_attrib : aname -> uri wrap -> attrib
           val uris_attrib : aname -> uri list wrap -> attrib
           type elt = Xml.elt
           type ename = string
           val empty : unit -> elt
           val comment : string -> elt
-          val txt : string wrap -> elt
-          val encodedtxt : string wrap -> elt
+          val pcdata : string wrap -> elt
+          val encodedpcdata : string wrap -> elt
           val entity : string -> elt
           val leaf : ?a:attrib list -> ename -> elt
           val node : ?a:attrib list -> ename -> elt list_wrap -> elt
@@ -920,6 +937,7 @@
       val a_externalRessourcesRequired :
         bool wrap -> [> `ExternalRessourcesRequired ] attrib
       val a_id : string wrap -> [> `Id ] attrib
+      val a_user_data : string -> string wrap -> [> `User_data ] attrib
       val a_xml_base : Svg_types.iri wrap -> [> `Xml_Base ] attrib
       val a_xml_lang : Svg_types.iri wrap -> [> `Xml_Lang ] attrib
       val a_xml_space :
@@ -957,8 +975,8 @@
         [< `End | `Inherit | `Middle | `Start ] wrap ->
         [> `Text_Anchor ] attrib
       val a_text_decoration :
-        [< `Blink | `Inherit | `Line_through | `None | `Overline | `Underline ]
-        wrap -> [> `Text_Decoration ] attrib
+        [< `Blink | `Inherit | `Line_through | `None | `Overline | `Underline
+        ] wrap -> [> `Text_Decoration ] attrib
       val a_text_rendering :
         [< `Auto
          | `GeometricPrecision
@@ -1000,8 +1018,8 @@
       val a_fx : Svg_types.coord wrap -> [> `Fx ] attrib
       val a_fy : Svg_types.coord wrap -> [> `Fy ] attrib
       val a_offset :
-        [< `Number of Svg_types.number | `Percentage of Svg_types.percentage ]
-        wrap -> [> `Offset ] attrib
+        [< `Number of Svg_types.number | `Percentage of Svg_types.percentage
+        ] wrap -> [> `Offset ] attrib
       val a_patternUnits :
         [< `ObjectBoundingBox | `UserSpaceOnUse ] wrap ->
         [> `PatternUnits ] attrib
@@ -1273,7 +1291,13 @@
       val a_onmouseover : Xml.mouse_event_handler -> [> `OnMouseOver ] attrib
       val a_onmouseout : Xml.mouse_event_handler -> [> `OnMouseOut ] attrib
       val a_onmousemove : Xml.mouse_event_handler -> [> `OnMouseMove ] attrib
-      val txt : string wrap -> [> `TXT ] elt
+      val a_ontouchstart :
+        Xml.touch_event_handler -> [> `OnTouchStart ] attrib
+      val a_ontouchend : Xml.touch_event_handler -> [> `OnTouchEnd ] attrib
+      val a_ontouchmove : Xml.touch_event_handler -> [> `OnTouchMove ] attrib
+      val a_ontouchcancel :
+        Xml.touch_event_handler -> [> `OnTouchCancel ] attrib
+      val txt : string wrap -> [> Svg_types.txt ] elt
       val svg :
         ([< Svg_types.svg_attr ], [< Svg_types.svg_content ],
          [> Svg_types.svg ])
@@ -1584,6 +1608,8 @@
       val foreignObject :
         ?a:Svg_types.foreignobject_attr attrib list ->
         Xml.elt list_wrap -> [> Svg_types.foreignobject ] elt
+      val pcdata : string wrap -> [> Svg_types.txt ] elt
+      val of_seq : Xml_stream.signal Seq.t -> 'a elt list_wrap
       val tot : Xml.elt -> 'a elt
       val totl : Xml.elt list_wrap -> 'a elt list_wrap
       val toelt : 'a elt -> Xml.elt
@@ -1637,6 +1663,7 @@
               type event_handler = Xml.event_handler
               type mouse_event_handler = Xml.mouse_event_handler
               type keyboard_event_handler = Xml.keyboard_event_handler
+              type touch_event_handler = Xml.touch_event_handler
               type attrib = Xml.attrib
               val float_attrib : aname -> float wrap -> attrib
               val int_attrib : aname -> int wrap -> attrib
@@ -1648,14 +1675,16 @@
                 aname -> mouse_event_handler -> attrib
               val keyboard_event_handler_attrib :
                 aname -> keyboard_event_handler -> attrib
+              val touch_event_handler_attrib :
+                aname -> touch_event_handler -> attrib
               val uri_attrib : aname -> uri wrap -> attrib
               val uris_attrib : aname -> uri list wrap -> attrib
               type elt = Xml.elt
               type ename = string
               val empty : unit -> elt
               val comment : string -> elt
-              val txt : string wrap -> elt
-              val encodedtxt : string wrap -> elt
+              val pcdata : string wrap -> elt
+              val encodedpcdata : string wrap -> elt
               val entity : string -> elt
               val leaf : ?a:attrib list -> ename -> elt
               val node : ?a:attrib list -> ename -> elt list_wrap -> elt
@@ -1699,6 +1728,7 @@
           val a_externalRessourcesRequired :
             bool wrap -> [> `ExternalRessourcesRequired ] attrib
           val a_id : string wrap -> [> `Id ] attrib
+          val a_user_data : string -> string wrap -> [> `User_data ] attrib
           val a_xml_base : Svg_types.iri wrap -> [> `Xml_Base ] attrib
           val a_xml_lang : Svg_types.iri wrap -> [> `Xml_Lang ] attrib
           val a_xml_space :
@@ -2087,7 +2117,15 @@
             Xml.mouse_event_handler -> [> `OnMouseOut ] attrib
           val a_onmousemove :
             Xml.mouse_event_handler -> [> `OnMouseMove ] attrib
-          val txt : string wrap -> [> `TXT ] elt
+          val a_ontouchstart :
+            Xml.touch_event_handler -> [> `OnTouchStart ] attrib
+          val a_ontouchend :
+            Xml.touch_event_handler -> [> `OnTouchEnd ] attrib
+          val a_ontouchmove :
+            Xml.touch_event_handler -> [> `OnTouchMove ] attrib
+          val a_ontouchcancel :
+            Xml.touch_event_handler -> [> `OnTouchCancel ] attrib
+          val txt : string wrap -> [> Svg_types.txt ] elt
           val svg :
             ([< Svg_types.svg_attr ], [< Svg_types.svg_content ],
              [> Svg_types.svg ])
@@ -2414,6 +2452,8 @@
           val foreignObject :
             ?a:Svg_types.foreignobject_attr attrib list ->
             Xml.elt list_wrap -> [> Svg_types.foreignobject ] elt
+          val pcdata : string wrap -> [> Svg_types.txt ] elt
+          val of_seq : Xml_stream.signal Seq.t -> 'a elt list_wrap
           val tot : Xml.elt -> 'a elt
           val totl : Xml.elt list_wrap -> 'a elt list_wrap
           val toelt : 'a elt -> Xml.elt
@@ -2463,6 +2503,7 @@
           type event_handler = Xml.event_handler
           type mouse_event_handler = Xml.mouse_event_handler
           type keyboard_event_handler = Xml.keyboard_event_handler
+          type touch_event_handler = Xml.touch_event_handler
           type attrib = Xml.attrib
           val float_attrib : aname -> float wrap -> attrib
           val int_attrib : aname -> int wrap -> attrib
@@ -2474,14 +2515,16 @@
             aname -> mouse_event_handler -> attrib
           val keyboard_event_handler_attrib :
             aname -> keyboard_event_handler -> attrib
+          val touch_event_handler_attrib :
+            aname -> touch_event_handler -> attrib
           val uri_attrib : aname -> uri wrap -> attrib
           val uris_attrib : aname -> uri list wrap -> attrib
           type elt = Xml.elt
           type ename = string
           val empty : unit -> elt
           val comment : string -> elt
-          val txt : string wrap -> elt
-          val encodedtxt : string wrap -> elt
+          val pcdata : string wrap -> elt
+          val encodedpcdata : string wrap -> elt
           val entity : string -> elt
           val leaf : ?a:attrib list -> ename -> elt
           val node : ?a:attrib list -> ename -> elt list_wrap -> elt
@@ -2522,6 +2565,7 @@
       val a_externalRessourcesRequired :
         bool wrap -> [> `ExternalRessourcesRequired ] attrib
       val a_id : string wrap -> [> `Id ] attrib
+      val a_user_data : string -> string wrap -> [> `User_data ] attrib
       val a_xml_base : Svg_types.iri wrap -> [> `Xml_Base ] attrib
       val a_xml_lang : Svg_types.iri wrap -> [> `Xml_Lang ] attrib
       val a_xml_space :
@@ -2559,8 +2603,8 @@
         [< `End | `Inherit | `Middle | `Start ] wrap ->
         [> `Text_Anchor ] attrib
       val a_text_decoration :
-        [< `Blink | `Inherit | `Line_through | `None | `Overline | `Underline ]
-        wrap -> [> `Text_Decoration ] attrib
+        [< `Blink | `Inherit | `Line_through | `None | `Overline | `Underline
+        ] wrap -> [> `Text_Decoration ] attrib
       val a_text_rendering :
         [< `Auto
          | `GeometricPrecision
@@ -2602,8 +2646,8 @@
       val a_fx : Svg_types.coord wrap -> [> `Fx ] attrib
       val a_fy : Svg_types.coord wrap -> [> `Fy ] attrib
       val a_offset :
-        [< `Number of Svg_types.number | `Percentage of Svg_types.percentage ]
-        wrap -> [> `Offset ] attrib
+        [< `Number of Svg_types.number | `Percentage of Svg_types.percentage
+        ] wrap -> [> `Offset ] attrib
       val a_patternUnits :
         [< `ObjectBoundingBox | `UserSpaceOnUse ] wrap ->
         [> `PatternUnits ] attrib
@@ -2875,7 +2919,13 @@
       val a_onmouseover : Xml.mouse_event_handler -> [> `OnMouseOver ] attrib
       val a_onmouseout : Xml.mouse_event_handler -> [> `OnMouseOut ] attrib
       val a_onmousemove : Xml.mouse_event_handler -> [> `OnMouseMove ] attrib
-      val txt : string wrap -> [> `TXT ] elt
+      val a_ontouchstart :
+        Xml.touch_event_handler -> [> `OnTouchStart ] attrib
+      val a_ontouchend : Xml.touch_event_handler -> [> `OnTouchEnd ] attrib
+      val a_ontouchmove : Xml.touch_event_handler -> [> `OnTouchMove ] attrib
+      val a_ontouchcancel :
+        Xml.touch_event_handler -> [> `OnTouchCancel ] attrib
+      val txt : string wrap -> [> Svg_types.txt ] elt
       val svg :
         ([< Svg_types.svg_attr ], [< Svg_types.svg_content ],
          [> Svg_types.svg ])
@@ -3186,6 +3236,8 @@
       val foreignObject :
         ?a:Svg_types.foreignobject_attr attrib list ->
         Xml.elt list_wrap -> [> Svg_types.foreignobject ] elt
+      val pcdata : string wrap -> [> Svg_types.txt ] elt
+      val of_seq : Xml_stream.signal Seq.t -> 'a elt list_wrap
       val tot : Xml.elt -> 'a elt
       val totl : Xml.elt list_wrap -> 'a elt list_wrap
       val toelt : 'a elt -> Xml.elt
@@ -3239,6 +3291,7 @@
               type event_handler = Xml_shared.event_handler
               type mouse_event_handler = Xml_shared.mouse_event_handler
               type keyboard_event_handler = Xml_shared.keyboard_event_handler
+              type touch_event_handler = Xml_shared.touch_event_handler
               type attrib = Xml_shared.attrib
               val float_attrib : aname -> float wrap -> attrib
               val int_attrib : aname -> int wrap -> attrib
@@ -3250,14 +3303,16 @@
                 aname -> mouse_event_handler -> attrib
               val keyboard_event_handler_attrib :
                 aname -> keyboard_event_handler -> attrib
+              val touch_event_handler_attrib :
+                aname -> touch_event_handler -> attrib
               val uri_attrib : aname -> uri wrap -> attrib
               val uris_attrib : aname -> uri list wrap -> attrib
               type elt = Xml_shared.elt
               type ename = string
               val empty : unit -> elt
               val comment : string -> elt
-              val txt : string wrap -> elt
-              val encodedtxt : string wrap -> elt
+              val pcdata : string wrap -> elt
+              val encodedpcdata : string wrap -> elt
               val entity : string -> elt
               val leaf : ?a:attrib list -> ename -> elt
               val node : ?a:attrib list -> ename -> elt list_wrap -> elt
@@ -3301,6 +3356,7 @@
           val a_externalRessourcesRequired :
             bool wrap -> [> `ExternalRessourcesRequired ] attrib
           val a_id : string wrap -> [> `Id ] attrib
+          val a_user_data : string -> string wrap -> [> `User_data ] attrib
           val a_xml_base : Svg_types.iri wrap -> [> `Xml_Base ] attrib
           val a_xml_lang : Svg_types.iri wrap -> [> `Xml_Lang ] attrib
           val a_xml_space :
@@ -3689,7 +3745,15 @@
             Xml.mouse_event_handler -> [> `OnMouseOut ] attrib
           val a_onmousemove :
             Xml.mouse_event_handler -> [> `OnMouseMove ] attrib
-          val txt : string wrap -> [> `TXT ] elt
+          val a_ontouchstart :
+            Xml.touch_event_handler -> [> `OnTouchStart ] attrib
+          val a_ontouchend :
+            Xml.touch_event_handler -> [> `OnTouchEnd ] attrib
+          val a_ontouchmove :
+            Xml.touch_event_handler -> [> `OnTouchMove ] attrib
+          val a_ontouchcancel :
+            Xml.touch_event_handler -> [> `OnTouchCancel ] attrib
+          val txt : string wrap -> [> Svg_types.txt ] elt
           val svg :
             ([< Svg_types.svg_attr ], [< Svg_types.svg_content ],
              [> Svg_types.svg ])
@@ -4016,6 +4080,8 @@
           val foreignObject :
             ?a:Svg_types.foreignobject_attr attrib list ->
             Xml.elt list_wrap -> [> Svg_types.foreignobject ] elt
+          val pcdata : string wrap -> [> Svg_types.txt ] elt
+          val of_seq : Xml_stream.signal Seq.t -> 'a elt list_wrap
           val tot : Xml.elt -> 'a elt
           val totl : Xml.elt list_wrap -> 'a elt list_wrap
           val toelt : 'a elt -> Xml.elt
@@ -4065,6 +4131,7 @@
           type event_handler = Xml_shared.event_handler
           type mouse_event_handler = Xml_shared.mouse_event_handler
           type keyboard_event_handler = Xml_shared.keyboard_event_handler
+          type touch_event_handler = Xml_shared.touch_event_handler
           type attrib = Xml_shared.attrib
           val float_attrib : aname -> float wrap -> attrib
           val int_attrib : aname -> int wrap -> attrib
@@ -4076,14 +4143,16 @@
             aname -> mouse_event_handler -> attrib
           val keyboard_event_handler_attrib :
             aname -> keyboard_event_handler -> attrib
+          val touch_event_handler_attrib :
+            aname -> touch_event_handler -> attrib
           val uri_attrib : aname -> uri wrap -> attrib
           val uris_attrib : aname -> uri list wrap -> attrib
           type elt = Xml_shared.elt
           type ename = string
           val empty : unit -> elt
           val comment : string -> elt
-          val txt : string wrap -> elt
-          val encodedtxt : string wrap -> elt
+          val pcdata : string wrap -> elt
+          val encodedpcdata : string wrap -> elt
           val entity : string -> elt
           val leaf : ?a:attrib list -> ename -> elt
           val node : ?a:attrib list -> ename -> elt list_wrap -> elt
@@ -4124,6 +4193,7 @@
       val a_externalRessourcesRequired :
         bool wrap -> [> `ExternalRessourcesRequired ] attrib
       val a_id : string wrap -> [> `Id ] attrib
+      val a_user_data : string -> string wrap -> [> `User_data ] attrib
       val a_xml_base : Svg_types.iri wrap -> [> `Xml_Base ] attrib
       val a_xml_lang : Svg_types.iri wrap -> [> `Xml_Lang ] attrib
       val a_xml_space :
@@ -4161,8 +4231,8 @@
         [< `End | `Inherit | `Middle | `Start ] wrap ->
         [> `Text_Anchor ] attrib
       val a_text_decoration :
-        [< `Blink | `Inherit | `Line_through | `None | `Overline | `Underline ]
-        wrap -> [> `Text_Decoration ] attrib
+        [< `Blink | `Inherit | `Line_through | `None | `Overline | `Underline
+        ] wrap -> [> `Text_Decoration ] attrib
       val a_text_rendering :
         [< `Auto
          | `GeometricPrecision
@@ -4204,8 +4274,8 @@
       val a_fx : Svg_types.coord wrap -> [> `Fx ] attrib
       val a_fy : Svg_types.coord wrap -> [> `Fy ] attrib
       val a_offset :
-        [< `Number of Svg_types.number | `Percentage of Svg_types.percentage ]
-        wrap -> [> `Offset ] attrib
+        [< `Number of Svg_types.number | `Percentage of Svg_types.percentage
+        ] wrap -> [> `Offset ] attrib
       val a_patternUnits :
         [< `ObjectBoundingBox | `UserSpaceOnUse ] wrap ->
         [> `PatternUnits ] attrib
@@ -4477,6 +4547,13 @@
       val a_onmouseover : Xml.mouse_event_handler -> [> `OnMouseOver ] attrib
       val a_onmouseout : Xml.mouse_event_handler -> [> `OnMouseOut ] attrib
       val a_onmousemove : Xml.mouse_event_handler -> [> `OnMouseMove ] attrib
+      val a_ontouchstart :
+        Xml.touch_event_handler -> [> `OnTouchStart ] attrib
+      val a_ontouchend : Xml.touch_event_handler -> [> `OnTouchEnd ] attrib
+      val a_ontouchmove : Xml.touch_event_handler -> [> `OnTouchMove ] attrib
+      val a_ontouchcancel :
+        Xml.touch_event_handler -> [> `OnTouchCancel ] attrib
+      val txt : string wrap -> [> Svg_types.txt ] elt
       val svg :
         ([< Svg_types.svg_attr ], [< Svg_types.svg_content ],
          [> Svg_types.svg ])
@@ -4787,6 +4864,7 @@
       val foreignObject :
         ?a:Svg_types.foreignobject_attr attrib list ->
         Xml.elt list_wrap -> [> Svg_types.foreignobject ] elt
+      val of_seq : Xml_stream.signal Seq.t -> 'a elt list_wrap
       val tot : Xml.elt -> 'a elt
       val totl : Xml.elt list_wrap -> 'a elt list_wrap
       val toelt : 'a elt -> Xml.elt
@@ -4808,7 +4886,7 @@
           val space_sep_attrib : string -> string list wrap -> 'a attrib
           val comma_sep_attrib : string -> string list wrap -> 'a attrib
         end
-      val txt : string Eliom_content.Xml.W.t -> [> `Unimplemented ]
+      val pcdata : string Eliom_content.Xml.W.t -> [> `Unimplemented ]
       val node :
         'a Eliom_content.Svg.elt Eliom_shared.React.S.t ->
         'a Eliom_content.Svg.elt
@@ -4840,9 +4918,10 @@
     sig
       val pp_elt :
         ?encode:(string -> string) ->
-        unit -> Format.formatter -> 'a elt -> unit
+        ?indent:bool -> unit -> Format.formatter -> 'a elt -> unit
       val pp :
         ?encode:(string -> string) ->
+        ?indent:bool ->
         ?advert:string -> unit -> Format.formatter -> F.doc -> unit
     end
 end >>

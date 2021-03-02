@@ -508,6 +508,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_injection"| value Eliom_client_core.Syntax_helpers.get_injection >> ~[<<a_api subproject="client" | module Eliom_client_core.Syntax_helpers >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_nl_params_names"| value Eliom_parameter_sigs.S.get_nl_params_names >> ~[<<a_api subproject="client" | module Eliom_parameter_sigs.S >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_node"| value Eliom_client_core.ReactState.get_node >> ~[<<a_api subproject="client" | module Eliom_client_core.ReactState >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_non_localized_get_parameters"| value Eliom_parameter.get_non_localized_get_parameters >> ~[<<a_api subproject="client" | module Eliom_parameter >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_prop"| value Eliom_client_core.get_prop >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_ssl"| value Eliom_lib.Url.get_ssl >> ~[<<a_api subproject="client" | module Eliom_lib.Url >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_state"| value Eliom_client_core.get_state >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
@@ -555,6 +556,9 @@
 |@@ @style="tet-align: left;"@@\\I|
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="id_of_int"| value Eliom_unwrap.id_of_int >> ~[<<a_api subproject="client" | module Eliom_unwrap >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="image_input"| value Eliom_form_sigs.S.image_input >> ~[<<a_api subproject="client" | module Eliom_form_sigs.S >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~."~>>> tag~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="inactive"| value Eliom_client.Page_status.Events.inactive >> ~[<<a_api subproject="client" | module Eliom_client.Page_status.Events >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|inactive>> occurs when the <<span class="odocwiki_inlinecode"|~Active>> state is left ~(<<span class="odocwiki_inlinecode"|~Cached>> or <<span class="odocwiki_inlinecode"|~Dead>>~)
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="init_client_app"| value Eliom_client.init_client_app >> ~[<<a_api subproject="client" | module Eliom_client >>~]|<<div class="odocwiki_info"|~Call this function if you want to be able to run your client side
@@ -664,6 +668,7 @@
     from server~.
 >>
 |
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="lock_request_handling"| value Eliom_client.lock_request_handling >> ~[<<a_api subproject="client" | module Eliom_client >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="log_section"| value Eliom_client_core.log_section >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="lwt_get_form"| value Eliom_form_sigs.S.lwt_get_form >> ~[<<a_api subproject="client" | module Eliom_form_sigs.S >>~]|<<div class="odocwiki_info"|~Same as <<a_api subproject="client" | val Eliom_form_sigs.S.get_form >> but taking a cooperative function for
       <<span class="odocwiki_inlinecode"|~<form~>>> content generation~.
@@ -832,11 +837,13 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_element"| value Eliom_content.Svg.To_dom.of_element >> ~[<<a_api subproject="client" | module Eliom_content.Svg.To_dom >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_json"| value Eliom_lib.of_json >> ~[<<a_api subproject="client" | module Eliom_lib >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_node"| value Eliom_content.Svg.To_dom.of_node >> ~[<<a_api subproject="client" | module Eliom_content.Svg.To_dom >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_txt"| value Eliom_content.Svg.To_dom.of_txt >> ~[<<a_api subproject="client" | module Eliom_content.Svg.To_dom >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_pcdata"| value Eliom_content.Svg.To_dom.of_pcdata >> ~[<<a_api subproject="client" | module Eliom_content.Svg.To_dom >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="offsetHeight"| value Eliom_content.Html.Manip.Attr.offsetHeight >> ~[<<a_api subproject="client" | module Eliom_content.Html.Manip.Attr >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="offsetWidth"| value Eliom_content.Html.Manip.Attr.offsetWidth >> ~[<<a_api subproject="client" | module Eliom_content.Html.Manip.Attr >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="onabort"| value Eliom_content.Html.Manip.Ev.onabort >> ~[<<a_api subproject="client" | module Eliom_content.Html.Manip.Ev >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="onactive"| value Eliom_client.Page_status.onactive >> ~[<<a_api subproject="client" | module Eliom_client.Page_status >>~]|<<div class="odocwiki_info"|convenience function that attaches a handler to <<span class="odocwiki_inlinecode"|~Events~.active>>~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="onactive"| value Eliom_client.Page_status.onactive >> ~[<<a_api subproject="client" | module Eliom_client.Page_status >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|onactive>> is convenience function that attaches a handler to
+      <<span class="odocwiki_inlinecode"|~Events~.active>>~, which behaves exactly like <<span class="odocwiki_inlinecode"|fun f ~-~> ~React~.~E~.map f
+      ~Events~.active>>~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="onbeforeunload"| value Eliom_client.onbeforeunload >> ~[<<a_api subproject="client" | module Eliom_client >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|onbeforeunload f>> registers <<span class="odocwiki_inlinecode"|f>> as a handler to be called before
@@ -858,6 +865,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="onerror"| value Eliom_content.Html.Manip.Ev.onerror >> ~[<<a_api subproject="client" | module Eliom_content.Html.Manip.Ev >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="onfocus"| value Eliom_content.Html.Manip.Ev.onfocus >> ~[<<a_api subproject="client" | module Eliom_content.Html.Manip.Ev >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="onfocus_textarea"| value Eliom_content.Html.Manip.Ev.onfocus_textarea >> ~[<<a_api subproject="client" | module Eliom_content.Html.Manip.Ev >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="oninactive"| value Eliom_client.Page_status.oninactive >> ~[<<a_api subproject="client" | module Eliom_client.Page_status >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="onkeydown"| value Eliom_content.Html.Manip.Ev.onkeydown >> ~[<<a_api subproject="client" | module Eliom_content.Html.Manip.Ev >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="onkeyup"| value Eliom_content.Html.Manip.Ev.onkeyup >> ~[<<a_api subproject="client" | module Eliom_content.Html.Manip.Ev >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="onload"| value Eliom_content.Html.Manip.Ev.onload >> ~[<<a_api subproject="client" | module Eliom_content.Html.Manip.Ev >>~]||
@@ -944,7 +952,7 @@
       <<span class="odocwiki_inlinecode"|post~_params>>~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="preapply"| value Eliom_service_sigs.S.preapply >> ~[<<a_api subproject="client" | module Eliom_service_sigs.S >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|preapply ~~service paramaters>> creates a new
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="preapply"| value Eliom_service_sigs.S.preapply >> ~[<<a_api subproject="client" | module Eliom_service_sigs.S >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|preapply ~~service parameters>> creates a new
       service by preapplying <<span class="odocwiki_inlinecode"|service>> to the ~G~E~T <<span class="odocwiki_inlinecode"|parameters>>~.
 >>
 |
@@ -1186,7 +1194,7 @@
       <<span class="odocwiki_inlinecode"|v>> seconds between two requests~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="set_time_between_requests_when_idle"| value Eliom_comet.Configuration.set_time_between_requests_when_idle >> ~[<<a_api subproject="client" | module Eliom_comet.Configuration >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|set~_time~_between~_requests~_when~_idle c ~(a~, b~)>> sets the time
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="set_time_between_requests_when_idle"| value Eliom_comet.Configuration.set_time_between_requests_when_idle >> ~[<<a_api subproject="client" | module Eliom_comet.Configuration >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|set~_time~_between~_requests~_when~_idle t ~(a~, b~, c~)>> sets the time
       between two requests when the the windows does not have the focus~,
       after the timeout~.
 >>
@@ -1286,6 +1294,7 @@
       have any parameters
 >>
 |
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="unlock_request_handling"| value Eliom_client.unlock_request_handling >> ~[<<a_api subproject="client" | module Eliom_client >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="unmarshal_js"| value Eliom_lib.unmarshal_js >> ~[<<a_api subproject="client" | module Eliom_lib >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="unwrap_client_value"| value Eliom_client_core.unwrap_client_value >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="unwrap_global_data"| value Eliom_client_core.unwrap_global_data >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
@@ -1319,6 +1328,10 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="visibility"| value Eliom_content.Html.Manip.Css.visibility >> ~[<<a_api subproject="client" | module Eliom_content.Html.Manip.Css >>~]||
 |@@ @style="tet-align: left;"@@\\W|
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="wait_load_end"| value Eliom_client.wait_load_end >> ~[<<a_api subproject="client" | module Eliom_client >>~]|<<div class="odocwiki_info"|~Wait for the initialization phase to terminate
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="while_active"| value Eliom_client.Page_status.while_active >> ~[<<a_api subproject="client" | module Eliom_client.Page_status >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|while~_active>> initiates an action as <<span class="odocwiki_inlinecode"|onactive>> but cancels it whenever
+      the page is not active anymore~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="whiteSpace"| value Eliom_content.Html.Manip.SetCss.whiteSpace >> ~[<<a_api subproject="client" | module Eliom_content.Html.Manip.SetCss >>~]||

@@ -53,6 +53,18 @@
   type ('get, 'post, 'meth, 'attached, 'co, 'ext, 'reg, +'a, 'gn, 'pn, 'ret)
        t
     constraint 'a = [< `WithSuffix | `WithoutSuffix ]
+  and result =
+      No_contents
+    | Dom of Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+    | Redirect :
+        (unit, unit, get, 'a, 'b, 'c, 'd, [ `WithoutSuffix ], unit, unit,
+         non_ocaml)
+        t -> result
+    | Reload_action of { hidden : bool; https : bool; }
+  type unit_service =
+      (unit, unit, get, att, non_co, non_ext, non_reg, [ `WithoutSuffix ],
+       unit, unit, non_ocaml)
+      t
   type (_, _, _) path_option =
       Path : Eliom_lib.Url.path -> (att, non_co, 'a) path_option
     | No_path : (non_att, co, unit) path_option
@@ -178,7 +190,7 @@
   val client_fun :
     ('a, 'b, 'c, 'd, 'e, 'f, 'g, [< `WithSuffix | `WithoutSuffix ], 'h, 'i,
      'j)
-    t -> ('a -> 'b -> unit Lwt.t) Eliom_client_value.t option
+    t -> ('a -> 'b -> result Lwt.t) Eliom_client_value.t option
   val has_client_fun :
     ('a, 'b, 'c, 'd, 'e, 'f, 'g, [< `WithSuffix | `WithoutSuffix ], 'h, 'i,
      'j)
@@ -217,13 +229,13 @@
     service:('a, 'b, 'c, 'd, 'e, 'f, 'g, [< `WithSuffix | `WithoutSuffix ],
              'h, 'i, 'j)
             t ->
-    ('a -> 'b -> unit Lwt.t) Eliom_client_value.t -> unit
+    ('a -> 'b -> result Lwt.t) Eliom_client_value.t -> unit
   val set_client_fun :
     ?app:string ->
     service:('a, 'b, 'c, 'd, 'e, 'f, 'g, [< `WithSuffix | `WithoutSuffix ],
              'h, 'i, 'j)
             t ->
-    ('a -> 'b -> unit Lwt.t) -> unit
+    ('a -> 'b -> result Lwt.t) -> unit
   val reset_reload_fun :
     ('a, 'b, 'c, 'd, 'e, 'f, 'g, [< `WithSuffix | `WithoutSuffix ], 'h, 'i,
      'j)
@@ -237,5 +249,5 @@
   val reload_fun :
     ('a, 'b, 'c, 'd, 'e, 'f, 'g, [< `WithSuffix | `WithoutSuffix ], 'h, 'i,
      'j)
-    t -> ('a -> unit -> unit Lwt.t) Eliom_client_value.t option
+    t -> ('a -> unit -> result Lwt.t) Eliom_client_value.t option
 end >>

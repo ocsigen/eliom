@@ -18,11 +18,18 @@
   val string_of_uri : (uri, string) W.ft
   val uri_of_string : (string, uri) W.ft
   type aname = string
-  type event_handler = (Dom_html.event Js.t -> unit) Eliom_client_value.t
+  type event_handler =
+      (Js_of_ocaml.Dom_html.event Js_of_ocaml.Js.t -> unit)
+      Eliom_client_value.t
   type mouse_event_handler =
-      (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
+      (Js_of_ocaml.Dom_html.mouseEvent Js_of_ocaml.Js.t -> unit)
+      Eliom_client_value.t
   type keyboard_event_handler =
-      (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
+      (Js_of_ocaml.Dom_html.keyboardEvent Js_of_ocaml.Js.t -> unit)
+      Eliom_client_value.t
+  type touch_event_handler =
+      (Js_of_ocaml.Dom_html.touchEvent Js_of_ocaml.Js.t -> unit)
+      Eliom_client_value.t
   type attrib
   val float_attrib : aname -> float wrap -> attrib
   val int_attrib : aname -> int wrap -> attrib
@@ -33,14 +40,15 @@
   val mouse_event_handler_attrib : aname -> mouse_event_handler -> attrib
   val keyboard_event_handler_attrib :
     aname -> keyboard_event_handler -> attrib
+  val touch_event_handler_attrib : aname -> touch_event_handler -> attrib
   val uri_attrib : aname -> uri wrap -> attrib
   val uris_attrib : aname -> uri list wrap -> attrib
   type elt
   type ename = string
   val empty : unit -> elt
   val comment : string -> elt
-  val txt : string wrap -> elt
-  val encodedtxt : string wrap -> elt
+  val pcdata : string wrap -> elt
+  val encodedpcdata : string wrap -> elt
   val entity : string -> elt
   val leaf : ?a:attrib list -> ename -> elt
   val node : ?a:attrib list -> ename -> elt list_wrap -> elt

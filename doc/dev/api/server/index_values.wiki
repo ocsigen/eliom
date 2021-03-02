@@ -206,6 +206,10 @@
     before entering the bus~.
 >>
 |
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="create_from_events"| value Eliom_comet.Channel.create_from_events >> ~[<<a_api subproject="server" | module Eliom_comet.Channel >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|create~_from~_events e>> returns a channel sending the values returned
+      by the event stream <<span class="odocwiki_inlinecode"|e>>~.
+>>
+|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="create_global_elt"| value Eliom_content.Html.Id.create_global_elt >> ~[<<a_api subproject="server" | module Eliom_content.Html.Id >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|create~_named~_elt elt>> is equivalent to
         <<span class="odocwiki_inlinecode"|create~_named~_elt ~~id~:~(new~_elt~_id ~(~)~) elt>>~.
 >>
@@ -300,7 +304,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="discard_everything"| value Eliom_state.discard_everything >> ~[<<a_api subproject="server" | module Eliom_state >>~]|<<div class="odocwiki_info"|~Discard all services and persistent and volatile data for every scopes~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="discard_services"| value Eliom_state.discard_services >> ~[<<a_api subproject="server" | module Eliom_state >>~]|<<div class="odocwiki_info"|~Remove all services registered for the given scope ~(the default beeing
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="discard_services"| value Eliom_state.discard_services >> ~[<<a_api subproject="server" | module Eliom_state >>~]|<<div class="odocwiki_info"|~Remove all services registered for the given scope ~(the default being
     <<span class="odocwiki_inlinecode"|`~Session>>~)~.
 >>
 |
@@ -398,7 +402,7 @@
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="fold_sub_states"| value Eliom_state.Ext.fold_sub_states >> ~[<<a_api subproject="server" | module Eliom_state.Ext >>~]|<<div class="odocwiki_info"|~Fold all sessions in a groups~, or all client processes in a session
-      ~(volatile and persistant~)~.
+      ~(volatile and persistent~)~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="fold_volatile_data_cookies"| value Eliom_state.Ext.fold_volatile_data_cookies >> ~[<<a_api subproject="server" | module Eliom_state.Ext >>~]|<<div class="odocwiki_info"|~Iterator on data cookies~.
@@ -623,6 +627,9 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_remote_ip"| value Eliom_request_info.get_remote_ip >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns the internet address of the client as a string
 >>
 |
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_remote_port"| value Eliom_request_info.get_remote_port >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns client~'s port
+>>
+|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_request"| value Eliom_request_info.get_request >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns all the information about the request and config~.
 >>
 |
@@ -741,6 +748,9 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="image_input"| value Eliom_form_sigs.S.image_input >> ~[<<a_api subproject="server" | module Eliom_form_sigs.S >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input type~="image" name~="~.~.~."~>>> tag~.
 >>
 |
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="in_request_handler"| value Eliom_request_info.in_request_handler >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns <<span class="odocwiki_inlinecode"|true>> when currently handling a request~.
+>>
+|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="init"| value Eliom_notif.S.init >> ~[<<a_api subproject="server" | module Eliom_notif.S >>~]|<<div class="odocwiki_info"|~Initialise the notification module for the current client~.
 >>
 |
@@ -777,7 +787,7 @@
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="iter_sub_states"| value Eliom_state.Ext.iter_sub_states >> ~[<<a_api subproject="server" | module Eliom_state.Ext >>~]|<<div class="odocwiki_info"|~Iter on all sessions in a groups~, or all client processes in a session
-      ~(volatile and persistant~)~.
+      ~(volatile and persistent~)~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="iter_volatile_data_cookies"| value Eliom_state.Ext.iter_volatile_data_cookies >> ~[<<a_api subproject="server" | module Eliom_state.Ext >>~]|<<div class="odocwiki_info"|~Iterator on data cookies~.
@@ -959,12 +969,12 @@
     by a given specification ~(cf~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="txt"| value Eliom_content.Html.R.txt >> ~[<<a_api subproject="server" | module Eliom_content.Html.R >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|txt s>> produces a node of type
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="pcdata"| value Eliom_content.Html.R.pcdata >> ~[<<a_api subproject="server" | module Eliom_content.Html.R >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|pcdata s>> produces a node of type
         <<span class="odocwiki_inlinecode"|~[~> ~Html~_types~.span~] elt>>
         out of the string signal <<span class="odocwiki_inlinecode"|s>>~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="txt"| value Eliom_content.Svg.R.txt >> ~[<<a_api subproject="server" | module Eliom_content.Svg.R >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|txt>> is not implemented reactively for ~S~V~G~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="pcdata"| value Eliom_content.Svg.R.pcdata >> ~[<<a_api subproject="server" | module Eliom_content.Svg.R >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|pcdata>> is not implemented reactively for ~S~V~G~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="persistent_data_group_state"| value Eliom_state.Ext.persistent_data_group_state >> ~[<<a_api subproject="server" | module Eliom_state.Ext >>~]|<<div class="odocwiki_info"|~Same for persistent data
@@ -976,7 +986,7 @@
       <<span class="odocwiki_inlinecode"|post~_params>>~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="preapply"| value Eliom_service_sigs.S.preapply >> ~[<<a_api subproject="server" | module Eliom_service_sigs.S >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|preapply ~~service paramaters>> creates a new
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="preapply"| value Eliom_service_sigs.S.preapply >> ~[<<a_api subproject="server" | module Eliom_service_sigs.S >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|preapply ~~service parameters>> creates a new
       service by preapplying <<span class="odocwiki_inlinecode"|service>> to the ~G~E~T <<span class="odocwiki_inlinecode"|parameters>>~.
 >>
 |
@@ -1001,8 +1011,8 @@
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="regexp"| value Eliom_parameter.regexp >> ~[<<a_api subproject="server" | module Eliom_parameter >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|regexp r d s>> tells that the service takes a string that matches
-    the regular expression <<span class="odocwiki_inlinecode"|r>> as parameter~, labeled <<span class="odocwiki_inlinecode"|s>>~, and that will
-    be rewritten in d~.
+   the regular expression <<span class="odocwiki_inlinecode"|r>> as parameter~, labeled <<span class="odocwiki_inlinecode"|s>>~, and that will
+   be rewritten in d~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="register"| value Eliom_registration_sigs.S_poly.register >> ~[<<a_api subproject="server" | module Eliom_registration_sigs.S_poly >>~]|<<div class="odocwiki_info"|~See <<a_api subproject="server" | val Eliom_registration_sigs.S.register >>~.

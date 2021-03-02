@@ -21,17 +21,19 @@
   type event_handler
   type mouse_event_handler
   type keyboard_event_handler
+  type touch_event_handler
   type attrib = Xml.attrib
   val event_handler_attrib : aname -> event_handler -> attrib
   val mouse_event_handler_attrib : aname -> mouse_event_handler -> attrib
   val keyboard_event_handler_attrib :
     aname -> keyboard_event_handler -> attrib
+  val touch_event_handler_attrib : aname -> touch_event_handler -> attrib
   type elt = Xml.elt
   type ename = string
   val empty : unit -> elt
   val comment : string -> elt
-  val txt : string wrap -> elt
-  val encodedtxt : string wrap -> elt
+  val pcdata : string wrap -> elt
+  val encodedpcdata : string wrap -> elt
   val entity : string -> elt
   val leaf : ?a:attrib list -> ename -> elt
   val cdata : string -> elt

@@ -20,9 +20,14 @@
   type attrib
   type caml_event_handler =
       CE_registered_closure of string * Eliom_lib.poly
-    | CE_client_closure of (Dom_html.event Js.t -> unit)
-    | CE_client_closure_mouse of (Dom_html.mouseEvent Js.t -> unit)
-    | CE_client_closure_keyboard of (Dom_html.keyboardEvent Js.t -> unit)
+    | CE_client_closure of
+        (Js_of_ocaml.Dom_html.event Js_of_ocaml.Js.t -> unit)
+    | CE_client_closure_mouse of
+        (Js_of_ocaml.Dom_html.mouseEvent Js_of_ocaml.Js.t -> unit)
+    | CE_client_closure_keyboard of
+        (Js_of_ocaml.Dom_html.keyboardEvent Js_of_ocaml.Js.t -> unit)
+    | CE_client_closure_touch of
+        (Js_of_ocaml.Dom_html.touchEvent Js_of_ocaml.Js.t -> unit)
     | CE_call_service of
         ([ `A | `Form_get | `Form_post ] * (bool * string list) option *
          string option * Ocsigen_lib.poly)
@@ -30,9 +35,13 @@
   type internal_event_handler =
       Raw of string
     | Caml of Eliom_content_core.Xml.caml_event_handler
-  type event_handler = Dom_html.event Js.t -> unit
-  type mouse_event_handler = Dom_html.mouseEvent Js.t -> unit
-  type keyboard_event_handler = Dom_html.keyboardEvent Js.t -> unit
+  type event_handler = Js_of_ocaml.Dom_html.event Js_of_ocaml.Js.t -> unit
+  type mouse_event_handler =
+      Js_of_ocaml.Dom_html.mouseEvent Js_of_ocaml.Js.t -> unit
+  type keyboard_event_handler =
+      Js_of_ocaml.Dom_html.keyboardEvent Js_of_ocaml.Js.t -> unit
+  type touch_event_handler =
+      Js_of_ocaml.Dom_html.touchEvent Js_of_ocaml.Js.t -> unit
   type ename = string
   type elt
   type 'a wrap = 'a
@@ -40,8 +49,8 @@
   type econtent = private
       Empty
     | Comment of string
-    | EncodedTXT of string
-    | TXT of string
+    | EncodedPCDATA of string
+    | PCDATA of string
     | Entity of string
     | Leaf of Eliom_content_core.Xml.ename *
         Eliom_content_core.Xml.attrib list
@@ -99,6 +108,10 @@
     Eliom_content_core.Xml.aname ->
     Eliom_content_core.Xml.keyboard_event_handler ->
     Eliom_content_core.Xml.attrib
+  val touch_event_handler_attrib :
+    Eliom_content_core.Xml.aname ->
+    Eliom_content_core.Xml.touch_event_handler ->
+    Eliom_content_core.Xml.attrib
   val uri_attrib :
     Eliom_content_core.Xml.aname ->
     Eliom_content_core.Xml.uri -> Eliom_content_core.Xml.attrib
@@ -106,8 +119,8 @@
     Eliom_content_core.Xml.aname ->
     Eliom_content_core.Xml.uri list -> Eliom_content_core.Xml.attrib
   val content : Eliom_content_core.Xml.elt -> Eliom_content_core.Xml.econtent
-  val txt : string -> Eliom_content_core.Xml.elt
-  val encodedtxt : string -> Eliom_content_core.Xml.elt
+  val pcdata : string -> Eliom_content_core.Xml.elt
+  val encodedpcdata : string -> Eliom_content_core.Xml.elt
   val entity : string -> Eliom_content_core.Xml.elt
   val empty : unit -> Eliom_content_core.Xml.elt
   val comment : string -> Eliom_content_core.Xml.elt
@@ -133,7 +146,7 @@
     Eliom_content_core.Xml.econtent -> Eliom_content_core.Xml.elt
   val make_dom :
     ?id:Eliom_content_core.Xml.node_id ->
-    Dom.node Js.t -> Eliom_content_core.Xml.elt
+    Js_of_ocaml.Dom.node Js_of_ocaml.Js.t -> Eliom_content_core.Xml.elt
   val make_lazy :
     ?id:Eliom_content_core.Xml.node_id ->
     Eliom_content_core.Xml.elt lazy_t -> Eliom_content_core.Xml.elt
@@ -148,13 +161,15 @@
   val get_node_id :
     Eliom_content_core.Xml.elt -> Eliom_content_core.Xml.node_id
   type node =
-      DomNode of Dom.node Js.t
+      DomNode of Js_of_ocaml.Dom.node Js_of_ocaml.Js.t
     | TyXMLNode of Eliom_content_core.Xml.econtent
     | ReactNode of Eliom_content_core.Xml.elt React.signal
     | ReactChildren of Eliom_content_core.Xml.econtent *
         Eliom_content_core.Xml.elt ReactiveData.RList.t
   val get_node : Eliom_content_core.Xml.elt -> Eliom_content_core.Xml.node
-  val set_dom_node : Eliom_content_core.Xml.elt -> Dom.node Js.t -> unit
+  val set_dom_node :
+    Eliom_content_core.Xml.elt ->
+    Js_of_ocaml.Dom.node Js_of_ocaml.Js.t -> unit
   val set_classes_of_elt :
     Eliom_content_core.Xml.elt -> Eliom_content_core.Xml.elt
 end >>

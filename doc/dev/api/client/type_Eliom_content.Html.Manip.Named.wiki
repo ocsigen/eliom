@@ -16,7 +16,8 @@
   val addEventListener :
     ?capture:bool ->
     'a Eliom_content.Html.Id.id ->
-    (#Dom_html.event as 'b) Js.t Dom_html.Event.typ ->
-    ('a Eliom_content.Html.elt -> 'b Js.t -> bool) ->
-    Dom_html.event_listener_id
+    (#Js_of_ocaml.Dom_html.event as 'b) Js_of_ocaml.Js.t
+    Js_of_ocaml.Dom_html.Event.typ ->
+    ('a Eliom_content.Html.elt -> 'b Js_of_ocaml.Js.t -> bool) ->
+    Js_of_ocaml.Dom_html.event_listener_id
 end >>

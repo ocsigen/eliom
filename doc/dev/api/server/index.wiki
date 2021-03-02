@@ -70,13 +70,7 @@ file~.
 |<<a_api subproject="server" | module Eliom_service >>|<<div class="odocwiki_info"|~Creation and manipulation of ~Eliom services~.
 >>
 |
-|<<a_api subproject="server" | module Eliom_parameter >>|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|user~_type ~~of~_string ~~to~_string s>> construct a parameter~, labeled
-    <<span class="odocwiki_inlinecode"|s>>~, such that the server will have to use <<span class="odocwiki_inlinecode"|of~_string>> and
-    <<span class="odocwiki_inlinecode"|to~_string>> to make the conversion between the ~O~Caml
-    representation of the parameter and it~'s representation as a
-    string~.
->>
-|
+|<<a_api subproject="server" | module Eliom_parameter >>||
 |<<a_api subproject="server" | module Eliom_registration >>|<<div class="odocwiki_info"|~Eliom services registration for various kinds of page content~:
     ~Eliom application~, valid <<a_api subproject="server" | module Eliom_registration.Html >>~, actions~, redirections~, static
     files~, ~.~.~.

@@ -226,6 +226,7 @@
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="reg"| type Eliom_service_sigs.TYPES.reg >> ~[<<a_api subproject="server" | module Eliom_service_sigs.TYPES >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="request_scope"| type Eliom_common.request_scope >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="result"| type Eliom_service_sigs.S.result >> ~[<<a_api subproject="server" | module Eliom_service_sigs.S >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="result"| type Eliom_registration_sigs.S_poly_with_create_with_send.result >> ~[<<a_api subproject="server" | module Eliom_registration_sigs.S_poly_with_create_with_send >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="result"| type Eliom_registration_sigs.S_poly_with_send.result >> ~[<<a_api subproject="server" | module Eliom_registration_sigs.S_poly_with_send >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="result"| type Eliom_registration_sigs.S.result >> ~[<<a_api subproject="server" | module Eliom_registration_sigs.S >>~]||
@@ -323,6 +324,7 @@
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="to_and_of"| type Eliom_parameter_sigs.S.to_and_of >> ~[<<a_api subproject="server" | module Eliom_parameter_sigs.S >>~]||
 |@@ @style="tet-align: left;"@@\\U|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="unit_service"| type Eliom_service_sigs.S.unit_service >> ~[<<a_api subproject="server" | module Eliom_service_sigs.S >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="unknown_content"| type Eliom_registration.unknown_content >> ~[<<a_api subproject="server" | module Eliom_registration >>~]|<<div class="odocwiki_info"|~The type <<span class="odocwiki_inlinecode"|unknown~_content>> is to be used as a phantom type
     parameter for <<a_api subproject="server" | type Eliom_registration.kind >> when the content~-type
     can~'t be determined statically~.
@@ -346,7 +348,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="wrap"| type Eliom_content.Svg.wrap >> ~[<<a_api subproject="server" | module Eliom_content.Svg >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="wrapped_value"| type Eliom_wrap.wrapped_value >> ~[<<a_api subproject="server" | module Eliom_wrap >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="wrapper"| type Eliom_wrap.wrapper >> ~[<<a_api subproject="server" | module Eliom_wrap >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|~'a wrapper>> is the type of values to include into a value of type ~'a for
-   it to be wraped specificaly
+   it to be wrapped specifically
 >>
 |
 \\

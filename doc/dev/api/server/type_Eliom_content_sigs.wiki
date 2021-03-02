@@ -200,10 +200,11 @@
             ?value:string -> unit -> [> Html_types.textarea ] elt
           type 'a soption =
               Html_types.option_attrib attrib list * 'a *
-              Html_types.txt elt option * bool
+              Html_types.pcdata elt option * bool
           type 'a select_opt =
               Optgroup of
                 [ `Accesskey
+                | `Aria
                 | `Class
                 | `Contenteditable
                 | `Contextmenu
@@ -265,8 +266,13 @@
                 | `OnSubmit
                 | `OnSuspend
                 | `OnTimeUpdate
+                | `OnTouchCancel
+                | `OnTouchEnd
+                | `OnTouchMove
+                | `OnTouchStart
                 | `OnVolumeChange
                 | `OnWaiting
+                | `Role
                 | `Spellcheck
                 | `Style_Attr
                 | `Tabindex
@@ -278,13 +284,13 @@
             | Option of 'a soption
           val select :
             ?a:[< Html_types.select_attrib ] attrib list ->
-            ?required:Html_types.txt elt ->
+            ?required:Html_types.pcdata elt ->
             name:[ `One of 'a ] Eliom_parameter.param_name ->
             'a param ->
             'a select_opt -> 'a select_opt list -> [> Html_types.select ] elt
           val multiple_select :
             ?a:[< Html_types.select_attrib ] attrib list ->
-            ?required:Html_types.txt elt ->
+            ?required:Html_types.pcdata elt ->
             name:[ `Set of 'a ] Eliom_parameter.param_name ->
             'a param ->
             'a select_opt -> 'a select_opt list -> [> Html_types.select ] elt

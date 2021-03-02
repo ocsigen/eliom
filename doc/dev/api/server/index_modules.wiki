@@ -22,7 +22,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Channel"| module Eliom_comet.Channel >> ~[<<a_api subproject="server" | module Eliom_comet >>~]|<<div class="odocwiki_info"|~Basic primitives needed for server push~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Cookies"| module Eliom_cookie.Cookies >> ~[<<a_api subproject="server" | module Eliom_cookie >>~]|<<div class="odocwiki_info"|~Map adressed by ~U~R~L path~, used for <<a_api subproject="server" | type Eliom_cookie.cookieset >>~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Cookies"| module Eliom_cookie.Cookies >> ~[<<a_api subproject="server" | module Eliom_cookie >>~]|<<div class="odocwiki_info"|~Map addressed by ~U~R~L path~, used for <<a_api subproject="server" | type Eliom_cookie.cookieset >>~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="CssText"| module Eliom_registration.CssText >> ~[<<a_api subproject="server" | module Eliom_registration >>~]|<<div class="odocwiki_info"|~Eliom service registration for services that returns ~C~S~S~.
@@ -86,11 +86,7 @@ file~.
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_extension"| module Eliom_extension >> |<<div class="odocwiki_info"|~Allows ~Ocsigen~'s extension to access ~Eliom data~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_form_sigs"| module Eliom_form_sigs >> |<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|make~_uri service get~_params>> returns the ~U~R~L of
-      the service <<span class="odocwiki_inlinecode"|service>> applied to the ~G~E~T parameters
-      <<span class="odocwiki_inlinecode"|get~_params>>~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_form_sigs"| module Eliom_form_sigs >> ||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_lib"| module Eliom_lib >> |<<div class="odocwiki_info"|~A few common functions used by ~Eliom~.
 >>
 |
@@ -102,13 +98,7 @@ file~.
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_notif"| module Eliom_notif >> |<<div class="odocwiki_info"|~Server to client notifications~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_parameter"| module Eliom_parameter >> |<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|user~_type ~~of~_string ~~to~_string s>> construct a parameter~, labeled
-    <<span class="odocwiki_inlinecode"|s>>~, such that the server will have to use <<span class="odocwiki_inlinecode"|of~_string>> and
-    <<span class="odocwiki_inlinecode"|to~_string>> to make the conversion between the ~O~Caml
-    representation of the parameter and it~'s representation as a
-    string~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_parameter"| module Eliom_parameter >> ||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_parameter_sigs"| module Eliom_parameter_sigs >> |<<div class="odocwiki_info"|~Ad~-hoc runtime type representation for service parameters~.
 >>
 |
@@ -125,10 +115,7 @@ file~.
     files~, ~.~.~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_registration_sigs"| module Eliom_registration_sigs >> |<<div class="odocwiki_info"|~Whether the service is capable of sending application content
-      when required~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_registration_sigs"| module Eliom_registration_sigs >> ||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_request_info"| module Eliom_request_info >> |<<div class="odocwiki_info"|~This module contains the functions you need to get ~(or set~)
     information about current request~.
 >>
@@ -136,9 +123,7 @@ file~.
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_service"| module Eliom_service >> |<<div class="odocwiki_info"|~Creation and manipulation of ~Eliom services~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_service_sigs"| module Eliom_service_sigs >> |<<div class="odocwiki_info"|~Auxilliary service~-related types
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_service_sigs"| module Eliom_service_sigs >> ||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_shared"| module Eliom_shared >> |<<div class="odocwiki_info"|~This module implements shared ~(i~.e~.~, client~-server~) versions of
     the ~React and ~Reactive~Data libraries~.
 >>
@@ -149,10 +134,7 @@ file~.
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_state"| module Eliom_state >> |<<div class="odocwiki_info"|~Storing server~-side values for your applications or sessions~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_syntax"| module Eliom_syntax >> |<<div class="odocwiki_info"|~Registers a client value datum for the next server section when
-    executed in a global~_data ~(cf~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_syntax"| module Eliom_syntax >> ||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_tmpl"| module Eliom_registration.Eliom_tmpl >> ~[<<a_api subproject="server" | module Eliom_registration >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_tools"| module Eliom_tools >> |<<div class="odocwiki_info"|~Helpers for ~(hierarchical~) menu generation in ~H~T~M~L~5~.
 >>
@@ -163,10 +145,7 @@ file~.
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_uri"| module Eliom_uri >> |<<div class="odocwiki_info"|~Low~-level functions for relative or absolute ~U~R~L calculation~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_wrap"| module Eliom_wrap >> |<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|~'a wrapper>> is the type of values to include into a value of type ~'a for
-   it to be wraped specificaly
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_wrap"| module Eliom_wrap >> ||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Ext"| module Eliom_state.Ext >> ~[<<a_api subproject="server" | module Eliom_state >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Ext"| module Eliom_reference.Ext >> ~[<<a_api subproject="server" | module Eliom_reference >>~]|<<div class="odocwiki_info"|~This module allows access to references for other groups~,
     sessions~, or client processes~.

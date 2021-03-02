@@ -53,47 +53,28 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_client"| module Eliom_client >> |<<div class="odocwiki_info"|~Call server side services and change the current page~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_client_core"| module Eliom_client_core >> |<<div class="odocwiki_info"|~The first argument describes the calling function ~(if any~) in case
-    of an error~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_client_core"| module Eliom_client_core >> ||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_client_value"| module Eliom_client_value >> |<<div class="odocwiki_info"|~Client and shared values
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_comet"| module Eliom_comet >> |<<div class="odocwiki_info"|~Handle unsolicited server to client communications~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_config"| module Eliom_config >> |<<div class="odocwiki_info"|~Not tracing by default~.
->>
-|
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_content"| module Eliom_content >> |<<div class="odocwiki_info"|~This module provides the creation of valid ~X~M~L content~, i~.e~.
->>
-|
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_content_core"| module Eliom_content_core >> |<<div class="odocwiki_info"|~X~M~L building and deconstructing~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_config"| module Eliom_config >> ||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_content"| module Eliom_content >> ||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_content_core"| module Eliom_content_core >> ||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_content_sigs"| module Eliom_content_sigs >> ||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_cscache"| module Eliom_cscache >> |<<div class="odocwiki_info"|~Client~-server cache for ~Eliom applications~, that is used both for
     keeping data on client side or keeping values in memory during a
     request~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_form_sigs"| module Eliom_form_sigs >> |<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|make~_uri service get~_params>> returns the ~U~R~L of
-      the service <<span class="odocwiki_inlinecode"|service>> applied to the ~G~E~T parameters
-      <<span class="odocwiki_inlinecode"|get~_params>>~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_form_sigs"| module Eliom_form_sigs >> ||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_lazy"| module Eliom_lazy >> ||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_lib"| module Eliom_lib >> |<<div class="odocwiki_info"|~Eliom standard library
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_parameter"| module Eliom_parameter >> |<<div class="odocwiki_info"|~Specifying parameter as <<span class="odocwiki_inlinecode"|user~_type ~~of~_string ~~to~_string s>> tells
-    that the service take a parameter~, labeled <<span class="odocwiki_inlinecode"|s>>~, and that the
-    server will have to use <<span class="odocwiki_inlinecode"|of~_string>> and <<span class="odocwiki_inlinecode"|to~_string>> to make the
-    conversion between the ~O~Caml representation of the parameter and
-    it~'s external representation as a string~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_parameter"| module Eliom_parameter >> ||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_parameter_sigs"| module Eliom_parameter_sigs >> |<<div class="odocwiki_info"|~Ad~-hoc runtime type representation for service parameters~.
 >>
 |
@@ -103,16 +84,11 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_registration"| module Eliom_registration >> |<<div class="odocwiki_info"|~Client~-side service registration~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_registration_sigs"| module Eliom_registration_sigs >> |<<div class="odocwiki_info"|~Whether the service is capable of sending application content
-      when required~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_registration_sigs"| module Eliom_registration_sigs >> ||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_service"| module Eliom_service >> |<<div class="odocwiki_info"|~Creation and manipulation of ~Eliom services~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_service_sigs"| module Eliom_service_sigs >> |<<div class="odocwiki_info"|~Auxilliary service~-related types
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_service_sigs"| module Eliom_service_sigs >> ||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_shared"| module Eliom_shared >> |<<div class="odocwiki_info"|~This module implements shared ~(i~.e~.~, client~-server~) versions of
     the ~React and ~Reactive~Data libraries~.
 >>
@@ -124,9 +100,7 @@
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_types"| module Eliom_types >> ||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_unwrap"| module Eliom_unwrap >> |<<div class="odocwiki_info"|~Values of type <<span class="odocwiki_inlinecode"|unwrap~_id>> are used to identify a specific unwrapper~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_unwrap"| module Eliom_unwrap >> ||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_uri"| module Eliom_uri >> |<<div class="odocwiki_info"|~Low~-level functions for relative or absolute ~U~R~L calculation~.
 >>
 |

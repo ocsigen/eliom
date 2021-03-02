@@ -463,14 +463,15 @@
         Eliom_service.t
     end
   module Make_typed_xml_registration :
-    functor
-      (Xml : Xml_sigs.Iterable) (Typed_xml : sig
-                                               module Info : Xml_sigs.Info
-                                               type 'a elt
-                                               type doc
-                                               val toelt : 'a elt -> Xml.elt
-                                               val doc_toelt : doc -> Xml.elt
-                                             end) (E : sig type content end) ->
+    functor (Xml : Xml_sigs.Iterable)
+      (Typed_xml : sig
+                     module Info : Xml_sigs.Info
+                     type 'a elt
+                     type doc
+                     val toelt : 'a elt -> Xml.elt
+                     val doc_toelt : doc -> Xml.elt
+                   end)
+      (E : sig type content end) ->
       sig
         type page = E.content Typed_xml.elt list
         type options = unit
@@ -1900,13 +1901,13 @@
         Eliom_service.t
     end
   module Customize :
-    functor
-      (R : Eliom_registration_sigs.S_with_create) (T : sig
-                                                         type page
-                                                         val translate :
-                                                           Eliom_registration.Customize.page ->
-                                                           R.page Lwt.t
-                                                       end) ->
+    functor (R : Eliom_registration_sigs.S_with_create)
+      (T : sig
+             type page
+             val translate :
+               Eliom_registration.Customize.page -> R.page Lwt.t
+           end)
+      ->
       sig
         type page = T.page
         type options = R.options

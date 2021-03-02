@@ -48,8 +48,10 @@
       val replaceChildren :
         'a Eliom_content.Svg.Id.id -> 'b Eliom_content.Svg.elt list -> unit
     end
-  val childNodes : 'a Eliom_content.Svg.elt -> Dom.node Js.t list
-  val childElements : 'a Eliom_content.Svg.elt -> Dom.element Js.t list
+  val childNodes :
+    'a Eliom_content.Svg.elt -> Js_of_ocaml.Dom.node Js_of_ocaml.Js.t list
+  val childElements :
+    'a Eliom_content.Svg.elt -> Js_of_ocaml.Dom.element Js_of_ocaml.Js.t list
   module Class :
     sig
       val contain : 'a Eliom_content.Svg.elt -> string -> bool

@@ -1,10 +1,9 @@
-<<code language="ocaml" | functor
-  (R : Eliom_registration_sigs.S_with_create) (T : sig
-                                                     type page
-                                                     val translate :
-                                                       Eliom_registration.Customize.page ->
-                                                       R.page Lwt.t
-                                                   end) ->
+<<code language="ocaml" | functor (R : Eliom_registration_sigs.S_with_create)
+  (T : sig
+         type page
+         val translate : Eliom_registration.Customize.page -> R.page Lwt.t
+       end)
+  ->
   sig
     type page = T.page
     type options = R.options

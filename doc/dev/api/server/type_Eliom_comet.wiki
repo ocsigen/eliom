@@ -8,6 +8,10 @@
         ?scope:[< Eliom_comet.Channel.comet_scope ] ->
         ?name:string ->
         ?size:int -> 'a Lwt_stream.t -> 'a Eliom_comet.Channel.t
+      val create_from_events :
+        ?scope:[< Eliom_comet.Channel.comet_scope ] ->
+        ?name:string ->
+        ?size:int -> 'a React.event -> 'a Eliom_comet.Channel.t
       val create_unlimited :
         ?scope:Eliom_common.client_process_scope ->
         ?name:string -> 'a Lwt_stream.t -> 'a Eliom_comet.Channel.t

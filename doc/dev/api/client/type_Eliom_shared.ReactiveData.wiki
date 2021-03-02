@@ -19,10 +19,17 @@
       val snoc : 'a -> 'a handle -> unit
       val insert : 'a -> int -> 'a handle -> unit
       val remove : int -> 'a handle -> unit
+      val remove_last : 'a t * 'a handle -> unit
+      val remove_eq :
+        ?eq:('a -> 'a -> bool) -> 'a t * 'a handle -> 'a -> unit
       val update : 'a -> int -> 'a handle -> unit
+      val update_eq :
+        ?eq:('a -> 'a -> bool) -> 'a t * 'a handle -> 'a -> 'a -> unit
       val move : int -> int -> 'a handle -> unit
       val singleton : 'a -> 'a t
       val rev : 'a t -> 'a t
+      val filter : ('a -> bool) -> 'a t -> 'a t
+      val for_all : ('a -> bool) -> 'a t -> bool React.S.t
       val create :
         ?default:('a ReactiveData.RList.t * 'a ReactiveData.RList.handle)
                  option Eliom_client_value.t ->

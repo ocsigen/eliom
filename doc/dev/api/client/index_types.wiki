@@ -169,6 +169,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="redirection"| type Eliom_registration.redirection >> ~[<<a_api subproject="client" | module Eliom_registration >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="reg"| type Eliom_service_sigs.TYPES.reg >> ~[<<a_api subproject="client" | module Eliom_service_sigs.TYPES >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="request"| type Eliom_lazy.request >> ~[<<a_api subproject="client" | module Eliom_lazy >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="result"| type Eliom_service_sigs.S.result >> ~[<<a_api subproject="client" | module Eliom_service_sigs.S >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="result"| type Eliom_registration_sigs.S_poly_with_create_with_send.result >> ~[<<a_api subproject="client" | module Eliom_registration_sigs.S_poly_with_create_with_send >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="result"| type Eliom_registration_sigs.S_poly_with_send.result >> ~[<<a_api subproject="client" | module Eliom_registration_sigs.S_poly_with_send >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="result"| type Eliom_registration_sigs.S.result >> ~[<<a_api subproject="client" | module Eliom_registration_sigs.S >>~]||
@@ -243,8 +244,12 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="tmp_elt"| type Eliom_client_core.tmp_elt >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="tmp_recontent"| type Eliom_client_core.tmp_recontent >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="to_and_of"| type Eliom_parameter_sigs.S.to_and_of >> ~[<<a_api subproject="client" | module Eliom_parameter_sigs.S >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="touch_event_handler"| type Eliom_content_core.Xml.touch_event_handler >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml >>~]||
 |@@ @style="tet-align: left;"@@\\U|
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="unwrap_id"| type Eliom_unwrap.unwrap_id >> ~[<<a_api subproject="client" | module Eliom_unwrap >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="unit_service"| type Eliom_service_sigs.S.unit_service >> ~[<<a_api subproject="client" | module Eliom_service_sigs.S >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="unwrap_id"| type Eliom_unwrap.unwrap_id >> ~[<<a_api subproject="client" | module Eliom_unwrap >>~]|<<div class="odocwiki_info"|~Values of type <<span class="odocwiki_inlinecode"|unwrap~_id>> are used to identify a specific unwrapper~.
+>>
+|
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uri"| type Eliom_content_core.Html.uri >> ~[<<a_api subproject="client" | module Eliom_content_core.Html >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uri"| type Eliom_content_core.Svg.uri >> ~[<<a_api subproject="client" | module Eliom_content_core.Svg >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uri"| type Eliom_content.Html.uri >> ~[<<a_api subproject="client" | module Eliom_content.Html >>~]||

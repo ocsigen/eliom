@@ -8,7 +8,7 @@
 
     ~The default returned ~H~T~T~P code is <<span class="odocwiki_inlinecode"|~3~0~2 ~Found>>~. ~You could use the
     optional parameter <<span class="odocwiki_inlinecode"|~~options>> to change this value~, see
-    <<span class="odocwiki_inlinecode"|~Redirections>> for a detailled description~.
+    <<span class="odocwiki_inlinecode"|~Redirections>> for a detailed description~.
 
 ----
 <<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> <<a_api subproject="server" | module type Eliom_registration_sigs.S >>>>

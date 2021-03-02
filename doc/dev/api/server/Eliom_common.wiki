@@ -31,7 +31,7 @@
 
 
     ~You can create new scope
-    hierachies with <<a_api subproject="server" | val Eliom_common.create_scope_hierarchy >>~.
+    hierarchies with <<a_api subproject="server" | val Eliom_common.create_scope_hierarchy >>~.
     ~Thus it is possible to have for example several sessions that can
     be opened or closed independently~. ~They use different cookies~.
 

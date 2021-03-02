@@ -16,7 +16,7 @@
       val set_time_between_requests :
         Eliom_comet.Configuration.t -> float -> unit
       val set_time_between_requests_when_idle :
-        Eliom_comet.Configuration.t -> float * float -> unit
+        Eliom_comet.Configuration.t -> float * float * float -> unit
     end
   module Channel : sig type 'a t = 'a Lwt_stream.t end
   val register :

@@ -171,6 +171,8 @@
     to_string:('a -> string) ->
     string -> ('a, [ `Endsuffix ], [ `One of 'a ] param_name) params_type
   val reconstruct_params_form :
-    (string * Form.form_elt) list ->
+    (string * Js_of_ocaml.Form.form_elt) list ->
     ('a, [< suff ], 'b) params_type -> 'a option
+  val get_non_localized_get_parameters :
+    ('a, [ `WithoutSuffix ], 'b) non_localized_params -> 'a option
 end >>

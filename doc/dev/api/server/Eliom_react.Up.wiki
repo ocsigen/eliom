@@ -11,7 +11,7 @@
 
       ~Example of use~:
       <<span class="odocwiki_inlinecode"|let e~_up ~= ~Eliom~_react~.~Up~.create
-        ~(~Eliom~_parameter~.ocaml "a" ~[~%derive~.json~: string~]~)
+        ~(~Eliom~_parameter~.ocaml "a" ~[~%json~: string~]~)
       in
       ~.~.~. ~{~{ ignore ~( ~%e~_up "~A"~) ~}~} ~.~.~.
       >>

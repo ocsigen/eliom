@@ -48,12 +48,17 @@
     end
   module List :
     sig
+      type 'a t = 'a list = [] | (::) of 'a * 'a list
       val length : 'a list -> int
+      val compare_lengths : 'a list -> 'b list -> int
+      val compare_length_with : 'a list -> int -> int
       val cons : 'a -> 'a list -> 'a list
       val hd : 'a list -> 'a
       val tl : 'a list -> 'a list
       val nth : 'a list -> int -> 'a
+      val nth_opt : 'a list -> int -> 'a option
       val rev : 'a list -> 'a list
+      val init : int -> (int -> 'a) -> 'a list
       val append : 'a list -> 'a list -> 'a list
       val rev_append : 'a list -> 'a list -> 'a list
       val concat : 'a list list -> 'a list
@@ -63,6 +68,10 @@
       val map : ('a -> 'b) -> 'a list -> 'b list
       val mapi : (int -> 'a -> 'b) -> 'a list -> 'b list
       val rev_map : ('a -> 'b) -> 'a list -> 'b list
+      val filter_map : ('a -> 'b option) -> 'a list -> 'b list
+      val concat_map : ('a -> 'b list) -> 'a list -> 'b list
+      val fold_left_map :
+        ('a -> 'b -> 'a * 'c) -> 'a -> 'b list -> 'a * 'c list
       val fold_left : ('a -> 'b -> 'a) -> 'a -> 'b list -> 'a
       val fold_right : ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
       val iter2 : ('a -> 'b -> unit) -> 'a list -> 'b list -> unit
@@ -79,11 +88,16 @@
       val mem : 'a -> 'a list -> bool
       val memq : 'a -> 'a list -> bool
       val find : ('a -> bool) -> 'a list -> 'a
+      val find_opt : ('a -> bool) -> 'a list -> 'a option
+      val find_map : ('a -> 'b option) -> 'a list -> 'b option
       val filter : ('a -> bool) -> 'a list -> 'a list
       val find_all : ('a -> bool) -> 'a list -> 'a list
+      val filteri : (int -> 'a -> bool) -> 'a list -> 'a list
       val partition : ('a -> bool) -> 'a list -> 'a list * 'a list
       val assoc : 'a -> ('a * 'b) list -> 'b
+      val assoc_opt : 'a -> ('a * 'b) list -> 'b option
       val assq : 'a -> ('a * 'b) list -> 'b
+      val assq_opt : 'a -> ('a * 'b) list -> 'b option
       val mem_assoc : 'a -> ('a * 'b) list -> bool
       val mem_assq : 'a -> ('a * 'b) list -> bool
       val remove_assoc : 'a -> ('a * 'b) list -> ('a * 'b) list
@@ -95,6 +109,8 @@
       val fast_sort : ('a -> 'a -> int) -> 'a list -> 'a list
       val sort_uniq : ('a -> 'a -> int) -> 'a list -> 'a list
       val merge : ('a -> 'a -> int) -> 'a list -> 'a list -> 'a list
+      val to_seq : 'a list -> 'a Seq.t
+      val of_seq : 'a Seq.t -> 'a list
       val map_filter : ('a -> 'b option) -> 'a list -> 'b list
       val last : 'a list -> 'a
       val assoc_remove : 'a -> ('a * 'b) list -> 'b * ('a * 'b) list
@@ -134,6 +150,7 @@
           val is_empty : 'a t -> bool
           val mem : key -> 'a t -> bool
           val add : key -> 'a -> 'a t -> 'a t
+          val update : key -> ('a option -> 'a option) -> 'a t -> 'a t
           val singleton : key -> 'a -> 'a t
           val remove : key -> 'a t -> 'a t
           val merge :
@@ -147,16 +164,29 @@
           val for_all : (key -> 'a -> bool) -> 'a t -> bool
           val exists : (key -> 'a -> bool) -> 'a t -> bool
           val filter : (key -> 'a -> bool) -> 'a t -> 'a t
+          val filter_map : (key -> 'a -> 'b option) -> 'a t -> 'b t
           val partition : (key -> 'a -> bool) -> 'a t -> 'a t * 'a t
           val cardinal : 'a t -> int
           val bindings : 'a t -> (key * 'a) list
           val min_binding : 'a t -> key * 'a
+          val min_binding_opt : 'a t -> (key * 'a) option
           val max_binding : 'a t -> key * 'a
+          val max_binding_opt : 'a t -> (key * 'a) option
           val choose : 'a t -> key * 'a
+          val choose_opt : 'a t -> (key * 'a) option
           val split : key -> 'a t -> 'a t * 'a option * 'a t
           val find : key -> 'a t -> 'a
+          val find_opt : key -> 'a t -> 'a option
+          val find_first : (key -> bool) -> 'a t -> key * 'a
+          val find_first_opt : (key -> bool) -> 'a t -> (key * 'a) option
+          val find_last : (key -> bool) -> 'a t -> key * 'a
+          val find_last_opt : (key -> bool) -> 'a t -> (key * 'a) option
           val map : ('a -> 'b) -> 'a t -> 'b t
           val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
+          val to_seq : 'a t -> (key * 'a) Seq.t
+          val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
+          val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
+          val of_seq : (key * 'a) Seq.t -> 'a t
         end
     end
   module String_base :
@@ -179,9 +209,13 @@
       val trim : string -> string
       val escaped : string -> string
       val index : string -> char -> int
+      val index_opt : string -> char -> int option
       val rindex : string -> char -> int
+      val rindex_opt : string -> char -> int option
       val index_from : string -> int -> char -> int
+      val index_from_opt : string -> int -> char -> int option
       val rindex_from : string -> int -> char -> int
+      val rindex_from_opt : string -> int -> char -> int option
       val contains : string -> char -> bool
       val contains_from : string -> int -> char -> bool
       val rcontains_from : string -> int -> char -> bool
@@ -197,6 +231,9 @@
       val compare : t -> t -> int
       val equal : t -> t -> bool
       val split_on_char : char -> string -> string list
+      val to_seq : t -> char Seq.t
+      val to_seqi : t -> (int * char) Seq.t
+      val of_seq : char Seq.t -> t
       external unsafe_get : string -> int -> char = "%string_unsafe_get"
       external unsafe_set : bytes -> int -> char -> unit
         = "%string_unsafe_set"
@@ -219,6 +256,7 @@
           val is_empty : 'a t -> bool
           val mem : key -> 'a t -> bool
           val add : key -> 'a -> 'a t -> 'a t
+          val update : key -> ('a option -> 'a option) -> 'a t -> 'a t
           val singleton : key -> 'a -> 'a t
           val remove : key -> 'a t -> 'a t
           val merge :
@@ -232,16 +270,29 @@
           val for_all : (key -> 'a -> bool) -> 'a t -> bool
           val exists : (key -> 'a -> bool) -> 'a t -> bool
           val filter : (key -> 'a -> bool) -> 'a t -> 'a t
+          val filter_map : (key -> 'a -> 'b option) -> 'a t -> 'b t
           val partition : (key -> 'a -> bool) -> 'a t -> 'a t * 'a t
           val cardinal : 'a t -> int
           val bindings : 'a t -> (key * 'a) list
           val min_binding : 'a t -> key * 'a
+          val min_binding_opt : 'a t -> (key * 'a) option
           val max_binding : 'a t -> key * 'a
+          val max_binding_opt : 'a t -> (key * 'a) option
           val choose : 'a t -> key * 'a
+          val choose_opt : 'a t -> (key * 'a) option
           val split : key -> 'a t -> 'a t * 'a option * 'a t
           val find : key -> 'a t -> 'a
+          val find_opt : key -> 'a t -> 'a option
+          val find_first : (key -> bool) -> 'a t -> key * 'a
+          val find_first_opt : (key -> bool) -> 'a t -> (key * 'a) option
+          val find_last : (key -> bool) -> 'a t -> key * 'a
+          val find_last_opt : (key -> bool) -> 'a t -> (key * 'a) option
           val map : ('a -> 'b) -> 'a t -> 'b t
           val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
+          val to_seq : 'a t -> (key * 'a) Seq.t
+          val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
+          val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
+          val of_seq : (key * 'a) Seq.t -> 'a t
         end
       module Set :
         sig
@@ -255,6 +306,7 @@
           val remove : elt -> t -> t
           val union : t -> t -> t
           val inter : t -> t -> t
+          val disjoint : t -> t -> bool
           val diff : t -> t -> t
           val compare : t -> t -> int
           val equal : t -> t -> bool
@@ -265,15 +317,28 @@
           val for_all : (elt -> bool) -> t -> bool
           val exists : (elt -> bool) -> t -> bool
           val filter : (elt -> bool) -> t -> t
+          val filter_map : (elt -> elt option) -> t -> t
           val partition : (elt -> bool) -> t -> t * t
           val cardinal : t -> int
           val elements : t -> elt list
           val min_elt : t -> elt
+          val min_elt_opt : t -> elt option
           val max_elt : t -> elt
+          val max_elt_opt : t -> elt option
           val choose : t -> elt
+          val choose_opt : t -> elt option
           val split : elt -> t -> t * bool * t
           val find : elt -> t -> elt
+          val find_opt : elt -> t -> elt option
+          val find_first : (elt -> bool) -> t -> elt
+          val find_first_opt : (elt -> bool) -> t -> elt option
+          val find_last : (elt -> bool) -> t -> elt
+          val find_last_opt : (elt -> bool) -> t -> elt option
           val of_list : elt list -> t
+          val to_seq_from : elt -> t -> elt Seq.t
+          val to_seq : t -> elt Seq.t
+          val add_seq : elt Seq.t -> t -> t
+          val of_seq : elt Seq.t -> t
         end
       module Map :
         sig
@@ -283,6 +348,7 @@
           val is_empty : 'a t -> bool
           val mem : key -> 'a t -> bool
           val add : key -> 'a -> 'a t -> 'a t
+          val update : key -> ('a option -> 'a option) -> 'a t -> 'a t
           val singleton : key -> 'a -> 'a t
           val remove : key -> 'a t -> 'a t
           val merge :
@@ -296,16 +362,29 @@
           val for_all : (key -> 'a -> bool) -> 'a t -> bool
           val exists : (key -> 'a -> bool) -> 'a t -> bool
           val filter : (key -> 'a -> bool) -> 'a t -> 'a t
+          val filter_map : (key -> 'a -> 'b option) -> 'a t -> 'b t
           val partition : (key -> 'a -> bool) -> 'a t -> 'a t * 'a t
           val cardinal : 'a t -> int
           val bindings : 'a t -> (key * 'a) list
           val min_binding : 'a t -> key * 'a
+          val min_binding_opt : 'a t -> (key * 'a) option
           val max_binding : 'a t -> key * 'a
+          val max_binding_opt : 'a t -> (key * 'a) option
           val choose : 'a t -> key * 'a
+          val choose_opt : 'a t -> (key * 'a) option
           val split : key -> 'a t -> 'a t * 'a option * 'a t
           val find : key -> 'a t -> 'a
+          val find_opt : key -> 'a t -> 'a option
+          val find_first : (key -> bool) -> 'a t -> key * 'a
+          val find_first_opt : (key -> bool) -> 'a t -> (key * 'a) option
+          val find_last : (key -> bool) -> 'a t -> key * 'a
+          val find_last_opt : (key -> bool) -> 'a t -> (key * 'a) option
           val map : ('a -> 'b) -> 'a t -> 'b t
           val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
+          val to_seq : 'a t -> (key * 'a) Seq.t
+          val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
+          val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
+          val of_seq : (key * 'a) Seq.t -> 'a t
         end
     end
   module Url_base :
@@ -327,7 +406,9 @@
     end
   module Printexc :
     sig
+      type t = exn = ..
       val to_string : exn -> string
+      val to_string_default : exn -> string
       val print : ('a -> 'b) -> 'a -> 'b
       val catch : ('a -> 'b) -> 'a -> 'b
       val print_backtrace : out_channel -> unit
@@ -335,16 +416,22 @@
       val record_backtrace : bool -> unit
       val backtrace_status : unit -> bool
       val register_printer : (exn -> string option) -> unit
-      type raw_backtrace
+      val use_printers : exn -> string option
+      type raw_backtrace = Stdlib__printexc.raw_backtrace
       val get_raw_backtrace : unit -> raw_backtrace
       val print_raw_backtrace : out_channel -> raw_backtrace -> unit
       val raw_backtrace_to_string : raw_backtrace -> string
-      val get_callstack : int -> raw_backtrace
+      external raise_with_backtrace : exn -> raw_backtrace -> 'a
+        = "%raise_with_backtrace"
+      external get_callstack : int -> raw_backtrace
+        = "caml_get_current_callstack"
+      val default_uncaught_exception_handler : exn -> raw_backtrace -> unit
       val set_uncaught_exception_handler :
         (exn -> raw_backtrace -> unit) -> unit
-      type backtrace_slot
+      type backtrace_slot = Stdlib__printexc.backtrace_slot
       val backtrace_slots : raw_backtrace -> backtrace_slot array option
-      type location = {
+      type location =
+        Stdlib__printexc.location = {
         filename : string;
         line_number : int;
         start_char : int;
@@ -356,9 +443,10 @@
           val is_raise : t -> bool
           val is_inline : t -> bool
           val location : t -> location option
+          val name : t -> string option
           val format : int -> t -> string option
         end
-      type raw_backtrace_slot
+      type raw_backtrace_slot = Stdlib__printexc.raw_backtrace_slot
       val raw_backtrace_length : raw_backtrace -> int
       val get_raw_backtrace_slot : raw_backtrace -> int -> raw_backtrace_slot
       val convert_raw_backtrace_slot : raw_backtrace_slot -> backtrace_slot
@@ -384,6 +472,7 @@
       val is_empty : 'a t -> bool
       val mem : key -> 'a t -> bool
       val add : key -> 'a -> 'a t -> 'a t
+      val update : key -> ('a option -> 'a option) -> 'a t -> 'a t
       val singleton : key -> 'a -> 'a t
       val remove : key -> 'a t -> 'a t
       val merge :
@@ -396,16 +485,29 @@
       val for_all : (key -> 'a -> bool) -> 'a t -> bool
       val exists : (key -> 'a -> bool) -> 'a t -> bool
       val filter : (key -> 'a -> bool) -> 'a t -> 'a t
+      val filter_map : (key -> 'a -> 'b option) -> 'a t -> 'b t
       val partition : (key -> 'a -> bool) -> 'a t -> 'a t * 'a t
       val cardinal : 'a t -> int
       val bindings : 'a t -> (key * 'a) list
       val min_binding : 'a t -> key * 'a
+      val min_binding_opt : 'a t -> (key * 'a) option
       val max_binding : 'a t -> key * 'a
+      val max_binding_opt : 'a t -> (key * 'a) option
       val choose : 'a t -> key * 'a
+      val choose_opt : 'a t -> (key * 'a) option
       val split : key -> 'a t -> 'a t * 'a option * 'a t
       val find : key -> 'a t -> 'a
+      val find_opt : key -> 'a t -> 'a option
+      val find_first : (key -> bool) -> 'a t -> key * 'a
+      val find_first_opt : (key -> bool) -> 'a t -> (key * 'a) option
+      val find_last : (key -> bool) -> 'a t -> key * 'a
+      val find_last_opt : (key -> bool) -> 'a t -> (key * 'a) option
       val map : ('a -> 'b) -> 'a t -> 'b t
       val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
+      val to_seq : 'a t -> (key * 'a) Seq.t
+      val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
+      val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
+      val of_seq : (key * 'a) Seq.t -> 'a t
       val from_list : (key * 'a) list -> 'a t
       val to_string : ?sep:string -> ('a -> string) -> 'a t -> string
     end
@@ -417,6 +519,7 @@
       val is_empty : 'a t -> bool
       val mem : key -> 'a t -> bool
       val add : key -> 'a -> 'a t -> 'a t
+      val update : key -> ('a option -> 'a option) -> 'a t -> 'a t
       val singleton : key -> 'a -> 'a t
       val remove : key -> 'a t -> 'a t
       val merge :
@@ -429,16 +532,29 @@
       val for_all : (key -> 'a -> bool) -> 'a t -> bool
       val exists : (key -> 'a -> bool) -> 'a t -> bool
       val filter : (key -> 'a -> bool) -> 'a t -> 'a t
+      val filter_map : (key -> 'a -> 'b option) -> 'a t -> 'b t
       val partition : (key -> 'a -> bool) -> 'a t -> 'a t * 'a t
       val cardinal : 'a t -> int
       val bindings : 'a t -> (key * 'a) list
       val min_binding : 'a t -> key * 'a
+      val min_binding_opt : 'a t -> (key * 'a) option
       val max_binding : 'a t -> key * 'a
+      val max_binding_opt : 'a t -> (key * 'a) option
       val choose : 'a t -> key * 'a
+      val choose_opt : 'a t -> (key * 'a) option
       val split : key -> 'a t -> 'a t * 'a option * 'a t
       val find : key -> 'a t -> 'a
+      val find_opt : key -> 'a t -> 'a option
+      val find_first : (key -> bool) -> 'a t -> key * 'a
+      val find_first_opt : (key -> bool) -> 'a t -> (key * 'a) option
+      val find_last : (key -> bool) -> 'a t -> key * 'a
+      val find_last_opt : (key -> bool) -> 'a t -> (key * 'a) option
       val map : ('a -> 'b) -> 'a t -> 'b t
       val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
+      val to_seq : 'a t -> (key * 'a) Seq.t
+      val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
+      val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
+      val of_seq : (key * 'a) Seq.t -> 'a t
       val from_list : (key * 'a) list -> 'a t
       val to_string : ?sep:string -> ('a -> string) -> 'a t -> string
     end
@@ -450,6 +566,7 @@
       val is_empty : 'a t -> bool
       val mem : key -> 'a t -> bool
       val add : key -> 'a -> 'a t -> 'a t
+      val update : key -> ('a option -> 'a option) -> 'a t -> 'a t
       val singleton : key -> 'a -> 'a t
       val remove : key -> 'a t -> 'a t
       val merge :
@@ -462,16 +579,29 @@
       val for_all : (key -> 'a -> bool) -> 'a t -> bool
       val exists : (key -> 'a -> bool) -> 'a t -> bool
       val filter : (key -> 'a -> bool) -> 'a t -> 'a t
+      val filter_map : (key -> 'a -> 'b option) -> 'a t -> 'b t
       val partition : (key -> 'a -> bool) -> 'a t -> 'a t * 'a t
       val cardinal : 'a t -> int
       val bindings : 'a t -> (key * 'a) list
       val min_binding : 'a t -> key * 'a
+      val min_binding_opt : 'a t -> (key * 'a) option
       val max_binding : 'a t -> key * 'a
+      val max_binding_opt : 'a t -> (key * 'a) option
       val choose : 'a t -> key * 'a
+      val choose_opt : 'a t -> (key * 'a) option
       val split : key -> 'a t -> 'a t * 'a option * 'a t
       val find : key -> 'a t -> 'a
+      val find_opt : key -> 'a t -> 'a option
+      val find_first : (key -> bool) -> 'a t -> key * 'a
+      val find_first_opt : (key -> bool) -> 'a t -> (key * 'a) option
+      val find_last : (key -> bool) -> 'a t -> key * 'a
+      val find_last_opt : (key -> bool) -> 'a t -> (key * 'a) option
       val map : ('a -> 'b) -> 'a t -> 'b t
       val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
+      val to_seq : 'a t -> (key * 'a) Seq.t
+      val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
+      val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
+      val of_seq : (key * 'a) Seq.t -> 'a t
       val from_list : (key * 'a) list -> 'a t
       val to_string : ?sep:string -> ('a -> string) -> 'a t -> string
     end
@@ -483,6 +613,7 @@
       val is_empty : 'a t -> bool
       val mem : key -> 'a t -> bool
       val add : key -> 'a -> 'a t -> 'a t
+      val update : key -> ('a option -> 'a option) -> 'a t -> 'a t
       val singleton : key -> 'a -> 'a t
       val remove : key -> 'a t -> 'a t
       val merge :
@@ -495,22 +626,35 @@
       val for_all : (key -> 'a -> bool) -> 'a t -> bool
       val exists : (key -> 'a -> bool) -> 'a t -> bool
       val filter : (key -> 'a -> bool) -> 'a t -> 'a t
+      val filter_map : (key -> 'a -> 'b option) -> 'a t -> 'b t
       val partition : (key -> 'a -> bool) -> 'a t -> 'a t * 'a t
       val cardinal : 'a t -> int
       val bindings : 'a t -> (key * 'a) list
       val min_binding : 'a t -> key * 'a
+      val min_binding_opt : 'a t -> (key * 'a) option
       val max_binding : 'a t -> key * 'a
+      val max_binding_opt : 'a t -> (key * 'a) option
       val choose : 'a t -> key * 'a
+      val choose_opt : 'a t -> (key * 'a) option
       val split : key -> 'a t -> 'a t * 'a option * 'a t
       val find : key -> 'a t -> 'a
+      val find_opt : key -> 'a t -> 'a option
+      val find_first : (key -> bool) -> 'a t -> key * 'a
+      val find_first_opt : (key -> bool) -> 'a t -> (key * 'a) option
+      val find_last : (key -> bool) -> 'a t -> key * 'a
+      val find_last_opt : (key -> bool) -> 'a t -> (key * 'a) option
       val map : ('a -> 'b) -> 'a t -> 'b t
       val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
+      val to_seq : 'a t -> (key * 'a) Seq.t
+      val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
+      val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
+      val of_seq : (key * 'a) Seq.t -> 'a t
       val from_list : (key * 'a) list -> 'a t
       val to_string : ?sep:string -> ('a -> string) -> 'a t -> string
     end
   type pos = Lexing.position * Lexing.position
   val pos_to_string : pos -> string
-  type file_info = File.file Js.t
+  type file_info = Js_of_ocaml.File.file Js_of_ocaml.Js.t
   val to_json : ?typ:'a -> 'b -> string
   val of_json : ?typ:'a -> string -> 'b
   module Url :
@@ -531,7 +675,8 @@
       val split_fragment : string -> string * string option
       val urldecode : string -> string
       val urlencode : ?with_plus:bool -> string -> string
-      type http_url = {
+      type http_url =
+        Js_of_ocaml__Url.http_url = {
         hu_host : string;
         hu_port : int;
         hu_path : string list;
@@ -539,13 +684,18 @@
         hu_arguments : (string * string) list;
         hu_fragment : string;
       }
-      type file_url = {
+      type file_url =
+        Js_of_ocaml__Url.file_url = {
         fu_path : string list;
         fu_path_string : string;
         fu_arguments : (string * string) list;
         fu_fragment : string;
       }
-      type url = Http of http_url | Https of http_url | File of file_url
+      type url =
+        Js_of_ocaml__Url.url =
+          Http of http_url
+        | Https of http_url
+        | File of file_url
       val default_http_port : int
       val default_https_port : int
       val path_of_path_string : string -> string list
@@ -598,9 +748,13 @@
       val trim : string -> string
       val escaped : string -> string
       val index : string -> char -> int
+      val index_opt : string -> char -> int option
       val rindex : string -> char -> int
+      val rindex_opt : string -> char -> int option
       val index_from : string -> int -> char -> int
+      val index_from_opt : string -> int -> char -> int option
       val rindex_from : string -> int -> char -> int
+      val rindex_from_opt : string -> int -> char -> int option
       val contains : string -> char -> bool
       val contains_from : string -> int -> char -> bool
       val rcontains_from : string -> int -> char -> bool
@@ -616,6 +770,9 @@
       val compare : t -> t -> int
       val equal : t -> t -> bool
       val split_on_char : char -> string -> string list
+      val to_seq : t -> char Seq.t
+      val to_seqi : t -> (int * char) Seq.t
+      val of_seq : char Seq.t -> t
       external unsafe_get : string -> int -> char = "%string_unsafe_get"
       external unsafe_set : bytes -> int -> char -> unit
         = "%string_unsafe_set"
@@ -638,6 +795,7 @@
           val is_empty : 'a t -> bool
           val mem : key -> 'a t -> bool
           val add : key -> 'a -> 'a t -> 'a t
+          val update : key -> ('a option -> 'a option) -> 'a t -> 'a t
           val singleton : key -> 'a -> 'a t
           val remove : key -> 'a t -> 'a t
           val merge :
@@ -651,16 +809,29 @@
           val for_all : (key -> 'a -> bool) -> 'a t -> bool
           val exists : (key -> 'a -> bool) -> 'a t -> bool
           val filter : (key -> 'a -> bool) -> 'a t -> 'a t
+          val filter_map : (key -> 'a -> 'b option) -> 'a t -> 'b t
           val partition : (key -> 'a -> bool) -> 'a t -> 'a t * 'a t
           val cardinal : 'a t -> int
           val bindings : 'a t -> (key * 'a) list
           val min_binding : 'a t -> key * 'a
+          val min_binding_opt : 'a t -> (key * 'a) option
           val max_binding : 'a t -> key * 'a
+          val max_binding_opt : 'a t -> (key * 'a) option
           val choose : 'a t -> key * 'a
+          val choose_opt : 'a t -> (key * 'a) option
           val split : key -> 'a t -> 'a t * 'a option * 'a t
           val find : key -> 'a t -> 'a
+          val find_opt : key -> 'a t -> 'a option
+          val find_first : (key -> bool) -> 'a t -> key * 'a
+          val find_first_opt : (key -> bool) -> 'a t -> (key * 'a) option
+          val find_last : (key -> bool) -> 'a t -> key * 'a
+          val find_last_opt : (key -> bool) -> 'a t -> (key * 'a) option
           val map : ('a -> 'b) -> 'a t -> 'b t
           val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
+          val to_seq : 'a t -> (key * 'a) Seq.t
+          val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
+          val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
+          val of_seq : (key * 'a) Seq.t -> 'a t
         end
       module Set :
         sig
@@ -674,6 +845,7 @@
           val remove : elt -> t -> t
           val union : t -> t -> t
           val inter : t -> t -> t
+          val disjoint : t -> t -> bool
           val diff : t -> t -> t
           val compare : t -> t -> int
           val equal : t -> t -> bool
@@ -684,15 +856,28 @@
           val for_all : (elt -> bool) -> t -> bool
           val exists : (elt -> bool) -> t -> bool
           val filter : (elt -> bool) -> t -> t
+          val filter_map : (elt -> elt option) -> t -> t
           val partition : (elt -> bool) -> t -> t * t
           val cardinal : t -> int
           val elements : t -> elt list
           val min_elt : t -> elt
+          val min_elt_opt : t -> elt option
           val max_elt : t -> elt
+          val max_elt_opt : t -> elt option
           val choose : t -> elt
+          val choose_opt : t -> elt option
           val split : elt -> t -> t * bool * t
           val find : elt -> t -> elt
+          val find_opt : elt -> t -> elt option
+          val find_first : (elt -> bool) -> t -> elt
+          val find_first_opt : (elt -> bool) -> t -> elt option
+          val find_last : (elt -> bool) -> t -> elt
+          val find_last_opt : (elt -> bool) -> t -> elt option
           val of_list : elt list -> t
+          val to_seq_from : elt -> t -> elt Seq.t
+          val to_seq : t -> elt Seq.t
+          val add_seq : elt Seq.t -> t -> t
+          val of_seq : elt Seq.t -> t
         end
       module Map :
         sig
@@ -702,6 +887,7 @@
           val is_empty : 'a t -> bool
           val mem : key -> 'a t -> bool
           val add : key -> 'a -> 'a t -> 'a t
+          val update : key -> ('a option -> 'a option) -> 'a t -> 'a t
           val singleton : key -> 'a -> 'a t
           val remove : key -> 'a t -> 'a t
           val merge :
@@ -715,16 +901,29 @@
           val for_all : (key -> 'a -> bool) -> 'a t -> bool
           val exists : (key -> 'a -> bool) -> 'a t -> bool
           val filter : (key -> 'a -> bool) -> 'a t -> 'a t
+          val filter_map : (key -> 'a -> 'b option) -> 'a t -> 'b t
           val partition : (key -> 'a -> bool) -> 'a t -> 'a t * 'a t
           val cardinal : 'a t -> int
           val bindings : 'a t -> (key * 'a) list
           val min_binding : 'a t -> key * 'a
+          val min_binding_opt : 'a t -> (key * 'a) option
           val max_binding : 'a t -> key * 'a
+          val max_binding_opt : 'a t -> (key * 'a) option
           val choose : 'a t -> key * 'a
+          val choose_opt : 'a t -> (key * 'a) option
           val split : key -> 'a t -> 'a t * 'a option * 'a t
           val find : key -> 'a t -> 'a
+          val find_opt : key -> 'a t -> 'a option
+          val find_first : (key -> bool) -> 'a t -> key * 'a
+          val find_first_opt : (key -> bool) -> 'a t -> (key * 'a) option
+          val find_last : (key -> bool) -> 'a t -> key * 'a
+          val find_last_opt : (key -> bool) -> 'a t -> (key * 'a) option
           val map : ('a -> 'b) -> 'a t -> 'b t
           val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
+          val to_seq : 'a t -> (key * 'a) Seq.t
+          val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
+          val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
+          val of_seq : (key * 'a) Seq.t -> 'a t
         end
       val remove_eols : string -> string
     end
@@ -771,7 +970,7 @@
       val broadcast : logger list -> logger
       val dispatch : (section -> level -> logger) -> logger
       val null : logger
-      val console : Lwt_log.logger
+      val console : Lwt_log_core.logger
       val log :
         ?inspect:'v ->
         ?exn:exn ->
@@ -946,22 +1145,22 @@
         ?exn:exn ->
         ?section:section ->
         ?location:string * int * int ->
-        ?logger:logger -> ('a, unit, string, 'any) Pervasives.format4 -> 'a
+        ?logger:logger -> ('a, unit, string, 'any) Stdlib.format4 -> 'a
       val eliom : section
     end
-  val error : ('a, unit, string, 'b) Pervasives.format4 -> 'a
-  val error_any : 'c -> ('a, unit, string, 'b) Pervasives.format4 -> 'a
-  val debug : ('a, unit, string, unit) Pervasives.format4 -> 'a
-  val debug_exn : ('a, unit, string, unit) Pervasives.format4 -> exn -> 'a
+  val error : ('a, unit, string, 'b) Stdlib.format4 -> 'a
+  val error_any : 'c -> ('a, unit, string, 'b) Stdlib.format4 -> 'a
+  val debug : ('a, unit, string, unit) Stdlib.format4 -> 'a
+  val debug_exn : ('a, unit, string, unit) Stdlib.format4 -> exn -> 'a
   val jsdebug : 'a -> unit
-  val alert : ('a, unit, string, unit) Pervasives.format4 -> 'a
-  val jsalert : Js.js_string Js.t -> unit
-  val confirm : ('a, unit, string, bool) Pervasives.format4 -> 'a
+  val alert : ('a, unit, string, unit) Stdlib.format4 -> 'a
+  val jsalert : Js_of_ocaml.Js.js_string Js_of_ocaml.Js.t -> unit
+  val confirm : ('a, unit, string, bool) Stdlib.format4 -> 'a
   val debug_var : string -> 'a -> unit
-  val trace : ('a, unit, string, unit) Pervasives.format4 -> 'a
+  val trace : ('a, unit, string, unit) Stdlib.format4 -> 'a
   val lwt_ignore : ?message:string -> unit Lwt.t -> unit
   val encode_form_value : 'a -> string
-  val unmarshal_js : Js.js_string Js.t -> 'a
+  val unmarshal_js : Js_of_ocaml.Js.js_string Js_of_ocaml.Js.t -> 'a
   val encode_header_value : 'a -> string
   val make_cryptographic_safe_string : ?len:int -> unit -> string
 end >>

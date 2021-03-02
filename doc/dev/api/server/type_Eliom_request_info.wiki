@@ -1,9 +1,11 @@
 <<code language="ocaml" | sig
+  val in_request_handler : unit -> bool
   val get_http_method : unit -> Ocsigen_http_frame.Http_header.http_method
   val get_http_header : unit -> Ocsigen_http_frame.Http_header.http_header
   val get_user_agent : unit -> string
   val get_full_url : unit -> string
   val get_remote_ip : unit -> string
+  val get_remote_port : unit -> int
   val get_remote_inet_addr : unit -> Unix.inet_addr
   val get_current_full_path_string : unit -> string
   val get_current_full_path : unit -> Eliom_lib.Url.path

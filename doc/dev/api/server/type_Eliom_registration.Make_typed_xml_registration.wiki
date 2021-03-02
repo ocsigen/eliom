@@ -1,11 +1,12 @@
-<<code language="ocaml" | functor
-  (Xml : Xml_sigs.Iterable) (Typed_xml : sig
-                                           module Info : Xml_sigs.Info
-                                           type 'a elt
-                                           type doc
-                                           val toelt : 'a elt -> Xml.elt
-                                           val doc_toelt : doc -> Xml.elt
-                                         end) (E : sig type content end) ->
+<<code language="ocaml" | functor (Xml : Xml_sigs.Iterable)
+  (Typed_xml : sig
+                 module Info : Xml_sigs.Info
+                 type 'a elt
+                 type doc
+                 val toelt : 'a elt -> Xml.elt
+                 val doc_toelt : doc -> Xml.elt
+               end)
+  (E : sig type content end) ->
   sig
     type page = E.content Typed_xml.elt list
     type options = unit

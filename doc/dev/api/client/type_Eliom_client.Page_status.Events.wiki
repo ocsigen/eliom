@@ -2,4 +2,5 @@
   val active : unit -> unit React.E.t
   val cached : unit -> unit React.E.t
   val dead : unit -> unit React.E.t
+  val inactive : unit -> unit React.E.t
 end >>

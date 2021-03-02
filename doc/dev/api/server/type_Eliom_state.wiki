@@ -361,11 +361,11 @@
   val get_session_service_table :
     sp:Eliom_common.server_params ->
     scope:Eliom_common.user_scope ->
-    ?secure:bool -> unit -> Eliom_common.tables Pervasives.ref
+    ?secure:bool -> unit -> Eliom_common.tables Stdlib.ref
   val get_session_service_table_if_exists :
     sp:Eliom_common.server_params ->
     scope:Eliom_common.user_scope ->
-    ?secure:bool -> unit -> Eliom_common.tables Pervasives.ref
+    ?secure:bool -> unit -> Eliom_common.tables Stdlib.ref
   val create_volatile_table_during_session_ :
     scope:Eliom_common.user_scope ->
     secure:bool -> Eliom_common.sitedata -> 'a Eliom_state.volatile_table
