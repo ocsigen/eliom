@@ -25,6 +25,7 @@ DOCS_MAN= src/lib/client/api.mandocdir/man.3oc \
           src/lib/server/api.mandocdir/man.3os \
           src/ocamlbuild/api.mandocdir/man.3o \
           src/ppx/api.mandocdir/man.3o
+API_DIR=_build/doc/dev/api
 doc: $(BUILDER)
 	$(BUILDER) $(DOCS_HTML)
 wikidoc: $(BUILDER)
@@ -32,6 +33,15 @@ wikidoc: $(BUILDER)
 man: $(BUILDER)
 	$(BUILDER) $(DOCS_MAN)
 alldoc: man wikidoc doc
+
+doccp: alldoc
+	mkdir -p $(API_DIR)/server $(API_DIR)/client $(API_DIR)/ocamlbuild $(API_DIR)/ppx
+	cp -Rf _build/src/lib/server/api.wikidocdir/*.wiki $(API_DIR)/server/
+	cp -Rf _build/src/lib/client/api.wikidocdir/*.wiki $(API_DIR)/client/
+	cp -Rf _build/src/ocamlbuild/api.wikidocdir/*.wiki $(API_DIR)/ocamlbuild/
+	cp -Rf _build/src/ppx/api.wikidocdir/*.wiki $(API_DIR)/ppx/
+	cp -Rf doc/index.wiki $(API_DIR)/
+
 
 ### Testing ###
 
