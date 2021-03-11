@@ -32,10 +32,10 @@ open Ocsigen_extensions
 
 
 (****************************************************************************)
-let default_max_persistent_data_sessions_per_group = ref 5
-let default_max_service_sessions_per_group = ref 5
+let default_max_persistent_data_sessions_per_group = ref 50
+let default_max_service_sessions_per_group = ref 50
 let default_max_service_sessions_per_subnet = ref 1000000
-let default_max_volatile_data_sessions_per_group = ref 5
+let default_max_volatile_data_sessions_per_group = ref 50
 let default_max_volatile_data_sessions_per_subnet = ref 1000000
 let default_max_persistent_data_tab_sessions_per_group = ref 50
 let default_max_service_tab_sessions_per_group = ref 50
