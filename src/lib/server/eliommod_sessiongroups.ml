@@ -411,7 +411,7 @@ let cut n l =
 
 module Pers = struct
 (*VVV Verify this carefully! *)
-(*VVV VEOcsigen_request_infoFY concurrent access *)
+(*VVV VERIFY concurrent access *)
 
   let grouptable : (nbmax * string list) Ocsipersist.table Lwt.t Lazy.t =
     lazy (Ocsipersist.open_table "__eliom_session_group_table")
@@ -471,7 +471,7 @@ module Pers = struct
   let rec remove_group ~cookie_level sitedata sess_grp =
     (* cookie_level is the scope of group members *)
 (*VVV NEW 201007 closing all sessions in the group and removing group data *)
-(*VVV VEOcsigen_request_infoFY concurrent access *)
+(*VVV VERIFY concurrent access *)
 (*VVV Check this carefully!!!! Verify the order of actions. *)
     Lwt.catch
       (fun () ->
