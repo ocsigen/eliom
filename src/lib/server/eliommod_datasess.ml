@@ -261,6 +261,9 @@ let create_volatile_table, create_volatile_table_during_session =
     in
     sitedata.Eliom_common.remove_session_data <-
       (fun cookie ->
+         (* cookie is actually either a cookie or a a group name *)
+         (* In session group tables, keys may be either group names,
+            or a cookie values when no group name has been set. *)
         old_remove_session_data cookie;
         Eliom_common.SessionCookies.remove t cookie
       );

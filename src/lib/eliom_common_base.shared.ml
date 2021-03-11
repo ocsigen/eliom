@@ -176,8 +176,6 @@ let full_xhr_redir_header = "X-Eliom-Location-Full"
 let half_xhr_redir_header = "X-Eliom-Location-Half"
 let response_url_header = "X-Eliom-Url"
 
-let default_group_name = "__eliom$%@default_group"
-
 let set_tab_cookies_header_name = "X-Eliom-Set-Process-Cookies"
 let tab_cookies_header_name = "X-Eliom-Process-Cookies"
 
