@@ -241,8 +241,6 @@ val to_be_considered_as_get_param_name : string
 val full_xhr_redir_header : string
 val half_xhr_redir_header : string
 
-val default_group_name : string
-
 type client_process_info =  {
   cpi_ssl : bool;
   cpi_hostname : string;
@@ -309,9 +307,7 @@ type perssessgrp (* the same triple, marshaled *)
 val make_persistent_full_group_name :
   cookie_level:cookie_level -> string -> string option -> perssessgrp option
 
-val getperssessgrp : perssessgrp ->
-  (string * cookie_level *
-   (string, Ipaddr.t) leftright)
+val getperssessgrp : perssessgrp -> 'a sessgrp
 
 val string_of_perssessgrp : perssessgrp -> string
 

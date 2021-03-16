@@ -32,10 +32,10 @@ open Ocsigen_extensions
 
 
 (****************************************************************************)
-let default_max_persistent_data_sessions_per_group = ref 5
-let default_max_service_sessions_per_group = ref 5
+let default_max_persistent_data_sessions_per_group = ref 50
+let default_max_service_sessions_per_group = ref 50
 let default_max_service_sessions_per_subnet = ref 1000000
-let default_max_volatile_data_sessions_per_group = ref 5
+let default_max_volatile_data_sessions_per_group = ref 50
 let default_max_volatile_data_sessions_per_subnet = ref 1000000
 let default_max_persistent_data_tab_sessions_per_group = ref 50
 let default_max_service_tab_sessions_per_group = ref 50
@@ -171,7 +171,9 @@ Some !default_max_persistent_data_tab_sessions_per_group, false;
         in
         Ocsigen_cache.Dlist.set_finaliser_after
           (fun (node : [ `Session ] Eliom_common.sessgrp
-                  Ocsigen_cache.Dlist.node) ->
+                    Ocsigen_cache.Dlist.node) ->
+            (* Finaliser for the session groups *)
+            (* See in eliommod_sessiongroups for the finaliser of sessions *)
             let fullbrowsersessgrp = Ocsigen_cache.Dlist.value node in
             (* When removing a group from the dlist, we must close it.
                Actually, it must be the only way to close a group *)
@@ -180,13 +182,17 @@ Some !default_max_persistent_data_tab_sessions_per_group, false;
             (* First we close all browser sessions in the group,
                by removing the group from its dlist: *)
             Eliommod_sessiongroups.Data.remove_group fullbrowsersessgrp;
-            (* Then we close all group tables: *)
-            let key = match Tuple3.thd fullbrowsersessgrp with
-              | Left a -> a
-              | _ -> Eliom_common.default_group_name
-            in
-            (* iterate on all session data tables: *)
-            sitedata.Eliom_common.remove_session_data key
+            (* Then we remove data from group tables: *)
+            match Tuple3.thd fullbrowsersessgrp with
+              | Left key ->
+                (* iterate on all session data tables: *)
+                sitedata.Eliom_common.remove_session_data key
+              | _ ->
+                (* No group has been set. No group table.
+                   Data associated to default (automatic) groups
+                   is removed when closing associated sessions.
+                *)
+                ()
           )
           gog;
         Eliommod_gc.service_session_gc sitedata;

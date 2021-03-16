@@ -130,7 +130,7 @@ let make_persistent_full_group_name ~cookie_level site_dir_string = function
     Some (Marshal.to_string
             (site_dir_string, cookie_level, Left g) [])
 
-let getperssessgrp a = Marshal.from_string a 0
+let getperssessgrp a : 'a sessgrp = Marshal.from_string a 0
 
 let string_of_perssessgrp = id
 

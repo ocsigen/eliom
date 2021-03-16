@@ -164,6 +164,7 @@ struct
       let cl = Ocsigen_cache.Dlist.create size in
       Ocsigen_cache.Dlist.set_finaliser_after
         (fun node ->
+           (* Finaliser of sessions and client processes *)
           let name = Ocsigen_cache.Dlist.value node in
           (* First we close all subsessions
              (that is, all sessions in the group associated to the session) *)
@@ -411,7 +412,7 @@ let cut n l =
 
 module Pers = struct
 (*VVV Verify this carefully! *)
-(*VVV VEOcsigen_request_infoFY concurrent access *)
+(*VVV VERIFY concurrent access *)
 
   let grouptable : (nbmax * string list) Ocsipersist.table Lwt.t Lazy.t =
     lazy (Ocsipersist.open_table "__eliom_session_group_table")
@@ -471,7 +472,7 @@ module Pers = struct
   let rec remove_group ~cookie_level sitedata sess_grp =
     (* cookie_level is the scope of group members *)
 (*VVV NEW 201007 closing all sessions in the group and removing group data *)
-(*VVV VEOcsigen_request_infoFY concurrent access *)
+(*VVV VERIFY concurrent access *)
 (*VVV Check this carefully!!!! Verify the order of actions. *)
     Lwt.catch
       (fun () ->
@@ -486,26 +487,30 @@ module Pers = struct
         >>= fun () ->
 
         (* Then, we remove group data: *)
-        let group_name =
-          match sess_grp with
-            | Some sg ->
-              (match Eliom_common.getperssessgrp sg with
-                | (_, _, Left s) -> s
-                | _ -> Eliom_common.default_group_name)
-            | None -> Eliom_common.default_group_name
-        in
-        Eliom_common.remove_from_all_persistent_tables group_name >>= fun () ->
-
-        (* If it is associated to a session,
-           we remove the session from its group,
-           and we remove cookie info: *)
-        (match cookie_level with
-          | `Client_process grp -> (* We are closing a browser session,
-                                      belonging to the group grp *)
-            (* group_name is the cookie value *)
-            remove sitedata group_name grp >>= fun () ->
-            Eliom_common.Persistent_cookies.Cookies.remove group_name
-          | _ -> Lwt.return_unit)
+        (match sess_grp with
+         | None -> Lwt.return_unit
+         | Some sg ->
+           (match Eliom_common.getperssessgrp sg with
+            | (_, _, Right _) ->
+              (* No group has been set. No group table.
+                 Data associated to default (automatic) groups
+                 is removed when closing associated sessions. *)
+              Lwt.return_unit
+            | (_, _, Left group_name) ->
+              Eliom_common.remove_from_all_persistent_tables group_name
+              >>= fun () ->
+              (* If it is associated to a session,
+                 we remove the session from its group,
+                 and we remove cookie info: *)
+              (match cookie_level with
+               | `Client_process grp -> (* We are closing a browser session,
+                                           belonging to the group grp *)
+                 (* group_name is the cookie value *)
+                 remove sitedata group_name grp >>= fun () ->
+                 Eliom_common.Persistent_cookies.Cookies.remove group_name
+               | _ -> Lwt.return_unit)
+           )
+        )
         >>= fun () ->
 
         (* Then, we remove group from group table: *)

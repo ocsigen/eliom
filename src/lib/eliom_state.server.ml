@@ -901,18 +901,22 @@ let get_p_table_key_
                     secure_o:bool option ->
                     ?sp:Eliom_common.server_params ->
                     unit -> Eliom_common.one_persistent_cookie_info Lwt.t)) =
+  let get_cookie () =
+    let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in
+    let%lwt c = find_cookie ~cookie_scope ~secure_o:(Some secure) () in
+    Lwt.return c.Eliom_common.pc_value
+  in
   let%lwt key = match scope with
     | `Session_group state_name ->
       begin
         match%lwt get_persistent_data_session_group
                     ~scope:(`Session state_name) ~secure () with
           | Some a -> Lwt.return a
-          | _ -> Lwt.return Eliom_common.default_group_name
+          | None ->
+            (* No session group. We use the session cookie as key. *)
+            get_cookie ()
       end
-    | _ ->
-      let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in
-      let%lwt c = find_cookie ~cookie_scope ~secure_o:(Some secure) () in
-      Lwt.return c.Eliom_common.pc_value
+    | _ -> get_cookie ()
   in
   Lwt.return (table, key)
 
@@ -985,16 +989,21 @@ let get_table_key_ ~table:(scope, secure, table)
        unit -> Eliom_common.one_data_cookie_info) =
   (* The key in the table is the cookie for client processes and sessions,
      and the group name for groups *)
+  let get_cookie () =
+    let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in
+      let c = find_cookie ~cookie_scope ~secure_o:(Some secure) () in
+      c.Eliom_common.dc_value
+  in
   (table, match scope with
     | `Session_group state_name ->
       (match get_volatile_data_session_group
           ~scope:(`Session state_name) ~secure ()
        with Some a -> a
-         | _ -> Eliom_common.default_group_name)
-    | _ ->
-      let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in
-      let c = find_cookie ~cookie_scope ~secure_o:(Some secure) () in
-      c.Eliom_common.dc_value)
+          | None ->
+            (* No session group has been set. We use the session instead. *)
+            get_cookie ()
+      )
+    | _ -> get_cookie ())
 
 
 let get_volatile_data ~table () =
