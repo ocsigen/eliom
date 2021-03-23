@@ -1219,25 +1219,50 @@ module Ext = struct
       ?(scope = Eliom_common.default_group_scope) group_name =
     ((scope :> Eliom_common.user_scope), `Service, group_name)
 
-  let current_volatile_session_state
-      ?secure ?(scope = Eliom_common.default_session_scope) () =
-    let cookie = Eliommod_datasess.find_or_create_data_cookie
-        ~secure_o:secure ~cookie_scope:scope () in
-    ((scope :> Eliom_common.user_scope), `Data, cookie.Eliom_common.dc_value)
+  let current_volatile_data_state
+      ?secure ?(scope = (Eliom_common.default_session_scope
+                         :> Eliom_common.user_scope)) () =
+    let scope = (scope :> Eliom_common.user_scope) in
+    match scope with
+    | `Session_group h ->
+      (match get_volatile_data_session_group ~scope:(`Session h) ?secure () with
+       | Some g -> volatile_data_group_state ~scope:(`Session_group h) g
+       | None -> raise Not_found)
+    | #Eliom_common.cookie_scope as cookie_scope ->
+      let cookie = Eliommod_datasess.find_or_create_data_cookie
+          ~secure_o:secure ~cookie_scope ()
+      in
+      ((scope, `Data, cookie.Eliom_common.dc_value) : ('a, 'b) state)
 
-  let current_persistent_session_state
-      ?secure ?(scope = Eliom_common.default_session_scope) () =
-    Eliommod_persess.find_or_create_persistent_cookie
-      ~secure_o:secure ~cookie_scope:scope ()
-    >>= fun cookie ->
-    Lwt.return ((scope :> Eliom_common.user_scope),
-                `Pers, cookie.Eliom_common.pc_value)
+  let current_persistent_data_state
+      ?secure ?(scope = (Eliom_common.default_session_scope
+                         :> Eliom_common.user_scope)) () =
+    let scope = (scope :> Eliom_common.user_scope) in
+    match scope with
+    | `Session_group h ->
+      (match%lwt get_persistent_data_session_group ~scope:(`Session h) ?secure ()
+       with
+       | Some g ->
+         persistent_data_group_state ~scope:(`Session_group h) g |> Lwt.return
+       | None -> Lwt.fail Not_found)
+    | #Eliom_common.cookie_scope as cookie_scope ->
+      Eliommod_persess.find_or_create_persistent_cookie
+        ~secure_o:secure ~cookie_scope () >>= fun cookie ->
+      Lwt.return (scope, `Pers, cookie.Eliom_common.pc_value)
 
-  let current_service_session_state
-      ?secure ?(scope = Eliom_common.default_session_scope) () =
-    let cookie = Eliommod_sersess.find_or_create_service_cookie
-      ~secure_o:secure ~cookie_scope:scope () in
-    ((scope :> Eliom_common.user_scope), `Service, cookie.Eliom_common.sc_value)
+  let current_service_state
+      ?secure ?(scope = (Eliom_common.default_session_scope
+                         :> Eliom_common.user_scope)) () =
+    let scope = (scope :> Eliom_common.user_scope) in
+    match scope with
+    | `Session_group h ->
+      (match get_service_session_group ~scope:(`Session h) ?secure () with
+       | Some g -> service_group_state ~scope:(`Session_group h) g
+       | None -> raise Not_found)
+    | #Eliom_common.cookie_scope as cookie_scope ->
+      let cookie = Eliommod_sersess.find_or_create_service_cookie
+          ~secure_o:secure ~cookie_scope () in
+      (scope, `Service, cookie.Eliom_common.sc_value)
 
   let get_service_cookie_info
       ((_, _, cookie) : ([< Eliom_common.cookie_level ], [ `Service ]) state) =

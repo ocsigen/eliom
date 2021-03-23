@@ -83,13 +83,13 @@ type session_scope = [`Session of scope_hierarchy]
 type client_process_scope = [`Client_process of scope_hierarchy]
 type request_scope = [`Request]
 
-val global_scope : global_scope
-val site_scope : site_scope
-val default_group_scope : session_group_scope
-val default_session_scope : session_scope
-val default_process_scope : client_process_scope
-val comet_client_process_scope : client_process_scope
-val request_scope : request_scope
+val global_scope : [> global_scope ]
+val site_scope : [> site_scope ]
+val default_group_scope : [> session_group_scope ]
+val default_session_scope : [> session_scope ]
+val default_process_scope : [> client_process_scope ]
+val comet_client_process_scope : [> client_process_scope ]
+val request_scope : [> request_scope ]
 
 val create_scope_hierarchy : string -> scope_hierarchy
 

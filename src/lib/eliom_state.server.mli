@@ -745,30 +745,31 @@ module Ext : sig
     ?scope:Eliom_common.session_group_scope -> string ->
     ([> `Session_group ], [> `Service ]) state
 
-  (** [current_volatile_session_state ~scope] returns the state corresponding
-      to current session in scope [scope].
-      Raises [Not_found] if not connected
+  (** [current_volatile_data_state ~scope] returns the state corresponding
+      to scope [scope].
+      Raises [Not_found] if not connected or if no session group is set,
       or [Eliom_common.Eliom_Session_expired] if a cookie was present but
-      expired. *)
-  val current_volatile_session_state :
+      expired.
+  *)
+  val current_volatile_data_state :
     ?secure:bool ->
-    ?scope:Eliom_common.session_scope ->
+    ?scope:Eliom_common.user_scope ->
     unit ->
-    ([< `Session ], [< `Data ]) state
+    ([< Eliom_common.user_level ], [< `Data ]) state
 
   (** Same for persistent data *)
-  val current_persistent_session_state :
+  val current_persistent_data_state :
     ?secure:bool ->
-    ?scope:Eliom_common.session_scope ->
+    ?scope:Eliom_common.user_scope ->
     unit ->
-    ([< `Session ], [< `Pers ]) state Lwt.t
+    ([< Eliom_common.user_level ], [< `Pers ]) state Lwt.t
 
   (** Same for services *)
-  val current_service_session_state :
+  val current_service_state :
     ?secure:bool ->
-    ?scope:Eliom_common.session_scope ->
+    ?scope:Eliom_common.user_scope ->
     unit ->
-    ([< `Session ], [< `Service ]) state
+    ([< Eliom_common.user_level ], [< `Service ]) state
 
   (** Discard external states *)
   val discard_state : state : ('a, 'b) state -> unit Lwt.t
