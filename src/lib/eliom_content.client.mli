@@ -344,7 +344,7 @@ module Html : sig
         you will have to use {% <<a_api|module Eliom_content.Html.D.Raw>> %}
         otherwise, use the form module.
         For more information,
-        see {{:http://ocsigen.org/howto/forms/}"how to make forms"} *)
+        see <<a_manual chapter="server-links" fragment="forms"|the manual>>. *)
 
     (** Function [node s] create an HTML5 [elt] from a signal [s].
         The resulting HTML5 [elt] can then be used like any other HTML5 [elt] *)
