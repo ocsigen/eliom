@@ -321,7 +321,8 @@ module Html : sig
         If you want to create an untyped form, you will have to use {%
         <<a_api|module Eliom_content.Html.F.Raw>> %} otherwise, use
         Eliom form widgets.  For more information, see
-        {{:http://ocsigen.org/howto/forms/}"how to make forms"} *)
+        <<a_manual chapter="server-links" fragment="forms"|the manual>>.
+         *)
 
     (** See {% <<a_api project="tyxml" | module Html_sigs.T >> %}. *)
     module Raw : Html_sigs.Make(Xml)(Svg.F.Raw).T
@@ -349,7 +350,7 @@ module Html : sig
         If you want to create an untyped form, you will have to use {%
         <<a_api|module Eliom_content.Html.F.Raw>> %} otherwise, use
         Eliom form widgets.  For more information, see
-        {{:http://ocsigen.org/howto/forms/}"how to make forms"} *)
+        <<a_manual chapter="server-links" fragment="forms"|the manual>>. *)
 
     (** See {% <<a_api project="tyxml" | module Html_sigs.T >> %}. *)
     module Raw : Html_sigs.Make(Xml)(Svg.D.Raw).T
