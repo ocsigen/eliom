@@ -1017,6 +1017,8 @@ let get_global_data ~keep_debug =
   in
   (data, global_data_unwrapper)
 
+let transform_global_app_uri = ref (fun x -> x )
+
 module type APP = sig
   val application_script :
     ?defer:bool -> ?async:bool -> unit -> [> `Script ] Eliom_content.Html.elt
@@ -1180,7 +1182,7 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
       let a =
         (if defer then [Eliom_content.Html.F.a_defer ()] else [])
         @
-        [Eliom_content.Html.F.a_src uri]
+        [Eliom_content.Html.F.a_src @@ !transform_global_app_uri uri]
       in
       Eliom_content.Html.F.script ~a (Eliom_content.Html.F.txt "") :: rem
     end else
