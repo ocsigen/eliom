@@ -167,8 +167,8 @@ module type LINKS = sig
       discontinues the Eliom application.  The [~xhr] parameter has no
       effect outside an Eliom application.
       The default value of [~xhr] is configurable through
-      <<a_api project="eliom" subproject="server" | val
-      Eliom_config.set_default_links_xhr >>
+      {% <<a_api project="eliom" subproject="server" | val
+      Eliom_config.set_default_links_xhr >> %}.
 
       The optional parameter [~a] allows one to add extra HTML
       attributes to the generated node.
