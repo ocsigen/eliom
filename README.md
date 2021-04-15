@@ -1,5 +1,4 @@
 # Eliom
-
 Eliom is a framework for building client/server Web and mobile
 applications in OCaml.
 It transforms OCaml into a multi-tier language, making it possible to
@@ -46,7 +45,7 @@ If you want to compile manually,
 
 * DEPRECATED Sources for this example may be found in the directory
   `tests/miniwiki`. A complete tutorial is
-  [available online][tutorial]. For a testsuite, see
+  available online. For a testsuite, see
   <http://localhost:8080/>.
 
 ## Authors
