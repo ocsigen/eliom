@@ -1,0 +1,44 @@
+name: Main workflow
+
+on:
+  pull_request:
+  push:
+  schedule:
+    # Prime the caches every Monday
+    - cron: 0 1 * * MON
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+        ocaml-compiler:
+          - 4.08.1
+          - 4.09.1
+          - 4.10.2
+          - 4.11.2
+          - 4.12.0
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Use OCaml ${{ matrix.ocaml-compiler }}
+        uses: avsm/setup-ocaml@v2
+        with:
+          ocaml-compiler: ocaml-base-compiler.${{ matrix.ocaml-compiler }}
+          opam-depext: false
+          opam-pin: false
+
+      - run: opam pin add eliom.dev . --no-action
+
+      - run: opam depext eliom --yes
+
+      - run: opam install . --deps-only
+
+      - run: opam exec -- make all
