@@ -31,7 +31,7 @@ jobs:
       - name: Use OCaml ${{ matrix.ocaml-compiler }}
         uses: avsm/setup-ocaml@v2
         with:
-          ocaml-compiler: ocaml-base-compiler.${{ matrix.ocaml-compiler }}
+          ocaml-compiler: ${{ matrix.ocaml-compiler }}
           opam-depext: false
           opam-pin: false
 
