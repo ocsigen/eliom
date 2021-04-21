@@ -86,7 +86,11 @@ sig
   *)
   val notify : ?notfor:[`Me | `Id of identity] -> key -> server_notif -> unit
 
-  (** Returns the client react event. Map a function on this event to react
+  (** Returns the client react event.
+
+      ['a Eliom_react.Down.t] = ['a React.E.t] on client side.
+
+      Map a function on this event to react
       to notifications from the server.
       For example:
 

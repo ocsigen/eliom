@@ -1,5 +1,4 @@
 # Eliom
-
 Eliom is a framework for building client/server Web and mobile
 applications in OCaml.
 It transforms OCaml into a multi-tier language, making it possible to
@@ -35,18 +34,18 @@ If you want to compile manually,
 
 * Install Eliom.
 
-* Run `make run.local` or `make run.opt.local` in the Eliom source
+* DEPRECATED Run `make run.local` or `make run.opt.local` in the Eliom source
   directory.
 
-* Open <http://localhost:8080/miniwiki> in your browser.
+* DEPRECATED Open <http://localhost:8080/miniwiki> in your browser.
 
-* If the above does not work, look at the logs (see `local/var/log/`
+* DEPRECATED If the above does not work, look at the logs (see `local/var/log/`
   in the Eliom source directory) or run Eliom with either of the
   options `-v`, `-V` (verbose and debug mode, respectively).
 
-* Sources for this example may be found in the directory
+* DEPRECATED Sources for this example may be found in the directory
   `tests/miniwiki`. A complete tutorial is
-  [available online][tutorial]. For a testsuite, see
+  available online. For a testsuite, see
   <http://localhost:8080/>.
 
 ## Authors
