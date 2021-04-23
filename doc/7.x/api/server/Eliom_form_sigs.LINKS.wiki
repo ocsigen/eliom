@@ -140,8 +140,8 @@
       discontinues the ~Eliom application~.  ~The <<span class="odocwiki_inlinecode"|~~xhr>> parameter has no
       effect outside an ~Eliom application~.
       ~The default value of <<span class="odocwiki_inlinecode"|~~xhr>> is configurable through
-      ~<~<a~_api project~="eliom" subproject~="server" ~| val
-      ~Eliom~_config~.set~_default~_links~_xhr ~>~>
+      <<a_api project="eliom" subproject="server" | val
+      Eliom_config.set_default_links_xhr >> ~.
 
 
       ~The optional parameter <<span class="odocwiki_inlinecode"|~~a>> allows one to add extra ~H~T~M~L

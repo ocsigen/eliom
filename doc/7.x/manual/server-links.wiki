@@ -254,6 +254,8 @@ contains a form to <<span class="code"|post2>>, with a GET parameter.
 
 //Warning:// Some examples in this section use the Tyxml syntax extension.
 (See <<a_manual project="tyxml" chapter="ppx"|Tyxml's manual>>).
+//Warning:// After installing Tyxml, {{{tyxml-ppx}}} should be added to the lists of SERVER PACKAGES and CLIENT PACKAGES 
+in the Makefile.options file of your project.
 
 <<code language="ocaml"|
   let form2 =

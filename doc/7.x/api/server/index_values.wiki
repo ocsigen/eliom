@@ -255,14 +255,14 @@
       reference a ~Cascading ~Style~Sheet ~(~C~S~S~)~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="current_persistent_session_state"| value Eliom_state.Ext.current_persistent_session_state >> ~[<<a_api subproject="server" | module Eliom_state.Ext >>~]|<<div class="odocwiki_info"|~Same for persistent data
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="current_persistent_data_state"| value Eliom_state.Ext.current_persistent_data_state >> ~[<<a_api subproject="server" | module Eliom_state.Ext >>~]|<<div class="odocwiki_info"|~Same for persistent data
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="current_service_session_state"| value Eliom_state.Ext.current_service_session_state >> ~[<<a_api subproject="server" | module Eliom_state.Ext >>~]|<<div class="odocwiki_info"|~Same for services
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="current_service_state"| value Eliom_state.Ext.current_service_state >> ~[<<a_api subproject="server" | module Eliom_state.Ext >>~]|<<div class="odocwiki_info"|~Same for services
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="current_volatile_session_state"| value Eliom_state.Ext.current_volatile_session_state >> ~[<<a_api subproject="server" | module Eliom_state.Ext >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|current~_volatile~_session~_state ~~scope>> returns the state corresponding
-      to current session in scope <<span class="odocwiki_inlinecode"|scope>>~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="current_volatile_data_state"| value Eliom_state.Ext.current_volatile_data_state >> ~[<<a_api subproject="server" | module Eliom_state.Ext >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|current~_volatile~_data~_state ~~scope>> returns the state corresponding
+      to scope <<span class="odocwiki_inlinecode"|scope>>~.
 >>
 |
 |@@ @style="tet-align: left;"@@\\D|

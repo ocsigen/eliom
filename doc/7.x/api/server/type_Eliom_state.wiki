@@ -193,18 +193,22 @@
       val service_group_state :
         ?scope:Eliom_common.session_group_scope ->
         string -> ([> `Session_group ], [> `Service ]) Eliom_state.Ext.state
-      val current_volatile_session_state :
+      val current_volatile_data_state :
         ?secure:bool ->
-        ?scope:Eliom_common.session_scope ->
-        unit -> ([< `Session ], [< `Data ]) Eliom_state.Ext.state
-      val current_persistent_session_state :
+        ?scope:Eliom_common.user_scope ->
+        unit ->
+        ([< Eliom_common.user_level ], [< `Data ]) Eliom_state.Ext.state
+      val current_persistent_data_state :
         ?secure:bool ->
-        ?scope:Eliom_common.session_scope ->
-        unit -> ([< `Session ], [< `Pers ]) Eliom_state.Ext.state Lwt.t
-      val current_service_session_state :
+        ?scope:Eliom_common.user_scope ->
+        unit ->
+        ([< Eliom_common.user_level ], [< `Pers ]) Eliom_state.Ext.state
+        Lwt.t
+      val current_service_state :
         ?secure:bool ->
-        ?scope:Eliom_common.session_scope ->
-        unit -> ([< `Session ], [< `Service ]) Eliom_state.Ext.state
+        ?scope:Eliom_common.user_scope ->
+        unit ->
+        ([< Eliom_common.user_level ], [< `Service ]) Eliom_state.Ext.state
       val discard_state : state:('a, 'b) Eliom_state.Ext.state -> unit Lwt.t
       val fold_volatile_sub_states :
         ?sitedata:Eliom_common.sitedata ->
