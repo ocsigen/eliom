@@ -1,6 +1,0 @@
-=Module <<a_api_type | module Ocsigen_getcommandline >> =
-<<div class="code"|<<span class="keyword"|module>> Ocsigen_getcommandline: <<span class='code'|sig>><<a_api text=".." | module Ocsigen_getcommandline >><<span class='code'|end>>>>~Contains the command line that will be parsed by the server
-    when ~Ocsigen~_commandline is linked\\
-
-----
-<<div id="VALcommandline" class="code"|<<span class="keyword"|val>> commandline : <<span class="code type"|string array>>>>

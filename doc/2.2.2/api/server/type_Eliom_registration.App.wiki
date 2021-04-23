@@ -1,1 +1,0 @@
-<<code language="ocaml" | functor (Appl_params : APPL_PARAMS) -> ELIOM_APPL >>

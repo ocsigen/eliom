@@ -1,5 +1,0 @@
-=Index of module types=
-
-|@@ @style="tet-align: left;"@@\\F|
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="FORMS_PARAM"| module type Eliom_mkforms.FORMS_PARAM >> ~[<<a_api subproject="client" | module Eliom_mkforms >>~]||
-\\

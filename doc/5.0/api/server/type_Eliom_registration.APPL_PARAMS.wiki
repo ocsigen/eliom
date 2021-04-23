@@ -1,1 +1,0 @@
-<<code language="ocaml" | sig val application_name : string end >>

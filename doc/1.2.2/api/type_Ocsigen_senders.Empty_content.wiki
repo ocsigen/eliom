@@ -1,7 +1,0 @@
-<<code language="ocaml" | sig
-  type t = unit
-  type options
-  val result_of_content :
-    ?options:options -> t -> Ocsigen_http_frame.result Lwt.t
-  val get_etag : t -> Ocsigen_http_frame.etag option
-end >>

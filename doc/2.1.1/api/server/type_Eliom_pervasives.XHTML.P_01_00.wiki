@@ -1,8 +1,0 @@
-<<code language="ocaml" | sig
-  val print_list :
-    output:(string -> unit) ->
-    ?encode:(string -> string) -> 'a M_01_00.elt list -> unit
-  val print :
-    output:(string -> unit) ->
-    ?encode:(string -> string) -> ?advert:string -> M_01_00.doc -> unit
-end >>

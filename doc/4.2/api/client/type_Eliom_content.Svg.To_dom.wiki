@@ -1,5 +1,0 @@
-<<code language="ocaml" | sig
-  val of_element : 'a Eliom_content.Svg.elt -> Dom_html.element Js.t
-  val of_node : 'a Eliom_content.Svg.elt -> Dom.node Js.t
-  val of_pcdata : [> `Pcdata ] Eliom_content.Svg.elt -> Dom.text Js.t
-end >>

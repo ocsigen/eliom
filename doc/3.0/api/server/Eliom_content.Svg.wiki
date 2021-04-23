@@ -1,4 +1,0 @@
-=Module <<a_api_type subproject="server" | module Eliom_content.Svg >> =
-<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Svg>>>> <<span class="ocsforge_color_delimiter"|~:>> \\  <<span class="odocwiki_type"|module type of <<a_api subproject="server" text="Eliom_content_core.Svg" | module Eliom_content_core.Svg >>>><<span class="odocwiki_type"| with\\    type uri = <<a_api subproject="server" text="Eliom_content_core.Svg" | module Eliom_content_core.Svg >>.uri\\  and type 'a attrib = 'a <<a_api subproject="server" text="Eliom_content_core.Svg" | module Eliom_content_core.Svg >>.attrib\\  and type (+'a) elt = 'a <<a_api subproject="server" text="Eliom_content_core.Svg" | module Eliom_content_core.Svg >>.elt>>>>~Building and pretty~-printing valid ~S~V~G tree~.
-
-----

@@ -1,7 +1,0 @@
-=Module type <<a_api_type subproject="server" | module type Eliom_registration.APPL_PARAMS >> =
-<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module type>> <<span class="ocsforge_color_uid"|APPL_PARAMS>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module type Eliom_registration.APPL_PARAMS >><<span class="ocsforge_color_keyword"|end>>>>~Signature for application creation~.
-
-----
-<<pre id="VALapplication_name" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|application~_name>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|string>>>><<div class="odocwiki_info"|~Name of the application~.
-      ~Two distincts applications must have distincts names~.
->>

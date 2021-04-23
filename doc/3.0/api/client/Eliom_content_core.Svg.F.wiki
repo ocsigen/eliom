@@ -1,6 +1,0 @@
-=Module <<a_api_type subproject="client" | module Eliom_content_core.Svg.F >> =
-<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|F>>>> <<span class="ocsforge_color_delimiter"|~:>> \\  \\  <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Svg_sigs.T>>>><<span class="odocwiki_type"| with type Xml.uri = Xml.uri\\          and type Xml.event_handler = Xml.event_handler\\          and type Xml.attrib = Xml.attrib and type Xml.elt = Xml.elt>><<span class="odocwiki_type"| with\\        type 'a elt = 'a elt\\      and type 'a attrib = 'a attrib and type uri = uri>>>>~Typed interface for building valid ~S~V~G tree ~(functional
-      semantics~)~. ~See <<a_api project="tyxml" | module type
-      Svg_sigs.T >> ~.
-
-----

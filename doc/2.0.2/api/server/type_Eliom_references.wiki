@@ -1,9 +1,0 @@
-<<code language="ocaml" | sig
-  type 'a eref
-  val eref :
-    scope:[< Eliom_common.all_scope ] ->
-    ?secure:bool -> ?persistent:string -> 'a -> 'a Eliom_references.eref
-  val get : 'a Eliom_references.eref -> 'a Lwt.t
-  val set : 'a Eliom_references.eref -> 'a -> unit Lwt.t
-  val unset : 'a Eliom_references.eref -> unit Lwt.t
-end >>

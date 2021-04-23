@@ -1,6 +1,0 @@
-=Functor <<a_api_type subproject="server" | module Eliom_comet_base.Json_channel_data >> =
-<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Json_channel_data>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_sig_block"|<<span class="ocsforge_color_keyword"|functor>> <<span class="ocsforge_color_delimiter"|(>>M_a <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Deriving_Json.Json>>>><<span class="ocsforge_color_delimiter"|)>> <<span class="ocsforge_color_delimiter"|-~>>> \\  <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Deriving_Json.Json>>>><<span class="odocwiki_type"| with type a = M_a.a channel_data>>>>>><<div class="odocwiki_module_param_list" | <<span class="odocwiki_param_title" |Parameters :>><<div|
-|@@class="odocwiki_paramstable"@ @class="centertop fifteen code"@@{{{M_a}}}|@@class="centertop"@@:|<<span class="odocwiki_type"|Deriving_Json.Json>>|
->>>>
-
-----

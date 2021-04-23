@@ -1,7 +1,0 @@
-=Class type <<a_api_type subproject="client" | class type Eliom_content_core.Xml.biggest_event >> =
-<<pre class="ocsforge_color odocwiki_code"|<<span id="TYPEbiggest_event"|<<span class="ocsforge_color_keyword"|class type>> <<span class="ocsforge_color_name"|biggest_event>>>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="ocsforge_color_keyword"|object>><<a_api subproject="client" text=".." | class type Eliom_content_core.Xml.biggest_event >><<span class="ocsforge_color_keyword"|end>>>>**~Inherits**
-* <<span class="odocwiki_inlinecode"|~Dom~_html~.event>>
-* <<span class="odocwiki_inlinecode"|~Dom~_html~.mouse~Event>>
-* <<span class="odocwiki_inlinecode"|~Dom~_html~.keyboard~Event>>
-
-----

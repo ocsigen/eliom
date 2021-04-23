@@ -1,5 +1,0 @@
-<<code language="ocaml" | sig
-  type eliom_extension_sig =
-      Eliom_sessions.server_params -> Ocsigen_extensions.answer Lwt.t
-  val register_eliom_extension : Eliom_extensions.eliom_extension_sig -> unit
-end >>
