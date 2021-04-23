@@ -37,7 +37,13 @@
       will fail~. ~If it is <<span class="odocwiki_inlinecode"|`~Id id>> it won~'t be sent to the destination defined
       by <<span class="odocwiki_inlinecode"|id>>~.
 >>
-<<pre id="VALclient_ev" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|client~_ev>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  unit <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >><<a_api subproject="server" text="key" | type Eliom_notif.S.key >> * <<a_api subproject="server" text="client_notif" | type Eliom_notif.S.client_notif >><<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="Eliom_react.Down.t" | type Eliom_react.Down.t >>>>>><<div class="odocwiki_info"|~Returns the client react event~. ~Map a function on this event to react
+<<pre id="VALclient_ev" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|client~_ev>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  unit <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >><<a_api subproject="server" text="key" | type Eliom_notif.S.key >> * <<a_api subproject="server" text="client_notif" | type Eliom_notif.S.client_notif >><<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="Eliom_react.Down.t" | type Eliom_react.Down.t >>>>>><<div class="odocwiki_info"|~Returns the client react event~.
+
+
+      <<span class="odocwiki_inlinecode"|~'a ~Eliom~_react~.~Down~.t>> ~= <<span class="odocwiki_inlinecode"|~'a ~React~.~E~.t>> on client side~.
+
+
+      ~Map a function on this event to react
       to notifications from the server~.
       ~For example~:
 
