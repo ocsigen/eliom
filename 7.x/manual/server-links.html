@@ -118,9 +118,36 @@ let _ =
             (head (title (txt &quot;&quot;)) [])
             (body [p [a linkrec [txt &quot;click&quot;] ()]])))</code></pre><p>(You can also refer to <em>the current service</em> via <span class="teletype">reload_action</span>
 (<span><a href=".././api/server/Eliom_service_sigs.S#VALreload_action">Eliom_service_sigs.S.reload_action</a></span>).
-</p><h2 id="forms">Forms <a class="backref" href="#forms">&#182;</a></h2><h3>Forms towards GET services</h3><p>The modules <span class="teletype">Eliom_content.Html.D.Form</span>
+</p><h2 id="forms">Forms <a class="backref" href="#forms">&#182;</a></h2><h3>Raw forms</h3><p>Modules <span><a href=".././../../eliom/latest/api/server/Eliom_content.Html.F">Eliom_content.Html.F</a></span> and
+<span><a href=".././../../eliom/latest/api/server/Eliom_content.Html.D">Eliom_content.Html.D</a></span>
+define form elements with the usual typed interface from TyXML.
+Use this for example if you have a client side program and
+want to manipulate the form contents from client side functions
+(for example do a server function call with the form elements content).
+</p><p>Example:
+</p><pre class="shared" class=""><code class="language-ocaml translatable">let%shared mk_form ()
+  =
+  let open Eliom_content.Html in
+  let open Eliom_content.Html.F in
+  let theinput = D.input () in
+  let thesubmit =
+    D.input ~a:[a_input_type `Submit; a_value &quot;Go&quot;] ()
+  in
+  Raw.form
+    ~a:
+      [ a_onsubmit
+          [%client
+            fun ev -&gt;
+              let value = Js.to_string ~%theinput##.value in
+              ...
+          ]
+      ]
+    [theinput; thesubmit]</code></pre><h3>Typed forms towards GET services</h3><p>In contrast, modules <span class="teletype">Eliom_content.Html.D.Form</span>
 and <span class="teletype">Eliom_content.Html.F.Form</span> provide functions
-for creating forms. Our examples use shorthands to these modules, e.g.,
+for creating typed forms towards Eliom services.
+Use them if you want to create regular HTML forms,
+(with submit button).
+</p><p>Our examples use shorthands to these modules, e.g.,
 simply <span class="teletype">Form</span>, assuming an appropriate context.
 See
 <span><a href=".././api/server/Eliom_content_sigs.LINKS_AND_FORMS.Form">Eliom_content_sigs.LINKS_AND_FORMS.Form</a></span>
@@ -243,7 +270,7 @@ contains a form to <span class="code">post2</span>, with a GET parameter.
 <span class="code">form4</span> is a form to an external page.
 </p><p><em>Warning:</em> Some examples in this section use the Tyxml syntax extension.
 (See <span><a href=".././../../tyxml/latest/manual/ppx">Tyxml's manual</a></span>).
-<em>Warning:</em> After installing Tyxml, <span class="teletype">tyxml-ppx</span> should be added to the lists of SERVER PACKAGES and CLIENT PACKAGES 
+<em>Warning:</em> After installing Tyxml, <span class="teletype">tyxml-ppx</span> should be added to the lists of SERVER PACKAGES and CLIENT PACKAGES
 in the Makefile.options file of your project.
 </p><pre class=""><code class="language-ocaml translatable">let form2 =
     Eliom_registration.Html.create
