@@ -92,11 +92,47 @@ let _ =
 
 ==@@id="forms"@@Forms
 
-===Forms towards GET services
+===Raw forms
 
-The modules {{{Eliom_content.Html.D.Form}}}
+Modules <<a_api project="eliom" subproject="server" |module Eliom_content.Html.F>> and
+<<a_api project="eliom" subproject="server" |module Eliom_content.Html.D>>
+define form elements with the usual typed interface from TyXML.
+Use this for example if you have a client side program and
+want to manipulate the form contents from client side functions
+(for example do a server function call with the form elements content).
+
+Example:
+<<code language="ocaml" class="shared"|
+let%shared mk_form ()
+  =
+  let open Eliom_content.Html in
+  let open Eliom_content.Html.F in
+  let theinput = D.input () in
+  let thesubmit =
+    D.input ~a:[a_input_type `Submit; a_value "Go"] ()
+  in
+  Raw.form
+    ~a:
+      [ a_onsubmit
+          [%client
+            fun ev ->
+              let value = Js.to_string ~%theinput##.value in
+              ...
+          ]
+      ]
+    [theinput; thesubmit]
+>>
+
+
+===Typed forms towards GET services
+
+In contrast, modules {{{Eliom_content.Html.D.Form}}}
 and {{{Eliom_content.Html.F.Form}}} provide functions
-for creating forms. Our examples use shorthands to these modules, e.g.,
+for creating typed forms towards Eliom services.
+Use them if you want to create regular HTML forms,
+(with submit button).
+
+Our examples use shorthands to these modules, e.g.,
 simply {{{Form}}}, assuming an appropriate context.
 See
 <<a_api subproject="server" | module Eliom_content_sigs.LINKS_AND_FORMS.Form >>
@@ -207,9 +243,6 @@ let my_service_with_post_params =
          (body [h1 [txt value]])))
 >>
 
-
-
-
 Services may take both GET and POST parameters:
 
 
@@ -254,7 +287,7 @@ contains a form to <<span class="code"|post2>>, with a GET parameter.
 
 //Warning:// Some examples in this section use the Tyxml syntax extension.
 (See <<a_manual project="tyxml" chapter="ppx"|Tyxml's manual>>).
-//Warning:// After installing Tyxml, {{{tyxml-ppx}}} should be added to the lists of SERVER PACKAGES and CLIENT PACKAGES 
+//Warning:// After installing Tyxml, {{{tyxml-ppx}}} should be added to the lists of SERVER PACKAGES and CLIENT PACKAGES
 in the Makefile.options file of your project.
 
 <<code language="ocaml"|
