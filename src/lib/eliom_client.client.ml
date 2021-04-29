@@ -536,6 +536,29 @@ module HistCache = Map.Make (struct
   let compare = compare
 end)
 
+module History = struct
+  let urls = ref HistCache.empty
+
+  let push_current_url () =
+    let page = !active_page in
+    let id = page.page_id.state_index in
+    let past, _, _ = HistCache.split id !urls in
+    urls := HistCache.add id (get_current_uri ()) past
+
+  let split_history () =
+    let cur_index = !active_page.page_id.state_index in
+    let past, _, future = HistCache.split cur_index !urls in
+    past, future
+
+  let past () =
+    let past, _ = split_history () in
+    List.map (fun (_, url) -> url) (HistCache.bindings past)
+
+  let future () =
+    let _, future = split_history () in
+    List.rev_map (fun (_, url) -> url) (HistCache.bindings future)
+end
+
 let history_doms : history_dom HistCache.t ref = ref HistCache.empty
 
 let max_dist_history_doms = ref None
@@ -813,6 +836,7 @@ let set_content_local ?offset ?fragment new_page =
     Page_status.onactive ~once:true (fun () -> run_callbacks load_callbacks);
     scroll_to_fragment ?offset fragment;
     advance_page ();
+    History.push_current_url ();
     if !Eliom_config.debug_timings
     then Firebug.console##(timeEnd (Js.string "set_content_local"));
     Lwt.return_unit
@@ -914,6 +938,7 @@ let set_content ~replace ~uri ?offset ?fragment content =
       run_callbacks load_callbacks;
       scroll_to_fragment ?offset fragment;
       advance_page ();
+      History.push_current_url ();
       if !Eliom_config.debug_timings then
         Firebug.console##(timeEnd (Js.string "set_content"));
       Lwt.return_unit
@@ -1327,6 +1352,8 @@ let restore_history_dom id =
   set_active_page page
 
 let () =
+
+  onload History.push_current_url;
 
   if Eliom_process.history_api
   then
