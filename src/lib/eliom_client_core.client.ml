@@ -715,6 +715,7 @@ end
 type page = {
   page_unique_id : int;
   mutable page_id : state_id;
+  mutable url : string option;
   page_status : Page_status_t.t React.S.t;
   page_is_cached : bool ref;
   previous_page : int option;
@@ -743,6 +744,7 @@ let mk_page ?(state_id = next_state_id ()) ~status () =
   ignore @@ React.S.map (fun _ -> ()) page_status;
   {page_unique_id = !last_page_id;
    page_id = state_id;
+   url = None;
    page_status;
    page_is_cached = ref false;
    previous_page = None;

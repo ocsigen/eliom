@@ -500,8 +500,10 @@ let set_current_uri, get_current_uri =
   let current_uri =
     ref (fst (Url.split_fragment (Js.to_string Dom_html.window##.location##.href)))
   in
+  (get_this_page ()).url := Some !current_uri;
   let set_current_uri uri =
     current_uri := fst (Url.split_fragment uri);
+    (get_this_page ()).url <- Some !current_uri;
     let (path, all_get_params) = path_and_args_of_uri !current_uri in
     Lwt.async @@ fun () ->
     Eliom_request_info.update_session_info ~path
