@@ -24,15 +24,14 @@ val get_page :
   float ->
   Eliom_common.info ->
   Eliom_common.sitedata ->
-  Ocsigen_http_frame.result Lwt.t
+  Ocsigen_response.t Lwt.t
 
 val add_service :
   int ->
   Eliom_common.tables ->
   String.Table.key list ->
   Eliom_common.Serv_Table.key ->
-  (Eliom_common.server_params, Ocsigen_http_frame.result)
-    Eliom_common.service ->
+  (Eliom_common.server_params, Ocsigen_response.t) Eliom_common.service ->
   unit
 
 val remove_service :
@@ -46,7 +45,7 @@ val add_naservice :
   Eliom_common.tables ->
   Eliom_common.NAserv_Table.key ->
   int ref option * (float * float ref) option *
-  (Eliom_common.server_params -> Ocsigen_http_frame.result Lwt.t) ->
+  (Eliom_common.server_params -> Ocsigen_response.t Lwt.t) ->
   unit
 
 val remove_naservice :
@@ -55,4 +54,4 @@ val remove_naservice :
 val make_naservice :
   float ->
   Eliom_common.info ->
-  Eliom_common.sitedata -> Ocsigen_http_frame.result Lwt.t
+  Eliom_common.sitedata -> Ocsigen_response.t Lwt.t

@@ -29,9 +29,9 @@ type ('options,'page,'result) param =
         ?charset:string ->
         ?code: int ->
         ?content_type:string ->
-        ?headers: Http_headers.t ->
+        ?headers: Ocsigen_header.t ->
         'page ->
-        Ocsigen_http_frame.result Lwt.t;
+        Ocsigen_response.t Lwt.t;
 
       send_appl_content : S.send_appl_content;
       (** Whether the service is capable to send application content when
@@ -39,7 +39,7 @@ type ('options,'page,'result) param =
           value is recorded inside each service just after
           registration.  *)
 
-      result_of_http_result : Ocsigen_http_frame.result -> 'result; }
+      result_of_http_result : Ocsigen_response.t -> 'result; }
 
 
 (* If it is an xmlHTTPrequest who asked for an internal application
@@ -83,15 +83,16 @@ let check_before name service =
    to stop page generation as soon as we know that the content won't
    be needed: hence we test what we can before page generation. *)
 let check_after name result =
-  try
-    let appl_name = Http_headers.find
-      (Http_headers.name Eliom_common_base.appl_name_header_name)
-      (Ocsigen_http_frame.Result.headers result)
-    in
-    not (appl_name = name)
+  match
+    Ocsigen_response.header result
+      (Ocsigen_header.Name.of_string
+         Eliom_common_base.appl_name_header_name)
   with
+  | Some appl_name ->
+    not (appl_name = name)
+  | None ->
     (* not an application content *)
-    | Not_found -> true
+    true
 
 let check_process_redir sp f param =
   let redir =
@@ -114,12 +115,11 @@ let check_process_redir sp f param =
       (Eliom_common.Eliom_do_half_xhr_redirection
          ("/"^
              Eliom_lib.String.may_concat
-                  (Ocsigen_extensions.Ocsigen_request_info.original_full_path_string ri)
+                  (Ocsigen_request.original_full_path_string ri)
                   ~sep:"?"
                   (Eliom_parameter.construct_params_string
-                     (Lazy.force
-                        (Ocsigen_extensions.Ocsigen_request_info.get_params ri))
-                  )))
+                     (Ocsigen_request.get_params_flat ri))
+                  ))
   (* We do not put hostname and port.
      It is ok with half or full xhr redirections. *)
   (* If an action occurred before,
@@ -152,19 +152,21 @@ let send_with_cookies
       sp.Eliom_common.sp_user_tab_cookies
   in
   (* TODO: do not add header when no cookies *)
-  let tab_cookies = Eliommod_cookies.cookieset_to_json tab_cookies in
-  Lwt.return
-    (Ocsigen_http_frame.Result.update result
-       ~cookies:
-         (Ocsigen_cookies.add_cookies
-          (Eliom_request_info.get_user_cookies ())
-          (Ocsigen_http_frame.Result.cookies result))
-       ~headers:
-         (Http_headers.add
-          (Http_headers.name Eliom_common_base.set_tab_cookies_header_name)
-          tab_cookies
-          (Ocsigen_http_frame.Result.headers result))
-       ())
+  let response =
+    let response, _ = Ocsigen_response.to_cohttp result in
+    let headers =
+      Cohttp.Header.add
+        (Cohttp.Response.headers response)
+        Eliom_common_base.set_tab_cookies_header_name
+        (Eliommod_cookies.cookieset_to_json tab_cookies)
+    in
+    { response with Cohttp.Response.headers }
+  and cookies =
+    Ocsigen_cookie_map.add_multi
+      (Eliom_request_info.get_user_cookies ())
+      (Ocsigen_response.cookies result)
+  in
+  Lwt.return (Ocsigen_response.update result ~cookies ~response)
 
 let register_aux pages
       ?options
@@ -222,8 +224,9 @@ let register_aux pages
                          Eliom_parameter.reconstruct_params
                           ~sp
                           sgpt
-                          (Some (Lwt.return (Lazy.force (Ocsigen_extensions.Ocsigen_request_info.get_params ri))))
-                          (Some (Lwt.return_nil))
+                          (Some (Lwt.return
+                                   (Ocsigen_request.get_params_flat ri)))
+                          (Some (Lwt.return []))
                           nosuffixversion
                           suff
                         >>= fun g ->
@@ -245,8 +248,7 @@ let register_aux pages
                            Eliom_uri.make_string_uri_. But we need to
                            "downcast" the type of service to the
                            correct "get service". *)
-                        (if Eliom_request_info.get_http_method () =
-                           Ocsigen_http_frame.Http_header.GET
+                        (if Eliom_request_info.get_http_method () = `GET
                          && nosuffixversion && suffix_with_redirect
                          then
                             (* it is a suffix service in version
@@ -394,9 +396,8 @@ let register_aux pages
                            ~sp
                            (S.get_params_type service)
                            (Some (Lwt.return
-                              (Lazy.force (Ocsigen_extensions
-                                      .Ocsigen_request_info.get_params ri))))
-                           (Some (Lwt.return_nil))
+                                    (Ocsigen_request.get_params_flat ri)))
+                           (Some (Lwt.return []))
                            false
                            None
                          >>= fun g ->
@@ -710,7 +711,7 @@ let create_attached_post pages
 
 module Make
     (Pages : Eliom_registration_sigs.PARAM
-     with type frame := Ocsigen_http_frame.result) =
+     with type frame := Ocsigen_response.t) =
 struct
 
   type page = Pages.page
@@ -737,7 +738,7 @@ end
 
 module Make_poly
     (Pages : Eliom_registration_sigs.PARAM_POLY
-     with type frame := Ocsigen_http_frame.result) =
+     with type frame := Ocsigen_response.t) =
 struct
 
   type 'a page = 'a Pages.page

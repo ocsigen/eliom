@@ -19,28 +19,31 @@
 
 open Js_of_ocaml
 open Eliom_lib
-open Ocsigen_cookies
 
 include Eliom_cookies_base
 
 (* CCC The tables are indexed by the hostname, not the port appear.
    there are no particular reason. If needed it is possible to add it *)
-let cookie_tables = Jstable.create ()
+let cookie_tables
+  : (float option * string * bool) Ocsigen_cookie_map.Map_inner.t
+      Ocsigen_cookie_map.Map_path.t Jstable.t
+  = Jstable.create ()
 
 (** [in_local_storage] implements cookie substitutes for iOS WKWebView *)
 let get_table ?(in_local_storage=false) = function
-  | None -> Cookies.empty
+  | None -> Ocsigen_cookie_map.Map_path.empty
   | Some host ->
     if in_local_storage then
       let host = Js.string (host ^ "/substitutes") in
-      Js.Optdef.case (Dom_html.window##.localStorage) (fun () -> Cookies.empty)
+      Js.Optdef.case (Dom_html.window##.localStorage)
+        (fun () -> Ocsigen_cookie_map.Map_path.empty)
         (fun st ->
            Js.Opt.case (st##(getItem host))
-             (fun () -> Cookies.empty)
+             (fun () -> Ocsigen_cookie_map.Map_path.empty)
              (fun v -> Json.unsafe_input v))
     else
       Js.Optdef.get (Jstable.find cookie_tables (Js.string host))
-        (fun () -> Cookies.empty)
+        (fun () -> Ocsigen_cookie_map.Map_path.empty)
 
 (** [in_local_storage] implements cookie substitutes for iOS WKWebView *)
 let set_table ?(in_local_storage=false) host t =
@@ -60,53 +63,56 @@ let now () =
   Js.to_float (date##getTime) /. 1000.
 
 (** [in_local_storage] implements cookie substitutes for iOS WKWebView *)
-let update_cookie_table ?(in_local_storage=false) host cookieset =
+let update_cookie_table ?(in_local_storage=false) host cookies =
   let now = now () in
-  Cookies.iter
+  Ocsigen_cookie_map.Map_path.iter
     (fun path table ->
-      CookiesTable.iter
-        (fun name -> function
-          | OSet (Some exp, _, _) when exp <= now ->
-            set_table ~in_local_storage
-              host (remove_cookie path name (get_table ~in_local_storage host))
-          | OUnset ->
-            set_table ~in_local_storage
-              host (remove_cookie path name (get_table ~in_local_storage host))
-          | OSet (exp, value, secure) ->
-            set_table ~in_local_storage
-              host (add_cookie path name (exp, value, secure)
-                      (get_table ~in_local_storage host)))
-        table
-    )
-    cookieset
+       Ocsigen_cookie_map.Map_inner.iter
+         (fun name -> function
+            | OSet (Some exp, _, _) when exp <= now ->
+              set_table ~in_local_storage host
+                (Ocsigen_cookie_map.Poly.remove ~path name
+                   (get_table ~in_local_storage host))
+            | OUnset ->
+              set_table ~in_local_storage host
+                (Ocsigen_cookie_map.Poly.remove ~path name
+                   (get_table ~in_local_storage host))
+            | OSet (exp, value, secure) ->
+              set_table ~in_local_storage host
+                (Ocsigen_cookie_map.Poly.add ~path name
+                   (exp, value, secure)
+                   (get_table ~in_local_storage host)))
+         table)
+    cookies
 
 (** [in_local_storage] implements cookie substitutes for iOS WKWebView *)
 let get_cookies_to_send ?(in_local_storage=false) host https path =
   let now = now () in
-  Cookies.fold
+  Ocsigen_cookie_map.Map_path.fold
     (fun cpath t cookies_to_send ->
       if Url.is_prefix_skip_end_slash
           (Url.remove_slash_at_beginning cpath)
           (Url.remove_slash_at_beginning path)
-      then CookiesTable.fold
-        (fun name (exp, value, secure) cookies_to_send ->
-          match exp with
-            | Some exp when exp <= now ->
-              set_table ~in_local_storage host
-                (remove_cookie cpath name (get_table ~in_local_storage host));
-              cookies_to_send
-            | _ ->
-              if (not secure) || https
-              then (name,value)::cookies_to_send
-              else cookies_to_send
-        )
-        t
-        cookies_to_send
-      else cookies_to_send
-    )
+      then
+        Ocsigen_cookie_map.Map_inner.fold
+          (fun name (exp, value, secure) cookies_to_send ->
+             match exp with
+             | Some exp when exp <= now ->
+               set_table ~in_local_storage host
+                 (Ocsigen_cookie_map.Poly.remove cpath
+                    name (get_table ~in_local_storage host));
+               cookies_to_send
+             | _ ->
+               if (not secure) || https
+               then (name,value)::cookies_to_send
+               else cookies_to_send)
+          t cookies_to_send
+      else
+        cookies_to_send)
     (get_table ~in_local_storage host)
     []
 
 
 let make_new_session_id () =
-  failwith "Cannot define anonymous coservices on client side. Ask their values to the server."
+  failwith "Cannot define anonymous coservices on client side. \
+            Ask their values to the server."

@@ -54,17 +54,14 @@ let raw_post_service =
   Eliom_registration.Html.register_post_service
     ~fallback:raw_post_example
     ~post_params:raw_post_data
-    (fun () (ct, stream) ->
+    (fun () (ct, b) ->
       let ct = match ct with
         | None -> "<none>"
         | Some ((content_type1, content_type2), _) ->
           content_type1^"/"^content_type2
       in
-      (match stream with
-        | None -> Lwt.return ""
-        | Some stream ->
-          Ocsigen_stream.string_of_stream 1000 (Ocsigen_stream.get stream))
-      >>= fun s ->
+      lwt s = Cohttp_lwt_body.to_string b in
+      let s = String.sub s 0 1000 in
       Lwt.return
         (html
            (head (title (pcdata "raw post data")) [])
@@ -930,16 +927,22 @@ let extreq =
     ~path:["extreq"]
     ~get_params:unit
     (fun () () ->
-       Ocsigen_http_client.get "ocsigen.org" "/ocsimoreadmin/static/ocsiwikistyle.css" () >>= fun frame ->
-       (match frame.Ocsigen_http_frame.frame_content with
-         | None -> Lwt.return ""
-         | Some stream -> Ocsigen_stream.string_of_stream (Ocsigen_config.get_maxrequestbodysizeinmemory ()) (Ocsigen_stream.get stream)) >>= fun s ->
-       (* Here use an XML parser,
-          or send the stream directly using an appropriate Eliom_mkreg module *)
-       return
-         (html
-            (head (title (pcdata "")) [])
-            (body [p [pcdata s]])))
+       Cohttp_lwt_unix.Client.call
+         `GET
+           (Uri.of_string
+              "http://ocsigen.org/ocsimoreadmin/static/ocsiwikistyle.css")
+         >>= fun (_, b) ->
+         let stream =
+           Ocsigen_stream.of_lwt_stream
+             (Cohttp_lwt_body.to_stream b)
+         in
+         Ocsigen_stream.string_of_stream (Ocsigen_config.get_maxrequestbodysizeinmemory ()) (Ocsigen_stream.get stream) >>= fun s ->
+         (* Here use an XML parser,
+            or send the stream directly using an appropriate Eliom_mkreg module *)
+         return
+           (html
+              (head (title (pcdata "")) [])
+              (body [p [pcdata s]])))
 
 let servreq =
   register_service
@@ -947,9 +950,14 @@ let servreq =
     ~get_params:unit
     (fun () () ->
        let ri = Eliom_request_info.get_ri () in
-       let ri = Ocsigen_extensions.ri_of_url "tuto/" ri in
+       let ri = Ocsigen_request.update ~uri:(Uri.of_string "tuto/") ri in
        Ocsigen_extensions.compute_result ri >>= fun result ->
-       let stream = fst (Ocsigen_http_frame.Result.stream result) in
+       let stream =
+         Ocsigen_response.to_cohttp result
+         |> snd
+         |> Cohttp_lwt_body.to_stream
+         |> Ocsigen_stream.of_lwt_stream
+       in
        Ocsigen_stream.string_of_stream (Ocsigen_config.get_maxrequestbodysizeinmemory ()) (Ocsigen_stream.get stream) >>= fun s ->
        (* Here use an XML parser,
           or send the stream directly using an appropriate Eliom_mkreg module *)
@@ -965,7 +973,12 @@ let servreqloop =
     (fun () () ->
        let ri = Eliom_request_info.get_ri () in
        Ocsigen_extensions.compute_result ri >>= fun result ->
-       let stream = fst (Ocsigen_http_frame.Result.stream result)in
+       let stream =
+         Ocsigen_response.to_cohttp result
+         |> snd
+         |> Cohttp_lwt_body.to_stream
+         |> Ocsigen_stream.of_lwt_stream
+       in
        Ocsigen_stream.string_of_stream (Ocsigen_config.get_maxrequestbodysizeinmemory ()) (Ocsigen_stream.get stream) >>= fun s ->
        (* Here use an XML parser,
           or send the stream directly using an appropriate Eliom_mkreg module *)
@@ -984,10 +997,7 @@ let headers =
     ~code:666
     ~charset:"plopcharset"
 (*    ~content_type:"custom/contenttype" *)
-    ~headers:(Http_headers.add
-                (Http_headers.name "XCustom-header")
-                "This is an example"
-                Http_headers.empty)
+    ~headers:(Cohttp.Header.init_with "XCustom-header" "This is an example")
     ~path:["httpheaders"]
     ~get_params:unit
     (fun () () ->

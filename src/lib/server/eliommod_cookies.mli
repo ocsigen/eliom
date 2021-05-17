@@ -18,9 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Ocsigen_cookies
-
-val cookieset_to_json : Ocsigen_cookies.cookieset -> string
+val cookieset_to_json : Ocsigen_cookie_map.t -> string
 
 val make_new_session_id : unit -> string
 
@@ -42,16 +40,16 @@ val new_data_cookie_table : unit -> Eliom_common.datacookiestable
 val compute_session_cookies_to_send :
   Eliom_common.sitedata ->
   Eliom_common.tables Eliom_common.cookie_info ->
-  Ocsigen_cookies.cookieset ->
-  Ocsigen_cookies.cookieset Lwt.t
+  Ocsigen_cookie_map.t ->
+  Ocsigen_cookie_map.t Lwt.t
 val compute_cookies_to_send :
   Eliom_common.sitedata ->
   Eliom_common.tables Eliom_common.cookie_info ->
-  Ocsigen_cookies.cookieset ->
-  Ocsigen_cookies.cookieset Lwt.t
+  Ocsigen_cookie_map.t ->
+  Ocsigen_cookie_map.t Lwt.t
 val compute_new_ri_cookies :
   float ->
   string list ->
-  string CookiesTable.t ->
+  string Ocsigen_cookie_map.Map_inner.t ->
   Eliom_common.tables Eliom_common.cookie_info ->
-  Ocsigen_cookies.cookieset -> string CookiesTable.t Lwt.t
+  Ocsigen_cookie_map.t -> string Ocsigen_cookie_map.Map_inner.t Lwt.t
