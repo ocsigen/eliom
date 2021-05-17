@@ -36,12 +36,13 @@
     for a session,
     a group of sessions, a client process or a request.
 
-    Use that function to close a session (using scope [Eliom_common.session]).
+    Use that function to close a session
+    (using scope [Eliom_common.default_session_scope]).
 
     Closing a group of sessions will close all sessions in the group.
 
-    By default will remove both secure and unsecure data and services, but
-    if [~secure] is present.
+    By default will remove both secure and unsecure data and services, unless
+    [~secure] is present.
 
     {e Warning: you may also want to unset some request-scoped Eliom references
     when discarding a state.}
