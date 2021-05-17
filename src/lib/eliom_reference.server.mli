@@ -89,8 +89,7 @@ val eref :
 
     In each scope, the function [f] is called for creating the value of the
     reference the first time the reference is read (by {!Eliom_reference.get}),
-    if the value has not been set explicitly before (by {!Eliom_reference.set});
-    or if the reference was reset (by {!Eliom_reference.reset}) before.
+    if the value has not been set explicitly before (by {!Eliom_reference.set}).
   *)
 val eref_from_fun :
   scope:[< Eliom_common.all_scope ] ->
