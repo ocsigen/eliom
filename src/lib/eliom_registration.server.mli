@@ -147,6 +147,9 @@ module type APP = sig
 
 end
 
+(** Function to modify the global_app URI for some obscure reason *)
+val transform_global_app_uri : (Eliom_content.Html.uri -> Eliom_content.Html.uri) ref
+
 (** Functor for application creation.
     See {% <<a_manual chapter="clientserver-applications" | the chapter on applications >> %}
     in the Eliom manual for details. *)
