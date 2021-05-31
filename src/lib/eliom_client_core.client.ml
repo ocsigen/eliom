@@ -777,11 +777,57 @@ let with_new_page ?state_id ~replace () f =
     page.page_unique_id page.page_id.state_index;
   Lwt.return v
 
+module History = struct
+  let history = ref [!active_page]
+
+  let rec drop_while p = function
+    | x::l when p x -> drop_while p l
+    | rest -> rest
+
+  let take_while_rev p l =
+    let rec aux acc = function
+      | x::l when p x -> aux (x::acc) l
+      | _rest -> acc
+    in
+    aux [] l
+
+  let advance n =
+    let truncated = match n.previous_page with
+      | None -> !history
+      | Some pp -> drop_while (fun p -> p.page_id.state_index <> pp) !history
+    in
+    history := n :: truncated
+
+  let replace n =
+    let maybe_replace p =
+      if p.page_id.state_index = n.page_id.state_index
+      then (set_page_status p Dead; n)
+      else p
+    in
+    history := List.map maybe_replace !history
+
+  let past_urls () =
+    let index = !active_page.page_id.state_index in
+    match drop_while (fun p -> p.page_id.state_index <> index) !history with
+    | [] -> []
+    | _ :: tl -> List.map (fun p -> p.url) tl
+
+  let future_urls () =
+    let index = !active_page.page_id.state_index in
+    List.map (fun p -> p.url) @@
+      take_while_rev (fun p -> p.page_id.state_index <> index) !history
+end
+
 let advance_page () =
   let new_page = get_this_page () in
   if new_page != !active_page then begin
     let previous_id = !active_page.page_id.state_index in
-    set_active_page {new_page with previous_page = Some previous_id}
+    let p = {new_page with previous_page = Some previous_id} in
+    begin match History.find_by_state_index new_page.page_id.state_index with
+      | Some _ -> ()
+      | None -> History.advance p
+    end;
+    set_active_page p
   end
 
 let state_key {session_id; state_index} =
