@@ -37,6 +37,8 @@ jobs:
 
       - run: opam pin add eliom.dev . --no-action
 
+      - run: opam pin add ocsigenserver.dev https://github.com/ocsigen/ocsigenserver.git --no-action
+
       - run: opam depext eliom --yes
 
       - run: opam install . --deps-only
