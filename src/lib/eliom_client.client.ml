@@ -497,19 +497,15 @@ let path_and_args_of_uri uri =
       path_of_string uri, []
 
 let set_current_uri, get_current_uri =
-  let current_uri =
-    ref (fst (Url.split_fragment (Js.to_string Dom_html.window##.location##.href)))
-  in
-  (get_this_page ()).url <- Some !current_uri;
   let set_current_uri uri =
-    current_uri := fst (Url.split_fragment uri);
-    (get_this_page ()).url <- Some !current_uri;
-    let (path, all_get_params) = path_and_args_of_uri !current_uri in
+    let current_uri = fst (Url.split_fragment uri) in
+    (get_this_page ()).url <- current_uri;
+    let (path, all_get_params) = path_and_args_of_uri current_uri in
     Lwt.async @@ fun () ->
     Eliom_request_info.update_session_info ~path
       ~all_get_params ~all_post_params:None (fun () -> Lwt.return_unit)
   in
-  let get_current_uri () = !current_uri in
+  let get_current_uri () = (get_this_page ()).url in
   set_current_uri, get_current_uri
 
 (* == Function [change_url_string] changes the URL, without doing a request.

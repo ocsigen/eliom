@@ -715,7 +715,7 @@ end
 type page = {
   page_unique_id : int;
   mutable page_id : state_id;
-  mutable url : string option;
+  mutable url : string;
   page_status : Page_status_t.t React.S.t;
   previous_page : int option;
   set_page_status : ?step:React.step -> Page_status_t.t -> unit;
@@ -744,7 +744,7 @@ let mk_page ?(state_id = next_state_id ()) ?url ?previous_page ~status () =
   ignore @@ React.S.map (fun _ -> ()) page_status;
   {page_unique_id = !last_page_id;
    page_id = state_id;
-   url;
+   url = fst (Url.split_fragment (Js.to_string Dom_html.window##.location##.href));
    page_status;
    previous_page;
    set_page_status;
@@ -772,7 +772,7 @@ let get_this_page () = match Lwt.get this_page with
 let with_new_page ?state_id ?old_page ~replace () f =
   let state_id = if replace then Some (!active_page).page_id else state_id in
   let url, previous_page = match old_page with
-    | Some o -> o.url, o.previous_page
+    | Some o -> Some o.url, o.previous_page
     | None -> None, None
   in
   let page = mk_page ?state_id ?url ?previous_page ~status:Generating () in
@@ -816,7 +816,7 @@ module History = struct
     in
     history := List.map maybe_replace !history
 
-  let past_urls () =
+  let past () =
     let index = !active_page.page_id.state_index in
     let rev_past, _ = split_rev_past_future index in
     List.map (fun p -> p.url) @@
@@ -824,7 +824,7 @@ module History = struct
       | _present :: past -> past
       | [] -> []
 
-  let future_urls () =
+  let future () =
     let index = !active_page.page_id.state_index in
     let _, future = split_rev_past_future index in
     List.map (fun p -> p.url) future
