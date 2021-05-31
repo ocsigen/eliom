@@ -500,7 +500,7 @@ let set_current_uri, get_current_uri =
   let current_uri =
     ref (fst (Url.split_fragment (Js.to_string Dom_html.window##.location##.href)))
   in
-  (get_this_page ()).url := Some !current_uri;
+  (get_this_page ()).url <- Some !current_uri;
   let set_current_uri uri =
     current_uri := fst (Url.split_fragment uri);
     (get_this_page ()).url <- Some !current_uri;
@@ -1394,6 +1394,7 @@ let () =
                 let%lwt () = run_lwt_callbacks ev (flush_onchangepage ()) in
                 with_new_page ~state_id ~replace:false () @@ fun () ->
                 set_current_uri uri;
+                History.replace (get_this_page ());
                 let rec loop result =
                   match%lwt result with
                   | Eliom_service.Dom d ->
