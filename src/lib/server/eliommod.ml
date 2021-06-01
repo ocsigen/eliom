@@ -44,6 +44,8 @@ let default_secure_cookies = ref false
 let default_application_script = ref (false, false)
 let default_cache_global_data = ref None
 let default_html_content_type = ref None
+let default_ignored_get_params = ref []
+let default_ignored_post_params = ref []
 
 (* Subnet defaults be large enough, because it must work behind a reverse proxy.
 
@@ -142,6 +144,8 @@ let create_sitedata site_dir config_info =
     application_script = !default_application_script;
     cache_global_data = !default_cache_global_data;
     html_content_type = !default_html_content_type;
+    ignored_get_params = !default_ignored_get_params;
+    ignored_post_params = !default_ignored_post_params;
   } in
   Ocsigen_cache.Dlist.set_finaliser_after
     (fun node ->
@@ -236,7 +240,9 @@ let parse_eliom_option
      set_ipv6mask,
      set_application_script,
      set_global_data_caching,
-     set_html_content_type
+     set_html_content_type,
+     set_ignored_get_params,
+     set_ignored_post_params
     )
     =
   let parse_timeout_attrs tn attrs =
@@ -484,6 +490,12 @@ let parse_eliom_option
   | (Xml.Element ("htmlcontenttype", [("value", v)], [])) ->
     set_html_content_type v
 
+  | (Xml.Element ("ignoredgetparams", [("regexp", v)], [])) ->
+     set_ignored_get_params (Pcre.regexp ("^"^v^"$"))
+
+  | (Xml.Element ("ignoredpostparams", [("regexp", v)], [])) ->
+     set_ignored_post_params (Pcre.regexp ("^"^v^"$"))
+
   | (Xml.Element (s, _, _)) ->
       raise (Error_in_config_file
                ("Unexpected content <"^s^"> inside eliom config"))
@@ -575,7 +587,11 @@ let rec parse_global_config = function
          (fun v -> Eliom_common.ipv6mask := v),
          (fun v -> default_application_script := v),
          (fun v -> default_cache_global_data := v),
-         (fun v -> default_html_content_type := Some v)
+         (fun v -> default_html_content_type := Some v),
+         (fun regexp -> default_ignored_get_params :=
+                          regexp::!default_ignored_get_params),
+         (fun regexp -> default_ignored_post_params :=
+                          regexp::!default_ignored_post_params)
         )
         e;
       parse_global_config ll
@@ -903,7 +919,11 @@ let parse_config _ hostpattern conf_info site_dir =
              (fun v -> sitedata.Eliom_common.ipv6mask <- Some v, true),
              (fun v -> sitedata.Eliom_common.application_script <- v),
              (fun v -> sitedata.Eliom_common.cache_global_data <- v),
-             (fun v -> sitedata.Eliom_common.html_content_type <- Some v)
+             (fun v -> sitedata.Eliom_common.html_content_type <- Some v),
+             (fun regexp -> sitedata.Eliom_common.ignored_get_params
+                            <- regexp::sitedata.Eliom_common.ignored_get_params),
+             (fun regexp -> sitedata.Eliom_common.ignored_post_params
+                            <- regexp::sitedata.Eliom_common.ignored_post_params)
             )
             content
         in

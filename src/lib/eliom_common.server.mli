@@ -546,6 +546,8 @@ and sitedata = {
   mutable application_script : bool (* defer *) * bool; (* async *)
   mutable cache_global_data : (string list * int) option;
   mutable html_content_type : string option;
+  mutable ignored_get_params : Pcre.regexp list;
+  mutable ignored_post_params : Pcre.regexp list;
 }
 
 type 'a lazy_site_value (** lazy site values, are lazy values with
