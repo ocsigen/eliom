@@ -410,6 +410,20 @@ either globally or for each site independently.
 Example:
 {{{<htmlcontenttype value="application/xhtml+xml"/>}}}
 
+=== Ignoring some GET or POST parameters
+
+Some external tools add parameters in URLs (for example UTM parameters).
+You can ask Eliom to ignore them. For example:
+
+{{{<ignoredgetparams regexp="utm_[a-z]*|[a-z]*clid|li_fat_id"/>}}}
+
+Same for {{{ignoredpostparams}}}.
+
+Ignored parameters can be accessed using functions
+<<a_api subproject="server"| val Eliom_request_info.get_ignored_get_params >>
+and
+<<a_api subproject="server"| val Eliom_request_info.get_ignored_post_params >>.
+
 ==Per site configuration options
 
 === Disabling XHR-links
