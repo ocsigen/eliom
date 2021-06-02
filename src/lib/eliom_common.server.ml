@@ -482,6 +482,8 @@ and sitedata =
    mutable application_script : bool (* defer *) * bool; (* async *)
    mutable cache_global_data : (string list * int) option;
    mutable html_content_type : string option;
+   mutable ignored_get_params : Pcre.regexp list;
+   mutable ignored_post_params : Pcre.regexp list;
   }
 
 and dlist_ip_table = (page_table ref * page_table_key, na_key_serv)
@@ -893,11 +895,20 @@ type cpi = client_process_info =  {
   cpi_original_full_path : string list;
 } [@@deriving json]
 
-let get_session_info req previous_extension_err =
+let match_regexp name rex =
+  try
+    let _ = Pcre.exec ~rex ~flags:[`ANCHORED] ~pos:0 name in
+    true
+  with Not_found -> false
+
+let do_not_match_regexps regexps (name, _) =
+  not @@
+  List.exists (match_regexp name) regexps
+
+let get_session_info sitedata req previous_extension_err =
   let req_whole = req
   and ri = req.Ocsigen_extensions.request_info
   and ci = req.Ocsigen_extensions.request_config in
-  (* *)
 
   let rc = Ocsigen_request.request_cache ri in
   let no_post_param, p =
@@ -923,7 +934,10 @@ let get_session_info req previous_extension_err =
       false, v
   in
 
-  let%lwt post_params = p in
+  let%lwt p = p in
+  let post_params =
+    List.filter (do_not_match_regexps sitedata.ignored_post_params) p
+  in
 
   let (previous_tab_cookies_info, tab_cookies, post_params) =
     try
@@ -991,6 +1005,8 @@ let get_session_info req previous_extension_err =
 
   let post_params, get_params, to_be_considered_as_get =
     let g = Ocsigen_request.get_params_flat ri in
+    let g = List.filter (do_not_match_regexps sitedata.ignored_get_params) g in
+
     try
       [],
        g @ snd (List.assoc_remove

@@ -546,6 +546,8 @@ and sitedata = {
   mutable application_script : bool (* defer *) * bool; (* async *)
   mutable cache_global_data : (string list * int) option;
   mutable html_content_type : string option;
+  mutable ignored_get_params : Pcre.regexp list;
+  mutable ignored_post_params : Pcre.regexp list;
 }
 
 type 'a lazy_site_value (** lazy site values, are lazy values with
@@ -577,6 +579,7 @@ val new_service_session_tables : sitedata -> tables
 val split_prefix_param :
   string -> (string * 'a) list -> (string * 'a) list * (string * 'a) list
 val get_session_info :
+  sitedata ->
   Ocsigen_extensions.request ->
   int -> (Ocsigen_extensions.request * sess_info *
           (tables cookie_info * Ocsigen_cookie_map.t) option) Lwt.t
