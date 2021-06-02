@@ -895,11 +895,20 @@ type cpi = client_process_info =  {
   cpi_original_full_path : string list;
 } [@@deriving json]
 
-let get_session_info req previous_extension_err =
+let matches_regexp name (_, re) =
+  try
+    let _ = Re.exec re name in
+    true
+  with Not_found -> false
+
+let does_not_match_regexps regexps (name, _) =
+  not @@
+  List.exists (matches_regexp name) regexps
+
+let get_session_info sitedata req previous_extension_err =
   let req_whole = req
   and ri = req.Ocsigen_extensions.request_info
   and ci = req.Ocsigen_extensions.request_config in
-  (* *)
 
   let rc = Ocsigen_request.request_cache ri in
   let no_post_param, p =
@@ -925,7 +934,10 @@ let get_session_info req previous_extension_err =
       false, v
   in
 
-  let%lwt post_params = p in
+  let%lwt p = p in
+  let post_params =
+    List.filter (does_not_match_regexps sitedata.ignored_post_params) p
+  in
 
   let (previous_tab_cookies_info, tab_cookies, post_params) =
     try
@@ -993,6 +1005,8 @@ let get_session_info req previous_extension_err =
 
   let post_params, get_params, to_be_considered_as_get =
     let g = Ocsigen_request.get_params_flat ri in
+    let g = List.filter (does_not_match_regexps sitedata.ignored_get_params) g in
+
     try
       [],
        g @ snd (List.assoc_remove

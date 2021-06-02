@@ -405,7 +405,7 @@ let make_naservice
        (Ocsigen_request.request_cache ri.request_info)
        Eliom_common.eliom_link_too_old
        true;
-     Eliom_common.get_session_info
+     Eliom_common.get_session_info sitedata
        { ri with
          Ocsigen_extensions.request_info =
            drop_most_params ri.request_info si }
@@ -424,7 +424,7 @@ let make_naservice
        (Ocsigen_request.request_cache ri.request_info)
        Eliom_common.eliom_link_too_old
        true;
-     Eliom_common.get_session_info
+     Eliom_common.get_session_info sitedata
        { ri with
          Ocsigen_extensions.request_info =
            drop_most_params ri.request_info si }
