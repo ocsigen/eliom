@@ -905,7 +905,7 @@ let does_not_match_regexps regexps (name, _) =
   not @@
   List.exists (matches_regexp name) regexps
 
-let get_session_info sitedata req previous_extension_err =
+let get_session_info ~sitedata ~req previous_extension_err =
   let req_whole = req
   and ri = req.Ocsigen_extensions.request_info
   and ci = req.Ocsigen_extensions.request_config in

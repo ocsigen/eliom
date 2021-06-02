@@ -579,8 +579,8 @@ val new_service_session_tables : sitedata -> tables
 val split_prefix_param :
   string -> (string * 'a) list -> (string * 'a) list * (string * 'a) list
 val get_session_info :
-  sitedata ->
-  Ocsigen_extensions.request ->
+  sitedata:sitedata ->
+  req:Ocsigen_extensions.request ->
   int -> (Ocsigen_extensions.request * sess_info *
           (tables cookie_info * Ocsigen_cookie_map.t) option) Lwt.t
 type ('a, 'b) foundornot = Found of 'a | Notfound of 'b
