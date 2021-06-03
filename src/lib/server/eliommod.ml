@@ -934,8 +934,7 @@ let parse_config _ hostpattern conf_info site_dir =
            | Some default_links_xhr ->
              sitedata.Eliom_common.default_links_xhr#set ~override_tenable:true default_links_xhr
            | None -> ());
-        Eliom_extension.register_eliom_extension
-          default_module_action;
+        Eliom_extension.register_eliom_extension default_module_action;
         (match parse_module_attrs None atts with
           | Some file_or_name ->
             exception_during_eliommodule_loading := true;

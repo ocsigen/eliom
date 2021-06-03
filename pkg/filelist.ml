@@ -58,6 +58,7 @@ let server = {
     "eliom_route_base";
     "eliom_shared_content";
     "eliom_types_base";
+    "eliom_client_main";
     "eliommod";
     "eliommod_cli";
     "eliommod_cookies";
