@@ -1359,11 +1359,11 @@ let () =
               Lwt.return_unit
             end
             else begin
-              set_current_uri uri;
               try (* serve cached page from the from history_doms *)
                 if not (is_in_cache state_id) then raise Not_found;
                 let%lwt () = run_lwt_callbacks ev (flush_onchangepage ()) in
                 restore_history_dom target_id;
+                set_current_uri uri;
                 let%lwt () =
                   Js_of_ocaml_lwt.Lwt_js_events.request_animation_frame () in
                 scroll_to_fragment ~offset:state.position fragment;
@@ -1391,6 +1391,7 @@ let () =
                 reload_function := Some rf;
                 let%lwt () = run_lwt_callbacks ev (flush_onchangepage ()) in
                 with_new_page ~state_id ~replace:false () @@ fun () ->
+                set_current_uri uri;
                 let rec loop result =
                   match%lwt result with
                   | Eliom_service.Dom d ->
@@ -1402,6 +1403,7 @@ let () =
                 scroll_to_fragment ~offset:state.position fragment;
                 Lwt.return_unit
               with Not_found -> (* different session ID *)
+              set_current_uri uri;
               match tmpl with
               | Some t when tmpl = Eliom_request_info.get_request_template () ->
                 let%lwt (uri, content) = Eliom_request.http_get
