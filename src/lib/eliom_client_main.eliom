@@ -18,9 +18,21 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-[%%client.start]
+let%server ignored_get_params, ignored_post_params =
+  let sitedata = Eliom_request_info.get_sitedata () in
+  List.map fst sitedata.Eliom_common.ignored_get_params,
+  List.map fst sitedata.Eliom_common.ignored_post_params
 
-let _ = Eliom_client.init ()
+let%client _ = Eliom_client.init ()
+
+let%server _ = [%client
+     (Eliom_process.set_ignored_params ~%ignored_get_params ~%ignored_post_params;
+      Eliom_process.set_ignored_params ~%ignored_get_params ~%ignored_post_params
+
+     : unit)
+]
+
+[%%client.start]
 
 (* The following lines are for Eliom_bus, Eliom_comet and Eliom_react
    to be linked. *)

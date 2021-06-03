@@ -57,11 +57,32 @@ let set_session_info ~uri si f =
   default_ri := ri;
   Lwt.with_value ri_key ri f
 
+let matches_regexp name re =
+  try
+    let _ = Re.exec re name in
+    true
+  with Not_found -> false
+
+let does_not_match_regexps regexps (name, _) =
+  not @@
+  List.exists (matches_regexp name) regexps
+
 let update_session_info
     ~path
     ~all_get_params
     ~all_post_params
     cont =
+  let all_get_params =
+    List.filter
+      (does_not_match_regexps !Eliom_process.ignored_get_params)
+      all_get_params
+  in
+  let all_post_params =
+    Option.map
+      (List.filter
+         (does_not_match_regexps !Eliom_process.ignored_post_params))
+      all_post_params
+  in
   let nl_get_params, all_get_but_nl =
     Eliom_common.split_nl_prefix_param all_get_params
   in
