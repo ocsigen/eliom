@@ -666,7 +666,7 @@ let rec rebuild_rattrib node ra = match Xml.racontent ra with
 
 
 
-(* == Associate data to state of the History API.
+(* == Associate data to state of the istory API.
 
    We store an 'id' in the state, and store data in an association
    table in the session storage. This allows avoiding "replaceState"
@@ -717,9 +717,9 @@ type page = {
   mutable page_id : state_id;
   mutable url : string option;
   page_status : Page_status_t.t React.S.t;
-  page_is_cached : bool ref;
   previous_page : int option;
-  set_page_status : ?step:React.step -> Page_status_t.t -> unit
+  set_page_status : ?step:React.step -> Page_status_t.t -> unit;
+  mutable dom : Dom_html.bodyElement Js.t option;
 }
 
 let set_page_status p st =
@@ -728,7 +728,7 @@ let set_page_status p st =
   p.set_page_status st
 
 let retire_page p =
-  set_page_status p @@ if !(p.page_is_cached) then Cached else Dead
+  set_page_status p @@ match p.dom with Some _ -> Cached | None -> Dead
 
 let session_id = random_int ()
 let next_state_id =
@@ -746,9 +746,9 @@ let mk_page ?(state_id = next_state_id ()) ~status () =
    page_id = state_id;
    url = None;
    page_status;
-   page_is_cached = ref false;
    previous_page = None;
-   set_page_status}
+   set_page_status;
+   dom = None}
 
 let active_page = ref @@ mk_page ~status:Active ()
 
@@ -780,23 +780,29 @@ let with_new_page ?state_id ~replace () f =
 module History = struct
   let history = ref [!active_page]
 
-  let rec drop_while p = function
-    | x::l when p x -> drop_while p l
-    | rest -> rest
+  let find_by_state_index i =
+    try Some (List.find (fun p -> p.page_id.state_index = i) !history)
+    with Not_found -> None
 
-  let take_while_rev p l =
-    let rec aux acc = function
-      | x::l when p x -> aux (x::acc) l
-      | _rest -> acc
+  let split_rev_past_future index =
+    let rec loop past = function
+      | [] -> past, []
+      | x :: future when x.page_id.state_index = index ->
+          x :: past, future
+      | x :: l -> loop (x :: past) l
     in
-    aux [] l
+    loop [] !history
 
   let advance n =
-    let truncated = match n.previous_page with
-      | None -> !history
-      | Some pp -> drop_while (fun p -> p.page_id.state_index <> pp) !history
+    let new_history, future =
+      match n.previous_page with
+      | None -> !history, []
+      | Some pp ->
+          let rev_past, future = split_rev_past_future pp in
+          List.rev (n :: rev_past), future
     in
-    history := n :: truncated
+    List.iter (fun p -> set_page_status p Dead) future;
+    history := new_history
 
   let replace n =
     let maybe_replace p =
@@ -808,14 +814,41 @@ module History = struct
 
   let past_urls () =
     let index = !active_page.page_id.state_index in
-    match drop_while (fun p -> p.page_id.state_index <> index) !history with
-    | [] -> []
-    | _ :: tl -> List.map (fun p -> p.url) tl
+    let rev_past, _ = split_rev_past_future index in
+    List.map (fun p -> p.url) @@
+      match rev_past with
+      | _present :: past -> past
+      | [] -> []
 
   let future_urls () =
     let index = !active_page.page_id.state_index in
-    List.map (fun p -> p.url) @@
-      take_while_rev (fun p -> p.page_id.state_index <> index) !history
+    let _, future = split_rev_past_future index in
+    List.map (fun p -> p.url) future
+
+  let max_num_doms = ref None
+
+  let garbage_collect_doms () =
+    match !max_num_doms with None -> () | Some max_num_doms ->
+    let interleave l r =
+      let take_from_l = ref false in
+      let alternate _ _ =
+        take_from_l := not !take_from_l;
+        if !take_from_l then -1 else 1
+      in
+      List.merge alternate l r
+    in
+    let rev_past, future = split_rev_past_future !active_page.page_id.state_index in
+    let pages_ordered_by_distance_from_present = interleave rev_past future in
+    let num_doms = ref 0 in
+    let maybe_delete_dom p =
+      match p.dom with
+      | None -> ()
+      | Some _ ->
+          num_doms := !num_doms + 1;
+          if !num_doms > max_num_doms
+            then (p.dom <- None; set_page_status p Dead)
+    in
+    List.iter maybe_delete_dom pages_ordered_by_distance_from_present
 end
 
 let advance_page () =
