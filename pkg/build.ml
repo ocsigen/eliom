@@ -23,6 +23,9 @@ let _ =
   list_to_file "src/lib/server/server.mldylib" server_mllib;
   list_to_file "src/lib/server/api.odocl" server_api;
 
+  list_to_file "src/lib/server/eliom_client_main.mllib" client_main_mllib;
+  list_to_file "src/lib/server/eliom_client_main.mldylib" client_main_mllib;
+
   list_to_file "src/ocamlbuild/ocamlbuild.mllib" ocamlbuild_mllib;
   list_to_file "src/ocamlbuild/ocamlbuild.mldylib" ocamlbuild_mllib;
   list_to_file "src/ocamlbuild/api.odocl" ocamlbuild_api;
@@ -98,6 +101,7 @@ let () =
     List.map (fun x -> Pkg.lib ~dst:(spf "client/%s" x) (spf "src/lib/client/%s" x)) client_extra
   ) @ (
     (* SERVER LIBS *)
+    Pkg.lib ~dst:"server/eliom_client_main" ~exts:Exts.module_library "src/lib/server/eliom_client_main" ::
     Pkg.lib ~dst:"server/monitor/eliom_monitor" ~exts:Exts.module_library "src/lib/server/monitor/eliom_monitor" ::
     Pkg.lib ~dst:"server/monitor/eliom_monitor_main" ~exts:Exts.module_library "src/lib/server/monitor/eliom_monitor_main" ::
     Pkg.lib ~dst:"server/server" ~exts:exts_lib "src/lib/server/server" ::

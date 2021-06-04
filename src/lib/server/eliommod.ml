@@ -936,6 +936,15 @@ let parse_config _ hostpattern conf_info site_dir =
            | None -> ());
         Eliom_extension.register_eliom_extension
           default_module_action;
+        (* We load Eliom_client_main for all sites: *)
+        if !firsteliomtag
+        then
+          begin exception_during_eliommodule_loading := true;
+                load_eliom_module sitedata
+                  (Files (Ocsigen_loader.findfiles "eliom.server.client_main"))
+                  "eliom" [];
+                exception_during_eliommodule_loading := false
+          end;
         (match parse_module_attrs None atts with
           | Some file_or_name ->
             exception_during_eliommodule_loading := true;

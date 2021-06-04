@@ -191,6 +191,8 @@ let server_ext_extra =
   exts ["cmi"] (server_ext.interface_only @ server_ext.interface) @
   exts ["cmx"] (server_ext.interface @ server_ext.internal)
 
+let client_main_mllib = ["eliom_client_main"]
+
 let ocamlbuild_mllib = ocamlbuild.interface @ ocamlbuild.internal
 let ocamlbuild_extra =
   exts ["cmi"] (ocamlbuild.interface_only @ ocamlbuild.interface) @

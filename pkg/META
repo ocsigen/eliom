@@ -33,6 +33,12 @@ package "server" (
       archive(native) = "eliom_monitor_main.cmxa"
     )
   )
+  package "client_main" (
+    description = "Eliom: common code for all sites"
+    version = "[distributed with Eliom]"
+    archive(byte) = "eliom_client_main.cma"
+    archive(native) = "eliom_client_main.cmxa"
+  )
 )
 
 package "client" (
