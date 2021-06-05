@@ -708,18 +708,23 @@ let config_in_tag = ref "" (* the parent tag of the currently handled tag *)
 
 type module_to_load = Files of string list | Name of string
 
-let preload () =
-  Eliom_common.begin_load_eliom_module ();
-  (* I want to be able to define global client values during that phase: *)
-  Eliom_syntax.set_global true;
-  List.iter (fun f -> f ()) !site_init_ref;
-  Eliom_syntax.set_global false
+let site_init firstmodule =
+  if !firstmodule
+  then begin
+      Eliom_common.begin_load_eliom_module ();
+      (* I want to be able to define global client values during that phase: *)
+      Eliom_syntax.set_global true;
+      List.iter (fun f -> f ()) !site_init_ref;
+      Eliom_syntax.set_global false;
+      firstmodule := false;
+      Eliom_common.end_load_eliom_module ()
+    end
 
 let load_eliom_module sitedata cmo_or_name parent_tag content =
   let preload () =
     config := content;
     config_in_tag := parent_tag;
-    preload ()
+    Eliom_common.begin_load_eliom_module ()
   in
   let postload () =
     Eliom_common.end_load_eliom_module ();
@@ -759,6 +764,7 @@ let parse_config _ hostpattern conf_info site_dir =
 (*--- (mutatis mutandis for the following line:) *)
   Eliom_common.absolute_change_sitedata sitedata;
   let firsteliomtag = ref true in
+  let firstmodule = ref true in
   let eliommodulewarningdisplayed = ref false in
   let rec parse_default_links_xhr atts default_links_xhr = function
     | [] -> default_links_xhr, List.rev atts
@@ -810,6 +816,7 @@ let parse_config _ hostpattern conf_info site_dir =
       (match parse_module_attrs None atts with
         | Some file_or_name ->
           exception_during_eliommodule_loading := true;
+          site_init firstmodule;
           load_eliom_module sitedata file_or_name "eliommodule" content;
           exception_during_eliommodule_loading := false
         | _ -> ());
@@ -938,6 +945,7 @@ let parse_config _ hostpattern conf_info site_dir =
         (match parse_module_attrs None atts with
           | Some file_or_name ->
             exception_during_eliommodule_loading := true;
+            site_init firstmodule;
             load_eliom_module sitedata file_or_name "eliom" content;
             exception_during_eliommodule_loading := false
           | _ -> ());
