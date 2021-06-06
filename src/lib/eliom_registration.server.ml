@@ -372,7 +372,9 @@ module Action_base = struct
            si.Eliom_common.si_nl_get_params,
            si.Eliom_common.si_nl_post_params,
            si.Eliom_common.si_nl_file_params,
-           si.Eliom_common.si_all_get_but_nl);
+           si.Eliom_common.si_all_get_but_nl,
+           si.Eliom_common.si_ignored_get_params,
+           si.Eliom_common.si_ignored_post_params);
         (*VVV Also put all_cookie_info in this, to avoid
           update_cookie_table and get_cookie_info (?) *)
         let ri = update_request ri.request_info si ric in

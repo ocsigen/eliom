@@ -38,6 +38,14 @@ val get_nl_get_params :
 (** returns the root of the site. *)
 val get_site_dir : unit -> Url.path
 
+(** returns the GET parameters that have been ignored using
+    <ignoredgetparams/> in config file. *)
+val get_ignored_get_params : unit -> (string * string) list
+
+(** returns the POST parameters that have been ignored using
+    <ignoredpostparams/> in config file. *)
+val get_ignored_post_params : unit -> (string * string) list
+
 (*****************************************************************************)
 (** {2 Other low level functions} *)
 

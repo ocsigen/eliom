@@ -97,6 +97,14 @@ let get_all_post_params () =
   let sp = Eliom_common.get_sp () in
   sp.Eliom_common.sp_si.Eliom_common.si_all_post_params
 
+let get_ignored_get_params () =
+  let sp = Eliom_common.get_sp () in
+  sp.Eliom_common.sp_si.Eliom_common.si_ignored_get_params
+
+let get_ignored_post_params () =
+  let sp = Eliom_common.get_sp () in
+  sp.Eliom_common.sp_si.Eliom_common.si_ignored_post_params
+
 let get_original_full_path_string_sp sp =
   Ocsigen_request.original_full_path_string sp.Eliom_common.sp_request.request_info
 

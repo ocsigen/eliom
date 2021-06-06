@@ -285,6 +285,9 @@ type sess_info = {
   si_all_get_but_na_nl: (string * string) list Lazy.t;
   si_all_get_but_nl: (string * string) list;
 
+  si_ignored_get_params: (string * string) list;
+  si_ignored_post_params: (string * string) list;
+
   si_client_process_info: client_process_info option;
   si_expect_process_data : bool Lazy.t;
 
@@ -643,7 +646,9 @@ val eliom_params_after_action :
      (string * string) list String.Table.t *
      (string * string) list String.Table.t *
    (string * file_info) list String.Table.t *
-     (string * string) list (*204FORMS* * bool *))
+     (string * string) list (*204FORMS* * bool *) *
+     (string * string) list *
+     (string * string) list)
   Polytables.key
 
 val att_key_serv_of_req : att_key_req -> att_key_serv

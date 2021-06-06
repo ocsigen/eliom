@@ -185,6 +185,13 @@ val get_all_post_params : unit -> (string * string) list option
    (even those that are for another service) *)
 val get_all_files : unit -> (string * Ocsigen_extensions.file_info) list option
 
+(** returns the GET parameters that have been ignored using
+    <ignoredgetparams/> in config file. *)
+val get_ignored_get_params : unit -> (string * string) list
+
+(** returns the POST parameters that have been ignored using
+    <ignoredpostparams/> in config file. *)
+val get_ignored_post_params : unit -> (string * string) list
 
 
 (*****************************************************************************)
