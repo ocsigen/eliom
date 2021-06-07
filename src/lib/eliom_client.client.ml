@@ -1348,14 +1348,11 @@ let () =
                 with_new_page ~state_id ~replace:false () @@ fun () ->
                 set_current_uri uri;
                 History.replace (get_this_page ());
-                let rec loop result =
-                  match%lwt result with
-                  | Eliom_service.Dom d ->
-                     set_content_local d
-                  | _ ->
-                     handle_result ~uri:(get_current_uri ()) ~replace:true result
+                let%lwt () =
+                  match%lwt rf () () with
+                  | Eliom_service.Dom d -> set_content_local d
+                  | r -> handle_result ~uri:(get_current_uri ()) ~replace:true (Lwt.return r)
                 in
-                let%lwt () = loop (rf () ()) in
                 scroll_to_fragment ~offset:state.position fragment;
                 Lwt.return_unit
               with Not_found -> (* different session ID *)
