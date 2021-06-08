@@ -56,7 +56,7 @@ let ignored_post_params = ref []
 let set_ignored_params get post =
   let compile =
     List.map
-      (fun s -> print_endline s; Re.seq [Re.start; Re.Pcre.re s; Re.stop] |> Re.compile)
+      (fun s -> Re.seq [Re.start; Re.Pcre.re s; Re.stop] |> Re.compile)
   in
   ignored_get_params := compile get;
   ignored_post_params := compile post
