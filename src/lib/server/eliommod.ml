@@ -44,6 +44,8 @@ let default_secure_cookies = ref false
 let default_application_script = ref (false, false)
 let default_cache_global_data = ref None
 let default_html_content_type = ref None
+let default_ignored_get_params = ref []
+let default_ignored_post_params = ref []
 
 (* Subnet defaults be large enough, because it must work behind a reverse proxy.
 
@@ -142,6 +144,8 @@ let create_sitedata site_dir config_info =
     application_script = !default_application_script;
     cache_global_data = !default_cache_global_data;
     html_content_type = !default_html_content_type;
+    ignored_get_params = !default_ignored_get_params;
+    ignored_post_params = !default_ignored_post_params;
   } in
   Ocsigen_cache.Dlist.set_finaliser_after
     (fun node ->
@@ -236,7 +240,9 @@ let parse_eliom_option
      set_ipv6mask,
      set_application_script,
      set_global_data_caching,
-     set_html_content_type
+     set_html_content_type,
+     set_ignored_get_params,
+     set_ignored_post_params
     )
     =
   let parse_timeout_attrs tn attrs =
@@ -484,6 +490,14 @@ let parse_eliom_option
   | (Xml.Element ("htmlcontenttype", [("value", v)], [])) ->
     set_html_content_type v
 
+  | (Xml.Element ("ignoredgetparams", [("regexp", v)], [])) ->
+    let re = Re.seq [Re.start; Re.Pcre.re v; Re.stop] |> Re.compile in
+    set_ignored_get_params (v, re)
+
+  | (Xml.Element ("ignoredpostparams", [("regexp", v)], [])) ->
+    let re = Re.seq [Re.start; Re.Pcre.re v; Re.stop] |> Re.compile in
+    set_ignored_post_params (v, re)
+
   | (Xml.Element (s, _, _)) ->
       raise (Error_in_config_file
                ("Unexpected content <"^s^"> inside eliom config"))
@@ -575,7 +589,11 @@ let rec parse_global_config = function
          (fun v -> Eliom_common.ipv6mask := v),
          (fun v -> default_application_script := v),
          (fun v -> default_cache_global_data := v),
-         (fun v -> default_html_content_type := Some v)
+         (fun v -> default_html_content_type := Some v),
+         (fun regexp -> default_ignored_get_params :=
+                          regexp::!default_ignored_get_params),
+         (fun regexp -> default_ignored_post_params :=
+                          regexp::!default_ignored_post_params)
         )
         e;
       parse_global_config ll
@@ -690,18 +708,23 @@ let config_in_tag = ref "" (* the parent tag of the currently handled tag *)
 
 type module_to_load = Files of string list | Name of string
 
-let preload () =
-  Eliom_common.begin_load_eliom_module ();
-  (* I want to be able to define global client values during that phase: *)
-  Eliom_syntax.set_global true;
-  List.iter (fun f -> f ()) !site_init_ref;
-  Eliom_syntax.set_global false
+let site_init firstmodule =
+  if !firstmodule
+  then begin
+      Eliom_common.begin_load_eliom_module ();
+      (* I want to be able to define global client values during that phase: *)
+      Eliom_syntax.set_global true;
+      List.iter (fun f -> f ()) !site_init_ref;
+      Eliom_syntax.set_global false;
+      firstmodule := false;
+      Eliom_common.end_load_eliom_module ()
+    end
 
 let load_eliom_module sitedata cmo_or_name parent_tag content =
   let preload () =
     config := content;
     config_in_tag := parent_tag;
-    preload ()
+    Eliom_common.begin_load_eliom_module ()
   in
   let postload () =
     Eliom_common.end_load_eliom_module ();
@@ -741,6 +764,7 @@ let parse_config _ hostpattern conf_info site_dir =
 (*--- (mutatis mutandis for the following line:) *)
   Eliom_common.absolute_change_sitedata sitedata;
   let firsteliomtag = ref true in
+  let firstmodule = ref true in
   let eliommodulewarningdisplayed = ref false in
   let rec parse_default_links_xhr atts default_links_xhr = function
     | [] -> default_links_xhr, List.rev atts
@@ -792,6 +816,7 @@ let parse_config _ hostpattern conf_info site_dir =
       (match parse_module_attrs None atts with
         | Some file_or_name ->
           exception_during_eliommodule_loading := true;
+          site_init firstmodule;
           load_eliom_module sitedata file_or_name "eliommodule" content;
           exception_during_eliommodule_loading := false
         | _ -> ());
@@ -903,7 +928,11 @@ let parse_config _ hostpattern conf_info site_dir =
              (fun v -> sitedata.Eliom_common.ipv6mask <- Some v, true),
              (fun v -> sitedata.Eliom_common.application_script <- v),
              (fun v -> sitedata.Eliom_common.cache_global_data <- v),
-             (fun v -> sitedata.Eliom_common.html_content_type <- Some v)
+             (fun v -> sitedata.Eliom_common.html_content_type <- Some v),
+             (fun regexp -> sitedata.Eliom_common.ignored_get_params
+                            <- regexp::sitedata.Eliom_common.ignored_get_params),
+             (fun regexp -> sitedata.Eliom_common.ignored_post_params
+                            <- regexp::sitedata.Eliom_common.ignored_post_params)
             )
             content
         in
@@ -912,11 +941,11 @@ let parse_config _ hostpattern conf_info site_dir =
            | Some default_links_xhr ->
              sitedata.Eliom_common.default_links_xhr#set ~override_tenable:true default_links_xhr
            | None -> ());
-        Eliom_extension.register_eliom_extension
-          default_module_action;
+        Eliom_extension.register_eliom_extension default_module_action;
         (match parse_module_attrs None atts with
           | Some file_or_name ->
             exception_during_eliommodule_loading := true;
+            site_init firstmodule;
             load_eliom_module sitedata file_or_name "eliom" content;
             exception_during_eliommodule_loading := false
           | _ -> ());

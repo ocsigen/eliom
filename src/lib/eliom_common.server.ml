@@ -482,6 +482,8 @@ and sitedata =
    mutable application_script : bool (* defer *) * bool; (* async *)
    mutable cache_global_data : (string list * int) option;
    mutable html_content_type : string option;
+   mutable ignored_get_params : (string * Re.re) list;
+   mutable ignored_post_params : (string * Re.re) list;
   }
 
 and dlist_ip_table = (page_table ref * page_table_key, na_key_serv)
@@ -893,11 +895,19 @@ type cpi = client_process_info =  {
   cpi_original_full_path : string list;
 } [@@deriving json]
 
-let get_session_info req previous_extension_err =
+let matches_regexp name (_, re) =
+  try
+    let _ = Re.exec re name in
+    true
+  with Not_found -> false
+
+let matches_regexps regexps (name, _) =
+  List.exists (matches_regexp name) regexps
+
+let get_session_info ~sitedata ~req previous_extension_err =
   let req_whole = req
   and ri = req.Ocsigen_extensions.request_info
   and ci = req.Ocsigen_extensions.request_config in
-  (* *)
 
   let rc = Ocsigen_request.request_cache ri in
   let no_post_param, p =
@@ -993,8 +1003,8 @@ let get_session_info req previous_extension_err =
     let g = Ocsigen_request.get_params_flat ri in
     try
       [],
-       g @ snd (List.assoc_remove
-                  to_be_considered_as_get_param_name post_params),
+      g @ snd (List.assoc_remove
+                 to_be_considered_as_get_param_name post_params),
       true
     (* It was a POST request to be considered as GET *)
     with Not_found ->
@@ -1018,7 +1028,8 @@ let get_session_info req previous_extension_err =
   let get_params, post_params, file_params,
       (all_get_params, all_post_params, all_file_params,
        nl_get_params, nl_post_params, nl_file_params,
-     all_get_but_nl (*204FORMS*, internal_form *)) =
+       all_get_but_nl (*204FORMS*, internal_form *),
+       ignored_get, ignored_post) =
     try
       (get_params,
        post_params,
@@ -1030,13 +1041,20 @@ let get_session_info req previous_extension_err =
       let nl_get_params, get_params = split_nl_prefix_param get_params0 in
       let nl_post_params, post_params = split_nl_prefix_param post_params0 in
       let nl_file_params, file_params = split_nl_prefix_param file_params0 in
+      let ignored_get, get_params =
+        List.partition (matches_regexps sitedata.ignored_get_params) get_params
+      in
+      let ignored_post, post_params =
+        List.partition (matches_regexps sitedata.ignored_post_params) post_params
+      in
       let all_get_but_nl = get_params in
       get_params, post_params, file_params,
       (get_params0,
        (if no_post_param then None else Some post_params0),
        (if no_file_param then None else Some file_params0),
        nl_get_params, nl_post_params, nl_file_params,
-       all_get_but_nl (*204FORMS*, internal_form *))
+       all_get_but_nl (*204FORMS*, internal_form *),
+      ignored_get, ignored_post)
   in
 
   let browser_cookies =
@@ -1244,6 +1262,8 @@ let get_session_info req previous_extension_err =
      si_persistent_nl_get_params= persistent_nl_get_params;
      si_all_get_but_nl= all_get_but_nl;
      si_all_get_but_na_nl= lazy (remove_na_prefix_params all_get_but_nl);
+     si_ignored_get_params= ignored_get;
+     si_ignored_post_params= ignored_post;
      si_client_process_info= cpi;
      si_expect_process_data= epd;
 (*204FORMS*     si_internal_form= internal_form; *)

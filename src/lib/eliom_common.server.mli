@@ -285,6 +285,9 @@ type sess_info = {
   si_all_get_but_na_nl: (string * string) list Lazy.t;
   si_all_get_but_nl: (string * string) list;
 
+  si_ignored_get_params: (string * string) list;
+  si_ignored_post_params: (string * string) list;
+
   si_client_process_info: client_process_info option;
   si_expect_process_data : bool Lazy.t;
 
@@ -546,6 +549,8 @@ and sitedata = {
   mutable application_script : bool (* defer *) * bool; (* async *)
   mutable cache_global_data : (string list * int) option;
   mutable html_content_type : string option;
+  mutable ignored_get_params : (string * Re.re) list;
+  mutable ignored_post_params : (string * Re.re) list;
 }
 
 type 'a lazy_site_value (** lazy site values, are lazy values with
@@ -577,7 +582,8 @@ val new_service_session_tables : sitedata -> tables
 val split_prefix_param :
   string -> (string * 'a) list -> (string * 'a) list * (string * 'a) list
 val get_session_info :
-  Ocsigen_extensions.request ->
+  sitedata:sitedata ->
+  req:Ocsigen_extensions.request ->
   int -> (Ocsigen_extensions.request * sess_info *
           (tables cookie_info * Ocsigen_cookie_map.t) option) Lwt.t
 type ('a, 'b) foundornot = Found of 'a | Notfound of 'b
@@ -640,7 +646,9 @@ val eliom_params_after_action :
      (string * string) list String.Table.t *
      (string * string) list String.Table.t *
    (string * file_info) list String.Table.t *
-     (string * string) list (*204FORMS* * bool *))
+     (string * string) list (*204FORMS* * bool *) *
+     (string * string) list *
+     (string * string) list)
   Polytables.key
 
 val att_key_serv_of_req : att_key_req -> att_key_serv

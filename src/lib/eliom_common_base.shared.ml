@@ -246,6 +246,9 @@ type sess_info =
      si_all_get_but_na_nl: (string * string) list Lazy.t;
      si_all_get_but_nl: (string * string) list;
 
+     si_ignored_get_params: (string * string) list;
+     si_ignored_post_params: (string * string) list;
+
      si_client_process_info : client_process_info option;
      si_expect_process_data : bool Lazy.t;
 

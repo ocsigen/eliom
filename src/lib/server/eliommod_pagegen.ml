@@ -270,7 +270,7 @@ let gen is_eliom_extension sitedata = function
                          req.Ocsigen_extensions.request_info) ->
   let req = Eliom_common.patch_request_info req in
   let now = Unix.gettimeofday () in
-  Eliom_common.get_session_info req 404
+  Eliom_common.get_session_info sitedata req 404
   >>= fun (ri, si, previous_tab_cookies_info) ->
   let (all_cookie_info, closedsessions) =
     Eliommod_cookies.get_cookie_info now

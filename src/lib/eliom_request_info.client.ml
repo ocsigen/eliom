@@ -57,11 +57,34 @@ let set_session_info ~uri si f =
   default_ri := ri;
   Lwt.with_value ri_key ri f
 
+let matches_regexp name re =
+  try
+    let _ = Re.exec re name in
+    true
+  with Not_found -> false
+
+let matches_regexps regexps (name, _) =
+  List.exists (matches_regexp name) regexps
+
 let update_session_info
     ~path
     ~all_get_params
     ~all_post_params
     cont =
+  let ignored_get, all_get_params =
+    List.partition
+      (matches_regexps !Eliom_process.ignored_get_params)
+      all_get_params
+  in
+  let ignored_post, all_post_params =
+    match all_post_params with
+    | None -> [], None
+    | Some p ->
+       List.partition
+        (matches_regexps !Eliom_process.ignored_post_params)
+        p
+       |> fun (a, b) -> (a, Some b)
+  in
   let nl_get_params, all_get_but_nl =
     Eliom_common.split_nl_prefix_param all_get_params
   in
@@ -81,7 +104,9 @@ let update_session_info
     si_nl_post_params = Eliom_lib.String.Table.empty;
     si_all_post_params = all_post_params;
     si_all_get_but_nl = all_get_but_nl;
-    si_all_get_but_na_nl = all_get_but_na_nl
+    si_all_get_but_na_nl = all_get_but_na_nl;
+    si_ignored_get_params = ignored_get;
+    si_ignored_post_params = ignored_post
     } in
   let ri = Some {path; si} in
   default_ri := ri;
@@ -213,6 +238,9 @@ let default_request_data =
        si_all_get_but_na_nl = lazy [];
        si_all_get_but_nl = [];
 
+       si_ignored_get_params = [];
+       si_ignored_post_params = [];
+
        si_client_process_info = None;
        si_expect_process_data = lazy false;
       }
@@ -230,3 +258,6 @@ exception Eliom_no_raw_post_data_on_client
 let raw_post_data _ = Lwt.fail Eliom_no_raw_post_data_on_client
 
 type raw_post_data = unit
+
+let get_ignored_get_params () = (get_sess_info ()).si_ignored_get_params
+let get_ignored_post_params () = (get_sess_info ()).si_ignored_post_params

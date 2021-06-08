@@ -372,7 +372,9 @@ module Action_base = struct
            si.Eliom_common.si_nl_get_params,
            si.Eliom_common.si_nl_post_params,
            si.Eliom_common.si_nl_file_params,
-           si.Eliom_common.si_all_get_but_nl);
+           si.Eliom_common.si_all_get_but_nl,
+           si.Eliom_common.si_ignored_get_params,
+           si.Eliom_common.si_ignored_post_params);
         (*VVV Also put all_cookie_info in this, to avoid
           update_cookie_table and get_cookie_info (?) *)
         let ri = update_request ri.request_info si ric in
@@ -1584,7 +1586,8 @@ let extension =
        let sitedata = Eliommod.create_sitedata vh site_dir conf_info in
        Eliom_common.absolute_change_sitedata sitedata;
        (* CHECKME *)
-       Eliommod.preload ();
+       Eliom_common.begin_load_eliom_module ();
+       Eliommod.site_init (ref true);
        fun {Ocsigen_server.Site.Config.accessor} ->
          Eliommod_pagegen.gen None sitedata)
 
