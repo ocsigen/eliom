@@ -717,7 +717,7 @@ type page = {
   mutable page_id : state_id;
   mutable url : string;
   page_status : Page_status_t.t React.S.t;
-  previous_page : int option;
+  mutable previous_page : int option;
   set_page_status : ?step:React.step -> Page_status_t.t -> unit;
   mutable dom : Dom_html.bodyElement Js.t option;
 }
@@ -858,13 +858,12 @@ end
 let advance_page () =
   let new_page = get_this_page () in
   if new_page != !active_page then begin
-    let previous_id = !active_page.page_id.state_index in
-    let p = {new_page with previous_page = Some previous_id} in
+    new_page.previous_page <- Some !active_page.page_id.state_index;
     begin match History.find_by_state_index new_page.page_id.state_index with
       | Some _ -> ()
-      | None -> History.advance p
+      | None -> History.advance new_page
     end;
-    set_active_page p
+    set_active_page new_page
   end
 
 let state_key {session_id; state_index} =
