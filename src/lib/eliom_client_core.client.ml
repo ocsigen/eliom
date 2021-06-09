@@ -735,7 +735,7 @@ let next_state_id =
   let last = ref 0 in fun () -> incr last; {session_id; state_index = !last}
 
 let last_page_id = ref (-1)
-let mk_page ?(state_id = next_state_id ()) ~status () =
+let mk_page ?(state_id = next_state_id ()) ?url ?previous_page ~status () =
   incr last_page_id;
   Lwt_log.ign_debug_f ~section:section_page "Create page %d/%d"
     !last_page_id state_id.state_index;
@@ -744,9 +744,9 @@ let mk_page ?(state_id = next_state_id ()) ~status () =
   ignore @@ React.S.map (fun _ -> ()) page_status;
   {page_unique_id = !last_page_id;
    page_id = state_id;
-   url = None;
+   url;
    page_status;
-   previous_page = None;
+   previous_page;
    set_page_status;
    dom = None}
 
@@ -769,9 +769,13 @@ let get_this_page () = match Lwt.get this_page with
     Lwt_log.ign_debug_f ~section:section_page "No page in context";
     !active_page
 
-let with_new_page ?state_id ~replace () f =
+let with_new_page ?state_id ?old_page ~replace () f =
   let state_id = if replace then Some (!active_page).page_id else state_id in
-  let page = mk_page ?state_id ~status:Generating () in
+  let url, previous_page = match old_page with
+    | Some o -> o.url, o.previous_page
+    | None -> None, None
+  in
+  let page = mk_page ?state_id ?url ?previous_page ~status:Generating () in
   let%lwt v = Lwt.with_value this_page (Some page) @@ f in
   Lwt_log.ign_debug_f ~section:section_page "Done with page %d/%d"
     page.page_unique_id page.page_id.state_index;

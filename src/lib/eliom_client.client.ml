@@ -1345,7 +1345,8 @@ let () =
                 let rf = List.assq state_id.state_index !reload_functions in
                 reload_function := Some rf;
                 let%lwt () = run_lwt_callbacks ev (flush_onchangepage ()) in
-                with_new_page ~state_id ~replace:false () @@ fun () ->
+                let old_page = History.find_by_state_index state_id.state_index in
+                with_new_page ~state_id ?old_page ~replace:false () @@ fun () ->
                 set_current_uri uri;
                 History.replace (get_this_page ());
                 let%lwt () =
