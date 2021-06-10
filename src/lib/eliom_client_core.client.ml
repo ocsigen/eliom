@@ -722,6 +722,13 @@ type page = {
   mutable dom : Dom_html.bodyElement Js.t option;
 }
 
+let string_of_page p =
+  Printf.sprintf "%d/%d %s %s %d %b"
+    p.page_unique_id p.page_id.state_index p.url
+    (Page_status_t.to_string @@ React.S.value p.page_status)
+    (match p.previous_page with Some pp -> pp | None -> 0)
+    (match p.dom with Some _ -> true | None -> false)
+
 let set_page_status p st =
   Lwt_log.ign_debug_f ~section:section_page "Set page status %d/%d: %s"
     p.page_unique_id p.page_id.state_index (Page_status_t.to_string st);
@@ -785,10 +792,19 @@ let with_new_page ?state_id ?old_page ~replace () f =
   Lwt.return v
 
 module History = struct
-  let history = ref [!active_page]
+  let section = Lwt_log.Section.make "eliom:client:history"
+
+  let get, set =
+    let history = ref [!active_page] in
+    let set h =
+      Lwt_log.ign_debug_f ~section "setting history:\n%s"
+        (String.concat "\n" @@ List.map string_of_page !history);
+      history := h
+    in
+    (fun () -> !history), set
 
   let find_by_state_index i =
-    try Some (List.find (fun p -> p.page_id.state_index = i) !history)
+    try Some (List.find (fun p -> p.page_id.state_index = i) (get ()))
     with Not_found -> None
 
   let split_rev_past_future index =
@@ -798,18 +814,18 @@ module History = struct
           x :: past, future
       | x :: l -> loop (x :: past) l
     in
-    loop [] !history
+    loop [] (get ())
 
   let advance n =
     let new_history, future =
       match n.previous_page with
-      | None -> !history, []
+      | None -> get (), []
       | Some pp ->
           let rev_past, future = split_rev_past_future pp in
           List.rev (n :: rev_past), future
     in
     List.iter (fun p -> set_page_status p Dead) future;
-    history := new_history
+    set new_history
 
   let replace n =
     let maybe_replace p =
@@ -817,7 +833,7 @@ module History = struct
       then (set_page_status p Dead; n)
       else p
     in
-    history := List.map maybe_replace !history
+    set @@ List.map maybe_replace @@ get ()
 
   let past () =
     let index = !active_page.page_id.state_index in
