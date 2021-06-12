@@ -150,18 +150,18 @@ let update_cookie_table ?now sitedata (ci, sci) =
                     | Eliom_common.TSome t -> Some (t +. now)
                 in
                 match oldvalue with
-                  | Some (oldv, oldti, oldexp, oldgrp) when
+                  | Some (oldti, oldexp, oldgrp) when
                       (oldexp = newexp &&
                           oldti = !(newc.Eliom_common.pc_timeout) &&
                           oldgrp = !(newc.Eliom_common.pc_session_group) &&
-                       oldv = newc.Eliom_common.pc_value) -> Lwt.return ()
+                       newc.Eliom_common.pc_set_value = None) -> Lwt.return ()
                 (* nothing to do *)
-                  | Some (oldv, oldti, oldexp, oldgrp) when
-                      oldv = newc.Eliom_common.pc_value ->
+                  | Some (oldti, oldexp, oldgrp) when
+                      newc.Eliom_common.pc_set_value = None ->
                     Lwt.catch
                       (fun () ->
                         Eliom_common.Persistent_cookies.replace_if_exists
-                          newc.Eliom_common.pc_value
+                          newc.Eliom_common.pc_hvalue
                           (name,
                            newexp,
                            !(newc.Eliom_common.pc_timeout),
@@ -172,7 +172,7 @@ let update_cookie_table ?now sitedata (ci, sci) =
                         | e -> Lwt.fail e)
                   | _ ->
                     Eliom_common.Persistent_cookies.add
-                      newc.Eliom_common.pc_value
+                      newc.Eliom_common.pc_hvalue
                       (name,
                        newexp,
                        !(newc.Eliom_common.pc_timeout),

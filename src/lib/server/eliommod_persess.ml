@@ -93,7 +93,7 @@ let close_persistent_state ~scope ~secure_o ?sp () =
            ~scope:(scope :> Eliom_common.user_scope)
            sp.Eliom_common.sp_sitedata
            !(c.Eliom_common.pc_session_group)
-           c.Eliom_common.pc_value)
+           c.Eliom_common.pc_hvalue)
         >>= fun () ->
         ior := Eliom_common.SCNo_data;
         return_unit
@@ -131,7 +131,7 @@ let rec find_or_create_persistent_cookie_
               ~secure_o
               ~sp
               () in
-            Lwt.return_some r.Eliom_common.pc_value
+            Lwt.return_some r.Eliom_common.pc_hvalue
           end
         | _  -> Lwt.return set_session_group in
 
@@ -156,7 +156,8 @@ let rec find_or_create_persistent_cookie_
                      sitedata None) l
     >>= fun () ->
     Lwt.return
-      { Eliom_common.pc_value= c;
+      { Eliom_common.pc_hvalue= Eliom_common.hash_cookie c;
+        Eliom_common.pc_set_value= Some c;
         Eliom_common.pc_timeout= usertimeout;
         Eliom_common.pc_cookie_exp =
           ref (Eliom_common.default_client_cookie_exp ()) (* exp on client *);

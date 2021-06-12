@@ -110,7 +110,7 @@ let rec find_or_create_service_cookie_ ?set_session_group
               ~sp
               ()
             in
-            Some v.Eliom_common.sc_value
+            Some v.Eliom_common.sc_hvalue
           end
         |  _ -> set_session_group
     in
@@ -140,7 +140,8 @@ let rec find_or_create_service_cookie_ ?set_session_group
        usertimeout,
        fullsessgrpref,
        node);
-    {Eliom_common.sc_value= c;
+    {Eliom_common.sc_hvalue= Eliom_common.hash_cookie c;
+     Eliom_common.sc_set_value= Some c;
      Eliom_common.sc_table= str;
      Eliom_common.sc_timeout= usertimeout;
      Eliom_common.sc_exp= serverexp;
@@ -201,7 +202,7 @@ let rec find_or_create_service_cookie_ ?set_session_group
     cookie_info :=
       Eliom_common.Full_state_name_table.add
         full_st_name
-        (None, ref (Eliom_common.SC v))
+        (false, ref (Eliom_common.SC v))
         !cookie_info;
     v
 

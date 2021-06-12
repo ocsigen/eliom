@@ -114,7 +114,7 @@ let rec find_or_create_data_cookie ?set_session_group
               ~sp
               ()
             in
-            Some v.Eliom_common.dc_value
+            Some v.Eliom_common.dc_hvalue
           end
         | _ -> set_session_group
     in
@@ -142,7 +142,8 @@ let rec find_or_create_data_cookie ?set_session_group
        usertimeout,
        fullsessgrpref,
        node);
-    {Eliom_common.dc_value= c;
+    {Eliom_common.dc_hvalue= Eliom_common.hash_cookie c;
+     Eliom_common.dc_set_value= Some c;
      Eliom_common.dc_timeout= usertimeout;
      Eliom_common.dc_exp= serverexp;
      Eliom_common.dc_cookie_exp=
@@ -202,7 +203,7 @@ let rec find_or_create_data_cookie ?set_session_group
     cookie_info :=
       Eliom_common.Full_state_name_table.add
         full_st_name
-        (Lazy.from_val (None, ref (Eliom_common.SC v)))
+        (Lazy.from_val (false, ref (Eliom_common.SC v)))
         !cookie_info;
     v
 
