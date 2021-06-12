@@ -136,7 +136,8 @@ let string_of_perssessgrp = id
 
 type 'a one_service_cookie_info =
   (* service sessions: *)
-  {sc_value:string             (* current value *);
+  {sc_hvalue:string            (* hash of current value *);
+   sc_set_value:string option  (* new value to set *);
    sc_table:'a ref             (* service session table
                                   ref towards cookie table
                                *);
@@ -157,7 +158,8 @@ type 'a one_service_cookie_info =
 
 type one_data_cookie_info =
   (* in memory data sessions: *)
-  {dc_value:string                    (* current value *);
+  {dc_hvalue:string                   (* hash of current value *);
+   dc_set_value:string option         (* new value to set *);
    dc_timeout:timeout ref             (* user timeout -
                                          ref towards cookie table
                                       *);
@@ -171,7 +173,8 @@ type one_data_cookie_info =
   }
 
 type one_persistent_cookie_info =
-  {pc_value:string                    (* current value *);
+  {pc_hvalue:string                   (* hash of current value *);
+   pc_set_value:string option         (* new value to set *);
    pc_timeout:timeout ref             (* user timeout *);
    pc_cookie_exp:cookie_exp ref       (* cookie expiration date to set *);
    pc_session_group:perssessgrp option ref (* session group *)
@@ -181,11 +184,8 @@ type one_persistent_cookie_info =
 (*VVV heavy *)
 type 'a cookie_info1 =
   (* service sessions: *)
-  (string option            (* value sent by the browser *)
-   (* None = new cookie
-      (not sent by the browser) *)
+  (bool            (* there was a value sent by the browser *)
    *
-
    'a one_service_cookie_info session_cookie ref
    (* SCNo_data = the session has been closed
       SCData_session_expired = the cookie has not been found in the table.
@@ -197,11 +197,8 @@ type 'a cookie_info1 =
     Full_state_name_table.t ref (* The key is the full session name *) *
 
   (* in memory data sessions: *)
-  (string option            (* value sent by the browser *)
-   (* None = new cookie
-      (not sent by the browser) *)
+  (bool            (* there was a value sent by the browser *)
    *
-
    one_data_cookie_info session_cookie ref
    (* SCNo_data = the session has been closed
       SCData_session_expired = the cookie has not been found in the table.
@@ -214,17 +211,14 @@ type 'a cookie_info1 =
     Full_state_name_table.t ref (* The key is the full session name *) *
 
   (* persistent sessions: *)
-  ((string                  (* value sent by the browser *) *
-    timeout                 (* timeout at the beginning of the request *) *
+  ((timeout                 (* timeout at the beginning of the request *) *
     float option            (* (server side) expdate
                                at the beginning of the request
                                None = no exp *) *
     perssessgrp option      (* session group at beginning of request *))
      option
-   (* None = new cookie
-      (not sent by the browser) *)
+   (* None = no cookie sent by the browser *)
    *
-
    one_persistent_cookie_info session_cookie ref
    (* SCNo_data = the session has been closed
       SCData_session_expired = the cookie has not been found in the table.
@@ -864,6 +858,9 @@ let full_state_name_of_cookie_name cookie_level cookiename =
     | `Session -> (`Session sc_hier, secure, sitedirstring)
     | `Client_process -> (`Client_process sc_hier, secure, sitedirstring)
 
+let hash_cookie c = "H"^c
+(*!!! trouver une meilleure fonction de hashage ;-) !!!*)
+
 let getcookies secure cookie_level cookienamepref cookies =
   let length = String.length cookienamepref in
   let last = length - 1 in
@@ -875,7 +872,7 @@ let getcookies secure cookie_level cookienamepref cookies =
           let (_, sec, _) as expcn =
             full_state_name_of_cookie_name cookie_level name in
           if sec = secure
-          then Full_state_name_table.add expcn value beg
+          then Full_state_name_table.add expcn (hash_cookie value) beg
           else beg
         with Not_found -> beg
       else beg
