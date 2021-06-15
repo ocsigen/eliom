@@ -286,7 +286,8 @@ module Action_base = struct
   let send
       ?(options = `Reload) ?charset ?(code = 204)
       ?content_type ?headers () =
-    let user_cookies = Eliom_request_info.get_user_cookies () in
+    let sp = Eliom_common.get_sp () in
+    let user_cookies = sp.Eliom_common.sp_user_cookies in
     match options with
     | `NoReload ->
       let headers = Ocsigen_header.of_option headers in
@@ -314,7 +315,6 @@ module Action_base = struct
          loop.
 
          Be very careful while re-reading this. *)
-      let sp = Eliom_common.get_sp () in
       let sitedata = Eliom_request_info.get_sitedata_sp sp in
       let si = Eliom_request_info.get_si sp in
       let ri = Eliom_request_info.get_request_sp sp in
@@ -340,6 +340,7 @@ module Action_base = struct
         in
         let%lwt all_new_cookies =
           Eliommod_cookies.compute_cookies_to_send
+            ~ctx:"eliom_registration"
             sitedata
             all_cookie_info
             user_cookies in
@@ -1133,6 +1134,7 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
 
     let%lwt tab_cookies =
       Eliommod_cookies.compute_cookies_to_send
+        ~ctx:"eliom_registration/tab"
         sp.Eliom_common.sp_sitedata
         sp.Eliom_common.sp_tab_cookie_info
         sp.Eliom_common.sp_user_tab_cookies
