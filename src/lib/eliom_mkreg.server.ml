@@ -147,6 +147,7 @@ let send_with_cookies
   let%lwt () = check_process_redir sp check_after result in
   let%lwt tab_cookies =
     Eliommod_cookies.compute_cookies_to_send
+      ~ctx:"eliom_mkreg"
       sp.Eliom_common.sp_sitedata
       sp.Eliom_common.sp_tab_cookie_info
       sp.Eliom_common.sp_user_tab_cookies

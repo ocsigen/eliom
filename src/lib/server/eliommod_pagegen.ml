@@ -326,6 +326,7 @@ let gen is_eliom_extension sitedata = function
                let response, _ = Ocsigen_response.to_cohttp res
                and all_user_cookies = Ocsigen_response.cookies res in
                Eliommod_cookies.compute_cookies_to_send
+                 ~ctx:"eliommod_pagegen"
                  sitedata
                  all_cookie_info
                  all_user_cookies

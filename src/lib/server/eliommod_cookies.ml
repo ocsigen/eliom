@@ -373,7 +373,36 @@ let compute_session_cookies_to_send
                    (return endlist))))))
 
 
-let compute_cookies_to_send = compute_session_cookies_to_send
+let check_cookies ~ctx cookies =
+  Ocsigen_cookie_map.Map_path.iter
+    (fun p cookies ->
+      Ocsigen_cookie_map.Map_inner.iter (fun k v ->
+          match v with
+          | OSet (_, v, _)
+               when String.length k > 5 && String.sub k 0 5 = "eliom" ->
+             begin try
+                 let t =
+                   Int64.float_of_bits
+                     (Int64.of_string
+                        ("0x" ^ String.sub v (String.length v - 16) 16))
+                 in
+                 if t < Unix.gettimeofday () -. 60. then
+                   Format.eprintf "OLD COOKIE (%s) %s:%s (%f)@."
+                     ctx k (String.sub v 0 10) t
+               with _ ->
+                 Format.eprintf "MALFORMED COOKIE (%s) %s:%s@."
+                   ctx k (String.sub v 0 (max (String.length v) 10))
+             end
+          | _ -> ())
+        cookies)
+    cookies
+
+let compute_cookies_to_send ~ctx sitedata all_cookie_info user_cookies =
+  let%lwt cookies =
+    compute_session_cookies_to_send sitedata all_cookie_info user_cookies
+  in
+  check_cookies ~ctx cookies;
+  Lwt.return cookies
 
 let compute_new_ri_cookies'
     now
