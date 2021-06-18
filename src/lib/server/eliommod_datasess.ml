@@ -136,7 +136,7 @@ let rec find_or_create_data_cookie ?set_session_group
        fullsessgrpref,
        node);
     {Eliom_common.dc_hvalue= hc;
-     Eliom_common.dc_set_value= Some c;
+     Eliom_common.dc_set_value= `Set c;
      Eliom_common.dc_timeout= usertimeout;
      Eliom_common.dc_exp= serverexp;
      Eliom_common.dc_cookie_exp=

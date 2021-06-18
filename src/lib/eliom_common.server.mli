@@ -325,9 +325,10 @@ type cookie_exp =
 val default_client_cookie_exp : unit -> cookie_exp
 
 type timeout = TGlobal | TNone | TSome of float
+
 type 'a one_service_cookie_info = {
   sc_hvalue : string;
-  sc_set_value : string option;
+  mutable sc_set_value : [`None | `Set of string | `Used];
   sc_table : 'a ref;
   sc_timeout : timeout ref;
   sc_exp : float option ref;
@@ -337,7 +338,7 @@ type 'a one_service_cookie_info = {
 }
 type one_data_cookie_info = {
   dc_hvalue : string;
-  dc_set_value : string option;
+  mutable dc_set_value : [`None | `Set of string | `Used];
   dc_timeout : timeout ref;
   dc_exp : float option ref;
   dc_cookie_exp : cookie_exp ref;
@@ -346,7 +347,7 @@ type one_data_cookie_info = {
 }
 type one_persistent_cookie_info = {
   pc_hvalue : string;
-  pc_set_value : string option;
+  mutable pc_set_value : [`None | `Set of string | `Used];
   pc_timeout : timeout ref;
   pc_cookie_exp : cookie_exp ref;
   pc_session_group : perssessgrp option ref;

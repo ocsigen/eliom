@@ -134,7 +134,7 @@ let rec find_or_create_service_cookie_ ?set_session_group
        fullsessgrpref,
        node);
     {Eliom_common.sc_hvalue= hc;
-     Eliom_common.sc_set_value= Some c;
+     Eliom_common.sc_set_value= `Set c;
      Eliom_common.sc_table= str;
      Eliom_common.sc_timeout= usertimeout;
      Eliom_common.sc_exp= serverexp;
