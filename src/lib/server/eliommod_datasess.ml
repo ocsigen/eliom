@@ -120,29 +120,22 @@ let rec find_or_create_data_cookie ?set_session_group
     in
     let fullsessgrp = fullsessgrp ~cookie_level ~sp set_session_group in
 
-    let rec aux () =
-      let c = Eliommod_cookies.make_new_session_id () in
-      (* Just to be sure it is not already used.
-         Actually not needed for the cookies we use *)
-      if Eliom_common.SessionCookies.mem table c
-      then aux ()
-      else c
-    in
-    let c = aux () in
+    let c = Eliommod_cookies.make_new_session_id () in
+    let hc = Eliom_common.hash_cookie c in
     let usertimeout = ref Eliom_common.TGlobal (* See global table *) in
     let serverexp = ref None (* Some 0. *) (* None = never. We'll change it later. *) in
     let fullsessgrpref = ref fullsessgrp in
-    let node = Eliommod_sessiongroups.Data.add sitedata c fullsessgrp in
+    let node = Eliommod_sessiongroups.Data.add sitedata hc fullsessgrp in
     Eliom_common.SessionCookies.replace
       (* actually it will add the cookie *)
       table
-      c
+      hc
       (full_st_name,
        serverexp (* exp on server *),
        usertimeout,
        fullsessgrpref,
        node);
-    {Eliom_common.dc_hvalue= Eliom_common.hash_cookie c;
+    {Eliom_common.dc_hvalue= hc;
      Eliom_common.dc_set_value= Some c;
      Eliom_common.dc_timeout= usertimeout;
      Eliom_common.dc_exp= serverexp;
