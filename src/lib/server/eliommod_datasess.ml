@@ -196,7 +196,7 @@ let rec find_or_create_data_cookie ?set_session_group
     cookie_info :=
       Eliom_common.Full_state_name_table.add
         full_st_name
-        (Lazy.from_val (false, ref (Eliom_common.SC v)))
+        (Lazy.from_val (None, ref (Eliom_common.SC v)))
         !cookie_info;
     v
 

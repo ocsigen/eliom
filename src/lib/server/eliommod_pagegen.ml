@@ -150,13 +150,13 @@ let update_cookie_table ?now sitedata (ci, sci) =
                     | Eliom_common.TSome t -> Some (t +. now)
                 in
                 match oldvalue with
-                  | Some (oldti, oldexp, oldgrp) when
+                  | Some (_, oldti, oldexp, oldgrp) when
                       (oldexp = newexp &&
                           oldti = !(newc.Eliom_common.pc_timeout) &&
                           oldgrp = !(newc.Eliom_common.pc_session_group) &&
                        newc.Eliom_common.pc_set_value = None) -> Lwt.return ()
                 (* nothing to do *)
-                  | Some (oldti, oldexp, oldgrp) when
+                  | Some (_, oldti, oldexp, oldgrp) when
                       newc.Eliom_common.pc_set_value = None ->
                     Lwt.catch
                       (fun () ->
