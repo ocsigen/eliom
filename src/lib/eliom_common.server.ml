@@ -866,8 +866,15 @@ let full_state_name_of_cookie_name cookie_level cookiename =
     | `Session -> (`Session sc_hier, secure, sitedirstring)
     | `Client_process -> (`Client_process sc_hier, secure, sitedirstring)
 
-let hash_cookie c = "H"^c
-(*!!! trouver une meilleure fonction de hashage ;-) !!!*)
+let hash_cookie c =
+  (* To preserve compatibility, we only hash cookies that ends with an
+     'H'.  This is the case for all new cookies (see Eliommod_cookies). *)
+  if c <> "" &&  c.[String.length c - 1] = 'H' then
+    let to_b64 = Cryptokit.Base64.encode_compact () in
+    Cryptokit.transform_string to_b64
+      (Cryptokit.(hash_string (Hash.sha256 ()) c))
+  else
+    c
 
 let getcookies secure cookie_level cookienamepref cookies =
   let length = String.length cookienamepref in
