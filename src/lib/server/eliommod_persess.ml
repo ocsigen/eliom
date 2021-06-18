@@ -212,13 +212,13 @@ let find_or_create_persistent_cookie
 
 let find_or_create_persistent_cookie =
   (find_or_create_persistent_cookie :
-     ?set_session_group:string ->
+     ?set_session_group:_ ->
    cookie_scope:Eliom_common.cookie_scope ->
    secure_o:bool option ->
    ?sp:Eliom_common.server_params ->
    unit -> Eliom_common.one_persistent_cookie_info Lwt.t
    :>
-     ?set_session_group:string ->
+     ?set_session_group:_ ->
    cookie_scope:[< Eliom_common.cookie_scope ] ->
    secure_o:bool option ->
    ?sp:Eliom_common.server_params ->

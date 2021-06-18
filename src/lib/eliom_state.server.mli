@@ -180,7 +180,7 @@ val set_service_session_group :
   ?set_max: int ->
   ?scope:Eliom_common.session_scope ->
   ?secure:bool ->
-  string ->
+  Eliom_common.hashed_cookie ->
   unit
 
 (** Remove the session from its group.
@@ -200,7 +200,7 @@ val get_service_session_group :
   ?scope:Eliom_common.session_scope ->
   ?secure:bool ->
   unit ->
-  string option
+  Eliom_common.hashed_cookie option
 
 (** returns the number of sessions in the group. If he session does not
     belong to any group or if no session is opened, returns [None] *)
@@ -221,7 +221,7 @@ val set_volatile_data_session_group :
   ?set_max: int ->
   ?scope:Eliom_common.session_scope ->
   ?secure:bool ->
-  string ->
+  Eliom_common.hashed_cookie ->
   unit
 
 (** Remove the session from its group.
@@ -241,7 +241,7 @@ val get_volatile_data_session_group :
   ?scope:Eliom_common.session_scope ->
   ?secure:bool ->
   unit ->
-  string option
+  Eliom_common.hashed_cookie option
 
 (** returns the number of sessions in the group. If he session does not
     belong to any group or if no session is opened, returns [None] *)
@@ -263,7 +263,7 @@ val set_persistent_data_session_group :
   ?set_max: int option ->
   ?scope:Eliom_common.session_scope ->
   ?secure:bool ->
-  string ->
+  Eliom_common.hashed_cookie ->
   unit Lwt.t
 
 (** Remove the session from its group.
@@ -282,7 +282,7 @@ val get_persistent_data_session_group :
   ?scope:Eliom_common.session_scope ->
   ?secure:bool ->
   unit ->
-  string option Lwt.t
+  Eliom_common.hashed_cookie option Lwt.t
 
 (** {3 Maximum group size} *)
 (** The following functions of this section set the maximum number of
@@ -733,17 +733,17 @@ module Ext : sig
   (** [volatile_data_group_state ~scope n] returns the state corresponding to
       the group named [n] in scope [scope]. *)
   val volatile_data_group_state :
-    ?scope:Eliom_common.session_group_scope -> string ->
+    ?scope:Eliom_common.session_group_scope -> Eliom_common.hashed_cookie ->
     ([> `Session_group ], [> `Data ]) state
 
   (** Same for persistent data *)
   val persistent_data_group_state :
-    ?scope:Eliom_common.session_group_scope -> string ->
+    ?scope:Eliom_common.session_group_scope -> Eliom_common.hashed_cookie ->
     ([> `Session_group ], [> `Pers ]) state
 
   (** Same for services *)
   val service_group_state :
-    ?scope:Eliom_common.session_group_scope -> string ->
+    ?scope:Eliom_common.session_group_scope -> Eliom_common.hashed_cookie ->
     ([> `Session_group ], [> `Service ]) state
 
   (** [current_volatile_data_state ~scope] returns the state corresponding
@@ -911,7 +911,7 @@ module Ext : sig
 
   (** Returns a list containing the names of all session group
       that are available for this site. *)
-  val get_session_group_list : unit -> string list
+  val get_session_group_list : unit -> Eliom_common.hashed_cookie list
 
   (** Iterator on all active service cookies.
       [Lwt_unix.yield] is called automatically after each iteration.
@@ -1120,7 +1120,7 @@ val set_default_persistent_data_session_timeout : float option -> unit
 val get_persistent_data_cookie :
   cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
-  unit -> string option Lwt.t
+  unit -> Eliom_common.hashed_cookie option Lwt.t
 
 (** returns the value of Eliom's cookies for one service session.
     Returns [None] is no session is active.
@@ -1128,7 +1128,7 @@ val get_persistent_data_cookie :
 val get_service_cookie :
   cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
-  unit -> string option
+  unit -> Eliom_common.hashed_cookie option
 
 (** returns the value of Eliom's cookies for one "volatile data" session.
     Returns [None] is no session is active.
@@ -1136,7 +1136,7 @@ val get_service_cookie :
 val get_volatile_data_cookie :
   cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
-  unit -> string option
+  unit -> Eliom_common.hashed_cookie option
 (**/**)
 
 

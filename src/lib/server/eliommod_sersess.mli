@@ -22,7 +22,7 @@ val close_service_state :
   secure_o: bool option ->
   ?sp:Eliom_common.server_params -> unit -> unit
 val find_or_create_service_cookie :
-  ?set_session_group:string ->
+  ?set_session_group:Eliom_common.hashed_cookie ->
   cookie_scope:[< Eliom_common.cookie_scope] ->
   secure_o: bool option ->
   ?sp:Eliom_common.server_params ->

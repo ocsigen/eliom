@@ -3,7 +3,7 @@ val close_data_state :
   secure_o:bool option ->
   ?sp:Eliom_common.server_params -> unit -> unit
 val find_or_create_data_cookie :
-  ?set_session_group:string ->
+  ?set_session_group:Eliom_common.hashed_cookie ->
   cookie_scope:[< Eliom_common.cookie_scope ] ->
   secure_o:bool option ->
   ?sp:Eliom_common.server_params -> unit -> Eliom_common.one_data_cookie_info

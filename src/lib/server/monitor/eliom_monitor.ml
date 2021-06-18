@@ -155,7 +155,9 @@ let eliom_stats () =
             (Eliommod_sessiongroups.Data.nb_of_groups ())];
       li [ppf "%d persistent data session groups." persist_nb_of_groups ];
       li [ppf "Session groups: %s"
-            (String.concat ", " (Eliom_state.Ext.get_session_group_list ()))];
+            (String.concat ", "
+               (List.map Eliom_common.hashed_cookie_as_string
+                  (Eliom_state.Ext.get_session_group_list ())))];
     ]
   ])
 

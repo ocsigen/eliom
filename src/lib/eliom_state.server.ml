@@ -925,7 +925,8 @@ let get_persistent_data ~table () =
     (fun () ->
       get_p_table_key_ ~table Eliommod_persess.find_persistent_cookie_only
       >>= fun (table, key) ->
-      Ocsipersist.find table key >>= fun (_, v) ->
+      Ocsipersist.find table (Eliom_common.hashed_cookie_as_string key)
+      >>= fun (_, v) ->
       Lwt.return (Data v)
     )
     (function
@@ -939,14 +940,16 @@ let set_persistent_data ~table value =
       ~cookie_scope ~secure_o ?sp ()
   in
   get_p_table_key_ ~table f__ >>= fun (table, key) ->
-  Ocsipersist.add table key (Int64.zero, value)
+  Ocsipersist.add table (Eliom_common.hashed_cookie_as_string key)
+    (Int64.zero, value)
 
 let remove_persistent_data ~table () =
   try%lwt
     let (scope, secure, _) = table in
     let%lwt (table, key) =
       get_p_table_key_ ~table Eliommod_persess.find_persistent_cookie_only in
-    let%lwt () = Ocsipersist.remove table key in
+    let%lwt () =
+      Ocsipersist.remove table (Eliom_common.hashed_cookie_as_string key) in
     close_persistent_state_if_empty ~scope ~secure ()
   with
     | Not_found
@@ -1171,18 +1174,18 @@ module Ext = struct
   type (+'a (* scope *), +'b (* `Data, `Service or `Pers *)) state =
      Eliom_common.user_scope *
      [ `Data | `Service | `Pers ] *
-       string
+       Eliom_common.hashed_cookie
 
   type service_cookie_info =
-      string (* cookie value *)
+      Eliom_common.hashed_cookie (* cookie value *)
       * Eliom_common.tables Eliom_common.servicecookiestablecontent
 
   type data_cookie_info =
-      string (* cookie value *)
+      Eliom_common.hashed_cookie (* cookie value *)
       * Eliom_common.datacookiestablecontent
 
   type persistent_cookie_info =
-      string (* cookie value *)
+      Eliom_common.hashed_cookie (* cookie value *)
         *
       (Eliom_common.full_state_name *
        float option            (* expiration date by timeout
@@ -1309,7 +1312,7 @@ module Ext = struct
         in
         Eliommod_sessiongroups.Pers.remove_group
           ~cookie_level:`Session sitedata sgr_o
-      | (_, `Service, (cookie : string)) ->
+      | (_, `Service, cookie) ->
         let (_, (_, _, _, _, _sgr, sgrnode)) = get_service_cookie_info state in
         Eliommod_sessiongroups.Serv.remove sgrnode;
         Lwt.return_unit
@@ -1368,7 +1371,7 @@ module Ext = struct
     | _ -> failwith "fold_sub_states_aux"
 
   let fold_volatile_sub_states ?sitedata
-      ~(state : Eliom_common.user_scope * [> `Data | `Service ] * string)
+      ~(state : Eliom_common.user_scope * [> `Data | `Service ] * _)
       f e =
     let state' = (state :> ('aa, 'bb) state) in
     let (sitedata, sub_states_level, id, f) as a =
@@ -1425,7 +1428,8 @@ module Ext = struct
         ~state:((state_scope, _, cookie) : ('s, [ `Pers ]) state)
         ~table:(table_scope, _, t : 'a persistent_table) =
       lwt_check_scopes table_scope state_scope >>= fun () ->
-      Ocsipersist.find t cookie >>= fun (_, a) -> Lwt.return a
+      Ocsipersist.find t (Eliom_common.hashed_cookie_as_string cookie)
+      >>= fun (_, a) -> Lwt.return a
 
     let set_volatile_data
         ~state:((state_scope, _, cookie) : ('s, [ `Data ]) state)
@@ -1439,7 +1443,8 @@ module Ext = struct
         ~table:(table_scope, _, t : 'a persistent_table)
         value =
       lwt_check_scopes table_scope state_scope >>= fun () ->
-      Ocsipersist.add t cookie (Int64.zero, value)
+      Ocsipersist.add t (Eliom_common.hashed_cookie_as_string cookie)
+        (Int64.zero, value)
 
     let remove_volatile_data
         ~state:((state_scope, _, cookie) : ('s, [ `Data ]) state)
@@ -1451,7 +1456,7 @@ module Ext = struct
         ~state:((state_scope, _, cookie) : ('s, [ `Pers ]) state)
         ~table:(table_scope, _, t : 'a persistent_table) =
       lwt_check_scopes table_scope state_scope >>= fun () ->
-      Ocsipersist.remove t cookie
+      Ocsipersist.remove t (Eliom_common.hashed_cookie_as_string cookie)
 
   end
 

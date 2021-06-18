@@ -294,12 +294,14 @@ type sess_info = {
 (*204FORMS*  si_internal_form: bool; *)
 }
 
-module SessionCookies : Hashtbl.S with type key = string
+type hashed_cookie
+
+module SessionCookies : Hashtbl.S with type key = hashed_cookie
 
 (* session groups *)
 type 'a sessgrp =
     (string * cookie_level
-     * (string, Ipaddr.t) leftright)
+     * (hashed_cookie, Ipaddr.t) leftright)
     (* The full session group is the triple
        (site_dir_string, scope, session group name).
        The scope is the scope of group members (`Session by default).
@@ -308,7 +310,8 @@ type 'a sessgrp =
 type perssessgrp (* the same triple, marshaled *)
 
 val make_persistent_full_group_name :
-  cookie_level:cookie_level -> string -> string option -> perssessgrp option
+  cookie_level:cookie_level -> string -> hashed_cookie option ->
+  perssessgrp option
 
 val getperssessgrp : perssessgrp -> 'a sessgrp
 
@@ -327,26 +330,26 @@ val default_client_cookie_exp : unit -> cookie_exp
 type timeout = TGlobal | TNone | TSome of float
 
 type 'a one_service_cookie_info = {
-  sc_hvalue : string;
+  sc_hvalue : hashed_cookie;
   mutable sc_set_value : [`None | `Set of string | `Used];
   sc_table : 'a ref;
   sc_timeout : timeout ref;
   sc_exp : float option ref;
   sc_cookie_exp : cookie_exp ref;
   sc_session_group: cookie_level sessgrp ref (* session group *);
-  mutable sc_session_group_node:string Ocsigen_cache.Dlist.node;
+  mutable sc_session_group_node:hashed_cookie Ocsigen_cache.Dlist.node;
 }
 type one_data_cookie_info = {
-  dc_hvalue : string;
+  dc_hvalue : hashed_cookie;
   mutable dc_set_value : [`None | `Set of string | `Used];
   dc_timeout : timeout ref;
   dc_exp : float option ref;
   dc_cookie_exp : cookie_exp ref;
   dc_session_group: cookie_level sessgrp ref (* session group *);
-  mutable dc_session_group_node:string Ocsigen_cache.Dlist.node;
+  mutable dc_session_group_node:hashed_cookie Ocsigen_cache.Dlist.node;
 }
 type one_persistent_cookie_info = {
-  pc_hvalue : string;
+  pc_hvalue : hashed_cookie;
   mutable pc_set_value : [`None | `Set of string | `Used];
   pc_timeout : timeout ref;
   pc_cookie_exp : cookie_exp ref;
@@ -370,13 +373,13 @@ type 'a cookie_info =
 type 'a servicecookiestablecontent =
     full_state_name * 'a * float option ref * timeout ref *
       cookie_level sessgrp ref *
-      string Ocsigen_cache.Dlist.node
+      hashed_cookie Ocsigen_cache.Dlist.node
 type 'a servicecookiestable =
     'a servicecookiestablecontent SessionCookies.t
 type datacookiestablecontent =
     full_state_name * float option ref * timeout ref *
       cookie_level sessgrp ref *
-      string Ocsigen_cache.Dlist.node
+      hashed_cookie Ocsigen_cache.Dlist.node
 type datacookiestable =
     datacookiestablecontent SessionCookies.t
 
@@ -531,8 +534,8 @@ and sitedata = {
   session_data : datacookiestable;
   group_of_groups: [ `Session_group ] sessgrp Ocsigen_cache.Dlist.t;
   (* Limitation of the number of groups per site *)
-  mutable remove_session_data : string -> unit;
-  mutable not_bound_in_data_tables : string -> bool;
+  mutable remove_session_data : hashed_cookie -> unit;
+  mutable not_bound_in_data_tables : hashed_cookie -> bool;
   mutable exn_handler : exn -> Ocsigen_response.t Lwt.t;
   mutable unregistered_services : Url.path list;
   mutable unregistered_na_services : na_key_serv list;
@@ -613,18 +616,18 @@ module Persistent_cookies : sig
   type date = float
   type cookie = full_state_name * date option * timeout * perssessgrp option
   module Cookies : Ocsipersist.TABLE
-    with type key = string and type value = cookie
+    with type key = hashed_cookie and type value = cookie
   module Expiry_dates : sig
     include Ocsipersist.TABLE with type key = date and type value = string
     val add_cookie : date -> string -> unit Lwt.t
   end
-  val add : string -> cookie -> unit Lwt.t
-  val replace_if_exists : string -> cookie -> unit Lwt.t
+  val add : hashed_cookie -> cookie -> unit Lwt.t
+  val replace_if_exists : hashed_cookie -> cookie -> unit Lwt.t
   val garbage_collect :
     section:Lwt_log_core.Section.t -> (Cookies.key -> unit Lwt.t) -> unit Lwt.t
 end
 
-val remove_from_all_persistent_tables : string -> unit Lwt.t
+val remove_from_all_persistent_tables : hashed_cookie -> unit Lwt.t
 val absolute_change_sitedata : sitedata -> unit
 val get_current_sitedata : unit -> sitedata
 val end_current_sitedata : unit -> unit
@@ -759,4 +762,5 @@ end
 (** Raises exception on server, only relevant for client apps *)
 val client_html_file : unit -> string
 
-val hash_cookie : string -> string
+val hash_cookie : string -> hashed_cookie
+val hashed_cookie_as_string : hashed_cookie -> string

@@ -308,14 +308,12 @@ let persistent_session_gc sitedata =
       fun ((scope, _, _), exp, _, session_group) ->
         match exp with
         | Some exp when exp <= now ->
-          Lwt_log.ign_notice_f ~section "remove expired cookie %s" cookie;
           Eliommod_persess.close_persistent_state2
             ~scope
             sitedata
             session_group cookie
         (*WAS: remove_from_all_persistent_tables k *)
         | _ ->
-            Lwt_log.ign_notice_f ~section "cookie not expired: %s" cookie;
             return_unit
     in
     Lwt_log.ign_info ~section "GC of persistent sessions";

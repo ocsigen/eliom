@@ -867,6 +867,9 @@ let full_state_name_of_cookie_name cookie_level cookiename =
     | `Session -> (`Session sc_hier, secure, sitedirstring)
     | `Client_process -> (`Client_process sc_hier, secure, sitedirstring)
 
+type hashed_cookie = string
+let hashed_cookie_as_string hc = hc
+
 let hash_cookie c =
   (* To preserve compatibility, we only hash cookies that ends with an
      'H'.  This is the case for all new cookies (see Eliommod_cookies). *)

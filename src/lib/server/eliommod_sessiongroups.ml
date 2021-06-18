@@ -47,14 +47,15 @@ module type MEMTAB =
     type group_of_group_data
 
     val add : ?set_max: int -> Eliom_common.sitedata ->
-      string -> Eliom_common.cookie_level Eliom_common.sessgrp ->
-      string Ocsigen_cache.Dlist.node
+      Eliom_common.hashed_cookie ->
+      Eliom_common.cookie_level Eliom_common.sessgrp ->
+      Eliom_common.hashed_cookie Ocsigen_cache.Dlist.node
     val remove : 'a Ocsigen_cache.Dlist.node -> unit
     val remove_group : Eliom_common.cookie_level Eliom_common.sessgrp -> unit
 
     (** returns the dlist containing all session group elements *)
     val find : [< Eliom_common.cookie_level ] Eliom_common.sessgrp ->
-      string Ocsigen_cache.Dlist.t
+      Eliom_common.hashed_cookie Ocsigen_cache.Dlist.t
 
     (** Groups of browser sessions belongs to a group of groups.
         As these groups are not associated to a cookie,
@@ -66,11 +67,11 @@ module type MEMTAB =
     val move :
       ?set_max:int ->
       Eliom_common.sitedata ->
-      string Ocsigen_cache.Dlist.node ->
+      Eliom_common.hashed_cookie Ocsigen_cache.Dlist.node ->
       Eliom_common.cookie_level Eliom_common.sessgrp ->
-      string Ocsigen_cache.Dlist.node
+      Eliom_common.hashed_cookie Ocsigen_cache.Dlist.node
 
-    val up : string Ocsigen_cache.Dlist.node -> unit
+    val up : Eliom_common.hashed_cookie Ocsigen_cache.Dlist.node -> unit
     val nb_of_groups : unit -> int
     val group_size : Eliom_common.cookie_level Eliom_common.sessgrp -> int
     val set_max : 'a Ocsigen_cache.Dlist.node -> int -> unit
@@ -86,15 +87,16 @@ module Make(A: sig
   type group_of_group_data
   val table :
     (group_of_group_data option *
-       (string Ocsigen_cache.Dlist.t)) GroupTable.t
-  val close_session : Eliom_common.sitedata -> string -> unit
+       (Eliom_common.hashed_cookie Ocsigen_cache.Dlist.t)) GroupTable.t
+  val close_session :
+    Eliom_common.sitedata -> Eliom_common.hashed_cookie -> unit
   val max_tab_per_session : Eliom_common.sitedata -> int
   val max_session_per_group : Eliom_common.sitedata -> int
   val max_session_per_ip : Eliom_common.sitedata -> int
   val clean_session : Eliom_common.sitedata ->
     GroupTable.key ->
     (GroupTable.key -> group_of_group_data option) ->
-    (string Ocsigen_cache.Dlist.node -> unit) ->
+    (Eliom_common.hashed_cookie Ocsigen_cache.Dlist.node -> unit) ->
     (group_of_group_data -> unit) -> unit
   val node_of_group_of_group_data :
     group_of_group_data ->
@@ -243,7 +245,8 @@ module Data =
       [ `Session ] Eliom_common.sessgrp Ocsigen_cache.Dlist.node
 
     let table : (group_of_group_data option *
-                   (string Ocsigen_cache.Dlist.t)) GroupTable.t =
+                   (Eliom_common.hashed_cookie Ocsigen_cache.Dlist.t))
+                  GroupTable.t =
       (* The table associates the dlist for a group
          to a full session group name.
          It work both for groups of tab sessions and
@@ -329,7 +332,8 @@ module Serv =
           [ `Session ] Eliom_common.sessgrp Ocsigen_cache.Dlist.node
 
     let table : (group_of_group_data option *
-                    (string Ocsigen_cache.Dlist.t)) GroupTable.t =
+                    (Eliom_common.hashed_cookie Ocsigen_cache.Dlist.t))
+                  GroupTable.t =
       GroupTable.create 100
     let close_session sitedata sess_id =
       Eliom_common.SessionCookies.remove
@@ -414,7 +418,7 @@ module Pers = struct
 (*VVV Verify this carefully! *)
 (*VVV VERIFY concurrent access *)
 
-  let grouptable : (nbmax * string list) Ocsipersist.table Lwt.t Lazy.t =
+  let grouptable : (nbmax * Eliom_common.hashed_cookie list) Ocsipersist.table Lwt.t Lazy.t =
     lazy (Ocsipersist.open_table "__eliom_session_group_table")
       (* It is lazy because if the module is linked statically,
          the creation of the table must happen after initialisation

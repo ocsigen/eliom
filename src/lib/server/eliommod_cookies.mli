@@ -25,11 +25,11 @@ val make_new_session_id : unit -> string
 val get_cookie_info :
   float ->
   Eliom_common.sitedata ->
-  Eliom_common.SessionCookies.key Eliom_common.Full_state_name_table.t ->
-  Eliom_common.SessionCookies.key Eliom_common.Full_state_name_table.t ->
   string Eliom_common.Full_state_name_table.t ->
-  (Eliom_common.SessionCookies.key Eliom_common.Full_state_name_table.t *
-     Eliom_common.SessionCookies.key Eliom_common.Full_state_name_table.t *
+  string Eliom_common.Full_state_name_table.t ->
+  string Eliom_common.Full_state_name_table.t ->
+  (string Eliom_common.Full_state_name_table.t *
+     string Eliom_common.Full_state_name_table.t *
      string Eliom_common.Full_state_name_table.t) ->
   Eliom_common.tables Eliom_common.cookie_info *
   Eliom_common.Full_state_name_table.key list

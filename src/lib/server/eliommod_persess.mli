@@ -25,11 +25,11 @@ val perstables : string list ref
 module Persistent_cookies : sig
   type cookie = full_state_name * float option * timeout * perssessgrp option
   module Cookies : Ocsipersist.TABLE
-    with type key = string and type value = cookie
+    with type key = Eliom_common.hashed_cookie and type value = cookie
   module Expiry_dates : Ocsipersist.TABLE
     with type key = float and type value = string
-  val add : string -> cookie -> unit Lwt.t
-  val replace_if_exists : string -> cookie -> unit Lwt.t
+  val add : Eliom_common.hashed_cookie -> cookie -> unit Lwt.t
+  val replace_if_exists : Eliom_common.hashed_cookie -> cookie -> unit Lwt.t
   val garbage_collect :
     section:Lwt_log_core.Section.t -> (Cookies.key -> unit Lwt.t) -> unit Lwt.t
 end
@@ -39,13 +39,13 @@ val number_of_persistent_table_elements : unit -> (string * int) list Lwt.t
 val close_persistent_state2 :
   scope:Eliom_common.user_scope ->
   Eliom_common.sitedata ->
-  Eliom_common.perssessgrp option -> string -> unit Lwt.t
+  Eliom_common.perssessgrp option -> Eliom_common.hashed_cookie -> unit Lwt.t
 val close_persistent_state :
   scope:[< Eliom_common.user_scope ] ->
   secure_o:bool option ->
   ?sp:Eliom_common.server_params -> unit -> unit Lwt.t
 val find_or_create_persistent_cookie :
-  ?set_session_group:string ->
+  ?set_session_group:Eliom_common.hashed_cookie ->
   cookie_scope:[< Eliom_common.cookie_scope ] ->
   secure_o:bool option ->
   ?sp:Eliom_common.server_params ->

@@ -202,13 +202,13 @@ let rec find_or_create_data_cookie ?set_session_group
 
 let find_or_create_data_cookie =
   (find_or_create_data_cookie :
-     ?set_session_group:string ->
+     ?set_session_group:_ ->
    cookie_scope:Eliom_common.cookie_scope ->
    secure_o:bool option ->
    ?sp:Eliom_common.server_params ->
    unit -> Eliom_common.one_data_cookie_info
    :>
-     ?set_session_group:string ->
+     ?set_session_group:_ ->
    cookie_scope:[< Eliom_common.cookie_scope ] ->
    secure_o:bool option ->
    ?sp:Eliom_common.server_params ->
