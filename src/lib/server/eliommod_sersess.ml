@@ -195,7 +195,7 @@ let rec find_or_create_service_cookie_ ?set_session_group
     cookie_info :=
       Eliom_common.Full_state_name_table.add
         full_st_name
-        (false, ref (Eliom_common.SC v))
+        (None, ref (Eliom_common.SC v))
         !cookie_info;
     v
 

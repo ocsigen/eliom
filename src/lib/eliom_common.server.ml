@@ -184,8 +184,11 @@ type one_persistent_cookie_info =
 (*VVV heavy *)
 type 'a cookie_info1 =
   (* service sessions: *)
-  (bool            (* there was a value sent by the browser *)
+  (string option            (* value sent by the browser *)
+   (* None = new cookie
+      (not sent by the browser) *)
    *
+
    'a one_service_cookie_info session_cookie ref
    (* SCNo_data = the session has been closed
       SCData_session_expired = the cookie has not been found in the table.
@@ -197,8 +200,11 @@ type 'a cookie_info1 =
     Full_state_name_table.t ref (* The key is the full session name *) *
 
   (* in memory data sessions: *)
-  (bool            (* there was a value sent by the browser *)
+  (string option            (* value sent by the browser *)
+   (* None = new cookie
+      (not sent by the browser) *)
    *
+
    one_data_cookie_info session_cookie ref
    (* SCNo_data = the session has been closed
       SCData_session_expired = the cookie has not been found in the table.
@@ -211,13 +217,15 @@ type 'a cookie_info1 =
     Full_state_name_table.t ref (* The key is the full session name *) *
 
   (* persistent sessions: *)
-  ((timeout                 (* timeout at the beginning of the request *) *
+  ((string                  (* value sent by the browser *) *
+    timeout                 (* timeout at the beginning of the request *) *
     float option            (* (server side) expdate
                                at the beginning of the request
                                None = no exp *) *
     perssessgrp option      (* session group at beginning of request *))
      option
-   (* None = no cookie sent by the browser *)
+   (* None = new cookie
+      (not sent by the browser) *)
    *
    one_persistent_cookie_info session_cookie ref
    (* SCNo_data = the session has been closed
@@ -872,7 +880,7 @@ let getcookies secure cookie_level cookienamepref cookies =
           let (_, sec, _) as expcn =
             full_state_name_of_cookie_name cookie_level name in
           if sec = secure
-          then Full_state_name_table.add expcn (hash_cookie value) beg
+          then Full_state_name_table.add expcn value beg
           else beg
         with Not_found -> beg
       else beg
