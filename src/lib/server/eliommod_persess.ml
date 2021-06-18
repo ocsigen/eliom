@@ -138,10 +138,11 @@ let rec find_or_create_persistent_cookie_
     let fullsessgrp = fullsessgrp ~cookie_level ~sp set_session_group in
 
     let c = Eliommod_cookies.make_new_session_id () in
+    let hc = Eliom_common.hash_cookie c in
   (* We do not need to verify if it already exists.
      make_new_session_id does never generate twice the same cookie. *)
     let usertimeout = ref Eliom_common.TGlobal (* See global table *) in
-    Persistent_cookies.add c
+    Persistent_cookies.add hc
       (full_st_name,
        None (* Some 0. *) (* exp on server - We'll change it later *),
        Eliom_common.TGlobal (* timeout - see global config *),
@@ -150,13 +151,13 @@ let rec find_or_create_persistent_cookie_
     Eliommod_sessiongroups.Pers.add
       ?set_max:set_max_in_group
       (fst sitedata.Eliom_common.max_persistent_data_sessions_per_group)
-      c fullsessgrp >>= fun l ->
+      hc fullsessgrp >>= fun l ->
     Lwt_list.iter_p (close_persistent_state2
                      ~scope:(cookie_scope :> Eliom_common.user_scope)
                      sitedata None) l
     >>= fun () ->
     Lwt.return
-      { Eliom_common.pc_hvalue= Eliom_common.hash_cookie c;
+      { Eliom_common.pc_hvalue= hc;
         Eliom_common.pc_set_value= Some c;
         Eliom_common.pc_timeout= usertimeout;
         Eliom_common.pc_cookie_exp =
