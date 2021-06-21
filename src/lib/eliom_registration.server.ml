@@ -58,10 +58,8 @@ let result_of_content ~dynamic ?charset ?content_type ?headers ?status body =
   let headers =
     if dynamic then
       Some (Cohttp.Header.add_unless_exists
-              (Cohttp.Header.add_unless_exists
-                 (Ocsigen_header.of_option headers)
-                 "cache-control" "no-cache")
-              "expires" "0")
+              (Ocsigen_header.of_option headers)
+              "cache-control" "no-cache")
     else
       headers
   in
@@ -181,16 +179,11 @@ let add_cache_header cache headers =
   match cache with
   | None -> headers
   | Some 0 ->
-    headers
-    <-< (Ocsigen_header.Name.cache_control, "no-cache")
-    <-< (Ocsigen_header.Name.expires, "0")
+    headers <-< (Ocsigen_header.Name.cache_control, "no-cache")
   | Some duration ->
     headers
     <-< (Ocsigen_header.Name.cache_control,
          "max-age: " ^ string_of_int duration)
-    <-< (Ocsigen_header.Name.expires,
-         Ocsigen_lib.Date.to_string
-           (Unix.time () +. float_of_int duration))
 
 module String_base = struct
 
