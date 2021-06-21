@@ -46,7 +46,7 @@ let headers_with_content_type ?charset ?content_type headers =
   | None ->
     headers
 
-let result_of_content ~dynamic ?charset ?content_type ?headers ?status body =
+let result_of_content ?charset ?content_type ?headers ?status body =
   let headers =
     match content_type with
     | Some content_type ->
@@ -56,16 +56,9 @@ let result_of_content ~dynamic ?charset ?content_type ?headers ?status body =
       headers
   in
   let headers =
-    if dynamic then
-      Some (Cohttp.Header.add_unless_exists
-              (Cohttp.Header.add_unless_exists
-                 (Ocsigen_header.of_option headers)
-                 "cache-control" "no-cache")
-              "expires" "0")
-    else
-      headers
-  in
-  let response = Cohttp.Response.make ?status ?headers () in
+    Cohttp.Header.add_unless_exists
+      (Ocsigen_header.of_option headers) "cache-control" "no-cache" in
+  let response = Cohttp.Response.make ?status ~headers () in
   Lwt.return (Ocsigen_response.make ~body response)
 
 module Result_types :
@@ -137,7 +130,7 @@ module Html_base = struct
     let status = Eliom_lib.Option.map Cohttp.Code.status_of_code code
     and content_type = content_type_html content_type
     and body = Cohttp_lwt.Body.of_string (Format.asprintf "%a" out c) in
-    result_of_content ~dynamic:true ?charset ?headers ?status ~content_type body
+    result_of_content ?charset ?headers ?status ~content_type body
 
 end
 
@@ -166,7 +159,7 @@ module Flow5_base = struct
     let status = Eliom_lib.Option.map Cohttp.Code.status_of_code code
     and content_type = content_type_html content_type
     and body = body c in
-    result_of_content ~dynamic:true ?charset ?headers ?status ~content_type body
+    result_of_content ?charset ?headers ?status ~content_type body
 
 end
 
@@ -181,16 +174,11 @@ let add_cache_header cache headers =
   match cache with
   | None -> headers
   | Some 0 ->
-    headers
-    <-< (Ocsigen_header.Name.cache_control, "no-cache")
-    <-< (Ocsigen_header.Name.expires, "0")
+    headers <-< (Ocsigen_header.Name.cache_control, "no-cache")
   | Some duration ->
     headers
     <-< (Ocsigen_header.Name.cache_control,
          "max-age: " ^ string_of_int duration)
-    <-< (Ocsigen_header.Name.expires,
-         Ocsigen_lib.Date.to_string
-           (Unix.time () +. float_of_int duration))
 
 module String_base = struct
 
@@ -210,7 +198,7 @@ module String_base = struct
       add_cache_header options
         (Ocsigen_header.of_option headers)
     in
-    result_of_content ~dynamic:true ?charset ?status ~content_type ~headers body
+    result_of_content ?charset ?status ~content_type ~headers body
 
 end
 
@@ -300,7 +288,7 @@ module Action_base = struct
         | _ ->
           headers
       and status = Cohttp.Code.status_of_code code in
-      result_of_content ~dynamic:false ?charset ?content_type ~headers ~status
+      result_of_content ?charset ?content_type ~headers ~status
         Cohttp_lwt.Body.empty
     | `Reload ->
       (* It is an action, we reload the page. To do that, we retry
@@ -409,7 +397,7 @@ module Unit_base = struct
   let send ?options ?charset ?(code = 204)
       ?content_type ?headers content =
     let status = Cohttp.Code.status_of_code code in
-    result_of_content ~dynamic:false ?charset ?content_type ?headers ~status
+    result_of_content ?charset ?content_type ?headers ~status
       Cohttp_lwt.Body.empty
 
 end
@@ -1337,7 +1325,7 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
         h
     and status = Eliom_lib.Option.map Cohttp.Code.status_of_code code
     and content_type = content_type_html content_type in
-    result_of_content ~dynamic:true ?charset ?status ~content_type ~headers body
+    result_of_content ?charset ?status ~content_type ~headers body
 end
 
 module App (App_param : Eliom_registration_sigs.APP_PARAM) = struct
@@ -1478,7 +1466,7 @@ module String_redirection_base = struct
         Eliom_common.half_xhr_redir_header, `OK
     in
     let headers = Cohttp.Header.replace headers header_id uri in
-    result_of_content ~dynamic:false ?charset ?content_type ~status ~headers
+    result_of_content ?charset ?content_type ~status ~headers
       (Cohttp.Body.empty :> Cohttp_lwt.Body.t)
 
 end
@@ -1532,7 +1520,7 @@ module Redirection_base = struct
           Ocsigen_header.Name.(to_string location)
           uri
       in
-      result_of_content ~dynamic:false ?charset ?content_type ~status ~headers
+      result_of_content ?charset ?content_type ~status ~headers
         (Cohttp.Body.empty :> Cohttp_lwt.Body.t)
     | true, Some anr ->
       let headers =
@@ -1558,7 +1546,7 @@ module Redirection_base = struct
              Eliom_common.half_xhr_redir_header)
           uri
       in
-      result_of_content ~dynamic:false
+      result_of_content
         ?charset ?content_type ~status:`No_content ~headers
         (Cohttp.Body.empty :> Cohttp_lwt.Body.t)
 
