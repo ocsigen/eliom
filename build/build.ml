@@ -49,7 +49,7 @@ let _ = dispatch (fun x ->
       (* hack : not dep when "compile" to avoid the extension syntax to be link with binaries *)
       (* the dep with ocamldep make sure the extension syntax is compiled before *)
       flag ["ocaml";"compile";"pkg_"^name] (S [A "-ppx" ;P (path ^ name ^ "_ex." ^ best) ]);
-      flag_and_dep ["ocaml";"ocamldep";"pkg_"^name] (S [A "-ppx" ;P (path ^ name ^ "_ex." ^ best) ]);
+      flag_and_dep ["ocaml";"ocamldep";"pkg_"^name] (S [A "-ppx" ;P (path ^ name ^ "_ex." ^ best ^ " -as-ppx") ]);
       flag_and_dep ["ocaml";"infer_interface";"pkg_"^name] (S [A "-ppx" ;P (path ^ name ^ "_ex." ^ best) ]);
       flag_and_dep ["doc";"pkg_"^name] (S [A "-ppx" ;P (path ^ name ^ "_ex." ^ best) ]) in
 

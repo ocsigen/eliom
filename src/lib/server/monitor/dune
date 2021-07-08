@@ -1,0 +1,6 @@
+(library
+  (name monitor)
+  (public_name eliom.server.monitor)
+  (wrapped false)
+  (preprocess (pps lwt_ppx))
+  (libraries eliom.server))

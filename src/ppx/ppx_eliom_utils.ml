@@ -344,7 +344,7 @@ module Cmo = struct
 
   let counter = ref 0
 
-  let rec type_of_out_type ty =
+  let type_of_out_type ty =
     let open Outcometree in
     let open Parsetree in
     let map = Hashtbl.create 1 in

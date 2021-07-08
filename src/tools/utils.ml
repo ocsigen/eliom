@@ -276,7 +276,9 @@ let get_pp pkg =
   in s
 
 let get_ppx pkg =
-  Findlib.package_property [] pkg "ppx"
+  let base = Findlib.package_directory pkg in
+  let ppx = Findlib.package_property [] pkg "ppx" in
+  Findlib.resolve_path ~base ~explicit:true ppx
 
 let get_thread_opt () = match !kind with
   | `Client -> []
