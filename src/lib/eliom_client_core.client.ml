@@ -715,11 +715,19 @@ end
 type page = {
   page_unique_id : int;
   mutable page_id : state_id;
+  mutable url : string;
   page_status : Page_status_t.t React.S.t;
-  page_is_cached : bool ref;
-  previous_page : int option;
-  set_page_status : ?step:React.step -> Page_status_t.t -> unit
+  mutable previous_page : int option;
+  set_page_status : ?step:React.step -> Page_status_t.t -> unit;
+  mutable dom : Dom_html.bodyElement Js.t option;
 }
+
+let string_of_page p =
+  Printf.sprintf "%d/%d %s %s %d %b"
+    p.page_unique_id p.page_id.state_index p.url
+    (Page_status_t.to_string @@ React.S.value p.page_status)
+    (match p.previous_page with Some pp -> pp | None -> 0)
+    (match p.dom with Some _ -> true | None -> false)
 
 let set_page_status p st =
   Lwt_log.ign_debug_f ~section:section_page "Set page status %d/%d: %s"
@@ -727,14 +735,14 @@ let set_page_status p st =
   p.set_page_status st
 
 let retire_page p =
-  set_page_status p @@ if !(p.page_is_cached) then Cached else Dead
+  set_page_status p @@ match p.dom with Some _ -> Cached | None -> Dead
 
 let session_id = random_int ()
 let next_state_id =
   let last = ref 0 in fun () -> incr last; {session_id; state_index = !last}
 
 let last_page_id = ref (-1)
-let mk_page ?(state_id = next_state_id ()) ~status () =
+let mk_page ?(state_id = next_state_id ()) ?url ?previous_page ~status () =
   incr last_page_id;
   Lwt_log.ign_debug_f ~section:section_page "Create page %d/%d"
     !last_page_id state_id.state_index;
@@ -743,10 +751,14 @@ let mk_page ?(state_id = next_state_id ()) ~status () =
   ignore @@ React.S.map (fun _ -> ()) page_status;
   {page_unique_id = !last_page_id;
    page_id = state_id;
+   url =
+     (match url with
+      | Some u -> u
+      | None -> fst (Url.split_fragment (Js.to_string Dom_html.window##.location##.href)));
    page_status;
-   page_is_cached = ref false;
-   previous_page = None;
-   set_page_status}
+   previous_page;
+   set_page_status;
+   dom = None}
 
 let active_page = ref @@ mk_page ~status:Active ()
 
@@ -767,19 +779,110 @@ let get_this_page () = match Lwt.get this_page with
     Lwt_log.ign_debug_f ~section:section_page "No page in context";
     !active_page
 
-let with_new_page ?state_id ~replace () f =
+let with_new_page ?state_id ?old_page ~replace () f =
   let state_id = if replace then Some (!active_page).page_id else state_id in
-  let page = mk_page ?state_id ~status:Generating () in
+  let url, previous_page = match old_page with
+    | Some o -> Some o.url, o.previous_page
+    | None -> None, None
+  in
+  let page = mk_page ?state_id ?url ?previous_page ~status:Generating () in
   let%lwt v = Lwt.with_value this_page (Some page) @@ f in
   Lwt_log.ign_debug_f ~section:section_page "Done with page %d/%d"
     page.page_unique_id page.page_id.state_index;
   Lwt.return v
 
+module History = struct
+  let section = Lwt_log.Section.make "eliom:client:history"
+
+  let get, set =
+    let history = ref [!active_page] in
+    let set h =
+      Lwt_log.ign_debug_f ~section "setting history:\n%s"
+        (String.concat "\n" @@ List.map string_of_page !history);
+      history := h
+    in
+    (fun () -> !history), set
+
+  let find_by_state_index i =
+    try Some (List.find (fun p -> p.page_id.state_index = i) (get ()))
+    with Not_found -> None
+
+  let split_rev_past_future index =
+    let rec loop past = function
+      | [] -> past, []
+      | x :: future when x.page_id.state_index = index ->
+          x :: past, future
+      | x :: l -> loop (x :: past) l
+    in
+    loop [] (get ())
+
+  let advance n =
+    let new_history, future =
+      match n.previous_page with
+      | None -> get (), []
+      | Some pp ->
+          let rev_past, future = split_rev_past_future pp in
+          List.rev (n :: rev_past), future
+    in
+    List.iter (fun p -> set_page_status p Dead) future;
+    set new_history
+
+  let replace n =
+    let maybe_replace p =
+      if p.page_id.state_index = n.page_id.state_index
+      then (set_page_status p Dead; n)
+      else p
+    in
+    set @@ List.map maybe_replace @@ get ()
+
+  let past () =
+    let index = !active_page.page_id.state_index in
+    let rev_past, _ = split_rev_past_future index in
+    List.map (fun p -> p.url) @@
+      match rev_past with
+      | _present :: past -> past
+      | [] -> []
+
+  let future () =
+    let index = !active_page.page_id.state_index in
+    let _, future = split_rev_past_future index in
+    List.map (fun p -> p.url) future
+
+  let max_num_doms = ref None
+
+  let garbage_collect_doms () =
+    match !max_num_doms with None -> () | Some max_num_doms ->
+    let interleave l r =
+      let take_from_l = ref false in
+      let alternate _ _ =
+        take_from_l := not !take_from_l;
+        if !take_from_l then -1 else 1
+      in
+      List.merge alternate l r
+    in
+    let rev_past, future = split_rev_past_future !active_page.page_id.state_index in
+    let pages_ordered_by_distance_from_present = interleave rev_past future in
+    let num_doms = ref 0 in
+    let maybe_delete_dom p =
+      match p.dom with
+      | None -> ()
+      | Some _ ->
+          num_doms := !num_doms + 1;
+          if !num_doms > max_num_doms
+            then (p.dom <- None; set_page_status p Dead)
+    in
+    List.iter maybe_delete_dom pages_ordered_by_distance_from_present
+end
+
 let advance_page () =
   let new_page = get_this_page () in
   if new_page != !active_page then begin
-    let previous_id = !active_page.page_id.state_index in
-    set_active_page {new_page with previous_page = Some previous_id}
+    new_page.previous_page <- Some !active_page.page_id.state_index;
+    begin match History.find_by_state_index new_page.page_id.state_index with
+      | Some _ -> ()
+      | None -> History.advance new_page
+    end;
+    set_active_page new_page
   end
 
 let state_key {session_id; state_index} =

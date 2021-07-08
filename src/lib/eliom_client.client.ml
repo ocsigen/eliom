@@ -497,17 +497,15 @@ let path_and_args_of_uri uri =
       path_of_string uri, []
 
 let set_current_uri, get_current_uri =
-  let current_uri =
-    ref (fst (Url.split_fragment (Js.to_string Dom_html.window##.location##.href)))
-  in
   let set_current_uri uri =
-    current_uri := fst (Url.split_fragment uri);
-    let (path, all_get_params) = path_and_args_of_uri !current_uri in
+    let current_uri = fst (Url.split_fragment uri) in
+    (get_this_page ()).url <- current_uri;
+    let (path, all_get_params) = path_and_args_of_uri current_uri in
     Lwt.async @@ fun () ->
     Eliom_request_info.update_session_info ~path
       ~all_get_params ~all_post_params:None (fun () -> Lwt.return_unit)
   in
-  let get_current_uri () = !current_uri in
+  let get_current_uri () = (get_this_page ()).url in
   set_current_uri, get_current_uri
 
 (* == Function [change_url_string] changes the URL, without doing a request.
@@ -524,70 +522,21 @@ let reload_function = ref None
 let reload_functions = ref []
 let set_reload_function f = reload_function := Some f
 
-(* TODO: unify history_doms and reload_functions *)
-
-type history_dom = {
-  dom : Dom_html.bodyElement Js.t;
-  page : page
-}
-
-module HistCache = Map.Make (struct
-  type t = int
-  let compare = compare
-end)
-
-let history_doms : history_dom HistCache.t ref = ref HistCache.empty
-
-let max_dist_history_doms = ref None
-
-let garbage_collect_cached_doms () =
-  !max_dist_history_doms |> Opt.iter @@ fun n ->
-    let cur_index = !active_page.page_id.state_index in
-    let history_doms' = ref HistCache.empty in
-    let size = ref 0 in
-    let add idx dom =
-      history_doms' := HistCache.add idx dom !history_doms';
-      history_doms := HistCache.remove idx !history_doms;
-      size := !size + 1
-    in
-    let rec accum_past = function
-      | Some idx when !size < n ->
-          begin try
-            let dom = HistCache.find idx !history_doms in
-            add idx dom;
-            accum_past dom.page.previous_page
-            with Not_found -> ()
-          end
-      | _ -> ()
-    in
-    let _, _, future = HistCache.split cur_index !history_doms in
-    let prev = ref cur_index in
-    let accum_future idx dom =
-      if !size < n then begin
-        if dom.page.previous_page = Some !prev then add idx dom;
-        prev := idx
-      end (* else abort *)
-    in
-    accum_past (Some cur_index);
-    HistCache.iter accum_future future;
-    HistCache.iter (fun _ g -> set_page_status g.page Dead) !history_doms;
-    history_doms := !history_doms'
+(* TODO: unify History and reload_functions *)
 
 let set_max_dist_history_doms limit =
-  max_dist_history_doms := limit;
-  garbage_collect_cached_doms ()
+  History.max_num_doms := limit;
+  History.garbage_collect_doms ()
 
 let push_history_dom () =
   if !dom_history_ready then begin
     let page = !active_page in
-    let id = page.page_id.state_index in
     let dom =
       if !only_replace_body
       then Dom_html.document##.body
       else Dom_html.document##.documentElement in
-    page.page_is_cached := true;
-    history_doms := HistCache.add id {dom; page} !history_doms;
-    garbage_collect_cached_doms ()
+    page.dom <- Some dom;
+    History.garbage_collect_doms ()
   end
 
 module Page_status = struct
@@ -639,8 +588,9 @@ module Page_status = struct
 end
 
 let is_in_cache state_id =
-  state_id.session_id = session_id &&
-  HistCache.mem state_id.state_index !history_doms
+  match History.find_by_state_index state_id.state_index with
+  | Some ({dom = Some _}) -> true
+  | _ -> false
 
 let stash_reload_function f =
   let page = get_this_page () in
@@ -672,11 +622,6 @@ let change_url_string ~replace uri =
       update_state();
       let state_id = this_page.page_id in
       let erase_future () =
-        let current_doms, garbage =
-          HistCache.partition (fun id _ -> id <= state_id.state_index) !history_doms
-        in
-        HistCache.iter (fun _ g -> set_page_status g.page Dead) garbage;
-        history_doms := current_doms;
         reload_functions :=
           List.filter (fun (id, _) -> id <= state_id.state_index)
             !reload_functions;
@@ -1317,14 +1262,20 @@ let _ =
 (* Given a state_id, [replace_page_in_history] replaces the current DOM with a
    DOM from the DOM cache. *)
 let restore_history_dom id =
-  let {dom; page} = HistCache.find id !history_doms in
-  begin if !only_replace_body
-    then Dom.replaceChild
-      Dom_html.document##.documentElement dom Dom_html.document##.body
-    else Dom.replaceChild
-      Dom_html.document dom Dom_html.document##.documentElement
-  end;
-  set_active_page page
+  match History.find_by_state_index id with
+  | Some page ->
+    begin
+      match page.dom with
+      | Some dom ->
+        if !only_replace_body
+          then Dom.replaceChild
+            Dom_html.document##.documentElement dom Dom_html.document##.body
+          else Dom.replaceChild
+            Dom_html.document dom Dom_html.document##.documentElement
+      | None -> Lwt_log.ign_error ~section "DOM not actually cached"
+    end;
+    set_active_page page
+  | _ -> Lwt_log.ign_error ~section "cannot find DOM in history"
 
 let () =
 
@@ -1359,11 +1310,11 @@ let () =
               Lwt.return_unit
             end
             else begin
-              set_current_uri uri;
               try (* serve cached page from the from history_doms *)
                 if not (is_in_cache state_id) then raise Not_found;
                 let%lwt () = run_lwt_callbacks ev (flush_onchangepage ()) in
                 restore_history_dom target_id;
+                set_current_uri uri;
                 let%lwt () =
                   Js_of_ocaml_lwt.Lwt_js_events.request_animation_frame () in
                 scroll_to_fragment ~offset:state.position fragment;
@@ -1390,18 +1341,19 @@ let () =
                 let rf = List.assq state_id.state_index !reload_functions in
                 reload_function := Some rf;
                 let%lwt () = run_lwt_callbacks ev (flush_onchangepage ()) in
-                with_new_page ~state_id ~replace:false () @@ fun () ->
-                let rec loop result =
-                  match%lwt result with
-                  | Eliom_service.Dom d ->
-                     set_content_local d
-                  | _ ->
-                     handle_result ~uri:(get_current_uri ()) ~replace:true result
+                let old_page = History.find_by_state_index state_id.state_index in
+                with_new_page ~state_id ?old_page ~replace:false () @@ fun () ->
+                set_current_uri uri;
+                History.replace (get_this_page ());
+                let%lwt () =
+                  match%lwt rf () () with
+                  | Eliom_service.Dom d -> set_content_local d
+                  | r -> handle_result ~uri:(get_current_uri ()) ~replace:true (Lwt.return r)
                 in
-                let%lwt () = loop (rf () ()) in
                 scroll_to_fragment ~offset:state.position fragment;
                 Lwt.return_unit
               with Not_found -> (* different session ID *)
+              set_current_uri uri;
               match tmpl with
               | Some t when tmpl = Eliom_request_info.get_request_template () ->
                 let%lwt (uri, content) = Eliom_request.http_get
