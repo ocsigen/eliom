@@ -136,7 +136,9 @@ let string_of_perssessgrp = id
 
 type 'a one_service_cookie_info =
   (* service sessions: *)
-  {sc_value:string             (* current value *);
+  {sc_hvalue:string            (* hash of current value *);
+   mutable sc_set_value: [`None | `Set of string | `Used]
+                               (* new value to set *);
    sc_table:'a ref             (* service session table
                                   ref towards cookie table
                                *);
@@ -157,7 +159,9 @@ type 'a one_service_cookie_info =
 
 type one_data_cookie_info =
   (* in memory data sessions: *)
-  {dc_value:string                    (* current value *);
+  {dc_hvalue:string                   (* hash of current value *);
+   mutable dc_set_value: [`None | `Set of string | `Used]
+                                      (* new value to set *);
    dc_timeout:timeout ref             (* user timeout -
                                          ref towards cookie table
                                       *);
@@ -171,7 +175,9 @@ type one_data_cookie_info =
   }
 
 type one_persistent_cookie_info =
-  {pc_value:string                    (* current value *);
+  {pc_hvalue:string                   (* hash of current value *);
+   mutable pc_set_value: [`None | `Set of string | `Used]
+                                      (* new value to set *);
    pc_timeout:timeout ref             (* user timeout *);
    pc_cookie_exp:cookie_exp ref       (* cookie expiration date to set *);
    pc_session_group:perssessgrp option ref (* session group *)
@@ -224,7 +230,6 @@ type 'a cookie_info1 =
    (* None = new cookie
       (not sent by the browser) *)
    *
-
    one_persistent_cookie_info session_cookie ref
    (* SCNo_data = the session has been closed
       SCData_session_expired = the cookie has not been found in the table.
@@ -861,6 +866,16 @@ let full_state_name_of_cookie_name cookie_level cookiename =
   match cookie_level with
     | `Session -> (`Session sc_hier, secure, sitedirstring)
     | `Client_process -> (`Client_process sc_hier, secure, sitedirstring)
+
+let hash_cookie c =
+  (* To preserve compatibility, we only hash cookies that ends with an
+     'H'.  This is the case for all new cookies (see Eliommod_cookies). *)
+  if c <> "" &&  c.[String.length c - 1] = 'H' then
+    let to_b64 = Cryptokit.Base64.encode_compact () in
+    Cryptokit.transform_string to_b64
+      (Cryptokit.(hash_string (Hash.sha256 ()) c))
+  else
+    c
 
 let getcookies secure cookie_level cookienamepref cookies =
   let length = String.length cookienamepref in
