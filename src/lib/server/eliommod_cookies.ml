@@ -50,10 +50,11 @@ let get_cookie_info
     Eliom_common.Full_state_name_table.fold
       (fun name value (oktable, failedlist) ->
         try
-          let hvalue = Eliom_common.hash_cookie value in
+          let hvalue = Eliom_common.Hashed_cookies.hash value in
           let full_state_name, ta, expref, timeout_ref, sessgrpref, sessgrpnode =
             Eliom_common.SessionCookies.find
-              sitedata.Eliom_common.session_services hvalue
+              sitedata.Eliom_common.session_services
+              (Eliom_common.Hashed_cookies.to_string hvalue)
           in
           Eliommod_sessiongroups.Serv.up sessgrpnode;
           match !expref with
@@ -108,10 +109,11 @@ let get_cookie_info
       (fun value ->
         lazy
           (try
-            let hvalue = Eliom_common.hash_cookie value in
+            let hvalue = Eliom_common.Hashed_cookies.hash value in
             let full_state_name, expref, timeout_ref, sessgrpref, sessgrpnode =
               Eliom_common.SessionCookies.find
-                sitedata.Eliom_common.session_data hvalue
+                sitedata.Eliom_common.session_data
+                (Eliom_common.Hashed_cookies.to_string hvalue)
             in
             Eliommod_sessiongroups.Serv.up sessgrpnode;
             match !expref with
@@ -156,16 +158,21 @@ let get_cookie_info
         lazy
           (catch
              (fun () ->
-               let hvalue = Eliom_common.hash_cookie value in
-               Eliom_common.Persistent_cookies.Cookies.find hvalue >>=
+               let hvalue = Eliom_common.Hashed_cookies.hash value in
+               let hvalue_string =
+                 Eliom_common.Hashed_cookies.to_string hvalue in
+               Eliom_common.Persistent_cookies.Cookies.find
+                 (Eliom_common.Hashed_cookies.to_string hvalue)
+               >>=
                fun (full_state_name, persexp, perstimeout, sessgrp) ->
 
-                 Eliommod_sessiongroups.Pers.up hvalue sessgrp >>= fun () ->
+               Eliommod_sessiongroups.Pers.up hvalue_string sessgrp
+               >>= fun () ->
                  match persexp with
                  | Some t when t < now ->
                      (* session expired by timeout *)
                      Eliom_common.remove_from_all_persistent_tables
-                       hvalue >>= fun () ->
+                       hvalue_string >>= fun () ->
                        return
                          (Some (value         (* value at the beginning
                                                  of the request *),

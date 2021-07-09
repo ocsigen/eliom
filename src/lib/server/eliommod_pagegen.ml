@@ -161,7 +161,7 @@ let update_cookie_table ?now sitedata (ci, sci) =
                     Lwt.catch
                       (fun () ->
                         Eliom_common.Persistent_cookies.replace_if_exists
-                          newc.Eliom_common.pc_hvalue
+                          Eliom_common.(Hashed_cookies.to_string newc.pc_hvalue)
                           (name,
                            newexp,
                            !(newc.Eliom_common.pc_timeout),
@@ -172,7 +172,7 @@ let update_cookie_table ?now sitedata (ci, sci) =
                         | e -> Lwt.fail e)
                   | _ ->
                     Eliom_common.Persistent_cookies.add
-                      newc.Eliom_common.pc_hvalue
+                      Eliom_common.(Hashed_cookies.to_string newc.pc_hvalue)
                       (name,
                        newexp,
                        !(newc.Eliom_common.pc_timeout),

@@ -104,13 +104,33 @@ type timeout =
 
 
 
-(* The table of tables for each session. Keys are cookies *)
+(* The table of tables for each session. Keys are hashes of cookies or group names *)
 module SessionCookies =
   Hashtbl.Make(struct
     type t = string
     let equal = (=)
     let hash = Hashtbl.hash
   end)
+
+(* keys in tables are hashes of cookie values *)
+module Hashed_cookies : sig
+    type t
+    val hash : string -> t
+    val to_string : t -> string
+end = struct
+  type t = string
+  let hash c =
+    (* To preserve compatibility, we only hash cookies that ends with an
+       'H'.  This is the case for all new cookies (see Eliommod_cookies). *)
+    if c <> "" &&  c.[String.length c - 1] = 'H' then
+      let to_b64 = Cryptokit.Base64.encode_compact () in
+      Cryptokit.transform_string to_b64
+        (Cryptokit.(hash_string (Hash.sha256 ()) c))
+    else
+      c
+
+  let to_string x = x
+end
 
 (* session groups *)
 type 'a sessgrp =
@@ -136,7 +156,7 @@ let string_of_perssessgrp = id
 
 type 'a one_service_cookie_info =
   (* service sessions: *)
-  {sc_hvalue:string            (* hash of current value *);
+  {sc_hvalue:Hashed_cookies.t  (* hash of current value *);
    mutable sc_set_value: [`None | `Set of string | `Used]
                                (* new value to set *);
    sc_table:'a ref             (* service session table
@@ -159,7 +179,7 @@ type 'a one_service_cookie_info =
 
 type one_data_cookie_info =
   (* in memory data sessions: *)
-  {dc_hvalue:string                   (* hash of current value *);
+  {dc_hvalue:Hashed_cookies.t         (* hash of current value *);
    mutable dc_set_value: [`None | `Set of string | `Used]
                                       (* new value to set *);
    dc_timeout:timeout ref             (* user timeout -
@@ -175,7 +195,7 @@ type one_data_cookie_info =
   }
 
 type one_persistent_cookie_info =
-  {pc_hvalue:string                   (* hash of current value *);
+  {pc_hvalue:Hashed_cookies.t         (* hash of current value *);
    mutable pc_set_value: [`None | `Set of string | `Used]
                                       (* new value to set *);
    pc_timeout:timeout ref             (* user timeout *);
@@ -868,16 +888,6 @@ let full_state_name_of_cookie_name cookie_level cookiename =
   match cookie_level with
     | `Session -> (`Session sc_hier, secure, sitedirstring)
     | `Client_process -> (`Client_process sc_hier, secure, sitedirstring)
-
-let hash_cookie c =
-  (* To preserve compatibility, we only hash cookies that ends with an
-     'H'.  This is the case for all new cookies (see Eliommod_cookies). *)
-  if c <> "" &&  c.[String.length c - 1] = 'H' then
-    let to_b64 = Cryptokit.Base64.encode_compact () in
-    Cryptokit.transform_string to_b64
-      (Cryptokit.(hash_string (Hash.sha256 ()) c))
-  else
-    c
 
 let getcookies secure cookie_level cookienamepref cookies =
   let length = String.length cookienamepref in

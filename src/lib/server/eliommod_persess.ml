@@ -93,7 +93,7 @@ let close_persistent_state ~scope ~secure_o ?sp () =
            ~scope:(scope :> Eliom_common.user_scope)
            sp.Eliom_common.sp_sitedata
            !(c.Eliom_common.pc_session_group)
-           c.Eliom_common.pc_hvalue)
+           (Eliom_common.(Hashed_cookies.to_string c.pc_hvalue)))
         >>= fun () ->
         ior := Eliom_common.SCNo_data;
         return_unit
@@ -131,18 +131,20 @@ let rec find_or_create_persistent_cookie_
               ~secure_o
               ~sp
               () in
-            Lwt.return_some r.Eliom_common.pc_hvalue
+            Lwt.return_some Eliom_common.(Hashed_cookies.to_string r.pc_hvalue)
           end
         | _  -> Lwt.return set_session_group in
 
     let fullsessgrp = fullsessgrp ~cookie_level ~sp set_session_group in
 
     let c = Eliommod_cookies.make_new_session_id () in
-    let hc = Eliom_common.hash_cookie c in
+    let hc = Eliom_common.Hashed_cookies.hash c in
+    let hc_string = Eliom_common.Hashed_cookies.to_string hc in
   (* We do not need to verify if it already exists.
      make_new_session_id does never generate twice the same cookie. *)
     let usertimeout = ref Eliom_common.TGlobal (* See global table *) in
-    Persistent_cookies.add hc
+    Persistent_cookies.add
+      hc_string
       (full_st_name,
        None (* Some 0. *) (* exp on server - We'll change it later *),
        Eliom_common.TGlobal (* timeout - see global config *),
@@ -151,7 +153,7 @@ let rec find_or_create_persistent_cookie_
     Eliommod_sessiongroups.Pers.add
       ?set_max:set_max_in_group
       (fst sitedata.Eliom_common.max_persistent_data_sessions_per_group)
-      hc fullsessgrp >>= fun l ->
+      hc_string fullsessgrp >>= fun l ->
     Lwt_list.iter_p (close_persistent_state2
                      ~scope:(cookie_scope :> Eliom_common.user_scope)
                      sitedata None) l

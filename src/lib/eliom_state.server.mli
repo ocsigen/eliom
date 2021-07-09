@@ -1114,13 +1114,13 @@ val set_default_persistent_data_session_timeout : float option -> unit
 (** {3 Other low level functions}
     You probably don't need these functions. *)
 
-(** returns the value of the Eliom's cookies for one persistent session.
+(** returns the hashed value of the Eliom's cookies for one persistent session.
     Returns [None] is no session is active.
  *)
 val get_persistent_data_cookie :
   cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
-  unit -> string option Lwt.t
+  unit -> Eliom_common.Hashed_cookies.t option Lwt.t
 
 (** returns the value of Eliom's cookies for one service session.
     Returns [None] is no session is active.
@@ -1128,7 +1128,7 @@ val get_persistent_data_cookie :
 val get_service_cookie :
   cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
-  unit -> string option
+  unit -> Eliom_common.Hashed_cookies.t option
 
 (** returns the value of Eliom's cookies for one "volatile data" session.
     Returns [None] is no session is active.
@@ -1136,7 +1136,7 @@ val get_service_cookie :
 val get_volatile_data_cookie :
   cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
-  unit -> string option
+  unit -> Eliom_common.Hashed_cookies.t option
 (**/**)
 
 

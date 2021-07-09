@@ -110,23 +110,24 @@ let rec find_or_create_service_cookie_ ?set_session_group
               ~sp
               ()
             in
-            Some v.Eliom_common.sc_hvalue
+            Some Eliom_common.(Hashed_cookies.to_string v.sc_hvalue)
           end
         |  _ -> set_session_group
     in
     let fullsessgrp = fullsessgrp ~cookie_level ~sp set_session_group in
 
     let c = Eliommod_cookies.make_new_session_id () in
-    let hc = Eliom_common.hash_cookie c in
+    let hc = Eliom_common.Hashed_cookies.hash c in
+    let hc_string = Eliom_common.Hashed_cookies.to_string hc in
     let str = ref (Eliom_common.new_service_session_tables sitedata) in
     let usertimeout = ref Eliom_common.TGlobal (* See global table *) in
     let serverexp = ref None (*Some 0.*) (* None = never. We'll change it later. *) in
     let fullsessgrpref = ref fullsessgrp in
-    let node = Eliommod_sessiongroups.Serv.add sitedata hc fullsessgrp in
+    let node = Eliommod_sessiongroups.Serv.add sitedata hc_string fullsessgrp in
     Eliom_common.SessionCookies.replace
       (* actually it will add the cookie *)
       table
-      hc
+      hc_string
       (full_st_name,
        !str,
        serverexp (* exp on server *),

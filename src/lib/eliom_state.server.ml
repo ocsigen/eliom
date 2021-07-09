@@ -328,7 +328,7 @@ let rec close_service_state_if_empty ~scope ?secure () =
         if
           (Eliommod_sessiongroups.Data.group_size
              (sitedata.Eliom_common.site_dir_string, `Client_process,
-              Left c.Eliom_common.sc_hvalue)
+              Left Eliom_common.(Hashed_cookies.to_string c.sc_hvalue))
            = 0) (* no tab sessions *)
           &&
             (Eliom_common.service_tables_are_empty !(c.Eliom_common.sc_table))
@@ -367,11 +367,11 @@ let rec close_volatile_state_if_empty ~scope ?secure () =
               when
                 (Eliommod_sessiongroups.Data.group_size
                    (sitedata.Eliom_common.site_dir_string, `Client_process,
-                    Left c.Eliom_common.dc_hvalue)
+                    Left Eliom_common.(Hashed_cookies.to_string c.dc_hvalue))
                  = 0) (* no tab sessions *)
                 &&
                   (sitedata.Eliom_common.not_bound_in_data_tables
-                     c.Eliom_common.dc_hvalue)
+                     Eliom_common.(Hashed_cookies.to_string c.dc_hvalue))
                 ->
             Eliommod_sessiongroups.Data.remove
               c.Eliom_common.dc_session_group_node
@@ -587,7 +587,7 @@ let set_persistent_data_session_group ?set_max
     sitedata
     ?set_max
     (fst sitedata.Eliom_common.max_persistent_data_sessions_per_group)
-    c.Eliom_common.pc_hvalue !grp n in
+    Eliom_common.(Hashed_cookies.to_string c.pc_hvalue) !grp n in
   let%lwt () = Lwt_list.iter_p
     (Eliommod_persess.close_persistent_state2
        ~scope:(scope:>Eliom_common.user_scope) sitedata None) l in
@@ -604,7 +604,7 @@ let unset_persistent_data_session_group
       ~secure_o:secure ~sp () in
     let grp = c.Eliom_common.pc_session_group in
     let%lwt () = Eliommod_sessiongroups.Pers.remove
-      sitedata c.Eliom_common.pc_hvalue !grp in
+      sitedata Eliom_common.(Hashed_cookies.to_string c.pc_hvalue) !grp in
     grp := None;
 
     close_persistent_state_if_empty
@@ -904,7 +904,7 @@ let get_p_table_key_
   let get_cookie () =
     let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in
     let%lwt c = find_cookie ~cookie_scope ~secure_o:(Some secure) () in
-    Lwt.return c.Eliom_common.pc_hvalue
+    Lwt.return Eliom_common.(Hashed_cookies.to_string c.pc_hvalue)
   in
   let%lwt key = match scope with
     | `Session_group state_name ->
@@ -914,7 +914,7 @@ let get_p_table_key_
           | Some a -> Lwt.return a
           | None ->
             (* No session group. We use the session cookie as key. *)
-            get_cookie ()
+             get_cookie ()
       end
     | _ -> get_cookie ()
   in
@@ -992,7 +992,7 @@ let get_table_key_ ~table:(scope, secure, table)
   let get_cookie () =
     let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in
       let c = find_cookie ~cookie_scope ~secure_o:(Some secure) () in
-      c.Eliom_common.dc_hvalue
+      Eliom_common.(Hashed_cookies.to_string c.dc_hvalue)
   in
   (table, match scope with
     | `Session_group state_name ->
@@ -1232,7 +1232,8 @@ module Ext = struct
       let cookie = Eliommod_datasess.find_or_create_data_cookie
           ~secure_o:secure ~cookie_scope ()
       in
-      ((scope, `Data, cookie.Eliom_common.dc_hvalue) : ('a, 'b) state)
+      ((scope, `Data, Eliom_common.(Hashed_cookies.to_string cookie.dc_hvalue))
+       : ('a, 'b) state)
 
   let current_persistent_data_state
       ?secure ?(scope = (Eliom_common.default_session_scope
@@ -1248,7 +1249,8 @@ module Ext = struct
     | #Eliom_common.cookie_scope as cookie_scope ->
       Eliommod_persess.find_or_create_persistent_cookie
         ~secure_o:secure ~cookie_scope () >>= fun cookie ->
-      Lwt.return (scope, `Pers, cookie.Eliom_common.pc_hvalue)
+      Lwt.return
+        (scope, `Pers, Eliom_common.(Hashed_cookies.to_string cookie.pc_hvalue))
 
   let current_service_state
       ?secure ?(scope = (Eliom_common.default_session_scope
@@ -1262,7 +1264,7 @@ module Ext = struct
     | #Eliom_common.cookie_scope as cookie_scope ->
       let cookie = Eliommod_sersess.find_or_create_service_cookie
           ~secure_o:secure ~cookie_scope () in
-      (scope, `Service, cookie.Eliom_common.sc_hvalue)
+      (scope, `Service, Eliom_common.(Hashed_cookies.to_string cookie.sc_hvalue))
 
   let get_service_cookie_info
       ((_, _, cookie) : ([< Eliom_common.cookie_level ], [ `Service ]) state) =
