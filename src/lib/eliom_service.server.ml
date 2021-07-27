@@ -19,6 +19,15 @@
 
 include Eliom_service_base
 
+type service_wrapper =
+  { sw : 'gp 'pp 'r. ('gp -> 'pp -> 'r) -> ('gp -> 'pp -> 'r)}
+
+let add_service_wrapper wrapper =
+  let sitedata = Eliom_request_info.get_sitedata () in
+  let old_wrapper = sitedata.service_wrapper in
+  sitedata.service_wrapper <-
+    fun service_handler -> wrapper.sw (old_wrapper service_handler)
+
 let plain_service
     (type m) (type gp) (type gn) (type pp) (type pn) (type gp')
     ?(https = false)

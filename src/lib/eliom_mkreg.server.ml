@@ -179,6 +179,10 @@ let register_aux pages
       ~(service : (_, _, _, a, _, _, _, _, _, _, _) S.t)
       ?(error_handler = fun l -> raise (Eliom_common.Eliom_Typing_Error l))
       page_generator =
+    let page_generator gp pp =
+      let sitedata = Eliom_request_info.get_sitedata () in
+      (sitedata.service_wrapper page_generator) gp pp
+    in
     S.set_send_appl_content service (pages.send_appl_content);
     begin
       match S.info service with

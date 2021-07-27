@@ -198,6 +198,8 @@ val attach :
     replace the previous one. *)
 val register_eliom_module : string -> (unit -> unit) -> unit
 
+(** {2 Misc} *)
+
 (** The function [unregister service] unregister the service handler
     previously associated to [service] with
     {!Eliom_registration.Html.register},
@@ -213,6 +215,16 @@ val unregister :
 (** Returns whether it is an external service or not. *)
 val is_external :
   (_, _, _, _, _, _, _, _, _, _, _) t -> bool
+
+
+(** You can add global wrappers to all services using these type and function.
+    Use this for example if you want a global behaviour common to all
+    services (for example connection of users, or check some conditions ...) *)
+type service_wrapper =
+  { sw : 'gp 'pp 'r. ('gp -> 'pp -> 'r) -> ('gp -> 'pp -> 'r)}
+
+val add_service_wrapper : service_wrapper -> unit
+
 
 (**/**)
 

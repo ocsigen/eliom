@@ -521,6 +521,7 @@ and sitedata = {
                                       lazy site values *)
 
   mutable registered_scope_hierarchies: Hier_set.t;
+  mutable service_wrapper : 'a 'b 'c. ('a -> 'b -> 'c) -> ('a -> 'b -> 'c);
 
   global_services : tables;
   session_services : tables servicecookiestable;

@@ -109,6 +109,7 @@ let create_sitedata site_dir config_info =
         !default_max_anonymous_services_per_subnet
         false;
     registered_scope_hierarchies = Eliom_common.Hier_set.empty;
+    service_wrapper = (fun x -> x);
     session_services = Eliommod_cookies.new_service_cookie_table ();
     session_data = Eliommod_cookies.new_data_cookie_table ();
     group_of_groups;

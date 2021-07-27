@@ -446,6 +446,7 @@ and sitedata =
                                        lazy site values *)
 
    mutable registered_scope_hierarchies: Hier_set.t;
+   mutable service_wrapper : 'a 'b 'c. ('a -> 'b -> 'c) -> ('a -> 'b -> 'c);
 
    (* All services, and state data are stored in these tables,
       for scopes session and client process.
