@@ -187,7 +187,10 @@ module Make (P : PARAM) = struct
       ~(service : (g, p, _, att, _, _, _, _, _, _, _) Eliom_service.t)
       ?error_handler:_
       (f : g -> p -> _) =
-    let f g p = let%lwt page = f g p in P.send ?options page in
+    let f g p =
+      let%lwt page = Eliom_service.get_service_wrapper () f g p in
+      P.send ?options page
+    in
     register ~service f;
     Eliom_service.set_client_fun ?app ~service f;
     if P.reset_reload_fun then Eliom_service.reset_reload_fun service

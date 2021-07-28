@@ -291,6 +291,14 @@ module type S = sig
     unit ->
     ('gp, 'pp, 'm, att, non_co, ext, non_reg, 'tipo, 'gn, 'pn, non_ocaml) t
 
+  (** You can add global wrappers to all services using these type and function.
+    Use this for example if you want a global behaviour common to all
+    services (for example connection of users, or check some conditions ...) *)
+  type service_wrapper =
+    { sw : 'gp 'pp 'r. ('gp -> 'pp -> 'r) -> ('gp -> 'pp -> 'r)}
+
+  val add_service_wrapper : service_wrapper -> unit
+
   (**/**)
 
   val which_meth :

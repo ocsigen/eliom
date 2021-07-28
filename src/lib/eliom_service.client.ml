@@ -19,6 +19,18 @@
 
 include Eliom_service_base
 
+type service_wrapper =
+  { sw : 'gp 'pp 'r. ('gp -> 'pp -> 'r) -> ('gp -> 'pp -> 'r)}
+
+let service_wrapper = ref {sw = fun f -> f}
+
+let add_service_wrapper wrapper =
+  let old_wrapper = !service_wrapper in
+  service_wrapper :=
+    {sw = fun service_handler -> wrapper.sw (old_wrapper.sw service_handler) }
+
+let get_service_wrapper () = !service_wrapper.sw
+
 let xhr_with_cookies s =
   if is_external s then
     None
