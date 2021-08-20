@@ -10,7 +10,7 @@ let read ch =
   let rec read () =
     let n = input ch s 0 1024 in
     if n > 0 then begin
-      Buffer.add_substring b s 0 n;
+      Buffer.add_subbytes b s 0 n;
       read ()
     end
   in
