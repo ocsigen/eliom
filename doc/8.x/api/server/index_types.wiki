@@ -57,14 +57,8 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="client_process_scope"| type Eliom_common.client_process_scope >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="co"| type Eliom_service_sigs.TYPES.co >> ~[<<a_api subproject="server" | module Eliom_service_sigs.TYPES >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="comet_scope"| type Eliom_comet.Channel.comet_scope >> ~[<<a_api subproject="server" | module Eliom_comet.Channel >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="cookie"| type Eliom_cookie.cookie >> ~[<<a_api subproject="server" | module Eliom_cookie >>~]|<<div class="odocwiki_info"|~H~T~T~P cookies representation~.
->>
-|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="cookie_level"| type Eliom_common.cookie_level >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="cookie_scope"| type Eliom_common.cookie_scope >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="cookieset"| type Eliom_cookie.cookieset >> ~[<<a_api subproject="server" | module Eliom_cookie >>~]|<<div class="odocwiki_info"|~Set of cookie~, grouped by path~.
->>
-|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="coordinates"| type Eliom_parameter_sigs.S.coordinates >> ~[<<a_api subproject="server" | module Eliom_parameter_sigs.S >>~]|<<div class="odocwiki_info"|~The type <<span class="odocwiki_inlinecode"|coordinates>> represents the data sent by an <<span class="odocwiki_inlinecode"|~<input
       type~="image" ~.~.~.~>>>~.
 >>

@@ -18,14 +18,6 @@
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="acc_e"| value Eliom_shared_sigs.RLIST.acc_e >> ~[<<a_api subproject="server" | module Eliom_shared_sigs.RLIST >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="add_cookie"| value Eliom_cookie.add_cookie >> ~[<<a_api subproject="server" | module Eliom_cookie >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|add~_cookie path c v cookie~_table>> adds the cookie
-    <<span class="odocwiki_inlinecode"|c>> to the table <<span class="odocwiki_inlinecode"|cookie~_table>>~.
->>
-|
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="add_cookies"| value Eliom_cookie.add_cookies >> ~[<<a_api subproject="server" | module Eliom_cookie >>~]|<<div class="odocwiki_info"|~The function<<span class="odocwiki_inlinecode"|add~_cookies newcookies oldcookies>> adds the cookies
-    from <<span class="odocwiki_inlinecode"|newcookies>> to <<span class="odocwiki_inlinecode"|oldcookies>>~.
->>
-|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="add_nl_parameter"| value Eliom_parameter_sigs.S.add_nl_parameter >> ~[<<a_api subproject="server" | module Eliom_parameter_sigs.S >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="add_non_localized_get_parameters"| value Eliom_service_sigs.S.add_non_localized_get_parameters >> ~[<<a_api subproject="server" | module Eliom_service_sigs.S >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|add~_non~_localized~_get~_parameters ~~params ~~service>>
       ~Adds non localized ~G~E~T parameters <<span class="odocwiki_inlinecode"|params>> to <<span class="odocwiki_inlinecode"|service>>~.
@@ -117,9 +109,6 @@
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="clean"| value Eliom_notif.S.clean >> ~[<<a_api subproject="server" | module Eliom_notif.S >>~]|<<div class="odocwiki_info"|~Call <<span class="odocwiki_inlinecode"|clean ~(~)>> to clear the tables from empty data~.
->>
-|
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="clean_request_cache"| value Eliom_request_info.clean_request_cache >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|~Remove all data from the request cache
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="client"| value Eliom_shared_sigs.VALUE.client >> ~[<<a_api subproject="server" | module Eliom_shared_sigs.VALUE >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|client x>> is the client~-side portion of <<span class="odocwiki_inlinecode"|x>>~.
@@ -325,13 +314,11 @@
     the service session cookies does not exist any more~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="empty_cookieset"| value Eliom_cookie.empty_cookieset >> ~[<<a_api subproject="server" | module Eliom_cookie >>~]|<<div class="odocwiki_info"|~Empty set of cookies~.
->>
-|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="empty_nl_params_set"| value Eliom_parameter_sigs.S.empty_nl_params_set >> ~[<<a_api subproject="server" | module Eliom_parameter_sigs.S >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="empty_wrapper"| value Eliom_wrap.empty_wrapper >> ~[<<a_api subproject="server" | module Eliom_wrap >>~]|<<div class="odocwiki_info"|a wrapper that do not change the value
 >>
 |
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="end_init"| value Eliom_registration.end_init >> ~[<<a_api subproject="server" | module Eliom_registration >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="equal_identity"| value Eliom_notif.ARG.equal_identity >> ~[<<a_api subproject="server" | module Eliom_notif.ARG >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|equal~_identity>> is the same as <<span class="odocwiki_inlinecode"|equal~_key>> but for values of type
       <<span class="odocwiki_inlinecode"|identity>>~.
 >>
@@ -360,6 +347,7 @@
     the process~.
 >>
 |
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="extension"| value Eliom_registration.extension >> ~[<<a_api subproject="server" | module Eliom_registration >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="extern"| value Eliom_service_sigs.S.extern >> ~[<<a_api subproject="server" | module Eliom_service_sigs.S >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|extern ~~prefix ~~path ~~meth ~(~)>> creates an external service~,
       i~.e~.~, a service implemented by a remote server ~(not necessarily
       running ~Ocsigen~/~Eliom~)~.
@@ -471,13 +459,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_csp_ssl"| value Eliom_request_info.get_csp_ssl >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns true if https is used in the ~U~R~L of the browser~, false if http~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_current_full_path"| value Eliom_request_info.get_current_full_path >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns the full path of the ~U~R~L using the type <<span class="odocwiki_inlinecode"|~Url~.path>>
->>
-|
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_current_full_path_string"| value Eliom_request_info.get_current_full_path_string >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns the full path of the ~U~R~L as a string~.
->>
-|
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_current_sub_path"| value Eliom_request_info.get_current_sub_path >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns the sub path of the ~U~R~L using the type <<span class="odocwiki_inlinecode"|~Url~.path>>~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_current_sub_path"| value Eliom_request_info.get_current_sub_path >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns the sub path of the ~U~R~L using the type <<span class="odocwiki_inlinecode"|~Eliom~_lib~.~Url~.path>>~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_current_sub_path_string"| value Eliom_request_info.get_current_sub_path_string >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns the sub path of the ~U~R~L as a string~.
@@ -509,13 +491,6 @@
     request~, for browser sessions and tab sessions~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_file_content_type"| value Eliom_request_info.get_file_content_type >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns the content type sent by the browser with the file
-    ~(if any~)~.
->>
-|
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_filesize"| value Eliom_request_info.get_filesize >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns the size of the file~.
->>
-|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_form"| value Eliom_form_sigs.S.get_form >> ~[<<a_api subproject="server" | module Eliom_form_sigs.S >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|get~_form service formgen>> creates a ~G~E~T <<span class="odocwiki_inlinecode"|~<form~>>>
       to <<span class="odocwiki_inlinecode"|service>>~.
 >>
@@ -543,9 +518,6 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_hostname"| value Eliom_request_info.get_hostname >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns the hostname used for absolute links~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_http_header"| value Eliom_request_info.get_http_header >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns the ~H~T~T~P header of the request
->>
-|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_http_method"| value Eliom_request_info.get_http_method >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns the ~H~T~T~P method used for the request ~(usually ~G~E~T or ~P~O~S~T~)~.
 >>
 |
@@ -556,8 +528,12 @@
       corresponding to a client~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_initial_get_params"| value Eliom_request_info.get_initial_get_params >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns all parameters of the ~U~R~L ~(~G~E~T parameters~)
-    as sent initially by the browser
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_ignored_get_params"| value Eliom_request_info.get_ignored_get_params >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns the ~G~E~T parameters that have been ignored using
+    ~<ignoredgetparams~/~> in config file~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_ignored_post_params"| value Eliom_request_info.get_ignored_post_params >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns the ~P~O~S~T parameters that have been ignored using
+    ~<ignoredpostparams~/~> in config file~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_link_too_old"| value Eliom_request_info.get_link_too_old >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns <<span class="odocwiki_inlinecode"|true>> if the coservice called has not been found~.
@@ -576,9 +552,6 @@
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_non_localized_post_parameters"| value Eliom_parameter.get_non_localized_post_parameters >> ~[<<a_api subproject="server" | module Eliom_parameter >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|get~_non~_localized~_post~_parameters ~~sp p>> decodes and returns non
     localized ~P~O~S~T parameters specified by <<span class="odocwiki_inlinecode"|p>> if present~.
->>
-|
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_original_filename"| value Eliom_request_info.get_original_filename >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns the name the file had on the client when it has been sent~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_original_full_path"| value Eliom_request_info.get_original_full_path >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns the full path of the ~U~R~L as first sent by the browser
@@ -617,17 +590,11 @@
     that concern the running service~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_previous_extension_error_code"| value Eliom_request_info.get_previous_extension_error_code >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|~Returns the http error code of the request before ~Eliom was called
->>
-|
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_remote_inet_addr"| value Eliom_request_info.get_remote_inet_addr >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns the internet address of the client~,
-   using the type <<span class="odocwiki_inlinecode"|~Unix~.inet~_addr>> ~(defined in ~O~Caml~'s standard library~)~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_previous_extension_error_code"| value Eliom_request_info.get_previous_extension_error_code >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns the ~H~T~T~P error code sent by the ~Ocsigen extension
+   that tried to answer to the request before ~Eliom~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_remote_ip"| value Eliom_request_info.get_remote_ip >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns the internet address of the client as a string
->>
-|
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_remote_port"| value Eliom_request_info.get_remote_port >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns client~'s port
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_request"| value Eliom_request_info.get_request >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns all the information about the request and config~.
@@ -638,9 +605,6 @@
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_request_data"| value Eliom_syntax.get_request_data >> ~[<<a_api subproject="server" | module Eliom_syntax >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_request_id"| value Eliom_request_info.get_request_id >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns an unique id associated to the request
->>
-|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_ri"| value Eliom_request_info.get_ri >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns all the information about the request~.
 >>
 |
@@ -1011,8 +975,8 @@
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="regexp"| value Eliom_parameter.regexp >> ~[<<a_api subproject="server" | module Eliom_parameter >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|regexp r d s>> tells that the service takes a string that matches
-   the regular expression <<span class="odocwiki_inlinecode"|r>> as parameter~, labeled <<span class="odocwiki_inlinecode"|s>>~, and that will
-   be rewritten in d~.
+    the regular expression <<span class="odocwiki_inlinecode"|r>> as parameter~, labeled <<span class="odocwiki_inlinecode"|s>>~, and that will
+    be rewritten in d~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="register"| value Eliom_registration_sigs.S_poly.register >> ~[<<a_api subproject="server" | module Eliom_registration_sigs.S_poly >>~]|<<div class="odocwiki_info"|~See <<a_api subproject="server" | val Eliom_registration_sigs.S.register >>~.
@@ -1041,10 +1005,6 @@
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="reload_action_https_hidden"| value Eliom_service_sigs.S.reload_action_https_hidden >> ~[<<a_api subproject="server" | module Eliom_service_sigs.S >>~]|<<div class="odocwiki_info"|~Like <<a_api subproject="server" | val Eliom_service_sigs.S.reload_action_hidden >>~, but forces ~H~T~T~P~S
->>
-|
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="remove_cookie"| value Eliom_cookie.remove_cookie >> ~[<<a_api subproject="server" | module Eliom_cookie >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|remove~_cookie c cookie~_table>> removes the cookie <<span class="odocwiki_inlinecode"|c>>
-    from the table <<span class="odocwiki_inlinecode"|cookie~_table>>~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="remove_persistent_data"| value Eliom_state.Ext.Low_level.remove_persistent_data >> ~[<<a_api subproject="server" | module Eliom_state.Ext.Low_level >>~]||
@@ -1289,6 +1249,9 @@
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="to_signal"| value Eliom_shared.to_signal >> ~[<<a_api subproject="server" | module Eliom_shared >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|to~_signal ~~init s>> converts the ~Lwt~-wrapped signal <<span class="odocwiki_inlinecode"|s>> into a
     regular signal with initial value <<span class="odocwiki_inlinecode"|init>>~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="transform_global_app_uri"| value Eliom_registration.transform_global_app_uri >> ~[<<a_api subproject="server" | module Eliom_registration >>~]|<<div class="odocwiki_info"|~Function to modify the global~_app ~U~R~I for some obscure reason
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="type_checker"| value Eliom_parameter.type_checker >> ~[<<a_api subproject="server" | module Eliom_parameter >>~]|<<div class="odocwiki_info"|~Specifying parameter as <<span class="odocwiki_inlinecode"|type~_checker check t>> is equivalent as

@@ -403,6 +403,9 @@
       val remove_slash_at_beginning : path -> path
       val is_prefix_skip_end_slash : string list -> string list -> bool
       val split_fragment : string -> string * string option
+      val join_path : path -> string
+      val split_path : string -> path
+      val norm_path : path -> path
     end
   module Printexc :
     sig
@@ -658,6 +661,7 @@
     sig
       exception No_such_host
       val get_inet_addr : ?v6:bool -> string -> Unix.inet_addr Lwt.t
+      val of_sockaddr : Unix.sockaddr -> Unix.inet_addr
     end
   module Filename :
     sig
@@ -707,6 +711,9 @@
       val remove_slash_at_beginning : path -> path
       val is_prefix_skip_end_slash : string list -> string list -> bool
       val split_fragment : string -> string * string option
+      val join_path : path -> string
+      val split_path : string -> path
+      val norm_path : path -> path
       val fixup_url_string : t -> t
       val encode : ?plus:bool -> string -> string
       val decode : ?plus:bool -> string -> string
@@ -716,9 +723,21 @@
         t ->
         bool option * string option * int option * string * string list *
         string option * (string * string) list Lazy.t
-      val split_path : string -> string list
       val prefix_and_path_of_t : string -> string * string list
     end
+  module Netstring_pcre :
+    sig
+      val regexp : string -> Pcre.regexp
+      val matched_group : Pcre.substrings -> int -> string -> string
+      val matched_string : Pcre.substrings -> string -> string
+      val global_replace : Pcre.regexp -> string -> string -> string
+      val search_forward :
+        Pcre.regexp -> string -> int -> int * Pcre.substrings
+      val split : Pcre.regexp -> string -> string list
+      val string_match :
+        Pcre.regexp -> string -> int -> Pcre.substrings option
+    end
+  module Date : sig val to_string : float -> string end
   exception Eliom_Internal_Error of string
   module Lwt_ops :
     sig

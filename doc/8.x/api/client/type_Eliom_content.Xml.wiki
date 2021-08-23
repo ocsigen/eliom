@@ -30,7 +30,7 @@
         (Js_of_ocaml.Dom_html.touchEvent Js_of_ocaml.Js.t -> unit)
     | CE_call_service of
         ([ `A | `Form_get | `Form_post ] * (bool * string list) option *
-         string option * Ocsigen_lib.poly)
+         string option * Ocsigen_lib_base.poly)
         option Eliom_lazy.request
   type internal_event_handler = Raw of string | Caml of caml_event_handler
   type event_handler = Js_of_ocaml.Dom_html.event Js_of_ocaml.Js.t -> unit

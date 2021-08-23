@@ -148,6 +148,8 @@
   val init : unit -> unit
   val set_reload_function :
     (unit -> unit -> Eliom_service.result Lwt.t) -> unit
+  module History :
+    sig val past : unit -> string list val future : unit -> string list end
   val push_history_dom : unit -> unit
   val set_max_dist_history_doms : int option -> unit
   val log_section : Eliom_lib.Lwt_log.section

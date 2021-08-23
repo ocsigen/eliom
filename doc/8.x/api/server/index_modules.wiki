@@ -22,9 +22,6 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Channel"| module Eliom_comet.Channel >> ~[<<a_api subproject="server" | module Eliom_comet >>~]|<<div class="odocwiki_info"|~Basic primitives needed for server push~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Cookies"| module Eliom_cookie.Cookies >> ~[<<a_api subproject="server" | module Eliom_cookie >>~]|<<div class="odocwiki_info"|~Map addressed by ~U~R~L path~, used for <<a_api subproject="server" | type Eliom_cookie.cookieset >>~.
->>
-|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="CssText"| module Eliom_registration.CssText >> ~[<<a_api subproject="server" | module Eliom_registration >>~]|<<div class="odocwiki_info"|~Eliom service registration for services that returns ~C~S~S~.
 >>
 |
@@ -75,9 +72,6 @@ file~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_content_sigs"| module Eliom_content_sigs >> ||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_cookie"| module Eliom_cookie >> |<<div class="odocwiki_info"|~Cookies table manipulation ~(~Duplicate of ~Ocsigen~_cookies~)~.
->>
-|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_cscache"| module Eliom_cscache >> |<<div class="odocwiki_info"|~Client~-server cache for ~Eliom applications~, that is used both for
     keeping data on client side or keeping values in memory during a
     request~.
@@ -233,10 +227,6 @@ file~.
     parametrised pages
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Make_typed_xml_registration"| module Eliom_registration.Make_typed_xml_registration >> ~[<<a_api subproject="server" | module Eliom_registration >>~]|<<div class="odocwiki_info"|~Eliom service registration for services that return fragments of
-    ~Ty~X~M~L~'s tree~.
->>
-|
 |@@ @style="tet-align: left;"@@\\O|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Ocaml"| module Eliom_registration.Ocaml >> ~[<<a_api subproject="server" | module Eliom_registration >>~]|<<div class="odocwiki_info"|~Eliom service registration for services that send marshalled ~O~Caml
     values~.
@@ -287,11 +277,6 @@ file~.
 |@@ @style="tet-align: left;"@@\\S|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="S"| module Eliom_shared.React.S >> ~[<<a_api subproject="server" | module Eliom_shared.React >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="S"| module Eliom_react.S >> ~[<<a_api subproject="server" | module Eliom_react >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Streamlist"| module Eliom_registration.Streamlist >> ~[<<a_api subproject="server" | module Eliom_registration >>~]|<<div class="odocwiki_info"|~Eliom service registration for services that returns "byte"
-    contents with <<a_api project="ocsigenserver" text="Ocsigen's
-    streams"| module Ocsigen_stream>>~.
->>
-|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="String"| module Eliom_registration.String >> ~[<<a_api subproject="server" | module Eliom_registration >>~]|<<div class="odocwiki_info"|~Eliom service registration for services that returns "byte"~-string
     contents~.
 >>

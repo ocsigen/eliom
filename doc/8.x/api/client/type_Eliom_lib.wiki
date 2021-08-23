@@ -18,7 +18,7 @@
       val snd : 'a * 'b * 'c -> 'b
       val thd : 'a * 'b * 'c -> 'c
     end
-  type poly = Ocsigen_lib.poly
+  type poly = Ocsigen_lib_base.poly
   val to_poly : 'a -> poly
   val from_poly : poly -> 'a
   type yesnomaybe = Ocsigen_lib_base.yesnomaybe = Yes | No | Maybe
@@ -403,6 +403,9 @@
       val remove_slash_at_beginning : path -> path
       val is_prefix_skip_end_slash : string list -> string list -> bool
       val split_fragment : string -> string * string option
+      val join_path : path -> string
+      val split_path : string -> path
+      val norm_path : path -> path
     end
   module Printexc :
     sig
@@ -673,6 +676,8 @@
       val remove_slash_at_beginning : path -> path
       val is_prefix_skip_end_slash : string list -> string list -> bool
       val split_fragment : string -> string * string option
+      val join_path : path -> string
+      val norm_path : path -> path
       val urldecode : string -> string
       val urlencode : ?with_plus:bool -> string -> string
       type http_url =

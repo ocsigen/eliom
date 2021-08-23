@@ -22,14 +22,15 @@
     a group of sessions~, a client process or a request~.
 
 
-    ~Use that function to close a session ~(using scope <<span class="odocwiki_inlinecode"|~Eliom~_common~.session>>~)~.
+    ~Use that function to close a session
+    ~(using scope <<span class="odocwiki_inlinecode"|~Eliom~_common~.default~_session~_scope>>~)~.
 
 
     ~Closing a group of sessions will close all sessions in the group~.
 
 
-    ~By default will remove both secure and unsecure data and services~, but
-    if <<span class="odocwiki_inlinecode"|~~secure>> is present~.
+    ~By default will remove both secure and unsecure data and services~, unless
+    <<span class="odocwiki_inlinecode"|~~secure>> is present~.
 
 
     //~Warning~: you may also want to unset some request~-scoped ~Eliom references
