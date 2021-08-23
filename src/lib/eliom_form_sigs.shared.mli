@@ -261,8 +261,8 @@ module type S = sig
       effect outside an Eliom application.
 
       NB that the default value of [~xhr] is configurable through
-      <<a_api project="eliom" subproject="server" | val
-      Eliom_config.set_default_links_xhr >>
+      {% <<a_api project="eliom" subproject="server" | val
+      Eliom_config.set_default_links_xhr >> %}.
 
       The optional parameter [~a] allows one to add extra HTML
       attributes to the generated node.
