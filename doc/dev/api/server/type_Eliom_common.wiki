@@ -186,7 +186,7 @@
       string Eliom_common.Full_state_name_table.t *
       string Eliom_common.Full_state_name_table.t *
       string Eliom_common.Full_state_name_table.t;
-    si_tab_cookies : string Ocsigen_cookies.CookiesTable.t;
+    si_tab_cookies : string Ocsigen_cookie_map.Map_inner.t;
     si_nonatt_info : Eliom_common.na_key_req;
     si_state_info : Eliom_common.att_key_req * Eliom_common.att_key_req;
     si_previous_extension_error : int;
@@ -199,6 +199,8 @@
       (string * string) list Eliom_lib.String.Table.t Stdlib.Lazy.t;
     si_all_get_but_na_nl : (string * string) list Stdlib.Lazy.t;
     si_all_get_but_nl : (string * string) list;
+    si_ignored_get_params : (string * string) list;
+    si_ignored_post_params : (string * string) list;
     si_client_process_info : Eliom_common.client_process_info option;
     si_expect_process_data : bool Stdlib.Lazy.t;
   }
@@ -421,8 +423,8 @@
     sp_sitedata : Eliom_common.sitedata;
     sp_cookie_info : Eliom_common.tables Eliom_common.cookie_info;
     sp_tab_cookie_info : Eliom_common.tables Eliom_common.cookie_info;
-    mutable sp_user_cookies : Ocsigen_cookies.cookieset;
-    mutable sp_user_tab_cookies : Ocsigen_cookies.cookieset;
+    mutable sp_user_cookies : Ocsigen_cookie_map.t;
+    mutable sp_user_tab_cookies : Ocsigen_cookie_map.t;
     mutable sp_client_appl_name : string option;
     sp_suffix : Eliom_lib.Url.path option;
     sp_full_state_name : Eliom_common.full_state_name option;
@@ -434,11 +436,11 @@
           (Eliom_common.page_table Stdlib.ref * Eliom_common.page_table_key,
            Eliom_common.na_key_serv)
           Eliom_lib.leftright Ocsigen_cache.Dlist.node option *
-          (Eliom_common.server_params, Ocsigen_http_frame.result)
+          (Eliom_common.server_params, Ocsigen_response.t)
           Eliom_common.service list ]
   and naservice_table_content =
       int * int Stdlib.ref option * (float * float Stdlib.ref) option *
-      (Eliom_common.server_params -> Ocsigen_http_frame.result Lwt.t) *
+      (Eliom_common.server_params -> Ocsigen_response.t Lwt.t) *
       (Eliom_common.page_table Stdlib.ref * Eliom_common.page_table_key,
        Eliom_common.na_key_serv)
       Eliom_lib.leftright Ocsigen_cache.Dlist.node option
@@ -492,7 +494,7 @@
       Ocsigen_cache.Dlist.t;
     mutable remove_session_data : string -> unit;
     mutable not_bound_in_data_tables : string -> bool;
-    mutable exn_handler : exn -> Ocsigen_http_frame.result Lwt.t;
+    mutable exn_handler : exn -> Ocsigen_response.t Lwt.t;
     mutable unregistered_services : Eliom_lib.Url.path list;
     mutable unregistered_na_services : Eliom_common.na_key_serv list;
     mutable max_volatile_data_sessions_per_group : int * bool;
@@ -512,6 +514,8 @@
     mutable application_script : bool * bool;
     mutable cache_global_data : (string list * int) option;
     mutable html_content_type : string option;
+    mutable ignored_get_params : (string * Re.re) list;
+    mutable ignored_post_params : (string * Re.re) list;
   }
   type 'a lazy_site_value
   val force_lazy_site_value : 'a Eliom_common.lazy_site_value -> 'a
@@ -520,8 +524,7 @@
   type info =
       Ocsigen_extensions.request * Eliom_common.sess_info *
       Eliom_common.tables Eliom_common.cookie_info *
-      Eliom_common.tables Eliom_common.cookie_info *
-      Ocsigen_cookies.cookieset
+      Eliom_common.tables Eliom_common.cookie_info * Ocsigen_cookie_map.t
   exception Eliom_retry_with of Eliom_common.info
   val make_server_params :
     Eliom_common.sitedata ->
@@ -538,11 +541,11 @@
   val split_prefix_param :
     string -> (string * 'a) list -> (string * 'a) list * (string * 'a) list
   val get_session_info :
-    Ocsigen_extensions.request ->
+    sitedata:Eliom_common.sitedata ->
+    req:Ocsigen_extensions.request ->
     int ->
     (Ocsigen_extensions.request * Eliom_common.sess_info *
-     (Eliom_common.tables Eliom_common.cookie_info *
-      Ocsigen_cookies.cookieset)
+     (Eliom_common.tables Eliom_common.cookie_info * Ocsigen_cookie_map.t)
      option)
     Lwt.t
   type ('a, 'b) foundornot = Found of 'a | Notfound of 'b
@@ -664,7 +667,7 @@
      (string * string) list Eliom_lib.String.Table.t *
      (string * string) list Eliom_lib.String.Table.t *
      (string * Eliom_lib.file_info) list Eliom_lib.String.Table.t *
-     (string * string) list)
+     (string * string) list * (string * string) list * (string * string) list)
     Polytables.key
   val att_key_serv_of_req :
     Eliom_common.att_key_req -> Eliom_common.att_key_serv
@@ -692,8 +695,8 @@
     [< Eliom_common.cookie_level ] ->
     Eliom_common.tables Eliom_common.cookie_info
   val tab_cookie_action_info_key :
-    (Eliom_common.tables Eliom_common.cookie_info *
-     Ocsigen_cookies.cookieset * string Ocsigen_cookies.CookiesTable.t)
+    (Eliom_common.tables Eliom_common.cookie_info * Ocsigen_cookie_map.t *
+     string Ocsigen_cookie_map.Map_inner.t)
     Polytables.key
   val sp_key : Eliom_common.server_params Lwt.key
   val get_sp_option : unit -> Eliom_common.server_params option

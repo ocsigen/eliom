@@ -47,6 +47,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="add_string_event_listener"| value Eliom_client_core.add_string_event_listener >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="adds"| value Eliom_content.Html.Manip.Class.adds >> ~[<<a_api subproject="client" | module Eliom_content.Html.Manip.Class >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="adds"| value Eliom_content.Svg.Manip.Class.adds >> ~[<<a_api subproject="client" | module Eliom_content.Svg.Manip.Class >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="advance"| value Eliom_client_core.History.advance >> ~[<<a_api subproject="client" | module Eliom_client_core.History >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="advance_page"| value Eliom_client_core.advance_page >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="alert"| value Eliom_lib.alert >> ~[<<a_api subproject="client" | module Eliom_lib >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="all_suffix"| value Eliom_parameter_sigs.S.all_suffix >> ~[<<a_api subproject="client" | module Eliom_parameter_sigs.S >>~]|<<div class="odocwiki_info"|~Takes the whole suffix~, as long as possible~, as a ~(slash
@@ -442,6 +443,7 @@
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="find"| value Eliom_client_core.Client_value.find >> ~[<<a_api subproject="client" | module Eliom_client_core.Client_value >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="find"| value Eliom_client_core.Client_closure.find >> ~[<<a_api subproject="client" | module Eliom_client_core.Client_closure >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="find_by_state_index"| value Eliom_client_core.History.find_by_state_index >> ~[<<a_api subproject="client" | module Eliom_client_core.History >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="find_if_ready"| value Eliom_cscache.find_if_ready >> ~[<<a_api subproject="client" | module Eliom_cscache >>~]|<<div class="odocwiki_info"|~Find a piece of data in local cache~, without trying to fetch it
     from server~.
 >>
@@ -471,7 +473,9 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="from_fun"| value Eliom_lazy.from_fun >> ~[<<a_api subproject="client" | module Eliom_lazy >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="from_signal"| value Eliom_shared_sigs.RLIST.from_signal >> ~[<<a_api subproject="client" | module Eliom_shared_sigs.RLIST >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="from_val"| value Eliom_lazy.from_val >> ~[<<a_api subproject="client" | module Eliom_lazy >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="future"| value Eliom_client_core.History.future >> ~[<<a_api subproject="client" | module Eliom_client_core.History >>~]||
 |@@ @style="tet-align: left;"@@\\G|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="garbage_collect_doms"| value Eliom_client_core.History.garbage_collect_doms >> ~[<<a_api subproject="client" | module Eliom_client_core.History >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get"| value Eliom_client_core.Injection.get >> ~[<<a_api subproject="client" | module Eliom_client_core.Injection >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="getElementById"| value Eliom_client_core.getElementById >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_application_name"| value Eliom_client.get_application_name >> ~[<<a_api subproject="client" | module Eliom_client >>~]|<<div class="odocwiki_info"|~Returns the name of currently running ~Eliom application~,
@@ -749,6 +753,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="maxWidth"| value Eliom_content.Html.Manip.Css.maxWidth >> ~[<<a_api subproject="client" | module Eliom_content.Html.Manip.Css >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="maxWidthPx"| value Eliom_content.Html.Manip.SetCss.maxWidthPx >> ~[<<a_api subproject="client" | module Eliom_content.Html.Manip.SetCss >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="maxWidthPx"| value Eliom_content.Html.Manip.Css.maxWidthPx >> ~[<<a_api subproject="client" | module Eliom_content.Html.Manip.Css >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="max_num_doms"| value Eliom_client_core.History.max_num_doms >> ~[<<a_api subproject="client" | module Eliom_client_core.History >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="menu"| value Eliom_tools.HTML5_TOOLS.menu >> ~[<<a_api subproject="client" | module Eliom_tools.HTML5_TOOLS >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|menu elts ~(~)>>~, where <<span class="odocwiki_inlinecode"|elts>> is a list of pair
       <<span class="odocwiki_inlinecode"|~(service~, content~)>>~, creates a list of link towards the
       <<span class="odocwiki_inlinecode"|service>>s~.
@@ -937,6 +942,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="parentNode"| value Eliom_content.Svg.Manip.parentNode >> ~[<<a_api subproject="client" | module Eliom_content.Svg.Manip >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|parent~Node elt>> returns the parent of <<span class="odocwiki_inlinecode"|elt>>~, if any~.
 >>
 |
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="past"| value Eliom_client_core.History.past >> ~[<<a_api subproject="client" | module Eliom_client_core.History >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="path_of_url"| value Eliom_lib.Url.path_of_url >> ~[<<a_api subproject="client" | module Eliom_lib.Url >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="path_of_url_string"| value Eliom_lib.Url.path_of_url_string >> ~[<<a_api subproject="client" | module Eliom_lib.Url >>~]|<<div class="odocwiki_info"|~Extracts path from a ~U~R~L string~.
 >>
@@ -1077,6 +1083,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="removes"| value Eliom_content.Svg.Manip.Class.removes >> ~[<<a_api subproject="client" | module Eliom_content.Svg.Manip.Class >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="replace"| value Eliom_content.Html.Manip.Class.replace >> ~[<<a_api subproject="client" | module Eliom_content.Html.Manip.Class >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="replace"| value Eliom_content.Svg.Manip.Class.replace >> ~[<<a_api subproject="client" | module Eliom_content.Svg.Manip.Class >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="replace"| value Eliom_client_core.History.replace >> ~[<<a_api subproject="client" | module Eliom_client_core.History >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="replaceChild"| value Eliom_content.Html.Manip.Named.replaceChild >> ~[<<a_api subproject="client" | module Eliom_content.Html.Manip.Named >>~]|<<div class="odocwiki_info"|see <<span class="odocwiki_inlinecode"|replace~Child>>
 >>
 |
@@ -1127,6 +1134,7 @@
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="scroll_to_fragment"| value Eliom_client_core.scroll_to_fragment >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="section"| value Eliom_client_core.History.section >> ~[<<a_api subproject="client" | module Eliom_client_core.History >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="section"| value Eliom_client_core.section >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="section_page"| value Eliom_client_core.section_page >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="select"| value Eliom_form_sigs.S.select >> ~[<<a_api subproject="client" | module Eliom_form_sigs.S >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag~.
@@ -1216,6 +1224,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="space_re"| value Eliom_client_core.space_re >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="space_sep_attrib"| value Eliom_content_core.Xml_wed.space_sep_attrib >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml_wed >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="split_path"| value Eliom_lib.Url.split_path >> ~[<<a_api subproject="client" | module Eliom_lib.Url >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="split_rev_past_future"| value Eliom_client_core.History.split_rev_past_future >> ~[<<a_api subproject="client" | module Eliom_client_core.History >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="state_key"| value Eliom_client_core.state_key >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="static_dir"| value Eliom_service_sigs.S.static_dir >> ~[<<a_api subproject="client" | module Eliom_service_sigs.S >>~]|<<div class="odocwiki_info"|~The predefined service <<span class="odocwiki_inlinecode"|static~_dir>> allows one to create links
       to static files~.
@@ -1233,6 +1242,7 @@
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string"| value Eliom_form_sigs.S.string >> ~[<<a_api subproject="client" | module Eliom_form_sigs.S >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_attrib"| value Eliom_content_core.Xml_wed.string_attrib >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml_wed >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_of_page"| value Eliom_client_core.string_of_page >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_of_uri"| value Eliom_content_core.Xml.string_of_uri >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_of_url_path"| value Eliom_lib.Url.string_of_url_path >> ~[<<a_api subproject="client" | module Eliom_lib.Url >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_radio_required"| value Eliom_form_sigs.S.string_radio_required >> ~[<<a_api subproject="client" | module Eliom_form_sigs.S >>~]||

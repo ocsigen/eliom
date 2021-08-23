@@ -19,7 +19,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         service:('get, 'post, 'a, 'b, 'c, Eliom_service.non_ext,
                  Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'd,
@@ -32,7 +32,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t -> page -> result Lwt.t
+        ?headers:Cohttp.Header.t -> page -> result Lwt.t
       val create :
         ?app:string ->
         ?scope:[< Eliom_common.scope ] ->
@@ -40,7 +40,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -65,7 +65,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -92,7 +92,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -135,7 +135,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         service:('get, 'post, 'a, 'b, 'c, Eliom_service.non_ext,
                  Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'd,
@@ -148,7 +148,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t -> page -> result Lwt.t
+        ?headers:Cohttp.Header.t -> page -> result Lwt.t
       val create :
         ?app:string ->
         ?scope:[< Eliom_common.scope ] ->
@@ -156,7 +156,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -181,7 +181,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -208,7 +208,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -232,6 +232,8 @@
       val typed_name :
         Eliom_registration.APP.app_id Eliom_registration.application_name
     end
+  val transform_global_app_uri :
+    (Eliom_content.Html.uri -> Eliom_content.Html.uri) Stdlib.ref
   module App :
     functor (App_params : Eliom_registration_sigs.APP_PARAM) -> APP
   module type TMPL_PARAMS =
@@ -258,7 +260,7 @@
           ?charset:string ->
           ?code:int ->
           ?content_type:string ->
-          ?headers:Http_headers.t ->
+          ?headers:Cohttp.Header.t ->
           ?secure_session:bool ->
           service:('get, 'post, 'a, 'b, 'c, Eliom_service.non_ext,
                    Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'd,
@@ -271,7 +273,7 @@
           ?charset:string ->
           ?code:int ->
           ?content_type:string ->
-          ?headers:Http_headers.t -> page -> result Lwt.t
+          ?headers:Cohttp.Header.t -> page -> result Lwt.t
         val create :
           ?app:string ->
           ?scope:[< Eliom_common.scope ] ->
@@ -279,7 +281,7 @@
           ?charset:string ->
           ?code:int ->
           ?content_type:string ->
-          ?headers:Http_headers.t ->
+          ?headers:Cohttp.Header.t ->
           ?secure_session:bool ->
           ?https:bool ->
           ?name:string ->
@@ -304,7 +306,7 @@
           ?charset:string ->
           ?code:int ->
           ?content_type:string ->
-          ?headers:Http_headers.t ->
+          ?headers:Cohttp.Header.t ->
           ?secure_session:bool ->
           ?https:bool ->
           ?name:string ->
@@ -332,7 +334,7 @@
           ?charset:string ->
           ?code:int ->
           ?content_type:string ->
-          ?headers:Http_headers.t ->
+          ?headers:Cohttp.Header.t ->
           ?secure_session:bool ->
           ?https:bool ->
           ?name:string ->
@@ -367,7 +369,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         service:('get, 'post, 'a, 'b, 'c, Eliom_service.non_ext,
                  Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'd,
@@ -380,7 +382,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t -> page -> result Lwt.t
+        ?headers:Cohttp.Header.t -> page -> result Lwt.t
       val create :
         ?app:string ->
         ?scope:[< Eliom_common.scope ] ->
@@ -388,7 +390,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -413,7 +415,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -440,7 +442,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -462,124 +464,6 @@
          'pn, return)
         Eliom_service.t
     end
-  module Make_typed_xml_registration :
-    functor (Xml : Xml_sigs.Iterable)
-      (Typed_xml : sig
-                     module Info : Xml_sigs.Info
-                     type 'a elt
-                     type doc
-                     val toelt : 'a elt -> Xml.elt
-                     val doc_toelt : doc -> Xml.elt
-                   end)
-      (E : sig type content end) ->
-      sig
-        type page = E.content Typed_xml.elt list
-        type options = unit
-        type return = Eliom_service.non_ocaml
-        type result = block_content kind
-        val register :
-          ?app:string ->
-          ?scope:[< Eliom_common.scope ] ->
-          ?options:options ->
-          ?charset:string ->
-          ?code:int ->
-          ?content_type:string ->
-          ?headers:Http_headers.t ->
-          ?secure_session:bool ->
-          service:('get, 'post, 'a, 'b, 'c, Eliom_service.non_ext,
-                   Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'd,
-                   'e, return)
-                  Eliom_service.t ->
-          ?error_handler:((string * exn) list -> page Lwt.t) ->
-          ('get -> 'post -> page Lwt.t) -> unit
-        val send :
-          ?options:options ->
-          ?charset:string ->
-          ?code:int ->
-          ?content_type:string ->
-          ?headers:Http_headers.t -> page -> result Lwt.t
-        val create :
-          ?app:string ->
-          ?scope:[< Eliom_common.scope ] ->
-          ?options:options ->
-          ?charset:string ->
-          ?code:int ->
-          ?content_type:string ->
-          ?headers:Http_headers.t ->
-          ?secure_session:bool ->
-          ?https:bool ->
-          ?name:string ->
-          ?csrf_safe:bool ->
-          ?csrf_scope:[< Eliom_common.user_scope ] ->
-          ?csrf_secure:bool ->
-          ?max_use:int ->
-          ?timeout:float ->
-          meth:('m, 'gp, 'gn, 'pp, 'pn,
-                [< `WithSuffix | `WithoutSuffix ] as 'a, 'gp_)
-               Eliom_service.meth ->
-          path:('att, 'co, 'gp_) Eliom_service.path_option ->
-          ?error_handler:((string * exn) list -> page Lwt.t) ->
-          ('gp -> 'pp -> page Lwt.t) ->
-          ('gp, 'pp, 'm, 'att, 'co, Eliom_service.non_ext, Eliom_service.reg,
-           'a, 'gn, 'pn, return)
-          Eliom_service.t
-        val create_attached_get :
-          ?app:string ->
-          ?scope:[< Eliom_common.scope ] ->
-          ?options:options ->
-          ?charset:string ->
-          ?code:int ->
-          ?content_type:string ->
-          ?headers:Http_headers.t ->
-          ?secure_session:bool ->
-          ?https:bool ->
-          ?name:string ->
-          ?csrf_safe:bool ->
-          ?csrf_scope:[< Eliom_common.user_scope ] ->
-          ?csrf_secure:bool ->
-          ?max_use:int ->
-          ?timeout:float ->
-          fallback:(unit, unit, Eliom_service.get, Eliom_service.att,
-                    Eliom_service.non_co, Eliom_service.non_ext, 'a,
-                    [ `WithoutSuffix ], unit, unit, return)
-                   Eliom_service.t ->
-          get_params:('gp, [ `WithoutSuffix ], 'gn)
-                     Eliom_parameter.params_type ->
-          ?error_handler:((string * exn) list -> page Lwt.t) ->
-          ('gp -> unit -> page Lwt.t) ->
-          ('gp, unit, Eliom_service.get, Eliom_service.att, Eliom_service.co,
-           Eliom_service.non_ext, Eliom_service.reg, [ `WithoutSuffix ], 'gn,
-           unit, return)
-          Eliom_service.t
-        val create_attached_post :
-          ?app:string ->
-          ?scope:[< Eliom_common.scope ] ->
-          ?options:options ->
-          ?charset:string ->
-          ?code:int ->
-          ?content_type:string ->
-          ?headers:Http_headers.t ->
-          ?secure_session:bool ->
-          ?https:bool ->
-          ?name:string ->
-          ?csrf_safe:bool ->
-          ?csrf_scope:[< Eliom_common.user_scope ] ->
-          ?csrf_secure:bool ->
-          ?max_use:int ->
-          ?timeout:float ->
-          fallback:('gp, unit, Eliom_service.get, Eliom_service.att,
-                    Eliom_service.non_co, Eliom_service.non_ext, 'a,
-                    [ `WithoutSuffix ], 'gn, unit, return)
-                   Eliom_service.t ->
-          post_params:('pp, [ `WithoutSuffix ], 'pn)
-                      Eliom_parameter.params_type ->
-          ?error_handler:((string * exn) list -> page Lwt.t) ->
-          ('gp -> 'pp -> page Lwt.t) ->
-          ('gp, 'pp, Eliom_service.post, Eliom_service.att, Eliom_service.co,
-           Eliom_service.non_ext, Eliom_service.reg, [ `WithoutSuffix ], 'gn,
-           'pn, return)
-          Eliom_service.t
-      end
   module Html_text :
     sig
       type page = string
@@ -593,7 +477,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         service:('get, 'post, 'a, 'b, 'c, Eliom_service.non_ext,
                  Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'd,
@@ -606,7 +490,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t -> page -> result Lwt.t
+        ?headers:Cohttp.Header.t -> page -> result Lwt.t
       val create :
         ?app:string ->
         ?scope:[< Eliom_common.scope ] ->
@@ -614,7 +498,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -639,7 +523,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -666,7 +550,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -701,7 +585,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         service:('get, 'post, 'a, 'b, 'c, Eliom_service.non_ext,
                  Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'd,
@@ -714,7 +598,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t -> page -> result Lwt.t
+        ?headers:Cohttp.Header.t -> page -> result Lwt.t
       val create :
         ?app:string ->
         ?scope:[< Eliom_common.scope ] ->
@@ -722,7 +606,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -747,7 +631,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -774,7 +658,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -809,7 +693,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         service:('get, 'post, 'a, 'b, 'c, Eliom_service.non_ext,
                  Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'd,
@@ -822,7 +706,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t -> page -> result Lwt.t
+        ?headers:Cohttp.Header.t -> page -> result Lwt.t
       val create :
         ?app:string ->
         ?scope:[< Eliom_common.scope ] ->
@@ -830,7 +714,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -855,7 +739,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -882,7 +766,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -917,7 +801,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         service:('get, 'post, 'a, 'b, 'c, Eliom_service.non_ext,
                  Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'd,
@@ -930,7 +814,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t -> page -> result Lwt.t
+        ?headers:Cohttp.Header.t -> page -> result Lwt.t
       val create :
         ?app:string ->
         ?scope:[< Eliom_common.scope ] ->
@@ -938,7 +822,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -963,7 +847,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -990,7 +874,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -1035,7 +919,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         service:('get, 'post, 'b, 'c, 'd, Eliom_service.non_ext,
                  Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'e,
@@ -1050,7 +934,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -1075,7 +959,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -1102,7 +986,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -1128,7 +1012,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Ocsigen_header.t ->
         'a page -> 'b Eliom_registration.kind Lwt.t
     end
   module String_redirection :
@@ -1150,7 +1034,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         service:('get, 'post, 'a, 'b, 'c, Eliom_service.non_ext,
                  Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'd,
@@ -1163,7 +1047,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t -> page -> result Lwt.t
+        ?headers:Cohttp.Header.t -> page -> result Lwt.t
       val create :
         ?app:string ->
         ?scope:[< Eliom_common.scope ] ->
@@ -1171,7 +1055,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -1196,7 +1080,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -1223,7 +1107,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -1259,7 +1143,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         service:('get, 'post, 'a, 'b, 'c, Eliom_service.non_ext,
                  Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'd,
@@ -1272,7 +1156,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t -> page -> result Lwt.t
+        ?headers:Cohttp.Header.t -> page -> result Lwt.t
       val create :
         ?app:string ->
         ?scope:[< Eliom_common.scope ] ->
@@ -1280,7 +1164,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -1305,7 +1189,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -1332,7 +1216,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -1368,7 +1252,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         service:('get, 'post, 'a, 'b, 'c, Eliom_service.non_ext,
                  Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'd,
@@ -1381,7 +1265,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t -> page -> result Lwt.t
+        ?headers:Cohttp.Header.t -> page -> result Lwt.t
       val create :
         ?app:string ->
         ?scope:[< Eliom_common.scope ] ->
@@ -1389,7 +1273,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -1414,7 +1298,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -1441,7 +1325,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -1475,7 +1359,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         service:('get, 'post, 'b, 'c, 'd, Eliom_service.non_ext,
                  Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'e,
@@ -1490,7 +1374,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -1515,7 +1399,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -1542,7 +1426,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -1569,7 +1453,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t -> 'a page -> 'a result Lwt.t
+        ?headers:Cohttp.Header.t -> 'a page -> 'a result Lwt.t
     end
   module Any :
     sig
@@ -1583,7 +1467,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         service:('get, 'post, 'b, 'c, 'd, Eliom_service.non_ext,
                  Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'e,
@@ -1598,7 +1482,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -1623,7 +1507,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -1650,7 +1534,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -1677,7 +1561,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t -> 'a page -> 'a result Lwt.t
+        ?headers:Cohttp.Header.t -> 'a page -> 'a result Lwt.t
     end
   val appl_self_redirect :
     ('page -> [< `Appl of 'a | `Browser ] Eliom_registration.kind Lwt.t) ->
@@ -1697,7 +1581,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         service:('get, 'post, 'a, 'b, 'c, Eliom_service.non_ext,
                  Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'd,
@@ -1710,7 +1594,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t -> page -> result Lwt.t
+        ?headers:Cohttp.Header.t -> page -> result Lwt.t
       val create :
         ?app:string ->
         ?scope:[< Eliom_common.scope ] ->
@@ -1718,7 +1602,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -1743,7 +1627,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -1770,115 +1654,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Http_headers.t ->
-        ?secure_session:bool ->
-        ?https:bool ->
-        ?name:string ->
-        ?csrf_safe:bool ->
-        ?csrf_scope:[< Eliom_common.user_scope ] ->
-        ?csrf_secure:bool ->
-        ?max_use:int ->
-        ?timeout:float ->
-        fallback:('gp, unit, Eliom_service.get, Eliom_service.att,
-                  Eliom_service.non_co, Eliom_service.non_ext, 'a,
-                  [ `WithoutSuffix ], 'gn, unit, return)
-                 Eliom_service.t ->
-        post_params:('pp, [ `WithoutSuffix ], 'pn)
-                    Eliom_parameter.params_type ->
-        ?error_handler:((string * exn) list -> page Lwt.t) ->
-        ('gp -> 'pp -> page Lwt.t) ->
-        ('gp, 'pp, Eliom_service.post, Eliom_service.att, Eliom_service.co,
-         Eliom_service.non_ext, Eliom_service.reg, [ `WithoutSuffix ], 'gn,
-         'pn, return)
-        Eliom_service.t
-    end
-  module Streamlist :
-    sig
-      type page = (unit -> string Ocsigen_stream.t Lwt.t) list * string
-      type options = unit
-      type return = Eliom_service.non_ocaml
-      type result = unknown_content kind
-      val register :
-        ?app:string ->
-        ?scope:[< Eliom_common.scope ] ->
-        ?options:options ->
-        ?charset:string ->
-        ?code:int ->
-        ?content_type:string ->
-        ?headers:Http_headers.t ->
-        ?secure_session:bool ->
-        service:('get, 'post, 'a, 'b, 'c, Eliom_service.non_ext,
-                 Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'd,
-                 'e, return)
-                Eliom_service.t ->
-        ?error_handler:((string * exn) list -> page Lwt.t) ->
-        ('get -> 'post -> page Lwt.t) -> unit
-      val send :
-        ?options:options ->
-        ?charset:string ->
-        ?code:int ->
-        ?content_type:string ->
-        ?headers:Http_headers.t -> page -> result Lwt.t
-      val create :
-        ?app:string ->
-        ?scope:[< Eliom_common.scope ] ->
-        ?options:options ->
-        ?charset:string ->
-        ?code:int ->
-        ?content_type:string ->
-        ?headers:Http_headers.t ->
-        ?secure_session:bool ->
-        ?https:bool ->
-        ?name:string ->
-        ?csrf_safe:bool ->
-        ?csrf_scope:[< Eliom_common.user_scope ] ->
-        ?csrf_secure:bool ->
-        ?max_use:int ->
-        ?timeout:float ->
-        meth:('m, 'gp, 'gn, 'pp, 'pn,
-              [< `WithSuffix | `WithoutSuffix ] as 'a, 'gp_)
-             Eliom_service.meth ->
-        path:('att, 'co, 'gp_) Eliom_service.path_option ->
-        ?error_handler:((string * exn) list -> page Lwt.t) ->
-        ('gp -> 'pp -> page Lwt.t) ->
-        ('gp, 'pp, 'm, 'att, 'co, Eliom_service.non_ext, Eliom_service.reg,
-         'a, 'gn, 'pn, return)
-        Eliom_service.t
-      val create_attached_get :
-        ?app:string ->
-        ?scope:[< Eliom_common.scope ] ->
-        ?options:options ->
-        ?charset:string ->
-        ?code:int ->
-        ?content_type:string ->
-        ?headers:Http_headers.t ->
-        ?secure_session:bool ->
-        ?https:bool ->
-        ?name:string ->
-        ?csrf_safe:bool ->
-        ?csrf_scope:[< Eliom_common.user_scope ] ->
-        ?csrf_secure:bool ->
-        ?max_use:int ->
-        ?timeout:float ->
-        fallback:(unit, unit, Eliom_service.get, Eliom_service.att,
-                  Eliom_service.non_co, Eliom_service.non_ext, 'a,
-                  [ `WithoutSuffix ], unit, unit, return)
-                 Eliom_service.t ->
-        get_params:('gp, [ `WithoutSuffix ], 'gn) Eliom_parameter.params_type ->
-        ?error_handler:((string * exn) list -> page Lwt.t) ->
-        ('gp -> unit -> page Lwt.t) ->
-        ('gp, unit, Eliom_service.get, Eliom_service.att, Eliom_service.co,
-         Eliom_service.non_ext, Eliom_service.reg, [ `WithoutSuffix ], 'gn,
-         unit, return)
-        Eliom_service.t
-      val create_attached_post :
-        ?app:string ->
-        ?scope:[< Eliom_common.scope ] ->
-        ?options:options ->
-        ?charset:string ->
-        ?code:int ->
-        ?content_type:string ->
-        ?headers:Http_headers.t ->
+        ?headers:Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -1920,7 +1696,7 @@
           ?charset:string ->
           ?code:int ->
           ?content_type:string ->
-          ?headers:Http_headers.t ->
+          ?headers:Cohttp.Header.t ->
           ?secure_session:bool ->
           service:('get, 'post, 'a, 'b, 'c, Eliom_service.non_ext,
                    Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'd,
@@ -1933,7 +1709,7 @@
           ?charset:string ->
           ?code:int ->
           ?content_type:string ->
-          ?headers:Http_headers.t -> page -> result Lwt.t
+          ?headers:Cohttp.Header.t -> page -> result Lwt.t
         val create :
           ?app:string ->
           ?scope:[< Eliom_common.scope ] ->
@@ -1941,7 +1717,7 @@
           ?charset:string ->
           ?code:int ->
           ?content_type:string ->
-          ?headers:Http_headers.t ->
+          ?headers:Cohttp.Header.t ->
           ?secure_session:bool ->
           ?https:bool ->
           ?name:string ->
@@ -1966,7 +1742,7 @@
           ?charset:string ->
           ?code:int ->
           ?content_type:string ->
-          ?headers:Http_headers.t ->
+          ?headers:Cohttp.Header.t ->
           ?secure_session:bool ->
           ?https:bool ->
           ?name:string ->
@@ -1994,7 +1770,7 @@
           ?charset:string ->
           ?code:int ->
           ?content_type:string ->
-          ?headers:Http_headers.t ->
+          ?headers:Cohttp.Header.t ->
           ?secure_session:bool ->
           ?https:bool ->
           ?name:string ->
@@ -2022,6 +1798,7 @@
   val cast_unknown_content_kind :
     Eliom_registration.unknown_content Eliom_registration.kind ->
     'a Eliom_registration.kind
-  val cast_http_result :
-    Ocsigen_http_frame.result -> 'a Eliom_registration.kind
+  val cast_http_result : Ocsigen_response.t -> 'a Eliom_registration.kind
+  val extension : Ocsigen_server.Site.extension
+  val end_init : unit -> unit
 end >>

@@ -15,7 +15,7 @@
     ?charset:string ->
     ?code:int ->
     ?content_type:string ->
-    ?headers:Http_headers.t ->
+    ?headers:Cohttp.Header.t ->
     ?secure_session:bool ->
     service:('get, 'post, 'a, 'b, 'c, Eliom_service.non_ext,
              Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'd, 'e,
@@ -27,7 +27,7 @@
     ?options:options ->
     ?charset:string ->
     ?code:int ->
-    ?content_type:string -> ?headers:Http_headers.t -> page -> result Lwt.t
+    ?content_type:string -> ?headers:Cohttp.Header.t -> page -> result Lwt.t
   val create :
     ?app:string ->
     ?scope:[< Eliom_common.scope ] ->
@@ -35,7 +35,7 @@
     ?charset:string ->
     ?code:int ->
     ?content_type:string ->
-    ?headers:Http_headers.t ->
+    ?headers:Cohttp.Header.t ->
     ?secure_session:bool ->
     ?https:bool ->
     ?name:string ->
@@ -60,7 +60,7 @@
     ?charset:string ->
     ?code:int ->
     ?content_type:string ->
-    ?headers:Http_headers.t ->
+    ?headers:Cohttp.Header.t ->
     ?secure_session:bool ->
     ?https:bool ->
     ?name:string ->
@@ -87,7 +87,7 @@
     ?charset:string ->
     ?code:int ->
     ?content_type:string ->
-    ?headers:Http_headers.t ->
+    ?headers:Cohttp.Header.t ->
     ?secure_session:bool ->
     ?https:bool ->
     ?name:string ->

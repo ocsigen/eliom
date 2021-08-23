@@ -12,6 +12,8 @@
   val remove_slash_at_beginning : path -> path
   val is_prefix_skip_end_slash : string list -> string list -> bool
   val split_fragment : string -> string * string option
+  val join_path : path -> string
+  val norm_path : path -> path
   val urldecode : string -> string
   val urlencode : ?with_plus:bool -> string -> string
   type http_url =

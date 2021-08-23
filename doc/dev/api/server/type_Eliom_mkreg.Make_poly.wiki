@@ -8,8 +8,8 @@
                ?charset:string ->
                ?code:int ->
                ?content_type:string ->
-               ?headers:Http_headers.t ->
-               'a page -> Ocsigen_http_frame.result Lwt.t
+               ?headers:Cohttp.Header.t ->
+               'a page -> Ocsigen_response.t Lwt.t
              val send_appl_content : Eliom_service.send_appl_content
            end)
   ->
@@ -24,7 +24,7 @@
       ?charset:string ->
       ?code:int ->
       ?content_type:string ->
-      ?headers:Http_headers.t ->
+      ?headers:Cohttp.Header.t ->
       ?secure_session:bool ->
       service:('get, 'post, 'b, 'c, 'd, Eliom_service.non_ext,
                Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'e, 'f,
@@ -39,7 +39,7 @@
       ?charset:string ->
       ?code:int ->
       ?content_type:string ->
-      ?headers:Http_headers.t ->
+      ?headers:Cohttp.Header.t ->
       ?secure_session:bool ->
       ?https:bool ->
       ?name:string ->
@@ -64,7 +64,7 @@
       ?charset:string ->
       ?code:int ->
       ?content_type:string ->
-      ?headers:Http_headers.t ->
+      ?headers:Cohttp.Header.t ->
       ?secure_session:bool ->
       ?https:bool ->
       ?name:string ->
@@ -91,7 +91,7 @@
       ?charset:string ->
       ?code:int ->
       ?content_type:string ->
-      ?headers:Http_headers.t ->
+      ?headers:Cohttp.Header.t ->
       ?secure_session:bool ->
       ?https:bool ->
       ?name:string ->

@@ -98,8 +98,7 @@
     'a Deriving_Json.t ->
     ('a, [ `WithoutSuffix ], [ `One of 'a ocaml ] param_name) params_type
   type raw_post_data =
-      ((string * string) * (string * string) list) option *
-      string Ocsigen_stream.t option
+      ((string * string) * (string * string) list) option * Cohttp_lwt.Body.t
   val raw_post_data :
     (raw_post_data, [ `WithoutSuffix ], no_param_name) params_type
   type ('a, +'b, 'names) non_localized_params constraint 'b = [< suff ]

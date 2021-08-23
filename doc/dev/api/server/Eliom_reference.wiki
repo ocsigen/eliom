@@ -65,8 +65,7 @@
 
     ~In each scope~, the function <<span class="odocwiki_inlinecode"|f>> is called for creating the value of the
     reference the first time the reference is read ~(by <<a_api subproject="server" | val Eliom_reference.get >>~)~,
-    if the value has not been set explicitly before ~(by <<a_api subproject="server" | val Eliom_reference.set >>~)~;
-    or if the reference was reset ~(by <<span class="odocwiki_inlinecode"|~Eliom~_reference~.reset>>~) before~.
+    if the value has not been set explicitly before ~(by <<a_api subproject="server" | val Eliom_reference.set >>~)~.
 >>
 <<pre id="VALget" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|'a <<a_api subproject="server" text="eref" | type Eliom_reference.eref >> <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|get eref>> returns the current value of the ~Eliom
     reference <<span class="odocwiki_inlinecode"|eref>>~.
