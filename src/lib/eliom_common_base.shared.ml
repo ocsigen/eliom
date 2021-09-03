@@ -413,3 +413,27 @@ type 'a to_and_of = {
   of_string : string -> 'a;
   to_string : 'a -> string
 }
+
+(* gets backtrace up until the first slot in the backtrace which mentions
+     Lwt, which is usually where the backtrace is no longer informative *)
+let backtrace_lwt =
+  let lwt_slot_re = Re.Str.regexp "Called from Lwt." in
+  fun skip ->
+    let stack = Printexc.get_callstack 16 in
+    let stack_length = Printexc.raw_backtrace_length stack in
+    let rec loop acc i =
+      if i >= stack_length
+      then acc
+      else
+        match
+          let open Printexc in
+          Slot.format i @@ convert_raw_backtrace_slot
+          @@ get_raw_backtrace_slot stack i
+        with
+        | Some s ->
+            if Re.Str.string_match lwt_slot_re s 0
+            then acc
+            else loop (s :: acc) (i + 1)
+        | None -> loop acc (i + 1)
+    in
+    List.rev @@ loop [] skip

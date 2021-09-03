@@ -578,7 +578,9 @@ let get_sp_option () = Lwt.get sp_key
 let get_sp () =
   match Lwt.get sp_key with
   | Some sp -> sp
-  | None -> failwith "This function cannot be called here because it needs information about the request or the site."
+  | None ->
+      let msg = "This function cannot be called here because it needs information about the request or the site." in
+      failwith @@ String.concat "\n" @@ msg :: Eliom_common_base.backtrace_lwt 2
 
 let sp_of_option sp =
   match sp with
