@@ -786,10 +786,7 @@ let with_new_page ?state_id ?old_page ~replace () f =
     | None -> None, None
   in
   let page = mk_page ?state_id ?url ?previous_page ~status:Generating () in
-  let%lwt v = Lwt.with_value this_page (Some page) @@ f in
-  Lwt_log.ign_debug_f ~section:section_page "Done with page %d/%d"
-    page.page_unique_id page.page_id.state_index;
-  Lwt.return v
+  Lwt.with_value this_page (Some page) f
 
 module History = struct
   let section = Lwt_log.Section.make "eliom:client:history"
