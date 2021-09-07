@@ -1314,12 +1314,16 @@ let () =
           let uri, fragment = Url.split_fragment full_uri in
           if uri = get_current_uri ()
           then begin
+              Lwt_log.ign_debug ~section:section_page
+                "revisit: uri = get_current_uri";
               !active_page.page_id <- state_id;
               scroll_to_fragment ~offset:state.position fragment;
               Lwt.return_unit
             end
             else begin
               try (* serve cached page from the from history_doms *)
+                Lwt_log.ign_debug ~section:section_page
+                  "revisit: uri != get_current_uri";
                 if not (is_in_cache state_id) then raise Not_found;
                 let%lwt () = run_lwt_callbacks ev (flush_onchangepage ()) in
                 restore_history_dom target_id;
@@ -1347,6 +1351,8 @@ let () =
                             state_id.session_id session_id full_uri);
               try (* same session *)
                 if session_changed then raise Not_found;
+                Lwt_log.ign_debug ~section:section_page
+                  "revisit: session has not changed";
                 let rf = List.assq state_id.state_index !reload_functions in
                 reload_function := Some rf;
                 let%lwt () = run_lwt_callbacks ev (flush_onchangepage ()) in
@@ -1365,6 +1371,8 @@ let () =
               set_current_uri uri;
               match tmpl with
               | Some t when tmpl = Eliom_request_info.get_request_template () ->
+                 Lwt_log.ign_debug ~section:section_page
+                   "revisit: template is Some and equals to get_request_template";
                 let%lwt (uri, content) = Eliom_request.http_get
                     uri [(Eliom_request.nl_template_string, t)]
                     Eliom_request.string_result
@@ -1378,6 +1386,8 @@ let () =
               | _ ->
                  if is_client_app () then
                    failwith (Printf.sprintf "revisit: could not generate page client-side (%s)" full_uri);
+                 Lwt_log.ign_debug ~section:section_page
+                   "revisit: template is anything else";
                 with_new_page
                   ?state_id:(if session_changed then None else Some state_id)
                   ~replace:false () @@ fun () ->
