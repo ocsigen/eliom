@@ -27,7 +27,6 @@ module Xml = Eliom_content_core.Xml
 (* Logs *)
 let section = Lwt_log.Section.make "eliom:client"
 let log_section = section
-let _ = Lwt_log.Section.set_level log_section Lwt_log.Info
 let section_page = Lwt_log.Section.make "eliom:client:page"
 
 (* == Auxiliaries *)

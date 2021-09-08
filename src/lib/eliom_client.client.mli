@@ -449,11 +449,7 @@ val push_history_dom : unit -> unit
    previous and the next page are kept. *)
 val set_max_dist_history_doms : int option -> unit
 
-(** Lwt_log section for this module.
-    Default level is [Lwt_log.Info].
-    Use [Lwt_log.Section.set_level Eliom_client.log_section Lwt_log.Debug]
-    to see debug messages.
-*)
+(** Lwt_log section for this module. *)
 val log_section : Lwt_log.section
 
 (** Is it a middle-click event? *)
