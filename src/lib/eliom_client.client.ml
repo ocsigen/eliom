@@ -1006,6 +1006,7 @@ and change_page :
   || (https = Some true && not Eliom_request_info.ssl_)
   || (https = Some false && Eliom_request_info.ssl_)
   then
+    let () = Lwt_log.ign_debug ~section:section_page "change page: xhr is None" in
     Lwt.return
       (exit_to
          ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
@@ -1015,6 +1016,8 @@ and change_page :
     with_progress_cursor
       (match xhr with
        | Some (Some tmpl as t) when t = Eliom_request_info.get_request_template () ->
+         Lwt_log.ign_debug ~section:section_page
+           "change page: xhr is Some of get request template";
          let nl_params =
            Eliom_parameter.add_nl_parameter
              nl_params Eliom_request.nl_template tmpl
@@ -1029,6 +1032,8 @@ and change_page :
        | _ ->
          match Eliom_service.client_fun service with
          | Some f when (not ignore_client_fun) ->
+           Lwt_log.ign_debug ~section:section_page
+             "change page: client_fun service is Some and (not ignore_client_fun)";
            (* The service has a client side implementation.
               We do not make the request *)
            (* I record the function to be used for void coservices: *)
@@ -1067,11 +1072,15 @@ and change_page :
            with_new_page ~replace () @@ fun () ->
            handle_result ~replace ~uri (f get_params post_params)
          | None when is_client_app () ->
+           Lwt_log.ign_debug ~section:section_page
+             "change page: client_fun service is None and is_client_app";
            Lwt.return @@ exit_to
              ?absolute ?absolute_path ?https ~service ?hostname ?port
              ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
              get_params post_params
          | _ ->
+           Lwt_log.ign_debug ~section:section_page
+             "change page: client_fun service is anything else";
            if is_client_app () then
              failwith
                (Printf.sprintf "change page: no client-side service (%b)"
