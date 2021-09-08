@@ -405,10 +405,13 @@ val init : unit -> unit
 val set_reload_function : (unit -> unit -> Eliom_service.result Lwt.t) -> unit
 
 module History : sig
+
   (** get the URLs of the last pages visited (within the app) in reverse temporal order. *)
   val past : unit -> string list (*tmp*)
+
   (** get the URLs of the pages visited before having navigated backwards in history. *)
   val future : unit -> string list (*tmp*)
+
 end
 
 (** [push_history_dom] stores the document/body of the current page so
