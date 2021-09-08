@@ -612,8 +612,7 @@ let change_url_string ~replace uri =
     if replace then begin
       Opt.iter stash_reload_function !reload_function;
       Dom_html.window##.history##replaceState
-        (Js.Opt.return (this_page.page_id,
-                        Js.string full_uri))
+        (Js.Opt.return (this_page.page_id, Js.string full_uri))
         (Js.string "")
         (if !Eliom_common.is_client_app then Js.null else
          Js.Opt.return (Js.string uri))
