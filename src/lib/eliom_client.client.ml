@@ -606,6 +606,7 @@ type page = {
   mutable previous_page : int option;
   set_page_status : ?step:React.step -> Page_status_t.t -> unit;
   mutable dom : Dom_html.bodyElement Js.t option;
+  mutable reload_function : (unit -> unit -> Eliom_service.result Lwt.t) option
 }
 
 let string_of_page p =
@@ -644,7 +645,8 @@ let mk_page ?(state_id = next_state_id ()) ?url ?previous_page ~status () =
    page_status;
    previous_page;
    set_page_status;
-   dom = None}
+   dom = None;
+   reload_function = None}
 
 let active_page = ref @@ mk_page ~status:Active ()
 
@@ -1282,10 +1284,7 @@ let url_fragment_prefix = "!"
 let url_fragment_prefix_with_sharp = "#!"
 
 let reload_function = ref None
-let reload_functions = ref []
 let set_reload_function f = reload_function := Some f
-
-(* TODO: unify History and reload_functions *)
 
 let set_max_dist_history_doms limit =
   History.max_num_doms := limit;
@@ -1361,9 +1360,7 @@ let stash_reload_function f =
   let id = state_id.state_index in
   Lwt_log.ign_debug_f ~section:section_page
     "Update reload function for page %d" id;
-  reload_functions :=
-    (id, f) ::
-    (List.filter (fun (id', _) -> id <> id') !reload_functions)
+  page.reload_function <- Some f
 
 let change_url_string ~replace uri =
   Lwt_log.ign_debug_f ~section:section_page "Change url string: %s" uri;
@@ -1383,11 +1380,6 @@ let change_url_string ~replace uri =
     else begin
       update_state();
       let state_id = this_page.page_id in
-      let erase_future () =
-        reload_functions :=
-          List.filter (fun (id, _) -> id <= state_id.state_index)
-            !reload_functions;
-      in erase_future ();
       Opt.iter stash_reload_function !reload_function;
       Dom_html.window##.history##pushState
         (Js.Opt.return (this_page.page_id, Js.string full_uri))
@@ -2139,17 +2131,19 @@ let () =
                 if session_changed then raise Not_found;
                 Lwt_log.ign_debug ~section:section_page
                   "revisit: session has not changed";
-                let rf = List.assq state_id.state_index !reload_functions in
-                reload_function := Some rf;
-                let%lwt () = run_lwt_callbacks ev (flush_onchangepage ()) in
                 let old_page = History.find_by_state_index state_id.state_index in
+                let rf = Option.bind old_page @@ fun {reload_function = rf} -> rf in
+                reload_function := rf;
+                let%lwt () = run_lwt_callbacks ev (flush_onchangepage ()) in
                 with_new_page ~state_id ?old_page ~replace:false () @@ fun () ->
                 set_current_uri uri;
                 History.replace (get_this_page ());
                 let%lwt () =
-                  match%lwt rf () () with
-                  | Eliom_service.Dom d -> set_content_local d
-                  | r -> handle_result ~uri:(get_current_uri ()) ~replace:true (Lwt.return r)
+                  match rf with
+                  | None -> Lwt.return_unit
+                  | Some f -> (match%lwt f () () with
+                              | Eliom_service.Dom d -> set_content_local d
+                              | r -> handle_result ~uri:(get_current_uri ()) ~replace:true (Lwt.return r))
                 in
                 scroll_to_fragment ~offset:state.position fragment;
                 Lwt.return_unit
