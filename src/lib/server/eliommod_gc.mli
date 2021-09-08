@@ -30,3 +30,4 @@ val get_persistentsessiongcfrequency : unit -> float option
 val service_session_gc : Eliom_common.sitedata -> unit
 val data_session_gc : Eliom_common.sitedata -> unit
 val persistent_session_gc : Eliom_common.sitedata -> unit
+val section : Lwt_log_core.section

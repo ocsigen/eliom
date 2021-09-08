@@ -141,3 +141,5 @@ val nl_template:
   (string, [ `WithoutSuffix ],
    [ `One of string ] Eliom_parameter.param_name) Eliom_parameter.non_localized_params
 val nl_template_string: string
+
+val section : Lwt_log_core.section
