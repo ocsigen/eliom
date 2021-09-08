@@ -453,7 +453,7 @@ val push_history_dom : unit -> unit
 val set_max_dist_history_doms : int option -> unit
 
 (** Lwt_log section for this module. *)
-val log_section : Lwt_log.section
+val section : Lwt_log.section
 
 (** Is it a middle-click event? *)
 val middleClick : Dom_html.mouseEvent Js.t -> bool
