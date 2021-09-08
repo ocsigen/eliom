@@ -1404,7 +1404,7 @@ let () =
             end
     in
 
-    let revisit full_uri state_id =
+    let revisit_wrapper full_uri state_id =
       (* CHECKME: is it OK that set_state happens after the unload
          callbacks are executed? *)
       let f () = update_state (); revisit full_uri state_id
@@ -1426,7 +1426,7 @@ let () =
         Js.Opt.case ((Js.Unsafe.coerce event)##.state :
                        (state_id * Js.js_string Js.t) Js.opt)
           (fun () -> () (* Ignore dummy popstate event fired by chromium. *))
-          (fun (state, full_uri) -> revisit (Js.to_string full_uri) state);
+          (fun (state, full_uri) -> revisit_wrapper (Js.to_string full_uri) state);
         Js._false)
 
   else (* Without history API *)
