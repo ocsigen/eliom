@@ -939,8 +939,26 @@ let switch_to_https () =
   let info = Eliom_process.get_info () in
   Eliom_process.set_info {info with Eliom_common.cpi_ssl = true }
 
+let string_of_result result =
+  match result with
+  | Eliom_service.No_contents -> "No_contents"
+  | Dom _ -> "Dom"
+  | Redirect _ -> "Redirect"
+  | Reload_action {hidden; https} ->
+     let values =
+     (match hidden, https with
+      | false, false -> "false, false"
+      | false, true -> "false, true"
+      | true, false -> "true, false"
+      | true, true -> "true, true")
+     in
+      "Reload_action with hidden and https as " ^ values
+
 let rec handle_result ~replace ~uri result =
-  match%lwt result with
+  let%lwt result = result in
+  Lwt_log.ign_debug ~section:section_page
+    ("handle_result: result is " ^ (string_of_result result));
+  match result with
   | Eliom_service.No_contents ->
      Lwt.return_unit
   | Dom d ->
@@ -1006,6 +1024,7 @@ and change_page :
   || (https = Some true && not Eliom_request_info.ssl_)
   || (https = Some false && Eliom_request_info.ssl_)
   then
+    let () = Lwt_log.ign_debug ~section:section_page "change page: xhr is None" in
     Lwt.return
       (exit_to
          ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
@@ -1015,6 +1034,8 @@ and change_page :
     with_progress_cursor
       (match xhr with
        | Some (Some tmpl as t) when t = Eliom_request_info.get_request_template () ->
+         Lwt_log.ign_debug ~section:section_page
+           "change page: xhr is Some of get request template";
          let nl_params =
            Eliom_parameter.add_nl_parameter
              nl_params Eliom_request.nl_template tmpl
@@ -1029,6 +1050,8 @@ and change_page :
        | _ ->
          match Eliom_service.client_fun service with
          | Some f when (not ignore_client_fun) ->
+           Lwt_log.ign_debug ~section:section_page
+             "change page: client_fun service is Some and (not ignore_client_fun)";
            (* The service has a client side implementation.
               We do not make the request *)
            (* I record the function to be used for void coservices: *)
@@ -1067,11 +1090,15 @@ and change_page :
            with_new_page ~replace () @@ fun () ->
            handle_result ~replace ~uri (f get_params post_params)
          | None when is_client_app () ->
+           Lwt_log.ign_debug ~section:section_page
+             "change page: client_fun service is None and is_client_app";
            Lwt.return @@ exit_to
              ?absolute ?absolute_path ?https ~service ?hostname ?port
              ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
              get_params post_params
          | _ ->
+           Lwt_log.ign_debug ~section:section_page
+             "change page: client_fun service is anything else";
            if is_client_app () then
              failwith
                (Printf.sprintf "change page: no client-side service (%b)"
@@ -1133,6 +1160,7 @@ and change_page_unknown
   handle_result ~replace ~uri (Lwt.return result)
 
 and reload ~replace ~uri ~fallback =
+  Lwt_log.ign_debug ~section:section_page "reload";
   let path, args = path_and_args_of_uri uri in
   try%lwt
     change_page_unknown ~replace path args []
@@ -1146,6 +1174,7 @@ and reload ~replace ~uri ~fallback =
 and reload_without_na_params ~replace ~uri ~fallback =
   let path, args = path_and_args_of_uri uri in
   let args = Eliom_common.remove_na_prefix_params args in
+  Lwt_log.ign_debug ~section:section_page "reload_without_na_params";
   try%lwt
     change_page_unknown ~replace path args []
   with _ ->
@@ -1189,6 +1218,8 @@ let change_page_uri ?replace full_uri =
   try%lwt
     match Url.url_of_string full_uri with
     | Some (Url.Http url | Url.Https url) ->
+      Lwt_log.ign_debug ~section:section_page
+        "change page uri: url is http or https";
       change_page_unknown ?replace url.Url.hu_path url.Url.hu_arguments []
     | _ ->
       failwith "invalid url"
@@ -1305,12 +1336,16 @@ let () =
           let uri, fragment = Url.split_fragment full_uri in
           if uri = get_current_uri ()
           then begin
+              Lwt_log.ign_debug ~section:section_page
+                "revisit: uri = get_current_uri";
               !active_page.page_id <- state_id;
               scroll_to_fragment ~offset:state.position fragment;
               Lwt.return_unit
             end
             else begin
               try (* serve cached page from the from history_doms *)
+                Lwt_log.ign_debug ~section:section_page
+                  "revisit: uri != get_current_uri";
                 if not (is_in_cache state_id) then raise Not_found;
                 let%lwt () = run_lwt_callbacks ev (flush_onchangepage ()) in
                 restore_history_dom target_id;
@@ -1338,6 +1373,8 @@ let () =
                             state_id.session_id session_id full_uri);
               try (* same session *)
                 if session_changed then raise Not_found;
+                Lwt_log.ign_debug ~section:section_page
+                  "revisit: session has not changed";
                 let rf = List.assq state_id.state_index !reload_functions in
                 reload_function := Some rf;
                 let%lwt () = run_lwt_callbacks ev (flush_onchangepage ()) in
@@ -1356,6 +1393,8 @@ let () =
               set_current_uri uri;
               match tmpl with
               | Some t when tmpl = Eliom_request_info.get_request_template () ->
+                 Lwt_log.ign_debug ~section:section_page
+                   "revisit: template is Some and equals to get_request_template";
                 let%lwt (uri, content) = Eliom_request.http_get
                     uri [(Eliom_request.nl_template_string, t)]
                     Eliom_request.string_result
@@ -1369,6 +1408,8 @@ let () =
               | _ ->
                  if is_client_app () then
                    failwith (Printf.sprintf "revisit: could not generate page client-side (%s)" full_uri);
+                 Lwt_log.ign_debug ~section:section_page
+                   "revisit: template is anything else";
                 with_new_page
                   ?state_id:(if session_changed then None else Some state_id)
                   ~replace:false () @@ fun () ->
@@ -1385,7 +1426,8 @@ let () =
             end
     in
 
-    let revisit full_uri state_id =
+    let revisit_wrapper full_uri state_id =
+      Lwt_log.ign_debug ~section:section_page "revisit_wrapper";
       (* CHECKME: is it OK that set_state happens after the unload
          callbacks are executed? *)
       let f () = update_state (); revisit full_uri state_id
@@ -1395,6 +1437,7 @@ let () =
 
     Lwt.ignore_result
       (let%lwt () = wait_load_end () in
+       Lwt_log.ign_debug ~section:section_page "revisit_wrapper: replaceState";
        Dom_html.window##.history##(replaceState
          (Js.Opt.return (!active_page.page_id, Dom_html.window##.location##.href))
          (Js.string "")
@@ -1403,11 +1446,12 @@ let () =
 
     Dom_html.window##.onpopstate :=
       Dom_html.handler (fun event ->
+          Lwt_log.ign_debug ~section:section_page "revisit_wrapper: onpopstate";
         Eliommod_dom.touch_base ();
         Js.Opt.case ((Js.Unsafe.coerce event)##.state :
                        (state_id * Js.js_string Js.t) Js.opt)
           (fun () -> () (* Ignore dummy popstate event fired by chromium. *))
-          (fun (state, full_uri) -> revisit (Js.to_string full_uri) state);
+          (fun (state, full_uri) -> revisit_wrapper (Js.to_string full_uri) state);
         Js._false)
 
   else (* Without history API *)
@@ -1429,6 +1473,7 @@ let () =
                 | 0 | 1 -> fst (Url.split_fragment Url.Current.as_string)
                 | _ -> String.sub fragment 2 ((String.length fragment) - 2)
               in
+                Lwt_log.ign_debug ~section:section_page "auto_change_page";
               (* CCC TODO handle templates *)
               change_page_uri uri)
            else Lwt.return_unit

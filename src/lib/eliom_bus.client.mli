@@ -64,3 +64,5 @@ val set_time_before_flush : ('a, 'b) t -> float -> unit
 (**/**)
 
 val force_link : unit
+
+val section : Lwt_log_core.section

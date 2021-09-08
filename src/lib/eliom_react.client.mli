@@ -57,3 +57,5 @@ end
 (**/**)
 
 val force_link : unit
+
+val section : Lwt_log_core.section

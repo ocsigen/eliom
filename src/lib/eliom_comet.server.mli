@@ -120,3 +120,5 @@ module Channel : sig
   val get_wrapped : 'a t -> 'a Eliom_comet_base.wrapped_channel
 
 end
+
+val section : Lwt_log_core.section

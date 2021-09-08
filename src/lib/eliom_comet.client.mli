@@ -149,3 +149,5 @@ val force_link : unit
     that is usually called automatically when an exception
     is received during communication. *)
 val handle_exn : ?exn:exn -> unit -> unit Lwt.t
+
+val section : Lwt_log_core.section

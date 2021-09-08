@@ -33,6 +33,7 @@ val update_serv_exp :
 val update_data_exp :
   Eliom_common.full_state_name ->
   Eliom_common.sitedata -> float option -> float option -> unit Lwt.t
-val update_pers_exp : 
-  Eliom_common.full_state_name -> 
+val update_pers_exp :
+  Eliom_common.full_state_name ->
   Eliom_common.sitedata -> float option -> float option -> unit Lwt.t
+val section : Lwt_log_core.section
