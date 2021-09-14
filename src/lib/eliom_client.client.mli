@@ -405,10 +405,13 @@ val init : unit -> unit
 val set_reload_function : (unit -> unit -> Eliom_service.result Lwt.t) -> unit
 
 module History : sig
+
   (** get the URLs of the last pages visited (within the app) in reverse temporal order. *)
   val past : unit -> string list (*tmp*)
+
   (** get the URLs of the pages visited before having navigated backwards in history. *)
   val future : unit -> string list (*tmp*)
+
 end
 
 (** [push_history_dom] stores the document/body of the current page so
@@ -449,12 +452,8 @@ val push_history_dom : unit -> unit
    previous and the next page are kept. *)
 val set_max_dist_history_doms : int option -> unit
 
-(** Lwt_log section for this module.
-    Default level is [Lwt_log.Info].
-    Use [Lwt_log.Section.set_level Eliom_client.log_section Lwt_log.Debug]
-    to see debug messages.
-*)
-val log_section : Lwt_log.section
+(** Lwt_log section for this module. *)
+val section : Lwt_log.section
 
 (** Is it a middle-click event? *)
 val middleClick : Dom_html.mouseEvent Js.t -> bool

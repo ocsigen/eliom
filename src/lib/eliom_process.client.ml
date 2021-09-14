@@ -23,8 +23,6 @@ open Eliom_lib
 (* Logs *)
 let section = Lwt_log.Section.make "eliom:process"
 let log_section = section
-let _ = Lwt_log.Section.set_level log_section Lwt_log.Info
-(* *)
 
 let history_api = Dom_html.hasPushState ()
 

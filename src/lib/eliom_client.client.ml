@@ -19,15 +19,780 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-include Eliom_client_core
-(* TODO: Implement better separation between Eliom_client_core and
-   Eliom_client. Eliom_client_core is supposed to be linked early,
-   before Eliom_service, in order to make possible to use the
-   client-server syntax in Eliom itself. *)
+let section = Eliom_client_core.section
 
 open Js_of_ocaml
 open Eliom_lib
 module Opt = Eliom_lib.Option
+module Xml = Eliom_content_core.Xml
+
+
+(* == Callbacks for onload, onbeforeunload, and onunload *)
+
+let run_callbacks handlers = List.iter (fun f -> f ()) handlers
+
+type changepage_event =
+  {in_cache:bool;
+   origin_uri:string;
+   target_uri:string;
+   origin_id:int;
+   target_id:int option}
+
+let run_lwt_callbacks : 'a -> ('a -> unit Lwt.t) list -> unit Lwt.t
+  = fun ev handlers -> Lwt_list.iter_s (fun h -> h ev) handlers
+
+let (onload, _, flush_onload, _push_onload) :
+  ((unit -> unit) -> unit) *
+  (unit -> (unit -> unit) list) *
+  (unit -> (unit -> unit) list) *
+  (unit -> unit)
+  =
+  Eliom_client_core.create_buffer ()
+
+let (onchangepage : (changepage_event -> unit Lwt.t) -> unit), _,
+    (flush_onchangepage : unit -> (changepage_event -> unit Lwt.t) list), _
+  = Eliom_client_core.create_buffer ()
+
+let onunload, _, flush_onunload, _ = Eliom_client_core.create_buffer ()
+
+let onbeforeunload, run_onbeforeunload, flush_onbeforeunload =
+  let add, get, flush, _ = Eliom_client_core.create_buffer () in
+  let rec run lst =
+    match lst with
+    | [] ->
+        None
+    | f :: rem ->
+        match f () with
+        | None   -> run rem
+        | Some s -> Some s
+
+  in
+  add, (fun () -> run (get ())), flush
+
+let run_onunload_wrapper set_content cancel =
+  match run_onbeforeunload () with
+  | Some s when not (confirm "%s" s) ->
+      cancel ()
+  | _ ->
+      ignore (flush_onbeforeunload ());
+      run_callbacks (flush_onunload ());
+      set_content ()
+
+let lwt_onload () =
+  let t, u = Lwt.wait () in
+  onload (Lwt.wakeup u);
+  t
+
+
+(* == Initialize the client values sent with a request *)
+
+let check_global_data global_data =
+  let missing_client_values = ref [] in
+  let missing_injections = ref [] in
+  String_map.iter
+    (fun compilation_unit_id { Eliom_client_core.server_section; client_section } ->
+       List.iter
+         (fun data ->
+            missing_client_values :=
+              List.rev_append
+                (List.map (fun cv -> compilation_unit_id, cv)
+                   (Array.to_list data))
+                !missing_client_values)
+         server_section;
+       List.iter
+         (fun data ->
+            missing_injections :=
+              List.rev_append (Array.to_list data) !missing_injections)
+         client_section;
+    )
+    global_data;
+  (match !missing_client_values with
+   | [] -> ()
+   | l ->
+     Printf.ksprintf (fun s -> Firebug.console##(error (Js.string s)))
+       "Code generating the following client values is not linked on the client:\n%s"
+       (String.concat "\n"
+          (List.rev_map
+             (fun (compilation_unit_id, {Eliom_runtime.closure_id; value}) ->
+                let instance_id =
+                  Eliom_runtime.Client_value_server_repr.instance_id value
+                in
+                match Eliom_runtime.Client_value_server_repr.loc value
+                with
+                | None ->
+                   Printf.sprintf "%s:%s/%d"
+                     compilation_unit_id closure_id instance_id
+                | Some pos ->
+                   Printf.sprintf "%s:%s/%d at %s" compilation_unit_id
+                     closure_id instance_id
+                     (Eliom_lib.pos_to_string pos)
+             )
+             l
+          )));
+  (match !missing_injections with
+   | [] -> ()
+   | l ->
+     Printf.ksprintf (fun s -> Firebug.console##(error (Js.string s)))
+       "Code containing the following injections is not linked on the client:\n%s"
+       (String.concat "\n"
+          (List.rev_map (fun d ->
+             let id = d.Eliom_runtime.injection_id in
+             match d.Eliom_runtime.injection_dbg with
+             | None -> Printf.sprintf "%d" id
+             | Some (pos, Some i) ->
+               Printf.sprintf "%d (%s at %s)" id i (Eliom_lib.pos_to_string pos)
+             | Some (pos, None) ->
+               Printf.sprintf "%d (at %s)" id (Eliom_lib.pos_to_string pos)
+           ) l)))
+
+let do_request_data request_data =
+  Lwt_log.ign_debug_f ~section "Do request data (%a)"
+    (fun () l -> string_of_int (Array.length l)) request_data;
+  (* On a request, i.e. after running the toplevel definitions, global_data
+     must contain at most empty sections_data lists, which stem from server-
+     only eliom files. *)
+  check_global_data !Eliom_client_core.global_data;
+  Eliom_client_core.global_data := String_map.empty;
+  Array.iter Eliom_client_core.Client_value.initialize request_data
+
+(* == Relink
+
+   Traverse the Dom representation of the page in order to register
+   "unique" nodes (or substitute previously known global nodes) and to
+   bind Eliom's event handlers.
+*)
+
+let get_element_cookies_info elt =
+  Js.Opt.to_option
+    (Js.Opt.map
+       (elt##(getAttribute (Js.string
+                            Eliom_runtime.RawXML.ce_call_service_attrib)))
+       (fun s -> of_json (Js.to_string s)))
+
+let get_element_template elt =
+  Js.Opt.to_option
+    (Js.Opt.map (elt##(getAttribute (Js.string
+                                     Eliom_runtime.RawXML.ce_template_attrib)))
+       (fun s -> Js.to_string s))
+
+let a_handler =
+  Dom_html.full_handler
+    (fun node ev ->
+       let node = Js.Opt.get (Dom_html.CoerceTo.a node)
+           (fun () -> Lwt_log.raise_error_f ~section "not an anchor element")
+       in
+       (* We prevent default behaviour
+          only if raw_a_handler has taken the change page itself *)
+       (*VVV Better: use preventdefault rather than returning false *)
+       Js.bool (Eliom_client_core.raw_a_handler node (get_element_cookies_info node)
+                  (get_element_template node) ev))
+
+let form_handler
+  : (Dom_html.element Js.t, #Dom_html.event Js.t) Dom_html.event_listener
+  =
+  Dom_html.full_handler
+    (fun node ev ->
+       let form = Js.Opt.get (Dom_html.CoerceTo.form node)
+           (fun () -> Lwt_log.raise_error_f ~section "not a form element")
+       in
+       let kind =
+         if String.lowercase_ascii (Js.to_string form##._method) = "get"
+         then `Form_get
+         else `Form_post
+       and f _ = Lwt.return_false in
+       Js.bool (Eliom_client_core.raw_form_handler form kind (get_element_cookies_info form)
+                  (get_element_template node) ev f))
+
+let relink_process_node (node:Dom_html.element Js.t) =
+  let id = Js.Opt.get
+      (node##(getAttribute (Js.string Eliom_runtime.RawXML.node_id_attrib)))
+      (fun () -> Lwt_log.raise_error_f ~section
+          "unique node without id attribute")
+  in
+  Js.Optdef.case (Eliom_client_core.find_process_node id)
+    (fun () ->
+       Lwt_log.ign_debug_f ~section
+         "Relink process node: did not find %a. Will add it."
+         (fun () -> Js.to_string) id;
+       Eliom_client_core.register_process_node id (node:>Dom.node Js.t))
+    (fun pnode ->
+       Lwt_log.ign_debug_f ~section "Relink process node: found %a"
+         (fun () -> Js.to_string) id;
+      Js.Opt.iter (node##.parentNode)
+        (fun parent -> Dom.replaceChild parent pnode node);
+      if String.sub (Js.to_bytestring id) 0 7 <> "global_" then begin
+        let childrens = Dom.list_of_nodeList (pnode##.childNodes) in
+        List.iter (fun c -> ignore(pnode##(removeChild c))) childrens;
+        let childrens = Dom.list_of_nodeList (node##.childNodes) in
+        List.iter (fun c -> ignore(pnode##(appendChild c))) childrens
+      end)
+
+let relink_request_node (node:Dom_html.element Js.t) =
+  let id = Js.Opt.get
+    (node##(getAttribute (Js.string Eliom_runtime.RawXML.node_id_attrib)))
+    (fun () -> Lwt_log.raise_error_f ~section
+        "unique node without id attribute")
+  in
+  Js.Optdef.case (Eliom_client_core.find_request_node id)
+    (fun () ->
+       Lwt_log.ign_debug_f ~section
+         "Relink request node: did not find %a. Will add it."
+         (fun () -> Js.to_string) id;
+       Eliom_client_core.register_request_node id (node:>Dom.node Js.t))
+    (fun pnode ->
+       Lwt_log.ign_debug_f ~section "Relink request node: found %a"
+         (fun () -> Js.to_string) id;
+       Js.Opt.iter (node##.parentNode)
+         (fun parent -> Dom.replaceChild parent pnode node))
+
+let relink_request_nodes root =
+  Lwt_log.ign_debug ~section "Relink request nodes";
+  if !Eliom_config.debug_timings
+  then Firebug.console##(time (Js.string "relink_request_nodes"));
+  Eliommod_dom.iter_nodeList
+    (Eliommod_dom.select_request_nodes root)
+    relink_request_node;
+  if !Eliom_config.debug_timings
+  then Firebug.console##(timeEnd (Js.string "relink_request_nodes"))
+
+(* Relinks a-elements, form-elements, and process nodes. The list of
+   closure nodes is returned for application on [relink_closure_node]
+   after the client values are initialized.
+*)
+let relink_page_but_client_values (root:Dom_html.element Js.t) =
+  Lwt_log.ign_debug ~section "Relink page";
+  let (a_nodeList, form_nodeList, process_nodeList, closure_nodeList,
+       attrib_nodeList) =
+    Eliommod_dom.select_nodes root
+  in
+  Eliommod_dom.iter_nodeList a_nodeList
+    (fun node -> node##.onclick := a_handler);
+  Eliommod_dom.iter_nodeList form_nodeList
+    (fun node -> node##.onsubmit := form_handler);
+  Eliommod_dom.iter_nodeList process_nodeList relink_process_node;
+  closure_nodeList, attrib_nodeList
+
+(* == Rebuild event handlers
+
+   Event handlers inside the DOM tree are rebuilt from the closure map
+   sent with the request. The actual functions will be taken from the
+   client values.
+
+   It returns a single handler ([unit -> unit]) which captures all
+   onload event handlers found in the tree, and cancels the execution
+   when on raises [False] (cf. [raw_event_handler]).
+*)
+
+let is_closure_attrib, get_closure_name, get_closure_id =
+  let v_prefix = Eliom_runtime.RawXML.closure_attr_prefix in
+  let v_len = String.length v_prefix in
+  let v_prefix_js = Js.string v_prefix in
+
+  let n_prefix = Eliom_runtime.RawXML.closure_name_prefix in
+  let n_len = String.length n_prefix in
+  let n_prefix_js = Js.string n_prefix in
+
+  (fun attr ->
+     attr##.value##(substring (0) v_len) = v_prefix_js &&
+     attr##.name##(substring (0) n_len) = n_prefix_js),
+  (fun attr -> attr##.name##(substring_toEnd n_len)),
+  (fun attr -> attr##.value##(substring_toEnd v_len))
+
+let relink_closure_node root onload table (node:Dom_html.element Js.t) =
+  Lwt_log.ign_debug ~section "Relink closure node";
+  let aux attr =
+    if is_closure_attrib attr
+    then
+      let cid = Js.to_bytestring (get_closure_id attr) in
+      let name = get_closure_name attr in
+      try
+        let cv = Eliom_runtime.RawXML.ClosureMap.find cid table in
+        let closure = Eliom_client_core.raw_event_handler cv in
+        if name = Js.string "onload" then
+          (if Eliommod_dom.ancessor root node
+          (* if not inside a unique node replaced by an older one *)
+           then onload := closure :: !onload)
+        else Js.Unsafe.set node name (Dom_html.handler (fun ev -> Js.bool (closure ev)))
+      with Not_found ->
+        Lwt_log.ign_error_f ~section "relink_closure_node: client value %s not found" cid
+  in
+  Eliommod_dom.iter_attrList (node##.attributes) aux
+
+let relink_closure_nodes (root : Dom_html.element Js.t)
+    event_handlers closure_nodeList =
+  Lwt_log.ign_debug_f ~section "Relink %i closure nodes"
+    (closure_nodeList##.length);
+  let onload = ref [] in
+  Eliommod_dom.iter_nodeList closure_nodeList
+    (fun node -> relink_closure_node root onload event_handlers node);
+  fun () ->
+    let ev = Eliommod_dom.createEvent (Js.string "load") in
+    ignore (List.for_all (fun f -> f ev) (List.rev !onload))
+
+let is_attrib_attrib,get_attrib_id =
+  let v_prefix = Eliom_runtime.RawXML.client_attr_prefix in
+  let v_len = String.length v_prefix in
+  let v_prefix_js = Js.string v_prefix in
+
+  let n_prefix = Eliom_runtime.RawXML.client_name_prefix in
+  let n_len = String.length n_prefix in
+  let n_prefix_js = Js.string n_prefix in
+
+  (fun attr ->
+     attr##.value##(substring (0) v_len) = v_prefix_js &&
+     attr##.name##(substring (0) n_len) = n_prefix_js),
+  (fun attr -> attr##.value##(substring_toEnd v_len))
+
+let relink_attrib root table (node:Dom_html.element Js.t) =
+  Lwt_log.ign_debug ~section "Relink attribute";
+  let aux attr =
+    if is_attrib_attrib attr
+    then
+      let cid = Js.to_bytestring (get_attrib_id attr) in
+      try
+        let value = Eliom_runtime.RawXML.ClosureMap.find cid table in
+        let rattrib: Eliom_content_core.Xml.attrib =
+          (Eliom_lib.from_poly (Eliom_lib.to_poly value)) in
+        Eliom_client_core.rebuild_rattrib node rattrib
+      with Not_found ->
+        Lwt_log.raise_error_f ~section
+          "relink_attrib: client value %s not found" cid
+  in
+  Eliommod_dom.iter_attrList (node##.attributes) aux
+
+
+let relink_attribs (root : Dom_html.element Js.t) attribs attrib_nodeList =
+  Lwt_log.ign_debug_f ~section "Relink %i attributes" (attrib_nodeList##.length);
+  Eliommod_dom.iter_nodeList attrib_nodeList
+    (fun node -> relink_attrib root attribs node)
+
+(* == Extract the request data and the request tab-cookies from a page
+
+   See the corresponding function on the server side:
+   Eliom_registration.Eliom_appl_reg_make_param.make_eliom_data_script.
+*)
+
+let load_data_script page =
+  Lwt_log.ign_debug ~section "Load Eliom application data";
+  let head = Eliommod_dom.get_head page in
+  let data_script : Dom_html.scriptElement Js.t =
+    match Dom.list_of_nodeList head##.childNodes with
+    | _ :: _ :: data_script :: _ ->
+      let data_script : Dom.element Js.t = Js.Unsafe.coerce data_script in
+      (match Js.to_bytestring (data_script##.tagName##toLowerCase) with
+       | "script" -> (Js.Unsafe.coerce data_script)
+       | t ->
+         Lwt_log.raise_error_f ~section
+           "Unable to find Eliom application data (script element expected, found %s element)" t)
+    | _ -> Lwt_log.raise_error_f ~section
+             "Unable to find Eliom application data."
+  in
+  let script = data_script##.text in
+  if !Eliom_config.debug_timings
+  then Firebug.console##(time (Js.string "load_data_script"));
+  ignore (Js.Unsafe.eval_string (Js.to_string script));
+  Eliom_process.reset_request_template ();
+  Eliom_process.reset_request_cookies ();
+  if !Eliom_config.debug_timings
+  then Firebug.console##(timeEnd (Js.string "load_data_script"))
+
+(* == Scroll the current page such that the top of element with the id
+   [fragment] is aligned with the window's top. If the optional
+   argument [?offset] is given, ignore the fragment and scroll to the
+   given offset. *)
+
+let scroll_to_fragment ?offset fragment =
+  match offset with
+  | Some pos -> Eliommod_dom.setDocumentScroll pos
+  | None ->
+    match fragment with
+    | None | Some "" ->
+      Eliommod_dom.setDocumentScroll Eliommod_dom.top_position
+    | Some fragment ->
+      let scroll_to_element e = e##(scrollIntoView (Js._true)) in
+      let elem = Dom_html.document##(getElementById (Js.string fragment)) in
+      Js.Opt.iter elem scroll_to_element
+
+let with_progress_cursor : 'a Lwt.t -> 'a Lwt.t =
+  fun t ->
+    try%lwt
+      Dom_html.document##.body##.style##.cursor := Js.string "progress";
+      let%lwt res = t in
+      Dom_html.document##.body##.style##.cursor := Js.string "auto";
+      Lwt.return res
+    with exn ->
+      Dom_html.document##.body##.style##.cursor := Js.string "auto";
+      Lwt.fail exn
+
+
+
+(* Type for partially unwrapped elt. *)
+type tmp_recontent =
+  (* arguments ('econtent') are already unwrapped. *)
+  | RELazy of Xml.econtent Eliom_lazy.request
+  | RE of Xml.econtent
+type tmp_elt = {
+  (* to be unwrapped *)
+  tmp_elt : tmp_recontent;
+  tmp_node_id : Xml.node_id;
+}
+
+
+(******************************************************************************)
+(*                            Register unwrappers                             *)
+
+(* == Html elements
+
+   Html elements are unwrapped lazily (cf. use of Xml.make_lazy in
+   unwrap_tyxml), because the unwrapping of process and request
+   elements needs access to the DOM.
+
+   All recently unwrapped elements are forced when resetting the
+   request nodes ([reset_request_nodes]).
+*)
+
+let unwrap_tyxml =
+  fun tmp_elt ->
+    let elt = match tmp_elt.tmp_elt with
+      | RELazy elt -> Eliom_lazy.force elt
+      | RE elt -> elt
+    in
+    Lwt_log.ign_debug ~section "Unwrap tyxml";
+    (* Do not rebuild dom node while unwrapping, otherwise we
+       don't have control on when "onload" event handlers are
+       triggered. *)
+    let elt =
+      let context = "unwrapping (i.e. utilize it in whatsoever form)" in
+      Xml.make_lazy ~id:tmp_elt.tmp_node_id
+        (lazy
+          (match tmp_elt.tmp_node_id with
+           | Xml.ProcessId process_id as id ->
+             Lwt_log.ign_debug_f ~section "Unwrap tyxml from ProcessId %s"
+               process_id;
+             Js.Optdef.case (Eliom_client_core.find_process_node (Js.bytestring process_id))
+               (fun () ->
+                  Lwt_log.ign_debug ~section "not found";
+                  let xml_elt : Xml.elt = Xml.make ~id elt in
+                  let xml_elt =
+                    Eliom_content_core.Xml.set_classes_of_elt xml_elt
+                  in
+                  Eliom_client_core.register_process_node (Js.bytestring process_id)
+                    (Eliom_client_core.rebuild_node_ns `HTML5 context xml_elt);
+                  xml_elt)
+               (fun elt ->
+                  Lwt_log.ign_debug ~section "found";
+                  Xml.make_dom ~id elt)
+           | Xml.RequestId request_id as id ->
+             Lwt_log.ign_debug_f ~section "Unwrap tyxml from RequestId %s"
+               request_id;
+             Js.Optdef.case (Eliom_client_core.find_request_node (Js.bytestring request_id))
+               (fun () ->
+                  Lwt_log.ign_debug ~section "not found";
+                  let xml_elt : Xml.elt = Xml.make ~id elt in
+                  Eliom_client_core.register_request_node (Js.bytestring request_id)
+                    (Eliom_client_core.rebuild_node_ns `HTML5 context xml_elt);
+                  xml_elt)
+               (fun elt -> Lwt_log.ign_debug ~section "found";
+                 Xml.make_dom ~id elt)
+           | Xml.NoId as id ->
+             Lwt_log.ign_debug ~section "Unwrap tyxml from NoId";
+             Xml.make ~id elt))
+    in
+    Eliom_client_core.register_unwrapped_elt elt;
+    elt
+
+let unwrap_client_value cv =
+  Eliom_client_core.Client_value.find
+    ~instance_id:(Eliom_runtime.Client_value_server_repr.instance_id cv)
+  (* BB By returning [None] this value will be registered for late
+     unwrapping, and late unwrapped in Client_value.initialize as
+     soon as it is available. *)
+
+let unwrap_global_data = fun (global_data', _) ->
+  Eliom_client_core.global_data :=
+    String_map.map
+      (fun {Eliom_runtime.server_sections_data; client_sections_data} ->
+         {Eliom_client_core.server_section = Array.to_list server_sections_data;
+          client_section = Array.to_list client_sections_data})
+      global_data'
+
+let _ =
+  Eliom_unwrap.register_unwrapper'
+    (Eliom_unwrap.id_of_int Eliom_common_base.client_value_unwrap_id_int)
+    unwrap_client_value;
+  Eliom_unwrap.register_unwrapper
+    (Eliom_unwrap.id_of_int Eliom_runtime.tyxml_unwrap_id_int)
+    unwrap_tyxml;
+  Eliom_unwrap.register_unwrapper
+    (Eliom_unwrap.id_of_int Eliom_common_base.global_data_unwrap_id_int)
+    unwrap_global_data;
+  ()
+
+let add_string_event_listener o e f capt : unit =
+  let e = Js.string e
+  and capt = Js.bool capt
+  and f e =
+    match f e with
+    | Some s ->
+      let s = Js.string s in
+      (Js.Unsafe.coerce e)##.returnValue := s;
+      Js.def s
+    | None ->
+      Js.undefined
+  in
+  let f = Js.Unsafe.callback f in
+  ignore @@
+  if not (Js.Optdef.test (Js.Unsafe.coerce o)##.addEventListener) then
+    let e = (Js.string "on")##(concat e)
+    and cb e = Js.Unsafe.call (f, e, [||]) in
+    (Js.Unsafe.coerce o)##(attachEvent e cb)
+  else
+    (Js.Unsafe.coerce o)##(addEventListener e f capt)
+
+
+(* == Associate data to state of the History API.
+
+   We store an 'id' in the state, and store data in an association
+   table in the session storage. This allows avoiding "replaceState"
+   that has not a coherent behaviour between Chromium and Firefox
+   (2012/03).
+
+   Storing the scroll position in the state is not required with
+   Chrome or Firefox: they automatically store and restore the
+   correct scrolling while browsing the history. However this
+   behaviour in not required by the HTML5 specification (only
+   suggested). *)
+
+type state =
+  (* TODO store cookies_info in state... *)
+  { template : string option;
+    position : Eliommod_dom.position;
+  }
+
+let random_int =
+  if Js.Optdef.test Js.Unsafe.global##.crypto &&
+     Js.Optdef.test Js.Unsafe.global##.crypto##.getRandomValues
+  then
+    fun () ->
+      Typed_array.unsafe_get
+        (Js.Unsafe.global##.crypto##(getRandomValues
+           (new%js Typed_array.int32Array (1))))
+        0
+  else
+     fun () -> truncate (4294967296. *. (Js.math)##random)
+
+let section_page = Lwt_log.Section.make "eliom:client:page"
+
+type state_id = {
+  session_id : int;
+  state_index : int; (* point in history *)
+}
+
+module Page_status_t = struct
+  type t = Generating | Active | Cached | Dead
+  let to_string st =
+    match st with
+    | Generating -> "Generating"
+    | Active     -> "Active"
+    | Cached     -> "Cached"
+    | Dead       -> "Dead"
+end
+
+type page = {
+  page_unique_id : int;
+  mutable page_id : state_id;
+  mutable url : string;
+  page_status : Page_status_t.t React.S.t;
+  mutable previous_page : int option;
+  set_page_status : ?step:React.step -> Page_status_t.t -> unit;
+  mutable dom : Dom_html.bodyElement Js.t option;
+  mutable reload_function : (unit -> unit -> Eliom_service.result Lwt.t) option
+}
+
+let string_of_page p =
+  Printf.sprintf "%d/%d %s %s %d %b"
+    p.page_unique_id p.page_id.state_index p.url
+    (Page_status_t.to_string @@ React.S.value p.page_status)
+    (match p.previous_page with Some pp -> pp | None -> 0)
+    (match p.dom with Some _ -> true | None -> false)
+
+let set_page_status p st =
+  Lwt_log.ign_debug_f ~section:section_page "Set page status %d/%d: %s"
+    p.page_unique_id p.page_id.state_index (Page_status_t.to_string st);
+  p.set_page_status st
+
+let retire_page p =
+  set_page_status p @@ match p.dom with Some _ -> Cached | None -> Dead
+
+let session_id = random_int ()
+let next_state_id =
+  let last = ref 0 in fun () -> incr last; {session_id; state_index = !last}
+
+let last_page_id = ref (-1)
+let mk_page ?(state_id = next_state_id ()) ?url ?previous_page ~status () =
+  incr last_page_id;
+  Lwt_log.ign_debug_f ~section:section_page "Create page %d/%d"
+    !last_page_id state_id.state_index;
+  let page_status, set_page_status = React.S.create status in
+  (* protect page_status from React.S.stop ~strong:true *)
+  ignore @@ React.S.map (fun _ -> ()) page_status;
+  {page_unique_id = !last_page_id;
+   page_id = state_id;
+   url =
+     (match url with
+      | Some u -> u
+      | None -> fst (Url.split_fragment (Js.to_string Dom_html.window##.location##.href)));
+   page_status;
+   previous_page;
+   set_page_status;
+   dom = None;
+   reload_function = None}
+
+let active_page = ref @@ mk_page ~status:Active ()
+
+let set_active_page p =
+  Lwt_log.ign_debug_f ~section:section_page "Set active page %d/%d"
+    p.page_unique_id p.page_id.state_index;
+  retire_page !active_page;
+  active_page := p;
+  set_page_status !active_page Active
+
+(* This key serves as a hook to access the page the currently running code is
+   generating. *)
+let this_page : page Lwt.key = Lwt.new_key ()
+
+let get_this_page () = match Lwt.get this_page with
+  | Some p -> p
+  | None ->
+    Lwt_log.ign_debug_f ~section:section_page "No page in context";
+    !active_page
+
+let with_new_page ?state_id ?old_page ~replace () f =
+  let state_id = if replace then Some (!active_page).page_id else state_id in
+  let url, previous_page = match old_page with
+    | Some o -> Some o.url, o.previous_page
+    | None -> None, None
+  in
+  let page = mk_page ?state_id ?url ?previous_page ~status:Generating () in
+  Lwt.with_value this_page (Some page) f
+
+module History = struct
+  let section = Lwt_log.Section.make "eliom:client:history"
+
+  let get, set =
+    let history = ref [!active_page] in
+    let set h =
+      Lwt_log.ign_debug_f ~section "setting history:\n%s"
+        (String.concat "\n" @@ List.map string_of_page !history);
+      history := h
+    in
+    (fun () -> !history), set
+
+  let find_by_state_index i =
+    try Some (List.find (fun p -> p.page_id.state_index = i) (get ()))
+    with Not_found -> None
+
+  let split_rev_past_future index =
+    let rec loop past = function
+      | [] -> past, []
+      | x :: future when x.page_id.state_index = index ->
+          x :: past, future
+      | x :: l -> loop (x :: past) l
+    in
+    loop [] (get ())
+
+  let advance n =
+    let new_history, future =
+      match n.previous_page with
+      | None -> get (), []
+      | Some pp ->
+          let rev_past, future = split_rev_past_future pp in
+          List.rev (n :: rev_past), future
+    in
+    List.iter (fun p -> set_page_status p Dead) future;
+    set new_history
+
+  let replace n =
+    let maybe_replace p =
+      if p.page_id.state_index = n.page_id.state_index
+      then (set_page_status p Dead; n)
+      else p
+    in
+    set @@ List.map maybe_replace @@ get ()
+
+  let past () =
+    let index = !active_page.page_id.state_index in
+    let rev_past, _ = split_rev_past_future index in
+    List.map (fun p -> p.url) @@
+      match rev_past with
+      | _present :: past -> past
+      | [] -> []
+
+  let future () =
+    let index = !active_page.page_id.state_index in
+    let _, future = split_rev_past_future index in
+    List.map (fun p -> p.url) future
+
+  let max_num_doms = ref None
+
+  let garbage_collect_doms () =
+    match !max_num_doms with None -> () | Some max_num_doms ->
+    let interleave l r =
+      let take_from_l = ref false in
+      let alternate _ _ =
+        take_from_l := not !take_from_l;
+        if !take_from_l then -1 else 1
+      in
+      List.merge alternate l r
+    in
+    let rev_past, future = split_rev_past_future !active_page.page_id.state_index in
+    let pages_ordered_by_distance_from_present = interleave rev_past future in
+    let num_doms = ref 0 in
+    let maybe_delete_dom p =
+      match p.dom with
+      | None -> ()
+      | Some _ ->
+          num_doms := !num_doms + 1;
+          if !num_doms > max_num_doms
+            then (p.dom <- None; set_page_status p Dead)
+    in
+    List.iter maybe_delete_dom pages_ordered_by_distance_from_present
+end
+
+let advance_page () =
+  let new_page = get_this_page () in
+  if new_page != !active_page then begin
+    new_page.previous_page <- Some !active_page.page_id.state_index;
+    begin match History.find_by_state_index new_page.page_id.state_index with
+      | Some _ -> ()
+      | None -> History.advance new_page
+    end;
+    set_active_page new_page
+  end
+
+let state_key {session_id; state_index} =
+  Js.string (Printf.sprintf "state_history_%x_%x" session_id state_index)
+
+
+let get_state ({session_id; state_index} as state_id) : state =
+  Js.Opt.case
+    (Js.Optdef.case ( Dom_html.window##.sessionStorage )
+       (fun () ->
+          (* We use this only when the history API is
+             available. Sessionstorage seems to be available
+             everywhere the history API exists. *)
+          Lwt_log.raise_error_f ~section "sessionStorage not available")
+       (fun s -> s##(getItem (state_key state_id))))
+    (fun () -> raise Not_found)
+    (fun s -> Json.unsafe_input s)
+let set_state i (v:state) =
+  Js.Optdef.case ( Dom_html.window##.sessionStorage )
+    (fun () -> () )
+    (fun s -> s##(setItem (state_key i) (Json.output v)))
+let update_state () =
+  set_state !active_page.page_id
+    { template = Eliom_request_info.get_request_template ();
+      position = Eliommod_dom.getDocumentScroll () }
 
 let lock_request_handling = Eliom_request.lock
 let unlock_request_handling = Eliom_request.unlock
@@ -205,7 +970,7 @@ let init () =
       Some h -> Dom.removeEventListener h; onload_handler := None
     | None   -> ()
     end;
-    set_initial_load ();
+    Eliom_client_core.set_initial_load ();
     Lwt.async
       (fun () ->
          if !Eliom_config.debug_timings
@@ -237,13 +1002,13 @@ let init () =
              root js_data.Eliom_common.ejs_event_handler_table
              closure_nodeList
          in
-         reset_request_nodes ();
+         Eliom_client_core.reset_request_nodes ();
          Eliommod_dom.add_formdata_hack_onclick_handler ();
          if not (is_client_app ()) then
            dom_history_ready := true;
          let load_callbacks =
-           flush_onload () @ [ onload_closure_nodes; broadcast_load_end ] in
-         Lwt_mutex.unlock load_mutex;
+           flush_onload () @ [ onload_closure_nodes; Eliom_client_core.broadcast_load_end ] in
+         Lwt_mutex.unlock Eliom_client_core.load_mutex;
          run_callbacks load_callbacks;
          if !Eliom_config.debug_timings
          then Firebug.console##(timeEnd (Js.string "onload"));
@@ -451,13 +1216,13 @@ let call_ocaml_service
       ?keep_nl_params ?nl_params ?keep_get_na_params
       ?progress ?upload_progress ?override_mime_type
       get_params post_params in
-  let%lwt () = Lwt_mutex.lock load_mutex in
-  set_loading_phase ();
+  let%lwt () = Lwt_mutex.lock Eliom_client_core.load_mutex in
+  Eliom_client_core.set_loading_phase ();
   let%lwt content, request_data = unwrap_caml_content content in
   do_request_data request_data;
-  reset_request_nodes ();
-  let load_callbacks = [broadcast_load_end] in
-  Lwt_mutex.unlock load_mutex;
+  Eliom_client_core.reset_request_nodes ();
+  let load_callbacks = [Eliom_client_core.broadcast_load_end] in
+  Lwt_mutex.unlock Eliom_client_core.load_mutex;
   run_callbacks load_callbacks;
   match content with
   | `Success result -> Lwt.return result
@@ -519,10 +1284,7 @@ let url_fragment_prefix = "!"
 let url_fragment_prefix_with_sharp = "#!"
 
 let reload_function = ref None
-let reload_functions = ref []
 let set_reload_function f = reload_function := Some f
-
-(* TODO: unify History and reload_functions *)
 
 let set_max_dist_history_doms limit =
   History.max_num_doms := limit;
@@ -598,9 +1360,7 @@ let stash_reload_function f =
   let id = state_id.state_index in
   Lwt_log.ign_debug_f ~section:section_page
     "Update reload function for page %d" id;
-  reload_functions :=
-    (id, f) ::
-    (List.filter (fun (id', _) -> id <> id') !reload_functions)
+  page.reload_function <- Some f
 
 let change_url_string ~replace uri =
   Lwt_log.ign_debug_f ~section:section_page "Change url string: %s" uri;
@@ -612,8 +1372,7 @@ let change_url_string ~replace uri =
     if replace then begin
       Opt.iter stash_reload_function !reload_function;
       Dom_html.window##.history##replaceState
-        (Js.Opt.return (this_page.page_id,
-                        Js.string full_uri))
+        (Js.Opt.return (this_page.page_id, Js.string full_uri))
         (Js.string "")
         (if !Eliom_common.is_client_app then Js.null else
          Js.Opt.return (Js.string uri))
@@ -621,11 +1380,6 @@ let change_url_string ~replace uri =
     else begin
       update_state();
       let state_id = this_page.page_id in
-      let erase_future () =
-        reload_functions :=
-          List.filter (fun (id, _) -> id <= state_id.state_index)
-            !reload_functions;
-      in erase_future ();
       Opt.iter stash_reload_function !reload_function;
       Dom_html.window##.history##pushState
         (Js.Opt.return (this_page.page_id, Js.string full_uri))
@@ -688,12 +1442,12 @@ let set_template_content ~replace ~uri ?fragment =
      | None -> change_url_string ~replace uri
      | Some fragment ->
        change_url_string ~replace (uri ^ "#" ^ fragment));
-    let%lwt () = Lwt_mutex.lock load_mutex in
+    let%lwt () = Lwt_mutex.lock Eliom_client_core.load_mutex in
     let%lwt (), request_data = unwrap_caml_content content in
     do_request_data request_data;
-    reset_request_nodes ();
+    Eliom_client_core.reset_request_nodes ();
     let load_callbacks = flush_onload () in
-    Lwt_mutex.unlock load_mutex;
+    Lwt_mutex.unlock Eliom_client_core.load_mutex;
     run_callbacks load_callbacks;
     Lwt.return_unit
   and cancel () = Lwt.return_unit in
@@ -735,7 +1489,7 @@ let set_content_local ?offset ?fragment new_page =
   Lwt_log.ign_debug ~section:section_page "Set content local";
   let locked = ref true in
   let recover () =
-    if !locked then Lwt_mutex.unlock load_mutex;
+    if !locked then Lwt_mutex.unlock Eliom_client_core.load_mutex;
     if !Eliom_config.debug_timings then
       Firebug.console##(timeEnd (Js.string "set_content_local"))
   and really_set () =
@@ -751,9 +1505,9 @@ let set_content_local ?offset ?fragment new_page =
     replace_page ~do_insert_base:true new_page;
     Eliommod_dom.add_formdata_hack_onclick_handler ();
     dom_history_ready := true;
-    let load_callbacks = flush_onload () @ [broadcast_load_end] in
+    let load_callbacks = flush_onload () @ [Eliom_client_core.broadcast_load_end] in
     locked := false;
-    Lwt_mutex.unlock load_mutex;
+    Lwt_mutex.unlock Eliom_client_core.load_mutex;
     (* run callbacks upon page activation (or now), but just once *)
     Page_status.onactive ~once:true (fun () -> run_callbacks load_callbacks);
     scroll_to_fragment ?offset fragment;
@@ -764,8 +1518,8 @@ let set_content_local ?offset ?fragment new_page =
   in
   let cancel () = recover (); Lwt.return_unit in
   try%lwt
-    let%lwt () = Lwt_mutex.lock load_mutex in
-    set_loading_phase ();
+    let%lwt () = Lwt_mutex.lock Eliom_client_core.load_mutex in
+    Eliom_client_core.set_loading_phase ();
     if !Eliom_config.debug_timings
     then Firebug.console##(time (Js.string "set_content_local"));
     run_onunload_wrapper really_set cancel
@@ -797,7 +1551,7 @@ let set_content ~replace ~uri ?offset ?fragment content =
       set_uri ~replace ?fragment uri;
       (* Convert the DOM nodes from XML elements to HTML elements. *)
       let fake_page =
-        Eliommod_dom.html_document content registered_process_node
+        Eliommod_dom.html_document content Eliom_client_core.registered_process_node
       in
       (* insert_base fake_page; Now done server side *)
       (* Inline CSS in the header to avoid the "flashing effect".
@@ -849,13 +1603,13 @@ let set_content ~replace ~uri ?offset ?fragment content =
       in
       (* The request node table must be empty when nodes received via
          call_ocaml_service are unwrapped. *)
-      reset_request_nodes ();
+      Eliom_client_core.reset_request_nodes ();
       Eliommod_dom.add_formdata_hack_onclick_handler ();
       dom_history_ready := true;
       locked := false;
       let load_callbacks =
-        flush_onload () @ [onload_closure_nodes; broadcast_load_end] in
-      Lwt_mutex.unlock load_mutex;
+        flush_onload () @ [onload_closure_nodes; Eliom_client_core.broadcast_load_end] in
+      Lwt_mutex.unlock Eliom_client_core.load_mutex;
       run_callbacks load_callbacks;
       scroll_to_fragment ?offset fragment;
       advance_page ();
@@ -863,13 +1617,13 @@ let set_content ~replace ~uri ?offset ?fragment content =
         Firebug.console##(timeEnd (Js.string "set_content"));
       Lwt.return_unit
     and recover () =
-      if !locked then Lwt_mutex.unlock load_mutex;
+      if !locked then Lwt_mutex.unlock Eliom_client_core.load_mutex;
       if !Eliom_config.debug_timings
       then Firebug.console##(timeEnd (Js.string "set_content"))
     in
     try%lwt
-      let%lwt () = Lwt_mutex.lock load_mutex in
-      set_loading_phase ();
+      let%lwt () = Lwt_mutex.lock Eliom_client_core.load_mutex in
+      Eliom_client_core.set_loading_phase ();
       if !Eliom_config.debug_timings
       then Firebug.console##(time (Js.string "set_content"));
       let g () = recover (); Lwt.return_unit in
@@ -1272,13 +2026,13 @@ let change_page_post_form ?cookies_info ?tmpl form full_uri =
        set_content ~replace:false ~uri ?fragment content )
 
 let _ =
-  change_page_uri_ :=
+  Eliom_client_core.change_page_uri_ :=
     (fun ?cookies_info ?tmpl href ->
        Lwt.ignore_result (change_page_uri_a ?cookies_info ?tmpl href));
-  change_page_get_form_ :=
+  Eliom_client_core.change_page_get_form_ :=
     (fun ?cookies_info ?tmpl form href ->
        Lwt.ignore_result (change_page_get_form ?cookies_info ?tmpl form href));
-  change_page_post_form_ :=
+  Eliom_client_core.change_page_post_form_ :=
     (fun ?cookies_info ?tmpl form href ->
        Lwt.ignore_result (change_page_post_form ?cookies_info ?tmpl form href))
 
@@ -1307,6 +2061,8 @@ let restore_history_dom id =
     end;
     set_active_page page
   | _ -> Lwt_log.ign_error ~section "cannot find DOM in history"
+
+let wait_load_end = Eliom_client_core.wait_load_end
 
 let () =
 
@@ -1375,17 +2131,19 @@ let () =
                 if session_changed then raise Not_found;
                 Lwt_log.ign_debug ~section:section_page
                   "revisit: session has not changed";
-                let rf = List.assq state_id.state_index !reload_functions in
-                reload_function := Some rf;
-                let%lwt () = run_lwt_callbacks ev (flush_onchangepage ()) in
                 let old_page = History.find_by_state_index state_id.state_index in
+                let rf = Option.bind old_page @@ fun {reload_function = rf} -> rf in
+                reload_function := rf;
+                let%lwt () = run_lwt_callbacks ev (flush_onchangepage ()) in
                 with_new_page ~state_id ?old_page ~replace:false () @@ fun () ->
                 set_current_uri uri;
                 History.replace (get_this_page ());
                 let%lwt () =
-                  match%lwt rf () () with
-                  | Eliom_service.Dom d -> set_content_local d
-                  | r -> handle_result ~uri:(get_current_uri ()) ~replace:true (Lwt.return r)
+                  match rf with
+                  | None -> Lwt.return_unit
+                  | Some f -> (match%lwt f () () with
+                              | Eliom_service.Dom d -> set_content_local d
+                              | r -> handle_result ~uri:(get_current_uri ()) ~replace:true (Lwt.return r))
                 in
                 scroll_to_fragment ~offset:state.position fragment;
                 Lwt.return_unit
@@ -1502,5 +2260,9 @@ let () =
 let get_application_name = Eliom_process.get_application_name
 
 let set_client_html_file = Eliom_common.set_client_html_file
+
+let middleClick = Eliom_client_core.middleClick
+
+type client_form_handler = Eliom_client_core.client_form_handler
 
 module Additional_headers = Eliom_request.Additional_headers
