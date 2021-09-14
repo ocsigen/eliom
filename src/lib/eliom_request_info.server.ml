@@ -331,6 +331,9 @@ let get_ri () =
   get_ri_sp sp
 
 let get_tmp_filename fi = fi.Ocsigen_extensions.tmp_filename
+let get_filesize fi = fi.Ocsigen_extensions.filesize
+let get_original_filename fi = fi.Ocsigen_extensions.raw_original_filename
+let get_file_content_type fi = fi.file_content_type
 
 let get_sitedata () =
   find_sitedata "get_sitedata"
