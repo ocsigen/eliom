@@ -1179,20 +1179,20 @@ let _ = Eliom_registration.Html.register cookies
 
 
 *wiki*)
-let mystore = Ocsipersist.open_store "eliomexamplestore2"
+let mystore = Ocsipersist.Store.open_store "eliomexamplestore2"
 
 let count2 =
   let next =
     let cthr =
       mystore >>= fun store ->
-      Ocsipersist.make_persistent store "countpage" 0 in
+      Ocsipersist.Store.make_persistent store "countpage" 0 in
     let mutex = Lwt_mutex.create () in
     (fun () ->
       cthr >>= fun c ->
       Lwt_mutex.lock mutex >>= fun () ->
-      Ocsipersist.get c >>= fun oldc ->
+      Ocsipersist.Store.get c >>= fun oldc ->
       let newc = oldc + 1 in
-      Ocsipersist.set c newc >>= fun () ->
+      Ocsipersist.Store.set c newc >>= fun () ->
       Lwt_mutex.unlock mutex;
       Lwt.return newc)
   in

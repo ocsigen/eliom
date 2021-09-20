@@ -219,10 +219,12 @@ let create_project ?preds ~without_asking ~name ~env ~source_dir ~dest_dir () =
 
 let env name =
   let db =
-    if Utils.has_package "ocsigenserver.ext.ocsipersist-dbm"
+    if Utils.has_package "ocsipersist.dbm"
     then "dbm"
-    else if Utils.has_package "ocsigenserver.ext.ocsipersist-sqlite"
+    else if Utils.has_package "ocsipersist.sqlite"
     then "sqlite"
+    else if Utils.has_package "ocsipersist.pgsql"
+    then "pgsql"
     else "dbm" in
   [
     "PROJECT_NAME", name;

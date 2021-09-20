@@ -5,6 +5,7 @@ S src/*
 PKG js_of_ocaml
 PKG lwt
 PKG calendar
+PKG ocsipersist
 PKG ocsigenserver
 PKG react
 PKG reactiveData

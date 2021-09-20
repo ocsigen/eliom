@@ -884,6 +884,8 @@ let get_session_service_table_if_exists ~sp
 (*****************************************************************************)
 (** {2 persistent sessions} *)
 
+module Ocsipersist = Ocsipersist.Polymorphic
+
 type 'a persistent_table =
     (Eliom_common.user_scope *
        bool *

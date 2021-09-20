@@ -45,6 +45,8 @@ module Persistent_cookies = Eliom_common.Persistent_cookies
 let number_of_persistent_tables () =
   List.length !perstables
 
+module Ocsipersist = Ocsipersist.Polymorphic
+
 let number_of_persistent_table_elements () =
   List.fold_left
     (fun thr t ->

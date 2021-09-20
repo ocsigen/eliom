@@ -1,3 +1,6 @@
+===== 9.0 (2021-10-16) =====
+* compatibility with ocsigenserver.5.0.0 (outsourced Ocsipersist)
+
 ===== 8.8 (2021-10-05) =====
 * rework Eliom_client
 * more debugging info

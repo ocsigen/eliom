@@ -1324,7 +1324,7 @@ let perstables = ref Perstables.empty
 
 let create_persistent_table name =
   perstables := Perstables.add name !perstables;
-  Ocsipersist.open_table name
+  Ocsipersist.Polymorphic.open_table name
 
 module Persistent_cookies = struct
   (* Another table, containing the session info for each cookie *)
@@ -1340,6 +1340,8 @@ module Persistent_cookies = struct
 
   type date = float
   type cookie = full_state_name * date option * timeout * perssessgrp option
+
+  module Ocsipersist = Ocsipersist.Functorial
 
   module Cookies =
     Ocsipersist.Table
@@ -1392,8 +1394,8 @@ let remove_from_all_persistent_tables key =
   Persistent_cookies.Cookies.remove key >>= fun () ->
   Perstables.fold (* could be replaced by a parallel map *)
     (fun thr t -> thr >>= fun () ->
-      Ocsipersist.open_table t >>= fun table ->
-      Ocsipersist.remove table key >>= Lwt_unix.yield)
+      Ocsipersist.Polymorphic.open_table t >>= fun table ->
+      Ocsipersist.Polymorphic.remove table key >>= Lwt_unix.yield)
     return_unit
     !perstables
 

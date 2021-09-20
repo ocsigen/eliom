@@ -14,7 +14,7 @@ true:keep_locs
 <lib/server/*.ml>:package(js_of_ocaml-ppx)
 
 <lib/server/*.ml{,i}>:thread
-<lib/server/*.ml{,i}>:package(lwt,ocsigenserver,ocsigenserver.ext,tyxml.functor)
+<lib/server/*.ml{,i}>:package(lwt,ocsigenserver,ocsipersist,tyxml.functor)
 <lib/server/*.ml{,i}>:package(react,lwt_react,js_of_ocaml)
 <lib/server/*.ml{,i}>:package(js_of_ocaml-ppx_deriving_json)
 <lib/server/*.ml{,i}>:package(xml-light)
@@ -35,7 +35,7 @@ true:keep_locs
 
 <lib/server/monitor/*.ml>:package(lwt_ppx)
 <lib/server/monitor/*.ml{,i}>:thread
-<lib/server/monitor/*.ml{,i}>:package(lwt,ocsigenserver,ocsigenserver.ext,tyxml)
+<lib/server/monitor/*.ml{,i}>:package(lwt,ocsigenserver,ocsipersist,tyxml)
 <lib/server/monitor/*.ml{,i}>:I(src/lib/server)
 
 <ppx/**/*>: package(ppxlib,ppxlib.metaquot,compiler-libs.bytecomp)
