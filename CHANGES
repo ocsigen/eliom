@@ -1,3 +1,11 @@
+===== 8.8 (2021-10-05) =====
+* rework Eliom_client
+* more debugging info
+* restore functions to access uploaded file info
+
+===== 8.6 (2021-07-26) =====
+* improvements of history handling and DOM caching
+
 ===== 8.5 (2020-10-28) ====
 * Compatibility with ocsigenserver 4.0
 
