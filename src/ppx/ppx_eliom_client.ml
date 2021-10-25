@@ -1,13 +1,12 @@
-open Migrate_parsetree
-open Ast_408
-open Parsetree
-open Asttypes
+open Ppxlib
 open Ast_helper
 
-module AC = Ast_convenience_408
-module AM = Ast_mapper
-
 open Ppx_eliom_utils
+
+let attribute_of_warning loc s =
+  Attr.mk
+    {loc; txt = "ocaml.ppwarning" }
+    (PStr ([Str.eval ~loc (Exp.constant (Pconst_string (s, loc, None)))]))
 
 module Pass = struct
 
@@ -15,19 +14,17 @@ module Pass = struct
 
   (* Replace every escaped identifier [v] with
      [Eliom_client_core.Syntax_helpers.get_escaped_value v] *)
-  let map_get_escaped_values =
-    let mapper =
-      {Ast_mapper.default_mapper with
-       expr = (fun mapper e ->
+  let map_get_escaped_values expr =
+    (object
+       inherit Ppxlib.Ast_traverse.map as super
+       method expression e =
          match e.pexp_desc with
-         | Pexp_ident {txt} when Mli.is_escaped_ident @@ Longident.last txt ->
+         | Pexp_ident {txt}
+              when Mli.is_escaped_ident @@ Longident.last_exn txt ->
            [%expr Eliom_client_core.Syntax_helpers.get_escaped_value [%e e] ]
            [@metaloc e.pexp_loc]
-         | _ -> AM.default_mapper.expr mapper e
-       );
-      }
-    in
-    fun expr -> mapper.expr mapper expr
+         | _ -> super#expression e
+     end)#expression expr
 
   let push_escaped_binding, flush_escaped_bindings =
     let server_arg_ids = ref [] in
@@ -95,7 +92,7 @@ module Pass = struct
            let args = List.map Pat.var args in
            [%expr
              Eliom_client_core.Syntax_helpers.register_client_closure
-               [%e AC.str num]
+               [%e str num]
                (fun [%p pat_args args] ->
                   ([%e map_get_escaped_values expr] : [%t typ]))
            ] [@metaloc expr.pexp_loc]
@@ -104,7 +101,7 @@ module Pass = struct
     in
     match registrations with
     | [] -> []
-    | _ -> [Str.eval (AC.sequence registrations)]
+    | _ -> [Str.eval (sequence registrations)]
 
   (* We hoist the body of client fragments to enforce the correct scoping:
      Identifiers declared earlier in the client section should not be
@@ -201,7 +198,8 @@ module Pass = struct
     match context, escaped_bindings with
     | `Server, _ ->
       (* We are in a server fragment, this code should always be discarded. *)
-      Exp.extension @@ AM.extension_of_error @@ Location.errorf "Eliom: ICE"
+      Exp.extension @@ Location.Error.to_extension @@
+      Location.Error.make ~loc ~sub:[] "Eliom: ICE"
     | `Shared, [] ->
       [%expr [%e frag_eid] ()][@metaloc loc]
     | `Shared, _ ->
@@ -222,6 +220,21 @@ module Pass = struct
         [%expr [%e frag_eid] [%e args]][@metaloc loc]
 
 
+  let check_no_variable =
+    (object
+       inherit Ppxlib.Ast_traverse.map as super
+       method core_type typ =
+         match typ with
+         | {ptyp_desc = Ptyp_var _ ; ptyp_loc = loc} ->
+            let attr =
+              attribute_of_warning loc
+                "The type of this injected value contains a type variable \
+                 that could be wrongly inferred."
+            in
+            { typ with ptyp_attributes = attr :: typ.ptyp_attributes;
+                       ptyp_loc = loc }
+         | _ -> super#core_type typ
+     end)#core_type
 
   let escape_inject
         ~loc:loc0 ?ident ~(context:Context.escape_inject) ~id ~unsafe expr =
@@ -229,23 +242,7 @@ module Pass = struct
     let frag_eid = eid id in
 
     let assert_no_variables t =
-      let typ mapper = function
-        | {ptyp_desc = Ptyp_var _ } as typ ->
-          let attr =
-            AM.attribute_of_warning loc
-              "The type of this injected value contains a type variable \
-               that could be wrongly inferred."
-          in
-          { typ with ptyp_attributes = attr :: typ.ptyp_attributes;
-                     ptyp_loc = loc }
-        | typ -> AM.default_mapper.typ mapper typ
-      in
-      if unsafe then
-        t
-      else
-        let m = { AM.default_mapper with typ } in
-        m.AM.typ m t
-    in
+      if unsafe then t else check_no_variable t in
 
     match context with
 
@@ -266,10 +263,10 @@ module Pass = struct
       let typ = assert_no_variables typ in
       let ident = match ident with
         | None   -> [%expr None]
-        | Some i -> [%expr Some [%e AC.str i]]
+        | Some i -> [%expr Some [%e str i]]
       in
       let (u, d) = Mli.get_injected_ident_info id.txt in
-      let es = (AC.str @@ Printf.sprintf "%s%d" u d)[@metaloc id.loc] in
+      let es = (str @@ Printf.sprintf "%s%d" u d)[@metaloc id.loc] in
       [%expr
         (Eliom_client_core.Syntax_helpers.get_injection
            ?ident:([%e ident])
@@ -290,5 +287,5 @@ end
 include Make(Pass)
 
 let () =
-  Migrate_parsetree.Driver.register ~name:"ppx_eliom_client" ~args:driver_args
-    Migrate_parsetree.Versions.ocaml_408 mapper
+  Ppxlib.Driver.register_transformation
+    ~impl:mapper#structure ~intf:mapper#signature "ppx_eliom_client"

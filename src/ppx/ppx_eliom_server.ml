@@ -20,13 +20,8 @@
 
 (* This prepocessor generates the module to be loaded by Ocsigen server *)
 
-open Migrate_parsetree
-open Ast_408
-open Parsetree
-open Asttypes
+open Ppxlib
 open Ast_helper
-
-module AC = Ast_convenience_408
 
 open Ppx_eliom_utils
 
@@ -154,12 +149,12 @@ module Pass = struct
            let frag_eid = eid {txt;loc} in
            let ident = match ident with
              | None -> [%expr None]
-             | Some i -> [%expr Some [%e AC.str i ]] in
+             | Some i -> [%expr Some [%e str i ]] in
            let (_, num) = Mli.get_injected_ident_info txt in
            let f_id = {txt = txt ^ "_f"; loc} in
            push_nongen_str_item ~fragment:false ~unsafe loc f_id;
            [%expr
-             ([%e AC.int num],
+             ([%e int num],
               Eliom_lib.to_poly [%e
                                     [%expr [%e eid f_id] [%e frag_eid ]]
                                     [@metaloc one_char_location loc0]
@@ -229,7 +224,7 @@ module Pass = struct
             [%expr
                 ( (Eliom_syntax.client_value
                      ~pos:([%e position loc ])
-                     [%e AC.str num ]
+                     [%e str num ]
                      [%e e ])
                   : [%t typ ] Eliom_client_value.t)
             ][@metaloc one_char_location loc]
@@ -264,5 +259,5 @@ end
 include Make(Pass)
 
 let () =
-  Migrate_parsetree.Driver.register ~name:"ppx_eliom_server" ~args:driver_args
-    Migrate_parsetree.Versions.ocaml_408 mapper
+  Ppxlib.Driver.register_transformation
+    ~impl:mapper#structure ~intf:mapper#signature "ppx_eliom_server"

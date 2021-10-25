@@ -80,7 +80,7 @@ package "ppx" (
     archive(ppx_driver,native) = "ppx_eliom_server.cmxa"
     plugin(ppx_driver,byte) = "ppx_eliom_server.cma"
     plugin(ppx_driver,native) = "ppx_eliom_server.cmxs"
-    requires(ppx_driver) = "ocaml-migrate-parsetree ppx_tools_versioned"
+    requires(ppx_driver) = "ppxlib"
     library_kind = "ppx_rewriter"
   )
   package "client" (
@@ -90,7 +90,7 @@ package "ppx" (
     archive(ppx_driver,native) = "ppx_eliom_client.cmxa"
     plugin(ppx_driver,byte) = "ppx_eliom_client.cma"
     plugin(ppx_driver,native) = "ppx_eliom_client.cmxs"
-    requires(ppx_driver) = "ocaml-migrate-parsetree ppx_tools_versioned"
+    requires(ppx_driver) = "ppxlib"
     library_kind = "ppx_rewriter"
   )
   package "type" (
@@ -100,7 +100,7 @@ package "ppx" (
     archive(ppx_driver,native) = "ppx_eliom_type.cmxa"
     plugin(ppx_driver,byte) = "ppx_eliom_type.cma"
     plugin(ppx_driver,native) = "ppx_eliom_type.cmxs"
-    requires(ppx_driver) = "ocaml-migrate-parsetree ppx_tools_versioned"
+    requires(ppx_driver) = "ppxlib"
     library_kind = "ppx_rewriter"
   )
 )

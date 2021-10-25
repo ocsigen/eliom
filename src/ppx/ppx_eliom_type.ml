@@ -34,13 +34,8 @@
      $global_id$ := Some $expr$
 
 *)
-open Migrate_parsetree
-open Ast_408
-open Parsetree
-open Asttypes
+open Ppxlib
 open Ast_helper
-
-module AC = Ast_convenience_408
 
 open Ppx_eliom_utils
 
@@ -63,7 +58,7 @@ module Pass = struct
     let flush () =
       let res = List.rev (List.map snd !typing_expr) in
       typing_expr := [];
-      AC.sequence res
+      sequence res
     in
     add, flush
 
@@ -117,9 +112,7 @@ module Pass = struct
       [%e frag_eid] :=
         Some ( Eliom_syntax.client_value "" 0 :
                  [%t typ] Eliom_client_value.t);
-      match ! [%e frag_eid] with
-      | Some x -> (x : _ Eliom_client_value.t)
-      | None -> assert false
+      (Option.get (! [%e frag_eid]) : _ Eliom_client_value.t)
     ]
 
   let escape_inject
@@ -143,5 +136,5 @@ end
 include Make(Pass)
 
 let () =
-  Migrate_parsetree.Driver.register ~name:"ppx_eliom_types" ~args:driver_args
-    Migrate_parsetree.Versions.ocaml_408 mapper
+  Ppxlib.Driver.register_transformation
+    ~impl:mapper#structure "ppx_eliom_types"
