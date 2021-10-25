@@ -1232,11 +1232,11 @@ let get_session_info ~sitedata ~req previous_extension_err =
          taken by other extensions, with new parameters.  Initial
          parameters are kept in si.  *)
       ~get_params_flat:get_params
-      ~post_data:(
+      ?post_data:(
         if no_post_param then
           None
         else
-          Some (post_params, file_params)
+          Some (Some (post_params, file_params))
       ),
     {si_service_session_cookies= service_cookies;
      si_data_session_cookies= data_cookies;
