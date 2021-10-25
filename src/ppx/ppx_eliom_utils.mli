@@ -1,7 +1,24 @@
-open Migrate_parsetree.Ast_408
+open Ppxlib
 open Parsetree
 
 (** {2 Various helping functions} *)
+
+val sequence :
+  ?loc:Location.t ->
+  ?attrs:Parsetree.attribute list ->
+  Parsetree.expression list ->
+  Parsetree.expression
+
+val str :
+  ?loc:Location.t ->
+  ?attrs:Parsetree.attribute list  ->
+  string ->
+  Parsetree.expression
+val int :
+  ?loc:Location.t ->
+  ?attrs:Parsetree.attribute list  ->
+  int ->
+  Parsetree.expression
 
 (** Name of the variable which holds the hash of the file. *)
 val id_file_hash : Location.t -> string Location.loc
@@ -97,7 +114,6 @@ end
 
 val driver_args : (Arg.key * Arg.spec * Arg.doc) list
 
-module Make (P : Pass) : sig
-  val mapper :
-    Migrate_parsetree.Versions.OCaml_408.types Migrate_parsetree.Driver.rewriter
+module Make (_ : Pass) : sig
+  val mapper : Ppxlib.Ast_traverse.map
 end
