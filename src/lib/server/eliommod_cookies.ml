@@ -25,7 +25,8 @@ open Lwt
 include Eliom_cookies_base
 
 (*****************************************************************************)
-let make_new_session_id = Ocsigen_lib.make_cryptographic_safe_string
+let make_new_session_id () =
+  Ocsigen_lib.make_cryptographic_safe_string () ^ "H"
 
 
 
@@ -49,9 +50,11 @@ let get_cookie_info
     Eliom_common.Full_state_name_table.fold
       (fun name value (oktable, failedlist) ->
         try
+          let hvalue = Eliom_common.Hashed_cookies.hash value in
           let full_state_name, ta, expref, timeout_ref, sessgrpref, sessgrpnode =
             Eliom_common.SessionCookies.find
-              sitedata.Eliom_common.session_services value
+              sitedata.Eliom_common.session_services
+              (Eliom_common.Hashed_cookies.to_string hvalue)
           in
           Eliommod_sessiongroups.Serv.up sessgrpnode;
           match !expref with
@@ -71,7 +74,8 @@ let get_cookie_info
                      (Some value        (* value sent by the browser *),
                       ref
                         (Eliom_common.SC
-                           {Eliom_common.sc_value= value  (* value *);
+                           {Eliom_common.sc_hvalue= hvalue  (* value *);
+                            Eliom_common.sc_set_value= `None;
                             Eliom_common.sc_table= ref ta (* the table of session services *);
                             Eliom_common.sc_timeout= timeout_ref (* user timeout ref *);
                             Eliom_common.sc_exp= expref  (* expiration date (server side) *);
@@ -88,7 +92,7 @@ let get_cookie_info
         with Not_found ->
           ((Eliom_common.Full_state_name_table.add
               name
-              (Some value                 (* value sent by the browser *),
+              (Some value              (* value sent by the browser *),
                ref Eliom_common.SCData_session_expired
                                           (* ask the browser
                                              to remove the cookie *))
@@ -105,9 +109,11 @@ let get_cookie_info
       (fun value ->
         lazy
           (try
+            let hvalue = Eliom_common.Hashed_cookies.hash value in
             let full_state_name, expref, timeout_ref, sessgrpref, sessgrpnode =
               Eliom_common.SessionCookies.find
-                sitedata.Eliom_common.session_data value
+                sitedata.Eliom_common.session_data
+                (Eliom_common.Hashed_cookies.to_string hvalue)
             in
             Eliommod_sessiongroups.Serv.up sessgrpnode;
             match !expref with
@@ -122,7 +128,8 @@ let get_cookie_info
                   (Some value        (* value sent by the browser *),
                    ref
                      (Eliom_common.SC
-                        {Eliom_common.dc_value= value       (* value *);
+                        {Eliom_common.dc_hvalue= hvalue       (* value *);
+                         Eliom_common.dc_set_value= `None;
                          Eliom_common.dc_timeout= timeout_ref
                           (* user timeout ref *);
                          Eliom_common.dc_exp= expref (* expiration date
@@ -151,15 +158,21 @@ let get_cookie_info
         lazy
           (catch
              (fun () ->
-               Eliom_common.Persistent_cookies.Cookies.find value >>=
+               let hvalue = Eliom_common.Hashed_cookies.hash value in
+               let hvalue_string =
+                 Eliom_common.Hashed_cookies.to_string hvalue in
+               Eliom_common.Persistent_cookies.Cookies.find
+                 (Eliom_common.Hashed_cookies.to_string hvalue)
+               >>=
                fun (full_state_name, persexp, perstimeout, sessgrp) ->
 
-                 Eliommod_sessiongroups.Pers.up value sessgrp >>= fun () ->
+               Eliommod_sessiongroups.Pers.up hvalue_string sessgrp
+               >>= fun () ->
                  match persexp with
                  | Some t when t < now ->
                      (* session expired by timeout *)
                      Eliom_common.remove_from_all_persistent_tables
-                       value >>= fun () ->
+                       hvalue_string >>= fun () ->
                        return
                          (Some (value         (* value at the beginning
                                                  of the request *),
@@ -186,8 +199,9 @@ let get_cookie_info
                               sessgrp      (* session group at beginning *)),
                         (ref
                            (Eliom_common.SC
-                              {Eliom_common.pc_value= value
+                              {Eliom_common.pc_hvalue= hvalue
                                  (* value *);
+                               Eliom_common.pc_set_value= `None;
                                Eliom_common.pc_timeout= ref perstimeout
                                  (* user persistent timeout ref *);
                                Eliom_common.pc_cookie_exp=
@@ -254,7 +268,7 @@ let new_data_cookie_table () : Eliom_common.datacookiestable =
 (* Create the table of cookies to send to the browser or to unset            *)
 (* (from cookie_info)                                                        *)
 
-let compute_session_cookies_to_send
+let compute_session_cookies_to_send ~final
     sitedata
     ((service_cookie_info,
       data_cookie_info,
@@ -266,7 +280,10 @@ let compute_session_cookies_to_send
         | Eliom_common.SCNo_data
         | Eliom_common.SCData_session_expired -> None
         | Eliom_common.SC c ->
-            Some (c.Eliom_common.sc_value,
+            let v = c.Eliom_common.sc_set_value in
+            if final then c.Eliom_common.sc_set_value <- `Used;
+            Some (c.Eliom_common.sc_hvalue,
+                  v,
                   !(c.Eliom_common.sc_cookie_exp))
       in (old, newinfo))
   in
@@ -280,7 +297,10 @@ let compute_session_cookies_to_send
           | Eliom_common.SCNo_data
           | Eliom_common.SCData_session_expired -> None
           | Eliom_common.SC c ->
-              Some (c.Eliom_common.dc_value,
+              let v = c.Eliom_common.dc_set_value in
+              if final then c.Eliom_common.dc_set_value <- `Used;
+              Some (c.Eliom_common.dc_hvalue,
+                    v,
                     !(c.Eliom_common.dc_cookie_exp))
         in (old, newinfo))
     else fail Not_found
@@ -300,7 +320,10 @@ let compute_session_cookies_to_send
              | Eliom_common.SCNo_data
              | Eliom_common.SCData_session_expired -> None
              | Eliom_common.SC c ->
-                 Some (c.Eliom_common.pc_value,
+                 let v = c.Eliom_common.pc_set_value in
+                 if final then c.Eliom_common.pc_set_value <- `Used;
+                 Some (c.Eliom_common.pc_hvalue,
+                       v,
                        !(c.Eliom_common.pc_cookie_exp))
          in (oldinfo, newinfo))
     else fail Not_found
@@ -331,23 +354,27 @@ let compute_session_cookies_to_send
               (* the path is always site_dir because the cookie cannot
                  have been unset by a service outside
                  this site directory *)
-                | None, Some (v, exp) ->
+                | _, Some (_, `Set v, exp) -> (* New value *)
                   Ocsigen_cookie_map.add
                     sitedata.Eliom_common.site_dir
                     (Eliom_common.make_full_cookie_name
                        cookiekind full_st_name)
                     (OSet (ch_exp exp, v, secure))
                     beg
-                | Some oldv, Some (newv, exp) ->
-                  if exp = Eliom_common.CENothing && oldv = newv
+                | Some oldv, Some (_, `None, exp) ->
+                  if exp = Eliom_common.CENothing
                   then beg
                   else
                     Ocsigen_cookie_map.add
                       sitedata.Eliom_common.site_dir
                       (Eliom_common.make_full_cookie_name
                          cookiekind full_st_name)
-                      (OSet (ch_exp exp, newv, secure))
+                      (OSet (ch_exp exp, oldv, secure))
                       beg
+                | None, Some (_, `None, _) -> (* Should not happen *)
+                   beg
+                | _, Some (_, `Used, _) ->
+                   assert false (* Something wrong happened *)
               )
           )
           (function
@@ -440,9 +467,12 @@ let compute_new_ri_cookies
               | Eliom_common.SCData_session_expired
               | Eliom_common.SCNo_data ->
                 Ocsigen_cookie_map.Map_inner.remove n beg
-              | Eliom_common.SC c ->
-                Ocsigen_cookie_map.Map_inner.add
-                  n c.Eliom_common.sc_value beg
+              | Eliom_common.SC {Eliom_common.sc_set_value = `Set v} ->
+                Ocsigen_cookie_map.Map_inner.add n v beg
+              | Eliom_common.SC {Eliom_common.sc_set_value = `None} ->
+                beg
+              | Eliom_common.SC {Eliom_common.sc_set_value = `Used} ->
+                assert false
         )
         !service_cookie_info
         ric
@@ -463,9 +493,12 @@ let compute_new_ri_cookies
                 | Eliom_common.SCData_session_expired
                 | Eliom_common.SCNo_data ->
                   Ocsigen_cookie_map.Map_inner.remove n beg
-                | Eliom_common.SC c ->
-                  Ocsigen_cookie_map.Map_inner.add
-                    n c.Eliom_common.dc_value beg
+                | Eliom_common.SC {Eliom_common.dc_set_value = `Set v} ->
+                  Ocsigen_cookie_map.Map_inner.add n v beg
+                | Eliom_common.SC {Eliom_common.dc_set_value = `None} ->
+                  beg
+                | Eliom_common.SC {Eliom_common.dc_set_value = `Used} ->
+                  assert false
             else beg
         )
         !data_cookie_info
@@ -488,9 +521,12 @@ let compute_new_ri_cookies
                  | Eliom_common.SCData_session_expired
                  | Eliom_common.SCNo_data ->
                    Lwt.return (Ocsigen_cookie_map.Map_inner.remove n beg)
-                 | Eliom_common.SC c ->
-                   Lwt.return (Ocsigen_cookie_map.Map_inner.add
-                                 n c.Eliom_common.pc_value beg))
+                 | Eliom_common.SC {Eliom_common.pc_set_value = `Set v} ->
+                   Lwt.return (Ocsigen_cookie_map.Map_inner.add n v beg)
+                 | Eliom_common.SC {Eliom_common.pc_set_value = `None} ->
+                   Lwt.return beg
+                 | Eliom_common.SC {Eliom_common.pc_set_value = `Used} ->
+                   assert false)
             else return beg
         )
         !pers_cookie_info

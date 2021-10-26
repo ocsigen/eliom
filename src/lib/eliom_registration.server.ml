@@ -327,7 +327,7 @@ module Action_base = struct
             user_cookies
         in
         let%lwt all_new_cookies =
-          Eliommod_cookies.compute_cookies_to_send
+          Eliommod_cookies.compute_cookies_to_send ~final:true
             sitedata
             all_cookie_info
             user_cookies in
@@ -1120,7 +1120,9 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
       } in
 
     let%lwt tab_cookies =
-      Eliommod_cookies.compute_cookies_to_send
+      (* Tab cookies are computed again later on to be included in the
+         headers of the HTTP response *)
+      Eliommod_cookies.compute_cookies_to_send ~final:false
         sp.Eliom_common.sp_sitedata
         sp.Eliom_common.sp_tab_cookie_info
         sp.Eliom_common.sp_user_tab_cookies
