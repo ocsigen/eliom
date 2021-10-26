@@ -28,7 +28,6 @@ depends: [
   "ocsigenserver" {>= "4.0.1" & < "5.0.0"}
   "ipaddr" {>= "2.1"}
   "reactiveData" {>= "0.2.1"}
-  "dbm" | "sqlite3"
   "base-bytes"
   "ppx_tools_versioned" {>= "5.2.3"}
 ]
