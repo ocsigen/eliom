@@ -1,7 +1,7 @@
 <{lib,tools,ocamlbuild}/**/*>:warn(+A-4-6-7-9-27-37-39-40-42-44-48)
 true:keep_locs
 <lib/**/{client,server}*>:linkall
-<ppx/ppx_eliom_{client,server,type}*>:linkall
+<ppx/ppx_eliom_{client,server,type}.cm{,x}a>:linkall
 
 <lib/client/client.cma>:eliomstubs
 
@@ -38,7 +38,7 @@ true:keep_locs
 <lib/server/monitor/*.ml{,i}>:package(lwt,ocsigenserver,ocsigenserver.ext,tyxml)
 <lib/server/monitor/*.ml{,i}>:I(src/lib/server)
 
-<ppx/**/*>: package(ppx_tools_versioned, ppx_tools_versioned.metaquot_408)
+<ppx/**/*>: package(ppxlib,ppxlib.metaquot,compiler-libs.bytecomp)
 
 <ocamlbuild/ocamlbuild_eliom.ml{,i}>: package(ocamlbuild,js_of_ocaml-ocamlbuild)
 <ocamlbuild/eliombuild.{ml,mli,byte,native}>:package(ocamlbuild,js_of_ocaml-ocamlbuild)

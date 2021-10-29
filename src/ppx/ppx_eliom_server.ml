@@ -20,13 +20,8 @@
 
 (* This prepocessor generates the module to be loaded by Ocsigen server *)
 
-open Migrate_parsetree
-open Ast_408
-open Parsetree
-open Asttypes
+open Ppxlib
 open Ast_helper
-
-module AC = Ast_convenience_408
 
 open Ppx_eliom_utils
 
@@ -36,8 +31,8 @@ module Pass = struct
     let typing_strs = ref [] in
     let add ~fragment ~unsafe loc id =
       let typ =
-        if fragment then [%type: _ Eliom_client_value.t ][@metaloc loc]
-        else [%type: _][@metaloc loc]
+        if fragment then [%type: _ Eliom_client_value.t ]
+        else [%type: _]
       in
       typing_strs :=
         (if unsafe || Mli.exists () then
@@ -51,10 +46,10 @@ module Pass = struct
            ])
         :: !typing_strs
     in
-    let flush () =
+    let flush loc =
       let res = !typing_strs in
       typing_strs := [];
-      [%stri open struct [%%s res] end]
+      Str.open_ ~loc (Opn.mk ~loc (Mod.structure ~loc res))
     in
     add, flush
 
@@ -76,9 +71,8 @@ module Pass = struct
       let aux (loc, id, arg, unsafe) =
         push_nongen_str_item ~fragment:false ~unsafe loc id;
         [%expr Eliom_syntax.escaped_value
-            [%e [%expr ([%e eid id] [%e arg ])]
-                [@metaloc one_char_location loc]]]
-        [@metaloc loc]
+            [%e let loc = one_char_location loc in
+                [%expr ([%e eid id] [%e arg ])]]]
       in
       List.map aux res
     in
@@ -136,7 +130,7 @@ module Pass = struct
       let () =
         Eliom_syntax.close_server_section
           [%e eid @@ id_file_hash loc]
-    ] [@metaloc loc]
+    ]
 
   let may_close_server_section ~no_fragment loc =
     if no_fragment
@@ -154,15 +148,15 @@ module Pass = struct
            let frag_eid = eid {txt;loc} in
            let ident = match ident with
              | None -> [%expr None]
-             | Some i -> [%expr Some [%e AC.str i ]] in
+             | Some i -> [%expr Some [%e str i ]] in
            let (_, num) = Mli.get_injected_ident_info txt in
            let f_id = {txt = txt ^ "_f"; loc} in
            push_nongen_str_item ~fragment:false ~unsafe loc f_id;
            [%expr
-             ([%e AC.int num],
+             ([%e int num],
               Eliom_lib.to_poly [%e
+                                    let loc = one_char_location loc0 in
                                     [%expr [%e eid f_id] [%e frag_eid ]]
-                                    [@metaloc one_char_location loc0]
                 ],
               [%e loc_expr], [%e ident ]) :: [%e sofar ]
            ])
@@ -174,7 +168,7 @@ module Pass = struct
         Eliom_syntax.close_client_section
           [%e eid @@ id_file_hash loc ]
           [%e injection_list ]
-    ][@metaloc loc]
+    ]
 
 
   (** Syntax extension *)
@@ -189,11 +183,11 @@ module Pass = struct
       bind_injected_idents l ::
         [ close_client_section loc all_injections ]
     in
-    flush_nongen_str_item () :: str
+    flush_nongen_str_item loc :: str
 
   let server_str no_fragment item =
-    flush_nongen_str_item () ::
     let loc = item.pstr_loc in
+    flush_nongen_str_item loc ::
     item ::
     may_close_server_section ~no_fragment loc
 
@@ -213,7 +207,7 @@ module Pass = struct
            cl @
            [ close_client_section loc all_injections ]
     in
-    flush_nongen_str_item () :: str
+    flush_nongen_str_item loc :: str
 
   let fragment ~loc ?typ ~context:_ ~num ~id ~unsafe _ =
     let typ =
@@ -226,15 +220,16 @@ module Pass = struct
     [%expr
         [%e eid id]
         [%e
+            let loc = one_char_location loc in
             [%expr
                 ( (Eliom_syntax.client_value
                      ~pos:([%e position loc ])
-                     [%e AC.str num ]
+                     [%e str num ]
                      [%e e ])
                   : [%t typ ] Eliom_client_value.t)
-            ][@metaloc one_char_location loc]
+            ]
         ]
-    ][@metaloc loc]
+    ]
 
   let escape_inject
         ~loc ?ident ~(context:Context.escape_inject) ~id ~unsafe expr =
@@ -264,5 +259,7 @@ end
 include Make(Pass)
 
 let () =
-  Migrate_parsetree.Driver.register ~name:"ppx_eliom_server" ~args:driver_args
-    Migrate_parsetree.Versions.ocaml_408 mapper
+  Ppxlib.Driver.register_transformation
+    ~preprocess_impl:mapper#structure
+    ~preprocess_intf:mapper#signature
+    "ppx_eliom_server"
