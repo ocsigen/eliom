@@ -1506,7 +1506,8 @@ module Ext = struct
   let unset_persistent_data_cookie_timeout
       ~cookie:(cookie, (fullstname, exp, _, sessgrp)) =
     Eliom_common.Persistent_cookies.Cookies.add cookie
-      (fullstname, exp, TGlobal, sessgrp)
+      (fullstname, exp, TGlobal, sessgrp) >>= fun () ->
+    Eliom_common.Persistent_cookies.Expiry_dates.remove_cookie exp cookie
 
 
   let get_session_group_list () =

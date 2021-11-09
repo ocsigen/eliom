@@ -623,6 +623,7 @@ module Persistent_cookies : sig
   module Expiry_dates : sig
     include Ocsipersist.TABLE with type key = date and type value = string
     val add_cookie : date -> string -> unit Lwt.t
+    val remove_cookie : date option -> string -> unit Lwt.t
   end
   val add : string -> cookie -> unit Lwt.t
   val replace_if_exists : string -> cookie -> unit Lwt.t

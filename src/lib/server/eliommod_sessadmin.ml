@@ -211,7 +211,8 @@ let update_pers_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
                 ~scope sitedata sessgrp k
           | _ ->
             Eliom_common.Persistent_cookies.add k
-              (full_st_name2, newexp, Eliom_common.TGlobal, sessgrp) >>=
+              (full_st_name2, newexp, Eliom_common.TGlobal, sessgrp) >>= fun () ->
+            Eliom_common.Persistent_cookies.Expiry_dates.remove_cookie old_exp k >>=
             Lwt_unix.yield
         else return_unit
       )
