@@ -609,7 +609,7 @@ end = struct
         failwith "Eliom_comet: accessing channel references should not be blocking: this is an eliom bug"
 
   let get_handler_eref scope =
-    let scope_hierarchy = Eliom_common_base.scope_hierarchy_of_scope scope in
+    let scope_hierarchy = Eliom_common_base.scope_hierarchy_of_user_scope scope in
     try
       Hashtbl.find handler_ref_table scope_hierarchy
     with

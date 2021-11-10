@@ -47,6 +47,7 @@ type user_level = [ `Session_group | cookie_level ]
 val cookie_scope_of_user_scope : [< user_scope ] -> [> cookie_scope ]
 val cookie_level_of_user_scope : [< user_scope ] -> [> cookie_level ]
 val level_of_user_scope : [< user_scope ] -> [> user_level ]
+val scope_hierarchy_of_user_scope : [< user_scope ] -> scope_hierarchy
 
 (** Eliom is using regular (browser) cookies but can also use its own
     browser tab cookies (only if you are using a client side Eliom application).

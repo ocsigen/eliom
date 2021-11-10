@@ -528,7 +528,7 @@ let find_dlist_ip_table :
 (*****************************************************************************)
 
 let make_full_cookie_name cookieprefix (cookie_scope, secure, site_dir_string) =
-  let scope_hier = scope_hierarchy_of_scope cookie_scope in
+  let scope_hier = scope_hierarchy_of_user_scope cookie_scope in
   let secure = if secure then "S|" else "|" in
   let hier1, hiername = match scope_hier with
     | User_hier hiername -> "||", hiername
