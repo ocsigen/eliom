@@ -22,9 +22,6 @@ type kind = [ `Service | `Data | `Persistent ]
 val set_default :
   [< kind ] -> [< Eliom_common.cookie_level ] -> float option -> unit
 
-val get_default :
-  [< kind ] -> [< Eliom_common.cookie_level ] -> float option
-
 val find_global :
   [< kind ] ->
   Eliom_common.full_state_name ->
