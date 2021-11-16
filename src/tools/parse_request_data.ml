@@ -49,10 +49,12 @@ let read32u () =
 let read32s () =
   let i = read32u () in
   if i > 0x7fffffff then 0x100000000 - i else i
+let read64u () =
+  let i1 = read32u () in
+  let i0 = read32u () in
+  (i1 lsl 32) lor i0
 let readstr len =
-  let s = Bytes.create len in
-  really_input c s 0 len;
-  s
+  really_input_string c len;
 
 type desc =
     Block of int * t array * int
@@ -171,9 +173,8 @@ let intern () =
             incr obj_counter;
             double_big ()
         | 0x0e ->
-            let header = read8u () in
-            let tag = header land 0xFF in
-            let size = header lsr 10 in
+            let size = read8u () in
+            let tag = 254 in
             let c = !obj_counter in
             if size > 0 then incr obj_counter;
             let v = Array.make size dummy in
@@ -184,9 +185,8 @@ let intern () =
             let fin = pos () in
             {desc = Block (tag, v, c); start; fin}
         | 0x0d ->
-            let header = read8u () in
-            let tag = header land 0xFF in
-            let size = header lsr 10 in
+            let size = read8u () in
+            let tag = 254 in
             if size > 0 then incr obj_counter;
             let v = Array.make size dummy in
             incr obj_counter;
@@ -221,7 +221,7 @@ let intern () =
             {desc = Block (tag, v, !obj_counter - 1); start; fin}
         | 0x10 | 0x11 ->
             assert false
-        | 0x12 ->
+        | 0x12 | 0x19 ->
             incr obj_counter;
             let ch = input_char c in
             assert (ch = '_');
