@@ -303,20 +303,28 @@ let data_session_gc sitedata =
 let persistent_session_gc sitedata =
   let gc () =
     let now = Unix.time () in
-    let gc_cookie cookie =
-      Eliom_common.Persistent_cookies.Cookies.find cookie >>=
-      fun ((scope, _, _), exp, _, session_group) ->
-        match exp with
-        | Some exp when exp <= now ->
-          Lwt_log.ign_notice_f ~section "remove expired cookie %s" cookie;
-          Eliommod_persess.close_persistent_state2
-            ~scope
-            sitedata
-            session_group cookie
-        (*WAS: remove_from_all_persistent_tables k *)
-        | _ ->
-            Lwt_log.ign_notice_f ~section "cookie not expired: %s" cookie;
-            return_unit
+    let do_gc_cookie cookie ((scope, _, _), exp, _, session_group) =
+      match exp with
+      | Some exp when exp <= now ->
+        Lwt_log.ign_notice_f ~section "remove expired cookie %s" cookie;
+        Eliommod_persess.close_persistent_state2
+          ~scope
+          sitedata
+          session_group cookie
+      (*WAS: remove_from_all_persistent_tables k *)
+      | _ ->
+          Lwt_log.ign_notice_f ~section "cookie not expired: %s" cookie;
+          return_unit
+    in
+    let gc_cookie c =
+      Lwt.try_bind
+        (fun () -> Eliom_common.Persistent_cookies.Cookies.find c)
+        (do_gc_cookie c)
+        (function
+         | Not_found ->
+             Lwt_log.ign_info_f ~section "cookie does not exist: %s" c;
+             Lwt.return_unit
+         | exn -> Lwt.fail exn)
     in
     Lwt_log.ign_info ~section "GC of persistent sessions";
     Eliom_common.Persistent_cookies.garbage_collect ~section gc_cookie
