@@ -20,10 +20,8 @@
 type kind = [ `Service | `Data | `Persistent ]
 
 val set_default :
+  ?scope_hierarchy:Eliom_common.scope_hierarchy ->
   [< kind ] -> [< Eliom_common.cookie_level ] -> float option -> unit
-
-val get_default :
-  [< kind ] -> [< Eliom_common.cookie_level ] -> float option
 
 val find_global :
   [< kind ] ->

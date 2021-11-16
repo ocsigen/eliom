@@ -219,7 +219,6 @@ let create_sitedata =
 
 (* The following is common to global config and site config *)
 let parse_eliom_option
-    globaloption
     (set_volatile_timeout,
      set_data_timeout,
      set_service_timeout,
@@ -278,17 +277,15 @@ let parse_eliom_option
               (Error_in_config_file
                  ("Eliom: Wrong attribute value for "^tn^" tag"))
     in
-    if (not globaloption) || sn = None
-    then
-      let sn = match sn with
-        | None -> None (* all hierarchies *)
-        | Some "" -> Some None (* default hierarchy *)
-        | c -> Some c
-      in (a, sn, ct)
-    else
-      raise
-        (Error_in_config_file
-           ("Eliom: hierarchyname attribute not allowed for "^tn^" tag in global configuration"))
+    let parse_scope_hierarchy = function
+      | "" -> Eliom_common_base.Default_ref_hier
+      | s when String.lowercase_ascii s = "default" ->
+        Eliom_common_base.Default_ref_hier
+      | s when String.lowercase_ascii s = "comet" ->
+        Eliom_common_base.Default_comet_hier
+      | s -> (Eliom_common_base.User_hier s)
+    in
+    (a, Eliom_lib.Option.map parse_scope_hierarchy sn, ct)
   in
   let convert_attr tag f v =
     try
@@ -509,7 +506,7 @@ let parse_eliom_options f l =
     | [] -> rest
     | e::l ->
         try
-          parse_eliom_option false f e;
+          parse_eliom_option f e;
           aux rest l
         with Error_in_config_file _ -> aux (e::rest) l
   in List.rev (aux [] l)
@@ -566,13 +563,12 @@ let rec parse_global_config = function
                 parse_global_config ll
   | e::ll ->
       parse_eliom_option
-        true
-        ((fun ct _ m ->
-           Eliommod_timeouts.set_default `Data ct m;
-           Eliommod_timeouts.set_default `Service ct m),
-         (fun ct _ -> Eliommod_timeouts.set_default `Data ct),
-         (fun ct _ -> Eliommod_timeouts.set_default `Service ct),
-         (fun ct _ -> Eliommod_timeouts.set_default `Persistent ct),
+        ((fun ct sh m ->
+           Eliommod_timeouts.set_default ?scope_hierarchy:sh `Data ct m;
+           Eliommod_timeouts.set_default ?scope_hierarchy:sh `Service ct m),
+         (fun ct sh -> Eliommod_timeouts.set_default ?scope_hierarchy:sh `Data ct),
+         (fun ct sh -> Eliommod_timeouts.set_default ?scope_hierarchy:sh `Service ct),
+         (fun ct sh -> Eliommod_timeouts.set_default ?scope_hierarchy:sh `Persistent ct),
          (fun v -> default_max_service_sessions_per_group := v),
          (fun v -> default_max_service_sessions_per_subnet := v),
          (fun v -> default_max_volatile_data_sessions_per_group := v),
@@ -840,17 +836,8 @@ let parse_config _ hostpattern conf_info site_dir =
                          bool (* from config file *) ->
                          Eliom_common.sitedata ->
                          float option -> unit)
-            cookie_type state_hier_oo v =
+            cookie_type state_hier v =
           let make_full_st_name secure state_hier =
-            let state_hier : Eliom_common.scope_hierarchy =
-              match state_hier with
-              | None -> Eliom_common_base.Default_ref_hier
-              | Some s when String.lowercase_ascii s = "default" ->
-                Eliom_common_base.Default_ref_hier
-              | Some s when String.lowercase_ascii s = "comet" ->
-                Eliom_common_base.Default_comet_hier
-              | Some s -> Eliom_common_base.User_hier s
-            in
             let scope =
               match cookie_type with
               | `Session -> `Session state_hier
@@ -864,7 +851,7 @@ let parse_config _ hostpattern conf_info site_dir =
           (*VVV We set timeout for both secure and unsecure states.
             Make possible to customize this? *)
           f
-            ?full_st_name:(Option.map (make_full_st_name false) state_hier_oo)
+            ?full_st_name:(Option.map (make_full_st_name false) state_hier)
             ?cookie_level:(Some cookie_type)
             ~recompute_expdates:false
             true
@@ -872,7 +859,7 @@ let parse_config _ hostpattern conf_info site_dir =
             sitedata
             v;
           f
-            ?full_st_name:(Option.map (make_full_st_name true) state_hier_oo)
+            ?full_st_name:(Option.map (make_full_st_name true) state_hier)
             ?cookie_level:(Some cookie_type)
             ~recompute_expdates:false
             true

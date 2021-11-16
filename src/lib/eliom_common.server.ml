@@ -528,7 +528,7 @@ let find_dlist_ip_table :
 (*****************************************************************************)
 
 let make_full_cookie_name cookieprefix (cookie_scope, secure, site_dir_string) =
-  let scope_hier = scope_hierarchy_of_scope cookie_scope in
+  let scope_hier = scope_hierarchy_of_user_scope cookie_scope in
   let secure = if secure then "S|" else "|" in
   let hier1, hiername = match scope_hier with
     | User_hier hiername -> "||", hiername
@@ -1366,6 +1366,18 @@ module Persistent_cookies = struct
               if List.mem cookie cookies
               then Some cookies_str
               else Some (cookies_str ^ "," ^ cookie)
+
+    let remove_cookie exp_o cookie =
+      exp_o |> Eliom_lib.Option.Lwt.iter @@ fun exp ->
+      modify_opt exp @@
+        function
+          | None -> None
+          | Some cookies_str ->
+              let cookies = String.split_on_char ',' cookies_str in
+              let cookies' = List.filter (fun c -> c <> cookie) cookies in
+              if cookies' = []
+                then None
+                else Some (String.concat "," cookies')
   end
 
   let add cookie ((_, exp, _, _) as content) =

@@ -34,26 +34,34 @@ type kind = [ `Service | `Data | `Persistent ]
 (*****************************************************************************)
 (* Table of timeouts for sessions *)
 
-(* default timeout = the one set in config file (or here) *)
-let service_t = ref (Some 3600.) (* 1 hour by default *)
-let data_t = ref (Some 3600.) (* 1 hour by default *)
-let persistent_t = ref (Some 86400.) (* 1 day by default *)
-let tab_service_t = ref (Some 3600.) (* 1 hour by default *)
-let tab_data_t = ref (Some 3600.) (* 1 hour by default *)
-let tab_persistent_t = ref (Some 86400.) (* 1 day by default *)
+let default_timeouts
+  : (kind * Eliom_common.cookie_level * Eliom_common.scope_hierarchy option, float) Hashtbl.t
+  = let t = Hashtbl.create 9 in
+    Hashtbl.add t (`Service, `Session, None) 3600.;
+    Hashtbl.add t (`Data, `Session, None) 3600.;
+    Hashtbl.add t (`Persistent, `Session, None) 86400.;
+    Hashtbl.add t (`Service, `Client_process, None) 3600.;
+    Hashtbl.add t (`Data, `Client_process, None) 3600.;
+    Hashtbl.add t (`Persistent, `Client_process, None) 86400.;
+    t
 
-let get_ref kind level =
-  match kind, level with
-  | `Service    , `Session        -> service_t
-  | `Data       , `Session        -> data_t
-  | `Persistent , `Session        -> persistent_t
-  | `Service    , `Client_process -> tab_service_t
-  | `Data       , `Client_process -> tab_data_t
-  | `Persistent , `Client_process -> tab_persistent_t
+let set_default ?scope_hierarchy kind level = function
+  | Some t -> Hashtbl.replace default_timeouts
+               ((kind :> kind), (level :> Eliom_common.cookie_level), scope_hierarchy)
+               t
+  | None -> Hashtbl.remove default_timeouts
+             ((kind :> kind), (level :> Eliom_common.cookie_level), scope_hierarchy)
 
-let set_default kind level timeout = (get_ref kind level) := timeout
-
-let get_default kind level = !(get_ref kind level)
+let get_default kind user_scope =
+  let level = Eliom_common.cookie_level_of_user_scope user_scope
+  and scope_hierarchy = Eliom_common.scope_hierarchy_of_user_scope user_scope in
+  try Some (Hashtbl.find default_timeouts
+              ((kind :> kind), (level :> Eliom_common.cookie_level), Some scope_hierarchy))
+  with Not_found -> (
+    try Some (Hashtbl.find default_timeouts
+              ((kind :> kind), (level :> Eliom_common.cookie_level), None))
+    with Not_found -> None
+  )
 
 let set_timeout_ get set get_default update =
   fun ?full_st_name ?cookie_level ~recompute_expdates
@@ -105,8 +113,7 @@ let set_timeout_ get set get_default update =
                     match def_bro, def_tab, (fst3 full_st_name) with
                       | Some (t, _), _, `Session _ -> t
                       | _, Some (t, _), `Client_process _ -> t
-                      | _, _, ct -> get_default
-                        (Eliom_common.cookie_level_of_user_scope ct)
+                      | _, _, ct -> get_default ct
               in
               ignore
                 (catch
@@ -146,8 +153,7 @@ let find_global kind full_st_name sitedata =
     (match def_bro, def_tab, (fst3 full_st_name) with
      | Some (t, _), _, `Session _ -> t
      | _, Some (t, _), `Client_process _ -> t
-     | _, _, ct ->
-       get_default kind (Eliom_common.cookie_level_of_user_scope ct))
+     | _, _, ct -> get_default kind ct)
 
 let set_global_
     ?full_st_name ?cookie_level ~kind ~recompute_expdates a =

@@ -67,7 +67,7 @@ let cookie_scope_of_user_scope : [< user_scope ] -> [> cookie_scope ] = function
   | `Session_group n -> `Session n
   | `Client_process n -> `Client_process n
 
-let scope_hierarchy_of_scope : [< user_scope ] -> scope_hierarchy =
+let scope_hierarchy_of_user_scope : [< user_scope ] -> scope_hierarchy =
   function
     | `Session n
     | `Session_group n
