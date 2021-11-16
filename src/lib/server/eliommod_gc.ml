@@ -238,7 +238,7 @@ let service_session_gc sitedata =
           service_cookie_table
           return_unit
         >>= f
-      in ignore (f ())
+      in Lwt.async f
 
 (* This is a thread that will work for example every hour. *)
 let data_session_gc sitedata =
@@ -296,7 +296,7 @@ let data_session_gc sitedata =
           return_unit
           >>=
         f
-      in ignore (f ())
+      in Lwt.async f
 
 (* garbage collection of timeouted persistent sessions *)
 (* This is a thread that will work every hour/day *)
@@ -323,4 +323,4 @@ let persistent_session_gc sitedata =
   in
   match get_persistentsessiongcfrequency () with
   | None -> () (* No garbage collection *)
-  | Some t -> let rec f () = Lwt_unix.sleep t >>= gc >>= f in ignore (f ())
+  | Some t -> let rec f () = Lwt_unix.sleep t >>= gc >>= f in Lwt.async f
