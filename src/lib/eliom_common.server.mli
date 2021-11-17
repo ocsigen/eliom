@@ -625,6 +625,15 @@ module Persistent_cookies : sig
     include Ocsipersist.TABLE with type key = date and type value = string
     val add_cookie : date -> string -> unit Lwt.t
     val remove_cookie : date option -> string -> unit Lwt.t
+
+    val iter_cookies
+      :  ?count:int64
+      -> ?gt:date
+      -> ?geq:date
+      -> ?lt:date
+      -> ?leq:date
+      -> (date -> string -> unit Lwt.t)
+      -> unit Lwt.t
   end
   val add : string -> cookie -> unit Lwt.t
   val replace_if_exists : string -> cookie -> unit Lwt.t
@@ -766,3 +775,5 @@ end
 
 (** Raises exception on server, only relevant for client apps *)
 val client_html_file : unit -> string
+
+val get_user_scope_hierarchy : scope_hierarchy -> string option

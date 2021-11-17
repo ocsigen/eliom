@@ -1378,6 +1378,11 @@ module Persistent_cookies = struct
               if cookies' = []
                 then None
                 else Some (String.concat "," cookies')
+
+    let iter_cookies ?count ?gt ?geq ?lt ?leq f =
+      iter ?count ?gt ?geq ?lt ?leq @@ fun exp cookies_str ->
+        let cookies = String.split_on_char ',' cookies_str in
+        Lwt_list.iter_s (f exp) cookies
   end
 
   let add cookie ((_, exp, _, _) as content) =
@@ -1495,3 +1500,8 @@ end
 
 let client_html_file () =
   failwith "client_html_file is only defined on client"
+
+
+let get_user_scope_hierarchy = function
+  | User_hier str -> Some str
+  | _ -> None
