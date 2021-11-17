@@ -86,3 +86,12 @@ module Persistent_cookies : sig
     -> (Cookies.key -> unit Lwt.t)
     -> unit Lwt.t
 end
+
+val scope_cleanup_section : Lwt_log.Section.t
+
+val scope_cleanup
+  :  target_lifespan:float
+  -> targeted_scope:string
+  -> gt:Persistent_cookies.Expiry_dates.key
+  -> count:int64
+  -> date option Lwt.t

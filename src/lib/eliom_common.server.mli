@@ -759,3 +759,5 @@ end
 
 val client_html_file : unit -> string
 (** Raises exception on server, only relevant for client apps *)
+
+val get_user_scope_hierarchy : scope_hierarchy -> string option

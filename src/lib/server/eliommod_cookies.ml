@@ -97,6 +97,11 @@ module Persistent_cookies = struct
              let cookies = String.split_on_char ',' cookies_str in
              let cookies' = List.filter (fun c -> c <> cookie) cookies in
              if cookies' = [] then None else Some (String.concat "," cookies')
+
+    let iter_cookies ?count ?gt ?geq ?lt ?leq f =
+      iter ?count ?gt ?geq ?lt ?leq @@ fun exp cookies_str ->
+      let cookies = String.split_on_char ',' cookies_str in
+      Lwt_list.iter_s (f exp) cookies
   end
 
   let add cookie ({expiry} as content) =
@@ -587,3 +592,94 @@ let compute_new_ri_cookies (now : float) (ripath : string list)
   f false ci ric >>= fun ric -> f true secure_ci ric
 (*VVV We always keep secure cookies, even if the protocol is not secure,
   because this function is for actions only. Is that right? *)
+
+let section = Lwt_log.Section.make "eliom:cookies:scope-cleanup"
+let scope_cleanup_section = section
+
+let scope_cleanup ~target_lifespan ~targeted_scope ~gt ~count =
+  let last_handled_date = ref None in
+  let gc_cookie exp name =
+    let open Eliom_common in
+    let remove_original_exp_date = ref false in
+    let new_expiry_date = ref None in
+    let log_name = Eliom_common.Hashed_cookies.sha256 name in
+    let%lwt () =
+      Persistent_cookies.Cookies.modify_opt name @@ function
+      | None ->
+          Lwt_log.ign_info_f ~section "cookie not found: %s" log_name;
+          remove_original_exp_date := true;
+          None
+      | Some
+          ({ full_state_name
+           ; expiry = date_o
+           ; timeout
+           ; session_group = perssessgrp_o } as cookie) -> (
+          if date_o <> Some exp then remove_original_exp_date := true;
+          let user_scope = full_state_name.user_scope in
+          let has_targeted_scope =
+            match user_scope with
+            | `Session uh ->
+                Eliom_common.get_user_scope_hierarchy uh = Some targeted_scope
+            | _ -> false
+          in
+          match has_targeted_scope with
+          | false ->
+              Lwt_log.ign_debug_f ~section "not targeted scope: %s" log_name;
+              Some cookie
+          | true ->
+              let now = Unix.time () in
+              let target_expiry = now +. target_lifespan in
+              let date' =
+                match date_o with
+                | None ->
+                    Lwt_log.ign_info_f ~section
+                      "assigning expiration date to %s" log_name;
+                    target_expiry
+                | Some d ->
+                    if d < target_expiry
+                    then (
+                      Lwt_log.ign_info_f ~section
+                        "already correct expiration date: %s" log_name;
+                      d)
+                    else (
+                      Lwt_log.ign_info_f ~section
+                        "shortening life of cookie: %s" log_name;
+                      now)
+              in
+              let cookie' =
+                { full_state_name
+                ; expiry = Some date'
+                ; timeout
+                ; session_group = perssessgrp_o }
+              in
+              if exp <> date'
+              then (
+                Lwt_log.ign_info_f ~section
+                  "cookie has a different expiry date: %s" log_name;
+                remove_original_exp_date := true;
+                new_expiry_date := Some date');
+              Some cookie')
+    in
+    let%lwt () =
+      match !new_expiry_date with
+      | Some d -> Persistent_cookies.Expiry_dates.add_cookie d name
+      | None -> Lwt.return_unit
+    in
+    let%lwt () =
+      if !remove_original_exp_date
+      then (
+        Lwt_log.ign_info_f ~section "remove expiry date %.6f for %s" exp
+          log_name;
+        Persistent_cookies.Expiry_dates.remove_cookie (Some exp) name)
+      else Lwt.return_unit
+    in
+    last_handled_date := Some exp;
+    Lwt.return_unit
+  in
+  Lwt_log.ign_info_f ~section
+    "collecting up to %Ld %s cookies beginning with %.3f" count targeted_scope
+    gt;
+  let%lwt () =
+    Persistent_cookies.Expiry_dates.iter_cookies ~count ~gt gc_cookie
+  in
+  Lwt.return !last_handled_date

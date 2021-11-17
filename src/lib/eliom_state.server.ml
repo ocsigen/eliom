@@ -1557,3 +1557,6 @@ let unset_cookie ?(cookie_level = `Session) ?path ~name () =
       sp.Eliom_common.sp_user_tab_cookies <-
         Ocsigen_cookie_map.add path name OUnset
           sp.Eliom_common.sp_user_tab_cookies
+
+let scope_cleanup_section = Eliommod_cookies.scope_cleanup_section
+let scope_cleanup = Eliommod_cookies.scope_cleanup

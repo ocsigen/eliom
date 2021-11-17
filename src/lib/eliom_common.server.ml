@@ -1440,3 +1440,4 @@ module To_and_of_shared = struct
 end
 
 let client_html_file () = failwith "client_html_file is only defined on client"
+let get_user_scope_hierarchy = function User_hier str -> Some str | _ -> None

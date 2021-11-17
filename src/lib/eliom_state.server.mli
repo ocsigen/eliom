@@ -1214,3 +1214,12 @@ val create_volatile_table_during_session_
   -> secure:bool
   -> Eliom_common.sitedata
   -> 'a volatile_table
+
+val scope_cleanup_section : Lwt_log.Section.t
+
+val scope_cleanup
+  :  target_lifespan:float
+  -> targeted_scope:string
+  -> gt:float
+  -> count:int64
+  -> float option Lwt.t
