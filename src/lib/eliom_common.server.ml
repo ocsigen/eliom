@@ -1505,3 +1505,5 @@ let client_html_file () =
 let get_user_scope_hierarchy = function
   | User_hier str -> Some str
   | _ -> None
+
+let gc_mutex = Lwt_mutex.create ()

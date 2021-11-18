@@ -302,6 +302,7 @@ let data_session_gc sitedata =
 (* This is a thread that will work every hour/day *)
 let persistent_session_gc sitedata =
   let gc () =
+    Lwt_mutex.with_lock Eliom_common.gc_mutex @@ fun () ->
     let now = Unix.time () in
     let do_gc_cookie cookie ((scope, _, _), exp, _, session_group) =
       match exp with

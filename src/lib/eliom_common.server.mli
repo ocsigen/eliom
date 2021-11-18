@@ -777,3 +777,4 @@ end
 val client_html_file : unit -> string
 
 val get_user_scope_hierarchy : scope_hierarchy -> string option
+val gc_mutex : Lwt_mutex.t
