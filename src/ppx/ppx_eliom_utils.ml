@@ -23,8 +23,6 @@ let int ?loc ?attrs s = Exp.constant ?loc ?attrs (Const.int s)
 let punit ?loc ?attrs () =
   Pat.construct ?loc ?attrs (mkloc_opt ?loc (Longident.Lident "()")) None
 
-let tunit ?loc () = Typ.constr (mkloc_opt ?loc (Longident.Lident "unit")) []
-
 let flatmap f l = List.flatten @@ List.map f l
 
 let get_extension = function
@@ -55,8 +53,6 @@ let pat_args = function
   | [] -> punit ()
   | [p] -> p
   | l -> Pat.tuple l
-let format_typ (list : Parsetree.core_type list) : Parsetree.core_type =
-  match list with [] -> assert false | [p] -> p | l -> Typ.tuple l
 
 (* We use a strong hash (MD5) of the file name.
    We only keep the first 36 bit, which should be well enough: with
@@ -464,13 +460,6 @@ module Context = struct
     | "eliom.client" | "eliom.client.start" -> `Client
     | _ -> invalid_arg "Eliom ppx: Not a context"
 
-  let rpc_of_string = function
-    | "crpc"-> `Connected_rpc
-    | "crpc_opt" -> `Connected_rpc_o
-    | "cw_rpc"-> `Connected_wrapper
-    | "rpc" -> `Eliom_rpc
-    | _-> invalid_arg "Eliom ppx: Not a context"
-
   type escape_inject = [
     | `Escaped_value of server
     | `Injection of client
@@ -654,231 +643,6 @@ end
      ]
    ]
 *)
-module Rpc = struct
-  type error = No_arguments | Missing_argument_type | Fatal_error
-
-  let print_error ~loc (e : error) =
-    let error_str =
-      match e with
-      | No_arguments ->
-          "No arguments"
-      | Missing_argument_type ->
-          "Missing argument type, (argument:type) format expected"
-      | Fatal_error ->
-          "Fatal error"
-    in
-    Location.raise_errorf ~loc "%s" error_str
-
-  let function_name fun_name_pattern =
-    let loc = fun_name_pattern.ppat_loc in
-    match fun_name_pattern with
-    | [%pat? [%p? {ppat_desc= Ppat_var ident}]] ->
-        ident.txt
-    | _ ->
-        print_error ~loc Fatal_error
-
-  let rpc_name fun_name_pattern =
-    let filename =
-      Filename.(!Ocaml_common.Location.input_name |> chop_extension |> basename)
-    in
-    Format.sprintf "%s.%s" filename (function_name fun_name_pattern)
-
-  let pat_to_exp pattern =
-    match pattern with
-    | {ppat_desc= Ppat_var ident; _} ->
-        Exp.ident (mkloc (Longident.parse ident.txt) pattern.ppat_loc)
-    | {ppat_desc= Ppat_construct ({txt = Lident "()"},_); _} ->
-        unit ()
-    | _ ->
-        print_error ~loc:pattern.ppat_loc Fatal_error
-
-  let apply_function_expr ~loc fun_name args_list =
-    Exp.apply ~loc
-      (Exp.ident (mkloc (Longident.parse fun_name) loc))
-      args_list
-
-  let rec args_parser expr arg_list =
-    let loc = expr.pexp_loc in
-    match expr with
-    | [%expr fun () -> [%e? expr']] ->
-        args_parser expr'
-          ((punit (), tunit (), Asttypes.Nolabel) :: arg_list)
-    | { pexp_desc =
-          Pexp_fun
-            (label
-            , None
-            , {ppat_desc = Ppat_constraint (pattern, typ)}
-            , expr' ) } ->
-        args_parser expr' ((pattern, typ, label) :: arg_list)
-    | { pexp_desc = Pexp_fun (_, None, p, _) } ->
-        print_error ~loc:p.ppat_loc Missing_argument_type
-    | e ->
-      (
-      match arg_list with
-      | [] ->
-          print_error ~loc:e.pexp_loc No_arguments
-      | arg_list ->
-          List.rev arg_list, loc )
-
-  let eliom_rpc_expression ~loc (rpc_name, fun_name, args_list, _pat_of_args, _typ_of_args, _expr_of_args)=
-    let apply =
-      apply_function_expr ~loc fun_name
-        (List.map
-           (fun (pattern, _, label) -> (label, pat_to_exp pattern))
-           args_list)
-    in
-    let aux_apply =
-      apply_function_expr ~loc "aux" [(Asttypes.Nolabel, _expr_of_args)]
-    in
-    let inject =
-      [%expr
-        ~%(Eliom_client.server_function ~name:[%e rpc_name]
-             [%json: [%t _typ_of_args]]
-              (fun [%p _pat_of_args] ->
-                  [%e apply]))
-      ]
-    in [%expr let aux = [%e inject] in [%e aux_apply]]
-
-  let connected_wrapper ~loc (rpc_name, fun_name, args_list, _pat_of_args, _typ_of_args, _expr_of_args) =
-    let apply =
-      apply_function_expr ~loc fun_name
-        (List.map
-           (fun (pattern, _, label) -> (label, pat_to_exp pattern))
-           args_list)
-    in
-    let aux_apply =
-      apply_function_expr ~loc "aux" [(Asttypes.Nolabel, _expr_of_args)]
-    in
-    let inject =
-      [%expr
-        ~%(Eliom_client.server_function ~name:[%e rpc_name]
-             [%json: [%t _typ_of_args]]
-             (Os_session.connected_wrapper (fun [%p _pat_of_args] ->
-                  [%e apply])))
-      ]
-    in
-    [%expr let aux = [%e inject] in [%e aux_apply]]
-
-  let connected_rpc ~id ~label ~loc (rpc_name,fun_name, args_list, _pat_of_args, _typ_of_args, _expr_of_args) =
-    let apply =
-      apply_function_expr ~loc fun_name
-        ( (label, pat_to_exp id)
-        :: List.map
-             (fun (pattern, _, label) -> (label, pat_to_exp pattern))
-             args_list )
-    in
-    let aux_apply =
-      apply_function_expr ~loc "aux" [(Asttypes.Nolabel, _expr_of_args)]
-    in
-    let inject = [%expr
-      ~%(Eliom_client.server_function ~name:[%e rpc_name]
-           [%json: [%t _typ_of_args]]
-           (Os_session.connected_rpc (fun [%p id] [%p _pat_of_args] ->
-              [%e apply])))
-      ]
-    in [%expr let aux = [%e inject] in [%e aux_apply]]
-
-  let connected_rpc_o ~id ~label ~loc (rpc_name, fun_name, args_list, _pat_of_args, _typ_of_args, _expr_of_args)
-
-      =
-    let apply =
-      apply_function_expr ~loc fun_name
-        ( (label, pat_to_exp id)
-        :: List.map
-             (fun (pattern, _, label) -> (label, pat_to_exp pattern))
-             args_list )
-    in
-    let aux_apply =
-      apply_function_expr ~loc "aux" [(Asttypes.Nolabel, _expr_of_args)]
-    in
-    let inject =
-      [%expr
-        ~%(Eliom_client.server_function ~name:[%e rpc_name]
-             [%json: [%t _typ_of_args]]
-             (Os_session.Opt.connected_rpc (fun [%p id] [%p _pat_of_args] ->
-                  [%e apply])))
-    ]
-    in [%expr let aux = [%e inject] in [%e aux_apply]]
-
-  let generate_client_expression fun_name_pattern expr apply_rpc =
-    let _args_list,loc = args_parser  expr [] in
-    let _pat_of_args =
-      List.map (fun (pattern, _, _) -> pattern) _args_list |> pat_args
-    in
-    let _typ_of_args =
-      List.map (fun (_, typ, _) -> typ) _args_list |> format_typ
-    in
-    let _expr_of_args =
-      List.map (fun (pattern, _, _) -> pat_to_exp pattern) _args_list
-      |> format_args
-    in
-    let rec expr_mapper args_list =
-        match args_list with
-      | [] ->
-          let rpc_name = str (rpc_name fun_name_pattern) in
-          let fun_name = function_name fun_name_pattern in
-          apply_rpc ~loc (rpc_name, fun_name, _args_list, _pat_of_args, _typ_of_args, _expr_of_args)
-      |(pattern,_,label)::args_list' -> Exp.fun_ label None pattern (expr_mapper args_list')
-    in
-    expr_mapper _args_list
-
-  let generate_server_struct_item rpc_type stri =
-    match stri with
-    | [%stri
-        let [%p? {ppat_desc= Ppat_var ident} as pattern] =
-          [%e? {pexp_desc= Pexp_fun (label, None, _, expr')}]] ->
-        let args_list,loc = args_parser expr' [] in
-        let _args =
-          List.map (fun (pattern, _, _) -> pattern) args_list |> pat_args
-        in
-        let _apply =
-          match rpc_type with
-          | `Connected_rpc_o ->
-              ( label
-              , [%expr Os_current_user.Opt.get_current_userid ()] )
-              :: List.map
-                   (fun (pattern, _, label) -> (label, pat_to_exp pattern))
-                   args_list
-          | _ ->
-              (label, [%expr Os_current_user.get_current_userid ()])
-              :: List.map
-                   (fun (pattern, _, label) -> (label, pat_to_exp pattern))
-                   args_list
-        in
-        let rec expr_mapper args_list =
-          match args_list with
-          |[] -> apply_function_expr ~loc ident.txt _apply
-          |(pattern,_,label):: args_list'-> Exp.fun_ label None pattern (expr_mapper args_list')
-        in
-        ([ [%stri
-             let [%p pattern] = [%e expr_mapper args_list]]
-        ])
-    | _ -> (
-        ([stri]) )
-
-  let generate_client_struct_item rpc_type stri =
-    let loc = stri.pstr_loc in
-    let pattern, expr =
-      match rpc_type, stri with
-      | `Eliom_rpc, [%stri let [%p? pattern] = [%e? expr]] ->
-        pattern, generate_client_expression pattern expr eliom_rpc_expression
-      | `Connected_wrapper, [%stri let [%p? pattern] = [%e? expr]] ->
-        pattern, generate_client_expression pattern expr connected_wrapper
-      | `Connected_rpc, [%stri
-          let [%p? pattern] =
-            [%e? {pexp_desc= Pexp_fun (label, None, id, expr')}]]
-        ->
-        (pattern
-        , generate_client_expression pattern expr' (connected_rpc ~id ~label))
-      | `Connected_rpc_o, [%stri
-          let [%p? pattern] =
-            [%e? {pexp_desc= Pexp_fun (label, None, id, expr')}] ]
-        ->
-        (pattern, generate_client_expression pattern expr'
-           (connected_rpc_o ~id ~label))
-      | _ -> print_error ~loc Fatal_error
-    in [[%stri let [%p pattern] = [%e expr]]]
-end
 
 module Shared = struct
   let server =
@@ -1068,7 +832,7 @@ module Make (Pass : Pass) = struct
     f @@ m#signature_item sigi
 
   let toplevel_structure context structs =
-    let f pstr =
+    let rec f pstr =
       let loc = pstr.pstr_loc
       and maybe_reset_injected_idents = function
         | `Client | `Shared ->
@@ -1096,25 +860,10 @@ module Make (Pass : Pass) = struct
         let c = Context.of_string txt in
         let l = flatmap (dispatch_str c) strs in
         maybe_reset_injected_idents c ; l
-      | Pstr_extension (({txt}, PStr strs), _)
-        when is_annotation txt ["cw_rpc"; "crpc" ;"crpc_opt";"rpc"] ->
-        let rpc_type = Context.rpc_of_string txt in
-        let c = `Server in
-        let l = flatmap (dispatch_str c) strs in
-        let c = `Client in
-        let l' =
-          flatmap (dispatch_str c)
-            (flatmap (Rpc.generate_client_struct_item rpc_type) strs)
-        in
-        let l''= if (rpc_type =`Connected_rpc || rpc_type =`Connected_rpc_o)
-        then let c = `Server in
-              flatmap (dispatch_str c)
-            (flatmap (Rpc.generate_server_struct_item rpc_type) strs)
-        else []
-        in
-        let list = List.flatten [l;l';l''] in
-        maybe_reset_injected_idents c ;
-        list
+      | Pstr_include {pincl_mod = {pmod_desc = Pmod_structure l;
+                                   pmod_attributes = []};
+                      pincl_attributes = []} ->
+        flatmap f l
       | _ ->
         dispatch_str !context pstr
     in
