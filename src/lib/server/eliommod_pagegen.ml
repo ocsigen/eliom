@@ -54,7 +54,7 @@ let handle_site_exn exn info sitedata =
 let update_cookie_table ?now sitedata (ci, sci) =
   let now = match now with
     | Some n -> n
-    | None -> Unix.gettimeofday ()
+    | None -> Unix.time ()
   in
 
   let update_exp
