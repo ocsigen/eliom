@@ -114,6 +114,17 @@ let update_cookie_table ?now sitedata (ci, sci) =
 
       !data_cookies_info;
 
+    let module Expiry_tolerance = struct
+      (* Avoid cookie updates that only change the cookie
+         expiry date by a negligible amount of time. *)
+      let timeout_tolerance_factor = 0.01
+      let within_tolerance x y =
+        let diff = Float.abs (x -. y) in
+        diff < timeout_tolerance_factor *. Float.abs (x -. now)
+      let within_tolerance_opt x y = match x, y with
+        | Some x, Some y -> within_tolerance x y
+        | _ -> x = y
+    end in
 
     (* Update persistent expiration date, user timeout and value *)
     (* 2018-07-17 We do this for all persistent sessions
@@ -151,7 +162,7 @@ let update_cookie_table ?now sitedata (ci, sci) =
                 in
                 match oldvalue with
                   | Some (_, oldti, oldexp, oldgrp) when
-                      (oldexp = newexp &&
+                      (Expiry_tolerance.within_tolerance_opt oldexp newexp &&
                           oldti = !(newc.Eliom_common.pc_timeout) &&
                           oldgrp = !(newc.Eliom_common.pc_session_group) &&
                        newc.Eliom_common.pc_set_value = None) -> Lwt.return ()
