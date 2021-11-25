@@ -1154,6 +1154,7 @@ let call_service
 (* == Leave an application. *)
 
 let exit_to
+    ?window_name ?window_features
     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
     ?keep_nl_params ?nl_params ?keep_get_na_params
     get_params post_params =
@@ -1162,11 +1163,14 @@ let exit_to
            ?keep_nl_params ?nl_params ?keep_get_na_params
            get_params post_params
    with
-   | `Get (uri, _) -> Eliom_request.redirect_get uri
-   | `Post (uri, _, post_params) -> Eliom_request.redirect_post uri post_params
-   | `Put (uri, _, post_params) -> Eliom_request.redirect_put uri post_params
+   | `Get (uri, _) ->
+     Eliom_request.redirect_get ?window_name ?window_features uri
+   | `Post (uri, _, post_params) ->
+     Eliom_request.redirect_post ?window_name uri post_params
+   | `Put (uri, _, post_params) ->
+     Eliom_request.redirect_put ?window_name uri post_params
    | `Delete (uri, _, post_params) ->
-     Eliom_request.redirect_delete uri post_params)
+     Eliom_request.redirect_delete ?window_name uri post_params)
 
 let window_open ~window_name ?window_features
     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
@@ -1178,10 +1182,6 @@ let window_open ~window_name ?window_features
           get_params ()
   with
   | `Get (uri, _) ->
-    (* open_ signature changed in JSOO master (after 2.8.3). Obj.magic
-       will allow us to keep compatibility with both 2.8.x and future
-       versions *)
-    Obj.magic @@
     Dom_html.window##(
       open_ (Js.string uri) window_name
         (Js.Opt.option window_features)
@@ -1743,6 +1743,8 @@ and change_page :
       'get 'post 'meth 'attached 'co 'ext 'reg 'tipo 'gn 'pn.
       ?ignore_client_fun:bool ->
       ?replace:bool ->
+      ?window_name:string ->
+      ?window_features:string ->
       ?absolute:bool ->
       ?absolute_path:bool ->
       ?https:bool ->
@@ -1765,6 +1767,7 @@ and change_page :
   (type m)
     ?(ignore_client_fun = false)
     ?(replace = false)
+    ?window_name ?window_features
     ?absolute ?absolute_path ?https
     ~(service : (_, _, m, _, _, _, _, _, _, _, _) Eliom_service.t)
     ?hostname ?port ?fragment
@@ -1777,10 +1780,12 @@ and change_page :
   if xhr = None
   || (https = Some true && not Eliom_request_info.ssl_)
   || (https = Some false && Eliom_request_info.ssl_)
+  || (window_name <> None && window_name <> Some "_self")
   then
     let () = Lwt_log.ign_debug ~section:section_page "change page: xhr is None" in
     Lwt.return
       (exit_to
+         ?window_name ?window_features
          ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
          ?keep_nl_params ~nl_params ?keep_get_na_params
          get_params post_params)
