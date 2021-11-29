@@ -1136,6 +1136,10 @@ module Make (Pass : Pass) = struct
                 (Printf.sprintf
                    "The %%%%%s extension doesn't accept arguments." txt) ]
         else ( context := Context.of_string txt ; [] )
+      | Psig_extension (({txt}, PSig sigs), _)
+        when is_annotation txt ["shared"; "client" ;"server"] ->
+        let c = Context.of_string txt in
+        flatmap (dispatch_sig c) sigs
       | _ ->
         dispatch_sig !context psig
     in
