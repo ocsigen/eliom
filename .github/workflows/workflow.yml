@@ -36,6 +36,10 @@ jobs:
           opam-depext: false
           opam-pin: false
 
+      - name: Re-export the proper PKG_CONFIG_PATH variable to the environment on macOS
+        run: echo "PKG_CONFIG_PATH=$(brew --prefix openssl)/lib/pkgconfig:$PKG_CONFIG_PATH" >>"$GITHUB_ENV"
+        if: ${{ matrix.os == 'macos-latest' }}
+
       - run: opam pin add eliom.dev . --no-action
 
       - run: opam depext eliom --yes
