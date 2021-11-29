@@ -914,35 +914,35 @@ module Ext : sig
   val get_session_group_list : unit -> string list
 
   (** Iterator on all active service cookies.
-      [Lwt_unix.yield] is called automatically after each iteration.
+      [Lwt.pause] is called automatically after each iteration.
    *)
   val iter_service_cookies :
     (service_cookie_info -> unit Lwt.t) -> unit Lwt.t
 
-  (** Iterator on data cookies. [Lwt_unix.yield] is called automatically
+  (** Iterator on data cookies. [Lwt.pause] is called automatically
       after each iteration.
    *)
   val iter_volatile_data_cookies :
     (data_cookie_info -> unit Lwt.t) -> unit Lwt.t
 
-  (** Iterator on persistent cookies. [Lwt_unix.yield] is called automatically
+  (** Iterator on persistent cookies. [Lwt.pause] is called automatically
       after each iteration. *)
   val iter_persistent_data_cookies :
     (persistent_cookie_info -> unit Lwt.t) -> unit Lwt.t
 
-  (** Iterator on service cookies. [Lwt_unix.yield] is called automatically
+  (** Iterator on service cookies. [Lwt.pause] is called automatically
       after each iteration.
   *)
   val fold_service_cookies :
     (service_cookie_info -> 'b -> 'b Lwt.t) -> 'b -> 'b Lwt.t
 
-  (** Iterator on data cookies. [Lwt_unix.yield] is called automatically
+  (** Iterator on data cookies. [Lwt.pause] is called automatically
      after each iteration.
    *)
   val fold_volatile_data_cookies :
     (data_cookie_info -> 'b -> 'b Lwt.t) -> 'b  -> 'b Lwt.t
 
-  (** Iterator on persistent cookies. [Lwt_unix.yield] is called automatically
+  (** Iterator on persistent cookies. [Lwt.pause] is called automatically
      after each iteration. *)
   val fold_persistent_data_cookies :
     (persistent_cookie_info -> 'b -> 'b Lwt.t) -> 'b -> 'b Lwt.t
