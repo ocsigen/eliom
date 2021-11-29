@@ -68,10 +68,15 @@ val is_client_app : unit -> bool
     the [replace] flag is set, the new page will replace the current
     page in the browser history if the service belongs to the same
     application. The last two parameters are respectively the GET and
-    POST parameters to send to the service. *)
+    POST parameters to send to the service.
+    If [window_name] is provided and not "_self" (for example ["_blank"]),
+    will behave as [exit_to].
+*)
 val change_page :
   ?ignore_client_fun:bool ->
   ?replace:bool ->
+  ?window_name:string ->
+  ?window_features:string ->
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
@@ -119,8 +124,17 @@ val call_ocaml_service :
 
 (** Stop current program and load a new page.  Note that for string arguments,
     sole line feed or sole carriage return characters are substituted by the
-    string ["\r\n"]. *)
+    string ["\r\n"].
+    If [window_name] is specified (for example ["_blank"]), open in new window
+    by calling Javascript function [window.open].
+    In that case, you can add [window_features] parameter
+    (as in Javascript function [window.open]).
+    Warning: opening in other window may not work on mobile apps
+    if [window.open] is not implemented.
+*)
 val exit_to :
+  ?window_name:string ->
+  ?window_features:string ->
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
@@ -135,9 +149,10 @@ val exit_to :
   ?keep_get_na_params:bool ->
   'a -> 'b -> unit
 
-(** Loads an Eliom service in a window (cf. Javascript's [window.open]). *)
+(** Loads an Eliom service in a window (cf. Javascript's [window.open]).
+*)
 val window_open :
-  window_name:Js.js_string Js.t ->
+  window_name:Js.js_string Js.t  ->
   ?window_features:Js.js_string Js.t ->
   ?absolute:bool ->
   ?absolute_path:bool ->

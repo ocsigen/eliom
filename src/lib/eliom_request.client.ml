@@ -75,12 +75,21 @@ let xml_result x =
 let string_result x = x.XmlHttpRequest.content
 
 (*TODO: use Url.Current.set *)
-let redirect_get url = Dom_html.window##.location##.href := Js.string url
+let redirect_get ?window_name ?window_features url =
+  match window_name with
+  | None ->
+    Dom_html.window##.location##.href := Js.string url
+  | Some window_name ->
+    ignore (Dom_html.window##(
+      open_ (Js.string url) (Js.string window_name)
+        (Js.Opt.map (Js.Opt.option window_features) Js.string)
+    ))
 
-let redirect_post url params =
+let redirect_post ?window_name url params =
   let f = Dom_html.createForm Dom_html.document in
   f##.action := Js.string url;
   f##._method := Js.string "post";
+  (match window_name with None -> () | Some wn -> f##.target := Js.string wn);
   List.iter
     (fun (n, v) ->
       match v with
@@ -98,11 +107,11 @@ let redirect_post url params =
   f##submit
 
 (* Forms cannot use PUT http method: do not redirect *)
-let redirect_put _url _params =
+let redirect_put ?window_name:_ _url _params =
   Lwt_log.raise_error ~section "redirect_put not implemented"
 
 (* Forms cannot use DELETE http method: do not redirect *)
-let redirect_delete _url _params =
+let redirect_delete ?window_name:_ _url _params =
   Lwt_log.raise_error ~section "redirect_delete not implemented"
 
 let nl_template =

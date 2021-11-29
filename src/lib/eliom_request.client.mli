@@ -24,10 +24,19 @@ exception Failed_request of int
 exception Program_terminated
 exception Non_xml_content
 
-val redirect_get : string -> unit
-val redirect_post : string -> (string * Eliommod_parameters.param) list -> unit
-val redirect_put : string -> (string * Eliommod_parameters.param) list -> unit
-val redirect_delete : string -> (string * Eliommod_parameters.param) list -> unit
+val redirect_get :
+  ?window_name:string ->
+  ?window_features:string ->
+  string -> unit
+val redirect_post :
+  ?window_name:string ->
+  string -> (string * Eliommod_parameters.param) list -> unit
+val redirect_put :
+  ?window_name:string ->
+  string -> (string * Eliommod_parameters.param) list -> unit
+val redirect_delete :
+  ?window_name:string ->
+  string -> (string * Eliommod_parameters.param) list -> unit
 
 type 'a result
 
