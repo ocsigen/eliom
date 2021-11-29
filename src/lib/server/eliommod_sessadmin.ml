@@ -44,7 +44,7 @@ let close_all_service_states2 full_st_name sitedata =
       thr >>= fun () ->
       if full_st_name = full_st_name2 && !timeoutref = Eliom_common.TGlobal
       then Eliommod_sessiongroups.Serv.remove sessgrpnode;
-      Lwt_unix.yield ()
+      Lwt.pause ()
     )
     sitedata.Eliom_common.session_services
     return_unit
@@ -71,7 +71,7 @@ let close_all_data_states2 full_st_name sitedata =
       thr >>= fun () ->
       if full_st_name = full_st_name2 && !timeoutref = Eliom_common.TGlobal
       then Eliommod_sessiongroups.Data.remove sessgrpnode;
-      Lwt_unix.yield ()
+      Lwt.pause ()
     )
     sitedata.Eliom_common.session_data
     return_unit
@@ -99,7 +99,7 @@ let close_all_persistent_states2 full_st_name sitedata =
       if full_st_name = full_st_name2 && old_t = Eliom_common.TGlobal
       then Eliommod_persess.close_persistent_state2
         ~scope sitedata sessiongrp k >>=
-        Lwt_unix.yield
+        Lwt.pause
       else return_unit
     )
 
@@ -149,7 +149,7 @@ let update_serv_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
               Eliommod_sessiongroups.Serv.remove sessgrpnode
           | _ -> expref := newexp
         );
-        Lwt_unix.yield ()
+        Lwt.pause ()
       )
       sitedata.Eliom_common.session_services
       return_unit
@@ -179,7 +179,7 @@ let update_data_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
               Eliommod_sessiongroups.Data.remove sessgrpnode
           | _ -> expref := newexp
         );
-        Lwt_unix.yield ()
+        Lwt.pause ()
       )
       sitedata.Eliom_common.session_data
       return_unit
@@ -213,6 +213,6 @@ let update_pers_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
             Eliom_common.Persistent_cookies.add k
               (full_st_name2, newexp, Eliom_common.TGlobal, sessgrp) >>= fun () ->
             Eliom_common.Persistent_cookies.Expiry_dates.remove_cookie old_exp k >>=
-            Lwt_unix.yield
+            Lwt.pause
         else return_unit
       )

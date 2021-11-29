@@ -37,7 +37,7 @@ let iter_service_cookies f =
     (fun k v thr ->
       thr >>= fun () ->
       f (k, v) >>=
-      Lwt_unix.yield
+      Lwt.pause
     )
     sitedata.Eliom_common.session_services
     return_unit
@@ -50,7 +50,7 @@ let iter_data_cookies f =
     (fun k v thr ->
       thr >>= fun () ->
       f (k, v) >>=
-      Lwt_unix.yield
+      Lwt.pause
     )
     sitedata.Eliom_common.session_data
     return_unit
@@ -58,7 +58,7 @@ let iter_data_cookies f =
     (** Iterator on persistent cookies *)
 let iter_persistent_cookies f =
   Eliom_common.Persistent_cookies.Cookies.iter
-    (fun k v -> f (k, v) >>= Lwt_unix.yield)
+    (fun k v -> f (k, v) >>= Lwt.pause)
 
 
     (** Iterator on service cookies *)
@@ -68,7 +68,7 @@ let fold_service_cookies f beg =
     (fun k v thr ->
       thr >>= fun res1 ->
         f (k, v) res1 >>= fun res ->
-          Lwt_unix.yield () >>= fun () ->
+          Lwt.pause () >>= fun () ->
             return res
     )
     sitedata.Eliom_common.session_services
@@ -82,7 +82,7 @@ let fold_data_cookies f beg =
     (fun k v thr ->
       thr >>= fun res1 ->
         f (k, v) res1 >>= fun res ->
-        Lwt_unix.yield () >>= fun () ->
+        Lwt.pause () >>= fun () ->
         return res
     )
     sitedata.Eliom_common.session_data
@@ -93,7 +93,7 @@ let fold_persistent_cookies f beg =
   Eliom_common.Persistent_cookies.Cookies.fold
     (fun k v beg ->
       f (k, v) beg >>= fun res ->
-      Lwt_unix.yield () >>= fun () ->
+      Lwt.pause () >>= fun () ->
       return res
     )
     beg

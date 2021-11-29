@@ -1407,7 +1407,7 @@ let remove_from_all_persistent_tables key =
   Perstables.fold (* could be replaced by a parallel map *)
     (fun thr t -> thr >>= fun () ->
       Ocsipersist.Polymorphic.open_table t >>= fun table ->
-      Ocsipersist.Polymorphic.remove table key >>= Lwt_unix.yield)
+      Ocsipersist.Polymorphic.remove table key >>= Lwt.pause)
     return_unit
     !perstables
 

@@ -103,7 +103,7 @@ let gc_timeouted_services now tables =
                               Eliom_common.Serv_Table.add
                                 ptk (`Ptc (nodeopt, newl)) ll
                       with Not_found -> ());
-                 Lwt_unix.yield ())
+                 Lwt.pause ())
             !ptr
             return_unit >>= fun () ->
           if Eliom_common.Serv_Table.is_empty !ptr
@@ -165,7 +165,7 @@ let gc_timeouted_naservices now tr =
                              tr := Eliom_common.remove_naservice_table !tr k
                       )
                   | _ -> ());
-               Lwt_unix.yield ()
+               Lwt.pause ()
             )
             t
             return_unit
@@ -233,7 +233,7 @@ let service_session_gc sitedata =
               | _ -> () (*VVV enough? *));
               return_unit
             )
-            >>= Lwt_unix.yield
+            >>= Lwt.pause
           )
           service_cookie_table
           return_unit
@@ -290,7 +290,7 @@ let data_session_gc sitedata =
                                Lwt.return_unit
                      | _ -> Lwt.return_unit
             )
-            >>= Lwt_unix.yield
+            >>= Lwt.pause
           )
           data_cookie_table
           return_unit
