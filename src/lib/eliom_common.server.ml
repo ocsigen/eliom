@@ -157,8 +157,7 @@ let string_of_perssessgrp = id
 type 'a one_service_cookie_info =
   (* service sessions: *)
   {sc_hvalue:Hashed_cookies.t  (* hash of current value *);
-   mutable sc_set_value: [`None | `Set of string | `Used]
-                               (* new value to set *);
+   sc_set_value:string option  (* new value to set *);
    sc_table:'a ref             (* service session table
                                   ref towards cookie table
                                *);
@@ -180,8 +179,7 @@ type 'a one_service_cookie_info =
 type one_data_cookie_info =
   (* in memory data sessions: *)
   {dc_hvalue:Hashed_cookies.t         (* hash of current value *);
-   mutable dc_set_value: [`None | `Set of string | `Used]
-                                      (* new value to set *);
+   dc_set_value:string option         (* new value to set *);
    dc_timeout:timeout ref             (* user timeout -
                                          ref towards cookie table
                                       *);
@@ -196,8 +194,7 @@ type one_data_cookie_info =
 
 type one_persistent_cookie_info =
   {pc_hvalue:Hashed_cookies.t         (* hash of current value *);
-   mutable pc_set_value: [`None | `Set of string | `Used]
-                                      (* new value to set *);
+   pc_set_value:string option         (* new value to set *);
    pc_timeout:timeout ref             (* user timeout *);
    pc_cookie_exp:cookie_exp ref       (* cookie expiration date to set *);
    pc_session_group:perssessgrp option ref (* session group *)

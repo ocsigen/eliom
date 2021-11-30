@@ -38,13 +38,11 @@ val new_service_cookie_table :
   unit -> Eliom_common.tables Eliom_common.servicecookiestable
 val new_data_cookie_table : unit -> Eliom_common.datacookiestable
 val compute_session_cookies_to_send :
-  final:bool ->
   Eliom_common.sitedata ->
   Eliom_common.tables Eliom_common.cookie_info ->
   Ocsigen_cookie_map.t ->
   Ocsigen_cookie_map.t Lwt.t
 val compute_cookies_to_send :
-  final:bool ->
   Eliom_common.sitedata ->
   Eliom_common.tables Eliom_common.cookie_info ->
   Ocsigen_cookie_map.t ->
