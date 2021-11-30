@@ -137,4 +137,4 @@ include Make(Pass)
 
 let () =
   Ppxlib.Driver.register_transformation
-    ~impl:mapper#structure "ppx_eliom_types"
+    ~preprocess_impl:mapper#structure "ppx_eliom_types"

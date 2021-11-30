@@ -289,6 +289,6 @@ include Make(Pass)
 
 let () =
   Ppxlib.Driver.register_transformation
-    ~impl:mapper#structure
-    ~intf:mapper#signature
+    ~preprocess_impl:mapper#structure
+    ~preprocess_intf:mapper#signature
     "ppx_eliom_client"
