@@ -260,6 +260,6 @@ include Make(Pass)
 
 let () =
   Ppxlib.Driver.register_transformation
-    ~preprocess_impl:mapper#structure
-    ~preprocess_intf:mapper#signature
+    ~impl:mapper#structure
+    ~intf:mapper#signature
     "ppx_eliom_server"
