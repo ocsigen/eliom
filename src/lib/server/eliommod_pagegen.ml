@@ -154,10 +154,10 @@ let update_cookie_table ?now sitedata (ci, sci) =
                       (oldexp = newexp &&
                           oldti = !(newc.Eliom_common.pc_timeout) &&
                           oldgrp = !(newc.Eliom_common.pc_session_group) &&
-                       newc.Eliom_common.pc_set_value = `None) -> Lwt.return ()
+                       newc.Eliom_common.pc_set_value = None) -> Lwt.return ()
                 (* nothing to do *)
                   | Some (_, oldti, oldexp, oldgrp) when
-                      newc.Eliom_common.pc_set_value = `None ->
+                      newc.Eliom_common.pc_set_value = None ->
                     Lwt.catch
                       (fun () ->
                         Eliom_common.Persistent_cookies.replace_if_exists
@@ -325,7 +325,7 @@ let gen is_eliom_extension sitedata = function
 
                let response, _ = Ocsigen_response.to_cohttp res
                and all_user_cookies = Ocsigen_response.cookies res in
-               Eliommod_cookies.compute_cookies_to_send ~final:true
+               Eliommod_cookies.compute_cookies_to_send
                  sitedata
                  all_cookie_info
                  all_user_cookies
