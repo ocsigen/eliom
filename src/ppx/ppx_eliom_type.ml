@@ -112,7 +112,7 @@ module Pass = struct
       [%e frag_eid] :=
         Some ( Eliom_syntax.client_value "" 0 :
                  [%t typ] Eliom_client_value.t);
-      (Option.get (! [%e frag_eid]) : _ Eliom_client_value.t)
+      (Stdlib.Option.get (! [%e frag_eid]) : _ Eliom_client_value.t)
     ]
 
   let escape_inject
