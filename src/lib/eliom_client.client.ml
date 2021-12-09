@@ -1197,6 +1197,22 @@ let window_open ~window_name ?window_features
    handlers.
 *)
 
+let handle_missing_service = ref (fun _ -> ())
+
+let set_missing_service_handler f = handle_missing_service := f
+
+let check_caml_content content =
+  (* Checks that the contents is an OCaml marshalled value. It it is not,
+     then he service is missing server-side and the fallback has been executed
+     instead. *)
+  if not (String.length content > 12 &&
+          String.sub content 0 12 = "%84%95%A6%BE")
+  then begin
+    !handle_missing_service ();
+    raise (Eliom_client_value.Exception_on_server "Missing service")
+  end
+
+
 let unwrap_caml_content content =
   let r : 'a Eliom_runtime.eliom_caml_service_data =
     Eliom_unwrap.unwrap (Url.decode content) 0
@@ -1216,6 +1232,7 @@ let call_ocaml_service
       ?keep_nl_params ?nl_params ?keep_get_na_params
       ?progress ?upload_progress ?override_mime_type
       get_params post_params in
+  check_caml_content content;
   let%lwt () = Lwt_mutex.lock Eliom_client_core.load_mutex in
   Eliom_client_core.set_loading_phase ();
   let%lwt content, request_data = unwrap_caml_content content in

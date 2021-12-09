@@ -397,6 +397,11 @@ val change_page_uri : ?replace:bool -> string -> unit Lwt.t
     initialize itself correctly. *)
 val set_client_html_file : string -> unit
 
+(** Set handler invoked when an OCaml service (called through
+    [call_ocaml_service] is not found server-side. This normally
+    only happens when the client and the server code do not match. *)
+val set_missing_service_handler : (unit -> unit) -> unit
+
 (**/**)
 
 (** [change_page_unknown path get_params post_params] calls the
