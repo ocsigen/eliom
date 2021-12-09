@@ -751,6 +751,8 @@ module Ocaml = struct
 
   module M = Eliom_mkreg.Make(Ocaml_base)
 
+  let known_applications = Hashtbl.create 2
+
   let prepare_data data =
     let ecs_request_data =
       let data = Eliom_syntax.get_request_data () in
@@ -774,38 +776,46 @@ module Ocaml = struct
 
   let make_service_handler ~name f =
     fun g p ->
-      let%lwt data =
-        try%lwt
-          let%lwt res = f g p in
-          Lwt.return (`Success res)
-        with exn ->
-          let code = Printf.sprintf "%06x" (Random.int 0x1000000) in
-          let argument =
-            let sp = Eliom_common.get_sp () in
-            let si = Eliom_request_info.get_si sp in
-            let post_params =
-              match si.Eliom_common.si_all_post_params with
-              | None -> []
-              | Some l -> l
-            in
-            try
-              Printf.sprintf " (%s)"
-                (List.assoc "argument" post_params)
-            with Not_found ->
-              ""
-          in
-          begin match name with
-          | Some name ->
-             Lwt_log_core.ign_error_f ~exn
-               "Uncaught exception in service %s [%s]%s" name code
-               (Str.global_replace string_regexp "\"xxx\"" argument)
-          | None ->
-             Lwt_log_core.ign_error_f ~exn
-               "Uncaught exception [%s]%s" code argument
-          end;
-          Lwt.return (`Failure code)
+      let app_found =
+        match Eliom_common.((get_sp ()).sp_client_appl_name) with
+        | None -> true
+        | Some app -> Hashtbl.mem known_applications app
       in
-      prepare_data data
+      if not app_found then
+        Lwt.return ""
+      else
+        let%lwt data =
+          try%lwt
+            let%lwt res = f g p in
+            Lwt.return (`Success res)
+          with exn ->
+            let code = Printf.sprintf "%06x" (Random.int 0x1000000) in
+            let argument =
+              let sp = Eliom_common.get_sp () in
+              let si = Eliom_request_info.get_si sp in
+              let post_params =
+                match si.Eliom_common.si_all_post_params with
+                | None -> []
+                | Some l -> l
+              in
+              try
+                Printf.sprintf " (%s)"
+                  (List.assoc "argument" post_params)
+              with Not_found ->
+                ""
+            in
+            begin match name with
+            | Some name ->
+               Lwt_log_core.ign_error_f ~exn
+                 "Uncaught exception in service %s [%s]%s" name code
+                 (Str.global_replace string_regexp "\"xxx\"" argument)
+            | None ->
+               Lwt_log_core.ign_error_f ~exn
+                 "Uncaught exception [%s]%s" code argument
+            end;
+            Lwt.return (`Failure code)
+        in
+        prepare_data data
 
   let send ?options ?charset ?code ?content_type ?headers content =
     let%lwt content = prepare_data content in
@@ -1036,6 +1046,8 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
   type result = app_id application_content kind
 
   let result_of_http_result = Result_types.cast_result
+
+  let () = Hashtbl.add Ocaml.known_applications App_param.application_name ()
 
   let is_initial_request () =
     Eliom_common.((get_sp ()).sp_client_appl_name)
