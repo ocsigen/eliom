@@ -159,20 +159,20 @@ let compile_ocaml ~impl_intf file =
   create_process !compiler (
     ["-c" ;
      "-o" ; obj ]
-    @ preprocess_opt ~ocaml:true !ppopt
     @ !args
     @ get_thread_opt ()
     @ get_common_include ()
     @ get_common_ppx ()
+    @ preprocess_opt ~ocaml:true !ppopt
     @ [impl_intf_opt impl_intf; file] )
 
 let output_ocaml_interface file =
   create_process !compiler (
     [ "-i" ]
-    @ preprocess_opt ~ocaml:true !ppopt
     @ !args
     @ get_common_include ()
     @ get_common_ppx ()
+    @ preprocess_opt ~ocaml:true !ppopt
     @ [file] )
 
 let process_ocaml ~impl_intf file =
@@ -241,10 +241,10 @@ let compile_server_type_eliom file =
   in
   create_process ~out ~on_error !compiler (
     [ "-i" ]
-    @ preprocess_opt ~kind:`Types ppopts
     @ !args
     @ get_common_include ()
     @ get_common_ppx ()
+    @ preprocess_opt ~kind:`Types ppopts
     @ ["-impl"; file] );
   Unix.close out;
   if !pp_mode = `Ppx then run_sed obj
@@ -270,11 +270,11 @@ let output_eliom_interface ~impl_intf file =
   let args kind =
     let ppopts = get_ppopts ~impl_intf file in
     [ "-i" ]
-    @ preprocess_opt ~kind ppopts
     @ [ "-intf-suffix"; ".eliomi" ]
     @ !args
     @ get_common_include ~kind ()
     @ get_common_ppx ~kind ()
+    @ preprocess_opt ~kind ppopts
     @ [ impl_intf_opt impl_intf; file ]
   and open_block str =
     match !pp_mode with
@@ -314,12 +314,12 @@ let compile_eliom ~impl_intf file =
   (* end; *)
   create_process !compiler (
     [ "-c" ; "-o"  ; obj ]
-    @ preprocess_opt ppopts
     @ [ "-intf-suffix"; ".eliomi" ]
     @ get_thread_opt ()
     @ !args
     @ get_common_include ()
     @ get_common_ppx ()
+    @ preprocess_opt ppopts
     @ [impl_intf_opt impl_intf; file] );
   args := !args @ [obj]
 
