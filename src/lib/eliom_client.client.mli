@@ -270,6 +270,15 @@ type changepage_event =
     apply to the next page change. *)
 val onchangepage : (changepage_event -> unit Lwt.t) -> unit
 
+module Page_id : sig
+  type t
+  val equal : t -> t -> bool
+  val compare : t -> t -> int
+  val hash : t -> int
+end
+
+val current_page : unit -> Page_id.t
+
 module Page_status : sig
   (** a page can be in one of the following states:
       - [Generating]: page is currently being generated and not yet instated as
@@ -333,6 +342,8 @@ module Page_status : sig
     ?now:bool ->
     ?stop:(unit React.E.t) ->
     (unit -> unit Lwt.t) -> unit
+
+  val event : (Page_id.t * t) React.E.t
 end
 
 (** [onbeforeunload f] registers [f] as a handler to be called before

@@ -598,6 +598,13 @@ module Page_status_t = struct
     | Dead       -> "Dead"
 end
 
+module Page_id = struct
+  type t = int
+  let equal : int -> int -> bool = (=)
+  let compare : int -> int -> int = compare
+  let hash : int -> int = Hashtbl.hash
+end
+
 type page = {
   page_unique_id : int;
   mutable page_id : state_id;
@@ -609,6 +616,8 @@ type page = {
   mutable reload_function : (unit -> unit -> Eliom_service.result Lwt.t) option
 }
 
+let (page_event, notify_page_event) = React.E.create ()
+
 let string_of_page p =
   Printf.sprintf "%d/%d %s %s %d %b"
     p.page_unique_id p.page_id.state_index p.url
@@ -619,7 +628,8 @@ let string_of_page p =
 let set_page_status p st =
   Lwt_log.ign_debug_f ~section:section_page "Set page status %d/%d: %s"
     p.page_unique_id p.page_id.state_index (Page_status_t.to_string st);
-  p.set_page_status st
+  p.set_page_status st;
+  notify_page_event (p.page_unique_id, st)
 
 let retire_page p =
   set_page_status p @@ match p.dom with Some _ -> Cached | None -> Dead
@@ -636,6 +646,7 @@ let mk_page ?(state_id = next_state_id ()) ?url ?previous_page ~status () =
   let page_status, set_page_status = React.S.create status in
   (* protect page_status from React.S.stop ~strong:true *)
   ignore @@ React.S.map (fun _ -> ()) page_status;
+  notify_page_event (!last_page_id, status);
   {page_unique_id = !last_page_id;
    page_id = state_id;
    url =
@@ -666,6 +677,8 @@ let get_this_page () = match Lwt.get this_page with
   | None ->
     Lwt_log.ign_debug_f ~section:section_page "No page in context";
     !active_page
+
+let current_page () = (get_this_page ()).page_unique_id
 
 let with_new_page ?state_id ?old_page ~replace () f =
   let state_id = if replace then Some (!active_page).page_id else state_id in
@@ -1364,6 +1377,8 @@ module Page_status = struct
     onactive ?now ~stop (fun () -> thread := action ());
     oninactive ~stop (fun () -> Lwt.cancel !thread);
     ignore @@ React.E.map (fun () -> Lwt.cancel !thread) stop
+
+  let event = page_event
 end
 
 let is_in_cache state_id =
