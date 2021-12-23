@@ -139,10 +139,10 @@ let compile_server_eliom ~impl_intf file =
     exit 0
   end;
   create_filter !compiler
-    ( preprocess_opt ~kind:`Server (server_pp_opt impl_intf)
-      @ eliom_synonyms @ !args
+    ( eliom_synonyms @ !args
       @ (map_include !eliom_inc_dirs)
       @ get_common_ppx ~kind:`Server ()
+      @ preprocess_opt ~kind:`Server (server_pp_opt impl_intf)
       @ [impl_intf_opt impl_intf; file] )
     (on_each_line add_build_dirs)
 
@@ -157,10 +157,10 @@ let compile_type_eliom ~impl_intf file =
     exit 0
   end;
   create_filter !compiler
-    ( preprocess_opt ~kind:`Types (type_pp_opt impl_intf)
-      @ eliom_synonyms @ !args
+    ( eliom_synonyms @ !args
       @ (map_include !eliom_inc_dirs)
       @ get_common_ppx ~kind:`Server ()
+      @ preprocess_opt ~kind:`Types (type_pp_opt impl_intf)
       @ [impl_intf_opt impl_intf; file] )
     (on_each_line server_type_file_dependencies)
 
@@ -174,10 +174,10 @@ let compile_client_eliom ~impl_intf file =
     exit 0
   end;
   create_filter !compiler
-    ( preprocess_opt ~kind:`Client (client_pp_opt impl_intf)
-      @ eliom_synonyms @ !args
+    ( eliom_synonyms @ !args
       @ (map_include !eliom_inc_dirs)
       @ get_common_ppx ~kind:`Client ()
+      @ preprocess_opt ~kind:`Client (client_pp_opt impl_intf)
       @ [impl_intf_opt impl_intf; file] )
     (on_each_line add_build_dirs)
 
@@ -204,9 +204,9 @@ let sort () =
   wait
     (create_process !compiler
        ( "-sort" ::
-         preprocess_opt ~kind:!kind ppopt @
          eliom_synonyms @
          get_common_ppx ~kind:!kind () @
+         preprocess_opt ~kind:!kind ppopt @
          map_include !eliom_inc_dirs @
          List.(concat (map (fun file -> ["-impl"; file]) !sort_files)) )
     ) ;
