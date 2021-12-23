@@ -306,14 +306,14 @@ let persistent_session_gc sitedata =
     let do_gc_cookie cookie ((scope, _, _), exp, _, session_group) =
       match exp with
       | Some exp when exp <= now ->
-        Lwt_log.ign_notice_f ~section "remove expired cookie %s" cookie;
+        Lwt_log.ign_info_f ~section "remove expired cookie %s" cookie;
         Eliommod_persess.close_persistent_state2
           ~scope
           sitedata
           session_group cookie
       (*WAS: remove_from_all_persistent_tables k *)
       | _ ->
-          Lwt_log.ign_notice_f ~section "cookie not expired: %s" cookie;
+          Lwt_log.ign_info_f ~section "cookie not expired: %s" cookie;
           return_unit
     in
     let gc_cookie c =
