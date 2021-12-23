@@ -1389,10 +1389,13 @@ module Persistent_cookies = struct
 
   let garbage_collect ~section gc_cookie =
     let now = Unix.time () in
-    Expiry_dates.iter ~lt:now @@ fun date cookies ->
+    Expiry_dates.iter ~lt:now @@ fun date cookies_str ->
+      let cookies = String.split_on_char ',' cookies_str in
+      let hash c = Hashed_cookies.to_string @@ Hashed_cookies.hash c in
+      let hashed_cookies_str = String.concat ", " @@ List.map hash cookies in
       Lwt_log.ign_info_f ~section "potentially expired cookies %.0f: %s"
-                                    date cookies;
-      Lwt_list.iter_s gc_cookie (String.split_on_char ',' cookies) >>= fun _ ->
+                                   date (hashed_cookies_str);
+      Lwt_list.iter_s gc_cookie cookies >>= fun _ ->
       Expiry_dates.remove date
 end
 
