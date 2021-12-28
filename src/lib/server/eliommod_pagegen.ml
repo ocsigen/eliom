@@ -225,7 +225,8 @@ let execute
        secure_ci_tab),
       user_tab_cookies) as info)
     sitedata =
-
+  let cookies_read_only = !Eliom_common.Persistent_cookies.request_read_only_condition ri in
+  Lwt.with_value Eliom_common.Persistent_cookies.read_only (Some cookies_read_only) @@ fun () ->
   Lwt.catch
     (fun () -> generate_page now info sitedata)
     (fun e -> handle_site_exn e info sitedata)

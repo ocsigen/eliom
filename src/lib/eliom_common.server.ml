@@ -1335,6 +1335,9 @@ module Persistent_cookies = struct
      the initialization of eliom in case we use static linking with
      sqlite backend ... *)
 
+  let request_read_only_condition = ref @@ fun _ -> false
+  let read_only = Lwt.new_key ()
+
   type date = float
   type cookie = full_state_name * date option * timeout * perssessgrp option
 
@@ -1378,9 +1381,14 @@ module Persistent_cookies = struct
   end
 
   let add cookie ((_, exp, _, _) as content) =
-    Eliom_lib.Option.Lwt.iter (fun t -> Expiry_dates.add_cookie t cookie) exp
-    >>= fun _ ->
-    Cookies.add cookie content
+    if Lwt.get read_only = Some true
+    then Lwt.return_unit
+    else begin
+      prerr_endline @@ String.concat "\n" @@ "COOKIE" :: Eliom_common_base.backtrace_lwt 0;
+      Eliom_lib.Option.Lwt.iter (fun t -> Expiry_dates.add_cookie t cookie) exp
+      >>= fun _ ->
+      Cookies.add cookie content
+    end
 
   let replace_if_exists cookie ((_, exp, _, _) as content) =
     Eliom_lib.Option.Lwt.iter (fun t -> Expiry_dates.add_cookie t cookie) exp

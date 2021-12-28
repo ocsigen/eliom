@@ -616,6 +616,8 @@ val perstables : string list ref
 val create_persistent_table : string -> 'a Ocsipersist.table Lwt.t
 
 module Persistent_cookies : sig
+  val request_read_only_condition : (Ocsigen_extensions.request -> bool) ref
+  val read_only : bool Lwt.key
   type date = float
   type cookie = full_state_name * date option * timeout * perssessgrp option
   module Cookies : Ocsipersist.TABLE
