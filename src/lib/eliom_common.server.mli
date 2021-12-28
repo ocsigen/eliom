@@ -22,6 +22,8 @@
 
 open Eliom_lib
 
+module Ocsipersist : module type of Ocsipersist
+
 (** {2 Scopes} *)
 (* those types are not available to the user, a scope must be created using
    create_..._scope functions *)
@@ -428,6 +430,8 @@ type node_info = {
 
 module Hier_set : Set.S
 
+type omitpersistentstorage_rule = HeaderRule of Ocsigen_header.Name.t * Re.re
+
 type 'a dircontent = Vide | Table of 'a direlt ref String.Table.t
 and 'a direlt = Dir of 'a dircontent ref | File of 'a ref
 
@@ -580,6 +584,7 @@ and sitedata = {
   mutable html_content_type : string option;
   mutable ignored_get_params : (string * Re.re) list;
   mutable ignored_post_params : (string * Re.re) list;
+  mutable omitpersistentstorage : omitpersistentstorage_rule list option;
 }
 
 type 'a lazy_site_value (** lazy site values, are lazy values with

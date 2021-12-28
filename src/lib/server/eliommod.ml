@@ -46,6 +46,7 @@ let default_cache_global_data = ref None
 let default_html_content_type = ref None
 let default_ignored_get_params = ref []
 let default_ignored_post_params = ref []
+let default_omitpersistentstorage = ref None
 
 (* Subnet defaults be large enough, because it must work behind a reverse proxy.
 
@@ -146,6 +147,7 @@ let create_sitedata site_dir config_info =
     html_content_type = !default_html_content_type;
     ignored_get_params = !default_ignored_get_params;
     ignored_post_params = !default_ignored_post_params;
+    omitpersistentstorage = !default_omitpersistentstorage;
   } in
   Ocsigen_cache.Dlist.set_finaliser_after
     (fun node ->
@@ -241,7 +243,8 @@ let parse_eliom_option
      set_global_data_caching,
      set_html_content_type,
      set_ignored_get_params,
-     set_ignored_post_params
+     set_ignored_post_params,
+     set_omitpersistentstorage
     )
     =
   let parse_timeout_attrs tn attrs =
@@ -495,6 +498,20 @@ let parse_eliom_option
     let re = Re.seq [Re.start; Re.Pcre.re v; Re.stop] |> Re.compile in
     set_ignored_post_params (v, re)
 
+  | (Xml.Element ("omitpersistentstorage", attrs, tags)) ->
+      assert (attrs = []);
+      let parse_rule = function
+        | Xml.Element ("header", attrs, tags) ->
+            assert (tags = []);
+            let attr_name, attr_value = match attrs with [a] -> a | _ -> assert false in
+            let header_name = Ocsigen_header.Name.of_string attr_name in
+            let header_regexp = Re.compile @@ Re.Pcre.re attr_value in
+            Eliom_common.HeaderRule (header_name, header_regexp)
+        | _ -> assert false
+      in
+      let rules = List.map parse_rule tags in
+      set_omitpersistentstorage (Some rules)
+
   | (Xml.Element (s, _, _)) ->
       raise (Error_in_config_file
                ("Unexpected content <"^s^"> inside eliom config"))
@@ -589,7 +606,8 @@ let rec parse_global_config = function
          (fun regexp -> default_ignored_get_params :=
                           regexp::!default_ignored_get_params),
          (fun regexp -> default_ignored_post_params :=
-                          regexp::!default_ignored_post_params)
+                          regexp::!default_ignored_post_params),
+         (fun v -> default_omitpersistentstorage := v)
         )
         e;
       parse_global_config ll
@@ -919,7 +937,8 @@ let parse_config _ hostpattern conf_info site_dir =
              (fun regexp -> sitedata.Eliom_common.ignored_get_params
                             <- regexp::sitedata.Eliom_common.ignored_get_params),
              (fun regexp -> sitedata.Eliom_common.ignored_post_params
-                            <- regexp::sitedata.Eliom_common.ignored_post_params)
+                            <- regexp::sitedata.Eliom_common.ignored_post_params),
+             (fun v -> sitedata.Eliom_common.omitpersistentstorage <- v)
             )
             content
         in
