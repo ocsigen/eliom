@@ -319,7 +319,7 @@ let persistent_session_gc sitedata =
     in
     let gc_cookie c =
       Lwt.try_bind
-        (fun () -> Eliom_common.Persistent_cookies.Cookies.find c)
+        (fun () -> Eliommod_cookies.Persistent_cookies.Cookies.find c)
         (do_gc_cookie c)
         (function
          | Not_found ->
@@ -328,7 +328,7 @@ let persistent_session_gc sitedata =
          | exn -> Lwt.fail exn)
     in
     Lwt_log.ign_info ~section "GC of persistent sessions";
-    Eliom_common.Persistent_cookies.garbage_collect ~section gc_cookie
+    Eliommod_cookies.Persistent_cookies.garbage_collect ~section gc_cookie
   in
   match get_persistentsessiongcfrequency () with
   | None -> () (* No garbage collection *)

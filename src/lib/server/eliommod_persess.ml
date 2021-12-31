@@ -40,7 +40,7 @@ let compute_cookie_info sitedata secure_o secure_ci cookie_info =
 
 let perstables = Eliom_common.perstables
 
-module Persistent_cookies = Eliom_common.Persistent_cookies
+module Persistent_cookies = Eliommod_cookies.Persistent_cookies
 
 let number_of_persistent_tables () =
   List.length !perstables
@@ -145,7 +145,7 @@ let rec find_or_create_persistent_cookie_
   (* We do not need to verify if it already exists.
      make_new_session_id does never generate twice the same cookie. *)
     let usertimeout = ref Eliom_common.TGlobal (* See global table *) in
-    Persistent_cookies.add
+    Eliommod_cookies.Persistent_cookies.add
       hc_string
       (full_st_name,
        None (* Some 0. *) (* exp on server - We'll change it later *),

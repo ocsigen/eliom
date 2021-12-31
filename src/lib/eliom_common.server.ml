@@ -44,16 +44,6 @@ let tenable_value ~name v = object
 end
 
 (*****************************************************************************)
-(*VVV Do not forget to change the version number
-  when the internal format change!!! *)
-let persistent_cookie_table_version = "_v5"
-(* v2 introduces session groups *)
-(* v3 introduces tab sessions *)
-(* v4 introduces group tables *)
-(* v5 removes secure scopes *)
-
-let eliom_persistent_cookie_table =
-  "eliom_persist_cookies"^persistent_cookie_table_version
 
 let datacookiename = "eliomdatasession|"
 let servicecookiename = "eliomservicesession|"
@@ -1323,87 +1313,10 @@ let create_persistent_table name =
   perstables := Perstables.add name !perstables;
   Ocsipersist.Polymorphic.open_table name
 
-module Persistent_cookies = struct
-  (* Another table, containing the session info for each cookie *)
-  (* the table contains:
-     - the expiration date (by timeout), changed at each access to the table
-       (float option) None -> no expiration
-     - the timeout for the user (float option option) None -> see global config
-       Some None -> no timeout
-   *)
-  (* It is lazy, because we must delay the creation of the table until
-     the initialization of eliom in case we use static linking with
-     sqlite backend ... *)
-
-  type date = float
-  type cookie = full_state_name * date option * timeout * perssessgrp option
-
-  module Ocsipersist = Ocsipersist.Functorial
-
-  module Cookies =
-    Ocsipersist.Table
-      (struct let name = eliom_persistent_cookie_table end)
-      (Ocsipersist.Column.String)
-      (Ocsipersist.Column.Marshal (struct type t = cookie end))
-
-  (* maps expiry dates to cookie IDs; may have superfluous entries, i.e cookies
-     that will not actually expire on the given date. *)
-  module Expiry_dates = struct
-    include Ocsipersist.Table
-              (struct let name = "eliom_persist_cookies_expiry_dates" end)
-              (Ocsipersist.Column.Float)
-              (Ocsipersist.Column.String)
-
-    let add_cookie exp cookie =
-      modify_opt exp @@
-        function
-          | None -> Some cookie
-          | Some cookies_str ->
-              let cookies = String.split_on_char ',' cookies_str in
-              if List.mem cookie cookies
-              then Some cookies_str
-              else Some (cookies_str ^ "," ^ cookie)
-
-    let remove_cookie exp_o cookie =
-      exp_o |> Eliom_lib.Option.Lwt.iter @@ fun exp ->
-      modify_opt exp @@
-        function
-          | None -> None
-          | Some cookies_str ->
-              let cookies = String.split_on_char ',' cookies_str in
-              let cookies' = List.filter (fun c -> c <> cookie) cookies in
-              if cookies' = []
-                then None
-                else Some (String.concat "," cookies')
-  end
-
-  let add cookie ((_, exp, _, _) as content) =
-    Eliom_lib.Option.Lwt.iter (fun t -> Expiry_dates.add_cookie t cookie) exp
-    >>= fun _ ->
-    Cookies.add cookie content
-
-  let replace_if_exists cookie ((_, exp, _, _) as content) =
-    Eliom_lib.Option.Lwt.iter (fun t -> Expiry_dates.add_cookie t cookie) exp
-    >>= fun _ ->
-    Cookies.replace_if_exists cookie content
-
-  let garbage_collect ~section gc_cookie =
-    let now = Unix.time () in
-    Expiry_dates.iter ~lt:now @@ fun date cookies_str ->
-      let cookies = String.split_on_char ',' cookies_str in
-      let hash c = Hashed_cookies.to_string @@ Hashed_cookies.hash c in
-      let hashed_cookies_str = String.concat ", " @@ List.map hash cookies in
-      Lwt_log.ign_info_f ~section "potentially expired cookies %.0f: %s"
-                                   date (hashed_cookies_str);
-      Lwt_list.iter_s gc_cookie cookies >>= fun _ ->
-      Expiry_dates.remove date
-end
-
-
 (** removes the entry from all opened tables *)
 let remove_from_all_persistent_tables key =
   (* doesn't remove entry from Persistent_cookies_expiry_dates; not a problem *)
-  Persistent_cookies.Cookies.remove key >>= fun () ->
+  (* TODO: Persistent_cookies.Cookies.remove key >>= fun () -> *)
   Perstables.fold (* could be replaced by a parallel map *)
     (fun thr t -> thr >>= fun () ->
       Ocsipersist.Polymorphic.open_table t >>= fun table ->

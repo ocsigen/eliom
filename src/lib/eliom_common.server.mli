@@ -604,8 +604,6 @@ val make_full_state_name :
 val make_full_state_name2 :
   string -> bool -> scope:[< user_scope ] -> full_state_name
 
-
-
 module Perstables :
   sig
     val empty : 'a list
@@ -614,24 +612,8 @@ module Perstables :
   end
 val perstables : string list ref
 val create_persistent_table : string -> 'a Ocsipersist.table Lwt.t
-
-module Persistent_cookies : sig
-  type date = float
-  type cookie = full_state_name * date option * timeout * perssessgrp option
-  module Cookies : Ocsipersist.TABLE
-    with type key = string and type value = cookie
-  module Expiry_dates : sig
-    include Ocsipersist.TABLE with type key = date and type value = string
-    val add_cookie : date -> string -> unit Lwt.t
-    val remove_cookie : date option -> string -> unit Lwt.t
-  end
-  val add : string -> cookie -> unit Lwt.t
-  val replace_if_exists : string -> cookie -> unit Lwt.t
-  val garbage_collect :
-    section:Lwt_log_core.Section.t -> (Cookies.key -> unit Lwt.t) -> unit Lwt.t
-end
-
 val remove_from_all_persistent_tables : string -> unit Lwt.t
+
 val absolute_change_sitedata : sitedata -> unit
 val get_current_sitedata : unit -> sitedata
 val end_current_sitedata : unit -> unit

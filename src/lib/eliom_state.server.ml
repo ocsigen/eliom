@@ -1282,7 +1282,7 @@ module Ext = struct
 
   let get_persistent_cookie_info
       ((_, _, cookie) : ([< Eliom_common.cookie_level ], [ `Pers ]) state) =
-    Eliom_common.Persistent_cookies.Cookies.find cookie >>= fun v ->
+    Eliommod_cookies.Persistent_cookies.Cookies.find cookie >>= fun v ->
     Lwt.return (cookie, v)
 
   let discard_state ~state =
@@ -1485,7 +1485,7 @@ module Ext = struct
     | None -> TNone
     | Some t -> TSome t
     in
-    Eliom_common.Persistent_cookies.add cookie (fullstname, exp, ti, sessgrp)
+    Eliommod_cookies.Persistent_cookies.add cookie (fullstname, exp, ti, sessgrp)
 
   let get_service_cookie_timeout ~cookie:(_, (_, _, _, r, _, _)) =
     !r
@@ -1505,9 +1505,9 @@ module Ext = struct
 
   let unset_persistent_data_cookie_timeout
       ~cookie:(cookie, (fullstname, exp, _, sessgrp)) =
-    Eliom_common.Persistent_cookies.Cookies.add cookie
+    Eliommod_cookies.Persistent_cookies.Cookies.add cookie
       (fullstname, exp, TGlobal, sessgrp) >>= fun () ->
-    Eliom_common.Persistent_cookies.Expiry_dates.remove_cookie exp cookie
+    Eliommod_cookies.Persistent_cookies.Expiry_dates.remove_cookie exp cookie
 
 
   let get_session_group_list () =

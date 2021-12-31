@@ -172,20 +172,20 @@ let update_cookie_table ?now sitedata (ci, sci) =
                     Lwt.catch
                       (fun () ->
                         let cookieid = Eliom_common.(Hashed_cookies.to_string newc.pc_hvalue) in
-                        Eliom_common.Persistent_cookies.replace_if_exists
+                        Eliommod_cookies.Persistent_cookies.replace_if_exists
                           cookieid
                           (name,
                            newexp,
                            !(newc.Eliom_common.pc_timeout),
                            !(newc.Eliom_common.pc_session_group))
                         >>= fun () ->
-                        Eliom_common.Persistent_cookies.Expiry_dates.remove_cookie oldexp cookieid)
+                        Eliommod_cookies.Persistent_cookies.Expiry_dates.remove_cookie oldexp cookieid)
                       (function
                         | Not_found -> Lwt.return ()
                         (* someone else closed the session *)
                         | e -> Lwt.fail e)
                   | _ ->
-                    Eliom_common.Persistent_cookies.add
+                    Eliommod_cookies.Persistent_cookies.add
                       Eliom_common.(Hashed_cookies.to_string newc.pc_hvalue)
                       (name,
                        newexp,

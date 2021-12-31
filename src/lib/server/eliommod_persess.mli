@@ -22,6 +22,7 @@ open Eliom_common
 
 val perstables : string list ref
 
+(* TODO: to be removed? *)
 module Persistent_cookies : sig
   type cookie = full_state_name * float option * timeout * perssessgrp option
   module Cookies : Ocsipersist.TABLE
