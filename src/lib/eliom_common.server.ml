@@ -1316,22 +1316,21 @@ module Persistent_tables = struct
       (fun (module T : Ocsipersist.TABLE with type key = string) -> T.remove key)
       !functorial_tables
     >>= fun () ->
-    List.fold_left (* could be replaced by a parallel map *)
-      (fun thr t -> thr >>= fun () ->
+    Lwt_list.iter_s (* could be replaced by iter_p *)
+      (fun t ->
         Ocsipersist.Polymorphic.open_table t >>= fun table ->
         Ocsipersist.Polymorphic.remove table key >>= Lwt.pause)
-      return_unit
       !polymorphic_tables
 
   let number_of_tables () = List.length !polymorphic_tables + List.length !functorial_tables
 
   let number_of_table_elements () =
-    List.fold_left
-      (fun thr t ->
-        thr >>= fun l ->
+    Lwt_list.map_s
+      (fun t ->
         Ocsipersist.Polymorphic.open_table t >>= fun table ->
         Ocsipersist.Polymorphic.length table >>= fun e ->
-        return ((t, e)::l)) (return_nil) !polymorphic_tables
+        Lwt.return (t, e))
+      !polymorphic_tables
     >>= fun polymorphic_counts ->
     Lwt_list.map_s
       (fun (module T : Ocsipersist.TABLE with type key = string) ->
