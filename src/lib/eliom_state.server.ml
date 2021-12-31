@@ -1555,11 +1555,16 @@ let number_of_table_elements = Eliommod_sessexpl.number_of_table_elements
 let number_of_persistent_data_cookies =
   Eliommod_sessexpl.number_of_persistent_cookies
 
-let number_of_persistent_tables = Eliommod_persess.number_of_persistent_tables
-  (* One table is the main table of sessions *)
+let number_of_persistent_tables () =
+  List.length !Eliom_common.perstables
 
 let number_of_persistent_table_elements () =
-  Eliommod_persess.number_of_persistent_table_elements ()
+  List.fold_left
+    (fun thr t ->
+      thr >>= fun l ->
+      Ocsipersist.open_table t >>= fun table ->
+      Ocsipersist.length table >>= fun e ->
+      return ((t, e)::l)) (return_nil) !Eliom_common.perstables
 
 
 

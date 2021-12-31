@@ -38,23 +38,6 @@ let compute_cookie_info sitedata secure_o secure_ci cookie_info =
   else cookie_info, false
 
 
-let perstables = Eliom_common.perstables
-
-module Persistent_cookies = Eliommod_cookies.Persistent_cookies
-
-let number_of_persistent_tables () =
-  List.length !perstables
-
-module Ocsipersist = Ocsipersist.Polymorphic
-
-let number_of_persistent_table_elements () =
-  List.fold_left
-    (fun thr t ->
-      thr >>= fun l ->
-      Ocsipersist.open_table t >>= fun table ->
-      Ocsipersist.length table >>= fun e ->
-      return ((t, e)::l)) (return_nil) !perstables
-
 let close_persistent_state2
     ~(scope : [< Eliom_common.user_scope ]) sitedata sg v =
 (* check *)
