@@ -1297,32 +1297,37 @@ type info =
 exception Eliom_retry_with of info
 
 (*****************************************************************************)
-(* Each persistent table created by sites correspond to a file on the disk.
-   We save the names of the currently opened tables in this table: *)
 
-module Perstables =
-  struct
-    let empty = []
-    let add v t = v::t
-    let fold = List.fold_left
-  end
+(* keeping track of all the persistent tables *)
+module Persistent_tables = struct
+  let tables = ref []
 
-let perstables = ref Perstables.empty
+  let create name =
+    tables := name :: !tables;
+    Ocsipersist.Polymorphic.open_table name
 
-let create_persistent_table name =
-  perstables := Perstables.add name !perstables;
-  Ocsipersist.Polymorphic.open_table name
+  (** removes the entry from all opened tables *)
+  let remove_key_from_all_tables key =
+    (* doesn't remove entry from Persistent_cookies_expiry_dates; not a problem *)
+    (* TODO: Persistent_cookies.Cookies.remove key >>= fun () -> *)
+    List.fold_left (* could be replaced by a parallel map *)
+      (fun thr t -> thr >>= fun () ->
+        Ocsipersist.Polymorphic.open_table t >>= fun table ->
+        Ocsipersist.Polymorphic.remove table key >>= Lwt.pause)
+      return_unit
+      !tables
 
-(** removes the entry from all opened tables *)
-let remove_from_all_persistent_tables key =
-  (* doesn't remove entry from Persistent_cookies_expiry_dates; not a problem *)
-  (* TODO: Persistent_cookies.Cookies.remove key >>= fun () -> *)
-  Perstables.fold (* could be replaced by a parallel map *)
-    (fun thr t -> thr >>= fun () ->
-      Ocsipersist.Polymorphic.open_table t >>= fun table ->
-      Ocsipersist.Polymorphic.remove table key >>= Lwt.pause)
-    return_unit
-    !perstables
+  let number_of_tables () = List.length !tables
+
+  (* TODO: cookies *)
+  let number_of_table_elements () =
+    List.fold_left
+      (fun thr t ->
+        thr >>= fun l ->
+        Ocsipersist.Polymorphic.open_table t >>= fun table ->
+        Ocsipersist.Polymorphic.length table >>= fun e ->
+        return ((t, e)::l)) (return_nil) !tables
+end
 
 
 (**** Wrapper type shared by client/server side ***)

@@ -894,7 +894,7 @@ type 'a persistent_table =
 let create_persistent_table ~scope ?secure name : 'a persistent_table Lwt.t =
   let sitedata = Eliom_request_info.find_sitedata "create_persistent_table" in
   let secure = Eliom_common.get_secure ~secure_o:secure ~sitedata () in
-  Eliom_common.create_persistent_table name >>= fun t ->
+  Eliom_common.Persistent_tables.create name >>= fun t ->
   Lwt.return (scope, secure, t)
 
 let get_p_table_key_
@@ -1555,19 +1555,8 @@ let number_of_table_elements = Eliommod_sessexpl.number_of_table_elements
 let number_of_persistent_data_cookies =
   Eliommod_sessexpl.number_of_persistent_cookies
 
-let number_of_persistent_tables () =
-  List.length !Eliom_common.perstables
-
-let number_of_persistent_table_elements () =
-  List.fold_left
-    (fun thr t ->
-      thr >>= fun l ->
-      Ocsipersist.open_table t >>= fun table ->
-      Ocsipersist.length table >>= fun e ->
-      return ((t, e)::l)) (return_nil) !Eliom_common.perstables
-
-
-
+let number_of_persistent_tables = Eliom_common.Persistent_tables.number_of_tables
+let number_of_persistent_table_elements = Eliom_common.Persistent_tables.number_of_table_elements
 
 
 (*****************************************************************************)

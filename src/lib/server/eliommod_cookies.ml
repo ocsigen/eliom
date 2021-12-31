@@ -250,7 +250,7 @@ let get_cookie_info
                  match persexp with
                  | Some t when t < now ->
                      (* session expired by timeout *)
-                     Eliom_common.remove_from_all_persistent_tables
+                     Eliom_common.Persistent_tables.remove_key_from_all_tables
                        hvalue_string >>= fun () ->
                        return
                          (Some (value         (* value at the beginning

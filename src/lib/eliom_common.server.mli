@@ -604,9 +604,12 @@ val make_full_state_name :
 val make_full_state_name2 :
   string -> bool -> scope:[< user_scope ] -> full_state_name
 
-val perstables : string list ref
-val create_persistent_table : string -> 'a Ocsipersist.table Lwt.t
-val remove_from_all_persistent_tables : string -> unit Lwt.t
+module Persistent_tables : sig
+  val create : string -> 'a Ocsipersist.table Lwt.t
+  val remove_key_from_all_tables : string -> unit Lwt.t
+  val number_of_tables : unit -> int
+  val number_of_table_elements : unit -> (string * int) list Lwt.t
+end
 
 val absolute_change_sitedata : sitedata -> unit
 val get_current_sitedata : unit -> sitedata
