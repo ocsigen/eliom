@@ -604,12 +604,6 @@ val make_full_state_name :
 val make_full_state_name2 :
   string -> bool -> scope:[< user_scope ] -> full_state_name
 
-module Perstables :
-  sig
-    val empty : 'a list
-    val add : 'a -> 'a list -> 'a list
-    val fold : ('a -> 'b -> 'a) -> 'a -> 'b list -> 'a
-  end
 val perstables : string list ref
 val create_persistent_table : string -> 'a Ocsipersist.table Lwt.t
 val remove_from_all_persistent_tables : string -> unit Lwt.t
