@@ -508,8 +508,7 @@ module Pers = struct
                | `Client_process grp -> (* We are closing a browser session,
                                            belonging to the group grp *)
                  (* group_name is the cookie value *)
-                 remove sitedata group_name grp >>= fun () ->
-                 Eliom_common.Persistent_cookies.Cookies.remove group_name
+                 remove sitedata group_name grp
                | _ -> Lwt.return_unit)
            )
         )
@@ -534,9 +533,6 @@ module Pers = struct
       (fun () ->
         match cookie_level with
           | `Client_process -> begin
-            (* We remove cookie info from the table *)
-            Eliom_common.Persistent_cookies.Cookies.remove cookie >>= fun () ->
-
             (* We remove the session from its group: *)
             remove sitedata cookie fullsessgrp >>= fun () ->
 
