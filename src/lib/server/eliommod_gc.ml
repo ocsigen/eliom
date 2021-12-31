@@ -303,17 +303,18 @@ let data_session_gc sitedata =
 let persistent_session_gc sitedata =
   let gc () =
     let now = Unix.time () in
+    let hash c = Eliom_common.Hashed_cookies.(to_string @@ hash c) in
     let do_gc_cookie cookie ((scope, _, _), exp, _, session_group) =
       match exp with
       | Some exp when exp <= now ->
-        Lwt_log.ign_notice_f ~section "remove expired cookie %s" cookie;
+        Lwt_log.ign_info_f ~section "remove expired cookie %s" (hash cookie);
         Eliommod_persess.close_persistent_state2
           ~scope
           sitedata
           session_group cookie
       (*WAS: remove_from_all_persistent_tables k *)
       | _ ->
-          Lwt_log.ign_notice_f ~section "cookie not expired: %s" cookie;
+          Lwt_log.ign_info_f ~section "cookie not expired: %s" (hash cookie);
           return_unit
     in
     let gc_cookie c =
@@ -322,7 +323,7 @@ let persistent_session_gc sitedata =
         (do_gc_cookie c)
         (function
          | Not_found ->
-             Lwt_log.ign_info_f ~section "cookie does not exist: %s" c;
+             Lwt_log.ign_info_f ~section "cookie does not exist: %s" (hash c);
              Lwt.return_unit
          | exn -> Lwt.fail exn)
     in
