@@ -1300,33 +1300,45 @@ exception Eliom_retry_with of info
 
 (* keeping track of all the persistent tables *)
 module Persistent_tables = struct
-  let tables = ref []
+  let polymorphic_tables = ref []
+  let functorial_tables = ref []
 
   let create name =
-    tables := name :: !tables;
+    polymorphic_tables := name :: !polymorphic_tables;
     Ocsipersist.Polymorphic.open_table name
+
+  let add_functorial_table t = functorial_tables := t :: !functorial_tables
 
   (** removes the entry from all opened tables *)
   let remove_key_from_all_tables key =
     (* doesn't remove entry from Persistent_cookies_expiry_dates; not a problem *)
-    (* TODO: Persistent_cookies.Cookies.remove key >>= fun () -> *)
+    Lwt_list.iter_s
+      (fun (module T : Ocsipersist.TABLE with type key = string) -> T.remove key)
+      !functorial_tables
+    >>= fun () ->
     List.fold_left (* could be replaced by a parallel map *)
       (fun thr t -> thr >>= fun () ->
         Ocsipersist.Polymorphic.open_table t >>= fun table ->
         Ocsipersist.Polymorphic.remove table key >>= Lwt.pause)
       return_unit
-      !tables
+      !polymorphic_tables
 
-  let number_of_tables () = List.length !tables
+  let number_of_tables () = List.length !polymorphic_tables + List.length !functorial_tables
 
-  (* TODO: cookies *)
   let number_of_table_elements () =
     List.fold_left
       (fun thr t ->
         thr >>= fun l ->
         Ocsipersist.Polymorphic.open_table t >>= fun table ->
         Ocsipersist.Polymorphic.length table >>= fun e ->
-        return ((t, e)::l)) (return_nil) !tables
+        return ((t, e)::l)) (return_nil) !polymorphic_tables
+    >>= fun polymorphic_counts ->
+    Lwt_list.map_s
+      (fun (module T : Ocsipersist.TABLE with type key = string) ->
+         T.length () >>= fun n -> Lwt.return (T.name, n)
+      ) !functorial_tables
+    >>= fun functorial_counts ->
+    Lwt.return @@ polymorphic_counts @ functorial_counts
 end
 
 

@@ -59,6 +59,8 @@ module Persistent_cookies = struct
       (Ocsipersist.Column.String)
       (Ocsipersist.Column.Marshal (struct type t = cookie end))
 
+  let () = Eliom_common.Persistent_tables.add_functorial_table (module Cookies)
+
   (* maps expiry dates to cookie IDs; may have superfluous entries, i.e cookies
      that will not actually expire on the given date. *)
   module Expiry_dates = struct

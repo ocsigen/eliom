@@ -606,6 +606,7 @@ val make_full_state_name2 :
 
 module Persistent_tables : sig
   val create : string -> 'a Ocsipersist.table Lwt.t
+  val add_functorial_table : (module Ocsipersist.TABLE with type key = string) -> unit
   val remove_key_from_all_tables : string -> unit Lwt.t
   val number_of_tables : unit -> int
   val number_of_table_elements : unit -> (string * int) list Lwt.t
