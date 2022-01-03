@@ -57,7 +57,7 @@ let iter_data_cookies f =
 
     (** Iterator on persistent cookies *)
 let iter_persistent_cookies f =
-  Eliom_common.Persistent_cookies.Cookies.iter
+  Eliommod_cookies.Persistent_cookies.Cookies.iter
     (fun k v -> f (k, v) >>= Lwt.pause)
 
 
@@ -90,7 +90,7 @@ let fold_data_cookies f beg =
 
     (** Iterator on persistent cookies *)
 let fold_persistent_cookies f beg =
-  Eliom_common.Persistent_cookies.Cookies.fold
+  Eliommod_cookies.Persistent_cookies.Cookies.fold
     (fun k v beg ->
       f (k, v) beg >>= fun res ->
       Lwt.pause () >>= fun () ->
@@ -116,4 +116,4 @@ let number_of_table_elements () =
   List.map (fun f -> f ()) !Eliommod_datasess.counttableelements
 
 let number_of_persistent_cookies () =
-  Eliom_common.Persistent_cookies.Cookies.length ()
+  Eliommod_cookies.Persistent_cookies.Cookies.length ()

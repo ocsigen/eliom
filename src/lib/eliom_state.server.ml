@@ -894,7 +894,7 @@ type 'a persistent_table =
 let create_persistent_table ~scope ?secure name : 'a persistent_table Lwt.t =
   let sitedata = Eliom_request_info.find_sitedata "create_persistent_table" in
   let secure = Eliom_common.get_secure ~secure_o:secure ~sitedata () in
-  Eliom_common.create_persistent_table name >>= fun t ->
+  Eliom_common.Persistent_tables.create name >>= fun t ->
   Lwt.return (scope, secure, t)
 
 let get_p_table_key_
@@ -1282,7 +1282,7 @@ module Ext = struct
 
   let get_persistent_cookie_info
       ((_, _, cookie) : ([< Eliom_common.cookie_level ], [ `Pers ]) state) =
-    Eliom_common.Persistent_cookies.Cookies.find cookie >>= fun v ->
+    Eliommod_cookies.Persistent_cookies.Cookies.find cookie >>= fun v ->
     Lwt.return (cookie, v)
 
   let discard_state ~state =
@@ -1485,7 +1485,7 @@ module Ext = struct
     | None -> TNone
     | Some t -> TSome t
     in
-    Eliom_common.Persistent_cookies.add cookie (fullstname, exp, ti, sessgrp)
+    Eliommod_cookies.Persistent_cookies.add cookie (fullstname, exp, ti, sessgrp)
 
   let get_service_cookie_timeout ~cookie:(_, (_, _, _, r, _, _)) =
     !r
@@ -1505,9 +1505,9 @@ module Ext = struct
 
   let unset_persistent_data_cookie_timeout
       ~cookie:(cookie, (fullstname, exp, _, sessgrp)) =
-    Eliom_common.Persistent_cookies.Cookies.add cookie
+    Eliommod_cookies.Persistent_cookies.Cookies.add cookie
       (fullstname, exp, TGlobal, sessgrp) >>= fun () ->
-    Eliom_common.Persistent_cookies.Expiry_dates.remove_cookie exp cookie
+    Eliommod_cookies.Persistent_cookies.Expiry_dates.remove_cookie exp cookie
 
 
   let get_session_group_list () =
@@ -1555,14 +1555,8 @@ let number_of_table_elements = Eliommod_sessexpl.number_of_table_elements
 let number_of_persistent_data_cookies =
   Eliommod_sessexpl.number_of_persistent_cookies
 
-let number_of_persistent_tables = Eliommod_persess.number_of_persistent_tables
-  (* One table is the main table of sessions *)
-
-let number_of_persistent_table_elements () =
-  Eliommod_persess.number_of_persistent_table_elements ()
-
-
-
+let number_of_persistent_tables = Eliom_common.Persistent_tables.number_of_tables
+let number_of_persistent_table_elements = Eliom_common.Persistent_tables.number_of_table_elements
 
 
 (*****************************************************************************)

@@ -499,7 +499,7 @@ module Pers = struct
                  is removed when closing associated sessions. *)
               Lwt.return_unit
             | (_, _, Left group_name) ->
-              Eliom_common.remove_from_all_persistent_tables group_name
+              Eliom_common.Persistent_tables.remove_key_from_all_tables group_name
               >>= fun () ->
               (* If it is associated to a session,
                  we remove the session from its group,
@@ -508,8 +508,7 @@ module Pers = struct
                | `Client_process grp -> (* We are closing a browser session,
                                            belonging to the group grp *)
                  (* group_name is the cookie value *)
-                 remove sitedata group_name grp >>= fun () ->
-                 Eliom_common.Persistent_cookies.Cookies.remove group_name
+                 remove sitedata group_name grp
                | _ -> Lwt.return_unit)
            )
         )
@@ -534,14 +533,11 @@ module Pers = struct
       (fun () ->
         match cookie_level with
           | `Client_process -> begin
-            (* We remove cookie info from the table *)
-            Eliom_common.Persistent_cookies.Cookies.remove cookie >>= fun () ->
-
             (* We remove the session from its group: *)
             remove sitedata cookie fullsessgrp >>= fun () ->
 
             (* Then, we remove session data: *)
-            Eliom_common.remove_from_all_persistent_tables cookie
+            Eliom_common.Persistent_tables.remove_key_from_all_tables cookie
           end
           | `Session ->
             remove_group
