@@ -114,10 +114,10 @@ let global_tables = A.Container.{
   t_na_services      = Hashtbl.create 256
 }
 
-let add_naservice {A.Container.t_na_services} k f =
+let add_naservice k f {A.Container.t_na_services} =
   Hashtbl.add t_na_services k f
 
-let call_naservice {A.Container.t_na_services} k =
+let call_naservice k {A.Container.t_na_services} =
   try
     (Hashtbl.find t_na_services k) true None
   with Not_found ->
@@ -158,12 +158,12 @@ let call_service ({i_get_params ; i_post_params ; i_subpath} as info) =
     na_key_of_params ~get:true i_get_params
   with
   | Some k ->
-    call_naservice global_tables k
+    call_naservice k global_tables
   | None ->
     match
       na_key_of_params ~get:false i_post_params
     with
     | Some k ->
-      call_naservice global_tables k
+      call_naservice k global_tables
     | None ->
       find_service 0. global_tables None () info

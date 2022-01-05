@@ -156,9 +156,9 @@ let register_att ~service ~att f =
 
 let register_na ~service ~na f =
   Eliom_route.add_naservice
-    Eliom_route.global_tables
     Eliom_service.(na_name na)
     (wrap_na service na f)
+    Eliom_route.global_tables
 
 let register
     (type g) (type p) (type att)
