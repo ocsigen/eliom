@@ -134,8 +134,6 @@ let get_original_full_path_string () =
 
 let get_original_full_path_string_sp = get_original_full_path_string
 
-let get_other_get_params () =
-  (get_sess_info ()).Eliom_common.si_other_get_params
 let get_nl_get_params () = (get_sess_info ()).Eliom_common.si_nl_get_params
 let get_nl_get_params_sp = get_nl_get_params
 
@@ -143,17 +141,9 @@ let get_persistent_nl_get_params () =
   Lazy.force (get_sess_info ()).Eliom_common.si_persistent_nl_get_params
 let get_persistent_nl_get_params_sp = get_persistent_nl_get_params
 
-let get_nl_post_params () =
-  (get_sess_info ()).Eliom_common.si_nl_post_params
-
 let get_si () = get_sess_info ()
 
 let get_site_dir () = (Eliom_process.get_sitedata ()).site_dir
-let get_site_dir_sp () = (Eliom_process.get_sitedata ()).site_dir
-let get_site_dir_string () =
-  (Eliom_process.get_sitedata ()).site_dir_string
-
-let get_sp_appl_name = Eliom_process.get_application_name
 
 let ssl_ = match Url.Current.get () with
   | Some (Url.Https _) -> true

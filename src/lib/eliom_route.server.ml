@@ -121,15 +121,6 @@ let session_tables
     !secure_service_cookies_info, "secure session table" ;
     !service_cookies_info, "session table"]
 
-let unflatten_get_params l =
-  let module M = Eliom_lib.String.Table in
-  M.bindings
-    (List.fold_left
-       (fun acc (id, v) ->
-          M.add id (try v :: M.find id acc with Not_found -> [v]) acc)
-       M.empty
-       l)
-
 let drop_most_params ri si =
   Ocsigen_request.update ri
     ~post_data:None
