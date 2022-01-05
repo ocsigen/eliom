@@ -44,10 +44,10 @@ let reconstruct_absolute_url_path = string_of_url_path_suff
 
 let reconstruct_relative_url_path current_url u =
   let rec drop cururl desturl = match cururl, desturl with
-    | a::l, [b] -> l, desturl
-    | [a], m -> [], m
+    | _::l, [_] -> l, desturl
+    | [_], m -> [], m
     | a::l, b::m when a = b -> drop l m
-    | a::l, m -> l, m
+    | _::l, m -> l, m
     | [], m -> [], m
   in let rec makedotdot = function
     | [] -> []
@@ -507,7 +507,7 @@ let make_post_uri_components_
 
 
     (* for getparams and non localized params: *)
-    let suff, params =
+    let _suff, params =
       Eliom_parameter.construct_params_list
         nlp (Eliom_service.get_params_type service) getparams
         (* if nl params were already present, they will be replaced
@@ -674,7 +674,7 @@ let make_cookies_info (https, service) =
         None
       else
         Some (Eliom_service.full_path attser)
-    | Eliom_service.Nonattached naser ->
+    | Eliom_service.Nonattached _naser ->
       Some (Eliom_request_info.get_csp_original_full_path ())
   in
   match get_path_ ~service with

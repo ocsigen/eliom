@@ -248,7 +248,7 @@ module Make(DorF : module type of Eliom_content.Html.F) : HTML5_TOOLS = struct
         let node_url = make_string_uri ~absolute_path:true ~service:s' () in
         string_prefix service_url node_url
 
-  let find_longest_prefix_in_hierarchy service (main, pages) =
+  let find_longest_prefix_in_hierarchy service (_main, pages) =
     let rec aux prefix (max_len, _ as max) i = function
       | [] -> max
       | (_, Site_tree (Main_page (Srv s), hsl)) :: pages when service_prefix s service ->
@@ -262,7 +262,7 @@ module Make(DorF : module type of Eliom_content.Html.F) : HTML5_TOOLS = struct
         let max = aux (i::prefix) max 0 hsl in
         aux prefix max (i+1) pages
     in
-    let length, path = aux [] (0,[]) 0 pages in
+    let _length, path = aux [] (0,[]) 0 pages in
     path
 
   let find_in_hierarchy service (main, pages) =
@@ -286,7 +286,7 @@ module Make(DorF : module type of Eliom_content.Html.F) : HTML5_TOOLS = struct
       ?(classe=[])
       ?id
       ?(whole_tree=false)
-      ((page, pages) as the_menu)
+      ((_page, pages) as the_menu)
       ?service
       () =
 
@@ -298,7 +298,7 @@ module Make(DorF : module type of Eliom_content.Html.F) : HTML5_TOOLS = struct
             | [] -> ([], [], false)
             | [a] when a = i -> ([current_class], [], true)
             | a::l when a = i -> ([current_path_class], l, true)
-            | _::l -> ([], [], false)
+            | _::_ -> ([], [], false)
         in
         let classe =
           if last then
@@ -362,7 +362,7 @@ module Make(DorF : module type of Eliom_content.Html.F) : HTML5_TOOLS = struct
   let hierarchical_menu_breadth_first
       ?(classe=[])
       ?id
-      ((page, pages) as the_menu)
+      ((_page, pages) as the_menu)
       ?service
       () =
 
@@ -370,7 +370,7 @@ module Make(DorF : module type of Eliom_content.Html.F) : HTML5_TOOLS = struct
         : [ `Ul ] elt list =
       let rec one_item first last i s =
         let s = (s :> flow5_without_interactive elt list * _) in
-        let (classe, pos2, deplier) =
+        let (classe, _pos2, _deplier) =
           match pos with
             | [] -> ([], [], false)
             | [a] when a = i -> ([current_class], [], true)
@@ -449,7 +449,7 @@ module Make(DorF : module type of Eliom_content.Html.F) : HTML5_TOOLS = struct
     in
     let rec create_rev (parent : srv option) = function
       | [] -> raise Not_found
-      | (_, (Site_tree (Main_page (Srv s), [])))::l when same_service_opt s service ->
+      | (_, (Site_tree (Main_page (Srv s), [])))::_ when same_service_opt s service ->
         make_rev parent []
       | (_, Disabled)::l
       | (_, Site_tree (_, []))::l -> create_rev parent l

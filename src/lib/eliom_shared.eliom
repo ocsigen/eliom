@@ -161,7 +161,7 @@ module ReactiveData = struct
                let new_waiter = Lwt.wait () in
                waiter := new_waiter;
                let%lwt new_msg = map_msg_p_lwt f msg in
-               let%lwt rr, rhandle = r_th in
+               let%lwt _, rhandle = r_th in
                let%lwt () = fst waiter1 in
                (match new_msg with
                 | ReactiveData.RList.Set s ->
@@ -198,7 +198,7 @@ module ReactiveData = struct
           Lwt.return (ReactiveData.RList.create r)
         in
         let effectul_event = map_p_aux r_th f l in
-        let%lwt rr, rhandle = r_th in
+        let%lwt rr, _ = r_th in
         (* We keep a reference to the effectul_event in the resulting
            reactive list in order that the effectul_event is garbage
            collected only if the resulting list is garbage
@@ -273,7 +273,7 @@ module FakeReact = struct
     type 'a t = 'a * bool
     let create ?synced:(synced = false) x =
       ((x, synced),
-       fun ?step _ ->
+       fun ?step:_ _ ->
          failwith "Fact react values cannot be changed on server side")
     let value (x, _) = x
     let const ?synced:(synced = false) x = (x, synced)
@@ -319,9 +319,9 @@ module FakeReactiveData = struct
     let singleton_s s = [FakeReact.S.value s], FakeReact.S.synced s
     let value (l, _) = l
     let synced (_, b) = b
-    let signal ?eq (l, synced) = fst (FakeReact.S.create ~synced l)
+    let signal ?eq:_ (l, synced) = fst (FakeReact.S.create ~synced l)
     let map f (l, b) = List.map f l, b
-    let from_signal ?eq s = FakeReact.S.(value s, synced s)
+    let from_signal ?eq:_ s = FakeReact.S.(value s, synced s)
   end
 end
 ]
@@ -581,7 +581,7 @@ module React = struct
       let merge_s ?eq (f : ('a -> 'b -> 'a Lwt.t) Value.t)
           (acc : 'a) (l : 'b t list) : 'a t Lwt.t =
         let%lwt server_result, synced =
-          let f (acc, acc_b) v =
+          let f (acc, _acc_b) v =
             let v = Value.local v and f = Value.local f in
             let%lwt acc = f acc (FakeReact.S.value v) in
             let acc_b = FakeReact.S.synced v in

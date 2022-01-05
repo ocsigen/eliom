@@ -368,7 +368,7 @@ Besides, volatile sessions are (hopefully) going to disappear soon.
         | (_, `Client_process, Left sess_id) ->
           (try
 
-             let (_, tables, _, _, sgr, sgn) =
+             let (_, tables, _, _, _sgr, sgn) =
                Eliom_common.SessionCookies.find
                  sitedata.Eliom_common.session_services sess_id
              in
@@ -553,7 +553,7 @@ module Pers = struct
         | e -> Lwt.fail e)
 
 
-  and remove sitedata sess_id sess_grp =
+  and remove _sitedata sess_id sess_grp =
     match sess_grp with
     | Some sg0 ->
       let sg = Eliom_common.string_of_perssessgrp sg0 in

@@ -25,6 +25,7 @@ let section = Lwt_log.Section.make "eliom:gc"
 open Eliom_lib
 
 open Lwt
+open Lwt.Syntax
 
 (*****************************************************************************)
 let servicesessiongcfrequency = ref (Some 1200.) (* 20 min ? *)
@@ -63,8 +64,7 @@ let gc_timeouted_services now tables =
           Eliom_common.Serv_Table.fold
 (*VVV not tail recursive: may be a problem if lots of coservices *)
             (fun ptk (`Ptc (nodeopt, l)) thr ->
-               thr >>= fun thr -> (* we wait for the previous one
-                                     to be completed *)
+               let* _ = thr in (* we wait for the previous one to be completed *)
                (match nodeopt, l with
                   | Some node, {Eliom_common.s_expire = Some (_, e)} :: _
                     (* it is an anonymous coservice.  The list should
@@ -194,7 +194,7 @@ let service_session_gc sitedata =
 
         (* private continuation tables: *)
         Eliom_common.SessionCookies.fold
-          (fun k (sessname,
+          (fun k (_sessname,
                   tables,
                   exp,
                   _,
@@ -214,7 +214,7 @@ let service_session_gc sitedata =
                   tables.Eliom_common.table_naservices
                else return_unit) >>= fun () ->
               (match !session_group_ref with
-              | (_, scope, Right _) (* no group *)
+              | (_, _scope, Right _) (* no group *)
 (*VVV check this *)
                   when
                     (Eliommod_sessiongroups.Serv.group_size
@@ -254,7 +254,7 @@ let data_session_gc sitedata =
         Lwt_log.ign_info ~section "GC of session data";
         (* private continuation tables: *)
         Eliom_common.SessionCookies.fold
-          (fun k (sessname,
+          (fun k (_sessname,
                   exp, _,
                   session_group_ref,
                   session_group_node) thr ->

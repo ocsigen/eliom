@@ -63,8 +63,8 @@ let reload_fun :
 
 let reset_reload_fun service = service.reload_fun <- Rf_keep
 
-let register_delayed_get_or_na_coservice ~sp s =
+let register_delayed_get_or_na_coservice ~sp:_ _ =
   failwith "CSRF coservice not implemented client side for now"
 
-let register_delayed_post_coservice  ~sp s getname =
+let register_delayed_post_coservice  ~sp:_ _ _getname =
   failwith "CSRF coservice not implemented client side for now"

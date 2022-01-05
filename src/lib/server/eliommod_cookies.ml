@@ -134,7 +134,7 @@ let get_cookie_info
       (fun name value (oktable, failedlist) ->
         try
           let hvalue = Eliom_common.Hashed_cookies.hash value in
-          let full_state_name, ta, expref, timeout_ref, sessgrpref, sessgrpnode =
+          let _full_state_name, ta, expref, timeout_ref, sessgrpref, sessgrpnode =
             Eliom_common.SessionCookies.find
               sitedata.Eliom_common.session_services
               (Eliom_common.Hashed_cookies.to_string hvalue)
@@ -193,7 +193,7 @@ let get_cookie_info
         lazy
           (try
             let hvalue = Eliom_common.Hashed_cookies.hash value in
-            let full_state_name, expref, timeout_ref, sessgrpref, sessgrpnode =
+            let _full_state_name, expref, timeout_ref, sessgrpref, sessgrpnode =
               Eliom_common.SessionCookies.find
                 sitedata.Eliom_common.session_data
                 (Eliom_common.Hashed_cookies.to_string hvalue)
@@ -247,7 +247,7 @@ let get_cookie_info
                Persistent_cookies.Cookies.find
                  (Eliom_common.Hashed_cookies.to_string hvalue)
                >>=
-               fun (full_state_name, persexp, perstimeout, sessgrp) ->
+               fun (_full_state_name, persexp, perstimeout, sessgrp) ->
 
                Eliommod_sessiongroups.Pers.up hvalue_string sessgrp
                >>= fun () ->
@@ -494,12 +494,12 @@ let compute_new_ri_cookies'
 (*VVV We always keep secure cookies, event if the protocol is not secure,
   because this function is for actions only. Is that right? *)
             match v with
-              | OSet (Some exp, value, secure)
+              | OSet (Some exp, value, _secure)
                   when exp>now ->
                 Ocsigen_cookie_map.Map_inner.add name value cookies
-              | OSet (None, value, secure) ->
+              | OSet (None, value, _secure) ->
                 Ocsigen_cookie_map.Map_inner.add name value cookies
-              | OSet (Some exp, value, secure)
+              | OSet (Some exp, _value, _secure)
                   when exp<=now ->
                 Ocsigen_cookie_map.Map_inner.remove name cookies
               | OUnset ->
@@ -528,7 +528,7 @@ let compute_new_ri_cookies
     compute_new_ri_cookies' now ripath ricookies cookies_set_by_page
   in
   (* then session cookies: *)
-  let f secure (service_cookie_info, data_cookie_info, pers_cookie_info) ric =
+  let f _secure (service_cookie_info, data_cookie_info, pers_cookie_info) ric =
     let ric =
       Eliom_common.Full_state_name_table.fold
         (fun ((sc, _, _) as full_st_name) (_, v) beg ->

@@ -166,7 +166,7 @@ let rec find_or_create_persistent_cookie_
     (fun () ->
       Lazy.force
         (Eliom_common.Full_state_name_table.find full_st_name !cookie_info)
-      >>= fun (old, ior) ->
+      >>= fun (_old, ior) ->
       match !ior with
       | Eliom_common.SCData_session_expired
           (* We do not trust the value sent by the client,

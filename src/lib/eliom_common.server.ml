@@ -811,7 +811,7 @@ let empty_tables max forsession =
       then
         let dlist = Ocsigen_cache.Dlist.create max in
         Ocsigen_cache.Dlist.set_finaliser_before (dlist_finaliser t2) dlist;
-        fun ?sp v -> add_dlist_ dlist v
+        fun ?sp:_ v -> add_dlist_ dlist v
       else
         fun ?sp v ->
           let ip, max, sitedata =
@@ -863,7 +863,7 @@ sessionkind|S?|sitedirstring|"ref" ou "comet" ou ""|hiername
 *)
 
 let full_state_name_of_cookie_name cookie_level cookiename =
-  let pref, cookiename = Ocsigen_lib.String.sep '|' cookiename in
+  let _pref, cookiename = Ocsigen_lib.String.sep '|' cookiename in
   let secure, cookiename = Ocsigen_lib.String.sep '|' cookiename in
   let sitedirstring, cookiename = Ocsigen_lib.String.sep '|' cookiename in
   let hier1, hiername = Ocsigen_lib.String.sep '|' cookiename in

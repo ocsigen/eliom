@@ -108,7 +108,7 @@ let create service channel waiter =
   in
   t
 
-let internal_unwrap ((wrapped_bus:('a, 'b) Ecb.wrapped_bus),unwrapper) =
+let internal_unwrap ((wrapped_bus:('a, 'b) Ecb.wrapped_bus), _unwrapper) =
   let waiter () = Js_of_ocaml_lwt.Lwt_js.sleep 0.05 in
   let channel, Eliom_comet_base.Bus_send_service service = wrapped_bus in
   create service channel waiter

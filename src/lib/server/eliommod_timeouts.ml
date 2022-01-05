@@ -27,7 +27,7 @@ open Eliom_lib
 
 open Lwt
 
-let fst3 (a,b,c) = a
+let fst3 (a,_,_) = a
 
 type kind = [ `Service | `Data | `Persistent ]
 

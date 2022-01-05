@@ -108,7 +108,7 @@ let wrap service att f _ suffix =
 
 let wrap_na
     (service : (_, _, _, _, _, _, _, _, _, _, _) Eliom_service.t)
-    non_att f _ suffix =
+    _non_att f _ suffix =
   let gp = Eliom_service.get_params_type service
   and pp = Eliom_service.post_params_type service
   and si = Eliom_request_info.get_sess_info ()
@@ -177,7 +177,7 @@ module Make (P : PARAM) = struct
   type return = P.return
   type result = P.result
 
-  let send ?options ?charset ?code ?content_type ?headers page =
+  let send ?options ?charset:_ ?code:_ ?content_type:_ ?headers:_ page =
     P.send ?options page
 
   let register
@@ -217,7 +217,7 @@ module Action = Make (struct
 
   let reset_reload_fun = true
 
-  let send ?options page =
+  let send ?options _page =
     match options with
     | Some `Reload | None ->
       Lwt.return Eliom_service.(Reload_action {hidden = false; https = false})
@@ -235,7 +235,7 @@ module Unit = Make (struct
 
     let reset_reload_fun = true
 
-    let send ?options:_ page =
+    let send ?options:_ _page =
       Lwt.return Eliom_service.No_contents
 
   end)
@@ -319,7 +319,7 @@ module Any = struct
     Lwt.return page
 
   let register
-      ?app ?scope:_ ?options ?charset:_ ?code:_ ?content_type:_
+      ?app ?scope:_ ?options:_ ?charset:_ ?code:_ ?content_type:_
       ?headers:_ ?secure_session:_ ~service ?error_handler:_
       f =
     let f g p = let%lwt page = f g p in send page in

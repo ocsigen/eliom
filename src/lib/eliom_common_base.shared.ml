@@ -53,14 +53,14 @@ type cookie_scope = [ `Session of scope_hierarchy
                     | `Client_process of scope_hierarchy ]
 
 let level_of_user_scope : [< user_scope ] -> [> user_level ] = function
-  | `Session n -> `Session
-  | `Session_group n -> `Session_group
-  | `Client_process n -> `Client_process
+  | `Session _ -> `Session
+  | `Session_group _ -> `Session_group
+  | `Client_process _ -> `Client_process
 
 let cookie_level_of_user_scope : [< user_scope ] -> [> cookie_level ] = function
-  | `Session n
-  | `Session_group n -> `Session
-  | `Client_process n -> `Client_process
+  | `Session _
+  | `Session_group _ -> `Session
+  | `Client_process _ -> `Client_process
 
 let cookie_scope_of_user_scope : [< user_scope ] -> [> cookie_scope ] = function
   | `Session n
@@ -313,7 +313,7 @@ let prefixlengthminusone = prefixlength - 1
 let split_nl_prefix_param l =
     let rec aux other map = function
       | [] -> (map, other)
-      | ((n, v) as a)::l ->
+      | ((n, _) as a)::l ->
           if String.first_diff
             n nl_param_prefix 0 prefixlengthminusone = prefixlength
           then
@@ -348,7 +348,7 @@ let remove_prefixed_param pref l =
   let len = String.length pref in
   let rec aux = function
     | [] -> []
-    | ((n,v) as a)::l ->
+    | ((n,_) as a)::l ->
         try
           if (String.sub n 0 len) = pref then
             aux l

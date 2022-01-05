@@ -288,7 +288,7 @@ let rec append_suffix l m =
   match l with
   | [] ->
     m
-  | [eliom_suffix_internal_name] ->
+  | [_eliom_suffix_internal_name] ->
     m
   | a :: ll ->
     a :: append_suffix ll m

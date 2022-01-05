@@ -174,7 +174,7 @@ module Make (A : ARG) : S
     I.remove identity id
 
   module Ext = struct
-    let unlisten ?sitedata state (key : A.key) =
+    let unlisten ?sitedata:_ state (key : A.key) =
       let uc = Eliom_reference.Volatile.Ext.get state identity_r in
       I.remove uc key
   end

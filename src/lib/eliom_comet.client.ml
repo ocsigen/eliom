@@ -410,8 +410,8 @@ struct
       | Stateful_state r ->
         incr r;
         List.iter (function
-          | ( chan_id, Ecb.Data _ ) -> ()
-          | ( chan_id, Ecb.Closed ) ->
+          | ( _chan_id, Ecb.Data _ ) -> ()
+          | ( _chan_id, Ecb.Closed ) ->
             Eliom_lib.Lwt_log.ign_warning ~section
               "update_stateful_state: received Closed: should not happen, this is an eliom bug, please report it"
           | ( chan_id, Ecb.Full ) ->
@@ -694,7 +694,7 @@ let close = function
   | Ecb.Stateful_channel (chan_service,chan_id) ->
     let { hd_service_handler } = get_stateful_hd chan_service in
     Service_handler.close hd_service_handler (Ecb.string_of_chan_id chan_id)
-  | Ecb.Stateless_channel (chan_service,chan_id,kind) ->
+  | Ecb.Stateless_channel (chan_service, chan_id, _kind) ->
     let { hd_service_handler } = get_stateless_hd chan_service in
     Service_handler.close hd_service_handler (Ecb.string_of_chan_id chan_id)
 
@@ -734,7 +734,7 @@ let check_and_update_position position msg_pos data =
 (* stateless channels are registered with a position: when a channel
    is registered more than one time, it is possible to receive old
    messages: the position is used to filter them out. *)
-let register' hd position (chan_service:Ecb.comet_service) (chan_id:'a Ecb.chan_id) =
+let register' hd position (_ : Ecb.comet_service) (chan_id : 'a Ecb.chan_id) =
   let chan_id = Ecb.string_of_chan_id chan_id in
   let stream = Lwt_stream.filter_map_s
     (function
@@ -782,7 +782,7 @@ let register ?(wake=true) (wrapped_chan:'a Ecb.wrapped_channel) =
     | Ecb.Stateless_channel (s,c,kind) ->
       register_stateless ~wake s c kind
 
-let internal_unwrap ( wrapped_chan, unwrapper ) = register wrapped_chan
+let internal_unwrap (wrapped_chan, _unwrapper) = register wrapped_chan
 
 let () = Eliom_unwrap.register_unwrapper Eliom_common.comet_channel_unwrap_id internal_unwrap
 

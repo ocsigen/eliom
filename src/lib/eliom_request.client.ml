@@ -98,7 +98,7 @@ let redirect_post ?window_name url params =
           in
           i##.value := v;
           Dom.appendChild f i
-        | `File i ->
+        | `File _ ->
           Lwt_log.raise_error ~section "redirect_post not implemented for files")
     params;
   f##.style##.display := (Js.string "none");
@@ -288,7 +288,7 @@ let send
             (match r.XmlHttpRequest.headers Eliom_common.half_xhr_redir_header
              with
                | None | Some "" -> Lwt.return (r.XmlHttpRequest.url, None)
-               | Some uri ->
+               | Some _uri ->
                  redirect_post url
                    (match post_args with
                     | Some post_args -> post_args

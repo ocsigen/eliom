@@ -71,9 +71,9 @@ module A = struct
 
     type t = unit
 
-    let up n = ()
+    let up _ = ()
 
-    let remove n = ()
+    let remove _ = ()
 
   end
 
@@ -98,7 +98,7 @@ module A = struct
     let set tables l =
       tables.t_services <- l
 
-    let dlist_add ?sp:_ tables srv = ()
+    let dlist_add ?sp:_ _tables _srv = ()
 
   end
 
@@ -124,9 +124,9 @@ let call_naservice k {A.Container.t_na_services} =
     Lwt.fail Eliom_common.Eliom_404
 
 let rec na_key_of_params ~get = function
-  | (k, v) :: l when k = Eliom_common.naservice_name ->
+  | (k, v) :: _ when k = Eliom_common.naservice_name ->
     Some (if get then Eliom_common.SNa_get_ v else Eliom_common.SNa_post_ v)
-  | (k, v) :: l when k = Eliom_common.naservice_num ->
+  | (k, v) :: _ when k = Eliom_common.naservice_num ->
     Some (if get then Eliom_common.SNa_get' v else Eliom_common.SNa_post' v)
   | _ :: l ->
     na_key_of_params ~get l

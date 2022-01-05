@@ -207,7 +207,7 @@ let register_aux pages
             | None -> None
             | Some t -> Some (t, ref (t +. Unix.time ()))
           in
-          let f table ((attserget, attserpost) as attsernames) =
+          let f table ((_attserget, _attserpost) as attsernames) =
             Eliom_route.add_service
               priority
               table
@@ -519,7 +519,7 @@ let send pages
   Lwt.return (pages.result_of_http_result result)
 
 let register pages
-    ?app
+    ?app:_
     ?scope
     ?options
     ?charset
@@ -557,8 +557,8 @@ let register pages
         | _ -> raise
           (Eliom_common.Eliom_site_information_not_available
              "register"))
-    | None, Some sp
-    | Some `Site, Some sp ->
+    | None, Some _
+    | Some `Site, Some _ ->
       register_aux pages
         ?options
         ?charset

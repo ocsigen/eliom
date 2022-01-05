@@ -39,8 +39,8 @@ let iter_persistent_sessions f =
 
 let close_all_service_states2 full_st_name sitedata =
   Eliom_common.SessionCookies.fold
-    (fun k (full_st_name2, table, expref, timeoutref, 
-            sessgrpref, sessgrpnode) thr ->
+    (fun _ (full_st_name2, _table, _expref, timeoutref,
+            _sessgrpref, sessgrpnode) thr ->
       thr >>= fun () ->
       if full_st_name = full_st_name2 && !timeoutref = Eliom_common.TGlobal
       then Eliommod_sessiongroups.Serv.remove sessgrpnode;
@@ -67,7 +67,7 @@ let close_all_service_states ~scope ~secure sitedata =
 
 let close_all_data_states2 full_st_name sitedata =
   Eliom_common.SessionCookies.fold
-    (fun k (full_st_name2, expref, timeoutref, sessgrpref, sessgrpnode) thr ->
+    (fun _ (full_st_name2, _expref, timeoutref, _sessgrpref, sessgrpnode) thr ->
       thr >>= fun () ->
       if full_st_name = full_st_name2 && !timeoutref = Eliom_common.TGlobal
       then Eliommod_sessiongroups.Data.remove sessgrpnode;
@@ -95,7 +95,7 @@ let close_all_data_states ~scope ~secure sitedata =
 
 let close_all_persistent_states2 full_st_name sitedata =
   Eliommod_cookies.Persistent_cookies.Cookies.iter
-    (fun k ((scope, _, _) as full_st_name2, old_exp, old_t, sessiongrp) ->
+    (fun k ((scope, _, _) as full_st_name2, _old_exp, old_t, sessiongrp) ->
       if full_st_name = full_st_name2 && old_t = Eliom_common.TGlobal
       then Eliommod_persess.close_persistent_state2
         ~scope sitedata sessiongrp k >>=
@@ -132,8 +132,8 @@ let update_serv_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
   | _ ->
     let now = Unix.time () in
     Eliom_common.SessionCookies.fold
-      (fun k (full_st_name2, table, expref, timeoutref, 
-              sessgrpref, sessgrpnode) thr ->
+      (fun _ (full_st_name2, _table, expref, timeoutref,
+              _sessgrpref, sessgrpnode) thr ->
         thr >>= fun () ->
         (if full_st_name = full_st_name2 && !timeoutref =
           Eliom_common.TGlobal
@@ -164,7 +164,7 @@ let update_data_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
   | _ ->
     let now = Unix.time () in
     Eliom_common.SessionCookies.fold
-      (fun k (full_st_name2, expref, timeoutref, sessgrpref, sessgrpnode) thr ->
+      (fun _ (full_st_name2, expref, timeoutref, _sessgrpref, sessgrpnode) thr ->
         thr >>= fun () ->
         (if full_st_name = full_st_name2 && !timeoutref = Eliom_common.TGlobal
         then

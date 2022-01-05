@@ -117,7 +117,7 @@ let remove_first_slash path =
   | ""::l -> l
   | l -> l
 
-let get_original_full_path_sp sp =
+let get_original_full_path_sp _sp =
   (* returns current path, not the one when application started *)
   if not (Eliom_process.history_api || !client_app_initialised) then
     match Url.Current.get () with

@@ -159,7 +159,7 @@ module Volatile = struct
   let modify state eref f =
     set state eref (f (get state eref))
 
-  let unset state (f, _, table : _ eref) =
+  let unset state (_, _, table : _ eref) =
     match table with
       | Vol t -> Eliom_state.Ext.Low_level.remove_volatile_data
         ~state ~table:(Lazy.force t);
@@ -250,7 +250,7 @@ let set (_, _, table as eref) value =
 let modify eref f =
   get eref >>= fun x -> set eref (f x)
 
-let unset (f, _, table as eref) =
+let unset (_, _, table as eref) =
   match table with
     | Per t ->
       t >>= fun t ->

@@ -87,7 +87,7 @@ include Eliom_route_base.Make (struct
 
   end)
 
-let find_aux now sitedata info e sci : Ocsigen_response.t Lwt.t =
+let find_aux now sitedata info _ sci : Ocsigen_response.t Lwt.t =
   Eliom_common.Full_state_name_table.fold
     (fun fullsessname (_, r) beg ->
        try%lwt
@@ -401,7 +401,7 @@ let make_naservice
          Ocsigen_extensions.request_info =
            drop_most_params ri.request_info si }
        si.Eliom_common.si_previous_extension_error
-     >>= fun (ri', si', previous_tab_cookies_info) ->
+     >>= fun (ri', si', _previous_tab_cookies_info) ->
      Lwt.fail (Eliom_common.Eliom_retry_with (ri',
                                               si',
                                               all_cookie_info,
@@ -420,7 +420,7 @@ let make_naservice
          Ocsigen_extensions.request_info =
            drop_most_params ri.request_info si }
        si.Eliom_common.si_previous_extension_error
-     >>= fun (ri', si', previous_tab_cookies_info) ->
+     >>= fun (ri', si', _previous_tab_cookies_info) ->
      Lwt.fail (Eliom_common.Eliom_retry_with (ri', si',
                                               all_cookie_info,
                                               all_tab_cookie_info,

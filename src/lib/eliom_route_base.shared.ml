@@ -239,7 +239,7 @@ module Make (P : PARAM) = struct
          - only one for each key
          - we add a node in the dlist to limit their number *)
       (try
-         let (nodeopt, l), newt =
+         let (nodeopt, _), newt =
            P.Table.find key !tref, P.Table.remove key !tref
          in
          (match nodeopt with
@@ -252,7 +252,7 @@ module Make (P : PARAM) = struct
     | { Eliom_common.key_state =
           Eliom_common.SAtt_no, Eliom_common.SAtt_no } ->
       (try
-         let nodeopt, l = P.Table.find key !tref
+         let _nodeopt, l = P.Table.find key !tref
          and newt = P.Table.remove key !tref in
          (* nodeopt should be None *)
          try
@@ -275,7 +275,7 @@ module Make (P : PARAM) = struct
          tref := P.Table.add key (None, [service]) !tref)
     | _ ->
       try
-        let nodeopt, l = P.Table.find key !tref
+        let _nodeopt, l = P.Table.find key !tref
         and newt = P.Table.remove key !tref in
         let _, oldl = find_and_remove_id l s_id in
         (* if there was an old version with the same id, we remove it *)
@@ -328,7 +328,7 @@ module Make (P : PARAM) = struct
         let direltref = find_dircontent !dircontentref a in
         match !direltref with
         | Eliom_common.Dir dcr -> search_page_table_ref dcr l
-        | Eliom_common.File ptr ->
+        | Eliom_common.File _ ->
           raise (Eliom_common.Eliom_page_erasing a)
       with
       | Not_found ->
@@ -438,7 +438,7 @@ module Make (P : PARAM) = struct
               | Eliom_common.File page_table_ref ->
                 (match l with
                  | [] -> find false page_table_ref None
-                 | l -> (* We have a file with suffix *)
+                 | _ -> (* We have a file with suffix *)
                    raise Eliom_common.Eliom_Wrong_parameter)))
           (function
             | Exn1 | Eliom_common.Eliom_Wrong_parameter as e ->

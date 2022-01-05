@@ -58,7 +58,7 @@ let update_cookie_table ?now sitedata (ci, sci) =
   (* Update service expiration date and value *)
     Eliom_common.Full_state_name_table.iter
 
-      (fun name (oldvalue, newr) ->
+      (fun name (_oldvalue, newr) ->
       (* catch fun () -> *)
         match !newr with
           | Eliom_common.SCData_session_expired
@@ -90,7 +90,7 @@ let update_cookie_table ?now sitedata (ci, sci) =
            Keeping same duration is important for example for comet
            (which is using both service and volatile data sessions).
         *)
-         let (oldvalue, newr) = Lazy.force v in
+         let (_oldvalue, newr) = Lazy.force v in
          match !newr with
          | Eliom_common.SCData_session_expired
          | Eliom_common.SCNo_data -> () (* The cookie has been removed *)
@@ -163,7 +163,7 @@ let update_cookie_table ?now sitedata (ci, sci) =
                           oldgrp = !(newc.Eliom_common.pc_session_group) &&
                        newc.Eliom_common.pc_set_value = None) -> Lwt.return ()
                 (* nothing to do *)
-                  | Some (_, oldti, oldexp, oldgrp) when
+                  | Some (_, _oldti, oldexp, _oldgrp) when
                       newc.Eliom_common.pc_set_value = None ->
                     Lwt.catch
                       (fun () ->
@@ -218,13 +218,13 @@ let handle_site_exn exn info sitedata =
 let execute
     now
     generate_page
-    ((ri,
-      si,
+    ((_ri,
+      _si,
       ((service_cookies_info, data_cookies_info, pers_cookies_info),
        secure_ci),
       ((service_tab_cookies_info, data_tab_cookies_info, pers_tab_cookies_info),
        secure_ci_tab),
-      user_tab_cookies) as info)
+      _user_tab_cookies) as info)
     sitedata =
 
   let* result =
@@ -313,8 +313,8 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
   set_expired_sessions ri (closedsessions, closedsessions_tab);
   let rec gen_aux ((ri, si,
                     all_cookie_info,
-                    all_tab_cookie_info,
-                    user_tab_cookies) as info) =
+                    _all_tab_cookie_info,
+                    _user_tab_cookies) as info) =
     let genfun =
       match si.Eliom_common.si_nonatt_info with
         | Eliom_common.RNa_no ->
@@ -447,5 +447,5 @@ let gen is_eliom_extension sitedata =
     when handled_method (Ocsigen_request.meth
                            req.request_info) ->
     gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
-  | Req_not_found (_, ri) ->
+  | Req_not_found (_, _ri) ->
     Lwt.return Ext_do_nothing

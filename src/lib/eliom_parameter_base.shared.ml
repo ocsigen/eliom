@@ -198,7 +198,7 @@ let rec make_suffix : type a c. (a,'b,c) params_type -> a -> string list = fun t
     (make_suffix t1 (fst params)) @
     (make_suffix t2 (snd params))
   | TAtom (_,a) -> [string_of_atom a params]
-  | TCoord n -> (make_suffix (TAtom ("",TInt)) (params.abscissa))@
+  | TCoord _ -> (make_suffix (TAtom ("",TInt)) (params.abscissa))@
                 (make_suffix (TAtom ("",TInt)) (params.ordinate))
   | TUnit -> [""]
   | TConst v -> [v]
@@ -220,7 +220,7 @@ let rec make_suffix : type a c. (a,'b,c) params_type -> a -> string list = fun t
         (make_suffix typ l))
   | TUserType (_, tao) ->
     [ Eliom_common.To_and_of_shared.to_string tao params ]
-  | TTypeFilter (t, check) -> make_suffix t params
+  | TTypeFilter (t, _check) -> make_suffix t params
   | TSum (t1, t2) ->
     (match params with
       | Inj1 p -> make_suffix t1 p
@@ -283,7 +283,7 @@ let rec aux : type a c. (a,'b,c) params_type -> string list option -> 'y -> a ->
       psuff, nlp,
       ((pref ^ name ^ suff),
        insert_string (Eliom_common.To_and_of_shared.to_string tao params)) :: l
-    | TTypeFilter (t, check) -> aux t psuff nlp params pref suff l
+    | TTypeFilter (t, _check) -> aux t psuff nlp params pref suff l
     | TUnit -> psuff, nlp, l
     | TAny -> psuff, nlp, l@(List.map (fun (x,v) -> x,insert_string v) params)
     | TConst _ -> psuff, nlp, l
@@ -359,11 +359,11 @@ let rec walk_parameter_tree : type a c. string -> (a,'b,c) params_type -> a to_a
     | TAny -> None
     | TNLParams _ -> None
     | TUnit -> None
-    | TOption (o,_) -> failwith "walk_parameter_tree with option"
-    | TSet o -> failwith "walk_parameter_tree with set"
-    | TList (_, o) -> failwith "walk_parameter_tree with list"
-    | TProd (a, b) -> failwith "walk_parameter_tree with tuple"
-    | TSum (a, b) -> failwith "walk_parameter_tree with sum"
+    | TOption (_,_) -> failwith "walk_parameter_tree with option"
+    | TSet _ -> failwith "walk_parameter_tree with set"
+    | TList (_, _) -> failwith "walk_parameter_tree with list"
+    | TProd (_, _) -> failwith "walk_parameter_tree with tuple"
+    | TSum (_, _) -> failwith "walk_parameter_tree with sum"
     | TRaw_post_data -> failwith "walk_parameter_tree with raw post data"
 
 
@@ -390,7 +390,7 @@ let make_params_names params =
         let issuffix, a = aux issuffix prefix suffix t1 in
         let issuffix, b = aux issuffix prefix suffix t2 in
         issuffix, (a, b)
-      | TAtom(name,a) -> issuffix, prefix^name^suffix
+      | TAtom(name,_) -> issuffix, prefix^name^suffix
       | TCoord(name) -> issuffix, prefix^name^suffix
       | TFile name -> issuffix, prefix^name^suffix
       | TUserType (name, _) -> issuffix, prefix^name^suffix
@@ -594,8 +594,8 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
              []
            with e ->
              raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
-      | TOption (t,_), [] -> None, []
-      | TOption (t,_), ""::l -> None, l
+      | TOption (_,_), [] -> None, []
+      | TOption (_,_), ""::l -> None, l
       | TOption (t,_), l ->
         let r, ll = parse_suffix t l in
         Some r, ll
@@ -629,14 +629,14 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
           | r, l ->
             let rr, ll = parse_suffix t2 l in
             (r, rr), ll)
-      | TAtom (name, t), v::l ->
+      | TAtom (_name, t), v::l ->
         (try atom_of_string t v, l
          with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
-      | TUserType (name, tao), v::l ->
+      | TUserType (_name, tao), v::l ->
         (try
            Eliom_common.To_and_of_shared.of_string tao v, l
          with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
-      | TTypeFilter (t, None), _ -> failwith "Type filter without filter"
+      | TTypeFilter (_, None), _ -> failwith "Type filter without filter"
       | TTypeFilter (t, Some check), l ->
         let (v, _) as a = parse_suffix t l in
         check v;
@@ -658,7 +658,7 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
       | TNLParams _, _ ->
           failwith "It is not possible to have non localized parameters in suffix"
       | TJson (_, Some typ), v::l -> Deriving_Json.from_string typ v, l
-      | TJson (_, None), v::l -> assert false (* client side only *)
+      | TJson (_, None), _::_ -> assert false (* client side only *)
       | TAny, _ -> failwith "It is not possible to use any in suffix. May be try with all_suffix ?"
       | TFile _, _ -> assert false
       | TRaw_post_data, _ -> assert false
@@ -710,7 +710,7 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
                | Errors_ (errs, ll, ff) when List.for_all (fun (_,s,_) -> s="") errs -> Res_ (None, ll, ff)
                | Errors_ err   -> Errors_ err)
            with Not_found -> Res_ (None, params, files))
-        | TOption (t,b) ->
+        | TOption (t,_) ->
           (try
              (match aux t params files pref suff with
                | Res_ (v, l, f) -> Res_ (Some v, l, f)
@@ -733,7 +733,7 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
                     | Res_ (vv2, ll2, ff2) ->
                       Res_ (vv::vv2, ll2, ff2)
                     | err -> err)
-                | Errors_ (errs, ll, ff) when ll = params && ff = files ->
+                | Errors_ (_errs, ll, ff) when ll = params && ff = files ->
                   Res_ ([], params, files)
                 | Errors_ (errs, ll, ff) ->
                   (match aux_set ll ff with
@@ -765,7 +765,7 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
           end
         | TAtom (name,TBool) ->
           (try
-             let v,l = (List.assoc_remove (pref^name^suff) params) in
+             let _,l = (List.assoc_remove (pref^name^suff) params) in
              Res_ (true,l,files)
            with Not_found -> Res_ (false, params, files))
 
@@ -804,7 +804,7 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
           let v,l = (List.assoc_remove (pref^name^suff) params) in
           (try Res_ (Eliom_common.To_and_of_shared.of_string tao v,l,files)
            with e -> Errors_ ([(pref^name^suff),v,e], l, files))
-        | TTypeFilter (t, None) -> failwith "Type filter without filter"
+        | TTypeFilter (_, None) -> failwith "Type filter without filter"
         | TTypeFilter (t, Some check) ->
           (match aux t params files pref suff with
             | Res_ (v, l, files) as a ->
@@ -841,7 +841,7 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
         | TJson (name, Some typ) ->
           let v,l = List.assoc_remove (pref^name^suff) params in
           Res_ ((of_json ~typ v),l,files)
-        | TJson (name, None) -> assert false
+        | TJson (_name, None) -> assert false
         (* Never unmarshal server side without type! *)
         | TRaw_post_data -> raise Eliom_common.Eliom_Wrong_parameter
   in
@@ -856,12 +856,12 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
               "Eliom_Wrong_parameter: params non-empty (ERROR): %a" (fun () l -> String.concat ", " (List.map (fun (x,k) -> x^"="^k) l)) l;
           if files <> []
           then Lwt_log.ign_debug_f ~section
-              "Eliom_Wrong_parameter: files non-empty (ERROR): %a" (fun () files -> String.concat ", " (List.map (fun (x,k) -> x) files)) files;
+              "Eliom_Wrong_parameter: files non-empty (ERROR): %a" (fun () files -> String.concat ", " (List.map (fun (x,_) -> x) files)) files;
           raise Eliom_common.Eliom_Wrong_parameter
         end
       | Errors_ (errs, l, files) ->
         if (l, files) = ([], [])
-        then raise (Eliom_common.Eliom_Typing_Error (List.map (fun (v,l,e) -> (v,e)) errs))
+        then raise (Eliom_common.Eliom_Typing_Error (List.map (fun (v,_,e) -> (v,e)) errs))
         else raise Eliom_common.Eliom_Wrong_parameter
   with | Not_found -> raise Eliom_common.Eliom_Wrong_parameter
 

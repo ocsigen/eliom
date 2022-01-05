@@ -64,7 +64,7 @@ let close_service_state ~scope ~secure_o ?sp () =
                     !(c.Eliom_common.sc_session_group)
                 with
                   | None -> Lwt_log.ign_error ~section:Lwt_log.eliom "No group of groups. Please report this problem."
-                  | Some (service_table, g) ->
+                  | Some (_service_table, g) ->
                     Eliommod_sessiongroups.Serv.remove g
               end
             | `Session _
@@ -159,7 +159,7 @@ let rec find_or_create_service_cookie_ ?set_session_group
 
   try
 
-    let (old, ior) =
+    let (_old, ior) =
       Eliom_common.Full_state_name_table.find full_st_name !cookie_info
     in
     match !ior with
@@ -177,7 +177,7 @@ let rec find_or_create_service_cookie_ ?set_session_group
     | Eliom_common.SC c ->
       (match set_session_group with
         | None -> ()
-        | Some session_group ->
+        | Some _session_group ->
           let fullsessgrp = fullsessgrp ~cookie_level ~sp set_session_group in
           let node = Eliommod_sessiongroups.Serv.move
             sitedata

@@ -47,9 +47,9 @@ module MakeManip
     let get_unique_node context (elt: 'a Kind.elt) : Dom.node Js.t =
       match Xml.get_node (Kind.toelt elt) with
       | Xml.DomNode node -> node
-      | Xml.ReactNode s -> get_node elt
-      | Xml.ReactChildren (node,rl) -> get_node elt
-      | Xml.TyXMLNode desc ->
+      | Xml.ReactNode _ -> get_node elt
+      | Xml.ReactChildren _ -> get_node elt
+      | Xml.TyXMLNode _ ->
         let elt' = Kind.toelt elt in
           match Xml.get_node_id elt' with
           | Xml.NoId ->
@@ -320,8 +320,8 @@ module Svg = struct
   module D = Svg.D
   module R = Svg.R
   module C = struct
-    let node ?init x = x
-    let attr ?init x = x
+    let node ?init:_ x = x
+    let attr ?init:_ x = x
   end
 
   type +'a elt = 'a F.elt
@@ -418,8 +418,8 @@ module Html = struct
   end
 
   module C = struct
-    let node ?init x = x
-    let attr ?init x = x
+    let node ?init:_ x = x
+    let attr ?init:_ x = x
   end
 
   type +'a elt = 'a F.elt
