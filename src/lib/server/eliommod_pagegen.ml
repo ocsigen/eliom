@@ -444,5 +444,5 @@ let gen is_eliom_extension sitedata = function
                | e -> Lwt.fail e)
   in
   gen_aux (ri, si, all_cookie_info, all_tab_cookie_info, user_tab_cookies)
-  | Ocsigen_extensions.Req_not_found (_, ri) ->
-      Lwt.return Ocsigen_extensions.Ext_do_nothing
+| Ocsigen_extensions.Req_not_found (_, ri) ->
+  Lwt.return Ocsigen_extensions.Ext_do_nothing
