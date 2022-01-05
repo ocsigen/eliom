@@ -276,12 +276,7 @@ let do_redirection header_id status uri =
       in
       Lwt.return (Ocsigen_response.make response))
 
-let gen is_eliom_extension sitedata = function
-| Ocsigen_extensions.Req_found _ ->
-  Lwt.return Ocsigen_extensions.Ext_do_nothing
-| Ocsigen_extensions.Req_not_found (`Not_found as previous_extension_err, req)
-  when handled_method (Ocsigen_request.meth
-                         req.Ocsigen_extensions.request_info) ->
+let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req =
   let req = Eliom_common.patch_request_info req in
   let now = Unix.gettimeofday () in
   Eliom_common.get_session_info sitedata req 404
@@ -316,133 +311,139 @@ let gen is_eliom_extension sitedata = function
                     all_cookie_info,
                     all_tab_cookie_info,
                     user_tab_cookies) as info) =
-          let genfun =
-            match si.Eliom_common.si_nonatt_info with
-              | Eliom_common.RNa_no ->
-                (* page generation *)
-                Eliom_route.get_page
-              | _ ->
-                (* anonymous service *)
-                Eliom_route.make_naservice
-          in
-          Lwt.catch
-            (fun () ->
-               execute
-                 now
-                 genfun
-                 info
-                 sitedata >>= fun res ->
-
-               let response, _ = Ocsigen_response.to_cohttp res
-               and all_user_cookies = Ocsigen_response.cookies res in
-               Eliommod_cookies.compute_cookies_to_send
-                 sitedata
-                 all_cookie_info
-                 all_user_cookies
-               >>= fun cookies ->
-               let res =
-                 match
-                   Ocsigen_request.header
-                     ri.Ocsigen_extensions.request_info
-                     (Ocsigen_header.Name.of_string
-                        Eliom_common_base.cookie_substitutes_header_name)
-                 with
-                 | Some _ ->
-                   let response =
-                     let headers =
-                       Cohttp.Header.add
-                         (Cohttp.Response.headers response)
-                         Eliom_common_base.set_cookie_substitutes_header_name
-                         (Eliommod_cookies.cookieset_to_json cookies)
-                     in
-                     { response with Cohttp.Response.headers }
-                   in
-                   Ocsigen_response.update ~response ~cookies res
-                 | None ->
-                   Ocsigen_response.update ~cookies res
+    let genfun =
+      match si.Eliom_common.si_nonatt_info with
+        | Eliom_common.RNa_no ->
+          (* page generation *)
+          Eliom_route.get_page
+        | _ ->
+          (* anonymous service *)
+          Eliom_route.make_naservice
+    in
+    Lwt.catch
+      (fun () ->
+         execute
+           now
+           genfun
+           info
+           sitedata >>= fun res ->
+         let response, _ = Ocsigen_response.to_cohttp res
+         and all_user_cookies = Ocsigen_response.cookies res in
+         Eliommod_cookies.compute_cookies_to_send
+           sitedata
+           all_cookie_info
+           all_user_cookies
+         >>= fun cookies ->
+         let res =
+           match
+             Ocsigen_request.header
+               ri.Ocsigen_extensions.request_info
+               (Ocsigen_header.Name.of_string
+                  Eliom_common_base.cookie_substitutes_header_name)
+           with
+           | Some _ ->
+             let response =
+               let headers =
+                 Cohttp.Header.add
+                   (Cohttp.Response.headers response)
+                   Eliom_common_base.set_cookie_substitutes_header_name
+                   (Eliommod_cookies.cookieset_to_json cookies)
                in
-               try
-                 Polytables.get
-                   ~table:
-                     (Ocsigen_request.request_cache
-                        ri.Ocsigen_extensions.request_info)
-                   ~key:Eliom_common.found_stop_key;
-                 (* if we find this information in request cache,
-                    the request has already been completed.
-                    (used after an action).
-                    Do not try the following extensions.
-                 *)
-                 Lwt.return
-                   (Ocsigen_extensions.Ext_found_stop
-                      (fun () -> Lwt.return res))
-               with Not_found ->
-                 Lwt.return
-                   (Ocsigen_extensions.Ext_found (fun () -> Lwt.return res))
-
-            )
-            (function
-              (* FIXME COHTTP transition ; restore all that *)
-               | Eliom_common.Eliom_Typing_Error l ->
-                 Lwt.return
-                   (Ocsigen_extensions.Ext_found
-                      (fun () ->
-                         make_response ~status:`Bad_request
-                           (Eliom_error_pages.page_error_param_type l)))
-               | Eliom_common.Eliom_Wrong_parameter ->
-                 let ripp =
-                   match
-                     Ocsigen_request.post_params
-                       req.request_info
-                       ri.request_config.Ocsigen_extensions.uploaddir
-                       ri.request_config.Ocsigen_extensions.maxuploadfilesize
-                   with
-                   | None ->
-                     Lwt.return []
-                   | Some l ->
-                     l
-                 in
-                 ripp >>= fun ripp ->
-                 let response =
-                   Eliom_error_pages.page_bad_param
-                     (try
-                        ignore @@ Polytables.get
-                          ~table:
-                            (Ocsigen_request.request_cache
-                               ri.request_info)
-                          ~key:Eliom_common.eliom_params_after_action;
-                        true
-                      with Not_found ->
-                        false)
-                     (Ocsigen_request.get_params_flat ri.request_info)
-                     (List.map fst ripp)
-                 in
-                 Lwt.return @@
-                 Ocsigen_extensions.Ext_found
-                   (fun () ->
-                      make_response ~status:`Bad_request response)
-               | Eliom_common.Eliom_404 ->
-                 Lwt.return
-                   (Ocsigen_extensions.Ext_next previous_extension_err)
-               | Eliom_common.Eliom_retry_with a -> gen_aux a
-               | Eliom_common.Eliom_do_redirection uri ->
-                 Lwt.return @@
-                 do_redirection
-                   Ocsigen_header.Name.location
-                   `Temporary_redirect
-                   uri
-               | Eliom_common.Eliom_do_half_xhr_redirection uri ->
-                 Lwt.return @@
-                 do_redirection
-                   (Ocsigen_header.Name.of_string
-                      Eliom_common.half_xhr_redir_header)
-                   `No_content
-                   uri
-               | e -> Lwt.fail e)
+               { response with Cohttp.Response.headers }
+             in
+             Ocsigen_response.update ~response ~cookies res
+           | None ->
+             Ocsigen_response.update ~cookies res
+         in
+         try
+           Polytables.get
+             ~table:
+               (Ocsigen_request.request_cache
+                  ri.Ocsigen_extensions.request_info)
+             ~key:Eliom_common.found_stop_key;
+           (* if we find this information in request cache,
+              the request has already been completed.
+              (used after an action).
+              Do not try the following extensions.
+           *)
+           Lwt.return
+             (Ocsigen_extensions.Ext_found_stop
+                (fun () -> Lwt.return res))
+         with Not_found ->
+           Lwt.return
+             (Ocsigen_extensions.Ext_found (fun () -> Lwt.return res))
+      )
+      (function
+        (* FIXME COHTTP transition ; restore all that *)
+         | Eliom_common.Eliom_Typing_Error l ->
+           Lwt.return
+             (Ocsigen_extensions.Ext_found
+                (fun () ->
+                   make_response ~status:`Bad_request
+                     (Eliom_error_pages.page_error_param_type l)))
+         | Eliom_common.Eliom_Wrong_parameter ->
+           let ripp =
+             match
+               Ocsigen_request.post_params
+                 req.request_info
+                 ri.request_config.Ocsigen_extensions.uploaddir
+                 ri.request_config.Ocsigen_extensions.maxuploadfilesize
+             with
+             | None ->
+               Lwt.return []
+             | Some l ->
+               l
+           in
+           ripp >>= fun ripp ->
+           let response =
+             Eliom_error_pages.page_bad_param
+               (try
+                  ignore @@ Polytables.get
+                    ~table:
+                      (Ocsigen_request.request_cache
+                         ri.request_info)
+                    ~key:Eliom_common.eliom_params_after_action;
+                  true
+                with Not_found ->
+                  false)
+               (Ocsigen_request.get_params_flat ri.request_info)
+               (List.map fst ripp)
+           in
+           Lwt.return @@
+           Ocsigen_extensions.Ext_found
+             (fun () ->
+                make_response ~status:`Bad_request response)
+         | Eliom_common.Eliom_404 ->
+           Lwt.return
+             (Ocsigen_extensions.Ext_next previous_extension_err)
+         | Eliom_common.Eliom_retry_with a -> gen_aux a
+         | Eliom_common.Eliom_do_redirection uri ->
+           Lwt.return @@
+           do_redirection
+             Ocsigen_header.Name.location
+             `Temporary_redirect
+             uri
+         | Eliom_common.Eliom_do_half_xhr_redirection uri ->
+           Lwt.return @@
+           do_redirection
+             (Ocsigen_header.Name.of_string
+                Eliom_common.half_xhr_redir_header)
+             `No_content
+             uri
+         | e -> Lwt.fail e)
   in
   let info = ri, si, all_cookie_info, all_tab_cookie_info, user_tab_cookies in
   begin match is_eliom_extension with
     | Some ext -> Eliom_extension.run_eliom_extension ext now info sitedata
     | None -> gen_aux info
   end
+
+let gen is_eliom_extension sitedata = function
+| Ocsigen_extensions.Req_found _ ->
+  Lwt.return Ocsigen_extensions.Ext_do_nothing
+| Ocsigen_extensions.Req_not_found (`Not_found as previous_extension_err, req)
+  when handled_method (Ocsigen_request.meth
+                         req.Ocsigen_extensions.request_info) ->
+  gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
 | Ocsigen_extensions.Req_not_found (_, ri) ->
   Lwt.return Ocsigen_extensions.Ext_do_nothing
