@@ -316,10 +316,6 @@ let gen is_eliom_extension sitedata = function
                     all_cookie_info,
                     all_tab_cookie_info,
                     user_tab_cookies) as info) =
-    match is_eliom_extension with
-      | Some ext ->
-          Eliom_extension.run_eliom_extension ext now info sitedata
-      | None ->
           let genfun =
             match si.Eliom_common.si_nonatt_info with
               | Eliom_common.RNa_no ->
@@ -443,6 +439,10 @@ let gen is_eliom_extension sitedata = function
                    uri
                | e -> Lwt.fail e)
   in
-  gen_aux (ri, si, all_cookie_info, all_tab_cookie_info, user_tab_cookies)
+  let info = ri, si, all_cookie_info, all_tab_cookie_info, user_tab_cookies in
+  begin match is_eliom_extension with
+    | Some ext -> Eliom_extension.run_eliom_extension ext now info sitedata
+    | None -> gen_aux info
+  end
 | Ocsigen_extensions.Req_not_found (_, ri) ->
   Lwt.return Ocsigen_extensions.Ext_do_nothing
