@@ -1379,7 +1379,6 @@ let change_url_string ~replace uri =
     end
     else begin
       update_state();
-      let state_id = this_page.page_id in
       Opt.iter stash_reload_function !reload_function;
       Dom_html.window##.history##pushState
         (Js.Opt.return (this_page.page_id, Js.string full_uri))
