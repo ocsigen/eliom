@@ -1,4 +1,4 @@
-<{lib,tools,ocamlbuild}/**/*>:warn(+A-4-6-7-9@26-27@32-37-39-40-42-44-48@68-69-70)
+<{lib,tools,ocamlbuild}/**/*>:warn(+A-4-6-7-9-16@26-27@32-37-39-40-42-44-48@68-69-70)
 true:keep_locs
 <lib/**/{client,server}*>:linkall
 <ppx/ppx_eliom_{client,server,type}.cm{,x}a>:linkall
