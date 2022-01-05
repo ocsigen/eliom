@@ -67,10 +67,10 @@ let close_all_service_states ~scope ~secure sitedata =
 
 let close_all_data_states2 full_st_name sitedata =
   Eliom_common.SessionCookies.fold
-    (fun _ (full_st_name2, _expref, timeoutref, _sessgrpref, sessgrpnode) thr ->
+    (fun _ {Eliom_common.Data_cookie.full_state_name; timeout; session_group_node} thr ->
       thr >>= fun () ->
-      if full_st_name = full_st_name2 && !timeoutref = Eliom_common.TGlobal
-      then Eliommod_sessiongroups.Data.remove sessgrpnode;
+      if full_st_name = full_state_name && !timeout = Eliom_common.TGlobal
+      then Eliommod_sessiongroups.Data.remove session_group_node;
       Lwt.pause ()
     )
     sitedata.Eliom_common.session_data
@@ -164,11 +164,11 @@ let update_data_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
   | _ ->
     let now = Unix.time () in
     Eliom_common.SessionCookies.fold
-      (fun _ (full_st_name2, expref, timeoutref, _sessgrpref, sessgrpnode) thr ->
+      (fun _ {Eliom_common.Data_cookie.full_state_name; expiry; timeout; session_group_node} thr ->
         thr >>= fun () ->
-        (if full_st_name = full_st_name2 && !timeoutref = Eliom_common.TGlobal
+        (if full_st_name = full_state_name && !timeout = Eliom_common.TGlobal
         then
-          let newexp = match !expref, old_glob_timeout, new_glob_timeout with
+          let newexp = match !expiry, old_glob_timeout, new_glob_timeout with
           | _, _, None -> None
           | None, _, Some t
           | Some _, None, Some t -> Some (now +. t)
@@ -176,8 +176,8 @@ let update_data_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
           in
           match newexp with
           | Some t when t <= now ->
-              Eliommod_sessiongroups.Data.remove sessgrpnode
-          | _ -> expref := newexp
+              Eliommod_sessiongroups.Data.remove session_group_node
+          | _ -> expiry := newexp
         );
         Lwt.pause ()
       )

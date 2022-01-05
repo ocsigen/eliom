@@ -298,16 +298,16 @@ Besides, volatile sessions are (hopefully) going to disappear soon.
       match (sess_grp : GroupTable.key) with
         | (_, `Client_process, Left sess_id) ->
           (try
-             let (_, _, _, sgr, sgn) =
+             let {Eliom_common.Data_cookie.session_group; session_group_node} =
                Eliom_common.SessionCookies.find
                  sitedata.Eliom_common.session_data sess_id
              in
-             (match !sgr with
+             (match !session_group with
                | (_, `Session, Right _) (* no group *)
                    when sitedata.Eliom_common.not_bound_in_data_tables
                      sess_id
                      ->
-                 remove1 sgn
+                 remove1 session_group_node
                | _ -> ()
              )
            with Not_found -> ())

@@ -193,16 +193,16 @@ let get_cookie_info
         lazy
           (try
             let hvalue = Eliom_common.Hashed_cookies.hash value in
-            let _full_state_name, expref, timeout_ref, sessgrpref, sessgrpnode =
+            let {Eliom_common.Data_cookie.expiry; timeout; session_group; session_group_node} =
               Eliom_common.SessionCookies.find
                 sitedata.Eliom_common.session_data
                 (Eliom_common.Hashed_cookies.to_string hvalue)
             in
-            Eliommod_sessiongroups.Serv.up sessgrpnode;
-            match !expref with
+            Eliommod_sessiongroups.Serv.up session_group_node;
+            match !expiry with
               | Some t when t < now ->
                   (* session expired by timeout *)
-                  Eliommod_sessiongroups.Data.remove sessgrpnode;
+                  Eliommod_sessiongroups.Data.remove session_group_node;
                   (Some value                 (* value sent by the browser *),
                    ref Eliom_common.SCData_session_expired
                                               (* ask the browser
@@ -213,17 +213,17 @@ let get_cookie_info
                      (Eliom_common.SC
                         {Eliom_common.dc_hvalue= hvalue       (* value *);
                          Eliom_common.dc_set_value= None;
-                         Eliom_common.dc_timeout= timeout_ref
+                         Eliom_common.dc_timeout= timeout
                           (* user timeout ref *);
-                         Eliom_common.dc_exp= expref (* expiration date
+                         Eliom_common.dc_exp= expiry (* expiration date
                                                         (server side) *);
                          Eliom_common.dc_cookie_exp=
                             ref Eliom_common.CENothing
                               (* cookie expiration date to send
                                  to the browser.
                                  We don't change it *);
-                         Eliom_common.dc_session_group= sessgrpref;
-                         Eliom_common.dc_session_group_node= sessgrpnode}
+                         Eliom_common.dc_session_group= session_group;
+                         Eliom_common.dc_session_group_node= session_group_node}
                      )
                   )
            with Not_found ->

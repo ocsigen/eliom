@@ -254,17 +254,14 @@ let data_session_gc sitedata =
         Lwt_log.ign_info ~section "GC of session data";
         (* private continuation tables: *)
         Eliom_common.SessionCookies.fold
-          (fun k (_sessname,
-                  exp, _,
-                  session_group_ref,
-                  session_group_node) thr ->
+          (fun k {Eliom_common.Data_cookie.expiry; session_group; session_group_node} thr ->
             thr >>= fun () ->
-            (match !exp with
+            (match !expiry with
                | Some exp when exp < now ->
                    Eliommod_sessiongroups.Data.remove session_group_node;
                    return_unit
                | _ ->
-                   match !session_group_ref with
+                   match !session_group with
                      | (_, scope, Right _) (* no group *)
                          when
                            (Eliommod_sessiongroups.Data.group_size

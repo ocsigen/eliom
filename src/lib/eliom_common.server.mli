@@ -384,12 +384,17 @@ type 'a servicecookiestablecontent =
       string Ocsigen_cache.Dlist.node
 type 'a servicecookiestable =
     'a servicecookiestablecontent SessionCookies.t
-type datacookiestablecontent =
-    full_state_name * float option ref * timeout ref *
-      cookie_level sessgrp ref *
-      string Ocsigen_cache.Dlist.node
-type datacookiestable =
-    datacookiestablecontent SessionCookies.t
+module Data_cookie : sig
+  (* non-persistent cookies for in-memory data *)
+  type t = {
+    full_state_name : full_state_name;
+    expiry : float option ref;
+    timeout : timeout ref;
+    session_group : cookie_level sessgrp ref;
+    session_group_node : string Ocsigen_cache.Dlist.node
+  }
+end
+type datacookiestable = Data_cookie.t SessionCookies.t
 
 type meth = [`Get | `Post | `Put | `Delete | `Other]
 

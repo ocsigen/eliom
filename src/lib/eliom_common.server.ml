@@ -274,16 +274,18 @@ type 'a servicecookiestable = 'a servicecookiestablecontent SessionCookies.t
    - the group to which belongs the session
 *)
 
-(* non persistent cookies for in memory data *)
-type datacookiestablecontent =
-  (full_state_name *
-   float option ref        (* expiration date by timeout
-                              (server side) *) *
-   timeout ref             (* user timeout *) *
-   cookie_level sessgrp ref   (* session group *) *
-   string Ocsigen_cache.Dlist.node (* session group node *))
+module Data_cookie = struct
+  (* non persistent cookies for in-memory data *)
+  type t = {
+    full_state_name : full_state_name;
+    expiry : float option ref;
+    timeout : timeout ref;
+    session_group : cookie_level sessgrp ref;
+    session_group_node : string Ocsigen_cache.Dlist.node
+  }
+end
 
-type datacookiestable = datacookiestablecontent SessionCookies.t
+type datacookiestable = Data_cookie.t SessionCookies.t
 
 
 
