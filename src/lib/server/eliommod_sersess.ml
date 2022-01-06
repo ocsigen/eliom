@@ -96,8 +96,7 @@ let rec find_or_create_service_cookie_ ?set_session_group
 
   let cookie_level = Eliom_common.cookie_level_of_user_scope cookie_scope in
 
-  let new_service_cookie sitedata full_st_name table =
-
+  let new_service_cookie sitedata full_state_name table =
     let set_session_group =
       match cookie_scope with
         | `Client_process n ->
@@ -115,36 +114,31 @@ let rec find_or_create_service_cookie_ ?set_session_group
         |  _ -> set_session_group
     in
     let fullsessgrp = fullsessgrp ~cookie_level ~sp set_session_group in
-
     let c = Eliommod_cookies.make_new_session_id () in
     let hc = Eliom_common.Hashed_cookies.hash c in
     let hc_string = Eliom_common.Hashed_cookies.to_string hc in
     let str = ref (Eliom_common.new_service_session_tables sitedata) in
-    let usertimeout = ref Eliom_common.TGlobal (* See global table *) in
-    let serverexp = ref None (*Some 0.*) (* None = never. We'll change it later. *) in
-    let fullsessgrpref = ref fullsessgrp in
-    let node = Eliommod_sessiongroups.Serv.add sitedata hc_string fullsessgrp in
+    let timeout = ref Eliom_common.TGlobal (* See global table *) in
+    let expiry = ref None (*Some 0.*) (* None = never. We'll change it later. *) in
+    let session_group = ref fullsessgrp in
+    let session_group_node =
+      Eliommod_sessiongroups.Serv.add sitedata hc_string fullsessgrp
+    in
     Eliom_common.SessionCookies.replace
       (* actually it will add the cookie *)
       table
       hc_string
-      (full_st_name,
-       !str,
-       serverexp (* exp on server *),
-       usertimeout,
-       fullsessgrpref,
-       node);
+      {Eliom_common.Service_cookie.full_state_name; session_table = !str;
+       expiry; timeout = timeout; session_group; session_group_node};
     {Eliom_common.sc_hvalue= hc;
      Eliom_common.sc_set_value= Some c;
      Eliom_common.sc_table= str;
-     Eliom_common.sc_timeout= usertimeout;
-     Eliom_common.sc_exp= serverexp;
+     Eliom_common.sc_timeout= timeout;
+     Eliom_common.sc_exp= expiry;
      Eliom_common.sc_cookie_exp=
        ref (Eliom_common.default_client_cookie_exp ());
-     Eliom_common.sc_session_group= fullsessgrpref;
-     Eliom_common.sc_session_group_node= node;
-    }
-
+     Eliom_common.sc_session_group= session_group;
+     Eliom_common.sc_session_group_node= session_group_node}
   in
 
   let ((cookie_info, _, _), secure_ci) =

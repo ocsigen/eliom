@@ -139,16 +139,17 @@ let get_cookie_info
       (fun name value (oktable, failedlist) ->
         try
           let hvalue = Eliom_common.Hashed_cookies.hash value in
-          let _full_state_name, ta, expref, timeout_ref, sessgrpref, sessgrpnode =
+          let {Eliom_common.Service_cookie.session_table; expiry; timeout;
+                                           session_group; session_group_node} =
             Eliom_common.SessionCookies.find
               sitedata.Eliom_common.session_services
               (Eliom_common.Hashed_cookies.to_string hvalue)
           in
-          Eliommod_sessiongroups.Serv.up sessgrpnode;
-          match !expref with
+          Eliommod_sessiongroups.Serv.up session_group_node;
+          match !expiry with
           | Some t when t < now ->
               (* session expired by timeout *)
-              Eliommod_sessiongroups.Serv.remove sessgrpnode;
+              Eliommod_sessiongroups.Serv.remove session_group_node;
               ((Eliom_common.Full_state_name_table.add
                   name
                   (Some value          (* value sent by the browser *),
@@ -164,16 +165,16 @@ let get_cookie_info
                         (Eliom_common.SC
                            {Eliom_common.sc_hvalue= hvalue  (* value *);
                             Eliom_common.sc_set_value= None;
-                            Eliom_common.sc_table= ref ta (* the table of session services *);
-                            Eliom_common.sc_timeout= timeout_ref (* user timeout ref *);
-                            Eliom_common.sc_exp= expref  (* expiration date (server side) *);
+                            Eliom_common.sc_table= ref session_table;
+                            Eliom_common.sc_timeout= timeout;
+                            Eliom_common.sc_exp= expiry;
                             Eliom_common.sc_cookie_exp=
                             ref Eliom_common.CENothing
                               (* cookie expiration date to send
                                  to the browser.
                                  We don't change it *);
-                            Eliom_common.sc_session_group= sessgrpref;
-                            Eliom_common.sc_session_group_node= sessgrpnode;
+                            Eliom_common.sc_session_group= session_group;
+                            Eliom_common.sc_session_group_node= session_group_node;
                            }))
                      oktable),
                   failedlist)

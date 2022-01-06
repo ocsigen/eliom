@@ -252,19 +252,19 @@ type 'a cookie_info =
   'a cookie_info1 (* unsecure *) *
   'a cookie_info1 (* secure *)
 
+module Service_cookie = struct
+  (* non persistent cookies for services *)
+  type 'a t = {
+    full_state_name : full_state_name;
+    session_table : 'a;
+    expiry : float option ref;
+    timeout : timeout ref;
+    session_group : cookie_level sessgrp ref;
+    session_group_node : string Ocsigen_cache.Dlist.node
+  }
+end
 
-
-(* non persistent cookies for services *)
-type 'a servicecookiestablecontent =
-  (full_state_name *
-   'a                  (* session table *) *
-   float option ref    (* expiration date by timeout
-                          (server side) *) *
-   timeout ref         (* user timeout *) *
-   cookie_level sessgrp ref   (* session group *) *
-   string Ocsigen_cache.Dlist.node (* session group node *))
-
-type 'a servicecookiestable = 'a servicecookiestablecontent SessionCookies.t
+type 'a servicecookiestable = 'a Service_cookie.t SessionCookies.t
 (* the table contains:
    - the table of services
    - the expiration date (by timeout), changed at each access to the table

@@ -1177,7 +1177,7 @@ module Ext = struct
 
   type service_cookie_info =
       string (* cookie value *)
-      * Eliom_common.tables Eliom_common.servicecookiestablecontent
+      * Eliom_common.tables Eliom_common.Service_cookie.t
 
   type data_cookie_info =
       string (* cookie value *)
@@ -1308,8 +1308,10 @@ module Ext = struct
         Eliommod_sessiongroups.Pers.remove_group
           ~cookie_level:`Session sitedata sgr_o
       | (_, `Service, (_cookie : string)) ->
-        let (_, (_, _, _, _, _sgr, sgrnode)) = get_service_cookie_info state in
-        Eliommod_sessiongroups.Serv.remove sgrnode;
+        let (_, {Eliom_common.Service_cookie.session_group_node}) =
+          get_service_cookie_info state
+        in
+        Eliommod_sessiongroups.Serv.remove session_group_node;
         Lwt.return_unit
       | (_, `Data, _cookie) ->
         let (_, {Eliom_common.Data_cookie.session_group_node}) =
@@ -1453,8 +1455,8 @@ module Ext = struct
 
   end
 
-  let get_service_cookie_scope ~cookie:(_, (full_state_name, _, _, _, _, _)) =
-    full_state_name.Eliom_common.user_scope
+  let get_service_cookie_scope ~cookie:(_, cookie) =
+    cookie.Eliom_common.Service_cookie.full_state_name.Eliom_common.user_scope
 
   let get_volatile_data_cookie_scope ~cookie:(_, data_cookie) =
     data_cookie.Eliom_common.Data_cookie.full_state_name.Eliom_common.user_scope
@@ -1462,10 +1464,9 @@ module Ext = struct
   let get_persistent_data_cookie_scope ~cookie:(_, cookie) =
     cookie.Eliommod_cookies.full_state_name.Eliom_common.user_scope
 
-  let set_service_cookie_timeout ~cookie:(_, (_, _, _, r, _, _)) t =
-    match t with
-    | None -> r := TNone
-    | Some t -> r := TSome t
+  let set_service_cookie_timeout ~cookie:(_, cookie) t =
+    cookie.Eliom_common.Service_cookie.timeout :=
+      match t with None -> TNone | Some t -> TSome t
 
   let set_volatile_data_cookie_timeout ~cookie:(_, data_cookie) t =
     data_cookie.Eliom_common.Data_cookie.timeout :=
@@ -1478,8 +1479,8 @@ module Ext = struct
     in
     Eliommod_cookies.Persistent_cookies.add c {cookie with Eliommod_cookies.timeout = ti}
 
-  let get_service_cookie_timeout ~cookie:(_, (_, _, _, r, _, _)) =
-    !r
+  let get_service_cookie_timeout ~cookie:(_, cookie) =
+    !(cookie.Eliom_common.Service_cookie.timeout)
 
   let get_volatile_data_cookie_timeout ~cookie:(_, data_cookie) =
     !(data_cookie.Eliom_common.Data_cookie.timeout)
@@ -1487,9 +1488,8 @@ module Ext = struct
   let get_persistent_data_cookie_timeout ~cookie:(_, cookie) =
     cookie.Eliommod_cookies.timeout
 
-
-  let unset_service_cookie_timeout ~cookie:(_, (_, _, _, r, _, _)) =
-    r := TGlobal
+  let unset_service_cookie_timeout ~cookie:(_, cookie) =
+    cookie.Eliom_common.Service_cookie.timeout := TGlobal
 
   let unset_volatile_data_cookie_timeout ~cookie:(_cookie, data_cookie) =
     data_cookie.Eliom_common.Data_cookie.timeout := TGlobal

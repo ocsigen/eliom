@@ -368,12 +368,13 @@ Besides, volatile sessions are (hopefully) going to disappear soon.
         | (_, `Client_process, Left sess_id) ->
           (try
 
-             let (_, tables, _, _, _sgr, sgn) =
+             let {Eliom_common.Service_cookie.session_table = tables;
+                                              session_group_node} =
                Eliom_common.SessionCookies.find
                  sitedata.Eliom_common.session_services sess_id
              in
              if Eliom_common.service_tables_are_empty tables
-             then remove1 sgn
+             then remove1 session_group_node
 
            with Not_found -> ())
         | (_, `Session, _) ->

@@ -20,7 +20,7 @@
 
 val iter_service_cookies :
   (Eliom_common.SessionCookies.key *
-   Eliom_common.tables Eliom_common.servicecookiestablecontent ->
+   Eliom_common.tables Eliom_common.Service_cookie.t ->
    unit Lwt.t) ->
   unit Lwt.t
 val iter_data_cookies :
@@ -34,7 +34,7 @@ val iter_persistent_cookies :
   unit Lwt.t
 val fold_service_cookies :
   (Eliom_common.SessionCookies.key *
-   Eliom_common.tables Eliom_common.servicecookiestablecontent -> 'a -> 
+   Eliom_common.tables Eliom_common.Service_cookie.t -> 'a ->
    'a Lwt.t) ->
   'a -> 'a Lwt.t
 val fold_data_cookies :

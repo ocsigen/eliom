@@ -194,14 +194,10 @@ let service_session_gc sitedata =
 
         (* private continuation tables: *)
         Eliom_common.SessionCookies.fold
-          (fun k (_sessname,
-                  tables,
-                  exp,
-                  _,
-                  session_group_ref,
-                  session_group_node) thr ->
+          (fun k {Eliom_common.Service_cookie.session_table = tables; expiry;
+                                            session_group; session_group_node} thr ->
             thr >>= fun () ->
-            (match !exp with
+            (match !expiry with
             | Some exp when exp < now ->
               Eliommod_sessiongroups.Serv.remove session_group_node;
               Lwt.return_unit
@@ -213,7 +209,7 @@ let service_session_gc sitedata =
                then gc_timeouted_naservices now
                   tables.Eliom_common.table_naservices
                else return_unit) >>= fun () ->
-              (match !session_group_ref with
+              (match !session_group with
               | (_, _scope, Right _) (* no group *)
 (*VVV check this *)
                   when
