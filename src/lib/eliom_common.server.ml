@@ -262,17 +262,16 @@ module Service_cookie = struct
     session_group : cookie_level sessgrp ref;
     session_group_node : string Ocsigen_cache.Dlist.node
   }
+  type 'a table = 'a t SessionCookies.t
+  (* the table contains:
+     - the table of services
+     - the expiration date (by timeout), changed at each access to the table
+       (float option) None -> no expiration
+     - the timeout for the user (float option option) None -> see global config
+       Some None -> no timeout
+     - the group to which belongs the session
+  *)
 end
-
-type 'a servicecookiestable = 'a Service_cookie.t SessionCookies.t
-(* the table contains:
-   - the table of services
-   - the expiration date (by timeout), changed at each access to the table
-     (float option) None -> no expiration
-   - the timeout for the user (float option option) None -> see global config
-     Some None -> no timeout
-   - the group to which belongs the session
-*)
 
 module Data_cookie = struct
   (* non persistent cookies for in-memory data *)
@@ -283,11 +282,8 @@ module Data_cookie = struct
     session_group : cookie_level sessgrp ref;
     session_group_node : string Ocsigen_cache.Dlist.node
   }
+  type table = t SessionCookies.t
 end
-
-type datacookiestable = Data_cookie.t SessionCookies.t
-
-
 
 
 (*****************************************************************************)
@@ -467,13 +463,12 @@ and sitedata =
       for scopes session and client process.
       The scope is registered in the full session name. *)
    global_services: tables; (* global service table *)
-   session_services: tables servicecookiestable;
+   session_services: tables Service_cookie.table;
    (* cookie table for services (tab and browser sessions) *)
-   session_data: datacookiestable; (* cookie table for in memory session data
+   session_data: Data_cookie.table; (* cookie table for in memory session data
                                       (tab and browser sessions)
                                       contains the information about the cookie
-                                      (expiration, group ...).
-                                   *)
+                                      (expiration, group ...). *)
    group_of_groups: [ `Session_group ] sessgrp Ocsigen_cache.Dlist.t;
    (* Limitation of the number of groups per site *)
    mutable remove_session_data: string -> unit;

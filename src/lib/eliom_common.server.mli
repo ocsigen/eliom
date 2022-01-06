@@ -390,8 +390,8 @@ module Service_cookie : sig
     session_group : cookie_level sessgrp ref;
     session_group_node : string Ocsigen_cache.Dlist.node
   }
+  type 'a table = 'a t SessionCookies.t
 end
-type 'a servicecookiestable = 'a Service_cookie.t SessionCookies.t
 
 module Data_cookie : sig
   (* non-persistent cookies for in-memory data *)
@@ -402,8 +402,8 @@ module Data_cookie : sig
     session_group : cookie_level sessgrp ref;
     session_group_node : string Ocsigen_cache.Dlist.node
   }
+  type table = t SessionCookies.t
 end
-type datacookiestable = Data_cookie.t SessionCookies.t
 
 type meth = [`Get | `Post | `Put | `Delete | `Other]
 
@@ -552,8 +552,8 @@ and sitedata = {
   mutable registered_scope_hierarchies: Hier_set.t;
 
   global_services : tables;
-  session_services : tables servicecookiestable;
-  session_data : datacookiestable;
+  session_services : tables Service_cookie.table;
+  session_data : Data_cookie.table;
   group_of_groups: [ `Session_group ] sessgrp Ocsigen_cache.Dlist.t;
   (* Limitation of the number of groups per site *)
   mutable remove_session_data : string -> unit;

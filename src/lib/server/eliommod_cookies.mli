@@ -35,8 +35,8 @@ val get_cookie_info :
   Eliom_common.Full_state_name_table.key list
 
 val new_service_cookie_table :
-  unit -> Eliom_common.tables Eliom_common.servicecookiestable
-val new_data_cookie_table : unit -> Eliom_common.datacookiestable
+  unit -> Eliom_common.tables Eliom_common.Service_cookie.table
+val new_data_cookie_table : unit -> Eliom_common.Data_cookie.table
 val compute_session_cookies_to_send :
   Eliom_common.sitedata ->
   Eliom_common.tables Eliom_common.cookie_info ->

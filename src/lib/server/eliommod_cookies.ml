@@ -344,10 +344,10 @@ let get_cookie_info
 
 (* table cookie -> session table *)
 let new_service_cookie_table () :
-    Eliom_common.tables Eliom_common.servicecookiestable =
+    Eliom_common.tables Eliom_common.Service_cookie.table =
   Eliom_common.SessionCookies.create 100
 
-let new_data_cookie_table () : Eliom_common.datacookiestable =
+let new_data_cookie_table () : Eliom_common.Data_cookie.table =
   Eliom_common.SessionCookies.create 100
 
 
