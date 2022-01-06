@@ -46,11 +46,6 @@ let make_response ?headers ~status body =
 
 let def_handler e = Lwt.fail e
 
-let handle_site_exn exn info sitedata =
-  let sp = Eliom_common.make_server_params sitedata info None None in
-  Lwt.with_value Eliom_common.sp_key (Some sp)
-    (fun () -> sitedata.Eliom_common.exn_handler exn)
-
 (* Update cookie tables *)
 let update_cookie_table ?now sitedata (ci, sci) =
   let now = match now with
@@ -214,6 +209,11 @@ let update_cookie_table ?now sitedata (ci, sci) =
 (*****************************************************************************)
 (* Generation of the page or naservice
    + update the cookie tables (value, expiration date and timeout)        *)
+
+let handle_site_exn exn info sitedata =
+  let sp = Eliom_common.make_server_params sitedata info None None in
+  Lwt.with_value Eliom_common.sp_key (Some sp)
+    (fun () -> sitedata.Eliom_common.exn_handler exn)
 
 let execute
     now
