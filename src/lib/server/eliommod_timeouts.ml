@@ -27,8 +27,6 @@ open Eliom_lib
 
 open Lwt
 
-let fst3 (a,_,_) = a
-
 type kind = [ `Service | `Data | `Persistent ]
 
 (*****************************************************************************)
@@ -86,7 +84,7 @@ let set_timeout_ get set get_default update =
               set sitedata (def_bro, Some (t, fromconfigfile), tl)
             | _, _, None -> failwith "set_timeout_"
           )
-        | Some full_st_name ->
+        | Some ({Eliom_common.user_scope} as full_st_name) ->
             (* recompute_expdates works only if full_st_name is present *)
             let oldtopt =
               try
@@ -110,7 +108,7 @@ let set_timeout_ get set get_default update =
               let oldt = match oldtopt with
                 | Some o -> o
                 | None ->
-                    match def_bro, def_tab, (fst3 full_st_name) with
+                    match def_bro, def_tab, user_scope with
                       | Some (t, _), _, `Session _ -> t
                       | _, Some (t, _), `Client_process _ -> t
                       | _, _, ct -> get_default ct
@@ -150,7 +148,7 @@ let find_global kind full_st_name sitedata =
   try
     fst (List.assoc full_st_name tl)
   with Not_found ->
-    (match def_bro, def_tab, (fst3 full_st_name) with
+    (match def_bro, def_tab, full_st_name.Eliom_common.user_scope with
      | Some (t, _), _, `Session _ -> t
      | _, Some (t, _), `Client_process _ -> t
      | _, _, ct -> get_default kind ct)

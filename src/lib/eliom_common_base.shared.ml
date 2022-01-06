@@ -73,14 +73,14 @@ let scope_hierarchy_of_user_scope : [< user_scope ] -> scope_hierarchy =
     | `Session_group n
     | `Client_process n -> n
 
-type full_state_name = (* WAS: fullsessionname *)
-    (* The key in the table of states.
-       For cookies scopes,
-       it is also the information in the cookie name,
-       without the kind of session,
-       and with the scope level (that is not in the cookie name).
-    *)
-    user_scope * bool (* secure*) * string (* site_dir_string *)
+(* The key in the table of states. For cookies scopes, it is also the
+   information in the cookie name, without the kind of session, and with the
+   scope level (that is not in the cookie name). *)
+type full_state_name = {
+  user_scope : user_scope;
+  secure : bool;
+  site_dir_str : string
+}
 
 module Full_state_name_table = Map.Make(struct
   type t = full_state_name

@@ -518,25 +518,20 @@ let find_dlist_ip_table :
 
 (*****************************************************************************)
 
-let make_full_cookie_name cookieprefix (cookie_scope, secure, site_dir_string) =
-  let scope_hier = scope_hierarchy_of_user_scope cookie_scope in
+let make_full_cookie_name cookieprefix {user_scope; secure; site_dir_str} =
+  let scope_hier = scope_hierarchy_of_user_scope user_scope in
   let secure = if secure then "S|" else "|" in
   let hier1, hiername = match scope_hier with
     | User_hier hiername -> "||", hiername
     | Default_ref_hier -> "|ref|", ""
     | Default_comet_hier -> "|comet|", ""
   in
-  let s = String.concat ""
-    [cookieprefix; secure; site_dir_string; hier1; hiername]
-  in
-  s
+  String.concat "" [cookieprefix; secure; site_dir_str; hier1; hiername]
 
 let make_full_state_name2
-    site_dir_string secure ~(scope:[< user_scope ]) : full_state_name =
+    site_dir_str secure ~(scope:[< user_scope ]) : full_state_name =
   (* The information in the cookie name, without the kind of session *)
-  ((scope :> user_scope),
-   secure,
-   site_dir_string)
+  {user_scope = (scope :> user_scope); secure; site_dir_str}
 
 let make_full_state_name ~sp ~secure ~(scope:[< user_scope ]) =
   make_full_state_name2 sp.sp_sitedata.site_dir_string secure scope
@@ -874,7 +869,7 @@ sessionkind|S?|sitedirstring|"ref" ou "comet" ou ""|hiername
 let full_state_name_of_cookie_name cookie_level cookiename =
   let _pref, cookiename = Ocsigen_lib.String.sep '|' cookiename in
   let secure, cookiename = Ocsigen_lib.String.sep '|' cookiename in
-  let sitedirstring, cookiename = Ocsigen_lib.String.sep '|' cookiename in
+  let site_dir_str, cookiename = Ocsigen_lib.String.sep '|' cookiename in
   let hier1, hiername = Ocsigen_lib.String.sep '|' cookiename in
   let secure = secure = "S" in
   let sc_hier = match hier1 with
@@ -883,9 +878,12 @@ let full_state_name_of_cookie_name cookie_level cookiename =
     | "comet" -> Eliom_common_base.Default_comet_hier
     | _ -> raise Not_found
   in
-  match cookie_level with
-    | `Session -> (`Session sc_hier, secure, sitedirstring)
-    | `Client_process -> (`Client_process sc_hier, secure, sitedirstring)
+  let user_scope =
+    match cookie_level with
+    | `Session -> `Session sc_hier
+    | `Client_process -> `Client_process sc_hier
+  in
+  {user_scope; secure; site_dir_str}
 
 let getcookies secure cookie_level cookienamepref cookies =
   let length = String.length cookienamepref in
@@ -895,9 +893,8 @@ let getcookies secure cookie_level cookienamepref cookies =
       if String.first_diff cookienamepref name 0 last = length
       then
         try
-          let (_, sec, _) as expcn =
-            full_state_name_of_cookie_name cookie_level name in
-          if sec = secure
+          let expcn = full_state_name_of_cookie_name cookie_level name in
+          if expcn.secure = secure
           then Full_state_name_table.add expcn value beg
           else beg
         with Not_found -> beg

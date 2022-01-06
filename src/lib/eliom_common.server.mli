@@ -121,8 +121,11 @@ exception Eliom_Typing_Error of (string * exn) list
 *)
 exception Eliom_site_information_not_available of string
 
-type full_state_name =
-    user_scope * bool (* secure *) * string (* site_dir_string *)
+type full_state_name = {
+  user_scope : user_scope;
+  secure : bool;
+  site_dir_str : string
+}
 module Full_state_name_table : Map.S with type key = full_state_name
 
 (** If present and true in request data, it means that

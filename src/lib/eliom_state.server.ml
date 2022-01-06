@@ -20,6 +20,7 @@
 open Eliom_lib
 
 open Lwt
+open Lwt.Syntax
 
 
 (* Expired session? *)
@@ -1316,8 +1317,10 @@ module Ext = struct
         Eliommod_sessiongroups.Data.remove session_group_node;
         Lwt.return_unit
       | (_, `Pers, _cookie) ->
-        get_persistent_cookie_info state
-        >>= fun (cookie, {Eliommod_cookies.full_state_name = (scope, _, _); session_group}) ->
+        let* cookie, {Eliommod_cookies.full_state_name; session_group} =
+          get_persistent_cookie_info state
+        in
+        let scope = full_state_name.Eliom_common.user_scope in
         let sitedata = get_sitedata () in
         let cookie_level = Eliom_common.cookie_level_of_user_scope scope in
         Eliommod_sessiongroups.Pers.close_persistent_session2
@@ -1450,16 +1453,14 @@ module Ext = struct
 
   end
 
-  let get_service_cookie_scope ~cookie:(_, ((ct, _, _), _, _, _, _, _)) =
-    ct
+  let get_service_cookie_scope ~cookie:(_, (full_state_name, _, _, _, _, _)) =
+    full_state_name.Eliom_common.user_scope
 
   let get_volatile_data_cookie_scope ~cookie:(_, data_cookie) =
-    let (ct,_,_) = data_cookie.Eliom_common.Data_cookie.full_state_name in
-    ct
+    data_cookie.Eliom_common.Data_cookie.full_state_name.Eliom_common.user_scope
 
   let get_persistent_data_cookie_scope ~cookie:(_, cookie) =
-    let (ct,_,_) = cookie.Eliommod_cookies.full_state_name in
-    ct
+    cookie.Eliommod_cookies.full_state_name.Eliom_common.user_scope
 
   let set_service_cookie_timeout ~cookie:(_, (_, _, _, r, _, _)) t =
     match t with
