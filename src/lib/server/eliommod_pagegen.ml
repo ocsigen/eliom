@@ -170,10 +170,10 @@ let update_cookie_table ?now sitedata (ci, sci) =
                         let cookieid = Eliom_common.(Hashed_cookies.to_string newc.pc_hvalue) in
                         Eliommod_cookies.Persistent_cookies.replace_if_exists
                           cookieid
-                          (name,
-                           newexp,
-                           !(newc.Eliom_common.pc_timeout),
-                           !(newc.Eliom_common.pc_session_group))
+                          {Eliommod_cookies.full_state_name = name;
+                           expiry = newexp;
+                           timeout = !(newc.Eliom_common.pc_timeout);
+                           session_group = !(newc.Eliom_common.pc_session_group)}
                         >>= fun () ->
                         Eliommod_cookies.Persistent_cookies.Expiry_dates.remove_cookie oldexp cookieid)
                       (function
@@ -183,10 +183,10 @@ let update_cookie_table ?now sitedata (ci, sci) =
                   | _ ->
                     Eliommod_cookies.Persistent_cookies.add
                       Eliom_common.(Hashed_cookies.to_string newc.pc_hvalue)
-                      (name,
-                       newexp,
-                       !(newc.Eliom_common.pc_timeout),
-                       !(newc.Eliom_common.pc_session_group))
+                      {Eliommod_cookies.full_state_name = name;
+                       expiry = newexp;
+                       timeout = !(newc.Eliom_common.pc_timeout);
+                       session_group = !(newc.Eliom_common.pc_session_group)}
 
         (*VVV Do not forget to change persistent_cookie_table_version
           if you change the type of persistent table data,

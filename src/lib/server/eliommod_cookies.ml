@@ -29,6 +29,14 @@ let make_new_session_id () =
   Ocsigen_lib.make_cryptographic_safe_string () ^ "H"
 
 
+type date = float
+
+type cookie = {
+  full_state_name : Eliom_common.full_state_name;
+  expiry : date option;
+  timeout : Eliom_common.timeout;
+  session_group : Eliom_common.perssessgrp option
+}
 
 module Persistent_cookies = struct
   (* Another table, containing the session info for each cookie *)
@@ -41,9 +49,6 @@ module Persistent_cookies = struct
   (* It is lazy, because we must delay the creation of the table until
      the initialization of eliom in case we use static linking with
      sqlite backend ... *)
-
-  type date = float
-  type cookie = Eliom_common.full_state_name * date option * Eliom_common.timeout * Eliom_common.perssessgrp option
 
   module Ocsipersist = Ocsipersist.Functorial
 
@@ -92,13 +97,13 @@ module Persistent_cookies = struct
                 else Some (String.concat "," cookies')
   end
 
-  let add cookie ((_, exp, _, _) as content) =
-    Eliom_lib.Option.Lwt.iter (fun t -> Expiry_dates.add_cookie t cookie) exp
+  let add cookie ({expiry} as content) =
+    Eliom_lib.Option.Lwt.iter (fun t -> Expiry_dates.add_cookie t cookie) expiry
     >>= fun _ ->
     Cookies.add cookie content
 
-  let replace_if_exists cookie ((_, exp, _, _) as content) =
-    Eliom_lib.Option.Lwt.iter (fun t -> Expiry_dates.add_cookie t cookie) exp
+  let replace_if_exists cookie ({expiry} as content) =
+    Eliom_lib.Option.Lwt.iter (fun t -> Expiry_dates.add_cookie t cookie) expiry
     >>= fun _ ->
     Cookies.replace_if_exists cookie content
 
@@ -247,7 +252,7 @@ let get_cookie_info
                Persistent_cookies.Cookies.find
                  (Eliom_common.Hashed_cookies.to_string hvalue)
                >>=
-               fun (_full_state_name, persexp, perstimeout, sessgrp) ->
+               fun {expiry = persexp; timeout = perstimeout; session_group = sessgrp} ->
 
                Eliommod_sessiongroups.Pers.up hvalue_string sessgrp
                >>= fun () ->

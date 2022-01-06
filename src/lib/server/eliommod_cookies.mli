@@ -54,10 +54,16 @@ val compute_new_ri_cookies :
   Eliom_common.tables Eliom_common.cookie_info ->
   Ocsigen_cookie_map.t -> string Ocsigen_cookie_map.Map_inner.t Lwt.t
 
+type date = float
+
+type cookie = {
+  full_state_name : Eliom_common.full_state_name;
+  expiry : date option;
+  timeout : Eliom_common.timeout;
+  session_group : Eliom_common.perssessgrp option
+}
 
 module Persistent_cookies : sig
-  type date = float
-  type cookie = Eliom_common.full_state_name * date option * Eliom_common.timeout * Eliom_common.perssessgrp option
   module Cookies : Ocsipersist.TABLE
     with type key = string and type value = cookie
   module Expiry_dates : sig

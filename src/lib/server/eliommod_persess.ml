@@ -29,7 +29,7 @@
 (* Persistent sessions: *)
 
 open Lwt
-
+open Lwt.Syntax
 
 let compute_cookie_info sitedata secure_o secure_ci cookie_info =
   let secure = Eliom_common.get_secure ~secure_o ~sitedata () in
@@ -101,7 +101,7 @@ let rec find_or_create_persistent_cookie_
   (* if it exists, do not create it, but returns its value *)
   let cookie_level = Eliom_common.cookie_level_of_user_scope cookie_scope in
 
-  let new_persistent_cookie sitedata full_st_name =
+  let new_persistent_cookie sitedata full_state_name =
 
     let%lwt set_session_group =
       match cookie_scope with
@@ -128,13 +128,14 @@ let rec find_or_create_persistent_cookie_
   (* We do not need to verify if it already exists.
      make_new_session_id does never generate twice the same cookie. *)
     let usertimeout = ref Eliom_common.TGlobal (* See global table *) in
-    Eliommod_cookies.Persistent_cookies.add
-      hc_string
-      (full_st_name,
-       None (* Some 0. *) (* exp on server - We'll change it later *),
-       Eliom_common.TGlobal (* timeout - see global config *),
-       fullsessgrp)
-    >>= fun () ->
+    let* () =
+      Eliommod_cookies.Persistent_cookies.add
+        hc_string
+        {Eliommod_cookies.full_state_name;
+         expiry = None; (* exp on server - We'll change it later *)
+         timeout = Eliom_common.TGlobal;
+         session_group = fullsessgrp}
+    in
     Eliommod_sessiongroups.Pers.add
       ?set_max:set_max_in_group
       (fst sitedata.Eliom_common.max_persistent_data_sessions_per_group)

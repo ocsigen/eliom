@@ -301,8 +301,9 @@ let persistent_session_gc sitedata =
   let gc () =
     let now = Unix.time () in
     let log_hash c = Eliom_common.Hashed_cookies.(sha256 c) in
-    let do_gc_cookie cookie ((scope, _, _), exp, _, session_group) =
-      match exp with
+    let do_gc_cookie cookie {Eliommod_cookies.full_state_name; expiry; session_group} =
+      let (scope, _, _) = full_state_name in
+      match expiry with
       | Some exp when exp <= now ->
         Lwt_log.ign_info_f ~section "remove expired cookie %s" (log_hash cookie);
         Eliommod_persess.close_persistent_state2
