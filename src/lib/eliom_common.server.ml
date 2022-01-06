@@ -546,12 +546,19 @@ let get_cookie_info sp = function
   | `Client_process -> sp.sp_tab_cookie_info
 
 
+type info = {
+  request : Ocsigen_extensions.request;
+  session_info : sess_info;
+  all_cookie_info : tables cookie_info;
+  tab_cookie_info : tables cookie_info;
+  user_tab_cookies : Ocsigen_cookie_map.t
+}
 
 (*****************************************************************************)
 (** Create server parameters record *)
 let make_server_params
     sitedata
-    (ri, si, all_cookie_info, all_tab_cookie_info, user_tab_cookies)
+    ({request = ri; session_info = si} as info)
     suffix
     full_state_name =
   let appl_name =
@@ -577,10 +584,10 @@ let make_server_params
   { sp_request = ri;
     sp_si = si;
     sp_sitedata = sitedata;
-    sp_cookie_info = all_cookie_info;
-    sp_tab_cookie_info = all_tab_cookie_info;
+    sp_cookie_info = info.all_cookie_info;
+    sp_tab_cookie_info = info.tab_cookie_info;
     sp_user_cookies = Ocsigen_cookie_map.empty;
-    sp_user_tab_cookies = user_tab_cookies;
+    sp_user_tab_cookies = info.user_tab_cookies;
     sp_client_appl_name = appl_name;
     sp_suffix = suffix;
     sp_full_state_name = full_state_name;
@@ -1290,13 +1297,6 @@ let get_session_info ~sitedata ~req previous_extension_err =
   Lwt.return
     ({ req_whole with Ocsigen_extensions.request_info = ri }, sess,
      previous_tab_cookies_info)
-
-type info =
-    (Ocsigen_extensions.request *
-       sess_info *
-       tables cookie_info (* current browser cookie info *) *
-       tables cookie_info (* current tab cookie info *) *
-       Ocsigen_cookie_map.t (* current user tab cookies *))
 
 exception Eliom_retry_with of info
 

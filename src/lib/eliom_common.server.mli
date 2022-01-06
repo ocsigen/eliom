@@ -581,10 +581,13 @@ type 'a lazy_site_value (** lazy site values, are lazy values with
 val force_lazy_site_value : 'a lazy_site_value -> 'a
 val lazy_site_value_from_fun : ( unit -> 'a ) -> 'a lazy_site_value
 
-
-type info =
-    (Ocsigen_extensions.request * sess_info *
-     tables cookie_info * tables cookie_info * Ocsigen_cookie_map.t)
+type info = {
+  request : Ocsigen_extensions.request;
+  session_info : sess_info;
+  all_cookie_info : tables cookie_info;
+  tab_cookie_info : tables cookie_info;
+  user_tab_cookies : Ocsigen_cookie_map.t
+}
 
 exception Eliom_retry_with of info
 

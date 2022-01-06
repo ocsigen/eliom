@@ -218,28 +218,15 @@ let handle_site_exn exn info sitedata =
 let execute
     now
     generate_page
-    ((_ri,
-      _si,
-      ((service_cookies_info, data_cookies_info, pers_cookies_info),
-       secure_ci),
-      ((service_tab_cookies_info, data_tab_cookies_info, pers_tab_cookies_info),
-       secure_ci_tab),
-      _user_tab_cookies) as info)
+    ({Eliom_common.all_cookie_info; tab_cookie_info} as info)
     sitedata =
-
   let* result =
     Lwt.catch
       (fun () -> generate_page now info sitedata)
       (fun e -> handle_site_exn e info sitedata)
   in
-  let* () =
-    update_cookie_table ~now sitedata
-      ((service_cookies_info, data_cookies_info, pers_cookies_info), secure_ci)
-  in
-  let* () =
-    update_cookie_table ~now sitedata
-      ((service_tab_cookies_info, data_tab_cookies_info, pers_tab_cookies_info), secure_ci_tab)
-  in
+  let* () = update_cookie_table ~now sitedata all_cookie_info in
+  let* () = update_cookie_table ~now sitedata tab_cookie_info in
   Lwt.return result
 
 
@@ -293,7 +280,7 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
       si.Eliom_common.si_persistent_session_cookies
       si.Eliom_common.si_secure_cookie_info
   in
-  let ((all_tab_cookie_info, closedsessions_tab), user_tab_cookies) =
+  let ((tab_cookie_info, closedsessions_tab), user_tab_cookies) =
     (* If tab cookie info exists in rc (because an action put them here),
        we get it from here.
        Otherwise we get it from tab cookies in parameters.
@@ -311,10 +298,9 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
         )
   in
   set_expired_sessions ri (closedsessions, closedsessions_tab);
-  let rec gen_aux ((ri, si,
-                    all_cookie_info,
-                    _all_tab_cookie_info,
-                    _user_tab_cookies) as info) =
+  let rec gen_aux ({Eliom_common.request = ri;
+                                 session_info = si;
+                                 all_cookie_info} as info) =
     let genfun =
       match si.Eliom_common.si_nonatt_info with
         | Eliom_common.RNa_no ->
@@ -432,7 +418,13 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
              uri
          | e -> Lwt.fail e)
   in
-  let info = ri, si, all_cookie_info, all_tab_cookie_info, user_tab_cookies in
+  let info =
+    {Eliom_common.request = ri;
+     session_info = si;
+     all_cookie_info;
+     tab_cookie_info;
+     user_tab_cookies}
+  in
   begin match is_eliom_extension with
     | Some ext -> Eliom_extension.run_eliom_extension ext now info sitedata
     | None -> gen_aux info
