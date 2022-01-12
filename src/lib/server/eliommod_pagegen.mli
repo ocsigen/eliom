@@ -18,10 +18,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 val def_handler : exn -> 'b Lwt.t
-val handle_site_exn :
-  exn ->
-  Eliom_common.info ->
-  Eliom_common.sitedata -> Ocsigen_response.t Lwt.t
 val execute :
   float ->
   (float ->
