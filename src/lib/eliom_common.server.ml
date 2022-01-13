@@ -105,19 +105,21 @@ module SessionCookies =
 (* keys in tables are hashes of cookie values *)
 module Hashed_cookies : sig
     type t
+    val sha256 : string -> string
     val hash : string -> t
     val to_string : t -> string
 end = struct
   type t = string
+
+  let sha256 c =
+    let to_b64 = Cryptokit.Base64.encode_compact () in
+    Cryptokit.transform_string to_b64 @@
+      Cryptokit.(hash_string (Hash.sha256 ()) c)
+
   let hash c =
     (* To preserve compatibility, we only hash cookies that ends with an
        'H'.  This is the case for all new cookies (see Eliommod_cookies). *)
-    if c <> "" &&  c.[String.length c - 1] = 'H' then
-      let to_b64 = Cryptokit.Base64.encode_compact () in
-      Cryptokit.transform_string to_b64
-        (Cryptokit.(hash_string (Hash.sha256 ()) c))
-    else
-      c
+    if c <> "" &&  c.[String.length c - 1] = 'H' then sha256 c else c
 
   let to_string x = x
 end
