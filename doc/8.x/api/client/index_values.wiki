@@ -490,7 +490,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_default_port"| value Eliom_config.get_default_port >> ~[<<a_api subproject="client" | module Eliom_config >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_default_sslport"| value Eliom_config.get_default_sslport >> ~[<<a_api subproject="client" | module Eliom_config >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_dom"| value Eliom_content_core.Html.Custom_data.get_dom >> ~[<<a_api subproject="client" | module Eliom_content_core.Html.Custom_data >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|get~_dom element custom~_data>> gets the <<span class="odocwiki_inlinecode"|custom~_data>> from a ~Java~Script <<span class="odocwiki_inlinecode"|element>>
-        ~(<<a_api project="js_of_ocaml"|class type Dom_html.element>> ~)~.
+        ~(<<a_api project="js_of_ocaml"|class type Js_of_ocaml.Dom_html.element>> ~)~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_dom"| value Eliom_content.Html.Custom_data.get_dom >> ~[<<a_api subproject="client" | module Eliom_content.Html.Custom_data >>~]||
@@ -1175,7 +1175,7 @@
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="set_dom"| value Eliom_content_core.Html.Custom_data.set_dom >> ~[<<a_api subproject="client" | module Eliom_content_core.Html.Custom_data >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|set~_dom element custom~_data value>> sets the custom data attribute for
         <<span class="odocwiki_inlinecode"|custom~_data>> of an ~Java~Script <<span class="odocwiki_inlinecode"|element>>
-        ~(<<a_api project="js_of_ocaml"|class type Dom_html.element>> ~)
+        ~(<<a_api project="js_of_ocaml"|class type Js_of_ocaml.Dom_html.element>> ~)
         to <<span class="odocwiki_inlinecode"|value>>~.
 >>
 |

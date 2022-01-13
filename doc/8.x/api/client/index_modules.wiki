@@ -163,7 +163,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Lwt"| module Eliom_shared_sigs.S.Lwt >> ~[<<a_api subproject="client" | module Eliom_shared_sigs.S >>~]|<<div class="odocwiki_info"|~Cooperative versions of the ~React operators
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Lwt_log"| module Eliom_lib.Lwt_log >> ~[<<a_api subproject="client" | module Eliom_lib >>~]|<<div class="odocwiki_info"|~Extension of <<a_api project="js_of_ocaml"| module Lwt_log_js >> ~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Lwt_log"| module Eliom_lib.Lwt_log >> ~[<<a_api subproject="client" | module Eliom_lib >>~]|<<div class="odocwiki_info"|~Extension of <<a_api project="js_of_ocaml" subproject="js_of_ocaml-lwt"| module Lwt_log_js >> ~.
 >>
 |
 |@@ @style="tet-align: left;"@@\\M|
@@ -185,12 +185,12 @@
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Of_dom"| module Eliom_content_core.Svg.Of_dom >> ~[<<a_api subproject="client" | module Eliom_content_core.Svg >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Of_dom"| module Eliom_content.Html.Of_dom >> ~[<<a_api subproject="client" | module Eliom_content.Html >>~]|<<div class="odocwiki_info"|~Conversion functions from ~D~O~M nodes ~(<<a_api project="js_of_ocaml"| type Dom_html.element>>  <<a_api
-      project="js_of_ocaml"| type Js.t>> ~) to ~Eliom nodes ~(<<a_api | type Eliom_content.Html.elt>> ~)~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Of_dom"| module Eliom_content.Html.Of_dom >> ~[<<a_api subproject="client" | module Eliom_content.Html >>~]|<<div class="odocwiki_info"|~Conversion functions from ~D~O~M nodes ~(<<a_api project="js_of_ocaml"| type Js_of_ocaml.Dom_html.element>>  <<a_api
+      project="js_of_ocaml"| type Js_of_ocaml.Js.t>> ~) to ~Eliom nodes ~(<<a_api | type Eliom_content.Html.elt>> ~)~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Of_dom"| module Eliom_content.Svg.Of_dom >> ~[<<a_api subproject="client" | module Eliom_content.Svg >>~]|<<div class="odocwiki_info"|~Conversion functions from ~D~O~M nodes ~(<<a_api project="js_of_ocaml"| type Dom_html.element>>  <<a_api
-      project="js_of_ocaml"| type Js.t>> ~) to ~Eliom nodes ~(<<a_api | type Eliom_content.Html.elt>> ~)~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Of_dom"| module Eliom_content.Svg.Of_dom >> ~[<<a_api subproject="client" | module Eliom_content.Svg >>~]|<<div class="odocwiki_info"|~Conversion functions from ~D~O~M nodes ~(<<a_api project="js_of_ocaml"| type Js_of_ocaml.Dom_html.element>>  <<a_api
+      project="js_of_ocaml"| type Js_of_ocaml.Js.t>> ~) to ~Eliom nodes ~(<<a_api | type Eliom_content.Html.elt>> ~)~.
 >>
 |
 |@@ @style="tet-align: left;"@@\\P|
@@ -261,11 +261,11 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Syntax_helpers"| module Eliom_client_core.Syntax_helpers >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
 |@@ @style="tet-align: left;"@@\\T|
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="To_dom"| module Eliom_content.Html.To_dom >> ~[<<a_api subproject="client" | module Eliom_content.Html >>~]|<<div class="odocwiki_info"|~Conversion from ~H~T~M~L~5 <<span class="odocwiki_inlinecode"|elt>>s to ~Javascript ~D~O~M elements ~(<<span class="odocwiki_inlinecode"|~<~:>> <<a_api
-      project="js_of_ocaml"| class Dom_html.element >> ~)~.
+      project="js_of_ocaml"| class Js_of_ocaml.Dom_html.element >> ~)~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="To_dom"| module Eliom_content.Svg.To_dom >> ~[<<a_api subproject="client" | module Eliom_content.Svg >>~]|<<div class="odocwiki_info"|~Conversion from ~Svg <<span class="odocwiki_inlinecode"|elt>>s to ~Javascript ~D~O~M elements ~(<<span class="odocwiki_inlinecode"|~<~:>> <<a_api
-      project="js_of_ocaml"| class Dom_html.element >> ~)~.
+      project="js_of_ocaml"| class Js_of_ocaml.Dom_html.element >> ~)~.
 >>
 |
 |@@ @style="tet-align: left;"@@\\U|
