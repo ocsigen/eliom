@@ -327,7 +327,12 @@ val default_client_cookie_exp : unit -> cookie_exp
 
 module Hashed_cookies : sig
   type t
+
+  val sha256 : string -> string
+
+  (** NOTE: this function is the identity function for strings that do not with an 'H' *)
   val hash : string -> t
+
   val to_string : t -> string
 end
 
