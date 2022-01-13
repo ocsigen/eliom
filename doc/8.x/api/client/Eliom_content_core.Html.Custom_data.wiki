@@ -17,13 +17,13 @@
         ~(<<a_api | type Eliom_content.Html.elt >> ~)~.
 >>
 <<pre id="VALget_dom" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_dom>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_uid"|Js_of_ocaml>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Dom_html>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|element>> <<span class="ocsforge_color_uid"|Js_of_ocaml>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Js>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>> <<span class="ocsforge_color_delimiter"| -> >>\\  'a <<a_api subproject="client" text="t" | type Eliom_content_core.Html.Custom_data.t >> <<span class="ocsforge_color_delimiter"| -> >> 'a>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|get~_dom element custom~_data>> gets the <<span class="odocwiki_inlinecode"|custom~_data>> from a ~Java~Script <<span class="odocwiki_inlinecode"|element>>
-        ~(<<a_api project="js_of_ocaml"|class type Dom_html.element>> ~)~.
+        ~(<<a_api project="js_of_ocaml"|class type Js_of_ocaml.Dom_html.element>> ~)~.
 **Raises** {{{Not_found}}} if the element does not contain the respective custom
           data attribute and the <<span class="odocwiki_inlinecode"|custom~_data>> was created without <<span class="odocwiki_inlinecode"|default>>~.\\
 **Returns** ~The value encoded in the respective custom data attribute of <<span class="odocwiki_inlinecode"|element>>~, or the default value~, if any~.\\
 >>
 <<pre id="VALset_dom" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|set~_dom>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_uid"|Js_of_ocaml>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Dom_html>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|element>> <<span class="ocsforge_color_uid"|Js_of_ocaml>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Js>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>> <<span class="ocsforge_color_delimiter"| -> >>\\  'a <<a_api subproject="client" text="t" | type Eliom_content_core.Html.Custom_data.t >> <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|set~_dom element custom~_data value>> sets the custom data attribute for
         <<span class="odocwiki_inlinecode"|custom~_data>> of an ~Java~Script <<span class="odocwiki_inlinecode"|element>>
-        ~(<<a_api project="js_of_ocaml"|class type Dom_html.element>> ~)
+        ~(<<a_api project="js_of_ocaml"|class type Js_of_ocaml.Dom_html.element>> ~)
         to <<span class="odocwiki_inlinecode"|value>>~.
 >>

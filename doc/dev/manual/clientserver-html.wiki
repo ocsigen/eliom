@@ -31,8 +31,8 @@ The full documentation is available
 On client side there are two kinds of HTML representations: one is
 based on the <<a_manual project="tyxml"|TyXML library>> and the other
 one is the browser DOM tree accessible through Js_of_ocaml modules
-<<a_api project="js_of_ocaml"| module Dom>> and <<a_api
-project="js_of_ocaml"| module Dom_html>>. The TyXML representation is
+<<a_api project="js_of_ocaml"| module Js_of_ocaml.Dom>> and <<a_api
+project="js_of_ocaml"| module Js_of_ocaml.Dom_html>>. The TyXML representation is
 a OCaml immutable typed tree. The DOM tree is mutable structure
 manipulated using the browser API which permit the modification of the
 displayed page. In the DOM represention adding a node as a child to an
@@ -530,7 +530,7 @@ project="eliom"|val Eliom_content.Html.Custom_data.attrib>>:
 ==== Reading/writing the DOM ====
 
 On the client side, custom data can be read from and written to JavaScript DOM
-elements of type <<a_api project="js_of_ocaml"|class type Dom_html.element>>.
+elements of type <<a_api project="js_of_ocaml"|class type Js_of_ocaml.Dom_html.element>>.
 
 Custom data can be read from a DOM-element with the function
 <<a_api subproject="client"|val Eliom_content.Html.Custom_data.get_dom>>.
