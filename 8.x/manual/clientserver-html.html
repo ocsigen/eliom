@@ -68,7 +68,7 @@ window.addEventListener("load", function(){ outline([0,-515484383,0,[0,2],[0,"na
 </script><h2> Generating HTML for Eliom applications</h2><h3> The TyXML library vs. the DOM API</h3><p>On client side there are two kinds of HTML representations: one is
 based on the <span><a href=".././../../tyxml/index.html">TyXML library</a></span> and the other
 one is the browser DOM tree accessible through Js_of_ocaml modules
-<span><a href=".././../../js_of_ocaml/latest/api/js_of_ocaml/Dom#module-Dom">Dom</a></span> and <span><a href=".././../../js_of_ocaml/latest/api/js_of_ocaml/Dom_html#module-Dom_html">Dom_html</a></span>. The TyXML representation is
+<span><a href=".././../../js_of_ocaml/latest/api/js_of_ocaml/Js_of_ocaml/Dom#module-Dom">Js_of_ocaml.Dom</a></span> and <span><a href=".././../../js_of_ocaml/latest/api/js_of_ocaml/Js_of_ocaml/Dom_html#module-Dom_html">Js_of_ocaml.Dom_html</a></span>. The TyXML representation is
 a OCaml immutable typed tree. The DOM tree is mutable structure
 manipulated using the browser API which permit the modification of the
 displayed page. In the DOM represention adding a node as a child to an
@@ -436,7 +436,7 @@ let my_int_data =
       Html.Custom_data.create_json ~name:&quot;coord&quot; [%derive.json: coord]
 ]</code></pre><h4> Injecting </h4><p>Custom data can be injected into HTML-trees of type <span><a href=".././../../eliom/latest/api/Eliom_content.Html#TYPEelt">Eliom_content.Html.elt</a></span> by the function <span><a href=".././../../eliom/latest/api/Eliom_content.Html.Custom_data#VALattrib">Eliom_content.Html.Custom_data.attrib</a></span>:
 </p><pre class=""><code class="language-ocaml translatable">div ~a:[Html.Custom_data.attrib coord_data {x = 100; y = 200}] []</code></pre><h4> Reading/writing the DOM </h4><p>On the client side, custom data can be read from and written to JavaScript DOM
-elements of type <span><a href=".././../../js_of_ocaml/latest/api/js_of_ocaml/Dom_html/class-type-element#class-type-element">Dom_html.element</a></span>.
+elements of type <span><a href=".././../../js_of_ocaml/latest/api/js_of_ocaml/Js_of_ocaml/Dom_html/class-type-element#class-type-element">Js_of_ocaml.Dom_html.element</a></span>.
 </p><p>Custom data can be read from a DOM-element with the function
 <span><a href=".././api/client/Eliom_content.Html.Custom_data#VALget_dom">Eliom_content.Html.Custom_data.get_dom</a></span>.
 If no respective custom data attribute can be found in the element
