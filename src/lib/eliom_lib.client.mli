@@ -47,7 +47,7 @@ module Url : sig
       Ocsigen_lib.Url_base >> %}. *)
   include module type of Url_base
 
-  (** See {% <<a_api project="js_of_ocaml"| module Url >> %}. *)
+  (** See {% <<a_api project="js_of_ocaml"| module Js_of_ocaml.Url >> %}. *)
   include module type of Url
 
   val decode : string -> string
@@ -73,7 +73,7 @@ module String : sig
   val remove_eols : string -> string
 end
 
-(** Extension of {% <<a_api project="js_of_ocaml"| module Lwt_log_js >> %}. *)
+(** Extension of {% <<a_api project="js_of_ocaml" subproject="js_of_ocaml-lwt" | module Lwt_log_js >> %}. *)
 module Lwt_log : sig
   include module type of Lwt_log_js
   with type level = Lwt_log_core.level

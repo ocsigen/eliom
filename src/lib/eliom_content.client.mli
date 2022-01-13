@@ -193,7 +193,7 @@ module Svg : sig
     (* (\** The function [addEventListener elt evt handler] attach the *)
         (* [handler] for the event [evt] on the element [elt]. See the *)
         (* Js_of_ocaml manual, for a list of {% <<a_api project="js_of_ocaml" *)
-        (* text="available events"| module Dom_html.Event >>%}. *\) *)
+        (* text="available events"| module Js_of_ocaml.Dom_html.Event >>%}. *\) *)
     (* val addEventListener: *)
       (* ?capture:bool -> *)
       (* 'a elt -> *)
@@ -258,7 +258,7 @@ module Svg : sig
   end
 
   (** Conversion from Svg [elt]s to Javascript DOM elements ([<:] {% <<a_api
-      project="js_of_ocaml"| class Dom_html.element >> %}).
+      project="js_of_ocaml"| class Js_of_ocaml.Dom_html.element >> %}).
       One conversion function per source type (stressed by the [of_] prefix). *)
   module To_dom : sig
 
@@ -269,8 +269,8 @@ module Svg : sig
 
   end
 
-  (** Conversion functions from DOM nodes ({% <<a_api project="js_of_ocaml"| type Dom_html.element>> %} {% <<a_api
-      project="js_of_ocaml"| type Js.t>> %}) to Eliom nodes ({% <<a_api | type Eliom_content.Html.elt>> %}). *)
+  (** Conversion functions from DOM nodes ({% <<a_api project="js_of_ocaml"| type Js_of_ocaml.Dom_html.element>> %} {% <<a_api
+      project="js_of_ocaml"| type Js_of_ocaml.Js.t>> %}) to Eliom nodes ({% <<a_api | type Eliom_content.Html.elt>> %}). *)
   module Of_dom : sig
     val of_element: Dom_html.element Js.t -> 'a elt
   end
@@ -434,7 +434,7 @@ module Html : sig
   end
 
   (** Conversion from HTML5 [elt]s to Javascript DOM elements ([<:] {% <<a_api
-      project="js_of_ocaml"| class Dom_html.element >> %}).
+      project="js_of_ocaml"| class Js_of_ocaml.Dom_html.element >> %}).
       One conversion function per source type (stressed by the [of_] prefix). *)
   module To_dom : Js_of_ocaml_tyxml.Tyxml_cast_sigs.TO with type 'a elt = 'a elt
 
@@ -515,7 +515,7 @@ module Html : sig
     (** The function [addEventListener elt evt handler] attach the
         [handler] for the event [evt] on the element [elt]. See the
         Js_of_ocaml manual, for a list of {% <<a_api project="js_of_ocaml"
-        text="available events"| module Dom_html.Event >>%}. *)
+        text="available events"| module Js_of_ocaml.Dom_html.Event >>%}. *)
     val addEventListener:
       ?capture:bool ->
       'a elt ->
@@ -868,8 +868,8 @@ module Html : sig
     end
   end
 
-  (** Conversion functions from DOM nodes ({% <<a_api project="js_of_ocaml"| type Dom_html.element>> %} {% <<a_api
-      project="js_of_ocaml"| type Js.t>> %}) to Eliom nodes ({% <<a_api | type Eliom_content.Html.elt>> %}). *)
+  (** Conversion functions from DOM nodes ({% <<a_api project="js_of_ocaml"| type Js_of_ocaml.Dom_html.element>> %} {% <<a_api
+      project="js_of_ocaml"| type Js_of_ocaml.Js.t>> %}) to Eliom nodes ({% <<a_api | type Eliom_content.Html.elt>> %}). *)
   module Of_dom : Js_of_ocaml_tyxml.Tyxml_cast_sigs.OF with type 'a elt = 'a elt
 
 end
