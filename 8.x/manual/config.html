@@ -240,6 +240,16 @@ but for service sessions only
 </li><li> <span class="teletype">&lt;datasessiongcfrequency value=&quot;3600&quot;/&gt;</span>
 Like <span class="teletype">&lt;sessiongcfrequency&gt;</span>,
 but for &quot;in memory data&quot; sessions only
+</li><li> {{{
+&lt;omitpersistentstorage&gt;
+&lt;header user-agent=&quot;\b(PetalBot|bingbot|Googlebot|Amazonbot|YandexBot)\b&quot;/&gt;
+&lt;/omitpersistentstorage&gt;
+}}}
+Omit the storage of any persistent information on the server for any
+requests that satisfy all of the given conditions. Conditions can be
+expressed as PCREs applied to any HTTP header of the request. This can be
+used to prevent inundating the cookie table by cookies generated for
+crawlers (that usually do not store cookies on their end anyway).
 </li></ul><h3>Limiting the number of sessions or coservices</h3><p>To prevent from denial of service, Eliom limits the number of sessions
 and the number of dynamic coservices. Without these limitations, it would
 be possible for an attacker to open repeatedly lots of sessions,
