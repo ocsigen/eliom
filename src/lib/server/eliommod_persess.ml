@@ -29,7 +29,6 @@
 (* Persistent sessions: *)
 
 open Lwt
-open Lwt.Syntax
 
 let compute_cookie_info sitedata secure_o secure_ci cookie_info =
   let secure = Eliom_common.get_secure ~secure_o ~sitedata () in
@@ -128,7 +127,7 @@ let rec find_or_create_persistent_cookie_
   (* We do not need to verify if it already exists.
      make_new_session_id does never generate twice the same cookie. *)
     let usertimeout = ref Eliom_common.TGlobal (* See global table *) in
-    let* () =
+    let%lwt () =
       Eliommod_cookies.Persistent_cookies.add
         hc_string
         {Eliommod_cookies.full_state_name;
