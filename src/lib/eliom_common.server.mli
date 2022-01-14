@@ -121,8 +121,11 @@ exception Eliom_Typing_Error of (string * exn) list
 *)
 exception Eliom_site_information_not_available of string
 
-type full_state_name =
-    user_scope * bool (* secure *) * string (* site_dir_string *)
+type full_state_name = {
+  user_scope : user_scope;
+  secure : bool;
+  site_dir_str : string
+}
 module Full_state_name_table : Map.S with type key = full_state_name
 
 (** If present and true in request data, it means that
@@ -378,18 +381,29 @@ type 'a cookie_info =
     'a cookie_info1 (* unsecure *) *
       'a cookie_info1  (* secure *)
 
-type 'a servicecookiestablecontent =
-    full_state_name * 'a * float option ref * timeout ref *
-      cookie_level sessgrp ref *
-      string Ocsigen_cache.Dlist.node
-type 'a servicecookiestable =
-    'a servicecookiestablecontent SessionCookies.t
-type datacookiestablecontent =
-    full_state_name * float option ref * timeout ref *
-      cookie_level sessgrp ref *
-      string Ocsigen_cache.Dlist.node
-type datacookiestable =
-    datacookiestablecontent SessionCookies.t
+module Service_cookie : sig
+  type 'a t = {
+    full_state_name : full_state_name;
+    session_table : 'a;
+    expiry : float option ref;
+    timeout : timeout ref;
+    session_group : cookie_level sessgrp ref;
+    session_group_node : string Ocsigen_cache.Dlist.node
+  }
+  type 'a table = 'a t SessionCookies.t
+end
+
+module Data_cookie : sig
+  (* non-persistent cookies for in-memory data *)
+  type t = {
+    full_state_name : full_state_name;
+    expiry : float option ref;
+    timeout : timeout ref;
+    session_group : cookie_level sessgrp ref;
+    session_group_node : string Ocsigen_cache.Dlist.node
+  }
+  type table = t SessionCookies.t
+end
 
 type meth = [`Get | `Post | `Put | `Delete | `Other]
 
@@ -538,8 +552,8 @@ and sitedata = {
   mutable registered_scope_hierarchies: Hier_set.t;
 
   global_services : tables;
-  session_services : tables servicecookiestable;
-  session_data : datacookiestable;
+  session_services : tables Service_cookie.table;
+  session_data : Data_cookie.table;
   group_of_groups: [ `Session_group ] sessgrp Ocsigen_cache.Dlist.t;
   (* Limitation of the number of groups per site *)
   mutable remove_session_data : string -> unit;
@@ -576,10 +590,13 @@ type 'a lazy_site_value (** lazy site values, are lazy values with
 val force_lazy_site_value : 'a lazy_site_value -> 'a
 val lazy_site_value_from_fun : ( unit -> 'a ) -> 'a lazy_site_value
 
-
-type info =
-    (Ocsigen_extensions.request * sess_info *
-     tables cookie_info * tables cookie_info * Ocsigen_cookie_map.t)
+type info = {
+  request : Ocsigen_extensions.request;
+  session_info : sess_info;
+  all_cookie_info : tables cookie_info;
+  tab_cookie_info : tables cookie_info;
+  user_tab_cookies : Ocsigen_cookie_map.t
+}
 
 exception Eliom_retry_with of info
 

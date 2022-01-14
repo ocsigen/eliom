@@ -10,10 +10,10 @@ include Eliom_route_base.Make (struct
 
     type info = Eliom_common.info
 
-    let sess_info_of_info (_, i, _, _, _) = i
+    let sess_info_of_info {Eliom_common.session_info} = session_info
 
-    let meth_of_info ({request_info}, _, _, _, _) =
-      match Ocsigen_request.meth request_info with
+    let meth_of_info {Eliom_common.request} =
+      match Ocsigen_request.meth request.request_info with
       | `GET ->
         `Get
       | `POST ->
@@ -25,8 +25,8 @@ include Eliom_route_base.Make (struct
       | _ ->
         `Other
 
-    let subpath_of_info ({request_info}, _, _, _, _) =
-      Ocsigen_request.sub_path request_info
+    let subpath_of_info {Eliom_common.request} =
+      Ocsigen_request.sub_path request.request_info
 
     module Container = struct
 
@@ -77,7 +77,7 @@ include Eliom_route_base.Make (struct
 
     let make_params = Eliom_common.make_server_params
 
-    let handle_directory (r, _, _, _, _) =
+    let handle_directory {Eliom_common.request = r} =
       Lwt.fail @@
       Ocsigen_extensions.Ocsigen_is_dir
         (Ocsigen_extensions.new_url_of_directory_request r)
@@ -87,7 +87,7 @@ include Eliom_route_base.Make (struct
 
   end)
 
-let find_aux now sitedata info e sci : Ocsigen_response.t Lwt.t =
+let find_aux now sitedata info _ sci : Ocsigen_response.t Lwt.t =
   Eliom_common.Full_state_name_table.fold
     (fun fullsessname (_, r) beg ->
        try%lwt
@@ -107,28 +107,16 @@ let find_aux now sitedata info e sci : Ocsigen_response.t Lwt.t =
     sci
     (fail Eliom_common.Eliom_404)
 
-let session_tables
-    (_,
-     _,
-     ((service_cookies_info    , _, _),
-      (secure_service_cookies_info, _, _)),
-     ((service_cookies_info_tab, _, _),
-      (secure_service_cookies_info_tab, _, _)),
-     _) =
-
+let session_tables {Eliom_common.all_cookie_info; tab_cookie_info} =
+  let ((service_cookies_info    , _, _),
+       (secure_service_cookies_info, _, _)) = all_cookie_info
+  and ((service_cookies_info_tab, _, _),
+       (secure_service_cookies_info_tab, _, _)) = tab_cookie_info
+  in
   [ !secure_service_cookies_info_tab, "secure tab session table" ;
     !service_cookies_info_tab, "tab session table" ;
     !secure_service_cookies_info, "secure session table" ;
     !service_cookies_info, "session table"]
-
-let unflatten_get_params l =
-  let module M = Eliom_lib.String.Table in
-  M.bindings
-    (List.fold_left
-       (fun acc (id, v) ->
-          M.add id (try v :: M.find id acc with Not_found -> [v]) acc)
-       M.empty
-       l)
 
 let drop_most_params ri si =
   Ocsigen_request.update ri
@@ -138,8 +126,7 @@ let drop_most_params ri si =
 
 let get_page
     now
-    ((ri, si, all_cookie_info, all_tab_cookie_info, user_tab_cookies)
-     as info)
+    ({Eliom_common.request = ri; session_info = si} as info)
     sitedata :
   Ocsigen_response.t Lwt.t =
   let tables = session_tables info in
@@ -192,24 +179,18 @@ let get_page
                     (Ocsigen_request.request_cache ri.request_info)
                     Eliom_common.eliom_link_too_old
                     true;
-                  fail (Eliom_common.Eliom_retry_with
-                          ({ri with
-                            request_info =
-                              Ocsigen_request.update
-                                ri.request_info
-                                ~post_data:None
-                                ~meth:`GET
-                           } ,
-                           {si with
-                            Eliom_common.si_nonatt_info=
-                              Eliom_common.RNa_no;
-                            Eliom_common.si_state_info=
-                              (g, Eliom_common.RAtt_no);
-                           },
-                           all_cookie_info,
-                           all_tab_cookie_info,
-                           user_tab_cookies
-                          ))
+                  let request =
+                    {ri with request_info =
+                               Ocsigen_request.update
+                                 ri.request_info
+                                 ~post_data:None
+                                 ~meth:`GET}
+                  and session_info =
+                    {si with Eliom_common.si_nonatt_info = Eliom_common.RNa_no;
+                             Eliom_common.si_state_info = (g, Eliom_common.RAtt_no)}
+                  in
+                  fail @@ Eliom_common.Eliom_retry_with
+                    {info with Eliom_common.request; session_info}
                 | (Eliom_common.RAtt_named _, Eliom_common.RAtt_no)
                 | (Eliom_common.RAtt_anon _, Eliom_common.RAtt_no) ->
                   (* There was a GET state, but no POST state.
@@ -221,21 +202,16 @@ let get_page
                     (Ocsigen_request.request_cache ri.request_info)
                     Eliom_common.eliom_link_too_old
                     true;
-                  fail (Eliom_common.Eliom_retry_with
-                          ({ri with
-                            request_info =
-                              drop_most_params ri.request_info si},
-                           {si with
-                            Eliom_common.si_nonatt_info=
-                              Eliom_common.RNa_no;
-                            Eliom_common.si_state_info=
-                              (Eliom_common.RAtt_no,
-                               Eliom_common.RAtt_no);
-                            Eliom_common.si_other_get_params=[];
-                           },
-                           all_cookie_info,
-                           all_tab_cookie_info,
-                           user_tab_cookies))
+                  let request =
+                    {ri with request_info = drop_most_params ri.request_info si}
+                  and session_info =
+                    let open Eliom_common in
+                    {si with si_nonatt_info = RNa_no;
+                             si_state_info = (RAtt_no, RAtt_no);
+                             si_other_get_params = []}
+                  in
+                  fail @@ Eliom_common.Eliom_retry_with
+                    {info with Eliom_common.request; session_info}
                )
              | e -> fail e)
        | e -> fail e)
@@ -338,8 +314,7 @@ let remove_naservice tables name =
 
 let make_naservice
     now
-    ((ri, si, all_cookie_info, all_tab_cookie_info, user_tab_cookies)
-     as info)
+    ({Eliom_common.request = ri; session_info = si} as info)
     sitedata =
 
   let find_aux sci =
@@ -410,13 +385,9 @@ let make_naservice
          Ocsigen_extensions.request_info =
            drop_most_params ri.request_info si }
        si.Eliom_common.si_previous_extension_error
-     >>= fun (ri', si', previous_tab_cookies_info) ->
-     Lwt.fail (Eliom_common.Eliom_retry_with (ri',
-                                              si',
-                                              all_cookie_info,
-                                              all_tab_cookie_info,
-                                              user_tab_cookies))
-
+     >>= fun (ri', si', _previous_tab_cookies_info) ->
+     Lwt.fail @@ Eliom_common.Eliom_retry_with 
+       {info with request = ri'; session_info = si'}
    | Eliom_common.RNa_get_ _
    | Eliom_common.RNa_get' _ ->
      Lwt_log.ign_info ~section "Link too old. Try without non-attached parameters:";
@@ -429,11 +400,9 @@ let make_naservice
          Ocsigen_extensions.request_info =
            drop_most_params ri.request_info si }
        si.Eliom_common.si_previous_extension_error
-     >>= fun (ri', si', previous_tab_cookies_info) ->
-     Lwt.fail (Eliom_common.Eliom_retry_with (ri', si',
-                                              all_cookie_info,
-                                              all_tab_cookie_info,
-                                              user_tab_cookies)))
+     >>= fun (ri', si', _previous_tab_cookies_info) ->
+     Lwt.fail @@ Eliom_common.Eliom_retry_with 
+       {info with request = ri'; session_info = si'})
 
   >>= fun ((_, max_use, expdate, naservice, node),
            tablewhereithasbeenfound,

@@ -298,16 +298,16 @@ Besides, volatile sessions are (hopefully) going to disappear soon.
       match (sess_grp : GroupTable.key) with
         | (_, `Client_process, Left sess_id) ->
           (try
-             let (_, _, _, sgr, sgn) =
+             let {Eliom_common.Data_cookie.session_group; session_group_node} =
                Eliom_common.SessionCookies.find
                  sitedata.Eliom_common.session_data sess_id
              in
-             (match !sgr with
+             (match !session_group with
                | (_, `Session, Right _) (* no group *)
                    when sitedata.Eliom_common.not_bound_in_data_tables
                      sess_id
                      ->
-                 remove1 sgn
+                 remove1 session_group_node
                | _ -> ()
              )
            with Not_found -> ())
@@ -368,12 +368,13 @@ Besides, volatile sessions are (hopefully) going to disappear soon.
         | (_, `Client_process, Left sess_id) ->
           (try
 
-             let (_, tables, _, _, sgr, sgn) =
+             let {Eliom_common.Service_cookie.session_table = tables;
+                                              session_group_node} =
                Eliom_common.SessionCookies.find
                  sitedata.Eliom_common.session_services sess_id
              in
              if Eliom_common.service_tables_are_empty tables
-             then remove1 sgn
+             then remove1 session_group_node
 
            with Not_found -> ())
         | (_, `Session, _) ->
@@ -553,7 +554,7 @@ module Pers = struct
         | e -> Lwt.fail e)
 
 
-  and remove sitedata sess_id sess_grp =
+  and remove _sitedata sess_id sess_grp =
     match sess_grp with
     | Some sg0 ->
       let sg = Eliom_common.string_of_perssessgrp sg0 in

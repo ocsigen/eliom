@@ -25,6 +25,7 @@
 (*****************************************************************************)
 
 open Lwt
+open Lwt.Syntax
 
 let section = Lwt_log.Section.make "eliom:admin"
 
@@ -39,11 +40,11 @@ let iter_persistent_sessions f =
 
 let close_all_service_states2 full_st_name sitedata =
   Eliom_common.SessionCookies.fold
-    (fun k (full_st_name2, table, expref, timeoutref, 
-            sessgrpref, sessgrpnode) thr ->
-      thr >>= fun () ->
-      if full_st_name = full_st_name2 && !timeoutref = Eliom_common.TGlobal
-      then Eliommod_sessiongroups.Serv.remove sessgrpnode;
+    (fun _ {Eliom_common.Service_cookie.full_state_name;
+            timeout; session_group_node} thr ->
+      let* () = thr in
+      if full_st_name = full_state_name && !timeout = Eliom_common.TGlobal
+      then Eliommod_sessiongroups.Serv.remove session_group_node;
       Lwt.pause ()
     )
     sitedata.Eliom_common.session_services
@@ -67,10 +68,10 @@ let close_all_service_states ~scope ~secure sitedata =
 
 let close_all_data_states2 full_st_name sitedata =
   Eliom_common.SessionCookies.fold
-    (fun k (full_st_name2, expref, timeoutref, sessgrpref, sessgrpnode) thr ->
+    (fun _ {Eliom_common.Data_cookie.full_state_name; timeout; session_group_node} thr ->
       thr >>= fun () ->
-      if full_st_name = full_st_name2 && !timeoutref = Eliom_common.TGlobal
-      then Eliommod_sessiongroups.Data.remove sessgrpnode;
+      if full_st_name = full_state_name && !timeout = Eliom_common.TGlobal
+      then Eliommod_sessiongroups.Data.remove session_group_node;
       Lwt.pause ()
     )
     sitedata.Eliom_common.session_data
@@ -95,10 +96,11 @@ let close_all_data_states ~scope ~secure sitedata =
 
 let close_all_persistent_states2 full_st_name sitedata =
   Eliommod_cookies.Persistent_cookies.Cookies.iter
-    (fun k ((scope, _, _) as full_st_name2, old_exp, old_t, sessiongrp) ->
-      if full_st_name = full_st_name2 && old_t = Eliom_common.TGlobal
+    (fun k {Eliommod_cookies.full_state_name; timeout = old_t; session_group} ->
+      let scope = full_state_name.Eliom_common.user_scope in
+      if full_st_name = full_state_name && old_t = Eliom_common.TGlobal
       then Eliommod_persess.close_persistent_state2
-        ~scope sitedata sessiongrp k >>=
+        ~scope sitedata session_group k >>=
         Lwt.pause
       else return_unit
     )
@@ -132,13 +134,13 @@ let update_serv_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
   | _ ->
     let now = Unix.time () in
     Eliom_common.SessionCookies.fold
-      (fun k (full_st_name2, table, expref, timeoutref, 
-              sessgrpref, sessgrpnode) thr ->
-        thr >>= fun () ->
-        (if full_st_name = full_st_name2 && !timeoutref =
+      (fun _ {Eliom_common.Service_cookie.full_state_name; expiry;
+              timeout; session_group_node} thr ->
+        let* () = thr in
+        (if full_st_name = full_state_name && !timeout =
           Eliom_common.TGlobal
         then
-          let newexp = match !expref, old_glob_timeout, new_glob_timeout with
+          let newexp = match !expiry, old_glob_timeout, new_glob_timeout with
           | _, _, None -> None
           | None, _, Some t
           | Some _, None, Some t -> Some (now +. t)
@@ -146,8 +148,8 @@ let update_serv_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
           in
           match newexp with
           | Some t when t <= now ->
-              Eliommod_sessiongroups.Serv.remove sessgrpnode
-          | _ -> expref := newexp
+              Eliommod_sessiongroups.Serv.remove session_group_node
+          | _ -> expiry := newexp
         );
         Lwt.pause ()
       )
@@ -164,11 +166,11 @@ let update_data_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
   | _ ->
     let now = Unix.time () in
     Eliom_common.SessionCookies.fold
-      (fun k (full_st_name2, expref, timeoutref, sessgrpref, sessgrpnode) thr ->
+      (fun _ {Eliom_common.Data_cookie.full_state_name; expiry; timeout; session_group_node} thr ->
         thr >>= fun () ->
-        (if full_st_name = full_st_name2 && !timeoutref = Eliom_common.TGlobal
+        (if full_st_name = full_state_name && !timeout = Eliom_common.TGlobal
         then
-          let newexp = match !expref, old_glob_timeout, new_glob_timeout with
+          let newexp = match !expiry, old_glob_timeout, new_glob_timeout with
           | _, _, None -> None
           | None, _, Some t
           | Some _, None, Some t -> Some (now +. t)
@@ -176,8 +178,8 @@ let update_data_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
           in
           match newexp with
           | Some t when t <= now ->
-              Eliommod_sessiongroups.Data.remove sessgrpnode
-          | _ -> expref := newexp
+              Eliommod_sessiongroups.Data.remove session_group_node
+          | _ -> expiry := newexp
         );
         Lwt.pause ()
       )
@@ -195,8 +197,10 @@ let update_pers_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
   | _ ->
     let now = Unix.time () in
     Eliommod_cookies.Persistent_cookies.Cookies.iter
-      (fun k ((scope, _, _) as full_st_name2, old_exp, old_t, sessgrp) ->
-        if full_st_name = full_st_name2 && old_t =
+      (fun k {Eliommod_cookies.full_state_name; expiry = old_exp;
+                             timeout = old_t; session_group} ->
+        let scope = full_state_name.Eliom_common.user_scope in
+        if full_st_name = full_state_name && old_t =
           Eliom_common.TGlobal
         then
           let newexp = match old_exp, old_glob_timeout, new_glob_timeout with
@@ -208,10 +212,15 @@ let update_pers_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
           match newexp with
           | Some t when t <= now ->
               Eliommod_persess.close_persistent_state2
-                ~scope sitedata sessgrp k
+                ~scope sitedata session_group k
           | _ ->
-            Eliommod_cookies.Persistent_cookies.add k
-              (full_st_name2, newexp, Eliom_common.TGlobal, sessgrp) >>= fun () ->
+            let* () =
+              Eliommod_cookies.Persistent_cookies.add k
+                {Eliommod_cookies.full_state_name;
+                 expiry = newexp;
+                 timeout = Eliom_common.TGlobal;
+                 session_group}
+            in
             Eliommod_cookies.Persistent_cookies.Expiry_dates.remove_cookie old_exp k >>=
             Lwt.pause
         else return_unit

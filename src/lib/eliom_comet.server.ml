@@ -235,17 +235,17 @@ struct
     | Eliom_lib.Left (channel, position) ->
       match position with
       | Eliom_comet_base.Newest i when i > channel.ch_index -> false
-      | Eliom_comet_base.Newest i -> true
+      | Eliom_comet_base.Newest _ -> true
       | Eliom_comet_base.After i when i > channel.ch_index -> false
-      | Eliom_comet_base.After i -> true
-      | Eliom_comet_base.Last n when (Dlist.size channel.ch_content) > 0 -> true
-      | Eliom_comet_base.Last n -> false
+      | Eliom_comet_base.After _ -> true
+      | Eliom_comet_base.Last _ when (Dlist.size channel.ch_content) > 0 -> true
+      | Eliom_comet_base.Last _ -> false
 
   let really_wait_data requests =
     let rec make_list = function
       | [] -> []
       | (Eliom_lib.Left (channel,_))::q -> (Lwt_condition.wait channel.ch_wakeup)::(make_list q)
-      | Eliom_lib.Right _ :: q ->
+      | Eliom_lib.Right _ :: _ ->
         assert false (* closed channels are considered to have data *)
     in
     Lwt.pick (make_list requests)
@@ -849,7 +849,7 @@ end = struct
   let create_from_events ?scope ?name ?(size=1000) events =
     match scope with
       | None -> create_stateful ?name ~size events
-      | Some ((`Client_process n) as scope) ->
+      | Some ((`Client_process _) as scope) ->
          create_stateful ~scope ?name ~size events
       | Some `Site ->
          create_stateless ?name ~size (Lwt_react.E.to_stream events)
@@ -857,7 +857,7 @@ end = struct
   let create ?scope ?name ?(size=1000) stream =
     match scope with
       | None -> create_stateful ?name ~size (Lwt_react.E.of_stream stream)
-      | Some ((`Client_process n) as scope) ->
+      | Some ((`Client_process _) as scope) ->
          create_stateful ~scope ?name ~size (Lwt_react.E.of_stream stream)
       | Some `Site ->
          create_stateless ?name ~size stream

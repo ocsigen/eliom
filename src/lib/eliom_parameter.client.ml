@@ -110,7 +110,7 @@ and reconstruct_params_form :
       Some ((x1, x2), m)
     | TUnit ->
       Some ((), m)
-    | TOption (TAtom (_, TString) as y, b) ->
+    | TOption (TAtom (_, TString) as y, _) ->
       (match reconstruct_params_form m y with
        | Some ("", m) ->
          Some (None, m)
@@ -118,7 +118,7 @@ and reconstruct_params_form :
          Some (Some s, m)
        | None ->
          Some (None, m))
-    | TOption (y, b) ->
+    | TOption (y, _) ->
       (match reconstruct_params_form m y with
        | Some (x, m) ->
          Some (Some x, m)

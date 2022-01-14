@@ -86,7 +86,7 @@ struct
       match scope with
         | Some `Site -> stateless ?throttling ?name ?size e
         | None -> stateful ?throttling ?name ?size e
-        | Some ((`Client_process n) as scope) ->
+        | Some ((`Client_process _) as scope) ->
           stateful ~scope ?throttling ?name ?size e
     in
     { t; react_down_mark=react_down_mark () }
@@ -263,7 +263,7 @@ struct
         match scope with
           | Some `Site -> stateless ?throttling ?name s
           | None -> stateful ?throttling ?name s
-          | Some ((`Client_process n) as scope) ->
+          | Some ((`Client_process _) as scope) ->
             stateful ~scope ?throttling ?name s
       in
       { t; signal_down_mark=signal_down_mark () }

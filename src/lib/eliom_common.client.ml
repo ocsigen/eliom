@@ -26,7 +26,7 @@ let get_sp_option () = Some ()
 
 type 'a wrapper = unit
 
-let make_wrapper f :'a wrapper = ()
+let make_wrapper _ :'a wrapper = ()
 let empty_wrapper () :'a wrapper = ()
 
 type unwrap_id = Eliom_unwrap.unwrap_id

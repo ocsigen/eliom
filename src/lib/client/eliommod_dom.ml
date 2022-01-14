@@ -546,7 +546,7 @@ let rewrite_css_url ~prefix css pos =
     if pos < String.length css then
       match Regexp.search url_re css pos with
       | None -> Buffer.add_substring buf css pos (String.length css - pos)
-      | Some (i, res) ->
+      | Some (i, _res) ->
         Buffer.add_substring buf css pos (i - pos);
         try
           let i, href = parse_url ~prefix css i in
@@ -575,7 +575,7 @@ let rec rewrite_css ~max (media, href, css) =
       if !Eliom_config.debug_timings then
         Firebug.console##(timeEnd (Js.string ("rewrite_CSS: "^href)));
       Lwt.return (imports @ [(media,  css)])
-  with e ->
+  with _ ->
     Lwt.return [(media, Printf.sprintf "@import url(%s);" href)]
 
 and rewrite_css_import ?(charset = "") ~max ~prefix ~media css pos =
@@ -697,7 +697,7 @@ let _ =
   ignore
     (Dom.addEventListener Dom_html.document
        (Dom.Event.make "scroll")
-       (Dom_html.handler (fun event ->
+       (Dom_html.handler (fun _event ->
           current_position := createDocumentScroll ();
           Js._false))
        Js._true : Dom_html.event_listener_id)

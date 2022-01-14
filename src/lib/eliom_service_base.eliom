@@ -280,20 +280,6 @@ let https_static_dir_with_params ?keep_nl_params ~get_params () =
 let send_appl_content s = s.send_appl_content
 let set_send_appl_content s n = s.send_appl_content <- n
 
-type clvpreapp = {
-  mutable clvpreapp_f :
-    'a 'b.
-         (('a -> 'b -> [ `Html ] Eliom_content_core.Html.elt Lwt.t)
-            Eliom_client_value.t ->
-          'a ->
-          (unit -> 'b -> [ `Html ] Eliom_content_core.Html.elt Lwt.t)
-            Eliom_client_value.t)
-}
-
-let preapply_client_fun = {
-  clvpreapp_f = fun f getparams -> failwith "preapply_client_fun"
-}
-
 (* will be initialized later (in Eliom_content for now), when client
    syntax is available, with: fun f getparams -> {{ fun _ pp -> %f
    %getparams pp }} *)
@@ -302,7 +288,7 @@ let rec append_suffix l m =
   match l with
   | [] ->
     m
-  | [eliom_suffix_internal_name] ->
+  | [_eliom_suffix_internal_name] ->
     m
   | a :: ll ->
     a :: append_suffix ll m

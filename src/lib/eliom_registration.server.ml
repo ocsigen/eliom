@@ -126,7 +126,7 @@ module Html_base = struct
     let encode x = fst (Xml_print.Utf8.normalize_html x) in
     Eliom_content.Html.Printer.pp ~encode ()
 
-  let send ?options ?charset ?code ?content_type ?headers c =
+  let send ?options:_ ?charset ?code ?content_type ?headers c =
     let status = Eliom_lib.Option.map Cohttp.Code.status_of_code code
     and content_type = content_type_html content_type
     and body = Cohttp_lwt.Body.of_string (Format.asprintf "%a" out c) in
@@ -155,7 +155,7 @@ module Flow5_base = struct
     |> Lwt_stream.map (Format.asprintf "%a" out)
     |> Cohttp_lwt.Body.of_stream
 
-  let send ?options ?charset ?code ?content_type ?headers c =
+  let send ?options:_ ?charset ?code ?content_type ?headers c =
     let status = Eliom_lib.Option.map Cohttp.Code.status_of_code code
     and content_type = content_type_html content_type
     and body = body c in
@@ -190,7 +190,7 @@ module String_base = struct
 
   let send_appl_content = Eliom_service.XNever
 
-  let send ?options ?charset ?code ?content_type ?headers
+  let send ?options ?charset ?code ?content_type:_ ?headers
       (c, content_type) =
     let status = Eliom_lib.Option.map Cohttp.Code.status_of_code code
     and body = Cohttp_lwt.Body.of_string c
@@ -232,7 +232,7 @@ module Html_text_base = struct
 
   let send_appl_content = Eliom_service.XNever
 
-  let send ?options ?charset ?code ?content_type ?headers content =
+  let send ?options:_ ?charset ?code ?content_type ?headers content =
     String_base.send ?charset ?code ?content_type ?headers
       (content, "text/html")
 
@@ -394,8 +394,8 @@ module Unit_base = struct
 
   let send_appl_content = Eliom_service.XAlways
 
-  let send ?options ?charset ?(code = 204)
-      ?content_type ?headers content =
+  let send ?options:_ ?charset ?(code = 204)
+      ?content_type ?headers _content =
     let status = Cohttp.Code.status_of_code code in
     result_of_content ?charset ?content_type ?headers ~status
       Cohttp_lwt.Body.empty
@@ -415,8 +415,8 @@ module Any_base = struct
   (* let send_appl_content = Eliom_service.XNever *)
   let send_appl_content = Eliom_service.XAlways
 
-  let send ?options ?charset ?code
-      ?content_type ?headers (result : 'a kind) =
+  let send ?options:_ ?charset ?code:_
+      ?content_type ?headers:_ (result : 'a kind) =
     let result = Result_types.cast_kind result in
     let cohttp_response = fst (Ocsigen_response.to_cohttp result) in
     let headers =
@@ -471,7 +471,7 @@ module File_base = struct
 
   let send_appl_content = Eliom_service.XNever
 
-  let send ?options ?charset ?code
+  let send ?options ?charset ?code:_
       ?content_type ?headers filename =
     let sp = Eliom_common.get_sp () in
     let request = Eliom_request_info.get_request_sp sp in
@@ -731,7 +731,7 @@ module Ocaml_base = struct
 
   let send_appl_content = Eliom_service.XNever
 
-  let send ?options ?charset ?code
+  let send ?options:_ ?charset ?code
       ?content_type ?headers content =
     Result_types.cast_kind_lwt
       (String.send ?charset ?code
@@ -1576,7 +1576,6 @@ let extension =
        (* CHECKME *)
        Eliom_common.begin_load_eliom_module ();
        Eliommod.site_init (ref true);
-       fun {Ocsigen_server.Site.Config.accessor} ->
-         Eliommod_pagegen.gen None sitedata)
+       fun _ -> Eliommod_pagegen.gen None sitedata)
 
 let end_init = Eliom_common.end_load_eliom_module

@@ -343,7 +343,7 @@ let is_attrib_attrib,get_attrib_id =
      attr##.name##(substring (0) n_len) = n_prefix_js),
   (fun attr -> attr##.value##(substring_toEnd v_len))
 
-let relink_attrib root table (node:Dom_html.element Js.t) =
+let relink_attrib _root table (node:Dom_html.element Js.t) =
   Lwt_log.ign_debug ~section "Relink attribute";
   let aux attr =
     if is_attrib_attrib attr
@@ -774,7 +774,7 @@ let state_key {session_id; state_index} =
   Js.string (Printf.sprintf "state_history_%x_%x" session_id state_index)
 
 
-let get_state ({session_id; state_index} as state_id) : state =
+let get_state state_id : state =
   Js.Opt.case
     (Js.Optdef.case ( Dom_html.window##.sessionStorage )
        (fun () ->
@@ -920,12 +920,12 @@ let init () =
     match
       Url.url_of_string (Js.to_string (Js.Unsafe.global##.___eliom_server_))
     with
-    | Some (Http { hu_host; hu_port; hu_path; _ }) ->
+    | Some (Http {hu_host; hu_port}) ->
       init_client_app
         ~app_name
         ~ssl:false ~hostname:hu_host ~port:hu_port ~site_dir
         ()
-    | Some (Https { hu_host; hu_port; hu_path; _ }) ->
+    | Some (Https {hu_host; hu_port}) ->
       init_client_app
         ~app_name
         ~ssl:true ~hostname:hu_host ~port:hu_port ~site_dir ()
@@ -963,7 +963,7 @@ let init () =
 
   let onload_handler = ref None in
 
-  let onload ev =
+  let onload _ev =
     let js_data = Lazy.force js_data in
     Lwt_log.ign_debug ~section "onload (client main)";
     begin match !onload_handler with
@@ -1379,7 +1379,6 @@ let change_url_string ~replace uri =
     end
     else begin
       update_state();
-      let state_id = this_page.page_id in
       Opt.iter stash_reload_function !reload_function;
       Dom_html.window##.history##pushState
         (Js.Opt.return (this_page.page_id, Js.string full_uri))
@@ -1894,7 +1893,7 @@ and change_page :
            set_content ~replace ~uri ?fragment content)
 
 and change_page_unknown
-    ?meth ?hostname ?(replace = false) i_subpath i_get_params i_post_params =
+    ?meth ?hostname:_ ?(replace = false) i_subpath i_get_params i_post_params =
   Lwt_log.ign_debug ~section:section_page "Change page unknown";
   let i_sess_info = Eliom_request_info.get_sess_info ()
   and i_meth =

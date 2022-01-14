@@ -112,8 +112,8 @@ let create_sitedata site_dir config_info =
     session_services = Eliommod_cookies.new_service_cookie_table ();
     session_data = Eliommod_cookies.new_data_cookie_table ();
     group_of_groups;
-    remove_session_data = (fun cookie -> ());
-    not_bound_in_data_tables = (fun cookie -> true);
+    remove_session_data = (fun _cookie -> ());
+    not_bound_in_data_tables = (fun _cookie -> true);
     exn_handler = Eliommod_pagegen.def_handler;
     unregistered_services = [];
     unregistered_na_services = [];
@@ -254,7 +254,7 @@ let parse_eliom_option
       | ("level", "clientprocess")::l
       | ("level", "process")::l
       | ("level", "tab")::l -> aux (v, sn, `Client_process) l
-      | ("level", _)::l ->
+      | ("level", _)::_ ->
           raise
             (Error_in_config_file
                ("Eliom: Wrong attribute value for level in "^tn^" tag"))
@@ -517,7 +517,7 @@ let parse_eliom_options f l =
 
 let rec parse_global_config = function
   | [] -> ()
-  | (Xml.Element ("sessiongcfrequency", [("value", s)], p))::ll ->
+  | (Xml.Element ("sessiongcfrequency", [("value", s)], _))::ll ->
       (try
         let t = float_of_string s in
         Eliommod_gc.set_servicesessiongcfrequency (Some t);
@@ -531,7 +531,7 @@ let rec parse_global_config = function
         else raise (Error_in_config_file
                       "Eliom: Wrong value for <sessiongcfrequency>"));
       parse_global_config ll
-  | (Xml.Element ("servicesessiongcfrequency", [("value", s)], p))::ll ->
+  | (Xml.Element ("servicesessiongcfrequency", [("value", s)], _))::ll ->
       (try
         Eliommod_gc.set_servicesessiongcfrequency (Some (float_of_string s))
       with Failure _ ->
@@ -540,7 +540,7 @@ let rec parse_global_config = function
         else raise (Error_in_config_file
                       "Eliom: Wrong value for <servicesessiongcfrequency>"));
       parse_global_config ll
-  | (Xml.Element ("datasessiongcfrequency", [("value", s)], p))::ll ->
+  | (Xml.Element ("datasessiongcfrequency", [("value", s)], _))::ll ->
       (try
         Eliommod_gc.set_datasessiongcfrequency (Some (float_of_string s))
       with Failure _ ->
@@ -550,7 +550,7 @@ let rec parse_global_config = function
                       "Eliom: Wrong value for <datasessiongcfrequency>"));
       parse_global_config ll
   | (Xml.Element ("persistentsessiongcfrequency",
-              [("value", s)], p))::ll ->
+              [("value", s)], _))::ll ->
                 (try
                   Eliommod_gc.set_persistentsessiongcfrequency
                     (Some (float_of_string s))
@@ -716,7 +716,7 @@ let site_init firstmodule =
       Eliom_common.end_load_eliom_module ()
     end
 
-let load_eliom_module sitedata cmo_or_name parent_tag content =
+let load_eliom_module _sitedata cmo_or_name parent_tag content =
   let preload () =
     config := content;
     config_in_tag := parent_tag;
@@ -805,7 +805,7 @@ let parse_config _ hostpattern conf_info site_dir =
     | (s, _)::_ ->
         raise
           (Error_in_config_file ("Wrong attribute for <eliom>: "^s))
-  in fun _ parse_site -> function
+  in fun _ _parse_site -> function
     | Xml.Element ("eliommodule", atts, content) ->
       Eliom_extension.register_eliom_extension
         default_module_action;

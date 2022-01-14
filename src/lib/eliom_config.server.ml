@@ -38,7 +38,7 @@ let get_default_links_xhr () =
   let sitedata = Eliom_request_info.find_sitedata "get_default_links_xhr" in
   sitedata.Eliom_common.default_links_xhr#get
 
-let set_default_links_xhr ?override_configfile v =
+let set_default_links_xhr ?override_configfile:_ v =
   let sitedata = Eliom_request_info.find_sitedata "set_default_links_xhr" in
   sitedata.Eliom_common.default_links_xhr#set v
 

@@ -131,11 +131,11 @@ let rec find_or_create_data_cookie ?set_session_group
       (* actually it will add the cookie *)
       table
       hc_string
-      (full_st_name,
-       serverexp (* exp on server *),
-       usertimeout,
-       fullsessgrpref,
-       node);
+      {Eliom_common.Data_cookie.full_state_name = full_st_name;
+       expiry = serverexp;
+       timeout = usertimeout;
+       session_group = fullsessgrpref;
+       session_group_node = node};
     {Eliom_common.dc_hvalue= hc;
      Eliom_common.dc_set_value= Some c;
      Eliom_common.dc_timeout= usertimeout;
@@ -158,7 +158,7 @@ let rec find_or_create_data_cookie ?set_session_group
   let full_st_name =
     Eliom_common.make_full_state_name ~sp ~secure ~scope:cookie_scope in
   try
-    let (old, ior) =
+    let (_old, ior) =
       Lazy.force
         (Eliom_common.Full_state_name_table.find full_st_name !cookie_info)
     in
@@ -177,7 +177,7 @@ let rec find_or_create_data_cookie ?set_session_group
     | Eliom_common.SC c ->
         (match set_session_group with
           | None -> ()
-          | Some session_group ->
+          | Some _session_group ->
             let fullsessgrp = fullsessgrp ~cookie_level ~sp set_session_group in
             let node = Eliommod_sessiongroups.Data.move
               sitedata

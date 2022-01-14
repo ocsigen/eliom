@@ -19,7 +19,7 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
 
   let sed_rule name ~dep ~prod scripts =
     rule name ~dep ~prod
-      (fun env build ->
+      (fun env _build ->
         let dep = env dep and prod = env prod in
         let script_args = List.map (fun script -> S[A"-e"; A script]) scripts in
         Cmd (S[A"sed"; S script_args; P dep; Sh">"; Px prod]))
@@ -67,12 +67,12 @@ module MakeIntern (I : INTERNALS)(Eliom : ELIOM) = struct
     | `Type ->
       "eliom.ppx.type"
 
-  let get_syntaxes_p4 _ eliom_syntax src =
+  let get_syntaxes_p4 _ _eliom_syntax src =
     let s = if use_all_syntaxes src then syntaxes_p4 else [] in
     let s = if s = [] then [] else "thread" :: "syntax(camlp4o)" :: s in
     s @ Tags.elements (tags_of_pathname src)
 
-  let get_syntaxes_ppx with_eliom_syntax eliom_syntax src =
+  let get_syntaxes_ppx with_eliom_syntax eliom_syntax _src =
     if with_eliom_syntax then
       [I.with_package (get_eliom_syntax_ppx eliom_syntax)]
     else

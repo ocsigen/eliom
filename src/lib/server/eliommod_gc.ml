@@ -25,6 +25,7 @@ let section = Lwt_log.Section.make "eliom:gc"
 open Eliom_lib
 
 open Lwt
+open Lwt.Syntax
 
 (*****************************************************************************)
 let servicesessiongcfrequency = ref (Some 1200.) (* 20 min ? *)
@@ -63,8 +64,7 @@ let gc_timeouted_services now tables =
           Eliom_common.Serv_Table.fold
 (*VVV not tail recursive: may be a problem if lots of coservices *)
             (fun ptk (`Ptc (nodeopt, l)) thr ->
-               thr >>= fun thr -> (* we wait for the previous one
-                                     to be completed *)
+               let* _ = thr in (* we wait for the previous one to be completed *)
                (match nodeopt, l with
                   | Some node, {Eliom_common.s_expire = Some (_, e)} :: _
                     (* it is an anonymous coservice.  The list should
@@ -194,14 +194,10 @@ let service_session_gc sitedata =
 
         (* private continuation tables: *)
         Eliom_common.SessionCookies.fold
-          (fun k (sessname,
-                  tables,
-                  exp,
-                  _,
-                  session_group_ref,
-                  session_group_node) thr ->
+          (fun k {Eliom_common.Service_cookie.session_table = tables; expiry;
+                                            session_group; session_group_node} thr ->
             thr >>= fun () ->
-            (match !exp with
+            (match !expiry with
             | Some exp when exp < now ->
               Eliommod_sessiongroups.Serv.remove session_group_node;
               Lwt.return_unit
@@ -213,8 +209,8 @@ let service_session_gc sitedata =
                then gc_timeouted_naservices now
                   tables.Eliom_common.table_naservices
                else return_unit) >>= fun () ->
-              (match !session_group_ref with
-              | (_, scope, Right _) (* no group *)
+              (match !session_group with
+              | (_, _scope, Right _) (* no group *)
 (*VVV check this *)
                   when
                     (Eliommod_sessiongroups.Serv.group_size
@@ -254,17 +250,14 @@ let data_session_gc sitedata =
         Lwt_log.ign_info ~section "GC of session data";
         (* private continuation tables: *)
         Eliom_common.SessionCookies.fold
-          (fun k (sessname,
-                  exp, _,
-                  session_group_ref,
-                  session_group_node) thr ->
+          (fun k {Eliom_common.Data_cookie.expiry; session_group; session_group_node} thr ->
             thr >>= fun () ->
-            (match !exp with
+            (match !expiry with
                | Some exp when exp < now ->
                    Eliommod_sessiongroups.Data.remove session_group_node;
                    return_unit
                | _ ->
-                   match !session_group_ref with
+                   match !session_group with
                      | (_, scope, Right _) (* no group *)
                          when
                            (Eliommod_sessiongroups.Data.group_size
@@ -304,8 +297,9 @@ let persistent_session_gc sitedata =
   let gc () =
     let now = Unix.time () in
     let log_hash c = Eliom_common.Hashed_cookies.(sha256 c) in
-    let do_gc_cookie cookie ((scope, _, _), exp, _, session_group) =
-      match exp with
+    let do_gc_cookie cookie {Eliommod_cookies.full_state_name; expiry; session_group} =
+      let scope = full_state_name.Eliom_common.user_scope in
+      match expiry with
       | Some exp when exp <= now ->
         Lwt_log.ign_info_f ~section "remove expired cookie %s" (log_hash cookie);
         Eliommod_persess.close_persistent_state2

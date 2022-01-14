@@ -20,32 +20,30 @@
 
 val iter_service_cookies :
   (Eliom_common.SessionCookies.key *
-   Eliom_common.tables Eliom_common.servicecookiestablecontent ->
+   Eliom_common.tables Eliom_common.Service_cookie.t ->
    unit Lwt.t) ->
   unit Lwt.t
 val iter_data_cookies :
-  (Eliom_common.SessionCookies.key * Eliom_common.datacookiestablecontent ->
+  (Eliom_common.SessionCookies.key * Eliom_common.Data_cookie.t ->
    unit Lwt.t) ->
   unit Lwt.t
 val iter_persistent_cookies :
   (string *
-   (Eliom_common.full_state_name * float option * Eliom_common.timeout *
-    Eliom_common.perssessgrp option) ->
+   Eliommod_cookies.cookie ->
    unit Lwt.t) ->
   unit Lwt.t
 val fold_service_cookies :
   (Eliom_common.SessionCookies.key *
-   Eliom_common.tables Eliom_common.servicecookiestablecontent -> 'a -> 
+   Eliom_common.tables Eliom_common.Service_cookie.t -> 'a ->
    'a Lwt.t) ->
   'a -> 'a Lwt.t
 val fold_data_cookies :
-  (Eliom_common.SessionCookies.key * Eliom_common.datacookiestablecontent ->
+  (Eliom_common.SessionCookies.key * Eliom_common.Data_cookie.t ->
    'a -> 'a Lwt.t) ->
   'a -> 'a Lwt.t
 val fold_persistent_cookies :
   (string *
-   (Eliom_common.full_state_name * float option * Eliom_common.timeout *
-    Eliom_common.perssessgrp option) ->
+   Eliommod_cookies.cookie ->
    'a -> 'a Lwt.t) ->
   'a -> 'a Lwt.t
 val number_of_service_cookies : unit -> int

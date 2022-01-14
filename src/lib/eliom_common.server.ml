@@ -252,40 +252,38 @@ type 'a cookie_info =
   'a cookie_info1 (* unsecure *) *
   'a cookie_info1 (* secure *)
 
+module Service_cookie = struct
+  (* non persistent cookies for services *)
+  type 'a t = {
+    full_state_name : full_state_name;
+    session_table : 'a;
+    expiry : float option ref;
+    timeout : timeout ref;
+    session_group : cookie_level sessgrp ref;
+    session_group_node : string Ocsigen_cache.Dlist.node
+  }
+  type 'a table = 'a t SessionCookies.t
+  (* the table contains:
+     - the table of services
+     - the expiration date (by timeout), changed at each access to the table
+       (float option) None -> no expiration
+     - the timeout for the user (float option option) None -> see global config
+       Some None -> no timeout
+     - the group to which belongs the session
+  *)
+end
 
-
-(* non persistent cookies for services *)
-type 'a servicecookiestablecontent =
-  (full_state_name *
-   'a                  (* session table *) *
-   float option ref    (* expiration date by timeout
-                          (server side) *) *
-   timeout ref         (* user timeout *) *
-   cookie_level sessgrp ref   (* session group *) *
-   string Ocsigen_cache.Dlist.node (* session group node *))
-
-type 'a servicecookiestable = 'a servicecookiestablecontent SessionCookies.t
-(* the table contains:
-   - the table of services
-   - the expiration date (by timeout), changed at each access to the table
-     (float option) None -> no expiration
-   - the timeout for the user (float option option) None -> see global config
-     Some None -> no timeout
-   - the group to which belongs the session
-*)
-
-(* non persistent cookies for in memory data *)
-type datacookiestablecontent =
-  (full_state_name *
-   float option ref        (* expiration date by timeout
-                              (server side) *) *
-   timeout ref             (* user timeout *) *
-   cookie_level sessgrp ref   (* session group *) *
-   string Ocsigen_cache.Dlist.node (* session group node *))
-
-type datacookiestable = datacookiestablecontent SessionCookies.t
-
-
+module Data_cookie = struct
+  (* non persistent cookies for in-memory data *)
+  type t = {
+    full_state_name : full_state_name;
+    expiry : float option ref;
+    timeout : timeout ref;
+    session_group : cookie_level sessgrp ref;
+    session_group_node : string Ocsigen_cache.Dlist.node
+  }
+  type table = t SessionCookies.t
+end
 
 
 (*****************************************************************************)
@@ -465,13 +463,12 @@ and sitedata =
       for scopes session and client process.
       The scope is registered in the full session name. *)
    global_services: tables; (* global service table *)
-   session_services: tables servicecookiestable;
+   session_services: tables Service_cookie.table;
    (* cookie table for services (tab and browser sessions) *)
-   session_data: datacookiestable; (* cookie table for in memory session data
+   session_data: Data_cookie.table; (* cookie table for in memory session data
                                       (tab and browser sessions)
                                       contains the information about the cookie
-                                      (expiration, group ...).
-                                   *)
+                                      (expiration, group ...). *)
    group_of_groups: [ `Session_group ] sessgrp Ocsigen_cache.Dlist.t;
    (* Limitation of the number of groups per site *)
    mutable remove_session_data: string -> unit;
@@ -516,25 +513,20 @@ let find_dlist_ip_table :
 
 (*****************************************************************************)
 
-let make_full_cookie_name cookieprefix (cookie_scope, secure, site_dir_string) =
-  let scope_hier = scope_hierarchy_of_user_scope cookie_scope in
+let make_full_cookie_name cookieprefix {user_scope; secure; site_dir_str} =
+  let scope_hier = scope_hierarchy_of_user_scope user_scope in
   let secure = if secure then "S|" else "|" in
   let hier1, hiername = match scope_hier with
     | User_hier hiername -> "||", hiername
     | Default_ref_hier -> "|ref|", ""
     | Default_comet_hier -> "|comet|", ""
   in
-  let s = String.concat ""
-    [cookieprefix; secure; site_dir_string; hier1; hiername]
-  in
-  s
+  String.concat "" [cookieprefix; secure; site_dir_str; hier1; hiername]
 
 let make_full_state_name2
-    site_dir_string secure ~(scope:[< user_scope ]) : full_state_name =
+    site_dir_str secure ~(scope:[< user_scope ]) : full_state_name =
   (* The information in the cookie name, without the kind of session *)
-  ((scope :> user_scope),
-   secure,
-   site_dir_string)
+  {user_scope = (scope :> user_scope); secure; site_dir_str}
 
 let make_full_state_name ~sp ~secure ~(scope:[< user_scope ]) =
   make_full_state_name2 sp.sp_sitedata.site_dir_string secure scope
@@ -544,12 +536,19 @@ let get_cookie_info sp = function
   | `Client_process -> sp.sp_tab_cookie_info
 
 
+type info = {
+  request : Ocsigen_extensions.request;
+  session_info : sess_info;
+  all_cookie_info : tables cookie_info;
+  tab_cookie_info : tables cookie_info;
+  user_tab_cookies : Ocsigen_cookie_map.t
+}
 
 (*****************************************************************************)
 (** Create server parameters record *)
 let make_server_params
     sitedata
-    (ri, si, all_cookie_info, all_tab_cookie_info, user_tab_cookies)
+    ({request = ri; session_info = si} as info)
     suffix
     full_state_name =
   let appl_name =
@@ -575,10 +574,10 @@ let make_server_params
   { sp_request = ri;
     sp_si = si;
     sp_sitedata = sitedata;
-    sp_cookie_info = all_cookie_info;
-    sp_tab_cookie_info = all_tab_cookie_info;
+    sp_cookie_info = info.all_cookie_info;
+    sp_tab_cookie_info = info.tab_cookie_info;
     sp_user_cookies = Ocsigen_cookie_map.empty;
-    sp_user_tab_cookies = user_tab_cookies;
+    sp_user_tab_cookies = info.user_tab_cookies;
     sp_client_appl_name = appl_name;
     sp_suffix = suffix;
     sp_full_state_name = full_state_name;
@@ -811,7 +810,7 @@ let empty_tables max forsession =
       then
         let dlist = Ocsigen_cache.Dlist.create max in
         Ocsigen_cache.Dlist.set_finaliser_before (dlist_finaliser t2) dlist;
-        fun ?sp v -> add_dlist_ dlist v
+        fun ?sp:_ v -> add_dlist_ dlist v
       else
         fun ?sp v ->
           let ip, max, sitedata =
@@ -863,9 +862,9 @@ sessionkind|S?|sitedirstring|"ref" ou "comet" ou ""|hiername
 *)
 
 let full_state_name_of_cookie_name cookie_level cookiename =
-  let pref, cookiename = Ocsigen_lib.String.sep '|' cookiename in
+  let _pref, cookiename = Ocsigen_lib.String.sep '|' cookiename in
   let secure, cookiename = Ocsigen_lib.String.sep '|' cookiename in
-  let sitedirstring, cookiename = Ocsigen_lib.String.sep '|' cookiename in
+  let site_dir_str, cookiename = Ocsigen_lib.String.sep '|' cookiename in
   let hier1, hiername = Ocsigen_lib.String.sep '|' cookiename in
   let secure = secure = "S" in
   let sc_hier = match hier1 with
@@ -874,9 +873,12 @@ let full_state_name_of_cookie_name cookie_level cookiename =
     | "comet" -> Eliom_common_base.Default_comet_hier
     | _ -> raise Not_found
   in
-  match cookie_level with
-    | `Session -> (`Session sc_hier, secure, sitedirstring)
-    | `Client_process -> (`Client_process sc_hier, secure, sitedirstring)
+  let user_scope =
+    match cookie_level with
+    | `Session -> `Session sc_hier
+    | `Client_process -> `Client_process sc_hier
+  in
+  {user_scope; secure; site_dir_str}
 
 let getcookies secure cookie_level cookienamepref cookies =
   let length = String.length cookienamepref in
@@ -886,9 +888,8 @@ let getcookies secure cookie_level cookienamepref cookies =
       if String.first_diff cookienamepref name 0 last = length
       then
         try
-          let (_, sec, _) as expcn =
-            full_state_name_of_cookie_name cookie_level name in
-          if sec = secure
+          let expcn = full_state_name_of_cookie_name cookie_level name in
+          if expcn.secure = secure
           then Full_state_name_table.add expcn value beg
           else beg
         with Not_found -> beg
@@ -1288,13 +1289,6 @@ let get_session_info ~sitedata ~req previous_extension_err =
   Lwt.return
     ({ req_whole with Ocsigen_extensions.request_info = ri }, sess,
      previous_tab_cookies_info)
-
-type info =
-    (Ocsigen_extensions.request *
-       sess_info *
-       tables cookie_info (* current browser cookie info *) *
-       tables cookie_info (* current tab cookie info *) *
-       Ocsigen_cookie_map.t (* current user tab cookies *))
 
 exception Eliom_retry_with of info
 

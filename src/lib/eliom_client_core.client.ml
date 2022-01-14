@@ -280,14 +280,14 @@ let in_onload, broadcast_load_end, wait_load_end, set_loading_phase =
 (* forward declaration... *)
 let change_page_uri_
   : (?cookies_info:bool * string list -> ?tmpl:string -> string -> unit) ref
-  = ref (fun ?cookies_info ?tmpl href -> assert false)
+  = ref (fun ?cookies_info:_ ?tmpl:_ _href -> assert false)
 let change_page_get_form_
   : (?cookies_info:bool * string list ->
      ?tmpl:string -> Dom_html.formElement Js.t -> string -> unit)
       ref
-  = ref (fun ?cookies_info ?tmpl form href -> assert false)
+  = ref (fun ?cookies_info:_ ?tmpl:_ _form _href -> assert false)
 let change_page_post_form_ =
-  ref (fun ?cookies_info ?tmpl form href -> assert false)
+  ref (fun ?cookies_info:_ ?tmpl:_ _form _href -> assert false)
 
 type client_form_handler = Dom_html.event Js.t -> bool Lwt.t
 
@@ -416,7 +416,7 @@ let rebuild_attrib_val = function
 let class_list_of_racontent = function
   | Xml.AStr s ->
     [s]
-  | Xml.AStrL (space, l) ->
+  | Xml.AStrL (_space, l) ->
     l
   | _ ->
     failwith "attribute class is not a string"
