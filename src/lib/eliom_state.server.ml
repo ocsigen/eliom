@@ -20,7 +20,6 @@
 open Eliom_lib
 
 open Lwt
-open Lwt.Syntax
 
 
 (* Expired session? *)
@@ -1319,7 +1318,7 @@ module Ext = struct
         Eliommod_sessiongroups.Data.remove session_group_node;
         Lwt.return_unit
       | (_, `Pers, _cookie) ->
-        let* cookie, {Eliommod_cookies.full_state_name; session_group} =
+        let%lwt cookie, {Eliommod_cookies.full_state_name; session_group} =
           get_persistent_cookie_info state
         in
         let scope = full_state_name.Eliom_common.user_scope in

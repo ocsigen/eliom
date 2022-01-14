@@ -19,7 +19,6 @@
  *)
 
 open Lwt.Infix
-open Lwt.Syntax
 
 let headers_with_content_type headers =
   Cohttp.Header.add_opt
@@ -215,13 +214,13 @@ let execute
     generate_page
     ({Eliom_common.all_cookie_info; tab_cookie_info} as info)
     sitedata =
-  let* result =
+  let%lwt result =
     Lwt.catch
       (fun () -> generate_page now info sitedata)
       (fun e -> sitedata.Eliom_common.exn_handler e)
   in
-  let* () = update_cookie_table ~now sitedata all_cookie_info in
-  let* () = update_cookie_table ~now sitedata tab_cookie_info in
+  let%lwt () = update_cookie_table ~now sitedata all_cookie_info in
+  let%lwt () = update_cookie_table ~now sitedata tab_cookie_info in
   Lwt.return result
 
 
@@ -264,7 +263,7 @@ let do_redirection header_id status uri =
 let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req =
   let req = Eliom_common.patch_request_info req in
   let now = Unix.gettimeofday () in
-  let* (ri, si, previous_tab_cookies_info) =
+  let%lwt (ri, si, previous_tab_cookies_info) =
     Eliom_common.get_session_info sitedata req 404
   in
   let (all_cookie_info, closedsessions) =
@@ -311,10 +310,10 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
     in
     Lwt.catch
       (fun () ->
-         let* res = execute now genfun info sitedata in
+         let%lwt res = execute now genfun info sitedata in
          let response, _ = Ocsigen_response.to_cohttp res
          and all_user_cookies = Ocsigen_response.cookies res in
-         let* cookies =
+         let%lwt cookies =
            Eliommod_cookies.compute_cookies_to_send
              sitedata
              all_cookie_info
@@ -368,7 +367,7 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
                    make_response ~status:`Bad_request
                      (Eliom_error_pages.page_error_param_type l)))
          | Eliom_common.Eliom_Wrong_parameter ->
-           let* ripp =
+           let%lwt ripp =
              match
                Ocsigen_request.post_params
                  req.request_info

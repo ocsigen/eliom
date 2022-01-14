@@ -25,7 +25,6 @@ let section = Lwt_log.Section.make "eliom:gc"
 open Eliom_lib
 
 open Lwt
-open Lwt.Syntax
 
 (*****************************************************************************)
 let servicesessiongcfrequency = ref (Some 1200.) (* 20 min ? *)
@@ -64,7 +63,7 @@ let gc_timeouted_services now tables =
           Eliom_common.Serv_Table.fold
 (*VVV not tail recursive: may be a problem if lots of coservices *)
             (fun ptk (`Ptc (nodeopt, l)) thr ->
-               let* _ = thr in (* we wait for the previous one to be completed *)
+               let%lwt _ = thr in (* we wait for the previous one to be completed *)
                (match nodeopt, l with
                   | Some node, {Eliom_common.s_expire = Some (_, e)} :: _
                     (* it is an anonymous coservice.  The list should
