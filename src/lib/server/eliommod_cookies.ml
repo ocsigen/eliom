@@ -50,7 +50,7 @@ module Persistent_cookies = struct
      the initialization of eliom in case we use static linking with
      sqlite backend ... *)
 
-  module Ocsipersist = Ocsipersist.Functorial
+  module Ocsipersist = Eliom_common.Ocsipersist.Functorial
 
   (* NOTE: Do not forget to change the version number when the internal format changes! *)
   let persistent_cookie_table_version = "_v5"

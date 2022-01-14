@@ -415,7 +415,7 @@ module Pers = struct
 (*VVV Verify this carefully! *)
 (*VVV VERIFY concurrent access *)
 
-  module Ocsipersist = Ocsipersist.Polymorphic
+  module Ocsipersist = Eliom_common.Ocsipersist.Polymorphic
 
   let grouptable : (nbmax * string list) Ocsipersist.table Lwt.t Lazy.t =
     lazy (Ocsipersist.open_table "__eliom_session_group_table")

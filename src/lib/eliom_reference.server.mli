@@ -25,7 +25,6 @@
 
 *)
 
-
 (** Eliom references come in two flavors: they may be stored persistently or
     the may be volatile.  The module [Volatile] allows creation of
     references which can be, get, set, modify, and unset volatile references

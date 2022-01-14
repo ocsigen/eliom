@@ -349,6 +349,8 @@ type node_info = {
 
 module Hier_set = String.Set
 
+type omitpersistentstorage_rule = HeaderRule of Ocsigen_header.Name.t * Re.re
+
 type server_params =
   {sp_request: Ocsigen_extensions.request;
    sp_si: sess_info;
@@ -495,6 +497,7 @@ and sitedata =
    mutable html_content_type : string option;
    mutable ignored_get_params : (string * Re.re) list;
    mutable ignored_post_params : (string * Re.re) list;
+   mutable omitpersistentstorage : omitpersistentstorage_rule list option;
   }
 
 and dlist_ip_table = (page_table ref * page_table_key, na_key_serv)
@@ -1293,6 +1296,66 @@ let get_session_info ~sitedata ~req previous_extension_err =
 exception Eliom_retry_with of info
 
 (*****************************************************************************)
+
+module Omit_persistent_storage = struct
+  let check_if_omitting_storage () =
+    match get_sp_option () with
+    | Some {sp_request; sp_sitedata = {omitpersistentstorage = Some rules}} ->
+      let apply_rule = function
+        HeaderRule (header_name, regexp) ->
+          match Ocsigen_request.header sp_request.Ocsigen_extensions.request_info header_name with
+          | None -> false (* no User-Agent header *)
+          | Some header_value -> Re.execp regexp header_value
+      in
+      List.for_all apply_rule rules
+    | _ -> false
+
+  let not_if_omitting_storage f =
+    if check_if_omitting_storage () then Lwt.return_unit else f ()
+end
+
+module Ocsipersist = struct
+  include Ocsipersist
+  module Polymorphic = struct
+    include Ocsipersist.Polymorphic
+    let add table key value =
+      Omit_persistent_storage.not_if_omitting_storage
+        (fun () -> add table key value)
+    let remove table key =
+      Omit_persistent_storage.not_if_omitting_storage
+        (fun () -> remove table key)
+    let replace_if_exists table key value =
+      Omit_persistent_storage.not_if_omitting_storage
+        (fun () -> replace_if_exists table key value)
+  end
+  module Store = struct
+    include Ocsipersist.Store
+    let set pv value =
+      Omit_persistent_storage.not_if_omitting_storage
+        (fun () -> set pv value)
+  end
+  module Functorial = struct
+    include Ocsipersist.Functorial
+    module Table (T : sig val name : string end)
+                 (Key : COLUMN)
+                 (Value : COLUMN) =
+      struct
+        include Table (T) (Key) (Value)
+        let add key value =
+          Omit_persistent_storage.not_if_omitting_storage
+            (fun () -> add key value)
+        let remove key =
+          Omit_persistent_storage.not_if_omitting_storage
+            (fun () -> remove key)
+        let replace_if_exists key value =
+          Omit_persistent_storage.not_if_omitting_storage
+            (fun () -> replace_if_exists key value)
+        let modify_opt key f =
+          Omit_persistent_storage.not_if_omitting_storage
+            (fun () -> modify_opt key f)
+      end
+  end
+end
 
 (* keeping track of all the persistent tables *)
 module Persistent_tables = struct

@@ -210,11 +210,6 @@ let update_cookie_table ?now sitedata (ci, sci) =
 (* Generation of the page or naservice
    + update the cookie tables (value, expiration date and timeout)        *)
 
-let handle_site_exn exn info sitedata =
-  let sp = Eliom_common.make_server_params sitedata info None None in
-  Lwt.with_value Eliom_common.sp_key (Some sp)
-    (fun () -> sitedata.Eliom_common.exn_handler exn)
-
 let execute
     now
     generate_page
@@ -223,7 +218,7 @@ let execute
   let* result =
     Lwt.catch
       (fun () -> generate_page now info sitedata)
-      (fun e -> handle_site_exn e info sitedata)
+      (fun e -> sitedata.Eliom_common.exn_handler e)
   in
   let* () = update_cookie_table ~now sitedata all_cookie_info in
   let* () = update_cookie_table ~now sitedata tab_cookie_info in
@@ -301,6 +296,10 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
   let rec gen_aux ({Eliom_common.request = ri;
                                  session_info = si;
                                  all_cookie_info} as info) =
+    let sp = Eliom_common.make_server_params sitedata info None None in
+    (* The last two arguments are not yet available, so for now we use None.
+       This value will later be overwritten once this information is available. *)
+    Lwt.with_value Eliom_common.sp_key (Some sp) @@ fun () ->
     let genfun =
       match si.Eliom_common.si_nonatt_info with
         | Eliom_common.RNa_no ->

@@ -25,8 +25,8 @@ open Eliom_state
 let (>>=) = Lwt.bind
 
 module Ocsipersist = struct
-  include Ocsipersist.Store
-  include Ocsipersist.Polymorphic
+  include Eliom_common.Ocsipersist.Store
+  include Eliom_common.Ocsipersist.Polymorphic
 end
 
 let pers_ref_store = Ocsipersist.open_store "eliom__persistent_refs"
