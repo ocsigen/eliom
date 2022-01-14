@@ -312,6 +312,17 @@ For now, it cannot be set for each site independently
 * {{{<datasessiongcfrequency value="3600"/>}}}
      Like {{{<sessiongcfrequency>}}},
      but for "in memory data" sessions only
+* {{{
+    <omitpersistentstorage>
+      <header user-agent="\b(PetalBot|bingbot|Googlebot|Amazonbot|YandexBot)\b"/>
+    </omitpersistentstorage>
+  }}}
+     Omit the storage of any persistent information on the server for any
+     requests that satisfy all of the given conditions. Conditions can be
+     expressed as PCREs applied to any HTTP header of the request. This can be
+     used to prevent inundating the cookie table by cookies generated for
+     crawlers (that usually do not store cookies on their end anyway).
+
 
 ===Limiting the number of sessions or coservices
 
