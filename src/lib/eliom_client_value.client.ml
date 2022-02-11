@@ -17,11 +17,8 @@
  *)
 
 exception False
-
 exception Exception_on_server of string
 
 type 'a t = 'a
-
 type injection_datum = Eliom_runtime.injection_datum
-
 type global_data2

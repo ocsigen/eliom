@@ -19,17 +19,12 @@
 
 open Eliom_lib
 
-type sitedata = {
-    site_dir: Url.path;
-    site_dir_string: string;
-  }
-
+type sitedata = {site_dir : Url.path; site_dir_string : string}
 type server_params
 
 val sp : server_params
 
 (**/**)
-
 
 (*SGO* Server generated onclicks/onsubmits
 val a_closure_id : int

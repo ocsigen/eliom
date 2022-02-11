@@ -20,82 +20,70 @@
 (*****************************************************************************)
 (*****************************************************************************)
 (** Internal functions used by Eliom:                                        *)
-(** Exploration of cookies                                                  *)
-(*****************************************************************************)
-(*****************************************************************************)
 
+(** Exploration of cookies                                                  *)
+
+(*****************************************************************************)
+(*****************************************************************************)
 
 open Lwt
 
 (*****************************************************************************)
 (* Iterators on cookies *)
 
-  (** Iterator on service cookies *)
+(** Iterator on service cookies *)
 let iter_service_cookies f =
-  let sitedata = Eliom_request_info.find_sitedata "Eliommod_sessexpl.iter_service_cookies" in
+  let sitedata =
+    Eliom_request_info.find_sitedata "Eliommod_sessexpl.iter_service_cookies"
+  in
   Eliom_common.SessionCookies.fold
-    (fun k v thr ->
-      thr >>= fun () ->
-      f (k, v) >>=
-      Lwt.pause
-    )
-    sitedata.Eliom_common.session_services
-    return_unit
+    (fun k v thr -> thr >>= fun () -> f (k, v) >>= Lwt.pause)
+    sitedata.Eliom_common.session_services return_unit
 
-
-    (** Iterator on data cookies *)
+(** Iterator on data cookies *)
 let iter_data_cookies f =
-  let sitedata = Eliom_request_info.find_sitedata "Eliommod_sessexpl.iter_data_cookies" in
+  let sitedata =
+    Eliom_request_info.find_sitedata "Eliommod_sessexpl.iter_data_cookies"
+  in
   Eliom_common.SessionCookies.fold
-    (fun k v thr ->
-      thr >>= fun () ->
-      f (k, v) >>=
-      Lwt.pause
-    )
-    sitedata.Eliom_common.session_data
-    return_unit
+    (fun k v thr -> thr >>= fun () -> f (k, v) >>= Lwt.pause)
+    sitedata.Eliom_common.session_data return_unit
 
-    (** Iterator on persistent cookies *)
+(** Iterator on persistent cookies *)
 let iter_persistent_cookies f =
-  Eliommod_cookies.Persistent_cookies.Cookies.iter
-    (fun k v -> f (k, v) >>= Lwt.pause)
+  Eliommod_cookies.Persistent_cookies.Cookies.iter (fun k v ->
+      f (k, v) >>= Lwt.pause)
 
-
-    (** Iterator on service cookies *)
+(** Iterator on service cookies *)
 let fold_service_cookies f beg =
-  let sitedata = Eliom_request_info.find_sitedata "Eliommod_sessexpl.fold_service_cookies" in
+  let sitedata =
+    Eliom_request_info.find_sitedata "Eliommod_sessexpl.fold_service_cookies"
+  in
   Eliom_common.SessionCookies.fold
     (fun k v thr ->
       thr >>= fun res1 ->
-        f (k, v) res1 >>= fun res ->
-          Lwt.pause () >>= fun () ->
-            return res
-    )
-    sitedata.Eliom_common.session_services
-    (return beg)
+      f (k, v) res1 >>= fun res ->
+      Lwt.pause () >>= fun () -> return res)
+    sitedata.Eliom_common.session_services (return beg)
 
-
-    (** Iterator on data cookies *)
+(** Iterator on data cookies *)
 let fold_data_cookies f beg =
-  let sitedata = Eliom_request_info.find_sitedata "Eliommod_sessexpl.fold_data_cookies" in
+  let sitedata =
+    Eliom_request_info.find_sitedata "Eliommod_sessexpl.fold_data_cookies"
+  in
   Eliom_common.SessionCookies.fold
     (fun k v thr ->
       thr >>= fun res1 ->
-        f (k, v) res1 >>= fun res ->
-        Lwt.pause () >>= fun () ->
-        return res
-    )
-    sitedata.Eliom_common.session_data
-    (return beg)
+      f (k, v) res1 >>= fun res ->
+      Lwt.pause () >>= fun () -> return res)
+    sitedata.Eliom_common.session_data (return beg)
 
-    (** Iterator on persistent cookies *)
+(** Iterator on persistent cookies *)
 let fold_persistent_cookies f beg =
   Eliommod_cookies.Persistent_cookies.Cookies.fold
     (fun k v beg ->
       f (k, v) beg >>= fun res ->
-      Lwt.pause () >>= fun () ->
-      return res
-    )
+      Lwt.pause () >>= fun () -> return res)
     beg
 
 (*****************************************************************************)
@@ -109,8 +97,7 @@ let number_of_data_cookies () =
   Eliom_common.SessionCookies.length
     (Eliom_request_info.get_sitedata ()).Eliom_common.session_data
 
-let number_of_tables () =
-  List.length !Eliommod_datasess.counttableelements
+let number_of_tables () = List.length !Eliommod_datasess.counttableelements
 
 let number_of_table_elements () =
   List.map (fun f -> f ()) !Eliommod_datasess.counttableelements

@@ -1,4 +1,3 @@
-
 (* Ocsigen
  * http://www.ocsigen.org
  * Module eliomsessions.mli
@@ -27,24 +26,23 @@ open Eliom_lib
 
 (** {2 Getting information about the request} *)
 
+val get_original_full_path_string : unit -> string
 (** returns the full path of the URL as first sent by the browser
     (not changed by previous extensions like rewritemod) *)
-val get_original_full_path_string : unit -> string
 
+val get_nl_get_params : unit -> (string * string) list String.Table.t
 (** returns non localized parameters in the URL. *)
-val get_nl_get_params :
-  unit -> (string * string) list String.Table.t
 
-(** returns the root of the site. *)
 val get_site_dir : unit -> Url.path
+(** returns the root of the site. *)
 
+val get_ignored_get_params : unit -> (string * string) list
 (** returns the GET parameters that have been ignored using
     <ignoredgetparams/> in config file. *)
-val get_ignored_get_params : unit -> (string * string) list
 
+val get_ignored_post_params : unit -> (string * string) list
 (** returns the POST parameters that have been ignored using
     <ignoredpostparams/> in config file. *)
-val get_ignored_post_params : unit -> (string * string) list
 
 (*****************************************************************************)
 (** {2 Other low level functions} *)
@@ -57,16 +55,16 @@ val get_ignored_post_params : unit -> (string * string) list
     Warning: it is different from the URL to which the request has been made.
 *)
 
+val get_csp_original_full_path : unit -> Url.path
 (** returns the full path of the URL where the client-side process is running.
     If there is no client side process, same as
     {!get_original_full_path}.
 *)
-val get_csp_original_full_path : unit -> Url.path
 
+val get_csp_ssl : unit -> bool
 (** returns true if https is used in the URL of the browser, false if http.
     If there is no client side process, same as {!get_ssl}.
 *)
-val get_csp_ssl : unit -> bool
 
 (**/**)
 
@@ -74,33 +72,38 @@ val get_request_template : unit -> string option
 val ssl_ : bool
 
 type raw_post_data = unit
+
 val raw_post_data : unit -> _ Lwt.t
-
 val client_app_initialised : bool ref
-
 val get_request_data : unit -> Eliom_common.eliom_js_page_data
 val get_request_cookies : unit -> Ocsigen_cookie_map.t
-
 val get_si : Eliom_common.server_params -> Eliom_common.sess_info
-
 val get_original_full_path_sp : Eliom_common.server_params -> Url.path
 val get_original_full_path_string_sp : Eliom_common.server_params -> string
-
 val get_csp_original_full_path_sp : Eliom_common.server_params -> Url.path
 val get_csp_hostname_sp : Eliom_common.server_params -> string
 val get_csp_server_port_sp : Eliom_common.server_params -> int
 val get_csp_ssl_sp : Eliom_common.server_params -> bool
 
-val get_nl_get_params_sp :
-  Eliom_common.server_params -> (string * string) list String.Table.t
-val get_persistent_nl_get_params_sp :
-  Eliom_common.server_params -> (string * string) list String.Table.t
+val get_nl_get_params_sp
+  :  Eliom_common.server_params
+  -> (string * string) list String.Table.t
+
+val get_persistent_nl_get_params_sp
+  :  Eliom_common.server_params
+  -> (string * string) list String.Table.t
 
 val get_sess_info : unit -> Eliom_common.sess_info
-val set_session_info :
-  uri:string -> Eliom_common.sess_info -> (unit -> 'a Lwt.t) -> 'a Lwt.t
-val update_session_info:
-  path:Url.path ->
-  all_get_params:(string * string) list ->
-  all_post_params:(string * string) list option ->
-  (unit -> 'a Lwt.t) -> 'a Lwt.t
+
+val set_session_info
+  :  uri:string
+  -> Eliom_common.sess_info
+  -> (unit -> 'a Lwt.t)
+  -> 'a Lwt.t
+
+val update_session_info
+  :  path:Url.path
+  -> all_get_params:(string * string) list
+  -> all_post_params:(string * string) list option
+  -> (unit -> 'a Lwt.t)
+  -> 'a Lwt.t

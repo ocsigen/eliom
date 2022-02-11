@@ -19,7 +19,6 @@
 
 (** This module allows creating valid HTML content, or other XML formats. *)
 
-
 (**
     XML tree manipulation within Eliom is based on the TyXML library
     but Eliom is using a custom representation for XML values (see
@@ -85,21 +84,21 @@ open Js_of_ocaml
 
 (** Low-level XML manipulation. *)
 module Xml : sig
-
   (** {2 Base functions}
       See {% <<a_api project="tyxml" | module Xml_sigs.Iterable >> %}. *)
 
-  include Xml_sigs.Iterable
-    with type 'a wrap = 'a
-     and type 'a list_wrap = 'a list
-     and type event_handler =
-           (Dom_html.event Js.t -> unit) Eliom_client_value.t
-     and type mouse_event_handler =
-           (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
-     and type keyboard_event_handler =
-           (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
-     and type touch_event_handler =
-           (Dom_html.touchEvent Js.t -> unit) Eliom_client_value.t
+  include
+    Xml_sigs.Iterable
+      with type 'a wrap = 'a
+       and type 'a list_wrap = 'a list
+       and type event_handler =
+            (Dom_html.event Js.t -> unit) Eliom_client_value.t
+       and type mouse_event_handler =
+            (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
+       and type keyboard_event_handler =
+            (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
+       and type touch_event_handler =
+            (Dom_html.touchEvent Js.t -> unit) Eliom_client_value.t
 
   (** {2 Unique nodes } *)
 
@@ -112,29 +111,29 @@ module Xml : sig
 
   (** {2 Event handlers } *)
 
+  type caml_event_handler
   (** Values of type [caml_event_handler] represents event handler
       build with the [{{ ... }}] syntax (see the Eliom manual for more
       information on {% <<a_manual chapter="clientserver-html"
       fragment="syntax"|syntax extension>>%}). Such values are
       expected by functions like {!Eliom_content.Html.a_onclick}. *)
-  type caml_event_handler
 
   (**/**)
 
   val make_process_node : ?id:string -> elt -> elt
   val make_request_node : ?reset:bool -> elt -> elt
-
-  val uri_of_fun: (unit -> string) -> uri
+  val uri_of_fun : (unit -> string) -> uri
 
   (* Concrete on client-side only. *)
   type node_id
+
   val get_node_id : elt -> node_id
   val make_event_handler_table : elt -> Eliom_runtime.RawXML.event_handler_table
   val make_client_attrib_table : elt -> Eliom_runtime.RawXML.client_attrib_table
 
-  val caml_event_handler :
-    (Dom_html.event Js.t -> unit) Eliom_client_value.t ->
-    caml_event_handler
+  val caml_event_handler
+    :  (Dom_html.event Js.t -> unit) Eliom_client_value.t
+    -> caml_event_handler
 
   type racontent =
     | RA of acontent
@@ -143,38 +142,36 @@ module Xml : sig
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
     | RAClient of string * attrib option * Eliom_lib.poly
-                                           (* attrib client_value *)
-  val racontent : attrib -> racontent
 
-  val lazy_node : ?a:(attrib list) -> ename -> elt list Eliom_lazy.request -> elt
+  (* attrib client_value *)
+  val racontent : attrib -> racontent
+  val lazy_node : ?a:attrib list -> ename -> elt list Eliom_lazy.request -> elt
 
   (**/**)
 
+  val wrap : elt -> 'a -> 'a Eliom_wrap.wrapped_value
   (** [Eliom_content.Xml.wrap page v] is like [Eliom_wrap.wrap v] but
       it makes sure that all [elt]s in [v] which are included in
       [page] are sent with empty content. This is safe because such
       elements will be taken from the DOM on the client either
       ways. *)
-  val wrap : elt -> 'a -> 'a Eliom_wrap.wrapped_value
-
 end
 
-module Xml_shared : Xml_sigs.T
-  with type 'a W.t = 'a Eliom_shared.React.S.t
-   and type 'a W.tlist = 'a Eliom_shared.ReactiveData.RList.t
-   and type event_handler =
-         (Dom_html.event Js.t -> unit) Eliom_client_value.t
-   and type mouse_event_handler =
-         (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
-   and type keyboard_event_handler =
-         (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
-   and type touch_event_handler =
-         (Dom_html.touchEvent Js.t -> unit) Eliom_client_value.t
+module Xml_shared :
+  Xml_sigs.T
+    with type 'a W.t = 'a Eliom_shared.React.S.t
+     and type 'a W.tlist = 'a Eliom_shared.ReactiveData.RList.t
+     and type event_handler = (Dom_html.event Js.t -> unit) Eliom_client_value.t
+     and type mouse_event_handler =
+          (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
+     and type keyboard_event_handler =
+          (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
+     and type touch_event_handler =
+          (Dom_html.touchEvent Js.t -> unit) Eliom_client_value.t
 
 (** Building and pretty-printing valid SVG tree.
 Information about Svg api can be found at {% <<a_api project="tyxml" | module Svg_sigs.T >> %}*)
 module Svg : sig
-
   (** See the Eliom manual for more information on{% <<a_manual
       chapter="clientserver-html" fragment="unique"| dom semantics vs. functional
       semantics>> %} for SVG tree manipulated by client/server
@@ -190,27 +187,25 @@ module Svg : sig
       semantics). See {% <<a_api project="tyxml" | module
       Svg_sigs.T >> %}. *)
   module F : sig
-
     (** See {% <<a_api project="tyxml" | module Html_sigs.T >> %}. *)
-    module Raw : Svg_sigs.Make(Xml).T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+    module Raw :
+      Svg_sigs.Make(Xml).T
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     include module type of Raw
-
   end
 
   (** Typed interface for building valid SVG tree (DOM semantics). See
       {% <<a_api project="tyxml" | module Svg_sigs.T >> %}. *)
   module D : sig
-
     (** See {% <<a_api project="tyxml" | module Html_sigs.T >> %}. *)
-    module Raw : Svg_sigs.Make(Xml).T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+    module Raw :
+      Svg_sigs.Make(Xml).T
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     include module type of Raw
-
   end
 
   (** Creation of SVG content from shared reactive signals and data
@@ -218,20 +213,19 @@ module Svg : sig
       For the operations provided, see
       {% <<a_api project="tyxml" | module Svg_sigs.T >> %}. *)
   module R : sig
-
-    module Raw : Svg_sigs.Make(Xml_shared).T
-      with type 'a elt = 'a elt
-       and type 'a attrib = 'a attrib
+    module Raw :
+      Svg_sigs.Make(Xml_shared).T
+        with type 'a elt = 'a elt
+         and type 'a attrib = 'a attrib
 
     include module type of Raw
 
+    val pcdata : string Xml.W.t -> [> `Unimplemented]
     (** [pcdata] is not implemented reactively for SVG. *)
-    val pcdata : string Xml.W.t -> [> `Unimplemented ]
 
+    val node : 'a elt Eliom_shared.React.S.t -> 'a elt
     (** [node s] produces an ['a elt] out of the shared reactive
         signal [s]. *)
-    val node : 'a elt Eliom_shared.React.S.t -> 'a elt
-
   end
 
   (** Creation of content from client-side values.  This makes
@@ -239,7 +233,6 @@ module Svg : sig
       that will be computed on client side (for example reactive
       nodes). *)
   module C : sig
-
     val node : ?init:'a elt -> 'a elt Eliom_client_value.t -> 'a elt
     (** [node e] is a server-side node corresponding to the
         client-side node [e] . [node e] can be used like any other
@@ -253,53 +246,43 @@ module Svg : sig
         not allowed. *)
 
     val attr : ?init:'a attrib -> 'a attrib Eliom_client_value.t -> 'a attrib
-
   end
 
   (** Node identifiers. *)
   module Id : sig
-
-    (** The type of global SVG element identifier. *)
     type +'a id
+    (** The type of global SVG element identifier. *)
 
+    val new_elt_id : ?global:bool -> unit -> 'a id
     (** The function [new_elt_id ()] creates a new HTML5 element
         identifier. (see the Eliom manual for more information on {%
         <<a_manual project="eliom" chapter="clientserver-html"
         fragment="global"|global element>>%}).*)
-    val new_elt_id: ?global:bool -> unit -> 'a id
 
+    val create_named_elt : id:'a id -> 'a elt -> 'a elt
     (** The function [create_named_elt ~id elt] create a copy of the
         element [elt] that will be accessible through the name [id]. *)
-    val create_named_elt: id:'a id -> 'a elt -> 'a elt
 
+    val create_global_elt : 'a elt -> 'a elt
     (** The function [create_named_elt elt] is equivalent to
         [create_named_elt ~id:(new_elt_id ()) elt]. *)
-    val create_global_elt: 'a elt -> 'a elt
 
+    val create_request_elt : ?reset:bool -> 'a elt -> 'a elt
     (** [create_request_elt ?reset elt] creates a referable copy of
         [elt]. If [~reset = true] is provided (default: false), a new
         ID is created even if [elt] has an ID already. *)
-    val create_request_elt: ?reset:bool -> 'a elt -> 'a elt
-
   end
 
   (** SVG printer. See
       {% <<a_api project="tyxml" | module Xml_sigs.Typed_pp >> %}. *)
-  module Printer : Xml_sigs.Typed_pp
-    with type +'a elt := 'a elt
-     and type doc := F.doc
-
+  module Printer :
+    Xml_sigs.Typed_pp with type +'a elt := 'a elt and type doc := F.doc
 end
-
-
-
-
 
 (** Building and printing valid HTML5 tree.
     Information about Html api can be found at
     {% <<a_api project="tyxml" | module Html_sigs.T >> %} .*)
 module Html : sig
-
   (** See {% <<a_manual
       chapter="clientserver-html" fragment="unique"|
       more information on dom semantics vs. functional
@@ -314,7 +297,6 @@ module Html : sig
   (** Creation of {b F}unctional HTML5 content (copy-able but not
       referable, see also {% <<a_api|module Eliom_content>> %}). *)
   module F : sig
-
     (** {2 Content creation}
 
         See {% <<a_api project="tyxml" | module Html_sigs.T >> %}.
@@ -325,25 +307,25 @@ module Html : sig
          *)
 
     (** See {% <<a_api project="tyxml" | module Html_sigs.T >> %}. *)
-    module Raw : Html_sigs.Make(Xml)(Svg.F.Raw).T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+    module Raw :
+      Html_sigs.Make(Xml)(Svg.F.Raw).T
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     include module type of Raw
 
-    include Eliom_content_sigs.LINKS_AND_FORMS
-      with type +'a elt := 'a elt
-       and type +'a attrib := 'a attrib
-       and type uri := uri
-       and type ('a, 'b, 'c) star := ('a, 'b, 'c) star
-       and type 'a form_param := 'a form_param
-
+    include
+      Eliom_content_sigs.LINKS_AND_FORMS
+        with type +'a elt := 'a elt
+         and type +'a attrib := 'a attrib
+         and type uri := uri
+         and type ('a, 'b, 'c) star := ('a, 'b, 'c) star
+         and type 'a form_param := 'a form_param
   end
 
   (** Creation of HTML content with {b D}OM semantics (referable, see
       also {% <<a_api|module Eliom_content>> %}). *)
   module D : sig
-
     (** {2 Content creation}
 
         See {% <<a_api project="tyxml" | module Html_sigs.T >> %}.
@@ -353,19 +335,20 @@ module Html : sig
         {% <<a_manual chapter="server-links" fragment="forms"|the manual>> %}. *)
 
     (** See {% <<a_api project="tyxml" | module Html_sigs.T >> %}. *)
-    module Raw : Html_sigs.Make(Xml)(Svg.D.Raw).T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+    module Raw :
+      Html_sigs.Make(Xml)(Svg.D.Raw).T
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     include module type of Raw
 
-    include Eliom_content_sigs.LINKS_AND_FORMS
-      with type +'a elt := 'a elt
-       and type +'a attrib := 'a attrib
-       and type uri := uri
-       and type ('a, 'b, 'c) star := ('a, 'b, 'c) star
-       and type 'a form_param := 'a form_param
-
+    include
+      Eliom_content_sigs.LINKS_AND_FORMS
+        with type +'a elt := 'a elt
+         and type +'a attrib := 'a attrib
+         and type uri := uri
+         and type ('a, 'b, 'c) star := ('a, 'b, 'c) star
+         and type 'a form_param := 'a form_param
   end
 
   (** Creation of HTML content from client-side values.  This makes
@@ -373,13 +356,13 @@ module Html : sig
       that will be computed on client side (for example reactive
       nodes).  *)
   module C : sig
-
     (** {2 Content injection} *)
 
     (** See Eliom manual for more detail on {% <<a_manual
         chapter="clientserver-html" fragment="inject" | DOM &
         Client-values >>%}. *)
 
+    val node : ?init:'a elt -> 'a elt Eliom_client_value.t -> 'a elt
     (** [node e] is a server-side node corresponding to the
         client-side node [e] . [node e] can be used like any other
         server-side node.
@@ -390,44 +373,38 @@ module Html : sig
         custom placeholder node (e.g., one with the same tag as the
         client node). This can be useful in contexts where [span] is
         not allowed. *)
-    val node :
-      ?init:'a elt -> 'a elt Eliom_client_value.t -> 'a elt
 
-    val attr :
-      ?init:'a attrib -> 'a attrib Eliom_client_value.t -> 'a attrib
-
+    val attr : ?init:'a attrib -> 'a attrib Eliom_client_value.t -> 'a attrib
   end
 
   (** Node identifiers *)
   module Id : sig
-
-    (** The type of global HTML element identifier. *)
     type +'a id
+    (** The type of global HTML element identifier. *)
 
+    val new_elt_id : ?global:bool -> unit -> 'a id
     (** The function [new_elt_id ()] creates a new global HTML element
         identifier (see the Eliom manual for more information on {%
         <<a_manual project="eliom" chapter="clientserver-html"
         fragment="global"|global element>>%}).*)
-    val new_elt_id: ?global:bool -> unit -> 'a id
 
+    val create_named_elt : id:'a id -> 'a elt -> 'a elt
     (** The function [create_named_elt ~id elt] create a copy of the
         element [elt] that will be sent to client with the reference
         [id]. *)
-    val create_named_elt: id:'a id -> 'a elt -> 'a elt
 
+    val create_global_elt : 'a elt -> 'a elt
     (** The function [create_named_elt elt] is equivalent to
         [create_named_elt ~id:(new_elt_id ()) elt]. *)
-    val create_global_elt: 'a elt -> 'a elt
 
+    val create_request_elt : ?reset:bool -> 'a elt -> 'a elt
     (** [create_request_elt ?reset elt] creates a referable copy of
         [elt]. If [~reset = true] is provided (default: false), a new
         ID is created even if [elt] has an ID already. *)
-    val create_request_elt: ?reset:bool -> 'a elt -> 'a elt
 
     (* XXX: This function must be hidden in documentation but hidden rest of
      * file *)
-    val have_id: 'a id -> 'b elt -> bool
-
+    val have_id : 'a id -> 'b elt -> bool
   end
 
   (** Creation of HTML content from shared reactive signals and data
@@ -435,57 +412,56 @@ module Html : sig
       For the operations provided, see
       {% <<a_api project="tyxml" | module Html_sigs.T >> %}. *)
   module R : sig
+    include
+      Html_sigs.Make(Xml_shared)(Svg.R.Raw).T
+        with type 'a elt = 'a elt
+         and type 'a attrib = 'a attrib
 
-    include Html_sigs.Make(Xml_shared)(Svg.R.Raw).T
-      with type 'a elt = 'a elt
-       and type 'a attrib = 'a attrib
-
+    val pcdata : string Eliom_shared.React.S.t -> [> Html_types.span] elt
     (** [pcdata s] produces a node of type
         [\[> Html_types.span\] elt]
         out of the string signal [s]. *)
-    val pcdata :
-      string Eliom_shared.React.S.t -> [> Html_types.span] elt
 
+    val node : 'a elt Eliom_shared.React.S.t -> 'a elt
     (** [node s] produces an ['a elt] out of the shared reactive
         signal [s]. *)
-    val node : 'a elt Eliom_shared.React.S.t -> 'a elt
 
+    val filter_attrib : 'a attrib -> bool Eliom_shared.React.S.t -> 'a attrib
     (** [filter_attrib a b] amounts to the attribute [a] while [b] is
         [true], and to no attribute while [b] is [false]. *)
-    val filter_attrib :
-      'a attrib -> bool Eliom_shared.React.S.t -> 'a attrib
-
   end
 
   (** Type-safe custom data for HTML.
       See the {% <<a_manual chapter="clientserver-html"
       fragment="custom_data"|examples in the manual>> %}. *)
   module Custom_data : sig
-
-    (** Custom data with values of type ['a]. *)
     type 'a t
+    (** Custom data with values of type ['a]. *)
 
+    val create
+      :  name:string
+      -> ?default:'a
+      -> to_string:('a -> string)
+      -> of_string:(string -> 'a)
+      -> unit
+      -> 'a t
     (** Create a custom data field by providing string conversion functions.
         If the [default] is provided, calls to {% <<a_api project="eliom" subproject="client" |
         val Eliom_content.Html.Custom_data.get_dom>> %} return that instead of throwing an
         exception [Not_found].  *)
-    val create : name:string -> ?default:'a -> to_string:('a -> string) -> of_string:(string -> 'a) -> unit -> 'a t
 
-    (** Create a custom data from a Json-deriving type.  *)
     val create_json : name:string -> ?default:'a -> 'a Deriving_Json.t -> 'a t
+    (** Create a custom data from a Json-deriving type.  *)
 
+    val attrib : 'a t -> 'a -> [> `User_data] attrib
     (** [attrib my_data value ] creates a HTML attribute for the custom-data
         type [my_data] with value [value] for injecting it into an a HTML tree
         ({% <<a_api | type Eliom_content.Html.elt >> %}). *)
-    val attrib : 'a t -> 'a -> [> | `User_data ] attrib
-
   end
 
   (** {{:http://dev.w3.org/html5/html-xhtml-author-guide/}"Polyglot"}
       HTML printer. See
       {% <<a_api project="tyxml" | module Xml_sigs.Typed_pp >> %}. *)
-  module Printer : Xml_sigs.Typed_pp
-    with type +'a elt := 'a elt
-     and type doc := F.doc
-
+  module Printer :
+    Xml_sigs.Typed_pp with type +'a elt := 'a elt and type doc := F.doc
 end

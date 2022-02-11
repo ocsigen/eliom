@@ -6,6 +6,10 @@ module type ELIOM = sig
 end
 
 module Make (Eliom : ELIOM) : sig
+  val dispatcher
+    :  ?oasis_executables:Ocamlbuild_plugin.Pathname.t list
+    -> Ocamlbuild_plugin.hook
+    -> unit
   (** The main dispatcher
 
       It calls {!Ocamlbuild_js_of_ocaml.dispatcher} first, with the same
@@ -30,14 +34,10 @@ module Make (Eliom : ELIOM) : sig
       Side note: {!Ocamlbuild_plugin.dispatch} should be used only once as
       it record only one function for an ocamlbuild module.
   *)
-  val dispatcher :
-    ?oasis_executables:Ocamlbuild_plugin.Pathname.t list ->
-    Ocamlbuild_plugin.hook ->
-    unit
 end
 
-
 (**/**)
+
 module type INTERNALS = sig
   val with_eliom_ppx : ([< `Client | `Server] -> string) option
   (** Internally built client and server ppx executables are invoked explicitly
@@ -47,9 +47,9 @@ module type INTERNALS = sig
   val with_package : string -> string
 end
 
-module MakeIntern (I : INTERNALS)(Eliom : ELIOM) : sig
-  val dispatcher :
-    ?oasis_executables:Ocamlbuild_plugin.Pathname.t list ->
-    Ocamlbuild_plugin.hook ->
-    unit
+module MakeIntern (I : INTERNALS) (Eliom : ELIOM) : sig
+  val dispatcher
+    :  ?oasis_executables:Ocamlbuild_plugin.Pathname.t list
+    -> Ocamlbuild_plugin.hook
+    -> unit
 end

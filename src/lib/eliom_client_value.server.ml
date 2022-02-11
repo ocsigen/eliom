@@ -24,19 +24,19 @@ let client_value_unwrapper =
     (Eliom_wrap.id_of_int Eliom_runtime.client_value_unwrap_id_int)
 
 let create_client_value ?loc ~instance_id =
-  Eliom_runtime.Client_value_server_repr.create
-    ?loc ~instance_id ~unwrapper:client_value_unwrapper
+  Eliom_runtime.Client_value_server_repr.create ?loc ~instance_id
+    ~unwrapper:client_value_unwrapper
 
 let client_value_from_server_repr cv = cv
 
-let client_value_datum ~closure_id ~args ~value = {
-  Eliom_runtime.closure_id;
-  args;
-  value = Eliom_runtime.Client_value_server_repr.to_poly value
-}
+let client_value_datum ~closure_id ~args ~value =
+  { Eliom_runtime.closure_id
+  ; args
+  ; value = Eliom_runtime.Client_value_server_repr.to_poly value }
 
 exception Client_value_creation_invalid_context of string
 
-let escaped_value value :
-  Eliom_runtime.escaped_value (* * Eliom_wrap.unwrapper *) =
+let escaped_value value
+    : Eliom_runtime.escaped_value (* * Eliom_wrap.unwrapper *)
+  =
   Ocsigen_lib.to_poly value

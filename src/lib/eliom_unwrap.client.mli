@@ -19,29 +19,29 @@
 
 open Js_of_ocaml
 
-(** Values of type [unwrap_id] are used to identify a specific unwrapper. *)
 type unwrap_id
+(** Values of type [unwrap_id] are used to identify a specific unwrapper. *)
 
 val id_of_int : int -> unwrap_id
 
-(** [unwrap_js v] unwraps the content of the JavaScript variable [v] *)
 val unwrap_js : Js.js_string Js.t -> 'a
+(** [unwrap_js v] unwraps the content of the JavaScript variable [v] *)
 
 (**/**)
 
+val register_unwrapper : unwrap_id -> ('a -> 'b) -> unit
 (** [register_unwrapper id f] register an unwrapping function [f] to
     be called when a value is marked with the id [id].
 
     This function will only work if called very early during
     client-side initialization, before the values sent by the server
     are unmarshalled. See issue #232. *)
-val register_unwrapper : unwrap_id -> ('a -> 'b) -> unit
 
+val unwrap : string -> int -> 'a
 (** [unwrap s i] unmarshal [s] (starting at character [i]) and
     transform the value [v] using registered wrappers. The marshalled
     value must have been produced with [Marshal.to_string
     (Eliom_wrap.wrap v)]. This function is for internal use only *)
-val unwrap : string -> int -> 'a
 
 (* == Internals
 
@@ -93,8 +93,7 @@ val unwrap : string -> int -> 'a
 
 val register_unwrapper' : unwrap_id -> ('a -> 'b option) -> unit
 
+val late_unwrap_value : _ Eliom_runtime.Client_value_server_repr.t -> _ -> unit
 (** [late_unwrap_value old_value new_value] replaces each occurrence
     of [old_value] with [new_value].
 *)
-val late_unwrap_value :
-  _ Eliom_runtime.Client_value_server_repr.t -> _ -> unit

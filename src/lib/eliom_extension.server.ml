@@ -19,22 +19,18 @@
 (*****************************************************************************)
 (*****************************************************************************)
 (** Run Ocsigen extensions that can access Eliom data                        *)
+
 (*****************************************************************************)
 (*****************************************************************************)
 
-type eliom_extension_sig =
-  unit -> Ocsigen_extensions.answer Lwt.t
+type eliom_extension_sig = unit -> Ocsigen_extensions.answer Lwt.t
 
 let module_action : eliom_extension_sig ref =
   ref (fun _ -> failwith "Eliommod_extension")
 
-
-let register_eliom_extension f =
-  module_action := f
-
+let register_eliom_extension f = module_action := f
 let get_eliom_extension () = !module_action
 
-
-let run_eliom_extension (fext : eliom_extension_sig) _now info sitedata  =
+let run_eliom_extension (fext : eliom_extension_sig) _now info sitedata =
   let sp = Eliom_common.make_server_params sitedata info None None in
   Lwt.with_value Eliom_common.sp_key (Some sp) fext

@@ -34,75 +34,73 @@
     [ let t = Lwt_stream.iter f %channel ] calling [Lwt.cancel t]
     will close the channel. *)
 
+exception Channel_full
 (** [Channel_full] is raised when trying to read on a channel marked
     full by the server. It is not possible to read anything else from a
     full channel. *)
-exception Channel_full
 
+exception Channel_closed
 (** [Channel_closed] is raised when reading on a channel and the
     server side of the application closed channel ( the server was restarted,
     a session was closed, or a stateless channel was garbage collected).
      *)
-exception Channel_closed
 
+val is_active : unit -> [`Active | `Idle | `Inactive]
 (** [is_active ()] returns the current activity state *)
-val is_active : unit -> [ `Active | `Idle | `Inactive ]
 
+val activate : unit -> unit
 (** if the client is inactive [activate ()] launch a new xhr
     connection to start receiving server messages *)
-val activate : unit -> unit
 
+val set_handle_exn_function : (?exn:exn -> unit -> unit Lwt.t) -> unit
 (** Makes possible to customize the function called when comet fails
     for unknown reason.
     The usual practice is to warn the user and ask to reload the page.
     This function is not called when a channel is full or closed.
     It is called only once, for the first exception.
 *)
-val set_handle_exn_function : (?exn:exn -> unit -> unit Lwt.t) -> unit
-
 
 (** Change the reactivity of channels. Multiples configurations ( of
     type [t] ) can be created. The resulting behaviour is the minimal
     ( in the meaning of maximal reactivity ) between all
     configurations *)
-module Configuration :
-sig
-
+module Configuration : sig
   type t
 
+  val new_configuration : unit -> t
   (** Creates a new configuration with default value. It modifies the
       current behaviour immediately *)
-  val new_configuration : unit -> t
 
+  val drop_configuration : t -> unit
   (** [drop_configuration t] restores the behaviour to the minimum of
       configuration without [t]. If there is no other configuration
       than [t], it is restored to the defaults. *)
-  val drop_configuration : t -> unit
 
+  val set_always_active : t -> bool -> unit
   (** [set_always_active c b] if b is true, tells the client to always
       stay active.
       Default value is false. *)
-  val set_always_active : t -> bool -> unit
 
+  val set_timeout : t -> float -> unit
   (** [set_timeout c t] tells the client to stay active at least [t]
       seconds when the application lose the focus.
       Default value is 180. *)
-  val set_timeout : t -> float -> unit
 
+  val set_active_until_timeout : t -> bool -> unit
   (** [set_active_until_timeout c v] sets the activity changing
       behaviour. if [v] is [true] the page is kept active even if not
       focused until the client receive a timeout message from the
       server. It implies that if the server keeps sending data to the
       client, the comet connection will never be closed.
       Default value is false. *)
-  val set_active_until_timeout : t -> bool -> unit
 
+  val set_time_between_requests : t -> float -> unit
   (** after [set_time_between_requests t v], the main loop will wait for
       [v] seconds between two requests. It is taken into account
       immediately.
       Default value is 0.*)
-  val set_time_between_requests : t -> float -> unit
 
+  val set_time_between_requests_when_idle : t -> float * float * float -> unit
   (** [set_time_between_requests_when_idle t (a, b, c)] sets the time
       between two requests when the the windows does not have the focus,
       after the timeout.
@@ -114,40 +112,39 @@ sig
       to [set_always_active true].
       Default value is [(0.5, 60., 600.)].
   *)
-  val set_time_between_requests_when_idle : t -> float * float * float -> unit
-
 end
 
-module Channel :
-sig
+module Channel : sig
   type 'a t = 'a Lwt_stream.t
 end
 
 (**/**)
 
+val register
+  :  ?wake:bool
+  -> 'a Eliom_comet_base.wrapped_channel
+  -> 'a Lwt_stream.t
 (** if wake is false, the registration of the channel won't
     activate the handling loop ( no request will be sent ). Default is true *)
-val register : ?wake:bool -> 'a Eliom_comet_base.wrapped_channel ->
-  'a Lwt_stream.t
 
+val restart : unit -> unit
 (** [restart ()] Restarts the loop waiting for server messages. It is
     only useful after that a formulary is sent. Indeed browsers stops
     all xhr requests in that case. It is normally not needed, but some
     browsers (based on webkit) also destroy the xhr object in that
     case, preventing client code from receiving the failure
     notification. This shouldn't be used by average user. *)
-val restart : unit -> unit
 
+val close : 'a Eliom_comet_base.wrapped_channel -> unit
 (** [close c] closes the channel c. This function should be only use
     internally. The normal way to close a channel is to cancel a thread
     waiting on inputs. *)
-val close : 'a Eliom_comet_base.wrapped_channel -> unit
 
 val force_link : unit
 
+val handle_exn : ?exn:exn -> unit -> unit Lwt.t
 (** This function calls manually the function
     that is usually called automatically when an exception
     is received during communication. *)
-val handle_exn : ?exn:exn -> unit -> unit Lwt.t
 
 val section : Lwt_log_core.section

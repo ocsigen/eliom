@@ -29,6 +29,7 @@ end
 
 module type Map_S = sig
   include Map.S
+
   val from_list : (key * 'a) list -> 'a t
   val to_string : ?sep:string -> ('a -> string) -> 'a t -> string
 end
@@ -40,4 +41,5 @@ module String_map : Map_S with type key = string
 (**/**)
 
 type pos = Lexing.position * Lexing.position
+
 val pos_to_string : pos -> string

@@ -22,11 +22,12 @@
     See the {% <<a_manual chapter="clientserver-language"|manual>>
     %}. *)
 
+type 'a t = 'a
 (** An ['a] client value on the client is just an ['a].  See also {%
     <<a_api subproject="server" text="the abstract representation on
     the server" | type Eliom_client_value.t >> %}. *)
-type 'a t = 'a
 
+exception Exception_on_server of string
 (** This exception is raised (in Lwt) on the client if a call to a
     server function {% <<a_api subproject="server"|val
     Eliom_client.server_function>> %} fails (in Lwt) on the server
@@ -34,7 +35,6 @@ type 'a t = 'a
 
     The argument describes the original exception by
     {!Printexc.to_string}. *)
-exception Exception_on_server of string
 
 (** Event handlers like {% <<a_api | Eliom_content.Html.F.a_onclick
     >> %} may raise [False] to cancel the event (as if the JavaScript
@@ -49,5 +49,4 @@ exception False
 (**/**)
 
 type injection_datum = Eliom_runtime.injection_datum
-
 type global_data2 (* Global data only needed while unwrapping *)

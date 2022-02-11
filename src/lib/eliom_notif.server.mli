@@ -33,48 +33,48 @@
     transforming the message using information which is only locally available
     (see [prepare] below).
 *)
-module type S =
-sig
-
+module type S = sig
+  type identity
   (** [identity] is the type of values used to differentiate one listener
       from another. Typically it will be a user, but it could also for
       instance be a chat window. *)
-  type identity
 
-  (** [key] is the type of values designating a given resource. *)
   type key
+  (** [key] is the type of values designating a given resource. *)
 
-  (** server notification type; Can be different from [client_notif]. *)
   type server_notif
+  (** server notification type; Can be different from [client_notif]. *)
 
-  (** client notification type; Can be different from [server_notif]. *)
   type client_notif
+  (** client notification type; Can be different from [server_notif]. *)
 
+  val init : unit -> unit Lwt.t
   (** Initialise the notification module for the current client. This function
       needs to be called before using most other functions of this module. It
       isn't called implicitly during module instantiation because it relies on
       identity data which might not be available yet. *)
-  val init : unit -> unit Lwt.t
 
-  (** Deinitialise/deactivate the notification module for the current client. *)
   val deinit : unit -> unit
+  (** Deinitialise/deactivate the notification module for the current client. *)
 
-  (** Make client process listen on data whose index is [key] *)
   val listen : key -> unit
+  (** Make client process listen on data whose index is [key] *)
 
-  (** Stop listening on data [key] *)
   val unlisten : key -> unit
+  (** Stop listening on data [key] *)
 
   module Ext : sig
-  (** Make a listener stop listening on data [key].
+    val unlisten
+      :  ?sitedata:Eliom_common.sitedata
+      -> ([< `Client_process], [< `Data]) Eliom_state.Ext.state
+      -> key
+      -> unit
+    (** Make a listener stop listening on data [key].
       If this function is called during a request it will be able to determine
       [sitedata] by itself, otherwise it needs to be supplied by the caller. *)
-    val unlisten :
-      ?sitedata:Eliom_common.sitedata ->
-      ([< `Client_process ], [< `Data ]) Eliom_state.Ext.state
-      -> key -> unit
   end
 
+  val notify : ?notfor:[`Me | `Id of identity] -> key -> server_notif -> unit
   (** Call [notify key n] to send a notification [n] to all clients currently
       listening on data referenced by [key].
 
@@ -84,8 +84,8 @@ sig
       will fail. If it is [`Id id] it won't be sent to the destination defined
       by [id].
   *)
-  val notify : ?notfor:[`Me | `Id of identity] -> key -> server_notif -> unit
 
+  val client_ev : unit -> (key * client_notif) Eliom_react.Down.t
   (** Returns the client react event.
 
       ['a Eliom_react.Down.t] = ['a React.E.t] on client side.
@@ -107,59 +107,54 @@ sig
            ]
 
   *)
-  val client_ev : unit -> (key * client_notif) Eliom_react.Down.t
 
-
-  (** Call [clean ()] to clear the tables from empty data. *)
   val clean : unit -> unit
-
+  (** Call [clean ()] to clear the tables from empty data. *)
 end
 
 (** [ARG] is for making [Make] *)
 module type ARG = sig
-
-  (** see [S.identity] *)
   type identity
+  (** see [S.identity] *)
 
-  (** see [S.key] *)
   type key
+  (** see [S.key] *)
 
-  (** see [S.server_notif] *)
   type server_notif
+  (** see [S.server_notif] *)
 
-  (** see [S.client_notif] *)
   type client_notif
+  (** see [S.client_notif] *)
 
+  val prepare : identity -> server_notif -> client_notif option Lwt.t
   (** [prepare f] transforms server notifications into client
       notifications. It provides the [identity] as a parameter which identifies
       the client. You can suppress notifications for a specific client (for
       instance because of missing authorisation) by having [f] return [None]. *)
-  val prepare : identity -> server_notif -> client_notif option Lwt.t
 
+  val equal_key : key -> key -> bool
   (** [equal_key] is a function testing the equality between two values
       of type [key].*)
-  val equal_key                  : key -> key -> bool
 
+  val equal_identity : identity -> identity -> bool
   (** [equal_identity] is the same as [equal_key] but for values of type
       [identity].*)
-  val equal_identity             : identity -> identity -> bool
 
+  val get_identity : unit -> identity Lwt.t
   (** [get_identity] is a function returning a value of type [identity]
       corresponding to a client. *)
-  val get_identity               : unit -> identity Lwt.t
 
+  val max_resource : int
   (** [max_resource] is the initial size for the hash table storing the data of
       clients listening on resources, for best results it should be on the
       order of the expected number of different resources one may want to be
       able to listen to. *)
-  val max_resource               : int
 
+  val max_identity_per_resource : int
   (** [max_identity_per_resource] is the initial size for the tables storing the
       data of clients listening on one given resource, fo best results it
       should be on the order of the expected number of clients that may listen
       on a given resource. *)
-  val max_identity_per_resource  : int
-
 end
 
 (** Use this functor if you need to customise your notifications with
@@ -175,32 +170,32 @@ end
     To `plug in' your method of transporting notifications between servers you
     can override [S.notify]. See the manual for an example (coming soon).
 *)
-module Make(A : ARG) : S
-  with type identity = A.identity
-   and type key = A.key
-   and type server_notif = A.server_notif
-   and type client_notif = A.client_notif
+module Make (A : ARG) :
+  S
+    with type identity = A.identity
+     and type key = A.key
+     and type server_notif = A.server_notif
+     and type client_notif = A.client_notif
 
 (** [ARG_SIMPLE] is for making {!Make_Simple} *)
 module type ARG_SIMPLE = sig
-
-  (** see {!S.identity} *)
   type identity
+  (** see {!S.identity} *)
 
-  (** see {!S.key} *)
   type key
+  (** see {!S.key} *)
 
   type notification
 
+  val get_identity : unit -> identity Lwt.t
   (** see {!ARG.equal_key} *)
-  val get_identity               : unit -> identity Lwt.t
-
 end
 
 (** Use this functor if you have no need of customising your notifications with
     client-specific data.
 *)
-module Make_Simple (A : ARG_SIMPLE) : S
-  with type key = A.key
-   and type server_notif = A.notification
-   and type client_notif = A.notification
+module Make_Simple (A : ARG_SIMPLE) :
+  S
+    with type key = A.key
+     and type server_notif = A.notification
+     and type client_notif = A.notification

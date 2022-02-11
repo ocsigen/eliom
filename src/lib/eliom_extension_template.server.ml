@@ -25,14 +25,11 @@
 (*****************************************************************************)
 (*****************************************************************************)
 
-let _ = 
-  Eliom_extension.register_eliom_extension
-    (fun sp ->
-      Lwt.return 
+let _ =
+  Eliom_extension.register_eliom_extension (fun sp ->
+      Lwt.return
         (Ocsigen_extensions.Ext_found
            (fun () ->
-              let content = "Eliom Extension template page" in
-              Ocsigen_senders.Text_content.result_of_content
-                (content, "text/plain"))))
-
-
+             let content = "Eliom Extension template page" in
+             Ocsigen_senders.Text_content.result_of_content
+               (content, "text/plain"))))

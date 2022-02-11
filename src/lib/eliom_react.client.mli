@@ -22,40 +22,27 @@
 (** Client side type declarations for React event propagation. This
     module must be linked for events to work properly. *)
 
-module Down :
-sig
-
+module Down : sig
   type 'a t = 'a React.E.t
 
+  val set_handle_react_exn_function : (?exn:exn -> unit -> unit Lwt.t) -> unit
   (** Makes possible to customize the function called when comet fails
       in Eliom_react, for example because a channel is full or closed.
       It is called for each exception.
   *)
-  val set_handle_react_exn_function : (?exn:exn -> unit -> unit Lwt.t) -> unit
-
 end
 
-module Up :
-sig
-
-  type 'a t = ('a -> unit Lwt.t)
-
+module Up : sig
+  type 'a t = 'a -> unit Lwt.t
 end
 
-module S :
-sig
-
-  module Down :
-  sig
-
+module S : sig
+  module Down : sig
     type 'a t = 'a React.S.t
-
   end
-
 end
 
 (**/**)
 
 val force_link : unit
-
 val section : Lwt_log_core.section

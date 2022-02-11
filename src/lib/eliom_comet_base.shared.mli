@@ -27,20 +27,13 @@ val chan_id_of_string : string -> 'a chan_id
 type position =
   | Newest of int
   | After of int
-  | Last of int option (** None means 'newest channel' *)
+  | Last of int option  (** None means 'newest channel' *)
 [@@deriving json]
 
-type comet_stateless_request = (string*position) array
-[@@deriving json]
+type comet_stateless_request = (string * position) array [@@deriving json]
+type command = Register of string | Close of string [@@deriving json]
 
-type command =
-  | Register of string
-  | Close of string
-[@@deriving json]
-
-type comet_stateful_request =
-  | Request_data of int
-  | Commands of command array
+type comet_stateful_request = Request_data of int | Commands of command array
 [@@deriving json]
 
 type comet_request =
@@ -48,46 +41,60 @@ type comet_request =
   | Stateful of comet_stateful_request
 [@@deriving json]
 
-val comet_request_param :
-  (comet_request, [ `WithoutSuffix ],
-   [ `One of comet_request Eliom_parameter.ocaml ] Eliom_parameter.param_name)
- Eliom_parameter.params_type
+val comet_request_param
+  : ( comet_request
+    , [`WithoutSuffix]
+    , [`One of comet_request Eliom_parameter.ocaml] Eliom_parameter.param_name
+    )
+    Eliom_parameter.params_type
 
-type 'a channel_data =
-  | Data of 'a
-  | Full
-  | Closed
-[@@deriving json]
+type 'a channel_data = Data of 'a | Full | Closed [@@deriving json]
 
 type answer =
-  | Stateless_messages of ( string * (string * int) channel_data ) array
-  | Stateful_messages of ( string * string channel_data ) array
+  | Stateless_messages of (string * (string * int) channel_data) array
+  | Stateful_messages of (string * string channel_data) array
   | Timeout
   | State_closed
   | Comet_error of string
 [@@deriving json]
 
 type comet_service =
-    Comet_service :
-      (unit, bool * comet_request, Eliom_service.post, Eliom_service.att,
-       _, _, _, [ `WithoutSuffix ], unit,
-       [ `One of bool ] Eliom_parameter.param_name *
-       [ `One of comet_request Eliom_parameter.ocaml ]
-         Eliom_parameter.param_name,
-       Eliom_service.non_ocaml) Eliom_service.t * command list ref ->
-    comet_service
+  | Comet_service :
+      ( unit
+      , bool * comet_request
+      , Eliom_service.post
+      , Eliom_service.att
+      , _
+      , _
+      , _
+      , [`WithoutSuffix]
+      , unit
+      , [`One of bool] Eliom_parameter.param_name
+        * [`One of comet_request Eliom_parameter.ocaml]
+          Eliom_parameter.param_name
+      , Eliom_service.non_ocaml )
+      Eliom_service.t
+      * command list ref
+      -> comet_service
 
 type internal_comet_service =
-    Internal_comet_service :
-      (unit, bool * comet_request, Eliom_service.post, Eliom_service.att,
-       _, Eliom_service.non_ext, Eliom_service.reg,
-       [ `WithoutSuffix ], unit,
-       [ `One of bool ] Eliom_parameter.param_name *
-       [ `One of comet_request Eliom_parameter.ocaml ]
-         Eliom_parameter.param_name,
-       Eliom_service.non_ocaml)
-        Eliom_service.t * command list ref ->
-    internal_comet_service
+  | Internal_comet_service :
+      ( unit
+      , bool * comet_request
+      , Eliom_service.post
+      , Eliom_service.att
+      , _
+      , Eliom_service.non_ext
+      , Eliom_service.reg
+      , [`WithoutSuffix]
+      , unit
+      , [`One of bool] Eliom_parameter.param_name
+        * [`One of comet_request Eliom_parameter.ocaml]
+          Eliom_parameter.param_name
+      , Eliom_service.non_ocaml )
+      Eliom_service.t
+      * command list ref
+      -> internal_comet_service
 
 type stateless_kind =
   | After_kind of int
@@ -99,14 +106,19 @@ type 'a wrapped_channel =
   | Stateless_channel of (comet_service * 'a chan_id * stateless_kind)
 
 type 'a bus_send_service =
-  Bus_send_service :
-    (unit,
-     'a list, Eliom_service.post, Eliom_service.non_att,
-     Eliom_service.co, Eliom_service.non_ext, Eliom_service.reg,
-     [ `WithoutSuffix ],
-     unit,
-     [ `One of 'a list Eliom_parameter.ocaml ] Eliom_parameter.param_name,
-     Eliom_service.non_ocaml) Eliom_service.t ->
-  'a bus_send_service
+  | Bus_send_service :
+      ( unit
+      , 'a list
+      , Eliom_service.post
+      , Eliom_service.non_att
+      , Eliom_service.co
+      , Eliom_service.non_ext
+      , Eliom_service.reg
+      , [`WithoutSuffix]
+      , unit
+      , [`One of 'a list Eliom_parameter.ocaml] Eliom_parameter.param_name
+      , Eliom_service.non_ocaml )
+      Eliom_service.t
+      -> 'a bus_send_service
 
 type ('a, 'b) wrapped_bus = 'b wrapped_channel * 'a bus_send_service
