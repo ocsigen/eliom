@@ -25,12 +25,10 @@ type server_params = unit
 
 let sp = ()
 
-type sitedata = (* sent while starting the program *)
-  {site_dir: Url.path;
-   site_dir_string: string;
-  }
-
-
+type sitedata =
+  { (* sent while starting the program *)
+    site_dir : Url.path
+  ; site_dir_string : string }
 
 (*SGO* Server generated onclicks/onsubmits
 (* For client side program, we sometimes simulate links and forms

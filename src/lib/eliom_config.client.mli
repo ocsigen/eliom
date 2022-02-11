@@ -22,14 +22,14 @@ val get_default_port : unit -> int
 val get_default_sslport : unit -> int
 val default_protocol_is_https : unit -> bool
 val get_default_links_xhr : unit -> bool
-
 val debug_timings : bool ref
 
+val set_tracing : bool -> unit
 (** Not tracing by default. Can be dynamically set by adding ["#__trace"] to
     the URL. *)
-val set_tracing : bool -> unit
+
 val get_tracing : unit -> bool
 
+val get_debugmode : unit -> bool
 (** Same as [Ocsigen_config.get_debugmode].
     On client side, returns [false] for now. *)
-val get_debugmode : unit -> bool

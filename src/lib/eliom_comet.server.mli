@@ -27,18 +27,21 @@
     before this page to learn how client and server parts communicate. }
  *)
 
-
 (** Basic primitives needed for server push. *)
 module Channel : sig
-
+  type 'a t
   (** [v t] is the type of server-to-client communication channels
       transporting data of type [v] *)
-  type 'a t
 
   type comet_scope =
-    [ Eliom_common.site_scope
-    | Eliom_common.client_process_scope ]
+    [Eliom_common.site_scope | Eliom_common.client_process_scope]
 
+  val create
+    :  ?scope:[< comet_scope]
+    -> ?name:string
+    -> ?size:int
+    -> 'a Lwt_stream.t
+    -> 'a t
   (** [create s] returns a channel sending the values returned by stream [s].
 
       There are two kinds of channels created depending on the given
@@ -71,14 +74,21 @@ module Channel : sig
       [stream] as soon as possible: If you want a channel that reads
       data on the stream only when the client requests it, use
       [create_unlimited] instead, but be careful of memory leaks. *)
-  val create : ?scope:[< comet_scope ] ->
-    ?name:string -> ?size:int -> 'a Lwt_stream.t -> 'a t
 
+  val create_from_events
+    :  ?scope:[< comet_scope]
+    -> ?name:string
+    -> ?size:int
+    -> 'a React.event
+    -> 'a t
   (** [create_from_events e] returns a channel sending the values returned
       by the event stream [e]. *)
-  val create_from_events : ?scope:[< comet_scope ] ->
-    ?name:string -> ?size:int -> 'a React.event -> 'a t
 
+  val create_unlimited
+    :  ?scope:Eliom_common.client_process_scope
+    -> ?name:string
+    -> 'a Lwt_stream.t
+    -> 'a t
   (** [create_unlimited s] creates a channel which does not read
       immediately on the stream. It is read only when the client
       requests it: use it if the data you send depends on the time of
@@ -86,14 +96,19 @@ module Channel : sig
       careful, the size of this stream is not limited: if the size of
       the stream increases and your clients don't read it, you may have
       memory leaks. *)
-  val create_unlimited : ?scope:Eliom_common.client_process_scope ->
-    ?name:string -> 'a Lwt_stream.t -> 'a t
 
+  val create_newest : ?name:string -> 'a Lwt_stream.t -> 'a t
   (** [create_newest s] is similar to [create
       ~scope:Eliom_common.site_scope s] but only the last message is
       returned to the client. *)
-  val create_newest : ?name:string -> 'a Lwt_stream.t -> 'a t
 
+  val external_channel
+    :  ?history:int
+    -> ?newest:bool
+    -> prefix:string
+    -> name:string
+    -> unit
+    -> 'a t
   (** [external_channel ~prefix ~name ()] declares an external
       channel. The channel was created by an instance of Eliom serving
       the prefix [prefix] (the prefix configured in the <site> tag of
@@ -104,21 +119,20 @@ module Channel : sig
       new one. If the channel is not new, [history] is the maximum
       number of messages retrieved at the first request. The default
       is [1]. *)
-  val external_channel : ?history:int -> ?newest:bool ->
-    prefix:string -> name:string -> unit -> 'a t
 
+  val wait_timeout
+    :  ?scope:Eliom_common.client_process_scope
+    -> float
+    -> unit Lwt.t
   (** [wait_timeout ~scope time] waits for a period of inactivity of
       length [time] in the [scope]. Only activity on stateful
       channels is taken into accounts.
 
       The default [scope] is [Eliom_common.comet_client_process]. *)
-  val wait_timeout : ?scope:Eliom_common.client_process_scope ->
-    float -> unit Lwt.t
 
   (**/**)
 
   val get_wrapped : 'a t -> 'a Eliom_comet_base.wrapped_channel
-
 end
 
 val section : Lwt_log_core.section

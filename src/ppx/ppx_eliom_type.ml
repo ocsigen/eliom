@@ -36,11 +36,9 @@
 *)
 open Ppxlib
 open Ast_helper
-
 open Ppx_eliom_utils
 
 module Pass = struct
-
   (* accumulator, push and flush for typing expression
      $gen_id := Some $orig_expr *)
   let push_typing_expr, flush_typing_expr =
@@ -50,10 +48,10 @@ module Pass = struct
       then
         let frag_eid = eid id in
         typing_expr :=
-          (id,
-           let loc = orig_expr.pexp_loc in
-           [%expr [%e frag_eid] := Some [%e orig_expr]]
-          ) :: !typing_expr
+          ( id
+          , let loc = orig_expr.pexp_loc in
+            [%expr [%e frag_eid] := Some [%e orig_expr]] )
+          :: !typing_expr
     in
     let flush () =
       let res = List.rev (List.map snd !typing_expr) in
@@ -71,10 +69,10 @@ module Pass = struct
       if List.for_all (function id', _ -> id'.txt <> id.txt) !typing_strs
       then
         typing_strs :=
-          (id,
-           let loc = orig_expr.pexp_loc in
-           [%stri let [%p Pat.var id] = Stdlib.ref None]
-          ) :: !typing_strs
+          ( id
+          , let loc = orig_expr.pexp_loc in
+            [%stri let [%p Pat.var id] = Stdlib.ref None] )
+          :: !typing_strs
     in
     let flush () =
       let res = List.map snd !typing_strs in
@@ -87,36 +85,27 @@ module Pass = struct
 
   let client_str item =
     let loc = item.pstr_loc in
-    flush_typing_str_item () @
-    [%str let () = [%e flush_typing_expr () ] ]
+    flush_typing_str_item () @ [%str let () = [%e flush_typing_expr ()]]
 
-  let server_str _ item =
-    flush_typing_str_item () @
-    [ item ]
+  let server_str _ item = flush_typing_str_item () @ [item]
 
   let shared_str _ item =
     let loc = item.pstr_loc in
-    flush_typing_str_item () @
-    [%str let () = [%e flush_typing_expr () ] ] @
-    [ item ]
+    flush_typing_str_item () @ [%str let () = [%e flush_typing_expr ()]] @ [item]
 
   let fragment ~loc ?typ ~context:_ ~num:_ ~id ~unsafe:_ expr =
     let frag_eid = eid id in
     push_typing_str_item expr id;
-    let typ = match typ with
-      | Some typ -> typ
-      | None -> Typ.any ~loc ()
-    in
+    let typ = match typ with Some typ -> typ | None -> Typ.any ~loc () in
     [%expr
-      [%e flush_typing_expr () ];
+      [%e flush_typing_expr ()];
       [%e frag_eid] :=
-        Some ( Eliom_syntax.client_value "" 0 :
-                 [%t typ] Eliom_client_value.t);
-      (Stdlib.Option.get (! [%e frag_eid]) : _ Eliom_client_value.t)
-    ]
+        Some (Eliom_syntax.client_value "" 0 : [%t typ] Eliom_client_value.t);
+      (Stdlib.Option.get ![%e frag_eid] : _ Eliom_client_value.t)]
 
-  let escape_inject
-        ~loc ?ident:_ ~(context:Context.escape_inject) ~id ~unsafe:_ expr =
+  let escape_inject ~loc ?ident:_ ~(context : Context.escape_inject) ~id
+      ~unsafe:_ expr
+    =
     push_typing_str_item expr id;
     push_typing_expr expr id;
     match context with
@@ -126,15 +115,12 @@ module Pass = struct
 
   let prelude _ = []
   let postlude _ = []
-
   let shared_sig _ = []
   let server_sig _ = []
   let client_sig _ = []
-
 end
 
-include Make(Pass)
+include Make (Pass)
 
 let () =
-  Ppxlib.Driver.register_transformation
-    ~impl:mapper#structure "ppx_eliom_types"
+  Ppxlib.Driver.register_transformation ~impl:mapper#structure "ppx_eliom_types"

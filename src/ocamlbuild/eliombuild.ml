@@ -7,11 +7,12 @@ module Conf = struct
   let type_dir = "type_dir"
 end
 
-module Eliom_plugin = Ocamlbuild_eliom.Make(Conf)
+module Eliom_plugin = Ocamlbuild_eliom.Make (Conf)
+
 let _ = dispatch Eliom_plugin.dispatcher
 
 let _ =
-  Options.make_links:=false;
+  Options.make_links := false;
   Options.plugin := false;
   Options.use_ocamlfind := true;
   Ocamlbuild_unix_plugin.setup ();

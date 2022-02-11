@@ -21,19 +21,27 @@
 open Js_of_ocaml
 
 let get_default_hostname () = Url.Current.host
-let get_default_port () = 80 (*VVV take from server? !!!!!!!!! *) (*RRR ??? Url.default_http_port ???*)
-let get_default_sslport () = 443 (*VVV take from server? !!!!!!!!! *) (*RRR ??? replace by Url.default_https_port ???*)
-let default_protocol_is_https () = Url.Current.protocol = "https" (*VVV take from server? !!!!!!!!! *) (*RRR ??? replace by Url.default_https_port ???*)
+let get_default_port () = 80
+
+(*VVV take from server? !!!!!!!!! *)
+(*RRR ??? Url.default_http_port ???*)
+
+let get_default_sslport () = 443
+
+(*VVV take from server? !!!!!!!!! *)
+(*RRR ??? replace by Url.default_https_port ???*)
+
+let default_protocol_is_https () = Url.Current.protocol = "https"
+
+(*VVV take from server? !!!!!!!!! *)
+(*RRR ??? replace by Url.default_https_port ???*)
+
 let get_default_links_xhr () = true (*BBB take from server? !!!!!!!!!! *)
 
 let debug_timings = ref false
-
-let is_tracing =
-  ref false
-let set_tracing value =
-  is_tracing := value
-let get_tracing () =
-  !is_tracing
+let is_tracing = ref false
+let set_tracing value = is_tracing := value
+let get_tracing () = !is_tracing
 
 (* let () = *)
 (*   if Js.to_string Dom_html.window##location##hash = "#__trace" then *)
@@ -42,5 +50,4 @@ let get_tracing () =
 (*     debug_timings := true *)
 
 let get_debugmode () =
-  try Js.to_bool (Js.Unsafe.global##.___eliom_debug_mode_)
-  with _ -> false
+  try Js.to_bool Js.Unsafe.global##.___eliom_debug_mode_ with _ -> false

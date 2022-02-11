@@ -29,22 +29,30 @@
     of shared functions, i.e., functions that have both a client-side
     and a server-side implementation. *)
 
+val to_signal
+  :  init:'a
+  -> ?eq:('a -> 'a -> bool)
+  -> 'a React.S.t Lwt.t
+  -> 'a React.S.t
 (** [to_signal ~init s] converts the Lwt-wrapped signal [s] into a
     regular signal with initial value [init]. *)
-val to_signal :
-  init:'a -> ?eq:('a -> 'a -> bool) -> 'a React.S.t Lwt.t -> 'a React.S.t
 
-(** Accessing shared values *)
 module Value : Eliom_shared_sigs.VALUE
+(** Accessing shared values *)
 
 (** Shared implementation of React *)
 module React : sig
-
   module S : sig
+    include Eliom_shared_sigs.S with type 'a sv := 'a Value.t
 
-    include Eliom_shared_sigs.S
-      with type 'a sv := 'a Value.t
-
+    val create
+      :  ?default:
+           ('a React.S.t * (?step:React.step -> 'a -> unit)) option
+           Eliom_client_value.t
+      -> ?reset_default:bool
+      -> ?eq:('a -> 'a -> bool) Value.t
+      -> 'a
+      -> 'a t * (?step:React.step -> 'a -> unit) Value.t
     (** [create ?default ?reset_default x] produces a pair [s, f],
         where [s] is a (shared) reactive signal, and [f] is a shared
         function for updating the signal.
@@ -57,24 +65,13 @@ module React : sig
         The behavior of [f] is undefined on the server side. On the
         client side, [f] behaves just like the standard React-provided
         update functions. *)
-    val create :
-      ?default :
-        ('a React.S.t * (?step:React.step -> 'a -> unit))
-          option
-          Eliom_client_value.t ->
-      ?reset_default : bool ->
-      ?eq:('a -> 'a -> bool) Value.t ->
-      'a ->
-      'a t * (?step:React.step -> 'a -> unit) Value.t
 
+    val synced : 'a t -> bool
     (** If [synced s] is true, then the server-side and client-side
         values of [s] are equal. This means that the client-side code
         can initially rely on the server-provided value, and defer
         updates until the first client-side update of [s]. *)
-    val synced : 'a t -> bool
-
   end
-
 end
 
 (** This is a dummy ReactiveData module that allows us to refer to
@@ -89,21 +86,18 @@ end
 
 (** Shared implementation of ReactiveData *)
 module ReactiveData : sig
-
   module RList : sig
+    include
+      Eliom_shared_sigs.RLIST
+        with type 'a signal := 'a React.S.t
+         and type 'a sv := 'a Value.t
+         and type 'a ct := 'a FakeReactiveData.RList.t
+         and type 'a chandle := 'a FakeReactiveData.RList.handle
 
-    include Eliom_shared_sigs.RLIST
-      with type 'a signal := 'a React.S.t
-       and type 'a sv := 'a Value.t
-       and type 'a ct := 'a FakeReactiveData.RList.t
-       and type 'a chandle := 'a FakeReactiveData.RList.handle
-
+    val synced : 'a t -> bool
     (** If [synced l] is true, then the server-side and client-side
         values of [l] are equal. This means that the client-side code
         can initially rely on the server-provided value, and defer any
         updates until the first client-side update of [l]. *)
-    val synced : 'a t -> bool
-
   end
-
 end

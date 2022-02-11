@@ -18,34 +18,40 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-val iter_service_cookies :
-  (Eliom_common.SessionCookies.key *
-   Eliom_common.tables Eliom_common.Service_cookie.t ->
-   unit Lwt.t) ->
-  unit Lwt.t
-val iter_data_cookies :
-  (Eliom_common.SessionCookies.key * Eliom_common.Data_cookie.t ->
-   unit Lwt.t) ->
-  unit Lwt.t
-val iter_persistent_cookies :
-  (string *
-   Eliommod_cookies.cookie ->
-   unit Lwt.t) ->
-  unit Lwt.t
-val fold_service_cookies :
-  (Eliom_common.SessionCookies.key *
-   Eliom_common.tables Eliom_common.Service_cookie.t -> 'a ->
-   'a Lwt.t) ->
-  'a -> 'a Lwt.t
-val fold_data_cookies :
-  (Eliom_common.SessionCookies.key * Eliom_common.Data_cookie.t ->
-   'a -> 'a Lwt.t) ->
-  'a -> 'a Lwt.t
-val fold_persistent_cookies :
-  (string *
-   Eliommod_cookies.cookie ->
-   'a -> 'a Lwt.t) ->
-  'a -> 'a Lwt.t
+val iter_service_cookies
+  :  (Eliom_common.SessionCookies.key
+      * Eliom_common.tables Eliom_common.Service_cookie.t
+      -> unit Lwt.t)
+  -> unit Lwt.t
+
+val iter_data_cookies
+  :  (Eliom_common.SessionCookies.key * Eliom_common.Data_cookie.t -> unit Lwt.t)
+  -> unit Lwt.t
+
+val iter_persistent_cookies
+  :  (string * Eliommod_cookies.cookie -> unit Lwt.t)
+  -> unit Lwt.t
+
+val fold_service_cookies
+  :  (Eliom_common.SessionCookies.key
+      * Eliom_common.tables Eliom_common.Service_cookie.t
+      -> 'a
+      -> 'a Lwt.t)
+  -> 'a
+  -> 'a Lwt.t
+
+val fold_data_cookies
+  :  (Eliom_common.SessionCookies.key * Eliom_common.Data_cookie.t
+      -> 'a
+      -> 'a Lwt.t)
+  -> 'a
+  -> 'a Lwt.t
+
+val fold_persistent_cookies
+  :  (string * Eliommod_cookies.cookie -> 'a -> 'a Lwt.t)
+  -> 'a
+  -> 'a Lwt.t
+
 val number_of_service_cookies : unit -> int
 val number_of_data_cookies : unit -> int
 val number_of_tables : unit -> int

@@ -20,12 +20,9 @@
 
 (** Types shared by client and server. *)
 
-type sitedata = {
-  site_dir: string list;
-  site_dir_string: string;
-}
-
+type sitedata = {site_dir : string list; site_dir_string : string}
 type server_params
+
 val sp : server_params
 
 (**/**)
@@ -50,6 +47,5 @@ val add_tab_cookies_to_post_form_id : int
 val add_tab_cookies_to_post_form_id_string : string
 
 *)
-
 
 val encode_eliom_data : 'a -> string

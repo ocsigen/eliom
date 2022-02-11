@@ -17,28 +17,25 @@
  *)
 
 open Js_of_ocaml
-
 include Ocsigen_lib_base
-include (Eliom_lib_base :
-           module type of Eliom_lib_base
-         with type 'a Int64_map.t = 'a Eliom_lib_base.Int64_map.t
-         with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
-         with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t)
+
+include (
+  Eliom_lib_base :
+    module type of Eliom_lib_base
+      with type 'a Int64_map.t = 'a Eliom_lib_base.Int64_map.t
+      with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
+      with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t)
 
 (*****************************************************************************)
 
 module Url = struct
-
   include Url
   include Url_base
 
   let decode = Url.urldecode
   let encode ?plus s = Url.urlencode ?with_plus:plus s
-
   let make_encoded_parameters = Url.encode_arguments
-
   let split_path = Url.path_of_path_string
-
   let ssl_re = Regexp.regexp "^(https?):\\/\\/"
 
   let get_ssl s =
@@ -52,46 +49,45 @@ module Url = struct
     Js.to_string a##.href
 
   let has_get_args url =
-    try ignore (String.index url '?'); true with Not_found -> false
+    try
+      ignore (String.index url '?');
+      true
+    with Not_found -> false
 
   let add_get_args url get_args =
-    if get_args = [] then
-      url
+    if get_args = []
+    then url
     else
-      url ^ (if has_get_args url then "&" else "?") ^
-      encode_arguments get_args
+      url ^ (if has_get_args url then "&" else "?") ^ encode_arguments get_args
 
   let string_of_url_path ~encode l =
-    if encode then
-      print_endline "Warning: Eliom_lib.string_of_url_path ignores ~encode";
+    if encode
+    then print_endline "Warning: Eliom_lib.string_of_url_path ignores ~encode";
     String.concat "/" l
 
   let path_of_url = function
-    | Url.Http  {Url.hu_path = path}
+    | Url.Http {Url.hu_path = path}
     | Url.Https {Url.hu_path = path}
-    | Url.File  {Url.fu_path = path} ->
-      path
+    | Url.File {Url.fu_path = path} ->
+        path
 
   let path_of_url_string s =
     match Url.url_of_string s with
-    | Some path ->
-      path_of_url path
-    | _ ->
-      (* assuming relative URL and improvising *)
-      split_path @@ try
-        String.(sub s 0 (index s '?'))
-      with Not_found ->
-        s
-
+    | Some path -> path_of_url path
+    | _ -> (
+        (* assuming relative URL and improvising *)
+        split_path
+        @@ try String.(sub s 0 (index s '?')) with Not_found -> s)
 end
 
 module Lwt_log = struct
   include Lwt_log_js
+
   let raise_error ?inspect ?exn ?section ?location ?logger msg =
-    Lwt.ignore_result (log ?inspect ?exn ?section ?location ?logger ~level:Error msg);
-    match exn with
-    | Some exn -> raise exn
-    | None -> failwith msg
+    Lwt.ignore_result
+      (log ?inspect ?exn ?section ?location ?logger ~level:Error msg);
+    match exn with Some exn -> raise exn | None -> failwith msg
+
   let raise_error_f ?inspect ?exn ?section ?location ?logger fmt =
     Printf.ksprintf (raise_error ?inspect ?exn ?section ?location ?logger) fmt
 
@@ -109,7 +105,6 @@ let _ =
 (* Deprecated ON *)
 let debug_exn fmt exn = Lwt_log.ign_info_f ~exn fmt
 let debug fmt = Lwt_log.ign_info_f fmt
-
 let error fmt = Lwt_log.raise_error_f fmt
 let error_any any fmt = Lwt_log.raise_error_f ~inspect:any fmt
 let jsdebug a = Lwt_log.ign_info ~inspect:a "Jsdebug"
@@ -117,20 +112,20 @@ let jsdebug a = Lwt_log.ign_info ~inspect:a "Jsdebug"
 
 let trace fmt =
   if Eliom_config.get_tracing ()
-  then Lwt_log.ign_info_f (">> "^^fmt)
+  then Lwt_log.ign_info_f (">> " ^^ fmt)
   else Printf.ksprintf ignore fmt
 
-let lwt_ignore ?(message="") t =
+let lwt_ignore ?(message = "") t =
   Lwt.on_failure t (fun exn -> Lwt_log.ign_info_f ~exn "%s" message)
 
 (* Debbuging *)
-let jsalert a = Dom_html.window##(alert a)
+let jsalert a = Dom_html.window ## (alert a)
 let alert fmt = Printf.ksprintf (fun s -> jsalert (Js.string s)) fmt
 
 let confirm =
   let f s =
     let s = Js.string s in
-    Dom_html.window##(confirm s) |> Js.to_bool
+    Dom_html.window ## (confirm s) |> Js.to_bool
   in
   fun fmt -> Printf.ksprintf f fmt
 
@@ -138,9 +133,9 @@ let debug_var s v = Js.Unsafe.set Dom_html.window (Js.string s) v
 
 module String = struct
   include String_base
+
   let eol_re = Regexp.regexp "[\r\n]"
-  let remove_eols s =
-    Regexp.global_replace eol_re s ""
+  let remove_eols s = Regexp.global_replace eol_re s ""
 end
 
 (*****************************************************************************)
@@ -157,6 +152,7 @@ let of_json ?typ:_ v = Json.unsafe_input (Js.string v)
 
 (* to marshal data and put it in a form *)
 let encode_form_value x = to_json x
+
 (* Url.urlencode ~with_plus:true (Marshal.to_string x [])
     (* I encode the data because it seems that multipart does not
        like \0 character ... *)
@@ -165,8 +161,7 @@ let encode_header_value x =
   (* We remove end of lines *)
   String.remove_eols (to_json x)
 
-let unmarshal_js var =
-  Marshal.from_string (Js.to_bytestring var) 0
+let unmarshal_js var = Marshal.from_string (Js.to_bytestring var) 0
 
 type file_info = File.file Js.t
 

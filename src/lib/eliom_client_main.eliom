@@ -31,12 +31,11 @@ let _ =
       in
       let _ =
         [%client
-            (Eliom_process.set_ignored_params
-               ~%ignored_get_params ~%ignored_post_params;
-             Eliom_process.set_ignored_params
-               ~%ignored_get_params ~%ignored_post_params
-             : unit)
-        ]
+          (Eliom_process.set_ignored_params ~%ignored_get_params
+             ~%ignored_post_params;
+           Eliom_process.set_ignored_params ~%ignored_get_params
+             ~%ignored_post_params
+            : unit)]
       in
       ())
 
@@ -45,33 +44,26 @@ let _ =
 (* The following lines are for Eliom_bus, Eliom_comet and Eliom_react
    to be linked. *)
 let _force_link =
-  Eliom_react.force_link,
-  Eliom_comet.force_link,
-  Eliom_bus.force_link
+  Eliom_react.force_link, Eliom_comet.force_link, Eliom_bus.force_link
 
 (* Client side implementation of reload actions *)
 let%shared _ =
-  Eliom_service.internal_set_client_fun
-    ~service:Eliom_service.reload_action
+  Eliom_service.internal_set_client_fun ~service:Eliom_service.reload_action
     [%client
       fun () () ->
-        Lwt.return (Eliom_service.Reload_action {hidden = false; https = false})
-    ];
+        Lwt.return (Eliom_service.Reload_action {hidden = false; https = false})];
   Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action_https
     [%client
       fun () () ->
-        Lwt.return (Eliom_service.Reload_action {hidden = false; https = true})
-    ];
+        Lwt.return (Eliom_service.Reload_action {hidden = false; https = true})];
   Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action_hidden
     [%client
       fun () () ->
-        Lwt.return (Eliom_service.Reload_action {hidden = true; https = false})
-    ];
+        Lwt.return (Eliom_service.Reload_action {hidden = true; https = false})];
   Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action_https_hidden
     [%client
       fun () () ->
-        Lwt.return (Eliom_service.Reload_action {hidden = true; https = true})
-    ]
+        Lwt.return (Eliom_service.Reload_action {hidden = true; https = true})]

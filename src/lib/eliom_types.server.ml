@@ -18,19 +18,18 @@
  *)
 
 open Eliom_lib
-
 include Eliom_types_base
 
 (* let wrap_parameters (v : 'a) : client_expr_parameters = *)
-  (* let v = Obj.repr v in *)
-  (* if Obj.is_int v *)
-  (* then PImm (Obj.obj v) *)
-  (* else *)
-    (* let cri = Eliom_request_info.get_sp_client_request_info () in *)
-    (* let id = List.length cri.Eliom_common.cri_page_data in *)
-    (* cri.Eliom_common.cri_page_data <- *)
-      (* (Obj.obj v) :: cri.Eliom_common.cri_page_data; *)
-    (* PRef id *)
+(* let v = Obj.repr v in *)
+(* if Obj.is_int v *)
+(* then PImm (Obj.obj v) *)
+(* else *)
+(* let cri = Eliom_request_info.get_sp_client_request_info () in *)
+(* let id = List.length cri.Eliom_common.cri_page_data in *)
+(* cri.Eliom_common.cri_page_data <- *)
+(* (Obj.obj v) :: cri.Eliom_common.cri_page_data; *)
+(* PRef id *)
 
 (* server to client encoding of eliom data *)
 (* the string is urlencoded because otherwise js does strange things

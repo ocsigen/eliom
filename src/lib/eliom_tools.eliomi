@@ -26,36 +26,42 @@
 open Eliom_content
 
 type srv =
-    Srv :
-      (unit, unit, Eliom_service.get, _, _, _, _, [ `WithoutSuffix ],
-       unit, unit, Eliom_service.non_ocaml) Eliom_service.t
-    -> srv
+  | Srv :
+      ( unit
+      , unit
+      , Eliom_service.get
+      , _
+      , _
+      , _
+      , _
+      , [`WithoutSuffix]
+      , unit
+      , unit
+      , Eliom_service.non_ocaml )
+      Eliom_service.t
+      -> srv
 
+type 'a hierarchical_site = main_page * ('a * 'a hierarchical_site_item) list
 (** Hierarchical sites description. This is a pair [(main page,
     subpages list)]. Each subpage is defined by the text to be
     displayed in menus and a {!hierarchical_site_item}. *)
-type 'a hierarchical_site =
-  main_page * ('a * 'a hierarchical_site_item) list
 
 (** Menu entry description in a hierarchical site. *)
-and 'a hierarchical_site_item =
-  | Disabled
-  | Site_tree of 'a hierarchical_site
+and 'a hierarchical_site_item = Disabled | Site_tree of 'a hierarchical_site
 
 (** Main page description for a section of a hierarchical site. *)
 and main_page =
-
   | Main_page of srv
-  (** Main page for your subsite: all the subpages are subsections of
+      (** Main page for your subsite: all the subpages are subsections of
       that page. *)
   | Default_page of srv
-  (** Like [Main_page] but is not taken into account for computing
+      (** Like [Main_page] but is not taken into account for computing
       which is the current page in the menu. Use it for example when
       there is no main page, but you want one of the subpages to be
       the default page for your subsite.  The service you use as
       default page must appear another time in the subtree! *)
   | Not_clickable
-  (** When you do not want the menu entry to be a link but you want
+      (** When you do not want the menu entry to be a link but you want
       subpages. *)
 
 (** {2 Tools for generating certain HTML elements} *)
@@ -64,9 +70,40 @@ and main_page =
    do not remove this comment ! *)
 
 module type HTML5_TOOLS = sig
-
   (** {2 Simple menu } *)
 
+  val menu
+    :  ?classe:Html_types.nmtoken list
+    -> ?id:string
+    -> (( unit
+        , unit
+        , Eliom_service.get
+        , _
+        , _
+        , _
+        , _
+        , [`WithoutSuffix]
+        , unit
+        , unit
+        , Eliom_service.non_ocaml )
+        Eliom_service.t
+       * [< Html_types.flow5_without_interactive] Html.elt list)
+       list
+    -> ?service:
+         ( unit
+         , unit
+         , Eliom_service.get
+         , _
+         , _
+         , _
+         , _
+         , [`WithoutSuffix]
+         , unit
+         , unit
+         , Eliom_service.non_ocaml )
+         Eliom_service.t
+    -> unit
+    -> [> `Ul] Html.elt
   (** The function [menu elts ()], where [elts] is a list of pair
       [(service, content)], creates a list of link towards the
       [service]s. See the Eliom manual for an {% <<a_manual
@@ -80,21 +117,29 @@ module type HTML5_TOOLS = sig
       The optional parameters [id] and [classe] allow to specify the
       corresponding attributes in the generated [<ul>] node. The
       default class for the [<ul>] node is [eliomtools_menu]. *)
-  val menu :
-    ?classe:Html_types.nmtoken list ->
-    ?id:string ->
-    ((unit, unit, Eliom_service.get, _, _, _, _, [ `WithoutSuffix ],
-      unit, unit, Eliom_service.non_ocaml) Eliom_service.t *
-     [< Html_types.flow5_without_interactive] Html.elt list)
-      list ->
-    ?service:
-      (unit, unit, Eliom_service.get, _, _, _, _, [ `WithoutSuffix ],
-       unit, unit, Eliom_service.non_ocaml) Eliom_service.t ->
-    unit ->
-    [> `Ul ] Html.elt
 
   (** {2 Hierchical sites } *)
 
+  val hierarchical_menu_depth_first
+    :  ?classe:Html_types.nmtoken list
+    -> ?id:string
+    -> ?whole_tree:bool
+    -> [< Html_types.a_content] Html.elt list hierarchical_site
+    -> ?service:
+         ( unit
+         , unit
+         , Eliom_service.get
+         , _
+         , _
+         , _
+         , _
+         , [`WithoutSuffix]
+         , unit
+         , unit
+         , Eliom_service.non_ocaml )
+         Eliom_service.t
+    -> unit
+    -> [> `Ul] Html.elt list
   (** The function [hierarchical_menu_depth_first site ()] constructs
       a hieranrchical menu by exploring the hierarchical [site]
       description using a depth-first algorithm: the first menu item
@@ -109,17 +154,26 @@ module type HTML5_TOOLS = sig
 
       See {!menu} for a description of the optional parameters [id]
       and [classe]. *)
-  val hierarchical_menu_depth_first :
-    ?classe:Html_types.nmtoken list ->
-    ?id:string ->
-    ?whole_tree:bool ->
-    [< Html_types.a_content ] Html.elt list hierarchical_site ->
-    ?service:
-      (unit, unit, Eliom_service.get, _, _, _, _, [ `WithoutSuffix ],
-       unit, unit, Eliom_service.non_ocaml) Eliom_service.t ->
-    unit ->
-    [> `Ul ] Html.elt list
 
+  val hierarchical_menu_breadth_first
+    :  ?classe:Html_types.nmtoken list
+    -> ?id:string
+    -> [< Html_types.a_content] Html.elt list hierarchical_site
+    -> ?service:
+         ( unit
+         , unit
+         , Eliom_service.get
+         , _
+         , _
+         , _
+         , _
+         , [`WithoutSuffix]
+         , unit
+         , unit
+         , Eliom_service.non_ocaml )
+         Eliom_service.t
+    -> unit
+    -> [> `Ul] Html.elt list
   (** The function [hierarchical_menu_breadth_first site ()]
       constructs a hierarchical menu by exploring the hierarchical
       [site] description using a breadth_first algorithm: the whole
@@ -132,16 +186,24 @@ module type HTML5_TOOLS = sig
 
       See {!menu} for a description of the optional parameters [id]
       and [classe].  *)
-  val hierarchical_menu_breadth_first :
-    ?classe:Html_types.nmtoken list ->
-    ?id:string ->
-    [< Html_types.a_content ] Html.elt list hierarchical_site ->
-    ?service:
-      (unit, unit, Eliom_service.get, _, _, _, _, [ `WithoutSuffix ],
-       unit, unit, Eliom_service.non_ocaml) Eliom_service.t ->
-    unit ->
-    [> `Ul ] Html.elt list
 
+  val structure_links
+    :  [< Html_types.a_content] Html.elt list hierarchical_site
+    -> ?service:
+         ( unit
+         , unit
+         , Eliom_service.get
+         , _
+         , _
+         , _
+         , _
+         , [`WithoutSuffix]
+         , unit
+         , unit
+         , Eliom_service.non_ocaml )
+         Eliom_service.t
+    -> unit
+    -> [> `Link] Html.elt list
   (** The function [structure_links site ()] returns the tags [<link
       rel="subsection" ...>] and [<link rev="subsection" ...>] for the
       given hierarchical [site].
@@ -149,51 +211,50 @@ module type HTML5_TOOLS = sig
       By default the current service correspond to the current
       url. The optional parameter [service] allow to override the
       current service. *)
-  val structure_links :
-    [< Html_types.a_content ] Html.elt list hierarchical_site ->
-    ?service:
-      (unit, unit, Eliom_service.get, _, _, _, _, [ `WithoutSuffix ],
-       unit, unit, Eliom_service.non_ocaml) Eliom_service.t ->
-    unit ->
-    [> `Link ] Html.elt list
 
+  val head
+    :  title:string
+    -> ?css:string list list
+    -> ?js:string list list
+    -> ?other:[< Html_types.head_content_fun] Html.elt list
+    -> unit
+    -> [`Head] Html.elt
   (** An auxiliary function for creating an HTML head
       elements. Resources (JS, CSS) are taken from the static
       directory. *)
-  val head :
-    title:string ->
-    ?css:string list list ->
-    ?js:string list list ->
-    ?other:[< Html_types.head_content_fun] Html.elt list ->
-    unit ->
-    [`Head] Html.elt
 
-  val html :
-    title:string ->
-    ?a:[< Html_types.html_attrib] Html.attrib list ->
-    ?css:string list list ->
-    ?js:string list list ->
-    ?other_head:[< Html_types.head_content_fun] Html.elt list ->
-    [`Body] Html.elt ->
-    [`Html] Html.elt
-
+  val html
+    :  title:string
+    -> ?a:[< Html_types.html_attrib] Html.attrib list
+    -> ?css:string list list
+    -> ?js:string list list
+    -> ?other_head:[< Html_types.head_content_fun] Html.elt list
+    -> [`Body] Html.elt
+    -> [`Html] Html.elt
 end
 
-(** Menus with functional node semantics *)
 module F : HTML5_TOOLS
+(** Menus with functional node semantics *)
 
-(** Menus with DOM semantics *)
 module D : HTML5_TOOLS
+(** Menus with DOM semantics *)
 
+val with_js_file : string list -> unit
 (** Record an (external) JavaScript file to be included in
     {!Eliom_tools.F.html}. *)
-val with_js_file : string list -> unit
 
-(** Record an CSS file to be included in {!Eliom_tools.F.html}. *)
 val with_css_file : string list -> unit
+(** Record an CSS file to be included in {!Eliom_tools.F.html}. *)
 
 (** {2 Other tools} *)
 
+val wrap_handler
+  :  (unit -> 'a option Lwt.t)
+  -> ('get -> 'post -> 'res Lwt.t)
+  -> ('a -> 'get -> 'post -> 'res Lwt.t)
+  -> 'get
+  -> 'post
+  -> 'res Lwt.t
 (** This function allows one to wrap a service handler easily depending
     on whether certain information is available or not.
 
@@ -219,11 +280,6 @@ val with_css_file : string list -> unit
               Lwt.return (html (head (title ("hello "^user))) (body []))))
     >> %}
   *)
-val wrap_handler :
-  (unit -> 'a option Lwt.t) ->
-  ('get -> 'post -> 'res Lwt.t) ->
-  ('a -> 'get -> 'post -> 'res Lwt.t) ->
-  ('get -> 'post -> 'res Lwt.t)
 
 [%%server.start]
 

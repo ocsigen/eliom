@@ -18,7 +18,6 @@
  *)
 
 type param = string
-
 type field = string
 
 let insert_string x : field = Ocsigen_lib.id x
@@ -28,10 +27,7 @@ let insert_file _ : field =
   failwith "Constructing an URL with file parameters not possible"
 
 let to_string : field -> string = fun x -> Ocsigen_lib.id x
-
 let inject_param_list = Ocsigen_lib.id
 let get_param_list = Ocsigen_lib.id
-
 let inject_param_table = Ocsigen_lib.id
-
 let string_of_param s = s

@@ -20,74 +20,67 @@
  *)
 
 (* Module for event unwrapping *)
-let (>|=) = Lwt.(>|=)
+let ( >|= ) = Lwt.( >|= )
 
 open Lwt_react
 
 let section = Lwt_log_js.Section.make "eliom:comet"
 
-
-module Down =
-struct
-
+module Down = struct
   type 'a t = 'a React.E.t
 
   let handle_react_exn, set_handle_react_exn_function =
-  let r = ref (fun ?exn () ->
-    let s = "Exception during comet with react. \
-             Customize this with Eliom_react.set_handle_react_exn_function. "
+    let r =
+      ref (fun ?exn () ->
+          let s =
+            "Exception during comet with react. Customize this with Eliom_react.set_handle_react_exn_function. "
+          in
+          Lwt_log_js.log ~section ~level:Lwt_log_js.Debug ?exn s)
     in
-    Lwt_log_js.log ~section ~level:Lwt_log_js.Debug ?exn s)
-  in
-  ((fun ?exn () -> !r ?exn ()),
-   (fun f -> r := f))
+    (fun ?exn () -> !r ?exn ()), fun f -> r := f
 
   let internal_unwrap (channel, _unwrapper) =
     (* We want to catch more exceptions here than the usual exceptions caught
        in Eliom_comet. For example Channel_full. *)
     (* We transform the stream into a stream with exception: *)
     let stream = Lwt_stream.wrap_exn channel in
-    Lwt.async (fun () -> Lwt_stream.iter_s
-                  (function
-                    | Error exn ->
-                      let%lwt () = handle_react_exn ~exn () in
-                      Lwt.fail exn
-                    | Ok () -> Lwt.return_unit)
-                  stream);
+    Lwt.async (fun () ->
+        Lwt_stream.iter_s
+          (function
+            | Error exn ->
+                let%lwt () = handle_react_exn ~exn () in
+                Lwt.fail exn
+            | Ok () -> Lwt.return_unit)
+          stream);
     E.of_stream channel
 
   let () =
-    Eliom_unwrap.register_unwrapper
-      Eliom_common.react_down_unwrap_id internal_unwrap
-
+    Eliom_unwrap.register_unwrapper Eliom_common.react_down_unwrap_id
+      internal_unwrap
 end
 
-module Up =
-struct
+module Up = struct
+  type 'a t = 'a -> unit Lwt.t
 
-  type 'a t = ('a -> unit Lwt.t)
-
-  let internal_unwrap (service, _unwrapper) =
-    fun x -> Eliom_client.call_service ~service () x >|= fun _ -> ()
+  let internal_unwrap (service, _unwrapper) x =
+    Eliom_client.call_service ~service () x >|= fun _ -> ()
 
   let () =
-    Eliom_unwrap.register_unwrapper
-      Eliom_common.react_up_unwrap_id internal_unwrap
-
+    Eliom_unwrap.register_unwrapper Eliom_common.react_up_unwrap_id
+      internal_unwrap
 end
 
-module S =
-struct
-  module Down =
-  struct
+module S = struct
+  module Down = struct
     type 'a t = 'a React.S.t
 
     let internal_unwrap (channel, value, _unwrapper) =
       let e = E.of_stream channel in
       S.hold ~eq:(fun _ _ -> false) value e
 
-    let () = Eliom_unwrap.register_unwrapper Eliom_common.signal_down_unwrap_id internal_unwrap
-
+    let () =
+      Eliom_unwrap.register_unwrapper Eliom_common.signal_down_unwrap_id
+        internal_unwrap
   end
 end
 

@@ -20,20 +20,18 @@
 include Eliom_service_base
 
 let xhr_with_cookies s =
-  if is_external s then
-    None
+  if is_external s
+  then None
   else
     match s.send_appl_content with
     | XAlways -> Some None
     | XNever -> None
     | XSame_appl (appl, _) when appl <> Eliom_process.get_application_name () ->
-      None
+        None
     | XSame_appl (_, tmpl) -> Some tmpl
 
 let client_fun service =
-  match service.client_fun with
-  | Some f -> !f
-  | None   -> None
+  match service.client_fun with Some f -> !f | None -> None
 
 let has_client_fun service = client_fun service <> None
 
@@ -43,28 +41,26 @@ let set_client_fun ?app ~service f =
     app;
   match service.client_fun with
   | Some r -> r := Some f
-  | None   -> service.client_fun <- Some (ref (Some f))
+  | None -> service.client_fun <- Some (ref (Some f))
 
-let reload_fun :
-  type gp pp .
-  (gp, pp, _, _, _, _, _, _, _, _, _) t ->
-  (gp -> unit -> result Lwt.t) option =
-  fun service ->
-    match Eliom_parameter.is_unit (post_params_type service) with
-    | Eliom_parameter.U_yes ->
-      (match service with
-       | { client_fun = Some {contents = Some f} ;
-           reload_fun = Rf_client_fun } ->
-         Some f
-       | _ ->
-         None)
-    | _ ->
-      None
+let reload_fun
+    : type gp pp.
+      (gp, pp, _, _, _, _, _, _, _, _, _) t
+      -> (gp -> unit -> result Lwt.t) option
+  =
+ fun service ->
+  match Eliom_parameter.is_unit (post_params_type service) with
+  | Eliom_parameter.U_yes -> (
+    match service with
+    | {client_fun = Some {contents = Some f}; reload_fun = Rf_client_fun} ->
+        Some f
+    | _ -> None)
+  | _ -> None
 
 let reset_reload_fun service = service.reload_fun <- Rf_keep
 
 let register_delayed_get_or_na_coservice ~sp:_ _ =
   failwith "CSRF coservice not implemented client side for now"
 
-let register_delayed_post_coservice  ~sp:_ _ _getname =
+let register_delayed_post_coservice ~sp:_ _ _getname =
   failwith "CSRF coservice not implemented client side for now"
