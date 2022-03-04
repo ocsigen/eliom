@@ -324,6 +324,11 @@ module Html = struct
         : (Html_types.input_type -> string) Eliom_shared.Value.t
         :> ([< Html_types.input_type] -> string) Eliom_shared.Value.t)
 
+    let string_of_script_type () =
+      ([%shared Raw_wrapped_functions.string_of_script_type]
+       : (Html_types.script_type -> string) Eliom_shared.Value.t
+       :> ([< Html_types.script_type] -> string) Eliom_shared.Value.t)
+
     let string_of_linktypes () =
       ([%shared Raw_wrapped_functions.string_of_linktypes]
         : (Html_types.linktype list -> string) Eliom_shared.Value.t
