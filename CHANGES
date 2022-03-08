@@ -1,3 +1,6 @@
+===== 10.0 (2022-03-08) =====
+* Make Eliom_state.Ext.discard_state more robust
+
 ===== 9.0 (2021-10-16) =====
 * compatibility with ocsigenserver.5.0.0 (outsourced Ocsipersist)
 
