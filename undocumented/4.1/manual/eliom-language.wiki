@@ -104,7 +104,7 @@ manipulation or access HTML-elements with <<a_api text="DOM semantics"
 Eliom permits the direct usage of top-level server-side variables, and
 also of arbitrary expressions, in the client sections. Such a usage is
 called //injection//. It is also supported inside a
-[[href:#sharedinjection|shared section]].
+[[#sharedinjection|shared section]].
 
 Assuming you have a top-level variable ##v## defined on the server,
 its injection in the client section is introduced by prefixing it with
@@ -195,7 +195,7 @@ Eliom_lib.client_value>> (client)).
 
 A client value expression is an arbitrary OCaml expression, but may
 additionaly contain //injections of server variables//,
-(cf. [[href:#injections|Injections into the client section]]). A
+(cf. [[#injections|Injections into the client section]]). A
 variable ##v## in the scope of a client-value expression can be
 injected by prefixing it with a percent sign, ##%v##. A server-side
 expression ##exp## can be injected by ##%(exp)##.
