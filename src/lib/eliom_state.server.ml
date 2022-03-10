@@ -1202,7 +1202,8 @@ module Ext = struct
         , Eliom_common.(Hashed_cookies.to_string cookie.sc_hvalue) )
 
   let get_service_cookie_info
-      ?(sitedata = Eliom_request_info.find_sitedata "Eliom_state.xxx")
+      ?(sitedata =
+        Eliom_request_info.find_sitedata "Eliom_state.get_service_cookie_info")
       ((_, _, cookie) : ([< Eliom_common.cookie_level], [`Service]) state)
     =
     ( cookie
@@ -1210,7 +1211,9 @@ module Ext = struct
         cookie )
 
   let get_volatile_data_cookie_info
-      ?(sitedata = Eliom_request_info.find_sitedata "Eliom_state.xxx")
+      ?(sitedata =
+        Eliom_request_info.find_sitedata
+          "Eliom_state.get_volatile_data_cookie_info")
       ((_, _, cookie) : ([< Eliom_common.cookie_level], [`Data]) state)
     =
     ( cookie
