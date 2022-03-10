@@ -805,8 +805,15 @@ module Ext : sig
     -> ([< Eliom_common.user_level], [< `Service]) state
   (** Same for services *)
 
-  val discard_state : state:('a, 'b) state -> unit Lwt.t
-  (** Discard external states *)
+  val discard_state
+    :  ?sitedata:Eliom_common.sitedata
+    -> state:('a, 'b) state
+    -> unit
+    -> unit Lwt.t
+  (** Discard external states.
+      See {!fold_volatile_sub_states} for explanation about the [?sitedata]
+      parameter.
+  *)
 
   val fold_volatile_sub_states
     :  ?sitedata:Eliom_common.sitedata
@@ -901,13 +908,21 @@ module Ext : sig
   end
 
   val get_service_cookie_info
-    :  ([< Eliom_common.cookie_level], [`Service]) state
+    :  ?sitedata:Eliom_common.sitedata
+    -> ([< Eliom_common.cookie_level], [`Service]) state
     -> service_cookie_info
-  (** Get the infomration about cookies (timeouts, etc.) *)
+  (** Get the infomration about cookies (timeouts, etc.).
+      See {!fold_volatile_sub_states} for explanation about the [?sitedata]
+      parameter.
+  *)
 
   val get_volatile_data_cookie_info
-    :  ([< Eliom_common.cookie_level], [`Data]) state
+    :  ?sitedata:Eliom_common.sitedata
+    -> ([< Eliom_common.cookie_level], [`Data]) state
     -> data_cookie_info
+  (** See {!fold_volatile_sub_states} for explanation about the [?sitedata]
+      parameter.
+  *)
 
   val get_persistent_cookie_info
     :  ([< Eliom_common.cookie_level], [`Pers]) state

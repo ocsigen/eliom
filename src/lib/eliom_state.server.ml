@@ -1202,20 +1202,23 @@ module Ext = struct
         , Eliom_common.(Hashed_cookies.to_string cookie.sc_hvalue) )
 
   let get_service_cookie_info
+      ?(sitedata =
+        Eliom_request_info.find_sitedata "Eliom_state.get_service_cookie_info")
       ((_, _, cookie) : ([< Eliom_common.cookie_level], [`Service]) state)
     =
     ( cookie
-    , Eliom_common.SessionCookies.find
-        (Eliom_request_info.find_sitedata "Eliom_state.xxx")
-          .Eliom_common.session_services cookie )
+    , Eliom_common.SessionCookies.find sitedata.Eliom_common.session_services
+        cookie )
 
   let get_volatile_data_cookie_info
+      ?(sitedata =
+        Eliom_request_info.find_sitedata
+          "Eliom_state.get_volatile_data_cookie_info")
       ((_, _, cookie) : ([< Eliom_common.cookie_level], [`Data]) state)
     =
     ( cookie
-    , Eliom_common.SessionCookies.find
-        (Eliom_request_info.find_sitedata "Eliom_state.xxx")
-          .Eliom_common.session_data cookie )
+    , Eliom_common.SessionCookies.find sitedata.Eliom_common.session_data cookie
+    )
 
   let get_persistent_cookie_info
       ((_, _, cookie) : ([< Eliom_common.cookie_level], [`Pers]) state)
@@ -1223,12 +1226,11 @@ module Ext = struct
     Eliommod_cookies.Persistent_cookies.Cookies.find cookie >>= fun v ->
     Lwt.return (cookie, v)
 
-  let discard_state ~state =
-    let get_sitedata () =
-      Eliom_request_info.find_sitedata "Eliom_state.discard_state"
-    in
+  let discard_state
+      ?(sitedata = Eliom_request_info.find_sitedata "Eliom_state.discard_state")
+      ~state ()
+    =
     let make_sessgrp n =
-      let sitedata = get_sitedata () in
       sitedata.Eliom_common.site_dir_string, `Session, Left n
     in
     match state with
@@ -1249,7 +1251,6 @@ module Ext = struct
         | None -> ());
         Lwt.return_unit
     | `Session_group _, `Pers, group_name ->
-        let sitedata = get_sitedata () in
         let sgr_o =
           Eliom_common.make_persistent_full_group_name ~cookie_level:`Session
             sitedata.Eliom_common.site_dir_string (Some group_name)
@@ -1257,26 +1258,29 @@ module Ext = struct
         Eliommod_sessiongroups.Pers.remove_group ~cookie_level:`Session sitedata
           sgr_o
     | _, `Service, (_cookie : string) ->
-        let _, {Eliom_common.Service_cookie.session_group_node} =
-          get_service_cookie_info state
+        let () =
+          match get_service_cookie_info ~sitedata state with
+          | exception Not_found -> ()
+          | _, {Eliom_common.Service_cookie.session_group_node} ->
+              Eliommod_sessiongroups.Serv.remove session_group_node
         in
-        Eliommod_sessiongroups.Serv.remove session_group_node;
         Lwt.return_unit
     | _, `Data, _cookie ->
-        let _, {Eliom_common.Data_cookie.session_group_node} =
-          get_volatile_data_cookie_info state
+        let () =
+          match get_volatile_data_cookie_info ~sitedata state with
+          | exception Not_found -> ()
+          | _, {Eliom_common.Data_cookie.session_group_node} ->
+              Eliommod_sessiongroups.Data.remove session_group_node
         in
-        Eliommod_sessiongroups.Data.remove session_group_node;
         Lwt.return_unit
-    | _, `Pers, _cookie ->
-        let%lwt cookie, {Eliommod_cookies.full_state_name; session_group} =
-          get_persistent_cookie_info state
-        in
-        let scope = full_state_name.Eliom_common.user_scope in
-        let sitedata = get_sitedata () in
-        let cookie_level = Eliom_common.cookie_level_of_user_scope scope in
-        Eliommod_sessiongroups.Pers.close_persistent_session2 ~cookie_level
-          sitedata session_group cookie
+    | _, `Pers, _cookie -> (
+        match%lwt get_persistent_cookie_info state with
+        | exception Not_found -> Lwt.return_unit
+        | cookie, {Eliommod_cookies.full_state_name; session_group} ->
+            let scope = full_state_name.Eliom_common.user_scope in
+            let cookie_level = Eliom_common.cookie_level_of_user_scope scope in
+            Eliommod_sessiongroups.Pers.close_persistent_session2 ~cookie_level
+              sitedata session_group cookie)
   (*VVV!!! est-ce que session_group est fullsessgrp ? *)
 
   let fold_sub_states_aux_aux
