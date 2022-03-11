@@ -277,6 +277,7 @@
                 | `Style_Attr
                 | `Tabindex
                 | `Title
+                | `Translate
                 | `User_data
                 | `XML_lang
                 | `XMLns ] attrib list * string * 'a soption *

@@ -1,0 +1,10 @@
+=Module type <<a_api_type subproject="server" | module type Eliom_notif.ARG_SIMPLE >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module type>> <<span class="ocsforge_color_uid"|ARG_SIMPLE>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module type Eliom_notif.ARG_SIMPLE >><<span class="ocsforge_color_keyword"|end>>>><<span class="odocwiki_inlinecode"|~A~R~G~_~S~I~M~P~L~E>> is for making <<a_api subproject="server" | module Eliom_notif.Make_Simple >>
+
+----
+<<pre class="ocsforge_color odocwiki_code" id="TYPEidentity"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|identity>>>><<div class="odocwiki_info"|see <<a_api subproject="server" | type Eliom_notif.S.identity >>
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEkey"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|key>>>><<div class="odocwiki_info"|see <<a_api subproject="server" | type Eliom_notif.S.key >>
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEnotification"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|notification>>>><<pre id="VALget_identity" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_identity>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<a_api subproject="server" text="identity" | type Eliom_notif.ARG_SIMPLE.identity >> <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|see <<a_api subproject="server" | val Eliom_notif.ARG.equal_key >>
+>>

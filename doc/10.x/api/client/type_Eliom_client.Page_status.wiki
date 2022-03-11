@@ -1,0 +1,19 @@
+<<code language="ocaml" | sig
+  type t = Generating | Active | Cached | Dead
+  val signal : unit -> Eliom_client.Page_status.t React.S.t
+  module Events :
+    sig
+      val active : unit -> unit React.E.t
+      val cached : unit -> unit React.E.t
+      val dead : unit -> unit React.E.t
+      val inactive : unit -> unit React.E.t
+    end
+  val onactive :
+    ?now:bool -> ?once:bool -> ?stop:unit React.E.t -> (unit -> unit) -> unit
+  val oncached : ?once:bool -> ?stop:unit React.E.t -> (unit -> unit) -> unit
+  val ondead : ?stop:unit React.E.t -> (unit -> unit) -> unit
+  val oninactive :
+    ?once:bool -> ?stop:unit React.E.t -> (unit -> unit) -> unit
+  val while_active :
+    ?now:bool -> ?stop:unit React.E.t -> (unit -> unit Lwt.t) -> unit
+end >>

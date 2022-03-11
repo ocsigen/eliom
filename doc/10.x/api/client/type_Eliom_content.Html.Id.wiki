@@ -1,0 +1,13 @@
+<<code language="ocaml" | sig
+  type +'a id
+  val new_elt_id : ?global:bool -> unit -> 'a Eliom_content.Html.Id.id
+  val create_named_elt :
+    id:'a Eliom_content.Html.Id.id ->
+    'a Eliom_content.Html.elt -> 'a Eliom_content.Html.elt
+  val create_global_elt :
+    'a Eliom_content.Html.elt -> 'a Eliom_content.Html.elt
+  val create_request_elt :
+    ?reset:bool -> 'a Eliom_content.Html.elt -> 'a Eliom_content.Html.elt
+  val get_element :
+    'a Eliom_content.Html.Id.id -> 'a Eliom_content.Html.elt option
+end >>

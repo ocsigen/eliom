@@ -251,4 +251,5 @@
         ('a, [< Eliom_parameter_sigs.S.suff ], 'c)
         Eliom_parameter_sigs.S.params_type -> int
     end
+  val section : Lwt_log_core.section
 end >>

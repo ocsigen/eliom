@@ -1,0 +1,563 @@
+=@@id="server_generating_html"@@Generating HTML pages=
+
+Ocsigen provides several ways to generate and type HTML pages.
+
+* The default technique to produce HTML pages using Eliom are the
+   <<a_api | module Eliom_content.Html.F >>,
+   <<a_api | module Eliom_content.Html.D >> and
+   <<a_api | module Eliom_content.Html.R >>
+   modules. It is the only one supported for client-server Eliom programs.
+   This module provides a typing based on OCaml's polymorphic variants,
+   which ensures at compile time, that the pages you will generate will
+   respect the recommendations of the W3C (or be very close).
+* It is also possible to use a syntax extension to write your pages with the
+  usual HTML syntax. This solution is also typed with polymorphic variants
+  and is compatible with the previous one.
+* You can also choose to generate untyped html as text.
+
+The types in OCaml closest to XML types are //polymorphic variants//.
+Ocsigen uses them to provide a module with very good HTML typing.
+The full documentation is available
+<<a_api text="in the TyXML documentation" project="tyxml" | module Tyxml.Html >>.
+
+<<outline depth="2"| <<header| **Table of contents** >> >>
+
+
+
+== Generating HTML for Eliom applications
+
+=== The TyXML library vs. the DOM API
+
+On client side there are two kinds of HTML representations: one is
+based on the <<a_manual project="tyxml"|TyXML library>> and the other
+one is the browser DOM tree accessible through Js_of_ocaml modules
+<<a_api project="js_of_ocaml"| module Js_of_ocaml.Dom>> and <<a_api
+project="js_of_ocaml"| module Js_of_ocaml.Dom_html>>. The TyXML representation is
+a OCaml immutable typed tree. The DOM tree is mutable structure
+manipulated using the browser API which permit the modification of the
+displayed page. In the DOM represention adding a node as a child to an
+other node removes it from its previous ancessor.
+
+Since those representation does not behave at all the same way, they
+are not used for the same thing.
+
+* It is far easier and safer to describe content using TyXML, but it
+   is not possible to add a TyXML element to the page without explicit
+   conversion to the DOM representation.
+
+* The TyXML representation has the same interface on client and server
+  side. This allows share code between server and client.
+
+* Dom manipulation is heavy: to build some part of a tree, one needs
+  to create each node separately then append them to their parents.
+
+For example, here is a {{{div}}} element built with TyXML and then
+converted to the DOM representation using the module << a_api
+subproject="client" | module Eliom_content.Html >>:
+
+<<code language="ocaml"|
+open Eliom_content.Html.D
+let n = div ~a:[a_id "some div id"]
+  [ txt "some text";
+    br ();
+    txt "some other text"; ]
+let b = Eliom_content.Html.To_dom.of_div n
+>>
+
+And here the same built using the DOM API:
+
+<<code language="ocaml"|
+open Dom
+open Dom_html
+
+let d =
+  let d = createDiv document in
+  let t1 = document##createTextNode(Js.string "some text") in
+  let t2 = document##createTextNode(Js.string "some other text") in
+  let b = createB document in
+  appendChild d t1;
+  appendChild d b;
+  appendChild d t2;
+  d##.id := (Js.string "some div id");
+  d
+>>
+
+To ease the DOM manipulation on the client, the usual DOM manipulation
+function are also available on TyXML elements. See section the next
+section for HTML element manipulation, by value and by reference.
+
+===@@id="unique"@@ HTML element manipulation, by value and by reference
+
+There are four modules to create typed HTML:
+   <<a_api | module Eliom_content.Html.F >>,
+   <<a_api | module Eliom_content.Html.D >>,
+   <<a_api | module Eliom_content.Html.C >> and
+   <<a_api | module Eliom_content.Html.R >>.
+The last one is for reactive elements and is addressed in
+<<a_manual chapter="clientserver-html"| another section >>.
+
+It is possible to mix the four kinds of nodes in the same page.
+
+Elements built with {{{Html.F}}} are sent by value, while
+elements built with {{{Html.D}}} are sent to the client by
+reference. Eliom adds an identifier as attribute of {{{D}}} elements
+to make it possible to find them back in the page from client side.
+
+<<concept title="In short: D or F?" |
+
+* If your program is server-side only (Web site) or client-side only,
+  use module {{{F}}}.
+* If you are writing a client-server Eliom program,
+  module {{{D}}} will probably do what you expect most of the times.
+  We recommend this as the default for beginners.
+  But it will add identifiers attributes to each node.
+* If you want to avoid these identifiers when not needed,
+  use module {{{D}}} only when the node is used in an injection ({{{~%n}}}),
+  and module {{{F}}} otherwise.
+
+>>
+
+Sending elements by reference allows easy manipulation of elements
+included in the initial html document from event handlers, as the
+{{{input}}} element in the following example.
+
+<<code language="ocaml"|
+let main_service =
+  My_app.register_service
+    ~path:(Eliom_service.Path [""])
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+    (fun () () ->
+       let open Eliom_content.Html.D in
+       let input = input ~a:[a_input_type `Text] () in
+       let onclick_handler = [%client (fun _ ->
+            let v =
+              Js.to_string
+                (Eliom_content.Html.To_dom.of_input ~%input)##.value
+            in
+            Dom_html.window##alert(Js.string ("Input value :" ^ v)))
+       ] in
+       let button =
+         button ~a:[a_onclick onclick_handler] [txt "Read value"]
+       in
+       Lwt.return
+         (html
+            (head (title (txt "Test")) [])
+            (body [input; button])))
+>>
+
+In this example, if the input button would have been incorrectly sent
+by value, two different input fields would have been created: one
+displayed in the document and one referenced from the event
+handler. The latter will always contains an empty value.
+
+There are still two situations where sending elements by value is still
+required:
+
+* one want to have multiple occurences of the same elements in the
+  document. Indeed, elements sent by reference follow the DOM
+  semantics where an element have only one instance in current
+  document. For example, the following list will contains a single
+  element:\\ \\ {{{let li = li [txt "Shared item"] in ul [li; li; li;] }}}.
+
+* one have a large page with a lot elements. Handling elements by
+  references add a small overhead while loading the page, around 50ms
+  per 1000 elements on a not so fast computer.
+
+In any case, it is possible to mix elements sent by references and
+elements sent by value in the same document.
+
+
+
+By default, a reference on an element is only valid in the current
+HTTP request: hence, sending an element built with
+{{{Html.D}}} in
+two different pages will produce two distinct nodes. If you want to
+define a element reference that is preserved accross the different
+page of an application, you must explicitely name this element with
+the function <<a_api subproject="server" | val
+Eliom_content.Html.Id.create_named_elt >>, that takes as parameters an
+element identifier and a non named element.  Element identifiers are
+created with the function <<a_api subproject="server" | val
+Eliom_content.Html.Id.new_elt_id >>. See also section <<a_manual
+chapter="clientserver-applications" fragment="global" |Global elements of an
+application>>.
+
+The module <<a_api subproject="client"| module Eliom_content.Html.Manip >>
+allows using the classical DOM manipulation functions
+(e.g. appendChild, addEventlistener, ...) directly on the identifier
+of an HTML elements.
+
+
+===@@id="reactive"@@Reactive DOM
+
+{{{Eliom_content.Html.R}}} allows one to insert time-varying values
+into the DOM tree.
+It relies on React's signal {{{'a React.signal}}}. More information about react
+can be found on the [[http://erratique.ch/software/react| homepage]].
+The react nodes also use [[https://github.com/ocsigen/reactiveData|ReactiveData]],
+which allows to manipulate lists of nodes in a reactive way.
+
+When dealing with dynamic content, one usally ends up with a lot
+of imperative DOM manipulations: replacing, appending, removing DOM
+elements, updating attributes, etc. {{{Html.R}}} hides most
+of those imperative DOM operations. Every time a signal
+changes, the corresponding DOM tree updates itself.
+
+==== Usage on client side
+
+To insert reactive DOM elements, just use module {{{Html.R}}} instead of
+{{{Html.D}}} or {{{Html.F}}} for these elements.
+{{{Html.R}}} makes also possible to define reactive attributes.
+
+Use function {{{Html.R.node : 'a elt React.signal -> 'a elt}}}
+to insert a reactive node in a page.
+
+===== Example
+
+<<code language="ocaml"|
+[%%shared
+    open Eliom_lib
+    open Eliom_content
+    open Html
+    open F
+]
+
+module Reactivenodes_app =
+  Eliom_registration.App (
+  struct
+    let application_name = "reactivenodes"
+    let global_data_path = None
+  end)
+
+[%%client
+
+    open Eliom_content.Html
+
+    let split s =
+      let len = String.length s in
+      let rec aux acc = function
+        | 0 -> acc
+        | n -> aux (s.[n - 1] :: acc) (pred n)
+      in aux [] len
+
+    let value_signal, set_value = React.S.create "initial"
+
+    let value_len = React.S.map String.length value_signal
+
+    let content_signal : Html_types.div_content_fun elt React.signal =
+      React.S.map
+        (fun value ->
+           let l = split value in
+           F.div (
+             List.map (fun c -> F.p [F.txt (Printf.sprintf "%c" c)]) l
+           ))
+        value_signal
+
+    let make_color len =
+      let d = (len * 10) mod 255 in
+      Printf.sprintf "color: rgb(%d,%d,%d)" d d d
+
+    let make_client_nodes () =
+      [
+        D.p [R.txt value_signal];
+        D.p ~a:[ R.a_style (React.S.map make_color value_len)]
+          [R.txt value_signal];
+        R.node content_signal
+      ]
+
+]
+
+let make_input () =
+  let inp = D.Raw.input ~a:[a_input_type `Text] () in
+  let _ = [%client
+    (Lwt_js_events.(async (fun () ->
+       let inp = To_dom.of_input ~%inp in
+       keyups inp (fun _ _ ->
+         let s = Js.to_string (inp##.value) in
+         set_value s;
+         Lwt.return ())))
+     : unit)
+  ] in
+  inp
+
+let main_service =
+  Eliom_service.create
+    ~path:(Eliom_service.Path [])
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+    ()
+
+let () =
+  Reactivenodes_app.register
+    ~service:main_service
+    (fun () () ->
+       let inp = make_input () in
+       let cldiv = C.node [%client D.div (make_client_nodes ())] in
+       Lwt.return
+         (Eliom_tools.F.html
+            ~title:"reactivenodes"
+            ~css:[["css"; "reactivenodes.css"]]
+            (body [F.h1 [txt "Reactive DOM"];
+                   inp;
+                   F.h2 [txt "Client side reactive nodes:"];
+                   cldiv;
+                  ])
+         ))
+>>
+
+===@@id="inject"@@Dom & Client-values
+{{{Eliom_content.Html.C}}} allows one to insert client-side content
+into server-side HTML-trees. This makes possible, for example, to insert
+reactive nodes in a server-side generated page.
+
+==== Example
+
+<<code language="ocaml"|
+[%%shared
+    open Eliom_lib
+    open Eliom_content
+    open Html
+    open F
+]
+
+module Testnodes_app =
+  Eliom_registration.App (
+  struct
+    let application_name = "testnodes"
+    let global_data_path = None
+  end)
+
+let main_service =
+  Eliom_service.create
+    ~path:(Eliom_service.Path [])
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+    ()
+
+[%%client
+    open Eliom_content.Html
+    let
+      (value_signal : string React.signal),
+      set_value = React.S.create "initial"
+]
+
+let client_reactive_attrib () = [%client
+  R.a_style value_signal
+]
+
+let client_reactive_title () = [%client
+  F.h1 [txt "I'm a client node"]
+]
+
+let () =
+  Testnodes_app.register
+    ~service:main_service
+    (fun () () ->
+       Lwt.return
+         (Eliom_tools.F.html
+            ~title:"testnodes"
+            ~css:[["css"; "testnodes.css"]]
+            (body [
+               F.div ~a:[C.attr (client_reactive_attrib ())] [
+                 C.node (client_reactive_title ())
+               ]
+             ])))
+>>
+
+Module C is also available on client-side, to make it possible to use it
+in shared sections.
+
+
+===@@id="global"@@Global elements of an application
+
+Sometimes you may want to modify the content of an HTML element and to
+keep the element and its modified content when changing page. For
+example a {{{div}}} element which contains a chat box or a music
+player should be preserved while browsing across the different pages of
+your site. For this purpose, Eliom provides a notion of global element. Such
+elements are instantied only once for an application and that unique
+instance is used in every page that references the element.
+
+To create a global element, use function <<a_api
+subproject="client" text="Eliom_content.Html.Id.create_global_elt"| val
+Eliom_content.Html.Id.create_global_elt >>.
+
+<<code language="ocaml"|
+val create_global_elt: 'a elt -> 'a elt
+>>
+
+In the following example, the content of {{{global_list}}} will be
+preserved when you click on the "reload page" link.
+
+<<code language="ocaml"|
+[%%shared open Eliom_content.Html.D ]
+
+module My_app =
+  Eliom_registration.App (
+  struct
+    let application_name = "myo"
+    let global_data_path = None
+  end)
+
+
+let global_list = Eliom_content.Html.Id.create_global_elt (ul [])
+let cpt = ref 0
+
+let main_service =
+  Eliom_service.create
+    ~path:(Eliom_service.Path [""])
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+    ()
+
+let reload_link =
+  a ~service:main_service [txt "reload page"] ()
+
+let _ =
+  My_app.register ~service:main_service
+    (fun () () ->
+       let page_number = incr cpt; string_of_int !cpt in
+       let append_item = [%client
+	 let item_text = "item inserted in page #" ^ ~%page_number in
+         let item = Eliom_client.Html.of_li (li [txt item_text]) in
+         Dom.appendChild (Eliom_client.Html.of_ul ~%global_list) item
+       ]
+       in
+       let append_link =
+         a ~a:[a_onclick append_item] [txt "append item"]
+       in
+       Lwt.return
+         (html
+	    (head (title (txt "Test")) [])
+            (body [h1 [txt ("Page #" ^ page_number)];
+	           p [append_link];
+		   p [reload_link];
+		   global_list]) ) )
+>>
+
+Another use of global element is for external javascript that should
+be included in every page but must be executed only once in an
+application. In the following code snippet, the alert "global script"
+is displayed only once, while the alert "non global script" is display
+every time you click on the "reload page" link.
+
+<<code language="ocaml"|
+open Eliom_content.Html.D
+
+let global_script =
+  Eliom_content.Html.Id.create_global_elt
+    (script (cdata_script "alert(\"global script\")"))
+let simple_script =
+  script (cdata_script "alert(\"non global script\")")
+
+let main_service =
+  Eliom_service.create
+    ~path:(Eliom_service.Path [])
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+    ()
+
+let reload_link =
+  a ~service:main_service [txt "reload page"] ()
+
+let _ =
+  My_app.register ~service:main_service
+    (fun () () ->
+       Lwt.return
+         (html
+            (head
+               (title (txt "Global script example"))
+               [global_script; simple_script])
+            (body [p [reload_link]])))
+>>
+
+=== HTML syntax extension===
+
+It is possible to use regular HTML syntax using Tyxml's PPX syntax extension.
+
+See <<a_manual project="tyxml" chapter="ppx"|Tyxml's manual>>.
+
+
+===@@id="text_html"@@Text HTML===
+
+The last possibility is to use untyped HTML. Just build strings
+containing your pages. Here is an example:
+
+<<code language="ocaml"|
+let hello =
+  Eliom_registration.Html_text.create
+    ~path:(Eliom_service.Path ["hello"])
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+    (fun () () -> Lwt.return "<html>Hello</html>")
+>>
+
+Writing HTML as text makes applications much more difficult to maintain.
+We do not recommend this.
+
+
+===@@id="custom_data"@@Custom data for HTML===
+
+Eliom provides a type-safe interface for create new attributes of the form {{{data-*}}}, using  <<a_api | module Eliom_content.Html.Custom_data>>.
+
+==== Creation ====
+Custom data may be created either from string-conversation functions by <<a_api | val
+Eliom_content.Html.Custom_data.create>>
+
+<<code language="ocaml"|
+open Eliom_content
+let my_int_data =
+  Html.Custom_data.create ~name:"my_int"
+    ~of_string:int_of_string
+    ~to_string:string_of_int ()
+>>
+
+or by a Json-deriving type <<a_api | val Eliom_content.Html.Custom_data.create_json>>
+
+<<code language="ocaml"|
+[%%shared
+    type coord = { x : int; y : int; } [@@deriving json]
+    let coord_data =
+      Html.Custom_data.create_json ~name:"coord" [%derive.json: coord]
+]
+>>
+
+==== Injecting ====
+
+Custom data can be injected into HTML-trees of type <<a_api
+project="eliom"|type Eliom_content.Html.elt>> by the function <<a_api
+project="eliom"|val Eliom_content.Html.Custom_data.attrib>>:
+
+<<code language="ocaml"|
+  div ~a:[Html.Custom_data.attrib coord_data {x = 100; y = 200}] []
+>>
+
+==== Reading/writing the DOM ====
+
+On the client side, custom data can be read from and written to JavaScript DOM
+elements of type <<a_api project="js_of_ocaml"|class type Js_of_ocaml.Dom_html.element>>.
+
+Custom data can be read from a DOM-element with the function
+<<a_api subproject="client"|val Eliom_content.Html.Custom_data.get_dom>>.
+If no respective custom data attribute can be found in the element
+ * the ##default## value from creating the custom data is returned, if any, or
+ * an exception ##Not_found## is raised, otherwise.
+
+The custom data of a DOM-element can be set with the function
+<<a_api subproject="client"|val Eliom_content.Html.Custom_data.set_dom>>.
+
+<<code language="ocaml"|
+  [%client
+    fun (div : Dom_html.element Js.t) ->
+      let i = Html.Custom_data.get_dom div coord_data in
+      debug "{x=%d; y=%d}" i.x i.y;
+      Html.Custom_data.set_dom div coord_data { x = i.x + 1; y = i.y - 1 }
+  ]
+>>
+
+==== Default value ====
+If a custom data is created with the optional argument ##default##, calls to
+<<a_api subproject="client" | val
+Eliom_content.Html.Custom_data.get_dom>> return that instead of throwing an
+exception [Not_found].
+
+<<code language="ocaml"|
+  let coord_data' =
+    Html.Custom_data.create_json
+       ~name:"coord" default:{x=0;y=0;} [%derive.json: my_data]
+>>

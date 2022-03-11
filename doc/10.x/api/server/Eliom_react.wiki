@@ -1,0 +1,25 @@
+=Module <<a_api_type subproject="server" | module Eliom_react >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_react>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_react >><<span class="ocsforge_color_keyword"|end>>>>~Propagate events
+    occurrences from the server to the client and the other way
+    around~. ~Occurrence propagation is done asynchronously~.
+
+
+    ~Warning~: it is not possible to catch exceptions on each channel
+    using ~Eliom~_react ~(for example channel closed or full~)~.
+    ~If you need an error handling~, use ~Eliom~_comet~.~Channel instead~.
+
+----
+
+**~Please read the
+    <<a_manual chapter="clientserver-communication" | chapter on
+    communication >> of ~Eliom~'s manual
+    before this page to learn how client and server parts communicate~. **
+
+
+    ~The use of this module is pretty much useless without it~'s client counter
+    part~.
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Down" | module Eliom_react.Down >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_react.Down >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Event from server to client~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Up" | module Eliom_react.Up >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_react.Up >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Event from client to server~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="S" | module Eliom_react.S >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_react.S >><<span class="ocsforge_color_keyword"|end>>>>

@@ -1,0 +1,5 @@
+=Module <<a_api_type subproject="server" | module Eliom_shared.ReactiveData >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|ReactiveData>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_shared.ReactiveData >><<span class="ocsforge_color_keyword"|end>>>>~Shared implementation of ~Reactive~Data
+
+----
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="RList" | module Eliom_shared.ReactiveData.RList >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_shared.ReactiveData.RList >><<span class="ocsforge_color_keyword"|end>>>>

@@ -1,0 +1,43 @@
+=Index of module types=
+
+|@@ @style="tet-align: left;"@@\\A|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="APP"| module type Eliom_registration.APP >> ~[<<a_api subproject="server" | module Eliom_registration >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="APP_PARAM"| module type Eliom_registration_sigs.APP_PARAM >> ~[<<a_api subproject="server" | module Eliom_registration_sigs >>~]|<<div class="odocwiki_info"|~Signature for application creation~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="ARG"| module type Eliom_notif.ARG >> ~[<<a_api subproject="server" | module Eliom_notif >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|~A~R~G>> is for making <<span class="odocwiki_inlinecode"|~Make>>
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="ARG_SIMPLE"| module type Eliom_notif.ARG_SIMPLE >> ~[<<a_api subproject="server" | module Eliom_notif >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|~A~R~G~_~S~I~M~P~L~E>> is for making <<a_api subproject="server" | module Eliom_notif.Make_Simple >>
+>>
+|
+|@@ @style="tet-align: left;"@@\\H|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="HTML5_TOOLS"| module type Eliom_tools.HTML5_TOOLS >> ~[<<a_api subproject="server" | module Eliom_tools >>~]||
+|@@ @style="tet-align: left;"@@\\L|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="LINKS"| module type Eliom_form_sigs.LINKS >> ~[<<a_api subproject="server" | module Eliom_form_sigs >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="LINKS_AND_FORMS"| module type Eliom_content_sigs.LINKS_AND_FORMS >> ~[<<a_api subproject="server" | module Eliom_content_sigs >>~]||
+|@@ @style="tet-align: left;"@@\\P|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="PARAM"| module type Eliom_registration_sigs.PARAM >> ~[<<a_api subproject="server" | module Eliom_registration_sigs >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="PARAM_POLY"| module type Eliom_registration_sigs.PARAM_POLY >> ~[<<a_api subproject="server" | module Eliom_registration_sigs >>~]||
+|@@ @style="tet-align: left;"@@\\R|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="RLIST"| module type Eliom_shared_sigs.RLIST >> ~[<<a_api subproject="server" | module Eliom_shared_sigs >>~]||
+|@@ @style="tet-align: left;"@@\\S|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="S"| module type Eliom_notif.S >> ~[<<a_api subproject="server" | module Eliom_notif >>~]|<<div class="odocwiki_info"|~Signature of the functors <<span class="odocwiki_inlinecode"|~Eliom~_notif~.~Make>> and <<span class="odocwiki_inlinecode"|~Eliom~_notif~.~Make~_~Simple>>~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="S"| module type Eliom_shared_sigs.S >> ~[<<a_api subproject="server" | module Eliom_shared_sigs >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="S"| module type Eliom_service_sigs.S >> ~[<<a_api subproject="server" | module Eliom_service_sigs >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="S"| module type Eliom_registration_sigs.S >> ~[<<a_api subproject="server" | module Eliom_registration_sigs >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="S"| module type Eliom_parameter_sigs.S >> ~[<<a_api subproject="server" | module Eliom_parameter_sigs >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="S"| module type Eliom_form_sigs.S >> ~[<<a_api subproject="server" | module Eliom_form_sigs >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="S_poly"| module type Eliom_registration_sigs.S_poly >> ~[<<a_api subproject="server" | module Eliom_registration_sigs >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="S_poly_with_create"| module type Eliom_registration_sigs.S_poly_with_create >> ~[<<a_api subproject="server" | module Eliom_registration_sigs >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="S_poly_with_create_with_send"| module type Eliom_registration_sigs.S_poly_with_create_with_send >> ~[<<a_api subproject="server" | module Eliom_registration_sigs >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="S_poly_with_send"| module type Eliom_registration_sigs.S_poly_with_send >> ~[<<a_api subproject="server" | module Eliom_registration_sigs >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="S_with_create"| module type Eliom_registration_sigs.S_with_create >> ~[<<a_api subproject="server" | module Eliom_registration_sigs >>~]||
+|@@ @style="tet-align: left;"@@\\T|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="TMPL_PARAMS"| module type Eliom_registration.TMPL_PARAMS >> ~[<<a_api subproject="server" | module Eliom_registration >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="TYPES"| module type Eliom_service_sigs.TYPES >> ~[<<a_api subproject="server" | module Eliom_service_sigs >>~]||
+|@@ @style="tet-align: left;"@@\\V|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="VALUE"| module type Eliom_shared_sigs.VALUE >> ~[<<a_api subproject="server" | module Eliom_shared_sigs >>~]||
+\\

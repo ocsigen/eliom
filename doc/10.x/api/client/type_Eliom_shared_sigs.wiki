@@ -1,0 +1,171 @@
+<<code language="ocaml" | sig
+  module type VALUE =
+    sig
+      type +'a t
+      val create :
+        'a -> 'a Eliom_client_value.t -> 'a Eliom_shared_sigs.VALUE.t
+      val client : 'a Eliom_shared_sigs.VALUE.t -> 'a Eliom_client_value.t
+      val local : 'a Eliom_shared_sigs.VALUE.t -> 'a
+    end
+  module type S =
+    sig
+      type 'a t
+      type 'a sv
+      val const : 'a -> 'a Eliom_shared_sigs.S.t
+      val value : 'a Eliom_shared_sigs.S.t -> 'a Eliom_shared_sigs.S.sv
+      val map :
+        ?eq:('b -> 'b -> bool) Eliom_shared_sigs.S.sv ->
+        ('a -> 'b) Eliom_shared_sigs.S.sv ->
+        'a Eliom_shared_sigs.S.t -> 'b Eliom_shared_sigs.S.t
+      val fmap :
+        ?eq:('b -> 'b -> bool) Eliom_shared_sigs.S.sv ->
+        ('a -> 'b option) Eliom_shared_sigs.S.sv ->
+        'b Eliom_shared_sigs.S.sv ->
+        'a Eliom_shared_sigs.S.t -> 'b Eliom_shared_sigs.S.t
+      val merge :
+        ?eq:('a -> 'a -> bool) Eliom_shared_sigs.S.sv ->
+        ('a -> 'b -> 'a) Eliom_shared_sigs.S.sv ->
+        'a -> 'b Eliom_shared_sigs.S.t list -> 'a Eliom_shared_sigs.S.t
+      val l2 :
+        ?eq:('c -> 'c -> bool) Eliom_shared_sigs.S.sv ->
+        ('a -> 'b -> 'c) Eliom_shared_sigs.S.sv ->
+        'a Eliom_shared_sigs.S.t ->
+        'b Eliom_shared_sigs.S.t -> 'c Eliom_shared_sigs.S.t
+      val l3 :
+        ?eq:('d -> 'd -> bool) Eliom_shared_sigs.S.sv ->
+        ('a -> 'b -> 'c -> 'd) Eliom_shared_sigs.S.sv ->
+        'a Eliom_shared_sigs.S.t ->
+        'b Eliom_shared_sigs.S.t ->
+        'c Eliom_shared_sigs.S.t -> 'd Eliom_shared_sigs.S.t
+      val l4 :
+        ?eq:('e -> 'e -> bool) Eliom_shared_sigs.S.sv ->
+        ('a -> 'b -> 'c -> 'd -> 'e) Eliom_shared_sigs.S.sv ->
+        'a Eliom_shared_sigs.S.t ->
+        'b Eliom_shared_sigs.S.t ->
+        'c Eliom_shared_sigs.S.t ->
+        'd Eliom_shared_sigs.S.t -> 'e Eliom_shared_sigs.S.t
+      val l5 :
+        ?eq:('f -> 'f -> bool) Eliom_shared_sigs.S.sv ->
+        ('a -> 'b -> 'c -> 'd -> 'e -> 'f) Eliom_shared_sigs.S.sv ->
+        'a Eliom_shared_sigs.S.t ->
+        'b Eliom_shared_sigs.S.t ->
+        'c Eliom_shared_sigs.S.t ->
+        'd Eliom_shared_sigs.S.t ->
+        'e Eliom_shared_sigs.S.t -> 'f Eliom_shared_sigs.S.t
+      val l6 :
+        ?eq:('g -> 'g -> bool) Eliom_shared_sigs.S.sv ->
+        ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g) Eliom_shared_sigs.S.sv ->
+        'a Eliom_shared_sigs.S.t ->
+        'b Eliom_shared_sigs.S.t ->
+        'c Eliom_shared_sigs.S.t ->
+        'd Eliom_shared_sigs.S.t ->
+        'e Eliom_shared_sigs.S.t ->
+        'f Eliom_shared_sigs.S.t -> 'g Eliom_shared_sigs.S.t
+      val switch :
+        ?eq:('a -> 'a -> bool) Eliom_shared_sigs.S.sv ->
+        'a Eliom_shared_sigs.S.t Eliom_shared_sigs.S.t ->
+        'a Eliom_shared_sigs.S.t
+      module Infix :
+        sig
+          val ( >|= ) :
+            'a Eliom_shared_sigs.S.t ->
+            ('a -> 'b) Eliom_shared_sigs.S.sv -> 'b Eliom_shared_sigs.S.t
+          val ( =|< ) :
+            ('a -> 'b) Eliom_shared_sigs.S.sv ->
+            'a Eliom_shared_sigs.S.t -> 'b Eliom_shared_sigs.S.t
+        end
+      module Lwt :
+        sig
+          val map_s :
+            ?eq:('b -> 'b -> bool) Eliom_shared_sigs.S.sv ->
+            ('a -> 'b Lwt.t) Eliom_shared_sigs.S.sv ->
+            'a Eliom_shared_sigs.S.t -> 'b Eliom_shared_sigs.S.t Lwt.t
+          val l2_s :
+            ?eq:('c -> 'c -> bool) Eliom_shared_sigs.S.sv ->
+            ('a -> 'b -> 'c Lwt.t) Eliom_shared_sigs.S.sv ->
+            'a Eliom_shared_sigs.S.t ->
+            'b Eliom_shared_sigs.S.t -> 'c Eliom_shared_sigs.S.t Lwt.t
+          val l3_s :
+            ?eq:('d -> 'd -> bool) Eliom_shared_sigs.S.sv ->
+            ('a -> 'b -> 'c -> 'd Lwt.t) Eliom_shared_sigs.S.sv ->
+            'a Eliom_shared_sigs.S.t ->
+            'b Eliom_shared_sigs.S.t ->
+            'c Eliom_shared_sigs.S.t -> 'd Eliom_shared_sigs.S.t Lwt.t
+          val l4_s :
+            ?eq:('e -> 'e -> bool) Eliom_shared_sigs.S.sv ->
+            ('a -> 'b -> 'c -> 'd -> 'e Lwt.t) Eliom_shared_sigs.S.sv ->
+            'a Eliom_shared_sigs.S.t ->
+            'b Eliom_shared_sigs.S.t ->
+            'c Eliom_shared_sigs.S.t ->
+            'd Eliom_shared_sigs.S.t -> 'e Eliom_shared_sigs.S.t Lwt.t
+          val l5_s :
+            ?eq:('f -> 'f -> bool) Eliom_shared_sigs.S.sv ->
+            ('a -> 'b -> 'c -> 'd -> 'e -> 'f Lwt.t) Eliom_shared_sigs.S.sv ->
+            'a Eliom_shared_sigs.S.t ->
+            'b Eliom_shared_sigs.S.t ->
+            'c Eliom_shared_sigs.S.t ->
+            'd Eliom_shared_sigs.S.t ->
+            'e Eliom_shared_sigs.S.t -> 'f Eliom_shared_sigs.S.t Lwt.t
+          val l6_s :
+            ?eq:('g -> 'g -> bool) Eliom_shared_sigs.S.sv ->
+            ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g Lwt.t)
+            Eliom_shared_sigs.S.sv ->
+            'a Eliom_shared_sigs.S.t ->
+            'b Eliom_shared_sigs.S.t ->
+            'c Eliom_shared_sigs.S.t ->
+            'd Eliom_shared_sigs.S.t ->
+            'e Eliom_shared_sigs.S.t ->
+            'f Eliom_shared_sigs.S.t -> 'g Eliom_shared_sigs.S.t Lwt.t
+          val merge_s :
+            ?eq:('a -> 'a -> bool) Eliom_shared_sigs.S.sv ->
+            ('a -> 'b -> 'a Lwt.t) Eliom_shared_sigs.S.sv ->
+            'a ->
+            'b Eliom_shared_sigs.S.t list -> 'a Eliom_shared_sigs.S.t Lwt.t
+        end
+    end
+  module type RLIST =
+    sig
+      type 'a t
+      type 'a handle
+      type 'a signal
+      type 'a sv
+      type 'a ct
+      type 'a chandle
+      val create :
+        ?default:('a Eliom_shared_sigs.RLIST.ct *
+                  'a Eliom_shared_sigs.RLIST.chandle)
+                 option Eliom_client_value.t ->
+        ?reset_default:bool ->
+        'a list ->
+        'a Eliom_shared_sigs.RLIST.t * 'a Eliom_shared_sigs.RLIST.handle
+      val concat :
+        'a Eliom_shared_sigs.RLIST.t ->
+        'a Eliom_shared_sigs.RLIST.t -> 'a Eliom_shared_sigs.RLIST.t
+      val value :
+        'a Eliom_shared_sigs.RLIST.t -> 'a list Eliom_shared_sigs.RLIST.sv
+      val signal :
+        ?eq:('a -> 'a -> bool) Eliom_shared_sigs.RLIST.sv ->
+        'a Eliom_shared_sigs.RLIST.t ->
+        'a list Eliom_shared_sigs.RLIST.signal
+      val singleton_s :
+        'a Eliom_shared_sigs.RLIST.signal -> 'a Eliom_shared_sigs.RLIST.t
+      val map :
+        ('a -> 'b) Eliom_shared_sigs.RLIST.sv ->
+        'a Eliom_shared_sigs.RLIST.t -> 'b Eliom_shared_sigs.RLIST.t
+      val from_signal :
+        ?eq:('a -> 'a -> bool) Eliom_shared_sigs.RLIST.sv ->
+        'a list Eliom_shared_sigs.RLIST.signal ->
+        'a Eliom_shared_sigs.RLIST.t
+      val acc_e :
+        ?init:'a Eliom_shared_sigs.RLIST.t *
+              'a Eliom_shared_sigs.RLIST.handle ->
+        'a React.E.t Eliom_client_value.t -> 'a Eliom_shared_sigs.RLIST.t
+      module Lwt :
+        sig
+          val map_p :
+            ('a -> 'b Lwt.t) Eliom_shared_sigs.RLIST.sv ->
+            'a Eliom_shared_sigs.RLIST.t ->
+            'b Eliom_shared_sigs.RLIST.t Lwt.t
+        end
+    end
+end >>

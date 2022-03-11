@@ -1,0 +1,22 @@
+<<code language="ocaml" | sig
+  type 'a t
+  val create :
+    name:string ->
+    ?default:'a ->
+    to_string:('a -> string) ->
+    of_string:(string -> 'a) ->
+    unit -> 'a Eliom_content_core.Html.Custom_data.t
+  val create_json :
+    name:string ->
+    ?default:'a ->
+    'a Deriving_Json.t -> 'a Eliom_content_core.Html.Custom_data.t
+  val attrib :
+    'a Eliom_content_core.Html.Custom_data.t ->
+    'a -> [> `User_data ] Eliom_content_core.Html.attrib
+  val get_dom :
+    Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t ->
+    'a Eliom_content_core.Html.Custom_data.t -> 'a
+  val set_dom :
+    Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t ->
+    'a Eliom_content_core.Html.Custom_data.t -> 'a -> unit
+end >>

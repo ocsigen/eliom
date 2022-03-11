@@ -1,0 +1,12 @@
+<<code language="ocaml" | sig
+  type t
+  val new_configuration : unit -> Eliom_comet.Configuration.t
+  val drop_configuration : Eliom_comet.Configuration.t -> unit
+  val set_always_active : Eliom_comet.Configuration.t -> bool -> unit
+  val set_timeout : Eliom_comet.Configuration.t -> float -> unit
+  val set_active_until_timeout : Eliom_comet.Configuration.t -> bool -> unit
+  val set_time_between_requests :
+    Eliom_comet.Configuration.t -> float -> unit
+  val set_time_between_requests_when_idle :
+    Eliom_comet.Configuration.t -> float * float * float -> unit
+end >>

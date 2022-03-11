@@ -1,0 +1,22 @@
+<<code language="ocaml" | sig
+  val is_client_app : unit -> bool
+  type ('a, 'b) server_function
+  val server_function :
+    ?scope:[< Eliom_common.scope ] ->
+    ?options:unit ->
+    ?charset:string ->
+    ?code:int ->
+    ?content_type:string ->
+    ?headers:Ocsigen_header.t ->
+    ?secure_session:bool ->
+    ?name:string ->
+    ?csrf_safe:bool ->
+    ?csrf_scope:[< Eliom_common.user_scope ] ->
+    ?csrf_secure:bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    ?error_handler:((string * exn) list -> 'b Lwt.t) ->
+    'a Deriving_Json.t ->
+    ('a -> 'b Lwt.t) -> ('a, 'b) Eliom_client.server_function
+end >>

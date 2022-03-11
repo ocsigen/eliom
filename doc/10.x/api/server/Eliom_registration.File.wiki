@@ -1,0 +1,13 @@
+=Module <<a_api_type subproject="server" | module Eliom_registration.File >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|File>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_registration.File >><<span class="ocsforge_color_keyword"|end>>>>~Eliom service registration for services that returns file
+    contents~. ~The value returned by service handlers is the name of
+    the file to send~. ~See the ~Eliom manual for more information on     <<a_manual chapter="server-outputs" fragment="eliomfiles"|how to
+    send files with Eliom>>~.  ~The option is the optional
+    "~Cache~-policy~: max~-age" header value to be sent~.
+
+----
+<<pre id="VALcheck_file" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|check~_file>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|string <<span class="ocsforge_color_delimiter"| -> >> bool>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|check~_file file>> is true if <<span class="odocwiki_inlinecode"|~File~.send file>> would
+      effectively return the file ~(i~.e~. the file is present and
+      readable~)
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> <<a_api subproject="server" | module type Eliom_registration_sigs.S_with_create >>>>

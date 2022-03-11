@@ -1,0 +1,14 @@
+= Scalability of Eliom apps
+
+Here are a few hints on how to write scalable Eliom applications,
+running on multiple cores or servers.
+
+* Use an external load balancer that will route all the requests of
+a same user agent to the same server (using cookies for example).
+* Be careful with all global data (references,
+dynamically created services ...).
+* Use a distributed backend for Ocsipersist (postgresql for example), and disable persistent GC for all but one (by setting {{{<persistentsessiongcfrequency value="infinity" />}}}).
+* If you are using
+<<a_api project="eliom" subproject="server" | module Eliom_notif>> or
+<<a_api project="ocsigen-start" | module Os_notif>>,
+broadcast your notifications to all the servers.

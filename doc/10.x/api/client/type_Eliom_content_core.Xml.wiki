@@ -1,0 +1,175 @@
+<<code language="ocaml" | sig
+  module W :
+    sig
+      type 'a t = 'a
+      val return : 'a -> 'a t
+      type ('a, 'b) ft = 'a -> 'b
+      val fmap : ('a, 'b) ft -> 'a t -> 'b t
+      type 'a tlist = 'a list
+      val nil : unit -> 'a tlist
+      val singleton : 'a t -> 'a tlist
+      val cons : 'a t -> 'a tlist -> 'a tlist
+      val append : 'a tlist -> 'a tlist -> 'a tlist
+      val map : ('a, 'b) ft -> 'a tlist -> 'b tlist
+    end
+  type uri = string
+  val uri_of_string : Eliom_content_core.Xml.uri -> string
+  val string_of_uri : string -> Eliom_content_core.Xml.uri
+  val uri_of_fun : (unit -> string) -> Eliom_content_core.Xml.uri
+  type aname = string
+  type attrib
+  type caml_event_handler =
+      CE_registered_closure of string * Eliom_lib.poly
+    | CE_client_closure of
+        (Js_of_ocaml.Dom_html.event Js_of_ocaml.Js.t -> unit)
+    | CE_client_closure_mouse of
+        (Js_of_ocaml.Dom_html.mouseEvent Js_of_ocaml.Js.t -> unit)
+    | CE_client_closure_keyboard of
+        (Js_of_ocaml.Dom_html.keyboardEvent Js_of_ocaml.Js.t -> unit)
+    | CE_client_closure_touch of
+        (Js_of_ocaml.Dom_html.touchEvent Js_of_ocaml.Js.t -> unit)
+    | CE_call_service of
+        ([ `A | `Form_get | `Form_post ] * (bool * string list) option *
+         string option * Ocsigen_lib_base.poly)
+        option Eliom_lazy.request
+  type internal_event_handler =
+      Raw of string
+    | Caml of Eliom_content_core.Xml.caml_event_handler
+  type event_handler = Js_of_ocaml.Dom_html.event Js_of_ocaml.Js.t -> unit
+  type mouse_event_handler =
+      Js_of_ocaml.Dom_html.mouseEvent Js_of_ocaml.Js.t -> unit
+  type keyboard_event_handler =
+      Js_of_ocaml.Dom_html.keyboardEvent Js_of_ocaml.Js.t -> unit
+  type touch_event_handler =
+      Js_of_ocaml.Dom_html.touchEvent Js_of_ocaml.Js.t -> unit
+  type ename = string
+  type elt
+  type 'a wrap = 'a
+  type 'a list_wrap = 'a list
+  type econtent = private
+      Empty
+    | Comment of string
+    | EncodedPCDATA of string
+    | PCDATA of string
+    | Entity of string
+    | Leaf of Eliom_content_core.Xml.ename *
+        Eliom_content_core.Xml.attrib list
+    | Node of Eliom_content_core.Xml.ename *
+        Eliom_content_core.Xml.attrib list * Eliom_content_core.Xml.elt list
+  val internal_event_handler_of_service :
+    ([ `A | `Form_get | `Form_post ] * (bool * string list) option *
+     string option * Eliom_lib.poly)
+    option Eliom_lazy.request ->
+    Eliom_content_core.Xml.internal_event_handler
+  type separator = Space | Comma
+  type acontent = private
+      AFloat of float
+    | AInt of int
+    | AStr of string
+    | AStrL of Eliom_content_core.Xml.separator * string list
+  val acontent :
+    Eliom_content_core.Xml.attrib -> Eliom_content_core.Xml.acontent
+  type racontent =
+      RA of Eliom_content_core.Xml.acontent
+    | RAReact of Eliom_content_core.Xml.acontent option React.signal
+    | RACamlEventHandler of Eliom_content_core.Xml.caml_event_handler
+    | RALazyStr of string Eliom_lazy.request
+    | RALazyStrL of Eliom_content_core.Xml.separator *
+        string Eliom_lazy.request list
+    | RAClient of string * Eliom_content_core.Xml.attrib option *
+        Eliom_lib.poly
+  val racontent :
+    Eliom_content_core.Xml.attrib -> Eliom_content_core.Xml.racontent
+  val aname : Eliom_content_core.Xml.attrib -> Eliom_content_core.Xml.aname
+  val float_attrib :
+    Eliom_content_core.Xml.aname -> float -> Eliom_content_core.Xml.attrib
+  val int_attrib :
+    Eliom_content_core.Xml.aname -> int -> Eliom_content_core.Xml.attrib
+  val string_attrib :
+    Eliom_content_core.Xml.aname -> string -> Eliom_content_core.Xml.attrib
+  val space_sep_attrib :
+    Eliom_content_core.Xml.aname ->
+    string list -> Eliom_content_core.Xml.attrib
+  val comma_sep_attrib :
+    Eliom_content_core.Xml.aname ->
+    string list -> Eliom_content_core.Xml.attrib
+  val internal_event_handler_attrib :
+    Eliom_content_core.Xml.aname ->
+    Eliom_content_core.Xml.internal_event_handler ->
+    Eliom_content_core.Xml.attrib
+  val event_handler_attrib :
+    Eliom_content_core.Xml.aname ->
+    Eliom_content_core.Xml.event_handler -> Eliom_content_core.Xml.attrib
+  val mouse_event_handler_attrib :
+    Eliom_content_core.Xml.aname ->
+    Eliom_content_core.Xml.mouse_event_handler ->
+    Eliom_content_core.Xml.attrib
+  val keyboard_event_handler_attrib :
+    Eliom_content_core.Xml.aname ->
+    Eliom_content_core.Xml.keyboard_event_handler ->
+    Eliom_content_core.Xml.attrib
+  val touch_event_handler_attrib :
+    Eliom_content_core.Xml.aname ->
+    Eliom_content_core.Xml.touch_event_handler ->
+    Eliom_content_core.Xml.attrib
+  val uri_attrib :
+    Eliom_content_core.Xml.aname ->
+    Eliom_content_core.Xml.uri -> Eliom_content_core.Xml.attrib
+  val uris_attrib :
+    Eliom_content_core.Xml.aname ->
+    Eliom_content_core.Xml.uri list -> Eliom_content_core.Xml.attrib
+  val content : Eliom_content_core.Xml.elt -> Eliom_content_core.Xml.econtent
+  val pcdata : string -> Eliom_content_core.Xml.elt
+  val encodedpcdata : string -> Eliom_content_core.Xml.elt
+  val entity : string -> Eliom_content_core.Xml.elt
+  val empty : unit -> Eliom_content_core.Xml.elt
+  val comment : string -> Eliom_content_core.Xml.elt
+  val leaf :
+    ?a:Eliom_content_core.Xml.attrib list ->
+    Eliom_content_core.Xml.ename -> Eliom_content_core.Xml.elt
+  val node :
+    ?a:Eliom_content_core.Xml.attrib list ->
+    Eliom_content_core.Xml.ename ->
+    Eliom_content_core.Xml.elt list -> Eliom_content_core.Xml.elt
+  val lazy_node :
+    ?a:Eliom_content_core.Xml.attrib list ->
+    Eliom_content_core.Xml.ename ->
+    Eliom_content_core.Xml.elt list Eliom_lazy.request ->
+    Eliom_content_core.Xml.elt
+  val cdata : string -> Eliom_content_core.Xml.elt
+  val cdata_script : string -> Eliom_content_core.Xml.elt
+  val cdata_style : string -> Eliom_content_core.Xml.elt
+  type node_id = NoId | ProcessId of string | RequestId of string
+  val string_of_node_id : Eliom_content_core.Xml.node_id -> string
+  val make :
+    ?id:Eliom_content_core.Xml.node_id ->
+    Eliom_content_core.Xml.econtent -> Eliom_content_core.Xml.elt
+  val make_dom :
+    ?id:Eliom_content_core.Xml.node_id ->
+    Js_of_ocaml.Dom.node Js_of_ocaml.Js.t -> Eliom_content_core.Xml.elt
+  val make_lazy :
+    ?id:Eliom_content_core.Xml.node_id ->
+    Eliom_content_core.Xml.elt lazy_t -> Eliom_content_core.Xml.elt
+  val force_lazy : Eliom_content_core.Xml.elt -> unit
+  val make_react :
+    ?id:Eliom_content_core.Xml.node_id ->
+    Eliom_content_core.Xml.elt React.signal -> Eliom_content_core.Xml.elt
+  val make_process_node :
+    ?id:string -> Eliom_content_core.Xml.elt -> Eliom_content_core.Xml.elt
+  val make_request_node :
+    ?reset:bool -> Eliom_content_core.Xml.elt -> Eliom_content_core.Xml.elt
+  val get_node_id :
+    Eliom_content_core.Xml.elt -> Eliom_content_core.Xml.node_id
+  type node =
+      DomNode of Js_of_ocaml.Dom.node Js_of_ocaml.Js.t
+    | TyXMLNode of Eliom_content_core.Xml.econtent
+    | ReactNode of Eliom_content_core.Xml.elt React.signal
+    | ReactChildren of Eliom_content_core.Xml.econtent *
+        Eliom_content_core.Xml.elt ReactiveData.RList.t
+  val get_node : Eliom_content_core.Xml.elt -> Eliom_content_core.Xml.node
+  val set_dom_node :
+    Eliom_content_core.Xml.elt ->
+    Js_of_ocaml.Dom.node Js_of_ocaml.Js.t -> unit
+  val set_classes_of_elt :
+    Eliom_content_core.Xml.elt -> Eliom_content_core.Xml.elt
+end >>

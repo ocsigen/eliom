@@ -1,0 +1,4 @@
+=Module <<a_api_type subproject="client" | module Eliom_content.Html.Manip.Elt >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Elt>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_content.Html.Manip.Elt >><<span class="ocsforge_color_keyword"|end>>>>
+----
+<<pre id="VALbody" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|body>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> [ `Body ] <<a_api subproject="client" text="Eliom_content.Html.elt" | type Eliom_content.Html.elt >>>>>>

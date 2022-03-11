@@ -1,0 +1,8 @@
+<<code language="ocaml" | sig
+  val ( >|= ) :
+    'a Eliom_shared_sigs.S.t ->
+    ('a -> 'b) Eliom_shared_sigs.S.sv -> 'b Eliom_shared_sigs.S.t
+  val ( =|< ) :
+    ('a -> 'b) Eliom_shared_sigs.S.sv ->
+    'a Eliom_shared_sigs.S.t -> 'b Eliom_shared_sigs.S.t
+end >>

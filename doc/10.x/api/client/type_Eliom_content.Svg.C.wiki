@@ -1,0 +1,10 @@
+<<code language="ocaml" | sig
+  val node :
+    ?init:'a Eliom_content.Svg.D.elt ->
+    'a Eliom_content.Svg.elt Eliom_client_value.t ->
+    'a Eliom_content.Svg.D.elt
+  val attr :
+    ?init:'a Eliom_content.Svg.attrib ->
+    'a Eliom_content.Svg.attrib Eliom_client_value.t ->
+    'a Eliom_content.Svg.attrib
+end >>

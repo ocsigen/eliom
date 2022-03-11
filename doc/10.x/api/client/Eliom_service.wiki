@@ -1,0 +1,15 @@
+=Module <<a_api_type subproject="client" | module Eliom_service >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_service>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_service >><<span class="ocsforge_color_keyword"|end>>>>~Creation and manipulation of ~Eliom services~.
+
+
+    ~See the ~Eliom manual for a detailed introduction to the concept of
+    <<a_manual chapter="server-services"|Eliom services>> and to
+    <<a_manual chapter="clientserver-services"|client-side service implementation>>~.
+
+
+    ~The main functions about services are documented in
+    <<a_api | module Eliom_service_sigs.S >>~.
+
+----
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> <<a_api subproject="client" | module type Eliom_service_sigs.S >>>>
+<<pre id="VALset_client_fun" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|set~_client~_fun>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?app: >>string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| service: >><<span class="ocsforge_color_delimiter"| ( >>'a, 'b, 'c, 'd, 'e, 'f, 'g,\\           [< `WithSuffix | `WithoutSuffix ], 'h, 'i, 'j<<span class="ocsforge_color_delimiter"| ) >>\\          t <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>'a <<span class="ocsforge_color_delimiter"| -> >> 'b <<span class="ocsforge_color_delimiter"| -> >> result <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>><<span class="ocsforge_color_delimiter"| ) >> <<span class="ocsforge_color_delimiter"| -> >> unit>>>>

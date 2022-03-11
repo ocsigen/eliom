@@ -1,0 +1,44 @@
+=Module <<a_api_type subproject="server" | module Eliom_syntax >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_syntax>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_syntax >><<span class="ocsforge_color_keyword"|end>>>>
+----
+<<pre id="VALget_global_data" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_global~_data>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Eliom_runtime>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|global_data>>>>>><<pre id="VALget_request_data" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_request~_data>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Eliom_runtime>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|request_data>>>>>><<pre id="VALclient_value" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|client~_value>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?pos: >><<span class="ocsforge_color_uid"|Eliom_lib>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|pos>> <<span class="ocsforge_color_delimiter"| -> >> string <<span class="ocsforge_color_delimiter"| -> >> 'args <<span class="ocsforge_color_delimiter"| -> >> 'a <<a_api subproject="server" text="Eliom_client_value.t" | type Eliom_client_value.t >>>>>><<div class="odocwiki_info"|~Registers a client value datum for the next server section when
+    executed in a global~_data ~(cf~. <<a_api subproject="server" | val Eliom_syntax.set_global >>~) or in
+    the request~_data when executed in a request~.
+>>
+<<pre id="VALset_global" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|set~_global>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|bool <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|~All client values created between <<span class="odocwiki_inlinecode"|set~_global true>> and
+    <<span class="odocwiki_inlinecode"|set~_global false>> are considered global client values
+    ~(cf~. ~<~<a~_manual chapter~="clientserver~-language"
+    chapter~="clientvalues"~|the manual~>~>~)~.
+>>
+<<pre id="VALglobal_context" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|global~_context>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> bool>>>><<div class="odocwiki_info"|~Returns whether client values created in the current context
+    should be considered global
+>>
+<<pre id="VALclose_server_section" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|close~_server~_section>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|string <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|~Called at the end of each server or shared section~. ~The argument
+    identifies the compilation unit~.
+
+
+    ~Adds the list of recently registered
+    <<span class="odocwiki_inlinecode"|~Eliom~_runtime~.client~_value~_datum>>s into the queue of server
+    section data of the compilation unit
+    ~(<<span class="odocwiki_inlinecode"|~Eliom~_lib~_base~.compilation~_unit~_global~_data>>~)~.
+
+
+    ~Called in parallel with ~<~<a~_api
+    subproject~="client"~|~Eliom~_client~.~Syntax~_helpers~.close~_server~_section~>~>~.
+>>
+<<pre id="VALclose_client_section" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|close~_client~_section>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>int * <<span class="ocsforge_color_uid"|Ocsigen_lib>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|poly>> * <<span class="ocsforge_color_uid"|Eliom_lib>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|pos>> * string option<<span class="ocsforge_color_delimiter"| ) >> list <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|~Called at the end of every client or shared section~. ~The first
+    argument identifies the compilation unit~. ~The second is the list
+    of novel injections in that section~.
+
+
+    ~Adds a list of <<span class="odocwiki_inlinecode"|~Eliom~_lib~_base~.injection~_datum>>s into the queue
+    of client section data of the compilation unit
+    ~(<<span class="odocwiki_inlinecode"|~Eliom~_lib~_base~.compilation~_unit~_global~_data>>~)~.
+
+
+    ~Called in parallel with ~<~<a~_api
+    subproject~="client"~|~Eliom~_client~.~Syntax~_helpers~.open~_client~_section~>~>~.
+>>
+<<pre id="VALescaped_value" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|escaped~_value>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|'a <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Eliom_runtime>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|escaped_value>>>>>><<div class="odocwiki_info"|~Convert any value to a <<span class="odocwiki_inlinecode"|~Eliom~_runtime~.escaped~_value>> for usage
+    in the <<span class="odocwiki_inlinecode"|args>> argument to <<a_api subproject="server" | val Eliom_syntax.client_value >>~.
+>>

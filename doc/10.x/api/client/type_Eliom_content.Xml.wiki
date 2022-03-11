@@ -1,0 +1,120 @@
+<<code language="ocaml" | sig
+  module W :
+    sig
+      type 'a t = 'a
+      val return : 'a -> 'a t
+      type ('a, 'b) ft = 'a -> 'b
+      val fmap : ('a, 'b) ft -> 'a t -> 'b t
+      type 'a tlist = 'a list
+      val nil : unit -> 'a tlist
+      val singleton : 'a t -> 'a tlist
+      val cons : 'a t -> 'a tlist -> 'a tlist
+      val append : 'a tlist -> 'a tlist -> 'a tlist
+      val map : ('a, 'b) ft -> 'a tlist -> 'b tlist
+    end
+  type uri = string
+  val uri_of_string : uri -> string
+  val string_of_uri : string -> uri
+  val uri_of_fun : (unit -> string) -> uri
+  type aname = string
+  type attrib
+  type caml_event_handler =
+      CE_registered_closure of string * Eliom_lib.poly
+    | CE_client_closure of
+        (Js_of_ocaml.Dom_html.event Js_of_ocaml.Js.t -> unit)
+    | CE_client_closure_mouse of
+        (Js_of_ocaml.Dom_html.mouseEvent Js_of_ocaml.Js.t -> unit)
+    | CE_client_closure_keyboard of
+        (Js_of_ocaml.Dom_html.keyboardEvent Js_of_ocaml.Js.t -> unit)
+    | CE_client_closure_touch of
+        (Js_of_ocaml.Dom_html.touchEvent Js_of_ocaml.Js.t -> unit)
+    | CE_call_service of
+        ([ `A | `Form_get | `Form_post ] * (bool * string list) option *
+         string option * Ocsigen_lib_base.poly)
+        option Eliom_lazy.request
+  type internal_event_handler = Raw of string | Caml of caml_event_handler
+  type event_handler = Js_of_ocaml.Dom_html.event Js_of_ocaml.Js.t -> unit
+  type mouse_event_handler =
+      Js_of_ocaml.Dom_html.mouseEvent Js_of_ocaml.Js.t -> unit
+  type keyboard_event_handler =
+      Js_of_ocaml.Dom_html.keyboardEvent Js_of_ocaml.Js.t -> unit
+  type touch_event_handler =
+      Js_of_ocaml.Dom_html.touchEvent Js_of_ocaml.Js.t -> unit
+  type ename = string
+  type elt
+  type 'a wrap = 'a
+  type 'a list_wrap = 'a list
+  type econtent = private
+      Empty
+    | Comment of string
+    | EncodedPCDATA of string
+    | PCDATA of string
+    | Entity of string
+    | Leaf of ename * attrib list
+    | Node of ename * attrib list * elt list
+  val internal_event_handler_of_service :
+    ([ `A | `Form_get | `Form_post ] * (bool * string list) option *
+     string option * Eliom_lib.poly)
+    option Eliom_lazy.request -> internal_event_handler
+  type separator = Space | Comma
+  type acontent = private
+      AFloat of float
+    | AInt of int
+    | AStr of string
+    | AStrL of separator * string list
+  val acontent : attrib -> acontent
+  type racontent =
+      RA of acontent
+    | RAReact of acontent option React.signal
+    | RACamlEventHandler of caml_event_handler
+    | RALazyStr of string Eliom_lazy.request
+    | RALazyStrL of separator * string Eliom_lazy.request list
+    | RAClient of string * attrib option * Eliom_lib.poly
+  val racontent : attrib -> racontent
+  val aname : attrib -> aname
+  val float_attrib : aname -> float -> attrib
+  val int_attrib : aname -> int -> attrib
+  val string_attrib : aname -> string -> attrib
+  val space_sep_attrib : aname -> string list -> attrib
+  val comma_sep_attrib : aname -> string list -> attrib
+  val internal_event_handler_attrib :
+    aname -> internal_event_handler -> attrib
+  val event_handler_attrib : aname -> event_handler -> attrib
+  val mouse_event_handler_attrib : aname -> mouse_event_handler -> attrib
+  val keyboard_event_handler_attrib :
+    aname -> keyboard_event_handler -> attrib
+  val touch_event_handler_attrib : aname -> touch_event_handler -> attrib
+  val uri_attrib : aname -> uri -> attrib
+  val uris_attrib : aname -> uri list -> attrib
+  val content : elt -> econtent
+  val pcdata : string -> elt
+  val encodedpcdata : string -> elt
+  val entity : string -> elt
+  val empty : unit -> elt
+  val comment : string -> elt
+  val leaf : ?a:attrib list -> ename -> elt
+  val node : ?a:attrib list -> ename -> elt list -> elt
+  val lazy_node :
+    ?a:attrib list -> ename -> elt list Eliom_lazy.request -> elt
+  val cdata : string -> elt
+  val cdata_script : string -> elt
+  val cdata_style : string -> elt
+  type node_id = NoId | ProcessId of string | RequestId of string
+  val string_of_node_id : node_id -> string
+  val make : ?id:node_id -> econtent -> elt
+  val make_dom : ?id:node_id -> Js_of_ocaml.Dom.node Js_of_ocaml.Js.t -> elt
+  val make_lazy : ?id:node_id -> elt lazy_t -> elt
+  val force_lazy : elt -> unit
+  val make_react : ?id:node_id -> elt React.signal -> elt
+  val make_process_node : ?id:string -> elt -> elt
+  val make_request_node : ?reset:bool -> elt -> elt
+  val get_node_id : elt -> node_id
+  type node =
+      DomNode of Js_of_ocaml.Dom.node Js_of_ocaml.Js.t
+    | TyXMLNode of econtent
+    | ReactNode of elt React.signal
+    | ReactChildren of econtent * elt ReactiveData.RList.t
+  val get_node : elt -> node
+  val set_dom_node : elt -> Js_of_ocaml.Dom.node Js_of_ocaml.Js.t -> unit
+  val set_classes_of_elt : elt -> elt
+end >>

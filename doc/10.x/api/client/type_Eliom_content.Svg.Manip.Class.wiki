@@ -1,0 +1,11 @@
+<<code language="ocaml" | sig
+  val contain : 'a Eliom_content.Svg.elt -> string -> bool
+  val remove : 'a Eliom_content.Svg.elt -> string -> unit
+  val removes : 'a Eliom_content.Svg.elt -> string list -> unit
+  val add : 'a Eliom_content.Svg.elt -> string -> unit
+  val adds : 'a Eliom_content.Svg.elt -> string list -> unit
+  val replace : 'a Eliom_content.Svg.elt -> string -> string -> unit
+  val clear : 'a Eliom_content.Svg.elt -> unit
+  val toggle : 'a Eliom_content.Svg.elt -> string -> unit
+  val toggle2 : 'a Eliom_content.Svg.elt -> string -> string -> unit
+end >>

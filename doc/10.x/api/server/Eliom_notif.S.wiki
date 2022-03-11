@@ -1,0 +1,69 @@
+=Module type <<a_api_type subproject="server" | module type Eliom_notif.S >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module type>> <<span class="ocsforge_color_uid"|S>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module type Eliom_notif.S >><<span class="ocsforge_color_keyword"|end>>>>~Signature of the functors <<span class="odocwiki_inlinecode"|~Eliom~_notif~.~Make>> and <<span class="odocwiki_inlinecode"|~Eliom~_notif~.~Make~_~Simple>>~.
+
+
+    <<span class="odocwiki_inlinecode"|~S>> has two types of notifications ~(<<span class="odocwiki_inlinecode"|server~_notif>> and <<span class="odocwiki_inlinecode"|client~_notif>>~)
+    because we might need to serialise and deserialise the notification twice
+    ~(in case of a multi~-server set~-up~)~. ~Once for broadcasting it to other
+    servers and once for transferring it to the client ~(after possibly
+    transforming the message using information which is only locally available
+    ~(see <<span class="odocwiki_inlinecode"|prepare>> below~)~.
+
+----
+<<pre class="ocsforge_color odocwiki_code" id="TYPEidentity"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|identity>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|identity>> is the type of values used to differentiate one listener
+      from another~. ~Typically it will be a user~, but it could also for
+      instance be a chat window~.
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEkey"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|key>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|key>> is the type of values designating a given resource~.
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEserver_notif"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|server~_notif>>>><<div class="odocwiki_info"|server notification type~; ~Can be different from <<span class="odocwiki_inlinecode"|client~_notif>>~.
+>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEclient_notif"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|client~_notif>>>><<div class="odocwiki_info"|client notification type~; ~Can be different from <<span class="odocwiki_inlinecode"|server~_notif>>~.
+>>
+<<pre id="VALinit" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|init>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> unit <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|~Initialise the notification module for the current client~. ~This function
+      needs to be called before using most other functions of this module~. ~It
+      isn~'t called implicitly during module instantiation because it relies on
+      identity data which might not be available yet~.
+>>
+<<pre id="VALdeinit" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|deinit>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|~Deinitialise~/deactivate the notification module for the current client~.
+>>
+<<pre id="VALlisten" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|listen>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<a_api subproject="server" text="key" | type Eliom_notif.S.key >> <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|~Make client process listen on data whose index is <<span class="odocwiki_inlinecode"|key>>
+>>
+<<pre id="VALunlisten" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|unlisten>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<a_api subproject="server" text="key" | type Eliom_notif.S.key >> <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|~Stop listening on data <<span class="odocwiki_inlinecode"|key>>
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Ext" | module Eliom_notif.S.Ext >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_notif.S.Ext >><<span class="ocsforge_color_keyword"|end>>>><<pre id="VALnotify" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|notify>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?notfor: >>[ `Id of <<a_api subproject="server" text="identity" | type Eliom_notif.S.identity >> | `Me ] <<span class="ocsforge_color_delimiter"| -> >>\\  <<a_api subproject="server" text="key" | type Eliom_notif.S.key >> <<span class="ocsforge_color_delimiter"| -> >> <<a_api subproject="server" text="server_notif" | type Eliom_notif.S.server_notif >> <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|~Call <<span class="odocwiki_inlinecode"|notify key n>> to send a notification <<span class="odocwiki_inlinecode"|n>> to all clients currently
+      listening on data referenced by <<span class="odocwiki_inlinecode"|key>>~.
+
+
+      ~If <<span class="odocwiki_inlinecode"|~~notfor>> is <<span class="odocwiki_inlinecode"|`~Me>>~, notification will not be sent to the tab currently
+      doing the request ~(the one which caused the notification to happen~)~.
+      ~Note that if <<span class="odocwiki_inlinecode"|notify>> is called with <<span class="odocwiki_inlinecode"|~~notfor~:`~Me>> outside of a request it
+      will fail~. ~If it is <<span class="odocwiki_inlinecode"|`~Id id>> it won~'t be sent to the destination defined
+      by <<span class="odocwiki_inlinecode"|id>>~.
+>>
+<<pre id="VALclient_ev" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|client~_ev>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  unit <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >><<a_api subproject="server" text="key" | type Eliom_notif.S.key >> * <<a_api subproject="server" text="client_notif" | type Eliom_notif.S.client_notif >><<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="Eliom_react.Down.t" | type Eliom_react.Down.t >>>>>><<div class="odocwiki_info"|~Returns the client react event~.
+
+
+      <<span class="odocwiki_inlinecode"|~'a ~Eliom~_react~.~Down~.t>> ~= <<span class="odocwiki_inlinecode"|~'a ~React~.~E~.t>> on client side~.
+
+
+      ~Map a function on this event to react
+      to notifications from the server~.
+      ~For example~:
+
+
+      let~%client handle~_notification some~_stuff ev ~=
+         ~.~.~.
+
+
+      let~%server something some~_stuff ~=
+         ignore
+           <<span class="odocwiki_inlinecode"|~%client
+              ~(ignore ~(~React~.~E~.map
+                ~(handle~_notification ~~~%some~_stuff~)
+                ~~~%~(~Notif~_module~.client~_ev ~(~)~)
+              ~) ~: unit~)
+           >>
+>>
+<<pre id="VALclean" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|clean>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|~Call <<span class="odocwiki_inlinecode"|clean ~(~)>> to clear the tables from empty data~.
+>>

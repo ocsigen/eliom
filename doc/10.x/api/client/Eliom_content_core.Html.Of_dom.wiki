@@ -1,0 +1,5 @@
+=Module <<a_api_type subproject="client" | module Eliom_content_core.Html.Of_dom >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Of_dom>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Js_of_ocaml_tyxml.Tyxml_cast_sigs.OF>>>><<span class="odocwiki_type"|  with type 'a elt = 'a elt>>>>~Conversion of ~Javascript ~D~O~M elements to ~H~T~M~L~5 elts ~(with ~D~O~M semantics of course~)~.
+      ~One conversion function per source type ~(stressed by the <<span class="odocwiki_inlinecode"|of~_>> prefix~)~.
+
+----
