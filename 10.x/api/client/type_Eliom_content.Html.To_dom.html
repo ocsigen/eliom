@@ -1,0 +1,342 @@
+<html><head><title></title><meta charset="utf8"/><meta content="width=device-width, initial-scale=1" name="viewport"/><link rel="stylesheet" href="https://ocsigen.org/css/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script type="text/javascript" src="https://ocsigen.org/js/client.js">
+//<![CDATA[
+
+//]]>
+</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js">
+//<![CDATA[
+
+//]]>
+</script></head><body class="type_Eliom_content.Html.To_dom eliom"><div class="project-page"><div class="page-header"><p class="logo-ocsigen"><a href="../.././../../" class="ocsimore_phrasing_link"><img src="../.././../../img/ocsigen-white.svg" alt="Ocsigen"/></a>
+</p><p class="logo-subproject">Eliom</p><div class="mainmenu"><p class="mainmenu-home"><a href="../.././../../" class="ocsimore_phrasing_link">Home</a></p><p class="mainmenu-doc"><a href="../.././../../tuto/" class="ocsimore_phrasing_link">Doc</a></p><p class="mainmenu-current"><a href="../.././../../eliom/" class="ocsimore_phrasing_link">Eliom</a></p><p><a href="../.././../../js_of_ocaml/" class="ocsimore_phrasing_link">Js_of_ocaml</a></p><p><a href="../.././../../lwt/" class="ocsimore_phrasing_link">Lwt</a></p><p><a href="../.././../../tyxml/" class="ocsimore_phrasing_link">Tyxml</a></p><p><a href="../.././../../ocsigen-start/" class="ocsimore_phrasing_link">Start</a></p></div><form id="googlesearch" action="https://google.com/search"><input name="q" id="gsearch-box" placeholder="Search using Google"/><label for="gsearch-box"><img src="/img/search.svg" alt="" id="gsearch-icon"/></label><input type="submit" id="gsearch-submit" onclick="document.getElementById('gsearch-box').value += ' site:ocsigen.org';"/></form><aside class="how-drawer"><input id="how-drawer-toggle" type="checkbox"/><label for="how-drawer-toggle" id="how-drawer-label"><span class="how-drawer-icon"></span></label><nav class="how-drawer-content"><ul class="drawermainmenu"><li class="drawermainmenu-home"><a href="../.././../../" class="ocsimore_phrasing_link">Home</a>
+</li><li class="drawermainmenu-doc"><a href="../.././../../tuto/" class="ocsimore_phrasing_link">Doc</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../eliom/" class="ocsimore_phrasing_link">Eliom</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../js_of_ocaml/" class="ocsimore_phrasing_link">Js_of_ocaml</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../ocsigenserver/" class="ocsimore_phrasing_link">Server</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../lwt/" class="ocsimore_phrasing_link">Lwt</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../tyxml/" class="ocsimore_phrasing_link">Tyxml</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../ocsigen-toolkit/" class="ocsimore_phrasing_link">Toolkit</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../ocsigen-start/" class="ocsimore_phrasing_link">Start</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../html_of_wiki/" class="ocsimore_phrasing_link">html_of_wiki</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../deriving/" class="ocsimore_phrasing_link">deriving</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../ocsimore/" class="ocsimore_phrasing_link">Ocsimore (<em>deprecated</em>)</a>
+</li><li class="drawermainmenu-page"><a href="../.././../../projects" class="ocsimore_phrasing_link">Other projects</a>
+</li><li class="drawermainmenu-page"><a href="../.././../../papers" class="ocsimore_phrasing_link">Research papers</a>
+</li><li class="drawermainmenu-page"><a href="../.././../../credits" class="ocsimore_phrasing_link">Who does Ocsigen?</a>
+</li><li class="drawermainmenu-page"><a href="../.././../../contributing" class="ocsimore_phrasing_link">Contributing</a>
+</li><li class="drawermainmenu-page"><a href="../.././../../blog" class="ocsimore_phrasing_link">Blog</a>
+</li><li class="drawermainmenu-page"><a href="../.././../../install" class="ocsimore_phrasing_link">Installation</a>
+</li><li class="drawermainmenu-page"><a href="https://github.com/ocsigen" class="ocsimore_phrasing_link">Source code</a>
+</li></ul><nav class="how-doctree"><h1> Eliom's Reference manual</h1><h2><a href="../.././manual/intro" class="ocsimore_phrasing_link">Introduction</a></h2><h2>Server-side programming</h2><h3>Services</h3><h4><a href="../.././manual/server-services" class="ocsimore_phrasing_link">The different types of services</a></h4><h4><a href="../.././manual/server-params" class="ocsimore_phrasing_link">Typing service parameters</a></h4><h4><a href="../.././manual/server-outputs" class="ocsimore_phrasing_link">Service handlers</a></h4><h4><a href="../.././manual/server-links" class="ocsimore_phrasing_link">Creating links and forms</a></h4><h3><a href="../.././manual/server-state" class="ocsimore_phrasing_link">Sessions and server side state</a></h3><h3><a href="../.././manual/server-security" class="ocsimore_phrasing_link">Security</a></h3><h2>Client-server programming</h2><h3><a href="../.././manual/clientserver-applications" class="ocsimore_phrasing_link">Eliom applications</a></h3><h3><a href="../.././manual/clientserver-html" class="ocsimore_phrasing_link">Generating HTML</a></h3><h3><a href="../.././manual/clientserver-communication" class="ocsimore_phrasing_link">Communication</a></h3><h3><a href="../.././manual/clientserver-services" class="ocsimore_phrasing_link">Client-side services</a></h3><h3><a href="../.././manual/clientserver-react" class="ocsimore_phrasing_link">Shared reactive programming</a></h3><h3><a href="../.././manual/clientserver-cache" class="ocsimore_phrasing_link">Caching data and off-line applications</a></h3><h3><a href="../.././manual/clientserver-wrapping" class="ocsimore_phrasing_link">Custom wrapping</a></h3><h2>Workflows</h2><h3><a href="../.././manual/workflow-distillery" class="ocsimore_phrasing_link">Distillery</a></h3><h3><a href="../.././manual/mobile-apps" class="ocsimore_phrasing_link">Mobile apps</a></h3><h3><a href="../.././manual/workflow-compilation" class="ocsimore_phrasing_link">Compilation</a></h3><h3><a href="../.././manual/workflow-configuration" class="ocsimore_phrasing_link">Configuration &amp; running</a></h3><h3><a href="../.././manual/scalability" class="ocsimore_phrasing_link">Scalability</a></h3><h2>Syntax</h2><h3><a href="../.././manual/ppx-syntax" class="ocsimore_phrasing_link">PPX-based syntax</a></h3><h3><a href="../.././manual/clientserver-language" class="ocsimore_phrasing_link">Camlp4-based syntax</a></h3><h3><a href="../.././manual/ppx-migration" class="ocsimore_phrasing_link">Migration to PPX</a></h3><h1>Ppx syntax</h1><h2><a href="../.././api/ppx/Ppx_eliom" class="ocsimore_phrasing_link">Ppx_eliom</a></h2><h1>Server API</h1><h2><a href="../.././api/server/Eliom_lib" class="ocsimore_phrasing_link">Eliom_lib</a></h2><h2><a href="../.././api/server/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h2><h2><a href="../.././api/server/Eliom_client_value" class="ocsimore_phrasing_link">Eliom_client_value</a></h2><h2><a href="../.././api/server/Eliom_common" class="ocsimore_phrasing_link">Eliom_common</a></h2><h2><a href="../.././api/server/Eliom_config" class="ocsimore_phrasing_link">Eliom_config</a></h2><h2><a href="../.././api/server/Eliom_request_info" class="ocsimore_phrasing_link">Eliom_request_info</a></h2><h2><a href="../.././api/server/Eliom_reference" class="ocsimore_phrasing_link">Eliom_reference</a></h2><h2><a href="../.././api/server/Eliom_state" class="ocsimore_phrasing_link">Eliom_state</a></h2><h2>Content and form creation</h2><h3><a href="../.././api/server/Eliom_content" class="ocsimore_phrasing_link">Eliom_content</a></h3><h3><a href="../.././api/server/Eliom_content.Html" class="ocsimore_phrasing_link">Eliom_content.Html</a></h3><h3><a href="../.././api/server/Eliom_content.Svg" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href="../.././api/server/Eliom_content.Xml" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h3><a href="../.././api/server/Eliom_tools" class="ocsimore_phrasing_link">Eliom_tools</a></h3><h2>Service creation</h2><h3><a href="../.././api/server/Eliom_service" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href="../.././api/server/Eliom_parameter" class="ocsimore_phrasing_link">Eliom_parameter</a></h3><h3><a href="../.././api/server/Eliom_registration" class="ocsimore_phrasing_link">Eliom_registration</a></h3><h3><a href="../.././api/server/Eliom_registration.Html" class="ocsimore_phrasing_link">Eliom_registration.Html</a></h3><h3><a href="../.././api/server/Eliom_registration.Action" class="ocsimore_phrasing_link">Eliom_registration.Action</a></h3><h3><a href="../.././api/server/Eliom_registration.Ocaml" class="ocsimore_phrasing_link">Eliom_registration.Ocaml</a></h3><h3><a href="../.././api/server/Eliom_registration.App" class="ocsimore_phrasing_link">Eliom_registration.App</a></h3><h3><a href="../.././api/server/Eliom_registration.File" class="ocsimore_phrasing_link">Eliom_registration.File</a></h3><h3><a href="../.././api/server/Eliom_registration.Any" class="ocsimore_phrasing_link">Eliom_registration.Any</a></h3><h3><a href="../.././api/server/Eliom_registration.Redirection" class="ocsimore_phrasing_link">Eliom_registration.Redirection</a></h3><h2>Client/server communication</h2><h3><a href="../.././api/server/Eliom_shared" class="ocsimore_phrasing_link">Eliom_shared</a></h3><h3><a href="../.././api/server/Eliom_notif" class="ocsimore_phrasing_link">Eliom_notif</a></h3><h3><a href="../.././api/server/Eliom_cscache" class="ocsimore_phrasing_link">Eliom_cscache</a></h3><h3><a href="../.././api/server/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href="../.././api/server/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href="../.././api/server/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Index</h2><h3> <span><a href="../.././api/server/index_types">Index of types</a></span></h3><h3> <span><a href="../.././api/server/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href="../.././api/server/index_values">Index of values</a></span></h3><h3> <span><a href="../.././api/server/index_modules">Index of modules</a></span></h3><h3> <span><a href="../.././api/server/index_module_types">Index of module types</a></span></h3><h1>Ocamlbuild plugin</h1><h2><a href="../.././api/ocamlbuild/Ocamlbuild_eliom" class="ocsimore_phrasing_link">Ocamlbuild_eliom</a></h2><h1>Client API</h1><h2><a href="../.././api/client/Eliom_lib" class="ocsimore_phrasing_link">Eliom_lib</a></h2><h2><a href="../.././api/client/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h2><h2><a href="../.././api/client/Eliom_client_value" class="ocsimore_phrasing_link">Eliom_client_value</a></h2><h2>Content and form creation</h2><h3><a href="../.././api/client/Eliom_content.Html" class="ocsimore_phrasing_link">Eliom_content.Html</a></h3><h3><a href="../.././api/client/Eliom_content.Svg" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href="../.././api/client/Eliom_content.Xml" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h2>Client/server communication</h2><h3><a href="../.././api/client/Eliom_service" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href="../.././api/client/Eliom_shared" class="ocsimore_phrasing_link">Eliom_shared</a></h3><h3><a href="../.././api/client/Eliom_cscache" class="ocsimore_phrasing_link">Eliom_cscache</a></h3><h3><a href="../.././api/client/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href="../.././api/client/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href="../.././api/client/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Index</h2><h3> <span><a href="../.././api/client/index_types">Index of types</a></span></h3><h3> <span><a href="../.././api/client/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href="../.././api/client/index_values">Index of values</a></span></h3><h3> <span><a href="../.././api/client/index_modules">Index of modules</a></span></h3><h3> <span><a href="../.././api/client/index_module_types">Index of module types</a></span></h3></nav></nav></aside></div><p class="reasonwarning">Warning: Reason support is experimental.
+We are looking for beta-tester and contributors.
+</p><button id="reason">Switch to </button><div class="twocols"><nav class="leftcol">Version <select class="how-versions" onchange="location = this.value;"><option value="../.././../dev/api/client/type_Eliom_content.Html.To_dom">dev</option><option value="../.././../10.x/api/client/type_Eliom_content.Html.To_dom" selected="selected">10.x</option><option value="../.././../8.x/api/client/type_Eliom_content.Html.To_dom">8.x</option><option value="../.././../1.3.4/api/client/type_Eliom_content.Html.To_dom">1.3.4</option></select><nav class="how-doctree"><h1> Eliom's Reference manual</h1><h2><a href="../.././manual/intro" class="ocsimore_phrasing_link">Introduction</a></h2><h2>Server-side programming</h2><h3>Services</h3><h4><a href="../.././manual/server-services" class="ocsimore_phrasing_link">The different types of services</a></h4><h4><a href="../.././manual/server-params" class="ocsimore_phrasing_link">Typing service parameters</a></h4><h4><a href="../.././manual/server-outputs" class="ocsimore_phrasing_link">Service handlers</a></h4><h4><a href="../.././manual/server-links" class="ocsimore_phrasing_link">Creating links and forms</a></h4><h3><a href="../.././manual/server-state" class="ocsimore_phrasing_link">Sessions and server side state</a></h3><h3><a href="../.././manual/server-security" class="ocsimore_phrasing_link">Security</a></h3><h2>Client-server programming</h2><h3><a href="../.././manual/clientserver-applications" class="ocsimore_phrasing_link">Eliom applications</a></h3><h3><a href="../.././manual/clientserver-html" class="ocsimore_phrasing_link">Generating HTML</a></h3><h3><a href="../.././manual/clientserver-communication" class="ocsimore_phrasing_link">Communication</a></h3><h3><a href="../.././manual/clientserver-services" class="ocsimore_phrasing_link">Client-side services</a></h3><h3><a href="../.././manual/clientserver-react" class="ocsimore_phrasing_link">Shared reactive programming</a></h3><h3><a href="../.././manual/clientserver-cache" class="ocsimore_phrasing_link">Caching data and off-line applications</a></h3><h3><a href="../.././manual/clientserver-wrapping" class="ocsimore_phrasing_link">Custom wrapping</a></h3><h2>Workflows</h2><h3><a href="../.././manual/workflow-distillery" class="ocsimore_phrasing_link">Distillery</a></h3><h3><a href="../.././manual/mobile-apps" class="ocsimore_phrasing_link">Mobile apps</a></h3><h3><a href="../.././manual/workflow-compilation" class="ocsimore_phrasing_link">Compilation</a></h3><h3><a href="../.././manual/workflow-configuration" class="ocsimore_phrasing_link">Configuration &amp; running</a></h3><h3><a href="../.././manual/scalability" class="ocsimore_phrasing_link">Scalability</a></h3><h2>Syntax</h2><h3><a href="../.././manual/ppx-syntax" class="ocsimore_phrasing_link">PPX-based syntax</a></h3><h3><a href="../.././manual/clientserver-language" class="ocsimore_phrasing_link">Camlp4-based syntax</a></h3><h3><a href="../.././manual/ppx-migration" class="ocsimore_phrasing_link">Migration to PPX</a></h3><h1>Ppx syntax</h1><h2><a href="../.././api/ppx/Ppx_eliom" class="ocsimore_phrasing_link">Ppx_eliom</a></h2><h1>Server API</h1><h2><a href="../.././api/server/Eliom_lib" class="ocsimore_phrasing_link">Eliom_lib</a></h2><h2><a href="../.././api/server/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h2><h2><a href="../.././api/server/Eliom_client_value" class="ocsimore_phrasing_link">Eliom_client_value</a></h2><h2><a href="../.././api/server/Eliom_common" class="ocsimore_phrasing_link">Eliom_common</a></h2><h2><a href="../.././api/server/Eliom_config" class="ocsimore_phrasing_link">Eliom_config</a></h2><h2><a href="../.././api/server/Eliom_request_info" class="ocsimore_phrasing_link">Eliom_request_info</a></h2><h2><a href="../.././api/server/Eliom_reference" class="ocsimore_phrasing_link">Eliom_reference</a></h2><h2><a href="../.././api/server/Eliom_state" class="ocsimore_phrasing_link">Eliom_state</a></h2><h2>Content and form creation</h2><h3><a href="../.././api/server/Eliom_content" class="ocsimore_phrasing_link">Eliom_content</a></h3><h3><a href="../.././api/server/Eliom_content.Html" class="ocsimore_phrasing_link">Eliom_content.Html</a></h3><h3><a href="../.././api/server/Eliom_content.Svg" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href="../.././api/server/Eliom_content.Xml" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h3><a href="../.././api/server/Eliom_tools" class="ocsimore_phrasing_link">Eliom_tools</a></h3><h2>Service creation</h2><h3><a href="../.././api/server/Eliom_service" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href="../.././api/server/Eliom_parameter" class="ocsimore_phrasing_link">Eliom_parameter</a></h3><h3><a href="../.././api/server/Eliom_registration" class="ocsimore_phrasing_link">Eliom_registration</a></h3><h3><a href="../.././api/server/Eliom_registration.Html" class="ocsimore_phrasing_link">Eliom_registration.Html</a></h3><h3><a href="../.././api/server/Eliom_registration.Action" class="ocsimore_phrasing_link">Eliom_registration.Action</a></h3><h3><a href="../.././api/server/Eliom_registration.Ocaml" class="ocsimore_phrasing_link">Eliom_registration.Ocaml</a></h3><h3><a href="../.././api/server/Eliom_registration.App" class="ocsimore_phrasing_link">Eliom_registration.App</a></h3><h3><a href="../.././api/server/Eliom_registration.File" class="ocsimore_phrasing_link">Eliom_registration.File</a></h3><h3><a href="../.././api/server/Eliom_registration.Any" class="ocsimore_phrasing_link">Eliom_registration.Any</a></h3><h3><a href="../.././api/server/Eliom_registration.Redirection" class="ocsimore_phrasing_link">Eliom_registration.Redirection</a></h3><h2>Client/server communication</h2><h3><a href="../.././api/server/Eliom_shared" class="ocsimore_phrasing_link">Eliom_shared</a></h3><h3><a href="../.././api/server/Eliom_notif" class="ocsimore_phrasing_link">Eliom_notif</a></h3><h3><a href="../.././api/server/Eliom_cscache" class="ocsimore_phrasing_link">Eliom_cscache</a></h3><h3><a href="../.././api/server/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href="../.././api/server/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href="../.././api/server/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Index</h2><h3> <span><a href="../.././api/server/index_types">Index of types</a></span></h3><h3> <span><a href="../.././api/server/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href="../.././api/server/index_values">Index of values</a></span></h3><h3> <span><a href="../.././api/server/index_modules">Index of modules</a></span></h3><h3> <span><a href="../.././api/server/index_module_types">Index of module types</a></span></h3><h1>Ocamlbuild plugin</h1><h2><a href="../.././api/ocamlbuild/Ocamlbuild_eliom" class="ocsimore_phrasing_link">Ocamlbuild_eliom</a></h2><h1>Client API</h1><h2><a href="../.././api/client/Eliom_lib" class="ocsimore_phrasing_link">Eliom_lib</a></h2><h2><a href="../.././api/client/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h2><h2><a href="../.././api/client/Eliom_client_value" class="ocsimore_phrasing_link">Eliom_client_value</a></h2><h2>Content and form creation</h2><h3><a href="../.././api/client/Eliom_content.Html" class="ocsimore_phrasing_link">Eliom_content.Html</a></h3><h3><a href="../.././api/client/Eliom_content.Svg" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href="../.././api/client/Eliom_content.Xml" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h2>Client/server communication</h2><h3><a href="../.././api/client/Eliom_service" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href="../.././api/client/Eliom_shared" class="ocsimore_phrasing_link">Eliom_shared</a></h3><h3><a href="../.././api/client/Eliom_cscache" class="ocsimore_phrasing_link">Eliom_cscache</a></h3><h3><a href="../.././api/client/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href="../.././api/client/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href="../.././api/client/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Index</h2><h3> <span><a href="../.././api/client/index_types">Index of types</a></span></h3><h3> <span><a href="../.././api/client/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href="../.././api/client/index_values">Index of values</a></span></h3><h3> <span><a href="../.././api/client/index_modules">Index of modules</a></span></h3><h3> <span><a href="../.././api/client/index_module_types">Index of module types</a></span></h3></nav></nav><article class="rightcol"><pre class=""><code class="language-ocaml translatable">sig
+  type 'a elt = 'a elt
+  val of_element : 'a elt -&gt; Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_node : 'a elt -&gt; Js_of_ocaml.Dom.node Js_of_ocaml.Js.t
+  val of_pcdata :
+    [&lt; Html_types.pcdata ] elt -&gt; Js_of_ocaml.Dom.text Js_of_ocaml.Js.t
+  val of_html :
+    [&lt; Html_types.html ] elt -&gt;
+    Js_of_ocaml.Dom_html.htmlElement Js_of_ocaml.Js.t
+  val of_head :
+    [&lt; Html_types.head ] elt -&gt;
+    Js_of_ocaml.Dom_html.headElement Js_of_ocaml.Js.t
+  val of_link :
+    [&lt; Html_types.link ] elt -&gt;
+    Js_of_ocaml.Dom_html.linkElement Js_of_ocaml.Js.t
+  val of_title :
+    [&lt; Html_types.title ] elt -&gt;
+    Js_of_ocaml.Dom_html.titleElement Js_of_ocaml.Js.t
+  val of_meta :
+    [&lt; Html_types.meta ] elt -&gt;
+    Js_of_ocaml.Dom_html.metaElement Js_of_ocaml.Js.t
+  val of_base :
+    [&lt; Html_types.base ] elt -&gt;
+    Js_of_ocaml.Dom_html.baseElement Js_of_ocaml.Js.t
+  val of_style :
+    [&lt; Html_types.style ] elt -&gt;
+    Js_of_ocaml.Dom_html.styleElement Js_of_ocaml.Js.t
+  val of_body :
+    [&lt; Html_types.body ] elt -&gt;
+    Js_of_ocaml.Dom_html.bodyElement Js_of_ocaml.Js.t
+  val of_form :
+    [&lt; Html_types.form ] elt -&gt;
+    Js_of_ocaml.Dom_html.formElement Js_of_ocaml.Js.t
+  val of_optgroup :
+    [&lt; Html_types.optgroup ] elt -&gt;
+    Js_of_ocaml.Dom_html.optGroupElement Js_of_ocaml.Js.t
+  val of_option :
+    [&lt; Html_types.selectoption ] elt -&gt;
+    Js_of_ocaml.Dom_html.optionElement Js_of_ocaml.Js.t
+  val of_select :
+    [&lt; Html_types.select ] elt -&gt;
+    Js_of_ocaml.Dom_html.selectElement Js_of_ocaml.Js.t
+  val of_input :
+    [&lt; Html_types.input ] elt -&gt;
+    Js_of_ocaml.Dom_html.inputElement Js_of_ocaml.Js.t
+  val of_textarea :
+    [&lt; Html_types.textarea ] elt -&gt;
+    Js_of_ocaml.Dom_html.textAreaElement Js_of_ocaml.Js.t
+  val of_button :
+    [&lt; Html_types.button ] elt -&gt;
+    Js_of_ocaml.Dom_html.buttonElement Js_of_ocaml.Js.t
+  val of_label :
+    [&lt; Html_types.label ] elt -&gt;
+    Js_of_ocaml.Dom_html.labelElement Js_of_ocaml.Js.t
+  val of_fieldset :
+    [&lt; Html_types.fieldset ] elt -&gt;
+    Js_of_ocaml.Dom_html.fieldSetElement Js_of_ocaml.Js.t
+  val of_legend :
+    [&lt; Html_types.legend ] elt -&gt;
+    Js_of_ocaml.Dom_html.legendElement Js_of_ocaml.Js.t
+  val of_ul :
+    [&lt; Html_types.ul ] elt -&gt;
+    Js_of_ocaml.Dom_html.uListElement Js_of_ocaml.Js.t
+  val of_ol :
+    [&lt; Html_types.ol ] elt -&gt;
+    Js_of_ocaml.Dom_html.oListElement Js_of_ocaml.Js.t
+  val of_dl :
+    [&lt; Html_types.dl ] elt -&gt;
+    Js_of_ocaml.Dom_html.dListElement Js_of_ocaml.Js.t
+  val of_li :
+    [&lt; Html_types.li ] elt -&gt; Js_of_ocaml.Dom_html.liElement Js_of_ocaml.Js.t
+  val of_div :
+    [&lt; Html_types.div ] elt -&gt;
+    Js_of_ocaml.Dom_html.divElement Js_of_ocaml.Js.t
+  val of_p :
+    [&lt; Html_types.p ] elt -&gt;
+    Js_of_ocaml.Dom_html.paragraphElement Js_of_ocaml.Js.t
+  val of_heading :
+    [&lt; Html_types.heading ] elt -&gt;
+    Js_of_ocaml.Dom_html.headingElement Js_of_ocaml.Js.t
+  val of_blockquote :
+    [&lt; Html_types.blockquote ] elt -&gt;
+    Js_of_ocaml.Dom_html.quoteElement Js_of_ocaml.Js.t
+  val of_pre :
+    [&lt; Html_types.pre ] elt -&gt;
+    Js_of_ocaml.Dom_html.preElement Js_of_ocaml.Js.t
+  val of_br :
+    [&lt; Html_types.br ] elt -&gt; Js_of_ocaml.Dom_html.brElement Js_of_ocaml.Js.t
+  val of_hr :
+    [&lt; Html_types.hr ] elt -&gt; Js_of_ocaml.Dom_html.hrElement Js_of_ocaml.Js.t
+  val of_del :
+    [&lt; 'a Html_types.del ] elt -&gt;
+    Js_of_ocaml.Dom_html.modElement Js_of_ocaml.Js.t
+  val of_ins :
+    [&lt; 'a Html_types.ins ] elt -&gt;
+    Js_of_ocaml.Dom_html.modElement Js_of_ocaml.Js.t
+  val of_a :
+    [&lt; 'a Html_types.a ] elt -&gt;
+    Js_of_ocaml.Dom_html.anchorElement Js_of_ocaml.Js.t
+  val of_img :
+    [&lt; Html_types.img_interactive ] elt -&gt;
+    Js_of_ocaml.Dom_html.imageElement Js_of_ocaml.Js.t
+  val of_object :
+    [&lt; 'a Html_types.object_ ] elt -&gt;
+    Js_of_ocaml.Dom_html.objectElement Js_of_ocaml.Js.t
+  val of_param :
+    [&lt; Html_types.param ] elt -&gt;
+    Js_of_ocaml.Dom_html.paramElement Js_of_ocaml.Js.t
+  val of_area :
+    [&lt; Html_types.area ] elt -&gt;
+    Js_of_ocaml.Dom_html.areaElement Js_of_ocaml.Js.t
+  val of_map :
+    [&lt; 'a Html_types.map ] elt -&gt;
+    Js_of_ocaml.Dom_html.mapElement Js_of_ocaml.Js.t
+  val of_script :
+    [&lt; Html_types.script ] elt -&gt;
+    Js_of_ocaml.Dom_html.scriptElement Js_of_ocaml.Js.t
+  val of_td :
+    [&lt; `Td ] elt -&gt; Js_of_ocaml.Dom_html.tableCellElement Js_of_ocaml.Js.t
+  val of_tr :
+    [&lt; Html_types.tr ] elt -&gt;
+    Js_of_ocaml.Dom_html.tableRowElement Js_of_ocaml.Js.t
+  val of_col :
+    [&lt; Html_types.col ] elt -&gt;
+    Js_of_ocaml.Dom_html.tableColElement Js_of_ocaml.Js.t
+  val of_tfoot :
+    [&lt; Html_types.tfoot ] elt -&gt;
+    Js_of_ocaml.Dom_html.tableSectionElement Js_of_ocaml.Js.t
+  val of_thead :
+    [&lt; Html_types.thead ] elt -&gt;
+    Js_of_ocaml.Dom_html.tableSectionElement Js_of_ocaml.Js.t
+  val of_tbody :
+    [&lt; Html_types.tbody ] elt -&gt;
+    Js_of_ocaml.Dom_html.tableSectionElement Js_of_ocaml.Js.t
+  val of_caption :
+    [&lt; Html_types.caption ] elt -&gt;
+    Js_of_ocaml.Dom_html.tableCaptionElement Js_of_ocaml.Js.t
+  val of_table :
+    [&lt; Html_types.table ] elt -&gt;
+    Js_of_ocaml.Dom_html.tableElement Js_of_ocaml.Js.t
+  val of_canvas :
+    [&lt; 'a Html_types.canvas ] elt -&gt;
+    Js_of_ocaml.Dom_html.canvasElement Js_of_ocaml.Js.t
+  val of_iframe :
+    [&lt; Html_types.iframe ] elt -&gt;
+    Js_of_ocaml.Dom_html.iFrameElement Js_of_ocaml.Js.t
+  val of_audio :
+    [&lt; 'a Html_types.audio_interactive ] elt -&gt;
+    Js_of_ocaml.Dom_html.audioElement Js_of_ocaml.Js.t
+  val of_video :
+    [&lt; 'a Html_types.video_interactive ] elt -&gt;
+    Js_of_ocaml.Dom_html.videoElement Js_of_ocaml.Js.t
+  val of_h1 :
+    Html_types.heading elt -&gt;
+    Js_of_ocaml.Dom_html.headingElement Js_of_ocaml.Js.t
+  val of_h2 :
+    Html_types.heading elt -&gt;
+    Js_of_ocaml.Dom_html.headingElement Js_of_ocaml.Js.t
+  val of_h3 :
+    Html_types.heading elt -&gt;
+    Js_of_ocaml.Dom_html.headingElement Js_of_ocaml.Js.t
+  val of_h4 :
+    Html_types.heading elt -&gt;
+    Js_of_ocaml.Dom_html.headingElement Js_of_ocaml.Js.t
+  val of_h5 :
+    Html_types.heading elt -&gt;
+    Js_of_ocaml.Dom_html.headingElement Js_of_ocaml.Js.t
+  val of_h6 :
+    Html_types.heading elt -&gt;
+    Js_of_ocaml.Dom_html.headingElement Js_of_ocaml.Js.t
+  val of_abbr :
+    [&gt; Html_types.abbr ] elt -&gt; Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_address :
+    [&gt; Html_types.address ] elt -&gt;
+    Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_article :
+    [&gt; Html_types.article ] elt -&gt;
+    Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_aside :
+    [&gt; Html_types.aside ] elt -&gt;
+    Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_b :
+    [&gt; Html_types.b ] elt -&gt; Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_bdo :
+    [&gt; Html_types.bdo ] elt -&gt; Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_cite :
+    [&gt; Html_types.cite ] elt -&gt; Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_code :
+    [&gt; Html_types.code ] elt -&gt; Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_colgroup :
+    [&gt; Html_types.colgroup ] elt -&gt;
+    Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_command :
+    [&gt; Html_types.command ] elt -&gt;
+    Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_datalist :
+    [&gt; Html_types.datalist ] elt -&gt;
+    Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_dd :
+    [&gt; Html_types.dd ] elt -&gt; Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_details :
+    [&gt; Html_types.details ] elt -&gt;
+    Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_dfn :
+    [&gt; Html_types.dfn ] elt -&gt; Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_dt :
+    [&gt; Html_types.dt ] elt -&gt; Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_em :
+    [&gt; Html_types.em ] elt -&gt; Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_embed :
+    [&gt; Html_types.embed ] elt -&gt;
+    Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_figcaption :
+    [&gt; Html_types.figcaption ] elt -&gt;
+    Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_figure :
+    [&gt; Html_types.figure ] elt -&gt;
+    Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_footer :
+    [&gt; Html_types.footer ] elt -&gt;
+    Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_header :
+    [&gt; Html_types.header ] elt -&gt;
+    Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_hgroup :
+    [&gt; Html_types.hgroup ] elt -&gt;
+    Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_i :
+    [&gt; Html_types.i ] elt -&gt; Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_kbd :
+    [&gt; Html_types.kbd ] elt -&gt; Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_keygen :
+    [&gt; Html_types.keygen ] elt -&gt;
+    Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_main :
+    [&gt; Html_types.main ] elt -&gt; Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_mark :
+    [&gt; Html_types.mark ] elt -&gt; Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_menu :
+    [&gt; Html_types.menu ] elt -&gt; Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_meter :
+    [&gt; Html_types.meter ] elt -&gt;
+    Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_nav :
+    [&gt; Html_types.nav ] elt -&gt; Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_noscript :
+    [&gt; Html_types.noscript ] elt -&gt;
+    Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_output :
+    [&gt; Html_types.output_elt ] elt -&gt;
+    Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_progress :
+    [&gt; Html_types.progress ] elt -&gt;
+    Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_q :
+    [&gt; Html_types.q ] elt -&gt; Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_rp :
+    [&gt; Html_types.rp ] elt -&gt; Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_rt :
+    [&gt; Html_types.rt ] elt -&gt; Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_ruby :
+    [&gt; Html_types.ruby ] elt -&gt; Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_samp :
+    [&gt; Html_types.samp ] elt -&gt; Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_section :
+    [&gt; Html_types.section ] elt -&gt;
+    Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_small :
+    [&gt; Html_types.small ] elt -&gt;
+    Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_source :
+    [&gt; Html_types.source ] elt -&gt;
+    Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_span :
+    [&gt; Html_types.span ] elt -&gt; Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_strong :
+    [&gt; Html_types.strong ] elt -&gt;
+    Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_sub :
+    [&gt; Html_types.sub ] elt -&gt; Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_summary :
+    [&gt; Html_types.summary ] elt -&gt;
+    Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_sup :
+    [&gt; Html_types.sup ] elt -&gt; Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_th :
+    [&gt; Html_types.th ] elt -&gt; Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_time :
+    [&gt; Html_types.time ] elt -&gt; Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_u :
+    [&gt; Html_types.u ] elt -&gt; Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_var :
+    [&gt; Html_types.var ] elt -&gt; Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_wbr :
+    [&gt; Html_types.wbr ] elt -&gt; Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+end</code></pre></article></div></div></body></html>

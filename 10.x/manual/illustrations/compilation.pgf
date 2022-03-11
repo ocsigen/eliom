@@ -1,0 +1,21 @@
+% $ pdflatex --jobname=compilation "\documentclass{standalone}\usepackage{my-pgf}\begin{document}\input{compilation.pgf}\end{document}"
+% $ convert -density 300 compilation.pdf compilation.png
+\begin{tikzpicture}[level distance=2cm,sibling distance=8cm]
+  \begin{scope}
+    [every node/.style={font=\ttfamily,node distance=4cm},
+     every path/.style={->}]
+    \node (source) {program.eliom}
+      child { node[file] (typemli) {\_server/program.type\_mli} {
+        child[dashed] { node[file] (serverobj) {\_server/program.cmo} }
+        child[dashed] { node[file] (clientobj) {\_client/program.cmo} {
+          child[solid] { node[file] (clientprogram) {program.js}
+            edge from parent node[command,auto] {js\_of\_eliom -o}
+          }}}}};        
+  \end{scope}n
+  \begin{scope}[every path/.style={->}]
+    \draw (source) to [bend right=20] node[command,auto,swap] (eliomc) {eliomc -c} (serverobj);
+    \draw (source) to [bend left=20] node[command,auto] {js\_of\_eliom -c} (clientobj);
+    \draw (source) to node[command,auto,swap] (inferpos) {} (typemli);
+  \end{scope}
+  \draw (inferpos |- eliomc) +(0.5em,0) node [command,anchor=east] {eliomc -infer};
+\end{tikzpicture}

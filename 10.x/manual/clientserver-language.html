@@ -1,0 +1,243 @@
+<html><head><title> Eliom Camlp4 syntax extension</title><meta charset="utf8"/><meta content="width=device-width, initial-scale=1" name="viewport"/><link rel="stylesheet" href="https://ocsigen.org/css/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script type="text/javascript" src="https://ocsigen.org/js/client.js">
+//<![CDATA[
+
+//]]>
+</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js">
+//<![CDATA[
+
+//]]>
+</script></head><body class="clientserver-language eliom"><div class="project-page"><div class="page-header"><p class="logo-ocsigen"><a href=".././../../" class="ocsimore_phrasing_link"><img src=".././../../img/ocsigen-white.svg" alt="Ocsigen"/></a>
+</p><p class="logo-subproject">Eliom</p><div class="mainmenu"><p class="mainmenu-home"><a href=".././../../" class="ocsimore_phrasing_link">Home</a></p><p class="mainmenu-doc"><a href=".././../../tuto/" class="ocsimore_phrasing_link">Doc</a></p><p class="mainmenu-current"><a href=".././../../eliom/" class="ocsimore_phrasing_link">Eliom</a></p><p><a href=".././../../js_of_ocaml/" class="ocsimore_phrasing_link">Js_of_ocaml</a></p><p><a href=".././../../lwt/" class="ocsimore_phrasing_link">Lwt</a></p><p><a href=".././../../tyxml/" class="ocsimore_phrasing_link">Tyxml</a></p><p><a href=".././../../ocsigen-start/" class="ocsimore_phrasing_link">Start</a></p></div><form id="googlesearch" action="https://google.com/search"><input name="q" id="gsearch-box" placeholder="Search using Google"/><label for="gsearch-box"><img src="/img/search.svg" alt="" id="gsearch-icon"/></label><input type="submit" id="gsearch-submit" onclick="document.getElementById('gsearch-box').value += ' site:ocsigen.org';"/></form><aside class="how-drawer"><input id="how-drawer-toggle" type="checkbox"/><label for="how-drawer-toggle" id="how-drawer-label"><span class="how-drawer-icon"></span></label><nav class="how-drawer-content"><ul class="drawermainmenu"><li class="drawermainmenu-home"><a href=".././../../" class="ocsimore_phrasing_link">Home</a>
+</li><li class="drawermainmenu-doc"><a href=".././../../tuto/" class="ocsimore_phrasing_link">Doc</a>
+</li><li class="drawermainmenu-project"><a href=".././../../eliom/" class="ocsimore_phrasing_link">Eliom</a>
+</li><li class="drawermainmenu-project"><a href=".././../../js_of_ocaml/" class="ocsimore_phrasing_link">Js_of_ocaml</a>
+</li><li class="drawermainmenu-project"><a href=".././../../ocsigenserver/" class="ocsimore_phrasing_link">Server</a>
+</li><li class="drawermainmenu-project"><a href=".././../../lwt/" class="ocsimore_phrasing_link">Lwt</a>
+</li><li class="drawermainmenu-project"><a href=".././../../tyxml/" class="ocsimore_phrasing_link">Tyxml</a>
+</li><li class="drawermainmenu-project"><a href=".././../../ocsigen-toolkit/" class="ocsimore_phrasing_link">Toolkit</a>
+</li><li class="drawermainmenu-project"><a href=".././../../ocsigen-start/" class="ocsimore_phrasing_link">Start</a>
+</li><li class="drawermainmenu-project"><a href=".././../../html_of_wiki/" class="ocsimore_phrasing_link">html_of_wiki</a>
+</li><li class="drawermainmenu-project"><a href=".././../../deriving/" class="ocsimore_phrasing_link">deriving</a>
+</li><li class="drawermainmenu-project"><a href=".././../../ocsimore/" class="ocsimore_phrasing_link">Ocsimore (<em>deprecated</em>)</a>
+</li><li class="drawermainmenu-page"><a href=".././../../projects" class="ocsimore_phrasing_link">Other projects</a>
+</li><li class="drawermainmenu-page"><a href=".././../../papers" class="ocsimore_phrasing_link">Research papers</a>
+</li><li class="drawermainmenu-page"><a href=".././../../credits" class="ocsimore_phrasing_link">Who does Ocsigen?</a>
+</li><li class="drawermainmenu-page"><a href=".././../../contributing" class="ocsimore_phrasing_link">Contributing</a>
+</li><li class="drawermainmenu-page"><a href=".././../../blog" class="ocsimore_phrasing_link">Blog</a>
+</li><li class="drawermainmenu-page"><a href=".././../../install" class="ocsimore_phrasing_link">Installation</a>
+</li><li class="drawermainmenu-page"><a href="https://github.com/ocsigen" class="ocsimore_phrasing_link">Source code</a>
+</li></ul><nav class="how-doctree"><h1> Eliom's Reference manual</h1><h2><a href="intro" class="ocsimore_phrasing_link">Introduction</a></h2><h2>Server-side programming</h2><h3>Services</h3><h4><a href="server-services" class="ocsimore_phrasing_link">The different types of services</a></h4><h4><a href="server-params" class="ocsimore_phrasing_link">Typing service parameters</a></h4><h4><a href="server-outputs" class="ocsimore_phrasing_link">Service handlers</a></h4><h4><a href="server-links" class="ocsimore_phrasing_link">Creating links and forms</a></h4><h3><a href="server-state" class="ocsimore_phrasing_link">Sessions and server side state</a></h3><h3><a href="server-security" class="ocsimore_phrasing_link">Security</a></h3><h2>Client-server programming</h2><h3><a href="clientserver-applications" class="ocsimore_phrasing_link">Eliom applications</a></h3><h3><a href="clientserver-html" class="ocsimore_phrasing_link">Generating HTML</a></h3><h3><a href="clientserver-communication" class="ocsimore_phrasing_link">Communication</a></h3><h3><a href="clientserver-services" class="ocsimore_phrasing_link">Client-side services</a></h3><h3><a href="clientserver-react" class="ocsimore_phrasing_link">Shared reactive programming</a></h3><h3><a href="clientserver-cache" class="ocsimore_phrasing_link">Caching data and off-line applications</a></h3><h3><a href="clientserver-wrapping" class="ocsimore_phrasing_link">Custom wrapping</a></h3><h2>Workflows</h2><h3><a href="workflow-distillery" class="ocsimore_phrasing_link">Distillery</a></h3><h3><a href="mobile-apps" class="ocsimore_phrasing_link">Mobile apps</a></h3><h3><a href="workflow-compilation" class="ocsimore_phrasing_link">Compilation</a></h3><h3><a href="workflow-configuration" class="ocsimore_phrasing_link">Configuration &amp; running</a></h3><h3><a href="scalability" class="ocsimore_phrasing_link">Scalability</a></h3><h2>Syntax</h2><h3><a href="ppx-syntax" class="ocsimore_phrasing_link">PPX-based syntax</a></h3><h3><a href="clientserver-language" class="ocsimore_phrasing_link">Camlp4-based syntax</a></h3><h3><a href="ppx-migration" class="ocsimore_phrasing_link">Migration to PPX</a></h3><h1>Ppx syntax</h1><h2><a href=".././api/ppx/Ppx_eliom" class="ocsimore_phrasing_link">Ppx_eliom</a></h2><h1>Server API</h1><h2><a href=".././api/server/Eliom_lib" class="ocsimore_phrasing_link">Eliom_lib</a></h2><h2><a href=".././api/server/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h2><h2><a href=".././api/server/Eliom_client_value" class="ocsimore_phrasing_link">Eliom_client_value</a></h2><h2><a href=".././api/server/Eliom_common" class="ocsimore_phrasing_link">Eliom_common</a></h2><h2><a href=".././api/server/Eliom_config" class="ocsimore_phrasing_link">Eliom_config</a></h2><h2><a href=".././api/server/Eliom_request_info" class="ocsimore_phrasing_link">Eliom_request_info</a></h2><h2><a href=".././api/server/Eliom_reference" class="ocsimore_phrasing_link">Eliom_reference</a></h2><h2><a href=".././api/server/Eliom_state" class="ocsimore_phrasing_link">Eliom_state</a></h2><h2>Content and form creation</h2><h3><a href=".././api/server/Eliom_content" class="ocsimore_phrasing_link">Eliom_content</a></h3><h3><a href=".././api/server/Eliom_content.Html" class="ocsimore_phrasing_link">Eliom_content.Html</a></h3><h3><a href=".././api/server/Eliom_content.Svg" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href=".././api/server/Eliom_content.Xml" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h3><a href=".././api/server/Eliom_tools" class="ocsimore_phrasing_link">Eliom_tools</a></h3><h2>Service creation</h2><h3><a href=".././api/server/Eliom_service" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href=".././api/server/Eliom_parameter" class="ocsimore_phrasing_link">Eliom_parameter</a></h3><h3><a href=".././api/server/Eliom_registration" class="ocsimore_phrasing_link">Eliom_registration</a></h3><h3><a href=".././api/server/Eliom_registration.Html" class="ocsimore_phrasing_link">Eliom_registration.Html</a></h3><h3><a href=".././api/server/Eliom_registration.Action" class="ocsimore_phrasing_link">Eliom_registration.Action</a></h3><h3><a href=".././api/server/Eliom_registration.Ocaml" class="ocsimore_phrasing_link">Eliom_registration.Ocaml</a></h3><h3><a href=".././api/server/Eliom_registration.App" class="ocsimore_phrasing_link">Eliom_registration.App</a></h3><h3><a href=".././api/server/Eliom_registration.File" class="ocsimore_phrasing_link">Eliom_registration.File</a></h3><h3><a href=".././api/server/Eliom_registration.Any" class="ocsimore_phrasing_link">Eliom_registration.Any</a></h3><h3><a href=".././api/server/Eliom_registration.Redirection" class="ocsimore_phrasing_link">Eliom_registration.Redirection</a></h3><h2>Client/server communication</h2><h3><a href=".././api/server/Eliom_shared" class="ocsimore_phrasing_link">Eliom_shared</a></h3><h3><a href=".././api/server/Eliom_notif" class="ocsimore_phrasing_link">Eliom_notif</a></h3><h3><a href=".././api/server/Eliom_cscache" class="ocsimore_phrasing_link">Eliom_cscache</a></h3><h3><a href=".././api/server/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href=".././api/server/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href=".././api/server/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Index</h2><h3> <span><a href=".././api/server/index_types">Index of types</a></span></h3><h3> <span><a href=".././api/server/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href=".././api/server/index_values">Index of values</a></span></h3><h3> <span><a href=".././api/server/index_modules">Index of modules</a></span></h3><h3> <span><a href=".././api/server/index_module_types">Index of module types</a></span></h3><h1>Ocamlbuild plugin</h1><h2><a href=".././api/ocamlbuild/Ocamlbuild_eliom" class="ocsimore_phrasing_link">Ocamlbuild_eliom</a></h2><h1>Client API</h1><h2><a href=".././api/client/Eliom_lib" class="ocsimore_phrasing_link">Eliom_lib</a></h2><h2><a href=".././api/client/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h2><h2><a href=".././api/client/Eliom_client_value" class="ocsimore_phrasing_link">Eliom_client_value</a></h2><h2>Content and form creation</h2><h3><a href=".././api/client/Eliom_content.Html" class="ocsimore_phrasing_link">Eliom_content.Html</a></h3><h3><a href=".././api/client/Eliom_content.Svg" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href=".././api/client/Eliom_content.Xml" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h2>Client/server communication</h2><h3><a href=".././api/client/Eliom_service" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href=".././api/client/Eliom_shared" class="ocsimore_phrasing_link">Eliom_shared</a></h3><h3><a href=".././api/client/Eliom_cscache" class="ocsimore_phrasing_link">Eliom_cscache</a></h3><h3><a href=".././api/client/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href=".././api/client/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href=".././api/client/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Index</h2><h3> <span><a href=".././api/client/index_types">Index of types</a></span></h3><h3> <span><a href=".././api/client/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href=".././api/client/index_values">Index of values</a></span></h3><h3> <span><a href=".././api/client/index_modules">Index of modules</a></span></h3><h3> <span><a href=".././api/client/index_module_types">Index of module types</a></span></h3></nav></nav></aside></div><p class="reasonwarning">Warning: Reason support is experimental.
+We are looking for beta-tester and contributors.
+</p><button id="reason">Switch to </button><div class="twocols"><nav class="leftcol">Version <select class="how-versions" onchange="location = this.value;"><option value=".././../dev/manual/clientserver-language">dev</option><option value=".././../10.x/manual/clientserver-language" selected="selected">10.x</option><option value=".././../8.x/manual/clientserver-language">8.x</option><option value=".././../1.3.4/manual/clientserver-language">1.3.4</option></select><nav class="how-doctree"><h1> Eliom's Reference manual</h1><h2><a href="intro" class="ocsimore_phrasing_link">Introduction</a></h2><h2>Server-side programming</h2><h3>Services</h3><h4><a href="server-services" class="ocsimore_phrasing_link">The different types of services</a></h4><h4><a href="server-params" class="ocsimore_phrasing_link">Typing service parameters</a></h4><h4><a href="server-outputs" class="ocsimore_phrasing_link">Service handlers</a></h4><h4><a href="server-links" class="ocsimore_phrasing_link">Creating links and forms</a></h4><h3><a href="server-state" class="ocsimore_phrasing_link">Sessions and server side state</a></h3><h3><a href="server-security" class="ocsimore_phrasing_link">Security</a></h3><h2>Client-server programming</h2><h3><a href="clientserver-applications" class="ocsimore_phrasing_link">Eliom applications</a></h3><h3><a href="clientserver-html" class="ocsimore_phrasing_link">Generating HTML</a></h3><h3><a href="clientserver-communication" class="ocsimore_phrasing_link">Communication</a></h3><h3><a href="clientserver-services" class="ocsimore_phrasing_link">Client-side services</a></h3><h3><a href="clientserver-react" class="ocsimore_phrasing_link">Shared reactive programming</a></h3><h3><a href="clientserver-cache" class="ocsimore_phrasing_link">Caching data and off-line applications</a></h3><h3><a href="clientserver-wrapping" class="ocsimore_phrasing_link">Custom wrapping</a></h3><h2>Workflows</h2><h3><a href="workflow-distillery" class="ocsimore_phrasing_link">Distillery</a></h3><h3><a href="mobile-apps" class="ocsimore_phrasing_link">Mobile apps</a></h3><h3><a href="workflow-compilation" class="ocsimore_phrasing_link">Compilation</a></h3><h3><a href="workflow-configuration" class="ocsimore_phrasing_link">Configuration &amp; running</a></h3><h3><a href="scalability" class="ocsimore_phrasing_link">Scalability</a></h3><h2>Syntax</h2><h3><a href="ppx-syntax" class="ocsimore_phrasing_link">PPX-based syntax</a></h3><h3><a href="clientserver-language" class="ocsimore_phrasing_link">Camlp4-based syntax</a></h3><h3><a href="ppx-migration" class="ocsimore_phrasing_link">Migration to PPX</a></h3><h1>Ppx syntax</h1><h2><a href=".././api/ppx/Ppx_eliom" class="ocsimore_phrasing_link">Ppx_eliom</a></h2><h1>Server API</h1><h2><a href=".././api/server/Eliom_lib" class="ocsimore_phrasing_link">Eliom_lib</a></h2><h2><a href=".././api/server/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h2><h2><a href=".././api/server/Eliom_client_value" class="ocsimore_phrasing_link">Eliom_client_value</a></h2><h2><a href=".././api/server/Eliom_common" class="ocsimore_phrasing_link">Eliom_common</a></h2><h2><a href=".././api/server/Eliom_config" class="ocsimore_phrasing_link">Eliom_config</a></h2><h2><a href=".././api/server/Eliom_request_info" class="ocsimore_phrasing_link">Eliom_request_info</a></h2><h2><a href=".././api/server/Eliom_reference" class="ocsimore_phrasing_link">Eliom_reference</a></h2><h2><a href=".././api/server/Eliom_state" class="ocsimore_phrasing_link">Eliom_state</a></h2><h2>Content and form creation</h2><h3><a href=".././api/server/Eliom_content" class="ocsimore_phrasing_link">Eliom_content</a></h3><h3><a href=".././api/server/Eliom_content.Html" class="ocsimore_phrasing_link">Eliom_content.Html</a></h3><h3><a href=".././api/server/Eliom_content.Svg" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href=".././api/server/Eliom_content.Xml" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h3><a href=".././api/server/Eliom_tools" class="ocsimore_phrasing_link">Eliom_tools</a></h3><h2>Service creation</h2><h3><a href=".././api/server/Eliom_service" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href=".././api/server/Eliom_parameter" class="ocsimore_phrasing_link">Eliom_parameter</a></h3><h3><a href=".././api/server/Eliom_registration" class="ocsimore_phrasing_link">Eliom_registration</a></h3><h3><a href=".././api/server/Eliom_registration.Html" class="ocsimore_phrasing_link">Eliom_registration.Html</a></h3><h3><a href=".././api/server/Eliom_registration.Action" class="ocsimore_phrasing_link">Eliom_registration.Action</a></h3><h3><a href=".././api/server/Eliom_registration.Ocaml" class="ocsimore_phrasing_link">Eliom_registration.Ocaml</a></h3><h3><a href=".././api/server/Eliom_registration.App" class="ocsimore_phrasing_link">Eliom_registration.App</a></h3><h3><a href=".././api/server/Eliom_registration.File" class="ocsimore_phrasing_link">Eliom_registration.File</a></h3><h3><a href=".././api/server/Eliom_registration.Any" class="ocsimore_phrasing_link">Eliom_registration.Any</a></h3><h3><a href=".././api/server/Eliom_registration.Redirection" class="ocsimore_phrasing_link">Eliom_registration.Redirection</a></h3><h2>Client/server communication</h2><h3><a href=".././api/server/Eliom_shared" class="ocsimore_phrasing_link">Eliom_shared</a></h3><h3><a href=".././api/server/Eliom_notif" class="ocsimore_phrasing_link">Eliom_notif</a></h3><h3><a href=".././api/server/Eliom_cscache" class="ocsimore_phrasing_link">Eliom_cscache</a></h3><h3><a href=".././api/server/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href=".././api/server/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href=".././api/server/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Index</h2><h3> <span><a href=".././api/server/index_types">Index of types</a></span></h3><h3> <span><a href=".././api/server/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href=".././api/server/index_values">Index of values</a></span></h3><h3> <span><a href=".././api/server/index_modules">Index of modules</a></span></h3><h3> <span><a href=".././api/server/index_module_types">Index of module types</a></span></h3><h1>Ocamlbuild plugin</h1><h2><a href=".././api/ocamlbuild/Ocamlbuild_eliom" class="ocsimore_phrasing_link">Ocamlbuild_eliom</a></h2><h1>Client API</h1><h2><a href=".././api/client/Eliom_lib" class="ocsimore_phrasing_link">Eliom_lib</a></h2><h2><a href=".././api/client/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h2><h2><a href=".././api/client/Eliom_client_value" class="ocsimore_phrasing_link">Eliom_client_value</a></h2><h2>Content and form creation</h2><h3><a href=".././api/client/Eliom_content.Html" class="ocsimore_phrasing_link">Eliom_content.Html</a></h3><h3><a href=".././api/client/Eliom_content.Svg" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href=".././api/client/Eliom_content.Xml" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h2>Client/server communication</h2><h3><a href=".././api/client/Eliom_service" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href=".././api/client/Eliom_shared" class="ocsimore_phrasing_link">Eliom_shared</a></h3><h3><a href=".././api/client/Eliom_cscache" class="ocsimore_phrasing_link">Eliom_cscache</a></h3><h3><a href=".././api/client/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href=".././api/client/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href=".././api/client/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Index</h2><h3> <span><a href=".././api/client/index_types">Index of types</a></span></h3><h3> <span><a href=".././api/client/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href=".././api/client/index_values">Index of values</a></span></h3><h3> <span><a href=".././api/client/index_modules">Index of modules</a></span></h3><h3> <span><a href=".././api/client/index_module_types">Index of module types</a></span></h3></nav></nav><article class="rightcol"><h1> Eliom Camlp4 syntax extension</h1><p>Eliom uses syntax extensions to make the development of client-server
+applications easier.
+</p><p>In order to use these syntax extensions, use the file extension <span class="teletype">.eliom</span>
+for the implementation and <span class="teletype">.eliomi</span> for the corresponding interface.
+By using this naming conventions, <span class="teletype">eliomc</span> and <span class="teletype">js_of_eliom</span>
+will use Eliom's syntax extension automatically.
+</p><p>We provide two different syntax extensions,
+<span><a href=".././manual/ppx-syntax">one based on PPX</a></span>
+(which we recommend) and an older one based on Camlp4. This manual
+page documents our Camlp4 syntax extension.
+</p><div id="overview" class="ocsimore_outline"><header><p><strong>Table of contents</strong></p></header></div><script>
+//<![CDATA[
+window.addEventListener("load", function(){ outline([0,-515484383,0,[0,2],[0,"nav",[0,"aside",0]],"overview",1]); }, false); 
+//]]>
+</script><h2> Server, client, and shared-sections</h2><p>Server, client, and shared-sections make possible
+to write the code of the server and client parts in the same
+source file, and also to defined sections of the code that are common
+to the two sides.
+Some special brackets make possible to distinguish between
+client and server code:
+</p><pre class=""><code class="language-ocaml translatable">{server{
+  ...
+}}</code></pre><p>or no brackets for <em>server side code</em>,
+</p><pre class=""><code class="language-ocaml translatable">{client{
+  ...
+}}</code></pre><p>for <em>client side code</em>, and
+</p><pre class=""><code class="language-ocaml translatable">{shared{
+  ...
+}}</code></pre><p>for some code that is <em>common to client and server parts</em>.
+</p><p>This means that the corresponding sections are compiled only for the
+server and/or the client program.
+</p><h2> Injecting server values into the client code</h2><p>Structuring the source code of your application into client and
+server sections wouldn't be of much use as-is; we need a way
+to exchange data between these parts in a way which reflects the
+asymmetries between the client and the server parts, i.e. that the
+client program is sent and initialized by the server program.
+</p><p>Thus, to ease the direct exchange of values between server and client,
+it is possible to access any server-side, top-level variable in a
+subsequent client section by just prefixing it with a %-sign. This is
+called <em>injecting</em> a server value into the client:
+</p><pre class=""><code class="language-ocaml translatable">{server{
+  let v = Random.int 100
+}}
+{client{
+  ... %v ... (* Usage of server side [v] on the client /
+                injection of [v] *)
+}}</code></pre><p>The server side value is injected once and for all when the page is sent
+for the first time. There is no automatic request to the server when the
+client tries to access this value. In particular, if the server side
+value is mutable, a copy is sent to the client.
+</p><h2> Server side client values</h2><p>On the other hand, it is possible to declare and deal with
+arbitrary client values in the server program. Those are just
+arbitrary expressions of client-side code declared inside double curly
+braces:
+</p><pre class=""><code class="language-ocaml translatable">{server{
+  ... {typ{ expr }} ...
+}}</code></pre><p>If <span class="teletype">expr</span> has type <span class="teletype">typ</span> on the client, the resulting client
+value has the type <span class="teletype">typ client_value</span> which is <em>abstract on the
+server</em>. But once it is sent to the client, it evaluates to the value
+of <span class="teletype">expr</span> having type <span class="teletype">typ</span>.
+</p><p>In some cases where inference is not sufficient, <span class="teletype">eliomc</span> will emit
+a warning indicating than this type annotation is needed.
+</p><h4> Injections</h4><p>Again, variables from the context of the client value may be injected
+to it by prefixing them with a %-sign. It is for example possible to
+inject a parameter into a request client value:
+</p><pre class=""><code class="language-ocaml translatable">{server{
+  let () = My_app.create
+    ~path:(Eliom_service.Path path)
+    ~meth:(Eliom_service.Get (Eliom_parameter.string &quot;name&quot;))
+    (fun name () -&gt;
+       ignore {unit{ Eliom_lib.alert &quot;Hello %s!&quot; %name }};
+       Lwt.return html)
+}}</code></pre><p>The pattern used in this example is very common to ask the client-side
+program to execute a piece of code after receiving the page.
+</p><h4 id="evaluation"> Evaluation <a class="backref" href="#evaluation">&#182;</a></h4><p>Server side client values may occur in a <em>request</em> position,
+i.e. they are created during the processing of a request:
+</p><pre class=""><code class="language-ocaml translatable">let _ =
+    My_app.create
+      ~path:(Eliom_service.Path path)
+      ~meth:(Eliom_service.Get get_params)
+      (fun _ _ -&gt;
+         let v = {Js.string{ Js.string &quot;another client side string&quot; }} in
+         Lwt.return html)</code></pre><p>Or they occur either in a <em>global position</em>, i.e. they are created
+while launching the server:
+</p><pre class=""><code class="language-ocaml translatable">{server{
+  let v = {Js.string{ Js.string &quot;a client side string&quot; }}
+}}</code></pre><p>All global client values are sent with the initial request of a client
+process.  They are evaluated during the initialization of the client
+program, i.e. <em>before</em> setting up the document. This is necessary
+in order to safely inject them into the next client-section.
+</p><p>Thus, if you want to refer to the DOM in global client values (e.g. by
+injecting variables holding HTML-elements) you must be sure to delay
+this by using <span><a href=".././api/client/Eliom_client#VALonload">Eliom_client.onload</a></span>.
+</p><p>Request client values, however, are sent with the next response to the
+client and evaluated <em>after</em> setting up the (possibly) sent document.
+</p><h4> Sending client values</h4><p>There are several ways how a server side client value can be sent
+to the client, accessing its concrete value.  Firstly, the most basic
+one is by just injecting it to another client value:
+</p><pre class=""><code class="language-ocaml translatable">{server{
+  let _ =
+    My_app.create
+      ~path:(Eliom_service.Path path)
+      ~meth:(Eliom_service.Get get_params)
+      (fun _ _ -&gt;
+         let v = {int{ 42 }} in (* v is abstract *)
+         ignore {unit{
+           Eliom_lib.alert &quot;It's %i!&quot; %v (* %v is 42 here ! *)
+         }};
+         Lwt.return html</code></pre><p>In the above example, first a client value <span class="teletype">v</span> (with the abstract
+type <span class="teletype">int client_value</span>) is declared. Then a second client of type
+<span class="teletype">unit</span> value is created. The injection <span class="teletype">%v</span> has then the concrete
+value <span class="teletype">42</span>.
+</p><p>Here, the second client value is ignored; however, it will be
+evaluated on client side, executing the side effect, just because
+it has been created. A very neat way to do client side programming
+inside the service handler!
+</p><p>Secondly, client values of type <span class="teletype">(Dom_html.event Js.t -&gt; unit) client_value</span>
+can be used as event handler in the construction of Eliom HTML
+elements:
+</p><pre class=""><code class="language-ocaml translatable">{server{
+  let service_handler get post =
+    let onclick = {{ fun ev -&gt; Eliom_lib.alert &quot;Thanks.&quot; }} in
+    let div = div ~a:[a_onclick onclick] [txt &quot;Click me!&quot;] in
+    Lwt.return (html head [div])
+}}</code></pre><p>Note here, how the type annotation of a client value can be omitted if
+the type of the client value is inferable from <em>its usage in the server code</em>
+(as the argument to <span class="teletype">on_click</span> in the example).
+</p><p>Thirdly, global client values can also be injected into the client
+section.
+</p><h2> Restrictions to injections into the client values/sections</h2><p>It is not possible to send values containing closures that way.
+There are two executables: one server-side, and one client-side,
+and closures just contain a pointer to the code.
+Extra code is never sent dynamically over the network.
+This means that unforced lazy values, objects, or
+anything containing functions can't be sent.
+Functions must be defined on the side(s) where they will run.
+Most of the time, you can do all you want by using client values or
+server functions.
+Some Eliom types use a
+specific mechanism to circumvent this limitation. This is the case for
+services, comet channels, and buses. To use this mechanism see chapter
+<span><a href=".././manual/clientserver-wrapping">Wrapping values</a></span>.
+</p><p>Those values are typechecked &quot;by name&quot;: the most general type of a variable is
+inferred for server side then use as a type constraint on client side.
+For instance
+</p><pre class=""><code class="language-ocaml translatable">let value = (... : t) in
+let v = {typ{ ... %value ... }}</code></pre><p>can be read as
+</p><pre class=""><code class="language-ocaml translatable">let value = (... : t) in
+let v = {typ{ ... (%value: t) ... }}</code></pre><p>As client and server code are compiled separately, this means that a code like
+the following would be incorrect but would typecheck.
+</p><pre class=""><code class="language-ocaml translatable">type a = A of int
+{client{ type a = A of string }}
+let value = A 1 in
+let v = {{ match %value with A s -&gt; Dom_html.window##alert(Js.string s) }}</code></pre><p>Note that for some reason, it is impossible to use the <span class="teletype"> {...{ }} </span> and
+<span class="teletype"> {{ }} </span> syntax inside a module. For <span class="teletype"> {{ }} </span> you can usually
+circumvent this limitation by declaring a function at toplevel with all the
+<span class="teletype">%variable</span> as parameters.
+</p><h2 id="implementation"> Technical Documentation: Implementation of the language extensions <a class="backref" href="#implementation">&#182;</a></h2><p><em>Do not read this section if you do not feel the urge to
+dive into the implementation details of Eliom, or if you have a
+weak stomach!</em>
+</p><p>This sections gives some details on the implementation of the language
+extensions in Eliom.  To investigate this
+in more detail, it is advisable to dump the source code for the server
+or client program with with <span class="monospace">eliomc -c -infer</span> or <span class="monospace">js_of_eliom -c -infer</span>
+respectively, and to refer to the API of the generated
+functions in <span class="monospace">Eliom_syntax</span> on the server
+and <span class="monospace">Eliom_client.Syntax_helpers</span> on the client.
+</p><h3> Client values</h3><p>For each occurrence of a client value <span class="monospace">{typ{ exp }}</span> with injected
+variables <span class="monospace">v_1</span>, ..., <span class="monospace">v_n</span> in the source code, i.e. static
+occurrence, at a location <span class="monospace">p</span>, the syntax extension registers
+with <span class="monospace">p</span> as the closure ID a function
+</p><pre class=""><code class="language-ocaml translatable">fun (v'_1, ..., v'_n) -&gt; exp'</code></pre><p>where <span class="monospace">exp'</span> is <span class="monospace">exp</span> with occurrences of <span class="monospace">%v_i</span> replaced
+by <span class="monospace">v'_i</span> where all <span class="monospace">v'_i</span> are free in <span class="monospace">exp</span>.
+</p><p>When a client value is then created dynamically, a client closure
+is registered to be sent to the client.
+It contains the closure ID, an instance ID (unique per client value), and
+the tuple of injected values (sometimes known as <span class="monospace">args</span>).
+</p><p>On the client side, that client value datum will be used to register
+an actual client value: A client closure is obtained by the specific
+closure ID, and it is applied on the tuple of injected
+values. Finally, the result is registered in a client value table for
+that specific closure ID and instance ID.
+</p><p>The representation of a client value on the server side is
+comprised just of the respective closure ID, and the instance
+ID. When it reaches the client, it is unwrapped to the concrete
+value by looking it up in the client value table mentioned before.
+</p><h3> Injections</h3><p>The usage of an injection registers the value under a specific
+identifier on the server side. All injections are sent to the client
+with the initial request as a table mapping those identifiers to
+(untyped) values.
+</p><p>On the client-side, at the beginning of each client/shared
+section, all novel injections are registered in a global table of
+injections. This must be done post-hoc because client values are
+unwrapped late.
+</p><p>The syntax extensions then generates for an injection just a lookup in
+that global table for its identifier. Type constraints are generated
+from the syntax extension.</p></article></div></div></body></html>
