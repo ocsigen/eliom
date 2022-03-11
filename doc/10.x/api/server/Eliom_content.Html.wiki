@@ -1,0 +1,30 @@
+=Module <<a_api_type subproject="server" | module Eliom_content.Html >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Html>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_content.Html >><<span class="ocsforge_color_keyword"|end>>>>~Building and printing valid ~H~T~M~L~5 tree~.
+    ~Information about ~Html api can be found at
+    <<a_api project="tyxml" | module Html_sigs.T >>  ~.
+
+----
+
+~See <<a_manual
+      chapter="clientserver-html" fragment="unique"|
+      more information on dom semantics vs. functional
+      semantics>>  in ~Eliom~'s manual
+      for ~H~T~M~L~5 tree manipulated by client~/server application~.
+<<pre class="ocsforge_color odocwiki_code" id="TYPEelt"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|+'a>> <<span class="odocwiki_name"|elt>>>><<pre class="ocsforge_color odocwiki_code" id="TYPEattrib"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|+'a>> <<span class="odocwiki_name"|attrib>>>><<pre class="ocsforge_color odocwiki_code" id="TYPEuri"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|uri>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Eliom_content>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Xml>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|uri>>>> >><<pre class="ocsforge_color odocwiki_code" id="TYPEform_param"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|'a>> <<span class="odocwiki_name"|form~_param>>>><<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="F" | module Eliom_content.Html.F >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_content.Html.F >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Creation of **~F**unctional ~H~T~M~L~5 content ~(copy~-able but not
+      referable~, see also <<a_api|module Eliom_content>> ~)~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="D" | module Eliom_content.Html.D >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_content.Html.D >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Creation of ~H~T~M~L content with **~D**~O~M semantics ~(referable~, see
+      also <<a_api|module Eliom_content>> ~)~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="C" | module Eliom_content.Html.C >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_content.Html.C >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Creation of ~H~T~M~L content from client~-side values~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Id" | module Eliom_content.Html.Id >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_content.Html.Id >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Node identifiers
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="R" | module Eliom_content.Html.R >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_content.Html.R >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Creation of ~H~T~M~L content from shared reactive signals and data
+      ~(<<a_api project="eliom" subproject="server"|module Eliom_shared>> ~)~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Custom_data" | module Eliom_content.Html.Custom_data >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_content.Html.Custom_data >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Type~-safe custom data for ~H~T~M~L~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Printer" | module Eliom_content.Html.Printer >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Xml_sigs.Typed_pp>>>><<span class="odocwiki_type"|  with type +'a elt := 'a elt and type doc := F.doc>>>><<div class="odocwiki_info"|[[http://dev.w3.org/html5/html-xhtml-author-guide/|"~Polyglot"]]
+      ~H~T~M~L printer~.
+>>

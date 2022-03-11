@@ -1,0 +1,27 @@
+=Module <<a_api_type subproject="client" | module Eliom_shared >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_shared>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_shared >><<span class="ocsforge_color_keyword"|end>>>>~This module implements shared ~(i~.e~.~, client~-server~) versions of
+    the ~React and ~Reactive~Data libraries~.
+
+
+    ~Client~-side signals and data are type~-wise and behavior~-wise
+    equivalent to those provided by the underlying ~React and
+    ~Reactive~Data libraries~. ~Thus~, all the operations from ~React and
+    ~Reactive~Data apply~. ~We provide extended versions of these
+    libraries~.
+
+----
+<<pre id="VALto_signal" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|to~_signal>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| init: >>'a <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?eq: >><<span class="ocsforge_color_delimiter"| ( >>'a <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_delimiter"| -> >> bool<<span class="ocsforge_color_delimiter"| ) >> <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_uid"|React>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|S>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>> <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>> <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_uid"|React>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|S>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|to~_signal ~~init s>> converts the ~Lwt~-wrapped signal <<span class="odocwiki_inlinecode"|s>> into a
+    regular signal with initial value <<span class="odocwiki_inlinecode"|init>>~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="client" text="Value" | module Eliom_shared.Value >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<a_api subproject="client" text="Eliom_shared_sigs.VALUE" | module Eliom_shared_sigs.VALUE >>>><<span class="odocwiki_type"|  with type +'a t = 'a>>>><<div class="odocwiki_info"|~Accessing shared values
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="client" text="React" | module Eliom_shared.React >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_shared.React >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Shared implementation of ~React~; client~-side behavior is like
+    standard ~React
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="client" text="FakeReactiveData" | module Eliom_shared.FakeReactiveData >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_shared.FakeReactiveData >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~This is a dummy ~Reactive~Data module that allows us to refer to
+    client~-side ~Reactive~Data types on the server side~, without
+    actually linking against ~Reactive~Data~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="client" text="ReactiveData" | module Eliom_shared.ReactiveData >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_shared.ReactiveData >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Shared implementation of ~Reactive~Data~; client~-side behavior is
+    like standard ~Reactive~Data
+>>

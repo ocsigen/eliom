@@ -1,0 +1,4 @@
+=Module <<a_api_type subproject="ppx" | module Ppx_eliom_server >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Ppx_eliom_server>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="ppx" text=".." | module Ppx_eliom_server >><<span class="ocsforge_color_keyword"|end>>>>
+----
+<<pre id="VALmapper" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|mapper>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Ppxlib>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|Ast_traverse>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|map>>>>>>

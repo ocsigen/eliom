@@ -1,0 +1,6 @@
+=Module <<a_api_type subproject="client" | module Eliom_shared.React >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|React>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_shared.React >><<span class="ocsforge_color_keyword"|end>>>>~Shared implementation of ~React~; client~-side behavior is like
+    standard ~React
+
+----
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="client" text="S" | module Eliom_shared.React.S >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_shared.React.S >><<span class="ocsforge_color_keyword"|end>>>><<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="client" text="E" | module Eliom_shared.React.E >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|module type of <<span class="ocsforge_color_uid"|React.E>>>>>>

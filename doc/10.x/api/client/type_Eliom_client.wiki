@@ -1,0 +1,165 @@
+<<code language="ocaml" | sig
+  val lock_request_handling : unit -> unit
+  val unlock_request_handling : unit -> unit
+  val init_client_app :
+    app_name:string ->
+    ?ssl:bool ->
+    hostname:string ->
+    ?port:int -> site_dir:Eliom_lib.Url.path -> unit -> unit
+  val is_client_app : unit -> bool
+  val change_page :
+    ?ignore_client_fun:bool ->
+    ?replace:bool ->
+    ?window_name:string ->
+    ?window_features:string ->
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('a, 'b, 'c, 'd, 'e, 'f, 'g, [< `WithSuffix | `WithoutSuffix ],
+             'h, 'i, Eliom_service.non_ocaml)
+            Eliom_service.t ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameter.nl_params_set ->
+    ?keep_get_na_params:bool ->
+    ?progress:(int -> int -> unit) ->
+    ?upload_progress:(int -> int -> unit) ->
+    ?override_mime_type:string -> 'a -> 'b -> unit Lwt.t
+  val call_ocaml_service :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('a, 'b, 'c, 'd, 'e, 'f, 'g, [< `WithSuffix | `WithoutSuffix ],
+             'h, 'i, 'return Eliom_service.ocaml)
+            Eliom_service.t ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameter.nl_params_set ->
+    ?keep_get_na_params:bool ->
+    ?progress:(int -> int -> unit) ->
+    ?upload_progress:(int -> int -> unit) ->
+    ?override_mime_type:string -> 'a -> 'b -> 'return Lwt.t
+  val exit_to :
+    ?window_name:string ->
+    ?window_features:string ->
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('a, 'b, 'c, 'd, 'e, 'f, 'g, [< `WithSuffix | `WithoutSuffix ],
+             'h, 'i, Eliom_service.non_ocaml)
+            Eliom_service.t ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameter.nl_params_set ->
+    ?keep_get_na_params:bool -> 'a -> 'b -> unit
+  val window_open :
+    window_name:Js_of_ocaml.Js.js_string Js_of_ocaml.Js.t ->
+    ?window_features:Js_of_ocaml.Js.js_string Js_of_ocaml.Js.t ->
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('a, unit, Eliom_service.get, 'b, 'c, 'd, 'e,
+             [< `WithSuffix | `WithoutSuffix ], 'f, unit, 'g)
+            Eliom_service.t ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameter.nl_params_set ->
+    ?keep_get_na_params:bool ->
+    'a -> Js_of_ocaml.Dom_html.window Js_of_ocaml.Js.t Js_of_ocaml.Js.opt
+  val change_url :
+    ?replace:bool ->
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('get, unit, Eliom_service.get, 'a, 'b, 'c, 'd,
+             [< `WithSuffix | `WithoutSuffix ], 'e, unit, 'f)
+            Eliom_service.t ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameter.nl_params_set -> 'get -> unit
+  val call_service :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('a, 'b, 'c, 'd, 'e, 'f, 'g, [< `WithSuffix | `WithoutSuffix ],
+             'h, 'i, 'j)
+            Eliom_service.t ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Eliom_parameter.nl_params_set ->
+    ?keep_get_na_params:bool ->
+    ?progress:(int -> int -> unit) ->
+    ?upload_progress:(int -> int -> unit) ->
+    ?override_mime_type:string -> 'a -> 'b -> string Lwt.t
+  val onload : (unit -> unit) -> unit
+  val lwt_onload : unit -> unit Lwt.t
+  type changepage_event = {
+    in_cache : bool;
+    origin_uri : string;
+    target_uri : string;
+    origin_id : int;
+    target_id : int option;
+  }
+  val onchangepage : (Eliom_client.changepage_event -> unit Lwt.t) -> unit
+  module Page_status :
+    sig
+      type t = Generating | Active | Cached | Dead
+      val signal : unit -> Eliom_client.Page_status.t React.S.t
+      module Events :
+        sig
+          val active : unit -> unit React.E.t
+          val cached : unit -> unit React.E.t
+          val dead : unit -> unit React.E.t
+          val inactive : unit -> unit React.E.t
+        end
+      val onactive :
+        ?now:bool ->
+        ?once:bool -> ?stop:unit React.E.t -> (unit -> unit) -> unit
+      val oncached :
+        ?once:bool -> ?stop:unit React.E.t -> (unit -> unit) -> unit
+      val ondead : ?stop:unit React.E.t -> (unit -> unit) -> unit
+      val oninactive :
+        ?once:bool -> ?stop:unit React.E.t -> (unit -> unit) -> unit
+      val while_active :
+        ?now:bool -> ?stop:unit React.E.t -> (unit -> unit Lwt.t) -> unit
+    end
+  val onbeforeunload : (unit -> string option) -> unit
+  val onunload : (unit -> unit) -> unit
+  val wait_load_end : unit -> unit Lwt.t
+  val get_application_name : unit -> string
+  val persist_document_head : unit -> unit
+  type ('a, 'b) server_function = 'a -> 'b Lwt.t
+  val change_page_uri : ?replace:bool -> string -> unit Lwt.t
+  val set_client_html_file : string -> unit
+  val change_page_unknown :
+    ?meth:[ `Delete | `Get | `Post | `Put ] ->
+    ?hostname:string ->
+    ?replace:bool ->
+    string list ->
+    (string * string) list -> (string * string) list -> unit Lwt.t
+  val init : unit -> unit
+  val set_reload_function :
+    (unit -> unit -> Eliom_service.result Lwt.t) -> unit
+  module History :
+    sig val past : unit -> string list val future : unit -> string list end
+  val push_history_dom : unit -> unit
+  val set_max_dist_history_doms : int option -> unit
+  val section : Eliom_lib.Lwt_log.section
+  val middleClick : Js_of_ocaml.Dom_html.mouseEvent Js_of_ocaml.Js.t -> bool
+  type client_form_handler =
+      Js_of_ocaml.Dom_html.event Js_of_ocaml.Js.t -> bool Lwt.t
+  module Additional_headers :
+    sig val add : string -> string -> unit val remove : string -> unit end
+end >>

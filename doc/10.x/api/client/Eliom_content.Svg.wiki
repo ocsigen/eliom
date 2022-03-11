@@ -1,0 +1,27 @@
+=Module <<a_api_type subproject="client" | module Eliom_content.Svg >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Svg>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_content.Svg >><<span class="ocsforge_color_keyword"|end>>>>~Building valid ~S~V~G ~.
+
+----
+
+~See the ~Eliom manual for more information on <<a_manual
+      chapter="clientserver-html" fragment="unique"| dom semantics vs. functional
+      semantics>>  for ~H~T~M~L~5 tree manipulated by client~/server
+      application~.
+<<pre class="ocsforge_color odocwiki_code" id="TYPEelt"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|+'a>> <<span class="odocwiki_name"|elt>>>><<pre class="ocsforge_color odocwiki_code" id="TYPEattrib"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|+'a>> <<span class="odocwiki_name"|attrib>>>><<pre class="ocsforge_color odocwiki_code" id="TYPEuri"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|uri>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Eliom_content>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Xml>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|uri>>>> >><<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="client" text="F" | module Eliom_content.Svg.F >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_content.Svg.F >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Creation of //f//unctional content ~(copy~-able but not referable~)~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="client" text="D" | module Eliom_content.Svg.D >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_content.Svg.D >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Creation of content with //~D//~O~M semantics ~(referable
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="client" text="R" | module Eliom_content.Svg.R >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_content.Svg.R >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Creation of reactive content
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="client" text="C" | module Eliom_content.Svg.C >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_content.Svg.C >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Creation of content from client~-side values~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="client" text="Id" | module Eliom_content.Svg.Id >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_content.Svg.Id >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Node identifiers
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="client" text="Manip" | module Eliom_content.Svg.Manip >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_content.Svg.Manip >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~D~O~M~-like manipulation functions~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="client" text="To_dom" | module Eliom_content.Svg.To_dom >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_content.Svg.To_dom >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Conversion from ~Svg <<span class="odocwiki_inlinecode"|elt>>s to ~Javascript ~D~O~M elements ~(<<span class="odocwiki_inlinecode"|~<~:>> <<a_api
+      project="js_of_ocaml"| class Js_of_ocaml.Dom_html.element >> ~)~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="client" text="Of_dom" | module Eliom_content.Svg.Of_dom >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_content.Svg.Of_dom >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Conversion functions from ~D~O~M nodes ~(<<a_api project="js_of_ocaml"| type Js_of_ocaml.Dom_html.element>>  <<a_api
+      project="js_of_ocaml"| type Js_of_ocaml.Js.t>> ~) to ~Eliom nodes ~(<<a_api | type Eliom_content.Html.elt>> ~)~.
+>>

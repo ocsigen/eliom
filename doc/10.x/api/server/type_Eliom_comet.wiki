@@ -1,0 +1,30 @@
+<<code language="ocaml" | sig
+  module Channel :
+    sig
+      type 'a t
+      type comet_scope =
+          [ `Client_process of Eliom_common.scope_hierarchy | `Site ]
+      val create :
+        ?scope:[< Eliom_comet.Channel.comet_scope ] ->
+        ?name:string ->
+        ?size:int -> 'a Lwt_stream.t -> 'a Eliom_comet.Channel.t
+      val create_from_events :
+        ?scope:[< Eliom_comet.Channel.comet_scope ] ->
+        ?name:string ->
+        ?size:int -> 'a React.event -> 'a Eliom_comet.Channel.t
+      val create_unlimited :
+        ?scope:Eliom_common.client_process_scope ->
+        ?name:string -> 'a Lwt_stream.t -> 'a Eliom_comet.Channel.t
+      val create_newest :
+        ?name:string -> 'a Lwt_stream.t -> 'a Eliom_comet.Channel.t
+      val external_channel :
+        ?history:int ->
+        ?newest:bool ->
+        prefix:string -> name:string -> unit -> 'a Eliom_comet.Channel.t
+      val wait_timeout :
+        ?scope:Eliom_common.client_process_scope -> float -> unit Lwt.t
+      val get_wrapped :
+        'a Eliom_comet.Channel.t -> 'a Eliom_comet_base.wrapped_channel
+    end
+  val section : Lwt_log_core.section
+end >>

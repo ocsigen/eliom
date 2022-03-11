@@ -1,0 +1,9 @@
+=Module <<a_api_type subproject="server" | module Eliom_shared.ReactiveData.RList >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|RList>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_shared.ReactiveData.RList >><<span class="ocsforge_color_keyword"|end>>>>
+----
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> <<a_api subproject="server" | module type Eliom_shared_sigs.RLIST >>>>
+<<pre id="VALsynced" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|synced>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|'a t <<span class="ocsforge_color_delimiter"| -> >> bool>>>><<div class="odocwiki_info"|~If <<span class="odocwiki_inlinecode"|synced l>> is true~, then the server~-side and client~-side
+        values of <<span class="odocwiki_inlinecode"|l>> are equal~. ~This means that the client~-side code
+        can initially rely on the server~-provided value~, and defer any
+        updates until the first client~-side update of <<span class="odocwiki_inlinecode"|l>>~.
+>>

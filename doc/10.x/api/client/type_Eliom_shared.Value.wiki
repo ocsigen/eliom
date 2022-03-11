@@ -1,0 +1,6 @@
+<<code language="ocaml" | sig
+  type 'a t = 'a
+  val create : 'a -> 'a Eliom_client_value.t -> 'a t
+  val client : 'a t -> 'a Eliom_client_value.t
+  val local : 'a t -> 'a
+end >>

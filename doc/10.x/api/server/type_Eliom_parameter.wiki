@@ -1,0 +1,195 @@
+<<code language="ocaml" | sig
+  type suff = [ `Endsuffix | `WithSuffix | `WithoutSuffix ]
+  type ('a, +'b, 'c) params_type constraint 'b = [< suff ]
+  type +'a param_name
+  type no_param_name
+  type 'a setoneradio = [ `One of 'a | `Radio of 'a | `Set of 'a ]
+  type 'a oneradio = [ `One of 'a | `Radio of 'a ]
+  type 'a setone = [ `One of 'a | `Set of 'a ]
+  type ('a, 'b) binsum = Inj1 of 'a | Inj2 of 'b
+  type 'an listnames = {
+    it : 'el 'a. ('an -> 'el -> 'a -> 'a) -> 'el list -> 'a -> 'a;
+  }
+  type 'a to_and_of = { of_string : string -> 'a; to_string : 'a -> string; }
+  val int :
+    string ->
+    (int, [ `WithoutSuffix ], [ `One of int ] param_name) params_type
+  val int32 :
+    string ->
+    (int32, [ `WithoutSuffix ], [ `One of int32 ] param_name) params_type
+  val int64 :
+    string ->
+    (int64, [ `WithoutSuffix ], [ `One of int64 ] param_name) params_type
+  val float :
+    string ->
+    (float, [ `WithoutSuffix ], [ `One of float ] param_name) params_type
+  val string :
+    string ->
+    (string, [ `WithoutSuffix ], [ `One of string ] param_name) params_type
+  val bool :
+    string ->
+    (bool, [ `WithoutSuffix ], [ `One of bool ] param_name) params_type
+  val file :
+    string ->
+    (Eliom_lib.file_info, [ `WithoutSuffix ],
+     [ `One of Eliom_lib.file_info ] param_name)
+    params_type
+  val unit : (unit, [ `WithoutSuffix ], unit) params_type
+  type coordinates = { abscissa : int; ordinate : int; }
+  val coordinates :
+    string ->
+    (coordinates, [ `WithoutSuffix ], [ `One of coordinates ] param_name)
+    params_type
+  val ( ** ) :
+    ('a, [ `WithoutSuffix ], 'b) params_type ->
+    ('c, [< `Endsuffix | `WithoutSuffix ] as 'e, 'd) params_type ->
+    ('a * 'c, 'e, 'b * 'd) params_type
+  val prod :
+    ('a, [ `WithoutSuffix ], 'b) params_type ->
+    ('c, [< `Endsuffix | `WithoutSuffix ] as 'e, 'd) params_type ->
+    ('a * 'c, 'e, 'b * 'd) params_type
+  val sum :
+    ('a, [ `WithoutSuffix ], 'b) params_type ->
+    ('c, [ `WithoutSuffix ], 'd) params_type ->
+    (('a, 'c) binsum, [ `WithoutSuffix ], 'b * 'd) params_type
+  val opt :
+    ('a, [ `WithoutSuffix ], 'b) params_type ->
+    ('a option, [ `WithoutSuffix ], 'b) params_type
+  val neopt :
+    ('a, [ `WithoutSuffix ], 'b) params_type ->
+    ('a option, [ `WithoutSuffix ], 'b) params_type
+  val radio :
+    (string ->
+     ('a, [ `WithoutSuffix ], [ `One of 'b ] param_name) params_type) ->
+    string ->
+    ('a option, [ `WithoutSuffix ], [ `Radio of 'b ] param_name) params_type
+  val any : ((string * string) list, [ `WithoutSuffix ], unit) params_type
+  val set :
+    (string ->
+     ('a, [ `WithoutSuffix ], [ `One of 'b ] param_name) params_type) ->
+    string ->
+    ('a list, [ `WithoutSuffix ], [ `Set of 'b ] param_name) params_type
+  val list :
+    string ->
+    ('a, [ `WithoutSuffix ], 'b) params_type ->
+    ('a list, [ `WithoutSuffix ], 'b listnames) params_type
+  val suffix :
+    ?redirect_if_not_suffix:bool ->
+    ('s, [< `Endsuffix | `WithoutSuffix ], 'sn) params_type ->
+    ('s, [ `WithSuffix ], 'sn) params_type
+  val all_suffix :
+    string ->
+    (string list, [ `Endsuffix ], [ `One of string list ] param_name)
+    params_type
+  val all_suffix_string :
+    string ->
+    (string, [ `Endsuffix ], [ `One of string ] param_name) params_type
+  val suffix_prod :
+    ?redirect_if_not_suffix:bool ->
+    ('s, [< `Endsuffix | `WithoutSuffix ], 'sn) params_type ->
+    ('a, [ `WithoutSuffix ], 'an) params_type ->
+    ('s * 'a, [ `WithSuffix ], 'sn * 'an) params_type
+  val suffix_const :
+    string ->
+    (unit, [ `WithoutSuffix ], [ `One of unit ] param_name) params_type
+  type 'a ocaml
+  val ocaml :
+    string ->
+    'a Deriving_Json.t ->
+    ('a, [ `WithoutSuffix ], [ `One of 'a ocaml ] param_name) params_type
+  type raw_post_data =
+      ((string * string) * (string * string) list) option * Cohttp_lwt.Body.t
+  val raw_post_data :
+    (raw_post_data, [ `WithoutSuffix ], no_param_name) params_type
+  type ('a, +'b, 'names) non_localized_params constraint 'b = [< suff ]
+  val make_non_localized_parameters :
+    prefix:string ->
+    name:string ->
+    ?persistent:bool ->
+    ('a, [ `WithoutSuffix ], 'b) params_type ->
+    ('a, [ `WithoutSuffix ], 'b) non_localized_params
+  type nl_params_set
+  val empty_nl_params_set : nl_params_set
+  val add_nl_parameter :
+    nl_params_set ->
+    ('a, [< `WithSuffix | `WithoutSuffix ], 'b) non_localized_params ->
+    'a -> nl_params_set
+  val get_nl_params_names :
+    ('b, [< `WithSuffix | `WithoutSuffix ], 'a) non_localized_params -> 'a
+  val get_to_and_of : ('a, [< suff ], 'c) params_type -> 'a to_and_of
+  val walk_parameter_tree :
+    [ `One of string ] param_name ->
+    ('a, [< suff ], 'c) params_type -> 'a to_and_of option
+  val contains_suffix : ('a, [< suff ], 'c) params_type -> bool option
+  val add_pref_params :
+    string ->
+    ('a, [< suff ] as 'b, 'c) params_type -> ('a, 'b, 'c) params_type
+  type params = (string * Eliommod_parameters.param) list
+  val construct_params :
+    params Eliom_lib.String.Table.t ->
+    ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
+    'a -> string list option * string
+  val construct_params_string : params -> string
+  val construct_params_list_raw :
+    params Eliom_lib.String.Table.t ->
+    ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
+    'a -> string list option * params Eliom_lib.String.Table.t * params
+  val construct_params_list :
+    params Eliom_lib.String.Table.t ->
+    ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
+    'a -> string list option * params
+  val reconstruct_params :
+    sp:Eliom_common.server_params ->
+    ('a, [< `WithSuffix | `WithoutSuffix ], 'c) params_type ->
+    (string * string) list Lwt.t option ->
+    (string * Eliom_lib.file_info) list Lwt.t option ->
+    bool -> Eliom_lib.Url.path option -> 'a Lwt.t
+  val make_params_names : ('a, [< suff ], 'c) params_type -> bool * 'c
+  val string_of_param_name : 'a param_name -> string
+  val nl_prod :
+    ('a, [< suff ] as 'b, 'an) params_type ->
+    ('s, [ `WithoutSuffix ], 'sn) non_localized_params ->
+    ('a * 's, 'b, 'an * 'sn) params_type
+  val remove_from_nlp :
+    (string * 'c) list Eliom_lib.String.Table.t ->
+    ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
+    (string * 'c) list Eliom_lib.String.Table.t
+  val table_of_nl_params_set :
+    nl_params_set -> params Eliom_lib.String.Table.t
+  val list_of_nl_params_set : nl_params_set -> params
+  val string_of_nl_params_set : nl_params_set -> string
+  val wrap_param_type :
+    ('a, [< suff ] as 'b, 'c) params_type -> ('a, 'b, 'c) params_type
+  type _ is_unit = U_not : 'a is_unit | U_yes : unit is_unit
+  val is_unit : ('a, [< suff ], 'b) params_type -> 'a is_unit
+  val user_type :
+    ?client_to_and_of:'a to_and_of Eliom_client_value.t ->
+    of_string:(string -> 'a) ->
+    to_string:('a -> string) ->
+    string -> ('a, [ `WithoutSuffix ], [ `One of 'a ] param_name) params_type
+  val all_suffix_user :
+    ?client_to_and_of:'a to_and_of Eliom_client_value.t ->
+    of_string:(string -> 'a) ->
+    to_string:('a -> string) ->
+    string -> ('a, [ `Endsuffix ], [ `One of 'a ] param_name) params_type
+  val type_checker :
+    ('a -> unit) ->
+    ('a, [< suff ] as 'b, 'c) params_type -> ('a, 'b, 'c) params_type
+  val regexp :
+    Pcre.regexp ->
+    string ->
+    to_string:(string -> string) ->
+    string ->
+    (string, [ `WithoutSuffix ], [ `One of string ] param_name) params_type
+  val all_suffix_regexp :
+    Pcre.regexp ->
+    string ->
+    to_string:(string -> string) ->
+    string ->
+    (string, [ `Endsuffix ], [ `One of string ] param_name) params_type
+  val get_non_localized_get_parameters :
+    ('a, [ `WithoutSuffix ], 'b) non_localized_params -> 'a option
+  val get_non_localized_post_parameters :
+    ('a, [ `WithoutSuffix ], 'b) non_localized_params -> 'a option
+  val anonymise_params_type : ('a, [< suff ], 'c) params_type -> int
+end >>

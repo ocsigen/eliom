@@ -1,0 +1,4 @@
+<<code language="ocaml" | sig
+  type 'a t = 'a ReactiveData.RList.t
+  type 'a handle = 'a ReactiveData.RList.handle
+end >>

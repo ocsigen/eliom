@@ -1,0 +1,289 @@
+=Compiling client-server Eliom applications
+
+The build process for client-server Eliom applications is rather
+involved. To ease development of such application, we recommend you to
+create your project with <<a_manual
+chapter="workflow-distillery"|Eliom's distillery>>: this provides a
+Makefile with rules for compiling, testing, installing, and running
+you project.
+
+This chapter provides more details on the compilation
+process.
+
+<<outline depth="2"| <<header| **Table of contents** >> >>
+
+==@@id="compilation"@@ Compilation overview
+
+We first give a small overview of the compilation
+process of a (single file) Eliom program. The source code of an Eliom
+application should be stored in a file with extension ##.eliom##, so as to
+be recognized by the Eliom compilers, ##eliomc## and ##js_of_eliom##.
+The compilation of an eliom program is carried out in three steps.
+
+First, type information is extracted from the server part of the program
+by ##eliomc -infer##. This information is
+necessary for the actual compilation of the client- and server-side
+code. For an Eliom module in a file ##program.eliom##,
+the information is typically stored in a file ##_server/program.type_mli##
+
+Second, the server part of the program (or more precisely,
+the library dynamically
+loaded into the Ocsigen server) is compiled by ##eliomc -c##.
+The server source code is extracted and
+and compiled against the libraries available server-side. The resulting
+bytecode object file is stored by default in ##_server/program.cmo##.
+
+Third, the client program is compiled by ##js_of_eliom##. The client
+source code is extracted and compiled against the client-side libraries.
+The program ##js_of_eliom -c## creates a bytecode object file (stored
+in ##_client/program.cmo## by default) and ##js_of_eliom -o program.js##
+is used to actually compile and link the //JavaScript// program to be run on
+the client.
+
+{{@@style="width:100%;"@@site:eliom/compilation.png|The Compilation process}}
+
+==Using {{{eliomc}}} and {{{js_of_eliom}}}
+
+The easiest way to build a client-server Eliom application is to use
+{{{eliomc}}} and {{{js_of_eliom}}}. Those tools are
+wrappers around {{{ocamlfind}}}, {{{ocamlc}}} and
+{{{js_of_ocaml}}}.
+
+You can compile your application with the two following commands:
+
+{{{
+eliomc -a -o appl.cma server_module.ml appl.eliom ...
+js_of_eliom -o appl.js client_module.ml appl.eliom ...
+}}}
+
+The first command compiles the server-specific part of the
+application. The second one compiles the client-specific part. Each
+command accept multiple {{{.ml}}} and {{{.eliom}}} files.
+
+Temporary files are written in the {{{_server}}} and
+{{{_client}}} directory. These directories may be changed through
+a command line option, or the environment variables {{{ELIOM_SERVER_DIR}}} and
+{{{ELIOM_CLIENT_DIR}}}.
+
+These commands accept the same set of arguments as {{{ocamlc}}}, plus
+the following specific options:
+
+* {{{-package}}} is the same as the corresponding {{{ocamlfind}}} option.
+* {{{-predicates <p>}}} is the same as the {{{ocamlfind}}} option.
+* {{{-no-autoload}}} Do not load commonly used syntax extensions
+  (deriving, lwt, js_of_ocaml, tyxml).
+* {{{-type-conv}}} Use the type_conv syntax extension instead of the deriving
+  one. It has no effect when used in conjunction with {{{-no-autoload}}}.
+* {{{-dir <dir>}}} set the default directory for temporary files.
+* {{{-jsopt <opt>}}} pass {{{opt}}} to the {{{js_of_ocaml}}} compiler **{{{js_of_eliom}}} only**
+
+If you want to use the native version of the ocsigen server, you should
+replace {{{eliomc}}} by {{{eliomopt}}}.
+
+
+==Using {{{ocamlbuild}}} (ocaml >= 4.01 and eliom >= 4 only)
+
+{{{ocamlbuild}}} is a standard tool for building ocaml programs and libraries.
+It contains a powerful plugin system which has been improved in ocaml 4.01 by
+the {{{-plugin-tags}}} option. This option allows you to give tags to the plugin
+itself, for example to use some libraries. In fact, the best usage is to
+import libraries that are ocamlbuild plugins.
+
+eliom has now an ocamlbuild plugin contained in the package {{{eliom.ocamlbuild}}}.
+This plugin allows to compile .eliom files and to create javascript executables.
+
+To compile an eliom project or library with ocamlbuild, you need to add this
+to your {{{myocamlbuild.ml}}} (at the root of your project):
+
+<<code language="ocaml"|
+module M = Ocamlbuild_eliom.Make(struct
+  let client_dir = "client"
+  let server_dir = "server"
+  let type_dir = "type"
+end)
+
+let () = Ocamlbuild_plugin.dispatch M.dispatcher
+>>
+
+The {{{client_dir}}}, {{{server_dir}}} and {{{type_dir}}} values are
+directories (relative the location of each eliom file) that are used for
+client, server and type parts.  The plugin will dispatch the {{{.eliom}}} in
+three {{{.ml}}} files in server, client and type
+dir, from which {{{ocamlbuild}}} can eventually create {{{.cma}}} or {{{.js}}}
+files.  For example, if you have {{{test.eliom}}} in {{{./src/}}}, it will be
+dispatched to {{{./_build/src/server/test.ml}}},
+{{{./_build/src/client/test.ml}}} and {{{./_build/src/type/test.ml}}} (same for
+{{{.eliomi}}} files).  Don't forget to mention the good one in your
+{{{.mllib}}} file (for a server lib, it will be {{{src/server/Test}}}).
+
+Then in a file named {{{_tags}}} (at the root of your project), add:
+
+{{{
+<server/*>: package(eliom.server), package(yourserverdep), thread
+<client/*>: package(eliom.client), package(yourclientdep)
+true: package(yourlibdeps)
+}}}
+
+See
+[[https://github.com/ocaml/ocamlbuild/blob/master/manual/manual.adoc#tags-and-the-code-_tags-code-file]]
+for more details.  In some cases, {{{syntax(camlp4o}}} is needed, and in newer
+versions of Eliom, {{{package(eliom.server)}}} and {{{package(eliom.client)}}}
+may be omitted.  Dependencies are added with {{{package(yourdep)}}} on the
+same line.
+
+By default, our {{{ocamlbuild}}} plugin uses the
+<<a_manual chapter="clientserver-language"|Camlp4 syntax extension>>.
+To use <<a_manual chapter="ppx-syntax"|PPX>>, you can set the
+{{{eliom_ppx}}} flag in {{{_tags}}}, as follows:
+
+{{{
+<*.eliom>: eliom_ppx
+<*.eliomi>: eliom_ppx
+}}}
+
+For libraries, don't forget to add the corresponding .mllib file.
+Then, you can compile your project with:
+
+{{{
+ocamlbuild -use-ocamlfind -plugin-tags "package(eliom.ocamlbuild)" \
+    server/yoursite.cma server/yoursite.cmxa server/yoursite.cmxs \
+    yourlib.cma yourlib.cmxa yourlib.cmxs \
+    client/yoursite.js
+}}}
+
+This creates the {{{server/yoursite.cma}}} and {{{client/yoursite.js}}}
+files required by {{{ocsigenserver}}} inside {{{_build}}}.
+
+==Using {{{OASIS}}} (ocaml >= 4.01)
+
+Here follows a simple way to set up an OASIS environment that supports Eliom.
+
+Your {{{_oasis}}} file should look like this:
+{{{
+OASISFormat: 0.4
+Name: <fill>
+Version: <fill>
+Synopsis: <fill>
+Authors: <fill>
+License: <fill>
+AlphaFeatures: ocamlbuild_more_args, compiled_setup_ml
+Plugins: DevFiles (0.4)
+BuildTools: ocamlbuild
+XOCamlbuildPluginTags: package(eliom.ocamlbuild)
+OCamlVersion: >= 4.01
+PostBuildCommand: cp _build/src/client/app.js static/
+
+Library "server"
+  Path: src
+  Modules: server/Main
+  BuildDepends: eliom.server
+
+Executable "client"
+  Install: false
+  Path: src
+  MainIs: client/app.ml
+  BuildDepends: eliom.client, js_of_ocaml.ppx, lwt_ppx
+  CompiledObject: byte
+}}}
+
+* The *.eliom modules have to be prefixed by {{{server/}}}. All your source
+files must be placed in the {{{src}}} directory (NOT in {{{src/server}}});
+* The server parts of the {{{*.eliom}}} files in {{{src}}} will be added in
+{{{src/server}}} because of the dispatcher we will install just after;
+* The client parts will go to {{{src/client}}};
+* The {{{src/client/app.ml}}} file should just open every module required for
+the client part (including all {{{*.eliom}}} modules);
+* This setup uses the PPX extension points (not camlp4);
+* The client bytecode does not need to be installed, we are only interrested in
+the {{{app.js}}} file generated.
+
+Replace the default dispatcher at the end of {{{myocamlbuild.ml}}} by the
+following (after OASIS_STOP):
+{{{code language="ocaml"|
+module M = Ocamlbuild_eliom.Make (struct
+  let client_dir = "client"
+  let server_dir = "server"
+  let type_dir = "type"
+end)
+
+let () =
+  Ocamlbuild_plugin.dispatch
+  (fun hook ->
+    dispatch_default hook;
+    M.dispatcher ~oasis_executables:["src/client/app.byte"] hook)
+}}}
+
+The following configuration has to be added at the end of the {{{_tags}}} file:
+{{{
+<**/*.eliom{,i}>: eliom_ppx
+<src/{server,type}/*.ml{,i}>: thread
+"src/client/app.js": package(eliom.client)
+}}}
+
+Finally, in order to run your server, you need a configuration file (here we
+name it {{{run.conf}}}) like:
+{{{
+<ocsigen>
+  <server>
+    <port>8080</port>
+
+    <logdir>local/var/log/projectname</logdir>
+    <datadir>local/var/data/projectname</datadir>
+    <charset>utf-8</charset>
+
+    <commandpipe>local/var/run/projectname-cmd</commandpipe>
+    <extension findlib-package="ocsigenserver.ext.staticmod"/>
+    <extension findlib-package="ocsigenserver.ext.ocsipersist-sqlite"/>
+    <extension findlib-package="eliom.server"/>
+
+    <host hostfilter="*">
+      <static dir="static" />
+      <static dir="local/var/www/projectname/eliom" />
+      <eliommodule module="_build/src/server.cma" />
+      <eliom/>
+    </host>
+  </server>
+</ocsigen>
+}}}
+Don't forget to create any necessary directory.
+
+You should now be able to compile and run your website on {{{localhost:8080}}}
+using:
+
+{{{
+oasis setup
+ocaml setup.ml -configure
+ocaml setup.ml -build
+ocsigenserver -c run.conf
+}}}
+
+==[EXPERIMENTAL] Using {{{eliomdoc}}} and {{{eliompp}}}
+You can use {{{eliomdoc}}} to generate the documentation of your project.
+{{{eliompp}}} is a preprocessor which deletes specific sections ({{{{shared{}}},
+{{{{client{}}} and {{{{server{}}}), depending on the first parameter
+({{{-client}}} or {{{-server}}}).
+
+We use a hand made preprocessor
+because **camlp4** doesn't handle comments during preprocessing,
+so it is not possible to extract comments of a specific section.
+
+{{{eliomdoc}}} handle the same options as {{{ocamldoc}}}.
+It is only a wrapper around it (as {{{eliomc}}} for {{{ocamlc}}}).
+
+{{{eliompp}}} prints on the standard output the preprocessed file.
+So if you use it with {{{-client}}}, it will prints {{{{shared{}}} and {{{{client{}}} sections.
+
+You can use them as follows:
+{{{
+eliompp -client foobar.eliom ...
+eliompp -server foobar.eliom ...
+
+eliomdoc -client -d doc/client -html foobar.eliom ...
+eliomdoc -server -d doc/server -html foobar.eliom ...
+}}}
+
+Here are some known bugs with {{{eliomdoc}}}:
+* Your files should always **begin with a value** and **not with a comment**. Otherwise,
+camlp4 won't output the comments.
+* Sometimes, comment nodes **are not attached where expected**. That's because
+camlp4 (sometimes) remove extra newlines between value elements.

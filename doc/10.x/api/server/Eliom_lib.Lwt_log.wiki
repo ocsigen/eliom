@@ -1,0 +1,6 @@
+=Module <<a_api_type subproject="server" | module Eliom_lib.Lwt_log >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Lwt_log>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_lib.Lwt_log >><<span class="ocsforge_color_keyword"|end>>>>~Extension of <<a_api project="lwt"| module Lwt_log>> ~.
+
+----
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> Lwt_log>>
+<<pre id="VALeliom" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|eliom>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|section>>>>

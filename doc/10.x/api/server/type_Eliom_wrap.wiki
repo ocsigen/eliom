@@ -1,0 +1,13 @@
+<<code language="ocaml" | sig
+  type 'a wrapped_value
+  type +'a wrapper
+  val create_wrapper : ('a -> 'b) -> 'a Eliom_wrap.wrapper
+  val wrap : 'a -> 'a Eliom_wrap.wrapped_value
+  val empty_wrapper : 'a Eliom_wrap.wrapper
+  type unwrap_id
+  type unwrapper
+  val create_unwrapper : Eliom_wrap.unwrap_id -> Eliom_wrap.unwrapper
+  val empty_unwrapper : Eliom_wrap.unwrapper
+  val id_of_int : int -> Eliom_wrap.unwrap_id
+  val section : Lwt_log_core.section
+end >>

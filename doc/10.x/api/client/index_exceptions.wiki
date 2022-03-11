@@ -1,0 +1,24 @@
+=Index of exceptions=
+
+|@@ @style="tet-align: left;"@@\\C|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Channel_closed"| exception Eliom_comet.Channel_closed >> ~[<<a_api subproject="client" | module Eliom_comet >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|~Channel~_closed>> is raised when reading on a channel and the
+    server side of the application closed channel ~( the server was restarted~,
+    a session was closed~, or a stateless channel was garbage collected~)~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Channel_full"| exception Eliom_comet.Channel_full >> ~[<<a_api subproject="client" | module Eliom_comet >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|~Channel~_full>> is raised when trying to read on a channel marked
+    full by the server~.
+>>
+|
+|@@ @style="tet-align: left;"@@\\E|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Exception_on_server"| exception Eliom_client_value.Exception_on_server >> ~[<<a_api subproject="client" | module Eliom_client_value >>~]|<<div class="odocwiki_info"|~This exception is raised ~(in ~Lwt~) on the client if a call to a
+    server function <<a_api subproject="server"|val
+    Eliom_client.server_function>>  fails ~(in ~Lwt~) on the server
+    side~.
+>>
+|
+|@@ @style="tet-align: left;"@@\\F|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="False"| exception Eliom_client_value.False >> ~[<<a_api subproject="client" | module Eliom_client_value >>~]||
+|@@ @style="tet-align: left;"@@\\N|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Not_ready"| exception Eliom_cscache.Not_ready >> ~[<<a_api subproject="client" | module Eliom_cscache >>~]||
+\\

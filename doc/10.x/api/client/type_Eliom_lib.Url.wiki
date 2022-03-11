@@ -1,0 +1,71 @@
+<<code language="ocaml" | sig
+  type t = string
+  type uri = string
+  val make_absolute_url : https:bool -> host:string -> port:int -> uri -> t
+  type path = string list
+  val remove_dotdot : path -> path
+  val remove_end_slash : string -> string
+  val remove_internal_slash : path -> path
+  val change_empty_list : path -> path
+  val add_end_slash_if_missing : path -> path
+  val remove_slash_at_end : path -> path
+  val remove_slash_at_beginning : path -> path
+  val is_prefix_skip_end_slash : string list -> string list -> bool
+  val split_fragment : string -> string * string option
+  val join_path : path -> string
+  val norm_path : path -> path
+  val urldecode : string -> string
+  val urlencode : ?with_plus:bool -> string -> string
+  type http_url =
+    Js_of_ocaml__Url.http_url = {
+    hu_host : string;
+    hu_port : int;
+    hu_path : string list;
+    hu_path_string : string;
+    hu_arguments : (string * string) list;
+    hu_fragment : string;
+  }
+  type file_url =
+    Js_of_ocaml__Url.file_url = {
+    fu_path : string list;
+    fu_path_string : string;
+    fu_arguments : (string * string) list;
+    fu_fragment : string;
+  }
+  type url =
+    Js_of_ocaml__Url.url =
+      Http of http_url
+    | Https of http_url
+    | File of file_url
+  val default_http_port : int
+  val default_https_port : int
+  val path_of_path_string : string -> string list
+  val encode_arguments : (string * string) list -> string
+  val decode_arguments : string -> (string * string) list
+  val url_of_string : string -> url option
+  val string_of_url : url -> string
+  module Current :
+    sig
+      val host : string
+      val port : int option
+      val protocol : string
+      val path_string : string
+      val path : string list
+      val arguments : (string * string) list
+      val get_fragment : unit -> string
+      val set_fragment : string -> unit
+      val get : unit -> url option
+      val set : url -> unit
+      val as_string : string
+    end
+  val decode : string -> string
+  val encode : ?plus:bool -> string -> string
+  val make_encoded_parameters : (string * string) list -> string
+  val split_path : string -> string list
+  val get_ssl : string -> bool option
+  val resolve : string -> string
+  val add_get_args : string -> (string * string) list -> string
+  val string_of_url_path : encode:bool -> string list -> string
+  val path_of_url : url -> string list
+  val path_of_url_string : string -> string list
+end >>

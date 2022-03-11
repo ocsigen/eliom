@@ -1,0 +1,5 @@
+<<code language="ocaml" | sig
+  val server_dir : Ocamlbuild_plugin.Pathname.t
+  val type_dir : Ocamlbuild_plugin.Pathname.t
+  val client_dir : Ocamlbuild_plugin.Pathname.t
+end >>

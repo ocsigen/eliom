@@ -1,0 +1,23 @@
+=Module <<a_api_type subproject="client" | module Eliom_content.Svg.Id >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Id>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_content.Svg.Id >><<span class="ocsforge_color_keyword"|end>>>>~Node identifiers
+
+----
+<<pre class="ocsforge_color odocwiki_code" id="TYPEid"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|+'a>> <<span class="odocwiki_name"|id>>>><<div class="odocwiki_info"|~The type of global ~S~V~G element identifier~.
+>>
+<<pre id="VALnew_elt_id" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|new~_elt~_id>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_label"| ?global: >>bool <<span class="ocsforge_color_delimiter"| -> >> unit <<span class="ocsforge_color_delimiter"| -> >> 'a <<a_api subproject="client" text="id" | type Eliom_content.Svg.Id.id >>>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|new~_elt~_id ~(~)>> creates a new ~H~T~M~L~5 element
+        identifier~. ~(see the ~Eliom manual for more information on         <<a_manual project="eliom" chapter="clientserver-html"
+        fragment="global"|global element>>~)~.
+>>
+<<pre id="VALcreate_named_elt" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|create~_named~_elt>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| id: >>'a <<a_api subproject="client" text="id" | type Eliom_content.Svg.Id.id >> <<span class="ocsforge_color_delimiter"| -> >>\\  'a <<a_api subproject="client" text="Eliom_content.Svg.elt" | type Eliom_content.Svg.elt >> <<span class="ocsforge_color_delimiter"| -> >> 'a <<a_api subproject="client" text="Eliom_content.Svg.elt" | type Eliom_content.Svg.elt >>>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|create~_named~_elt ~~id elt>> create a copy of the
+        element <<span class="odocwiki_inlinecode"|elt>> that will be accessible through the name <<span class="odocwiki_inlinecode"|id>>~.
+>>
+<<pre id="VALcreate_global_elt" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|create~_global~_elt>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  'a <<a_api subproject="client" text="Eliom_content.Svg.elt" | type Eliom_content.Svg.elt >> <<span class="ocsforge_color_delimiter"| -> >> 'a <<a_api subproject="client" text="Eliom_content.Svg.elt" | type Eliom_content.Svg.elt >>>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|create~_named~_elt elt>> is equivalent to
+        <<span class="odocwiki_inlinecode"|create~_named~_elt ~~id~:~(new~_elt~_id ~(~)~) elt>>~.
+>>
+<<pre id="VALcreate_request_elt" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|create~_request~_elt>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?reset: >>bool <<span class="ocsforge_color_delimiter"| -> >> 'a <<a_api subproject="client" text="Eliom_content.Svg.elt" | type Eliom_content.Svg.elt >> <<span class="ocsforge_color_delimiter"| -> >> 'a <<a_api subproject="client" text="Eliom_content.Svg.elt" | type Eliom_content.Svg.elt >>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|create~_request~_elt ~?reset elt>> creates a referable copy of
+        <<span class="odocwiki_inlinecode"|elt>>~. ~If <<span class="odocwiki_inlinecode"|~~reset ~= true>> is provided ~(default~: false~)~, a new
+        ~I~D is created even if <<span class="odocwiki_inlinecode"|elt>> has an ~I~D already~.
+>>
+<<pre id="VALget_element" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_element>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|'a <<a_api subproject="client" text="id" | type Eliom_content.Svg.Id.id >> <<span class="ocsforge_color_delimiter"| -> >> 'a <<a_api subproject="client" text="Eliom_content.Svg.elt" | type Eliom_content.Svg.elt >> option>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|get~_element id>> returns
+        the ~H~T~M~L element in the ~D~O~M with the given <<span class="odocwiki_inlinecode"|id>> if it exists~.
+>>

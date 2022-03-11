@@ -1,0 +1,187 @@
+=Module <<a_api_type subproject="server" | module Eliom_request_info >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_request_info>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_request_info >><<span class="ocsforge_color_keyword"|end>>>>~This module contains the functions you need to get ~(or set~)
+    information about current request~.
+
+----
+
+
+==@@id="2_Gettinginformationabouttherequest"@@~Getting information about the request==
+
+<<pre id="VALin_request_handler" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|in~_request~_handler>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> bool>>>><<div class="odocwiki_info"|returns <<span class="odocwiki_inlinecode"|true>> when currently handling a request~.
+>>
+<<pre id="VALget_http_method" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_http~_method>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Cohttp>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Code>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|meth>>>>>><<div class="odocwiki_info"|returns the ~H~T~T~P method used for the request ~(usually ~G~E~T or ~P~O~S~T~)~.
+>>
+<<pre id="VALget_user_agent" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_user~_agent>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> string>>>><<div class="odocwiki_info"|returns the name of the user agent that did the request
+   ~(usually the name of the browser~)~.
+>>
+<<pre id="VALget_full_url" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_full~_url>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> string>>>><<div class="odocwiki_info"|returns the full ~U~R~L as a string
+>>
+<<pre id="VALget_remote_ip" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_remote~_ip>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> string>>>><<div class="odocwiki_info"|returns the internet address of the client as a string
+>>
+<<pre id="VALget_original_full_path_string" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_original~_full~_path~_string>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> string>>>><<div class="odocwiki_info"|returns the full path of the ~U~R~L as first sent by the browser
+    ~(not changed by previous extensions like rewritemod~)
+>>
+<<pre id="VALget_original_full_path" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_original~_full~_path>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Eliom_lib>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Url>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|path>>>>>><<div class="odocwiki_info"|returns the full path of the ~U~R~L as first sent by the browser
+    ~(not changed by previous extensions like rewritemod~)
+>>
+<<pre id="VALget_current_sub_path_string" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_current~_sub~_path~_string>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> string>>>><<div class="odocwiki_info"|returns the sub path of the ~U~R~L as a string~.
+    ~The sub~-path is the full path without the path of the site ~(set in the
+    configuration file~)~.
+>>
+<<pre id="VALget_current_sub_path" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_current~_sub~_path>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Eliom_lib>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Url>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|path>>>>>><<div class="odocwiki_info"|returns the sub path of the ~U~R~L using the type <<span class="odocwiki_inlinecode"|~Eliom~_lib~.~Url~.path>>~.
+    ~The sub~-path is the full path without the path of the site ~(set in the
+    configuration file~)~.
+>>
+<<pre id="VALget_header_hostname" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_header~_hostname>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> string option>>>><<div class="odocwiki_info"|returns the hostname that has been sent by the user agent~.
+    ~For ~H~T~T~P~/~1~.~0~, the ~Host field is not mandatory in the request~.
+>>
+<<pre id="VALget_hostname" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_hostname>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> string>>>><<div class="odocwiki_info"|returns the hostname used for absolute links~.
+    ~It is either the <<span class="odocwiki_inlinecode"|~Host>> header sent by the browser or the default hostname
+    set in the configuration file~, depending on server configuration
+    ~(<<span class="odocwiki_inlinecode"|~<usedefaulthostname~/~>>> option~)~.
+>>
+<<pre id="VALget_server_port" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_server~_port>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> int>>>><<div class="odocwiki_info"|returns the port of the server~.
+    ~It is either the default port in the configuration file
+    ~(if <<span class="odocwiki_inlinecode"|~<usedefaulthostname~/~>>> is present is the configuration file~)~,
+    or the port in the ~Host header of the request ~(if present~)~,
+    or the port on which the request has been done ~(otherwise~)~.
+>>
+<<pre id="VALget_ssl" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_ssl>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> bool>>>><<div class="odocwiki_info"|returns true if https is used~, false if http~.
+>>
+<<pre id="VALget_accept_language" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_accept~_language>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_delimiter"| ( >>string * float option<<span class="ocsforge_color_delimiter"| ) >> list>>>><<div class="odocwiki_info"|returns the ~(string ~* float option~) list corresponding
+    to accept~_language ~H~T~T~P header of the request~.
+>>
+<<pre id="VALget_suffix" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_suffix>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Eliom_lib>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Url>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|path>> option>>>><<div class="odocwiki_info"|returns the suffix of the current ~U~R~L
+>>
+<<pre id="VALget_cookies" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_cookies>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?cookie_level: >><<a_api subproject="server" text="Eliom_common.cookie_level" | type Eliom_common.cookie_level >> <<span class="ocsforge_color_delimiter"| -> >>\\  unit <<span class="ocsforge_color_delimiter"| -> >> string <<span class="ocsforge_color_uid"|Ocsigen_cookie_map>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Map_inner>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|returns the cookies sent by the browser
+>>
+<<pre id="VALget_timeofday" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_timeofday>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> float>>>><<div class="odocwiki_info"|returns an ~Unix timestamp associated to the request
+>>
+
+
+===@@id="3_Exceptionsandfallbacks"@@~Exceptions and fallbacks===
+
+<<pre id="VALget_request_cache" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_request~_cache>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Polytables>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|returns a table in which you can store all the data you want during a
+    request~. ~It can also be used to send information after an action~.
+    ~Keep an eye on this information to know what
+    succeeded before the current service was called
+    ~(failed connection~, timeout ~.~.~.~)
+    ~The table is created at the beginning of the request~.
+>>
+<<pre id="VALget_link_too_old" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_link~_too~_old>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> bool>>>><<div class="odocwiki_info"|returns <<span class="odocwiki_inlinecode"|true>> if the coservice called has not been found~.
+    ~In that case~, the current service is the fallback~.
+>>
+<<pre id="VALget_expired_service_sessions" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_expired~_service~_sessions>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  unit <<span class="ocsforge_color_delimiter"| -> >>\\  <<a_api subproject="server" text="Eliom_common.full_state_name" | type Eliom_common.full_state_name >> list * <<a_api subproject="server" text="Eliom_common.full_state_name" | type Eliom_common.full_state_name >> list>>>><<div class="odocwiki_info"|returns the list of names of service sessions expired for the current
+    request~, for browser sessions and tab sessions~.
+>>
+<<pre id="VALget_previous_extension_error_code" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_previous~_extension~_error~_code>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> int>>>><<div class="odocwiki_info"|returns the ~H~T~T~P error code sent by the ~Ocsigen extension
+   that tried to answer to the request before ~Eliom~.
+   ~It is ~4~0~4 by default~.
+>>
+<<pre id="VALget_tmp_filename" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_tmp~_filename>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Ocsigen_extensions>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|file_info>> <<span class="ocsforge_color_delimiter"| -> >> string>>>><<div class="odocwiki_info"|returns the filename used by ~Ocsigen for the uploaded file~.
+>>
+<<pre id="VALget_filesize" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_filesize>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Ocsigen_extensions>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|file_info>> <<span class="ocsforge_color_delimiter"| -> >> int64>>>><<div class="odocwiki_info"|returns the size of the uploaded file~.
+>>
+<<pre id="VALget_original_filename" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_original~_filename>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Ocsigen_extensions>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|file_info>> <<span class="ocsforge_color_delimiter"| -> >> string>>>><<div class="odocwiki_info"|returns the name the file had on the client when it has been sent~.
+>>
+<<pre id="VALget_file_content_type" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_file~_content~_type>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_uid"|Ocsigen_extensions>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|file_info>> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >><<span class="ocsforge_color_delimiter"| ( >>string * string<<span class="ocsforge_color_delimiter"| ) >> * <<span class="ocsforge_color_delimiter"| ( >>string * string<<span class="ocsforge_color_delimiter"| ) >> list<<span class="ocsforge_color_delimiter"| ) >> option>>>><<div class="odocwiki_info"|returns the content type sent by the browser with the file
+    ~(if any~)~.
+>>
+<<pre id="VALget_site_dir" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_site~_dir>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Eliom_lib>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Url>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|path>>>>>><<div class="odocwiki_info"|returns the root of the site~.
+>>
+
+
+==@@id="2_Gettingparameterslowlevel"@@~Getting parameters ~(low level~)==
+
+
+~The usual way to get parameters with ~Eliom is to use the second
+   and third parameters of the service handlers~.
+   ~These are low level functions you may need for more advanced use~.
+<<pre id="VALget_get_params" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_get~_params>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_delimiter"| ( >>string * string list<<span class="ocsforge_color_delimiter"| ) >> list>>>><<div class="odocwiki_info"|returns the parameters of the ~U~R~L ~(~G~E~T parameters~)
+   that concern the running service~.
+   ~For example in the case of a non~-attached coservice called from
+   a page with ~G~E~T parameters~, only the parameters of that non~-attached
+   coservice are returned ~(even if the other are still in the ~U~R~L~)~.
+>>
+<<pre id="VALget_all_current_get_params" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_all~_current~_get~_params>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_delimiter"| ( >>string * string<<span class="ocsforge_color_delimiter"| ) >> list>>>><<div class="odocwiki_info"|returns current parameters of the ~U~R~L ~(~G~E~T parameters~)
+   ~(even those that are for subsequent services~, but not previous actions~)
+>>
+<<pre id="VALget_other_get_params" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_other~_get~_params>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_delimiter"| ( >>string * string<<span class="ocsforge_color_delimiter"| ) >> list>>>><<div class="odocwiki_info"|returns the parameters of the ~U~R~L ~(~G~E~T parameters~)
+   that do not concern the running service~.
+>>
+<<pre id="VALget_nl_get_params" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_nl~_get~_params>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_delimiter"| ( >>string * string<<span class="ocsforge_color_delimiter"| ) >> list <<span class="ocsforge_color_uid"|Eliom_lib>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|String>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Table>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|returns non localized parameters in the ~U~R~L~.
+>>
+<<pre id="VALget_persistent_nl_get_params" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_persistent~_nl~_get~_params>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_delimiter"| ( >>string * string<<span class="ocsforge_color_delimiter"| ) >> list <<span class="ocsforge_color_uid"|Eliom_lib>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|String>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Table>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|returns persistent non localized parameters in the ~U~R~L~.
+>>
+<<pre id="VALget_nl_post_params" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_nl~_post~_params>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_delimiter"| ( >>string * string<<span class="ocsforge_color_delimiter"| ) >> list <<span class="ocsforge_color_uid"|Eliom_lib>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|String>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Table>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|returns non localized ~P~O~S~T parameters~.
+>>
+<<pre id="VALget_post_params" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_post~_params>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_delimiter"| ( >>string * string<<span class="ocsforge_color_delimiter"| ) >> list <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>> option>>>><<div class="odocwiki_info"|returns the parameters in the body of the ~H~T~T~P request ~(~P~O~S~T parameters~)
+    that concern the running service~. ~None means that ~P~O~S~T data where
+    neither urlencoded form data or multipart data~.
+>>
+<<pre id="VALget_all_post_params" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_all~_post~_params>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_delimiter"| ( >>string * string<<span class="ocsforge_color_delimiter"| ) >> list option>>>><<div class="odocwiki_info"|returns all parameters in the body of the ~H~T~T~P request ~(~P~O~S~T parameters~)
+   ~(even those that are for another service~)
+>>
+<<pre id="VALget_all_files" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_all~_files>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_delimiter"| ( >>string * <<span class="ocsforge_color_uid"|Ocsigen_extensions>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|file_info>><<span class="ocsforge_color_delimiter"| ) >> list option>>>><<div class="odocwiki_info"|returns all files in he ~H~T~T~P request
+   ~(even those that are for another service~)
+>>
+<<pre id="VALget_ignored_get_params" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_ignored~_get~_params>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_delimiter"| ( >>string * string<<span class="ocsforge_color_delimiter"| ) >> list>>>><<div class="odocwiki_info"|returns the ~G~E~T parameters that have been ignored using
+    ~<ignoredgetparams~/~> in config file~.
+>>
+<<pre id="VALget_ignored_post_params" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_ignored~_post~_params>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_delimiter"| ( >>string * string<<span class="ocsforge_color_delimiter"| ) >> list>>>><<div class="odocwiki_info"|returns the ~P~O~S~T parameters that have been ignored using
+    ~<ignoredpostparams~/~> in config file~.
+>>
+
+
+==@@id="2_Otherlowlevelfunctions"@@~Other low level functions==
+
+
+~You probably don~'t need these functions~.
+<<pre id="VALget_ri" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_ri>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Ocsigen_request>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|returns all the information about the request~.
+>>
+<<pre id="VALget_request" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_request>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Ocsigen_extensions>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|request>>>>>><<div class="odocwiki_info"|returns all the information about the request and config~.
+>>
+<<pre id="VALget_state_name" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_state~_name>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<a_api subproject="server" text="Eliom_common.full_state_name" | type Eliom_common.full_state_name >> option>>>><<div class="odocwiki_info"|returns the name of the sessions to which belongs the running service
+    ~(<<span class="odocwiki_inlinecode"|~None>> if it is not a session service~)
+>>
+<<pre id="VALget_persistent_cookies" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_persistent~_cookies>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  unit <<span class="ocsforge_color_delimiter"| -> >> string <<span class="ocsforge_color_uid"|Eliom_common>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Full_state_name_table>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|returns the values of the ~Eliom~'s cookies for persistent sessions
+   sent by the browser~.
+>>
+<<pre id="VALget_data_cookies" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_data~_cookies>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> string <<span class="ocsforge_color_uid"|Eliom_common>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Full_state_name_table>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|returns the values of ~Eliom~'s cookies for non persistent sessions
+   sent by the browser~.
+>>
+<<pre id="VALexpecting_process_page" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|expecting~_process~_page>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> bool>>>><<div class="odocwiki_info"|~Returns <<span class="odocwiki_inlinecode"|true>> if the request was done by a client side ~Eliom program~,
+    which was expecting to receive a new ~H~T~M~L page to display inside
+    the process~.
+>>
+
+
+===@@id="3_GettinginformationabouttheURLoftheclientsideprocesscsp"@@~Getting information about the ~U~R~L of the client side process ~(csp~)===
+
+
+
+    ~Warning~: it is different from the ~U~R~L to which the request has been made~.
+<<pre id="VALget_csp_original_full_path" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_csp~_original~_full~_path>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Eliom_lib>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Url>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|path>>>>>><<div class="odocwiki_info"|returns the full path of the ~U~R~L where the client~-side process is running~.
+    ~If there is no client side process~, same as
+    <<a_api subproject="server" | val Eliom_request_info.get_original_full_path >>~.
+>>
+<<pre id="VALget_csp_hostname" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_csp~_hostname>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> string>>>><<div class="odocwiki_info"|returns the hostname used for absolute links~, computed
+    when launching the client side process for the first time~.
+    ~If there is no client side process~,
+    same as <<a_api subproject="server" | val Eliom_request_info.get_hostname >>~.
+
+
+    ~It is either the <<span class="odocwiki_inlinecode"|~Host>> header sent by the browser or the default hostname
+    set in the configuration file~, depending on server configuration
+    ~(<<span class="odocwiki_inlinecode"|~<usedefaulthostname~/~>>> option~)~.
+>>
+<<pre id="VALget_csp_server_port" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_csp~_server~_port>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> int>>>><<div class="odocwiki_info"|returns the port of the server~, used when launching the client side process
+    ~(not the current request~)~. ~It corresponds to the port in the ~U~R~L of
+    the browser~.
+    ~If there is no client side process~, same as
+    <<a_api subproject="server" | val Eliom_request_info.get_server_port >>~.
+>>
+<<pre id="VALget_csp_ssl" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_csp~_ssl>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> bool>>>><<div class="odocwiki_info"|returns true if https is used in the ~U~R~L of the browser~, false if http~.
+    ~If there is no client side process~, same as <<a_api subproject="server" | val Eliom_request_info.get_ssl >>~.
+>>
+<<pre id="VALget_sitedata" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_sitedata>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Eliom_common>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|sitedata>>>>>>

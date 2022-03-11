@@ -1,0 +1,12 @@
+=Module <<a_api_type subproject="server" | module Eliom_comet >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_comet>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_comet >><<span class="ocsforge_color_keyword"|end>>>>~Primitives to push data to the client~, without explicit request~.
+
+----
+
+**~Please read the
+    <<a_manual chapter="clientserver-communication" | chapter on
+    communication >> of ~Eliom~'s manual
+    before this page to learn how client and server parts communicate~. **
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Channel" | module Eliom_comet.Channel >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_comet.Channel >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Basic primitives needed for server push~.
+>>
+<<pre id="VALsection" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|section>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Lwt_log_core>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|section>>>>>>

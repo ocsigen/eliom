@@ -1,0 +1,157 @@
+=Module type <<a_api_type subproject="server" | module type Eliom_form_sigs.LINKS >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module type>> <<span class="ocsforge_color_uid"|LINKS>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module type Eliom_form_sigs.LINKS >><<span class="ocsforge_color_keyword"|end>>>>
+----
+<<pre class="ocsforge_color odocwiki_code" id="TYPEelt"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|+'a>> <<span class="odocwiki_name"|elt>>>><<pre class="ocsforge_color odocwiki_code" id="TYPEattrib"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|+'a>> <<span class="odocwiki_name"|attrib>>>><<pre class="ocsforge_color odocwiki_code" id="TYPEuri"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|uri>>>><<pre id="VALmake_uri" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|make~_uri>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?absolute: >>bool <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?absolute_path: >>bool <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?https: >>bool <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| service: >><<span class="ocsforge_color_delimiter"| ( >>'get, unit, <<span class="ocsforge_color_uid"|Eliom_service>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|get>>, 'a, 'b, 'c, 'd,\\           [< `WithSuffix | `WithoutSuffix ], 'e, unit, 'f<<span class="ocsforge_color_delimiter"| ) >>\\          <<span class="ocsforge_color_uid"|Eliom_service>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?hostname: >>string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?port: >>int <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?fragment: >>string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?keep_nl_params: >>[ `All | `None | `Persistent ] <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?nl_params: >><<span class="ocsforge_color_uid"|Eliom_parameter>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|nl_params_set>> <<span class="ocsforge_color_delimiter"| -> >>\\  'get <<span class="ocsforge_color_delimiter"| -> >> <<a_api subproject="server" text="uri" | type Eliom_form_sigs.LINKS.uri >>>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|make~_uri service get~_params>> returns the ~U~R~L of
+      the service <<span class="odocwiki_inlinecode"|service>> applied to the ~G~E~T parameters
+      <<span class="odocwiki_inlinecode"|get~_params>>~. ~By default the returned ~U~R~L is relative to the
+      current request ~U~R~L but it is absolute when one of the following
+      conditions is met~:
+
+
+* the optional parameter <<span class="odocwiki_inlinecode"|~~absolute~_path>> is <<span class="odocwiki_inlinecode"|true>>~.
+* the optional parameter <<span class="odocwiki_inlinecode"|~~absolute>> is <<span class="odocwiki_inlinecode"|true>>~.
+* the optional parameter <<span class="odocwiki_inlinecode"|~~https>> is <<span class="odocwiki_inlinecode"|true>> ~(resp~. <<span class="odocwiki_inlinecode"|false>>~) and
+        the current request protocol is <<span class="odocwiki_inlinecode"|http>> ~(resp~. <<span class="odocwiki_inlinecode"|https>>~)~.
+* the optional parameter <<span class="odocwiki_inlinecode"|~~https>> is <<span class="odocwiki_inlinecode"|true>> and the function is
+        used outside of a service handler
+* the <<span class="odocwiki_inlinecode"|service>> has been created with <<span class="odocwiki_inlinecode"|~~https~:true>> and the
+        current request protocol is <<span class="odocwiki_inlinecode"|http>>~.
+* the <<span class="odocwiki_inlinecode"|service>> has been created with <<span class="odocwiki_inlinecode"|~~https~:true>> and the
+        function is used outside of a service handler~.
+
+      ~When only the first condition is met ~(<<span class="odocwiki_inlinecode"|~~absolute~_path>> is
+      <<span class="odocwiki_inlinecode"|true>>~) the returned ~U~R~L is just the absolute path~, but when any
+      other condition is satisfied the returned ~U~R~L is prefixed with
+      <<span class="odocwiki_inlinecode"|protocol~:~/~/hostname~[~:port~]>>~, where~:
+
+
+* <<span class="odocwiki_inlinecode"|protocol>> is~:
+        
+** <<span class="odocwiki_inlinecode"|https>> if the <<span class="odocwiki_inlinecode"|service>> has been created with
+             <<span class="odocwiki_inlinecode"|~~https~:true>> or the optional parameter <<span class="odocwiki_inlinecode"|~~https>> is
+             <<span class="odocwiki_inlinecode"|true>>~;
+** <<span class="odocwiki_inlinecode"|http>> if the optional parameter <<span class="odocwiki_inlinecode"|~~https>> is <<span class="odocwiki_inlinecode"|false>>~;
+** the current request protocol if available~;
+** <<span class="odocwiki_inlinecode"|http>> in any other case~.
+
+* <<span class="odocwiki_inlinecode"|hostname>> is~:
+        
+** the optional parameter <<span class="odocwiki_inlinecode"|~~hostname>> if given~;
+** the attribute <<span class="odocwiki_inlinecode"|defaulthostname>> of <<span class="odocwiki_inlinecode"|~<host~>>> tag in
+               configuration file or the machine hostname if the
+               option <<span class="odocwiki_inlinecode"|~<usedefaulthostname~/~>>> is set~;
+** the <<span class="odocwiki_inlinecode"|~Host>> http header of the current request if
+               available~;
+** the attribute <<span class="odocwiki_inlinecode"|defaulthostname>> of <<span class="odocwiki_inlinecode"|~<host~>>> tag in
+               configuration file or the machine hostname in any other
+               case~.
+
+* <<span class="odocwiki_inlinecode"|port>> is~:
+        
+** the optional parameter <<span class="odocwiki_inlinecode"|~~port>> if given~;
+** the attribute <<span class="odocwiki_inlinecode"|defaulthttpsport>>
+               ~(resp~. <<span class="odocwiki_inlinecode"|defaulthttpport>>~) of <<span class="odocwiki_inlinecode"|~<host~>>> tag in
+               configuration file or <<span class="odocwiki_inlinecode"|~4~4~3>> ~(resp~. ~8~0~) if <<span class="odocwiki_inlinecode"|protocol>> is
+               <<span class="odocwiki_inlinecode"|https>> ~(resp~. <<span class="odocwiki_inlinecode"|http>>~) and the current request protocol
+               is <<span class="odocwiki_inlinecode"|http>> ~(resp~. <<span class="odocwiki_inlinecode"|https>>~)~;
+** the attribute <<span class="odocwiki_inlinecode"|defaulthttpsport>>
+               ~(resp~. <<span class="odocwiki_inlinecode"|defaulthttpsport>>~) of <<span class="odocwiki_inlinecode"|~<host~>>> tag in
+               configuration file or <<span class="odocwiki_inlinecode"|~4~4~3>> ~(resp~. ~8~0~) if the option
+               <<span class="odocwiki_inlinecode"|~<usedefaulthostname~/~>>> is set and <<span class="odocwiki_inlinecode"|protocol>> is
+               <<span class="odocwiki_inlinecode"|https>> ~(resp~. <<span class="odocwiki_inlinecode"|http>>~)~;
+** the port associated to the <<span class="odocwiki_inlinecode"|~Host>> http header of the
+               current request if available~;
+** the incoming port of the current request if available~;
+** the attribute <<span class="odocwiki_inlinecode"|defaulthttpport>>
+               ~(resp~. <<span class="odocwiki_inlinecode"|defaulthttpsport>>~) of <<span class="odocwiki_inlinecode"|~<host~>>> tag in
+               configuration file or <<span class="odocwiki_inlinecode"|~8~0>> ~(resp~. <<span class="odocwiki_inlinecode"|~4~4~3>>~) in any other
+               case~.
+
+
+      ~If given the optional parameter <<span class="odocwiki_inlinecode"|~~fragment>> is prefixed by <<span class="odocwiki_inlinecode"|~#>>
+      and appended to the ~U~R~L~.
+
+
+      ~The optional parameter <<span class="odocwiki_inlinecode"|keep~_nl~_params>> allows one to override
+      the <<span class="odocwiki_inlinecode"|keep~_nl~_params>> parameter used when creating the <<span class="odocwiki_inlinecode"|service>>~,
+      see <<a_api subproject="server" | val Eliom_service.create >> for a detailed description~.
+
+
+      ~The optional parameter <<span class="odocwiki_inlinecode"|nl~_params>> allows one to add non
+      localized ~G~E~T parameter to the ~U~R~L~.  ~See the eliom manual for
+      more information about <<a_manual chapter="server-params"
+      fragment="nonlocalizedparameters"|non localized
+      parameters>>~.
+>>
+<<pre id="VALuri_of_string" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|uri~_of~_string>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>unit <<span class="ocsforge_color_delimiter"| -> >> string<<span class="ocsforge_color_delimiter"| ) >> <<span class="ocsforge_color_delimiter"| -> >> <<a_api subproject="server" text="uri" | type Eliom_form_sigs.LINKS.uri >>>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|uri~_of~_string f>> returns a ~U~R~I whose content is
+      equivalent to <<span class="odocwiki_inlinecode"|f ~(~)>>~.
+
+
+      ~For ~X~M~L tree build with ~Ty~X~M~L~, like <<span class="odocwiki_inlinecode"|~Html>> or <<span class="odocwiki_inlinecode"|~Svg~.~F>>~, the
+      function <<span class="odocwiki_inlinecode"|f>> is applied each time the ~X~M~L tree is sent to the
+      client ~(either as page content or as a marshalled ~O~Caml
+      value~)~. ~Hence~, the function is always evaluated in the context
+      of a service handler~.
+
+
+      ~For other module~, the function <<span class="odocwiki_inlinecode"|f>> is immediately applied~.
+>>
+<<pre id="VALcss_link" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|css~_link>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?a: >>[< <<span class="ocsforge_color_uid"|Html_types>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|link_attrib>> ] <<a_api subproject="server" text="attrib" | type Eliom_form_sigs.LINKS.attrib >> list <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| uri: >><<a_api subproject="server" text="uri" | type Eliom_form_sigs.LINKS.uri >> <<span class="ocsforge_color_delimiter"| -> >>\\  unit <<span class="ocsforge_color_delimiter"| -> >> [> <<span class="ocsforge_color_uid"|Html_types>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|link>> ] <<a_api subproject="server" text="elt" | type Eliom_form_sigs.LINKS.elt >>>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|css~_link ~~uri ~(~)>> creates a <<span class="odocwiki_inlinecode"|~<link~>>> node that
+      reference a ~Cascading ~Style~Sheet ~(~C~S~S~)~.
+
+
+      ~If the ~C~S~S is generated by an ~Eliom service~, use <<a_api subproject="server" | val Eliom_form_sigs.LINKS.make_uri >> to
+      calculate the service ~U~R~I~. ~If the ~C~S~S is a static file~, you may
+      also use <<span class="odocwiki_inlinecode"|~Eliom~_service~.static~_dir>> or <<span class="odocwiki_inlinecode"|~Eliom~_service~.extern>>
+      to abstract the file with a service~.
+
+
+      ~The optional parameter <<span class="odocwiki_inlinecode"|~~a>> allows one to add extra ~H~T~M~L
+      attributes to the generated node~.
+>>
+<<pre id="VALjs_script" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|js~_script>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?a: >>[< <<span class="ocsforge_color_uid"|Html_types>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|script_attrib>> ] <<a_api subproject="server" text="attrib" | type Eliom_form_sigs.LINKS.attrib >> list <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| uri: >><<a_api subproject="server" text="uri" | type Eliom_form_sigs.LINKS.uri >> <<span class="ocsforge_color_delimiter"| -> >>\\  unit <<span class="ocsforge_color_delimiter"| -> >> [> <<span class="ocsforge_color_uid"|Html_types>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|script>> ] <<a_api subproject="server" text="elt" | type Eliom_form_sigs.LINKS.elt >>>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|js~_script ~~uri ~(~)>> creates a <<span class="odocwiki_inlinecode"|~<script~>>> node that
+      reference a javascript file~.
+
+
+      ~If the script content is generated by an ~Eliom service~, use
+      <<a_api subproject="server" | val Eliom_form_sigs.LINKS.make_uri >> to calculate the service ~U~R~I~. ~If it is a static
+      file~, you may also use <<span class="odocwiki_inlinecode"|~Eliom~_service~.static~_dir>> or
+      <<span class="odocwiki_inlinecode"|~Eliom~_service~.extern>> to abstract the file with a service~.
+
+
+      ~The optional parameter <<span class="odocwiki_inlinecode"|~~a>> allows one to add extra ~H~T~M~L
+      attributes to the generated node~.
+>>
+<<pre id="VALa" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|a>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?absolute: >>bool <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?absolute_path: >>bool <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?https: >>bool <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?a: >>[< <<span class="ocsforge_color_uid"|Html_types>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|a_attrib>> ] <<a_api subproject="server" text="attrib" | type Eliom_form_sigs.LINKS.attrib >> list <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| service: >><<span class="ocsforge_color_delimiter"| ( >>'get, unit, <<span class="ocsforge_color_uid"|Eliom_service>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|get>>, 'b, 'c, 'd, 'e,\\           [< `WithSuffix | `WithoutSuffix ], 'f, unit,\\           <<span class="ocsforge_color_uid"|Eliom_service>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|non_ocaml>><<span class="ocsforge_color_delimiter"| ) >>\\          <<span class="ocsforge_color_uid"|Eliom_service>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?hostname: >>string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?port: >>int <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?fragment: >>string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?keep_nl_params: >>[ `All | `None | `Persistent ] <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?nl_params: >><<span class="ocsforge_color_uid"|Eliom_parameter>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|nl_params_set>> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?xhr: >>bool <<span class="ocsforge_color_delimiter"| -> >>\\  'a <<a_api subproject="server" text="elt" | type Eliom_form_sigs.LINKS.elt >> list <<span class="ocsforge_color_delimiter"| -> >>\\  'get <<span class="ocsforge_color_delimiter"| -> >> [> 'a <<span class="ocsforge_color_uid"|Html_types>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|a>> ] <<a_api subproject="server" text="elt" | type Eliom_form_sigs.LINKS.elt >>>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|a service a~_content get~_params>> creates a <<span class="odocwiki_inlinecode"|~<a~>>>
+      node that link to <<span class="odocwiki_inlinecode"|service>> applied to ~G~E~T parameters
+      <<span class="odocwiki_inlinecode"|get~_params>> and whose content is <<span class="odocwiki_inlinecode"|a~_content>>~. ~By default~, the
+      <<span class="odocwiki_inlinecode"|href>> attribute is a relative ~U~R~L recomputed at each request
+      with <<a_api subproject="server" | val Eliom_form_sigs.LINKS.make_uri >>~.
+
+
+      ~By default~, the link is implemented in a way that allows the
+      client~-side ~Eliom application to keep running~, irrespectable of
+      the usage of the link ~(cf~. <<a_api project="eliom"
+      subproject="client" | val Eliom_client.change_page>> ~)~.
+
+
+      ~By contrast~, if the optional parameter <<span class="odocwiki_inlinecode"|~~xhr~:false>> is given~,
+      the link is realized as a standard ~H~T~M~L link and clicking it
+      discontinues the ~Eliom application~.  ~The <<span class="odocwiki_inlinecode"|~~xhr>> parameter has no
+      effect outside an ~Eliom application~.
+      ~The default value of <<span class="odocwiki_inlinecode"|~~xhr>> is configurable through
+      <<a_api project="eliom" subproject="server" | val
+      Eliom_config.set_default_links_xhr >> ~.
+
+
+      ~The optional parameter <<span class="odocwiki_inlinecode"|~~a>> allows one to add extra ~H~T~M~L
+      attributes to the generated node~.
+
+
+      ~See <<a_api subproject="server" | val Eliom_form_sigs.LINKS.make_uri >> for description of other optional
+      parameters~.
+
+
+      ~To create a <<span class="odocwiki_inlinecode"|~<a~>>> node that is not associated to a service~, use
+      <<span class="odocwiki_inlinecode"|~Raw~.a>>~.
+>>

@@ -1,0 +1,18 @@
+<<code language="ocaml" | sig
+  type page
+  type options
+  type result
+  type frame
+  val send :
+    ?options:Eliom_registration_sigs.PARAM.options ->
+    ?charset:string ->
+    ?code:int ->
+    ?content_type:string ->
+    ?headers:Cohttp.Header.t ->
+    Eliom_registration_sigs.PARAM.page ->
+    Eliom_registration_sigs.PARAM.frame Lwt.t
+  val send_appl_content : Eliom_service.send_appl_content
+  val result_of_http_result :
+    Eliom_registration_sigs.PARAM.frame ->
+    Eliom_registration_sigs.PARAM.result
+end >>

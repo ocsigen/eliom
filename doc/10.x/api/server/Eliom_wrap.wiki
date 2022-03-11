@@ -1,0 +1,14 @@
+=Module <<a_api_type subproject="server" | module Eliom_wrap >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_wrap>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_wrap >><<span class="ocsforge_color_keyword"|end>>>>
+----
+<<pre class="ocsforge_color odocwiki_code" id="TYPEwrapped_value"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|'a>> <<span class="odocwiki_name"|wrapped~_value>>>><<pre class="ocsforge_color odocwiki_code" id="TYPEwrapper"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|+'a>> <<span class="odocwiki_name"|wrapper>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|~'a wrapper>> is the type of values to include into a value of type ~'a for
+   it to be wrapped specifically
+>>
+<<pre id="VALcreate_wrapper" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|create~_wrapper>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>'a <<span class="ocsforge_color_delimiter"| -> >> 'b<<span class="ocsforge_color_delimiter"| ) >> <<span class="ocsforge_color_delimiter"| -> >> 'a <<a_api subproject="server" text="wrapper" | type Eliom_wrap.wrapper >>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|create f>> create a new tag that can be included into a value~.  if
+    <<span class="odocwiki_inlinecode"|wrap>> is called on a father of a value <<span class="odocwiki_inlinecode"|v>> containing a tag~, the
+    value <<span class="odocwiki_inlinecode"|v>> will be replaced by <<span class="odocwiki_inlinecode"|f v>> before marshaling~.
+>>
+
+marshal a value~, taking into account the tags~.
+<<pre id="VALwrap" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|wrap>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|'a <<span class="ocsforge_color_delimiter"| -> >> 'a <<a_api subproject="server" text="wrapped_value" | type Eliom_wrap.wrapped_value >>>>>><<pre id="VALempty_wrapper" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|empty~_wrapper>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|'a <<a_api subproject="server" text="wrapper" | type Eliom_wrap.wrapper >>>>>><<div class="odocwiki_info"|a wrapper that do not change the value
+>>

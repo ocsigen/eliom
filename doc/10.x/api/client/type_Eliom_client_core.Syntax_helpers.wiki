@@ -1,0 +1,7 @@
+<<code language="ocaml" | sig
+  val register_client_closure : string -> ('a -> 'b) -> unit
+  val open_client_section : Eliom_lib.String_map.key -> unit
+  val close_server_section : Eliom_lib.String_map.key -> unit
+  val get_escaped_value : Eliom_lib.poly -> 'a
+  val get_injection : ?ident:string -> ?pos:Eliom_lib.pos -> string -> 'a
+end >>

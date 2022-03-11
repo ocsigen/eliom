@@ -1,0 +1,139 @@
+<<code language="ocaml" | sig
+  exception Wrong_scope
+  type timeout = TGlobal | TNone | TSome of float
+  type service_cookie_info
+  type data_cookie_info
+  type persistent_cookie_info
+  type (+'a, +'b) state
+  val volatile_data_group_state :
+    ?scope:Eliom_common.session_group_scope ->
+    string -> ([> `Session_group ], [> `Data ]) Eliom_state.Ext.state
+  val persistent_data_group_state :
+    ?scope:Eliom_common.session_group_scope ->
+    string -> ([> `Session_group ], [> `Pers ]) Eliom_state.Ext.state
+  val service_group_state :
+    ?scope:Eliom_common.session_group_scope ->
+    string -> ([> `Session_group ], [> `Service ]) Eliom_state.Ext.state
+  val current_volatile_data_state :
+    ?secure:bool ->
+    ?scope:Eliom_common.user_scope ->
+    unit -> ([< Eliom_common.user_level ], [< `Data ]) Eliom_state.Ext.state
+  val current_persistent_data_state :
+    ?secure:bool ->
+    ?scope:Eliom_common.user_scope ->
+    unit ->
+    ([< Eliom_common.user_level ], [< `Pers ]) Eliom_state.Ext.state Lwt.t
+  val current_service_state :
+    ?secure:bool ->
+    ?scope:Eliom_common.user_scope ->
+    unit ->
+    ([< Eliom_common.user_level ], [< `Service ]) Eliom_state.Ext.state
+  val discard_state :
+    ?sitedata:Eliom_common.sitedata ->
+    state:('a, 'b) Eliom_state.Ext.state -> unit -> unit Lwt.t
+  val fold_volatile_sub_states :
+    ?sitedata:Eliom_common.sitedata ->
+    state:([< `Session | `Session_group ], [< `Data | `Service ] as 'k)
+          Eliom_state.Ext.state ->
+    ('a -> ([< `Client_process | `Session ], 'k) Eliom_state.Ext.state -> 'a) ->
+    'a -> 'a
+  val iter_volatile_sub_states :
+    ?sitedata:Eliom_common.sitedata ->
+    state:([< `Session | `Session_group ], [< `Data | `Service ] as 'k)
+          Eliom_state.Ext.state ->
+    (([< `Client_process | `Session ], 'k) Eliom_state.Ext.state -> unit) ->
+    unit
+  val fold_sub_states :
+    ?sitedata:Eliom_common.sitedata ->
+    state:([< `Session | `Session_group ],
+           [< `Data | `Pers | `Service ] as 'k)
+          Eliom_state.Ext.state ->
+    ('a ->
+     ([< `Client_process | `Session ], 'k) Eliom_state.Ext.state -> 'a Lwt.t) ->
+    'a -> 'a Lwt.t
+  val iter_sub_states :
+    ?sitedata:Eliom_common.sitedata ->
+    state:([< `Session | `Session_group ], 'k) Eliom_state.Ext.state ->
+    (([< `Client_process | `Session ], 'k) Eliom_state.Ext.state ->
+     unit Lwt.t) ->
+    unit Lwt.t
+  module Low_level :
+    sig
+      val get_volatile_data :
+        state:([< `Client_process | `Session | `Session_group ], [< `Data ])
+              Eliom_state.Ext.state ->
+        table:'a Eliom_state.volatile_table -> 'a
+      val get_persistent_data :
+        state:([< `Client_process | `Session | `Session_group ], [< `Pers ])
+              Eliom_state.Ext.state ->
+        table:'a Eliom_state.persistent_table -> 'a Lwt.t
+      val set_volatile_data :
+        state:([< `Client_process | `Session | `Session_group ], [< `Data ])
+              Eliom_state.Ext.state ->
+        table:'a Eliom_state.volatile_table -> 'a -> unit
+      val set_persistent_data :
+        state:([< `Client_process | `Session | `Session_group ], [< `Pers ])
+              Eliom_state.Ext.state ->
+        table:'a Eliom_state.persistent_table -> 'a -> unit Lwt.t
+      val remove_volatile_data :
+        state:([< `Client_process | `Session | `Session_group ], [< `Data ])
+              Eliom_state.Ext.state ->
+        table:'a Eliom_state.volatile_table -> unit
+      val remove_persistent_data :
+        state:([< `Client_process | `Session | `Session_group ], [< `Pers ])
+              Eliom_state.Ext.state ->
+        table:'a Eliom_state.persistent_table -> unit Lwt.t
+    end
+  val get_service_cookie_info :
+    ?sitedata:Eliom_common.sitedata ->
+    ([< Eliom_common.cookie_level ], [ `Service ]) Eliom_state.Ext.state ->
+    Eliom_state.Ext.service_cookie_info
+  val get_volatile_data_cookie_info :
+    ?sitedata:Eliom_common.sitedata ->
+    ([< Eliom_common.cookie_level ], [ `Data ]) Eliom_state.Ext.state ->
+    Eliom_state.Ext.data_cookie_info
+  val get_persistent_cookie_info :
+    ([< Eliom_common.cookie_level ], [ `Pers ]) Eliom_state.Ext.state ->
+    Eliom_state.Ext.persistent_cookie_info Lwt.t
+  val get_service_cookie_scope :
+    cookie:Eliom_state.Ext.service_cookie_info -> Eliom_common.user_scope
+  val get_volatile_data_cookie_scope :
+    cookie:Eliom_state.Ext.data_cookie_info -> Eliom_common.user_scope
+  val get_persistent_data_cookie_scope :
+    cookie:Eliom_state.Ext.persistent_cookie_info -> Eliom_common.user_scope
+  val set_service_cookie_timeout :
+    cookie:Eliom_state.Ext.service_cookie_info -> float option -> unit
+  val set_volatile_data_cookie_timeout :
+    cookie:Eliom_state.Ext.data_cookie_info -> float option -> unit
+  val set_persistent_data_cookie_timeout :
+    cookie:Eliom_state.Ext.persistent_cookie_info ->
+    float option -> unit Lwt.t
+  val get_service_cookie_timeout :
+    cookie:Eliom_state.Ext.service_cookie_info -> Eliom_state.Ext.timeout
+  val get_volatile_data_cookie_timeout :
+    cookie:Eliom_state.Ext.data_cookie_info -> Eliom_state.Ext.timeout
+  val get_persistent_data_cookie_timeout :
+    cookie:Eliom_state.Ext.persistent_cookie_info -> Eliom_state.Ext.timeout
+  val unset_service_cookie_timeout :
+    cookie:Eliom_state.Ext.service_cookie_info -> unit
+  val unset_volatile_data_cookie_timeout :
+    cookie:Eliom_state.Ext.data_cookie_info -> unit
+  val unset_persistent_data_cookie_timeout :
+    cookie:Eliom_state.Ext.persistent_cookie_info -> unit Lwt.t
+  val get_session_group_list : unit -> string list
+  val iter_service_cookies :
+    (Eliom_state.Ext.service_cookie_info -> unit Lwt.t) -> unit Lwt.t
+  val iter_volatile_data_cookies :
+    (Eliom_state.Ext.data_cookie_info -> unit Lwt.t) -> unit Lwt.t
+  val iter_persistent_data_cookies :
+    (Eliom_state.Ext.persistent_cookie_info -> unit Lwt.t) -> unit Lwt.t
+  val fold_service_cookies :
+    (Eliom_state.Ext.service_cookie_info -> 'b -> 'b Lwt.t) -> 'b -> 'b Lwt.t
+  val fold_volatile_data_cookies :
+    (Eliom_state.Ext.data_cookie_info -> 'b -> 'b Lwt.t) -> 'b -> 'b Lwt.t
+  val fold_persistent_data_cookies :
+    (Eliom_state.Ext.persistent_cookie_info -> 'b -> 'b Lwt.t) ->
+    'b -> 'b Lwt.t
+  val untype_state :
+    ('a, 'b) Eliom_state.Ext.state -> ('c, 'd) Eliom_state.Ext.state
+end >>

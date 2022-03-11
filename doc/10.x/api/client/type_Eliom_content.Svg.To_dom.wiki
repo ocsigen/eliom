@@ -1,0 +1,9 @@
+<<code language="ocaml" | sig
+  val of_element :
+    'a Eliom_content.Svg.elt -> Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+  val of_node :
+    'a Eliom_content.Svg.elt -> Js_of_ocaml.Dom.node Js_of_ocaml.Js.t
+  val of_pcdata :
+    [> `Pcdata ] Eliom_content.Svg.elt ->
+    Js_of_ocaml.Dom.text Js_of_ocaml.Js.t
+end >>

@@ -1,0 +1,24 @@
+=Module <<a_api_type subproject="server" | module Eliom_content.Svg >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Svg>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_content.Svg >><<span class="ocsforge_color_keyword"|end>>>>~Building and pretty~-printing valid ~S~V~G tree~.
+~Information about ~Svg api can be found at <<a_api project="tyxml" | module Svg_sigs.T >> 
+
+----
+
+~See the ~Eliom manual for more information on<<a_manual
+      chapter="clientserver-html" fragment="unique"| dom semantics vs. functional
+      semantics>>  for ~S~V~G tree manipulated by client~/server
+      application~.
+<<pre class="ocsforge_color odocwiki_code" id="TYPEelt"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|+'a>> <<span class="odocwiki_name"|elt>>>><<pre class="ocsforge_color odocwiki_code" id="TYPEattrib"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|+'a>> <<span class="odocwiki_name"|attrib>>>><<pre class="ocsforge_color odocwiki_code" id="TYPEwrap"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|'a>> <<span class="odocwiki_name"|wrap>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|'a>> >><<pre class="ocsforge_color odocwiki_code" id="TYPElist_wrap"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|'a>> <<span class="odocwiki_name"|list~_wrap>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|'a list>> >><<pre class="ocsforge_color odocwiki_code" id="TYPEuri"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|uri>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Eliom_content>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Xml>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|uri>>>> >><<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="F" | module Eliom_content.Svg.F >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_content.Svg.F >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Typed interface for building valid ~S~V~G tree ~(functional
+      semantics~)~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="D" | module Eliom_content.Svg.D >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_content.Svg.D >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Typed interface for building valid ~S~V~G tree ~(~D~O~M semantics~)~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="R" | module Eliom_content.Svg.R >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_content.Svg.R >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Creation of ~S~V~G content from shared reactive signals and data
+      ~(<<a_api project="eliom" subproject="server"|module Eliom_shared>> ~)~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="C" | module Eliom_content.Svg.C >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_content.Svg.C >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Creation of content from client~-side values~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Id" | module Eliom_content.Svg.Id >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_content.Svg.Id >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Node identifiers~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Printer" | module Eliom_content.Svg.Printer >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Xml_sigs.Typed_pp>>>><<span class="odocwiki_type"|  with type +'a elt := 'a elt and type doc := F.doc>>>><<div class="odocwiki_info"|~S~V~G printer~.
+>>

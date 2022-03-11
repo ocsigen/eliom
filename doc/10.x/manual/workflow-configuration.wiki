@@ -1,0 +1,441 @@
+
+= Compiling and configuring Eliom modules =
+
+<<outline depth="2"| <<header| **Table of contents** >> >>
+
+This chapter explains how to set Eliom's
+options in the Ocsigen server configuration file, and how to define options for your
+Eliom modules. See the Ocsigen server documentation for more information about the
+<<a_manual project="ocsigenserver" chapter="config" |server's configuration>>.
+
+Note, however, that <<a_manual chapter="workflow-distillery"|Eliom's
+distillery>> provides templates to get started at once with Eliom!
+
+==@@id="misc"@@Using Eliom modules with Ocsigen server==
+
+====Configuration file
+
+To run an Ocsigen server with an Eliom module {{{example.cmo}}},
+add the following lines to the Ocsigen configuration file
+(<<span class="code"|/etc/ocsigen/ocsigen.conf>> most of the times):
+
+{{{
+<extension findlib-package="eliom.server"/>
+<host>
+  <site path="examples">
+    <eliommodule module="~///path_to///example.cmo" />
+    <eliom />
+  </site>
+</host>
+}}}
+
+The block surrounded by the {{{<site>}}} tag creates a sub-site on your
+host, in directory {{{examples}}}. The {{{<site>}}} tag is optional if
+you want to register your services at the root of the server path tree.
+
+The {{{<eliom>}}} tag defines an Eliom module to be loaded (dynamically while
+starting Ocsigen server) for this subsite.
+
+====Running Ocsigen server
+
+Run Ocsigen server, by typing the command
+
+{{{
+ocsigenserver
+}}}
+
+or, if your configuration file is not in the default
+location:
+
+{{{
+ocsigenserver -c //<your configuration file>//
+}}}
+
+You should see the page corresponding to service {{{"coucou"}}} in site
+{{{examples/}}} at url\\
+<<span class="code"|~http:~/~///your_server///examples/coucou>>.\\
+
+<<concept title="Debugging" |**Tip:** Add the option {{{<debugmode/>}}} in
+the configuration file during the development process of your application.
+Thus, Ocsigen server will display the exceptions raised during
+the generation of a page in error pages.
+
+**Tip:** To debug your programs,
+add the option {{{-v}}} or {{{-V}}} of
+the {{{ocsigen}}} command to have verbose information on what succeeds
+during request. Also think to have look in the log files when something goes
+wrong.>>
+
+
+===Several Eliom modules for one site===
+
+If your site consists of several modules, you can load them
+consecutively from the configuration file using several
+{{{eliommodule}}}-tags.
+Note that there can be only one <<span class="code"|<eliom>>>
+tag for each <<span class="code"|<site>>>
+(or <<span class="code"|<host>>>), however.
+
+===Using findlib with Eliom modules===
+
+If your module has a findlib <<span class="code"|META>> file,
+it is also possible (and recommended!) to do:
+
+{{{
+<host>
+  <site path="examples">
+    <eliommodule findlib-package="//package-name//" />
+    <eliom />
+  </site>
+</host>
+}}}
+
+
+
+===@@id="reload"@@Updating sites without shutting down the server
+
+Ocsigen server has a feature that allows the configuration to be reloaded
+without shutting down the server (see section * *).
+This can be used to reload Eliom modules without closing volatile sessions.
+To do that use <<span class="code"|/etc/init.d/ocsigen reload>>
+for most of the distributions, or do it manually using:
+
+{{{
+echo reload > /var/run/ocsigen_command
+}}}
+
+Only modules loaded inside <<span class="code"|<host>>>,
+<<span class="code"|<site>>> or
+<<span class="code"|<library>>> will be reloaded.
+Module loaded using <<span class="code"|<extension>>> will not.
+
+Have a look at the logs to see if all went well during the reload.
+If something went wrong, old services may still be reachable.
+
+Warning:
+* Services created with the old modules or URLs that have not been
+  masked by new ones will still reachable after the update!
+* During the reload, some information of the configuration file will
+  not be re-read (for example port numbers, user and group, etc.).
+
+
+==Interacting with Ocsigen server from Eliom programs
+
+===Defining an exception handler for the whole site
+
+When an exception is raised during the generation of a page, or when
+the page has not been found or has wrong parameters, an HTTP error 500
+or 404 is sent to the client. You may want to catch these exceptions
+to print your own error page.  Do this using
+<<a_api| val Eliom_service.set_exn_handler >>.
+Here is the handler used by the tutorial:
+
+<<code language="ocaml"|let _ = Eliom_service.set_exn_handler
+   (fun e -> match e with
+    | Eliom_common.Eliom_404 ->
+        Eliom_registration.Html.send ~code:404
+          (html
+             (head (title (txt "")) [])
+             (body [h1 [txt "Eliom tutorial"];
+                    p [txt "Page not found"]]))
+    | e -> fail e)
+>>
+
+===Giving configuration options to your sites
+
+You can add your own options in the configuration file for your Web
+site. For example:
+
+<<code language="ocaml"|
+    <eliommodule module="//path_to///yourmodule.cmo">
+      <youroptions> ...
+    </eliommodule>
+>>
+
+Use <<a_api| val Eliom_config.get_config >> during the initialization
+of your module to get the data between <<span class="code"|<eliom>>>
+and <<span class="code"|</eliom>>>.
+
+<<wip|
+ Warning: parsing these data is very basic for now.
+ That feature will be improved in the future.
+>>
+
+===@@id="static_linking"@@Static linking of Eliom modules
+
+From version 1.2, it is possible to link extensions and Eliom modules
+<<a_manual project="ocsigenserver" chapter="staticlink"|statically>>.
+But this is not straightforward.  For Eliom modules, service
+registration and option settings must be delayed until the
+configuration file is read. To create a statically linkable Eliom
+module, use function
+<<a_api| val Eliom_service.register_eliom_module >>.
+It takes as parameters the name of the module and the initialization
+function that will be called once the module is initialized in the
+configuration file. That function should register the module services
+(and possibly call <<a_api| val Eliom_config.get_config >> if the module has
+configuration options).
+
+<<wip|How to improve this and this easier to use?>>
+
+To initialize the module from the configuration file, use the syntax:
+
+{{{
+<eliommodule name="//name//"> ... </eliommodule>
+}}}
+
+(or <<span class="code"|<eliommodule name="//name//"> ... </eliom> >>)
+which is equivalent to:
+
+{{{
+<eliommodule module="//name.cmxs//"> ... </eliommodule>
+}}}
+
+(or <<span class="code"|<eliommodules module="//name.cmxs//"> ... </eliom> >>)
+
+with the exception that it does not load the module using <<span
+class="code"|Dynlink>>, but calls the initialization function.\\
+
+You can use functions such as
+<<a_api| val Eliom_state.create_volatile_table >>
+that needs information about the site (here, volatile tables are
+associated to a site), only during a request or during the
+initialization phase of the server.
+
+If you want to use this kind of function before the initialization
+phase, for example if your module is linked statically with the
+server, you must call these function using function
+<<a_api| val Eliom_service.register_eliom_module >>.
+(One solution is to use a lazy value to delay the creation of the
+table, and force that value from the registration function).
+
+
+===@@id="extensions"@@Advanced use: create an extension for the server that access Eliom's data
+
+If you want an Ocsigen extension with access to Eliom's data (for
+example if you want an extension that will register some services),
+you can use the function
+<<a_api| val Eliom_extension.register_eliom_extension >>
+to register the function that will generate the
+<<a_api project="ocsigenserver" | type Ocsigen_extensions.answer>>.
+
+<<wip|Add more details about this>>
+
+==@@id="config"@@Global configuration options
+
+Here are Eliom's options you can use in configuration files.
+
+===Timeouts
+
+<<wip|Revoir les timeouts pour client processes et groupes>>
+
+State timeouts can be set either inside tag
+{{{<extension findlib-package="eliom.server"/>}}} (default value
+for all sites), or inside a {{{<eliom/>}}} tag (default for one site).
+
+Timeouts can also be modified programmatically using functions like
+{{{Eliom_state.set_global_volatile_timeout}}}, but by default these
+functions will not override configuration files.
+(see module <<a_api| module Eliom_state >> for other functions).
+Thus, a Web site can set its own defaults and the user can still
+override them from the configuration file.  If you want to set a
+timeout programmatically even if it has been modified in a
+configuration file, use the optional parameter
+{{{~override_configfile:true}}}.
+
+Timeouts can be set either for all scopes hierarchies, for one precise
+hierarchy, or for the default scope hierarchy.  To do this
+programmatically, use the optional parameter {{{~scope}}}.
+In a configuration file, use the optional attribute
+{{{hierarchyname}}} (where an empty string value means default hierarchy).
+If this attribute is absent, the timeout will affect all
+states for which no other default has been set. The
+{{{hierarchyname}}} attribute exists only inside an {{{<eliom/>}}} tag
+(and not inside {{{<extension findlib-package="eliom.server"/>}}}).
+
+The level attribute can take values {{{session}}} (browser)
+or {{{clientprocess}}} (tab).
+
+* {{{<volatiletimeout value="30" [hierarchyname=""] [level="session"]/>}}}
+  The default timeout for
+  volatile (in memory) states (value in seconds).
+  {{{value="infinity"}}} means that the state will
+  never expire.
+  Note that each eliom module can set its own
+  default, that will override this one.
+* {{{<persistenttimeout value="7200"/>}}}
+  Idem for persistent state data
+* {{{<datatimeout value="30"  [hierarchyname=""] [level="session"]/>}}}
+     Like {{{<timeout>}}}, but for in memory data
+     states only
+     (not service states).
+* {{{<servicetimeout value="30" [hierarchyname=""] [level="session"]/>}}}
+  Like {{{<timeout>}}}, but for service states only
+     (not in memory data states).
+
+===Garbage collector of states and services
+
+These options can appear inside tag
+{{{<extension findlib-package="eliom.server"/>}}}.
+For now, it cannot be set for each site independently
+(tell us if you need that).
+
+* {{{<sessiongcfrequency value="30"/>}}}
+     Time between two garbage
+     collections of sessions, in seconds (default
+     3600). The value {{{"infinity"}}} means no GC of session.
+* {{{<persistentsessiongcfrequency value="86400"/>}}}
+     Time between two
+     garbage collections of persistent sessions,
+     in seconds (default 86400.). The value {{{"infinity"}}} means
+      no GC of session.
+* {{{<servicesessiongcfrequency value="3600"/>}}}
+     Like {{{<sessiongcfrequency>}}},
+     but for service sessions only
+* {{{<datasessiongcfrequency value="3600"/>}}}
+     Like {{{<sessiongcfrequency>}}},
+     but for "in memory data" sessions only
+
+===Limiting the number of sessions or coservices
+
+To fight denial of service, Eliom limits the number of sessions
+and the number of dynamic coservices. Without these limitations, it would
+be possible for an attacker to open repeatedly lots of sessions,
+or creating new services (for example CSRF safe coservices can create lots
+of coservices when you reload repeatedly a page). When the limit is reached,
+it is still possible to open a new session or create a new service, but the
+oldest session or services disappear (the one that has not been used
+for the longest time).
+
+====Limiting sessions
+First of all, there is a limitation of the number of sessions in a
+session group. A typical use is when a user opens several
+sessions from several computers. All the sessions belong to the same
+group (the group name is usually the user name).
+The limit is usually small (5 sessions per group by default).
+This limit is implemented for all kinds of sessions (service session,
+volatile and persistent data sessions). For persistent sessions, the
+implementation is not very efficient for very large limits.
+
+It is highly recommended to use session groups when possible.
+
+If you can't use session groups, the number of sessions is limited
+by sub network for volatile sessions (service sessions and data sessions).
+The limitation is larger (default 1 million). The limit must be large enough.
+For instance, if the server is behind a reverse proxy, all incoming requests
+will come from the same IP address. Limiting by sub network instead of by
+IP address prevents attacks even when the attacker has a whole sub network
+available. The default mask for sub networks is {{{/16}}} for IPv4
+and {{{/56}}} for IPv6.
+
+Some figures: if 1 session takes 1000 bytes (data + tables etc),
+1 million sessions take 1 GB. If somebody opens 1000 sessions per second,
+then it will take 1000 s (16 minutes) to reach 1000000.
+It means that regular users will have their sessions closed
+after 16 minutes of inactivity if they share their sub network with
+someone doing an attack (or if the server is behind a proxy).
+
+For persistent sessions, there is no limitation per sub network for now.
+1 billion sessions take 1 TB. If somebody opens 1000 sessions per second,
+then it will take 1 million s (16000 minutes = 266 h = 11 days)
+to reach 1TB.
+
+====Limiting services
+
+The number of anonymous coservices is limited by session
+or by sub network if the service is registered in the global table.
+Default values: 1000 for one session, and 500000 for one subnet.
+
+Note that there is no limitation of named coservices or regular services.
+It is not a good practice to allow the creation of too much services
+of this kinds dynamically.
+
+
+====How to set limits
+
+The limits and the subnet mask can be set programmatically by each module
+(for example to adapt the values to the size of session data) or in the
+configuration file
+(for instance, to adapt the values to the size of memory or network
+configuration)
+(see module  <<a_api| module Eliom_state >>).
+By default, functions like
+{{{Eliom_state.set_default_max_volatile_sessions_per_group}}}
+will not override a value set in the configuration file
+(but if you use {{{~override_configfile:true}}}).
+Thus, a Web site can set its own defaults and the user can still
+override them from the configuration file.
+
+The configuration file options can be set either inside the tag
+{{{<extension findlib-package="eliom.server"/>}}}
+(global configuration), or inside the {{{<eliom/>}}} tag
+(configuration for each site). But the limits always are for one
+site (that is: a global limit value of 10 means 10 for each Eliom site).
+
+The syntax is:
+* {{{<maxvolatilesessionspergroup value="10"/>}}}
+* {{{<maxservicesessionspergroup value="10"/>}}}
+* {{{<maxdatasessionspergroup value="10"/>}}}
+* {{{<maxpersistentsessionspergroup value="10"/>}}}
+* {{{<maxvolatilesessionspersubnet value="500000"/>}}}
+* {{{<maxservicesessionspersubnet value="500000"/>}}}
+* {{{<maxdatasessionspersubnet value="500000"/>}}}
+* {{{<maxanonymouscoservicespersession value="1000"/>}}}
+* {{{<maxanonymouscoservicespersubnet value="500000"/>}}}
+* {{{<ipv4subnetmask value="255.255.128.0"/>}}}
+* {{{<ipv6subnetmask value="ff:ff:ff:ff:ff:ff::"/>}}}
+
+=== Application script attributes
+
+One can choose to set the {{{defer}}} or {{{async}}} attributes of the
+script element referencing the application code, so that HTML
+rendering is not blocked while the script is downloaded.
+
+The syntax is:
+* {{{<applicationscript defer="true" async="false"/>}}}
+
+Both attributes are optional and default to {{{false}}}.
+
+=== Serving global data through a distinct URL
+
+When an Eliom program is initiated client-side, it needs to receive
+some global data from the server (that are persistent from request to
+request). This data is normally included in the HTML page sent by the
+server. Alternatively, it can be served through a separate
+request. This is more efficient as it allows this state to be
+serialized by the server only once, and cached by the clients (or
+possibly a CDN if your server is running behind one), but the client
+will receive stale data if global data changes over time.
+
+The syntax to activate this option is the following:
+* {{{<cacheglobaldata path="path" cache="604800"/>}}}
+
+All attributes are optional. The {{{path}}} option can be use to
+indicate the path below which the JavaScript file providing the global
+data is served. The default path is the empty path. This script name
+is the MD5 checksum of its contents (with a {{{.js}}} suffix). Thus,
+it can be safely cached and is unlikely to conflict with any other
+service. The caching duration, in seconds, is set using the
+{{{cache}}} attribute. It defaults to zero (no caching).
+
+When the application script defer attribute is set (see just above),
+global data are also loaded in a deferred way.
+
+==Per site configuration options
+
+=== Disabling XHR-links
+
+By default, all links (##a##, ##form##) of an Eliom application are performed
+by Eliom's ##change_page## machinery, unless they are created with the
+##~xhr:false## option.
+
+You can change this default by adding the attribute ##xhr-links## to
+the content of the configuration of the Eliom module:
+{{{
+  <eliom ... xhr-links="no" />
+}}}
+Then, all links will perform a normal HTTP request unless explicitely
+created with the ##~xhr:true## option.
+
+This value can also be set through function
+<<a_api | val Eliom_config.set_default_links_xhr >>.

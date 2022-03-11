@@ -1,0 +1,73 @@
+=Module <<a_api_type subproject="server" | module Eliom_uri >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_uri>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_uri >><<span class="ocsforge_color_keyword"|end>>>>~Low~-level functions for relative or absolute ~U~R~L calculation~.
+
+----
+
+
+==@@id="2_ComputeservicesURL"@@~Compute service~'s ~U~R~L==
+
+
+
+    ~Please note that for many functions of this section~, the returned
+    ~U~R~L depends on whether the function is called from a service
+    handler or not~:
+
+
+* relative ~U~R~L could not be computed outside of a service handler~.
+* "kept" non localized parameters outside a service handler are
+      restricted to preapplied parameters~.
+
+    ~To define //global// link ~(i~.e~. outside of a service handler~) and
+    recompute a relative ~U~R~L at each request~, use
+    <<span class="odocwiki_inlinecode"|~Eliom~_registration~.~Html~.a>> or other specialized functions from
+    <<a_api subproject="server" | module Eliom_registration.Html >>~.
+<<pre id="VALmake_string_uri" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|make~_string~_uri>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?absolute: >>bool <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?absolute_path: >>bool <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?https: >>bool <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| service: >><<span class="ocsforge_color_delimiter"| ( >>'get, unit, <<span class="ocsforge_color_uid"|Eliom_service>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|get>>, 'a, 'b, 'c, 'd,\\           [< `WithSuffix | `WithoutSuffix ], 'e, unit, 'return<<span class="ocsforge_color_delimiter"| ) >>\\          <<span class="ocsforge_color_uid"|Eliom_service>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?hostname: >>string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?port: >>int <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?fragment: >>string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?keep_nl_params: >>[ `All | `None | `Persistent ] <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?nl_params: >><<span class="ocsforge_color_uid"|Eliom_parameter>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|nl_params_set>> <<span class="ocsforge_color_delimiter"| -> >> 'get <<span class="ocsforge_color_delimiter"| -> >> string>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|make~_string~_uri ~~service get~_params>> creates the
+    string corresponding to the ~U~R~L of the service <<span class="odocwiki_inlinecode"|service>> applied
+    to the ~G~E~T parameters <<span class="odocwiki_inlinecode"|get~_params>>~.
+
+
+    ~See <<span class="odocwiki_inlinecode"|~Eliom~_registration~.~Html~.make~_string~_uri>> or any other
+    <<a_api subproject="server" | module Eliom_registration >><<span class="odocwiki_inlinecode"|~.~*~.make~_string~_uri>> for a detailed
+    description of optional parameters~.
+
+
+    //~Warning~: ~The function <<span class="odocwiki_inlinecode"|make~_string~_uri>> should not be called
+    outside of a service handler~, unless <<span class="odocwiki_inlinecode"|hostname>> is not <<span class="odocwiki_inlinecode"|~None>> and
+    one of the following condition is met~://
+
+
+* the optional parameter <<span class="odocwiki_inlinecode"|~~absolute~_path>> is <<span class="odocwiki_inlinecode"|true>>~.
+* the optional parameter <<span class="odocwiki_inlinecode"|~~absolute>> is <<span class="odocwiki_inlinecode"|true>>~.
+* the optional parameter <<span class="odocwiki_inlinecode"|~~https>> is <<span class="odocwiki_inlinecode"|true>>~.
+* the <<span class="odocwiki_inlinecode"|service>> has been created with <<span class="odocwiki_inlinecode"|~~https~:true>>~.
+* the <<span class="odocwiki_inlinecode"|service>> is an external service~.
+
+>>
+<<pre id="VALmake_uri_components" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|make~_uri~_components>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?absolute: >>bool <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?absolute_path: >>bool <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?https: >>bool <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| service: >><<span class="ocsforge_color_delimiter"| ( >>'get, 'a, <<span class="ocsforge_color_uid"|Eliom_service>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|get>>, 'b, 'c, 'd, 'e,\\           [< `WithSuffix | `WithoutSuffix ], 'f, 'g, 'h<<span class="ocsforge_color_delimiter"| ) >>\\          <<span class="ocsforge_color_uid"|Eliom_service>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?hostname: >>string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?port: >>int <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?fragment: >>string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?keep_nl_params: >>[ `All | `None | `Persistent ] <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?nl_params: >><<span class="ocsforge_color_uid"|Eliom_parameter>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|nl_params_set>> <<span class="ocsforge_color_delimiter"| -> >>\\  'get <<span class="ocsforge_color_delimiter"| -> >>\\  string * <<span class="ocsforge_color_delimiter"| ( >>string * <<span class="ocsforge_color_uid"|Eliommod_parameters>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|param>><<span class="ocsforge_color_delimiter"| ) >> list * string option>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|make~_uri~_components service get~_params>> returns the
+    a triplet <<span class="odocwiki_inlinecode"|~(path~, get~_params~, fragment~)>> that is a decomposition
+    of the ~U~R~L of <<span class="odocwiki_inlinecode"|service>> applied to the ~G~E~T parameters
+    <<span class="odocwiki_inlinecode"|get~_params>>~.
+
+
+    ~See <<span class="odocwiki_inlinecode"|~Eliom~_registration~.~Html~.make~_uri~_components>> or any other
+    <<a_api subproject="server" | module Eliom_registration >><<span class="odocwiki_inlinecode"|~.~*~.make~_uri~_components>> for a detailed
+    description~.
+>>
+<<pre id="VALmake_post_uri_components" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|make~_post~_uri~_components>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?absolute: >>bool <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?absolute_path: >>bool <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?https: >>bool <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| service: >><<span class="ocsforge_color_delimiter"| ( >>'get, 'post, <<span class="ocsforge_color_uid"|Eliom_service>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|post>>, 'a, 'b, 'c, 'd,\\           [< `WithSuffix | `WithoutSuffix ], 'e, 'f, 'g<<span class="ocsforge_color_delimiter"| ) >>\\          <<span class="ocsforge_color_uid"|Eliom_service>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?hostname: >>string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?port: >>int <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?fragment: >>string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?keep_nl_params: >>[ `All | `None | `Persistent ] <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?nl_params: >><<span class="ocsforge_color_uid"|Eliom_parameter>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|nl_params_set>> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?keep_get_na_params: >>bool <<span class="ocsforge_color_delimiter"| -> >>\\  'get <<span class="ocsforge_color_delimiter"| -> >>\\  'post <<span class="ocsforge_color_delimiter"| -> >>\\  string * <<span class="ocsforge_color_delimiter"| ( >>string * <<span class="ocsforge_color_uid"|Eliommod_parameters>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|param>><<span class="ocsforge_color_delimiter"| ) >> list * \\  string option * <<span class="ocsforge_color_delimiter"| ( >>string * <<span class="ocsforge_color_uid"|Eliommod_parameters>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|param>><<span class="ocsforge_color_delimiter"| ) >> list>>>><<div class="odocwiki_info"|~Same a <<a_api subproject="server" | val Eliom_uri.make_uri_components >>~, but also returns a table of post
+    parameters~.
+>>
+<<pre id="VALmake_string_uri_from_components" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|make~_string~_uri~_from~_components>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  string * <<span class="ocsforge_color_delimiter"| ( >>string * <<span class="ocsforge_color_uid"|Eliommod_parameters>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|param>><<span class="ocsforge_color_delimiter"| ) >> list * string option <<span class="ocsforge_color_delimiter"| -> >>\\  string>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|make~_string~_uri~_from~_components path get~_params
+    fragment>> build the corresponding string ~U~R~L~. ~The <<span class="odocwiki_inlinecode"|path>> should
+    be ~U~R~L encoded~.
+
+
+    ~The function <<a_api subproject="server" | val Eliom_uri.make_string_uri >> is the composition of
+    <<a_api subproject="server" | val Eliom_uri.make_uri_components >> and <<span class="odocwiki_inlinecode"|make~_string~_uri~_from~_components>>~.
+>>
+
+
+==@@id="2_Relativepaths"@@~Relative paths==
+
+<<pre id="VALreconstruct_relative_url_path" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|reconstruct~_relative~_url~_path>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  string list <<span class="ocsforge_color_delimiter"| -> >> string list <<span class="ocsforge_color_delimiter"| -> >> string list>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|reconstruct~_relative~_url~_path src dest>> returns a
+    path to <<span class="odocwiki_inlinecode"|dest>> that is relative to <<span class="odocwiki_inlinecode"|src>>~.
+>>

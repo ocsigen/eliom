@@ -1,0 +1,73 @@
+=Module <<a_api_type subproject="server" | module Eliom_config >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_config>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_config >><<span class="ocsforge_color_keyword"|end>>>>~This module makes also possible get information from the configuration
+file~.
+
+
+    ~It make also possible to add configuration options
+    in configuration file for your ~Eliom modules~.
+    ~Use <<a_api subproject="server" | val Eliom_config.parse_config >> for that~.
+
+
+    ~Example~:
+
+
+{{{     <eliommodule ...>
+        <myoption myattr="...">myvalue</myoption>
+     </eliommodule>}}}
+
+----
+<<pre id="VALget_default_hostname" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_default~_hostname>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> string>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|get~_default~_hostname ~(~)>>returns the hostname
+    declared in the config file ~(<<span class="odocwiki_inlinecode"|~<host defaulthostname~="~.~.~."~>>>~) or
+    the default machine hostname~.
+    ~In that case~, absolute ~U~R~L will use that hostname~.
+>>
+<<pre id="VALget_default_port" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_default~_port>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> int>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|get~_default~_port ~(~)>> returns the port number
+    declared in the config file ~(<<span class="odocwiki_inlinecode"|~<host defaulthttpport~="~.~.~."~>>>~) or
+    ~8~0 if undeclared~.
+>>
+<<pre id="VALget_default_sslport" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_default~_sslport>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> int>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|get~_default~_sslport ~(~)>> returns the https port
+    number declared in the config file ~(<<span class="odocwiki_inlinecode"|~<host
+    defaulthttpsport~="~.~.~."~>>>~) or ~4~4~3 if undeclared~.
+>>
+<<pre id="VALdefault_protocol_is_https" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|default~_protocol~_is~_https>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> bool>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|default~_protocol~_is~_https ~(~)>> returns <<span class="odocwiki_inlinecode"|true>>
+    if there is option ~(<<span class="odocwiki_inlinecode"|~<host
+    defaultprotocol~="https"~>>>~)or false otherwise~.
+    ~In that case~, absolute links will use https protocol even if
+    the current request is http~.
+>>
+<<pre id="VALget_config_default_charset" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_config~_default~_charset>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> string>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|get~_config~_default~_charset ~(~)>> returns the default
+    charset for this site~.
+>>
+<<pre id="VALset_default_links_xhr" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|set~_default~_links~_xhr>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_label"| ?override_configfile: >>bool <<span class="ocsforge_color_delimiter"| -> >> bool <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|~The provided value serves as a default value for the optional parameter
+    <<span class="odocwiki_inlinecode"|~~xhr>> in the functions <<span class="odocwiki_inlinecode"|~Eliom~_registration~.~*~.~{a~, get~_form~, post~_form~,
+    lwt~_get~_form~, lwt~_post~_form~}>> ~(cf~. <<span class="odocwiki_inlinecode"|~Eliom~_registration~.~Html~.a>> et al~.~)~.
+    ~This value can also be set in the
+    [[http://ocsigen.org/eliom/dev/manual/config#h5o-25|config file]]~.
+>>
+<<pre id="VALget_config" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_config>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Xml>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|xml>> list>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|get~_config ~(~)>> returns the information of the
+    configuration file concerning that site ~(between <<span class="odocwiki_inlinecode"|~<eliommodule~>>> and
+    <<span class="odocwiki_inlinecode"|~<~/eliommodule~>>> or <<span class="odocwiki_inlinecode"|~<eliom~>>> and <<span class="odocwiki_inlinecode"|~<~/eliom~>>>~)~.
+
+
+    //~Warning~: ~You must call that function during the initialisation of
+    your module ~(not during a ~Lwt thread or a service~)
+    otherwise it will raise the exception
+    <<a_api subproject="server" | exception Eliom_common.Eliom_site_information_not_available >>~.
+    ~If you want to build a statically linkable module~, you must call this
+    function inside the initialisation function given to
+    <<a_api subproject="server" | val Eliom_service.register_eliom_module >>~.//
+>>
+<<pre id="VALparse_config" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|parse~_config>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?pcdata: >><<span class="ocsforge_color_delimiter"| ( >>string <<span class="ocsforge_color_delimiter"| -> >> unit<<span class="ocsforge_color_delimiter"| ) >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?other_elements: >><<span class="ocsforge_color_delimiter"| ( >>string <<span class="ocsforge_color_delimiter"| -> >>\\                   <<span class="ocsforge_color_delimiter"| ( >>string * string<<span class="ocsforge_color_delimiter"| ) >> list <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Xml>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|xml>> list <<span class="ocsforge_color_delimiter"| -> >> unit<<span class="ocsforge_color_delimiter"| ) >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_uid"|Ocsigen_extensions>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Configuration>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|element>> list <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|~Process the configuration
+    ~(same as the one returned by
+    <<a_api module="Eliom_config" | val get_config>> ~)
+    by a given specification ~(cf~. <<a_api project="ocsigenserver" | type Ocsigen_extensions.Configuration.element >> ~)
+>>
+<<pre id="VALget_config_info" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_config~_info>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Ocsigen_extensions>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|config_info>>>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|get~_config~_info ~(~)>> returns the information
+    concerning the current request from the configuration files
+    ~(must be called during a request~)~.
+    ~The configuration may have been modified by previous ~Ocsigen server
+    extensions~.
+>>
+<<pre id="VALget_debugmode" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_debugmode>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> bool>>>><<div class="odocwiki_info"|~Same as <<span class="odocwiki_inlinecode"|~Ocsigen~_config~.get~_debugmode>>~.
+    ~On client side~, returns <<span class="odocwiki_inlinecode"|false>> for now~.
+>>

@@ -1,0 +1,9 @@
+=Module <<a_api_type subproject="server" | module Eliom_content.Svg.F >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|F>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_content.Svg.F >><<span class="ocsforge_color_keyword"|end>>>>~Typed interface for building valid ~S~V~G tree ~(functional
+      semantics~)~. ~See <<a_api project="tyxml" | module
+      Svg_sigs.T >> ~.
+
+----
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Raw" | module Eliom_content.Svg.F.Raw >> <<span class="ocsforge_color_delimiter"|~:>> \\  <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Svg_sigs.Make>>(Xml).T>><<span class="odocwiki_type"| \\        with type +'a elt = 'a elt\\         and type +'a attrib = 'a attrib>>>><<div class="odocwiki_info"|~See <<a_api project="tyxml" | module Html_sigs.T >> ~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> <<a_api subproject="server" | module Eliom_content.Svg.F.Raw >>>>

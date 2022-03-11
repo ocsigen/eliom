@@ -1,0 +1,38 @@
+=Module <<a_api_type subproject="server" | module Eliom_bus >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_bus>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_bus >><<span class="ocsforge_color_keyword"|end>>>>~Broadcasting facilities between clients and server
+
+----
+
+**~Please read the
+    <<a_manual chapter="clientserver-communication" | chapter on
+    communication >> of ~Eliom~'s manual
+    before this page to learn how client and server parts communicate~. **
+<<pre class="ocsforge_color odocwiki_code" id="TYPEt"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>'a, 'b<<span class="ocsforge_color_delimiter"| ) >>>> <<span class="odocwiki_name"|t>>>><<div class="odocwiki_info"|~The type of bus~'s carrying values of type <<span class="odocwiki_inlinecode"|~'a>>~. ~Bus~'s are values
+    that can be easily shared among clients~. ~Each of these clients
+    along with the server can send a value on the bus~. ~Values can be
+    received by each of the participants as a stream~. ~Note that no
+    effort is put to order message receptions on the different
+    participants~.
+>>
+<<pre id="VALcreate" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|create>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?scope: >>[< <<a_api subproject="server" text="Eliom_comet.Channel.comet_scope" | type Eliom_comet.Channel.comet_scope >> ] <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?name: >>string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?size: >>int <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_uid"|Deriving_Json>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>> <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_delimiter"| ( >>'a, 'a<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="t" | type Eliom_bus.t >>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|create ~?scope ~?name ~?size ~?filter t>> creates a fresh bus~.
+    ~The <<span class="odocwiki_inlinecode"|scope>> parameter
+    is used to chose the kind of channel on which the bus rely
+    ~(~See <<span class="odocwiki_inlinecode"|~Eliom~_comet~.create>> for more information~)~. ~The <<span class="odocwiki_inlinecode"|~?name>> argument
+    allow one to make bus~'s persistent over server restart~. ~The <<span class="odocwiki_inlinecode"|size>>
+    argument behaves like the one on <<a_api subproject="server" | val Eliom_comet.Channel.create >>~.
+    ~If <<span class="odocwiki_inlinecode"|~?filter>> argument is present~, data is filtered through this function
+    before entering the bus~. ~Use this for example if you want to add
+    some information~, like ~I~P address~, or user id~.
+>>
+<<pre id="VALcreate_filtered" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|create~_filtered>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?scope: >>[< <<a_api subproject="server" text="Eliom_comet.Channel.comet_scope" | type Eliom_comet.Channel.comet_scope >> ] <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?name: >>string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?size: >>int <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| filter: >><<span class="ocsforge_color_delimiter"| ( >>'a <<span class="ocsforge_color_delimiter"| -> >> 'b <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>><<span class="ocsforge_color_delimiter"| ) >> <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_uid"|Deriving_Json>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>> <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_delimiter"| ( >>'a, 'b<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="t" | type Eliom_bus.t >>>>>><<div class="odocwiki_info"|~Same as <<span class="odocwiki_inlinecode"|create>>~, but data is filtered through <<span class="odocwiki_inlinecode"|filter>> function
+    before entering the bus~. ~Use this for example if you want to add
+    some information~, like ~I~P address~, or user id~.
+>>
+<<pre id="VALstream" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|stream>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>'a, 'b<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="t" | type Eliom_bus.t >> <<span class="ocsforge_color_delimiter"| -> >> 'b <<span class="ocsforge_color_uid"|Lwt_stream>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|stream b>> returns the stream of data sent to bus <<span class="odocwiki_inlinecode"|b>>~. ~Notice you
+    should not use that function multiple times on the same bus~, it will
+    return the same stream~. ~If you want to receive multiple times the
+    same data~, you should copy the stream with <<span class="odocwiki_inlinecode"|~Lwt~_stream~.clone>>
+>>
+<<pre id="VALwrite" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|write>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>'a, 'b<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="t" | type Eliom_bus.t >> <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_delimiter"| -> >> unit <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|write b x>> sends the value <<span class="odocwiki_inlinecode"|x>> on the bus <<span class="odocwiki_inlinecode"|b>>~. ~Every participant~,
+    including the server~, will receive <<span class="odocwiki_inlinecode"|x>>~.
+>>

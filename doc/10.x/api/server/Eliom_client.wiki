@@ -1,0 +1,38 @@
+=Module <<a_api_type subproject="server" | module Eliom_client >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_client>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_client >><<span class="ocsforge_color_keyword"|end>>>>
+----
+<<pre id="VALis_client_app" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|is~_client~_app>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> bool>>>><<div class="odocwiki_info"|~Returns whether the application is sent by a server or started on
+    client side~. ~If called on server side~, always returns <<span class="odocwiki_inlinecode"|false>>~.
+    ~Otherwise~, it tests the presence of ~J~S variables added automatically by
+    ~Eliom when the page is sent by a server~.
+    ~Example~:
+    
+<<code language='ocaml'| if not (Eliom_client.is_client_app ())
+ then Eliom_client.init_client_app ... >>
+
+>>
+
+
+==@@id="2_RPCServerfunctions"@@~R~P~C ~/ ~Server functions==
+
+
+
+    ~See the <<a_manual chapter="clientserver-communication" fragment="rpc"|manual>> ~.
+<<pre class="ocsforge_color odocwiki_code" id="TYPEserver_function"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|<<span class="ocsforge_color_delimiter"| ( >>'a, 'b<<span class="ocsforge_color_delimiter"| ) >>>> <<span class="odocwiki_name"|server~_function>>>><<div class="odocwiki_info"|~A value of type <<span class="odocwiki_inlinecode"|~(~'a~, ~'b~) server~_function>> is created on the server from a
+    function <<span class="odocwiki_inlinecode"|~'a ~-~> ~'b ~Lwt~.t>> and provides a given function on the client side~.
+    ~See also <<a_api subproject="client" text="the concrete client side representation"|
+              type Eliom_client.server_function>> ~.
+>>
+<<pre id="VALserver_function" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|server~_function>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?scope: >>[< <<a_api subproject="server" text="Eliom_common.scope" | type Eliom_common.scope >> ] <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?options: >>unit <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?charset: >>string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?code: >>int <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?content_type: >>string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?headers: >><<span class="ocsforge_color_uid"|Ocsigen_header>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?secure_session: >>bool <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?name: >>string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?csrf_safe: >>bool <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?csrf_scope: >>[< <<a_api subproject="server" text="Eliom_common.user_scope" | type Eliom_common.user_scope >> ] <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?csrf_secure: >>bool <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?max_use: >>int <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?timeout: >>float <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?https: >>bool <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?error_handler: >><<span class="ocsforge_color_delimiter"| ( >><<span class="ocsforge_color_delimiter"| ( >>string * exn<<span class="ocsforge_color_delimiter"| ) >> list <<span class="ocsforge_color_delimiter"| -> >> 'b <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>><<span class="ocsforge_color_delimiter"| ) >> <<span class="ocsforge_color_delimiter"| -> >>\\  'a <<span class="ocsforge_color_uid"|Deriving_Json>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>'a <<span class="ocsforge_color_delimiter"| -> >> 'b <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>><<span class="ocsforge_color_delimiter"| ) >> <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_delimiter"| ( >>'a, 'b<<span class="ocsforge_color_delimiter"| ) >> <<a_api subproject="server" text="server_function" | type Eliom_client.server_function >>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|server~_function argument~_type f>> creates a value of type     <<a_api | type Eliom_client.server_function>> ~. ~This allows
+    to call <<span class="odocwiki_inlinecode"|f>> from the client~. ~The first argument <<span class="odocwiki_inlinecode"|argument~_type>> is
+    an instance of <<span class="odocwiki_inlinecode"|~Deriving~_~Json>> for the type of the argument~. ~It is
+    used to safely encode and decode the argument sent to the server~.
+
+
+    ~The optional parameters correspond directly to the optional
+    parameters of <<a_api|val Eliom_registration.Ocaml.register_coservice'>> ~.
+
+
+    ~See also the <<a_manual chapter="clientserver-communication"
+    fragment="rpc"|manual>> ~.
+>>

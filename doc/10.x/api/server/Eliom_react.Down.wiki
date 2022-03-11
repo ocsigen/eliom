@@ -1,0 +1,28 @@
+=Module <<a_api_type subproject="server" | module Eliom_react.Down >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Down>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_react.Down >><<span class="ocsforge_color_keyword"|end>>>>~Event from server to client~.
+
+----
+
+~A "~Down event" ~(~A~K~A down~-going event~) is an event which occurrences are
+      transmitted asynchronously to the client~. ~Even if they are named "events"~,
+      it might be better to consider them as asynchronous server~-to~-client
+      edges in the react events dependency graph~.
+
+
+      ~To use this~, call function <<span class="odocwiki_inlinecode"|of~_react>> on server side~,
+      and just use the returned value as a react event on client side~.
+      ~Example~:
+      <<span class="odocwiki_inlinecode"|let e ~= of~_react ~.~.~. in ~.~.~. ~{~{ ~.~.~. ~React~.~E~.map f ~%e~; ~.~.~. ~}~}>>
+<<pre class="ocsforge_color odocwiki_code" id="TYPEt"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|'a>> <<span class="odocwiki_name"|t>>>><<div class="odocwiki_info"|~The abstract type of down events~.
+>>
+<<pre id="VALof_react" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|of~_react>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?scope: >>[< <<a_api subproject="server" text="Eliom_comet.Channel.comet_scope" | type Eliom_comet.Channel.comet_scope >> ] <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?throttling: >>float <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?name: >>string <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_label"| ?size: >>int <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_uid"|React>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|E>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>> <<span class="ocsforge_color_delimiter"| -> >> 'a <<a_api subproject="server" text="t" | type Eliom_react.Down.t >>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|of~_react ~?scope ~?throttling ~?name e>> create an
+      asynchronous edge originating from <<span class="odocwiki_inlinecode"|e>>~. ~The parameters are~:
+* <<span class="odocwiki_inlinecode"|throttling>>
+      for the limit to event propagation rate ~(minimum time~, in second~,
+      between two consecutive events ~- other events are lost~)~,
+* <<span class="odocwiki_inlinecode"|name>> for named edges~,
+* <<span class="odocwiki_inlinecode"|size>> for the size of the server side buffer~.
+* <<span class="odocwiki_inlinecode"|scope>>
+      tell which kind of channel this rely on ~(~See <<span class="odocwiki_inlinecode"|~Eliom~_comet~.create>>~)~.
+
+>>

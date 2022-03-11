@@ -1,0 +1,9 @@
+<<code language="ocaml" | sig
+  type ('a, 'b) t
+  val find : ('a, 'b) Eliom_cscache.t -> ('a -> 'b Lwt.t) -> 'a -> 'b Lwt.t
+  val do_cache : ('a, 'b) Eliom_cscache.t -> 'a -> 'b -> unit
+  val local_find : ('a, 'b) Eliom_cscache.t -> 'a -> 'b Lwt.t
+  exception Not_ready
+  val find_if_ready : ('a, 'b) Eliom_cscache.t -> 'a -> 'b
+  val create : unit -> ('a, 'b) Eliom_cscache.t
+end >>

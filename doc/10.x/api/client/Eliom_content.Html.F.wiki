@@ -1,0 +1,13 @@
+=Module <<a_api_type subproject="client" | module Eliom_content.Html.F >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|F>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_content.Html.F >><<span class="ocsforge_color_keyword"|end>>>>~Creation of //f//unctional ~H~T~M~L~5 content ~(copy~-able but not referable~)~.
+
+----
+
+
+==@@id="2_Contentcreation"@@~Content creation==
+
+        ~See <<a_api project="tyxml" | module Html_sigs.T >> 
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="client" text="Raw" | module Eliom_content.Html.F.Raw >> <<span class="ocsforge_color_delimiter"|~:>> \\  <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Html_sigs.Make>>(Xml)(<<span class="ocsforge_color_uid"|Svg.F.Raw>>).T>><<span class="odocwiki_type"| \\        with type +'a elt = 'a elt\\         and type +'a attrib = 'a attrib>>>><<div class="odocwiki_info"|~Cf~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> <<a_api subproject="client" | module Eliom_content.Html.F.Raw >>>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> <<a_api subproject="client" | module type Eliom_content_sigs.LINKS_AND_FORMS >>>>

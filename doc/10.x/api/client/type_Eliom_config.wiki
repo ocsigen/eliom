@@ -1,0 +1,11 @@
+<<code language="ocaml" | sig
+  val get_default_hostname : unit -> string
+  val get_default_port : unit -> int
+  val get_default_sslport : unit -> int
+  val default_protocol_is_https : unit -> bool
+  val get_default_links_xhr : unit -> bool
+  val debug_timings : bool Stdlib.ref
+  val set_tracing : bool -> unit
+  val get_tracing : unit -> bool
+  val get_debugmode : unit -> bool
+end >>

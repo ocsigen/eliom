@@ -1,0 +1,23 @@
+=Module <<a_api_type subproject="server" | module Eliom_registration.Redirection >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Redirection>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_registration.Redirection >><<span class="ocsforge_color_keyword"|end>>>>~Eliom service registration for services that returns a
+    redirections towards another service~. ~See the ~Eliom manual for
+    more information about <<a_manual chapter="server-outputs"
+    fragment="redirections"|Redirections outputs>>~.
+
+
+    ~The default returned ~H~T~T~P code is <<span class="odocwiki_inlinecode"|~3~0~2 ~Found>>~. ~You could use the
+    optional parameter <<span class="odocwiki_inlinecode"|~~options>> to change this value~:
+
+
+* <<span class="odocwiki_inlinecode"|`~Moved~Permanently>> to return <<span class="odocwiki_inlinecode"|~3~0~1 ~Moved ~Permanently>>~.
+* <<span class="odocwiki_inlinecode"|`~Found>> to return <<span class="odocwiki_inlinecode"|~3~0~2 ~Found>>~.
+* <<span class="odocwiki_inlinecode"|`~See~Other>> to return <<span class="odocwiki_inlinecode"|~3~0~3 ~See ~Other>>~.
+* <<span class="odocwiki_inlinecode"|`~Not~Nodifed>> to return <<span class="odocwiki_inlinecode"|~3~0~4 ~Not ~Modified>>~.
+* <<span class="odocwiki_inlinecode"|`~Use~Proxy>> to return <<span class="odocwiki_inlinecode"|~3~0~5 ~Use ~Proxy>>~.
+* <<span class="odocwiki_inlinecode"|`~Temporary~Redirect>> to return <<span class="odocwiki_inlinecode"|~3~0~7 ~Temporary ~Redirect>>~.
+
+
+----
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> <<a_api subproject="server" | module type Eliom_registration_sigs.S_poly_with_create >>>>
+<<pre id="VALsend" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|send>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?options: >>options <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?charset: >>string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?code: >>int <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?content_type: >>string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?headers: >><<span class="ocsforge_color_uid"|Ocsigen_header>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>> <<span class="ocsforge_color_delimiter"| -> >>\\  'a page <<span class="ocsforge_color_delimiter"| -> >> 'b <<a_api subproject="server" text="Eliom_registration.kind" | type Eliom_registration.kind >> <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|~More polymorphic version of <<span class="odocwiki_inlinecode"|~Eliom~_registration~_sigs~.send>>
+>>

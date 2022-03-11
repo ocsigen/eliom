@@ -1,0 +1,15 @@
+<<code language="ocaml" | sig
+  type identity
+  type key
+  type server_notif
+  type client_notif
+  val prepare :
+    Eliom_notif.ARG.identity ->
+    Eliom_notif.ARG.server_notif -> Eliom_notif.ARG.client_notif option Lwt.t
+  val equal_key : Eliom_notif.ARG.key -> Eliom_notif.ARG.key -> bool
+  val equal_identity :
+    Eliom_notif.ARG.identity -> Eliom_notif.ARG.identity -> bool
+  val get_identity : unit -> Eliom_notif.ARG.identity Lwt.t
+  val max_resource : int
+  val max_identity_per_resource : int
+end >>
