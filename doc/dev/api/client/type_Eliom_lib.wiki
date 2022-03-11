@@ -63,6 +63,8 @@
       val rev_append : 'a list -> 'a list -> 'a list
       val concat : 'a list list -> 'a list
       val flatten : 'a list list -> 'a list
+      val equal : ('a -> 'a -> bool) -> 'a list -> 'a list -> bool
+      val compare : ('a -> 'a -> int) -> 'a list -> 'a list -> int
       val iter : ('a -> unit) -> 'a list -> unit
       val iteri : (int -> 'a -> unit) -> 'a list -> unit
       val map : ('a -> 'b) -> 'a list -> 'b list
@@ -94,6 +96,8 @@
       val find_all : ('a -> bool) -> 'a list -> 'a list
       val filteri : (int -> 'a -> bool) -> 'a list -> 'a list
       val partition : ('a -> bool) -> 'a list -> 'a list * 'a list
+      val partition_map :
+        ('a -> ('b, 'c) Either.t) -> 'a list -> 'b list * 'c list
       val assoc : 'a -> ('a * 'b) list -> 'b
       val assoc_opt : 'a -> ('a * 'b) list -> 'b option
       val assq : 'a -> ('a * 'b) list -> 'b
@@ -145,7 +149,7 @@
       module Table :
         sig
           type key = int
-          type +'a t
+          type +!'a t
           val empty : 'a t
           val is_empty : 'a t -> bool
           val mem : key -> 'a t -> bool
@@ -184,6 +188,7 @@
           val map : ('a -> 'b) -> 'a t -> 'b t
           val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
           val to_seq : 'a t -> (key * 'a) Seq.t
+          val to_rev_seq : 'a t -> (key * 'a) Seq.t
           val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
           val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
           val of_seq : (key * 'a) Seq.t -> 'a t
@@ -191,49 +196,49 @@
     end
   module String_base :
     sig
-      external length : string -> int = "%string_length"
-      external get : string -> int -> char = "%string_safe_get"
-      external set : bytes -> int -> char -> unit = "%string_safe_set"
-      external create : int -> bytes = "caml_create_string"
+      type t = string
       val make : int -> char -> string
       val init : int -> (int -> char) -> string
-      val copy : string -> string
-      val sub : string -> int -> int -> string
-      val fill : bytes -> int -> int -> char -> unit
-      val blit : string -> int -> bytes -> int -> int -> unit
+      external length : string -> int = "%string_length"
+      external get : string -> int -> char = "%string_safe_get"
       val concat : string -> string list -> string
-      val iter : (char -> unit) -> string -> unit
-      val iteri : (int -> char -> unit) -> string -> unit
+      val equal : t -> t -> bool
+      val compare : t -> t -> int
+      val contains_from : string -> int -> char -> bool
+      val rcontains_from : string -> int -> char -> bool
+      val contains : string -> char -> bool
+      val sub : string -> int -> int -> string
+      val split_on_char : char -> string -> string list
       val map : (char -> char) -> string -> string
       val mapi : (int -> char -> char) -> string -> string
       val trim : string -> string
       val escaped : string -> string
-      val index : string -> char -> int
-      val index_opt : string -> char -> int option
-      val rindex : string -> char -> int
-      val rindex_opt : string -> char -> int option
-      val index_from : string -> int -> char -> int
-      val index_from_opt : string -> int -> char -> int option
-      val rindex_from : string -> int -> char -> int
-      val rindex_from_opt : string -> int -> char -> int option
-      val contains : string -> char -> bool
-      val contains_from : string -> int -> char -> bool
-      val rcontains_from : string -> int -> char -> bool
-      val uppercase : string -> string
-      val lowercase : string -> string
-      val capitalize : string -> string
-      val uncapitalize : string -> string
       val uppercase_ascii : string -> string
       val lowercase_ascii : string -> string
       val capitalize_ascii : string -> string
       val uncapitalize_ascii : string -> string
-      type t = string
-      val compare : t -> t -> int
-      val equal : t -> t -> bool
-      val split_on_char : char -> string -> string list
+      val iter : (char -> unit) -> string -> unit
+      val iteri : (int -> char -> unit) -> string -> unit
+      val index_from : string -> int -> char -> int
+      val index_from_opt : string -> int -> char -> int option
+      val rindex_from : string -> int -> char -> int
+      val rindex_from_opt : string -> int -> char -> int option
+      val index : string -> char -> int
+      val index_opt : string -> char -> int option
+      val rindex : string -> char -> int
+      val rindex_opt : string -> char -> int option
       val to_seq : t -> char Seq.t
       val to_seqi : t -> (int * char) Seq.t
       val of_seq : char Seq.t -> t
+      external create : int -> bytes = "caml_create_string"
+      external set : bytes -> int -> char -> unit = "%string_safe_set"
+      val blit : string -> int -> bytes -> int -> int -> unit
+      val copy : string -> string
+      val fill : bytes -> int -> int -> char -> unit
+      val uppercase : string -> string
+      val lowercase : string -> string
+      val capitalize : string -> string
+      val uncapitalize : string -> string
       external unsafe_get : string -> int -> char = "%string_unsafe_get"
       external unsafe_set : bytes -> int -> char -> unit
         = "%string_unsafe_set"
@@ -251,7 +256,7 @@
       module Table :
         sig
           type key = string
-          type +'a t
+          type +!'a t
           val empty : 'a t
           val is_empty : 'a t -> bool
           val mem : key -> 'a t -> bool
@@ -290,6 +295,7 @@
           val map : ('a -> 'b) -> 'a t -> 'b t
           val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
           val to_seq : 'a t -> (key * 'a) Seq.t
+          val to_rev_seq : 'a t -> (key * 'a) Seq.t
           val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
           val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
           val of_seq : (key * 'a) Seq.t -> 'a t
@@ -337,13 +343,14 @@
           val of_list : elt list -> t
           val to_seq_from : elt -> t -> elt Seq.t
           val to_seq : t -> elt Seq.t
+          val to_rev_seq : t -> elt Seq.t
           val add_seq : elt Seq.t -> t -> t
           val of_seq : elt Seq.t -> t
         end
       module Map :
         sig
           type key = string
-          type +'a t
+          type +!'a t
           val empty : 'a t
           val is_empty : 'a t -> bool
           val mem : key -> 'a t -> bool
@@ -382,6 +389,7 @@
           val map : ('a -> 'b) -> 'a t -> 'b t
           val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
           val to_seq : 'a t -> (key * 'a) Seq.t
+          val to_rev_seq : 'a t -> (key * 'a) Seq.t
           val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
           val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
           val of_seq : (key * 'a) Seq.t -> 'a t
@@ -407,58 +415,6 @@
       val split_path : string -> path
       val norm_path : path -> path
     end
-  module Printexc :
-    sig
-      type t = exn = ..
-      val to_string : exn -> string
-      val to_string_default : exn -> string
-      val print : ('a -> 'b) -> 'a -> 'b
-      val catch : ('a -> 'b) -> 'a -> 'b
-      val print_backtrace : out_channel -> unit
-      val get_backtrace : unit -> string
-      val record_backtrace : bool -> unit
-      val backtrace_status : unit -> bool
-      val register_printer : (exn -> string option) -> unit
-      val use_printers : exn -> string option
-      type raw_backtrace = Stdlib__printexc.raw_backtrace
-      val get_raw_backtrace : unit -> raw_backtrace
-      val print_raw_backtrace : out_channel -> raw_backtrace -> unit
-      val raw_backtrace_to_string : raw_backtrace -> string
-      external raise_with_backtrace : exn -> raw_backtrace -> 'a
-        = "%raise_with_backtrace"
-      external get_callstack : int -> raw_backtrace
-        = "caml_get_current_callstack"
-      val default_uncaught_exception_handler : exn -> raw_backtrace -> unit
-      val set_uncaught_exception_handler :
-        (exn -> raw_backtrace -> unit) -> unit
-      type backtrace_slot = Stdlib__printexc.backtrace_slot
-      val backtrace_slots : raw_backtrace -> backtrace_slot array option
-      type location =
-        Stdlib__printexc.location = {
-        filename : string;
-        line_number : int;
-        start_char : int;
-        end_char : int;
-      }
-      module Slot :
-        sig
-          type t = backtrace_slot
-          val is_raise : t -> bool
-          val is_inline : t -> bool
-          val location : t -> location option
-          val name : t -> string option
-          val format : int -> t -> string option
-        end
-      type raw_backtrace_slot = Stdlib__printexc.raw_backtrace_slot
-      val raw_backtrace_length : raw_backtrace -> int
-      val get_raw_backtrace_slot : raw_backtrace -> int -> raw_backtrace_slot
-      val convert_raw_backtrace_slot : raw_backtrace_slot -> backtrace_slot
-      val get_raw_backtrace_next_slot :
-        raw_backtrace_slot -> raw_backtrace_slot option
-      val exn_slot_id : exn -> int
-      val exn_slot_name : exn -> string
-      val register_exn_printer : ((exn -> string) -> exn -> string) -> unit
-    end
   exception Eliom_Internal_Error of string
   module Lwt_ops :
     sig
@@ -470,7 +426,7 @@
   module type Map_S =
     sig
       type key
-      type +'a t
+      type +!'a t
       val empty : 'a t
       val is_empty : 'a t -> bool
       val mem : key -> 'a t -> bool
@@ -508,6 +464,7 @@
       val map : ('a -> 'b) -> 'a t -> 'b t
       val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
       val to_seq : 'a t -> (key * 'a) Seq.t
+      val to_rev_seq : 'a t -> (key * 'a) Seq.t
       val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
       val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
       val of_seq : (key * 'a) Seq.t -> 'a t
@@ -555,6 +512,7 @@
       val map : ('a -> 'b) -> 'a t -> 'b t
       val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
       val to_seq : 'a t -> (key * 'a) Seq.t
+      val to_rev_seq : 'a t -> (key * 'a) Seq.t
       val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
       val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
       val of_seq : (key * 'a) Seq.t -> 'a t
@@ -602,6 +560,7 @@
       val map : ('a -> 'b) -> 'a t -> 'b t
       val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
       val to_seq : 'a t -> (key * 'a) Seq.t
+      val to_rev_seq : 'a t -> (key * 'a) Seq.t
       val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
       val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
       val of_seq : (key * 'a) Seq.t -> 'a t
@@ -649,6 +608,7 @@
       val map : ('a -> 'b) -> 'a t -> 'b t
       val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
       val to_seq : 'a t -> (key * 'a) Seq.t
+      val to_rev_seq : 'a t -> (key * 'a) Seq.t
       val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
       val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
       val of_seq : (key * 'a) Seq.t -> 'a t
@@ -735,49 +695,49 @@
     end
   module String :
     sig
-      external length : string -> int = "%string_length"
-      external get : string -> int -> char = "%string_safe_get"
-      external set : bytes -> int -> char -> unit = "%string_safe_set"
-      external create : int -> bytes = "caml_create_string"
+      type t = string
       val make : int -> char -> string
       val init : int -> (int -> char) -> string
-      val copy : string -> string
-      val sub : string -> int -> int -> string
-      val fill : bytes -> int -> int -> char -> unit
-      val blit : string -> int -> bytes -> int -> int -> unit
+      external length : string -> int = "%string_length"
+      external get : string -> int -> char = "%string_safe_get"
       val concat : string -> string list -> string
-      val iter : (char -> unit) -> string -> unit
-      val iteri : (int -> char -> unit) -> string -> unit
+      val equal : t -> t -> bool
+      val compare : t -> t -> int
+      val contains_from : string -> int -> char -> bool
+      val rcontains_from : string -> int -> char -> bool
+      val contains : string -> char -> bool
+      val sub : string -> int -> int -> string
+      val split_on_char : char -> string -> string list
       val map : (char -> char) -> string -> string
       val mapi : (int -> char -> char) -> string -> string
       val trim : string -> string
       val escaped : string -> string
-      val index : string -> char -> int
-      val index_opt : string -> char -> int option
-      val rindex : string -> char -> int
-      val rindex_opt : string -> char -> int option
-      val index_from : string -> int -> char -> int
-      val index_from_opt : string -> int -> char -> int option
-      val rindex_from : string -> int -> char -> int
-      val rindex_from_opt : string -> int -> char -> int option
-      val contains : string -> char -> bool
-      val contains_from : string -> int -> char -> bool
-      val rcontains_from : string -> int -> char -> bool
-      val uppercase : string -> string
-      val lowercase : string -> string
-      val capitalize : string -> string
-      val uncapitalize : string -> string
       val uppercase_ascii : string -> string
       val lowercase_ascii : string -> string
       val capitalize_ascii : string -> string
       val uncapitalize_ascii : string -> string
-      type t = string
-      val compare : t -> t -> int
-      val equal : t -> t -> bool
-      val split_on_char : char -> string -> string list
+      val iter : (char -> unit) -> string -> unit
+      val iteri : (int -> char -> unit) -> string -> unit
+      val index_from : string -> int -> char -> int
+      val index_from_opt : string -> int -> char -> int option
+      val rindex_from : string -> int -> char -> int
+      val rindex_from_opt : string -> int -> char -> int option
+      val index : string -> char -> int
+      val index_opt : string -> char -> int option
+      val rindex : string -> char -> int
+      val rindex_opt : string -> char -> int option
       val to_seq : t -> char Seq.t
       val to_seqi : t -> (int * char) Seq.t
       val of_seq : char Seq.t -> t
+      external create : int -> bytes = "caml_create_string"
+      external set : bytes -> int -> char -> unit = "%string_safe_set"
+      val blit : string -> int -> bytes -> int -> int -> unit
+      val copy : string -> string
+      val fill : bytes -> int -> int -> char -> unit
+      val uppercase : string -> string
+      val lowercase : string -> string
+      val capitalize : string -> string
+      val uncapitalize : string -> string
       external unsafe_get : string -> int -> char = "%string_unsafe_get"
       external unsafe_set : bytes -> int -> char -> unit
         = "%string_unsafe_set"
@@ -795,7 +755,7 @@
       module Table :
         sig
           type key = string
-          type +'a t
+          type +!'a t
           val empty : 'a t
           val is_empty : 'a t -> bool
           val mem : key -> 'a t -> bool
@@ -834,6 +794,7 @@
           val map : ('a -> 'b) -> 'a t -> 'b t
           val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
           val to_seq : 'a t -> (key * 'a) Seq.t
+          val to_rev_seq : 'a t -> (key * 'a) Seq.t
           val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
           val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
           val of_seq : (key * 'a) Seq.t -> 'a t
@@ -881,13 +842,14 @@
           val of_list : elt list -> t
           val to_seq_from : elt -> t -> elt Seq.t
           val to_seq : t -> elt Seq.t
+          val to_rev_seq : t -> elt Seq.t
           val add_seq : elt Seq.t -> t -> t
           val of_seq : elt Seq.t -> t
         end
       module Map :
         sig
           type key = string
-          type +'a t
+          type +!'a t
           val empty : 'a t
           val is_empty : 'a t -> bool
           val mem : key -> 'a t -> bool
@@ -926,6 +888,7 @@
           val map : ('a -> 'b) -> 'a t -> 'b t
           val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
           val to_seq : 'a t -> (key * 'a) Seq.t
+          val to_rev_seq : 'a t -> (key * 'a) Seq.t
           val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
           val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
           val of_seq : (key * 'a) Seq.t -> 'a t

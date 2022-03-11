@@ -209,7 +209,9 @@
         ?scope:Eliom_common.user_scope ->
         unit ->
         ([< Eliom_common.user_level ], [< `Service ]) Eliom_state.Ext.state
-      val discard_state : state:('a, 'b) Eliom_state.Ext.state -> unit Lwt.t
+      val discard_state :
+        ?sitedata:Eliom_common.sitedata ->
+        state:('a, 'b) Eliom_state.Ext.state -> unit -> unit Lwt.t
       val fold_volatile_sub_states :
         ?sitedata:Eliom_common.sitedata ->
         state:([< `Session | `Session_group ], [< `Data | `Service ] as 'k)
@@ -272,9 +274,11 @@
             table:'a Eliom_state.persistent_table -> unit Lwt.t
         end
       val get_service_cookie_info :
+        ?sitedata:Eliom_common.sitedata ->
         ([< Eliom_common.cookie_level ], [ `Service ]) Eliom_state.Ext.state ->
         Eliom_state.Ext.service_cookie_info
       val get_volatile_data_cookie_info :
+        ?sitedata:Eliom_common.sitedata ->
         ([< Eliom_common.cookie_level ], [ `Data ]) Eliom_state.Ext.state ->
         Eliom_state.Ext.data_cookie_info
       val get_persistent_cookie_info :
@@ -347,13 +351,13 @@
     table:'a Eliom_state.persistent_table -> unit -> unit Lwt.t
   val get_persistent_data_cookie :
     cookie_scope:Eliom_common.cookie_scope ->
-    ?secure:bool -> unit -> string option Lwt.t
+    ?secure:bool -> unit -> Eliom_common.Hashed_cookies.t option Lwt.t
   val get_service_cookie :
     cookie_scope:Eliom_common.cookie_scope ->
-    ?secure:bool -> unit -> string option
+    ?secure:bool -> unit -> Eliom_common.Hashed_cookies.t option
   val get_volatile_data_cookie :
     cookie_scope:Eliom_common.cookie_scope ->
-    ?secure:bool -> unit -> string option
+    ?secure:bool -> unit -> Eliom_common.Hashed_cookies.t option
   val number_of_service_cookies : unit -> int
   val number_of_volatile_data_cookies : unit -> int
   val number_of_tables : unit -> int

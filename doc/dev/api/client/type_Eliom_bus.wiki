@@ -7,4 +7,5 @@
   val set_queue_size : ('a, 'b) Eliom_bus.t -> int -> unit
   val set_time_before_flush : ('a, 'b) Eliom_bus.t -> float -> unit
   val force_link : unit
+  val section : Lwt_log_core.section
 end >>

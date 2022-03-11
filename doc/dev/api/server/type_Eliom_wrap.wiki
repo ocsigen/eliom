@@ -9,4 +9,5 @@
   val create_unwrapper : Eliom_wrap.unwrap_id -> Eliom_wrap.unwrapper
   val empty_unwrapper : Eliom_wrap.unwrapper
   val id_of_int : int -> Eliom_wrap.unwrap_id
+  val section : Lwt_log_core.section
 end >>

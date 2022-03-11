@@ -1,5 +1,5 @@
 =Module <<a_api_type subproject="client" | module Eliom_lib.Lwt_log >> =
-<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Lwt_log>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_lib.Lwt_log >><<span class="ocsforge_color_keyword"|end>>>>~Extension of <<a_api project="js_of_ocaml"| module Lwt_log_js >> ~.
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Lwt_log>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_lib.Lwt_log >><<span class="ocsforge_color_keyword"|end>>>>~Extension of <<a_api project="js_of_ocaml" subproject="js_of_ocaml-lwt" | module Lwt_log_js >> ~.
 
 ----
 <<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> Lwt_log_js>>

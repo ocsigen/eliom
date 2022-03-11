@@ -25,4 +25,5 @@
   val close : 'a Eliom_comet_base.wrapped_channel -> unit
   val force_link : unit
   val handle_exn : ?exn:exn -> unit -> unit Lwt.t
+  val section : Lwt_log_core.section
 end >>

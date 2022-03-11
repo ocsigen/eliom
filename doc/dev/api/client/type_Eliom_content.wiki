@@ -5639,17 +5639,14 @@
               val a_input_min :
                 Html_types.number_or_datetime wrap -> [> `Input_Min ] attrib
               val a_inputmode :
-                [< `Email
-                 | `Full_width_latin
-                 | `Kana
-                 | `Katakana
-                 | `Latin
-                 | `Latin_name
-                 | `Latin_prose
+                [< `Decimal
+                 | `Email
+                 | `None
                  | `Numeric
+                 | `Search
                  | `Tel
-                 | `Url
-                 | `Verbatim ]
+                 | `Text
+                 | `Url ]
                 wrap -> [> `Inputmode ] attrib
               val a_novalidate : unit -> [> `Novalidate ] attrib
               val a_open : unit -> [> `Open ] attrib
@@ -5690,6 +5687,8 @@
               val a_start : Html_types.number wrap -> [> `Start ] attrib
               val a_step :
                 Html_types.float_number option wrap -> [> `Step ] attrib
+              val a_translate :
+                [< `No | `Yes ] wrap -> [> `Translate ] attrib
               val a_wrap : [< `Hard | `Soft ] wrap -> [> `Wrap ] attrib
               val a_version : Html_types.cdata wrap -> [> `Version ] attrib
               val a_xmlns :
@@ -6064,6 +6063,12 @@
                 src:Xml.uri wrap ->
                 alt:Html_types.text wrap ->
                 ([< Html_types.img_attrib ], [> Html_types.img ]) nullary
+              val picture :
+                img:[< Html_types.img ] elt wrap ->
+                ([< Html_types.picture_attrib ],
+                 [< Html_types.picture_content_fun ],
+                 [> Html_types.picture ])
+                star
               val iframe :
                 ([< Html_types.iframe_attrib ],
                  [< Html_types.iframe_content_fun ], [> Html_types.iframe ])
@@ -6175,6 +6180,7 @@
                   | `Tabindex
                   | `Target
                   | `Title
+                  | `Translate
                   | `User_data
                   | `XML_lang
                   | `XMLns ],
@@ -6602,17 +6608,14 @@
           val a_input_min :
             Html_types.number_or_datetime wrap -> [> `Input_Min ] attrib
           val a_inputmode :
-            [< `Email
-             | `Full_width_latin
-             | `Kana
-             | `Katakana
-             | `Latin
-             | `Latin_name
-             | `Latin_prose
+            [< `Decimal
+             | `Email
+             | `None
              | `Numeric
+             | `Search
              | `Tel
-             | `Url
-             | `Verbatim ]
+             | `Text
+             | `Url ]
             wrap -> [> `Inputmode ] attrib
           val a_novalidate : unit -> [> `Novalidate ] attrib
           val a_open : unit -> [> `Open ] attrib
@@ -6650,6 +6653,7 @@
           val a_start : Html_types.number wrap -> [> `Start ] attrib
           val a_step :
             Html_types.float_number option wrap -> [> `Step ] attrib
+          val a_translate : [< `No | `Yes ] wrap -> [> `Translate ] attrib
           val a_wrap : [< `Hard | `Soft ] wrap -> [> `Wrap ] attrib
           val a_version : Html_types.cdata wrap -> [> `Version ] attrib
           val a_xmlns : [< `W3_org_1999_xhtml ] wrap -> [> `XMLns ] attrib
@@ -7001,6 +7005,11 @@
             src:Xml.uri wrap ->
             alt:Html_types.text wrap ->
             ([< Html_types.img_attrib ], [> Html_types.img ]) nullary
+          val picture :
+            img:[< Html_types.img ] elt wrap ->
+            ([< Html_types.picture_attrib ],
+             [< Html_types.picture_content_fun ], [> Html_types.picture ])
+            star
           val iframe :
             ([< Html_types.iframe_attrib ],
              [< Html_types.iframe_content_fun ], [> Html_types.iframe ])
@@ -7108,6 +7117,7 @@
               | `Tabindex
               | `Target
               | `Title
+              | `Translate
               | `User_data
               | `XML_lang
               | `XMLns ],
@@ -7577,6 +7587,7 @@
                     | `Style_Attr
                     | `Tabindex
                     | `Title
+                    | `Translate
                     | `User_data
                     | `XML_lang
                     | `XMLns ] attrib list * string * 'a soption *
@@ -7830,17 +7841,14 @@
               val a_input_min :
                 Html_types.number_or_datetime wrap -> [> `Input_Min ] attrib
               val a_inputmode :
-                [< `Email
-                 | `Full_width_latin
-                 | `Kana
-                 | `Katakana
-                 | `Latin
-                 | `Latin_name
-                 | `Latin_prose
+                [< `Decimal
+                 | `Email
+                 | `None
                  | `Numeric
+                 | `Search
                  | `Tel
-                 | `Url
-                 | `Verbatim ]
+                 | `Text
+                 | `Url ]
                 wrap -> [> `Inputmode ] attrib
               val a_novalidate : unit -> [> `Novalidate ] attrib
               val a_open : unit -> [> `Open ] attrib
@@ -7881,6 +7889,8 @@
               val a_start : Html_types.number wrap -> [> `Start ] attrib
               val a_step :
                 Html_types.float_number option wrap -> [> `Step ] attrib
+              val a_translate :
+                [< `No | `Yes ] wrap -> [> `Translate ] attrib
               val a_wrap : [< `Hard | `Soft ] wrap -> [> `Wrap ] attrib
               val a_version : Html_types.cdata wrap -> [> `Version ] attrib
               val a_xmlns :
@@ -8255,6 +8265,12 @@
                 src:Xml.uri wrap ->
                 alt:Html_types.text wrap ->
                 ([< Html_types.img_attrib ], [> Html_types.img ]) nullary
+              val picture :
+                img:[< Html_types.img ] elt wrap ->
+                ([< Html_types.picture_attrib ],
+                 [< Html_types.picture_content_fun ],
+                 [> Html_types.picture ])
+                star
               val iframe :
                 ([< Html_types.iframe_attrib ],
                  [< Html_types.iframe_content_fun ], [> Html_types.iframe ])
@@ -8366,6 +8382,7 @@
                   | `Tabindex
                   | `Target
                   | `Title
+                  | `Translate
                   | `User_data
                   | `XML_lang
                   | `XMLns ],
@@ -8793,17 +8810,14 @@
           val a_input_min :
             Html_types.number_or_datetime wrap -> [> `Input_Min ] attrib
           val a_inputmode :
-            [< `Email
-             | `Full_width_latin
-             | `Kana
-             | `Katakana
-             | `Latin
-             | `Latin_name
-             | `Latin_prose
+            [< `Decimal
+             | `Email
+             | `None
              | `Numeric
+             | `Search
              | `Tel
-             | `Url
-             | `Verbatim ]
+             | `Text
+             | `Url ]
             wrap -> [> `Inputmode ] attrib
           val a_novalidate : unit -> [> `Novalidate ] attrib
           val a_open : unit -> [> `Open ] attrib
@@ -8841,6 +8855,7 @@
           val a_start : Html_types.number wrap -> [> `Start ] attrib
           val a_step :
             Html_types.float_number option wrap -> [> `Step ] attrib
+          val a_translate : [< `No | `Yes ] wrap -> [> `Translate ] attrib
           val a_wrap : [< `Hard | `Soft ] wrap -> [> `Wrap ] attrib
           val a_version : Html_types.cdata wrap -> [> `Version ] attrib
           val a_xmlns : [< `W3_org_1999_xhtml ] wrap -> [> `XMLns ] attrib
@@ -9192,6 +9207,11 @@
             src:Xml.uri wrap ->
             alt:Html_types.text wrap ->
             ([< Html_types.img_attrib ], [> Html_types.img ]) nullary
+          val picture :
+            img:[< Html_types.img ] elt wrap ->
+            ([< Html_types.picture_attrib ],
+             [< Html_types.picture_content_fun ], [> Html_types.picture ])
+            star
           val iframe :
             ([< Html_types.iframe_attrib ],
              [< Html_types.iframe_content_fun ], [> Html_types.iframe ])
@@ -9299,6 +9319,7 @@
               | `Tabindex
               | `Target
               | `Title
+              | `Translate
               | `User_data
               | `XML_lang
               | `XMLns ],
@@ -9768,6 +9789,7 @@
                     | `Style_Attr
                     | `Tabindex
                     | `Title
+                    | `Translate
                     | `User_data
                     | `XML_lang
                     | `XMLns ] attrib list * string * 'a soption *
@@ -10032,17 +10054,14 @@
               val a_input_min :
                 Html_types.number_or_datetime wrap -> [> `Input_Min ] attrib
               val a_inputmode :
-                [< `Email
-                 | `Full_width_latin
-                 | `Kana
-                 | `Katakana
-                 | `Latin
-                 | `Latin_name
-                 | `Latin_prose
+                [< `Decimal
+                 | `Email
+                 | `None
                  | `Numeric
+                 | `Search
                  | `Tel
-                 | `Url
-                 | `Verbatim ]
+                 | `Text
+                 | `Url ]
                 wrap -> [> `Inputmode ] attrib
               val a_novalidate : unit -> [> `Novalidate ] attrib
               val a_open : unit -> [> `Open ] attrib
@@ -10083,6 +10102,8 @@
               val a_start : Html_types.number wrap -> [> `Start ] attrib
               val a_step :
                 Html_types.float_number option wrap -> [> `Step ] attrib
+              val a_translate :
+                [< `No | `Yes ] wrap -> [> `Translate ] attrib
               val a_wrap : [< `Hard | `Soft ] wrap -> [> `Wrap ] attrib
               val a_version : Html_types.cdata wrap -> [> `Version ] attrib
               val a_xmlns :
@@ -10457,6 +10478,12 @@
                 src:Xml.uri wrap ->
                 alt:Html_types.text wrap ->
                 ([< Html_types.img_attrib ], [> Html_types.img ]) nullary
+              val picture :
+                img:[< Html_types.img ] elt wrap ->
+                ([< Html_types.picture_attrib ],
+                 [< Html_types.picture_content_fun ],
+                 [> Html_types.picture ])
+                star
               val iframe :
                 ([< Html_types.iframe_attrib ],
                  [< Html_types.iframe_content_fun ], [> Html_types.iframe ])
@@ -10568,6 +10595,7 @@
                   | `Tabindex
                   | `Target
                   | `Title
+                  | `Translate
                   | `User_data
                   | `XML_lang
                   | `XMLns ],
@@ -10999,17 +11027,14 @@
           val a_input_min :
             Html_types.number_or_datetime wrap -> [> `Input_Min ] attrib
           val a_inputmode :
-            [< `Email
-             | `Full_width_latin
-             | `Kana
-             | `Katakana
-             | `Latin
-             | `Latin_name
-             | `Latin_prose
+            [< `Decimal
+             | `Email
+             | `None
              | `Numeric
+             | `Search
              | `Tel
-             | `Url
-             | `Verbatim ]
+             | `Text
+             | `Url ]
             wrap -> [> `Inputmode ] attrib
           val a_novalidate : unit -> [> `Novalidate ] attrib
           val a_open : unit -> [> `Open ] attrib
@@ -11047,6 +11072,7 @@
           val a_start : Html_types.number wrap -> [> `Start ] attrib
           val a_step :
             Html_types.float_number option wrap -> [> `Step ] attrib
+          val a_translate : [< `No | `Yes ] wrap -> [> `Translate ] attrib
           val a_wrap : [< `Hard | `Soft ] wrap -> [> `Wrap ] attrib
           val a_version : Html_types.cdata wrap -> [> `Version ] attrib
           val a_xmlns : [< `W3_org_1999_xhtml ] wrap -> [> `XMLns ] attrib
@@ -11399,6 +11425,11 @@
             src:Xml.uri wrap ->
             alt:Html_types.text wrap ->
             ([< Html_types.img_attrib ], [> Html_types.img ]) nullary
+          val picture :
+            img:[< Html_types.img ] elt wrap ->
+            ([< Html_types.picture_attrib ],
+             [< Html_types.picture_content_fun ], [> Html_types.picture ])
+            star
           val iframe :
             ([< Html_types.iframe_attrib ],
              [< Html_types.iframe_content_fun ], [> Html_types.iframe ])
@@ -11506,6 +11537,7 @@
               | `Tabindex
               | `Target
               | `Title
+              | `Translate
               | `User_data
               | `XML_lang
               | `XMLns ],

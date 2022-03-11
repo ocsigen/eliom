@@ -51,10 +51,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_bus"| module Eliom_bus >> |<<div class="odocwiki_info"|~Broadcasting facilities between clients and server
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_client"| module Eliom_client >> |<<div class="odocwiki_info"|~Returns whether the application is sent by a server or started on
-    client side~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_client"| module Eliom_client >> ||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_client_value"| module Eliom_client_value >> |<<div class="odocwiki_info"|~Client and shared values
 >>
 |
@@ -232,6 +229,7 @@ file~.
     values~.
 >>
 |
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Ocsipersist"| module Eliom_common.Ocsipersist >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
 |@@ @style="tet-align: left;"@@\\P|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Printer"| module Eliom_content.Html.Printer >> ~[<<a_api subproject="server" | module Eliom_content.Html >>~]|<<div class="odocwiki_info"|[[http://dev.w3.org/html5/html-xhtml-author-guide/|"~Polyglot"]]
       ~H~T~M~L printer~.

@@ -1,5 +1,1 @@
-<<code language="ocaml" | sig
-  val mapper :
-    Migrate_parsetree.Versions.OCaml_408.types
-    Migrate_parsetree.Driver.rewriter
-end >>
+<<code language="ocaml" | sig val mapper : Ppxlib.Ast_traverse.map end >>

@@ -23,7 +23,13 @@
   val get_expired_service_sessions :
     unit ->
     Eliom_common.full_state_name list * Eliom_common.full_state_name list
+  val get_previous_extension_error_code : unit -> int
   val get_tmp_filename : Ocsigen_extensions.file_info -> string
+  val get_filesize : Ocsigen_extensions.file_info -> int64
+  val get_original_filename : Ocsigen_extensions.file_info -> string
+  val get_file_content_type :
+    Ocsigen_extensions.file_info ->
+    ((string * string) * (string * string) list) option
   val get_site_dir : unit -> Eliom_lib.Url.path
   val get_get_params : unit -> (string * string list) list
   val get_all_current_get_params : unit -> (string * string) list
@@ -46,7 +52,6 @@
   val get_persistent_cookies :
     unit -> string Eliom_common.Full_state_name_table.t
   val get_data_cookies : unit -> string Eliom_common.Full_state_name_table.t
-  val get_previous_extension_error_code : unit -> int
   val expecting_process_page : unit -> bool
   val get_csp_original_full_path : unit -> Eliom_lib.Url.path
   val get_csp_hostname : unit -> string

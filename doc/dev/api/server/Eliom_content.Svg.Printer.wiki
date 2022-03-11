@@ -1,5 +1,5 @@
 =Module <<a_api_type subproject="server" | module Eliom_content.Svg.Printer >> =
-<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Printer>>>> <<span class="ocsforge_color_delimiter"|~:>> \\  <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Xml_sigs.Typed_pp>>>><<span class="odocwiki_type"| \\    with type +'a elt := 'a elt\\     and type doc := F.doc>>>>~S~V~G printer~. ~See
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Printer>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Xml_sigs.Typed_pp>>>><<span class="odocwiki_type"|  with type +'a elt := 'a elt and type doc := F.doc>>>>~S~V~G printer~. ~See
       <<a_api project="tyxml" | module Xml_sigs.Typed_pp >> ~.
 
 ----

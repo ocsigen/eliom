@@ -1,5 +1,5 @@
 =Module <<a_api_type subproject="client" | module Eliom_content.Html.Of_dom >> =
-<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Of_dom>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Js_of_ocaml_tyxml.Tyxml_cast_sigs.OF>>>><<span class="odocwiki_type"|  with type 'a elt = 'a elt>>>>~Conversion functions from ~D~O~M nodes ~(<<a_api project="js_of_ocaml"| type Dom_html.element>>  <<a_api
-      project="js_of_ocaml"| type Js.t>> ~) to ~Eliom nodes ~(<<a_api | type Eliom_content.Html.elt>> ~)~.
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Of_dom>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Js_of_ocaml_tyxml.Tyxml_cast_sigs.OF>>>><<span class="odocwiki_type"|  with type 'a elt = 'a elt>>>>~Conversion functions from ~D~O~M nodes ~(<<a_api project="js_of_ocaml"| type Js_of_ocaml.Dom_html.element>>  <<a_api
+      project="js_of_ocaml"| type Js_of_ocaml.Js.t>> ~) to ~Eliom nodes ~(<<a_api | type Eliom_content.Html.elt>> ~)~.
 
 ----

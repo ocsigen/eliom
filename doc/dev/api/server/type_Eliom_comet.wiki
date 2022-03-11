@@ -26,4 +26,5 @@
       val get_wrapped :
         'a Eliom_comet.Channel.t -> 'a Eliom_comet_base.wrapped_channel
     end
+  val section : Lwt_log_core.section
 end >>

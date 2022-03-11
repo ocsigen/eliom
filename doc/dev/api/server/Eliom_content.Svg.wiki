@@ -20,5 +20,5 @@
 >>
 <<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Id" | module Eliom_content.Svg.Id >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_content.Svg.Id >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Node identifiers~.
 >>
-<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Printer" | module Eliom_content.Svg.Printer >> <<span class="ocsforge_color_delimiter"|~:>> \\  <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Xml_sigs.Typed_pp>>>><<span class="odocwiki_type"| \\    with type +'a elt := 'a elt\\     and type doc := F.doc>>>><<div class="odocwiki_info"|~S~V~G printer~.
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Printer" | module Eliom_content.Svg.Printer >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Xml_sigs.Typed_pp>>>><<span class="odocwiki_type"|  with type +'a elt := 'a elt and type doc := F.doc>>>><<div class="odocwiki_info"|~S~V~G printer~.
 >>

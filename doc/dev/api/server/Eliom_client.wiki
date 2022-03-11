@@ -1,5 +1,7 @@
 =Module <<a_api_type subproject="server" | module Eliom_client >> =
-<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_client>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_client >><<span class="ocsforge_color_keyword"|end>>>>~Returns whether the application is sent by a server or started on
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_client>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_client >><<span class="ocsforge_color_keyword"|end>>>>
+----
+<<pre id="VALis_client_app" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|is~_client~_app>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> bool>>>><<div class="odocwiki_info"|~Returns whether the application is sent by a server or started on
     client side~. ~If called on server side~, always returns <<span class="odocwiki_inlinecode"|false>>~.
     ~Otherwise~, it tests the presence of ~J~S variables added automatically by
     ~Eliom when the page is sent by a server~.
@@ -8,9 +10,8 @@
 <<code language='ocaml'| if not (Eliom_client.is_client_app ())
  then Eliom_client.init_client_app ... >>
 
+>>
 
-----
-<<pre id="VALis_client_app" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|is~_client~_app>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> bool>>>>
 
 ==@@id="2_RPCServerfunctions"@@~R~P~C ~/ ~Server functions==
 

@@ -25,6 +25,6 @@
 >>
 <<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Custom_data" | module Eliom_content.Html.Custom_data >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_content.Html.Custom_data >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Type~-safe custom data for ~H~T~M~L~.
 >>
-<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Printer" | module Eliom_content.Html.Printer >> <<span class="ocsforge_color_delimiter"|~:>> \\  <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Xml_sigs.Typed_pp>>>><<span class="odocwiki_type"| \\    with type +'a elt := 'a elt\\     and type doc := F.doc>>>><<div class="odocwiki_info"|[[http://dev.w3.org/html5/html-xhtml-author-guide/|"~Polyglot"]]
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Printer" | module Eliom_content.Html.Printer >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Xml_sigs.Typed_pp>>>><<span class="odocwiki_type"|  with type +'a elt := 'a elt and type doc := F.doc>>>><<div class="odocwiki_info"|[[http://dev.w3.org/html5/html-xhtml-author-guide/|"~Polyglot"]]
       ~H~T~M~L printer~.
 >>

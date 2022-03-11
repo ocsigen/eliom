@@ -8,4 +8,5 @@
   module Up : sig type 'a t = 'a -> unit Lwt.t end
   module S : sig module Down : sig type 'a t = 'a React.S.t end end
   val force_link : unit
+  val section : Lwt_log_core.section
 end >>

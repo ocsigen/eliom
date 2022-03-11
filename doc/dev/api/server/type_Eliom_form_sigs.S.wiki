@@ -233,6 +233,7 @@
         | `Style_Attr
         | `Tabindex
         | `Title
+        | `Translate
         | `User_data
         | `XML_lang
         | `XMLns ] Eliom_form_sigs.S.attrib list * string *

@@ -297,7 +297,7 @@
     <<span class="odocwiki_inlinecode"|`~Session>>~)~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="discard_state"| value Eliom_state.Ext.discard_state >> ~[<<a_api subproject="server" | module Eliom_state.Ext >>~]|<<div class="odocwiki_info"|~Discard external states
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="discard_state"| value Eliom_state.Ext.discard_state >> ~[<<a_api subproject="server" | module Eliom_state.Ext >>~]|<<div class="odocwiki_info"|~Discard external states~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="do_cache"| value Eliom_cscache.do_cache >> ~[<<a_api subproject="server" | module Eliom_cscache >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|do~_cache cache key value>> adds the association from <<span class="odocwiki_inlinecode"|key>> to
@@ -491,6 +491,13 @@
     request~, for browser sessions and tab sessions~.
 >>
 |
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_file_content_type"| value Eliom_request_info.get_file_content_type >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns the content type sent by the browser with the file
+    ~(if any~)~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_filesize"| value Eliom_request_info.get_filesize >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns the size of the uploaded file~.
+>>
+|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_form"| value Eliom_form_sigs.S.get_form >> ~[<<a_api subproject="server" | module Eliom_form_sigs.S >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|get~_form service formgen>> creates a ~G~E~T <<span class="odocwiki_inlinecode"|~<form~>>>
       to <<span class="odocwiki_inlinecode"|service>>~.
 >>
@@ -554,6 +561,9 @@
     localized ~P~O~S~T parameters specified by <<span class="odocwiki_inlinecode"|p>> if present~.
 >>
 |
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_original_filename"| value Eliom_request_info.get_original_filename >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns the name the file had on the client when it has been sent~.
+>>
+|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_original_full_path"| value Eliom_request_info.get_original_full_path >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns the full path of the ~U~R~L as first sent by the browser
     ~(not changed by previous extensions like rewritemod~)
 >>
@@ -611,7 +621,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_server_port"| value Eliom_request_info.get_server_port >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns the port of the server~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_service_cookie_info"| value Eliom_state.Ext.get_service_cookie_info >> ~[<<a_api subproject="server" | module Eliom_state.Ext >>~]|<<div class="odocwiki_info"|~Get the infomration about cookies ~(timeouts~, etc~.~)
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_service_cookie_info"| value Eliom_state.Ext.get_service_cookie_info >> ~[<<a_api subproject="server" | module Eliom_state.Ext >>~]|<<div class="odocwiki_info"|~Get the infomration about cookies ~(timeouts~, etc~.~)~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_service_cookie_scope"| value Eliom_state.Ext.get_service_cookie_scope >> ~[<<a_api subproject="server" | module Eliom_state.Ext >>~]||
@@ -660,7 +670,10 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_volatile_data"| value Eliom_state.Ext.Low_level.get_volatile_data >> ~[<<a_api subproject="server" | module Eliom_state.Ext.Low_level >>~]|<<div class="odocwiki_info"|~Raises <<span class="odocwiki_inlinecode"|~Not~_found>> if no data in the table for the cookie~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_volatile_data_cookie_info"| value Eliom_state.Ext.get_volatile_data_cookie_info >> ~[<<a_api subproject="server" | module Eliom_state.Ext >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_volatile_data_cookie_info"| value Eliom_state.Ext.get_volatile_data_cookie_info >> ~[<<a_api subproject="server" | module Eliom_state.Ext >>~]|<<div class="odocwiki_info"|~See <<a_api subproject="server" | val Eliom_state.Ext.fold_volatile_sub_states >> for explanation about the <<span class="odocwiki_inlinecode"|~?sitedata>>
+      parameter~.
+>>
+|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_volatile_data_cookie_scope"| value Eliom_state.Ext.get_volatile_data_cookie_scope >> ~[<<a_api subproject="server" | module Eliom_state.Ext >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_volatile_data_cookie_timeout"| value Eliom_state.Ext.get_volatile_data_cookie_timeout >> ~[<<a_api subproject="server" | module Eliom_state.Ext >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_volatile_data_session_group"| value Eliom_state.get_volatile_data_session_group >> ~[<<a_api subproject="server" | module Eliom_state >>~]|<<div class="odocwiki_info"|returns the group to which belong the data session~.
@@ -736,7 +749,10 @@
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="int64"| value Eliom_form_sigs.S.int64 >> ~[<<a_api subproject="server" | module Eliom_form_sigs.S >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="is_client_app"| value Eliom_client.is_client_app >> ~[<<a_api subproject="server" | module Eliom_client >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="is_client_app"| value Eliom_client.is_client_app >> ~[<<a_api subproject="server" | module Eliom_client >>~]|<<div class="odocwiki_info"|~Returns whether the application is sent by a server or started on
+    client side~.
+>>
+|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="is_external"| value Eliom_service.is_external >> ~[<<a_api subproject="server" | module Eliom_service >>~]|<<div class="odocwiki_info"|~Returns whether it is an external service or not~.
 >>
 |
@@ -1012,6 +1028,9 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="request_scope"| value Eliom_common.request_scope >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="result_of_http_result"| value Eliom_registration_sigs.PARAM.result_of_http_result >> ~[<<a_api subproject="server" | module Eliom_registration_sigs.PARAM >>~]||
 |@@ @style="tet-align: left;"@@\\S|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="scope_hierarchy_of_user_scope"| value Eliom_common.scope_hierarchy_of_user_scope >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="section"| value Eliom_comet.section >> ~[<<a_api subproject="server" | module Eliom_comet >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="section"| value Eliom_parameter_sigs.section >> ~[<<a_api subproject="server" | module Eliom_parameter_sigs >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="select"| value Eliom_form_sigs.S.select >> ~[<<a_api subproject="server" | module Eliom_form_sigs.S >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag~.
 >>
 |

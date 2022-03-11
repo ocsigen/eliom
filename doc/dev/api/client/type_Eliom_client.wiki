@@ -10,6 +10,8 @@
   val change_page :
     ?ignore_client_fun:bool ->
     ?replace:bool ->
+    ?window_name:string ->
+    ?window_features:string ->
     ?absolute:bool ->
     ?absolute_path:bool ->
     ?https:bool ->
@@ -42,6 +44,8 @@
     ?upload_progress:(int -> int -> unit) ->
     ?override_mime_type:string -> 'a -> 'b -> 'return Lwt.t
   val exit_to :
+    ?window_name:string ->
+    ?window_features:string ->
     ?absolute:bool ->
     ?absolute_path:bool ->
     ?https:bool ->
@@ -152,7 +156,7 @@
     sig val past : unit -> string list val future : unit -> string list end
   val push_history_dom : unit -> unit
   val set_max_dist_history_doms : int option -> unit
-  val log_section : Eliom_lib.Lwt_log.section
+  val section : Eliom_lib.Lwt_log.section
   val middleClick : Js_of_ocaml.Dom_html.mouseEvent Js_of_ocaml.Js.t -> bool
   type client_form_handler =
       Js_of_ocaml.Dom_html.event Js_of_ocaml.Js.t -> bool Lwt.t
