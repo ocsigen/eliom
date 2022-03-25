@@ -138,7 +138,7 @@ module Configuration = struct
       then
         match (get ()).time_between_request_unfocused, focused () with
         | Some ((a, b, c) :: l), Some start ->
-            let now = Js.to_float (new%js Js.date_now)##getTime in
+            let now = (new%js Js.date_now)##getTime in
             (* time from idle start *)
             let t =
               max 0. (((now -. start) *. 0.001) -. (get ()).time_after_unfocus)
