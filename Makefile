@@ -43,45 +43,15 @@ doccp: alldoc
 	cp -Rf doc/index.wiki $(API_DIR)/
 
 
-### Testing ###
-
-.PHONY: run.local run.opt.local links
-
-run.local: tests.byte fifo tests/eliom.conf
-	OCAMLPATH=tests/:$(OCAMLPATH) ocsigenserver -c tests/eliom.conf
-
-run.opt.local: tests.opt fifo tests/eliom.conf
-	OCAMLPATH=tests/:$(OCAMLPATH) ocsigenserver.opt -c tests/eliom.conf
-
-tests.byte: links
-	${MAKE} -C tests byte
-
-tests.opt: links
-	${MAKE} -C tests opt
-
-links:
-	-mkdir -p local/var/run
-	-mkdir -p local/var/log
-	-mkdir -p local/var/lib
-	-mkdir -p local/tmp
-
-fifo:
-	[ -p local/var/run/eliom_command ] || \
-	 { mkfifo local/var/run/eliom_command; \
-	   chmod 660 local/var/run/eliom_command; }
-
-
 ### Cleaning ###
 .PHONY: clean clean.local distclean
 clean: clean.local
 	ocamlbuild -quiet -no-plugin -clean
-	${MAKE} -C tests clean
 
 clean.local:
 	-rm -f eliom-*.tar.gz
 
 distclean: clean clean.local
-	${MAKE} -C tests distclean
 	-find ./ -name "*\#*" | xargs rm -f
 
 ### Installation ####

@@ -30,24 +30,6 @@ If you want to compile manually,
    install; and
  * run `make PREFIX=${YOURPREFIX} uninstall` to uninstall everything.
 
-## Testing locally
-
-* Install Eliom.
-
-* DEPRECATED Run `make run.local` or `make run.opt.local` in the Eliom source
-  directory.
-
-* DEPRECATED Open <http://localhost:8080/miniwiki> in your browser.
-
-* DEPRECATED If the above does not work, look at the logs (see `local/var/log/`
-  in the Eliom source directory) or run Eliom with either of the
-  options `-v`, `-V` (verbose and debug mode, respectively).
-
-* DEPRECATED Sources for this example may be found in the directory
-  `tests/miniwiki`. A complete tutorial is
-  available online. For a testsuite, see
-  <http://localhost:8080/>.
-
 ## Authors
 
 * Vincent Balat
