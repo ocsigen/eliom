@@ -76,7 +76,7 @@ let late_unwrap_value old_value new_value =
     (Obj.obj (Obj.field (Obj.field old_value (Obj.size old_value - 1)) 2))
 
 external raw_unmarshal_and_unwrap
-  :  (unwrapper -> _ -> _ option)
+  :  (unit, unwrapper -> _ -> _ option) Js.meth_callback
   -> string
   -> int
   -> _
@@ -85,7 +85,7 @@ external raw_unmarshal_and_unwrap
 let unwrap s i =
   if !Eliom_config.debug_timings
   then Firebug.console ## (time (Js.string "unwrap"));
-  let res = raw_unmarshal_and_unwrap apply_unwrapper s i in
+  let res = raw_unmarshal_and_unwrap (Js.wrap_callback apply_unwrapper) s i in
   if !Eliom_config.debug_timings
   then Firebug.console ## (timeEnd (Js.string "unwrap"));
   res
