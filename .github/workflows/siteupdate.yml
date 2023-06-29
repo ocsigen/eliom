@@ -50,7 +50,7 @@ jobs:
           HOW_LATEST=$(find $HOW_DOC -maxdepth 1 -type d -not -name $HOW_DOC -not -name dev -exec basename {} \; | sort -nr | head -n 1)
           export HOW_LATEST
           ln -s $HOW_LATEST $HOW_OUT/latest
-          echo '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; URL=latest/manual/intro" /></head><body></body></html>' > $HOW_OUT/index.html
+          echo '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; URL=latest/manual/overview" /></head><body></body></html>' > $HOW_OUT/index.html
 
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4
