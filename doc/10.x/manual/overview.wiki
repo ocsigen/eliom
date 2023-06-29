@@ -1,4 +1,5 @@
-=Eliom - the full-stack OCaml Web and mobile framework
+=Eliom
+//The full-stack OCaml Web and mobile framework//
 
 Eliom is a framework for building client/server Web and mobile
 applications in OCaml.
@@ -109,8 +110,10 @@ to function `Eliom_reference.eref`.
 
 == Learning Eliom
 
-More documentation
-<<a_manual project="tuto" chapter="basics"|here>>
+To learn Eliom, read
+<<a_manual project="tuto" chapter="basics"|the tutorial first>>
 
 Write your first Web and mobile application with Eliom using
 [[wiki("ocsigen-start"):|Ocsigen Start]]
+
+The full [[intro|reference manual]], for technical details
