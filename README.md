@@ -25,7 +25,7 @@ opam install eliom
 
 ## Getting started
 
-Defining a service:
+Defining a service on path `/foo`, taking any GET parameters:
 
 ```ocaml
 let myservice =
@@ -45,7 +45,7 @@ let () =
 Inserting a link towards that service, with parameters:
 
 ```ocaml
-Eliom_content.Html.D.a ~service:myservice [txt "Home"] [("param1", "v1"); ("param2", "v2)]
+Eliom_content.Html.D.a ~service:myservice [txt "Home"] [("param1", "v1"); ("param2", "v2")]
 ```
 
 Event handlers are written in OCaml:
@@ -64,7 +64,7 @@ let%client b = ... (* code for the client part of the application *)
 let%shared a = ... (* code that will be included in both parts *)
 ```
 
-Using a server side value in client-side code:
+Using a server-side value in client-side code:
 
 ```ocaml
 let%server a = ...
@@ -94,7 +94,7 @@ let%server f () =
   ...
 
 ```
-Where scope can be
+Where scope can be:
 * `Eliom_common.default_session_scope` (different value for each browser),
 * `Eliom_common.default_process_scope` (different value for each tab),
 * `Eliom_common.default_group_scope` (different value for each user),
@@ -116,12 +116,14 @@ Write your first Web and mobile application with Eliom using [Ocsigen Start](htt
 * Grégoire Henry
 * Pierre Chambart
 * Benedikt Becker
+* Vasilis Papavasileiou
 * Boris Yakobowski
 * Hugo Heuzard
 * Raphaël Proust
 * Jan Rochel
 * Idir Lankri
 * Stéphane Glondu
+* Gabriel Radanne
 * Gabriel Kerneis
 * Denis Berthod
 * Jaap Boender
