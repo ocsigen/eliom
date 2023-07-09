@@ -61,7 +61,7 @@ let%server a = ... (* code for the server part of the application *)
 
 let%client b = ... (* code for the client part of the application *)
 
-let%shared a = ... (* code that will be included in both parts *)
+let%shared c = ... (* code that will be included in both parts *)
 ```
 
 Using a server-side value in client-side code:
