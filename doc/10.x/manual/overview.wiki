@@ -73,7 +73,8 @@ let%server a = ...
 >>
 <<code language="ocaml" class="client"|
 let%client f () =
-  [%client (print_endline ~%a : unit)] (* print in browser console *)
+  print_endline ~%a ; (* print in browser console *)
+  ...
 >>
 
 Calling a server function from the client program:
