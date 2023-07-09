@@ -51,7 +51,7 @@ Eliom_content.Html.D.a ~service:myservice [txt "Home"] [("param1", "v1"); ("para
 Event handlers are written in OCaml:
 
 ```ocaml
-div ~a:[a_onclick [%client fun ev -> ... ]] [ ... ]
+div ~a:[a_onclick [%client (fun ev -> ... )]] [ ... ]
 ```
 
 The client-side and server sides are written as a single program:
@@ -70,8 +70,9 @@ Using a server-side value in client-side code:
 let%server a = ...
 
 let%client f () =
-  [%client (print_endline ~%a : unit)] (* print in browser console *)
- ```
+  print_endline ~%a ; (* print in browser console *)
+  ...
+```
 
 Calling a server function from the client program:
 
