@@ -73,9 +73,10 @@ let () =
                                     (body [h1 [txt &quot;Hello&quot;]])))</code></pre><p>Inserting a link towards that service, with parameters:
 </p><pre class="server" class=""><code class="language-ocaml translatable">Eliom_content.Html.D.a ~service:myservice [txt &quot;Home&quot;] [(&quot;param1&quot;, &quot;v1&quot;); (&quot;param2&quot;, &quot;v2)]</code></pre><p>Event handlers are written in OCaml:
 </p><pre class="server" class=""><code class="language-ocaml translatable">div ~a:[a_onclick [%client fun ev -&gt; ... ]] [ ... ]</code></pre><p>The client-side and server programs are written as a single program:
-</p><pre class="server" class=""><code class="language-ocaml translatable">let%server a = ... (* code for the server part of the application *)</code></pre><pre class="client" class=""><code class="language-ocaml translatable">let%client b = ... (* code for the client part of the application *)</code></pre><pre class="shared" class=""><code class="language-ocaml translatable">let%shared a = ... (* code that will be included in both parts *)</code></pre><p>Using a server side value in client-side code:
+</p><pre class="server" class=""><code class="language-ocaml translatable">let%server a = ... (* code for the server part of the application *)</code></pre><pre class="client" class=""><code class="language-ocaml translatable">let%client b = ... (* code for the client part of the application *)</code></pre><pre class="shared" class=""><code class="language-ocaml translatable">let%shared c = ... (* code that will be included in both parts *)</code></pre><p>Using a server side value in client-side code:
 </p><pre class="server" class=""><code class="language-ocaml translatable">let%server a = ...</code></pre><pre class="client" class=""><code class="language-ocaml translatable">let%client f () =
-  [%client (print_endline ~%a : unit)] (* print in browser console *)</code></pre><p>Calling a server function from the client program:
+  print_endline ~%a ; (* print in browser console *)
+  ...</code></pre><p>Calling a server function from the client program:
 </p><pre class="shared" class=""><code class="language-ocaml translatable">let%rpc f (x : int) : unit Lwt.t = ... (* server-side code *)</code></pre><pre class="client" class=""><code class="language-ocaml translatable">let%client () =
   let%lwt r = f 4 in
   ...</code></pre><p>Saving session data on the server using Eliom references:
