@@ -17,7 +17,7 @@ license: "LGPL-2.1-only WITH OCaml-LGPL-linking-exception"
 dev-repo: "git+https://github.com/ocsigen/eliom.git"
 build: [make]
 depends: [
-  "ocaml" {>= "4.08.0"}
+  "ocaml" {>= "5.1.0"}
   "ocamlfind"
   "ppx_deriving"
   "ppxlib" {>= "0.15.0"}

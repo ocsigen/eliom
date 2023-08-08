@@ -355,7 +355,7 @@ module Cmo = struct
           Typ.constr
             (mkloc (ident_of_out_ident id) Location.none)
             (List.map type_of_out_type tyl)
-      | Otyp_object (fields, rest) ->
+      | Otyp_object {fields; open_row} ->
           let fields =
             List.map
               (fun (label, ty) ->
@@ -365,18 +365,19 @@ module Cmo = struct
                 ; pof_attributes = [] })
               fields
           in
-          Typ.object_ fields (if rest = None then Closed else Open)
-      | Otyp_class (_, id, tyl) ->
+          Typ.object_ fields (if not open_row then Closed else Open)
+      | Otyp_class (id, tyl) ->
           Typ.class_
             (mkloc (ident_of_out_ident id) Location.none)
             (List.map type_of_out_type tyl)
-      | Otyp_alias (ty, s) -> Typ.alias (type_of_out_type ty) (var s)
-      | Otyp_variant (_, Ovar_typ ty, closed, tags) ->
+      | Otyp_alias {non_gen = _; aliased; alias} ->
+          Typ.alias (type_of_out_type aliased) (var alias)
+      | Otyp_variant (Ovar_typ ty, closed, tags) ->
           Typ.variant
             [Rf.mk (Rinherit (type_of_out_type ty))]
             (if closed then Closed else Open)
             tags
-      | Otyp_variant (_, Ovar_fields lst, closed, tags) ->
+      | Otyp_variant (Ovar_fields lst, closed, tags) ->
           let row_fields =
             List.map
               (fun (label, const, tyl) ->
