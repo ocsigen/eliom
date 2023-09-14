@@ -593,7 +593,7 @@ let random_int =
       Js.Unsafe.global ##. crypto
       ## (getRandomValues (new%js Typed_array.int32Array 1))
       0
-  else fun () -> truncate (4294967296. *. Js.math##random)
+  else fun () -> truncate (4294967296. *. Js.to_float Js.math##random)
 
 let section_page = Lwt_log.Section.make "eliom:client:page"
 

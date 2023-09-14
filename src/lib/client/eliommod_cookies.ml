@@ -66,7 +66,7 @@ let set_table ?(in_local_storage = false) host t =
 
 let now () =
   let date = new%js Js.date_now in
-  date##getTime /. 1000.
+  Js.to_float date##getTime /. 1000.
 
 (** [in_local_storage] implements cookie substitutes for iOS WKWebView *)
 let update_cookie_table ?(in_local_storage = false) host cookies =

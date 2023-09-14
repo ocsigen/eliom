@@ -138,7 +138,7 @@ module Configuration = struct
       then
         match (get ()).time_between_request_unfocused, focused () with
         | Some ((a, b, c) :: l), Some start ->
-            let now = (new%js Js.date_now)##getTime in
+            let now = Js.to_float (new%js Js.date_now)##getTime in
             (* time from idle start *)
             let t =
               max 0. (((now -. start) *. 0.001) -. (get ()).time_after_unfocus)
@@ -307,7 +307,9 @@ end = struct
     in
     let suspend_activity () =
       if handler.hd_activity.focused = None
-      then handler.hd_activity.focused <- Some (new%js Js.date_now)##getTime
+      then
+        handler.hd_activity.focused <-
+          Some (Js.to_float (new%js Js.date_now)##getTime)
     in
     let visibility_change_callback () =
       if document_hidden () then suspend_activity () else resume_activity ()
@@ -324,7 +326,7 @@ end = struct
         if tbru = Some [0., 0., 0.] (* Always active *)
         then `Active
         else
-          let now = (new%js Js.date_now)##getTime in
+          let now = Js.to_float (new%js Js.date_now)##getTime in
           if now -. t
              < (Configuration.get ()).Configuration.time_after_unfocus *. 1000.
           then `Active
@@ -340,7 +342,7 @@ end = struct
       then
         hd.hd_activity.focused <-
           Some
-            ((new%js Js.date_now)##getTime
+            (Js.to_float (new%js Js.date_now)##getTime
             -. ((Configuration.get ()).Configuration.time_after_unfocus *. 1000.)
             ))
     else hd.hd_activity.focused <- None;
