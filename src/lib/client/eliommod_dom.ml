@@ -789,4 +789,5 @@ let onhashchange f =
         f Dom_html.window##.location##.hash)
     in
     ignore
-      Dom_html.window ## (setInterval (Js.wrap_callback check) (0.2 *. 1000.))
+      Dom_html.window
+      ## (setInterval (Js.wrap_callback check) (Js.float (0.2 *. 1000.)))
