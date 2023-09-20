@@ -25,7 +25,7 @@ opam install eliom
 
 ==Getting started
 
-Defining a service:
+Defining a service on path {{{/foo}}}, taking any GET parameters:
 
 <<code language="ocaml" class="server"|
 let myservice =
@@ -45,7 +45,7 @@ let () =
 Inserting a link towards that service, with parameters:
 
 <<code language="ocaml" class="server"|
-Eliom_content.Html.D.a ~service:myservice [txt "Home"] [("param1", "v1"); ("param2", "v2)]
+Eliom_content.Html.D.a ~service:myservice [txt "Home"] [("param1", "v1"); ("param2", "v2")]
 >>
 
 Event handlers are written in OCaml:
@@ -66,7 +66,7 @@ let%client b = ... (* code for the client part of the application *)
 let%shared c = ... (* code that will be included in both parts *)
 >>
 
-Using a server side value in client-side code:
+Using a server-side value in client-side code:
 
 <<code language="ocaml" class="server"|
 let%server a = ...
@@ -100,7 +100,7 @@ let%server f () =
 
 >>
 
-Where scope can be
+Where scope can be:
 * {{{Eliom_common.default_session_scope}}} (different value for each browser),
 * {{{Eliom_common.default_process_scope}}} (different value for each tab),
 * {{{Eliom_common.default_group_scope}}} (different value for each user),
