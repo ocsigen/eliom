@@ -47,15 +47,15 @@ let all_suffix_user ?client_to_and_of ~(of_string : string -> 'a)
 let regexp reg dest ~to_string n =
   user_type
     (fun s ->
-      match Pcre.exec ~rex:reg ~flags:[`ANCHORED] ~pos:0 s with
-      | _ -> (
+      match Re.Pcre.exec ~rex:reg ~pos:0 s with
+      | g when Re.Group.start g 0 = 0 -> (
         try
           Ocsigen_extensions.replace_user_dir reg
             (Ocsigen_extensions.parse_user_dir dest)
             s
         with Ocsigen_extensions.NoSuchUser ->
           raise (Failure "User does not exist"))
-      | exception Not_found -> raise (Failure "Regexp not matching"))
+      | _ | exception Not_found -> raise (Failure "Regexp not matching"))
     to_string n
 
 let all_suffix_regexp reg dest ~(to_string : 'a -> string) (n : string)
@@ -63,15 +63,15 @@ let all_suffix_regexp reg dest ~(to_string : 'a -> string) (n : string)
   =
   all_suffix_user
     (fun s ->
-      match Pcre.exec ~rex:reg ~flags:[`ANCHORED] ~pos:0 s with
-      | _ -> (
+      match Re.Pcre.exec ~rex:reg ~pos:0 s with
+      | g when Re.Group.start g 0 = 0 -> (
         try
           Ocsigen_extensions.replace_user_dir reg
             (Ocsigen_extensions.parse_user_dir dest)
             s
         with Ocsigen_extensions.NoSuchUser ->
           raise (Failure "User does not exist"))
-      | exception Not_found -> raise (Failure "Regexp not matching"))
+      | _ | exception Not_found -> raise (Failure "Regexp not matching"))
     to_string n
 
 (* Non localized parameters *)
