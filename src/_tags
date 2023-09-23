@@ -38,7 +38,7 @@ true:keep_locs
 <lib/server/monitor/*.ml{,i}>:package(lwt,ocsigenserver,ocsipersist,tyxml)
 <lib/server/monitor/*.ml{,i}>:I(src/lib/server)
 
-<ppx/**/*>: package(ppxlib,ppxlib.metaquot,compiler-libs.bytecomp)
+<ppx/**/*>: package(ppxlib,ppxlib.metaquot,compiler-libs.bytecomp,ppx_optcomp)
 
 <ocamlbuild/ocamlbuild_eliom.ml{,i}>: package(ocamlbuild,js_of_ocaml-ocamlbuild)
 <ocamlbuild/eliombuild.{ml,mli,byte,native}>:package(ocamlbuild,js_of_ocaml-ocamlbuild)
