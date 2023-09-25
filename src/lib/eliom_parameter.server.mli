@@ -60,7 +60,7 @@ val type_checker
     instead of the service handler. *)
 
 val regexp
-  :  Pcre.regexp
+  :  Re.Pcre.regexp
   -> string
   -> to_string:(string -> string)
   -> string
@@ -69,12 +69,12 @@ val regexp
     the regular expression [r] as parameter, labeled [s], and that will
     be rewritten in d.  The syntax of regexp is PCRE's one (uses then
     [Pcre] bindings).  For example: [regexp
-    (Pcre.regexp "\\[(.* )\\]") "($1)" "myparam"] will match
+    (Re.Pcre.regexp "\\[(.* )\\]") "($1)" "myparam"] will match
     the parameter [myparam=[hello]] and send the string ["(hello)"] to
     the service handler.  *)
 
 val all_suffix_regexp
-  :  Pcre.regexp
+  :  Re.Pcre.regexp
   -> string
   -> to_string:(string -> string)
   -> string
