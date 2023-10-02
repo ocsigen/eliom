@@ -13,7 +13,9 @@
              lwt_react ocsigenserver.baselib.base cohttp tyxml
              reactiveData)
   (foreign_stubs (language c) (names eliom_stubs))
-  (js_of_ocaml (javascript_files eliom_client.js)))
+  (js_of_ocaml
+    (javascript_files eliom_client.js)
+    (wasm_files eliom_client.wat)))
 
 (include dune.client)
 
