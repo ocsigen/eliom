@@ -1,21 +1,11 @@
 ### Building
 BEST=$(if $(shell command -v ocamlopt 2> /dev/null),native,byte)
 BUILDER=_build/build/build.$(BEST)
-BUILD=ocaml pkg/build.ml
 
-.PHONY: all byte native builder
-all: $(BEST)
+.PHONY: all
+all:
+	dune build
 
-byte: $(BUILDER)
-	# strange, see https://sympa.inria.fr/sympa/arc/ocsigen/2016-01/msg00016.html
-	$(BUILDER) src/lib/server/eliommod_sessiongroups.cmi
-	$(BUILD) manpage=false native=false native-dynlink=false
-native: $(BUILDER)
-	$(BUILD) manpage=false native=true native-dynlink=true
-
-$(BUILDER): $(wildcard build/*.ml)
-	ocamlbuild -no-plugin -I src/ocamlbuild -no-links -use-ocamlfind build/build.$(BEST) 1> /dev/null
-builder: $(BUILDER)
 ### Doc
 .PHONY: doc wikidoc doc man alldoc
 DOCS_DIR=src/lib/client src/lib/server src/ocamlbuild src/ppx
@@ -42,16 +32,16 @@ doccp: alldoc
 	cp -Rf _build/src/ppx/api.wikidocdir/*.wiki $(API_DIR)/ppx/
 	cp -Rf doc/index.wiki $(API_DIR)/
 
+$(BUILDER): $(wildcard build/*.ml)
+	ocamlbuild -no-plugin -I src/ocamlbuild -no-links -use-ocamlfind build/build.$(BEST) 1> /dev/null
+builder: $(BUILDER)
 
 ### Cleaning ###
-.PHONY: clean clean.local distclean
-clean: clean.local
-	ocamlbuild -quiet -no-plugin -clean
+.PHONY: clean distclean
+clean:
+	dune clean
 
-clean.local:
-	-rm -f eliom-*.tar.gz
-
-distclean: clean clean.local
+distclean: clean
 	-find ./ -name "*\#*" | xargs rm -f
 
 ### Installation ####

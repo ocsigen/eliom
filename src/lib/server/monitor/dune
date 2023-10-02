@@ -1,0 +1,15 @@
+(library
+  (name monitor)
+  (public_name eliom.server.monitor)
+  (wrapped false)
+  (modules eliom_monitor)
+  (preprocess (pps lwt_ppx))
+  (libraries eliom.server))
+
+(library
+  (name monitor_start)
+  (public_name eliom.server.monitor.start)
+  (wrapped false)
+  (modules eliom_monitor_main)
+  (preprocess (pps lwt_ppx))
+  (libraries monitor eliom.server))
