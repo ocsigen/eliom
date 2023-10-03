@@ -683,8 +683,13 @@ let preload_css (doc : Dom_html.element Js.t) =
    Dom_html.document##body while on Firefox they are found on
    Dom_html.document##documentElement. *)
 
+[@@@warning "-39"]
+
 type position =
   {html_top : int; html_left : int; body_top : int; body_left : int}
+[@@deriving json]
+
+[@@@warning "+39"]
 
 let top_position = {html_top = 0; html_left = 0; body_top = 0; body_left = 0}
 

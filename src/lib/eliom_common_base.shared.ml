@@ -177,11 +177,16 @@ let nl_is_persistent n = n.[0] = 'p'
 
 (*****************************************************************************)
 
+[@@@warning "-39"]
+
 type client_process_info =
   { cpi_ssl : bool
   ; cpi_hostname : string
   ; cpi_server_port : int
-  ; cpi_original_full_path : Url.path }
+  ; cpi_original_full_path : string list }
+[@@deriving json]
+
+[@@@warning "+39"]
 
 type sess_info =
   { si_other_get_params : (string * string) list
