@@ -622,7 +622,7 @@ end = struct
     done;
     if not !outdated
     then (
-      if dom != get_node state
+      if not (Js.strict_equals dom (get_node state))
       then (
         (* new version *)
         let nv =
