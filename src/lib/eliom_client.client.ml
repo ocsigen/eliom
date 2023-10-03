@@ -590,10 +590,11 @@ let random_int =
      && Js.Optdef.test Js.Unsafe.global##.crypto##.getRandomValues
   then
     fun () ->
-    Typed_array.unsafe_get
+    let a =
       Js.Unsafe.global ##. crypto
-      ## (getRandomValues (new%js Typed_array.int32Array 1))
-      0
+      ## (getRandomValues (new%js Typed_array.int16Array 2))
+    in
+    (Typed_array.unsafe_get a 0 lsl 16) lor Typed_array.unsafe_get a 1
   else fun () -> truncate (4294967296. *. Js.to_float Js.math##random)
 
 let section_page = Lwt_log.Section.make "eliom:client:page"
