@@ -7,6 +7,7 @@
    eliom_parameter_sigs eliom_registration_sigs eliom_service_sigs
    eliom_shared_sigs eliom_wrap)
   (preprocess (pps lwt_ppx js_of_ocaml-ppx js_of_ocaml-ppx_deriving_json))
+  (library_flags (:standard -linkall))
   (libraries ocsigenserver.cookies ocsigenserver.polytables js_of_ocaml
              js_of_ocaml-tyxml js_of_ocaml-lwt js_of_ocaml-lwt.logger
              lwt_react ocsigenserver.baselib.base cohttp tyxml
