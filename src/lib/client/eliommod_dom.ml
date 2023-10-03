@@ -685,6 +685,7 @@ let preload_css (doc : Dom_html.element Js.t) =
 
 type position =
   {html_top : int; html_left : int; body_top : int; body_left : int}
+[@@deriving json]
 
 let top_position = {html_top = 0; html_left = 0; body_top = 0; body_left = 0}
 

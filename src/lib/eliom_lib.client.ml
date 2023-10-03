@@ -147,19 +147,29 @@ end
 (* We do not use the deriving (un)marshaling even if typ is available
    because direct jsn (un)marshaling is very fast client side
 *)
-let to_json ?typ:_ s = Js.to_string (Json.output s)
-let of_json ?typ:_ v = Json.unsafe_input (Js.string v)
+let to_json ?typ s =
+  match Sys.backend_type with
+  | Other "js_of_ocaml" -> Js.to_string (Json.output s)
+  | _ -> (
+    match typ with
+    | Some typ -> Deriving_Json.to_string typ s
+    | None -> Js.to_string (Json.output s))
 
-(* to marshal data and put it in a form *)
-let encode_form_value x = to_json x
+let of_json ?typ v =
+  match Sys.backend_type with
+  | Other "js_of_ocaml" -> Json.unsafe_input (Js.string v)
+  | _ -> (
+    match typ with
+    | Some typ -> Deriving_Json.from_string typ v
+    | None -> assert false)
 
 (* Url.urlencode ~with_plus:true (Marshal.to_string x [])
     (* I encode the data because it seems that multipart does not
        like \0 character ... *)
 *)
-let encode_header_value x =
+let encode_header_value ~typ x =
   (* We remove end of lines *)
-  String.remove_eols (to_json x)
+  String.remove_eols (to_json ~typ x)
 
 let unmarshal_js var = Marshal.from_string (Js.to_bytestring var) 0
 
