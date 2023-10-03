@@ -687,6 +687,7 @@ let preload_css (doc : Dom_html.element Js.t) =
 
 type position =
   {html_top : int; html_left : int; body_top : int; body_left : int}
+[@@deriving json]
 
 let top_position = {html_top = 0; html_left = 0; body_top = 0; body_left = 0}
 
@@ -791,4 +792,5 @@ let onhashchange f =
         f Dom_html.window##.location##.hash)
     in
     ignore
-      Dom_html.window ## (setInterval (Js.wrap_callback check) (Js.float (0.2 *. 1000.)))
+      Dom_html.window
+      ## (setInterval (Js.wrap_callback check) (Js.float (0.2 *. 1000.)))

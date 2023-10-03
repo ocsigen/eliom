@@ -44,7 +44,7 @@ let get_table ?(in_local_storage = false) = function
             Js.Opt.case
               st ## (getItem host)
               (fun () -> Ocsigen_cookie_map.Map_path.empty)
-              (fun v -> Json.unsafe_input v))
+              (fun v -> Json.unsafe_input v)) (*ZZZ FIXME *)
       else
         Js.Optdef.get
           (Jstable.find cookie_tables (Js.string host))
@@ -62,6 +62,7 @@ let set_table ?(in_local_storage = false) host t =
           Dom_html.window##.localStorage
           (fun () -> ())
           (fun st -> st ## (setItem host (Json.output t)))
+        (* ZZZ FIXME *)
       else Jstable.add cookie_tables (Js.string host) t
 
 let now () =

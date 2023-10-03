@@ -179,7 +179,10 @@ let send ?with_credentials ?(expecting_process_page = false) ?cookies_info
     let headers =
       match cookies with
       | [] -> []
-      | _ -> [Eliom_common.tab_cookies_header_name, encode_header_value cookies]
+      | _ ->
+          [ ( Eliom_common.tab_cookies_header_name
+            , encode_header_value ~typ:[%json: (string * string) list] cookies )
+          ]
     in
     let headers =
       if Js.Optdef.test Js.Unsafe.global##.___eliom_use_cookie_substitutes_
@@ -190,7 +193,7 @@ let send ?with_credentials ?(expecting_process_page = false) ?cookies_info
             path
         in
         ( Eliom_common.cookie_substitutes_header_name
-        , encode_header_value cookies )
+        , encode_header_value ~typ:[%json: (string * string) list] cookies )
         :: headers
       else headers
     in
@@ -208,7 +211,9 @@ let send ?with_credentials ?(expecting_process_page = false) ?cookies_info
       match host with
       | Some host when host = Url.Current.host ->
           ( Eliom_common.tab_cpi_header_name
-          , encode_header_value (Eliom_process.get_info ()) )
+          , encode_header_value
+              ~typ:[%json: Eliom_common_base.client_process_info]
+              (Eliom_process.get_info ()) )
           :: headers
       | _ -> headers
     in
@@ -227,7 +232,8 @@ let send ?with_credentials ?(expecting_process_page = false) ?cookies_info
           else "application/xhtml+xml"
         in
         ("Accept", content_type)
-        :: (Eliom_common.expecting_process_page_name, encode_header_value true)
+        :: ( Eliom_common.expecting_process_page_name
+           , encode_header_value ~typ:[%json: bool] true )
         :: headers
       else headers
     in

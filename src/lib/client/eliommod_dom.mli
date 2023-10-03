@@ -88,6 +88,7 @@ val iter_attrList
 
 type position =
   {html_top : int; html_left : int; body_top : int; body_left : int}
+[@@deriving json]
 
 val top_position : position
 val getDocumentScroll : unit -> position
