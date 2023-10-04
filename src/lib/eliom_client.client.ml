@@ -1039,10 +1039,17 @@ let init () =
     Js._false
   in
   Lwt_log.ign_debug ~section "Set load/onload events";
-  onload_handler :=
-    Some
-      (Dom.addEventListener Dom_html.window (Dom.Event.make "load")
-         (Dom.handler onload) Js._true);
+  if Dom_html.document##.readyState = Js.string "complete"
+  then
+    Lwt.async @@ fun () ->
+    let%lwt () = Js_of_ocaml_lwt.Lwt_js_events.request_animation_frame () in
+    let _ = onload () in
+    Lwt.return_unit
+  else
+    onload_handler :=
+      Some
+        (Dom.addEventListener Dom_html.window (Dom.Event.make "load")
+           (Dom.handler onload) Js._true);
   add_string_event_listener Dom_html.window "beforeunload" onbeforeunload_fun
     false;
   ignore
