@@ -498,6 +498,26 @@ let current_classes node =
     (fun () -> [])
     (fun s -> Js.to_string s |> Regexp.(split space_re))
 
+class type ['a, 'b] weakMap =
+  object
+    method set : 'a -> 'b -> unit Js.meth
+
+    method get : 'a -> 'b Js.Optdef.t Js.meth
+  end
+
+let retain_map : (unit Js.t, Obj.t Js.js_array Js.t) weakMap Js.t =
+  let weakMap = Js.Unsafe.global##._WeakMap in
+  new%js weakMap
+
+let retain =
+  fun (type a) node ~(keepme : a) ->
+    let node = Js.Unsafe.coerce node in
+    let prev =
+      Js.Optdef.case (retain_map##get node) (fun () -> new%js Js.array_empty) (fun x -> x)
+    in
+    let (_ : int) = prev##push (Obj.repr keepme) in
+    retain_map##set node prev
+
 let rebuild_reactive_class_rattrib node s =
   let name = Js.string "class" in
   let e = React.S.diff (fun v v' -> v', v) s
@@ -510,7 +530,7 @@ let rebuild_reactive_class_rattrib node s =
     iter_prop node name (fun name -> Js.Unsafe.set node name s)
   in
   f (None, React.S.value s);
-  React.E.map f e |> ignore
+  retain node ~keepme:(React.E.map f e)
 
 let rec rebuild_rattrib node ra =
   match Xml.racontent ra with
@@ -526,8 +546,8 @@ let rec rebuild_rattrib node ra =
       rebuild_reactive_class_rattrib node s
   | Xml.RAReact s ->
       let name = Js.string (Xml.aname ra) in
-      let _ =
-        React.S.map
+      retain node
+        ~keepme:(React.S.map
           (function
             | None ->
                 node ## (removeAttribute name);
@@ -538,9 +558,7 @@ let rec rebuild_rattrib node ra =
                 node ## (setAttribute name v);
                 iter_prop_protected node name (fun name ->
                     Js.Unsafe.set node name v))
-          s
-      in
-      ()
+          s)
   | Xml.RACamlEventHandler ev -> register_event_handler node (Xml.aname ra, ev)
   | Xml.RALazyStr s ->
       node ## (setAttribute (Js.string (Xml.aname ra)) (Js.string s))
@@ -672,45 +690,53 @@ end
 
 type content_ns = [`HTML5 | `SVG]
 
-type st = {mutable node : Dom.node Js.t}
-
-type signal = st * unit React.S.t
+type signal =
+  {mutable node : Dom.node Js.t option; mutable signal : unit React.S.t option}
 
 let get_signals (elt : Dom.node Js.t) : signal array =
-  Js.Optdef.get (Js.Unsafe.coerce elt)##.eliom_signals (fun () -> [||])
+  Js.Optdef.get (Js.Unsafe.coerce elt)##.eliomSignals (fun () -> [||])
 
 let set_signals (elt : Dom.node Js.t) (a : signal array) =
-  (Js.Unsafe.coerce elt)##.eliom_signals := a
+  (Js.Unsafe.coerce elt)##.eliomSignals := a
 
 let signal_index id a =
   let rec find_rec id a l i =
     assert (i < l);
-    if id == fst a.(i) then i else find_rec id a l (i + 1)
+    if id == a.(i) then i else find_rec id a l (i + 1)
   in
   find_rec id a (Array.length a) 0
 
-let start_signal state s =
-   set_signals state.node (Array.append [|state, s|] (get_signals state.node))
+let start_signal f =
+  let state= {node = None; signal = None} in
+  state.signal <- Some (f state);
+  match state.node with
+  | Some dom -> dom
+  | None -> assert false
 
 let change_dom state dom =
-  let dom' = state.node in
-  let signals' = get_signals dom' in
-Firebug.console##log_2 (Array.length signals') dom';
-  let i = signal_index state signals' in
-  let signals = get_signals dom in
-  set_signals dom' (Array.sub signals' (i + 1) (Array.length signals' - i - 1));
-  let parent_signals = Array.sub signals' 0 (i + 1) in
-  Array.iter (fun (state, _) -> state.node <- dom) parent_signals;
-  set_signals dom (Array.append parent_signals signals);
-  Js.Opt.case
-    dom'##.parentNode
-    (fun () -> (* no parent -> no replace needed *) ())
-    (fun parent ->
-       Js.Opt.iter (Dom.CoerceTo.element parent) (fun parent ->
-         (* really update the dom *)
-         ignore
-           (Dom_html.element parent)
-           ## (replaceChild dom dom')))
+  match state.node with
+  | None ->
+    state.node <- Some dom;
+    set_signals dom (Array.append [|state|] (get_signals dom));
+    Firebug.console##log_2 (Js.string "start") dom;
+  | Some dom' ->
+    let signals' = get_signals dom' in
+    Firebug.console##log_3 (Js.string "update") (Array.length signals') dom';
+    let i = signal_index state signals' in
+    let signals = get_signals dom in
+    set_signals dom' (Array.sub signals' (i + 1) (Array.length signals' - i - 1));
+    let parent_signals = Array.sub signals' 0 (i + 1) in
+    Array.iter (fun state -> state.node <- Some dom) parent_signals;
+    set_signals dom (Array.append parent_signals signals);
+    Js.Opt.case
+      dom'##.parentNode
+      (fun () -> (* no parent -> no replace needed *) ())
+      (fun parent ->
+         Js.Opt.iter (Dom.CoerceTo.element parent) (fun parent ->
+           (* really update the dom *)
+           ignore
+             (Dom_html.element parent)
+             ## (replaceChild dom dom')))
 
 let rec rebuild_node' ns elt =
   match Xml.get_node elt with
@@ -724,16 +750,16 @@ let rec rebuild_node' ns elt =
       Xml.set_dom_node elt dom;
       dom
   | Xml.ReactNode signal ->
-      let elt' = React.S.value signal in
-      let dom = rebuild_node' ns elt' in
-      let state = { node = dom } in
-      start_signal state
-        (React.S.map
-          (fun elt' ->
-            let dom = rebuild_node' ns elt' in
-            Xml.set_dom_node elt dom;
-            change_dom state dom)
-          signal);
+      let dom =
+        start_signal
+          (fun state ->
+             React.S.map
+               (fun elt' ->
+                  let dom = rebuild_node' ns elt' in
+                  Xml.set_dom_node elt dom;
+                  change_dom state dom)
+               signal)
+      in
       Xml.set_dom_node elt dom;
       dom
   | Xml.TyXMLNode raw_elt -> (

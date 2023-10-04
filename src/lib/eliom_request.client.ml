@@ -273,6 +273,7 @@ let send ?with_credentials ?(expecting_process_page = false) ?cookies_info
       then Lwt.wakeup unlock ()
       else
         let unlock_event = React.E.once @@ React.S.changes locked in
+(*ZZZZZ looks wrong*)
         ignore @@ React.E.map (fun _ -> Lwt.wakeup unlock ()) unlock_event);
       let%lwt () = wait_for_unlock in
       (if Js.Optdef.test Js.Unsafe.global##.___eliom_use_cookie_substitutes_

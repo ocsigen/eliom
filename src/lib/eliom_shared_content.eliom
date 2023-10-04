@@ -130,8 +130,8 @@ module Xml = struct
     let _ =
       [%client
         (let ( >>! ) = Js.Opt.iter in
+         let e = Eliom_client_core.rebuild_node' `HTML5 ~%e in
          let update =
-           let e = Eliom_client_core.rebuild_node' `HTML5 ~%e in
            fun x ->
              Js.Opt.case e##.firstChild
                (fun () ->
@@ -141,7 +141,8 @@ module Xml = struct
                  Dom.CoerceTo.text e >>! fun e -> e##.data := Js.string x)
          in
          if not ~%synced then update (React.S.value ~%s);
-         React.S.changes ~%s |> React.E.map update |> ignore
+         Eliom_client_core.retain e
+           (React.S.changes ~%s |> React.E.map update)
           : unit)]
     in
     e
@@ -274,6 +275,7 @@ module Svg = struct
                  |> Eliom_client_core.rebuild_node' `SVG)
                ~%s
            in
+(*ZZZ FIXME*)
            let f =
              let replace e' e =
                let f p = Dom.replaceChild p e' e in
@@ -372,6 +374,7 @@ module Html = struct
         local_value s |> Eliom_content_core.Html.D.toelt
         |> Eliom_content_core.Xml.make_request_node ~reset:false
       and synced = React.S.synced s in
+(*ZZZ FIXME*)
       let _ =
         [%client.unsafe
           (let s =
