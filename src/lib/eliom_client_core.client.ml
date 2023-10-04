@@ -571,6 +571,7 @@ let rec rebuild_rattrib node ra =
 let delay f =
   Lwt.ignore_result (Lwt.pause () >>= fun () -> f (); Lwt.return_unit)
 
+(*
 module ReactState : sig
   type t
 
@@ -667,10 +668,50 @@ end = struct
         ignore (Js.array_set p.global_version pos 0);
         {p with pos; version_copy = clone_array p.global_version}
 end
+*)
 
 type content_ns = [`HTML5 | `SVG]
 
-let rec rebuild_node_with_state ns ?state elt =
+type st = {mutable node : Dom.node Js.t}
+
+type signal = st * unit React.S.t
+
+let get_signals (elt : Dom.node Js.t) : signal array =
+  Js.Optdef.get (Js.Unsafe.coerce elt)##.eliom_signals (fun () -> [||])
+
+let set_signals (elt : Dom.node Js.t) (a : signal array) =
+  (Js.Unsafe.coerce elt)##.eliom_signals := a
+
+let signal_index id a =
+  let rec find_rec id a l i =
+    assert (i < l);
+    if id == fst a.(i) then i else find_rec id a l (i + 1)
+  in
+  find_rec id a (Array.length a) 0
+
+let start_signal state s =
+   set_signals state.node (Array.append [|state, s|] (get_signals state.node))
+
+let change_dom state dom =
+  let dom' = state.node in
+  let signals' = get_signals dom' in
+  let i = signal_index state signals' in
+  let signals = get_signals dom in
+  set_signals dom' (Array.sub signals' (i + 1) (Array.length signals' - i - 1));
+  let parent_signals = Array.sub signals' 0 (i + 1) in
+  Array.iter (fun (state, _) -> state.node <- dom) parent_signals;
+  set_signals dom (Array.append parent_signals signals);
+  Js.Opt.case
+    dom'##.parentNode
+    (fun () -> (* no parent -> no replace needed *) ())
+    (fun parent ->
+       Js.Opt.iter (Dom.CoerceTo.element parent) (fun parent ->
+         (* really update the dom *)
+         ignore
+           (Dom_html.element parent)
+           ## (replaceChild dom dom')))
+
+let rec rebuild_node' ns elt =
   match Xml.get_node elt with
   | Xml.DomNode node ->
       (* assert (Xml.get_node_id node <> NoId); *)
@@ -682,25 +723,18 @@ let rec rebuild_node_with_state ns ?state elt =
       Xml.set_dom_node elt dom;
       dom
   | Xml.ReactNode signal ->
-      let state = ReactState.init_or_update ?state elt in
-      let clear = ref None in
-      let update_signal =
-        React.S.map
+      let elt' = React.S.value signal in
+      let dom = rebuild_node' ns elt' in
+      let state = { node = dom } in
+      start_signal state
+        (React.S.map
           (fun elt' ->
-            let dom = rebuild_node_with_state ns ~state elt' in
-            let need_cleaning = ReactState.change_dom state dom in
-            if need_cleaning
-            then
-              match !clear with
-              | None -> ()
-              | Some s ->
-                  delay (fun () ->
-                      React.S.stop s (* clear/stop the signal we created *));
-                  clear := None)
-          signal
-      in
-      clear := Some update_signal;
-      ReactState.get_node state
+            let dom = rebuild_node' ns elt' in
+            Xml.set_dom_node elt dom;
+            change_dom state dom)
+          signal);
+      Xml.set_dom_node elt dom;
+      dom
   | Xml.TyXMLNode raw_elt -> (
     match Xml.get_node_id elt with
     | Xml.NoId -> raw_rebuild_node ns raw_elt
@@ -717,8 +751,6 @@ let rec rebuild_node_with_state ns ?state elt =
             register_process_node id node;
             node)
           (fun n -> (n :> Dom.node Js.t)))
-
-and rebuild_node' ns e = rebuild_node_with_state ns e
 
 and raw_rebuild_node ns = function
   | Xml.Empty | Xml.Comment _ ->
