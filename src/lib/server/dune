@@ -8,6 +8,7 @@
    eliom_shared_sigs)
   (preprocess (pps lwt_ppx js_of_ocaml-ppx_deriving_json))
   (flags (:standard (:include type_includes)))
+  (library_flags (:standard -linkall))
   (libraries lwt_react ocsigenserver ocsipersist tyxml))
 
 (include dune.server)
