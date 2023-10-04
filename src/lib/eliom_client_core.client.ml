@@ -695,6 +695,7 @@ let start_signal state s =
 let change_dom state dom =
   let dom' = state.node in
   let signals' = get_signals dom' in
+Firebug.console##log_2 (Array.length signals') dom';
   let i = signal_index state signals' in
   let signals = get_signals dom in
   set_signals dom' (Array.sub signals' (i + 1) (Array.length signals' - i - 1));
