@@ -1304,7 +1304,9 @@ module Page_status = struct
   let maybe_just_once ~once e = if once then React.E.once e else e
 
   let stop_event ?(stop = React.E.never) e =
-    ignore @@ React.E.map (fun () -> React.E.stop ~strong:true e) stop
+    Dom_reference.retain_generic (get_this_page ()) ~keep:e;
+    Dom_reference.retain_generic e
+      ~keep:(React.E.map (fun () -> React.E.stop ~strong:true e) stop)
 
   let onactive ?(now = true) ?(once = false) ?stop action =
     let on_event () =
@@ -1332,7 +1334,8 @@ module Page_status = struct
     let thread = ref Lwt.return_unit in
     onactive ?now ~stop (fun () -> thread := action ());
     oninactive ~stop (fun () -> Lwt.cancel !thread);
-    ignore @@ React.E.map (fun () -> Lwt.cancel !thread) stop
+    Dom_reference.retain_generic (get_this_page ())
+      ~keep:(React.E.map (fun () -> Lwt.cancel !thread) stop)
 end
 
 let is_in_cache state_id =

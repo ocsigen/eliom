@@ -167,3 +167,51 @@ type file_info = File.file Js.t
 
 let make_cryptographic_safe_string ?len:_ () =
   failwith "make_cryptographic_safe_string not implemented client-side"
+
+module Dom_reference = struct
+  class type ['a, 'b] map =
+    object
+      method set : 'a -> 'b -> unit Js.meth
+      method get : 'a -> 'b Js.Optdef.t Js.meth
+      method delete : 'a -> unit Js.meth
+    end
+
+  let create_map () : (_, _) map Js.t =
+    let map = Js.Unsafe.global##._Map in
+    new%js map
+
+  let create_weak_map () : (_, _) map Js.t =
+    let weakMap = Js.Unsafe.global##._WeakMap in
+    new%js weakMap
+
+  type key = unit ref
+
+  let retain_map : (Obj.t, (key, Obj.t) map Js.t) map Js.t = create_weak_map ()
+  let new_key () = ref ()
+
+  let retain ?(key = new_key ()) node ~keep =
+    let node = Obj.repr node in
+    let m =
+      Js.Optdef.get
+        (retain_map##get node)
+        (fun () ->
+          let m = create_map () in
+          retain_map##set node m;
+          m)
+    in
+    m##set key (Obj.repr keep)
+
+  let retain_generic = retain
+
+  let release ~key node =
+    let node = Obj.repr node in
+    Js.Optdef.iter (retain_map##get node) (fun m -> m##delete key)
+
+  let transfer ~key ~src ~dst =
+    let src = Obj.repr src in
+    Js.Optdef.iter
+      (retain_map##get src)
+      (fun m ->
+        Js.Optdef.iter (m##get key) (fun keep -> retain dst ~key ~keep);
+        m##delete key)
+end
