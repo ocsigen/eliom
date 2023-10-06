@@ -4,7 +4,10 @@
 Eliom is a framework for building client/server Web and mobile
 applications in OCaml.
 
-It transforms OCaml into a multi-tier language, making it possible to
+It can be used both as a traditional server-side Web framework
+or to implement complex client-server applications.
+
+Eliom transforms OCaml into a multi-tier language, making it possible to
 implement both the server and client parts of a Web and mobile app
 as a single program.
 This simplifies a lot the communication between server and client.
@@ -23,7 +26,9 @@ continuation based Web programming, etc.
 opam install eliom
 }}}
 
-==Getting started
+==A quick tour
+
+Here is a quick overview of what programming with Eliom look like.
 
 Defining a service on path {{{/foo}}}, taking any GET parameters:
 
@@ -63,7 +68,7 @@ let%server a = ... (* code for the server part of the application *)
 let%client b = ... (* code for the client part of the application *)
 >>
 <<code language="ocaml" class="shared"|
-let%shared c = ... (* code that will be included in both parts *)
+let%shared a = ... (* code that will be included in both parts *)
 >>
 
 Using a server-side value in client-side code:
@@ -73,8 +78,7 @@ let%server a = ...
 >>
 <<code language="ocaml" class="client"|
 let%client f () =
-  print_endline ~%a ; (* print in browser console *)
-  ...
+  [%client (print_endline ~%a : unit)] (* print in browser console *)
 >>
 
 Calling a server function from the client program:
@@ -116,5 +120,11 @@ To learn Eliom, read
 
 Write your first Web and mobile application with Eliom using
 [[wiki("ocsigen-start"):|Ocsigen Start]]
+
+If you want to use Eliom as a traditional server-side Web framework,
+have a look at these tutorials:
+* <<a_manual project="tuto" chapter="basicwebsite"|A basic Web site in OCaml>>
+* <<a_manual project="tuto" chapter="how-to-register-session-data"|Session data: Eliom references>>
+* <<a_manual project="tuto" chapter="interaction"|Service based Web programming>>
 
 The full [[intro|reference manual]], for technical details

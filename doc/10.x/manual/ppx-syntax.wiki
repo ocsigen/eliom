@@ -122,7 +122,7 @@ value is {{{4}}} here.
 It is not possible to use injections on values containing a
 closure. This includes lazy values, objects, or anything containing
 functions. You can use either
-<<a_api subproject="server"|type Eliom_client.server_function>>
+<<a_api subproject="server"|type Eliom_client.server_function>> ({{{let%rpc}}})
 and client or shared fragments to circumvent this limitation.
 
 To extend and customize the serialization from client to server, see
