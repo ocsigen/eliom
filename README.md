@@ -2,7 +2,10 @@
 Eliom is a framework for building client/server Web and mobile
 applications in OCaml.
 
-It transforms OCaml into a multi-tier language, making it possible to
+It can be used both as a traditional server-side Web framework
+or to implement complex client-server applications.
+
+Eliom transforms OCaml into a multi-tier language, making it possible to
 implement both the server and client parts of a Web and mobile app
 as a single program.
 
