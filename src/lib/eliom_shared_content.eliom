@@ -130,18 +130,17 @@ module Xml = struct
     let _ =
       [%client
         (let ( >>! ) = Js.Opt.iter in
-         let update =
-           let e = Eliom_client_core.rebuild_node' `HTML5 ~%e in
-           fun x ->
-             Js.Opt.case e##.firstChild
-               (fun () ->
-                 Dom.appendChild e
-                   Dom_html.document ## (createTextNode (Js.string x)))
-               (fun e ->
-                 Dom.CoerceTo.text e >>! fun e -> e##.data := Js.string x)
+         let e = Eliom_client_core.rebuild_node' `HTML5 ~%e in
+         let update x =
+           Js.Opt.case e##.firstChild
+             (fun () ->
+               Dom.appendChild e
+                 Dom_html.document ## (createTextNode (Js.string x)))
+             (fun e -> Dom.CoerceTo.text e >>! fun e -> e##.data := Js.string x)
          in
          if not ~%synced then update (React.S.value ~%s);
-         React.S.changes ~%s |> React.E.map update |> ignore
+         Eliom_lib.Dom_reference.retain e
+           ~keep:(React.S.changes ~%s |> React.E.map update)
           : unit)]
     in
     e
@@ -274,18 +273,24 @@ module Svg = struct
                  |> Eliom_client_core.rebuild_node' `SVG)
                ~%s
            in
+           let key = Eliom_lib.Dom_reference.new_key () in
+           let e = Eliom_client_core.rebuild_node' `SVG ~%e in
            let f =
              let replace e' e =
+               Eliom_lib.Dom_reference.transfer ~key ~src:e ~dst:e';
                let f p = Dom.replaceChild p e' e in
-               Js.Opt.iter e##.parentNode f |> ignore
-             and e = Eliom_client_core.rebuild_node' `SVG ~%e in
+               Js.Opt.iter e##.parentNode f
+             in
              fun e' ->
                replace e' e;
-               React.S.diff replace s |> ignore
+               Eliom_lib.Dom_reference.retain ~key e'
+                 ~keep:(React.S.diff replace s)
            in
            if ~%synced
-           then React.(S.changes s |> E.once |> E.map f) |> ignore
-           else f (React.S.value s) |> ignore
+           then
+             Eliom_lib.Dom_reference.retain ~key e
+               ~keep:React.(S.changes s |> E.once |> E.map f)
+           else f (React.S.value s)
             : unit)]
       in
       e |> Eliom_content_core.Svg.D.tot
@@ -382,18 +387,24 @@ module Html = struct
                  |> Eliom_client_core.rebuild_node' `HTML5)
                ~%s
            in
+           let key = Eliom_lib.Dom_reference.new_key () in
+           let e = Eliom_client_core.rebuild_node' `HTML5 ~%e in
            let f =
              let replace e' e =
+               Eliom_lib.Dom_reference.transfer ~key ~src:e ~dst:e';
                let f p = Dom.replaceChild p e' e in
-               Js.Opt.iter e##.parentNode f |> ignore
-             and e = Eliom_client_core.rebuild_node' `HTML5 ~%e in
+               Js.Opt.iter e##.parentNode f
+             in
              fun e' ->
                replace e' e;
-               React.S.diff replace s |> ignore
+               Eliom_lib.Dom_reference.retain ~key e'
+                 ~keep:(React.S.diff replace s)
            in
            if ~%synced
-           then React.(S.changes s |> E.once |> E.map f) |> ignore
-           else f (React.S.value s) |> ignore
+           then
+             Eliom_lib.Dom_reference.retain ~key e
+               ~keep:React.(S.changes s |> E.once |> E.map f)
+           else f (React.S.value s)
             : unit)]
       in
       e |> Eliom_content_core.Html.D.tot

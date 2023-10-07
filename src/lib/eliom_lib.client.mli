@@ -133,3 +133,22 @@ val encode_header_value : 'a -> string
 val make_cryptographic_safe_string : ?len:int -> unit -> string
 (** Return a base-64 encoded cryptographic safe string of the given length.
     Not implemented client-side. *)
+
+module Dom_reference : sig
+  type key
+
+  val new_key : unit -> key
+  val retain : ?key:key -> _ Js.t -> keep:_ -> unit
+  (** [retain v ~keep] prevents [keep] from being garbage collected
+      while [v] is live. An optional key can be specified if one needs
+      to remove this association later one. *)
+  val retain_generic : ?key:key -> _ -> keep:_ -> unit
+  (** Same as [retain] but works with any object. More error-prone *)
+  val release : key:key -> _ -> unit
+  (** [release ~key o] removes the association between the value [v] and
+      the value associated to [key]. *)
+  val transfer : key:key -> src:_ -> dst:_ -> unit
+  (** [transfer ~key ~src ~dst] transfers the association between the
+      value [src] and the value associated to key [key] to value
+      [dst]. *)
+end
