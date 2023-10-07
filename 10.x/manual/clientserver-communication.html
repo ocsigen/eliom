@@ -55,10 +55,8 @@ there are multiple ways for the client and the server to exchange values.
 </p><h2 id="rpc"> Remote Procedure Calls <a class="backref" href="#rpc">&#182;</a></h2><p>Eliom provides an easy way to call server functions from the client using a PPX
 syntax extension (provided by opam package <span class="teletype">ocsigen-ppx-rpc</span>).
 </p><p>Example:
-</p><pre class="shared" class=""><code class="language-ocaml translatable">let%rpc log (str : string) : unit Lwt.t = Lwt_io.write_line Lwt_io.stdout str</code></pre><pre class="client" class=""><code class="language-ocaml translatable">let%client log =
-  ~%(Eliom_client.server_function [%derive.json: string] log)
-
-let%client () =
+</p><pre class="shared" class=""><code class="language-ocaml translatable">let%rpc log (str : string) : unit Lwt.t =
+  Lwt_io.write_line Lwt_io.stdout str</code></pre><pre class="client" class=""><code class="language-ocaml translatable">let%client () =
   Eliom_client.onload
     (* NB The service underlying the server_function isn't available
        on the client before loading the page. *)
@@ -77,7 +75,9 @@ send them to the client. Instead, if an exception is raised in the
 server function, the function application fails (in Lwt) on the client
 with the exception <span><a href=".././api/client/Eliom_client_value#EXCEPTIONException_on_server">Eliom_client_value.Exception_on_server</a></span> whose argument describes the original
 exception (according to <span class="teletype">Printexc.to_string</span>).
-</p><h2 id="rpc"> Remote Procedure Calls: low level API <a class="backref" href="#rpc">&#182;</a></h2><p>The PPX syntax extension translates the function definition into
+</p><h2 id="rpc"> Remote Procedure Calls: low level API <a class="backref" href="#rpc">&#182;</a></h2><p>RPCs are just syntactic sugar for pathless services
+returning OCaml values.
+The PPX syntax extension translates the function definition into
 a <span><a href=".././api/server/Eliom_client#TYPEserver_function">Eliom_client.server_function</a></span>.
 </p><p>For example, the example above produces the following code:
 </p><pre class=""><code class="language-ocaml translatable">let%server log str = Lwt_io.write_line Lwt_io.stdout str
