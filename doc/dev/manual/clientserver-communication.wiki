@@ -14,13 +14,11 @@ syntax extension (provided by opam package {{{ocsigen-ppx-rpc}}}).
 
 Example:
 <<code language="ocaml" class="shared"|
-let%rpc log (str : string) : unit Lwt.t = Lwt_io.write_line Lwt_io.stdout str
+let%rpc log (str : string) : unit Lwt.t =
+  Lwt_io.write_line Lwt_io.stdout str
 
 >>
 <<code language="ocaml" class="client"|
-let%client log =
-  ~%(Eliom_client.server_function [%derive.json: string] log)
-
 let%client () =
   Eliom_client.onload
     (* NB The service underlying the server_function isn't available
@@ -53,6 +51,8 @@ exception (according to {{{Printexc.to_string}}}).
 
 ==@@id="rpc"@@ Remote Procedure Calls: low level API
 
+RPCs are just syntactic sugar for pathless services
+returning OCaml values.
 The PPX syntax extension translates the function definition into
 a <<a_api subproject="server" | type Eliom_client.server_function>>.
 
