@@ -30,7 +30,7 @@
 (rule (target type_includes)
   (action
     (with-stdout-to %{target}
-      (system "echo -n '('; ocamlfind query -i-format js_of_ocaml; echo -n ')'"))))
+      (system "printf '('; ocamlfind query -i-format js_of_ocaml; printf ')'"))))
 
 (env
  (_

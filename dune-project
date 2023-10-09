@@ -7,14 +7,16 @@
 
 (package
  (name eliom)
- (synopsis "Client/server Web framework")
- (description "Eliom is a framework for implementing client/server Web applications.
-It introduces new concepts to simplify the implementation of common behaviors, and uses advanced static typing features of OCaml to check many properties of the Web application at compile-time.
-Eliom allows implementing the whole application as a single program that includes both the client and the server code.
-We use a syntax extension to distinguish between the two sides.
-The client-side code is compiled to JS using Ocsigen Js_of_ocaml.
+ (synopsis "Client/server Web and mobile framework")
+ (description "Eliom is a framework for implementing Web sites and client/server Web and mobile applications.
+It uses advanced concepts to simplify the implementation of common behaviors (e.g. scoped sessions, continuation based Web programming ...).
+It uses advanced static typing features of OCaml to check many properties of the Web application at compile-time (html, page parameters ...).
+Eliom allows implementing the whole application as a single program that includes both the client and the server code. For example, you can implement event handlers (onclick ...) directly in OCaml, and you can call a server-side OCaml function from the client. Pages are generated either on the server or the client.
+These client-side features remain compatible with traditional Web programming (links, forms, URLs, bookmarks, sessions ...).
+It is possible to generate mobile applications for Android and iOS with the exact same code as your Web application.
+The client-side code is compiled to JS using Ocsigen Js_of_ocaml or to Wasm using Wasm_of_ocaml.
 ")
- (homepage http://ocsigen.org/eliom/)
+ (homepage https://ocsigen.org/eliom/)
  (source (github ocsigen/eliom))
  (depends
   (ocaml (>= 4.08.0))
@@ -30,7 +32,7 @@ The client-side code is compiled to JS using Ocsigen Js_of_ocaml.
   (js_of_ocaml-tyxml (>= 3.6.0))
   lwt_log
   (lwt_ppx (>= 1.2.3))
-  (tyxml (and (>= 4.4.0) (< 5.0.0)))
+  (tyxml (and (>= 4.4.0) (< 4.5.0)))
   (ocsigenserver (and (>= 5.1.0) (< 6.0.0)))
   (ipaddr (>= 2.1))
   (reactiveData (>= 0.2.1))
