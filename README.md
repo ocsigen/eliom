@@ -138,6 +138,4 @@ Write your first Web and mobile application with Eliom using [Ocsigen Start](htt
 * Kate Deplaix
 
 [ocsigen]: https://www.ocsigen.org/
-[tutorial]: https://ocsigen.org/tuto/
-[opam]: https://opam.ocaml.org/
-[opaminst]: https://opam.ocaml.org/doc/Install.html
+[main documentation page]: https://ocsigen.org/tuto/latest/manual/basics
