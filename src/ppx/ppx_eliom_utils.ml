@@ -330,7 +330,9 @@ module Cmo = struct
     | Oide_apply (id, id') ->
         Lapply (ident_of_out_ident id, ident_of_out_ident id')
     | Oide_dot (id, nm) -> Ldot (ident_of_out_ident id, nm)
-    | Oide_ident {printed_name = nm} -> Lident nm
+    | Oide_ident {printed_name = nm} ->
+        Lident
+          (try String.sub nm 0 (String.index nm '/') with Not_found -> nm)
 
   let counter = ref 0
 
