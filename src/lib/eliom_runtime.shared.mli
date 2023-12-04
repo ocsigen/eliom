@@ -29,7 +29,7 @@ module Client_value_server_repr : sig
   type +'a t
 
   val create
-    :  ?loc:Eliom_lib_base.pos
+    :  loc:Eliom_lib_base.pos option
     -> instance_id:int
     -> unwrapper:Eliom_wrap.unwrapper
     -> _ t

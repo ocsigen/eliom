@@ -193,7 +193,7 @@ let update_cookie_table ?now sitedata (ci, sci) =
    + update the cookie tables (value, expiration date and timeout)        *)
 
 let execute now generate_page
-    ({Eliom_common.all_cookie_info; tab_cookie_info} as info) sitedata
+    ({Eliom_common.all_cookie_info; tab_cookie_info; _} as info) sitedata
   =
   let%lwt result =
     Lwt.catch
@@ -210,8 +210,8 @@ let set_expired_sessions ri closedservsessions =
   then ()
   else
     Polytables.set
-      (Ocsigen_request.request_cache ri.Ocsigen_extensions.request_info)
-      Eliom_common.eliom_service_session_expired closedservsessions
+      ~table:(Ocsigen_request.request_cache ri.Ocsigen_extensions.request_info)
+      ~key:Eliom_common.eliom_service_session_expired ~value:closedservsessions
 
 open Ocsigen_extensions
 
@@ -235,7 +235,7 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
   let req = Eliom_common.patch_request_info req in
   let now = Unix.gettimeofday () in
   let%lwt ri, si, previous_tab_cookies_info =
-    Eliom_common.get_session_info sitedata req 404
+    Eliom_common.get_session_info ~sitedata ~req 404
   in
   let all_cookie_info, closedsessions =
     Eliommod_cookies.get_cookie_info now sitedata
@@ -261,7 +261,8 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
   in
   set_expired_sessions ri (closedsessions, closedsessions_tab);
   let rec gen_aux
-      ({Eliom_common.request = ri; session_info = si; all_cookie_info} as info)
+      ({Eliom_common.request = ri; session_info = si; all_cookie_info; _} as
+      info)
     =
     let sp = Eliom_common.make_server_params sitedata info None None in
     (* The last two arguments are not yet available, so for now we use None.

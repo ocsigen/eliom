@@ -522,7 +522,7 @@ let make_full_state_name2 site_dir_str secure ~(scope : [< user_scope])
   {user_scope = (scope :> user_scope); secure; site_dir_str}
 
 let make_full_state_name ~sp ~secure ~(scope : [< user_scope]) =
-  make_full_state_name2 sp.sp_sitedata.site_dir_string secure scope
+  make_full_state_name2 sp.sp_sitedata.site_dir_string secure ~scope
 
 let get_cookie_info sp = function
   | `Session -> sp.sp_cookie_info
@@ -538,7 +538,7 @@ type info =
 (*****************************************************************************)
 
 (** Create server parameters record *)
-let make_server_params sitedata ({request = ri; session_info = si} as info)
+let make_server_params sitedata ({request = ri; session_info = si; _} as info)
     suffix full_state_name
   =
   let appl_name =
@@ -881,12 +881,16 @@ let eliom_params_after_action = Polytables.make_key ()
 (* After an action, we get tab_cookies info from rc: *)
 let tab_cookie_action_info_key = Polytables.make_key ()
 
+[@@@warning "-39"]
+
 type cpi = client_process_info =
   { cpi_ssl : bool
   ; cpi_hostname : string
   ; cpi_server_port : int
   ; cpi_original_full_path : string list }
 [@@deriving json]
+
+[@@@warning "+39"]
 
 let matches_regexp name (_, re) =
   try
@@ -1252,7 +1256,8 @@ exception Eliom_retry_with of info
 module Omit_persistent_storage = struct
   let check_if_omitting_storage () =
     match get_sp_option () with
-    | Some {sp_request; sp_sitedata = {omitpersistentstorage = Some rules}} ->
+    | Some {sp_request; sp_sitedata = {omitpersistentstorage = Some rules; _}; _}
+      ->
         let apply_rule = function
           | HeaderRule (header_name, regexp) -> (
             match
@@ -1394,7 +1399,7 @@ let bus_unwrap_id : unwrap_id = Eliom_wrap.id_of_int bus_unwrap_id_int
 
 (* HACK: Remove the 'nl_get_appl_parameter' used to avoid confusion
    between XHR and classical request in App. *)
-let patch_request_info ({Ocsigen_extensions.request_info} as r) =
+let patch_request_info ({Ocsigen_extensions.request_info; _} as r) =
   let u = Ocsigen_request.uri request_info in
   match Uri.get_query_param u nl_get_appl_parameter with
   | Some _ ->
@@ -1422,18 +1427,19 @@ module To_and_of_shared = struct
     { server : 'a to_and_of
     ; client : 'a to_and_of Eliom_client_value.t option
     ; wrapper : wrapper }
+  [@@warning "-69"]
 
   let wrapper : wrapper =
     Obj.magic @@ Eliom_wrap.create_wrapper
     @@ function
-    | {client = Some tao} -> tao
-    | {client = None} ->
+    | {client = Some tao; _} -> tao
+    | {client = None; _} ->
         failwith
           "Cannot wrap user type parameter.\nUse the ?client_to_and_of parameter of Eliom_parameter.user_type\nor (Eliom_parameter.all_suffix_user)"
 
-  let to_string {server = {to_string}} = to_string
-  let of_string {server = {of_string}} = of_string
-  let to_and_of {server} = server
+  let to_string {server = {to_string; _}; _} = to_string
+  let of_string {server = {of_string; _}; _} = of_string
+  let to_and_of {server; _} = server
 
   let create ?client_to_and_of server =
     {server; client = client_to_and_of; wrapper}

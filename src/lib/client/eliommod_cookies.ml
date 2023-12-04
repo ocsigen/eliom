@@ -104,7 +104,7 @@ let get_cookies_to_send ?(in_local_storage = false) host https path =
             match exp with
             | Some exp when exp <= now ->
                 set_table ~in_local_storage host
-                  (Ocsigen_cookie_map.Poly.remove cpath name
+                  (Ocsigen_cookie_map.Poly.remove ~path:cpath name
                      (get_table ~in_local_storage host));
                 cookies_to_send
             | _ ->

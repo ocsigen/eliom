@@ -277,14 +277,14 @@ module Make (DorF : module type of Eliom_content.Html.F) : HTML5_TOOLS = struct
       | [] -> []
       | [(url, text)] ->
           let classe = [last_class] in
-          let _ = li [a url text ()] in
+          let _ = li [a ~service:url text ()] in
           if same_service_opt url current
           then [li ~a:[a_class (current_class :: classe)] text]
-          else [li ~a:[a_class classe] [a url text ()]]
+          else [li ~a:[a_class classe] [a ~service:url text ()]]
       | (url, text) :: l ->
           (if same_service_opt url current
           then li ~a:[a_class [current_class]] text
-          else li [a url text ()])
+          else li [a ~service:url text ()])
           :: aux l
     in
     match l with
@@ -295,14 +295,14 @@ module Make (DorF : module type of Eliom_content.Html.F) : HTML5_TOOLS = struct
           [ (let liclasse = [first_class; last_class] in
              if same_service_opt url current
              then li ~a:[a_class (current_class :: liclasse)] text
-             else li ~a:[a_class liclasse] [a url text ()]) ]
+             else li ~a:[a_class liclasse] [a ~service:url text ()]) ]
     | (url, text) :: l ->
         DorF.ul
           ~a:(a_ul (menu_class :: classe) id 0)
           (let liclasse = [first_class] in
            (if same_service_opt url current
            then li ~a:[a_class (current_class :: liclasse)] text
-           else li ~a:[a_class liclasse] [a url text ()])
+           else li ~a:[a_class liclasse] [a ~service:url text ()])
            :: aux l)
 
   let service_prefix s sopt =
@@ -369,14 +369,14 @@ module Make (DorF : module type of Eliom_content.Html.F) : HTML5_TOOLS = struct
         let attclass = if classe = [] then [] else [a_class classe] in
         match s with
         | text, Site_tree (Default_page (Srv page), []) ->
-            li ~a:attclass [a page text ()]
+            li ~a:attclass [a ~service:page text ()]
         | text, Site_tree (Main_page (Srv page), []) ->
-            li ~a:attclass [a page text ()]
+            li ~a:attclass [a ~service:page text ()]
         | text, Site_tree (Not_clickable, []) -> li ~a:attclass text
         | text, Disabled -> li ~a:[a_class (disabled_class :: classe)] text
         | text, Site_tree (Default_page (Srv page), hsl) ->
             li ~a:attclass
-              (a page text ()
+              (a ~service:page text ()
               ::
               (if deplier || whole_tree
               then
@@ -386,7 +386,7 @@ module Make (DorF : module type of Eliom_content.Html.F) : HTML5_TOOLS = struct
               else []))
         | text, Site_tree (Main_page (Srv page), hsl) ->
             li ~a:attclass
-              (a page text ()
+              (a ~service:page text ()
               ::
               (if deplier || whole_tree
               then (depth_first_fun hsl (level + 1) pos2 :> li_content elt list)
@@ -429,9 +429,9 @@ module Make (DorF : module type of Eliom_content.Html.F) : HTML5_TOOLS = struct
         let attclass = if classe = [] then [] else [a_class classe] in
         match s with
         | text, Site_tree (Default_page (Srv page), _) ->
-            li ~a:attclass [a page text ()]
+            li ~a:attclass [a ~service:page text ()]
         | text, Site_tree (Main_page (Srv page), _) ->
-            li ~a:attclass [a page text ()]
+            li ~a:attclass [a ~service:page text ()]
         | text, Site_tree (Not_clickable, _) -> li ~a:attclass text
         | text, Disabled -> li ~a:[a_class (disabled_class :: classe)] text
       and one_menu first i = function
@@ -496,11 +496,11 @@ module Make (DorF : module type of Eliom_content.Html.F) : HTML5_TOOLS = struct
   let head ~title:ttl ?(css = []) ?(js = []) ?(other = []) () =
     let open DorF in
     let mk_css_link path =
-      let uri = make_uri (Eliom_service.static_dir ()) path in
+      let uri = make_uri ~service:(Eliom_service.static_dir ()) path in
       css_link ~uri ()
     in
     let mk_js_script path =
-      let uri = make_uri (Eliom_service.static_dir ()) path in
+      let uri = make_uri ~service:(Eliom_service.static_dir ()) path in
       js_script ~a:[a_defer ()] ~uri ()
     in
     DorF.head

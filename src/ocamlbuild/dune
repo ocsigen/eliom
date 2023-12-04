@@ -4,7 +4,3 @@
   (synopsis "Eliom ocamlbuild plugin (js_of_ocaml part included)")
   (wrapped false)
   (libraries js_of_ocaml-ocamlbuild))
-
-(env
- (_
-  (flags (:standard -warn-error -67))))

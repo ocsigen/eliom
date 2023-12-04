@@ -32,7 +32,9 @@ module Down = struct
 
   type 'a stateless = 'a Eliom_comet.Channel.t
   type 'a t' = Stateful of 'a stateful | Stateless of 'a stateless
+
   type 'a t = {t : 'a t'; react_down_mark : 'a t Eliom_common.wrapper}
+  [@@warning "-69"]
 
   let wrap_stateful {throttling = t; scope; react = e; name; size} =
     let ee =
@@ -50,8 +52,8 @@ module Down = struct
     channel, Eliom_common.make_unwrapper Eliom_common.react_down_unwrap_id
 
   let internal_wrap = function
-    | {t = Stateful v} -> wrap_stateful v
-    | {t = Stateless v} -> wrap_stateless v
+    | {t = Stateful v; _} -> wrap_stateful v
+    | {t = Stateless v; _} -> wrap_stateless v
 
   let react_down_mark () = Eliom_common.make_wrapper internal_wrap
 
@@ -95,6 +97,7 @@ module Up = struct
         , Eliom_registration.Action.return )
         Eliom_service.t
     ; wrapper : 'a t Eliom_common.wrapper }
+  [@@warning "-69"]
 
   let to_react t = t.event
 
@@ -131,15 +134,19 @@ module S = struct
       ; scope : Eliom_common.client_process_scope option
       ; signal : 'a S.t
       ; name : string option }
+    [@@warning "-69"]
 
     type 'a stateless =
       { channel : 'a Eliom_comet.Channel.t
       ; stream : 'a Lwt_stream.t
       ; (* avoid garbage collection *)
         sl_signal : 'a S.t }
+    [@@warning "-69"]
 
     type 'a t' = Stateful of 'a stateful | Stateless of 'a stateless
+
     type 'a t = {t : 'a t'; signal_down_mark : 'a t Eliom_common.wrapper}
+    [@@warning "-69"]
 
     type 'a store =
       { s : unit S.t Lazy.t
@@ -179,7 +186,7 @@ module S = struct
       in
       fun () -> Lwt.with_value Eliom_common.sp_key None @@ aux
 
-    let wrap_stateful {throttling = t; signal = s; name} =
+    let wrap_stateful {throttling = t; signal = s; name; _} =
       let s : 'a S.t =
         match t with
         | None -> s
@@ -193,15 +200,15 @@ module S = struct
       , value
       , Eliom_common.make_unwrapper Eliom_common.signal_down_unwrap_id )
 
-    let wrap_stateless {sl_signal = s; channel} =
+    let wrap_stateless {sl_signal = s; channel; _} =
       let value : 'a = S.value s in
       ( channel
       , value
       , Eliom_common.make_unwrapper Eliom_common.signal_down_unwrap_id )
 
     let internal_wrap = function
-      | {t = Stateful v} -> wrap_stateful v
-      | {t = Stateless v} -> wrap_stateless v
+      | {t = Stateful v; _} -> wrap_stateful v
+      | {t = Stateless v; _} -> wrap_stateless v
 
     let signal_down_mark () = Eliom_common.make_wrapper internal_wrap
 

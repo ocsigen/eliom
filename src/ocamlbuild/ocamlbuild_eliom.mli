@@ -5,7 +5,7 @@ module type ELIOM = sig
   val client_dir : Ocamlbuild_plugin.Pathname.t
 end
 
-module Make (Eliom : ELIOM) : sig
+module Make (_ : ELIOM) : sig
   val dispatcher
     :  ?oasis_executables:Ocamlbuild_plugin.Pathname.t list
     -> Ocamlbuild_plugin.hook
@@ -47,7 +47,7 @@ module type INTERNALS = sig
   val with_package : string -> string
 end
 
-module MakeIntern (I : INTERNALS) (Eliom : ELIOM) : sig
+module MakeIntern (_ : INTERNALS) (_ : ELIOM) : sig
   val dispatcher
     :  ?oasis_executables:Ocamlbuild_plugin.Pathname.t list
     -> Ocamlbuild_plugin.hook

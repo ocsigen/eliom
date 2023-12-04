@@ -83,7 +83,7 @@ let update_session_info ~path ~all_get_params ~all_post_params cont =
   let all_get_but_na_nl =
     lazy (Eliom_common.remove_na_prefix_params all_get_but_nl)
   and na_get_params = lazy (Eliom_common.filter_na_get_params all_get_but_nl) in
-  let {si} = get_ri () in
+  let {si; _} = get_ri () in
   let si =
     { si with
       Eliom_common.si_other_get_params = []

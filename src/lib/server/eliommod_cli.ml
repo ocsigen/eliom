@@ -25,7 +25,7 @@ let fresh_id =
     "id" ^ string_of_int !c
 
 let client_sitedata sp =
-  let s = Eliom_request_info.get_sitedata_sp sp in
+  let s = Eliom_request_info.get_sitedata_sp ~sp in
   { Eliom_types.site_dir = s.Eliom_common.site_dir
   ; Eliom_types.site_dir_string = s.Eliom_common.site_dir_string }
 

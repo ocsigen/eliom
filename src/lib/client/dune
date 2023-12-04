@@ -3,6 +3,7 @@
   (public_name eliom.client)
   (synopsis "Eliom: client-side")
   (wrapped false)
+  (modes byte)
   (modules_without_implementation eliom_content_sigs eliom_form_sigs
    eliom_parameter_sigs eliom_registration_sigs eliom_service_sigs
    eliom_shared_sigs eliom_wrap)
@@ -25,7 +26,3 @@
     (with-stdout-to
       %{target}
       (run ocaml ../../tools/gen_dune.ml --client ..))))
-
-(env
- (_
-  (flags (:standard -w -9 -warn-error -6-16-22-27-32-37-39-67-69))))

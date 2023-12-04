@@ -203,7 +203,7 @@ let attach
     -> ('get, 'post, 'gp, att, co, non_ext, non_reg, 'sf, 'gn, 'pn, 'return) t
   =
  fun ~fallback ~service () ->
-  let {na_name} = non_attached_info service in
+  let {na_name; _} = non_attached_info service in
   let fallbackkind = attached_info fallback in
   let open Eliom_common in
   let error_msg =

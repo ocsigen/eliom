@@ -44,7 +44,8 @@ let close_all_service_states2 full_st_name sitedata =
     (fun _
          { Eliom_common.Service_cookie.full_state_name
          ; timeout
-         ; session_group_node } thr ->
+         ; session_group_node
+         ; _ } thr ->
       let%lwt () = thr in
       if full_st_name = full_state_name && !timeout = Eliom_common.TGlobal
       then Eliommod_sessiongroups.Serv.remove session_group_node;
@@ -70,8 +71,10 @@ let close_all_service_states ~scope ~secure sitedata =
 let close_all_data_states2 full_st_name sitedata =
   Eliom_common.SessionCookies.fold
     (fun _
-         {Eliom_common.Data_cookie.full_state_name; timeout; session_group_node}
-         thr ->
+         { Eliom_common.Data_cookie.full_state_name
+         ; timeout
+         ; session_group_node
+         ; _ } thr ->
       thr >>= fun () ->
       if full_st_name = full_state_name && !timeout = Eliom_common.TGlobal
       then Eliommod_sessiongroups.Data.remove session_group_node;
@@ -96,7 +99,8 @@ let close_all_data_states ~scope ~secure sitedata =
 
 let close_all_persistent_states2 full_st_name sitedata =
   Eliommod_cookies.Persistent_cookies.Cookies.iter
-    (fun k {Eliommod_cookies.full_state_name; timeout = old_t; session_group} ->
+    (fun k {Eliommod_cookies.full_state_name; timeout = old_t; session_group; _}
+    ->
       let scope = full_state_name.Eliom_common.user_scope in
       if full_st_name = full_state_name && old_t = Eliom_common.TGlobal
       then
@@ -135,7 +139,8 @@ let update_serv_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
              { Eliom_common.Service_cookie.full_state_name
              ; expiry
              ; timeout
-             ; session_group_node } thr ->
+             ; session_group_node
+             ; _ } thr ->
           let%lwt () = thr in
           (if full_st_name = full_state_name && !timeout = Eliom_common.TGlobal
           then
@@ -166,7 +171,8 @@ let update_data_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
              { Eliom_common.Data_cookie.full_state_name
              ; expiry
              ; timeout
-             ; session_group_node } thr ->
+             ; session_group_node
+             ; _ } thr ->
           thr >>= fun () ->
           (if full_st_name = full_state_name && !timeout = Eliom_common.TGlobal
           then

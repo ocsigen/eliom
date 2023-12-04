@@ -280,9 +280,9 @@ end = struct
       Eliom_comet_base.Comet_service
         (Eliom_common.force_lazy_site_value global_service, queue)
 
-  let get_id {ch_id} = ch_id
+  let get_id {ch_id; _} = ch_id
 
-  let get_kind ~newest {ch_index} =
+  let get_kind ~newest {ch_index; _} =
     if newest
     then Eliom_comet_base.Newest_kind (ch_index + 1)
     else Eliom_comet_base.After_kind (ch_index + 1)
@@ -442,11 +442,11 @@ end = struct
       else
         match channels with
         | [] -> acc
-        | (id, Events {queue}) :: rem ->
+        | (id, Events {queue; _}) :: rem ->
             if Queue.is_empty queue
             then take n acc rem
             else take (n - 1) ((id, Queue.take queue) :: acc) channels
-        | (id, Stream ({stream} as s)) :: rem ->
+        | (id, Stream ({stream; _} as s)) :: rem ->
             let l =
               Lwt.with_value Eliom_common.sp_key None @@ fun () ->
               Lwt_stream.get_available_up_to n stream
@@ -459,7 +459,9 @@ end = struct
   let wait_channels handler =
     List.fold_left
       (fun acc (_, channel) ->
-        match channel with Events _ -> acc | Stream {waiter} -> waiter :: acc)
+        match channel with
+        | Events _ -> acc
+        | Stream {waiter; _} -> waiter :: acc)
       [] handler.hd_active_channels
 
   (** wait for data on any channel that the client asks. It correctly
@@ -567,7 +569,7 @@ end = struct
                  empty answer *)
           Lwt.return (encode_downgoing [])
     in
-    let {hd_service = Eliom_comet_base.Internal_comet_service (service, _)} =
+    let {hd_service = Eliom_comet_base.Internal_comet_service (service, _); _} =
       handler
     in
     Comet.register ~scope:handler.hd_scope ~service f
@@ -727,10 +729,12 @@ end = struct
         (name, channel) :: handler.hd_unregistered_channels;
     {ch_handler = handler; ch_id = name}
 
-  let get_id {ch_id} = ch_id
+  let get_id {ch_id; _} = ch_id
 
-  let get_service {ch_handler} =
-    let {hd_service = Ecb.Internal_comet_service (srv, queue)} = ch_handler in
+  let get_service {ch_handler; _} =
+    let {hd_service = Ecb.Internal_comet_service (srv, queue); _} =
+      ch_handler
+    in
     Ecb.Comet_service (srv, queue)
 end
 
@@ -783,6 +787,7 @@ end = struct
     | External of 'a Eliom_comet_base.wrapped_channel
 
   type 'a t = {channel : 'a channel; channel_mark : 'a t Eliom_common.wrapper}
+  [@@warning "-69"]
 
   let get_wrapped t =
     match t.channel with

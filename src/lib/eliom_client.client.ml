@@ -109,7 +109,7 @@ let check_global_data global_data =
         "Code generating the following client values is not linked on the client:\n%s"
         (String.concat "\n"
            (List.rev_map
-              (fun (compilation_unit_id, {Eliom_runtime.closure_id; value}) ->
+              (fun (compilation_unit_id, {Eliom_runtime.closure_id; value; _}) ->
                 let instance_id =
                   Eliom_runtime.Client_value_server_repr.instance_id value
                 in
@@ -445,6 +445,7 @@ type tmp_recontent =
   (* arguments ('econtent') are already unwrapped. *)
   | RELazy of Xml.econtent Eliom_lazy.request
   | RE of Xml.econtent
+[@@warning "-37"]
 
 type tmp_elt =
   {(* to be unwrapped *)
@@ -854,7 +855,7 @@ let get_global_data () =
   Js.Opt.case storage ## (getItem id) def @@ fun v ->
   Lwt_log.ign_debug_f "Unwrap __global_data";
   match Eliom_unwrap.unwrap (Url.decode (Js.to_string v)) 0 with
-  | {Eliom_runtime.ecs_data = `Success v} ->
+  | {Eliom_runtime.ecs_data = `Success v; _} ->
       Lwt_log.ign_debug_f "Unwrap __global_data success";
       Some v
   | _ -> None
@@ -943,10 +944,10 @@ let init () =
     match
       Url.url_of_string (Js.to_string Js.Unsafe.global##.___eliom_server_)
     with
-    | Some (Http {hu_host; hu_port}) ->
+    | Some (Http {hu_host; hu_port; _}) ->
         init_client_app ~app_name ~ssl:false ~hostname:hu_host ~port:hu_port
           ~site_dir ()
-    | Some (Https {hu_host; hu_port}) ->
+    | Some (Https {hu_host; hu_port; _}) ->
         init_client_app ~app_name ~ssl:true ~hostname:hu_host ~port:hu_port
           ~site_dir ()
     | _ -> ());
@@ -1340,7 +1341,7 @@ end
 
 let is_in_cache state_id =
   match History.find_by_state_index state_id.state_index with
-  | Some {dom = Some _} -> true
+  | Some {dom = Some _; _} -> true
   | _ -> false
 
 let stash_reload_function f =
@@ -1632,7 +1633,7 @@ let make_uri subpath params =
   and params = List.map (fun (s, s') -> s, `String (Js.string s')) params in
   Eliom_uri.make_string_uri_from_components (base, params, None)
 
-let route ({Eliom_route.i_subpath; i_get_params; i_post_params} as info) =
+let route ({Eliom_route.i_subpath; i_get_params; i_post_params; _} as info) =
   Lwt_log.ign_debug ~section:section_page "Route";
   let info, i_subpath =
     match i_subpath with
@@ -2078,7 +2079,9 @@ let () =
             Lwt_log.ign_debug ~section:section_page
               "revisit: session has not changed";
             let old_page = History.find_by_state_index state_id.state_index in
-            let rf = Option.bind old_page @@ fun {reload_function = rf} -> rf in
+            let rf =
+              Option.bind old_page @@ fun {reload_function = rf; _} -> rf
+            in
             reload_function := rf;
             let%lwt () = run_lwt_callbacks ev (flush_onchangepage ()) in
             with_new_page ~state_id ?old_page ~replace:false () @@ fun () ->

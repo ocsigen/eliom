@@ -93,7 +93,7 @@ let set_timeout_ get set get_default update ?full_st_name ?cookie_level
     | _, _, Some `Client_process ->
         set sitedata (def_bro, Some (t, fromconfigfile), tl)
     | _, _, None -> failwith "set_timeout_")
-  | Some ({Eliom_common.user_scope} as full_st_name) ->
+  | Some ({Eliom_common.user_scope; _} as full_st_name) ->
       (* recompute_expdates works only if full_st_name is present *)
       let oldtopt =
         try

@@ -46,11 +46,6 @@ let get_default_args () =
 let eliom_inc_dirs = ref []
 let eliom_inc_inodes = ref []
 
-let in_an_eliom_inc_dir s =
-  List.exists
-    (fun d_inode -> inode_of_dir (Filename.dirname s) = d_inode)
-    !eliom_inc_inodes
-
 let compile_intf file =
   wait
     (create_process !compiler

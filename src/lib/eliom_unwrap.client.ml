@@ -45,7 +45,7 @@ type unwrap_id = int
 
 let id_of_int x = x
 
-type unwrapper = {id : unwrap_id; mutable umark : Mark.t}
+type unwrapper = {id : unwrap_id; mutable umark : Mark.t} [@@warning "-69"]
 
 let unwrap_table : (Obj.t -> Obj.t option) Js.js_array Js.t =
   new%js Js.array_empty

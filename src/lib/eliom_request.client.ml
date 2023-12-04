@@ -56,9 +56,9 @@ let get_cookie_info_for_uri_js uri_js =
                   (Eliom_request_info.get_csp_original_full_path () @ path)
           in
           Eliom_request_info.get_csp_ssl (), path)
-  | Some (Url.Https {Url.hu_path = path}) -> true, path
-  | Some (Url.Http {Url.hu_path = path}) -> false, path
-  | Some (Url.File {Url.fu_path = path}) -> false, path
+  | Some (Url.Https {Url.hu_path = path; _}) -> true, path
+  | Some (Url.Http {Url.hu_path = path; _}) -> false, path
+  | Some (Url.File {Url.fu_path = path; _}) -> false, path
 
 let get_cookie_info_for_uri uri =
   let uri_js = Js.bytestring uri in

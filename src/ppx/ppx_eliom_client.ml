@@ -18,8 +18,8 @@ module Pass = struct
 
        method! expression e =
          match e.pexp_desc with
-         | Pexp_ident {txt} when Mli.is_escaped_ident @@ Longident.last_exn txt
-           ->
+         | Pexp_ident {txt; _}
+           when Mli.is_escaped_ident @@ Longident.last_exn txt ->
              let loc = e.pexp_loc in
              [%expr Eliom_client_core.Syntax_helpers.get_escaped_value [%e e]]
          | _ -> super#expression e
@@ -166,7 +166,7 @@ module Pass = struct
     let op = may_open_client_section loc in
     op
     @ register_client_closures client_expr_data
-    @ define_client_functions loc client_expr_data
+    @ define_client_functions ~loc client_expr_data
     @ [item]
     @ may_close_server_section ~no_fragment:(no_fragment || op <> []) item
 
@@ -178,7 +178,7 @@ module Pass = struct
     | None when not (Mli.exists () || Cmo.exists ()) -> ()
     | None -> (
       match find_fragment loc id with
-      | {ptyp_desc = Ptyp_var _} when not unsafe ->
+      | {ptyp_desc = Ptyp_var _; _} when not unsafe ->
           Location.raise_errorf ~loc
             "The types of client values must be monomorphic from its usage or from its type annotation"
       | _ -> ()));
@@ -208,7 +208,7 @@ module Pass = struct
 
        method! core_type typ =
          match typ with
-         | {ptyp_desc = Ptyp_var _; ptyp_loc = loc} ->
+         | {ptyp_desc = Ptyp_var _; ptyp_loc = loc; _} ->
              let attr =
                attribute_of_warning loc
                  "The type of this injected value contains a type variable that could be wrongly inferred."

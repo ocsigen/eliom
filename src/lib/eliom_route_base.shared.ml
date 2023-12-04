@@ -106,7 +106,7 @@ module Make (P : PARAM) = struct
       | [] ->
           Lwt.return
             (Eliom_common.Notfound Eliom_common.Eliom_Wrong_parameter, [])
-      | ({Eliom_common.s_max_use; s_expire; s_f} as a) :: l -> (
+      | ({Eliom_common.s_max_use; s_expire; s_f; _} as a) :: l -> (
         match s_expire with
         | Some (_, e) when !e < now ->
             (* Service expired. Removing it. *)
@@ -180,11 +180,11 @@ module Make (P : PARAM) = struct
     | Eliom_common.Notfound e -> fail e
 
   let remove_id services id =
-    List.filter (fun {Eliom_common.s_id} -> s_id <> id) services
+    List.filter (fun {Eliom_common.s_id; _} -> s_id <> id) services
 
   let find_and_remove_id services id =
     let found, l =
-      let f (found, l) ({Eliom_common.s_id} as x) =
+      let f (found, l) ({Eliom_common.s_id; _} as x) =
         if id = s_id then Some x, l else found, x :: l
       in
       List.fold_left f (None, []) services
@@ -192,7 +192,7 @@ module Make (P : PARAM) = struct
     match found with Some found -> found, List.rev l | None -> raise Not_found
 
   let add_page_table tables url_act tref key
-      ({Eliom_common.s_id; s_expire} as service)
+      ({Eliom_common.s_id; s_expire; _} as service)
     =
     let sp = Eliom_common.get_sp_option () in
     (match s_expire with
@@ -217,7 +217,8 @@ module Make (P : PARAM) = struct
       with Not_found ->
         let node = P.Container.dlist_add ?sp tables (Left (tref, key)) in
         tref := P.Table.add key (Some node, [service]) !tref)
-    | {Eliom_common.key_state = Eliom_common.SAtt_no, Eliom_common.SAtt_no} -> (
+    | {Eliom_common.key_state = Eliom_common.SAtt_no, Eliom_common.SAtt_no; _}
+      -> (
       try
         let _nodeopt, l = P.Table.find key !tref
         and newt = P.Table.remove key !tref in

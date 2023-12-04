@@ -30,6 +30,7 @@ type ('a, 'b) t =
   ; service_registered : bool Eliom_state.volatile_table option
   ; size : int option
   ; bus_mark : ('a, 'b) t Eliom_common.wrapper (* must be the last field ! *) }
+[@@warning "-69"]
 
 let register_sender scope service write =
   Eliom_registration.Action.register ~scope ~options:`NoReload ~service
@@ -52,7 +53,7 @@ let internal_wrap (bus : ('a, 'b) t)
     match Eliom_state.get_volatile_data ~table () with
     | Eliom_state.Data true -> ()
     | _ ->
-        let {service = Ecb.Bus_send_service srv} = bus in
+        let {service = Ecb.Bus_send_service srv; _} = bus in
         register_sender bus.scope
           (srv
             :> ( _

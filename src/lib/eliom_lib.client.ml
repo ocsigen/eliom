@@ -66,9 +66,9 @@ module Url = struct
     String.concat "/" l
 
   let path_of_url = function
-    | Url.Http {Url.hu_path = path}
-    | Url.Https {Url.hu_path = path}
-    | Url.File {Url.fu_path = path} ->
+    | Url.Http {Url.hu_path = path; _}
+    | Url.Https {Url.hu_path = path; _}
+    | Url.File {Url.fu_path = path; _} ->
         path
 
   let path_of_url_string s =

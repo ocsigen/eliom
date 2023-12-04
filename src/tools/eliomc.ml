@@ -57,7 +57,6 @@ type mode =
 
 let mode : mode ref = ref `Link
 let do_compile () = !mode <> `Infer
-let do_interface () = !mode = `Interface
 let do_dump = ref false
 
 let create_process ?in_ ?out ?err ?on_error name args =

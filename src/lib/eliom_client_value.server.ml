@@ -23,8 +23,8 @@ let client_value_unwrapper =
   Eliom_wrap.create_unwrapper
     (Eliom_wrap.id_of_int Eliom_runtime.client_value_unwrap_id_int)
 
-let create_client_value ?loc ~instance_id =
-  Eliom_runtime.Client_value_server_repr.create ?loc ~instance_id
+let create_client_value ~loc ~instance_id =
+  Eliom_runtime.Client_value_server_repr.create ~loc ~instance_id
     ~unwrapper:client_value_unwrapper
 
 let client_value_from_server_repr cv = cv

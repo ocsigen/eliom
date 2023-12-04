@@ -26,10 +26,11 @@ module Client_value_server_repr = struct
     { mutable loc : Eliom_lib_base.pos option
     ; instance_id : int
     ; unwrapper : Eliom_wrap.unwrapper }
+  [@@warning "-69"]
 
   type 'a t = u
 
-  let create ?loc ~instance_id ~unwrapper = {instance_id; loc; unwrapper}
+  let create ~loc ~instance_id ~unwrapper = {instance_id; loc; unwrapper}
   let instance_id cv = cv.instance_id
   let loc cv = cv.loc
   let clear_loc cv = cv.loc <- None
@@ -43,7 +44,11 @@ module RawXML = struct
 
   let separator_to_string = function Space -> " " | Comma -> ", "
 
+  [@@@warning "-39"]
+
   type cookie_info = bool * string list [@@deriving json]
+
+  [@@@warning "+39"]
 
   type caml_event_handler =
     | CE_registered_closure of string * Ocsigen_lib_base.poly (* 'a Js.t -> unit) client_value *)

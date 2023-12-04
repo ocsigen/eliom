@@ -44,7 +44,7 @@ let close_data_state ~scope ~secure_o ?sp () =
     let (_, cookie_info, _), secure_ci =
       Eliom_common.get_cookie_info sp cookie_level
     in
-    let sitedata = Eliom_request_info.get_sitedata_sp sp in
+    let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
     let cookie_info, secure =
       compute_cookie_info sitedata secure_o secure_ci cookie_info
     in
@@ -141,7 +141,7 @@ let rec find_or_create_data_cookie ?set_session_group
   let (_, cookie_info, _), secure_ci =
     Eliom_common.get_cookie_info sp cookie_level
   in
-  let sitedata = Eliom_request_info.get_sitedata_sp sp in
+  let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
   let cookie_info, secure =
     compute_cookie_info sitedata secure_o secure_ci cookie_info
   in
@@ -209,7 +209,7 @@ let find_data_cookie_only ~cookie_scope ~secure_o ?sp () =
   let (_, cookie_info, _), secure_ci =
     Eliom_common.get_cookie_info sp cookie_level
   in
-  let sitedata = Eliom_request_info.get_sitedata_sp sp in
+  let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
   let cookie_info, secure =
     compute_cookie_info sitedata secure_o secure_ci cookie_info
   in
