@@ -20,7 +20,7 @@
   (action
     (with-stdout-to
       %{target}
-      (run ocaml ../../tools/gen_dune.ml --server ..))))
+      (run ../../tools/gen_dune.exe --server ..))))
 
 ; We need to refer to types defined by Js_of_ocaml without a link
 ; dependency to some code that only makes sense in a browser.
