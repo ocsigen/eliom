@@ -1,4 +1,4 @@
-(ignored_subdirs (templates))
+(data_only_dirs templates)
 (install
   (section lib)
   (files (glob_files templates/client-server.basic/*)
