@@ -20,14 +20,12 @@
   (action
     (with-stdout-to
       %{target}
-      (run ocaml ../../tools/gen_dune.ml --server ..))))
+      (run ../../tools/gen_dune.exe --server ..))))
 
-(rule (target includes)
-  (action
-    (with-stdout-to %{target}
-      (system "ocamlfind query -r -i-format lwt_react,ocsigenserver,ocsigenserver.ext,js_of_ocaml,tyxml | tr ' ' '\n'"))))
-
+; We need to refer to types defined by Js_of_ocaml without a link
+; dependency to some code that only makes sense in a browser.
 (rule (target type_includes)
+  (deps (universe))
   (action
     (with-stdout-to %{target}
       (system "printf '('; ocamlfind query -i-format js_of_ocaml; printf ')'"))))

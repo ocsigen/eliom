@@ -25,4 +25,4 @@
   (action
     (with-stdout-to
       %{target}
-      (run ocaml ../../tools/gen_dune.ml --client ..))))
+      (run ../../tools/gen_dune.exe --client ..))))

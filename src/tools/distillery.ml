@@ -12,7 +12,7 @@ let eliomverbatim_filename = ".eliomverbatim"
 let eliom_template_dir =
   Filename.concat (Findlib.package_directory "eliom") "templates"
 
-let distillery_basic = "basic.ppx", eliom_template_dir
+let distillery_basic = "client-server.basic", eliom_template_dir
 let template_path (tname, tpath) = tpath ^ "/" ^ tname
 
 (* Returns all lines of [file] as a string list. Returns an empty list
@@ -257,7 +257,8 @@ let get_templates () =
 (* ---------- Reserve project name ---------- *)
 
 (* Check if the project name is valid for the given template. For example,
- * options is not a valid project name for basic.ppx. It is supposed each
+ * options is not a valid project name for client-server.basic.
+ * It is supposed each
  * template has a file {!reserve_project_name_filename} file containing the
  * list of reserve project name (one name a line).
  *)
