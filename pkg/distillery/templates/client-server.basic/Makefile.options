@@ -1,0 +1,79 @@
+#----------------------------------------------------------------------
+#           SETTINGS FOR THE ELIOM PROJECT %%%PROJECT_NAME%%%
+#----------------------------------------------------------------------
+# Required binaries
+OPAM                  := opam
+
+PROJECT_NAME          := %%%PROJECT_NAME%%%
+
+##----------------------------------------------------------------------
+
+##----------------------------------------------------------------------
+## The following part contains the settings for the compilation process like the
+## server/client OPAM packages and the server/client files.
+
+# OCamlfind packages for the server (for modules which defines services)
+SERVER_ELIOM_PACKAGES :=
+
+# OCamlfind packages for the server
+SERVER_PACKAGES       :=
+
+##----------------------------------------------------------------------
+
+##----------------------------------------------------------------------
+## The following part contains the configuration for the ocsigenserver.
+
+# User to run server with (make run.*)
+WWWUSER               := www-data
+WWWGROUP              := www-data
+
+# Port for running the server (make run.*)
+PORT                  := 80
+
+# Port for testing (make test.*)
+TEST_PORT             := 8080
+
+# Root of installation (must end with /)
+PREFIX                := /usr/local/
+
+# Local folder for make test.* (must end with /)
+TEST_PREFIX           := local/
+
+## The installation tree (relative to $(PREFIX) when installing/running or
+## $(TEST_PREFIX) when testing).
+
+# Configuration file $(PROJECT_NAME).conf
+ETCDIR                := etc/${PROJECT_NAME}
+
+# Project's library $(PROJECT_NAME).cma (cmxs)
+LIBDIR                := lib/${PROJECT_NAME}
+
+# Command pipe, eg. $ echo restart > $(INSTALL_PREFIX)$(CMDPIPE)
+CMDPIPE               := var/run/${PROJECT_NAME}-cmd
+
+# Ocsigenserver's logging files
+LOGDIR                := var/log/${PROJECT_NAME}
+
+# Ocsigenserver's persistent data files
+DATADIR               := var/data/${PROJECT_NAME}
+
+# Project's static files
+FILESDIR              := var/www/${PROJECT_NAME}
+
+# Project's JavaScript file directory
+ELIOMSTATICDIR        := var/www/${PROJECT_NAME}
+
+LOCAL_STATIC          := static
+LOCAL_STATIC_CSS      := $(LOCAL_STATIC)/css
+CSS_PREFIX            := $(LOCAL_STATIC_CSS)/${PROJECT_NAME}
+##----------------------------------------------------------------------
+
+
+##----------------------------------------------------------------------
+## The following part contains the settings for debugging
+
+# Debug application (yes/no): Debugging info in compilation,
+# JavaScript, ocsigenserver
+DEBUG                 := yes
+
+##----------------------------------------------------------------------

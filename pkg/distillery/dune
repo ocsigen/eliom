@@ -1,3 +1,5 @@
+(ignored_subdirs (templates))
 (install
   (section lib)
-  (files (glob_files templates/basic.ppx/*)))
+  (files (glob_files templates/client-server.basic/*)
+         (glob_files templates/basic.ppx/*)))
