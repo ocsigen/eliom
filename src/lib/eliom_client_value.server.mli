@@ -40,7 +40,7 @@ exception Client_value_creation_invalid_context of string
 (**/**)
 
 val create_client_value
-  :  ?loc:Eliom_lib.pos
+  :  loc:Eliom_lib.pos option
   -> instance_id:int
   -> _ Eliom_runtime.Client_value_server_repr.t
 

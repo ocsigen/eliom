@@ -15,9 +15,9 @@ module A = struct
   type result = Eliom_service.result
 
   let site_data _ = ()
-  let sess_info_of_info {i_sess_info} = i_sess_info
-  let subpath_of_info {i_subpath} = i_subpath
-  let meth_of_info {i_meth} = i_meth
+  let sess_info_of_info {i_sess_info; _} = i_sess_info
+  let subpath_of_info {i_subpath; _} = i_subpath
+  let meth_of_info {i_meth; _} = i_meth
   let make_params _ _ suffix _ = suffix
 
   let get_number_of_reloads =
@@ -47,14 +47,14 @@ module A = struct
   module Table = struct
     type t = table
 
-    let add {Eliom_common.key_meth} p m = Raw_table.add key_meth (`Ptc p) m
+    let add {Eliom_common.key_meth; _} p m = Raw_table.add key_meth (`Ptc p) m
 
-    let find {Eliom_common.key_meth} m =
+    let find {Eliom_common.key_meth; _} m =
       let (`Ptc v) = Raw_table.find key_meth m in
       v
 
     let empty () = Raw_table.empty
-    let remove {Eliom_common.key_meth} = Raw_table.remove key_meth
+    let remove {Eliom_common.key_meth; _} = Raw_table.remove key_meth
   end
 
   (* FIXME: dummy *)
@@ -74,7 +74,7 @@ module A = struct
           (Eliom_common.na_key_serv, bool -> params -> result Lwt.t) Hashtbl.t
       }
 
-    let get {t_services} = t_services
+    let get {t_services; _} = t_services
     let set_contains_timeout a b = a.t_contains_timeout <- b
     let set tables l = tables.t_services <- l
     let dlist_add ?sp:_ _tables _srv = ()
@@ -91,10 +91,10 @@ let global_tables =
     ; t_contains_timeout = false
     ; t_na_services = Hashtbl.create 256 }
 
-let add_naservice k f {A.Container.t_na_services} =
+let add_naservice k f {A.Container.t_na_services; _} =
   Hashtbl.add t_na_services k f
 
-let call_naservice k {A.Container.t_na_services} =
+let call_naservice k {A.Container.t_na_services; _} =
   try (Hashtbl.find t_na_services k) true None
   with Not_found -> Lwt.fail Eliom_common.Eliom_404
 
@@ -112,7 +112,7 @@ let rec remove_site_dir p p' =
   | [], t -> Some t
   | _ -> None
 
-let call_service ({i_get_params; i_post_params; i_subpath} as info) =
+let call_service ({i_get_params; i_post_params; i_subpath; _} as info) =
   let info =
     match remove_site_dir (Eliom_request_info.get_site_dir ()) i_subpath with
     | Some i_subpath -> {info with i_subpath}

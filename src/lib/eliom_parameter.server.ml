@@ -46,7 +46,7 @@ let all_suffix_user ?client_to_and_of ~(of_string : string -> 'a)
 
 let regexp reg dest ~to_string n =
   user_type
-    (fun s ->
+    ~of_string:(fun s ->
       match Re.Pcre.exec ~rex:reg ~pos:0 s with
       | g when Re.Group.start g 0 = 0 -> (
         try
@@ -55,14 +55,14 @@ let regexp reg dest ~to_string n =
             s
         with Ocsigen_extensions.NoSuchUser ->
           raise (Failure "User does not exist"))
-      | _ | exception Not_found -> raise (Failure "Regexp not matching"))
-    to_string n
+      | _ | (exception Not_found) -> raise (Failure "Regexp not matching"))
+    ~to_string n
 
 let all_suffix_regexp reg dest ~(to_string : 'a -> string) (n : string)
     : (string, [`Endsuffix], [`One of string] param_name) params_type
   =
   all_suffix_user
-    (fun s ->
+    ~of_string:(fun s ->
       match Re.Pcre.exec ~rex:reg ~pos:0 s with
       | g when Re.Group.start g 0 = 0 -> (
         try
@@ -71,13 +71,13 @@ let all_suffix_regexp reg dest ~(to_string : 'a -> string) (n : string)
             s
         with Ocsigen_extensions.NoSuchUser ->
           raise (Failure "User does not exist"))
-      | _ | exception Not_found -> raise (Failure "Regexp not matching"))
-    to_string n
+      | _ | (exception Not_found) -> raise (Failure "Regexp not matching"))
+    ~to_string n
 
 (* Non localized parameters *)
 
 let get_non_localized_parameters params files ~getorpost ~sp
-    {name; get; post; param = paramtype}
+    {name; get; post; param = paramtype; _}
   =
   (* non localized parameters are parsed only once,
      and cached in request_cache *)

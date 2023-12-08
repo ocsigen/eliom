@@ -24,6 +24,8 @@ type 'a chan_id = string
 external string_of_chan_id : 'a chan_id -> string = "%identity"
 external chan_id_of_string : string -> 'a chan_id = "%identity"
 
+[@@@warning "-39"]
+
 type position =
   | Newest of int
   | After of int
@@ -41,9 +43,6 @@ type comet_request =
   | Stateful of comet_stateful_request
 [@@deriving json]
 
-let comet_request_param =
-  Eliom_parameter.ocaml "comet_request" [%json: comet_request]
-
 type 'a channel_data = Data of 'a | Full | Closed [@@deriving json]
 
 type answer =
@@ -53,6 +52,11 @@ type answer =
   | State_closed
   | Comet_error of string
 [@@deriving json]
+
+[@@@warning "+39"]
+
+let comet_request_param =
+  Eliom_parameter.ocaml "comet_request" [%json: comet_request]
 
 type comet_service =
   | Comet_service :

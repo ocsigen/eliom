@@ -147,7 +147,7 @@ let try_flush t =
     Lwt.return_unit
 
 let write t v = Queue.add v t.queue; try_flush t
-let close {channel} = Eliom_comet.close channel
+let close {channel; _} = Eliom_comet.close channel
 let set_queue_size b s = b.max_size <- s
 
 let set_time_before_flush b t =

@@ -136,7 +136,7 @@ let last_id = ref 0
 
 let client_value ?pos closure_id args =
   let instance_id = if !is_global then (incr last_id; !last_id) else 0 in
-  let value = Eliom_client_value.create_client_value ?loc:pos ~instance_id in
+  let value = Eliom_client_value.create_client_value ~loc:pos ~instance_id in
   register_client_value_data ~closure_id ~args:(Eliom_lib.to_poly args) ~value;
   Eliom_client_value.client_value_from_server_repr value
 

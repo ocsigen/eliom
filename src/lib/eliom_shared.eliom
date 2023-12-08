@@ -44,8 +44,9 @@ module Value = struct
     { sh_server : 'a
     ; sh_client : 'a Eliom_client_value.t
     ; sh_mark : 'a t Eliom_wrap.wrapper }
+  [@@warning "-69"]
 
-  let internal_wrap {sh_client} = sh_client
+  let internal_wrap {sh_client; _} = sh_client
 
   let shared_value_mark () : 'a t Eliom_wrap.wrapper =
     Eliom_wrap.create_wrapper internal_wrap
@@ -53,8 +54,8 @@ module Value = struct
   let create sh_server sh_client =
     {sh_server; sh_client; sh_mark = shared_value_mark ()}
 
-  let client {sh_client} = sh_client
-  let local {sh_server} = sh_server
+  let client {sh_client; _} = sh_client
+  let local {sh_server; _} = sh_server
 end]
 
 [%%client

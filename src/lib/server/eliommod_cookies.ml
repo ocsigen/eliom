@@ -99,11 +99,11 @@ module Persistent_cookies = struct
              if cookies' = [] then None else Some (String.concat "," cookies')
   end
 
-  let add cookie ({expiry} as content) =
+  let add cookie ({expiry; _} as content) =
     Eliom_lib.Option.Lwt.iter (fun t -> Expiry_dates.add_cookie t cookie) expiry
     >>= fun _ -> Cookies.add cookie content
 
-  let replace_if_exists cookie ({expiry} as content) =
+  let replace_if_exists cookie ({expiry; _} as content) =
     Eliom_lib.Option.Lwt.iter (fun t -> Expiry_dates.add_cookie t cookie) expiry
     >>= fun _ -> Cookies.replace_if_exists cookie content
 
@@ -138,7 +138,8 @@ let get_cookie_info now sitedata service_cookies data_cookies persistent_cookies
               ; expiry
               ; timeout
               ; session_group
-              ; session_group_node }
+              ; session_group_node
+              ; _ }
             =
             Eliom_common.SessionCookies.find
               sitedata.Eliom_common.session_services
@@ -199,7 +200,8 @@ let get_cookie_info now sitedata service_cookies data_cookies persistent_cookies
              let { Eliom_common.Data_cookie.expiry
                  ; timeout
                  ; session_group
-                 ; session_group_node }
+                 ; session_group_node
+                 ; _ }
                =
                Eliom_common.SessionCookies.find
                  sitedata.Eliom_common.session_data
@@ -257,7 +259,8 @@ let get_cookie_info now sitedata service_cookies data_cookies persistent_cookies
                  (Eliom_common.Hashed_cookies.to_string hvalue)
                >>= fun { expiry = persexp
                        ; timeout = perstimeout
-                       ; session_group = sessgrp } ->
+                       ; session_group = sessgrp
+                       ; _ } ->
                Eliommod_sessiongroups.Pers.up hvalue_string sessgrp
                >>= fun () ->
                match persexp with
@@ -436,7 +439,7 @@ let compute_session_cookies_to_send sitedata
               (match old, newc with
               | None, None -> beg
               | Some _, None ->
-                  Ocsigen_cookie_map.add sitedata.Eliom_common.site_dir
+                  Ocsigen_cookie_map.add ~path:sitedata.Eliom_common.site_dir
                     (Eliom_common.make_full_cookie_name cookiekind full_st_name)
                     OUnset beg
               (* the path is always site_dir because the cookie cannot
@@ -444,7 +447,7 @@ let compute_session_cookies_to_send sitedata
                  this site directory *)
               | _, Some (_, Some v, exp) ->
                   (* New value *)
-                  Ocsigen_cookie_map.add sitedata.Eliom_common.site_dir
+                  Ocsigen_cookie_map.add ~path:sitedata.Eliom_common.site_dir
                     (Eliom_common.make_full_cookie_name cookiekind full_st_name)
                     (OSet (ch_exp exp, v, secure))
                     beg
@@ -452,7 +455,7 @@ let compute_session_cookies_to_send sitedata
                   if exp = Eliom_common.CENothing
                   then beg
                   else
-                    Ocsigen_cookie_map.add sitedata.Eliom_common.site_dir
+                    Ocsigen_cookie_map.add ~path:sitedata.Eliom_common.site_dir
                       (Eliom_common.make_full_cookie_name cookiekind
                          full_st_name)
                       (OSet (ch_exp exp, oldv, secure))
@@ -517,7 +520,7 @@ let compute_new_ri_cookies (now : float) (ripath : string list)
   let f _secure (service_cookie_info, data_cookie_info, pers_cookie_info) ric =
     let ric =
       Eliom_common.Full_state_name_table.fold
-        (fun ({Eliom_common.user_scope = sc} as full_st_name) (_, v) beg ->
+        (fun ({Eliom_common.user_scope = sc; _} as full_st_name) (_, v) beg ->
           let ct = Eliom_common.cookie_level_of_user_scope sc in
           if ct = `Client_process
           then beg
@@ -529,14 +532,14 @@ let compute_new_ri_cookies (now : float) (ripath : string list)
             match !v with
             | Eliom_common.SCData_session_expired | Eliom_common.SCNo_data ->
                 Ocsigen_cookie_map.Map_inner.remove n beg
-            | Eliom_common.SC {Eliom_common.sc_set_value = Some v} ->
+            | Eliom_common.SC {Eliom_common.sc_set_value = Some v; _} ->
                 Ocsigen_cookie_map.Map_inner.add n v beg
-            | Eliom_common.SC {Eliom_common.sc_set_value = None} -> beg)
+            | Eliom_common.SC {Eliom_common.sc_set_value = None; _} -> beg)
         !service_cookie_info ric
     in
     let ric =
       Eliom_common.Full_state_name_table.fold
-        (fun ({Eliom_common.user_scope = sc} as full_st_name) v beg ->
+        (fun ({Eliom_common.user_scope = sc; _} as full_st_name) v beg ->
           let ct = Eliom_common.cookie_level_of_user_scope sc in
           if ct = `Client_process
           then beg
@@ -551,15 +554,15 @@ let compute_new_ri_cookies (now : float) (ripath : string list)
               match !v with
               | Eliom_common.SCData_session_expired | Eliom_common.SCNo_data ->
                   Ocsigen_cookie_map.Map_inner.remove n beg
-              | Eliom_common.SC {Eliom_common.dc_set_value = Some v} ->
+              | Eliom_common.SC {Eliom_common.dc_set_value = Some v; _} ->
                   Ocsigen_cookie_map.Map_inner.add n v beg
-              | Eliom_common.SC {Eliom_common.dc_set_value = None} -> beg
+              | Eliom_common.SC {Eliom_common.dc_set_value = None; _} -> beg
             else beg)
         !data_cookie_info ric
     in
     let ric =
       Eliom_common.Full_state_name_table.fold
-        (fun ({Eliom_common.user_scope = sc} as full_st_name) v beg ->
+        (fun ({Eliom_common.user_scope = sc; _} as full_st_name) v beg ->
           let ct = Eliom_common.cookie_level_of_user_scope sc in
           if ct = `Client_process
           then beg
@@ -575,9 +578,9 @@ let compute_new_ri_cookies (now : float) (ripath : string list)
               match !v with
               | Eliom_common.SCData_session_expired | Eliom_common.SCNo_data ->
                   Lwt.return (Ocsigen_cookie_map.Map_inner.remove n beg)
-              | Eliom_common.SC {Eliom_common.pc_set_value = Some v} ->
+              | Eliom_common.SC {Eliom_common.pc_set_value = Some v; _} ->
                   Lwt.return (Ocsigen_cookie_map.Map_inner.add n v beg)
-              | Eliom_common.SC {Eliom_common.pc_set_value = None} ->
+              | Eliom_common.SC {Eliom_common.pc_set_value = None; _} ->
                   Lwt.return beg
             else return beg)
         !pers_cookie_info (Lwt.return ric)

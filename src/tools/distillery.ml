@@ -90,7 +90,7 @@ let copy_file_plain input_name output_name =
   let buffer_size = 8192 in
   let fd_in = Unix.openfile input_name [O_RDONLY] 0
   and fd_out =
-    let {Unix.st_perm} = Unix.stat input_name in
+    let {Unix.st_perm; _} = Unix.stat input_name in
     Unix.openfile output_name [O_WRONLY; O_CREAT; O_TRUNC] st_perm
   and buffer = Bytes.create buffer_size in
   let rec copy_loop () =

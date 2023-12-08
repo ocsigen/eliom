@@ -51,6 +51,7 @@ end = struct
 end
 
 type marked_value = {mark : Mark.t; f : (Obj.t -> Obj.t) option}
+[@@warning "-69"]
 
 let make_mark f mark = {mark; f}
 
@@ -127,7 +128,7 @@ module Tbl = struct
       mutable gc : int
     ; (* Last minor GC cycle where the
                                     table was accurate *)
-      mutable on_resize : (int -> unit) list }
+      on_resize : (int -> unit) list }
   (* Functions called on resize *)
 
   let cst =
@@ -390,6 +391,7 @@ type unwrapper =
   { (* WARNING Must be the same as Eliom_unwrap.unwrapper *)
     id : unwrap_id
   ; umark : Mark.t }
+[@@warning "-69"]
 
 let create_unwrapper id = {id; umark = Mark.unwrap_mark}
 let empty_unwrapper = {id = -1; umark = Mark.do_nothing_mark}

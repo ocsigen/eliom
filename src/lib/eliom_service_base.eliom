@@ -185,7 +185,7 @@ type%shared unit_service =
   t
 
 let service_mark () = Eliom_common.make_wrapper pre_wrap
-let info {info} = info
+let info {info; _} = info
 let pre_applied_parameters s = s.pre_applied_parameters
 let get_params_type s = s.get_params_type
 let post_params_type s = s.post_params_type
@@ -207,9 +207,9 @@ let internal_set_client_fun ~service
   =
   service.client_fun <- Some [%client.unsafe ref (Some ~%f)]
 
-let is_external = function {kind = `External} -> true | _ -> false
+let is_external = function {kind = `External; _} -> true | _ -> false
 let default_priority = 0
-let meth {meth} = meth
+let meth {meth; _} = meth
 
 let change_get_num service attser n =
   { service with
@@ -448,8 +448,8 @@ let default_csrf_scope = function
 
 exception Unreachable_exn
 
-let attached_info = function {info = Attached k} -> k
-let non_attached_info = function {info = Nonattached k} -> k
+let attached_info = function {info = Attached k; _} -> k
+let non_attached_info = function {info = Nonattached k; _} -> k
 
 let%server no_client_fun () : _ ref Eliom_client_value.t option =
   (* It only makes sense to create a client value when in a global
@@ -502,7 +502,7 @@ let extern ?keep_nl_params ~prefix ~path ~meth () =
     ~site_dir:[] ~kind:`External ~meth ?keep_nl_params ~redirect_suffix:false
     ~get_params ~post_params ~reload_fun:Rf_keep ()
 
-let which_meth {meth} = meth
+let which_meth {meth; _} = meth
 
 let which_meth_untyped (type m) (s : (_, _, m, _, _, _, _, _, _, _, _) t) =
   match which_meth s with

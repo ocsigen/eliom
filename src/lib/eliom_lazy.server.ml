@@ -1,4 +1,5 @@
 type 'a request = {data : unit -> 'a; mark : 'a request Eliom_wrap.wrapper}
+[@@warning "-69"]
 
 let mark = Eliom_wrap.create_wrapper (fun l -> l.data ())
 let from_fun data = {data; mark}

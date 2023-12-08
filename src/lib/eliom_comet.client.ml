@@ -262,7 +262,6 @@ end = struct
   type 'a t =
     { hd_service : Ecb.comet_service
     ; hd_state : channel_state
-    ; hd_kind : 'a kind
     ; hd_activity : activity }
 
   let add_listener target event f =
@@ -375,12 +374,12 @@ end = struct
         if q <> []
         then (
           queue := [];
-          Eliom_client.call_service service ()
+          Eliom_client.call_service ~service ()
             (false, Ecb.Stateful (Ecb.Commands (Array.of_list (List.rev q)))))
         else Lwt.return ""
     | _ ->
         let%lwt () = Eliom_client.wait_load_end () in
-        Eliom_client.call_service service () p
+        Eliom_client.call_service ~service () p
 
   let make_request hd =
     match hd.hd_state with
@@ -388,7 +387,7 @@ end = struct
     | Stateless_state map ->
         let l =
           Eliom_lib.String.Table.fold
-            (fun channel {position} l -> (channel, position) :: l)
+            (fun channel {position; _} l -> (channel, position) :: l)
             !map []
         in
         Ecb.Stateless (Array.of_list l)
@@ -458,7 +457,7 @@ end = struct
         raise (Comet_error "update_stateless_state on stateful one")
 
   let call_service
-      ({hd_activity; hd_service = Ecb.Comet_service (srv, queue)} as hd)
+      ({hd_activity; hd_service = Ecb.Comet_service (srv, queue); _} as hd)
     =
     let%lwt () =
       Configuration.sleep_before_next_request
@@ -539,7 +538,7 @@ end = struct
     in
     update_activity hd; aux 0
 
-  let call_commands {hd_service = Ecb.Comet_service (srv, queue)} command =
+  let call_commands {hd_service = Ecb.Comet_service (srv, queue); _} command =
     ignore
       (try%lwt
          call_service_after_load_end srv queue
@@ -619,7 +618,7 @@ end = struct
       | Stateless -> Stateless_state (ref Eliom_lib.String.Table.empty)
       | Stateful -> Stateful_state (ref 0)
     in
-    let hd = {hd_service; hd_state; hd_kind; hd_activity = init_activity ()} in
+    let hd = {hd_service; hd_state; hd_activity = init_activity ()} in
     handle_visibility hd; hd
 end
 
@@ -668,21 +667,25 @@ let get_stateless_hd (service : Ecb.comet_service)
     init service Service_handler.stateless stateless_handler_table
 
 let activate () =
-  let f _ {hd_service_handler} = Service_handler.activate hd_service_handler in
+  let f _ {hd_service_handler; _} =
+    Service_handler.activate hd_service_handler
+  in
   Hashtbl.iter f stateless_handler_table;
   Hashtbl.iter f stateful_handler_table
 
 let restart () =
-  let f _ {hd_service_handler} = Service_handler.restart hd_service_handler in
+  let f _ {hd_service_handler; _} =
+    Service_handler.restart hd_service_handler
+  in
   Hashtbl.iter f stateless_handler_table;
   Hashtbl.iter f stateful_handler_table
 
 let close = function
   | Ecb.Stateful_channel (chan_service, chan_id) ->
-      let {hd_service_handler} = get_stateful_hd chan_service in
+      let {hd_service_handler; _} = get_stateful_hd chan_service in
       Service_handler.close hd_service_handler (Ecb.string_of_chan_id chan_id)
   | Ecb.Stateless_channel (chan_service, chan_id, _kind) ->
-      let {hd_service_handler} = get_stateless_hd chan_service in
+      let {hd_service_handler; _} = get_stateless_hd chan_service in
       Service_handler.close hd_service_handler (Ecb.string_of_chan_id chan_id)
 
 let unmarshal s : 'a = Eliom_unwrap.unwrap (Eliom_lib.Url.decode s) 0

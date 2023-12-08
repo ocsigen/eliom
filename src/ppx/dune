@@ -56,7 +56,3 @@
   (libraries ppx_type)
   (preprocess (pps ppxlib.metaquot))
   (modules ppx_eliom_types_ex))
-
-(env
- (_
-  (flags (:standard -w -9 -warn-error -3-6))))

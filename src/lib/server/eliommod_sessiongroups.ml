@@ -302,7 +302,7 @@ Besides, volatile sessions are (hopefully) going to disappear soon.
     match (sess_grp : GroupTable.key) with
     | _, `Client_process, Left sess_id -> (
       try
-        let {Eliom_common.Data_cookie.session_group; session_group_node} =
+        let {Eliom_common.Data_cookie.session_group; session_group_node; _} =
           Eliom_common.SessionCookies.find sitedata.Eliom_common.session_data
             sess_id
         in
@@ -373,7 +373,8 @@ Besides, volatile sessions are (hopefully) going to disappear soon.
     | _, `Client_process, Left sess_id -> (
       try
         let { Eliom_common.Service_cookie.session_table = tables
-            ; session_group_node }
+            ; session_group_node
+            ; _ }
           =
           Eliom_common.SessionCookies.find
             sitedata.Eliom_common.session_services sess_id

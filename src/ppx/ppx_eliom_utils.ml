@@ -27,7 +27,7 @@ let punit ?loc ?attrs () =
 let flatmap f l = List.flatten @@ List.map f l
 
 let get_extension = function
-  | {pexp_desc = Pexp_extension ({txt}, _)} -> txt
+  | {pexp_desc = Pexp_extension ({txt; _}, _); _} -> txt
   | _ -> invalid_arg "Eliom ppx: Should be an extension."
 
 let in_context cref c f x =
@@ -84,7 +84,7 @@ let module_hash_declaration loc =
 *)
 let file_position str =
   match str with
-  | {pstr_loc} :: _ -> Location.in_file @@ pstr_loc.loc_start.pos_fname
+  | {pstr_loc; _} :: _ -> Location.in_file @@ pstr_loc.loc_start.pos_fname
   | [] -> Location.none
 
 let lexing_position ~loc l =
@@ -223,8 +223,8 @@ module Mli = struct
 
   let get_binding sig_item =
     match sig_item.psig_desc with
-    | Psig_value {pval_name = {txt}; pval_type = [%type: [%t? typ] option ref]}
-      ->
+    | Psig_value
+        {pval_name = {txt; _}; pval_type = [%type: [%t? typ] option ref]; _} ->
         if is_injected_ident txt || is_escaped_ident txt
         then Some (txt, suppress_underscore typ)
         else if is_fragment_ident txt
@@ -277,9 +277,11 @@ module Cmo = struct
       (fun ev ->
         match ev with
         | { ev_loc =
-              { loc_start = {Lexing.pos_fname; pos_cnum}
-              ; loc_end = {Lexing.pos_cnum = pos_cnum'} }
-          ; ev_kind = Event_after ty } ->
+              { loc_start = {Lexing.pos_fname; pos_cnum; _}
+              ; loc_end = {Lexing.pos_cnum = pos_cnum'; _}
+              ; _ }
+          ; ev_kind = Event_after ty
+          ; _ } ->
             if pos_cnum' = pos_cnum + 1
             then Hashtbl.add events (pos_fname, pos_cnum) ty
         | _ -> ())
@@ -387,7 +389,7 @@ module Cmo = struct
           Typ.class_
             (mkloc (ident_of_out_ident id) Location.none)
             (List.map type_of_out_type tyl)
-      | ((Otyp_alias {aliased; alias}) [@if ocaml_version >= (5, 1, 0)]) ->
+      | ((Otyp_alias {aliased; alias; _}) [@if ocaml_version >= (5, 1, 0)]) ->
           Typ.alias (type_of_out_type aliased) (var alias)
       | ((Otyp_alias (ty, s)) [@if ocaml_version < (5, 1, 0)]) ->
           Typ.alias (type_of_out_type ty) (var s)
@@ -448,7 +450,7 @@ module Cmo = struct
     type_of_out_type ty
 
   let find err loc =
-    let {Lexing.pos_fname; pos_cnum} = loc.Location.loc_start in
+    let {Lexing.pos_fname; pos_cnum; _} = loc.Location.loc_start in
     try typ (Hashtbl.find (Lazy.force events) (pos_fname, pos_cnum))
     with Not_found ->
       Typ.extension ~loc @@ Location.Error.to_extension
@@ -695,7 +697,7 @@ module Make (Pass : Pass) = struct
         let loc = expr.pexp_loc in
         let attr = expr.pexp_attributes in
         match expr, !context with
-        | {pexp_desc = Pexp_extension ({txt}, _)}, `Client
+        | {pexp_desc = Pexp_extension ({txt; _}, _); _}, `Client
           when is_annotation txt
                  ["client"; "shared"; "client.unsafe"; "shared.unsafe"] ->
             let side = get_extension expr in
@@ -704,7 +706,7 @@ module Make (Pass : Pass) = struct
                  (Printf.sprintf
                     "The syntax [%%%s ...] is not allowed inside client code."
                     side)
-        | ( {pexp_desc = Pexp_extension ({txt}, _)}
+        | ( {pexp_desc = Pexp_extension ({txt; _}, _); _}
           , (`Fragment _ | `Escaped_value _ | `Injection _) )
           when is_annotation txt
                  ["client"; "shared"; "client.unsafe"; "shared.unsafe"] ->
@@ -715,7 +717,8 @@ module Make (Pass : Pass) = struct
         (* [%shared ... ] *)
         | ( { pexp_desc =
                 Pexp_extension
-                  ({txt}, PStr [{pstr_desc = Pstr_eval (side_val, attr')}]) }
+                  ({txt; _}, PStr [{pstr_desc = Pstr_eval (side_val, attr'); _}])
+            ; _ }
           , (`Server | `Shared) )
           when is_annotation txt ["shared"; "shared.unsafe"] ->
             let unsafe = is_annotation txt ["shared.unsafe"] in
@@ -724,7 +727,8 @@ module Make (Pass : Pass) = struct
         (* [%client ... ] *)
         | ( { pexp_desc =
                 Pexp_extension
-                  ({txt}, PStr [{pstr_desc = Pstr_eval (side_val, attr)}]) }
+                  ({txt; _}, PStr [{pstr_desc = Pstr_eval (side_val, attr); _}])
+            ; _ }
           , ((`Server | `Shared) as c) )
           when is_annotation txt ["client"; "client.unsafe"] ->
             Name.reset_escaped_ident ();
@@ -785,14 +789,14 @@ module Make (Pass : Pass) = struct
       method! structure_item str =
         let loc = str.pstr_loc in
         match str.pstr_desc with
-        | Pstr_extension (({txt = "server" | "shared" | "client"}, _), _) ->
+        | Pstr_extension (({txt = "server" | "shared" | "client"; _}, _), _) ->
             Location.raise_errorf ~loc "Sections are only allowed at toplevel."
         | _ -> super#structure_item str
 
       method! signature_item sig_ =
         let loc = sig_.psig_loc in
         match sig_.psig_desc with
-        | Psig_extension (({txt = "server" | "shared" | "client"}, _), _) ->
+        | Psig_extension (({txt = "server" | "shared" | "client"; _}, _), _) ->
             Location.raise_errorf ~loc "Sections are only allowed at toplevel."
         | _ -> super#signature_item sig_
     end
@@ -834,7 +838,7 @@ module Make (Pass : Pass) = struct
         | _ -> ()
       in
       match pstr.pstr_desc with
-      | Pstr_extension (({txt}, PStr strs), _)
+      | Pstr_extension (({txt; _}, PStr strs), _)
         when is_annotation txt ["shared.start"; "client.start"; "server.start"]
         ->
           if strs <> []
@@ -847,15 +851,16 @@ module Make (Pass : Pass) = struct
             maybe_reset_injected_idents !context;
             context := Context.of_string txt;
             [])
-      | Pstr_extension (({txt}, PStr strs), _)
+      | Pstr_extension (({txt; _}, PStr strs), _)
         when is_annotation txt ["shared"; "client"; "server"] ->
           let c = Context.of_string txt in
           let l = flatmap (dispatch_str c) strs in
           maybe_reset_injected_idents c;
           l
       | Pstr_include
-          { pincl_mod = {pmod_desc = Pmod_structure l; pmod_attributes = []}
-          ; pincl_attributes = [] } ->
+          { pincl_mod = {pmod_desc = Pmod_structure l; pmod_attributes = []; _}
+          ; pincl_attributes = []
+          ; _ } ->
           flatmap f l
       | _ -> dispatch_str !context pstr
     in
@@ -867,7 +872,7 @@ module Make (Pass : Pass) = struct
     let f psig =
       let loc = psig.psig_loc in
       match psig.psig_desc with
-      | Psig_extension (({txt}, PStr strs), _)
+      | Psig_extension (({txt; _}, PStr strs), _)
         when is_annotation txt ["shared.start"; "client.start"; "server.start"]
         ->
           if strs <> []
@@ -879,7 +884,7 @@ module Make (Pass : Pass) = struct
           else (
             context := Context.of_string txt;
             [])
-      | Psig_extension (({txt}, PSig sigs), _)
+      | Psig_extension (({txt; _}, PSig sigs), _)
         when is_annotation txt ["shared"; "client"; "server"] ->
           let c = Context.of_string txt in
           flatmap (dispatch_sig c) sigs

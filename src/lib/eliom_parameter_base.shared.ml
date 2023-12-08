@@ -178,7 +178,7 @@ let make_list_suffix i = "[" ^ string_of_int i ^ "]"
 let rec make_suffix : type a c. (a, 'b, c) params_type -> a -> string list =
  fun typ params ->
   match typ with
-  | TNLParams {param} -> make_suffix param params
+  | TNLParams {param; _} -> make_suffix param params
   | TProd (t1, t2) -> make_suffix t1 (fst params) @ make_suffix t2 (snd params)
   | TAtom (_, a) -> [string_of_atom a params]
   | TCoord _ ->
@@ -223,7 +223,7 @@ let rec aux
  fun typ psuff nlp params pref suff l ->
   let open Eliommod_parameters in
   match typ with
-  | TNLParams {name; param = t} ->
+  | TNLParams {name; param = t; _} ->
       let psuff, nlp, nl = aux t psuff nlp params pref suff [] in
       psuff, String.Table.add name nl nlp, l
   | TProd (t1, t2) ->
@@ -367,7 +367,7 @@ let make_params_names params =
     =
    fun issuffix prefix suffix x ->
     match x with
-    | TNLParams {param = t} -> aux issuffix prefix suffix t
+    | TNLParams {param = t; _} -> aux issuffix prefix suffix t
     | TProd (t1, t2) ->
         let issuffix, a = aux issuffix prefix suffix t1 in
         let issuffix, b = aux issuffix prefix suffix t2 in
@@ -459,7 +459,7 @@ let nl_prod (t : ('a, 'su, 'an) params_type)
 let rec remove_from_nlp : type a c. 's -> (a, 'b, c) params_type -> 's =
  fun nlp x ->
   match x with
-  | TNLParams {name = n} -> String.Table.remove n nlp
+  | TNLParams {name = n; _} -> String.Table.remove n nlp
   | TProd (t1, t2) ->
       let nlp = remove_from_nlp nlp t1 in
       remove_from_nlp nlp t2
@@ -678,7 +678,7 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
     =
    fun typ params files pref suff ->
     match typ with
-    | TNLParams {param = t} -> aux t params files pref suff
+    | TNLParams {param = t; _} -> aux t params files pref suff
     | TProd (t1, t2) -> (
       match aux t1 params files pref suff with
       | Res_ (v1, l1, f) -> (

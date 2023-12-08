@@ -157,7 +157,7 @@ val transform_global_app_uri
 (** Functor for application creation.
     See {% <<a_manual chapter="clientserver-applications" | the chapter on applications >> %}
     in the Eliom manual for details. *)
-module App (App_params : Eliom_registration_sigs.APP_PARAM) : APP
+module App (_ : Eliom_registration_sigs.APP_PARAM) : APP
 
 module type TMPL_PARAMS = sig
   type t

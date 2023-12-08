@@ -233,8 +233,8 @@ module Action_base = struct
     (* send bypassing the following directives in the configuration
        file (they have already been taken into account) *)
     Polytables.set
-      (Ocsigen_request.request_cache ri)
-      Eliom_common.found_stop_key ();
+      ~table:(Ocsigen_request.request_cache ri)
+      ~key:Eliom_common.found_stop_key ~value:();
     res
 
   let update_request ri si cookies_override =
@@ -269,7 +269,7 @@ module Action_base = struct
 
          Be very careful while re-reading this. *)
         let sp = Eliom_common.get_sp () in
-        let sitedata = Eliom_request_info.get_sitedata_sp sp in
+        let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
         let si = Eliom_request_info.get_si sp in
         let ri = Eliom_request_info.get_request_sp sp in
         let open Ocsigen_extensions in
@@ -310,19 +310,22 @@ module Action_base = struct
                 , si.Eliom_common.si_tab_cookies );
             (* Remove some parameters to choose the following service *)
             Polytables.set
-              (Ocsigen_request.request_cache ri.Ocsigen_extensions.request_info)
-              Eliom_common.eliom_params_after_action
-              ( si.Eliom_common.si_all_get_params
-              , si.Eliom_common.si_all_post_params
-              , (* is Some [] *)
-                si.Eliom_common.si_all_file_params
-              , (* is Some [] *)
-                si.Eliom_common.si_nl_get_params
-              , si.Eliom_common.si_nl_post_params
-              , si.Eliom_common.si_nl_file_params
-              , si.Eliom_common.si_all_get_but_nl
-              , si.Eliom_common.si_ignored_get_params
-              , si.Eliom_common.si_ignored_post_params );
+              ~table:
+                (Ocsigen_request.request_cache
+                   ri.Ocsigen_extensions.request_info)
+              ~key:Eliom_common.eliom_params_after_action
+              ~value:
+                ( si.Eliom_common.si_all_get_params
+                , si.Eliom_common.si_all_post_params
+                , (* is Some [] *)
+                  si.Eliom_common.si_all_file_params
+                , (* is Some [] *)
+                  si.Eliom_common.si_nl_get_params
+                , si.Eliom_common.si_nl_post_params
+                , si.Eliom_common.si_nl_file_params
+                , si.Eliom_common.si_all_get_but_nl
+                , si.Eliom_common.si_ignored_get_params
+                , si.Eliom_common.si_ignored_post_params );
             (*VVV Also put all_cookie_info in this, to avoid
           update_cookie_table and get_cookie_info (?) *)
             let ri = update_request ri.request_info si ric in
@@ -421,7 +424,7 @@ module File_base = struct
     let sp = Eliom_common.get_sp () in
     let request = Eliom_request_info.get_request_sp sp in
     match
-      try Ocsigen_local_files.resolve request filename ()
+      try Ocsigen_local_files.resolve ~request ~filename ()
       with
       | Ocsigen_local_files.Failed_403
       (* XXXBY : maybe we should signal a true 403 ? *)
@@ -452,7 +455,7 @@ module File = struct
     let sp = Eliom_common.get_sp () in
     let request = Eliom_request_info.get_request_sp sp in
     try
-      ignore (Ocsigen_local_files.resolve request filename ());
+      ignore (Ocsigen_local_files.resolve ~request ~filename ());
       true
     with
     | Ocsigen_local_files.Failed_403 | Ocsigen_local_files.Failed_404

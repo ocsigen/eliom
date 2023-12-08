@@ -115,7 +115,7 @@ and reconstruct_params_form
       reconstruct_atom ~f m (name ^ ".x") >>= fun (abscissa, m) ->
       reconstruct_atom ~f m (name ^ ".y") >>= fun (ordinate, m) ->
       Some ({abscissa; ordinate}, m)
-  | TUserType (name, {of_string = f}) -> reconstruct_atom ~f m name
+  | TUserType (name, {of_string = f; _}) -> reconstruct_atom ~f m name
   | _ -> None
 
 let user_type ~of_string ~to_string n = TUserType (n, {of_string; to_string})
@@ -126,7 +126,7 @@ let all_suffix_user ~of_string ~to_string n =
 let reconstruct_params_form l y =
   reconstruct_params_form (M.of_assoc_list l) y >>= fun (v, _) -> Some v
 
-let get_non_localized_get_parameters {name; param} =
+let get_non_localized_get_parameters {name; param; _} =
   (* Simplified version of the server-side code that
      - only deals with GET params
      - doesn't cache the result

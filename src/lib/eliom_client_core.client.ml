@@ -137,7 +137,7 @@ end = struct
            Lwt_log.raise_error_f "Did not find injection %s" name))
 
   let initialize ~compilation_unit_id
-      {Eliom_runtime.injection_id; injection_value}
+      {Eliom_runtime.injection_id; injection_value; _}
     =
     Lwt_log.ign_debug_f ~section "Initialize injection %d" injection_id;
     (* BBB One should assert that injection_value doesn't contain any
@@ -606,6 +606,7 @@ end = struct
 
   type t =
     {mutable node : Dom.node Js.t option; mutable signal : unit React.S.t option}
+  [@@warning "-69"]
 
   let signals : (Dom.node Js.t, t array) weakMap Js.t =
     let weakMap = Js.Unsafe.global##._WeakMap in

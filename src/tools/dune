@@ -9,6 +9,3 @@
  (section bin)
  (files (eliomc.exe as eliomopt) (eliomc.exe as eliomcp)
         (eliomc.exe as js_of_eliom)))
-(env
- (_
-  (flags (:standard -w -9 -warn-error -27-32))))

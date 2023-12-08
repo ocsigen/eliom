@@ -52,7 +52,7 @@ let reload_fun
   match Eliom_parameter.is_unit (post_params_type service) with
   | Eliom_parameter.U_yes -> (
     match service with
-    | {client_fun = Some {contents = Some f}; reload_fun = Rf_client_fun} ->
+    | {client_fun = Some {contents = Some f}; reload_fun = Rf_client_fun; _} ->
         Some f
     | _ -> None)
   | _ -> None

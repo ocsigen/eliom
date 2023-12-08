@@ -144,7 +144,7 @@ let set_global_persistent_data_state_timeout ~cookie_scope ?secure
 
 let get_global_service_state_timeout ?secure ~cookie_scope () =
   let sitedata = Eliom_request_info.find_sitedata "get_global_timeout" in
-  let secure = Eliom_common.get_secure secure sitedata () in
+  let secure = Eliom_common.get_secure ~secure_o:secure ~sitedata () in
   Eliommod_timeouts.get_global ~kind:`Service ~cookie_scope ~secure sitedata
 
 let get_global_volatile_data_state_timeout ?secure ~cookie_scope () =
@@ -1261,7 +1261,7 @@ module Ext = struct
         let () =
           match get_service_cookie_info ~sitedata state with
           | exception Not_found -> ()
-          | _, {Eliom_common.Service_cookie.session_group_node} ->
+          | _, {Eliom_common.Service_cookie.session_group_node; _} ->
               Eliommod_sessiongroups.Serv.remove session_group_node
         in
         Lwt.return_unit
@@ -1269,14 +1269,14 @@ module Ext = struct
         let () =
           match get_volatile_data_cookie_info ~sitedata state with
           | exception Not_found -> ()
-          | _, {Eliom_common.Data_cookie.session_group_node} ->
+          | _, {Eliom_common.Data_cookie.session_group_node; _} ->
               Eliommod_sessiongroups.Data.remove session_group_node
         in
         Lwt.return_unit
     | _, `Pers, _cookie -> (
         match%lwt get_persistent_cookie_info state with
         | exception Not_found -> Lwt.return_unit
-        | cookie, {Eliommod_cookies.full_state_name; session_group} ->
+        | cookie, {Eliommod_cookies.full_state_name; session_group; _} ->
             let scope = full_state_name.Eliom_common.user_scope in
             let cookie_level = Eliom_common.cookie_level_of_user_scope scope in
             Eliommod_sessiongroups.Pers.close_persistent_session2 ~cookie_level
@@ -1340,7 +1340,8 @@ module Ext = struct
     match state with
     | _, `Pers, _ ->
         Eliommod_sessiongroups.Pers.find
-          (Eliom_common.make_persistent_full_group_name sub_states_level
+          (Eliom_common.make_persistent_full_group_name
+             ~cookie_level:sub_states_level
              sitedata.Eliom_common.site_dir_string (Some id))
         >>= fun l -> Lwt_list.fold_left_s f e l
     | _ -> fold_sub_states_aux Ocsigen_cache.Dlist.lwt_fold Lwt.return a e state
@@ -1451,7 +1452,7 @@ module Ext = struct
     Eliommod_cookies.Persistent_cookies.Cookies.add c
       {cookie with Eliommod_cookies.timeout = TGlobal}
     >>= fun () ->
-    let {Eliommod_cookies.expiry} = cookie in
+    let {Eliommod_cookies.expiry; _} = cookie in
     Eliommod_cookies.Persistent_cookies.Expiry_dates.remove_cookie expiry c
 
   let get_session_group_list () =
@@ -1541,12 +1542,12 @@ let set_cookie ?(cookie_level = `Session) ?path ?exp ?secure ~name ~value () =
   match cookie_level with
   | `Session ->
       sp.Eliom_common.sp_user_cookies <-
-        Ocsigen_cookie_map.add path name
+        Ocsigen_cookie_map.add ~path name
           (OSet (exp, value, secure))
           sp.Eliom_common.sp_user_cookies
   | `Client_process ->
       sp.Eliom_common.sp_user_tab_cookies <-
-        Ocsigen_cookie_map.add path name
+        Ocsigen_cookie_map.add ~path name
           (OSet (exp, value, secure))
           sp.Eliom_common.sp_user_tab_cookies
 
@@ -1556,8 +1557,8 @@ let unset_cookie ?(cookie_level = `Session) ?path ~name () =
   match cookie_level with
   | `Session ->
       sp.Eliom_common.sp_user_cookies <-
-        Ocsigen_cookie_map.add path name OUnset sp.Eliom_common.sp_user_cookies
+        Ocsigen_cookie_map.add ~path name OUnset sp.Eliom_common.sp_user_cookies
   | `Client_process ->
       sp.Eliom_common.sp_user_tab_cookies <-
-        Ocsigen_cookie_map.add path name OUnset
+        Ocsigen_cookie_map.add ~path name OUnset
           sp.Eliom_common.sp_user_tab_cookies

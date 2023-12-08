@@ -48,11 +48,13 @@ module Xml = struct
     { recontent : recontent
     ; node_id : node_id
     ; unwrapper_mark : Eliom_wrap.unwrapper }
+  [@@warning "-69"]
 
   and elt = {elt : elt'; wrapper_mark : elt Eliom_wrap.wrapper}
+  [@@warning "-69"]
   (** Values of type [elt] are wrapped values of type [elt']. *)
 
-  let content {elt} =
+  let content {elt; _} =
     match elt.recontent with RE e -> e | RELazy e -> Eliom_lazy.force e
 
   module Node_id_set = Set.Make (struct
@@ -64,15 +66,15 @@ module Xml = struct
   let node_ids_in_content = ref Node_id_set.empty
 
   let wrapper_mark =
-    Eliom_wrap.create_wrapper (fun {elt} ->
+    Eliom_wrap.create_wrapper (fun {elt; _} ->
         if Node_id_set.mem elt.node_id !node_ids_in_content
         then {elt with recontent = RE Empty}
         else elt)
 
   let wrap page value =
     let node_ids = ref [] in
-    let rec collect_node_ids ({elt} as elt') =
-      let {node_id} = elt in
+    let rec collect_node_ids ({elt; _} as elt') =
+      let {node_id; _} = elt in
       if node_id <> NoId then node_ids := node_id :: !node_ids;
       match content elt' with
       | Empty | Comment _ | EncodedPCDATA _ | PCDATA _ | Entity _ | Leaf _ -> ()
@@ -85,7 +87,7 @@ module Xml = struct
     node_ids_in_content := Node_id_set.empty;
     res
 
-  let get_node_id {elt} = elt.node_id
+  let get_node_id {elt; _} = elt.node_id
   let tyxml_unwrap_id = Eliom_wrap.id_of_int Eliom_runtime.tyxml_unwrap_id_int
 
   let make elt =
@@ -163,9 +165,7 @@ module Xml = struct
        (as this string is to be considered as the end of the cdata)
      *)
     let s' =
-      "\n<![CDATA[\n"
-      ^ Re.replace_string closing_cdata ~by:"" s
-      ^ "\n]]>\n"
+      "\n<![CDATA[\n" ^ Re.replace_string closing_cdata ~by:"" s ^ "\n]]>\n"
     in
     encodedpcdata s'
 
@@ -175,9 +175,7 @@ module Xml = struct
        (as this string is to be considered as the end of the cdata)
      *)
     let s' =
-      "\n//<![CDATA[\n"
-      ^ Re.replace_string closing_cdata ~by:"" s
-      ^ "\n//]]>\n"
+      "\n//<![CDATA[\n" ^ Re.replace_string closing_cdata ~by:"" s ^ "\n//]]>\n"
     in
     encodedpcdata s'
 
@@ -253,7 +251,7 @@ module Xml = struct
     | Node (ename, attribs, sons) ->
         Node (ename, filter_class_attribs node_id attribs, sons)
 
-  let content {elt} =
+  let content {elt; _} =
     let c =
       match elt.recontent with RE e -> e | RELazy e -> Eliom_lazy.force e
     in
@@ -404,6 +402,7 @@ module Html = struct
       ; to_string : 'a -> string
       ; of_string : string -> 'a
       ; default : 'a option }
+    [@@warning "-69"]
 
     let create ~name ?default ~to_string ~of_string () =
       {name; of_string; to_string; default}

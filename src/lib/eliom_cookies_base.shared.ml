@@ -1,3 +1,5 @@
+[@@@warning "-39"]
+
 type cookie = Ocsigen_cookie_map.cookie =
   | OSet of float option (* exp date *) * string (* value *) * bool (* secure *)
   | OUnset
@@ -5,6 +7,8 @@ type cookie = Ocsigen_cookie_map.cookie =
 
 type cookie_array = (string array * (string * cookie) array) array
 [@@deriving json]
+
+[@@@warning "+39"]
 
 (** changes to cookieset_to_json must be completed
     by corresponding changes in cookieset_of_json *)

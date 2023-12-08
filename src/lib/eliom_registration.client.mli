@@ -53,7 +53,7 @@ module Unit :
 type appl_service_options = {do_not_launch : bool}
 (** Has no effect on client; for compatibility with server *)
 
-module App (P : Eliom_registration_sigs.APP_PARAM) : sig
+module App (_ : Eliom_registration_sigs.APP_PARAM) : sig
   val application_name : string
 
   type app_id

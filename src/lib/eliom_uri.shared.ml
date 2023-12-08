@@ -96,7 +96,7 @@ let make_proto_prefix ?hostname ?port https : string =
         then Eliom_config.get_default_sslport ()
         else Eliom_config.get_default_port ()
   in
-  Eliom_lib.Url.make_absolute_url https host port "/"
+  Eliom_lib.Url.make_absolute_url ~https ~host ~port "/"
 
 let is_https https ssl service =
   https = Some true
@@ -316,7 +316,7 @@ let make_uri_components ?absolute ?absolute_path ?https (type a)
 
 let make_string_uri_from_components (uri, params, fragment) =
   let s =
-    Eliom_lib.String.may_concat uri "?"
+    Eliom_lib.String.may_concat uri ~sep:"?"
       (Eliom_parameter.construct_params_string params)
   in
   match fragment with None -> s | Some f -> Eliom_lib.String.concat "#" [s; f]

@@ -63,7 +63,7 @@ let gc_timeouted_services now tables =
             let%lwt _ = thr in
             (* we wait for the previous one to be completed *)
             (match nodeopt, l with
-            | Some node, {Eliom_common.s_expire = Some (_, e)} :: _
+            | Some node, {Eliom_common.s_expire = Some (_, e); _} :: _
             (* it is an anonymous coservice.  The list should
                        have length 1 here *)
               when !e < now ->
@@ -84,7 +84,7 @@ let gc_timeouted_services now tables =
                 then
                   match
                     List.fold_right
-                      (fun ({Eliom_common.s_expire} as a) foll ->
+                      (fun ({Eliom_common.s_expire; _} as a) foll ->
                         match s_expire with
                         | Some (_, e) when !e < now -> foll
                         | _ -> a :: foll)
@@ -186,7 +186,8 @@ let service_session_gc sitedata =
                { Eliom_common.Service_cookie.session_table = tables
                ; expiry
                ; session_group
-               ; session_group_node } thr ->
+               ; session_group_node
+               ; _ } thr ->
             thr >>= fun () ->
             (match !expiry with
             | Some exp when exp < now ->
@@ -247,7 +248,8 @@ let data_session_gc sitedata =
           (fun k
                { Eliom_common.Data_cookie.expiry
                ; session_group
-               ; session_group_node } thr ->
+               ; session_group_node
+               ; _ } thr ->
             thr >>= fun () ->
             (match !expiry with
             | Some exp when exp < now ->
@@ -292,7 +294,7 @@ let persistent_session_gc sitedata =
     let now = Unix.time () in
     let log_hash c = Eliom_common.Hashed_cookies.(sha256 c) in
     let do_gc_cookie cookie
-        {Eliommod_cookies.full_state_name; expiry; session_group}
+        {Eliommod_cookies.full_state_name; expiry; session_group; _}
       =
       let scope = full_state_name.Eliom_common.user_scope in
       match expiry with
