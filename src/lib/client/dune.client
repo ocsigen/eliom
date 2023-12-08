@@ -4,10 +4,10 @@
 (rule (copy# ../eliom_client.client.mli eliom_client.mli))
 (rule (copy# ../eliom_client_base.shared.ml eliom_client_base.ml))
 (rule (copy# ../eliom_client_core.client.ml eliom_client_core.ml))
-(rule (target eliom_client_main.ml) (deps ../eliom_client_main.eliom ../server/eliom_client_main.type_mli)
+(rule (target eliom_client_main.ml) (deps ../eliom_client_main.eliom)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_client -type server/eliom_client_main.type_mli --as-pp --impl eliom_client_main.eliom)))))
+      (chdir .. (run ppx_eliom_client --as-pp -server-cmo %{cmo:../server/eliom_client_main} --impl %{deps})))))
 (rule (copy# ../eliom_client_value.client.ml eliom_client_value.ml))
 (rule (copy# ../eliom_client_value.client.mli eliom_client_value.mli))
 (rule (copy# ../eliom_comet.client.ml eliom_comet.ml))
@@ -19,23 +19,31 @@
 (rule (copy# ../eliom_config.client.ml eliom_config.ml))
 (rule (copy# ../eliom_config.client.mli eliom_config.mli))
 (rule (copy# ../eliom_content.client.mli eliom_content.mli))
-(rule (target eliom_content.ml) (deps ../eliom_content.eliom ../server/eliom_content.type_mli)
+(rule (target eliom_content.ml) (deps ../eliom_content.eliom)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_client -type server/eliom_content.type_mli --as-pp --impl eliom_content.eliom)))))
+      (chdir .. (run ppx_eliom_client --as-pp -server-cmo %{cmo:../server/eliom_content} --impl %{deps})))))
 (rule (copy# ../eliom_content_.client.ml eliom_content_.ml))
 (rule (copy# ../eliom_content_core.client.ml eliom_content_core.ml))
 (rule (copy# ../eliom_content_core.client.mli eliom_content_core.mli))
 (rule (copy# ../eliom_content_sigs.shared.mli eliom_content_sigs.mli))
 (rule (copy# ../eliom_cookies_base.shared.ml eliom_cookies_base.ml))
-(rule (target eliom_cscache.ml) (deps ../eliom_cscache.eliom ../server/eliom_cscache.type_mli)
+(rule (target eliom_cscache.ml) (deps ../eliom_cscache.eliom)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_client -type server/eliom_cscache.type_mli --as-pp --impl eliom_cscache.eliom)))))
-(rule (target eliom_form.ml) (deps ../eliom_form.eliom ../server/eliom_form.type_mli)
+      (chdir .. (run ppx_eliom_client --as-pp -server-cmo %{cmo:../server/eliom_cscache} --impl %{deps})))))
+(rule (target eliom_cscache.mli) (deps ../eliom_cscache.eliomi)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_client -type server/eliom_form.type_mli --as-pp --impl eliom_form.eliom)))))
+      (chdir .. (run ppx_eliom_client --as-pp --intf %{deps})))))
+(rule (target eliom_form.ml) (deps ../eliom_form.eliom)
+  (action
+    (with-stdout-to %{target}
+      (chdir .. (run ppx_eliom_client --as-pp -server-cmo %{cmo:../server/eliom_form} --impl %{deps})))))
+(rule (target eliom_form.mli) (deps ../eliom_form.eliomi)
+  (action
+    (with-stdout-to %{target}
+      (chdir .. (run ppx_eliom_client --as-pp --intf %{deps})))))
 (rule (copy# ../eliom_form_sigs.shared.mli eliom_form_sigs.mli))
 (rule (copy# ../eliom_lazy.client.ml eliom_lazy.ml))
 (rule (copy# ../eliom_lazy.client.mli eliom_lazy.mli))
@@ -63,25 +71,33 @@
 (rule (copy# ../eliom_runtime.shared.mli eliom_runtime.mli))
 (rule (copy# ../eliom_service.client.ml eliom_service.ml))
 (rule (copy# ../eliom_service.client.mli eliom_service.mli))
-(rule (target eliom_service_base.ml) (deps ../eliom_service_base.eliom ../server/eliom_service_base.type_mli)
+(rule (target eliom_service_base.ml) (deps ../eliom_service_base.eliom)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_client -type server/eliom_service_base.type_mli --as-pp --impl eliom_service_base.eliom)))))
+      (chdir .. (run ppx_eliom_client --as-pp -server-cmo %{cmo:../server/eliom_service_base} --impl %{deps})))))
 (rule (copy# ../eliom_service_sigs.shared.mli eliom_service_sigs.mli))
 (rule (copy# ../eliom_shared.client.mli eliom_shared.mli))
-(rule (target eliom_shared.ml) (deps ../eliom_shared.eliom ../server/eliom_shared.type_mli)
+(rule (target eliom_shared.ml) (deps ../eliom_shared.eliom)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_client -type server/eliom_shared.type_mli --as-pp --impl eliom_shared.eliom)))))
-(rule (target eliom_shared_content.ml) (deps ../eliom_shared_content.eliom ../server/eliom_shared_content.type_mli)
+      (chdir .. (run ppx_eliom_client --as-pp -server-cmo %{cmo:../server/eliom_shared} --impl %{deps})))))
+(rule (target eliom_shared_content.ml) (deps ../eliom_shared_content.eliom)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_client -type server/eliom_shared_content.type_mli --as-pp --impl eliom_shared_content.eliom)))))
+      (chdir .. (run ppx_eliom_client --as-pp -server-cmo %{cmo:../server/eliom_shared_content} --impl %{deps})))))
+(rule (target eliom_shared_content.mli) (deps ../eliom_shared_content.eliomi)
+  (action
+    (with-stdout-to %{target}
+      (chdir .. (run ppx_eliom_client --as-pp --intf %{deps})))))
 (rule (copy# ../eliom_shared_sigs.shared.mli eliom_shared_sigs.mli))
-(rule (target eliom_tools.ml) (deps ../eliom_tools.eliom ../server/eliom_tools.type_mli)
+(rule (target eliom_tools.ml) (deps ../eliom_tools.eliom)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_client -type server/eliom_tools.type_mli --as-pp --impl eliom_tools.eliom)))))
+      (chdir .. (run ppx_eliom_client --as-pp -server-cmo %{cmo:../server/eliom_tools} --impl %{deps})))))
+(rule (target eliom_tools.mli) (deps ../eliom_tools.eliomi)
+  (action
+    (with-stdout-to %{target}
+      (chdir .. (run ppx_eliom_client --as-pp --intf %{deps})))))
 (rule (copy# ../eliom_types.client.ml eliom_types.ml))
 (rule (copy# ../eliom_types_base.shared.ml eliom_types_base.ml))
 (rule (copy# ../eliom_types_base.shared.mli eliom_types_base.mli))

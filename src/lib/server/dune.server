@@ -7,14 +7,6 @@
   (action
     (with-stdout-to %{target}
       (chdir .. (run ppx_eliom_server --as-pp --impl %{deps})))))
-(rule (target eliom_client_main.type_mli) (deps ../eliom_client_main.eliom)
-  (action
-    (progn
-      (ignore-stdout (echo %{cmo:eliom_client_main}))
-      (with-stdout-to %{target}
-        (pipe-stdout
-          (chdir .. (run ocamlfind ocamlc -package lwt_ppx %{read-lines:includes} -I server/.eliom_server.objs/byte -i -ppx "%{bin:ppx_eliom_types} --as-ppx" -impl %{deps}))
-          (run sed -e "s$/[1-9][0-9]*$$g" -e "s/_\\[\\([<>]\\)/[\\1/g" -e "s/'\\(_[a-z0-9_]*\\)/'eliom_inferred_type_\\1/g"))))))
 (rule (copy# ../eliom_client_value.server.ml eliom_client_value.ml))
 (rule (copy# ../eliom_client_value.server.mli eliom_client_value.mli))
 (rule (copy# ../eliom_comet.server.ml eliom_comet.ml))
@@ -30,14 +22,6 @@
   (action
     (with-stdout-to %{target}
       (chdir .. (run ppx_eliom_server --as-pp --impl %{deps})))))
-(rule (target eliom_content.type_mli) (deps ../eliom_content.eliom)
-  (action
-    (progn
-      (ignore-stdout (echo %{cmo:eliom_content}))
-      (with-stdout-to %{target}
-        (pipe-stdout
-          (chdir .. (run ocamlfind ocamlc -package lwt_ppx %{read-lines:includes} -I server/.eliom_server.objs/byte -i -ppx "%{bin:ppx_eliom_types} --as-ppx" -impl %{deps}))
-          (run sed -e "s$/[1-9][0-9]*$$g" -e "s/_\\[\\([<>]\\)/[\\1/g" -e "s/'\\(_[a-z0-9_]*\\)/'eliom_inferred_type_\\1/g"))))))
 (rule (copy# ../eliom_content.server.mli eliom_content.mli))
 (rule (copy# ../eliom_content_.server.ml eliom_content_.ml))
 (rule (copy# ../eliom_content_core.server.ml eliom_content_core.ml))
@@ -48,14 +32,6 @@
   (action
     (with-stdout-to %{target}
       (chdir .. (run ppx_eliom_server --as-pp --impl %{deps})))))
-(rule (target eliom_cscache.type_mli) (deps ../eliom_cscache.eliom)
-  (action
-    (progn
-      (ignore-stdout (echo %{cmo:eliom_cscache}))
-      (with-stdout-to %{target}
-        (pipe-stdout
-          (chdir .. (run ocamlfind ocamlc -package lwt_ppx %{read-lines:includes} -I server/.eliom_server.objs/byte -i -ppx "%{bin:ppx_eliom_types} --as-ppx" -impl %{deps}))
-          (run sed -e "s$/[1-9][0-9]*$$g" -e "s/_\\[\\([<>]\\)/[\\1/g" -e "s/'\\(_[a-z0-9_]*\\)/'eliom_inferred_type_\\1/g"))))))
 (rule (target eliom_cscache.mli) (deps ../eliom_cscache.eliomi)
   (action
     (with-stdout-to %{target}
@@ -67,14 +43,6 @@
   (action
     (with-stdout-to %{target}
       (chdir .. (run ppx_eliom_server --as-pp --impl %{deps})))))
-(rule (target eliom_form.type_mli) (deps ../eliom_form.eliom)
-  (action
-    (progn
-      (ignore-stdout (echo %{cmo:eliom_form}))
-      (with-stdout-to %{target}
-        (pipe-stdout
-          (chdir .. (run ocamlfind ocamlc -package lwt_ppx %{read-lines:includes} -I server/.eliom_server.objs/byte -i -ppx "%{bin:ppx_eliom_types} --as-ppx" -impl %{deps}))
-          (run sed -e "s$/[1-9][0-9]*$$g" -e "s/_\\[\\([<>]\\)/[\\1/g" -e "s/'\\(_[a-z0-9_]*\\)/'eliom_inferred_type_\\1/g"))))))
 (rule (target eliom_form.mli) (deps ../eliom_form.eliomi)
   (action
     (with-stdout-to %{target}
@@ -115,40 +83,16 @@
   (action
     (with-stdout-to %{target}
       (chdir .. (run ppx_eliom_server --as-pp --impl %{deps})))))
-(rule (target eliom_service_base.type_mli) (deps ../eliom_service_base.eliom)
-  (action
-    (progn
-      (ignore-stdout (echo %{cmo:eliom_service_base}))
-      (with-stdout-to %{target}
-        (pipe-stdout
-          (chdir .. (run ocamlfind ocamlc -package lwt_ppx %{read-lines:includes} -I server/.eliom_server.objs/byte -i -ppx "%{bin:ppx_eliom_types} --as-ppx" -impl %{deps}))
-          (run sed -e "s$/[1-9][0-9]*$$g" -e "s/_\\[\\([<>]\\)/[\\1/g" -e "s/'\\(_[a-z0-9_]*\\)/'eliom_inferred_type_\\1/g"))))))
 (rule (copy# ../eliom_service_sigs.shared.mli eliom_service_sigs.mli))
 (rule (target eliom_shared.ml) (deps ../eliom_shared.eliom)
   (action
     (with-stdout-to %{target}
       (chdir .. (run ppx_eliom_server --as-pp --impl %{deps})))))
-(rule (target eliom_shared.type_mli) (deps ../eliom_shared.eliom)
-  (action
-    (progn
-      (ignore-stdout (echo %{cmo:eliom_shared}))
-      (with-stdout-to %{target}
-        (pipe-stdout
-          (chdir .. (run ocamlfind ocamlc -package lwt_ppx %{read-lines:includes} -I server/.eliom_server.objs/byte -i -ppx "%{bin:ppx_eliom_types} --as-ppx" -impl %{deps}))
-          (run sed -e "s$/[1-9][0-9]*$$g" -e "s/_\\[\\([<>]\\)/[\\1/g" -e "s/'\\(_[a-z0-9_]*\\)/'eliom_inferred_type_\\1/g"))))))
 (rule (copy# ../eliom_shared.server.mli eliom_shared.mli))
 (rule (target eliom_shared_content.ml) (deps ../eliom_shared_content.eliom)
   (action
     (with-stdout-to %{target}
       (chdir .. (run ppx_eliom_server --as-pp --impl %{deps})))))
-(rule (target eliom_shared_content.type_mli) (deps ../eliom_shared_content.eliom)
-  (action
-    (progn
-      (ignore-stdout (echo %{cmo:eliom_shared_content}))
-      (with-stdout-to %{target}
-        (pipe-stdout
-          (chdir .. (run ocamlfind ocamlc -package lwt_ppx %{read-lines:includes} -I server/.eliom_server.objs/byte -i -ppx "%{bin:ppx_eliom_types} --as-ppx" -impl %{deps}))
-          (run sed -e "s$/[1-9][0-9]*$$g" -e "s/_\\[\\([<>]\\)/[\\1/g" -e "s/'\\(_[a-z0-9_]*\\)/'eliom_inferred_type_\\1/g"))))))
 (rule (target eliom_shared_content.mli) (deps ../eliom_shared_content.eliomi)
   (action
     (with-stdout-to %{target}
@@ -162,14 +106,6 @@
   (action
     (with-stdout-to %{target}
       (chdir .. (run ppx_eliom_server --as-pp --impl %{deps})))))
-(rule (target eliom_tools.type_mli) (deps ../eliom_tools.eliom)
-  (action
-    (progn
-      (ignore-stdout (echo %{cmo:eliom_tools}))
-      (with-stdout-to %{target}
-        (pipe-stdout
-          (chdir .. (run ocamlfind ocamlc -package lwt_ppx %{read-lines:includes} -I server/.eliom_server.objs/byte -i -ppx "%{bin:ppx_eliom_types} --as-ppx" -impl %{deps}))
-          (run sed -e "s$/[1-9][0-9]*$$g" -e "s/_\\[\\([<>]\\)/[\\1/g" -e "s/'\\(_[a-z0-9_]*\\)/'eliom_inferred_type_\\1/g"))))))
 (rule (target eliom_tools.mli) (deps ../eliom_tools.eliomi)
   (action
     (with-stdout-to %{target}

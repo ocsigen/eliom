@@ -15,8 +15,14 @@ let handle_file_client nm =
   then
     let nm = Filename.chop_suffix nm ".eliom" in
     Printf.printf
-      "(rule (target %s.ml) (deps ../%s.eliom ../server/%s.type_mli)\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir .. (run ppx_eliom_client -type server/%s.type_mli --as-pp --impl %s.eliom)))))\n"
-      nm nm nm nm nm
+      "(rule (target %s.ml) (deps ../%s.eliom)\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir .. (run ppx_eliom_client --as-pp -server-cmo %%{cmo:../server/%s} --impl %%{deps})))))\n"
+      nm nm nm
+  else if Filename.check_suffix nm ".eliomi"
+  then
+    let nm = Filename.chop_suffix nm ".eliomi" in
+    Printf.printf
+      "(rule (target %s.mli) (deps ../%s.eliomi)\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir .. (run ppx_eliom_client --as-pp --intf %%{deps})))))\n"
+      nm nm
 
 (*
 let handle_file_server nm =
@@ -48,14 +54,11 @@ let handle_file_server nm =
   else if Filename.check_suffix nm ".shared.mli"
   then copy_file ".shared.mli"
   else if Filename.check_suffix nm ".eliom"
-  then (
+  then
     let nm = Filename.chop_suffix nm ".eliom" in
     Printf.printf
       "(rule (target %s.ml) (deps ../%s.eliom)\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir .. (run ppx_eliom_server --as-pp --impl %%{deps})))))\n"
-      nm nm;
-    Printf.printf
-      "(rule (target %s.type_mli) (deps ../%s.eliom)\n\  (action\n\    (progn\n\      (ignore-stdout (echo %%{cmo:%s}))\n\      (with-stdout-to %%{target}\n\        (pipe-stdout\n\          (chdir .. (run ocamlfind ocamlc -package lwt_ppx %%{read-lines:includes} -I server/.eliom_server.objs/byte -i -ppx \"%%{bin:ppx_eliom_types} --as-ppx\" -impl %%{deps}))\n\          (run sed -e \"s$/[1-9][0-9]*$$g\" -e \"s/_\\\\[\\\\([<>]\\\\)/[\\\\1/g\" -e \"s/'\\\\(_[a-z0-9_]*\\\\)/'eliom_inferred_type_\\\\1/g\"))))))\n"
-      nm nm nm)
+      nm nm
   else if Filename.check_suffix nm ".eliomi"
   then
     let nm = Filename.chop_suffix nm ".eliomi" in
