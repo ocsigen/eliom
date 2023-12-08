@@ -174,8 +174,7 @@ opt:: gen-dune
 	make config-files PROJECT_NAME=$(PROJECT_NAME)
 
 gen-dune:
-	@ocaml tools/gen_dune.ml --server > dune.server
-	@ocaml tools/gen_dune.ml --client > client/dune.client
+	@ocaml tools/gen_dune.ml > client/dune.client
 
 ##----------------------------------------------------------------------
 
