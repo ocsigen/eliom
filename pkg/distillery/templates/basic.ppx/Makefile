@@ -101,12 +101,7 @@ run.opt:
 ##----------------------------------------------------------------------
 ## Aux
 
-# Use `eliomdep -sort' only in OCaml>4
-ifeq ($(shell ocamlc -version|cut -c1),4)
 eliomdep=$(shell $(ELIOMDEP) $(1) -ppx -sort $(2) $(filter %.eliom %.ml,$(3))))
-else
-eliomdep=$(3)
-endif
 objs=$(patsubst %.ml,$(1)/%.$(2),$(patsubst %.eliom,$(1)/%.$(2),$(filter %.eliom %.ml,$(3))))
 depsort=$(call objs,$(1),$(2),$(call eliomdep,$(3),$(4),$(5)))
 
