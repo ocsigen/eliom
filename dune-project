@@ -8,7 +8,7 @@
 
 (package
  (name eliom)
- (synopsis "Client/server Web and mobile framework")
+ (synopsis "Advanced Client/server Web and mobile framework")
  (description "Eliom is a framework for implementing Web sites and client/server Web and mobile applications.
 It uses advanced concepts to simplify the implementation of common behaviors (e.g. scoped sessions, continuation based Web programming ...).
 It uses advanced static typing features of OCaml to check many properties of the Web application at compile-time (html, page parameters ...).
