@@ -1,4 +1,4 @@
-(lang dune 3.6)
+(lang dune 3.11)
 
 (name eliom)
 (version 10.2.0)

@@ -3,7 +3,7 @@
 //Provides: caml_unwrap_value_from_string
 //Requires: caml_failwith, caml_marshal_constants
 //Requires: caml_int64_float_of_bits, caml_int64_of_bytes, caml_new_string
-//Requires: caml_jsbytes_of_string
+//Requires: caml_jsbytes_of_string, caml_callback
 var caml_unwrap_value_from_string = function (){
   function StringReader (s, i) { this.s = caml_jsbytes_of_string(s); this.i = i; }
   StringReader.prototype = {
@@ -222,7 +222,7 @@ var caml_unwrap_value_from_string = function (){
         if (v[0] === 0 && size >= 2 &&
             v[size] instanceof Array && v[size].length == 3 &&
             v[size][2] === intern_obj_table[2] /*unwrap_mark*/) {
-          var unwrapped_v = apply_unwrapper(v[size], v);
+          var unwrapped_v = caml_callback(apply_unwrapper, [v[size], v]);
           if (unwrapped_v === 0) {
             // No unwrapper is registered, so replace the unwrap
             // marker v[size] by a late_unwrap marker

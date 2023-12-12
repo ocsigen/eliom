@@ -38,8 +38,8 @@ include
 
 type file_info = File.file Js.t
 
-val to_json : ?typ:'a -> 'b -> string
-val of_json : ?typ:'a -> string -> 'b
+val to_json : ?typ:'a Deriving_Json.t -> 'a -> string
+val of_json : ?typ:'a Deriving_Json.t -> string -> 'a
 
 module Url : sig
   (** URL manipulation *)
@@ -126,9 +126,8 @@ val confirm : ('a, unit, string, bool) format4 -> 'a
 val debug_var : string -> 'a -> unit
 val trace : ('a, unit, string, unit) format4 -> 'a
 val lwt_ignore : ?message:string -> unit Lwt.t -> unit
-val encode_form_value : 'a -> string
 val unmarshal_js : Js.js_string Js.t -> 'a
-val encode_header_value : 'a -> string
+val encode_header_value : typ:'a Deriving_Json.t -> 'a -> string
 
 val make_cryptographic_safe_string : ?len:int -> unit -> string
 (** Return a base-64 encoded cryptographic safe string of the given length.
