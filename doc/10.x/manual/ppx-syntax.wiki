@@ -2,11 +2,8 @@
 
 The eliom syntax extension allows to write, in one file, both the
 client and server part of your application. The extension is
-automatically enabled by the {{{eliomc}}} and {{{js_of_eliom}}}
-compilers on {{{.eliom}}} and {{{.eliomi}}} files.
-
-For the Camlp4 syntax extension, see
-<<a_manual chapter="clientserver-language" | here >>.
+automatically enabled by the default build system on
+{{{.eliom}}} and {{{.eliomi}}} files.
 
 The extensions presented here are also available with the {{{eliom.}}}
 prefix.
@@ -17,20 +14,22 @@ The location of code execution is specified by section annotations. We
 can specify that a declaration is performed on the server, or on the
 client:
 
-<<code language="ocaml"|
+<<code language="ocaml" class="server"|
+  let%server s = ...
+>>
+<<code language="ocaml" class="client"|
+  let%client c = ...
+>>
+Or, alternatively:
+<<code language="ocaml" class="server"|
 [%%server
   let s = ...
 ]
-
+>>
+<<code language="ocaml" class="client"|
 [%%client
   let c = ...
 ]
->>
-
-Some constructions have a shortcut:
-
-<<code language="ocaml"|
-let%client c = ...
 >>
 
 Finally, it's also possible to start a section for the rest of the file:
@@ -44,19 +43,22 @@ In {{{.eliomi}}} files, only the last version is available.
 
 Sections are only available at top level and cannot be nested.
 
+Similarly, you can write for example {{{type%server}}},  {{{module%server}}},
+{{{open%server}}}, etc ...
+
 ===Shared sections
 
 Shared sections are also available for code that should be on the
 client and on the server.
 
-<<code language="ocaml"|
+<<code language="ocaml" class="shared"|
 let%shared sh = ...
 >>
 
 This is equivalent to duplicating the code in a client and a server
 section.
 
-==Fragments
+==Client fragments
 
 A client-side expression can be included inside a server section, and
 the server can thereafter refer to it: an expression placed inside
@@ -64,7 +66,7 @@ the server can thereafter refer to it: an expression placed inside
 page; but the eventual client-side value of the expression can be
 manipulated as a black box on the server.
 
-<<code language="ocaml"|
+<<code language="ocaml" class="server"|
 let%server x = [%client 1 + 3 ]
 >>
 
@@ -73,7 +75,8 @@ client, but it’s possible to refer server-side to the future value of
 this expression (for example, put it in a list). The value of a client
 fragment cannot be accessed on the server.
 
-In this case, {{{x}}} has type {{{int fragment}}}.  Eliom can't always
+In this case, {{{x}}} has type {{{int Eliom_client_value.t}}}.
+Eliom can't always
 infer the type of fragments. In this case, you may annotate the type:
 {{{[%client ( ... : <type> ) ]}}}.
 
@@ -82,8 +85,8 @@ Client fragments cannot be nested.
 ===Shared fragments
 
 It is also possible to use shared fragments.
-<<code language="ocaml"|
-let%server x =  [%shared ...]
+<<code language="ocaml" class="server"|
+let%server x = [%shared ...]
 >>
 
 It will produce values of type

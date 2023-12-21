@@ -13,6 +13,7 @@
 
 ==Client-server programming
 ===[[clientserver-applications|Eliom applications]]
+===[[ppx-syntax|Multi-tier programming]]
 ===[[clientserver-html|Generating HTML]]
 ===[[clientserver-communication|Communication]]
 ===[[clientserver-services|Client-side services]]
@@ -26,8 +27,3 @@
 ===[[workflow-compilation|Compilation]]
 ===[[workflow-configuration|Configuration & running]]
 ===[[scalability|Scalability]]
-
-==Syntax
-===[[ppx-syntax|PPX-based syntax]]
-===[[clientserver-language|Camlp4-based syntax]]
-===[[ppx-migration|Migration to PPX]]
