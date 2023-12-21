@@ -177,13 +177,11 @@ data you want to be able to send to the server using our
 {{{ppx_deriving}}} syntax extension:
 
 <<code language="ocaml"|
-[%%shared
-  type some_type = (int * string list) [@@deriving json]
-  type another_type =
+  type%shared some_type = (int * string list) [@@deriving json]
+  type%shared another_type =
     | A of some_type
     | B of another_type
     [@@deriving json]
-]
 >>
 
 This type can now be used as a parameter for a service:
