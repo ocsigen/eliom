@@ -167,13 +167,11 @@ mechanism. (The server needs to be able to check that the value is of
 the expected type.) For this reason, you must declare the types of the
 data you want to be able to send to the server using our
 <span class="teletype">ppx_deriving</span> syntax extension:
-</p><pre class=""><code class="language-ocaml translatable">[%%shared
-  type some_type = (int * string list) [@@deriving json]
-  type another_type =
+</p><pre class=""><code class="language-ocaml translatable">type%shared some_type = (int * string list) [@@deriving json]
+  type%shared another_type =
     | A of some_type
     | B of another_type
-    [@@deriving json]
-]</code></pre><p>This type can now be used as a parameter for a service:
+    [@@deriving json]</code></pre><p>This type can now be used as a parameter for a service:
 </p><pre class=""><code class="language-ocaml translatable">open Eliom_content
 
 let s =

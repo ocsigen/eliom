@@ -83,16 +83,16 @@ side. This allows share code between server and client.
 to create each node separately then append them to their parents.
 </li></ul><p>For example, here is a <span class="teletype">div</span> element built with TyXML and then
 converted to the DOM representation using the module </p><dl><dd>
-</dd></dl><pre class=""><code class="language-ocaml translatable">open Eliom_content.Html.D
-let n = div ~a:[a_id &quot;some div id&quot;]
+</dd></dl><pre class="client" class=""><code class="language-ocaml translatable">open%client Eliom_content.Html.D
+let%client n = div ~a:[a_id &quot;some div id&quot;]
   [ txt &quot;some text&quot;;
     br ();
     txt &quot;some other text&quot;; ]
-let b = Eliom_content.Html.To_dom.of_div n</code></pre><p>And here the same built using the DOM API:
-</p><pre class=""><code class="language-ocaml translatable">open Dom
-open Dom_html
+let%client b = Eliom_content.Html.To_dom.of_div n</code></pre><p>And here the same built using the DOM API:
+</p><pre class="client" class=""><code class="language-ocaml translatable">open%client Dom
+open%client Dom_html
 
-let d =
+let%client d =
   let d = createDiv document in
   let t1 = document##createTextNode(Js.string &quot;some text&quot;) in
   let t2 = document##createTextNode(Js.string &quot;some other text&quot;) in
@@ -127,7 +127,7 @@ use module <span class="teletype">D</span> only when the node is used in an inje
 and module <span class="teletype">F</span> otherwise.</li></ul></aside><p>Sending elements by reference allows easy manipulation of elements
 included in the initial html document from event handlers, as the
 <span class="teletype">input</span> element in the following example.
-</p><pre class=""><code class="language-ocaml translatable">let main_service =
+</p><pre class="server" class=""><code class="language-ocaml translatable">let%server main_service =
   My_app.register_service
     ~path:(Eliom_service.Path [&quot;&quot;])
     ~meth:(Eliom_service.Get Eliom_parameter.unit)
@@ -193,36 +193,28 @@ changes, the corresponding DOM tree updates itself.
 <span class="teletype">Html.R</span> makes also possible to define reactive attributes.
 </p><p>Use function <span class="teletype">Html.R.node : 'a elt React.signal -&gt; 'a elt</span>
 to insert a reactive node in a page.
-</p><h5> Example</h5><pre class=""><code class="language-ocaml translatable">[%%shared
-    open Eliom_lib
-    open Eliom_content
-    open Html
-    open F
-]
-
-module Reactivenodes_app =
+</p><h5> Example</h5><pre class="shared" class=""><code class="language-ocaml translatable">open%shared Eliom_lib
+open%shared Eliom_content
+open%shared Html
+open%shared F</code></pre><pre class="server" class=""><code class="language-ocaml translatable">module%server Reactivenodes_app =
   Eliom_registration.App (
   struct
     let application_name = &quot;reactivenodes&quot;
     let global_data_path = None
-  end)
+  end)</code></pre><pre class="client" class=""><code class="language-ocaml translatable">open%client Eliom_content.Html
 
-[%%client
-
-    open Eliom_content.Html
-
-    let split s =
+let%client split s =
       let len = String.length s in
       let rec aux acc = function
         | 0 -&gt; acc
         | n -&gt; aux (s.[n - 1] :: acc) (pred n)
       in aux [] len
 
-    let value_signal, set_value = React.S.create &quot;initial&quot;
+let%client value_signal, set_value = React.S.create &quot;initial&quot;
 
-    let value_len = React.S.map String.length value_signal
+let%client value_len = React.S.map String.length value_signal
 
-    let content_signal : Html_types.div_content_fun elt React.signal =
+let%client content_signal : Html_types.div_content_fun elt React.signal =
       React.S.map
         (fun value -&gt;
            let l = split value in
@@ -231,21 +223,17 @@ module Reactivenodes_app =
            ))
         value_signal
 
-    let make_color len =
+let%client make_color len =
       let d = (len * 10) mod 255 in
       Printf.sprintf &quot;color: rgb(%d,%d,%d)&quot; d d d
 
-    let make_client_nodes () =
+let%client make_client_nodes () =
       [
         D.p [R.txt value_signal];
         D.p ~a:[ R.a_style (React.S.map make_color value_len)]
           [R.txt value_signal];
         R.node content_signal
-      ]
-
-]
-
-let make_input () =
+      ]</code></pre><pre class="server" class=""><code class="language-ocaml translatable">let%server make_input () =
   let inp = D.Raw.input ~a:[a_input_type `Text] () in
   let _ = [%client
     (Lwt_js_events.(async (fun () -&gt;
@@ -258,13 +246,13 @@ let make_input () =
   ] in
   inp
 
-let main_service =
+let%server main_service =
   Eliom_service.create
     ~path:(Eliom_service.Path [])
     ~meth:(Eliom_service.Get Eliom_parameter.unit)
     ()
 
-let () =
+let%server () =
   Reactivenodes_app.register
     ~service:main_service
     (fun () () -&gt;
@@ -282,42 +270,31 @@ let () =
          ))</code></pre><h3 id="inject">Dom &amp; Client-values <a class="backref" href="#inject">&#182;</a></h3><p><span class="teletype">Eliom_content.Html.C</span> allows one to insert client-side content
 into server-side HTML-trees. This makes possible, for example, to insert
 reactive nodes in a server-side generated page.
-</p><h4> Example</h4><pre class=""><code class="language-ocaml translatable">[%%shared
-    open Eliom_lib
-    open Eliom_content
-    open Html
-    open F
-]
-
-module Testnodes_app =
+</p><h4> Example</h4><pre class="shared" class=""><code class="language-ocaml translatable">open%shared Eliom_lib
+open%shared Eliom_content
+open%shared Html
+open%shared F</code></pre><pre class="server" class=""><code class="language-ocaml translatable">module%server Testnodes_app =
   Eliom_registration.App (
   struct
     let application_name = &quot;testnodes&quot;
     let global_data_path = None
   end)
 
-let main_service =
+let%server main_service =
   Eliom_service.create
     ~path:(Eliom_service.Path [])
     ~meth:(Eliom_service.Get Eliom_parameter.unit)
-    ()
-
-[%%client
-    open Eliom_content.Html
-    let
-      (value_signal : string React.signal),
-      set_value = React.S.create &quot;initial&quot;
-]
-
-let client_reactive_attrib () = [%client
+    ()</code></pre><pre class="client" class=""><code class="language-ocaml translatable">open%client Eliom_content.Html
+let%client
+  (value_signal : string React.signal), set_value = React.S.create &quot;initial&quot;</code></pre><pre class="server" class=""><code class="language-ocaml translatable">let%server client_reactive_attrib () = [%client
   R.a_style value_signal
 ]
 
-let client_reactive_title () = [%client
+let%server client_reactive_title () = [%client
   F.h1 [txt &quot;I'm a client node&quot;]
 ]
 
-let () =
+let%server () =
   Testnodes_app.register
     ~service:main_service
     (fun () () -&gt;
@@ -341,29 +318,26 @@ instance is used in every page that references the element.
 </p><p>To create a global element, use function <span><a href=".././api/client/Eliom_content.Html.Id#VALcreate_global_elt">Eliom_content.Html.Id.create_global_elt</a></span>.
 </p><pre class=""><code class="language-ocaml translatable">val create_global_elt: 'a elt -&gt; 'a elt</code></pre><p>In the following example, the content of <span class="teletype">global_list</span> will be
 preserved when you click on the &quot;reload page&quot; link.
-</p><pre class=""><code class="language-ocaml translatable">[%%shared open Eliom_content.Html.D ]
-
-module My_app =
+</p><pre class="shared" class=""><code class="language-ocaml translatable">open%shared Eliom_content.Html.D</code></pre><pre class="server" class=""><code class="language-ocaml translatable">module%server My_app =
   Eliom_registration.App (
   struct
     let application_name = &quot;myo&quot;
     let global_data_path = None
   end)
 
+let%server global_list = Eliom_content.Html.Id.create_global_elt (ul [])
+let%server cpt = ref 0
 
-let global_list = Eliom_content.Html.Id.create_global_elt (ul [])
-let cpt = ref 0
-
-let main_service =
+let%server main_service =
   Eliom_service.create
     ~path:(Eliom_service.Path [&quot;&quot;])
     ~meth:(Eliom_service.Get Eliom_parameter.unit)
     ()
 
-let reload_link =
+let%server reload_link =
   a ~service:main_service [txt &quot;reload page&quot;] ()
 
-let _ =
+let%server _ =
   My_app.register ~service:main_service
     (fun () () -&gt;
        let page_number = incr cpt; string_of_int !cpt in
@@ -387,24 +361,24 @@ be included in every page but must be executed only once in an
 application. In the following code snippet, the alert &quot;global script&quot;
 is displayed only once, while the alert &quot;non global script&quot; is display
 every time you click on the &quot;reload page&quot; link.
-</p><pre class=""><code class="language-ocaml translatable">open Eliom_content.Html.D
+</p><pre class="server" class=""><code class="language-ocaml translatable">open%server Eliom_content.Html.D
 
-let global_script =
+let%server global_script =
   Eliom_content.Html.Id.create_global_elt
     (script (cdata_script &quot;alert(\&quot;global script\&quot;)&quot;))
-let simple_script =
+let%server simple_script =
   script (cdata_script &quot;alert(\&quot;non global script\&quot;)&quot;)
 
-let main_service =
+let%server main_service =
   Eliom_service.create
     ~path:(Eliom_service.Path [])
     ~meth:(Eliom_service.Get Eliom_parameter.unit)
     ()
 
-let reload_link =
+let%server reload_link =
   a ~service:main_service [txt &quot;reload page&quot;] ()
 
-let _ =
+let%server _ =
   My_app.register ~service:main_service
     (fun () () -&gt;
        Lwt.return
@@ -416,7 +390,7 @@ let _ =
 </p><p>See <span><a href=".././../../tyxml/latest/manual/ppx">Tyxml's manual</a></span>.
 </p><h3 id="text_html">Text HTML <a class="backref" href="#text_html">&#182;</a></h3><p>The last possibility is to use untyped HTML. Just build strings
 containing your pages. Here is an example:
-</p><pre class=""><code class="language-ocaml translatable">let hello =
+</p><pre class="server" class=""><code class="language-ocaml translatable">let%server hello =
   Eliom_registration.Html_text.create
     ~path:(Eliom_service.Path [&quot;hello&quot;])
     ~meth:(Eliom_service.Get Eliom_parameter.unit)
@@ -424,16 +398,14 @@ containing your pages. Here is an example:
 We do not recommend this.
 </p><h3 id="custom_data">Custom data for HTML <a class="backref" href="#custom_data">&#182;</a></h3><p>Eliom provides a type-safe interface for create new attributes of the form <span class="teletype">data-*</span>, using  <span><a href=".././api/server/Eliom_content.Html.Custom_data">Eliom_content.Html.Custom_data</a></span>.
 </p><h4> Creation </h4><p>Custom data may be created either from string-conversation functions by <span><a href=".././api/server/Eliom_content.Html.Custom_data#VALcreate">Eliom_content.Html.Custom_data.create</a></span>
-</p><pre class=""><code class="language-ocaml translatable">open Eliom_content
-let my_int_data =
+</p><pre class="server" class=""><code class="language-ocaml translatable">open%server Eliom_content
+let%server my_int_data =
   Html.Custom_data.create ~name:&quot;my_int&quot;
     ~of_string:int_of_string
     ~to_string:string_of_int ()</code></pre><p>or by a Json-deriving type <span><a href=".././api/server/Eliom_content.Html.Custom_data#VALcreate_json">Eliom_content.Html.Custom_data.create_json</a></span>
-</p><pre class=""><code class="language-ocaml translatable">[%%shared
-    type coord = { x : int; y : int; } [@@deriving json]
-    let coord_data =
-      Html.Custom_data.create_json ~name:&quot;coord&quot; [%derive.json: coord]
-]</code></pre><h4> Injecting </h4><p>Custom data can be injected into HTML-trees of type <span><a href=".././../../eliom/latest/api/Eliom_content.Html#TYPEelt">Eliom_content.Html.elt</a></span> by the function <span><a href=".././../../eliom/latest/api/Eliom_content.Html.Custom_data#VALattrib">Eliom_content.Html.Custom_data.attrib</a></span>:
+</p><pre class="shared" class=""><code class="language-ocaml translatable">type%shared coord = { x : int; y : int; } [@@deriving json]
+let%shared coord_data =
+  Html.Custom_data.create_json ~name:&quot;coord&quot; [%derive.json: coord]</code></pre><h4> Injecting </h4><p>Custom data can be injected into HTML-trees of type <span><a href=".././../../eliom/latest/api/Eliom_content.Html#TYPEelt">Eliom_content.Html.elt</a></span> by the function <span><a href=".././../../eliom/latest/api/Eliom_content.Html.Custom_data#VALattrib">Eliom_content.Html.Custom_data.attrib</a></span>:
 </p><pre class=""><code class="language-ocaml translatable">div ~a:[Html.Custom_data.attrib coord_data {x = 100; y = 200}] []</code></pre><h4> Reading/writing the DOM </h4><p>On the client side, custom data can be read from and written to JavaScript DOM
 elements of type <span><a href=".././../../js_of_ocaml/latest/api/js_of_ocaml/Js_of_ocaml/Dom_html/class-type-element/#class-type-element">Js_of_ocaml.Dom_html.element</a></span>.
 </p><p>Custom data can be read from a DOM-element with the function
