@@ -1,6 +1,8 @@
 = Eliom's Reference manual
 
 ==[[intro|Introduction]]
+===<<a_manual project="tuto" chapter="basics"|Client-server applications>>
+===<<a_manual project="tuto" chapter="basics-server"|Server-side websites>>
 
 ==Server-side programming
 ===Services
