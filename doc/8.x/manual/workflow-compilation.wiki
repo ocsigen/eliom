@@ -1,5 +1,7 @@
 =Compiling client-server Eliom applications
 
+//This page is outdated. Eliom now comes with a Dune-based buid-system.//
+
 The build process for client-server Eliom applications is rather
 involved. To ease development of such application, we recommend you to
 create your project with <<a_manual
