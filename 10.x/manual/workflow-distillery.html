@@ -54,10 +54,12 @@ window.addEventListener("load", function(){ outline([0,-515484383,0,[0,2],[0,"na
 //]]>
 </script><h3> Project Initialization</h3><p><span class="teletype">eliom-distillery</span> creates projects from templates.
 To see all available templates, you can use
-</p><pre class="manually-translated"><code class="language-shell">$ eliom-distillery -list-templates</code></pre><p>Template &quot;basic&quot; create a very simple project (makefiles and configuration file
-and main service).
+</p><pre class="manually-translated"><code class="language-shell">$ eliom-distillery -list-templates</code></pre><p>Template &quot;client-server.basic&quot; create a simple project (Dune-based build system,
+configuration file and main service).
+Alternatively, you might want to use the legacy &quot;basic.ppx&quot; template,
+with a Makefile-based build system.
 </p><p>To create your project, do:
-</p><pre class="manually-translated"><code class="language-shell">$ eliom-distillery -name &lt;name&gt; -template basic.ppx [-target-directory &lt;dir&gt;]</code></pre><p>This creates a project named <span class="teletype">&lt;name&gt;</span> from the <span class="teletype">&quot;basic.ppx&quot;</span>
+</p><pre class="manually-translated"><code class="language-shell">$ eliom-distillery -name &lt;name&gt; -template client-server.basic [-target-directory &lt;dir&gt;]</code></pre><p>This creates a project named <span class="teletype">&lt;name&gt;</span> from the <span class="teletype">&quot;client-server.basic&quot;</span>
 template in the directory <span class="teletype">&lt;dir&gt;</span> or <span class="teletype">&lt;name&gt;</span> by default.
 The project name should be a valid name for an OCaml compilation unit.
 The project directory contains the following files
@@ -112,5 +114,5 @@ list all reserved project names in the special file
 </p><p><span class="teletype">eliom-distillery</span> also replaces <span class="teletype">%%%PROJECT_NAME%%%</span> (resp.
 <span class="teletype">%%%MODULE_NAME%%%</span>) by the project name (resp. by the project
 name with the first letter capitalized).
-</p><p>For examples, see pre-defined templates like <span class="teletype">basic.ppx</span> and
+</p><p>For examples, see pre-defined templates like <span class="teletype">client-server.basic</span>, <span class="teletype">basic.ppx</span> and
 <span class="teletype">os.pgocaml</span>.</p></article></div></div></body></html>
