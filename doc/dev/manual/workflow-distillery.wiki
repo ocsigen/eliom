@@ -20,16 +20,18 @@ To see all available templates, you can use
 $ eliom-distillery -list-templates
 >>
 
-Template "basic" create a very simple project (makefiles and configuration file
-and main service).
+Template "client-server.basic" create a simple project (Dune-based build system,
+configuration file and main service).
+Alternatively, you might want to use the legacy "basic.ppx" template,
+with a Makefile-based build system.
 
 To create your project, do:
 
 <<code language="shell"|
-$ eliom-distillery -name <name> -template basic.ppx [-target-directory <dir>]
+$ eliom-distillery -name <name> -template client-server.basic [-target-directory <dir>]
 >>
 
-This creates a project named {{{<name>}}} from the {{{"basic.ppx"}}}
+This creates a project named {{{<name>}}} from the {{{"client-server.basic"}}}
 template in the directory {{{<dir>}}} or {{{<name>}}} by default.
 The project name should be a valid name for an OCaml compilation unit.
 The project directory contains the following files
@@ -115,5 +117,5 @@ list all reserved project names in the special file
 {{{%%%MODULE_NAME%%%}}}) by the project name (resp. by the project
 name with the first letter capitalized).
 
-For examples, see pre-defined templates like {{{basic.ppx}}} and
+For examples, see pre-defined templates like {{{client-server.basic}}}, {{{basic.ppx}}} and
 {{{os.pgocaml}}}.
