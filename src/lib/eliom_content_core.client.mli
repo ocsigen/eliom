@@ -25,9 +25,9 @@ open Js_of_ocaml
 module Xml : sig
   module W :
     Xml_wrap.T
-      with type 'a t = 'a
-       and type 'a tlist = 'a list
-       and type (-'a, 'b) ft = 'a -> 'b
+    with type 'a t = 'a
+     and type 'a tlist = 'a list
+     and type (-'a, 'b) ft = 'a -> 'b
 
   type uri = string
 
@@ -42,17 +42,20 @@ module Xml : sig
     | CE_registered_closure of string * Eliom_lib.poly
     (* 'a Js.t -> unit) client_value_server *)
     | CE_client_closure of (Dom_html.event Js.t -> unit) (* Client side-only *)
-    | CE_client_closure_mouse of (Dom_html.mouseEvent Js.t -> unit) (* Client side-only *)
-    | CE_client_closure_keyboard of (Dom_html.keyboardEvent Js.t -> unit) (* Client side-only *)
-    | CE_client_closure_touch of (Dom_html.touchEvent Js.t -> unit) (* Client side-only *)
+    | CE_client_closure_mouse of (Dom_html.mouseEvent Js.t -> unit)
+      (* Client side-only *)
+    | CE_client_closure_keyboard of (Dom_html.keyboardEvent Js.t -> unit)
+      (* Client side-only *)
+    | CE_client_closure_touch of (Dom_html.touchEvent Js.t -> unit)
+      (* Client side-only *)
     | CE_call_service of
         ([`A | `Form_get | `Form_post]
         * (bool * string list) option
         * string option
         * Ocsigen_lib_base.poly)
-        (* (unit -> bool) client_value *)
-        option
-        Eliom_lazy.request
+          (* (unit -> bool) client_value *)
+          option
+          Eliom_lazy.request
 
   type internal_event_handler = Raw of string | Caml of caml_event_handler
   type event_handler = Dom_html.event Js.t -> unit
@@ -75,11 +78,11 @@ module Xml : sig
 
   (**/**)
 
-  val internal_event_handler_of_service
-    :  ([`A | `Form_get | `Form_post]
-       * (bool * string list) option
-       * string option
-       * Eliom_lib.poly)
+  val internal_event_handler_of_service :
+     ([`A | `Form_get | `Form_post]
+     * (bool * string list) option
+     * string option
+     * Eliom_lib.poly)
        option
        Eliom_lazy.request
     -> internal_event_handler
@@ -156,14 +159,14 @@ end
 module Xml_wed : sig
   include
     Xml_sigs.T
-      with module W = Js_of_ocaml_tyxml.Tyxml_js.Wrap
-       and type elt = Xml.elt
-       and type aname = Xml.aname
-       and type attrib = Xml.attrib
-       and type uri = Xml.uri
-       and type 'a W.t = 'a React.signal
-       and type 'a W.tlist = 'a ReactiveData.RList.t
-       and type ('a, 'b) W.ft = 'a -> 'b
+    with module W = Js_of_ocaml_tyxml.Tyxml_js.Wrap
+     and type elt = Xml.elt
+     and type aname = Xml.aname
+     and type attrib = Xml.attrib
+     and type uri = Xml.uri
+     and type 'a W.t = 'a React.signal
+     and type 'a W.tlist = 'a ReactiveData.RList.t
+     and type ('a, 'b) W.ft = 'a -> 'b
 
   val float_attrib : aname -> float React.S.t -> attrib
   val int_attrib : aname -> int React.S.t -> attrib
@@ -195,8 +198,8 @@ module Svg : sig
   module F : sig
     module Raw :
       Svg_sigs.Make(Xml).T
-        with type +'a elt = 'a elt
-         and type +'a attrib = 'a attrib
+      with type +'a elt = 'a elt
+       and type +'a attrib = 'a attrib
 
     include module type of Raw
     (** See {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
@@ -209,8 +212,8 @@ module Svg : sig
   module D : sig
     module Raw :
       Svg_sigs.Make(Xml).T
-        with type +'a elt = 'a elt
-         and type +'a attrib = 'a attrib
+      with type +'a elt = 'a elt
+       and type +'a attrib = 'a attrib
 
     include module type of Raw
     (** See {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
@@ -227,8 +230,8 @@ module Svg : sig
 
     module Raw :
       Svg_sigs.Make(Xml_wed).T
-        with type +'a elt = 'a elt
-         and type +'a attrib = 'a attrib
+      with type +'a elt = 'a elt
+       and type +'a attrib = 'a attrib
 
     include module type of Raw
     (** See {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
@@ -280,8 +283,8 @@ module Html : sig
   module F : sig
     module Raw :
       Html_sigs.Make(Xml)(Svg.F.Raw).T
-        with type +'a elt = 'a elt
-         and type +'a attrib = 'a attrib
+      with type +'a elt = 'a elt
+       and type +'a attrib = 'a attrib
 
     include module type of Raw
     (** See {% <<a_api project="tyxml" | module type Html_sigs.T >> %}. *)
@@ -293,8 +296,8 @@ module Html : sig
     type ('a, 'b, 'c) lazy_star =
       ?a:'a attrib list -> 'b elt list Eliom_lazy.request -> 'c elt
 
-    val lazy_form
-      : ( [< Html_types.form_attrib]
+    val lazy_form :
+      ( [< Html_types.form_attrib]
         , [< Html_types.form_content_fun]
         , [> Html_types.form] )
         lazy_star
@@ -305,8 +308,8 @@ module Html : sig
   module D : sig
     module Raw :
       Html_sigs.Make(Xml)(Svg.D.Raw).T
-        with type +'a elt = 'a elt
-         and type +'a attrib = 'a attrib
+      with type +'a elt = 'a elt
+       and type +'a attrib = 'a attrib
 
     include module type of Raw
 
@@ -315,8 +318,8 @@ module Html : sig
     type ('a, 'b, 'c) lazy_star =
       ?a:'a attrib list -> 'b elt list Eliom_lazy.request -> 'c elt
 
-    val lazy_form
-      : ( [< Html_types.form_attrib]
+    val lazy_form :
+      ( [< Html_types.form_attrib]
         , [< Html_types.form_content_fun]
         , [> Html_types.form] )
         lazy_star
@@ -338,8 +341,8 @@ module Html : sig
 
     module Raw :
       Html_sigs.Make(Xml_wed)(Svg.R.Raw).T
-        with type +'a elt = 'a elt
-         and type +'a attrib = 'a attrib
+      with type +'a elt = 'a elt
+       and type +'a attrib = 'a attrib
 
     include module type of Raw
   end
@@ -377,8 +380,8 @@ module Html : sig
     type 'a t
     (** Custom data with values of type ['a]. *)
 
-    val create
-      :  name:string
+    val create :
+       name:string
       -> ?default:'a
       -> to_string:('a -> string)
       -> of_string:(string -> 'a)

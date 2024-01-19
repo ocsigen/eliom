@@ -36,32 +36,6 @@ let string_prefix s1 s2 =
 type srv =
   | Srv :
       ( unit
-      , unit
-      , Eliom_service.get
-      , _
-      , _
-      , _
-      , _
-      , [`WithoutSuffix]
-      , unit
-      , unit
-      , Eliom_service.non_ocaml )
-      Eliom_service.t
-      -> srv
-
-type 'a hierarchical_site_item = Disabled | Site_tree of 'a hierarchical_site
-
-and main_page = Main_page of srv | Default_page of srv | Not_clickable
-
-and 'a hierarchical_site = main_page * ('a * 'a hierarchical_site_item) list
-
-module type HTML5_TOOLS = sig
-  (** {2 Simple menu } *)
-
-  val menu
-    :  ?classe:Html_types.nmtoken list
-    -> ?id:string
-    -> (( unit
         , unit
         , Eliom_service.get
         , _
@@ -73,21 +47,45 @@ module type HTML5_TOOLS = sig
         , unit
         , Eliom_service.non_ocaml )
         Eliom_service.t
+      -> srv
+
+type 'a hierarchical_site_item = Disabled | Site_tree of 'a hierarchical_site
+and main_page = Main_page of srv | Default_page of srv | Not_clickable
+and 'a hierarchical_site = main_page * ('a * 'a hierarchical_site_item) list
+
+module type HTML5_TOOLS = sig
+  (** {2 Simple menu } *)
+
+  val menu :
+     ?classe:Html_types.nmtoken list
+    -> ?id:string
+    -> (( unit
+          , unit
+          , Eliom_service.get
+          , _
+          , _
+          , _
+          , _
+          , [`WithoutSuffix]
+          , unit
+          , unit
+          , Eliom_service.non_ocaml )
+          Eliom_service.t
        * [< Html_types.flow5_without_interactive] Html.elt list)
-       list
+         list
     -> ?service:
          ( unit
-         , unit
-         , Eliom_service.get
-         , _
-         , _
-         , _
-         , _
-         , [`WithoutSuffix]
-         , unit
-         , unit
-         , Eliom_service.non_ocaml )
-         Eliom_service.t
+           , unit
+           , Eliom_service.get
+           , _
+           , _
+           , _
+           , _
+           , [`WithoutSuffix]
+           , unit
+           , unit
+           , Eliom_service.non_ocaml )
+           Eliom_service.t
     -> unit
     -> [> `Ul] Html.elt
   (** The function [menu elts ()], where [elts] is a list of pair
@@ -106,24 +104,24 @@ module type HTML5_TOOLS = sig
 
   (** {2 Hierchical sites } *)
 
-  val hierarchical_menu_depth_first
-    :  ?classe:Html_types.nmtoken list
+  val hierarchical_menu_depth_first :
+     ?classe:Html_types.nmtoken list
     -> ?id:string
     -> ?whole_tree:bool
     -> [< Html_types.a_content] Html.elt list hierarchical_site
     -> ?service:
          ( unit
-         , unit
-         , Eliom_service.get
-         , _
-         , _
-         , _
-         , _
-         , [`WithoutSuffix]
-         , unit
-         , unit
-         , Eliom_service.non_ocaml )
-         Eliom_service.t
+           , unit
+           , Eliom_service.get
+           , _
+           , _
+           , _
+           , _
+           , [`WithoutSuffix]
+           , unit
+           , unit
+           , Eliom_service.non_ocaml )
+           Eliom_service.t
     -> unit
     -> [> `Ul] Html.elt list
   (** The function [hierarchical_menu_depth_first site ()] constructs
@@ -141,23 +139,23 @@ module type HTML5_TOOLS = sig
       See {!menu} for a description of the optional parameters [id]
       and [classe]. *)
 
-  val hierarchical_menu_breadth_first
-    :  ?classe:Html_types.nmtoken list
+  val hierarchical_menu_breadth_first :
+     ?classe:Html_types.nmtoken list
     -> ?id:string
     -> [< Html_types.a_content] Html.elt list hierarchical_site
     -> ?service:
          ( unit
-         , unit
-         , Eliom_service.get
-         , _
-         , _
-         , _
-         , _
-         , [`WithoutSuffix]
-         , unit
-         , unit
-         , Eliom_service.non_ocaml )
-         Eliom_service.t
+           , unit
+           , Eliom_service.get
+           , _
+           , _
+           , _
+           , _
+           , [`WithoutSuffix]
+           , unit
+           , unit
+           , Eliom_service.non_ocaml )
+           Eliom_service.t
     -> unit
     -> [> `Ul] Html.elt list
   (** The function [hierarchical_menu_breadth_first site ()]
@@ -173,21 +171,21 @@ module type HTML5_TOOLS = sig
       See {!menu} for a description of the optional parameters [id]
       and [classe].  *)
 
-  val structure_links
-    :  [< Html_types.a_content] Html.elt list hierarchical_site
+  val structure_links :
+     [< Html_types.a_content] Html.elt list hierarchical_site
     -> ?service:
          ( unit
-         , unit
-         , Eliom_service.get
-         , _
-         , _
-         , _
-         , _
-         , [`WithoutSuffix]
-         , unit
-         , unit
-         , Eliom_service.non_ocaml )
-         Eliom_service.t
+           , unit
+           , Eliom_service.get
+           , _
+           , _
+           , _
+           , _
+           , [`WithoutSuffix]
+           , unit
+           , unit
+           , Eliom_service.non_ocaml )
+           Eliom_service.t
     -> unit
     -> [> `Link] Html.elt list
   (** The function [structure_links site ()] returns the tags [<link
@@ -198,8 +196,8 @@ module type HTML5_TOOLS = sig
       url. The optional parameter [service] allow to override the
       current service. *)
 
-  val head
-    :  title:string
+  val head :
+     title:string
     -> ?css:string list list
     -> ?js:string list list
     -> ?other:[< Html_types.head_content_fun] Html.elt list
@@ -209,8 +207,8 @@ module type HTML5_TOOLS = sig
       elements. Resources (JS, CSS) are taken from the static
       directory. *)
 
-  val html
-    :  title:string
+  val html :
+     title:string
     -> ?a:[< Html_types.html_attrib] Html.attrib list
     -> ?css:string list list
     -> ?js:string list list
@@ -283,8 +281,8 @@ module Make (DorF : module type of Eliom_content.Html.F) : HTML5_TOOLS = struct
           else [li ~a:[a_class classe] [a ~service:url text ()]]
       | (url, text) :: l ->
           (if same_service_opt url current
-          then li ~a:[a_class [current_class]] text
-          else li [a ~service:url text ()])
+           then li ~a:[a_class [current_class]] text
+           else li [a ~service:url text ()])
           :: aux l
     in
     match l with
@@ -301,8 +299,8 @@ module Make (DorF : module type of Eliom_content.Html.F) : HTML5_TOOLS = struct
           ~a:(a_ul (menu_class :: classe) id 0)
           (let liclasse = [first_class] in
            (if same_service_opt url current
-           then li ~a:[a_class (current_class :: liclasse)] text
-           else li ~a:[a_class liclasse] [a ~service:url text ()])
+            then li ~a:[a_class (current_class :: liclasse)] text
+            else li ~a:[a_class liclasse] [a ~service:url text ()])
            :: aux l)
 
   let service_prefix s sopt =
@@ -379,18 +377,19 @@ module Make (DorF : module type of Eliom_content.Html.F) : HTML5_TOOLS = struct
               (a ~service:page text ()
               ::
               (if deplier || whole_tree
-              then
-                (depth_first_fun hsl (level + 1) pos2
-                  : [`Ul] elt list
-                  :> [< li_content > `Ul] elt list)
-              else []))
+               then
+                 (depth_first_fun hsl (level + 1) pos2
+                   : [`Ul] elt list
+                   :> [< li_content > `Ul] elt list)
+               else []))
         | text, Site_tree (Main_page (Srv page), hsl) ->
             li ~a:attclass
               (a ~service:page text ()
               ::
               (if deplier || whole_tree
-              then (depth_first_fun hsl (level + 1) pos2 :> li_content elt list)
-              else []))
+               then
+                 (depth_first_fun hsl (level + 1) pos2 :> li_content elt list)
+               else []))
         | text, Site_tree (Not_clickable, hsl) ->
             li ~a:attclass
               ((text :> li_content elt list)

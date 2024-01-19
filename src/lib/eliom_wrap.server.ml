@@ -154,7 +154,9 @@ module Tbl = struct
     let rec insert tbl h x idx =
       let y = tbl.obj.(h) in
       if y == none
-      then (tbl.obj.(h) <- x; tbl.idx.(h) <- idx)
+      then (
+        tbl.obj.(h) <- x;
+        tbl.idx.(h) <- idx)
       else if y == x
       then tbl.idx.(h) <- max idx tbl.idx.(h) (* Keep largest index *)
       else insert tbl ((h + 1) land (tbl.size - 1)) x idx

@@ -240,17 +240,17 @@ end
 module Svg = struct
   module D = struct
     module Raw = Svg_f.Make (struct
-      include Xml
+        include Xml
 
-      let make elt = make_request_node (make elt)
-      let empty () = make Empty
-      let comment c = make (Comment c)
-      let pcdata d = make (PCDATA d)
-      let encodedpcdata d = make (EncodedPCDATA d)
-      let entity e = make (Entity e)
-      let leaf ?(a = []) name = make (Leaf (name, a))
-      let node ?(a = []) name children = make (Node (name, a, children))
-    end)
+        let make elt = make_request_node (make elt)
+        let empty () = make Empty
+        let comment c = make (Comment c)
+        let pcdata d = make (PCDATA d)
+        let encodedpcdata d = make (EncodedPCDATA d)
+        let entity e = make (Entity e)
+        let leaf ?(a = []) name = make (Leaf (name, a))
+        let node ?(a = []) name children = make (Node (name, a, children))
+      end)
 
     include Raw
   end
@@ -344,15 +344,16 @@ module Html = struct
             Xml.RAReact
               (React.S.map
                  (function
-                   | true -> Some (Xml.AStr (Eliom_lazy.force s))
-                   | false -> None)
+                    | true -> Some (Xml.AStr (Eliom_lazy.force s))
+                    | false -> None)
                  on)
         | Xml.RALazyStrL (sep, l) ->
             Xml.RAReact
               (React.S.map
                  (function
-                   | true -> Some (Xml.AStrL (sep, List.map Eliom_lazy.force l))
-                   | false -> None)
+                    | true ->
+                        Some (Xml.AStrL (sep, List.map Eliom_lazy.force l))
+                    | false -> None)
                  on)
         | Xml.RACamlEventHandler _ ->
             failwith "R.filter_attrib not implemented for event handler"
@@ -421,9 +422,9 @@ module Html = struct
       Js.Opt.case
         element ## (getAttribute (Js.string (attribute_name custom_data.name)))
         (fun () ->
-          match custom_data.default with
-          | Some value -> value
-          | None -> raise Not_found)
+           match custom_data.default with
+           | Some value -> value
+           | None -> raise Not_found)
         (fun str -> custom_data.of_string (Js.to_string str))
 
     let set_dom element custom_data value =
@@ -434,10 +435,10 @@ module Html = struct
   end
 
   module Of_dom = Js_of_ocaml_tyxml.Tyxml_cast.MakeOf (struct
-    type 'a elt = 'a F.elt
+      type 'a elt = 'a F.elt
 
-    let elt (node : 'a Js.t) : 'a elt = Xml.make_dom (node :> Dom.node Js.t)
-  end)
+      let elt (node : 'a Js.t) : 'a elt = Xml.make_dom (node :> Dom.node Js.t)
+    end)
 
   let set_classes_of_elt elt = F.tot (Xml.set_classes_of_elt (F.toelt elt))
 end

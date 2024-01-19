@@ -23,10 +23,10 @@ include Eliom_cookies_base
 
 (* CCC The tables are indexed by the hostname, not the port appear.
    there are no particular reason. If needed it is possible to add it *)
-let cookie_tables
-    : (float option * string * bool) Ocsigen_cookie_map.Map_inner.t
+let cookie_tables :
+    (float option * string * bool) Ocsigen_cookie_map.Map_inner.t
       Ocsigen_cookie_map.Map_path.t
-    Jstable.t
+      Jstable.t
   =
   Jstable.create ()
 
@@ -41,10 +41,10 @@ let get_table ?(in_local_storage = false) = function
           Dom_html.window##.localStorage
           (fun () -> Ocsigen_cookie_map.Map_path.empty)
           (fun st ->
-            Js.Opt.case
-              st ## (getItem host)
-              (fun () -> Ocsigen_cookie_map.Map_path.empty)
-              (fun v -> Json.unsafe_input v))
+             Js.Opt.case
+               st ## (getItem host)
+               (fun () -> Ocsigen_cookie_map.Map_path.empty)
+               (fun v -> Json.unsafe_input v))
       else
         Js.Optdef.get
           (Jstable.find cookie_tables (Js.string host))
@@ -73,21 +73,21 @@ let update_cookie_table ?(in_local_storage = false) host cookies =
   let now = now () in
   Ocsigen_cookie_map.Map_path.iter
     (fun path table ->
-      Ocsigen_cookie_map.Map_inner.iter
-        (fun name -> function
-          | OSet (Some exp, _, _) when exp <= now ->
-              set_table ~in_local_storage host
-                (Ocsigen_cookie_map.Poly.remove ~path name
-                   (get_table ~in_local_storage host))
-          | OUnset ->
-              set_table ~in_local_storage host
-                (Ocsigen_cookie_map.Poly.remove ~path name
-                   (get_table ~in_local_storage host))
-          | OSet (exp, value, secure) ->
-              set_table ~in_local_storage host
-                (Ocsigen_cookie_map.Poly.add ~path name (exp, value, secure)
-                   (get_table ~in_local_storage host)))
-        table)
+       Ocsigen_cookie_map.Map_inner.iter
+         (fun name -> function
+            | OSet (Some exp, _, _) when exp <= now ->
+                set_table ~in_local_storage host
+                  (Ocsigen_cookie_map.Poly.remove ~path name
+                     (get_table ~in_local_storage host))
+            | OUnset ->
+                set_table ~in_local_storage host
+                  (Ocsigen_cookie_map.Poly.remove ~path name
+                     (get_table ~in_local_storage host))
+            | OSet (exp, value, secure) ->
+                set_table ~in_local_storage host
+                  (Ocsigen_cookie_map.Poly.add ~path name (exp, value, secure)
+                     (get_table ~in_local_storage host)))
+         table)
     cookies
 
 (** [in_local_storage] implements cookie substitutes for iOS WKWebView *)
@@ -95,24 +95,24 @@ let get_cookies_to_send ?(in_local_storage = false) host https path =
   let now = now () in
   Ocsigen_cookie_map.Map_path.fold
     (fun cpath t cookies_to_send ->
-      if Url.is_prefix_skip_end_slash
-           (Url.remove_slash_at_beginning cpath)
-           (Url.remove_slash_at_beginning path)
-      then
-        Ocsigen_cookie_map.Map_inner.fold
-          (fun name (exp, value, secure) cookies_to_send ->
-            match exp with
-            | Some exp when exp <= now ->
-                set_table ~in_local_storage host
-                  (Ocsigen_cookie_map.Poly.remove ~path:cpath name
-                     (get_table ~in_local_storage host));
-                cookies_to_send
-            | _ ->
-                if (not secure) || https
-                then (name, value) :: cookies_to_send
-                else cookies_to_send)
-          t cookies_to_send
-      else cookies_to_send)
+       if Url.is_prefix_skip_end_slash
+            (Url.remove_slash_at_beginning cpath)
+            (Url.remove_slash_at_beginning path)
+       then
+         Ocsigen_cookie_map.Map_inner.fold
+           (fun name (exp, value, secure) cookies_to_send ->
+              match exp with
+              | Some exp when exp <= now ->
+                  set_table ~in_local_storage host
+                    (Ocsigen_cookie_map.Poly.remove ~path:cpath name
+                       (get_table ~in_local_storage host));
+                  cookies_to_send
+              | _ ->
+                  if (not secure) || https
+                  then (name, value) :: cookies_to_send
+                  else cookies_to_send)
+           t cookies_to_send
+       else cookies_to_send)
     (get_table ~in_local_storage host)
     []
 

@@ -28,8 +28,8 @@ open Js_of_ocaml
 module Client_value_server_repr : sig
   type +'a t
 
-  val create
-    :  loc:Eliom_lib_base.pos option
+  val create :
+     loc:Eliom_lib_base.pos option
     -> instance_id:int
     -> unwrapper:Eliom_wrap.unwrapper
     -> _ t
@@ -54,19 +54,23 @@ module RawXML : sig
   type cookie_info = bool * string list [@@deriving json]
 
   type caml_event_handler =
-    | CE_registered_closure of string * Ocsigen_lib_base.poly (* 'a Js.t -> unit) client_value *)
+    | CE_registered_closure of
+        string * Ocsigen_lib_base.poly (* 'a Js.t -> unit) client_value *)
     | CE_client_closure of (Dom_html.event Js.t -> unit) (* Client side-only *)
-    | CE_client_closure_mouse of (Dom_html.mouseEvent Js.t -> unit) (* Client side-only *)
-    | CE_client_closure_keyboard of (Dom_html.keyboardEvent Js.t -> unit) (* Client side-only *)
-    | CE_client_closure_touch of (Dom_html.touchEvent Js.t -> unit) (* Client side-only *)
+    | CE_client_closure_mouse of (Dom_html.mouseEvent Js.t -> unit)
+      (* Client side-only *)
+    | CE_client_closure_keyboard of (Dom_html.keyboardEvent Js.t -> unit)
+      (* Client side-only *)
+    | CE_client_closure_touch of (Dom_html.touchEvent Js.t -> unit)
+      (* Client side-only *)
     | CE_call_service of
         ([`A | `Form_get | `Form_post]
         * cookie_info option
         * string option
         * Ocsigen_lib_base.poly)
-        (* (unit -> bool) client_value *)
-        option
-        Eliom_lazy.request
+          (* (unit -> bool) client_value *)
+          option
+          Eliom_lazy.request
 
   type internal_event_handler = Raw of string | Caml of caml_event_handler
   type uri = string Eliom_lazy.request
@@ -75,11 +79,11 @@ module RawXML : sig
   val uri_of_string : string -> uri
   val uri_of_fun : (unit -> string) -> uri
 
-  val internal_event_handler_of_service
-    :  ([`A | `Form_get | `Form_post]
-       * cookie_info option
-       * string option
-       * Eliom_lib.poly)
+  val internal_event_handler_of_service :
+     ([`A | `Form_get | `Form_post]
+     * cookie_info option
+     * string option
+     * Eliom_lib.poly)
        option
        Eliom_lazy.request
     -> internal_event_handler
@@ -141,14 +145,14 @@ module RawXML : sig
 
   type event_handler_table =
     Ocsigen_lib_base.poly
-    (* (biggest_event Js.t -> unit) client_value*)
-    ClosureMap.t
+      (* (biggest_event Js.t -> unit) client_value*)
+      ClosureMap.t
 
   type client_attrib_table =
     Ocsigen_lib_base.poly (* attrib client_value *) ClosureMap.t
 
-  val filter_class_attribs
-    :  node_id
+  val filter_class_attribs :
+     node_id
     -> (string * racontent) list
     -> (string * racontent) list
 end

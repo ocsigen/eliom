@@ -3,20 +3,20 @@ open Parsetree
 
 (** {2 Various helping functions} *)
 
-val sequence
-  :  ?loc:Location.t
+val sequence :
+   ?loc:Location.t
   -> ?attrs:Parsetree.attribute list
   -> Parsetree.expression list
   -> Parsetree.expression
 
-val str
-  :  ?loc:Location.t
+val str :
+   ?loc:Location.t
   -> ?attrs:Parsetree.attribute list
   -> string
   -> Parsetree.expression
 
-val int
-  :  ?loc:Location.t
+val int :
+   ?loc:Location.t
   -> ?attrs:Parsetree.attribute list
   -> int
   -> Parsetree.expression
@@ -78,8 +78,8 @@ module type Pass = sig
   val client_sig : signature_item -> signature_item list
   val server_sig : signature_item -> signature_item list
 
-  val fragment
-    :  loc:Location.t
+  val fragment :
+     loc:Location.t
     -> ?typ:core_type
     -> context:Context.server
     -> num:string
@@ -89,8 +89,8 @@ module type Pass = sig
     -> expression
   (** How to handle "[%client ...]" and "[%shared ...]" expr. *)
 
-  val escape_inject
-    :  loc:Location.t
+  val escape_inject :
+     loc:Location.t
     -> ?ident:string
     -> context:Context.escape_inject
     -> id:string Location.loc

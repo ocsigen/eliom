@@ -37,7 +37,6 @@ let default_protocol_is_https () = Url.Current.protocol = "https"
 (*RRR ??? replace by Url.default_https_port ???*)
 
 let get_default_links_xhr () = true (*BBB take from server? !!!!!!!!!! *)
-
 let debug_timings = ref false
 let is_tracing = ref false
 let set_tracing value = is_tracing := value

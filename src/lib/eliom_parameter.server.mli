@@ -19,12 +19,11 @@
 
 include
   Eliom_parameter_sigs.S
-    with type raw_post_data =
-          ((string * string) * (string * string) list) option
-          * Cohttp_lwt.Body.t
+  with type raw_post_data =
+    ((string * string) * (string * string) list) option * Cohttp_lwt.Body.t
 
-val user_type
-  :  ?client_to_and_of:'a to_and_of Eliom_client_value.t
+val user_type :
+   ?client_to_and_of:'a to_and_of Eliom_client_value.t
   -> of_string:(string -> 'a)
   -> to_string:('a -> string)
   -> string
@@ -38,8 +37,8 @@ val user_type
     injecting the parameter (or a service that uses it) for use in
     client code. *)
 
-val all_suffix_user
-  :  ?client_to_and_of:'a to_and_of Eliom_client_value.t
+val all_suffix_user :
+   ?client_to_and_of:'a to_and_of Eliom_client_value.t
   -> of_string:(string -> 'a)
   -> to_string:('a -> string)
   -> string
@@ -48,8 +47,8 @@ val all_suffix_user
     by the user. See [user_type] for the description of the
     arguments. *)
 
-val type_checker
-  :  ('a -> unit)
+val type_checker :
+   ('a -> unit)
   -> ('a, ([< suff] as 'b), 'c) params_type
   -> ('a, 'b, 'c) params_type
 (** Specifying parameter as [type_checker check t] is equivalent as
@@ -59,8 +58,8 @@ val type_checker
     parameter is not correct, and the error handler will be called
     instead of the service handler. *)
 
-val regexp
-  :  Re.Pcre.regexp
+val regexp :
+   Re.Pcre.regexp
   -> string
   -> to_string:(string -> string)
   -> string
@@ -73,8 +72,8 @@ val regexp
     the parameter [myparam=[hello]] and send the string ["(hello)"] to
     the service handler.  *)
 
-val all_suffix_regexp
-  :  Re.Pcre.regexp
+val all_suffix_regexp :
+   Re.Pcre.regexp
   -> string
   -> to_string:(string -> string)
   -> string
@@ -83,14 +82,14 @@ val all_suffix_regexp
     possible, matching the regular expression [r], name [s], and
     rewrite it in [d].  *)
 
-val get_non_localized_get_parameters
-  :  ('a, [`WithoutSuffix], 'b) non_localized_params
+val get_non_localized_get_parameters :
+   ('a, [`WithoutSuffix], 'b) non_localized_params
   -> 'a option
 (** [get_non_localized_get_parameters ~sp p] decodes and returns non
     localized GET parameters specified by [p] if present. *)
 
-val get_non_localized_post_parameters
-  :  ('a, [`WithoutSuffix], 'b) non_localized_params
+val get_non_localized_post_parameters :
+   ('a, [`WithoutSuffix], 'b) non_localized_params
   -> 'a option
 (** [get_non_localized_post_parameters ~sp p] decodes and returns non
     localized POST parameters specified by [p] if present. *)

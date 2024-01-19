@@ -38,8 +38,8 @@ exception Eref_not_initialized
 (** Exception raised when trying to access an eref
     that has not been initaliazed, when we don't want to initialize it. *)
 
-val eref
-  :  scope:[< Eliom_common.all_scope]
+val eref :
+   scope:[< Eliom_common.all_scope]
   -> ?secure:bool
   -> ?persistent:string
   -> 'a
@@ -82,8 +82,8 @@ val eref
     get this exception.}
 *)
 
-val eref_from_fun
-  :  scope:[< Eliom_common.all_scope]
+val eref_from_fun :
+   scope:[< Eliom_common.all_scope]
   -> ?secure:bool
   -> ?persistent:string
   -> (unit -> 'a)
@@ -163,8 +163,8 @@ module Volatile : sig
 
   val eref : scope:[< Eliom_common.all_scope] -> ?secure:bool -> 'a -> 'a eref
 
-  val eref_from_fun
-    :  scope:[< Eliom_common.all_scope]
+  val eref_from_fun :
+     scope:[< Eliom_common.all_scope]
     -> ?secure:bool
     -> (unit -> 'a)
     -> 'a eref
@@ -182,8 +182,8 @@ module Volatile : sig
         to get the sessions from a group (or the processes from a session).
     *)
 
-    val get
-      :  ( [< `Session_group | `Session | `Client_process]
+    val get :
+       ( [< `Session_group | `Session | `Client_process]
          , [< `Data] )
          Eliom_state.Ext.state
       -> 'a eref
@@ -193,16 +193,16 @@ module Volatile : sig
         it will raise exception [Eref_not_initialized].
     *)
 
-    val set
-      :  ( [< `Session_group | `Session | `Client_process]
+    val set :
+       ( [< `Session_group | `Session | `Client_process]
          , [< `Data] )
          Eliom_state.Ext.state
       -> 'a eref
       -> 'a
       -> unit
 
-    val modify
-      :  ( [< `Session_group | `Session | `Client_process]
+    val modify :
+       ( [< `Session_group | `Session | `Client_process]
          , [< `Data] )
          Eliom_state.Ext.state
       -> 'a eref
@@ -210,8 +210,8 @@ module Volatile : sig
       -> unit
     (** Warning: the function will be executed with the current context *)
 
-    val unset
-      :  ( [< `Session_group | `Session | `Client_process]
+    val unset :
+       ( [< `Session_group | `Session | `Client_process]
          , [< `Data] )
          Eliom_state.Ext.state
       -> 'a eref
@@ -226,8 +226,8 @@ end
     to get the sessions from a group (or the processes from a session).
 *)
 module Ext : sig
-  val get
-    :  ( [< `Session_group | `Session | `Client_process]
+  val get :
+     ( [< `Session_group | `Session | `Client_process]
        , [< `Data | `Pers] )
        Eliom_state.Ext.state
     -> 'a eref
@@ -237,16 +237,16 @@ module Ext : sig
       it will raise exception [Eref_not_initialized].
   *)
 
-  val set
-    :  ( [< `Session_group | `Session | `Client_process]
+  val set :
+     ( [< `Session_group | `Session | `Client_process]
        , [< `Data | `Pers] )
        Eliom_state.Ext.state
     -> 'a eref
     -> 'a
     -> unit Lwt.t
 
-  val modify
-    :  ( [< `Session_group | `Session | `Client_process]
+  val modify :
+     ( [< `Session_group | `Session | `Client_process]
        , [< `Data | `Pers] )
        Eliom_state.Ext.state
     -> 'a eref
@@ -254,8 +254,8 @@ module Ext : sig
     -> unit Lwt.t
   (** Warning: the function will be executed with the current context *)
 
-  val unset
-    :  ( [< `Session_group | `Session | `Client_process]
+  val unset :
+     ( [< `Session_group | `Session | `Client_process]
        , [< `Data | `Pers] )
        Eliom_state.Ext.state
     -> 'a eref

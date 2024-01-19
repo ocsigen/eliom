@@ -22,8 +22,8 @@ val get_request_data : unit -> Eliom_runtime.request_data
 
 (*****************************************************************************)
 
-val client_value
-  :  ?pos:Eliom_lib.pos
+val client_value :
+   ?pos:Eliom_lib.pos
   -> string
   -> 'args
   -> 'a Eliom_client_value.t
@@ -53,8 +53,8 @@ val close_server_section : string -> unit
     Called in parallel with <<a_api
     subproject="client"|Eliom_client.Syntax_helpers.close_server_section>>.  *)
 
-val close_client_section
-  :  string
+val close_client_section :
+   string
   -> (int * Ocsigen_lib.poly * Eliom_lib.pos * string option) list
   -> unit
 (** Called at the end of every client or shared section. The first

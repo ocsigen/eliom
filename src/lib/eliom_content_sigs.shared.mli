@@ -27,22 +27,22 @@ module type LINKS_AND_FORMS = sig
   type ('a, 'b, 'c) lazy_star =
     ?a:'a attrib list -> 'b elt list Eliom_lazy.request -> 'c elt
 
-  val lazy_form
-    : ( [< Html_types.form_attrib]
+  val lazy_form :
+    ( [< Html_types.form_attrib]
       , [< Html_types.form_content_fun]
       , [> Html_types.form] )
       lazy_star
 
   include
     Eliom_form_sigs.LINKS
-      with type +'a elt := 'a elt
-       and type +'a attrib := 'a attrib
-       and type uri := uri
+    with type +'a elt := 'a elt
+     and type +'a attrib := 'a attrib
+     and type uri := uri
 
   module Form :
     Eliom_form_sigs.S
-      with type +'a elt := 'a elt
-       and type +'a attrib := 'a attrib
-       and type uri := uri
-       and type 'a param = 'a form_param
+    with type +'a elt := 'a elt
+     and type +'a attrib := 'a attrib
+     and type uri := uri
+     and type 'a param = 'a form_param
 end

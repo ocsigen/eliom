@@ -134,14 +134,14 @@ module Xml = struct
          let update x =
            Js.Opt.case e##.firstChild
              (fun () ->
-               Dom.appendChild e
-                 Dom_html.document ## (createTextNode (Js.string x)))
+                Dom.appendChild e
+                  Dom_html.document ## (createTextNode (Js.string x)))
              (fun e -> Dom.CoerceTo.text e >>! fun e -> e##.data := Js.string x)
          in
          if not ~%synced then update (React.S.value ~%s);
          Eliom_lib.Dom_reference.retain e
            ~keep:(React.S.changes ~%s |> React.E.map update)
-          : unit)]
+         : unit)]
     in
     e
 
@@ -162,7 +162,7 @@ module Xml = struct
         (let f = Eliom_client_core.rebuild_node' ~%ns in
          let e = f ~%e and l = ReactiveData.RList.map f ~%l in
          Js_of_ocaml_tyxml.Tyxml_js.Util.update_children e l
-          : unit)]
+         : unit)]
     in
     e
 
@@ -268,9 +268,9 @@ module Svg = struct
           (let s =
              Eliom_shared.React.S.map
                (fun s ->
-                 Eliom_content_core.Svg.(
-                   Id.create_request_elt s ~reset:false |> D.toelt)
-                 |> Eliom_client_core.rebuild_node' `SVG)
+                  Eliom_content_core.Svg.(
+                    Id.create_request_elt s ~reset:false |> D.toelt)
+                  |> Eliom_client_core.rebuild_node' `SVG)
                ~%s
            in
            let key = Eliom_lib.Dom_reference.new_key () in
@@ -291,7 +291,7 @@ module Svg = struct
              Eliom_lib.Dom_reference.retain ~key e
                ~keep:React.(S.changes s |> E.once |> E.map f)
            else f (React.S.value s)
-            : unit)]
+           : unit)]
       in
       e |> Eliom_content_core.Svg.D.tot
 
@@ -356,9 +356,9 @@ module Html = struct
     let string_of_srcset () =
       ([%shared Raw_wrapped_functions.string_of_srcset]
         : (Raw_wrapped_functions.image_candidate list -> string)
-          Eliom_shared.Value.t
+            Eliom_shared.Value.t
         :> ([< Raw_wrapped_functions.image_candidate] list -> string)
-           Eliom_shared.Value.t)
+             Eliom_shared.Value.t)
 
     let string_of_step () = [%shared Raw_wrapped_functions.string_of_step]
     let unoption_string () = [%shared Raw_wrapped_functions.unoption_string]
@@ -382,9 +382,9 @@ module Html = struct
           (let s =
              Eliom_shared.React.S.map
                (fun s ->
-                 Eliom_content_core.Html.(
-                   Id.create_request_elt s ~reset:false |> D.toelt)
-                 |> Eliom_client_core.rebuild_node' `HTML5)
+                  Eliom_content_core.Html.(
+                    Id.create_request_elt s ~reset:false |> D.toelt)
+                  |> Eliom_client_core.rebuild_node' `HTML5)
                ~%s
            in
            let key = Eliom_lib.Dom_reference.new_key () in
@@ -405,7 +405,7 @@ module Html = struct
              Eliom_lib.Dom_reference.retain ~key e
                ~keep:React.(S.changes s |> E.once |> E.map f)
            else f (React.S.value s)
-            : unit)]
+           : unit)]
       in
       e |> Eliom_content_core.Html.D.tot
 

@@ -120,8 +120,8 @@ end
 
 (**/**)
 
-val register
-  :  ?wake:bool
+val register :
+   ?wake:bool
   -> 'a Eliom_comet_base.wrapped_channel
   -> 'a Lwt_stream.t
 (** if wake is false, the registration of the channel won't

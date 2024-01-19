@@ -22,22 +22,22 @@ let%client _ = Eliom_client.init ()
 
 let _ =
   Eliommod.register_site_init (fun () ->
-      let sitedata = Eliom_request_info.get_sitedata () in
-      let ignored_get_params =
-        List.map fst sitedata.Eliom_common.ignored_get_params
-      in
-      let ignored_post_params =
-        List.map fst sitedata.Eliom_common.ignored_post_params
-      in
-      let _ =
-        [%client
-          (Eliom_process.set_ignored_params ~%ignored_get_params
-             ~%ignored_post_params;
-           Eliom_process.set_ignored_params ~%ignored_get_params
-             ~%ignored_post_params
-            : unit)]
-      in
-      ())
+    let sitedata = Eliom_request_info.get_sitedata () in
+    let ignored_get_params =
+      List.map fst sitedata.Eliom_common.ignored_get_params
+    in
+    let ignored_post_params =
+      List.map fst sitedata.Eliom_common.ignored_post_params
+    in
+    let _ =
+      [%client
+        (Eliom_process.set_ignored_params ~%ignored_get_params
+           ~%ignored_post_params;
+         Eliom_process.set_ignored_params ~%ignored_get_params
+           ~%ignored_post_params
+         : unit)]
+    in
+    ())
 
 [%%client.start]
 

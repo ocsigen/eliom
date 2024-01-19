@@ -25,7 +25,7 @@ let handle_file_client nm =
       nm nm
 
 (*
-let handle_file_server nm =
+   let handle_file_server nm =
   if Filename.check_suffix nm ".eliom" then
     let nm = Filename.chop_suffix nm ".eliom" in
     Printf.printf
@@ -39,7 +39,7 @@ let handle_file_server nm =
       \          (run sed -e \"s$/[1-9][0-9]*$$g\" -e \"s/_\\\\[\\\\([<>]\\\\)/[\\\\1/g\" -e \"s/'\\\\(_[a-z0-9_]*\\\\)/'eliom_inferred_type_\\\\1/g\"))))))\n"
       nm nm nm
       (if nm <> "bs_pervasives" then "-open Bs_pervasives" else "")
- *)
+*)
 let handle_file_server nm =
   let copy_file extension =
     Printf.printf "(rule (copy# ../%s %s))\n" nm

@@ -51,49 +51,49 @@ let update_cookie_table ?now sitedata (ci, sci) =
     (* Update service expiration date and value *)
     Eliom_common.Full_state_name_table.iter
       (fun name (_oldvalue, newr) ->
-        (* catch fun () -> *)
-        match !newr with
-        | Eliom_common.SCData_session_expired | Eliom_common.SCNo_data ->
-            () (* The cookie has been removed *)
-        | Eliom_common.SC newc -> (
-            newc.Eliom_common.sc_exp :=
-              match !(newc.Eliom_common.sc_timeout) with
-              | Eliom_common.TGlobal -> (
-                  let globaltimeout =
-                    Eliommod_timeouts.find_global `Service name sitedata
-                  in
-                  match globaltimeout with
-                  | None -> None
-                  | Some t -> Some (t +. now))
-              | Eliom_common.TNone -> None
-              | Eliom_common.TSome t -> Some (t +. now)))
+         (* catch fun () -> *)
+         match !newr with
+         | Eliom_common.SCData_session_expired | Eliom_common.SCNo_data ->
+             () (* The cookie has been removed *)
+         | Eliom_common.SC newc -> (
+             newc.Eliom_common.sc_exp :=
+               match !(newc.Eliom_common.sc_timeout) with
+               | Eliom_common.TGlobal -> (
+                   let globaltimeout =
+                     Eliommod_timeouts.find_global `Service name sitedata
+                   in
+                   match globaltimeout with
+                   | None -> None
+                   | Some t -> Some (t +. now))
+               | Eliom_common.TNone -> None
+               | Eliom_common.TSome t -> Some (t +. now)))
       !service_cookies_info;
     (* Update "in memory data" expiration date and value *)
     Eliom_common.Full_state_name_table.iter
       (fun name v ->
-        (* 2018-07-17 We do this for all volatile sessions,
+         (* 2018-07-17 We do this for all volatile sessions,
            even if it has not been used,
            otherwise, sessions could have different duration.
            (Before: we were doing this only if (Lazy.is_val v))
            Keeping same duration is important for example for comet
            (which is using both service and volatile data sessions).
-        *)
-        let _oldvalue, newr = Lazy.force v in
-        match !newr with
-        | Eliom_common.SCData_session_expired | Eliom_common.SCNo_data ->
-            () (* The cookie has been removed *)
-        | Eliom_common.SC newc -> (
-            newc.Eliom_common.dc_exp :=
-              match !(newc.Eliom_common.dc_timeout) with
-              | Eliom_common.TGlobal -> (
-                  let globaltimeout =
-                    Eliommod_timeouts.find_global `Data name sitedata
-                  in
-                  match globaltimeout with
-                  | None -> None
-                  | Some t -> Some (t +. now))
-              | Eliom_common.TNone -> None
-              | Eliom_common.TSome t -> Some (t +. now)))
+         *)
+         let _oldvalue, newr = Lazy.force v in
+         match !newr with
+         | Eliom_common.SCData_session_expired | Eliom_common.SCNo_data ->
+             () (* The cookie has been removed *)
+         | Eliom_common.SC newc -> (
+             newc.Eliom_common.dc_exp :=
+               match !(newc.Eliom_common.dc_timeout) with
+               | Eliom_common.TGlobal -> (
+                   let globaltimeout =
+                     Eliommod_timeouts.find_global `Data name sitedata
+                   in
+                   match globaltimeout with
+                   | None -> None
+                   | Some t -> Some (t +. now))
+               | Eliom_common.TNone -> None
+               | Eliom_common.TSome t -> Some (t +. now)))
       !data_cookies_info;
     let module Expiry_tolerance = struct
       (* Avoid cookie updates that only change the cookie
@@ -120,67 +120,69 @@ let update_cookie_table ?now sitedata (ci, sci) =
     then
       Eliom_common.Full_state_name_table.fold
         (fun name v thr ->
-          let thr2 =
-            Lazy.force v >>= fun (oldvalue, newr) ->
-            match !newr with
-            | Eliom_common.SCData_session_expired | Eliom_common.SCNo_data ->
-                (* The cookie has been removed *)
-                Lwt.return ()
-            | Eliom_common.SC newc -> (
-                let newexp =
-                  match !(newc.Eliom_common.pc_timeout) with
-                  | Eliom_common.TGlobal -> (
-                      let globaltimeout =
-                        Eliommod_timeouts.find_global `Persistent name sitedata
-                      in
-                      match globaltimeout with
-                      | None -> None
-                      | Some t -> Some (t +. now))
-                  | Eliom_common.TNone -> None
-                  | Eliom_common.TSome t -> Some (t +. now)
-                in
-                match oldvalue with
-                | Some (_, oldti, oldexp, oldgrp)
-                  when Expiry_tolerance.within_tolerance_opt oldexp newexp
-                       && oldti = !(newc.Eliom_common.pc_timeout)
-                       && oldgrp = !(newc.Eliom_common.pc_session_group)
-                       && newc.Eliom_common.pc_set_value = None ->
-                    Lwt.return ()
-                (* nothing to do *)
-                | Some (_, _oldti, oldexp, _oldgrp)
-                  when newc.Eliom_common.pc_set_value = None ->
-                    Lwt.catch
-                      (fun () ->
-                        let cookieid =
-                          Eliom_common.(Hashed_cookies.to_string newc.pc_hvalue)
-                        in
-                        Eliommod_cookies.Persistent_cookies.replace_if_exists
-                          cookieid
-                          { Eliommod_cookies.full_state_name = name
-                          ; expiry = newexp
-                          ; timeout = !(newc.Eliom_common.pc_timeout)
-                          ; session_group =
-                              !(newc.Eliom_common.pc_session_group) }
-                        >>= fun () ->
-                        Eliommod_cookies.Persistent_cookies.Expiry_dates
-                        .remove_cookie oldexp cookieid)
-                      (function
-                        | Not_found -> Lwt.return ()
-                        (* someone else closed the session *)
-                        | e -> Lwt.fail e)
-                | _ ->
-                    Eliommod_cookies.Persistent_cookies.add
-                      Eliom_common.(Hashed_cookies.to_string newc.pc_hvalue)
-                      { Eliommod_cookies.full_state_name = name
-                      ; expiry = newexp
-                      ; timeout = !(newc.Eliom_common.pc_timeout)
-                      ; session_group = !(newc.Eliom_common.pc_session_group) })
-            (*VVV Do not forget to change persistent_cookie_table_version
+           let thr2 =
+             Lazy.force v >>= fun (oldvalue, newr) ->
+             match !newr with
+             | Eliom_common.SCData_session_expired | Eliom_common.SCNo_data ->
+                 (* The cookie has been removed *)
+                 Lwt.return ()
+             | Eliom_common.SC newc -> (
+                 let newexp =
+                   match !(newc.Eliom_common.pc_timeout) with
+                   | Eliom_common.TGlobal -> (
+                       let globaltimeout =
+                         Eliommod_timeouts.find_global `Persistent name sitedata
+                       in
+                       match globaltimeout with
+                       | None -> None
+                       | Some t -> Some (t +. now))
+                   | Eliom_common.TNone -> None
+                   | Eliom_common.TSome t -> Some (t +. now)
+                 in
+                 match oldvalue with
+                 | Some (_, oldti, oldexp, oldgrp)
+                   when Expiry_tolerance.within_tolerance_opt oldexp newexp
+                        && oldti = !(newc.Eliom_common.pc_timeout)
+                        && oldgrp = !(newc.Eliom_common.pc_session_group)
+                        && newc.Eliom_common.pc_set_value = None ->
+                     Lwt.return ()
+                 (* nothing to do *)
+                 | Some (_, _oldti, oldexp, _oldgrp)
+                   when newc.Eliom_common.pc_set_value = None ->
+                     Lwt.catch
+                       (fun () ->
+                          let cookieid =
+                            Eliom_common.(
+                              Hashed_cookies.to_string newc.pc_hvalue)
+                          in
+                          Eliommod_cookies.Persistent_cookies.replace_if_exists
+                            cookieid
+                            { Eliommod_cookies.full_state_name = name
+                            ; expiry = newexp
+                            ; timeout = !(newc.Eliom_common.pc_timeout)
+                            ; session_group =
+                                !(newc.Eliom_common.pc_session_group) }
+                          >>= fun () ->
+                          Eliommod_cookies.Persistent_cookies.Expiry_dates
+                          .remove_cookie oldexp cookieid)
+                       (function
+                          | Not_found -> Lwt.return ()
+                          (* someone else closed the session *)
+                          | e -> Lwt.fail e)
+                 | _ ->
+                     Eliommod_cookies.Persistent_cookies.add
+                       Eliom_common.(Hashed_cookies.to_string newc.pc_hvalue)
+                       { Eliommod_cookies.full_state_name = name
+                       ; expiry = newexp
+                       ; timeout = !(newc.Eliom_common.pc_timeout)
+                       ; session_group = !(newc.Eliom_common.pc_session_group)
+                       })
+             (*VVV Do not forget to change persistent_cookie_table_version
           if you change the type of persistent table data,
           otherwise the server will crash!!!
-        *)
-          in
-          thr >>= fun () -> thr2)
+             *)
+           in
+           thr >>= fun () -> thr2)
         !pers_cookies_info Lwt.return_unit
     else Lwt.return_unit
   in
@@ -262,7 +264,7 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
   set_expired_sessions ri (closedsessions, closedsessions_tab);
   let rec gen_aux
       ({Eliom_common.request = ri; session_info = si; all_cookie_info; _} as
-      info)
+       info)
     =
     let sp = Eliom_common.make_server_params sitedata info None None in
     (* The last two arguments are not yet available, so for now we use None.
@@ -279,93 +281,93 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
     in
     Lwt.catch
       (fun () ->
-        let%lwt res = execute now genfun info sitedata in
-        let response, _ = Ocsigen_response.to_cohttp res
-        and all_user_cookies = Ocsigen_response.cookies res in
-        let%lwt cookies =
-          Eliommod_cookies.compute_cookies_to_send sitedata all_cookie_info
-            all_user_cookies
-        in
-        let res =
-          match
-            Ocsigen_request.header ri.Ocsigen_extensions.request_info
-              (Ocsigen_header.Name.of_string
-                 Eliom_common_base.cookie_substitutes_header_name)
-          with
-          | Some _ ->
-              let response =
-                let headers =
-                  Cohttp.Header.add
-                    (Cohttp.Response.headers response)
-                    Eliom_common_base.set_cookie_substitutes_header_name
-                    (Eliommod_cookies.cookieset_to_json cookies)
-                in
-                {response with Cohttp.Response.headers}
-              in
-              Ocsigen_response.update ~response ~cookies res
-          | None -> Ocsigen_response.update ~cookies res
-        in
-        try
-          Polytables.get
-            ~table:
-              (Ocsigen_request.request_cache ri.Ocsigen_extensions.request_info)
-            ~key:Eliom_common.found_stop_key;
-          (* if we find this information in request cache,
+         let%lwt res = execute now genfun info sitedata in
+         let response, _ = Ocsigen_response.to_cohttp res
+         and all_user_cookies = Ocsigen_response.cookies res in
+         let%lwt cookies =
+           Eliommod_cookies.compute_cookies_to_send sitedata all_cookie_info
+             all_user_cookies
+         in
+         let res =
+           match
+             Ocsigen_request.header ri.Ocsigen_extensions.request_info
+               (Ocsigen_header.Name.of_string
+                  Eliom_common_base.cookie_substitutes_header_name)
+           with
+           | Some _ ->
+               let response =
+                 let headers =
+                   Cohttp.Header.add
+                     (Cohttp.Response.headers response)
+                     Eliom_common_base.set_cookie_substitutes_header_name
+                     (Eliommod_cookies.cookieset_to_json cookies)
+                 in
+                 {response with Cohttp.Response.headers}
+               in
+               Ocsigen_response.update ~response ~cookies res
+           | None -> Ocsigen_response.update ~cookies res
+         in
+         try
+           Polytables.get
+             ~table:
+               (Ocsigen_request.request_cache ri.Ocsigen_extensions.request_info)
+             ~key:Eliom_common.found_stop_key;
+           (* if we find this information in request cache,
               the request has already been completed.
               (used after an action).
               Do not try the following extensions.
            *)
-          Lwt.return
-            (Ocsigen_extensions.Ext_found_stop (fun () -> Lwt.return res))
-        with Not_found ->
-          Lwt.return (Ocsigen_extensions.Ext_found (fun () -> Lwt.return res)))
+           Lwt.return
+             (Ocsigen_extensions.Ext_found_stop (fun () -> Lwt.return res))
+         with Not_found ->
+           Lwt.return (Ocsigen_extensions.Ext_found (fun () -> Lwt.return res)))
       (function
-        (* FIXME COHTTP transition ; restore all that *)
-        | Eliom_common.Eliom_Typing_Error l ->
-            Lwt.return
-              (Ocsigen_extensions.Ext_found
-                 (fun () ->
-                   make_response ~status:`Bad_request
-                     (Eliom_error_pages.page_error_param_type l)))
-        | Eliom_common.Eliom_Wrong_parameter ->
-            let%lwt ripp =
-              match
-                Ocsigen_request.post_params req.request_info
-                  ri.request_config.Ocsigen_extensions.uploaddir
-                  ri.request_config.Ocsigen_extensions.maxuploadfilesize
-              with
-              | None -> Lwt.return []
-              | Some l -> l
-            in
-            let response =
-              Eliom_error_pages.page_bad_param
-                (try
-                   ignore
-                   @@ Polytables.get
-                        ~table:(Ocsigen_request.request_cache ri.request_info)
-                        ~key:Eliom_common.eliom_params_after_action;
-                   true
-                 with Not_found -> false)
-                (Ocsigen_request.get_params_flat ri.request_info)
-                (List.map fst ripp)
-            in
-            Lwt.return
-            @@ Ocsigen_extensions.Ext_found
-                 (fun () -> make_response ~status:`Bad_request response)
-        | Eliom_common.Eliom_404 ->
-            Lwt.return (Ocsigen_extensions.Ext_next previous_extension_err)
-        | Eliom_common.Eliom_retry_with a -> gen_aux a
-        | Eliom_common.Eliom_do_redirection uri ->
-            Lwt.return
-            @@ do_redirection Ocsigen_header.Name.location `Temporary_redirect
-                 uri
-        | Eliom_common.Eliom_do_half_xhr_redirection uri ->
-            Lwt.return
-            @@ do_redirection
-                 (Ocsigen_header.Name.of_string
-                    Eliom_common.half_xhr_redir_header)
-                 `No_content uri
-        | e -> Lwt.fail e)
+         (* FIXME COHTTP transition ; restore all that *)
+         | Eliom_common.Eliom_Typing_Error l ->
+             Lwt.return
+               (Ocsigen_extensions.Ext_found
+                  (fun () ->
+                    make_response ~status:`Bad_request
+                      (Eliom_error_pages.page_error_param_type l)))
+         | Eliom_common.Eliom_Wrong_parameter ->
+             let%lwt ripp =
+               match
+                 Ocsigen_request.post_params req.request_info
+                   ri.request_config.Ocsigen_extensions.uploaddir
+                   ri.request_config.Ocsigen_extensions.maxuploadfilesize
+               with
+               | None -> Lwt.return []
+               | Some l -> l
+             in
+             let response =
+               Eliom_error_pages.page_bad_param
+                 (try
+                    ignore
+                    @@ Polytables.get
+                         ~table:(Ocsigen_request.request_cache ri.request_info)
+                         ~key:Eliom_common.eliom_params_after_action;
+                    true
+                  with Not_found -> false)
+                 (Ocsigen_request.get_params_flat ri.request_info)
+                 (List.map fst ripp)
+             in
+             Lwt.return
+             @@ Ocsigen_extensions.Ext_found
+                  (fun () -> make_response ~status:`Bad_request response)
+         | Eliom_common.Eliom_404 ->
+             Lwt.return (Ocsigen_extensions.Ext_next previous_extension_err)
+         | Eliom_common.Eliom_retry_with a -> gen_aux a
+         | Eliom_common.Eliom_do_redirection uri ->
+             Lwt.return
+             @@ do_redirection Ocsigen_header.Name.location `Temporary_redirect
+                  uri
+         | Eliom_common.Eliom_do_half_xhr_redirection uri ->
+             Lwt.return
+             @@ do_redirection
+                  (Ocsigen_header.Name.of_string
+                     Eliom_common.half_xhr_redir_header)
+                  `No_content uri
+         | e -> Lwt.fail e)
   in
   let info =
     { Eliom_common.request = ri

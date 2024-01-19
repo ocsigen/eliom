@@ -25,14 +25,14 @@ include Eliom_content_
 
 let force_link = ()
 
-external unboxed
-  :  boxed Eliom_client_value.t
+external unboxed :
+   boxed Eliom_client_value.t
   -> 'a Eliom_client_value.t
   = "%identity"]
 
 [%%server
-external boxed
-  :  'a Eliom_client_value.t
+external boxed :
+   'a Eliom_client_value.t
   -> boxed Eliom_client_value.t
   = "%identity"
 
@@ -55,8 +55,8 @@ module Svg = struct
            let client_boxed = ~%client_boxed in
            let real = Svg.To_dom.of_element (unboxed client_boxed) in
            Js.Opt.iter dummy_dom##.parentNode (fun parent ->
-               parent ## (replaceChild real dummy_dom))
-            : unit)]
+             parent ## (replaceChild real dummy_dom))
+           : unit)]
       in
       init
 
@@ -80,8 +80,8 @@ module Html = struct
            let client_boxed = ~%client_boxed in
            let real = Html.To_dom.of_element (unboxed client_boxed) in
            Js.Opt.iter dummy_dom##.parentNode (fun parent ->
-               Dom.replaceChild parent real dummy_dom)
-            : unit)]
+             Dom.replaceChild parent real dummy_dom)
+           : unit)]
       in
       init
 

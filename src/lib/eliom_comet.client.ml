@@ -35,7 +35,7 @@ module Configuration = struct
            None means: no request
            The list is here if there are several configurations
            (we take the min of all values, for a given t)
-        *)
+      *)
       time_after_unfocus : float
     ; time_between_request : float }
 
@@ -115,9 +115,9 @@ module Configuration = struct
 
   let set_always_active conf v =
     set_fun conf (fun c ->
-        { c with
-          time_between_request_unfocused =
-            (if v then Some [0., 0., 0.] else None) })
+      { c with
+        time_between_request_unfocused = (if v then Some [0., 0., 0.] else None)
+      })
 
   let set_timeout conf v =
     set_fun conf (fun c -> {c with time_after_unfocus = v})
@@ -178,12 +178,12 @@ let handle_exn, set_handle_exn_function =
   let closed = ref false in
   let r =
     ref (fun ?exn () ->
-        let s =
-          "Unknown exception during comet. Customize this with Eliom_comet.set_handle_exn_function. "
-        in
-        match exn with
-        | Some exn -> Eliom_lib.Lwt_log.raise_error ~section ~exn s
-        | None -> Eliom_lib.Lwt_log.debug ~section s)
+      let s =
+        "Unknown exception during comet. Customize this with Eliom_comet.set_handle_exn_function. "
+      in
+      match exn with
+      | Some exn -> Eliom_lib.Lwt_log.raise_error ~section ~exn s
+      | None -> Eliom_lib.Lwt_log.debug ~section s)
   in
   ( (fun ?exn () ->
       if not !closed
@@ -206,8 +206,8 @@ module Service_handler : sig
   val stateful : stateful kind
   val make : Ecb.comet_service -> 'a kind -> 'a t
 
-  val wait_data
-    :  'a t
+  val wait_data :
+     'a t
     -> (chan_id * int option * string Ecb.channel_data) list Lwt.t
   (** Returns the messages received in the last request. If the
       channel is stateless, it also returns the message number in the [int option] *)
@@ -217,8 +217,8 @@ module Service_handler : sig
   val restart : 'a t -> unit
   val add_channel_stateful : stateful t -> chan_id -> unit
 
-  val add_channel_stateless
-    :  stateless t
+  val add_channel_stateless :
+     stateless t
     -> chan_id
     -> Ecb.stateless_kind
     -> unit
@@ -227,22 +227,21 @@ module Service_handler : sig
 end = struct
   type activity =
     { mutable active : [`Inactive | `Active | `Idle]
-          (** [!hd.active] is true when the [hd] channel handler is
+    (** [!hd.active] is true when the [hd] channel handler is
             receiving data.
             Idle means that the window is not active but we want to
             keep updated from time to time. *)
     ; mutable focused : float option
-          (** [focused] is None when the page is visible and Some [t]
+    (** [focused] is None when the page is visible and Some [t]
             when the page became hidden at time [t] (in ms) *)
     ; mutable active_waiter : unit Lwt.t
-          (** [active_waiter] terminates when the page get visible *)
+    (** [active_waiter] terminates when the page get visible *)
     ; mutable active_wakener : unit Lwt.u
     ; mutable restart_waiter : Ecb.answer Lwt.t
     ; mutable restart_wakener : Ecb.answer Lwt.u
     ; mutable active_channels : Eliom_lib.String.Set.t }
 
   type stateful_state = int ref (* id of the next request *)
-
   type stateless_state_ = {count : int; position : Ecb.position}
   type stateless_state = stateless_state_ Eliom_lib.String.Table.t ref
   (* index for each channel of the last message *)
@@ -356,7 +355,6 @@ end = struct
 
   let max_retries = 10
   let initial_delay = 0.5 (* seconds *)
-
   let jitter = 0.25
   let multiplier = sqrt 2.
   let max_delay = 4. (* seconds *)
@@ -404,11 +402,11 @@ end = struct
         incr r;
         List.iter
           (function
-            | _chan_id, Ecb.Data _ -> ()
-            | _chan_id, Ecb.Closed ->
-                Eliom_lib.Lwt_log.ign_warning ~section
-                  "update_stateful_state: received Closed: should not happen, this is an eliom bug, please report it"
-            | chan_id, Ecb.Full -> stop_waiting hd chan_id)
+             | _chan_id, Ecb.Data _ -> ()
+             | _chan_id, Ecb.Closed ->
+                 Eliom_lib.Lwt_log.ign_warning ~section
+                   "update_stateful_state: received Closed: should not happen, this is an eliom bug, please report it"
+             | chan_id, Ecb.Full -> stop_waiting hd chan_id)
           message
     | Stateless_state _ ->
         raise (Comet_error "update_stateful_state on stateless one")
@@ -436,20 +434,20 @@ end = struct
         let table =
           List.fold_left
             (fun table -> function
-              | chan_id, Ecb.Data (_, index) -> (
-                try
-                  let state = Eliom_lib.String.Table.find chan_id table in
-                  if position_value state.position < index + 1
-                  then
-                    Eliom_lib.String.Table.add chan_id
-                      { state with
-                        position = set_position state.position (index + 1) }
-                      table
-                  else table
-                with Not_found -> table)
-              | chan_id, Ecb.Closed | chan_id, Ecb.Full ->
-                  stop_waiting hd chan_id;
-                  Eliom_lib.String.Table.remove chan_id table)
+               | chan_id, Ecb.Data (_, index) -> (
+                 try
+                   let state = Eliom_lib.String.Table.find chan_id table in
+                   if position_value state.position < index + 1
+                   then
+                     Eliom_lib.String.Table.add chan_id
+                       { state with
+                         position = set_position state.position (index + 1) }
+                       table
+                   else table
+                 with Not_found -> table)
+               | chan_id, Ecb.Closed | chan_id, Ecb.Full ->
+                   stop_waiting hd chan_id;
+                   Eliom_lib.String.Table.remove chan_id table)
             !r message
         in
         r := table
@@ -503,38 +501,38 @@ end = struct
         Lwt.try_bind
           (fun () -> Lwt.pick [call_service hd; hd.hd_activity.restart_waiter])
           (fun s ->
-            match s with
-            | Ecb.Timeout ->
-                update_activity ~timeout:true hd;
-                aux 0
-            | Ecb.State_closed -> Lwt.return (close_all_channels hd)
-            | Ecb.Comet_error e -> Lwt.fail (Comet_error e)
-            | Ecb.Stateless_messages l ->
-                let l = Array.to_list l in
-                update_stateless_state hd l;
-                Lwt.return (drop_message_index l)
-            | Ecb.Stateful_messages l ->
-                let l = Array.to_list l in
-                update_stateful_state hd l;
-                Lwt.return (add_no_index l))
+             match s with
+             | Ecb.Timeout ->
+                 update_activity ~timeout:true hd;
+                 aux 0
+             | Ecb.State_closed -> Lwt.return (close_all_channels hd)
+             | Ecb.Comet_error e -> Lwt.fail (Comet_error e)
+             | Ecb.Stateless_messages l ->
+                 let l = Array.to_list l in
+                 update_stateless_state hd l;
+                 Lwt.return (drop_message_index l)
+             | Ecb.Stateful_messages l ->
+                 let l = Array.to_list l in
+                 update_stateful_state hd l;
+                 Lwt.return (add_no_index l))
           (fun e ->
-            match e with
-            | Eliom_request.Failed_request (0 | 502 | 504) ->
-                if retries > max_retries
-                then (
-                  Eliom_lib.Lwt_log.ign_notice ~section "connection failure";
-                  set_activity hd `Inactive;
-                  aux 0)
-                else
-                  let%lwt () = Js_of_ocaml_lwt.Lwt_js.sleep (delay retries) in
-                  aux (retries + 1)
-            | Restart ->
-                Eliom_lib.Lwt_log.ign_info ~section "restart";
-                aux 0
-            | exn ->
-                Eliom_lib.Lwt_log.ign_notice ~exn ~section "connection failure";
-                let%lwt () = handle_exn ~exn () in
-                Lwt.fail exn)
+             match e with
+             | Eliom_request.Failed_request (0 | 502 | 504) ->
+                 if retries > max_retries
+                 then (
+                   Eliom_lib.Lwt_log.ign_notice ~section "connection failure";
+                   set_activity hd `Inactive;
+                   aux 0)
+                 else
+                   let%lwt () = Js_of_ocaml_lwt.Lwt_js.sleep (delay retries) in
+                   aux (retries + 1)
+             | Restart ->
+                 Eliom_lib.Lwt_log.ign_info ~section "restart";
+                 aux 0
+             | exn ->
+                 Eliom_lib.Lwt_log.ign_notice ~exn ~section "connection failure";
+                 let%lwt () = handle_exn ~exn () in
+                 Lwt.fail exn)
     in
     update_activity hd; aux 0
 
@@ -630,18 +628,18 @@ let handler_stream hd =
   Lwt_stream.map_list
     (fun x -> x)
     (Lwt_stream.from (fun () ->
-         Lwt.try_bind
-           (fun () -> Service_handler.wait_data hd)
-           (fun s -> Lwt.return_some s)
-           (fun _ -> Lwt.return_none)))
+       Lwt.try_bind
+         (fun () -> Service_handler.wait_data hd)
+         (fun s -> Lwt.return_some s)
+         (fun _ -> Lwt.return_none)))
 
-let stateful_handler_table
-    : (Ecb.comet_service, Service_handler.stateful handler) Hashtbl.t
+let stateful_handler_table :
+    (Ecb.comet_service, Service_handler.stateful handler) Hashtbl.t
   =
   Hashtbl.create 1
 
-let stateless_handler_table
-    : (Ecb.comet_service, Service_handler.stateless handler) Hashtbl.t
+let stateless_handler_table :
+    (Ecb.comet_service, Service_handler.stateless handler) Hashtbl.t
   =
   Hashtbl.create 1
 
@@ -652,15 +650,15 @@ let init (service : Ecb.comet_service) kind table =
   Hashtbl.add table service hd;
   hd
 
-let get_stateful_hd (service : Ecb.comet_service)
-    : Service_handler.stateful handler
+let get_stateful_hd (service : Ecb.comet_service) :
+    Service_handler.stateful handler
   =
   try Hashtbl.find stateful_handler_table service
   with Not_found ->
     init service Service_handler.stateful stateful_handler_table
 
-let get_stateless_hd (service : Ecb.comet_service)
-    : Service_handler.stateless handler
+let get_stateless_hd (service : Ecb.comet_service) :
+    Service_handler.stateless handler
   =
   try Hashtbl.find stateless_handler_table service
   with Not_found ->
@@ -734,19 +732,19 @@ let register' hd position (_ : Ecb.comet_service) (chan_id : 'a Ecb.chan_id) =
   let stream =
     Lwt_stream.filter_map_s
       (function
-        | id, pos, data
-          when id = chan_id && check_and_update_position position pos data -> (
-          match data with
-          | Ecb.Full -> Lwt.fail Channel_full
-          | Ecb.Closed -> Lwt.fail Channel_closed
-          | Ecb.Data x -> Lwt.return_some (unmarshal x : 'a))
-        | _ -> Lwt.return_none)
+         | id, pos, data
+           when id = chan_id && check_and_update_position position pos data -> (
+           match data with
+           | Ecb.Full -> Lwt.fail Channel_full
+           | Ecb.Closed -> Lwt.fail Channel_closed
+           | Ecb.Data x -> Lwt.return_some (unmarshal x : 'a))
+         | _ -> Lwt.return_none)
       (Lwt_stream.clone hd.hd_stream)
   in
   let protect_and_close t =
     let t' = Lwt.protected t in
     Lwt.on_cancel t' (fun () ->
-        Service_handler.close hd.hd_service_handler chan_id);
+      Service_handler.close hd.hd_service_handler chan_id);
     t'
   in
   (* protect the stream from cancels *)
@@ -792,9 +790,8 @@ let is_active () =
   let f _ hd active =
     max active (fun () -> Service_handler.is_active hd.hd_service_handler)
   in
-  max
-    (Hashtbl.fold f stateless_handler_table `Active)
-    (fun () -> Hashtbl.fold f stateful_handler_table `Active)
+  max (Hashtbl.fold f stateless_handler_table `Active) (fun () ->
+    Hashtbl.fold f stateful_handler_table `Active)
 
 module Channel = struct
   type 'a t = 'a Lwt_stream.t

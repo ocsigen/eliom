@@ -29,10 +29,10 @@ module M : sig
   val of_assoc_list : (string * 'a) list -> 'a t
 end = struct
   module Raw = Map.Make (struct
-    type t = string
+      type t = string
 
-    let compare = compare
-  end)
+      let compare = compare
+    end)
 
   type 'a t = 'a list Raw.t
 
@@ -65,22 +65,22 @@ let reconstruct_atom ~f m name =
 
 let ( >>= ) x f = match x with Some x -> f x | None -> None
 
-let rec reconstruct_set
-    : type a c.
-      a list * Form.form_elt M.t
-      -> (a, _, c) params_type
-      -> a list * Form.form_elt M.t
+let rec reconstruct_set :
+    type a c.
+    a list * Form.form_elt M.t
+    -> (a, _, c) params_type
+    -> a list * Form.form_elt M.t
   =
  fun ((acc, m) as p) y ->
   match reconstruct_params_form m y with
   | Some (v, m) -> reconstruct_set (v :: acc, m) y
   | None -> p
 
-and reconstruct_params_form
-    : type a c.
-      Form.form_elt M.t
-      -> (a, [`WithoutSuffix], c) params_type
-      -> (a * Form.form_elt M.t) option
+and reconstruct_params_form :
+    type a c.
+    Form.form_elt M.t
+    -> (a, [`WithoutSuffix], c) params_type
+    -> (a * Form.form_elt M.t) option
   =
  fun m -> function
   | TAtom (name, TBool) -> (

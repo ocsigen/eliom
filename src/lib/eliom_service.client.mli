@@ -28,8 +28,8 @@
 
 include Eliom_service_sigs.S
 
-val set_client_fun
-  :  ?app:string
+val set_client_fun :
+   ?app:string
   -> service:('a, 'b, _, _, _, _, _, _, _, _, _) t
   -> ('a -> 'b -> result Lwt.t)
   -> unit
@@ -38,13 +38,13 @@ val set_client_fun
 
 val reset_reload_fun : (_, _, _, _, _, _, _, _, _, _, _) t -> unit
 
-val pre_applied_parameters
-  :  (_, _, _, _, _, _, _, _, _, _, _) t
+val pre_applied_parameters :
+   (_, _, _, _, _, _, _, _, _, _, _) t
   -> (string * Eliommod_parameters.param) list Eliom_lib.String.Table.t
      * (string * Eliommod_parameters.param) list
 
-val reload_fun
-  :  ('a, _, _, _, _, _, _, _, _, _, _) t
+val reload_fun :
+   ('a, _, _, _, _, _, _, _, _, _, _) t
   -> ('a -> unit -> result Lwt.t) Eliom_client_value.t option
 
 module Cohttp : sig

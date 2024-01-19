@@ -275,16 +275,16 @@ module Cmo = struct
     let open Instruct in
     List.iter
       (fun ev ->
-        match ev with
-        | { ev_loc =
-              { loc_start = {Lexing.pos_fname; pos_cnum; _}
-              ; loc_end = {Lexing.pos_cnum = pos_cnum'; _}
-              ; _ }
-          ; ev_kind = Event_after ty
-          ; _ } ->
-            if pos_cnum' = pos_cnum + 1
-            then Hashtbl.add events (pos_fname, pos_cnum) ty
-        | _ -> ())
+         match ev with
+         | { ev_loc =
+               { loc_start = {Lexing.pos_fname; pos_cnum; _}
+               ; loc_end = {Lexing.pos_cnum = pos_cnum'; _}
+               ; _ }
+           ; ev_kind = Event_after ty
+           ; _ } ->
+             if pos_cnum' = pos_cnum + 1
+             then Hashtbl.add events (pos_fname, pos_cnum) ty
+         | _ -> ())
       evl
 
   let get_file () = match !file with Some f -> f | None -> assert false
@@ -363,10 +363,10 @@ module Cmo = struct
           let fields =
             List.map
               (fun (label, ty) ->
-                { pof_desc =
-                    Otag (mkloc label Location.none, type_of_out_type ty)
-                ; pof_loc = Location.none
-                ; pof_attributes = [] })
+                 { pof_desc =
+                     Otag (mkloc label Location.none, type_of_out_type ty)
+                 ; pof_loc = Location.none
+                 ; pof_attributes = [] })
               fields
           in
           Typ.object_ fields (if open_row then Open else Closed)
@@ -374,10 +374,10 @@ module Cmo = struct
           let fields =
             List.map
               (fun (label, ty) ->
-                { pof_desc =
-                    Otag (mkloc label Location.none, type_of_out_type ty)
-                ; pof_loc = Location.none
-                ; pof_attributes = [] })
+                 { pof_desc =
+                     Otag (mkloc label Location.none, type_of_out_type ty)
+                 ; pof_loc = Location.none
+                 ; pof_attributes = [] })
               fields
           in
           Typ.object_ fields (if rest = None then Closed else Open)
@@ -413,11 +413,11 @@ module Cmo = struct
           let row_fields =
             List.map
               (fun (label, const, tyl) ->
-                Rf.mk
-                  (Rtag
-                     ( mkloc label Location.none
-                     , const
-                     , List.map type_of_out_type tyl )))
+                 Rf.mk
+                   (Rtag
+                      ( mkloc label Location.none
+                      , const
+                      , List.map type_of_out_type tyl )))
               lst
           in
           Typ.variant row_fields (if closed then Closed else Open) tags
@@ -427,11 +427,11 @@ module Cmo = struct
           let row_fields =
             List.map
               (fun (label, const, tyl) ->
-                Rf.mk
-                  (Rtag
-                     ( mkloc label Location.none
-                     , const
-                     , List.map type_of_out_type tyl )))
+                 Rf.mk
+                   (Rtag
+                      ( mkloc label Location.none
+                      , const
+                      , List.map type_of_out_type tyl )))
               lst
           in
           Typ.variant row_fields (if closed then Closed else Open) tags
@@ -523,8 +523,8 @@ module type Pass = sig
   val client_sig : signature_item -> signature_item list
   val server_sig : signature_item -> signature_item list
 
-  val fragment
-    :  loc:Location.t
+  val fragment :
+     loc:Location.t
     -> ?typ:core_type
     -> context:Context.server
     -> num:string
@@ -534,8 +534,8 @@ module type Pass = sig
     -> expression
   (** How to handle "[\%client ...]" and "[\%shared ...]" expr. *)
 
-  val escape_inject
-    :  loc:Location.t
+  val escape_inject :
+     loc:Location.t
     -> ?ident:string
     -> context:Context.escape_inject
     -> id:string Location.loc

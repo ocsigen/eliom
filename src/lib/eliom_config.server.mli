@@ -92,8 +92,8 @@ val get_config : unit -> Xml.xml list
     {!Eliom_service.register_eliom_module}.}
 *)
 
-val parse_config
-  :  ?pcdata:(string -> unit)
+val parse_config :
+   ?pcdata:(string -> unit)
   -> ?other_elements:(string -> (string * string) list -> Xml.xml list -> unit)
   -> Ocsigen_extensions.Configuration.element list
   -> unit
@@ -116,8 +116,8 @@ val get_debugmode : unit -> bool
 
 (**/**)
 
-val get_config_info_sp
-  :  Eliom_common.server_params
+val get_config_info_sp :
+   Eliom_common.server_params
   -> Ocsigen_extensions.config_info
 
 val get_config_default_charset_sp : Eliom_common.server_params -> string

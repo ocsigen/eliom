@@ -27,8 +27,8 @@
     ReactiveData apply. We provide extended versions of these
     libraries. *)
 
-val to_signal
-  :  init:'a
+val to_signal :
+   init:'a
   -> ?eq:('a -> 'a -> bool)
   -> 'a React.S.t Lwt.t
   -> 'a React.S.t
@@ -47,8 +47,8 @@ module React : sig
     include
       Eliom_shared_sigs.S with type 'a t := 'a t and type 'a sv := 'a Value.t
 
-    val create
-      :  ?eq:('a -> 'a -> bool)
+    val create :
+       ?eq:('a -> 'a -> bool)
       -> ?default:('a t * (?step:React.step -> 'a -> unit)) option
       -> ?reset_default:bool
       -> 'a
@@ -82,16 +82,16 @@ module ReactiveData : sig
   module RList : sig
     include
       module type of ReactiveData.RList
-        with type 'a t = 'a ReactiveData.RList.t
-         and type 'a handle = 'a ReactiveData.RList.handle
+      with type 'a t = 'a ReactiveData.RList.t
+       and type 'a handle = 'a ReactiveData.RList.handle
 
     include
       Eliom_shared_sigs.RLIST
-        with type 'a t := 'a t
-         and type 'a sv := 'a Value.t
-         and type 'a handle := 'a handle
-         and type 'a signal := 'a React.S.t
-         and type 'a ct := 'a ReactiveData.RList.t
-         and type 'a chandle := 'a ReactiveData.RList.handle
+      with type 'a t := 'a t
+       and type 'a sv := 'a Value.t
+       and type 'a handle := 'a handle
+       and type 'a signal := 'a React.S.t
+       and type 'a ct := 'a ReactiveData.RList.t
+       and type 'a chandle := 'a ReactiveData.RList.handle
   end
 end

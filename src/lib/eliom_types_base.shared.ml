@@ -53,5 +53,4 @@ let add_tab_cookies_to_get_form_id_string =
 let add_tab_cookies_to_post_form_id = 0x2
 let add_tab_cookies_to_post_form_id_string =
   Printf.sprintf "0x%02X" add_tab_cookies_to_post_form_id
-
 *)

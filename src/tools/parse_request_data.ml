@@ -1,5 +1,5 @@
 (*
-Parse __eliom_request_data marshalled data.
+   Parse __eliom_request_data marshalled data.
 
 ocaml str.cma ./extract_request_data.ml < /tmp/index.html | ocaml ./parse_request_data.ml
 *)

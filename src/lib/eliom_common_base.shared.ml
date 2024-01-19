@@ -72,10 +72,10 @@ type full_state_name =
   {user_scope : user_scope; secure : bool; site_dir_str : string}
 
 module Full_state_name_table = Map.Make (struct
-  type t = full_state_name
+    type t = full_state_name
 
-  let compare = compare
-end)
+    let compare = compare
+  end)
 
 (******************************************************************)
 (* Service kinds: *)
@@ -226,7 +226,7 @@ type sess_info =
   ; si_ignored_post_params : (string * string) list
   ; si_client_process_info : client_process_info option
   ; si_expect_process_data : bool Lazy.t
-        (*204FORMS*     si_internal_form: bool; *) }
+  (*204FORMS*     si_internal_form: bool; *) }
 
 type eliom_js_page_data =
   { ejs_global_data : (Eliom_runtime.global_data * Eliom_wrap.unwrapper) option
@@ -306,7 +306,7 @@ let split_prefix_param pref l =
   let len = String.length pref in
   List.partition
     (fun (n, _) ->
-      try String.sub n 0 len = pref with Invalid_argument _ -> false)
+       try String.sub n 0 len = pref with Invalid_argument _ -> false)
     l
 
 (* Remove all parameters whose name starts with pref *)
@@ -341,7 +341,6 @@ exception Eliom_duplicate_registration of string
 exception Eliom_page_erasing of string
 
 type 'a dircontent = Vide | Table of 'a direlt ref String.Table.t
-
 and 'a direlt = Dir of 'a dircontent ref | File of 'a ref
 
 let empty_dircontent () = Vide

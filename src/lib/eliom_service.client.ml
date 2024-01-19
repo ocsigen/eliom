@@ -43,10 +43,9 @@ let set_client_fun ?app ~service f =
   | Some r -> r := Some f
   | None -> service.client_fun <- Some (ref (Some f))
 
-let reload_fun
-    : type gp pp.
-      (gp, pp, _, _, _, _, _, _, _, _, _) t
-      -> (gp -> unit -> result Lwt.t) option
+let reload_fun :
+    type gp pp.
+    (gp, pp, _, _, _, _, _, _, _, _, _) t -> (gp -> unit -> result Lwt.t) option
   =
  fun service ->
   match Eliom_parameter.is_unit (post_params_type service) with

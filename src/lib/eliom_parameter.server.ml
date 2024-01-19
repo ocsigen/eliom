@@ -58,8 +58,8 @@ let regexp reg dest ~to_string n =
       | _ | (exception Not_found) -> raise (Failure "Regexp not matching"))
     ~to_string n
 
-let all_suffix_regexp reg dest ~(to_string : 'a -> string) (n : string)
-    : (string, [`Endsuffix], [`One of string] param_name) params_type
+let all_suffix_regexp reg dest ~(to_string : 'a -> string) (n : string) :
+    (string, [`Endsuffix], [`One of string] param_name) params_type
   =
   all_suffix_user
     ~of_string:(fun s ->

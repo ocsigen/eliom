@@ -327,27 +327,13 @@ let process_option () =
         if !kind <> `Client then usage ();
         force_link_all := false;
         incr i
-    | "-i" ->
-        set_mode `Interface;
-        incr i
-    | "-c" ->
-        set_mode `Compile;
-        incr i
-    | "-a" ->
-        set_mode `Library;
-        incr i
-    | "-pack" ->
-        set_mode `Pack;
-        incr i
-    | "-output-obj" ->
-        set_mode `Obj;
-        incr i
-    | "-shared" ->
-        set_mode `Shared;
-        incr i
-    | "-infer" ->
-        set_mode `Infer;
-        incr i
+    | "-i" -> set_mode `Interface; incr i
+    | "-c" -> set_mode `Compile; incr i
+    | "-a" -> set_mode `Library; incr i
+    | "-pack" -> set_mode `Pack; incr i
+    | "-output-obj" -> set_mode `Obj; incr i
+    | "-shared" -> set_mode `Shared; incr i
+    | "-infer" -> set_mode `Infer; incr i
     | "-verbose" ->
         verbose := true;
         args := !args @ ["-verbose"];

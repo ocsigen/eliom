@@ -23,10 +23,10 @@
 let to_signal ~init ?eq (th : 'a React.S.t Lwt.t) : 'a React.S.t =
   let s, set = React.S.create ?eq init in
   Lwt.async (fun () ->
-      let%lwt ss = th in
-      let effectful_signal = React.S.map (fun v -> set v) ss in
-      ignore (React.S.retain s (fun () -> ignore effectful_signal));
-      Lwt.return_unit);
+    let%lwt ss = th in
+    let effectful_signal = React.S.map (fun v -> set v) ss in
+    ignore (React.S.retain s (fun () -> ignore effectful_signal));
+    Lwt.return_unit);
   s]
 
 [%%client
@@ -160,19 +160,19 @@ module ReactiveData = struct
         Lwt.wakeup (snd !waiter) ();
         React.E.map
           (fun msg ->
-            Lwt.async (fun () ->
-                let waiter1 = !waiter in
-                let new_waiter = Lwt.wait () in
-                waiter := new_waiter;
-                let%lwt new_msg = map_msg_p_lwt f msg in
-                let%lwt _, rhandle = r_th in
-                let%lwt () = fst waiter1 in
-                (match new_msg with
-                | ReactiveData.RList.Set s -> ReactiveData.RList.set rhandle s
-                | ReactiveData.RList.Patch p ->
-                    ReactiveData.RList.patch rhandle p);
-                Lwt.wakeup (snd new_waiter) ();
-                Lwt.return_unit))
+             Lwt.async (fun () ->
+               let waiter1 = !waiter in
+               let new_waiter = Lwt.wait () in
+               waiter := new_waiter;
+               let%lwt new_msg = map_msg_p_lwt f msg in
+               let%lwt _, rhandle = r_th in
+               let%lwt () = fst waiter1 in
+               (match new_msg with
+               | ReactiveData.RList.Set s -> ReactiveData.RList.set rhandle s
+               | ReactiveData.RList.Patch p ->
+                   ReactiveData.RList.patch rhandle p);
+               Lwt.wakeup (snd new_waiter) ();
+               Lwt.return_unit))
           event
 
       (** Same as map_p but we do not compute the initial list.
@@ -187,7 +187,7 @@ module ReactiveData = struct
            collected. *)
         ignore
           (React.E.retain (ReactiveData.RList.event rr) (fun () ->
-               ignore effectul_event));
+             ignore effectul_event));
         rr
 
       (** [map_p f l] is the equivalent of [ReactiveData.Rlist.map]
@@ -209,7 +209,7 @@ module ReactiveData = struct
            collected. *)
         ignore
           (React.E.retain (ReactiveData.RList.event rr) (fun () ->
-               ignore effectul_event));
+             ignore effectul_event));
         Lwt.return rr
     end
 
@@ -248,16 +248,16 @@ module FakeReact = struct
     val l2 : ('a -> 'b -> 'c) -> 'a t -> 'b t -> 'c t
     val l3 : ('a -> 'b -> 'c -> 'd) -> 'a t -> 'b t -> 'c t -> 'd t
 
-    val l4
-      :  ('a -> 'b -> 'c -> 'd -> 'e)
+    val l4 :
+       ('a -> 'b -> 'c -> 'd -> 'e)
       -> 'a t
       -> 'b t
       -> 'c t
       -> 'd t
       -> 'e t
 
-    val l5
-      :  ('a -> 'b -> 'c -> 'd -> 'e -> 'f)
+    val l5 :
+       ('a -> 'b -> 'c -> 'd -> 'e -> 'f)
       -> 'a t
       -> 'b t
       -> 'c t
@@ -265,8 +265,8 @@ module FakeReact = struct
       -> 'e t
       -> 'f t
 
-    val l6
-      :  ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g)
+    val l6 :
+       ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g)
       -> 'a t
       -> 'b t
       -> 'c t
@@ -353,19 +353,19 @@ module React = struct
         | None -> [%client.unsafe FakeReact.S.create ?eq:~%eq ~%x], true
         | Some v ->
             ( [%client.unsafe
-                (match (~%v : (_ * (?step:_ -> _ -> _)) option) with
+                ((match (~%v : (_ * (?step:_ -> _ -> _)) option) with
                  | Some ((_, set) as s) ->
                      (* The reactive data is already on client side.  But
                   the value sent by server is more recent.  I update
                   the signal. *)
                      if ~%reset_default then set ?step:None ~%x;
                      s
-                 | None -> FakeReact.S.create ?eq:~%eq ~%x
+                 | None -> FakeReact.S.create ?eq:~%eq ~%x)
                  (*VVV Make possible to disable this?  Warning: removing
                  this or changing the default will break some existing
                  code relying on this!  Do not change the default
                  without wide announcement. *)
-                  : 'a FakeReact.S.t * (?step:React.step -> 'a -> unit))]
+                 : 'a FakeReact.S.t * (?step:React.step -> 'a -> unit))]
             , reset_default )
       in
       let v, f = FakeReact.S.create ~synced x in
@@ -383,8 +383,7 @@ module React = struct
 
     let fmap ?(eq : ('b -> 'b -> bool) Value.t option)
         (f : ('a -> 'b option) Value.t) (i : 'b Value.t)
-        (s : 'a FakeReact.S.t Value.t)
-        : 'b t
+        (s : 'a FakeReact.S.t Value.t) : 'b t
       =
       Value.create
         (FakeReact.S.fmap (Value.local f) (Value.local i) (Value.local s))
@@ -392,8 +391,7 @@ module React = struct
           (FakeReact.S.fmap ?eq:~%eq ~%f ~%i ~%s : 'b FakeReact.S.t)]
 
     let merge ?eq (f : ('a -> 'b -> 'a) Value.t) (acc : 'a)
-        (l : 'b FakeReact.S.t Value.t list)
-        : 'a t
+        (l : 'b FakeReact.S.t Value.t list) : 'a t
       =
       Value.create
         (FakeReact.S.merge (Value.local f) acc (List.map Value.local l))
@@ -406,8 +404,7 @@ module React = struct
         [%client.unsafe (React.S.const ~%v : 'a FakeReact.S.t)]
 
     let l2 ?eq (f : ('a -> 'b -> 'c) Value.t) (s1 : 'a FakeReact.S.t Value.t)
-        (s2 : 'b FakeReact.S.t Value.t)
-        : 'c t
+        (s2 : 'b FakeReact.S.t Value.t) : 'c t
       =
       Value.create
         (FakeReact.S.l2 (Value.local f) (Value.local s1) (Value.local s2))
@@ -415,8 +412,7 @@ module React = struct
 
     let l3 ?eq (f : ('a -> 'b -> 'c -> 'd) Value.t)
         (s1 : 'a FakeReact.S.t Value.t) (s2 : 'b FakeReact.S.t Value.t)
-        (s3 : 'c FakeReact.S.t Value.t)
-        : 'd t
+        (s3 : 'c FakeReact.S.t Value.t) : 'd t
       =
       Value.create
         (FakeReact.S.l3 (Value.local f) (Value.local s1) (Value.local s2)
@@ -426,8 +422,7 @@ module React = struct
 
     let l4 ?eq (f : ('a -> 'b -> 'c -> 'd -> 'e) Value.t)
         (s1 : 'a FakeReact.S.t Value.t) (s2 : 'b FakeReact.S.t Value.t)
-        (s3 : 'c FakeReact.S.t Value.t) (s4 : 'd FakeReact.S.t Value.t)
-        : 'e t
+        (s3 : 'c FakeReact.S.t Value.t) (s4 : 'd FakeReact.S.t Value.t) : 'e t
       =
       Value.create
         (FakeReact.S.l4 (Value.local f) (Value.local s1) (Value.local s2)
@@ -438,8 +433,7 @@ module React = struct
     let l5 ?eq (f : ('a -> 'b -> 'c -> 'd -> 'e -> 'f) Value.t)
         (s1 : 'a FakeReact.S.t Value.t) (s2 : 'b FakeReact.S.t Value.t)
         (s3 : 'c FakeReact.S.t Value.t) (s4 : 'd FakeReact.S.t Value.t)
-        (s5 : 'e FakeReact.S.t Value.t)
-        : 'f t
+        (s5 : 'e FakeReact.S.t Value.t) : 'f t
       =
       Value.create
         (FakeReact.S.l5 (Value.local f) (Value.local s1) (Value.local s2)
@@ -450,15 +444,14 @@ module React = struct
     let l6 ?eq (f : ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g) Value.t)
         (s1 : 'a FakeReact.S.t Value.t) (s2 : 'b FakeReact.S.t Value.t)
         (s3 : 'c FakeReact.S.t Value.t) (s4 : 'd FakeReact.S.t Value.t)
-        (s5 : 'e FakeReact.S.t Value.t) (s6 : 'f FakeReact.S.t Value.t)
-        : 'g t
+        (s5 : 'e FakeReact.S.t Value.t) (s6 : 'f FakeReact.S.t Value.t) : 'g t
       =
       Value.create
         (FakeReact.S.l6 (Value.local f) (Value.local s1) (Value.local s2)
            (Value.local s3) (Value.local s4) (Value.local s5) (Value.local s6))
         [%client.unsafe
           (React.S.l6 ?eq:~%eq ~%f ~%s1 ~%s2 ~%s3 ~%s4 ~%s5 ~%s6
-            : 'g FakeReact.S.t)]
+           : 'g FakeReact.S.t)]
 
     let switch ?eq (s : 'a FakeReact.S.t Value.t FakeReact.S.t Value.t) : 'a t =
       (* TODO : setting synced to false is safe, but can we do
@@ -478,8 +471,7 @@ module React = struct
 
     module Lwt = struct
       let map_s ?eq (f : ('a -> 'b Lwt.t) Value.t)
-          (s : 'a FakeReact.S.t Value.t)
-          : 'b t Lwt.t
+          (s : 'a FakeReact.S.t Value.t) : 'b t Lwt.t
         =
         let s' = Value.local s in
         let%lwt server_result = (Value.local f) (FakeReact.S.value s') in
@@ -489,11 +481,11 @@ module React = struct
              (fst (FakeReact.S.create ~synced server_result))
              [%client.unsafe
                (React.S.Lwt.map_s_init ~init:~%server_result ?eq:~%eq ~%f ~%s
-                 : 'b FakeReact.S.t)])
+                : 'b FakeReact.S.t)])
 
       let l2_s ?eq (f : ('a -> 'b -> 'c Lwt.t) Value.t)
-          (s1 : 'a FakeReact.S.t Value.t) (s2 : 'b FakeReact.S.t Value.t)
-          : 'c t Lwt.t
+          (s1 : 'a FakeReact.S.t Value.t) (s2 : 'b FakeReact.S.t Value.t) :
+          'c t Lwt.t
         =
         let s1' = Value.local s1 and s2' = Value.local s2 in
         let%lwt server_result =
@@ -506,12 +498,11 @@ module React = struct
              [%client.unsafe
                (React.S.Lwt.l2_s_init ~init:~%server_result ?eq:~%eq ~%f ~%s1
                   ~%s2
-                 : 'c FakeReact.S.t)])
+                : 'c FakeReact.S.t)])
 
       let l3_s ?eq (f : ('a -> 'b -> 'c -> 'd Lwt.t) Value.t)
           (s1 : 'a FakeReact.S.t Value.t) (s2 : 'b FakeReact.S.t Value.t)
-          (s3 : 'c FakeReact.S.t Value.t)
-          : 'd t Lwt.t
+          (s3 : 'c FakeReact.S.t Value.t) : 'd t Lwt.t
         =
         let s1' = Value.local s1
         and s2' = Value.local s2
@@ -527,12 +518,12 @@ module React = struct
              [%client.unsafe
                (React.S.Lwt.l3_s_init ?eq:~%eq ~init:~%server_result ~%f ~%s1
                   ~%s2 ~%s3
-                 : 'd FakeReact.S.t)])
+                : 'd FakeReact.S.t)])
 
       let l4_s ?eq (f : ('a -> 'b -> 'c -> 'd -> 'e Lwt.t) Value.t)
           (s1 : 'a FakeReact.S.t Value.t) (s2 : 'b FakeReact.S.t Value.t)
-          (s3 : 'c FakeReact.S.t Value.t) (s4 : 'd FakeReact.S.t Value.t)
-          : 'e t Lwt.t
+          (s3 : 'c FakeReact.S.t Value.t) (s4 : 'd FakeReact.S.t Value.t) :
+          'e t Lwt.t
         =
         let s1' = Value.local s1
         and s2' = Value.local s2
@@ -551,13 +542,12 @@ module React = struct
              [%client.unsafe
                (React.S.Lwt.l4_s_init ?eq:~%eq ~init:~%server_result ~%f ~%s1
                   ~%s2 ~%s3 ~%s4
-                 : 'e FakeReact.S.t)])
+                : 'e FakeReact.S.t)])
 
       let l5_s ?eq (f : ('a -> 'b -> 'c -> 'd -> 'e -> 'f Lwt.t) Value.t)
           (s1 : 'a FakeReact.S.t Value.t) (s2 : 'b FakeReact.S.t Value.t)
           (s3 : 'c FakeReact.S.t Value.t) (s4 : 'd FakeReact.S.t Value.t)
-          (s5 : 'e FakeReact.S.t Value.t)
-          : 'f t Lwt.t
+          (s5 : 'e FakeReact.S.t Value.t) : 'f t Lwt.t
         =
         let s1' = Value.local s1
         and s2' = Value.local s2
@@ -579,13 +569,13 @@ module React = struct
              [%client.unsafe
                (React.S.Lwt.l5_s_init ?eq:~%eq ~init:~%server_result ~%f ~%s1
                   ~%s2 ~%s3 ~%s4 ~%s5
-                 : 'f FakeReact.S.t)])
+                : 'f FakeReact.S.t)])
 
       let l6_s ?eq (f : ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g Lwt.t) Value.t)
           (s1 : 'a FakeReact.S.t Value.t) (s2 : 'b FakeReact.S.t Value.t)
           (s3 : 'c FakeReact.S.t Value.t) (s4 : 'd FakeReact.S.t Value.t)
-          (s5 : 'e FakeReact.S.t Value.t) (s6 : 'f FakeReact.S.t Value.t)
-          : 'g t Lwt.t
+          (s5 : 'e FakeReact.S.t Value.t) (s6 : 'f FakeReact.S.t Value.t) :
+          'g t Lwt.t
         =
         let s1' = Value.local s1
         and s2' = Value.local s2
@@ -609,11 +599,10 @@ module React = struct
              [%client.unsafe
                (React.S.Lwt.l6_s_init ?eq:~%eq ~init:~%server_result ~%f ~%s1
                   ~%s2 ~%s3 ~%s4 ~%s5 ~%s6
-                 : 'g FakeReact.S.t)])
+                : 'g FakeReact.S.t)])
 
       let merge_s ?eq (f : ('a -> 'b -> 'a Lwt.t) Value.t) (acc : 'a)
-          (l : 'b FakeReact.S.t Value.t list)
-          : 'a t Lwt.t
+          (l : 'b FakeReact.S.t Value.t list) : 'a t Lwt.t
         =
         let%lwt server_result, synced =
           let f (acc, _acc_b) v =
@@ -630,7 +619,7 @@ module React = struct
              [%client.unsafe
                (React.S.Lwt.merge_s_init ~init:~%server_result ?eq:~%eq ~%f
                   ~%acc ~%l
-                 : 'a FakeReact.S.t)])
+                : 'a FakeReact.S.t)])
     end
   end
 end
@@ -646,13 +635,13 @@ module ReactiveData = struct
         | None -> [%client.unsafe FakeReactiveData.RList.create ~%x], true
         | Some v ->
             ( [%client.unsafe
-                (match ~%v with
+                ((match ~%v with
                  | Some ((_, handle) as s) ->
                      if ~%reset_default then ReactiveData.RList.set handle ~%x;
                      s
-                 | None -> FakeReactiveData.RList.create ~%x
-                  : 'a FakeReactiveData.RList.t
-                    * 'a FakeReactiveData.RList.handle)]
+                 | None -> FakeReactiveData.RList.create ~%x)
+                 : 'a FakeReactiveData.RList.t
+                   * 'a FakeReactiveData.RList.handle)]
             , reset_default )
       in
       let sv = FakeReactiveData.RList.create ~synced x in
@@ -674,7 +663,7 @@ module ReactiveData = struct
         (FakeReactiveData.RList.singleton_s (Value.local s))
         [%client.unsafe
           (FakeReactiveData.RList.singleton_s (Value.local ~%s)
-            : 'a FakeReactiveData.RList.t)]
+           : 'a FakeReactiveData.RList.t)]
 
     let value (s : 'a FakeReactiveData.RList.t Value.t) =
       Value.create
@@ -691,7 +680,7 @@ module ReactiveData = struct
       and cv =
         [%client.unsafe
           (FakeReactiveData.RList.signal ?eq:~%eq (Value.local ~%s)
-            : 'a list FakeReact.S.t)]
+           : 'a list FakeReact.S.t)]
       in
       Value.create sv cv
 
@@ -700,7 +689,7 @@ module ReactiveData = struct
         (FakeReactiveData.RList.map (Value.local f) (Value.local s))
         [%client.unsafe
           (FakeReactiveData.RList.map (Value.local ~%f) (Value.local ~%s)
-            : 'a FakeReactiveData.RList.t)]
+           : 'a FakeReactiveData.RList.t)]
 
     let from_signal ?eq (s : 'a list React.S.t) : 'a t =
       let sv =
@@ -720,7 +709,7 @@ module ReactiveData = struct
         [%client.unsafe
           (let f x = ReactiveData.RList.cons x (Value.local ~%h) in
            ignore (React.E.map f ~%e)
-            : unit)]
+           : unit)]
       in
       l
 
@@ -728,8 +717,7 @@ module ReactiveData = struct
 
     module Lwt = struct
       let map_p (f : ('a -> 'b Lwt.t) Value.t)
-          (l : 'a FakeReactiveData.RList.t Value.t)
-          : 'b t Lwt.t
+          (l : 'a FakeReactiveData.RList.t Value.t) : 'b t Lwt.t
         =
         let l' = Value.local l in
         let%lwt server_result =

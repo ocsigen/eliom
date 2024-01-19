@@ -75,8 +75,8 @@ let late_unwrap_value old_value new_value =
     (fun {parent; field} -> Js.Unsafe.set parent field new_value)
     (Obj.obj (Obj.field (Obj.field old_value (Obj.size old_value - 1)) 2))
 
-external raw_unmarshal_and_unwrap
-  :  (unit, unwrapper -> _ -> _ option) Js.meth_callback
+external raw_unmarshal_and_unwrap :
+   (unit, unwrapper -> _ -> _ option) Js.meth_callback
   -> string
   -> int
   -> _

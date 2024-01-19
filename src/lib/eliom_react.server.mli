@@ -55,8 +55,8 @@ module Down : sig
   type 'a t
   (** The abstract type of down events. *)
 
-  val of_react
-    :  ?scope:[< Eliom_comet.Channel.comet_scope]
+  val of_react :
+     ?scope:[< Eliom_comet.Channel.comet_scope]
     -> ?throttling:float
     -> ?name:string
     -> ?size:int
@@ -97,13 +97,13 @@ module Up : sig
   (** [to_react e] injects the up events [e] into react events so that it can
       be manipulated as a standard event. *)
 
-  val create
-    :  ?scope:Eliom_common.scope
+  val create :
+     ?scope:Eliom_common.scope
     -> ?name:string
     -> ( 'a
-       , [`WithoutSuffix]
-       , [`One of 'a Eliom_parameter.ocaml] Eliom_parameter.param_name )
-       Eliom_parameter.params_type
+         , [`WithoutSuffix]
+         , [`One of 'a Eliom_parameter.ocaml] Eliom_parameter.param_name )
+         Eliom_parameter.params_type
     -> 'a t
   (** [create param] creates an Up event.
       If [~name] is present, the coservice used to transmit the event will
@@ -119,8 +119,8 @@ module S : sig
     type 'a t
     (** The abstract type of down signals. *)
 
-    val of_react
-      :  ?scope:[< Eliom_comet.Channel.comet_scope]
+    val of_react :
+       ?scope:[< Eliom_comet.Channel.comet_scope]
       -> ?throttling:float
       -> ?name:string
       -> 'a React.S.t

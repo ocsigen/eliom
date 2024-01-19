@@ -44,14 +44,14 @@ let get_global_data, modify_global_data =
     then
       Eliom_lib.String_map.merge
         (fun compilation_unit_id global site ->
-          match global, site with
-          | None, None -> assert false
-          | Some data, None | None, Some data -> Some data
-          | Some _, Some site_data ->
-              Eliom_lib.Lwt_log.ign_error_f ~section:Eliom_lib.Lwt_log.eliom
-                "Compilation unit %s linked globally AND as Eliom module"
-                compilation_unit_id;
-              Some site_data)
+           match global, site with
+           | None, None -> assert false
+           | Some data, None | None, Some data -> Some data
+           | Some _, Some site_data ->
+               Eliom_lib.Lwt_log.ign_error_f ~section:Eliom_lib.Lwt_log.eliom
+                 "Compilation unit %s linked globally AND as Eliom module"
+                 compilation_unit_id;
+               Some site_data)
         !global_data
         (Eliom_reference.Volatile.get site_data)
     else !global_data
@@ -67,10 +67,10 @@ let current_server_section_data = ref []
 
 let get_compilation_unit_global_data compilation_unit_id =
   (if not (Eliom_lib.String_map.mem compilation_unit_id (get_global_data ()))
-  then
-    let data = {server_section = []; client_section = []} in
-    ignore
-      (modify_global_data (Eliom_lib.String_map.add compilation_unit_id data)));
+   then
+     let data = {server_section = []; client_section = []} in
+     ignore
+       (modify_global_data (Eliom_lib.String_map.add compilation_unit_id data)));
   Eliom_lib.String_map.find compilation_unit_id (get_global_data ())
 
 let close_server_section compilation_unit_id =
@@ -94,15 +94,15 @@ let close_client_section compilation_unit_id injection_data =
 let get_global_data () =
   Eliom_lib.String_map.map
     (fun {server_section; client_section} ->
-      { Eliom_runtime.server_sections_data =
-          Array.of_list (List.rev server_section)
-      ; client_sections_data = Array.of_list (List.rev client_section) })
+       { Eliom_runtime.server_sections_data =
+           Array.of_list (List.rev server_section)
+       ; client_sections_data = Array.of_list (List.rev client_section) })
     (get_global_data ())
 
 (* Request data *)
 
-let request_data
-    : Eliom_runtime.client_value_datum list Eliom_reference.Volatile.eref
+let request_data :
+    Eliom_runtime.client_value_datum list Eliom_reference.Volatile.eref
   =
   Eliom_reference.Volatile.eref ~scope:Eliom_common.request_scope []
 
@@ -126,7 +126,7 @@ let register_client_value_data ~closure_id ~args ~value =
         (Eliom_client_value.Client_value_creation_invalid_context closure_id)
   else
     Eliom_reference.Volatile.modify request_data (fun sofar ->
-        client_value_datum :: sofar)
+      client_value_datum :: sofar)
 
 (*****************************************************************************)
 (* Syntax helpers *)

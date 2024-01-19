@@ -36,7 +36,7 @@ let client_value_datum ~closure_id ~args ~value =
 
 exception Client_value_creation_invalid_context of string
 
-let escaped_value value
-    : Eliom_runtime.escaped_value (* * Eliom_wrap.unwrapper *)
+let escaped_value value :
+    Eliom_runtime.escaped_value (* * Eliom_wrap.unwrapper *)
   =
   Ocsigen_lib.to_poly value

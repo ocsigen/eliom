@@ -85,17 +85,17 @@ module Up = struct
     { event : 'a E.t
     ; service :
         ( unit
-        , 'a
-        , Eliom_service.post
-        , Eliom_service.non_att
-        , Eliom_service.co
-        , Eliom_service.non_ext
-        , Eliom_service.reg
-        , [`WithoutSuffix]
-        , unit
-        , [`One of 'a Eliom_parameter.ocaml] Eliom_parameter.param_name
-        , Eliom_registration.Action.return )
-        Eliom_service.t
+          , 'a
+          , Eliom_service.post
+          , Eliom_service.non_att
+          , Eliom_service.co
+          , Eliom_service.non_ext
+          , Eliom_service.reg
+          , [`WithoutSuffix]
+          , unit
+          , [`One of 'a Eliom_parameter.ocaml] Eliom_parameter.param_name
+          , Eliom_registration.Action.return )
+          Eliom_service.t
     ; wrapper : 'a t Eliom_common.wrapper }
   [@@warning "-69"]
 
@@ -165,10 +165,10 @@ module S = struct
         lazy
           (S.map
              (fun v ->
-               store.read <- false;
-               store.value <- v;
-               Lwt_condition.broadcast store.condition ();
-               ())
+                store.read <- false;
+                store.value <- v;
+                Lwt_condition.broadcast store.condition ();
+                ())
              signal)
       in
       ignore (Lazy.force store.s);
