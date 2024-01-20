@@ -283,6 +283,12 @@ module Html : sig
   type uri = Xml.uri
   type 'a form_param
 
+  (**/**)
+
+  module Ev' = Eliom_content_core.Html.Ev'
+
+  (**/**)
+
   (** Creation of {e f}unctional HTML5 content (copy-able but not referable). *)
   module F : sig
     (** {2 Content creation}
@@ -301,8 +307,7 @@ module Html : sig
 
     module Raw : sig
       include module type of Raw'
-
-      val a_onclick : string -> 'a attrib
+      include module type of Ev' (Raw')
     end
 
     include module type of Raw'
@@ -334,8 +339,7 @@ module Html : sig
 
     module Raw : sig
       include module type of Raw'
-
-      val a_onclick : string -> 'a attrib
+      include module type of Ev' (Raw')
     end
 
     include module type of Raw'

@@ -146,6 +146,93 @@ module Html : sig
   type +'a attrib
   type uri = Xml.uri
 
+  (**/**)
+
+  module Ev' (A : sig
+      type 'a attrib
+
+      module Unsafe : sig
+        val string_attrib : string -> string -> 'a attrib
+      end
+    end) : sig
+    val a_onabort : string -> [> `OnAbort] A.attrib
+    val a_onafterprint : string -> [> `OnAfterPrint] A.attrib
+    val a_onbeforeprint : string -> [> `OnBeforePrint] A.attrib
+    val a_onbeforeunload : string -> [> `OnBeforeUnload] A.attrib
+    val a_onblur : string -> [> `OnBlur] A.attrib
+    val a_oncanplay : string -> [> `OnCanPlay] A.attrib
+    val a_oncanplaythrough : string -> [> `OnCanPlayThrough] A.attrib
+    val a_onchange : string -> [> `OnChange] A.attrib
+    val a_onclose : string -> [> `OnClose] A.attrib
+    val a_ondurationchange : string -> [> `OnDurationChange] A.attrib
+    val a_onemptied : string -> [> `OnEmptied] A.attrib
+    val a_onended : string -> [> `OnEnded] A.attrib
+    val a_onerror : string -> [> `OnError] A.attrib
+    val a_onfocus : string -> [> `OnFocus] A.attrib
+    val a_onformchange : string -> [> `OnFormChange] A.attrib
+    val a_onforminput : string -> [> `OnFormInput] A.attrib
+    val a_onhashchange : string -> [> `OnHashChange] A.attrib
+    val a_oninput : string -> [> `OnInput] A.attrib
+    val a_oninvalid : string -> [> `OnInvalid] A.attrib
+    val a_onmousewheel : string -> [> `OnMouseWheel] A.attrib
+    val a_onoffline : string -> [> `OnOffLine] A.attrib
+    val a_ononline : string -> [> `OnOnLine] A.attrib
+    val a_onpause : string -> [> `OnPause] A.attrib
+    val a_onplay : string -> [> `OnPlay] A.attrib
+    val a_onplaying : string -> [> `OnPlaying] A.attrib
+    val a_onpagehide : string -> [> `OnPageHide] A.attrib
+    val a_onpageshow : string -> [> `OnPageShow] A.attrib
+    val a_onpopstate : string -> [> `OnPopState] A.attrib
+    val a_onprogress : string -> [> `OnProgress] A.attrib
+    val a_onratechange : string -> [> `OnRateChange] A.attrib
+    val a_onreadystatechange : string -> [> `OnReadyStateChange] A.attrib
+    val a_onredo : string -> [> `OnRedo] A.attrib
+    val a_onresize : string -> [> `OnResize] A.attrib
+    val a_onscroll : string -> [> `OnScroll] A.attrib
+    val a_onseeked : string -> [> `OnSeeked] A.attrib
+    val a_onseeking : string -> [> `OnSeeking] A.attrib
+    val a_onselect : string -> [> `OnSelect] A.attrib
+    val a_onshow : string -> [> `OnShow] A.attrib
+    val a_onstalled : string -> [> `OnStalled] A.attrib
+    val a_onstorage : string -> [> `OnStorage] A.attrib
+    val a_onsubmit : string -> [> `OnSubmit] A.attrib
+    val a_onsuspend : string -> [> `OnSuspend] A.attrib
+    val a_ontimeupdate : string -> [> `OnTimeUpdate] A.attrib
+    val a_onundo : string -> [> `OnUndo] A.attrib
+    val a_onunload : string -> [> `OnUnload] A.attrib
+    val a_onvolumechange : string -> [> `OnVolumeChange] A.attrib
+    val a_onwaiting : string -> [> `OnWaiting] A.attrib
+    val a_onload : string -> [> `OnLoad] A.attrib
+    val a_onloadeddata : string -> [> `OnLoadedData] A.attrib
+    val a_onloadedmetadata : string -> [> `OnLoadedMetaData] A.attrib
+    val a_onloadstart : string -> [> `OnLoadStart] A.attrib
+    val a_onmessage : string -> [> `OnMessage] A.attrib
+    val a_onclick : string -> [> `OnClick] A.attrib
+    val a_oncontextmenu : string -> [> `OnContextMenu] A.attrib
+    val a_ondblclick : string -> [> `OnDblClick] A.attrib
+    val a_ondrag : string -> [> `OnDrag] A.attrib
+    val a_ondragend : string -> [> `OnDragEnd] A.attrib
+    val a_ondragenter : string -> [> `OnDragEnter] A.attrib
+    val a_ondragleave : string -> [> `OnDragLeave] A.attrib
+    val a_ondragover : string -> [> `OnDragOver] A.attrib
+    val a_ondragstart : string -> [> `OnDragStart] A.attrib
+    val a_ondrop : string -> [> `OnDrop] A.attrib
+    val a_onmousedown : string -> [> `OnMouseDown] A.attrib
+    val a_onmouseup : string -> [> `OnMouseUp] A.attrib
+    val a_onmouseover : string -> [> `OnMouseOver] A.attrib
+    val a_onmousemove : string -> [> `OnMouseMove] A.attrib
+    val a_onmouseout : string -> [> `OnMouseOut] A.attrib
+    val a_ontouchstart : string -> [> `OnTouchStart] A.attrib
+    val a_ontouchend : string -> [> `OnTouchEnd] A.attrib
+    val a_ontouchmove : string -> [> `OnTouchMove] A.attrib
+    val a_ontouchcancel : string -> [> `OnTouchCancel] A.attrib
+    val a_onkeypress : string -> [> `OnKeyPress] A.attrib
+    val a_onkeydown : string -> [> `OnKeyDown] A.attrib
+    val a_onkeyup : string -> [> `OnKeyUp] A.attrib
+  end
+
+  (**/**)
+
   module F : sig
     (**/**)
 
@@ -158,8 +245,7 @@ module Html : sig
 
     module Raw : sig
       include module type of Raw'
-
-      val a_onclick : string -> 'a attrib
+      include module type of Ev' (Raw')
     end
 
     include module type of Raw'
@@ -188,8 +274,7 @@ module Html : sig
 
     module Raw : sig
       include module type of Raw'
-
-      val a_onclick : string -> 'a attrib
+      include module type of Ev' (Raw')
     end
 
     include module type of Raw'

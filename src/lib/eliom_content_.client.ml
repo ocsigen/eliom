@@ -365,6 +365,8 @@ module Svg = struct
 end
 
 module Html = struct
+  module Ev' = Html.Ev'
+
   module F = struct
     include Html.F
 
