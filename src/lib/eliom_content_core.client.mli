@@ -191,17 +191,66 @@ module Svg : sig
   type +'a attrib
   type uri = Xml.uri
 
+  (**/**)
+
+  module Ev' (A : sig
+      type 'a attrib
+
+      module Unsafe : sig
+        val string_attrib : string -> string -> 'a attrib
+      end
+    end) : sig
+    val a_onabort : string -> [> `OnAbort] A.attrib
+    val a_onactivate : string -> [> `OnActivate] A.attrib
+    val a_onbegin : string -> [> `OnBegin] A.attrib
+    val a_onend : string -> [> `OnEnd] A.attrib
+    val a_onerror : string -> [> `OnError] A.attrib
+    val a_onfocusin : string -> [> `OnFocusIn] A.attrib
+    val a_onfocusout : string -> [> `OnFocusOut] A.attrib
+
+    val a_onload : string -> [> `OnLoad] A.attrib
+    [@@ocaml.deprecated "Removed in SVG2"]
+    (** @deprecated Removed in SVG2 *)
+
+    val a_onrepeat : string -> [> `OnRepeat] A.attrib
+    val a_onresize : string -> [> `OnResize] A.attrib
+    val a_onscroll : string -> [> `OnScroll] A.attrib
+    val a_onunload : string -> [> `OnUnload] A.attrib
+    val a_onzoom : string -> [> `OnZoom] A.attrib
+    val a_onclick : string -> [> `OnClick] A.attrib
+    val a_onmousedown : string -> [> `OnMouseDown] A.attrib
+    val a_onmouseup : string -> [> `OnMouseUp] A.attrib
+    val a_onmouseover : string -> [> `OnMouseOver] A.attrib
+    val a_onmouseout : string -> [> `OnMouseOut] A.attrib
+    val a_onmousemove : string -> [> `OnMouseMove] A.attrib
+    val a_ontouchstart : string -> [> `OnTouchStart] A.attrib
+    val a_ontouchend : string -> [> `OnTouchEnd] A.attrib
+    val a_ontouchmove : string -> [> `OnTouchMove] A.attrib
+    val a_ontouchcancel : string -> [> `OnTouchCancel] A.attrib
+  end
+
+  (**/**)
+
   (** {2 Functional semantics} *)
 
   (** Typed interface for building valid SVG tree (functional semantics).
       See {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
   module F : sig
-    module Raw :
+    (**/**)
+
+    module Raw' :
       Svg_sigs.Make(Xml).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 
-    include module type of Raw
+    (**/**)
+
+    module Raw : sig
+      include module type of Raw'
+      include module type of Ev' (Raw')
+    end
+
+    include module type of Raw'
     (** See {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
   end
 
@@ -210,12 +259,21 @@ module Svg : sig
   (** Typed interface for building valid SVG tree (DOM semantics). See
       {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
   module D : sig
-    module Raw :
+    (**/**)
+
+    module Raw' :
       Svg_sigs.Make(Xml).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 
-    include module type of Raw
+    (**/**)
+
+    module Raw : sig
+      include module type of Raw'
+      include module type of Ev' (Raw')
+    end
+
+    include module type of Raw'
     (** See {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
   end
 
@@ -371,7 +429,7 @@ module Html : sig
     (**/**)
 
     module Raw' :
-      Html_sigs.Make(Xml)(Svg.F.Raw).T
+      Html_sigs.Make(Xml)(Svg.F.Raw').T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 
@@ -405,7 +463,7 @@ module Html : sig
     (**/**)
 
     module Raw' :
-      Html_sigs.Make(Xml)(Svg.D.Raw).T
+      Html_sigs.Make(Xml)(Svg.D.Raw').T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 

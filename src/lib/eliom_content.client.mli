@@ -45,17 +45,33 @@ module Svg : sig
   type +'a attrib
   type uri = Xml.uri
 
+  (**/**)
+
+  module Ev' = Eliom_content_core.Svg.Ev'
+
+  (**/**)
+
   (** Creation of {e f}unctional content (copy-able but not referable).
 
        See {% <<a_api project="tyxml" | module Svg_sigs.T >> %} *)
   module F : sig
     (** Cf. {% <<a_api project="tyxml" | module Html_sigs.T >> %}. *)
-    module Raw :
+
+    (**/**)
+
+    module Raw' :
       Svg_sigs.Make(Xml).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 
-    include module type of Raw
+    (**/**)
+
+    module Raw : sig
+      include module type of Raw'
+      include module type of Ev' (Raw')
+    end
+
+    include module type of Raw'
   end
 
   (** Creation of content with {e D}OM semantics (referable
@@ -63,12 +79,22 @@ module Svg : sig
        See {% <<a_api project="tyxml" | module Svg_sigs.T >> %} *)
   module D : sig
     (** Cf. {% <<a_api project="tyxml" | module Html_sigs.T >> %}. *)
-    module Raw :
+
+    (**/**)
+
+    module Raw' :
       Svg_sigs.Make(Xml).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 
-    include module type of Raw
+    (**/**)
+
+    module Raw : sig
+      include module type of Raw'
+      include module type of Ev' (Raw')
+    end
+
+    include module type of Raw'
   end
 
   (** Creation of reactive content *)
@@ -299,7 +325,7 @@ module Html : sig
     (**/**)
 
     module Raw' :
-      Html_sigs.Make(Xml)(Svg.F.Raw).T
+      Html_sigs.Make(Xml)(Svg.F.Raw').T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 
@@ -331,7 +357,7 @@ module Html : sig
     (**/**)
 
     module Raw' :
-      Html_sigs.Make(Xml)(Svg.D.Raw).T
+      Html_sigs.Make(Xml)(Svg.D.Raw').T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 

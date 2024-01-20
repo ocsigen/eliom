@@ -310,6 +310,7 @@ struct
 end
 
 module Svg = struct
+  module Ev' = Svg.Ev'
   module F = Svg.F
   module D = Svg.D
   module R = Svg.R
