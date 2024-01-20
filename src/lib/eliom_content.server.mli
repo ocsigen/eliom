@@ -306,12 +306,23 @@ module Html : sig
          *)
 
     (** See {% <<a_api project="tyxml" | module Html_sigs.T >> %}. *)
-    module Raw :
+
+    (**/**)
+
+    module Raw' :
       Html_sigs.Make(Xml)(Svg.F.Raw).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 
-    include module type of Raw
+    (**/**)
+
+    module Raw : sig
+      include module type of Raw'
+
+      val a_onclick : string -> 'a attrib
+    end
+
+    include module type of Raw'
 
     include
       Eliom_content_sigs.LINKS_AND_FORMS
@@ -334,12 +345,23 @@ module Html : sig
         {% <<a_manual chapter="server-links" fragment="forms"|the manual>> %}. *)
 
     (** See {% <<a_api project="tyxml" | module Html_sigs.T >> %}. *)
-    module Raw :
+
+    (**/**)
+
+    module Raw' :
       Html_sigs.Make(Xml)(Svg.D.Raw).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 
-    include module type of Raw
+    (**/**)
+
+    module Raw : sig
+      include module type of Raw'
+
+      val a_onclick : string -> 'a attrib
+    end
+
+    include module type of Raw'
 
     include
       Eliom_content_sigs.LINKS_AND_FORMS

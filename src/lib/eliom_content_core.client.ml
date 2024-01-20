@@ -315,8 +315,15 @@ module Html = struct
         make (Node (name, a, Eliom_lazy.force children))
     end
 
-    module Raw = Html_f.Make (Xml') (Svg.D.Raw)
-    include Raw
+    module Raw' = Html_f.Make (Xml') (Svg.D.Raw)
+
+    module Raw = struct
+      include Raw'
+
+      let a_onclick s = Unsafe.string_attrib "onclick" s
+    end
+
+    include Raw'
 
     type ('a, 'b, 'c) lazy_star =
       ?a:'a attrib list -> 'b elt list Eliom_lazy.request -> 'c elt
@@ -366,8 +373,15 @@ module Html = struct
 
   module F = struct
     module Xml' = Xml
-    module Raw = Html_f.Make (Xml') (Svg.F.Raw)
-    include Raw
+    module Raw' = Html_f.Make (Xml') (Svg.F.Raw)
+
+    module Raw = struct
+      include Raw'
+
+      let a_onclick s = Unsafe.string_attrib "onclick" s
+    end
+
+    include Raw'
 
     type ('a, 'b, 'c) lazy_star =
       ?a:'a attrib list -> 'b elt list Eliom_lazy.request -> 'c elt

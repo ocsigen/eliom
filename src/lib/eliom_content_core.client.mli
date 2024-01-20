@@ -281,12 +281,22 @@ module Html : sig
   (** Typed interface for building valid HTML5 tree (functional semantics).
       See {% <<a_api project="tyxml" | module type Html_sigs.T >> %}. *)
   module F : sig
-    module Raw :
+    (**/**)
+
+    module Raw' :
       Html_sigs.Make(Xml)(Svg.F.Raw).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 
-    include module type of Raw
+    (**/**)
+
+    module Raw : sig
+      include module type of Raw'
+
+      val a_onclick : string -> 'a attrib
+    end
+
+    include module type of Raw'
     (** See {% <<a_api project="tyxml" | module type Html_sigs.T >> %}. *)
 
     (*BB TODO Hide untyped [input]. *)
@@ -306,12 +316,22 @@ module Html : sig
   (** Typed interface for building valid HTML5 tree (DOM semantics). See
       {% <<a_api project="tyxml" | module type Html_sigs.T >> %}. *)
   module D : sig
-    module Raw :
+    (**/**)
+
+    module Raw' :
       Html_sigs.Make(Xml)(Svg.D.Raw).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 
-    include module type of Raw
+    (**/**)
+
+    module Raw : sig
+      include module type of Raw'
+
+      val a_onclick : string -> 'a attrib
+    end
+
+    include module type of Raw'
 
     (**/**)
 

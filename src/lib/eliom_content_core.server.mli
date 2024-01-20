@@ -147,12 +147,22 @@ module Html : sig
   type uri = Xml.uri
 
   module F : sig
-    module Raw :
+    (**/**)
+
+    module Raw' :
       Html_sigs.Make(Xml)(Svg.F.Raw).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 
-    include module type of Raw
+    (**/**)
+
+    module Raw : sig
+      include module type of Raw'
+
+      val a_onclick : string -> 'a attrib
+    end
+
+    include module type of Raw'
 
     (**/**)
 
@@ -167,12 +177,22 @@ module Html : sig
   end
 
   module D : sig
-    module Raw :
-      Html_sigs.Make(Xml)(Svg.D.Raw).T
+    (**/**)
+
+    module Raw' :
+      Html_sigs.Make(Xml)(Svg.F.Raw).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 
-    include module type of Raw
+    (**/**)
+
+    module Raw : sig
+      include module type of Raw'
+
+      val a_onclick : string -> 'a attrib
+    end
+
+    include module type of Raw'
 
     val client_attrib :
        ?init:'a attrib
