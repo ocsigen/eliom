@@ -18,3 +18,6 @@ cordova
 
 static/css/%%%PROJECT_NAME%%%.css.map
 static/css/%%%PROJECT_NAME%%%.css
+
+# Dune
+_build
