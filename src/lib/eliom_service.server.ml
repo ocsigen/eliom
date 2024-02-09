@@ -27,8 +27,8 @@ let plain_service (type m gp gn pp pn gp') ?(https = false) ~path
   let redirect_suffix = Eliom_parameter.contains_suffix get_params in
   let path =
     (match redirect_suffix with
-    | None -> path
-    | Some _ -> path @ [Eliom_common.eliom_suffix_internal_name])
+      | None -> path
+      | Some _ -> path @ [Eliom_common.eliom_suffix_internal_name])
     |> Url.remove_slash_at_beginning |> Url.change_empty_list
     |> Url.remove_internal_slash
   in
@@ -130,24 +130,24 @@ let coservice' (type m gp gn pp pn) ?name ?(csrf_safe = false) ?csrf_scope
       Nonattached
         { na_name =
             (if csrf_safe
-            then
-              if is_post
-              then
-                Eliom_common.SNa_post_csrf_safe
-                  ( uniqueid ()
-                  , (csrf_scope :> Eliom_common.user_scope)
-                  , csrf_secure )
-              else
-                Eliom_common.SNa_get_csrf_safe
-                  ( uniqueid ()
-                  , (csrf_scope :> Eliom_common.user_scope)
-                  , csrf_secure )
-            else
-              match name, is_post with
-              | None, true -> Eliom_common.SNa_post' (new_state ())
-              | None, false -> Eliom_common.SNa_get' (new_state ())
-              | Some name, true -> Eliom_common.SNa_post_ name
-              | Some name, false -> Eliom_common.SNa_get_ name)
+             then
+               if is_post
+               then
+                 Eliom_common.SNa_post_csrf_safe
+                   ( uniqueid ()
+                   , (csrf_scope :> Eliom_common.user_scope)
+                   , csrf_secure )
+               else
+                 Eliom_common.SNa_get_csrf_safe
+                   ( uniqueid ()
+                   , (csrf_scope :> Eliom_common.user_scope)
+                   , csrf_secure )
+             else
+               match name, is_post with
+               | None, true -> Eliom_common.SNa_post' (new_state ())
+               | None, false -> Eliom_common.SNa_get' (new_state ())
+               | Some name, true -> Eliom_common.SNa_post_ name
+               | Some name, false -> Eliom_common.SNa_get_ name)
         ; keep_get_na_params = true }
   ; https
   ; keep_nl_params
@@ -160,8 +160,8 @@ let create ?name ?(csrf_safe = false) ?csrf_scope ?csrf_secure ?max_use ?timeout
     ?(https = false) ?(keep_nl_params = `Persistent) ?priority
     (type m gp gn pp pn gp' att_ co_ ext_ reg_ rr)
     ~(meth : (m, gp, gn, pp, pn, _, gp') meth)
-    ~(path : (att_, co_, gp') path_option) ()
-    : (gp, pp, m, att_, co_, ext_, reg_, _, gn, pn, rr) t
+    ~(path : (att_, co_, gp') path_option) () :
+    (gp, pp, m, att_, co_, ext_, reg_, _, gn, pn, rr) t
   =
   match path with
   | Path path -> plain_service ~https ~keep_nl_params ?priority ~path ~meth ()
@@ -172,9 +172,9 @@ let create ?name ?(csrf_safe = false) ?csrf_scope ?csrf_secure ?max_use ?timeout
 let create_unsafe = create
 let create_ocaml = create
 
-let attach
-    :  fallback:
-         ( unit
+let attach :
+     fallback:
+       ( unit
          , unit
          , get
          , att
@@ -188,17 +188,17 @@ let attach
          t
     -> service:
          ( 'get
-         , 'post
-         , 'gp
-         , non_att
-         , co
-         , non_ext
-         , 'rg2
-         , ([< `WithoutSuffix] as 'sf)
-         , 'gn
-         , 'pn
-         , 'return )
-         t
+           , 'post
+           , 'gp
+           , non_att
+           , co
+           , non_ext
+           , 'rg2
+           , ([< `WithoutSuffix] as 'sf)
+           , 'gn
+           , 'pn
+           , 'return )
+           t
     -> unit
     -> ('get, 'post, 'gp, att, co, non_ext, non_reg, 'sf, 'gn, 'pn, 'return) t
   =
@@ -326,10 +326,10 @@ let remove_service table (type m a)
         ; Eliom_common.key_meth = key_kind }
         (if attserget = Eliom_common.SAtt_no
             || attserpost = Eliom_common.SAtt_no
-        then
-          Eliom_parameter.(
-            anonymise_params_type sgpt, anonymise_params_type sppt)
-        else 0, 0)
+         then
+           Eliom_parameter.(
+             anonymise_params_type sgpt, anonymise_params_type sppt)
+         else 0, 0)
   | Nonattached naser ->
       let na_name = na_name naser in
       Eliom_route.remove_naservice table na_name

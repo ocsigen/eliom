@@ -111,23 +111,23 @@ let http_stats () =
     ; ul
         (List.map
            (fun (vhosts, config, _) ->
-             let all_vhost =
-               String.concat ", "
-                 (List.map
-                    (fun (vhost, _, vport) ->
-                      let optport =
-                        match vport with
-                        | None -> ""
-                        | Some p -> Printf.sprintf ":%d" p
-                      in
-                      Printf.sprintf
-                        "%s%s ( default: %s,  http: %d, https: %d )" vhost
-                        optport config.Ocsigen_extensions.default_hostname
-                        config.Ocsigen_extensions.default_httpport
-                        config.Ocsigen_extensions.default_httpsport)
-                    vhosts)
-             in
-             li [txt (all_vhost : string)])
+              let all_vhost =
+                String.concat ", "
+                  (List.map
+                     (fun (vhost, _, vport) ->
+                        let optport =
+                          match vport with
+                          | None -> ""
+                          | Some p -> Printf.sprintf ":%d" p
+                        in
+                        Printf.sprintf
+                          "%s%s ( default: %s,  http: %d, https: %d )" vhost
+                          optport config.Ocsigen_extensions.default_hostname
+                          config.Ocsigen_extensions.default_httpport
+                          config.Ocsigen_extensions.default_httpsport)
+                     vhosts)
+              in
+              li [txt (all_vhost : string)])
            hosts) ]
 
 let eliom_stats () =
@@ -196,11 +196,11 @@ let content_html () =
           [ link ~rel:[`Stylesheet]
               ~href:
                 (uri_of_string (fun () ->
-                     "//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"))
+                   "//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"))
               ()
           ; link ~rel:[`Stylesheet]
               ~href:
                 (uri_of_string (fun () ->
-                     "//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css"))
+                   "//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css"))
               () ])
        (body [div ~a:[a_class ["container"]] [content_div]]))

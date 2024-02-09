@@ -33,8 +33,8 @@ module type PARAM = sig
   val meth_of_info : info -> Eliom_common.meth
   val subpath_of_info : info -> string list
 
-  val make_params
-    :  site_data
+  val make_params :
+     site_data
     -> info
     -> string list option
     -> Eliom_common.full_state_name option
@@ -55,14 +55,14 @@ module type PARAM = sig
 
     val empty : unit -> t
 
-    val add
-      :  Eliom_common.page_table_key
+    val add :
+       Eliom_common.page_table_key
       -> Node.t option * (params, result) Eliom_common.service list
       -> t
       -> t
 
-    val find
-      :  Eliom_common.page_table_key
+    val find :
+       Eliom_common.page_table_key
       -> t
       -> Node.t option * (params, result) Eliom_common.service list
 
@@ -74,18 +74,18 @@ module type PARAM = sig
 
     val set_contains_timeout : t -> bool -> unit
 
-    val dlist_add
-      :  ?sp:Eliom_common.server_params
+    val dlist_add :
+       ?sp:Eliom_common.server_params
       -> t
       -> ( Table.t ref * Eliom_common.page_table_key
-         , Eliom_common.na_key_serv )
-         Eliom_lib.leftright
+           , Eliom_common.na_key_serv )
+           Eliom_lib.leftright
       -> Node.t
 
     val get : t -> (int * int * Table.t Eliom_common.dircontent ref) list
 
-    val set
-      :  t
+    val set :
+       t
       -> (int * int * Table.t Eliom_common.dircontent ref) list
       -> unit
   end
@@ -94,8 +94,7 @@ end
 module Make (P : PARAM) = struct
   let find_page_table nosuffixversion now (pagetableref : P.Table.t ref)
       fullsessname (site_data : P.site_data) (info : P.info)
-      (urlsuffix : _ option) k
-      : P.result Lwt.t
+      (urlsuffix : _ option) k : P.result Lwt.t
     =
     let sp = P.make_params site_data info urlsuffix fullsessname in
     Lwt.catch
@@ -115,36 +114,36 @@ module Make (P : PARAM) = struct
         | _ ->
             catch
               (fun () ->
-                Lwt_log.ign_info ~section "Trying a service";
-                s_f nosuffixversion sp >>= fun p ->
-                (* warning: the list ll may change during funct
+                 Lwt_log.ign_info ~section "Trying a service";
+                 s_f nosuffixversion sp >>= fun p ->
+                 (* warning: the list ll may change during funct
                   if funct register something on the same URL!! *)
-                Lwt_log.ign_info ~section
-                  "Page found and generated successfully";
-                (* If this is an anonymous coservice,
+                 Lwt_log.ign_info ~section
+                   "Page found and generated successfully";
+                 (* If this is an anonymous coservice,
                   we place it at the top of the dlist
                   (limitation of number of coservices) *)
-                (match node with None -> () | Some node -> P.Node.up node);
-                (* We update the expiration date *)
-                (match s_expire with
-                | Some (timeout, e) -> e := timeout +. now
-                | None -> ());
-                let newtoremove =
-                  match s_max_use with
-                  | Some s_max_use ->
-                      if s_max_use = 1
-                      then a :: toremove
-                      else (
-                        a.s_max_use <- Some (s_max_use - 1);
-                        toremove)
-                  | _ -> toremove
-                in
-                Lwt.return (Eliom_common.Found p, newtoremove))
+                 (match node with None -> () | Some node -> P.Node.up node);
+                 (* We update the expiration date *)
+                 (match s_expire with
+                 | Some (timeout, e) -> e := timeout +. now
+                 | None -> ());
+                 let newtoremove =
+                   match s_max_use with
+                   | Some s_max_use ->
+                       if s_max_use = 1
+                       then a :: toremove
+                       else (
+                         a.s_max_use <- Some (s_max_use - 1);
+                         toremove)
+                   | _ -> toremove
+                 in
+                 Lwt.return (Eliom_common.Found p, newtoremove))
               (function
-                | Eliom_common.Eliom_Wrong_parameter ->
-                    aux toremove l >>= fun (r, toremove) ->
-                    Lwt.return (r, toremove)
-                | e -> Lwt.return (Eliom_common.Notfound e, toremove)))
+                 | Eliom_common.Eliom_Wrong_parameter ->
+                     aux toremove l >>= fun (r, toremove) ->
+                     Lwt.return (r, toremove)
+                 | e -> Lwt.return (Eliom_common.Notfound e, toremove)))
     in
     aux [] l >>= fun (r, toremove) ->
     (match node, toremove with
@@ -156,7 +155,7 @@ module Make (P : PARAM) = struct
                           automatically.
                           Note that in that case, toremove has length 1
                           (like the initial list l).
-                       *)
+        *)
         P.Node.remove node
     | None, _ -> (
       (* removing manually *)
@@ -362,35 +361,35 @@ module Make (P : PARAM) = struct
         in
         Lwt.catch
           (fun () ->
-            let dc =
-              try !(find_dircontent dircontent aa)
-              with Not_found -> raise Exn1
-            in
-            match dc with
-            | Eliom_common.Dir dircontentref2 ->
-                search_page_table !dircontentref2 l
-            | Eliom_common.File page_table_ref -> (
-              match l with
-              | [] -> find false page_table_ref None
-              | _ ->
-                  (* We have a file with suffix *)
-                  raise Eliom_common.Eliom_Wrong_parameter))
+             let dc =
+               try !(find_dircontent dircontent aa)
+               with Not_found -> raise Exn1
+             in
+             match dc with
+             | Eliom_common.Dir dircontentref2 ->
+                 search_page_table !dircontentref2 l
+             | Eliom_common.File page_table_ref -> (
+               match l with
+               | [] -> find false page_table_ref None
+               | _ ->
+                   (* We have a file with suffix *)
+                   raise Eliom_common.Eliom_Wrong_parameter))
           (function
-            | (Exn1 | Eliom_common.Eliom_Wrong_parameter) as e -> (
-              (* If no service matches, we try a suffix service *)
-              try
-                match
-                  !(try
-                      find_dircontent dircontent
-                        Eliom_common.eliom_suffix_internal_name
-                    with Not_found -> raise e)
-                with
-                | Eliom_common.Dir _ -> Lwt.fail Exn1
-                | Eliom_common.File page_table_ref ->
-                    find false page_table_ref
-                      (if a = None then Some [] else Some (aa :: l))
-              with e -> Lwt.fail e)
-            | e -> Lwt.fail e)
+             | (Exn1 | Eliom_common.Eliom_Wrong_parameter) as e -> (
+               (* If no service matches, we try a suffix service *)
+               try
+                 match
+                   !(try
+                       find_dircontent dircontent
+                         Eliom_common.eliom_suffix_internal_name
+                     with Not_found -> raise e)
+                 with
+                 | Eliom_common.Dir _ -> Lwt.fail Exn1
+                 | Eliom_common.File page_table_ref ->
+                     find false page_table_ref
+                       (if a = None then Some [] else Some (aa :: l))
+               with e -> Lwt.fail e)
+             | e -> Lwt.fail e)
       in
       function
       | [] ->
@@ -419,18 +418,18 @@ module Make (P : PARAM) = struct
          (generation, priority) *)
       List.fold_left
         (fun prev (_prio, _gen, table) ->
-          Lwt.catch
-            (fun () -> prev)
-            (function
-              | Exn1 | Eliom_common.Eliom_404
-              | Eliom_common.Eliom_Wrong_parameter ->
-                  search_page_table !table path
-              | e -> fail e))
+           Lwt.catch
+             (fun () -> prev)
+             (function
+                | Exn1 | Eliom_common.Eliom_404
+                | Eliom_common.Eliom_Wrong_parameter ->
+                    search_page_table !table path
+                | e -> fail e))
         (fail Exn1) tables
     in
     Lwt.catch
       (fun () ->
-        search_by_priority_generation (P.Container.get tables)
-          (Url.change_empty_list (P.subpath_of_info info)))
+         search_by_priority_generation (P.Container.get tables)
+           (Url.change_empty_list (P.subpath_of_info info)))
       (function Exn1 -> Lwt.fail Eliom_common.Eliom_404 | e -> Lwt.fail e)
 end

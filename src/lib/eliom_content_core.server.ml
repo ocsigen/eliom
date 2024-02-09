@@ -58,18 +58,18 @@ module Xml = struct
     match elt.recontent with RE e -> e | RELazy e -> Eliom_lazy.force e
 
   module Node_id_set = Set.Make (struct
-    type t = node_id
+      type t = node_id
 
-    let compare : t -> t -> int = compare
-  end)
+      let compare : t -> t -> int = compare
+    end)
 
   let node_ids_in_content = ref Node_id_set.empty
 
   let wrapper_mark =
     Eliom_wrap.create_wrapper (fun {elt; _} ->
-        if Node_id_set.mem elt.node_id !node_ids_in_content
-        then {elt with recontent = RE Empty}
-        else elt)
+      if Node_id_set.mem elt.node_id !node_ids_in_content
+      then {elt with recontent = RE Empty}
+      else elt)
 
   let wrap page value =
     let node_ids = ref [] in
@@ -163,7 +163,7 @@ module Xml = struct
     (* GK *)
     (* For security reasons, we do not allow "]]>" inside CDATA
        (as this string is to be considered as the end of the cdata)
-     *)
+    *)
     let s' =
       "\n<![CDATA[\n" ^ Re.replace_string closing_cdata ~by:"" s ^ "\n]]>\n"
     in
@@ -173,7 +173,7 @@ module Xml = struct
     (* GK *)
     (* For security reasons, we do not allow "]]>" inside CDATA
        (as this string is to be considered as the end of the cdata)
-     *)
+    *)
     let s' =
       "\n//<![CDATA[\n" ^ Re.replace_string closing_cdata ~by:"" s ^ "\n//]]>\n"
     in
@@ -183,7 +183,7 @@ module Xml = struct
     (* GK *)
     (* For security reasons, we do not allow "]]>" inside CDATA
        (as this string is to be considered as the end of the cdata)
-     *)
+    *)
     let s' =
       "\n/* <![CDATA[ */\n"
       ^ Re.replace_string closing_cdata ~by:"" s
@@ -226,10 +226,10 @@ module Xml = struct
     let f acc attribs =
       List.fold_right
         (fun att acc ->
-          match racontent att with
-          | RACamlEventHandler (CE_registered_closure (closure_id, cv)) ->
-              ClosureMap.add closure_id cv acc
-          | _ -> acc)
+           match racontent att with
+           | RACamlEventHandler (CE_registered_closure (closure_id, cv)) ->
+               ClosureMap.add closure_id cv acc
+           | _ -> acc)
         attribs acc
     in
     fold_attrib f ClosureMap.empty elt
@@ -238,9 +238,9 @@ module Xml = struct
     let f acc attribs =
       List.fold_right
         (fun att acc ->
-          match racontent att with
-          | RAClient (id, _, cv) -> ClosureMap.add id cv acc
-          | _ -> acc)
+           match racontent att with
+           | RAClient (id, _, cv) -> ClosureMap.add id cv acc
+           | _ -> acc)
         attribs acc
     in
     fold_attrib f ClosureMap.empty elt
@@ -334,7 +334,7 @@ module Html = struct
       let lazy_node ?(a = []) name children =
         make_lazy
           (Eliom_lazy.from_fun (fun () ->
-               Node (name, a, Eliom_lazy.force children)))
+             Node (name, a, Eliom_lazy.force children)))
     end
 
     module Raw = Html_f.Make (Xml') (Svg.D.Raw)

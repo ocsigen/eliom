@@ -68,7 +68,6 @@ let get_kind k = match k with Some k -> k | None -> (!kind : kind :> [> kind])
 
 let _ = Findlib.init ()
 let ext_obj = ".o" (* FIXME WINDOWS *)
-
 let ocamlc = Findlib.command `ocamlc
 let ocamlcp = Findlib.command `ocamlcp
 let ocamlopt = Findlib.command `ocamlopt
@@ -133,13 +132,15 @@ let get_syntax_package pkg =
         (Lazy.force syntax_predicates @ pkg_predicates)
         (List.filter
            (fun p ->
-             let all_predicates =
-               pkg_predicates @ Lazy.force syntax_predicates
-             in
-             try
-               let objs = Findlib.package_property all_predicates p "archive" in
-               List.concat (List.map (split ',') (split ' ' objs)) <> []
-             with Not_found -> false)
+              let all_predicates =
+                pkg_predicates @ Lazy.force syntax_predicates
+              in
+              try
+                let objs =
+                  Findlib.package_property all_predicates p "archive"
+                in
+                List.concat (List.map (split ',') (split ' ' objs)) <> []
+              with Not_found -> false)
            pkgs)
     with Findlib.No_such_package (name, _) ->
       Printf.eprintf "Unknown package: %s\n%!" name;
@@ -159,16 +160,16 @@ let get_ppxs l =
     List.concat
       (List.map
          (fun pname ->
-           try
-             let opts = Findlib.package_property [] pname "ppxopt" in
-             List.concat
-               (List.map
-                  (fun opts ->
-                    match split ',' opts with
-                    | pkg :: opts -> [pkg, (pname, opts)]
-                    | [] -> [])
-                  (split ' ' opts))
-           with Not_found -> [])
+            try
+              let opts = Findlib.package_property [] pname "ppxopt" in
+              List.concat
+                (List.map
+                   (fun opts ->
+                      match split ',' opts with
+                      | pkg :: opts -> [pkg, (pname, opts)]
+                      | [] -> [])
+                   (split ' ' opts))
+            with Not_found -> [])
          l)
   in
   let f p acc =
@@ -180,8 +181,8 @@ let get_ppxs l =
         List.concat
           (List.map
              (fun (_, (pname, opts)) ->
-               let base = Findlib.package_directory pname in
-               List.map (Findlib.resolve_path ~base ~explicit:true) opts)
+                let base = Findlib.package_directory pname in
+                List.map (Findlib.resolve_path ~base ~explicit:true) opts)
              (List.filter (fun (p', _) -> p' = p) meta_ppx_opts))
       in
       "-ppx" :: String.concat " " (ppx :: options) :: acc
@@ -202,13 +203,13 @@ let rec map_include xs =
 let get_common_include ?kind:k ?build_dir:dir ?package:p () =
   let dir = match dir with Some d -> d | None -> !build_dir in
   (match get_kind k with
-  | `Server | `ServerOpt ->
-      "js_of_ocaml" :: get_server_package ?kind:k ?package:p ()
-      |> List.map Findlib.package_directory
-      |> map_include
-  | `Client ->
-      map_include
-        (List.map Findlib.package_directory (get_client_package ?kind:k ())))
+    | `Server | `ServerOpt ->
+        "js_of_ocaml" :: get_server_package ?kind:k ?package:p ()
+        |> List.map Findlib.package_directory
+        |> map_include
+    | `Client ->
+        map_include
+          (List.map Findlib.package_directory (get_client_package ?kind:k ())))
   @ match dir with "" | "." -> [] | d -> ["-I"; d]
 
 let get_common_syntax pkg =
@@ -218,24 +219,24 @@ let get_common_syntax pkg =
   @ List.concat
       (List.map
          (fun p ->
-           try
-             let objs =
-               Findlib.package_property
-                 ("byte" :: Lazy.force syntax_predicates)
-                 p "archive"
-             in
-             List.concat (List.map (split ',') (split ' ' objs))
-           with Not_found -> [])
+            try
+              let objs =
+                Findlib.package_property
+                  ("byte" :: Lazy.force syntax_predicates)
+                  p "archive"
+              in
+              List.concat (List.map (split ',') (split ' ' objs))
+            with Not_found -> [])
          syntax_pkg)
 
 let get_client_lib ?kind:k () =
   List.concat
     (List.map
        (fun p ->
-         try
-           split ' '
-             (Findlib.package_property (get_predicates ?kind:k ()) p "archive")
-         with Not_found -> [])
+          try
+            split ' '
+              (Findlib.package_property (get_predicates ?kind:k ()) p "archive")
+          with Not_found -> [])
        (get_client_package ?kind:k ()))
 
 let get_client_js () = ["+eliom.client/eliom_client.js"]

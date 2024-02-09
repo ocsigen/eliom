@@ -121,8 +121,7 @@ let register_att ~service ~att f =
   and s_f = wrap service att f in
   Eliom_route.add_service priority Eliom_route.global_tables
     (Eliom_service.sub_path att)
-    { Eliom_common.key_state = gn, pn
-    ; Eliom_common.key_meth = (key_meth :> Eliom_common.meth) }
+    {Eliom_common.key_state = gn, pn; Eliom_common.key_meth :> Eliom_common.meth}
     {s_id; s_max_use; s_expire; s_f}
 
 let register_na ~service ~na f =
@@ -162,41 +161,42 @@ module Make (P : PARAM) = struct
 end
 
 module Html = Make (struct
-  type page = Html_types.html Eliom_content.Html.elt
-  type options = unit
-  type return = Eliom_service.non_ocaml
-  type result = browser_content kind
+    type page = Html_types.html Eliom_content.Html.elt
+    type options = unit
+    type return = Eliom_service.non_ocaml
+    type result = browser_content kind
 
-  let reset_reload_fun = false
+    let reset_reload_fun = false
 
-  let send ?options:_ page =
-    Lwt.return (Eliom_service.Dom (Eliom_content.Html.To_dom.of_element page))
-end)
+    let send ?options:_ page =
+      Lwt.return (Eliom_service.Dom (Eliom_content.Html.To_dom.of_element page))
+  end)
 
 module Action = Make (struct
-  type page = unit
-  type options = [`Reload | `NoReload]
-  type return = Eliom_service.non_ocaml
-  type result = browser_content kind
+    type page = unit
+    type options = [`Reload | `NoReload]
+    type return = Eliom_service.non_ocaml
+    type result = browser_content kind
 
-  let reset_reload_fun = true
+    let reset_reload_fun = true
 
-  let send ?options _page =
-    match options with
-    | Some `Reload | None ->
-        Lwt.return Eliom_service.(Reload_action {hidden = false; https = false})
-    | _ -> Lwt.return Eliom_service.No_contents
-end)
+    let send ?options _page =
+      match options with
+      | Some `Reload | None ->
+          Lwt.return
+            Eliom_service.(Reload_action {hidden = false; https = false})
+      | _ -> Lwt.return Eliom_service.No_contents
+  end)
 
 module Unit = Make (struct
-  type page = unit
-  type options = unit
-  type return = Eliom_service.non_ocaml
-  type result = browser_content kind
+    type page = unit
+    type options = unit
+    type return = Eliom_service.non_ocaml
+    type result = browser_content kind
 
-  let reset_reload_fun = true
-  let send ?options:_ _page = Lwt.return Eliom_service.No_contents
-end)
+    let reset_reload_fun = true
+    let send ?options:_ _page = Lwt.return Eliom_service.No_contents
+  end)
 
 type appl_service_options = {do_not_launch : bool}
 
@@ -206,32 +206,33 @@ module App (P : Eliom_registration_sigs.APP_PARAM) = struct
   let application_name = P.application_name
 
   include Make (struct
-    type page = Html_types.html Eliom_content.Html.elt
-    type options = appl_service_options
-    type return = Eliom_service.non_ocaml
-    type result = browser_content kind
+      type page = Html_types.html Eliom_content.Html.elt
+      type options = appl_service_options
+      type return = Eliom_service.non_ocaml
+      type result = browser_content kind
 
-    let reset_reload_fun = false
+      let reset_reload_fun = false
 
-    let send ?options:_ page =
-      Lwt.return (Eliom_service.Dom (Eliom_content.Html.To_dom.of_element page))
-  end)
+      let send ?options:_ page =
+        Lwt.return
+          (Eliom_service.Dom (Eliom_content.Html.To_dom.of_element page))
+    end)
 end
 
 type 'a redirection =
   | Redirection :
       ( unit
-      , unit
-      , Eliom_service.get
-      , _
-      , _
-      , _
-      , _
-      , [`WithoutSuffix]
-      , unit
-      , unit
-      , 'a )
-      Eliom_service.t
+        , unit
+        , Eliom_service.get
+        , _
+        , _
+        , _
+        , _
+        , [`WithoutSuffix]
+        , unit
+        , unit
+        , 'a )
+        Eliom_service.t
       -> 'a redirection
 
 module Redirection = struct

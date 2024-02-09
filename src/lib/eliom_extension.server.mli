@@ -30,8 +30,8 @@ val register_eliom_extension : eliom_extension_sig -> unit
 
 val get_eliom_extension : unit -> eliom_extension_sig
 
-val run_eliom_extension
-  :  eliom_extension_sig
+val run_eliom_extension :
+   eliom_extension_sig
   -> float
   -> Eliom_common.info
   -> Eliom_common.sitedata

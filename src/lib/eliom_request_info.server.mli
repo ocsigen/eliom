@@ -89,8 +89,8 @@ val get_accept_language : unit -> (string * float option) list
 val get_suffix : unit -> Eliom_lib.Url.path option
 (** returns the suffix of the current URL *)
 
-val get_cookies
-  :  ?cookie_level:Eliom_common.cookie_level
+val get_cookies :
+   ?cookie_level:Eliom_common.cookie_level
   -> unit
   -> string Ocsigen_cookie_map.Map_inner.t
 (** returns the cookies sent by the browser *)
@@ -114,8 +114,8 @@ val get_link_too_old : unit -> bool
     In that case, the current service is the fallback.
 *)
 
-val get_expired_service_sessions
-  :  unit
+val get_expired_service_sessions :
+   unit
   -> Eliom_common.full_state_name list * Eliom_common.full_state_name list
 (** returns the list of names of service sessions expired for the current
     request, for browser sessions and tab sessions. *)
@@ -135,8 +135,8 @@ val get_filesize : Ocsigen_extensions.file_info -> int64
 val get_original_filename : Ocsigen_extensions.file_info -> string
 (** returns the name the file had on the client when it has been sent. *)
 
-val get_file_content_type
-  :  Ocsigen_extensions.file_info
+val get_file_content_type :
+   Ocsigen_extensions.file_info
   -> ((string * string) * (string * string) list) option
 (** returns the content type sent by the browser with the file
     (if any). *)
@@ -171,8 +171,8 @@ val get_other_get_params : unit -> (string * string) list
 val get_nl_get_params : unit -> (string * string) list Eliom_lib.String.Table.t
 (** returns non localized parameters in the URL. *)
 
-val get_persistent_nl_get_params
-  :  unit
+val get_persistent_nl_get_params :
+   unit
   -> (string * string) list Eliom_lib.String.Table.t
 (** returns persistent non localized parameters in the URL. *)
 
@@ -270,8 +270,8 @@ val get_sitedata : unit -> Eliom_common.sitedata
 
 (**/**)
 
-val get_csp_original_full_path_sp
-  :  Eliom_common.server_params
+val get_csp_original_full_path_sp :
+   Eliom_common.server_params
   -> Eliom_lib.Url.path
 
 val get_csp_hostname_sp : Eliom_common.server_params -> string
@@ -305,14 +305,14 @@ val get_user_cookies : unit -> Ocsigen_cookie_map.t
 val get_user_tab_cookies : unit -> Ocsigen_cookie_map.t
 val get_sp_client_appl_name : unit -> string option
 
-val get_sp_client_process_info_sp
-  :  Eliom_common.server_params
+val get_sp_client_process_info_sp :
+   Eliom_common.server_params
   -> Eliom_common.client_process_info
 
 val get_sp_client_process_info : unit -> Eliom_common.client_process_info
 
-val set_site_handler
-  :  Eliom_common.sitedata
+val set_site_handler :
+   Eliom_common.sitedata
   -> (exn -> Ocsigen_response.t Lwt.t)
   -> unit
 
@@ -321,20 +321,20 @@ val get_site_dir_sp : Eliom_common.server_params -> Eliom_lib.Url.path
 val get_hostname_sp : Eliom_common.server_params -> string
 val get_full_url_sp : Eliom_common.server_params -> string
 
-val get_other_get_params_sp
-  :  Eliom_common.server_params
+val get_other_get_params_sp :
+   Eliom_common.server_params
   -> (string * string) list
 
-val get_nl_get_params_sp
-  :  Eliom_common.server_params
+val get_nl_get_params_sp :
+   Eliom_common.server_params
   -> (string * string) list Eliom_lib.String.Table.t
 
-val get_persistent_nl_get_params_sp
-  :  Eliom_common.server_params
+val get_persistent_nl_get_params_sp :
+   Eliom_common.server_params
   -> (string * string) list Eliom_lib.String.Table.t
 
-val get_nl_post_params_sp
-  :  Eliom_common.server_params
+val get_nl_post_params_sp :
+   Eliom_common.server_params
   -> (string * string) list Eliom_lib.String.Table.t
 
 val get_original_full_path_sp : Eliom_common.server_params -> Eliom_lib.Url.path
@@ -343,12 +343,12 @@ val get_server_port_sp : Eliom_common.server_params -> int
 val get_ssl_sp : Eliom_common.server_params -> bool
 val get_ri_sp : Eliom_common.server_params -> Ocsigen_request.t
 
-val get_post_params_sp
-  :  Eliom_common.server_params
+val get_post_params_sp :
+   Eliom_common.server_params
   -> (string * string) list Lwt.t option
 
-val get_files_sp
-  :  Eliom_common.server_params
+val get_files_sp :
+   Eliom_common.server_params
   -> (string * Ocsigen_extensions.file_info) list Lwt.t option
 
 val get_suffix_sp : Eliom_common.server_params -> Eliom_lib.Url.path option

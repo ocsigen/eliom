@@ -49,7 +49,7 @@ type ('a, 'storage) eref' = (unit -> 'a) * bool * 'a eref_kind
      external context" (for example if it is a constant function - eref created
      from a value)
    * the kind of reference (scope, persistence)
- *)
+*)
 
 type 'a eref = ('a, [volatile | persistent]) eref'
 
@@ -249,17 +249,17 @@ module Ext = struct
         t >>= fun t ->
         Lwt.catch
           (fun () ->
-            Eliom_state.Ext.Low_level.get_persistent_data ~state ~table:t)
+             Eliom_state.Ext.Low_level.get_persistent_data ~state ~table:t)
           (function
-            | Not_found ->
-                if ext (* We can run the function from another state *)
-                then
-                  let value = f () in
-                  Eliom_state.Ext.Low_level.set_persistent_data ~state ~table:t
-                    value
-                  >>= fun () -> Lwt.return value
-                else Lwt.fail Eref_not_initialized
-            | e -> Lwt.fail e)
+             | Not_found ->
+                 if ext (* We can run the function from another state *)
+                 then
+                   let value = f () in
+                   Eliom_state.Ext.Low_level.set_persistent_data ~state ~table:t
+                     value
+                   >>= fun () -> Lwt.return value
+                 else Lwt.fail Eref_not_initialized
+             | e -> Lwt.fail e)
     | _ -> failwith "wrong eref for this function"
 
   let set state ((_, _, table) as r) value =

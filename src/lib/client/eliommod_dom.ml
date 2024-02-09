@@ -43,16 +43,15 @@ let iter_attrList (attrList : Dom.attr Dom.namedNodeMap Js.t)
 
 (* Dummy type used in the following "test_*" functions to test the
    presence of methods in various browsers. *)
-class type dom_tester =
-  object
-    method compareDocumentPosition : unit Js.optdef Js.prop
-    method querySelectorAll : unit Js.optdef Js.prop
-    method classList : unit Js.optdef Js.prop
-    method createEvent : unit Js.optdef Js.prop
-    method onpageshow : unit Js.optdef Js.prop
-    method onpagehide : unit Js.optdef Js.prop
-    method onhashchange : unit Js.optdef Js.prop
-  end
+class type dom_tester = object
+  method compareDocumentPosition : unit Js.optdef Js.prop
+  method querySelectorAll : unit Js.optdef Js.prop
+  method classList : unit Js.optdef Js.prop
+  method createEvent : unit Js.optdef Js.prop
+  method onpageshow : unit Js.optdef Js.prop
+  method onpagehide : unit Js.optdef Js.prop
+  method onhashchange : unit Js.optdef Js.prop
+end
 
 let test_querySelectorAll () =
   Js.Optdef.test
@@ -242,13 +241,13 @@ let slow_select_nodes (root : Dom_html.element Js.t) =
         let node = (Js.Unsafe.coerce node : Dom_html.element Js.t) in
         let call_service, process_node, closure, attrib = has_classes node in
         (if call_service
-        then
-          match Dom_html.tagged node with
-          | Dom_html.A e -> ignore a_array ## (push e)
-          | Dom_html.Form e -> ignore form_array ## (push e)
-          | _ ->
-              Lwt_log.raise_error_f ~section "%s element tagged as eliom link"
-                (Js.to_string node##.tagName));
+         then
+           match Dom_html.tagged node with
+           | Dom_html.A e -> ignore a_array ## (push e)
+           | Dom_html.Form e -> ignore form_array ## (push e)
+           | _ ->
+               Lwt_log.raise_error_f ~section "%s element tagged as eliom link"
+                 (Js.to_string node##.tagName));
         if process_node then ignore node_array ## (push node);
         if closure then ignore closure_array ## (push node);
         if attrib then ignore attrib_array ## (push node);
@@ -292,11 +291,10 @@ let createEvent =
 
 (* DOM traversal *)
 
-class type ['element] get_tag =
-  object
-    method getElementsByTagName :
-      Js.js_string Js.t -> 'element Dom.nodeList Js.t Js.meth
-  end
+class type ['element] get_tag = object
+  method getElementsByTagName :
+    Js.js_string Js.t -> 'element Dom.nodeList Js.t Js.meth
+end
 
 (* We can't use Dom_html.document##head: it is not defined in ff3.6... *)
 let get_head (page : 'element #get_tag Js.t) : 'element Js.t =
@@ -314,7 +312,7 @@ let iter_dom_array (f : 'a -> unit)
       < length : < get : int ; .. > Js.gen_prop
       ; item : int -> 'a Js.opt Js.meth
       ; .. >
-      Js.t)
+        Js.t)
   =
   let length = a##.length in
   for i = 0 to length - 1 do
@@ -373,14 +371,14 @@ let add_childrens (elt : Dom_html.element Js.t) (sons : Dom.node Js.t list) =
 (* END IE HACK *)
 
 let copy_element (e : Dom.element Js.t)
-    (registered_process_node : Js.js_string Js.t -> bool)
-    : Dom_html.element Js.t
+    (registered_process_node : Js.js_string Js.t -> bool) :
+    Dom_html.element Js.t
   =
   let rec aux (e : Dom.element Js.t) =
     let copy = Dom_html.document ## (createElement e##.tagName) in
     (* IE<9: Copy className separately, it's not updated when displayed *)
     Js.Opt.iter (Dom_html.CoerceTo.element e) (fun e ->
-        copy##.className := e##.className);
+      copy##.className := e##.className);
     let node_id =
       Js.Opt.to_option
         e ## (getAttribute (Js.string Eliom_runtime.RawXML.node_id_attrib))
@@ -404,10 +402,10 @@ let copy_element (e : Dom.element Js.t)
         let child_copies =
           List.map_filter
             (fun child ->
-              match Dom.nodeType child with
-              | Dom.Text t -> Some (copy_text t :> Dom.node Js.t)
-              | Dom.Element child -> (aux child :> Dom.node Js.t option)
-              | _ -> None)
+               match Dom.nodeType child with
+               | Dom.Text t -> Some (copy_text t :> Dom.node Js.t)
+               | Dom.Element child -> (aux child :> Dom.node Js.t option)
+               | _ -> None)
             (Dom.list_of_nodeList e##.childNodes)
         in
         add_childrens copy child_copies;
@@ -445,10 +443,10 @@ let is_stylesheet e =
     (Dom_html.CoerceTo.link (Js.Unsafe.coerce e))
     (fun _ -> false)
     (fun e ->
-      List.exists
-        (fun s -> s = "stylesheet")
-        (Regexp.split spaces_re (Js.to_string e##.rel))
-      && e##._type == Js.string "text/css")
+       List.exists
+         (fun s -> s = "stylesheet")
+         (Regexp.split spaces_re (Js.to_string e##.rel))
+       && e##._type == Js.string "text/css")
 
 let basedir_re = Regexp.regexp "^(([^/?]*/)*)([^/?]*)(\\?.*)?$"
 
@@ -642,16 +640,16 @@ let build_style (e, css) =
   (* lwt css = *)
   Lwt_list.map_p
     (fun (media, css) ->
-      let style = Dom_html.createStyle Dom_html.document in
-      style##._type := Js.string "text/css";
-      style##.media := media;
-      (* IE8: Assigning to style##innerHTML results in
+       let style = Dom_html.createStyle Dom_html.document in
+       style##._type := Js.string "text/css";
+       style##.media := media;
+       (* IE8: Assigning to style##innerHTML results in
           "Unknown runtime error" *)
-      let styleSheet = Js.Unsafe.(get style (Js.string "styleSheet")) in
-      if Js.Optdef.test styleSheet
-      then Js.Unsafe.(set styleSheet (Js.string "cssText") (Js.string css))
-      else style##.innerHTML := Js.string css;
-      Lwt.return (e, (style :> Dom.node Js.t)))
+       let styleSheet = Js.Unsafe.(get style (Js.string "styleSheet")) in
+       if Js.Optdef.test styleSheet
+       then Js.Unsafe.(set styleSheet (Js.string "cssText") (Js.string css))
+       else style##.innerHTML := Js.string css;
+       Lwt.return (e, (style :> Dom.node Js.t)))
     css
 
 (* IE8 doesn't allow appendChild on noscript-elements *)
@@ -669,11 +667,11 @@ let preload_css (doc : Dom_html.element Js.t) =
   let css = List.concat css in
   List.iter
     (fun (e, css) ->
-      try Dom.replaceChild (get_head doc) css e
-      with _ ->
-        (* Node was a unique node that has been removed...
+       try Dom.replaceChild (get_head doc) css e
+       with _ ->
+         (* Node was a unique node that has been removed...
                        in a perfect settings we won't have parsed it... *)
-        Lwt_log.ign_info ~section "Unique CSS skipped...")
+         Lwt_log.ign_info ~section "Unique CSS skipped...")
     css;
   if !Eliom_config.debug_timings
   then Firebug.console ## (timeEnd (Js.string "preload_css (fetch+rewrite)"));
@@ -707,10 +705,10 @@ let _ =
   ignore
     (Dom.addEventListener Dom_html.document (Dom.Event.make "scroll")
        (Dom_html.handler (fun _event ->
-            current_position := createDocumentScroll ();
-            Js._false))
+          current_position := createDocumentScroll ();
+          Js._false))
        Js._true
-      : Dom_html.event_listener_id)
+     : Dom_html.event_listener_id)
 
 let getDocumentScroll () = !current_position
 
@@ -731,8 +729,8 @@ let touch_base () =
        ## (getElementById (Js.string Eliom_common_base.base_elt_id))
        Dom_html.CoerceTo.base)
     (fun e ->
-      let href = e##.href in
-      e##.href := href)
+       let href = e##.href in
+       e##.href := href)
 
 (* BEGIN FORMDATA HACK: This is only needed if FormData is not available in the browser.
    When it will be commonly available, remove all sections marked by "FORMDATA HACK" !
@@ -764,7 +762,7 @@ let add_formdata_hack_onclick_handler () =
        Dom_html.Event.click
        (Dom_html.handler onclick_on_body_handler)
        Js._true
-      : Dom_html.event_listener_id)
+     : Dom_html.event_listener_id)
 
 (* END FORMDATA HACK *)
 
@@ -778,10 +776,10 @@ let onhashchange f =
     ignore
       (Dom.addEventListener Dom_html.window hashchange
          (Dom_html.handler (fun _ ->
-              f Dom_html.window##.location##.hash;
-              Js._false))
+            f Dom_html.window##.location##.hash;
+            Js._false))
          Js._true
-        : Dom_html.event_listener_id)
+       : Dom_html.event_listener_id)
   else
     let last_fragment = ref Dom_html.window##.location##.hash in
     let check () =

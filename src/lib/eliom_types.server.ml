@@ -38,7 +38,7 @@ let encode_eliom_data r =
   Url.encode ~plus:false (Marshal.to_string (Eliom_wrap.wrap r) [])
 
 (*
-let string_map f s =
+   let string_map f s =
   let r = ref [] in
   for i = String.length s - 1 downto 0 do
     r := f s.[i] :: !r;

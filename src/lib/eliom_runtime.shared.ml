@@ -51,19 +51,23 @@ module RawXML = struct
   [@@@warning "+39"]
 
   type caml_event_handler =
-    | CE_registered_closure of string * Ocsigen_lib_base.poly (* 'a Js.t -> unit) client_value *)
+    | CE_registered_closure of
+        string * Ocsigen_lib_base.poly (* 'a Js.t -> unit) client_value *)
     | CE_client_closure of (Dom_html.event Js.t -> unit) (* Client side-only *)
-    | CE_client_closure_mouse of (Dom_html.mouseEvent Js.t -> unit) (* Client side-only *)
-    | CE_client_closure_keyboard of (Dom_html.keyboardEvent Js.t -> unit) (* Client side-only *)
-    | CE_client_closure_touch of (Dom_html.touchEvent Js.t -> unit) (* Client side-only *)
+    | CE_client_closure_mouse of (Dom_html.mouseEvent Js.t -> unit)
+      (* Client side-only *)
+    | CE_client_closure_keyboard of (Dom_html.keyboardEvent Js.t -> unit)
+      (* Client side-only *)
+    | CE_client_closure_touch of (Dom_html.touchEvent Js.t -> unit)
+      (* Client side-only *)
     | CE_call_service of
         ([`A | `Form_get | `Form_post]
         * cookie_info option
         * string option
         * Ocsigen_lib_base.poly)
-        (* (event -> bool) client_value *)
-        option
-        Eliom_lazy.request
+          (* (event -> bool) client_value *)
+          option
+          Eliom_lazy.request
 
   type internal_event_handler = Raw of string | Caml of caml_event_handler
   type uri = string Eliom_lazy.request
@@ -73,19 +77,14 @@ module RawXML = struct
   let uri_of_fun = Eliom_lazy.from_fun
   let internal_event_handler_of_service info = Caml (CE_call_service info)
   let ce_registered_closure_class = "caml_c" (*"caml_closure"*)
-
   let ce_registered_attr_class = "caml_attr"
   let ce_call_service_class = "caml_link"
   let process_node_class = "caml_p" (*"caml_process_node"*)
-
   let request_node_class = "caml_r" (*"caml_request_node"*)
-
   let ce_call_service_attrib = "data-eliom-cookies-info"
   let ce_template_attrib = "data-eliom-template"
   let node_id_attrib = "data-eliom-id" (*"data-eliom-node-id"*)
-
   let closure_attr_prefix = "" (*"caml_closure_id"*)
-
   let closure_name_prefix = "data-eliom-c-"
   (*!!! This prefix has to be different from any other prefix *)
 
@@ -168,15 +167,15 @@ module RawXML = struct
   type node_id = NoId | ProcessId of string | RequestId of string
 
   module ClosureMap = Map.Make (struct
-    type t = string
+      type t = string
 
-    let compare = compare
-  end)
+      let compare = compare
+    end)
 
   type event_handler_table =
     Ocsigen_lib_base.poly
-    (* (biggest_event Js.t -> unit) client_value *)
-    ClosureMap.t
+      (* (biggest_event Js.t -> unit) client_value *)
+      ClosureMap.t
 
   type client_attrib_table =
     Ocsigen_lib_base.poly (* attrib client_value *) ClosureMap.t

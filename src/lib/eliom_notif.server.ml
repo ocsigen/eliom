@@ -18,8 +18,8 @@ module type S = sig
   val unlisten : key -> unit
 
   module Ext : sig
-    val unlisten
-      :  ?sitedata:Eliom_common.sitedata
+    val unlisten :
+       ?sitedata:Eliom_common.sitedata
       -> ([< `Client_process], [< `Data]) Eliom_state.Ext.state
       -> key
       -> unit
@@ -46,10 +46,10 @@ end
 
 module Make (A : ARG) :
   S
-    with type identity = A.identity
-     and type key = A.key
-     and type server_notif = A.server_notif
-     and type client_notif = A.client_notif = struct
+  with type identity = A.identity
+   and type key = A.key
+   and type server_notif = A.server_notif
+   and type client_notif = A.client_notif = struct
   type key = A.key
   type identity = A.identity
   type server_notif = A.server_notif
@@ -61,23 +61,23 @@ module Make (A : ARG) :
     * (?step:React.step -> notification_data -> unit)
 
   module Notif_hashtbl = Hashtbl.Make (struct
-    type t = A.key
+      type t = A.key
 
-    let equal = A.equal_key
-    let hash = Hashtbl.hash
-  end)
+      let equal = A.equal_key
+      let hash = Hashtbl.hash
+    end)
 
   module Weak_tbl = Weak.Make (struct
-    type t = (A.identity * notification_react) option
+      type t = (A.identity * notification_react) option
 
-    let equal a b =
-      match a, b with
-      | None, None -> true
-      | Some (a, b), Some (c, d) -> A.equal_identity a c && b == d
-      | _ -> false
+      let equal a b =
+        match a, b with
+        | None, None -> true
+        | Some (a, b), Some (c, d) -> A.equal_identity a c && b == d
+        | _ -> false
 
-    let hash = Hashtbl.hash
-  end)
+      let hash = Hashtbl.hash
+    end)
 
   module I = struct
     let tbl = Notif_hashtbl.create A.max_resource
@@ -118,8 +118,8 @@ module Make (A : ARG) :
         with Not_found -> ()
   end
 
-  let identity_r
-      : (A.identity * notification_react) option Eliom_reference.Volatile.eref
+  let identity_r :
+      (A.identity * notification_react) option Eliom_reference.Volatile.eref
     =
     Eliom_reference.Volatile.eref ~scope:Eliom_common.default_process_scope None
 
@@ -129,14 +129,15 @@ module Make (A : ARG) :
   let notif_e : notification_react Eliom_reference.Volatile.eref =
     Eliom_reference.Volatile.eref_from_fun
       ~scope:Eliom_common.default_process_scope (fun () ->
-        let e, send_e = React.E.create () in
-        let client_ev =
-          Eliom_react.Down.of_react
-          (*VVV If we add throttling, some events may be lost
+      let e, send_e = React.E.create () in
+      let client_ev =
+        Eliom_react.Down.of_react
+        (*VVV If we add throttling, some events may be lost
                even if buffer size is not 1 :O *)
-            ~size:100 (*VVV ? *) ~scope:Eliom_common.default_process_scope e
-        in
-        client_ev, send_e)
+          ~size:100 (*VVV ? *)
+          ~scope:Eliom_common.default_process_scope e
+      in
+      client_ev, send_e)
 
   let set_identity identity =
     (* For each tab connected to the app,
@@ -211,15 +212,15 @@ module type ARG_SIMPLE = sig
 end
 
 module Make_Simple (A : ARG_SIMPLE) = Make (struct
-  type identity = A.identity
-  type key = A.key
-  type server_notif = A.notification
-  type client_notif = A.notification
+    type identity = A.identity
+    type key = A.key
+    type server_notif = A.notification
+    type client_notif = A.notification
 
-  let prepare _ n = Lwt.return_some n
-  let equal_key = ( = )
-  let equal_identity = ( = )
-  let get_identity = A.get_identity
-  let max_resource = 1000
-  let max_identity_per_resource = 10
-end)
+    let prepare _ n = Lwt.return_some n
+    let equal_key = ( = )
+    let equal_identity = ( = )
+    let get_identity = A.get_identity
+    let max_resource = 1000
+    let max_identity_per_resource = 10
+  end)

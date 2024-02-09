@@ -32,7 +32,6 @@
    (one per escaped expressions):
 
      $global_id$ := Some $expr$
-
 *)
 open Ppxlib
 open Ast_helper

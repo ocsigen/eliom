@@ -102,7 +102,7 @@ let () =
       :: Pkg.stublibs "src/lib/client/dlleliom_stubs.so"
       :: List.map
            (fun x ->
-             Pkg.lib ~dst:(spf "client/%s" x) (spf "src/lib/client/%s" x))
+              Pkg.lib ~dst:(spf "client/%s" x) (spf "src/lib/client/%s" x))
            client_extra
     (* SERVER LIBS *)
     @ Pkg.lib ~dst:"server/monitor/eliom_monitor" ~exts:Exts.module_library
@@ -112,7 +112,7 @@ let () =
       :: Pkg.lib ~dst:"server/server" ~exts:exts_lib "src/lib/server/server"
       :: List.map
            (fun x ->
-             Pkg.lib ~dst:(spf "server/%s" x) (spf "src/lib/server/%s" x))
+              Pkg.lib ~dst:(spf "server/%s" x) (spf "src/lib/server/%s" x))
            server_extra
     @ [ (* MISC *)
         Pkg.doc "README.md"
@@ -121,10 +121,10 @@ let () =
     @ List.flatten
         (List.map
            (fun (name, files) ->
-             List.map
-               (fun file ->
-                 Pkg.lib
-                   ~dst:(spf "templates/%s/%s" name file)
-                   (spf "%s/%s/%s" templates_dir name file))
-               files)
+              List.map
+                (fun file ->
+                   Pkg.lib
+                     ~dst:(spf "templates/%s/%s" name file)
+                     (spf "%s/%s/%s" templates_dir name file))
+                files)
            templates_files))

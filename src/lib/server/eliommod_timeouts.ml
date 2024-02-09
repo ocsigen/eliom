@@ -33,9 +33,10 @@ type kind = [`Service | `Data | `Persistent]
 (*****************************************************************************)
 (* Table of timeouts for sessions *)
 
-let default_timeouts
-    : ( kind * Eliom_common.cookie_level * Eliom_common.scope_hierarchy option
-    , float ) Hashtbl.t
+let default_timeouts :
+    ( kind * Eliom_common.cookie_level * Eliom_common.scope_hierarchy option
+      , float )
+      Hashtbl.t
   =
   let t = Hashtbl.create 9 in
   Hashtbl.add t (`Service, `Session, None) 3600.;
@@ -123,9 +124,9 @@ let set_timeout_ get set get_default update ?full_st_name ?cookie_level
           (catch
              (fun () -> update full_st_name sitedata oldt t)
              (function
-               | exn ->
-                   Lwt_log.warning ~exn ~section:Lwt_log.eliom
-                     "Error while updating timeouts"))
+                | exn ->
+                    Lwt_log.warning ~exn ~section:Lwt_log.eliom
+                      "Error while updating timeouts"))
 (*VVV Check possible exceptions raised *)
 
 (* global timeout = timeout for the whole site (may be changed dynamically) *)

@@ -35,8 +35,8 @@ type ('a, 'b) t
     effort is put to order message receptions on the different
     participants. *)
 
-val create
-  :  ?scope:[< Eliom_comet.Channel.comet_scope]
+val create :
+   ?scope:[< Eliom_comet.Channel.comet_scope]
   -> ?name:string
   -> ?size:int
   -> 'a Deriving_Json.t
@@ -52,8 +52,8 @@ val create
     some information, like IP address, or user id.
 *)
 
-val create_filtered
-  :  ?scope:[< Eliom_comet.Channel.comet_scope]
+val create_filtered :
+   ?scope:[< Eliom_comet.Channel.comet_scope]
   -> ?name:string
   -> ?size:int
   -> filter:('a -> 'b Lwt.t)

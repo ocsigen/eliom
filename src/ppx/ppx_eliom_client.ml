@@ -96,13 +96,13 @@ module Pass = struct
     let registrations =
       List.map
         (fun (loc, num, id, expr, args) ->
-          let typ = find_fragment loc id in
-          let args = List.map Pat.var args in
-          let loc = expr.pexp_loc in
-          [%expr
-            Eliom_client_core.Syntax_helpers.register_client_closure
-              [%e str num] (fun [%p pat_args args] : [%t typ] ->
-                [%e map_get_escaped_values expr])])
+           let typ = find_fragment loc id in
+           let args = List.map Pat.var args in
+           let loc = expr.pexp_loc in
+           [%expr
+             Eliom_client_core.Syntax_helpers.register_client_closure
+               [%e str num] (fun [%p pat_args args] : [%t typ] ->
+               [%e map_get_escaped_values expr])])
         client_value_datas
     in
     match registrations with
@@ -119,13 +119,13 @@ module Pass = struct
         let bindings =
           List.map
             (fun (loc, _num, id, expr, args) ->
-              let patt = Pat.var id in
-              let typ = find_fragment loc id in
-              let args = List.map Pat.var args in
-              let expr =
-                [%expr fun [%p pat_args args] : [%t typ] -> [%e expr]]
-              in
-              Vb.mk ~loc patt expr)
+               let patt = Pat.var id in
+               let typ = find_fragment loc id in
+               let args = List.map Pat.var args in
+               let expr =
+                 [%expr fun [%p pat_args args] : [%t typ] -> [%e expr]]
+               in
+               Vb.mk ~loc patt expr)
             client_value_datas
         in
         [Str.value ~loc Nonrecursive bindings]
@@ -194,7 +194,7 @@ module Pass = struct
         let bindings =
           List.map
             (fun (gen_id, expr, _) ->
-              Vb.mk ~loc:expr.pexp_loc (Pat.var gen_id) expr)
+               Vb.mk ~loc:expr.pexp_loc (Pat.var gen_id) expr)
             escaped_bindings
         in
         let args =
@@ -231,9 +231,9 @@ module Pass = struct
     | `Escaped_value _section ->
         let typ =
           push_escaped_binding id expr (fun () ->
-              let typ = find_escaped_ident loc0 id in
-              let typ = assert_no_variables typ in
-              typ)
+            let typ = find_escaped_ident loc0 id in
+            let typ = assert_no_variables typ in
+            typ)
         in
         [%expr ([%e frag_eid] : [%t typ])]
     (* [%%server ... %x ... ] *)
@@ -251,7 +251,7 @@ module Pass = struct
         [%expr
           (Eliom_client_core.Syntax_helpers.get_injection ?ident:[%e ident]
              ~pos:[%e position loc] [%e es]
-            : [%t typ])]
+           : [%t typ])]
 
   let shared_sig item = [item]
   let server_sig _ = []

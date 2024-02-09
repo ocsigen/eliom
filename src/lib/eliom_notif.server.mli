@@ -64,8 +64,8 @@ module type S = sig
   (** Stop listening on data [key] *)
 
   module Ext : sig
-    val unlisten
-      :  ?sitedata:Eliom_common.sitedata
+    val unlisten :
+       ?sitedata:Eliom_common.sitedata
       -> ([< `Client_process], [< `Data]) Eliom_state.Ext.state
       -> key
       -> unit
@@ -172,10 +172,10 @@ end
 *)
 module Make (A : ARG) :
   S
-    with type identity = A.identity
-     and type key = A.key
-     and type server_notif = A.server_notif
-     and type client_notif = A.client_notif
+  with type identity = A.identity
+   and type key = A.key
+   and type server_notif = A.server_notif
+   and type client_notif = A.client_notif
 
 (** [ARG_SIMPLE] is for making {!Make_Simple} *)
 module type ARG_SIMPLE = sig
@@ -196,6 +196,6 @@ end
 *)
 module Make_Simple (A : ARG_SIMPLE) :
   S
-    with type key = A.key
-     and type server_notif = A.notification
-     and type client_notif = A.notification
+  with type key = A.key
+   and type server_notif = A.notification
+   and type client_notif = A.notification

@@ -71,8 +71,7 @@ let default_omitpersistentstorage = ref None
    If somebody opens 1000 sessions per second,
    then it will take 1 million s (16000 minutes = 266 h = 11 days)
    to reach 1TB.
-
- *)
+*)
 
 let default_max_anonymous_services_per_subnet = ref 500000
 let default_max_anonymous_services_per_session = ref 1000
@@ -80,14 +79,14 @@ let default_max_volatile_groups_per_site = ref 1000000
 (*VVV value ??? *)
 
 module S = Hashtbl.Make (struct
-  type t = Ocsigen_extensions.virtual_hosts * Eliom_lib.Url.path
+    type t = Ocsigen_extensions.virtual_hosts * Eliom_lib.Url.path
 
-  let equal ((vh1, u1) : t) ((vh2, u2) : t) =
-    Ocsigen_extensions.equal_virtual_hosts vh1 vh2 && u1 = u2
+    let equal ((vh1, u1) : t) ((vh2, u2) : t) =
+      Ocsigen_extensions.equal_virtual_hosts vh1 vh2 && u1 = u2
 
-  let hash ((vh, u) : t) =
-    Hashtbl.hash (Ocsigen_extensions.hash_virtual_hosts vh, u)
-end)
+    let hash ((vh, u) : t) =
+      Hashtbl.hash (Ocsigen_extensions.hash_virtual_hosts vh, u)
+  end)
 
 let create_sitedata site_dir config_info =
   let dlist_table = Eliom_common.create_dlist_ip_table 100
@@ -152,27 +151,27 @@ let create_sitedata site_dir config_info =
   in
   Ocsigen_cache.Dlist.set_finaliser_after
     (fun node ->
-      (* Finaliser for the session groups *)
-      (* See in eliommod_sessiongroups for the finaliser of sessions *)
-      let fullbrowsersessgrp = Ocsigen_cache.Dlist.value node in
-      (* When removing a group from the dlist, we must close it.
+       (* Finaliser for the session groups *)
+       (* See in eliommod_sessiongroups for the finaliser of sessions *)
+       let fullbrowsersessgrp = Ocsigen_cache.Dlist.value node in
+       (* When removing a group from the dlist, we must close it.
           Actually, it must be the only way to close a group. *)
-      (* This finaliser is almost identical to the finaliser for
+       (* This finaliser is almost identical to the finaliser for
           other groups, defined in Eliommod_sessiongroups. *)
-      (* First we close all browser sessions in the group, by
+       (* First we close all browser sessions in the group, by
           removing the group from its dlist: *)
-      Eliommod_sessiongroups.Data.remove_group fullbrowsersessgrp;
-      (* Then we remove data from group tables: *)
-      match Tuple3.thd fullbrowsersessgrp with
-      | Left key ->
-          (* iterate on all session data tables: *)
-          sitedata.Eliom_common.remove_session_data key
-      | _ ->
-          (* No group has been set. No group table.
+       Eliommod_sessiongroups.Data.remove_group fullbrowsersessgrp;
+       (* Then we remove data from group tables: *)
+       match Tuple3.thd fullbrowsersessgrp with
+       | Left key ->
+           (* iterate on all session data tables: *)
+           sitedata.Eliom_common.remove_session_data key
+       | _ ->
+           (* No group has been set. No group table.
                    Data associated to default (automatic) groups
                    is removed when closing associated sessions.
-         *)
-          ())
+           *)
+           ())
     group_of_groups;
   Eliommod_gc.service_session_gc sitedata;
   Eliommod_gc.data_session_gc sitedata;
@@ -814,7 +813,7 @@ let parse_config _ hostpattern conf_info site_dir =
   because it corresponds to the way
   browsers manage cookies (one cookie for one site).
   Thus we can have one site in several cmo (with one session).
- *)
+        *)
         let set_timeout
             (f :
               ?full_st_name:Eliom_common.full_state_name

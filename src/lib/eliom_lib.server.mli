@@ -23,17 +23,17 @@
 (** See {% <<a_api project="ocsigenserver"| module Ocsigen_lib>> %}. *)
 include
   module type of Ocsigen_lib
-    with type poly = Ocsigen_lib.poly
-     and type yesnomaybe = Ocsigen_lib.yesnomaybe
-     and type ('a, 'b) leftright = ('a, 'b) Ocsigen_lib.leftright
-     and type 'a Clist.t = 'a Ocsigen_lib.Clist.t
-     and type 'a Clist.node = 'a Ocsigen_lib.Clist.node
+  with type poly = Ocsigen_lib.poly
+   and type yesnomaybe = Ocsigen_lib.yesnomaybe
+   and type ('a, 'b) leftright = ('a, 'b) Ocsigen_lib.leftright
+   and type 'a Clist.t = 'a Ocsigen_lib.Clist.t
+   and type 'a Clist.node = 'a Ocsigen_lib.Clist.node
 
 include
   module type of Eliom_lib_base
-    with type 'a Int64_map.t = 'a Eliom_lib_base.Int64_map.t
-    with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
-    with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t
+  with type 'a Int64_map.t = 'a Eliom_lib_base.Int64_map.t
+  with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
+  with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t
 
 type file_info = Ocsigen_extensions.file_info
 
@@ -51,11 +51,11 @@ val jsmarshal : 'a -> string
 module Lwt_log : sig
   include
     module type of Lwt_log
-      with type level = Lwt_log.level
-       and type logger = Lwt_log.logger
-       and type section = Lwt_log.section
-       and type template = Lwt_log.template
-       and module Section = Lwt_log.Section
+    with type level = Lwt_log.level
+     and type logger = Lwt_log.logger
+     and type section = Lwt_log.section
+     and type template = Lwt_log.template
+     and module Section = Lwt_log.Section
 
   val eliom : section
 end

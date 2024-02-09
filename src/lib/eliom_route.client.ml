@@ -27,21 +27,20 @@ module A = struct
       !count
 
   module Raw_table = Map.Make (struct
-    type t = Eliom_common.meth
+      type t = Eliom_common.meth
 
-    let compare = compare
-  end)
+      let compare = compare
+    end)
 
   type table_content =
     [`Ptc of unit option * (params, result) Eliom_common.service list]
 
   type service =
     ( table ref * Eliom_common.page_table_key
-    , Eliom_common.na_key_serv )
-    Eliom_lib.leftright
+      , Eliom_common.na_key_serv )
+      Eliom_lib.leftright
 
   and node = service list
-
   and table = table_content Raw_table.t
 
   module Table = struct

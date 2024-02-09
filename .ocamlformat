@@ -1,4 +1,4 @@
-version=0.19.0
+version=0.26.1
 break-cases = fit
 break-collection-expressions = fit-or-vertical
 break-fun-decl = wrap

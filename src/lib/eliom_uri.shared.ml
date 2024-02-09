@@ -109,9 +109,9 @@ let make_uri_components_ ?(* does not take into account getparams *) absolute
        The default is false for regular application.
        But for client side apps (mobile apps), it is true, because
        relative URLs are used for local assets. *)
-    absolute_path = false)
+      absolute_path = false)
     ?(* used to force absolute link without protocol/server/port *)
-    https (type a)
+     https (type a)
     ~(service : (_, _, _, a, _, _, _, _, _, _, _) Eliom_service.t) ?hostname
     ?port ?fragment ?keep_nl_params
     ?(nl_params = Eliom_parameter.empty_nl_params_set) ()
@@ -322,8 +322,7 @@ let make_string_uri_from_components (uri, params, fragment) =
   match fragment with None -> s | Some f -> Eliom_lib.String.concat "#" [s; f]
 
 let make_string_uri ?absolute ?absolute_path ?https ~service ?hostname ?port
-    ?fragment ?keep_nl_params ?nl_params getparams
-    : string
+    ?fragment ?keep_nl_params ?nl_params getparams : string
   =
   make_string_uri_from_components
     (make_uri_components ?absolute ?absolute_path ?https ~service ?hostname
@@ -333,7 +332,7 @@ let make_string_uri_ = make_string_uri
 
 let make_post_uri_components_
     ?((* do not take into account postparams *)
-    absolute = !Eliom_common.is_client_app) ?(absolute_path = false) ?https
+      absolute = !Eliom_common.is_client_app) ?(absolute_path = false) ?https
     (type a) ~(service : (_, _, _, a, _, _, _, _, _, _, _) Eliom_service.t)
     ?hostname ?port ?fragment
     ?(keep_nl_params : [`All | `Persistent | `None] option)
@@ -433,10 +432,11 @@ let make_post_uri_components_
         params
         @ Eliommod_parameters.inject_param_list
             (if keep_get_na_params
-            then (Eliom_request_info.get_si sp).Eliom_common.si_all_get_but_nl
-            else
-              Lazy.force
-                (Eliom_request_info.get_si sp).Eliom_common.si_all_get_but_na_nl)
+             then (Eliom_request_info.get_si sp).Eliom_common.si_all_get_but_nl
+             else
+               Lazy.force
+                 (Eliom_request_info.get_si sp)
+                   .Eliom_common.si_all_get_but_na_nl)
       in
       let ssl = Eliom_request_info.get_csp_ssl_sp sp in
       let https = is_https https ssl service in
@@ -532,7 +532,6 @@ let make_post_uri_components__ = make_post_uri_components
   This is not completely satisfactory,
   but should always do what we want,
   but for very non-standard uses of cookies ...
-
 *)
 let make_cookies_info (https, service) =
   (* https is what the user asked while creating the link/form *)

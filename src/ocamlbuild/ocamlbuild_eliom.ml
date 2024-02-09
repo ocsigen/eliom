@@ -19,11 +19,9 @@ module MakeIntern (I : INTERNALS) (Eliom : ELIOM) = struct
 
   let sed_rule name ~dep ~prod scripts =
     rule name ~dep ~prod (fun env _build ->
-        let dep = env dep and prod = env prod in
-        let script_args =
-          List.map (fun script -> S [A "-e"; A script]) scripts
-        in
-        Cmd (S [A "sed"; S script_args; P dep; Sh ">"; Px prod]))
+      let dep = env dep and prod = env prod in
+      let script_args = List.map (fun script -> S [A "-e"; A script]) scripts in
+      Cmd (S [A "sed"; S script_args; P dep; Sh ">"; Px prod]))
 
   let copy_with_header src prod =
     let contents = Pathname.read src in
@@ -34,10 +32,10 @@ module MakeIntern (I : INTERNALS) (Eliom : ELIOM) = struct
 
   let copy_rule_with_header f name ?(deps = []) src prod =
     rule name ~deps:(src :: deps) ~prod (fun env _ ->
-        let prod = env prod in
-        let src = env src in
-        f env (Pathname.dirname prod) (Pathname.basename prod) src prod;
-        copy_with_header src prod)
+      let prod = env prod in
+      let src = env src in
+      f env (Pathname.dirname prod) (Pathname.basename prod) src prod;
+      copy_with_header src prod)
 
   let syntaxes_p4 = [I.with_package "eliom.syntax.predef"]
   let no_extra_syntaxes = "no_extra_syntaxes"
@@ -118,33 +116,33 @@ module MakeIntern (I : INTERNALS) (Eliom : ELIOM) = struct
 
   let copy_rule_server ?(eliom = true) =
     copy_rule_with_header (fun env dir name src file ->
-        let path = env "%(path)" in
-        tag_file_inside_rule file
-          (I.with_package "eliom.server" :: get_syntaxes eliom `Server src);
-        if eliom then flag_infer ~file ~name ~path `Server;
-        dflag
-          ["ocaml"; "compile"; "file:" ^ file]
-          (S [A "-I"; A (ocamlfind_query "js_of_ocaml")]);
-        Pathname.define_context dir [path];
-        Pathname.define_context path [dir])
+      let path = env "%(path)" in
+      tag_file_inside_rule file
+        (I.with_package "eliom.server" :: get_syntaxes eliom `Server src);
+      if eliom then flag_infer ~file ~name ~path `Server;
+      dflag
+        ["ocaml"; "compile"; "file:" ^ file]
+        (S [A "-I"; A (ocamlfind_query "js_of_ocaml")]);
+      Pathname.define_context dir [path];
+      Pathname.define_context path [dir])
 
   let copy_rule_client ?(eliom = true) =
     copy_rule_with_header (fun env dir name src file ->
-        let path = env "%(path)" in
-        tag_file_inside_rule file
-          (I.with_package "eliom.client" :: get_syntaxes eliom `Client src);
-        if eliom then flag_infer ~file ~name ~path `Client;
-        Pathname.define_context dir [path])
+      let path = env "%(path)" in
+      tag_file_inside_rule file
+        (I.with_package "eliom.client" :: get_syntaxes eliom `Client src);
+      if eliom then flag_infer ~file ~name ~path `Client;
+      Pathname.define_context dir [path])
 
   let copy_rule_type =
     copy_rule_with_header (fun env dir name src file ->
-        let path = env "%(path)" in
-        let server_dir = Pathname.concat path Eliom.server_dir in
-        let server_file = Pathname.concat server_dir name in
-        tag_file_inside_rule file
-          ((I.with_package "eliom.server" :: get_syntaxes true `Type src)
-          @ Tags.elements (tags_of_pathname server_file));
-        Pathname.define_context dir [path; server_dir])
+      let path = env "%(path)" in
+      let server_dir = Pathname.concat path Eliom.server_dir in
+      let server_file = Pathname.concat server_dir name in
+      tag_file_inside_rule file
+        ((I.with_package "eliom.server" :: get_syntaxes true `Type src)
+        @ Tags.elements (tags_of_pathname server_file));
+      Pathname.define_context dir [path; server_dir])
 
   let init = function
     | After_rules ->

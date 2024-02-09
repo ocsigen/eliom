@@ -85,24 +85,24 @@ val get_csp_hostname_sp : Eliom_common.server_params -> string
 val get_csp_server_port_sp : Eliom_common.server_params -> int
 val get_csp_ssl_sp : Eliom_common.server_params -> bool
 
-val get_nl_get_params_sp
-  :  Eliom_common.server_params
+val get_nl_get_params_sp :
+   Eliom_common.server_params
   -> (string * string) list String.Table.t
 
-val get_persistent_nl_get_params_sp
-  :  Eliom_common.server_params
+val get_persistent_nl_get_params_sp :
+   Eliom_common.server_params
   -> (string * string) list String.Table.t
 
 val get_sess_info : unit -> Eliom_common.sess_info
 
-val set_session_info
-  :  uri:string
+val set_session_info :
+   uri:string
   -> Eliom_common.sess_info
   -> (unit -> 'a Lwt.t)
   -> 'a Lwt.t
 
-val update_session_info
-  :  path:Url.path
+val update_session_info :
+   path:Url.path
   -> all_get_params:(string * string) list
   -> all_post_params:(string * string) list option
   -> (unit -> 'a Lwt.t)

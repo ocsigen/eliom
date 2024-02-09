@@ -21,11 +21,10 @@
 
 open Js_of_ocaml
 
-class type ['element] get_tag =
-  object
-    method getElementsByTagName :
-      Js.js_string Js.t -> 'element Dom.nodeList Js.t Js.meth
-  end
+class type ['element] get_tag = object
+  method getElementsByTagName :
+    Js.js_string Js.t -> 'element Dom.nodeList Js.t Js.meth
+end
 
 val get_body : 'element #get_tag Js.t -> 'element Js.t
 val get_head : 'element #get_tag Js.t -> 'element Js.t
@@ -38,16 +37,16 @@ val get_head : 'element #get_tag Js.t -> 'element Js.t
     * nodes with closures ( events )
     * nodes with attributes *)
 
-val select_nodes
-  :  Dom_html.element Js.t
+val select_nodes :
+   Dom_html.element Js.t
   -> Dom_html.anchorElement Dom.nodeList Js.t
      * Dom_html.formElement Dom.nodeList Js.t
      * Dom_html.element Dom.nodeList Js.t
      * Dom_html.element Dom.nodeList Js.t
      * Dom_html.element Dom.nodeList Js.t
 
-val select_request_nodes
-  :  Dom_html.element Js.t
+val select_request_nodes :
+   Dom_html.element Js.t
   -> Dom_html.element Dom.nodeList Js.t
 (** [select_request_nodes root] finds the nodes below [root]
     in the page annotated to be:
@@ -58,15 +57,15 @@ val ancessor : #Dom.node Js.t -> #Dom.node Js.t -> bool
 
 val createEvent : Js.js_string Js.t -> #Dom_html.event Js.t
 
-val copy_element
-  :  Dom.element Js.t
+val copy_element :
+   Dom.element Js.t
   -> (Js.js_string Js.t -> bool)
   -> Dom_html.element Js.t
 (** [copy_element e] creates recursively a fresh html from any xml
     element avoiding browser bugs *)
 
-val html_document
-  :  Dom.element Dom.document Js.t
+val html_document :
+   Dom.element Dom.document Js.t
   -> (Js.js_string Js.t -> bool)
   -> Dom_html.element Js.t
 (** Assuming [d] has a body and head element, [html_document d] will
@@ -79,8 +78,8 @@ val preload_css : Dom_html.element Js.t -> unit Lwt.t
 
 val iter_nodeList : 'a Dom.nodeList Js.t -> ('a Js.t -> unit) -> unit
 
-val iter_attrList
-  :  Dom.attr Dom.namedNodeMap Js.t
+val iter_attrList :
+   Dom.attr Dom.namedNodeMap Js.t
   -> (Dom.attr Js.t -> unit)
   -> unit
 

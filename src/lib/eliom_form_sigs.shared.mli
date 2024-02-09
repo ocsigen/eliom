@@ -24,23 +24,23 @@ module type LINKS = sig
   type +'a attrib
   type uri
 
-  val make_uri
-    :  ?absolute:bool
+  val make_uri :
+     ?absolute:bool
     -> ?absolute_path:bool
     -> ?https:bool
     -> service:
          ( 'get
-         , unit
-         , Eliom_service.get
-         , _
-         , _
-         , _
-         , _
-         , _
-         , _
-         , unit
-         , _ )
-         Eliom_service.t
+           , unit
+           , Eliom_service.get
+           , _
+           , _
+           , _
+           , _
+           , _
+           , _
+           , unit
+           , _ )
+           Eliom_service.t
     -> ?hostname:string
     -> ?port:int
     -> ?fragment:string
@@ -132,8 +132,8 @@ module type LINKS = sig
 
       For other module, the function [f] is immediately applied. *)
 
-  val css_link
-    :  ?a:[< Html_types.link_attrib] attrib list
+  val css_link :
+     ?a:[< Html_types.link_attrib] attrib list
     -> uri:uri
     -> unit
     -> [> Html_types.link] elt
@@ -148,8 +148,8 @@ module type LINKS = sig
       The optional parameter [~a] allows one to add extra HTML
       attributes to the generated node.  *)
 
-  val js_script
-    :  ?a:[< Html_types.script_attrib] attrib list
+  val js_script :
+     ?a:[< Html_types.script_attrib] attrib list
     -> uri:uri
     -> unit
     -> [> Html_types.script] elt
@@ -164,24 +164,24 @@ module type LINKS = sig
       The optional parameter [~a] allows one to add extra HTML
       attributes to the generated node.  *)
 
-  val a
-    :  ?absolute:bool
+  val a :
+     ?absolute:bool
     -> ?absolute_path:bool
     -> ?https:bool
     -> ?a:[< Html_types.a_attrib] attrib list
     -> service:
          ( 'get
-         , unit
-         , Eliom_service.get
-         , _
-         , _
-         , _
-         , _
-         , _
-         , _
-         , unit
-         , Eliom_service.non_ocaml )
-         Eliom_service.t
+           , unit
+           , Eliom_service.get
+           , _
+           , _
+           , _
+           , _
+           , _
+           , _
+           , unit
+           , Eliom_service.non_ocaml )
+           Eliom_service.t
     -> ?hostname:string
     -> ?port:int
     -> ?fragment:string
@@ -242,23 +242,23 @@ module type S = sig
   val string : string param
   val user : ('a -> string) -> 'a param
 
-  val make_post_uri_components
-    :  ?absolute:bool
+  val make_post_uri_components :
+     ?absolute:bool
     -> ?absolute_path:bool
     -> ?https:bool
     -> service:
          ( 'get
-         , 'post
-         , Eliom_service.post
-         , _
-         , _
-         , _
-         , _
-         , _
-         , _
-         , _
-         , _ )
-         Eliom_service.t
+           , 'post
+           , Eliom_service.post
+           , _
+           , _
+           , _
+           , _
+           , _
+           , _
+           , _
+           , _ )
+           Eliom_service.t
     -> ?hostname:string
     -> ?port:int
     -> ?fragment:string
@@ -274,24 +274,24 @@ module type S = sig
   (** Same as {!LINK.make_uri_components}, but also returns a list of
       post parameters. *)
 
-  val get_form
-    :  ?absolute:bool
+  val get_form :
+     ?absolute:bool
     -> ?absolute_path:bool
     -> ?https:bool
     -> ?a:[< Html_types.form_attrib] attrib list
     -> service:
          ( _
-         , unit
-         , Eliom_service.get
-         , _
-         , _
-         , _
-         , _
-         , _
-         , 'gn
-         , _
-         , Eliom_service.non_ocaml )
-         Eliom_service.t
+           , unit
+           , Eliom_service.get
+           , _
+           , _
+           , _
+           , _
+           , _
+           , 'gn
+           , _
+           , Eliom_service.non_ocaml )
+           Eliom_service.t
     -> ?hostname:string
     -> ?port:int
     -> ?fragment:string
@@ -326,24 +326,24 @@ module type S = sig
       See {!make_uri} for description of other optional
       parameters.  *)
 
-  val lwt_get_form
-    :  ?absolute:bool
+  val lwt_get_form :
+     ?absolute:bool
     -> ?absolute_path:bool
     -> ?https:bool
     -> ?a:[< Html_types.form_attrib] attrib list
     -> service:
          ( _
-         , unit
-         , Eliom_service.get
-         , _
-         , _
-         , _
-         , _
-         , _
-         , 'gn
-         , _
-         , Eliom_service.non_ocaml )
-         Eliom_service.t
+           , unit
+           , Eliom_service.get
+           , _
+           , _
+           , _
+           , _
+           , _
+           , 'gn
+           , _
+           , Eliom_service.non_ocaml )
+           Eliom_service.t
     -> ?hostname:string
     -> ?port:int
     -> ?fragment:string
@@ -355,24 +355,24 @@ module type S = sig
   (** Same as {!get_form} but taking a cooperative function for
       [<form>] content generation. *)
 
-  val post_form
-    :  ?absolute:bool
+  val post_form :
+     ?absolute:bool
     -> ?absolute_path:bool
     -> ?https:bool
     -> ?a:[< Html_types.form_attrib] attrib list
     -> service:
          ( 'get
-         , _
-         , Eliom_service.post
-         , _
-         , _
-         , _
-         , _
-         , _
-         , _
-         , 'pn
-         , Eliom_service.non_ocaml )
-         Eliom_service.t
+           , _
+           , Eliom_service.post
+           , _
+           , _
+           , _
+           , _
+           , _
+           , _
+           , 'pn
+           , Eliom_service.non_ocaml )
+           Eliom_service.t
     -> ?hostname:string
     -> ?port:int
     -> ?fragment:string
@@ -397,24 +397,24 @@ module type S = sig
       [~keep_get_na_params] optional parameter ; see {!get_form} for
       [~xhr] and see {!make_uri} for other optional parameters.  *)
 
-  val lwt_post_form
-    :  ?absolute:bool
+  val lwt_post_form :
+     ?absolute:bool
     -> ?absolute_path:bool
     -> ?https:bool
     -> ?a:[< Html_types.form_attrib] attrib list
     -> service:
          ( 'get
-         , _
-         , Eliom_service.post
-         , _
-         , _
-         , _
-         , _
-         , _
-         , _
-         , 'pn
-         , Eliom_service.non_ocaml )
-         Eliom_service.t
+           , _
+           , Eliom_service.post
+           , _
+           , _
+           , _
+           , _
+           , _
+           , _
+           , 'pn
+           , Eliom_service.non_ocaml )
+           Eliom_service.t
     -> ?hostname:string
     -> ?port:int
     -> ?fragment:string
@@ -428,8 +428,8 @@ module type S = sig
   (** Same as {!post_form} but taking a cooperative function for
       [<form>] content generation. *)
 
-  val input
-    :  ?a:[< Html_types.input_attrib] attrib list
+  val input :
+     ?a:[< Html_types.input_attrib] attrib list
     -> input_type:[< Html_types.input_type]
     -> ?name:[< 'a setoneradio] param_name
     -> ?value:'a
@@ -437,15 +437,15 @@ module type S = sig
     -> [> Html_types.input] elt
   (** Creates an [<input>] tag. *)
 
-  val file_input
-    :  ?a:[< Html_types.input_attrib] attrib list
+  val file_input :
+     ?a:[< Html_types.input_attrib] attrib list
     -> name:[< file_info setoneradio] param_name
     -> unit
     -> [> Html_types.input] elt
   (** Creates an [<input>] tag for sending a file *)
 
-  val image_input
-    :  ?a:[< Html_types.input_attrib] attrib list
+  val image_input :
+     ?a:[< Html_types.input_attrib] attrib list
     -> name:[< coordinates oneradio] param_name
     -> ?src:uri
     -> unit
@@ -453,8 +453,8 @@ module type S = sig
   (** Creates an [<input type="image" name="...">] tag. The server
       receives the coordinates that the user clicked on. *)
 
-  val checkbox
-    :  ?a:[< Html_types.input_attrib] attrib list
+  val checkbox :
+     ?a:[< Html_types.input_attrib] attrib list
     -> ?checked:bool
     -> name:[`Set of 'a] Eliom_parameter.param_name
     -> value:'a
@@ -464,8 +464,8 @@ module type S = sig
       checkboxes with the same name (and different values). The
       service must declare a parameter of type [set]. *)
 
-  val bool_checkbox_one
-    :  ?a:[< Html_types.input_attrib] attrib list
+  val bool_checkbox_one :
+     ?a:[< Html_types.input_attrib] attrib list
     -> ?checked:bool
     -> name:[`One of bool] Eliom_parameter.param_name
     -> unit
@@ -473,8 +473,8 @@ module type S = sig
   (** Creates a checkbox [<input>] tag of type bool. Only one checkbox
       with the same [name] is allowed. *)
 
-  val radio
-    :  ?a:[< Html_types.input_attrib] attrib list
+  val radio :
+     ?a:[< Html_types.input_attrib] attrib list
     -> ?checked:bool
     -> name:[`Radio of 'a] param_name
     -> value:'a
@@ -482,16 +482,16 @@ module type S = sig
     -> [> Html_types.input] elt
   (** Creates a radio [<input>] tag. *)
 
-  val string_radio_required
-    :  ?a:[< Html_types.input_attrib] attrib list
+  val string_radio_required :
+     ?a:[< Html_types.input_attrib] attrib list
     -> ?checked:bool
     -> name:[`One of string] param_name
     -> value:string
     -> unit
     -> [> Html_types.input] elt
 
-  val button
-    :  ?a:[< Html_types.button_attrib] attrib list
+  val button :
+     ?a:[< Html_types.button_attrib] attrib list
     -> button_type:[< button_type]
     -> name:[< 'a setone] param_name
     -> value:'a
@@ -500,15 +500,15 @@ module type S = sig
     -> [> Html_types.button] elt
   (** Creates a [<button>] tag. *)
 
-  val button_no_value
-    :  ?a:[< Html_types.button_attrib] attrib list
+  val button_no_value :
+     ?a:[< Html_types.button_attrib] attrib list
     -> button_type:[< button_type]
     -> Html_types.button_content elt list
     -> [> Html_types.button] elt
   (** Creates a [<button>] tag with no value. No value is sent. *)
 
-  val textarea
-    :  ?a:[< Html_types.textarea_attrib] attrib list
+  val textarea :
+     ?a:[< Html_types.textarea_attrib] attrib list
     -> name:[< string setoneradio] param_name
     -> ?value:string
     -> unit
@@ -539,8 +539,8 @@ module type S = sig
         * 'a soption list
     | Option of 'a soption
 
-  val select
-    :  ?a:[< Html_types.select_attrib] attrib list
+  val select :
+     ?a:[< Html_types.select_attrib] attrib list
     -> ?required:Html_types.pcdata elt
     -> name:[`One of 'a] param_name
     -> 'a param
@@ -549,8 +549,8 @@ module type S = sig
     -> [> Html_types.select] elt
   (** Creates a [<select>] tag. *)
 
-  val multiple_select
-    :  ?a:[< Html_types.select_attrib] attrib list
+  val multiple_select :
+     ?a:[< Html_types.select_attrib] attrib list
     -> ?required:Html_types.pcdata elt
     -> name:[`Set of 'a] param_name
     -> 'a param

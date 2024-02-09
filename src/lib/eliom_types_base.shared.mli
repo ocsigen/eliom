@@ -35,7 +35,6 @@ val post_closure_id : int
 val post_closure_id_string : string
 
 val eliom_temporary_form_node_name : string
-
 *)
 
 (*POSTtabcookies* forms with tab cookies in POST params:

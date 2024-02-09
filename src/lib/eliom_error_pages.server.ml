@@ -42,40 +42,42 @@ let page_bad_param after_action gl pl =
        (h1 [txt s]
        ::
        (if Ocsigen_config.get_debugmode ()
-       then
-         [ h2 [txt "Debugging information:"]
-         ; (if after_action
-           then
-             p
-               [ txt
-                   "An action occurred successfully. But Eliom was unable to find the service for displaying the page."
-               ]
-           else
-             p
-               [ txt
-                   "Eliom was unable to find a service matching these parameters."
-               ])
-         ; (match gl with
-           | [] -> p [txt "No GET parameters have been given to services."]
-           | (n, a) :: l ->
+        then
+          [ h2 [txt "Debugging information:"]
+          ; (if after_action
+             then
                p
-                 [ txt "GET parameters given to services: "
-                 ; em
-                     (txt n :: txt "=" :: txt a
-                     :: List.fold_right
-                          (fun (n, a) b ->
-                            txt "&" :: txt n :: txt "=" :: txt a :: b)
-                          l [txt "."]) ])
-         ; (match pl with
-           | [] -> p [txt "No POST parameters have been given to services."]
-           | a :: l ->
+                 [ txt
+                     "An action occurred successfully. But Eliom was unable to find the service for displaying the page."
+                 ]
+             else
                p
-                 (txt "Names of POST parameters given to services: "
-                 :: em [txt a]
-                 :: List.fold_right
-                      (fun n b -> txt ", " :: em [txt n] :: b)
-                      l [txt "."])) ]
-       else [])))
+                 [ txt
+                     "Eliom was unable to find a service matching these parameters."
+                 ])
+          ; (match gl with
+            | [] -> p [txt "No GET parameters have been given to services."]
+            | (n, a) :: l ->
+                p
+                  [ txt "GET parameters given to services: "
+                  ; em
+                      (txt n :: txt "=" :: txt a
+                      :: List.fold_right
+                           (fun (n, a) b ->
+                              txt "&" :: txt n :: txt "=" :: txt a :: b)
+                           l
+                           [txt "."]) ])
+          ; (match pl with
+            | [] -> p [txt "No POST parameters have been given to services."]
+            | a :: l ->
+                p
+                  (txt "Names of POST parameters given to services: "
+                  :: em [txt a]
+                  :: List.fold_right
+                       (fun n b -> txt ", " :: em [txt n] :: b)
+                       l
+                       [txt "."])) ]
+        else [])))
 
 let page_session_expired =
   let s = "Session expired" in

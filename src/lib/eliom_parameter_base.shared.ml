@@ -78,7 +78,6 @@ let to_from_of_atom x =
 type 'a filter = ('a -> unit) option
 type raw = Eliom_request_info.raw_post_data
 type 'a ocaml = string (* marshaled values of type 'a *)
-
 type suff = [`WithoutSuffix | `WithSuffix | `Endsuffix]
 
 type (_, _) params_type_ =
@@ -112,7 +111,8 @@ type (_, _) params_type_ =
   | TESuffixu :
       (string * 'a Eliom_common.To_and_of_shared.t)
       -> ('a, [`One of 'a] param_name) params_type_
-  | TSuffix : (bool * ('s, 'sn) params_type_) -> ('s, 'sn) params_type_ (* bool = redirect the version without suffix to the suffix version *)
+  | TSuffix : (bool * ('s, 'sn) params_type_) -> ('s, 'sn) params_type_
+    (* bool = redirect the version without suffix to the suffix version *)
   | TUnit : (unit, unit) params_type_
   | TAny : ((string * string) list, unit) params_type_
   | TConst : string -> (unit, [`One of unit] param_name) params_type_
@@ -164,8 +164,8 @@ let suffix ?(redirect_if_not_suffix = true) s =
 
 let suffix_prod ?(redirect_if_not_suffix = true)
     (s : ('s, [< `WithoutSuffix | `Endsuffix], 'sn) params_type)
-    (t : ('a, [`WithoutSuffix], 'an) params_type)
-    : ('s * 'a, [`WithSuffix], 'sn * 'an) params_type
+    (t : ('a, [`WithoutSuffix], 'an) params_type) :
+    ('s * 'a, [`WithSuffix], 'sn * 'an) params_type
   =
   TProd (TSuffix (redirect_if_not_suffix, s), t)
 
@@ -209,16 +209,16 @@ let rec make_suffix : type a c. (a, 'b, c) params_type -> a -> string list =
       [to_json ?typ params]
   | _ -> raise (Eliom_Internal_Error "Bad parameter type in suffix")
 
-let rec aux
-    : type a c.
-      (a, 'b, c) params_type
-      -> string list option
-      -> 'y
-      -> a
-      -> string
-      -> string
-      -> 'z
-      -> 'x * 'y * (string * Eliommod_parameters.field) list
+let rec aux :
+    type a c.
+    (a, 'b, c) params_type
+    -> string list option
+    -> 'y
+    -> a
+    -> string
+    -> string
+    -> 'z
+    -> 'x * 'y * (string * Eliommod_parameters.field) list
   =
  fun typ psuff nlp params pref suff l ->
   let open Eliommod_parameters in
@@ -238,7 +238,7 @@ let rec aux
       fst
         (List.fold_left
            (fun ((psuff, nlp, s), i) p ->
-             aux t psuff nlp p pref2 (make_list_suffix i) s, i + 1)
+              aux t psuff nlp p pref2 (make_list_suffix i) s, i + 1)
            ((psuff, nlp, l), 0)
            params)
   | TSet t ->
@@ -319,8 +319,8 @@ let rec get_to_and_of : type a c. (a, 'b, c) params_type -> a to_and_of
   | _ -> failwith "get_to_and_of: not implemented"
 
 (** Walk the parameter tree to search for a parameter, given its name *)
-let rec walk_parameter_tree
-    : type a c. string -> (a, 'b, c) params_type -> a to_and_of option
+let rec walk_parameter_tree :
+    type a c. string -> (a, 'b, c) params_type -> a to_and_of option
   =
  fun name x ->
   let get name' = if name = name' then Some (get_to_and_of x) else None in
@@ -362,8 +362,8 @@ let construct_params nonlocparams typ p =
   suff, construct_params_string pl
 
 let make_params_names params =
-  let rec aux
-      : type a c. bool -> string -> string -> (a, 'b, c) params_type -> bool * c
+  let rec aux :
+      type a c. bool -> string -> string -> (a, 'b, c) params_type -> bool * c
     =
    fun issuffix prefix suffix x ->
     match x with
@@ -399,14 +399,14 @@ let make_params_names params =
                 snd
                   (List.fold_right
                      (fun el (i, l2) ->
-                       let i' = i - 1 in
-                       ( i'
-                       , f
-                           (snd
-                              (aux issuffix
-                                 (prefix ^ name ^ suffix ^ ".")
-                                 (make_list_suffix i') t1))
-                           el l2 ))
+                        let i' = i - 1 in
+                        ( i'
+                        , f
+                            (snd
+                               (aux issuffix
+                                  (prefix ^ name ^ suffix ^ ".")
+                                  (make_list_suffix i') t1))
+                            el l2 ))
                      l (length, init))) } )
     (* TSuffix cannot be inside TList *)
     | TTypeFilter (t, _) -> aux issuffix prefix suffix t
@@ -417,8 +417,8 @@ let make_params_names params =
 let string_of_param_name = id
 
 (* Add a prefix to parameters *)
-let rec add_pref_params
-    : type a c. string -> (a, 'b, c) params_type -> (a, 'b, c) params_type
+let rec add_pref_params :
+    type a c. string -> (a, 'b, c) params_type -> (a, 'b, c) params_type
   =
  fun pref x ->
   match x with
@@ -449,8 +449,8 @@ let rec add_pref_params
 (* Non localized parameters *)
 
 let nl_prod (t : ('a, 'su, 'an) params_type)
-    (s : ('s, [`WithoutSuffix], 'sn) non_localized_params)
-    : ('a * 's, 'su, 'an * 'sn) params_type
+    (s : ('s, [`WithoutSuffix], 'sn) non_localized_params) :
+    ('a * 's, 'su, 'an * 'sn) params_type
   =
   TProd (t, TNLParams s)
 
@@ -486,8 +486,8 @@ let make_nlp_name persistent prefix name =
   pr ^ prefix ^ "-" ^ name
 
 let make_non_localized_parameters ~prefix ~name ?(persistent = false)
-    (p : ('a, [`WithoutSuffix], 'b) params_type)
-    : ('a, [`WithoutSuffix], 'b) non_localized_params
+    (p : ('a, [`WithoutSuffix], 'b) params_type) :
+    ('a, [`WithoutSuffix], 'b) non_localized_params
   =
   let name = make_nlp_name persistent prefix name in
   if String.contains name '.'
@@ -509,8 +509,8 @@ let rec contains_suffix : type a c. (a, 'b, c) params_type -> bool option
 
 (*****************************************************************************)
 
-let rec wrap_param_type
-    : type a c. (a, 'b, c) params_type -> (a, 'b, c) params_type
+let rec wrap_param_type :
+    type a c. (a, 'b, c) params_type -> (a, 'b, c) params_type
   = function
   | TNLParams t -> TNLParams {t with param = wrap_param_type t.param}
   | TProd (t1, t2) -> TProd (wrap_param_type t1, wrap_param_type t2)
@@ -555,8 +555,8 @@ let end_of_list lp pref =
 (* The following function reconstructs the value of parameters from
    expected type and GET or POST parameters *)
 let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
-  let rec parse_suffix
-      : type a c. (a, 'b, c) params_type -> string list -> a * string list
+  let rec parse_suffix :
+      type a c. (a, 'b, c) params_type -> string list -> a * string list
     =
    fun typ suff ->
     match typ, suff with
@@ -642,15 +642,15 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
     | TSuffix _, _ -> failwith "It is not possible to use TSuffix in suffix."
     | _, [] -> raise Eliom_common.Eliom_Wrong_parameter
   in
-  let rec aux_list
-      : type a c.
-        (a, 'b, c) params_type
-        -> params'
-        -> files
-        -> string
-        -> string
-        -> string
-        -> a list res_reconstr_param
+  let rec aux_list :
+      type a c.
+      (a, 'b, c) params_type
+      -> params'
+      -> files
+      -> string
+      -> string
+      -> string
+      -> a list res_reconstr_param
     =
    fun t params files name pref suff ->
     let rec loop_list i lp fl pref =
@@ -667,14 +667,14 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
         | Errors_ errs -> Errors_ errs
     in
     loop_list 0 params files (pref ^ name ^ suff ^ ".")
-  and aux
-      : type a c.
-        (a, 'b, c) params_type
-        -> params'
-        -> files
-        -> string
-        -> string
-        -> a res_reconstr_param
+  and aux :
+      type a c.
+      (a, 'b, c) params_type
+      -> params'
+      -> files
+      -> string
+      -> string
+      -> a res_reconstr_param
     =
    fun typ params files pref suff ->
     match typ with
@@ -839,14 +839,14 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
             Lwt_log.ign_debug_f ~section
               "Eliom_Wrong_parameter: params non-empty (ERROR): %a"
               (fun () l ->
-                String.concat ", " (List.map (fun (x, k) -> x ^ "=" ^ k) l))
+                 String.concat ", " (List.map (fun (x, k) -> x ^ "=" ^ k) l))
               l;
           if files <> []
           then
             Lwt_log.ign_debug_f ~section
               "Eliom_Wrong_parameter: files non-empty (ERROR): %a"
               (fun () files ->
-                String.concat ", " (List.map (fun (x, _) -> x) files))
+                 String.concat ", " (List.map (fun (x, _) -> x) files))
               files;
           raise Eliom_common.Eliom_Wrong_parameter)
     | Errors_ (errs, l, files) ->
@@ -859,8 +859,7 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
   with Not_found -> raise Eliom_common.Eliom_Wrong_parameter
 
 let reconstruct_params ~sp (type a c) (typ : (a, 'b, c) params_type) params
-    files nosuffixversion urlsuffix
-    : a Lwt.t
+    files nosuffixversion urlsuffix : a Lwt.t
   =
   match typ, params, files with
   (* FIXME *)

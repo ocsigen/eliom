@@ -24,26 +24,26 @@ exception Failed_request of int
 exception Program_terminated
 exception Non_xml_content
 
-val redirect_get
-  :  ?window_name:string
+val redirect_get :
+   ?window_name:string
   -> ?window_features:string
   -> string
   -> unit
 
-val redirect_post
-  :  ?window_name:string
+val redirect_post :
+   ?window_name:string
   -> string
   -> (string * Eliommod_parameters.param) list
   -> unit
 
-val redirect_put
-  :  ?window_name:string
+val redirect_put :
+   ?window_name:string
   -> string
   -> (string * Eliommod_parameters.param) list
   -> unit
 
-val redirect_delete
-  :  ?window_name:string
+val redirect_delete :
+   ?window_name:string
   -> string
   -> (string * Eliommod_parameters.param) list
   -> unit
@@ -61,8 +61,8 @@ module Additional_headers : sig
   val remove : string -> unit
 end
 
-val send
-  :  ?with_credentials:bool
+val send :
+   ?with_credentials:bool
   -> ?expecting_process_page:bool
   -> ?cookies_info:bool * string list
   -> ?get_args:(string * string) list
@@ -74,22 +74,8 @@ val send
   -> 'a result
   -> (string * 'a option) Lwt.t
 
-val send_get_form
-  :  ?with_credentials:bool
-  -> ?expecting_process_page:bool
-  -> ?cookies_info:bool * string list
-  -> ?get_args:(string * string) list
-  -> ?post_args:(string * Eliommod_parameters.param) list
-  -> ?progress:(int -> int -> unit)
-  -> ?upload_progress:(int -> int -> unit)
-  -> ?override_mime_type:string
-  -> Dom_html.formElement Js.t
-  -> string
-  -> 'a result
-  -> (string * 'a option) Lwt.t
-
-val send_post_form
-  :  ?with_credentials:bool
+val send_get_form :
+   ?with_credentials:bool
   -> ?expecting_process_page:bool
   -> ?cookies_info:bool * string list
   -> ?get_args:(string * string) list
@@ -102,8 +88,22 @@ val send_post_form
   -> 'a result
   -> (string * 'a option) Lwt.t
 
-val http_get
-  :  ?with_credentials:bool
+val send_post_form :
+   ?with_credentials:bool
+  -> ?expecting_process_page:bool
+  -> ?cookies_info:bool * string list
+  -> ?get_args:(string * string) list
+  -> ?post_args:(string * Eliommod_parameters.param) list
+  -> ?progress:(int -> int -> unit)
+  -> ?upload_progress:(int -> int -> unit)
+  -> ?override_mime_type:string
+  -> Dom_html.formElement Js.t
+  -> string
+  -> 'a result
+  -> (string * 'a option) Lwt.t
+
+val http_get :
+   ?with_credentials:bool
   -> ?expecting_process_page:bool
   -> ?cookies_info:bool * string list
   -> ?progress:(int -> int -> unit)
@@ -114,8 +114,8 @@ val http_get
   -> 'a result
   -> (string * 'a option) Lwt.t
 
-val http_post
-  :  ?with_credentials:bool
+val http_post :
+   ?with_credentials:bool
   -> ?expecting_process_page:bool
   -> ?cookies_info:bool * string list
   -> ?progress:(int -> int -> unit)
@@ -126,8 +126,8 @@ val http_post
   -> 'a result
   -> (string * 'a option) Lwt.t
 
-val http_put
-  :  ?with_credentials:bool
+val http_put :
+   ?with_credentials:bool
   -> ?expecting_process_page:bool
   -> ?cookies_info:bool * string list
   -> ?progress:(int -> int -> unit)
@@ -138,8 +138,8 @@ val http_put
   -> 'a result
   -> (string * 'a option) Lwt.t
 
-val http_delete
-  :  ?with_credentials:bool
+val http_delete :
+   ?with_credentials:bool
   -> ?expecting_process_page:bool
   -> ?cookies_info:bool * string list
   -> ?progress:(int -> int -> unit)
@@ -155,8 +155,8 @@ val max_redirection_level : int
 
 (**/**)
 
-val nl_template
-  : ( string
+val nl_template :
+  ( string
     , [`WithoutSuffix]
     , [`One of string] Eliom_parameter.param_name )
     Eliom_parameter.non_localized_params

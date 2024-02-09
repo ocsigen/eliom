@@ -49,24 +49,24 @@ let consume (t, u) s =
 let clone_exn (t, u) s =
   let s' = Lwt_stream.clone s in
   Lwt_stream.from (fun () ->
-      try%lwt Lwt.choose [Lwt_stream.get s'; t]
-      with e ->
-        (match Lwt.state t with Lwt.Sleep -> Lwt.wakeup_exn u e | _ -> ());
-        Lwt.fail e)
+    try%lwt Lwt.choose [Lwt_stream.get s'; t]
+    with e ->
+      (match Lwt.state t with Lwt.Sleep -> Lwt.wakeup_exn u e | _ -> ());
+      Lwt.fail e)
 
 type ('a, 'att, 'co, 'ext, 'reg) callable_bus_service =
   ( unit
-  , 'a list
-  , Eliom_service.post
-  , 'att
-  , 'co
-  , 'ext
-  , 'reg
-  , [`WithoutSuffix]
-  , unit
-  , [`One of 'a list Eliom_parameter.ocaml] Eliom_parameter.param_name
-  , Eliom_registration.Action.return )
-  Eliom_service.t
+    , 'a list
+    , Eliom_service.post
+    , 'att
+    , 'co
+    , 'ext
+    , 'reg
+    , [`WithoutSuffix]
+    , unit
+    , [`One of 'a list Eliom_parameter.ocaml] Eliom_parameter.param_name
+    , Eliom_registration.Action.return )
+    Eliom_service.t
 
 let create service channel waiter =
   let write x =

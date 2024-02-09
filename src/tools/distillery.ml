@@ -71,16 +71,16 @@ let mkdir_p path_str =
     | snippet :: rest ->
         let sofar' = snippet :: sofar in
         (if sofar' <> [""]
-        then
-          let dir = join_path (List.rev sofar') in
-          if Sys.file_exists dir
-          then (
-            if not (Sys.is_directory dir)
-            then
-              raise
-                (File_error
-                   (sprintf "Cannot create directory %S, it's a file" dir)))
-          else Unix.mkdir dir 0o775);
+         then
+           let dir = join_path (List.rev sofar') in
+           if Sys.file_exists dir
+           then (
+             if not (Sys.is_directory dir)
+             then
+               raise
+                 (File_error
+                    (sprintf "Cannot create directory %S, it's a file" dir)))
+           else Unix.mkdir dir 0o775);
         aux sofar' rest
   in
   aux [] (split_path path_str)
@@ -109,7 +109,7 @@ let copy_file ?(env = []) ?(preds = []) src_name dst_name =
     let preds =
       List.map
         (fun pred ->
-          pred, Str.(regexp ("^ *%%%ifdef +" ^ quote pred ^ "%%% *$")))
+           pred, Str.(regexp ("^ *%%%ifdef +" ^ quote pred ^ "%%% *$")))
         preds
     in
     fun line ->
@@ -204,18 +204,18 @@ let create_project ?preds ~without_asking ~name ~env ~source_dir ~dest_dir () =
     exit 1);
   Array.iter
     (fun src_file ->
-      if List.mem src_file eliom_ignore_files
-      then ()
-      else if List.mem src_file eliom_verbatim_files
-      then (
-        let src_path = Filename.concat source_dir src_file
-        and dst_path = expand_dest_path ~name ~dest_dir src_file in
-        copy_file_plain src_path dst_path;
-        printf "Generated %s\n%!" dst_path)
-      else
-        let src_path = Filename.concat source_dir src_file
-        and dst_path = expand_dest_path ~name ~dest_dir src_file in
-        copy_file ?preds ~env src_path dst_path)
+       if List.mem src_file eliom_ignore_files
+       then ()
+       else if List.mem src_file eliom_verbatim_files
+       then (
+         let src_path = Filename.concat source_dir src_file
+         and dst_path = expand_dest_path ~name ~dest_dir src_file in
+         copy_file_plain src_path dst_path;
+         printf "Generated %s\n%!" dst_path)
+       else
+         let src_path = Filename.concat source_dir src_file
+         and dst_path = expand_dest_path ~name ~dest_dir src_file in
+         copy_file ?preds ~env src_path dst_path)
     (Sys.readdir source_dir)
 
 let env name =

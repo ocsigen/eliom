@@ -33,14 +33,14 @@ module Pass = struct
       in
       typing_strs :=
         (if unsafe || Mli.exists ()
-        then [%stri let [%p Pat.var id] = fun y -> (y : [%t typ] :> [%t typ])]
-        else
-          [%stri
-            let [%p Pat.var id] =
-              let x = Stdlib.ref None in
-              fun y ->
-                if false then x := Some y;
-                (y : [%t typ] :> [%t typ])])
+         then [%stri let [%p Pat.var id] = fun y -> (y : [%t typ] :> [%t typ])]
+         else
+           [%stri
+             let [%p Pat.var id] =
+               let x = Stdlib.ref None in
+               fun y ->
+                 if false then x := Some y;
+                 (y : [%t typ] :> [%t typ])])
         :: !typing_strs
     in
     let flush loc =
@@ -105,7 +105,7 @@ module Pass = struct
       in
       List.iter
         (function
-          | _, gen_id, _, _, _ -> global_known := SSet.add gen_id !global_known)
+           | _, gen_id, _, _, _ -> global_known := SSet.add gen_id !global_known)
         novel;
       all
     in
@@ -119,8 +119,8 @@ module Pass = struct
     let bindings =
       List.map
         (fun (_, txt, expr, _, _) ->
-          let loc = expr.pexp_loc in
-          Vb.mk ~loc (Pat.var ~loc {txt; loc}) expr)
+           let loc = expr.pexp_loc in
+           Vb.mk ~loc (Pat.var ~loc {txt; loc}) expr)
         injections
     in
     Str.value Nonrecursive bindings
@@ -137,26 +137,26 @@ module Pass = struct
     let injection_list =
       List.fold_right
         (fun (loc0, txt, expr, ident, unsafe) sofar ->
-          let loc = expr.pexp_loc in
-          let loc_expr = position loc in
-          let frag_eid = eid {txt; loc} in
-          let ident =
-            match ident with
-            | None -> [%expr None]
-            | Some i -> [%expr Some [%e str i]]
-          in
-          let _, num = Mli.get_injected_ident_info txt in
-          let f_id = {txt = txt ^ "_f"; loc} in
-          push_nongen_str_item ~fragment:false ~unsafe loc f_id;
-          [%expr
-            ( [%e int num]
-            , Eliom_lib.to_poly
-                [%e
-                  let loc = one_char_location loc0 in
-                  [%expr [%e eid f_id] [%e frag_eid]]]
-            , [%e loc_expr]
-            , [%e ident] )
-            :: [%e sofar]])
+           let loc = expr.pexp_loc in
+           let loc_expr = position loc in
+           let frag_eid = eid {txt; loc} in
+           let ident =
+             match ident with
+             | None -> [%expr None]
+             | Some i -> [%expr Some [%e str i]]
+           in
+           let _, num = Mli.get_injected_ident_info txt in
+           let f_id = {txt = txt ^ "_f"; loc} in
+           push_nongen_str_item ~fragment:false ~unsafe loc f_id;
+           [%expr
+             ( [%e int num]
+             , Eliom_lib.to_poly
+                 [%e
+                   let loc = one_char_location loc0 in
+                   [%expr [%e eid f_id] [%e frag_eid]]]
+             , [%e loc_expr]
+             , [%e ident] )
+             :: [%e sofar]])
         injections [%expr []]
     in
     [%stri
@@ -211,7 +211,7 @@ module Pass = struct
           [%expr
             (Eliom_syntax.client_value ~pos:[%e position loc] [%e str num]
                [%e e]
-              : [%t typ] Eliom_client_value.t)]]]
+             : [%t typ] Eliom_client_value.t)]]]
 
   let escape_inject ~loc ?ident ~(context : Context.escape_inject) ~id ~unsafe
       expr

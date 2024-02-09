@@ -36,8 +36,8 @@ module Channel : sig
   type comet_scope =
     [Eliom_common.site_scope | Eliom_common.client_process_scope]
 
-  val create
-    :  ?scope:[< comet_scope]
+  val create :
+     ?scope:[< comet_scope]
     -> ?name:string
     -> ?size:int
     -> 'a Lwt_stream.t
@@ -75,8 +75,8 @@ module Channel : sig
       data on the stream only when the client requests it, use
       [create_unlimited] instead, but be careful of memory leaks. *)
 
-  val create_from_events
-    :  ?scope:[< comet_scope]
+  val create_from_events :
+     ?scope:[< comet_scope]
     -> ?name:string
     -> ?size:int
     -> 'a React.event
@@ -84,8 +84,8 @@ module Channel : sig
   (** [create_from_events e] returns a channel sending the values returned
       by the event stream [e]. *)
 
-  val create_unlimited
-    :  ?scope:Eliom_common.client_process_scope
+  val create_unlimited :
+     ?scope:Eliom_common.client_process_scope
     -> ?name:string
     -> 'a Lwt_stream.t
     -> 'a t
@@ -102,8 +102,8 @@ module Channel : sig
       ~scope:Eliom_common.site_scope s] but only the last message is
       returned to the client. *)
 
-  val external_channel
-    :  ?history:int
+  val external_channel :
+     ?history:int
     -> ?newest:bool
     -> prefix:string
     -> name:string
@@ -120,8 +120,8 @@ module Channel : sig
       number of messages retrieved at the first request. The default
       is [1]. *)
 
-  val wait_timeout
-    :  ?scope:Eliom_common.client_process_scope
+  val wait_timeout :
+     ?scope:Eliom_common.client_process_scope
     -> float
     -> unit Lwt.t
   (** [wait_timeout ~scope time] waits for a period of inactivity of

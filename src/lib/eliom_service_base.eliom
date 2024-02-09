@@ -27,19 +27,18 @@ module Url = Eliom_lib.Url
 
 type suff = [`WithSuffix | `WithoutSuffix]
 
-let params_of_meth
-    : type m gp gn pp pn x.
-      (m, gp, gn, pp, pn, 'tipo, x) meth
-      -> (gp, 'tipo, gn) params * (pp, [`WithoutSuffix], pn) params
+let params_of_meth :
+    type m gp gn pp pn x.
+    (m, gp, gn, pp, pn, 'tipo, x) meth
+    -> (gp, 'tipo, gn) params * (pp, [`WithoutSuffix], pn) params
   = function
   | Get gp -> gp, Eliom_parameter.unit
   | Post (gp, pp) -> gp, pp
   | Put gp -> gp, Eliom_parameter.raw_post_data
   | Delete gp -> gp, Eliom_parameter.raw_post_data
 
-let which_meth_internal
-    : type m gp gn pp pn tipo x.
-      (m, gp, gn, pp, pn, tipo, x) meth -> m which_meth
+let which_meth_internal :
+    type m gp gn pp pn tipo x. (m, gp, gn, pp, pn, tipo, x) meth -> m which_meth
   = function
   | Get _ -> Get'
   | Post _ -> Post'
@@ -75,7 +74,7 @@ type att =
 type non_att =
   { na_name : Eliom_common.na_key_serv
   ; keep_get_na_params : bool
-        (* bool is used only for post and means "keep_get_na_params": do we
+  (* bool is used only for post and means "keep_get_na_params": do we
      keep GET non-attached parameters in links (if any) (31/12/2007 -
      experimental - WAS: 'a, but may be removed (was not used)) *)
   }
@@ -88,7 +87,7 @@ type send_appl_content =
   | XNever
   | XAlways
   | XSame_appl of string * string option
-      (** Whether the service is capable to send application content or not.
+  (** Whether the service is capable to send application content or not.
     (application content has type Eliom_service.eliom_appl_answer:
     content of the application container, or xhr redirection ...).  A
     link towards a service with send_appl_content = XNever will always
@@ -153,7 +152,7 @@ type ('get
   ; mutable reload_fun : reload_fun
   ; service_mark :
       (unit, unit, 'meth, 'attached, 'co, 'ext, 'reg, suff, unit, unit, unit) t
-      Eliom_common.wrapper }
+        Eliom_common.wrapper }
   constraint 'tipo = [< suff]
 
 and result =
@@ -172,17 +171,17 @@ let pre_wrap s =
 
 type%shared unit_service =
   ( unit
-  , unit
-  , get
-  , att
-  , non_co
-  , non_ext
-  , non_reg
-  , [`WithoutSuffix]
-  , unit
-  , unit
-  , non_ocaml )
-  t
+    , unit
+    , get
+    , att
+    , non_co
+    , non_ext
+    , non_reg
+    , [`WithoutSuffix]
+    , unit
+    , unit
+    , non_ocaml )
+    t
 
 let service_mark () = Eliom_common.make_wrapper pre_wrap
 let info {info; _} = info
@@ -396,29 +395,29 @@ let keep_nl_params s = s.keep_nl_params
 let untype s =
   (s
     : ( 'get
-      , 'post
-      , 'meth
-      , 'attached
-      , 'co
-      , 'ext
-      , 'tipo
-      , 'getnames
-      , 'postnames
-      , 'register
-      , _ )
-      t
+        , 'post
+        , 'meth
+        , 'attached
+        , 'co
+        , 'ext
+        , 'tipo
+        , 'getnames
+        , 'postnames
+        , 'register
+        , _ )
+        t
     :> ( 'get
-       , 'post
-       , 'meth
-       , 'attached
-       , 'co
-       , 'ext
-       , 'tipo
-       , 'getnames
-       , 'postnames
-       , 'register
-       , _ )
-       t)
+         , 'post
+         , 'meth
+         , 'attached
+         , 'co
+         , 'ext
+         , 'tipo
+         , 'getnames
+         , 'postnames
+         , 'register
+         , _ )
+         t)
 
 type (_, _, _) path_option =
   | Path : Eliom_lib.Url.path -> (att, non_co, _) path_option
@@ -493,7 +492,8 @@ let extern ?keep_nl_params ~prefix ~path ~meth () =
   let get_params, post_params = params_of_meth meth in
   let suffix = Eliom_parameter.contains_suffix get_params in
   let meth = which_meth_internal meth in
-  main_service ~https:false (* not used for external links *) ~prefix
+  main_service ~https:false (* not used for external links *)
+    ~prefix
     ~path:
       (Url.remove_internal_slash
          (match suffix with

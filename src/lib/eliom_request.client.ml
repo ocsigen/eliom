@@ -41,21 +41,21 @@ let get_cookie_info_for_uri_js uri_js =
         short_url_re ## (exec uri_js)
         (fun () -> assert false)
         (fun res ->
-          let match_result = Js.match_result res in
-          let path =
-            Url.path_of_path_string
-              (Js.to_string
-                 (Js.Optdef.get (Js.array_get match_result 1) (fun () ->
-                      assert false)))
-          in
-          let path =
-            match path with
-            | "" :: _ -> path (* absolute *)
-            | _ ->
-                Eliom_common_base.make_actual_path
-                  (Eliom_request_info.get_csp_original_full_path () @ path)
-          in
-          Eliom_request_info.get_csp_ssl (), path)
+           let match_result = Js.match_result res in
+           let path =
+             Url.path_of_path_string
+               (Js.to_string
+                  (Js.Optdef.get (Js.array_get match_result 1) (fun () ->
+                     assert false)))
+           in
+           let path =
+             match path with
+             | "" :: _ -> path (* absolute *)
+             | _ ->
+                 Eliom_common_base.make_actual_path
+                   (Eliom_request_info.get_csp_original_full_path () @ path)
+           in
+           Eliom_request_info.get_csp_ssl (), path)
   | Some (Url.Https {Url.hu_path = path; _}) -> true, path
   | Some (Url.Http {Url.hu_path = path; _}) -> false, path
   | Some (Url.File {Url.fu_path = path; _}) -> false, path
@@ -90,15 +90,16 @@ let redirect_post ?window_name url params =
   (match window_name with None -> () | Some wn -> f##.target := Js.string wn);
   List.iter
     (fun (n, v) ->
-      match v with
-      | `String v ->
-          let i =
-            Dom_html.createTextarea ~name:(Js.string n) Dom_html.document
-          in
-          i##.value := v;
-          Dom.appendChild f i
-      | `File _ ->
-          Lwt_log.raise_error ~section "redirect_post not implemented for files")
+       match v with
+       | `String v ->
+           let i =
+             Dom_html.createTextarea ~name:(Js.string n) Dom_html.document
+           in
+           i##.value := v;
+           Dom.appendChild f i
+       | `File _ ->
+           Lwt_log.raise_error ~section
+             "redirect_post not implemented for files")
     params;
   f##.style##.display := Js.string "none";
   Dom.appendChild Dom_html.document##.body f;
@@ -264,23 +265,23 @@ let send ?with_credentials ?(expecting_process_page = false) ?cookies_info
       in
       let wait_for_unlock, unlock = Lwt.wait () in
       (if not @@ React.S.value locked
-      then Lwt.wakeup unlock ()
-      else
-        let unlock_event = React.E.once @@ React.S.changes locked in
-        Dom_reference.retain_generic wait_for_unlock
-          ~keep:(React.E.map (fun _ -> Lwt.wakeup unlock ()) unlock_event));
+       then Lwt.wakeup unlock ()
+       else
+         let unlock_event = React.E.once @@ React.S.changes locked in
+         Dom_reference.retain_generic wait_for_unlock
+           ~keep:(React.E.map (fun _ -> Lwt.wakeup unlock ()) unlock_event));
       let%lwt () = wait_for_unlock in
       (if Js.Optdef.test Js.Unsafe.global##.___eliom_use_cookie_substitutes_
-      then
-        match
-          (* Cookie substitutes are for iOS WKWebView *)
-          r.XmlHttpRequest.headers
-            Eliom_common.set_cookie_substitutes_header_name
-        with
-        | None | Some "" -> ()
-        | Some cookie_substitutes ->
-            Eliommod_cookies.update_cookie_table ~in_local_storage:true host
-              (Eliommod_cookies.cookieset_of_json cookie_substitutes));
+       then
+         match
+           (* Cookie substitutes are for iOS WKWebView *)
+           r.XmlHttpRequest.headers
+             Eliom_common.set_cookie_substitutes_header_name
+         with
+         | None | Some "" -> ()
+         | Some cookie_substitutes ->
+             Eliommod_cookies.update_cookie_table ~in_local_storage:true host
+               (Eliommod_cookies.cookieset_of_json cookie_substitutes));
       (match
          r.XmlHttpRequest.headers Eliom_common.set_tab_cookies_header_name
        with

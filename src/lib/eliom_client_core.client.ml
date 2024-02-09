@@ -111,8 +111,8 @@ let middleClick ev =
 module Injection : sig
   val get : ?ident:string -> ?pos:pos -> name:string -> _
 
-  val initialize
-    :  compilation_unit_id:string
+  val initialize :
+     compilation_unit_id:string
     -> Eliom_client_value.injection_datum
     -> unit
 end = struct
@@ -124,17 +124,17 @@ end = struct
       (Js.Optdef.get
          (Jstable.find table (Js.string name))
          (fun () ->
-           let name =
-             match ident, pos with
-             | None, None -> Printf.sprintf "%s" name
-             | None, Some pos ->
-                 Printf.sprintf "%s at %s" name (Eliom_lib.pos_to_string pos)
-             | Some i, None -> Printf.sprintf "%s (%s)" name i
-             | Some i, Some pos ->
-                 Printf.sprintf "%s (%s at %s)" name i
-                   (Eliom_lib.pos_to_string pos)
-           in
-           Lwt_log.raise_error_f "Did not find injection %s" name))
+            let name =
+              match ident, pos with
+              | None, None -> Printf.sprintf "%s" name
+              | None, Some pos ->
+                  Printf.sprintf "%s at %s" name (Eliom_lib.pos_to_string pos)
+              | Some i, None -> Printf.sprintf "%s (%s)" name i
+              | Some i, Some pos ->
+                  Printf.sprintf "%s (%s at %s)" name i
+                    (Eliom_lib.pos_to_string pos)
+            in
+            Lwt_log.raise_error_f "Did not find injection %s" name))
 
   let initialize ~compilation_unit_id
       {Eliom_runtime.injection_id; injection_value; _}
@@ -230,8 +230,8 @@ let getElementById id =
   Js.Optdef.case
     (find_process_node (Js.string id))
     (fun () ->
-      Lwt_log.ign_warning_f ~section "getElementById %s: Not_found" id;
-      raise Not_found)
+       Lwt_log.ign_warning_f ~section "getElementById %s: Not_found" id;
+       raise Not_found)
     (fun pnode -> pnode)
 
 (* == Request nodes
@@ -282,22 +282,21 @@ let in_onload, broadcast_load_end, wait_load_end, set_loading_phase =
 
    Allow conversion of Xml.event_handler to javascript closure and
    their registration in Dom node.
-
 *)
 
 (* forward declaration... *)
-let change_page_uri_
-    : (?cookies_info:bool * string list -> ?tmpl:string -> string -> unit) ref
+let change_page_uri_ :
+    (?cookies_info:bool * string list -> ?tmpl:string -> string -> unit) ref
   =
   ref (fun ?cookies_info:_ ?tmpl:_ _href -> assert false)
 
-let change_page_get_form_
-    : (?cookies_info:bool * string list
-       -> ?tmpl:string
-       -> Dom_html.formElement Js.t
-       -> string
-       -> unit)
-    ref
+let change_page_get_form_ :
+    (?cookies_info:bool * string list
+     -> ?tmpl:string
+     -> Dom_html.formElement Js.t
+     -> string
+     -> unit)
+      ref
   =
   ref (fun ?cookies_info:_ ?tmpl:_ _form _href -> assert false)
 
@@ -344,7 +343,7 @@ let raw_event_handler value =
   let handler =
     (*XXX???*)
     (Eliom_lib.from_poly (Eliom_lib.to_poly value)
-      : #Dom_html.event Js.t -> unit)
+     : #Dom_html.event Js.t -> unit)
   in
   fun ev -> try handler ev; true with Eliom_client_value.False -> false
 
@@ -360,7 +359,7 @@ let reify_caml_event name node ce =
           (fun ev ->
             let node =
               Js.Opt.get (Dom_html.CoerceTo.a node) (fun () ->
-                  Lwt_log.raise_error ~section "not an anchor element")
+                Lwt_log.raise_error ~section "not an anchor element")
             in
             raw_a_handler node cookies_info tmpl ev) )
   | Xml.CE_call_service
@@ -372,7 +371,7 @@ let reify_caml_event name node ce =
           (fun ev ->
             let form =
               Js.Opt.get (Dom_html.CoerceTo.form node) (fun () ->
-                  Lwt_log.raise_error ~section "not a form element")
+                Lwt_log.raise_error ~section "not a form element")
             in
             raw_form_handler form kind cookies_info tmpl ev
               (Eliom_lib.from_poly client_hdlr : client_form_handler)) )
@@ -530,15 +529,15 @@ let rec rebuild_rattrib node ra =
         ~keep:
           (React.S.map
              (function
-               | None ->
-                   node ## (removeAttribute name);
-                   iter_prop_protected node name (fun name ->
-                       Js.Unsafe.set node name Js.null)
-               | Some v ->
-                   let v = rebuild_attrib_val v in
-                   node ## (setAttribute name v);
-                   iter_prop_protected node name (fun name ->
-                       Js.Unsafe.set node name v))
+                | None ->
+                    node ## (removeAttribute name);
+                    iter_prop_protected node name (fun name ->
+                      Js.Unsafe.set node name Js.null)
+                | Some v ->
+                    let v = rebuild_attrib_val v in
+                    node ## (setAttribute name v);
+                    iter_prop_protected node name (fun name ->
+                      Js.Unsafe.set node name v))
              s)
   | Xml.RACamlEventHandler ev -> register_event_handler node (Xml.aname ra, ev)
   | Xml.RALazyStr s ->
@@ -598,11 +597,10 @@ end = struct
        are left to the old element.
   *)
 
-  class type ['a, 'b] weakMap =
-    object
-      method set : 'a -> 'b -> unit Js.meth
-      method get : 'a -> 'b Js.Optdef.t Js.meth
-    end
+  class type ['a, 'b] weakMap = object
+    method set : 'a -> 'b -> unit Js.meth
+    method get : 'a -> 'b Js.Optdef.t Js.meth
+  end
 
   type t =
     {mutable node : Dom.node Js.t option; mutable signal : unit React.S.t option}
@@ -646,9 +644,9 @@ end = struct
         Js.Opt.case dom'##.parentNode
           (fun () -> (* no parent -> no replace needed *) ())
           (fun parent ->
-            Js.Opt.iter (Dom.CoerceTo.element parent) (fun parent ->
-                (* really update the dom *)
-                ignore (Dom_html.element parent) ## (replaceChild dom dom')))
+             Js.Opt.iter (Dom.CoerceTo.element parent) (fun parent ->
+               (* really update the dom *)
+               ignore (Dom_html.element parent) ## (replaceChild dom dom')))
 end
 
 type content_ns = [`HTML5 | `SVG]
@@ -667,12 +665,12 @@ let rec rebuild_node' ns elt =
   | Xml.ReactNode signal ->
       let dom =
         ReactState.start_signal (fun state ->
-            React.S.map
-              (fun elt' ->
-                let dom = rebuild_node' ns elt' in
-                Xml.set_dom_node elt dom;
-                ReactState.change_dom state dom)
-              signal)
+          React.S.map
+            (fun elt' ->
+               let dom = rebuild_node' ns elt' in
+               Xml.set_dom_node elt dom;
+               ReactState.change_dom state dom)
+            signal)
       in
       Xml.set_dom_node elt dom; dom
   | Xml.TyXMLNode raw_elt -> (
@@ -687,9 +685,9 @@ let rec rebuild_node' ns elt =
         let id = Js.string id in
         Js.Optdef.case (find_process_node id)
           (fun () ->
-            let node = raw_rebuild_node ns (Xml.content elt) in
-            register_process_node id node;
-            node)
+             let node = raw_rebuild_node ns (Xml.content elt) in
+             register_process_node id node;
+             node)
           (fun n -> (n :> Dom.node Js.t)))
 
 and raw_rebuild_node ns = function
