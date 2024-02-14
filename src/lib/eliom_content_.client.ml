@@ -310,6 +310,7 @@ struct
 end
 
 module Svg = struct
+  module Ev' = Svg.Ev'
   module F = Svg.F
   module D = Svg.D
   module R = Svg.R
@@ -365,6 +366,8 @@ module Svg = struct
 end
 
 module Html = struct
+  module Ev' = Html.Ev'
+
   module F = struct
     include Html.F
 

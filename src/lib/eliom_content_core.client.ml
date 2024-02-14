@@ -238,8 +238,41 @@ module Xml_wed = struct
 end
 
 module Svg = struct
+  module Ev' (A : sig
+      type 'a attrib
+
+      module Unsafe : sig
+        val string_attrib : string -> string -> 'a attrib
+      end
+    end) =
+  struct
+    let a_onabort s = A.Unsafe.string_attrib "onabort" s
+    let a_onactivate s = A.Unsafe.string_attrib "onactivate" s
+    let a_onbegin s = A.Unsafe.string_attrib "onbegin" s
+    let a_onend s = A.Unsafe.string_attrib "onend" s
+    let a_onerror s = A.Unsafe.string_attrib "onerror" s
+    let a_onfocusin s = A.Unsafe.string_attrib "onfocusin" s
+    let a_onfocusout s = A.Unsafe.string_attrib "onfocusout" s
+    let a_onload s = A.Unsafe.string_attrib "onload" s
+    let a_onrepeat s = A.Unsafe.string_attrib "onrepeat" s
+    let a_onresize s = A.Unsafe.string_attrib "onresize" s
+    let a_onscroll s = A.Unsafe.string_attrib "onscroll" s
+    let a_onunload s = A.Unsafe.string_attrib "onunload" s
+    let a_onzoom s = A.Unsafe.string_attrib "onzoom" s
+    let a_onclick s = A.Unsafe.string_attrib "onclick" s
+    let a_onmousedown s = A.Unsafe.string_attrib "onmousedown" s
+    let a_onmouseup s = A.Unsafe.string_attrib "onmouseup" s
+    let a_onmouseover s = A.Unsafe.string_attrib "onmouseover" s
+    let a_onmouseout s = A.Unsafe.string_attrib "onmouseout" s
+    let a_onmousemove s = A.Unsafe.string_attrib "onmousemove" s
+    let a_ontouchstart s = A.Unsafe.string_attrib "ontouchstart" s
+    let a_ontouchend s = A.Unsafe.string_attrib "ontouchend" s
+    let a_ontouchmove s = A.Unsafe.string_attrib "ontouchmove" s
+    let a_ontouchcancel s = A.Unsafe.string_attrib "ontouchcancel" s
+  end
+
   module D = struct
-    module Raw = Svg_f.Make (struct
+    module Raw' = Svg_f.Make (struct
         include Xml
 
         let make elt = make_request_node (make elt)
@@ -252,12 +285,23 @@ module Svg = struct
         let node ?(a = []) name children = make (Node (name, a, children))
       end)
 
-    include Raw
+    module Raw = struct
+      include Raw'
+      include Ev' (Raw')
+    end
+
+    include Raw'
   end
 
   module F = struct
-    module Raw = Svg_f.Make (Xml)
-    include Raw
+    module Raw' = Svg_f.Make (Xml)
+
+    module Raw = struct
+      include Raw'
+      include Ev' (Raw')
+    end
+
+    include Raw'
   end
 
   module R = struct
@@ -298,6 +342,90 @@ module Svg = struct
 end
 
 module Html = struct
+  module Ev' (A : sig
+      type 'a attrib
+
+      module Unsafe : sig
+        val string_attrib : string -> string -> 'a attrib
+      end
+    end) =
+  struct
+    let a_onabort s = A.Unsafe.string_attrib "onabort" s
+    let a_onafterprint s = A.Unsafe.string_attrib "onafterprint" s
+    let a_onbeforeprint s = A.Unsafe.string_attrib "onbeforeprint" s
+    let a_onbeforeunload s = A.Unsafe.string_attrib "onbeforeunload" s
+    let a_onblur s = A.Unsafe.string_attrib "onblur" s
+    let a_oncanplay s = A.Unsafe.string_attrib "oncanplay" s
+    let a_oncanplaythrough s = A.Unsafe.string_attrib "oncanplaythrough" s
+    let a_onchange s = A.Unsafe.string_attrib "onchange" s
+    let a_onclose s = A.Unsafe.string_attrib "onclose" s
+    let a_ondurationchange s = A.Unsafe.string_attrib "ondurationchange" s
+    let a_onemptied s = A.Unsafe.string_attrib "onemptied" s
+    let a_onended s = A.Unsafe.string_attrib "onended" s
+    let a_onerror s = A.Unsafe.string_attrib "onerror" s
+    let a_onfocus s = A.Unsafe.string_attrib "onfocus" s
+    let a_onformchange s = A.Unsafe.string_attrib "onformchange" s
+    let a_onforminput s = A.Unsafe.string_attrib "onforminput" s
+    let a_onhashchange s = A.Unsafe.string_attrib "onhashchange" s
+    let a_oninput s = A.Unsafe.string_attrib "oninput" s
+    let a_oninvalid s = A.Unsafe.string_attrib "oninvalid" s
+    let a_onmousewheel s = A.Unsafe.string_attrib "onmousewheel" s
+    let a_onoffline s = A.Unsafe.string_attrib "onoffline" s
+    let a_ononline s = A.Unsafe.string_attrib "ononline" s
+    let a_onpause s = A.Unsafe.string_attrib "onpause" s
+    let a_onplay s = A.Unsafe.string_attrib "onplay" s
+    let a_onplaying s = A.Unsafe.string_attrib "onplaying" s
+    let a_onpagehide s = A.Unsafe.string_attrib "onpagehide" s
+    let a_onpageshow s = A.Unsafe.string_attrib "onpageshow" s
+    let a_onpopstate s = A.Unsafe.string_attrib "onpopstate" s
+    let a_onprogress s = A.Unsafe.string_attrib "onprogress" s
+    let a_onratechange s = A.Unsafe.string_attrib "onratechange" s
+    let a_onreadystatechange s = A.Unsafe.string_attrib "onreadystatechange" s
+    let a_onredo s = A.Unsafe.string_attrib "onredo" s
+    let a_onresize s = A.Unsafe.string_attrib "onresize" s
+    let a_onscroll s = A.Unsafe.string_attrib "onscroll" s
+    let a_onseeked s = A.Unsafe.string_attrib "onseeked" s
+    let a_onseeking s = A.Unsafe.string_attrib "onseeking" s
+    let a_onselect s = A.Unsafe.string_attrib "onselect" s
+    let a_onshow s = A.Unsafe.string_attrib "onshow" s
+    let a_onstalled s = A.Unsafe.string_attrib "onstalled" s
+    let a_onstorage s = A.Unsafe.string_attrib "onstorage" s
+    let a_onsubmit s = A.Unsafe.string_attrib "onsubmit" s
+    let a_onsuspend s = A.Unsafe.string_attrib "onsuspend" s
+    let a_ontimeupdate s = A.Unsafe.string_attrib "ontimeupdate" s
+    let a_onundo s = A.Unsafe.string_attrib "onundo" s
+    let a_onunload s = A.Unsafe.string_attrib "onunload" s
+    let a_onvolumechange s = A.Unsafe.string_attrib "onvolumechange" s
+    let a_onwaiting s = A.Unsafe.string_attrib "onwaiting" s
+    let a_onload s = A.Unsafe.string_attrib "onload" s
+    let a_onloadeddata s = A.Unsafe.string_attrib "onloadeddata" s
+    let a_onloadedmetadata s = A.Unsafe.string_attrib "onloadedmetadata" s
+    let a_onloadstart s = A.Unsafe.string_attrib "onloadstart" s
+    let a_onmessage s = A.Unsafe.string_attrib "onmessage" s
+    let a_onclick s = A.Unsafe.string_attrib "onclick" s
+    let a_oncontextmenu s = A.Unsafe.string_attrib "oncontextmenu" s
+    let a_ondblclick s = A.Unsafe.string_attrib "ondblclick" s
+    let a_ondrag s = A.Unsafe.string_attrib "ondrag" s
+    let a_ondragend s = A.Unsafe.string_attrib "ondragend" s
+    let a_ondragenter s = A.Unsafe.string_attrib "ondragenter" s
+    let a_ondragleave s = A.Unsafe.string_attrib "ondragleave" s
+    let a_ondragover s = A.Unsafe.string_attrib "ondragover" s
+    let a_ondragstart s = A.Unsafe.string_attrib "ondragstart" s
+    let a_ondrop s = A.Unsafe.string_attrib "ondrop" s
+    let a_onmousedown s = A.Unsafe.string_attrib "onmousedown" s
+    let a_onmouseup s = A.Unsafe.string_attrib "onmouseup" s
+    let a_onmouseover s = A.Unsafe.string_attrib "onmouseover" s
+    let a_onmousemove s = A.Unsafe.string_attrib "onmousemove" s
+    let a_onmouseout s = A.Unsafe.string_attrib "onmouseout" s
+    let a_ontouchstart s = A.Unsafe.string_attrib "ontouchstart" s
+    let a_ontouchend s = A.Unsafe.string_attrib "ontouchend" s
+    let a_ontouchmove s = A.Unsafe.string_attrib "ontouchmove" s
+    let a_ontouchcancel s = A.Unsafe.string_attrib "ontouchcancel" s
+    let a_onkeypress s = A.Unsafe.string_attrib "onkeypress" s
+    let a_onkeydown s = A.Unsafe.string_attrib "onkeydown" s
+    let a_onkeyup s = A.Unsafe.string_attrib "onkeyup" s
+  end
+
   module D = struct
     module Xml' = struct
       include Xml
@@ -315,8 +443,14 @@ module Html = struct
         make (Node (name, a, Eliom_lazy.force children))
     end
 
-    module Raw = Html_f.Make (Xml') (Svg.D.Raw)
-    include Raw
+    module Raw' = Html_f.Make (Xml') (Svg.D.Raw')
+
+    module Raw = struct
+      include Raw'
+      include Ev' (Raw')
+    end
+
+    include Raw'
 
     type ('a, 'b, 'c) lazy_star =
       ?a:'a attrib list -> 'b elt list Eliom_lazy.request -> 'c elt
@@ -366,8 +500,14 @@ module Html = struct
 
   module F = struct
     module Xml' = Xml
-    module Raw = Html_f.Make (Xml') (Svg.F.Raw)
-    include Raw
+    module Raw' = Html_f.Make (Xml') (Svg.F.Raw')
+
+    module Raw = struct
+      include Raw'
+      include Ev' (Raw')
+    end
+
+    include Raw'
 
     type ('a, 'b, 'c) lazy_star =
       ?a:'a attrib list -> 'b elt list Eliom_lazy.request -> 'c elt
