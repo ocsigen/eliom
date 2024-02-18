@@ -1,14 +1,14 @@
 (lang dune 3.6)
 
 (name eliom)
-(version 10.2.0)
+(version 10.3.0)
 (maintainers dev@ocsigen.org)
 (authors dev@ocsigen.org)
 (license "LGPL-2.1-only WITH OCaml-LGPL-linking-exception")
 
 (package
  (name eliom)
- (synopsis "Advanced Client/server Web and mobile framework")
+ (synopsis "Advanced client/server Web and mobile framework")
  (description "Eliom is a framework for implementing Web sites and client/server Web and mobile applications.
 It uses advanced concepts to simplify the implementation of common behaviors (e.g. scoped sessions, continuation based Web programming ...).
 It uses advanced static typing features of OCaml to check many properties of the Web application at compile-time (html, page parameters ...).
