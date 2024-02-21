@@ -2095,23 +2095,23 @@ let () =
             let rf =
               Option.bind old_page @@ fun {reload_function = rf; _} -> rf
             in
-            reload_function := rf;
-            let%lwt () = run_lwt_callbacks ev (flush_onchangepage ()) in
-            with_new_page ~state_id ?old_page ~replace:false () @@ fun () ->
-            set_current_uri uri;
-            History.replace (get_this_page ());
-            let%lwt () =
-              match rf with
-              | None -> Lwt.return_unit
-              | Some f -> (
+            match rf with
+            | None -> raise Not_found
+            | Some f ->
+                reload_function := rf;
+                let%lwt () = run_lwt_callbacks ev (flush_onchangepage ()) in
+                with_new_page ~state_id ?old_page ~replace:false () @@ fun () ->
+                set_current_uri uri;
+                History.replace (get_this_page ());
+                let%lwt () =
                   match%lwt f () () with
                   | Eliom_service.Dom d -> set_content_local d
                   | r ->
                       handle_result ~uri:(get_current_uri ()) ~replace:true
-                        (Lwt.return r))
-            in
-            scroll_to_fragment ~offset:state.position fragment;
-            Lwt.return_unit
+                        (Lwt.return r)
+                in
+                scroll_to_fragment ~offset:state.position fragment;
+                Lwt.return_unit
           with Not_found -> (
             (* different session ID *)
             set_current_uri uri;
