@@ -1,3 +1,15 @@
+===== 10.3.1 (2024-02-21) =====
+* Fixing Problem with browser navigation https://github.com/ocsigen/eliom/issues/781
+
+===== 10.3.0 (2024-02-18) =====
+* Adding raw events handlers in Eliom_content.Html.F.Raw for server-side only programming
+
+===== 10.2.0 (2023-12-08) =====
+* Adding Dune-based basic template client-server.basic
+
+===== 10.1.0 (2023-09-25) =====
+* Fix compilation with OCaml 5.1
+
 ===== 10.0 (2022-03-08) =====
 * Make Eliom_state.Ext.discard_state more robust
 
