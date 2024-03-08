@@ -318,7 +318,7 @@ module Cmo = struct
 
   let events = lazy (load ())
 
-  let label_of_string s =
+  let[@ocaml.warning "-32"] label_of_string s =
     if s = ""
     then Asttypes.Nolabel
     else if s.[0] = '?'
@@ -351,7 +351,15 @@ module Cmo = struct
     let rec type_of_out_type ty =
       match ty with
       | Otyp_var (_, s) -> Typ.var (var s)
-      | Otyp_arrow (lab, ty1, ty2) ->
+      | ((Otyp_arrow (lab, ty1, ty2)) [@if ocaml_version >= (5, 2, 0)]) ->
+          let lab =
+            match lab with
+            | Nolabel -> Nolabel
+            | Labelled lab -> Labelled lab
+            | Optional lab -> Optional lab
+          in
+          Typ.arrow lab (type_of_out_type ty1) (type_of_out_type ty2)
+      | ((Otyp_arrow (lab, ty1, ty2)) [@if ocaml_version < (5, 2, 0)]) ->
           Typ.arrow (label_of_string lab) (type_of_out_type ty1)
             (type_of_out_type ty2)
       | Otyp_tuple tyl -> Typ.tuple (List.map type_of_out_type tyl)
