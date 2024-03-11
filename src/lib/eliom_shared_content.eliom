@@ -198,6 +198,11 @@ module Svg = struct
         : (Svg_types.dominant_baseline -> string) Eliom_shared.Value.t
         :> ([< Svg_types.dominant_baseline] -> string) Eliom_shared.Value.t)
 
+    let string_of_fill_rule () =
+       ([%shared Raw_wrapped_functions_svg.string_of_fill_rule]
+        : (Svg_types.fill_rule -> string) Eliom_shared.Value.t
+        :> ([< Svg_types.fill_rule] -> string) Eliom_shared.Value.t)
+
     let string_of_fourfloats () =
       [%shared Raw_wrapped_functions_svg.string_of_fourfloats]
 
@@ -314,6 +319,9 @@ module Html = struct
 
     let onoff_of_bool () = [%shared Raw_wrapped_functions.onoff_of_bool]
 
+    let string_of_autocomplete () =
+      [%shared Raw_wrapped_functions.string_of_autocomplete]
+
     let string_of_big_variant () =
       ([%shared Raw_wrapped_functions.string_of_big_variant]
         : (Html_types.big_variant -> string) Eliom_shared.Value.t
@@ -328,6 +336,11 @@ module Html = struct
       ([%shared Raw_wrapped_functions.string_of_input_type]
         : (Html_types.input_type -> string) Eliom_shared.Value.t
         :> ([< Html_types.input_type] -> string) Eliom_shared.Value.t)
+
+    let string_of_script_type () =
+      ([%shared Raw_wrapped_functions.string_of_script_type]
+        : (Html_types.script_type -> string) Eliom_shared.Value.t
+        :> ([< Html_types.script_type] -> string) Eliom_shared.Value.t)
 
     let string_of_linktypes () =
       ([%shared Raw_wrapped_functions.string_of_linktypes]
