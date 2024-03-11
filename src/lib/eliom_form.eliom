@@ -148,7 +148,7 @@ module Make_links (Html : Html) = struct
 
   let js_script ?(a = []) ~uri () =
     let a =
-      Html.a_mime_type "text/javascript"
+      Html.a_script_type `Javascript
       :: Html.a_src uri
       :: (a :> Html_types.script_attrib attrib list)
     in
