@@ -1,3 +1,5 @@
+* Update to OCaml 5.2
+
 ===== 10.3.1 (2024-02-21) =====
 * Fixing Problem with browser navigation https://github.com/ocsigen/eliom/issues/781
 

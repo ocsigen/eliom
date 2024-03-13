@@ -351,7 +351,9 @@ module Cmo = struct
     let rec type_of_out_type ty =
       match ty with
       | Otyp_var (_, s) -> Typ.var (var s)
-      | Otyp_arrow (lab, ty1, ty2) ->
+      | ((Otyp_arrow (lab, ty1, ty2)) [@if ocaml_version >= (5, 2, 0)]) ->
+          Typ.arrow lab (type_of_out_type ty1) (type_of_out_type ty2)
+      | ((Otyp_arrow (lab, ty1, ty2)) [@if ocaml_version < (5, 2, 0)]) ->
           Typ.arrow (label_of_string lab) (type_of_out_type ty1)
             (type_of_out_type ty2)
       | Otyp_tuple tyl -> Typ.tuple (List.map type_of_out_type tyl)
