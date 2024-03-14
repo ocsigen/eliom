@@ -18,16 +18,16 @@
     <extension findlib-package="ocsigenserver.ext.cors"/>
     <commandpipe>%%CMDPIPE%%</commandpipe>
     <extension findlib-package="ocsigenserver.ext.staticmod"/>
+    <!--
     <extension findlib-package="ocsipersist.dbm">
       <!-- delayloading val="true"/ -->
       <store dir="%%DATADIR%%"/>
       <ocsidbm name="ocsidbm"/>
     </extension>
-    <!--
+    -->
     <extension findlib-package="ocsipersist.sqlite">
       <database file="%%DATADIR%%/ocsidb"/>
     </extension>
-    -->
     <!--
     <extension findlib-package="ocsipersist.pgsql">
       <database
