@@ -1,4 +1,8 @@
+===== 10.4.0 (2024-03-22) =====
 * Basic client-server distillery template: sqlite is now the default backend
+* Basic template now has license unlicense
+* Basic template fixes
+* Compatibility with Tyxml >= 4.6.0 (by Vincent Laporte)
 
 ===== 10.3.1 (2024-02-21) =====
 * Fixing Problem with browser navigation https://github.com/ocsigen/eliom/issues/781
