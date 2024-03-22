@@ -5,8 +5,8 @@
         (pps
             js_of_ocaml-ppx
             lwt_ppx
-            ocsigen-i18n
-            -- --prefix %%%MODULE_NAME%%%_ --suffix _i18n --default-module %%%MODULE_NAME%%%_i18n
+;            ocsigen-i18n
+;            -- --prefix %%%MODULE_NAME%%%_ --suffix _i18n --default-module %%%MODULE_NAME%%%_i18n
         )
     )
     (js_of_ocaml

@@ -172,7 +172,7 @@ let ppx_extra =
   exts ["cmi"] ppx.interface @ exts ["cmx"] (ppx.interface @ ppx.internal)
 
 let ppx_api = ppx.interface
-let templates_dir = "pkg/distillery"
+let templates_dir = "pkg/distillery/templates"
 let templates = Array.to_list (Sys.readdir templates_dir)
 
 let templates_files =

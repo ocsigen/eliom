@@ -20,7 +20,7 @@
     <extension findlib-package="ocsigenserver.ext.staticmod"/>
     <!--
     <extension findlib-package="ocsipersist.dbm">
-      <!-- delayloading val="true"/ -->
+      <delayloading val="false"/>
       <store dir="%%DATADIR%%"/>
       <ocsidbm name="ocsidbm"/>
     </extension>

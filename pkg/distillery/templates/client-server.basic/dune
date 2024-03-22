@@ -3,16 +3,16 @@
 (executables
     (names %%%PROJECT_NAME%%%)
     (modes (byte plugin) (native plugin))
-    (libraries eliom.server ocsipersist.dbm)
+    (libraries eliom.server ocsipersist.sqlite)
     (preprocess
        (pps
            lwt_ppx
-           pgocaml_ppx
+;           pgocaml_ppx
            js_of_ocaml-ppx_deriving_json
-           ocsigen-i18n
+;           ocsigen-i18n
            ocsigen-ppx-rpc --rpc-raw
            eliom.ppx.server
-           -- --prefix %%%MODULE_NAME%%%_ --suffix _i18n --default-module %%%MODULE_NAME%%%_i18n
+;           -- --prefix %%%MODULE_NAME%%%_ --suffix _i18n --default-module %%%MODULE_NAME%%%_i18n
        )
     )
   )
