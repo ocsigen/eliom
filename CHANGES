@@ -1,5 +1,5 @@
-===== dev =====
-* Update to OCaml 5.2
+===== 10.4.1 =====
+* Update to OCaml 5.2 (thanks to Kate Deplaix)
 
 ===== 10.4.0 (2024-03-22) =====
 * Basic client-server distillery template: sqlite is now the default backend
