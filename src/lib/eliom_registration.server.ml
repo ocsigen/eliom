@@ -1261,13 +1261,12 @@ let set_exn_handler h =
   Eliom_request_info.set_site_handler sitedata
     (Result_types.cast_function_http h)
 
-let extension =
-  Ocsigen_server.Site.create_extension_intrusive (fun vh conf_info site_dir ->
-    let sitedata = Eliommod.create_sitedata vh site_dir conf_info in
-    Eliom_common.absolute_change_sitedata sitedata;
-    (* CHECKME *)
-    Eliom_common.begin_load_eliom_module ();
-    Eliommod.site_init (ref true);
-    fun _ -> Eliommod_pagegen.gen None sitedata)
+let instruction vh conf_info site_dir =
+  let sitedata = Eliommod.create_sitedata vh site_dir conf_info in
+  Eliom_common.absolute_change_sitedata sitedata;
+  (* CHECKME *)
+  Eliom_common.begin_load_eliom_module ();
+  Eliommod.site_init (ref true);
+  Eliommod_pagegen.gen None sitedata
 
 let end_init = Eliom_common.end_load_eliom_module
