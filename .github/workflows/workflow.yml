@@ -13,33 +13,40 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - macos-latest
           - ubuntu-latest
         ocaml-compiler:
-          - 4.08.x
-          - 4.09.x
-          - 4.10.x
-          - 4.11.x
-          - 4.12.x
-          - 4.13.x
-          - 4.14.x
+          - "4.08"
+          - "4.09"
+          - "4.10"
+          - "4.11"
+          - "4.12"
+          - "4.13"
+          - "4.14"
+          - "5.0"
+          - "5.1"
+        include:
+          - os: macos-latest
+            ocaml-compiler: "4.14"
+          - os: macos-latest
+            ocaml-compiler: "5.1"
 
     runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Checkout code
+      - name: Checkout tree
         uses: actions/checkout@v4
 
-      - name: Use OCaml ${{ matrix.ocaml-compiler }}
+      - name: Set-up OCaml ${{ matrix.ocaml-compiler }}
         uses: ocaml/setup-ocaml@v2
         with:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
+          allow-prerelease-opam: true
           opam-depext: false
           opam-pin: false
 
-      - name: Install OpenSSL on MacOS
-        run: brew install openssl@3
-        if: ${{ matrix.os == 'macos-latest' }}
+      - name: Re-install OpenSSL on macOS
+        if: runner.os == 'macOS'
+        run: brew update && brew reinstall openssl@3
 
       - run: opam install . --deps-only
 
