@@ -286,7 +286,7 @@
       (param $s (ref $intern_state)) (param $code i32) (result (ref eq))
       (local $ops (ref $custom_operations))
       (local $expected_size i32)
-      (local $r ((ref eq) i32))
+      (local $r (tuple (ref eq) i32))
       (block $unknown
          (local.set $ops
             (br_on_null $unknown
@@ -313,14 +313,14 @@
                (call_ref $deserialize (local.get $s)
                   (struct.get $custom_operations $deserialize (local.get $ops))))
             (if (i32.and
-                  (i32.ne (tuple.extract 1 (local.get $r))
+                  (i32.ne (tuple.extract 2 1 (local.get $r))
                      (local.get $expected_size))
                   (i32.ne (local.get $code) (global.get $CODE_CUSTOM)))
                (then
                   (call $caml_failwith
                      (array.new_data $string $incorrect_size
                         (i32.const 0) (i32.const 57)))))
-            (return (tuple.extract 0 (local.get $r))))
+            (return (tuple.extract 2 0 (local.get $r))))
          (call $caml_failwith
             (array.new_data $string $expected_size
                (i32.const 0) (i32.const 48))))
@@ -615,7 +615,7 @@
             (br_on_cast_fail $incorrect_value (ref eq) (ref $block)
                (array.get $block (local.get $res) (i32.const 0))))
          (if (i32.eq (array.len (local.get $b)) (i32.const 3))
-            (return (array.get $block (local.get $b) (i32.const 2))))
+            (then (return (array.get $block (local.get $b) (i32.const 2)))))
          (ref.i31 (i32.const 0))))
       (call $caml_failwith
          (array.new_data $string $incorrect_value (i32.const 0) (i32.const 29)))
