@@ -1268,7 +1268,8 @@ let instruction ?xhr_links ?data_timeout ?service_timeout ?persistent_timeout
     ?max_persistent_data_tab_sessions_per_group
     ?max_anonymous_services_per_session ?secure_cookies ?application_script
     ?global_data_caching ?html_content_type ?ignored_get_params
-    ?ignored_post_params ?omitpersistentstorage () vh conf_info site_dir
+    ?ignored_post_params ?omitpersistentstorage ?(eliommodule_names = []) () vh
+    conf_info site_dir
   =
   let sitedata = Eliommod.create_sitedata vh site_dir conf_info in
   (* customize sitedata according to optional parameters: *)
@@ -1331,9 +1332,11 @@ let instruction ?xhr_links ?data_timeout ?service_timeout ?persistent_timeout
     omitpersistentstorage;
   (* end sitedata *)
   Eliom_common.absolute_change_sitedata sitedata;
-  (* CHECKME *)
-  Eliom_common.begin_load_eliom_module ();
   Eliommod.site_init (ref true);
+  (* If we have eliommodule_names, load them: *)
+  List.iter
+    (fun name -> Eliommod.load_eliom_module sitedata (Eliommod.Name name) "" [])
+    eliommodule_names;
   Eliommod_pagegen.gen None sitedata
 
 let end_init = Eliom_common.end_load_eliom_module
