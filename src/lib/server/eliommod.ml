@@ -608,8 +608,8 @@ let end_init () =
   if !exception_during_eliommodule_loading
   then
     (* An eliom module failed with an exception. We do not check
-       for the missing services, so that the exception can be correctly
-       propagated by Ocsigen_extensions *)
+            for the missing services, so that the exception can be correctly
+            propagated by Ocsigen_extensions *)
     ()
   else
     try
@@ -617,9 +617,9 @@ let end_init () =
       Eliom_common.end_current_sitedata ()
     with Eliom_common.Eliom_site_information_not_available _ -> ()
 (*VVV The "try with" looks like a hack:
-        end_init is called even for user config files ... but in that case,
-        current_sitedata is not set ...
-        It would be better to avoid calling end_init for user config files. *)
+            end_init is called even for user config files ... but in that case,
+            current_sitedata is not set ...
+            It would be better to avoid calling end_init for user config files. *)
 
 (** Function that will handle exceptions during the initialisation phase *)
 let handle_init_exn = function
@@ -739,6 +739,37 @@ let gen_nothing () _ = Lwt.return Ocsigen_extensions.Ext_do_nothing
 (*****************************************************************************)
 let default_module_action _ = failwith "default_module_action"
 
+let set_timeout
+    (f :
+      ?full_st_name:Eliom_common.full_state_name
+      -> ?cookie_level:[< Eliom_common.cookie_level]
+      -> recompute_expdates:bool
+      -> bool (* override configfile *)
+      -> bool (* from config file *)
+      -> Eliom_common.sitedata
+      -> float option
+      -> unit) sitedata cookie_type state_hier v
+  =
+  let make_full_st_name secure state_hier =
+    let scope =
+      match cookie_type with
+      | `Session -> `Session state_hier
+      | `Client_process -> `Client_process state_hier
+    in
+    Eliom_common.make_full_state_name2 sitedata.Eliom_common.site_dir_string
+      secure ~scope
+  in
+  (*VVV We set timeout for both secure and unsecure states.
+Make possible to customize this? *)
+  f
+    ?full_st_name:(Option.map (make_full_st_name false) state_hier)
+    ?cookie_level:(Some cookie_type) ~recompute_expdates:false true true
+    sitedata v;
+  f
+    ?full_st_name:(Option.map (make_full_st_name true) state_hier)
+    ?cookie_level:(Some cookie_type) ~recompute_expdates:false true true
+    sitedata v
+
 (** Parsing of config file for each site: *)
 let parse_config _ hostpattern conf_info site_dir =
   (*--- if we put the following line here: *)
@@ -814,50 +845,23 @@ let parse_config _ hostpattern conf_info site_dir =
   browsers manage cookies (one cookie for one site).
   Thus we can have one site in several cmo (with one session).
         *)
-        let set_timeout
-            (f :
-              ?full_st_name:Eliom_common.full_state_name
-              -> ?cookie_level:[< Eliom_common.cookie_level]
-              -> recompute_expdates:bool
-              -> bool (* override configfile *)
-              -> bool (* from config file *)
-              -> Eliom_common.sitedata
-              -> float option
-              -> unit) cookie_type state_hier v
-          =
-          let make_full_st_name secure state_hier =
-            let scope =
-              match cookie_type with
-              | `Session -> `Session state_hier
-              | `Client_process -> `Client_process state_hier
-            in
-            Eliom_common.make_full_state_name2
-              sitedata.Eliom_common.site_dir_string secure ~scope
-          in
-          (*VVV We set timeout for both secure and unsecure states.
-            Make possible to customize this? *)
-          f
-            ?full_st_name:(Option.map (make_full_st_name false) state_hier)
-            ?cookie_level:(Some cookie_type) ~recompute_expdates:false true true
-            sitedata v;
-          f
-            ?full_st_name:(Option.map (make_full_st_name true) state_hier)
-            ?cookie_level:(Some cookie_type) ~recompute_expdates:false true true
-            sitedata v
-        in
         let oldipv6mask = sitedata.Eliom_common.ipv6mask in
         let content =
           parse_eliom_options
             ( (fun ct snoo v ->
                 set_timeout
                   (Eliommod_timeouts.set_global_ ~kind:`Data)
-                  ct snoo v;
+                  sitedata ct snoo v;
                 set_timeout
                   (Eliommod_timeouts.set_global_ ~kind:`Service)
-                  ct snoo v)
-            , set_timeout (Eliommod_timeouts.set_global_ ~kind:`Data)
-            , set_timeout (Eliommod_timeouts.set_global_ ~kind:`Service)
-            , set_timeout (Eliommod_timeouts.set_global_ ~kind:`Persistent)
+                  sitedata ct snoo v)
+            , set_timeout (Eliommod_timeouts.set_global_ ~kind:`Data) sitedata
+            , set_timeout
+                (Eliommod_timeouts.set_global_ ~kind:`Service)
+                sitedata
+            , set_timeout
+                (Eliommod_timeouts.set_global_ ~kind:`Persistent)
+                sitedata
             , (fun v ->
                 sitedata.Eliom_common.max_service_sessions_per_group <- v, true)
             , (fun v ->

@@ -488,5 +488,35 @@ val cast_http_result : Ocsigen_response.t -> 'a kind
 (** [cast_http_result] should only be used to register new output
     modules *)
 
-val instruction : Ocsigen_server.Site.instruction
+val instruction :
+   ?xhr_links:bool
+  -> ?data_timeout:
+       [< Eliom_common.cookie_level]
+       * Eliom_common_base.scope_hierarchy option
+       * float option
+  -> ?service_timeout:
+       [< Eliom_common.cookie_level]
+       * Eliom_common_base.scope_hierarchy option
+       * float option
+  -> ?persistent_timeout:
+       [< Eliom_common.cookie_level]
+       * Eliom_common_base.scope_hierarchy option
+       * float option
+  -> ?max_service_sessions_per_group:int * bool
+  -> ?max_volatile_data_sessions_per_group:int * bool
+  -> ?max_persistent_data_sessions_per_group:int
+  -> ?max_service_tab_sessions_per_group:int * bool
+  -> ?max_volatile_data_tab_sessions_per_group:int * bool
+  -> ?max_persistent_data_tab_sessions_per_group:int
+  -> ?max_anonymous_services_per_session:int * bool
+  -> ?secure_cookies:bool
+  -> ?application_script:bool * bool
+  -> ?global_data_caching:(string list * int) option
+  -> ?html_content_type:string
+  -> ?ignored_get_params:string * Re.re
+  -> ?ignored_post_params:string * Re.re
+  -> ?omitpersistentstorage:Eliom_common.omitpersistentstorage_rule list option
+  -> unit
+  -> Ocsigen_server.Site.instruction
+
 val end_init : unit -> unit
