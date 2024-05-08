@@ -695,8 +695,6 @@ let register_site_init e = site_init_ref := e :: !site_init_ref
 let config = ref []
 let config_in_tag = ref "" (* the parent tag of the currently handled tag *)
 
-type module_to_load = Files of string list | Name of string
-
 let site_init firstmodule =
   if !firstmodule
   then (
@@ -720,8 +718,9 @@ let load_eliom_module _sitedata cmo_or_name parent_tag content =
   in
   try
     match cmo_or_name with
-    | Files cmo -> Ocsigen_loader.loadfiles preload postload true cmo
-    | Name name -> Ocsigen_loader.init_module preload postload true name
+    | `Files cmo -> Ocsigen_loader.loadfiles preload postload true cmo
+    | (`Name _ | `Site _ | `Default_site) as a ->
+        Ocsigen_loader.init_module preload postload true a
   with Ocsigen_loader.Dynlink_error (n, e) ->
     raise
       (Eliom_common.Eliom_error_while_loading_site
@@ -800,18 +799,19 @@ let parse_config _ hostpattern conf_info site_dir =
     | [] -> file
     | ("name", s) :: suite -> (
       match file with
-      | None -> parse_module_attrs (Some (Name s)) suite
+      | None -> parse_module_attrs (Some (`Name s)) suite
       | _ ->
           raise (Error_in_config_file "Duplicate attribute module in <eliom>"))
     | ("module", s) :: suite -> (
       match file with
-      | None -> parse_module_attrs (Some (Files [s])) suite
+      | None -> parse_module_attrs (Some (`Files [s])) suite
       | _ ->
           raise (Error_in_config_file "Duplicate attribute module in <eliom>"))
     | ("findlib-package", s) :: suite -> (
       match file with
       | None -> (
-        try parse_module_attrs (Some (Files (Ocsigen_loader.findfiles s))) suite
+        try
+          parse_module_attrs (Some (`Files (Ocsigen_loader.findfiles s))) suite
         with Ocsigen_loader.Findlib_error _ as e ->
           raise
             (Error_in_config_file

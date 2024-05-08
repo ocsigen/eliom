@@ -217,7 +217,8 @@ val register_eliom_module : string -> (unit -> unit) -> unit
     dynamically loaded module or linked statically into the server: in
     each case, the [f] function will be invoked when the module is
     initialized in the configuration file using [<eliommodule ...>
-    ... </eliommodule>]. If [register_eliom_module] is called twice
+    ... </eliommodule>] or when [Eliom.run] is called if you don't 
+    have a configuration file. If [register_eliom_module] is called twice
     with the same module name, the second initialization function will
     replace the previous one. *)
 

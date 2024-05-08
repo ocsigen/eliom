@@ -1268,8 +1268,8 @@ let instruction ?xhr_links ?data_timeout ?service_timeout ?persistent_timeout
     ?max_persistent_data_tab_sessions_per_group
     ?max_anonymous_services_per_session ?secure_cookies ?application_script
     ?global_data_caching ?html_content_type ?ignored_get_params
-    ?ignored_post_params ?omitpersistentstorage ?(eliommodule_names = []) () vh
-    conf_info site_dir
+    ?ignored_post_params ?omitpersistentstorage ?(eliommodule_names = []) ()
+    site vh conf_info site_dir
   =
   let sitedata = Eliommod.create_sitedata vh site_dir conf_info in
   (* customize sitedata according to optional parameters: *)
@@ -1335,8 +1335,15 @@ let instruction ?xhr_links ?data_timeout ?service_timeout ?persistent_timeout
   Eliommod.site_init (ref true);
   (* If we have eliommodule_names, load them: *)
   List.iter
-    (fun name -> Eliommod.load_eliom_module sitedata (Eliommod.Name name) "" [])
+    (fun name -> Eliommod.load_eliom_module sitedata (`Name name) "" [])
     eliommodule_names;
+  (* Now register deferred services for default site, 
+     if it's the first Eliom.run instruction *)
+  Eliommod.load_eliom_module sitedata `Default_site "" [];
+  (* Now register deferred services explicitely registered for this site: *)
+  Eliommod.load_eliom_module sitedata
+    (`Site (Ocsigen_server.Site.repr site))
+    "" [];
   Eliommod_pagegen.gen None sitedata
 
 let end_init = Eliom_common.end_load_eliom_module

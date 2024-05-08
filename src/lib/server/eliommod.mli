@@ -142,14 +142,11 @@ val site_init_ref : (unit -> unit) list ref
 val register_site_init : (unit -> unit) -> unit
 val config : Xml_light_types.xml list ref
 val config_in_tag : string ref
-
-type module_to_load = Files of string list | Name of string
-
 val site_init : bool ref -> unit
 
 val load_eliom_module :
    'a
-  -> module_to_load
+  -> [< `Default_site | `Name of string | `Site of Ocsigen_loader.site]
   -> string
   -> Xml_light_types.xml list
   -> unit

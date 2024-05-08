@@ -259,7 +259,7 @@ let xhr_with_cookies s =
    not send the onload_form_creator_info. *)
 
 let register_eliom_module name f =
-  Ocsigen_loader.set_module_init_function name f
+  Ocsigen_loader.set_module_init_function (`Name name) f
 
 exception Unregistered_CSRF_safe_coservice
 
