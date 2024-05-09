@@ -145,6 +145,9 @@ val config_in_tag : string ref
 
 type module_to_load = Files of string list | Name of string
 
+val default_app_name : string
+val set_app_name : string -> unit
+val get_app_name : unit -> string
 val site_init : bool ref -> unit
 
 val load_eliom_module :
