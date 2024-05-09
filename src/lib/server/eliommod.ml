@@ -692,6 +692,33 @@ let site_init_ref = ref []
 (** Register function for evaluation at site initialisation *)
 let register_site_init e = site_init_ref := e :: !site_init_ref
 
+let current_site = ref Ocsigen_server.Site.default_host
+
+let get_sitedata =
+  let module M = Map.Make (struct
+      type t = Ocsigen_server.Site.t
+
+      let compare = compare
+    end)
+  in
+  let r = ref M.empty in
+  fun site ->
+    try M.find site !r
+    with Not_found ->
+      let sitedata =
+        let open Ocsigen_server.Site in
+        let path, hosts = path_and_hosts site in
+        create_sitedata hosts path (config_info site)
+      in
+      r := M.add site sitedata !r;
+      sitedata
+
+let _ = Eliom_common.absolute_change_sitedata (get_sitedata !current_site)
+
+let change_site s =
+  current_site := s;
+  Eliom_common.absolute_change_sitedata (get_sitedata !current_site)
+
 let config = ref []
 let config_in_tag = ref "" (* the parent tag of the currently handled tag *)
 

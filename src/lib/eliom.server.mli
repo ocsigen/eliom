@@ -1,3 +1,6 @@
+val change_site : Ocsigen_server.Site.t -> unit
+(** Change the default site in which Eliom services will be registered *)
+
 val run :
    ?site:Ocsigen_server.Site.t
   -> ?xhr_links:bool

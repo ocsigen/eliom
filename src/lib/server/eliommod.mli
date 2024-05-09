@@ -143,6 +143,7 @@ val register_site_init : (unit -> unit) -> unit
 val config : Xml_light_types.xml list ref
 val config_in_tag : string ref
 val site_init : bool ref -> unit
+val change_site : Ocsigen_server.Site.t -> unit
 
 val load_eliom_module :
    'a

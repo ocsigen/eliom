@@ -1,3 +1,5 @@
+let change_site = Eliommod.change_site
+
 let run ?site ?xhr_links ?data_timeout ?service_timeout ?persistent_timeout
     ?max_service_sessions_per_group ?max_volatile_data_sessions_per_group
     ?max_persistent_data_sessions_per_group ?max_service_tab_sessions_per_group
