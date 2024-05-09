@@ -22,9 +22,6 @@ module S = Eliom_service
 
 let ( >>= ) = Lwt.( >>= )
 let suffix_redir_uri_key = Polytables.make_key ()
-let default_app_name = "__eliom_default_app__"
-let current_app_name = ref default_app_name
-let set_app_name s = current_app_name := s
 
 type ('options, 'page, 'result) param =
   { send :
@@ -450,8 +447,7 @@ let register pages ?app:_ ?scope ?options ?charset ?code ?content_type ?headers
   let sp = Eliom_common.get_sp_option () in
   match scope, sp with
   | None, None | Some `Site, None -> (
-    match Eliom_common.global_register_allowed () with
-    | Some get_current_sitedata ->
+      let aux get_current_sitedata =
         let sitedata = get_current_sitedata () in
         (match S.info service with
         | S.Attached attser ->
@@ -461,7 +457,21 @@ let register pages ?app:_ ?scope ?options ?charset ?code ?content_type ?headers
         register_aux pages ?options ?charset ?code ?content_type ?headers
           (Left sitedata.Eliom_common.global_services) ~service ?error_handler
           page_gen
-    | _ -> raise (Eliom_common.Eliom_site_information_not_available "register"))
+      in
+      match Eliom_common.global_register_allowed () with
+      | Some get_current_sitedata -> aux get_current_sitedata
+      | _ ->
+          (* I'm not in a request, nor during global initialisation.
+             I suppose that it's a statically linked module.
+             I will defer the registration until app is initialised. *)
+          let f () =
+            match Eliom_common.global_register_allowed () with
+            | Some get_current_sitedata -> aux get_current_sitedata
+            | _ ->
+                raise
+                  (Eliom_common.Eliom_site_information_not_available "register")
+          in
+          Ocsigen_loader.add_module_init_function (Eliommod.get_app_name ()) f)
   | None, Some _ | Some `Site, Some _ ->
       register_aux pages ?options ?charset ?code ?content_type ?headers
         ?error_handler
