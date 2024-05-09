@@ -529,5 +529,3 @@ val instruction :
   -> ?app_names:string list
   -> unit
   -> Ocsigen_server.Site.instruction
-
-val end_init : unit -> unit
