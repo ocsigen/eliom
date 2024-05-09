@@ -22,6 +22,9 @@ module S = Eliom_service
 
 let ( >>= ) = Lwt.( >>= )
 let suffix_redir_uri_key = Polytables.make_key ()
+let default_app_name = "__eliom_default_app__"
+let current_app_name = ref default_app_name
+let set_app_name s = current_app_name := s
 
 type ('options, 'page, 'result) param =
   { send :

@@ -42,4 +42,6 @@ module Make_poly
 
 (**/**)
 
+val default_app_name : string
+val set_app_name : string -> unit
 val suffix_redir_uri_key : string Polytables.key

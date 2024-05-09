@@ -488,6 +488,16 @@ val cast_http_result : Ocsigen_response.t -> 'a kind
 (** [cast_http_result] should only be used to register new output
     modules *)
 
+val set_app_name : string -> unit
+(** Set your application name. Use this if you want to make it possible
+    to link your Eliom application statically and to have several Eliom
+    applications on the same Web server.
+    See also parameter [?app_names] of [instruction] or [Eliom.run].
+ *)
+
+val default_app_name : string
+(** The default application name, if you don't specify any *)
+
 val instruction :
    ?xhr_links:bool
   -> ?data_timeout:
@@ -516,7 +526,7 @@ val instruction :
   -> ?ignored_get_params:string * Re.re
   -> ?ignored_post_params:string * Re.re
   -> ?omitpersistentstorage:Eliom_common.omitpersistentstorage_rule list option
-  -> ?eliommodule_names:string list
+  -> ?app_names:string list
   -> unit
   -> Ocsigen_server.Site.instruction
 
