@@ -687,15 +687,8 @@ let verify_all_registered sitedata =
   | l1, l2 ->
       raise (Eliom_there_are_unregistered_services (sitedata.site_dir, l1, l2))
 
-let during_eliom_module_loading, begin_load_eliom_module, end_load_eliom_module =
-  let during_eliom_module_loading_ = ref false in
-  ( (fun () -> !during_eliom_module_loading_)
-  , (fun () -> during_eliom_module_loading_ := true)
-  , fun () -> during_eliom_module_loading_ := false )
-
 let global_register_allowed () =
   if Ocsigen_extensions.during_initialisation ()
-     && during_eliom_module_loading ()
   then Some get_current_sitedata
   else None
 
@@ -703,7 +696,7 @@ let get_site_data () =
   match get_sp_option () with
   | Some sp -> sp.sp_sitedata
   | None ->
-      if during_eliom_module_loading ()
+      if Ocsigen_extensions.during_initialisation ()
       then get_current_sitedata ()
       else failwith "get_site_data"
 

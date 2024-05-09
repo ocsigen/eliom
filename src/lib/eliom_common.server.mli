@@ -640,9 +640,6 @@ val add_unregistered_na : sitedata -> na_key_serv -> unit
 val remove_unregistered : sitedata -> Url.path -> unit
 val remove_unregistered_na : sitedata -> na_key_serv -> unit
 val verify_all_registered : sitedata -> unit
-val during_eliom_module_loading : unit -> bool
-val begin_load_eliom_module : unit -> unit
-val end_load_eliom_module : unit -> unit
 val global_register_allowed : unit -> (unit -> sitedata) option
 
 val get_site_data : unit -> sitedata
