@@ -1,4 +1,5 @@
 (rule (copy# ../eliom.server.ml eliom.ml))
+(rule (copy# ../eliom.server.mli eliom.mli))
 (rule (copy# ../eliom_bus.server.ml eliom_bus.ml))
 (rule (copy# ../eliom_bus.server.mli eliom_bus.mli))
 (rule (copy# ../eliom_client.server.ml eliom_client.ml))
