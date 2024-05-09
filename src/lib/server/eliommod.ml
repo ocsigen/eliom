@@ -725,24 +725,18 @@ let config_in_tag = ref "" (* the parent tag of the currently handled tag *)
 let site_init firstmodule =
   if !firstmodule
   then (
-    Eliom_common.begin_load_eliom_module ();
     (* I want to be able to define global client values during that phase: *)
     Eliom_syntax.set_global true;
     List.iter (fun f -> f ()) !site_init_ref;
     Eliom_syntax.set_global false;
-    firstmodule := false;
-    Eliom_common.end_load_eliom_module ())
+    firstmodule := false)
 
 let load_eliom_module _sitedata cmo_or_name parent_tag content =
   let preload () =
     config := content;
-    config_in_tag := parent_tag;
-    Eliom_common.begin_load_eliom_module ()
+    config_in_tag := parent_tag
   in
-  let postload () =
-    Eliom_common.end_load_eliom_module ();
-    config := []
-  in
+  let postload () = config := [] in
   try
     match cmo_or_name with
     | `Files cmo -> Ocsigen_loader.loadfiles preload postload true cmo

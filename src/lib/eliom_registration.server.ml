@@ -1345,5 +1345,3 @@ let instruction ?xhr_links ?data_timeout ?service_timeout ?persistent_timeout
     (`Site (Ocsigen_server.Site.repr site))
     "" [];
   Eliommod_pagegen.gen None sitedata
-
-let end_init = Eliom_common.end_load_eliom_module
