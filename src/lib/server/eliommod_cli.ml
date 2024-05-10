@@ -26,8 +26,8 @@ let fresh_id =
 
 let client_sitedata sp =
   let s = Eliom_request_info.get_sitedata_sp ~sp in
-  { Eliom_types.site_dir = s.Eliom_common.site_dir
-  ; Eliom_types.site_dir_string = s.Eliom_common.site_dir_string }
+  { Eliom_types.site_dir = Eliom_common.get_site_dir s
+  ; Eliom_types.site_dir_string = Eliom_common.get_site_dir_string s }
 
 let client_si s =
   (* we force all lazys before serialization *)

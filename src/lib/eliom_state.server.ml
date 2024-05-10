@@ -300,7 +300,7 @@ let rec close_service_state_if_empty ~scope ?secure () =
           | (_, _, Right _) (* no group *)
               when *)
         if Eliommod_sessiongroups.Data.group_size
-             ( sitedata.Eliom_common.site_dir_string
+             ( Eliom_common.get_site_dir_string sitedata
              , `Client_process
              , Left Eliom_common.(Hashed_cookies.to_string c.sc_hvalue) )
            = 0
@@ -340,7 +340,7 @@ let rec close_volatile_state_if_empty ~scope ?secure () =
       | _, _, Right _
       (* no group *)
         when Eliommod_sessiongroups.Data.group_size
-               ( sitedata.Eliom_common.site_dir_string
+               ( Eliom_common.get_site_dir_string sitedata
                , `Client_process
                , Left Eliom_common.(Hashed_cookies.to_string c.dc_hvalue) )
              = 0
@@ -400,7 +400,7 @@ let unset_service_session_group ?set_max
     let n =
       Eliommod_sessiongroups.make_full_group_name ~cookie_level:`Session
         (Eliom_request_info.get_request_sp sp).Ocsigen_extensions.request_info
-        sitedata.Eliom_common.site_dir_string
+        (Eliom_common.get_site_dir_string sitedata)
         (Eliom_common.get_mask4 sitedata)
         (Eliom_common.get_mask6 sitedata)
         None
@@ -477,7 +477,7 @@ let unset_volatile_data_session_group ?set_max
     let n =
       Eliommod_sessiongroups.make_full_group_name ~cookie_level:`Session
         (Eliom_request_info.get_request_sp sp).Ocsigen_extensions.request_info
-        sitedata.Eliom_common.site_dir_string
+        (Eliom_common.get_site_dir_string sitedata)
         (Eliom_common.get_mask4 sitedata)
         (Eliom_common.get_mask6 sitedata)
         None
@@ -538,7 +538,9 @@ let set_persistent_data_session_group ?set_max
   in
   let n =
     Eliommod_sessiongroups.make_persistent_full_group_name
-      ~cookie_level:`Session sitedata.Eliom_common.site_dir_string (Some n)
+      ~cookie_level:`Session
+      (Eliom_common.get_site_dir_string sitedata)
+      (Some n)
   in
   let grp = c.Eliom_common.pc_session_group in
   let%lwt l =
@@ -1231,7 +1233,7 @@ module Ext = struct
       ~state ()
     =
     let make_sessgrp n =
-      sitedata.Eliom_common.site_dir_string, `Session, Left n
+      Eliom_common.get_site_dir_string sitedata, `Session, Left n
     in
     match state with
     | `Session_group _, `Data, group_name ->
@@ -1253,7 +1255,8 @@ module Ext = struct
     | `Session_group _, `Pers, group_name ->
         let sgr_o =
           Eliom_common.make_persistent_full_group_name ~cookie_level:`Session
-            sitedata.Eliom_common.site_dir_string (Some group_name)
+            (Eliom_common.get_site_dir_string sitedata)
+            (Some group_name)
         in
         Eliommod_sessiongroups.Pers.remove_group ~cookie_level:`Session sitedata
           sgr_o
@@ -1312,7 +1315,9 @@ module Ext = struct
       try
         let dl =
           Eliommod_sessiongroups.Data.find
-            (sitedata.Eliom_common.site_dir_string, sub_states_level, Left id)
+            ( Eliom_common.get_site_dir_string sitedata
+            , sub_states_level
+            , Left id )
         in
         fold f e dl
       with Not_found -> return e)
@@ -1320,7 +1325,9 @@ module Ext = struct
       try
         let dl =
           Eliommod_sessiongroups.Serv.find
-            (sitedata.Eliom_common.site_dir_string, sub_states_level, Left id)
+            ( Eliom_common.get_site_dir_string sitedata
+            , sub_states_level
+            , Left id )
         in
         fold f e dl
       with Not_found -> return e)
@@ -1342,7 +1349,8 @@ module Ext = struct
         Eliommod_sessiongroups.Pers.find
           (Eliom_common.make_persistent_full_group_name
              ~cookie_level:sub_states_level
-             sitedata.Eliom_common.site_dir_string (Some id))
+             (Eliom_common.get_site_dir_string sitedata)
+             (Some id))
         >>= fun l -> Lwt_list.fold_left_s f e l
     | _ -> fold_sub_states_aux Ocsigen_cache.Dlist.lwt_fold Lwt.return a e state
 
@@ -1530,9 +1538,10 @@ let get_persistent_data_cookie ~cookie_scope ?secure () =
 
 let change_pathopt_ sp = function
   | None ->
-      (Eliom_request_info.get_sitedata_sp ~sp).Eliom_common.site_dir
+      Eliom_common.get_site_dir (Eliom_request_info.get_sitedata_sp ~sp)
       (* Not possible to set a cookie for another site (?) *)
-  | Some p -> (Eliom_request_info.get_sitedata_sp ~sp).Eliom_common.site_dir @ p
+  | Some p ->
+      Eliom_common.get_site_dir (Eliom_request_info.get_sitedata_sp ~sp) @ p
 
 let set_cookie ?(cookie_level = `Session) ?path ?exp ?secure ~name ~value () =
   let sp = Eliom_common.get_sp () in

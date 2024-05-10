@@ -91,19 +91,20 @@ let set_omitpersistentstorage v = Eliommod.default_omitpersistentstorage := v
 
 let get_default_hostname () =
   let sitedata = Eliom_request_info.find_sitedata "get_default_hostname" in
-  sitedata.Eliom_common.config_info.Ocsigen_extensions.default_hostname
+  (Eliom_common.get_config_info sitedata).Ocsigen_extensions.default_hostname
 
 let get_default_port () =
   let sitedata = Eliom_request_info.find_sitedata "get_default_port" in
-  sitedata.Eliom_common.config_info.Ocsigen_extensions.default_httpport
+  (Eliom_common.get_config_info sitedata).Ocsigen_extensions.default_httpport
 
 let get_default_sslport () =
   let sitedata = Eliom_request_info.find_sitedata "get_default_sslport" in
-  sitedata.Eliom_common.config_info.Ocsigen_extensions.default_httpsport
+  (Eliom_common.get_config_info sitedata).Ocsigen_extensions.default_httpsport
 
 let default_protocol_is_https () =
   let sitedata = Eliom_request_info.find_sitedata "default_protocol_is_https" in
-  sitedata.Eliom_common.config_info.Ocsigen_extensions.default_protocol_is_https
+  (Eliom_common.get_config_info sitedata)
+    .Ocsigen_extensions.default_protocol_is_https
 
 let get_default_links_xhr () =
   let sitedata = Eliom_request_info.find_sitedata "get_default_links_xhr" in

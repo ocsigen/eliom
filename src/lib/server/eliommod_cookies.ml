@@ -439,7 +439,8 @@ let compute_session_cookies_to_send sitedata
                 (match old, newc with
                 | None, None -> beg
                 | Some _, None ->
-                    Ocsigen_cookie_map.add ~path:sitedata.Eliom_common.site_dir
+                    Ocsigen_cookie_map.add
+                      ~path:(Eliom_common.get_site_dir sitedata)
                       (Eliom_common.make_full_cookie_name cookiekind
                          full_st_name)
                       OUnset beg
@@ -448,7 +449,8 @@ let compute_session_cookies_to_send sitedata
                  this site directory *)
                 | _, Some (_, Some v, exp) ->
                     (* New value *)
-                    Ocsigen_cookie_map.add ~path:sitedata.Eliom_common.site_dir
+                    Ocsigen_cookie_map.add
+                      ~path:(Eliom_common.get_site_dir sitedata)
                       (Eliom_common.make_full_cookie_name cookiekind
                          full_st_name)
                       (OSet (ch_exp exp, v, secure))
@@ -458,7 +460,7 @@ let compute_session_cookies_to_send sitedata
                     then beg
                     else
                       Ocsigen_cookie_map.add
-                        ~path:sitedata.Eliom_common.site_dir
+                        ~path:(Eliom_common.get_site_dir sitedata)
                         (Eliom_common.make_full_cookie_name cookiekind
                            full_st_name)
                         (OSet (ch_exp exp, oldv, secure))

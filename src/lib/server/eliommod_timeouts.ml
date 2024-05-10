@@ -160,7 +160,8 @@ let set_global_ ?full_st_name ?cookie_level ~kind ~recompute_expdates a =
 
 let get_global ~kind ~cookie_scope ~secure sitedata =
   let full_st_name =
-    Eliom_common.make_full_state_name2 sitedata.Eliom_common.site_dir_string
+    Eliom_common.make_full_state_name2
+      (Eliom_common.get_site_dir_string sitedata)
       secure ~scope:cookie_scope
   in
   find_global kind full_st_name sitedata
@@ -169,7 +170,8 @@ let set_global ~kind ~cookie_scope ~secure ~recompute_expdates
     override_configfile sitedata timeout
   =
   let full_st_name =
-    Eliom_common.make_full_state_name2 sitedata.Eliom_common.site_dir_string
+    Eliom_common.make_full_state_name2
+      (Eliom_common.get_site_dir_string sitedata)
       secure ~scope:cookie_scope
   in
   set_global_ ~kind ~full_st_name ~recompute_expdates override_configfile false

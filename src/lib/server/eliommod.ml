@@ -88,7 +88,7 @@ module S = Hashtbl.Make (struct
       Hashtbl.hash (Ocsigen_extensions.hash_virtual_hosts vh, u)
   end)
 
-let create_sitedata site_dir config_info =
+let create_sitedata_aux site_dir config_info =
   let dlist_table = Eliom_common.create_dlist_ip_table 100
   and group_of_groups =
     Ocsigen_cache.Dlist.create !default_max_volatile_groups_per_site
@@ -101,7 +101,8 @@ let create_sitedata site_dir config_info =
     ; site_value_table = Polytables.create ()
     ; site_dir
     ; (*VVV encode=false??? *)
-      site_dir_string = Eliom_lib.Url.string_of_url_path ~encode:false site_dir
+      site_dir_string =
+        Option.map (Eliom_lib.Url.string_of_url_path ~encode:false) site_dir
     ; config_info
     ; default_links_xhr =
         Eliom_common.tenable_value ~name:"default_links_xhr" true
@@ -186,7 +187,7 @@ let create_sitedata =
     let key = host, site_dir in
     try S.find t key
     with Not_found ->
-      let sitedata = create_sitedata site_dir config_info in
+      let sitedata = create_sitedata_aux (Some site_dir) (Some config_info) in
       S.add t key sitedata; sitedata
 
 (*****************************************************************************)
@@ -754,7 +755,8 @@ let set_timeout
       | `Session -> `Session state_hier
       | `Client_process -> `Client_process state_hier
     in
-    Eliom_common.make_full_state_name2 sitedata.Eliom_common.site_dir_string
+    Eliom_common.make_full_state_name2
+      (Eliom_common.get_site_dir_string sitedata)
       secure ~scope
   in
   (*VVV We set timeout for both secure and unsecure states.

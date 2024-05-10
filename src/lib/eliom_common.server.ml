@@ -421,9 +421,11 @@ and tables =
   }
 
 and sitedata =
-  { site_dir : Url.path
-  ; site_dir_string : string
-  ; config_info : Ocsigen_extensions.config_info
+  { mutable site_dir : Url.path option
+        (* None when statically linked 
+                                           before module init*)
+  ; mutable site_dir_string : string option (* idem *)
+  ; mutable config_info : Ocsigen_extensions.config_info option (* idem *)
   ; default_links_xhr : bool tenable_value
   ; (* Timeouts:
        - default for site (browser sessions)
@@ -492,6 +494,16 @@ and dlist_ip_table =
   (page_table ref * page_table_key, na_key_serv) leftright Ocsigen_cache.Dlist.t
     Net_addr_Hashtbl.t
 
+let check_initialised field =
+  match field with
+  | None ->
+      failwith
+        "Static linking: cannot use this function before app is linked to a site"
+  | Some a -> a
+
+let get_site_dir sitedata = check_initialised sitedata.site_dir
+let get_site_dir_string sitedata = check_initialised sitedata.site_dir_string
+let get_config_info sitedata = check_initialised sitedata.config_info
 let create_dlist_ip_table = Net_addr_Hashtbl.create
 
 let find_dlist_ip_table :
@@ -525,7 +537,7 @@ let make_full_state_name2 site_dir_str secure ~(scope : [< user_scope]) :
   {user_scope = (scope :> user_scope); secure; site_dir_str}
 
 let make_full_state_name ~sp ~secure ~(scope : [< user_scope]) =
-  make_full_state_name2 sp.sp_sitedata.site_dir_string secure ~scope
+  make_full_state_name2 (get_site_dir_string sp.sp_sitedata) secure ~scope
 
 let get_cookie_info sp = function
   | `Session -> sp.sp_cookie_info
@@ -685,7 +697,8 @@ let verify_all_registered sitedata =
   match sitedata.unregistered_services, sitedata.unregistered_na_services with
   | [], [] -> ()
   | l1, l2 ->
-      raise (Eliom_there_are_unregistered_services (sitedata.site_dir, l1, l2))
+      raise
+        (Eliom_there_are_unregistered_services (get_site_dir sitedata, l1, l2))
 
 let global_register_allowed () =
   if Ocsigen_extensions.during_initialisation ()
@@ -1406,9 +1419,6 @@ let patch_request_info ({Ocsigen_extensions.request_info; _} as r) =
            in
            Ocsigen_request.update ~get_params_flat request_info) }
   | None -> r
-
-let get_site_dir sitedata = sitedata.site_dir
-let get_site_dir_string sitedata = sitedata.site_dir_string
 
 (* Returns if we want secure cookie *)
 let get_secure ~secure_o ~sitedata () =

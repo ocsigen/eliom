@@ -199,7 +199,7 @@ module Svg = struct
         :> ([< Svg_types.dominant_baseline] -> string) Eliom_shared.Value.t)
 
     let string_of_fill_rule () =
-       ([%shared Raw_wrapped_functions_svg.string_of_fill_rule]
+      ([%shared Raw_wrapped_functions_svg.string_of_fill_rule]
         : (Svg_types.fill_rule -> string) Eliom_shared.Value.t
         :> ([< Svg_types.fill_rule] -> string) Eliom_shared.Value.t)
 

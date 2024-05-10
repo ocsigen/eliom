@@ -300,9 +300,9 @@ let get_csp_ssl_sp sp =
 
 let get_site_dir () =
   let sitedata = find_sitedata "Eliom_request_info.get_site_dir" in
-  sitedata.Eliom_common.site_dir
+  Eliom_common.get_site_dir sitedata
 
-let get_site_dir_sp sp = sp.Eliom_common.sp_sitedata.Eliom_common.site_dir
+let get_site_dir_sp sp = Eliom_common.get_site_dir sp.Eliom_common.sp_sitedata
 let in_request_handler () = Lwt.get Eliom_common.sp_key <> None
 
 let get_request () =
