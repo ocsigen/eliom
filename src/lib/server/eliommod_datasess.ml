@@ -83,7 +83,7 @@ let close_data_state ~scope ~secure_o ?sp () =
 let fullsessgrp ~cookie_level ~sp set_session_group =
   Eliommod_sessiongroups.make_full_group_name ~cookie_level
     sp.Eliom_common.sp_request.Ocsigen_extensions.request_info
-    sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string
+    (Eliom_common.get_site_dir_string sp.Eliom_common.sp_sitedata)
     (Eliom_common.get_mask4 sp.Eliom_common.sp_sitedata)
     (Eliom_common.get_mask6 sp.Eliom_common.sp_sitedata)
     set_session_group

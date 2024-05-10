@@ -499,9 +499,11 @@ and tables =
   *) }
 
 and sitedata =
-  { site_dir : Url.path
-  ; site_dir_string : string
-  ; config_info : Ocsigen_extensions.config_info
+  { mutable site_dir : Url.path option
+        (* None when statically linked 
+                                           before module init*)
+  ; mutable site_dir_string : string option (* idem *)
+  ; mutable config_info : Ocsigen_extensions.config_info option (* idem *)
   ; default_links_xhr : bool tenable_value
   ; (* Timeouts:
        - default for site (browser sessions)
@@ -731,6 +733,7 @@ type eliom_js_page_data =
 
 val get_site_dir : sitedata -> Url.path
 val get_site_dir_string : sitedata -> string
+val get_config_info : sitedata -> Ocsigen_extensions.config_info
 val get_secure : secure_o:bool option -> sitedata:sitedata -> unit -> bool
 val is_client_app : bool ref
 val make_actual_path : string list -> string list

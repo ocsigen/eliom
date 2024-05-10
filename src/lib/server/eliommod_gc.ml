@@ -210,7 +210,7 @@ let service_session_gc sitedata =
                    (* no group *)
                    (*VVV check this *)
                      when Eliommod_sessiongroups.Serv.group_size
-                            ( sitedata.Eliom_common.site_dir_string
+                            ( Eliom_common.get_site_dir_string sitedata
                             , `Client_process
                             , Left k )
                           = 0
@@ -262,7 +262,7 @@ let data_session_gc sitedata =
                  | _, scope, Right _
                  (* no group *)
                    when Eliommod_sessiongroups.Data.group_size
-                          ( sitedata.Eliom_common.site_dir_string
+                          ( Eliom_common.get_site_dir_string sitedata
                           , `Client_process
                           , Left k )
                         = 0
