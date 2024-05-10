@@ -26,6 +26,7 @@ exception
   Eliom_there_are_unregistered_services of
     (string list * string list list * na_key_serv list)
 
+exception Cannot_call_this_function_before_app_is_linked_to_a_site
 exception Eliom_error_while_loading_site of string
 exception Eliom_do_redirection of string
 exception Eliom_do_half_xhr_redirection of string
@@ -496,9 +497,7 @@ and dlist_ip_table =
 
 let check_initialised field =
   match field with
-  | None ->
-      failwith
-        "Static linking: cannot use this function before app is linked to a site"
+  | None -> raise Cannot_call_this_function_before_app_is_linked_to_a_site
   | Some a -> a
 
 let get_site_dir sitedata = check_initialised sitedata.site_dir
@@ -1451,3 +1450,17 @@ module To_and_of_shared = struct
 end
 
 let client_html_file () = failwith "client_html_file is only defined on client"
+let default_app_name = "__eliom_default_app__"
+let current_app_name = ref default_app_name
+let get_app_name () = !current_app_name
+
+let defer get f =
+  let r = ref None in
+  (match get () with
+  | Some v -> r := Some (f v)
+  | None ->
+      Ocsigen_loader.add_module_init_function (get_app_name ()) (fun () ->
+        match get () with
+        | Some v -> r := Some (f v)
+        | None -> raise (Eliom_site_information_not_available "defer")));
+  r

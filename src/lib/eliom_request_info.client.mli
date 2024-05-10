@@ -36,6 +36,9 @@ val get_nl_get_params : unit -> (string * string) list String.Table.t
 val get_site_dir : unit -> Url.path
 (** returns the root of the site. *)
 
+val get_site_dir_option : unit -> Url.path option
+(** returns the root of the site. *)
+
 val get_ignored_get_params : unit -> (string * string) list
 (** returns the GET parameters that have been ignored using
     <ignoredgetparams/> in config file. *)

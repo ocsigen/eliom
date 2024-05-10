@@ -1261,7 +1261,7 @@ let set_exn_handler h =
   Eliom_request_info.set_site_handler sitedata
     (Result_types.cast_function_http h)
 
-let default_app_name = Eliommod.default_app_name
+let default_app_name = Eliom_common.default_app_name
 let set_app_name = Eliommod.set_app_name
 
 let instruction ?xhr_links ?(app = default_app_name) ?data_timeout

@@ -691,10 +691,6 @@ let handle_init_exn = function
 (*****************************************************************************)
 (** Module loading *)
 
-let default_app_name = "__eliom_default_app__"
-let current_app_name = ref default_app_name
-let get_app_name () = !current_app_name
-
 let get_sitedata =
   let r = ref String_map.empty in
   fun name ->
@@ -713,11 +709,14 @@ let update_sitedata app vh site_dir conf_info =
   update_sitedata vh site_dir sitedata;
   sitedata
 
-let _ = Eliom_common.absolute_change_sitedata (get_sitedata !current_app_name)
+let _ =
+  Eliom_common.absolute_change_sitedata
+    (get_sitedata (Eliom_common.get_app_name ()))
 
 let set_app_name s =
-  current_app_name := s;
-  Eliom_common.absolute_change_sitedata (get_sitedata !current_app_name)
+  Eliom_common.current_app_name := s;
+  Eliom_common.absolute_change_sitedata
+    (get_sitedata (Eliom_common.get_app_name ()))
 
 let site_init_ref = ref []
 

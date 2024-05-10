@@ -71,3 +71,10 @@ let client_html_file, set_client_html_file =
   , fun s ->
       assert !is_client_app;
       r := s )
+
+let defer get f =
+  let r = ref None in
+  (match get () with
+  | Some v -> r := Some (f v)
+  | None -> raise (Eliom_site_information_not_available "defer"));
+  r
