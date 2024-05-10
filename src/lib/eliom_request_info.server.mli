@@ -142,6 +142,11 @@ val get_file_content_type :
     (if any). *)
 
 val get_site_dir : unit -> Eliom_lib.Url.path
+(** returns the root of the site.
+    Raises [Eliom_common.Eliom_site_information_not_available]
+    if unavailable. *)
+
+val get_site_dir_option : unit -> Eliom_lib.Url.path option
 (** returns the root of the site. *)
 
 (*****************************************************************************)

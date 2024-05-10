@@ -447,8 +447,7 @@ let register pages ?app:_ ?scope ?options ?charset ?code ?content_type ?headers
   let sp = Eliom_common.get_sp_option () in
   match scope, sp with
   | None, None | Some `Site, None -> (
-      let aux get_current_sitedata =
-        let sitedata = get_current_sitedata () in
+      let aux sitedata =
         (match S.info service with
         | S.Attached attser ->
             Eliom_common.remove_unregistered sitedata (S.sub_path attser)
@@ -459,19 +458,18 @@ let register pages ?app:_ ?scope ?options ?charset ?code ?content_type ?headers
           page_gen
       in
       match Eliom_common.global_register_allowed () with
-      | Some get_current_sitedata -> aux get_current_sitedata
+      | Some get_current_sitedata ->
+          let sitedata = get_current_sitedata () in
+          if sitedata.Eliom_common.site_dir <> None
+          then aux sitedata
+          else
+            (* I suppose that it's a statically linked module
+               that is not associated with a site yet.
+               I will defer the registration until app is initialised. *)
+            Ocsigen_loader.add_module_init_function
+              (Eliom_common.get_app_name ()) (fun () -> aux sitedata)
       | _ ->
-          (* I'm not in a request, nor during global initialisation.
-             I suppose that it's a statically linked module.
-             I will defer the registration until app is initialised. *)
-          let f () =
-            match Eliom_common.global_register_allowed () with
-            | Some get_current_sitedata -> aux get_current_sitedata
-            | _ ->
-                raise
-                  (Eliom_common.Eliom_site_information_not_available "register")
-          in
-          Ocsigen_loader.add_module_init_function (Eliommod.get_app_name ()) f)
+          raise (Eliom_common.Eliom_site_information_not_available "register"))
   | None, Some _ | Some `Site, Some _ ->
       register_aux pages ?options ?charset ?code ?content_type ?headers
         ?error_handler

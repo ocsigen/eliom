@@ -110,7 +110,8 @@ exception Eliom_site_information_not_available of string
     In that case you must
     delay the function call using {!Eliom_service.register_eliom_module}.
 *)
-
+exception Cannot_call_this_function_before_app_is_linked_to_a_site
+(** Statically linked app: You cannot call this function before [Eliom_run]. *)
 type full_state_name =
   {user_scope : user_scope; secure : bool; site_dir_str : string}
 
@@ -757,3 +758,14 @@ end
 
 val client_html_file : unit -> string
 (** Raises exception on server, only relevant for client apps *)
+
+val default_app_name : string
+val current_app_name : string ref
+val get_app_name : unit -> string
+
+val defer : (unit -> 'a option) -> ('a -> 'b) -> 'b option ref
+(** [defer get f] returns a reference to [Some (f v)] if [get ()]
+    return [Some v].
+    If not, it returns a reference to [None] and registers a deferred
+    computation to update the value of the reference 
+    when [site_dir] is known *)

@@ -63,9 +63,10 @@ type att =
                                  http://ocsigen.org *)
     subpath : Url.path
   ; (* name of the service without parameters *)
-    fullpath : Url.path
-  ; (* full path of the service =
-                                 site_dir@subpath *)
+    fullpath : Url.path option ref
+  ; (* full path of the service = site_dir@subpath.
+       None means the service has been created before site_dir is known.
+       In that case, the initialisation is deferred.  *)
     get_name : Eliom_common.att_key_serv
   ; post_name : Eliom_common.att_key_serv
   ; redirect_suffix : bool
@@ -191,7 +192,13 @@ let post_params_type s = s.post_params_type
 let prefix s = s.prefix
 let sub_path s = s.subpath
 let redirect_suffix s = s.redirect_suffix
-let full_path s = s.fullpath
+
+let full_path s =
+  match !(s.fullpath) with
+  | None ->
+      raise (Eliom_common.Eliom_site_information_not_available "full_path")
+  | Some a -> a
+
 let get_name s = s.get_name
 let post_name s = s.post_name
 let na_name s = s.na_name
@@ -231,8 +238,9 @@ let static_dir_ ?(https = false) () =
         { prefix = ""
         ; subpath = [""]
         ; fullpath =
-            Eliom_request_info.get_site_dir ()
-            @ [Eliom_common.eliom_suffix_internal_name]
+            Eliom_common.defer Eliom_request_info.get_site_dir_option
+              (fun site_dir ->
+                 site_dir @ [Eliom_common.eliom_suffix_internal_name])
         ; get_name = Eliom_common.SAtt_no
         ; post_name = Eliom_common.SAtt_no
         ; redirect_suffix = true
@@ -265,8 +273,9 @@ let get_static_dir_ ?(https = false) ?(keep_nl_params = `None) ~get_params () =
         { prefix = ""
         ; subpath = [""]
         ; fullpath =
-            Eliom_request_info.get_site_dir ()
-            @ [Eliom_common.eliom_suffix_internal_name]
+            Eliom_common.defer Eliom_request_info.get_site_dir_option
+              (fun site_dir ->
+                 site_dir @ [Eliom_common.eliom_suffix_internal_name])
         ; get_name = Eliom_common.SAtt_no
         ; post_name = Eliom_common.SAtt_no
         ; redirect_suffix = true
@@ -319,9 +328,12 @@ let preapply ~service getparams =
                 | Some suff -> append_suffix k.subpath suff
                 | _ -> k.subpath)
             ; fullpath =
-                (match suff with
-                | Some suff -> append_suffix k.fullpath suff
-                | _ -> k.fullpath) })
+                Eliom_common.defer
+                  (fun () -> !(k.fullpath))
+                  (fun fp ->
+                     match suff with
+                     | Some suff -> append_suffix fp suff
+                     | _ -> fp) })
   ; client_fun =
       Some
         [%client.unsafe
@@ -461,7 +473,7 @@ let%client no_client_fun () : _ ref Eliom_client_value.t option =
   Some (ref None)
 
 (** Create a main service (not a coservice), internal or external *)
-let main_service ~https ~prefix ~(path : Url.path) ~site_dir ~kind ~meth
+let main_service ~https ~prefix ~(path : Url.path) ?force_site_dir ~kind ~meth
     ?(redirect_suffix = true) ?(keep_nl_params = `None)
     ?(priority = default_priority) ~get_params ~post_params ~reload_fun ()
   =
@@ -476,7 +488,12 @@ let main_service ~https ~prefix ~(path : Url.path) ~site_dir ~kind ~meth
       Attached
         { prefix
         ; subpath = path
-        ; fullpath = site_dir @ path
+        ; fullpath =
+            (match force_site_dir with
+            | Some site_dir -> ref (Some (site_dir @ path))
+            | None ->
+                Eliom_common.defer Eliom_request_info.get_site_dir_option
+                  (fun site_dir -> site_dir @ path))
         ; get_name = Eliom_common.SAtt_no
         ; post_name = Eliom_common.SAtt_no
         ; redirect_suffix
@@ -499,8 +516,8 @@ let extern ?keep_nl_params ~prefix ~path ~meth () =
          (match suffix with
          | None -> path
          | _ -> path @ [Eliom_common.eliom_suffix_internal_name]))
-    ~site_dir:[] ~kind:`External ~meth ?keep_nl_params ~redirect_suffix:false
-    ~get_params ~post_params ~reload_fun:Rf_keep ()
+    ~force_site_dir:[] ~kind:`External ~meth ?keep_nl_params
+    ~redirect_suffix:false ~get_params ~post_params ~reload_fun:Rf_keep ()
 
 let which_meth {meth; _} = meth
 
