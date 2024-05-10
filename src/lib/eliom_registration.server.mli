@@ -500,6 +500,7 @@ val default_app_name : string
 
 val instruction :
    ?xhr_links:bool
+  -> ?app:string
   -> ?data_timeout:
        [< Eliom_common.cookie_level]
        * Eliom_common_base.scope_hierarchy option
@@ -526,6 +527,5 @@ val instruction :
   -> ?ignored_get_params:string * Re.re
   -> ?ignored_post_params:string * Re.re
   -> ?omitpersistentstorage:Eliom_common.omitpersistentstorage_rule list option
-  -> ?app_names:string list
   -> unit
   -> Ocsigen_server.Site.instruction
