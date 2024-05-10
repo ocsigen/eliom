@@ -1264,15 +1264,15 @@ let set_exn_handler h =
 let default_app_name = Eliommod.default_app_name
 let set_app_name = Eliommod.set_app_name
 
-let instruction ?xhr_links ?data_timeout ?service_timeout ?persistent_timeout
-    ?max_service_sessions_per_group ?max_volatile_data_sessions_per_group
+let instruction ?xhr_links ?(app = default_app_name) ?data_timeout
+    ?service_timeout ?persistent_timeout ?max_service_sessions_per_group
+    ?max_volatile_data_sessions_per_group
     ?max_persistent_data_sessions_per_group ?max_service_tab_sessions_per_group
     ?max_volatile_data_tab_sessions_per_group
     ?max_persistent_data_tab_sessions_per_group
     ?max_anonymous_services_per_session ?secure_cookies ?application_script
     ?global_data_caching ?html_content_type ?ignored_get_params
-    ?ignored_post_params ?omitpersistentstorage
-    ?(app_names = [default_app_name]) () vh conf_info site_dir
+    ?ignored_post_params ?omitpersistentstorage () vh conf_info site_dir
   =
   let sitedata = Eliommod.create_sitedata vh site_dir conf_info in
   (* customize sitedata according to optional parameters: *)
@@ -1336,8 +1336,6 @@ let instruction ?xhr_links ?data_timeout ?service_timeout ?persistent_timeout
   (* end sitedata *)
   Eliom_common.absolute_change_sitedata sitedata;
   Eliommod.site_init (ref true);
-  (* If we have eliommodule_names, load them: *)
-  List.iter
-    (fun name -> Eliommod.load_eliom_module sitedata (Eliommod.Name name) "" [])
-    app_names;
+  (* Load app: *)
+  Eliommod.load_eliom_module sitedata (Eliommod.Name app) "" [];
   Eliommod_pagegen.gen None sitedata

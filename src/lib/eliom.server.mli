@@ -1,5 +1,6 @@
 val run :
    ?site:Ocsigen_server.Site.t
+  -> ?app:string
   -> ?xhr_links:bool
   -> ?data_timeout:
        [< Eliom_common.cookie_level]
@@ -27,10 +28,9 @@ val run :
   -> ?ignored_get_params:string * Re.re
   -> ?ignored_post_params:string * Re.re
   -> ?omitpersistentstorage:Eliom_common.omitpersistentstorage_rule list option
-  -> ?app_names:string list
   -> unit
   -> unit
-(** [run ?site ?app_names ()] run Eliom applications [app_names] under site [site].
+(** [run ?site ?app ()] run Eliom application [app] under site [site].
     Use this to build a static executable without configuration file.
     Default values are default site (root of the Web site on all virtual hosts)
     and default app name.
