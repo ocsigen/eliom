@@ -1,6 +1,15 @@
+val set_app_name : string -> unit
+(** Set your application name. Use this if you want to make it possible
+    to link your Eliom application statically and to have several Eliom
+    applications on the same Web server.
+    See also parameter [?app_names] of [instruction] or [Eliom.run].
+ *)
+
+val default_app_name : string
+(** The default application name, if you don't specify any *)
+
 val run :
-   ?site:Ocsigen_server.Site.t
-  -> ?app:string
+   ?app:string
   -> ?xhr_links:bool
   -> ?data_timeout:
        [< Eliom_common.cookie_level]
@@ -29,9 +38,8 @@ val run :
   -> ?ignored_post_params:string * Re.re
   -> ?omitpersistentstorage:Eliom_common.omitpersistentstorage_rule list option
   -> unit
-  -> unit
-(** [run ?site ?app ()] run Eliom application [app] under site [site].
+  -> Ocsigen_server.instruction
+(** [run ?app ()] run Eliom application [app] under current site.
     Use this to build a static executable without configuration file.
-    Default values are default site (root of the Web site on all virtual hosts)
-    and default app name.
+    Default value of [?app] is [default_app_name].
     Other optional values correspond to Eliom configuration for this site. *)
