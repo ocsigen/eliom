@@ -1274,7 +1274,7 @@ let instruction ?xhr_links ?(app = default_app_name) ?data_timeout
     ?global_data_caching ?html_content_type ?ignored_get_params
     ?ignored_post_params ?omitpersistentstorage () vh conf_info site_dir
   =
-  let sitedata = Eliommod.create_sitedata vh site_dir conf_info in
+  let sitedata = Eliommod.update_sitedata app vh site_dir conf_info in
   (* customize sitedata according to optional parameters: *)
   Option.iter
     (fun v ->

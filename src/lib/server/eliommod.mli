@@ -150,6 +150,13 @@ val set_app_name : string -> unit
 val get_app_name : unit -> string
 val site_init : bool ref -> unit
 
+val update_sitedata :
+   string
+  -> Ocsigen_extensions.virtual_hosts
+  -> Eliom_lib.Url.path
+  -> Ocsigen_extensions.config_info
+  -> Eliom_common.sitedata
+
 val load_eliom_module :
    'a
   -> module_to_load

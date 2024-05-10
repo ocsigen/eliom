@@ -179,20 +179,23 @@ let create_sitedata_aux site_dir config_info =
   Eliommod_gc.persistent_session_gc sitedata;
   sitedata
 
-let create_sitedata =
+(** We associate to each service a function server_params -> page *)
+let create_sitedata, update_sitedata =
   (* We want to keep the old site data even if we reload the server.
      To do that, we keep the site data in a table *)
   let t = S.create 5 in
-  fun host site_dir config_info ->
-    let key = host, site_dir in
-    try S.find t key
-    with Not_found ->
-      let sitedata = create_sitedata_aux (Some site_dir) (Some config_info) in
-      S.add t key sitedata; sitedata
+  ( (fun host site_dir config_info ->
+      let key = host, site_dir in
+      try S.find t key
+      with Not_found ->
+        let sitedata = create_sitedata_aux (Some site_dir) (Some config_info) in
+        S.add t key sitedata; sitedata)
+  , fun host site_dir sitedata ->
+      let key = host, site_dir in
+      S.replace t key sitedata )
 
 (*****************************************************************************)
 (* Session service table *)
-(** We associate to each service a function server_params -> page *)
 
 (****************************************************************************)
 (****************************************************************************)
@@ -700,6 +703,15 @@ let get_sitedata =
       let sitedata = create_sitedata_aux None None in
       r := String_map.add name sitedata !r;
       sitedata
+
+let update_sitedata app vh site_dir conf_info =
+  let sitedata = get_sitedata app in
+  sitedata.Eliom_common.site_dir <- Some site_dir;
+  sitedata.Eliom_common.site_dir_string <-
+    Some (Eliom_lib.Url.string_of_url_path ~encode:false site_dir);
+  sitedata.Eliom_common.config_info <- Some conf_info;
+  update_sitedata vh site_dir sitedata;
+  sitedata
 
 let _ = Eliom_common.absolute_change_sitedata (get_sitedata !current_app_name)
 
