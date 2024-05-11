@@ -723,7 +723,7 @@ let site_init_ref = ref []
 (** Register function for evaluation at site initialisation *)
 let register_site_init e = site_init_ref := e :: !site_init_ref
 
-let config = ref []
+let config = ref None (* None means no config file (static linking) *)
 let config_in_tag = ref "" (* the parent tag of the currently handled tag *)
 
 type module_to_load = Files of string list | Name of string
@@ -739,10 +739,10 @@ let site_init firstmodule =
 
 let load_eliom_module _sitedata cmo_or_name parent_tag content =
   let preload () =
-    config := content;
+    config := Some content;
     config_in_tag := parent_tag
   in
-  let postload () = config := [] in
+  let postload () = config := Some [] in
   try
     match cmo_or_name with
     | Files cmo -> Ocsigen_loader.loadfiles preload postload true cmo
