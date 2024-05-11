@@ -140,7 +140,7 @@ val end_init : unit -> unit
 val handle_init_exn : exn -> string
 val site_init_ref : (unit -> unit) list ref
 val register_site_init : (unit -> unit) -> unit
-val config : Xml_light_types.xml list ref
+val config : Xml_light_types.xml list option ref
 val config_in_tag : string ref
 
 type module_to_load = Files of string list | Name of string
