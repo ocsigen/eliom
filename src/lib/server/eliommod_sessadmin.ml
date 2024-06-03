@@ -58,7 +58,8 @@ let close_all_service_states2 full_st_name sitedata =
  *)
 let close_all_service_states ~scope ~secure sitedata =
   let full_st_name =
-    Eliom_common.make_full_state_name2 sitedata.Eliom_common.site_dir_string
+    Eliom_common.make_full_state_name2
+      (Eliom_common.get_site_dir_string sitedata)
       secure ~scope
   in
   close_all_service_states2 full_st_name sitedata
@@ -85,7 +86,8 @@ let close_all_data_states2 full_st_name sitedata =
  *)
 let close_all_data_states ~scope ~secure sitedata =
   let full_st_name =
-    Eliom_common.make_full_state_name2 sitedata.Eliom_common.site_dir_string
+    Eliom_common.make_full_state_name2
+      (Eliom_common.get_site_dir_string sitedata)
       secure ~scope
   in
   close_all_data_states2 full_st_name sitedata
@@ -115,7 +117,8 @@ let close_all_persistent_states2 full_st_name sitedata =
  *)
 let close_all_persistent_states ~scope ~secure sitedata =
   let full_st_name =
-    Eliom_common.make_full_state_name2 sitedata.Eliom_common.site_dir_string
+    Eliom_common.make_full_state_name2
+      (Eliom_common.get_site_dir_string sitedata)
       secure ~scope
   in
   close_all_persistent_states2 full_st_name sitedata

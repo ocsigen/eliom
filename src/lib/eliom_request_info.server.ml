@@ -300,9 +300,17 @@ let get_csp_ssl_sp sp =
 
 let get_site_dir () =
   let sitedata = find_sitedata "Eliom_request_info.get_site_dir" in
-  sitedata.Eliom_common.site_dir
+  Eliom_common.get_site_dir sitedata
 
-let get_site_dir_sp sp = sp.Eliom_common.sp_sitedata.Eliom_common.site_dir
+let get_site_dir_option () =
+  try Some (get_site_dir ())
+  with
+  | Eliom_common.Cannot_call_this_function_before_app_is_linked_to_a_site
+  | Eliom_common.Eliom_site_information_not_available _
+  ->
+    None
+
+let get_site_dir_sp sp = Eliom_common.get_site_dir sp.Eliom_common.sp_sitedata
 let in_request_handler () = Lwt.get Eliom_common.sp_key <> None
 
 let get_request () =

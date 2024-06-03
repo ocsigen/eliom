@@ -37,7 +37,8 @@ let get_global_data, modify_global_data =
   in
   let is_site_available () =
     (* Matches valid states for Eliom_common.get_site_data *)
-    Eliom_common.(get_sp_option () <> None || during_eliom_module_loading ())
+    Eliom_common.(
+      get_sp_option () <> None || Ocsigen_extensions.during_initialisation ())
   in
   let get () =
     if is_site_available ()

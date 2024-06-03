@@ -88,7 +88,7 @@ module S = Hashtbl.Make (struct
       Hashtbl.hash (Ocsigen_extensions.hash_virtual_hosts vh, u)
   end)
 
-let create_sitedata site_dir config_info =
+let create_sitedata_aux site_dir config_info =
   let dlist_table = Eliom_common.create_dlist_ip_table 100
   and group_of_groups =
     Ocsigen_cache.Dlist.create !default_max_volatile_groups_per_site
@@ -101,7 +101,8 @@ let create_sitedata site_dir config_info =
     ; site_value_table = Polytables.create ()
     ; site_dir
     ; (*VVV encode=false??? *)
-      site_dir_string = Eliom_lib.Url.string_of_url_path ~encode:false site_dir
+      site_dir_string =
+        Option.map (Eliom_lib.Url.string_of_url_path ~encode:false) site_dir
     ; config_info
     ; default_links_xhr =
         Eliom_common.tenable_value ~name:"default_links_xhr" true
@@ -178,20 +179,23 @@ let create_sitedata site_dir config_info =
   Eliommod_gc.persistent_session_gc sitedata;
   sitedata
 
-let create_sitedata =
+(** We associate to each service a function server_params -> page *)
+let create_sitedata, update_sitedata =
   (* We want to keep the old site data even if we reload the server.
      To do that, we keep the site data in a table *)
   let t = S.create 5 in
-  fun host site_dir config_info ->
-    let key = host, site_dir in
-    try S.find t key
-    with Not_found ->
-      let sitedata = create_sitedata site_dir config_info in
-      S.add t key sitedata; sitedata
+  ( (fun host site_dir config_info ->
+      let key = host, site_dir in
+      try S.find t key
+      with Not_found ->
+        let sitedata = create_sitedata_aux (Some site_dir) (Some config_info) in
+        S.add t key sitedata; sitedata)
+  , fun host site_dir sitedata ->
+      let key = host, site_dir in
+      S.replace t key sitedata )
 
 (*****************************************************************************)
 (* Session service table *)
-(** We associate to each service a function server_params -> page *)
 
 (****************************************************************************)
 (****************************************************************************)
@@ -608,8 +612,8 @@ let end_init () =
   if !exception_during_eliommodule_loading
   then
     (* An eliom module failed with an exception. We do not check
-       for the missing services, so that the exception can be correctly
-       propagated by Ocsigen_extensions *)
+            for the missing services, so that the exception can be correctly
+            propagated by Ocsigen_extensions *)
     ()
   else
     try
@@ -617,9 +621,9 @@ let end_init () =
       Eliom_common.end_current_sitedata ()
     with Eliom_common.Eliom_site_information_not_available _ -> ()
 (*VVV The "try with" looks like a hack:
-        end_init is called even for user config files ... but in that case,
-        current_sitedata is not set ...
-        It would be better to avoid calling end_init for user config files. *)
+            end_init is called even for user config files ... but in that case,
+            current_sitedata is not set ...
+            It would be better to avoid calling end_init for user config files. *)
 
 (** Function that will handle exceptions during the initialisation phase *)
 let handle_init_exn = function
@@ -687,12 +691,39 @@ let handle_init_exn = function
 (*****************************************************************************)
 (** Module loading *)
 
+let get_sitedata =
+  let r = ref String_map.empty in
+  fun name ->
+    try String_map.find name !r
+    with Not_found ->
+      let sitedata = create_sitedata_aux None None in
+      r := String_map.add name sitedata !r;
+      sitedata
+
+let update_sitedata app vh site_dir conf_info =
+  let sitedata = get_sitedata app in
+  sitedata.Eliom_common.site_dir <- Some site_dir;
+  sitedata.Eliom_common.site_dir_string <-
+    Some (Eliom_lib.Url.string_of_url_path ~encode:false site_dir);
+  sitedata.Eliom_common.config_info <- Some conf_info;
+  update_sitedata vh site_dir sitedata;
+  sitedata
+
+let _ =
+  Eliom_common.absolute_change_sitedata
+    (get_sitedata (Eliom_common.get_app_name ()))
+
+let set_app_name s =
+  Eliom_common.current_app_name := s;
+  Eliom_common.absolute_change_sitedata
+    (get_sitedata (Eliom_common.get_app_name ()))
+
 let site_init_ref = ref []
 
 (** Register function for evaluation at site initialisation *)
 let register_site_init e = site_init_ref := e :: !site_init_ref
 
-let config = ref []
+let config = ref None (* None means no config file (static linking) *)
 let config_in_tag = ref "" (* the parent tag of the currently handled tag *)
 
 type module_to_load = Files of string list | Name of string
@@ -700,24 +731,18 @@ type module_to_load = Files of string list | Name of string
 let site_init firstmodule =
   if !firstmodule
   then (
-    Eliom_common.begin_load_eliom_module ();
     (* I want to be able to define global client values during that phase: *)
     Eliom_syntax.set_global true;
     List.iter (fun f -> f ()) !site_init_ref;
     Eliom_syntax.set_global false;
-    firstmodule := false;
-    Eliom_common.end_load_eliom_module ())
+    firstmodule := false)
 
 let load_eliom_module _sitedata cmo_or_name parent_tag content =
   let preload () =
-    config := content;
-    config_in_tag := parent_tag;
-    Eliom_common.begin_load_eliom_module ()
+    config := Some content;
+    config_in_tag := parent_tag
   in
-  let postload () =
-    Eliom_common.end_load_eliom_module ();
-    config := []
-  in
+  let postload () = config := Some [] in
   try
     match cmo_or_name with
     | Files cmo -> Ocsigen_loader.loadfiles preload postload true cmo
@@ -738,6 +763,38 @@ let gen_nothing () _ = Lwt.return Ocsigen_extensions.Ext_do_nothing
 
 (*****************************************************************************)
 let default_module_action _ = failwith "default_module_action"
+
+let set_timeout
+    (f :
+      ?full_st_name:Eliom_common.full_state_name
+      -> ?cookie_level:[< Eliom_common.cookie_level]
+      -> recompute_expdates:bool
+      -> bool (* override configfile *)
+      -> bool (* from config file *)
+      -> Eliom_common.sitedata
+      -> float option
+      -> unit) sitedata cookie_type state_hier v
+  =
+  let make_full_st_name secure state_hier =
+    let scope =
+      match cookie_type with
+      | `Session -> `Session state_hier
+      | `Client_process -> `Client_process state_hier
+    in
+    Eliom_common.make_full_state_name2
+      (Eliom_common.get_site_dir_string sitedata)
+      secure ~scope
+  in
+  (*VVV We set timeout for both secure and unsecure states.
+Make possible to customize this? *)
+  f
+    ?full_st_name:(Option.map (make_full_st_name false) state_hier)
+    ?cookie_level:(Some cookie_type) ~recompute_expdates:false true true
+    sitedata v;
+  f
+    ?full_st_name:(Option.map (make_full_st_name true) state_hier)
+    ?cookie_level:(Some cookie_type) ~recompute_expdates:false true true
+    sitedata v
 
 (** Parsing of config file for each site: *)
 let parse_config _ hostpattern conf_info site_dir =
@@ -814,50 +871,23 @@ let parse_config _ hostpattern conf_info site_dir =
   browsers manage cookies (one cookie for one site).
   Thus we can have one site in several cmo (with one session).
         *)
-        let set_timeout
-            (f :
-              ?full_st_name:Eliom_common.full_state_name
-              -> ?cookie_level:[< Eliom_common.cookie_level]
-              -> recompute_expdates:bool
-              -> bool (* override configfile *)
-              -> bool (* from config file *)
-              -> Eliom_common.sitedata
-              -> float option
-              -> unit) cookie_type state_hier v
-          =
-          let make_full_st_name secure state_hier =
-            let scope =
-              match cookie_type with
-              | `Session -> `Session state_hier
-              | `Client_process -> `Client_process state_hier
-            in
-            Eliom_common.make_full_state_name2
-              sitedata.Eliom_common.site_dir_string secure ~scope
-          in
-          (*VVV We set timeout for both secure and unsecure states.
-            Make possible to customize this? *)
-          f
-            ?full_st_name:(Option.map (make_full_st_name false) state_hier)
-            ?cookie_level:(Some cookie_type) ~recompute_expdates:false true true
-            sitedata v;
-          f
-            ?full_st_name:(Option.map (make_full_st_name true) state_hier)
-            ?cookie_level:(Some cookie_type) ~recompute_expdates:false true true
-            sitedata v
-        in
         let oldipv6mask = sitedata.Eliom_common.ipv6mask in
         let content =
           parse_eliom_options
             ( (fun ct snoo v ->
                 set_timeout
                   (Eliommod_timeouts.set_global_ ~kind:`Data)
-                  ct snoo v;
+                  sitedata ct snoo v;
                 set_timeout
                   (Eliommod_timeouts.set_global_ ~kind:`Service)
-                  ct snoo v)
-            , set_timeout (Eliommod_timeouts.set_global_ ~kind:`Data)
-            , set_timeout (Eliommod_timeouts.set_global_ ~kind:`Service)
-            , set_timeout (Eliommod_timeouts.set_global_ ~kind:`Persistent)
+                  sitedata ct snoo v)
+            , set_timeout (Eliommod_timeouts.set_global_ ~kind:`Data) sitedata
+            , set_timeout
+                (Eliommod_timeouts.set_global_ ~kind:`Service)
+                sitedata
+            , set_timeout
+                (Eliommod_timeouts.set_global_ ~kind:`Persistent)
+                sitedata
             , (fun v ->
                 sitedata.Eliom_common.max_service_sessions_per_group <- v, true)
             , (fun v ->
