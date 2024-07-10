@@ -34,6 +34,7 @@ doccp: alldoc
 
 $(BUILDER): $(wildcard build/*.ml)
 	ocamlbuild -no-plugin -I src/ocamlbuild -no-links -use-ocamlfind build/build.$(BEST) 1> /dev/null
+	ocaml pkg/build.ml manpage=false native=true native-dynlink=true
 builder: $(BUILDER)
 
 ### Cleaning ###
