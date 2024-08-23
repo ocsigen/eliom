@@ -1,5 +1,0 @@
-{1 Ocamlbuild plugin}
-
-{!modules:
-Ocamlbuild_eliom
-}

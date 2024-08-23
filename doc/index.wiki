@@ -9,4 +9,4 @@
 
 <<a_api subproject="client" text="Client" | intro >>
 
-<<a_api subproject="ocamlbuild" text="The ocamlbuild plugin" | intro >>
+<<|a_api subproject="ocamlbuild" text="The ocamlbuild plugin" | intro >>
