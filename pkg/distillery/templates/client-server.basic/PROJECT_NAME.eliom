@@ -36,4 +36,4 @@ let%shared () =
                       ~service:(Eliom_service.static_dir ())
                       ["css"; "%%%PROJECT_NAME%%%.css"])
                  () ])
-          (body [h1 [txt "Welcome from Eliom's distillery!"]])))
+          (body [h1 [txt "Welcome to Eliom!"]])))

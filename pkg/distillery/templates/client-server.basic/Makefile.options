@@ -23,10 +23,6 @@ SERVER_PACKAGES       :=
 ##----------------------------------------------------------------------
 ## The following part contains the configuration for the ocsigenserver.
 
-# User to run server with (make run.*)
-WWWUSER               := www-data
-WWWGROUP              := www-data
-
 # Port for running the server (make run.*)
 PORT                  := 80
 
@@ -77,3 +73,4 @@ CSS_PREFIX            := $(LOCAL_STATIC_CSS)/${PROJECT_NAME}
 DEBUG                 := yes
 
 ##----------------------------------------------------------------------
+

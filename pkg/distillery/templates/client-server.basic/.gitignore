@@ -1,6 +1,3 @@
-# Database
-local_db
-
 # Local server configuration
 local
 
@@ -10,14 +7,7 @@ _client
 _deps
 _server
 
-# Mobile application
-cordova
-
-# Style
-.sass-cache
-
 static/css/%%%PROJECT_NAME%%%.css.map
-static/css/%%%PROJECT_NAME%%%.css
 
 # Dune
 _build

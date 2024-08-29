@@ -6,7 +6,6 @@
   <server>
     <port>%%PORT%%</port>
     %%% Only set for running, not for testing
-    %%USERGROUP%%
     <logdir>%%LOGDIR%%</logdir>
     <datadir>%%DATADIR%%</datadir>
     <charset>utf-8</charset>
@@ -19,17 +18,17 @@
     <commandpipe>%%CMDPIPE%%</commandpipe>
     <extension findlib-package="ocsigenserver.ext.staticmod"/>
     <!--
-    <extension findlib-package="ocsipersist.dbm">
+    <extension findlib-package="ocsipersist-dbm-config">
       <delayloading val="false"/>
       <store dir="%%DATADIR%%"/>
       <ocsidbm name="ocsidbm"/>
     </extension>
     -->
-    <extension findlib-package="ocsipersist.sqlite">
+    <extension findlib-package="ocsipersist-sqlite-config">
       <database file="%%DATADIR%%/ocsidb"/>
     </extension>
     <!--
-    <extension findlib-package="ocsipersist.pgsql">
+    <extension findlib-package="ocsipersist-pgsql-config">
       <database
         host="%%DB_HOST%%"
         port="%%DB_PORT%%"

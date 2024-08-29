@@ -1,7 +1,3 @@
-#----------------------------------------------------------------------
-#           OCSIGEN-START MAKEFILE, NOT TO BE MODIFIED
-#----------------------------------------------------------------------
-
 ##----------------------------------------------------------------------
 ## DISCLAIMER
 ##
@@ -56,12 +52,27 @@ test.opt:: opt | $(addprefix $(TEST_PREFIX),$(DIST_DIRS)) staticfiles
 	@echo "==== The website is available at http://localhost:$(TEST_PORT) ===="
 	$(OCSIGENSERVER.OPT) $(RUN_DEBUG) -c $(patsubst %.conf.in,$(TEST_PREFIX)$(ETCDIR)/%-test.conf,$(CONF_IN))
 
+test.static.byte:: static.byte | $(addprefix $(TEST_PREFIX),$(DIST_DIRS)) staticfiles
+	@echo "==== The website is available at http://localhost:$(TEST_PORT) ===="
+	dune exec ./%%%PROJECT_NAME%%%_main.bc
+test.static.opt:: static.opt | $(addprefix $(TEST_PREFIX),$(DIST_DIRS)) staticfiles
+	@echo "==== The website is available at http://localhost:$(TEST_PORT) ===="
+	dune exec ./%%%PROJECT_NAME%%%_main.exe
+
 $(addprefix $(TEST_PREFIX), $(DIST_DIRS)):
 	mkdir -p $@
 
 staticfiles:
 	cp -rf $(LOCAL_STATIC_CSS) $(TEST_PREFIX)$(ELIOMSTATICDIR)
 
+##----------------------------------------------------------------------
+## Static executable
+
+static.byte: byte
+	dune build %%%PROJECT_NAME%%%_main.bc
+
+static.opt: opt
+	dune build %%%PROJECT_NAME%%%_main.exe
 ##----------------------------------------------------------------------
 ## Installing & Running
 
@@ -162,19 +173,16 @@ config-files: | $(TEST_PREFIX)$(ELIOMSTATICDIR) $(TEST_PREFIX)$(LIBDIR)
 	cp -f _build/default/$(PROJECT_NAME).cm* $(TEST_PREFIX)$(LIBDIR)/
 	$(MAKE) $(CONFIG_FILES) $(TEST_CONFIG_FILES) PROJECT_NAME=$(PROJECT_NAME)
 
-all:: gen-dune
+all::
 	$(ENV_PSQL) dune build $(DUNE_OPTIONS) @install @$(PROJECT_NAME) $(PROJECT_NAME).cmxs
 
-byte:: gen-dune
+byte::
 	$(ENV_PSQL) dune build $(DUNE_OPTIONS) @$(PROJECT_NAME)
 	make config-files PROJECT_NAME=$(PROJECT_NAME)
 
-opt:: gen-dune
+opt::
 	$(ENV_PSQL) dune build $(DUNE_OPTIONS) $(PROJECT_NAME).cmxs @$(PROJECT_NAME)
 	make config-files PROJECT_NAME=$(PROJECT_NAME)
-
-gen-dune:
-	@ocaml tools/gen_dune.ml > client/dune.client
 
 ##----------------------------------------------------------------------
 
