@@ -1,4 +1,3 @@
-
 = Eliom's Distillery==
 
 The easiest way to initialize, compile, and run an Ocsigen/Eliom
@@ -20,72 +19,35 @@ To see all available templates, you can use
 $ eliom-distillery -list-templates
 >>
 
-Template "client-server.basic" create a simple project (Dune-based build system,
+Templates "app.lib" and "app.exe" create a simple
+client-server app project (Dune-based build system,
 configuration file and main service).
+The first one builds a library that you can dynamically load in
+ocsigenserver using a configuration file. The second builds a static
+executable without configuration file.
+
 Alternatively, you might want to use the legacy "basic.ppx" template,
 with a Makefile-based build system.
 
 To create your project, do:
 
 <<code language="shell"|
-$ eliom-distillery -name <name> -template client-server.basic [-target-directory <dir>]
+$ eliom-distillery -name <name> -template app.exe [-target-directory <dir>]
 >>
 
-This creates a project named {{{<name>}}} from the {{{"client-server.basic"}}}
+This creates a project named {{{<name>}}} from the {{{"app.exe"}}}
 template in the directory {{{<dir>}}} or {{{<name>}}} by default.
 The project name should be a valid name for an OCaml compilation unit.
-The project directory contains the following files
 
- * {{{<name>.eliom}}} \\
-   This is your initial source file.
-   All Eliom files (*.eliom, *.eliomi) in this directory are
-   automatically considered.  To add a .ml/.mli file to your project,
-   add it to the variable SERVER_FILES or CLIENT_FILES in
-   {{{Makefile.options}}}.
+=== Compilation & Running: 
 
- * {{{static/}}} \\
-   The content of this folder is statically served. It contains
-   initially a basic CSS file for your project.
-
- * {{{Makefile.options}}} \\
-   Configure your project here!
-
- * {{{name.conf.in}}} \\
-   This file is a template for the configuration file for
-   ocsigenserver. You will rarely need to edit it: it can be
-   personalized through variables in {{{Makefile.options}}}.
-   In particular, this way, the installation rules and the
-   configuration files remains coherent.
-
- * {{{Makefile}}} \\
-   This contains all rules necessary to build, test, and run your
-   Eliom application. You should avoid modifying it. See below for the
-   relevant targets.
-
- * {{{README}}} \\
-   An explanation of how to compile, test, install, and run your
-   application
-
-=== Compilation & Running: Read the README
-
-You can just run
-<<code language="shell"|
-$ make test.byte
->>
-or
-<<code language="shell"|
-$ make test.opt
->>
-to compile your project and run ocsigenserver with it.
-
-Please refer to the generated README file for further hints
-on how to work with your project.
+Read the README file provided with the template.
 
 === Using other templates
 
 If you want to start from a more complete or more specific template,
 you can get other templates from the internet, such as
-"ocsigen-start". You can either install these templates into eliom's
+Ocsigen Start. You can either install these templates into eliom's
 own directory (this is what their installer generally does), or, if
 doing so is not practical, you can use the {{{ELIOM_DISTILLERY_PATH}}}
 environment variable to point to your templates. This environment
@@ -117,5 +79,5 @@ list all reserved project names in the special file
 {{{%%%MODULE_NAME%%%}}}) by the project name (resp. by the project
 name with the first letter capitalized).
 
-For examples, see pre-defined templates like {{{client-server.basic}}}, {{{basic.ppx}}} and
-{{{os.pgocaml}}}.
+For examples, see pre-defined templates like {{{app.exe}}}, {{{app.lib}}}, 
+{{{basic.ppx}}} and {{{os.pgocaml}}}.
