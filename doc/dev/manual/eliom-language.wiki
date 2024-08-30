@@ -267,7 +267,7 @@ content has changed//. That way they may refer to the new DOM.
 If a client value is created outside of the initialization of the
 server program and also outside of the processing of a request, the
 exception {% <<a_api subproject="server"|exception
-Eliom_client_value.t_creation_invalid_context>> %} is raised.
+Eliom_client_value.Client_value_creation_invalid_context>> %} is raised.
 
 ===@@id="sharedclientvalues"@@ In a shared section
 
