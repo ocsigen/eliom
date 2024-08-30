@@ -7,7 +7,7 @@ _client
 _deps
 _server
 
-static/css/%%%PROJECT_NAME%%%.css.map
+static/css/project_name.css.map
 
 # Dune
 _build
