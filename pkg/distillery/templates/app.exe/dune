@@ -120,6 +120,8 @@
  (alias %%%PROJECT_NAME%%%)
  (deps
   %%%PROJECT_NAME%%%.cma
+  %%%PROJECT_NAME%%%_main.bc
+  %%%PROJECT_NAME%%%_main.exe
   client/%%%PROJECT_NAME%%%.bc
   client/%%%PROJECT_NAME%%%.bc.js
   tools/check_modules.ml)

@@ -28,8 +28,7 @@ DIST_DIRS          := $(ETCDIR) $(DATADIR) $(LIBDIR) $(LOGDIR) \
                       $(shell dirname $(CMDPIPE))
 JS_PREFIX          := $(TEST_PREFIX)$(ELIOMSTATICDIR)/$(PROJECT_NAME)
 
-all:: css
-all byte opt:: ${VOLATILE_SCHEMA}
+all:: css byte opt staticfiles
 
 ##----------------------------------------------------------------------
 
@@ -38,14 +37,14 @@ all byte opt:: ${VOLATILE_SCHEMA}
 
 DIST_FILES = $(ELIOMSTATICDIR)/$(PROJECT_NAME).js $(LIBDIR)/$(PROJECT_NAME).cma
 
-.PHONY: test.byte test.opt test.static.byte test.static.opt staticfiles
+.PHONY: test.byte test.opt staticfiles
 
-test.byte:: static.byte | $(addprefix $(TEST_PREFIX),$(DIST_DIRS)) staticfiles
+test.byte:: byte | $(addprefix $(TEST_PREFIX),$(DIST_DIRS)) staticfiles
 	@echo "==== The website is available at http://localhost:$(TEST_PORT) ===="
-	dune exec ./%%%PROJECT_NAME%%%_main.bc
-test.opt:: static.opt | $(addprefix $(TEST_PREFIX),$(DIST_DIRS)) staticfiles
+	dune exec ./$(PROJECT_NAME)_main.bc
+test.opt:: opt | $(addprefix $(TEST_PREFIX),$(DIST_DIRS)) staticfiles
 	@echo "==== The website is available at http://localhost:$(TEST_PORT) ===="
-	dune exec ./%%%PROJECT_NAME%%%_main.exe
+	dune exec ./$(PROJECT_NAME)_main.exe
 
 test.static.byte: test.byte
 
@@ -58,29 +57,17 @@ staticfiles:
 	cp -rf $(LOCAL_STATIC_CSS) $(TEST_PREFIX)$(ELIOMSTATICDIR)
 
 ##----------------------------------------------------------------------
-## Static executable
-
-static.byte: byte
-	dune build %%%PROJECT_NAME%%%_main.bc
-
-static.opt: opt
-	dune build %%%PROJECT_NAME%%%_main.exe
-##----------------------------------------------------------------------
 ## Installing & Running
 
-.PHONY: install install.byte install.byte install.opt install.static install.lib install.lib.byte install.lib.opt run.byte run.opt
-install: install.byte install.opt
-install.byte: install.lib.byte install.static | $(addprefix $(PREFIX),$(DATADIR) $(LOGDIR) $(shell dirname $(CMDPIPE)))
-install.opt: install.lib.opt install.static | $(addprefix $(PREFIX),$(DATADIR) $(LOGDIR) $(shell dirname $(CMDPIPE)))
-install.lib: install.lib.byte install.lib.opt
-install.lib.byte: $(TEST_PREFIX)$(LIBDIR)/$(PROJECT_NAME).cma | $(PREFIX)$(LIBDIR)
-	install $< $(PREFIX)$(LIBDIR)
-install.lib.opt: $(TEST_PREFIX)$(LIBDIR)/$(PROJECT_NAME).cmxs | $(PREFIX)$(LIBDIR)
-	install $< $(PREFIX)$(LIBDIR)
+.PHONY: install install.static install.lib run
+install: all install.static | $(addprefix $(PREFIX),$(DATADIR) $(LOGDIR) $(shell dirname $(CMDPIPE)))
+	dune install
 install.static: $(TEST_PREFIX)$(ELIOMSTATICDIR)/$(PROJECT_NAME).js | $(PREFIX)$(STATICDIR) $(PREFIX)$(ELIOMSTATICDIR)
 	cp -r $(LOCAL_STATIC_CSS) $(PREFIX)$(FILESDIR)
+	HASH=`md5sum _build/default/client/$(PROJECT_NAME).bc.js | cut -d ' ' -f 1` && \
+	install $(addprefix -o ,$(WWWUSER)) $(JS_PREFIX)_$$HASH.js $(PREFIX)$(ELIOMSTATICDIR) && \
+	ln -sf $(PROJECT_NAME)_$$HASH.js $(PREFIX)$(ELIOMSTATICDIR)/$(PROJECT_NAME).js
 	[ -z $(WWWUSER) ] || chown -R $(WWWUSER) $(PREFIX)$(FILESDIR)
-	install $(addprefix -o ,$(WWWUSER)) $< $(PREFIX)$(ELIOMSTATICDIR)
 
 .PHONY:
 print-install-files:
@@ -105,18 +92,24 @@ config-files: | $(TEST_PREFIX)$(ELIOMSTATICDIR) $(TEST_PREFIX)$(LIBDIR)
 	cp -f _build/default/client/$(PROJECT_NAME).bc.js $(JS_PREFIX)_$$HASH.js && \
 	ln -sf $(PROJECT_NAME)_$$HASH.js $(JS_PREFIX).js
 	cp -f _build/default/$(PROJECT_NAME).cm* $(TEST_PREFIX)$(LIBDIR)/
-	$(MAKE) $(CONFIG_FILES) $(TEST_CONFIG_FILES) PROJECT_NAME=$(PROJECT_NAME)
 
 all::
-	$(ENV_PSQL) dune build $(DUNE_OPTIONS) @install @$(PROJECT_NAME) $(PROJECT_NAME).cmxs
+	$(ENV_PSQL) dune build $(DUNE_OPTIONS) @install @$(PROJECT_NAME)
 
-byte::
-	$(ENV_PSQL) dune build $(DUNE_OPTIONS) @$(PROJECT_NAME)
+js::
+	$(ENV_PSQL) dune build $(DUNE_OPTIONS) client/$(PROJECT_NAME).bc.js
+
+byte:: js
+	$(ENV_PSQL) dune build $(DUNE_OPTIONS) $(PROJECT_NAME)_main.bc
 	make config-files PROJECT_NAME=$(PROJECT_NAME)
 
-opt::
-	$(ENV_PSQL) dune build $(DUNE_OPTIONS) $(PROJECT_NAME).cmxs @$(PROJECT_NAME)
+opt:: js
+	$(ENV_PSQL) dune build $(DUNE_OPTIONS) $(PROJECT_NAME)_main.exe
 	make config-files PROJECT_NAME=$(PROJECT_NAME)
+
+run:
+	$(PREFIX)bin/$(PROJECT_NAME)
+
 
 ##----------------------------------------------------------------------
 

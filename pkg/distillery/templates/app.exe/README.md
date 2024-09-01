@@ -37,19 +37,18 @@ Makefile targets
 
 Here's some help on how to work with this basic distillery project:
 
- - Test your application by compiling it and running it locally
+ - Test your application by compiling it and running ocsigenserver locally
      $ make test.byte (or test.opt)
 
  - Compile it only
      $ make all (or byte or opt)
 
- - Deploy your project on your system
-     $ sudo make install (or install.byte or install.opt)
+ - Deploy your project on your system:
+   Adapt the paths in your source code to match the installation.
+   The default source code is using local files in this directory.
+   The default installation puts files in your opam directory
+   (see variable PREFIX in file Makefile.options).
+     $ make install (or install.byte or install.opt)
 
  - Run the server on the deployed project
-     $ sudo make run.byte (or run.opt)
-
-   If WWWUSER in the Makefile.options is you, you don't need the
-   `sudo'. If Eliom isn't installed globally, however, you need to
-   re-export some environment variables to make this work:
-     $ sudo PATH=$PATH OCAMLPATH=$OCAMLPATH LD_LIBRARY_PATH=$LD_LIBRARY_PATH make run.byte/run.opt
+     $ make run
