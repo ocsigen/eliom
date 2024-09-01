@@ -33,8 +33,7 @@ CONFIG_FILES       := $(patsubst %.conf.in,$(TEST_PREFIX)$(ETCDIR)/%.conf,$(CONF
 TEST_CONFIG_FILES  := $(patsubst %.conf.in,$(TEST_PREFIX)$(ETCDIR)/%-test.conf,$(CONF_IN))
 
 
-all:: css
-all byte opt:: ${VOLATILE_SCHEMA}
+all:: css byte opt staticfiles
 
 ##----------------------------------------------------------------------
 
@@ -62,9 +61,9 @@ staticfiles:
 ## Installing & Running
 
 .PHONY: install install.byte install.byte install.opt install.static install.etc install.lib install.lib.byte install.lib.opt run.byte run.opt
-install: install.byte install.opt
-install.byte: install.lib.byte install.etc install.static | $(addprefix $(PREFIX),$(DATADIR) $(LOGDIR) $(shell dirname $(CMDPIPE)))
-install.opt: install.lib.opt install.etc install.static | $(addprefix $(PREFIX),$(DATADIR) $(LOGDIR) $(shell dirname $(CMDPIPE)))
+install: install.byte install.opt staticfiles
+install.byte: byte install.lib.byte install.etc install.static | $(addprefix $(PREFIX),$(DATADIR) $(LOGDIR) $(shell dirname $(CMDPIPE)))
+install.opt: opt install.lib.opt install.etc install.static | $(addprefix $(PREFIX),$(DATADIR) $(LOGDIR) $(shell dirname $(CMDPIPE)))
 install.lib: install.lib.byte install.lib.opt
 install.lib.byte: $(TEST_PREFIX)$(LIBDIR)/$(PROJECT_NAME).cma | $(PREFIX)$(LIBDIR)
 	install $< $(PREFIX)$(LIBDIR)
@@ -72,8 +71,10 @@ install.lib.opt: $(TEST_PREFIX)$(LIBDIR)/$(PROJECT_NAME).cmxs | $(PREFIX)$(LIBDI
 	install $< $(PREFIX)$(LIBDIR)
 install.static: $(TEST_PREFIX)$(ELIOMSTATICDIR)/$(PROJECT_NAME).js | $(PREFIX)$(STATICDIR) $(PREFIX)$(ELIOMSTATICDIR)
 	cp -r $(LOCAL_STATIC_CSS) $(PREFIX)$(FILESDIR)
+	HASH=`md5sum _build/default/client/$(PROJECT_NAME).bc.js | cut -d ' ' -f 1` && \
+	install $(addprefix -o ,$(WWWUSER)) $(JS_PREFIX)_$$HASH.js $(PREFIX)$(ELIOMSTATICDIR) && \
+	ln -sf $(PROJECT_NAME)_$$HASH.js $(PREFIX)$(ELIOMSTATICDIR)/$(PROJECT_NAME).js
 	[ -z $(WWWUSER) ] || chown -R $(WWWUSER) $(PREFIX)$(FILESDIR)
-	install $(addprefix -o ,$(WWWUSER)) $< $(PREFIX)$(ELIOMSTATICDIR)
 install.etc: $(TEST_PREFIX)$(ETCDIR)/$(PROJECT_NAME).conf | $(PREFIX)$(ETCDIR)
 	install $< $(PREFIX)$(ETCDIR)/$(PROJECT_NAME).conf
 
@@ -160,6 +161,9 @@ config-files: | $(TEST_PREFIX)$(ELIOMSTATICDIR) $(TEST_PREFIX)$(LIBDIR)
 
 all::
 	$(ENV_PSQL) dune build $(DUNE_OPTIONS) @install @$(PROJECT_NAME) $(PROJECT_NAME).cmxs
+
+js::
+	$(ENV_PSQL) dune build $(DUNE_OPTIONS) client/$(PROJECT_NAME).bc.js
 
 byte::
 	$(ENV_PSQL) dune build $(DUNE_OPTIONS) @$(PROJECT_NAME)
