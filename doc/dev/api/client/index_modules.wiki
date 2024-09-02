@@ -43,6 +43,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="D"| module Eliom_content.Svg.D >> ~[<<a_api subproject="client" | module Eliom_content.Svg >>~]|<<div class="odocwiki_info"|~Creation of content with //~D//~O~M semantics ~(referable
 >>
 |
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Dom_reference"| module Eliom_lib.Dom_reference >> ~[<<a_api subproject="client" | module Eliom_lib >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Down"| module Eliom_react.S.Down >> ~[<<a_api subproject="client" | module Eliom_react.S >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Down"| module Eliom_react.Down >> ~[<<a_api subproject="client" | module Eliom_react >>~]||
 |@@ @style="tet-align: left;"@@\\E|
@@ -217,19 +218,11 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Raw"| module Eliom_content.Html.R.Raw >> ~[<<a_api subproject="client" | module Eliom_content.Html.R >>~]|<<div class="odocwiki_info"|~Cf~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Raw"| module Eliom_content.Html.D.Raw >> ~[<<a_api subproject="client" | module Eliom_content.Html.D >>~]|<<div class="odocwiki_info"|~Cf~.
->>
-|
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Raw"| module Eliom_content.Html.F.Raw >> ~[<<a_api subproject="client" | module Eliom_content.Html.F >>~]|<<div class="odocwiki_info"|~Cf~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Raw"| module Eliom_content.Html.D.Raw >> ~[<<a_api subproject="client" | module Eliom_content.Html.D >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Raw"| module Eliom_content.Html.F.Raw >> ~[<<a_api subproject="client" | module Eliom_content.Html.F >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Raw"| module Eliom_content.Svg.R.Raw >> ~[<<a_api subproject="client" | module Eliom_content.Svg.R >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Raw"| module Eliom_content.Svg.D.Raw >> ~[<<a_api subproject="client" | module Eliom_content.Svg.D >>~]|<<div class="odocwiki_info"|~Cf~.
->>
-|
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Raw"| module Eliom_content.Svg.F.Raw >> ~[<<a_api subproject="client" | module Eliom_content.Svg.F >>~]|<<div class="odocwiki_info"|~Cf~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Raw"| module Eliom_content.Svg.D.Raw >> ~[<<a_api subproject="client" | module Eliom_content.Svg.D >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Raw"| module Eliom_content.Svg.F.Raw >> ~[<<a_api subproject="client" | module Eliom_content.Svg.F >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="React"| module Eliom_shared.React >> ~[<<a_api subproject="client" | module Eliom_shared >>~]|<<div class="odocwiki_info"|~Shared implementation of ~React~; client~-side behavior is like
     standard ~React
 >>

@@ -2,7 +2,7 @@
   type +'a t
   exception Client_value_creation_invalid_context of string
   val create_client_value :
-    ?loc:Eliom_lib.pos ->
+    loc:Eliom_lib.pos option ->
     instance_id:int -> 'a Eliom_runtime.Client_value_server_repr.t
   val client_value_from_server_repr :
     'a Eliom_runtime.Client_value_server_repr.t -> 'a Eliom_client_value.t

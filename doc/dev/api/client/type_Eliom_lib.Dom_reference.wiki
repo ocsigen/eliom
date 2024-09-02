@@ -1,0 +1,11 @@
+<<code language="ocaml" | sig
+  type key
+  val new_key : unit -> Eliom_lib.Dom_reference.key
+  val retain :
+    ?key:Eliom_lib.Dom_reference.key ->
+    'a Js_of_ocaml.Js.t -> keep:'b -> unit
+  val retain_generic :
+    ?key:Eliom_lib.Dom_reference.key -> 'a -> keep:'b -> unit
+  val release : key:Eliom_lib.Dom_reference.key -> 'a -> unit
+  val transfer : key:Eliom_lib.Dom_reference.key -> src:'a -> dst:'b -> unit
+end >>

@@ -21,6 +21,7 @@
     <<span class="odocwiki_inlinecode"|~Printexc~.to~_string>>~.
 >>
 
-~Event handlers like <<a_api | val Html_sigs.T.a_onclick >> may raise <<span class="odocwiki_inlinecode"|~False>> to cancel the event ~(as if the ~Java~Script
+~Event handlers like <<a_api | val Html_sigs.T.a_onclick
+    >>  may raise <<span class="odocwiki_inlinecode"|~False>> to cancel the event ~(as if the ~Java~Script
     function returned <<span class="odocwiki_inlinecode"|false>>~)~.
 <<pre id="EXCEPTIONFalse" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|exception>> <<span class="odocwiki_name"|False>>>>

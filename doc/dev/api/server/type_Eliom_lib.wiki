@@ -199,11 +199,17 @@
       type t = string
       val make : int -> char -> string
       val init : int -> (int -> char) -> string
+      val empty : string
+      val of_bytes : bytes -> string
+      val to_bytes : string -> bytes
       external length : string -> int = "%string_length"
       external get : string -> int -> char = "%string_safe_get"
       val concat : string -> string list -> string
+      val cat : string -> string -> string
       val equal : t -> t -> bool
       val compare : t -> t -> int
+      val starts_with : prefix:string -> string -> bool
+      val ends_with : suffix:string -> string -> bool
       val contains_from : string -> int -> char -> bool
       val rcontains_from : string -> int -> char -> bool
       val contains : string -> char -> bool
@@ -211,6 +217,10 @@
       val split_on_char : char -> string -> string list
       val map : (char -> char) -> string -> string
       val mapi : (int -> char -> char) -> string -> string
+      val fold_left : ('a -> char -> 'a) -> 'a -> string -> 'a
+      val fold_right : (char -> 'a -> 'a) -> string -> 'a -> 'a
+      val for_all : (char -> bool) -> string -> bool
+      val exists : (char -> bool) -> string -> bool
       val trim : string -> string
       val escaped : string -> string
       val uppercase_ascii : string -> string
@@ -230,6 +240,12 @@
       val to_seq : t -> char Seq.t
       val to_seqi : t -> (int * char) Seq.t
       val of_seq : char Seq.t -> t
+      val get_utf_8_uchar : t -> int -> Uchar.utf_decode
+      val is_valid_utf_8 : t -> bool
+      val get_utf_16be_uchar : t -> int -> Uchar.utf_decode
+      val is_valid_utf_16be : t -> bool
+      val get_utf_16le_uchar : t -> int -> Uchar.utf_decode
+      val is_valid_utf_16le : t -> bool
       external create : int -> bytes = "caml_create_string"
       external set : bytes -> int -> char -> unit = "%string_safe_set"
       val blit : string -> int -> bytes -> int -> int -> unit
@@ -239,6 +255,20 @@
       val lowercase : string -> string
       val capitalize : string -> string
       val uncapitalize : string -> string
+      val get_uint8 : string -> int -> int
+      val get_int8 : string -> int -> int
+      val get_uint16_ne : string -> int -> int
+      val get_uint16_be : string -> int -> int
+      val get_uint16_le : string -> int -> int
+      val get_int16_ne : string -> int -> int
+      val get_int16_be : string -> int -> int
+      val get_int16_le : string -> int -> int
+      val get_int32_ne : string -> int -> int32
+      val get_int32_be : string -> int -> int32
+      val get_int32_le : string -> int -> int32
+      val get_int64_ne : string -> int -> int64
+      val get_int64_be : string -> int -> int64
+      val get_int64_le : string -> int -> int64
       external unsafe_get : string -> int -> char = "%string_unsafe_get"
       external unsafe_set : bytes -> int -> char -> unit
         = "%string_unsafe_set"
@@ -420,11 +450,17 @@
       type t = string
       val make : int -> char -> string
       val init : int -> (int -> char) -> string
+      val empty : string
+      val of_bytes : bytes -> string
+      val to_bytes : string -> bytes
       external length : string -> int = "%string_length"
       external get : string -> int -> char = "%string_safe_get"
       val concat : string -> string list -> string
+      val cat : string -> string -> string
       val equal : t -> t -> bool
       val compare : t -> t -> int
+      val starts_with : prefix:string -> string -> bool
+      val ends_with : suffix:string -> string -> bool
       val contains_from : string -> int -> char -> bool
       val rcontains_from : string -> int -> char -> bool
       val contains : string -> char -> bool
@@ -432,6 +468,10 @@
       val split_on_char : char -> string -> string list
       val map : (char -> char) -> string -> string
       val mapi : (int -> char -> char) -> string -> string
+      val fold_left : ('a -> char -> 'a) -> 'a -> string -> 'a
+      val fold_right : (char -> 'a -> 'a) -> string -> 'a -> 'a
+      val for_all : (char -> bool) -> string -> bool
+      val exists : (char -> bool) -> string -> bool
       val trim : string -> string
       val escaped : string -> string
       val uppercase_ascii : string -> string
@@ -451,6 +491,12 @@
       val to_seq : t -> char Seq.t
       val to_seqi : t -> (int * char) Seq.t
       val of_seq : char Seq.t -> t
+      val get_utf_8_uchar : t -> int -> Uchar.utf_decode
+      val is_valid_utf_8 : t -> bool
+      val get_utf_16be_uchar : t -> int -> Uchar.utf_decode
+      val is_valid_utf_16be : t -> bool
+      val get_utf_16le_uchar : t -> int -> Uchar.utf_decode
+      val is_valid_utf_16le : t -> bool
       external create : int -> bytes = "caml_create_string"
       external set : bytes -> int -> char -> unit = "%string_safe_set"
       val blit : string -> int -> bytes -> int -> int -> unit
@@ -460,6 +506,20 @@
       val lowercase : string -> string
       val capitalize : string -> string
       val uncapitalize : string -> string
+      val get_uint8 : string -> int -> int
+      val get_int8 : string -> int -> int
+      val get_uint16_ne : string -> int -> int
+      val get_uint16_be : string -> int -> int
+      val get_uint16_le : string -> int -> int
+      val get_int16_ne : string -> int -> int
+      val get_int16_be : string -> int -> int
+      val get_int16_le : string -> int -> int
+      val get_int32_ne : string -> int -> int32
+      val get_int32_be : string -> int -> int32
+      val get_int32_le : string -> int -> int32
+      val get_int64_ne : string -> int -> int64
+      val get_int64_be : string -> int -> int64
+      val get_int64_le : string -> int -> int64
       external unsafe_get : string -> int -> char = "%string_unsafe_get"
       external unsafe_set : bytes -> int -> char -> unit
         = "%string_unsafe_set"
@@ -686,15 +746,15 @@
     end
   module Netstring_pcre :
     sig
-      val regexp : string -> Pcre.regexp
-      val matched_group : Pcre.substrings -> int -> string -> string
-      val matched_string : Pcre.substrings -> string -> string
-      val global_replace : Pcre.regexp -> string -> string -> string
+      val regexp : string -> Re.Pcre.regexp
+      val matched_group : Re.Pcre.groups -> int -> string -> string
+      val matched_string : Re.Pcre.groups -> string -> string
+      val global_replace : Re.Pcre.regexp -> string -> string -> string
       val search_forward :
-        Pcre.regexp -> string -> int -> int * Pcre.substrings
-      val split : Pcre.regexp -> string -> string list
+        Re.Pcre.regexp -> string -> int -> int * Re.Pcre.groups
+      val split : Re.Pcre.regexp -> string -> string list
       val string_match :
-        Pcre.regexp -> string -> int -> Pcre.substrings option
+        Re.Pcre.regexp -> string -> int -> Re.Pcre.groups option
     end
   module Date : sig val to_string : float -> string end
   exception Eliom_Internal_Error of string

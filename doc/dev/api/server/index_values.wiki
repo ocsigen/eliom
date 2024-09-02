@@ -18,6 +18,8 @@
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="acc_e"| value Eliom_shared_sigs.RLIST.acc_e >> ~[<<a_api subproject="server" | module Eliom_shared_sigs.RLIST >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="add_ignored_get_params"| value Eliom_config.add_ignored_get_params >> ~[<<a_api subproject="server" | module Eliom_config >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="add_ignored_post_params"| value Eliom_config.add_ignored_post_params >> ~[<<a_api subproject="server" | module Eliom_config >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="add_nl_parameter"| value Eliom_parameter_sigs.S.add_nl_parameter >> ~[<<a_api subproject="server" | module Eliom_parameter_sigs.S >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="add_non_localized_get_parameters"| value Eliom_service_sigs.S.add_non_localized_get_parameters >> ~[<<a_api subproject="server" | module Eliom_service_sigs.S >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|add~_non~_localized~_get~_parameters ~~params ~~service>>
       ~Adds non localized ~G~E~T parameters <<span class="odocwiki_inlinecode"|params>> to <<span class="odocwiki_inlinecode"|service>>~.
@@ -136,7 +138,9 @@
       coordinates of a point in an <<span class="odocwiki_inlinecode"|~<input type~="image" ~.~.~.~>>>~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="create"| value Eliom_service.create >> ~[<<a_api subproject="server" | module Eliom_service >>~]|<<div class="odocwiki_info"|**~Service definition**
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="create"| value Eliom_service.create >> ~[<<a_api subproject="server" | module Eliom_service >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|create ~~id ~~path ~(~)>> creates a service
+    ~(<<a_api subproject="server" | type Eliom_service_sigs.S.t >>~) identified as per <<span class="odocwiki_inlinecode"|path>> and accepting
+    parameters as per <<span class="odocwiki_inlinecode"|meth>>~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="create"| value Eliom_cscache.create >> ~[<<a_api subproject="server" | module Eliom_cscache >>~]|<<div class="odocwiki_info"|~Create a new table~.
@@ -318,7 +322,6 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="empty_wrapper"| value Eliom_wrap.empty_wrapper >> ~[<<a_api subproject="server" | module Eliom_wrap >>~]|<<div class="odocwiki_info"|a wrapper that do not change the value
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="end_init"| value Eliom_registration.end_init >> ~[<<a_api subproject="server" | module Eliom_registration >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="equal_identity"| value Eliom_notif.ARG.equal_identity >> ~[<<a_api subproject="server" | module Eliom_notif.ARG >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|equal~_identity>> is the same as <<span class="odocwiki_inlinecode"|equal~_key>> but for values of type
       <<span class="odocwiki_inlinecode"|identity>>~.
 >>
@@ -347,7 +350,6 @@
     the process~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="extension"| value Eliom_registration.extension >> ~[<<a_api subproject="server" | module Eliom_registration >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="extern"| value Eliom_service_sigs.S.extern >> ~[<<a_api subproject="server" | module Eliom_service_sigs.S >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|extern ~~prefix ~~path ~~meth ~(~)>> creates an external service~,
       i~.e~.~, a service implemented by a remote server ~(not necessarily
       running ~Ocsigen~/~Eliom~)~.
@@ -473,12 +475,13 @@
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_default_hostname"| value Eliom_config.get_default_hostname >> ~[<<a_api subproject="server" | module Eliom_config >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|get~_default~_hostname ~(~)>>returns the hostname
-    declared in the config file ~(<<span class="odocwiki_inlinecode"|~<host defaulthostname~="~.~.~."~>>>~) or
-    the default machine hostname~.
+   declared in the config file ~(<<span class="odocwiki_inlinecode"|~<host defaulthostname~="~.~.~."~>>>~) or
+   the default machine hostname~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_default_port"| value Eliom_config.get_default_port >> ~[<<a_api subproject="server" | module Eliom_config >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|get~_default~_port ~(~)>> returns the port number
-    declared in the config file ~(<<span class="odocwiki_inlinecode"|~<host defaulthttpport~="~.~.~."~>>>~) or
+   declared in the config file ~(<<span class="odocwiki_inlinecode"|~<host defaulthttpport~="~.~.~."~>>>~) or
+   ~-~> unit
     ~8~0 if undeclared~.
 >>
 |
@@ -640,6 +643,9 @@
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_site_dir"| value Eliom_request_info.get_site_dir >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns the root of the site~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_site_dir_option"| value Eliom_request_info.get_site_dir_option >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]|<<div class="odocwiki_info"|returns the root of the site~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_sitedata"| value Eliom_request_info.get_sitedata >> ~[<<a_api subproject="server" | module Eliom_request_info >>~]||
@@ -1070,9 +1076,15 @@
       with the same name~.
 >>
 |
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_application_script"| value Eliom_config.set_application_script >> ~[<<a_api subproject="server" | module Eliom_config >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_cache_global_data"| value Eliom_config.set_cache_global_data >> ~[<<a_api subproject="server" | module Eliom_config >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_cookie"| value Eliom_state.set_cookie >> ~[<<a_api subproject="server" | module Eliom_state >>~]|<<div class="odocwiki_info"|~Ask the browser to record a cookie~.
 >>
 |
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_data_session_gc_frequency"| value Eliom_config.set_data_session_gc_frequency >> ~[<<a_api subproject="server" | module Eliom_config >>~]|<<div class="odocwiki_info"|~Set frequency for garbage collection of in memory data sessions~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_data_timeout"| value Eliom_config.set_data_timeout >> ~[<<a_api subproject="server" | module Eliom_config >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_default_global_persistent_data_state_timeout"| value Eliom_state.set_default_global_persistent_data_state_timeout >> ~[<<a_api subproject="server" | module Eliom_state >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_default_global_service_state_timeout"| value Eliom_state.set_default_global_service_state_timeout >> ~[<<a_api subproject="server" | module Eliom_state >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_default_global_volatile_data_state_timeout"| value Eliom_state.set_default_global_volatile_data_state_timeout >> ~[<<a_api subproject="server" | module Eliom_state >>~]||
@@ -1145,25 +1157,35 @@
     service session and volatile data session~)~.
 >>
 |
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_html_content_type"| value Eliom_config.set_html_content_type >> ~[<<a_api subproject="server" | module Eliom_config >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_ipv4_subnet_mask"| value Eliom_state.set_ipv4_subnet_mask >> ~[<<a_api subproject="server" | module Eliom_state >>~]|<<div class="odocwiki_info"|~Sets the mask for subnet ~(~I~P~V~4~)~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_ipv6_subnet_mask"| value Eliom_state.set_ipv6_subnet_mask >> ~[<<a_api subproject="server" | module Eliom_state >>~]|<<div class="odocwiki_info"|~Sets the mask for subnet ~(~I~P~V~6~)~.
 >>
 |
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_max_anonymous_services_per_session"| value Eliom_config.set_max_anonymous_services_per_session >> ~[<<a_api subproject="server" | module Eliom_config >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_max_persistent_data_sessions_per_group"| value Eliom_config.set_max_persistent_data_sessions_per_group >> ~[<<a_api subproject="server" | module Eliom_config >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_max_persistent_data_tab_sessions_per_group"| value Eliom_config.set_max_persistent_data_tab_sessions_per_group >> ~[<<a_api subproject="server" | module Eliom_config >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_max_service_sessions_per_group"| value Eliom_config.set_max_service_sessions_per_group >> ~[<<a_api subproject="server" | module Eliom_config >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_max_service_states_for_group_or_subnet"| value Eliom_state.set_max_service_states_for_group_or_subnet >> ~[<<a_api subproject="server" | module Eliom_state >>~]|<<div class="odocwiki_info"|~Sets the maximum number of service sessions in the current session
     group ~(or for the client sub network~, if there is no group~)~.
 >>
 |
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_max_service_tab_sessions_per_group"| value Eliom_config.set_max_service_tab_sessions_per_group >> ~[<<a_api subproject="server" | module Eliom_config >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_max_volatile_data_sessions_per_group"| value Eliom_config.set_max_volatile_data_sessions_per_group >> ~[<<a_api subproject="server" | module Eliom_config >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_max_volatile_data_states_for_group_or_subnet"| value Eliom_state.set_max_volatile_data_states_for_group_or_subnet >> ~[<<a_api subproject="server" | module Eliom_state >>~]|<<div class="odocwiki_info"|~Sets the maximum number of volatile data sessions in the current session
     group ~(or for the client sub network~, if there is no group~)~.
 >>
 |
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_max_volatile_data_tab_sessions_per_group"| value Eliom_config.set_max_volatile_data_tab_sessions_per_group >> ~[<<a_api subproject="server" | module Eliom_config >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_max_volatile_groups_per_site"| value Eliom_config.set_max_volatile_groups_per_site >> ~[<<a_api subproject="server" | module Eliom_config >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_max_volatile_states_for_group_or_subnet"| value Eliom_state.set_max_volatile_states_for_group_or_subnet >> ~[<<a_api subproject="server" | module Eliom_state >>~]|<<div class="odocwiki_info"|~Sets the maximum number of volatile sessions
     ~(both data and service sessions~) in the current
     group ~(or for the client sub network~, if there is no group~)~.
 >>
 |
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_omitpersistentstorage"| value Eliom_config.set_omitpersistentstorage >> ~[<<a_api subproject="server" | module Eliom_config >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_persistent_data"| value Eliom_state.Ext.Low_level.set_persistent_data >> ~[<<a_api subproject="server" | module Eliom_state.Ext.Low_level >>~]|<<div class="odocwiki_info"|~Fails with lwt exception <<span class="odocwiki_inlinecode"|~Not~_found>>
         if no data in the table for the cookie~.
 >>
@@ -1180,16 +1202,29 @@
    in seconds~.
 >>
 |
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_persistent_session_gc_frequency"| value Eliom_config.set_persistent_session_gc_frequency >> ~[<<a_api subproject="server" | module Eliom_config >>~]|<<div class="odocwiki_info"|~Set frequency for garbage collection of persistent data sessions~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_persistent_timeout"| value Eliom_config.set_persistent_timeout >> ~[<<a_api subproject="server" | module Eliom_config >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_secure_cookies"| value Eliom_config.set_secure_cookies >> ~[<<a_api subproject="server" | module Eliom_config >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_service_cookie_exp_date"| value Eliom_state.set_service_cookie_exp_date >> ~[<<a_api subproject="server" | module Eliom_state >>~]|<<div class="odocwiki_info"|~Sets the cookie expiration date for the current service state
     ~(see above~)~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_service_cookie_timeout"| value Eliom_state.Ext.set_service_cookie_timeout >> ~[<<a_api subproject="server" | module Eliom_state.Ext >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_service_session_gc_frequency"| value Eliom_config.set_service_session_gc_frequency >> ~[<<a_api subproject="server" | module Eliom_config >>~]|<<div class="odocwiki_info"|~Set frequency for garbage collection of service sessions~.
+>>
+|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_service_session_group"| value Eliom_state.set_service_session_group >> ~[<<a_api subproject="server" | module Eliom_state >>~]|<<div class="odocwiki_info"|sets the group to which belong the service session~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_service_state_timeout"| value Eliom_state.set_service_state_timeout >> ~[<<a_api subproject="server" | module Eliom_state >>~]|<<div class="odocwiki_info"|sets the timeout for service state ~(server side~) for current user~,
    in seconds~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_service_timeout"| value Eliom_config.set_service_timeout >> ~[<<a_api subproject="server" | module Eliom_config >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_session_gc_frequency"| value Eliom_config.set_session_gc_frequency >> ~[<<a_api subproject="server" | module Eliom_config >>~]|<<div class="odocwiki_info"|~Set frequency 
+    for garnage collection of both in memory data and service sessions~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_volatile_data"| value Eliom_state.Ext.Low_level.set_volatile_data >> ~[<<a_api subproject="server" | module Eliom_state.Ext.Low_level >>~]||
@@ -1205,6 +1240,7 @@
    in seconds~.
 >>
 |
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_volatile_timeout"| value Eliom_config.set_volatile_timeout >> ~[<<a_api subproject="server" | module Eliom_config >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="signal"| value Eliom_shared_sigs.RLIST.signal >> ~[<<a_api subproject="server" | module Eliom_shared_sigs.RLIST >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="singleton_s"| value Eliom_shared_sigs.RLIST.singleton_s >> ~[<<a_api subproject="server" | module Eliom_shared_sigs.RLIST >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="site_scope"| value Eliom_common.site_scope >> ~[<<a_api subproject="server" | module Eliom_common >>~]||

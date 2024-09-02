@@ -6,7 +6,7 @@
       val client_dir : Ocamlbuild_plugin.Pathname.t
     end
   module Make :
-    functor (Eliom : ELIOM) ->
+    ELIOM ->
       sig
         val dispatcher :
           ?oasis_executables:Ocamlbuild_plugin.Pathname.t list ->
@@ -18,7 +18,7 @@
       val with_package : string -> string
     end
   module MakeIntern :
-    functor (I : INTERNALS) (Eliom : ELIOM) ->
+    INTERNALS -> ELIOM ->
       sig
         val dispatcher :
           ?oasis_executables:Ocamlbuild_plugin.Pathname.t list ->

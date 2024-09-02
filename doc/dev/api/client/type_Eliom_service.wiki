@@ -250,4 +250,5 @@
     ('a, 'b, 'c, 'd, 'e, 'f, 'g, [< `WithSuffix | `WithoutSuffix ], 'h, 'i,
      'j)
     t -> ('a -> unit -> result Lwt.t) Eliom_client_value.t option
+  module Cohttp : sig module Header : sig type t end end
 end >>

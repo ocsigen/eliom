@@ -8,7 +8,7 @@
     ?charset:string ->
     ?code:int ->
     ?content_type:string ->
-    ?headers:Cohttp.Header.t ->
+    ?headers:Eliom_service.Cohttp.Header.t ->
     Eliom_registration_sigs.PARAM.page ->
     Eliom_registration_sigs.PARAM.frame Lwt.t
   val send_appl_content : Eliom_service.send_appl_content

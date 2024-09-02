@@ -10,7 +10,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Cohttp.Header.t ->
+        ?headers:Eliom_service.Cohttp.Header.t ->
         Eliom_registration_sigs.PARAM.page ->
         Eliom_registration_sigs.PARAM.frame Lwt.t
       val send_appl_content : Eliom_service.send_appl_content
@@ -29,7 +29,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Cohttp.Header.t ->
+        ?headers:Eliom_service.Cohttp.Header.t ->
         'a Eliom_registration_sigs.PARAM_POLY.page ->
         Eliom_registration_sigs.PARAM_POLY.frame Lwt.t
       val send_appl_content : Eliom_service.send_appl_content
@@ -52,7 +52,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Cohttp.Header.t ->
+        ?headers:Eliom_service.Cohttp.Header.t ->
         ?secure_session:bool ->
         service:('get, 'post, 'a, 'b, 'c, Eliom_service.non_ext,
                  Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'd,
@@ -66,7 +66,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Cohttp.Header.t ->
+        ?headers:Eliom_service.Cohttp.Header.t ->
         Eliom_registration_sigs.S.page ->
         Eliom_registration_sigs.S.result Lwt.t
     end
@@ -83,7 +83,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Cohttp.Header.t ->
+        ?headers:Eliom_service.Cohttp.Header.t ->
         ?secure_session:bool ->
         service:('get, 'post, 'a, 'b, 'c, Eliom_service.non_ext,
                  Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'd,
@@ -96,7 +96,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Cohttp.Header.t -> page -> result Lwt.t
+        ?headers:Eliom_service.Cohttp.Header.t -> page -> result Lwt.t
       val create :
         ?app:string ->
         ?scope:[< Eliom_common.scope ] ->
@@ -104,7 +104,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Cohttp.Header.t ->
+        ?headers:Eliom_service.Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -129,7 +129,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Cohttp.Header.t ->
+        ?headers:Eliom_service.Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -156,7 +156,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Cohttp.Header.t ->
+        ?headers:Eliom_service.Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -190,7 +190,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Cohttp.Header.t ->
+        ?headers:Eliom_service.Cohttp.Header.t ->
         ?secure_session:bool ->
         service:('get, 'post, 'b, 'c, 'd, Eliom_service.non_ext,
                  Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'e,
@@ -213,7 +213,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Cohttp.Header.t ->
+        ?headers:Eliom_service.Cohttp.Header.t ->
         ?secure_session:bool ->
         service:('get, 'post, 'b, 'c, 'd, Eliom_service.non_ext,
                  Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'e,
@@ -228,7 +228,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Cohttp.Header.t ->
+        ?headers:Eliom_service.Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -253,7 +253,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Cohttp.Header.t ->
+        ?headers:Eliom_service.Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -280,7 +280,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Cohttp.Header.t ->
+        ?headers:Eliom_service.Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -314,7 +314,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Cohttp.Header.t ->
+        ?headers:Eliom_service.Cohttp.Header.t ->
         ?secure_session:bool ->
         service:('get, 'post, 'b, 'c, 'd, Eliom_service.non_ext,
                  Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'e,
@@ -328,7 +328,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Cohttp.Header.t ->
+        ?headers:Eliom_service.Cohttp.Header.t ->
         'a page -> 'a Eliom_registration_sigs.S_poly_with_send.result Lwt.t
     end
   module type S_poly_with_create_with_send =
@@ -343,7 +343,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Cohttp.Header.t ->
+        ?headers:Eliom_service.Cohttp.Header.t ->
         ?secure_session:bool ->
         service:('get, 'post, 'b, 'c, 'd, Eliom_service.non_ext,
                  Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'e,
@@ -358,7 +358,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Cohttp.Header.t ->
+        ?headers:Eliom_service.Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -383,7 +383,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Cohttp.Header.t ->
+        ?headers:Eliom_service.Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -410,7 +410,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Cohttp.Header.t ->
+        ?headers:Eliom_service.Cohttp.Header.t ->
         ?secure_session:bool ->
         ?https:bool ->
         ?name:string ->
@@ -437,7 +437,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Cohttp.Header.t ->
+        ?headers:Eliom_service.Cohttp.Header.t ->
         'a page ->
         'a Eliom_registration_sigs.S_poly_with_create_with_send.result Lwt.t
     end

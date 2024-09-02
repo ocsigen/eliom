@@ -1,4 +1,4 @@
-<<code language="ocaml" | functor (P : Eliom_registration_sigs.APP_PARAM) ->
+<<code language="ocaml" | Eliom_registration_sigs.APP_PARAM ->
   sig
     val application_name : string
     type app_id
@@ -13,7 +13,7 @@
       ?charset:string ->
       ?code:int ->
       ?content_type:string ->
-      ?headers:Cohttp.Header.t ->
+      ?headers:Eliom_service.Cohttp.Header.t ->
       ?secure_session:bool ->
       service:('get, 'post, 'a, 'b, 'c, Eliom_service.non_ext,
                Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'd, 'e,
@@ -26,5 +26,5 @@
       ?charset:string ->
       ?code:int ->
       ?content_type:string ->
-      ?headers:Cohttp.Header.t -> page -> result Lwt.t
+      ?headers:Eliom_service.Cohttp.Header.t -> page -> result Lwt.t
   end >>

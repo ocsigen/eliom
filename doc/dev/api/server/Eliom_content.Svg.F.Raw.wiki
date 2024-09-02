@@ -1,4 +1,5 @@
 =Module <<a_api_type subproject="server" | module Eliom_content.Svg.F.Raw >> =
-<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Raw>>>> <<span class="ocsforge_color_delimiter"|~:>> \\  <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Svg_sigs.Make>>(Xml).T>><<span class="odocwiki_type"| \\        with type +'a elt = 'a elt\\         and type +'a attrib = 'a attrib>>>>~See <<a_api project="tyxml" | module Html_sigs.T >> ~.
-
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Raw>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_content.Svg.F.Raw >><<span class="ocsforge_color_keyword"|end>>>>
 ----
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> Eliom_content.Svg.F.Raw'>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> ??>>

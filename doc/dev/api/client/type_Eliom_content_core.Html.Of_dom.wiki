@@ -66,6 +66,9 @@
     [> Html_types.dl ] elt
   val of_li :
     Js_of_ocaml.Dom_html.liElement Js_of_ocaml.Js.t -> [> Html_types.li ] elt
+  val of_dialog :
+    Js_of_ocaml.Dom_html.dialogElement Js_of_ocaml.Js.t ->
+    [> Html_types.dialog ] elt
   val of_div :
     Js_of_ocaml.Dom_html.divElement Js_of_ocaml.Js.t ->
     [> Html_types.div ] elt

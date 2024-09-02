@@ -9,7 +9,7 @@
     ?charset:string ->
     ?code:int ->
     ?content_type:string ->
-    ?headers:Cohttp.Header.t ->
+    ?headers:Eliom_service.Cohttp.Header.t ->
     ?secure_session:bool ->
     service:('get, 'post, 'b, 'c, 'd, Eliom_service.non_ext,
              Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'e, 'f,
@@ -24,7 +24,7 @@
     ?charset:string ->
     ?code:int ->
     ?content_type:string ->
-    ?headers:Cohttp.Header.t ->
+    ?headers:Eliom_service.Cohttp.Header.t ->
     ?secure_session:bool ->
     ?https:bool ->
     ?name:string ->
@@ -49,7 +49,7 @@
     ?charset:string ->
     ?code:int ->
     ?content_type:string ->
-    ?headers:Cohttp.Header.t ->
+    ?headers:Eliom_service.Cohttp.Header.t ->
     ?secure_session:bool ->
     ?https:bool ->
     ?name:string ->
@@ -76,7 +76,7 @@
     ?charset:string ->
     ?code:int ->
     ?content_type:string ->
-    ?headers:Cohttp.Header.t ->
+    ?headers:Eliom_service.Cohttp.Header.t ->
     ?secure_session:bool ->
     ?https:bool ->
     ?name:string ->
@@ -102,7 +102,7 @@
     ?charset:string ->
     ?code:int ->
     ?content_type:string ->
-    ?headers:Cohttp.Header.t ->
+    ?headers:Eliom_service.Cohttp.Header.t ->
     'a page ->
     'a Eliom_registration_sigs.S_poly_with_create_with_send.result Lwt.t
 end >>

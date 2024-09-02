@@ -15,7 +15,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Cohttp.Header.t ->
+        ?headers:Eliom_service.Cohttp.Header.t ->
         ?secure_session:bool ->
         service:('get, 'post, 'a, 'b, 'c, Eliom_service.non_ext,
                  Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'd,
@@ -28,7 +28,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Cohttp.Header.t -> page -> result Lwt.t
+        ?headers:Eliom_service.Cohttp.Header.t -> page -> result Lwt.t
     end
   module Action :
     sig
@@ -43,7 +43,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Cohttp.Header.t ->
+        ?headers:Eliom_service.Cohttp.Header.t ->
         ?secure_session:bool ->
         service:('get, 'post, 'a, 'b, 'c, Eliom_service.non_ext,
                  Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'd,
@@ -56,7 +56,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Cohttp.Header.t -> page -> result Lwt.t
+        ?headers:Eliom_service.Cohttp.Header.t -> page -> result Lwt.t
     end
   module Unit :
     sig
@@ -71,7 +71,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Cohttp.Header.t ->
+        ?headers:Eliom_service.Cohttp.Header.t ->
         ?secure_session:bool ->
         service:('get, 'post, 'a, 'b, 'c, Eliom_service.non_ext,
                  Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'd,
@@ -84,11 +84,11 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Cohttp.Header.t -> page -> result Lwt.t
+        ?headers:Eliom_service.Cohttp.Header.t -> page -> result Lwt.t
     end
   type appl_service_options = { do_not_launch : bool; }
   module App :
-    functor (P : Eliom_registration_sigs.APP_PARAM) ->
+    Eliom_registration_sigs.APP_PARAM ->
       sig
         val application_name : string
         type app_id
@@ -103,7 +103,7 @@
           ?charset:string ->
           ?code:int ->
           ?content_type:string ->
-          ?headers:Cohttp.Header.t ->
+          ?headers:Eliom_service.Cohttp.Header.t ->
           ?secure_session:bool ->
           service:('get, 'post, 'a, 'b, 'c, Eliom_service.non_ext,
                    Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'd,
@@ -116,7 +116,7 @@
           ?charset:string ->
           ?code:int ->
           ?content_type:string ->
-          ?headers:Cohttp.Header.t -> page -> result Lwt.t
+          ?headers:Eliom_service.Cohttp.Header.t -> page -> result Lwt.t
       end
   type _ redirection =
       Redirection :
@@ -141,7 +141,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Cohttp.Header.t ->
+        ?headers:Eliom_service.Cohttp.Header.t ->
         ?secure_session:bool ->
         service:('get, 'post, 'b, 'c, 'd, Eliom_service.non_ext,
                  Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'e,
@@ -155,7 +155,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Cohttp.Header.t -> 'a page -> 'a result Lwt.t
+        ?headers:Eliom_service.Cohttp.Header.t -> 'a page -> 'a result Lwt.t
     end
   module Any :
     sig
@@ -169,7 +169,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Cohttp.Header.t ->
+        ?headers:Eliom_service.Cohttp.Header.t ->
         ?secure_session:bool ->
         service:('get, 'post, 'b, 'c, 'd, Eliom_service.non_ext,
                  Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'e,
@@ -183,7 +183,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Cohttp.Header.t -> 'a page -> 'a result Lwt.t
+        ?headers:Eliom_service.Cohttp.Header.t -> 'a page -> 'a result Lwt.t
     end
   val appl_self_redirect :
     ('page -> [< `Appl of 'a | `Browser ] Eliom_registration.kind Lwt.t) ->

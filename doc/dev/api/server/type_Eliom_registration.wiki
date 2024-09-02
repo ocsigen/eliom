@@ -234,8 +234,7 @@
     end
   val transform_global_app_uri :
     (Eliom_content.Html.uri -> Eliom_content.Html.uri) Stdlib.ref
-  module App :
-    functor (App_params : Eliom_registration_sigs.APP_PARAM) -> APP
+  module App : Eliom_registration_sigs.APP_PARAM -> APP
   module type TMPL_PARAMS =
     sig
       type t
@@ -1799,6 +1798,4 @@
     Eliom_registration.unknown_content Eliom_registration.kind ->
     'a Eliom_registration.kind
   val cast_http_result : Ocsigen_response.t -> 'a Eliom_registration.kind
-  val extension : Ocsigen_server.Site.extension
-  val end_init : unit -> unit
 end >>

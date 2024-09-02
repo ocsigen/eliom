@@ -1,18 +1,4 @@
 =~Server ~A~P~I
-==[[server/Eliom_lib|Eliom_lib]]
-==[[server/Eliom_client|Eliom_client]]
-==[[server/Eliom_client_value|Eliom_client_value]]
-==[[server/Eliom_common|Eliom_common]]
-==[[server/Eliom_config|Eliom_config]]
-==[[server/Eliom_request_info|Eliom_request_info]]
-==[[server/Eliom_reference|Eliom_reference]]
-==[[server/Eliom_state|Eliom_state]]
-==~Content and form creation
-===[[server/Eliom_content|Eliom_content]]
-===[[server/Eliom_content.Html|Eliom_content.Html]]
-===[[server/Eliom_content.Svg|Eliom_content.Svg]]
-===[[server/Eliom_content.Xml|Eliom_content.Xml]]
-===[[server/Eliom_tools|Eliom_tools]]
 ==~Service creation
 ===[[server/Eliom_service|Eliom_service]]
 ===[[server/Eliom_parameter|Eliom_parameter]]
@@ -24,7 +10,22 @@
 ===[[server/Eliom_registration.File|Eliom_registration.File]]
 ===[[server/Eliom_registration.Any|Eliom_registration.Any]]
 ===[[server/Eliom_registration.Redirection|Eliom_registration.Redirection]]
+==~Content and form creation
+===[[server/Eliom_content|Eliom_content]]
+===[[server/Eliom_content.Html|Eliom_content.Html]]
+===[[server/Eliom_content.Svg|Eliom_content.Svg]]
+===[[server/Eliom_content.Xml|Eliom_content.Xml]]
+===[[server/Eliom_tools|Eliom_tools]]
+==~Server side state~, requests~, misc
+===[[server/Eliom_reference|Eliom_reference]]
+===[[server/Eliom_state|Eliom_state]]
+===[[server/Eliom_config|Eliom_config]]
+===[[server/Eliom_request_info|Eliom_request_info]]
+===[[server/Eliom_common|Eliom_common]]
+===[[server/Eliom_lib|Eliom_lib]]
 ==~Client~/server communication
+===[[server/Eliom_client|Eliom_client]]
+===[[server/Eliom_client_value|Eliom_client_value]]
 ===[[server/Eliom_shared|Eliom_shared]]
 ===[[server/Eliom_notif|Eliom_notif]]
 ===[[server/Eliom_cscache|Eliom_cscache]]

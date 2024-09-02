@@ -89,6 +89,7 @@
       val a_oncanplaythrough :
         Xml.event_handler -> [> `OnCanPlayThrough ] attrib
       val a_onchange : Xml.event_handler -> [> `OnChange ] attrib
+      val a_onclose : Xml.event_handler -> [> `OnClose ] attrib
       val a_ondurationchange :
         Xml.event_handler -> [> `OnDurationChange ] attrib
       val a_onemptied : Xml.event_handler -> [> `OnEmptied ] attrib
@@ -163,7 +164,8 @@
       val a_onkeyup : Xml.keyboard_event_handler -> [> `OnKeyUp ] attrib
       val a_allowfullscreen : unit -> [> `Allowfullscreen ] attrib
       val a_allowpaymentrequest : unit -> [> `Allowpaymentrequest ] attrib
-      val a_autocomplete : bool wrap -> [> `Autocomplete ] attrib
+      val a_autocomplete :
+        Html_types.autocomplete_option wrap -> [> `Autocomplete ] attrib
       val a_async : unit -> [> `Async ] attrib
       val a_autofocus : unit -> [> `Autofocus ] attrib
       val a_autoplay : unit -> [> `Autoplay ] attrib
@@ -271,7 +273,7 @@
       val a_maxlength : Html_types.number wrap -> [> `Maxlength ] attrib
       val a_minlength : Html_types.number wrap -> [> `Minlength ] attrib
       val a_method : [< `Get | `Post ] wrap -> [> `Method ] attrib
-      val a_formmethod : [< `Get | `Post ] wrap -> [> `Method ] attrib
+      val a_formmethod : [< `Get | `Post ] wrap -> [> `Formmethod ] attrib
       val a_multiple : unit -> [> `Multiple ] attrib
       val a_name : Html_types.text wrap -> [> `Name ] attrib
       val a_rows : Html_types.number wrap -> [> `Rows ] attrib
@@ -312,6 +314,8 @@
       val a_readonly : unit -> [> `ReadOnly ] attrib
       val a_button_type :
         [< `Button | `Reset | `Submit ] wrap -> [> `Button_Type ] attrib
+      val a_script_type :
+        Html_types.script_type wrap -> [> `Script_type ] attrib
       val a_command_type :
         [< `Checkbox | `Command | `Radio ] wrap -> [> `Command_Type ] attrib
       val a_menu_type :
@@ -448,6 +452,10 @@
       val blockquote :
         ([< Html_types.blockquote_attrib ],
          [< Html_types.blockquote_content_fun ], [> Html_types.blockquote ])
+        star
+      val dialog :
+        ([< Html_types.dialog_attrib ], [< Html_types.dialog_content_fun ],
+         [> Html_types.dialog ])
         star
       val div :
         ([< Html_types.div_attrib ], [< Html_types.div_content_fun ],
@@ -629,6 +637,7 @@
           | `OnCanPlayThrough
           | `OnChange
           | `OnClick
+          | `OnClose
           | `OnContextMenu
           | `OnDblClick
           | `OnDrag
@@ -960,6 +969,7 @@
   val a_oncanplay : Xml.event_handler -> [> `OnCanPlay ] attrib
   val a_oncanplaythrough : Xml.event_handler -> [> `OnCanPlayThrough ] attrib
   val a_onchange : Xml.event_handler -> [> `OnChange ] attrib
+  val a_onclose : Xml.event_handler -> [> `OnClose ] attrib
   val a_ondurationchange : Xml.event_handler -> [> `OnDurationChange ] attrib
   val a_onemptied : Xml.event_handler -> [> `OnEmptied ] attrib
   val a_onended : Xml.event_handler -> [> `OnEnded ] attrib
@@ -1028,7 +1038,8 @@
   val a_onkeyup : Xml.keyboard_event_handler -> [> `OnKeyUp ] attrib
   val a_allowfullscreen : unit -> [> `Allowfullscreen ] attrib
   val a_allowpaymentrequest : unit -> [> `Allowpaymentrequest ] attrib
-  val a_autocomplete : bool wrap -> [> `Autocomplete ] attrib
+  val a_autocomplete :
+    Html_types.autocomplete_option wrap -> [> `Autocomplete ] attrib
   val a_async : unit -> [> `Async ] attrib
   val a_autofocus : unit -> [> `Autofocus ] attrib
   val a_autoplay : unit -> [> `Autoplay ] attrib
@@ -1127,7 +1138,7 @@
   val a_maxlength : Html_types.number wrap -> [> `Maxlength ] attrib
   val a_minlength : Html_types.number wrap -> [> `Minlength ] attrib
   val a_method : [< `Get | `Post ] wrap -> [> `Method ] attrib
-  val a_formmethod : [< `Get | `Post ] wrap -> [> `Method ] attrib
+  val a_formmethod : [< `Get | `Post ] wrap -> [> `Formmethod ] attrib
   val a_multiple : unit -> [> `Multiple ] attrib
   val a_name : Html_types.text wrap -> [> `Name ] attrib
   val a_rows : Html_types.number wrap -> [> `Rows ] attrib
@@ -1168,6 +1179,7 @@
   val a_readonly : unit -> [> `ReadOnly ] attrib
   val a_button_type :
     [< `Button | `Reset | `Submit ] wrap -> [> `Button_Type ] attrib
+  val a_script_type : Html_types.script_type wrap -> [> `Script_type ] attrib
   val a_command_type :
     [< `Checkbox | `Command | `Radio ] wrap -> [> `Command_Type ] attrib
   val a_menu_type : [< `Context | `Toolbar ] wrap -> [> `Menu_Type ] attrib
@@ -1300,6 +1312,10 @@
   val blockquote :
     ([< Html_types.blockquote_attrib ],
      [< Html_types.blockquote_content_fun ], [> Html_types.blockquote ])
+    star
+  val dialog :
+    ([< Html_types.dialog_attrib ], [< Html_types.dialog_content_fun ],
+     [> Html_types.dialog ])
     star
   val div :
     ([< Html_types.div_attrib ], [< Html_types.div_content_fun ],
@@ -1479,6 +1495,7 @@
       | `OnCanPlayThrough
       | `OnChange
       | `OnClick
+      | `OnClose
       | `OnContextMenu
       | `OnDblClick
       | `OnDrag

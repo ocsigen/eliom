@@ -1,4 +1,4 @@
-<<code language="ocaml" | functor (Eliom : ELIOM) ->
+<<code language="ocaml" | ELIOM ->
   sig
     val dispatcher :
       ?oasis_executables:Ocamlbuild_plugin.Pathname.t list ->

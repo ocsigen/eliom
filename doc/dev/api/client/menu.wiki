@@ -1,11 +1,7 @@
 =~Client ~A~P~I
-==[[client/Eliom_lib|Eliom_lib]]
 ==[[client/Eliom_client|Eliom_client]]
 ==[[client/Eliom_client_value|Eliom_client_value]]
-==~Content and form creation
-===[[client/Eliom_content.Html|Eliom_content.Html]]
-===[[client/Eliom_content.Svg|Eliom_content.Svg]]
-===[[client/Eliom_content.Xml|Eliom_content.Xml]]
+==[[client/Eliom_lib|Eliom_lib]]
 ==~Client~/server communication
 ===[[client/Eliom_service|Eliom_service]]
 ===[[client/Eliom_shared|Eliom_shared]]
@@ -13,6 +9,10 @@
 ===[[client/Eliom_bus|Eliom_bus]]
 ===[[client/Eliom_comet|Eliom_comet]]
 ===[[client/Eliom_react|Eliom_react]]
+==~Content and form creation
+===[[client/Eliom_content.Html|Eliom_content.Html]]
+===[[client/Eliom_content.Svg|Eliom_content.Svg]]
+===[[client/Eliom_content.Xml|Eliom_content.Xml]]
 ==~Index
 === <<a_api subproject="client" text="Index of types" | index types >>
 === <<a_api subproject="client" text="Index of exceptions" | index exceptions >>

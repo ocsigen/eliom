@@ -1,4 +1,36 @@
 <<code language="ocaml" | sig
+  val set_session_gc_frequency : int option -> unit
+  val set_service_session_gc_frequency : int option -> unit
+  val set_data_session_gc_frequency : int option -> unit
+  val set_persistent_session_gc_frequency : int option -> unit
+  val set_volatile_timeout :
+    ?scope_hierarchy:Eliom_common.scope_hierarchy ->
+    cookie_level:[< `Client_process | `Session ] -> int option -> unit
+  val set_data_timeout :
+    ?scope_hierarchy:Eliom_common.scope_hierarchy ->
+    cookie_level:[< `Client_process | `Session ] -> int option -> unit
+  val set_service_timeout :
+    ?scope_hierarchy:Eliom_common.scope_hierarchy ->
+    cookie_level:[< `Client_process | `Session ] -> int option -> unit
+  val set_persistent_timeout :
+    ?scope_hierarchy:Eliom_common.scope_hierarchy ->
+    cookie_level:[< `Client_process | `Session ] -> int option -> unit
+  val set_max_service_sessions_per_group : int -> unit
+  val set_max_volatile_data_sessions_per_group : int -> unit
+  val set_max_persistent_data_sessions_per_group : int -> unit
+  val set_max_service_tab_sessions_per_group : int -> unit
+  val set_max_volatile_data_tab_sessions_per_group : int -> unit
+  val set_max_persistent_data_tab_sessions_per_group : int -> unit
+  val set_max_anonymous_services_per_session : int -> unit
+  val set_max_volatile_groups_per_site : int -> unit
+  val set_secure_cookies : bool -> unit
+  val set_application_script : bool * bool -> unit
+  val set_cache_global_data : (Eliom_lib.Url.path * int) option -> unit
+  val set_html_content_type : string -> unit
+  val add_ignored_get_params : string * Re.re -> unit
+  val add_ignored_post_params : string * Re.re -> unit
+  val set_omitpersistentstorage :
+    Eliom_common.omitpersistentstorage_rule list option -> unit
   val get_default_hostname : unit -> string
   val get_default_port : unit -> int
   val get_default_sslport : unit -> int

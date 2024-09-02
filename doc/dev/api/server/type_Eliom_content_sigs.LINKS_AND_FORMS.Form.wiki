@@ -167,6 +167,7 @@
         | `OnCanPlayThrough
         | `OnChange
         | `OnClick
+        | `OnClose
         | `OnContextMenu
         | `OnDblClick
         | `OnDrag

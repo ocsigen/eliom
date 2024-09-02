@@ -5,32 +5,13 @@
 
 
 
-|<<a_api subproject="client" | module Eliom_lib >>|<<div class="odocwiki_info"|~Eliom standard library
->>
-|
 |<<a_api subproject="client" | module Eliom_client >>|<<div class="odocwiki_info"|~Call server side services and change the current page~.
 >>
 |
 |<<a_api subproject="client" | module Eliom_client_value >>|<<div class="odocwiki_info"|~Client and shared values
 >>
 |
-
-
-
-
-
-==@@id="2_Contentandformcreation"@@~Content and form creation==
-
-
-
-
-|<<a_api subproject="client" | module Eliom_content.Html >>|<<div class="odocwiki_info"|~Building valid ~(~X~)~H~T~M~L~5~.
->>
-|
-|<<a_api subproject="client" | module Eliom_content.Svg >>|<<div class="odocwiki_info"|~Building valid ~S~V~G ~.
->>
-|
-|<<a_api subproject="client" | module Eliom_content.Xml >>|<<div class="odocwiki_info"|~Low~-level ~X~M~L manipulation~.
+|<<a_api subproject="client" | module Eliom_lib >>|<<div class="odocwiki_info"|~Eliom standard library
 >>
 |
 
@@ -62,6 +43,25 @@
 >>
 |
 |<<a_api subproject="client" | module Eliom_react >>|<<div class="odocwiki_info"|~Client side type declarations for ~React event propagation~.
+>>
+|
+
+
+
+
+
+==@@id="2_Contentandformcreation"@@~Content and form creation==
+
+
+
+
+|<<a_api subproject="client" | module Eliom_content.Html >>|<<div class="odocwiki_info"|~Building valid ~(~X~)~H~T~M~L~5~.
+>>
+|
+|<<a_api subproject="client" | module Eliom_content.Svg >>|<<div class="odocwiki_info"|~Building valid ~S~V~G ~.
+>>
+|
+|<<a_api subproject="client" | module Eliom_content.Xml >>|<<div class="odocwiki_info"|~Low~-level ~X~M~L manipulation~.
 >>
 |
 

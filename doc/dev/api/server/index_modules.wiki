@@ -249,19 +249,11 @@ file~.
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="RList"| module Eliom_shared.ReactiveData.RList >> ~[<<a_api subproject="server" | module Eliom_shared.ReactiveData >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="RList"| module Eliom_shared.FakeReactiveData.RList >> ~[<<a_api subproject="server" | module Eliom_shared.FakeReactiveData >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Raw"| module Eliom_content.Html.D.Raw >> ~[<<a_api subproject="server" | module Eliom_content.Html.D >>~]|<<div class="odocwiki_info"|~See <<a_api project="tyxml" | module Html_sigs.T >> ~.
->>
-|
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Raw"| module Eliom_content.Html.F.Raw >> ~[<<a_api subproject="server" | module Eliom_content.Html.F >>~]|<<div class="odocwiki_info"|~See <<a_api project="tyxml" | module Html_sigs.T >> ~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Raw"| module Eliom_content.Html.D.Raw >> ~[<<a_api subproject="server" | module Eliom_content.Html.D >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Raw"| module Eliom_content.Html.F.Raw >> ~[<<a_api subproject="server" | module Eliom_content.Html.F >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Raw"| module Eliom_content.Svg.R.Raw >> ~[<<a_api subproject="server" | module Eliom_content.Svg.R >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Raw"| module Eliom_content.Svg.D.Raw >> ~[<<a_api subproject="server" | module Eliom_content.Svg.D >>~]|<<div class="odocwiki_info"|~See <<a_api project="tyxml" | module Html_sigs.T >> ~.
->>
-|
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Raw"| module Eliom_content.Svg.F.Raw >> ~[<<a_api subproject="server" | module Eliom_content.Svg.F >>~]|<<div class="odocwiki_info"|~See <<a_api project="tyxml" | module Html_sigs.T >> ~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Raw"| module Eliom_content.Svg.D.Raw >> ~[<<a_api subproject="server" | module Eliom_content.Svg.D >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Raw"| module Eliom_content.Svg.F.Raw >> ~[<<a_api subproject="server" | module Eliom_content.Svg.F >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="React"| module Eliom_shared.React >> ~[<<a_api subproject="server" | module Eliom_shared >>~]|<<div class="odocwiki_info"|~Shared implementation of ~React
 >>
 |

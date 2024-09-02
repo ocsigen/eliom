@@ -96,6 +96,7 @@
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="internal_event_handler"| type Eliom_content_core.Xml.internal_event_handler >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml >>~]||
 |@@ @style="tet-align: left;"@@\\K|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="key"| type Eliom_lib.Dom_reference.key >> ~[<<a_api subproject="client" | module Eliom_lib.Dom_reference >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="keyboard_event_handler"| type Eliom_content_core.Xml.keyboard_event_handler >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="kind"| type Eliom_registration.kind >> ~[<<a_api subproject="client" | module Eliom_registration >>~]||
 |@@ @style="tet-align: left;"@@\\L|
@@ -110,9 +111,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="main_page"| type Eliom_tools.main_page >> ~[<<a_api subproject="client" | module Eliom_tools >>~]|<<div class="odocwiki_info"|~Main page description for a section of a hierarchical site~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="meth"| type Eliom_service_sigs.TYPES.meth >> ~[<<a_api subproject="client" | module Eliom_service_sigs.TYPES >>~]|<<div class="odocwiki_info"|**~Method specification datatype**
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="meth"| type Eliom_service_sigs.TYPES.meth >> ~[<<a_api subproject="client" | module Eliom_service_sigs.TYPES >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="mouse_event_handler"| type Eliom_content_core.Xml.mouse_event_handler >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml >>~]||
 |@@ @style="tet-align: left;"@@\\N|
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="nl_params_set"| type Eliom_parameter_sigs.S.nl_params_set >> ~[<<a_api subproject="client" | module Eliom_parameter_sigs.S >>~]|<<div class="odocwiki_info"|~Use this type to give non localized parameters to a link or a
@@ -154,9 +153,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="params_type"| type Eliom_parameter_sigs.S.params_type >> ~[<<a_api subproject="client" | module Eliom_parameter_sigs.S >>~]|<<div class="odocwiki_info"|~Abstract type for service parameters~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="path_option"| type Eliom_service_sigs.S.path_option >> ~[<<a_api subproject="client" | module Eliom_service_sigs.S >>~]|<<div class="odocwiki_info"|**~Optional service path**
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="path_option"| type Eliom_service_sigs.S.path_option >> ~[<<a_api subproject="client" | module Eliom_service_sigs.S >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="post"| type Eliom_service_sigs.TYPES.post >> ~[<<a_api subproject="client" | module Eliom_service_sigs.TYPES >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="put"| type Eliom_service_sigs.TYPES.put >> ~[<<a_api subproject="client" | module Eliom_service_sigs.TYPES >>~]||
 |@@ @style="tet-align: left;"@@\\R|
@@ -233,7 +230,9 @@
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="t"| type Eliom_shared_sigs.S.t >> ~[<<a_api subproject="client" | module Eliom_shared_sigs.S >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="t"| type Eliom_shared_sigs.VALUE.t >> ~[<<a_api subproject="client" | module Eliom_shared_sigs.VALUE >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="t"| type Eliom_service_sigs.S.t >> ~[<<a_api subproject="client" | module Eliom_service_sigs.S >>~]|<<div class="odocwiki_info"|**~Type of services**
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="t"| type Eliom_service_sigs.S.t >> ~[<<a_api subproject="client" | module Eliom_service_sigs.S >>~]|<<div class="odocwiki_info"|~For a service
+      <<span class="odocwiki_inlinecode"|~(~'get~, ~'post~, ~'meth~, ~'attached~, ~'co~, ~'ext~, ~'reg~,
+        ~'tipo~, ~'gn~, ~'pn~, ~'ret~) t>>~:
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="to_and_of"| type Eliom_parameter_sigs.S.to_and_of >> ~[<<a_api subproject="client" | module Eliom_parameter_sigs.S >>~]||

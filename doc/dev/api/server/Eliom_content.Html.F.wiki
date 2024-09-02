@@ -13,7 +13,7 @@
         ~If you want to create an untyped form~, you will have to use         <<a_api|module Eliom_content.Html.F.Raw>>  otherwise~, use
         ~Eliom form widgets~.  ~For more information~, see
         <<a_manual chapter="server-links" fragment="forms"|the manual>> ~.
-<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Raw" | module Eliom_content.Html.F.Raw >> <<span class="ocsforge_color_delimiter"|~:>> \\  <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Html_sigs.Make>>(Xml)(<<span class="ocsforge_color_uid"|Svg.F.Raw>>).T>><<span class="odocwiki_type"| \\        with type +'a elt = 'a elt\\         and type +'a attrib = 'a attrib>>>><<div class="odocwiki_info"|~See <<a_api project="tyxml" | module Html_sigs.T >> ~.
->>
-<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> <<a_api subproject="server" | module Eliom_content.Html.F.Raw >>>>
+
+~See <<a_api project="tyxml" | module Html_sigs.T >> ~.
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Raw" | module Eliom_content.Html.F.Raw >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_content.Html.F.Raw >><<span class="ocsforge_color_keyword"|end>>>><<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> Eliom_content.Html.F.Raw'>>
 <<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> <<a_api subproject="server" | module type Eliom_content_sigs.LINKS_AND_FORMS >>>>

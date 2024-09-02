@@ -5,60 +5,6 @@
 
 
 
-|<<a_api subproject="server" | module Eliom_lib >>|<<div class="odocwiki_info"|~A few common functions used by ~Eliom~.
->>
-|
-|<<a_api subproject="server" | module Eliom_client >>||
-|<<a_api subproject="server" | module Eliom_client_value >>|<<div class="odocwiki_info"|~Client and shared values
->>
-|
-|<<a_api subproject="server" | module Eliom_common >>|<<div class="odocwiki_info"|~Low level functions for ~Eliom~, exceptions and types~.
->>
-|
-|<<a_api subproject="server" | module Eliom_config >>|<<div class="odocwiki_info"|~This module makes also possible get information from the configuration
-file~.
->>
-|
-|<<a_api subproject="server" | module Eliom_request_info >>|<<div class="odocwiki_info"|~This module contains the functions you need to get ~(or set~)
-    information about current request~.
->>
-|
-|<<a_api subproject="server" | module Eliom_reference >>|<<div class="odocwiki_info"|~Server side state data~, a~.k~.a ~Eliom references
->>
-|
-|<<a_api subproject="server" | module Eliom_state >>|<<div class="odocwiki_info"|~Storing server~-side values for your applications or sessions~.
->>
-|
-
-
-
-
-
-==@@id="2_Contentandformcreation"@@~Content and form creation==
-
-
-
-
-|<<a_api subproject="server" | module Eliom_content >>|<<div class="odocwiki_info"|~This module allows creating valid ~H~T~M~L content~, or other ~X~M~L formats~.
->>
-|
-|<<a_api subproject="server" | module Eliom_content.Html >>|<<div class="odocwiki_info"|~Building and printing valid ~H~T~M~L~5 tree~.
->>
-|
-|<<a_api subproject="server" | module Eliom_content.Svg >>|<<div class="odocwiki_info"|~Building and pretty~-printing valid ~S~V~G tree~.
->>
-|
-|<<a_api subproject="server" | module Eliom_content.Xml >>|<<div class="odocwiki_info"|~Low~-level ~X~M~L manipulation~.
->>
-|
-|<<a_api subproject="server" | module Eliom_tools >>|<<div class="odocwiki_info"|~Helpers for ~(hierarchical~) menu generation in ~H~T~M~L~5~.
->>
-|
-
-
-
-
-
 ==@@id="2_Servicecreation"@@~Service creation==
 
 
@@ -105,11 +51,70 @@ file~.
 
 
 
+==@@id="2_Contentandformcreation"@@~Content and form creation==
+
+
+
+
+|<<a_api subproject="server" | module Eliom_content >>|<<div class="odocwiki_info"|~This module allows creating valid ~H~T~M~L content~, or other ~X~M~L formats~.
+>>
+|
+|<<a_api subproject="server" | module Eliom_content.Html >>|<<div class="odocwiki_info"|~Building and printing valid ~H~T~M~L~5 tree~.
+>>
+|
+|<<a_api subproject="server" | module Eliom_content.Svg >>|<<div class="odocwiki_info"|~Building and pretty~-printing valid ~S~V~G tree~.
+>>
+|
+|<<a_api subproject="server" | module Eliom_content.Xml >>|<<div class="odocwiki_info"|~Low~-level ~X~M~L manipulation~.
+>>
+|
+|<<a_api subproject="server" | module Eliom_tools >>|<<div class="odocwiki_info"|~Helpers for ~(hierarchical~) menu generation in ~H~T~M~L~5~.
+>>
+|
+
+
+
+
+
+==@@id="2_Serversidestaterequestsmisc"@@~Server side state~, requests~, misc==
+
+
+
+
+|<<a_api subproject="server" | module Eliom_reference >>|<<div class="odocwiki_info"|~Server side state data~, a~.k~.a ~Eliom references
+>>
+|
+|<<a_api subproject="server" | module Eliom_state >>|<<div class="odocwiki_info"|~Storing server~-side values for your applications or sessions~.
+>>
+|
+|<<a_api subproject="server" | module Eliom_config >>|<<div class="odocwiki_info"|~This module makes also possible get information from the configuration
+file~.
+>>
+|
+|<<a_api subproject="server" | module Eliom_request_info >>|<<div class="odocwiki_info"|~This module contains the functions you need to get ~(or set~)
+    information about current request~.
+>>
+|
+|<<a_api subproject="server" | module Eliom_common >>|<<div class="odocwiki_info"|~Low level functions for ~Eliom~, exceptions and types~.
+>>
+|
+|<<a_api subproject="server" | module Eliom_lib >>|<<div class="odocwiki_info"|~A few common functions used by ~Eliom~.
+>>
+|
+
+
+
+
+
 ==@@id="2_Clientservercommunication"@@~Client~/server communication==
 
 
 
 
+|<<a_api subproject="server" | module Eliom_client >>||
+|<<a_api subproject="server" | module Eliom_client_value >>|<<div class="odocwiki_info"|~Client and shared values
+>>
+|
 |<<a_api subproject="server" | module Eliom_shared >>|<<div class="odocwiki_info"|~This module implements shared ~(i~.e~.~, client~-server~) versions of
     the ~React and ~Reactive~Data libraries~.
 >>

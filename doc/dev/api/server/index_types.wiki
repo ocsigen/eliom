@@ -152,9 +152,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="main_page"| type Eliom_tools.main_page >> ~[<<a_api subproject="server" | module Eliom_tools >>~]|<<div class="odocwiki_info"|~Main page description for a section of a hierarchical site~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="meth"| type Eliom_service_sigs.TYPES.meth >> ~[<<a_api subproject="server" | module Eliom_service_sigs.TYPES >>~]|<<div class="odocwiki_info"|**~Method specification datatype**
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="meth"| type Eliom_service_sigs.TYPES.meth >> ~[<<a_api subproject="server" | module Eliom_service_sigs.TYPES >>~]||
 |@@ @style="tet-align: left;"@@\\N|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="nl_params_set"| type Eliom_parameter_sigs.S.nl_params_set >> ~[<<a_api subproject="server" | module Eliom_parameter_sigs.S >>~]|<<div class="odocwiki_info"|~Use this type to give non localized parameters to a link or a
       form
@@ -201,9 +199,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="params_type"| type Eliom_parameter_sigs.S.params_type >> ~[<<a_api subproject="server" | module Eliom_parameter_sigs.S >>~]|<<div class="odocwiki_info"|~Abstract type for service parameters~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="path_option"| type Eliom_service_sigs.S.path_option >> ~[<<a_api subproject="server" | module Eliom_service_sigs.S >>~]|<<div class="odocwiki_info"|**~Optional service path**
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="path_option"| type Eliom_service_sigs.S.path_option >> ~[<<a_api subproject="server" | module Eliom_service_sigs.S >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="persistent_cookie_info"| type Eliom_state.Ext.persistent_cookie_info >> ~[<<a_api subproject="server" | module Eliom_state.Ext >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="persistent_table"| type Eliom_state.persistent_table >> ~[<<a_api subproject="server" | module Eliom_state >>~]|<<div class="odocwiki_info"|~The type of persistent state data tables~.
 >>
@@ -310,7 +306,9 @@
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="t"| type Eliom_shared_sigs.S.t >> ~[<<a_api subproject="server" | module Eliom_shared_sigs.S >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="t"| type Eliom_shared_sigs.VALUE.t >> ~[<<a_api subproject="server" | module Eliom_shared_sigs.VALUE >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="t"| type Eliom_service_sigs.S.t >> ~[<<a_api subproject="server" | module Eliom_service_sigs.S >>~]|<<div class="odocwiki_info"|**~Type of services**
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="t"| type Eliom_service_sigs.S.t >> ~[<<a_api subproject="server" | module Eliom_service_sigs.S >>~]|<<div class="odocwiki_info"|~For a service
+      <<span class="odocwiki_inlinecode"|~(~'get~, ~'post~, ~'meth~, ~'attached~, ~'co~, ~'ext~, ~'reg~,
+        ~'tipo~, ~'gn~, ~'pn~, ~'ret~) t>>~:
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="timeout"| type Eliom_state.Ext.timeout >> ~[<<a_api subproject="server" | module Eliom_state.Ext >>~]|<<div class="odocwiki_info"|~Type used to describe session timeouts

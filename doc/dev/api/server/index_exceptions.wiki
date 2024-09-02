@@ -1,6 +1,9 @@
 =Index of exceptions=
 
 |@@ @style="tet-align: left;"@@\\C|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Cannot_call_this_function_before_app_is_linked_to_a_site"| exception Eliom_common.Cannot_call_this_function_before_app_is_linked_to_a_site >> ~[<<a_api subproject="server" | module Eliom_common >>~]|<<div class="odocwiki_info"|~Statically linked app~: ~You cannot call this function before <<span class="odocwiki_inlinecode"|~Eliom~_run>>~.
+>>
+|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Client_value_creation_invalid_context"| exception Eliom_client_value.Client_value_creation_invalid_context >> ~[<<a_api subproject="server" | module Eliom_client_value >>~]|<<div class="odocwiki_info"|~Raised if a client value of the given closure ~I~D is created at a
     point in time where it is neither global ~(i~.e~.
 >>

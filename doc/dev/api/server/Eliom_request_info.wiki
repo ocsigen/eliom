@@ -88,6 +88,10 @@
     ~(if any~)~.
 >>
 <<pre id="VALget_site_dir" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_site~_dir>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Eliom_lib>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Url>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|path>>>>>><<div class="odocwiki_info"|returns the root of the site~.
+    ~Raises <<span class="odocwiki_inlinecode"|~Eliom~_common~.~Eliom~_site~_information~_not~_available>>
+    if unavailable~.
+>>
+<<pre id="VALget_site_dir_option" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_site~_dir~_option>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Eliom_lib>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Url>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|path>> option>>>><<div class="odocwiki_info"|returns the root of the site~.
 >>
 
 

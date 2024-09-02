@@ -10,7 +10,7 @@
     ?charset:string ->
     ?code:int ->
     ?content_type:string ->
-    ?headers:Cohttp.Header.t ->
+    ?headers:Eliom_service.Cohttp.Header.t ->
     ?secure_session:bool ->
     service:('get, 'post, 'a, 'b, 'c, Eliom_service.non_ext,
              Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'd, 'e,
@@ -24,6 +24,6 @@
     ?charset:string ->
     ?code:int ->
     ?content_type:string ->
-    ?headers:Cohttp.Header.t ->
+    ?headers:Eliom_service.Cohttp.Header.t ->
     Eliom_registration_sigs.S.page -> Eliom_registration_sigs.S.result Lwt.t
 end >>

@@ -5,6 +5,6 @@
        ~See <<a_api project="tyxml" | module Svg_sigs.T >> 
 
 ----
-<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="client" text="Raw" | module Eliom_content.Svg.D.Raw >> <<span class="ocsforge_color_delimiter"|~:>> \\  <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Svg_sigs.Make>>(Xml).T>><<span class="odocwiki_type"| \\        with type +'a elt = 'a elt\\         and type +'a attrib = 'a attrib>>>><<div class="odocwiki_info"|~Cf~.
->>
-<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> <<a_api subproject="client" | module Eliom_content.Svg.D.Raw >>>>
+
+~Cf~. <<a_api project="tyxml" | module Html_sigs.T >> ~.
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="client" text="Raw" | module Eliom_content.Svg.D.Raw >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_content.Svg.D.Raw >><<span class="ocsforge_color_keyword"|end>>>><<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> Eliom_content.Svg.D.Raw'>>

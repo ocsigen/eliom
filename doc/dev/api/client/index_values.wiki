@@ -498,7 +498,6 @@
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_injection"| value Eliom_client_core.Syntax_helpers.get_injection >> ~[<<a_api subproject="client" | module Eliom_client_core.Syntax_helpers >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_nl_params_names"| value Eliom_parameter_sigs.S.get_nl_params_names >> ~[<<a_api subproject="client" | module Eliom_parameter_sigs.S >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_node"| value Eliom_client_core.ReactState.get_node >> ~[<<a_api subproject="client" | module Eliom_client_core.ReactState >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_non_localized_get_parameters"| value Eliom_parameter.get_non_localized_get_parameters >> ~[<<a_api subproject="client" | module Eliom_parameter >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_prop"| value Eliom_client_core.get_prop >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_ssl"| value Eliom_lib.Url.get_ssl >> ~[<<a_api subproject="client" | module Eliom_lib.Url >>~]||
@@ -555,7 +554,6 @@
     app is not sent by the server~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="init_or_update"| value Eliom_client_core.ReactState.init_or_update >> ~[<<a_api subproject="client" | module Eliom_client_core.ReactState >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="initialize"| value Eliom_client_core.Injection.initialize >> ~[<<a_api subproject="client" | module Eliom_client_core.Injection >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="initialize"| value Eliom_client_core.Client_value.initialize >> ~[<<a_api subproject="client" | module Eliom_client_core.Client_value >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="input"| value Eliom_form_sigs.S.input >> ~[<<a_api subproject="client" | module Eliom_form_sigs.S >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input~>>> tag~.
@@ -778,6 +776,7 @@
         identifier~.
 >>
 |
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="new_key"| value Eliom_lib.Dom_reference.new_key >> ~[<<a_api subproject="client" | module Eliom_lib.Dom_reference >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="nextSibling"| value Eliom_content.Html.Manip.nextSibling >> ~[<<a_api subproject="client" | module Eliom_content.Html.Manip >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|next~Sibling elt>> returns the next element that has the same parent~,
         if <<span class="odocwiki_inlinecode"|elt>> is not the last~.
 >>
@@ -977,7 +976,6 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="rebuild_node'"| value Eliom_client_core.rebuild_node' >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="rebuild_node_ns"| value Eliom_client_core.rebuild_node_ns >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="rebuild_node_svg"| value Eliom_client_core.rebuild_node_svg >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="rebuild_node_with_state"| value Eliom_client_core.rebuild_node_with_state >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="rebuild_rattrib"| value Eliom_client_core.rebuild_rattrib >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="rebuild_reactive_class_rattrib"| value Eliom_client_core.rebuild_reactive_class_rattrib >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="reconstruct_params_form"| value Eliom_parameter.reconstruct_params_form >> ~[<<a_api subproject="client" | module Eliom_parameter >>~]||
@@ -996,6 +994,10 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="register_client_closure"| value Eliom_client_core.Syntax_helpers.register_client_closure >> ~[<<a_api subproject="client" | module Eliom_client_core.Syntax_helpers >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="registered_process_node"| value Eliom_client_core.registered_process_node >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="reify_caml_event"| value Eliom_client_core.reify_caml_event >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="release"| value Eliom_lib.Dom_reference.release >> ~[<<a_api subproject="client" | module Eliom_lib.Dom_reference >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|release ~~key o>> removes the association between the value <<span class="odocwiki_inlinecode"|v>> and
+      the value associated to <<span class="odocwiki_inlinecode"|key>>~.
+>>
+|
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="reload_action"| value Eliom_service_sigs.S.reload_action >> ~[<<a_api subproject="client" | module Eliom_service_sigs.S >>~]|<<div class="odocwiki_info"|~The service <<span class="odocwiki_inlinecode"|reload~_action>> is a predefined non~-attached action
       with special behaviour~: it has no parameter at all~, even
       non~-attached parameters~.
@@ -1086,6 +1088,13 @@
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="resolve"| value Eliom_lib.Url.resolve >> ~[<<a_api subproject="client" | module Eliom_lib.Url >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="result_of_http_result"| value Eliom_registration_sigs.PARAM.result_of_http_result >> ~[<<a_api subproject="client" | module Eliom_registration_sigs.PARAM >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="retain"| value Eliom_lib.Dom_reference.retain >> ~[<<a_api subproject="client" | module Eliom_lib.Dom_reference >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|retain v ~~keep>> prevents <<span class="odocwiki_inlinecode"|keep>> from being garbage collected
+      while <<span class="odocwiki_inlinecode"|v>> is live~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="retain_generic"| value Eliom_lib.Dom_reference.retain_generic >> ~[<<a_api subproject="client" | module Eliom_lib.Dom_reference >>~]|<<div class="odocwiki_info"|~Same as <<span class="odocwiki_inlinecode"|retain>> but works with any object~.
+>>
+|
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="right"| value Eliom_content.Html.Manip.SetCss.right >> ~[<<a_api subproject="client" | module Eliom_content.Html.Manip.SetCss >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="right"| value Eliom_content.Html.Manip.Css.right >> ~[<<a_api subproject="client" | module Eliom_content.Html.Manip.Css >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="rightPx"| value Eliom_content.Html.Manip.SetCss.rightPx >> ~[<<a_api subproject="client" | module Eliom_content.Html.Manip.SetCss >>~]||
@@ -1180,6 +1189,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="space_re"| value Eliom_client_core.space_re >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="space_sep_attrib"| value Eliom_content_core.Xml_wed.space_sep_attrib >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml_wed >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="split_path"| value Eliom_lib.Url.split_path >> ~[<<a_api subproject="client" | module Eliom_lib.Url >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="start_signal"| value Eliom_client_core.ReactState.start_signal >> ~[<<a_api subproject="client" | module Eliom_client_core.ReactState >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="static_dir"| value Eliom_service_sigs.S.static_dir >> ~[<<a_api subproject="client" | module Eliom_service_sigs.S >>~]|<<div class="odocwiki_info"|~The predefined service <<span class="odocwiki_inlinecode"|static~_dir>> allows one to create links
       to static files~.
 >>
@@ -1250,6 +1260,11 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="topPx"| value Eliom_content.Html.Manip.SetCss.topPx >> ~[<<a_api subproject="client" | module Eliom_content.Html.Manip.SetCss >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="topPx"| value Eliom_content.Html.Manip.Css.topPx >> ~[<<a_api subproject="client" | module Eliom_content.Html.Manip.Css >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="trace"| value Eliom_lib.trace >> ~[<<a_api subproject="client" | module Eliom_lib >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="transfer"| value Eliom_lib.Dom_reference.transfer >> ~[<<a_api subproject="client" | module Eliom_lib.Dom_reference >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|transfer ~~key ~~src ~~dst>> transfers the association between the
+      value <<span class="odocwiki_inlinecode"|src>> and the value associated to key <<span class="odocwiki_inlinecode"|key>> to value
+      <<span class="odocwiki_inlinecode"|dst>>~.
+>>
+|
 |@@ @style="tet-align: left;"@@\\U|
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="unit"| value Eliom_parameter_sigs.S.unit >> ~[<<a_api subproject="client" | module Eliom_parameter_sigs.S >>~]|<<div class="odocwiki_info"|~Specifying parameter as <<span class="odocwiki_inlinecode"|unit>> is used for services that don~'t
       have any parameters

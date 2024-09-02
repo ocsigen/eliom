@@ -176,13 +176,13 @@
     ('a -> unit) ->
     ('a, [< suff ] as 'b, 'c) params_type -> ('a, 'b, 'c) params_type
   val regexp :
-    Pcre.regexp ->
+    Re.Pcre.regexp ->
     string ->
     to_string:(string -> string) ->
     string ->
     (string, [ `WithoutSuffix ], [ `One of string ] param_name) params_type
   val all_suffix_regexp :
-    Pcre.regexp ->
+    Re.Pcre.regexp ->
     string ->
     to_string:(string -> string) ->
     string ->

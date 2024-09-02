@@ -69,83 +69,10 @@
   val a_title : Html_types.text wrap -> [> `Title ] attrib
   val a_xml_lang : Html_types.languagecode wrap -> [> `XML_lang ] attrib
   val a_lang : Html_types.languagecode wrap -> [> `Lang ] attrib
-  val a_onabort : Xml.event_handler -> [> `OnAbort ] attrib
-  val a_onafterprint : Xml.event_handler -> [> `OnAfterPrint ] attrib
-  val a_onbeforeprint : Xml.event_handler -> [> `OnBeforePrint ] attrib
-  val a_onbeforeunload : Xml.event_handler -> [> `OnBeforeUnload ] attrib
-  val a_onblur : Xml.event_handler -> [> `OnBlur ] attrib
-  val a_oncanplay : Xml.event_handler -> [> `OnCanPlay ] attrib
-  val a_oncanplaythrough : Xml.event_handler -> [> `OnCanPlayThrough ] attrib
-  val a_onchange : Xml.event_handler -> [> `OnChange ] attrib
-  val a_ondurationchange : Xml.event_handler -> [> `OnDurationChange ] attrib
-  val a_onemptied : Xml.event_handler -> [> `OnEmptied ] attrib
-  val a_onended : Xml.event_handler -> [> `OnEnded ] attrib
-  val a_onerror : Xml.event_handler -> [> `OnError ] attrib
-  val a_onfocus : Xml.event_handler -> [> `OnFocus ] attrib
-  val a_onformchange : Xml.event_handler -> [> `OnFormChange ] attrib
-  val a_onforminput : Xml.event_handler -> [> `OnFormInput ] attrib
-  val a_onhashchange : Xml.event_handler -> [> `OnHashChange ] attrib
-  val a_oninput : Xml.event_handler -> [> `OnInput ] attrib
-  val a_oninvalid : Xml.event_handler -> [> `OnInvalid ] attrib
-  val a_onmousewheel : Xml.event_handler -> [> `OnMouseWheel ] attrib
-  val a_onoffline : Xml.event_handler -> [> `OnOffLine ] attrib
-  val a_ononline : Xml.event_handler -> [> `OnOnLine ] attrib
-  val a_onpause : Xml.event_handler -> [> `OnPause ] attrib
-  val a_onplay : Xml.event_handler -> [> `OnPlay ] attrib
-  val a_onplaying : Xml.event_handler -> [> `OnPlaying ] attrib
-  val a_onpagehide : Xml.event_handler -> [> `OnPageHide ] attrib
-  val a_onpageshow : Xml.event_handler -> [> `OnPageShow ] attrib
-  val a_onpopstate : Xml.event_handler -> [> `OnPopState ] attrib
-  val a_onprogress : Xml.event_handler -> [> `OnProgress ] attrib
-  val a_onratechange : Xml.event_handler -> [> `OnRateChange ] attrib
-  val a_onreadystatechange :
-    Xml.event_handler -> [> `OnReadyStateChange ] attrib
-  val a_onredo : Xml.event_handler -> [> `OnRedo ] attrib
-  val a_onresize : Xml.event_handler -> [> `OnResize ] attrib
-  val a_onscroll : Xml.event_handler -> [> `OnScroll ] attrib
-  val a_onseeked : Xml.event_handler -> [> `OnSeeked ] attrib
-  val a_onseeking : Xml.event_handler -> [> `OnSeeking ] attrib
-  val a_onselect : Xml.event_handler -> [> `OnSelect ] attrib
-  val a_onshow : Xml.event_handler -> [> `OnShow ] attrib
-  val a_onstalled : Xml.event_handler -> [> `OnStalled ] attrib
-  val a_onstorage : Xml.event_handler -> [> `OnStorage ] attrib
-  val a_onsubmit : Xml.event_handler -> [> `OnSubmit ] attrib
-  val a_onsuspend : Xml.event_handler -> [> `OnSuspend ] attrib
-  val a_ontimeupdate : Xml.event_handler -> [> `OnTimeUpdate ] attrib
-  val a_onundo : Xml.event_handler -> [> `OnUndo ] attrib
-  val a_onunload : Xml.event_handler -> [> `OnUnload ] attrib
-  val a_onvolumechange : Xml.event_handler -> [> `OnVolumeChange ] attrib
-  val a_onwaiting : Xml.event_handler -> [> `OnWaiting ] attrib
-  val a_onload : Xml.event_handler -> [> `OnLoad ] attrib
-  val a_onloadeddata : Xml.event_handler -> [> `OnLoadedData ] attrib
-  val a_onloadedmetadata : Xml.event_handler -> [> `OnLoadedMetaData ] attrib
-  val a_onloadstart : Xml.event_handler -> [> `OnLoadStart ] attrib
-  val a_onmessage : Xml.event_handler -> [> `OnMessage ] attrib
-  val a_onclick : Xml.mouse_event_handler -> [> `OnClick ] attrib
-  val a_oncontextmenu : Xml.mouse_event_handler -> [> `OnContextMenu ] attrib
-  val a_ondblclick : Xml.mouse_event_handler -> [> `OnDblClick ] attrib
-  val a_ondrag : Xml.mouse_event_handler -> [> `OnDrag ] attrib
-  val a_ondragend : Xml.mouse_event_handler -> [> `OnDragEnd ] attrib
-  val a_ondragenter : Xml.mouse_event_handler -> [> `OnDragEnter ] attrib
-  val a_ondragleave : Xml.mouse_event_handler -> [> `OnDragLeave ] attrib
-  val a_ondragover : Xml.mouse_event_handler -> [> `OnDragOver ] attrib
-  val a_ondragstart : Xml.mouse_event_handler -> [> `OnDragStart ] attrib
-  val a_ondrop : Xml.mouse_event_handler -> [> `OnDrop ] attrib
-  val a_onmousedown : Xml.mouse_event_handler -> [> `OnMouseDown ] attrib
-  val a_onmouseup : Xml.mouse_event_handler -> [> `OnMouseUp ] attrib
-  val a_onmouseover : Xml.mouse_event_handler -> [> `OnMouseOver ] attrib
-  val a_onmousemove : Xml.mouse_event_handler -> [> `OnMouseMove ] attrib
-  val a_onmouseout : Xml.mouse_event_handler -> [> `OnMouseOut ] attrib
-  val a_ontouchstart : Xml.touch_event_handler -> [> `OnTouchStart ] attrib
-  val a_ontouchend : Xml.touch_event_handler -> [> `OnTouchEnd ] attrib
-  val a_ontouchmove : Xml.touch_event_handler -> [> `OnTouchMove ] attrib
-  val a_ontouchcancel : Xml.touch_event_handler -> [> `OnTouchCancel ] attrib
-  val a_onkeypress : Xml.keyboard_event_handler -> [> `OnKeyPress ] attrib
-  val a_onkeydown : Xml.keyboard_event_handler -> [> `OnKeyDown ] attrib
-  val a_onkeyup : Xml.keyboard_event_handler -> [> `OnKeyUp ] attrib
   val a_allowfullscreen : unit -> [> `Allowfullscreen ] attrib
   val a_allowpaymentrequest : unit -> [> `Allowpaymentrequest ] attrib
-  val a_autocomplete : bool wrap -> [> `Autocomplete ] attrib
+  val a_autocomplete :
+    Html_types.autocomplete_option wrap -> [> `Autocomplete ] attrib
   val a_async : unit -> [> `Async ] attrib
   val a_autofocus : unit -> [> `Autofocus ] attrib
   val a_autoplay : unit -> [> `Autoplay ] attrib
@@ -244,7 +171,7 @@
   val a_maxlength : Html_types.number wrap -> [> `Maxlength ] attrib
   val a_minlength : Html_types.number wrap -> [> `Minlength ] attrib
   val a_method : [< `Get | `Post ] wrap -> [> `Method ] attrib
-  val a_formmethod : [< `Get | `Post ] wrap -> [> `Method ] attrib
+  val a_formmethod : [< `Get | `Post ] wrap -> [> `Formmethod ] attrib
   val a_multiple : unit -> [> `Multiple ] attrib
   val a_name : Html_types.text wrap -> [> `Name ] attrib
   val a_rows : Html_types.number wrap -> [> `Rows ] attrib
@@ -285,6 +212,7 @@
   val a_readonly : unit -> [> `ReadOnly ] attrib
   val a_button_type :
     [< `Button | `Reset | `Submit ] wrap -> [> `Button_Type ] attrib
+  val a_script_type : Html_types.script_type wrap -> [> `Script_type ] attrib
   val a_command_type :
     [< `Checkbox | `Command | `Radio ] wrap -> [> `Command_Type ] attrib
   val a_menu_type : [< `Context | `Toolbar ] wrap -> [> `Menu_Type ] attrib
@@ -343,8 +271,8 @@
      [> Html_types.body ])
     star
   val svg :
-    ?a:[< Html_types.svg_attrib ] Svg.D.Raw.attrib list ->
-    [< Html_types.svg_content ] Svg.D.Raw.elt list_wrap ->
+    ?a:[< Html_types.svg_attrib ] Svg.D.Raw'.attrib list ->
+    [< Html_types.svg_content ] Svg.D.Raw'.elt list_wrap ->
     [> Html_types.svg ] elt
   val footer :
     ([< Html_types.footer_attrib ], [< Html_types.footer_content_fun ],
@@ -417,6 +345,10 @@
   val blockquote :
     ([< Html_types.blockquote_attrib ],
      [< Html_types.blockquote_content_fun ], [> Html_types.blockquote ])
+    star
+  val dialog :
+    ([< Html_types.dialog_attrib ], [< Html_types.dialog_content_fun ],
+     [> Html_types.dialog ])
     star
   val div :
     ([< Html_types.div_attrib ], [< Html_types.div_content_fun ],
@@ -596,6 +528,7 @@
       | `OnCanPlayThrough
       | `OnChange
       | `OnClick
+      | `OnClose
       | `OnContextMenu
       | `OnDblClick
       | `OnDrag
@@ -845,4 +778,78 @@
       val space_sep_attrib : string -> string list wrap -> 'a attrib
       val comma_sep_attrib : string -> string list wrap -> 'a attrib
     end
+  val a_onabort : string -> [> `OnAbort ] Raw'.attrib
+  val a_onafterprint : string -> [> `OnAfterPrint ] Raw'.attrib
+  val a_onbeforeprint : string -> [> `OnBeforePrint ] Raw'.attrib
+  val a_onbeforeunload : string -> [> `OnBeforeUnload ] Raw'.attrib
+  val a_onblur : string -> [> `OnBlur ] Raw'.attrib
+  val a_oncanplay : string -> [> `OnCanPlay ] Raw'.attrib
+  val a_oncanplaythrough : string -> [> `OnCanPlayThrough ] Raw'.attrib
+  val a_onchange : string -> [> `OnChange ] Raw'.attrib
+  val a_onclose : string -> [> `OnClose ] Raw'.attrib
+  val a_ondurationchange : string -> [> `OnDurationChange ] Raw'.attrib
+  val a_onemptied : string -> [> `OnEmptied ] Raw'.attrib
+  val a_onended : string -> [> `OnEnded ] Raw'.attrib
+  val a_onerror : string -> [> `OnError ] Raw'.attrib
+  val a_onfocus : string -> [> `OnFocus ] Raw'.attrib
+  val a_onformchange : string -> [> `OnFormChange ] Raw'.attrib
+  val a_onforminput : string -> [> `OnFormInput ] Raw'.attrib
+  val a_onhashchange : string -> [> `OnHashChange ] Raw'.attrib
+  val a_oninput : string -> [> `OnInput ] Raw'.attrib
+  val a_oninvalid : string -> [> `OnInvalid ] Raw'.attrib
+  val a_onmousewheel : string -> [> `OnMouseWheel ] Raw'.attrib
+  val a_onoffline : string -> [> `OnOffLine ] Raw'.attrib
+  val a_ononline : string -> [> `OnOnLine ] Raw'.attrib
+  val a_onpause : string -> [> `OnPause ] Raw'.attrib
+  val a_onplay : string -> [> `OnPlay ] Raw'.attrib
+  val a_onplaying : string -> [> `OnPlaying ] Raw'.attrib
+  val a_onpagehide : string -> [> `OnPageHide ] Raw'.attrib
+  val a_onpageshow : string -> [> `OnPageShow ] Raw'.attrib
+  val a_onpopstate : string -> [> `OnPopState ] Raw'.attrib
+  val a_onprogress : string -> [> `OnProgress ] Raw'.attrib
+  val a_onratechange : string -> [> `OnRateChange ] Raw'.attrib
+  val a_onreadystatechange : string -> [> `OnReadyStateChange ] Raw'.attrib
+  val a_onredo : string -> [> `OnRedo ] Raw'.attrib
+  val a_onresize : string -> [> `OnResize ] Raw'.attrib
+  val a_onscroll : string -> [> `OnScroll ] Raw'.attrib
+  val a_onseeked : string -> [> `OnSeeked ] Raw'.attrib
+  val a_onseeking : string -> [> `OnSeeking ] Raw'.attrib
+  val a_onselect : string -> [> `OnSelect ] Raw'.attrib
+  val a_onshow : string -> [> `OnShow ] Raw'.attrib
+  val a_onstalled : string -> [> `OnStalled ] Raw'.attrib
+  val a_onstorage : string -> [> `OnStorage ] Raw'.attrib
+  val a_onsubmit : string -> [> `OnSubmit ] Raw'.attrib
+  val a_onsuspend : string -> [> `OnSuspend ] Raw'.attrib
+  val a_ontimeupdate : string -> [> `OnTimeUpdate ] Raw'.attrib
+  val a_onundo : string -> [> `OnUndo ] Raw'.attrib
+  val a_onunload : string -> [> `OnUnload ] Raw'.attrib
+  val a_onvolumechange : string -> [> `OnVolumeChange ] Raw'.attrib
+  val a_onwaiting : string -> [> `OnWaiting ] Raw'.attrib
+  val a_onload : string -> [> `OnLoad ] Raw'.attrib
+  val a_onloadeddata : string -> [> `OnLoadedData ] Raw'.attrib
+  val a_onloadedmetadata : string -> [> `OnLoadedMetaData ] Raw'.attrib
+  val a_onloadstart : string -> [> `OnLoadStart ] Raw'.attrib
+  val a_onmessage : string -> [> `OnMessage ] Raw'.attrib
+  val a_onclick : string -> [> `OnClick ] Raw'.attrib
+  val a_oncontextmenu : string -> [> `OnContextMenu ] Raw'.attrib
+  val a_ondblclick : string -> [> `OnDblClick ] Raw'.attrib
+  val a_ondrag : string -> [> `OnDrag ] Raw'.attrib
+  val a_ondragend : string -> [> `OnDragEnd ] Raw'.attrib
+  val a_ondragenter : string -> [> `OnDragEnter ] Raw'.attrib
+  val a_ondragleave : string -> [> `OnDragLeave ] Raw'.attrib
+  val a_ondragover : string -> [> `OnDragOver ] Raw'.attrib
+  val a_ondragstart : string -> [> `OnDragStart ] Raw'.attrib
+  val a_ondrop : string -> [> `OnDrop ] Raw'.attrib
+  val a_onmousedown : string -> [> `OnMouseDown ] Raw'.attrib
+  val a_onmouseup : string -> [> `OnMouseUp ] Raw'.attrib
+  val a_onmouseover : string -> [> `OnMouseOver ] Raw'.attrib
+  val a_onmousemove : string -> [> `OnMouseMove ] Raw'.attrib
+  val a_onmouseout : string -> [> `OnMouseOut ] Raw'.attrib
+  val a_ontouchstart : string -> [> `OnTouchStart ] Raw'.attrib
+  val a_ontouchend : string -> [> `OnTouchEnd ] Raw'.attrib
+  val a_ontouchmove : string -> [> `OnTouchMove ] Raw'.attrib
+  val a_ontouchcancel : string -> [> `OnTouchCancel ] Raw'.attrib
+  val a_onkeypress : string -> [> `OnKeyPress ] Raw'.attrib
+  val a_onkeydown : string -> [> `OnKeyDown ] Raw'.attrib
+  val a_onkeyup : string -> [> `OnKeyUp ] Raw'.attrib
 end >>

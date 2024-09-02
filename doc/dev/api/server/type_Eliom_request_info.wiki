@@ -31,6 +31,7 @@
     Ocsigen_extensions.file_info ->
     ((string * string) * (string * string) list) option
   val get_site_dir : unit -> Eliom_lib.Url.path
+  val get_site_dir_option : unit -> Eliom_lib.Url.path option
   val get_get_params : unit -> (string * string list) list
   val get_all_current_get_params : unit -> (string * string) list
   val get_other_get_params : unit -> (string * string) list
