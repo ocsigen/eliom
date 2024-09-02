@@ -21,7 +21,7 @@
 open Eliom_lib
 
 let make_full_named_group_name_ ~cookie_level sitedata g =
-  sitedata.Eliom_common.site_dir_string, cookie_level, Left g
+  Eliom_common.get_site_dir_string sitedata, cookie_level, Left g
 
 let make_full_group_name ~cookie_level ri site_dir_string ipv4mask ipv6mask
   = function
@@ -536,7 +536,8 @@ module Pers = struct
              remove_group ~cookie_level:(`Client_process fullsessgrp) sitedata
                (Eliom_common.make_persistent_full_group_name
                   ~cookie_level:`Client_process
-                  sitedata.Eliom_common.site_dir_string (Some cookie)))
+                  (Eliom_common.get_site_dir_string sitedata)
+                  (Some cookie)))
       (function Not_found -> Lwt.return_unit | e -> Lwt.fail e)
 
   and remove _sitedata sess_id sess_grp =

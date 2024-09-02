@@ -85,7 +85,8 @@ let close_persistent_state ~scope ~secure_o ?sp () =
 
 let fullsessgrp ~cookie_level ~sp session_group =
   Eliommod_sessiongroups.make_persistent_full_group_name ~cookie_level
-    sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string session_group
+    (Eliom_common.get_site_dir_string sp.Eliom_common.sp_sitedata)
+    session_group
 
 let rec find_or_create_persistent_cookie_ ?set_max_in_group ?set_session_group
     ~cookie_scope ~secure_o ~sp ()

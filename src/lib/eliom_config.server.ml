@@ -16,22 +16,95 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
+let set_session_gc_frequency t =
+  let t = Option.map float_of_int t in
+  Eliommod_gc.set_servicesessiongcfrequency t;
+  Eliommod_gc.set_datasessiongcfrequency t
+
+let set_service_session_gc_frequency t =
+  let t = Option.map float_of_int t in
+  Eliommod_gc.set_servicesessiongcfrequency t
+
+let set_data_session_gc_frequency t =
+  let t = Option.map float_of_int t in
+  Eliommod_gc.set_datasessiongcfrequency t
+
+let set_persistent_session_gc_frequency t =
+  let t = Option.map float_of_int t in
+  Eliommod_gc.set_persistentsessiongcfrequency t
+
+let set_volatile_timeout ?scope_hierarchy ~cookie_level v =
+  let v = Option.map float_of_int v in
+  Eliommod_timeouts.set_default ?scope_hierarchy `Data cookie_level v;
+  Eliommod_timeouts.set_default ?scope_hierarchy `Service cookie_level v
+
+let set_data_timeout ?scope_hierarchy ~cookie_level v =
+  let v = Option.map float_of_int v in
+  Eliommod_timeouts.set_default ?scope_hierarchy `Data cookie_level v
+
+let set_service_timeout ?scope_hierarchy ~cookie_level v =
+  let v = Option.map float_of_int v in
+  Eliommod_timeouts.set_default ?scope_hierarchy `Service cookie_level v
+
+let set_persistent_timeout ?scope_hierarchy ~cookie_level v =
+  let v = Option.map float_of_int v in
+  Eliommod_timeouts.set_default ?scope_hierarchy `Persistent cookie_level v
+
+let set_max_service_sessions_per_group v =
+  Eliommod.default_max_service_sessions_per_group := v
+
+let set_max_volatile_data_sessions_per_group v =
+  Eliommod.default_max_volatile_data_sessions_per_group := v
+
+let set_max_persistent_data_sessions_per_group v =
+  Eliommod.default_max_persistent_data_sessions_per_group := v
+
+let set_max_service_tab_sessions_per_group v =
+  Eliommod.default_max_service_tab_sessions_per_group := v
+
+let set_max_volatile_data_tab_sessions_per_group v =
+  Eliommod.default_max_volatile_data_tab_sessions_per_group := v
+
+let set_max_persistent_data_tab_sessions_per_group v =
+  Eliommod.default_max_persistent_data_tab_sessions_per_group := v
+
+let set_max_anonymous_services_per_session v =
+  Eliommod.default_max_anonymous_services_per_session := v
+
+let set_max_volatile_groups_per_site v =
+  Eliommod.default_max_volatile_groups_per_site := v
+
+let set_secure_cookies v = Eliommod.default_secure_cookies := v
+let set_application_script v = Eliommod.default_application_script := v
+let set_cache_global_data v = Eliommod.default_cache_global_data := v
+let set_html_content_type v = Eliommod.default_html_content_type := Some v
+
+let add_ignored_get_params regexp =
+  Eliommod.default_ignored_get_params :=
+    regexp :: !Eliommod.default_ignored_get_params
+
+let add_ignored_post_params regexp =
+  Eliommod.default_ignored_post_params :=
+    regexp :: !Eliommod.default_ignored_post_params
+
+let set_omitpersistentstorage v = Eliommod.default_omitpersistentstorage := v
 
 let get_default_hostname () =
   let sitedata = Eliom_request_info.find_sitedata "get_default_hostname" in
-  sitedata.Eliom_common.config_info.Ocsigen_extensions.default_hostname
+  (Eliom_common.get_config_info sitedata).Ocsigen_extensions.default_hostname
 
 let get_default_port () =
   let sitedata = Eliom_request_info.find_sitedata "get_default_port" in
-  sitedata.Eliom_common.config_info.Ocsigen_extensions.default_httpport
+  (Eliom_common.get_config_info sitedata).Ocsigen_extensions.default_httpport
 
 let get_default_sslport () =
   let sitedata = Eliom_request_info.find_sitedata "get_default_sslport" in
-  sitedata.Eliom_common.config_info.Ocsigen_extensions.default_httpsport
+  (Eliom_common.get_config_info sitedata).Ocsigen_extensions.default_httpsport
 
 let default_protocol_is_https () =
   let sitedata = Eliom_request_info.find_sitedata "default_protocol_is_https" in
-  sitedata.Eliom_common.config_info.Ocsigen_extensions.default_protocol_is_https
+  (Eliom_common.get_config_info sitedata)
+    .Ocsigen_extensions.default_protocol_is_https
 
 let get_default_links_xhr () =
   let sitedata = Eliom_request_info.find_sitedata "get_default_links_xhr" in
@@ -59,7 +132,10 @@ let get_config_info () =
 
 let get_config () =
   match Eliom_common.global_register_allowed () with
-  | Some _ -> !Eliommod.config
+  | Some _ -> (
+    match !Eliommod.config with
+    | Some c -> c
+    | None -> failwith "No config file. Is it a statically linked executable?")
   | None ->
       raise
         (Eliom_common.Eliom_site_information_not_available

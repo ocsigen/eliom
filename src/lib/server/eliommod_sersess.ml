@@ -79,7 +79,7 @@ let fullsessgrp ~cookie_level ~sp set_session_group =
   let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
   Eliommod_sessiongroups.make_full_group_name ~cookie_level
     (Eliom_request_info.get_request_sp sp).Ocsigen_extensions.request_info
-    sitedata.Eliom_common.site_dir_string
+    (Eliom_common.get_site_dir_string sitedata)
     (Eliom_common.get_mask4 sitedata)
     (Eliom_common.get_mask6 sitedata)
     set_session_group

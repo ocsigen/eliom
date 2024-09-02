@@ -127,6 +127,7 @@ let get_persistent_nl_get_params () =
 let get_persistent_nl_get_params_sp = get_persistent_nl_get_params
 let get_si () = get_sess_info ()
 let get_site_dir () = (Eliom_process.get_sitedata ()).site_dir
+let get_site_dir_option () = Some (get_site_dir ())
 
 let ssl_ =
   match Url.Current.get () with

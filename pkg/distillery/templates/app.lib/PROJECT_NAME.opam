@@ -1,0 +1,9 @@
+opam-version: "2.0"
+name: "%%%PROJECT_NAME%%%"
+version: "0.1"
+synopsis: "%%%PROJECT_NAME%%%"
+
+depends: [
+  "eliom" {>= "11.0.0" & < "12.0.0"}
+  "ocsipersist-sqlite-config" {>= "2.0" & < "3.0"}
+]

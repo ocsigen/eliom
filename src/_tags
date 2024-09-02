@@ -48,7 +48,6 @@ true:keep_locs
 
 <lib/client/api.*/index.*>: with_intro(doc/client.indexdoc),subproject(client)
 <lib/server/api.*/index.*>: with_intro(doc/server.indexdoc),subproject(server)
-<ocamlbuild/api.*/index.*>: with_intro(doc/ocamlbuild.indexdoc),subproject(ocamlbuild)
 <ppx/api.*/index.*>: with_intro(doc/ppx.indexdoc),subproject(ppx)
 
 <lib/client/api.*/man.*>: manpage,man_ext(3oc),apiref

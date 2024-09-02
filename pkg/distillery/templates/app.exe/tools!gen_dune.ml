@@ -23,7 +23,7 @@ let handle_file_client nm =
       nm nm
 
 let () =
-  Array.concat (List.map Sys.readdir ["."; "./assets"])
+  Array.concat (List.map Sys.readdir ["../../.."; "../../../assets"])
   |> Array.to_list |> List.sort compare
   |> List.filter (fun nm -> nm.[0] <> '.')
   |> List.iter handle_file_client

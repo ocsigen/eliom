@@ -4,6 +4,9 @@
 let%server application_name = "%%%PROJECT_NAME%%%"
 let%client application_name = Eliom_client.get_application_name ()
 
+let%server () =
+    Ocsipersist_settings.set_db_file "local/var/data/%%%PROJECT_NAME%%%/%%%PROJECT_NAME%%%_db";
+
 (* Create a module for the application. See
    https://ocsigen.org/eliom/manual/clientserver-applications for more
    information. *)
@@ -36,4 +39,4 @@ let%shared () =
                       ~service:(Eliom_service.static_dir ())
                       ["css"; "%%%PROJECT_NAME%%%.css"])
                  () ])
-          (body [h1 [txt "Welcome from Eliom's distillery!"]])))
+          (body [h1 [txt "Welcome to Eliom!"]])))

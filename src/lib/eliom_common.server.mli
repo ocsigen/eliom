@@ -110,7 +110,8 @@ exception Eliom_site_information_not_available of string
     In that case you must
     delay the function call using {!Eliom_service.register_eliom_module}.
 *)
-
+exception Cannot_call_this_function_before_app_is_linked_to_a_site
+(** Statically linked app: You cannot call this function before [Eliom_run]. *)
 type full_state_name =
   {user_scope : user_scope; secure : bool; site_dir_str : string}
 
@@ -499,9 +500,11 @@ and tables =
   *) }
 
 and sitedata =
-  { site_dir : Url.path
-  ; site_dir_string : string
-  ; config_info : Ocsigen_extensions.config_info
+  { mutable site_dir : Url.path option
+        (* None when statically linked 
+                                           before module init*)
+  ; mutable site_dir_string : string option (* idem *)
+  ; mutable config_info : Ocsigen_extensions.config_info option (* idem *)
   ; default_links_xhr : bool tenable_value
   ; (* Timeouts:
        - default for site (browser sessions)
@@ -640,9 +643,6 @@ val add_unregistered_na : sitedata -> na_key_serv -> unit
 val remove_unregistered : sitedata -> Url.path -> unit
 val remove_unregistered_na : sitedata -> na_key_serv -> unit
 val verify_all_registered : sitedata -> unit
-val during_eliom_module_loading : unit -> bool
-val begin_load_eliom_module : unit -> unit
-val end_load_eliom_module : unit -> unit
 val global_register_allowed : unit -> (unit -> sitedata) option
 
 val get_site_data : unit -> sitedata
@@ -734,6 +734,7 @@ type eliom_js_page_data =
 
 val get_site_dir : sitedata -> Url.path
 val get_site_dir_string : sitedata -> string
+val get_config_info : sitedata -> Ocsigen_extensions.config_info
 val get_secure : secure_o:bool option -> sitedata:sitedata -> unit -> bool
 val is_client_app : bool ref
 val make_actual_path : string list -> string list
@@ -757,3 +758,14 @@ end
 
 val client_html_file : unit -> string
 (** Raises exception on server, only relevant for client apps *)
+
+val default_app_name : string
+val current_app_name : string ref
+val get_app_name : unit -> string
+
+val defer : (unit -> 'a option) -> ('a -> 'b) -> 'b option ref
+(** [defer get f] returns a reference to [Some (f v)] if [get ()]
+    return [Some v].
+    If not, it returns a reference to [None] and registers a deferred
+    computation to update the value of the reference 
+    when [site_dir] is known *)

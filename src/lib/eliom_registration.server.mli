@@ -487,6 +487,3 @@ val cast_unknown_content_kind : unknown_content kind -> 'a kind
 val cast_http_result : Ocsigen_response.t -> 'a kind
 (** [cast_http_result] should only be used to register new output
     modules *)
-
-val extension : Ocsigen_server.Site.extension
-val end_init : unit -> unit

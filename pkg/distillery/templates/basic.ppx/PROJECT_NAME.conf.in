@@ -14,7 +14,7 @@
     %%DEBUGMODE%%
     <commandpipe>%%CMDPIPE%%</commandpipe>
     <extension findlib-package="ocsigenserver.ext.staticmod"/>
-    <extension findlib-package="ocsipersist.%%PERSISTENT_DATA_BACKEND%%"/>
+    <extension findlib-package="ocsipersist-%%PERSISTENT_DATA_BACKEND%%-config"/>
     <extension findlib-package="eliom.server">
       <ignoredgetparams regexp="utm_[a-z]*|[a-z]*clid|li_fat_id"/>
     </extension>

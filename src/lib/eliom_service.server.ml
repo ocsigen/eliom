@@ -32,22 +32,16 @@ let plain_service (type m gp gn pp pn gp') ?(https = false) ~path
     |> Url.remove_slash_at_beginning |> Url.change_empty_list
     |> Url.remove_internal_slash
   in
-  let site_dir =
-    match Eliom_common.get_sp_option () with
-    | Some sp -> Eliom_request_info.get_site_dir_sp sp
-    | None -> (
-      match Eliom_common.global_register_allowed () with
-      | Some current_site_data ->
-          let sitedata = current_site_data () in
-          Eliom_common.add_unregistered sitedata path;
-          Eliom_common.get_site_dir sitedata
-      | None ->
-          raise (Eliom_common.Eliom_site_information_not_available "service"))
-  in
+  (if Eliom_common.get_sp_option () = None
+   then
+     match Eliom_common.global_register_allowed () with
+     | Some current_site_data ->
+         Eliom_common.add_unregistered (current_site_data ()) path
+     | None ->
+         raise (Eliom_common.Eliom_site_information_not_available "service"));
   let reload_fun = Rf_client_fun in
-  main_service ~https ~prefix:"" ~path ~site_dir ~kind:`Service ~meth
-    ?redirect_suffix ?keep_nl_params ?priority ~get_params ~post_params
-    ~reload_fun ()
+  main_service ~https ~prefix:"" ~path ~kind:`Service ~meth ?redirect_suffix
+    ?keep_nl_params ?priority ~get_params ~post_params ~reload_fun ()
 
 let create_attached ?name ?(csrf_safe = false) ?csrf_scope ?csrf_secure ?max_use
     ?timeout ?(https = false) ?keep_nl_params ~fallback ~get_params ~post_params

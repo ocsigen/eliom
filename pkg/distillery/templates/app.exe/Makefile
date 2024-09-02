@@ -11,4 +11,4 @@ include Makefile.options
 
 # Eliom default makefile
 # Makefile.PROJECT_NAME is also included in this makefile
-include Makefile.eliom
+include Makefile.app

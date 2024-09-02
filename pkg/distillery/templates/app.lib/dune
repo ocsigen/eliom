@@ -1,0 +1,97 @@
+(dirs tools client gen assets static local)
+
+(library
+ (name %%%PROJECT_NAME%%%)
+ (modules (:standard))
+ (libraries eliom.server ocsipersist-sqlite ocsipersist-sqlite.settings)
+ (library_flags
+  (:standard -linkall))
+ (wrapped false)
+ (preprocess
+  (pps
+   lwt_ppx
+   ;   pgocaml_ppx
+   js_of_ocaml-ppx_deriving_json
+   ;   ocsigen-i18n
+   ocsigen-ppx-rpc
+   eliom.ppx.server
+   --
+   ;   --prefix
+   ;   %%%MODULE_NAME%%%_
+   ;   --suffix
+   ;   _i18n
+   ;   --default-module
+   ;   %%%MODULE_NAME%%%_i18n
+   )))
+
+;(rule
+; (target %%%PROJECT_NAME%%%_i18n.eliom)
+; (deps assets/%%%PROJECT_NAME%%%_i18n.tsv)
+; (action
+;  (with-stdout-to
+;   %{target}
+;   (with-stdin-from
+;    %{deps}
+;    (pipe-stdout
+;     (run
+;      ocsigen-i18n-generator
+;      --languages
+;      en,fr
+;      --default-language
+;      fr
+;      %{deps})
+;     (run
+;      sed
+;      "1 s/]/[@@deriving json]]\\n[%%shared [@@@ocaml.warning\"-27\"]]/"))))))
+
+(subdir
+ gen
+ (rule
+  (deps ../tools/gen_dune.ml)
+  (action
+   (with-stdout-to
+    dune.client
+    (run ocaml ../tools/gen_dune.ml)))))
+
+(subdir
+ client
+ (executables
+  (names %%%PROJECT_NAME%%%)
+  (modes js byte)
+  (preprocess
+   (pps
+    js_of_ocaml-ppx
+    lwt_ppx
+    ;    ocsigen-i18n
+    ;    --
+    ;    --prefix
+    ;    %%%MODULE_NAME%%%_
+    ;    --suffix
+    ;    _i18n
+    ;    --default-module
+    ;    %%%MODULE_NAME%%%_i18n
+    ))
+  (js_of_ocaml
+   (build_runtime_flags :standard --enable use-js-string)
+   (flags
+    :standard
+    --enable
+    with-js-error
+    --enable
+    use-js-string
+    --no-source-map))
+  ; source maps are slow...
+  (libraries eliom.client))
+ (dynamic_include ../gen/dune.client))
+
+; Main rule:
+
+(rule
+ (alias %%%PROJECT_NAME%%%)
+ (deps
+  %%%PROJECT_NAME%%%.cma
+  client/%%%PROJECT_NAME%%%.bc
+  client/%%%PROJECT_NAME%%%.bc.js
+  tools/check_modules.ml)
+ (action
+  (run ocaml -I +unix -I +str tools/check_modules.ml %%%PROJECT_NAME%%%)))

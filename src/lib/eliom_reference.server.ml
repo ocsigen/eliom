@@ -196,8 +196,8 @@ let eref ~scope ?secure ?persistent v =
 
 let get_site_id () =
   let sd = Eliom_common.get_site_data () in
-  sd.Eliom_common.config_info.Ocsigen_extensions.default_hostname ^ ":"
-  ^ sd.Eliom_common.site_dir_string
+  (Eliom_common.get_config_info sd).Ocsigen_extensions.default_hostname ^ ":"
+  ^ Eliom_common.get_site_dir_string sd
 
 let get ((f, _, table) as eref) =
   match table with
