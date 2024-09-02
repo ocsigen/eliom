@@ -38,7 +38,7 @@ using polymorphic variant types. You may use constructor functions from <<a_api 
 | module Eliom_content.Html.D >> or a syntax extension close to the standard HTML syntax.
 ;<<a_api subproject="server"| module Eliom_registration.Flow5 >>
 : Registration of functions that generate a portion of page using <<a_api subproject="server" |
-module Eliom_content.Html.F >> or the syntax extension (useful for {{{XMLHttpRequest}}} requests for example). Do not use with Eliom applications: you can instead use <<a_api subproject="server" | Eliom_client.server_function>> (or the {{{let%rpc}}} syntax) to call server functions that produce HTML nodes.
+module Eliom_content.Html.F >> or the syntax extension (useful for {{{XMLHttpRequest}}} requests for example). Do not use with Eliom applications: you can instead use <<a_api subproject="server"| val Eliom_client.server_function >> (or the {{{let%rpc}}} syntax) to call server functions that produce HTML nodes.
 ;<<a_api subproject="server"| module Eliom_registration.Html_text >>
 : Registration of functions that generate text HTML pages, without any validation of the content. The content type sent by the server is "{{{text/html}}}".
 ;<<a_api subproject="server"| module Eliom_registration.CssText >>
