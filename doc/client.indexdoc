@@ -10,6 +10,7 @@ Eliom_client_value
 
 {!modules:
 Eliom_content.Html
+Eliom_content.Html.Manip
 Eliom_content.Svg
 Eliom_content.Xml
 }
