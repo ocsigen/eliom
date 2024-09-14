@@ -16,6 +16,7 @@
    ocsigen-ppx-rpc
    eliom.ppx.server
    --
+   --rpc-raw
    ;   --prefix
    ;   %%%MODULE_NAME%%%_
    ;   --suffix
