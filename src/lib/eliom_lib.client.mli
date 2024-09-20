@@ -24,17 +24,17 @@ open Js_of_ocaml
 (** See {% <<a_api project="ocsigenserver"| module Ocsigen_lib_base >> %}. *)
 include
   module type of Ocsigen_lib_base
-    with type poly = Ocsigen_lib_base.poly
-     and type yesnomaybe = Ocsigen_lib_base.yesnomaybe
-     and type ('a, 'b) leftright = ('a, 'b) Ocsigen_lib_base.leftright
-     and type 'a Clist.t = 'a Ocsigen_lib_base.Clist.t
-     and type 'a Clist.node = 'a Ocsigen_lib_base.Clist.node
+  with type poly = Ocsigen_lib_base.poly
+   and type yesnomaybe = Ocsigen_lib_base.yesnomaybe
+   and type ('a, 'b) leftright = ('a, 'b) Ocsigen_lib_base.leftright
+   and type 'a Clist.t = 'a Ocsigen_lib_base.Clist.t
+   and type 'a Clist.node = 'a Ocsigen_lib_base.Clist.node
 
 include
   module type of Eliom_lib_base
-    with type 'a Int64_map.t = 'a Eliom_lib_base.Int64_map.t
-    with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
-    with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t
+  with type 'a Int64_map.t = 'a Eliom_lib_base.Int64_map.t
+  with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
+  with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t
 
 type file_info = File.file Js.t
 
@@ -78,14 +78,14 @@ end
 module Lwt_log : sig
   include
     module type of Lwt_log_js
-      with type level = Lwt_log_core.level
-       and type logger = Lwt_log_core.logger
-       and type section = Lwt_log_core.section
-       and type template = Lwt_log_core.template
-       and module Section = Lwt_log_core.Section
+    with type level = Lwt_log_core.level
+     and type logger = Lwt_log_core.logger
+     and type section = Lwt_log_core.section
+     and type template = Lwt_log_core.template
+     and module Section = Lwt_log_core.Section
 
-  val raise_error
-    :  ?inspect:'v
+  val raise_error :
+     ?inspect:'v
     -> ?exn:exn
     -> ?section:section
     -> ?location:string * int * int
@@ -93,8 +93,8 @@ module Lwt_log : sig
     -> string
     -> 'a
 
-  val raise_error_f
-    :  ?inspect:'v
+  val raise_error_f :
+     ?inspect:'v
     -> ?exn:exn
     -> ?section:section
     -> ?location:string * int * int
@@ -138,15 +138,19 @@ module Dom_reference : sig
   type key
 
   val new_key : unit -> key
+
   val retain : ?key:key -> _ Js.t -> keep:_ -> unit
   (** [retain v ~keep] prevents [keep] from being garbage collected
       while [v] is live. An optional key can be specified if one needs
       to remove this association later one. *)
+
   val retain_generic : ?key:key -> _ -> keep:_ -> unit
   (** Same as [retain] but works with any object. More error-prone *)
+
   val release : key:key -> _ -> unit
   (** [release ~key o] removes the association between the value [v] and
       the value associated to [key]. *)
+
   val transfer : key:key -> src:_ -> dst:_ -> unit
   (** [transfer ~key ~src ~dst] transfers the association between the
       value [src] and the value associated to key [key] to value

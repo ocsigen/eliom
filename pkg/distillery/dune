@@ -1,7 +1,8 @@
 (data_only_dirs templates)
+
 (install
-  (section lib)
-  (files
-    (glob_files templates/app.exe/**)
-    (glob_files templates/app.lib/**)
-    (glob_files templates/basic.ppx/**)))
+ (section lib)
+ (files
+  (glob_files templates/app.exe/**)
+  (glob_files templates/app.lib/**)
+  (glob_files templates/basic.ppx/**)))

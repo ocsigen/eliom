@@ -1,6 +1,6 @@
 (library
-  (name ocamlbuild_eliom)
-  (public_name eliom.ocamlbuild)
-  (synopsis "Eliom ocamlbuild plugin (js_of_ocaml part included)")
-  (wrapped false)
-  (libraries js_of_ocaml-ocamlbuild))
+ (name ocamlbuild_eliom)
+ (public_name eliom.ocamlbuild)
+ (synopsis "Eliom ocamlbuild plugin (js_of_ocaml part included)")
+ (wrapped false)
+ (libraries js_of_ocaml-ocamlbuild))

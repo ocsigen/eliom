@@ -1,11 +1,13 @@
 (executables
-   (names eliomc eliomdep eliomdoc eliompp distillery gen_dune)
-   (public_names eliomc eliomdep eliomdoc eliompp eliom-distillery -)
-   (libraries str unix findlib))
+ (names eliomc eliomdep eliomdoc eliompp distillery gen_dune)
+ (public_names eliomc eliomdep eliomdoc eliompp eliom-distillery -)
+ (libraries str unix findlib))
 
 (ocamllex eliompp_lexer)
 
 (install
  (section bin)
- (files (eliomc.exe as eliomopt) (eliomc.exe as eliomcp)
-        (eliomc.exe as js_of_eliom)))
+ (files
+  (eliomc.exe as eliomopt)
+  (eliomc.exe as eliomcp)
+  (eliomc.exe as js_of_eliom)))

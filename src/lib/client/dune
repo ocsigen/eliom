@@ -1,28 +1,48 @@
 (library
-  (name eliom_client)
-  (public_name eliom.client)
-  (synopsis "Eliom: client-side")
-  (wrapped false)
-  (modes byte)
-  (modules_without_implementation eliom_content_sigs eliom_form_sigs
-   eliom_parameter_sigs eliom_registration_sigs eliom_service_sigs
-   eliom_shared_sigs eliom_wrap)
-  (preprocess (pps lwt_ppx js_of_ocaml-ppx js_of_ocaml-ppx_deriving_json))
-  (library_flags (:standard -linkall))
-  (libraries ocsigenserver.cookies ocsigenserver.polytables js_of_ocaml
-             js_of_ocaml-tyxml js_of_ocaml-lwt js_of_ocaml-lwt.logger
-             lwt_react ocsigenserver.baselib.base cohttp tyxml
-             reactiveData)
-  (foreign_stubs (language c) (names eliom_stubs))
-  (js_of_ocaml (javascript_files eliom_client.js)))
+ (name eliom_client)
+ (public_name eliom.client)
+ (synopsis "Eliom: client-side")
+ (wrapped false)
+ (modes byte)
+ (modules_without_implementation
+  eliom_content_sigs
+  eliom_form_sigs
+  eliom_parameter_sigs
+  eliom_registration_sigs
+  eliom_service_sigs
+  eliom_shared_sigs
+  eliom_wrap)
+ (preprocess
+  (pps lwt_ppx js_of_ocaml-ppx js_of_ocaml-ppx_deriving_json))
+ (library_flags
+  (:standard -linkall))
+ (libraries
+  ocsigenserver.cookies
+  ocsigenserver.polytables
+  js_of_ocaml
+  js_of_ocaml-tyxml
+  js_of_ocaml-lwt
+  js_of_ocaml-lwt.logger
+  lwt_react
+  ocsigenserver.baselib.base
+  cohttp
+  tyxml
+  reactiveData)
+ (foreign_stubs
+  (language c)
+  (names eliom_stubs))
+ (js_of_ocaml
+  (javascript_files eliom_client.js)))
 
 (include dune.client)
 
 (rule
-  (target dune.client)
-  (mode promote)
-  (deps (glob_files ../*) (universe))
-  (action
-    (with-stdout-to
-      %{target}
-      (run ../../tools/gen_dune.exe --client ..))))
+ (target dune.client)
+ (mode promote)
+ (deps
+  (glob_files ../*)
+  (universe))
+ (action
+  (with-stdout-to
+   %{target}
+   (run ../../tools/gen_dune.exe --client ..))))

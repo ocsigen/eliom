@@ -22,9 +22,9 @@ include Ocsigen_lib_base
 include (
   Eliom_lib_base :
     module type of Eliom_lib_base
-      with type 'a Int64_map.t = 'a Eliom_lib_base.Int64_map.t
-      with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
-      with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t)
+    with type 'a Int64_map.t = 'a Eliom_lib_base.Int64_map.t
+    with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
+    with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t)
 
 (*****************************************************************************)
 
@@ -74,10 +74,9 @@ module Url = struct
   let path_of_url_string s =
     match Url.url_of_string s with
     | Some path -> path_of_url path
-    | _ -> (
+    | _ ->
         (* assuming relative URL and improvising *)
-        split_path
-        @@ try String.(sub s 0 (index s '?')) with Not_found -> s)
+        split_path (try String.(sub s 0 (index s '?')) with Not_found -> s)
 end
 
 module Lwt_log = struct
@@ -169,12 +168,11 @@ let make_cryptographic_safe_string ?len:_ () =
   failwith "make_cryptographic_safe_string not implemented client-side"
 
 module Dom_reference = struct
-  class type ['a, 'b] map =
-    object
-      method set : 'a -> 'b -> unit Js.meth
-      method get : 'a -> 'b Js.Optdef.t Js.meth
-      method delete : 'a -> unit Js.meth
-    end
+  class type ['a, 'b] map = object
+    method set : 'a -> 'b -> unit Js.meth
+    method get : 'a -> 'b Js.Optdef.t Js.meth
+    method delete : 'a -> unit Js.meth
+  end
 
   let create_map () : (_, _) map Js.t =
     let map = Js.Unsafe.global##._Map in
@@ -195,9 +193,9 @@ module Dom_reference = struct
       Js.Optdef.get
         (retain_map##get node)
         (fun () ->
-          let m = create_map () in
-          retain_map##set node m;
-          m)
+           let m = create_map () in
+           retain_map##set node m;
+           m)
     in
     m##set key (Obj.repr keep)
 
@@ -212,6 +210,6 @@ module Dom_reference = struct
     Js.Optdef.iter
       (retain_map##get src)
       (fun m ->
-        Js.Optdef.iter (m##get key) (fun keep -> retain dst ~key ~keep);
-        m##delete key)
+         Js.Optdef.iter (m##get key) (fun keep -> retain dst ~key ~keep);
+         m##delete key)
 end
