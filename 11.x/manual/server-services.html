@@ -1,0 +1,385 @@
+<html><head><title> Services </title><meta charset="utf8"/><meta content="width=device-width, initial-scale=1" name="viewport"/><link rel="stylesheet" href="https://ocsigen.org/css/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script type="application/javascript" src="https://ocsigen.org/js/client.js">
+//<![CDATA[
+
+//]]>
+</script><script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js">
+//<![CDATA[
+
+//]]>
+</script></head><body class="server-services eliom"><div class="project-page"><div class="page-header"><p class="logo-ocsigen"><a href=".././../../" class="ocsimore_phrasing_link"><img src=".././../../img/ocsigen-white.svg" alt="Ocsigen"/></a>
+</p><p class="logo-subproject">Eliom</p><div class="mainmenu"><p class="mainmenu-home"><a href=".././../../" class="ocsimore_phrasing_link">Home</a></p><p class="mainmenu-doc"><a href=".././../../tuto/" class="ocsimore_phrasing_link">Doc</a></p><p class="mainmenu-current"><a href=".././../../eliom/" class="ocsimore_phrasing_link">Eliom</a></p><p><a href=".././../../js_of_ocaml/" class="ocsimore_phrasing_link">Js_of_ocaml</a></p><p><a href=".././../../ocsigenserver/" class="ocsimore_phrasing_link">Server</a></p><p><a href=".././../../lwt/" class="ocsimore_phrasing_link">Lwt</a></p><p><a href=".././../../tyxml/" class="ocsimore_phrasing_link">Tyxml</a></p><p><a href=".././../../ocsigen-start/" class="ocsimore_phrasing_link">Start</a></p></div><form id="googlesearch" action="https://google.com/search"><input name="q" id="gsearch-box" placeholder="Search using Google"/><label for="gsearch-box"><img src="/img/search.svg" alt="" id="gsearch-icon"/></label><input type="submit" id="gsearch-submit" onclick="document.getElementById('gsearch-box').value += ' site:ocsigen.org';"/></form><aside class="how-drawer"><input id="how-drawer-toggle" type="checkbox"/><label for="how-drawer-toggle" id="how-drawer-label"><span class="how-drawer-icon"></span></label><nav class="how-drawer-content"><ul class="drawermainmenu"><li class="drawermainmenu-home"><a href=".././../../" class="ocsimore_phrasing_link">Home</a>
+</li><li class="drawermainmenu-doc"><a href=".././../../tuto/" class="ocsimore_phrasing_link">Doc</a>
+</li><li class="drawermainmenu-project"><a href=".././../../eliom/" class="ocsimore_phrasing_link">Eliom</a>
+</li><li class="drawermainmenu-project"><a href=".././../../js_of_ocaml/" class="ocsimore_phrasing_link">Js_of_ocaml</a>
+</li><li class="drawermainmenu-project"><a href=".././../../ocsigenserver/" class="ocsimore_phrasing_link">Server</a>
+</li><li class="drawermainmenu-project"><a href=".././../../lwt/" class="ocsimore_phrasing_link">Lwt</a>
+</li><li class="drawermainmenu-project"><a href=".././../../tyxml/" class="ocsimore_phrasing_link">Tyxml</a>
+</li><li class="drawermainmenu-project"><a href=".././../../ocsigen-toolkit/" class="ocsimore_phrasing_link">Toolkit</a>
+</li><li class="drawermainmenu-project"><a href=".././../../ocsigen-start/" class="ocsimore_phrasing_link">Start</a>
+</li><li class="drawermainmenu-project"><a href=".././../../ocsipersist/" class="ocsimore_phrasing_link">Ocsipersist</a>
+</li><li class="drawermainmenu-project"><a href=".././../../html_of_wiki/" class="ocsimore_phrasing_link">html_of_wiki</a>
+</li><li class="drawermainmenu-project"><a href=".././../../ocsimore/" class="ocsimore_phrasing_link">Ocsimore (<em>deprecated</em>)</a>
+</li><li class="drawermainmenu-page"><a href=".././../../projects" class="ocsimore_phrasing_link">Other projects</a>
+</li><li class="drawermainmenu-page"><a href=".././../../papers" class="ocsimore_phrasing_link">Research papers</a>
+</li><li class="drawermainmenu-page"><a href=".././../../credits" class="ocsimore_phrasing_link">Who does Ocsigen?</a>
+</li><li class="drawermainmenu-page"><a href=".././../../contributing" class="ocsimore_phrasing_link">Contributing</a>
+</li><li class="drawermainmenu-page"><a href=".././../../blog" class="ocsimore_phrasing_link">Blog</a>
+</li><li class="drawermainmenu-page"><a href=".././../../install" class="ocsimore_phrasing_link">Installation</a>
+</li><li class="drawermainmenu-page"><a href="https://github.com/ocsigen" class="ocsimore_phrasing_link">Source code</a>
+</li></ul><nav class="how-doctree"><h1> Eliom's Reference manual</h1><h2><a href="intro" class="ocsimore_phrasing_link">Introduction</a></h2><h3><span><a href=".././../../tuto/latest/manual/basics">Client-server applications</a></span></h3><h3><span><a href=".././../../tuto/latest/manual/basics-server">Server-side websites</a></span></h3><h2>Server-side programming</h2><h3>Services</h3><h4><a href="server-services" class="ocsimore_phrasing_link">The different types of services</a></h4><h4><a href="server-params" class="ocsimore_phrasing_link">Typing service parameters</a></h4><h4><a href="server-outputs" class="ocsimore_phrasing_link">Service handlers</a></h4><h4><a href="server-links" class="ocsimore_phrasing_link">Creating links and forms</a></h4><h3><a href="server-state" class="ocsimore_phrasing_link">Sessions and server side state</a></h3><h3><a href="server-security" class="ocsimore_phrasing_link">Security</a></h3><h2>Client-server programming</h2><h3><a href="clientserver-applications" class="ocsimore_phrasing_link">Eliom applications</a></h3><h3><a href="ppx-syntax" class="ocsimore_phrasing_link">Multi-tier programming</a></h3><h3><a href="clientserver-html" class="ocsimore_phrasing_link">Generating HTML</a></h3><h3><a href="clientserver-communication" class="ocsimore_phrasing_link">Communication</a></h3><h3><a href="clientserver-services" class="ocsimore_phrasing_link">Client-side services</a></h3><h3><a href="clientserver-react" class="ocsimore_phrasing_link">Shared reactive programming</a></h3><h3><a href="clientserver-cache" class="ocsimore_phrasing_link">Caching data and off-line applications</a></h3><h3><a href="clientserver-wrapping" class="ocsimore_phrasing_link">Custom wrapping</a></h3><h2>Workflows</h2><h3><a href="workflow-distillery" class="ocsimore_phrasing_link">Distillery</a></h3><h3><a href="mobile-apps" class="ocsimore_phrasing_link">Mobile apps</a></h3><h3><a href="workflow-configuration" class="ocsimore_phrasing_link">Configuration &amp; running</a></h3><h3><a href="scalability" class="ocsimore_phrasing_link">Scalability</a></h3><h1>Client API</h1><h2><a href=".././api/client/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h2><h2><a href=".././api/client/Eliom_client_value" class="ocsimore_phrasing_link">Eliom_client_value</a></h2><h2><a href=".././api/client/Eliom_lib" class="ocsimore_phrasing_link">Eliom_lib</a></h2><h2>Client/server communication</h2><h3><a href=".././api/client/Eliom_service" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href=".././api/client/Eliom_shared" class="ocsimore_phrasing_link">Eliom_shared</a></h3><h3><a href=".././api/client/Eliom_cscache" class="ocsimore_phrasing_link">Eliom_cscache</a></h3><h3><a href=".././api/client/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href=".././api/client/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href=".././api/client/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Content and form creation</h2><h3><a href=".././api/client/Eliom_content.Html" class="ocsimore_phrasing_link">Eliom_content.Html</a></h3><h3><a href=".././api/client/Eliom_content.Svg" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href=".././api/client/Eliom_content.Xml" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h2>Index</h2><h3> <span><a href=".././api/client/index_types">Index of types</a></span></h3><h3> <span><a href=".././api/client/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href=".././api/client/index_values">Index of values</a></span></h3><h3> <span><a href=".././api/client/index_modules">Index of modules</a></span></h3><h3> <span><a href=".././api/client/index_module_types">Index of module types</a></span></h3><h1>Server API</h1><h2>Service creation</h2><h3><a href=".././api/server/Eliom_service" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href=".././api/server/Eliom_parameter" class="ocsimore_phrasing_link">Eliom_parameter</a></h3><h3><a href=".././api/server/Eliom_registration" class="ocsimore_phrasing_link">Eliom_registration</a></h3><h3><a href=".././api/server/Eliom_registration.Html" class="ocsimore_phrasing_link">Eliom_registration.Html</a></h3><h3><a href=".././api/server/Eliom_registration.Action" class="ocsimore_phrasing_link">Eliom_registration.Action</a></h3><h3><a href=".././api/server/Eliom_registration.Ocaml" class="ocsimore_phrasing_link">Eliom_registration.Ocaml</a></h3><h3><a href=".././api/server/Eliom_registration.App" class="ocsimore_phrasing_link">Eliom_registration.App</a></h3><h3><a href=".././api/server/Eliom_registration.File" class="ocsimore_phrasing_link">Eliom_registration.File</a></h3><h3><a href=".././api/server/Eliom_registration.Any" class="ocsimore_phrasing_link">Eliom_registration.Any</a></h3><h3><a href=".././api/server/Eliom_registration.Redirection" class="ocsimore_phrasing_link">Eliom_registration.Redirection</a></h3><h2>Content and form creation</h2><h3><a href=".././api/server/Eliom_content" class="ocsimore_phrasing_link">Eliom_content</a></h3><h3><a href=".././api/server/Eliom_content.Html" class="ocsimore_phrasing_link">Eliom_content.Html</a></h3><h3><a href=".././api/server/Eliom_content.Svg" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href=".././api/server/Eliom_content.Xml" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h3><a href=".././api/server/Eliom_tools" class="ocsimore_phrasing_link">Eliom_tools</a></h3><h2>Server side state, requests, misc</h2><h3><a href=".././api/server/Eliom_reference" class="ocsimore_phrasing_link">Eliom_reference</a></h3><h3><a href=".././api/server/Eliom_state" class="ocsimore_phrasing_link">Eliom_state</a></h3><h3><a href=".././api/server/Eliom_config" class="ocsimore_phrasing_link">Eliom_config</a></h3><h3><a href=".././api/server/Eliom_request_info" class="ocsimore_phrasing_link">Eliom_request_info</a></h3><h3><a href=".././api/server/Eliom_common" class="ocsimore_phrasing_link">Eliom_common</a></h3><h3><a href=".././api/server/Eliom_lib" class="ocsimore_phrasing_link">Eliom_lib</a></h3><h2>Client/server communication</h2><h3><a href=".././api/server/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h3><h3><a href=".././api/server/Eliom_client_value" class="ocsimore_phrasing_link">Eliom_client_value</a></h3><h3><a href=".././api/server/Eliom_shared" class="ocsimore_phrasing_link">Eliom_shared</a></h3><h3><a href=".././api/server/Eliom_notif" class="ocsimore_phrasing_link">Eliom_notif</a></h3><h3><a href=".././api/server/Eliom_cscache" class="ocsimore_phrasing_link">Eliom_cscache</a></h3><h3><a href=".././api/server/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href=".././api/server/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href=".././api/server/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Index</h2><h3> <span><a href=".././api/server/index_types">Index of types</a></span></h3><h3> <span><a href=".././api/server/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href=".././api/server/index_values">Index of values</a></span></h3><h3> <span><a href=".././api/server/index_modules">Index of modules</a></span></h3><h3> <span><a href=".././api/server/index_module_types">Index of module types</a></span></h3><h1>Ppx syntax</h1><h2><a href=".././api/ppx/Ppx_eliom" class="ocsimore_phrasing_link">Ppx_eliom</a></h2></nav></nav></aside></div><p class="reasonwarning">Warning: Reason support is experimental.
+We are looking for beta-tester and contributors.
+</p><button id="reason">Switch to </button><div class="twocols"><nav class="leftcol">Version <select class="how-versions" onchange="location = this.value;"><option value=".././../dev/manual/server-services">dev</option><option value=".././../11.x/manual/server-services" selected="selected">11.x</option><option value=".././../8.x/manual/server-services">8.x</option><option value=".././../1.3.4/manual/server-services">1.3.4</option></select><nav class="how-doctree"><h1> Eliom's Reference manual</h1><h2><a href="intro" class="ocsimore_phrasing_link">Introduction</a></h2><h3><span><a href=".././../../tuto/latest/manual/basics">Client-server applications</a></span></h3><h3><span><a href=".././../../tuto/latest/manual/basics-server">Server-side websites</a></span></h3><h2>Server-side programming</h2><h3>Services</h3><h4><a href="server-services" class="ocsimore_phrasing_link">The different types of services</a></h4><h4><a href="server-params" class="ocsimore_phrasing_link">Typing service parameters</a></h4><h4><a href="server-outputs" class="ocsimore_phrasing_link">Service handlers</a></h4><h4><a href="server-links" class="ocsimore_phrasing_link">Creating links and forms</a></h4><h3><a href="server-state" class="ocsimore_phrasing_link">Sessions and server side state</a></h3><h3><a href="server-security" class="ocsimore_phrasing_link">Security</a></h3><h2>Client-server programming</h2><h3><a href="clientserver-applications" class="ocsimore_phrasing_link">Eliom applications</a></h3><h3><a href="ppx-syntax" class="ocsimore_phrasing_link">Multi-tier programming</a></h3><h3><a href="clientserver-html" class="ocsimore_phrasing_link">Generating HTML</a></h3><h3><a href="clientserver-communication" class="ocsimore_phrasing_link">Communication</a></h3><h3><a href="clientserver-services" class="ocsimore_phrasing_link">Client-side services</a></h3><h3><a href="clientserver-react" class="ocsimore_phrasing_link">Shared reactive programming</a></h3><h3><a href="clientserver-cache" class="ocsimore_phrasing_link">Caching data and off-line applications</a></h3><h3><a href="clientserver-wrapping" class="ocsimore_phrasing_link">Custom wrapping</a></h3><h2>Workflows</h2><h3><a href="workflow-distillery" class="ocsimore_phrasing_link">Distillery</a></h3><h3><a href="mobile-apps" class="ocsimore_phrasing_link">Mobile apps</a></h3><h3><a href="workflow-configuration" class="ocsimore_phrasing_link">Configuration &amp; running</a></h3><h3><a href="scalability" class="ocsimore_phrasing_link">Scalability</a></h3><h1>Client API</h1><h2><a href=".././api/client/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h2><h2><a href=".././api/client/Eliom_client_value" class="ocsimore_phrasing_link">Eliom_client_value</a></h2><h2><a href=".././api/client/Eliom_lib" class="ocsimore_phrasing_link">Eliom_lib</a></h2><h2>Client/server communication</h2><h3><a href=".././api/client/Eliom_service" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href=".././api/client/Eliom_shared" class="ocsimore_phrasing_link">Eliom_shared</a></h3><h3><a href=".././api/client/Eliom_cscache" class="ocsimore_phrasing_link">Eliom_cscache</a></h3><h3><a href=".././api/client/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href=".././api/client/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href=".././api/client/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Content and form creation</h2><h3><a href=".././api/client/Eliom_content.Html" class="ocsimore_phrasing_link">Eliom_content.Html</a></h3><h3><a href=".././api/client/Eliom_content.Svg" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href=".././api/client/Eliom_content.Xml" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h2>Index</h2><h3> <span><a href=".././api/client/index_types">Index of types</a></span></h3><h3> <span><a href=".././api/client/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href=".././api/client/index_values">Index of values</a></span></h3><h3> <span><a href=".././api/client/index_modules">Index of modules</a></span></h3><h3> <span><a href=".././api/client/index_module_types">Index of module types</a></span></h3><h1>Server API</h1><h2>Service creation</h2><h3><a href=".././api/server/Eliom_service" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href=".././api/server/Eliom_parameter" class="ocsimore_phrasing_link">Eliom_parameter</a></h3><h3><a href=".././api/server/Eliom_registration" class="ocsimore_phrasing_link">Eliom_registration</a></h3><h3><a href=".././api/server/Eliom_registration.Html" class="ocsimore_phrasing_link">Eliom_registration.Html</a></h3><h3><a href=".././api/server/Eliom_registration.Action" class="ocsimore_phrasing_link">Eliom_registration.Action</a></h3><h3><a href=".././api/server/Eliom_registration.Ocaml" class="ocsimore_phrasing_link">Eliom_registration.Ocaml</a></h3><h3><a href=".././api/server/Eliom_registration.App" class="ocsimore_phrasing_link">Eliom_registration.App</a></h3><h3><a href=".././api/server/Eliom_registration.File" class="ocsimore_phrasing_link">Eliom_registration.File</a></h3><h3><a href=".././api/server/Eliom_registration.Any" class="ocsimore_phrasing_link">Eliom_registration.Any</a></h3><h3><a href=".././api/server/Eliom_registration.Redirection" class="ocsimore_phrasing_link">Eliom_registration.Redirection</a></h3><h2>Content and form creation</h2><h3><a href=".././api/server/Eliom_content" class="ocsimore_phrasing_link">Eliom_content</a></h3><h3><a href=".././api/server/Eliom_content.Html" class="ocsimore_phrasing_link">Eliom_content.Html</a></h3><h3><a href=".././api/server/Eliom_content.Svg" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href=".././api/server/Eliom_content.Xml" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h3><a href=".././api/server/Eliom_tools" class="ocsimore_phrasing_link">Eliom_tools</a></h3><h2>Server side state, requests, misc</h2><h3><a href=".././api/server/Eliom_reference" class="ocsimore_phrasing_link">Eliom_reference</a></h3><h3><a href=".././api/server/Eliom_state" class="ocsimore_phrasing_link">Eliom_state</a></h3><h3><a href=".././api/server/Eliom_config" class="ocsimore_phrasing_link">Eliom_config</a></h3><h3><a href=".././api/server/Eliom_request_info" class="ocsimore_phrasing_link">Eliom_request_info</a></h3><h3><a href=".././api/server/Eliom_common" class="ocsimore_phrasing_link">Eliom_common</a></h3><h3><a href=".././api/server/Eliom_lib" class="ocsimore_phrasing_link">Eliom_lib</a></h3><h2>Client/server communication</h2><h3><a href=".././api/server/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h3><h3><a href=".././api/server/Eliom_client_value" class="ocsimore_phrasing_link">Eliom_client_value</a></h3><h3><a href=".././api/server/Eliom_shared" class="ocsimore_phrasing_link">Eliom_shared</a></h3><h3><a href=".././api/server/Eliom_notif" class="ocsimore_phrasing_link">Eliom_notif</a></h3><h3><a href=".././api/server/Eliom_cscache" class="ocsimore_phrasing_link">Eliom_cscache</a></h3><h3><a href=".././api/server/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href=".././api/server/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href=".././api/server/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Index</h2><h3> <span><a href=".././api/server/index_types">Index of types</a></span></h3><h3> <span><a href=".././api/server/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href=".././api/server/index_values">Index of values</a></span></h3><h3> <span><a href=".././api/server/index_modules">Index of modules</a></span></h3><h3> <span><a href=".././api/server/index_module_types">Index of module types</a></span></h3><h1>Ppx syntax</h1><h2><a href=".././api/ppx/Ppx_eliom" class="ocsimore_phrasing_link">Ppx_eliom</a></h2></nav></nav><article class="rightcol"><h1> Services </h1><div id="overview" class="ocsimore_outline"><header><p><strong>Table of contents</strong></p></header></div><script>
+//<![CDATA[
+window.addEventListener("load", function(){ outline([0,-515484383,0,[0,2],[0,"nav",[0,"aside",0]],"overview",1]); }, false); 
+//]]>
+</script><h2> Introduction </h2><p>Services are entry points to your Web site. A service is usually
+attached to a URL, and it generates a Web page. There are other kinds
+of services, e.g., services that are identified by special GET or POST
+parameters, and services representing redirections.
+</p><p>A service is composed of:
+</p><ul><li> some identification data, allowing Eliom to choose which service
+should answer an incoming request; and
+</li><li> a service handler that will generate the answer.
+</li></ul><p>Services are most commonly used to create links and forms towards a
+service, using for example the function <span><a href=".././api/server/Eliom_content.Html.D#VALa">Eliom_content.Html.D.a</a></span>. See chapter <span><a href=".././manual/server-links">Creating links and forms</a></span> for more
+information.
+</p><p>Manipulation of Eliom services can be done through the values of type
+<span class="teletype">type Eliom_service.t</span> (see <span><a href=".././api/server/Eliom_service_sigs.S#TYPEt">Eliom_service_sigs.S.t</a></span>).  The service creation can be split in two
+steps:
+</p><ul><li> create a value of type <span class="teletype">Eliom_service.t</span>,
+most commonly by using the function
+<span><a href=".././api/server/Eliom_service#VALcreate">Eliom_service.create</a></span>; and
+</li><li> register a service handler, e.g., using <span><a href=".././api/server/Eliom_registration.Html#VALregister">Eliom_registration.Html.register</a></span>. The handler receives the server
+parameters (GET and POST) and is responsible for producing the
+content sent to the client.
+</li></ul><p>The rest of this chapter focuses on service creation. See chapter
+<span><a href=".././manual/server-outputs"> Implementing service handlers</a></span> for
+more information on handler implementation and registration.
+</p><h2> Service creation </h2><div style="font-style: italic;"><p>Warning: in this manual, we use the
+term <em>service</em> both to denote a value of type <span class="teletype">Eliom_service.t</span>
+–that only contains some location information about a service–, or a
+fully <em>registered</em> service, that is also composed of a service
+handler. In case of ambiguities, we will use <span class="teletype">service</span> –in green
+monotype– to designate a value of type <span class="teletype">Eliom_service.t</span>.</p></div><p>The standard way to create a service is a call of the form
+<span class="teletype">Eliom_service.create ~meth ~path ()</span>, where
+</p><ul><li> <span class="teletype">~meth</span> (see
+<span><a href=".././api/server/Eliom_service_sigs.TYPES#TYPEmeth">Eliom_service_sigs.TYPES.meth</a></span>)
+specifies the HTTP method and the HTTP parameters of the service; and
+</li><li> <span class="teletype">~path:(Path p)</span> specifies a path, while
+<span class="teletype">~path:No_path</span> defines a pathless service
+(see <span><a href=".././api/server/Eliom_service_sigs.S#TYPEpath_option">Eliom_service_sigs.S.path_option</a></span>).
+</li></ul><h3 id="http-meth"> Service method  <a class="backref" href="#http-meth">&#182;</a></h3><p>Services can respond to any of the GET, POST, PUT, and DELETE HTTP
+methods.
+</p><ul><li> The GET method is intended to be used to retrieve a document from
+the server. The page is generated mainly according to the
+information contained in the URL.  URLs may contain parameters
+(consisting of name-value pairs in the URL string), and these
+parameters may come from HTML forms (or not).
+</li><li> The POST method is used to send data to the server (files, for
+example), but also values coming from an HTML form. Data is sent in
+the body of the HTTP request. It is possible to use the POST method
+with an empty body. In HTML, it is not possible to mix GET and POST
+parameters in forms, but it is possible to use a POST form with
+(fixed) GET parameters in the URL.
+</li><li> The PUT and DELETE methods are mostly used to implement RESTful
+applications.
+</li></ul><p>The corresponding
+<span><a href=".././api/server/Eliom_service_sigs.TYPES#TYPEmeth">Eliom_service_sigs.TYPES.meth</a></span>
+constructors
+are <span class="teletype">Get g</span>, <span class="teletype">Post (g, p)</span>, <span class="teletype">Put g</span>, and <span class="teletype">Delete g</span>,
+where <span class="teletype">g</span> and <span class="teletype">p</span> belong in
+<span class="teletype">Eliom_parameter.params_type</span>
+and correspond to the GET and POST parameters.
+</p><aside class="concept"><header><h5><span class="concept_prefix">Concept: </span>POST or GET?</h5></header><p>POST and GET methods are not equivalent, and you must be very
+careful if you want to use one or the other. Remember that only GET
+services are bookmarkable. The HTTP method and POST parameters are
+not stored in bookmarks.
+</p><ul><li> Use the GET method if you want the user to be able to come back to
+the service later, or to write the URL manually.
+</li><li> Use the POST method for <em>hidden services</em>, that is, when you
+want different behaviour between the first click and a reload of
+the page. Usually, using POST triggers a server-side action (like
+a payment, or adding something to a database), and you don't want
+it to succeed several times if the page is reloaded or bookmarked.</li></ul></aside><h3 id="http-params"> Service parameters  <a class="backref" href="#http-params">&#182;</a></h3><p>GET services expect only GET parameters, i.e., parameters that appear
+in the URL. POST, PUT, and DELETE services can also take POST
+parameters which are part of the body of the request.
+</p><p>Values of the type <span class="teletype">Eliom_parameter.params_type</span>
+represent the set of expected arguments with their types. They are
+built using combinators from the
+<span><a href=".././api/server/Eliom_parameter">Eliom_parameter</a></span>
+module. See chapter <span><a href=".././manual/server-params"> Service
+parameters </a></span> for a detailled description of this module.
+</p><p>Type information associated to each argument allows Eliom to
+automatically convert the actual parameters into the corresponding
+OCaml types. If the parameter cannot be converted, the exception
+<span><a href=".././api/server/Eliom_common#EXCEPTIONEliom_Typing_Error">Eliom_common.Eliom_Typing_Error</a></span>
+is raised. The handling of such errors may be customized by providing
+the argument <span class="teletype">~error_handler</span> when registering the service.
+</p><h3 id="path"> Services with path (&quot;regular&quot; services)  <a class="backref" href="#path">&#182;</a></h3><p>Services attached to paths, or more simply <em>regular</em> services, are
+the main entry points of sites. They are identified by the path of the
+URL and by (GET or POST) parameters.  They correspond to classical
+URLs, and they last forever once registered.
+</p><p>For creating a regular service, the <span class="teletype">Path p</span> constructor of
+<span><a href=".././api/server/Eliom_service_sigs.S#TYPEpath_option">Eliom_service_sigs.S.path_option</a></span>
+is used.  The path <span class="teletype">p</span> is represented in Eliom as a list of
+strings. For example:
+</p><p><span class="teletype">[&quot;foo&quot;; &quot;bar&quot;]</span> corresponds to the URL <span class="teletype">foo/bar</span>. <br/>
+<span class="teletype">[&quot;dir&quot;; &quot;&quot;]</span> corresponds to the URL <span class="teletype">dir/</span> (that is: the
+default page of the directory <span class="teletype">dir</span>). <br/>
+The empty list <span class="teletype">[]</span> is equivalent to <span class="teletype">[&quot;&quot;]</span>.<br/>
+</p><p>In many cases, the URL corresponding to a POST service must be
+accessible even when a request is done without the POST parameters;
+for instance, when typing the URL in the browser, when reloading, when
+using bookmarks, etc. If that is the case, the programmer needs to
+implement a separate GET service and register it on the same URL.
+</p><p><em>Warning:</em>
+</p><ul><li> You cannot create a service on path <span class="teletype">[&quot;foo&quot;]</span> (URL <span class="teletype">foo</span>,
+without slash at the end) and another on path <span class="teletype">[&quot;foo&quot;;&quot;bar&quot;]</span>
+(URL <span class="teletype">foo/bar</span>), because <span class="teletype">foo</span> cannot be both a directory
+and a file.  Additionally, be careful not to use a path as a
+directory with Eliom, if it is a file for Staticmod (and vice
+versa).
+</li><li> <span class="teletype">[&quot;foo&quot;;&quot;bar&quot;]</span> is not equivalent to <span class="teletype">[&quot;foo/bar&quot;]</span>. In the
+latter, the <span class="teletype">&quot;/&quot;</span> will be encoded in the URL.<br/>
+</li></ul><h3 id="pathless">Pathless services  <a class="backref" href="#pathless">&#182;</a></h3><p>Pathless services are not attached to a URL path. Such services are
+created with the <span class="teletype">No_path</span> constructor of
+<span><a href=".././api/server/Eliom_service_sigs.S#TYPEpath_option">Eliom_service_sigs.S.path_option</a></span>.
+</p><p>Pathless services are only identified by a special parameter, no
+matter what the path and the other parameters in the URL are. They are
+used to implement some behavior that should not be attached to a
+particular URL. A link to such a service points to the current URL
+with just an additional special parameter. This is useful when you
+want the same link or form on several pages (for example, a login box)
+but you don't want to go to another URL. Pathless services are often
+used with <span><a href=".././manual/server-outputs#actions">actions</a></span>.
+</p><p>Here is a simple example. Suppose that the function <span class="teletype">remove</span>
+removes one piece of data from a database (based on the identifier of
+the data). If you want to put a link on your page to call this
+function and redisplay the page, just create an action on a pathless
+service like this:
+</p><pre class=""><code class="language-ocaml translatable">let remove_action =
+  Eliom_registration.Action.create
+    ~meth:
+      (Eliom_service.Post
+         (Eliom_parameter.unit,
+          Eliom_parameter.int &quot;id&quot;))
+    ~path:Eliom_service.No_path
+    (fun () id -&gt; remove id)</code></pre><p>Then wherever you want to add a button to do that action (on data
+<span class="teletype">id</span>), create a form like:
+</p><pre class=""><code class="language-ocaml translatable">let open Eliom_content.Html.D in
+Form.post_form
+  ~service:remove_action
+  (fun id_name -&gt; [
+       Form.input ~input_type:`Hidden ~name:id_name ~value:id Form.int;
+       Form.button_no_value ~button_type:`Submit [txt &quot;submit&quot;]
+     ])</code></pre><h4>Changing URL when calling a pathless service</h4><p>By default, the URL of links or forms to pathless services is the
+current page. If you want to combine the service call with a URL
+change, it is possible to attach a non-attached service to another
+service using function
+<span><a href=".././api/server/Eliom_service#VALattach">Eliom_service.attach</a></span>.
+</p><p>Example:
+</p><pre class=""><code class="language-ocaml translatable">let service =
+  Eliom_service.attach
+    ~fallback:myfirstservice
+    ~service:myget_coserv'
+    ()
+in
+a ~service [txt &quot;click&quot;] ()</code></pre><p>It works with GET or POST pathless services. The fallback must be a
+GET service without parameters (but you can preapply it).
+</p><h4> Options for pathless services </h4><h5> Timeouts </h5><p>It is possible to use timeouts with pathless services, using the
+optional parameter <span class="teletype">?timeout</span> of the creation functions.  For
+example if your service is intended to show the results of a search,
+you probably want it to be available only for a short time.
+</p><p><em>Warning:</em> forgetting timeouts may cause memory leaks!
+</p><h5> Disposability </h5><p>It is possible to set a limit to the number of uses of a pathless
+service. Just provide the maximum number of uses with the optional
+<span class="teletype">?max_use</span> parameter while creating the service.
+</p><h2> Non-standard services </h2><p>Some kinds of services do not fit in our canonical way of defining
+services, <span><a href=".././api/server/Eliom_service#VALcreate">Eliom_service.create</a></span> .
+</p><h3 id="attached_services"> Attached services  <a class="backref" href="#attached_services">&#182;</a></h3><p>Attached services are created using the functions
+<span><a href=".././api/server/Eliom_service#VALcreate_attached_get">Eliom_service.create_attached_get</a></span>
+(GET method) and
+<span><a href=".././api/server/Eliom_service#VALcreate_attached_post">Eliom_service.create_attached_post</a></span>
+(POST method).
+</p><p>Anonymous GET attached services are often created dynamically with
+respect to previous interaction with the user (e.g. filling forms in
+multiple steps). They handle correctly the classical Web interactions
+(&quot;back&quot; button, bookmark, tab, ...): you create a new attached
+service each time you want to record a precise point in the
+interaction with the user, to be able to come back there later.
+</p><p>Often, they should be used with a restricted scope (see the section
+<span><a href=".././manual/server-services#service_scope"> service
+scopes</a></span>).
+</p><p>POST attached services can be used to customize the behaviour of a
+URL. Some of their uses are:
+</p><ul><li> For the same purpose as GET attached services, but when you don't
+want this service to be bookmarkable.
+</li></ul><ul><li> For performing side effects before serving a page. For example, say
+you want a disconnection button that leads to the main page of the
+site, but with the side effect of disconnecting the user.  You will
+use a (named) POST (attached) service.
+</li></ul><p>If an attached service does not exist anymore (e.g., if its timeout
+has expired, or if the session to which it belongs was closed), the
+fallback is called.
+</p><p>The fallback of a GET attached service cannot take parameters. But it
+is possible to use a <span><a href=".././manual/server-services#preapplied"> pre-applied</a></span> service as fallback.
+</p><p>Attached services can have a timeout and can be disposable, just like
+pathless services.
+</p><h3 id="unregistrable_services"> Unregistrable services  <a class="backref" href="#unregistrable_services">&#182;</a></h3><p>Some values of type <span class="teletype">Eliom_service.t</span> cannot be meaningfully
+associated to service handlers. Such values are called <em>unregistrable
+services</em> (as opposed to the standard case of <em>registrable
+services</em>), and represent, for example, links towards external sites,
+or registrable services pre-applied to some parameters. This allows
+use of the <span class="teletype">Eliom_service</span> API consistently for creating
+links.
+</p><h4>External services</h4><p>It is possible to define external services, that is, services that
+belong to an external Web site (on the same server or not).  To do
+this, use the function <span class="teletype">Eliom_service.extern</span>
+(see <span><a href=".././api/server/Eliom_service_sigs.S#VALextern">Eliom_service_sigs.S.extern</a></span>).
+</p><p>For example, the following code defines a link to the OCaml Wikipedia
+page:
+</p><pre class=""><code class="language-ocaml translatable">Eliom_content.Html.D.a
+  (Eliom_service.extern
+     ~prefix:&quot;http://en.wikipedia.org&quot;
+     ~path:[&quot;wiki&quot;;&quot;&quot;]
+     ~meth:
+       (Eliom_service.Get
+          Eliom_parameter.(suffix (all_suffix &quot;suff&quot;)))
+     ())
+  [txt &quot;OCaml on Wikipedia&quot;]
+  [&quot;OCaml&quot;]</code></pre><h4 id="staticparts"> Static files service <a class="backref" href="#staticparts">&#182;</a></h4><p><span><a href=".././../../ocsigenserver/latest/manual/staticmod"> Staticmod</a></span>
+is an Ocsigen Server extension serving static (non-generated) files
+(for example, images and stylesheets). It can be used together with
+Eliom. The predefined service
+<span><a href=".././api/server/Eliom_service#VALstatic_dir">Eliom_service.static_dir</a></span>
+can be used to make links to static files. It takes as parameter the
+path of the file.
+</p><p>For example, the following code will create this link:
+<a href=".././../../ocsigen10.png" class="ocsimore_phrasing_link">download image</a>.
+</p><pre class=""><code class="language-ocaml translatable">let open Eliom_content.Html.F in
+a (static_dir ()) [txt &quot;download image&quot;] [&quot;ocsigen10.png&quot;]</code></pre><p>It is also possible to send static files using Eliom, with
+<span><a href=".././api/server/Eliom_registration.File">Eliom_registration.File</a></span>.
+See
+<span><a href=".././manual/server-outputs#eliomfiles">Sending files</a></span>.
+</p><h4 id="preapplied">Pre-applied services <a class="backref" href="#preapplied">&#182;</a></h4><p>It is possible to preapply the GET parameters of a service to obtain a
+service without parameters, or only the POST ones. It is done using
+<span class="teletype">Eliom_service.preapply</span>
+(see
+<span><a href=".././api/server/Eliom_service_sigs.S#VALpreapply">Eliom_service_sigs.S.preapply</a></span>).
+For example:
+</p><pre class=""><code class="language-ocaml translatable">let s =
+  Eliom_service.create
+    ~path:(Eliom_service.Path [&quot;serv&quot;])
+    ~meth:(Eliom_service.Get Eliom_parameter.int)
+    ()
+
+let preappl = Eliom_service.preapply s 3</code></pre><p>It is not possible to register a handler on a preapplied service, but
+you can use them in links or as fallbacks for attached services.
+</p><h4 id="void">Reload actions <a class="backref" href="#void">&#182;</a></h4><p><span class="teletype">Eliom_service.reload_action</span>
+(see <span><a href=".././api/server/Eliom_service_sigs.S#VALreload_action">Eliom_service_sigs.S.reload_action</a></span>)
+is a special non-attached action, with special behavior: it has no
+parameter at all, not even non-attached parameters.  Use it if you
+want to make a link to the current page without non-attached
+parameters.  It is almost equivalent to a POST pathless service
+without POST parameters, on which you register an action that does
+nothing, but instead it is using the GET method, so that you can use
+it with <span class="teletype">&lt;a&gt;</span> links, not only with forms.  Example:
+</p><pre class=""><code class="language-ocaml translatable">a ~service:Eliom_service.reload_action [txt &quot;cancel&quot;] ()</code></pre><p>There is also <span class="teletype">Eliom_service.reload_action_https</span>
+(same, but forces use of HTTPS), <span class="teletype">Eliom_service.reload_action_hidden</span>,
+and <span class="teletype">Eliom_service.reload_action_https_hidden</span>.
+&quot;Hidden&quot; means that they keep GET non-attached parameters.
+</p><p>Use <span class="teletype">Eliom_service.reload_action_hidden</span> for example
+after a POST request, if you want to do a redirection towards the same
+page without POST parameters (and thus prevent from reposting data if
+the user reloads the page).
+</p><h2 id="identification"> Service identification  <a class="backref" href="#identification">&#182;</a></h2><p>Eliom has a sophisticated <em>service identification mechanism</em> to
+choose the service handler to be executed –given an incoming
+request– with respect to many criteria:
+</p><ul><li> the path of the requested URL,
+</li><li> the names of the (GET or POST) parameters,
+</li><li> some internal (GET or POST) parameter, added automatically,
+</li><li> the HTTP method,
+</li><li> the session the client belongs to (or client side process, or
+session group),
+</li><li> ...
+</li></ul><p>But the user does not usually need to bother with this. Eliom
+abstracts this mechanism away through its three main kinds of services
+(regular services, pathless services, and attached services), which we
+have described.
+</p><h2 id="service_scope"> Service scopes  <a class="backref" href="#service_scope">&#182;</a></h2><p>By default, services are accessible to anybody (<em>scope</em>
+<em>&quot;site&quot;</em>). It is possible to restrict the scope of a service, making
+it available only to a session, a client side process, or a group of
+sessions.
+</p><p>To limit the scope of a service, just add the argument <span class="teletype">~scope</span> to
+the
+<span><a href=".././api/server/Eliom_registration.Html#VALregister">Eliom_registration.Html.register</a></span>
+function (same for the other <span class="teletype">register</span> variants). The default scope
+is <span><a href=".././api/server/Eliom_common#VALsite_scope">Eliom_common.site_scope</a></span>.
+</p><p>The same service can be registered with several scopes.  This makes it
+possible, for example, to generate custom services for a specific
+user.  Eliom will try to find the service by trying the following (in
+order):
+</p><ul><li> scope <em>&quot;client-side process&quot;</em>,
+</li><li> scope <em>&quot;session&quot;</em>,
+</li><li> scope <em>&quot;group of session&quot;</em>,
+</li><li> and finally scope <em>&quot;site&quot;</em>.
+</li></ul><h2> Tips</h2><ul><li> All services created during initialization must be registered (with
+<em>&quot;site&quot;</em> scope) during the initialization phase of your module.
+If not, the server will not start, and an appropriate error message
+will appear in the logs. This prevents broken links.
+</li><li> Services may be registered only during the server's initialization
+phase (while reading the site configuration) or while processing a
+request, because Eliom must know the information about the site. Be
+very careful about this if you want to use static linking (see the
+section on <span><a href=".././manual/workflow-configuration#static_linking">static linking</a></span> in the chapter about
+Compiling and configuring Eliom modules).
+</li><li> All regular services (but not pathless and attached services) need
+to be created in a module loaded inside a <span class="teletype">&lt;host&gt;</span> tag of the
+configuration file. It is not possible to accomplish this using
+modules loaded inside <span class="teletype">&lt;extension&gt;</span> or <span class="teletype">&lt;library&gt;</span>.
+</li><li> If you create new main services dynamically, you will dynamically
+create new URLs!  This may be dangerous as they will disappear if
+you stop the server.  Be very careful to re-create these URLs when
+you relaunch the server, otherwise, some external links or bookmarks
+will be broken!<br/> The use of that feature is discouraged for
+services without timeout, as such services will be available only
+until the end of the server process (and it is not possible to
+re-create them with the same key).
+</li><li> Do not register the same service in the same scope twice, and do
+not replace a service by a directory (or vice versa). If this
+happens during the initialization phase, the server won't start.  If
+this happens after server startup, it will be ignored (with a
+warning in the logs).
+</li><li> GET attached services (without POST parameters) can be registered
+only with a regular service without GET/POST parameters as fallback.
+But it may be <span><a href=".././manual/server-services#preapplied">//preapplied//</a></span>.
+</li><li> The registration of (main) services must be completed before the end
+of the loading of the module. It is not possible to launch an Lwt
+thread with the intention that it will register a service later, as
+registering a service needs access to config file information (for
+example the directory of the site).  If you do this, the server will
+raise an exception most of
+the time, but you may also get unexpected results (if the thread is
+executed while another site is loaded).  If you use threads in the
+initialization phase of your module (for example if you need
+information from a database), use <span><a href=".././../../lwt/latest/api/Lwt_unix#VALrun">Lwt_unix.run</a></span> to wait for the end of the thread.
+</li><li> Some services can be registered multiple times, with different
+options. This allows for example choosing between different handlers
+when the request is done in a particular session or protocol (HTTP
+or HTTPS).</li></ul></article></div></div></body></html>

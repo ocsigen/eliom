@@ -1,0 +1,298 @@
+<html><head><title></title><meta charset="utf8"/><meta content="width=device-width, initial-scale=1" name="viewport"/><link rel="stylesheet" href="https://ocsigen.org/css/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script type="application/javascript" src="https://ocsigen.org/js/client.js">
+//<![CDATA[
+
+//]]>
+</script><script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js">
+//<![CDATA[
+
+//]]>
+</script></head><body class="type_Eliom_service_sigs.S eliom"><div class="project-page"><div class="page-header"><p class="logo-ocsigen"><a href="../.././../../" class="ocsimore_phrasing_link"><img src="../.././../../img/ocsigen-white.svg" alt="Ocsigen"/></a>
+</p><p class="logo-subproject">Eliom</p><div class="mainmenu"><p class="mainmenu-home"><a href="../.././../../" class="ocsimore_phrasing_link">Home</a></p><p class="mainmenu-doc"><a href="../.././../../tuto/" class="ocsimore_phrasing_link">Doc</a></p><p class="mainmenu-current"><a href="../.././../../eliom/" class="ocsimore_phrasing_link">Eliom</a></p><p><a href="../.././../../js_of_ocaml/" class="ocsimore_phrasing_link">Js_of_ocaml</a></p><p><a href="../.././../../ocsigenserver/" class="ocsimore_phrasing_link">Server</a></p><p><a href="../.././../../lwt/" class="ocsimore_phrasing_link">Lwt</a></p><p><a href="../.././../../tyxml/" class="ocsimore_phrasing_link">Tyxml</a></p><p><a href="../.././../../ocsigen-start/" class="ocsimore_phrasing_link">Start</a></p></div><form id="googlesearch" action="https://google.com/search"><input name="q" id="gsearch-box" placeholder="Search using Google"/><label for="gsearch-box"><img src="/img/search.svg" alt="" id="gsearch-icon"/></label><input type="submit" id="gsearch-submit" onclick="document.getElementById('gsearch-box').value += ' site:ocsigen.org';"/></form><aside class="how-drawer"><input id="how-drawer-toggle" type="checkbox"/><label for="how-drawer-toggle" id="how-drawer-label"><span class="how-drawer-icon"></span></label><nav class="how-drawer-content"><ul class="drawermainmenu"><li class="drawermainmenu-home"><a href="../.././../../" class="ocsimore_phrasing_link">Home</a>
+</li><li class="drawermainmenu-doc"><a href="../.././../../tuto/" class="ocsimore_phrasing_link">Doc</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../eliom/" class="ocsimore_phrasing_link">Eliom</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../js_of_ocaml/" class="ocsimore_phrasing_link">Js_of_ocaml</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../ocsigenserver/" class="ocsimore_phrasing_link">Server</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../lwt/" class="ocsimore_phrasing_link">Lwt</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../tyxml/" class="ocsimore_phrasing_link">Tyxml</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../ocsigen-toolkit/" class="ocsimore_phrasing_link">Toolkit</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../ocsigen-start/" class="ocsimore_phrasing_link">Start</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../ocsipersist/" class="ocsimore_phrasing_link">Ocsipersist</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../html_of_wiki/" class="ocsimore_phrasing_link">html_of_wiki</a>
+</li><li class="drawermainmenu-project"><a href="../.././../../ocsimore/" class="ocsimore_phrasing_link">Ocsimore (<em>deprecated</em>)</a>
+</li><li class="drawermainmenu-page"><a href="../.././../../projects" class="ocsimore_phrasing_link">Other projects</a>
+</li><li class="drawermainmenu-page"><a href="../.././../../papers" class="ocsimore_phrasing_link">Research papers</a>
+</li><li class="drawermainmenu-page"><a href="../.././../../credits" class="ocsimore_phrasing_link">Who does Ocsigen?</a>
+</li><li class="drawermainmenu-page"><a href="../.././../../contributing" class="ocsimore_phrasing_link">Contributing</a>
+</li><li class="drawermainmenu-page"><a href="../.././../../blog" class="ocsimore_phrasing_link">Blog</a>
+</li><li class="drawermainmenu-page"><a href="../.././../../install" class="ocsimore_phrasing_link">Installation</a>
+</li><li class="drawermainmenu-page"><a href="https://github.com/ocsigen" class="ocsimore_phrasing_link">Source code</a>
+</li></ul><nav class="how-doctree"><h1> Eliom's Reference manual</h1><h2><a href="../.././manual/intro" class="ocsimore_phrasing_link">Introduction</a></h2><h3><span><a href="../.././../../tuto/latest/manual/basics">Client-server applications</a></span></h3><h3><span><a href="../.././../../tuto/latest/manual/basics-server">Server-side websites</a></span></h3><h2>Server-side programming</h2><h3>Services</h3><h4><a href="../.././manual/server-services" class="ocsimore_phrasing_link">The different types of services</a></h4><h4><a href="../.././manual/server-params" class="ocsimore_phrasing_link">Typing service parameters</a></h4><h4><a href="../.././manual/server-outputs" class="ocsimore_phrasing_link">Service handlers</a></h4><h4><a href="../.././manual/server-links" class="ocsimore_phrasing_link">Creating links and forms</a></h4><h3><a href="../.././manual/server-state" class="ocsimore_phrasing_link">Sessions and server side state</a></h3><h3><a href="../.././manual/server-security" class="ocsimore_phrasing_link">Security</a></h3><h2>Client-server programming</h2><h3><a href="../.././manual/clientserver-applications" class="ocsimore_phrasing_link">Eliom applications</a></h3><h3><a href="../.././manual/ppx-syntax" class="ocsimore_phrasing_link">Multi-tier programming</a></h3><h3><a href="../.././manual/clientserver-html" class="ocsimore_phrasing_link">Generating HTML</a></h3><h3><a href="../.././manual/clientserver-communication" class="ocsimore_phrasing_link">Communication</a></h3><h3><a href="../.././manual/clientserver-services" class="ocsimore_phrasing_link">Client-side services</a></h3><h3><a href="../.././manual/clientserver-react" class="ocsimore_phrasing_link">Shared reactive programming</a></h3><h3><a href="../.././manual/clientserver-cache" class="ocsimore_phrasing_link">Caching data and off-line applications</a></h3><h3><a href="../.././manual/clientserver-wrapping" class="ocsimore_phrasing_link">Custom wrapping</a></h3><h2>Workflows</h2><h3><a href="../.././manual/workflow-distillery" class="ocsimore_phrasing_link">Distillery</a></h3><h3><a href="../.././manual/mobile-apps" class="ocsimore_phrasing_link">Mobile apps</a></h3><h3><a href="../.././manual/workflow-configuration" class="ocsimore_phrasing_link">Configuration &amp; running</a></h3><h3><a href="../.././manual/scalability" class="ocsimore_phrasing_link">Scalability</a></h3><h1>Client API</h1><h2><a href="../.././api/client/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h2><h2><a href="../.././api/client/Eliom_client_value" class="ocsimore_phrasing_link">Eliom_client_value</a></h2><h2><a href="../.././api/client/Eliom_lib" class="ocsimore_phrasing_link">Eliom_lib</a></h2><h2>Client/server communication</h2><h3><a href="../.././api/client/Eliom_service" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href="../.././api/client/Eliom_shared" class="ocsimore_phrasing_link">Eliom_shared</a></h3><h3><a href="../.././api/client/Eliom_cscache" class="ocsimore_phrasing_link">Eliom_cscache</a></h3><h3><a href="../.././api/client/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href="../.././api/client/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href="../.././api/client/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Content and form creation</h2><h3><a href="../.././api/client/Eliom_content.Html" class="ocsimore_phrasing_link">Eliom_content.Html</a></h3><h3><a href="../.././api/client/Eliom_content.Svg" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href="../.././api/client/Eliom_content.Xml" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h2>Index</h2><h3> <span><a href="../.././api/client/index_types">Index of types</a></span></h3><h3> <span><a href="../.././api/client/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href="../.././api/client/index_values">Index of values</a></span></h3><h3> <span><a href="../.././api/client/index_modules">Index of modules</a></span></h3><h3> <span><a href="../.././api/client/index_module_types">Index of module types</a></span></h3><h1>Server API</h1><h2>Service creation</h2><h3><a href="../.././api/server/Eliom_service" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href="../.././api/server/Eliom_parameter" class="ocsimore_phrasing_link">Eliom_parameter</a></h3><h3><a href="../.././api/server/Eliom_registration" class="ocsimore_phrasing_link">Eliom_registration</a></h3><h3><a href="../.././api/server/Eliom_registration.Html" class="ocsimore_phrasing_link">Eliom_registration.Html</a></h3><h3><a href="../.././api/server/Eliom_registration.Action" class="ocsimore_phrasing_link">Eliom_registration.Action</a></h3><h3><a href="../.././api/server/Eliom_registration.Ocaml" class="ocsimore_phrasing_link">Eliom_registration.Ocaml</a></h3><h3><a href="../.././api/server/Eliom_registration.App" class="ocsimore_phrasing_link">Eliom_registration.App</a></h3><h3><a href="../.././api/server/Eliom_registration.File" class="ocsimore_phrasing_link">Eliom_registration.File</a></h3><h3><a href="../.././api/server/Eliom_registration.Any" class="ocsimore_phrasing_link">Eliom_registration.Any</a></h3><h3><a href="../.././api/server/Eliom_registration.Redirection" class="ocsimore_phrasing_link">Eliom_registration.Redirection</a></h3><h2>Content and form creation</h2><h3><a href="../.././api/server/Eliom_content" class="ocsimore_phrasing_link">Eliom_content</a></h3><h3><a href="../.././api/server/Eliom_content.Html" class="ocsimore_phrasing_link">Eliom_content.Html</a></h3><h3><a href="../.././api/server/Eliom_content.Svg" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href="../.././api/server/Eliom_content.Xml" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h3><a href="../.././api/server/Eliom_tools" class="ocsimore_phrasing_link">Eliom_tools</a></h3><h2>Server side state, requests, misc</h2><h3><a href="../.././api/server/Eliom_reference" class="ocsimore_phrasing_link">Eliom_reference</a></h3><h3><a href="../.././api/server/Eliom_state" class="ocsimore_phrasing_link">Eliom_state</a></h3><h3><a href="../.././api/server/Eliom_config" class="ocsimore_phrasing_link">Eliom_config</a></h3><h3><a href="../.././api/server/Eliom_request_info" class="ocsimore_phrasing_link">Eliom_request_info</a></h3><h3><a href="../.././api/server/Eliom_common" class="ocsimore_phrasing_link">Eliom_common</a></h3><h3><a href="../.././api/server/Eliom_lib" class="ocsimore_phrasing_link">Eliom_lib</a></h3><h2>Client/server communication</h2><h3><a href="../.././api/server/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h3><h3><a href="../.././api/server/Eliom_client_value" class="ocsimore_phrasing_link">Eliom_client_value</a></h3><h3><a href="../.././api/server/Eliom_shared" class="ocsimore_phrasing_link">Eliom_shared</a></h3><h3><a href="../.././api/server/Eliom_notif" class="ocsimore_phrasing_link">Eliom_notif</a></h3><h3><a href="../.././api/server/Eliom_cscache" class="ocsimore_phrasing_link">Eliom_cscache</a></h3><h3><a href="../.././api/server/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href="../.././api/server/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href="../.././api/server/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Index</h2><h3> <span><a href="../.././api/server/index_types">Index of types</a></span></h3><h3> <span><a href="../.././api/server/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href="../.././api/server/index_values">Index of values</a></span></h3><h3> <span><a href="../.././api/server/index_modules">Index of modules</a></span></h3><h3> <span><a href="../.././api/server/index_module_types">Index of module types</a></span></h3><h1>Ppx syntax</h1><h2><a href="../.././api/ppx/Ppx_eliom" class="ocsimore_phrasing_link">Ppx_eliom</a></h2></nav></nav></aside></div><p class="reasonwarning">Warning: Reason support is experimental.
+We are looking for beta-tester and contributors.
+</p><button id="reason">Switch to </button><div class="twocols"><nav class="leftcol">Version <select class="how-versions" onchange="location = this.value;"><option value="../.././../dev/api/client/type_Eliom_service_sigs.S">dev</option><option value="../.././../11.x/api/client/type_Eliom_service_sigs.S" selected="selected">11.x</option><option value="../.././../8.x/api/client/type_Eliom_service_sigs.S">8.x</option><option value="../.././../1.3.4/api/client/type_Eliom_service_sigs.S">1.3.4</option></select><nav class="how-doctree"><h1> Eliom's Reference manual</h1><h2><a href="../.././manual/intro" class="ocsimore_phrasing_link">Introduction</a></h2><h3><span><a href="../.././../../tuto/latest/manual/basics">Client-server applications</a></span></h3><h3><span><a href="../.././../../tuto/latest/manual/basics-server">Server-side websites</a></span></h3><h2>Server-side programming</h2><h3>Services</h3><h4><a href="../.././manual/server-services" class="ocsimore_phrasing_link">The different types of services</a></h4><h4><a href="../.././manual/server-params" class="ocsimore_phrasing_link">Typing service parameters</a></h4><h4><a href="../.././manual/server-outputs" class="ocsimore_phrasing_link">Service handlers</a></h4><h4><a href="../.././manual/server-links" class="ocsimore_phrasing_link">Creating links and forms</a></h4><h3><a href="../.././manual/server-state" class="ocsimore_phrasing_link">Sessions and server side state</a></h3><h3><a href="../.././manual/server-security" class="ocsimore_phrasing_link">Security</a></h3><h2>Client-server programming</h2><h3><a href="../.././manual/clientserver-applications" class="ocsimore_phrasing_link">Eliom applications</a></h3><h3><a href="../.././manual/ppx-syntax" class="ocsimore_phrasing_link">Multi-tier programming</a></h3><h3><a href="../.././manual/clientserver-html" class="ocsimore_phrasing_link">Generating HTML</a></h3><h3><a href="../.././manual/clientserver-communication" class="ocsimore_phrasing_link">Communication</a></h3><h3><a href="../.././manual/clientserver-services" class="ocsimore_phrasing_link">Client-side services</a></h3><h3><a href="../.././manual/clientserver-react" class="ocsimore_phrasing_link">Shared reactive programming</a></h3><h3><a href="../.././manual/clientserver-cache" class="ocsimore_phrasing_link">Caching data and off-line applications</a></h3><h3><a href="../.././manual/clientserver-wrapping" class="ocsimore_phrasing_link">Custom wrapping</a></h3><h2>Workflows</h2><h3><a href="../.././manual/workflow-distillery" class="ocsimore_phrasing_link">Distillery</a></h3><h3><a href="../.././manual/mobile-apps" class="ocsimore_phrasing_link">Mobile apps</a></h3><h3><a href="../.././manual/workflow-configuration" class="ocsimore_phrasing_link">Configuration &amp; running</a></h3><h3><a href="../.././manual/scalability" class="ocsimore_phrasing_link">Scalability</a></h3><h1>Client API</h1><h2><a href="../.././api/client/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h2><h2><a href="../.././api/client/Eliom_client_value" class="ocsimore_phrasing_link">Eliom_client_value</a></h2><h2><a href="../.././api/client/Eliom_lib" class="ocsimore_phrasing_link">Eliom_lib</a></h2><h2>Client/server communication</h2><h3><a href="../.././api/client/Eliom_service" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href="../.././api/client/Eliom_shared" class="ocsimore_phrasing_link">Eliom_shared</a></h3><h3><a href="../.././api/client/Eliom_cscache" class="ocsimore_phrasing_link">Eliom_cscache</a></h3><h3><a href="../.././api/client/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href="../.././api/client/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href="../.././api/client/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Content and form creation</h2><h3><a href="../.././api/client/Eliom_content.Html" class="ocsimore_phrasing_link">Eliom_content.Html</a></h3><h3><a href="../.././api/client/Eliom_content.Svg" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href="../.././api/client/Eliom_content.Xml" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h2>Index</h2><h3> <span><a href="../.././api/client/index_types">Index of types</a></span></h3><h3> <span><a href="../.././api/client/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href="../.././api/client/index_values">Index of values</a></span></h3><h3> <span><a href="../.././api/client/index_modules">Index of modules</a></span></h3><h3> <span><a href="../.././api/client/index_module_types">Index of module types</a></span></h3><h1>Server API</h1><h2>Service creation</h2><h3><a href="../.././api/server/Eliom_service" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href="../.././api/server/Eliom_parameter" class="ocsimore_phrasing_link">Eliom_parameter</a></h3><h3><a href="../.././api/server/Eliom_registration" class="ocsimore_phrasing_link">Eliom_registration</a></h3><h3><a href="../.././api/server/Eliom_registration.Html" class="ocsimore_phrasing_link">Eliom_registration.Html</a></h3><h3><a href="../.././api/server/Eliom_registration.Action" class="ocsimore_phrasing_link">Eliom_registration.Action</a></h3><h3><a href="../.././api/server/Eliom_registration.Ocaml" class="ocsimore_phrasing_link">Eliom_registration.Ocaml</a></h3><h3><a href="../.././api/server/Eliom_registration.App" class="ocsimore_phrasing_link">Eliom_registration.App</a></h3><h3><a href="../.././api/server/Eliom_registration.File" class="ocsimore_phrasing_link">Eliom_registration.File</a></h3><h3><a href="../.././api/server/Eliom_registration.Any" class="ocsimore_phrasing_link">Eliom_registration.Any</a></h3><h3><a href="../.././api/server/Eliom_registration.Redirection" class="ocsimore_phrasing_link">Eliom_registration.Redirection</a></h3><h2>Content and form creation</h2><h3><a href="../.././api/server/Eliom_content" class="ocsimore_phrasing_link">Eliom_content</a></h3><h3><a href="../.././api/server/Eliom_content.Html" class="ocsimore_phrasing_link">Eliom_content.Html</a></h3><h3><a href="../.././api/server/Eliom_content.Svg" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href="../.././api/server/Eliom_content.Xml" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h3><a href="../.././api/server/Eliom_tools" class="ocsimore_phrasing_link">Eliom_tools</a></h3><h2>Server side state, requests, misc</h2><h3><a href="../.././api/server/Eliom_reference" class="ocsimore_phrasing_link">Eliom_reference</a></h3><h3><a href="../.././api/server/Eliom_state" class="ocsimore_phrasing_link">Eliom_state</a></h3><h3><a href="../.././api/server/Eliom_config" class="ocsimore_phrasing_link">Eliom_config</a></h3><h3><a href="../.././api/server/Eliom_request_info" class="ocsimore_phrasing_link">Eliom_request_info</a></h3><h3><a href="../.././api/server/Eliom_common" class="ocsimore_phrasing_link">Eliom_common</a></h3><h3><a href="../.././api/server/Eliom_lib" class="ocsimore_phrasing_link">Eliom_lib</a></h3><h2>Client/server communication</h2><h3><a href="../.././api/server/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h3><h3><a href="../.././api/server/Eliom_client_value" class="ocsimore_phrasing_link">Eliom_client_value</a></h3><h3><a href="../.././api/server/Eliom_shared" class="ocsimore_phrasing_link">Eliom_shared</a></h3><h3><a href="../.././api/server/Eliom_notif" class="ocsimore_phrasing_link">Eliom_notif</a></h3><h3><a href="../.././api/server/Eliom_cscache" class="ocsimore_phrasing_link">Eliom_cscache</a></h3><h3><a href="../.././api/server/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href="../.././api/server/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href="../.././api/server/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Index</h2><h3> <span><a href="../.././api/server/index_types">Index of types</a></span></h3><h3> <span><a href="../.././api/server/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href="../.././api/server/index_values">Index of values</a></span></h3><h3> <span><a href="../.././api/server/index_modules">Index of modules</a></span></h3><h3> <span><a href="../.././api/server/index_module_types">Index of module types</a></span></h3><h1>Ppx syntax</h1><h2><a href="../.././api/ppx/Ppx_eliom" class="ocsimore_phrasing_link">Ppx_eliom</a></h2></nav></nav><article class="rightcol"><label class="csw-switch"><input type="checkbox" onchange="location = '.././server/type_Eliom_service_sigs.S';" checked="checked"/><span class="csw-slider csw-slider-style-round"></span><span class="csw-slider-no">Server version</span><span class="csw-slider-yes">Client version</span></label><pre class=""><code class="language-ocaml translatable">sig
+  type get = Get_method
+  type put = Put_method
+  type post = Post_method
+  type delete = Delete_method
+  type co = Co
+  type non_co = Non_co
+  type ext = Ext
+  type non_ext = Non_ext
+  type http = Http_ret
+  type 'a ocaml = Ocaml of 'a
+  type non_ocaml = Non_ocaml
+  type reg = Reg
+  type non_reg = Non_reg
+  type ('get, 'a, 'gn) params = ('get, 'a, 'gn) Eliom_parameter.params_type
+    constraint 'a = [&lt; `WithSuffix | `WithoutSuffix ]
+  type ('m, _, _, _, _, _, _) meth =
+      Get :
+        ('gp, 'a, 'gn) params -&gt; (get, 'gp, 'gn, unit, unit,
+                                  [&lt; `WithSuffix | `WithoutSuffix ] as 'a,
+                                  unit)
+                                 meth
+    | Post : ('gp, 'b, 'gn) params *
+        ('pp, [ `WithoutSuffix ], 'pn) params -&gt; (post, 'gp, 'gn, 'pp, 'pn,
+                                                  [&lt; `WithSuffix
+                                                   | `WithoutSuffix ]
+                                                  as 'b, 'gp)
+                                                 meth
+    | Put :
+        ('gp, 'c, 'gn) params -&gt; (put, 'gp, 'gn,
+                                  Eliom_parameter.raw_post_data,
+                                  Eliom_parameter.no_param_name,
+                                  [&lt; `WithSuffix | `WithoutSuffix ] as 'c,
+                                  unit)
+                                 meth
+    | Delete :
+        ('gp, 'd, 'gn) params -&gt; (delete, 'gp, 'gn,
+                                  Eliom_parameter.raw_post_data,
+                                  Eliom_parameter.no_param_name,
+                                  [&lt; `WithSuffix | `WithoutSuffix ] as 'd,
+                                  unit)
+                                 meth
+  type 'm which_meth =
+      Get' : get which_meth
+    | Post' : post which_meth
+    | Put' : put which_meth
+    | Delete' : delete which_meth
+  type att
+  type non_att
+  type 'a attached_info =
+      Attached :
+        Eliom_service_sigs.S.att -&gt; Eliom_service_sigs.S.att
+                                    Eliom_service_sigs.S.attached_info
+    | Nonattached :
+        Eliom_service_sigs.S.non_att -&gt; Eliom_service_sigs.S.non_att
+                                        Eliom_service_sigs.S.attached_info
+  type ('get, 'post, 'meth, 'attached, 'co, 'ext, 'reg, +'a, 'gn, 'pn, 'ret)
+       t
+    constraint 'a = [&lt; `WithSuffix | `WithoutSuffix ]
+  and result =
+      No_contents
+    | Dom of Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
+    | Redirect :
+        (unit, unit, get, 'a, 'b, 'c, 'd, [ `WithoutSuffix ], unit, unit,
+         non_ocaml)
+        Eliom_service_sigs.S.t -&gt; Eliom_service_sigs.S.result
+    | Reload_action of { hidden : bool; https : bool; }
+  type unit_service =
+      (unit, unit, get, Eliom_service_sigs.S.att, non_co, non_ext, non_reg,
+       [ `WithoutSuffix ], unit, unit, non_ocaml)
+      Eliom_service_sigs.S.t
+  type (_, _, _) path_option =
+      Path :
+        Eliom_lib.Url.path -&gt; (Eliom_service_sigs.S.att, non_co, 'a)
+                              Eliom_service_sigs.S.path_option
+    | No_path :
+        (Eliom_service_sigs.S.non_att, co, unit)
+        Eliom_service_sigs.S.path_option
+  val reload_action :
+    (unit, unit, get, Eliom_service_sigs.S.non_att, co, non_ext, non_reg,
+     [ `WithoutSuffix ], unit, unit, non_ocaml)
+    Eliom_service_sigs.S.t
+  val reload_action_https :
+    (unit, unit, get, Eliom_service_sigs.S.non_att, co, non_ext, non_reg,
+     [ `WithoutSuffix ], unit, unit, non_ocaml)
+    Eliom_service_sigs.S.t
+  val reload_action_hidden :
+    (unit, unit, get, Eliom_service_sigs.S.non_att, co, non_ext, non_reg,
+     [ `WithoutSuffix ], unit, unit, non_ocaml)
+    Eliom_service_sigs.S.t
+  val reload_action_https_hidden :
+    (unit, unit, get, Eliom_service_sigs.S.non_att, co, non_ext, non_reg,
+     [ `WithoutSuffix ], unit, unit, non_ocaml)
+    Eliom_service_sigs.S.t
+  val static_dir :
+    unit -&gt;
+    (string list, unit, get, Eliom_service_sigs.S.att, non_co, non_ext,
+     non_reg, [ `WithSuffix ],
+     [ `One of string list ] Eliom_parameter.param_name, unit, non_ocaml)
+    Eliom_service_sigs.S.t
+  val https_static_dir :
+    unit -&gt;
+    (string list, unit, get, Eliom_service_sigs.S.att, non_co, non_ext,
+     non_reg, [ `WithSuffix ],
+     [ `One of string list ] Eliom_parameter.param_name, unit, non_ocaml)
+    Eliom_service_sigs.S.t
+  val static_dir_with_params :
+    ?keep_nl_params:[ `All | `None | `Persistent ] -&gt;
+    get_params:('a, [ `WithoutSuffix ], 'an) Eliom_parameter.params_type -&gt;
+    unit -&gt;
+    (string list * 'a, unit, get, Eliom_service_sigs.S.att, non_co, non_ext,
+     non_reg, [ `WithSuffix ],
+     [ `One of string list ] Eliom_parameter.param_name * 'an, unit,
+     non_ocaml)
+    Eliom_service_sigs.S.t
+  val https_static_dir_with_params :
+    ?keep_nl_params:[ `All | `None | `Persistent ] -&gt;
+    get_params:('a, [ `WithoutSuffix ], 'an) Eliom_parameter.params_type -&gt;
+    unit -&gt;
+    (string list * 'a, unit, get, Eliom_service_sigs.S.att, non_co, non_ext,
+     non_reg, [ `WithSuffix ],
+     [ `One of string list ] Eliom_parameter.param_name * 'an, unit,
+     non_ocaml)
+    Eliom_service_sigs.S.t
+  val preapply :
+    service:('a, 'b, 'meth, Eliom_service_sigs.S.att, 'co, 'ext, 'reg,
+             [&lt; `WithSuffix | `WithoutSuffix ], 'e, 'f, 'return)
+            Eliom_service_sigs.S.t -&gt;
+    'a -&gt;
+    (unit, 'b, 'meth, Eliom_service_sigs.S.att, 'co, 'ext, non_reg,
+     [ `WithoutSuffix ], unit, 'f, 'return)
+    Eliom_service_sigs.S.t
+  val add_non_localized_get_parameters :
+    params:('p, [ `WithoutSuffix ], 'pn) Eliom_parameter.non_localized_params -&gt;
+    service:('a, 'b, 'meth, 'attach, 'co, 'ext, 'reg,
+             [&lt; `WithSuffix | `WithoutSuffix ] as 'c, 'e, 'f, 'return)
+            Eliom_service_sigs.S.t -&gt;
+    ('a * 'p, 'b, 'meth, 'attach, 'co, 'ext, 'reg, 'c, 'e * 'pn, 'f, 'return)
+    Eliom_service_sigs.S.t
+  val add_non_localized_post_parameters :
+    params:('p, [ `WithoutSuffix ], 'pn) Eliom_parameter.non_localized_params -&gt;
+    service:('a, 'b, 'meth, 'attach, 'co, 'ext, 'g,
+             [&lt; `WithSuffix | `WithoutSuffix ] as 'c, 'e, 'f, 'return)
+            Eliom_service_sigs.S.t -&gt;
+    ('a, 'b * 'p, 'meth, 'attach, 'co, 'ext, 'g, 'c, 'e, 'f * 'pn, 'return)
+    Eliom_service_sigs.S.t
+  val extern :
+    ?keep_nl_params:[ `All | `None | `Persistent ] -&gt;
+    prefix:string -&gt;
+    path:Eliom_lib.Url.path -&gt;
+    meth:('m, 'gp, 'gn, 'pp, 'pn, [&lt; `WithSuffix | `WithoutSuffix ] as 'a,
+          'b)
+         meth -&gt;
+    unit -&gt;
+    ('gp, 'pp, 'm, Eliom_service_sigs.S.att, non_co, ext, non_reg, 'a, 'gn,
+     'pn, non_ocaml)
+    Eliom_service_sigs.S.t
+  val which_meth :
+    ('a, 'b, 'm, 'c, 'd, 'e, 'f, [&lt; `WithSuffix | `WithoutSuffix ], 'g, 'h,
+     'i)
+    Eliom_service_sigs.S.t -&gt; 'm which_meth
+  val which_meth_untyped :
+    ('a, 'b, 'c, 'd, 'e, 'f, 'g, [&lt; `WithSuffix | `WithoutSuffix ], 'h, 'i,
+     'j)
+    Eliom_service_sigs.S.t -&gt; [ `Delete | `Get | `Post | `Put ]
+  val info :
+    ('a, 'b, 'c, 'att, 'd, 'e, 'f, [&lt; `WithSuffix | `WithoutSuffix ], 'g, 'h,
+     'i)
+    Eliom_service_sigs.S.t -&gt; 'att Eliom_service_sigs.S.attached_info
+  val is_external :
+    ('a, 'b, 'c, 'd, 'e, 'f, 'g, [&lt; `WithSuffix | `WithoutSuffix ], 'h, 'i,
+     'j)
+    Eliom_service_sigs.S.t -&gt; bool
+  val get_params_type :
+    ('a, 'b, 'd, 'e, 'f, 'g, 'h, [&lt; `WithSuffix | `WithoutSuffix ] as 'i, 'c,
+     'j, 'k)
+    Eliom_service_sigs.S.t -&gt; ('a, 'i, 'c) Eliom_parameter.params_type
+  val post_params_type :
+    ('c, 'a, 'd, 'e, 'f, 'g, 'h, [&lt; `WithSuffix | `WithoutSuffix ], 'i, 'b,
+     'j)
+    Eliom_service_sigs.S.t -&gt;
+    ('a, [ `WithoutSuffix ], 'b) Eliom_parameter.params_type
+  val sub_path : Eliom_service_sigs.S.att -&gt; Eliom_lib.Url.path
+  val full_path : Eliom_service_sigs.S.att -&gt; Eliom_lib.Url.path
+  val prefix : Eliom_service_sigs.S.att -&gt; string
+  val get_name : Eliom_service_sigs.S.att -&gt; Eliom_common.att_key_serv
+  val post_name : Eliom_service_sigs.S.att -&gt; Eliom_common.att_key_serv
+  val redirect_suffix : Eliom_service_sigs.S.att -&gt; bool
+  val na_name : Eliom_service_sigs.S.non_att -&gt; Eliom_common.na_key_serv
+  val na_keep_get_na_params : Eliom_service_sigs.S.non_att -&gt; bool
+  val max_use :
+    ('a, 'b, 'c, 'd, 'e, 'f, 'g, [&lt; `WithSuffix | `WithoutSuffix ], 'h, 'i,
+     'j)
+    Eliom_service_sigs.S.t -&gt; int option
+  val timeout :
+    ('a, 'b, 'c, 'd, 'e, 'f, 'g, [&lt; `WithSuffix | `WithoutSuffix ], 'h, 'i,
+     'j)
+    Eliom_service_sigs.S.t -&gt; float option
+  val https :
+    ('a, 'b, 'c, 'd, 'e, 'f, 'g, [&lt; `WithSuffix | `WithoutSuffix ], 'h, 'i,
+     'j)
+    Eliom_service_sigs.S.t -&gt; bool
+  val priority : Eliom_service_sigs.S.att -&gt; int
+  val client_fun :
+    ('a, 'b, 'c, 'd, 'e, 'f, 'g, [&lt; `WithSuffix | `WithoutSuffix ], 'h, 'i,
+     'j)
+    Eliom_service_sigs.S.t -&gt;
+    ('a -&gt; 'b -&gt; Eliom_service_sigs.S.result Lwt.t) Eliom_client_value.t
+    option
+  val has_client_fun :
+    ('a, 'b, 'c, 'd, 'e, 'f, 'g, [&lt; `WithSuffix | `WithoutSuffix ], 'h, 'i,
+     'j)
+    Eliom_service_sigs.S.t -&gt; bool
+  val keep_nl_params :
+    ('a, 'b, 'c, 'd, 'e, 'f, 'g, [&lt; `WithSuffix | `WithoutSuffix ], 'h, 'i,
+     'j)
+    Eliom_service_sigs.S.t -&gt; [ `All | `None | `Persistent ]
+  val change_get_num :
+    ('a, 'b, 'meth, Eliom_service_sigs.S.att, 'co, 'ext, 'c,
+     [&lt; `WithSuffix | `WithoutSuffix ] as 'd, 'e, 'f, 'return)
+    Eliom_service_sigs.S.t -&gt;
+    Eliom_service_sigs.S.att -&gt;
+    Eliom_common.att_key_serv -&gt;
+    ('a, 'b, 'meth, Eliom_service_sigs.S.att, 'co, 'ext, 'g, 'd, 'e, 'f,
+     'return)
+    Eliom_service_sigs.S.t
+  val register_delayed_get_or_na_coservice :
+    sp:Eliom_common.server_params -&gt;
+    int * [&lt; Eliom_common.user_scope ] * bool option -&gt; string
+  val register_delayed_post_coservice :
+    sp:Eliom_common.server_params -&gt;
+    int * [&lt; Eliom_common.user_scope ] * bool option -&gt;
+    Eliom_common.att_key_serv -&gt; string
+  type send_appl_content =
+      XNever
+    | XAlways
+    | XSame_appl of string * string option
+  val send_appl_content :
+    ('a, 'b, 'c, 'd, 'e, 'f, 'g, [&lt; `WithSuffix | `WithoutSuffix ], 'h, 'i,
+     'j)
+    Eliom_service_sigs.S.t -&gt; Eliom_service_sigs.S.send_appl_content
+  val xhr_with_cookies :
+    ('a, 'b, 'c, 'd, 'e, 'f, 'g, [&lt; `WithSuffix | `WithoutSuffix ], 'h, 'i,
+     'j)
+    Eliom_service_sigs.S.t -&gt; string option option
+  val internal_set_client_fun :
+    service:('a, 'b, 'c, 'd, 'e, 'f, 'g, [&lt; `WithSuffix | `WithoutSuffix ],
+             'h, 'i, 'j)
+            Eliom_service_sigs.S.t -&gt;
+    ('a -&gt; 'b -&gt; Eliom_service_sigs.S.result Lwt.t) Eliom_client_value.t -&gt;
+    unit
+end</code></pre></article></div></div></body></html>

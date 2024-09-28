@@ -1,0 +1,173 @@
+<html><head><title> Programming client-server applications with Eliom</title><meta charset="utf8"/><meta content="width=device-width, initial-scale=1" name="viewport"/><link rel="stylesheet" href="https://ocsigen.org/css/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script type="application/javascript" src="https://ocsigen.org/js/client.js">
+//<![CDATA[
+
+//]]>
+</script><script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js">
+//<![CDATA[
+
+//]]>
+</script></head><body class="clientserver-applications eliom"><div class="project-page"><div class="page-header"><p class="logo-ocsigen"><a href=".././../../" class="ocsimore_phrasing_link"><img src=".././../../img/ocsigen-white.svg" alt="Ocsigen"/></a>
+</p><p class="logo-subproject">Eliom</p><div class="mainmenu"><p class="mainmenu-home"><a href=".././../../" class="ocsimore_phrasing_link">Home</a></p><p class="mainmenu-doc"><a href=".././../../tuto/" class="ocsimore_phrasing_link">Doc</a></p><p class="mainmenu-current"><a href=".././../../eliom/" class="ocsimore_phrasing_link">Eliom</a></p><p><a href=".././../../js_of_ocaml/" class="ocsimore_phrasing_link">Js_of_ocaml</a></p><p><a href=".././../../ocsigenserver/" class="ocsimore_phrasing_link">Server</a></p><p><a href=".././../../lwt/" class="ocsimore_phrasing_link">Lwt</a></p><p><a href=".././../../tyxml/" class="ocsimore_phrasing_link">Tyxml</a></p><p><a href=".././../../ocsigen-start/" class="ocsimore_phrasing_link">Start</a></p></div><form id="googlesearch" action="https://google.com/search"><input name="q" id="gsearch-box" placeholder="Search using Google"/><label for="gsearch-box"><img src="/img/search.svg" alt="" id="gsearch-icon"/></label><input type="submit" id="gsearch-submit" onclick="document.getElementById('gsearch-box').value += ' site:ocsigen.org';"/></form><aside class="how-drawer"><input id="how-drawer-toggle" type="checkbox"/><label for="how-drawer-toggle" id="how-drawer-label"><span class="how-drawer-icon"></span></label><nav class="how-drawer-content"><ul class="drawermainmenu"><li class="drawermainmenu-home"><a href=".././../../" class="ocsimore_phrasing_link">Home</a>
+</li><li class="drawermainmenu-doc"><a href=".././../../tuto/" class="ocsimore_phrasing_link">Doc</a>
+</li><li class="drawermainmenu-project"><a href=".././../../eliom/" class="ocsimore_phrasing_link">Eliom</a>
+</li><li class="drawermainmenu-project"><a href=".././../../js_of_ocaml/" class="ocsimore_phrasing_link">Js_of_ocaml</a>
+</li><li class="drawermainmenu-project"><a href=".././../../ocsigenserver/" class="ocsimore_phrasing_link">Server</a>
+</li><li class="drawermainmenu-project"><a href=".././../../lwt/" class="ocsimore_phrasing_link">Lwt</a>
+</li><li class="drawermainmenu-project"><a href=".././../../tyxml/" class="ocsimore_phrasing_link">Tyxml</a>
+</li><li class="drawermainmenu-project"><a href=".././../../ocsigen-toolkit/" class="ocsimore_phrasing_link">Toolkit</a>
+</li><li class="drawermainmenu-project"><a href=".././../../ocsigen-start/" class="ocsimore_phrasing_link">Start</a>
+</li><li class="drawermainmenu-project"><a href=".././../../ocsipersist/" class="ocsimore_phrasing_link">Ocsipersist</a>
+</li><li class="drawermainmenu-project"><a href=".././../../html_of_wiki/" class="ocsimore_phrasing_link">html_of_wiki</a>
+</li><li class="drawermainmenu-project"><a href=".././../../ocsimore/" class="ocsimore_phrasing_link">Ocsimore (<em>deprecated</em>)</a>
+</li><li class="drawermainmenu-page"><a href=".././../../projects" class="ocsimore_phrasing_link">Other projects</a>
+</li><li class="drawermainmenu-page"><a href=".././../../papers" class="ocsimore_phrasing_link">Research papers</a>
+</li><li class="drawermainmenu-page"><a href=".././../../credits" class="ocsimore_phrasing_link">Who does Ocsigen?</a>
+</li><li class="drawermainmenu-page"><a href=".././../../contributing" class="ocsimore_phrasing_link">Contributing</a>
+</li><li class="drawermainmenu-page"><a href=".././../../blog" class="ocsimore_phrasing_link">Blog</a>
+</li><li class="drawermainmenu-page"><a href=".././../../install" class="ocsimore_phrasing_link">Installation</a>
+</li><li class="drawermainmenu-page"><a href="https://github.com/ocsigen" class="ocsimore_phrasing_link">Source code</a>
+</li></ul><nav class="how-doctree"><h1> Eliom's Reference manual</h1><h2><a href="intro" class="ocsimore_phrasing_link">Introduction</a></h2><h3><span><a href=".././../../tuto/latest/manual/basics">Client-server applications</a></span></h3><h3><span><a href=".././../../tuto/latest/manual/basics-server">Server-side websites</a></span></h3><h2>Server-side programming</h2><h3>Services</h3><h4><a href="server-services" class="ocsimore_phrasing_link">The different types of services</a></h4><h4><a href="server-params" class="ocsimore_phrasing_link">Typing service parameters</a></h4><h4><a href="server-outputs" class="ocsimore_phrasing_link">Service handlers</a></h4><h4><a href="server-links" class="ocsimore_phrasing_link">Creating links and forms</a></h4><h3><a href="server-state" class="ocsimore_phrasing_link">Sessions and server side state</a></h3><h3><a href="server-security" class="ocsimore_phrasing_link">Security</a></h3><h2>Client-server programming</h2><h3><a href="clientserver-applications" class="ocsimore_phrasing_link">Eliom applications</a></h3><h3><a href="ppx-syntax" class="ocsimore_phrasing_link">Multi-tier programming</a></h3><h3><a href="clientserver-html" class="ocsimore_phrasing_link">Generating HTML</a></h3><h3><a href="clientserver-communication" class="ocsimore_phrasing_link">Communication</a></h3><h3><a href="clientserver-services" class="ocsimore_phrasing_link">Client-side services</a></h3><h3><a href="clientserver-react" class="ocsimore_phrasing_link">Shared reactive programming</a></h3><h3><a href="clientserver-cache" class="ocsimore_phrasing_link">Caching data and off-line applications</a></h3><h3><a href="clientserver-wrapping" class="ocsimore_phrasing_link">Custom wrapping</a></h3><h2>Workflows</h2><h3><a href="workflow-distillery" class="ocsimore_phrasing_link">Distillery</a></h3><h3><a href="mobile-apps" class="ocsimore_phrasing_link">Mobile apps</a></h3><h3><a href="workflow-configuration" class="ocsimore_phrasing_link">Configuration &amp; running</a></h3><h3><a href="scalability" class="ocsimore_phrasing_link">Scalability</a></h3><h1>Client API</h1><h2><a href=".././api/client/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h2><h2><a href=".././api/client/Eliom_client_value" class="ocsimore_phrasing_link">Eliom_client_value</a></h2><h2><a href=".././api/client/Eliom_lib" class="ocsimore_phrasing_link">Eliom_lib</a></h2><h2>Client/server communication</h2><h3><a href=".././api/client/Eliom_service" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href=".././api/client/Eliom_shared" class="ocsimore_phrasing_link">Eliom_shared</a></h3><h3><a href=".././api/client/Eliom_cscache" class="ocsimore_phrasing_link">Eliom_cscache</a></h3><h3><a href=".././api/client/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href=".././api/client/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href=".././api/client/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Content and form creation</h2><h3><a href=".././api/client/Eliom_content.Html" class="ocsimore_phrasing_link">Eliom_content.Html</a></h3><h3><a href=".././api/client/Eliom_content.Svg" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href=".././api/client/Eliom_content.Xml" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h2>Index</h2><h3> <span><a href=".././api/client/index_types">Index of types</a></span></h3><h3> <span><a href=".././api/client/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href=".././api/client/index_values">Index of values</a></span></h3><h3> <span><a href=".././api/client/index_modules">Index of modules</a></span></h3><h3> <span><a href=".././api/client/index_module_types">Index of module types</a></span></h3><h1>Server API</h1><h2>Service creation</h2><h3><a href=".././api/server/Eliom_service" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href=".././api/server/Eliom_parameter" class="ocsimore_phrasing_link">Eliom_parameter</a></h3><h3><a href=".././api/server/Eliom_registration" class="ocsimore_phrasing_link">Eliom_registration</a></h3><h3><a href=".././api/server/Eliom_registration.Html" class="ocsimore_phrasing_link">Eliom_registration.Html</a></h3><h3><a href=".././api/server/Eliom_registration.Action" class="ocsimore_phrasing_link">Eliom_registration.Action</a></h3><h3><a href=".././api/server/Eliom_registration.Ocaml" class="ocsimore_phrasing_link">Eliom_registration.Ocaml</a></h3><h3><a href=".././api/server/Eliom_registration.App" class="ocsimore_phrasing_link">Eliom_registration.App</a></h3><h3><a href=".././api/server/Eliom_registration.File" class="ocsimore_phrasing_link">Eliom_registration.File</a></h3><h3><a href=".././api/server/Eliom_registration.Any" class="ocsimore_phrasing_link">Eliom_registration.Any</a></h3><h3><a href=".././api/server/Eliom_registration.Redirection" class="ocsimore_phrasing_link">Eliom_registration.Redirection</a></h3><h2>Content and form creation</h2><h3><a href=".././api/server/Eliom_content" class="ocsimore_phrasing_link">Eliom_content</a></h3><h3><a href=".././api/server/Eliom_content.Html" class="ocsimore_phrasing_link">Eliom_content.Html</a></h3><h3><a href=".././api/server/Eliom_content.Svg" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href=".././api/server/Eliom_content.Xml" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h3><a href=".././api/server/Eliom_tools" class="ocsimore_phrasing_link">Eliom_tools</a></h3><h2>Server side state, requests, misc</h2><h3><a href=".././api/server/Eliom_reference" class="ocsimore_phrasing_link">Eliom_reference</a></h3><h3><a href=".././api/server/Eliom_state" class="ocsimore_phrasing_link">Eliom_state</a></h3><h3><a href=".././api/server/Eliom_config" class="ocsimore_phrasing_link">Eliom_config</a></h3><h3><a href=".././api/server/Eliom_request_info" class="ocsimore_phrasing_link">Eliom_request_info</a></h3><h3><a href=".././api/server/Eliom_common" class="ocsimore_phrasing_link">Eliom_common</a></h3><h3><a href=".././api/server/Eliom_lib" class="ocsimore_phrasing_link">Eliom_lib</a></h3><h2>Client/server communication</h2><h3><a href=".././api/server/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h3><h3><a href=".././api/server/Eliom_client_value" class="ocsimore_phrasing_link">Eliom_client_value</a></h3><h3><a href=".././api/server/Eliom_shared" class="ocsimore_phrasing_link">Eliom_shared</a></h3><h3><a href=".././api/server/Eliom_notif" class="ocsimore_phrasing_link">Eliom_notif</a></h3><h3><a href=".././api/server/Eliom_cscache" class="ocsimore_phrasing_link">Eliom_cscache</a></h3><h3><a href=".././api/server/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href=".././api/server/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href=".././api/server/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Index</h2><h3> <span><a href=".././api/server/index_types">Index of types</a></span></h3><h3> <span><a href=".././api/server/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href=".././api/server/index_values">Index of values</a></span></h3><h3> <span><a href=".././api/server/index_modules">Index of modules</a></span></h3><h3> <span><a href=".././api/server/index_module_types">Index of module types</a></span></h3><h1>Ppx syntax</h1><h2><a href=".././api/ppx/Ppx_eliom" class="ocsimore_phrasing_link">Ppx_eliom</a></h2></nav></nav></aside></div><p class="reasonwarning">Warning: Reason support is experimental.
+We are looking for beta-tester and contributors.
+</p><button id="reason">Switch to </button><div class="twocols"><nav class="leftcol">Version <select class="how-versions" onchange="location = this.value;"><option value=".././../dev/manual/clientserver-applications">dev</option><option value=".././../11.x/manual/clientserver-applications" selected="selected">11.x</option><option value=".././../8.x/manual/clientserver-applications">8.x</option><option value=".././../1.3.4/manual/clientserver-applications">1.3.4</option></select><nav class="how-doctree"><h1> Eliom's Reference manual</h1><h2><a href="intro" class="ocsimore_phrasing_link">Introduction</a></h2><h3><span><a href=".././../../tuto/latest/manual/basics">Client-server applications</a></span></h3><h3><span><a href=".././../../tuto/latest/manual/basics-server">Server-side websites</a></span></h3><h2>Server-side programming</h2><h3>Services</h3><h4><a href="server-services" class="ocsimore_phrasing_link">The different types of services</a></h4><h4><a href="server-params" class="ocsimore_phrasing_link">Typing service parameters</a></h4><h4><a href="server-outputs" class="ocsimore_phrasing_link">Service handlers</a></h4><h4><a href="server-links" class="ocsimore_phrasing_link">Creating links and forms</a></h4><h3><a href="server-state" class="ocsimore_phrasing_link">Sessions and server side state</a></h3><h3><a href="server-security" class="ocsimore_phrasing_link">Security</a></h3><h2>Client-server programming</h2><h3><a href="clientserver-applications" class="ocsimore_phrasing_link">Eliom applications</a></h3><h3><a href="ppx-syntax" class="ocsimore_phrasing_link">Multi-tier programming</a></h3><h3><a href="clientserver-html" class="ocsimore_phrasing_link">Generating HTML</a></h3><h3><a href="clientserver-communication" class="ocsimore_phrasing_link">Communication</a></h3><h3><a href="clientserver-services" class="ocsimore_phrasing_link">Client-side services</a></h3><h3><a href="clientserver-react" class="ocsimore_phrasing_link">Shared reactive programming</a></h3><h3><a href="clientserver-cache" class="ocsimore_phrasing_link">Caching data and off-line applications</a></h3><h3><a href="clientserver-wrapping" class="ocsimore_phrasing_link">Custom wrapping</a></h3><h2>Workflows</h2><h3><a href="workflow-distillery" class="ocsimore_phrasing_link">Distillery</a></h3><h3><a href="mobile-apps" class="ocsimore_phrasing_link">Mobile apps</a></h3><h3><a href="workflow-configuration" class="ocsimore_phrasing_link">Configuration &amp; running</a></h3><h3><a href="scalability" class="ocsimore_phrasing_link">Scalability</a></h3><h1>Client API</h1><h2><a href=".././api/client/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h2><h2><a href=".././api/client/Eliom_client_value" class="ocsimore_phrasing_link">Eliom_client_value</a></h2><h2><a href=".././api/client/Eliom_lib" class="ocsimore_phrasing_link">Eliom_lib</a></h2><h2>Client/server communication</h2><h3><a href=".././api/client/Eliom_service" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href=".././api/client/Eliom_shared" class="ocsimore_phrasing_link">Eliom_shared</a></h3><h3><a href=".././api/client/Eliom_cscache" class="ocsimore_phrasing_link">Eliom_cscache</a></h3><h3><a href=".././api/client/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href=".././api/client/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href=".././api/client/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Content and form creation</h2><h3><a href=".././api/client/Eliom_content.Html" class="ocsimore_phrasing_link">Eliom_content.Html</a></h3><h3><a href=".././api/client/Eliom_content.Svg" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href=".././api/client/Eliom_content.Xml" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h2>Index</h2><h3> <span><a href=".././api/client/index_types">Index of types</a></span></h3><h3> <span><a href=".././api/client/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href=".././api/client/index_values">Index of values</a></span></h3><h3> <span><a href=".././api/client/index_modules">Index of modules</a></span></h3><h3> <span><a href=".././api/client/index_module_types">Index of module types</a></span></h3><h1>Server API</h1><h2>Service creation</h2><h3><a href=".././api/server/Eliom_service" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href=".././api/server/Eliom_parameter" class="ocsimore_phrasing_link">Eliom_parameter</a></h3><h3><a href=".././api/server/Eliom_registration" class="ocsimore_phrasing_link">Eliom_registration</a></h3><h3><a href=".././api/server/Eliom_registration.Html" class="ocsimore_phrasing_link">Eliom_registration.Html</a></h3><h3><a href=".././api/server/Eliom_registration.Action" class="ocsimore_phrasing_link">Eliom_registration.Action</a></h3><h3><a href=".././api/server/Eliom_registration.Ocaml" class="ocsimore_phrasing_link">Eliom_registration.Ocaml</a></h3><h3><a href=".././api/server/Eliom_registration.App" class="ocsimore_phrasing_link">Eliom_registration.App</a></h3><h3><a href=".././api/server/Eliom_registration.File" class="ocsimore_phrasing_link">Eliom_registration.File</a></h3><h3><a href=".././api/server/Eliom_registration.Any" class="ocsimore_phrasing_link">Eliom_registration.Any</a></h3><h3><a href=".././api/server/Eliom_registration.Redirection" class="ocsimore_phrasing_link">Eliom_registration.Redirection</a></h3><h2>Content and form creation</h2><h3><a href=".././api/server/Eliom_content" class="ocsimore_phrasing_link">Eliom_content</a></h3><h3><a href=".././api/server/Eliom_content.Html" class="ocsimore_phrasing_link">Eliom_content.Html</a></h3><h3><a href=".././api/server/Eliom_content.Svg" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href=".././api/server/Eliom_content.Xml" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h3><a href=".././api/server/Eliom_tools" class="ocsimore_phrasing_link">Eliom_tools</a></h3><h2>Server side state, requests, misc</h2><h3><a href=".././api/server/Eliom_reference" class="ocsimore_phrasing_link">Eliom_reference</a></h3><h3><a href=".././api/server/Eliom_state" class="ocsimore_phrasing_link">Eliom_state</a></h3><h3><a href=".././api/server/Eliom_config" class="ocsimore_phrasing_link">Eliom_config</a></h3><h3><a href=".././api/server/Eliom_request_info" class="ocsimore_phrasing_link">Eliom_request_info</a></h3><h3><a href=".././api/server/Eliom_common" class="ocsimore_phrasing_link">Eliom_common</a></h3><h3><a href=".././api/server/Eliom_lib" class="ocsimore_phrasing_link">Eliom_lib</a></h3><h2>Client/server communication</h2><h3><a href=".././api/server/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h3><h3><a href=".././api/server/Eliom_client_value" class="ocsimore_phrasing_link">Eliom_client_value</a></h3><h3><a href=".././api/server/Eliom_shared" class="ocsimore_phrasing_link">Eliom_shared</a></h3><h3><a href=".././api/server/Eliom_notif" class="ocsimore_phrasing_link">Eliom_notif</a></h3><h3><a href=".././api/server/Eliom_cscache" class="ocsimore_phrasing_link">Eliom_cscache</a></h3><h3><a href=".././api/server/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href=".././api/server/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href=".././api/server/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Index</h2><h3> <span><a href=".././api/server/index_types">Index of types</a></span></h3><h3> <span><a href=".././api/server/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href=".././api/server/index_values">Index of values</a></span></h3><h3> <span><a href=".././api/server/index_modules">Index of modules</a></span></h3><h3> <span><a href=".././api/server/index_module_types">Index of module types</a></span></h3><h1>Ppx syntax</h1><h2><a href=".././api/ppx/Ppx_eliom" class="ocsimore_phrasing_link">Ppx_eliom</a></h2></nav></nav><article class="rightcol"><h1> Programming client-server applications with Eliom</h1><div id="overview" class="ocsimore_outline"><header><p><strong>Table of contents</strong></p></header></div><script>
+//<![CDATA[
+window.addEventListener("load", function(){ outline([0,-515484383,0,[0,2],[0,"nav",[0,"aside",0]],"overview",1]); }, false); 
+//]]>
+</script><h2> General principles</h2><h3> What is a client/server Eliom application</h3><p>An Eliom application is a distributed application that runs partly on
+the server, partly on a browser. The program is written entirely in
+OCaml, with a syntax extension to distinguish between server and
+client code.  During the compilation process, the program is decoupled
+into server and client parts. The server part is compiled as is
+standard for OCaml code, while the client part is compiled to
+Javascript to be run in the browser.
+</p><p>For developing an Eliom application, we recommend that you use our
+<span><a href=".././manual/ppx-syntax">PPX syntax extension</a></span>.
+</p><p>An interesting feature of Eliom applications is that the client-side process
+does not stop when you click on a link or send a form, and it is possible to
+keep the traditional Web interaction (with URLs, bookmarks, back button, etc).
+For example, if the page is playing music, the music won't stop when
+the user proceeds to other pages on the Web site.
+</p><p>Client-side parts are using <span><a href=".././../../lwt/index.html">Lwt</a></span>, enabling
+concurrency in the browser very easily.
+</p><p>As both parts are implemented in OCaml, it is very easy to use client-side
+OCaml data on server side, and vice-versa. Eliom handles the communication
+between client and server automatically in both directions. For example,
+it is possible to use a server-side variable in the client program.
+</p><p>Eliom also implements an &quot;HTTP-push&quot; mechanism, allowing the server
+to send messages to a client.
+</p><p>Client-side parts of the program can use most Eliom features, just as
+usual, for example to create HTML, links, and forms from services.
+</p><p>On the server, it is possible to save data (some state) for each
+client process (that is, one tab in a browser), simply by using Eliom
+references with scope <span class="teletype">`Client_process</span>.  You can register
+services for one client process, or even set cookies for one tab.
+</p><h3> How it works</h3><p>The code of an Eliom application is written in OCaml, with <span><a href=".././manual/clientserver-language">a syntax extension</a></span> to distinguish
+between server and client code. The files using this syntax
+usually have the extension <span class="teletype">.eliom</span>. As the compling process is quite
+complex, we provide commands called <span class="teletype">eliomc</span>, <span class="teletype">eliomopt</span> and <span class="teletype">js_of_eliom</span> that
+do everything for you: separating client and server parts, calling
+<span class="teletype">ocamlc</span>, <span class="teletype">ocamlopt</span>, <span class="teletype">js_of_ocaml</span>, etc.
+</p><p>Services belonging to the application are registered using the module
+<span><a href=".././api/server/Eliom_registration.App">Eliom_registration.App</a></span>. More precisely,
+this is a functor that needs to be applied for each application you create.
+These services just return HTML pages as usual (using
+<span><a href=".././api/server/Eliom_content.Html">Eliom_content.Html</a></span>)
+The client-side program (compiled in JavaScript) is added automatically by Eliom,
+with all its data, and run automatically when the page is loaded.
+</p><p>Module <span><a href=".././api/client/Eliom_client">Eliom_client</a></span> provides
+useful functions for client side programming with Eliom: e.g.
+<span><a href=".././api/client/Eliom_client#VALchange_page">Eliom_client.change_page</a></span>
+permits switching to another page.
+</p><p>Module <span><a href=".././api/server/Eliom_comet">Eliom_comet</a></span> allows the
+server to send notifications
+to the client (even if the client is not explicitely doing a request).
+Use module <span><a href=".././api/server/Eliom_react">Eliom_react</a></span> to make client-server reactive
+programming (using the <a href="http://erratique.ch/software/react" class="ocsimore_phrasing_link"> React</a>
+external library).
+</p><h3> The App functor</h3><p>For each Eliom application, you must create a service registration module
+by applying the <span class="teletype">App</span> functor:
+</p><pre class=""><code class="language-ocaml translatable">module My_app =
+  Eliom_registration.App (
+    struct
+      let application_name = &quot;the name of your application&quot;
+      let global_data_path = None
+    end)</code></pre><p>the <span class="teletype">application_name</span> parameter is the name of the JavaScript file
+containing the application.
+</p><p><span class="teletype">global_data_path</span> specifies the path of an auxilliary service
+needed for mobile apps, and you can provide <span class="teletype">None</span> for standard
+Web applications.
+</p><p>Then you can do for example:
+</p><pre class=""><code class="language-ocaml translatable">let my_service =
+  My_app.create
+    ~path:(Eliom_service.Path [&quot;&quot;])
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+    (fun () () -&gt; Lwt.return (html
+                               (head (title (txt &quot;Hi!&quot;)) [])
+                               (body [p [txt &quot;Hey.&quot;]])))</code></pre><p>Eliom will add automatically the required headers to send the client side
+program and all its data.
+</p><h2> Application, life and death</h2><p>When an user enters the page of a service registered by an application
+module (created with the <span class="teletype">App</span> functor), the application
+is started. During the life of the application, a single OCaml program
+will run on the browser: Lwt threads will keep running, global
+variables will stay available, etc.  until the application is
+closed. The application will keep running when the user clicks on
+links to pages inside the same application.
+</p><p>This application will be closed when:
+</p><ul><li> the user closes the browser tab containing the application,
+</li><li> the user goes to a page outside of the application,
+</li><li> the user changes the current url by another mean than the
+application interaction (reload the page with <span class="teletype">F5</span>,
+manual typing of URL, ...),
+</li><li> the application call the
+<span><a href=".././api/client/Eliom_client#VALexit_to">Eliom_client.exit_to</a></span> function.
+</li></ul><p>It is possible to prevent the application from starting when visiting
+an application page by setting the <span class="teletype">do_not_launch</span> to <span class="teletype">true</span>
+at the service registration:
+</p><pre class=""><code class="language-ocaml translatable">let no_launch_service =
+  My_app.register
+    ~option:{ Eliom_registration.default_appl_service_options with
+              do_not_launch = true }
+    ~path:(Eliom_service.Path [&quot;&quot;])
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+    (fun () () -&gt; Lwt.return (html
+                               (head (title (txt &quot;Hi!&quot;)) [])
+                               (body [p [txt &quot;Hey.&quot;]])))</code></pre><p>That way, you can delay JavaScript loading until it is really needed.
+Visiting a service registered with <span class="teletype">do_not_launch=true</span> will not stop
+a running application.
+</p><p>By default, every link of form towards another service of the same
+application is reimplemented by Eliom so that it does not stop the application.
+Instead of asking the browser to load a new page, Eliom does an
+XML HTTP request (XHR).
+You can avoid this and insert regular links or forms by adding the optional
+parameter <span class="teletype">~xhr:false</span>.
+This will force reloading the application when the link is clicked.
+</p><h3> Navigating in and out of the application.</h3><p>Two functions are available client-side for changing the current page
+without interaction from the user. The function
+<span><a href=".././api/client/Eliom_client#VALchange_page">Eliom_client.change_page</a></span> goes to the service
+taken as parameter. If the service is in another application or not in
+an application, the current application will be stopped.
+The function <span><a href=".././api/client/Eliom_client#VALwindow_open">Eliom_client.window_open</a></span>
+opens an
+Eliom service in a new browser window (cf. JavaScript's <span class="teletype">window.open</span>).
+<span><a href=".././api/client/Eliom_client#VALexit_to">Eliom_client.exit_to</a></span>
+changes the current page and always leaves the application.
+</p><h3> Leaving application and going back</h3><p>Usually, when going to an application page, a new client process is
+launched on the server, but there are situations where an old client
+process is used instead: Browsers tend to take the result from their
+cache when using the back button even if the page was marked (by HTTP
+headers) as non-cacheable.</p></article></div></div></body></html>

@@ -1,0 +1,340 @@
+<html><head><title> Compiling and configuring Eliom modules </title><meta charset="utf8"/><meta content="width=device-width, initial-scale=1" name="viewport"/><link rel="stylesheet" href="https://ocsigen.org/css/style.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/themes/prism.min.css"/><script type="application/javascript" src="https://ocsigen.org/js/client.js">
+//<![CDATA[
+
+//]]>
+</script><script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-core.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-ocaml.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-clike.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-reason.min.js">
+//<![CDATA[
+
+//]]>
+</script><script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.9.0/components/prism-javascript.min.js">
+//<![CDATA[
+
+//]]>
+</script></head><body class="workflow-configuration eliom"><div class="project-page"><div class="page-header"><p class="logo-ocsigen"><a href=".././../../" class="ocsimore_phrasing_link"><img src=".././../../img/ocsigen-white.svg" alt="Ocsigen"/></a>
+</p><p class="logo-subproject">Eliom</p><div class="mainmenu"><p class="mainmenu-home"><a href=".././../../" class="ocsimore_phrasing_link">Home</a></p><p class="mainmenu-doc"><a href=".././../../tuto/" class="ocsimore_phrasing_link">Doc</a></p><p class="mainmenu-current"><a href=".././../../eliom/" class="ocsimore_phrasing_link">Eliom</a></p><p><a href=".././../../js_of_ocaml/" class="ocsimore_phrasing_link">Js_of_ocaml</a></p><p><a href=".././../../ocsigenserver/" class="ocsimore_phrasing_link">Server</a></p><p><a href=".././../../lwt/" class="ocsimore_phrasing_link">Lwt</a></p><p><a href=".././../../tyxml/" class="ocsimore_phrasing_link">Tyxml</a></p><p><a href=".././../../ocsigen-start/" class="ocsimore_phrasing_link">Start</a></p></div><form id="googlesearch" action="https://google.com/search"><input name="q" id="gsearch-box" placeholder="Search using Google"/><label for="gsearch-box"><img src="/img/search.svg" alt="" id="gsearch-icon"/></label><input type="submit" id="gsearch-submit" onclick="document.getElementById('gsearch-box').value += ' site:ocsigen.org';"/></form><aside class="how-drawer"><input id="how-drawer-toggle" type="checkbox"/><label for="how-drawer-toggle" id="how-drawer-label"><span class="how-drawer-icon"></span></label><nav class="how-drawer-content"><ul class="drawermainmenu"><li class="drawermainmenu-home"><a href=".././../../" class="ocsimore_phrasing_link">Home</a>
+</li><li class="drawermainmenu-doc"><a href=".././../../tuto/" class="ocsimore_phrasing_link">Doc</a>
+</li><li class="drawermainmenu-project"><a href=".././../../eliom/" class="ocsimore_phrasing_link">Eliom</a>
+</li><li class="drawermainmenu-project"><a href=".././../../js_of_ocaml/" class="ocsimore_phrasing_link">Js_of_ocaml</a>
+</li><li class="drawermainmenu-project"><a href=".././../../ocsigenserver/" class="ocsimore_phrasing_link">Server</a>
+</li><li class="drawermainmenu-project"><a href=".././../../lwt/" class="ocsimore_phrasing_link">Lwt</a>
+</li><li class="drawermainmenu-project"><a href=".././../../tyxml/" class="ocsimore_phrasing_link">Tyxml</a>
+</li><li class="drawermainmenu-project"><a href=".././../../ocsigen-toolkit/" class="ocsimore_phrasing_link">Toolkit</a>
+</li><li class="drawermainmenu-project"><a href=".././../../ocsigen-start/" class="ocsimore_phrasing_link">Start</a>
+</li><li class="drawermainmenu-project"><a href=".././../../ocsipersist/" class="ocsimore_phrasing_link">Ocsipersist</a>
+</li><li class="drawermainmenu-project"><a href=".././../../html_of_wiki/" class="ocsimore_phrasing_link">html_of_wiki</a>
+</li><li class="drawermainmenu-project"><a href=".././../../ocsimore/" class="ocsimore_phrasing_link">Ocsimore (<em>deprecated</em>)</a>
+</li><li class="drawermainmenu-page"><a href=".././../../projects" class="ocsimore_phrasing_link">Other projects</a>
+</li><li class="drawermainmenu-page"><a href=".././../../papers" class="ocsimore_phrasing_link">Research papers</a>
+</li><li class="drawermainmenu-page"><a href=".././../../credits" class="ocsimore_phrasing_link">Who does Ocsigen?</a>
+</li><li class="drawermainmenu-page"><a href=".././../../contributing" class="ocsimore_phrasing_link">Contributing</a>
+</li><li class="drawermainmenu-page"><a href=".././../../blog" class="ocsimore_phrasing_link">Blog</a>
+</li><li class="drawermainmenu-page"><a href=".././../../install" class="ocsimore_phrasing_link">Installation</a>
+</li><li class="drawermainmenu-page"><a href="https://github.com/ocsigen" class="ocsimore_phrasing_link">Source code</a>
+</li></ul><nav class="how-doctree"><h1> Eliom's Reference manual</h1><h2><a href="intro" class="ocsimore_phrasing_link">Introduction</a></h2><h3><span><a href=".././../../tuto/latest/manual/basics">Client-server applications</a></span></h3><h3><span><a href=".././../../tuto/latest/manual/basics-server">Server-side websites</a></span></h3><h2>Server-side programming</h2><h3>Services</h3><h4><a href="server-services" class="ocsimore_phrasing_link">The different types of services</a></h4><h4><a href="server-params" class="ocsimore_phrasing_link">Typing service parameters</a></h4><h4><a href="server-outputs" class="ocsimore_phrasing_link">Service handlers</a></h4><h4><a href="server-links" class="ocsimore_phrasing_link">Creating links and forms</a></h4><h3><a href="server-state" class="ocsimore_phrasing_link">Sessions and server side state</a></h3><h3><a href="server-security" class="ocsimore_phrasing_link">Security</a></h3><h2>Client-server programming</h2><h3><a href="clientserver-applications" class="ocsimore_phrasing_link">Eliom applications</a></h3><h3><a href="ppx-syntax" class="ocsimore_phrasing_link">Multi-tier programming</a></h3><h3><a href="clientserver-html" class="ocsimore_phrasing_link">Generating HTML</a></h3><h3><a href="clientserver-communication" class="ocsimore_phrasing_link">Communication</a></h3><h3><a href="clientserver-services" class="ocsimore_phrasing_link">Client-side services</a></h3><h3><a href="clientserver-react" class="ocsimore_phrasing_link">Shared reactive programming</a></h3><h3><a href="clientserver-cache" class="ocsimore_phrasing_link">Caching data and off-line applications</a></h3><h3><a href="clientserver-wrapping" class="ocsimore_phrasing_link">Custom wrapping</a></h3><h2>Workflows</h2><h3><a href="workflow-distillery" class="ocsimore_phrasing_link">Distillery</a></h3><h3><a href="mobile-apps" class="ocsimore_phrasing_link">Mobile apps</a></h3><h3><a href="workflow-configuration" class="ocsimore_phrasing_link">Configuration &amp; running</a></h3><h3><a href="scalability" class="ocsimore_phrasing_link">Scalability</a></h3><h1>Client API</h1><h2><a href=".././api/client/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h2><h2><a href=".././api/client/Eliom_client_value" class="ocsimore_phrasing_link">Eliom_client_value</a></h2><h2><a href=".././api/client/Eliom_lib" class="ocsimore_phrasing_link">Eliom_lib</a></h2><h2>Client/server communication</h2><h3><a href=".././api/client/Eliom_service" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href=".././api/client/Eliom_shared" class="ocsimore_phrasing_link">Eliom_shared</a></h3><h3><a href=".././api/client/Eliom_cscache" class="ocsimore_phrasing_link">Eliom_cscache</a></h3><h3><a href=".././api/client/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href=".././api/client/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href=".././api/client/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Content and form creation</h2><h3><a href=".././api/client/Eliom_content.Html" class="ocsimore_phrasing_link">Eliom_content.Html</a></h3><h3><a href=".././api/client/Eliom_content.Svg" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href=".././api/client/Eliom_content.Xml" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h2>Index</h2><h3> <span><a href=".././api/client/index_types">Index of types</a></span></h3><h3> <span><a href=".././api/client/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href=".././api/client/index_values">Index of values</a></span></h3><h3> <span><a href=".././api/client/index_modules">Index of modules</a></span></h3><h3> <span><a href=".././api/client/index_module_types">Index of module types</a></span></h3><h1>Server API</h1><h2>Service creation</h2><h3><a href=".././api/server/Eliom_service" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href=".././api/server/Eliom_parameter" class="ocsimore_phrasing_link">Eliom_parameter</a></h3><h3><a href=".././api/server/Eliom_registration" class="ocsimore_phrasing_link">Eliom_registration</a></h3><h3><a href=".././api/server/Eliom_registration.Html" class="ocsimore_phrasing_link">Eliom_registration.Html</a></h3><h3><a href=".././api/server/Eliom_registration.Action" class="ocsimore_phrasing_link">Eliom_registration.Action</a></h3><h3><a href=".././api/server/Eliom_registration.Ocaml" class="ocsimore_phrasing_link">Eliom_registration.Ocaml</a></h3><h3><a href=".././api/server/Eliom_registration.App" class="ocsimore_phrasing_link">Eliom_registration.App</a></h3><h3><a href=".././api/server/Eliom_registration.File" class="ocsimore_phrasing_link">Eliom_registration.File</a></h3><h3><a href=".././api/server/Eliom_registration.Any" class="ocsimore_phrasing_link">Eliom_registration.Any</a></h3><h3><a href=".././api/server/Eliom_registration.Redirection" class="ocsimore_phrasing_link">Eliom_registration.Redirection</a></h3><h2>Content and form creation</h2><h3><a href=".././api/server/Eliom_content" class="ocsimore_phrasing_link">Eliom_content</a></h3><h3><a href=".././api/server/Eliom_content.Html" class="ocsimore_phrasing_link">Eliom_content.Html</a></h3><h3><a href=".././api/server/Eliom_content.Svg" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href=".././api/server/Eliom_content.Xml" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h3><a href=".././api/server/Eliom_tools" class="ocsimore_phrasing_link">Eliom_tools</a></h3><h2>Server side state, requests, misc</h2><h3><a href=".././api/server/Eliom_reference" class="ocsimore_phrasing_link">Eliom_reference</a></h3><h3><a href=".././api/server/Eliom_state" class="ocsimore_phrasing_link">Eliom_state</a></h3><h3><a href=".././api/server/Eliom_config" class="ocsimore_phrasing_link">Eliom_config</a></h3><h3><a href=".././api/server/Eliom_request_info" class="ocsimore_phrasing_link">Eliom_request_info</a></h3><h3><a href=".././api/server/Eliom_common" class="ocsimore_phrasing_link">Eliom_common</a></h3><h3><a href=".././api/server/Eliom_lib" class="ocsimore_phrasing_link">Eliom_lib</a></h3><h2>Client/server communication</h2><h3><a href=".././api/server/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h3><h3><a href=".././api/server/Eliom_client_value" class="ocsimore_phrasing_link">Eliom_client_value</a></h3><h3><a href=".././api/server/Eliom_shared" class="ocsimore_phrasing_link">Eliom_shared</a></h3><h3><a href=".././api/server/Eliom_notif" class="ocsimore_phrasing_link">Eliom_notif</a></h3><h3><a href=".././api/server/Eliom_cscache" class="ocsimore_phrasing_link">Eliom_cscache</a></h3><h3><a href=".././api/server/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href=".././api/server/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href=".././api/server/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Index</h2><h3> <span><a href=".././api/server/index_types">Index of types</a></span></h3><h3> <span><a href=".././api/server/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href=".././api/server/index_values">Index of values</a></span></h3><h3> <span><a href=".././api/server/index_modules">Index of modules</a></span></h3><h3> <span><a href=".././api/server/index_module_types">Index of module types</a></span></h3><h1>Ppx syntax</h1><h2><a href=".././api/ppx/Ppx_eliom" class="ocsimore_phrasing_link">Ppx_eliom</a></h2></nav></nav></aside></div><p class="reasonwarning">Warning: Reason support is experimental.
+We are looking for beta-tester and contributors.
+</p><button id="reason">Switch to </button><div class="twocols"><nav class="leftcol">Version <select class="how-versions" onchange="location = this.value;"><option value=".././../dev/manual/workflow-configuration">dev</option><option value=".././../11.x/manual/workflow-configuration" selected="selected">11.x</option><option value=".././../8.x/manual/workflow-configuration">8.x</option><option value=".././../1.3.4/manual/workflow-configuration">1.3.4</option></select><nav class="how-doctree"><h1> Eliom's Reference manual</h1><h2><a href="intro" class="ocsimore_phrasing_link">Introduction</a></h2><h3><span><a href=".././../../tuto/latest/manual/basics">Client-server applications</a></span></h3><h3><span><a href=".././../../tuto/latest/manual/basics-server">Server-side websites</a></span></h3><h2>Server-side programming</h2><h3>Services</h3><h4><a href="server-services" class="ocsimore_phrasing_link">The different types of services</a></h4><h4><a href="server-params" class="ocsimore_phrasing_link">Typing service parameters</a></h4><h4><a href="server-outputs" class="ocsimore_phrasing_link">Service handlers</a></h4><h4><a href="server-links" class="ocsimore_phrasing_link">Creating links and forms</a></h4><h3><a href="server-state" class="ocsimore_phrasing_link">Sessions and server side state</a></h3><h3><a href="server-security" class="ocsimore_phrasing_link">Security</a></h3><h2>Client-server programming</h2><h3><a href="clientserver-applications" class="ocsimore_phrasing_link">Eliom applications</a></h3><h3><a href="ppx-syntax" class="ocsimore_phrasing_link">Multi-tier programming</a></h3><h3><a href="clientserver-html" class="ocsimore_phrasing_link">Generating HTML</a></h3><h3><a href="clientserver-communication" class="ocsimore_phrasing_link">Communication</a></h3><h3><a href="clientserver-services" class="ocsimore_phrasing_link">Client-side services</a></h3><h3><a href="clientserver-react" class="ocsimore_phrasing_link">Shared reactive programming</a></h3><h3><a href="clientserver-cache" class="ocsimore_phrasing_link">Caching data and off-line applications</a></h3><h3><a href="clientserver-wrapping" class="ocsimore_phrasing_link">Custom wrapping</a></h3><h2>Workflows</h2><h3><a href="workflow-distillery" class="ocsimore_phrasing_link">Distillery</a></h3><h3><a href="mobile-apps" class="ocsimore_phrasing_link">Mobile apps</a></h3><h3><a href="workflow-configuration" class="ocsimore_phrasing_link">Configuration &amp; running</a></h3><h3><a href="scalability" class="ocsimore_phrasing_link">Scalability</a></h3><h1>Client API</h1><h2><a href=".././api/client/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h2><h2><a href=".././api/client/Eliom_client_value" class="ocsimore_phrasing_link">Eliom_client_value</a></h2><h2><a href=".././api/client/Eliom_lib" class="ocsimore_phrasing_link">Eliom_lib</a></h2><h2>Client/server communication</h2><h3><a href=".././api/client/Eliom_service" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href=".././api/client/Eliom_shared" class="ocsimore_phrasing_link">Eliom_shared</a></h3><h3><a href=".././api/client/Eliom_cscache" class="ocsimore_phrasing_link">Eliom_cscache</a></h3><h3><a href=".././api/client/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href=".././api/client/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href=".././api/client/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Content and form creation</h2><h3><a href=".././api/client/Eliom_content.Html" class="ocsimore_phrasing_link">Eliom_content.Html</a></h3><h3><a href=".././api/client/Eliom_content.Svg" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href=".././api/client/Eliom_content.Xml" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h2>Index</h2><h3> <span><a href=".././api/client/index_types">Index of types</a></span></h3><h3> <span><a href=".././api/client/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href=".././api/client/index_values">Index of values</a></span></h3><h3> <span><a href=".././api/client/index_modules">Index of modules</a></span></h3><h3> <span><a href=".././api/client/index_module_types">Index of module types</a></span></h3><h1>Server API</h1><h2>Service creation</h2><h3><a href=".././api/server/Eliom_service" class="ocsimore_phrasing_link">Eliom_service</a></h3><h3><a href=".././api/server/Eliom_parameter" class="ocsimore_phrasing_link">Eliom_parameter</a></h3><h3><a href=".././api/server/Eliom_registration" class="ocsimore_phrasing_link">Eliom_registration</a></h3><h3><a href=".././api/server/Eliom_registration.Html" class="ocsimore_phrasing_link">Eliom_registration.Html</a></h3><h3><a href=".././api/server/Eliom_registration.Action" class="ocsimore_phrasing_link">Eliom_registration.Action</a></h3><h3><a href=".././api/server/Eliom_registration.Ocaml" class="ocsimore_phrasing_link">Eliom_registration.Ocaml</a></h3><h3><a href=".././api/server/Eliom_registration.App" class="ocsimore_phrasing_link">Eliom_registration.App</a></h3><h3><a href=".././api/server/Eliom_registration.File" class="ocsimore_phrasing_link">Eliom_registration.File</a></h3><h3><a href=".././api/server/Eliom_registration.Any" class="ocsimore_phrasing_link">Eliom_registration.Any</a></h3><h3><a href=".././api/server/Eliom_registration.Redirection" class="ocsimore_phrasing_link">Eliom_registration.Redirection</a></h3><h2>Content and form creation</h2><h3><a href=".././api/server/Eliom_content" class="ocsimore_phrasing_link">Eliom_content</a></h3><h3><a href=".././api/server/Eliom_content.Html" class="ocsimore_phrasing_link">Eliom_content.Html</a></h3><h3><a href=".././api/server/Eliom_content.Svg" class="ocsimore_phrasing_link">Eliom_content.Svg</a></h3><h3><a href=".././api/server/Eliom_content.Xml" class="ocsimore_phrasing_link">Eliom_content.Xml</a></h3><h3><a href=".././api/server/Eliom_tools" class="ocsimore_phrasing_link">Eliom_tools</a></h3><h2>Server side state, requests, misc</h2><h3><a href=".././api/server/Eliom_reference" class="ocsimore_phrasing_link">Eliom_reference</a></h3><h3><a href=".././api/server/Eliom_state" class="ocsimore_phrasing_link">Eliom_state</a></h3><h3><a href=".././api/server/Eliom_config" class="ocsimore_phrasing_link">Eliom_config</a></h3><h3><a href=".././api/server/Eliom_request_info" class="ocsimore_phrasing_link">Eliom_request_info</a></h3><h3><a href=".././api/server/Eliom_common" class="ocsimore_phrasing_link">Eliom_common</a></h3><h3><a href=".././api/server/Eliom_lib" class="ocsimore_phrasing_link">Eliom_lib</a></h3><h2>Client/server communication</h2><h3><a href=".././api/server/Eliom_client" class="ocsimore_phrasing_link">Eliom_client</a></h3><h3><a href=".././api/server/Eliom_client_value" class="ocsimore_phrasing_link">Eliom_client_value</a></h3><h3><a href=".././api/server/Eliom_shared" class="ocsimore_phrasing_link">Eliom_shared</a></h3><h3><a href=".././api/server/Eliom_notif" class="ocsimore_phrasing_link">Eliom_notif</a></h3><h3><a href=".././api/server/Eliom_cscache" class="ocsimore_phrasing_link">Eliom_cscache</a></h3><h3><a href=".././api/server/Eliom_bus" class="ocsimore_phrasing_link">Eliom_bus</a></h3><h3><a href=".././api/server/Eliom_comet" class="ocsimore_phrasing_link">Eliom_comet</a></h3><h3><a href=".././api/server/Eliom_react" class="ocsimore_phrasing_link">Eliom_react</a></h3><h2>Index</h2><h3> <span><a href=".././api/server/index_types">Index of types</a></span></h3><h3> <span><a href=".././api/server/index_exceptions">Index of exceptions</a></span></h3><h3> <span><a href=".././api/server/index_values">Index of values</a></span></h3><h3> <span><a href=".././api/server/index_modules">Index of modules</a></span></h3><h3> <span><a href=".././api/server/index_module_types">Index of module types</a></span></h3><h1>Ppx syntax</h1><h2><a href=".././api/ppx/Ppx_eliom" class="ocsimore_phrasing_link">Ppx_eliom</a></h2></nav></nav><article class="rightcol"><h1> Compiling and configuring Eliom modules </h1><div id="overview" class="ocsimore_outline"><header><p><strong>Table of contents</strong></p></header></div><script>
+//<![CDATA[
+window.addEventListener("load", function(){ outline([0,-515484383,0,[0,2],[0,"nav",[0,"aside",0]],"overview",1]); }, false); 
+//]]>
+</script><p>This chapter explains how to set Eliom's
+options in the Ocsigen server configuration file, and how to define options for your
+Eliom modules. See the Ocsigen server documentation for more information about the
+<span><a href=".././../../ocsigenserver/latest/manual/config">server's configuration</a></span>.
+</p><p>Note, however, that <span><a href=".././manual/workflow-distillery">Eliom's
+distillery</a></span> provides templates to get started at once with Eliom!
+</p><h2 id="misc">Using Eliom modules with Ocsigen server <a class="backref" href="#misc">&#182;</a></h2><h4>Configuration file</h4><p>To run an Ocsigen server with an Eliom module <span class="teletype">example.cmo</span>,
+add the following lines to the Ocsigen configuration file
+(<span class="code">/etc/ocsigen/ocsigen.conf</span> most of the times):
+</p><pre>&lt;extension findlib-package=&quot;eliom.server&quot;/&gt;
+&lt;host&gt;
+  &lt;site path=&quot;examples&quot;&gt;
+    &lt;eliommodule module=&quot;~///path_to///example.cmo&quot; /&gt;
+    &lt;eliom /&gt;
+  &lt;/site&gt;
+&lt;/host&gt;
+</pre><p>The block surrounded by the <span class="teletype">&lt;site&gt;</span> tag creates a sub-site on your
+host, in directory <span class="teletype">examples</span>. The <span class="teletype">&lt;site&gt;</span> tag is optional if
+you want to register your services at the root of the server path tree.
+</p><p>The <span class="teletype">&lt;eliom&gt;</span> tag defines an Eliom module to be loaded (dynamically while
+starting Ocsigen server) for this subsite.
+</p><h4>Running Ocsigen server</h4><p>Run Ocsigen server, by typing the command
+</p><pre>ocsigenserver
+</pre><p>or, if your configuration file is not in the default
+location:
+</p><pre>ocsigenserver -c //&lt;your configuration file&gt;//
+</pre><p>You should see the page corresponding to service <span class="teletype">&quot;coucou&quot;</span> in site
+<span class="teletype">examples/</span> at url<br/>
+<span class="code">http://<em>your_server</em>/examples/coucou</span>.<br/>
+</p><aside class="concept"><header><h5><span class="concept_prefix">Concept: </span>Debugging</h5></header><p><strong>Tip:</strong> Add the option <span class="teletype">&lt;debugmode/&gt;</span> in
+the configuration file during the development process of your application.
+Thus, Ocsigen server will display the exceptions raised during
+the generation of a page in error pages.
+</p><p><strong>Tip:</strong> To debug your programs,
+add the option <span class="teletype">-v</span> or <span class="teletype">-V</span> of
+the <span class="teletype">ocsigen</span> command to have verbose information on what succeeds
+during request. Also think to have look in the log files when something goes
+wrong.</p></aside><h3>Several Eliom modules for one site</h3><p>If your site consists of several modules, you can load them
+consecutively from the configuration file using several
+<span class="teletype">eliommodule</span>-tags.
+Note that there can be only one <span class="code">&lt;eliom</span>&gt;
+tag for each <span class="code">&lt;site</span>&gt;
+(or <span class="code">&lt;host</span>&gt;), however.
+</p><h3>Using findlib with Eliom modules</h3><p>If your module has a findlib <span class="code">META</span> file,
+it is also possible (and recommended!) to do:
+</p><pre>&lt;host&gt;
+  &lt;site path=&quot;examples&quot;&gt;
+    &lt;eliommodule findlib-package=&quot;//package-name//&quot; /&gt;
+    &lt;eliom /&gt;
+  &lt;/site&gt;
+&lt;/host&gt;
+</pre><h3 id="reload">Updating sites without shutting down the server <a class="backref" href="#reload">&#182;</a></h3><p>Ocsigen server has a feature that allows the configuration to be reloaded
+without shutting down the server (see section * *).
+This can be used to reload Eliom modules without closing volatile sessions.
+To do that use <span class="code">/etc/init.d/ocsigen reload</span>
+for most of the distributions, or do it manually using:
+</p><pre>echo reload &gt; /var/run/ocsigen_command
+</pre><p>Only modules loaded inside <span class="code">&lt;host</span>&gt;,
+<span class="code">&lt;site</span>&gt; or
+<span class="code">&lt;library</span>&gt; will be reloaded.
+Module loaded using <span class="code">&lt;extension</span>&gt; will not.
+</p><p>Have a look at the logs to see if all went well during the reload.
+If something went wrong, old services may still be reachable.
+</p><p>Warning:
+</p><ul><li> Services created with the old modules or URLs that have not been
+masked by new ones will still reachable after the update!
+</li><li> During the reload, some information of the configuration file will
+not be re-read (for example port numbers, user and group, etc.).
+</li></ul><h2>Interacting with Ocsigen server from Eliom programs</h2><h3>Defining an exception handler for the whole site</h3><p>When an exception is raised during the generation of a page, or when
+the page has not been found or has wrong parameters, an HTTP error 500
+or 404 is sent to the client. You may want to catch these exceptions
+to print your own error page.  Do this using
+<span><a href=".././api/server/Eliom_service#VALset_exn_handler">Eliom_service.set_exn_handler</a></span>.
+Here is the handler used by the tutorial:
+</p><pre class=""><code class="language-ocaml translatable">let _ = Eliom_service.set_exn_handler
+   (fun e -&gt; match e with
+    | Eliom_common.Eliom_404 -&gt;
+        Eliom_registration.Html.send ~code:404
+          (html
+             (head (title (txt &quot;&quot;)) [])
+             (body [h1 [txt &quot;Eliom tutorial&quot;];
+                    p [txt &quot;Page not found&quot;]]))
+    | e -&gt; fail e)</code></pre><h3>Giving configuration options to your sites</h3><p>You can add your own options in the configuration file for your Web
+site. For example:
+</p><pre class=""><code class="language-ocaml translatable">&lt;eliommodule module=&quot;//path_to///yourmodule.cmo&quot;&gt;
+      &lt;youroptions&gt; ...
+    &lt;/eliommodule&gt;</code></pre><p>Use <span><a href=".././api/server/Eliom_config#VALget_config">Eliom_config.get_config</a></span> during the initialization
+of your module to get the data between <span class="code">&lt;eliom</span>&gt;
+and <span class="code">&lt;/eliom</span>&gt;.
+</p><aside class="wip"><header><h5>Work in progress</h5></header><p>Warning: parsing these data is very basic for now.
+That feature will be improved in the future.</p></aside><h3 id="static_linking">Static linking of Eliom modules <a class="backref" href="#static_linking">&#182;</a></h3><p>From version 1.2, it is possible to link extensions and Eliom modules
+<span><a href=".././../../ocsigenserver/latest/manual/staticlink">statically</a></span>.
+But this is not straightforward.  For Eliom modules, service
+registration and option settings must be delayed until the
+configuration file is read. To create a statically linkable Eliom
+module, use function
+<span><a href=".././api/server/Eliom_service#VALregister_eliom_module">Eliom_service.register_eliom_module</a></span>.
+It takes as parameters the name of the module and the initialization
+function that will be called once the module is initialized in the
+configuration file. That function should register the module services
+(and possibly call <span><a href=".././api/server/Eliom_config#VALget_config">Eliom_config.get_config</a></span> if the module has
+configuration options).
+</p><aside class="wip"><header><h5>Work in progress</h5></header><p>How to improve this and this easier to use?</p></aside><p>To initialize the module from the configuration file, use the syntax:
+</p><pre>&lt;eliommodule name=&quot;//name//&quot;&gt; ... &lt;/eliommodule&gt;
+</pre><p>(or <span class="code">&lt;eliommodule name=&quot;<em>name</em>&quot;&gt; ... &lt;/eliom&gt;</span>)
+which is equivalent to:
+</p><pre>&lt;eliommodule module=&quot;//name.cmxs//&quot;&gt; ... &lt;/eliommodule&gt;
+</pre><p>(or <span class="code">&lt;eliommodules module=&quot;<em>name.cmxs</em>&quot;&gt; ... &lt;/eliom&gt;</span>)
+</p><p>with the exception that it does not load the module using <span class="code">Dynlink</span>, but calls the initialization function.<br/>
+</p><p>You can use functions such as
+<span><a href=".././api/server/Eliom_state#VALcreate_volatile_table">Eliom_state.create_volatile_table</a></span>
+that needs information about the site (here, volatile tables are
+associated to a site), only during a request or during the
+initialization phase of the server.
+</p><p>If you want to use this kind of function before the initialization
+phase, for example if your module is linked statically with the
+server, you must call these function using function
+<span><a href=".././api/server/Eliom_service#VALregister_eliom_module">Eliom_service.register_eliom_module</a></span>.
+(One solution is to use a lazy value to delay the creation of the
+table, and force that value from the registration function).
+</p><h3 id="extensions">Advanced use: create an extension for the server that access Eliom's data <a class="backref" href="#extensions">&#182;</a></h3><p>If you want an Ocsigen extension with access to Eliom's data (for
+example if you want an extension that will register some services),
+you can use the function
+<span><a href=".././api/server/Eliom_extension#VALregister_eliom_extension">Eliom_extension.register_eliom_extension</a></span>
+to register the function that will generate the
+<span><a href=".././../../ocsigenserver/latest/api/Ocsigen_extensions#TYPEanswer">Ocsigen_extensions.answer</a></span>.
+</p><aside class="wip"><header><h5>Work in progress</h5></header><p>Add more details about this</p></aside><h2 id="config">Global configuration options <a class="backref" href="#config">&#182;</a></h2><p>Here are Eliom's options you can use in configuration files.
+</p><h3>Timeouts</h3><aside class="wip"><header><h5>Work in progress</h5></header><p>Revoir les timeouts pour client processes et groupes</p></aside><p>State timeouts can be set either inside tag
+<span class="teletype">&lt;extension findlib-package=&quot;eliom.server&quot;/&gt;</span> (default value
+for all sites), or inside a <span class="teletype">&lt;eliom/&gt;</span> tag (default for one site).
+</p><p>Timeouts can also be modified programmatically using functions like
+<span class="teletype">Eliom_state.set_global_volatile_timeout</span>, but by default these
+functions will not override configuration files.
+(see module <span><a href=".././api/server/Eliom_state">Eliom_state</a></span> for other functions).
+Thus, a Web site can set its own defaults and the user can still
+override them from the configuration file.  If you want to set a
+timeout programmatically even if it has been modified in a
+configuration file, use the optional parameter
+<span class="teletype">~override_configfile:true</span>.
+</p><p>Timeouts can be set either for all scopes hierarchies, for one precise
+hierarchy, or for the default scope hierarchy.  To do this
+programmatically, use the optional parameter <span class="teletype">~scope</span>.
+In a configuration file, use the optional attribute
+<span class="teletype">hierarchyname</span> (where an empty string value means default hierarchy).
+If this attribute is absent, the timeout will affect all
+states for which no other default has been set. The
+<span class="teletype">hierarchyname</span> attribute exists only inside an <span class="teletype">&lt;eliom/&gt;</span> tag
+(and not inside <span class="teletype">&lt;extension findlib-package=&quot;eliom.server&quot;/&gt;</span>).
+</p><p>The level attribute can take values <span class="teletype">session</span> (browser)
+or <span class="teletype">clientprocess</span> (tab).
+</p><ul><li> <span class="teletype">&lt;volatiletimeout value=&quot;30&quot; [hierarchyname=&quot;&quot;] [level=&quot;session&quot;]/&gt;</span>
+The default timeout for
+volatile (in memory) states (value in seconds).
+<span class="teletype">value=&quot;infinity&quot;</span> means that the state will
+never expire.
+Note that each eliom module can set its own
+default, that will override this one.
+</li><li> <span class="teletype">&lt;persistenttimeout value=&quot;7200&quot;/&gt;</span>
+Idem for persistent state data
+</li><li> <span class="teletype">&lt;datatimeout value=&quot;30&quot;  [hierarchyname=&quot;&quot;] [level=&quot;session&quot;]/&gt;</span>
+Like <span class="teletype">&lt;timeout&gt;</span>, but for in memory data
+states only
+(not service states).
+</li><li> <span class="teletype">&lt;servicetimeout value=&quot;30&quot; [hierarchyname=&quot;&quot;] [level=&quot;session&quot;]/&gt;</span>
+Like <span class="teletype">&lt;timeout&gt;</span>, but for service states only
+(not in memory data states).
+</li></ul><h3>Garbage collector of states and services</h3><p>These options can appear inside tag
+<span class="teletype">&lt;extension findlib-package=&quot;eliom.server&quot;/&gt;</span>.
+For now, it cannot be set for each site independently
+(tell us if you need that).
+</p><ul><li> <span class="teletype">&lt;sessiongcfrequency value=&quot;30&quot;/&gt;</span>
+Time between two garbage
+collections of sessions, in seconds (default
+3600). The value <span class="teletype">&quot;infinity&quot;</span> means no GC of session.
+</li><li> <span class="teletype">&lt;persistentsessiongcfrequency value=&quot;86400&quot;/&gt;</span>
+Time between two
+garbage collections of persistent sessions,
+in seconds (default 86400.). The value <span class="teletype">&quot;infinity&quot;</span> means
+no GC of session.
+</li><li> <span class="teletype">&lt;servicesessiongcfrequency value=&quot;3600&quot;/&gt;</span>
+Like <span class="teletype">&lt;sessiongcfrequency&gt;</span>,
+but for service sessions only
+</li><li> <span class="teletype">&lt;datasessiongcfrequency value=&quot;3600&quot;/&gt;</span>
+Like <span class="teletype">&lt;sessiongcfrequency&gt;</span>,
+but for &quot;in memory data&quot; sessions only
+</li></ul><h3>Limiting the number of sessions or coservices</h3><p>To fight denial of service, Eliom limits the number of sessions
+and the number of dynamic coservices. Without these limitations, it would
+be possible for an attacker to open repeatedly lots of sessions,
+or creating new services (for example CSRF safe coservices can create lots
+of coservices when you reload repeatedly a page). When the limit is reached,
+it is still possible to open a new session or create a new service, but the
+oldest session or services disappear (the one that has not been used
+for the longest time).
+</p><h4>Limiting sessions</h4><p>First of all, there is a limitation of the number of sessions in a
+session group. A typical use is when a user opens several
+sessions from several computers. All the sessions belong to the same
+group (the group name is usually the user name).
+The limit is usually small (5 sessions per group by default).
+This limit is implemented for all kinds of sessions (service session,
+volatile and persistent data sessions). For persistent sessions, the
+implementation is not very efficient for very large limits.
+</p><p>It is highly recommended to use session groups when possible.
+</p><p>If you can't use session groups, the number of sessions is limited
+by sub network for volatile sessions (service sessions and data sessions).
+The limitation is larger (default 1 million). The limit must be large enough.
+For instance, if the server is behind a reverse proxy, all incoming requests
+will come from the same IP address. Limiting by sub network instead of by
+IP address prevents attacks even when the attacker has a whole sub network
+available. The default mask for sub networks is <span class="teletype">/16</span> for IPv4
+and <span class="teletype">/56</span> for IPv6.
+</p><p>Some figures: if 1 session takes 1000 bytes (data + tables etc),
+1 million sessions take 1 GB. If somebody opens 1000 sessions per second,
+then it will take 1000 s (16 minutes) to reach 1000000.
+It means that regular users will have their sessions closed
+after 16 minutes of inactivity if they share their sub network with
+someone doing an attack (or if the server is behind a proxy).
+</p><p>For persistent sessions, there is no limitation per sub network for now.
+1 billion sessions take 1 TB. If somebody opens 1000 sessions per second,
+then it will take 1 million s (16000 minutes = 266 h = 11 days)
+to reach 1TB.
+</p><h4>Limiting services</h4><p>The number of anonymous coservices is limited by session
+or by sub network if the service is registered in the global table.
+Default values: 1000 for one session, and 500000 for one subnet.
+</p><p>Note that there is no limitation of named coservices or regular services.
+It is not a good practice to allow the creation of too much services
+of this kinds dynamically.
+</p><h4>How to set limits</h4><p>The limits and the subnet mask can be set programmatically by each module
+(for example to adapt the values to the size of session data) or in the
+configuration file
+(for instance, to adapt the values to the size of memory or network
+configuration)
+(see module  <span><a href=".././api/server/Eliom_state">Eliom_state</a></span>).
+By default, functions like
+<span class="teletype">Eliom_state.set_default_max_volatile_sessions_per_group</span>
+will not override a value set in the configuration file
+(but if you use <span class="teletype">~override_configfile:true</span>).
+Thus, a Web site can set its own defaults and the user can still
+override them from the configuration file.
+</p><p>The configuration file options can be set either inside the tag
+<span class="teletype">&lt;extension findlib-package=&quot;eliom.server&quot;/&gt;</span>
+(global configuration), or inside the <span class="teletype">&lt;eliom/&gt;</span> tag
+(configuration for each site). But the limits always are for one
+site (that is: a global limit value of 10 means 10 for each Eliom site).
+</p><p>The syntax is:
+</p><ul><li> <span class="teletype">&lt;maxvolatilesessionspergroup value=&quot;10&quot;/&gt;</span>
+</li><li> <span class="teletype">&lt;maxservicesessionspergroup value=&quot;10&quot;/&gt;</span>
+</li><li> <span class="teletype">&lt;maxdatasessionspergroup value=&quot;10&quot;/&gt;</span>
+</li><li> <span class="teletype">&lt;maxpersistentsessionspergroup value=&quot;10&quot;/&gt;</span>
+</li><li> <span class="teletype">&lt;maxvolatilesessionspersubnet value=&quot;500000&quot;/&gt;</span>
+</li><li> <span class="teletype">&lt;maxservicesessionspersubnet value=&quot;500000&quot;/&gt;</span>
+</li><li> <span class="teletype">&lt;maxdatasessionspersubnet value=&quot;500000&quot;/&gt;</span>
+</li><li> <span class="teletype">&lt;maxanonymouscoservicespersession value=&quot;1000&quot;/&gt;</span>
+</li><li> <span class="teletype">&lt;maxanonymouscoservicespersubnet value=&quot;500000&quot;/&gt;</span>
+</li><li> <span class="teletype">&lt;ipv4subnetmask value=&quot;255.255.128.0&quot;/&gt;</span>
+</li><li> <span class="teletype">&lt;ipv6subnetmask value=&quot;ff:ff:ff:ff:ff:ff::&quot;/&gt;</span>
+</li></ul><h3> Application script attributes</h3><p>One can choose to set the <span class="teletype">defer</span> or <span class="teletype">async</span> attributes of the
+script element referencing the application code, so that HTML
+rendering is not blocked while the script is downloaded.
+</p><p>The syntax is:
+</p><ul><li> <span class="teletype">&lt;applicationscript defer=&quot;true&quot; async=&quot;false&quot;/&gt;</span>
+</li></ul><p>Both attributes are optional and default to <span class="teletype">false</span>.
+</p><h3> Serving global data through a distinct URL</h3><p>When an Eliom program is initiated client-side, it needs to receive
+some global data from the server (that are persistent from request to
+request). This data is normally included in the HTML page sent by the
+server. Alternatively, it can be served through a separate
+request. This is more efficient as it allows this state to be
+serialized by the server only once, and cached by the clients (or
+possibly a CDN if your server is running behind one), but the client
+will receive stale data if global data changes over time.
+</p><p>The syntax to activate this option is the following:
+</p><ul><li> <span class="teletype">&lt;cacheglobaldata path=&quot;path&quot; cache=&quot;604800&quot;/&gt;</span>
+</li></ul><p>All attributes are optional. The <span class="teletype">path</span> option can be use to
+indicate the path below which the JavaScript file providing the global
+data is served. The default path is the empty path. This script name
+is the MD5 checksum of its contents (with a <span class="teletype">.js</span> suffix). Thus,
+it can be safely cached and is unlikely to conflict with any other
+service. The caching duration, in seconds, is set using the
+<span class="teletype">cache</span> attribute. It defaults to zero (no caching).
+</p><p>When the application script defer attribute is set (see just above),
+global data are also loaded in a deferred way.
+</p><h2>Per site configuration options</h2><h3> Disabling XHR-links</h3><p>By default, all links (<span class="monospace">a</span>, <span class="monospace">form</span>) of an Eliom application are performed
+by Eliom's <span class="monospace">change_page</span> machinery, unless they are created with the
+<strong>xhr:false<span class="monospace"> option.
+</span></strong></p><p>You can change this default by adding the attribute <span class="monospace">xhr-links</span> to
+the content of the configuration of the Eliom module:
+</p><pre>  &lt;eliom ... xhr-links=&quot;no&quot; /&gt;
+</pre><p>Then, all links will perform a normal HTTP request unless explicitely
+created with the <span class="monospace">xhr:true</span> option.
+</p><p>This value can also be set through function
+<span><a href=".././api/server/Eliom_config#VALset_default_links_xhr">Eliom_config.set_default_links_xhr</a></span>.</p></article></div></div></body></html>
