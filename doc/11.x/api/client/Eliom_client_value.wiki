@@ -1,0 +1,27 @@
+=Module <<a_api_type subproject="client" | module Eliom_client_value >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_client_value>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_client_value >><<span class="ocsforge_color_keyword"|end>>>>
+==@@id="2_Clientandsharedvalues"@@~Client and shared values==
+
+
+
+    ~See the <<a_manual chapter="clientserver-language"|manual>>
+    ~.
+
+----
+<<pre class="ocsforge_color odocwiki_code" id="TYPEt"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_type"|'a>> <<span class="odocwiki_name"|t>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|'a>> >><<div class="odocwiki_info"|~An <<span class="odocwiki_inlinecode"|~'a>> client value on the client is just an <<span class="odocwiki_inlinecode"|~'a>>~.  ~See also     <<a_api subproject="server" text="the abstract representation on
+    the server" | type Eliom_client_value.t >> ~.
+>>
+<<pre id="EXCEPTIONException_on_server" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|exception>> <<span class="odocwiki_name"|Exception_on_server>> <<span class="ocsforge_color_keyword"|of>> <<span class="odocwiki_type"|string>>>><<div class="odocwiki_info"|~This exception is raised ~(in ~Lwt~) on the client if a call to a
+    server function <<a_api subproject="server"|val
+    Eliom_client.server_function>>  fails ~(in ~Lwt~) on the server
+    side~.
+
+
+    ~The argument describes the original exception by
+    <<span class="odocwiki_inlinecode"|~Printexc~.to~_string>>~.
+>>
+
+~Event handlers like <<a_api | val Html_sigs.T.a_onclick
+    >>  may raise <<span class="odocwiki_inlinecode"|~False>> to cancel the event ~(as if the ~Java~Script
+    function returned <<span class="odocwiki_inlinecode"|false>>~)~.
+<<pre id="EXCEPTIONFalse" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|exception>> <<span class="odocwiki_name"|False>>>>

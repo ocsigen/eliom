@@ -1,0 +1,27 @@
+=Module <<a_api_type subproject="client" | module Eliom_content.Html.R >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|R>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_content.Html.R >><<span class="ocsforge_color_keyword"|end>>>>~Creation of ~H~T~M~L~5 content from
+      [[http://erratique.ch/software/react| ~React]] signals~.
+      ~H~T~M~L~5~'s trees are automatically updated whenever
+      corresponding signals change~.
+
+----
+
+
+==@@id="2_Contentcreation"@@~Content creation==
+
+        ~See <<a_api project="tyxml" | module Html_sigs.T >> ~,
+        ~If you want to create an untyped form~,
+        you will have to use <<a_api|module Eliom_content.Html.D.Raw>> 
+        otherwise~, use the form module~.
+        ~For more information~,
+        see <<a_manual chapter="server-links" fragment="forms"|the manual>> ~.
+<<pre id="VALnode" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|node>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  'a <<a_api subproject="client" text="Eliom_content.Html.elt" | type Eliom_content.Html.elt >> <<span class="ocsforge_color_uid"|React>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|signal>> <<a_api subproject="client" text="Eliom_client_value.t" | type Eliom_client_value.t >> <<span class="ocsforge_color_delimiter"| -> >>\\  'a <<a_api subproject="client" text="Eliom_content.Html.elt" | type Eliom_content.Html.elt >>>>>><<div class="odocwiki_info"|~Function <<span class="odocwiki_inlinecode"|node s>> create an ~H~T~M~L~5 <<span class="odocwiki_inlinecode"|elt>> from a signal <<span class="odocwiki_inlinecode"|s>>~.
+        ~The resulting ~H~T~M~L~5 <<span class="odocwiki_inlinecode"|elt>> can then be used like any other ~H~T~M~L~5 <<span class="odocwiki_inlinecode"|elt>>
+>>
+<<pre id="VALfilter_attrib" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|filter~_attrib>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  'a <<a_api subproject="client" text="Eliom_content.Html.attrib" | type Eliom_content.Html.attrib >> <<span class="ocsforge_color_delimiter"| -> >>\\  bool <<span class="ocsforge_color_uid"|React>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|signal>> <<span class="ocsforge_color_delimiter"| -> >> 'a <<a_api subproject="client" text="Eliom_content.Html.attrib" | type Eliom_content.Html.attrib >>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|filter~_attrib att on>> returns an attrib that
+        behave like <<span class="odocwiki_inlinecode"|att>> when <<span class="odocwiki_inlinecode"|on>> is <<span class="odocwiki_inlinecode"|true>>
+        and behave like if there was no attribute when <<span class="odocwiki_inlinecode"|on>> is <<span class="odocwiki_inlinecode"|false>>
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="client" text="Raw" | module Eliom_content.Html.R.Raw >> <<span class="ocsforge_color_delimiter"|~:>> \\  <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Html_sigs.Make>>(<<a_api subproject="client" text="Eliom_content_core.Xml_wed" | module Eliom_content_core.Xml_wed >>)(<<span class="ocsforge_color_uid"|Svg.R.Raw>>).T>><<span class="odocwiki_type"| \\      with type +'a elt = 'a elt\\       and type +'a attrib = 'a attrib>>>><<div class="odocwiki_info"|~Cf~.
+>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> <<a_api subproject="client" | module Eliom_content.Html.R.Raw >>>>

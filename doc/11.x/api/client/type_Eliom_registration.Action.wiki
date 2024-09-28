@@ -1,0 +1,27 @@
+<<code language="ocaml" | sig
+  type page = unit
+  type options = [ `NoReload | `Reload ]
+  type return = Eliom_service.non_ocaml
+  type result = browser_content kind
+  val register :
+    ?app:string ->
+    ?scope:[< Eliom_common.scope ] ->
+    ?options:options ->
+    ?charset:string ->
+    ?code:int ->
+    ?content_type:string ->
+    ?headers:Eliom_service.Cohttp.Header.t ->
+    ?secure_session:bool ->
+    service:('get, 'post, 'a, 'b, 'c, Eliom_service.non_ext,
+             Eliom_service.reg, [< `WithSuffix | `WithoutSuffix ], 'd, 'e,
+             return)
+            Eliom_service.t ->
+    ?error_handler:((string * exn) list -> page Lwt.t) ->
+    ('get -> 'post -> page Lwt.t) -> unit
+  val send :
+    ?options:options ->
+    ?charset:string ->
+    ?code:int ->
+    ?content_type:string ->
+    ?headers:Eliom_service.Cohttp.Header.t -> page -> result Lwt.t
+end >>

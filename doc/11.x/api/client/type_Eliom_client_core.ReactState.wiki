@@ -1,0 +1,8 @@
+<<code language="ocaml" | sig
+  type t
+  val start_signal :
+    (Eliom_client_core.??.t -> unit React.signal) ->
+    Js_of_ocaml.Dom.node Js_of_ocaml.Js.t
+  val change_dom :
+    Eliom_client_core.??.t -> Js_of_ocaml.Dom.node Js_of_ocaml.Js.t -> unit
+end >>

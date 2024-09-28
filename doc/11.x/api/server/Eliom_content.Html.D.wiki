@@ -1,0 +1,19 @@
+=Module <<a_api_type subproject="server" | module Eliom_content.Html.D >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|D>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_content.Html.D >><<span class="ocsforge_color_keyword"|end>>>>~Creation of ~H~T~M~L content with **~D**~O~M semantics ~(referable~, see
+      also <<a_api|module Eliom_content>> ~)~.
+
+----
+
+
+==@@id="2_Contentcreation"@@~Content creation==
+
+
+
+        ~See <<a_api project="tyxml" | module Html_sigs.T >> ~.
+        ~If you want to create an untyped form~, you will have to use         <<a_api|module Eliom_content.Html.F.Raw>>  otherwise~, use
+        ~Eliom form widgets~.  ~For more information~, see
+        <<a_manual chapter="server-links" fragment="forms"|the manual>> ~.
+
+~See <<a_api project="tyxml" | module Html_sigs.T >> ~.
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Raw" | module Eliom_content.Html.D.Raw >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_content.Html.D.Raw >><<span class="ocsforge_color_keyword"|end>>>><<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> Eliom_content.Html.D.Raw'>>
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> <<a_api subproject="server" | module type Eliom_content_sigs.LINKS_AND_FORMS >>>>

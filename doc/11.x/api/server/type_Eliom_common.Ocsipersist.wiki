@@ -1,0 +1,11 @@
+<<code language="ocaml" | sig
+  module Functorial : Ocsipersist_lib.Sigs.FUNCTORIAL
+  module type TABLE = Ocsipersist_lib.Sigs.TABLE
+  module Polymorphic : Ocsipersist_lib.Sigs.POLYMORPHIC
+  type 'value table = 'value Polymorphic.table
+  module Ref : Ocsipersist_lib.Sigs.REF
+  module Store : Ocsipersist_lib.Sigs.STORE
+  type store = Store.store
+  type 'a variable = 'a Store.t
+  val init : unit -> unit
+end >>

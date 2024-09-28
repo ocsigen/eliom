@@ -1,0 +1,12 @@
+= Eliom -- API reference
+
+[[wiki:mindmap.pdf|A mindmap to get an overview on the most important modules of Eliom]]
+<<| in /var/www/data/site-ocsimore/eliom >>
+
+<<a_api subproject="ppx" text="The ppx syntax extension" | intro >>
+
+<<a_api subproject="server" text="Server" | intro >>
+
+<<a_api subproject="client" text="Client" | intro >>
+
+<<|a_api subproject="ocamlbuild" text="The ocamlbuild plugin" | intro >>

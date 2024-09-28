@@ -1,0 +1,8 @@
+=Module <<a_api_type subproject="client" | module Eliom_content_core.Html.F >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|F>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_content_core.Html.F >><<span class="ocsforge_color_keyword"|end>>>>~Typed interface for building valid ~H~T~M~L~5 tree ~(functional semantics~)~.
+      ~See <<a_api project="tyxml" | module type Html_sigs.T >> ~.
+
+----
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="client" text="Raw" | module Eliom_content_core.Html.F.Raw >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module Eliom_content_core.Html.F.Raw >><<span class="ocsforge_color_keyword"|end>>>><<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> Eliom_content_core.Html.F.Raw'>>
+
+~See <<a_api project="tyxml" | module type Html_sigs.T >> ~.

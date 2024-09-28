@@ -1,0 +1,38 @@
+=Index of exceptions=
+
+|@@ @style="tet-align: left;"@@\\C|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Cannot_call_this_function_before_app_is_linked_to_a_site"| exception Eliom_common.Cannot_call_this_function_before_app_is_linked_to_a_site >> ~[<<a_api subproject="server" | module Eliom_common >>~]|<<div class="odocwiki_info"|~Statically linked app~: ~You cannot call this function before <<span class="odocwiki_inlinecode"|~Eliom~_run>>~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Client_value_creation_invalid_context"| exception Eliom_client_value.Client_value_creation_invalid_context >> ~[<<a_api subproject="server" | module Eliom_client_value >>~]|<<div class="odocwiki_info"|~Raised if a client value of the given closure ~I~D is created at a
+    point in time where it is neither global ~(i~.e~.
+>>
+|
+|@@ @style="tet-align: left;"@@\\E|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_404"| exception Eliom_common.Eliom_404 >> ~[<<a_api subproject="server" | module Eliom_common >>~]|<<div class="odocwiki_info"|~Page not found
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_Session_expired"| exception Eliom_common.Eliom_Session_expired >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_Typing_Error"| exception Eliom_common.Eliom_Typing_Error >> ~[<<a_api subproject="server" | module Eliom_common >>~]|<<div class="odocwiki_info"|~The service ~(~G~E~T or ~P~O~S~T~) parameters do not match expected type
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_Wrong_parameter"| exception Eliom_common.Eliom_Wrong_parameter >> ~[<<a_api subproject="server" | module Eliom_common >>~]|<<div class="odocwiki_info"|~Service called with wrong parameter names
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_site_information_not_available"| exception Eliom_common.Eliom_site_information_not_available >> ~[<<a_api subproject="server" | module Eliom_common >>~]|<<div class="odocwiki_info"|~That function cannot be used when the site information is not available~,
+    that is~, outside a request or the initialisation phase of your ~Eliom module
+    ~(while reading the configuration file~)~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eref_not_initialized"| exception Eliom_reference.Eref_not_initialized >> ~[<<a_api subproject="server" | module Eliom_reference >>~]|<<div class="odocwiki_info"|~Exception raised when trying to access an eref
+    that has not been initaliazed~, when we don~'t want to initialize it~.
+>>
+|
+|@@ @style="tet-align: left;"@@\\N|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Not_ready"| exception Eliom_cscache.Not_ready >> ~[<<a_api subproject="server" | module Eliom_cscache >>~]||
+|@@ @style="tet-align: left;"@@\\W|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Wrong_scope"| exception Eliom_state.Ext.Wrong_scope >> ~[<<a_api subproject="server" | module Eliom_state.Ext >>~]|<<div class="odocwiki_info"|~Exception raised when you try to access a reference
+      belonging to a scope different to the state~'s scope
+>>
+|
+\\

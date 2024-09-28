@@ -1,0 +1,49 @@
+=Module type <<a_api_type subproject="client" | module type Eliom_registration_sigs.S >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module type>> <<span class="ocsforge_color_uid"|S>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="client" text=".." | module type Eliom_registration_sigs.S >><<span class="ocsforge_color_keyword"|end>>>>
+----
+<<pre class="ocsforge_color odocwiki_code" id="TYPEpage"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|page>>>><<pre class="ocsforge_color odocwiki_code" id="TYPEoptions"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|options>>>><<pre class="ocsforge_color odocwiki_code" id="TYPEreturn"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|return>> <<span class="ocsforge_color_delimiter"|~=>> <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Eliom_service>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|non_ocaml>>>> >><<pre class="ocsforge_color odocwiki_code" id="TYPEresult"|<<span class="ocsforge_color_keyword"|type>> <<span class="odocwiki_name"|result>>>>
+
+==@@id="2_Serviceregistration"@@~Service registration ==
+
+<<pre id="VALregister" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|register>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?app: >>string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?scope: >>[< <<span class="ocsforge_color_uid"|Eliom_common>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|scope>> ] <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?options: >><<a_api subproject="client" text="options" | type Eliom_registration_sigs.S.options >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?charset: >>string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?code: >>int <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?content_type: >>string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?headers: >><<span class="ocsforge_color_uid"|Eliom_service>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Cohttp>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Header>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?secure_session: >>bool <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| service: >><<span class="ocsforge_color_delimiter"| ( >>'get, 'post, 'a, 'b, 'c, <<span class="ocsforge_color_uid"|Eliom_service>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|non_ext>>,\\           <<span class="ocsforge_color_uid"|Eliom_service>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|reg>>, [< `WithSuffix | `WithoutSuffix ], 'd, 'e,\\           <<a_api subproject="client" text="return" | type Eliom_registration_sigs.S.return >><<span class="ocsforge_color_delimiter"| ) >>\\          <<span class="ocsforge_color_uid"|Eliom_service>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?error_handler: >><<span class="ocsforge_color_delimiter"| ( >><<span class="ocsforge_color_delimiter"| ( >>string * exn<<span class="ocsforge_color_delimiter"| ) >> list <<span class="ocsforge_color_delimiter"| -> >>\\                  <<a_api subproject="client" text="page" | type Eliom_registration_sigs.S.page >> <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>><<span class="ocsforge_color_delimiter"| ) >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>'get <<span class="ocsforge_color_delimiter"| -> >> 'post <<span class="ocsforge_color_delimiter"| -> >> <<a_api subproject="client" text="page" | type Eliom_registration_sigs.S.page >> <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>><<span class="ocsforge_color_delimiter"| ) >> <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|register ~~service handler>> associates the
+      <<span class="odocwiki_inlinecode"|service>> to the function <<span class="odocwiki_inlinecode"|handler>>~. ~The <<span class="odocwiki_inlinecode"|handler>> function takes
+      two parameters~, the ~G~E~T and ~P~O~S~T parameters of the current ~H~T~T~P
+      request~, and should return the corresponding page~.
+
+
+      ~The optional parameter <<span class="odocwiki_inlinecode"|~~scope>> is <<span class="odocwiki_inlinecode"|~Eliom~_common~.global~_scope>>
+      by default~. ~See the ~Eliom manual for detailed description       <<a_manual chapter="server-services" fragment="scope"|of
+      different scopes>>~.
+
+
+      ~The optional parameter <<span class="odocwiki_inlinecode"|~~options>> is specific to each output
+      module~. ~See the type description for more information~.
+
+
+      ~The optional parameters <<span class="odocwiki_inlinecode"|~?charset>>~, <<span class="odocwiki_inlinecode"|~?code>>~, <<span class="odocwiki_inlinecode"|~?content~_type>> and
+      <<span class="odocwiki_inlinecode"|~?headers>> can be used to modify the ~H~T~T~P answer sent by
+      ~Eliom~. ~Use this with care~.
+
+
+      ~The optional parameter <<span class="odocwiki_inlinecode"|~~secure~_session>> has no effect for scope
+      <<span class="odocwiki_inlinecode"|~Eliom~_common~.global~_scope>>~. ~With other scopes~, the parameter
+      is used to force the session service table in which the
+      <<span class="odocwiki_inlinecode"|handler>> will be registered~. ~By default~, the service is
+      registered in the non~-secure session if the current request~'s
+      protocol is <<span class="odocwiki_inlinecode"|http>>~, or in the secure session if the protocol is
+      <<span class="odocwiki_inlinecode"|https>>~. ~If set to <<span class="odocwiki_inlinecode"|false>> ~(resp~. <<span class="odocwiki_inlinecode"|true>>~) the <<span class="odocwiki_inlinecode"|handler>> will be
+      stored in the non~-secure ~(resp~. secure~) session~. ~See the ~Eliom
+      manual for an introduction to <<a_manual
+      chapter="server-state"|secure state>>~.
+
+
+      ~The optional parameter <<span class="odocwiki_inlinecode"|~~error~_handler>> is used to specialize
+      the error page when actual parameters aren~'t compatible with the
+      expected type~. ~The default error handler is <<span class="odocwiki_inlinecode"| fun l ~-~> raise
+      ~(>><<span class="odocwiki_inlinecode"|~Eliom~_common~.~Eliom~_~Typing~_~Error>><<span class="odocwiki_inlinecode"| l~) >>~.
+>>
+<<pre id="VALsend" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|send>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| ?options: >><<a_api subproject="client" text="options" | type Eliom_registration_sigs.S.options >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?charset: >>string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?code: >>int <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?content_type: >>string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?headers: >><<span class="ocsforge_color_uid"|Eliom_service>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Cohttp>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Header>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>> <<span class="ocsforge_color_delimiter"| -> >>\\  <<a_api subproject="client" text="page" | type Eliom_registration_sigs.S.page >> <<span class="ocsforge_color_delimiter"| -> >>\\  <<a_api subproject="client" text="result" | type Eliom_registration_sigs.S.result >> <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|send page>> builds the ~H~T~T~P frame corresponding to
+      <<span class="odocwiki_inlinecode"|page>>~. ~This may be used for example in a service handler
+      registered with <<span class="odocwiki_inlinecode"|~Eliom~_registration~.~Any~.register>>~, or when
+      building a custom output module~.
+>>
