@@ -22,18 +22,18 @@ as in these examples:
        (head (title (txt "Links")) [])
        (body
          [p
-          [a theservice [txt "coucou"] (); br ();
-           a hello [txt "hello"] (); br ();
-           a default
+          [a ~service:theservice [txt "coucou"] (); br ();
+           a ~service:hello [txt "hello"] (); br ();
+           a ~service:default
              [txt "default page of the dir"] (); br ();
-           a uasuffix
+           a ~service:uasuffix
              [txt "uasuffix"] (2007,06); br ();
-           a service_with_params
+           a ~service:service_with_params
              [txt "Service with params"] (42,(22,"ciao")); br ();
-           a raw_serv
+           a ~service:raw_serv
              [txt "raw_serv"] [("sun","yellow");("sea","blue and pink")]; br ();
            a
-             (Eliom_service.extern
+             ~service:(Eliom_service.extern
                 ~prefix:"http://fr.wikipedia.org"
                 ~path:["wiki";""]
                 ~meth:(Eliom_service.Get
