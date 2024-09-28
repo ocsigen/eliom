@@ -30,6 +30,109 @@ let cookie_tables :
   =
   Jstable.create ()
 
+module Map (Ord : sig
+    type key [@@deriving json]
+
+    val compare : key -> key -> int
+  end) =
+struct
+  type 'a t =
+    | Empty
+    | Node of {l : 'a t; v : Ord.key; d : 'a; r : 'a t; h : int}
+  [@@deriving json]
+
+  let height = function Empty -> 0 | Node {h; _} -> h
+
+  let create l x d r =
+    let hl = height l and hr = height r in
+    Node {l; v = x; d; r; h = (if hl >= hr then hl + 1 else hr + 1)}
+
+  let bal l x d r =
+    let hl = height l and hr = height r in
+    if hl > hr + 2
+    then
+      match l with
+      | Empty -> invalid_arg "Map.bal"
+      | Node {l = ll; v = lv; d = ld; r = lr; _} -> (
+          if height ll >= height lr
+          then create ll lv ld (create lr x d r)
+          else
+            match lr with
+            | Empty -> invalid_arg "Map.bal"
+            | Node {l = lrl; v = lrv; d = lrd; r = lrr; _} ->
+                create (create ll lv ld lrl) lrv lrd (create lrr x d r))
+    else if hr > hl + 2
+    then
+      match r with
+      | Empty -> invalid_arg "Map.bal"
+      | Node {l = rl; v = rv; d = rd; r = rr; _} -> (
+          if height rr >= height rl
+          then create (create l x d rl) rv rd rr
+          else
+            match rl with
+            | Empty -> invalid_arg "Map.bal"
+            | Node {l = rll; v = rlv; d = rld; r = rlr; _} ->
+                create (create l x d rll) rlv rld (create rlr rv rd rr))
+    else Node {l; v = x; d; r; h = (if hl >= hr then hl + 1 else hr + 1)}
+
+  let rec add x data = function
+    | Empty -> Node {l = Empty; v = x; d = data; r = Empty; h = 1}
+    | Node {l; v; d; r; h} as m ->
+        let c = Ord.compare x v in
+        if c = 0
+        then if d == data then m else Node {l; v = x; d = data; r; h}
+        else if c < 0
+        then
+          let ll = add x data l in
+          if l == ll then m else bal ll v d r
+        else
+          let rr = add x data r in
+          if r == rr then m else bal l v d rr
+
+  let rec fold f m accu =
+    match m with
+    | Empty -> accu
+    | Node {l; v; d; r; _} -> fold f r (f v d (fold f l accu))
+
+  let empty = Empty
+end
+
+[@@@warning "-39"]
+
+module Map_path = Map (struct
+    type key = string list [@@deriving json]
+
+    let compare = compare
+  end)
+
+module Map_inner = Map (struct
+    type key = string [@@deriving json]
+
+    let compare = compare
+  end)
+
+[@@@warning "+39"]
+
+let json_cookies =
+  [%json: (float option * string * bool) Map_inner.t Map_path.t]
+
+let extern_cookies c =
+  Ocsigen_cookie_map.Map_path.fold
+    (fun path inner m ->
+       Map_path.add path
+         (Ocsigen_cookie_map.Map_inner.fold Map_inner.add inner Map_inner.empty)
+         m)
+    c Map_path.empty
+
+let intern_cookies c =
+  Map_path.fold
+    (fun path inner m ->
+       Ocsigen_cookie_map.Map_path.add path
+         (Map_inner.fold Ocsigen_cookie_map.Map_inner.add inner
+            Ocsigen_cookie_map.Map_inner.empty)
+         m)
+    c Ocsigen_cookie_map.Map_path.empty
+
 (** [in_local_storage] implements cookie substitutes for iOS WKWebView *)
 let get_table ?(in_local_storage = false) = function
   | None -> Ocsigen_cookie_map.Map_path.empty
@@ -44,7 +147,8 @@ let get_table ?(in_local_storage = false) = function
              Js.Opt.case
                st ## (getItem host)
                (fun () -> Ocsigen_cookie_map.Map_path.empty)
-               (fun v -> Json.unsafe_input v))
+               (fun v ->
+                  intern_cookies (of_json ~typ:json_cookies (Js.to_string v))))
       else
         Js.Optdef.get
           (Jstable.find cookie_tables (Js.string host))
@@ -61,12 +165,15 @@ let set_table ?(in_local_storage = false) host t =
         Js.Optdef.case
           Dom_html.window##.localStorage
           (fun () -> ())
-          (fun st -> st ## (setItem host (Json.output t)))
+          (fun st ->
+             st
+             ## (setItem host
+                   (Js.string (to_json ~typ:json_cookies (extern_cookies t)))))
       else Jstable.add cookie_tables (Js.string host) t
 
 let now () =
   let date = new%js Js.date_now in
-  date##getTime /. 1000.
+  Js.to_float date##getTime /. 1000.
 
 (** [in_local_storage] implements cookie substitutes for iOS WKWebView *)
 let update_cookie_table ?(in_local_storage = false) host cookies =

@@ -83,7 +83,7 @@ let fast_ancessor (elt1 : #Dom.node Js.t) (elt2 : #Dom.node Js.t) =
 
 let slow_ancessor (elt1 : #Dom.node Js.t) (elt2 : #Dom.node Js.t) =
   let rec check_parent n =
-    if n == (elt1 :> Dom.node Js.t)
+    if Js.strict_equals n (elt1 :> Dom.node Js.t)
     then true
     else
       match Js.Opt.to_option n##.parentNode with
@@ -162,20 +162,20 @@ let slow_has_classes (node : Dom_html.element Js.t) =
   let found_attrib = ref false in
   for i = 0 to classes##.length - 1 do
     found_call_service :=
-      Js.array_get classes i
-      == Js.def (Js.string Eliom_runtime.RawXML.ce_call_service_class)
+      Js.Optdef.strict_equals (Js.array_get classes i)
+        (Js.def (Js.string Eliom_runtime.RawXML.ce_call_service_class))
       || !found_call_service;
     found_process_node :=
-      Js.array_get classes i
-      == Js.def (Js.string Eliom_runtime.RawXML.process_node_class)
+      Js.Optdef.strict_equals (Js.array_get classes i)
+        (Js.def (Js.string Eliom_runtime.RawXML.process_node_class))
       || !found_process_node;
     found_closure :=
-      Js.array_get classes i
-      == Js.def (Js.string Eliom_runtime.RawXML.ce_registered_closure_class)
+      Js.Optdef.strict_equals (Js.array_get classes i)
+        (Js.def (Js.string Eliom_runtime.RawXML.ce_registered_closure_class))
       || !found_closure;
     found_attrib :=
-      Js.array_get classes i
-      == Js.def (Js.string Eliom_runtime.RawXML.ce_registered_attr_class)
+      Js.Optdef.strict_equals (Js.array_get classes i)
+        (Js.def (Js.string Eliom_runtime.RawXML.ce_registered_attr_class))
       || !found_attrib
   done;
   !found_call_service, !found_process_node, !found_closure, !found_attrib
@@ -185,8 +185,8 @@ let slow_has_request_class (node : Dom_html.element Js.t) =
   let found_request_node = ref false in
   for i = 0 to classes##.length - 1 do
     found_request_node :=
-      Js.array_get classes i
-      == Js.def (Js.string Eliom_runtime.RawXML.request_node_class)
+      Js.Optdef.strict_equals (Js.array_get classes i)
+        (Js.def (Js.string Eliom_runtime.RawXML.request_node_class))
       || !found_request_node
   done;
   !found_request_node
@@ -683,8 +683,13 @@ let preload_css (doc : Dom_html.element Js.t) =
    Dom_html.document##body while on Firefox they are found on
    Dom_html.document##documentElement. *)
 
+[@@@warning "-39"]
+
 type position =
   {html_top : int; html_left : int; body_top : int; body_left : int}
+[@@deriving json]
+
+[@@@warning "+39"]
 
 let top_position = {html_top = 0; html_left = 0; body_top = 0; body_left = 0}
 
@@ -783,10 +788,11 @@ let onhashchange f =
   else
     let last_fragment = ref Dom_html.window##.location##.hash in
     let check () =
-      if !last_fragment != Dom_html.window##.location##.hash
+      if not (Js.equals !last_fragment Dom_html.window##.location##.hash)
       then (
         last_fragment := Dom_html.window##.location##.hash;
         f Dom_html.window##.location##.hash)
     in
     ignore
-      Dom_html.window ## (setInterval (Js.wrap_callback check) (0.2 *. 1000.))
+      Dom_html.window
+      ## (setInterval (Js.wrap_callback check) (Js.float (0.2 *. 1000.)))

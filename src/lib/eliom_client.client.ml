@@ -165,7 +165,7 @@ let get_element_cookies_info elt =
     (Js.Opt.map
        elt
        ## (getAttribute (Js.string Eliom_runtime.RawXML.ce_call_service_attrib))
-       (fun s -> of_json (Js.to_string s)))
+       (fun s -> of_json ~typ:[%json: bool * string list] (Js.to_string s)))
 
 let get_element_template elt =
   Js.Opt.to_option
@@ -581,25 +581,38 @@ let add_string_event_listener o e f capt : unit =
    behaviour in not required by the HTML5 specification (only
    suggested). *)
 
+[@@@warning "-39"]
+
 type state =
   { (* TODO store cookies_info in state... *)
     template : string option
   ; position : Eliommod_dom.position }
+[@@deriving json]
+
+[@@@warning "+39"]
 
 let random_int =
   if Js.Optdef.test Js.Unsafe.global##.crypto
      && Js.Optdef.test Js.Unsafe.global##.crypto##.getRandomValues
   then
     fun () ->
-    Typed_array.unsafe_get
+    let a =
       Js.Unsafe.global ##. crypto
-      ## (getRandomValues (new%js Typed_array.int32Array 1))
-      0
-  else fun () -> truncate (4294967296. *. Js.math##random)
+      ## (getRandomValues (new%js Typed_array.int16Array 2))
+    in
+    (Typed_array.unsafe_get a 0 lsl 16) lor Typed_array.unsafe_get a 1
+  else fun () -> truncate (4294967296. *. Js.to_float Js.math##random)
 
 let section_page = Lwt_log.Section.make "eliom:client:page"
 
+[@@@warning "-39"]
+
 type state_id = {session_id : int; state_index : int (* point in history *)}
+[@@deriving json]
+
+type saved_state = state_id * string [@@deriving json]
+
+[@@@warning "+39"]
 
 module Page_status_t = struct
   type t = Generating | Active | Cached | Dead
@@ -813,13 +826,14 @@ let get_state state_id : state =
           Lwt_log.raise_error_f ~section "sessionStorage not available")
        (fun s -> s ## (getItem (state_key state_id))))
     (fun () -> raise Not_found)
-    (fun s -> Json.unsafe_input s)
+    (fun s -> of_json ~typ:[%json: state] (Js.to_string s))
 
 let set_state i (v : state) =
   Js.Optdef.case
     Dom_html.window##.sessionStorage
     (fun () -> ())
-    (fun s -> s ## (setItem (state_key i) (Json.output v)))
+    (fun s ->
+       s ## (setItem (state_key i) (Js.string (to_json ~typ:[%json: state] v))))
 
 let update_state () =
   set_state !active_page.page_id
@@ -1035,10 +1049,17 @@ let init () =
     Js._false
   in
   Lwt_log.ign_debug ~section "Set load/onload events";
-  onload_handler :=
-    Some
-      (Dom.addEventListener Dom_html.window (Dom.Event.make "load")
-         (Dom.handler onload) Js._true);
+  if Dom_html.document##.readyState = Js.string "complete"
+  then
+    Lwt.async @@ fun () ->
+    let%lwt () = Js_of_ocaml_lwt.Lwt_js_events.request_animation_frame () in
+    let _ = onload () in
+    Lwt.return_unit
+  else
+    onload_handler :=
+      Some
+        (Dom.addEventListener Dom_html.window (Dom.Event.make "load")
+           (Dom.handler onload) Js._true);
   add_string_event_listener Dom_html.window "beforeunload" onbeforeunload_fun
     false;
   ignore
@@ -1363,7 +1384,9 @@ let change_url_string ~replace uri =
     then (
       Opt.iter stash_reload_function !reload_function;
       Dom_html.window##.history##replaceState
-        (Js.Opt.return (this_page.page_id, Js.string full_uri))
+        (Js.Opt.return
+           (Js.string
+              (to_json ~typ:[%json: saved_state] (this_page.page_id, full_uri))))
         (Js.string "")
         (if !Eliom_common.is_client_app
          then Js.null
@@ -1372,7 +1395,9 @@ let change_url_string ~replace uri =
       update_state ();
       Opt.iter stash_reload_function !reload_function;
       Dom_html.window##.history##pushState
-        (Js.Opt.return (this_page.page_id, Js.string full_uri))
+        (Js.Opt.return
+           (Js.string
+              (to_json ~typ:[%json: saved_state] (this_page.page_id, full_uri))))
         (Js.string "")
         (if !Eliom_common.is_client_app
          then Js.null
@@ -2164,7 +2189,10 @@ let () =
        Dom_html.window ##. history
        ## (replaceState
              (Js.Opt.return
-                (!active_page.page_id, Dom_html.window##.location##.href))
+                (Js.string
+                   (to_json ~typ:[%json: saved_state]
+                      ( !active_page.page_id
+                      , Js.to_string Dom_html.window##.location##.href ))))
              (Js.string "") Js.null);
        Lwt.return_unit);
     Dom_html.window##.onpopstate
@@ -2172,10 +2200,13 @@ let () =
       Lwt_log.ign_debug ~section:section_page "revisit_wrapper: onpopstate";
       Eliommod_dom.touch_base ();
       Js.Opt.case
-        ((Js.Unsafe.coerce event)##.state
-         : (state_id * Js.js_string Js.t) Js.opt)
+        ((Js.Unsafe.coerce event)##.state : _ Js.opt)
         (fun () -> () (* Ignore dummy popstate event fired by chromium. *))
-        (fun (state, full_uri) -> revisit_wrapper (Js.to_string full_uri) state);
+        (fun saved_state ->
+           let state, full_uri =
+             of_json ~typ:[%json: saved_state] (Js.to_string saved_state)
+           in
+           revisit_wrapper full_uri state);
       Js._false))
   else
     (* Without history API *)
