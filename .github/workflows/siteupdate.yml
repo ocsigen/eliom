@@ -53,7 +53,7 @@ jobs:
           echo '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; URL=latest/manual/overview" /></head><body></body></html>' > $HOW_OUT/index.html
 
       - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@v4
+        uses: JamesIves/github-pages-deploy-action@v4.6.4
         with:
           branch: gh-pages # The branch the action should deploy to.
           folder: _doc # The folder the action should deploy.
