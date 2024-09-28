@@ -84,7 +84,7 @@ let _ =
        Lwt.return
          (html
             (head (title (txt "")) [])
-            (body [p [a linkrec [txt "click"] ()]])))
+            (body [p [a ~service:linkrec [txt "click"] ()]])))
 >>
 
 (You can also refer to //the current service// via {{{reload_action}}}
@@ -162,7 +162,7 @@ let form =
     ~path:(Eliom_service.Path ["form"])
     ~meth:(Eliom_service.Get Eliom_parameter.unit)
     (fun () () ->
-       let f = Html.D.Form.get_form service_with_params create_form in
+       let f = Html.D.Form.get_form ~service:service_with_params create_form in
        Lwt.return
          (html
            (head (title (txt "")) [])
@@ -203,7 +203,7 @@ let raw_form =
                    (head (title (txt "")) [])
                    (body
                       [h1 [txt "Any Form"];
-                       Form.get_form raw_serv
+                       Form.get_form ~service:raw_serv
                          (fun () ->
                            [p [txt "Form to raw_serv: ";
                                raw_input ~input_type:`Text ~name:"plop" ();
@@ -297,7 +297,7 @@ in the Makefile.options file of your project.
       ~meth:(Eliom_service.Get Eliom_parameter.unit)
       (fun () () ->
          let f =
-           (Eliom_content.Html.D.Form.post_form my_service_with_post_params
+           (Eliom_content.Html.D.Form.post_form ~service:my_service_with_post_params
               (fun chaine ->
                  [p [txt "Write a string: ";
                   Form.input
@@ -316,7 +316,7 @@ let form3 =
     (fun () () ->
        let module Html = Html.D in
        let f  =
-         (Eliom_content.Html.D.Form.post_form my_service_with_get_and_post
+         (Eliom_content.Html.D.Form.post_form ~service:my_service_with_get_and_post
             (fun chaine ->
               [ [%html "<p> Write a string:
                       "[Form.input
@@ -336,7 +336,7 @@ let form4 =
      let module Html = Eliom_content.Html.D in
      let f  =
        (Eliom_content.Html.D.Form.post_form
-          (Eliom_service.extern
+          ~service:(Eliom_service.extern
              ~prefix:"http://www.petizomverts.com"
              ~path:["zebulon"]
              ~meth:(Eliom_service.Post (int "i", string "chaine"))
@@ -432,7 +432,7 @@ let form_bool =
     ~meth:(Eliom_service.Get Eliom_parameter.unit)
   (fun () () ->
      let module Html = Html.D in
-     let f = Form.get_form bool_params create_form_bool in
+     let f = Form.get_form ~service:bool_params create_form_bool in
      Lwt.return
        [%html "<html>
             <head><title>Example</title></head>
@@ -505,7 +505,7 @@ let setform = Eliom_registration.Html.create
         (html
            (head (title (txt "")) [])
            (body [h1 [txt "Set Form"];
-                  Form.get_form set
+                  Form.get_form ~service:set
                     (fun n ->
                       [p [txt "Form to set: ";
                           Form.checkbox
@@ -576,7 +576,7 @@ let select_example =
     ~meth:(Eliom_service.Get Eliom_parameter.unit)
   (fun () () ->
      let open Html.D in
-     let f = Form.get_form select_example_result create_select_form in
+     let f = Form.get_form ~service:select_example_result create_select_form in
      Lwt.return
        (html
          (head (title (txt "")) [])
@@ -620,7 +620,7 @@ let imageform = Eliom_registration.Html.create
         (html
            (head (title (txt "")) [])
            (body [h1 [txt "Image Form"];
-                  Form.get_form coord
+                  Form.get_form ~service:coord
                     (fun n ->
                       [p [Form.image_input
                             ~src:(make_uri ~service:(Eliom_service.static_dir ()) ["ocsigen5.png"])
@@ -719,7 +719,7 @@ let suffixform = Eliom_registration.Html.create
   ~path:(Eliom_service.Path ["suffixform"])
   ~meth:(Eliom_service.Get Eliom_parameter.unit)
   (fun () () ->
-     let f = Form.get_form isuffix create_suffixform in
+     let f = Form.get_form ~service:isuffix create_suffixform in
      let module Html = Eliom_content.Html.D in
      Lwt.return
       [%html "<html>
@@ -792,7 +792,7 @@ let upload2 = Eliom_registration.Html.create
 let uploadform = Eliom_registration.Html.register upload
     (fun () () ->
       let f =
-        (Form.post_form upload2
+        (Form.post_form ~service:upload2
            (fun file ->
              [p [Form.file_input ~name:file ();
                  br ();
