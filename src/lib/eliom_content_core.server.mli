@@ -216,6 +216,7 @@ module Html : sig
     val a_onabort : string -> [> `OnAbort] A.attrib
     val a_onafterprint : string -> [> `OnAfterPrint] A.attrib
     val a_onbeforeprint : string -> [> `OnBeforePrint] A.attrib
+    val a_onbeforetoggle : string -> [> `OnBeforeToggle] A.attrib
     val a_onbeforeunload : string -> [> `OnBeforeUnload] A.attrib
     val a_onblur : string -> [> `OnBlur] A.attrib
     val a_oncanplay : string -> [> `OnCanPlay] A.attrib
@@ -256,6 +257,7 @@ module Html : sig
     val a_onsubmit : string -> [> `OnSubmit] A.attrib
     val a_onsuspend : string -> [> `OnSuspend] A.attrib
     val a_ontimeupdate : string -> [> `OnTimeUpdate] A.attrib
+    val a_ontoggle : string -> [> `OnToggle] A.attrib
     val a_onundo : string -> [> `OnUndo] A.attrib
     val a_onunload : string -> [> `OnUnload] A.attrib
     val a_onvolumechange : string -> [> `OnVolumeChange] A.attrib
