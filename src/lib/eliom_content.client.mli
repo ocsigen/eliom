@@ -666,6 +666,7 @@ module Html : sig
       val onreturn : ('a, Dom_html.keyboardEvent) ev_unit
       val onchange : ('a, Dom_html.event) ev
       val onchange_select : ('a, Dom_html.event) ev
+      val ontoggle : ('a, Dom_html.toggleEvent) ev
     end
 
     module Attr : sig

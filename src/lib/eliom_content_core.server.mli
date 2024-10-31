@@ -256,6 +256,7 @@ module Html : sig
     val a_onsubmit : string -> [> `OnSubmit] A.attrib
     val a_onsuspend : string -> [> `OnSuspend] A.attrib
     val a_ontimeupdate : string -> [> `OnTimeUpdate] A.attrib
+    val a_ontoggle : string -> [> `OnToggle] A.attrib
     val a_onundo : string -> [> `OnUndo] A.attrib
     val a_onunload : string -> [> `OnUnload] A.attrib
     val a_onvolumechange : string -> [> `OnVolumeChange] A.attrib
