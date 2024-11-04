@@ -516,6 +516,14 @@ module Html = struct
         (fun () -> failwith (Printf.sprintf "Non element node (%s)" name))
         id
 
+    let get_unique_elt_details name elt : Dom_html.detailsElement Js.t =
+      Js.Opt.case
+        (Js.Opt.bind
+           (Dom_html.CoerceTo.element (get_unique_node name elt))
+           Dom_html.CoerceTo.details)
+        (fun () -> failwith (Printf.sprintf "Non element node (%s)" name))
+        id
+
     let scrollIntoView ?(bottom = false) elt =
       let elt = get_unique_elt "Css.background" elt in
       elt ## (scrollIntoView (Js.bool (not bottom)))
@@ -612,6 +620,10 @@ module Html = struct
       let onchange_select elt f =
         let elt = get_unique_elt_select "Ev.onchange_select" elt in
         elt##.onchange := bool_cb f
+
+      let ontoggle elt f =
+        let elt = get_unique_elt_details "Ev.ontoggle" elt in
+        elt##.ontoggle := bool_cb f
     end
 
     module Attr = struct

@@ -411,6 +411,7 @@ module Html = struct
     let a_onsubmit s = A.Unsafe.string_attrib "onsubmit" s
     let a_onsuspend s = A.Unsafe.string_attrib "onsuspend" s
     let a_ontimeupdate s = A.Unsafe.string_attrib "ontimeupdate" s
+    let a_ontoggle s = A.Unsafe.string_attrib "ontoggle" s
     let a_onundo s = A.Unsafe.string_attrib "onundo" s
     let a_onunload s = A.Unsafe.string_attrib "onunload" s
     let a_onvolumechange s = A.Unsafe.string_attrib "onvolumechange" s
