@@ -1,3 +1,7 @@
+===== dev =====
+* Add support for the `toggle` and `beforetoggle` events of the `popover` API
+** Also adds support for the `toggle` event for `details` elements
+
 ===== 11.1 =====
 * Compatibility with WASM
 
