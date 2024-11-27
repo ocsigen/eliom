@@ -86,7 +86,7 @@ val iter_attrList :
 (** Window scrolling. *)
 
 type position =
-  {html_top : int; html_left : int; body_top : int; body_left : int}
+  {html_top : float; html_left : float; body_top : float; body_left : float}
 [@@deriving json]
 
 val top_position : position
