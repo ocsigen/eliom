@@ -686,18 +686,18 @@ let preload_css (doc : Dom_html.element Js.t) =
 [@@@warning "-39"]
 
 type position =
-  {html_top : int; html_left : int; body_top : int; body_left : int}
+  {html_top : float; html_left : float; body_top : float; body_left : float}
 [@@deriving json]
 
 [@@@warning "+39"]
 
-let top_position = {html_top = 0; html_left = 0; body_top = 0; body_left = 0}
+let top_position = {html_top = 0.; html_left = 0.; body_top = 0.; body_left = 0.}
 
 let createDocumentScroll () =
-  { html_top = Dom_html.document##.documentElement##.scrollTop
-  ; html_left = Dom_html.document##.documentElement##.scrollLeft
-  ; body_top = Dom_html.document##.body##.scrollTop
-  ; body_left = Dom_html.document##.body##.scrollLeft }
+  { html_top = Js.to_float Dom_html.document##.documentElement##.scrollTop
+  ; html_left = Js.to_float Dom_html.document##.documentElement##.scrollLeft
+  ; body_top = Js.to_float Dom_html.document##.body##.scrollTop
+  ; body_left = Js.to_float Dom_html.document##.body##.scrollLeft }
 
 (* With firefox, the scroll position is restored before to fire the
    popstate event. We maintain our own position. *)
@@ -718,10 +718,10 @@ let _ =
 let getDocumentScroll () = !current_position
 
 let setDocumentScroll pos =
-  Dom_html.document##.documentElement##.scrollTop := pos.html_top;
-  Dom_html.document##.documentElement##.scrollLeft := pos.html_left;
-  Dom_html.document##.body##.scrollTop := pos.body_top;
-  Dom_html.document##.body##.scrollLeft := pos.body_left;
+  Dom_html.document##.documentElement##.scrollTop := Js.float pos.html_top;
+  Dom_html.document##.documentElement##.scrollLeft := Js.float pos.html_left;
+  Dom_html.document##.body##.scrollTop := Js.float pos.body_top;
+  Dom_html.document##.body##.scrollLeft := Js.float pos.body_left;
   current_position := pos
 
 (* UGLY HACK for Opera bug: Opera seem does not always take into
