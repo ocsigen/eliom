@@ -2,7 +2,7 @@
 
 //Provides: caml_unwrap_value_from_string
 //Requires: caml_failwith, caml_marshal_constants
-//Requires: caml_int64_float_of_bits, caml_int64_of_bytes, caml_new_string
+//Requires: caml_int64_float_of_bits, caml_int64_of_bytes, caml_string_of_jsbytes
 //Requires: caml_jsbytes_of_string, caml_callback
 var caml_unwrap_value_from_string = function (){
   function StringReader (s, i) { this.s = caml_jsbytes_of_string(s); this.i = i; }
@@ -34,7 +34,7 @@ var caml_unwrap_value_from_string = function (){
     readstr:function (len) {
       var i = this.i;
       this.i = i + len;
-      return caml_new_string(this.s.substring(i, i + len));
+      return caml_string_of_jsbytes(this.s.substring(i, i + len));
     }
   }
   function caml_float_of_bytes (a) {
