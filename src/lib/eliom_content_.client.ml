@@ -963,7 +963,7 @@ module Html = struct
 
       let opacity elt =
         let elt = get_unique_elt "Css.opacity" elt in
-        Option.map Js.to_bytestring (Js.Optdef.to_option elt##.style##.opacity)
+        Js.to_bytestring elt##.style##.opacity
 
       let outline elt =
         let elt = get_unique_elt "Css.outline" elt in
@@ -1406,7 +1406,7 @@ module Html = struct
 
       let opacity elt v =
         let elt = get_unique_elt "SetCss.opacity" elt in
-        elt##.style##.opacity := Js.def (Js.bytestring v)
+        elt##.style##.opacity := Js.bytestring v
 
       let outline elt v =
         let elt = get_unique_elt "SetCss.outline" elt in
