@@ -817,23 +817,13 @@ let state_key {session_id; state_index} =
 
 let get_state state_id : state =
   Js.Opt.case
-    (Js.Optdef.case
-       Dom_html.window##.sessionStorage
-       (fun () ->
-          (* We use this only when the history API is
-             available. Sessionstorage seems to be available
-             everywhere the history API exists. *)
-          Lwt_log.raise_error_f ~section "sessionStorage not available")
-       (fun s -> s ## (getItem (state_key state_id))))
+    Dom_html.window ##. sessionStorage ## (getItem (state_key state_id))
     (fun () -> raise Not_found)
     (fun s -> of_json ~typ:[%json: state] (Js.to_string s))
 
 let set_state i (v : state) =
-  Js.Optdef.case
-    Dom_html.window##.sessionStorage
-    (fun () -> ())
-    (fun s ->
-       s ## (setItem (state_key i) (Js.string (to_json ~typ:[%json: state] v))))
+  Dom_html.window ##. sessionStorage
+  ## (setItem (state_key i) (Js.string (to_json ~typ:[%json: state] v)))
 
 let update_state () =
   set_state !active_page.page_id
@@ -866,8 +856,7 @@ let insert_base page =
 
 let get_global_data () =
   let def () = None and id = Js.string "__global_data" in
-  Js.Optdef.case Dom_html.window##.localStorage def @@ fun storage ->
-  Js.Opt.case storage ## (getItem id) def @@ fun v ->
+  Js.Opt.case Dom_html.window ##. localStorage ## (getItem id) def @@ fun v ->
   Lwt_log.ign_debug_f "Unwrap __global_data";
   match Eliom_unwrap.unwrap (Url.decode (Js.to_string v)) 0 with
   | {Eliom_runtime.ecs_data = `Success v; _} ->

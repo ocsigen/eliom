@@ -140,15 +140,10 @@ let get_table ?(in_local_storage = false) = function
       if in_local_storage
       then
         let host = Js.string (host ^ "/substitutes") in
-        Js.Optdef.case
-          Dom_html.window##.localStorage
+        Js.Opt.case
+          Dom_html.window ##. localStorage ## (getItem host)
           (fun () -> Ocsigen_cookie_map.Map_path.empty)
-          (fun st ->
-             Js.Opt.case
-               st ## (getItem host)
-               (fun () -> Ocsigen_cookie_map.Map_path.empty)
-               (fun v ->
-                  intern_cookies (of_json ~typ:json_cookies (Js.to_string v))))
+          (fun v -> intern_cookies (of_json ~typ:json_cookies (Js.to_string v)))
       else
         Js.Optdef.get
           (Jstable.find cookie_tables (Js.string host))
@@ -162,13 +157,9 @@ let set_table ?(in_local_storage = false) host t =
       if in_local_storage
       then
         let host = Js.string (host ^ "/substitutes") in
-        Js.Optdef.case
-          Dom_html.window##.localStorage
-          (fun () -> ())
-          (fun st ->
-             st
-             ## (setItem host
-                   (Js.string (to_json ~typ:json_cookies (extern_cookies t)))))
+        Dom_html.window ##. localStorage
+        ## (setItem host
+              (Js.string (to_json ~typ:json_cookies (extern_cookies t))))
       else Jstable.add cookie_tables (Js.string host) t
 
 let now () =
