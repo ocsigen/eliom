@@ -758,7 +758,7 @@ module Html : sig
       val minHeightPx : 'a elt -> int
       val minWidth : 'a elt -> string
       val minWidthPx : 'a elt -> int
-      val opacity : 'a elt -> string option
+      val opacity : 'a elt -> string
       val outline : 'a elt -> string
       val outlineColor : 'a elt -> string
       val outlineOffset : 'a elt -> string
