@@ -24,7 +24,7 @@ The client-side code is compiled to JS using Ocsigen Js_of_ocaml or to Wasm usin
   ocamlfind
   ppx_deriving
   (ppxlib (>= 0.15.0))
-  (js_of_ocaml-compiler (>= 5.5.0))
+  (js_of_ocaml-compiler (and (>= 5.5.0) (< 6.0.0)))
   (js_of_ocaml (>= 5.5.0))
   (js_of_ocaml-lwt (>= 5.5.0))
   (js_of_ocaml-ocamlbuild :build)
