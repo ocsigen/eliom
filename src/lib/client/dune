@@ -13,7 +13,7 @@
   eliom_shared_sigs
   eliom_wrap)
  (preprocess
-  (pps lwt_ppx js_of_ocaml-ppx js_of_ocaml-ppx_deriving_json))
+  (pps js_of_ocaml-ppx js_of_ocaml-ppx_deriving_json))
  (library_flags
   (:standard -linkall))
  (libraries

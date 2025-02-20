@@ -32,7 +32,6 @@ The client-side code is compiled to JS using Ocsigen Js_of_ocaml or to Wasm usin
   (js_of_ocaml-ppx_deriving_json (>= 5.5.0))
   (js_of_ocaml-tyxml (>= 5.5.0))
   lwt_log
-  (lwt_ppx (>= 1.2.3))
   (tyxml (and (>= 4.6.0) (< 4.7.0)))
   (ocsigenserver (and (>= 6.0.0) (< 7.0.0)))
   (ipaddr (>= 2.1))

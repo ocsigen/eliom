@@ -20,6 +20,7 @@
 
 open%shared Js_of_ocaml
 [%%client.start]
+open Lwt.Syntax
 
 let read_params form y =
   Eliom_parameter.reconstruct_params_form (Form.form_elements form) y
@@ -35,7 +36,7 @@ let iter_contents y ev f =
   Js.Opt.case (Dom_html.CoerceTo.form target) fls @@ fun target ->
   match read_params target y with
   | Some v ->
-      let%lwt () = f v in
+      let* () = f v in
       Lwt.return_true
   | None -> !error_handler ()
 

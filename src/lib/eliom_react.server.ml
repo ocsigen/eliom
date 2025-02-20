@@ -1,3 +1,5 @@
+open Lwt.Syntax
+
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2010
@@ -178,7 +180,7 @@ module S = struct
       let rec aux () =
         if store.read
         then
-          let%lwt () = Lwt_condition.wait store.condition in
+          let* () = Lwt_condition.wait store.condition in
           aux ()
         else (
           store.read <- true;

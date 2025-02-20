@@ -1,3 +1,5 @@
+open Lwt.Syntax
+
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2010-2011
@@ -48,7 +50,7 @@ module Down = struct
       Lwt_stream.iter_s
         (function
            | Error exn ->
-               let%lwt () = handle_react_exn ~exn () in
+               let* () = handle_react_exn ~exn () in
                Lwt.fail exn
            | Ok () -> Lwt.return_unit)
         stream);

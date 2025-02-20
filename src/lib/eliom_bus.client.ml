@@ -1,3 +1,5 @@
+open Lwt.Syntax
+
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2010-2011
@@ -39,20 +41,22 @@ type ('a, 'b) t =
 (* clone streams such that each clone of the original stream raise the same exceptions *)
 let consume (t, u) s =
   let t' =
-    try%lwt Lwt_stream.iter (fun _ -> ()) s
-    with e ->
-      (match Lwt.state t with Lwt.Sleep -> Lwt.wakeup_exn u e | _ -> ());
-      Lwt.fail e
+    Lwt.catch
+      (fun () -> Lwt_stream.iter (fun _ -> ()) s)
+      (fun e ->
+         (match Lwt.state t with Lwt.Sleep -> Lwt.wakeup_exn u e | _ -> ());
+         Lwt.fail e)
   in
   Lwt.choose [Lwt.bind t (fun _ -> Lwt.return_unit); t']
 
 let clone_exn (t, u) s =
   let s' = Lwt_stream.clone s in
   Lwt_stream.from (fun () ->
-    try%lwt Lwt.choose [Lwt_stream.get s'; t]
-    with e ->
-      (match Lwt.state t with Lwt.Sleep -> Lwt.wakeup_exn u e | _ -> ());
-      Lwt.fail e)
+    Lwt.catch
+      (fun () -> Lwt.choose [Lwt_stream.get s'; t])
+      (fun e ->
+         (match Lwt.state t with Lwt.Sleep -> Lwt.wakeup_exn u e | _ -> ());
+         Lwt.fail e))
 
 type ('a, 'att, 'co, 'ext, 'reg) callable_bus_service =
   ( unit
@@ -70,21 +74,25 @@ type ('a, 'att, 'co, 'ext, 'reg) callable_bus_service =
 
 let create service channel waiter =
   let write x =
-    try%lwt
-      let%lwt _ =
-        Eliom_client.call_service
-          ~service:(service :> ('a, _, _, _, _) callable_bus_service)
-          () x
-      in
-      Lwt.return_unit
-    with Eliom_request.Failed_request 204 -> Lwt.return_unit
+    Lwt.catch
+      (fun () ->
+         let* _ =
+           Eliom_client.call_service
+             ~service:(service :> ('a, _, _, _, _) callable_bus_service)
+             () x
+         in
+         Lwt.return_unit)
+      (function
+         | Eliom_request.Failed_request 204 -> Lwt.return_unit
+         | exc -> Lwt.reraise exc)
   in
   let error_h =
     let t, u = Lwt.wait () in
-    ( (try%lwt
-         let%lwt _ = t in
-         assert false
-       with e -> Lwt.fail e)
+    ( Lwt.catch
+        (fun () ->
+           let* _ = t in
+           assert false)
+        (fun e -> Lwt.fail e)
     , u )
   in
   let stream =
@@ -109,7 +117,7 @@ let create service channel waiter =
      original channel (i.e. without message lost) is only available in
      the first loading phase. *)
   let _ =
-    let%lwt () = Eliom_client.wait_load_end () in
+    let* () = Eliom_client.wait_load_end () in
     t.original_stream_available <- false;
     Lwt.return_unit
   in
