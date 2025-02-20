@@ -1,3 +1,5 @@
+open Lwt.Syntax
+
 (* Ocsigen
  * http://www.ocsigen.org
  * Module eliommod_pagegen.ml
@@ -197,13 +199,13 @@ let update_cookie_table ?now sitedata (ci, sci) =
 let execute now generate_page
     ({Eliom_common.all_cookie_info; tab_cookie_info; _} as info) sitedata
   =
-  let%lwt result =
+  let* result =
     Lwt.catch
       (fun () -> generate_page now info sitedata)
       (fun e -> sitedata.Eliom_common.exn_handler e)
   in
-  let%lwt () = update_cookie_table ~now sitedata all_cookie_info in
-  let%lwt () = update_cookie_table ~now sitedata tab_cookie_info in
+  let* () = update_cookie_table ~now sitedata all_cookie_info in
+  let* () = update_cookie_table ~now sitedata tab_cookie_info in
   Lwt.return result
 
 (** Set expired sessions in request data *)
@@ -236,7 +238,7 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
   =
   let req = Eliom_common.patch_request_info req in
   let now = Unix.gettimeofday () in
-  let%lwt ri, si, previous_tab_cookies_info =
+  let* ri, si, previous_tab_cookies_info =
     Eliom_common.get_session_info ~sitedata ~req 404
   in
   let all_cookie_info, closedsessions =
@@ -281,10 +283,10 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
     in
     Lwt.catch
       (fun () ->
-         let%lwt res = execute now genfun info sitedata in
+         let* res = execute now genfun info sitedata in
          let response, _ = Ocsigen_response.to_cohttp res
          and all_user_cookies = Ocsigen_response.cookies res in
-         let%lwt cookies =
+         let* cookies =
            Eliommod_cookies.compute_cookies_to_send sitedata all_cookie_info
              all_user_cookies
          in
@@ -330,7 +332,7 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
                     make_response ~status:`Bad_request
                       (Eliom_error_pages.page_error_param_type l)))
          | Eliom_common.Eliom_Wrong_parameter ->
-             let%lwt ripp =
+             let* ripp =
                match
                  Ocsigen_request.post_params req.request_info
                    ri.request_config.Ocsigen_extensions.uploaddir

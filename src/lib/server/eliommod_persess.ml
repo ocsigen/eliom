@@ -1,3 +1,5 @@
+open Lwt.Syntax
+
 (* Ocsigen
  * http://www.ocsigen.org
  * Module eliommod_persess.ml
@@ -94,13 +96,13 @@ let rec find_or_create_persistent_cookie_ ?set_max_in_group ?set_session_group
   (* if it exists, do not create it, but returns its value *)
   let cookie_level = Eliom_common.cookie_level_of_user_scope cookie_scope in
   let new_persistent_cookie sitedata full_state_name =
-    let%lwt set_session_group =
+    let* set_session_group =
       match cookie_scope with
       | `Client_process n ->
           (* We create a group whose name is the
                    browser session cookie
                    and put the tab session into it. *)
-          let%lwt r =
+          let* r =
             find_or_create_persistent_cookie_
               ~set_max_in_group:
                 (fst
@@ -118,7 +120,7 @@ let rec find_or_create_persistent_cookie_ ?set_max_in_group ?set_session_group
     (* We do not need to verify if it already exists.
      make_new_session_id does never generate twice the same cookie. *)
     let usertimeout = ref Eliom_common.TGlobal (* See global table *) in
-    let%lwt () =
+    let* () =
       Eliommod_cookies.Persistent_cookies.add hc_string
         { Eliommod_cookies.full_state_name
         ; expiry = None

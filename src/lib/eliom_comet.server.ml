@@ -1,3 +1,5 @@
+open Lwt.Syntax
+
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2010-2011
@@ -257,11 +259,13 @@ end = struct
           "attempting to request data on stateless service with a stateful request"
     | Eliom_comet_base.Stateless requests ->
         let requests = List.map get_channel (Array.to_list requests) in
-        let%lwt res =
-          try%lwt
-            let%lwt () = wait_data requests in
-            Lwt.return (List.flatten (List.map get_available_data requests))
-          with Lwt_unix.Timeout -> Lwt.return_nil
+        let* res =
+          Lwt.catch
+            (fun () ->
+               let* () = wait_data requests in
+               Lwt.return (List.flatten (List.map get_available_data requests)))
+            (function
+               | Lwt_unix.Timeout -> Lwt.return_nil | exc -> Lwt.reraise exc)
         in
         Lwt.return (encode_global_downgoing res)
 
@@ -389,8 +393,8 @@ end = struct
       | Active l ->
           let waiter, waker = Lwt.task () in
           let t =
-            let%lwt () = waiter in
-            let%lwt () = Lwt_unix.sleep t in
+            let* () = waiter in
+            let* () = Lwt_unix.sleep t in
             run ()
           in
           handler.hd_activity <- Active (waker :: l);
@@ -400,7 +404,7 @@ end = struct
           if now -. inactive_time > t
           then Lwt.return_unit
           else
-            let%lwt () = Lwt_unix.sleep (t -. (now -. inactive_time)) in
+            let* () = Lwt_unix.sleep (t -. (now -. inactive_time)) in
             run ()
     in
     run ()
@@ -431,7 +435,7 @@ end = struct
   let stream_waiter s =
     Lwt.with_value Eliom_common.sp_key None @@ fun () ->
     Lwt.no_cancel
-      (let%lwt _ = Lwt_stream.peek s in
+      (let* _ = Lwt_stream.peek s in
        Lwt.return `Data)
 
   (** read up to [n] messages in the list of streams [streams] without blocking. *)
@@ -468,16 +472,16 @@ end = struct
       handles new channels the server creates after that the client
       registered them *)
   let rec wait_data wait_closed_connection handler =
-    match%lwt
-      let hd_update_streams, hd_update_streams_w = Lwt.task () in
-      handler.hd_update_streams_w <- Some hd_update_streams_w;
-      Lwt.choose
-        (wait_closed_connection :: hd_update_streams :: wait_channels handler)
-    with
-    | `Data ->
-        handler.hd_update_streams_w <- None;
-        Lwt.return_unit
-    | `Update -> wait_data wait_closed_connection handler
+    Lwt.bind
+      (let hd_update_streams, hd_update_streams_w = Lwt.task () in
+       handler.hd_update_streams_w <- Some hd_update_streams_w;
+       Lwt.choose
+         (wait_closed_connection :: hd_update_streams :: wait_channels handler))
+      (function
+         | `Data ->
+             handler.hd_update_streams_w <- None;
+             Lwt.return_unit
+         | `Update -> wait_data wait_closed_connection handler)
 
   let launch_channel handler chan_id channel =
     handler.hd_active_channels <-
@@ -509,7 +513,7 @@ end = struct
       List.filter (( <> ) chan_id) handler.hd_registered_chan_id
 
   let wait_closed_connection () =
-    let%lwt () =
+    let* () =
       Ocsigen_request.connection_closed (Eliom_request_info.get_ri ())
     in
     Lwt.fail Connection_closed
@@ -532,12 +536,12 @@ end = struct
             Lwt.catch
               (fun () ->
                  Lwt_unix.with_timeout (timeout ()) (fun () ->
-                   let%lwt messages =
+                   let* messages =
                      let messages = read_channels 100 handler in
                      if messages <> [] || idle
                      then Lwt.return messages
                      else
-                       let%lwt () =
+                       let* () =
                          wait_data (wait_closed_connection ()) handler
                        in
                        Lwt.return (read_channels 100 handler)

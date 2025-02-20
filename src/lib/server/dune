@@ -11,7 +11,7 @@
   eliom_service_sigs
   eliom_shared_sigs)
  (preprocess
-  (pps lwt_ppx js_of_ocaml-ppx_deriving_json))
+  (pps js_of_ocaml-ppx_deriving_json))
  (flags
   (:standard
    (:include type_includes)))
