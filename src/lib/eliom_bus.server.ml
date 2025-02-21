@@ -1,3 +1,5 @@
+open Lwt.Syntax
+
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2010
@@ -92,7 +94,7 @@ let create_filtered ?scope ?name ?size ~filter typ =
   (*The stream*)
   let stream, push = Lwt_stream.create () in
   let push x =
-    let%lwt y = filter x in
+    let* y = filter x in
     push (Some y); Lwt.return_unit
   in
   let scope =

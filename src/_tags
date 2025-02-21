@@ -6,11 +6,11 @@ true:keep_locs
 <lib/client/client.cma>:eliomstubs
 
 <lib/type_dir/*.ml{,i}>:eliom_ppx,thread
-<lib/type_dir/*.ml>:package(js_of_ocaml-ppx_deriving_json,lwt_ppx)
+<lib/type_dir/*.ml>:package(js_of_ocaml-ppx_deriving_json)
 <lib/type_dir/*.ml>:package(js_of_ocaml-ppx)
 
 <lib/server/*.ml{,i}>:eliom_ppx
-<lib/server/*.ml>:package(js_of_ocaml-ppx_deriving_json,lwt_ppx)
+<lib/server/*.ml>:package(js_of_ocaml-ppx_deriving_json)
 <lib/server/*.ml>:package(js_of_ocaml-ppx)
 
 <lib/server/*.ml{,i}>:thread
@@ -22,7 +22,7 @@ true:keep_locs
 <lib/*.eliom{,i}>:eliom_ppx
 
 <lib/*.ml{,i}>:eliom_ppx
-<lib/client/*.ml>:package(js_of_ocaml-ppx_deriving_json,lwt_ppx,js_of_ocaml-lwt.logger)
+<lib/client/*.ml>:package(js_of_ocaml-ppx_deriving_json,js_of_ocaml-lwt.logger)
 <lib/client/*.ml>:package(js_of_ocaml-ppx)
 
 <lib/client/*.ml{,i}>: eliom_ppx
@@ -33,7 +33,6 @@ true:keep_locs
 
 <lib/client/*.ml{,i}>:package(js_of_ocaml-ppx_deriving_json)
 
-<lib/server/monitor/*.ml>:package(lwt_ppx)
 <lib/server/monitor/*.ml{,i}>:thread
 <lib/server/monitor/*.ml{,i}>:package(lwt,ocsigenserver,ocsipersist,tyxml)
 <lib/server/monitor/*.ml{,i}>:I(src/lib/server)
