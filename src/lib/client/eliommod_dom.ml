@@ -104,7 +104,7 @@ let fast_select_request_nodes root =
 
 let fast_select_nodes root =
   if !Eliom_config.debug_timings
-  then Firebug.console ## (time (Js.string "fast_select_nodes"));
+  then Console.console ## (time (Js.string "fast_select_nodes"));
   let a_nodeList : Dom_html.element Dom.nodeList Js.t =
     root
     ## (querySelectorAll
@@ -137,7 +137,7 @@ let fast_select_nodes root =
           (Js.string ("." ^ Eliom_runtime.RawXML.ce_registered_attr_class)))
   in
   if !Eliom_config.debug_timings
-  then Firebug.console ## (timeEnd (Js.string "fast_select_nodes"));
+  then Console.console ## (timeEnd (Js.string "fast_select_nodes"));
   ( a_nodeList
   , form_nodeList
   , process_node_nodeList
@@ -581,13 +581,13 @@ let rec rewrite_css ~max (media, href, css) =
        | None -> Lwt.return_nil
        | Some css ->
            if !Eliom_config.debug_timings
-           then Firebug.console ## (time (Js.string ("rewrite_CSS: " ^ href)));
+           then Console.console ## (time (Js.string ("rewrite_CSS: " ^ href)));
            let* imports, css =
              rewrite_css_import ~max ~prefix:(basedir href) ~media css 0
            in
            if !Eliom_config.debug_timings
            then
-             Firebug.console ## (timeEnd (Js.string ("rewrite_CSS: " ^ href)));
+             Console.console ## (timeEnd (Js.string ("rewrite_CSS: " ^ href)));
            Lwt.return (imports @ [media, css]))
     (fun _ -> Lwt.return [media, Printf.sprintf "@import url(%s);" href])
 
@@ -663,7 +663,7 @@ let build_style (e, css) =
 
 let preload_css (doc : Dom_html.element Js.t) =
   if !Eliom_config.debug_timings
-  then Firebug.console ## (time (Js.string "preload_css (fetch+rewrite)"));
+  then Console.console ## (time (Js.string "preload_css (fetch+rewrite)"));
   let* css = Lwt_list.map_p build_style (fetch_linked_css (get_head doc)) in
   let css = List.concat css in
   List.iter
@@ -675,7 +675,7 @@ let preload_css (doc : Dom_html.element Js.t) =
          Lwt_log.ign_info ~section "Unique CSS skipped...")
     css;
   if !Eliom_config.debug_timings
-  then Firebug.console ## (timeEnd (Js.string "preload_css (fetch+rewrite)"));
+  then Console.console ## (timeEnd (Js.string "preload_css (fetch+rewrite)"));
   Lwt.return_unit
 
 (** Window scrolling *)
