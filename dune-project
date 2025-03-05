@@ -24,13 +24,13 @@ The client-side code is compiled to JS using Ocsigen Js_of_ocaml or to Wasm usin
   ocamlfind
   ppx_deriving
   (ppxlib (>= 0.15.0))
-  (js_of_ocaml-compiler (and (>= 5.5.0) (< 6.0.0)))
-  (js_of_ocaml (>= 5.5.0))
-  (js_of_ocaml-lwt (>= 5.5.0))
+  (js_of_ocaml-compiler (>= 6.0.0))
+  (js_of_ocaml (>= 6.0.0))
+  (js_of_ocaml-lwt (>= 6.0.0))
   (js_of_ocaml-ocamlbuild :build)
-  (js_of_ocaml-ppx (>= 5.5.0))
-  (js_of_ocaml-ppx_deriving_json (>= 5.5.0))
-  (js_of_ocaml-tyxml (>= 5.5.0))
+  (js_of_ocaml-ppx (>= 6.0.0))
+  (js_of_ocaml-ppx_deriving_json (>= 6.0.0))
+  (js_of_ocaml-tyxml (>= 6.0.0))
   lwt_log
   (lwt_ppx (>= 1.2.3))
   (tyxml (and (>= 4.6.0) (< 4.7.0)))
