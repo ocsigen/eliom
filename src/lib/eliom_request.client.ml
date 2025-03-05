@@ -221,18 +221,7 @@ let send ?with_credentials ?(expecting_process_page = false) ?cookies_info
     let headers =
       if expecting_process_page
       then
-        let content_type =
-          if Dom_html.onIE
-             && not
-                  (Js.Optdef.test
-                     (Js.Unsafe.coerce Dom_html.document)##.adoptNode)
-          then
-            (* ie < 9 does not know xhtml+xml content type, but ie 9
-               can use it and need it to use adoptNode *)
-            "application/xml"
-          else "application/xhtml+xml"
-        in
-        ("Accept", content_type)
+        ("Accept", "application/xhtml+xml")
         :: ( Eliom_common.expecting_process_page_name
            , encode_header_value ~typ:[%json: bool] true )
         :: headers
