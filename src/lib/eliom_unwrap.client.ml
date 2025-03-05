@@ -85,10 +85,10 @@ external raw_unmarshal_and_unwrap :
 
 let unwrap s i =
   if !Eliom_config.debug_timings
-  then Firebug.console ## (time (Js.string "unwrap"));
+  then Console.console ## (time (Js.string "unwrap"));
   let res = raw_unmarshal_and_unwrap apply_unwrapper s i in
   if !Eliom_config.debug_timings
-  then Firebug.console ## (timeEnd (Js.string "unwrap"));
+  then Console.console ## (timeEnd (Js.string "unwrap"));
   res
 
 let unwrap_js s = unwrap (Js.to_bytestring s) 0

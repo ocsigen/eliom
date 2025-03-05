@@ -105,7 +105,7 @@ let check_global_data global_data =
   | [] -> ()
   | l ->
       Printf.ksprintf
-        (fun s -> Firebug.console ## (error (Js.string s)))
+        (fun s -> Console.console ## (error (Js.string s)))
         "Code generating the following client values is not linked on the client:\n%s"
         (String.concat "\n"
            (List.rev_map
@@ -126,7 +126,7 @@ let check_global_data global_data =
   | [] -> ()
   | l ->
       Printf.ksprintf
-        (fun s -> Firebug.console ## (error (Js.string s)))
+        (fun s -> Console.console ## (error (Js.string s)))
         "Code containing the following injections is not linked on the client:\n%s"
         (String.concat "\n"
            (List.rev_map
@@ -260,12 +260,12 @@ let relink_request_node (node : Dom_html.element Js.t) =
 let relink_request_nodes root =
   Lwt_log.ign_debug ~section "Relink request nodes";
   if !Eliom_config.debug_timings
-  then Firebug.console ## (time (Js.string "relink_request_nodes"));
+  then Console.console ## (time (Js.string "relink_request_nodes"));
   Eliommod_dom.iter_nodeList
     (Eliommod_dom.select_request_nodes root)
     relink_request_node;
   if !Eliom_config.debug_timings
-  then Firebug.console ## (timeEnd (Js.string "relink_request_nodes"))
+  then Console.console ## (timeEnd (Js.string "relink_request_nodes"))
 
 (* Relinks a-elements, form-elements, and process nodes. The list of
    closure nodes is returned for application on [relink_closure_node]
@@ -407,12 +407,12 @@ let load_data_script page =
   in
   let script = data_script##.text in
   if !Eliom_config.debug_timings
-  then Firebug.console ## (time (Js.string "load_data_script"));
+  then Console.console ## (time (Js.string "load_data_script"));
   ignore (Js.Unsafe.eval_string (Js.to_string script));
   Eliom_process.reset_request_template ();
   Eliom_process.reset_request_cookies ();
   if !Eliom_config.debug_timings
-  then Firebug.console ## (timeEnd (Js.string "load_data_script"))
+  then Console.console ## (timeEnd (Js.string "load_data_script"))
 
 (* == Scroll the current page such that the top of element with the id
    [fragment] is aligned with the window's top. If the optional
@@ -1005,7 +1005,7 @@ let init () =
     Eliom_client_core.set_initial_load ();
     Lwt.async (fun () ->
       if !Eliom_config.debug_timings
-      then Firebug.console ## (time (Js.string "onload"));
+      then Console.console ## (time (Js.string "onload"));
       let%lwt () =
         Eliom_request_info.set_session_info
           ~uri:
@@ -1044,7 +1044,7 @@ let init () =
       Lwt_mutex.unlock Eliom_client_core.load_mutex;
       run_callbacks load_callbacks;
       if !Eliom_config.debug_timings
-      then Firebug.console ## (timeEnd (Js.string "onload"));
+      then Console.console ## (timeEnd (Js.string "onload"));
       Lwt.return_unit);
     Js._false
   in
@@ -1460,7 +1460,7 @@ let set_uri ~replace ?fragment uri =
 
 let replace_page ~do_insert_base new_page =
   if !Eliom_config.debug_timings
-  then Firebug.console ## (time (Js.string "replace_page"));
+  then Console.console ## (time (Js.string "replace_page"));
   if !only_replace_body
   then
     let new_body = new_page ##. childNodes ## (item 1) in
@@ -1476,7 +1476,7 @@ let replace_page ~do_insert_base new_page =
     Dom.replaceChild Dom_html.document new_page
       Dom_html.document##.documentElement);
   if !Eliom_config.debug_timings
-  then Firebug.console ## (timeEnd (Js.string "replace_page"))
+  then Console.console ## (timeEnd (Js.string "replace_page"))
 
 (* Function to be called for client side services: *)
 let set_content_local ?offset ?fragment new_page =
@@ -1485,7 +1485,7 @@ let set_content_local ?offset ?fragment new_page =
   let recover () =
     if !locked then Lwt_mutex.unlock Eliom_client_core.load_mutex;
     if !Eliom_config.debug_timings
-    then Firebug.console ## (timeEnd (Js.string "set_content_local"))
+    then Console.console ## (timeEnd (Js.string "set_content_local"))
   and really_set () =
     (* Inline CSS in the header to avoid the "flashing effect".
        Otherwise, the browser start to display the page before
@@ -1511,7 +1511,7 @@ let set_content_local ?offset ?fragment new_page =
     scroll_to_fragment ?offset fragment;
     advance_page ();
     if !Eliom_config.debug_timings
-    then Firebug.console ## (timeEnd (Js.string "set_content_local"));
+    then Console.console ## (timeEnd (Js.string "set_content_local"));
     Lwt.return_unit
   in
   let cancel () = recover (); Lwt.return_unit in
@@ -1519,7 +1519,7 @@ let set_content_local ?offset ?fragment new_page =
     let%lwt () = Lwt_mutex.lock Eliom_client_core.load_mutex in
     Eliom_client_core.set_loading_phase ();
     if !Eliom_config.debug_timings
-    then Firebug.console ## (time (Js.string "set_content_local"));
+    then Console.console ## (time (Js.string "set_content_local"));
     run_onunload_wrapper really_set cancel
   with exn ->
     recover ();
@@ -1619,18 +1619,18 @@ let set_content ~replace ~uri ?offset ?fragment content =
         scroll_to_fragment ?offset fragment;
         advance_page ();
         if !Eliom_config.debug_timings
-        then Firebug.console ## (timeEnd (Js.string "set_content"));
+        then Console.console ## (timeEnd (Js.string "set_content"));
         Lwt.return_unit
       and recover () =
         if !locked then Lwt_mutex.unlock Eliom_client_core.load_mutex;
         if !Eliom_config.debug_timings
-        then Firebug.console ## (timeEnd (Js.string "set_content"))
+        then Console.console ## (timeEnd (Js.string "set_content"))
       in
       try%lwt
         let%lwt () = Lwt_mutex.lock Eliom_client_core.load_mutex in
         Eliom_client_core.set_loading_phase ();
         if !Eliom_config.debug_timings
-        then Firebug.console ## (time (Js.string "set_content"));
+        then Console.console ## (time (Js.string "set_content"));
         let g () = recover (); Lwt.return_unit in
         run_onunload_wrapper really_set g
       with exn ->
