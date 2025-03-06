@@ -453,9 +453,18 @@ module Cmo = struct
     in
     type_of_out_type ty
 
+  [%%if ocaml_version >= (5, 3, 0)]
+  let typ ty =
+    let ty =
+      Out_type.prepare_for_printing [ty];
+      Out_type.tree_of_typexp Type_scheme ty
+    in
+    type_of_out_type ty
+  [%%else]
   let typ ty =
     let ty = Printtyp.tree_of_type_scheme ty in
     type_of_out_type ty
+  [%%endif]
 
   let find err loc =
     let {Lexing.pos_fname; pos_cnum; _} = loc.Location.loc_start in
