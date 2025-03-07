@@ -1,3 +1,5 @@
+open Lwt.Syntax
+
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2010-2011
@@ -156,7 +158,7 @@ module Configuration = struct
       else (get ()).time_between_request
     in
     let rec aux t =
-      let%lwt () =
+      let* () =
         Lwt.pick
           [ Js_of_ocaml_lwt.Lwt_js.sleep t
           ; !update_configuration_waiter
@@ -369,7 +371,7 @@ end = struct
     match p with
     | _, Ecb.Stateful (Ecb.Commands commands) ->
         queue := List.rev_append (Array.to_list commands) !queue;
-        let%lwt () = Eliom_client.wait_load_end () in
+        let* () = Eliom_client.wait_load_end () in
         let q = !queue in
         if q <> []
         then (
@@ -378,7 +380,7 @@ end = struct
             (false, Ecb.Stateful (Ecb.Commands (Array.of_list (List.rev q)))))
         else Lwt.return ""
     | _ ->
-        let%lwt () = Eliom_client.wait_load_end () in
+        let* () = Eliom_client.wait_load_end () in
         Eliom_client.call_service ~service () p
 
   let make_request hd =
@@ -459,14 +461,14 @@ end = struct
   let call_service
       ({hd_activity; hd_service = Ecb.Comet_service (srv, queue); _} as hd)
     =
-    let%lwt () =
+    let* () =
       Configuration.sleep_before_next_request
         (fun () -> hd_activity.focused)
         (fun () -> hd_activity.active = `Idle)
         (fun () -> hd_activity.active_waiter)
     in
     let request = make_request hd in
-    let%lwt s =
+    let* s =
       call_service_after_load_end srv queue (hd_activity.active = `Idle, request)
     in
     Lwt.return (Deriving_Json.from_string Ecb.answer_json s)
@@ -497,7 +499,7 @@ end = struct
     let rec aux retries =
       if hd.hd_activity.active = `Inactive
       then
-        let%lwt () = hd.hd_activity.active_waiter in
+        let* () = hd.hd_activity.active_waiter in
         aux 0
       else
         Lwt.try_bind
@@ -526,26 +528,27 @@ end = struct
                    set_activity hd `Inactive;
                    aux 0)
                  else
-                   let%lwt () = Js_of_ocaml_lwt.Lwt_js.sleep (delay retries) in
+                   let* () = Js_of_ocaml_lwt.Lwt_js.sleep (delay retries) in
                    aux (retries + 1)
              | Restart ->
                  Eliom_lib.Lwt_log.ign_info ~section "restart";
                  aux 0
              | exn ->
                  Eliom_lib.Lwt_log.ign_notice ~exn ~section "connection failure";
-                 let%lwt () = handle_exn ~exn () in
+                 let* () = handle_exn ~exn () in
                  Lwt.fail exn)
     in
     update_activity hd; aux 0
 
   let call_commands {hd_service = Ecb.Comet_service (srv, queue); _} command =
     ignore
-      (try%lwt
-         call_service_after_load_end srv queue
-           (false, Ecb.Stateful (Ecb.Commands command))
-       with exn ->
-         Eliom_lib.Lwt_log.ign_notice_f ~section ~exn "request failed";
-         Lwt.return "")
+      (Lwt.catch
+         (fun () ->
+            call_service_after_load_end srv queue
+              (false, Ecb.Stateful (Ecb.Commands command)))
+         (fun exn ->
+            Eliom_lib.Lwt_log.ign_notice_f ~section ~exn "request failed";
+            Lwt.return ""))
 
   let close hd chan_id =
     match hd.hd_state with

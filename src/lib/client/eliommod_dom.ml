@@ -1,3 +1,5 @@
+open Lwt.Syntax
+
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2011 Pierre Chambart, Grégoire Henry
@@ -576,19 +578,21 @@ let rewrite_css_url ~prefix css pos =
 let import_re = Regexp.regexp "@import\\s*"
 
 let rec rewrite_css ~max (media, href, css) =
-  try%lwt
-    css >>= function
-    | None -> Lwt.return_nil
-    | Some css ->
-        if !Eliom_config.debug_timings
-        then Firebug.console ## (time (Js.string ("rewrite_CSS: " ^ href)));
-        let%lwt imports, css =
-          rewrite_css_import ~max ~prefix:(basedir href) ~media css 0
-        in
-        if !Eliom_config.debug_timings
-        then Firebug.console ## (timeEnd (Js.string ("rewrite_CSS: " ^ href)));
-        Lwt.return (imports @ [media, css])
-  with _ -> Lwt.return [media, Printf.sprintf "@import url(%s);" href]
+  Lwt.catch
+    (fun () ->
+       css >>= function
+       | None -> Lwt.return_nil
+       | Some css ->
+           if !Eliom_config.debug_timings
+           then Firebug.console ## (time (Js.string ("rewrite_CSS: " ^ href)));
+           let* imports, css =
+             rewrite_css_import ~max ~prefix:(basedir href) ~media css 0
+           in
+           if !Eliom_config.debug_timings
+           then
+             Firebug.console ## (timeEnd (Js.string ("rewrite_CSS: " ^ href)));
+           Lwt.return (imports @ [media, css]))
+    (fun _ -> Lwt.return [media, Printf.sprintf "@import url(%s);" href])
 
 and rewrite_css_import ?(charset = "") ~max ~prefix ~media css pos =
   match Regexp.search import_re css pos with
@@ -603,7 +607,7 @@ and rewrite_css_import ?(charset = "") ~max ~prefix ~media css pos =
         let i = i + String.length (Regexp.matched_string res) in
         let i, href = parse_url ~prefix css i in
         let i, media' = parse_media css i in
-        let%lwt import =
+        let* import =
           if max = 0
           then
             (* Maximum imbrication of @import reached, rewrite url. *)
@@ -623,7 +627,7 @@ and rewrite_css_import ?(charset = "") ~max ~prefix ~media css pos =
               Eliom_request.http_get href [] Eliom_request.string_result
             in
             rewrite_css ~max:(max - 1) (media, href, css >|= snd)
-        and imports, css =
+        and* imports, css =
           rewrite_css_import ~charset ~max ~prefix ~media css i
         in
         Lwt.return (import @ imports, css)
@@ -636,7 +640,7 @@ and rewrite_css_import ?(charset = "") ~max ~prefix ~media css pos =
 let max_preload_depth = ref 4
 
 let build_style (e, css) =
-  let%lwt css = rewrite_css ~max:!max_preload_depth css in
+  let* css = rewrite_css ~max:!max_preload_depth css in
   (* lwt css = *)
   Lwt_list.map_p
     (fun (media, css) ->
@@ -663,7 +667,7 @@ let build_style (e, css) =
 let preload_css (doc : Dom_html.element Js.t) =
   if !Eliom_config.debug_timings
   then Firebug.console ## (time (Js.string "preload_css (fetch+rewrite)"));
-  let%lwt css = Lwt_list.map_p build_style (fetch_linked_css (get_head doc)) in
+  let* css = Lwt_list.map_p build_style (fetch_linked_css (get_head doc)) in
   let css = List.concat css in
   List.iter
     (fun (e, css) ->

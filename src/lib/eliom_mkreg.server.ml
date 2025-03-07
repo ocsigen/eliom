@@ -1,3 +1,5 @@
+open Lwt.Syntax
+
 (* Ocsigen
  * http://www.ocsigen.org
  * Module Eliom_mkreg
@@ -119,11 +121,11 @@ let check_process_redir sp f param =
 let send_with_cookies sp pages ?options ?charset ?code ?content_type ?headers
     content
   =
-  let%lwt result =
+  let* result =
     pages.send ?options ?charset ?code ?content_type ?headers content
   in
-  let%lwt () = check_process_redir sp check_after result in
-  let%lwt tab_cookies =
+  let* () = check_process_redir sp check_after result in
+  let* tab_cookies =
     Eliommod_cookies.compute_cookies_to_send sp.Eliom_common.sp_sitedata
       sp.Eliom_common.sp_tab_cookie_info sp.Eliom_common.sp_user_tab_cookies
   in
@@ -434,7 +436,7 @@ let register_aux pages ?options ?charset ?code ?content_type ?headers table
           f tablereg na_name)
 
 let send pages ?options ?charset ?code ?content_type ?headers content =
-  let%lwt result =
+  let* result =
     pages.send ?options ?charset ?code ?content_type ?headers content
   in
   Lwt.return (pages.result_of_http_result result)

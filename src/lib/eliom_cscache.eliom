@@ -1,3 +1,5 @@
+open Lwt.Syntax
+
 (* Copyright Vincent Balat *)
 
 [%%shared.start]
@@ -34,21 +36,24 @@ let%server find cache get_data id =
   try Hashtbl.find ((Eliom_shared.Value.local cache) ()) id
   with Not_found ->
     let th =
-      let%lwt v = get_data id in
+      let* v = get_data id in
+
       ignore [%client.unsafe (do_cache ~%cache ~%id ~%v : unit)];
       Lwt.return v
     in
     (* On server side, we put immediately in table the thread that is
        fetching the data.  in order to avoid fetching it several
        times. *)
-    do_cache_raw cache id th; th
+    do_cache_raw cache id th;
+    th
 
 let%client load cache get_data id =
   let th = get_data id in
   (* On client side, we put immediately in table the thread that is
      fetching the data.  Thus, [get_data_from_cache] returns
      immediately (in order to display a spinner). *)
-  do_cache_raw cache id th; th
+  do_cache_raw cache id th;
+  th
 
 let%client find cache get_data id =
   try Hashtbl.find ((Eliom_shared.Value.local cache) ()) id

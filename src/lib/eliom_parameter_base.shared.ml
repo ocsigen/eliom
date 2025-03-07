@@ -1,3 +1,5 @@
+open Lwt.Syntax
+
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2007 Vincent Balat
@@ -868,10 +870,10 @@ let reconstruct_params ~sp (type a c) (typ : (a, 'b, c) params_type) params
     try Lwt.return (reconstruct_params_ typ [] [] nosuffixversion urlsuffix)
     with e -> Lwt.fail e)
   | typ, _, _ -> (
-      let%lwt params =
+      let* params =
         match params with Some params -> params | None -> Lwt.return_nil
       in
-      let%lwt files =
+      let* files =
         match files with Some files -> files | None -> Lwt.return_nil
       in
       try

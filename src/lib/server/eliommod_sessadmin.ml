@@ -1,3 +1,5 @@
+open Lwt.Syntax
+
 (* Ocsigen
  * http://www.ocsigen.org
  * Module eliommod_sessadmin.ml
@@ -46,7 +48,7 @@ let close_all_service_states2 full_st_name sitedata =
       ; session_group_node
       ; _ }
       thr ->
-       let%lwt () = thr in
+       let* () = thr in
        if full_st_name = full_state_name && !timeout = Eliom_common.TGlobal
        then Eliommod_sessiongroups.Serv.remove session_group_node;
        Lwt.pause ())
@@ -146,7 +148,7 @@ let update_serv_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
           ; session_group_node
           ; _ }
           thr ->
-           let%lwt () = thr in
+           let* () = thr in
            (if full_st_name = full_state_name && !timeout = Eliom_common.TGlobal
             then
               let newexp =
@@ -227,7 +229,7 @@ let update_pers_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
                  Eliommod_persess.close_persistent_state2 ~scope sitedata
                    session_group k
              | _ ->
-                 let%lwt () =
+                 let* () =
                    Eliommod_cookies.Persistent_cookies.add k
                      { Eliommod_cookies.full_state_name
                      ; expiry = newexp
