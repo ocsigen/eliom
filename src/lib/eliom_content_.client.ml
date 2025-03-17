@@ -612,6 +612,14 @@ module Html = struct
       let onchange_select elt f =
         let elt = get_unique_elt_select "Ev.onchange_select" elt in
         elt##.onchange := bool_cb f
+
+      let onbeforetoggle elt f =
+        let elt = get_unique_elt "Ev.onbeforetoggle" elt in
+        elt##.onbeforetoggle := bool_cb f
+
+      let ontoggle elt f =
+        let elt = get_unique_elt "Ev.ontoggle" elt in
+        elt##.ontoggle := bool_cb f
     end
 
     module Attr = struct
