@@ -1,3 +1,5 @@
+open Lwt.Syntax
+
 (* Copyright Vincent Balat *)
 
 [%%shared.start]
@@ -34,7 +36,8 @@ let%server find cache get_data id =
   try Hashtbl.find ((Eliom_shared.Value.local cache) ()) id
   with Not_found ->
     let th =
-      let%lwt v = get_data id in
+      let* v = get_data id in
+
       ignore [%client.unsafe (do_cache ~%cache ~%id ~%v : unit)];
       Lwt.return v
     in

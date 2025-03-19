@@ -1,3 +1,5 @@
+open Lwt.Syntax
+
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2007 Vincent Balat
@@ -237,7 +239,7 @@ let get_volatile_data_state_timeout ~cookie_scope ?secure () =
     Eliommod_timeouts.get_global ~kind:`Data ~cookie_scope ~secure sitedata
 
 let set_persistent_data_state_timeout ~cookie_scope ?secure t =
-  let%lwt c =
+  let* c =
     Eliommod_persess.find_or_create_persistent_cookie ~cookie_scope
       ~secure_o:secure ()
   in
@@ -248,37 +250,43 @@ let set_persistent_data_state_timeout ~cookie_scope ?secure t =
     | Some t -> tor := Eliom_common.TSome t)
 
 let unset_persistent_data_state_timeout ~cookie_scope ?secure () =
-  try%lwt
-    let%lwt c =
-      Eliommod_persess.find_persistent_cookie_only ~cookie_scope
-        ~secure_o:secure ()
-    in
-    let tor = c.Eliom_common.pc_timeout in
-    tor := Eliom_common.TGlobal;
-    return_unit
-  with Not_found | Eliom_common.Eliom_Session_expired -> return_unit
+  Lwt.catch
+    (fun () ->
+       let* c =
+         Eliommod_persess.find_persistent_cookie_only ~cookie_scope
+           ~secure_o:secure ()
+       in
+       let tor = c.Eliom_common.pc_timeout in
+       tor := Eliom_common.TGlobal;
+       return_unit)
+    (function
+       | Not_found | Eliom_common.Eliom_Session_expired -> return_unit
+       | exc -> Lwt.reraise exc)
 
 let get_persistent_data_state_timeout ~cookie_scope ?secure () =
   let sp = Eliom_common.get_sp () in
   let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
   let secure = Eliom_common.get_secure ~secure_o:secure ~sitedata () in
-  try%lwt
-    let%lwt c =
-      Eliommod_persess.find_persistent_cookie_only ~cookie_scope
-        ~secure_o:(Some secure) ~sp ()
-    in
-    let tor = c.Eliom_common.pc_timeout in
-    return
-      (match !tor with
-      | Eliom_common.TGlobal ->
-          Eliommod_timeouts.get_global ~kind:`Persistent ~cookie_scope ~secure
-            sitedata
-      | Eliom_common.TNone -> None
-      | Eliom_common.TSome t -> Some t)
-  with Not_found | Eliom_common.Eliom_Session_expired ->
-    return
-      (Eliommod_timeouts.get_global ~kind:`Persistent ~cookie_scope ~secure
-         sitedata)
+  Lwt.catch
+    (fun () ->
+       let* c =
+         Eliommod_persess.find_persistent_cookie_only ~cookie_scope
+           ~secure_o:(Some secure) ~sp ()
+       in
+       let tor = c.Eliom_common.pc_timeout in
+       return
+         (match !tor with
+         | Eliom_common.TGlobal ->
+             Eliommod_timeouts.get_global ~kind:`Persistent ~cookie_scope
+               ~secure sitedata
+         | Eliom_common.TNone -> None
+         | Eliom_common.TSome t -> Some t))
+    (function
+       | Not_found | Eliom_common.Eliom_Session_expired ->
+           return
+             (Eliommod_timeouts.get_global ~kind:`Persistent ~cookie_scope
+                ~secure sitedata)
+       | exc -> Lwt.reraise exc)
 
 (* Preventing memory leaks: we must close empty sessions *)
 
@@ -531,7 +539,7 @@ let set_persistent_data_session_group ?set_max
   =
   let sp = Eliom_common.get_sp () in
   let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
-  let%lwt c =
+  let* c =
     Eliommod_persess.find_or_create_persistent_cookie
       ~cookie_scope:(scope :> Eliom_common.cookie_scope)
       ~secure_o:secure ~sp ()
@@ -543,13 +551,13 @@ let set_persistent_data_session_group ?set_max
       (Some n)
   in
   let grp = c.Eliom_common.pc_session_group in
-  let%lwt l =
+  let* l =
     Eliommod_sessiongroups.Pers.move sitedata ?set_max
       (fst sitedata.Eliom_common.max_persistent_data_sessions_per_group)
       Eliom_common.(Hashed_cookies.to_string c.pc_hvalue)
       !grp n
   in
-  let%lwt () =
+  let* () =
     Lwt_list.iter_p
       (Eliommod_persess.close_persistent_state2
          ~scope:(scope :> Eliom_common.user_scope)
@@ -564,41 +572,47 @@ let unset_persistent_data_session_group
   =
   let sp = Eliom_common.get_sp () in
   let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
-  try%lwt
-    let%lwt c =
-      Eliommod_persess.find_persistent_cookie_only
-        ~cookie_scope:(scope :> Eliom_common.cookie_scope)
-        ~secure_o:secure ~sp ()
-    in
-    let grp = c.Eliom_common.pc_session_group in
-    let%lwt () =
-      Eliommod_sessiongroups.Pers.remove sitedata
-        Eliom_common.(Hashed_cookies.to_string c.pc_hvalue)
-        !grp
-    in
-    grp := None;
-    close_persistent_state_if_empty
-      ~scope:(scope :> Eliom_common.user_scope)
-      ?secure ()
-  with Not_found | Eliom_common.Eliom_Session_expired -> Lwt.return_unit
+  Lwt.catch
+    (fun () ->
+       let* c =
+         Eliommod_persess.find_persistent_cookie_only
+           ~cookie_scope:(scope :> Eliom_common.cookie_scope)
+           ~secure_o:secure ~sp ()
+       in
+       let grp = c.Eliom_common.pc_session_group in
+       let* () =
+         Eliommod_sessiongroups.Pers.remove sitedata
+           Eliom_common.(Hashed_cookies.to_string c.pc_hvalue)
+           !grp
+       in
+       grp := None;
+       close_persistent_state_if_empty
+         ~scope:(scope :> Eliom_common.user_scope)
+         ?secure ())
+    (function
+       | Not_found | Eliom_common.Eliom_Session_expired -> Lwt.return_unit
+       | exc -> Lwt.reraise exc)
 
 let get_persistent_data_session_group
     ?(scope = Eliom_common.default_session_scope) ?secure ()
   =
-  try%lwt
-    let%lwt c =
-      Eliommod_persess.find_persistent_cookie_only
-        ~cookie_scope:(scope :> Eliom_common.cookie_scope)
-        ~secure_o:secure ()
-    in
-    Lwt.return
-      (match !(c.Eliom_common.pc_session_group) with
-      | None -> None
-      | Some v -> (
-        match Eliommod_sessiongroups.getperssessgrp v with
-        | _, _, Left s -> Some s
-        | _ -> None))
-  with Not_found | Eliom_common.Eliom_Session_expired -> Lwt.return_none
+  Lwt.catch
+    (fun () ->
+       let* c =
+         Eliommod_persess.find_persistent_cookie_only
+           ~cookie_scope:(scope :> Eliom_common.cookie_scope)
+           ~secure_o:secure ()
+       in
+       Lwt.return
+         (match !(c.Eliom_common.pc_session_group) with
+         | None -> None
+         | Some v -> (
+           match Eliommod_sessiongroups.getperssessgrp v with
+           | _, _, Left s -> Some s
+           | _ -> None)))
+    (function
+       | Not_found | Eliom_common.Eliom_Session_expired -> Lwt.return_none
+       | exc -> Lwt.reraise exc)
 
 (* max *)
 let set_default_max_service_sessions_per_group ?(override_configfile = false) n =
@@ -783,7 +797,7 @@ let set_volatile_data_cookie_exp_date ~cookie_scope ?secure t =
   | Some t -> exp := Eliom_common.CESome t
 
 let set_persistent_data_cookie_exp_date ~cookie_scope ?secure t =
-  let%lwt c =
+  let* c =
     Eliommod_persess.find_or_create_persistent_cookie ~cookie_scope
       ~secure_o:secure ()
   in
@@ -859,20 +873,20 @@ let get_p_table_key_ ~table:(scope, secure, table)
   =
   let get_cookie () =
     let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in
-    let%lwt c = find_cookie ~cookie_scope ~secure_o:(Some secure) () in
+    let* c = find_cookie ~cookie_scope ~secure_o:(Some secure) () in
     Lwt.return Eliom_common.(Hashed_cookies.to_string c.pc_hvalue)
   in
-  let%lwt key =
+  let* key =
     match scope with
-    | `Session_group state_name -> (
-        match%lwt
-          get_persistent_data_session_group ~scope:(`Session state_name) ~secure
-            ()
-        with
-        | Some a -> Lwt.return a
-        | None ->
-            (* No session group. We use the session cookie as key. *)
-            get_cookie ())
+    | `Session_group state_name ->
+        Lwt.bind
+          (get_persistent_data_session_group ~scope:(`Session state_name)
+             ~secure ())
+          (function
+             | Some a -> Lwt.return a
+             | None ->
+                 (* No session group. We use the session cookie as key. *)
+                 get_cookie ())
     | _ -> get_cookie ()
   in
   Lwt.return (table, key)
@@ -897,14 +911,17 @@ let set_persistent_data ~table value =
   Ocsipersist.add table key (Int64.zero, value)
 
 let remove_persistent_data ~table () =
-  try%lwt
-    let scope, secure, _ = table in
-    let%lwt table, key =
-      get_p_table_key_ ~table Eliommod_persess.find_persistent_cookie_only
-    in
-    let%lwt () = Ocsipersist.remove table key in
-    close_persistent_state_if_empty ~scope ~secure ()
-  with Not_found | Eliom_common.Eliom_Session_expired -> return_unit
+  Lwt.catch
+    (fun () ->
+       let scope, secure, _ = table in
+       let* table, key =
+         get_p_table_key_ ~table Eliommod_persess.find_persistent_cookie_only
+       in
+       let* () = Ocsipersist.remove table key in
+       close_persistent_state_if_empty ~scope ~secure ())
+    (function
+       | Not_found | Eliom_common.Eliom_Session_expired -> return_unit
+       | exc -> Lwt.reraise exc)
 
 (*****************************************************************************)
 (** {2 session data in memory} *)
@@ -1038,11 +1055,11 @@ let discard ~scope ?secure () =
 
 let discard_all_scopes ?secure () =
   let discard_name scope_hierarchy =
-    let%lwt () = discard ?secure ~scope:(`Session_group scope_hierarchy) () in
-    let%lwt () = discard ?secure ~scope:(`Session scope_hierarchy) () in
+    let* () = discard ?secure ~scope:(`Session_group scope_hierarchy) () in
+    let* () = discard ?secure ~scope:(`Session scope_hierarchy) () in
     discard ?secure ~scope:(`Client_process scope_hierarchy) ()
   in
-  let%lwt () = discard_request_data () in
+  let* () = discard_request_data () in
   Lwt_list.iter_p discard_name (Eliom_common.list_scope_hierarchies ())
 
 let discard_all_volatile_data ~scope ?secure () =
@@ -1060,7 +1077,7 @@ let discard_all_persistent_data ~scope ?secure () =
 (*VVV missing: scope group *)
 
 let discard_all_data ?persistent ~scope ?secure () =
-  let%lwt () =
+  let* () =
     match persistent with
     | None | Some false -> discard_all_volatile_data ~scope ?secure ()
     | _ -> Lwt.return_unit
@@ -1078,16 +1095,16 @@ let discard_all_services ~scope ?secure () =
 (*VVV missing: scope group *)
 
 let discard_all ~scope ?secure () =
-  let%lwt () = discard_all_services ~scope ?secure () in
+  let* () = discard_all_services ~scope ?secure () in
   discard_all_data ~scope ?secure ()
 
 let discard_everything () =
   let discard_name scope_hierarchy =
-    let%lwt () = discard_all ~scope:(`Session_group scope_hierarchy) () in
-    let%lwt () = discard_all ~scope:(`Session scope_hierarchy) () in
+    let* () = discard_all ~scope:(`Session_group scope_hierarchy) () in
+    let* () = discard_all ~scope:(`Session scope_hierarchy) () in
     discard_all ~scope:(`Client_process scope_hierarchy) ()
   in
-  let%lwt () = discard_request_data () in
+  let* () = discard_request_data () in
   Lwt_list.iter_p discard_name (Eliom_common.list_scope_hierarchies ())
 
 (*****************************************************************************)
@@ -1167,14 +1184,14 @@ module Ext = struct
     =
     let scope = (scope :> Eliom_common.user_scope) in
     match scope with
-    | `Session_group h -> (
-        match%lwt
-          get_persistent_data_session_group ~scope:(`Session h) ?secure ()
-        with
-        | Some g ->
-            persistent_data_group_state ~scope:(`Session_group h) g
-            |> Lwt.return
-        | None -> Lwt.fail Not_found)
+    | `Session_group h ->
+        Lwt.bind
+          (get_persistent_data_session_group ~scope:(`Session h) ?secure ())
+          (function
+             | Some g ->
+                 persistent_data_group_state ~scope:(`Session_group h) g
+                 |> Lwt.return
+             | None -> Lwt.fail Not_found)
     | #Eliom_common.cookie_scope as cookie_scope ->
         Eliommod_persess.find_or_create_persistent_cookie ~secure_o:secure
           ~cookie_scope ()
@@ -1276,14 +1293,18 @@ module Ext = struct
               Eliommod_sessiongroups.Data.remove session_group_node
         in
         Lwt.return_unit
-    | _, `Pers, _cookie -> (
-        match%lwt get_persistent_cookie_info state with
-        | exception Not_found -> Lwt.return_unit
-        | cookie, {Eliommod_cookies.full_state_name; session_group; _} ->
-            let scope = full_state_name.Eliom_common.user_scope in
-            let cookie_level = Eliom_common.cookie_level_of_user_scope scope in
-            Eliommod_sessiongroups.Pers.close_persistent_session2 ~cookie_level
-              sitedata session_group cookie)
+    | _, `Pers, _cookie ->
+        Lwt.try_bind
+          (fun () -> get_persistent_cookie_info state)
+          (function
+             | cookie, {Eliommod_cookies.full_state_name; session_group; _} ->
+                 let scope = full_state_name.Eliom_common.user_scope in
+                 let cookie_level =
+                   Eliom_common.cookie_level_of_user_scope scope
+                 in
+                 Eliommod_sessiongroups.Pers.close_persistent_session2
+                   ~cookie_level sitedata session_group cookie)
+          (function Not_found -> Lwt.return_unit | exc -> Lwt.reraise exc)
   (*VVV!!! est-ce que session_group est fullsessgrp ? *)
 
   let fold_sub_states_aux_aux
@@ -1525,13 +1546,16 @@ let get_volatile_data_cookie ~cookie_scope ?secure () =
   with Not_found | Eliom_common.Eliom_Session_expired -> None
 
 let get_persistent_data_cookie ~cookie_scope ?secure () =
-  try%lwt
-    let%lwt c =
-      Eliommod_persess.find_persistent_cookie_only ~cookie_scope
-        ~secure_o:secure ()
-    in
-    return_some c.Eliom_common.pc_hvalue
-  with Not_found | Eliom_common.Eliom_Session_expired -> return_none
+  Lwt.catch
+    (fun () ->
+       let* c =
+         Eliommod_persess.find_persistent_cookie_only ~cookie_scope
+           ~secure_o:secure ()
+       in
+       return_some c.Eliom_common.pc_hvalue)
+    (function
+       | Not_found | Eliom_common.Eliom_Session_expired -> return_none
+       | exc -> Lwt.reraise exc)
 
 (*****************************************************************************)
 (** {2 User cookies} *)

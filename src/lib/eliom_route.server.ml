@@ -71,16 +71,18 @@ include Eliom_route_base.Make (struct
 let find_aux now sitedata info _ sci : Ocsigen_response.t Lwt.t =
   Eliom_common.Full_state_name_table.fold
     (fun fullsessname (_, r) beg ->
-       try%lwt beg with
-       | Eliom_common.Eliom_404 | Eliom_common.Eliom_Wrong_parameter -> (
-         match !r with
-         | Eliom_common.SCData_session_expired
-         | Eliom_common.SCNo_data (* cookie removed *) ->
-             beg
-         | Eliom_common.SC c ->
-             find_service now !(c.Eliom_common.sc_table) (Some fullsessname)
-               sitedata info)
-       | e -> fail e)
+       Lwt.catch
+         (fun () -> beg)
+         (function
+            | Eliom_common.Eliom_404 | Eliom_common.Eliom_Wrong_parameter -> (
+              match !r with
+              | Eliom_common.SCData_session_expired
+              | Eliom_common.SCNo_data (* cookie removed *) ->
+                  beg
+              | Eliom_common.SC c ->
+                  find_service now !(c.Eliom_common.sc_table)
+                    (Some fullsessname) sitedata info)
+            | e -> fail e))
     sci
     (fail Eliom_common.Eliom_404)
 

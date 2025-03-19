@@ -1,3 +1,5 @@
+open Lwt.Syntax
+
 (* Ocsigen
  * http://www.ocsigen.org
  * Module Eliom_registration
@@ -284,13 +286,13 @@ module Action_base = struct
             Lwt.return (Ocsigen_response.make (Cohttp.Response.make ()))
         | _ ->
             let all_cookie_info = sp.Eliom_common.sp_cookie_info in
-            let%lwt ric =
+            let* ric =
               Eliommod_cookies.compute_new_ri_cookies (Unix.time ())
                 (Ocsigen_request.sub_path ri.request_info)
                 (Ocsigen_request.cookies ri.request_info)
                 all_cookie_info user_cookies
             in
-            let%lwt all_new_cookies =
+            let* all_new_cookies =
               Eliommod_cookies.compute_cookies_to_send sitedata all_cookie_info
                 user_cookies
             in
@@ -329,7 +331,7 @@ module Action_base = struct
             (*VVV Also put all_cookie_info in this, to avoid
           update_cookie_table and get_cookie_info (?) *)
             let ri = update_request ri.request_info si ric in
-            let%lwt () =
+            let* () =
               Eliommod_pagegen.update_cookie_table sitedata all_cookie_info
             in
             send_directly ri
@@ -408,7 +410,7 @@ let appl_self_redirect send page =
     in
     Ocsigen_response.make response |> Result_types.cast_result |> Lwt.return
   else
-    let%lwt r = (Result_types.cast_function_http send) page in
+    let* r = (Result_types.cast_function_http send) page in
     Lwt.return (Result_types.cast_result r)
 
 (* File is a module allowing to register services that send files *)
@@ -434,7 +436,7 @@ module File_base = struct
         raise Eliom_common.Eliom_404
     with
     | Ocsigen_local_files.RFile fname ->
-        let%lwt response, body =
+        let* response, body =
           let headers =
             Ocsigen_header.of_option headers
             |> add_cache_header options
@@ -595,37 +597,38 @@ module Ocaml = struct
   let string_regexp = Str.regexp "\"\\([^\\\"]\\|\\\\.\\)*\""
 
   let make_service_handler ~name f g p =
-    let%lwt data =
-      try%lwt
-        let%lwt res = f g p in
-        Lwt.return (`Success res)
-      with exn ->
-        let code = Printf.sprintf "%06x" (Random.int 0x1000000) in
-        let argument =
-          let sp = Eliom_common.get_sp () in
-          let si = Eliom_request_info.get_si sp in
-          let post_params =
-            match si.Eliom_common.si_all_post_params with
-            | None -> []
-            | Some l -> l
-          in
-          try Printf.sprintf " (%s)" (List.assoc "argument" post_params)
-          with Not_found -> ""
-        in
-        (match name with
-        | Some name ->
-            Lwt_log_core.ign_error_f ~exn
-              "Uncaught exception in service %s [%s]%s" name code
-              (Str.global_replace string_regexp "\"xxx\"" argument)
-        | None ->
-            Lwt_log_core.ign_error_f ~exn "Uncaught exception [%s]%s" code
-              argument);
-        Lwt.return (`Failure code)
+    let* data =
+      Lwt.catch
+        (fun () ->
+           let* res = f g p in
+           Lwt.return (`Success res))
+        (fun exn ->
+           let code = Printf.sprintf "%06x" (Random.int 0x1000000) in
+           let argument =
+             let sp = Eliom_common.get_sp () in
+             let si = Eliom_request_info.get_si sp in
+             let post_params =
+               match si.Eliom_common.si_all_post_params with
+               | None -> []
+               | Some l -> l
+             in
+             try Printf.sprintf " (%s)" (List.assoc "argument" post_params)
+             with Not_found -> ""
+           in
+           (match name with
+           | Some name ->
+               Lwt_log_core.ign_error_f ~exn
+                 "Uncaught exception in service %s [%s]%s" name code
+                 (Str.global_replace string_regexp "\"xxx\"" argument)
+           | None ->
+               Lwt_log_core.ign_error_f ~exn "Uncaught exception [%s]%s" code
+                 argument);
+           Lwt.return (`Failure code))
     in
     prepare_data data
 
   let send ?options ?charset ?code ?content_type ?headers content =
-    let%lwt content = prepare_data content in
+    let* content = prepare_data content in
     Result_types.cast_result_lwt
       (M.send ?options ?charset ?code ?content_type ?headers content)
 
@@ -844,11 +847,11 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
               (Eliom_content.Html.D.toelt page)
         ; ejs_sess_info = Eliommod_cli.client_si sp.Eliom_common.sp_si }
     in
-    let%lwt tab_cookies =
+    let* tab_cookies =
       Eliommod_cookies.compute_cookies_to_send sp.Eliom_common.sp_sitedata
         sp.Eliom_common.sp_tab_cookie_info sp.Eliom_common.sp_user_tab_cookies
     in
-    let%lwt template = Eliom_reference.get request_template in
+    let* template = Eliom_reference.get request_template in
     let script =
       Printf.sprintf
         "__eliom_request_data = \'%s\';\n__eliom_request_cookies = \'%s\';\n__eliom_request_template = \'%s\';"
@@ -918,7 +921,7 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
     | _ -> assert false
 
   let add_eliom_scripts ~sp page =
-    let%lwt appl_data_script = make_eliom_appl_data_script ~sp in
+    let* appl_data_script = make_eliom_appl_data_script ~sp in
     (* First we build a fake page to build the ref_tree... *)
     let html_attribs, (head_attribs, title, head_elts), body =
       split_page (Eliom_content.Html.D.toelt page)
@@ -961,7 +964,7 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
         (Eliom_content.Html.F.head ~a:head_attribs title head_elts)
         body
     in
-    let%lwt data_script =
+    let* data_script =
       make_eliom_data_script
         ~keep_debug:(Ocsigen_config.get_debugmode ())
         ~sp fake_page
@@ -1008,7 +1011,7 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
       Eliom_state.set_cookie ~cookie_level:`Client_process
         ~name:Eliom_common.appl_name_cookie_name
         ~value:App_param.application_name ();
-    let%lwt body =
+    let* body =
       (match sp.Eliom_common.sp_client_appl_name, options.do_not_launch with
         | None, true -> remove_eliom_scripts content
         | _ -> add_eliom_scripts ~sp content)
@@ -1086,10 +1089,8 @@ struct
     =
     match Eliom_parameter.get_non_localized_get_parameters nl_template with
     | None ->
-        let%lwt () =
-          Eliom_reference.set request_template (Some Tmpl_param.name)
-        in
-        let%lwt content = Tmpl_param.make_page content in
+        let* () = Eliom_reference.set request_template (Some Tmpl_param.name) in
+        let* content = Tmpl_param.make_page content in
         Result_types.cast_kind_lwt
           (Appl.send ~options ?charset ?code ?content_type ?headers content)
     | Some _ ->
