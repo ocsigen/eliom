@@ -2,7 +2,6 @@
     (name eliom_ppx_client)
     (modes native)
     (modules eliom_ppx_client)
-    (preprocess (pps lwt_ppx))
     (libraries ocsigen-ppx-rpc eliom.ppx.client))
 
 (rule

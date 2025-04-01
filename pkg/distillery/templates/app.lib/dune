@@ -9,7 +9,6 @@
  (wrapped false)
  (preprocess
   (pps
-   lwt_ppx
    ;   pgocaml_ppx
    js_of_ocaml-ppx_deriving_json
    ;   ocsigen-i18n
@@ -62,7 +61,6 @@
   (preprocess
    (pps
     js_of_ocaml-ppx
-    lwt_ppx
     ;    ocsigen-i18n
     ;    --
     ;    --prefix

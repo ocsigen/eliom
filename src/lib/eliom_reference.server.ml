@@ -215,13 +215,16 @@ let get ((f, _, table) as eref) =
       | None ->
           let value = f () in
           Ocsipersist.set r (Some value) >>= fun () -> Lwt.return value)
-  | Ocsiper_sit t -> (
+  | Ocsiper_sit t ->
       t >>= fun t ->
       let site_id = get_site_id () in
-      try%lwt Ocsipersist.find t site_id
-      with Not_found ->
-        let value = f () in
-        Ocsipersist.add t site_id value >>= fun () -> Lwt.return value)
+      Lwt.catch
+        (fun () -> Ocsipersist.find t site_id)
+        (function
+           | Not_found ->
+               let value = f () in
+               Ocsipersist.add t site_id value >>= fun () -> Lwt.return value
+           | exc -> Lwt.reraise exc)
   | _ -> Lwt.return (Volatile.get eref)
 
 let set ((_, _, table) as eref) value =

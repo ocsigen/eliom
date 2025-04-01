@@ -1,3 +1,5 @@
+open Lwt.Syntax
+
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2007 Vincent Balat
@@ -929,7 +931,7 @@ let get_session_info ~sitedata ~req previous_extension_err =
     | None -> true, Lwt.return []
     | Some v -> false, v
   in
-  let%lwt post_params = p in
+  let* post_params = p in
   let previous_tab_cookies_info, tab_cookies, post_params =
     try
       let tci, utc, tc =
@@ -1005,7 +1007,7 @@ let get_session_info ~sitedata ~req previous_extension_err =
   *)
   let get_params0 = get_params in
   let post_params0 = post_params in
-  let%lwt file_params0 = file_params in
+  let* file_params0 = file_params in
   let ( get_params
       , post_params
       , file_params

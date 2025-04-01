@@ -1,3 +1,5 @@
+open Lwt.Syntax
+
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2016 Vasilis Papavasileiou
@@ -53,20 +55,23 @@ module type PARAM = sig
 end
 
 let typed_apply ~service f gp pp l l' suffix =
-  try%lwt
-    let%lwt g =
-      let l = Some (Lwt.return l) in
-      Eliom_parameter.reconstruct_params ~sp:() gp l None true suffix
-    and p =
-      let l' = Some (Lwt.return l') in
-      Eliom_parameter.reconstruct_params ~sp:() pp l' None true suffix
-    in
-    (match Eliom_service.reload_fun service with
-    | Some _ -> Eliom_client.set_reload_function (fun () () -> f g p)
-    | None -> ());
-    f g p
-  with Eliom_common.Eliom_Wrong_parameter ->
-    Lwt.fail Eliom_common.Eliom_Wrong_parameter
+  Lwt.catch
+    (fun () ->
+       let* g =
+         let l = Some (Lwt.return l) in
+         Eliom_parameter.reconstruct_params ~sp:() gp l None true suffix
+       and* p =
+         let l' = Some (Lwt.return l') in
+         Eliom_parameter.reconstruct_params ~sp:() pp l' None true suffix
+       in
+       (match Eliom_service.reload_fun service with
+       | Some _ -> Eliom_client.set_reload_function (fun () () -> f g p)
+       | None -> ());
+       f g p)
+    (function
+       | Eliom_common.Eliom_Wrong_parameter ->
+           Lwt.fail Eliom_common.Eliom_Wrong_parameter
+       | exc -> Lwt.reraise exc)
 
 let wrap service att f _ suffix =
   let gp = Eliom_service.get_params_type service
@@ -152,7 +157,7 @@ module Make (P : PARAM) = struct
       ?error_handler:_ (f : g -> p -> _)
     =
     let f g p =
-      let%lwt page = f g p in
+      let* page = f g p in
       P.send ?options page
     in
     register ~service f;
@@ -262,7 +267,7 @@ module Redirection = struct
       ?error_handler:_ (f : g -> p -> _)
     =
     let f g p =
-      let%lwt page = f g p in
+      let* page = f g p in
       send ?options page
     in
     register ~service f;
@@ -282,7 +287,7 @@ module Any = struct
       ?headers:_ ?secure_session:_ ~service ?error_handler:_ f
     =
     let f g p =
-      let%lwt page = f g p in
+      let* page = f g p in
       send page
     in
     register ~service f;

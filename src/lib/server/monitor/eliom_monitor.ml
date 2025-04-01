@@ -1,3 +1,5 @@
+open Lwt.Syntax
+
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2014 Hugo Heuzard
@@ -131,8 +133,8 @@ let http_stats () =
            hosts) ]
 
 let eliom_stats () =
-  let%lwt persist_nb_of_groups = Eliommod_sessiongroups.Pers.nb_of_groups () in
-  let%lwt number_of_persistent_data_cookies =
+  let* persist_nb_of_groups = Eliommod_sessiongroups.Pers.nb_of_groups () in
+  let* number_of_persistent_data_cookies =
     Eliom_state.number_of_persistent_data_cookies ()
   in
   Lwt.return
@@ -171,7 +173,7 @@ let eliom_stats () =
                       (Eliom_state.Ext.get_session_group_list ())) ] ] ])
 
 let content_div () =
-  let%lwt eliom_stats = eliom_stats () in
+  let* eliom_stats = eliom_stats () in
   Lwt.return
     (div
        [ h1 [ppf "Ocsigen server monitoring"]
@@ -188,7 +190,7 @@ let content_div () =
        ; preemptive_thread_stats () ])
 
 let content_html () =
-  let%lwt content_div = content_div () in
+  let* content_div = content_div () in
   Lwt.return
     (html
        (head

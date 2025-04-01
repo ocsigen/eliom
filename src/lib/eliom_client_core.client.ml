@@ -1,3 +1,5 @@
+open Lwt.Syntax
+
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2010 Vincent Balat
@@ -330,7 +332,7 @@ let raw_form_handler form kind cookies_info tmpl ev client_form_handler =
   in
   let f () =
     Lwt.async @@ fun () ->
-    let%lwt b = client_form_handler ev in
+    let* b = client_form_handler ev in
     if not b then change_page_form ?cookies_info ?tmpl form action;
     Lwt.return_unit
   in
