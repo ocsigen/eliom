@@ -1361,6 +1361,11 @@ module Ext = struct
     let a = fold_sub_states_aux_aux ?sitedata ~state:state' f in
     fold_sub_states_aux Ocsigen_cache.Dlist.fold Ocsigen_lib.id a e state
 
+  (** Fold over the snapshot of a Dlist. *)
+  let dlist_lwt_fold f acc dlist =
+    Ocsigen_cache.Dlist.fold (fun acc x -> x :: acc) [] dlist
+    |> List.rev |> Lwt_list.fold_left_s f acc
+
   let fold_sub_states ?sitedata ~state f e =
     let ((sitedata, sub_states_level, id, f) as a) =
       fold_sub_states_aux_aux ?sitedata ~state f
@@ -1373,7 +1378,7 @@ module Ext = struct
              (Eliom_common.get_site_dir_string sitedata)
              (Some id))
         >>= fun l -> Lwt_list.fold_left_s f e l
-    | _ -> fold_sub_states_aux Ocsigen_cache.Dlist.lwt_fold Lwt.return a e state
+    | _ -> fold_sub_states_aux dlist_lwt_fold Lwt.return a e state
 
   let iter_volatile_sub_states ?sitedata ~state f =
     fold_volatile_sub_states ?sitedata ~state (fun () -> f) ()
