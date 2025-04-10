@@ -185,7 +185,7 @@ let handle_exn, set_handle_exn_function =
         "Unknown exception during comet. Customize this with Eliom_comet.set_handle_exn_function. "
       in
       match exn with
-      | Some exn -> raise_error ~section ~exn s
+      | Some exn -> raise_error ~section ~exn "%s" s
       | None -> Lwt_log.debug ~section s)
   in
   ( (fun ?exn () ->

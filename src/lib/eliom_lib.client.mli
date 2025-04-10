@@ -82,15 +82,6 @@ val raise_error :
   -> ?section:Lwt_log.section
   -> ?location:string * int * int
   -> ?logger:Lwt_log.logger
-  -> string
-  -> 'a
-
-val raise_error_f :
-   ?inspect:'v
-  -> ?exn:exn
-  -> ?section:Lwt_log.section
-  -> ?location:string * int * int
-  -> ?logger:Lwt_log.logger
   -> ('a, unit, string, 'any) format4
   -> 'a
 

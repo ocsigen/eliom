@@ -248,7 +248,7 @@ let slow_select_nodes (root : Dom_html.element Js.t) =
            | Dom_html.A e -> ignore a_array ## (push e)
            | Dom_html.Form e -> ignore form_array ## (push e)
            | _ ->
-               raise_error_f ~section "%s element tagged as eliom link"
+               raise_error ~section "%s element tagged as eliom link"
                  (Js.to_string node##.tagName));
         if process_node then ignore node_array ## (push node);
         if closure then ignore closure_array ## (push node);
@@ -349,8 +349,7 @@ let add_childrens (elt : Dom_html.element Js.t) (sons : Dom.node Js.t list) =
               match Dom.nodeType t with
               | Dom.Text t -> t
               | _ ->
-                  raise_error_f ~section
-                    "add_childrens: not text node in tag %s"
+                  raise_error ~section "add_childrens: not text node in tag %s"
                     (Js.to_string elt##.tagName)
             in
             concat acc ## (concat txt##.data) q
