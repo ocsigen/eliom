@@ -125,7 +125,7 @@ let set_timeout_ get set get_default update ?full_st_name ?cookie_level
              (fun () -> update full_st_name sitedata oldt t)
              (function
                 | exn ->
-                    Lwt_log.warning ~exn ~section:Lwt_log.eliom
+                    Lwt_log.warning ~exn ~section:eliom_logs_src
                       "Error while updating timeouts"))
 (*VVV Check possible exceptions raised *)
 

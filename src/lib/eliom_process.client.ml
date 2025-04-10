@@ -119,8 +119,7 @@ let get_application_name () =
   match !appl_name_r with
   | None -> (
     try !!appl_name
-    with Not_found ->
-      Lwt_log.raise_error ~section "Application name not defined")
+    with Not_found -> raise_error ~section "Application name not defined")
   | Some n -> n
 
 let client_side = true

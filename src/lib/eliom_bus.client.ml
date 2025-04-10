@@ -137,7 +137,7 @@ let original_stream t =
   if Eliom_client_core.in_onload () && t.original_stream_available
   then stream t
   else
-    Lwt_log.raise_error ~section
+    raise_error ~section
       "original_stream: the original stream is not available anymore"
 
 let flush t =
