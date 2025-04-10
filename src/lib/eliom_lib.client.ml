@@ -79,19 +79,17 @@ module Url = struct
         split_path (try String.(sub s 0 (index s '?')) with Not_found -> s)
 end
 
-module Lwt_log = struct
-  include Lwt_log_js
+module Lwt_log = Lwt_log_js
 
-  let raise_error ?inspect ?exn ?section ?location ?logger msg =
-    Lwt.ignore_result
-      (log ?inspect ?exn ?section ?location ?logger ~level:Error msg);
-    match exn with Some exn -> raise exn | None -> failwith msg
+let raise_error ?inspect ?exn ?section ?location ?logger msg =
+  Lwt.ignore_result
+    (Lwt_log.log ?inspect ?exn ?section ?location ?logger ~level:Error msg);
+  match exn with Some exn -> raise exn | None -> failwith msg
 
-  let raise_error_f ?inspect ?exn ?section ?location ?logger fmt =
-    Printf.ksprintf (raise_error ?inspect ?exn ?section ?location ?logger) fmt
+let raise_error_f ?inspect ?exn ?section ?location ?logger fmt =
+  Printf.ksprintf (raise_error ?inspect ?exn ?section ?location ?logger) fmt
 
-  let eliom = Section.make "eliom"
-end
+let eliom_logs_src = Lwt_log.Section.make "eliom"
 
 let _ =
   Lwt_log.default := Lwt_log.console;

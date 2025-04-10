@@ -87,7 +87,7 @@ end = struct
           | None -> ""
           | Some p -> Printf.sprintf "(%s)" (Eliom_lib.pos_to_string p)
         in
-        Lwt_log.raise_error_f ~section
+        raise_error_f ~section
           "Client closure %s not found %s (is the module linked on the client?)"
           closure_id pos
     in
@@ -136,7 +136,7 @@ end = struct
                   Printf.sprintf "%s (%s at %s)" name i
                     (Eliom_lib.pos_to_string pos)
             in
-            Lwt_log.raise_error_f "Did not find injection %s" name))
+            raise_error_f "Did not find injection %s" name))
 
   let initialize ~compilation_unit_id
       {Eliom_runtime.injection_id; injection_value; _}
@@ -168,7 +168,7 @@ let do_next_server_section_data ~compilation_unit_id =
         data.server_section <- r;
         Array.iter Client_value.initialize l
     | [] ->
-        Lwt_log.raise_error_f ~section
+        raise_error_f ~section
           "Queue of client value data for compilation unit %s is empty (is it linked on the server?)"
           compilation_unit_id
   with Not_found -> ()
@@ -184,7 +184,7 @@ let do_next_client_section_data ~compilation_unit_id =
         data.client_section <- r;
         Array.iter (fun i -> Injection.initialize ~compilation_unit_id i) l
     | [] ->
-        Lwt_log.raise_error_f ~section
+        raise_error_f ~section
           "Queue of injection data for compilation unit %s is empty (is it linked on the server?)"
           compilation_unit_id
   with Not_found -> ()
@@ -361,7 +361,7 @@ let reify_caml_event name node ce =
           (fun ev ->
             let node =
               Js.Opt.get (Dom_html.CoerceTo.a node) (fun () ->
-                Lwt_log.raise_error ~section "not an anchor element")
+                raise_error ~section "not an anchor element")
             in
             raw_a_handler node cookies_info tmpl ev) )
   | Xml.CE_call_service
@@ -373,7 +373,7 @@ let reify_caml_event name node ce =
           (fun ev ->
             let form =
               Js.Opt.get (Dom_html.CoerceTo.form node) (fun () ->
-                Lwt_log.raise_error ~section "not a form element")
+                raise_error ~section "not a form element")
             in
             raw_form_handler form kind cookies_info tmpl ev
               (Eliom_lib.from_poly client_hdlr : client_form_handler)) )
@@ -732,7 +732,7 @@ let rebuild_node_ns ns context elt' =
     elt' context;
   if is_before_initial_load ()
   then
-    Lwt_log.raise_error_f ~section ~inspect:(rebuild_node' ns elt')
+    raise_error_f ~section ~inspect:(rebuild_node' ns elt')
       "Cannot apply %s%s before the document is initially loaded" context
       Xml.(
         match get_node_id elt' with

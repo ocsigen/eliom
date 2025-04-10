@@ -248,7 +248,7 @@ let slow_select_nodes (root : Dom_html.element Js.t) =
            | Dom_html.A e -> ignore a_array ## (push e)
            | Dom_html.Form e -> ignore form_array ## (push e)
            | _ ->
-               Lwt_log.raise_error_f ~section "%s element tagged as eliom link"
+               raise_error_f ~section "%s element tagged as eliom link"
                  (Js.to_string node##.tagName));
         if process_node then ignore node_array ## (push node);
         if closure then ignore closure_array ## (push node);
@@ -302,12 +302,12 @@ end
 let get_head (page : 'element #get_tag Js.t) : 'element Js.t =
   Js.Opt.get
     page ## (getElementsByTagName (Js.string "head")) ## (item 0)
-    (fun () -> Lwt_log.raise_error ~section "get_head")
+    (fun () -> raise_error ~section "get_head")
 
 let get_body (page : 'element #get_tag Js.t) : 'element Js.t =
   Js.Opt.get
     page ## (getElementsByTagName (Js.string "body")) ## (item 0)
-    (fun () -> Lwt_log.raise_error ~section "get_body")
+    (fun () -> raise_error ~section "get_body")
 
 let iter_dom_array (f : 'a -> unit)
     (a :
@@ -349,7 +349,7 @@ let add_childrens (elt : Dom_html.element Js.t) (sons : Dom.node Js.t list) =
               match Dom.nodeType t with
               | Dom.Text t -> t
               | _ ->
-                  Lwt_log.raise_error_f ~section
+                  raise_error_f ~section
                     "add_childrens: not text node in tag %s"
                     (Js.to_string elt##.tagName)
             in
@@ -368,7 +368,7 @@ let add_childrens (elt : Dom_html.element Js.t) (sons : Dom.node Js.t list) =
         let d = Dom_html.createHead Dom_html.document in
         Dom.appendChild d elt;
         (Js.Unsafe.coerce elt)##.styleSheet##.cssText := concat sons
-    | _ -> Lwt_log.raise_error ~section ~exn "add_childrens: can't appendChild")
+    | _ -> raise_error ~section ~exn "add_childrens: can't appendChild")
 
 (* END IE HACK *)
 
@@ -413,9 +413,7 @@ let copy_element (e : Dom.element Js.t)
         add_childrens copy child_copies;
         Some copy
   in
-  match aux e with
-  | None -> Lwt_log.raise_error ~section "copy_element"
-  | Some e -> e
+  match aux e with None -> raise_error ~section "copy_element" | Some e -> e
 
 let html_document (src : Dom.element Dom.document Js.t) registered_process_node
     : Dom_html.element Js.t

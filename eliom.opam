@@ -17,7 +17,7 @@ license: "LGPL-2.1-only WITH OCaml-LGPL-linking-exception"
 homepage: "https://ocsigen.org/eliom/"
 bug-reports: "https://github.com/ocsigen/eliom/issues"
 depends: [
-  "dune" {>= "3.6"}
+  "dune" {>= "3.18"}
   "ocaml" {>= "4.12" & < "5.3"}
   "ocamlfind"
   "ppx_deriving"
@@ -56,3 +56,4 @@ build: [
   ]
 ]
 dev-repo: "git+https://github.com/ocsigen/eliom.git"
+x-maintenance-intent: ["(latest)"]
