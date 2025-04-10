@@ -99,14 +99,6 @@ let _ =
         (Js.string (Printexc.to_string exn))
         exn
 
-(* Deprecated ON *)
-let debug_exn fmt exn = Lwt_log.ign_info_f ~exn fmt
-let debug fmt = Lwt_log.ign_info_f fmt
-let error fmt = raise_error fmt
-let error_any any fmt = raise_error ~inspect:any fmt
-let jsdebug a = Lwt_log.ign_info ~inspect:a "Jsdebug"
-(* Deprecated OFF *)
-
 let trace fmt =
   if Eliom_config.get_tracing ()
   then Lwt_log.ign_info_f (">> " ^^ fmt)
