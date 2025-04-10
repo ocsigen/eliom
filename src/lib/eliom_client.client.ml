@@ -179,7 +179,7 @@ let a_handler =
   Dom_html.full_handler (fun node ev ->
     let node =
       Js.Opt.get (Dom_html.CoerceTo.a node) (fun () ->
-        raise_error_f ~section "not an anchor element")
+        raise_error ~section "not an anchor element")
     in
     (* We prevent default behaviour
           only if raw_a_handler has taken the change page itself *)
@@ -196,7 +196,7 @@ let form_handler :
   Dom_html.full_handler (fun node ev ->
     let form =
       Js.Opt.get (Dom_html.CoerceTo.form node) (fun () ->
-        raise_error_f ~section "not a form element")
+        raise_error ~section "not a form element")
     in
     let kind =
       if String.lowercase_ascii (Js.to_string form##._method) = "get"
@@ -213,7 +213,7 @@ let relink_process_node (node : Dom_html.element Js.t) =
   let id =
     Js.Opt.get
       node ## (getAttribute (Js.string Eliom_runtime.RawXML.node_id_attrib))
-      (fun () -> raise_error_f ~section "unique node without id attribute")
+      (fun () -> raise_error ~section "unique node without id attribute")
   in
   Js.Optdef.case
     (Eliom_client_core.find_process_node id)
@@ -240,7 +240,7 @@ let relink_request_node (node : Dom_html.element Js.t) =
   let id =
     Js.Opt.get
       node ## (getAttribute (Js.string Eliom_runtime.RawXML.node_id_attrib))
-      (fun () -> raise_error_f ~section "unique node without id attribute")
+      (fun () -> raise_error ~section "unique node without id attribute")
   in
   Js.Optdef.case
     (Eliom_client_core.find_request_node id)
@@ -373,7 +373,7 @@ let relink_attrib _root table (node : Dom_html.element Js.t) =
         in
         Eliom_client_core.rebuild_rattrib node rattrib
       with Not_found ->
-        raise_error_f ~section "relink_attrib: client value %s not found" cid
+        raise_error ~section "relink_attrib: client value %s not found" cid
   in
   Eliommod_dom.iter_attrList node##.attributes aux
 
@@ -398,10 +398,10 @@ let load_data_script page =
         match Js.to_bytestring data_script##.tagName##toLowerCase with
         | "script" -> Js.Unsafe.coerce data_script
         | t ->
-            raise_error_f ~section
+            raise_error ~section
               "Unable to find Eliom application data (script element expected, found %s element)"
               t)
-    | _ -> raise_error_f ~section "Unable to find Eliom application data."
+    | _ -> raise_error ~section "Unable to find Eliom application data."
   in
   let script = data_script##.text in
   if !Eliom_config.debug_timings
@@ -822,7 +822,7 @@ let get_state state_id : state =
           (* We use this only when the history API is
              available. Sessionstorage seems to be available
              everywhere the history API exists. *)
-          raise_error_f ~section "sessionStorage not available")
+          raise_error ~section "sessionStorage not available")
        (fun s -> s ## (getItem (state_key state_id))))
     (fun () -> raise Not_found)
     (fun s -> of_json ~typ:[%json: state] (Js.to_string s))

@@ -81,13 +81,13 @@ end
 
 module Lwt_log = Lwt_log_js
 
-let raise_error ?inspect ?exn ?section ?location ?logger msg =
-  Lwt.ignore_result
-    (Lwt_log.log ?inspect ?exn ?section ?location ?logger ~level:Error msg);
-  match exn with Some exn -> raise exn | None -> failwith msg
-
-let raise_error_f ?inspect ?exn ?section ?location ?logger fmt =
-  Printf.ksprintf (raise_error ?inspect ?exn ?section ?location ?logger) fmt
+let raise_error ?inspect ?exn ?section ?location ?logger fmt =
+  let k msg =
+    Lwt.ignore_result
+      (Lwt_log.log ?inspect ?exn ?section ?location ?logger ~level:Error msg);
+    match exn with Some exn -> raise exn | None -> failwith msg
+  in
+  Printf.ksprintf k fmt
 
 let eliom_logs_src = Lwt_log.Section.make "eliom"
 
@@ -102,8 +102,8 @@ let _ =
 (* Deprecated ON *)
 let debug_exn fmt exn = Lwt_log.ign_info_f ~exn fmt
 let debug fmt = Lwt_log.ign_info_f fmt
-let error fmt = raise_error_f fmt
-let error_any any fmt = raise_error_f ~inspect:any fmt
+let error fmt = raise_error fmt
+let error_any any fmt = raise_error ~inspect:any fmt
 let jsdebug a = Lwt_log.ign_info ~inspect:a "Jsdebug"
 (* Deprecated OFF *)
 
