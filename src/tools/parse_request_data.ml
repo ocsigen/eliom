@@ -225,14 +225,14 @@ let intern () =
           match ch with
           | 'j' ->
               let a = ref 0L in
-              for i = 0 to 7 do
+              for _ = 0 to 7 do
                 a :=
                   Int64.logor (Int64.shift_left !a 8) (Int64.of_int (read8u ()))
               done;
               {desc = Int64 !a; start; fin = start + 9}
           | 'i' ->
               let a = ref 0l in
-              for i = 0 to 3 do
+              for _ = 0 to 3 do
                 a :=
                   Int32.logor (Int32.shift_left !a 8) (Int32.of_int (read8u ()))
               done;
@@ -241,7 +241,7 @@ let intern () =
               let c = read8u () in
               assert (c = 1);
               let a = ref 0n in
-              for i = 0 to 7 do
+              for _ = 0 to 7 do
                 a :=
                   Nativeint.logor
                     (Nativeint.shift_left !a 8)
@@ -268,7 +268,7 @@ let rec print f v =
     | _ -> assert false
   else
     match v.desc with
-    | Block (t, [||], n) -> Format.fprintf f "@[<1>{%d:}@]" t
+    | Block (t, [||], _n) -> Format.fprintf f "@[<1>{%d:}@]" t
     | Block (t, a, n) ->
         Format.fprintf f "@[<1>(%d){%d:" n t;
         Array.iter (fun v -> Format.fprintf f "@ %a" print v) a;
