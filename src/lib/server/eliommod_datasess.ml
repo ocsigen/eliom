@@ -68,7 +68,7 @@ let close_data_state ~scope ~secure_o ?sp () =
               !(c.Eliom_common.dc_session_group)
           with
           | None ->
-              Lwt_log.ign_error ~section:Lwt_log.eliom
+              Lwt_log.ign_error ~section:eliom_logs_src
                 "No group of groups. Please report this problem."
           | Some g -> Eliommod_sessiongroups.Data.remove g)
         | `Session _ | `Client_process _ ->

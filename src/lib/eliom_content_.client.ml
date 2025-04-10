@@ -54,7 +54,7 @@ struct
         let elt' = Kind.toelt elt in
         match Xml.get_node_id elt' with
         | Xml.NoId ->
-            Lwt_log.raise_error_f ~section:Lwt_log.eliom
+            raise_error_f ~section:eliom_logs_src
               ~inspect:
                 (Eliom_client_core.rebuild_node' Ns.content_ns (Kind.toelt elt))
               "Cannot call %s on an element with functional semantics" context
@@ -64,7 +64,7 @@ struct
     Js.Opt.case
       (Dom_html.CoerceTo.element (get_unique_node name elt))
       (fun () ->
-         Lwt_log.raise_error_f ~section:Lwt_log.eliom
+         raise_error_f ~section:eliom_logs_src
            ~inspect:
              (Eliom_client_core.rebuild_node' Ns.content_ns (Kind.toelt elt))
            "Cannot call %s on a node which is not an element" name)
