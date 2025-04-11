@@ -27,7 +27,7 @@ open Js_of_ocaml
 open Eliom_lib
 module Ecb = Eliom_comet_base
 
-let section = Lwt_log.Section.make "eliom:comet"
+let section = Logs.Src.create "eliom:comet"
 
 module Configuration = struct
   type configuration_data =
@@ -186,7 +186,9 @@ let handle_exn, set_handle_exn_function =
       in
       match exn with
       | Some exn -> raise_error ~section ~exn "%s" s
-      | None -> Lwt_log.debug ~section s)
+      | None ->
+          Logs.debug ~src:section (fun fmt -> fmt "%s" s);
+          Lwt.return_unit)
   in
   ( (fun ?exn () ->
       if not !closed
@@ -410,8 +412,9 @@ end = struct
           (function
             | _chan_id, Ecb.Data _ -> ()
             | _chan_id, Ecb.Closed ->
-                Lwt_log.ign_warning ~section
-                  "update_stateful_state: received Closed: should not happen, this is an eliom bug, please report it"
+                Logs.warn ~src:section (fun fmt ->
+                  fmt
+                    "update_stateful_state: received Closed: should not happen, this is an eliom bug, please report it")
             | chan_id, Ecb.Full -> stop_waiting hd chan_id)
           message
     | Stateless_state _ ->
@@ -527,17 +530,20 @@ end = struct
              | Eliom_request.Failed_request (0 | 502 | 504) ->
                  if retries > max_retries
                  then (
-                   Lwt_log.ign_notice ~section "connection failure";
+                   Logs.app ~src:section (fun fmt -> fmt "connection failure");
                    set_activity hd `Inactive;
                    aux 0)
                  else
                    let* () = Js_of_ocaml_lwt.Lwt_js.sleep (delay retries) in
                    aux (retries + 1)
              | Restart ->
-                 Lwt_log.ign_info ~section "restart";
+                 Logs.info ~src:section (fun fmt -> fmt "restart");
                  aux 0
              | exn ->
-                 Lwt_log.ign_notice ~exn ~section "connection failure";
+                 Logs.app ~src:section (fun fmt ->
+                   fmt
+                     ("connection failure" ^^ "@\n%s")
+                     (Printexc.to_string exn));
                  let* () = handle_exn ~exn () in
                  Lwt.fail exn)
     in
@@ -550,7 +556,8 @@ end = struct
             call_service_after_load_end srv queue
               (false, Ecb.Stateful (Ecb.Commands command)))
          (fun exn ->
-            Lwt_log.ign_notice_f ~section ~exn "request failed";
+            Logs.app ~src:section (fun fmt ->
+              fmt ("request failed" ^^ "@\n%s") (Printexc.to_string exn));
             Lwt.return ""))
 
   let close hd chan_id =
@@ -569,8 +576,8 @@ end = struct
               {state with count = state.count - 1}
               !map
       with Not_found ->
-        Lwt_log.ign_info_f ~section "trying to close a non existent channel: %s"
-          chan_id)
+        Logs.info ~src:section (fun fmt ->
+          fmt "trying to close a non existent channel: %s" chan_id))
 
   let add_channel_stateful hd chan_id =
     hd.hd_activity.active_channels <-

@@ -30,7 +30,7 @@ open Lwt.Syntax
 
 open Lwt
 
-let section = Lwt_log.Section.make "eliom:admin"
+let section = Logs.Src.create "eliom:admin"
 
 (*
    (** Iterator on volatile sessions *)
@@ -132,8 +132,8 @@ let close_all_persistent_states ~scope ~secure sitedata =
 
 (* Update the expiration date for all service sessions                      *)
 let update_serv_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
-  Lwt_log.ign_notice ~section
-    "Updating expiration date for all service sessions";
+  Logs.app ~src:section (fun fmt ->
+    fmt "Updating expiration date for all service sessions");
   match new_glob_timeout with
   | Some t when t <= 0. ->
       (* We close all sessions but those with user defined timeout *)
@@ -166,7 +166,8 @@ let update_serv_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
 
 (* Update the expiration date for all in memory data sessions                *)
 let update_data_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
-  Lwt_log.ign_notice ~section "Updating expiration date for all data sessions";
+  Logs.app ~src:section (fun fmt ->
+    fmt "Updating expiration date for all data sessions");
   match new_glob_timeout with
   | Some t when t <= 0. ->
       (* We close all sessions but those with user defined timeout *)
@@ -199,8 +200,8 @@ let update_data_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
 
 (* Update the expiration date for all sessions                               *)
 let update_pers_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
-  Lwt_log.ign_notice ~section
-    "Updating expiration date for all persistent sessions";
+  Logs.app ~src:section (fun fmt ->
+    fmt "Updating expiration date for all persistent sessions");
   match new_glob_timeout with
   | Some t when t <= 0. ->
       (* We close all sessions but those with user defined timeout *)

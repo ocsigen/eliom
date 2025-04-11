@@ -57,4 +57,4 @@ val update_pers_exp :
   -> float option
   -> unit Lwt.t
 
-val section : Lwt_log_core.section
+val section : Logs.src

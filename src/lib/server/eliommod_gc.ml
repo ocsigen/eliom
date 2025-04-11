@@ -22,7 +22,7 @@ open Lwt.Syntax
 
 (** Garbage collection of services and session data *)
 
-let section = Lwt_log.Section.make "eliom:gc"
+let section = Logs.Src.create "eliom:gc"
 
 open Eliom_lib
 open Lwt
@@ -171,7 +171,7 @@ let service_session_gc sitedata =
         Lwt_unix.sleep t >>= fun () ->
         let service_cookie_table = sitedata.Eliom_common.session_services in
         let now = Unix.time () in
-        Lwt_log.ign_info ~section "GC of service sessions";
+        Logs.info ~src:section (fun fmt -> fmt "GC of service sessions");
         (* public continuation tables: *)
         (if tables.Eliom_common.table_contains_services_with_timeout
          then gc_timeouted_services now tables
@@ -245,7 +245,7 @@ let data_session_gc sitedata =
           sitedata.Eliom_common.not_bound_in_data_tables
         in
         let now = Unix.time () in
-        Lwt_log.ign_info ~section "GC of session data";
+        Logs.info ~src:section (fun fmt -> fmt "GC of session data");
         (* private continuation tables: *)
         Eliom_common.SessionCookies.fold
           (fun k
@@ -278,8 +278,9 @@ let data_session_gc sitedata =
                           We can remove it. *)
                      if scope <> `Session
                      then
-                       Lwt_log.ign_error ~section
-                         "Eliom: Group associated to IP has scope different from `Session. Please report the problem.";
+                       Logs.err ~src:section (fun fmt ->
+                         fmt
+                           "Eliom: Group associated to IP has scope different from `Session. Please report the problem.");
                      Eliommod_sessiongroups.Data.remove session_group_node;
                      (* See also the finalisers in Eliommod_sessiongroups
                           and Eliommod.ml *)
@@ -304,13 +305,14 @@ let persistent_session_gc sitedata =
       let scope = full_state_name.Eliom_common.user_scope in
       match expiry with
       | Some exp when exp <= now ->
-          Lwt_log.ign_info_f ~section "remove expired cookie %s"
-            (log_hash cookie);
+          Logs.info ~src:section (fun fmt ->
+            fmt "remove expired cookie %s" (log_hash cookie));
           Eliommod_persess.close_persistent_state2 ~scope sitedata session_group
             cookie
       (*WAS: remove_from_all_persistent_tables k *)
       | _ ->
-          Lwt_log.ign_info_f ~section "cookie not expired: %s" (log_hash cookie);
+          Logs.info ~src:section (fun fmt ->
+            fmt "cookie not expired: %s" (log_hash cookie));
           return_unit
     in
     let gc_cookie c =
@@ -319,12 +321,12 @@ let persistent_session_gc sitedata =
         (do_gc_cookie c)
         (function
           | Not_found ->
-              Lwt_log.ign_info_f ~section "cookie does not exist: %s"
-                (log_hash c);
+              Logs.info ~src:section (fun fmt ->
+                fmt "cookie does not exist: %s" (log_hash c));
               Lwt.return_unit
           | exn -> Lwt.fail exn)
     in
-    Lwt_log.ign_info ~section "GC of persistent sessions";
+    Logs.info ~src:section (fun fmt -> fmt "GC of persistent sessions");
     Eliommod_cookies.Persistent_cookies.garbage_collect ~section gc_cookie
   in
   match get_persistentsessiongcfrequency () with

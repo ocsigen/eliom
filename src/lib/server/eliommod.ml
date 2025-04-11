@@ -984,8 +984,9 @@ let parse_config _ hostpattern conf_info site_dir =
         else (
           if not !eliommodulewarningdisplayed
           then
-            Lwt_log.ign_warning ~section:eliom_logs_src
-              "Tag <eliom> used several times in the same site: will run Eliom only the first time. Prefer <eliommodule> to load a module, and <eliom/> without attribute only once at the position you want to generate your Eliom pages for this site.";
+            Logs.warn ~src:eliom_logs_src (fun fmt ->
+              fmt
+                "Tag <eliom> used several times in the same site: will run Eliom only the first time. Prefer <eliommodule> to load a module, and <eliom/> without attribute only once at the position you want to generate your Eliom pages for this site.");
           eliommodulewarningdisplayed := true;
           gen_nothing ())
     | Xml.Element (t, _, _) ->

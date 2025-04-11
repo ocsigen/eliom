@@ -68,8 +68,8 @@ let close_data_state ~scope ~secure_o ?sp () =
               !(c.Eliom_common.dc_session_group)
           with
           | None ->
-              Lwt_log.ign_error ~section:eliom_logs_src
-                "No group of groups. Please report this problem."
+              Logs.err ~src:eliom_logs_src (fun fmt ->
+                fmt "No group of groups. Please report this problem.")
           | Some g -> Eliommod_sessiongroups.Data.remove g)
         | `Session _ | `Client_process _ ->
             (* If we want to close a (tab/browser) session, the node is found

@@ -29,7 +29,7 @@ exception Non_xml_content
 
 module XmlHttpRequest = Js_of_ocaml_lwt.XmlHttpRequest
 
-let section = Lwt_log.Section.make "eliom:request"
+let section = Logs.Src.create "eliom:request"
 (* == ... *)
 
 let max_redirection_level = 12
@@ -355,9 +355,10 @@ let send
                 (* we can't go here:
                                      this case is already handled before *)
               else (
-                Lwt_log.ign_warning_f ~section
-                  "received content for application %S when running application %s"
-                  appl_name current_appl_name;
+                Logs.warn ~src:section (fun fmt ->
+                  fmt
+                    "received content for application %S when running application %s"
+                    appl_name current_appl_name);
                 Lwt.fail (Failed_request code)))
         | exc -> Lwt.reraise exc)
   in

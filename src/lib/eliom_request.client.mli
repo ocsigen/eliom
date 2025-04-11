@@ -162,4 +162,4 @@ val nl_template :
     Eliom_parameter.non_localized_params
 
 val nl_template_string : string
-val section : Lwt_log_core.section
+val section : Logs.src

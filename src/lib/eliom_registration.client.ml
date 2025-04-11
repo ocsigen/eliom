@@ -19,7 +19,7 @@ open Lwt.Syntax
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 *)
 
-let section = Lwt_log_js.Section.make "eliom:registration"
+let section = Logs.Src.create "eliom:registration"
 
 module type Base = sig
   type return = Eliom_service.non_ocaml
@@ -119,7 +119,8 @@ let register_att ~service ~att f =
   (match Eliom_service.timeout service with
   | None -> ()
   | Some _ ->
-      Lwt_log_js.ign_info ~section "Service timeout ignored on the client");
+      Logs.info ~src:section (fun fmt ->
+        fmt "Service timeout ignored on the client"));
   let s_id =
     if gn = Eliom_common.SAtt_no || pn = Eliom_common.SAtt_no
     then

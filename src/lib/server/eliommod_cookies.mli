@@ -82,7 +82,7 @@ module Persistent_cookies : sig
   val replace_if_exists : string -> cookie -> unit Lwt.t
 
   val garbage_collect :
-     section:Lwt_log_core.Section.t
+     section:Logs.src
     -> (Cookies.key -> unit Lwt.t)
     -> unit Lwt.t
 end

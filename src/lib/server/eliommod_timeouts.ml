@@ -135,8 +135,11 @@ let set_timeout_
              (fun () -> update full_st_name sitedata oldt t)
              (function
                | exn ->
-               Lwt_log.warning ~exn ~section:eliom_logs_src
-                 "Error while updating timeouts"))
+               Logs.warn ~src:eliom_logs_src (fun fmt ->
+                 fmt
+                   ("Error while updating timeouts" ^^ "@\n%s")
+                   (Printexc.to_string exn));
+               Lwt.return_unit))
 (*VVV Check possible exceptions raised *)
 
 (* global timeout = timeout for the whole site (may be changed dynamically) *)

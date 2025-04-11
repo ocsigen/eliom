@@ -129,4 +129,4 @@ module Ocaml : sig
   type 'a return = 'a Eliom_service.ocaml
 end
 
-val section : Lwt_log_core.section
+val section : Logs.src

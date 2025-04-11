@@ -24,7 +24,7 @@ let of_json ?typ s =
   | None -> assert false
 (* implemented only client side *)
 
-let eliom_logs_src = Lwt_log.Section.make "eliom"
+let eliom_logs_src = Logs.Src.create "eliom"
 
 type file_info = Ocsigen_extensions.file_info
 

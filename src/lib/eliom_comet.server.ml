@@ -25,7 +25,7 @@ open Lwt.Syntax
 
 module Ecb = Eliom_comet_base
 
-let section = Lwt_log.Section.make "eliom:comet"
+let section = Logs.Src.create "eliom:comet"
 
 type chan_id = string
 
@@ -491,7 +491,7 @@ end = struct
     | Stream _ -> signal_update handler `Update
 
   let register_channel handler chan_id =
-    Lwt_log.ign_info_f ~section "register channel %s" chan_id;
+    Logs.info ~src:section (fun fmt -> fmt "register channel %s" chan_id);
     if not (List.mem_assoc chan_id handler.hd_active_channels)
     then
       try
@@ -504,7 +504,7 @@ end = struct
           chan_id :: handler.hd_registered_chan_id
 
   let close_channel' handler chan_id =
-    Lwt_log.ign_info_f ~section "close channel %s" chan_id;
+    Logs.info ~src:section (fun fmt -> fmt "close channel %s" chan_id);
     handler.hd_active_channels <-
       List.remove_assoc chan_id handler.hd_active_channels;
     handler.hd_unregistered_channels <-
@@ -526,7 +526,7 @@ end = struct
           failwith
             "attempting to request data on stateful service with a stateless request"
       | Eliom_comet_base.Stateful (Eliom_comet_base.Request_data number) ->
-          Lwt_log.ign_info_f ~section "received request %i" number;
+          Logs.info ~src:section (fun fmt -> fmt "received request %i" number);
           (* if a new connection occurs for a service, we reply
            immediately to the previous with no data. *)
           new_connection handler;
@@ -680,7 +680,7 @@ end = struct
     =
     let name = name_of_scope (scope :> Eliom_common.user_scope) ^ name in
     let handler = get_handler scope in
-    Lwt_log.ign_info_f ~section "create channel %s" name;
+    Logs.info ~src:section (fun fmt -> fmt "create channel %s" name);
     let channel = Events {queue = Queue.create (); events = None} in
     (match channel with
     | Stream _ -> assert false
@@ -722,7 +722,7 @@ end = struct
     =
     let name = name_of_scope (scope :> Eliom_common.user_scope) ^ name in
     let handler = get_handler scope in
-    Lwt_log.ign_info_f ~section "create channel %s" name;
+    Logs.info ~src:section (fun fmt -> fmt "create channel %s" name);
     let stream =
       Lwt.with_value Eliom_common.sp_key None @@ fun () ->
       Lwt_stream.map (fun x -> Eliom_comet_base.Data (marshal x)) stream
