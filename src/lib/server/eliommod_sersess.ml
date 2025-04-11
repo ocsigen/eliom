@@ -65,8 +65,8 @@ let close_service_state ~scope ~secure_o ?sp () =
               !(c.Eliom_common.sc_session_group)
           with
           | None ->
-              Lwt_log.ign_error ~section:eliom_logs_src
-                "No group of groups. Please report this problem."
+              Logs.err ~src:eliom_logs_src (fun fmt ->
+                fmt "No group of groups. Please report this problem.")
           | Some (_service_table, g) -> Eliommod_sessiongroups.Serv.remove g)
         | `Session _ | `Client_process _ ->
             Eliommod_sessiongroups.Serv.remove

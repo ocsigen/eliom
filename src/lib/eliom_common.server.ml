@@ -48,8 +48,8 @@ let tenable_value ~name v =
         value <- v;
         tenable <- override_tenable)
       else
-        Lwt_log.ign_warning_f ~section:eliom_logs_src
-          "Ignored setting tenable value %S." name
+        Logs.warn ~src:eliom_logs_src (fun fmt ->
+          fmt "Ignored setting tenable value %S." name)
   end
 
 (*****************************************************************************)

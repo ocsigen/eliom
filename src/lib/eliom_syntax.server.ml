@@ -49,9 +49,9 @@ let get_global_data, modify_global_data =
            | None, None -> assert false
            | Some data, None | None, Some data -> Some data
            | Some _, Some site_data ->
-               Lwt_log.ign_error_f ~section:Eliom_lib.eliom_logs_src
-                 "Compilation unit %s linked globally AND as Eliom module"
-                 compilation_unit_id;
+               Logs.err ~src:Eliom_lib.eliom_logs_src (fun fmt ->
+                 fmt "Compilation unit %s linked globally AND as Eliom module"
+                   compilation_unit_id);
                Some site_data)
         !global_data
         (Eliom_reference.Volatile.get site_data)
