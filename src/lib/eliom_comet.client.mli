@@ -147,4 +147,4 @@ val handle_exn : ?exn:exn -> unit -> unit Lwt.t
     that is usually called automatically when an exception
     is received during communication. *)
 
-val section : Lwt_log_core.section
+val section : Logs.src

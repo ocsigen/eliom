@@ -22,7 +22,7 @@ open Lwt.Syntax
 open Js_of_ocaml
 open Eliom_lib
 
-let section = Lwt_log.Section.make "eliom:dom"
+let section = Logs.Src.create "eliom:dom"
 
 let iter_nodeList nodeList f =
   for i = 0 to nodeList##.length - 1 do
@@ -248,7 +248,7 @@ let slow_select_nodes (root : Dom_html.element Js.t) =
            | Dom_html.A e -> ignore a_array ## (push e)
            | Dom_html.Form e -> ignore form_array ## (push e)
            | _ ->
-               Lwt_log.raise_error_f ~section "%s element tagged as eliom link"
+               raise_error ~section "%s element tagged as eliom link"
                  (Js.to_string node##.tagName));
         if process_node then ignore node_array ## (push node);
         if closure then ignore closure_array ## (push node);
@@ -302,12 +302,12 @@ end
 let get_head (page : 'element #get_tag Js.t) : 'element Js.t =
   Js.Opt.get
     page ## (getElementsByTagName (Js.string "head")) ## (item 0)
-    (fun () -> Lwt_log.raise_error ~section "get_head")
+    (fun () -> raise_error ~section "get_head")
 
 let get_body (page : 'element #get_tag Js.t) : 'element Js.t =
   Js.Opt.get
     page ## (getElementsByTagName (Js.string "body")) ## (item 0)
-    (fun () -> Lwt_log.raise_error ~section "get_body")
+    (fun () -> raise_error ~section "get_body")
 
 let iter_dom_array (f : 'a -> unit)
     (a :
@@ -349,8 +349,7 @@ let add_childrens (elt : Dom_html.element Js.t) (sons : Dom.node Js.t list) =
               match Dom.nodeType t with
               | Dom.Text t -> t
               | _ ->
-                  Lwt_log.raise_error_f ~section
-                    "add_childrens: not text node in tag %s"
+                  raise_error ~section "add_childrens: not text node in tag %s"
                     (Js.to_string elt##.tagName)
             in
             concat acc ## (concat txt##.data) q
@@ -368,7 +367,7 @@ let add_childrens (elt : Dom_html.element Js.t) (sons : Dom.node Js.t list) =
         let d = Dom_html.createHead Dom_html.document in
         Dom.appendChild d elt;
         (Js.Unsafe.coerce elt)##.styleSheet##.cssText := concat sons
-    | _ -> Lwt_log.raise_error ~section ~exn "add_childrens: can't appendChild")
+    | _ -> raise_error ~section ~exn "add_childrens: can't appendChild")
 
 (* END IE HACK *)
 
@@ -413,9 +412,7 @@ let copy_element (e : Dom.element Js.t)
         add_childrens copy child_copies;
         Some copy
   in
-  match aux e with
-  | None -> Lwt_log.raise_error ~section "copy_element"
-  | Some e -> e
+  match aux e with None -> raise_error ~section "copy_element" | Some e -> e
 
 let html_document (src : Dom.element Dom.document Js.t) registered_process_node
     : Dom_html.element Js.t
@@ -425,14 +422,20 @@ let html_document (src : Dom.element Dom.document Js.t) registered_process_node
   | Some e -> (
     try Dom_html.document ## (adoptNode (e :> Dom.element Js.t))
     with exn -> (
-      Lwt_log.ign_debug ~section ~exn "can't adopt node, import instead";
+      Logs.debug ~src:section (fun fmt ->
+        fmt
+          ("can't adopt node, import instead" ^^ "@\n%s")
+          (Printexc.to_string exn));
       try Dom_html.document ## (importNode (e :> Dom.element Js.t) Js._true)
       with exn ->
-        Lwt_log.ign_debug ~section ~exn "can't import node, copy instead";
+        Logs.debug ~src:section (fun fmt ->
+          fmt
+            ("can't import node, copy instead" ^^ "@\n%s")
+            (Printexc.to_string exn));
         copy_element content registered_process_node))
   | None ->
-      Lwt_log.ign_debug ~section
-        "can't adopt node, document not parsed as html. copy instead";
+      Logs.debug ~src:section (fun fmt ->
+        fmt "can't adopt node, document not parsed as html. copy instead");
       copy_element content registered_process_node
 
 (** CSS preloading. *)
@@ -634,7 +637,10 @@ and rewrite_css_import ?(charset = "") ~max ~prefix ~media css pos =
       with
       | Incorrect_url -> Lwt.return ([], rewrite_css_url ~prefix css pos)
       | exn ->
-          Lwt_log.ign_info ~section ~exn "Error while importing css";
+          Logs.info ~src:section (fun fmt ->
+            fmt
+              ("Error while importing css" ^^ "@\n%s")
+              (Printexc.to_string exn));
           Lwt.return ([], rewrite_css_url ~prefix css pos))
 
 let max_preload_depth = ref 4
@@ -673,9 +679,11 @@ let preload_css (doc : Dom_html.element Js.t) =
     (fun (e, css) ->
        try Dom.replaceChild (get_head doc) css e
        with _ ->
-         (* Node was a unique node that has been removed...
+         Logs.info
+           ~src:
+             (* Node was a unique node that has been removed...
                        in a perfect settings we won't have parsed it... *)
-         Lwt_log.ign_info ~section "Unique CSS skipped...")
+             section (fun fmt -> fmt "Unique CSS skipped..."))
     css;
   if !Eliom_config.debug_timings
   then Firebug.console ## (timeEnd (Js.string "preload_css (fetch+rewrite)"));

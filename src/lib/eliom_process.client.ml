@@ -21,7 +21,7 @@ open Js_of_ocaml
 open Eliom_lib
 
 (* Logs *)
-let section = Lwt_log.Section.make "eliom:process"
+let section = Logs.Src.create "eliom:process"
 let log_section = section
 let history_api = Dom_html.hasPushState ()
 
@@ -119,8 +119,7 @@ let get_application_name () =
   match !appl_name_r with
   | None -> (
     try !!appl_name
-    with Not_found ->
-      Lwt_log.raise_error ~section "Application name not defined")
+    with Not_found -> raise_error ~section "Application name not defined")
   | Some n -> n
 
 let client_side = true

@@ -89,23 +89,29 @@ module Persistent_cookies = struct
           else Some (cookies_str ^ "," ^ cookie)
 
     let remove_cookie exp_o cookie =
-      exp_o
-      |> Eliom_lib.Option.Lwt.iter @@ fun exp ->
-         modify_opt exp @@ function
-         | None -> None
-         | Some cookies_str ->
-             let cookies = String.split_on_char ',' cookies_str in
-             let cookies' = List.filter (fun c -> c <> cookie) cookies in
-             if cookies' = [] then None else Some (String.concat "," cookies')
+      match exp_o with
+      | None -> Lwt.return_unit
+      | Some exp -> (
+          modify_opt exp @@ function
+          | None -> None
+          | Some cookies_str ->
+              let cookies = String.split_on_char ',' cookies_str in
+              let cookies' = List.filter (fun c -> c <> cookie) cookies in
+              if cookies' = [] then None else Some (String.concat "," cookies'))
   end
 
   let add cookie ({expiry; _} as content) =
-    Eliom_lib.Option.Lwt.iter (fun t -> Expiry_dates.add_cookie t cookie) expiry
-    >>= fun _ -> Cookies.add cookie content
+    match expiry with
+    | Some t ->
+        Expiry_dates.add_cookie t cookie >>= fun _ -> Cookies.add cookie content
+    | None -> Lwt.return_unit
 
   let replace_if_exists cookie ({expiry; _} as content) =
-    Eliom_lib.Option.Lwt.iter (fun t -> Expiry_dates.add_cookie t cookie) expiry
-    >>= fun _ -> Cookies.replace_if_exists cookie content
+    match expiry with
+    | Some t ->
+        Expiry_dates.add_cookie t cookie >>= fun _ ->
+        Cookies.replace_if_exists cookie content
+    | None -> Lwt.return_unit
 
   let garbage_collect ~section gc_cookie =
     let now = Unix.time () in
@@ -114,8 +120,8 @@ module Persistent_cookies = struct
     let cookies_log =
       String.concat "," @@ List.map Eliom_common.Hashed_cookies.sha256 cookies
     in
-    Lwt_log.ign_info_f ~section "potentially expired cookies %.0f: %s" date
-      cookies_log;
+    Logs.info ~src:section (fun fmt ->
+      fmt "potentially expired cookies %.0f: %s" date cookies_log);
     Lwt_list.iter_s gc_cookie cookies >>= fun _ -> Expiry_dates.remove date
 end
 

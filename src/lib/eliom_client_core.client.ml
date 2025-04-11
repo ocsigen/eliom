@@ -26,7 +26,7 @@ open Eliom_lib
 module Xml = Eliom_content_core.Xml
 
 (* Logs *)
-let section = Lwt_log.Section.make "eliom:client"
+let section = Logs.Src.create "eliom:client"
 
 (* == Auxiliaries *)
 
@@ -87,7 +87,7 @@ end = struct
           | None -> ""
           | Some p -> Printf.sprintf "(%s)" (Eliom_lib.pos_to_string p)
         in
-        Lwt_log.raise_error_f ~section
+        raise_error ~section
           "Client closure %s not found %s (is the module linked on the client?)"
           closure_id pos
     in
@@ -121,7 +121,7 @@ end = struct
   let table = Jstable.create ()
 
   let get ?ident ?pos ~name =
-    Lwt_log.ign_debug_f ~section "Get injection %s" name;
+    Logs.debug ~src:section (fun fmt -> fmt "Get injection %s" name);
     from_poly
       (Js.Optdef.get
          (Jstable.find table (Js.string name))
@@ -136,12 +136,13 @@ end = struct
                   Printf.sprintf "%s (%s at %s)" name i
                     (Eliom_lib.pos_to_string pos)
             in
-            Lwt_log.raise_error_f "Did not find injection %s" name))
+            raise_error "Did not find injection %s" name))
 
   let initialize ~compilation_unit_id
       {Eliom_runtime.injection_id; injection_value; _}
     =
-    Lwt_log.ign_debug_f ~section "Initialize injection %d" injection_id;
+    Logs.debug ~src:section (fun fmt ->
+      fmt "Initialize injection %d" injection_id);
     (* BBB One should assert that injection_value doesn't contain any
        value marked for late unwrapping. How to do this efficiently? *)
     Jstable.add table
@@ -158,9 +159,9 @@ type compilation_unit_global_data =
 let global_data = ref String_map.empty
 
 let do_next_server_section_data ~compilation_unit_id =
-  Lwt_log.ign_debug_f ~section
-    "Do next client value data section in compilation unit %s"
-    compilation_unit_id;
+  Logs.debug ~src:section (fun fmt ->
+    fmt "Do next client value data section in compilation unit %s"
+      compilation_unit_id);
   try
     let data = String_map.find compilation_unit_id !global_data in
     match data.server_section with
@@ -168,15 +169,16 @@ let do_next_server_section_data ~compilation_unit_id =
         data.server_section <- r;
         Array.iter Client_value.initialize l
     | [] ->
-        Lwt_log.raise_error_f ~section
+        raise_error ~section
           "Queue of client value data for compilation unit %s is empty (is it linked on the server?)"
           compilation_unit_id
   with Not_found -> ()
 (* Client-only compilation unit *)
 
 let do_next_client_section_data ~compilation_unit_id =
-  Lwt_log.ign_debug_f ~section
-    "Do next injection data section in compilation unit %s" compilation_unit_id;
+  Logs.debug ~src:section (fun fmt ->
+    fmt "Do next injection data section in compilation unit %s"
+      compilation_unit_id);
   try
     let data = String_map.find compilation_unit_id !global_data in
     match data.client_section with
@@ -184,7 +186,7 @@ let do_next_client_section_data ~compilation_unit_id =
         data.client_section <- r;
         Array.iter (fun i -> Injection.initialize ~compilation_unit_id i) l
     | [] ->
-        Lwt_log.raise_error_f ~section
+        raise_error ~section
           "Queue of injection data for compilation unit %s is empty (is it linked on the server?)"
           compilation_unit_id
   with Not_found -> ()
@@ -196,7 +198,7 @@ let register_unwrapped_elt, force_unwrapped_elts =
   let suspended_nodes = ref [] in
   ( (fun elt -> suspended_nodes := elt :: !suspended_nodes)
   , fun () ->
-      Lwt_log.ign_debug ~section "Force unwrapped elements";
+      Logs.debug ~src:section (fun fmt -> fmt "Force unwrapped elements");
       List.iter Xml.force_lazy !suspended_nodes;
       suspended_nodes := [] )
 
@@ -206,15 +208,13 @@ let register_unwrapped_elt, force_unwrapped_elts =
 let register_process_node, find_process_node =
   let process_nodes : Dom.node Js.t Jstable.t = Jstable.create () in
   let find id =
-    Lwt_log.ign_debug_f ~section "Find process node %a"
-      (fun () -> Js.to_string)
-      id;
+    Logs.debug ~src:section (fun fmt ->
+      fmt "Find process node %s" (Js.to_string id));
     Jstable.find process_nodes id
   in
   let register id node =
-    Lwt_log.ign_debug_f ~section "Register process node %a"
-      (fun () -> Js.to_string)
-      id;
+    Logs.debug ~src:section (fun fmt ->
+      fmt "Register process node %s" (Js.to_string id));
     let node =
       if node##.nodeName##toLowerCase == Js.string "script"
       then
@@ -232,7 +232,7 @@ let getElementById id =
   Js.Optdef.case
     (find_process_node (Js.string id))
     (fun () ->
-       Lwt_log.ign_warning_f ~section "getElementById %s: Not_found" id;
+       Logs.warn ~src:section (fun fmt -> fmt "getElementById %s: Not_found" id);
        raise Not_found)
     (fun pnode -> pnode)
 
@@ -243,13 +243,12 @@ let register_request_node, find_request_node, reset_request_nodes =
   let request_nodes : Dom.node Js.t Jstable.t ref = ref (Jstable.create ()) in
   let find id = Jstable.find !request_nodes id in
   let register id node =
-    Lwt_log.ign_debug_f ~section "Register request node %a"
-      (fun () -> Js.to_string)
-      id;
+    Logs.debug ~src:section (fun fmt ->
+      fmt "Register request node %s" (Js.to_string id));
     Jstable.add !request_nodes id node
   in
   let reset () =
-    Lwt_log.ign_debug ~section "Reset request nodes";
+    Logs.debug ~src:section (fun fmt -> fmt "Reset request nodes");
     (* Unwrapped elements must be forced
        before resetting the request node table. *)
     force_unwrapped_elts ();
@@ -361,7 +360,7 @@ let reify_caml_event name node ce =
           (fun ev ->
             let node =
               Js.Opt.get (Dom_html.CoerceTo.a node) (fun () ->
-                Lwt_log.raise_error ~section "not an anchor element")
+                raise_error ~section "not an anchor element")
             in
             raw_a_handler node cookies_info tmpl ev) )
   | Xml.CE_call_service
@@ -373,7 +372,7 @@ let reify_caml_event name node ce =
           (fun ev ->
             let form =
               Js.Opt.get (Dom_html.CoerceTo.form node) (fun () ->
-                Lwt_log.raise_error ~section "not a form element")
+                raise_error ~section "not a form element")
             in
             raw_form_handler form kind cookies_info tmpl ev
               (Eliom_lib.from_poly client_hdlr : client_form_handler)) )
@@ -727,18 +726,20 @@ let is_before_initial_load, set_initial_load =
   (fun () -> !before_load), fun () -> before_load := false
 
 let rebuild_node_ns ns context elt' =
-  Lwt_log.ign_debug_f ~section "Rebuild node %a (%s)"
-    (fun () e -> Eliom_content_core.Xml.string_of_node_id (Xml.get_node_id e))
-    elt' context;
+  Logs.debug ~src:section (fun fmt ->
+    fmt "Rebuild node %s (%s)"
+      (Eliom_content_core.Xml.string_of_node_id (Xml.get_node_id elt'))
+      context);
   if is_before_initial_load ()
-  then
-    Lwt_log.raise_error_f ~section ~inspect:(rebuild_node' ns elt')
-      "Cannot apply %s%s before the document is initially loaded" context
+  then (
+    log_inspect (rebuild_node' ns elt');
+    raise_error ~section
+      "Cannot apply %s%s before the document is initially loaded@\n" context
       Xml.(
         match get_node_id elt' with
         | NoId -> " "
         | RequestId id -> " on request node " ^ id
-        | ProcessId id -> " on global node " ^ id);
+        | ProcessId id -> " on global node " ^ id));
   let node = Js.Unsafe.coerce (rebuild_node' ns elt') in
   flush_load_script (); node
 
