@@ -25,7 +25,6 @@
   js_of_ocaml-lwt.logger
   lwt_react
   ocsigenserver.baselib.base
-  lwt_log
   cohttp
   tyxml
   reactiveData)
