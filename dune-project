@@ -22,7 +22,7 @@ The client-side code is compiled to JS using Ocsigen Js_of_ocaml or to Wasm usin
  (homepage https://ocsigen.org/eliom/)
  (source (github ocsigen/eliom))
  (depends
-  (ocaml (and (>= 4.12) (< 5.3)))
+  (ocaml (>= 4.12))
   ocamlfind
   ppx_deriving
   (ppxlib (>= 0.15))
