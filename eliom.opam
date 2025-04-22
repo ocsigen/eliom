@@ -32,7 +32,6 @@ depends: [
   "lwt_log"
   "tyxml" {>= "4.6" & < "4.7"}
   "ocsigenserver" {>= "6.0" & < "7.0"}
-  "lwt_log"
   "ipaddr" {>= "2.1"}
   "reactiveData" {>= "0.2.1"}
   "base-bytes"
