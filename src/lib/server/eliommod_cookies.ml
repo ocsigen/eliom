@@ -89,23 +89,29 @@ module Persistent_cookies = struct
           else Some (cookies_str ^ "," ^ cookie)
 
     let remove_cookie exp_o cookie =
-      exp_o
-      |> Eliom_lib.Option.Lwt.iter @@ fun exp ->
-         modify_opt exp @@ function
-         | None -> None
-         | Some cookies_str ->
-             let cookies = String.split_on_char ',' cookies_str in
-             let cookies' = List.filter (fun c -> c <> cookie) cookies in
-             if cookies' = [] then None else Some (String.concat "," cookies')
+      match exp_o with
+      | None -> Lwt.return_unit
+      | Some exp -> (
+          modify_opt exp @@ function
+          | None -> None
+          | Some cookies_str ->
+              let cookies = String.split_on_char ',' cookies_str in
+              let cookies' = List.filter (fun c -> c <> cookie) cookies in
+              if cookies' = [] then None else Some (String.concat "," cookies'))
   end
 
   let add cookie ({expiry; _} as content) =
-    Eliom_lib.Option.Lwt.iter (fun t -> Expiry_dates.add_cookie t cookie) expiry
-    >>= fun _ -> Cookies.add cookie content
+    match expiry with
+    | Some t ->
+        Expiry_dates.add_cookie t cookie >>= fun _ -> Cookies.add cookie content
+    | None -> Lwt.return_unit
 
   let replace_if_exists cookie ({expiry; _} as content) =
-    Eliom_lib.Option.Lwt.iter (fun t -> Expiry_dates.add_cookie t cookie) expiry
-    >>= fun _ -> Cookies.replace_if_exists cookie content
+    match expiry with
+    | Some t ->
+        Expiry_dates.add_cookie t cookie >>= fun _ ->
+        Cookies.replace_if_exists cookie content
+    | None -> Lwt.return_unit
 
   let garbage_collect ~section gc_cookie =
     let now = Unix.time () in
