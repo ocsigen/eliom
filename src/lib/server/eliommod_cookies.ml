@@ -101,17 +101,16 @@ module Persistent_cookies = struct
   end
 
   let add cookie ({expiry; _} as content) =
-    match expiry with
-    | Some t ->
-        Expiry_dates.add_cookie t cookie >>= fun _ -> Cookies.add cookie content
-    | None -> Lwt.return_unit
+    (match expiry with
+      | Some t -> Expiry_dates.add_cookie t cookie
+      | None -> Lwt.return_unit)
+    >>= fun _ -> Cookies.add cookie content
 
   let replace_if_exists cookie ({expiry; _} as content) =
-    match expiry with
-    | Some t ->
-        Expiry_dates.add_cookie t cookie >>= fun _ ->
-        Cookies.replace_if_exists cookie content
-    | None -> Lwt.return_unit
+    (match expiry with
+      | Some t -> Expiry_dates.add_cookie t cookie
+      | None -> Lwt.return_unit)
+    >>= fun _ -> Cookies.replace_if_exists cookie content
 
   let garbage_collect ~section gc_cookie =
     let now = Unix.time () in
