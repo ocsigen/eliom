@@ -100,8 +100,7 @@ let redirect_post ?window_name url params =
            i##.value := v;
            Dom.appendChild f i
        | `File _ ->
-           Lwt_log.raise_error ~section
-             "redirect_post not implemented for files")
+           raise_error ~section "redirect_post not implemented for files")
     params;
   f##.style##.display := Js.string "none";
   Dom.appendChild Dom_html.document##.body f;
@@ -110,11 +109,11 @@ let redirect_post ?window_name url params =
 
 (* Forms cannot use PUT http method: do not redirect *)
 let redirect_put ?window_name:_ _url _params =
-  Lwt_log.raise_error ~section "redirect_put not implemented"
+  raise_error ~section "redirect_put not implemented"
 
 (* Forms cannot use DELETE http method: do not redirect *)
 let redirect_delete ?window_name:_ _url _params =
-  Lwt_log.raise_error ~section "redirect_delete not implemented"
+  raise_error ~section "redirect_delete not implemented"
 
 let nl_template =
   Eliom_parameter.make_non_localized_parameters ~prefix:"eliom" ~name:"template"
@@ -345,7 +344,7 @@ let send ?with_credentials ?(expecting_process_page = false) ?cookies_info
                (match post_args with
                | None -> redirect_get url
                | _ ->
-                   Lwt_log.raise_error ~section
+                   raise_error ~section
                      "can't silently redirect a Post request to non application content");
                Lwt.fail Program_terminated
            | Some appl_name ->
