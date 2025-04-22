@@ -459,7 +459,10 @@ module Cmo = struct
 
   let find err loc =
     let {Lexing.pos_fname; pos_cnum; _} = loc.Location.loc_start in
-    try typ (Hashtbl.find (Lazy.force events) (Filename.basename pos_fname, pos_cnum))
+    try
+      typ
+        (Hashtbl.find (Lazy.force events)
+           (Filename.basename pos_fname, pos_cnum))
     with Not_found ->
       Typ.extension ~loc @@ Location.Error.to_extension
       @@ Location.Error.make ~loc ~sub:[]
