@@ -95,7 +95,7 @@ let _ =
   Lwt_log.default := Lwt_log.console;
   Lwt.async_exception_hook :=
     fun exn ->
-      Firebug.console##error_3 (Js.string "Lwt.async:")
+      Console.console##error_3 (Js.string "Lwt.async:")
         (Js.string (Printexc.to_string exn))
         exn
 

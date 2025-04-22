@@ -104,7 +104,7 @@ let fast_select_request_nodes root =
 
 let fast_select_nodes root =
   if !Eliom_config.debug_timings
-  then Firebug.console ## (time (Js.string "fast_select_nodes"));
+  then Console.console ## (time (Js.string "fast_select_nodes"));
   let a_nodeList : Dom_html.element Dom.nodeList Js.t =
     root
     ## (querySelectorAll
@@ -137,7 +137,7 @@ let fast_select_nodes root =
           (Js.string ("." ^ Eliom_runtime.RawXML.ce_registered_attr_class)))
   in
   if !Eliom_config.debug_timings
-  then Firebug.console ## (timeEnd (Js.string "fast_select_nodes"));
+  then Console.console ## (timeEnd (Js.string "fast_select_nodes"));
   ( a_nodeList
   , form_nodeList
   , process_node_nodeList
@@ -581,13 +581,13 @@ let rec rewrite_css ~max (media, href, css) =
        | None -> Lwt.return_nil
        | Some css ->
            if !Eliom_config.debug_timings
-           then Firebug.console ## (time (Js.string ("rewrite_CSS: " ^ href)));
+           then Console.console ## (time (Js.string ("rewrite_CSS: " ^ href)));
            let* imports, css =
              rewrite_css_import ~max ~prefix:(basedir href) ~media css 0
            in
            if !Eliom_config.debug_timings
            then
-             Firebug.console ## (timeEnd (Js.string ("rewrite_CSS: " ^ href)));
+             Console.console ## (timeEnd (Js.string ("rewrite_CSS: " ^ href)));
            Lwt.return (imports @ [media, css]))
     (fun _ -> Lwt.return [media, Printf.sprintf "@import url(%s);" href])
 
@@ -663,7 +663,7 @@ let build_style (e, css) =
 
 let preload_css (doc : Dom_html.element Js.t) =
   if !Eliom_config.debug_timings
-  then Firebug.console ## (time (Js.string "preload_css (fetch+rewrite)"));
+  then Console.console ## (time (Js.string "preload_css (fetch+rewrite)"));
   let* css = Lwt_list.map_p build_style (fetch_linked_css (get_head doc)) in
   let css = List.concat css in
   List.iter
@@ -675,7 +675,7 @@ let preload_css (doc : Dom_html.element Js.t) =
          Lwt_log.ign_info ~section "Unique CSS skipped...")
     css;
   if !Eliom_config.debug_timings
-  then Firebug.console ## (timeEnd (Js.string "preload_css (fetch+rewrite)"));
+  then Console.console ## (timeEnd (Js.string "preload_css (fetch+rewrite)"));
   Lwt.return_unit
 
 (** Window scrolling *)
@@ -687,18 +687,18 @@ let preload_css (doc : Dom_html.element Js.t) =
 [@@@warning "-39"]
 
 type position =
-  {html_top : int; html_left : int; body_top : int; body_left : int}
+  {html_top : float; html_left : float; body_top : float; body_left : float}
 [@@deriving json]
 
 [@@@warning "+39"]
 
-let top_position = {html_top = 0; html_left = 0; body_top = 0; body_left = 0}
+let top_position = {html_top = 0.; html_left = 0.; body_top = 0.; body_left = 0.}
 
 let createDocumentScroll () =
-  { html_top = Dom_html.document##.documentElement##.scrollTop
-  ; html_left = Dom_html.document##.documentElement##.scrollLeft
-  ; body_top = Dom_html.document##.body##.scrollTop
-  ; body_left = Dom_html.document##.body##.scrollLeft }
+  { html_top = Js.to_float Dom_html.document##.documentElement##.scrollTop
+  ; html_left = Js.to_float Dom_html.document##.documentElement##.scrollLeft
+  ; body_top = Js.to_float Dom_html.document##.body##.scrollTop
+  ; body_left = Js.to_float Dom_html.document##.body##.scrollLeft }
 
 (* With firefox, the scroll position is restored before to fire the
    popstate event. We maintain our own position. *)
@@ -719,10 +719,10 @@ let _ =
 let getDocumentScroll () = !current_position
 
 let setDocumentScroll pos =
-  Dom_html.document##.documentElement##.scrollTop := pos.html_top;
-  Dom_html.document##.documentElement##.scrollLeft := pos.html_left;
-  Dom_html.document##.body##.scrollTop := pos.body_top;
-  Dom_html.document##.body##.scrollLeft := pos.body_left;
+  Dom_html.document##.documentElement##.scrollTop := Js.float pos.html_top;
+  Dom_html.document##.documentElement##.scrollLeft := Js.float pos.html_left;
+  Dom_html.document##.body##.scrollTop := Js.float pos.body_top;
+  Dom_html.document##.body##.scrollLeft := Js.float pos.body_left;
   current_position := pos
 
 (* UGLY HACK for Opera bug: Opera seem does not always take into
