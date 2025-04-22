@@ -1,10 +1,12 @@
-(lang dune 3.6)
+(lang dune 3.18)
 
 (name eliom)
 (version 11.1.1)
 (maintainers dev@ocsigen.org)
 (authors dev@ocsigen.org)
 (license "LGPL-2.1-only WITH OCaml-LGPL-linking-exception")
+
+(generate_opam_files true)
 
 (package
  (name eliom)
@@ -20,20 +22,20 @@ The client-side code is compiled to JS using Ocsigen Js_of_ocaml or to Wasm usin
  (homepage https://ocsigen.org/eliom/)
  (source (github ocsigen/eliom))
  (depends
-  (ocaml (>= 4.12.0))
+  (ocaml (and (>= 4.12) (< 5.3)))
   ocamlfind
   ppx_deriving
-  (ppxlib (>= 0.15.0))
-  (js_of_ocaml-compiler (and (>= 5.5.0) (< 6.0.0)))
-  (js_of_ocaml (>= 5.5.0))
-  (js_of_ocaml-lwt (>= 5.5.0))
+  (ppxlib (>= 0.15))
+  (js_of_ocaml-compiler (and (>= 5.5) (< 6.0)))
+  (js_of_ocaml (>= 5.5))
+  (js_of_ocaml-lwt (>= 5.5))
   (js_of_ocaml-ocamlbuild :build)
-  (js_of_ocaml-ppx (>= 5.5.0))
-  (js_of_ocaml-ppx_deriving_json (>= 5.5.0))
-  (js_of_ocaml-tyxml (>= 5.5.0))
+  (js_of_ocaml-ppx (>= 5.5))
+  (js_of_ocaml-ppx_deriving_json (>= 5.5))
+  (js_of_ocaml-tyxml (>= 5.5))
   lwt_log
-  (tyxml (and (>= 4.6.0) (< 4.7.0)))
-  (ocsigenserver (and (>= 6.0.0) (< 7.0.0)))
+  (tyxml (and (>= 4.6) (< 4.7)))
+  (ocsigenserver (and (>= 6.0) (< 7.0)))
   lwt_log
   (ipaddr (>= 2.1))
   (reactiveData (>= 0.2.1))
@@ -41,5 +43,3 @@ The client-side code is compiled to JS using Ocsigen Js_of_ocaml or to Wasm usin
   (ocsipersist (and (>= 2.0) (< 3.0)))
   ppx_optcomp
   (xml-light (>= "2.5"))))
-
-(generate_opam_files)

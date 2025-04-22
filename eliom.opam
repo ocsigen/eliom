@@ -18,20 +18,20 @@ homepage: "https://ocsigen.org/eliom/"
 bug-reports: "https://github.com/ocsigen/eliom/issues"
 depends: [
   "dune" {>= "3.6"}
-  "ocaml" {>= "4.12.0"}
+  "ocaml" {>= "4.12" & < "5.3"}
   "ocamlfind"
   "ppx_deriving"
-  "ppxlib" {>= "0.15.0"}
-  "js_of_ocaml-compiler" {>= "5.5.0" & < "6.0.0"}
-  "js_of_ocaml" {>= "5.5.0"}
-  "js_of_ocaml-lwt" {>= "5.5.0"}
+  "ppxlib" {>= "0.15"}
+  "js_of_ocaml-compiler" {>= "5.5" & < "6.0"}
+  "js_of_ocaml" {>= "5.5"}
+  "js_of_ocaml-lwt" {>= "5.5"}
   "js_of_ocaml-ocamlbuild" {build}
-  "js_of_ocaml-ppx" {>= "5.5.0"}
-  "js_of_ocaml-ppx_deriving_json" {>= "5.5.0"}
-  "js_of_ocaml-tyxml" {>= "5.5.0"}
+  "js_of_ocaml-ppx" {>= "5.5"}
+  "js_of_ocaml-ppx_deriving_json" {>= "5.5"}
+  "js_of_ocaml-tyxml" {>= "5.5"}
   "lwt_log"
-  "tyxml" {>= "4.6.0" & < "4.7.0"}
-  "ocsigenserver" {>= "6.0.0" & < "7.0.0"}
+  "tyxml" {>= "4.6" & < "4.7"}
+  "ocsigenserver" {>= "6.0" & < "7.0"}
   "lwt_log"
   "ipaddr" {>= "2.1"}
   "reactiveData" {>= "0.2.1"}
