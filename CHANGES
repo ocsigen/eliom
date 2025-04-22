@@ -1,3 +1,8 @@
+===== unreleased =====
+* Eliom_lib
+** Deprecated logging functions were removed (#821)
+   These are: debug_exn, debug, error, error_any, jsdebug
+
 ===== 11.1 =====
 * Compatibility with WASM
 
