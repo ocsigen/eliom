@@ -239,7 +239,18 @@ let get_client_lib ?kind:k () =
           with Not_found -> [])
        (get_client_package ?kind:k ()))
 
-let get_client_js () = ["+eliom.client/eliom_client.js"]
+let get_client_js () =
+  List.concat
+    (List.map
+       (fun p ->
+          try
+            let base = Findlib.package_directory p in
+            List.map
+              (fun r -> Findlib.resolve_path ~base r)
+              (split ' '
+                 (Findlib.package_property (get_predicates ()) p "jsoo_runtime"))
+          with Not_found -> [])
+       (get_client_package ()))
 
 (* Should be called only with -dump... *)
 let get_pp_dump pkg opt =
