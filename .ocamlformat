@@ -1,4 +1,5 @@
-version=0.26.1
+version=0.27.0
+parse-docstrings = false
 break-cases = fit
 break-collection-expressions = fit-or-vertical
 break-fun-decl = wrap
