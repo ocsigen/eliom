@@ -3,25 +3,26 @@ let handle_file_client nm =
     Printf.printf "(rule (copy# ../%s %s))\n" nm
       (Filename.chop_suffix nm extension ^ Filename.extension nm)
   in
-  if Filename.check_suffix nm ".client.ml"
-  then copy_file ".client.ml"
-  else if Filename.check_suffix nm ".shared.ml"
-  then copy_file ".shared.ml"
-  else if Filename.check_suffix nm ".client.mli"
-  then copy_file ".client.mli"
-  else if Filename.check_suffix nm ".shared.mli"
-  then copy_file ".shared.mli"
-  else if Filename.check_suffix nm ".eliom"
-  then
+  if Filename.check_suffix nm ".client.ml" then copy_file ".client.ml"
+  else if Filename.check_suffix nm ".shared.ml" then copy_file ".shared.ml"
+  else if Filename.check_suffix nm ".client.mli" then copy_file ".client.mli"
+  else if Filename.check_suffix nm ".shared.mli" then copy_file ".shared.mli"
+  else if Filename.check_suffix nm ".eliom" then
     let nm = Filename.chop_suffix nm ".eliom" in
     Printf.printf
-      "(rule (target %s.ml) (deps ../%s.eliom)\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir .. (run ppx_eliom_client --as-pp -server-cmo %%{cmo:../server/%s} --impl %%{deps})))))\n"
+      "(rule (target %s.ml) (deps ../%s.eliom)\n\
+      \  (action\n\
+      \    (with-stdout-to %%{target}\n\
+      \      (chdir .. (run ppx_eliom_client --as-pp -server-cmo \
+       %%{cmo:../server/%s} --impl %%{deps})))))\n"
       nm nm nm
-  else if Filename.check_suffix nm ".eliomi"
-  then
+  else if Filename.check_suffix nm ".eliomi" then
     let nm = Filename.chop_suffix nm ".eliomi" in
     Printf.printf
-      "(rule (target %s.mli) (deps ../%s.eliomi)\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir .. (run ppx_eliom_client --as-pp --intf %%{deps})))))\n"
+      "(rule (target %s.mli) (deps ../%s.eliomi)\n\
+      \  (action\n\
+      \    (with-stdout-to %%{target}\n\
+      \      (chdir .. (run ppx_eliom_client --as-pp --intf %%{deps})))))\n"
       nm nm
 
 (*
@@ -45,25 +46,25 @@ let handle_file_server nm =
     Printf.printf "(rule (copy# ../%s %s))\n" nm
       (Filename.chop_suffix nm extension ^ Filename.extension nm)
   in
-  if Filename.check_suffix nm ".server.ml"
-  then copy_file ".server.ml"
-  else if Filename.check_suffix nm ".shared.ml"
-  then copy_file ".shared.ml"
-  else if Filename.check_suffix nm ".server.mli"
-  then copy_file ".server.mli"
-  else if Filename.check_suffix nm ".shared.mli"
-  then copy_file ".shared.mli"
-  else if Filename.check_suffix nm ".eliom"
-  then
+  if Filename.check_suffix nm ".server.ml" then copy_file ".server.ml"
+  else if Filename.check_suffix nm ".shared.ml" then copy_file ".shared.ml"
+  else if Filename.check_suffix nm ".server.mli" then copy_file ".server.mli"
+  else if Filename.check_suffix nm ".shared.mli" then copy_file ".shared.mli"
+  else if Filename.check_suffix nm ".eliom" then
     let nm = Filename.chop_suffix nm ".eliom" in
     Printf.printf
-      "(rule (target %s.ml) (deps ../%s.eliom)\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir .. (run ppx_eliom_server --as-pp --impl %%{deps})))))\n"
+      "(rule (target %s.ml) (deps ../%s.eliom)\n\
+      \  (action\n\
+      \    (with-stdout-to %%{target}\n\
+      \      (chdir .. (run ppx_eliom_server --as-pp --impl %%{deps})))))\n"
       nm nm
-  else if Filename.check_suffix nm ".eliomi"
-  then
+  else if Filename.check_suffix nm ".eliomi" then
     let nm = Filename.chop_suffix nm ".eliomi" in
     Printf.printf
-      "(rule (target %s.mli) (deps ../%s.eliomi)\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir .. (run ppx_eliom_server --as-pp --intf %%{deps})))))\n"
+      "(rule (target %s.mli) (deps ../%s.eliomi)\n\
+      \  (action\n\
+      \    (with-stdout-to %%{target}\n\
+      \      (chdir .. (run ppx_eliom_server --as-pp --intf %%{deps})))))\n"
       nm nm
 
 let () =

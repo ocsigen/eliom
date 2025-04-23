@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 (** {2 Server side state data, a.k.a Eliom references} *)
 
@@ -31,7 +31,7 @@ type ('a, +'storage) eref'
     references which can be, get, set, modify, and unset volatile references
     through {e non-Lwt} functions. *)
 
-type 'a eref = ('a, [`Volatile | `Persistent]) eref'
+type 'a eref = ('a, [ `Volatile | `Persistent ]) eref'
 (** The type of Eliom references whose content is of type ['a].  *)
 
 exception Eref_not_initialized
@@ -39,11 +39,11 @@ exception Eref_not_initialized
     that has not been initaliazed, when we don't want to initialize it. *)
 
 val eref :
-   scope:[< Eliom_common.all_scope]
-  -> ?secure:bool
-  -> ?persistent:string
-  -> 'a
-  -> 'a eref
+  scope:[< Eliom_common.all_scope ] ->
+  ?secure:bool ->
+  ?persistent:string ->
+  'a ->
+  'a eref
 (** The function [eref ~scope value] creates an Eliom reference for
     the given [scope] and initialize it with [value]. See the Eliom
     manual for more information about {% <<a_manual
@@ -83,11 +83,11 @@ val eref :
 *)
 
 val eref_from_fun :
-   scope:[< Eliom_common.all_scope]
-  -> ?secure:bool
-  -> ?persistent:string
-  -> (unit -> 'a)
-  -> 'a eref
+  scope:[< Eliom_common.all_scope ] ->
+  ?secure:bool ->
+  ?persistent:string ->
+  (unit -> 'a) ->
+  'a eref
 (** The function [eref_from_fun] works like the above {!Eliom_reference.eref},
     but instead of providing a value for the initial content, a function [f] for
     {e creating the initial content} is provided (cf. also {!Lazy.from_fun}).
@@ -156,18 +156,15 @@ val unset : 'a eref -> unit Lwt.t
 (** Same functions as in [Eliom_reference] but a non-Lwt interface
     for non-persistent Eliom references. *)
 module Volatile : sig
-  type 'a eref = ('a, [`Volatile]) eref'
+  type 'a eref = ('a, [ `Volatile ]) eref'
   (** The type of volatile Eliom references.
       Note that [('a Eliom_reference.Volatile.eref :> 'a Eliom_reference.eref)], i.e. wherever you can use an ['a
       Eliom_reference.eref] you can also use an ['a Eliom_reference.Volatile.eref :> 'a Eliom_reference.eref].  *)
 
-  val eref : scope:[< Eliom_common.all_scope] -> ?secure:bool -> 'a -> 'a eref
+  val eref : scope:[< Eliom_common.all_scope ] -> ?secure:bool -> 'a -> 'a eref
 
   val eref_from_fun :
-     scope:[< Eliom_common.all_scope]
-    -> ?secure:bool
-    -> (unit -> 'a)
-    -> 'a eref
+    scope:[< Eliom_common.all_scope ] -> ?secure:bool -> (unit -> 'a) -> 'a eref
 
   val get : 'a eref -> 'a
   val set : 'a eref -> 'a -> unit
@@ -183,39 +180,39 @@ module Volatile : sig
     *)
 
     val get :
-       ( [< `Session_group | `Session | `Client_process]
-         , [< `Data] )
-         Eliom_state.Ext.state
-      -> 'a eref
-      -> 'a
+      ( [< `Session_group | `Session | `Client_process ],
+        [< `Data ] )
+      Eliom_state.Ext.state ->
+      'a eref ->
+      'a
     (** get the value of a reference from outside the state.
         If the value has not been set yet for this state,
         it will raise exception [Eref_not_initialized].
     *)
 
     val set :
-       ( [< `Session_group | `Session | `Client_process]
-         , [< `Data] )
-         Eliom_state.Ext.state
-      -> 'a eref
-      -> 'a
-      -> unit
+      ( [< `Session_group | `Session | `Client_process ],
+        [< `Data ] )
+      Eliom_state.Ext.state ->
+      'a eref ->
+      'a ->
+      unit
 
     val modify :
-       ( [< `Session_group | `Session | `Client_process]
-         , [< `Data] )
-         Eliom_state.Ext.state
-      -> 'a eref
-      -> ('a -> 'a)
-      -> unit
+      ( [< `Session_group | `Session | `Client_process ],
+        [< `Data ] )
+      Eliom_state.Ext.state ->
+      'a eref ->
+      ('a -> 'a) ->
+      unit
     (** Warning: the function will be executed with the current context *)
 
     val unset :
-       ( [< `Session_group | `Session | `Client_process]
-         , [< `Data] )
-         Eliom_state.Ext.state
-      -> 'a eref
-      -> unit
+      ( [< `Session_group | `Session | `Client_process ],
+        [< `Data ] )
+      Eliom_state.Ext.state ->
+      'a eref ->
+      unit
   end
 end
 
@@ -227,37 +224,37 @@ end
 *)
 module Ext : sig
   val get :
-     ( [< `Session_group | `Session | `Client_process]
-       , [< `Data | `Pers] )
-       Eliom_state.Ext.state
-    -> 'a eref
-    -> 'a Lwt.t
+    ( [< `Session_group | `Session | `Client_process ],
+      [< `Data | `Pers ] )
+    Eliom_state.Ext.state ->
+    'a eref ->
+    'a Lwt.t
   (** get the value of a reference from outside the state.
       If the value has not been set yet for this state,
       it will raise exception [Eref_not_initialized].
   *)
 
   val set :
-     ( [< `Session_group | `Session | `Client_process]
-       , [< `Data | `Pers] )
-       Eliom_state.Ext.state
-    -> 'a eref
-    -> 'a
-    -> unit Lwt.t
+    ( [< `Session_group | `Session | `Client_process ],
+      [< `Data | `Pers ] )
+    Eliom_state.Ext.state ->
+    'a eref ->
+    'a ->
+    unit Lwt.t
 
   val modify :
-     ( [< `Session_group | `Session | `Client_process]
-       , [< `Data | `Pers] )
-       Eliom_state.Ext.state
-    -> 'a eref
-    -> ('a -> 'a)
-    -> unit Lwt.t
+    ( [< `Session_group | `Session | `Client_process ],
+      [< `Data | `Pers ] )
+    Eliom_state.Ext.state ->
+    'a eref ->
+    ('a -> 'a) ->
+    unit Lwt.t
   (** Warning: the function will be executed with the current context *)
 
   val unset :
-     ( [< `Session_group | `Session | `Client_process]
-       , [< `Data | `Pers] )
-       Eliom_state.Ext.state
-    -> 'a eref
-    -> unit Lwt.t
+    ( [< `Session_group | `Session | `Client_process ],
+      [< `Data | `Pers ] )
+    Eliom_state.Ext.state ->
+    'a eref ->
+    unit Lwt.t
 end

@@ -17,42 +17,26 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 let is_client_app () = false
 
 type ('a, 'b) server_function =
   ('a, 'b) Eliom_client_base.server_function_service * Eliom_wrap.unwrapper
 
-let mk_serv_fun a b : ('a, 'b) server_function = a, b
+let mk_serv_fun a b : ('a, 'b) server_function = (a, b)
 
-let server_function
-      ?scope
-      ?options
-      ?charset
-      ?code
-      ?content_type
-      ?headers
-      ?secure_session
-      ?name
-      ?csrf_safe
-      ?csrf_scope
-      ?csrf_secure
-      ?max_use
-      ?timeout
-      ?https
-      ?error_handler
-      argument_type
-      f
-  =
+let server_function ?scope ?options ?charset ?code ?content_type ?headers
+    ?secure_session ?name ?csrf_safe ?csrf_scope ?csrf_secure ?max_use ?timeout
+    ?https ?error_handler argument_type f =
   mk_serv_fun
     (Eliom_registration.Ocaml.create ?scope ?options ?charset ?code
        ?content_type ?headers ?secure_session ?name ?csrf_safe ?csrf_scope
        ?csrf_secure ?max_use ?timeout ?https ?error_handler
        ~meth:
          (Eliom_service.Post
-            ( Eliom_parameter.unit
-            , Eliom_parameter.(ocaml "argument" argument_type) ))
+            ( Eliom_parameter.unit,
+              Eliom_parameter.(ocaml "argument" argument_type) ))
        ~path:Eliom_service.No_path
        (fun () argument -> f argument))
     (Eliom_wrap.create_unwrapper

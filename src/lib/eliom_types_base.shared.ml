@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 open Eliom_lib
 
@@ -25,10 +25,11 @@ type server_params = unit
 
 let sp = ()
 
-type sitedata =
-  { (* sent while starting the program *)
-    site_dir : Url.path
-  ; site_dir_string : string }
+type sitedata = {
+  (* sent while starting the program *)
+  site_dir : Url.path;
+  site_dir_string : string;
+}
 
 (*SGO* Server generated onclicks/onsubmits
 (* For client side program, we sometimes simulate links and forms

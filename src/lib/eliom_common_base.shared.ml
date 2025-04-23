@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 open Eliom_lib
 
@@ -33,49 +33,53 @@ type user_scope =
   | `Session of scope_hierarchy
   | `Client_process of scope_hierarchy ]
 
-type scope = [`Site | user_scope]
-type all_scope = [scope | `Global | `Request]
-type global_scope = [`Global]
-type site_scope = [`Site]
-type session_group_scope = [`Session_group of scope_hierarchy]
-type session_scope = [`Session of scope_hierarchy]
-type client_process_scope = [`Client_process of scope_hierarchy]
-type request_scope = [`Request]
+type scope = [ `Site | user_scope ]
+type all_scope = [ scope | `Global | `Request ]
+type global_scope = [ `Global ]
+type site_scope = [ `Site ]
+type session_group_scope = [ `Session_group of scope_hierarchy ]
+type session_scope = [ `Session of scope_hierarchy ]
+type client_process_scope = [ `Client_process of scope_hierarchy ]
+type request_scope = [ `Request ]
 
 (******************************************************************)
-type user_level = [`Session_group | `Session | `Client_process]
-type cookie_level = [`Session | `Client_process]
+type user_level = [ `Session_group | `Session | `Client_process ]
+type cookie_level = [ `Session | `Client_process ]
 
 type cookie_scope =
-  [`Session of scope_hierarchy | `Client_process of scope_hierarchy]
+  [ `Session of scope_hierarchy | `Client_process of scope_hierarchy ]
 
-let level_of_user_scope : [< user_scope] -> [> user_level] = function
+let level_of_user_scope : [< user_scope ] -> [> user_level ] = function
   | `Session _ -> `Session
   | `Session_group _ -> `Session_group
   | `Client_process _ -> `Client_process
 
-let cookie_level_of_user_scope : [< user_scope] -> [> cookie_level] = function
+let cookie_level_of_user_scope : [< user_scope ] -> [> cookie_level ] = function
   | `Session _ | `Session_group _ -> `Session
   | `Client_process _ -> `Client_process
 
-let cookie_scope_of_user_scope : [< user_scope] -> [> cookie_scope] = function
+let cookie_scope_of_user_scope : [< user_scope ] -> [> cookie_scope ] = function
   | `Session n | `Session_group n -> `Session n
   | `Client_process n -> `Client_process n
 
-let scope_hierarchy_of_user_scope : [< user_scope] -> scope_hierarchy = function
+let scope_hierarchy_of_user_scope : [< user_scope ] -> scope_hierarchy =
+  function
   | `Session n | `Session_group n | `Client_process n -> n
 
 (* The key in the table of states. For cookies scopes, it is also the
    information in the cookie name, without the kind of session, and with the
    scope level (that is not in the cookie name). *)
-type full_state_name =
-  {user_scope : user_scope; secure : bool; site_dir_str : string}
+type full_state_name = {
+  user_scope : user_scope;
+  secure : bool;
+  site_dir_str : string;
+}
 
 module Full_state_name_table = Map.Make (struct
-    type t = full_state_name
+  type t = full_state_name
 
-    let compare = compare
-  end)
+  let compare = compare
+end)
 
 (******************************************************************)
 (* Service kinds: *)
@@ -179,69 +183,72 @@ let nl_is_persistent n = n.[0] = 'p'
 
 [@@@warning "-39"]
 
-type client_process_info =
-  { cpi_ssl : bool
-  ; cpi_hostname : string
-  ; cpi_server_port : int
-  ; cpi_original_full_path : string list }
+type client_process_info = {
+  cpi_ssl : bool;
+  cpi_hostname : string;
+  cpi_server_port : int;
+  cpi_original_full_path : string list;
+}
 [@@deriving json]
 
 [@@@warning "+39"]
 
-type sess_info =
-  { si_other_get_params : (string * string) list
-  ; si_all_get_params : (string * string) list
-  ; si_all_post_params : (string * string) list option
-  ; si_all_file_params : (string * file_info) list option
-  ; si_service_session_cookies : string Full_state_name_table.t
-  ; (* the session service cookies sent by the request *)
-    (* the key is the cookie name (or site dir) *)
-    si_data_session_cookies : string Full_state_name_table.t
-  ; (* the session data cookies sent by the request *)
-    (* the key is the cookie name (or site dir) *)
-    si_persistent_session_cookies : string Full_state_name_table.t
-  ; (* the persistent session cookies sent by the request *)
-    (* the key is the cookie name (or site dir) *)
-    si_secure_cookie_info :
-      string Full_state_name_table.t
-      * string Full_state_name_table.t
-      * string Full_state_name_table.t
-    (* the same, but for secure cookies *)
-  ; (* now for tab cookies: *)
-    si_service_session_cookies_tab : string Full_state_name_table.t
-  ; si_data_session_cookies_tab : string Full_state_name_table.t
-  ; si_persistent_session_cookies_tab : string Full_state_name_table.t
-  ; si_secure_cookie_info_tab :
-      string Full_state_name_table.t
-      * string Full_state_name_table.t
-      * string Full_state_name_table.t
-  ; si_tab_cookies : string Ocsigen_cookie_map.Map_inner.t
-  ; si_nonatt_info : na_key_req
-  ; si_state_info : att_key_req * att_key_req
-  ; si_previous_extension_error : int
-    (* HTTP error code sent by previous extension (default: 404) *)
-  ; si_na_get_params : (string * string) list Lazy.t
-  ; si_nl_get_params : (string * string) list String.Table.t
-  ; si_nl_post_params : (string * string) list String.Table.t
-  ; si_nl_file_params : (string * file_info) list String.Table.t
-  ; si_persistent_nl_get_params : (string * string) list String.Table.t Lazy.t
-  ; si_all_get_but_na_nl : (string * string) list Lazy.t
-  ; si_all_get_but_nl : (string * string) list
-  ; si_ignored_get_params : (string * string) list
-  ; si_ignored_post_params : (string * string) list
-  ; si_client_process_info : client_process_info option
-  ; si_expect_process_data : bool Lazy.t
-    (*204FORMS*     si_internal_form: bool; *) }
+type sess_info = {
+  si_other_get_params : (string * string) list;
+  si_all_get_params : (string * string) list;
+  si_all_post_params : (string * string) list option;
+  si_all_file_params : (string * file_info) list option;
+  si_service_session_cookies : string Full_state_name_table.t;
+  (* the session service cookies sent by the request *)
+  (* the key is the cookie name (or site dir) *)
+  si_data_session_cookies : string Full_state_name_table.t;
+  (* the session data cookies sent by the request *)
+  (* the key is the cookie name (or site dir) *)
+  si_persistent_session_cookies : string Full_state_name_table.t;
+  (* the persistent session cookies sent by the request *)
+  (* the key is the cookie name (or site dir) *)
+  si_secure_cookie_info :
+    string Full_state_name_table.t
+    * string Full_state_name_table.t
+    * string Full_state_name_table.t;
+  (* the same, but for secure cookies *)
+  (* now for tab cookies: *)
+  si_service_session_cookies_tab : string Full_state_name_table.t;
+  si_data_session_cookies_tab : string Full_state_name_table.t;
+  si_persistent_session_cookies_tab : string Full_state_name_table.t;
+  si_secure_cookie_info_tab :
+    string Full_state_name_table.t
+    * string Full_state_name_table.t
+    * string Full_state_name_table.t;
+  si_tab_cookies : string Ocsigen_cookie_map.Map_inner.t;
+  si_nonatt_info : na_key_req;
+  si_state_info : att_key_req * att_key_req;
+  si_previous_extension_error : int;
+      (* HTTP error code sent by previous extension (default: 404) *)
+  si_na_get_params : (string * string) list Lazy.t;
+  si_nl_get_params : (string * string) list String.Table.t;
+  si_nl_post_params : (string * string) list String.Table.t;
+  si_nl_file_params : (string * file_info) list String.Table.t;
+  si_persistent_nl_get_params : (string * string) list String.Table.t Lazy.t;
+  si_all_get_but_na_nl : (string * string) list Lazy.t;
+  si_all_get_but_nl : (string * string) list;
+  si_ignored_get_params : (string * string) list;
+  si_ignored_post_params : (string * string) list;
+  si_client_process_info : client_process_info option;
+  si_expect_process_data : bool Lazy.t;
+      (*204FORMS*     si_internal_form: bool; *)
+}
 
-type eliom_js_page_data =
-  { ejs_global_data : (Eliom_runtime.global_data * Eliom_wrap.unwrapper) option
-  ; ejs_request_data : Eliom_runtime.request_data
-  ; (* Event handlers *)
-    ejs_event_handler_table : Eliom_runtime.RawXML.event_handler_table
-  ; (* Client Attributes *)
-    ejs_client_attrib_table : Eliom_runtime.RawXML.client_attrib_table
-  ; (* Session info *)
-    ejs_sess_info : sess_info }
+type eliom_js_page_data = {
+  ejs_global_data : (Eliom_runtime.global_data * Eliom_wrap.unwrapper) option;
+  ejs_request_data : Eliom_runtime.request_data;
+  (* Event handlers *)
+  ejs_event_handler_table : Eliom_runtime.RawXML.event_handler_table;
+  (* Client Attributes *)
+  ejs_client_attrib_table : Eliom_runtime.RawXML.client_attrib_table;
+  (* Session info *)
+  ejs_sess_info : sess_info;
+}
 
 (************ unwrapping identifiers *********************)
 
@@ -269,7 +276,7 @@ let nl_get_appl_parameter = "__nl_n_eliom-process.p"
 (* make a path by going up when there is a '..' *)
 let make_actual_path path =
   let rec aux accu path =
-    match accu, path with
+    match (accu, path) with
     | [], ".." :: path' -> aux accu path'
     | _ :: accu', ".." :: path' -> aux accu' path'
     | _, a :: path' -> aux (a :: accu) path'
@@ -287,7 +294,7 @@ let prefixlengthminusone = prefixlength - 1
 
 let split_nl_prefix_param l =
   let rec aux other map = function
-    | [] -> map, other
+    | [] -> (map, other)
     | ((n, _) as a) :: l ->
         if
           String.first_diff n nl_param_prefix 0 prefixlengthminusone
@@ -312,7 +319,7 @@ let split_prefix_param pref l =
   let len = String.length pref in
   List.partition
     (fun (n, _) ->
-       try String.sub n 0 len = pref with Invalid_argument _ -> false)
+      try String.sub n 0 len = pref with Invalid_argument _ -> false)
     l
 
 (* Remove all parameters whose name starts with pref *)
@@ -321,8 +328,8 @@ let remove_prefixed_param pref l =
   let rec aux = function
     | [] -> []
     | ((n, _) as a) :: l -> (
-      try if String.sub n 0 len = pref then aux l else a :: aux l
-      with Invalid_argument _ -> a :: aux l)
+        try if String.sub n 0 len = pref then aux l else a :: aux l
+        with Invalid_argument _ -> a :: aux l)
   in
   aux l
 
@@ -351,22 +358,28 @@ and 'a direlt = Dir of 'a dircontent ref | File of 'a ref
 
 let empty_dircontent () = Vide
 
-type meth = [`Get | `Post | `Put | `Delete | `Other]
-type page_table_key = {key_state : att_key_serv * att_key_serv; key_meth : meth}
+type meth = [ `Get | `Post | `Put | `Delete | `Other ]
+
+type page_table_key = {
+  key_state : att_key_serv * att_key_serv;
+  key_meth : meth;
+}
+
 type anon_params_type = int
 
 exception Eliom_Typing_Error of (string * exn) list
 
-type ('params, 'result) service =
-  { (* unique_id, computed from parameters type.  must be the same even
+type ('params, 'result) service = {
+  (* unique_id, computed from parameters type.  must be the same even
      if the actual service reference is different (after reloading the
      site) so that it replaces the former one *)
-    s_id : anon_params_type * anon_params_type
-  ; mutable s_max_use : int option
-  ; s_expire : (float * float ref) option
-  ; s_f : bool -> 'params -> 'result Lwt.t }
+  s_id : anon_params_type * anon_params_type;
+  mutable s_max_use : int option;
+  s_expire : (float * float ref) option;
+  s_f : bool -> 'params -> 'result Lwt.t;
+}
 
-type 'a to_and_of = {of_string : string -> 'a; to_string : 'a -> string}
+type 'a to_and_of = { of_string : string -> 'a; to_string : 'a -> string }
 
 (* gets backtrace up until the first slot in the backtrace which mentions
      Lwt, which is usually where the backtrace is no longer informative *)
@@ -376,8 +389,7 @@ let backtrace_lwt =
     let stack = Printexc.get_callstack 16 in
     let stack_length = Printexc.raw_backtrace_length stack in
     let rec loop acc i =
-      if i >= stack_length
-      then acc
+      if i >= stack_length then acc
       else
         match
           let open Printexc in
@@ -385,8 +397,7 @@ let backtrace_lwt =
           @@ get_raw_backtrace_slot stack i
         with
         | Some s ->
-            if Re.Str.string_match lwt_slot_re s 0
-            then acc
+            if Re.Str.string_match lwt_slot_re s 0 then acc
             else loop (s :: acc) (i + 1)
         | None -> loop acc (i + 1)
     in

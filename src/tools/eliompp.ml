@@ -1,6 +1,6 @@
 open Printf
 
-let kind : [`Server | `Client] ref = ref `Server
+let kind : [ `Server | `Client ] ref = ref `Server
 
 let usage () =
   Printf.eprintf "Usage: %s -server <files>\n" (Filename.basename Sys.argv.(0));
@@ -31,7 +31,9 @@ let print_debug lexbuf =
 
 let pretty_print_header filename =
   let print = printf "# %d \"%s\"\n" in
-  print 1 filename; print 1 "<command-line>"; print 1 filename
+  print 1 filename;
+  print 1 "<command-line>";
+  print 1 filename
 
 let current_section () = !Eliompp_lexer.section_idt
 let we_are_ppx () = !Eliompp_lexer.we_are_ppx
@@ -43,8 +45,7 @@ let for_client () =
   match current_section () with `Client | `Shared -> true | `Server -> false
 
 let pretty_print filename lexbuf =
-  (if !kind = `Client
-   then
+  (if !kind = `Client then
      match Eliompp_lexer.token lexbuf with
      | Eliompp_lexer.RAW s ->
          if we_are_ppx () && for_client () then printf "%s" s

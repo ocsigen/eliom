@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 type 'a chan_id = string
 
@@ -60,39 +60,39 @@ let comet_request_param =
 
 type comet_service =
   | Comet_service :
-      ( unit
-        , bool * comet_request
-        , Eliom_service.post
-        , Eliom_service.att
-        , _
-        , _
-        , _
-        , [`WithoutSuffix]
-        , unit
-        , [`One of bool] Eliom_parameter.param_name
-          * [`One of comet_request Eliom_parameter.ocaml]
-              Eliom_parameter.param_name
-        , Eliom_service.non_ocaml )
-        Eliom_service.t
+      ( unit,
+        bool * comet_request,
+        Eliom_service.post,
+        Eliom_service.att,
+        _,
+        _,
+        _,
+        [ `WithoutSuffix ],
+        unit,
+        [ `One of bool ] Eliom_parameter.param_name
+        * [ `One of comet_request Eliom_parameter.ocaml ]
+          Eliom_parameter.param_name,
+        Eliom_service.non_ocaml )
+      Eliom_service.t
       * command list ref
       -> comet_service
 
 type internal_comet_service =
   | Internal_comet_service :
-      ( unit
-        , bool * comet_request
-        , Eliom_service.post
-        , Eliom_service.att
-        , _
-        , Eliom_service.non_ext
-        , Eliom_service.reg
-        , [`WithoutSuffix]
-        , unit
-        , [`One of bool] Eliom_parameter.param_name
-          * [`One of comet_request Eliom_parameter.ocaml]
-              Eliom_parameter.param_name
-        , Eliom_service.non_ocaml )
-        Eliom_service.t
+      ( unit,
+        bool * comet_request,
+        Eliom_service.post,
+        Eliom_service.att,
+        _,
+        Eliom_service.non_ext,
+        Eliom_service.reg,
+        [ `WithoutSuffix ],
+        unit,
+        [ `One of bool ] Eliom_parameter.param_name
+        * [ `One of comet_request Eliom_parameter.ocaml ]
+          Eliom_parameter.param_name,
+        Eliom_service.non_ocaml )
+      Eliom_service.t
       * command list ref
       -> internal_comet_service
 
@@ -107,18 +107,18 @@ type 'a wrapped_channel =
 
 type 'a bus_send_service =
   | Bus_send_service :
-      ( unit
-        , 'a list
-        , Eliom_service.post
-        , Eliom_service.non_att
-        , Eliom_service.co
-        , Eliom_service.non_ext
-        , Eliom_service.reg
-        , [`WithoutSuffix]
-        , unit
-        , [`One of 'a list Eliom_parameter.ocaml] Eliom_parameter.param_name
-        , Eliom_service.non_ocaml )
-        Eliom_service.t
+      ( unit,
+        'a list,
+        Eliom_service.post,
+        Eliom_service.non_att,
+        Eliom_service.co,
+        Eliom_service.non_ext,
+        Eliom_service.reg,
+        [ `WithoutSuffix ],
+        unit,
+        [ `One of 'a list Eliom_parameter.ocaml ] Eliom_parameter.param_name,
+        Eliom_service.non_ocaml )
+      Eliom_service.t
       -> 'a bus_send_service
 
 type ('a, 'b) wrapped_bus = 'b wrapped_channel * 'a bus_send_service

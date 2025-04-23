@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 let section = Lwt_log.Section.make "eliom:wrap"
 
@@ -27,14 +27,16 @@ type 'a wrapped_value = poly * 'a
 let with_no_heap_compaction f v =
   let gc_control = Gc.get () in
   (* disable heap compaction *)
-  Gc.set {gc_control with Gc.max_overhead = max_int};
+  Gc.set { gc_control with Gc.max_overhead = max_int };
   match f v with
   | v ->
       (* reset gc settings *)
-      Gc.set gc_control; v
+      Gc.set gc_control;
+      v
   | exception e ->
       (* reset gc settings *)
-      Gc.set gc_control; raise e
+      Gc.set gc_control;
+      raise e
 
 module Mark : sig
   type t
@@ -50,10 +52,10 @@ end = struct
   let unwrap_mark = "unwrap_mark"
 end
 
-type marked_value = {mark : Mark.t; f : (Obj.t -> Obj.t) option}
+type marked_value = { mark : Mark.t; f : (Obj.t -> Obj.t) option }
 [@@warning "-69"]
 
-let make_mark f mark = {mark; f}
+let make_mark f mark = { mark; f }
 
 let is_marked o =
   let is_mark o =
@@ -96,8 +98,7 @@ let none = Obj.repr 0 (* Unallocated entry in an array or in a hash-table *)
 module DynArray = struct
   let rec check_size a i =
     let len = Array.length !a in
-    if i > len
-    then (
+    if i > len then (
       let old_a = !a in
       a := Array.make (2 * len) none;
       Array.blit old_a 0 !a 0 len;
@@ -116,21 +117,22 @@ let rehash_count = ref 0
    we may allocate more than once index for a block. But thereafter a
    look-up will always return the second index. *)
 module Tbl = struct
-  type t =
-    { mutable size : int
-    ; (* Size of the hash table *)
-      mutable shift : int
-    ; (* For hashing *)
-      mutable occupancy : int
-    ; (* How many elements have been inserted *)
-      mutable obj : Obj.t array
-    ; (* Inserted blocks *)
-      mutable idx : int array
-    ; (* Corresponding indices *)
-      mutable gc : int
-    ; (* Last minor GC cycle where the
+  type t = {
+    mutable size : int;
+    (* Size of the hash table *)
+    mutable shift : int;
+    (* For hashing *)
+    mutable occupancy : int;
+    (* How many elements have been inserted *)
+    mutable obj : Obj.t array;
+    (* Inserted blocks *)
+    mutable idx : int array;
+    (* Corresponding indices *)
+    mutable gc : int;
+    (* Last minor GC cycle where the
                                     table was accurate *)
-      on_resize : (int -> unit) list }
+    on_resize : (int -> unit) list;
+  }
   (* Functions called on resize *)
 
   let cst =
@@ -145,8 +147,7 @@ module Tbl = struct
     let old_size = tbl.size in
     let old_obj = tbl.obj in
     let old_idx = tbl.idx in
-    if resize
-    then (
+    if resize then (
       tbl.size <- 2 * old_size;
       tbl.shift <- tbl.shift - 1;
       List.iter (fun f -> f (tbl.size lsr 1)) tbl.on_resize);
@@ -155,12 +156,11 @@ module Tbl = struct
     tbl.gc <- gc_count ();
     let rec insert tbl h x idx =
       let y = tbl.obj.(h) in
-      if y == none
-      then (
+      if y == none then (
         tbl.obj.(h) <- x;
         tbl.idx.(h) <- idx)
-      else if y == x
-      then tbl.idx.(h) <- max idx tbl.idx.(h) (* Keep largest index *)
+      else if y == x then tbl.idx.(h) <- max idx tbl.idx.(h)
+        (* Keep largest index *)
       else insert tbl ((h + 1) land (tbl.size - 1)) x idx
     in
     for i = 0 to old_size - 1 do
@@ -168,8 +168,13 @@ module Tbl = struct
       if x != none then insert tbl (hash tbl x) x old_idx.(i)
     done
 
-  let resize tbl = incr resize_count; reallocate true tbl
-  let rehash tbl = incr rehash_count; reallocate false tbl
+  let resize tbl =
+    incr resize_count;
+    reallocate true tbl
+
+  let rehash tbl =
+    incr rehash_count;
+    reallocate false tbl
 
   let make tbls =
     let size = 1 lsl bits in
@@ -177,13 +182,19 @@ module Tbl = struct
     let idx = Array.make size (-1) in
     let on_resize = List.map DynArray.check_size tbls in
     let gc = gc_count () in
-    {size; shift = Sys.int_size - bits; occupancy = 0; obj; idx; gc; on_resize}
+    {
+      size;
+      shift = Sys.int_size - bits;
+      occupancy = 0;
+      obj;
+      idx;
+      gc;
+      on_resize;
+    }
 
   let rec allocate_rec tbl x i =
-    if tbl.obj.(i) == x
-    then tbl.idx.(i)
-    else if tbl.obj.(i) == none
-    then (
+    if tbl.obj.(i) == x then tbl.idx.(i)
+    else if tbl.obj.(i) == none then (
       tbl.obj.(i) <- x;
       let idx = tbl.occupancy in
       tbl.idx.(i) <- idx;
@@ -198,10 +209,8 @@ module Tbl = struct
 
   let rec get_rec tbl x i =
     let y = tbl.obj.(i) in
-    if y == x
-    then tbl.idx.(i)
-    else if y == none
-    then -1 (* Not found *)
+    if y == x then tbl.idx.(i)
+    else if y == none then -1 (* Not found *)
     else get_rec tbl x ((i + 1) land (tbl.size - 1))
 
   (* This may fail if a GC occurred *)
@@ -215,13 +224,11 @@ module Tbl = struct
      index) and by rehashing. *)
   let get_index tbl x =
     let idx = get_index_no_retry tbl x in
-    if idx <> -1
-    then idx
+    if idx <> -1 then idx
     else (
       rehash tbl;
       let idx = get_index_no_retry tbl x in
-      if idx = -1
-      then (
+      if idx = -1 then (
         for i = 0 to Array.length tbl.obj - 1 do
           assert (tbl.obj.(i) != x)
         done;
@@ -236,28 +243,23 @@ module Tbl = struct
 end
 
 let obj_kind v =
-  if not (Obj.is_block v)
-  then `Opaque
+  if not (Obj.is_block v) then `Opaque
   else
     let tag = Obj.tag v in
-    if tag >= Obj.no_scan_tag
-    then `Opaque
-    else if tag <= Obj.last_non_constant_constructor_tag
-    then `Scannable
-    else if tag = Obj.forward_tag
-    then
+    if tag >= Obj.no_scan_tag then `Opaque
+    else if tag <= Obj.last_non_constant_constructor_tag then `Scannable
+    else if tag = Obj.forward_tag then
       let tag' = Obj.tag (Obj.field v 0) in
-      if tag' = Obj.forward_tag || tag' = Obj.double_tag
-      then `Scannable
+      if tag' = Obj.forward_tag || tag' = Obj.double_tag then `Scannable
       else (* Forward pointer that may be optimized away by the GC *)
         `Forward
     else (
-      if tag = Obj.lazy_tag
-      then failwith "lazy values must be forced before wrapping";
+      if tag = Obj.lazy_tag then
+        failwith "lazy values must be forced before wrapping";
       if tag = Obj.object_tag then failwith "cannot wrap object values";
       if tag = Obj.closure_tag then failwith "cannot wrap functional values";
-      if tag = Obj.infix_tag
-      then failwith "cannot wrap functional values: infix tag";
+      if tag = Obj.infix_tag then
+        failwith "cannot wrap functional values: infix tag";
       (* Should not happen (in case a new kind of value is added) *)
       failwith (Printf.sprintf "cannot wrap value (unexpected tag %d)" tag))
 
@@ -291,12 +293,9 @@ let rec find_substs tbl subst_tbl v =
   | `Scannable ->
       let idx = Tbl.allocate_index tbl v in
       let v' = DynArray.get subst_tbl idx in
-      if v' == none (* Not visited yet *)
-      then
-        if is_marked v
-        then
-          if not (Tbl.was_up_to_date tbl)
-          then (
+      if v' == none (* Not visited yet *) then
+        if is_marked v then
+          if not (Tbl.was_up_to_date tbl) then (
             (* v may have been visited already, so we rehash and try
              again. Indeed, we don't want to call the wrapping
              function twice on the same value. *)
@@ -336,17 +335,15 @@ let rec duplicate tbl subst_tbl copy_tbl orig =
   | `Scannable ->
       let idx = Tbl.get_index tbl orig in
       let subst = DynArray.get subst_tbl idx in
-      if subst == unchanged
-      then (* This block does not need to be copied *)
+      if subst == unchanged then (* This block does not need to be copied *)
         orig
-      else if subst != modified
-      then
+      else if subst != modified then
         (* This block is replaced by another value *)
         duplicate tbl subst_tbl copy_tbl subst
       else
         let copy = DynArray.get copy_tbl idx in
-        if copy != none
-        then (* Since we have already copied the block; return the copy *)
+        if copy != none then
+          (* Since we have already copied the block; return the copy *)
           copy
         else (
           incr copy_count;
@@ -371,11 +368,12 @@ let perform_wrap =
      with temporary allocations only for really large values? *)
   let subst_tbl = DynArray.make () in
   let copy_tbl = DynArray.make () in
-  let tbl = Tbl.make [subst_tbl; copy_tbl] in
+  let tbl = Tbl.make [ subst_tbl; copy_tbl ] in
   ignore (find_substs tbl subst_tbl v);
   let w = duplicate tbl subst_tbl copy_tbl v in
   Lwt_log.ign_debug_f ~section
-    "Wrap stats: %d visited (%d blocks), %d wrapped, %d copied, %d resizes, %d rehashes"
+    "Wrap stats: %d visited (%d blocks), %d wrapped, %d copied, %d resizes, %d \
+     rehashes"
     !iteration_count tbl.occupancy !wrap_count !copy_count !resize_count
     !rehash_count;
   w
@@ -391,12 +389,13 @@ type unwrap_id = int
 
 let id_of_int x = x
 
-type unwrapper =
-  { (* WARNING Must be the same as Eliom_unwrap.unwrapper *)
-    id : unwrap_id
-  ; umark : Mark.t }
+type unwrapper = {
+  (* WARNING Must be the same as Eliom_unwrap.unwrapper *)
+  id : unwrap_id;
+  umark : Mark.t;
+}
 [@@warning "-69"]
 
-let create_unwrapper id = {id; umark = Mark.unwrap_mark}
-let empty_unwrapper = {id = -1; umark = Mark.do_nothing_mark}
-let wrap v = to_poly Mark.unwrap_mark, Obj.obj (perform_wrap (Obj.repr v))
+let create_unwrapper id = { id; umark = Mark.unwrap_mark }
+let empty_unwrapper = { id = -1; umark = Mark.do_nothing_mark }
+let wrap v = (to_poly Mark.unwrap_mark, Obj.obj (perform_wrap (Obj.repr v)))

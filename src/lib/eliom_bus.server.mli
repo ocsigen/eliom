@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 (** Broadcasting facilities between clients and server *)
 
@@ -36,11 +36,11 @@ type ('a, 'b) t
     participants. *)
 
 val create :
-   ?scope:[< Eliom_comet.Channel.comet_scope]
-  -> ?name:string
-  -> ?size:int
-  -> 'a Deriving_Json.t
-  -> ('a, 'a) t
+  ?scope:[< Eliom_comet.Channel.comet_scope ] ->
+  ?name:string ->
+  ?size:int ->
+  'a Deriving_Json.t ->
+  ('a, 'a) t
 (** [create ?scope ?name ?size ?filter t] creates a fresh bus.
     The [scope] parameter
     is used to chose the kind of channel on which the bus rely
@@ -53,12 +53,12 @@ val create :
 *)
 
 val create_filtered :
-   ?scope:[< Eliom_comet.Channel.comet_scope]
-  -> ?name:string
-  -> ?size:int
-  -> filter:('a -> 'b Lwt.t)
-  -> 'a Deriving_Json.t
-  -> ('a, 'b) t
+  ?scope:[< Eliom_comet.Channel.comet_scope ] ->
+  ?name:string ->
+  ?size:int ->
+  filter:('a -> 'b Lwt.t) ->
+  'a Deriving_Json.t ->
+  ('a, 'b) t
 (** Same as [create], but data is filtered through [filter] function
     before entering the bus. Use this for example if you want to add
     some information, like IP address, or user id.

@@ -16,45 +16,45 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 val close_all_service_states :
-   scope:Eliom_common.user_scope
-  -> secure:bool
-  -> Eliom_common.sitedata
-  -> unit Lwt.t
+  scope:Eliom_common.user_scope ->
+  secure:bool ->
+  Eliom_common.sitedata ->
+  unit Lwt.t
 
 val close_all_data_states :
-   scope:Eliom_common.user_scope
-  -> secure:bool
-  -> Eliom_common.sitedata
-  -> unit Lwt.t
+  scope:Eliom_common.user_scope ->
+  secure:bool ->
+  Eliom_common.sitedata ->
+  unit Lwt.t
 
 val close_all_persistent_states :
-   scope:Eliom_common.user_scope
-  -> secure:bool
-  -> Eliom_common.sitedata
-  -> unit Lwt.t
+  scope:Eliom_common.user_scope ->
+  secure:bool ->
+  Eliom_common.sitedata ->
+  unit Lwt.t
 
 val update_serv_exp :
-   Eliom_common.full_state_name
-  -> Eliom_common.sitedata
-  -> float option
-  -> float option
-  -> unit Lwt.t
+  Eliom_common.full_state_name ->
+  Eliom_common.sitedata ->
+  float option ->
+  float option ->
+  unit Lwt.t
 
 val update_data_exp :
-   Eliom_common.full_state_name
-  -> Eliom_common.sitedata
-  -> float option
-  -> float option
-  -> unit Lwt.t
+  Eliom_common.full_state_name ->
+  Eliom_common.sitedata ->
+  float option ->
+  float option ->
+  unit Lwt.t
 
 val update_pers_exp :
-   Eliom_common.full_state_name
-  -> Eliom_common.sitedata
-  -> float option
-  -> float option
-  -> unit Lwt.t
+  Eliom_common.full_state_name ->
+  Eliom_common.sitedata ->
+  float option ->
+  float option ->
+  unit Lwt.t
 
 val section : Lwt_log_core.section

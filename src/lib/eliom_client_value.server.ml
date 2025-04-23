@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 type +'a t = 'a Eliom_runtime.Client_value_server_repr.t
 
@@ -30,13 +30,14 @@ let create_client_value ~loc ~instance_id =
 let client_value_from_server_repr cv = cv
 
 let client_value_datum ~closure_id ~args ~value =
-  { Eliom_runtime.closure_id
-  ; args
-  ; value = Eliom_runtime.Client_value_server_repr.to_poly value }
+  {
+    Eliom_runtime.closure_id;
+    args;
+    value = Eliom_runtime.Client_value_server_repr.to_poly value;
+  }
 
 exception Client_value_creation_invalid_context of string
 
 let escaped_value value :
-  Eliom_runtime.escaped_value (* * Eliom_wrap.unwrapper *)
-  =
+    Eliom_runtime.escaped_value (* * Eliom_wrap.unwrapper *) =
   Ocsigen_lib.to_poly value

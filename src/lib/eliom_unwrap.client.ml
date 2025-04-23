@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 (* TODO: implement with WeakMap when standardised:
    https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/WeakMap
@@ -45,17 +45,16 @@ type unwrap_id = int
 
 let id_of_int x = x
 
-type unwrapper = {id : unwrap_id; mutable umark : Mark.t} [@@warning "-69"]
+type unwrapper = { id : unwrap_id; mutable umark : Mark.t } [@@warning "-69"]
 
 let unwrap_table : (Obj.t -> Obj.t option) Js.js_array Js.t =
   new%js Js.array_empty
 (* table containing all the unwrapping functions referenced by their id *)
 
-type occurrence = {parent : Obj.t; field : int}
+type occurrence = { parent : Obj.t; field : int }
 
 let register_unwrapper' id f =
-  if Js.Optdef.test (Js.array_get unwrap_table id)
-  then
+  if Js.Optdef.test (Js.array_get unwrap_table id) then
     failwith (Printf.sprintf ">> the unwrapper id %i is already registered" id);
   let f x = Ocsigen_lib_base.Option.map Obj.repr (f (Obj.obj x)) in
   (* Store unwrapper *)
@@ -72,23 +71,20 @@ let apply_unwrapper unwrapper v =
 let late_unwrap_value old_value new_value =
   let old_value = Obj.repr old_value in
   List.iter
-    (fun {parent; field} ->
-       Obj.set_field parent (field - 1) (Obj.repr new_value))
+    (fun { parent; field } ->
+      Obj.set_field parent (field - 1) (Obj.repr new_value))
     (Obj.obj (Obj.field (Obj.field old_value (Obj.size old_value - 1)) 2))
 
 external raw_unmarshal_and_unwrap :
-   (unwrapper -> _ -> _ option)
-  -> string
-  -> int
-  -> _
+  (unwrapper -> _ -> _ option) -> string -> int -> _
   = "caml_unwrap_value_from_string"
 
 let unwrap s i =
-  if !Eliom_config.debug_timings
-  then Console.console##(time (Js.string "unwrap"));
+  if !Eliom_config.debug_timings then
+    Console.console##(time (Js.string "unwrap"));
   let res = raw_unmarshal_and_unwrap apply_unwrapper s i in
-  if !Eliom_config.debug_timings
-  then Console.console##(timeEnd (Js.string "unwrap"));
+  if !Eliom_config.debug_timings then
+    Console.console##(timeEnd (Js.string "unwrap"));
   res
 
 let unwrap_js s = unwrap (Js.to_bytestring s) 0

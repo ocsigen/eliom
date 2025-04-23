@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 (** This module contains the functions you need to get (or set)
     information about current request.
@@ -89,24 +89,19 @@ val get_csp_server_port_sp : Eliom_common.server_params -> int
 val get_csp_ssl_sp : Eliom_common.server_params -> bool
 
 val get_nl_get_params_sp :
-   Eliom_common.server_params
-  -> (string * string) list String.Table.t
+  Eliom_common.server_params -> (string * string) list String.Table.t
 
 val get_persistent_nl_get_params_sp :
-   Eliom_common.server_params
-  -> (string * string) list String.Table.t
+  Eliom_common.server_params -> (string * string) list String.Table.t
 
 val get_sess_info : unit -> Eliom_common.sess_info
 
 val set_session_info :
-   uri:string
-  -> Eliom_common.sess_info
-  -> (unit -> 'a Lwt.t)
-  -> 'a Lwt.t
+  uri:string -> Eliom_common.sess_info -> (unit -> 'a Lwt.t) -> 'a Lwt.t
 
 val update_session_info :
-   path:Url.path
-  -> all_get_params:(string * string) list
-  -> all_post_params:(string * string) list option
-  -> (unit -> 'a Lwt.t)
-  -> 'a Lwt.t
+  path:Url.path ->
+  all_get_params:(string * string) list ->
+  all_post_params:(string * string) list option ->
+  (unit -> 'a Lwt.t) ->
+  'a Lwt.t

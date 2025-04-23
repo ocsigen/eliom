@@ -9,12 +9,12 @@ let read ch =
   let s = Bytes.create 1024 in
   let rec read () =
     let n = input ch s 0 1024 in
-    if n > 0
-    then (
+    if n > 0 then (
       Buffer.add_subbytes b s 0 n;
       read ())
   in
-  read (); Buffer.contents b
+  read ();
+  Buffer.contents b
 
 let h c =
   match c with
@@ -26,37 +26,37 @@ let rec parse b s i =
   match s.[i] with
   | '\'' -> Buffer.contents b
   | '\\' -> (
-    match s.[i + 1] with
-    | '\'' ->
-        Buffer.add_char b '\'';
-        parse b s (i + 2)
-    | 'x' ->
-        Buffer.add_char b (Char.chr ((16 * h s.[i + 2]) + h s.[i + 3]));
-        parse b s (i + 4)
-    | '0' ->
-        Buffer.add_char b '\000';
-        parse b s (i + 2)
-    | 't' ->
-        Buffer.add_char b '\t';
-        parse b s (i + 2)
-    | 'b' ->
-        Buffer.add_char b '\b';
-        parse b s (i + 2)
-    | 'n' ->
-        Buffer.add_char b '\n';
-        parse b s (i + 2)
-    | 'r' ->
-        Buffer.add_char b '\r';
-        parse b s (i + 2)
-    | 'f' ->
-        Buffer.add_char b (Char.chr 12);
-        parse b s (i + 2)
-    | '\\' ->
-        Buffer.add_char b '\\';
-        parse b s (i + 2)
-    | c ->
-        Format.eprintf "??? %d %c@." i c;
-        exit 1)
+      match s.[i + 1] with
+      | '\'' ->
+          Buffer.add_char b '\'';
+          parse b s (i + 2)
+      | 'x' ->
+          Buffer.add_char b (Char.chr ((16 * h s.[i + 2]) + h s.[i + 3]));
+          parse b s (i + 4)
+      | '0' ->
+          Buffer.add_char b '\000';
+          parse b s (i + 2)
+      | 't' ->
+          Buffer.add_char b '\t';
+          parse b s (i + 2)
+      | 'b' ->
+          Buffer.add_char b '\b';
+          parse b s (i + 2)
+      | 'n' ->
+          Buffer.add_char b '\n';
+          parse b s (i + 2)
+      | 'r' ->
+          Buffer.add_char b '\r';
+          parse b s (i + 2)
+      | 'f' ->
+          Buffer.add_char b (Char.chr 12);
+          parse b s (i + 2)
+      | '\\' ->
+          Buffer.add_char b '\\';
+          parse b s (i + 2)
+      | c ->
+          Format.eprintf "??? %d %c@." i c;
+          exit 1)
   | c ->
       Buffer.add_char b c;
       parse b s (i + 1)

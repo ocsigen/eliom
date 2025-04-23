@@ -1,7 +1,7 @@
 open Utils
 
 let force_link_all = ref true
-let link_all () = if !force_link_all then ["-linkall"] else []
+let link_all () = if !force_link_all then [ "-linkall" ] else []
 
 let usage () =
   Printf.eprintf "Usage: %s <options> <files>\n"
@@ -9,22 +9,22 @@ let usage () =
   Printf.eprintf "SPECIFIC OPTIONS:\n";
   Printf.eprintf "  -package <name>\tRefer to package when compiling\n";
   Printf.eprintf
-    "  -no-autoload\t\tDo not load commonly used syntax extensions (deriving, lwt, js_of_ocaml, tyxml)\n";
-  if !kind <> `Client
-  then
+    "  -no-autoload\t\tDo not load commonly used syntax extensions (deriving, \
+     lwt, js_of_ocaml, tyxml)\n";
+  if !kind <> `Client then
     Printf.eprintf
       "  -infer\t\tOnly infer the type of values sent by the server\n";
   Printf.eprintf
     "  -dir <dir>\t\tThe directory for generated files (default %S)\n"
     (if !kind = `Client then default_client_dir else default_server_dir);
   Printf.eprintf
-    "  -type-dir <dir>\tThe directory to read server type files from (default %S)\n"
+    "  -type-dir <dir>\tThe directory to read server type files from (default \
+     %S)\n"
     default_type_dir;
   Printf.eprintf
     "  -server-types-ext <ext> The extension for server type files (default %S)\n"
     default_server_types_ext;
-  if !kind = `Client
-  then
+  if !kind = `Client then
     Printf.eprintf
       "  -jsopt <opt>\t\tAppend option <opt> to js_of_ocaml invocation\n";
   Printf.eprintf
@@ -37,14 +37,13 @@ let usage () =
   Printf.eprintf "\t\t\tappearance of -ppx in the list of flags. Subsequent\n";
   Printf.eprintf "\t\t\tappearances require an argument and specify a\n";
   Printf.eprintf "\t\t\tPPX preprocessor to use (see STANDARD OPTIONS).\n";
-  if !kind = `Client
-  then
+  if !kind = `Client then
     Printf.eprintf
       "  -dont-force-linkall\t\tDo not add linkall option by default\n";
-  create_filter !compiler ["-help"] (help_filter 2 "STANDARD OPTIONS:");
-  if !kind = `Client
-  then
-    create_filter !js_of_ocaml ["-help"] (help_filter 1 "JS_OF_OCAML OPTIONS:");
+  create_filter !compiler [ "-help" ] (help_filter 2 "STANDARD OPTIONS:");
+  if !kind = `Client then
+    create_filter !js_of_ocaml [ "-help" ]
+      (help_filter 1 "JS_OF_OCAML OPTIONS:");
   exit 1
 
 (** Context *)
@@ -53,7 +52,7 @@ let jsopt : string list ref = ref []
 let output_name : string option ref = ref None
 
 type mode =
-  [`Link | `Compile | `Infer | `Library | `Pack | `Obj | `Shared | `Interface]
+  [ `Link | `Compile | `Infer | `Library | `Pack | `Obj | `Shared | `Interface ]
 
 let mode : mode ref = ref `Link
 let do_compile () = !mode <> `Infer
@@ -63,8 +62,7 @@ let create_process ?in_ ?out ?err ?on_error name args =
   wait ?on_error (create_process ?in_ ?out ?err name args)
 
 let rec check_or_create_dir name =
-  if name <> "/"
-  then
+  if name <> "/" then
     try ignore (Unix.stat name)
     with Unix.Unix_error _ -> (
       check_or_create_dir (Filename.dirname name);
@@ -84,12 +82,10 @@ let output_prefix ?(ty = false) name =
   let name =
     match !output_name with
     | None ->
-        if !mode = `Infer || ty
-        then prefix_type_dir name
+        if !mode = `Infer || ty then prefix_type_dir name
         else prefix_output_dir name
     | Some n ->
-        if !mode = `Compile || !mode = `Infer
-        then (
+        if !mode = `Compile || !mode = `Infer then (
           output_name := None;
           n)
         else prefix_output_dir name
@@ -98,8 +94,7 @@ let output_prefix ?(ty = false) name =
   chop_extension_if_any name
 
 let set_mode m =
-  if !mode = `Link
-  then
+  if !mode = `Link then
     if
       (m = `Shared && !kind <> `ServerOpt)
       || (m = `Infer && !kind = `Client)
@@ -108,9 +103,9 @@ let set_mode m =
     else mode := m
   else
     let args =
-      let basic_args = ["-pack"; "-a"; "-c"; "output-obj"] in
-      let infer_args = if !kind <> `Client then ["-i"; "-infer"] else [] in
-      let shared_args = if !kind <> `ServerOpt then ["-shared"] else [] in
+      let basic_args = [ "-pack"; "-a"; "-c"; "output-obj" ] in
+      let infer_args = if !kind <> `Client then [ "-i"; "-infer" ] else [] in
+      let shared_args = if !kind <> `ServerOpt then [ "-shared" ] else [] in
       basic_args @ infer_args @ shared_args
     in
     Printf.eprintf "Please specify at most one of %s\n%!"
@@ -129,22 +124,23 @@ let get_product_name () =
 
 let build_library () =
   create_process !compiler
-    (["-a"; "-o"; get_product_name ()] @ get_common_include () @ !args)
+    ([ "-a"; "-o"; get_product_name () ] @ get_common_include () @ !args)
 
 let build_pack () =
   create_process !compiler
-    (["-pack"; "-o"; get_product_name ()] @ get_common_include () @ !args)
+    ([ "-pack"; "-o"; get_product_name () ] @ get_common_include () @ !args)
 
 let build_obj () =
   create_process !compiler
-    (["-output-obj"; "-o"; get_product_name ()] @ get_common_include () @ !args)
+    ([ "-output-obj"; "-o"; get_product_name () ]
+    @ get_common_include () @ !args)
 
 let build_shared () =
   create_process !compiler
-    (["-shared"; "-o"; get_product_name ()] @ get_common_include () @ !args)
+    ([ "-shared"; "-o"; get_product_name () ] @ get_common_include () @ !args)
 
 let get_thread_opt () =
-  match !kind with `Client -> [] | `Server | `ServerOpt -> ["-thread"]
+  match !kind with `Client -> [] | `Server | `ServerOpt -> [ "-thread" ]
 
 let obj_ext () = if !kind = `ServerOpt then ".cmx" else ".cmo"
 
@@ -156,33 +152,32 @@ let compile_ocaml ~impl_intf file =
     output_prefix file ^ ext
   in
   create_process !compiler
-    (["-c"; "-o"; obj] @ !args @ get_thread_opt () @ get_common_include ()
+    ([ "-c"; "-o"; obj ] @ !args @ get_thread_opt () @ get_common_include ()
    @ get_common_ppx ()
     @ preprocess_opt ~ocaml:true !ppopt
-    @ [impl_intf_opt impl_intf; file])
+    @ [ impl_intf_opt impl_intf; file ])
 
 let output_ocaml_interface file =
   create_process !compiler
-    (["-i"] @ !args @ get_common_include () @ get_common_ppx ()
+    ([ "-i" ] @ !args @ get_common_include () @ get_common_ppx ()
     @ preprocess_opt ~ocaml:true !ppopt
-    @ [file])
+    @ [ file ])
 
 let process_ocaml ~impl_intf file =
   if do_compile () then compile_ocaml ~impl_intf file;
   if !mode = `Interface then output_ocaml_interface file
 
 let compile_obj file =
-  if do_compile ()
-  then (
-    create_process !compiler (!args @ [file]);
-    args := !args @ [output_prefix file ^ ext_obj])
+  if do_compile () then (
+    create_process !compiler (!args @ [ file ]);
+    args := !args @ [ output_prefix file ^ ext_obj ])
 
 (* Process eliom and eliomi files *)
 
 let run_command s =
   let v = Sys.command s in
-  if v != 0
-  then failwith (Printf.sprintf "Warning: command [%s] returned %d" s v)
+  if v != 0 then
+    failwith (Printf.sprintf "Warning: command [%s] returned %d" s v)
 
 (* WARNING: if you change this, also change inferred_type_prefix in
    ppx/ppx_eliom_utils.ml and ocamlbuild/ocamlbuild_eliom.ml *)
@@ -217,28 +212,29 @@ let run_sed file =
 
 let compile_server_type_eliom file =
   let obj = output_prefix ~ty:true file ^ !server_types_file_ext
-  and ppopts = !ppopt @ if !pp_mode = `Ppx then [] else ["-impl"] in
-  if !do_dump
-  then (
+  and ppopts = !ppopt @ if !pp_mode = `Ppx then [] else [ "-impl" ] in
+  if !do_dump then (
     let camlp4, ppopt =
-      get_pp_dump [] (("-printer" :: "o" :: ppopts) @ [file])
+      get_pp_dump [] (("-printer" :: "o" :: ppopts) @ [ file ])
     in
     create_process camlp4 ppopt;
     exit 0);
   let out =
-    Unix.openfile obj [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_TRUNC] 0o666
+    Unix.openfile obj [ Unix.O_WRONLY; Unix.O_CREAT; Unix.O_TRUNC ] 0o666
   in
-  let on_error _ = Unix.close out; Sys.remove obj in
+  let on_error _ =
+    Unix.close out;
+    Sys.remove obj
+  in
   create_process ~out ~on_error !compiler
-    (["-i"] @ !args @ get_common_include () @ get_common_ppx ()
+    ([ "-i" ] @ !args @ get_common_include () @ get_common_ppx ()
     @ preprocess_opt ~kind:`Types ppopts
-    @ ["-impl"; file]);
+    @ [ "-impl"; file ]);
   Unix.close out;
   if !pp_mode = `Ppx then run_sed obj
 
 let output_eliom_interface ~impl_intf file =
-  if !do_dump
-  then (
+  if !do_dump then (
     Printf.eprintf "Dump (-dump) not supported for interface inference (-i).";
     exit 1);
   let indent ch =
@@ -252,13 +248,13 @@ let output_eliom_interface ~impl_intf file =
   in
   let args kind =
     let ppopts = get_ppopts ~impl_intf file in
-    ["-i"]
-    @ ["-intf-suffix"; ".eliomi"]
+    [ "-i" ]
+    @ [ "-intf-suffix"; ".eliomi" ]
     @ !args
     @ get_common_include ~kind ()
     @ get_common_ppx ~kind ()
     @ preprocess_opt ~kind ppopts
-    @ [impl_intf_opt impl_intf; file]
+    @ [ impl_intf_opt impl_intf; file ]
   and open_block str =
     match !pp_mode with
     | `Ppx -> Printf.printf "[%%%%%s.start]\n" str
@@ -288,12 +284,12 @@ let compile_eliom ~impl_intf file =
   (*   exit 0 *)
   (* end; *)
   create_process !compiler
-    (["-c"; "-o"; obj]
-    @ ["-intf-suffix"; ".eliomi"]
+    ([ "-c"; "-o"; obj ]
+    @ [ "-intf-suffix"; ".eliomi" ]
     @ get_thread_opt () @ !args @ get_common_include () @ get_common_ppx ()
     @ preprocess_opt ppopts
-    @ [impl_intf_opt impl_intf; file]);
-  args := !args @ [obj]
+    @ [ impl_intf_opt impl_intf; file ]);
+  args := !args @ [ obj ]
 
 let process_eliom ~impl_intf file =
   match !mode with
@@ -312,9 +308,10 @@ let build_client () =
   check_or_create_dir (Filename.dirname exe);
   let js = name ^ ".js" in
   create_process !compiler
-    (["-o"; exe] @ link_all () @ get_common_include () @ get_client_lib ()
+    ([ "-o"; exe ] @ link_all () @ get_common_include () @ get_client_lib ()
    @ !args);
-  create_process !js_of_ocaml (["-o"; js] @ get_client_js () @ !jsopt @ [exe])
+  create_process !js_of_ocaml
+    ([ "-o"; js ] @ get_client_js () @ !jsopt @ [ exe ])
 
 let process_option () =
   let i = ref 1 and ppx = ref false in
@@ -328,16 +325,30 @@ let process_option () =
         if !kind <> `Client then usage ();
         force_link_all := false;
         incr i
-    | "-i" -> set_mode `Interface; incr i
-    | "-c" -> set_mode `Compile; incr i
-    | "-a" -> set_mode `Library; incr i
-    | "-pack" -> set_mode `Pack; incr i
-    | "-output-obj" -> set_mode `Obj; incr i
-    | "-shared" -> set_mode `Shared; incr i
-    | "-infer" -> set_mode `Infer; incr i
+    | "-i" ->
+        set_mode `Interface;
+        incr i
+    | "-c" ->
+        set_mode `Compile;
+        incr i
+    | "-a" ->
+        set_mode `Library;
+        incr i
+    | "-pack" ->
+        set_mode `Pack;
+        incr i
+    | "-output-obj" ->
+        set_mode `Obj;
+        incr i
+    | "-shared" ->
+        set_mode `Shared;
+        incr i
+    | "-infer" ->
+        set_mode `Infer;
+        incr i
     | "-verbose" ->
         verbose := true;
-        args := !args @ ["-verbose"];
+        args := !args @ [ "-verbose" ];
         incr i
     | "-vmthread" ->
         Printf.eprintf "The -vmthread option isn't supported yet.";
@@ -380,11 +391,11 @@ let process_option () =
     | "-jsopt" ->
         if !kind <> `Client then usage ();
         if !i + 1 >= Array.length Sys.argv then usage ();
-        jsopt := !jsopt @ [Sys.argv.(!i + 1)];
+        jsopt := !jsopt @ [ Sys.argv.(!i + 1) ];
         i := !i + 2
     | "-ppopt" ->
         if !i + 1 >= Array.length Sys.argv then usage ();
-        ppopt := !ppopt @ [Sys.argv.(!i + 1)];
+        ppopt := !ppopt @ [ Sys.argv.(!i + 1) ];
         i := !i + 2
     | "-intf" ->
         if !i + 1 >= Array.length Sys.argv then usage ();
@@ -406,9 +417,11 @@ let process_option () =
     | arg when Filename.check_suffix arg ".eliomi" ->
         process_eliom ~impl_intf:`Intf arg;
         incr i
-    | arg when Filename.check_suffix arg ".c" -> compile_obj arg; incr i
+    | arg when Filename.check_suffix arg ".c" ->
+        compile_obj arg;
+        incr i
     | arg ->
-        args := !args @ [arg];
+        args := !args @ [ arg ];
         incr i
   done;
   match !mode with

@@ -26,11 +26,11 @@ let cookieset_of_json json =
   let cookietable_array array =
     Array.fold_left
       (fun set (name, cookie) ->
-         Ocsigen_cookie_map.Map_inner.add name cookie set)
+        Ocsigen_cookie_map.Map_inner.add name cookie set)
       Ocsigen_cookie_map.Map_inner.empty array
   in
   Array.fold_left
     (fun set (path, cookietable) ->
-       let path = Array.to_list path in
-       Ocsigen_cookie_map.Map_path.add path (cookietable_array cookietable) set)
+      let path = Array.to_list path in
+      Ocsigen_cookie_map.Map_path.add path (cookietable_array cookietable) set)
     Ocsigen_cookie_map.empty array

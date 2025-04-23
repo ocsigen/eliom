@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 let fresh_id =
   let c = ref 0 in
@@ -26,18 +26,22 @@ let fresh_id =
 
 let client_sitedata sp =
   let s = Eliom_request_info.get_sitedata_sp ~sp in
-  { Eliom_types.site_dir = Eliom_common.get_site_dir s
-  ; Eliom_types.site_dir_string = Eliom_common.get_site_dir_string s }
+  {
+    Eliom_types.site_dir = Eliom_common.get_site_dir s;
+    Eliom_types.site_dir_string = Eliom_common.get_site_dir_string s;
+  }
 
 let client_si s =
   (* we force all lazys before serialization *)
-  { s with
+  {
+    s with
     Eliom_common.si_na_get_params =
       (let r = Lazy.force s.Eliom_common.si_na_get_params in
-       lazy r)
-  ; Eliom_common.si_persistent_nl_get_params =
+       lazy r);
+    Eliom_common.si_persistent_nl_get_params =
       (let r = Lazy.force s.Eliom_common.si_persistent_nl_get_params in
-       lazy r)
-  ; Eliom_common.si_all_get_but_na_nl =
+       lazy r);
+    Eliom_common.si_all_get_but_na_nl =
       (let r = Lazy.force s.Eliom_common.si_all_get_but_na_nl in
-       lazy r) }
+       lazy r);
+  }

@@ -20,24 +20,24 @@ type ('a, 'b) server_function
 
 (* BBB This is not in Eliom_service because it depends on Eliom_registration *)
 val server_function :
-   ?scope:[< Eliom_common.scope]
-  -> ?options:unit
-  -> ?charset:string
-  -> ?code:int
-  -> ?content_type:string
-  -> ?headers:Ocsigen_header.t
-  -> ?secure_session:bool
-  -> ?name:string
-  -> ?csrf_safe:bool
-  -> ?csrf_scope:[< Eliom_common.user_scope]
-  -> ?csrf_secure:bool
-  -> ?max_use:int
-  -> ?timeout:float
-  -> ?https:bool
-  -> ?error_handler:((string * exn) list -> 'b Lwt.t)
-  -> 'a Deriving_Json.t
-  -> ('a -> 'b Lwt.t)
-  -> ('a, 'b) server_function
+  ?scope:[< Eliom_common.scope ] ->
+  ?options:unit ->
+  ?charset:string ->
+  ?code:int ->
+  ?content_type:string ->
+  ?headers:Ocsigen_header.t ->
+  ?secure_session:bool ->
+  ?name:string ->
+  ?csrf_safe:bool ->
+  ?csrf_scope:[< Eliom_common.user_scope ] ->
+  ?csrf_secure:bool ->
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  ?error_handler:((string * exn) list -> 'b Lwt.t) ->
+  'a Deriving_Json.t ->
+  ('a -> 'b Lwt.t) ->
+  ('a, 'b) server_function
 (** [server_function argument_type f] creates a value of type {%
     <<a_api | type Eliom_client.server_function>> %}. This allows
     to call [f] from the client. The first argument [argument_type] is

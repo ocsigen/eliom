@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 include Eliom_common_base
 
@@ -60,15 +60,15 @@ let add_unregistered _ _ = ()
 module To_and_of_shared = struct
   type 'a t = 'a to_and_of
 
-  let of_string {of_string; _} = of_string
-  let to_string {to_string; _} = to_string
+  let of_string { of_string; _ } = of_string
+  let to_string { to_string; _ } = to_string
   let to_and_of tao = tao
 end
 
 let client_html_file, set_client_html_file =
   let r = ref "eliom.html" in
-  ( (fun () -> !r)
-  , fun s ->
+  ( (fun () -> !r),
+    fun s ->
       assert !is_client_app;
       r := s )
 

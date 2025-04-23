@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 (* This module generates the file used to infer types (hence wrappers) of server
    escaped values.
@@ -43,12 +43,11 @@ module Pass = struct
   let push_typing_expr, flush_typing_expr =
     let typing_expr = ref [] in
     let add orig_expr id =
-      if List.for_all (function id', _ -> id.txt <> id'.txt) !typing_expr
-      then
+      if List.for_all (function id', _ -> id.txt <> id'.txt) !typing_expr then
         let frag_eid = eid id in
         typing_expr :=
-          ( id
-          , let loc = orig_expr.pexp_loc in
+          ( id,
+            let loc = orig_expr.pexp_loc in
             [%expr [%e frag_eid] := Some [%e orig_expr]] )
           :: !typing_expr
     in
@@ -57,7 +56,7 @@ module Pass = struct
       typing_expr := [];
       sequence res
     in
-    add, flush
+    (add, flush)
 
   (* accumulator, push and flush for typing str
      let $id = ref None
@@ -65,11 +64,10 @@ module Pass = struct
   let push_typing_str_item, flush_typing_str_item =
     let typing_strs = ref [] in
     let add orig_expr id =
-      if List.for_all (function id', _ -> id'.txt <> id.txt) !typing_strs
-      then
+      if List.for_all (function id', _ -> id'.txt <> id.txt) !typing_strs then
         typing_strs :=
-          ( id
-          , let loc = orig_expr.pexp_loc in
+          ( id,
+            let loc = orig_expr.pexp_loc in
             [%stri let [%p Pat.var id] = Stdlib.ref None] )
           :: !typing_strs
     in
@@ -78,7 +76,7 @@ module Pass = struct
       typing_strs := [];
       res
     in
-    add, flush
+    (add, flush)
 
   (** Syntax extension *)
 
@@ -86,11 +84,13 @@ module Pass = struct
     let loc = item.pstr_loc in
     flush_typing_str_item () @ [%str let () = [%e flush_typing_expr ()]]
 
-  let server_str _ item = flush_typing_str_item () @ [item]
+  let server_str _ item = flush_typing_str_item () @ [ item ]
 
   let shared_str _ item =
     let loc = item.pstr_loc in
-    flush_typing_str_item () @ [%str let () = [%e flush_typing_expr ()]] @ [item]
+    flush_typing_str_item ()
+    @ [%str let () = [%e flush_typing_expr ()]]
+    @ [ item ]
 
   let fragment ~loc ?typ ~context:_ ~num:_ ~id ~unsafe:_ expr =
     let frag_eid = eid id in
@@ -102,14 +102,8 @@ module Pass = struct
         Some (Eliom_syntax.client_value "" 0 : [%t typ] Eliom_client_value.t);
       (Stdlib.Option.get ![%e frag_eid] : _ Eliom_client_value.t)]
 
-  let escape_inject
-        ~loc
-        ?ident:_
-        ~(context : Context.escape_inject)
-        ~id
-        ~unsafe:_
-        expr
-    =
+  let escape_inject ~loc ?ident:_ ~(context : Context.escape_inject) ~id
+      ~unsafe:_ expr =
     push_typing_str_item expr id;
     push_typing_expr expr id;
     match context with

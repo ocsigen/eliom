@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 (** {2 Client and shared values}
 
@@ -40,19 +40,18 @@ exception Client_value_creation_invalid_context of string
 (**/**)
 
 val create_client_value :
-   loc:Eliom_lib.pos option
-  -> instance_id:int
-  -> _ Eliom_runtime.Client_value_server_repr.t
+  loc:Eliom_lib.pos option ->
+  instance_id:int ->
+  _ Eliom_runtime.Client_value_server_repr.t
 
 val client_value_from_server_repr :
-   'a Eliom_runtime.Client_value_server_repr.t
-  -> 'a t
+  'a Eliom_runtime.Client_value_server_repr.t -> 'a t
 
 val client_value_datum :
-   closure_id:string
-  -> args:Ocsigen_lib.poly
-  -> value:'a t
-  -> Eliom_runtime.client_value_datum
+  closure_id:string ->
+  args:Ocsigen_lib.poly ->
+  value:'a t ->
+  Eliom_runtime.client_value_datum
 
 val escaped_value : 'a -> Eliom_runtime.escaped_value
 (* * Eliom_wrap.unwrapper *)

@@ -15,12 +15,12 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 open Js_of_ocaml
 
 type param = Form.form_elt
-type field = [`String of Js.js_string Js.t | `File of File.file Js.t]
+type field = [ `String of Js.js_string Js.t | `File of File.file Js.t ]
 
 let insert_string s : field = `String (Js.string s)
 let insert_file s : field = `File s
@@ -29,8 +29,8 @@ let to_string : field -> string = function
   | `File _ -> failwith "Cannot put a file in URL"
   | `String s -> Js.to_string s
 
-let inject_param_list l = List.map (fun (n, v) -> n, insert_string v) l
-let get_param_list l = List.map (fun (n, v) -> n, to_string v) l
+let inject_param_list l = List.map (fun (n, v) -> (n, insert_string v)) l
+let get_param_list l = List.map (fun (n, v) -> (n, to_string v)) l
 
 let inject_param_table t : (string * param) list Eliom_lib.String.Table.t =
   Eliom_lib.String.Table.map (fun v -> inject_param_list v) t

@@ -12,14 +12,13 @@ let eliomverbatim_filename = ".eliomverbatim"
 let eliom_template_dir =
   Filename.concat (Findlib.package_directory "eliom") "templates"
 
-let distillery_basic = "client-server.basic", eliom_template_dir
+let distillery_basic = ("client-server.basic", eliom_template_dir)
 let template_path (tname, tpath) = tpath ^ "/" ^ tname
 
 (* Returns all lines of [file] as a string list. Returns an empty list
    if [file] doesn't exist. *)
 let lines_of_file file =
-  if not (Sys.file_exists file)
-  then []
+  if not (Sys.file_exists file) then []
   else
     let lines = ref [] in
     let in_file = open_in file in
@@ -29,7 +28,8 @@ let lines_of_file file =
         aux ()
       with End_of_file -> close_in in_file
     in
-    aux (); !lines
+    aux ();
+    !lines
 
 let pp_list () l =
   let f s = if s = fst distillery_basic then s ^ " (default)" else s in
@@ -37,7 +37,14 @@ let pp_list () l =
 
 let gen_usage_msg l =
   Printf.sprintf
-    "Welcome to the Eliom distillery!\n\nThis program generates the scaffold for your Eliom application\nfrom a template.\nAvailable templates: %a.\n\nCall it like this\n\  $ %s -name <name> [-template <template>] [-target-directory <dest>]\n\  $ %s -dir \nwhere"
+    "Welcome to the Eliom distillery!\n\n\
+     This program generates the scaffold for your Eliom application\n\
+     from a template.\n\
+     Available templates: %a.\n\n\
+     Call it like this\n\
+    \  $ %s -name <name> [-template <template>] [-target-directory <dest>]\n\
+    \  $ %s -dir \n\
+     where"
     pp_list l
     (Filename.basename Sys.argv.(0))
     (Filename.basename Sys.argv.(0))
@@ -56,7 +63,7 @@ let rec yes_no : default:bool -> string -> bool =
 let split_path str = Str.(split_delim (regexp (quote Filename.dir_sep)) str)
 
 let join_path = function
-  | [""] -> failwith "join_path"
+  | [ "" ] -> failwith "join_path"
   | path -> String.concat Filename.dir_sep path
 
 exception Preprocessing_error of string
@@ -70,13 +77,10 @@ let mkdir_p path_str =
     | [] -> ()
     | snippet :: rest ->
         let sofar' = snippet :: sofar in
-        (if sofar' <> [""]
-         then
+        (if sofar' <> [ "" ] then
            let dir = join_path (List.rev sofar') in
-           if Sys.file_exists dir
-           then (
-             if not (Sys.is_directory dir)
-             then
+           if Sys.file_exists dir then (
+             if not (Sys.is_directory dir) then
                raise
                  (File_error
                     (sprintf "Cannot create directory %S, it's a file" dir)))
@@ -88,10 +92,10 @@ let mkdir_p path_str =
 let copy_file_plain input_name output_name =
   mkdir_p (Filename.dirname output_name);
   let buffer_size = 8192 in
-  let fd_in = Unix.openfile input_name [O_RDONLY] 0
+  let fd_in = Unix.openfile input_name [ O_RDONLY ] 0
   and fd_out =
-    let {Unix.st_perm; _} = Unix.stat input_name in
-    Unix.openfile output_name [O_WRONLY; O_CREAT; O_TRUNC] st_perm
+    let { Unix.st_perm; _ } = Unix.stat input_name in
+    Unix.openfile output_name [ O_WRONLY; O_CREAT; O_TRUNC ] st_perm
   and buffer = Bytes.create buffer_size in
   let rec copy_loop () =
     match Unix.read fd_in buffer 0 buffer_size with
@@ -100,7 +104,9 @@ let copy_file_plain input_name output_name =
         ignore (Unix.write fd_out buffer 0 r);
         copy_loop ()
   in
-  copy_loop (); Unix.close fd_in; Unix.close fd_out
+  copy_loop ();
+  Unix.close fd_in;
+  Unix.close fd_out
 
 let copy_file ?(env = []) ?(preds = []) src_name dst_name =
   let line_counter = ref 0 in
@@ -109,15 +115,14 @@ let copy_file ?(env = []) ?(preds = []) src_name dst_name =
     let preds =
       List.map
         (fun pred ->
-           pred, Str.(regexp ("^ *%%%ifdef +" ^ quote pred ^ "%%% *$")))
+          (pred, Str.(regexp ("^ *%%%ifdef +" ^ quote pred ^ "%%% *$"))))
         preds
     in
     fun line ->
       let rec ifdef_pred = function
         | [] -> None
         | (pred, regexp) :: rest ->
-            if Str.string_match regexp line 0
-            then Some pred
+            if Str.string_match regexp line 0 then Some pred
             else ifdef_pred rest
       in
       match ifdef_pred preds with
@@ -125,12 +130,10 @@ let copy_file ?(env = []) ?(preds = []) src_name dst_name =
           ifdef_stack := true :: !ifdef_stack;
           false
       | None ->
-          if Str.string_match ifdef_regexp line 0
-          then (
+          if Str.string_match ifdef_regexp line 0 then (
             ifdef_stack := false :: !ifdef_stack;
             false)
-          else if Str.string_match endif_regexp line 0
-          then
+          else if Str.string_match endif_regexp line 0 then
             match !ifdef_stack with
             | _ :: stack ->
                 ifdef_stack := stack;
@@ -166,8 +169,7 @@ let copy_file ?(env = []) ?(preds = []) src_name dst_name =
          while true do
            let line = input_line src in
            incr line_counter;
-           if include_line line
-           then (
+           if include_line line then (
              output_string dst (replace_in_line line);
              output_char dst '\n')
          done
@@ -192,47 +194,42 @@ let create_project ?preds ~without_asking ~name ~env ~source_dir ~dest_dir () =
   and eliom_verbatim_files =
     lines_of_file (Filename.concat source_dir eliomverbatim_filename)
   in
-  if not (Sys.file_exists dest_dir)
-  then
+  if not (Sys.file_exists dest_dir) then
     if
       without_asking
       || ksprintf (yes_no ~default:true)
            "Destination directory %S doesn't exist. Create it?" dest_dir
     then mkdir_p dest_dir
     else exit 1;
-  if not (Sys.is_directory dest_dir)
-  then (
+  if not (Sys.is_directory dest_dir) then (
     eprintf "Destination directory %S is a file!" dest_dir;
     exit 1);
   Array.iter
     (fun src_file ->
-       if List.mem src_file eliom_ignore_files
-       then ()
-       else if List.mem src_file eliom_verbatim_files
-       then (
-         let src_path = Filename.concat source_dir src_file
-         and dst_path = expand_dest_path ~name ~dest_dir src_file in
-         copy_file_plain src_path dst_path;
-         printf "Generated %s\n%!" dst_path)
-       else
-         let src_path = Filename.concat source_dir src_file
-         and dst_path = expand_dest_path ~name ~dest_dir src_file in
-         copy_file ?preds ~env src_path dst_path)
+      if List.mem src_file eliom_ignore_files then ()
+      else if List.mem src_file eliom_verbatim_files then (
+        let src_path = Filename.concat source_dir src_file
+        and dst_path = expand_dest_path ~name ~dest_dir src_file in
+        copy_file_plain src_path dst_path;
+        printf "Generated %s\n%!" dst_path)
+      else
+        let src_path = Filename.concat source_dir src_file
+        and dst_path = expand_dest_path ~name ~dest_dir src_file in
+        copy_file ?preds ~env src_path dst_path)
     (Sys.readdir source_dir)
 
 let env name =
   let db =
-    if Utils.has_package "ocsipersist.dbm"
-    then "dbm"
-    else if Utils.has_package "ocsipersist.sqlite"
-    then "sqlite"
-    else if Utils.has_package "ocsipersist.pgsql"
-    then "pgsql"
+    if Utils.has_package "ocsipersist.dbm" then "dbm"
+    else if Utils.has_package "ocsipersist.sqlite" then "sqlite"
+    else if Utils.has_package "ocsipersist.pgsql" then "pgsql"
     else "dbm"
   in
-  [ "PROJECT_NAME", name
-  ; "MODULE_NAME", String.capitalize_ascii name
-  ; "PROJECT_DB", db ]
+  [
+    ("PROJECT_NAME", name);
+    ("MODULE_NAME", String.capitalize_ascii name);
+    ("PROJECT_DB", db);
+  ]
 
 let get_templatedirs () =
   let distillery_path_dirs =
@@ -244,14 +241,15 @@ let get_templatedirs () =
   eliom_template_dir :: distillery_path_dirs
 
 let get_templates () =
-  let dirs = List.map (fun d -> d, Unix.opendir d) (get_templatedirs ()) in
+  let dirs = List.map (fun d -> (d, Unix.opendir d)) (get_templatedirs ()) in
   let rec aux rl (path, dir) =
     try
       let f = Unix.readdir dir in
-      if f = ".." || f = "."
-      then aux rl (path, dir)
+      if f = ".." || f = "." then aux rl (path, dir)
       else aux ((f, path) :: rl) (path, dir)
-    with End_of_file -> Unix.closedir dir; rl
+    with End_of_file ->
+      Unix.closedir dir;
+      rl
   in
   List.concat (List.map (aux []) dirs)
 
@@ -263,7 +261,7 @@ let get_templates () =
  * It is supposed each
  * template has a file {!reserve_project_name_filename} file containing the
  * list of reserve project name (one name a line).
-*)
+ *)
 
 let check_reserve_project_name project_name template =
   Filename.concat (template_path template) reserve_project_name_filename
@@ -272,7 +270,7 @@ let check_reserve_project_name project_name template =
 (* ---------- Reserve project name ---------- *)
 (* ------------------------------------------ *)
 
-let init_project template name = env name, template_path template
+let init_project template name = (env name, template_path template)
 let compilation_unit_name_regexp = Str.regexp "^[A-Za-z][a-zA-Z0-9_']*$"
 
 let main () =
@@ -297,51 +295,52 @@ let main () =
   let dest_dir = ref None in
   let check_name name =
     let name' = String.lowercase_ascii name in
-    if name' <> name
-    then Printf.eprintf "Warning: \"%s\" converted to \"%s\"\n%!" name name';
-    if not (Str.string_match compilation_unit_name_regexp name' 0)
-    then bad "Not a valid compilation unit name: %s" name'
+    if name' <> name then
+      Printf.eprintf "Warning: \"%s\" converted to \"%s\"\n%!" name name';
+    if not (Str.string_match compilation_unit_name_regexp name' 0) then
+      bad "Not a valid compilation unit name: %s" name'
     else name'
   in
   let spec =
     Arg.(
       align
-        [ ( "-dir"
-          , Set dir
-          , " Display the template directories (set through $ELIOM_DISTILLERY_PATH)"
-          )
-        ; ( "-y"
-          , Set without_asking
-          , " Create the project directory without confirmation." )
-        ; ( "-name"
-          , String (fun s -> name := Some (check_name s))
-          , "<name> Name of the project (a valid compilation unit name)" )
-        ; ( "-template"
-          , String select_template
-          , "<template> The template for the project" )
-        ; ( "-list-templates"
-          , Unit show_templates
-          , " List all available templates" )
-        ; ( "-target-directory"
-          , String (fun s -> dest_dir := Some s)
-          , "<dir> Generate the project in directory <dir> (the project's name by default)"
-          ) ])
+        [
+          ( "-dir",
+            Set dir,
+            " Display the template directories (set through \
+             $ELIOM_DISTILLERY_PATH)" );
+          ( "-y",
+            Set without_asking,
+            " Create the project directory without confirmation." );
+          ( "-name",
+            String (fun s -> name := Some (check_name s)),
+            "<name> Name of the project (a valid compilation unit name)" );
+          ( "-template",
+            String select_template,
+            "<template> The template for the project" );
+          ( "-list-templates",
+            Unit show_templates,
+            " List all available templates" );
+          ( "-target-directory",
+            String (fun s -> dest_dir := Some s),
+            "<dir> Generate the project in directory <dir> (the project's name \
+             by default)" );
+        ])
   in
   Arg.(parse spec (bad "Don't know what to do with %S") usage_msg);
-  if !dir
-  then List.iter (printf "%s\n") (get_templatedirs ())
-  else if !shown
-  then ()
+  if !dir then List.iter (printf "%s\n") (get_templatedirs ())
+  else if !shown then ()
   else
     let template, name, dest_dir =
-      match !template, !name with
+      match (!template, !name) with
       | template, Some name ->
           let dir = match !dest_dir with Some dir -> dir | None -> name in
-          template, name, dir
-      | _ -> Arg.usage spec usage_msg; exit 1
+          (template, name, dir)
+      | _ ->
+          Arg.usage spec usage_msg;
+          exit 1
     in
-    if check_reserve_project_name name template
-    then
+    if check_reserve_project_name name template then
       printf "'%s' is not a valid project name for the template '%s'.\n" name
         (fst template)
     else

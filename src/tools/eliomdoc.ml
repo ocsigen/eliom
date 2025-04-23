@@ -7,10 +7,12 @@ let usage () =
     (Filename.basename Sys.argv.(0));
   Printf.eprintf "SPECIFIC OPTIONS:\n%!";
   Printf.eprintf
-    "  -eliom-inc <dir>\tAdd <dir> to the list of eliom include directories (prepend eliom build directories)\n";
+    "  -eliom-inc <dir>\tAdd <dir> to the list of eliom include directories \
+     (prepend eliom build directories)\n";
   Printf.eprintf "  -package <name>\tRefer to package when compiling\n";
   Printf.eprintf
-    "  -no-autoload\t\tDo not load commonly used syntax extensions (deriving, lwt, js_of_ocaml, tyxml)\n";
+    "  -no-autoload\t\tDo not load commonly used syntax extensions (deriving, \
+     lwt, js_of_ocaml, tyxml)\n";
   Printf.eprintf
     "  -ppopt <p>\t\tAppend option <opt> to preprocessor invocation\n";
   Printf.eprintf
@@ -22,7 +24,7 @@ let usage () =
   Printf.eprintf "\t\t\tappearance of -ppx in the list of flags. Subsequent\n";
   Printf.eprintf "\t\t\tappearances require an argument and specify a\n";
   Printf.eprintf "\t\t\tPPX preprocessor to use (see STANDARD OPTIONS).\n";
-  create_filter !compiler ["-help"] (help_filter 2 "STANDARD OPTIONS:");
+  create_filter !compiler [ "-help" ] (help_filter 2 "STANDARD OPTIONS:");
   exit 1
 
 (* We use inode for eliom include directories, it's the easier way to
@@ -37,8 +39,8 @@ let get_default_args () =
   let new_ = Filename.temp_file "eliomdoc" "dump" in
   let args =
     match !acc_file with
-    | None -> ["-dump"; new_]
-    | Some old -> ["-load"; old; "-dump"; new_]
+    | None -> [ "-dump"; new_ ]
+    | Some old -> [ "-load"; old; "-dump"; new_ ]
   in
   acc_file := Some new_;
   args
@@ -52,7 +54,7 @@ let compile_intf file =
        (preprocess_opt !ppopt @ !args @ get_default_args ()
       @ get_common_include ()
        @ map_include !eliom_inc_dirs
-       @ ["-intf"; file]))
+       @ [ "-intf"; file ]))
 
 let compile_impl file =
   wait
@@ -60,43 +62,44 @@ let compile_impl file =
        (preprocess_opt !ppopt @ !args @ get_default_args ()
       @ get_common_include ()
        @ map_include !eliom_inc_dirs
-       @ ["-impl"; file]))
+       @ [ "-impl"; file ]))
 
 let server_pp_opt impl_intf =
   match !pp_mode with
-  | `Camlp4 -> ("-printer" :: "o" :: !ppopt) @ [impl_intf_opt impl_intf]
+  | `Camlp4 -> ("-printer" :: "o" :: !ppopt) @ [ impl_intf_opt impl_intf ]
   | `Ppx -> !ppopt
 
 let client_pp_opt impl_intf =
   match !pp_mode with
-  | `Camlp4 -> ("-printer" :: "o" :: !ppopt) @ [impl_intf_opt impl_intf]
+  | `Camlp4 -> ("-printer" :: "o" :: !ppopt) @ [ impl_intf_opt impl_intf ]
   | `Ppx -> !ppopt
 
 let generate_temp_file file =
   let tmp_dir = Filename.get_temp_dir_name () in
   let temp_file = tmp_dir ^ Filename.dir_sep ^ Filename.basename file in
-  ( temp_file
-  , Unix.openfile temp_file [Unix.O_TRUNC; Unix.O_CREAT; Unix.O_WRONLY] 0o640 )
+  ( temp_file,
+    Unix.openfile temp_file [ Unix.O_TRUNC; Unix.O_CREAT; Unix.O_WRONLY ] 0o640
+  )
 
 let compile_server_eliom ~impl_intf file =
   let file', out = generate_temp_file file in
-  wait (create_process ~out "eliompp" ["-server"; file]);
+  wait (create_process ~out "eliompp" [ "-server"; file ]);
   wait
     (create_process !compiler
        (preprocess_opt ~kind:`Server (server_pp_opt impl_intf)
        @ !args @ get_default_args () @ get_common_include ()
        @ map_include !eliom_inc_dirs
-       @ [impl_intf_opt impl_intf; file']))
+       @ [ impl_intf_opt impl_intf; file' ]))
 
 let compile_client_eliom ~impl_intf file =
   let file', out = generate_temp_file file in
-  wait (create_process ~out "eliompp" ["-client"; file]);
+  wait (create_process ~out "eliompp" [ "-client"; file ]);
   wait
     (create_process !compiler
        (preprocess_opt ~kind:`Client (client_pp_opt impl_intf)
        @ !args @ get_default_args () @ get_common_include ()
        @ map_include !eliom_inc_dirs
-       @ [impl_intf_opt impl_intf; file']))
+       @ [ impl_intf_opt impl_intf; file' ]))
 
 let compile_eliom ~impl_intf file =
   match !kind with
@@ -143,7 +146,7 @@ let process_option () =
         i := !i + 1
     | "-ppopt" ->
         if !i + 1 >= Array.length Sys.argv then usage ();
-        ppopt := !ppopt @ [Sys.argv.(!i + 1)];
+        ppopt := !ppopt @ [ Sys.argv.(!i + 1) ];
         i := !i + 2
     | "-dir" ->
         if !i + 1 >= Array.length Sys.argv then usage ();
@@ -159,8 +162,12 @@ let process_option () =
         let arg = Sys.argv.(!i + 1) in
         compile_eliom ~impl_intf:`Impl arg;
         i := !i + 2
-    | arg when Filename.check_suffix arg ".mli" -> compile_intf arg; incr i
-    | arg when Filename.check_suffix arg ".ml" -> compile_impl arg; incr i
+    | arg when Filename.check_suffix arg ".mli" ->
+        compile_intf arg;
+        incr i
+    | arg when Filename.check_suffix arg ".ml" ->
+        compile_impl arg;
+        incr i
     | arg when Filename.check_suffix arg ".eliom" ->
         compile_eliom ~impl_intf:`Impl arg;
         incr i
@@ -168,7 +175,7 @@ let process_option () =
         compile_eliom ~impl_intf:`Intf arg;
         incr i
     | arg ->
-        args := !args @ [arg];
+        args := !args @ [ arg ];
         incr i
   done;
   generate_doc ()

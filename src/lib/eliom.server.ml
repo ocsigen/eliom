@@ -1,54 +1,38 @@
 let default_app_name = Eliom_common.default_app_name
 let set_app_name = Eliommod.set_app_name
 
-let run
-      ?(app = default_app_name)
-      ?xhr_links
-      ?data_timeout
-      ?service_timeout
-      ?persistent_timeout
-      ?max_service_sessions_per_group
-      ?max_volatile_data_sessions_per_group
-      ?max_persistent_data_sessions_per_group
-      ?max_service_tab_sessions_per_group
-      ?max_volatile_data_tab_sessions_per_group
-      ?max_persistent_data_tab_sessions_per_group
-      ?max_anonymous_services_per_session
-      ?secure_cookies
-      ?application_script
-      ?global_data_caching
-      ?html_content_type
-      ?ignored_get_params
-      ?ignored_post_params
-      ?omitpersistentstorage
-      ()
-      vh
-      conf_info
-      site_dir
-  =
+let run ?(app = default_app_name) ?xhr_links ?data_timeout ?service_timeout
+    ?persistent_timeout ?max_service_sessions_per_group
+    ?max_volatile_data_sessions_per_group
+    ?max_persistent_data_sessions_per_group ?max_service_tab_sessions_per_group
+    ?max_volatile_data_tab_sessions_per_group
+    ?max_persistent_data_tab_sessions_per_group
+    ?max_anonymous_services_per_session ?secure_cookies ?application_script
+    ?global_data_caching ?html_content_type ?ignored_get_params
+    ?ignored_post_params ?omitpersistentstorage () vh conf_info site_dir =
   let sitedata = Eliommod.update_sitedata app vh site_dir conf_info in
   (* customize sitedata according to optional parameters: *)
   Option.iter
     (fun v ->
-       sitedata.Eliom_common.default_links_xhr#set ~override_tenable:true v)
+      sitedata.Eliom_common.default_links_xhr#set ~override_tenable:true v)
     xhr_links;
   Option.iter
     (fun (level, hierarchyname, v) ->
-       Eliommod.set_timeout
-         (Eliommod_timeouts.set_global_ ~kind:`Data)
-         sitedata level hierarchyname v)
+      Eliommod.set_timeout
+        (Eliommod_timeouts.set_global_ ~kind:`Data)
+        sitedata level hierarchyname v)
     data_timeout;
   Option.iter
     (fun (level, hierarchyname, v) ->
-       Eliommod.set_timeout
-         (Eliommod_timeouts.set_global_ ~kind:`Service)
-         sitedata level hierarchyname v)
+      Eliommod.set_timeout
+        (Eliommod_timeouts.set_global_ ~kind:`Service)
+        sitedata level hierarchyname v)
     service_timeout;
   Option.iter
     (fun (level, hierarchyname, v) ->
-       Eliommod.set_timeout
-         (Eliommod_timeouts.set_global_ ~kind:`Persistent)
-         sitedata level hierarchyname v)
+      Eliommod.set_timeout
+        (Eliommod_timeouts.set_global_ ~kind:`Persistent)
+        sitedata level hierarchyname v)
     persistent_timeout;
   Option.iter
     (fun v -> sitedata.max_service_sessions_per_group <- v)
@@ -57,7 +41,7 @@ let run
     (fun v -> sitedata.max_volatile_data_sessions_per_group <- v)
     max_volatile_data_sessions_per_group;
   Option.iter
-    (fun v -> sitedata.max_persistent_data_sessions_per_group <- Some v, true)
+    (fun v -> sitedata.max_persistent_data_sessions_per_group <- (Some v, true))
     max_persistent_data_sessions_per_group;
   Option.iter
     (fun v -> sitedata.max_service_tab_sessions_per_group <- v)
@@ -67,7 +51,7 @@ let run
     max_volatile_data_tab_sessions_per_group;
   Option.iter
     (fun v ->
-       sitedata.max_persistent_data_tab_sessions_per_group <- Some v, true)
+      sitedata.max_persistent_data_tab_sessions_per_group <- (Some v, true))
     max_persistent_data_tab_sessions_per_group;
   Option.iter
     (fun v -> sitedata.max_anonymous_services_per_session <- v)

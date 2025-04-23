@@ -19,7 +19,7 @@ open Lwt.Syntax
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 (* Module for event unwrapping *)
 let ( >|= ) = Lwt.( >|= )
@@ -34,12 +34,13 @@ module Down = struct
   let handle_react_exn, set_handle_react_exn_function =
     let r =
       ref (fun ?exn () ->
-        let s =
-          "Exception during comet with react. Customize this with Eliom_react.set_handle_react_exn_function. "
-        in
-        Lwt_log_js.log ~section ~level:Lwt_log_js.Debug ?exn s)
+          let s =
+            "Exception during comet with react. Customize this with \
+             Eliom_react.set_handle_react_exn_function. "
+          in
+          Lwt_log_js.log ~section ~level:Lwt_log_js.Debug ?exn s)
     in
-    (fun ?exn () -> !r ?exn ()), fun f -> r := f
+    ((fun ?exn () -> !r ?exn ()), fun f -> r := f)
 
   let internal_unwrap (channel, _unwrapper) =
     (* We want to catch more exceptions here than the usual exceptions caught
@@ -47,13 +48,13 @@ module Down = struct
     (* We transform the stream into a stream with exception: *)
     let stream = Lwt_stream.wrap_exn channel in
     Lwt.async (fun () ->
-      Lwt_stream.iter_s
-        (function
-          | Error exn ->
-              let* () = handle_react_exn ~exn () in
-              Lwt.fail exn
-          | Ok () -> Lwt.return_unit)
-        stream);
+        Lwt_stream.iter_s
+          (function
+            | Error exn ->
+                let* () = handle_react_exn ~exn () in
+                Lwt.fail exn
+            | Ok () -> Lwt.return_unit)
+          stream);
     E.of_stream channel
 
   let () =

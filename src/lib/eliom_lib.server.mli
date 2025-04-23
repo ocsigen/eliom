@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 (** A few common functions used by Eliom. Extension of OCaml stdlib.
     See also {% <<a_api project="ocsigenserver" | module Ocsigen_lib>> %} *)
@@ -23,17 +23,17 @@
 (** See {% <<a_api project="ocsigenserver"| module Ocsigen_lib>> %}. *)
 include
   module type of Ocsigen_lib
-  with type poly = Ocsigen_lib.poly
-   and type yesnomaybe = Ocsigen_lib.yesnomaybe
-   and type ('a, 'b) leftright = ('a, 'b) Ocsigen_lib.leftright
-   and type 'a Clist.t = 'a Ocsigen_lib.Clist.t
-   and type 'a Clist.node = 'a Ocsigen_lib.Clist.node
+    with type poly = Ocsigen_lib.poly
+     and type yesnomaybe = Ocsigen_lib.yesnomaybe
+     and type ('a, 'b) leftright = ('a, 'b) Ocsigen_lib.leftright
+     and type 'a Clist.t = 'a Ocsigen_lib.Clist.t
+     and type 'a Clist.node = 'a Ocsigen_lib.Clist.node
 
 include
   module type of Eliom_lib_base
-  with type 'a Int64_map.t = 'a Eliom_lib_base.Int64_map.t
-  with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
-  with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t
+    with type 'a Int64_map.t = 'a Eliom_lib_base.Int64_map.t
+    with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
+    with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t
 
 type file_info = Ocsigen_extensions.file_info
 

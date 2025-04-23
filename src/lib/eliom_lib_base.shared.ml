@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 open Ocsigen_lib_base
 
@@ -34,10 +34,9 @@ let pos_to_string ((start, stop) : pos) =
   let open Lexing in
   let start_col = start.pos_cnum - start.pos_bol in
   let stop_col = stop.pos_cnum - stop.pos_bol in
-  if start.pos_lnum = stop.pos_lnum
-  then
-    if start_col = stop_col
-    then Printf.sprintf "%s %d:%d" start.pos_fname start.pos_lnum start_col
+  if start.pos_lnum = stop.pos_lnum then
+    if start_col = stop_col then
+      Printf.sprintf "%s %d:%d" start.pos_fname start.pos_lnum start_col
     else
       Printf.sprintf "%s %d:%d-%d" start.pos_fname start.pos_lnum start_col
         stop_col
@@ -53,10 +52,10 @@ module type Map_S = sig
 end
 
 module Map_make (Ord : sig
-    include Map.OrderedType
+  include Map.OrderedType
 
-    val to_string : t -> string
-  end) =
+  val to_string : t -> string
+end) =
 struct
   include Map.Make (Ord)
 
@@ -72,14 +71,14 @@ end
 module Int64_map = Map_make (Int64)
 
 module Int_map = Map_make (struct
-    type t = int
+  type t = int
 
-    let compare = ( - )
-    let to_string = string_of_int
-  end)
+  let compare = ( - )
+  let to_string = string_of_int
+end)
 
 module String_map = Map_make (struct
-    include String
+  include String
 
-    let to_string x = x
-  end)
+  let to_string x = x
+end)

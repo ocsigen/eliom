@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 open Js_of_ocaml
 include Ocsigen_lib_base
@@ -22,9 +22,9 @@ include Ocsigen_lib_base
 include (
   Eliom_lib_base :
     module type of Eliom_lib_base
-    with type 'a Int64_map.t = 'a Eliom_lib_base.Int64_map.t
-    with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
-    with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t)
+      with type 'a Int64_map.t = 'a Eliom_lib_base.Int64_map.t
+      with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
+      with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t)
 
 (*****************************************************************************)
 
@@ -55,20 +55,19 @@ module Url = struct
     with Not_found -> false
 
   let add_get_args url get_args =
-    if get_args = []
-    then url
+    if get_args = [] then url
     else
       url ^ (if has_get_args url then "&" else "?") ^ encode_arguments get_args
 
   let string_of_url_path ~encode l =
-    if encode
-    then print_endline "Warning: Eliom_lib.string_of_url_path ignores ~encode";
+    if encode then
+      print_endline "Warning: Eliom_lib.string_of_url_path ignores ~encode";
     String.concat "/" l
 
   let path_of_url = function
-    | Url.Http {Url.hu_path = path; _}
-    | Url.Https {Url.hu_path = path; _}
-    | Url.File {Url.fu_path = path; _} ->
+    | Url.Http { Url.hu_path = path; _ }
+    | Url.Https { Url.hu_path = path; _ }
+    | Url.File { Url.fu_path = path; _ } ->
         path
 
   let path_of_url_string s =
@@ -100,8 +99,7 @@ let _ =
         exn
 
 let trace fmt =
-  if Eliom_config.get_tracing ()
-  then Lwt_log.ign_info_f (">> " ^^ fmt)
+  if Eliom_config.get_tracing () then Lwt_log.ign_info_f (">> " ^^ fmt)
   else Printf.ksprintf ignore fmt
 
 let lwt_ignore ?(message = "") t =
@@ -140,17 +138,17 @@ let to_json ?typ s =
   match Sys.backend_type with
   | Other "js_of_ocaml" -> Js.to_string (Json.output s)
   | _ -> (
-    match typ with
-    | Some typ -> Deriving_Json.to_string typ s
-    | None -> Js.to_string (Json.output s))
+      match typ with
+      | Some typ -> Deriving_Json.to_string typ s
+      | None -> Js.to_string (Json.output s))
 
 let of_json ?typ v =
   match Sys.backend_type with
   | Other "js_of_ocaml" -> Json.unsafe_input (Js.string v)
   | _ -> (
-    match typ with
-    | Some typ -> Deriving_Json.from_string typ v
-    | None -> assert false)
+      match typ with
+      | Some typ -> Deriving_Json.from_string typ v
+      | None -> assert false)
 
 (* Url.urlencode ~with_plus:true (Marshal.to_string x [])
     (* I encode the data because it seems that multipart does not
@@ -193,9 +191,9 @@ module Dom_reference = struct
       Js.Optdef.get
         (retain_map##get node)
         (fun () ->
-           let m = create_map () in
-           retain_map##set node m;
-           m)
+          let m = create_map () in
+          retain_map##set node m;
+          m)
     in
     m##set key (Obj.repr keep)
 
@@ -210,6 +208,6 @@ module Dom_reference = struct
     Js.Optdef.iter
       (retain_map##get src)
       (fun m ->
-         Js.Optdef.iter (m##get key) (fun keep -> retain dst ~key ~keep);
-         m##delete key)
+        Js.Optdef.iter (m##get key) (fun keep -> retain dst ~key ~keep);
+        m##delete key)
 end

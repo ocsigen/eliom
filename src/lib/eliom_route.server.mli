@@ -16,46 +16,44 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 open Eliom_lib
 
 val get_page :
-   float
-  -> Eliom_common.info
-  -> Eliom_common.sitedata
-  -> Ocsigen_response.t Lwt.t
+  float ->
+  Eliom_common.info ->
+  Eliom_common.sitedata ->
+  Ocsigen_response.t Lwt.t
 
 val add_service :
-   int
-  -> Eliom_common.tables
-  -> String.Table.key list
-  -> Eliom_common.Serv_Table.key
-  -> (Eliom_common.server_params, Ocsigen_response.t) Eliom_common.service
-  -> unit
+  int ->
+  Eliom_common.tables ->
+  String.Table.key list ->
+  Eliom_common.Serv_Table.key ->
+  (Eliom_common.server_params, Ocsigen_response.t) Eliom_common.service ->
+  unit
 
 val remove_service :
-   Eliom_common.tables
-  -> String.Table.key list
-  -> Eliom_common.Serv_Table.key
-  -> Eliom_common.anon_params_type * Eliom_common.anon_params_type
-  -> unit
+  Eliom_common.tables ->
+  String.Table.key list ->
+  Eliom_common.Serv_Table.key ->
+  Eliom_common.anon_params_type * Eliom_common.anon_params_type ->
+  unit
 
 val add_naservice :
-   Eliom_common.tables
-  -> Eliom_common.NAserv_Table.key
-  -> int ref option
-     * (float * float ref) option
-     * (Eliom_common.server_params -> Ocsigen_response.t Lwt.t)
-  -> unit
+  Eliom_common.tables ->
+  Eliom_common.NAserv_Table.key ->
+  int ref option
+  * (float * float ref) option
+  * (Eliom_common.server_params -> Ocsigen_response.t Lwt.t) ->
+  unit
 
 val remove_naservice :
-   Eliom_common.tables
-  -> Eliom_common.NAserv_Table.key
-  -> unit
+  Eliom_common.tables -> Eliom_common.NAserv_Table.key -> unit
 
 val make_naservice :
-   float
-  -> Eliom_common.info
-  -> Eliom_common.sitedata
-  -> Ocsigen_response.t Lwt.t
+  float ->
+  Eliom_common.info ->
+  Eliom_common.sitedata ->
+  Ocsigen_response.t Lwt.t

@@ -15,33 +15,28 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 open Js_of_ocaml
 open Eliom_lib
 open Eliom_content_core
 module Xml = Xml
 
-module MakeManip
-    (Kind : sig
-       type +'a elt
+module MakeManip (Kind : sig
+  type +'a elt
 
-       val toelt : 'a elt -> Xml.elt
-     end)
-    (To_dom : sig
-       val of_element : 'a Kind.elt -> Dom_html.element Js.t
-     end)
-    (Of_dom : sig
-       val of_element : Dom_html.element Js.t -> 'a Kind.elt
-     end)
-    (Id : sig
-       type 'a id
+  val toelt : 'a elt -> Xml.elt
+end) (To_dom : sig
+  val of_element : 'a Kind.elt -> Dom_html.element Js.t
+end) (Of_dom : sig
+  val of_element : Dom_html.element Js.t -> 'a Kind.elt
+end) (Id : sig
+  type 'a id
 
-       val get_element' : 'a id -> Dom.node Js.t
-     end)
-    (Ns : sig
-       val content_ns : Eliom_client_core.content_ns
-     end) =
+  val get_element' : 'a id -> Dom.node Js.t
+end) (Ns : sig
+  val content_ns : Eliom_client_core.content_ns
+end) =
 struct
   let get_node elt = (To_dom.of_element elt :> Dom.node Js.t)
 
@@ -64,10 +59,10 @@ struct
     Js.Opt.case
       (Dom_html.CoerceTo.element (get_unique_node name elt))
       (fun () ->
-         raise_error ~section:eliom_logs_src
-           ~inspect:
-             (Eliom_client_core.rebuild_node' Ns.content_ns (Kind.toelt elt))
-           "Cannot call %s on a node which is not an element" name)
+        raise_error ~section:eliom_logs_src
+          ~inspect:
+            (Eliom_client_core.rebuild_node' Ns.content_ns (Kind.toelt elt))
+          "Cannot call %s on a node which is not an element" name)
       id
 
   let raw_appendChild ?before node elt2 =
@@ -85,7 +80,7 @@ struct
         let node3 = get_unique_node "appendChild" elt3 in
         List.iter
           (fun elt2 ->
-             ignore node##(insertBefore (get_node elt2) (Js.some node3)))
+            ignore node##(insertBefore (get_node elt2) (Js.some node3)))
           elts
 
   let raw_removeChild node1 elt2 =
@@ -110,8 +105,8 @@ struct
       Js.Opt.bind
         node##.childNodes##(item n)
         (fun node ->
-           Js.Opt.map (Dom.CoerceTo.element node) (fun node ->
-             Of_dom.of_element (Dom_html.element node)))
+          Js.Opt.map (Dom.CoerceTo.element node) (fun node ->
+              Of_dom.of_element (Dom_html.element node)))
     in
     Js.Opt.to_option res
 
@@ -135,8 +130,8 @@ struct
     let node = get_unique_node "removeSelf" elt in
     let res =
       Js.Opt.bind node##.parentNode (fun node ->
-        Js.Opt.map (Dom.CoerceTo.element node) (fun node ->
-          Of_dom.of_element (Dom_html.element node)))
+          Js.Opt.map (Dom.CoerceTo.element node) (fun node ->
+              Of_dom.of_element (Dom_html.element node)))
     in
     Js.Opt.iter res (fun p -> removeChild p elt)
 
@@ -181,8 +176,8 @@ struct
     let node = get_unique_node "parentNode" elt in
     let res =
       Js.Opt.bind node##.parentNode (fun node ->
-        Js.Opt.map (Dom.CoerceTo.element node) (fun node ->
-          Of_dom.of_element (Dom_html.element node)))
+          Js.Opt.map (Dom.CoerceTo.element node) (fun node ->
+              Of_dom.of_element (Dom_html.element node)))
     in
     Js.Opt.to_option res
 
@@ -190,8 +185,8 @@ struct
     let node = get_unique_node "nextSibling" elt in
     let res =
       Js.Opt.bind node##.nextSibling (fun node ->
-        Js.Opt.map (Dom.CoerceTo.element node) (fun node ->
-          Of_dom.of_element (Dom_html.element node)))
+          Js.Opt.map (Dom.CoerceTo.element node) (fun node ->
+              Of_dom.of_element (Dom_html.element node)))
     in
     Js.Opt.to_option res
 
@@ -199,8 +194,8 @@ struct
     let node = get_unique_node "previousSibling" elt in
     let res =
       Js.Opt.bind node##.previousSibling (fun node ->
-        Js.Opt.map (Dom.CoerceTo.element node) (fun node ->
-          Of_dom.of_element (Dom_html.element node)))
+          Js.Opt.map (Dom.CoerceTo.element node) (fun node ->
+              Of_dom.of_element (Dom_html.element node)))
     in
     Js.Opt.to_option res
 
@@ -212,8 +207,8 @@ struct
   let insertAfter ~after elt =
     Eliom_lib.Option.iter
       (fun parent ->
-         let before = nextSibling after in
-         appendChild ?before parent elt)
+        let before = nextSibling after in
+        appendChild ?before parent elt)
       (parentNode after)
 
   let replaceSelf elt1 elt2 =
@@ -257,8 +252,7 @@ struct
     let add_raw elt class_name =
       let class_name = Js.string class_name in
       let class_list = elt##.classList in
-      if Js.to_bool class_list##(contains class_name)
-      then ()
+      if Js.to_bool class_list##(contains class_name) then ()
       else class_list##(add class_name)
 
     let add elt class_name =
@@ -272,8 +266,8 @@ struct
     let remove_raw elt class_name =
       let class_name = Js.string class_name in
       let class_list = elt##.classList in
-      if Js.to_bool class_list##(contains class_name)
-      then class_list##(remove class_name)
+      if Js.to_bool class_list##(contains class_name) then
+        class_list##(remove class_name)
       else ()
 
     let remove elt class_name =
@@ -426,10 +420,10 @@ module Html = struct
   module Of_dom = Eliom_content_core.Html.Of_dom
 
   module To_dom = Js_of_ocaml_tyxml.Tyxml_cast.MakeTo (struct
-      type 'a elt = 'a F.elt
+    type 'a elt = 'a F.elt
 
-      let elt x = Js.Unsafe.coerce (Eliom_client_core.rebuild_node "n/a" x)
-    end)
+    let elt x = Js.Unsafe.coerce (Eliom_client_core.rebuild_node "n/a" x)
+  end)
 
   module Id = struct
     include Html.Id
@@ -461,7 +455,8 @@ module Html = struct
     let raw_addEventListener ?(capture = false) node event handler =
       Dom_html.addEventListener node event
         (Dom_html.full_handler (fun n e ->
-           Js.bool (handler (Html.F.tot (Xml.make_dom (n :> Dom.node Js.t))) e)))
+             Js.bool
+               (handler (Html.F.tot (Xml.make_dom (n :> Dom.node Js.t))) e)))
         (Js.bool capture)
 
     let addEventListener ?capture target event handler =

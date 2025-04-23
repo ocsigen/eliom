@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 (** Low-level functions for relative or absolute URL calculation. *)
 
@@ -41,29 +41,29 @@ open Eliom_parameter
 *)
 
 val make_string_uri :
-   ?absolute:bool
-  -> ?absolute_path:bool
-  -> ?https:bool
-  -> service:
-       ( 'get
-         , unit
-         , Eliom_service.get
-         , _
-         , _
-         , _
-         , _
-         , _
-         , _
-         , unit
-         , 'return )
-         Eliom_service.t
-  -> ?hostname:string
-  -> ?port:int
-  -> ?fragment:string
-  -> ?keep_nl_params:[`All | `None | `Persistent]
-  -> ?nl_params:nl_params_set
-  -> 'get
-  -> string
+  ?absolute:bool ->
+  ?absolute_path:bool ->
+  ?https:bool ->
+  service:
+    ( 'get,
+      unit,
+      Eliom_service.get,
+      _,
+      _,
+      _,
+      _,
+      _,
+      _,
+      unit,
+      'return )
+    Eliom_service.t ->
+  ?hostname:string ->
+  ?port:int ->
+  ?fragment:string ->
+  ?keep_nl_params:[ `All | `None | `Persistent ] ->
+  ?nl_params:nl_params_set ->
+  'get ->
+  string
 (** The function [make_string_uri ~service get_params] creates the
     string corresponding to the URL of the service [service] applied
     to the GET parameters [get_params].
@@ -83,18 +83,17 @@ val make_string_uri :
     - the [service] is an external service. *)
 
 val make_uri_components :
-   ?absolute:bool
-  -> ?absolute_path:bool
-  -> ?https:bool
-  -> service:
-       ('get, _, Eliom_service.get, _, _, _, _, _, _, _, _) Eliom_service.t
-  -> ?hostname:string
-  -> ?port:int
-  -> ?fragment:string
-  -> ?keep_nl_params:[`All | `None | `Persistent]
-  -> ?nl_params:nl_params_set
-  -> 'get
-  -> string * (string * Eliommod_parameters.param) list * string option
+  ?absolute:bool ->
+  ?absolute_path:bool ->
+  ?https:bool ->
+  service:('get, _, Eliom_service.get, _, _, _, _, _, _, _, _) Eliom_service.t ->
+  ?hostname:string ->
+  ?port:int ->
+  ?fragment:string ->
+  ?keep_nl_params:[ `All | `None | `Persistent ] ->
+  ?nl_params:nl_params_set ->
+  'get ->
+  string * (string * Eliommod_parameters.param) list * string option
 (** The function [make_uri_components service get_params] returns the
     a triplet [(path, get_params, fragment)] that is a decomposition
     of the URL of [service] applied to the GET parameters
@@ -105,29 +104,28 @@ val make_uri_components :
     description. *)
 
 val make_post_uri_components :
-   ?absolute:bool
-  -> ?absolute_path:bool
-  -> ?https:bool
-  -> service:
-       ('get, 'post, Eliom_service.post, _, _, _, _, _, _, _, _) Eliom_service.t
-  -> ?hostname:string
-  -> ?port:int
-  -> ?fragment:string
-  -> ?keep_nl_params:[`All | `Persistent | `None]
-  -> ?nl_params:nl_params_set
-  -> ?keep_get_na_params:bool
-  -> 'get
-  -> 'post
-  -> string
-     * (string * Eliommod_parameters.param) list
-     * string option
-     * (string * Eliommod_parameters.param) list
+  ?absolute:bool ->
+  ?absolute_path:bool ->
+  ?https:bool ->
+  service:
+    ('get, 'post, Eliom_service.post, _, _, _, _, _, _, _, _) Eliom_service.t ->
+  ?hostname:string ->
+  ?port:int ->
+  ?fragment:string ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  ?nl_params:nl_params_set ->
+  ?keep_get_na_params:bool ->
+  'get ->
+  'post ->
+  string
+  * (string * Eliommod_parameters.param) list
+  * string option
+  * (string * Eliommod_parameters.param) list
 (** Same a {!make_uri_components}, but also returns a table of post
     parameters. *)
 
 val make_string_uri_from_components :
-   string * (string * Eliommod_parameters.param) list * string option
-  -> string
+  string * (string * Eliommod_parameters.param) list * string option -> string
 (** The function [make_string_uri_from_components path get_params
     fragment] build the corresponding string URL. The [path] should
     be URL encoded.
@@ -152,66 +150,66 @@ val reconstruct_relative_url_path : string list -> string list -> string list
    Eliom_mkreg and Eliom_client. *)
 
 val make_string_uri_ :
-   ?absolute:bool
-  -> ?absolute_path:bool
-  -> ?https:bool
-  -> service:('get, _, _, _, _, _, _, _, _, _, _) Eliom_service.t
-  -> ?hostname:string
-  -> ?port:int
-  -> ?fragment:string
-  -> ?keep_nl_params:[`All | `None | `Persistent]
-  -> ?nl_params:nl_params_set
-  -> 'get
-  -> string
+  ?absolute:bool ->
+  ?absolute_path:bool ->
+  ?https:bool ->
+  service:('get, _, _, _, _, _, _, _, _, _, _) Eliom_service.t ->
+  ?hostname:string ->
+  ?port:int ->
+  ?fragment:string ->
+  ?keep_nl_params:[ `All | `None | `Persistent ] ->
+  ?nl_params:nl_params_set ->
+  'get ->
+  string
 
 val make_post_uri_components__ :
-   ?absolute:bool
-  -> ?absolute_path:bool
-  -> ?https:bool
-  -> service:('get, 'post, _, _, _, _, _, _, _, _, _) Eliom_service.t
-  -> ?hostname:string
-  -> ?port:int
-  -> ?fragment:string
-  -> ?keep_nl_params:[`All | `None | `Persistent]
-  -> ?nl_params:nl_params_set
-  -> ?keep_get_na_params:bool
-  -> 'get
-  -> 'post
-  -> string
-     * (string * Eliommod_parameters.param) list
-     * string option
-     * (string * Eliommod_parameters.param) list
+  ?absolute:bool ->
+  ?absolute_path:bool ->
+  ?https:bool ->
+  service:('get, 'post, _, _, _, _, _, _, _, _, _) Eliom_service.t ->
+  ?hostname:string ->
+  ?port:int ->
+  ?fragment:string ->
+  ?keep_nl_params:[ `All | `None | `Persistent ] ->
+  ?nl_params:nl_params_set ->
+  ?keep_get_na_params:bool ->
+  'get ->
+  'post ->
+  string
+  * (string * Eliommod_parameters.param) list
+  * string option
+  * (string * Eliommod_parameters.param) list
 
 val make_uri_components_ :
-   ?absolute:bool
-  -> ?absolute_path:bool
-  -> ?https:bool
-  -> service:(_, _, _, _, _, _, _, _, _, _, _) Eliom_service.t
-  -> ?hostname:string
-  -> ?port:int
-  -> ?fragment:string
-  -> ?keep_nl_params:[`All | `None | `Persistent]
-  -> ?nl_params:nl_params_set
-  -> unit
-  -> string * (string * Eliommod_parameters.param) list * string option
+  ?absolute:bool ->
+  ?absolute_path:bool ->
+  ?https:bool ->
+  service:(_, _, _, _, _, _, _, _, _, _, _) Eliom_service.t ->
+  ?hostname:string ->
+  ?port:int ->
+  ?fragment:string ->
+  ?keep_nl_params:[ `All | `None | `Persistent ] ->
+  ?nl_params:nl_params_set ->
+  unit ->
+  string * (string * Eliommod_parameters.param) list * string option
 
 val make_post_uri_components_ :
-   ?absolute:bool
-  -> ?absolute_path:bool
-  -> ?https:bool
-  -> service:('get, 'post, _, _, _, _, _, _, _, _, _) Eliom_service.t
-  -> ?hostname:string
-  -> ?port:int
-  -> ?fragment:string
-  -> ?keep_nl_params:[`All | `None | `Persistent]
-  -> ?nl_params:nl_params_set
-  -> ?keep_get_na_params:bool
-  -> 'get
-  -> unit
-  -> string
-     * (string * Eliommod_parameters.param) list
-     * string option
-     * (string * Eliommod_parameters.param) list
+  ?absolute:bool ->
+  ?absolute_path:bool ->
+  ?https:bool ->
+  service:('get, 'post, _, _, _, _, _, _, _, _, _) Eliom_service.t ->
+  ?hostname:string ->
+  ?port:int ->
+  ?fragment:string ->
+  ?keep_nl_params:[ `All | `None | `Persistent ] ->
+  ?nl_params:nl_params_set ->
+  ?keep_get_na_params:bool ->
+  'get ->
+  unit ->
+  string
+  * (string * Eliommod_parameters.param) list
+  * string option
+  * (string * Eliommod_parameters.param) list
 
 val make_actual_path : string list -> string list
 
@@ -221,5 +219,5 @@ val make_proto_prefix : ?hostname:string -> ?port:int -> bool -> string
     necessary).  *)
 
 val make_cookies_info :
-   bool option * (_, _, _, _, _, _, _, _, _, _, _) Eliom_service.t
-  -> (bool * Url.path) option
+  bool option * (_, _, _, _, _, _, _, _, _, _, _) Eliom_service.t ->
+  (bool * Url.path) option

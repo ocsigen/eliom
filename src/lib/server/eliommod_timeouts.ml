@@ -28,16 +28,15 @@
 open Eliom_lib
 open Lwt
 
-type kind = [`Service | `Data | `Persistent]
+type kind = [ `Service | `Data | `Persistent ]
 
 (*****************************************************************************)
 (* Table of timeouts for sessions *)
 
 let default_timeouts :
-  ( kind * Eliom_common.cookie_level * Eliom_common.scope_hierarchy option
-    , float )
-    Hashtbl.t
-  =
+    ( kind * Eliom_common.cookie_level * Eliom_common.scope_hierarchy option,
+      float )
+    Hashtbl.t =
   let t = Hashtbl.create 9 in
   Hashtbl.add t (`Service, `Session, None) 3600.;
   Hashtbl.add t (`Data, `Session, None) 3600.;
@@ -62,9 +61,9 @@ let get_default kind user_scope =
   try
     Some
       (Hashtbl.find default_timeouts
-         ( (kind :> kind)
-         , (level :> Eliom_common.cookie_level)
-         , Some scope_hierarchy ))
+         ( (kind :> kind),
+           (level :> Eliom_common.cookie_level),
+           Some scope_hierarchy ))
   with Not_found -> (
     try
       Some
@@ -72,45 +71,34 @@ let get_default kind user_scope =
            ((kind :> kind), (level :> Eliom_common.cookie_level), None))
     with Not_found -> None)
 
-let set_timeout_
-      get
-      set
-      get_default
-      update
-      ?full_st_name
-      ?cookie_level
-      ~recompute_expdates
-      override_configfile
-      fromconfigfile
-      sitedata
-      t
-  =
+let set_timeout_ get set get_default update ?full_st_name ?cookie_level
+    ~recompute_expdates override_configfile fromconfigfile sitedata t =
   (* cookie_level is useful and mandatory
          only if full_st_name is not present *)
   let def_bro, def_tab, tl = get sitedata in
   match full_st_name with
   | None -> (
-    (* means default timeout for all hierarchies *)
-    match def_bro, def_tab, cookie_level with
-    | Some (_, true), _, Some `Session when not override_configfile ->
-        ()
-        (* if it has been set by config file
+      (* means default timeout for all hierarchies *)
+      match (def_bro, def_tab, cookie_level) with
+      | Some (_, true), _, Some `Session when not override_configfile ->
+          ()
+          (* if it has been set by config file
                   and we do not ask to override, we do nothing *)
-    | _, Some (_, true), Some `Client_process when not override_configfile ->
-        ()
-        (* if it has been set by config file
+      | _, Some (_, true), Some `Client_process when not override_configfile ->
+          ()
+          (* if it has been set by config file
                   and we do not ask to override, we do nothing *)
-    | _, _, Some `Session -> set sitedata (Some (t, fromconfigfile), def_tab, tl)
-    | _, _, Some `Client_process ->
-        set sitedata (def_bro, Some (t, fromconfigfile), tl)
-    | _, _, None -> failwith "set_timeout_")
-  | Some ({Eliom_common.user_scope; _} as full_st_name) ->
+      | _, _, Some `Session ->
+          set sitedata (Some (t, fromconfigfile), def_tab, tl)
+      | _, _, Some `Client_process ->
+          set sitedata (def_bro, Some (t, fromconfigfile), tl)
+      | _, _, None -> failwith "set_timeout_")
+  | Some ({ Eliom_common.user_scope; _ } as full_st_name) ->
       (* recompute_expdates works only if full_st_name is present *)
       let oldtopt =
         try
           let (oldt, wasfromconf), newtl = List.assoc_remove full_st_name tl in
-          if override_configfile || not wasfromconf
-          then
+          if override_configfile || not wasfromconf then
             set sitedata
               (def_bro, def_tab, (full_st_name, (t, fromconfigfile)) :: newtl);
           Some oldt
@@ -119,16 +107,15 @@ let set_timeout_
             (def_bro, def_tab, (full_st_name, (t, fromconfigfile)) :: tl);
           None
       in
-      if recompute_expdates
-      then
+      if recompute_expdates then
         let oldt =
           match oldtopt with
           | Some o -> o
           | None -> (
-            match def_bro, def_tab, user_scope with
-            | Some (t, _), _, `Session _ -> t
-            | _, Some (t, _), `Client_process _ -> t
-            | _, _, ct -> get_default ct)
+              match (def_bro, def_tab, user_scope) with
+              | Some (t, _), _, `Session _ -> t
+              | _, Some (t, _), `Client_process _ -> t
+              | _, _, ct -> get_default ct)
         in
         ignore
           (catch
@@ -157,7 +144,7 @@ let find_global kind full_st_name sitedata =
   let def_bro, def_tab, tl = sitedata_timeout kind sitedata in
   try fst (List.assoc full_st_name tl)
   with Not_found -> (
-    match def_bro, def_tab, full_st_name.Eliom_common.user_scope with
+    match (def_bro, def_tab, full_st_name.Eliom_common.user_scope) with
     | Some (t, _), _, `Session _ -> t
     | _, Some (t, _), `Client_process _ -> t
     | _, _, ct -> get_default kind ct)
@@ -176,15 +163,8 @@ let get_global ~kind ~cookie_scope ~secure sitedata =
   in
   find_global kind full_st_name sitedata
 
-let set_global
-      ~kind
-      ~cookie_scope
-      ~secure
-      ~recompute_expdates
-      override_configfile
-      sitedata
-      timeout
-  =
+let set_global ~kind ~cookie_scope ~secure ~recompute_expdates
+    override_configfile sitedata timeout =
   let full_st_name =
     Eliom_common.make_full_state_name2
       (Eliom_common.get_site_dir_string sitedata)
@@ -193,13 +173,7 @@ let set_global
   set_global_ ~kind ~full_st_name ~recompute_expdates override_configfile false
     sitedata timeout
 
-let set_default_global
-      kind
-      cookie_level
-      override_configfile
-      fromconfigfile
-      sitedata
-      timeout
-  =
+let set_default_global kind cookie_level override_configfile fromconfigfile
+    sitedata timeout =
   set_global_ ~kind ~cookie_level ~recompute_expdates:false override_configfile
     fromconfigfile sitedata timeout

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 (** Propagate events
     occurrences from the server to the client and the other way
@@ -56,12 +56,12 @@ module Down : sig
   (** The abstract type of down events. *)
 
   val of_react :
-     ?scope:[< Eliom_comet.Channel.comet_scope]
-    -> ?throttling:float
-    -> ?name:string
-    -> ?size:int
-    -> 'a React.E.t
-    -> 'a t
+    ?scope:[< Eliom_comet.Channel.comet_scope ] ->
+    ?throttling:float ->
+    ?name:string ->
+    ?size:int ->
+    'a React.E.t ->
+    'a t
   (** [of_react ?scope ?throttling ?name e] create an
       asynchronous edge originating from [e]. The parameters are:
       - [throttling]
@@ -98,13 +98,13 @@ module Up : sig
       be manipulated as a standard event. *)
 
   val create :
-     ?scope:Eliom_common.scope
-    -> ?name:string
-    -> ( 'a
-         , [`WithoutSuffix]
-         , [`One of 'a Eliom_parameter.ocaml] Eliom_parameter.param_name )
-         Eliom_parameter.params_type
-    -> 'a t
+    ?scope:Eliom_common.scope ->
+    ?name:string ->
+    ( 'a,
+      [ `WithoutSuffix ],
+      [ `One of 'a Eliom_parameter.ocaml ] Eliom_parameter.param_name )
+    Eliom_parameter.params_type ->
+    'a t
   (** [create param] creates an Up event.
       If [~name] is present, the coservice used to transmit the event will
       always have the same name, even if the server is restarted.
@@ -120,10 +120,10 @@ module S : sig
     (** The abstract type of down signals. *)
 
     val of_react :
-       ?scope:[< Eliom_comet.Channel.comet_scope]
-      -> ?throttling:float
-      -> ?name:string
-      -> 'a React.S.t
-      -> 'a t
+      ?scope:[< Eliom_comet.Channel.comet_scope ] ->
+      ?throttling:float ->
+      ?name:string ->
+      'a React.S.t ->
+      'a t
   end
 end

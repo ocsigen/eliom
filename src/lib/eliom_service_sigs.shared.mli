@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 module type TYPES = sig
   (** {2 Auxiliary service-related types} *)
@@ -36,7 +36,7 @@ module type TYPES = sig
 
   type ('get, 'tipo, 'gn) params =
     ('get, 'tipo, 'gn) Eliom_parameter.params_type
-    constraint 'tipo = [< `WithSuffix | `WithoutSuffix]
+    constraint 'tipo = [< `WithSuffix | `WithoutSuffix ]
 
   (** {2 Method specification} *)
 
@@ -70,28 +70,28 @@ module type TYPES = sig
         ('gp, 'tipo, 'gn) params
         -> (get, 'gp, 'gn, unit, unit, 'tipo, unit) meth
     | Post :
-        ('gp, 'tipo, 'gn) params * ('pp, [`WithoutSuffix], 'pn) params
+        ('gp, 'tipo, 'gn) params * ('pp, [ `WithoutSuffix ], 'pn) params
         -> (post, 'gp, 'gn, 'pp, 'pn, 'tipo, 'gp) meth
     | Put :
         ('gp, 'tipo, 'gn) params
-        -> ( put
-             , 'gp
-             , 'gn
-             , Eliom_parameter.raw_post_data
-             , Eliom_parameter.no_param_name
-             , 'tipo
-             , unit )
-             meth
+        -> ( put,
+             'gp,
+             'gn,
+             Eliom_parameter.raw_post_data,
+             Eliom_parameter.no_param_name,
+             'tipo,
+             unit )
+           meth
     | Delete :
         ('gp, 'tipo, 'gn) params
-        -> ( delete
-             , 'gp
-             , 'gn
-             , Eliom_parameter.raw_post_data
-             , Eliom_parameter.no_param_name
-             , 'tipo
-             , unit )
-             meth
+        -> ( delete,
+             'gp,
+             'gn,
+             Eliom_parameter.raw_post_data,
+             Eliom_parameter.no_param_name,
+             'tipo,
+             unit )
+           meth
 
   (** Like {!meth} but without the parameters *)
   type 'm which_meth =
@@ -118,19 +118,19 @@ module type S = sig
     | Attached : att -> att attached_info
     | Nonattached : non_att -> non_att attached_info
 
-  type ('get
-       , 'post
-       , 'meth
-       , 'attached
-       , 'co
-       , 'ext
-       , 'reg
-       , +'tipo
-       , 'gn
-       , 'pn
-       , 'ret)
+  type ('get,
+         'post,
+         'meth,
+         'attached,
+         'co,
+         'ext,
+         'reg,
+         +'tipo,
+         'gn,
+         'pn,
+         'ret)
        t
-    constraint 'tipo = [< `WithSuffix | `WithoutSuffix]
+    constraint 'tipo = [< `WithSuffix | `WithoutSuffix ]
   (** {b Type of services}
 
       For a service
@@ -159,23 +159,34 @@ module type S = sig
     | No_contents
     | Dom of Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t
     | Redirect :
-        (unit, unit, get, _, _, _, _, [`WithoutSuffix], unit, unit, non_ocaml) t
+        ( unit,
+          unit,
+          get,
+          _,
+          _,
+          _,
+          _,
+          [ `WithoutSuffix ],
+          unit,
+          unit,
+          non_ocaml )
+        t
         -> result
-    | Reload_action of {hidden : bool; https : bool}
+    | Reload_action of { hidden : bool; https : bool }
 
   type unit_service =
-    ( unit
-      , unit
-      , get
-      , att
-      , non_co
-      , non_ext
-      , non_reg
-      , [`WithoutSuffix]
-      , unit
-      , unit
-      , non_ocaml )
-      t
+    ( unit,
+      unit,
+      get,
+      att,
+      non_co,
+      non_ext,
+      non_reg,
+      [ `WithoutSuffix ],
+      unit,
+      unit,
+      non_ocaml )
+    t
 
   (** {b Optional service path} *)
   type (_, _, _) path_option =
@@ -187,18 +198,18 @@ module type S = sig
       {4 Reload actions} *)
 
   val reload_action :
-    ( unit
-      , unit
-      , get
-      , non_att
-      , co
-      , non_ext
-      , non_reg
-      , [`WithoutSuffix]
-      , unit
-      , unit
-      , non_ocaml )
-      t
+    ( unit,
+      unit,
+      get,
+      non_att,
+      co,
+      non_ext,
+      non_reg,
+      [ `WithoutSuffix ],
+      unit,
+      unit,
+      non_ocaml )
+    t
   (** The service [reload_action] is a predefined non-attached action
       with special behaviour: it has no parameter at all, even
       non-attached parameters.  Use it if you want to make a link to
@@ -209,67 +220,67 @@ module type S = sig
       keep non attached GET parameters.  *)
 
   val reload_action_https :
-    ( unit
-      , unit
-      , get
-      , non_att
-      , co
-      , non_ext
-      , non_reg
-      , [`WithoutSuffix]
-      , unit
-      , unit
-      , non_ocaml )
-      t
+    ( unit,
+      unit,
+      get,
+      non_att,
+      co,
+      non_ext,
+      non_reg,
+      [ `WithoutSuffix ],
+      unit,
+      unit,
+      non_ocaml )
+    t
   (** Like {!reload_action}, but forces HTTPS *)
 
   val reload_action_hidden :
-    ( unit
-      , unit
-      , get
-      , non_att
-      , co
-      , non_ext
-      , non_reg
-      , [`WithoutSuffix]
-      , unit
-      , unit
-      , non_ocaml )
-      t
+    ( unit,
+      unit,
+      get,
+      non_att,
+      co,
+      non_ext,
+      non_reg,
+      [ `WithoutSuffix ],
+      unit,
+      unit,
+      non_ocaml )
+    t
   (** Like {!reload_action}, but keeps non-attached GET
       parameters. *)
 
   val reload_action_https_hidden :
-    ( unit
-      , unit
-      , get
-      , non_att
-      , co
-      , non_ext
-      , non_reg
-      , [`WithoutSuffix]
-      , unit
-      , unit
-      , non_ocaml )
-      t
+    ( unit,
+      unit,
+      get,
+      non_att,
+      co,
+      non_ext,
+      non_reg,
+      [ `WithoutSuffix ],
+      unit,
+      unit,
+      non_ocaml )
+    t
   (** Like {!reload_action_hidden}, but forces HTTPS *)
 
   (** {3 Static files} *)
 
   val static_dir :
-     unit
-    -> ( string list
-         , unit
-         , get
-         , att
-         , non_co
-         , non_ext
-         , non_reg
-         , [`WithSuffix]
-         , [`One of string list] Eliom_parameter.param_name
-         , unit
-         , non_ocaml )
-         t
+    unit ->
+    ( string list,
+      unit,
+      get,
+      att,
+      non_co,
+      non_ext,
+      non_reg,
+      [ `WithSuffix ],
+      [ `One of string list ] Eliom_parameter.param_name,
+      unit,
+      non_ocaml )
+    t
   (** The predefined service [static_dir] allows one to create links
       to static files. This service takes the name of a static file as
       a parameter (a string list, slash separated). The actual
@@ -278,94 +289,83 @@ module type S = sig
       extension. *)
 
   val https_static_dir :
-     unit
-    -> ( string list
-         , unit
-         , get
-         , att
-         , non_co
-         , non_ext
-         , non_reg
-         , [`WithSuffix]
-         , [`One of string list] Eliom_parameter.param_name
-         , unit
-         , non_ocaml )
-         t
+    unit ->
+    ( string list,
+      unit,
+      get,
+      att,
+      non_co,
+      non_ext,
+      non_reg,
+      [ `WithSuffix ],
+      [ `One of string list ] Eliom_parameter.param_name,
+      unit,
+      non_ocaml )
+    t
   (** Like {!static_dir}, but forces HTTPS link *)
 
   val static_dir_with_params :
-     ?keep_nl_params:[`All | `Persistent | `None]
-    -> get_params:('a, [`WithoutSuffix], 'an) Eliom_parameter.params_type
-    -> unit
-    -> ( string list * 'a
-         , unit
-         , get
-         , att
-         , non_co
-         , non_ext
-         , non_reg
-         , [`WithSuffix]
-         , [`One of string list] Eliom_parameter.param_name * 'an
-         , unit
-         , non_ocaml )
-         t
+    ?keep_nl_params:[ `All | `Persistent | `None ] ->
+    get_params:('a, [ `WithoutSuffix ], 'an) Eliom_parameter.params_type ->
+    unit ->
+    ( string list * 'a,
+      unit,
+      get,
+      att,
+      non_co,
+      non_ext,
+      non_reg,
+      [ `WithSuffix ],
+      [ `One of string list ] Eliom_parameter.param_name * 'an,
+      unit,
+      non_ocaml )
+    t
   (** Like {!static_dir}, but allows one to put GET parameters *)
 
   val https_static_dir_with_params :
-     ?keep_nl_params:[`All | `Persistent | `None]
-    -> get_params:('a, [`WithoutSuffix], 'an) Eliom_parameter.params_type
-    -> unit
-    -> ( string list * 'a
-         , unit
-         , get
-         , att
-         , non_co
-         , non_ext
-         , non_reg
-         , [`WithSuffix]
-         , [`One of string list] Eliom_parameter.param_name * 'an
-         , unit
-         , non_ocaml )
-         t
+    ?keep_nl_params:[ `All | `Persistent | `None ] ->
+    get_params:('a, [ `WithoutSuffix ], 'an) Eliom_parameter.params_type ->
+    unit ->
+    ( string list * 'a,
+      unit,
+      get,
+      att,
+      non_co,
+      non_ext,
+      non_reg,
+      [ `WithSuffix ],
+      [ `One of string list ] Eliom_parameter.param_name * 'an,
+      unit,
+      non_ocaml )
+    t
   (** Like {!static_dir_with_params}, but forces HTTPS link *)
 
   (** {3 Miscellaneous} *)
 
   val preapply :
-     service:('a, 'b, 'meth, att, 'co, 'ext, 'reg, _, 'e, 'f, 'return) t
-    -> 'a
-    -> ( unit
-         , 'b
-         , 'meth
-         , att
-         , 'co
-         , 'ext
-         , non_reg
-         , [`WithoutSuffix]
-         , unit
-         , 'f
-         , 'return )
-         t
+    service:('a, 'b, 'meth, att, 'co, 'ext, 'reg, _, 'e, 'f, 'return) t ->
+    'a ->
+    ( unit,
+      'b,
+      'meth,
+      att,
+      'co,
+      'ext,
+      non_reg,
+      [ `WithoutSuffix ],
+      unit,
+      'f,
+      'return )
+    t
   (** The function [preapply ~service parameters] creates a new
       service by preapplying [service] to the GET [parameters]. It is
       not possible to register a handler on an preapplied service;
       preapplied services may be used in links or as fallbacks. *)
 
   val add_non_localized_get_parameters :
-     params:('p, [`WithoutSuffix], 'pn) Eliom_parameter.non_localized_params
-    -> service:('a, 'b, 'meth, 'attach, 'co, 'ext, 'reg, 'd, 'e, 'f, 'return) t
-    -> ( 'a * 'p
-         , 'b
-         , 'meth
-         , 'attach
-         , 'co
-         , 'ext
-         , 'reg
-         , 'd
-         , 'e * 'pn
-         , 'f
-         , 'return )
-         t
+    params:('p, [ `WithoutSuffix ], 'pn) Eliom_parameter.non_localized_params ->
+    service:('a, 'b, 'meth, 'attach, 'co, 'ext, 'reg, 'd, 'e, 'f, 'return) t ->
+    ('a * 'p, 'b, 'meth, 'attach, 'co, 'ext, 'reg, 'd, 'e * 'pn, 'f, 'return) t
   (** The function [add_non_localized_get_parameters ~params ~service]
       Adds non localized GET parameters [params] to [service]. See the
       Eliom manual for more information about {% <<a_manual
@@ -373,19 +373,19 @@ module type S = sig
       localized parameters>>%}. *)
 
   val add_non_localized_post_parameters :
-     params:('p, [`WithoutSuffix], 'pn) Eliom_parameter.non_localized_params
-    -> service:('a, 'b, 'meth, 'attach, 'co, 'ext, 'g, 'd, 'e, 'f, 'return) t
-    -> ('a, 'b * 'p, 'meth, 'attach, 'co, 'ext, 'g, 'd, 'e, 'f * 'pn, 'return) t
+    params:('p, [ `WithoutSuffix ], 'pn) Eliom_parameter.non_localized_params ->
+    service:('a, 'b, 'meth, 'attach, 'co, 'ext, 'g, 'd, 'e, 'f, 'return) t ->
+    ('a, 'b * 'p, 'meth, 'attach, 'co, 'ext, 'g, 'd, 'e, 'f * 'pn, 'return) t
   (** Like {!add_non_localized_get_parameters} but with POST
       parameters.*)
 
   val extern :
-     ?keep_nl_params:[`All | `Persistent | `None]
-    -> prefix:string
-    -> path:Eliom_lib.Url.path
-    -> meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, _) meth
-    -> unit
-    -> ('gp, 'pp, 'm, att, non_co, ext, non_reg, 'tipo, 'gn, 'pn, non_ocaml) t
+    ?keep_nl_params:[ `All | `Persistent | `None ] ->
+    prefix:string ->
+    path:Eliom_lib.Url.path ->
+    meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, _) meth ->
+    unit ->
+    ('gp, 'pp, 'm, att, non_co, ext, non_reg, 'tipo, 'gn, 'pn, non_ocaml) t
   (** [extern ~prefix ~path ~meth ()] creates an external service,
       i.e., a service implemented by a remote server (not necessarily
       running Ocsigen/Eliom). *)
@@ -395,19 +395,18 @@ module type S = sig
   val which_meth : (_, _, 'm, _, _, _, _, _, _, _, _) t -> 'm which_meth
 
   val which_meth_untyped :
-     (_, _, _, _, _, _, _, _, _, _, _) t
-    -> [`Get | `Post | `Put | `Delete]
+    (_, _, _, _, _, _, _, _, _, _, _) t -> [ `Get | `Post | `Put | `Delete ]
 
   val info : (_, _, _, 'att, _, _, _, _, _, _, _) t -> 'att attached_info
   val is_external : (_, _, _, _, _, _, _, _, _, _, _) t -> bool
 
   val get_params_type :
-     ('a, _, _, _, _, _, _, 'b, 'c, _, _) t
-    -> ('a, 'b, 'c) Eliom_parameter.params_type
+    ('a, _, _, _, _, _, _, 'b, 'c, _, _) t ->
+    ('a, 'b, 'c) Eliom_parameter.params_type
 
   val post_params_type :
-     (_, 'a, _, _, _, _, _, _, _, 'b, _) t
-    -> ('a, [`WithoutSuffix], 'b) Eliom_parameter.params_type
+    (_, 'a, _, _, _, _, _, _, _, 'b, _) t ->
+    ('a, [ `WithoutSuffix ], 'b) Eliom_parameter.params_type
 
   val sub_path : att -> Eliom_lib.Url.path
   val full_path : att -> Eliom_lib.Url.path
@@ -423,33 +422,32 @@ module type S = sig
   val priority : att -> int
 
   val client_fun :
-     ('a, 'b, _, _, _, _, _, _, _, _, _) t
-    -> ('a -> 'b -> result Lwt.t) Eliom_client_value.t option
+    ('a, 'b, _, _, _, _, _, _, _, _, _) t ->
+    ('a -> 'b -> result Lwt.t) Eliom_client_value.t option
 
   val has_client_fun : (_, _, _, _, _, _, _, _, _, _, _) t -> bool
 
   val keep_nl_params :
-     (_, _, _, _, _, _, _, _, _, _, _) t
-    -> [`All | `Persistent | `None]
+    (_, _, _, _, _, _, _, _, _, _, _) t -> [ `All | `Persistent | `None ]
 
   val change_get_num :
-     ('a, 'b, 'meth, att, 'co, 'ext, _, 'd, 'e, 'f, 'return) t
-    -> att
-    -> Eliom_common.att_key_serv
-    -> ('a, 'b, 'meth, att, 'co, 'ext, _, 'd, 'e, 'f, 'return) t
+    ('a, 'b, 'meth, att, 'co, 'ext, _, 'd, 'e, 'f, 'return) t ->
+    att ->
+    Eliom_common.att_key_serv ->
+    ('a, 'b, 'meth, att, 'co, 'ext, _, 'd, 'e, 'f, 'return) t
 
   (* Not implemented on client side: TODO should not be called in
      Eliom_uri *)
   val register_delayed_get_or_na_coservice :
-     sp:Eliom_common.server_params
-    -> int * [< Eliom_common.user_scope] * bool option
-    -> string
+    sp:Eliom_common.server_params ->
+    int * [< Eliom_common.user_scope ] * bool option ->
+    string
 
   val register_delayed_post_coservice :
-     sp:Eliom_common.server_params
-    -> int * [< Eliom_common.user_scope] * bool option
-    -> Eliom_common.att_key_serv
-    -> string
+    sp:Eliom_common.server_params ->
+    int * [< Eliom_common.user_scope ] * bool option ->
+    Eliom_common.att_key_serv ->
+    string
 
   (** Whether the service is capable to send application content or
       not. (application content has type
@@ -470,17 +468,15 @@ module type S = sig
   (* used by eliommod_mkform *)
 
   val send_appl_content :
-     (_, _, _, _, _, _, _, _, _, _, _) t
-    -> send_appl_content
+    (_, _, _, _, _, _, _, _, _, _, _) t -> send_appl_content
   (** Returns the name of the application to which belongs the
       service, if any. *)
 
   val xhr_with_cookies :
-     (_, _, _, _, _, _, _, _, _, _, _) t
-    -> string option option
+    (_, _, _, _, _, _, _, _, _, _, _) t -> string option option
 
   val internal_set_client_fun :
-     service:('a, 'b, _, _, _, _, _, _, _, _, _) t
-    -> ('a -> 'b -> result Lwt.t) Eliom_client_value.t
-    -> unit
+    service:('a, 'b, _, _, _, _, _, _, _, _, _) t ->
+    ('a -> 'b -> result Lwt.t) Eliom_client_value.t ->
+    unit
 end

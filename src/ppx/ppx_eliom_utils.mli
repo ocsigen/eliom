@@ -4,22 +4,22 @@ open Parsetree
 (** {2 Various helping functions} *)
 
 val sequence :
-   ?loc:Location.t
-  -> ?attrs:Parsetree.attribute list
-  -> Parsetree.expression list
-  -> Parsetree.expression
+  ?loc:Location.t ->
+  ?attrs:Parsetree.attribute list ->
+  Parsetree.expression list ->
+  Parsetree.expression
 
 val str :
-   ?loc:Location.t
-  -> ?attrs:Parsetree.attribute list
-  -> string
-  -> Parsetree.expression
+  ?loc:Location.t ->
+  ?attrs:Parsetree.attribute list ->
+  string ->
+  Parsetree.expression
 
 val int :
-   ?loc:Location.t
-  -> ?attrs:Parsetree.attribute list
-  -> int
-  -> Parsetree.expression
+  ?loc:Location.t ->
+  ?attrs:Parsetree.attribute list ->
+  int ->
+  Parsetree.expression
 
 val id_file_hash : Location.t -> string Location.loc
 (** Name of the variable which holds the hash of the file. *)
@@ -31,9 +31,9 @@ val pat_args : pattern list -> pattern
 
 (** Context convenience module. *)
 module Context : sig
-  type server = [`Server | `Shared]
-  type client = [`Client | `Shared]
-  type escape_inject = [`Escaped_value of server | `Injection of client]
+  type server = [ `Server | `Shared ]
+  type client = [ `Client | `Shared ]
+  type escape_inject = [ `Escaped_value of server | `Injection of client ]
 
   type t =
     [ `Server (* [%%server ... ] *)
@@ -79,24 +79,24 @@ module type Pass = sig
   val server_sig : signature_item -> signature_item list
 
   val fragment :
-     loc:Location.t
-    -> ?typ:core_type
-    -> context:Context.server
-    -> num:string
-    -> id:string Location.loc
-    -> unsafe:bool
-    -> expression
-    -> expression
+    loc:Location.t ->
+    ?typ:core_type ->
+    context:Context.server ->
+    num:string ->
+    id:string Location.loc ->
+    unsafe:bool ->
+    expression ->
+    expression
   (** How to handle "[%client ...]" and "[%shared ...]" expr. *)
 
   val escape_inject :
-     loc:Location.t
-    -> ?ident:string
-    -> context:Context.escape_inject
-    -> id:string Location.loc
-    -> unsafe:bool
-    -> expression
-    -> expression
+    loc:Location.t ->
+    ?ident:string ->
+    context:Context.escape_inject ->
+    id:string Location.loc ->
+    unsafe:bool ->
+    expression ->
+    expression
   (** How to handle escaped "~%ident" inside a fragment. *)
 
   val prelude : Location.t -> structure

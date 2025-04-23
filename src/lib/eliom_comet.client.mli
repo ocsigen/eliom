@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 (** Handle unsolicited server to client communications.
 
@@ -45,7 +45,7 @@ exception Channel_closed
     a session was closed, or a stateless channel was garbage collected).
      *)
 
-val is_active : unit -> [`Active | `Idle | `Inactive]
+val is_active : unit -> [ `Active | `Idle | `Inactive ]
 (** [is_active ()] returns the current activity state *)
 
 val activate : unit -> unit
@@ -121,9 +121,7 @@ end
 (**/**)
 
 val register :
-   ?wake:bool
-  -> 'a Eliom_comet_base.wrapped_channel
-  -> 'a Lwt_stream.t
+  ?wake:bool -> 'a Eliom_comet_base.wrapped_channel -> 'a Lwt_stream.t
 (** if wake is false, the registration of the channel won't
     activate the handling loop ( no request will be sent ). Default is true *)
 

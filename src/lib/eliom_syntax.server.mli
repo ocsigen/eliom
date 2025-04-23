@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 val get_global_data : unit -> Eliom_runtime.global_data
 val get_request_data : unit -> Eliom_runtime.request_data
@@ -23,10 +23,7 @@ val get_request_data : unit -> Eliom_runtime.request_data
 (*****************************************************************************)
 
 val client_value :
-   ?pos:Eliom_lib.pos
-  -> string
-  -> 'args
-  -> 'a Eliom_client_value.t
+  ?pos:Eliom_lib.pos -> string -> 'args -> 'a Eliom_client_value.t
 (** Registers a client value datum for the next server section when
     executed in a global_data (cf. {!Eliom_syntax.set_global}) or in
     the request_data when executed in a request. *)
@@ -54,9 +51,9 @@ val close_server_section : string -> unit
     subproject="client"|Eliom_client.Syntax_helpers.close_server_section>>.  *)
 
 val close_client_section :
-   string
-  -> (int * Ocsigen_lib.poly * Eliom_lib.pos * string option) list
-  -> unit
+  string ->
+  (int * Ocsigen_lib.poly * Eliom_lib.pos * string option) list ->
+  unit
 (** Called at the end of every client or shared section. The first
     argument identifies the compilation unit. The second is the list
     of novel injections in that section.

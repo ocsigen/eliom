@@ -18,20 +18,21 @@ open Lwt.Syntax
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 module Ecb = Eliom_comet_base
 
-type ('a, 'b) t =
-  { stream : 'b Lwt_stream.t
-  ; scope : Eliom_comet.Channel.comet_scope
-  ; name : string option
-  ; channel : 'b Eliom_comet.Channel.t option
-  ; write : 'a -> unit Lwt.t
-  ; service : 'a Ecb.bus_send_service
-  ; service_registered : bool Eliom_state.volatile_table option
-  ; size : int option
-  ; bus_mark : ('a, 'b) t Eliom_common.wrapper (* must be the last field ! *) }
+type ('a, 'b) t = {
+  stream : 'b Lwt_stream.t;
+  scope : Eliom_comet.Channel.comet_scope;
+  name : string option;
+  channel : 'b Eliom_comet.Channel.t option;
+  write : 'a -> unit Lwt.t;
+  service : 'a Ecb.bus_send_service;
+  service_registered : bool Eliom_state.volatile_table option;
+  size : int option;
+  bus_mark : ('a, 'b) t Eliom_common.wrapper (* must be the last field ! *);
+}
 [@@warning "-69"]
 
 let register_sender scope service write =
@@ -39,8 +40,7 @@ let register_sender scope service write =
     (fun () x -> Lwt_list.iter_s write x)
 
 let internal_wrap (bus : ('a, 'b) t) :
-  ('a, 'b) Ecb.wrapped_bus * Eliom_common.unwrapper
-  =
+    ('a, 'b) Ecb.wrapped_bus * Eliom_common.unwrapper =
   let channel =
     match bus.channel with
     | None ->
@@ -52,28 +52,28 @@ let internal_wrap (bus : ('a, 'b) t) :
   (match bus.service_registered with
   | None -> ()
   | Some table -> (
-    match Eliom_state.get_volatile_data ~table () with
-    | Eliom_state.Data true -> ()
-    | _ ->
-        let {service = Ecb.Bus_send_service srv; _} = bus in
-        register_sender bus.scope
-          (srv
-            :> ( _
-                 , _ list
-                 , _
-                 , _
-                 , _
-                 , Eliom_service.non_ext
-                 , _
-                 , _
-                 , _
-                 , _
-                 , _ )
+      match Eliom_state.get_volatile_data ~table () with
+      | Eliom_state.Data true -> ()
+      | _ ->
+          let { service = Ecb.Bus_send_service srv; _ } = bus in
+          register_sender bus.scope
+            (srv
+              :> ( _,
+                   _ list,
+                   _,
+                   _,
+                   _,
+                   Eliom_service.non_ext,
+                   _,
+                   _,
+                   _,
+                   _,
+                   _ )
                  Eliom_service.t)
-          bus.write;
-        Eliom_state.set_volatile_data ~table true));
-  ( (Eliom_comet.Channel.get_wrapped channel, bus.service)
-  , Eliom_common.make_unwrapper Eliom_common.bus_unwrap_id )
+            bus.write;
+          Eliom_state.set_volatile_data ~table true));
+  ( (Eliom_comet.Channel.get_wrapped channel, bus.service),
+    Eliom_common.make_unwrapper Eliom_common.bus_unwrap_id )
 
 let bus_mark () = Eliom_common.make_wrapper internal_wrap
 
@@ -81,11 +81,10 @@ let deriving_to_list : 'a Deriving_Json.t -> 'a list Deriving_Json.t =
  fun (type typ) typ ->
   let (typ_list : typ list Deriving_Json.t) =
     let module M = Deriving_Json.Json_list (Deriving_Json.Defaults'' (struct
-        type a = typ
+      type a = typ
 
-        let t = typ
-      end))
-    in
+      let t = typ
+    end)) in
     M.t
   in
   typ_list
@@ -95,7 +94,8 @@ let create_filtered ?scope ?name ?size ~filter typ =
   let stream, push = Lwt_stream.create () in
   let push x =
     let* y = filter x in
-    push (Some y); Lwt.return_unit
+    push (Some y);
+    Lwt.return_unit
   in
   let scope =
     match scope with
@@ -114,7 +114,7 @@ let create_filtered ?scope ?name ?size ~filter typ =
   (*The service*)
   let post_params =
     (Eliom_parameter.ocaml "bus_write" typ_list
-     : ('a, 'aa, 'aaa) Eliom_parameter.params_type)
+      : ('a, 'aa, 'aaa) Eliom_parameter.params_type)
   in
   let distant_write =
     Eliom_service.create ?name
@@ -131,15 +131,17 @@ let create_filtered ?scope ?name ?size ~filter typ =
   in
   (*The bus*)
   let bus =
-    { stream
-    ; channel
-    ; scope
-    ; name
-    ; write = push
-    ; service = Eliom_comet_base.Bus_send_service distant_write
-    ; service_registered
-    ; bus_mark = bus_mark ()
-    ; size }
+    {
+      stream;
+      channel;
+      scope;
+      name;
+      write = push;
+      service = Eliom_comet_base.Bus_send_service distant_write;
+      service_registered;
+      bus_mark = bus_mark ();
+      size;
+    }
   in
   bus
 

@@ -14,8 +14,8 @@ module Intern = struct
   let with_eliom_ppx =
     Some
       (function
-        | `Client -> "src/ppx/ppx_eliom_client_ex." ^ best
-        | `Server -> "src/ppx/ppx_eliom_server_ex." ^ best)
+      | `Client -> "src/ppx/ppx_eliom_client_ex." ^ best
+      | `Server -> "src/ppx/ppx_eliom_server_ex." ^ best)
 
   let with_package = function
     | "eliom.ppx.type" -> "pkg_ppx_eliom_types"
@@ -29,64 +29,75 @@ module Eliom_plugin = Ocamlbuild_eliom.MakeIntern (Intern) (Conf)
 
 let _ =
   dispatch (fun x ->
-    Eliom_plugin.dispatcher x;
-    match x with
-    | After_rules ->
-        Doc.init ();
-        let link source dest =
-          rule (Printf.sprintf "%s -> %s" source dest) ~dep:source ~prod:dest
-            (fun env _ ->
-               Cmd (S [A "ln"; A "-f"; P (env source); P (env dest)]))
-        in
-        (* add I pflag *)
-        pflag ["ocaml"; "compile"] "I" (fun x -> S [A "-I"; A x]);
-        pflag ["ocaml"; "infer_interface"] "I" (fun x -> S [A "-I"; A x]);
-        pflag ["ocaml"; "doc"] "I" (fun x -> S [A "-I"; A x]);
-        (* add syntax extension *)
-        let add_syntax name path =
-          let bytes_dep = Findlib.(link_flags_byte [query "bytes"]) in
-          (* hack : not dep when "compile" to avoid the extension syntax to be link with binaries *)
-          (* the dep with ocamldep make sure the extension syntax is compiled before *)
-          flag
-            ["ocaml"; "compile"; "pkg_" ^ name]
-            (S
-               [ A "-ppx"
-               ; Quote (S [P (path ^ name ^ "_ex." ^ best); A "-as-ppx"]) ]);
-          flag
-            ["ocaml"; "ocamldep"; "pkg_" ^ name]
-            (S
-               [ A "-ppx"
-               ; Quote (S [P (path ^ name ^ "_ex." ^ best); A "-as-ppx"]) ]);
-          dep ["ocaml"; "ocamldep"; "pkg_" ^ name] [path ^ name ^ "_ex." ^ best];
-          flag_and_dep
-            ["ocaml"; "infer_interface"; "pkg_" ^ name]
-            (S
-               [ A "-ppx"
-               ; Quote (S [P (path ^ name ^ "_ex." ^ best); A "-as-ppx"]) ]);
-          dep
-            ["ocaml"; "infer_interface"; "pkg_" ^ name]
-            [path ^ name ^ "_ex." ^ best];
-          flag_and_dep
-            ["doc"; "pkg_" ^ name]
-            (S
-               [ A "-ppx"
-               ; Quote (S [P (path ^ name ^ "_ex." ^ best); A "-as-ppx"]) ]);
-          dep ["doc"; "pkg_" ^ name] [path ^ name ^ "_ex." ^ best]
-        in
-        add_syntax "ppx_eliom_utils" "src/ppx/";
-        add_syntax "ppx_eliom_types" "src/ppx/";
-        (* link executable aliases *)
-        let link_exec f t =
-          link
-            (Printf.sprintf "src/tools/%s.byte" f)
-            (Printf.sprintf "src/tools/%s.byte" t);
-          link
-            (Printf.sprintf "src/tools/%s.native" f)
-            (Printf.sprintf "src/tools/%s.native" t)
-        in
-        List.iter (link_exec "eliomc") ["eliomopt"; "eliomcp"; "js_of_eliom"];
-        link_exec "distillery" "eliom-distillery"
-    | _ -> ())
+      Eliom_plugin.dispatcher x;
+      match x with
+      | After_rules ->
+          Doc.init ();
+          let link source dest =
+            rule (Printf.sprintf "%s -> %s" source dest) ~dep:source ~prod:dest
+              (fun env _ ->
+                Cmd (S [ A "ln"; A "-f"; P (env source); P (env dest) ]))
+          in
+          (* add I pflag *)
+          pflag [ "ocaml"; "compile" ] "I" (fun x -> S [ A "-I"; A x ]);
+          pflag [ "ocaml"; "infer_interface" ] "I" (fun x -> S [ A "-I"; A x ]);
+          pflag [ "ocaml"; "doc" ] "I" (fun x -> S [ A "-I"; A x ]);
+          (* add syntax extension *)
+          let add_syntax name path =
+            let bytes_dep = Findlib.(link_flags_byte [ query "bytes" ]) in
+            (* hack : not dep when "compile" to avoid the extension syntax to be link with binaries *)
+            (* the dep with ocamldep make sure the extension syntax is compiled before *)
+            flag
+              [ "ocaml"; "compile"; "pkg_" ^ name ]
+              (S
+                 [
+                   A "-ppx";
+                   Quote (S [ P (path ^ name ^ "_ex." ^ best); A "-as-ppx" ]);
+                 ]);
+            flag
+              [ "ocaml"; "ocamldep"; "pkg_" ^ name ]
+              (S
+                 [
+                   A "-ppx";
+                   Quote (S [ P (path ^ name ^ "_ex." ^ best); A "-as-ppx" ]);
+                 ]);
+            dep
+              [ "ocaml"; "ocamldep"; "pkg_" ^ name ]
+              [ path ^ name ^ "_ex." ^ best ];
+            flag_and_dep
+              [ "ocaml"; "infer_interface"; "pkg_" ^ name ]
+              (S
+                 [
+                   A "-ppx";
+                   Quote (S [ P (path ^ name ^ "_ex." ^ best); A "-as-ppx" ]);
+                 ]);
+            dep
+              [ "ocaml"; "infer_interface"; "pkg_" ^ name ]
+              [ path ^ name ^ "_ex." ^ best ];
+            flag_and_dep
+              [ "doc"; "pkg_" ^ name ]
+              (S
+                 [
+                   A "-ppx";
+                   Quote (S [ P (path ^ name ^ "_ex." ^ best); A "-as-ppx" ]);
+                 ]);
+            dep [ "doc"; "pkg_" ^ name ] [ path ^ name ^ "_ex." ^ best ]
+          in
+          add_syntax "ppx_eliom_utils" "src/ppx/";
+          add_syntax "ppx_eliom_types" "src/ppx/";
+          (* link executable aliases *)
+          let link_exec f t =
+            link
+              (Printf.sprintf "src/tools/%s.byte" f)
+              (Printf.sprintf "src/tools/%s.byte" t);
+            link
+              (Printf.sprintf "src/tools/%s.native" f)
+              (Printf.sprintf "src/tools/%s.native" t)
+          in
+          List.iter (link_exec "eliomc")
+            [ "eliomopt"; "eliomcp"; "js_of_eliom" ];
+          link_exec "distillery" "eliom-distillery"
+      | _ -> ())
 
 let _ =
   Options.make_links := false;

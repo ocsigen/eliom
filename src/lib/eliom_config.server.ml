@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 let set_session_gc_frequency t =
   let t = Option.map float_of_int t in
   Eliommod_gc.set_servicesessiongcfrequency t;
@@ -133,9 +133,10 @@ let get_config_info () =
 let get_config () =
   match Eliom_common.global_register_allowed () with
   | Some _ -> (
-    match !Eliommod.config with
-    | Some c -> c
-    | None -> failwith "No config file. Is it a statically linked executable?")
+      match !Eliommod.config with
+      | Some c -> c
+      | None -> failwith "No config file. Is it a statically linked executable?"
+      )
   | None ->
       raise
         (Eliom_common.Eliom_site_information_not_available

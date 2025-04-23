@@ -15,13 +15,12 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 include Eliom_service_base
 
 let xhr_with_cookies s =
-  if is_external s
-  then None
+  if is_external s then None
   else
     match s.send_appl_content with
     | XAlways -> Some None
@@ -44,15 +43,19 @@ let set_client_fun ?app ~service f =
   | None -> service.client_fun <- Some (ref (Some f))
 
 let reload_fun : type gp pp.
-  (gp, pp, _, _, _, _, _, _, _, _, _) t -> (gp -> unit -> result Lwt.t) option
-  =
+    (gp, pp, _, _, _, _, _, _, _, _, _) t -> (gp -> unit -> result Lwt.t) option
+    =
  fun service ->
   match Eliom_parameter.is_unit (post_params_type service) with
   | Eliom_parameter.U_yes -> (
-    match service with
-    | {client_fun = Some {contents = Some f}; reload_fun = Rf_client_fun; _} ->
-        Some f
-    | _ -> None)
+      match service with
+      | {
+       client_fun = Some { contents = Some f };
+       reload_fun = Rf_client_fun;
+       _;
+      } ->
+          Some f
+      | _ -> None)
   | _ -> None
 
 let reset_reload_fun service = service.reload_fun <- Rf_keep

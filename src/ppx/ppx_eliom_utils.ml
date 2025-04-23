@@ -7,7 +7,7 @@ open Ppxlib.Ast_helper
 
 (** Various misc functions *)
 
-let mkloc txt loc = {txt; loc}
+let mkloc txt loc = { txt; loc }
 let mkloc_opt ?(loc = !default_loc) x = mkloc x loc
 
 let unit ?loc ?attrs () =
@@ -27,7 +27,7 @@ let punit ?loc ?attrs () =
 let flatmap f l = List.flatten @@ List.map f l
 
 let get_extension = function
-  | {pexp_desc = Pexp_extension ({txt; _}, _); _} -> txt
+  | { pexp_desc = Pexp_extension ({ txt; _ }, _); _ } -> txt
   | _ -> invalid_arg "Eliom ppx: Should be an extension."
 
 let in_context cref c f x =
@@ -38,10 +38,13 @@ let in_context cref c f x =
   res
 
 let ( % ) f g x = f (g x)
-let exp_add_attrs attr e = {e with pexp_attributes = attr}
-let eid {Location.txt; loc} = Exp.ident ~loc {loc; txt = Longident.Lident txt}
-let format_args = function [] -> unit () | [e] -> e | l -> Exp.tuple l
-let pat_args = function [] -> punit () | [p] -> p | l -> Pat.tuple l
+let exp_add_attrs attr e = { e with pexp_attributes = attr }
+
+let eid { Location.txt; loc } =
+  Exp.ident ~loc { loc; txt = Longident.Lident txt }
+
+let format_args = function [] -> unit () | [ e ] -> e | l -> Exp.tuple l
+let pat_args = function [] -> punit () | [ p ] -> p | l -> Pat.tuple l
 
 (* We use a strong hash (MD5) of the file name.
    We only keep the first 36 bit, which should be well enough: with
@@ -69,7 +72,7 @@ let file_hash loc =
 
 let id_file_hash loc =
   let prefix = "__eliom__compilation_unit_id__" in
-  {Location.loc; txt = prefix ^ file_hash loc}
+  { Location.loc; txt = prefix ^ file_hash loc }
 
 (** [let __eliom__compilation_unit_id__HASH = "HASH"]
     We hoist the file hash at the beginning of each eliom file.
@@ -77,27 +80,29 @@ let id_file_hash loc =
 *)
 let module_hash_declaration loc =
   let id = Pat.var ~loc @@ id_file_hash loc in
-  Str.value ~loc Nonrecursive [Vb.mk ~loc id @@ str @@ file_hash loc]
+  Str.value ~loc Nonrecursive [ Vb.mk ~loc id @@ str @@ file_hash loc ]
 
 (** The first position in a file, if it exists.
     We avoid {!Location.input_name}, as it's unreliable when reading multiple files.
 *)
 let file_position str =
   match str with
-  | {pstr_loc; _} :: _ -> Location.in_file @@ pstr_loc.loc_start.pos_fname
+  | { pstr_loc; _ } :: _ -> Location.in_file @@ pstr_loc.loc_start.pos_fname
   | [] -> Location.none
 
 let lexing_position ~loc l =
   [%expr
-    { Lexing.pos_fname = [%e str l.Lexing.pos_fname]
-    ; Lexing.pos_lnum = [%e int @@ l.Lexing.pos_lnum]
-    ; Lexing.pos_bol = [%e int @@ l.Lexing.pos_bol]
-    ; Lexing.pos_cnum = [%e int @@ l.Lexing.pos_cnum] }]
+    {
+      Lexing.pos_fname = [%e str l.Lexing.pos_fname];
+      Lexing.pos_lnum = [%e int @@ l.Lexing.pos_lnum];
+      Lexing.pos_bol = [%e int @@ l.Lexing.pos_bol];
+      Lexing.pos_cnum = [%e int @@ l.Lexing.pos_cnum];
+    }]
 
 let position loc =
   let start = loc.Location.loc_start in
   let stop = loc.Location.loc_start in
-  Exp.tuple ~loc [lexing_position ~loc start; lexing_position ~loc stop]
+  Exp.tuple ~loc [ lexing_position ~loc start; lexing_position ~loc stop ]
 
 let is_annotation txt l = List.exists (fun s -> txt = s || txt = "eliom." ^ s) l
 
@@ -138,9 +143,9 @@ module Name = struct
           escaped_idents := (id, gen_id) :: !escaped_idents;
           gen_id
       in
-      {Location.txt; loc}
+      { Location.txt; loc }
     in
-    for_expr, for_id
+    (for_expr, for_id)
 
   let injected_expr, injected_ident, reset_injected_ident =
     let injected_idents = ref [] in
@@ -149,7 +154,7 @@ module Name = struct
       let hash = file_hash loc in
       incr r;
       let s = Printf.sprintf injected_ident_fmt hash !r in
-      {Location.txt = s; loc}
+      { Location.txt = s; loc }
     in
     let gen_injected_ident loc (s : string) =
       try List.assoc s !injected_idents
@@ -158,7 +163,7 @@ module Name = struct
         injected_idents := (s, gen_id) :: !injected_idents;
         gen_id
     and reset () = injected_idents := [] in
-    gen_ident, gen_injected_ident, reset
+    (gen_ident, gen_injected_ident, reset)
 end
 
 (* WARNING: if you change this, also change inferred_type_prefix in
@@ -195,7 +200,7 @@ module Mli = struct
          (* | Ptyp_constr  (_, Ast.TyAny _, ty) *)
          (* | Ptyp_constr (_, ty, Ast.TyAny _) -> ty *)
          | Ptyp_var var when has_pfix var ->
-             super#core_type {ty with ptyp_desc = Ptyp_var (rename var)}
+             super#core_type { ty with ptyp_desc = Ptyp_var (rename var) }
          | _ -> super#core_type ty
     end)
       #core_type
@@ -213,7 +218,7 @@ module Mli = struct
     with Scanf.Scan_failure _ -> false
 
   let get_injected_ident_info id =
-    Scanf.sscanf id Name.injected_ident_fmt (fun u n -> u, n)
+    Scanf.sscanf id Name.injected_ident_fmt (fun u n -> (u, n))
 
   let get_fragment_type = function
     | [%type: [%t? typ] Eliom_client_value.fragment]
@@ -224,11 +229,11 @@ module Mli = struct
   let get_binding sig_item =
     match sig_item.psig_desc with
     | Psig_value
-        {pval_name = {txt; _}; pval_type = [%type: [%t? typ] option ref]; _} ->
-        if is_injected_ident txt || is_escaped_ident txt
-        then Some (txt, suppress_underscore typ)
-        else if is_fragment_ident txt
-        then
+        { pval_name = { txt; _ }; pval_type = [%type: [%t? typ] option ref]; _ }
+      ->
+        if is_injected_ident txt || is_escaped_ident txt then
+          Some (txt, suppress_underscore typ)
+        else if is_fragment_ident txt then
           match get_fragment_type typ with
           | Some typ -> Some (txt, suppress_underscore typ)
           | None -> None
@@ -246,14 +251,15 @@ module Mli = struct
         | Some (s, typ) -> Hashtbl.add h s typ
         | None -> ()
       in
-      List.iter f items; h
+      List.iter f items;
+      h
     with Sys_error s ->
       Location.raise_errorf ~loc:(Location.in_file file)
         "Eliom: Error while loading types: %s" s
 
   let inferred_sig = lazy (load_file (get_type_file ()))
 
-  let find err {Location.txt; loc} =
+  let find err { Location.txt; loc } =
     try Hashtbl.find (Lazy.force inferred_sig) txt
     with Not_found ->
       Typ.extension ~loc @@ Location.Error.to_extension
@@ -275,16 +281,20 @@ module Cmo = struct
     let open Instruct in
     List.iter
       (fun ev ->
-         match ev with
-         | { ev_loc =
-               { loc_start = {Lexing.pos_fname; pos_cnum; _}
-               ; loc_end = {Lexing.pos_cnum = pos_cnum'; _}
-               ; _ }
-           ; ev_kind = Event_after ty
-           ; _ } ->
-             if pos_cnum' = pos_cnum + 1
-             then Hashtbl.add events (pos_fname, pos_cnum) ty
-         | _ -> ())
+        match ev with
+        | {
+         ev_loc =
+           {
+             loc_start = { Lexing.pos_fname; pos_cnum; _ };
+             loc_end = { Lexing.pos_cnum = pos_cnum'; _ };
+             _;
+           };
+         ev_kind = Event_after ty;
+         _;
+        } ->
+            if pos_cnum' = pos_cnum + 1 then
+              Hashtbl.add events (pos_fname, pos_cnum) ty
+        | _ -> ())
       evl
 
   let get_file () = match !file with Some f -> f | None -> assert false
@@ -300,29 +310,28 @@ module Cmo = struct
         let buffer =
           really_input_string ic (String.length Config.cmo_magic_number)
         in
-        if buffer <> Config.cmo_magic_number
-        then
+        if buffer <> Config.cmo_magic_number then
           Location.raise_errorf ~loc:(Location.in_file file)
             "Eliom: Error while loading types: not an object file";
         let cu_pos = input_binary_int ic in
         seek_in ic cu_pos;
         let cu = (input_value ic : compilation_unit) in
-        if cu.cu_debug = 0
-        then
+        if cu.cu_debug = 0 then
           Location.raise_errorf ~loc:(Location.in_file file)
             "Eliom: Error while loading types: no debugging information";
         seek_in ic cu.cu_debug;
         let evl = (input_value ic : Instruct.debug_event list) in
         let events = Hashtbl.create 100 in
-        record_events events evl; close_in ic; events
+        record_events events evl;
+        close_in ic;
+        events
 
   let events = lazy (load ())
 
   let[@ocaml.warning "-32"] label_of_string s =
-    if s = ""
-    then Asttypes.Nolabel
-    else if s.[0] = '?'
-    then Asttypes.Optional (String.sub s 1 (String.length s - 1))
+    if s = "" then Asttypes.Nolabel
+    else if s.[0] = '?' then
+      Asttypes.Optional (String.sub s 1 (String.length s - 1))
     else Asttypes.Labelled s
 
   let rec ident_of_out_ident id =
@@ -332,7 +341,7 @@ module Cmo = struct
     | Oide_apply (id, id') ->
         Lapply (ident_of_out_ident id, ident_of_out_ident id')
     | Oide_dot (id, nm) -> Ldot (ident_of_out_ident id, nm)
-    | Oide_ident {printed_name = nm} ->
+    | Oide_ident { printed_name = nm } ->
         Lident
           (try String.sub nm 0 (String.index nm '/') with Not_found -> nm)
 
@@ -346,7 +355,9 @@ module Cmo = struct
       try Hashtbl.find map x
       with Not_found ->
         let x' = Printf.sprintf "%s%s_%d" inferred_type_prefix x !counter in
-        incr counter; Hashtbl.add map x x'; x'
+        incr counter;
+        Hashtbl.add map x x';
+        x'
     in
     let rec type_of_out_type ty =
       match ty with
@@ -367,14 +378,16 @@ module Cmo = struct
           Typ.constr
             (mkloc (ident_of_out_ident id) Location.none)
             (List.map type_of_out_type tyl)
-      | ((Otyp_object {fields; open_row}) [@if ocaml_version >= (5, 1, 0)]) ->
+      | ((Otyp_object { fields; open_row }) [@if ocaml_version >= (5, 1, 0)]) ->
           let fields =
             List.map
               (fun (label, ty) ->
-                 { pof_desc =
-                     Otag (mkloc label Location.none, type_of_out_type ty)
-                 ; pof_loc = Location.none
-                 ; pof_attributes = [] })
+                {
+                  pof_desc =
+                    Otag (mkloc label Location.none, type_of_out_type ty);
+                  pof_loc = Location.none;
+                  pof_attributes = [];
+                })
               fields
           in
           Typ.object_ fields (if open_row then Open else Closed)
@@ -382,10 +395,12 @@ module Cmo = struct
           let fields =
             List.map
               (fun (label, ty) ->
-                 { pof_desc =
-                     Otag (mkloc label Location.none, type_of_out_type ty)
-                 ; pof_loc = Location.none
-                 ; pof_attributes = [] })
+                {
+                  pof_desc =
+                    Otag (mkloc label Location.none, type_of_out_type ty);
+                  pof_loc = Location.none;
+                  pof_attributes = [];
+                })
               fields
           in
           Typ.object_ fields (if rest = None then Closed else Open)
@@ -397,20 +412,20 @@ module Cmo = struct
           Typ.class_
             (mkloc (ident_of_out_ident id) Location.none)
             (List.map type_of_out_type tyl)
-      | ((Otyp_alias {aliased; alias; _}) [@if ocaml_version >= (5, 1, 0)]) ->
+      | ((Otyp_alias { aliased; alias; _ }) [@if ocaml_version >= (5, 1, 0)]) ->
           Typ.alias (type_of_out_type aliased) (var alias)
       | ((Otyp_alias (ty, s)) [@if ocaml_version < (5, 1, 0)]) ->
           Typ.alias (type_of_out_type ty) (var s)
       | ((Otyp_variant (Ovar_typ ty, closed, tags))
          [@if ocaml_version >= (5, 1, 0)]) ->
           Typ.variant
-            [Rf.mk (Rinherit (type_of_out_type ty))]
+            [ Rf.mk (Rinherit (type_of_out_type ty)) ]
             (if closed then Closed else Open)
             tags
       | ((Otyp_variant (_, Ovar_typ ty, closed, tags))
          [@if ocaml_version < (5, 1, 0)]) ->
           Typ.variant
-            [Rf.mk (Rinherit (type_of_out_type ty))]
+            [ Rf.mk (Rinherit (type_of_out_type ty)) ]
             (if closed then Closed else Open)
             tags
       | ((Otyp_variant (Ovar_fields lst, closed, tags))
@@ -418,11 +433,11 @@ module Cmo = struct
           let row_fields =
             List.map
               (fun (label, const, tyl) ->
-                 Rf.mk
-                   (Rtag
-                      ( mkloc label Location.none
-                      , const
-                      , List.map type_of_out_type tyl )))
+                Rf.mk
+                  (Rtag
+                     ( mkloc label Location.none,
+                       const,
+                       List.map type_of_out_type tyl )))
               lst
           in
           Typ.variant row_fields (if closed then Closed else Open) tags
@@ -431,11 +446,11 @@ module Cmo = struct
           let row_fields =
             List.map
               (fun (label, const, tyl) ->
-                 Rf.mk
-                   (Rtag
-                      ( mkloc label Location.none
-                      , const
-                      , List.map type_of_out_type tyl )))
+                Rf.mk
+                  (Rtag
+                     ( mkloc label Location.none,
+                       const,
+                       List.map type_of_out_type tyl )))
               lst
           in
           Typ.variant row_fields (if closed then Closed else Open) tags
@@ -453,7 +468,7 @@ module Cmo = struct
 
   let typ ty =
     let ty =
-      Out_type.prepare_for_printing [ty];
+      Out_type.prepare_for_printing [ ty ];
       Out_type.tree_of_typexp Type_scheme ty
     in
     type_of_out_type ty
@@ -467,7 +482,7 @@ module Cmo = struct
   [%%endif]
 
   let find err loc =
-    let {Lexing.pos_fname; pos_cnum; _} = loc.Location.loc_start in
+    let { Lexing.pos_fname; pos_cnum; _ } = loc.Location.loc_start in
     try typ (Hashtbl.find (Lazy.force events) (pos_fname, pos_cnum))
     with Not_found ->
       Typ.extension ~loc @@ Location.Error.to_extension
@@ -487,8 +502,8 @@ end
 
 (** Context convenience module. *)
 module Context = struct
-  type server = [`Server | `Shared]
-  type client = [`Client | `Shared]
+  type server = [ `Server | `Shared ]
+  type client = [ `Client | `Shared ]
 
   let of_string = function
     | "server" | "server.start" | "eliom.server" | "eliom.server.start" ->
@@ -499,7 +514,7 @@ module Context = struct
         `Client
     | _ -> invalid_arg "Eliom ppx: Not a context"
 
-  type escape_inject = [`Escaped_value of server | `Injection of client]
+  type escape_inject = [ `Escaped_value of server | `Injection of client ]
 
   type t =
     [ `Server (* [%%server ... ] *)
@@ -511,15 +526,17 @@ module Context = struct
 end
 
 let driver_args =
-  [ ( "-type"
-    , Arg.String (fun type_file -> Mli.type_file := Some type_file)
-    , "FILE Load inferred types from FILE." )
-  ; ( "-notype"
-    , Arg.Unit (fun () -> Mli.type_file := None)
-    , " Unset explicitly set path from which to load inferred types." )
-  ; ( "-server-cmo"
-    , Arg.String (fun file -> Cmo.file := Some file)
-    , "FILE Load inferred types from server cmo file FILE." ) ]
+  [
+    ( "-type",
+      Arg.String (fun type_file -> Mli.type_file := Some type_file),
+      "FILE Load inferred types from FILE." );
+    ( "-notype",
+      Arg.Unit (fun () -> Mli.type_file := None),
+      " Unset explicitly set path from which to load inferred types." );
+    ( "-server-cmo",
+      Arg.String (fun file -> Cmo.file := Some file),
+      "FILE Load inferred types from server cmo file FILE." );
+  ]
 
 let () =
   List.iter
@@ -541,24 +558,24 @@ module type Pass = sig
   val server_sig : signature_item -> signature_item list
 
   val fragment :
-     loc:Location.t
-    -> ?typ:core_type
-    -> context:Context.server
-    -> num:string
-    -> id:string Location.loc
-    -> unsafe:bool
-    -> expression
-    -> expression
+    loc:Location.t ->
+    ?typ:core_type ->
+    context:Context.server ->
+    num:string ->
+    id:string Location.loc ->
+    unsafe:bool ->
+    expression ->
+    expression
   (** How to handle "[\%client ...]" and "[\%shared ...]" expr. *)
 
   val escape_inject :
-     loc:Location.t
-    -> ?ident:string
-    -> context:Context.escape_inject
-    -> id:string Location.loc
-    -> unsafe:bool
-    -> expression
-    -> expression
+    loc:Location.t ->
+    ?ident:string ->
+    context:Context.escape_inject ->
+    id:string Location.loc ->
+    unsafe:bool ->
+    expression ->
+    expression
   (** How to handle escaped "~%ident" inside a fragment. *)
 
   val prelude : loc -> structure
@@ -685,7 +702,7 @@ module Shared = struct
          | [%expr [%client.unsafe [%e? fragment_expr]]] ->
              in_context context `Fragment self#expression fragment_expr
          | [%expr ~%[%e? injection_expr]] -> (
-           match !context with `Top -> expr | `Fragment -> injection_expr)
+             match !context with `Top -> expr | `Fragment -> injection_expr)
          | _ -> super#expression expr
     end)
       #expression
@@ -694,8 +711,7 @@ module Shared = struct
   let expr loc ~unsafe expr =
     let server_expr = server expr in
     let client_expr = client expr in
-    if unsafe
-    then
+    if unsafe then
       [%expr
         Eliom_shared.Value.create [%e server_expr]
           [%client.unsafe [%e client_expr]]]
@@ -713,50 +729,56 @@ module Make (Pass : Pass) = struct
       method! expression expr =
         let loc = expr.pexp_loc in
         let attr = expr.pexp_attributes in
-        match expr, !context with
-        | {pexp_desc = Pexp_extension ({txt; _}, _); _}, `Client
+        match (expr, !context) with
+        | { pexp_desc = Pexp_extension ({ txt; _ }, _); _ }, `Client
           when is_annotation txt
-                 ["client"; "shared"; "client.unsafe"; "shared.unsafe"] ->
+                 [ "client"; "shared"; "client.unsafe"; "shared.unsafe" ] ->
             let side = get_extension expr in
             Exp.extension @@ Location.Error.to_extension
             @@ Location.Error.make ~loc ~sub:[]
                  (Printf.sprintf
                     "The syntax [%%%s ...] is not allowed inside client code."
                     side)
-        | ( {pexp_desc = Pexp_extension ({txt; _}, _); _}
-          , (`Fragment _ | `Escaped_value _ | `Injection _) )
+        | ( { pexp_desc = Pexp_extension ({ txt; _ }, _); _ },
+            (`Fragment _ | `Escaped_value _ | `Injection _) )
           when is_annotation txt
-                 ["client"; "shared"; "client.unsafe"; "shared.unsafe"] ->
+                 [ "client"; "shared"; "client.unsafe"; "shared.unsafe" ] ->
             let side = get_extension expr in
             Exp.extension @@ Location.Error.to_extension
             @@ Location.Error.make ~loc ~sub:[]
                  (Printf.sprintf "The syntax [%%%s ...] can not be nested." side)
         (* [%shared ... ] *)
-        | ( { pexp_desc =
+        | ( {
+              pexp_desc =
                 Pexp_extension
-                  ({txt; _}, PStr [{pstr_desc = Pstr_eval (side_val, attr'); _}])
-            ; _ }
-          , (`Server | `Shared) )
-          when is_annotation txt ["shared"; "shared.unsafe"] ->
-            let unsafe = is_annotation txt ["shared.unsafe"] in
+                  ( { txt; _ },
+                    PStr [ { pstr_desc = Pstr_eval (side_val, attr'); _ } ] );
+              _;
+            },
+            (`Server | `Shared) )
+          when is_annotation txt [ "shared"; "shared.unsafe" ] ->
+            let unsafe = is_annotation txt [ "shared.unsafe" ] in
             let e = Shared.expr loc ~unsafe side_val in
             self#expression @@ exp_add_attrs (attr @ attr') e
         (* [%client ... ] *)
-        | ( { pexp_desc =
+        | ( {
+              pexp_desc =
                 Pexp_extension
-                  ({txt; _}, PStr [{pstr_desc = Pstr_eval (side_val, attr); _}])
-            ; _ }
-          , ((`Server | `Shared) as c) )
-          when is_annotation txt ["client"; "client.unsafe"] ->
+                  ( { txt; _ },
+                    PStr [ { pstr_desc = Pstr_eval (side_val, attr); _ } ] );
+              _;
+            },
+            ((`Server | `Shared) as c) )
+          when is_annotation txt [ "client"; "client.unsafe" ] ->
             Name.reset_escaped_ident ();
             let side_val, typ =
               match side_val with
-              | [%expr ([%e? cval] : [%t? typ])] -> cval, Some typ
-              | _ -> side_val, None
+              | [%expr ([%e? cval] : [%t? typ])] -> (cval, Some typ)
+              | _ -> (side_val, None)
             in
             let num = Name.fragment_num side_val.pexp_loc in
             let id = mkloc (Name.fragment_ident num) side_val.pexp_loc in
-            let unsafe = is_annotation txt ["client.unsafe"] in
+            let unsafe = is_annotation txt [ "client.unsafe" ] in
             in_context context
               (`Fragment (c, unsafe))
               (Pass.fragment ~loc ?typ ~context:c ~num ~id ~unsafe
@@ -806,14 +828,16 @@ module Make (Pass : Pass) = struct
       method! structure_item str =
         let loc = str.pstr_loc in
         match str.pstr_desc with
-        | Pstr_extension (({txt = "server" | "shared" | "client"; _}, _), _) ->
+        | Pstr_extension (({ txt = "server" | "shared" | "client"; _ }, _), _)
+          ->
             Location.raise_errorf ~loc "Sections are only allowed at toplevel."
         | _ -> super#structure_item str
 
       method! signature_item sig_ =
         let loc = sig_.psig_loc in
         match sig_.psig_desc with
-        | Psig_extension (({txt = "server" | "shared" | "client"; _}, _), _) ->
+        | Psig_extension (({ txt = "server" | "shared" | "client"; _ }, _), _)
+          ->
             Location.raise_errorf ~loc "Sections are only allowed at toplevel."
         | _ -> super#signature_item sig_
     end
@@ -855,33 +879,37 @@ module Make (Pass : Pass) = struct
         | _ -> ()
       in
       match pstr.pstr_desc with
-      | Pstr_extension (({txt; _}, PStr strs), _)
-        when is_annotation txt ["shared.start"; "client.start"; "server.start"]
-        ->
-          if strs <> []
-          then
-            [ Str.extension ~loc @@ Location.Error.to_extension
+      | Pstr_extension (({ txt; _ }, PStr strs), _)
+        when is_annotation txt
+               [ "shared.start"; "client.start"; "server.start" ] ->
+          if strs <> [] then
+            [
+              Str.extension ~loc @@ Location.Error.to_extension
               @@ Location.Error.make ~loc ~sub:[]
                    (Printf.sprintf
-                      "The %%%%%s extension doesn't accept arguments." txt) ]
+                      "The %%%%%s extension doesn't accept arguments." txt);
+            ]
           else (
             maybe_reset_injected_idents !context;
             context := Context.of_string txt;
             [])
-      | Pstr_extension (({txt; _}, PStr strs), _)
-        when is_annotation txt ["shared"; "client"; "server"] ->
+      | Pstr_extension (({ txt; _ }, PStr strs), _)
+        when is_annotation txt [ "shared"; "client"; "server" ] ->
           let c = Context.of_string txt in
           let l = flatmap (dispatch_str c) strs in
           maybe_reset_injected_idents c;
           l
       | Pstr_include
-          { pincl_mod = {pmod_desc = Pmod_structure l; pmod_attributes = []; _}
-          ; pincl_attributes = []
-          ; _ } ->
+          {
+            pincl_mod =
+              { pmod_desc = Pmod_structure l; pmod_attributes = []; _ };
+            pincl_attributes = [];
+            _;
+          } ->
           flatmap f l
       | _ -> dispatch_str !context pstr
     in
-    let loc = {(file_position structs) with loc_ghost = true} in
+    let loc = { (file_position structs) with loc_ghost = true } in
     (module_hash_declaration loc :: Pass.prelude loc)
     @ flatmap f structs @ Pass.postlude loc
 
@@ -889,20 +917,21 @@ module Make (Pass : Pass) = struct
     let f psig =
       let loc = psig.psig_loc in
       match psig.psig_desc with
-      | Psig_extension (({txt; _}, PStr strs), _)
-        when is_annotation txt ["shared.start"; "client.start"; "server.start"]
-        ->
-          if strs <> []
-          then
-            [ Sig.extension ~loc @@ Location.Error.to_extension
+      | Psig_extension (({ txt; _ }, PStr strs), _)
+        when is_annotation txt
+               [ "shared.start"; "client.start"; "server.start" ] ->
+          if strs <> [] then
+            [
+              Sig.extension ~loc @@ Location.Error.to_extension
               @@ Location.Error.make ~loc ~sub:[]
                    (Printf.sprintf
-                      "The %%%%%s extension doesn't accept arguments." txt) ]
+                      "The %%%%%s extension doesn't accept arguments." txt);
+            ]
           else (
             context := Context.of_string txt;
             [])
-      | Psig_extension (({txt; _}, PSig sigs), _)
-        when is_annotation txt ["shared"; "client"; "server"] ->
+      | Psig_extension (({ txt; _ }, PSig sigs), _)
+        when is_annotation txt [ "shared"; "client"; "server" ] ->
           let c = Context.of_string txt in
           flatmap (dispatch_sig c) sigs
       | _ -> dispatch_sig !context psig

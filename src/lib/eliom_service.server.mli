@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 (** Creation and manipulation of Eliom services.
 
@@ -28,19 +28,19 @@
 include Eliom_service_sigs.S
 
 val create :
-   ?name:string
-  -> ?csrf_safe:bool
-  -> ?csrf_scope:[< Eliom_common.user_scope]
-  -> ?csrf_secure:bool
-  -> ?max_use:int
-  -> ?timeout:float
-  -> ?https:bool
-  -> ?keep_nl_params:[`All | `Persistent | `None]
-  -> ?priority:int
-  -> meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'gp_) meth
-  -> path:('att, 'co, 'gp_) path_option
-  -> unit
-  -> ('gp, 'pp, 'm, 'att, 'co, non_ext, reg, 'tipo, 'gn, 'pn, non_ocaml) t
+  ?name:string ->
+  ?csrf_safe:bool ->
+  ?csrf_scope:[< Eliom_common.user_scope ] ->
+  ?csrf_secure:bool ->
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  ?priority:int ->
+  meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'gp_) meth ->
+  path:('att, 'co, 'gp_) path_option ->
+  unit ->
+  ('gp, 'pp, 'm, 'att, 'co, non_ext, reg, 'tipo, 'gn, 'pn, non_ocaml) t
 (** {b Service definition}
 
     The function [create ~id ~path ()] creates a service
@@ -113,41 +113,41 @@ val create :
     get this exception.}  *)
 
 val create_attached_get :
-   ?name:string
-  -> ?csrf_safe:bool
-  -> ?csrf_scope:[< Eliom_common.user_scope]
-  -> ?csrf_secure:bool
-  -> ?max_use:int
-  -> ?timeout:float
-  -> ?https:bool
-  -> ?keep_nl_params:[`All | `Persistent | `None]
-  -> fallback:
-       ( unit
-         , unit
-         , get
-         , att
-         , non_co
-         , non_ext
-         , _
-         , [`WithoutSuffix]
-         , unit
-         , unit
-         , non_ocaml )
-         t
-  -> get_params:('gp, [`WithoutSuffix], 'gn) Eliom_parameter.params_type
-  -> unit
-  -> ( 'gp
-       , unit
-       , get
-       , att
-       , co
-       , non_ext
-       , reg
-       , [`WithoutSuffix]
-       , 'gn
-       , unit
-       , non_ocaml )
-       t
+  ?name:string ->
+  ?csrf_safe:bool ->
+  ?csrf_scope:[< Eliom_common.user_scope ] ->
+  ?csrf_secure:bool ->
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  fallback:
+    ( unit,
+      unit,
+      get,
+      att,
+      non_co,
+      non_ext,
+      _,
+      [ `WithoutSuffix ],
+      unit,
+      unit,
+      non_ocaml )
+    t ->
+  get_params:('gp, [ `WithoutSuffix ], 'gn) Eliom_parameter.params_type ->
+  unit ->
+  ( 'gp,
+    unit,
+    get,
+    att,
+    co,
+    non_ext,
+    reg,
+    [ `WithoutSuffix ],
+    'gn,
+    unit,
+    non_ocaml )
+  t
 (** [create_attached_get ~fallback ~get_params ()] attaches a new service on
     the path of [fallback]. The new service implements the GET method
     and accepts [get_params], in addition to an
@@ -157,19 +157,19 @@ val create_attached_get :
     optional parameters see {!create}. *)
 
 val create_attached_post :
-   ?name:string
-  -> ?csrf_safe:bool
-  -> ?csrf_scope:[< Eliom_common.user_scope]
-  -> ?csrf_secure:bool
-  -> ?max_use:int
-  -> ?timeout:float
-  -> ?https:bool
-  -> ?keep_nl_params:[`All | `Persistent | `None]
-  -> fallback:
-       ('gp, unit, get, att, non_co, non_ext, _, 'suff, 'gn, unit, non_ocaml) t
-  -> post_params:('pp, [`WithoutSuffix], 'pn) Eliom_parameter.params_type
-  -> unit
-  -> ('gp, 'pp, post, att, co, non_ext, reg, 'suff, 'gn, 'pn, non_ocaml) t
+  ?name:string ->
+  ?csrf_safe:bool ->
+  ?csrf_scope:[< Eliom_common.user_scope ] ->
+  ?csrf_secure:bool ->
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  fallback:
+    ('gp, unit, get, att, non_co, non_ext, _, 'suff, 'gn, unit, non_ocaml) t ->
+  post_params:('pp, [ `WithoutSuffix ], 'pn) Eliom_parameter.params_type ->
+  unit ->
+  ('gp, 'pp, post, att, co, non_ext, reg, 'suff, 'gn, 'pn, non_ocaml) t
 (** [create_attached_post ~fallback ~post_params ()] attaches a new service on
     the path of [fallback]. The new service implements the POST method
     and accepts the GET parameters of [fallback], in addition to the
@@ -179,22 +179,22 @@ val create_attached_post :
     description of the optional parameters see {!create}. *)
 
 val attach :
-   fallback:(unit, unit, get, att, _, non_ext, _, _, unit, unit, 'return1) t
-  -> service:
-       ( 'get
-         , 'post
-         , 'meth
-         , non_att
-         , co
-         , non_ext
-         , _
-         , ([< `WithoutSuffix] as 'sf)
-         , 'gn
-         , 'pn
-         , 'return )
-         t
-  -> unit
-  -> ('get, 'post, 'meth, att, co, non_ext, non_reg, 'sf, 'gn, 'pn, 'return) t
+  fallback:(unit, unit, get, att, _, non_ext, _, _, unit, unit, 'return1) t ->
+  service:
+    ( 'get,
+      'post,
+      'meth,
+      non_att,
+      co,
+      non_ext,
+      _,
+      ([< `WithoutSuffix ] as 'sf),
+      'gn,
+      'pn,
+      'return )
+    t ->
+  unit ->
+  ('get, 'post, 'meth, att, co, non_ext, non_reg, 'sf, 'gn, 'pn, 'return) t
 (** [attach ~fallback ~service ()] attaches the preexisting pathless
     service [service] on the URL of [fallback]. This allows creating a
     link to a pathless service but with another URL than the current
@@ -222,10 +222,10 @@ val register_eliom_module : string -> (unit -> unit) -> unit
     replace the previous one. *)
 
 val unregister :
-   ?scope:[< Eliom_common.scope]
-  -> ?secure:bool
-  -> (_, _, _, _, _, non_ext, _, _, _, _, _) t
-  -> unit
+  ?scope:[< Eliom_common.scope ] ->
+  ?secure:bool ->
+  (_, _, _, _, _, non_ext, _, _, _, _, _) t ->
+  unit
 (** The function [unregister service] unregister the service handler
     previously associated to [service] with
     {!Eliom_registration.Html.register},
@@ -240,90 +240,88 @@ val is_external : (_, _, _, _, _, _, _, _, _, _, _) t -> bool
 (**/**)
 
 val pre_applied_parameters :
-   (_, _, _, _, _, _, _, _, _, _, _) t
-  -> (string * string) list Eliom_lib.String.Table.t * (string * string) list
+  (_, _, _, _, _, _, _, _, _, _, _) t ->
+  (string * string) list Eliom_lib.String.Table.t * (string * string) list
 
 val new_state : unit -> string
 
 val untype :
-   ('a, 'b, 'meth, 'attached, 'co, 'ext, 'd, 'e, 'f, 'g, 'rr) t
-  -> ('a, 'b, 'meth, 'attached, 'co, 'ext, 'd, 'e, 'f, 'g, 'return) t
+  ('a, 'b, 'meth, 'attached, 'co, 'ext, 'd, 'e, 'f, 'g, 'rr) t ->
+  ('a, 'b, 'meth, 'attached, 'co, 'ext, 'd, 'e, 'f, 'g, 'return) t
 
 val set_delayed_get_or_na_registration_function :
-   Eliom_common.tables
-  -> int
-  -> (sp:Eliom_common.server_params -> string)
-  -> unit
+  Eliom_common.tables ->
+  int ->
+  (sp:Eliom_common.server_params -> string) ->
+  unit
 
 val set_delayed_post_registration_function :
-   Eliom_common.tables
-  -> int
-  -> (sp:Eliom_common.server_params -> Eliom_common.att_key_serv -> string)
-  -> unit
+  Eliom_common.tables ->
+  int ->
+  (sp:Eliom_common.server_params -> Eliom_common.att_key_serv -> string) ->
+  unit
 
 val set_send_appl_content :
-   (_, _, _, _, _, _, _, _, _, _, _) t
-  -> send_appl_content
-  -> unit
+  (_, _, _, _, _, _, _, _, _, _, _) t -> send_appl_content -> unit
 
 exception Wrong_session_table_for_CSRF_safe_coservice
 
 val eliom_appl_answer_content_type : string
 
 val create_ocaml :
-   ?name:string
-  -> ?csrf_safe:bool
-  -> ?csrf_scope:[< Eliom_common.user_scope]
-  -> ?csrf_secure:bool
-  -> ?max_use:int
-  -> ?timeout:float
-  -> ?https:bool
-  -> ?keep_nl_params:[`All | `Persistent | `None]
-  -> ?priority:int
-  -> meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'gp_) meth
-  -> path:('att, 'co, 'gp_) path_option
-  -> unit
-  -> ('gp, 'pp, 'm, 'att, 'co, non_ext, reg, 'tipo, 'gn, 'pn, 'ret ocaml) t
+  ?name:string ->
+  ?csrf_safe:bool ->
+  ?csrf_scope:[< Eliom_common.user_scope ] ->
+  ?csrf_secure:bool ->
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  ?priority:int ->
+  meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'gp_) meth ->
+  path:('att, 'co, 'gp_) path_option ->
+  unit ->
+  ('gp, 'pp, 'm, 'att, 'co, non_ext, reg, 'tipo, 'gn, 'pn, 'ret ocaml) t
 
 val create_unsafe :
-   ?name:string
-  -> ?csrf_safe:bool
-  -> ?csrf_scope:[< Eliom_common.user_scope]
-  -> ?csrf_secure:bool
-  -> ?max_use:int
-  -> ?timeout:float
-  -> ?https:bool
-  -> ?keep_nl_params:[`All | `Persistent | `None]
-  -> ?priority:int
-  -> meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'gp_) meth
-  -> path:('att, 'co, 'gp_) path_option
-  -> unit
-  -> ('gp, 'pp, 'm, 'att, 'co, non_ext, reg, 'tipo, 'gn, 'pn, 'ret) t
+  ?name:string ->
+  ?csrf_safe:bool ->
+  ?csrf_scope:[< Eliom_common.user_scope ] ->
+  ?csrf_secure:bool ->
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  ?priority:int ->
+  meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'gp_) meth ->
+  path:('att, 'co, 'gp_) path_option ->
+  unit ->
+  ('gp, 'pp, 'm, 'att, 'co, non_ext, reg, 'tipo, 'gn, 'pn, 'ret) t
 
 val create_attached_get_unsafe :
-   ?name:string
-  -> ?csrf_safe:bool
-  -> ?csrf_scope:[< Eliom_common.user_scope]
-  -> ?csrf_secure:bool
-  -> ?max_use:int
-  -> ?timeout:float
-  -> ?https:bool
-  -> ?keep_nl_params:[`All | `Persistent | `None]
-  -> fallback:(unit, unit, get, att, non_co, non_ext, _, _, unit, unit, _) t
-  -> get_params:('gp, 'tipo, 'gn) Eliom_parameter.params_type
-  -> unit
-  -> ('gp, unit, get, att, co, non_ext, reg, 'tipo, 'gn, unit, _) t
+  ?name:string ->
+  ?csrf_safe:bool ->
+  ?csrf_scope:[< Eliom_common.user_scope ] ->
+  ?csrf_secure:bool ->
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  fallback:(unit, unit, get, att, non_co, non_ext, _, _, unit, unit, _) t ->
+  get_params:('gp, 'tipo, 'gn) Eliom_parameter.params_type ->
+  unit ->
+  ('gp, unit, get, att, co, non_ext, reg, 'tipo, 'gn, unit, _) t
 
 val create_attached_post_unsafe :
-   ?name:string
-  -> ?csrf_safe:bool
-  -> ?csrf_scope:[< Eliom_common.user_scope]
-  -> ?csrf_secure:bool
-  -> ?max_use:int
-  -> ?timeout:float
-  -> ?https:bool
-  -> ?keep_nl_params:[`All | `Persistent | `None]
-  -> fallback:('gp, unit, get, att, non_co, non_ext, _, 'tipo, 'gn, unit, _) t
-  -> post_params:('pp, [`WithoutSuffix], 'pn) Eliom_parameter.params_type
-  -> unit
-  -> ('gp, 'pp, post, att, co, non_ext, reg, 'tipo, 'gn, 'pn, _) t
+  ?name:string ->
+  ?csrf_safe:bool ->
+  ?csrf_scope:[< Eliom_common.user_scope ] ->
+  ?csrf_secure:bool ->
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  fallback:('gp, unit, get, att, non_co, non_ext, _, 'tipo, 'gn, unit, _) t ->
+  post_params:('pp, [ `WithoutSuffix ], 'pn) Eliom_parameter.params_type ->
+  unit ->
+  ('gp, 'pp, post, att, co, non_ext, reg, 'tipo, 'gn, 'pn, _) t

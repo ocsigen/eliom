@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 open Js_of_ocaml
 open Eliom_lib
@@ -44,37 +44,38 @@ module Xml = struct
 
   and recontent = RELazy of econtent Eliom_lazy.request | RE of econtent
 
-  and elt' =
-    { recontent : recontent
-    ; node_id : node_id
-    ; unwrapper_mark : Eliom_wrap.unwrapper }
+  and elt' = {
+    recontent : recontent;
+    node_id : node_id;
+    unwrapper_mark : Eliom_wrap.unwrapper;
+  }
   [@@warning "-69"]
 
-  and elt = {elt : elt'; wrapper_mark : elt Eliom_wrap.wrapper}
+  and elt = { elt : elt'; wrapper_mark : elt Eliom_wrap.wrapper }
   [@@warning "-69"]
   (** Values of type [elt] are wrapped values of type [elt']. *)
 
-  let content {elt; _} =
+  let content { elt; _ } =
     match elt.recontent with RE e -> e | RELazy e -> Eliom_lazy.force e
 
   module Node_id_set = Set.Make (struct
-      type t = node_id
+    type t = node_id
 
-      let compare : t -> t -> int = compare
-    end)
+    let compare : t -> t -> int = compare
+  end)
 
   let node_ids_in_content = ref Node_id_set.empty
 
   let wrapper_mark =
-    Eliom_wrap.create_wrapper (fun {elt; _} ->
-      if Node_id_set.mem elt.node_id !node_ids_in_content
-      then {elt with recontent = RE Empty}
-      else elt)
+    Eliom_wrap.create_wrapper (fun { elt; _ } ->
+        if Node_id_set.mem elt.node_id !node_ids_in_content then
+          { elt with recontent = RE Empty }
+        else elt)
 
   let wrap page value =
     let node_ids = ref [] in
-    let rec collect_node_ids ({elt; _} as elt') =
-      let {node_id; _} = elt in
+    let rec collect_node_ids ({ elt; _ } as elt') =
+      let { node_id; _ } = elt in
       if node_id <> NoId then node_ids := node_id :: !node_ids;
       match content elt' with
       | Empty | Comment _ | EncodedPCDATA _ | PCDATA _ | Entity _ | Leaf _ -> ()
@@ -87,22 +88,30 @@ module Xml = struct
     node_ids_in_content := Node_id_set.empty;
     res
 
-  let get_node_id {elt; _} = elt.node_id
+  let get_node_id { elt; _ } = elt.node_id
   let tyxml_unwrap_id = Eliom_wrap.id_of_int Eliom_runtime.tyxml_unwrap_id_int
 
   let make elt =
-    { elt =
-        { recontent = RE elt
-        ; node_id = NoId
-        ; unwrapper_mark = Eliom_wrap.create_unwrapper tyxml_unwrap_id }
-    ; wrapper_mark }
+    {
+      elt =
+        {
+          recontent = RE elt;
+          node_id = NoId;
+          unwrapper_mark = Eliom_wrap.create_unwrapper tyxml_unwrap_id;
+        };
+      wrapper_mark;
+    }
 
   let make_lazy elt =
-    { elt =
-        { recontent = RELazy elt
-        ; node_id = NoId
-        ; unwrapper_mark = Eliom_wrap.create_unwrapper tyxml_unwrap_id }
-    ; wrapper_mark }
+    {
+      elt =
+        {
+          recontent = RELazy elt;
+          node_id = NoId;
+          unwrapper_mark = Eliom_wrap.create_unwrapper tyxml_unwrap_id;
+        };
+      wrapper_mark;
+    }
 
   let empty () = make Empty
   let comment c = make (Comment c)
@@ -155,7 +164,7 @@ module Xml = struct
   let client_attrib ?init (x : attrib Eliom_client_value.t) =
     let crypto = make_cryptographic_safe_string () in
     let empty_name = "" in
-    empty_name, RAClient (crypto, init, Eliom_lib.to_poly x)
+    (empty_name, RAClient (crypto, init, Eliom_lib.to_poly x))
 
   let closing_cdata = Re.Pcre.(regexp (quote "]]>"))
 
@@ -200,15 +209,14 @@ module Xml = struct
     make_cryptographic_safe_string ()
 
   let make_process_node ?(id = make_node_name ~global:true ()) elt' =
-    {elt' with elt = {elt'.elt with node_id = ProcessId id}}
+    { elt' with elt = { elt'.elt with node_id = ProcessId id } }
 
   let make_request_node ?(reset = false) elt' =
     let f () =
       let id = RequestId (make_node_name ~global:false ()) in
-      {elt' with elt = {elt'.elt with node_id = id}}
+      { elt' with elt = { elt'.elt with node_id = id } }
     in
-    if reset
-    then f ()
+    if reset then f ()
     else
       match elt'.elt.node_id with
       | Eliom_runtime.RawXML.NoId -> f ()
@@ -228,10 +236,10 @@ module Xml = struct
     let f acc attribs =
       List.fold_right
         (fun att acc ->
-           match racontent att with
-           | RACamlEventHandler (CE_registered_closure (closure_id, cv)) ->
-               ClosureMap.add closure_id cv acc
-           | _ -> acc)
+          match racontent att with
+          | RACamlEventHandler (CE_registered_closure (closure_id, cv)) ->
+              ClosureMap.add closure_id cv acc
+          | _ -> acc)
         attribs acc
     in
     fold_attrib f ClosureMap.empty elt
@@ -240,9 +248,9 @@ module Xml = struct
     let f acc attribs =
       List.fold_right
         (fun att acc ->
-           match racontent att with
-           | RAClient (id, _, cv) -> ClosureMap.add id cv acc
-           | _ -> acc)
+          match racontent att with
+          | RAClient (id, _, cv) -> ClosureMap.add id cv acc
+          | _ -> acc)
         attribs acc
     in
     fold_attrib f ClosureMap.empty elt
@@ -253,7 +261,7 @@ module Xml = struct
     | Node (ename, attribs, sons) ->
         Node (ename, filter_class_attribs node_id attribs, sons)
 
-  let content {elt; _} =
+  let content { elt; _ } =
     let c =
       match elt.recontent with RE e -> e | RELazy e -> Eliom_lazy.force e
     in
@@ -262,12 +270,12 @@ end
 
 module Svg = struct
   module Ev' (A : sig
-      type 'a attrib
+    type 'a attrib
 
-      module Unsafe : sig
-        val string_attrib : string -> string -> 'a attrib
-      end
-    end) =
+    module Unsafe : sig
+      val string_attrib : string -> string -> 'a attrib
+    end
+  end) =
   struct
     let a_onabort s = A.Unsafe.string_attrib "onabort" s
     let a_onactivate s = A.Unsafe.string_attrib "onactivate" s
@@ -363,12 +371,12 @@ end
 
 module Html = struct
   module Ev' (A : sig
-      type 'a attrib
+    type 'a attrib
 
-      module Unsafe : sig
-        val string_attrib : string -> string -> 'a attrib
-      end
-    end) =
+    module Unsafe : sig
+      val string_attrib : string -> string -> 'a attrib
+    end
+  end) =
   struct
     let a_onabort s = A.Unsafe.string_attrib "onabort" s
     let a_onafterprint s = A.Unsafe.string_attrib "onafterprint" s
@@ -464,7 +472,7 @@ module Html = struct
       let lazy_node ?(a = []) name children =
         make_lazy
           (Eliom_lazy.from_fun (fun () ->
-             Node (name, a, Eliom_lazy.force children)))
+               Node (name, a, Eliom_lazy.force children)))
     end
 
     module Raw' = Html_f.Make (Xml') (Svg.F.Raw')
@@ -538,18 +546,19 @@ module Html = struct
   end
 
   module Custom_data = struct
-    type 'a t =
-      { name : string
-      ; to_string : 'a -> string
-      ; of_string : string -> 'a
-      ; default : 'a option }
+    type 'a t = {
+      name : string;
+      to_string : 'a -> string;
+      of_string : string -> 'a;
+      default : 'a option;
+    }
     [@@warning "-69"]
 
     let create ~name ?default ~to_string ~of_string () =
-      {name; of_string; to_string; default}
+      { name; of_string; to_string; default }
 
     let create_json ~name ?default typ =
-      {name; of_string = of_json ~typ; to_string = to_json ~typ; default}
+      { name; of_string = of_json ~typ; to_string = to_json ~typ; default }
 
     let attrib custom_data value =
       F.a_user_data custom_data.name (custom_data.to_string value)

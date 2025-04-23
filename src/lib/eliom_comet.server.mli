@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 (** Primitives to push data to the client, without explicit request. *)
 
@@ -34,14 +34,14 @@ module Channel : sig
       transporting data of type [v] *)
 
   type comet_scope =
-    [Eliom_common.site_scope | Eliom_common.client_process_scope]
+    [ Eliom_common.site_scope | Eliom_common.client_process_scope ]
 
   val create :
-     ?scope:[< comet_scope]
-    -> ?name:string
-    -> ?size:int
-    -> 'a Lwt_stream.t
-    -> 'a t
+    ?scope:[< comet_scope ] ->
+    ?name:string ->
+    ?size:int ->
+    'a Lwt_stream.t ->
+    'a t
   (** [create s] returns a channel sending the values returned by stream [s].
 
       There are two kinds of channels created depending on the given
@@ -76,19 +76,19 @@ module Channel : sig
       [create_unlimited] instead, but be careful of memory leaks. *)
 
   val create_from_events :
-     ?scope:[< comet_scope]
-    -> ?name:string
-    -> ?size:int
-    -> 'a React.event
-    -> 'a t
+    ?scope:[< comet_scope ] ->
+    ?name:string ->
+    ?size:int ->
+    'a React.event ->
+    'a t
   (** [create_from_events e] returns a channel sending the values returned
       by the event stream [e]. *)
 
   val create_unlimited :
-     ?scope:Eliom_common.client_process_scope
-    -> ?name:string
-    -> 'a Lwt_stream.t
-    -> 'a t
+    ?scope:Eliom_common.client_process_scope ->
+    ?name:string ->
+    'a Lwt_stream.t ->
+    'a t
   (** [create_unlimited s] creates a channel which does not read
       immediately on the stream. It is read only when the client
       requests it: use it if the data you send depends on the time of
@@ -103,12 +103,7 @@ module Channel : sig
       returned to the client. *)
 
   val external_channel :
-     ?history:int
-    -> ?newest:bool
-    -> prefix:string
-    -> name:string
-    -> unit
-    -> 'a t
+    ?history:int -> ?newest:bool -> prefix:string -> name:string -> unit -> 'a t
   (** [external_channel ~prefix ~name ()] declares an external
       channel. The channel was created by an instance of Eliom serving
       the prefix [prefix] (the prefix configured in the <site> tag of
@@ -121,9 +116,7 @@ module Channel : sig
       is [1]. *)
 
   val wait_timeout :
-     ?scope:Eliom_common.client_process_scope
-    -> float
-    -> unit Lwt.t
+    ?scope:Eliom_common.client_process_scope -> float -> unit Lwt.t
   (** [wait_timeout ~scope time] waits for a period of inactivity of
       length [time] in the [scope]. Only activity on stateful
       channels is taken into accounts.

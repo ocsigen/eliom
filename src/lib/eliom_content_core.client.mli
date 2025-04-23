@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 open Js_of_ocaml
 
@@ -25,9 +25,9 @@ open Js_of_ocaml
 module Xml : sig
   module W :
     Xml_wrap.T
-    with type 'a t = 'a
-     and type 'a tlist = 'a list
-     and type (-'a, 'b) ft = 'a -> 'b
+      with type 'a t = 'a
+       and type 'a tlist = 'a list
+       and type (-'a, 'b) ft = 'a -> 'b
 
   type uri = string
 
@@ -49,13 +49,13 @@ module Xml : sig
     | CE_client_closure_touch of (Dom_html.touchEvent Js.t -> unit)
       (* Client side-only *)
     | CE_call_service of
-        ([`A | `Form_get | `Form_post]
+        ([ `A | `Form_get | `Form_post ]
         * (bool * string list) option
         * string option
         * Ocsigen_lib_base.poly)
-          (* (unit -> bool) client_value *)
-          option
-          Eliom_lazy.request
+        (* (unit -> bool) client_value *)
+        option
+        Eliom_lazy.request
 
   type internal_event_handler = Raw of string | Caml of caml_event_handler
   type event_handler = Dom_html.event Js.t -> unit
@@ -79,13 +79,13 @@ module Xml : sig
   (**/**)
 
   val internal_event_handler_of_service :
-     ([`A | `Form_get | `Form_post]
-     * (bool * string list) option
-     * string option
-     * Eliom_lib.poly)
-       option
-       Eliom_lazy.request
-    -> internal_event_handler
+    ([ `A | `Form_get | `Form_post ]
+    * (bool * string list) option
+    * string option
+    * Eliom_lib.poly)
+    option
+    Eliom_lazy.request ->
+    internal_event_handler
 
   type separator = Space | Comma
 
@@ -159,14 +159,14 @@ end
 module Xml_wed : sig
   include
     Xml_sigs.T
-    with module W = Js_of_ocaml_tyxml.Tyxml_js.Wrap
-     and type elt = Xml.elt
-     and type aname = Xml.aname
-     and type attrib = Xml.attrib
-     and type uri = Xml.uri
-     and type 'a W.t = 'a React.signal
-     and type 'a W.tlist = 'a ReactiveData.RList.t
-     and type ('a, 'b) W.ft = 'a -> 'b
+      with module W = Js_of_ocaml_tyxml.Tyxml_js.Wrap
+       and type elt = Xml.elt
+       and type aname = Xml.aname
+       and type attrib = Xml.attrib
+       and type uri = Xml.uri
+       and type 'a W.t = 'a React.signal
+       and type 'a W.tlist = 'a ReactiveData.RList.t
+       and type ('a, 'b) W.ft = 'a -> 'b
 
   val float_attrib : aname -> float React.S.t -> attrib
   val int_attrib : aname -> int React.S.t -> attrib
@@ -194,39 +194,39 @@ module Svg : sig
   (**/**)
 
   module Ev' (A : sig
-      type 'a attrib
+    type 'a attrib
 
-      module Unsafe : sig
-        val string_attrib : string -> string -> 'a attrib
-      end
-    end) : sig
-    val a_onabort : string -> [> `OnAbort] A.attrib
-    val a_onactivate : string -> [> `OnActivate] A.attrib
-    val a_onbegin : string -> [> `OnBegin] A.attrib
-    val a_onend : string -> [> `OnEnd] A.attrib
-    val a_onerror : string -> [> `OnError] A.attrib
-    val a_onfocusin : string -> [> `OnFocusIn] A.attrib
-    val a_onfocusout : string -> [> `OnFocusOut] A.attrib
+    module Unsafe : sig
+      val string_attrib : string -> string -> 'a attrib
+    end
+  end) : sig
+    val a_onabort : string -> [> `OnAbort ] A.attrib
+    val a_onactivate : string -> [> `OnActivate ] A.attrib
+    val a_onbegin : string -> [> `OnBegin ] A.attrib
+    val a_onend : string -> [> `OnEnd ] A.attrib
+    val a_onerror : string -> [> `OnError ] A.attrib
+    val a_onfocusin : string -> [> `OnFocusIn ] A.attrib
+    val a_onfocusout : string -> [> `OnFocusOut ] A.attrib
 
-    val a_onload : string -> [> `OnLoad] A.attrib
+    val a_onload : string -> [> `OnLoad ] A.attrib
     [@@ocaml.deprecated "Removed in SVG2"]
     (** @deprecated Removed in SVG2 *)
 
-    val a_onrepeat : string -> [> `OnRepeat] A.attrib
-    val a_onresize : string -> [> `OnResize] A.attrib
-    val a_onscroll : string -> [> `OnScroll] A.attrib
-    val a_onunload : string -> [> `OnUnload] A.attrib
-    val a_onzoom : string -> [> `OnZoom] A.attrib
-    val a_onclick : string -> [> `OnClick] A.attrib
-    val a_onmousedown : string -> [> `OnMouseDown] A.attrib
-    val a_onmouseup : string -> [> `OnMouseUp] A.attrib
-    val a_onmouseover : string -> [> `OnMouseOver] A.attrib
-    val a_onmouseout : string -> [> `OnMouseOut] A.attrib
-    val a_onmousemove : string -> [> `OnMouseMove] A.attrib
-    val a_ontouchstart : string -> [> `OnTouchStart] A.attrib
-    val a_ontouchend : string -> [> `OnTouchEnd] A.attrib
-    val a_ontouchmove : string -> [> `OnTouchMove] A.attrib
-    val a_ontouchcancel : string -> [> `OnTouchCancel] A.attrib
+    val a_onrepeat : string -> [> `OnRepeat ] A.attrib
+    val a_onresize : string -> [> `OnResize ] A.attrib
+    val a_onscroll : string -> [> `OnScroll ] A.attrib
+    val a_onunload : string -> [> `OnUnload ] A.attrib
+    val a_onzoom : string -> [> `OnZoom ] A.attrib
+    val a_onclick : string -> [> `OnClick ] A.attrib
+    val a_onmousedown : string -> [> `OnMouseDown ] A.attrib
+    val a_onmouseup : string -> [> `OnMouseUp ] A.attrib
+    val a_onmouseover : string -> [> `OnMouseOver ] A.attrib
+    val a_onmouseout : string -> [> `OnMouseOut ] A.attrib
+    val a_onmousemove : string -> [> `OnMouseMove ] A.attrib
+    val a_ontouchstart : string -> [> `OnTouchStart ] A.attrib
+    val a_ontouchend : string -> [> `OnTouchEnd ] A.attrib
+    val a_ontouchmove : string -> [> `OnTouchMove ] A.attrib
+    val a_ontouchcancel : string -> [> `OnTouchCancel ] A.attrib
   end
 
   (**/**)
@@ -240,8 +240,8 @@ module Svg : sig
 
     module Raw' :
       Svg_sigs.Make(Xml).T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     (**/**)
 
@@ -263,8 +263,8 @@ module Svg : sig
 
     module Raw' :
       Svg_sigs.Make(Xml).T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     (**/**)
 
@@ -288,8 +288,8 @@ module Svg : sig
 
     module Raw :
       Svg_sigs.Make(Xml_wed).T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     include module type of Raw
     (** See {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
@@ -339,86 +339,86 @@ module Html : sig
   (**/**)
 
   module Ev' (A : sig
-      type 'a attrib
+    type 'a attrib
 
-      module Unsafe : sig
-        val string_attrib : string -> string -> 'a attrib
-      end
-    end) : sig
-    val a_onabort : string -> [> `OnAbort] A.attrib
-    val a_onafterprint : string -> [> `OnAfterPrint] A.attrib
-    val a_onbeforeprint : string -> [> `OnBeforePrint] A.attrib
-    val a_onbeforeunload : string -> [> `OnBeforeUnload] A.attrib
-    val a_onblur : string -> [> `OnBlur] A.attrib
-    val a_oncanplay : string -> [> `OnCanPlay] A.attrib
-    val a_oncanplaythrough : string -> [> `OnCanPlayThrough] A.attrib
-    val a_onchange : string -> [> `OnChange] A.attrib
-    val a_onclose : string -> [> `OnClose] A.attrib
-    val a_ondurationchange : string -> [> `OnDurationChange] A.attrib
-    val a_onemptied : string -> [> `OnEmptied] A.attrib
-    val a_onended : string -> [> `OnEnded] A.attrib
-    val a_onerror : string -> [> `OnError] A.attrib
-    val a_onfocus : string -> [> `OnFocus] A.attrib
-    val a_onformchange : string -> [> `OnFormChange] A.attrib
-    val a_onforminput : string -> [> `OnFormInput] A.attrib
-    val a_onhashchange : string -> [> `OnHashChange] A.attrib
-    val a_oninput : string -> [> `OnInput] A.attrib
-    val a_oninvalid : string -> [> `OnInvalid] A.attrib
-    val a_onmousewheel : string -> [> `OnMouseWheel] A.attrib
-    val a_onoffline : string -> [> `OnOffLine] A.attrib
-    val a_ononline : string -> [> `OnOnLine] A.attrib
-    val a_onpause : string -> [> `OnPause] A.attrib
-    val a_onplay : string -> [> `OnPlay] A.attrib
-    val a_onplaying : string -> [> `OnPlaying] A.attrib
-    val a_onpagehide : string -> [> `OnPageHide] A.attrib
-    val a_onpageshow : string -> [> `OnPageShow] A.attrib
-    val a_onpopstate : string -> [> `OnPopState] A.attrib
-    val a_onprogress : string -> [> `OnProgress] A.attrib
-    val a_onratechange : string -> [> `OnRateChange] A.attrib
-    val a_onreadystatechange : string -> [> `OnReadyStateChange] A.attrib
-    val a_onredo : string -> [> `OnRedo] A.attrib
-    val a_onresize : string -> [> `OnResize] A.attrib
-    val a_onscroll : string -> [> `OnScroll] A.attrib
-    val a_onseeked : string -> [> `OnSeeked] A.attrib
-    val a_onseeking : string -> [> `OnSeeking] A.attrib
-    val a_onselect : string -> [> `OnSelect] A.attrib
-    val a_onshow : string -> [> `OnShow] A.attrib
-    val a_onstalled : string -> [> `OnStalled] A.attrib
-    val a_onstorage : string -> [> `OnStorage] A.attrib
-    val a_onsubmit : string -> [> `OnSubmit] A.attrib
-    val a_onsuspend : string -> [> `OnSuspend] A.attrib
-    val a_ontimeupdate : string -> [> `OnTimeUpdate] A.attrib
-    val a_onundo : string -> [> `OnUndo] A.attrib
-    val a_onunload : string -> [> `OnUnload] A.attrib
-    val a_onvolumechange : string -> [> `OnVolumeChange] A.attrib
-    val a_onwaiting : string -> [> `OnWaiting] A.attrib
-    val a_onload : string -> [> `OnLoad] A.attrib
-    val a_onloadeddata : string -> [> `OnLoadedData] A.attrib
-    val a_onloadedmetadata : string -> [> `OnLoadedMetaData] A.attrib
-    val a_onloadstart : string -> [> `OnLoadStart] A.attrib
-    val a_onmessage : string -> [> `OnMessage] A.attrib
-    val a_onclick : string -> [> `OnClick] A.attrib
-    val a_oncontextmenu : string -> [> `OnContextMenu] A.attrib
-    val a_ondblclick : string -> [> `OnDblClick] A.attrib
-    val a_ondrag : string -> [> `OnDrag] A.attrib
-    val a_ondragend : string -> [> `OnDragEnd] A.attrib
-    val a_ondragenter : string -> [> `OnDragEnter] A.attrib
-    val a_ondragleave : string -> [> `OnDragLeave] A.attrib
-    val a_ondragover : string -> [> `OnDragOver] A.attrib
-    val a_ondragstart : string -> [> `OnDragStart] A.attrib
-    val a_ondrop : string -> [> `OnDrop] A.attrib
-    val a_onmousedown : string -> [> `OnMouseDown] A.attrib
-    val a_onmouseup : string -> [> `OnMouseUp] A.attrib
-    val a_onmouseover : string -> [> `OnMouseOver] A.attrib
-    val a_onmousemove : string -> [> `OnMouseMove] A.attrib
-    val a_onmouseout : string -> [> `OnMouseOut] A.attrib
-    val a_ontouchstart : string -> [> `OnTouchStart] A.attrib
-    val a_ontouchend : string -> [> `OnTouchEnd] A.attrib
-    val a_ontouchmove : string -> [> `OnTouchMove] A.attrib
-    val a_ontouchcancel : string -> [> `OnTouchCancel] A.attrib
-    val a_onkeypress : string -> [> `OnKeyPress] A.attrib
-    val a_onkeydown : string -> [> `OnKeyDown] A.attrib
-    val a_onkeyup : string -> [> `OnKeyUp] A.attrib
+    module Unsafe : sig
+      val string_attrib : string -> string -> 'a attrib
+    end
+  end) : sig
+    val a_onabort : string -> [> `OnAbort ] A.attrib
+    val a_onafterprint : string -> [> `OnAfterPrint ] A.attrib
+    val a_onbeforeprint : string -> [> `OnBeforePrint ] A.attrib
+    val a_onbeforeunload : string -> [> `OnBeforeUnload ] A.attrib
+    val a_onblur : string -> [> `OnBlur ] A.attrib
+    val a_oncanplay : string -> [> `OnCanPlay ] A.attrib
+    val a_oncanplaythrough : string -> [> `OnCanPlayThrough ] A.attrib
+    val a_onchange : string -> [> `OnChange ] A.attrib
+    val a_onclose : string -> [> `OnClose ] A.attrib
+    val a_ondurationchange : string -> [> `OnDurationChange ] A.attrib
+    val a_onemptied : string -> [> `OnEmptied ] A.attrib
+    val a_onended : string -> [> `OnEnded ] A.attrib
+    val a_onerror : string -> [> `OnError ] A.attrib
+    val a_onfocus : string -> [> `OnFocus ] A.attrib
+    val a_onformchange : string -> [> `OnFormChange ] A.attrib
+    val a_onforminput : string -> [> `OnFormInput ] A.attrib
+    val a_onhashchange : string -> [> `OnHashChange ] A.attrib
+    val a_oninput : string -> [> `OnInput ] A.attrib
+    val a_oninvalid : string -> [> `OnInvalid ] A.attrib
+    val a_onmousewheel : string -> [> `OnMouseWheel ] A.attrib
+    val a_onoffline : string -> [> `OnOffLine ] A.attrib
+    val a_ononline : string -> [> `OnOnLine ] A.attrib
+    val a_onpause : string -> [> `OnPause ] A.attrib
+    val a_onplay : string -> [> `OnPlay ] A.attrib
+    val a_onplaying : string -> [> `OnPlaying ] A.attrib
+    val a_onpagehide : string -> [> `OnPageHide ] A.attrib
+    val a_onpageshow : string -> [> `OnPageShow ] A.attrib
+    val a_onpopstate : string -> [> `OnPopState ] A.attrib
+    val a_onprogress : string -> [> `OnProgress ] A.attrib
+    val a_onratechange : string -> [> `OnRateChange ] A.attrib
+    val a_onreadystatechange : string -> [> `OnReadyStateChange ] A.attrib
+    val a_onredo : string -> [> `OnRedo ] A.attrib
+    val a_onresize : string -> [> `OnResize ] A.attrib
+    val a_onscroll : string -> [> `OnScroll ] A.attrib
+    val a_onseeked : string -> [> `OnSeeked ] A.attrib
+    val a_onseeking : string -> [> `OnSeeking ] A.attrib
+    val a_onselect : string -> [> `OnSelect ] A.attrib
+    val a_onshow : string -> [> `OnShow ] A.attrib
+    val a_onstalled : string -> [> `OnStalled ] A.attrib
+    val a_onstorage : string -> [> `OnStorage ] A.attrib
+    val a_onsubmit : string -> [> `OnSubmit ] A.attrib
+    val a_onsuspend : string -> [> `OnSuspend ] A.attrib
+    val a_ontimeupdate : string -> [> `OnTimeUpdate ] A.attrib
+    val a_onundo : string -> [> `OnUndo ] A.attrib
+    val a_onunload : string -> [> `OnUnload ] A.attrib
+    val a_onvolumechange : string -> [> `OnVolumeChange ] A.attrib
+    val a_onwaiting : string -> [> `OnWaiting ] A.attrib
+    val a_onload : string -> [> `OnLoad ] A.attrib
+    val a_onloadeddata : string -> [> `OnLoadedData ] A.attrib
+    val a_onloadedmetadata : string -> [> `OnLoadedMetaData ] A.attrib
+    val a_onloadstart : string -> [> `OnLoadStart ] A.attrib
+    val a_onmessage : string -> [> `OnMessage ] A.attrib
+    val a_onclick : string -> [> `OnClick ] A.attrib
+    val a_oncontextmenu : string -> [> `OnContextMenu ] A.attrib
+    val a_ondblclick : string -> [> `OnDblClick ] A.attrib
+    val a_ondrag : string -> [> `OnDrag ] A.attrib
+    val a_ondragend : string -> [> `OnDragEnd ] A.attrib
+    val a_ondragenter : string -> [> `OnDragEnter ] A.attrib
+    val a_ondragleave : string -> [> `OnDragLeave ] A.attrib
+    val a_ondragover : string -> [> `OnDragOver ] A.attrib
+    val a_ondragstart : string -> [> `OnDragStart ] A.attrib
+    val a_ondrop : string -> [> `OnDrop ] A.attrib
+    val a_onmousedown : string -> [> `OnMouseDown ] A.attrib
+    val a_onmouseup : string -> [> `OnMouseUp ] A.attrib
+    val a_onmouseover : string -> [> `OnMouseOver ] A.attrib
+    val a_onmousemove : string -> [> `OnMouseMove ] A.attrib
+    val a_onmouseout : string -> [> `OnMouseOut ] A.attrib
+    val a_ontouchstart : string -> [> `OnTouchStart ] A.attrib
+    val a_ontouchend : string -> [> `OnTouchEnd ] A.attrib
+    val a_ontouchmove : string -> [> `OnTouchMove ] A.attrib
+    val a_ontouchcancel : string -> [> `OnTouchCancel ] A.attrib
+    val a_onkeypress : string -> [> `OnKeyPress ] A.attrib
+    val a_onkeydown : string -> [> `OnKeyDown ] A.attrib
+    val a_onkeyup : string -> [> `OnKeyUp ] A.attrib
   end
 
   (**/**)
@@ -430,8 +430,8 @@ module Html : sig
 
     module Raw' :
       Html_sigs.Make(Xml)(Svg.F.Raw').T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     (**/**)
 
@@ -451,10 +451,10 @@ module Html : sig
       ?a:'a attrib list -> 'b elt list Eliom_lazy.request -> 'c elt
 
     val lazy_form :
-      ( [< Html_types.form_attrib]
-        , [< Html_types.form_content_fun]
-        , [> Html_types.form] )
-        lazy_star
+      ( [< Html_types.form_attrib ],
+        [< Html_types.form_content_fun ],
+        [> Html_types.form ] )
+      lazy_star
   end
 
   (** Typed interface for building valid HTML5 tree (DOM semantics). See
@@ -464,8 +464,8 @@ module Html : sig
 
     module Raw' :
       Html_sigs.Make(Xml)(Svg.D.Raw').T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     (**/**)
 
@@ -482,10 +482,10 @@ module Html : sig
       ?a:'a attrib list -> 'b elt list Eliom_lazy.request -> 'c elt
 
     val lazy_form :
-      ( [< Html_types.form_attrib]
-        , [< Html_types.form_content_fun]
-        , [> Html_types.form] )
-        lazy_star
+      ( [< Html_types.form_attrib ],
+        [< Html_types.form_content_fun ],
+        [> Html_types.form ] )
+      lazy_star
   end
 
   (** Typed interface for building valid HTML5 tree from
@@ -504,8 +504,8 @@ module Html : sig
 
     module Raw :
       Html_sigs.Make(Xml_wed)(Svg.R.Raw).T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     include module type of Raw
   end
@@ -544,12 +544,12 @@ module Html : sig
     (** Custom data with values of type ['a]. *)
 
     val create :
-       name:string
-      -> ?default:'a
-      -> to_string:('a -> string)
-      -> of_string:(string -> 'a)
-      -> unit
-      -> 'a t
+      name:string ->
+      ?default:'a ->
+      to_string:('a -> string) ->
+      of_string:(string -> 'a) ->
+      unit ->
+      'a t
     (** Create a custom data field by providing string conversion functions.
         If the [default] is provided, calls to {% <<a_api project="eliom" subproject="client" |
         val Eliom_content.Html.Custom_data.get_dom>> %} return that instead of throwing an
@@ -558,7 +558,7 @@ module Html : sig
     val create_json : name:string -> ?default:'a -> 'a Deriving_Json.t -> 'a t
     (** Create a custom data from a Json-deriving type.  *)
 
-    val attrib : 'a t -> 'a -> [> `User_data] attrib
+    val attrib : 'a t -> 'a -> [> `User_data ] attrib
     (** [attrib my_data value ] creates a HTML5 attribute for the custom-data
         type [my_data] with value [value] for injecting it into an a HTML5 tree
         ({% <<a_api | type Eliom_content.Html.elt >> %}). *)

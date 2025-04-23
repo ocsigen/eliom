@@ -15,10 +15,10 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 val uptime : unit -> float
 val pid : unit -> int
-val fd : pid:int -> [`Ok of int | `Error of string]
-val content_div : unit -> [> Html_types.div] Eliom_content.Html.elt Lwt.t
-val content_html : unit -> [> Html_types.html] Eliom_content.Html.elt Lwt.t
+val fd : pid:int -> [ `Ok of int | `Error of string ]
+val content_div : unit -> [> Html_types.div ] Eliom_content.Html.elt Lwt.t
+val content_html : unit -> [> Html_types.html ] Eliom_content.Html.elt Lwt.t

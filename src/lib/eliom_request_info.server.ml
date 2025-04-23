@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 open Ocsigen_extensions
 
@@ -24,9 +24,9 @@ let find_sitedata fun_name =
   match Eliom_common.get_sp_option () with
   | Some sp -> sp.Eliom_common.sp_sitedata
   | None -> (
-    match Eliom_common.global_register_allowed () with
-    | Some get_current_sitedata -> get_current_sitedata ()
-    | _ -> raise (Eliom_common.Eliom_site_information_not_available fun_name))
+      match Eliom_common.global_register_allowed () with
+      | Some get_current_sitedata -> get_current_sitedata ()
+      | _ -> raise (Eliom_common.Eliom_site_information_not_available fun_name))
 
 (*****************************************************************************)
 let get_http_method () =
@@ -218,7 +218,7 @@ let get_expired_service_sessions () =
       ~table:
         (Ocsigen_request.request_cache sp.Eliom_common.sp_request.request_info)
       ~key:Eliom_common.eliom_service_session_expired
-  with Not_found -> [], []
+  with Not_found -> ([], [])
 
 let get_cookies ?(cookie_level = `Session) () =
   let sp = Eliom_common.get_sp () in

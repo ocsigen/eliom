@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 (** This module implements shared (i.e., client-server) versions of
     the React and ReactiveData libraries.
@@ -28,10 +28,7 @@
     libraries. *)
 
 val to_signal :
-   init:'a
-  -> ?eq:('a -> 'a -> bool)
-  -> 'a React.S.t Lwt.t
-  -> 'a React.S.t
+  init:'a -> ?eq:('a -> 'a -> bool) -> 'a React.S.t Lwt.t -> 'a React.S.t
 (** [to_signal ~init s] converts the Lwt-wrapped signal [s] into a
     regular signal with initial value [init]. *)
 
@@ -48,11 +45,11 @@ module React : sig
       Eliom_shared_sigs.S with type 'a t := 'a t and type 'a sv := 'a Value.t
 
     val create :
-       ?eq:('a -> 'a -> bool)
-      -> ?default:('a t * (?step:React.step -> 'a -> unit)) option
-      -> ?reset_default:bool
-      -> 'a
-      -> 'a React.signal * (?step:React.step -> 'a -> unit)
+      ?eq:('a -> 'a -> bool) ->
+      ?default:('a t * (?step:React.step -> 'a -> unit)) option ->
+      ?reset_default:bool ->
+      'a ->
+      'a React.signal * (?step:React.step -> 'a -> unit)
     (** [create ?eq ?default ?reset_default x] produces a pair [s, f],
         where [s] is a reactive signal, and [f] is a function for
         updating the signal.
@@ -82,16 +79,16 @@ module ReactiveData : sig
   module RList : sig
     include
       module type of ReactiveData.RList
-      with type 'a t = 'a ReactiveData.RList.t
-       and type 'a handle = 'a ReactiveData.RList.handle
+        with type 'a t = 'a ReactiveData.RList.t
+         and type 'a handle = 'a ReactiveData.RList.handle
 
     include
       Eliom_shared_sigs.RLIST
-      with type 'a t := 'a t
-       and type 'a sv := 'a Value.t
-       and type 'a handle := 'a handle
-       and type 'a signal := 'a React.S.t
-       and type 'a ct := 'a ReactiveData.RList.t
-       and type 'a chandle := 'a ReactiveData.RList.handle
+        with type 'a t := 'a t
+         and type 'a sv := 'a Value.t
+         and type 'a handle := 'a handle
+         and type 'a signal := 'a React.S.t
+         and type 'a ct := 'a ReactiveData.RList.t
+         and type 'a chandle := 'a ReactiveData.RList.handle
   end
 end

@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 (** Creation and manipulation of Eliom services.
 
@@ -29,23 +29,23 @@
 include Eliom_service_sigs.S
 
 val set_client_fun :
-   ?app:string
-  -> service:('a, 'b, _, _, _, _, _, _, _, _, _) t
-  -> ('a -> 'b -> result Lwt.t)
-  -> unit
+  ?app:string ->
+  service:('a, 'b, _, _, _, _, _, _, _, _, _) t ->
+  ('a -> 'b -> result Lwt.t) ->
+  unit
 
 (**/**)
 
 val reset_reload_fun : (_, _, _, _, _, _, _, _, _, _, _) t -> unit
 
 val pre_applied_parameters :
-   (_, _, _, _, _, _, _, _, _, _, _) t
-  -> (string * Eliommod_parameters.param) list Eliom_lib.String.Table.t
-     * (string * Eliommod_parameters.param) list
+  (_, _, _, _, _, _, _, _, _, _, _) t ->
+  (string * Eliommod_parameters.param) list Eliom_lib.String.Table.t
+  * (string * Eliommod_parameters.param) list
 
 val reload_fun :
-   ('a, _, _, _, _, _, _, _, _, _, _) t
-  -> ('a -> unit -> result Lwt.t) Eliom_client_value.t option
+  ('a, _, _, _, _, _, _, _, _, _, _) t ->
+  ('a -> unit -> result Lwt.t) Eliom_client_value.t option
 
 module Cohttp : sig
   module Header : sig

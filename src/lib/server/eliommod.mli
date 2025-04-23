@@ -49,90 +49,90 @@ module S : sig
 end
 
 val create_sitedata :
-   Ocsigen_extensions.virtual_hosts
-  -> Eliom_lib.Url.path
-  -> Ocsigen_extensions.config_info
-  -> Eliom_common.sitedata
+  Ocsigen_extensions.virtual_hosts ->
+  Eliom_lib.Url.path ->
+  Ocsigen_extensions.config_info ->
+  Eliom_common.sitedata
 
 val parse_eliom_option :
-   ([> `Client_process | `Session]
-    -> Eliom_common_base.scope_hierarchy option
-    -> float option
-    -> unit)
-   * ([> `Client_process | `Session]
-      -> Eliom_common_base.scope_hierarchy option
-      -> float option
-      -> unit)
-   * ([> `Client_process | `Session]
-      -> Eliom_common_base.scope_hierarchy option
-      -> float option
-      -> unit)
-   * ([> `Client_process | `Session]
-      -> Eliom_common_base.scope_hierarchy option
-      -> float option
-      -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (bool -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (bool * bool -> unit)
-   * ((Eliom_lib.Url.path * int) option -> unit)
-   * (string -> unit)
-   * (string * Re.re -> unit)
-   * (string * Re.re -> unit)
-   * (Eliom_common.omitpersistentstorage_rule list option -> unit)
-  -> Xml_light_types.xml
-  -> unit
+  ([> `Client_process | `Session ] ->
+  Eliom_common_base.scope_hierarchy option ->
+  float option ->
+  unit)
+  * ([> `Client_process | `Session ] ->
+    Eliom_common_base.scope_hierarchy option ->
+    float option ->
+    unit)
+  * ([> `Client_process | `Session ] ->
+    Eliom_common_base.scope_hierarchy option ->
+    float option ->
+    unit)
+  * ([> `Client_process | `Session ] ->
+    Eliom_common_base.scope_hierarchy option ->
+    float option ->
+    unit)
+  * (int -> unit)
+  * (int -> unit)
+  * (int -> unit)
+  * (int -> unit)
+  * (int -> unit)
+  * (int -> unit)
+  * (int -> unit)
+  * (int -> unit)
+  * (int -> unit)
+  * (int -> unit)
+  * (int -> unit)
+  * (bool -> unit)
+  * (int -> unit)
+  * (int -> unit)
+  * (bool * bool -> unit)
+  * ((Eliom_lib.Url.path * int) option -> unit)
+  * (string -> unit)
+  * (string * Re.re -> unit)
+  * (string * Re.re -> unit)
+  * (Eliom_common.omitpersistentstorage_rule list option -> unit) ->
+  Xml_light_types.xml ->
+  unit
 
 val parse_eliom_options :
-   ([> `Client_process | `Session]
-    -> Eliom_common_base.scope_hierarchy option
-    -> float option
-    -> unit)
-   * ([> `Client_process | `Session]
-      -> Eliom_common_base.scope_hierarchy option
-      -> float option
-      -> unit)
-   * ([> `Client_process | `Session]
-      -> Eliom_common_base.scope_hierarchy option
-      -> float option
-      -> unit)
-   * ([> `Client_process | `Session]
-      -> Eliom_common_base.scope_hierarchy option
-      -> float option
-      -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (bool -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (bool * bool -> unit)
-   * ((Eliom_lib.Url.path * int) option -> unit)
-   * (string -> unit)
-   * (string * Re.re -> unit)
-   * (string * Re.re -> unit)
-   * (Eliom_common.omitpersistentstorage_rule list option -> unit)
-  -> Xml_light_types.xml list
-  -> Xml_light_types.xml list
+  ([> `Client_process | `Session ] ->
+  Eliom_common_base.scope_hierarchy option ->
+  float option ->
+  unit)
+  * ([> `Client_process | `Session ] ->
+    Eliom_common_base.scope_hierarchy option ->
+    float option ->
+    unit)
+  * ([> `Client_process | `Session ] ->
+    Eliom_common_base.scope_hierarchy option ->
+    float option ->
+    unit)
+  * ([> `Client_process | `Session ] ->
+    Eliom_common_base.scope_hierarchy option ->
+    float option ->
+    unit)
+  * (int -> unit)
+  * (int -> unit)
+  * (int -> unit)
+  * (int -> unit)
+  * (int -> unit)
+  * (int -> unit)
+  * (int -> unit)
+  * (int -> unit)
+  * (int -> unit)
+  * (int -> unit)
+  * (int -> unit)
+  * (bool -> unit)
+  * (int -> unit)
+  * (int -> unit)
+  * (bool * bool -> unit)
+  * ((Eliom_lib.Url.path * int) option -> unit)
+  * (string -> unit)
+  * (string * Re.re -> unit)
+  * (string * Re.re -> unit)
+  * (Eliom_common.omitpersistentstorage_rule list option -> unit) ->
+  Xml_light_types.xml list ->
+  Xml_light_types.xml list
 
 val parse_global_config : Xml_light_types.xml list -> unit
 val exception_during_eliommodule_loading : bool ref
@@ -149,44 +149,40 @@ val set_app_name : string -> unit
 val site_init : bool ref -> unit
 
 val update_sitedata :
-   string
-  -> Ocsigen_extensions.virtual_hosts
-  -> Eliom_lib.Url.path
-  -> Ocsigen_extensions.config_info
-  -> Eliom_common.sitedata
+  string ->
+  Ocsigen_extensions.virtual_hosts ->
+  Eliom_lib.Url.path ->
+  Ocsigen_extensions.config_info ->
+  Eliom_common.sitedata
 
 val load_eliom_module :
-   'a
-  -> module_to_load
-  -> string
-  -> Xml_light_types.xml list
-  -> unit
+  'a -> module_to_load -> string -> Xml_light_types.xml list -> unit
 
 val gen_nothing : unit -> 'a -> Ocsigen_extensions.answer Lwt.t
 val default_module_action : 'a -> 'b
 
 val set_timeout :
-   (?full_st_name:Eliom_common.full_state_name
-    -> ?cookie_level:([< Eliom_common.cookie_level] as 'a)
-    -> recompute_expdates:bool
-    -> bool
-    -> bool
-    -> Eliom_common.sitedata
-    -> float option
-    -> unit)
-  -> Eliom_common.sitedata
-  -> 'a
-  -> Eliom_common_base.scope_hierarchy option
-  -> float option
-  -> unit
+  (?full_st_name:Eliom_common.full_state_name ->
+  ?cookie_level:([< Eliom_common.cookie_level ] as 'a) ->
+  recompute_expdates:bool ->
+  bool ->
+  bool ->
+  Eliom_common.sitedata ->
+  float option ->
+  unit) ->
+  Eliom_common.sitedata ->
+  'a ->
+  Eliom_common_base.scope_hierarchy option ->
+  float option ->
+  unit
 
 val parse_config :
-   'a
-  -> Ocsigen_extensions.virtual_hosts
-  -> Ocsigen_extensions.config_info
-  -> Eliom_lib.Url.path
-  -> 'b
-  -> 'c
-  -> Xml_light_types.xml
-  -> Ocsigen_extensions.request_state
-  -> Ocsigen_extensions.answer Lwt.t
+  'a ->
+  Ocsigen_extensions.virtual_hosts ->
+  Ocsigen_extensions.config_info ->
+  Eliom_lib.Url.path ->
+  'b ->
+  'c ->
+  Xml_light_types.xml ->
+  Ocsigen_extensions.request_state ->
+  Ocsigen_extensions.answer Lwt.t

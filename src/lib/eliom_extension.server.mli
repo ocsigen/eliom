@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 (** Allows Ocsigen's extension to access Eliom data. See the Eliom
     manual for more information about {% <<a_manual chapter="workflow-configuration"
@@ -31,8 +31,8 @@ val register_eliom_extension : eliom_extension_sig -> unit
 val get_eliom_extension : unit -> eliom_extension_sig
 
 val run_eliom_extension :
-   eliom_extension_sig
-  -> float
-  -> Eliom_common.info
-  -> Eliom_common.sitedata
-  -> Ocsigen_extensions.answer Lwt.t
+  eliom_extension_sig ->
+  float ->
+  Eliom_common.info ->
+  Eliom_common.sitedata ->
+  Ocsigen_extensions.answer Lwt.t

@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 open Js_of_ocaml
 
@@ -61,8 +61,8 @@ module Svg : sig
 
     module Raw' :
       Svg_sigs.Make(Xml).T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     (**/**)
 
@@ -84,8 +84,8 @@ module Svg : sig
 
     module Raw' :
       Svg_sigs.Make(Xml).T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     (**/**)
 
@@ -106,8 +106,8 @@ module Svg : sig
 
     module Raw :
       Svg_sigs.Make(Eliom_content_core.Xml_wed).T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     include module type of Raw
   end
@@ -287,7 +287,7 @@ module Svg : sig
   module To_dom : sig
     val of_element : 'a elt -> Dom_html.element Js.t
     val of_node : 'a elt -> Dom.node Js.t
-    val of_pcdata : [> `Pcdata] elt -> Dom.text Js.t
+    val of_pcdata : [> `Pcdata ] elt -> Dom.text Js.t
   end
 
   (** Conversion functions from DOM nodes ({% <<a_api project="js_of_ocaml"| type Js_of_ocaml.Dom_html.element>> %} {% <<a_api
@@ -326,8 +326,8 @@ module Html : sig
 
     module Raw' :
       Html_sigs.Make(Xml)(Svg.F.Raw').T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     (**/**)
 
@@ -340,11 +340,11 @@ module Html : sig
 
     include
       Eliom_content_sigs.LINKS_AND_FORMS
-      with type +'a elt := 'a elt
-       and type +'a attrib := 'a attrib
-       and type uri := uri
-       and type ('a, 'b, 'c) star := ('a, 'b, 'c) star
-       and type 'a form_param := 'a form_param
+        with type +'a elt := 'a elt
+         and type +'a attrib := 'a attrib
+         and type uri := uri
+         and type ('a, 'b, 'c) star := ('a, 'b, 'c) star
+         and type 'a form_param := 'a form_param
   end
 
   (** Creation of HTML5 content with {e D}OM semantics (referable) *)
@@ -358,8 +358,8 @@ module Html : sig
 
     module Raw' :
       Html_sigs.Make(Xml)(Svg.D.Raw').T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     (**/**)
 
@@ -372,11 +372,11 @@ module Html : sig
 
     include
       Eliom_content_sigs.LINKS_AND_FORMS
-      with type +'a elt := 'a elt
-       and type +'a attrib := 'a attrib
-       and type uri := uri
-       and type ('a, 'b, 'c) star := ('a, 'b, 'c) star
-       and type 'a form_param := 'a form_param
+        with type +'a elt := 'a elt
+         and type +'a attrib := 'a attrib
+         and type uri := uri
+         and type ('a, 'b, 'c) star := ('a, 'b, 'c) star
+         and type 'a form_param := 'a form_param
   end
 
   (** Creation of HTML5 content from
@@ -404,8 +404,8 @@ module Html : sig
     (** Cf. {% <<a_api project="tyxml" | module Html_sigs.T >> %}. *)
     module Raw :
       Html_sigs.Make(Eliom_content_core.Xml_wed)(Svg.R.Raw).T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     include module type of Raw
   end
@@ -461,12 +461,12 @@ module Html : sig
     (** Custom data with values of type ['a]. *)
 
     val create :
-       name:string
-      -> ?default:'a
-      -> to_string:('a -> string)
-      -> of_string:(string -> 'a)
-      -> unit
-      -> 'a t
+      name:string ->
+      ?default:'a ->
+      to_string:('a -> string) ->
+      of_string:(string -> 'a) ->
+      unit ->
+      'a t
     (** Create a custom data field by providing string conversion functions.
         If the [default] is provided, calls to {% <<a_api project="eliom" subproject="client" |
         val Eliom_content.Html.Custom_data.get_dom>> %} return that instead of throwing an
@@ -475,7 +475,7 @@ module Html : sig
     val create_json : name:string -> ?default:'a -> 'a Deriving_Json.t -> 'a t
     (** Create a custom data from a Json-deriving type.  *)
 
-    val attrib : 'a t -> 'a -> [> `User_data] attrib
+    val attrib : 'a t -> 'a -> [> `User_data ] attrib
     (** [attrib my_data value ] creates a HTML5 attribute for the custom-data
         type [my_data] with value [value] for injecting it into an a HTML5 tree
         ({% <<a_api | type Eliom_content.Html.elt >> %}). *)
@@ -563,11 +563,11 @@ module Html : sig
     (** [children elt] returns the list of html children of [elt]. *)
 
     val addEventListener :
-       ?capture:bool
-      -> 'a elt
-      -> (#Dom_html.event as 'b) Js.t Dom_html.Event.typ
-      -> ('a elt -> 'b Js.t -> bool)
-      -> Dom_html.event_listener_id
+      ?capture:bool ->
+      'a elt ->
+      (#Dom_html.event as 'b) Js.t Dom_html.Event.typ ->
+      ('a elt -> 'b Js.t -> bool) ->
+      Dom_html.event_listener_id
     (** The function [addEventListener elt evt handler] attach the
         [handler] for the event [evt] on the element [elt]. See the
         Js_of_ocaml manual, for a list of {% <<a_api project="js_of_ocaml"
@@ -601,11 +601,11 @@ module Html : sig
       (** see [replaceChildren] *)
 
       val addEventListener :
-         ?capture:bool
-        -> 'a Id.id
-        -> (#Dom_html.event as 'b) Js.t Dom_html.Event.typ
-        -> ('a elt -> 'b Js.t -> bool)
-        -> Dom_html.event_listener_id
+        ?capture:bool ->
+        'a Id.id ->
+        (#Dom_html.event as 'b) Js.t Dom_html.Event.typ ->
+        ('a elt -> 'b Js.t -> bool) ->
+        Dom_html.event_listener_id
       (** see [addEventListener] *)
     end
 
@@ -640,7 +640,7 @@ module Html : sig
     end
 
     module Elt : sig
-      val body : unit -> [`Body] elt
+      val body : unit -> [ `Body ] elt
     end
 
     module Ev : sig
@@ -929,10 +929,10 @@ val force_link : unit
 (**/**)
 
 val set_client_fun :
-   ?app:string
-  -> service:('a, 'b, _, _, _, _, _, _, _, _, _) Eliom_service.t
-  -> ('a -> 'b -> Eliom_service.result Lwt.t)
-  -> unit
+  ?app:string ->
+  service:('a, 'b, _, _, _, _, _, _, _, _, _) Eliom_service.t ->
+  ('a -> 'b -> Eliom_service.result Lwt.t) ->
+  unit
 
 val set_form_error_handler : (unit -> bool Lwt.t) -> unit
 (** With [set_form_error_handler f], [f] becomes the action to be

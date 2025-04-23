@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 (** This module implements shared (i.e., client-server) versions of
     the React and ReactiveData libraries.
@@ -30,10 +30,7 @@
     and a server-side implementation. *)
 
 val to_signal :
-   init:'a
-  -> ?eq:('a -> 'a -> bool)
-  -> 'a React.S.t Lwt.t
-  -> 'a React.S.t
+  init:'a -> ?eq:('a -> 'a -> bool) -> 'a React.S.t Lwt.t -> 'a React.S.t
 (** [to_signal ~init s] converts the Lwt-wrapped signal [s] into a
     regular signal with initial value [init]. *)
 
@@ -46,13 +43,13 @@ module React : sig
     include Eliom_shared_sigs.S with type 'a sv := 'a Value.t
 
     val create :
-       ?default:
-         ('a React.S.t * (?step:React.step -> 'a -> unit)) option
-           Eliom_client_value.t
-      -> ?reset_default:bool
-      -> ?eq:('a -> 'a -> bool) Value.t
-      -> 'a
-      -> 'a t * (?step:React.step -> 'a -> unit) Value.t
+      ?default:
+        ('a React.S.t * (?step:React.step -> 'a -> unit)) option
+        Eliom_client_value.t ->
+      ?reset_default:bool ->
+      ?eq:('a -> 'a -> bool) Value.t ->
+      'a ->
+      'a t * (?step:React.step -> 'a -> unit) Value.t
     (** [create ?default ?reset_default x] produces a pair [s, f],
         where [s] is a (shared) reactive signal, and [f] is a shared
         function for updating the signal.
@@ -89,10 +86,10 @@ module ReactiveData : sig
   module RList : sig
     include
       Eliom_shared_sigs.RLIST
-      with type 'a signal := 'a React.S.t
-       and type 'a sv := 'a Value.t
-       and type 'a ct := 'a FakeReactiveData.RList.t
-       and type 'a chandle := 'a FakeReactiveData.RList.handle
+        with type 'a signal := 'a React.S.t
+         and type 'a sv := 'a Value.t
+         and type 'a ct := 'a FakeReactiveData.RList.t
+         and type 'a chandle := 'a FakeReactiveData.RList.handle
 
     val synced : 'a t -> bool
     (** If [synced l] is true, then the server-side and client-side

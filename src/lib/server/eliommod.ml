@@ -79,14 +79,14 @@ let default_max_volatile_groups_per_site = ref 1000000
 (*VVV value ??? *)
 
 module S = Hashtbl.Make (struct
-    type t = Ocsigen_extensions.virtual_hosts * Eliom_lib.Url.path
+  type t = Ocsigen_extensions.virtual_hosts * Eliom_lib.Url.path
 
-    let equal ((vh1, u1) : t) ((vh2, u2) : t) =
-      Ocsigen_extensions.equal_virtual_hosts vh1 vh2 && u1 = u2
+  let equal ((vh1, u1) : t) ((vh2, u2) : t) =
+    Ocsigen_extensions.equal_virtual_hosts vh1 vh2 && u1 = u2
 
-    let hash ((vh, u) : t) =
-      Hashtbl.hash (Ocsigen_extensions.hash_virtual_hosts vh, u)
-  end)
+  let hash ((vh, u) : t) =
+    Hashtbl.hash (Ocsigen_extensions.hash_virtual_hosts vh, u)
+end)
 
 let create_sitedata_aux site_dir config_info =
   let dlist_table = Eliom_common.create_dlist_ip_table 100
@@ -94,85 +94,87 @@ let create_sitedata_aux site_dir config_info =
     Ocsigen_cache.Dlist.create !default_max_volatile_groups_per_site
   in
   let sitedata =
-    { (* One dlist for each site? *)
-      Eliom_common.servtimeout = None, None, []
-    ; datatimeout = None, None, []
-    ; perstimeout = None, None, []
-    ; site_value_table = Polytables.create ()
-    ; site_dir
-    ; (*VVV encode=false??? *)
+    {
+      (* One dlist for each site? *)
+      Eliom_common.servtimeout = (None, None, []);
+      datatimeout = (None, None, []);
+      perstimeout = (None, None, []);
+      site_value_table = Polytables.create ();
+      site_dir;
+      (*VVV encode=false??? *)
       site_dir_string =
-        Option.map (Eliom_lib.Url.string_of_url_path ~encode:false) site_dir
-    ; config_info
-    ; default_links_xhr =
-        Eliom_common.tenable_value ~name:"default_links_xhr" true
-    ; global_services =
+        Option.map (Eliom_lib.Url.string_of_url_path ~encode:false) site_dir;
+      config_info;
+      default_links_xhr =
+        Eliom_common.tenable_value ~name:"default_links_xhr" true;
+      global_services =
         Eliom_common.empty_tables
           !default_max_anonymous_services_per_subnet
-          false
-    ; registered_scope_hierarchies = Eliom_common.Hier_set.empty
-    ; session_services = Eliommod_cookies.new_service_cookie_table ()
-    ; session_data = Eliommod_cookies.new_data_cookie_table ()
-    ; group_of_groups
-    ; remove_session_data = (fun _cookie -> ())
-    ; not_bound_in_data_tables = (fun _cookie -> true)
-    ; exn_handler = Eliommod_pagegen.def_handler
-    ; unregistered_services = []
-    ; unregistered_na_services = []
-    ; max_service_sessions_per_group =
-        !default_max_service_sessions_per_group, false
-    ; max_volatile_data_sessions_per_group =
-        !default_max_volatile_data_sessions_per_group, false
-    ; max_persistent_data_sessions_per_group =
-        Some !default_max_persistent_data_sessions_per_group, false
-    ; max_service_tab_sessions_per_group =
-        !default_max_service_tab_sessions_per_group, false
-    ; max_volatile_data_tab_sessions_per_group =
-        !default_max_volatile_data_tab_sessions_per_group, false
-    ; max_persistent_data_tab_sessions_per_group =
-        Some !default_max_persistent_data_tab_sessions_per_group, false
-    ; max_service_sessions_per_subnet =
-        !default_max_service_sessions_per_subnet, false
-    ; max_volatile_data_sessions_per_subnet =
-        !default_max_volatile_data_sessions_per_subnet, false
-    ; max_anonymous_services_per_session =
-        !default_max_anonymous_services_per_session, false
-    ; max_anonymous_services_per_subnet =
-        !default_max_anonymous_services_per_subnet, false
-    ; secure_cookies = !default_secure_cookies
-    ; dlist_ip_table = dlist_table
-    ; ipv4mask = None, false
-    ; ipv6mask = None, false
-    ; application_script = !default_application_script
-    ; cache_global_data = !default_cache_global_data
-    ; html_content_type = !default_html_content_type
-    ; ignored_get_params = !default_ignored_get_params
-    ; ignored_post_params = !default_ignored_post_params
-    ; omitpersistentstorage = !default_omitpersistentstorage }
+          false;
+      registered_scope_hierarchies = Eliom_common.Hier_set.empty;
+      session_services = Eliommod_cookies.new_service_cookie_table ();
+      session_data = Eliommod_cookies.new_data_cookie_table ();
+      group_of_groups;
+      remove_session_data = (fun _cookie -> ());
+      not_bound_in_data_tables = (fun _cookie -> true);
+      exn_handler = Eliommod_pagegen.def_handler;
+      unregistered_services = [];
+      unregistered_na_services = [];
+      max_service_sessions_per_group =
+        (!default_max_service_sessions_per_group, false);
+      max_volatile_data_sessions_per_group =
+        (!default_max_volatile_data_sessions_per_group, false);
+      max_persistent_data_sessions_per_group =
+        (Some !default_max_persistent_data_sessions_per_group, false);
+      max_service_tab_sessions_per_group =
+        (!default_max_service_tab_sessions_per_group, false);
+      max_volatile_data_tab_sessions_per_group =
+        (!default_max_volatile_data_tab_sessions_per_group, false);
+      max_persistent_data_tab_sessions_per_group =
+        (Some !default_max_persistent_data_tab_sessions_per_group, false);
+      max_service_sessions_per_subnet =
+        (!default_max_service_sessions_per_subnet, false);
+      max_volatile_data_sessions_per_subnet =
+        (!default_max_volatile_data_sessions_per_subnet, false);
+      max_anonymous_services_per_session =
+        (!default_max_anonymous_services_per_session, false);
+      max_anonymous_services_per_subnet =
+        (!default_max_anonymous_services_per_subnet, false);
+      secure_cookies = !default_secure_cookies;
+      dlist_ip_table = dlist_table;
+      ipv4mask = (None, false);
+      ipv6mask = (None, false);
+      application_script = !default_application_script;
+      cache_global_data = !default_cache_global_data;
+      html_content_type = !default_html_content_type;
+      ignored_get_params = !default_ignored_get_params;
+      ignored_post_params = !default_ignored_post_params;
+      omitpersistentstorage = !default_omitpersistentstorage;
+    }
   in
   Ocsigen_cache.Dlist.set_finaliser_after
     (fun node ->
-       (* Finaliser for the session groups *)
-       (* See in eliommod_sessiongroups for the finaliser of sessions *)
-       let fullbrowsersessgrp = Ocsigen_cache.Dlist.value node in
-       (* When removing a group from the dlist, we must close it.
+      (* Finaliser for the session groups *)
+      (* See in eliommod_sessiongroups for the finaliser of sessions *)
+      let fullbrowsersessgrp = Ocsigen_cache.Dlist.value node in
+      (* When removing a group from the dlist, we must close it.
           Actually, it must be the only way to close a group. *)
-       (* This finaliser is almost identical to the finaliser for
+      (* This finaliser is almost identical to the finaliser for
           other groups, defined in Eliommod_sessiongroups. *)
-       (* First we close all browser sessions in the group, by
+      (* First we close all browser sessions in the group, by
           removing the group from its dlist: *)
-       Eliommod_sessiongroups.Data.remove_group fullbrowsersessgrp;
-       (* Then we remove data from group tables: *)
-       match Tuple3.thd fullbrowsersessgrp with
-       | Left key ->
-           (* iterate on all session data tables: *)
-           sitedata.Eliom_common.remove_session_data key
-       | _ ->
-           (* No group has been set. No group table.
+      Eliommod_sessiongroups.Data.remove_group fullbrowsersessgrp;
+      (* Then we remove data from group tables: *)
+      match Tuple3.thd fullbrowsersessgrp with
+      | Left key ->
+          (* iterate on all session data tables: *)
+          sitedata.Eliom_common.remove_session_data key
+      | _ ->
+          (* No group has been set. No group table.
                    Data associated to default (automatic) groups
                    is removed when closing associated sessions.
            *)
-           ())
+          ())
     group_of_groups;
   Eliommod_gc.service_session_gc sitedata;
   Eliommod_gc.data_session_gc sitedata;
@@ -185,13 +187,14 @@ let create_sitedata, update_sitedata =
      To do that, we keep the site data in a table *)
   let t = S.create 5 in
   ( (fun host site_dir config_info ->
-      let key = host, site_dir in
+      let key = (host, site_dir) in
       try S.find t key
       with Not_found ->
         let sitedata = create_sitedata_aux (Some site_dir) (Some config_info) in
-        S.add t key sitedata; sitedata)
-  , fun host site_dir sitedata ->
-      let key = host, site_dir in
+        S.add t key sitedata;
+        sitedata),
+    fun host site_dir sitedata ->
+      let key = (host, site_dir) in
       S.replace t key sitedata )
 
 (*****************************************************************************)
@@ -203,31 +206,30 @@ let create_sitedata, update_sitedata =
 
 (* The following is common to global config and site config *)
 let parse_eliom_option
-      ( set_volatile_timeout
-      , set_data_timeout
-      , set_service_timeout
-      , set_persistent_timeout
-      , set_max_service_sessions_per_group
-      , set_max_service_sessions_per_subnet
-      , set_max_data_sessions_per_group
-      , set_max_data_sessions_per_subnet
-      , set_max_persistent_sessions_per_group
-      , set_max_service_tab_sessions_per_group
-      , set_max_data_tab_sessions_per_group
-      , set_max_persistent_tab_sessions_per_group
-      , set_max_services_per_session
-      , set_max_services_per_subnet
-      , set_max_volatile_groups_per_site
-      , set_secure_cookies
-      , set_ipv4mask
-      , set_ipv6mask
-      , set_application_script
-      , set_global_data_caching
-      , set_html_content_type
-      , set_ignored_get_params
-      , set_ignored_post_params
-      , set_omitpersistentstorage )
-  =
+    ( set_volatile_timeout,
+      set_data_timeout,
+      set_service_timeout,
+      set_persistent_timeout,
+      set_max_service_sessions_per_group,
+      set_max_service_sessions_per_subnet,
+      set_max_data_sessions_per_group,
+      set_max_data_sessions_per_subnet,
+      set_max_persistent_sessions_per_group,
+      set_max_service_tab_sessions_per_group,
+      set_max_data_tab_sessions_per_group,
+      set_max_persistent_tab_sessions_per_group,
+      set_max_services_per_session,
+      set_max_services_per_subnet,
+      set_max_volatile_groups_per_site,
+      set_secure_cookies,
+      set_ipv4mask,
+      set_ipv6mask,
+      set_application_script,
+      set_global_data_caching,
+      set_html_content_type,
+      set_ignored_get_params,
+      set_ignored_post_params,
+      set_omitpersistentstorage ) =
   let parse_timeout_attrs tn attrs =
     let rec aux ((v, sn, ct) as res) = function
       | [] -> res
@@ -256,11 +258,11 @@ let parse_eliom_option
             (Error_in_config_file ("Eliom: Missing value for " ^ tn ^ " tag"))
       | Some "infinity" -> None
       | Some a -> (
-        try Some (float_of_string a)
-        with Failure _ ->
-          raise
-            (Error_in_config_file
-               ("Eliom: Wrong attribute value for " ^ tn ^ " tag")))
+          try Some (float_of_string a)
+          with Failure _ ->
+            raise
+              (Error_in_config_file
+                 ("Eliom: Wrong attribute value for " ^ tn ^ " tag")))
     in
     let parse_scope_hierarchy = function
       | "" -> Eliom_common_base.Default_ref_hier
@@ -270,7 +272,7 @@ let parse_eliom_option
           Eliom_common_base.Default_comet_hier
       | s -> Eliom_common_base.User_hier s
     in
-    a, Eliom_lib.Option.map parse_scope_hierarchy sn, ct
+    (a, Eliom_lib.Option.map parse_scope_hierarchy sn, ct)
   in
   let convert_attr tag f v =
     try f v
@@ -278,13 +280,14 @@ let parse_eliom_option
       raise
         (Error_in_config_file
            (Printf.sprintf
-              "Eliom: Wrong attribute value for tag %s in element cacheglobaldata"
+              "Eliom: Wrong attribute value for tag %s in element \
+               cacheglobaldata"
               tag))
   in
   let parse_application_script_attrs attrs =
     let rec aux defer async attrs =
       match attrs with
-      | [] -> defer, async
+      | [] -> (defer, async)
       | ("defer", v) :: rem ->
           aux (convert_attr "defer" bool_of_string v) async rem
       | ("async", v) :: rem ->
@@ -327,164 +330,167 @@ let parse_eliom_option
   | Xml.Element ("persistenttimeout", attrs, []) ->
       let t, snoo, ct = parse_timeout_attrs "persistenttimeout" attrs in
       set_persistent_timeout ct snoo t
-  | Xml.Element ("maxvolatilesessionspergroup", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_service_sessions_per_group i;
-      set_max_data_sessions_per_group i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxvolatilesessionspergroup tag"))
-  | Xml.Element ("maxservicesessionspergroup", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_service_sessions_per_group i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxservicesessionspergroup tag"))
-  | Xml.Element ("maxdatasessionspergroup", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_data_sessions_per_group i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxdatasessionspergroup tag"))
-  | Xml.Element ("maxvolatilesessionspersubnet", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_service_sessions_per_subnet i;
-      set_max_data_sessions_per_subnet i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxvolatilesessionspersubnet tag"))
-  | Xml.Element ("maxservicesessionspersubnet", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_service_sessions_per_subnet i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxservicesessionspersubnet tag"))
-  | Xml.Element ("maxdatasessionspersubnet", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_data_sessions_per_subnet i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxdatasessionspersubnet tag"))
-  | Xml.Element ("maxpersistentsessionspergroup", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_persistent_sessions_per_group i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxpersistentsessionspergroup tag")
-    )
-  | Xml.Element ("maxvolatiletabsessionspergroup", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_service_tab_sessions_per_group i;
-      set_max_data_tab_sessions_per_group i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxvolatiletabsessionspergroup tag")
-    )
-  | Xml.Element ("maxservicetabsessionspergroup", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_service_tab_sessions_per_group i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxservicetabsessionspergroup tag")
-    )
-  | Xml.Element ("maxdatatabsessionspergroup", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_data_tab_sessions_per_group i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxdatatabsessionspergroup tag"))
-  | Xml.Element ("maxpersistenttabsessionspergroup", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_persistent_tab_sessions_per_group i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxpersistenttabsessionspergroup tag")
-    )
-  | Xml.Element ("maxanonymouscoservicespersession", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_services_per_session i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxanonymouscoservicespersession tag")
-    )
-  | Xml.Element ("maxanonymouscoservicespersubnet", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_services_per_subnet i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxanonymouscoservicespersubnet tag")
-    )
-  | Xml.Element ("maxvolatilegroupspersite", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_volatile_groups_per_site i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxvolatilegroupspersite tag"))
-  | Xml.Element ("securecookies", [("value", v)], []) -> (
-    try
-      let i =
-        match v with "true" -> true | "false" -> false | _ -> failwith ""
-      in
-      set_secure_cookies i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for securecookies tag"))
-  | Xml.Element ("ipv4subnetmask", [("value", v)], []) -> (
-    try
-      let mask = int_of_string v in
-      set_ipv4mask mask
-    with _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for ipv4subnetmask tag"))
-  | Xml.Element ("ipv6subnetmask", [("value", v)], []) -> (
-    try
-      let mask = int_of_string v in
-      set_ipv6mask mask
-    with _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for ipv6subnetmask tag"))
+  | Xml.Element ("maxvolatilesessionspergroup", [ ("value", v) ], []) -> (
+      try
+        let i = int_of_string v in
+        set_max_service_sessions_per_group i;
+        set_max_data_sessions_per_group i
+      with Failure _ ->
+        raise
+          (Error_in_config_file
+             "Eliom: Wrong attribute value for maxvolatilesessionspergroup tag")
+      )
+  | Xml.Element ("maxservicesessionspergroup", [ ("value", v) ], []) -> (
+      try
+        let i = int_of_string v in
+        set_max_service_sessions_per_group i
+      with Failure _ ->
+        raise
+          (Error_in_config_file
+             "Eliom: Wrong attribute value for maxservicesessionspergroup tag"))
+  | Xml.Element ("maxdatasessionspergroup", [ ("value", v) ], []) -> (
+      try
+        let i = int_of_string v in
+        set_max_data_sessions_per_group i
+      with Failure _ ->
+        raise
+          (Error_in_config_file
+             "Eliom: Wrong attribute value for maxdatasessionspergroup tag"))
+  | Xml.Element ("maxvolatilesessionspersubnet", [ ("value", v) ], []) -> (
+      try
+        let i = int_of_string v in
+        set_max_service_sessions_per_subnet i;
+        set_max_data_sessions_per_subnet i
+      with Failure _ ->
+        raise
+          (Error_in_config_file
+             "Eliom: Wrong attribute value for maxvolatilesessionspersubnet tag")
+      )
+  | Xml.Element ("maxservicesessionspersubnet", [ ("value", v) ], []) -> (
+      try
+        let i = int_of_string v in
+        set_max_service_sessions_per_subnet i
+      with Failure _ ->
+        raise
+          (Error_in_config_file
+             "Eliom: Wrong attribute value for maxservicesessionspersubnet tag")
+      )
+  | Xml.Element ("maxdatasessionspersubnet", [ ("value", v) ], []) -> (
+      try
+        let i = int_of_string v in
+        set_max_data_sessions_per_subnet i
+      with Failure _ ->
+        raise
+          (Error_in_config_file
+             "Eliom: Wrong attribute value for maxdatasessionspersubnet tag"))
+  | Xml.Element ("maxpersistentsessionspergroup", [ ("value", v) ], []) -> (
+      try
+        let i = int_of_string v in
+        set_max_persistent_sessions_per_group i
+      with Failure _ ->
+        raise
+          (Error_in_config_file
+             "Eliom: Wrong attribute value for maxpersistentsessionspergroup \
+              tag"))
+  | Xml.Element ("maxvolatiletabsessionspergroup", [ ("value", v) ], []) -> (
+      try
+        let i = int_of_string v in
+        set_max_service_tab_sessions_per_group i;
+        set_max_data_tab_sessions_per_group i
+      with Failure _ ->
+        raise
+          (Error_in_config_file
+             "Eliom: Wrong attribute value for maxvolatiletabsessionspergroup \
+              tag"))
+  | Xml.Element ("maxservicetabsessionspergroup", [ ("value", v) ], []) -> (
+      try
+        let i = int_of_string v in
+        set_max_service_tab_sessions_per_group i
+      with Failure _ ->
+        raise
+          (Error_in_config_file
+             "Eliom: Wrong attribute value for maxservicetabsessionspergroup \
+              tag"))
+  | Xml.Element ("maxdatatabsessionspergroup", [ ("value", v) ], []) -> (
+      try
+        let i = int_of_string v in
+        set_max_data_tab_sessions_per_group i
+      with Failure _ ->
+        raise
+          (Error_in_config_file
+             "Eliom: Wrong attribute value for maxdatatabsessionspergroup tag"))
+  | Xml.Element ("maxpersistenttabsessionspergroup", [ ("value", v) ], []) -> (
+      try
+        let i = int_of_string v in
+        set_max_persistent_tab_sessions_per_group i
+      with Failure _ ->
+        raise
+          (Error_in_config_file
+             "Eliom: Wrong attribute value for \
+              maxpersistenttabsessionspergroup tag"))
+  | Xml.Element ("maxanonymouscoservicespersession", [ ("value", v) ], []) -> (
+      try
+        let i = int_of_string v in
+        set_max_services_per_session i
+      with Failure _ ->
+        raise
+          (Error_in_config_file
+             "Eliom: Wrong attribute value for \
+              maxanonymouscoservicespersession tag"))
+  | Xml.Element ("maxanonymouscoservicespersubnet", [ ("value", v) ], []) -> (
+      try
+        let i = int_of_string v in
+        set_max_services_per_subnet i
+      with Failure _ ->
+        raise
+          (Error_in_config_file
+             "Eliom: Wrong attribute value for maxanonymouscoservicespersubnet \
+              tag"))
+  | Xml.Element ("maxvolatilegroupspersite", [ ("value", v) ], []) -> (
+      try
+        let i = int_of_string v in
+        set_max_volatile_groups_per_site i
+      with Failure _ ->
+        raise
+          (Error_in_config_file
+             "Eliom: Wrong attribute value for maxvolatilegroupspersite tag"))
+  | Xml.Element ("securecookies", [ ("value", v) ], []) -> (
+      try
+        let i =
+          match v with "true" -> true | "false" -> false | _ -> failwith ""
+        in
+        set_secure_cookies i
+      with Failure _ ->
+        raise
+          (Error_in_config_file
+             "Eliom: Wrong attribute value for securecookies tag"))
+  | Xml.Element ("ipv4subnetmask", [ ("value", v) ], []) -> (
+      try
+        let mask = int_of_string v in
+        set_ipv4mask mask
+      with _ ->
+        raise
+          (Error_in_config_file
+             "Eliom: Wrong attribute value for ipv4subnetmask tag"))
+  | Xml.Element ("ipv6subnetmask", [ ("value", v) ], []) -> (
+      try
+        let mask = int_of_string v in
+        set_ipv6mask mask
+      with _ ->
+        raise
+          (Error_in_config_file
+             "Eliom: Wrong attribute value for ipv6subnetmask tag"))
   | Xml.Element ("applicationscript", attrs, []) ->
       set_application_script (parse_application_script_attrs attrs)
   | Xml.Element ("cacheglobaldata", attrs, []) ->
       set_global_data_caching (parse_global_data_caching_attrs attrs)
-  | Xml.Element ("htmlcontenttype", [("value", v)], []) ->
+  | Xml.Element ("htmlcontenttype", [ ("value", v) ], []) ->
       set_html_content_type v
-  | Xml.Element ("ignoredgetparams", [("regexp", v)], []) ->
-      let re = Re.seq [Re.start; Re.Pcre.re v; Re.stop] |> Re.compile in
+  | Xml.Element ("ignoredgetparams", [ ("regexp", v) ], []) ->
+      let re = Re.seq [ Re.start; Re.Pcre.re v; Re.stop ] |> Re.compile in
       set_ignored_get_params (v, re)
-  | Xml.Element ("ignoredpostparams", [("regexp", v)], []) ->
-      let re = Re.seq [Re.start; Re.Pcre.re v; Re.stop] |> Re.compile in
+  | Xml.Element ("ignoredpostparams", [ ("regexp", v) ], []) ->
+      let re = Re.seq [ Re.start; Re.Pcre.re v; Re.stop ] |> Re.compile in
       set_ignored_post_params (v, re)
   | Xml.Element ("omitpersistentstorage", attrs, tags) ->
       assert (attrs = []);
@@ -492,7 +498,7 @@ let parse_eliom_option
         | Xml.Element ("header", attrs, tags) ->
             assert (tags = []);
             let attr_name, attr_value =
-              match attrs with [a] -> a | _ -> assert false
+              match attrs with [ a ] -> a | _ -> assert false
             in
             let header_name = Ocsigen_header.Name.of_string attr_name in
             let header_regexp = Re.compile @@ Re.Pcre.re attr_value in
@@ -511,8 +517,10 @@ let parse_eliom_options f l =
   let rec aux rest = function
     | [] -> rest
     | e :: l -> (
-      try parse_eliom_option f e; aux rest l
-      with Error_in_config_file _ -> aux (e :: rest) l)
+        try
+          parse_eliom_option f e;
+          aux rest l
+        with Error_in_config_file _ -> aux (e :: rest) l)
   in
   List.rev (aux [] l)
 
@@ -521,46 +529,43 @@ let parse_eliom_options f l =
 
 let rec parse_global_config = function
   | [] -> ()
-  | Xml.Element ("sessiongcfrequency", [("value", s)], _) :: ll ->
+  | Xml.Element ("sessiongcfrequency", [ ("value", s) ], _) :: ll ->
       (try
          let t = float_of_string s in
          Eliommod_gc.set_servicesessiongcfrequency (Some t);
          Eliommod_gc.set_datasessiongcfrequency (Some t)
        with Failure _ ->
-         if s = "infinity"
-         then (
+         if s = "infinity" then (
            Eliommod_gc.set_servicesessiongcfrequency None;
            Eliommod_gc.set_datasessiongcfrequency None)
          else
            raise
              (Error_in_config_file "Eliom: Wrong value for <sessiongcfrequency>"));
       parse_global_config ll
-  | Xml.Element ("servicesessiongcfrequency", [("value", s)], _) :: ll ->
+  | Xml.Element ("servicesessiongcfrequency", [ ("value", s) ], _) :: ll ->
       (try Eliommod_gc.set_servicesessiongcfrequency (Some (float_of_string s))
        with Failure _ ->
-         if s = "infinity"
-         then Eliommod_gc.set_servicesessiongcfrequency None
+         if s = "infinity" then Eliommod_gc.set_servicesessiongcfrequency None
          else
            raise
              (Error_in_config_file
                 "Eliom: Wrong value for <servicesessiongcfrequency>"));
       parse_global_config ll
-  | Xml.Element ("datasessiongcfrequency", [("value", s)], _) :: ll ->
+  | Xml.Element ("datasessiongcfrequency", [ ("value", s) ], _) :: ll ->
       (try Eliommod_gc.set_datasessiongcfrequency (Some (float_of_string s))
        with Failure _ ->
-         if s = "infinity"
-         then Eliommod_gc.set_datasessiongcfrequency None
+         if s = "infinity" then Eliommod_gc.set_datasessiongcfrequency None
          else
            raise
              (Error_in_config_file
                 "Eliom: Wrong value for <datasessiongcfrequency>"));
       parse_global_config ll
-  | Xml.Element ("persistentsessiongcfrequency", [("value", s)], _) :: ll ->
+  | Xml.Element ("persistentsessiongcfrequency", [ ("value", s) ], _) :: ll ->
       (try
          Eliommod_gc.set_persistentsessiongcfrequency (Some (float_of_string s))
        with Failure _ ->
-         if s = "infinity"
-         then Eliommod_gc.set_persistentsessiongcfrequency None
+         if s = "infinity" then
+           Eliommod_gc.set_persistentsessiongcfrequency None
          else
            raise
              (Error_in_config_file
@@ -570,36 +575,36 @@ let rec parse_global_config = function
       parse_eliom_option
         ( (fun ct sh m ->
             Eliommod_timeouts.set_default ?scope_hierarchy:sh `Data ct m;
-            Eliommod_timeouts.set_default ?scope_hierarchy:sh `Service ct m)
-        , (fun ct sh ->
-            Eliommod_timeouts.set_default ?scope_hierarchy:sh `Data ct)
-        , (fun ct sh ->
-            Eliommod_timeouts.set_default ?scope_hierarchy:sh `Service ct)
-        , (fun ct sh ->
-            Eliommod_timeouts.set_default ?scope_hierarchy:sh `Persistent ct)
-        , (fun v -> default_max_service_sessions_per_group := v)
-        , (fun v -> default_max_service_sessions_per_subnet := v)
-        , (fun v -> default_max_volatile_data_sessions_per_group := v)
-        , (fun v -> default_max_volatile_data_sessions_per_subnet := v)
-        , (fun v -> default_max_persistent_data_sessions_per_group := v)
-        , (fun v -> default_max_service_tab_sessions_per_group := v)
-        , (fun v -> default_max_volatile_data_tab_sessions_per_group := v)
-        , (fun v -> default_max_persistent_data_tab_sessions_per_group := v)
-        , (fun v -> default_max_anonymous_services_per_session := v)
-        , (fun v -> default_max_anonymous_services_per_subnet := v)
-        , (fun v -> default_max_volatile_groups_per_site := v)
-        , (fun v -> default_secure_cookies := v)
-        , (fun v -> Eliom_common.ipv4mask := v)
-        , (fun v -> Eliom_common.ipv6mask := v)
-        , (fun v -> default_application_script := v)
-        , (fun v -> default_cache_global_data := v)
-        , (fun v -> default_html_content_type := Some v)
-        , (fun regexp ->
-            default_ignored_get_params := regexp :: !default_ignored_get_params)
-        , (fun regexp ->
+            Eliommod_timeouts.set_default ?scope_hierarchy:sh `Service ct m),
+          (fun ct sh ->
+            Eliommod_timeouts.set_default ?scope_hierarchy:sh `Data ct),
+          (fun ct sh ->
+            Eliommod_timeouts.set_default ?scope_hierarchy:sh `Service ct),
+          (fun ct sh ->
+            Eliommod_timeouts.set_default ?scope_hierarchy:sh `Persistent ct),
+          (fun v -> default_max_service_sessions_per_group := v),
+          (fun v -> default_max_service_sessions_per_subnet := v),
+          (fun v -> default_max_volatile_data_sessions_per_group := v),
+          (fun v -> default_max_volatile_data_sessions_per_subnet := v),
+          (fun v -> default_max_persistent_data_sessions_per_group := v),
+          (fun v -> default_max_service_tab_sessions_per_group := v),
+          (fun v -> default_max_volatile_data_tab_sessions_per_group := v),
+          (fun v -> default_max_persistent_data_tab_sessions_per_group := v),
+          (fun v -> default_max_anonymous_services_per_session := v),
+          (fun v -> default_max_anonymous_services_per_subnet := v),
+          (fun v -> default_max_volatile_groups_per_site := v),
+          (fun v -> default_secure_cookies := v),
+          (fun v -> Eliom_common.ipv4mask := v),
+          (fun v -> Eliom_common.ipv6mask := v),
+          (fun v -> default_application_script := v),
+          (fun v -> default_cache_global_data := v),
+          (fun v -> default_html_content_type := Some v),
+          (fun regexp ->
+            default_ignored_get_params := regexp :: !default_ignored_get_params),
+          (fun regexp ->
             default_ignored_post_params :=
-              regexp :: !default_ignored_post_params)
-        , fun v -> default_omitpersistentstorage := v )
+              regexp :: !default_ignored_post_params),
+          fun v -> default_omitpersistentstorage := v )
         e;
       parse_global_config ll
 
@@ -609,8 +614,7 @@ let exception_during_eliommodule_loading = ref false
 
 (** Function to be called at the end of the initialisation phase *)
 let end_init () =
-  if !exception_during_eliommodule_loading
-  then
+  if !exception_during_eliommodule_loading then
     (* An eliom module failed with an exception. We do not check
             for the missing services, so that the exception can be correctly
             propagated by Ocsigen_extensions *)
@@ -637,7 +641,7 @@ let handle_init_exn = function
       ^ " - "
       ^ (match l1 with
         | [] -> ""
-        | [a] ->
+        | [ a ] ->
             "One service or coservice has not been registered on URL /"
             ^ Url.string_of_url_path ~encode:false a
             ^ ". "
@@ -651,14 +655,14 @@ let handle_init_exn = function
             ^ ". ")
       ^ (match l2 with
         | [] -> ""
-        | [Eliom_common.SNa_get' _] ->
+        | [ Eliom_common.SNa_get' _ ] ->
             "One non-attached GET coservice has not been registered."
-        | [Eliom_common.SNa_post' _] ->
+        | [ Eliom_common.SNa_post' _ ] ->
             "One non-attached POST coservice has not been registered."
-        | [Eliom_common.SNa_get_ a] ->
+        | [ Eliom_common.SNa_get_ a ] ->
             "The non-attached GET service \"" ^ a
             ^ "\" has not been registered."
-        | [Eliom_common.SNa_post_ a] ->
+        | [ Eliom_common.SNa_post_ a ] ->
             "The non-attached POST service \"" ^ a
             ^ "\" has not been registered."
         | a :: ll ->
@@ -674,15 +678,19 @@ let handle_init_exn = function
               | Eliom_common.SNa_post_csrf_safe _ ->
                   "<POST CSRF-safe coservice>"
             in
-            "Some non-attached services or coservices have not been registered: "
+            "Some non-attached services or coservices have not been \
+             registered: "
             ^ List.fold_left
                 (fun beg v -> beg ^ ", " ^ string_of v)
                 (string_of a) ll
             ^ ".")
-      ^ "\nPlease correct your modules and make sure you have linked in all the modules..."
+      ^ "\n\
+         Please correct your modules and make sure you have linked in all the \
+         modules..."
   | Eliom_common.Eliom_site_information_not_available f ->
       "Eliom: Bad use of function \"" ^ f
-      ^ "\". Must be used only during site initialisation phase (or, sometimes, also during request)."
+      ^ "\". Must be used only during site initialisation phase (or, \
+         sometimes, also during request)."
   | Eliom_common.Eliom_page_erasing s ->
       "Eliom: You cannot create a page or directory here. " ^ s
       ^ " already exists. Please correct your modules."
@@ -729,8 +737,7 @@ let config_in_tag = ref "" (* the parent tag of the currently handled tag *)
 type module_to_load = Files of string list | Name of string
 
 let site_init firstmodule =
-  if !firstmodule
-  then (
+  if !firstmodule then (
     (* I want to be able to define global client values during that phase: *)
     Eliom_syntax.set_global true;
     List.iter (fun f -> f ()) !site_init_ref;
@@ -765,20 +772,15 @@ let gen_nothing () _ = Lwt.return Ocsigen_extensions.Ext_do_nothing
 let default_module_action _ = failwith "default_module_action"
 
 let set_timeout
-      (f :
-        ?full_st_name:Eliom_common.full_state_name
-        -> ?cookie_level:[< Eliom_common.cookie_level]
-        -> recompute_expdates:bool
-        -> bool (* override configfile *)
-        -> bool (* from config file *)
-        -> Eliom_common.sitedata
-        -> float option
-        -> unit)
-      sitedata
-      cookie_type
-      state_hier
-      v
-  =
+    (f :
+      ?full_st_name:Eliom_common.full_state_name ->
+      ?cookie_level:[< Eliom_common.cookie_level ] ->
+      recompute_expdates:bool ->
+      bool (* override configfile *) ->
+      bool (* from config file *) ->
+      Eliom_common.sitedata ->
+      float option ->
+      unit) sitedata cookie_type state_hier v =
   let make_full_st_name secure state_hier =
     let scope =
       match cookie_type with
@@ -811,7 +813,7 @@ let parse_config _ hostpattern conf_info site_dir =
   let firstmodule = ref true in
   let eliommodulewarningdisplayed = ref false in
   let rec parse_default_links_xhr atts default_links_xhr = function
-    | [] -> default_links_xhr, List.rev atts
+    | [] -> (default_links_xhr, List.rev atts)
     | ("xhr-links", str_value) :: suite ->
         let default_links_xhr =
           match str_value with
@@ -829,25 +831,31 @@ let parse_config _ hostpattern conf_info site_dir =
   let rec parse_module_attrs file = function
     | [] -> file
     | ("name", s) :: suite -> (
-      match file with
-      | None -> parse_module_attrs (Some (Name s)) suite
-      | _ ->
-          raise (Error_in_config_file "Duplicate attribute module in <eliom>"))
+        match file with
+        | None -> parse_module_attrs (Some (Name s)) suite
+        | _ ->
+            raise (Error_in_config_file "Duplicate attribute module in <eliom>")
+        )
     | ("module", s) :: suite -> (
-      match file with
-      | None -> parse_module_attrs (Some (Files [s])) suite
-      | _ ->
-          raise (Error_in_config_file "Duplicate attribute module in <eliom>"))
+        match file with
+        | None -> parse_module_attrs (Some (Files [ s ])) suite
+        | _ ->
+            raise (Error_in_config_file "Duplicate attribute module in <eliom>")
+        )
     | ("findlib-package", s) :: suite -> (
-      match file with
-      | None -> (
-        try parse_module_attrs (Some (Files (Ocsigen_loader.findfiles s))) suite
-        with Ocsigen_loader.Findlib_error _ as e ->
-          raise
-            (Error_in_config_file
-               (Printf.sprintf "Findlib error: %s" (Printexc.to_string e))))
-      | _ ->
-          raise (Error_in_config_file "Duplicate attribute module in <eliom>"))
+        match file with
+        | None -> (
+            try
+              parse_module_attrs
+                (Some (Files (Ocsigen_loader.findfiles s)))
+                suite
+            with Ocsigen_loader.Findlib_error _ as e ->
+              raise
+                (Error_in_config_file
+                   (Printf.sprintf "Findlib error: %s" (Printexc.to_string e))))
+        | _ ->
+            raise (Error_in_config_file "Duplicate attribute module in <eliom>")
+        )
     | (s, _) :: _ ->
         raise (Error_in_config_file ("Wrong attribute for <eliom>: " ^ s))
   in
@@ -861,8 +869,7 @@ let parse_config _ hostpattern conf_info site_dir =
             load_eliom_module sitedata file_or_name "eliommodule" content;
             exception_during_eliommodule_loading := false
         | _ -> ());
-        if Eliom_extension.get_eliom_extension () != default_module_action
-        then
+        if Eliom_extension.get_eliom_extension () != default_module_action then
           Eliommod_pagegen.gen
             (Some (Eliom_extension.get_eliom_extension ()))
             sitedata
@@ -884,42 +891,43 @@ let parse_config _ hostpattern conf_info site_dir =
                   sitedata ct snoo v;
                 set_timeout
                   (Eliommod_timeouts.set_global_ ~kind:`Service)
-                  sitedata ct snoo v)
-            , set_timeout (Eliommod_timeouts.set_global_ ~kind:`Data) sitedata
-            , set_timeout
+                  sitedata ct snoo v),
+              set_timeout (Eliommod_timeouts.set_global_ ~kind:`Data) sitedata,
+              set_timeout
                 (Eliommod_timeouts.set_global_ ~kind:`Service)
-                sitedata
-            , set_timeout
+                sitedata,
+              set_timeout
                 (Eliommod_timeouts.set_global_ ~kind:`Persistent)
-                sitedata
-            , (fun v ->
-                sitedata.Eliom_common.max_service_sessions_per_group <- v, true)
-            , (fun v ->
-                sitedata.Eliom_common.max_service_sessions_per_subnet <- v, true)
-            , (fun v ->
+                sitedata,
+              (fun v ->
+                sitedata.Eliom_common.max_service_sessions_per_group <- (v, true)),
+              (fun v ->
+                sitedata.Eliom_common.max_service_sessions_per_subnet <-
+                  (v, true)),
+              (fun v ->
                 sitedata.Eliom_common.max_volatile_data_sessions_per_group <-
-                  v, true)
-            , (fun v ->
+                  (v, true)),
+              (fun v ->
                 sitedata.Eliom_common.max_volatile_data_sessions_per_subnet <-
-                  v, true)
-            , (fun v ->
+                  (v, true)),
+              (fun v ->
                 sitedata.Eliom_common.max_persistent_data_sessions_per_group <-
-                  Some v, true)
-            , (fun v ->
+                  (Some v, true)),
+              (fun v ->
                 sitedata.Eliom_common.max_service_tab_sessions_per_group <-
-                  v, true)
-            , (fun v ->
+                  (v, true)),
+              (fun v ->
                 sitedata.Eliom_common.max_volatile_data_tab_sessions_per_group <-
-                  v, true)
-            , (fun v ->
+                  (v, true)),
+              (fun v ->
                 sitedata.Eliom_common.max_persistent_data_tab_sessions_per_group <-
-                  Some v, true)
-            , (fun v ->
+                  (Some v, true)),
+              (fun v ->
                 sitedata.Eliom_common.max_anonymous_services_per_session <-
-                  v, true)
-            , (fun v ->
+                  (v, true)),
+              (fun v ->
                 sitedata.Eliom_common.max_anonymous_services_per_subnet <-
-                  v, true;
+                  (v, true);
                 (* The global table has already been created, with old max
                    and old ipv6mask.
                    I update it, otherwise the setting has no effect
@@ -933,24 +941,24 @@ let parse_config _ hostpattern conf_info site_dir =
                   in
                   ignore (Ocsigen_cache.Dlist.set_maxsize dlist v)
                 with Not_found -> ()
-                (* should not occur *))
-            , (fun v ->
+                (* should not occur *)),
+              (fun v ->
                 ignore
                   (Ocsigen_cache.Dlist.set_maxsize
-                     sitedata.Eliom_common.group_of_groups v))
-            , (fun v -> sitedata.Eliom_common.secure_cookies <- v)
-            , (fun v -> sitedata.Eliom_common.ipv4mask <- Some v, true)
-            , (fun v -> sitedata.Eliom_common.ipv6mask <- Some v, true)
-            , (fun v -> sitedata.Eliom_common.application_script <- v)
-            , (fun v -> sitedata.Eliom_common.cache_global_data <- v)
-            , (fun v -> sitedata.Eliom_common.html_content_type <- Some v)
-            , (fun regexp ->
+                     sitedata.Eliom_common.group_of_groups v)),
+              (fun v -> sitedata.Eliom_common.secure_cookies <- v),
+              (fun v -> sitedata.Eliom_common.ipv4mask <- (Some v, true)),
+              (fun v -> sitedata.Eliom_common.ipv6mask <- (Some v, true)),
+              (fun v -> sitedata.Eliom_common.application_script <- v),
+              (fun v -> sitedata.Eliom_common.cache_global_data <- v),
+              (fun v -> sitedata.Eliom_common.html_content_type <- Some v),
+              (fun regexp ->
                 sitedata.Eliom_common.ignored_get_params <-
-                  regexp :: sitedata.Eliom_common.ignored_get_params)
-            , (fun regexp ->
+                  regexp :: sitedata.Eliom_common.ignored_get_params),
+              (fun regexp ->
                 sitedata.Eliom_common.ignored_post_params <-
-                  regexp :: sitedata.Eliom_common.ignored_post_params)
-            , fun v -> sitedata.Eliom_common.omitpersistentstorage <- v )
+                  regexp :: sitedata.Eliom_common.ignored_post_params),
+              fun v -> sitedata.Eliom_common.omitpersistentstorage <- v )
             content
         in
         let default_links_xhr, atts = parse_default_links_xhr [] None atts in
@@ -970,22 +978,23 @@ let parse_config _ hostpattern conf_info site_dir =
         (*VVV 2012/08
         It is not possible to load an eliom extension using <eliom>. Why?
         Is there a reason for this? For now I fail in that case. *)
-        if Eliom_extension.get_eliom_extension () != default_module_action
-        then
+        if Eliom_extension.get_eliom_extension () != default_module_action then
           raise
             (Error_in_config_file
-               "Eliom extensions cannot be loaded using <eliom>. Use <eliommodule> instead.");
+               "Eliom extensions cannot be loaded using <eliom>. Use \
+                <eliommodule> instead.");
         (* We must generate the page only if it is the first <eliom> tag
            for that site: *)
-        if !firsteliomtag
-        then (
+        if !firsteliomtag then (
           firsteliomtag := false;
           Eliommod_pagegen.gen None sitedata)
         else (
-          if not !eliommodulewarningdisplayed
-          then
+          if not !eliommodulewarningdisplayed then
             Lwt_log.ign_warning ~section:eliom_logs_src
-              "Tag <eliom> used several times in the same site: will run Eliom only the first time. Prefer <eliommodule> to load a module, and <eliom/> without attribute only once at the position you want to generate your Eliom pages for this site.";
+              "Tag <eliom> used several times in the same site: will run Eliom \
+               only the first time. Prefer <eliommodule> to load a module, and \
+               <eliom/> without attribute only once at the position you want \
+               to generate your Eliom pages for this site.";
           eliommodulewarningdisplayed := true;
           gen_nothing ())
     | Xml.Element (t, _, _) ->

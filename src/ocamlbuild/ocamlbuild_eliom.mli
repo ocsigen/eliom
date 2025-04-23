@@ -7,9 +7,9 @@ end
 
 module Make (_ : ELIOM) : sig
   val dispatcher :
-     ?oasis_executables:Ocamlbuild_plugin.Pathname.t list
-    -> Ocamlbuild_plugin.hook
-    -> unit
+    ?oasis_executables:Ocamlbuild_plugin.Pathname.t list ->
+    Ocamlbuild_plugin.hook ->
+    unit
   (** The main dispatcher
 
       It calls {!Ocamlbuild_js_of_ocaml.dispatcher} first, with the same
@@ -39,7 +39,7 @@ end
 (**/**)
 
 module type INTERNALS = sig
-  val with_eliom_ppx : ([< `Client | `Server] -> string) option
+  val with_eliom_ppx : ([< `Client | `Server ] -> string) option
   (** Internally built client and server ppx executables are invoked explicitly
       in order to pass the right -type arguments. Other syntax extensions are
       handled by {!with_package} *)
@@ -49,7 +49,7 @@ end
 
 module MakeIntern (_ : INTERNALS) (_ : ELIOM) : sig
   val dispatcher :
-     ?oasis_executables:Ocamlbuild_plugin.Pathname.t list
-    -> Ocamlbuild_plugin.hook
-    -> unit
+    ?oasis_executables:Ocamlbuild_plugin.Pathname.t list ->
+    Ocamlbuild_plugin.hook ->
+    unit
 end
