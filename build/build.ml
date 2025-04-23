@@ -14,8 +14,8 @@ module Intern = struct
   let with_eliom_ppx =
     Some
       (function
-       | `Client -> "src/ppx/ppx_eliom_client_ex." ^ best
-       | `Server -> "src/ppx/ppx_eliom_server_ex." ^ best)
+        | `Client -> "src/ppx/ppx_eliom_client_ex." ^ best
+        | `Server -> "src/ppx/ppx_eliom_server_ex." ^ best)
 
   let with_package = function
     | "eliom.ppx.type" -> "pkg_ppx_eliom_types"

@@ -15,12 +15,18 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 include Eliom_service_base
 
-let plain_service (type m gp gn pp pn gp') ?(https = false) ~path
-    ?keep_nl_params ?priority ~(meth : (m, gp, gn, pp, pn, _, gp') meth) ()
+let plain_service
+      (type m gp gn pp pn gp')
+      ?(https = false)
+      ~path
+      ?keep_nl_params
+      ?priority
+      ~(meth : (m, gp, gn, pp, pn, _, gp') meth)
+      ()
   =
   let get_params, post_params = params_of_meth meth
   and meth = which_meth_internal meth in
@@ -43,9 +49,20 @@ let plain_service (type m gp gn pp pn gp') ?(https = false) ~path
   main_service ~https ~prefix:"" ~path ~kind:`Service ~meth ?redirect_suffix
     ?keep_nl_params ?priority ~get_params ~post_params ~reload_fun ()
 
-let create_attached ?name ?(csrf_safe = false) ?csrf_scope ?csrf_secure ?max_use
-    ?timeout ?(https = false) ?keep_nl_params ~fallback ~get_params ~post_params
-    ~meth ()
+let create_attached
+      ?name
+      ?(csrf_safe = false)
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?(https = false)
+      ?keep_nl_params
+      ~fallback
+      ~get_params
+      ~post_params
+      ~meth
+      ()
   =
   let is_post = is_post' meth in
   let csrf_scope = default_csrf_scope csrf_scope
@@ -94,8 +111,18 @@ let create_attached ?name ?(csrf_safe = false) ?csrf_scope ?csrf_secure ?max_use
 let create_attached_get =
   create_attached ~meth:Get' ~post_params:Eliom_parameter.unit
 
-let create_attached_post ?name ?csrf_safe ?csrf_scope ?csrf_secure ?max_use
-    ?timeout ?https ?keep_nl_params ~fallback ~post_params ()
+let create_attached_post
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?https
+      ?keep_nl_params
+      ~fallback
+      ~post_params
+      ()
   =
   let get_params = get_params_type fallback in
   create_attached ~meth:Post' ?name ?csrf_safe ?csrf_scope ?csrf_secure ?max_use
@@ -104,10 +131,18 @@ let create_attached_post ?name ?csrf_safe ?csrf_scope ?csrf_secure ?max_use
 let create_attached_get_unsafe = create_attached_get
 let create_attached_post_unsafe = create_attached_post
 
-let coservice' (type m gp gn pp pn) ?name ?(csrf_safe = false) ?csrf_scope
-    ?csrf_secure ?max_use ?timeout ?(https = false)
-    ?(keep_nl_params = `Persistent) ~(meth : (m, gp, gn, pp, pn, _, unit) meth)
-    ()
+let coservice'
+      (type m gp gn pp pn)
+      ?name
+      ?(csrf_safe = false)
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?(https = false)
+      ?(keep_nl_params = `Persistent)
+      ~(meth : (m, gp, gn, pp, pn, _, unit) meth)
+      ()
   =
   let get_params, post_params = params_of_meth meth in
   let meth = which_meth_internal meth and is_post = is_post meth in
@@ -150,12 +185,20 @@ let coservice' (type m gp gn pp pn) ?name ?(csrf_safe = false) ?csrf_scope
   ; client_fun = no_client_fun ()
   ; reload_fun = Rf_client_fun }
 
-let create ?name ?(csrf_safe = false) ?csrf_scope ?csrf_secure ?max_use ?timeout
-    ?(https = false) ?(keep_nl_params = `Persistent) ?priority
-    (type m gp gn pp pn gp' att_ co_ ext_ reg_ rr)
-    ~(meth : (m, gp, gn, pp, pn, _, gp') meth)
-    ~(path : (att_, co_, gp') path_option) () :
-    (gp, pp, m, att_, co_, ext_, reg_, _, gn, pn, rr) t
+let create
+      ?name
+      ?(csrf_safe = false)
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ?(https = false)
+      ?(keep_nl_params = `Persistent)
+      ?priority
+      (type m gp gn pp pn gp' att_ co_ ext_ reg_ rr)
+      ~(meth : (m, gp, gn, pp, pn, _, gp') meth)
+      ~(path : (att_, co_, gp') path_option)
+      () : (gp, pp, m, att_, co_, ext_, reg_, _, gn, pn, rr) t
   =
   match path with
   | Path path -> plain_service ~https ~keep_nl_params ?priority ~path ~meth ()
@@ -167,34 +210,23 @@ let create_unsafe = create
 let create_ocaml = create
 
 let attach :
-     fallback:
-       ( unit
-         , unit
-         , get
-         , att
-         , _
+   fallback:
+     (unit, unit, get, att, _, non_ext, 'rg1, [< suff], unit, unit, 'return1) t
+  -> service:
+       ( 'get
+         , 'post
+         , 'gp
+         , non_att
+         , co
          , non_ext
-         , 'rg1
-         , [< suff]
-         , unit
-         , unit
-         , 'return1 )
+         , 'rg2
+         , ([< `WithoutSuffix] as 'sf)
+         , 'gn
+         , 'pn
+         , 'return )
          t
-    -> service:
-         ( 'get
-           , 'post
-           , 'gp
-           , non_att
-           , co
-           , non_ext
-           , 'rg2
-           , ([< `WithoutSuffix] as 'sf)
-           , 'gn
-           , 'pn
-           , 'return )
-           t
-    -> unit
-    -> ('get, 'post, 'gp, att, co, non_ext, non_reg, 'sf, 'gn, 'pn, 'return) t
+  -> unit
+  -> ('get, 'post, 'gp, att, co, non_ext, non_reg, 'sf, 'gn, 'pn, 'return) t
   =
  fun ~fallback ~service () ->
   let {na_name; _} = non_attached_info service in
@@ -305,8 +337,10 @@ let set_delayed_post_registration_function tables k f =
     Eliom_lib.Int.Table.add k f
       tables.Eliom_common.csrf_post_registration_functions
 
-let remove_service table (type m a)
-    (service : (_, _, m, a, _, _, _, _, _, _, _) t)
+let remove_service
+      table
+      (type m a)
+      (service : (_, _, m, a, _, _, _, _, _, _, _) t)
   =
   match info service with
   | Attached attser ->
@@ -318,8 +352,8 @@ let remove_service table (type m a)
       Eliom_route.remove_service table (sub_path attser)
         { Eliom_common.key_state = attserget, attserpost
         ; Eliom_common.key_meth = key_kind }
-        (if attserget = Eliom_common.SAtt_no
-            || attserpost = Eliom_common.SAtt_no
+        (if
+           attserget = Eliom_common.SAtt_no || attserpost = Eliom_common.SAtt_no
          then
            Eliom_parameter.(
              anonymise_params_type sgpt, anonymise_params_type sppt)
@@ -328,8 +362,11 @@ let remove_service table (type m a)
       let na_name = na_name naser in
       Eliom_route.remove_naservice table na_name
 
-let unregister ?scope ?secure (type m)
-    (service : (_, _, m, _, _, _, _, _, _, _, _) t)
+let unregister
+      ?scope
+      ?secure
+      (type m)
+      (service : (_, _, m, _, _, _, _, _, _, _, _) t)
   =
   let sp = Eliom_common.get_sp_option () in
   match scope with

@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 val get_global_data : unit -> Eliom_runtime.global_data
 val get_request_data : unit -> Eliom_runtime.request_data

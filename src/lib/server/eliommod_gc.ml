@@ -18,7 +18,7 @@ open Lwt.Syntax
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 (** Garbage collection of services and session data *)
 
@@ -60,7 +60,7 @@ let gc_timeouted_services now tables =
     | Eliom_common.File ptr ->
         Eliom_common.Serv_Table.fold
           (*VVV not tail recursive: may be a problem if lots of coservices *)
-             (fun ptk (`Ptc (nodeopt, l)) thr ->
+          (fun ptk (`Ptc (nodeopt, l)) thr ->
              let* _ = thr in
              (* we wait for the previous one to be completed *)
              (match nodeopt, l with
@@ -200,8 +200,8 @@ let service_session_gc sitedata =
                     then gc_timeouted_services now tables
                     else return_unit)
                    >>= fun () ->
-                   (if tables
-                         .Eliom_common.table_contains_naservices_with_timeout
+                   (if
+                      tables.Eliom_common.table_contains_naservices_with_timeout
                     then
                       gc_timeouted_naservices now
                         tables.Eliom_common.table_naservices
@@ -297,8 +297,9 @@ let persistent_session_gc sitedata =
   let gc () =
     let now = Unix.time () in
     let log_hash c = Eliom_common.Hashed_cookies.(sha256 c) in
-    let do_gc_cookie cookie
-        {Eliommod_cookies.full_state_name; expiry; session_group; _}
+    let do_gc_cookie
+          cookie
+          {Eliommod_cookies.full_state_name; expiry; session_group; _}
       =
       let scope = full_state_name.Eliom_common.user_scope in
       match expiry with
@@ -317,11 +318,11 @@ let persistent_session_gc sitedata =
         (fun () -> Eliommod_cookies.Persistent_cookies.Cookies.find c)
         (do_gc_cookie c)
         (function
-           | Not_found ->
-               Lwt_log.ign_info_f ~section "cookie does not exist: %s"
-                 (log_hash c);
-               Lwt.return_unit
-           | exn -> Lwt.fail exn)
+          | Not_found ->
+              Lwt_log.ign_info_f ~section "cookie does not exist: %s"
+                (log_hash c);
+              Lwt.return_unit
+          | exn -> Lwt.fail exn)
     in
     Lwt_log.ign_info ~section "GC of persistent sessions";
     Eliommod_cookies.Persistent_cookies.garbage_collect ~section gc_cookie

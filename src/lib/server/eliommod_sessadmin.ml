@@ -103,8 +103,8 @@ let close_all_persistent_states2 full_st_name sitedata =
   Eliommod_cookies.Persistent_cookies.Cookies.iter
     (fun
         k
-        {Eliommod_cookies.full_state_name; timeout = old_t; session_group; _}
-      ->
+         {Eliommod_cookies.full_state_name; timeout = old_t; session_group; _}
+       ->
        let scope = full_state_name.Eliom_common.user_scope in
        if full_st_name = full_state_name && old_t = Eliom_common.TGlobal
        then
@@ -210,11 +210,11 @@ let update_pers_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
       Eliommod_cookies.Persistent_cookies.Cookies.iter
         (fun
             k
-            { Eliommod_cookies.full_state_name
-            ; expiry = old_exp
-            ; timeout = old_t
-            ; session_group }
-          ->
+             { Eliommod_cookies.full_state_name
+             ; expiry = old_exp
+             ; timeout = old_t
+             ; session_group }
+           ->
            let scope = full_state_name.Eliom_common.user_scope in
            if full_st_name = full_state_name && old_t = Eliom_common.TGlobal
            then

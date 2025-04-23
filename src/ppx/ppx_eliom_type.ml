@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 (* This module generates the file used to infer types (hence wrappers) of server
    escaped values.
@@ -102,8 +102,13 @@ module Pass = struct
         Some (Eliom_syntax.client_value "" 0 : [%t typ] Eliom_client_value.t);
       (Stdlib.Option.get ![%e frag_eid] : _ Eliom_client_value.t)]
 
-  let escape_inject ~loc ?ident:_ ~(context : Context.escape_inject) ~id
-      ~unsafe:_ expr
+  let escape_inject
+        ~loc
+        ?ident:_
+        ~(context : Context.escape_inject)
+        ~id
+        ~unsafe:_
+        expr
     =
     push_typing_str_item expr id;
     push_typing_expr expr id;

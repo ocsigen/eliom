@@ -17,7 +17,7 @@ open Lwt.Syntax
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 open Js_of_ocaml
 open Eliom_lib
@@ -40,7 +40,7 @@ let get_cookie_info_for_uri_js uri_js =
   | None ->
       (* Decoding failed *)
       Js.Opt.case
-        short_url_re ## (exec uri_js)
+        short_url_re##(exec uri_js)
         (fun () -> assert false)
         (fun res ->
            let match_result = Js.match_result res in
@@ -81,9 +81,10 @@ let redirect_get ?window_name ?window_features url =
   | None -> Dom_html.window##.location##.href := Js.string url
   | Some window_name ->
       ignore
-        Dom_html.window
-        ## (open_ (Js.string url) (Js.string window_name)
-              (Js.Opt.map (Js.Opt.option window_features) Js.string))
+        Dom_html.window##(open_ (Js.string url) (Js.string window_name)
+                            (Js.Opt.map
+                               (Js.Opt.option window_features)
+                               Js.string))
 
 let redirect_post ?window_name url params =
   let f = Dom_html.createForm Dom_html.document in
@@ -151,9 +152,17 @@ let unlock () = set_locked false
     that is taken into account for finding tab cookies to send.
     If not present, the path and protocol are taken from the URL.
 *)
-let send ?with_credentials ?(expecting_process_page = false) ?cookies_info
-    ?get_args ?post_args ?progress ?upload_progress ?override_mime_type url
-    result
+let send
+      ?with_credentials
+      ?(expecting_process_page = false)
+      ?cookies_info
+      ?get_args
+      ?post_args
+      ?progress
+      ?upload_progress
+      ?override_mime_type
+      url
+      result
   =
   let rec aux i ?cookies_info ?(get_args = []) ?post_args url =
     let https, path =
@@ -229,8 +238,9 @@ let send ?with_credentials ?(expecting_process_page = false) ?cookies_info
       else headers
     in
     let get_args =
-      if expecting_process_page
-         (* we add this parameter to ensure that the xhr request is
+      if
+        expecting_process_page
+        (* we add this parameter to ensure that the xhr request is
          different from the normal ones: we can't ensure that the
          browser won't cache the content of the page ( for instance
          when clicking the back button ). That way we are sure that an
@@ -316,39 +326,40 @@ let send ?with_credentials ?(expecting_process_page = false) ?cookies_info
              | Some url -> Url.resolve url
            in
            Lwt.return (url, Some (result r))
-         else if r.XmlHttpRequest.code = 200
-                 || XmlHttpRequest.(r.code = 0 && r.content <> "")
-                 (* HACK for file access within Cordova which yields code 0 *)
-                 (* Code 0 might mean a network error, but then we have no
-                   content. *)
+         else if
+           r.XmlHttpRequest.code = 200
+           || XmlHttpRequest.(r.code = 0 && r.content <> "")
+           (* HACK for file access within Cordova which yields code 0.
+                    Code 0 might mean a network error, but then we have no
+                    content. *)
          then Lwt.return (r.XmlHttpRequest.url, Some (result r))
          else Lwt.fail (Failed_request r.XmlHttpRequest.code))
       (function
-         | XmlHttpRequest.Wrong_headers (code, headers) -> (
-           (* We are requesting application content and the headers tels
+        | XmlHttpRequest.Wrong_headers (code, headers) -> (
+          (* We are requesting application content and the headers tels
            us that the answer is not application content *)
-           match headers Eliom_common.appl_name_header_name with
-           | None | Some "" ->
-               (* Empty appl_name for IE compat. *)
-               (match post_args with
-               | None -> redirect_get url
-               | _ ->
-                   raise_error ~section
-                     "can't silently redirect a Post request to non application content");
-               Lwt.fail Program_terminated
-           | Some appl_name ->
-               let current_appl_name = Eliom_process.get_application_name () in
-               if appl_name = current_appl_name
-               then
-                 assert false
-                 (* we can't go here:
+          match headers Eliom_common.appl_name_header_name with
+          | None | Some "" ->
+              (* Empty appl_name for IE compat. *)
+              (match post_args with
+              | None -> redirect_get url
+              | _ ->
+                  raise_error ~section
+                    "can't silently redirect a Post request to non application content");
+              Lwt.fail Program_terminated
+          | Some appl_name ->
+              let current_appl_name = Eliom_process.get_application_name () in
+              if appl_name = current_appl_name
+              then
+                assert false
+                (* we can't go here:
                                      this case is already handled before *)
-               else (
-                 Lwt_log.ign_warning_f ~section
-                   "received content for application %S when running application %s"
-                   appl_name current_appl_name;
-                 Lwt.fail (Failed_request code)))
-         | exc -> Lwt.reraise exc)
+              else (
+                Lwt_log.ign_warning_f ~section
+                  "received content for application %S when running application %s"
+                  appl_name current_appl_name;
+                Lwt.fail (Failed_request code)))
+        | exc -> Lwt.reraise exc)
   in
   let* url, content = aux 0 ?cookies_info ?get_args ?post_args url in
   let filter_url url =
@@ -391,9 +402,17 @@ let add_button_arg inj args form =
     with form data in the URL.
     If [~get_params] is present, it will be appended to the form fields.
 *)
-let send_get_form ?with_credentials ?expecting_process_page ?cookies_info
-    ?(get_args = []) ?post_args ?progress ?upload_progress ?override_mime_type
-    form url
+let send_get_form
+      ?with_credentials
+      ?expecting_process_page
+      ?cookies_info
+      ?(get_args = [])
+      ?post_args
+      ?progress
+      ?upload_progress
+      ?override_mime_type
+      form
+      url
   =
   let get_args = get_args @ Form.get_form_contents form in
   (* BEGIN FORMDATA HACK *)
@@ -403,8 +422,17 @@ let send_get_form ?with_credentials ?expecting_process_page ?cookies_info
     ?post_args ?progress ?upload_progress ?override_mime_type url
 
 (** Send a POST form with tab cookies and half/full XHR. *)
-let send_post_form ?with_credentials ?expecting_process_page ?cookies_info
-    ?get_args ?post_args ?progress ?upload_progress ?override_mime_type form url
+let send_post_form
+      ?with_credentials
+      ?expecting_process_page
+      ?cookies_info
+      ?get_args
+      ?post_args
+      ?progress
+      ?upload_progress
+      ?override_mime_type
+      form
+      url
   =
   (* BEGIN FORMDATA HACK *)
   let post_args =
@@ -420,26 +448,54 @@ let send_post_form ?with_credentials ?expecting_process_page ?cookies_info
   send ?with_credentials ?expecting_process_page ?cookies_info ?get_args
     ?post_args ?progress ?upload_progress ?override_mime_type url
 
-let http_get ?with_credentials ?expecting_process_page ?cookies_info ?progress
-    ?upload_progress ?override_mime_type url get_args
+let http_get
+      ?with_credentials
+      ?expecting_process_page
+      ?cookies_info
+      ?progress
+      ?upload_progress
+      ?override_mime_type
+      url
+      get_args
   =
   send ?with_credentials ?expecting_process_page ?cookies_info ?progress
     ?upload_progress ?override_mime_type ~get_args url
 
-let http_post ?with_credentials ?expecting_process_page ?cookies_info ?progress
-    ?upload_progress ?override_mime_type url post_args
+let http_post
+      ?with_credentials
+      ?expecting_process_page
+      ?cookies_info
+      ?progress
+      ?upload_progress
+      ?override_mime_type
+      url
+      post_args
   =
   send ?with_credentials ?expecting_process_page ?cookies_info ~post_args
     ?progress ?upload_progress ?override_mime_type url
 
-let http_put ?with_credentials ?expecting_process_page ?cookies_info ?progress
-    ?upload_progress ?override_mime_type url post_args
+let http_put
+      ?with_credentials
+      ?expecting_process_page
+      ?cookies_info
+      ?progress
+      ?upload_progress
+      ?override_mime_type
+      url
+      post_args
   =
   send ?with_credentials ?expecting_process_page ?cookies_info ~post_args
     ?progress ?upload_progress ?override_mime_type url
 
-let http_delete ?with_credentials ?expecting_process_page ?cookies_info
-    ?progress ?upload_progress ?override_mime_type url post_args
+let http_delete
+      ?with_credentials
+      ?expecting_process_page
+      ?cookies_info
+      ?progress
+      ?upload_progress
+      ?override_mime_type
+      url
+      post_args
   =
   send ?with_credentials ?expecting_process_page ?cookies_info ~post_args
     ?progress ?upload_progress ?override_mime_type url

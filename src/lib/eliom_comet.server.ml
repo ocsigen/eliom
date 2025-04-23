@@ -19,7 +19,7 @@ open Lwt.Syntax
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 (* TODO: handle ended stream ( and on client side too ) *)
 
@@ -106,7 +106,7 @@ end = struct
     ; (* the number of messages already added to the channel *)
       ch_content : (string * int) Dlist.t
     ; ch_wakeup : unit Lwt_condition.t
-    (* condition broadcasted when there is a new message *) }
+      (* condition broadcasted when there is a new message *) }
 
   module Channel_hash = struct
     type t = channel
@@ -265,7 +265,7 @@ end = struct
                let* () = wait_data requests in
                Lwt.return (List.flatten (List.map get_available_data requests)))
             (function
-               | Lwt_unix.Timeout -> Lwt.return_nil | exc -> Lwt.reraise exc)
+              | Lwt_unix.Timeout -> Lwt.return_nil | exc -> Lwt.reraise exc)
         in
         Lwt.return (encode_global_downgoing res)
 
@@ -354,16 +354,16 @@ end = struct
     { hd_scope : Eliom_common.client_process_scope
     ; (* id : int; pour tester que ce sont des service differents... *)
       mutable hd_active_channels : (chan_id * channel) list
-    (** streams that are currently sent to client *)
+      (** streams that are currently sent to client *)
     ; mutable hd_unregistered_channels : (chan_id * channel) list
-    (** streams that are created on the server side, but client did not register *)
+      (** streams that are created on the server side, but client did not register *)
     ; mutable hd_registered_chan_id : chan_id list
-    (** the fusion of all the streams from hd_active_channels *)
+      (** the fusion of all the streams from hd_active_channels *)
     ; mutable hd_update_streams_w : [`Data | `Update] Lwt.u option
-    (** used to signal new data or new active streams. *)
+      (** used to signal new data or new active streams. *)
     ; hd_service : internal_comet_service
     ; mutable hd_last : string * int
-    (** the last message sent to the client, if he sends a request
+      (** the last message sent to the client, if he sends a request
             with the same number, this message is immediately sent
             back.*)
     ; mutable hd_activity : activity }
@@ -478,10 +478,10 @@ end = struct
        Lwt.choose
          (wait_closed_connection :: hd_update_streams :: wait_channels handler))
       (function
-         | `Data ->
-             handler.hd_update_streams_w <- None;
-             Lwt.return_unit
-         | `Update -> wait_data wait_closed_connection handler)
+        | `Data ->
+            handler.hd_update_streams_w <- None;
+            Lwt.return_unit
+        | `Update -> wait_data wait_closed_connection handler)
 
   let launch_channel handler chan_id channel =
     handler.hd_active_channels <-
@@ -551,24 +551,23 @@ end = struct
                    set_inactive handler;
                    Lwt.return message))
               (function
-                 | New_connection -> Lwt.return (encode_downgoing [])
-                 (* happens if an other connection has been opened on that service *)
-                 (* CCC in this case, it would be beter to return code 204: no content *)
-                 | Lwt_unix.Timeout ->
-                     set_inactive handler; Lwt.return timeout_msg
-                 | Connection_closed ->
-                     set_inactive handler;
-                     (* it doesn't matter what we do here *)
-                     Lwt.return timeout_msg
-                 | e -> set_inactive handler; Lwt.fail e)
+                | New_connection -> Lwt.return (encode_downgoing [])
+                (* happens if an other connection has been opened on that service *)
+                (* CCC in this case, it would be beter to return code 204: no content *)
+                | Lwt_unix.Timeout ->
+                    set_inactive handler; Lwt.return timeout_msg
+                | Connection_closed ->
+                    set_inactive handler;
+                    (* it doesn't matter what we do here *)
+                    Lwt.return timeout_msg
+                | e -> set_inactive handler; Lwt.fail e)
       | Eliom_comet_base.Stateful (Eliom_comet_base.Commands commands) ->
           update_inactive handler;
           List.iter
             (function
-               | Eliom_comet_base.Register channel ->
-                   register_channel handler channel
-               | Eliom_comet_base.Close channel ->
-                   close_channel' handler channel)
+              | Eliom_comet_base.Register channel ->
+                  register_channel handler channel
+              | Eliom_comet_base.Close channel -> close_channel' handler channel)
             (Array.to_list commands);
           (* command connections are replied immediately by an
                  empty answer *)
@@ -673,8 +672,11 @@ end = struct
     in
     Eliom_common.make_full_cookie_name pref name
 
-  let create ?(scope = Eliom_common.comet_client_process_scope)
-      ?(name = new_id ()) ~size events
+  let create
+        ?(scope = Eliom_common.comet_client_process_scope)
+        ?(name = new_id ())
+        ~size
+        events
     =
     let name = name_of_scope (scope :> Eliom_common.user_scope) ^ name in
     let handler = get_handler scope in
@@ -713,8 +715,10 @@ end = struct
         (name, channel) :: handler.hd_unregistered_channels;
     {ch_handler = handler; ch_id = name}
 
-  let create_unlimited ?(scope = Eliom_common.comet_client_process_scope)
-      ?(name = new_id ()) stream
+  let create_unlimited
+        ?(scope = Eliom_common.comet_client_process_scope)
+        ?(name = new_id ())
+        stream
     =
     let name = name_of_scope (scope :> Eliom_common.user_scope) ^ name in
     let handler = get_handler scope in

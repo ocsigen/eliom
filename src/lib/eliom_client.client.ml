@@ -19,7 +19,7 @@ open Lwt.Syntax
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 let section = Eliom_client_core.section
 
@@ -43,10 +43,10 @@ let run_lwt_callbacks : 'a -> ('a -> unit Lwt.t) list -> unit Lwt.t =
  fun ev handlers -> Lwt_list.iter_s (fun h -> h ev) handlers
 
 let (onload, _, flush_onload, _push_onload) :
-    ((unit -> unit) -> unit)
-    * (unit -> (unit -> unit) list)
-    * (unit -> (unit -> unit) list)
-    * (unit -> unit)
+  ((unit -> unit) -> unit)
+  * (unit -> (unit -> unit) list)
+  * (unit -> (unit -> unit) list)
+  * (unit -> unit)
   =
   Eliom_client_core.create_buffer ()
 
@@ -87,7 +87,8 @@ let check_global_data global_data =
   let missing_client_values = ref [] in
   let missing_injections = ref [] in
   String_map.iter
-    (fun compilation_unit_id {Eliom_client_core.server_section; client_section} ->
+    (fun compilation_unit_id
+      {Eliom_client_core.server_section; client_section} ->
        List.iter
          (fun data ->
             missing_client_values :=
@@ -107,7 +108,7 @@ let check_global_data global_data =
   | [] -> ()
   | l ->
       Printf.ksprintf
-        (fun s -> Console.console ## (error (Js.string s)))
+        (fun s -> Console.console##(error (Js.string s)))
         "Code generating the following client values is not linked on the client:\n%s"
         (String.concat "\n"
            (List.rev_map
@@ -128,7 +129,7 @@ let check_global_data global_data =
   | [] -> ()
   | l ->
       Printf.ksprintf
-        (fun s -> Console.console ## (error (Js.string s)))
+        (fun s -> Console.console##(error (Js.string s)))
         "Code containing the following injections is not linked on the client:\n%s"
         (String.concat "\n"
            (List.rev_map
@@ -165,14 +166,14 @@ let do_request_data request_data =
 let get_element_cookies_info elt =
   Js.Opt.to_option
     (Js.Opt.map
-       elt
-       ## (getAttribute (Js.string Eliom_runtime.RawXML.ce_call_service_attrib))
+       elt##(getAttribute
+               (Js.string Eliom_runtime.RawXML.ce_call_service_attrib))
        (fun s -> of_json ~typ:[%json: bool * string list] (Js.to_string s)))
 
 let get_element_template elt =
   Js.Opt.to_option
     (Js.Opt.map
-       elt ## (getAttribute (Js.string Eliom_runtime.RawXML.ce_template_attrib))
+       elt##(getAttribute (Js.string Eliom_runtime.RawXML.ce_template_attrib))
        (fun s -> Js.to_string s))
 
 let a_handler =
@@ -191,7 +192,7 @@ let a_handler =
          ev))
 
 let form_handler :
-    (Dom_html.element Js.t, #Dom_html.event Js.t) Dom_html.event_listener
+  (Dom_html.element Js.t, #Dom_html.event Js.t) Dom_html.event_listener
   =
   Dom_html.full_handler (fun node ev ->
     let form =
@@ -212,7 +213,7 @@ let form_handler :
 let relink_process_node (node : Dom_html.element Js.t) =
   let id =
     Js.Opt.get
-      node ## (getAttribute (Js.string Eliom_runtime.RawXML.node_id_attrib))
+      node##(getAttribute (Js.string Eliom_runtime.RawXML.node_id_attrib))
       (fun () -> raise_error ~section "unique node without id attribute")
   in
   Js.Optdef.case
@@ -232,14 +233,14 @@ let relink_process_node (node : Dom_html.element Js.t) =
        if String.sub (Js.to_bytestring id) 0 7 <> "global_"
        then (
          let childrens = Dom.list_of_nodeList pnode##.childNodes in
-         List.iter (fun c -> ignore pnode ## (removeChild c)) childrens;
+         List.iter (fun c -> ignore pnode##(removeChild c)) childrens;
          let childrens = Dom.list_of_nodeList node##.childNodes in
-         List.iter (fun c -> ignore pnode ## (appendChild c)) childrens))
+         List.iter (fun c -> ignore pnode##(appendChild c)) childrens))
 
 let relink_request_node (node : Dom_html.element Js.t) =
   let id =
     Js.Opt.get
-      node ## (getAttribute (Js.string Eliom_runtime.RawXML.node_id_attrib))
+      node##(getAttribute (Js.string Eliom_runtime.RawXML.node_id_attrib))
       (fun () -> raise_error ~section "unique node without id attribute")
   in
   Js.Optdef.case
@@ -260,12 +261,12 @@ let relink_request_node (node : Dom_html.element Js.t) =
 let relink_request_nodes root =
   Lwt_log.ign_debug ~section "Relink request nodes";
   if !Eliom_config.debug_timings
-  then Console.console ## (time (Js.string "relink_request_nodes"));
+  then Console.console##(time (Js.string "relink_request_nodes"));
   Eliommod_dom.iter_nodeList
     (Eliommod_dom.select_request_nodes root)
     relink_request_node;
   if !Eliom_config.debug_timings
-  then Console.console ## (timeEnd (Js.string "relink_request_nodes"))
+  then Console.console##(timeEnd (Js.string "relink_request_nodes"))
 
 (* Relinks a-elements, form-elements, and process nodes. The list of
    closure nodes is returned for application on [relink_closure_node]
@@ -307,10 +308,10 @@ let is_closure_attrib, get_closure_name, get_closure_id =
   let n_len = String.length n_prefix in
   let n_prefix_js = Js.string n_prefix in
   ( (fun attr ->
-      attr ##. value ## (substring 0 v_len) = v_prefix_js
-      && attr ##. name ## (substring 0 n_len) = n_prefix_js)
-  , (fun attr -> attr ##. name ## (substring_toEnd n_len))
-  , fun attr -> attr ##. value ## (substring_toEnd v_len) )
+      attr##.value##(substring 0 v_len) = v_prefix_js
+      && attr##.name##(substring 0 n_len) = n_prefix_js)
+  , (fun attr -> attr##.name##(substring_toEnd n_len))
+  , fun attr -> attr##.value##(substring_toEnd v_len) )
 
 let relink_closure_node root onload table (node : Dom_html.element Js.t) =
   Lwt_log.ign_debug ~section "Relink closure node";
@@ -324,8 +325,9 @@ let relink_closure_node root onload table (node : Dom_html.element Js.t) =
         let closure = Eliom_client_core.raw_event_handler cv in
         if name = Js.string "onload"
         then (
-          if Eliommod_dom.ancessor root node
-             (* if not inside a unique node replaced by an older one *)
+          if
+            Eliommod_dom.ancessor root node
+            (* if not inside a unique node replaced by an older one *)
           then onload := closure :: !onload)
         else
           Js.Unsafe.set node name
@@ -336,8 +338,10 @@ let relink_closure_node root onload table (node : Dom_html.element Js.t) =
   in
   Eliommod_dom.iter_attrList node##.attributes aux
 
-let relink_closure_nodes (root : Dom_html.element Js.t) event_handlers
-    closure_nodeList
+let relink_closure_nodes
+      (root : Dom_html.element Js.t)
+      event_handlers
+      closure_nodeList
   =
   Lwt_log.ign_debug_f ~section "Relink %i closure nodes"
     closure_nodeList##.length;
@@ -356,9 +360,9 @@ let is_attrib_attrib, get_attrib_id =
   let n_len = String.length n_prefix in
   let n_prefix_js = Js.string n_prefix in
   ( (fun attr ->
-      attr ##. value ## (substring 0 v_len) = v_prefix_js
-      && attr ##. name ## (substring 0 n_len) = n_prefix_js)
-  , fun attr -> attr ##. value ## (substring_toEnd v_len) )
+      attr##.value##(substring 0 v_len) = v_prefix_js
+      && attr##.name##(substring 0 n_len) = n_prefix_js)
+  , fun attr -> attr##.value##(substring_toEnd v_len) )
 
 let relink_attrib _root table (node : Dom_html.element Js.t) =
   Lwt_log.ign_debug ~section "Relink attribute";
@@ -405,12 +409,12 @@ let load_data_script page =
   in
   let script = data_script##.text in
   if !Eliom_config.debug_timings
-  then Console.console ## (time (Js.string "load_data_script"));
+  then Console.console##(time (Js.string "load_data_script"));
   ignore (Js.Unsafe.eval_string (Js.to_string script));
   Eliom_process.reset_request_template ();
   Eliom_process.reset_request_cookies ();
   if !Eliom_config.debug_timings
-  then Console.console ## (timeEnd (Js.string "load_data_script"))
+  then Console.console##(timeEnd (Js.string "load_data_script"))
 
 (* == Scroll the current page such that the top of element with the id
    [fragment] is aligned with the window's top. If the optional
@@ -424,8 +428,8 @@ let scroll_to_fragment ?offset fragment =
     match fragment with
     | None | Some "" -> Eliommod_dom.setDocumentScroll Eliommod_dom.top_position
     | Some fragment ->
-        let scroll_to_element e = e ## (scrollIntoView Js._true) in
-        let elem = Dom_html.document ## (getElementById (Js.string fragment)) in
+        let scroll_to_element e = e##(scrollIntoView Js._true) in
+        let elem = Dom_html.document##(getElementById (Js.string fragment)) in
         Js.Opt.iter elem scroll_to_element)
 
 let with_progress_cursor : 'a Lwt.t -> 'a Lwt.t =
@@ -448,8 +452,9 @@ type tmp_recontent =
 [@@warning "-37"]
 
 type tmp_elt =
-  {(* to be unwrapped *)
-   tmp_elt : tmp_recontent; tmp_node_id : Xml.node_id}
+  { (* to be unwrapped *)
+    tmp_elt : tmp_recontent
+  ; tmp_node_id : Xml.node_id }
 
 (******************************************************************************)
 (*                            Register unwrappers                             *)
@@ -562,10 +567,10 @@ let add_string_event_listener o e f capt : unit =
   @@
   if not (Js.Optdef.test (Js.Unsafe.coerce o)##.addEventListener)
   then
-    let e = (Js.string "on") ## (concat e)
+    let e = (Js.string "on")##(concat e)
     and cb e = Js.Unsafe.call (f, e, [||]) in
-    (Js.Unsafe.coerce o) ## (attachEvent e cb)
-  else (Js.Unsafe.coerce o) ## (addEventListener e f capt)
+    (Js.Unsafe.coerce o)##(attachEvent e cb)
+  else (Js.Unsafe.coerce o)##(addEventListener e f capt)
 
 (* == Associate data to state of the History API.
 
@@ -591,15 +596,16 @@ type state =
 [@@@warning "+39"]
 
 let random_int =
-  if Js.Optdef.test Js.Unsafe.global##.crypto
-     && Js.Optdef.test Js.Unsafe.global##.crypto##.getRandomValues
+  if
+    Js.Optdef.test Js.Unsafe.global##.crypto
+    && Js.Optdef.test Js.Unsafe.global##.crypto##.getRandomValues
   then
     fun () ->
-    let a =
-      Js.Unsafe.global ##. crypto
-      ## (getRandomValues (new%js Typed_array.int16Array 2))
-    in
-    (Typed_array.unsafe_get a 0 lsl 16) lor Typed_array.unsafe_get a 1
+      let a =
+        Js.Unsafe.global##.crypto##(getRandomValues
+                                      (new%js Typed_array.int16Array 2))
+      in
+      (Typed_array.unsafe_get a 0 lsl 16) lor Typed_array.unsafe_get a 1
   else fun () -> truncate (4294967296. *. Js.to_float Js.math##random)
 
 let section_page = Lwt_log.Section.make "eliom:client:page"
@@ -823,7 +829,7 @@ let get_state state_id : state =
              available. Sessionstorage seems to be available
              everywhere the history API exists. *)
           raise_error ~section "sessionStorage not available")
-       (fun s -> s ## (getItem (state_key state_id))))
+       (fun s -> s##(getItem (state_key state_id))))
     (fun () -> raise Not_found)
     (fun s -> of_json ~typ:[%json: state] (Js.to_string s))
 
@@ -832,7 +838,7 @@ let set_state i (v : state) =
     Dom_html.window##.sessionStorage
     (fun () -> ())
     (fun s ->
-       s ## (setItem (state_key i) (Js.string (to_json ~typ:[%json: state] v))))
+       s##(setItem (state_key i) (Js.string (to_json ~typ:[%json: state] v))))
 
 let update_state () =
   set_state !active_page.page_id
@@ -859,14 +865,14 @@ let insert_base page =
   b##.href := Js.string (Eliom_process.get_base_url ());
   b##.id := Js.string Eliom_common_base.base_elt_id;
   Js.Opt.case
-    page ## (querySelector (Js.string "head"))
+    page##(querySelector (Js.string "head"))
     (fun () -> Lwt_log.ign_debug_f "No <head> found in document")
     (fun head -> Dom.appendChild head b)
 
 let get_global_data () =
   let def () = None and id = Js.string "__global_data" in
   Js.Optdef.case Dom_html.window##.localStorage def @@ fun storage ->
-  Js.Opt.case storage ## (getItem id) def @@ fun v ->
+  Js.Opt.case storage##(getItem id) def @@ fun v ->
   Lwt_log.ign_debug_f "Unwrap __global_data";
   match Eliom_unwrap.unwrap (Url.decode (Js.to_string v)) 0 with
   | {Eliom_runtime.ecs_data = `Success v; _} ->
@@ -944,9 +950,10 @@ let dom_history_ready = ref false
                         server functions (see Eliom_uri). *)
 let init () =
   (* Initialize client app if the __eliom_server variable is defined *)
-  (if is_client_app ()
-      && Js.Optdef.test Js.Unsafe.global##.___eliom_server_
-      && Js.Optdef.test Js.Unsafe.global##.___eliom_app_name_
+  (if
+     is_client_app ()
+     && Js.Optdef.test Js.Unsafe.global##.___eliom_server_
+     && Js.Optdef.test Js.Unsafe.global##.___eliom_app_name_
    then
      let app_name = Js.to_string Js.Unsafe.global##.___eliom_app_name_
      and site_dir =
@@ -1004,7 +1011,7 @@ let init () =
     Eliom_client_core.set_initial_load ();
     Lwt.async (fun () ->
       if !Eliom_config.debug_timings
-      then Console.console ## (time (Js.string "onload"));
+      then Console.console##(time (Js.string "onload"));
       let* () =
         Eliom_request_info.set_session_info
           ~uri:
@@ -1043,7 +1050,7 @@ let init () =
       Lwt_mutex.unlock Eliom_client_core.load_mutex;
       run_callbacks load_callbacks;
       if !Eliom_config.debug_timings
-      then Console.console ## (timeEnd (Js.string "onload"));
+      then Console.console##(timeEnd (Js.string "onload"));
       Lwt.return_unit);
     Js._false
   in
@@ -1068,10 +1075,20 @@ let init () =
 
 (* == Low-level: call service. *)
 
-let create_request__ ?absolute ?absolute_path ?https (type m)
-    ~(service : (_, _, m, _, _, _, _, _, _, _, _) Eliom_service.t) ?hostname
-    ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params get_params
-    post_params
+let create_request__
+      ?absolute
+      ?absolute_path
+      ?https
+      (type m)
+      ~(service : (_, _, m, _, _, _, _, _, _, _, _) Eliom_service.t)
+      ?hostname
+      ?port
+      ?fragment
+      ?keep_nl_params
+      ?nl_params
+      ?keep_get_na_params
+      get_params
+      post_params
   =
   let path, get_params, fragment, post_params =
     Eliom_uri.make_post_uri_components__ ?absolute ?absolute_path ?https
@@ -1083,10 +1100,20 @@ let create_request__ ?absolute ?absolute_path ?https (type m)
   in
   uri, get_params, post_params
 
-let create_request_ (type m) ?absolute ?absolute_path ?https
-    ~(service : (_, _, m, _, _, _, _, _, _, _, _) Eliom_service.t) ?hostname
-    ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params get_params
-    post_params
+let create_request_
+      (type m)
+      ?absolute
+      ?absolute_path
+      ?https
+      ~(service : (_, _, m, _, _, _, _, _, _, _, _) Eliom_service.t)
+      ?hostname
+      ?port
+      ?fragment
+      ?keep_nl_params
+      ?nl_params
+      ?keep_get_na_params
+      get_params
+      post_params
   =
   (* TODO: allow get_get_or_post service to return also the service
      with the correct subtype. Then do use Eliom_uri.make_string_uri
@@ -1117,9 +1144,22 @@ let create_request_ (type m) ?absolute ?absolute_path ?https
            ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
            get_params post_params)
 
-let raw_call_service ?absolute ?absolute_path ?https ~service ?hostname ?port
-    ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params ?progress
-    ?upload_progress ?override_mime_type get_params post_params
+let raw_call_service
+      ?absolute
+      ?absolute_path
+      ?https
+      ~service
+      ?hostname
+      ?port
+      ?fragment
+      ?keep_nl_params
+      ?nl_params
+      ?keep_get_na_params
+      ?progress
+      ?upload_progress
+      ?override_mime_type
+      get_params
+      post_params
   =
   (* with_credentials = true is necessary for client side apps when
      we want the Eliom server to be different from the server for
@@ -1159,9 +1199,22 @@ let raw_call_service ?absolute ?absolute_path ?https ~service ?hostname ?port
   | None -> Lwt.fail (Eliom_request.Failed_request 204)
   | Some content -> Lwt.return (uri, content)
 
-let call_service ?absolute ?absolute_path ?https ~service ?hostname ?port
-    ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params ?progress
-    ?upload_progress ?override_mime_type get_params post_params
+let call_service
+      ?absolute
+      ?absolute_path
+      ?https
+      ~service
+      ?hostname
+      ?port
+      ?fragment
+      ?keep_nl_params
+      ?nl_params
+      ?keep_get_na_params
+      ?progress
+      ?upload_progress
+      ?override_mime_type
+      get_params
+      post_params
   =
   let* _, content =
     raw_call_service ?absolute ?absolute_path ?https ~service ?hostname ?port
@@ -1172,9 +1225,21 @@ let call_service ?absolute ?absolute_path ?https ~service ?hostname ?port
 
 (* == Leave an application. *)
 
-let exit_to ?window_name ?window_features ?absolute ?absolute_path ?https
-    ~service ?hostname ?port ?fragment ?keep_nl_params ?nl_params
-    ?keep_get_na_params get_params post_params
+let exit_to
+      ?window_name
+      ?window_features
+      ?absolute
+      ?absolute_path
+      ?https
+      ~service
+      ?hostname
+      ?port
+      ?fragment
+      ?keep_nl_params
+      ?nl_params
+      ?keep_get_na_params
+      get_params
+      post_params
   =
   match
     create_request_ ?absolute ?absolute_path ?https ~service ?hostname ?port
@@ -1190,17 +1255,28 @@ let exit_to ?window_name ?window_features ?absolute ?absolute_path ?https
   | `Delete (uri, _, post_params) ->
       Eliom_request.redirect_delete ?window_name uri post_params
 
-let window_open ~window_name ?window_features ?absolute ?absolute_path ?https
-    ~service ?hostname ?port ?fragment ?keep_nl_params ?nl_params
-    ?keep_get_na_params get_params
+let window_open
+      ~window_name
+      ?window_features
+      ?absolute
+      ?absolute_path
+      ?https
+      ~service
+      ?hostname
+      ?port
+      ?fragment
+      ?keep_nl_params
+      ?nl_params
+      ?keep_get_na_params
+      get_params
   =
   match
     create_request_ ?absolute ?absolute_path ?https ~service ?hostname ?port
       ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params get_params ()
   with
   | `Get (uri, _) ->
-      Dom_html.window
-      ## (open_ (Js.string uri) window_name (Js.Opt.option window_features))
+      Dom_html.window##(open_ (Js.string uri) window_name
+                          (Js.Opt.option window_features))
   | `Post (_, _, _) -> assert false
   | `Put (_, _, _) -> assert false
   | `Delete (_, _, _) -> assert false
@@ -1217,9 +1293,22 @@ let unwrap_caml_content content =
   in
   Lwt.return (r.Eliom_runtime.ecs_data, r.Eliom_runtime.ecs_request_data)
 
-let call_ocaml_service ?absolute ?absolute_path ?https ~service ?hostname ?port
-    ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params ?progress
-    ?upload_progress ?override_mime_type get_params post_params
+let call_ocaml_service
+      ?absolute
+      ?absolute_path
+      ?https
+      ~service
+      ?hostname
+      ?port
+      ?fragment
+      ?keep_nl_params
+      ?nl_params
+      ?keep_get_na_params
+      ?progress
+      ?upload_progress
+      ?override_mime_type
+      get_params
+      post_params
   =
   Lwt_log.ign_debug ~section "Call OCaml service";
   let* _, content =
@@ -1412,8 +1501,18 @@ let change_url_string ~replace uri =
    It takes a GET (co-)service as parameter and its parameters.
 *)
 
-let change_url ?(replace = false) ?absolute ?absolute_path ?https ~service
-    ?hostname ?port ?fragment ?keep_nl_params ?nl_params params
+let change_url
+      ?(replace = false)
+      ?absolute
+      ?absolute_path
+      ?https
+      ~service
+      ?hostname
+      ?port
+      ?fragment
+      ?keep_nl_params
+      ?nl_params
+      params
   =
   Lwt_log.ign_debug ~section:section_page "Change url";
   (reload_function :=
@@ -1459,10 +1558,10 @@ let set_uri ~replace ?fragment uri =
 
 let replace_page ~do_insert_base new_page =
   if !Eliom_config.debug_timings
-  then Console.console ## (time (Js.string "replace_page"));
+  then Console.console##(time (Js.string "replace_page"));
   if !only_replace_body
   then
-    let new_body = new_page ##. childNodes ## (item 1) in
+    let new_body = new_page##.childNodes##(item 1) in
     Js.Opt.iter new_body (fun new_body ->
       Dom.replaceChild
         Dom_html.document##.documentElement
@@ -1475,7 +1574,7 @@ let replace_page ~do_insert_base new_page =
     Dom.replaceChild Dom_html.document new_page
       Dom_html.document##.documentElement);
   if !Eliom_config.debug_timings
-  then Console.console ## (timeEnd (Js.string "replace_page"))
+  then Console.console##(timeEnd (Js.string "replace_page"))
 
 (* Function to be called for client side services: *)
 let set_content_local ?offset ?fragment new_page =
@@ -1484,7 +1583,7 @@ let set_content_local ?offset ?fragment new_page =
   let recover () =
     if !locked then Lwt_mutex.unlock Eliom_client_core.load_mutex;
     if !Eliom_config.debug_timings
-    then Console.console ## (timeEnd (Js.string "set_content_local"))
+    then Console.console##(timeEnd (Js.string "set_content_local"))
   and really_set () =
     (* Inline CSS in the header to avoid the "flashing effect".
        Otherwise, the browser start to display the page before
@@ -1510,7 +1609,7 @@ let set_content_local ?offset ?fragment new_page =
     scroll_to_fragment ?offset fragment;
     advance_page ();
     if !Eliom_config.debug_timings
-    then Console.console ## (timeEnd (Js.string "set_content_local"));
+    then Console.console##(timeEnd (Js.string "set_content_local"));
     Lwt.return_unit
   in
   let cancel () = recover (); Lwt.return_unit in
@@ -1519,7 +1618,7 @@ let set_content_local ?offset ?fragment new_page =
        let* () = Lwt_mutex.lock Eliom_client_core.load_mutex in
        Eliom_client_core.set_loading_phase ();
        if !Eliom_config.debug_timings
-       then Console.console ## (time (Js.string "set_content_local"));
+       then Console.console##(time (Js.string "set_content_local"));
        run_onunload_wrapper really_set cancel)
     (fun exn ->
        recover ();
@@ -1619,19 +1718,19 @@ let set_content ~replace ~uri ?offset ?fragment content =
         scroll_to_fragment ?offset fragment;
         advance_page ();
         if !Eliom_config.debug_timings
-        then Console.console ## (timeEnd (Js.string "set_content"));
+        then Console.console##(timeEnd (Js.string "set_content"));
         Lwt.return_unit
       and recover () =
         if !locked then Lwt_mutex.unlock Eliom_client_core.load_mutex;
         if !Eliom_config.debug_timings
-        then Console.console ## (timeEnd (Js.string "set_content"))
+        then Console.console##(timeEnd (Js.string "set_content"))
       in
       Lwt.catch
         (fun () ->
            let* () = Lwt_mutex.lock Eliom_client_core.load_mutex in
            Eliom_client_core.set_loading_phase ();
            if !Eliom_config.debug_timings
-           then Console.console ## (time (Js.string "set_content"));
+           then Console.console##(time (Js.string "set_content"));
            let g () = recover (); Lwt.return_unit in
            run_onunload_wrapper really_set g)
         (fun exn ->
@@ -1727,39 +1826,39 @@ let rec handle_result ~replace ~uri result =
    function used to change page when clicking a link and
    [change_page_{get,post}_form] when submiting a form. *)
 and change_page :
-      'get 'post 'meth 'attached 'co 'ext 'reg 'tipo 'gn 'pn.
-      ?ignore_client_fun:bool
-      -> ?replace:bool
-      -> ?window_name:string
-      -> ?window_features:string
-      -> ?absolute:bool
-      -> ?absolute_path:bool
-      -> ?https:bool
-      -> service:
-           ( 'get
-             , 'post
-             , 'meth
-             , 'attached
-             , 'co
-             , 'ext
-             , 'reg
-             , 'tipo
-             , 'gn
-             , 'pn
-             , Eliom_service.non_ocaml )
-             Eliom_service.t
-      -> ?hostname:string
-      -> ?port:int
-      -> ?fragment:string
-      -> ?keep_nl_params:[`All | `None | `Persistent]
-      -> ?nl_params:Eliom_parameter.nl_params_set
-      -> ?keep_get_na_params:bool
-      -> ?progress:(int -> int -> unit)
-      -> ?upload_progress:(int -> int -> unit)
-      -> ?override_mime_type:string
-      -> 'get
-      -> 'post
-      -> unit Lwt.t
+  'get 'post 'meth 'attached 'co 'ext 'reg 'tipo 'gn 'pn.
+  ?ignore_client_fun:bool
+  -> ?replace:bool
+  -> ?window_name:string
+  -> ?window_features:string
+  -> ?absolute:bool
+  -> ?absolute_path:bool
+  -> ?https:bool
+  -> service:
+       ( 'get
+         , 'post
+         , 'meth
+         , 'attached
+         , 'co
+         , 'ext
+         , 'reg
+         , 'tipo
+         , 'gn
+         , 'pn
+         , Eliom_service.non_ocaml )
+         Eliom_service.t
+  -> ?hostname:string
+  -> ?port:int
+  -> ?fragment:string
+  -> ?keep_nl_params:[`All | `None | `Persistent]
+  -> ?nl_params:Eliom_parameter.nl_params_set
+  -> ?keep_get_na_params:bool
+  -> ?progress:(int -> int -> unit)
+  -> ?upload_progress:(int -> int -> unit)
+  -> ?override_mime_type:string
+  -> 'get
+  -> 'post
+  -> unit Lwt.t
   =
  fun (type m)
    ?(ignore_client_fun = false)
@@ -1783,10 +1882,11 @@ and change_page :
    post_params ->
   Lwt_log.ign_debug ~section:section_page "Change page";
   let xhr = Eliom_service.xhr_with_cookies service in
-  if xhr = None
-     || (https = Some true && not Eliom_request_info.ssl_)
-     || (https = Some false && Eliom_request_info.ssl_)
-     || (window_name <> None && window_name <> Some "_self")
+  if
+    xhr = None
+    || (https = Some true && not Eliom_request_info.ssl_)
+    || (https = Some false && Eliom_request_info.ssl_)
+    || (window_name <> None && window_name <> Some "_self")
   then
     let () =
       Lwt_log.ign_debug ~section:section_page "change page: xhr is None"
@@ -1891,8 +1991,13 @@ and change_page :
             let uri, fragment = Url.split_fragment uri in
             set_content ~replace ~uri ?fragment content))
 
-and change_page_unknown ?meth ?hostname:_ ?(replace = false) i_subpath
-    i_get_params i_post_params
+and change_page_unknown
+      ?meth
+      ?hostname:_
+      ?(replace = false)
+      i_subpath
+      i_get_params
+      i_post_params
   =
   Lwt_log.ign_debug ~section:section_page "Change page unknown";
   let i_sess_info = Eliom_request_info.get_sess_info ()
@@ -2186,14 +2291,15 @@ let () =
     Lwt.ignore_result
       (let* () = wait_load_end () in
        Lwt_log.ign_debug ~section:section_page "revisit_wrapper: replaceState";
-       Dom_html.window ##. history
-       ## (replaceState
-             (Js.Opt.return
-                (Js.string
-                   (to_json ~typ:[%json: saved_state]
-                      ( !active_page.page_id
-                      , Js.to_string Dom_html.window##.location##.href ))))
-             (Js.string "") Js.null);
+       Dom_html.window##.history##(replaceState
+                                     (Js.Opt.return
+                                        (Js.string
+                                           (to_json ~typ:[%json: saved_state]
+                                              ( !active_page.page_id
+                                              , Js.to_string
+                                                  Dom_html.window##.location##.href
+                                              ))))
+                                     (Js.string "") Js.null);
        Lwt.return_unit);
     Dom_html.window##.onpopstate
     := Dom_html.handler (fun event ->
@@ -2208,9 +2314,7 @@ let () =
            in
            revisit_wrapper full_uri state);
       Js._false))
-  else
-    (* Without history API *)
-
+  else (* Without history API *)
     (* FIXME: This should be adapted to work with template...
        Solution: add the "state_id" in the fragment ??
     *)

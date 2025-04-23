@@ -134,18 +134,18 @@ module Pass = struct
 
   let close_server_section loc =
     [%stri
-      let () =
-        Eliom_client_core.Syntax_helpers.close_server_section
-          [%e eid @@ id_file_hash loc]]
+    let () =
+      Eliom_client_core.Syntax_helpers.close_server_section
+        [%e eid @@ id_file_hash loc]]
 
   let may_close_server_section ~no_fragment item =
     if no_fragment then [] else [close_server_section item.pstr_loc]
 
   let open_client_section loc =
     [%stri
-      let () =
-        Eliom_client_core.Syntax_helpers.open_client_section
-          [%e eid @@ id_file_hash loc]]
+    let () =
+      Eliom_client_core.Syntax_helpers.open_client_section
+        [%e eid @@ id_file_hash loc]]
 
   let may_open_client_section loc =
     if flush_injection () then [open_client_section loc] else []
@@ -220,8 +220,13 @@ module Pass = struct
     end)
       #core_type
 
-  let escape_inject ~loc:loc0 ?ident ~(context : Context.escape_inject) ~id
-      ~unsafe expr
+  let escape_inject
+        ~loc:loc0
+        ?ident
+        ~(context : Context.escape_inject)
+        ~id
+        ~unsafe
+        expr
     =
     let loc = expr.pexp_loc in
     let frag_eid = eid id in

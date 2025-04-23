@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 open Eliom_lib
 
@@ -244,7 +244,7 @@ module Data = Make (struct
       [`Session] Eliom_common.sessgrp Ocsigen_cache.Dlist.node
 
     let table :
-        (group_of_group_data option * string Ocsigen_cache.Dlist.t) GroupTable.t
+      (group_of_group_data option * string Ocsigen_cache.Dlist.t) GroupTable.t
       =
       (* The table associates the dlist for a group
          to a full session group name.
@@ -278,8 +278,12 @@ module Data = Make (struct
     let max_session_per_ip sitedata =
       fst sitedata.Eliom_common.max_volatile_data_sessions_per_subnet
 
-    let clean_session sitedata sess_grp find_node_in_group_of_groups remove1
-        remove2
+    let clean_session
+          sitedata
+          sess_grp
+          find_node_in_group_of_groups
+          remove1
+          remove2
       =
       (* We removed the last session from a group.
          Do we want to close the group completely?
@@ -329,7 +333,7 @@ module Serv = Make (struct
       * [`Session] Eliom_common.sessgrp Ocsigen_cache.Dlist.node
 
     let table :
-        (group_of_group_data option * string Ocsigen_cache.Dlist.t) GroupTable.t
+      (group_of_group_data option * string Ocsigen_cache.Dlist.t) GroupTable.t
       =
       GroupTable.create 100
 
@@ -346,8 +350,12 @@ module Serv = Make (struct
     let max_session_per_ip sitedata =
       fst sitedata.Eliom_common.max_service_sessions_per_subnet
 
-    let clean_session sitedata sess_grp find_node_in_group_of_groups remove1
-        remove2
+    let clean_session
+          sitedata
+          sess_grp
+          find_node_in_group_of_groups
+          remove1
+          remove2
       =
       (* We removed the last session from a group.
          Do we want to close the group completely?
@@ -454,17 +462,17 @@ module Pers = struct
              Ocsipersist.replace_if_exists grouptable sg (newmax, sess_id :: cl)
              >>= fun () -> Lwt.return toclose)
           (function
-             | Not_found ->
-                 let max =
-                   match set_max with
-                   | None -> Default
-                   | Some None -> Nolimit
-                   | Some (Some v) -> Val v
-                 in
-                 !!grouptable >>= fun grouptable ->
-                 Ocsipersist.add grouptable sg (max, [sess_id]) >>= fun () ->
-                 Lwt.return_nil
-             | e -> Lwt.fail e)
+            | Not_found ->
+                let max =
+                  match set_max with
+                  | None -> Default
+                  | Some None -> Nolimit
+                  | Some (Some v) -> Val v
+                in
+                !!grouptable >>= fun grouptable ->
+                Ocsipersist.add grouptable sg (max, [sess_id]) >>= fun () ->
+                Lwt.return_nil
+            | e -> Lwt.fail e)
     | None -> Lwt.return_nil
 
   let rec remove_group ~cookie_level sitedata sess_grp =

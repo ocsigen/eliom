@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 open Js_of_ocaml
 include Ocsigen_lib_base
@@ -108,13 +108,13 @@ let lwt_ignore ?(message = "") t =
   Lwt.on_failure t (fun exn -> Lwt_log.ign_info_f ~exn "%s" message)
 
 (* Debbuging *)
-let jsalert a = Dom_html.window ## (alert a)
+let jsalert a = Dom_html.window##(alert a)
 let alert fmt = Printf.ksprintf (fun s -> jsalert (Js.string s)) fmt
 
 let confirm =
   let f s =
     let s = Js.string s in
-    Dom_html.window ## (confirm s) |> Js.to_bool
+    Dom_html.window##(confirm s) |> Js.to_bool
   in
   fun fmt -> Printf.ksprintf f fmt
 

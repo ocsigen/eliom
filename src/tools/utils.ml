@@ -337,8 +337,12 @@ let rec wait ?(on_error = fun _ -> ()) pid =
       on_error e;
       wait pid
 
-let create_process ?(in_ = Unix.stdin) ?(out = Unix.stdout) ?(err = Unix.stderr)
-    name args
+let create_process
+      ?(in_ = Unix.stdin)
+      ?(out = Unix.stdout)
+      ?(err = Unix.stderr)
+      name
+      args
   =
   if !verbose
   then (

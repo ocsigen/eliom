@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 let section = Lwt_log.Section.make "eliom:wrap"
 
@@ -57,9 +57,10 @@ let make_mark f mark = {mark; f}
 
 let is_marked o =
   let is_mark o =
-    if Obj.tag o = 0
-       && Obj.size o = 2
-       && Obj.field o 0 == Obj.repr Mark.wrap_mark
+    if
+      Obj.tag o = 0
+      && Obj.size o = 2
+      && Obj.field o 0 == Obj.repr Mark.wrap_mark
     then (
       let f = Obj.field o 1 in
       assert (Obj.tag f = 0);
@@ -71,8 +72,9 @@ let is_marked o =
       true)
     else false
   in
-  if Obj.tag o = 0 && Obj.size o >= 2
-     (* WARNING: we only allow block values with tag = 0 to be wrapped.
+  if
+    Obj.tag o = 0 && Obj.size o >= 2
+    (* WARNING: we only allow block values with tag = 0 to be wrapped.
      It is easier: we do not have to do another test to know if the
      value is a function *)
   then

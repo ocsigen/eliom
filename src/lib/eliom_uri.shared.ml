@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 (* Building href *)
 
@@ -104,17 +104,23 @@ let is_https https ssl service =
   || Eliom_service.https service
   || (https = None && ssl)
 
-let make_uri_components_ ?(* does not take into account getparams *) absolute
-    ?((* absolute is used to force absolute link.
+let make_uri_components_
+      ?(* does not take into account getparams *) absolute
+      ?((* absolute is used to force absolute link.
        The default is false for regular application.
        But for client side apps (mobile apps), it is true, because
        relative URLs are used for local assets. *)
-      absolute_path = false)
-    ?(* used to force absolute link without protocol/server/port *)
-     https (type a)
-    ~(service : (_, _, _, a, _, _, _, _, _, _, _) Eliom_service.t) ?hostname
-    ?port ?fragment ?keep_nl_params
-    ?(nl_params = Eliom_parameter.empty_nl_params_set) ()
+        absolute_path = false)
+      ?(* used to force absolute link without protocol/server/port *)
+       https
+      (type a)
+      ~(service : (_, _, _, a, _, _, _, _, _, _, _) Eliom_service.t)
+      ?hostname
+      ?port
+      ?fragment
+      ?keep_nl_params
+      ?(nl_params = Eliom_parameter.empty_nl_params_set)
+      ()
   =
   let absolute =
     match absolute with
@@ -184,7 +190,8 @@ let make_uri_components_ ?(* does not take into account getparams *) absolute
         then
           Eliom_service.prefix attser
           ^ "/"
-          ^ (* we add the "/" even if there is no prefix, because
+          ^
+          (* we add the "/" even if there is no prefix, because
                     we should do absolute links in that case *)
           reconstruct_absolute_url_path (Eliom_service.full_path attser) suff
         else
@@ -286,9 +293,18 @@ let make_uri_components_ ?(* does not take into account getparams *) absolute
       in
       beg, params, fragment
 
-let make_uri_components ?absolute ?absolute_path ?https (type a)
-    ~(service : (_, _, _, a, _, _, _, _, _, _, _) Eliom_service.t) ?hostname
-    ?port ?fragment ?keep_nl_params ?nl_params getparams
+let make_uri_components
+      ?absolute
+      ?absolute_path
+      ?https
+      (type a)
+      ~(service : (_, _, _, a, _, _, _, _, _, _, _) Eliom_service.t)
+      ?hostname
+      ?port
+      ?fragment
+      ?keep_nl_params
+      ?nl_params
+      getparams
   =
   let uri, pregetparams, fragment =
     make_uri_components_ ?absolute ?absolute_path ?https ~service ?hostname
@@ -321,8 +337,17 @@ let make_string_uri_from_components (uri, params, fragment) =
   in
   match fragment with None -> s | Some f -> Eliom_lib.String.concat "#" [s; f]
 
-let make_string_uri ?absolute ?absolute_path ?https ~service ?hostname ?port
-    ?fragment ?keep_nl_params ?nl_params getparams : string
+let make_string_uri
+      ?absolute
+      ?absolute_path
+      ?https
+      ~service
+      ?hostname
+      ?port
+      ?fragment
+      ?keep_nl_params
+      ?nl_params
+      getparams : string
   =
   make_string_uri_from_components
     (make_uri_components ?absolute ?absolute_path ?https ~service ?hostname
@@ -331,13 +356,20 @@ let make_string_uri ?absolute ?absolute_path ?https ~service ?hostname ?port
 let make_string_uri_ = make_string_uri
 
 let make_post_uri_components_
-    ?((* do not take into account postparams *)
-      absolute = !Eliom_common.is_client_app) ?(absolute_path = false) ?https
-    (type a) ~(service : (_, _, _, a, _, _, _, _, _, _, _) Eliom_service.t)
-    ?hostname ?port ?fragment
-    ?(keep_nl_params : [`All | `Persistent | `None] option)
-    ?(nl_params = Eliom_parameter.empty_nl_params_set) ?keep_get_na_params
-    getparams ()
+      ?((* do not take into account postparams *)
+        absolute = !Eliom_common.is_client_app)
+      ?(absolute_path = false)
+      ?https
+      (type a)
+      ~(service : (_, _, _, a, _, _, _, _, _, _, _) Eliom_service.t)
+      ?hostname
+      ?port
+      ?fragment
+      ?(keep_nl_params : [`All | `Persistent | `None] option)
+      ?(nl_params = Eliom_parameter.empty_nl_params_set)
+      ?keep_get_na_params
+      getparams
+      ()
   =
   match Eliom_service.info service with
   | Eliom_service.Attached attser ->
@@ -451,12 +483,13 @@ let make_post_uri_components_
       let uri =
         match absolute with
         | Some proto_prefix ->
-            if !Eliom_common.is_client_app
-               &&
-               let s = Eliom_request_info.get_original_full_path_string_sp sp
-               and s' = Eliom_common.client_html_file () in
-               let n = String.length s and n' = String.length s' in
-               n >= n' && String.(sub s (n - n') n') = s'
+            if
+              !Eliom_common.is_client_app
+              &&
+              let s = Eliom_request_info.get_original_full_path_string_sp sp
+              and s' = Eliom_common.client_html_file () in
+              let n = String.length s and n' = String.length s' in
+              n >= n' && String.(sub s (n - n') n') = s'
             then
               (* Workaround for GitHub issue #465.
 
@@ -495,13 +528,26 @@ let make_post_uri_components_
             Eliom_common.naservice_num, n
         | _ -> assert false
       in
-      let fragment = None (* fragment is not sent to the server *) in
+      let fragment =
+        None
+        (* fragment is not sent to the server *)
+      in
       let postparams = [naservice_line] in
       uri, params, fragment, Eliommod_parameters.inject_param_list postparams
 
-let make_post_uri_components ?absolute ?absolute_path ?https ~service ?hostname
-    ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params getparams
-    postparams
+let make_post_uri_components
+      ?absolute
+      ?absolute_path
+      ?https
+      ~service
+      ?hostname
+      ?port
+      ?fragment
+      ?keep_nl_params
+      ?nl_params
+      ?keep_get_na_params
+      getparams
+      postparams
   =
   let uri, getparams, fragment, prepostparams =
     make_post_uri_components_ ?absolute ?absolute_path ?https ~service ?hostname
@@ -535,11 +581,12 @@ let make_post_uri_components__ = make_post_uri_components
 *)
 let make_cookies_info (https, service) =
   (* https is what the user asked while creating the link/form *)
-  let get_path_ (type a)
-      ~(* simplified version of make_uri_components.
+  let get_path_
+        (type a)
+        ~(* simplified version of make_uri_components.
                             Returns only the absolute path without
                             protocol/server/port AND WITHOUT SUFFIX *)
-      (service : (_, _, _, a, _, _, _, _, _, _, _) Eliom_service.t)
+        (service : (_, _, _, a, _, _, _, _, _, _, _) Eliom_service.t)
     =
     match Eliom_service.info service with
     | Eliom_service.Attached attser ->

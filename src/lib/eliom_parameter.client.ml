@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 open Js_of_ocaml
 include Eliom_parameter_base
@@ -65,22 +65,20 @@ let reconstruct_atom ~f m name =
 
 let ( >>= ) x f = match x with Some x -> f x | None -> None
 
-let rec reconstruct_set :
-    type a c.
-    a list * Form.form_elt M.t
-    -> (a, _, c) params_type
-    -> a list * Form.form_elt M.t
+let rec reconstruct_set : type a c.
+  a list * Form.form_elt M.t
+  -> (a, _, c) params_type
+  -> a list * Form.form_elt M.t
   =
  fun ((acc, m) as p) y ->
   match reconstruct_params_form m y with
   | Some (v, m) -> reconstruct_set (v :: acc, m) y
   | None -> p
 
-and reconstruct_params_form :
-    type a c.
-    Form.form_elt M.t
-    -> (a, [`WithoutSuffix], c) params_type
-    -> (a * Form.form_elt M.t) option
+and reconstruct_params_form : type a c.
+  Form.form_elt M.t
+  -> (a, [`WithoutSuffix], c) params_type
+  -> (a * Form.form_elt M.t) option
   =
  fun m -> function
   | TAtom (name, TBool) -> (

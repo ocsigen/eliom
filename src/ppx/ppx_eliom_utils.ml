@@ -401,23 +401,20 @@ module Cmo = struct
           Typ.alias (type_of_out_type aliased) (var alias)
       | ((Otyp_alias (ty, s)) [@if ocaml_version < (5, 1, 0)]) ->
           Typ.alias (type_of_out_type ty) (var s)
-      | ((Otyp_variant (Ovar_typ ty, closed, tags)) [@if
-                                                      ocaml_version >= (5, 1, 0)])
-        ->
+      | ((Otyp_variant (Ovar_typ ty, closed, tags))
+         [@if ocaml_version >= (5, 1, 0)]) ->
           Typ.variant
             [Rf.mk (Rinherit (type_of_out_type ty))]
             (if closed then Closed else Open)
             tags
-      | ((Otyp_variant (_, Ovar_typ ty, closed, tags)) [@if
-                                                         ocaml_version
-                                                         < (5, 1, 0)]) ->
+      | ((Otyp_variant (_, Ovar_typ ty, closed, tags))
+         [@if ocaml_version < (5, 1, 0)]) ->
           Typ.variant
             [Rf.mk (Rinherit (type_of_out_type ty))]
             (if closed then Closed else Open)
             tags
-      | ((Otyp_variant (Ovar_fields lst, closed, tags)) [@if
-                                                          ocaml_version
-                                                          >= (5, 1, 0)]) ->
+      | ((Otyp_variant (Ovar_fields lst, closed, tags))
+         [@if ocaml_version >= (5, 1, 0)]) ->
           let row_fields =
             List.map
               (fun (label, const, tyl) ->
@@ -429,9 +426,8 @@ module Cmo = struct
               lst
           in
           Typ.variant row_fields (if closed then Closed else Open) tags
-      | ((Otyp_variant (_, Ovar_fields lst, closed, tags)) [@if
-                                                             ocaml_version
-                                                             < (5, 1, 0)]) ->
+      | ((Otyp_variant (_, Ovar_fields lst, closed, tags))
+         [@if ocaml_version < (5, 1, 0)]) ->
           let row_fields =
             List.map
               (fun (label, const, tyl) ->

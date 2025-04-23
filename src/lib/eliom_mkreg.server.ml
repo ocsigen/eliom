@@ -18,7 +18,7 @@ open Lwt.Syntax
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 module S = Eliom_service
 
@@ -35,7 +35,7 @@ type ('options, 'page, 'result) param =
       -> 'page
       -> Ocsigen_response.t Lwt.t
   ; send_appl_content : S.send_appl_content
-  (** Whether the service is capable to send application content when
+    (** Whether the service is capable to send application content when
           required. This field is usually [Eliom_service.XNever]. This
           value is recorded inside each service just after
           registration.  *)
@@ -112,14 +112,21 @@ let check_process_redir sp f param =
              ~sep:"?"
              (Eliom_parameter.construct_params_string
                 (Ocsigen_request.get_params_flat ri))))
-    (* We do not put hostname and port.
+  (* We do not put hostname and port.
      It is ok with half or full xhr redirections. *)
-    (* If an action occurred before,
+  (* If an action occurred before,
      it may have removed some get params form ri *)
   else Lwt.return_unit
 
-let send_with_cookies sp pages ?options ?charset ?code ?content_type ?headers
-    content
+let send_with_cookies
+      sp
+      pages
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      content
   =
   let* result =
     pages.send ?options ?charset ?code ?content_type ?headers content
@@ -146,10 +153,18 @@ let send_with_cookies sp pages ?options ?charset ?code ?content_type ?headers
   in
   Lwt.return (Ocsigen_response.update result ~cookies ~response)
 
-let register_aux pages ?options ?charset ?code ?content_type ?headers table
-    (type a) ~(service : (_, _, _, a, _, _, _, _, _, _, _) S.t)
-    ?(error_handler = fun l -> raise (Eliom_common.Eliom_Typing_Error l))
-    page_generator
+let register_aux
+      pages
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      table
+      (type a)
+      ~(service : (_, _, _, a, _, _, _, _, _, _, _) S.t)
+      ?(error_handler = fun l -> raise (Eliom_common.Eliom_Typing_Error l))
+      page_generator
   =
   S.set_send_appl_content service pages.send_appl_content;
   match S.info service with
@@ -203,12 +218,14 @@ let register_aux pages ?options ?charset ?code ?content_type ?headers table
                            Eliom_uri.make_string_uri_. But we need to
                            "downcast" the type of service to the
                            correct "get service". *)
-                       (if Eliom_request_info.get_http_method () = `GET
-                           && nosuffixversion && suffix_with_redirect
+                       (if
+                          Eliom_request_info.get_http_method () = `GET
+                          && nosuffixversion && suffix_with_redirect
                         then (
-                          if (* it is a suffix service in version
+                          if
+                            (* it is a suffix service in version
                                without suffix. We redirect. *)
-                             not (Eliom_request_info.expecting_process_page ())
+                            not (Eliom_request_info.expecting_process_page ())
                           then
                             let redir_uri =
                               Eliom_uri.make_string_uri_ ~absolute:true
@@ -263,8 +280,8 @@ let register_aux pages ?options ?charset ?code ?content_type ?headers table
                        check_process_redir sp check_before service >>= fun () ->
                        page_generator g p)
                     (function
-                       | Eliom_common.Eliom_Typing_Error l -> error_handler l
-                       | e -> Lwt.fail e)
+                      | Eliom_common.Eliom_Typing_Error l -> error_handler l
+                      | e -> Lwt.fail e)
                   >>= fun content ->
                   send_with_cookies sp pages ?options ?charset ?code
                     ?content_type ?headers content)) }
@@ -366,8 +383,8 @@ let register_aux pages ?options ?charset ?code ?content_type ?headers table
                      check_process_redir sp check_before service >>= fun () ->
                      page_generator g p)
                   (function
-                     | Eliom_common.Eliom_Typing_Error l -> error_handler l
-                     | e -> Lwt.fail e)
+                    | Eliom_common.Eliom_Typing_Error l -> error_handler l
+                    | e -> Lwt.fail e)
                 >>= fun content ->
                 send_with_cookies sp pages ?options ?charset ?code ?content_type
                   ?headers content) )
@@ -441,10 +458,20 @@ let send pages ?options ?charset ?code ?content_type ?headers content =
   in
   Lwt.return (pages.result_of_http_result result)
 
-let register pages ?app:_ ?scope ?options ?charset ?code ?content_type ?headers
-    ?secure_session (type a)
-    ~(service : (_, _, _, a, _, _, S.reg, _, _, _, _) S.t) ?error_handler
-    page_gen
+let register
+      pages
+      ?app:_
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      (type a)
+      ~(service : (_, _, _, a, _, _, S.reg, _, _, _, _) S.t)
+      ?error_handler
+      page_gen
   =
   let sp = Eliom_common.get_sp_option () in
   match scope, sp with
@@ -491,9 +518,27 @@ let register pages ?app:_ ?scope ?options ?charset ?code ?content_type ?headers
      like "let rec" for service...
 *)
 
-let create pages ?scope ?app ?options ?charset ?code ?content_type ?headers
-    ?secure_session ?https ?name ?csrf_safe ?csrf_scope ?csrf_secure ?max_use
-    ?timeout ~meth ~path ?error_handler page
+let create
+      pages
+      ?scope
+      ?app
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?https
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ~meth
+      ~path
+      ?error_handler
+      page
   =
   let service =
     S.create_unsafe ?name ?csrf_safe
@@ -504,9 +549,27 @@ let create pages ?scope ?app ?options ?charset ?code ?content_type ?headers
     ?secure_session ~service ?error_handler page;
   service
 
-let create_attached_get pages ?scope ?app ?options ?charset ?code ?content_type
-    ?headers ?secure_session ?https ?name ?csrf_safe ?csrf_scope ?csrf_secure
-    ?max_use ?timeout ~fallback ~get_params ?error_handler page
+let create_attached_get
+      pages
+      ?scope
+      ?app
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?https
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ~fallback
+      ~get_params
+      ?error_handler
+      page
   =
   let service =
     S.create_attached_get_unsafe ?name ?csrf_safe
@@ -517,9 +580,27 @@ let create_attached_get pages ?scope ?app ?options ?charset ?code ?content_type
     ?secure_session ~service ?error_handler page;
   service
 
-let create_attached_post pages ?scope ?app ?options ?charset ?code ?content_type
-    ?headers ?secure_session ?https ?name ?csrf_safe ?csrf_scope ?csrf_secure
-    ?max_use ?timeout ~fallback ~post_params ?error_handler page
+let create_attached_post
+      pages
+      ?scope
+      ?app
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?secure_session
+      ?https
+      ?name
+      ?csrf_safe
+      ?csrf_scope
+      ?csrf_secure
+      ?max_use
+      ?timeout
+      ~fallback
+      ~post_params
+      ?error_handler
+      page
   =
   let service =
     S.create_attached_post_unsafe ?name ?csrf_safe
@@ -551,8 +632,8 @@ struct
 end
 
 module Make_poly
-    (Pages : Eliom_registration_sigs.PARAM_POLY
-             with type frame := Ocsigen_response.t) =
+    (Pages :
+       Eliom_registration_sigs.PARAM_POLY with type frame := Ocsigen_response.t) =
 struct
   type 'a page = 'a Pages.page
   type options = Pages.options

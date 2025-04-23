@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 open Eliom_lib
 open Lwt
@@ -92,9 +92,15 @@ module type PARAM = sig
 end
 
 module Make (P : PARAM) = struct
-  let find_page_table nosuffixversion now (pagetableref : P.Table.t ref)
-      fullsessname (site_data : P.site_data) (info : P.info)
-      (urlsuffix : _ option) k : P.result Lwt.t
+  let find_page_table
+        nosuffixversion
+        now
+        (pagetableref : P.Table.t ref)
+        fullsessname
+        (site_data : P.site_data)
+        (info : P.info)
+        (urlsuffix : _ option)
+        k : P.result Lwt.t
     =
     let sp = P.make_params site_data info urlsuffix fullsessname in
     Lwt.catch
@@ -123,7 +129,9 @@ module Make (P : PARAM) = struct
                  (* If this is an anonymous coservice,
                   we place it at the top of the dlist
                   (limitation of number of coservices) *)
-                 (match node with None -> () | Some node -> P.Node.up node);
+                 (match node with
+                 | None -> ()
+                 | Some node -> P.Node.up node);
                  (* We update the expiration date *)
                  (match s_expire with
                  | Some (timeout, e) -> e := timeout +. now
@@ -140,10 +148,10 @@ module Make (P : PARAM) = struct
                  in
                  Lwt.return (Eliom_common.Found p, newtoremove))
               (function
-                 | Eliom_common.Eliom_Wrong_parameter ->
-                     aux toremove l >>= fun (r, toremove) ->
-                     Lwt.return (r, toremove)
-                 | e -> Lwt.return (Eliom_common.Notfound e, toremove)))
+                | Eliom_common.Eliom_Wrong_parameter ->
+                    aux toremove l >>= fun (r, toremove) ->
+                    Lwt.return (r, toremove)
+                | e -> Lwt.return (Eliom_common.Notfound e, toremove)))
     in
     aux [] l >>= fun (r, toremove) ->
     (match node, toremove with
@@ -190,8 +198,12 @@ module Make (P : PARAM) = struct
     in
     match found with Some found -> found, List.rev l | None -> raise Not_found
 
-  let add_page_table tables url_act tref key
-      ({Eliom_common.s_id; s_expire; _} as service)
+  let add_page_table
+        tables
+        url_act
+        tref
+        key
+        ({Eliom_common.s_id; s_expire; _} as service)
     =
     let sp = Eliom_common.get_sp_option () in
     (match s_expire with
@@ -375,21 +387,21 @@ module Make (P : PARAM) = struct
                    (* We have a file with suffix *)
                    raise Eliom_common.Eliom_Wrong_parameter))
           (function
-             | (Exn1 | Eliom_common.Eliom_Wrong_parameter) as e -> (
-               (* If no service matches, we try a suffix service *)
-               try
-                 match
-                   !(try
-                       find_dircontent dircontent
-                         Eliom_common.eliom_suffix_internal_name
-                     with Not_found -> raise e)
-                 with
-                 | Eliom_common.Dir _ -> Lwt.fail Exn1
-                 | Eliom_common.File page_table_ref ->
-                     find false page_table_ref
-                       (if a = None then Some [] else Some (aa :: l))
-               with e -> Lwt.fail e)
-             | e -> Lwt.fail e)
+            | (Exn1 | Eliom_common.Eliom_Wrong_parameter) as e -> (
+              (* If no service matches, we try a suffix service *)
+              try
+                match
+                  !(try
+                      find_dircontent dircontent
+                        Eliom_common.eliom_suffix_internal_name
+                    with Not_found -> raise e)
+                with
+                | Eliom_common.Dir _ -> Lwt.fail Exn1
+                | Eliom_common.File page_table_ref ->
+                    find false page_table_ref
+                      (if a = None then Some [] else Some (aa :: l))
+              with e -> Lwt.fail e)
+            | e -> Lwt.fail e)
       in
       function
       | [] ->
@@ -421,10 +433,10 @@ module Make (P : PARAM) = struct
            Lwt.catch
              (fun () -> prev)
              (function
-                | Exn1 | Eliom_common.Eliom_404
-                | Eliom_common.Eliom_Wrong_parameter ->
-                    search_page_table !table path
-                | e -> fail e))
+               | Exn1 | Eliom_common.Eliom_404
+               | Eliom_common.Eliom_Wrong_parameter ->
+                   search_page_table !table path
+               | e -> fail e))
         (fail Exn1) tables
     in
     Lwt.catch

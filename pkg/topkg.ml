@@ -256,7 +256,7 @@ module Pkg : Pkg = struct
             (list_files bdir src dst);
           add_mvs current mvs
       | {field_name = field} :: _ as mvs ->
-          if current <> "" (* first *) then Buffer.add_string install " ]\n";
+          if current <> ""(* first *)  then Buffer.add_string install " ]\n";
           Buffer.add_string install (str "%s: [" field);
           add_mvs field mvs
       | [] -> ()

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 open Eliom_lib
 (** Cookie management                                                       *)
@@ -129,8 +129,13 @@ end
 
 (** look in table to find if the session cookies sent by the browser
     correspond to existing (and not closed) sessions *)
-let get_cookie_info now sitedata service_cookies data_cookies persistent_cookies
-    secure_cookies : 'a Eliom_common.cookie_info * 'b list
+let get_cookie_info
+      now
+      sitedata
+      service_cookies
+      data_cookies
+      persistent_cookies
+      secure_cookies : 'a Eliom_common.cookie_info * 'b list
   =
   (* get info about service session cookies: *)
   let f_serv service_cookies =
@@ -261,10 +266,11 @@ let get_cookie_info now sitedata service_cookies data_cookies persistent_cookies
                  in
                  Persistent_cookies.Cookies.find
                    (Eliom_common.Hashed_cookies.to_string hvalue)
-                 >>= fun { expiry = persexp
-                         ; timeout = perstimeout
-                         ; session_group = sessgrp
-                         ; _ } ->
+                 >>=
+                 fun { expiry = persexp
+                     ; timeout = perstimeout
+                     ; session_group = sessgrp
+                     ; _ } ->
                  Eliommod_sessiongroups.Pers.up hvalue_string sessgrp
                  >>= fun () ->
                  match persexp with
@@ -321,26 +327,26 @@ let get_cookie_info now sitedata service_cookies data_cookies persistent_cookies
                               ; Eliom_common.pc_session_group = ref sessgrp })
                        ))
               (function
-                 | Not_found ->
-                     return
-                       ( Some
-                           ( value
-                             (* value at the beginning
+                | Not_found ->
+                    return
+                      ( Some
+                          ( value
+                            (* value at the beginning
                                              of the request *)
-                           , Eliom_common.TGlobal
-                             (* user persistent timeout
+                          , Eliom_common.TGlobal
+                            (* user persistent timeout
                                              at the beginning
                                              of the request *)
-                           , Some 0.
-                             (* expiration date (server)
+                          , Some 0.
+                            (* expiration date (server)
                                              at the beginning
                                              of the request *)
-                           , None (* session group at beginning *) )
-                       , ref Eliom_common.SCData_session_expired
-                         (* ask the browser
+                          , None (* session group at beginning *) )
+                      , ref Eliom_common.SCData_session_expired
+                        (* ask the browser
                                              to remove the cookie *)
-                       )
-                 | e -> fail e)))
+                      )
+                | e -> fail e)))
       persistent_cookies
     (* the persistent cookies sent by the request *)
   in
@@ -361,7 +367,7 @@ let get_cookie_info now sitedata service_cookies data_cookies persistent_cookies
 
 (* table cookie -> session table *)
 let new_service_cookie_table () :
-    Eliom_common.tables Eliom_common.Service_cookie.table
+  Eliom_common.tables Eliom_common.Service_cookie.table
   =
   Eliom_common.SessionCookies.create 100
 
@@ -372,9 +378,10 @@ let new_data_cookie_table () : Eliom_common.Data_cookie.table =
 (* Create the table of cookies to send to the browser or to unset            *)
 (* (from cookie_info)                                                        *)
 
-let compute_session_cookies_to_send sitedata
-    ((service_cookie_info, data_cookie_info, pers_cookies_info), secure_ci)
-    (endlist : Ocsigen_cookie_map.t)
+let compute_session_cookies_to_send
+      sitedata
+      ((service_cookie_info, data_cookie_info, pers_cookies_info), secure_ci)
+      (endlist : Ocsigen_cookie_map.t)
   =
   let getservvexp (old, newi) =
     return
@@ -494,9 +501,10 @@ let compute_cookies_to_send = compute_session_cookies_to_send
 let compute_new_ri_cookies' now ripath ricookies cookies_set_by_page =
   Ocsigen_cookie_map.Map_path.fold
     (fun cpath t cookies ->
-       if Url.is_prefix_skip_end_slash
-            (Url.remove_slash_at_beginning cpath)
-            (Url.remove_slash_at_beginning ripath)
+       if
+         Url.is_prefix_skip_end_slash
+           (Url.remove_slash_at_beginning cpath)
+           (Url.remove_slash_at_beginning ripath)
        then
          Ocsigen_cookie_map.Map_inner.fold
            (fun name v cookies ->
@@ -518,11 +526,13 @@ let compute_new_ri_cookies' now ripath ricookies cookies_set_by_page =
 (** Compute new ri.ri_cookies value
     from an old ri.ri_cookies and all_cookie_info
     as if it had been sent by the browser *)
-let compute_new_ri_cookies (now : float) (ripath : string list)
-    (ricookies : string Ocsigen_cookie_map.Map_inner.t)
-    ((ci, secure_ci) : Eliom_common.tables Eliom_common.cookie_info)
-    (cookies_set_by_page : Ocsigen_cookie_map.t) :
-    string Ocsigen_cookie_map.Map_inner.t Lwt.t
+let compute_new_ri_cookies
+      (now : float)
+      (ripath : string list)
+      (ricookies : string Ocsigen_cookie_map.Map_inner.t)
+      ((ci, secure_ci) : Eliom_common.tables Eliom_common.cookie_info)
+      (cookies_set_by_page : Ocsigen_cookie_map.t) :
+  string Ocsigen_cookie_map.Map_inner.t Lwt.t
   =
   (* first we add cookies set by page: *)
   let ric = compute_new_ri_cookies' now ripath ricookies cookies_set_by_page in

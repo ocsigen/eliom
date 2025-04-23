@@ -88,8 +88,12 @@ let fullsessgrp ~cookie_level ~sp set_session_group =
     (Eliom_common.get_mask6 sp.Eliom_common.sp_sitedata)
     set_session_group
 
-let rec find_or_create_data_cookie ?set_session_group
-    ~(cookie_scope : Eliom_common.cookie_scope) ~secure_o ?sp ()
+let rec find_or_create_data_cookie
+          ?set_session_group
+          ~(cookie_scope : Eliom_common.cookie_scope)
+          ~secure_o
+          ?sp
+          ()
   =
   (* If the cookie does not exist, create it.
      Returns the cookie info for the cookie *)
@@ -113,7 +117,10 @@ let rec find_or_create_data_cookie ?set_session_group
     let c = Eliommod_cookies.make_new_session_id () in
     let hc = Eliom_common.Hashed_cookies.hash c in
     let hc_string = Eliom_common.Hashed_cookies.to_string hc in
-    let usertimeout = ref Eliom_common.TGlobal (* See global table *) in
+    let usertimeout =
+      ref Eliom_common.TGlobal
+      (* See global table *)
+    in
     let serverexp =
       ref None
       (* Some 0. *)

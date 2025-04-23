@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 (* TODO: implement with WeakMap when standardised:
    https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/WeakMap
@@ -85,10 +85,10 @@ external raw_unmarshal_and_unwrap :
 
 let unwrap s i =
   if !Eliom_config.debug_timings
-  then Console.console ## (time (Js.string "unwrap"));
+  then Console.console##(time (Js.string "unwrap"));
   let res = raw_unmarshal_and_unwrap apply_unwrapper s i in
   if !Eliom_config.debug_timings
-  then Console.console ## (timeEnd (Js.string "unwrap"));
+  then Console.console##(timeEnd (Js.string "unwrap"));
   res
 
 let unwrap_js s = unwrap (Js.to_bytestring s) 0

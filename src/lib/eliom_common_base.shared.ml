@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 open Eliom_lib
 
@@ -206,7 +206,7 @@ type sess_info =
       string Full_state_name_table.t
       * string Full_state_name_table.t
       * string Full_state_name_table.t
-        (* the same, but for secure cookies *)
+    (* the same, but for secure cookies *)
   ; (* now for tab cookies: *)
     si_service_session_cookies_tab : string Full_state_name_table.t
   ; si_data_session_cookies_tab : string Full_state_name_table.t
@@ -219,7 +219,7 @@ type sess_info =
   ; si_nonatt_info : na_key_req
   ; si_state_info : att_key_req * att_key_req
   ; si_previous_extension_error : int
-        (* HTTP error code sent by previous extension (default: 404) *)
+    (* HTTP error code sent by previous extension (default: 404) *)
   ; si_na_get_params : (string * string) list Lazy.t
   ; si_nl_get_params : (string * string) list String.Table.t
   ; si_nl_post_params : (string * string) list String.Table.t
@@ -231,7 +231,7 @@ type sess_info =
   ; si_ignored_post_params : (string * string) list
   ; si_client_process_info : client_process_info option
   ; si_expect_process_data : bool Lazy.t
-  (*204FORMS*     si_internal_form: bool; *) }
+    (*204FORMS*     si_internal_form: bool; *) }
 
 type eliom_js_page_data =
   { ejs_global_data : (Eliom_runtime.global_data * Eliom_wrap.unwrapper) option
@@ -289,8 +289,9 @@ let split_nl_prefix_param l =
   let rec aux other map = function
     | [] -> map, other
     | ((n, _) as a) :: l ->
-        if String.first_diff n nl_param_prefix 0 prefixlengthminusone
-           = prefixlength
+        if
+          String.first_diff n nl_param_prefix 0 prefixlengthminusone
+          = prefixlength
         then
           try
             let last = String.index_from n prefixlength '.' in

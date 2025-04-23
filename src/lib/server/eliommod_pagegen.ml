@@ -18,7 +18,7 @@ open Lwt.Syntax
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 open Lwt.Infix
 
@@ -116,9 +116,10 @@ let update_cookie_table ?now sitedata (ci, sci) =
        - all persistent sessions will have same duration
        - will not do too many database requests
     *)
-    if Eliom_common.Full_state_name_table.exists
-         (fun _ v -> Lazy.is_val v)
-         !pers_cookies_info
+    if
+      Eliom_common.Full_state_name_table.exists
+        (fun _ v -> Lazy.is_val v)
+        !pers_cookies_info
     then
       Eliom_common.Full_state_name_table.fold
         (fun name v thr ->
@@ -168,9 +169,9 @@ let update_cookie_table ?now sitedata (ci, sci) =
                           Eliommod_cookies.Persistent_cookies.Expiry_dates
                           .remove_cookie oldexp cookieid)
                        (function
-                          | Not_found -> Lwt.return ()
-                          (* someone else closed the session *)
-                          | e -> Lwt.fail e)
+                         | Not_found -> Lwt.return ()
+                         (* someone else closed the session *)
+                         | e -> Lwt.fail e)
                  | _ ->
                      Eliommod_cookies.Persistent_cookies.add
                        Eliom_common.(Hashed_cookies.to_string newc.pc_hvalue)
@@ -196,8 +197,11 @@ let update_cookie_table ?now sitedata (ci, sci) =
 (* Generation of the page or naservice
    + update the cookie tables (value, expiration date and timeout)        *)
 
-let execute now generate_page
-    ({Eliom_common.all_cookie_info; tab_cookie_info; _} as info) sitedata
+let execute
+      now
+      generate_page
+      ({Eliom_common.all_cookie_info; tab_cookie_info; _} as info)
+      sitedata
   =
   let* result =
     Lwt.catch
@@ -265,8 +269,8 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
   in
   set_expired_sessions ri (closedsessions, closedsessions_tab);
   let rec gen_aux
-      ({Eliom_common.request = ri; session_info = si; all_cookie_info; _} as
-       info)
+            ({Eliom_common.request = ri; session_info = si; all_cookie_info; _}
+             as info)
     =
     let sp = Eliom_common.make_server_params sitedata info None None in
     (* The last two arguments are not yet available, so for now we use None.
@@ -324,52 +328,52 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
          with Not_found ->
            Lwt.return (Ocsigen_extensions.Ext_found (fun () -> Lwt.return res)))
       (function
-         (* FIXME COHTTP transition ; restore all that *)
-         | Eliom_common.Eliom_Typing_Error l ->
-             Lwt.return
-               (Ocsigen_extensions.Ext_found
-                  (fun () ->
-                    make_response ~status:`Bad_request
-                      (Eliom_error_pages.page_error_param_type l)))
-         | Eliom_common.Eliom_Wrong_parameter ->
-             let* ripp =
-               match
-                 Ocsigen_request.post_params req.request_info
-                   ri.request_config.Ocsigen_extensions.uploaddir
-                   ri.request_config.Ocsigen_extensions.maxuploadfilesize
-               with
-               | None -> Lwt.return []
-               | Some l -> l
-             in
-             let response =
-               Eliom_error_pages.page_bad_param
-                 (try
-                    ignore
-                    @@ Polytables.get
-                         ~table:(Ocsigen_request.request_cache ri.request_info)
-                         ~key:Eliom_common.eliom_params_after_action;
-                    true
-                  with Not_found -> false)
-                 (Ocsigen_request.get_params_flat ri.request_info)
-                 (List.map fst ripp)
-             in
-             Lwt.return
-             @@ Ocsigen_extensions.Ext_found
-                  (fun () -> make_response ~status:`Bad_request response)
-         | Eliom_common.Eliom_404 ->
-             Lwt.return (Ocsigen_extensions.Ext_next previous_extension_err)
-         | Eliom_common.Eliom_retry_with a -> gen_aux a
-         | Eliom_common.Eliom_do_redirection uri ->
-             Lwt.return
-             @@ do_redirection Ocsigen_header.Name.location `Temporary_redirect
-                  uri
-         | Eliom_common.Eliom_do_half_xhr_redirection uri ->
-             Lwt.return
-             @@ do_redirection
-                  (Ocsigen_header.Name.of_string
-                     Eliom_common.half_xhr_redir_header)
-                  `No_content uri
-         | e -> Lwt.fail e)
+        (* FIXME COHTTP transition ; restore all that *)
+        | Eliom_common.Eliom_Typing_Error l ->
+            Lwt.return
+              (Ocsigen_extensions.Ext_found
+                 (fun () ->
+                   make_response ~status:`Bad_request
+                     (Eliom_error_pages.page_error_param_type l)))
+        | Eliom_common.Eliom_Wrong_parameter ->
+            let* ripp =
+              match
+                Ocsigen_request.post_params req.request_info
+                  ri.request_config.Ocsigen_extensions.uploaddir
+                  ri.request_config.Ocsigen_extensions.maxuploadfilesize
+              with
+              | None -> Lwt.return []
+              | Some l -> l
+            in
+            let response =
+              Eliom_error_pages.page_bad_param
+                (try
+                   ignore
+                   @@ Polytables.get
+                        ~table:(Ocsigen_request.request_cache ri.request_info)
+                        ~key:Eliom_common.eliom_params_after_action;
+                   true
+                 with Not_found -> false)
+                (Ocsigen_request.get_params_flat ri.request_info)
+                (List.map fst ripp)
+            in
+            Lwt.return
+            @@ Ocsigen_extensions.Ext_found
+                 (fun () -> make_response ~status:`Bad_request response)
+        | Eliom_common.Eliom_404 ->
+            Lwt.return (Ocsigen_extensions.Ext_next previous_extension_err)
+        | Eliom_common.Eliom_retry_with a -> gen_aux a
+        | Eliom_common.Eliom_do_redirection uri ->
+            Lwt.return
+            @@ do_redirection Ocsigen_header.Name.location `Temporary_redirect
+                 uri
+        | Eliom_common.Eliom_do_half_xhr_redirection uri ->
+            Lwt.return
+            @@ do_redirection
+                 (Ocsigen_header.Name.of_string
+                    Eliom_common.half_xhr_redir_header)
+                 `No_content uri
+        | e -> Lwt.fail e)
   in
   let info =
     { Eliom_common.request = ri

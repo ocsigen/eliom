@@ -155,9 +155,10 @@ let copy_file ?(env = []) ?(preds = []) src_name dst_name =
   in
   try
     mkdir_p (Filename.dirname dst_name);
-    if (not (Sys.file_exists dst_name))
-       || ksprintf (yes_no ~default:false) "File %S already exists! Overwrite?"
-            dst_name
+    if
+      (not (Sys.file_exists dst_name))
+      || ksprintf (yes_no ~default:false) "File %S already exists! Overwrite?"
+           dst_name
     then (
       let src = open_in src_name in
       let dst = open_out dst_name in
@@ -193,9 +194,10 @@ let create_project ?preds ~without_asking ~name ~env ~source_dir ~dest_dir () =
   in
   if not (Sys.file_exists dest_dir)
   then
-    if without_asking
-       || ksprintf (yes_no ~default:true)
-            "Destination directory %S doesn't exist. Create it?" dest_dir
+    if
+      without_asking
+      || ksprintf (yes_no ~default:true)
+           "Destination directory %S doesn't exist. Create it?" dest_dir
     then mkdir_p dest_dir
     else exit 1;
   if not (Sys.is_directory dest_dir)
@@ -261,7 +263,7 @@ let get_templates () =
  * It is supposed each
  * template has a file {!reserve_project_name_filename} file containing the
  * list of reserve project name (one name a line).
- *)
+*)
 
 let check_reserve_project_name project_name template =
   Filename.concat (template_path template) reserve_project_name_filename

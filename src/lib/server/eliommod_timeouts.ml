@@ -34,9 +34,9 @@ type kind = [`Service | `Data | `Persistent]
 (* Table of timeouts for sessions *)
 
 let default_timeouts :
-    ( kind * Eliom_common.cookie_level * Eliom_common.scope_hierarchy option
-      , float )
-      Hashtbl.t
+  ( kind * Eliom_common.cookie_level * Eliom_common.scope_hierarchy option
+    , float )
+    Hashtbl.t
   =
   let t = Hashtbl.create 9 in
   Hashtbl.add t (`Service, `Session, None) 3600.;
@@ -72,8 +72,18 @@ let get_default kind user_scope =
            ((kind :> kind), (level :> Eliom_common.cookie_level), None))
     with Not_found -> None)
 
-let set_timeout_ get set get_default update ?full_st_name ?cookie_level
-    ~recompute_expdates override_configfile fromconfigfile sitedata t
+let set_timeout_
+      get
+      set
+      get_default
+      update
+      ?full_st_name
+      ?cookie_level
+      ~recompute_expdates
+      override_configfile
+      fromconfigfile
+      sitedata
+      t
   =
   (* cookie_level is useful and mandatory
          only if full_st_name is not present *)
@@ -124,9 +134,9 @@ let set_timeout_ get set get_default update ?full_st_name ?cookie_level
           (catch
              (fun () -> update full_st_name sitedata oldt t)
              (function
-                | exn ->
-                    Lwt_log.warning ~exn ~section:eliom_logs_src
-                      "Error while updating timeouts"))
+               | exn ->
+               Lwt_log.warning ~exn ~section:eliom_logs_src
+                 "Error while updating timeouts"))
 (*VVV Check possible exceptions raised *)
 
 (* global timeout = timeout for the whole site (may be changed dynamically) *)
@@ -166,8 +176,14 @@ let get_global ~kind ~cookie_scope ~secure sitedata =
   in
   find_global kind full_st_name sitedata
 
-let set_global ~kind ~cookie_scope ~secure ~recompute_expdates
-    override_configfile sitedata timeout
+let set_global
+      ~kind
+      ~cookie_scope
+      ~secure
+      ~recompute_expdates
+      override_configfile
+      sitedata
+      timeout
   =
   let full_st_name =
     Eliom_common.make_full_state_name2
@@ -177,8 +193,13 @@ let set_global ~kind ~cookie_scope ~secure ~recompute_expdates
   set_global_ ~kind ~full_st_name ~recompute_expdates override_configfile false
     sitedata timeout
 
-let set_default_global kind cookie_level override_configfile fromconfigfile
-    sitedata timeout
+let set_default_global
+      kind
+      cookie_level
+      override_configfile
+      fromconfigfile
+      sitedata
+      timeout
   =
   set_global_ ~kind ~cookie_level ~recompute_expdates:false override_configfile
     fromconfigfile sitedata timeout

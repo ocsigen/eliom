@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 open Js_of_ocaml
 open Eliom_lib
@@ -195,7 +195,9 @@ module Xml = struct
     (* !!! The "global_" prefix is checked in eliom_client.client.ml !!! *)
     (if global then "global_" else "")
     (* FIX: put a prefix as a debugging option? *)
-    ^ (* "server_" ^ *) make_cryptographic_safe_string ()
+    ^
+    (* "server_" ^ *)
+    make_cryptographic_safe_string ()
 
   let make_process_node ?(id = make_node_name ~global:true ()) elt' =
     {elt' with elt = {elt'.elt with node_id = ProcessId id}}
