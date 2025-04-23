@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 open Js_of_ocaml
 open Eliom_lib
@@ -72,45 +72,43 @@ struct
 
   let raw_appendChild ?before node elt2 =
     match before with
-    | None -> ignore node ## (appendChild (get_node elt2))
+    | None -> ignore node##(appendChild (get_node elt2))
     | Some elt3 ->
         let node3 = get_unique_node "appendChild" elt3 in
-        ignore node ## (insertBefore (get_node elt2) (Js.some node3))
+        ignore node##(insertBefore (get_node elt2) (Js.some node3))
 
   let raw_appendChildren ?before node elts =
     match before with
     | None ->
-        List.iter
-          (fun elt2 -> ignore node ## (appendChild (get_node elt2)))
-          elts
+        List.iter (fun elt2 -> ignore node##(appendChild (get_node elt2))) elts
     | Some elt3 ->
         let node3 = get_unique_node "appendChild" elt3 in
         List.iter
           (fun elt2 ->
-             ignore node ## (insertBefore (get_node elt2) (Js.some node3)))
+             ignore node##(insertBefore (get_node elt2) (Js.some node3)))
           elts
 
   let raw_removeChild node1 elt2 =
     let node2 = get_unique_node "removeChild" elt2 in
-    ignore node1 ## (removeChild node2)
+    ignore node1##(removeChild node2)
 
   let raw_replaceChild node1 elt2 elt3 =
     let node3 = get_unique_node "replaceChild" elt3 in
-    ignore node1 ## (replaceChild (get_node elt2) node3)
+    ignore node1##(replaceChild (get_node elt2) node3)
 
   let raw_removeChildren node =
     let childrens = Dom.list_of_nodeList node##.childNodes in
-    List.iter (fun c -> ignore node ## (removeChild c)) childrens
+    List.iter (fun c -> ignore node##(removeChild c)) childrens
 
   let raw_replaceChildren node elts =
     raw_removeChildren node;
-    List.iter (fun elt -> ignore node ## (appendChild (get_node elt))) elts
+    List.iter (fun elt -> ignore node##(appendChild (get_node elt))) elts
 
   let nth elt n =
     let node = get_unique_node "nth" elt in
     let res =
       Js.Opt.bind
-        node ##. childNodes ## (item n)
+        node##.childNodes##(item n)
         (fun node ->
            Js.Opt.map (Dom.CoerceTo.element node) (fun node ->
              Of_dom.of_element (Dom_html.element node)))
@@ -254,14 +252,14 @@ struct
       let elt = get_unique_elt "Class.contain" elt in
       let class_name = Js.string class_name in
       let class_list = elt##.classList in
-      Js.to_bool class_list ## (contains class_name)
+      Js.to_bool class_list##(contains class_name)
 
     let add_raw elt class_name =
       let class_name = Js.string class_name in
       let class_list = elt##.classList in
-      if Js.to_bool class_list ## (contains class_name)
+      if Js.to_bool class_list##(contains class_name)
       then ()
-      else class_list ## (add class_name)
+      else class_list##(add class_name)
 
     let add elt class_name =
       let elt = get_unique_elt "Class.add" elt in
@@ -274,8 +272,8 @@ struct
     let remove_raw elt class_name =
       let class_name = Js.string class_name in
       let class_list = elt##.classList in
-      if Js.to_bool class_list ## (contains class_name)
-      then class_list ## (remove class_name)
+      if Js.to_bool class_list##(contains class_name)
+      then class_list##(remove class_name)
       else ()
 
     let remove elt class_name =
@@ -297,9 +295,7 @@ struct
       let l = class_list##.length in
       for i = l - 1 downto 0 do
         (* /!\ use downto because the list is re-ordered after each add/remove *)
-        Js.Optdef.iter
-          class_list ## (item i)
-          (fun cl -> class_list ## (remove cl))
+        Js.Optdef.iter class_list##(item i) (fun cl -> class_list##(remove cl))
       done
 
     let toggle elt cl1 = if contain elt cl1 then remove elt cl1 else add elt cl1
@@ -518,7 +514,7 @@ module Html = struct
 
     let scrollIntoView ?(bottom = false) elt =
       let elt = get_unique_elt "Css.background" elt in
-      elt ## (scrollIntoView (Js.bool (not bottom)))
+      elt##(scrollIntoView (Js.bool (not bottom)))
 
     module Elt = struct
       let body () = Of_dom.of_body Dom_html.window##.document##.body

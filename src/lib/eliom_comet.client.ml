@@ -19,7 +19,7 @@ open Lwt.Syntax
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 (* This file is for client-side comet-programming. *)
 
@@ -230,15 +230,15 @@ module Service_handler : sig
 end = struct
   type activity =
     { mutable active : [`Inactive | `Active | `Idle]
-    (** [!hd.active] is true when the [hd] channel handler is
+      (** [!hd.active] is true when the [hd] channel handler is
             receiving data.
             Idle means that the window is not active but we want to
             keep updated from time to time. *)
     ; mutable focused : float option
-    (** [focused] is None when the page is visible and Some [t]
+      (** [focused] is None when the page is visible and Some [t]
             when the page became hidden at time [t] (in ms) *)
     ; mutable active_waiter : unit Lwt.t
-    (** [active_waiter] terminates when the page get visible *)
+      (** [active_waiter] terminates when the page get visible *)
     ; mutable active_wakener : unit Lwt.u
     ; mutable restart_waiter : Ecb.answer Lwt.t
     ; mutable restart_wakener : Ecb.answer Lwt.u
@@ -328,8 +328,9 @@ end = struct
         then `Active
         else
           let now = Js.to_float (new%js Js.date_now)##getTime in
-          if now -. t
-             < (Configuration.get ()).Configuration.time_after_unfocus *. 1000.
+          if
+            now -. t
+            < (Configuration.get ()).Configuration.time_after_unfocus *. 1000.
           then `Active
           else if tbru = None (* Always inactive when idle *)
           then `Inactive
@@ -407,11 +408,11 @@ end = struct
         incr r;
         List.iter
           (function
-             | _chan_id, Ecb.Data _ -> ()
-             | _chan_id, Ecb.Closed ->
-                 Lwt_log.ign_warning ~section
-                   "update_stateful_state: received Closed: should not happen, this is an eliom bug, please report it"
-             | chan_id, Ecb.Full -> stop_waiting hd chan_id)
+            | _chan_id, Ecb.Data _ -> ()
+            | _chan_id, Ecb.Closed ->
+                Lwt_log.ign_warning ~section
+                  "update_stateful_state: received Closed: should not happen, this is an eliom bug, please report it"
+            | chan_id, Ecb.Full -> stop_waiting hd chan_id)
           message
     | Stateless_state _ ->
         raise (Comet_error "update_stateful_state on stateless one")
@@ -460,7 +461,7 @@ end = struct
         raise (Comet_error "update_stateless_state on stateful one")
 
   let call_service
-      ({hd_activity; hd_service = Ecb.Comet_service (srv, queue); _} as hd)
+        ({hd_activity; hd_service = Ecb.Comet_service (srv, queue); _} as hd)
     =
     let* () =
       Configuration.sleep_before_next_request
@@ -491,9 +492,10 @@ end = struct
     List.map aux
 
   let update_activity ?(timeout = false) hd =
-    if hd.hd_activity.active <> `Inactive
-       && (timeout
-          || not (Configuration.get ()).Configuration.active_until_timeout)
+    if
+      hd.hd_activity.active <> `Inactive
+      && (timeout
+         || not (Configuration.get ()).Configuration.active_until_timeout)
     then set_activity hd (expected_activity hd)
 
   let wait_data hd : (string * int option * string Ecb.channel_data) list Lwt.t =
@@ -640,12 +642,12 @@ let handler_stream hd =
          (fun _ -> Lwt.return_none)))
 
 let stateful_handler_table :
-    (Ecb.comet_service, Service_handler.stateful handler) Hashtbl.t
+  (Ecb.comet_service, Service_handler.stateful handler) Hashtbl.t
   =
   Hashtbl.create 1
 
 let stateless_handler_table :
-    (Ecb.comet_service, Service_handler.stateless handler) Hashtbl.t
+  (Ecb.comet_service, Service_handler.stateless handler) Hashtbl.t
   =
   Hashtbl.create 1
 
@@ -657,14 +659,14 @@ let init (service : Ecb.comet_service) kind table =
   hd
 
 let get_stateful_hd (service : Ecb.comet_service) :
-    Service_handler.stateful handler
+  Service_handler.stateful handler
   =
   try Hashtbl.find stateful_handler_table service
   with Not_found ->
     init service Service_handler.stateful stateful_handler_table
 
 let get_stateless_hd (service : Ecb.comet_service) :
-    Service_handler.stateless handler
+  Service_handler.stateless handler
   =
   try Hashtbl.find stateless_handler_table service
   with Not_found ->
@@ -738,13 +740,13 @@ let register' hd position (_ : Ecb.comet_service) (chan_id : 'a Ecb.chan_id) =
   let stream =
     Lwt_stream.filter_map_s
       (function
-         | id, pos, data
-           when id = chan_id && check_and_update_position position pos data -> (
-           match data with
-           | Ecb.Full -> Lwt.fail Channel_full
-           | Ecb.Closed -> Lwt.fail Channel_closed
-           | Ecb.Data x -> Lwt.return_some (unmarshal x : 'a))
-         | _ -> Lwt.return_none)
+        | id, pos, data
+          when id = chan_id && check_and_update_position position pos data -> (
+          match data with
+          | Ecb.Full -> Lwt.fail Channel_full
+          | Ecb.Closed -> Lwt.fail Channel_closed
+          | Ecb.Data x -> Lwt.return_some (unmarshal x : 'a))
+        | _ -> Lwt.return_none)
       (Lwt_stream.clone hd.hd_stream)
   in
   let protect_and_close t =

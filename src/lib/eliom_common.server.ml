@@ -17,7 +17,7 @@ open Lwt.Syntax
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 open Eliom_lib
 include Eliom_common_base
@@ -70,7 +70,7 @@ let eliom_link_too_old : bool Polytables.key = Polytables.make_key ()
     The string lists are the list of names of expired sessions
 *)
 let eliom_service_session_expired :
-    (full_state_name list * full_state_name list) Polytables.key
+  (full_state_name list * full_state_name list) Polytables.key
   =
   Polytables.make_key ()
 
@@ -154,19 +154,19 @@ type 'a one_service_cookie_info =
     sc_hvalue : Hashed_cookies.t (* hash of current value *)
   ; sc_set_value : string option (* new value to set *)
   ; sc_table : 'a ref
-        (* service session table
+    (* service session table
                                   ref towards cookie table
-        *)
+    *)
   ; sc_timeout : timeout ref
-        (* user timeout -
+    (* user timeout -
                                   ref towards cookie table
-        *)
+    *)
   ; sc_exp : float option ref
-        (* expiration date ref
+    (* expiration date ref
                                   (server side) -
                                   None = never
                                   ref towards cookie table
-        *)
+    *)
   ; sc_cookie_exp : cookie_exp ref (* cookie expiration date to set *)
   ; sc_session_group : cookie_level sessgrp ref (* session group *)
   ; mutable sc_session_group_node : string Ocsigen_cache.Dlist.node }
@@ -176,14 +176,14 @@ type one_data_cookie_info =
     dc_hvalue : Hashed_cookies.t (* hash of current value *)
   ; dc_set_value : string option (* new value to set *)
   ; dc_timeout : timeout ref
-        (* user timeout -
+    (* user timeout -
                                          ref towards cookie table
-        *)
+    *)
   ; dc_exp : float option ref
-        (* expiration date ref (server side) -
+    (* expiration date ref (server side) -
                                          None = never
                                          ref towards cookie table
-        *)
+    *)
   ; dc_cookie_exp : cookie_exp ref (* cookie expiration date to set *)
   ; dc_session_group : cookie_level sessgrp ref (* session group *)
   ; mutable dc_session_group_node : string Ocsigen_cache.Dlist.node }
@@ -306,7 +306,8 @@ module Net_addr_Hashtbl : sig
   val add : int option * 'bb -> int option * 'bb -> 'a t -> key -> 'a -> unit
   val remove : int option * 'bb -> int option * 'bb -> 'a t -> key -> unit
   val find : int option * 'bb -> int option * 'bb -> 'a t -> key -> 'a
-end = (* keys are IP address modulo "network equivalence" *)
+end =
+(* keys are IP address modulo "network equivalence" *)
 struct
   include Hashtbl.Make (struct
       type t = Ipaddr.t
@@ -355,7 +356,7 @@ type server_params =
                                                   as sent by the browser *)
     sp_suffix : Url.path option (* suffix *)
   ; sp_full_state_name : full_state_name option
-        (* the name of the session
+    (* the name of the session
      to which belong the service that answered
      (if it is a session service) *)
   ; sp_client_process_info : client_process_info }
@@ -364,10 +365,10 @@ and page_table = page_table_content Serv_Table.t
 
 and page_table_content =
   [ `Ptc of
-    (page_table ref * page_table_key, na_key_serv) leftright
-      Ocsigen_cache.Dlist.node
-      option
-    * (server_params, Ocsigen_response.t) service list ]
+      (page_table ref * page_table_key, na_key_serv) leftright
+        Ocsigen_cache.Dlist.node
+        option
+      * (server_params, Ocsigen_response.t) service list ]
 
 and naservice_table_content =
   int
@@ -415,7 +416,7 @@ and tables =
       -> (page_table ref * page_table_key, na_key_serv) leftright
       -> (page_table ref * page_table_key, na_key_serv) leftright
            Ocsigen_cache.Dlist.node
-  (* We use a dlist for limiting the number of dynamic
+    (* We use a dlist for limiting the number of dynamic
             anonymous coservices in each table (and avoid DoS).  There
             is one dlist for each session, and one for each IP in
             global tables.  The dlist parameter is the table and
@@ -425,7 +426,7 @@ and tables =
 
 and sitedata =
   { mutable site_dir : Url.path option
-        (* None when statically linked 
+    (* None when statically linked 
                                            before module init*)
   ; mutable site_dir_string : string option (* idem *)
   ; mutable config_info : Ocsigen_extensions.config_info option (* idem *)
@@ -508,12 +509,12 @@ let get_config_info sitedata = check_initialised sitedata.config_info
 let create_dlist_ip_table = Net_addr_Hashtbl.create
 
 let find_dlist_ip_table :
-     int option * 'b
-    -> int option * 'b
-    -> dlist_ip_table
-    -> Ipaddr.t
-    -> (page_table ref * page_table_key, na_key_serv) leftright
-         Ocsigen_cache.Dlist.t
+   int option * 'b
+  -> int option * 'b
+  -> dlist_ip_table
+  -> Ipaddr.t
+  -> (page_table ref * page_table_key, na_key_serv) leftright
+       Ocsigen_cache.Dlist.t
   =
   Net_addr_Hashtbl.find
 (*****************************************************************************)
@@ -532,7 +533,7 @@ let make_full_cookie_name cookieprefix {user_scope; secure; site_dir_str} =
   String.concat "" [cookieprefix; secure; site_dir_str; hier1; hiername]
 
 let make_full_state_name2 site_dir_str secure ~(scope : [< user_scope]) :
-    full_state_name
+  full_state_name
   =
   (* The information in the cookie name, without the kind of session *)
   {user_scope = (scope :> user_scope); secure; site_dir_str}
@@ -554,8 +555,11 @@ type info =
 (*****************************************************************************)
 
 (** Create server parameters record *)
-let make_server_params sitedata ({request = ri; session_info = si; _} as info)
-    suffix full_state_name
+let make_server_params
+      sitedata
+      ({request = ri; session_info = si; _} as info)
+      suffix
+      full_state_name
   =
   let appl_name =
     try
@@ -636,8 +640,9 @@ let register_scope_hierarchy (name : string) =
         registered_scope_hierarchies :=
           Hier_set.add name !registered_scope_hierarchies
   | Some sp ->
-      if Hier_set.mem name !registered_scope_hierarchies
-         || Hier_set.mem name sp.sp_sitedata.registered_scope_hierarchies
+      if
+        Hier_set.mem name !registered_scope_hierarchies
+        || Hier_set.mem name sp.sp_sitedata.registered_scope_hierarchies
       then
         failwith
           (Printf.sprintf "the scope hierarchy %s has already been registered"
@@ -753,7 +758,8 @@ let empty_naservice_table () = AVide
 
 let service_tables_are_empty t =
   !(t.table_naservices) = AVide
-  && (* !(t.table_services) = [] <---- probably enough? *)
+  &&
+  (* !(t.table_services) = [] <---- probably enough? *)
   List.for_all (fun (_, _, r) -> !r = Vide) t.table_services
 
 let remove_naservice_table at k =
@@ -803,35 +809,35 @@ let empty_tables max forsession =
          fun ?sp:_ v -> add_dlist_ dlist v)
        else
          fun ?sp v ->
-         let ip, max, sitedata =
-           match sp with
-           | None -> (
-               ( Ipaddr.(V6 V6.localhost)
-               , max
-               , match global_register_allowed () with
-                 | None ->
-                     failwith "global tables created outside initialisation"
-                 | Some get -> get () ))
-           | Some sp ->
-               ( Ocsigen_request.remote_ip_parsed
-                   sp.sp_request.Ocsigen_extensions.request_info
-               , fst sp.sp_sitedata.max_anonymous_services_per_subnet
-               , sp.sp_sitedata )
-         in
-         let dlist =
-           try
-             Net_addr_Hashtbl.find sitedata.ipv4mask sitedata.ipv6mask
-               sitedata.dlist_ip_table ip
-           with Not_found ->
-             let dlist = Ocsigen_cache.Dlist.create max in
-             Net_addr_Hashtbl.add sitedata.ipv4mask sitedata.ipv6mask
-               sitedata.dlist_ip_table ip dlist;
-             Ocsigen_cache.Dlist.set_finaliser_before
-               (dlist_finaliser_ip sitedata ip t2)
-               dlist;
-             dlist
-         in
-         add_dlist_ dlist v) }
+           let ip, max, sitedata =
+             match sp with
+             | None -> (
+                 ( Ipaddr.(V6 V6.localhost)
+                 , max
+                 , match global_register_allowed () with
+                   | None ->
+                       failwith "global tables created outside initialisation"
+                   | Some get -> get () ))
+             | Some sp ->
+                 ( Ocsigen_request.remote_ip_parsed
+                     sp.sp_request.Ocsigen_extensions.request_info
+                 , fst sp.sp_sitedata.max_anonymous_services_per_subnet
+                 , sp.sp_sitedata )
+           in
+           let dlist =
+             try
+               Net_addr_Hashtbl.find sitedata.ipv4mask sitedata.ipv6mask
+                 sitedata.dlist_ip_table ip
+             with Not_found ->
+               let dlist = Ocsigen_cache.Dlist.create max in
+               Net_addr_Hashtbl.add sitedata.ipv4mask sitedata.ipv6mask
+                 sitedata.dlist_ip_table ip dlist;
+               Ocsigen_cache.Dlist.set_finaliser_before
+                 (dlist_finaliser_ip sitedata ip t2)
+                 dlist;
+               dlist
+           in
+           add_dlist_ dlist v) }
 
 let new_service_session_tables sitedata =
   empty_tables (fst sitedata.max_anonymous_services_per_session) true

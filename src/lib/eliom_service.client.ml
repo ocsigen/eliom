@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 include Eliom_service_base
 
@@ -43,9 +43,8 @@ let set_client_fun ?app ~service f =
   | Some r -> r := Some f
   | None -> service.client_fun <- Some (ref (Some f))
 
-let reload_fun :
-    type gp pp.
-    (gp, pp, _, _, _, _, _, _, _, _, _) t -> (gp -> unit -> result Lwt.t) option
+let reload_fun : type gp pp.
+  (gp, pp, _, _, _, _, _, _, _, _, _) t -> (gp -> unit -> result Lwt.t) option
   =
  fun service ->
   match Eliom_parameter.is_unit (post_params_type service) with

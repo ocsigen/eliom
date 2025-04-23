@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 (*****************************************************************************)
 (** {2 Eliom references} *)
@@ -221,10 +221,10 @@ let get ((f, _, table) as eref) =
       Lwt.catch
         (fun () -> Ocsipersist.find t site_id)
         (function
-           | Not_found ->
-               let value = f () in
-               Ocsipersist.add t site_id value >>= fun () -> Lwt.return value
-           | exc -> Lwt.reraise exc)
+          | Not_found ->
+              let value = f () in
+              Ocsipersist.add t site_id value >>= fun () -> Lwt.return value
+          | exc -> Lwt.reraise exc)
   | _ -> Lwt.return (Volatile.get eref)
 
 let set ((_, _, table) as eref) value =
@@ -254,15 +254,15 @@ module Ext = struct
           (fun () ->
              Eliom_state.Ext.Low_level.get_persistent_data ~state ~table:t)
           (function
-             | Not_found ->
-                 if ext (* We can run the function from another state *)
-                 then
-                   let value = f () in
-                   Eliom_state.Ext.Low_level.set_persistent_data ~state ~table:t
-                     value
-                   >>= fun () -> Lwt.return value
-                 else Lwt.fail Eref_not_initialized
-             | e -> Lwt.fail e)
+            | Not_found ->
+                if ext (* We can run the function from another state *)
+                then
+                  let value = f () in
+                  Eliom_state.Ext.Low_level.set_persistent_data ~state ~table:t
+                    value
+                  >>= fun () -> Lwt.return value
+                else Lwt.fail Eref_not_initialized
+            | e -> Lwt.fail e)
     | _ -> failwith "wrong eref for this function"
 
   let set state ((_, _, table) as r) value =

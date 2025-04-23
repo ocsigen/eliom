@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 (* This the core of [Eliom_content] without its dependencies to [Eliom_service],
    [Eliom_client] et al.
@@ -478,16 +478,15 @@ module Html = struct
             Xml.RAReact
               (React.S.map
                  (function
-                    | true -> Some (Xml.AStr (Eliom_lazy.force s))
-                    | false -> None)
+                   | true -> Some (Xml.AStr (Eliom_lazy.force s))
+                   | false -> None)
                  on)
         | Xml.RALazyStrL (sep, l) ->
             Xml.RAReact
               (React.S.map
                  (function
-                    | true ->
-                        Some (Xml.AStrL (sep, List.map Eliom_lazy.force l))
-                    | false -> None)
+                   | true -> Some (Xml.AStrL (sep, List.map Eliom_lazy.force l))
+                   | false -> None)
                  on)
         | Xml.RACamlEventHandler _ ->
             failwith "R.filter_attrib not implemented for event handler"
@@ -560,7 +559,7 @@ module Html = struct
 
     let get_dom (element : Dom_html.element Js.t) custom_data =
       Js.Opt.case
-        element ## (getAttribute (Js.string (attribute_name custom_data.name)))
+        element##(getAttribute (Js.string (attribute_name custom_data.name)))
         (fun () ->
            match custom_data.default with
            | Some value -> value
@@ -568,10 +567,9 @@ module Html = struct
         (fun str -> custom_data.of_string (Js.to_string str))
 
     let set_dom element custom_data value =
-      element
-      ## (setAttribute
-            (Js.string (attribute_name custom_data.name))
-            (Js.string (custom_data.to_string value)))
+      element##(setAttribute
+                  (Js.string (attribute_name custom_data.name))
+                  (Js.string (custom_data.to_string value)))
   end
 
   module Of_dom = Js_of_ocaml_tyxml.Tyxml_cast.MakeOf (struct

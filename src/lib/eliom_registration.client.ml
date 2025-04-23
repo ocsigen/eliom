@@ -17,7 +17,7 @@ open Lwt.Syntax
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 let section = Lwt_log_js.Section.make "eliom:registration"
 
@@ -69,9 +69,9 @@ let typed_apply ~service f gp pp l l' suffix =
        | None -> ());
        f g p)
     (function
-       | Eliom_common.Eliom_Wrong_parameter ->
-           Lwt.fail Eliom_common.Eliom_Wrong_parameter
-       | exc -> Lwt.reraise exc)
+      | Eliom_common.Eliom_Wrong_parameter ->
+          Lwt.fail Eliom_common.Eliom_Wrong_parameter
+      | exc -> Lwt.reraise exc)
 
 let wrap service att f _ suffix =
   let gp = Eliom_service.get_params_type service
@@ -94,8 +94,12 @@ let wrap service att f _ suffix =
     with Not_found -> Lwt.fail Eliom_common.Eliom_Wrong_parameter)
   | _ -> typed_apply ~service f gp pp l l' suffix
 
-let wrap_na (service : (_, _, _, _, _, _, _, _, _, _, _) Eliom_service.t)
-    _non_att f _ suffix
+let wrap_na
+      (service : (_, _, _, _, _, _, _, _, _, _, _) Eliom_service.t)
+      _non_att
+      f
+      _
+      suffix
   =
   let gp = Eliom_service.get_params_type service
   and pp = Eliom_service.post_params_type service
@@ -134,9 +138,10 @@ let register_na ~service ~na f =
     Eliom_service.(na_name na)
     (wrap_na service na f) Eliom_route.global_tables
 
-let register (type g p att)
-    ~(service : (g, p, _, att, _, _, _, _, _, _, _) Eliom_service.t)
-    (f : g -> p -> _)
+let register
+      (type g p att)
+      ~(service : (g, p, _, att, _, _, _, _, _, _, _) Eliom_service.t)
+      (f : g -> p -> _)
   =
   match Eliom_service.info service with
   | Eliom_service.Attached att -> register_att ~service ~att f
@@ -151,10 +156,19 @@ module Make (P : PARAM) = struct
   let send ?options ?charset:_ ?code:_ ?content_type:_ ?headers:_ page =
     P.send ?options page
 
-  let register ?app ?scope:_ ?options ?charset:_ ?code:_ ?content_type:_
-      ?headers:_ ?secure_session:_ (type g p att)
-      ~(service : (g, p, _, att, _, _, _, _, _, _, _) Eliom_service.t)
-      ?error_handler:_ (f : g -> p -> _)
+  let register
+        ?app
+        ?scope:_
+        ?options
+        ?charset:_
+        ?code:_
+        ?content_type:_
+        ?headers:_
+        ?secure_session:_
+        (type g p att)
+        ~(service : (g, p, _, att, _, _, _, _, _, _, _) Eliom_service.t)
+        ?error_handler:_
+        (f : g -> p -> _)
     =
     let f g p =
       let* page = f g p in
@@ -256,15 +270,29 @@ module Redirection = struct
   type _ return = Eliom_service.non_ocaml
   type _ result = browser_content kind
 
-  let send ?options:_ ?charset:_ ?code:_ ?content_type:_ ?headers:_
-      (Redirection service)
+  let send
+        ?options:_
+        ?charset:_
+        ?code:_
+        ?content_type:_
+        ?headers:_
+        (Redirection service)
     =
     Lwt.return (Eliom_service.Redirect service)
 
-  let register ?app ?scope:_ ?options ?charset:_ ?code:_ ?content_type:_
-      ?headers:_ ?secure_session:_ (type g p att)
-      ~(service : (g, p, _, att, _, _, _, _, _, _, _) Eliom_service.t)
-      ?error_handler:_ (f : g -> p -> _)
+  let register
+        ?app
+        ?scope:_
+        ?options
+        ?charset:_
+        ?code:_
+        ?content_type:_
+        ?headers:_
+        ?secure_session:_
+        (type g p att)
+        ~(service : (g, p, _, att, _, _, _, _, _, _, _) Eliom_service.t)
+        ?error_handler:_
+        (f : g -> p -> _)
     =
     let f g p =
       let* page = f g p in
@@ -283,8 +311,18 @@ module Any = struct
   let send ?options:_ ?charset:_ ?code:_ ?content_type:_ ?headers:_ page =
     Lwt.return page
 
-  let register ?app ?scope:_ ?options:_ ?charset:_ ?code:_ ?content_type:_
-      ?headers:_ ?secure_session:_ ~service ?error_handler:_ f
+  let register
+        ?app
+        ?scope:_
+        ?options:_
+        ?charset:_
+        ?code:_
+        ?content_type:_
+        ?headers:_
+        ?secure_session:_
+        ~service
+        ?error_handler:_
+        f
     =
     let f g p =
       let* page = f g p in

@@ -19,7 +19,7 @@ open Lwt.Syntax
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 open Js_of_ocaml
 open Eliom_lib
@@ -138,8 +138,9 @@ end = struct
             in
             raise_error "Did not find injection %s" name))
 
-  let initialize ~compilation_unit_id
-      {Eliom_runtime.injection_id; injection_value; _}
+  let initialize
+        ~compilation_unit_id
+        {Eliom_runtime.injection_id; injection_value; _}
     =
     Lwt_log.ign_debug_f ~section "Initialize injection %d" injection_id;
     (* BBB One should assert that injection_value doesn't contain any
@@ -219,7 +220,7 @@ let register_process_node, find_process_node =
       if node##.nodeName##toLowerCase == Js.string "script"
       then
         (* We don't want to reexecute global scripts. *)
-        (Dom_html.document ## (createTextNode (Js.string "")) :> Dom.node Js.t)
+        (Dom_html.document##(createTextNode (Js.string "")) :> Dom.node Js.t)
       else node
     in
     Jstable.add process_nodes id node
@@ -288,17 +289,17 @@ let in_onload, broadcast_load_end, wait_load_end, set_loading_phase =
 
 (* forward declaration... *)
 let change_page_uri_ :
-    (?cookies_info:bool * string list -> ?tmpl:string -> string -> unit) ref
+  (?cookies_info:bool * string list -> ?tmpl:string -> string -> unit) ref
   =
   ref (fun ?cookies_info:_ ?tmpl:_ _href -> assert false)
 
 let change_page_get_form_ :
-    (?cookies_info:bool * string list
-     -> ?tmpl:string
-     -> Dom_html.formElement Js.t
-     -> string
-     -> unit)
-      ref
+  (?cookies_info:bool * string list
+   -> ?tmpl:string
+   -> Dom_html.formElement Js.t
+   -> string
+   -> unit)
+    ref
   =
   ref (fun ?cookies_info:_ ?tmpl:_ _form _href -> assert false)
 
@@ -365,8 +366,7 @@ let reify_caml_event name node ce =
             in
             raw_a_handler node cookies_info tmpl ev) )
   | Xml.CE_call_service
-      (Some
-        (((`Form_get | `Form_post) as kind), cookies_info, tmpl, client_hdlr))
+      (Some (((`Form_get | `Form_post) as kind), cookies_info, tmpl, client_hdlr))
     ->
       ( name
       , `Other
@@ -396,8 +396,9 @@ let reify_caml_event name node ce =
   | Xml.CE_registered_closure (_, cv) ->
       let name =
         let len = String.length name in
-        if len > closure_name_prefix_len
-           && String.sub name 0 closure_name_prefix_len = closure_name_prefix
+        if
+          len > closure_name_prefix_len
+          && String.sub name 0 closure_name_prefix_len = closure_name_prefix
         then
           String.sub name closure_name_prefix_len (len - closure_name_prefix_len)
         else name
@@ -495,7 +496,7 @@ let space_re = Regexp.regexp " "
 let current_classes node =
   let name = Js.string "class" in
   Js.Opt.case
-    node ## (getAttribute name)
+    node##(getAttribute name)
     (fun () -> [])
     (fun s -> Js.to_string s |> Regexp.(split space_re))
 
@@ -507,7 +508,7 @@ let rebuild_reactive_class_rattrib node s =
     and l2 = class_list_of_racontent_o v
     and l3 = class_list_of_racontent_o v' in
     let s = rebuild_class_string l1 l2 l3 in
-    node ## (setAttribute name s);
+    node##(setAttribute name s);
     iter_prop node name (fun name -> Js.Unsafe.set node name s)
   in
   f (None, React.S.value s);
@@ -518,11 +519,11 @@ let rec rebuild_rattrib node ra =
   | Xml.RA a when Xml.aname ra = "class" ->
       let l1 = current_classes node and l2 = class_list_of_racontent a in
       let name = Js.string "class" and s = rebuild_class_string l1 l2 l2 in
-      node ## (setAttribute name s)
+      node##(setAttribute name s)
   | Xml.RA a ->
       let name = Js.string (Xml.aname ra) in
       let v = rebuild_attrib_val a in
-      node ## (setAttribute name v)
+      node##(setAttribute name v)
   | Xml.RAReact s when Xml.aname ra = "class" ->
       rebuild_reactive_class_rattrib node s
   | Xml.RAReact s ->
@@ -531,29 +532,27 @@ let rec rebuild_rattrib node ra =
         ~keep:
           (React.S.map
              (function
-                | None ->
-                    node ## (removeAttribute name);
-                    iter_prop_protected node name (fun name ->
-                      Js.Unsafe.set node name Js.null)
-                | Some v ->
-                    let v = rebuild_attrib_val v in
-                    node ## (setAttribute name v);
-                    iter_prop_protected node name (fun name ->
-                      Js.Unsafe.set node name v))
+               | None ->
+                   node##(removeAttribute name);
+                   iter_prop_protected node name (fun name ->
+                     Js.Unsafe.set node name Js.null)
+               | Some v ->
+                   let v = rebuild_attrib_val v in
+                   node##(setAttribute name v);
+                   iter_prop_protected node name (fun name ->
+                     Js.Unsafe.set node name v))
              s)
   | Xml.RACamlEventHandler ev -> register_event_handler node (Xml.aname ra, ev)
   | Xml.RALazyStr s ->
-      node ## (setAttribute (Js.string (Xml.aname ra)) (Js.string s))
+      node##(setAttribute (Js.string (Xml.aname ra)) (Js.string s))
   | Xml.RALazyStrL (Xml.Space, l) ->
-      node
-      ## (setAttribute
-            (Js.string (Xml.aname ra))
-            (Js.string (String.concat " " l)))
+      node##(setAttribute
+               (Js.string (Xml.aname ra))
+               (Js.string (String.concat " " l)))
   | Xml.RALazyStrL (Xml.Comma, l) ->
-      node
-      ## (setAttribute
-            (Js.string (Xml.aname ra))
-            (Js.string (String.concat "," l)))
+      node##(setAttribute
+               (Js.string (Xml.aname ra))
+               (Js.string (String.concat "," l)))
   | Xml.RAClient (_, _, value) ->
       rebuild_rattrib node
         (Eliom_lib.from_poly (Eliom_lib.to_poly value) : Xml.attrib)
@@ -648,7 +647,7 @@ end = struct
           (fun parent ->
              Js.Opt.iter (Dom.CoerceTo.element parent) (fun parent ->
                (* really update the dom *)
-               ignore (Dom_html.element parent) ## (replaceChild dom dom')))
+               ignore (Dom_html.element parent)##(replaceChild dom dom')))
 end
 
 type content_ns = [`HTML5 | `SVG]
@@ -695,25 +694,25 @@ let rec rebuild_node' ns elt =
 and raw_rebuild_node ns = function
   | Xml.Empty | Xml.Comment _ ->
       (* FIXME *)
-      (Dom_html.document ## (createTextNode (Js.string "")) :> Dom.node Js.t)
+      (Dom_html.document##(createTextNode (Js.string "")) :> Dom.node Js.t)
   | Xml.EncodedPCDATA s | Xml.PCDATA s ->
-      (Dom_html.document ## (createTextNode (Js.string s)) :> Dom.node Js.t)
+      (Dom_html.document##(createTextNode (Js.string s)) :> Dom.node Js.t)
   | Xml.Entity s ->
       let entity = Dom_html.decode_html_entities (Js.string ("&" ^ s ^ ";")) in
-      (Dom_html.document ## (createTextNode entity) :> Dom.node Js.t)
+      (Dom_html.document##(createTextNode entity) :> Dom.node Js.t)
   | Xml.Leaf (name, attribs) ->
-      let node = Dom_html.document ## (createElement (Js.string name)) in
+      let node = Dom_html.document##(createElement (Js.string name)) in
       List.iter (rebuild_rattrib node) attribs;
       (node :> Dom.node Js.t)
   | Xml.Node (name, attribs, childrens) ->
       let ns = if name = "svg" then `SVG else ns in
       let node =
         match ns with
-        | `HTML5 -> Dom_html.document ## (createElement (Js.string name))
+        | `HTML5 -> Dom_html.document##(createElement (Js.string name))
         | `SVG ->
             let svg_ns = "http://www.w3.org/2000/svg" in
-            Dom_html.document
-            ## (createElementNS (Js.string svg_ns) (Js.string name))
+            Dom_html.document##(createElementNS (Js.string svg_ns)
+                                  (Js.string name))
       in
       List.iter (rebuild_rattrib node) attribs;
       List.iter (fun c -> Dom.appendChild node (rebuild_node' ns c)) childrens;

@@ -18,7 +18,7 @@ open Lwt.Syntax
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 open Lwt.Infix
 
@@ -28,13 +28,14 @@ let headers_with_content_type ?charset ?content_type headers =
       let charset =
         if charset <> None
         then charset
-        else if String.length content_type >= 5
-                && (String.sub content_type 0 5 = "text/"
-                   ||
-                   let suffix =
-                     String.sub content_type (String.length content_type - 4) 4
-                   in
-                   suffix = "/xml" || suffix = "=xml")
+        else if
+          String.length content_type >= 5
+          && (String.sub content_type 0 5 = "text/"
+             ||
+             let suffix =
+               String.sub content_type (String.length content_type - 4) 4
+             in
+             suffix = "/xml" || suffix = "=xml")
         then Some (Eliom_config.get_config_default_charset ())
         else None
       in
@@ -372,8 +373,13 @@ module Any_base = struct
   (* let send_appl_content = Eliom_service.XNever *)
   let send_appl_content = Eliom_service.XAlways
 
-  let send ?options:_ ?charset ?code:_ ?content_type ?headers:_
-      (result : 'a kind)
+  let send
+        ?options:_
+        ?charset
+        ?code:_
+        ?content_type
+        ?headers:_
+        (result : 'a kind)
     =
     let result = Result_types.cast_kind result in
     let cohttp_response = fst (Ocsigen_response.to_cohttp result) in
@@ -474,8 +480,13 @@ module File_ct_base = struct
   let result_of_http_result = Result_types.cast_result
   let send_appl_content = Eliom_service.XNever
 
-  let send ?options ?charset ?code ?content_type ?headers
-      (filename, content_type')
+  let send
+        ?options
+        ?charset
+        ?code
+        ?content_type
+        ?headers
+        (filename, content_type')
     =
     let content_type =
       match content_type with
@@ -516,35 +527,95 @@ struct
     T.translate content >>= fun c ->
     R.send ?options ?charset ?code ?content_type ?headers c
 
-  let register ?app ?scope ?options ?charset ?code ?content_type ?headers
-      ?secure_session ~service ?error_handler
-      (f : 'get -> 'post -> 'return Lwt.t)
+  let register
+        ?app
+        ?scope
+        ?options
+        ?charset
+        ?code
+        ?content_type
+        ?headers
+        ?secure_session
+        ~service
+        ?error_handler
+        (f : 'get -> 'post -> 'return Lwt.t)
     =
     R.register ?app ?scope ?options ?charset ?code ?content_type ?headers
       ?secure_session ~service ?error_handler:(make_eh error_handler)
       (make_service_handler f)
 
-  let create ?app ?scope ?options ?charset ?code ?content_type ?headers
-      ?secure_session ?https ?name ?csrf_safe ?csrf_scope ?csrf_secure ?max_use
-      ?timeout ~meth ~path ?error_handler f
+  let create
+        ?app
+        ?scope
+        ?options
+        ?charset
+        ?code
+        ?content_type
+        ?headers
+        ?secure_session
+        ?https
+        ?name
+        ?csrf_safe
+        ?csrf_scope
+        ?csrf_secure
+        ?max_use
+        ?timeout
+        ~meth
+        ~path
+        ?error_handler
+        f
     =
     R.create ?app ?scope ?options ?charset ?code ?content_type ?headers
       ?secure_session ?https ?name ?csrf_safe ?csrf_scope ?csrf_secure ?max_use
       ?timeout ~meth ~path ?error_handler:(make_eh error_handler)
       (make_service_handler f)
 
-  let create_attached_get ?app ?scope ?options ?charset ?code ?content_type
-      ?headers ?secure_session ?https ?name ?csrf_safe ?csrf_scope ?csrf_secure
-      ?max_use ?timeout ~fallback ~get_params ?error_handler f
+  let create_attached_get
+        ?app
+        ?scope
+        ?options
+        ?charset
+        ?code
+        ?content_type
+        ?headers
+        ?secure_session
+        ?https
+        ?name
+        ?csrf_safe
+        ?csrf_scope
+        ?csrf_secure
+        ?max_use
+        ?timeout
+        ~fallback
+        ~get_params
+        ?error_handler
+        f
     =
     R.create_attached_get ?app ?scope ?options ?charset ?code ?content_type
       ?headers ?secure_session ?https ?name ?csrf_safe ?csrf_scope ?csrf_secure
       ?max_use ?timeout ~fallback ~get_params
       ?error_handler:(make_eh error_handler) (make_service_handler f)
 
-  let create_attached_post ?app ?scope ?options ?charset ?code ?content_type
-      ?headers ?secure_session ?https ?name ?csrf_safe ?csrf_scope ?csrf_secure
-      ?max_use ?timeout ~fallback ~post_params ?error_handler f
+  let create_attached_post
+        ?app
+        ?scope
+        ?options
+        ?charset
+        ?code
+        ?content_type
+        ?headers
+        ?secure_session
+        ?https
+        ?name
+        ?csrf_safe
+        ?csrf_scope
+        ?csrf_secure
+        ?max_use
+        ?timeout
+        ~fallback
+        ~post_params
+        ?error_handler
+        f
     =
     R.create_attached_post ?app ?scope ?options ?charset ?code ?content_type
       ?headers ?secure_session ?https ?name ?csrf_safe ?csrf_scope ?csrf_secure
@@ -632,23 +703,30 @@ module Ocaml = struct
     Result_types.cast_result_lwt
       (M.send ?options ?charset ?code ?content_type ?headers content)
 
-  let register ?app ?scope ?options ?charset ?code ?content_type ?headers
-      ?secure_session
-      ~(service :
-         ( 'get
-           , 'post
-           , _
-           , _
-           , _
-           , Eliom_service.non_ext
-           , Eliom_service.reg
-           , _
-           , _
-           , _
-           , 'return Eliom_service.ocaml )
-           Eliom_service.t)
-      ?(error_handler : ((string * exn) list -> 'return Lwt.t) option)
-      (f : 'get -> 'post -> 'return Lwt.t)
+  let register
+        ?app
+        ?scope
+        ?options
+        ?charset
+        ?code
+        ?content_type
+        ?headers
+        ?secure_session
+        ~(service :
+           ( 'get
+             , 'post
+             , _
+             , _
+             , _
+             , Eliom_service.non_ext
+             , Eliom_service.reg
+             , _
+             , _
+             , _
+             , 'return Eliom_service.ocaml )
+             Eliom_service.t)
+        ?(error_handler : ((string * exn) list -> 'return Lwt.t) option)
+        (f : 'get -> 'post -> 'return Lwt.t)
     =
     M.register ?app ?scope ?options ?charset ?code ?content_type ?headers
       ?secure_session
@@ -656,9 +734,26 @@ module Ocaml = struct
       ?error_handler:(make_eh error_handler)
       (make_service_handler ~name:None f)
 
-  let create ?app ?scope ?options ?charset ?code ?content_type ?headers
-      ?secure_session ?https ?name ?csrf_safe ?csrf_scope ?csrf_secure ?max_use
-      ?timeout ~meth ~path ?error_handler f
+  let create
+        ?app
+        ?scope
+        ?options
+        ?charset
+        ?code
+        ?content_type
+        ?headers
+        ?secure_session
+        ?https
+        ?name
+        ?csrf_safe
+        ?csrf_scope
+        ?csrf_secure
+        ?max_use
+        ?timeout
+        ~meth
+        ~path
+        ?error_handler
+        f
     =
     Eliom_service.untype
     @@ M.create ?app ?scope ?options ?charset ?code ?content_type ?headers
@@ -666,9 +761,26 @@ module Ocaml = struct
          ?max_use ?timeout ~meth ~path ?error_handler:(make_eh error_handler)
          (make_service_handler ~name f)
 
-  let create_attached_get ?app ?scope ?options ?charset ?code ?content_type
-      ?headers ?secure_session ?https ?name ?csrf_safe ?csrf_scope ?csrf_secure
-      ?max_use ?timeout ~fallback ~get_params ?error_handler f
+  let create_attached_get
+        ?app
+        ?scope
+        ?options
+        ?charset
+        ?code
+        ?content_type
+        ?headers
+        ?secure_session
+        ?https
+        ?name
+        ?csrf_safe
+        ?csrf_scope
+        ?csrf_secure
+        ?max_use
+        ?timeout
+        ~fallback
+        ~get_params
+        ?error_handler
+        f
     =
     Eliom_service.untype
     @@ M.create_attached_get ?app ?scope ?options ?charset ?code ?content_type
@@ -678,9 +790,26 @@ module Ocaml = struct
          ~get_params ?error_handler:(make_eh error_handler)
          (make_service_handler ~name f)
 
-  let create_attached_post ?app ?scope ?options ?charset ?code ?content_type
-      ?headers ?secure_session ?https ?name ?csrf_safe ?csrf_scope ?csrf_secure
-      ?max_use ?timeout ~fallback ~post_params ?error_handler f
+  let create_attached_post
+        ?app
+        ?scope
+        ?options
+        ?charset
+        ?code
+        ?content_type
+        ?headers
+        ?secure_session
+        ?https
+        ?name
+        ?csrf_safe
+        ?csrf_scope
+        ?csrf_secure
+        ?max_use
+        ?timeout
+        ~fallback
+        ~post_params
+        ?error_handler
+        f
     =
     Eliom_service.untype
     @@ M.create_attached_post ?app ?scope ?options ?charset ?code ?content_type
@@ -902,11 +1031,11 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
     else rem
 
   let split_page page :
-      Html_types.html_attrib Eliom_content.Html.attrib list
-      * (Html_types.head_attrib Eliom_content.Html.attrib list
-        * Html_types.title Eliom_content.Html.elt
-        * Html_types.head_content_fun Eliom_content.Html.elt list)
-      * Html_types.body Eliom_content.Html.elt
+    Html_types.html_attrib Eliom_content.Html.attrib list
+    * (Html_types.head_attrib Eliom_content.Html.attrib list
+      * Html_types.title Eliom_content.Html.elt
+      * Html_types.head_content_fun Eliom_content.Html.elt list)
+    * Html_types.body Eliom_content.Html.elt
     =
     match Eliom_content.Xml.content page with
     | Eliom_content.Xml.Node (_, html_attribs, [head; body]) -> (
@@ -1000,8 +1129,13 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
     let encode x = fst (Xml_print.Utf8.normalize_html x) in
     Eliom_content.Html.Printer.pp ~encode ()
 
-  let send ?(options = default_appl_service_options) ?charset ?code
-      ?content_type ?headers content
+  let send
+        ?(options = default_appl_service_options)
+        ?charset
+        ?code
+        ?content_type
+        ?headers
+        content
     =
     let sp = Eliom_common.get_sp () in
     (* GRGR FIXME et si le nom de l'application diffère ?? Il faut
@@ -1084,8 +1218,13 @@ struct
       ~name:"template"
       (Eliom_parameter.string "name")
 
-  let send ?(options = default_appl_service_options) ?charset ?code
-      ?content_type ?headers content
+  let send
+        ?(options = default_appl_service_options)
+        ?charset
+        ?code
+        ?content_type
+        ?headers
+        content
     =
     match Eliom_parameter.get_non_localized_get_parameters nl_template with
     | None ->
@@ -1188,8 +1327,13 @@ module Redirection_base = struct
   let send_appl_content = Eliom_service.XAlways
   (* actually, the service will decide itself *)
 
-  let send ?(options = `Found) ?charset ?code ?content_type ?headers
-      (Redirection service)
+  let send
+        ?(options = `Found)
+        ?charset
+        ?code
+        ?content_type
+        ?headers
+        (Redirection service)
     =
     let uri = Eliom_uri.make_string_uri ~service ()
     and headers = Ocsigen_header.of_option headers in

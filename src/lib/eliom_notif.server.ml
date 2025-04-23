@@ -119,7 +119,7 @@ module Make (A : ARG) :
   end
 
   let identity_r :
-      (A.identity * notification_react) option Eliom_reference.Volatile.eref
+    (A.identity * notification_react) option Eliom_reference.Volatile.eref
     =
     Eliom_reference.Volatile.eref ~scope:Eliom_common.default_process_scope None
 

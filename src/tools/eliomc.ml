@@ -100,9 +100,10 @@ let output_prefix ?(ty = false) name =
 let set_mode m =
   if !mode = `Link
   then
-    if (m = `Shared && !kind <> `ServerOpt)
-       || (m = `Infer && !kind = `Client)
-       || (m = `Interface && !kind = `Client)
+    if
+      (m = `Shared && !kind <> `ServerOpt)
+      || (m = `Infer && !kind = `Client)
+      || (m = `Interface && !kind = `Client)
     then usage ()
     else mode := m
   else

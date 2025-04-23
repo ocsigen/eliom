@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 open Eliom_lib
 include Eliom_parameter_base
@@ -26,16 +26,22 @@ open Ocsigen_extensions
 
 (* server-specific constructors *)
 
-let user_type ?client_to_and_of ~(of_string : string -> 'a)
-    ~(to_string : 'a -> string) (n : string)
+let user_type
+      ?client_to_and_of
+      ~(of_string : string -> 'a)
+      ~(to_string : 'a -> string)
+      (n : string)
   =
   TUserType
     ( n
     , Eliom_common.To_and_of_shared.create ?client_to_and_of
         {of_string; to_string} )
 
-let all_suffix_user ?client_to_and_of ~(of_string : string -> 'a)
-    ~(to_string : 'a -> string) (n : string)
+let all_suffix_user
+      ?client_to_and_of
+      ~(of_string : string -> 'a)
+      ~(to_string : 'a -> string)
+      (n : string)
   =
   TESuffixu
     ( n
@@ -59,7 +65,7 @@ let regexp reg dest ~to_string n =
     ~to_string n
 
 let all_suffix_regexp reg dest ~(to_string : 'a -> string) (n : string) :
-    (string, [`Endsuffix], [`One of string] param_name) params_type
+  (string, [`Endsuffix], [`One of string] param_name) params_type
   =
   all_suffix_user
     ~of_string:(fun s ->
@@ -76,8 +82,12 @@ let all_suffix_regexp reg dest ~(to_string : 'a -> string) (n : string) :
 
 (* Non localized parameters *)
 
-let get_non_localized_parameters params files ~getorpost ~sp
-    {name; get; post; param = paramtype; _}
+let get_non_localized_parameters
+      params
+      files
+      ~getorpost
+      ~sp
+      {name; get; post; param = paramtype; _}
   =
   (* non localized parameters are parsed only once,
      and cached in request_cache *)

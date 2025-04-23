@@ -90,8 +90,13 @@ let fullsessgrp ~cookie_level ~sp session_group =
     (Eliom_common.get_site_dir_string sp.Eliom_common.sp_sitedata)
     session_group
 
-let rec find_or_create_persistent_cookie_ ?set_max_in_group ?set_session_group
-    ~cookie_scope ~secure_o ~sp ()
+let rec find_or_create_persistent_cookie_
+          ?set_max_in_group
+          ?set_session_group
+          ~cookie_scope
+          ~secure_o
+          ~sp
+          ()
   =
   (* if it exists, do not create it, but returns its value *)
   let cookie_level = Eliom_common.cookie_level_of_user_scope cookie_scope in
@@ -119,7 +124,10 @@ let rec find_or_create_persistent_cookie_ ?set_max_in_group ?set_session_group
     let hc_string = Eliom_common.Hashed_cookies.to_string hc in
     (* We do not need to verify if it already exists.
      make_new_session_id does never generate twice the same cookie. *)
-    let usertimeout = ref Eliom_common.TGlobal (* See global table *) in
+    let usertimeout =
+      ref Eliom_common.TGlobal
+      (* See global table *)
+    in
     let* () =
       Eliommod_cookies.Persistent_cookies.add hc_string
         { Eliommod_cookies.full_state_name
@@ -171,17 +179,21 @@ let rec find_or_create_persistent_cookie_ ?set_max_in_group ?set_session_group
            return v
        | Eliom_common.SC v -> return v)
     (function
-       | Not_found ->
-           new_persistent_cookie sitedata full_st_name >>= fun v ->
-           cookie_info :=
-             Eliom_common.Full_state_name_table.add full_st_name
-               (Lazy.from_val (return (None, ref (Eliom_common.SC v))))
-               !cookie_info;
-           return v
-       | e -> fail e)
+      | Not_found ->
+          new_persistent_cookie sitedata full_st_name >>= fun v ->
+          cookie_info :=
+            Eliom_common.Full_state_name_table.add full_st_name
+              (Lazy.from_val (return (None, ref (Eliom_common.SC v))))
+              !cookie_info;
+          return v
+      | e -> fail e)
 
-let find_or_create_persistent_cookie ?set_session_group ~cookie_scope ~secure_o
-    ?sp ()
+let find_or_create_persistent_cookie
+      ?set_session_group
+      ~cookie_scope
+      ~secure_o
+      ?sp
+      ()
   =
   let sp = Eliom_common.sp_of_option sp in
   find_or_create_persistent_cookie_ ?set_session_group ~cookie_scope ~secure_o

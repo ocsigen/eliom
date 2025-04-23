@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 (** Low level functions for Eliom, exceptions and types. *)
 
@@ -429,7 +429,7 @@ type server_params =
     sp_suffix : Url.path option
   ; sp_full_state_name : full_state_name option
   ; sp_client_process_info : client_process_info
-  (* Contains the base URL information from which the client process
+    (* Contains the base URL information from which the client process
      has been launched (if any). All relative links and forms will be
      created with respect to this information (if present - from
      current URL otherwise). It is taken form a client process state
@@ -442,10 +442,10 @@ and page_table = page_table_content Serv_Table.t
 
 and page_table_content =
   [ `Ptc of
-    (page_table ref * page_table_key, na_key_serv) leftright
-      Ocsigen_cache.Dlist.node
-      option
-    * (server_params, Ocsigen_response.t) service list ]
+      (page_table ref * page_table_key, na_key_serv) leftright
+        Ocsigen_cache.Dlist.node
+        option
+      * (server_params, Ocsigen_response.t) service list ]
 
 and naservice_table_content =
   int
@@ -491,7 +491,7 @@ and tables =
       -> (page_table ref * page_table_key, na_key_serv) leftright
       -> (page_table ref * page_table_key, na_key_serv) leftright
            Ocsigen_cache.Dlist.node
-  (* Add in a dlist
+    (* Add in a dlist
           for limiting the number of dynamic anonymous coservices in each table
           (and avoid DoS).
           There is one dlist for each session, and one for each IP
@@ -499,11 +499,11 @@ and tables =
           The dlist parameter is the table and coservice number
           for attached coservices,
           and the coservice number for non-attached ones.
-  *) }
+    *) }
 
 and sitedata =
   { mutable site_dir : Url.path option
-        (* None when statically linked 
+    (* None when statically linked 
                                            before module init*)
   ; mutable site_dir_string : string option (* idem *)
   ; mutable config_info : Ocsigen_extensions.config_info option (* idem *)

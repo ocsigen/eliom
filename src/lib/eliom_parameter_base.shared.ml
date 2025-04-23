@@ -17,7 +17,7 @@ open Lwt.Syntax
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 open Eliom_lib
 
@@ -164,10 +164,11 @@ let all_suffix_string (n : string) = TESuffixs n
 let suffix ?(redirect_if_not_suffix = true) s =
   TSuffix (redirect_if_not_suffix, s)
 
-let suffix_prod ?(redirect_if_not_suffix = true)
-    (s : ('s, [< `WithoutSuffix | `Endsuffix], 'sn) params_type)
-    (t : ('a, [`WithoutSuffix], 'an) params_type) :
-    ('s * 'a, [`WithSuffix], 'sn * 'an) params_type
+let suffix_prod
+      ?(redirect_if_not_suffix = true)
+      (s : ('s, [< `WithoutSuffix | `Endsuffix], 'sn) params_type)
+      (t : ('a, [`WithoutSuffix], 'an) params_type) :
+  ('s * 'a, [`WithSuffix], 'sn * 'an) params_type
   =
   TProd (TSuffix (redirect_if_not_suffix, s), t)
 
@@ -211,16 +212,15 @@ let rec make_suffix : type a c. (a, 'b, c) params_type -> a -> string list =
       [to_json ?typ params]
   | _ -> raise (Eliom_Internal_Error "Bad parameter type in suffix")
 
-let rec aux :
-    type a c.
-    (a, 'b, c) params_type
-    -> string list option
-    -> 'y
-    -> a
-    -> string
-    -> string
-    -> 'z
-    -> 'x * 'y * (string * Eliommod_parameters.field) list
+let rec aux : type a c.
+  (a, 'b, c) params_type
+  -> string list option
+  -> 'y
+  -> a
+  -> string
+  -> string
+  -> 'z
+  -> 'x * 'y * (string * Eliommod_parameters.field) list
   =
  fun typ psuff nlp params pref suff l ->
   let open Eliommod_parameters in
@@ -321,8 +321,8 @@ let rec get_to_and_of : type a c. (a, 'b, c) params_type -> a to_and_of
   | _ -> failwith "get_to_and_of: not implemented"
 
 (** Walk the parameter tree to search for a parameter, given its name *)
-let rec walk_parameter_tree :
-    type a c. string -> (a, 'b, c) params_type -> a to_and_of option
+let rec walk_parameter_tree : type a c.
+  string -> (a, 'b, c) params_type -> a to_and_of option
   =
  fun name x ->
   let get name' = if name = name' then Some (get_to_and_of x) else None in
@@ -364,8 +364,8 @@ let construct_params nonlocparams typ p =
   suff, construct_params_string pl
 
 let make_params_names params =
-  let rec aux :
-      type a c. bool -> string -> string -> (a, 'b, c) params_type -> bool * c
+  let rec aux : type a c.
+    bool -> string -> string -> (a, 'b, c) params_type -> bool * c
     =
    fun issuffix prefix suffix x ->
     match x with
@@ -419,8 +419,8 @@ let make_params_names params =
 let string_of_param_name = id
 
 (* Add a prefix to parameters *)
-let rec add_pref_params :
-    type a c. string -> (a, 'b, c) params_type -> (a, 'b, c) params_type
+let rec add_pref_params : type a c.
+  string -> (a, 'b, c) params_type -> (a, 'b, c) params_type
   =
  fun pref x ->
   match x with
@@ -450,9 +450,10 @@ let rec add_pref_params :
 (*****************************************************************************)
 (* Non localized parameters *)
 
-let nl_prod (t : ('a, 'su, 'an) params_type)
-    (s : ('s, [`WithoutSuffix], 'sn) non_localized_params) :
-    ('a * 's, 'su, 'an * 'sn) params_type
+let nl_prod
+      (t : ('a, 'su, 'an) params_type)
+      (s : ('s, [`WithoutSuffix], 'sn) non_localized_params) :
+  ('a * 's, 'su, 'an * 'sn) params_type
   =
   TProd (t, TNLParams s)
 
@@ -487,9 +488,12 @@ let make_nlp_name persistent prefix name =
   let pr = if persistent then "p_" else "n_" in
   pr ^ prefix ^ "-" ^ name
 
-let make_non_localized_parameters ~prefix ~name ?(persistent = false)
-    (p : ('a, [`WithoutSuffix], 'b) params_type) :
-    ('a, [`WithoutSuffix], 'b) non_localized_params
+let make_non_localized_parameters
+      ~prefix
+      ~name
+      ?(persistent = false)
+      (p : ('a, [`WithoutSuffix], 'b) params_type) :
+  ('a, [`WithoutSuffix], 'b) non_localized_params
   =
   let name = make_nlp_name persistent prefix name in
   if String.contains name '.'
@@ -511,8 +515,8 @@ let rec contains_suffix : type a c. (a, 'b, c) params_type -> bool option
 
 (*****************************************************************************)
 
-let rec wrap_param_type :
-    type a c. (a, 'b, c) params_type -> (a, 'b, c) params_type
+let rec wrap_param_type : type a c.
+  (a, 'b, c) params_type -> (a, 'b, c) params_type
   = function
   | TNLParams t -> TNLParams {t with param = wrap_param_type t.param}
   | TProd (t1, t2) -> TProd (wrap_param_type t1, wrap_param_type t2)
@@ -557,8 +561,8 @@ let end_of_list lp pref =
 (* The following function reconstructs the value of parameters from
    expected type and GET or POST parameters *)
 let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
-  let rec parse_suffix :
-      type a c. (a, 'b, c) params_type -> string list -> a * string list
+  let rec parse_suffix : type a c.
+    (a, 'b, c) params_type -> string list -> a * string list
     =
    fun typ suff ->
     match typ, suff with
@@ -644,21 +648,19 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
     | TSuffix _, _ -> failwith "It is not possible to use TSuffix in suffix."
     | _, [] -> raise Eliom_common.Eliom_Wrong_parameter
   in
-  let rec aux_list :
-      type a c.
-      (a, 'b, c) params_type
-      -> params'
-      -> files
-      -> string
-      -> string
-      -> string
-      -> a list res_reconstr_param
+  let rec aux_list : type a c.
+    (a, 'b, c) params_type
+    -> params'
+    -> files
+    -> string
+    -> string
+    -> string
+    -> a list res_reconstr_param
     =
    fun t params files name pref suff ->
     let rec loop_list i lp fl pref =
-      if match t with
-         | TFile _ -> end_of_list fl pref
-         | _ -> end_of_list lp pref
+      if
+        match t with TFile _ -> end_of_list fl pref | _ -> end_of_list lp pref
       then Res_ ([], lp, fl)
       else
         match aux t lp fl pref (make_list_suffix i) with
@@ -669,14 +671,13 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
         | Errors_ errs -> Errors_ errs
     in
     loop_list 0 params files (pref ^ name ^ suff ^ ".")
-  and aux :
-      type a c.
-      (a, 'b, c) params_type
-      -> params'
-      -> files
-      -> string
-      -> string
-      -> a res_reconstr_param
+  and aux : type a c.
+    (a, 'b, c) params_type
+    -> params'
+    -> files
+    -> string
+    -> string
+    -> a res_reconstr_param
     =
    fun typ params files pref suff ->
     match typ with
@@ -860,8 +861,14 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
         else raise Eliom_common.Eliom_Wrong_parameter
   with Not_found -> raise Eliom_common.Eliom_Wrong_parameter
 
-let reconstruct_params ~sp (type a c) (typ : (a, 'b, c) params_type) params
-    files nosuffixversion urlsuffix : a Lwt.t
+let reconstruct_params
+      ~sp
+      (type a c)
+      (typ : (a, 'b, c) params_type)
+      params
+      files
+      nosuffixversion
+      urlsuffix : a Lwt.t
   =
   match typ, params, files with
   (* FIXME *)

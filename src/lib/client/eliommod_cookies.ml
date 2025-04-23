@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 open Js_of_ocaml
 open Eliom_lib
@@ -24,9 +24,9 @@ include Eliom_cookies_base
 (* CCC The tables are indexed by the hostname, not the port appear.
    there are no particular reason. If needed it is possible to add it *)
 let cookie_tables :
-    (float option * string * bool) Ocsigen_cookie_map.Map_inner.t
-      Ocsigen_cookie_map.Map_path.t
-      Jstable.t
+  (float option * string * bool) Ocsigen_cookie_map.Map_inner.t
+    Ocsigen_cookie_map.Map_path.t
+    Jstable.t
   =
   Jstable.create ()
 
@@ -145,7 +145,7 @@ let get_table ?(in_local_storage = false) = function
           (fun () -> Ocsigen_cookie_map.Map_path.empty)
           (fun st ->
              Js.Opt.case
-               st ## (getItem host)
+               st##(getItem host)
                (fun () -> Ocsigen_cookie_map.Map_path.empty)
                (fun v ->
                   intern_cookies (of_json ~typ:json_cookies (Js.to_string v))))
@@ -166,9 +166,8 @@ let set_table ?(in_local_storage = false) host t =
           Dom_html.window##.localStorage
           (fun () -> ())
           (fun st ->
-             st
-             ## (setItem host
-                   (Js.string (to_json ~typ:json_cookies (extern_cookies t)))))
+             st##(setItem host
+                    (Js.string (to_json ~typ:json_cookies (extern_cookies t)))))
       else Jstable.add cookie_tables (Js.string host) t
 
 let now () =
@@ -202,9 +201,10 @@ let get_cookies_to_send ?(in_local_storage = false) host https path =
   let now = now () in
   Ocsigen_cookie_map.Map_path.fold
     (fun cpath t cookies_to_send ->
-       if Url.is_prefix_skip_end_slash
-            (Url.remove_slash_at_beginning cpath)
-            (Url.remove_slash_at_beginning path)
+       if
+         Url.is_prefix_skip_end_slash
+           (Url.remove_slash_at_beginning cpath)
+           (Url.remove_slash_at_beginning path)
        then
          Ocsigen_cookie_map.Map_inner.fold
            (fun name (exp, value, secure) cookies_to_send ->

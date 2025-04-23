@@ -12,7 +12,10 @@ let ocamldoc_wiki tags deps docout docdir =
   Ocamlbuild_pack.Ocaml_tools.ocamldoc_l_dir tags deps docout docdir
 
 let ocamldoc_man tags deps docout docdir =
-  let tags = tags (* -- "extension:html" *) in
+  let tags =
+    tags
+    (* -- "extension:html" *)
+  in
   Ocamlbuild_pack.Ocaml_tools.ocamldoc_l_dir tags deps docout docdir
 
 let init_wikidoc () =

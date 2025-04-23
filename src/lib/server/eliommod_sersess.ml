@@ -84,8 +84,12 @@ let fullsessgrp ~cookie_level ~sp set_session_group =
     (Eliom_common.get_mask6 sitedata)
     set_session_group
 
-let rec find_or_create_service_cookie_ ?set_session_group
-    ~(cookie_scope : Eliom_common.cookie_scope) ~secure_o ~sp ()
+let rec find_or_create_service_cookie_
+          ?set_session_group
+          ~(cookie_scope : Eliom_common.cookie_scope)
+          ~secure_o
+          ~sp
+          ()
   =
   (* If the cookie does not exist, create it.
      Returns the cookie info for the cookie *)
@@ -109,7 +113,10 @@ let rec find_or_create_service_cookie_ ?set_session_group
     let hc = Eliom_common.Hashed_cookies.hash c in
     let hc_string = Eliom_common.Hashed_cookies.to_string hc in
     let str = ref (Eliom_common.new_service_session_tables sitedata) in
-    let timeout = ref Eliom_common.TGlobal (* See global table *) in
+    let timeout =
+      ref Eliom_common.TGlobal
+      (* See global table *)
+    in
     let expiry =
       ref None
       (*Some 0.*)
@@ -201,8 +208,12 @@ let find_or_create_service_cookie_ =
        -> unit
        -> Eliom_common.tables Eliom_common.one_service_cookie_info)
 
-let find_or_create_service_cookie ?set_session_group ~cookie_scope ~secure_o ?sp
-    ()
+let find_or_create_service_cookie
+      ?set_session_group
+      ~cookie_scope
+      ~secure_o
+      ?sp
+      ()
   =
   let sp = Eliom_common.sp_of_option sp in
   find_or_create_service_cookie_ ?set_session_group ~cookie_scope ~secure_o ~sp

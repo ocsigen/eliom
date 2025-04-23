@@ -203,30 +203,30 @@ let create_sitedata, update_sitedata =
 
 (* The following is common to global config and site config *)
 let parse_eliom_option
-    ( set_volatile_timeout
-    , set_data_timeout
-    , set_service_timeout
-    , set_persistent_timeout
-    , set_max_service_sessions_per_group
-    , set_max_service_sessions_per_subnet
-    , set_max_data_sessions_per_group
-    , set_max_data_sessions_per_subnet
-    , set_max_persistent_sessions_per_group
-    , set_max_service_tab_sessions_per_group
-    , set_max_data_tab_sessions_per_group
-    , set_max_persistent_tab_sessions_per_group
-    , set_max_services_per_session
-    , set_max_services_per_subnet
-    , set_max_volatile_groups_per_site
-    , set_secure_cookies
-    , set_ipv4mask
-    , set_ipv6mask
-    , set_application_script
-    , set_global_data_caching
-    , set_html_content_type
-    , set_ignored_get_params
-    , set_ignored_post_params
-    , set_omitpersistentstorage )
+      ( set_volatile_timeout
+      , set_data_timeout
+      , set_service_timeout
+      , set_persistent_timeout
+      , set_max_service_sessions_per_group
+      , set_max_service_sessions_per_subnet
+      , set_max_data_sessions_per_group
+      , set_max_data_sessions_per_subnet
+      , set_max_persistent_sessions_per_group
+      , set_max_service_tab_sessions_per_group
+      , set_max_data_tab_sessions_per_group
+      , set_max_persistent_tab_sessions_per_group
+      , set_max_services_per_session
+      , set_max_services_per_subnet
+      , set_max_volatile_groups_per_site
+      , set_secure_cookies
+      , set_ipv4mask
+      , set_ipv6mask
+      , set_application_script
+      , set_global_data_caching
+      , set_html_content_type
+      , set_ignored_get_params
+      , set_ignored_post_params
+      , set_omitpersistentstorage )
   =
   let parse_timeout_attrs tn attrs =
     let rec aux ((v, sn, ct) as res) = function
@@ -765,15 +765,19 @@ let gen_nothing () _ = Lwt.return Ocsigen_extensions.Ext_do_nothing
 let default_module_action _ = failwith "default_module_action"
 
 let set_timeout
-    (f :
-      ?full_st_name:Eliom_common.full_state_name
-      -> ?cookie_level:[< Eliom_common.cookie_level]
-      -> recompute_expdates:bool
-      -> bool (* override configfile *)
-      -> bool (* from config file *)
-      -> Eliom_common.sitedata
-      -> float option
-      -> unit) sitedata cookie_type state_hier v
+      (f :
+        ?full_st_name:Eliom_common.full_state_name
+        -> ?cookie_level:[< Eliom_common.cookie_level]
+        -> recompute_expdates:bool
+        -> bool (* override configfile *)
+        -> bool (* from config file *)
+        -> Eliom_common.sitedata
+        -> float option
+        -> unit)
+      sitedata
+      cookie_type
+      state_hier
+      v
   =
   let make_full_st_name secure state_hier =
     let scope =

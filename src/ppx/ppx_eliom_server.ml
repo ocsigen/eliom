@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 (* This prepocessor generates the module to be loaded by Ocsigen server *)
 
@@ -36,11 +36,11 @@ module Pass = struct
          then [%stri let [%p Pat.var id] = fun y -> (y : [%t typ] :> [%t typ])]
          else
            [%stri
-             let [%p Pat.var id] =
-               let x = Stdlib.ref None in
-               fun y ->
-                 if false then x := Some y;
-                 (y : [%t typ] :> [%t typ])])
+           let [%p Pat.var id] =
+             let x = Stdlib.ref None in
+             fun y ->
+               if false then x := Some y;
+               (y : [%t typ] :> [%t typ])])
         :: !typing_strs
     in
     let flush loc =
@@ -105,7 +105,7 @@ module Pass = struct
       in
       List.iter
         (function
-           | _, gen_id, _, _, _ -> global_known := SSet.add gen_id !global_known)
+          | _, gen_id, _, _, _ -> global_known := SSet.add gen_id !global_known)
         novel;
       all
     in
@@ -127,7 +127,7 @@ module Pass = struct
 
   let close_server_section loc =
     [%stri
-      let () = Eliom_syntax.close_server_section [%e eid @@ id_file_hash loc]]
+    let () = Eliom_syntax.close_server_section [%e eid @@ id_file_hash loc]]
 
   let may_close_server_section ~no_fragment loc =
     if no_fragment then [] else [close_server_section loc]
@@ -160,10 +160,10 @@ module Pass = struct
         injections [%expr []]
     in
     [%stri
-      let () =
-        Eliom_syntax.close_client_section
-          [%e eid @@ id_file_hash loc]
-          [%e injection_list]]
+    let () =
+      Eliom_syntax.close_client_section
+        [%e eid @@ id_file_hash loc]
+        [%e injection_list]]
 
   (** Syntax extension *)
 
@@ -213,8 +213,13 @@ module Pass = struct
                [%e e]
              : [%t typ] Eliom_client_value.t)]]]
 
-  let escape_inject ~loc ?ident ~(context : Context.escape_inject) ~id ~unsafe
-      expr
+  let escape_inject
+        ~loc
+        ?ident
+        ~(context : Context.escape_inject)
+        ~id
+        ~unsafe
+        expr
     =
     match context with
     | `Escaped_value _ ->
