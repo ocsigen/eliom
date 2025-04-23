@@ -50,7 +50,7 @@ let pat_args = function [] -> punit () | [p] -> p | l -> Pat.tuple l
    These bits are encoded using an OCaml-compatible variant of Base
    64, as the hash is used to generate OCaml identifiers. *)
 let file_hash loc =
-  let s = Filename.basename loc.Location.loc_start.pos_fname in
+  let s = Digest.string (Filename.basename loc.Location.loc_start.pos_fname) in
   let e = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_'" in
   let o = Bytes.create 6 in
   let g p = Char.code s.[p] in
@@ -283,7 +283,7 @@ module Cmo = struct
            ; ev_kind = Event_after ty
            ; _ } ->
              if pos_cnum' = pos_cnum + 1
-             then Hashtbl.add events (Filename.basename pos_fname, pos_cnum) ty
+             then Hashtbl.add events (pos_fname, pos_cnum) ty
          | _ -> ())
       evl
 
@@ -472,10 +472,7 @@ module Cmo = struct
 
   let find err loc =
     let {Lexing.pos_fname; pos_cnum; _} = loc.Location.loc_start in
-    try
-      typ
-        (Hashtbl.find (Lazy.force events)
-           (Filename.basename pos_fname, pos_cnum))
+    try typ (Hashtbl.find (Lazy.force events) (pos_fname, pos_cnum))
     with Not_found ->
       Typ.extension ~loc @@ Location.Error.to_extension
       @@ Location.Error.make ~loc ~sub:[]
