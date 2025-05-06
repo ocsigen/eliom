@@ -21,7 +21,7 @@ open Lwt.Syntax
 
 open Eliom_lib
 
-let section = Lwt_log.Section.make "eliom:parameter"
+let section = Logs.Src.create "eliom:parameter"
 
 type params = (string * Eliommod_parameters.param) list
 type params' = (string * string) list
@@ -839,18 +839,14 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
         else (
           if l <> []
           then
-            Lwt_log.ign_debug_f ~section
-              "Eliom_Wrong_parameter: params non-empty (ERROR): %a"
-              (fun () l ->
-                 String.concat ", " (List.map (fun (x, k) -> x ^ "=" ^ k) l))
-              l;
+            Logs.debug ~src:section (fun fmt ->
+              fmt "Eliom_Wrong_parameter: params non-empty (ERROR): %s"
+                (String.concat ", " (List.map (fun (x, k) -> x ^ "=" ^ k) l)));
           if files <> []
           then
-            Lwt_log.ign_debug_f ~section
-              "Eliom_Wrong_parameter: files non-empty (ERROR): %a"
-              (fun () files ->
-                 String.concat ", " (List.map (fun (x, _) -> x) files))
-              files;
+            Logs.debug ~src:section (fun fmt ->
+              fmt "Eliom_Wrong_parameter: files non-empty (ERROR): %s"
+                (String.concat ", " (List.map (fun (x, _) -> x) files)));
           raise Eliom_common.Eliom_Wrong_parameter)
     | Errors_ (errs, l, files) ->
         if (l, files) = ([], [])

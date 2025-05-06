@@ -79,33 +79,33 @@ module Url = struct
         split_path (try String.(sub s 0 (index s '?')) with Not_found -> s)
 end
 
-module Lwt_log = Lwt_log_js
-
-let raise_error ?inspect ?exn ?section ?location ?logger fmt =
+let raise_error ?exn ?section fmt =
   let k msg =
-    Lwt.ignore_result
-      (Lwt_log.log ?inspect ?exn ?section ?location ?logger ~level:Error msg);
+    Logs.msg ?src:section Logs.Error (fun fmt -> fmt "%s" msg);
     match exn with Some exn -> raise exn | None -> failwith msg
   in
   Printf.ksprintf k fmt
 
-let eliom_logs_src = Lwt_log.Section.make "eliom"
+let log_inspect obj = Console.console##log (Obj.repr obj)
+let eliom_logs_src = Logs.Src.create "eliom"
 
 let _ =
-  Lwt_log.default := Lwt_log.console;
+  Logs.set_reporter (Logs_browser.console_reporter ());
   Lwt.async_exception_hook :=
     fun exn ->
       Console.console##error_3 (Js.string "Lwt.async:")
         (Js.string (Printexc.to_string exn))
         exn
 
-let trace fmt =
+let trace fmts =
   if Eliom_config.get_tracing ()
-  then Lwt_log.ign_info_f (">> " ^^ fmt)
-  else Printf.ksprintf ignore fmt
+  then Printf.ksprintf (fun msg -> Logs.info (fun fmt -> fmt ">> %s" msg)) fmts
+  else Printf.ksprintf ignore fmts
 
 let lwt_ignore ?(message = "") t =
-  Lwt.on_failure t (fun exn -> Lwt_log.ign_info_f ~exn "%s" message)
+  Lwt.on_failure t (fun exn ->
+    Logs.info (fun fmt ->
+      fmt ("%s" ^^ "@\n%s") message (Printexc.to_string exn)))
 
 (* Debbuging *)
 let jsalert a = Dom_html.window##(alert a)

@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 *)
 
-let section = Lwt_log.Section.make "eliom:wrap"
+let section = Logs.Src.create "eliom:wrap"
 
 type poly
 
@@ -374,10 +374,11 @@ let perform_wrap =
   let tbl = Tbl.make [subst_tbl; copy_tbl] in
   ignore (find_substs tbl subst_tbl v);
   let w = duplicate tbl subst_tbl copy_tbl v in
-  Lwt_log.ign_debug_f ~section
-    "Wrap stats: %d visited (%d blocks), %d wrapped, %d copied, %d resizes, %d rehashes"
-    !iteration_count tbl.occupancy !wrap_count !copy_count !resize_count
-    !rehash_count;
+  Logs.debug ~src:section (fun fmt ->
+    fmt
+      "Wrap stats: %d visited (%d blocks), %d wrapped, %d copied, %d resizes, %d rehashes"
+      !iteration_count tbl.occupancy !wrap_count !copy_count !resize_count
+      !rehash_count);
   w
 
 type +'a wrapper = marked_value

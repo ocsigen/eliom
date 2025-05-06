@@ -409,4 +409,4 @@ module type S = sig
   val anonymise_params_type : ('a, 'b, 'c) params_type -> int
 end
 
-val section : Lwt_log_core.section
+val section : Logs.src

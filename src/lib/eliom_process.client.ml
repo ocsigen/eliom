@@ -21,7 +21,7 @@ open Js_of_ocaml
 open Eliom_lib
 
 (* Logs *)
-let section = Lwt_log.Section.make "eliom:process"
+let section = Logs.Src.create "eliom:process"
 let log_section = section
 let history_api = Dom_html.hasPushState ()
 

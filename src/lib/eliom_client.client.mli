@@ -21,7 +21,6 @@
 (** Call server side services and change the current page. *)
 
 open Js_of_ocaml
-open Eliom_lib
 
 val lock_request_handling : unit -> unit
 val unlock_request_handling : unit -> unit
@@ -490,8 +489,8 @@ val push_history_dom : unit -> unit
    previous and the next page are kept. *)
 val set_max_dist_history_doms : int option -> unit
 
-val section : Lwt_log.section
-(** Lwt_log section for this module. *)
+val section : Logs.src
+(** Logs source for this module. *)
 
 val middleClick : Dom_html.mouseEvent Js.t -> bool
 (** Is it a middle-click event? *)

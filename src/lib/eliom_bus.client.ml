@@ -23,7 +23,7 @@ open Lwt.Syntax
 
 open Eliom_lib
 
-let section = Lwt_log.Section.make "eliom:bus"
+let section = Logs.Src.create "eliom:bus"
 
 module Ecb = Eliom_comet_base
 

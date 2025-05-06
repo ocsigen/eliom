@@ -119,8 +119,8 @@ module Persistent_cookies = struct
     let cookies_log =
       String.concat "," @@ List.map Eliom_common.Hashed_cookies.sha256 cookies
     in
-    Lwt_log.ign_info_f ~section "potentially expired cookies %.0f: %s" date
-      cookies_log;
+    Logs.info ~src:section (fun fmt ->
+      fmt "potentially expired cookies %.0f: %s" date cookies_log);
     Lwt_list.iter_s gc_cookie cookies >>= fun _ -> Expiry_dates.remove date
 end
 

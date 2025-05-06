@@ -21,7 +21,7 @@
 open Eliom_lib
 open Lwt
 
-let section = Lwt_log.Section.make "eliom:service"
+let section = Logs.Src.create "eliom:service"
 
 module type PARAM = sig
   type site_data
@@ -115,17 +115,18 @@ module Make (P : PARAM) = struct
         match s_expire with
         | Some (_, e) when !e < now ->
             (* Service expired. Removing it. *)
-            Lwt_log.ign_info ~section "Service expired. Removing it";
+            Logs.info ~src:section (fun fmt ->
+              fmt "Service expired. Removing it");
             aux toremove l >>= fun (r, toremove) -> Lwt.return (r, a :: toremove)
         | _ ->
             catch
               (fun () ->
-                 Lwt_log.ign_info ~section "Trying a service";
+                 Logs.info ~src:section (fun fmt -> fmt "Trying a service");
                  s_f nosuffixversion sp >>= fun p ->
                  (* warning: the list ll may change during funct
                   if funct register something on the same URL!! *)
-                 Lwt_log.ign_info ~section
-                   "Page found and generated successfully";
+                 Logs.info ~src:section (fun fmt ->
+                   fmt "Page found and generated successfully");
                  (* If this is an anonymous coservice,
                   we place it at the top of the dlist
                   (limitation of number of coservices) *)

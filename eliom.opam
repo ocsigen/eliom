@@ -29,7 +29,7 @@ depends: [
   "js_of_ocaml-ppx" {>= "6.0"}
   "js_of_ocaml-ppx_deriving_json" {>= "6.0"}
   "js_of_ocaml-tyxml" {>= "6.0"}
-  "lwt_log"
+  "logs"
   "tyxml" {>= "4.6" & < "4.7"}
   "ocsigenserver" {>= "6.0" & < "7.0"}
   "ipaddr" {>= "2.1"}
