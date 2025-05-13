@@ -33,7 +33,7 @@ let out =
   Eliom_content_core.Html.Printer.pp ~encode ()
 
 let make_response ?headers ~status body =
-  let body = Cohttp_lwt.Body.of_string (Format.asprintf "%a" out body)
+  let body = Ocsigen_response.Body.of_string (Format.asprintf "%a" out body)
   and response =
     let headers = headers_with_content_type headers in
     Cohttp.Response.make ~status ~headers ()
@@ -288,7 +288,7 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
     Lwt.catch
       (fun () ->
          let* res = execute now genfun info sitedata in
-         let response, _ = Ocsigen_response.to_cohttp res
+         let response = Ocsigen_response.response res
          and all_user_cookies = Ocsigen_response.cookies res in
          let* cookies =
            Eliommod_cookies.compute_cookies_to_send sitedata all_cookie_info

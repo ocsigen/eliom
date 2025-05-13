@@ -138,7 +138,7 @@ let send_with_cookies
   in
   (* TODO: do not add header when no cookies *)
   let response =
-    let response, _ = Ocsigen_response.to_cohttp result in
+    let response = Ocsigen_response.response result in
     let headers =
       Cohttp.Header.add
         (Cohttp.Response.headers response)

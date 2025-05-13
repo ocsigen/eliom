@@ -129,7 +129,7 @@ module Html_base = struct
   let send ?options:_ ?charset ?code ?content_type ?headers c =
     let status = Eliom_lib.Option.map Cohttp.Code.status_of_code code
     and content_type = content_type_html content_type
-    and body = Cohttp_lwt.Body.of_string (Format.asprintf "%a" out c) in
+    and body = Ocsigen_response.Body.of_string (Format.asprintf "%a" out c) in
     result_of_content ?charset ?headers ?status ~content_type body
 end
 
@@ -148,9 +148,8 @@ module Flow5_base = struct
     Eliom_content.Html.Printer.pp_elt ~encode ()
 
   let body l =
-    Lwt_stream.of_list l
-    |> Lwt_stream.map (Format.asprintf "%a" out)
-    |> Cohttp_lwt.Body.of_stream
+    Ocsigen_response.Body.make Cohttp.Transfer.Unknown (fun write ->
+      Lwt_list.iter_s (fun x -> write (Format.asprintf "%a" out x)) l)
 
   let send ?options:_ ?charset ?code ?content_type ?headers c =
     let status = Eliom_lib.Option.map Cohttp.Code.status_of_code code
@@ -183,7 +182,7 @@ module String_base = struct
 
   let send ?options ?charset ?code ?content_type:_ ?headers (c, content_type) =
     let status = Eliom_lib.Option.map Cohttp.Code.status_of_code code
-    and body = Cohttp_lwt.Body.of_string c
+    and body = Ocsigen_response.Body.of_string c
     and headers = add_cache_header options (Ocsigen_header.of_option headers) in
     result_of_content ?charset ?status ~content_type ~headers body
 end
@@ -258,7 +257,7 @@ module Action_base = struct
           | _ -> headers
         and status = Cohttp.Code.status_of_code code in
         result_of_content ?charset ?content_type ~headers ~status
-          Cohttp_lwt.Body.empty
+          Ocsigen_response.Body.empty
     | `Reload -> (
         (* It is an action, we reload the page. To do that, we retry
          without POST params.
@@ -358,7 +357,7 @@ module Unit_base = struct
   let send ?options:_ ?charset ?(code = 204) ?content_type ?headers _content =
     let status = Cohttp.Code.status_of_code code in
     result_of_content ?charset ?content_type ?headers ~status
-      Cohttp_lwt.Body.empty
+      Ocsigen_response.Body.empty
 end
 
 module Unit = Eliom_mkreg.Make (Unit_base)
@@ -382,7 +381,7 @@ module Any_base = struct
         (result : 'a kind)
     =
     let result = Result_types.cast_kind result in
-    let cohttp_response = fst (Ocsigen_response.to_cohttp result) in
+    let cohttp_response = Ocsigen_response.response result in
     let headers =
       headers_with_content_type ?charset ?content_type
         (Cohttp.Response.headers cohttp_response)
@@ -442,7 +441,7 @@ module File_base = struct
         raise Eliom_common.Eliom_404
     with
     | Ocsigen_local_files.RFile fname ->
-        let* response, body =
+        let* res =
           let headers =
             Ocsigen_header.of_option headers
             |> add_cache_header options
@@ -450,7 +449,7 @@ module File_base = struct
           in
           Cohttp_lwt_unix.Server.respond_file ~headers ~fname ()
         in
-        Lwt.return (Ocsigen_response.make ~body response)
+        Lwt.return (Ocsigen_response.of_cohttp res)
     | Ocsigen_local_files.RDir _ ->
         (* FIXME COHTTP TRANSITION: implement directories *)
         raise Ocsigen_local_files.Failed_404
@@ -1154,7 +1153,8 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
       (match sp.Eliom_common.sp_client_appl_name, options.do_not_launch with
         | None, true -> remove_eliom_scripts content
         | _ -> add_eliom_scripts ~sp content)
-      >|= fun body -> Cohttp_lwt.Body.of_string (Format.asprintf "%a" out body)
+      >|= fun body ->
+      Ocsigen_response.Body.of_string (Format.asprintf "%a" out body)
     in
     let headers =
       let h = Ocsigen_header.of_option headers in
@@ -1303,7 +1303,7 @@ module String_redirection_base = struct
     in
     let headers = Cohttp.Header.replace headers header_id uri in
     result_of_content ?charset ?content_type ~status ~headers
-      (Cohttp.Body.empty :> Cohttp_lwt.Body.t)
+      Ocsigen_response.Body.empty
 end
 
 module String_redirection = Eliom_mkreg.Make (String_redirection_base)
@@ -1369,7 +1369,7 @@ module Redirection_base = struct
             uri
         in
         result_of_content ?charset ?content_type ~status ~headers
-          (Cohttp.Body.empty :> Cohttp_lwt.Body.t)
+          Ocsigen_response.Body.empty
     | true, Some anr ->
         let headers =
           Cohttp.Header.replace headers Eliom_common_base.appl_name_header_name
@@ -1394,7 +1394,7 @@ module Redirection_base = struct
             uri
         in
         result_of_content ?charset ?content_type ~status:`No_content ~headers
-          (Cohttp.Body.empty :> Cohttp_lwt.Body.t)
+          Ocsigen_response.Body.empty
 end
 
 module Redirection = struct
