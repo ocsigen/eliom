@@ -88,20 +88,6 @@ let lwt_stats () =
                 (Lwt_engine.writable_count ()) ]
         ; li [ppf "%d sleeping lwt threads" (Lwt_engine.timer_count ())] ] ]
 
-let preemptive_thread_stats () =
-  div
-    [ ul
-        [ li
-            [ ppf "%d detached threads (min %d,max %d)."
-                (Lwt_preemptive.nbthreads ())
-                (Ocsigen_config.get_minthreads ())
-                (Ocsigen_config.get_maxthreads ()) ]
-        ; li [ppf "%d are busy threads." (Lwt_preemptive.nbthreadsbusy ())]
-        ; li
-            [ ppf "%d computations queued (max %d)."
-                (Lwt_preemptive.nbthreadsqueued ())
-                (Ocsigen_config.get_max_number_of_threads_queued ()) ] ] ]
-
 let http_stats () =
   let hosts = Ocsigen_extensions.get_hosts () in
   div
@@ -185,9 +171,7 @@ let content_div () =
        ; h2 [ppf "GC"]
        ; gc_stats ()
        ; h2 [ppf "Lwt threads"]
-       ; lwt_stats ()
-       ; h2 [ppf "Preemptive threads"]
-       ; preemptive_thread_stats () ])
+       ; lwt_stats () ])
 
 let content_html () =
   let* content_div = content_div () in
