@@ -33,9 +33,10 @@ jobs:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
           opam-pin: false
 
-      - run: opam install . --deps-only
+      - run: opam pin -y git+https://github.com/ocsigen/ocsigenserver#master
+      - run: opam install . --deps-only -y
 
-      - run: opam exec -- make all
+      - run: opam exec -- dune build -p eliom
 
   lint-fmt:
     runs-on: ubuntu-latest
