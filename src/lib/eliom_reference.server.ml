@@ -1,5 +1,3 @@
-open Eio.Std
-
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2010 Vincent Balat
@@ -29,16 +27,16 @@ module Ocsipersist = struct
   include Eliom_common.Ocsipersist.Polymorphic
 end
 
-let pers_ref_store = Ocsipersist.open_store "eliom__persistent_refs"
+let pers_ref_store = lazy (Ocsipersist.open_store "eliom__persistent_refs")
 
 type 'a eref_kind =
   | Req of 'a Polytables.key
   | Sit of 'a Polytables.key
   | Ref of 'a lazy_t ref (* Ocaml reference *)
   | Vol of 'a volatile_table Lazy.t (* Vol. table (group, session, process) *)
-  | Ocsiper of 'a option Ocsipersist.t Promise.t (* Global persist. table *)
-  | Ocsiper_sit of 'a Ocsipersist.table Promise.t (* Persist. table for site *)
-  | Per of 'a persistent_table Promise.t
+  | Ocsiper of 'a option Ocsipersist.t Lazy.t (* Global persist. table *)
+  | Ocsiper_sit of 'a Ocsipersist.table Lazy.t (* Persist. table for site *)
+  | Per of 'a persistent_table Lazy.t
 (* Persist. table for group session or process *)
 
 type volatile = [`Volatile]
@@ -175,18 +173,20 @@ let eref_from_fun_ ~ext ~scope ?secure ?persistent f : 'a eref =
         ( f
         , ext
         , Ocsiper
-            (let store = pers_ref_store in
-             Ocsipersist.make_persistent ~store ~name ~default:None) ))
+            (lazy
+              (let (lazy store) = pers_ref_store in
+               Ocsipersist.make_persistent ~store ~name ~default:None)) ))
   | `Site -> (
     match persistent with
     | None -> (Volatile.eref_from_fun_ ~ext ~scope ?secure f :> _ eref)
     | Some name ->
         (*VVV!!! ??? CHECK! *)
-        f, ext, Ocsiper_sit (Ocsipersist.open_table name))
+        f, ext, Ocsiper_sit (lazy (Ocsipersist.open_table name)))
   | #Eliom_common.user_scope as scope -> (
     match persistent with
     | None -> (Volatile.eref_from_fun_ ~ext ~scope ?secure f :> _ eref)
-    | Some name -> f, ext, Per (create_persistent_table ~scope ?secure name))
+    | Some name ->
+        f, ext, Per (lazy (create_persistent_table ~scope ?secure name)))
 
 let eref_from_fun ~scope ?secure ?persistent f : 'a eref =
   eref_from_fun_ ~ext:false ~scope ?secure ?persistent f
@@ -202,7 +202,7 @@ let get_site_id () =
 let get ((f, _, table) as eref) =
   match table with
   | Per t -> (
-      let t = t in
+      let (lazy t) = t in
       match get_persistent_data ~table:t () with
       | Data d -> d
       | _ ->
@@ -210,7 +210,7 @@ let get ((f, _, table) as eref) =
           set_persistent_data ~table:t value;
           value)
   | Ocsiper r -> (
-      let r = r in
+      let (lazy r) = r in
       match Ocsipersist.get r with
       | Some v -> v
       | None ->
@@ -218,7 +218,7 @@ let get ((f, _, table) as eref) =
           Ocsipersist.set r (Some value);
           value)
   | Ocsiper_sit t -> (
-      let t = t in
+      let (lazy t) = t in
       let site_id = get_site_id () in
       try Ocsipersist.find t site_id
       with Not_found ->
@@ -230,13 +230,13 @@ let get ((f, _, table) as eref) =
 let set ((_, _, table) as eref) value =
   match table with
   | Per t ->
-      let t = t in
+      let (lazy t) = t in
       set_persistent_data ~table:t value
   | Ocsiper r ->
-      let r = r in
+      let (lazy r) = r in
       Ocsipersist.set r (Some value)
   | Ocsiper_sit t ->
-      let t = t in
+      let (lazy t) = t in
       Ocsipersist.add t (get_site_id ()) value
   | _ -> Volatile.set eref value
 
@@ -247,13 +247,13 @@ let modify eref f =
 let unset ((_, _, table) as eref) =
   match table with
   | Per t ->
-      let t = t in
+      let (lazy t) = t in
       remove_persistent_data ~table:t ()
   | Ocsiper r ->
-      let r = r in
+      let (lazy r) = r in
       Ocsipersist.set r None
   | Ocsiper_sit t ->
-      let t = t in
+      let (lazy t) = t in
       Ocsipersist.remove t (get_site_id ())
   | _ -> Volatile.unset eref
 
@@ -263,7 +263,7 @@ module Ext = struct
     match table with
     | Vol _ -> Volatile.Ext.get state r
     | Per t -> (
-        let t = t in
+        let (lazy t) = t in
         try Eliom_state.Ext.Low_level.get_persistent_data ~state ~table:t with
         | Not_found ->
             if ext (* We can run the function from another state *)
@@ -281,7 +281,7 @@ module Ext = struct
     match table with
     | Vol _ -> Volatile.Ext.set state r value
     | Per t ->
-        let t = t in
+        let (lazy t) = t in
         Eliom_state.Ext.Low_level.set_persistent_data ~state ~table:t value
     | _ -> raise (Failure "wrong eref for this function")
 
@@ -294,7 +294,7 @@ module Ext = struct
     match table with
     | Vol _ -> Volatile.Ext.unset state r
     | Per t ->
-        let t = t in
+        let (lazy t) = t in
         Eliom_state.Ext.Low_level.remove_persistent_data ~state ~table:t
     | _ -> failwith "wrong eref for this function"
 end

@@ -242,7 +242,6 @@ type 'a cookie_info1 =
   (* None = new cookie
       (not sent by the browser) *)
   * one_persistent_cookie_info session_cookie ref)
-    Promise.t
     (* SCNo_data = the session has been closed
       SCData_session_expired = the cookie has not been found in the table.
       For both of them, ask the browser to remove the cookie.
@@ -300,7 +299,8 @@ let network_of_ip k mask4 mask6 =
 
 let network_of_request r ~mask4 ~mask6 =
   match Ocsigen_request.client_conn r with
-  | `Inet (ip, _) -> network_of_ip ip mask4 mask6
+  | `Inet (ip, _) ->
+      network_of_ip (Ipaddr.of_string_exn (ip :> string)) mask4 mask6
   | _ -> Ipaddr.(V6 V6.localhost)
 
 module Net_addr_Hashtbl : sig
@@ -831,7 +831,7 @@ let empty_tables max forsession =
                      Ocsigen_request.client_conn
                        sp.sp_request.Ocsigen_extensions.request_info
                    with
-                   | `Inet (ip, _) -> ip
+                   | `Inet (ip, _) -> Ipaddr.of_string_exn (ip :> string)
                    | _ -> default_ip_table_key
                  in
                  ( ip

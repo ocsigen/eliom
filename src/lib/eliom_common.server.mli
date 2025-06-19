@@ -360,7 +360,6 @@ type 'a cookie_info1 =
       ref
   * ((string * timeout * float option * perssessgrp option) option
     * one_persistent_cookie_info session_cookie ref)
-      Promise.t
       Lazy.t
       Full_state_name_table.t
       ref

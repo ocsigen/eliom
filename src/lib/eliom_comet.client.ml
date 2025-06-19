@@ -170,10 +170,7 @@ module Configuration = struct
       let () =
         Fiber.any
           [ (fun () -> Js_of_ocaml_lwt.Lwt_js.sleep t)
-          ; (fun () ->
-              !
-                (* TODO: ciao-lwt: This computation might not be suspended correctly. *)
-                update_configuration_waiter)
+          ; (fun () -> Promise.await !update_configuration_waiter)
           ; active_waiter ]
       in
       let remaining_time = sleep_duration () -. (Sys.time () -. time) in

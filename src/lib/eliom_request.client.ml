@@ -280,7 +280,7 @@ let send
          let unlock_event = React.E.once @@ React.S.changes locked in
          Dom_reference.retain_generic wait_for_unlock
            ~keep:(React.E.map (fun _ -> Promise.resolve unlock ()) unlock_event));
-      let () = wait_for_unlock in
+      let () = Promise.await wait_for_unlock in
       (if Js.Optdef.test Js.Unsafe.global##.___eliom_use_cookie_substitutes_
        then
          match
