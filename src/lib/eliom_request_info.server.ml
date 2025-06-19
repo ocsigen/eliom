@@ -340,7 +340,7 @@ let set_site_handler sitedata handler =
   sitedata.Eliom_common.exn_handler <- handler
 
 type raw_post_data =
-  ((string * string) * (string * string) list) option * Cohttp_lwt.Body.t
+  ((string * string) * (string * string) list) option * Cohttp_eio.Body.t
 
 let raw_post_data sp =
   let ri = get_ri_sp sp in
