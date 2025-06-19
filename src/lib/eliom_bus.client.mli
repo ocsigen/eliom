@@ -31,13 +31,6 @@ val register : ('a, 'b) t -> ('b option -> unit) -> unit
     called with [Some data] when receiving a message from the server or with
     [None] when no more data will be received. *)
 
-val stream : ('a, 'b) t -> 'b Lwt_stream.t
-(** Create a new stream from the messages from the server. This has the same
-    behavior as {!register}. *)
-
-val original_stream : ('a, 'b) t -> 'b Lwt_stream.t
-(** @deprecated Deprecated alias to [stream]. *)
-
 val write : ('a, 'b) t -> 'a -> unit
 (** [write b v] send [v] to the bus [b]. Every participant of the bus
     will receive [v], including the sender. *)

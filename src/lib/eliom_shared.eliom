@@ -27,7 +27,7 @@ let to_signal ~init ?eq (th : 'a React.S.t Promise.t) : 'a React.S.t =
   Fiber.fork
     ~sw:(Stdlib.Option.get (Fiber.get Ocsigen_lib.current_switch))
     (fun () ->
-      let ss = th in
+      let ss = Promise.await th in
       let effectful_signal = React.S.map (fun v -> set v) ss in
       ignore (React.S.retain s (fun () -> ignore effectful_signal)));
   s]

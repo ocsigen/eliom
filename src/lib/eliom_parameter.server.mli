@@ -20,7 +20,7 @@
 include
   Eliom_parameter_sigs.S
   with type raw_post_data =
-    ((string * string) * (string * string) list) option * Cohttp_lwt.Body.t
+    ((string * string) * (string * string) list) option * Cohttp_eio.Body.t
 
 val user_type :
    ?client_to_and_of:'a to_and_of Eliom_client_value.t

@@ -421,7 +421,7 @@ module Pers = struct
 
   module Ocsipersist = Eliom_common.Ocsipersist.Polymorphic
 
-  let grouptable : (nbmax * string list) Ocsipersist.table Promise.t Lazy.t =
+  let grouptable : (nbmax * string list) Ocsipersist.table Lazy.t =
     lazy (Ocsipersist.open_table "__eliom_session_group_table")
   (* It is lazy because if the module is linked statically,
          the creation of the table must happen after initialisation

@@ -105,13 +105,6 @@ let register t callback =
   let (lazy c) = t.consumers in
   c.consumers <- callback :: c.consumers
 
-let stream t =
-  let stream, push = Lwt_stream.create () in
-  register t (fun data -> push data);
-  stream
-
-let original_stream = stream
-
 let flush t =
   let l = List.rev (Queue.fold (fun l v -> v :: l) [] t.queue) in
   Queue.clear t.queue; t.write l
