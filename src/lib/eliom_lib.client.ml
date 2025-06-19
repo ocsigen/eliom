@@ -88,14 +88,7 @@ let raise_error ?exn ?section fmt =
 
 let log_inspect obj = Console.console##log (Obj.repr obj)
 let eliom_logs_src = Logs.Src.create "eliom"
-
-let _ =
-  Logs.set_reporter (Logs_browser.console_reporter ());
-  Lwt.async_exception_hook :=
-    fun exn ->
-      Console.console##error_3 (Js.string "Lwt.async:")
-        (Js.string (Printexc.to_string exn))
-        exn
+let _ = Logs.set_reporter (Logs_browser.console_reporter ())
 
 let trace fmts =
   if Eliom_config.get_tracing ()

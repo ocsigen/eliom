@@ -1,5 +1,3 @@
-open Eio.Std
-
 (* Ocsigen
  * http://www.ocsigen.org
  * Module Eliom_registration
@@ -65,16 +63,12 @@ module Result_types : sig
 
   val cast_result : Ocsigen_response.t -> 'a kind
   val cast_kind : 'a kind -> Ocsigen_response.t
-  val cast_kind_lwt : 'a kind Promise.t -> Ocsigen_response.t
-  val cast_result_lwt : Ocsigen_response.t Promise.t -> 'a kind
   val cast_function_http : ('c -> 'a kind) -> 'c -> Ocsigen_response.t
 end = struct
   type 'a kind = Ocsigen_response.t
 
   let cast_result x = x
   let cast_kind x = x
-  let cast_kind_lwt x = x
-  let cast_result_lwt x = x
   let cast_function_http x = x
 end
 
@@ -390,7 +384,7 @@ module Any = struct
   type 'a result = 'a kind
 
   let send ?options ?charset ?code ?content_type ?headers content =
-    Result_types.cast_result_lwt
+    Result_types.cast_result
       (Any_base.send ?options ?charset ?code ?content_type ?headers content)
 end
 
@@ -435,15 +429,12 @@ module File_base = struct
         raise Eliom_common.Eliom_404
     with
     | Ocsigen_local_files.RFile fname ->
-        let res =
-          let headers =
-            Ocsigen_header.of_option headers
-            |> add_cache_header options
-            |> headers_with_content_type ?charset ?content_type
-          in
-          Cohttp_lwt_unix.Server.respond_file ~headers ~fname ()
+        let headers =
+          Ocsigen_header.of_option headers
+          |> add_cache_header options
+          |> headers_with_content_type ?charset ?content_type
         in
-        Ocsigen_response.of_cohttp res
+        Ocsigen_response.respond_file ~headers fname
     | Ocsigen_local_files.RDir _ ->
         (* FIXME COHTTP TRANSITION: implement directories *)
         raise Ocsigen_local_files.Failed_404
@@ -625,7 +616,7 @@ module Ocaml_base = struct
   let send_appl_content = Eliom_service.XNever
 
   let send ?options:_ ?charset ?code ?content_type ?headers content =
-    Result_types.cast_kind_lwt
+    Result_types.cast_kind
       (String.send ?charset ?code ?content_type ?headers
          (content, Eliom_service.eliom_appl_answer_content_type))
 end
@@ -697,7 +688,7 @@ module Ocaml = struct
 
   let send ?options ?charset ?code ?content_type ?headers content =
     let content = prepare_data content in
-    Result_types.cast_result_lwt
+    Result_types.cast_result
       (M.send ?options ?charset ?code ?content_type ?headers content)
 
   let register
@@ -1226,11 +1217,11 @@ struct
     | None ->
         let () = Eliom_reference.set request_template (Some Tmpl_param.name) in
         let content = Tmpl_param.make_page content in
-        Result_types.cast_kind_lwt
+        Result_types.cast_kind
           (Appl.send ~options ?charset ?code ?content_type ?headers content)
     | Some _ ->
         ignore (Tmpl_param.update content);
-        Result_types.cast_kind_lwt
+        Result_types.cast_kind
           (Ocaml.send ?charset ?code ?content_type ?headers ())
 end
 
@@ -1392,7 +1383,7 @@ module Redirection = struct
   include Eliom_mkreg.Make_poly (Redirection_base)
 
   let send ?options ?charset ?code ?content_type ?headers content =
-    Result_types.cast_result_lwt
+    Result_types.cast_result
       (Redirection_base.send ?options ?charset ?code ?content_type ?headers
          content)
 end
