@@ -21,8 +21,7 @@
 (** {2 Eliom references} *)
 
 open Eliom_state
-
-let ( >>= ) = Lwt.bind
+open Lwt.Infix
 
 module Ocsipersist = struct
   include Eliom_common.Ocsipersist.Store
