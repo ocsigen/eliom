@@ -49,9 +49,9 @@ let get_full_url () =
   let sp = Eliom_common.get_sp () in
   get_full_url_sp sp
 
-let get_remote_ip () =
+let get_client_conn_to_string () =
   let sp = Eliom_common.get_sp () in
-  Ocsigen_request.remote_ip sp.Eliom_common.sp_request.request_info
+  Ocsigen_request.client_conn_to_string sp.Eliom_common.sp_request.request_info
 
 let get_get_params () =
   let sp = Eliom_common.get_sp () in

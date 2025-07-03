@@ -36,8 +36,9 @@ val get_user_agent : unit -> string
 val get_full_url : unit -> string
 (** returns the full URL as a string *)
 
-val get_remote_ip : unit -> string
-(** returns the internet address of the client as a string *)
+val get_client_conn_to_string : unit -> string
+(** returns the address of the client in textual format. This is an IP address
+    if the client is connected through the internet. *)
 
 val get_original_full_path_string : unit -> string
 (** returns the full path of the URL as first sent by the browser

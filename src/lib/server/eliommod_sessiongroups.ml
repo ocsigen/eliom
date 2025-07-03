@@ -30,9 +30,7 @@ let make_full_group_name ~cookie_level ri site_dir_string ipv4mask ipv6mask
       ( site_dir_string
       , cookie_level
       , Right
-          (Eliom_common.network_of_ip
-             (Ocsigen_request.remote_ip_parsed ri)
-             ipv4mask ipv6mask) )
+          (Eliom_common.network_of_request ri ~mask4:ipv4mask ~mask6:ipv6mask) )
   | Some g -> site_dir_string, cookie_level, Left g
 
 let make_persistent_full_group_name =
