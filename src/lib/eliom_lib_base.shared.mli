@@ -19,14 +19,6 @@
 
 exception Eliom_Internal_Error of string
 
-(** Module with Lwt operators: Open to use them without polluting your scope. *)
-module Lwt_ops : sig
-  val ( >>= ) : 'a Lwt.t -> ('a -> 'b Lwt.t) -> 'b Lwt.t
-  val ( =<< ) : ('a -> 'b Lwt.t) -> 'a Lwt.t -> 'b Lwt.t
-  val ( >|= ) : 'a Lwt.t -> ('a -> 'b) -> 'b Lwt.t
-  val ( =|< ) : ('a -> 'b) -> 'a Lwt.t -> 'b Lwt.t
-end
-
 module type Map_S = sig
   include Map.S
 
