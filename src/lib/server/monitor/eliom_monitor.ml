@@ -77,17 +77,6 @@ let gc_stats () =
             [ ppf "%d words in the the major heap (max %d)." stat.Gc.heap_words
                 stat.Gc.top_heap_words ] ] ]
 
-let lwt_stats () =
-  div
-    [ ul
-        [ li
-            [ ppf "%d lwt threads waiting for inputs"
-                (Lwt_engine.readable_count ()) ]
-        ; li
-            [ ppf "%d lwt threads waiting for outputs"
-                (Lwt_engine.writable_count ()) ]
-        ; li [ppf "%d sleeping lwt threads" (Lwt_engine.timer_count ())] ] ]
-
 let http_stats () =
   let hosts = Ocsigen_extensions.get_hosts () in
   div
@@ -169,9 +158,7 @@ let content_div () =
        ; h2 [ppf "Eliom sessions"]
        ; eliom_stats
        ; h2 [ppf "GC"]
-       ; gc_stats ()
-       ; h2 [ppf "Lwt threads"]
-       ; lwt_stats () ])
+       ; gc_stats () ])
 
 let content_html () =
   let* content_div = content_div () in
