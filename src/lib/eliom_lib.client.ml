@@ -102,11 +102,6 @@ let trace fmts =
   then Printf.ksprintf (fun msg -> Logs.info (fun fmt -> fmt ">> %s" msg)) fmts
   else Printf.ksprintf ignore fmts
 
-let lwt_ignore ?(message = "") t =
-  Lwt.on_failure t (fun exn ->
-    Logs.info (fun fmt ->
-      fmt ("%s" ^^ "@\n%s") message (Printexc.to_string exn)))
-
 (* Debbuging *)
 let jsalert a = Dom_html.window##(alert a)
 let alert fmt = Printf.ksprintf (fun s -> jsalert (Js.string s)) fmt
