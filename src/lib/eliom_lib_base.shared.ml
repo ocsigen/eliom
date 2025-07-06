@@ -21,13 +21,6 @@ open Ocsigen_lib_base
 
 exception Eliom_Internal_Error of string
 
-module Lwt_ops = struct
-  let ( >>= ) = Lwt.( >>= )
-  let ( =<< ) = Lwt.( =<< )
-  let ( >|= ) = Lwt.( >|= )
-  let ( =|< ) = Lwt.( =|< )
-end
-
 type pos = Lexing.position * Lexing.position
 
 let pos_to_string ((start, stop) : pos) =

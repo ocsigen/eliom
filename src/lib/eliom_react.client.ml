@@ -22,8 +22,8 @@ open Lwt.Syntax
 *)
 
 (* Module for event unwrapping *)
-open Lwt.Infix
 open Lwt_react
+open Lwt.Infix
 
 let section = Logs.Src.create "eliom:comet"
 

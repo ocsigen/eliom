@@ -21,8 +21,8 @@ open Lwt.Syntax
 *)
 
 module S = Eliom_service
+open Lwt.Infix
 
-let ( >>= ) = Lwt.( >>= )
 let suffix_redir_uri_key = Polytables.make_key ()
 
 type ('options, 'page, 'result) param =
