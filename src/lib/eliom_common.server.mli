@@ -674,7 +674,7 @@ val remove_naservice_table :
 
 val get_mask4 : sitedata -> int
 val get_mask6 : sitedata -> int
-val network_of_ip : Ipaddr.t -> int -> int -> Ipaddr.t
+val network_of_request : Ocsigen_request.t -> mask4:int -> mask6:int -> Ipaddr.t
 val ipv4mask : int ref
 val ipv6mask : int ref
 val create_dlist_ip_table : int -> dlist_ip_table

@@ -298,6 +298,11 @@ let network_of_ip k mask4 mask6 =
   | Ipaddr.V4 ip -> Ipaddr.(V4 V4.Prefix.(network (make mask4 ip)))
   | Ipaddr.V6 ip -> Ipaddr.(V6 V6.Prefix.(network (make mask6 ip)))
 
+let network_of_request r ~mask4 ~mask6 =
+  match Ocsigen_request.client_conn r with
+  | `Inet (ip, _) -> network_of_ip ip mask4 mask6
+  | _ -> Ipaddr.(V6 V6.localhost)
+
 module Net_addr_Hashtbl : sig
   type key = Ipaddr.t
   type 'a t
@@ -792,6 +797,8 @@ let add_dlist_ dlist v =
   | Some a -> a
   | None -> assert false
 
+let default_ip_table_key = Ipaddr.(V6 V6.localhost)
+
 let empty_tables max forsession =
   let t1 = [] in
   let t2 = ref (empty_naservice_table ()) in
@@ -812,15 +819,22 @@ let empty_tables max forsession =
            let ip, max, sitedata =
              match sp with
              | None -> (
-                 ( Ipaddr.(V6 V6.localhost)
+                 ( default_ip_table_key
                  , max
                  , match global_register_allowed () with
                    | None ->
                        failwith "global tables created outside initialisation"
                    | Some get -> get () ))
              | Some sp ->
-                 ( Ocsigen_request.remote_ip_parsed
-                     sp.sp_request.Ocsigen_extensions.request_info
+                 let ip =
+                   match
+                     Ocsigen_request.client_conn
+                       sp.sp_request.Ocsigen_extensions.request_info
+                   with
+                   | `Inet (ip, _) -> ip
+                   | _ -> default_ip_table_key
+                 in
+                 ( ip
                  , fst sp.sp_sitedata.max_anonymous_services_per_subnet
                  , sp.sp_sitedata )
            in
