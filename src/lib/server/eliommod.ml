@@ -759,7 +759,7 @@ let load_eliom_module _sitedata cmo_or_name parent_tag content =
 (* If page has already been generated becauise there are several <eliom>
    tags in the same site:
 *)
-let gen_nothing () _ = Lwt.return Ocsigen_extensions.Ext_do_nothing
+let gen_nothing () _ = Ocsigen_extensions.Ext_do_nothing
 
 (*****************************************************************************)
 let default_module_action _ = failwith "default_module_action"
