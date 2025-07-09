@@ -1,4 +1,4 @@
-open Lwt.Syntax
+open Eio.Std
 
 (* Ocsigen
  * http://www.ocsigen.org
@@ -263,20 +263,25 @@ let register_request_node, find_request_node, reset_request_nodes =
    *and* to the change_page phase
    *and* to the loading phase after caml services (added 2016-03 --V). *)
 
-let load_mutex = Lwt_mutex.create ()
-let _ = ignore (Lwt_mutex.lock load_mutex)
+let load_mutex = Eio.Mutex.create ()
+let _ = ignore (Eio.Mutex.lock load_mutex)
 
 let in_onload, broadcast_load_end, wait_load_end, set_loading_phase =
   let loading_phase = ref true in
-  let load_end = Lwt_condition.create () in
+  let load_end = Eio.Condition.create () in
   let set () = loading_phase := true in
   let in_onload () = !loading_phase in
   let broadcast_load_end () =
     loading_phase := false;
-    Lwt_condition.broadcast load_end ()
+    Eio.Condition.broadcast load_end
   in
   let wait_load_end () =
-    if !loading_phase then Lwt_condition.wait load_end else Lwt.return_unit
+    if !loading_phase
+    then
+      Eio.Condition.await
+        (* TODO: lwt-to-direct-style: A mutex must be passed *) load_end
+        __mutex__
+    else ()
   in
   in_onload, broadcast_load_end, wait_load_end, set
 
@@ -305,7 +310,7 @@ let change_page_get_form_ :
 let change_page_post_form_ =
   ref (fun ?cookies_info:_ ?tmpl:_ _form _href -> assert false)
 
-type client_form_handler = Dom_html.event Js.t -> bool Lwt.t
+type client_form_handler = Dom_html.event Js.t -> bool
 
 let raw_a_handler node cookies_info tmpl ev =
   let href = (Js.Unsafe.coerce node : Dom_html.anchorElement Js.t)##.href in
@@ -331,10 +336,11 @@ let raw_form_handler form kind cookies_info tmpl ev client_form_handler =
     | `Form_post -> !change_page_post_form_
   in
   let f () =
-    Lwt.async @@ fun () ->
-    let* b = client_form_handler ev in
-    if not b then change_page_form ?cookies_info ?tmpl form action;
-    Lwt.return_unit
+    Fiber.fork
+      ~sw:(Stdlib.Option.get (Fiber.get Ocsigen_lib.current_switch))
+      (fun () ->
+         let b = client_form_handler ev in
+         if not b then change_page_form ?cookies_info ?tmpl form action)
   in
   (not !Eliom_common.is_client_app)
   && ((https = Some true && not Eliom_request_info.ssl_)
@@ -567,7 +573,13 @@ let rec rebuild_rattrib node ra =
    and the function [Eliommod_dom.test_pageshow_pagehide]. *)
 
 let delay f =
-  Lwt.ignore_result (Lwt.pause () >>= fun () -> f (); Lwt.return_unit)
+  Fiber.fork
+    ~sw:(Stdlib.Option.get (Fiber.get Ocsigen_lib.current_switch))
+    (fun () ->
+       Fiber.yield
+         (* TODO: lwt-to-direct-style: This computation might not be suspended correctly. *)
+         ();
+       f ())
 
 module ReactState : sig
   type t

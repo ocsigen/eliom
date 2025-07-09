@@ -185,7 +185,7 @@ val get_persistent_nl_get_params :
 val get_nl_post_params : unit -> (string * string) list Eliom_lib.String.Table.t
 (** returns non localized POST parameters. *)
 
-val get_post_params : unit -> (string * string) list Lwt.t option
+val get_post_params : unit -> (string * string) list option
 (** returns the parameters in the body of the HTTP request (POST parameters)
     that concern the running service. None means that POST data where
     neither urlencoded form data or multipart data. *)
@@ -318,7 +318,7 @@ val get_sp_client_process_info : unit -> Eliom_common.client_process_info
 
 val set_site_handler :
    Eliom_common.sitedata
-  -> (exn -> Ocsigen_response.t Lwt.t)
+  -> (exn -> Ocsigen_response.t)
   -> unit
 
 val get_request_sp : Eliom_common.server_params -> Ocsigen_extensions.request
@@ -350,16 +350,16 @@ val get_ri_sp : Eliom_common.server_params -> Ocsigen_request.t
 
 val get_post_params_sp :
    Eliom_common.server_params
-  -> (string * string) list Lwt.t option
+  -> (string * string) list option
 
 val get_files_sp :
    Eliom_common.server_params
-  -> (string * Ocsigen_extensions.file_info) list Lwt.t option
+  -> (string * Ocsigen_extensions.file_info) list option
 
 val get_suffix_sp : Eliom_common.server_params -> Eliom_lib.Url.path option
 val get_request_cache_sp : Eliom_common.server_params -> Polytables.t
 
 type raw_post_data =
-  ((string * string) * (string * string) list) option * Cohttp_lwt.Body.t
+  ((string * string) * (string * string) list) option * Cohttp_eio.Body.t
 
-val raw_post_data : Eliom_common.server_params -> raw_post_data Lwt.t
+val raw_post_data : Eliom_common.server_params -> raw_post_data
