@@ -25,19 +25,16 @@
 
 type ('a, 'b) t
 
+val register : ('a, 'b) t -> ('b -> unit Lwt.t) -> unit
+(** Register a callback that will get called on every messages from the server.
+    Messages received before the call to [register] are lost. *)
+
 val stream : ('a, 'b) t -> 'b Lwt_stream.t
-(** [stream b] returns the stream of data sent to bus [b]. A new
-    stream is created each time this function is called. Some messages
-    from the bus can be lost if they were sent before the call to
-    [stream]. If you need to receive every message, use original stream
-    instead. *)
+(** Create a new stream from the messages from the server. This has the same
+    behavior as {!register}. *)
 
 val original_stream : ('a, 'b) t -> 'b Lwt_stream.t
-(** [stream b] returns the stream of data sent to bus [b]. A new
-    stream is created each time this function is called. Every
-    messages sent to the bus after the generation of the page are
-    received. This function can be called only in the onload event
-    handler, if called outside, it will raise a Failure. *)
+(** @deprecated Deprecated alias to [stream]. *)
 
 val write : ('a, 'b) t -> 'a -> unit Lwt.t
 (** [write b v] send [v] to the bus [b]. Every participant of the bus

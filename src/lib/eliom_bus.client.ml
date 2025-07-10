@@ -27,25 +27,16 @@ let section = Logs.Src.create "eliom:bus"
 
 module Ecb = Eliom_comet_base
 
+type 'a consumers = {mutable consumers : ('a -> unit Lwt.t) list}
+
 type ('a, 'b) t =
   { channel : 'b Ecb.wrapped_channel
-  ; stream : 'b Lwt_stream.t Lazy.t
+  ; consumers : 'b consumers Lazy.t
   ; queue : 'a Queue.t
   ; mutable max_size : int
   ; write : 'a list -> unit Lwt.t
   ; mutable waiter : unit -> unit Lwt.t
-  ; mutable last_wait : unit Lwt.t
-  ; mutable original_stream_available : bool
-  ; error_h : 'b option Lwt.t * exn Lwt.u }
-
-let clone_exn (t, u) s =
-  let s' = Lwt_stream.clone s in
-  Lwt_stream.from (fun () ->
-    Lwt.catch
-      (fun () -> Lwt.choose [Lwt_stream.get s'; t])
-      (fun e ->
-         (match Lwt.state t with Lwt.Sleep -> Lwt.wakeup_exn u e | _ -> ());
-         Lwt.fail e))
+  ; mutable last_wait : unit Lwt.t }
 
 type ('a, 'att, 'co, 'ext, 'reg) callable_bus_service =
   ( unit
@@ -61,11 +52,14 @@ type ('a, 'att, 'co, 'ext, 'reg) callable_bus_service =
     , Eliom_registration.Action.return )
     Eliom_service.t
 
-(** Wrap [Eliom_comet.register] into a [Lwt_stream]. *)
-let comet_register_stream chan =
-  let stream, push = Lwt_stream.create () in
-  Eliom_comet.register chan (fun x -> push (Some x); Lwt.return_unit);
-  stream
+(** Register a callback in the underlying comet. *)
+let comet_register ~error_h:_ chan =
+  let t = {consumers = []} in
+  Eliom_comet.register chan (fun x ->
+    (* TODO: On error, [Lwt.wakeup_exn] on [error_h]. *)
+    (* TODO: Propagate errors from [Eliom_comet]. *)
+    Lwt_list.iter_s (fun callback -> callback x) t.consumers);
+  t
 
 let create service channel waiter =
   let write x =
@@ -90,27 +84,14 @@ let create service channel waiter =
         (fun e -> Lwt.fail e)
     , u )
   in
-  let stream = lazy (comet_register_stream channel) in
-  let t =
-    { channel
-    ; stream
-    ; queue = Queue.create ()
-    ; max_size = 20
-    ; write
-    ; waiter
-    ; last_wait = Lwt.return_unit
-    ; original_stream_available = true
-    ; error_h }
-  in
-  (* the comet channel start receiving after the load phase, so the
-     original channel (i.e. without message lost) is only available in
-     the first loading phase. *)
-  let _ =
-    let* () = Eliom_client.wait_load_end () in
-    t.original_stream_available <- false;
-    Lwt.return_unit
-  in
-  t
+  let consumers = lazy (comet_register ~error_h channel) in
+  { channel
+  ; consumers
+  ; queue = Queue.create ()
+  ; max_size = 20
+  ; write
+  ; waiter
+  ; last_wait = Lwt.return_unit }
 
 let internal_unwrap ((wrapped_bus : ('a, 'b) Ecb.wrapped_bus), _unwrapper) =
   let waiter () = Js_of_ocaml_lwt.Lwt_js.sleep 0.05 in
@@ -120,14 +101,16 @@ let internal_unwrap ((wrapped_bus : ('a, 'b) Ecb.wrapped_bus), _unwrapper) =
 let () =
   Eliom_unwrap.register_unwrapper Eliom_common.bus_unwrap_id internal_unwrap
 
-let stream t = clone_exn t.error_h (Lazy.force t.stream)
+let register t callback =
+  let (lazy c) = t.consumers in
+  c.consumers <- callback :: c.consumers
 
-let original_stream t =
-  if Eliom_client_core.in_onload () && t.original_stream_available
-  then stream t
-  else
-    raise_error ~section
-      "original_stream: the original stream is not available anymore"
+let stream t =
+  let stream, push = Lwt_stream.create () in
+  register t (fun data -> push (Some data); Lwt.return_unit);
+  stream
+
+let original_stream = stream
 
 let flush t =
   let l = List.rev (Queue.fold (fun l v -> v :: l) [] t.queue) in
