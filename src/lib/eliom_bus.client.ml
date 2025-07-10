@@ -38,17 +38,6 @@ type ('a, 'b) t =
   ; mutable original_stream_available : bool
   ; error_h : 'b option Lwt.t * exn Lwt.u }
 
-(* clone streams such that each clone of the original stream raise the same exceptions *)
-let consume (t, u) s =
-  let t' =
-    Lwt.catch
-      (fun () -> Lwt_stream.iter (fun _ -> ()) s)
-      (fun e ->
-         (match Lwt.state t with Lwt.Sleep -> Lwt.wakeup_exn u e | _ -> ());
-         Lwt.fail e)
-  in
-  Lwt.choose [Lwt.bind t (fun _ -> Lwt.return_unit); t']
-
 let clone_exn (t, u) s =
   let s' = Lwt_stream.clone s in
   Lwt_stream.from (fun () ->
@@ -71,6 +60,12 @@ type ('a, 'att, 'co, 'ext, 'reg) callable_bus_service =
     , [`One of 'a list Eliom_parameter.ocaml] Eliom_parameter.param_name
     , Eliom_registration.Action.return )
     Eliom_service.t
+
+(** Wrap [Eliom_comet.register] into a [Lwt_stream]. *)
+let comet_register_stream chan =
+  let stream, push = Lwt_stream.create () in
+  Eliom_comet.register chan (fun x -> push (Some x); Lwt.return_unit);
+  stream
 
 let create service channel waiter =
   let write x =
@@ -95,13 +90,7 @@ let create service channel waiter =
         (fun e -> Lwt.fail e)
     , u )
   in
-  let stream =
-    lazy
-      (let stream = Eliom_comet.register channel in
-       (* iterate on the stream to consume messages: avoid memory leak *)
-       let _ = consume error_h stream in
-       stream)
-  in
+  let stream = lazy (comet_register_stream channel) in
   let t =
     { channel
     ; stream

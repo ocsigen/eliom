@@ -123,9 +123,13 @@ end
 val register :
    ?wake:bool
   -> 'a Eliom_comet_base.wrapped_channel
-  -> 'a Lwt_stream.t
-(** if wake is false, the registration of the channel won't
-    activate the handling loop ( no request will be sent ). Default is true *)
+  -> ('a -> unit Lwt.t)
+  -> unit
+(** [register ~wake chan callback] registers a callback to be called for new
+    messages from the server. If wake is false, the registration of the channel
+    won't activate the handling loop ( no request will be sent ). Default is
+    true.
+    Not thread-safe. *)
 
 val restart : unit -> unit
 (** [restart ()] Restarts the loop waiting for server messages. It is

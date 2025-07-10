@@ -637,16 +637,22 @@ end
 
 type 'a handler =
   { hd_service_handler : 'a Service_handler.t
-  ; hd_stream : (string * int option * string Ecb.channel_data) Lwt_stream.t }
+  ; mutable hd_callbacks :
+      (string * int option * string Ecb.channel_data -> unit Lwt.t) list }
 
-let handler_stream hd =
-  Lwt_stream.map_list
-    (fun x -> x)
-    (Lwt_stream.from (fun () ->
-       Lwt.try_bind
-         (fun () -> Service_handler.wait_data hd)
-         (fun s -> Lwt.return_some s)
-         (fun _ -> Lwt.return_none)))
+let wait_data_daemon hd =
+  let notify_callbacks data =
+    Lwt_list.iter_s (fun callback -> callback data) hd.hd_callbacks
+  in
+  let rec wait_data_loop () =
+    let* data = Service_handler.wait_data hd.hd_service_handler in
+    let* () = Lwt_list.iter_s notify_callbacks data in
+    wait_data_loop ()
+  in
+  Lwt.async wait_data_loop
+
+let register_callback hd callback =
+  hd.hd_callbacks <- callback :: hd.hd_callbacks
 
 let stateful_handler_table :
   (Ecb.comet_service, Service_handler.stateful handler) Hashtbl.t
@@ -660,8 +666,8 @@ let stateless_handler_table :
 
 let init (service : Ecb.comet_service) kind table =
   let hd_service_handler = Service_handler.make service kind in
-  let hd_stream = handler_stream hd_service_handler in
-  let hd = {hd_service_handler; hd_stream} in
+  let hd = {hd_service_handler; hd_callbacks = []} in
+  wait_data_daemon hd;
   Hashtbl.add table service hd;
   hd
 
@@ -742,49 +748,42 @@ let check_and_update_position position msg_pos data =
 (* stateless channels are registered with a position: when a channel
    is registered more than one time, it is possible to receive old
    messages: the position is used to filter them out. *)
-let register' hd position (_ : Ecb.comet_service) (chan_id : 'a Ecb.chan_id) =
+let register'
+      hd
+      position
+      (_ : Ecb.comet_service)
+      (chan_id : 'a Ecb.chan_id)
+      callback
+  =
   let chan_id = Ecb.string_of_chan_id chan_id in
-  let stream =
-    Lwt_stream.filter_map_s
-      (function
-        | id, pos, data
-          when id = chan_id && check_and_update_position position pos data -> (
-          match data with
-          | Ecb.Full -> Lwt.fail Channel_full
-          | Ecb.Closed -> Lwt.fail Channel_closed
-          | Ecb.Data x -> Lwt.return_some (unmarshal x : 'a))
-        | _ -> Lwt.return_none)
-      (Lwt_stream.clone hd.hd_stream)
-  in
-  let protect_and_close t =
-    let t' = Lwt.protected t in
-    Lwt.on_cancel t' (fun () ->
-      Service_handler.close hd.hd_service_handler chan_id);
-    t'
-  in
-  (* protect the stream from cancels *)
-  Lwt_stream.from (fun () -> protect_and_close (Lwt_stream.get stream))
+  register_callback hd (function
+    | id, pos, data
+      when id = chan_id && check_and_update_position position pos data -> (
+      match data with
+      | Ecb.Full -> Lwt.return_unit
+      | Ecb.Closed -> (* TODO: Notify callback and unregister *) Lwt.return_unit
+      | Ecb.Data x -> callback (unmarshal x : 'a))
+    | _ -> Lwt.return_unit)
 
-let register_stateful ?(wake = true) service chan_id =
+let register_stateful ?(wake = true) service chan_id callback =
   let hd = get_stateful_hd service in
-  let stream = register' hd No_position service chan_id in
+  register' hd No_position service chan_id callback;
   let chan_id = Ecb.string_of_chan_id chan_id in
   Service_handler.add_channel_stateful hd.hd_service_handler chan_id;
-  if wake then Service_handler.activate hd.hd_service_handler;
-  stream
+  if wake then Service_handler.activate hd.hd_service_handler
 
-let register_stateless ?(wake = true) service chan_id kind =
+let register_stateless ?(wake = true) service chan_id kind callback =
   let hd = get_stateless_hd service in
-  let stream = register' hd (position_of_kind kind) service chan_id in
+  register' hd (position_of_kind kind) service chan_id callback;
   let chan_id = Ecb.string_of_chan_id chan_id in
   Service_handler.add_channel_stateless hd.hd_service_handler chan_id kind;
-  if wake then Service_handler.activate hd.hd_service_handler;
-  stream
+  if wake then Service_handler.activate hd.hd_service_handler
 
-let register ?(wake = true) (wrapped_chan : 'a Ecb.wrapped_channel) =
+let register ?(wake = true) (wrapped_chan : 'a Ecb.wrapped_channel) callback =
   match wrapped_chan with
-  | Ecb.Stateful_channel (s, c) -> register_stateful ~wake s c
-  | Ecb.Stateless_channel (s, c, kind) -> register_stateless ~wake s c kind
+  | Ecb.Stateful_channel (s, c) -> register_stateful ~wake s c callback
+  | Ecb.Stateless_channel (s, c, kind) ->
+      register_stateless ~wake s c kind callback
 
 let internal_unwrap (wrapped_chan, _unwrapper) = register wrapped_chan
 
