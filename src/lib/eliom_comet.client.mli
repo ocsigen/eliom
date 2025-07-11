@@ -35,15 +35,10 @@
     will close the channel. *)
 
 exception Channel_full
-(** [Channel_full] is raised when trying to read on a channel marked
-    full by the server. It is not possible to read anything else from a
-    full channel. *)
+(** @deprecated Not raised anymore. *)
 
 exception Channel_closed
-(** [Channel_closed] is raised when reading on a channel and the
-    server side of the application closed channel ( the server was restarted,
-    a session was closed, or a stateless channel was garbage collected).
-     *)
+(** @deprecated Not raised anymore. *)
 
 val is_active : unit -> [`Active | `Idle | `Inactive]
 (** [is_active ()] returns the current activity state *)
@@ -123,13 +118,14 @@ end
 val register :
    ?wake:bool
   -> 'a Eliom_comet_base.wrapped_channel
-  -> ('a -> unit Lwt.t)
+  -> ('a option -> unit Lwt.t)
   -> unit
 (** [register ~wake chan callback] registers a callback to be called for new
     messages from the server. If wake is false, the registration of the channel
     won't activate the handling loop ( no request will be sent ). Default is
-    true.
-    Not thread-safe. *)
+    true. The callback receives [Some data] for each new messages from the
+    server and [None] when the server closes the channel or an error occurs. Not
+    thread-safe. *)
 
 val restart : unit -> unit
 (** [restart ()] Restarts the loop waiting for server messages. It is

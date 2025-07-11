@@ -638,21 +638,39 @@ end
 type 'a handler =
   { hd_service_handler : 'a Service_handler.t
   ; mutable hd_callbacks :
-      (string * int option * string Ecb.channel_data -> unit Lwt.t) list }
+      (string * int option * string Ecb.channel_data -> unit Lwt.t) list
+  ; mutable hd_error_callbacks : (unit -> unit Lwt.t) list }
 
 let wait_data_daemon hd =
+  let on_error _ =
+    (* Notify callbacks of an error and release callbacks to avoid memory leaks. *)
+    hd.hd_callbacks <- [];
+    let* () =
+      Lwt_list.iter_s (fun callback -> callback ()) hd.hd_error_callbacks
+    in
+    hd.hd_error_callbacks <- [];
+    Lwt.return_unit
+  in
   let notify_callbacks data =
     Lwt_list.iter_s (fun callback -> callback data) hd.hd_callbacks
   in
   let rec wait_data_loop () =
-    let* data = Service_handler.wait_data hd.hd_service_handler in
-    let* () = Lwt_list.iter_s notify_callbacks data in
-    wait_data_loop ()
+    Lwt.try_bind
+      (fun () -> Service_handler.wait_data hd.hd_service_handler)
+      (fun data ->
+         let* () = Lwt_list.iter_s notify_callbacks data in
+         wait_data_loop ())
+      on_error
   in
   Lwt.async wait_data_loop
 
 let register_callback hd callback =
   hd.hd_callbacks <- callback :: hd.hd_callbacks
+
+(** Register a callback for when the channel closes and no more message will be
+    received for every channel ids. *)
+let register_error_callback hd callback =
+  hd.hd_error_callbacks <- callback :: hd.hd_error_callbacks
 
 let stateful_handler_table :
   (Ecb.comet_service, Service_handler.stateful handler) Hashtbl.t
@@ -666,7 +684,7 @@ let stateless_handler_table :
 
 let init (service : Ecb.comet_service) kind table =
   let hd_service_handler = Service_handler.make service kind in
-  let hd = {hd_service_handler; hd_callbacks = []} in
+  let hd = {hd_service_handler; hd_callbacks = []; hd_error_callbacks = []} in
   wait_data_daemon hd;
   Hashtbl.add table service hd;
   hd
@@ -745,9 +763,9 @@ let check_and_update_position position msg_pos data =
           true)
         else false)
 
-(* stateless channels are registered with a position: when a channel
-   is registered more than one time, it is possible to receive old
-   messages: the position is used to filter them out. *)
+(* stateless channels are registered with a position: when a channel is
+   registered more than one time, it is possible to receive old messages: the
+   position is used to filter them out. *)
 let register'
       hd
       position
@@ -756,14 +774,14 @@ let register'
       callback
   =
   let chan_id = Ecb.string_of_chan_id chan_id in
-  register_callback hd (function
-    | id, pos, data
-      when id = chan_id && check_and_update_position position pos data -> (
+  register_callback hd (fun (id, pos, data) ->
+    if id = chan_id && check_and_update_position position pos data
+    then
       match data with
-      | Ecb.Full -> Lwt.return_unit
-      | Ecb.Closed -> (* TODO: Notify callback and unregister *) Lwt.return_unit
-      | Ecb.Data x -> callback (unmarshal x : 'a))
-    | _ -> Lwt.return_unit)
+      | Ecb.Full | Closed -> callback None
+      | Data x -> callback (Some (unmarshal x : 'a))
+    else Lwt.return_unit);
+  register_error_callback hd (fun () -> callback None)
 
 let register_stateful ?(wake = true) service chan_id callback =
   let hd = get_stateful_hd service in

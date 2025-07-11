@@ -25,9 +25,11 @@
 
 type ('a, 'b) t
 
-val register : ('a, 'b) t -> ('b -> unit Lwt.t) -> unit
+val register : ('a, 'b) t -> ('b option -> unit Lwt.t) -> unit
 (** Register a callback that will get called on every messages from the server.
-    Messages received before the call to [register] are lost. *)
+    Messages received before the call to [register] are lost. The callback is
+    called with [Some data] when receiving a message from the server or with
+    [None] when no more data will be received. *)
 
 val stream : ('a, 'b) t -> 'b Lwt_stream.t
 (** Create a new stream from the messages from the server. This has the same

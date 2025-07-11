@@ -27,7 +27,7 @@ let section = Logs.Src.create "eliom:bus"
 
 module Ecb = Eliom_comet_base
 
-type 'a consumers = {mutable consumers : ('a -> unit Lwt.t) list}
+type 'a consumers = {mutable consumers : ('a option -> unit Lwt.t) list}
 
 type ('a, 'b) t =
   { channel : 'b Ecb.wrapped_channel
@@ -53,12 +53,21 @@ type ('a, 'att, 'co, 'ext, 'reg) callable_bus_service =
     Eliom_service.t
 
 (** Register a callback in the underlying comet. *)
-let comet_register ~error_h:_ chan =
+let comet_register chan =
   let t = {consumers = []} in
-  Eliom_comet.register chan (fun x ->
-    (* TODO: On error, [Lwt.wakeup_exn] on [error_h]. *)
-    (* TODO: Propagate errors from [Eliom_comet]. *)
-    Lwt_list.iter_s (fun callback -> callback x) t.consumers);
+  let notify data =
+    Lwt_list.iter_s (fun callback -> callback data) t.consumers
+  in
+  let teardown () =
+    (* Notify that the channel reached its end. Clear the [consumers] list to
+       avoid memory leaks. *)
+    let* () = notify None in
+    t.consumers <- [];
+    Lwt.return_unit
+  in
+  Eliom_comet.register chan (function
+    | Some data -> notify (Some data)
+    | None -> teardown ());
   t
 
 let create service channel waiter =
@@ -75,16 +84,7 @@ let create service channel waiter =
         | Eliom_request.Failed_request 204 -> Lwt.return_unit
         | exc -> Lwt.reraise exc)
   in
-  let error_h =
-    let t, u = Lwt.wait () in
-    ( Lwt.catch
-        (fun () ->
-           let* _ = t in
-           assert false)
-        (fun e -> Lwt.fail e)
-    , u )
-  in
-  let consumers = lazy (comet_register ~error_h channel) in
+  let consumers = lazy (comet_register channel) in
   { channel
   ; consumers
   ; queue = Queue.create ()
@@ -107,7 +107,7 @@ let register t callback =
 
 let stream t =
   let stream, push = Lwt_stream.create () in
-  register t (fun data -> push (Some data); Lwt.return_unit);
+  register t (fun data -> push data; Lwt.return_unit);
   stream
 
 let original_stream = stream
