@@ -65,9 +65,11 @@ let comet_register chan =
     t.consumers <- [];
     Lwt.return_unit
   in
-  Eliom_comet.register chan (function
-    | Some data -> notify (Some data)
-    | None -> teardown ());
+  let _chan =
+    Eliom_comet.register_wrapped chan (function
+      | Some data -> notify (Some data)
+      | None -> teardown ())
+  in
   t
 
 let create service channel waiter =

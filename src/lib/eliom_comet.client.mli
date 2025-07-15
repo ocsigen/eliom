@@ -110,22 +110,26 @@ module Configuration : sig
 end
 
 module Channel : sig
-  type 'a t = 'a Lwt_stream.t
+  type 'a t
+
+  val register : 'a t -> ('a option -> unit Lwt.t) -> unit
+  (** [register chan callback] registers a callback to be called for new messages
+    from the server. The callback receives [Some data] for each new messages
+    from the server and [None] when the server closes the channel or an error
+    occurs. Not thread-safe. *)
 end
 
 (**/**)
 
-val register :
+val register_wrapped :
    ?wake:bool
   -> 'a Eliom_comet_base.wrapped_channel
   -> ('a option -> unit Lwt.t)
-  -> unit
-(** [register ~wake chan callback] registers a callback to be called for new
-    messages from the server. If wake is false, the registration of the channel
-    won't activate the handling loop ( no request will be sent ). Default is
-    true. The callback receives [Some data] for each new messages from the
-    server and [None] when the server closes the channel or an error occurs. Not
-    thread-safe. *)
+  -> 'a Channel.t
+(** [register_wrapped ~wake chan callback] registers a callback to a wrapped
+    channel and return a [Channel.t]. If wake is false, the registration of the
+    channel won't activate the handling loop ( no request will be sent ),
+    default is true. *)
 
 val restart : unit -> unit
 (** [restart ()] Restarts the loop waiting for server messages. It is
