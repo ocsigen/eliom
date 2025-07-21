@@ -17,26 +17,23 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 *)
-val def_handler : exn -> 'b Lwt.t
+val def_handler : exn -> 'b
 
 val execute :
    float
-  -> (float
-      -> Eliom_common.info
-      -> Eliom_common.sitedata
-      -> Ocsigen_response.t Lwt.t)
+  -> (float -> Eliom_common.info -> Eliom_common.sitedata -> Ocsigen_response.t)
   -> Eliom_common.info
   -> Eliom_common.sitedata
-  -> Ocsigen_response.t Lwt.t
+  -> Ocsigen_response.t
 
 val gen :
    Eliom_extension.eliom_extension_sig option
   -> Eliom_common.sitedata
   -> Ocsigen_extensions.request_state
-  -> Ocsigen_extensions.answer Lwt.t
+  -> Ocsigen_extensions.answer
 
 val update_cookie_table :
    ?now:float
   -> Eliom_common.sitedata
   -> Eliom_common.tables Eliom_common.cookie_info
-  -> unit Lwt.t
+  -> unit

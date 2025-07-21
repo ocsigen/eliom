@@ -163,7 +163,7 @@ module type TMPL_PARAMS = sig
   type t
 
   val name : string
-  val make_page : t -> Html_types.html Eliom_content.Html.elt Lwt.t
+  val make_page : t -> Html_types.html Eliom_content.Html.elt
   val update : t -> unit Eliom_client_value.t
 end
 
@@ -301,7 +301,7 @@ module Redirection : sig
     -> ?content_type:string
     -> ?headers:Ocsigen_header.t
     -> _ page
-    -> _ kind Lwt.t
+    -> _ kind
   (** More polymorphic version of {!Eliom_registration_sigs.send} *)
 end
 
@@ -387,9 +387,9 @@ module Any :
    and type 'a result = 'a kind
 
 val appl_self_redirect :
-   ('page -> [< 'a application_content | browser_content] kind Lwt.t)
+   ('page -> [< 'a application_content | browser_content] kind)
   -> 'page
-  -> 'appl application_content kind Lwt.t
+  -> 'appl application_content kind
 (** The function [appl_self_redirect send page] is an helper function
     required for defining {!Any} service usable inside an Eliom
     application ({!App}). It allows casting an Eliom senders that do
@@ -446,7 +446,7 @@ module Customize
     (T : sig
        type page
 
-       val translate : page -> R.page Lwt.t
+       val translate : page -> R.page
      end) :
   Eliom_registration_sigs.S_with_create
   with type options = R.options
@@ -456,7 +456,7 @@ module Customize
 
 (** {2 Using your own error pages} *)
 
-val set_exn_handler : (exn -> browser_content kind Lwt.t) -> unit
+val set_exn_handler : (exn -> browser_content kind) -> unit
 (** The [set_exn_handler handler] allows redefinition of error pages:
     [404] or any exception during page generation.
 

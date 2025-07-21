@@ -35,15 +35,10 @@
     will close the channel. *)
 
 exception Channel_full
-(** [Channel_full] is raised when trying to read on a channel marked
-    full by the server. It is not possible to read anything else from a
-    full channel. *)
+(** @deprecated Not raised anymore. *)
 
 exception Channel_closed
-(** [Channel_closed] is raised when reading on a channel and the
-    server side of the application closed channel ( the server was restarted,
-    a session was closed, or a stateless channel was garbage collected).
-     *)
+(** @deprecated Not raised anymore. *)
 
 val is_active : unit -> [`Active | `Idle | `Inactive]
 (** [is_active ()] returns the current activity state *)
@@ -52,7 +47,7 @@ val activate : unit -> unit
 (** if the client is inactive [activate ()] launch a new xhr
     connection to start receiving server messages *)
 
-val set_handle_exn_function : (?exn:exn -> unit -> unit Lwt.t) -> unit
+val set_handle_exn_function : (?exn:exn -> unit -> unit) -> unit
 (** Makes possible to customize the function called when comet fails
     for unknown reason.
     The usual practice is to warn the user and ask to reload the page.
@@ -115,17 +110,26 @@ module Configuration : sig
 end
 
 module Channel : sig
-  type 'a t = 'a Lwt_stream.t
+  type 'a t
+
+  val register : 'a t -> ('a option -> unit) -> unit
+  (** [register chan callback] registers a callback to be called for new messages
+    from the server. The callback receives [Some data] for each new messages
+    from the server and [None] when the server closes the channel or an error
+    occurs. Not thread-safe. *)
 end
 
 (**/**)
 
-val register :
+val register_wrapped :
    ?wake:bool
   -> 'a Eliom_comet_base.wrapped_channel
-  -> 'a Lwt_stream.t
-(** if wake is false, the registration of the channel won't
-    activate the handling loop ( no request will be sent ). Default is true *)
+  -> ('a option -> unit)
+  -> 'a Channel.t
+(** [register_wrapped ~wake chan callback] registers a callback to a wrapped
+    channel and return a [Channel.t]. If wake is false, the registration of the
+    channel won't activate the handling loop ( no request will be sent ),
+    default is true. *)
 
 val restart : unit -> unit
 (** [restart ()] Restarts the loop waiting for server messages. It is
@@ -142,7 +146,7 @@ val close : 'a Eliom_comet_base.wrapped_channel -> unit
 
 val force_link : unit
 
-val handle_exn : ?exn:exn -> unit -> unit Lwt.t
+val handle_exn : ?exn:exn -> unit -> unit
 (** This function calls manually the function
     that is usually called automatically when an exception
     is received during communication. *)

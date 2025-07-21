@@ -1,5 +1,3 @@
-open Lwt.Syntax
-
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2007 Vincent Balat
@@ -864,22 +862,16 @@ let reconstruct_params
       params
       files
       nosuffixversion
-      urlsuffix : a Lwt.t
+      urlsuffix : a
   =
   match typ, params, files with
   (* FIXME *)
   | TRaw_post_data, None, None -> Eliom_request_info.raw_post_data sp
   | typ, None, None -> (
-    try Lwt.return (reconstruct_params_ typ [] [] nosuffixversion urlsuffix)
-    with e -> Lwt.fail e)
+    try reconstruct_params_ typ [] [] nosuffixversion urlsuffix
+    with e -> raise e)
   | typ, _, _ -> (
-      let* params =
-        match params with Some params -> params | None -> Lwt.return_nil
-      in
-      let* files =
-        match files with Some files -> files | None -> Lwt.return_nil
-      in
-      try
-        Lwt.return
-          (reconstruct_params_ typ params files nosuffixversion urlsuffix)
-      with e -> Lwt.fail e)
+      let params = match params with Some params -> params | None -> [] in
+      let files = match files with Some files -> files | None -> [] in
+      try reconstruct_params_ typ params files nosuffixversion urlsuffix
+      with e -> raise e)
