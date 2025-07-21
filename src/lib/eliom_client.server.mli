@@ -34,9 +34,9 @@ val server_function :
   -> ?max_use:int
   -> ?timeout:float
   -> ?https:bool
-  -> ?error_handler:((string * exn) list -> 'b Lwt.t)
+  -> ?error_handler:((string * exn) list -> 'b)
   -> 'a Deriving_Json.t
-  -> ('a -> 'b Lwt.t)
+  -> ('a -> 'b)
   -> ('a, 'b) server_function
 (** [server_function argument_type f] creates a value of type {%
     <<a_api | type Eliom_client.server_function>> %}. This allows

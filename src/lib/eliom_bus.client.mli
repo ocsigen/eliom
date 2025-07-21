@@ -25,7 +25,7 @@
 
 type ('a, 'b) t
 
-val register : ('a, 'b) t -> ('b option -> unit Lwt.t) -> unit
+val register : ('a, 'b) t -> ('b option -> unit) -> unit
 (** Register a callback that will get called on every messages from the server.
     Messages received before the call to [register] are lost. The callback is
     called with [Some data] when receiving a message from the server or with
@@ -38,7 +38,7 @@ val stream : ('a, 'b) t -> 'b Lwt_stream.t
 val original_stream : ('a, 'b) t -> 'b Lwt_stream.t
 (** @deprecated Deprecated alias to [stream]. *)
 
-val write : ('a, 'b) t -> 'a -> unit Lwt.t
+val write : ('a, 'b) t -> 'a -> unit
 (** [write b v] send [v] to the bus [b]. Every participant of the bus
     will receive [v], including the sender. *)
 

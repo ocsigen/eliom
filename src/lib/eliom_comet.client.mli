@@ -47,7 +47,7 @@ val activate : unit -> unit
 (** if the client is inactive [activate ()] launch a new xhr
     connection to start receiving server messages *)
 
-val set_handle_exn_function : (?exn:exn -> unit -> unit Lwt.t) -> unit
+val set_handle_exn_function : (?exn:exn -> unit -> unit) -> unit
 (** Makes possible to customize the function called when comet fails
     for unknown reason.
     The usual practice is to warn the user and ask to reload the page.
@@ -112,7 +112,7 @@ end
 module Channel : sig
   type 'a t
 
-  val register : 'a t -> ('a option -> unit Lwt.t) -> unit
+  val register : 'a t -> ('a option -> unit) -> unit
   (** [register chan callback] registers a callback to be called for new messages
     from the server. The callback receives [Some data] for each new messages
     from the server and [None] when the server closes the channel or an error
@@ -124,7 +124,7 @@ end
 val register_wrapped :
    ?wake:bool
   -> 'a Eliom_comet_base.wrapped_channel
-  -> ('a option -> unit Lwt.t)
+  -> ('a option -> unit)
   -> 'a Channel.t
 (** [register_wrapped ~wake chan callback] registers a callback to a wrapped
     channel and return a [Channel.t]. If wake is false, the registration of the
@@ -146,7 +146,7 @@ val close : 'a Eliom_comet_base.wrapped_channel -> unit
 
 val force_link : unit
 
-val handle_exn : ?exn:exn -> unit -> unit Lwt.t
+val handle_exn : ?exn:exn -> unit -> unit
 (** This function calls manually the function
     that is usually called automatically when an exception
     is received during communication. *)

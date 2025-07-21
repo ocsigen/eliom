@@ -1,4 +1,4 @@
-open Lwt.Syntax
+open Eio.Std
 
 (* Ocsigen
  * http://www.ocsigen.org
@@ -19,8 +19,6 @@ open Lwt.Syntax
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 *)
-
-open Lwt.Infix
 
 let headers_with_content_type ?charset ?content_type headers =
   match content_type with
@@ -60,20 +58,16 @@ let result_of_content ?charset ?content_type ?headers ?status body =
       "cache-control" "no-cache"
   in
   let response = Cohttp.Response.make ?status ~headers () in
-  Lwt.return (Ocsigen_response.make ~body response)
+  Ocsigen_response.make ~body response
 
 module Result_types : sig
   type 'a kind
 
   val cast_result : Ocsigen_response.t -> 'a kind
   val cast_kind : 'a kind -> Ocsigen_response.t
-  val cast_kind_lwt : 'a kind Lwt.t -> Ocsigen_response.t Lwt.t
-  val cast_result_lwt : Ocsigen_response.t Lwt.t -> 'a kind Lwt.t
-
-  val cast_function_http :
-     ('c -> 'a kind Lwt.t)
-    -> 'c
-    -> Ocsigen_response.t Lwt.t
+  val cast_kind_lwt : 'a kind Promise.t -> Ocsigen_response.t
+  val cast_result_lwt : Ocsigen_response.t Promise.t -> 'a kind
+  val cast_function_http : ('c -> 'a kind) -> 'c -> Ocsigen_response.t
 end = struct
   type 'a kind = Ocsigen_response.t
 
@@ -149,7 +143,7 @@ module Flow5_base = struct
 
   let body l =
     Ocsigen_response.Body.make Cohttp.Transfer.Unknown (fun write ->
-      Lwt_list.iter_s (fun x -> write (Format.asprintf "%a" out x)) l)
+      List.iter (fun x -> write (Format.asprintf "%a" out x)) l)
 
   let send ?options:_ ?charset ?code ?content_type ?headers c =
     let status = Eliom_lib.Option.map Cohttp.Code.status_of_code code
@@ -283,16 +277,16 @@ module Action_base = struct
         | ( Eliom_common.RNa_no
           , (Eliom_common.RAtt_no, Eliom_common.RAtt_no)
           , `GET ) ->
-            Lwt.return (Ocsigen_response.make (Cohttp.Response.make ()))
+            Ocsigen_response.make (Cohttp.Response.make ())
         | _ ->
             let all_cookie_info = sp.Eliom_common.sp_cookie_info in
-            let* ric =
+            let ric =
               Eliommod_cookies.compute_new_ri_cookies (Unix.time ())
                 (Ocsigen_request.sub_path ri.request_info)
                 (Ocsigen_request.cookies ri.request_info)
                 all_cookie_info user_cookies
             in
-            let* all_new_cookies =
+            let all_new_cookies =
               Eliommod_cookies.compute_cookies_to_send sitedata all_cookie_info
                 user_cookies
             in
@@ -331,7 +325,7 @@ module Action_base = struct
             (*VVV Also put all_cookie_info in this, to avoid
           update_cookie_table and get_cookie_info (?) *)
             let ri = update_request ri.request_info si ric in
-            let* () =
+            let () =
               Eliommod_pagegen.update_cookie_table sitedata all_cookie_info
             in
             send_directly ri
@@ -387,7 +381,7 @@ module Any_base = struct
         (Cohttp.Response.headers cohttp_response)
     in
     let response = {cohttp_response with Cohttp.Response.headers} in
-    Lwt.return (Ocsigen_response.update ~response result)
+    Ocsigen_response.update ~response result
 end
 
 module Any = struct
@@ -413,10 +407,10 @@ let appl_self_redirect send page =
       in
       Cohttp.Response.make ~headers ()
     in
-    Ocsigen_response.make response |> Result_types.cast_result |> Lwt.return
+    Ocsigen_response.make response |> Result_types.cast_result
   else
-    let* r = (Result_types.cast_function_http send) page in
-    Lwt.return (Result_types.cast_result r)
+    let r = (Result_types.cast_function_http send) page in
+    Result_types.cast_result r
 
 (* File is a module allowing to register services that send files *)
 module File_base = struct
@@ -441,7 +435,7 @@ module File_base = struct
         raise Eliom_common.Eliom_404
     with
     | Ocsigen_local_files.RFile fname ->
-        let* res =
+        let res =
           let headers =
             Ocsigen_header.of_option headers
             |> add_cache_header options
@@ -449,7 +443,7 @@ module File_base = struct
           in
           Cohttp_lwt_unix.Server.respond_file ~headers ~fname ()
         in
-        Lwt.return (Ocsigen_response.of_cohttp res)
+        Ocsigen_response.of_cohttp res
     | Ocsigen_local_files.RDir _ ->
         (* FIXME COHTTP TRANSITION: implement directories *)
         raise Ocsigen_local_files.Failed_404
@@ -508,7 +502,7 @@ module Customize
     (T : sig
        type page
 
-       val translate : page -> R.page Lwt.t
+       val translate : page -> R.page
      end) =
 struct
   type page = T.page
@@ -518,12 +512,12 @@ struct
 
   let make_eh = function
     | None -> None
-    | Some eh -> Some (fun l -> eh l >>= T.translate)
+    | Some eh -> Some (fun l -> T.translate (eh l))
 
-  let make_service_handler f g p = f g p >>= T.translate
+  let make_service_handler f g p = T.translate (f g p)
 
   let send ?options ?charset ?code ?content_type ?headers content =
-    T.translate content >>= fun c ->
+    let c = T.translate content in
     R.send ?options ?charset ?code ?content_type ?headers c
 
   let register
@@ -537,7 +531,7 @@ struct
         ?secure_session
         ~service
         ?error_handler
-        (f : 'get -> 'post -> 'return Lwt.t)
+        (f : 'get -> 'post -> 'return)
     =
     R.register ?app ?scope ?options ?charset ?code ?content_type ?headers
       ?secure_session ~service ?error_handler:(make_eh error_handler)
@@ -658,52 +652,51 @@ module Ocaml = struct
     in
     (*     debug_client_value_data (debug "%s") client_value_data; *)
     let r = {Eliom_runtime.ecs_request_data; ecs_data = data} in
-    Lwt.return (Eliom_types.encode_eliom_data r)
+    Eliom_types.encode_eliom_data r
 
   let make_eh = function
     | None -> None
-    | Some eh -> Some (fun l -> eh l >>= prepare_data)
+    | Some eh -> Some (fun l -> prepare_data (eh l))
 
   let string_regexp = Str.regexp "\"\\([^\\\"]\\|\\\\.\\)*\""
 
   let make_service_handler ~name f g p =
-    let* data =
-      Lwt.catch
-        (fun () ->
-           let* res = f g p in
-           Lwt.return (`Success res))
-        (fun exn ->
-           let code = Printf.sprintf "%06x" (Random.int 0x1000000) in
-           let argument =
-             let sp = Eliom_common.get_sp () in
-             let si = Eliom_request_info.get_si sp in
-             let post_params =
-               match si.Eliom_common.si_all_post_params with
-               | None -> []
-               | Some l -> l
-             in
-             try Printf.sprintf " (%s)" (List.assoc "argument" post_params)
-             with Not_found -> ""
-           in
-           (match name with
-           | Some name ->
-               Logs.err (fun fmt ->
-                 fmt
-                   ("Uncaught exception in service %s [%s]%s" ^^ "@\n%s")
-                   name code
-                   (Str.global_replace string_regexp "\"xxx\"" argument)
-                   (Printexc.to_string exn))
-           | None ->
-               Logs.err (fun fmt ->
-                 fmt
-                   ("Uncaught exception [%s]%s" ^^ "@\n%s")
-                   code argument (Printexc.to_string exn)));
-           Lwt.return (`Failure code))
+    let data =
+      try
+        let res = f g p in
+        `Success res
+      with exn ->
+        let code = Printf.sprintf "%06x" (Random.int 0x1000000) in
+        let argument =
+          let sp = Eliom_common.get_sp () in
+          let si = Eliom_request_info.get_si sp in
+          let post_params =
+            match si.Eliom_common.si_all_post_params with
+            | None -> []
+            | Some l -> l
+          in
+          try Printf.sprintf " (%s)" (List.assoc "argument" post_params)
+          with Not_found -> ""
+        in
+        (match name with
+        | Some name ->
+            Logs.err (fun fmt ->
+              fmt
+                ("Uncaught exception in service %s [%s]%s" ^^ "@\n%s")
+                name code
+                (Str.global_replace string_regexp "\"xxx\"" argument)
+                (Printexc.to_string exn))
+        | None ->
+            Logs.err (fun fmt ->
+              fmt
+                ("Uncaught exception [%s]%s" ^^ "@\n%s")
+                code argument (Printexc.to_string exn)));
+        `Failure code
     in
     prepare_data data
 
   let send ?options ?charset ?code ?content_type ?headers content =
-    let* content = prepare_data content in
+    let content = prepare_data content in
     Result_types.cast_result_lwt
       (M.send ?options ?charset ?code ?content_type ?headers content)
 
@@ -729,8 +722,8 @@ module Ocaml = struct
              , _
              , 'return Eliom_service.ocaml )
              Eliom_service.t)
-        ?(error_handler : ((string * exn) list -> 'return Lwt.t) option)
-        (f : 'get -> 'post -> 'return Lwt.t)
+        ?(error_handler : ((string * exn) list -> 'return) option)
+        (f : 'get -> 'post -> 'return)
     =
     M.register ?app ?scope ?options ?charset ?code ?content_type ?headers
       ?secure_session
@@ -942,10 +935,9 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
         (Eliom_lib.jsmarshal (Eliommod_cli.client_sitedata sp))
         (Eliom_lib.jsmarshal sp.Eliom_common.sp_client_process_info)
     in
-    Lwt.return
-      Eliom_content.Html.(
-        Id.create_named_elt ~id:eliom_appl_data_script_id
-          (F.script (F.cdata_script script)))
+    Eliom_content.Html.(
+      Id.create_named_elt ~id:eliom_appl_data_script_id
+        (F.script (F.cdata_script script)))
 
   let make_eliom_data_script ?(keep_debug = false) ~sp page =
     let ejs_global_data =
@@ -980,11 +972,11 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
               (Eliom_content.Html.D.toelt page)
         ; ejs_sess_info = Eliommod_cli.client_si sp.Eliom_common.sp_si }
     in
-    let* tab_cookies =
+    let tab_cookies =
       Eliommod_cookies.compute_cookies_to_send sp.Eliom_common.sp_sitedata
         sp.Eliom_common.sp_tab_cookie_info sp.Eliom_common.sp_user_tab_cookies
     in
-    let* template = Eliom_reference.get request_template in
+    let template = Eliom_reference.get request_template in
     let script =
       Printf.sprintf
         "__eliom_request_data = \'%s\';\n__eliom_request_cookies = \'%s\';\n__eliom_request_template = \'%s\';"
@@ -992,7 +984,7 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
         (Eliom_lib.jsmarshal tab_cookies)
         (Eliom_lib.jsmarshal (template : string option))
     in
-    Lwt.return Eliom_content.Html.(F.script (F.cdata_script script))
+    Eliom_content.Html.(F.script (F.cdata_script script))
 
   let global_data_service =
     lazy
@@ -1012,7 +1004,7 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
        String.create ~options:max_age
          ~path:(Eliom_service.Path (path @ [name]))
          ~meth:(Get Eliom_parameter.unit)
-         (fun _ _ -> Lwt.return (script, "application/x-javascript")))
+         (fun _ _ -> script, "application/x-javascript"))
 
   let add_eliom_global_data_script rem =
     if global_data_cache_options () <> None
@@ -1054,7 +1046,7 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
     | _ -> assert false
 
   let add_eliom_scripts ~sp page =
-    let* appl_data_script = make_eliom_appl_data_script ~sp in
+    let appl_data_script = make_eliom_appl_data_script ~sp in
     (* First we build a fake page to build the ref_tree... *)
     let html_attribs, (head_attribs, title, head_elts), body =
       split_page (Eliom_content.Html.D.toelt page)
@@ -1097,7 +1089,7 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
         (Eliom_content.Html.F.head ~a:head_attribs title head_elts)
         body
     in
-    let* data_script =
+    let data_script =
       make_eliom_data_script
         ~keep_debug:(Ocsigen_config.get_debugmode ())
         ~sp fake_page
@@ -1109,10 +1101,9 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
       List.hd head_elts :: data_script
       :: add_eliom_global_data_script (List.tl head_elts)
     in
-    Lwt.return
-      (Eliom_content.Html.F.html ~a:html_attribs
-         (Eliom_content.Html.F.head ~a:head_attribs title head_elts)
-         body)
+    Eliom_content.Html.F.html ~a:html_attribs
+      (Eliom_content.Html.F.head ~a:head_attribs title head_elts)
+      body
 
   let remove_eliom_scripts page =
     let html_attribs, (head_attribs, title, head_elts), body =
@@ -1121,10 +1112,9 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
     let head_elts =
       List.filter (fun x -> not (is_eliom_appl_script x)) head_elts
     in
-    Lwt.return
-      (Eliom_content.Html.F.html ~a:html_attribs
-         (Eliom_content.Html.F.head ~a:head_attribs title head_elts)
-         body)
+    Eliom_content.Html.F.html ~a:html_attribs
+      (Eliom_content.Html.F.head ~a:head_attribs title head_elts)
+      body
 
   let send_appl_content =
     Eliom_service.XSame_appl (App_param.application_name, None)
@@ -1149,11 +1139,12 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
       Eliom_state.set_cookie ~cookie_level:`Client_process
         ~name:Eliom_common.appl_name_cookie_name
         ~value:App_param.application_name ();
-    let* body =
-      (match sp.Eliom_common.sp_client_appl_name, options.do_not_launch with
+    let body =
+      let body =
+        match sp.Eliom_common.sp_client_appl_name, options.do_not_launch with
         | None, true -> remove_eliom_scripts content
-        | _ -> add_eliom_scripts ~sp content)
-      >|= fun body ->
+        | _ -> add_eliom_scripts ~sp content
+      in
       Ocsigen_response.Body.of_string (Format.asprintf "%a" out body)
     in
     let headers =
@@ -1188,7 +1179,7 @@ module App (App_param : Eliom_registration_sigs.APP_PARAM) = struct
   let typed_name = App_param.application_name
 
   let data_service_handler () () =
-    Lwt.return (get_global_data ~keep_debug:(Ocsigen_config.get_debugmode ()))
+    get_global_data ~keep_debug:(Ocsigen_config.get_debugmode ())
 
   let _ =
     match App_param.global_data_path with
@@ -1203,7 +1194,7 @@ module type TMPL_PARAMS = sig
   type t
 
   val name : string
-  val make_page : t -> Html_types.html Eliom_content.Html.elt Lwt.t
+  val make_page : t -> Html_types.html Eliom_content.Html.elt
   val update : t -> unit Eliom_client_value.t
 end
 
@@ -1233,8 +1224,8 @@ struct
     =
     match Eliom_parameter.get_non_localized_get_parameters nl_template with
     | None ->
-        let* () = Eliom_reference.set request_template (Some Tmpl_param.name) in
-        let* content = Tmpl_param.make_page content in
+        let () = Eliom_reference.set request_template (Some Tmpl_param.name) in
+        let content = Tmpl_param.make_page content in
         Result_types.cast_kind_lwt
           (Appl.send ~options ?charset ?code ?content_type ?headers content)
     | Some _ ->

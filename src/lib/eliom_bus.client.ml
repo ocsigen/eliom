@@ -1,4 +1,4 @@
-open Lwt.Syntax
+open Eio.Std
 
 (* Ocsigen
  * http://www.ocsigen.org
@@ -27,16 +27,16 @@ let section = Logs.Src.create "eliom:bus"
 
 module Ecb = Eliom_comet_base
 
-type 'a consumers = {mutable consumers : ('a option -> unit Lwt.t) list}
+type 'a consumers = {mutable consumers : ('a option -> unit) list}
 
 type ('a, 'b) t =
   { channel : 'b Ecb.wrapped_channel
   ; consumers : 'b consumers Lazy.t
   ; queue : 'a Queue.t
   ; mutable max_size : int
-  ; write : 'a list -> unit Lwt.t
-  ; mutable waiter : unit -> unit Lwt.t
-  ; mutable last_wait : unit Lwt.t }
+  ; write : 'a list -> unit
+  ; mutable waiter : unit -> unit
+  ; mutable last_wait : unit Promise.t }
 
 type ('a, 'att, 'co, 'ext, 'reg) callable_bus_service =
   ( unit
@@ -55,15 +55,16 @@ type ('a, 'att, 'co, 'ext, 'reg) callable_bus_service =
 (** Register a callback in the underlying comet. *)
 let comet_register chan =
   let t = {consumers = []} in
-  let notify data =
-    Lwt_list.iter_s (fun callback -> callback data) t.consumers
-  in
+  let notify data = List.iter (fun callback -> callback data) t.consumers in
   let teardown () =
-    (* Notify that the channel reached its end. Clear the [consumers] list to
+    let
+        (* Notify that the channel reached its end. Clear the [consumers] list to
        avoid memory leaks. *)
-    let* () = notify None in
-    t.consumers <- [];
-    Lwt.return_unit
+          ()
+      =
+      notify None
+    in
+    t.consumers <- []
   in
   let _chan =
     Eliom_comet.register_wrapped chan (function
@@ -74,17 +75,14 @@ let comet_register chan =
 
 let create service channel waiter =
   let write x =
-    Lwt.catch
-      (fun () ->
-         let* _ =
-           Eliom_client.call_service
-             ~service:(service :> ('a, _, _, _, _) callable_bus_service)
-             () x
-         in
-         Lwt.return_unit)
-      (function
-        | Eliom_request.Failed_request 204 -> Lwt.return_unit
-        | exc -> Lwt.reraise exc)
+    try
+      let _ =
+        Eliom_client.call_service
+          ~service:(service :> ('a, _, _, _, _) callable_bus_service)
+          () x
+      in
+      ()
+    with Eliom_request.Failed_request 204 -> ()
   in
   let consumers = lazy (comet_register channel) in
   { channel
@@ -93,7 +91,7 @@ let create service channel waiter =
   ; max_size = 20
   ; write
   ; waiter
-  ; last_wait = Lwt.return_unit }
+  ; last_wait = () }
 
 let internal_unwrap ((wrapped_bus : ('a, 'b) Ecb.wrapped_bus), _unwrapper) =
   let waiter () = Js_of_ocaml_lwt.Lwt_js.sleep 0.05 in
@@ -109,7 +107,7 @@ let register t callback =
 
 let stream t =
   let stream, push = Lwt_stream.create () in
-  register t (fun data -> push data; Lwt.return_unit);
+  register t (fun data -> push data);
   stream
 
 let original_stream = stream
@@ -119,14 +117,22 @@ let flush t =
   Queue.clear t.queue; t.write l
 
 let try_flush t =
-  Lwt.cancel t.last_wait;
+  Lwt.cancel
+    (* TODO: lwt-to-direct-style: Use [Switch] or [Cancel] for defining a cancellable context. *)
+    (* TODO: lwt-to-direct-style: Use [Switch] or [Cancel] for defining a cancellable context. *)
+    t.last_wait;
   if Queue.length t.queue >= t.max_size
   then flush t
   else
-    let th = Lwt.protected (t.waiter ()) in
+    let th =
+      Lwt.protected
+        (* TODO: lwt-to-direct-style: Use [Switch] or [Cancel] for defining a cancellable context. *)
+        (* TODO: lwt-to-direct-style: Use [Switch] or [Cancel] for defining a cancellable context. *)
+        (t.waiter ())
+    in
     t.last_wait <- th;
-    let _ = th >>= fun () -> flush t in
-    Lwt.return_unit
+    let _ = th; flush t in
+    ()
 
 let write t v = Queue.add v t.queue; try_flush t
 let close {channel; _} = Eliom_comet.close channel
@@ -134,6 +140,8 @@ let set_queue_size b s = b.max_size <- s
 
 let set_time_before_flush b t =
   b.waiter <-
-    (if t <= 0. then Lwt.pause else fun () -> Js_of_ocaml_lwt.Lwt_js.sleep t)
+    (if t <= 0.
+     then fun x1 -> Fiber.yield x1
+     else fun () -> Js_of_ocaml_lwt.Lwt_js.sleep t)
 
 let force_link = ()

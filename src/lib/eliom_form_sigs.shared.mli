@@ -350,8 +350,8 @@ module type S = sig
     -> ?keep_nl_params:[`All | `Persistent | `None]
     -> ?nl_params:Eliom_parameter.nl_params_set
     -> ?xhr:bool
-    -> ('gn -> [< Html_types.form_content] elt list Lwt.t)
-    -> [> Html_types.form] elt Lwt.t
+    -> ('gn -> [< Html_types.form_content] elt list)
+    -> [> Html_types.form] elt
   (** Same as {!get_form} but taking a cooperative function for
       [<form>] content generation. *)
 
@@ -422,9 +422,9 @@ module type S = sig
     -> ?keep_get_na_params:bool
     -> ?nl_params:Eliom_parameter.nl_params_set
     -> ?xhr:bool
-    -> ('pn -> [< Html_types.form_content] elt list Lwt.t)
+    -> ('pn -> [< Html_types.form_content] elt list)
     -> 'get
-    -> [> Html_types.form] elt Lwt.t
+    -> [> Html_types.form] elt
   (** Same as {!post_form} but taking a cooperative function for
       [<form>] content generation. *)
 

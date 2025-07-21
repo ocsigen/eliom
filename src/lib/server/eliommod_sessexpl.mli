@@ -21,39 +21,35 @@
 val iter_service_cookies :
    (Eliom_common.SessionCookies.key
     * Eliom_common.tables Eliom_common.Service_cookie.t
-    -> unit Lwt.t)
-  -> unit Lwt.t
+    -> unit)
+  -> unit
 
 val iter_data_cookies :
-   (Eliom_common.SessionCookies.key * Eliom_common.Data_cookie.t -> unit Lwt.t)
-  -> unit Lwt.t
+   (Eliom_common.SessionCookies.key * Eliom_common.Data_cookie.t -> unit)
+  -> unit
 
-val iter_persistent_cookies :
-   (string * Eliommod_cookies.cookie -> unit Lwt.t)
-  -> unit Lwt.t
+val iter_persistent_cookies : (string * Eliommod_cookies.cookie -> unit) -> unit
 
 val fold_service_cookies :
    (Eliom_common.SessionCookies.key
     * Eliom_common.tables Eliom_common.Service_cookie.t
     -> 'a
-    -> 'a Lwt.t)
+    -> 'a)
   -> 'a
-  -> 'a Lwt.t
+  -> 'a
 
 val fold_data_cookies :
-   (Eliom_common.SessionCookies.key * Eliom_common.Data_cookie.t
-    -> 'a
-    -> 'a Lwt.t)
+   (Eliom_common.SessionCookies.key * Eliom_common.Data_cookie.t -> 'a -> 'a)
   -> 'a
-  -> 'a Lwt.t
+  -> 'a
 
 val fold_persistent_cookies :
-   (string * Eliommod_cookies.cookie -> 'a -> 'a Lwt.t)
+   (string * Eliommod_cookies.cookie -> 'a -> 'a)
   -> 'a
-  -> 'a Lwt.t
+  -> 'a
 
 val number_of_service_cookies : unit -> int
 val number_of_data_cookies : unit -> int
 val number_of_tables : unit -> int
 val number_of_table_elements : unit -> int list
-val number_of_persistent_cookies : unit -> int Lwt.t
+val number_of_persistent_cookies : unit -> int
