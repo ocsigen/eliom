@@ -117,19 +117,21 @@ module Channel : sig
     from the server. The callback receives [Some data] for each new messages
     from the server and [None] when the server closes the channel or an error
     occurs. Not thread-safe. *)
+
+  (**/**)
+
+  val wake : 'a t -> unit
+  (** Activate the handling loop, making sure the channel can receive messages.
+      No request will be sent. *)
+
+  (**/**)
 end
 
 (**/**)
 
-val register_wrapped :
-   ?wake:bool
-  -> 'a Eliom_comet_base.wrapped_channel
-  -> ('a option -> unit Lwt.t)
-  -> 'a Channel.t
-(** [register_wrapped ~wake chan callback] registers a callback to a wrapped
-    channel and return a [Channel.t]. If wake is false, the registration of the
-    channel won't activate the handling loop ( no request will be sent ),
-    default is true. *)
+val register : ?wake:bool -> 'a Eliom_comet_base.wrapped_channel -> 'a Channel.t
+(** The [~wake] argument controls whether [Channel.wake] is called on the
+    channel. Default is [true]. *)
 
 val restart : unit -> unit
 (** [restart ()] Restarts the loop waiting for server messages. It is

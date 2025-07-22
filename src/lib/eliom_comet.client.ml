@@ -801,19 +801,14 @@ let unwrap (wrapped_chan : 'a Ecb.wrapped_channel) : 'a Channel.t =
   | Ecb.Stateful_channel (s, c) -> register_stateful s c
   | Ecb.Stateless_channel (s, c, kind) -> register_stateless s c kind
 
-let register_wrapped ?(wake = true) wrapped_chan callback =
+let register ?(wake = true) wrapped_chan =
   let chan = unwrap wrapped_chan in
-  Channel.register chan callback;
   if wake then Channel.wake chan;
   chan
 
-let internal_unwrap (wrapped_chan, _unwrapper) =
-  let chan = unwrap wrapped_chan in
-  Channel.wake chan; chan
-
 let () =
   Eliom_unwrap.register_unwrapper Eliom_common.comet_channel_unwrap_id
-    internal_unwrap
+    (fun (wrapped_chan, _unwrapper) -> register wrapped_chan)
 
 let is_active () =
   (*VVV Check. Isn't it the contrary? (fold from `Inactive?) *)

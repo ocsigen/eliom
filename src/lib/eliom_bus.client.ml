@@ -27,11 +27,11 @@ let section = Logs.Src.create "eliom:bus"
 
 module Ecb = Eliom_comet_base
 
-type 'a consumers = {mutable consumers : ('a option -> unit Lwt.t) list}
-
 type ('a, 'b) t =
-  { channel : 'b Ecb.wrapped_channel
-  ; consumers : 'b consumers Lazy.t
+  { channel : 'b Eliom_comet.Channel.t
+  ; mutable channel_awake : bool
+    (** Whether [Eliom_comet.Channel.wake] was called before. *)
+  ; wrapped_channel : 'b Ecb.wrapped_channel
   ; queue : 'a Queue.t
   ; mutable max_size : int
   ; write : 'a list -> unit Lwt.t
@@ -52,27 +52,7 @@ type ('a, 'att, 'co, 'ext, 'reg) callable_bus_service =
     , Eliom_registration.Action.return )
     Eliom_service.t
 
-(** Register a callback in the underlying comet. *)
-let comet_register chan =
-  let t = {consumers = []} in
-  let notify data =
-    Lwt_list.iter_s (fun callback -> callback data) t.consumers
-  in
-  let teardown () =
-    (* Notify that the channel reached its end. Clear the [consumers] list to
-       avoid memory leaks. *)
-    let* () = notify None in
-    t.consumers <- [];
-    Lwt.return_unit
-  in
-  let _chan =
-    Eliom_comet.register_wrapped chan (function
-      | Some data -> notify (Some data)
-      | None -> teardown ())
-  in
-  t
-
-let create service channel waiter =
+let create service wrapped_channel waiter =
   let write x =
     Lwt.catch
       (fun () ->
@@ -86,9 +66,10 @@ let create service channel waiter =
         | Eliom_request.Failed_request 204 -> Lwt.return_unit
         | exc -> Lwt.reraise exc)
   in
-  let consumers = lazy (comet_register channel) in
+  let channel = Eliom_comet.register ~wake:false wrapped_channel in
   { channel
-  ; consumers
+  ; channel_awake = false
+  ; wrapped_channel
   ; queue = Queue.create ()
   ; max_size = 20
   ; write
@@ -104,8 +85,11 @@ let () =
   Eliom_unwrap.register_unwrapper Eliom_common.bus_unwrap_id internal_unwrap
 
 let register t callback =
-  let (lazy c) = t.consumers in
-  c.consumers <- callback :: c.consumers
+  Eliom_comet.Channel.register t.channel callback;
+  if not t.channel_awake
+  then (
+    Eliom_comet.Channel.wake t.channel;
+    t.channel_awake <- true)
 
 let stream t =
   let stream, push = Lwt_stream.create () in
@@ -129,7 +113,7 @@ let try_flush t =
     Lwt.return_unit
 
 let write t v = Queue.add v t.queue; try_flush t
-let close {channel; _} = Eliom_comet.close channel
+let close {wrapped_channel; _} = Eliom_comet.close wrapped_channel
 let set_queue_size b s = b.max_size <- s
 
 let set_time_before_flush b t =
