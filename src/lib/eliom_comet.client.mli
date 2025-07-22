@@ -124,6 +124,11 @@ module Channel : sig
   (** Activate the handling loop, making sure the channel can receive messages.
       No request will be sent. *)
 
+  val close : 'a t -> unit
+  (** [close c] closes the channel c. This function should be only use
+      internally. The normal way to close a channel is to cancel a thread
+      waiting on inputs. *)
+
   (**/**)
 end
 
@@ -140,11 +145,6 @@ val restart : unit -> unit
     browsers (based on webkit) also destroy the xhr object in that
     case, preventing client code from receiving the failure
     notification. This shouldn't be used by average user. *)
-
-val close : 'a Eliom_comet_base.wrapped_channel -> unit
-(** [close c] closes the channel c. This function should be only use
-    internally. The normal way to close a channel is to cancel a thread
-    waiting on inputs. *)
 
 val force_link : unit
 

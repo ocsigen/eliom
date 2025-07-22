@@ -31,7 +31,6 @@ type ('a, 'b) t =
   { channel : 'b Eliom_comet.Channel.t
   ; mutable channel_awake : bool
     (** Whether [Eliom_comet.Channel.wake] was called before. *)
-  ; wrapped_channel : 'b Ecb.wrapped_channel
   ; queue : 'a Queue.t
   ; mutable max_size : int
   ; write : 'a list -> unit Lwt.t
@@ -69,7 +68,6 @@ let create service wrapped_channel waiter =
   let channel = Eliom_comet.register ~wake:false wrapped_channel in
   { channel
   ; channel_awake = false
-  ; wrapped_channel
   ; queue = Queue.create ()
   ; max_size = 20
   ; write
@@ -113,7 +111,7 @@ let try_flush t =
     Lwt.return_unit
 
 let write t v = Queue.add v t.queue; try_flush t
-let close {wrapped_channel; _} = Eliom_comet.close wrapped_channel
+let close {channel; _} = Eliom_comet.Channel.close channel
 let set_queue_size b s = b.max_size <- s
 
 let set_time_before_flush b t =

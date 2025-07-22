@@ -717,14 +717,6 @@ let restart () =
   Hashtbl.iter f stateless_handler_table;
   Hashtbl.iter f stateful_handler_table
 
-let close = function
-  | Ecb.Stateful_channel (chan_service, chan_id) ->
-      let {hd_service_handler; _} = get_stateful_hd chan_service in
-      Service_handler.close hd_service_handler (Ecb.string_of_chan_id chan_id)
-  | Ecb.Stateless_channel (chan_service, chan_id, _kind) ->
-      let {hd_service_handler; _} = get_stateless_hd chan_service in
-      Service_handler.close hd_service_handler (Ecb.string_of_chan_id chan_id)
-
 let unmarshal s : 'a = Eliom_unwrap.unwrap (Eliom_lib.Url.decode s) 0
 
 type position_relation =
@@ -769,6 +761,9 @@ module Channel = struct
 
   let make hd chan_pos chan_id = C {hd; chan_pos; chan_id}
   let wake (C {hd; _}) = Service_handler.activate hd.hd_service_handler
+
+  let close (C {hd; chan_id; _}) =
+    Service_handler.close hd.hd_service_handler chan_id
 
   (* stateless channels are registered with a position: when a channel is
    registered more than one time, it is possible to receive old messages: the
