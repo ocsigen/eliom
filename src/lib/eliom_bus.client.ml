@@ -37,6 +37,8 @@ type ('a, 'b) t =
   ; mutable waiter : unit -> unit Lwt.t
   ; mutable last_wait : unit Lwt.t }
 
+type callback_id = Eliom_comet.Channel.callback_id
+
 type ('a, 'att, 'co, 'ext, 'reg) callable_bus_service =
   ( unit
     , 'a list
@@ -83,15 +85,18 @@ let () =
   Eliom_unwrap.register_unwrapper Eliom_common.bus_unwrap_id internal_unwrap
 
 let register t callback =
-  Eliom_comet.Channel.register t.channel callback;
+  let callback_id = Eliom_comet.Channel.register t.channel callback in
   if not t.channel_awake
   then (
     Eliom_comet.Channel.wake t.channel;
-    t.channel_awake <- true)
+    t.channel_awake <- true);
+  callback_id
+
+let unregister t id = Eliom_comet.Channel.unregister t.channel id
 
 let stream t =
   let stream, push = Lwt_stream.create () in
-  register t (fun data -> push data; Lwt.return_unit);
+  let _ = register t (fun data -> push data; Lwt.return_unit) in
   stream
 
 let original_stream = stream

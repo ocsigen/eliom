@@ -112,11 +112,19 @@ end
 module Channel : sig
   type 'a t
 
-  val register : 'a t -> ('a option -> unit Lwt.t) -> unit
+  type callback_id
+  (** Handler returned by {!register} that allows unregistering a callback
+      later with {!unregister}. *)
+
+  val register : 'a t -> ('a option -> unit Lwt.t) -> callback_id
   (** [register chan callback] registers a callback to be called for new messages
     from the server. The callback receives [Some data] for each new messages
     from the server and [None] when the server closes the channel or an error
     occurs. Not thread-safe. *)
+
+  val unregister : 'a t -> callback_id -> unit
+  (** Unregister a callback previously registered with {!register}, which will
+      stop receiving new messages. No-op if the callback was unregistered before. *)
 
   (**/**)
 

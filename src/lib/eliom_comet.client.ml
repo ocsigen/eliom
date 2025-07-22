@@ -678,7 +678,11 @@ let unmarshal s : 'a = Eliom_unwrap.unwrap (Eliom_lib.Url.decode s) 0
 module StringTbl = Hashtbl.Make (String)
 
 type callback =
-  | Cb : {c_pos : Position.t; c_callback : 'a option -> unit Lwt.t} -> callback
+  | Cb :
+      { c_id : int  (** Unique identifier used for unregistration. *)
+      ; c_pos : Position.t
+      ; c_callback : 'a option -> unit Lwt.t }
+      -> callback
 
 type 'a handler =
   { hd_service_handler : 'a Service_handler.t
@@ -727,6 +731,13 @@ let register_callback hd chan_id callback =
     | None -> []
   in
   StringTbl.replace hd.hd_callbacks chan_id (callback :: cs)
+
+let unregister_callback hd chan_id id =
+  try
+    StringTbl.find hd.hd_callbacks chan_id
+    |> List.filter (fun (Cb c) -> c.c_id <> id)
+    |> StringTbl.replace hd.hd_callbacks chan_id
+  with Not_found -> ()
 
 let stateful_handler_table :
   (Ecb.comet_service, Service_handler.stateful handler) Hashtbl.t
@@ -778,6 +789,12 @@ module Channel = struct
   type 'a t =
     | C : {hd : _ handler; chan_pos : Position.t; chan_id : string} -> 'a t
 
+  type callback_id = int
+
+  let next_callback_id =
+    let i = ref 0 in
+    fun () -> incr i; !i
+
   let make hd chan_pos chan_id = C {hd; chan_pos; chan_id}
   let wake (C {hd; _}) = Service_handler.activate hd.hd_service_handler
 
@@ -787,8 +804,12 @@ module Channel = struct
   (* stateless channels are registered with a position: when a channel is
    registered more than one time, it is possible to receive old messages: the
    position is used to filter them out. *)
-  let register (C {hd; chan_pos; chan_id}) callback =
-    register_callback hd chan_id (Cb {c_pos = chan_pos; c_callback = callback})
+  let register (C {hd; chan_pos = c_pos; chan_id}) c_callback =
+    let c_id = next_callback_id () in
+    register_callback hd chan_id (Cb {c_id; c_pos; c_callback});
+    c_id
+
+  let unregister (C {hd; chan_id; _}) id = unregister_callback hd chan_id id
 end
 
 let register_stateful service chan_id =

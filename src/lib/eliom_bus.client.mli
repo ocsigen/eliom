@@ -25,11 +25,19 @@
 
 type ('a, 'b) t
 
-val register : ('a, 'b) t -> ('b option -> unit Lwt.t) -> unit
+type callback_id
+(** Handler returned by {!register} that allows unregistering a callback later
+    with {!unregister}. *)
+
+val register : ('a, 'b) t -> ('b option -> unit Lwt.t) -> callback_id
 (** Register a callback that will get called on every messages from the server.
     Messages received before the call to [register] are lost. The callback is
     called with [Some data] when receiving a message from the server or with
     [None] when no more data will be received. *)
+
+val unregister : ('a, 'b) t -> callback_id -> unit
+(** Unregister a callback previously registered with {!register}, which will
+    stop receiving new messages. No-op if the callback was unregistered before. *)
 
 val stream : ('a, 'b) t -> 'b Lwt_stream.t
 (** Create a new stream from the messages from the server. This has the same
