@@ -635,42 +635,98 @@ end = struct
     handle_visibility hd; hd
 end
 
+module Position = struct
+  type relation =
+    | Equal
+    (* stateless after channels *)
+    | Greater
+  (* stateless newest channels *)
+
+  type t =
+    | No_position (* stateful channels*)
+    | Position of relation * int option ref
+  (* stateless channels *)
+
+  let of_kind = function
+    | Ecb.After_kind i -> Position (Equal, ref (Some i))
+    | Ecb.Newest_kind i -> Position (Greater, ref (Some i))
+    | Ecb.Last_kind None -> Position (Greater, ref None)
+    | Ecb.Last_kind (Some _) -> Position (Equal, ref None)
+
+  let check_and_update position msg_pos data =
+    match position, msg_pos, data with
+    | No_position, None, _ -> true
+    | No_position, Some _, _ | Position _, None, Ecb.Data _ ->
+        raise_error ~section
+          "check_position: channel kind and message do not match"
+    | Position _, None, (Ecb.Full | Ecb.Closed) -> true
+    | Position (relation, r), Some j, _ -> (
+      match !r with
+      | None ->
+          r := Some (j + 1);
+          true
+      | Some i ->
+          if match relation with Equal -> j = i | Greater -> j >= i
+          then (
+            r := Some (j + 1);
+            true)
+          else false)
+end
+
+let unmarshal s : 'a = Eliom_unwrap.unwrap (Eliom_lib.Url.decode s) 0
+
+module StringTbl = Hashtbl.Make (String)
+
+type callback =
+  | Cb : {c_pos : Position.t; c_callback : 'a option -> unit Lwt.t} -> callback
+
 type 'a handler =
   { hd_service_handler : 'a Service_handler.t
-  ; mutable hd_callbacks :
-      (string * int option * string Ecb.channel_data -> unit Lwt.t) list
-  ; mutable hd_error_callbacks : (unit -> unit Lwt.t) list }
+  ; hd_callbacks : callback list StringTbl.t
+    (** Callbacks are grouped by their channel ID. *) }
 
 let wait_data_daemon hd =
   let on_error _ =
     (* Notify callbacks of an error and release callbacks to avoid memory leaks. *)
-    hd.hd_callbacks <- [];
-    let* () =
-      Lwt_list.iter_s (fun callback -> callback ()) hd.hd_error_callbacks
+    let callbacks =
+      StringTbl.fold
+        (fun _k cs acc -> List.rev_append cs acc)
+        hd.hd_callbacks []
     in
-    hd.hd_error_callbacks <- [];
-    Lwt.return_unit
+    StringTbl.reset hd.hd_callbacks;
+    Lwt_list.iter_s (fun (Cb c) -> c.c_callback None) callbacks
   in
-  let notify_callbacks data =
-    Lwt_list.iter_s (fun callback -> callback data) hd.hd_callbacks
+  let handle_message (id, pos, data) =
+    match StringTbl.find hd.hd_callbacks id with
+    | exception Not_found -> Lwt.return_unit
+    | cs ->
+        Lwt_list.iter_s
+          (fun (Cb c) ->
+             if Position.check_and_update c.c_pos pos data
+             then
+               match data with
+               | Ecb.Full | Closed -> c.c_callback None
+               | Data x -> c.c_callback (Some (unmarshal x))
+             else Lwt.return_unit)
+          cs
   in
   let rec wait_data_loop () =
     Lwt.try_bind
       (fun () -> Service_handler.wait_data hd.hd_service_handler)
-      (fun data ->
-         let* () = Lwt_list.iter_s notify_callbacks data in
+      (fun messages ->
+         let* () = Lwt_list.iter_s handle_message messages in
          wait_data_loop ())
       on_error
   in
   Lwt.async wait_data_loop
 
-let register_callback hd callback =
-  hd.hd_callbacks <- callback :: hd.hd_callbacks
-
-(** Register a callback for when the channel closes and no more message will be
-    received for every channel ids. *)
-let register_error_callback hd callback =
-  hd.hd_error_callbacks <- callback :: hd.hd_error_callbacks
+let register_callback hd chan_id callback =
+  let cs =
+    match StringTbl.find_opt hd.hd_callbacks chan_id with
+    | Some cs -> cs
+    | None -> []
+  in
+  StringTbl.replace hd.hd_callbacks chan_id (callback :: cs)
 
 let stateful_handler_table :
   (Ecb.comet_service, Service_handler.stateful handler) Hashtbl.t
@@ -684,7 +740,8 @@ let stateless_handler_table :
 
 let init (service : Ecb.comet_service) kind table =
   let hd_service_handler = Service_handler.make service kind in
-  let hd = {hd_service_handler; hd_callbacks = []; hd_error_callbacks = []} in
+  let hd_callbacks = StringTbl.create 16 in
+  let hd = {hd_service_handler; hd_callbacks} in
   wait_data_daemon hd;
   Hashtbl.add table service hd;
   hd
@@ -717,47 +774,9 @@ let restart () =
   Hashtbl.iter f stateless_handler_table;
   Hashtbl.iter f stateful_handler_table
 
-let unmarshal s : 'a = Eliom_unwrap.unwrap (Eliom_lib.Url.decode s) 0
-
-type position_relation =
-  | Equal
-  (* stateless after channels *)
-  | Greater
-(* stateless newest channels *)
-
-type position =
-  | No_position (* stateful channels*)
-  | Position of position_relation * int option ref
-(* stateless channels *)
-
-let position_of_kind = function
-  | Ecb.After_kind i -> Position (Equal, ref (Some i))
-  | Ecb.Newest_kind i -> Position (Greater, ref (Some i))
-  | Ecb.Last_kind None -> Position (Greater, ref None)
-  | Ecb.Last_kind (Some _) -> Position (Equal, ref None)
-
-let check_and_update_position position msg_pos data =
-  match position, msg_pos, data with
-  | No_position, None, _ -> true
-  | No_position, Some _, _ | Position _, None, Ecb.Data _ ->
-      raise_error ~section
-        "check_position: channel kind and message do not match"
-  | Position _, None, (Ecb.Full | Ecb.Closed) -> true
-  | Position (relation, r), Some j, _ -> (
-    match !r with
-    | None ->
-        r := Some (j + 1);
-        true
-    | Some i ->
-        if match relation with Equal -> j = i | Greater -> j >= i
-        then (
-          r := Some (j + 1);
-          true)
-        else false)
-
 module Channel = struct
   type 'a t =
-    | C : {hd : _ handler; chan_pos : position; chan_id : string} -> 'a t
+    | C : {hd : _ handler; chan_pos : Position.t; chan_id : string} -> 'a t
 
   let make hd chan_pos chan_id = C {hd; chan_pos; chan_id}
   let wake (C {hd; _}) = Service_handler.activate hd.hd_service_handler
@@ -769,14 +788,7 @@ module Channel = struct
    registered more than one time, it is possible to receive old messages: the
    position is used to filter them out. *)
   let register (C {hd; chan_pos; chan_id}) callback =
-    register_callback hd (fun (id, pos, data) ->
-      if id = chan_id && check_and_update_position chan_pos pos data
-      then
-        match data with
-        | Ecb.Full | Closed -> callback None
-        | Data x -> callback (Some (unmarshal x : 'a))
-      else Lwt.return_unit);
-    register_error_callback hd (fun () -> callback None)
+    register_callback hd chan_id (Cb {c_pos = chan_pos; c_callback = callback})
 end
 
 let register_stateful service chan_id =
@@ -789,7 +801,7 @@ let register_stateless service chan_id kind =
   let hd = get_stateless_hd service in
   let chan_id = Ecb.string_of_chan_id chan_id in
   Service_handler.add_channel_stateless hd.hd_service_handler chan_id kind;
-  Channel.make hd (position_of_kind kind) chan_id
+  Channel.make hd (Position.of_kind kind) chan_id
 
 let unwrap (wrapped_chan : 'a Ecb.wrapped_channel) : 'a Channel.t =
   match wrapped_chan with
