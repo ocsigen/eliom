@@ -675,7 +675,12 @@ end
 
 let unmarshal s : 'a = Eliom_unwrap.unwrap (Eliom_lib.Url.decode s) 0
 
-module StringTbl = Hashtbl.Make (String)
+module StringTbl = Hashtbl.Make (struct
+    type t = string
+
+    let equal = ( = )
+    let hash = Hashtbl.hash
+  end)
 
 type callback =
   | Cb :
