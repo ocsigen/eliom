@@ -126,16 +126,15 @@ module Channel : sig
   (** Unregister a callback previously registered with {!register}, which will
       stop receiving new messages. No-op if the callback was unregistered before. *)
 
+  val close : 'a t -> unit
+  (** Unregister all callbacks associated to the given channel and close it.
+      The channel will not receive any more messages. *)
+
   (**/**)
 
   val wake : 'a t -> unit
   (** Activate the handling loop, making sure the channel can receive messages.
       No request will be sent. *)
-
-  val close : 'a t -> unit
-  (** [close c] closes the channel c. This function should be only use
-      internally. The normal way to close a channel is to cancel a thread
-      waiting on inputs. *)
 
   (**/**)
 end

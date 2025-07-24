@@ -739,6 +739,9 @@ let unregister_callback hd chan_id id =
     |> StringTbl.replace hd.hd_callbacks chan_id
   with Not_found -> ()
 
+let unregister_all_callbacks hd chan_id =
+  StringTbl.remove hd.hd_callbacks chan_id
+
 let stateful_handler_table :
   (Ecb.comet_service, Service_handler.stateful handler) Hashtbl.t
   =
@@ -799,7 +802,8 @@ module Channel = struct
   let wake (C {hd; _}) = Service_handler.activate hd.hd_service_handler
 
   let close (C {hd; chan_id; _}) =
-    Service_handler.close hd.hd_service_handler chan_id
+    Service_handler.close hd.hd_service_handler chan_id;
+    unregister_all_callbacks hd chan_id
 
   (* stateless channels are registered with a position: when a channel is
    registered more than one time, it is possible to receive old messages: the
