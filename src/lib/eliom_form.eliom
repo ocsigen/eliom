@@ -19,25 +19,25 @@
  *)
 
 open%shared Js_of_ocaml
+
 [%%client.start]
-open Lwt.Syntax
 
 let read_params form y =
   Eliom_parameter.reconstruct_params_form (Form.form_elements form) y
 
 let error_handler =
-  ref @@ fun _ -> Lwt.fail_with "Cannot parse params for client-side service"
+  ref @@ fun _ -> failwith "Cannot parse params for client-side service"
 
 let set_error_handler f = error_handler := f
 
 let iter_contents y ev f =
-  let fls () = Lwt.return_false in
+  let fls () = false in
   Js.Opt.case ev##.target fls @@ fun target ->
   Js.Opt.case (Dom_html.CoerceTo.form target) fls @@ fun target ->
   match read_params target y with
   | Some v ->
-      let* () = f v in
-      Lwt.return_true
+      let () = f v in
+      true
   | None -> !error_handler ()
 
 type client_form_handler = Eliom_client.client_form_handler
@@ -45,7 +45,7 @@ type client_form_handler = Eliom_client.client_form_handler
 let make_hdlr_get service : client_form_handler =
  fun ev ->
   match Eliom_service.client_fun service with
-  | None -> Lwt.return_false
+  | None -> false
   | Some _ ->
       iter_contents (Eliom_service.get_params_type service) ev @@ fun g ->
       Eliom_client.change_page ~service g ()
@@ -53,7 +53,7 @@ let make_hdlr_get service : client_form_handler =
 let make_hdlr_post service g : client_form_handler =
  fun ev ->
   match Eliom_service.client_fun service with
-  | None -> Lwt.return_false
+  | None -> false
   | Some _ ->
       iter_contents (Eliom_service.post_params_type service) ev @@ fun p ->
       Eliom_client.change_page ~service g p
@@ -64,31 +64,31 @@ let make_hdlr_post service g : client_form_handler =
 module type Html = sig
   include
     Html_sigs.T
-    with type 'a Xml.W.t = 'a
-     and type 'a Xml.W.tlist = 'a list
-     and type Xml.mouse_event_handler =
-      (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
+      with type 'a Xml.W.t = 'a
+       and type 'a Xml.W.tlist = 'a list
+       and type Xml.mouse_event_handler =
+        (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
 
   type ('a, 'b, 'c) lazy_star =
     ?a:'a attrib list -> 'b elt list Eliom_lazy.request -> 'c elt
 
   val lazy_form :
-    ( [< Html_types.form_attrib]
-      , [< Html_types.form_content_fun]
-      , [> Html_types.form] )
-      lazy_star
+    ( [< Html_types.form_attrib ],
+      [< Html_types.form_content_fun ],
+      [> Html_types.form ] )
+    lazy_star
 
   val uri_of_fun : (unit -> string) -> Xml.uri
 
   val attrib_of_service :
-     string
-    -> ([`A | `Form_get | `Form_post]
-       * (bool * string list) option
-       * string option
-       * Eliom_lib.poly)
-         option
-         Eliom_lazy.request
-    -> Html_types.form_attrib attrib
+    string ->
+    ([ `A | `Form_get | `Form_post ]
+    * (bool * string list) option
+    * string option
+    * Eliom_lib.poly)
+    option
+    Eliom_lazy.request ->
+    Html_types.form_attrib attrib
 
   val to_elt : 'a elt -> Eliom_content_core.Xml.elt
 end
@@ -101,8 +101,7 @@ module Make_links (Html : Html) = struct
   type +'a attrib = 'a Html.attrib
 
   let make_uri ?absolute ?absolute_path ?https ~service ?hostname ?port
-      ?fragment ?keep_nl_params ?nl_params gp
-    =
+      ?fragment ?keep_nl_params ?nl_params gp =
     Html.uri_of_fun @@ fun () ->
     Eliom_uri.make_string_uri ?absolute ?absolute_path ?https ?fragment ~service
       ?hostname ?port ?keep_nl_params ?nl_params gp
@@ -110,8 +109,7 @@ module Make_links (Html : Html) = struct
   let uri_of_string = Html.uri_of_fun
 
   let a ?absolute ?absolute_path ?https ?(a = []) ~service ?hostname ?port
-      ?fragment ?keep_nl_params ?nl_params ?xhr content getparams
-    =
+      ?fragment ?keep_nl_params ?nl_params ?xhr content getparams =
     let a =
       let a = (a :> Html_types.a_attrib attrib list) in
       let href =
@@ -120,21 +118,22 @@ module Make_links (Html : Html) = struct
           ?hostname ?port ?fragment ?keep_nl_params ?nl_params getparams
       in
       let href = Html.a_href href in
-      if get_xhr xhr
-      then
+      if get_xhr xhr then
         let f =
           [%client.unsafe
             fun ev ->
-              if not (Eliom_client.middleClick ev)
-              then (
+              let open Eio.Std in
+              if not (Eliom_client.middleClick ev) then (
                 Dom.preventDefault ev;
                 Dom_html.stopPropagation ev;
-                Lwt.async @@ fun () ->
-                Eliom_client.change_page ?absolute:~%absolute
-                  ?absolute_path:~%absolute_path ?https:~%https
-                  ~service:~%service ?hostname:~%hostname ?port:~%port
-                  ?fragment:~%fragment ?keep_nl_params:~%keep_nl_params
-                  ?nl_params:~%nl_params ~%getparams ())]
+                Fiber.fork
+                  ~sw:(Stdlib.Option.get (Fiber.get Ocsigen_lib.current_switch))
+                  (fun () ->
+                    Eliom_client.change_page ?absolute:~%absolute
+                      ?absolute_path:~%absolute_path ?https:~%https
+                      ~service:~%service ?hostname:~%hostname ?port:~%port
+                      ?fragment:~%fragment ?keep_nl_params:~%keep_nl_params
+                      ?nl_params:~%nl_params ~%getparams ()))]
         in
         Html.a_onclick f :: href :: a
       else href :: a
@@ -145,7 +144,7 @@ module Make_links (Html : Html) = struct
     let a =
       Html.a_mime_type "text/css" :: (a :> Html_types.link_attrib attrib list)
     in
-    Html.link ~href:uri ~rel:[`Stylesheet] ~a ()
+    Html.link ~href:uri ~rel:[ `Stylesheet ] ~a ()
 
   let js_script ?(a = []) ~uri () =
     let a =
@@ -186,12 +185,12 @@ module Make (Html : Html) = struct
       :: (* Always Multipart!!! How to test if there is a file?? *)
          a_action action
       :: a_method `Post
-      :: (if inline then a_class ["inline"] :: a else a)
+      :: (if inline then a_class [ "inline" ] :: a else a)
     in
     lazy_form ~a elts
 
   let cons_hidden_fieldset fields content =
-    Html.fieldset ~a:[a_style "display: none;"] fields :: content
+    Html.fieldset ~a:[ a_style "display: none;" ] fields :: content
 
   let make_input ?(a = []) ?(checked = false) ~typ ?name ?src ?value () =
     let a = (a :> Html_types.input_attrib attrib list) in
@@ -232,8 +231,7 @@ module Make (Html : Html) = struct
 
   let get_form_ bind return ?absolute ?absolute_path ?https ?a ~service
       ?hostname ?port ?fragment
-      ?(nl_params = Eliom_parameter.empty_nl_params_set) ?keep_nl_params f
-    =
+      ?(nl_params = Eliom_parameter.empty_nl_params_set) ?keep_nl_params f =
     let issuffix, paramnames =
       Eliom_parameter.make_params_names (Eliom_service.get_params_type service)
     in
@@ -246,16 +244,15 @@ module Make (Html : Html) = struct
       Html.uri_of_fun @@ fun () ->
       let uri, _, fragment = Eliom_lazy.force components in
       let uri =
-        if issuffix
-        then
-          if uri.[String.length uri - 1] = '/'
-          then uri ^ Eliom_common.eliom_nosuffix_page
-          else String.concat "/" [uri; Eliom_common.eliom_nosuffix_page]
+        if issuffix then
+          if uri.[String.length uri - 1] = '/' then
+            uri ^ Eliom_common.eliom_nosuffix_page
+          else String.concat "/" [ uri; Eliom_common.eliom_nosuffix_page ]
         else uri
       in
       match fragment with
       | None -> uri
-      | Some f -> String.concat "#" [uri; Eliom_lib.Url.encode f]
+      | Some f -> String.concat "#" [ uri; Eliom_lib.Url.encode f ]
     in
     bind (f paramnames) @@ fun inside ->
     let inside =
@@ -270,14 +267,13 @@ module Make (Html : Html) = struct
       cons_hidden_fieldset (List.map f hiddenparams)
         (inside :> Html_types.form_content elt list)
     and a =
-      let a' = [a_method `Get; a_action uri] in
+      let a' = [ a_method `Get; a_action uri ] in
       match a with Some a -> a' @ a | _ -> a'
     in
     return (Html.lazy_form ~a inside)
 
   let get_form ?absolute ?absolute_path ?https ?a ~service ?hostname ?port
-      ?fragment ?keep_nl_params ?nl_params ?xhr:_ f
-    =
+      ?fragment ?keep_nl_params ?nl_params ?xhr:_ f =
     get_form_
       (fun x f -> f x)
       (fun x -> x)
@@ -287,9 +283,8 @@ module Make (Html : Html) = struct
   let post_form_ bind return ?absolute ?absolute_path ?https ?a ~service
       ?hostname ?port ?fragment
       ?(nl_params = Eliom_parameter.empty_nl_params_set)
-      ?(keep_nl_params : [`All | `Persistent | `None] option)
-      ?keep_get_na_params f get_params
-    =
+      ?(keep_nl_params : [ `All | `Persistent | `None ] option)
+      ?keep_get_na_params f get_params =
     let _, paramnames =
       Eliom_parameter.make_params_names (Eliom_service.post_params_type service)
     in
@@ -318,8 +313,7 @@ module Make (Html : Html) = struct
 
   let post_form ?absolute ?absolute_path ?https ?a ~service ?hostname ?port
       ?fragment ?keep_nl_params ?keep_get_na_params ?nl_params ?xhr:_ f
-      getparams
-    =
+      getparams =
     post_form_
       (fun x f -> f x)
       (fun x -> x)
@@ -368,7 +362,7 @@ module Make (Html : Html) = struct
     let a =
       let required = Html.a_required () in
       match a with
-      | None -> [required]
+      | None -> [ required ]
       | Some a -> required :: (a :> Html_types.input_attrib attrib list)
     in
     make_input ~a ?checked ~typ:`Radio
@@ -396,22 +390,23 @@ module Make (Html : Html) = struct
 
   type 'a select_opt =
     | Optgroup of
-        [Html_types.common | `Disabled] attrib list
+        [ Html_types.common | `Disabled ] attrib list
         * string (* label *)
         * 'a soption
         * 'a soption list
     | Option of 'a soption
 
   let gen_select ?a ?(multiple = false) ?required ~name (fl : 'a select_opt)
-      (ol : 'a select_opt list) string_of
-    =
+      (ol : 'a select_opt list) string_of =
     let a = (a :> Html_types.select_attrib attrib list option) in
     let a =
       match required with
       | None -> a
       | Some _ -> (
           let required = Html.a_required () in
-          match a with Some a -> Some (required :: a) | None -> Some [required])
+          match a with
+          | Some a -> Some (required :: a)
+          | None -> Some [ required ])
     in
     let normalize_selected l =
       (* We change the list of option to have exactly one selected
@@ -420,26 +415,26 @@ module Make (Html : Html) = struct
          the first selected if several are selected.  Thus all
          browsers will behave the same way.  *)
       let aux1 found ((a, b, c, selected) as line) =
-        if found then (a, b, c, false), true else line, selected
+        if found then ((a, b, c, false), true) else (line, selected)
       in
       let rec aux2 found = function
         | line :: l ->
             let line, found = aux1 found line in
             let l, found = aux2 found l in
-            line :: l, found
-        | [] -> [], found
+            (line :: l, found)
+        | [] -> ([], found)
       in
       let rec aux found = function
         | Option line :: l ->
             let line, found = aux1 found line in
             let l, found = aux found l in
-            Option line :: l, found
+            (Option line :: l, found)
         | Optgroup (a, b, fl, ol) :: l ->
             let fl, found = aux1 found fl in
             let ol, found = aux2 found ol in
             let l, found = aux found l in
-            Optgroup (a, b, fl, ol) :: l, found
-        | [] -> [], found
+            (Optgroup (a, b, fl, ol) :: l, found)
+        | [] -> ([], found)
       in
       let select_first = function
         | Option (a, b, c, _) -> Option (a, b, c, true)
@@ -447,22 +442,20 @@ module Make (Html : Html) = struct
             Optgroup (a, b, (c, d, e, true), ol)
       in
       let newl, found = aux false l in
-      if found
-      then List.hd newl, List.tl newl, true
+      if found then (List.hd newl, List.tl newl, true)
       else
         let first = List.hd newl in
         (* We select the first one by default *)
         let first =
           match required with None -> select_first first | _ -> first
         in
-        first, List.tl newl, false
+        (first, List.tl newl, false)
     in
     let fl, ol, has_selected =
-      if multiple
-      then
-        ( fl
-        , ol
-        , let _, _, hs = normalize_selected (fl :: ol) in
+      if multiple then
+        ( fl,
+          ol,
+          let _, _, hs = normalize_selected (fl :: ol) in
           hs )
       else normalize_selected (fl :: ol)
     in
@@ -476,12 +469,12 @@ module Make (Html : Html) = struct
       | Optgroup (a, label, og1, ogl) ->
           make_optgroup ~a ~label (make_opt og1) (List.map make_opt ogl)
     in
-    let fl2, ol2 = make_optg fl, List.map make_optg ol in
+    let fl2, ol2 = (make_optg fl, List.map make_optg ol) in
     let fl3, ol3 =
       match required with
-      | None -> fl2, ol2
+      | None -> (fl2, ol2)
       | Some label ->
-          make_option ~selected:(not has_selected) ~value:"" label, fl2 :: ol2
+          (make_option ~selected:(not has_selected) ~value:"" label, fl2 :: ol2)
     in
     make_select ?a ~multiple ~name fl3 ol3
 
@@ -503,22 +496,22 @@ module Make (Html : Html) = struct
       | None -> None
       | Some tmpl ->
           Some
-            ( (kind : [`Form_get | `Form_post] :> [`Form_get | `Form_post | `A])
-            , Eliom_uri.make_cookies_info (https, service)
-            , tmpl
-            , Eliom_lib.to_poly hdlr )
+            ( (kind
+                : [ `Form_get | `Form_post ]
+                :> [ `Form_get | `Form_post | `A ]),
+              Eliom_uri.make_cookies_info (https, service),
+              tmpl,
+              Eliom_lib.to_poly hdlr )
     in
     Eliom_lazy.from_fun f
 
   let a_onsubmit_service info = Html.attrib_of_service "onsubmit" info
 
   let get_form ?absolute ?absolute_path ?https ?(a = []) ~service ?hostname
-      ?port ?fragment ?keep_nl_params ?nl_params ?xhr contents
-    =
+      ?port ?fragment ?keep_nl_params ?nl_params ?xhr contents =
     let a =
       let a = (a :> Html_types.form_attrib attrib list) in
-      if get_xhr xhr
-      then
+      if get_xhr xhr then
         let hdlr =
           [%client.unsafe (make_hdlr_get ~%service : client_form_handler)]
         in
@@ -530,12 +523,10 @@ module Make (Html : Html) = struct
       ?fragment ?keep_nl_params ?nl_params contents
 
   let lwt_get_form ?absolute ?absolute_path ?https ?(a = []) ~service ?hostname
-      ?port ?fragment ?keep_nl_params ?nl_params ?xhr contents
-    =
+      ?port ?fragment ?keep_nl_params ?nl_params ?xhr contents =
     let a =
       let a = (a :> Html_types.form_attrib attrib list) in
-      if get_xhr xhr
-      then
+      if get_xhr xhr then
         let hdlr =
           [%client.unsafe (make_hdlr_get ~%service : client_form_handler)]
         in
@@ -543,17 +534,18 @@ module Make (Html : Html) = struct
         a_onsubmit_service info :: a
       else a
     in
-    get_form_ Lwt.bind Lwt.return ?absolute ?absolute_path ?https ~a ~service
-      ?hostname ?port ?fragment ?nl_params ?keep_nl_params contents
+    get_form_
+      (fun x1 x2 -> x2 x1)
+      (fun x1 -> x1)
+      ?absolute ?absolute_path ?https ~a ~service ?hostname ?port ?fragment
+      ?nl_params ?keep_nl_params contents
 
   let post_form ?absolute ?absolute_path ?https ?(a = []) ~service ?hostname
       ?port ?fragment ?keep_nl_params ?keep_get_na_params ?nl_params ?xhr
-      contents getparams
-    =
+      contents getparams =
     let a =
       let a = (a :> Html_types.form_attrib attrib list) in
-      if get_xhr xhr
-      then
+      if get_xhr xhr then
         let hdlr =
           [%client.unsafe
             (make_hdlr_post ~%service ~%getparams : client_form_handler)]
@@ -568,12 +560,10 @@ module Make (Html : Html) = struct
 
   let lwt_post_form ?absolute ?absolute_path ?https ?(a = []) ~service ?hostname
       ?port ?fragment ?keep_nl_params ?keep_get_na_params ?nl_params ?xhr
-      contents getparams
-    =
+      contents getparams =
     let a =
       let a = (a :> Html_types.form_attrib attrib list) in
-      if get_xhr xhr
-      then
+      if get_xhr xhr then
         let hdlr =
           [%client.unsafe
             (make_hdlr_post ~%service ~%getparams : client_form_handler)]
@@ -582,7 +572,9 @@ module Make (Html : Html) = struct
         a_onsubmit_service info :: a
       else a
     in
-    post_form_ Lwt.bind Lwt.return ?absolute ?absolute_path ?https ~a ~service
-      ?hostname ?port ?fragment ?keep_get_na_params ?keep_nl_params ?nl_params
-      contents getparams
+    post_form_
+      (fun x1 x2 -> x2 x1)
+      (fun x1 -> x1)
+      ?absolute ?absolute_path ?https ~a ~service ?hostname ?port ?fragment
+      ?keep_get_na_params ?keep_nl_params ?nl_params contents getparams
 end

@@ -1,10 +1,10 @@
-open Lwt.Syntax
+open%server Eio.Std
 
 (* Copyright Vincent Balat *)
 
 [%%shared.start]
 
-type ('a, 'b) t = (unit -> ('a, 'b Lwt.t) Hashtbl.t) Eliom_shared.Value.t
+type ('a, 'b) t = (unit -> ('a, 'b Promise.or_exn) Hashtbl.t) Eliom_shared.Value.t
 
 let%client create_ () =
   let c = Hashtbl.create 100 in
@@ -24,34 +24,40 @@ let do_cache_raw cache id data =
   let c = Eliom_shared.Value.local cache () in
   Hashtbl.replace c id data;
   (* Do not cache exceptions *)
-  ignore (Lwt.catch (fun _ -> data) (fun e -> Hashtbl.remove c id; Lwt.fail e))
+  ignore
+    (try data
+     with e ->
+       Hashtbl.remove c id;
+       raise e)
 
-let do_cache cache id data = do_cache_raw cache id (Lwt.return data)
+let do_cache cache id data = do_cache_raw cache id data
 
 let%server do_cache cache id v =
   do_cache cache id v;
   ignore [%client.unsafe (do_cache ~%cache ~%id ~%v : unit)]
 
 let%server find cache get_data id =
-  try Hashtbl.find ((Eliom_shared.Value.local cache) ()) id
+  try Promise.await_exn (Hashtbl.find ((Eliom_shared.Value.local cache) ()) id)
   with Not_found ->
     let th =
-      let* v = get_data id in
-
-      ignore [%client.unsafe (do_cache ~%cache ~%id ~%v : unit)];
-      Lwt.return v
+      Fiber.fork_promise
+        ~sw:(Stdlib.Option.get (Fiber.get Ocsigen_lib.current_switch))
+        (fun () ->
+           let v = get_data id in
+           ignore [%client.unsafe (do_cache ~%cache ~%id ~%v : unit)];
+           v)
     in
-    (* On server side, we put immediately in table the thread that is
-       fetching the data.  in order to avoid fetching it several
-       times. *)
-    do_cache_raw cache id th; th
+    (* On server side, we put immediately in table the thread that is fetching
+       the data. in order to avoid fetching it several times. *)
+    do_cache_raw cache id th; Promise.await_exn th
 
 let%client load cache get_data id =
   let th = get_data id in
   (* On client side, we put immediately in table the thread that is
      fetching the data.  Thus, [get_data_from_cache] returns
      immediately (in order to display a spinner). *)
-  do_cache_raw cache id th; th
+  do_cache_raw cache id th;
+  Promise.await_exn th
 
 let%client find cache get_data id =
   try Hashtbl.find ((Eliom_shared.Value.local cache) ()) id
@@ -63,4 +69,7 @@ let local_find cache id = Hashtbl.find ((Eliom_shared.Value.local cache) ()) id
 
 let find_if_ready cache id =
   let v = local_find cache id in
-  match Lwt.state v with Lwt.Return v -> v | _ -> raise Not_ready
+  match Promise.peek v with
+  | Some (Ok v) -> v
+  | Some (Error e) -> raise e
+  | _ -> raise Not_ready

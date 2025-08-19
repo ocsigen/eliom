@@ -25,7 +25,7 @@
 module Down : sig
   type 'a t = 'a React.E.t
 
-  val set_handle_react_exn_function : (?exn:exn -> unit -> unit Lwt.t) -> unit
+  val set_handle_react_exn_function : (?exn:exn -> unit -> unit) -> unit
   (** Makes possible to customize the function called when comet fails
       in Eliom_react, for example because a channel is full or closed.
       It is called for each exception.
@@ -33,7 +33,7 @@ module Down : sig
 end
 
 module Up : sig
-  type 'a t = 'a -> unit Lwt.t
+  type 'a t = 'a -> unit
 end
 
 module S : sig

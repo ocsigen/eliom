@@ -70,8 +70,7 @@ module A = struct
           (int * int * Table.t Eliom_common.dircontent ref) list
       ; mutable t_contains_timeout : bool
       ; mutable t_na_services :
-          (Eliom_common.na_key_serv, bool -> params -> result Lwt.t) Hashtbl.t
-      }
+          (Eliom_common.na_key_serv, bool -> params -> result) Hashtbl.t }
 
     let get {t_services; _} = t_services
     let set_contains_timeout a b = a.t_contains_timeout <- b
@@ -79,7 +78,7 @@ module A = struct
     let dlist_add ?sp:_ _tables _srv = ()
   end
 
-  let handle_directory _ = Lwt.return Eliom_service.No_contents
+  let handle_directory _ = Eliom_service.No_contents
 end
 
 include Eliom_route_base.Make (A)
@@ -95,7 +94,7 @@ let add_naservice k f {A.Container.t_na_services; _} =
 
 let call_naservice k {A.Container.t_na_services; _} =
   try (Hashtbl.find t_na_services k) true None
-  with Not_found -> Lwt.fail Eliom_common.Eliom_404
+  with Not_found -> raise Eliom_common.Eliom_404
 
 let rec na_key_of_params ~get = function
   | (k, v) :: _ when k = Eliom_common.naservice_name ->
