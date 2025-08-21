@@ -49,16 +49,14 @@ module Down = struct
        in Eliom_comet. For example Channel_full. *)
     (* We transform the stream into a stream with exception: *)
     let stream = Eliom_stream.wrap_exn channel in
-    Fiber.fork
-      ~sw:(Stdlib.Option.get (Fiber.get Ocsigen_lib.current_switch))
-      (fun () ->
-         Eliom_stream.iter_s
-           (function
-             | Error exn ->
-                 let () = handle_react_exn ~exn () in
-                 raise exn
-             | Ok () -> ())
-           stream);
+    Js_of_ocaml_eio.Eio_js.start (fun () ->
+      Eliom_stream.iter_s
+        (function
+          | Error exn ->
+              let () = handle_react_exn ~exn () in
+              raise exn
+          | Ok () -> ())
+        stream);
     E.of_stream channel
 
   let () =

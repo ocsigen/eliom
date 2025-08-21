@@ -29,7 +29,7 @@
   cohttp
   tyxml
   reactiveData
-  eio)
+  js_of_ocaml-eio)
  (foreign_stubs
   (language c)
   (names eliom_stubs))

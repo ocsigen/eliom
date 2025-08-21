@@ -1008,65 +1008,61 @@ let init () =
         onload_handler := None
     | None -> ());
     Eliom_client_core.set_initial_load ();
-    Fiber.fork
-      ~sw:(Stdlib.Option.get (Fiber.get Ocsigen_lib.current_switch))
-      (fun () ->
-         if !Eliom_config.debug_timings
-         then Console.console##(time (Js.string "onload"));
-         let () =
-           Eliom_request_info.set_session_info
-             ~uri:
-               (String.concat "/"
-                  (Eliom_request_info.get_csp_original_full_path ()))
-             js_data.Eliom_common.ejs_sess_info
-           @@ fun () -> ()
-         in
-         let
-             (* Give the browser the chance to actually display the page NOW *)
-               ()
-           =
-           Js_of_ocaml_lwt.Lwt_js.sleep 0.001
-         in
-         (* Ordering matters. See [Eliom_client.set_content] for explanations *)
-         relink_request_nodes Dom_html.document##.documentElement;
-         let root = Dom_html.document##.documentElement in
-         let closure_nodeList, attrib_nodeList =
-           relink_page_but_client_values root
-         in
-         do_request_data js_data.Eliom_common.ejs_request_data;
-         (* XXX One should check that all values have been unwrapped.
+    Js_of_ocaml_eio.Eio_js.start (fun () ->
+      if !Eliom_config.debug_timings
+      then Console.console##(time (Js.string "onload"));
+      let () =
+        Eliom_request_info.set_session_info
+          ~uri:
+            (String.concat "/"
+               (Eliom_request_info.get_csp_original_full_path ()))
+          js_data.Eliom_common.ejs_sess_info
+        @@ fun () -> ()
+      in
+      let
+          (* Give the browser the chance to actually display the page NOW *)
+            ()
+        =
+        Js_of_ocaml_lwt.Lwt_js.sleep 0.001
+      in
+      (* Ordering matters. See [Eliom_client.set_content] for explanations *)
+      relink_request_nodes Dom_html.document##.documentElement;
+      let root = Dom_html.document##.documentElement in
+      let closure_nodeList, attrib_nodeList =
+        relink_page_but_client_values root
+      in
+      do_request_data js_data.Eliom_common.ejs_request_data;
+      (* XXX One should check that all values have been unwrapped.
             In fact, client values should be special and all other values
             should be eagerly unwrapped. *)
-         let () =
-           relink_attribs root js_data.Eliom_common.ejs_client_attrib_table
-             attrib_nodeList
-         in
-         let onload_closure_nodes =
-           relink_closure_nodes root
-             js_data.Eliom_common.ejs_event_handler_table closure_nodeList
-         in
-         Eliom_client_core.reset_request_nodes ();
-         Eliommod_dom.add_formdata_hack_onclick_handler ();
-         if not (is_client_app ()) then dom_history_ready := true;
-         let load_callbacks =
-           flush_onload ()
-           @ [onload_closure_nodes; Eliom_client_core.broadcast_load_end]
-         in
-         Eio.Mutex.unlock Eliom_client_core.load_mutex;
-         run_callbacks load_callbacks;
-         if !Eliom_config.debug_timings
-         then Console.console##(timeEnd (Js.string "onload")));
+      let () =
+        relink_attribs root js_data.Eliom_common.ejs_client_attrib_table
+          attrib_nodeList
+      in
+      let onload_closure_nodes =
+        relink_closure_nodes root js_data.Eliom_common.ejs_event_handler_table
+          closure_nodeList
+      in
+      Eliom_client_core.reset_request_nodes ();
+      Eliommod_dom.add_formdata_hack_onclick_handler ();
+      if not (is_client_app ()) then dom_history_ready := true;
+      let load_callbacks =
+        flush_onload ()
+        @ [onload_closure_nodes; Eliom_client_core.broadcast_load_end]
+      in
+      Eio.Mutex.unlock Eliom_client_core.load_mutex;
+      run_callbacks load_callbacks;
+      if !Eliom_config.debug_timings
+      then Console.console##(timeEnd (Js.string "onload")));
     Js._false
   in
   Logs.debug ~src:section (fun fmt -> fmt "Set load/onload events");
   if Dom_html.document##.readyState = Js.string "complete"
   then
-    Fiber.fork
-      ~sw:(Stdlib.Option.get (Fiber.get Ocsigen_lib.current_switch))
-      (fun () ->
-         let () = Js_of_ocaml_lwt.Lwt_js_events.request_animation_frame () in
-         let _ = onload () in
-         ())
+    Js_of_ocaml_eio.Eio_js.start (fun () ->
+      let () = Js_of_ocaml_lwt.Lwt_js_events.request_animation_frame () in
+      let _ = onload () in
+      ())
   else
     onload_handler :=
       Some
@@ -1360,11 +1356,9 @@ let set_current_uri, get_current_uri =
     let current_uri = fst (Url.split_fragment uri) in
     (get_this_page ()).url <- current_uri;
     let path, all_get_params = path_and_args_of_uri current_uri in
-    Fiber.fork
-      ~sw:(Stdlib.Option.get (Fiber.get Ocsigen_lib.current_switch))
-      (fun () ->
-         Eliom_request_info.update_session_info ~path ~all_get_params
-           ~all_post_params:None (fun () -> ()))
+    Js_of_ocaml_eio.Eio_js.start (fun () ->
+      Eliom_request_info.update_session_info ~path ~all_get_params
+        ~all_post_params:None (fun () -> ()))
   in
   let get_current_uri () = (get_this_page ()).url in
   set_current_uri, get_current_uri
@@ -2134,19 +2128,16 @@ let change_page_post_form ?cookies_info ?tmpl form full_uri =
 let _ =
   (Eliom_client_core.change_page_uri_ :=
      fun ?cookies_info ?tmpl href ->
-       Fiber.fork
-         ~sw:(Stdlib.Option.get (Fiber.get Ocsigen_lib.current_switch))
-         (fun () -> change_page_uri_a ?cookies_info ?tmpl href));
+       Js_of_ocaml_eio.Eio_js.start (fun () ->
+         change_page_uri_a ?cookies_info ?tmpl href));
   (Eliom_client_core.change_page_get_form_ :=
      fun ?cookies_info ?tmpl form href ->
-       Fiber.fork
-         ~sw:(Stdlib.Option.get (Fiber.get Ocsigen_lib.current_switch))
-         (fun () -> change_page_get_form ?cookies_info ?tmpl form href));
+       Js_of_ocaml_eio.Eio_js.start (fun () ->
+         change_page_get_form ?cookies_info ?tmpl form href));
   Eliom_client_core.change_page_post_form_ :=
     fun ?cookies_info ?tmpl form href ->
-      Fiber.fork
-        ~sw:(Stdlib.Option.get (Fiber.get Ocsigen_lib.current_switch))
-        (fun () -> change_page_post_form ?cookies_info ?tmpl form href)
+      Js_of_ocaml_eio.Eio_js.start (fun () ->
+        change_page_post_form ?cookies_info ?tmpl form href)
 
 (* == Main (internal) function: change the content of the page without leaving
       the javascript application. *)
@@ -2195,121 +2186,112 @@ let () =
         ; target_id = Some target_id }
       in
       let tmpl = state.template in
-      Fiber.fork
-        ~sw:(Stdlib.Option.get (Fiber.get Ocsigen_lib.current_switch))
-        (fun () ->
-           with_progress_cursor
-           (* TODO: ciao-lwt: This computation might not be suspended correctly. *)
-           @@
-           let uri, fragment = Url.split_fragment full_uri in
-           if uri = get_current_uri ()
-           then (
-             Logs.debug ~src:section_page (fun fmt ->
-               fmt "revisit: uri = get_current_uri");
-             !active_page.page_id <- state_id;
-             scroll_to_fragment ~offset:state.position fragment)
-           else
-             try
-               (* serve cached page from the from history_doms *)
-               Logs.debug ~src:section_page (fun fmt ->
-                 fmt "revisit: uri != get_current_uri");
-               if not (is_in_cache state_id) then raise Not_found;
-               let () = run_lwt_callbacks ev (flush_onchangepage ()) in
-               restore_history_dom target_id;
-               set_current_uri uri;
-               let () =
-                 Js_of_ocaml_lwt.Lwt_js_events.request_animation_frame ()
-               in
-               scroll_to_fragment ~offset:state.position fragment;
-               let
-                   (* Wait for the dom to be repainted before scrolling *)
-                     ()
-                 =
-                 Js_of_ocaml_lwt.Lwt_js_events.request_animation_frame ()
-               in
-               scroll_to_fragment ~offset:state.position fragment
-               (* When we use iPhone, we need to wait for one more
+      Js_of_ocaml_eio.Eio_js.start (fun () ->
+        with_progress_cursor
+        (* TODO: ciao-lwt: This computation might not be suspended correctly. *)
+        @@
+        let uri, fragment = Url.split_fragment full_uri in
+        if uri = get_current_uri ()
+        then (
+          Logs.debug ~src:section_page (fun fmt ->
+            fmt "revisit: uri = get_current_uri");
+          !active_page.page_id <- state_id;
+          scroll_to_fragment ~offset:state.position fragment)
+        else
+          try
+            (* serve cached page from the from history_doms *)
+            Logs.debug ~src:section_page (fun fmt ->
+              fmt "revisit: uri != get_current_uri");
+            if not (is_in_cache state_id) then raise Not_found;
+            let () = run_lwt_callbacks ev (flush_onchangepage ()) in
+            restore_history_dom target_id;
+            set_current_uri uri;
+            let () = Js_of_ocaml_lwt.Lwt_js_events.request_animation_frame () in
+            scroll_to_fragment ~offset:state.position fragment;
+            let
+                (* Wait for the dom to be repainted before scrolling *)
+                  ()
+              =
+              Js_of_ocaml_lwt.Lwt_js_events.request_animation_frame ()
+            in
+            scroll_to_fragment ~offset:state.position fragment
+            (* When we use iPhone, we need to wait for one more
                    [request_animation_frame] before scrolling.The
                    function [scroll_to_fragment] is called twice. In
                    other words, we want to call [scroll_to_fragment]
                    as early as possible so that the scroll position
                    will not jump after the second [request_animation_frame]
                    if the dom has already be painted after the first one. *)
-             with Not_found -> (
-               let session_changed = state_id.session_id <> session_id in
-               if session_changed && is_client_app ()
-               then
-                 failwith
-                   (Printf.sprintf
-                      "revisit: session changed on client: %d => %d (%s)"
-                      state_id.session_id session_id full_uri);
-               try
-                 (* same session *)
-                 if session_changed then raise Not_found;
-                 Logs.debug ~src:section_page (fun fmt ->
-                   fmt "revisit: session has not changed");
-                 let old_page =
-                   History.find_by_state_index state_id.state_index
-                 in
-                 let rf =
-                   Option.bind old_page @@ fun {reload_function = rf; _} -> rf
-                 in
-                 match rf with
-                 | None -> raise Not_found
-                 | Some f ->
-                     reload_function := rf;
-                     let () = run_lwt_callbacks ev (flush_onchangepage ()) in
-                     with_new_page ~state_id ?old_page ~replace:false ()
-                     @@ fun () ->
-                     set_current_uri uri;
-                     History.replace (get_this_page ());
-                     let () =
-                       match f () () with
-                       | Eliom_service.Dom d -> set_content_local d
-                       | r ->
-                           handle_result ~uri:(get_current_uri ()) ~replace:true
-                             r
-                     in
-                     scroll_to_fragment ~offset:state.position fragment
-               with Not_found -> (
-                 (* different session ID *)
-                 set_current_uri uri;
-                 match tmpl with
-                 | Some t when tmpl = Eliom_request_info.get_request_template ()
-                   ->
-                     Logs.debug ~src:section_page (fun fmt ->
-                       fmt
-                         "revisit: template is Some and equals to get_request_template");
-                     let uri, content =
-                       Eliom_request.http_get uri
-                         [Eliom_request.nl_template_string, t]
-                         Eliom_request.string_result
-                     in
-                     let () = set_template_content content ~replace:true ~uri in
-                     scroll_to_fragment ~offset:state.position fragment
-                 | _ ->
-                     if is_client_app ()
-                     then
-                       failwith
-                         (Printf.sprintf
-                            "revisit: could not generate page client-side (%s)"
-                            full_uri);
-                     Logs.debug ~src:section_page (fun fmt ->
-                       fmt "revisit: template is anything else");
-                     with_new_page
-                       ?state_id:
-                         (if session_changed then None else Some state_id)
-                       ~replace:false ()
-                     @@ fun () ->
-                     let uri, content =
-                       Eliom_request.http_get ~expecting_process_page:true uri
-                         [] Eliom_request.xml_result
-                     in
-                     let () =
-                       set_content ~uri ~replace:true ~offset:state.position
-                         ?fragment content
-                     in
-                     ())))
+          with Not_found -> (
+            let session_changed = state_id.session_id <> session_id in
+            if session_changed && is_client_app ()
+            then
+              failwith
+                (Printf.sprintf
+                   "revisit: session changed on client: %d => %d (%s)"
+                   state_id.session_id session_id full_uri);
+            try
+              (* same session *)
+              if session_changed then raise Not_found;
+              Logs.debug ~src:section_page (fun fmt ->
+                fmt "revisit: session has not changed");
+              let old_page = History.find_by_state_index state_id.state_index in
+              let rf =
+                Option.bind old_page @@ fun {reload_function = rf; _} -> rf
+              in
+              match rf with
+              | None -> raise Not_found
+              | Some f ->
+                  reload_function := rf;
+                  let () = run_lwt_callbacks ev (flush_onchangepage ()) in
+                  with_new_page ~state_id ?old_page ~replace:false ()
+                  @@ fun () ->
+                  set_current_uri uri;
+                  History.replace (get_this_page ());
+                  let () =
+                    match f () () with
+                    | Eliom_service.Dom d -> set_content_local d
+                    | r ->
+                        handle_result ~uri:(get_current_uri ()) ~replace:true r
+                  in
+                  scroll_to_fragment ~offset:state.position fragment
+            with Not_found -> (
+              (* different session ID *)
+              set_current_uri uri;
+              match tmpl with
+              | Some t when tmpl = Eliom_request_info.get_request_template () ->
+                  Logs.debug ~src:section_page (fun fmt ->
+                    fmt
+                      "revisit: template is Some and equals to get_request_template");
+                  let uri, content =
+                    Eliom_request.http_get uri
+                      [Eliom_request.nl_template_string, t]
+                      Eliom_request.string_result
+                  in
+                  let () = set_template_content content ~replace:true ~uri in
+                  scroll_to_fragment ~offset:state.position fragment
+              | _ ->
+                  if is_client_app ()
+                  then
+                    failwith
+                      (Printf.sprintf
+                         "revisit: could not generate page client-side (%s)"
+                         full_uri);
+                  Logs.debug ~src:section_page (fun fmt ->
+                    fmt "revisit: template is anything else");
+                  with_new_page
+                    ?state_id:(if session_changed then None else Some state_id)
+                    ~replace:false ()
+                  @@ fun () ->
+                  let uri, content =
+                    Eliom_request.http_get ~expecting_process_page:true uri []
+                      Eliom_request.xml_result
+                  in
+                  let () =
+                    set_content ~uri ~replace:true ~offset:state.position
+                      ?fragment content
+                  in
+                  ())))
     in
     let revisit_wrapper full_uri state_id =
       Logs.debug ~src:section_page (fun fmt -> fmt "revisit_wrapper");
@@ -2319,26 +2301,24 @@ let () =
       and cancel () = () in
       run_onunload_wrapper f cancel
     in
-    Fiber.fork
-      ~sw:(Stdlib.Option.get (Fiber.get Ocsigen_lib.current_switch))
-      (fun () ->
-         let
-             (* TODO: ciao-lwt: This computation might not be suspended correctly. *)
-               ()
-           =
-           wait_load_end ()
-         in
-         Logs.debug ~src:section_page (fun fmt ->
-           fmt "revisit_wrapper: replaceState");
-         Dom_html.window##.history##(replaceState
-                                       (Js.Opt.return
-                                          (Js.string
-                                             (to_json ~typ:[%json: saved_state]
-                                                ( !active_page.page_id
-                                                , Js.to_string
-                                                    Dom_html.window##.location##.
-                                                    href ))))
-                                       (Js.string "") Js.null));
+    Js_of_ocaml_eio.Eio_js.start (fun () ->
+      let
+          (* TODO: ciao-lwt: This computation might not be suspended correctly. *)
+            ()
+        =
+        wait_load_end ()
+      in
+      Logs.debug ~src:section_page (fun fmt ->
+        fmt "revisit_wrapper: replaceState");
+      Dom_html.window##.history##(replaceState
+                                    (Js.Opt.return
+                                       (Js.string
+                                          (to_json ~typ:[%json: saved_state]
+                                             ( !active_page.page_id
+                                             , Js.to_string
+                                                 Dom_html.window##.location##.href
+                                             ))))
+                                    (Js.string "") Js.null));
     Dom_html.window##.onpopstate
     := Dom_html.handler (fun event ->
       Logs.debug ~src:section_page (fun fmt ->
@@ -2359,42 +2339,38 @@ let () =
     *)
     let read_fragment () = Js.to_string Dom_html.window##.location##.hash in
     let auto_change_page fragment =
-      Fiber.fork
-        ~sw:(Stdlib.Option.get (Fiber.get Ocsigen_lib.current_switch))
-        (fun () ->
-           (* TODO: ciao-lwt: This computation might not be suspended correctly. *)
-           let l = String.length fragment in
-           if l = 0 || (l > 1 && fragment.[1] = '!')
-           then
-             if fragment <> !current_pseudo_fragment
-             then (
-               current_pseudo_fragment := fragment;
-               let uri =
-                 match l with
-                 | 2 -> "./" (* fix for firefox *)
-                 | 0 | 1 -> fst (Url.split_fragment Url.Current.as_string)
-                 | _ -> String.sub fragment 2 (String.length fragment - 2)
-               in
-               Logs.debug ~src:section_page (fun fmt -> fmt "auto_change_page");
-               (* CCC TODO handle templates *)
-               change_page_uri uri)
-             else ()
-           else ())
+      Js_of_ocaml_eio.Eio_js.start (fun () ->
+        (* TODO: ciao-lwt: This computation might not be suspended correctly. *)
+        let l = String.length fragment in
+        if l = 0 || (l > 1 && fragment.[1] = '!')
+        then
+          if fragment <> !current_pseudo_fragment
+          then (
+            current_pseudo_fragment := fragment;
+            let uri =
+              match l with
+              | 2 -> "./" (* fix for firefox *)
+              | 0 | 1 -> fst (Url.split_fragment Url.Current.as_string)
+              | _ -> String.sub fragment 2 (String.length fragment - 2)
+            in
+            Logs.debug ~src:section_page (fun fmt -> fmt "auto_change_page");
+            (* CCC TODO handle templates *)
+            change_page_uri uri)
+          else ()
+        else ())
     in
     Eliommod_dom.onhashchange (fun s -> auto_change_page (Js.to_string s));
     let first_fragment = read_fragment () in
     if first_fragment <> !current_pseudo_fragment
     then
-      Fiber.fork
-        ~sw:(Stdlib.Option.get (Fiber.get Ocsigen_lib.current_switch))
-        (fun () ->
-           let
-               (* TODO: ciao-lwt: This computation might not be suspended correctly. *)
-                 ()
-             =
-             wait_load_end ()
-           in
-           auto_change_page first_fragment)
+      Js_of_ocaml_eio.Eio_js.start (fun () ->
+        let
+            (* TODO: ciao-lwt: This computation might not be suspended correctly. *)
+              ()
+          =
+          wait_load_end ()
+        in
+        auto_change_page first_fragment)
 
 let () =
   Eliom_unwrap.register_unwrapper
