@@ -27,7 +27,7 @@ exception Failed_request of int
 exception Program_terminated
 exception Non_xml_content
 
-module XmlHttpRequest = Js_of_ocaml_lwt.XmlHttpRequest
+module XmlHttpRequest = Js_of_ocaml_eio.XmlHttpRequest
 
 let section = Logs.Src.create "eliom:request"
 (* == ... *)
