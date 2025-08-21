@@ -148,9 +148,8 @@ end = struct
           wakeup_waiters channel
     in
     ignore
-      ((Option.fold ~none:Fiber.without_binding
-          ~some:(Fun.flip Fiber.with_binding)
-          None) Eliom_common.sp_key (fun () -> Lwt_stream.iter_s f stream)
+      (Fiber.without_binding Eliom_common.sp_key (fun () ->
+         Lwt_stream.iter_s f stream)
        : unit Promise.t)
 
   let make_name name = "stateless:" ^ name
@@ -437,9 +436,7 @@ end = struct
         Promise.resolve wakener event
 
   let stream_waiter s =
-    (Option.fold ~none:Fiber.without_binding
-       ~some:(Fun.flip Fiber.with_binding)
-       None) Eliom_common.sp_key (fun () ->
+    Fiber.without_binding Eliom_common.sp_key (fun () ->
       Lwt.no_cancel
         (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
         (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
@@ -460,9 +457,7 @@ end = struct
             else take (n - 1) ((id, Queue.take queue) :: acc) channels
         | (id, Stream ({stream; _} as s)) :: rem ->
             let l =
-              (Option.fold ~none:Fiber.without_binding
-                 ~some:(Fun.flip Fiber.with_binding)
-                 None) Eliom_common.sp_key (fun () ->
+              Fiber.without_binding Eliom_common.sp_key (fun () ->
                 Lwt_stream.get_available_up_to n stream)
             in
             if l <> [] then s.waiter <- stream_waiter stream;
@@ -720,9 +715,7 @@ end = struct
     let handler = get_handler scope in
     Logs.info ~src:section (fun fmt -> fmt "create channel %s" name);
     let stream =
-      (Option.fold ~none:Fiber.without_binding
-         ~some:(Fun.flip Fiber.with_binding)
-         None) Eliom_common.sp_key (fun () ->
+      Fiber.without_binding Eliom_common.sp_key (fun () ->
         Lwt_stream.map (fun x -> Eliom_comet_base.Data (marshal x)) stream)
     in
     let channel = Stream {stream; waiter = stream_waiter stream} in
@@ -823,16 +816,14 @@ end = struct
   let create_stateless_channel ?name ~size stream =
     Stateless
       (Stateless.create ?name ~size
-         ((Option.fold ~none:Fiber.without_binding
-             ~some:(Fun.flip Fiber.with_binding)
-             None) Eliom_common.sp_key (fun () -> Lwt_stream.map marshal stream)))
+         (Fiber.without_binding Eliom_common.sp_key (fun () ->
+            Lwt_stream.map marshal stream)))
 
   let create_stateless_newest_channel ?name stream =
     Stateless_newest
       (Stateless.create ?name ~size:1
-         ((Option.fold ~none:Fiber.without_binding
-             ~some:(Fun.flip Fiber.with_binding)
-             None) Eliom_common.sp_key (fun () -> Lwt_stream.map marshal stream)))
+         (Fiber.without_binding Eliom_common.sp_key (fun () ->
+            Lwt_stream.map marshal stream)))
 
   let create_stateful ?scope ?name ?(size = 1000) events =
     { channel = create_stateful_channel ?scope ?name ~size events

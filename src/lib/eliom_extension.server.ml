@@ -35,7 +35,4 @@ let get_eliom_extension () = !module_action
 
 let run_eliom_extension (fext : eliom_extension_sig) _now info sitedata =
   let sp = Eliom_common.make_server_params sitedata info None None in
-  (Option.fold ~none:Fiber.without_binding
-     ~some:(Fun.flip Fiber.with_binding)
-     (Some sp))
-    Eliom_common.sp_key fext
+  Fiber.with_binding Eliom_common.sp_key sp fext

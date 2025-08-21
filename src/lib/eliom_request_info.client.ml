@@ -53,12 +53,9 @@ let get_sess_info () = (get_ri ()).si
 
 let set_session_info ~uri si f =
   let path = Url.path_of_url_string (if uri = "./" then "" else uri) in
-  let ri = Some {path; si} in
-  default_ri := ri;
-  (Option.fold ~none:Fiber.without_binding
-     ~some:(Fun.flip Fiber.with_binding)
-     ri)
-    ri_key f
+  let ri = {path; si} in
+  default_ri := Some ri;
+  Fiber.with_binding ri_key ri f
 
 let matches_regexp name re =
   try
@@ -102,12 +99,9 @@ let update_session_info ~path ~all_get_params ~all_post_params cont =
     ; si_ignored_get_params = ignored_get
     ; si_ignored_post_params = ignored_post }
   in
-  let ri = Some {path; si} in
-  default_ri := ri;
-  (Option.fold ~none:Fiber.without_binding
-     ~some:(Fun.flip Fiber.with_binding)
-     ri)
-    ri_key cont
+  let ri = {path; si} in
+  default_ri := Some ri;
+  Fiber.with_binding ri_key ri cont
 
 let remove_first_slash path = match path with "" :: l -> l | l -> l
 

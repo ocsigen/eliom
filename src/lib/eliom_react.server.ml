@@ -76,9 +76,7 @@ module Down = struct
 
   let wrap_stateful {throttling = t; scope; react = e; name; size} =
     let ee =
-      (Option.fold ~none:Fiber.without_binding
-         ~some:(Fun.flip Fiber.with_binding)
-         None) Eliom_common.sp_key (fun () ->
+      Fiber.without_binding Eliom_common.sp_key (fun () ->
         match t with
         | None -> e
         | Some t -> limit (fun () -> Eio_unix.sleep t) e)
@@ -228,11 +226,7 @@ module S = struct
           store.read <- true;
           Some store.value)
       in
-      fun () ->
-        (Option.fold ~none:Fiber.without_binding
-           ~some:(Fun.flip Fiber.with_binding)
-           None)
-          Eliom_common.sp_key aux
+      fun () -> Fiber.without_binding Eliom_common.sp_key aux
 
     let wrap_stateful {throttling = t; signal = s; name; _} =
       let s : 'a S.t =

@@ -196,9 +196,7 @@ let register_aux
           ; s_expire
           ; s_f =
               (fun nosuffixversion sp ->
-                (Option.fold ~none:Fiber.without_binding
-                   ~some:(Fun.flip Fiber.with_binding)
-                   (Some sp)) Eliom_common.sp_key (fun () ->
+                Fiber.with_binding Eliom_common.sp_key sp (fun () ->
                   let ri = Eliom_request_info.get_ri_sp sp
                   and suff = Eliom_request_info.get_suffix_sp sp in
                   let content =
@@ -359,9 +357,7 @@ let register_aux
             | None -> None
             | Some t -> Some (t, ref (t +. Unix.time ())))
           , fun sp ->
-              (Option.fold ~none:Fiber.without_binding
-                 ~some:(Fun.flip Fiber.with_binding)
-                 (Some sp)) Eliom_common.sp_key (fun () ->
+              Fiber.with_binding Eliom_common.sp_key sp (fun () ->
                 let ri = Eliom_request_info.get_ri_sp sp in
                 let content =
                   try

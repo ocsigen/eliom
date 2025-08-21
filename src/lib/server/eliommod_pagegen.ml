@@ -269,9 +269,7 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
     let sp = Eliom_common.make_server_params sitedata info None None in
     (* The last two arguments are not yet available, so for now we use None.
        This value will later be overwritten once this information is available. *)
-    (Option.fold ~none:Fiber.without_binding
-       ~some:(Fun.flip Fiber.with_binding)
-       (Some sp)) Eliom_common.sp_key (fun () ->
+    Fiber.with_binding Eliom_common.sp_key sp (fun () ->
       let genfun =
         match si.Eliom_common.si_nonatt_info with
         | Eliom_common.RNa_no ->

@@ -715,10 +715,7 @@ let with_new_page ?state_id ?old_page ~replace () f =
     | None -> None, None
   in
   let page = mk_page ?state_id ?url ?previous_page ~status:Generating () in
-  (Option.fold ~none:Fiber.without_binding
-     ~some:(Fun.flip Fiber.with_binding)
-     (Some page))
-    this_page f
+  Fiber.with_binding this_page page f
 
 module History = struct
   let section = Logs.Src.create "eliom:client:history"
