@@ -335,11 +335,9 @@ let raw_form_handler form kind cookies_info tmpl ev client_form_handler =
     | `Form_post -> !change_page_post_form_
   in
   let f () =
-    Fiber.fork
-      ~sw:(Stdlib.Option.get (Fiber.get Ocsigen_lib.current_switch))
-      (fun () ->
-         let b = client_form_handler ev in
-         if not b then change_page_form ?cookies_info ?tmpl form action)
+    Js_of_ocaml_eio.Eio_js.start (fun () ->
+      let b = client_form_handler ev in
+      if not b then change_page_form ?cookies_info ?tmpl form action)
   in
   (not !Eliom_common.is_client_app)
   && ((https = Some true && not Eliom_request_info.ssl_)
@@ -572,13 +570,11 @@ let rec rebuild_rattrib node ra =
    and the function [Eliommod_dom.test_pageshow_pagehide]. *)
 
 let delay f =
-  Fiber.fork
-    ~sw:(Stdlib.Option.get (Fiber.get Ocsigen_lib.current_switch))
-    (fun () ->
-       Fiber.yield
-         (* TODO: ciao-lwt: This computation might not be suspended correctly. *)
-         ();
-       f ())
+  Js_of_ocaml_eio.Eio_js.start (fun () ->
+    Fiber.yield
+      (* TODO: ciao-lwt: This computation might not be suspended correctly. *)
+      ();
+    f ())
 
 module ReactState : sig
   type t
