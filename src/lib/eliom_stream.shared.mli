@@ -1,7 +1,10 @@
 open Eio.Std
 
 (* This file is part of Lwt, released under the MIT license. See LICENSE.md for
-   details, or visit https://github.com/ocsigen/lwt/blob/master/LICENSE.md. *)
+   details, or visit https://github.com/ocsigen/lwt/blob/master/LICENSE.md.
+   
+   This is a partial translation to Eio of Lwt_stream.
+*)
 
 (** Data streams *)
 
@@ -29,9 +32,7 @@ val from : (unit -> 'a option) -> 'a t
 
 val from_direct : (unit -> 'a option) -> 'a t
 (** [from_direct f] does the same as {!from} but with a function
-    that does not return a thread. It is preferred that this
-    function be used rather than wrapping [f] into a function which
-    returns a thread.
+    that returns immediately.
 
     The behavior when [f] raises an exception is the same as for {!from},
     except that [f] does not produce a thread. *)
@@ -167,9 +168,9 @@ val clone : 'a t -> 'a t
       val st1 : int Eliom_stream.t = <abstr>
       # let st2 = Eliom_stream.clone st1;;
       val st2 : int Eliom_stream.t = <abstr>
-      # lwt x = Eliom_stream.next st1;;
+      # let x = Eliom_stream.next st1;;
       val x : int = 1
-      # lwt y = Eliom_stream.next st2;;
+      # let y = Eliom_stream.next st2;;
       val y : int = 1
     ]}
 
@@ -260,8 +261,7 @@ val is_closed : 'a t -> bool
     @since 2.6.0 *)
 
 val closed : 'a t -> unit
-(** [closed st] returns a thread that will sleep until the stream has been
-    closed.
+(** [closed st] will block until the stream has been closed.
 
     @since 2.6.0 *)
 
@@ -282,17 +282,12 @@ val junk_old : 'a t -> unit
       val st1 : int Eliom_stream.t = <abstr>
       # let st2 = Eliom_stream.map string_of_int st1;;
       val st2 : string Eliom_stream.t = <abstr>
-      # lwt x = Eliom_stream.next st1;;
+      # let x = Eliom_stream.next st1;;
       val x : int = 1
-      # lwt y = Eliom_stream.next st2;;
+      # let y = Eliom_stream.next st2;;
       val y : string = "2"
     ]}
 *)
-
-val choose : 'a t list -> 'a t
-(** [choose l] creates an stream from a list of streams. The
-    resulting stream will return elements returned by any stream of
-    [l] in an unspecified order. *)
 
 val map : ('a -> 'b) -> 'a t -> 'b t
 
