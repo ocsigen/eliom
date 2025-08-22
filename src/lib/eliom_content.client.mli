@@ -931,10 +931,10 @@ val force_link : unit
 val set_client_fun :
    ?app:string
   -> service:('a, 'b, _, _, _, _, _, _, _, _, _) Eliom_service.t
-  -> ('a -> 'b -> Eliom_service.result Lwt.t)
+  -> ('a -> 'b -> Eliom_service.result)
   -> unit
 
-val set_form_error_handler : (unit -> bool Lwt.t) -> unit
+val set_form_error_handler : (unit -> bool) -> unit
 (** With [set_form_error_handler f], [f] becomes the action to be
     called when we are unable to call a client-side service due to
     invalid form data.

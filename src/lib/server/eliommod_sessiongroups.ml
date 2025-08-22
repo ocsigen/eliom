@@ -1,3 +1,5 @@
+open Eio.Std
+
 (* Ocsigen
  * http://www.ocsigen.org
  * Module eliomsessiongroups.ml
@@ -419,7 +421,7 @@ module Pers = struct
 
   module Ocsipersist = Eliom_common.Ocsipersist.Polymorphic
 
-  let grouptable : (nbmax * string list) Ocsipersist.table Lwt.t Lazy.t =
+  let grouptable : (nbmax * string list) Ocsipersist.table Promise.t Lazy.t =
     lazy (Ocsipersist.open_table "__eliom_session_group_table")
   (* It is lazy because if the module is linked statically,
          the creation of the table must happen after initialisation
@@ -428,162 +430,167 @@ module Pers = struct
 
   let find g =
     match g with
-    | None -> Lwt.return_nil
-    | Some g ->
-        Lwt.catch
-          (fun () ->
-             !!grouptable >>= fun grouptable ->
-             Ocsipersist.find grouptable (Eliom_common.string_of_perssessgrp g)
-             >>= fun (_, a) -> Lwt.return a)
-          (function Not_found -> Lwt.return_nil | e -> Lwt.fail e)
+    | None -> []
+    | Some g -> (
+      try
+        let grouptable = !!grouptable in
+        let _, a =
+          Ocsipersist.find grouptable (Eliom_common.string_of_perssessgrp g)
+        in
+        a
+      with
+      | Not_found -> []
+      | e -> raise e)
 
   let add ?set_max defaultmax sess_id sess_grp =
     match sess_grp with
-    | Some sg ->
+    | Some sg -> (
         let sg = Eliom_common.string_of_perssessgrp sg in
-        Lwt.catch
-          (fun () ->
-             !!grouptable >>= fun grouptable ->
-             Ocsipersist.find grouptable sg >>= fun (max2, cl) ->
-             let max, newmax =
-               match set_max with
-               | None ->
-                   ( (match max2 with
-                     | Default -> defaultmax
-                     | Nolimit -> None
-                     | Val m -> Some m)
-                   , max2 )
-               | Some None -> None, Nolimit
-               | Some (Some v) -> Some v, Val v
-             in
-             let cl, toclose = cut max cl in
-             Ocsipersist.replace_if_exists grouptable sg (newmax, sess_id :: cl)
-             >>= fun () -> Lwt.return toclose)
-          (function
-            | Not_found ->
-                let max =
-                  match set_max with
-                  | None -> Default
-                  | Some None -> Nolimit
-                  | Some (Some v) -> Val v
-                in
-                !!grouptable >>= fun grouptable ->
-                Ocsipersist.add grouptable sg (max, [sess_id]) >>= fun () ->
-                Lwt.return_nil
-            | e -> Lwt.fail e)
-    | None -> Lwt.return_nil
+        try
+          let grouptable = !!grouptable in
+          let max2, cl = Ocsipersist.find grouptable sg in
+          let max, newmax =
+            match set_max with
+            | None ->
+                ( (match max2 with
+                  | Default -> defaultmax
+                  | Nolimit -> None
+                  | Val m -> Some m)
+                , max2 )
+            | Some None -> None, Nolimit
+            | Some (Some v) -> Some v, Val v
+          in
+          let cl, toclose = cut max cl in
+          Ocsipersist.replace_if_exists grouptable sg (newmax, sess_id :: cl);
+          toclose
+        with
+        | Not_found ->
+            let max =
+              match set_max with
+              | None -> Default
+              | Some None -> Nolimit
+              | Some (Some v) -> Val v
+            in
+            let grouptable = !!grouptable in
+            Ocsipersist.add grouptable sg (max, [sess_id]);
+            []
+        | e -> raise e)
+    | None -> []
 
   let rec remove_group ~cookie_level sitedata sess_grp =
-    (* cookie_level is the scope of group members *)
-    (*VVV NEW 201007 closing all sessions in the group and removing group data *)
-    (*VVV VERIFY concurrent access *)
-    (*VVV Check this carefully!!!! Verify the order of actions. *)
-    Lwt.catch
-      (fun () ->
-         (* First we close all sessions in the group *)
-         find sess_grp >>= fun cl ->
-         Lwt_list.iter_p
-           (close_persistent_session2
-              ~cookie_level:
-                (match cookie_level with
-                | `Client_process _ -> `Client_process
-                | `Session -> `Session)
-              sitedata None)
-           cl
-         (* None because we will close the group *)
-         >>= fun () ->
-         (* Then, we remove group data: *)
-         (match sess_grp with
-           | None -> Lwt.return_unit
-           | Some sg -> (
-             match Eliom_common.getperssessgrp sg with
-             | _, _, Right _ ->
-                 (* No group has been set. No group table.
+    try
+      let cl =
+        (* cookie_level is the scope of group members *)
+        (*VVV NEW 201007 closing all sessions in the group and removing group data *)
+        (*VVV VERIFY concurrent access *)
+        (*VVV Check this carefully!!!! Verify the order of actions. *)
+
+        (* First we close all sessions in the group *)
+        find sess_grp
+      in
+      Fiber.List.iter
+        (close_persistent_session2
+           ~cookie_level:
+             (match cookie_level with
+             | `Client_process _ -> `Client_process
+             | `Session -> `Session)
+           sitedata None)
+        cl (* None because we will close the group *);
+      (* Then, we remove group data: *)
+      (match sess_grp with
+      | None -> ()
+      | Some sg -> (
+        match Eliom_common.getperssessgrp sg with
+        | _, _, Right _ -> ()
+        (* No group has been set. No group table.
                  Data associated to default (automatic) groups
                  is removed when closing associated sessions. *)
-                 Lwt.return_unit
-             | _, _, Left group_name -> (
-                 Eliom_common.Persistent_tables.remove_key_from_all_tables
-                   group_name
-                 >>= fun () ->
-                 (* If it is associated to a session,
+        | _, _, Left group_name -> (
+            Eliom_common.Persistent_tables.remove_key_from_all_tables group_name;
+            (* If it is associated to a session,
                  we remove the session from its group,
                  and we remove cookie info: *)
-                 match cookie_level with
-                 | `Client_process grp ->
-                     (* We are closing a browser session,
+            match cookie_level with
+            | `Client_process grp ->
+                (* We are closing a browser session,
                                            belonging to the group grp *)
-                     (* group_name is the cookie value *)
-                     remove sitedata group_name grp
-                 | _ -> Lwt.return_unit)))
-         >>= fun () ->
-         (* Then, we remove group from group table: *)
-         match sess_grp with
-         | Some sg ->
-             let sg = Eliom_common.string_of_perssessgrp sg in
-             !!grouptable >>= fun grouptable -> Ocsipersist.remove grouptable sg
-         | None -> Lwt.return_unit)
-      (function Not_found -> Lwt.return_unit | e -> Lwt.fail e)
+                (* group_name is the cookie value *)
+                remove sitedata group_name grp
+            | _ -> ())));
+      (* Then, we remove group from group table: *)
+      match sess_grp with
+      | Some sg ->
+          let sg = Eliom_common.string_of_perssessgrp sg in
+          let grouptable = !!grouptable in
+          Ocsipersist.remove grouptable sg
+      | None -> ()
+    with
+    | Not_found -> ()
+    | e -> raise e
 
   (* close a persistent session (tab or browser)
      and the associated group (if browser session) by cookie value *)
   and close_persistent_session2 ~cookie_level sitedata fullsessgrp cookie =
-    (*VVV Check this carefully!!!! *)
-    (*VVV Optimize the number of marshal/unmarshal (getperssessgrp) *)
-    Lwt.catch
-      (fun () ->
-         match cookie_level with
-         | `Client_process ->
-             (* We remove the session from its group: *)
-             remove sitedata cookie fullsessgrp >>= fun () ->
-             (* Then, we remove session data: *)
-             Eliom_common.Persistent_tables.remove_key_from_all_tables cookie
-         | `Session ->
-             remove_group ~cookie_level:(`Client_process fullsessgrp) sitedata
-               (Eliom_common.make_persistent_full_group_name
-                  ~cookie_level:`Client_process
-                  (Eliom_common.get_site_dir_string sitedata)
-                  (Some cookie)))
-      (function Not_found -> Lwt.return_unit | e -> Lwt.fail e)
+    try
+      (*VVV Check this carefully!!!! *)
+      (*VVV Optimize the number of marshal/unmarshal (getperssessgrp) *)
+      match cookie_level with
+      | `Client_process ->
+          (* We remove the session from its group: *)
+          remove sitedata cookie fullsessgrp;
+          (* Then, we remove session data: *)
+          Eliom_common.Persistent_tables.remove_key_from_all_tables cookie
+      | `Session ->
+          remove_group ~cookie_level:(`Client_process fullsessgrp) sitedata
+            (Eliom_common.make_persistent_full_group_name
+               ~cookie_level:`Client_process
+               (Eliom_common.get_site_dir_string sitedata)
+               (Some cookie))
+    with
+    | Not_found -> ()
+    | e -> raise e
 
   and remove _sitedata sess_id sess_grp =
     match sess_grp with
-    | Some sg0 ->
+    | Some sg0 -> (
         let sg = Eliom_common.string_of_perssessgrp sg0 in
-        Lwt.catch
-          (fun () ->
-             !!grouptable >>= fun grouptable ->
-             Ocsipersist.find grouptable sg >>= fun (max, cl) ->
-             let newcl = List.remove_first_if_any sess_id cl in
-             (* Before 2018-10-18, we were closing the session group
+        try
+          let grouptable = !!grouptable in
+          let max, cl = Ocsipersist.find grouptable sg in
+          let newcl = List.remove_first_if_any sess_id cl in
+          (* Before 2018-10-18, we were closing the session group
              when newcl was empty (no more session in the group).
              But persistent session groups are usually used to store persistent
              information about users. It makes no sense cleaning this
              information when user closes all their sessions.
              I remove this. -- Vincent
-             *)
-             Ocsipersist.replace_if_exists grouptable sg (max, newcl))
-          (function Not_found -> Lwt.return_unit | e -> Lwt.fail e)
-    | None -> Lwt.return_unit
+          *)
+          Ocsipersist.replace_if_exists grouptable sg (max, newcl)
+        with
+        | Not_found -> ()
+        | e -> raise e)
+    | None -> ()
 
   let up sess_id grp =
     match grp with
-    | None -> Lwt.return_unit
-    | Some sg ->
+    | None -> ()
+    | Some sg -> (
         let sg = Eliom_common.string_of_perssessgrp sg in
-        Lwt.catch
-          (fun () ->
-             !!grouptable >>= fun grouptable ->
-             Ocsipersist.find grouptable sg >>= fun (max, cl) ->
-             let newcl = List.remove_first_if_any sess_id cl in
-             Ocsipersist.replace_if_exists grouptable sg (max, sess_id :: newcl))
-          (function Not_found -> Lwt.return_unit | e -> Lwt.fail e)
+        try
+          let grouptable = !!grouptable in
+          let max, cl = Ocsipersist.find grouptable sg in
+          let newcl = List.remove_first_if_any sess_id cl in
+          Ocsipersist.replace_if_exists grouptable sg (max, sess_id :: newcl)
+        with
+        | Not_found -> ()
+        | e -> raise e)
 
   let move sitedata ?set_max max sess_id grp1 grp2 =
     if set_max <> None || grp1 <> grp2
-    then
-      remove sitedata sess_id grp1 >>= fun () -> add ?set_max max sess_id grp2
-    else Lwt.return_nil
+    then (
+      remove sitedata sess_id grp1;
+      add ?set_max max sess_id grp2)
+    else []
 
-  let nb_of_groups () = !!grouptable >>= Ocsipersist.length
+  let nb_of_groups () = Ocsipersist.length !!grouptable
 end

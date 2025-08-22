@@ -1,3 +1,5 @@
+open Eio.Std
+
 (* Ocsigen
  * http://www.ocsigen.org
  * Module eliom_common.mli
@@ -358,7 +360,7 @@ type 'a cookie_info1 =
       ref
   * ((string * timeout * float option * perssessgrp option) option
     * one_persistent_cookie_info session_cookie ref)
-      Lwt.t
+      Promise.t
       Lazy.t
       Full_state_name_table.t
       ref
@@ -412,7 +414,7 @@ type ('params, 'result) service =
   { s_id : anon_params_type * anon_params_type
   ; mutable s_max_use : int option
   ; s_expire : (float * float ref) option
-  ; s_f : bool -> 'params -> 'result Lwt.t }
+  ; s_f : bool -> 'params -> 'result }
 
 type server_params =
   { sp_request : Ocsigen_extensions.request
@@ -455,7 +457,7 @@ and naservice_table_content =
   (* max_use *)
   * (float * float ref) option
   (* timeout and expiration date *)
-  * (server_params -> Ocsigen_response.t Lwt.t)
+  * (server_params -> Ocsigen_response.t)
   * (page_table ref * page_table_key, na_key_serv) leftright
       Ocsigen_cache.Dlist.node
       option
@@ -537,7 +539,7 @@ and sitedata =
   ; (* Limitation of the number of groups per site *)
     mutable remove_session_data : string -> unit
   ; mutable not_bound_in_data_tables : string -> bool
-  ; mutable exn_handler : exn -> Ocsigen_response.t Lwt.t
+  ; mutable exn_handler : exn -> Ocsigen_response.t
   ; mutable unregistered_services : Url.path list
   ; mutable unregistered_na_services : na_key_serv list
   ; mutable max_volatile_data_sessions_per_group : int * bool
@@ -604,10 +606,9 @@ val get_session_info :
    sitedata:sitedata
   -> req:Ocsigen_extensions.request
   -> int
-  -> (Ocsigen_extensions.request
+  -> Ocsigen_extensions.request
      * sess_info
-     * (tables cookie_info * Ocsigen_cookie_map.t) option)
-       Lwt.t
+     * (tables cookie_info * Ocsigen_cookie_map.t) option
 
 type ('a, 'b) foundornot = Found of 'a | Notfound of 'b
 
@@ -626,15 +627,15 @@ val make_full_state_name2 :
   -> full_state_name
 
 module Persistent_tables : sig
-  val create : string -> 'a Ocsipersist.table Lwt.t
+  val create : string -> 'a Ocsipersist.table
 
   val add_functorial_table :
      (module Ocsipersist.TABLE with type key = string)
     -> unit
 
-  val remove_key_from_all_tables : string -> unit Lwt.t
+  val remove_key_from_all_tables : string -> unit
   val number_of_tables : unit -> int
-  val number_of_table_elements : unit -> (string * int) list Lwt.t
+  val number_of_table_elements : unit -> (string * int) list
 end
 
 val absolute_change_sitedata : sitedata -> unit

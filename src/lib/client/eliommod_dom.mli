@@ -71,7 +71,7 @@ val html_document :
 (** Assuming [d] has a body and head element, [html_document d] will
     return the same document as html *)
 
-val preload_css : Dom_html.element Js.t -> unit Lwt.t
+val preload_css : Dom_html.element Js.t -> unit
 (** [preload_css e] downloads every css included in every link
     elements that is a descendant of [e] and replace it and its linked
     css by inline [<style>] elements *)

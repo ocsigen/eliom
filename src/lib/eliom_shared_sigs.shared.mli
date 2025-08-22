@@ -111,63 +111,59 @@ module type S = sig
 
   (** Cooperative versions of the React operators *)
   module Lwt : sig
-    val map_s :
-       ?eq:('b -> 'b -> bool) sv
-      -> ('a -> 'b Lwt.t) sv
-      -> 'a t
-      -> 'b t Lwt.t
+    val map_s : ?eq:('b -> 'b -> bool) sv -> ('a -> 'b) sv -> 'a t -> 'b t
 
     val l2_s :
        ?eq:('c -> 'c -> bool) sv
-      -> ('a -> 'b -> 'c Lwt.t) sv
-      -> 'a t
-      -> 'b t
-      -> 'c t Lwt.t
-
-    val l3_s :
-       ?eq:('d -> 'd -> bool) sv
-      -> ('a -> 'b -> 'c -> 'd Lwt.t) sv
+      -> ('a -> 'b -> 'c) sv
       -> 'a t
       -> 'b t
       -> 'c t
-      -> 'd t Lwt.t
 
-    val l4_s :
-       ?eq:('e -> 'e -> bool) sv
-      -> ('a -> 'b -> 'c -> 'd -> 'e Lwt.t) sv
+    val l3_s :
+       ?eq:('d -> 'd -> bool) sv
+      -> ('a -> 'b -> 'c -> 'd) sv
       -> 'a t
       -> 'b t
       -> 'c t
       -> 'd t
-      -> 'e t Lwt.t
 
-    val l5_s :
-       ?eq:('f -> 'f -> bool) sv
-      -> ('a -> 'b -> 'c -> 'd -> 'e -> 'f Lwt.t) sv
+    val l4_s :
+       ?eq:('e -> 'e -> bool) sv
+      -> ('a -> 'b -> 'c -> 'd -> 'e) sv
       -> 'a t
       -> 'b t
       -> 'c t
       -> 'd t
       -> 'e t
-      -> 'f t Lwt.t
 
-    val l6_s :
-       ?eq:('g -> 'g -> bool) sv
-      -> ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g Lwt.t) sv
+    val l5_s :
+       ?eq:('f -> 'f -> bool) sv
+      -> ('a -> 'b -> 'c -> 'd -> 'e -> 'f) sv
       -> 'a t
       -> 'b t
       -> 'c t
       -> 'd t
       -> 'e t
       -> 'f t
-      -> 'g t Lwt.t
+
+    val l6_s :
+       ?eq:('g -> 'g -> bool) sv
+      -> ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g) sv
+      -> 'a t
+      -> 'b t
+      -> 'c t
+      -> 'd t
+      -> 'e t
+      -> 'f t
+      -> 'g t
 
     val merge_s :
        ?eq:('a -> 'a -> bool) sv
-      -> ('a -> 'b -> 'a Lwt.t) sv
+      -> ('a -> 'b -> 'a) sv
       -> 'a
       -> 'b t list
-      -> 'a t Lwt.t
+      -> 'a t
   end
 end
 
@@ -217,6 +213,6 @@ module type RLIST = sig
 
   (** Cooperative versions of the ReactiveData operators *)
   module Lwt : sig
-    val map_p : ('a -> 'b Lwt.t) sv -> 'a t -> 'b t Lwt.t
+    val map_p : ('a -> 'b) sv -> 'a t -> 'b t
   end
 end
