@@ -201,3 +201,5 @@ module Dom_reference = struct
          Js.Optdef.iter (m##get key) (fun keep -> retain dst ~key ~keep);
          m##delete key)
 end
+
+let fork = Js_of_ocaml_eio.Eio_js.start
