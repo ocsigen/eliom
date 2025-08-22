@@ -9,10 +9,6 @@ type 'a signal = 'a React.signal
 module E = struct
   include React.E
 
-  (* +---------------------------------------------------------------+
-     | Lwt-specific utilities                                        |
-     +---------------------------------------------------------------+ *)
-
   let finalise f _ = f ()
 
   let with_finaliser f event =
@@ -31,59 +27,50 @@ module E = struct
         (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
         ()
     in
-    let ev = map (fun x -> Promise.resolve wakener x) (once ev) in
-    Lwt.on_cancel
+    let _ev = map (fun x -> Promise.resolve wakener x) (once ev) in
+    (* XXX restore this if promise can be cancelled
+      Lwt.on_cancel
       (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
       (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
       waiter (fun () -> stop ev);
+    *)
     waiter
 
   let limit f e =
-    (* Thread which prevents [e] from occurring while it is sleeping *)
-    let limiter = ref () in
+    let is_sleeping = ref false in
     (* The occurrence that is delayed until the limiter returns. *)
     let delayed = ref None in
     (* The resulting event. *)
     let event, push = create () in
+    let rec start_sleeping () =
+      f ();
+      match !delayed with
+      | None -> is_sleeping := false
+      | Some v ->
+          Eliom_lib.fork start_sleeping;
+          delayed := None;
+          push v
+    in
     let iter =
       fmap
         (fun x ->
-           if Lwt.is_sleeping !limiter
-           then (
-             (* The limiter is sleeping, we queue the event for later
-                delivering. *)
-             match !delayed with
-             | Some cell ->
-                 (* An occurrence is already queued, replace it. *)
-                 cell := x;
-                 None
-             | None ->
-                 let cell = ref x in
-                 delayed := Some cell;
-                 Lwt.on_success !limiter (fun () ->
-                   if Lwt.is_sleeping !limiter
-                   then delayed := None
-                   else
-                     let x = !cell in
-                     delayed := None;
-                     limiter := f ();
-                     push x);
-                 None)
+           if !is_sleeping
+           then delayed := Some x
            else (
-             (* Set the limiter for future events. *)
-             limiter := f ();
+             is_sleeping := true;
+             delayed := None;
+             Eliom_lib.fork start_sleeping;
              (* Send the occurrence now. *)
-             push x;
-             None))
+             push x);
+           None)
         e
     in
+    (* iter never happens, but we put it in the select to keep it alive
+    (effectful event) *)
     select [iter; event]
 
-  let cancel_thread t () =
-    Lwt.cancel
-      (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
-      (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
-      t
+  let cancel_switch sw () =
+    Eio.Switch.fail sw (Failure "Eio_react.cancel_switch")
 
   let from f =
     let event, push = create () in
@@ -91,8 +78,9 @@ module E = struct
       let x = f () in
       push x; loop ()
     in
-    let t = loop (Fiber.yield ()) in
-    with_finaliser (cancel_thread t) event
+    Switch.run (fun sw ->
+      Eio.Fiber.fork ~sw (fun () -> Fiber.yield (); loop ());
+      with_finaliser (cancel_switch sw) event)
 
   let to_stream event =
     let stream, push, set_ref = Eliom_stream.create_with_reference () in
@@ -101,23 +89,21 @@ module E = struct
 
   let of_stream stream =
     let event, push = create () in
-    let t =
-      Fiber.yield ();
-      Eliom_stream.iter
-        (fun v ->
-           try push v
-           with exn when Lwt.Exception_filter.run exn ->
-             !Lwt.async_exception_hook exn)
-        stream
-    in
-    with_finaliser (cancel_thread t) event
+    Switch.run (fun sw ->
+      Eio.Fiber.fork ~sw (fun () ->
+        Fiber.yield ();
+        (*XXX Check what happens if an exception is raised *)
+        Eliom_stream.iter push stream);
+      with_finaliser (cancel_switch sw) event)
 
-  let delay thread =
-    match Lwt.poll thread with
+  let delay promise =
+    match Eio.Promise.peek promise with
     | Some e -> e
     | None ->
         let event, send = create () in
-        Lwt.on_success thread (fun e -> send e; stop event);
+        Eliom_lib.fork (fun () ->
+          let e = Eio.Promise.await promise in
+          send e; stop event);
         switch never event
 
   let keeped = ref []
@@ -131,8 +117,8 @@ module E = struct
     let event, push = create () in
     let iter =
       fmap
-        (fun t ->
-           Lwt.on_success t (fun v -> push v);
+        (fun p ->
+           Eliom_lib.fork (fun () -> push (Eio.Promise.await p));
            None)
         e
     in
@@ -143,10 +129,10 @@ module E = struct
     let mutex = Eio.Mutex.create () in
     let iter =
       fmap
-        (fun t ->
-           Lwt.on_success
-             (Eio.Mutex.use_rw ~protect:false mutex (fun () -> t))
-             (fun v -> push v);
+        (fun p ->
+           Eliom_lib.fork (fun () ->
+             Eio.Mutex.use_rw ~protect:false mutex (fun () ->
+               push (Eio.Promise.await p)));
            None)
         e
     in
@@ -157,7 +143,7 @@ module E = struct
     let iter =
       fmap
         (fun x ->
-           Lwt.on_success (f x) (fun v -> push v);
+           Eliom_lib.fork (fun () -> push (f x));
            None)
         e
     in
@@ -169,9 +155,8 @@ module E = struct
     let iter =
       fmap
         (fun x ->
-           Lwt.on_success
-             (Eio.Mutex.use_rw ~protect:false mutex (fun () -> f x))
-             (fun v -> push v);
+           Eliom_lib.fork (fun () ->
+             Eio.Mutex.use_rw ~protect:false mutex (fun () -> push (f x)));
            None)
         e
     in
@@ -182,7 +167,7 @@ module E = struct
     let iter =
       fmap
         (fun (f, x) ->
-           Lwt.on_success (f x) (fun v -> push v);
+           Eliom_lib.fork (fun () -> push (f x));
            None)
         (app (map (fun f x -> f, x) ef) e)
     in
@@ -194,9 +179,8 @@ module E = struct
     let iter =
       fmap
         (fun (f, x) ->
-           Lwt.on_success
-             (Eio.Mutex.use_rw ~protect:false mutex (fun () -> f x))
-             (fun v -> push v);
+           Eliom_lib.fork (fun () ->
+             Eio.Mutex.use_rw ~protect:false mutex (fun () -> push (f x)));
            None)
         (app (map (fun f x -> f, x) ef) e)
     in
@@ -207,7 +191,7 @@ module E = struct
     let iter =
       fmap
         (fun x ->
-           Lwt.on_success (f x) (function true -> push x | false -> ());
+           Eliom_lib.fork (fun () -> if f x then push x);
            None)
         e
     in
@@ -219,9 +203,9 @@ module E = struct
     let iter =
       fmap
         (fun x ->
-           Lwt.on_success
-             (Eio.Mutex.use_rw ~protect:false mutex (fun () -> f x))
-             (function true -> push x | false -> ());
+           Eliom_lib.fork (fun () ->
+             Eio.Mutex.use_rw ~protect:false mutex (fun () ->
+               if f x then push x));
            None)
         e
     in
@@ -232,7 +216,8 @@ module E = struct
     let iter =
       fmap
         (fun x ->
-           Lwt.on_success (f x) (function Some x -> push x | None -> ());
+           Eliom_lib.fork (fun () ->
+             match f x with Some x -> push x | None -> ());
            None)
         e
     in
@@ -244,9 +229,9 @@ module E = struct
     let iter =
       fmap
         (fun x ->
-           Lwt.on_success
-             (Eio.Mutex.use_rw ~protect:false mutex (fun () -> f x))
-             (function Some x -> push x | None -> ());
+           Eliom_lib.fork (fun () ->
+             Eio.Mutex.use_rw ~protect:false mutex (fun () ->
+               match f x with Some x -> push x | None -> ()));
            None)
         e
     in
@@ -265,9 +250,8 @@ module E = struct
                None
            | Some y ->
                previous := Some x;
-               Lwt.on_success
-                 (Eio.Mutex.use_rw ~protect:false mutex (fun () -> f x y))
-                 (fun v -> push v);
+               Eliom_lib.fork (fun () ->
+                 Eio.Mutex.use_rw ~protect:false mutex (fun () -> push (f x y)));
                None)
         e
     in
@@ -280,11 +264,11 @@ module E = struct
     let iter =
       fmap
         (fun f ->
-           Lwt.on_success
-             (Eio.Mutex.use_rw ~protect:false mutex (fun () -> f !acc))
-             (fun x ->
-                acc := x;
-                push x);
+           Eliom_lib.fork (fun () ->
+             Eio.Mutex.use_rw ~protect:false mutex (fun () ->
+               let x = f !acc in
+               acc := x;
+               push x));
            None)
         ef
     in
@@ -297,11 +281,11 @@ module E = struct
     let iter =
       fmap
         (fun x ->
-           Lwt.on_success
-             (Eio.Mutex.use_rw ~protect:false mutex (fun () -> f !acc x))
-             (fun x ->
-                acc := x;
-                push x);
+           Eliom_lib.fork (fun () ->
+             Eio.Mutex.use_rw ~protect:false mutex (fun () ->
+               let x = f !acc x in
+               acc := x;
+               push x));
            None)
         e
     in
@@ -319,9 +303,9 @@ module E = struct
     let iter =
       fmap
         (fun l ->
-           Lwt.on_success
-             (Eio.Mutex.use_rw ~protect:false mutex (fun () -> rev_fold f acc l))
-             (fun v -> push v);
+           Eliom_lib.fork (fun () ->
+             Eio.Mutex.use_rw ~protect:false mutex (fun () ->
+               push (rev_fold f acc l)));
            None)
         (merge (fun acc x -> x :: acc) [] el)
     in
@@ -347,44 +331,37 @@ module S = struct
       signal
 
   let limit ?eq f s =
-    (* Thread which prevent [s] to changes while it is sleeping *)
-    let limiter = ref (f ()) in
+    let is_sleeping = ref true in
     (* The occurrence that is delayed until the limiter returns. *)
     let delayed = ref None in
     (* The resulting event. *)
     let event, push = E.create () in
+    let rec start_sleeping () =
+      f ();
+      match !delayed with
+      | None -> is_sleeping := false
+      | Some v ->
+          Eliom_lib.fork start_sleeping;
+          delayed := None;
+          push v
+    in
+    Eliom_lib.fork start_sleeping;
     let iter =
       E.fmap
         (fun x ->
-           if Lwt.is_sleeping !limiter
-           then (
-             (* The limiter is sleeping, we queue the event for later
-                delivering. *)
-             match !delayed with
-             | Some cell ->
-                 (* An occurrence is already queued, replace it. *)
-                 cell := x;
-                 None
-             | None ->
-                 let cell = ref x in
-                 delayed := Some cell;
-                 Lwt.on_success !limiter (fun () ->
-                   if Lwt.is_sleeping !limiter
-                   then delayed := None
-                   else
-                     let x = !cell in
-                     delayed := None;
-                     limiter := f ();
-                     push x);
-                 None)
+           if !is_sleeping
+           then delayed := Some x
            else (
-             (* Set the limiter for future events. *)
-             limiter := f ();
+             is_sleeping := true;
+             delayed := None;
+             Eliom_lib.fork start_sleeping;
              (* Send the occurrence now. *)
-             push x;
-             None))
+             push x);
+           None)
         (changes s)
     in
+    (* iter never happens, but we put it in the select to keep it alive
+    (effectful event) *)
     hold ?eq (value s) (E.select [iter; event])
 
   let keeped = ref []
@@ -399,15 +376,19 @@ module S = struct
     let mutex = Eio.Mutex.create () in
     let iter =
       E.fmap
-        (fun t ->
-           Lwt.on_success
-             (Eio.Mutex.use_rw ~protect:false mutex (fun () -> t))
-             (fun v -> push v);
+        (fun p ->
+           Eliom_lib.fork (fun () ->
+             Eio.Mutex.use_rw ~protect:false mutex (fun () ->
+               push (Eio.Promise.await p)));
            None)
         (changes s)
     in
-    let x = Eio.Mutex.use_rw ~protect:false mutex (fun () -> value s) in
-    hold ?eq x (E.select [iter; event])
+    Eliom_lib.fork_promise (fun () ->
+      let x =
+        Eio.Mutex.use_rw ~protect:false mutex (fun () ->
+          Eio.Promise.await (value s))
+      in
+      hold ?eq x (E.select [iter; event]))
 
   let map_s ?eq f s =
     let event, push = E.create () in
@@ -415,14 +396,14 @@ module S = struct
     let iter =
       E.fmap
         (fun x ->
-           Lwt.on_success
-             (Eio.Mutex.use_rw ~protect:false mutex (fun () -> f x))
-             (fun v -> push v);
+           Eliom_lib.fork (fun () ->
+             Eio.Mutex.use_rw ~protect:false mutex (fun () -> push (f x)));
            None)
         (changes s)
     in
-    let x = Eio.Mutex.use_rw ~protect:false mutex (fun () -> f (value s)) in
-    hold ?eq x (E.select [iter; event])
+    Eliom_lib.fork_promise (fun () ->
+      let x = Eio.Mutex.use_rw ~protect:false mutex (fun () -> f (value s)) in
+      hold ?eq x (E.select [iter; event]))
 
   let app_s ?eq sf s =
     let event, push = E.create () in
@@ -430,16 +411,16 @@ module S = struct
     let iter =
       E.fmap
         (fun (f, x) ->
-           Lwt.on_success
-             (Eio.Mutex.use_rw ~protect:false mutex (fun () -> f x))
-             (fun v -> push v);
+           Eliom_lib.fork (fun () ->
+             Eio.Mutex.use_rw ~protect:false mutex (fun () -> push (f x)));
            None)
         (E.app (E.map (fun f x -> f, x) (changes sf)) (changes s))
     in
-    let x =
-      Eio.Mutex.use_rw ~protect:false mutex (fun () -> (value sf) (value s))
-    in
-    hold ?eq x (E.select [iter; event])
+    Eliom_lib.fork_promise (fun () ->
+      let x =
+        Eio.Mutex.use_rw ~protect:false mutex (fun () -> (value sf) (value s))
+      in
+      hold ?eq x (E.select [iter; event]))
 
   let filter_s ?eq f i s =
     let event, push = E.create () in
@@ -447,16 +428,17 @@ module S = struct
     let iter =
       E.fmap
         (fun x ->
-           Lwt.on_success
-             (Eio.Mutex.use_rw ~protect:false mutex (fun () -> f x))
-             (function true -> push x | false -> ());
+           Eliom_lib.fork (fun () ->
+             Eio.Mutex.use_rw ~protect:false mutex (fun () ->
+               if f x then push x));
            None)
         (changes s)
     in
     let x = value s in
-    match Eio.Mutex.use_rw ~protect:false mutex (fun () -> f x) with
-    | true -> hold ?eq x (E.select [iter; event])
-    | false -> hold ?eq i (E.select [iter; event])
+    Eliom_lib.fork_promise (fun () ->
+      match Eio.Mutex.use_rw ~protect:false mutex (fun () -> f x) with
+      | true -> hold ?eq x (E.select [iter; event])
+      | false -> hold ?eq i (E.select [iter; event]))
 
   let fmap_s ?eq f i s =
     let event, push = E.create () in
@@ -464,15 +446,16 @@ module S = struct
     let iter =
       E.fmap
         (fun x ->
-           Lwt.on_success
-             (Eio.Mutex.use_rw ~protect:false mutex (fun () -> f x))
-             (function Some x -> push x | None -> ());
+           Eliom_lib.fork (fun () ->
+             Eio.Mutex.use_rw ~protect:false mutex (fun () ->
+               match f x with Some x -> push x | None -> ()));
            None)
         (changes s)
     in
-    match Eio.Mutex.use_rw ~protect:false mutex (fun () -> f (value s)) with
-    | Some x -> hold ?eq x (E.select [iter; event])
-    | None -> hold ?eq i (E.select [iter; event])
+    Eliom_lib.fork_promise (fun () ->
+      match Eio.Mutex.use_rw ~protect:false mutex (fun () -> f (value s)) with
+      | Some x -> hold ?eq x (E.select [iter; event])
+      | None -> hold ?eq i (E.select [iter; event]))
 
   let diff_s f s =
     let previous = ref (value s) in
@@ -483,9 +466,8 @@ module S = struct
         (fun x ->
            let y = !previous in
            previous := x;
-           Lwt.on_success
-             (Eio.Mutex.use_rw ~protect:false mutex (fun () -> f x y))
-             (fun v -> push v);
+           Eliom_lib.fork (fun () ->
+             Eio.Mutex.use_rw ~protect:false mutex (fun () -> push (f x y)));
            None)
         (changes s)
     in
@@ -508,16 +490,18 @@ module S = struct
     let iter =
       E.fmap
         (fun l ->
-           Lwt.on_success
-             (Eio.Mutex.use_rw ~protect:false mutex (fun () -> rev_fold f acc l))
-             (fun v -> push v);
+           Eliom_lib.fork (fun () ->
+             Eio.Mutex.use_rw ~protect:false mutex (fun () ->
+               push (rev_fold f acc l)));
            None)
         (changes s)
     in
-    let x =
-      Eio.Mutex.use_rw ~protect:false mutex (fun () -> rev_fold f acc (value s))
-    in
-    hold ?eq x (E.select [iter; event])
+    Eliom_lib.fork_promise (fun () ->
+      let x =
+        Eio.Mutex.use_rw ~protect:false mutex (fun () ->
+          rev_fold f acc (value s))
+      in
+      hold ?eq x (E.select [iter; event]))
 
   let l1_s ?eq f s1 = map_s ?eq f s1
 
@@ -569,12 +553,12 @@ module S = struct
     let iter =
       E.fmap
         (fun x ->
-           Lwt.on_success
-             (Eio.Mutex.use_rw ~protect:false mutex (fun () -> f x))
-             (fun v -> push v);
+           Eliom_lib.fork (fun () ->
+             Eio.Mutex.use_rw ~protect:false mutex (fun () -> push (f x)));
            None)
         (changes s)
     in
-    let x = Eio.Mutex.use_rw ~protect:false mutex (fun () -> f (value s)) in
-    switch ?eq (hold ~eq:( == ) x (E.select [iter; event]))
+    Eliom_lib.fork_promise (fun () ->
+      let x = Eio.Mutex.use_rw ~protect:false mutex (fun () -> f (value s)) in
+      switch ?eq (hold ~eq:( == ) x (E.select [iter; event])))
 end

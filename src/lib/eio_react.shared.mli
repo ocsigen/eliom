@@ -1,16 +1,17 @@
 open Eio.Std
 
-(* This file is part of Lwt, released under the MIT license. See LICENSE.md for
-   details, or visit https://github.com/ocsigen/lwt/blob/master/LICENSE.md. *)
+(* This file is released under the MIT license. See LICENSE.md for
+   details, or visit https://github.com/ocsigen/lwt/blob/master/LICENSE.md. 
+   
+   It is a partial translation of Lwt_react for Eio
+*)
 
 (** React utilities *)
 
 (** This module is an overlay for the [React] module. You can open it
     instead of the [React] module in order to get all of [React]'s functions
-    plus Lwt ones.
-
-    This module is provided by OPAM package [lwt_react]. Link with ocamlfind
-    package [lwt_react]. *)
+    plus Eio ones.
+ *)
 
 type 'a event = 'a React.event
 (** Type of events. *)
@@ -21,14 +22,14 @@ type 'a signal = 'a React.signal
 module E : sig
   include module type of React.E
 
-  (** {2 Lwt-specific utilities} *)
+  (** {2 Eio-specific utilities} *)
 
   val with_finaliser : (unit -> unit) -> 'a event -> 'a event
   (** [with_finaliser f e] returns an event [e'] which behave as
         [e], except that [f] is called when [e'] is garbage
         collected. *)
 
-  val next : 'a event -> 'a
+  val next : 'a event -> 'a Eio.Promise.t
   (** [next e] returns the next occurrence of [e].
 
       Avoid trying to create an “asynchronous loop” by calling [next e] again in
@@ -50,10 +51,11 @@ module E : sig
   (** [limit f e] limits the rate of [e] with [f].
 
         For example, to limit the rate of an event to 1 per second you
-        can use: [limit (fun () -> Lwt_unix.sleep 1.0) event]. *)
+        can use: [limit (fun () -> Eio_unix.sleep 1.0) event]. *)
 
   val from : (unit -> 'a) -> 'a event
-  (** [from f] creates an event which occurs each time [f ()]
+  (** [from f] launches f in a fork and
+        creates an event which occurs each time [f ()]
         returns a value. If [f] raises an exception, the event is just
         stopped. *)
 
@@ -126,7 +128,7 @@ module S : sig
      ?eq:('b -> 'b -> bool)
     -> 'a signal
     -> ('a -> 'b signal)
-    -> 'b signal
+    -> 'b signal Eio.Promise.or_exn
   (** Same as {!bind} except that [f] returns a promise. Calls to [f]
         are serialized. *)
 
@@ -159,23 +161,27 @@ module S : sig
      ?eq:('b -> 'b -> bool)
     -> ('a -> 'b) signal
     -> 'a signal
-    -> 'b signal
+    -> 'b signal Eio.Promise.or_exn
 
-  val map_s : ?eq:('b -> 'b -> bool) -> ('a -> 'b) -> 'a signal -> 'b signal
+  val map_s :
+     ?eq:('b -> 'b -> bool)
+    -> ('a -> 'b)
+    -> 'a signal
+    -> 'b signal Eio.Promise.or_exn
 
   val filter_s :
      ?eq:('a -> 'a -> bool)
     -> ('a -> bool)
     -> 'a
     -> 'a signal
-    -> 'a signal
+    -> 'a signal Eio.Promise.or_exn
 
   val fmap_s :
      ?eq:('b -> 'b -> bool)
     -> ('a -> 'b option)
     -> 'b
     -> 'a signal
-    -> 'b signal
+    -> 'b signal Eio.Promise.or_exn
 
   val diff_s : ('a -> 'a -> 'b) -> 'a signal -> 'b event
   val sample_s : ('b -> 'a -> 'c) -> 'b event -> 'a signal -> 'c event
@@ -193,16 +199,20 @@ module S : sig
     -> ('a -> 'b -> 'a)
     -> 'a
     -> 'b signal list
-    -> 'a signal
+    -> 'a signal Eio.Promise.or_exn
 
-  val l1_s : ?eq:('b -> 'b -> bool) -> ('a -> 'b) -> 'a signal -> 'b signal
+  val l1_s :
+     ?eq:('b -> 'b -> bool)
+    -> ('a -> 'b)
+    -> 'a signal
+    -> 'b signal Eio.Promise.or_exn
 
   val l2_s :
      ?eq:('c -> 'c -> bool)
     -> ('a -> 'b -> 'c)
     -> 'a signal
     -> 'b signal
-    -> 'c signal
+    -> 'c signal Eio.Promise.or_exn
 
   val l3_s :
      ?eq:('d -> 'd -> bool)
@@ -210,7 +220,7 @@ module S : sig
     -> 'a signal
     -> 'b signal
     -> 'c signal
-    -> 'd signal
+    -> 'd signal Eio.Promise.or_exn
 
   val l4_s :
      ?eq:('e -> 'e -> bool)
@@ -219,7 +229,7 @@ module S : sig
     -> 'b signal
     -> 'c signal
     -> 'd signal
-    -> 'e signal
+    -> 'e signal Eio.Promise.or_exn
 
   val l5_s :
      ?eq:('f -> 'f -> bool)
@@ -229,7 +239,7 @@ module S : sig
     -> 'c signal
     -> 'd signal
     -> 'e signal
-    -> 'f signal
+    -> 'f signal Eio.Promise.or_exn
 
   val l6_s :
      ?eq:('g -> 'g -> bool)
@@ -240,7 +250,10 @@ module S : sig
     -> 'd signal
     -> 'e signal
     -> 'f signal
-    -> 'g signal
+    -> 'g signal Eio.Promise.or_exn
 
-  val run_s : ?eq:('a -> 'a -> bool) -> 'a Promise.t signal -> 'a signal
+  val run_s :
+     ?eq:('a -> 'a -> bool)
+    -> 'a Promise.t signal
+    -> 'a signal Promise.or_exn
 end

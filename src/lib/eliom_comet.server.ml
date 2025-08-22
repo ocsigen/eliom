@@ -147,10 +147,11 @@ end = struct
             (Dlist.add (msg, channel.ch_index) channel.ch_content : 'a option);
           wakeup_waiters channel
     in
-    ignore
-      (Fiber.without_binding Eliom_common.sp_key (fun () ->
-         Eliom_stream.iter_s f stream)
-       : unit Promise.t)
+    Fiber.fork
+      ~sw:(Stdlib.Option.get (Fiber.get Ocsigen_lib.current_switch))
+      (fun () ->
+         Fiber.without_binding Eliom_common.sp_key (fun () ->
+           Eliom_stream.iter_s f stream))
 
   let make_name name = "stateless:" ^ name
 
@@ -237,10 +238,7 @@ end = struct
     let rec make_list = function
       | [] -> []
       | Eliom_lib.Left (channel, _) :: q ->
-          Eio.Condition.await
-            (* TODO: ciao-lwt: A mutex must be passed *) channel.ch_wakeup
-            __mutex__
-          :: make_list q
+          Eio.Condition.await_no_mutex channel.ch_wakeup :: make_list q
       | Eliom_lib.Right _ :: _ -> assert false
       (* closed channels are considered to have data *)
     in
