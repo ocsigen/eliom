@@ -90,6 +90,8 @@
     (with-stdout-to %{target}
       (chdir .. (run ppx_eliom_client --as-pp --intf %{deps})))))
 (rule (copy# ../eliom_shared_sigs.shared.mli eliom_shared_sigs.mli))
+(rule (copy# ../eliom_stream.shared.ml eliom_stream.ml))
+(rule (copy# ../eliom_stream.shared.mli eliom_stream.mli))
 (rule (target eliom_tools.ml) (deps ../eliom_tools.eliom)
   (action
     (with-stdout-to %{target}
