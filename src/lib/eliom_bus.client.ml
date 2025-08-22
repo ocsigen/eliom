@@ -29,7 +29,7 @@ module Ecb = Eliom_comet_base
 
 type ('a, 'b) t =
   { channel : 'b Ecb.wrapped_channel
-  ; stream : 'b Lwt_stream.t Lazy.t
+  ; stream : 'b Eliom_stream.t Lazy.t
   ; queue : 'a Queue.t
   ; mutable max_size : int
   ; write : 'a list -> unit
@@ -41,7 +41,7 @@ type ('a, 'b) t =
 (* clone streams such that each clone of the original stream raise the same exceptions *)
 let consume (t, u) s =
   let t' =
-    try Lwt_stream.iter (fun _ -> ()) s
+    try Eliom_stream.iter (fun _ -> ()) s
     with e ->
       (match Promise.peek t with None -> Lwt.wakeup_exn u e | _ -> ());
       raise e
@@ -54,13 +54,13 @@ let consume (t, u) s =
     ; t' ]
 
 let clone_exn (t, u) s =
-  let s' = Lwt_stream.clone s in
-  Lwt_stream.from (fun () ->
+  let s' = Eliom_stream.clone s in
+  Eliom_stream.from (fun () ->
     try
       Lwt.choose
         (* TODO: ciao-lwt: [Lwt.choose] can't be automatically translated.Use Eio.Promise instead.  *)
         (* TODO: ciao-lwt: [Lwt.choose] can't be automatically translated.Use Eio.Promise instead.  *)
-        [Lwt_stream.get s'; t]
+        [Eliom_stream.get s'; t]
     with e ->
       (match Promise.peek t with None -> Lwt.wakeup_exn u e | _ -> ());
       raise e)

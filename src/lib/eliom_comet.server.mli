@@ -40,7 +40,7 @@ module Channel : sig
      ?scope:[< comet_scope]
     -> ?name:string
     -> ?size:int
-    -> 'a Lwt_stream.t
+    -> 'a Eliom_stream.t
     -> 'a t
   (** [create s] returns a channel sending the values returned by stream [s].
 
@@ -68,7 +68,7 @@ module Channel : sig
 
       A channel can be used only once on client side. To be able
       to receive the same data multiple times on client side, use
-      [create (Lwt_stream.clone s)] every time.
+      [create (Eliom_stream.clone s)] every time.
 
       To enforce the limit on the buffer size, the data is read into
       [stream] as soon as possible: If you want a channel that reads
@@ -87,7 +87,7 @@ module Channel : sig
   val create_unlimited :
      ?scope:Eliom_common.client_process_scope
     -> ?name:string
-    -> 'a Lwt_stream.t
+    -> 'a Eliom_stream.t
     -> 'a t
   (** [create_unlimited s] creates a channel which does not read
       immediately on the stream. It is read only when the client
@@ -97,7 +97,7 @@ module Channel : sig
       the stream increases and your clients don't read it, you may have
       memory leaks. *)
 
-  val create_newest : ?name:string -> 'a Lwt_stream.t -> 'a t
+  val create_newest : ?name:string -> 'a Eliom_stream.t -> 'a t
   (** [create_newest s] is similar to [create
       ~scope:Eliom_common.site_scope s] but only the last message is
       returned to the client. *)

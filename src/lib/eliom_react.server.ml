@@ -176,7 +176,7 @@ module S = struct
 
     type 'a stateless =
       { channel : 'a Eliom_comet.Channel.t
-      ; stream : 'a Lwt_stream.t
+      ; stream : 'a Eliom_stream.t
       ; (* avoid garbage collection *)
         sl_signal : 'a S.t }
     [@@warning "-69"]
@@ -235,7 +235,7 @@ module S = struct
         | Some t -> S.limit (fun () -> Eio_unix.sleep t) s
       in
       let store = make_store s in
-      let stream = Lwt_stream.from (read_store store) in
+      let stream = Eliom_stream.from (read_store store) in
       let channel = Eliom_comet.Channel.create_unlimited ?name stream in
       let value : 'a = S.value s in
       ( channel

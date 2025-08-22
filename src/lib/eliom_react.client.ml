@@ -48,9 +48,9 @@ module Down = struct
     (* We want to catch more exceptions here than the usual exceptions caught
        in Eliom_comet. For example Channel_full. *)
     (* We transform the stream into a stream with exception: *)
-    let stream = Lwt_stream.wrap_exn channel in
+    let stream = Eliom_stream.wrap_exn channel in
     Js_of_ocaml_eio.Eio_js.start (fun () ->
-      Lwt_stream.iter_s
+      Eliom_stream.iter_s
         (function
           | Error exn ->
               let () = handle_react_exn ~exn () in

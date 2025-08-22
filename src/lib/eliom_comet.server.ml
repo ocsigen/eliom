@@ -88,7 +88,7 @@ let timeout () =
 module Stateless : sig
   type channel
 
-  val create : ?name:string -> size:int -> string Lwt_stream.t -> channel
+  val create : ?name:string -> size:int -> string Eliom_stream.t -> channel
   val get_id : channel -> string
   val get_service : unit -> Eliom_comet_base.comet_service
   val get_kind : newest:bool -> channel -> Eliom_comet_base.stateless_kind
@@ -149,7 +149,7 @@ end = struct
     in
     ignore
       (Fiber.without_binding Eliom_common.sp_key (fun () ->
-         Lwt_stream.iter_s f stream)
+         Eliom_stream.iter_s f stream)
        : unit Promise.t)
 
   let make_name name = "stateless:" ^ name
@@ -315,7 +315,7 @@ module Stateful : sig
   val create_unlimited :
      ?scope:Eliom_common.client_process_scope
     -> ?name:chan_id
-    -> _ Lwt_stream.t
+    -> _ Eliom_stream.t
     -> t
 
   val get_id : t -> string
@@ -345,7 +345,7 @@ end = struct
              get garbage collected *)
           mutable events : Obj.t option }
     | Stream of
-        { mutable stream : string Eliom_comet_base.channel_data Lwt_stream.t
+        { mutable stream : string Eliom_comet_base.channel_data Eliom_stream.t
         ; mutable waiter : waiter }
 
   type handler =
@@ -440,7 +440,7 @@ end = struct
       Lwt.no_cancel
         (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
         (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
-        (let _ = Lwt_stream.peek s in
+        (let _ = Eliom_stream.peek s in
          `Data))
 
   (** read up to [n] messages in the list of streams [streams] without blocking. *)
@@ -458,7 +458,7 @@ end = struct
         | (id, Stream ({stream; _} as s)) :: rem ->
             let l =
               Fiber.without_binding Eliom_common.sp_key (fun () ->
-                Lwt_stream.get_available_up_to n stream)
+                Eliom_stream.get_available_up_to n stream)
             in
             if l <> [] then s.waiter <- stream_waiter stream;
             take (n - List.length l) (List.rev_map (fun v -> id, v) l @ acc) rem
@@ -716,7 +716,7 @@ end = struct
     Logs.info ~src:section (fun fmt -> fmt "create channel %s" name);
     let stream =
       Fiber.without_binding Eliom_common.sp_key (fun () ->
-        Lwt_stream.map (fun x -> Eliom_comet_base.Data (marshal x)) stream)
+        Eliom_stream.map (fun x -> Eliom_comet_base.Data (marshal x)) stream)
     in
     let channel = Stream {stream; waiter = stream_waiter stream} in
     if List.mem name handler.hd_registered_chan_id
@@ -755,16 +755,16 @@ module Channel : sig
      ?scope:[< comet_scope]
     -> ?name:string
     -> ?size:int
-    -> 'a Lwt_stream.t
+    -> 'a Eliom_stream.t
     -> 'a t
 
   val create_unlimited :
      ?scope:Eliom_common.client_process_scope
     -> ?name:string
-    -> 'a Lwt_stream.t
+    -> 'a Eliom_stream.t
     -> 'a t
 
-  val create_newest : ?name:string -> 'a Lwt_stream.t -> 'a t
+  val create_newest : ?name:string -> 'a Eliom_stream.t -> 'a t
   val get_wrapped : 'a t -> 'a Eliom_comet_base.wrapped_channel
 
   val external_channel :
@@ -817,13 +817,13 @@ end = struct
     Stateless
       (Stateless.create ?name ~size
          (Fiber.without_binding Eliom_common.sp_key (fun () ->
-            Lwt_stream.map marshal stream)))
+            Eliom_stream.map marshal stream)))
 
   let create_stateless_newest_channel ?name stream =
     Stateless_newest
       (Stateless.create ?name ~size:1
          (Fiber.without_binding Eliom_common.sp_key (fun () ->
-            Lwt_stream.map marshal stream)))
+            Eliom_stream.map marshal stream)))
 
   let create_stateful ?scope ?name ?(size = 1000) events =
     { channel = create_stateful_channel ?scope ?name ~size events
