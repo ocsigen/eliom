@@ -146,6 +146,11 @@ let original_stream t =
     raise_error ~section
       "original_stream: the original stream is not available anymore"
 
+let stream t =
+  let stream, push = Lwt_stream.create () in
+  register t (fun data -> push data);
+  stream
+
 let flush t =
   let l = List.rev (Queue.fold (fun l v -> v :: l) [] t.queue) in
   Queue.clear t.queue; t.write l

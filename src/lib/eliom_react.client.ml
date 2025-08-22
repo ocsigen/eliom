@@ -22,8 +22,6 @@ open Eio.Std
 *)
 
 (* Module for event unwrapping *)
-open Lwt_react
-
 let section = Logs.Src.create "eliom:comet"
 
 module Down = struct

@@ -1,5 +1,3 @@
-open Eio.Std
-
 (* Ocsigen
  * http://www.ocsigen.org
  * Module eliom_common.mli
