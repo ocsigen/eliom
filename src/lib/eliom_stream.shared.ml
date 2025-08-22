@@ -1,11 +1,15 @@
 open Eio.Std
 
 (* This file is part of Lwt, released under the MIT license. See LICENSE.md for
-   details, or visit https://github.com/ocsigen/lwt/blob/master/LICENSE.md. *)
+   details, or visit https://github.com/ocsigen/lwt/blob/master/LICENSE.md. 
+   
+   It is a (partial) translation of Lwt_stream to Eio
+*)
 
 exception Closed
 exception Full
 exception Empty
+exception Cancelled
 
 (* A node in a queue of pending data. *)
 type 'a node =
@@ -26,13 +30,13 @@ let new_node () =
 type 'a from =
   { from_create : unit -> 'a option
   ; (* Function used to create new elements. *)
-    mutable from_thread : unit Promise.t
-    (* Thread which:
+    mutable from_promise : unit Eio.Promise.or_exn
+    (* Promise that is currently being computed:
 
      - wait for the thread returned by the last call to [from_next],
      - add the next element to the end of the queue.
 
-     If it is a sleeping thread, then it must be used instead of creating a
+     If it is not resolved, then it must be used instead of creating a
      new one with [from_create]. *)
   }
 
@@ -40,8 +44,8 @@ type 'a from =
 [@@@ocaml.warning "-69"]
 
 type push =
-  { mutable push_signal : unit Promise.t
-  ; (* Thread signaled when a new element is added to the stream. *)
+  { mutable push_signal : unit Eio.Promise.or_exn
+  ; (* Promise resolved when a new element is added to the stream. *)
     mutable push_waiting : bool
   ; (* Is a thread waiting on [push_signal] ? *)
     mutable push_external : Obj.t [@ocaml.warning "-69"]
@@ -49,7 +53,7 @@ type push =
 
 (* Type of a stream source for bounded-push streams. *)
 type 'a push_bounded =
-  { mutable pushb_signal : unit Promise.t
+  { mutable pushb_signal : unit Eio.Promise.or_exn
   ; (* Thread signaled when a new element is added to the stream. *)
     mutable pushb_waiting : bool
   ; (* Is a thread waiting on [pushb_signal] ? *)
@@ -61,8 +65,8 @@ type 'a push_bounded =
   ; (* The next element to push if a thread blocked on push. We store it
      here to be sure it will be the first element to be added when
      space becomes available. *)
-    mutable pushb_push_waiter : unit Promise.t
-  ; mutable pushb_push_wakener : unit Lwt.u
+    mutable pushb_push_waiter : unit Eio.Promise.or_exn
+  ; mutable pushb_push_wakener : (unit, exn) Stdlib.result Eio.Promise.u
   ; (* Thread blocked on push. *)
     mutable pushb_external : Obj.t [@ocaml.warning "-69"]
     (* Reference to an external source. *) }
@@ -79,7 +83,7 @@ type 'a source =
 type 'a t =
   { source : 'a source
   ; (* The source of the stream. *)
-    close : unit Lwt.u
+    close : unit Eio.Promise.u
   ; (* A wakener for a thread that sleeps until the stream is closed. *)
     closed : unit Promise.t
   ; (* A waiter for a thread that sleeps until the stream is closed. *)
@@ -121,10 +125,13 @@ let from_source source =
   in
   {source; close; closed; node; last = ref node}
 
-let from f = from_source (From {from_create = f; from_thread = ()})
+let from f =
+  from_source
+    (From {from_create = f; from_promise = Eio.Promise.create_resolved (Ok ())})
+
 let from_direct f = from_source (From_direct f)
-let closed s = s.closed
-let is_closed s = not (Lwt.is_sleeping (closed s))
+let closed s = Eio.Promise.await s.closed
+let is_closed s = Eio.Promise.is_resolved s.closed
 
 let enqueue' e last =
   let node = !last and new_last = new_node () in
@@ -152,7 +159,7 @@ let create_with_reference () =
   let close = t.close and closed = t.closed and last = t.last in
   (* The push function. It does not keep a reference to the stream. *)
   let push x =
-    if not (Lwt.is_sleeping closed) then raise Closed;
+    if Eio.Promise.is_resolved closed then raise Closed;
     (* Push the element at the end of the queue. *)
     enqueue' x last;
     (* Send a signal if at least one thread is waiting for a new
@@ -169,9 +176,8 @@ let create_with_reference () =
       in
       source.push_signal <- new_waiter;
       push_signal_resolver := new_push_signal_resolver;
-      Promise.resolve
-        (* Signal that a new value has been received. *)
-        old_push_signal_resolver ());
+      (* Signal that a new value has been received. *)
+      Promise.resolve_ok old_push_signal_resolver ());
     (* Do this at the end in case one of the function raise an
        exception. *)
     if x = None then Promise.resolve close ()
@@ -182,13 +188,13 @@ let return a =
   let stream, push, _ = create_with_reference () in
   push (Some a); push None; stream
 
-let return_lwt a =
+let return_promise a =
   let source, push, _ = create_with_reference () in
-  Lwt.dont_wait
-    (fun () ->
-       let x = a in
-       push (Some x); push None)
-    (fun _exc -> push None);
+  Eliom_lib.fork (fun () ->
+    try
+      let x = Eio.Promise.await a in
+      push (Some x); push None
+    with _exc -> push None);
   source
 
 let of_seq s =
@@ -201,17 +207,6 @@ let of_seq s =
         Some elt
   in
   from_direct get
-
-let of_lwt_seq s =
-  let s = ref s in
-  let get () =
-    match !s () with
-    | Lwt_seq.Nil -> None
-    | Lwt_seq.Cons (elt, s') ->
-        s := s';
-        Some elt
-  in
-  from get
 
 let create () =
   let source, push, _ = create_with_reference () in
@@ -247,7 +242,7 @@ let notify_pusher info last =
   in
   info.pushb_push_waiter <- waiter;
   info.pushb_push_wakener <- wakener;
-  Promise.resolve old_wakener ()
+  Promise.resolve_ok old_wakener ()
 
 class ['a] bounded_push_impl (info : 'a push_bounded) wakener_cell last close =
   object
@@ -270,21 +265,14 @@ class ['a] bounded_push_impl (info : 'a push_bounded) wakener_cell last close =
       else if info.pushb_count >= info.pushb_size
       then (
         info.pushb_pending <- Some x;
-        try info.pushb_push_waiter
-        with exn -> (
-          match exn with
-          | Lwt.Canceled ->
-              info.pushb_pending <- None;
-              let waiter, wakener =
-                Promise.create
-                  (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
-                  (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
-                  ()
-              in
-              info.pushb_push_waiter <- waiter;
-              info.pushb_push_wakener <- wakener;
-              Lwt.reraise exn
-          | _ -> Lwt.reraise exn))
+        try Eio.Promise.await_exn info.pushb_push_waiter with
+        | Cancelled ->
+            info.pushb_pending <- None;
+            let waiter, wakener = Eio.Promise.create () in
+            info.pushb_push_waiter <- waiter;
+            info.pushb_push_wakener <- wakener;
+            raise Cancelled
+        | exn -> raise exn)
       else (
         (* Push the element at the end of the queue. *)
         enqueue' (Some x) last;
@@ -303,9 +291,8 @@ class ['a] bounded_push_impl (info : 'a push_bounded) wakener_cell last close =
           in
           info.pushb_signal <- new_waiter;
           wakener_cell := new_wakener;
-          Promise.resolve
-            (* Signal that a new value has been received. *)
-            old_wakener ()))
+          (* Signal that a new value has been received. *)
+          Eio.Promise.resolve_ok old_wakener ()))
 
     method close =
       if not closed
@@ -318,7 +305,7 @@ class ['a] bounded_push_impl (info : 'a push_bounded) wakener_cell last close =
         if info.pushb_pending <> None
         then (
           info.pushb_pending <- None;
-          Lwt.wakeup_later_exn info.pushb_push_wakener Closed);
+          Eio.Promise.resolve_error info.pushb_push_wakener Closed);
         (* Send a signal if at least one thread is waiting for a new
          element. *)
         if info.pushb_waiting
@@ -326,8 +313,8 @@ class ['a] bounded_push_impl (info : 'a push_bounded) wakener_cell last close =
           info.pushb_waiting <- false;
           let old_wakener = !wakener_cell in
           (* Signal that a new value has been received. *)
-          Promise.resolve old_wakener ());
-        Promise.resolve close ())
+          Eio.Promise.resolve_ok old_wakener ());
+        Eio.Promise.resolve close ())
 
     method count = info.pushb_count
     method blocked = info.pushb_pending <> None
@@ -371,42 +358,34 @@ let feed s =
   match s.source with
   | From from ->
       (* There is already a thread started to create a new element,
-       wait for this one to terminate. *)
-      if Lwt.is_sleeping from.from_thread
-      then
-        Lwt.protected
-          (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
-          (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
-          from.from_thread
-      else
-        (* Otherwise request a new element. *)
-        let thread =
-         (* The function [from_create] can raise an exception (with
-           [raise], rather than returning a failed promise with
-           [Lwt.fail]). In this case, we have to catch the exception
-           and turn it into a safe failed promise. *)
-         fun () ->
-          from.from_create () >>= fun x ->
-          (* Push the element to the end of the queue. *)
-          enqueue x s;
-          if x = None then Lwt.wakeup s.close ();
-          Lwt.return_unit
-        in
-        (* Allow other threads to access this thread. *)
-        from.from_thread <- thread;
-        Lwt.protected thread
+         wait for this one to terminate. *)
+      if not (Eio.Promise.is_resolved from.from_promise)
+      then from.from_promise
+      else (* Otherwise request a new element. *)
+        let promise, wakener = Eio.Promise.create () in
+        Eliom_lib.fork (fun () ->
+          try
+            let x = from.from_create () in
+            (* Push the element to the end of the queue. *)
+            enqueue x s;
+            if x = None then Eio.Promise.resolve s.close ();
+            Eio.Promise.resolve_ok wakener ()
+          with exn -> Eio.Promise.resolve_error wakener exn);
+        (* Allow other threads to access this promise: *)
+        from.from_promise <- promise;
+        promise (*XXX protected *)
   | From_direct f ->
       let x = f () in
       (* Push the element to the end of the queue. *)
       enqueue x s;
-      if x = None then Lwt.wakeup s.close ();
-      Lwt.return_unit
+      if x = None then Eio.Promise.resolve s.close ();
+      Eio.Promise.create_resolved (Ok ())
   | Push push ->
       push.push_waiting <- true;
-      Lwt.protected push.push_signal
+      push.push_signal (*XXX protected *)
   | Push_bounded push ->
       push.pushb_waiting <- true;
-      Lwt.protected push.pushb_signal
+      push.pushb_signal (*XXX protected *)
 
 (* Remove [node] from the top of the queue, or do nothing if it was
    already consumed.
@@ -426,65 +405,72 @@ let consume s node =
 
 let rec peek_rec s node =
   if node == !(s.last)
-  then feed s >>= fun () -> peek_rec s node
-  else Lwt.return node.data
+  then (
+    Eio.Promise.await_exn (feed s);
+    peek_rec s node)
+  else node.data
 
 let peek s = peek_rec s s.node
 
 let rec npeek_rec node acc n s =
   if n <= 0
-  then Lwt.return (List.rev acc)
+  then List.rev acc
   else if node == !(s.last)
-  then feed s >>= fun () -> npeek_rec node acc n s
+  then (
+    Eio.Promise.await_exn (feed s);
+    npeek_rec node acc n s)
   else
     match node.data with
     | Some x -> npeek_rec node.next (x :: acc) (n - 1) s
-    | None -> Lwt.return (List.rev acc)
+    | None -> List.rev acc
 
 let npeek n s = npeek_rec s.node [] n s
 
 let rec get_rec s node =
   if node == !(s.last)
-  then feed s >>= fun () -> get_rec s node
+  then (
+    Eio.Promise.await_exn (feed s);
+    get_rec s node)
   else (
     if node.data <> None then consume s node;
-    Lwt.return node.data)
+    node.data)
 
 let get s = get_rec s s.node
 
 let rec get_exn_rec s node =
   if node == !(s.last)
   then
-    Lwt.try_bind
-      (fun () -> feed s)
-      (fun () -> get_exn_rec s node)
-      (fun exn -> Lwt.return (Some (Result.Error exn)))
+    match Eio.Promise.await_exn (feed s) with
+    | () -> get_exn_rec s node
+    | exception exn -> Some (Result.Error exn)
   else
     match node.data with
-    | Some value ->
-        consume s node;
-        Lwt.return (Some (Result.Ok value))
-    | None -> Lwt.return_none
+    | Some value -> consume s node; Some (Result.Ok value)
+    | None -> None
 
 let wrap_exn s = from (fun () -> get_exn_rec s s.node)
 
 let rec nget_rec node acc n s =
   if n <= 0
-  then Lwt.return (List.rev acc)
+  then List.rev acc
   else if node == !(s.last)
-  then feed s >>= fun () -> nget_rec node acc n s
+  then (
+    Eio.Promise.await_exn (feed s);
+    nget_rec node acc n s)
   else
     match s.node.data with
     | Some x ->
         consume s node;
         nget_rec node.next (x :: acc) (n - 1) s
-    | None -> Lwt.return (List.rev acc)
+    | None -> List.rev acc
 
 let nget n s = nget_rec s.node [] n s
 
 let rec get_while_rec node acc f s =
   if node == !(s.last)
-  then feed s >>= fun () -> get_while_rec node acc f s
+  then (
+    Eio.Promise.await_exn (feed s);
+    get_while_rec node acc f s)
   else
     match node.data with
     | Some x ->
@@ -493,84 +479,63 @@ let rec get_while_rec node acc f s =
         then (
           consume s node;
           get_while_rec node.next (x :: acc) f s)
-        else Lwt.return (List.rev acc)
-    | None -> Lwt.return (List.rev acc)
+        else List.rev acc
+    | None -> List.rev acc
 
 let get_while f s = get_while_rec s.node [] f s
 
 let rec get_while_s_rec node acc f s =
   if node == !(s.last)
-  then feed s >>= fun () -> get_while_s_rec node acc f s
+  then (
+    Eio.Promise.await_exn (feed s);
+    get_while_s_rec node acc f s)
   else
     match node.data with
-    | Some x -> (
-        f x >>= function
-        | true ->
-            consume s node;
-            get_while_s_rec node.next (x :: acc) f s
-        | false -> Lwt.return (List.rev acc))
-    | None -> Lwt.return (List.rev acc)
+    | Some x ->
+        if f x
+        then (
+          consume s node;
+          get_while_s_rec node.next (x :: acc) f s)
+        else List.rev acc
+    | None -> List.rev acc
 
 let get_while_s f s = get_while_s_rec s.node [] f s
 
 let rec next_rec s node =
   if node == !(s.last)
-  then feed s >>= fun () -> next_rec s node
-  else
-    match node.data with
-    | Some x -> consume s node; Lwt.return x
-    | None -> Lwt.fail Empty
+  then (
+    Eio.Promise.await_exn (feed s);
+    next_rec s node)
+  else match node.data with Some x -> consume s node; x | None -> raise Empty
 
 let next s = next_rec s s.node
 
-let rec last_new_rec node x s =
-  if node == !(s.last)
-  then
-    let thread = feed s in
-    match Lwt.state thread with
-    | Lwt.Return _ -> last_new_rec node x s
-    | Lwt.Fail exn -> Lwt.fail exn
-    | Lwt.Sleep -> Lwt.return x
-  else
-    match node.data with
-    | Some x -> consume s node; last_new_rec node.next x s
-    | None -> Lwt.return x
-
-let last_new s =
-  let node = s.node in
-  if node == !(s.last)
-  then
-    let thread = next s in
-    match Lwt.state thread with
-    | Lwt.Return x -> last_new_rec node x s
-    | Lwt.Fail _ | Lwt.Sleep -> thread
-  else
-    match node.data with
-    | Some x -> consume s node; last_new_rec node.next x s
-    | None -> Lwt.fail Empty
-
 let rec to_list_rec node acc s =
   if node == !(s.last)
-  then feed s >>= fun () -> to_list_rec node acc s
+  then (
+    Eio.Promise.await_exn (feed s);
+    to_list_rec node acc s)
   else
     match node.data with
     | Some x ->
         consume s node;
         to_list_rec node.next (x :: acc) s
-    | None -> Lwt.return (List.rev acc)
+    | None -> List.rev acc
 
 let to_list s = to_list_rec s.node [] s
 
 let rec to_string_rec node buf s =
   if node == !(s.last)
-  then feed s >>= fun () -> to_string_rec node buf s
+  then (
+    Eio.Promise.await_exn (feed s);
+    to_string_rec node buf s)
   else
     match node.data with
     | Some x ->
         consume s node;
         Buffer.add_char buf x;
         to_string_rec node.next buf s
-    | None -> Lwt.return (Buffer.contents buf)
+    | None -> Buffer.contents buf
 
 let to_string s = to_string_rec s.node (Buffer.create 128) s
 
@@ -578,30 +543,32 @@ let junk s =
   let node = s.node in
   if node == !(s.last)
   then (
-    feed s >>= fun () ->
-    if node.data <> None then consume s node;
-    Lwt.return_unit)
-  else (
-    if node.data <> None then consume s node;
-    Lwt.return_unit)
+    Eio.Promise.await_exn (feed s);
+    if node.data <> None then consume s node)
+  else if node.data <> None
+  then consume s node
 
 let rec njunk_rec node n s =
   if n <= 0
-  then Lwt.return_unit
+  then ()
   else if node == !(s.last)
-  then feed s >>= fun () -> njunk_rec node n s
+  then (
+    Eio.Promise.await_exn (feed s);
+    njunk_rec node n s)
   else
     match node.data with
     | Some _ ->
         consume s node;
         njunk_rec node.next (n - 1) s
-    | None -> Lwt.return_unit
+    | None -> ()
 
 let njunk n s = njunk_rec s.node n s
 
 let rec junk_while_rec node f s =
   if node == !(s.last)
-  then feed s >>= fun () -> junk_while_rec node f s
+  then (
+    Eio.Promise.await_exn (feed s);
+    junk_while_rec node f s)
   else
     match node.data with
     | Some x ->
@@ -610,34 +577,35 @@ let rec junk_while_rec node f s =
         then (
           consume s node;
           junk_while_rec node.next f s)
-        else Lwt.return_unit
-    | None -> Lwt.return_unit
+        else ()
+    | None -> ()
 
 let junk_while f s = junk_while_rec s.node f s
 
 let rec junk_while_s_rec node f s =
   if node == !(s.last)
-  then feed s >>= fun () -> junk_while_s_rec node f s
+  then (
+    Eio.Promise.await_exn (feed s);
+    junk_while_s_rec node f s)
   else
     match node.data with
-    | Some x -> (
-        f x >>= function
-        | true ->
-            consume s node;
-            junk_while_s_rec node.next f s
-        | false -> Lwt.return_unit)
-    | None -> Lwt.return_unit
+    | Some x ->
+        if f x
+        then (
+          consume s node;
+          junk_while_s_rec node.next f s)
+        else ()
+    | None -> ()
 
 let junk_while_s f s = junk_while_s_rec s.node f s
 
 let rec junk_available_rec node s =
   if node == !(s.last)
   then
-    let thread = feed s in
-    match Lwt.state thread with
-    | Lwt.Return _ -> junk_available_rec node s
-    | Lwt.Fail exn -> raise exn
-    | Lwt.Sleep -> ()
+    match Eio.Promise.peek (feed s) with
+    | Some (Ok _) -> junk_available_rec node s
+    | Some (Error exn) -> raise exn
+    | None -> ()
   else
     match node.data with
     | Some _ ->
@@ -646,16 +614,14 @@ let rec junk_available_rec node s =
     | None -> ()
 
 let junk_available s = junk_available_rec s.node s
-let junk_old s = Lwt.return (junk_available s)
 
 let rec get_available_rec node acc s =
   if node == !(s.last)
   then
-    let thread = feed s in
-    match Lwt.state thread with
-    | Lwt.Return _ -> get_available_rec node acc s
-    | Lwt.Fail exn -> raise exn
-    | Lwt.Sleep -> List.rev acc
+    match Eio.Promise.peek (feed s) with
+    | Some (Ok _) -> get_available_rec node acc s
+    | Some (Error exn) -> raise exn
+    | None -> List.rev acc
   else
     match node.data with
     | Some x ->
@@ -670,11 +636,10 @@ let rec get_available_up_to_rec node acc n s =
   then List.rev acc
   else if node == !(s.last)
   then
-    let thread = feed s in
-    match Lwt.state thread with
-    | Lwt.Return _ -> get_available_up_to_rec node acc n s
-    | Lwt.Fail exn -> raise exn
-    | Lwt.Sleep -> List.rev acc
+    match Eio.Promise.peek (feed s) with
+    | Some (Ok _) -> get_available_up_to_rec node acc n s
+    | Some (Error exn) -> raise exn
+    | None -> List.rev acc
   else
     match s.node.data with
     | Some x ->
@@ -686,60 +651,47 @@ let get_available_up_to n s = get_available_up_to_rec s.node [] n s
 
 let rec is_empty s =
   if s.node == !(s.last)
-  then feed s >>= fun () -> is_empty s
-  else Lwt.return (s.node.data = None)
+  then (
+    Eio.Promise.await_exn (feed s);
+    is_empty s)
+  else s.node.data = None
 
 let map f s =
   from (fun () ->
-    get s >|= function
+    match get s with
     | Some x ->
         let x = f x in
         Some x
     | None -> None)
 
 let map_s f s =
-  from (fun () ->
-    get s >>= function
-    | Some x -> f x >|= fun x -> Some x
-    | None -> Lwt.return_none)
+  from (fun () -> match get s with Some x -> Some (f x) | None -> None)
 
 let filter f s =
   let rec next () =
-    let t = get s in
-    t >>= function
-    | Some x ->
-        let test = f x in
-        if test then t else next ()
-    | None -> Lwt.return_none
+    match get s with Some x as t -> if f x then t else next () | None -> None
   in
   from next
 
 let filter_s f s =
   let rec next () =
-    let t = get s in
-    t >>= function
-    | Some x -> ( f x >>= function true -> t | false -> next ())
-    | None -> t
+    match get s with Some x as t -> if f x then t else next () | None -> None
   in
   from next
 
 let filter_map f s =
   let rec next () =
-    get s >>= function
-    | Some x -> (
-        let x = f x in
-        match x with Some _ -> Lwt.return x | None -> next ())
-    | None -> Lwt.return_none
+    match get s with
+    | Some x -> ( match f x with Some _ as t -> t | None -> next ())
+    | None -> None
   in
   from next
 
 let filter_map_s f s =
   let rec next () =
-    get s >>= function
-    | Some x -> (
-        let t = f x in
-        t >>= function Some _ -> t | None -> next ())
-    | None -> Lwt.return_none
+    match get s with
+    | Some x -> ( match f x with None -> next () | t -> t)
+    | None -> None
   in
   from next
 
@@ -748,15 +700,15 @@ let map_list f s =
   let rec next () =
     match !pendings with
     | [] -> (
-        get s >>= function
-        | Some x ->
-            let l = f x in
-            pendings := l;
-            next ()
-        | None -> Lwt.return_none)
+      match get s with
+      | Some x ->
+          let l = f x in
+          pendings := l;
+          next ()
+      | None -> None)
     | x :: l ->
         pendings := l;
-        Lwt.return (Some x)
+        Some x
   in
   from next
 
@@ -765,15 +717,14 @@ let map_list_s f s =
   let rec next () =
     match !pendings with
     | [] -> (
-        get s >>= function
-        | Some x ->
-            f x >>= fun l ->
-            pendings := l;
-            next ()
-        | None -> Lwt.return_none)
+      match get s with
+      | Some x ->
+          pendings := f x;
+          next ()
+      | None -> None)
     | x :: l ->
         pendings := l;
-        Lwt.return (Some x)
+        Some x
   in
   from next
 
@@ -781,163 +732,145 @@ let flatten s = map_list (fun l -> l) s
 
 let rec fold_rec node f s acc =
   if node == !(s.last)
-  then feed s >>= fun () -> fold_rec node f s acc
+  then (
+    Eio.Promise.await_exn (feed s);
+    fold_rec node f s acc)
   else
     match node.data with
     | Some x ->
         consume s node;
         let acc = f x acc in
         fold_rec node.next f s acc
-    | None -> Lwt.return acc
+    | None -> acc
 
 let fold f s acc = fold_rec s.node f s acc
 
 let rec fold_s_rec node f s acc =
   if node == !(s.last)
-  then feed s >>= fun () -> fold_s_rec node f s acc
+  then (
+    Eio.Promise.await_exn (feed s);
+    fold_s_rec node f s acc)
   else
     match node.data with
     | Some x ->
         consume s node;
-        f x acc >>= fun acc -> fold_s_rec node.next f s acc
-    | None -> Lwt.return acc
+        let acc = f x acc in
+        fold_s_rec node.next f s acc
+    | None -> acc
 
 let fold_s f s acc = fold_s_rec s.node f s acc
 
 let rec iter_rec node f s =
   if node == !(s.last)
-  then feed s >>= fun () -> iter_rec node f s
+  then (
+    Eio.Promise.await_exn (feed s);
+    iter_rec node f s)
   else
     match node.data with
-    | Some x ->
-        consume s node;
-        let () = f x in
-        iter_rec node.next f s
-    | None -> Lwt.return_unit
+    | Some x -> consume s node; f x; iter_rec node.next f s
+    | None -> ()
 
 let iter f s = iter_rec s.node f s
 
 let rec iter_s_rec node f s =
   if node == !(s.last)
-  then feed s >>= fun () -> iter_s_rec node f s
+  then (
+    Eio.Promise.await_exn (feed s);
+    iter_s_rec node f s)
   else
     match node.data with
-    | Some x ->
-        consume s node;
-        f x >>= fun () -> iter_s_rec node.next f s
-    | None -> Lwt.return_unit
+    | Some x -> consume s node; f x; iter_s_rec node.next f s
+    | None -> ()
 
 let iter_s f s = iter_s_rec s.node f s
 
 let rec iter_p_rec node f s =
   if node == !(s.last)
-  then feed s >>= fun () -> iter_p_rec node f s
+  then (
+    Eio.Promise.await_exn (feed s);
+    iter_p_rec node f s)
   else
     match node.data with
     | Some x ->
         consume s node;
-        let res = f x in
-        let rest = iter_p_rec node.next f s in
-        res >>= fun () -> rest
-    | None -> Lwt.return_unit
+        Eio.Fiber.both (fun () -> f x) (fun () -> iter_p_rec node.next f s)
+    | None -> ()
 
 let iter_p f s = iter_p_rec s.node f s
 
-let iter_n ?(max_concurrency = 1) f stream =
-  (if max_concurrency <= 0
-   then
-     let message =
-       Printf.sprintf
-         "Eliom_stream.iter_n: max_concurrency must be > 0, %d given"
-         max_concurrency
-     in
-     invalid_arg message);
-  let rec loop running available =
-    (if available > 0
-     then Lwt.return (running, available)
-     else
-       Lwt.nchoose_split running >>= fun (complete, running) ->
-       Lwt.return (running, available + List.length complete))
-    >>= fun (running, available) ->
-    get stream >>= function
-    | None -> Lwt.join running
-    | Some elt -> loop (f elt :: running) (pred available)
-  in
-  loop [] max_concurrency
-
 let rec find_rec node f s =
   if node == !(s.last)
-  then feed s >>= fun () -> find_rec node f s
+  then (
+    Eio.Promise.await_exn (feed s);
+    find_rec node f s)
   else
     match node.data with
     | Some x as opt ->
         consume s node;
         let test = f x in
-        if test then Lwt.return opt else find_rec node.next f s
-    | None -> Lwt.return_none
+        if test then opt else find_rec node.next f s
+    | None -> None
 
 let find f s = find_rec s.node f s
 
 let rec find_s_rec node f s =
   if node == !(s.last)
-  then feed s >>= fun () -> find_s_rec node f s
+  then (
+    Eio.Promise.await_exn (feed s);
+    find_s_rec node f s)
   else
     match node.data with
-    | Some x as opt -> (
+    | Some x as opt ->
         consume s node;
-        f x >>= function
-        | true -> Lwt.return opt
-        | false -> find_s_rec node.next f s)
-    | None -> Lwt.return_none
+        if f x then opt else find_s_rec node.next f s
+    | None -> None
 
 let find_s f s = find_s_rec s.node f s
 
 let rec find_map_rec node f s =
   if node == !(s.last)
-  then feed s >>= fun () -> find_map_rec node f s
+  then (
+    Eio.Promise.await_exn (feed s);
+    find_map_rec node f s)
   else
     match node.data with
     | Some x ->
         consume s node;
         let x = f x in
-        if x = None then find_map_rec node.next f s else Lwt.return x
-    | None -> Lwt.return_none
+        if x = None then find_map_rec node.next f s else x
+    | None -> None
 
 let find_map f s = find_map_rec s.node f s
 
 let rec find_map_s_rec node f s =
   if node == !(s.last)
-  then feed s >>= fun () -> find_map_s_rec node f s
+  then (
+    Eio.Promise.await_exn (feed s);
+    find_map_s_rec node f s)
   else
     match node.data with
     | Some x -> (
         consume s node;
-        let t = f x in
-        t >>= function None -> find_map_s_rec node.next f s | Some _ -> t)
-    | None -> Lwt.return_none
+        match f x with None -> find_map_s_rec node.next f s | t -> t)
+    | None -> None
 
 let find_map_s f s = find_map_s_rec s.node f s
 
 let combine s1 s2 =
   let next () =
-    let t1 = get s1 and t2 = get s2 in
-    t1 >>= fun n1 ->
-    t2 >>= fun n2 ->
-    match n1, n2 with
-    | Some x1, Some x2 -> Lwt.return (Some (x1, x2))
-    | _ -> Lwt.return_none
+    let n1 = get s1 and n2 = get s2 in
+    match n1, n2 with Some x1, Some x2 -> Some (x1, x2) | _ -> None
   in
   from next
 
 let append s1 s2 =
   let current_s = ref s1 in
   let rec next () =
-    let t = get !current_s in
-    t >>= function
-    | Some _ -> t
+    match get !current_s with
+    | Some _ as t -> t
     | None ->
         if !current_s == s2
-        then Lwt.return_none
+        then None
         else (
           current_s := s2;
           next ())
@@ -945,36 +878,16 @@ let append s1 s2 =
   from next
 
 let concat s_top =
-  let current_s = ref (from (fun () -> Lwt.return_none)) in
+  let current_s = ref (from (fun () -> None)) in
   let rec next () =
-    let t = get !current_s in
-    t >>= function
-    | Some _ -> t
+    match get !current_s with
     | None -> (
-        get s_top >>= function
-        | Some s ->
-            current_s := s;
-            next ()
-        | None -> Lwt.return_none)
-  in
-  from next
-
-let choose streams =
-  let source s = s, get s >|= fun x -> s, x in
-  let streams = ref (List.map source streams) in
-  let rec next () =
-    match !streams with
-    | [] -> Lwt.return_none
-    | l -> (
-        Lwt.choose (List.map snd l) >>= fun (s, x) ->
-        let l = List.remove_assq s l in
-        match x with
-        | Some _ ->
-            streams := source s :: l;
-            Lwt.return x
-        | None ->
-            streams := l;
-            next ())
+      match get s_top with
+      | Some s ->
+          current_s := s;
+          next ()
+      | None -> None)
+    | t -> t
   in
   from next
 
@@ -983,17 +896,16 @@ let parse s f =
   | Push_bounded _ -> invalid_arg "Eliom_stream.parse"
   | From _ | From_direct _ | Push _ -> ());
   let node = s.node in
-  Lwt.catch
-    (fun () -> f s)
-    (fun exn ->
-       s.node <- node;
-       Lwt.reraise exn)
+  try f s
+  with exn ->
+    s.node <- node;
+    raise exn
 
 let hexdump stream =
   let buf = Buffer.create 80 and num = ref 0 in
   from (fun _ ->
-    nget 16 stream >>= function
-    | [] -> Lwt.return_none
+    match nget 16 stream with
+    | [] -> None
     | l ->
         Buffer.clear buf;
         Printf.bprintf buf "%08x|  " !num;
@@ -1020,4 +932,4 @@ let hexdump stream =
                (if ch >= '\x20' && ch <= '\x7e' then ch else '.'))
           l;
         Buffer.add_char buf '|';
-        Lwt.return (Some (Buffer.contents buf)))
+        Some (Buffer.contents buf))

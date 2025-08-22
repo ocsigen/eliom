@@ -1,7 +1,10 @@
 open Eio.Std
 
 (* This file is part of Lwt, released under the MIT license. See LICENSE.md for
-   details, or visit https://github.com/ocsigen/lwt/blob/master/LICENSE.md. *)
+   details, or visit https://github.com/ocsigen/lwt/blob/master/LICENSE.md.
+   
+   This is a partial translation to Eio of Lwt_stream.
+*)
 
 (** Data streams *)
 
@@ -29,9 +32,7 @@ val from : (unit -> 'a option) -> 'a t
 
 val from_direct : (unit -> 'a option) -> 'a t
 (** [from_direct f] does the same as {!from} but with a function
-    that does not return a thread. It is preferred that this
-    function be used rather than wrapping [f] into a function which
-    returns a thread.
+    that returns immediately.
 
     The behavior when [f] raises an exception is the same as for {!from},
     except that [f] does not produce a thread. *)
@@ -118,7 +119,7 @@ val return : 'a -> 'a t
 
     @since 5.5.0 *)
 
-val return_lwt : 'a Promise.t -> 'a t
+val return_promise : 'a Promise.t -> 'a t
 (** [return_lwt l] creates a stream returning the value that [l] resolves to.
     The value is pushed into the stream immediately after the promise becomes
     resolved and the stream is then immediately closed (in the sense of
@@ -134,12 +135,6 @@ val of_seq : 'a Seq.t -> 'a t
     evaluated from [s] and pushed onto the stream as the stream is consumed.
 
     @since 4.2.0 *)
-
-val of_lwt_seq : 'a Lwt_seq.t -> 'a t
-(** [of_lwt_seq s] creates a stream returning all elements of [s]. The elements
-    are evaluated from [s] and pushed onto the stream as the stream is consumed.
-
-    @since 5.5.0 *)
 
 val of_list : 'a list -> 'a t
 (** [of_list l] creates a stream returning all elements of [l]. The elements are
@@ -167,9 +162,9 @@ val clone : 'a t -> 'a t
       val st1 : int Eliom_stream.t = <abstr>
       # let st2 = Eliom_stream.clone st1;;
       val st2 : int Eliom_stream.t = <abstr>
-      # lwt x = Eliom_stream.next st1;;
+      # let x = Eliom_stream.next st1;;
       val x : int = 1
-      # lwt y = Eliom_stream.next st2;;
+      # let y = Eliom_stream.next st2;;
       val y : int = 1
     ]}
 
@@ -217,12 +212,6 @@ val next : 'a t -> 'a
 (** [next st] removes and returns the next element of the stream or
     fails with {!Empty}, if the stream is empty. *)
 
-val last_new : 'a t -> 'a
-(** [last_new st] returns the last element that can be obtained
-    without sleeping, or wait for one if none is available.
-
-    It fails with {!Empty} if the stream has no more elements. *)
-
 val junk : 'a t -> unit
 (** [junk st] removes the first element of [st]. *)
 
@@ -260,16 +249,9 @@ val is_closed : 'a t -> bool
     @since 2.6.0 *)
 
 val closed : 'a t -> unit
-(** [closed st] returns a thread that will sleep until the stream has been
-    closed.
+(** [closed st] will block until the stream has been closed.
 
     @since 2.6.0 *)
-
-(** {3 Deprecated} *)
-
-val junk_old : 'a t -> unit
-[@@deprecated "Use junk_available instead"]
-(** @deprecated [junk_old st] is [Lwt.return (junk_available st)]. *)
 
 (** {2 Stream transversal} *)
 
@@ -282,17 +264,12 @@ val junk_old : 'a t -> unit
       val st1 : int Eliom_stream.t = <abstr>
       # let st2 = Eliom_stream.map string_of_int st1;;
       val st2 : string Eliom_stream.t = <abstr>
-      # lwt x = Eliom_stream.next st1;;
+      # let x = Eliom_stream.next st1;;
       val x : int = 1
-      # lwt y = Eliom_stream.next st2;;
+      # let y = Eliom_stream.next st2;;
       val y : string = "2"
     ]}
 *)
-
-val choose : 'a t list -> 'a t
-(** [choose l] creates an stream from a list of streams. The
-    resulting stream will return elements returned by any stream of
-    [l] in an unspecified order. *)
 
 val map : ('a -> 'b) -> 'a t -> 'b t
 
@@ -325,18 +302,6 @@ val iter_p : ('a -> unit) -> 'a t -> unit
 
 val iter_s : ('a -> unit) -> 'a t -> unit
 (** [iter f s] iterates over all elements of the stream. *)
-
-val iter_n : ?max_concurrency:int -> ('a -> unit) -> 'a t -> unit
-(** [iter_n ?max_concurrency f s] iterates over all elements of the stream [s].
-    Iteration is performed concurrently with up to [max_threads] concurrent
-    instances of [f].
-
-    Iteration is {b not} guaranteed to be in order as this function will
-    attempt to always process [max_concurrency] elements from [s] at once.
-
-    @param max_concurrency defaults to [1].
-    @raise Invalid_argument if [max_concurrency < 1].
-    @since 3.3.0 *)
 
 val find : ('a -> bool) -> 'a t -> 'a option
 
@@ -389,14 +354,4 @@ val parse : 'a t -> ('a t -> 'b) -> 'b
 val hexdump : char t -> string t
 (** [hexdump byte_stream] returns a stream which is the same as the
     output of [hexdump -C].
-
-    Basically, here is a simple implementation of [hexdump -C]:
-
-    {[
-      let () = Lwt_main.run begin
-          Lwt_io.write_lines
-            Lwt_io.stdout
-            (Eliom_stream.hexdump (Lwt_io.read_lines Lwt_io.stdin))
-        end
-    ]}
 *)
