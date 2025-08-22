@@ -1,16 +1,17 @@
 open Eio.Std
 
-(* This file is part of Lwt, released under the MIT license. See LICENSE.md for
-   details, or visit https://github.com/ocsigen/lwt/blob/master/LICENSE.md. *)
+(* This file is released under the MIT license. See LICENSE.md for
+   details, or visit https://github.com/ocsigen/lwt/blob/master/LICENSE.md. 
+   
+   It is a partial translation of Lwt_react for Eio
+*)
 
 (** React utilities *)
 
 (** This module is an overlay for the [React] module. You can open it
     instead of the [React] module in order to get all of [React]'s functions
-    plus Lwt ones.
-
-    This module is provided by OPAM package [lwt_react]. Link with ocamlfind
-    package [lwt_react]. *)
+    plus Eio ones.
+ *)
 
 type 'a event = 'a React.event
 (** Type of events. *)
@@ -21,7 +22,7 @@ type 'a signal = 'a React.signal
 module E : sig
   include module type of React.E
 
-  (** {2 Lwt-specific utilities} *)
+  (** {2 Eio-specific utilities} *)
 
   val with_finaliser : (unit -> unit) -> 'a event -> 'a event
   (** [with_finaliser f e] returns an event [e'] which behave as
@@ -50,7 +51,7 @@ module E : sig
   (** [limit f e] limits the rate of [e] with [f].
 
         For example, to limit the rate of an event to 1 per second you
-        can use: [limit (fun () -> Lwt_unix.sleep 1.0) event]. *)
+        can use: [limit (fun () -> Eio_unix.sleep 1.0) event]. *)
 
   val from : (unit -> 'a) -> 'a event
   (** [from f] creates an event which occurs each time [f ()]

@@ -9,10 +9,6 @@ type 'a signal = 'a React.signal
 module E = struct
   include React.E
 
-  (* +---------------------------------------------------------------+
-     | Lwt-specific utilities                                        |
-     +---------------------------------------------------------------+ *)
-
   let finalise f _ = f ()
 
   let with_finaliser f event =
@@ -39,51 +35,39 @@ module E = struct
     waiter
 
   let limit f e =
-    (* Thread which prevents [e] from occurring while it is sleeping *)
-    let limiter = ref () in
+    let is_sleeping = ref false in
     (* The occurrence that is delayed until the limiter returns. *)
     let delayed = ref None in
     (* The resulting event. *)
     let event, push = create () in
+    let rec start_sleeping () =
+      f ();
+      match !delayed with
+      | None -> is_sleeping := false
+      | Some v ->
+          Eliom_lib.fork start_sleeping;
+          delayed := None;
+          push v
+    in
     let iter =
       fmap
         (fun x ->
-           if Lwt.is_sleeping !limiter
-           then (
-             (* The limiter is sleeping, we queue the event for later
-                delivering. *)
-             match !delayed with
-             | Some cell ->
-                 (* An occurrence is already queued, replace it. *)
-                 cell := x;
-                 None
-             | None ->
-                 let cell = ref x in
-                 delayed := Some cell;
-                 Lwt.on_success !limiter (fun () ->
-                   if Lwt.is_sleeping !limiter
-                   then delayed := None
-                   else
-                     let x = !cell in
-                     delayed := None;
-                     limiter := f ();
-                     push x);
-                 None)
+           if !is_sleeping
+           then delayed := Some x
            else (
-             (* Set the limiter for future events. *)
-             limiter := f ();
+             is_sleeping := true;
+             Eliom_lib.fork start_sleeping;
              (* Send the occurrence now. *)
-             push x;
-             None))
+             push x);
+           None)
         e
     in
+    (* iter never happens, but we put it in the select to keep it alive
+    (effectful event) *)
     select [iter; event]
 
-  let cancel_thread t () =
-    Lwt.cancel
-      (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
-      (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
-      t
+  let cancel_switch sw () =
+    Eio.Switch.fail sw (Failure "Eio_react.cancel_switch")
 
   let from f =
     let event, push = create () in
