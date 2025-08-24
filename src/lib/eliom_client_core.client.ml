@@ -273,14 +273,10 @@ let in_onload, broadcast_load_end, wait_load_end, set_loading_phase =
   let in_onload () = !loading_phase in
   let broadcast_load_end () =
     loading_phase := false;
-    Lwt_condition.broadcast load_end ()
+    Eio.Condition.broadcast load_end
   in
   let wait_load_end () =
-    if !loading_phase
-    then
-      Eio.Condition.await (* TODO: ciao-lwt: A mutex must be passed *) load_end
-        __mutex__
-    else ()
+    if !loading_phase then Eio.Condition.await_no_mutex load_end else ()
   in
   in_onload, broadcast_load_end, wait_load_end, set
 

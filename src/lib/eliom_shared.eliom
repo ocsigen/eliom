@@ -22,7 +22,7 @@ open Eio.Std
 
 [%%shared
 (* put this in Lwt_react? Find a better name? *)
-let to_signal ~init ?eq (th : 'a React.S.t Promise.t) : 'a React.S.t =
+let to_signal ~init ?eq (th : 'a React.S.t Eio.Promise.t) : 'a React.S.t =
   let s, set = React.S.create ?eq init in
   Fiber.fork
     ~sw:(Stdlib.Option.get (Fiber.get Ocsigen_lib.current_switch))

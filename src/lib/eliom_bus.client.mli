@@ -39,10 +39,6 @@ val original_stream : ('a, 'b) t -> 'b Eliom_stream.t
     received. This function can be called only in the onload event
     handler, if called outside, it will raise a Failure. *)
 
-val stream : ('a, 'b) t -> 'b Lwt_stream.t
-(** Create a new stream from the messages from the server. This has the same
-    behavior as {!register}. *)
-
 val write : ('a, 'b) t -> 'a -> unit
 (** [write b v] send [v] to the bus [b]. Every participant of the bus
     will receive [v], including the sender. *)

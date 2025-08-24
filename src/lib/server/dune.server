@@ -1,3 +1,5 @@
+(rule (copy# ../eio_react.shared.ml eio_react.ml))
+(rule (copy# ../eio_react.shared.mli eio_react.mli))
 (rule (copy# ../eliom.server.ml eliom.ml))
 (rule (copy# ../eliom.server.mli eliom.mli))
 (rule (copy# ../eliom_bus.server.ml eliom_bus.ml))

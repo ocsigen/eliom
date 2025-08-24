@@ -48,4 +48,10 @@ end
 
 module S : sig
   include module type of React.S
+
+  val limit : ?eq:('a -> 'a -> bool) -> (unit -> unit) -> 'a signal -> 'a signal
+  (** [limit f s] limits the rate of [s] update with [f].
+
+        For example, to limit it to 1 per second, you can use: [limit
+        (fun () -> Eio_unix.sleep 1.0) s]. *)
 end

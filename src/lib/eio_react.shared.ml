@@ -67,4 +67,35 @@ end
 
 module S = struct
   include React.S
+
+  let limit ?eq f s =
+    let is_sleeping = ref true in
+    (* The occurrence that is delayed until the limiter returns. *)
+    let delayed = ref None in
+    (* The resulting event. *)
+    let event, push = E.create () in
+    let rec start_sleeping () =
+      f ();
+      match !delayed with
+      | None -> is_sleeping := false
+      | Some v ->
+          Eliom_lib.fork start_sleeping;
+          delayed := None;
+          push v
+    in
+    Eliom_lib.fork start_sleeping;
+    let iter =
+      E.fmap
+        (fun x ->
+           if !is_sleeping
+           then delayed := Some x
+           else (
+             is_sleeping := true;
+             Eliom_lib.fork start_sleeping;
+             (* Send the occurrence now. *)
+             push x);
+           None)
+        (changes s)
+    in
+    hold ?eq (value s) (E.select [iter; event])
 end

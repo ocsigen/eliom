@@ -58,10 +58,12 @@ let typed_apply ~service f gp pp l l' suffix =
   try
     let p, g =
       Fiber.pair
-        (let l' = Some l' in
-         Eliom_parameter.reconstruct_params ~sp:() pp l' None true suffix)
-        (let l = Some l in
-         Eliom_parameter.reconstruct_params ~sp:() gp l None true suffix)
+        (fun () ->
+           let l' = Some l' in
+           Eliom_parameter.reconstruct_params ~sp:() pp l' None true suffix)
+        (fun () ->
+           let l = Some l in
+           Eliom_parameter.reconstruct_params ~sp:() gp l None true suffix)
     in
     (match Eliom_service.reload_fun service with
     | Some _ -> Eliom_client.set_reload_function (fun () () -> f g p)

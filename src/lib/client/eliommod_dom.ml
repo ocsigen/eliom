@@ -607,24 +607,25 @@ and rewrite_css_import ?(charset = "") ~max ~prefix ~media css pos =
         let i, media' = parse_media css i in
         let (imports, css), import =
           Fiber.pair
-            (rewrite_css_import ~charset ~max ~prefix ~media css i)
-            (if max = 0
-             then
-               (* Maximum imbrication of @import reached, rewrite url. *)
-               [media, Printf.sprintf "@import url('%s') %s;\n" href media']
-             else if media##.length > 0 && String.length media' > 0
-             then
-               (* TODO combine media if possible...
+            (fun () -> rewrite_css_import ~charset ~max ~prefix ~media css i)
+            (fun () ->
+               if max = 0
+               then
+                 (* Maximum imbrication of @import reached, rewrite url. *)
+                 [media, Printf.sprintf "@import url('%s') %s;\n" href media']
+               else if media##.length > 0 && String.length media' > 0
+               then
+                 (* TODO combine media if possible...
                in the mean time keep explicit import. *)
-               [media, Printf.sprintf "@import url('%s') %s;\n" href media']
-             else
-               let media =
-                 if media##.length > 0 then media else Js.string media'
-               in
-               let css =
-                 Eliom_request.http_get href [] Eliom_request.string_result
-               in
-               rewrite_css ~max:(max - 1) (media, href, snd css))
+                 [media, Printf.sprintf "@import url('%s') %s;\n" href media']
+               else
+                 let media =
+                   if media##.length > 0 then media else Js.string media'
+                 in
+                 let css =
+                   Eliom_request.http_get href [] Eliom_request.string_result
+                 in
+                 rewrite_css ~max:(max - 1) (media, href, snd css))
         in
         import @ imports, css
       with

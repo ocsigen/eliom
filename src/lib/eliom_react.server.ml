@@ -22,7 +22,7 @@ open Eio.Std
 
 (* Module for event wrapping and related functions *)
 
-open React
+open Eio_react
 
 module Down = struct
   type 'a stateful =
@@ -38,48 +38,12 @@ module Down = struct
   type 'a t = {t : 'a t'; react_down_mark : 'a t Eliom_common.wrapper}
   [@@warning "-69"]
 
-  let limit f e =
-    let is_sleeping = ref false in
-    (* The occurrence that is delayed until the limiter returns. *)
-    let delayed = ref None in
-    (* The resulting event. *)
-    let event, push = E.create () in
-    let rec start_sleeping () =
-      f ();
-      match !delayed with
-      | None -> is_sleeping := false
-      | Some v ->
-          Eio.Fiber.fork
-            ~sw:(Stdlib.Option.get (Fiber.get Ocsigen_lib.current_switch))
-            start_sleeping;
-          delayed := None;
-          push v
-    in
-    let iter =
-      E.fmap
-        (fun x ->
-           if !is_sleeping
-           then delayed := Some x
-           else (
-             is_sleeping := true;
-             Eio.Fiber.fork
-               ~sw:(Stdlib.Option.get (Fiber.get Ocsigen_lib.current_switch))
-               start_sleeping;
-             (* Send the occurrence now. *)
-             push x);
-           None)
-        e
-    in
-    (* iter never happens, but we put it in the select to keep it alive
-    (effectful event) *)
-    E.select [iter; event]
-
   let wrap_stateful {throttling = t; scope; react = e; name; size} =
     let ee =
       Fiber.without_binding Eliom_common.sp_key (fun () ->
         match t with
         | None -> e
-        | Some t -> limit (fun () -> Eio_unix.sleep t) e)
+        | Some t -> Eio_react.E.limit (fun () -> Eio_unix.sleep t) e)
     in
     let channel =
       Eliom_comet.Channel.create_from_events ?scope ?name ?size ee
@@ -102,7 +66,7 @@ module Down = struct
     let ee =
       match throttling with
       | None -> e
-      | Some t -> limit (fun () -> Eio_unix.sleep t) e
+      | Some t -> Eio_react.E.limit (fun () -> Eio_unix.sleep t) e
     in
     Stateless
       (Eliom_comet.Channel.create_from_events ~scope:`Site ?name ?size ee)
@@ -205,7 +169,7 @@ module S = struct
              (fun v ->
                 store.read <- false;
                 store.value <- v;
-                Lwt_condition.broadcast store.condition ();
+                Eio.Condition.broadcast store.condition;
                 ())
              signal)
       in
@@ -216,11 +180,7 @@ module S = struct
       let rec aux () =
         if store.read
         then
-          let () =
-            Eio.Condition.await
-              (* TODO: ciao-lwt: A mutex must be passed *) store.condition
-              __mutex__
-          in
+          let () = Eio.Condition.await_no_mutex store.condition in
           aux ()
         else (
           store.read <- true;
