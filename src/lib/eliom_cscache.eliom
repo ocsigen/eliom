@@ -5,7 +5,7 @@ open%server Eio.Std
 [%%shared.start]
 
 type ('a, 'b) t =
-  (unit -> ('a, 'b Promise.or_exn) Hashtbl.t) Eliom_shared.Value.t
+  (unit -> ('a, 'b Eio.Promise.or_exn) Hashtbl.t) Eliom_shared.Value.t
 
 let%client create_ () =
   let c = Hashtbl.create 100 in
@@ -53,7 +53,7 @@ let%client load cache get_data id =
   (* On client side, we put immediately in table the thread that is
      fetching the data.  Thus, [get_data_from_cache] returns
      immediately (in order to display a spinner). *)
-  do_cache_raw cache id th; Promise.await_exn th
+  do_cache_raw cache id th; Eio.Promise.await_exn th
 
 let%client find cache get_data id =
   try Hashtbl.find ((Eliom_shared.Value.local cache) ()) id

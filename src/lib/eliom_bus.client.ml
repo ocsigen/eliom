@@ -34,37 +34,37 @@ type ('a, 'b) t =
   ; mutable max_size : int
   ; write : 'a list -> unit
   ; mutable waiter : unit -> unit
-  ; mutable last_wait : unit Promise.t
+  ; mutable last_wait : Switch.t option
   ; mutable original_stream_available : bool
-  ; error_h : 'b option Promise.t * exn Lwt.u }
+  ; error_h : 'b option Promise.or_exn * (exn, exn) result Promise.u }
 
 (* clone streams such that each clone of the original stream raise the same exceptions *)
 let consume (t, u) s =
-  let t' =
-    try Eliom_stream.iter (fun _ -> ()) s
+  let p, w = Promise.create () in
+  Eliom_lib.fork (fun () ->
+    try Promise.resolve_ok w (Eliom_stream.iter (fun _ -> ()) s)
     with e ->
-      (match Promise.peek t with None -> Lwt.wakeup_exn u e | _ -> ());
-      raise e
-  in
-  Fiber.any
-    (List.map
-       (fun p () -> Promise.await p)
-       (* TODO: ciao-lwt: The list [[ Lwt.bind t (fun _ -> Lwt.return_unit); t' ]] is expected to be a list of promises. Use [Fiber.fork_promise] to make a promise. *)
-       [ (let _ = t in
-          ())
-       ; t' ])
+      (match Promise.peek t with None -> Promise.resolve_error u e | _ -> ());
+      Promise.resolve_error w e);
+  Eliom_lib.fork (fun () ->
+    try Promise.resolve_ok w (ignore (Promise.await_exn t))
+    with e -> Promise.resolve_error w e);
+  Promise.await_exn p
 
 let clone_exn (t, u) s =
   let s' = Eliom_stream.clone s in
   Eliom_stream.from (fun () ->
     try
-      Fiber.any
-        (List.map
-           (fun p () -> Promise.await p)
-           (* TODO: ciao-lwt: The list [[ Eliom_stream.get s'; t ]] is expected to be a list of promises. Use [Fiber.fork_promise] to make a promise. *)
-           [Eliom_stream.get s'; t])
+      let p, w = Promise.create () in
+      Eliom_lib.fork (fun () ->
+        try Promise.resolve_ok w (Eliom_stream.get s')
+        with e -> Promise.resolve_error w e);
+      Eliom_lib.fork (fun () ->
+        try Promise.resolve_ok w (Promise.await_exn t)
+        with e -> Promise.resolve_error w e);
+      Promise.await_exn p
     with e ->
-      (match Promise.peek t with None -> Lwt.wakeup_exn u e | _ -> ());
+      (match Promise.peek t with None -> Promise.resolve_error u e | _ -> ());
       raise e)
 
 type ('a, 'att, 'co, 'ext, 'reg) callable_bus_service =
@@ -93,15 +93,16 @@ let create service channel waiter =
     with Eliom_request.Failed_request 204 -> ()
   in
   let error_h =
-    let t, u =
+    let t, (u : (exn, exn) result Promise.u) =
       Promise.create
         (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
         ()
     in
+    let tt, uu = Promise.create () in
     ( (try
-         let _ = t in
+         ignore (Promise.await t);
          assert false
-       with e -> raise e)
+       with e -> Promise.resolve_error uu e; tt)
     , u )
   in
   let stream =
@@ -118,7 +119,7 @@ let create service channel waiter =
     ; max_size = 20
     ; write
     ; waiter
-    ; last_wait = ()
+    ; last_wait = None
     ; original_stream_available = true
     ; error_h }
   in
@@ -152,23 +153,19 @@ let flush t =
   let l = List.rev (Queue.fold (fun l v -> v :: l) [] t.queue) in
   Queue.clear t.queue; t.write l
 
+exception Cancelled
+
 let try_flush t =
-  Lwt.cancel
-    (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
-    (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
-    t.last_wait;
+  Option.iter (fun o -> Switch.fail o Cancelled) t.last_wait;
   if Queue.length t.queue >= t.max_size
   then flush t
   else
-    let th =
-      Lwt.protected
-        (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
-        (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
-        (t.waiter ())
-    in
-    t.last_wait <- th;
-    let _ = th; flush t in
-    ()
+    Eliom_lib.fork (fun () ->
+      Switch.run_protected (fun sw ->
+        (*VVV ???*)
+        t.last_wait <- Some sw;
+        t.waiter ());
+      flush t)
 
 let write t v = Queue.add v t.queue; try_flush t
 let close {channel; _} = Eliom_comet.close channel
@@ -176,8 +173,6 @@ let set_queue_size b s = b.max_size <- s
 
 let set_time_before_flush b t =
   b.waiter <-
-    (if t <= 0.
-     then fun x1 -> Fiber.yield x1
-     else fun () -> Js_of_ocaml_eio.Eio_js.sleep t)
+    (if t <= 0. then Fiber.yield else fun () -> Js_of_ocaml_eio.Eio_js.sleep t)
 
 let force_link = ()

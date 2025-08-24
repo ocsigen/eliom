@@ -1,4 +1,4 @@
-open Eio.Std
+open Eio_react
 
 (* Ocsigen
  * http://www.ocsigen.org

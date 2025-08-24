@@ -21,11 +21,11 @@ open Eio.Std
 *)
 
 [%%shared
-(* put this in Eio_react? Find a better name? *)
-let to_signal ~init ?eq (th : 'a React.S.t Promise.t) : 'a React.S.t =
+(* put this in Lwt_react? Find a better name? *)
+let to_signal ~init ?eq (th : unit -> 'a) : 'a React.S.t =
   let s, set = React.S.create ?eq init in
   Eliom_lib.fork (fun () ->
-    let ss = Promise.await th in
+    let ss = th () in
     let effectful_signal = React.S.map (fun v -> set v) ss in
     ignore (React.S.retain s (fun () -> ignore effectful_signal)));
   s]
