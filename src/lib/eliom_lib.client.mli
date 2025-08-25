@@ -120,3 +120,5 @@ module Dom_reference : sig
       value [src] and the value associated to key [key] to value
       [dst]. *)
 end
+
+val fork : (unit -> unit) -> unit

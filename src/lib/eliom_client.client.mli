@@ -83,7 +83,7 @@ val change_page :
   -> ?override_mime_type:string
   -> 'a
   -> 'b
-  -> unit Lwt.t
+  -> unit
 (** Call a service and change the current page.  If the service
     belongs to the same application, the client side program is not
     stopped, and only the content (not the container) is reloaded.  If
@@ -123,7 +123,7 @@ val call_ocaml_service :
   -> ?override_mime_type:string
   -> 'a
   -> 'b
-  -> 'return Lwt.t
+  -> 'return
 (** Call a server side service that return an OCaml value.
 
     If the service raises an exception, the call to the
@@ -228,7 +228,7 @@ val call_service :
   -> ?override_mime_type:string
   -> 'a
   -> 'b
-  -> string Lwt.t
+  -> string
 (** (low level) Call a server side service and return the content
     of the resulting HTTP frame as a string. *)
 
@@ -272,7 +272,7 @@ val onload : (unit -> unit) -> unit
 
 *)
 
-val lwt_onload : unit -> unit Lwt.t
+val lwt_onload : unit -> unit
 (** Returns a Lwt thread that waits until the next page is loaded. *)
 
 type changepage_event =
@@ -290,7 +290,7 @@ type changepage_event =
     [target_id] is not [None] if and only if the onchangepage event
     takes place during a navigation in history. *)
 
-val onchangepage : (changepage_event -> unit Lwt.t) -> unit
+val onchangepage : (changepage_event -> unit) -> unit
 (** Run some code *before* the next page change, that is, before each
     call to a page-producing service handler.
     Just like onpreload, handlers registered with onchangepage only
@@ -348,11 +348,7 @@ module Page_status : sig
   val ondead : ?stop:unit React.E.t -> (unit -> unit) -> unit
   val oninactive : ?once:bool -> ?stop:unit React.E.t -> (unit -> unit) -> unit
 
-  val while_active :
-     ?now:bool
-    -> ?stop:unit React.E.t
-    -> (unit -> unit Lwt.t)
-    -> unit
+  val while_active : ?now:bool -> ?stop:unit React.E.t -> (unit -> unit) -> unit
   (** [while_active] initiates an action as [onactive] but cancels it whenever
       the page is not active anymore. *)
 end
@@ -377,7 +373,7 @@ val onunload : (unit -> unit) -> unit
     service calls, and sometimes by the browser [onunload] event.
     [onunload] can be used to register multiple callbacks. *)
 
-val wait_load_end : unit -> unit Lwt.t
+val wait_load_end : unit -> unit
 (** Wait for the initialization phase to terminate *)
 
 val get_application_name : unit -> string
@@ -392,7 +388,7 @@ val persist_document_head : unit -> unit
 
     See the {% <<a_manual chapter="clientserver-communication" fragment="rpc"|manual>> %}.*)
 
-type ('a, +'b) server_function = 'a -> 'b Lwt.t
+type ('a, +'b) server_function = 'a -> 'b
 (** A [('a, 'b) server_function] provides transparently access to a
     server side function which has been created by {% <<a_api
     subproject="server"| val Eliom_client.server_function>> %}.
@@ -404,7 +400,7 @@ type ('a, +'b) server_function = 'a -> 'b Lwt.t
     <<a_api subproject="client"|val Eliom_client.call_ocaml_service>>.
 *)
 
-val change_page_uri : ?replace:bool -> string -> unit Lwt.t
+val change_page_uri : ?replace:bool -> string -> unit
 (** [change_page_uri ?replace uri] identifies and calls the
     client-side service that implements [uri].
 
@@ -428,7 +424,7 @@ val change_page_unknown :
   -> string list
   -> (string * string) list
   -> (string * string) list
-  -> unit Lwt.t
+  -> unit
 (** [change_page_unknown path get_params post_params] calls the
     service corresponding to [(path, get_params, post_params)]. It may
     throw [Eliom_common.Eliom_404] or
@@ -438,7 +434,7 @@ val change_page_unknown :
 (* Documentation rather in eliom_client.ml *)
 
 val init : unit -> unit
-val set_reload_function : (unit -> unit -> Eliom_service.result Lwt.t) -> unit
+val set_reload_function : (unit -> unit -> Eliom_service.result) -> unit
 
 module History : sig
   val past : unit -> string list
@@ -495,7 +491,7 @@ val section : Logs.src
 val middleClick : Dom_html.mouseEvent Js.t -> bool
 (** Is it a middle-click event? *)
 
-type client_form_handler = Dom_html.event Js.t -> bool Lwt.t
+type client_form_handler = Dom_html.event Js.t -> bool
 
 (** headers to add to each of Eliom's HTTP requests. *)
 module Additional_headers : sig

@@ -76,7 +76,7 @@ val ssl_ : bool
 
 type raw_post_data = unit
 
-val raw_post_data : unit -> _ Lwt.t
+val raw_post_data : unit -> _
 val client_app_initialised : bool ref
 val get_request_data : unit -> Eliom_common.eliom_js_page_data
 val get_request_cookies : unit -> Ocsigen_cookie_map.t
@@ -101,12 +101,12 @@ val get_sess_info : unit -> Eliom_common.sess_info
 val set_session_info :
    uri:string
   -> Eliom_common.sess_info
-  -> (unit -> 'a Lwt.t)
-  -> 'a Lwt.t
+  -> (unit -> 'a)
+  -> 'a
 
 val update_session_info :
    path:Url.path
   -> all_get_params:(string * string) list
   -> all_post_params:(string * string) list option
-  -> (unit -> 'a Lwt.t)
-  -> 'a Lwt.t
+  -> (unit -> 'a)
+  -> 'a

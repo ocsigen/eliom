@@ -162,7 +162,7 @@ val load_eliom_module :
   -> Xml_light_types.xml list
   -> unit
 
-val gen_nothing : unit -> 'a -> Ocsigen_extensions.answer Lwt.t
+val gen_nothing : unit -> 'a -> Ocsigen_extensions.answer
 val default_module_action : 'a -> 'b
 
 val set_timeout :
@@ -189,4 +189,4 @@ val parse_config :
   -> 'c
   -> Xml_light_types.xml
   -> Ocsigen_extensions.request_state
-  -> Ocsigen_extensions.answer Lwt.t
+  -> Ocsigen_extensions.answer

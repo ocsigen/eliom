@@ -38,6 +38,7 @@ depends: [
   "ocsipersist" {>= "2.0" & < "3.0"}
   "ppx_optcomp"
   "xml-light" {>= "2.5"}
+  "js_of_ocaml-eio"
   "odoc" {with-doc}
 ]
 build: [

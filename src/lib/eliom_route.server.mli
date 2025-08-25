@@ -24,7 +24,7 @@ val get_page :
    float
   -> Eliom_common.info
   -> Eliom_common.sitedata
-  -> Ocsigen_response.t Lwt.t
+  -> Ocsigen_response.t
 
 val add_service :
    int
@@ -46,7 +46,7 @@ val add_naservice :
   -> Eliom_common.NAserv_Table.key
   -> int ref option
      * (float * float ref) option
-     * (Eliom_common.server_params -> Ocsigen_response.t Lwt.t)
+     * (Eliom_common.server_params -> Ocsigen_response.t)
   -> unit
 
 val remove_naservice :
@@ -58,4 +58,4 @@ val make_naservice :
    float
   -> Eliom_common.info
   -> Eliom_common.sitedata
-  -> Ocsigen_response.t Lwt.t
+  -> Ocsigen_response.t
