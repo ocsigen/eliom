@@ -586,27 +586,10 @@ end = struct
   (* as of now only `Client_process scope are handled: so we only stock scope_hierarchy *)
   type handler_ref_table =
     ( Eliom_common.scope_hierarchy
-      , handler option Eliom_reference.eref )
+      , handler option Eliom_reference.Volatile.eref )
       Hashtbl.t
 
   let handler_ref_table : handler_ref_table = Hashtbl.create 1
-
-  (* this is a hack for the create function not to return 'a Lwt.t
-     type: This is needed because bus and react create the channel at
-     wrapping time, where it is impossible to block *)
-  let get_ref eref =
-    match Lwt.state (Eliom_reference.get eref) with
-    | Lwt.Return v -> v
-    | _ ->
-        failwith
-          "Eliom_comet: accessing channel references should not be blocking: this is an eliom bug"
-
-  let set_ref eref v =
-    match Lwt.state (Eliom_reference.set eref v) with
-    | Lwt.Return () -> ()
-    | _ ->
-        failwith
-          "Eliom_comet: accessing channel references should not be blocking: this is an eliom bug"
 
   let get_handler_eref scope =
     let scope_hierarchy =
@@ -615,14 +598,14 @@ end = struct
     try Hashtbl.find handler_ref_table scope_hierarchy
     with Not_found ->
       let eref =
-        Eliom_reference.eref ~scope:(`Client_process scope_hierarchy) None
+        Eliom_reference.Volatile.eref ~scope:(`Client_process scope_hierarchy) None
       in
       Hashtbl.add handler_ref_table scope_hierarchy eref;
       eref
 
   let get_handler scope =
     let eref = get_handler_eref scope in
-    match get_ref eref with
+    match Eliom_reference.Volatile.get eref with
     | Some t -> t
     | None ->
         let hd_service =
@@ -648,7 +631,7 @@ end = struct
           ; hd_last = "", -1
           ; hd_activity = Inactive (Unix.gettimeofday ()) }
         in
-        set_ref eref (Some handler);
+        Eliom_reference.Volatile.set eref (Some handler);
         run_handler handler;
         handler
 
