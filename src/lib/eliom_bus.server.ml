@@ -23,7 +23,7 @@ open Lwt.Syntax
 module Ecb = Eliom_comet_base
 
 type ('a, 'b) t =
-  { stream : 'b Lwt_stream.t
+  { stream : 'b Eliom_stream.t
   ; scope : Eliom_comet.Channel.comet_scope
   ; name : string option
   ; channel : 'b Eliom_comet.Channel.t option
@@ -46,7 +46,7 @@ let internal_wrap (bus : ('a, 'b) t) :
     | None ->
         Eliom_comet.Channel.create ~scope:bus.scope ?name:bus.name
           ?size:bus.size
-          (Lwt_stream.clone bus.stream)
+          (Eliom_stream.clone bus.stream)
     | Some c -> c
   in
   (match bus.service_registered with
@@ -92,7 +92,7 @@ let deriving_to_list : 'a Deriving_Json.t -> 'a list Deriving_Json.t =
 
 let create_filtered ?scope ?name ?size ~filter typ =
   (*The stream*)
-  let stream, push = Lwt_stream.create () in
+  let stream, push = Eliom_stream.create () in
   let push x =
     let* y = filter x in
     push (Some y); Lwt.return_unit
@@ -107,7 +107,7 @@ let create_filtered ?scope ?name ?size ~filter typ =
     | `Site ->
         Some
           (Eliom_comet.Channel.create ~scope ?name ?size
-             (Lwt_stream.clone stream))
+             (Eliom_stream.clone stream))
     | `Client_process _ -> None
   in
   let typ_list = deriving_to_list typ in

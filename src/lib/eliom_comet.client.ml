@@ -637,12 +637,12 @@ end
 
 type 'a handler =
   { hd_service_handler : 'a Service_handler.t
-  ; hd_stream : (string * int option * string Ecb.channel_data) Lwt_stream.t }
+  ; hd_stream : (string * int option * string Ecb.channel_data) Eliom_stream.t }
 
 let handler_stream hd =
-  Lwt_stream.map_list
+  Eliom_stream.map_list
     (fun x -> x)
-    (Lwt_stream.from (fun () ->
+    (Eliom_stream.from (fun () ->
        Lwt.try_bind
          (fun () -> Service_handler.wait_data hd)
          (fun s -> Lwt.return_some s)
@@ -745,7 +745,7 @@ let check_and_update_position position msg_pos data =
 let register' hd position (_ : Ecb.comet_service) (chan_id : 'a Ecb.chan_id) =
   let chan_id = Ecb.string_of_chan_id chan_id in
   let stream =
-    Lwt_stream.filter_map_s
+    Eliom_stream.filter_map_s
       (function
         | id, pos, data
           when id = chan_id && check_and_update_position position pos data -> (
@@ -754,7 +754,7 @@ let register' hd position (_ : Ecb.comet_service) (chan_id : 'a Ecb.chan_id) =
           | Ecb.Closed -> Lwt.fail Channel_closed
           | Ecb.Data x -> Lwt.return_some (unmarshal x : 'a))
         | _ -> Lwt.return_none)
-      (Lwt_stream.clone hd.hd_stream)
+      (Eliom_stream.clone hd.hd_stream)
   in
   let protect_and_close t =
     let t' = Lwt.protected t in
@@ -763,7 +763,7 @@ let register' hd position (_ : Ecb.comet_service) (chan_id : 'a Ecb.chan_id) =
     t'
   in
   (* protect the stream from cancels *)
-  Lwt_stream.from (fun () -> protect_and_close (Lwt_stream.get stream))
+  Eliom_stream.from (fun () -> protect_and_close (Eliom_stream.get stream))
 
 let register_stateful ?(wake = true) service chan_id =
   let hd = get_stateful_hd service in
@@ -809,7 +809,7 @@ let is_active () =
     Hashtbl.fold f stateful_handler_table `Active)
 
 module Channel = struct
-  type 'a t = 'a Lwt_stream.t
+  type 'a t = 'a Eliom_stream.t
 end
 
 let force_link = ()

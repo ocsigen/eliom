@@ -29,7 +29,7 @@ module Ecb = Eliom_comet_base
 
 type ('a, 'b) t =
   { channel : 'b Ecb.wrapped_channel
-  ; stream : 'b Lwt_stream.t Lazy.t
+  ; stream : 'b Eliom_stream.t Lazy.t
   ; queue : 'a Queue.t
   ; mutable max_size : int
   ; write : 'a list -> unit Lwt.t
@@ -42,7 +42,7 @@ type ('a, 'b) t =
 let consume (t, u) s =
   let t' =
     Lwt.catch
-      (fun () -> Lwt_stream.iter (fun _ -> ()) s)
+      (fun () -> Eliom_stream.iter (fun _ -> ()) s)
       (fun e ->
          (match Lwt.state t with Lwt.Sleep -> Lwt.wakeup_exn u e | _ -> ());
          Lwt.fail e)
@@ -50,10 +50,10 @@ let consume (t, u) s =
   Lwt.choose [Lwt.bind t (fun _ -> Lwt.return_unit); t']
 
 let clone_exn (t, u) s =
-  let s' = Lwt_stream.clone s in
-  Lwt_stream.from (fun () ->
+  let s' = Eliom_stream.clone s in
+  Eliom_stream.from (fun () ->
     Lwt.catch
-      (fun () -> Lwt.choose [Lwt_stream.get s'; t])
+      (fun () -> Lwt.choose [Eliom_stream.get s'; t])
       (fun e ->
          (match Lwt.state t with Lwt.Sleep -> Lwt.wakeup_exn u e | _ -> ());
          Lwt.fail e))

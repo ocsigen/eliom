@@ -80,7 +80,7 @@ module E = struct
     with_finaliser (cancel_thread t) event
 
   let to_stream event =
-    let stream, push, set_ref = Lwt_stream.create_with_reference () in
+    let stream, push, set_ref = Eliom_stream.create_with_reference () in
     set_ref (map (fun x -> push (Some x)) event);
     stream
 
@@ -88,7 +88,7 @@ module E = struct
     let event, push = create () in
     let t =
       Lwt.pause () >>= fun () ->
-      Lwt_stream.iter
+      Eliom_stream.iter
         (fun v ->
            try push v
            with exn when Lwt.Exception_filter.run exn ->

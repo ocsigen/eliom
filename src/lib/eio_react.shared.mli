@@ -41,7 +41,7 @@ module E : sig
         can be effectively “lost.”
 
       To robustly asynchronously process occurrences of [e] in a loop, use
-      [to_stream e], and repeatedly call {!Lwt_stream.next} on the resulting
+      [to_stream e], and repeatedly call {!Eliom_stream.next} on the resulting
       stream. *)
 
   val limit : (unit -> unit Lwt.t) -> 'a event -> 'a event
@@ -55,11 +55,11 @@ module E : sig
         returns a value. If [f] raises an exception, the event is just
         stopped. *)
 
-  val to_stream : 'a event -> 'a Lwt_stream.t
+  val to_stream : 'a event -> 'a Eliom_stream.t
   (** Creates a stream holding all values occurring on the given
         event *)
 
-  val of_stream : 'a Lwt_stream.t -> 'a event
+  val of_stream : 'a Eliom_stream.t -> 'a event
   (** [of_stream stream] creates an event which occurs each time a
         value is available on the stream.
 

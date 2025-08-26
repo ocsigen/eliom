@@ -104,7 +104,7 @@ end
    pending element. *)
 let clone s =
   (match s.source with
-  | Push_bounded _ -> invalid_arg "Lwt_stream.clone"
+  | Push_bounded _ -> invalid_arg "Eliom_stream.clone"
   | From _ | From_direct _ | Push _ -> ());
   { source = s.source
   ; close = s.close
@@ -235,7 +235,7 @@ class ['a] bounded_push_impl (info : 'a push_bounded) wakener_cell last close =
     method size = info.pushb_size
 
     method resize size =
-      if size < 0 then invalid_arg "Lwt_stream.bounded_push#resize";
+      if size < 0 then invalid_arg "Eliom_stream.bounded_push#resize";
       info.pushb_size <- size;
       if info.pushb_count < info.pushb_size && info.pushb_pending <> None
       then (
@@ -310,7 +310,7 @@ class ['a] bounded_push_impl (info : 'a push_bounded) wakener_cell last close =
   end
 
 let create_bounded size =
-  if size < 0 then invalid_arg "Lwt_stream.create_bounded";
+  if size < 0 then invalid_arg "Eliom_stream.create_bounded";
   (* Create the source for notifications of new elements. *)
   let info, wakener_cell =
     let waiter, wakener = Lwt.wait () in
@@ -808,7 +808,8 @@ let iter_n ?(max_concurrency = 1) f stream =
   (if max_concurrency <= 0
    then
      let message =
-       Printf.sprintf "Lwt_stream.iter_n: max_concurrency must be > 0, %d given"
+       Printf.sprintf
+         "Eliom_stream.iter_n: max_concurrency must be > 0, %d given"
          max_concurrency
      in
      invalid_arg message);
@@ -940,7 +941,7 @@ let choose streams =
 
 let parse s f =
   (match s.source with
-  | Push_bounded _ -> invalid_arg "Lwt_stream.parse"
+  | Push_bounded _ -> invalid_arg "Eliom_stream.parse"
   | From _ | From_direct _ | Push _ -> ());
   let node = s.node in
   Lwt.catch

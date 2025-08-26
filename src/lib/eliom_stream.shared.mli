@@ -55,7 +55,7 @@ val create_with_reference : unit -> 'a t * ('a option -> unit) * ('b -> unit)
     For example, to convert a reactive event to a stream:
 
     {[
-      let stream, push, set_ref = Lwt_stream.create_with_reference () in
+      let stream, push, set_ref = Eliom_stream.create_with_reference () in
       set_ref (map_event push event)
     ]}
 *)
@@ -79,11 +79,11 @@ class type ['a] bounded_push = object
   method push : 'a -> unit Lwt.t
   (** Pushes a new element to the stream. If the stream is full then
       it will block until one element is consumed. If another thread
-      is already blocked on [push], it raises {!Lwt_stream.Full}. *)
+      is already blocked on [push], it raises {!Eliom_stream.Full}. *)
 
   method close : unit
   (** Closes the stream. Any thread currently blocked on a call to
-      the [push] method fails with {!Lwt_stream.Closed}. *)
+      the [push] method fails with {!Eliom_stream.Closed}. *)
 
   method count : int
   (** Number of elements in the stream queue. *)
@@ -161,13 +161,13 @@ val clone : 'a t -> 'a t
     For example:
 
     {[
-      # let st1 = Lwt_stream.of_list [1; 2; 3];;
-      val st1 : int Lwt_stream.t = <abstr>
-      # let st2 = Lwt_stream.clone st1;;
-      val st2 : int Lwt_stream.t = <abstr>
-      # lwt x = Lwt_stream.next st1;;
+      # let st1 = Eliom_stream.of_list [1; 2; 3];;
+      val st1 : int Eliom_stream.t = <abstr>
+      # let st2 = Eliom_stream.clone st1;;
+      val st2 : int Eliom_stream.t = <abstr>
+      # lwt x = Eliom_stream.next st1;;
       val x : int = 1
-      # lwt y = Lwt_stream.next st2;;
+      # lwt y = Eliom_stream.next st2;;
       val y : int = 1
     ]}
 
@@ -276,13 +276,13 @@ val junk_old : 'a t -> unit Lwt.t
     For example:
 
     {[
-      # let st1 = Lwt_stream.of_list [1; 2; 3];;
-      val st1 : int Lwt_stream.t = <abstr>
-      # let st2 = Lwt_stream.map string_of_int st1;;
-      val st2 : string Lwt_stream.t = <abstr>
-      # lwt x = Lwt_stream.next st1;;
+      # let st1 = Eliom_stream.of_list [1; 2; 3];;
+      val st1 : int Eliom_stream.t = <abstr>
+      # let st2 = Eliom_stream.map string_of_int st1;;
+      val st2 : string Eliom_stream.t = <abstr>
+      # lwt x = Eliom_stream.next st1;;
       val x : int = 1
-      # lwt y = Lwt_stream.next st2;;
+      # lwt y = Eliom_stream.next st2;;
       val y : string = "2"
     ]}
 *)
@@ -394,7 +394,7 @@ val hexdump : char t -> string t
       let () = Lwt_main.run begin
           Lwt_io.write_lines
             Lwt_io.stdout
-            (Lwt_stream.hexdump (Lwt_io.read_lines Lwt_io.stdin))
+            (Eliom_stream.hexdump (Lwt_io.read_lines Lwt_io.stdin))
         end
     ]}
 *)

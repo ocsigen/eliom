@@ -22,7 +22,7 @@ open Lwt.Syntax
 *)
 
 (* Module for event unwrapping *)
-open Lwt_react
+open Eio_react
 open Lwt.Infix
 
 let section = Logs.Src.create "eliom:comet"
@@ -50,9 +50,9 @@ module Down = struct
     (* We want to catch more exceptions here than the usual exceptions caught
        in Eliom_comet. For example Channel_full. *)
     (* We transform the stream into a stream with exception: *)
-    let stream = Lwt_stream.wrap_exn channel in
+    let stream = Eliom_stream.wrap_exn channel in
     Lwt.async (fun () ->
-      Lwt_stream.iter_s
+      Eliom_stream.iter_s
         (function
           | Error exn ->
               let* () = handle_react_exn ~exn () in

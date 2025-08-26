@@ -21,7 +21,7 @@
 [%%shared
 open Lwt.Syntax
 
-(* put this in Lwt_react? Find a better name? *)
+(* put this in Eio_react? Find a better name? *)
 let to_signal ~init ?eq (th : 'a React.S.t Lwt.t) : 'a React.S.t =
   let s, set = React.S.create ?eq init in
   Lwt.async (fun () ->
@@ -80,43 +80,43 @@ module React = struct
     end
 
     module Lwt = struct
-      let map_s = Lwt_react.S.map_s
+      let map_s = Eio_react.S.map_s
 
       let map_s_init ~init ?eq f s =
         let th = map_s ?eq f s in
         to_signal ~init ?eq th
 
-      let l2_s = Lwt_react.S.l2_s
+      let l2_s = Eio_react.S.l2_s
 
       let l2_s_init ~init ?eq f s1 s2 =
         let th = l2_s ?eq f s1 s2 in
         to_signal ~init ?eq th
 
-      let l3_s = Lwt_react.S.l3_s
+      let l3_s = Eio_react.S.l3_s
 
       let l3_s_init ~init ?eq f s1 s2 s3 =
         let th = l3_s ?eq f s1 s2 s3 in
         to_signal ~init ?eq th
 
-      let l4_s = Lwt_react.S.l4_s
+      let l4_s = Eio_react.S.l4_s
 
       let l4_s_init ~init ?eq f s1 s2 s3 s4 =
         let th = l4_s ?eq f s1 s2 s3 s4 in
         to_signal ~init ?eq th
 
-      let l5_s = Lwt_react.S.l5_s
+      let l5_s = Eio_react.S.l5_s
 
       let l5_s_init ~init ?eq f s1 s2 s3 s4 s5 =
         let th = l5_s ?eq f s1 s2 s3 s4 s5 in
         to_signal ~init ?eq th
 
-      let l6_s = Lwt_react.S.l6_s
+      let l6_s = Eio_react.S.l6_s
 
       let l6_s_init ~init ?eq f s1 s2 s3 s4 s5 s6 =
         let th = l6_s ?eq f s1 s2 s3 s4 s5 s6 in
         to_signal ~init ?eq th
 
-      let merge_s = Lwt_react.S.merge_s
+      let merge_s = Eio_react.S.merge_s
 
       let merge_s_init ~init ?eq f a l =
         let th = merge_s ?eq f a l in
