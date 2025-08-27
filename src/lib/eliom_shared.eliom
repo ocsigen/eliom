@@ -24,12 +24,10 @@ open Eio.Std
 (* put this in Eio_react? Find a better name? *)
 let to_signal ~init ?eq (th : 'a React.S.t Promise.t) : 'a React.S.t =
   let s, set = React.S.create ?eq init in
-  Fiber.fork
-    ~sw:(Stdlib.Option.get (Fiber.get Ocsigen_lib.current_switch))
-    (fun () ->
-       let ss = Promise.await th in
-       let effectful_signal = React.S.map (fun v -> set v) ss in
-       ignore (React.S.retain s (fun () -> ignore effectful_signal)));
+  Eliom_lib.fork (fun () ->
+    let ss = Promise.await th in
+    let effectful_signal = React.S.map (fun v -> set v) ss in
+    ignore (React.S.retain s (fun () -> ignore effectful_signal)));
   s]
 
 [%%client
@@ -168,24 +166,22 @@ module ReactiveData = struct
         Promise.resolve (snd !waiter) ();
         React.E.map
           (fun msg ->
-             Fiber.fork
-               ~sw:(Stdlib.Option.get (Fiber.get Ocsigen_lib.current_switch))
-               (fun () ->
-                  let waiter1 = !waiter in
-                  let new_waiter =
-                    Promise.create
-                      (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
-                      ()
-                  in
-                  waiter := new_waiter;
-                  let new_msg = map_msg_p_lwt f msg in
-                  let _, rhandle = r_th in
-                  let () = fst waiter1 in
-                  (match new_msg with
-                  | ReactiveData.RList.Set s -> ReactiveData.RList.set rhandle s
-                  | ReactiveData.RList.Patch p ->
-                      ReactiveData.RList.patch rhandle p);
-                  Promise.resolve (snd new_waiter) ()))
+             Eliom_lib.fork (fun () ->
+               let waiter1 = !waiter in
+               let new_waiter =
+                 Promise.create
+                   (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
+                   ()
+               in
+               waiter := new_waiter;
+               let new_msg = map_msg_p_lwt f msg in
+               let _, rhandle = r_th in
+               let () = fst waiter1 in
+               (match new_msg with
+               | ReactiveData.RList.Set s -> ReactiveData.RList.set rhandle s
+               | ReactiveData.RList.Patch p ->
+                   ReactiveData.RList.patch rhandle p);
+               Promise.resolve (snd new_waiter) ()))
           event
 
       (** Same as map_p but we do not compute the initial list.
