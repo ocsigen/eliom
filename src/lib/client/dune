@@ -28,7 +28,8 @@
   logs.browser
   cohttp
   tyxml
-  reactiveData)
+  reactiveData
+  js_of_ocaml-eio)
  (foreign_stubs
   (language c)
   (names eliom_stubs))

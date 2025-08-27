@@ -1,3 +1,5 @@
+open Eio.Std
+
 (* Ocsigen
  * http://www.ocsigen.org
  * Module eliommod_sessexpl.ml
@@ -26,8 +28,6 @@
 (*****************************************************************************)
 (*****************************************************************************)
 
-open Lwt
-
 (*****************************************************************************)
 (* Iterators on cookies *)
 
@@ -37,8 +37,10 @@ let iter_service_cookies f =
     Eliom_request_info.find_sitedata "Eliommod_sessexpl.iter_service_cookies"
   in
   Eliom_common.SessionCookies.fold
-    (fun k v thr -> thr >>= fun () -> f (k, v) >>= Lwt.pause)
-    sitedata.Eliom_common.session_services return_unit
+    (fun k v thr ->
+       thr;
+       Fiber.yield (f (k, v)))
+    sitedata.Eliom_common.session_services ()
 
 (** Iterator on data cookies *)
 let iter_data_cookies f =
@@ -46,13 +48,15 @@ let iter_data_cookies f =
     Eliom_request_info.find_sitedata "Eliommod_sessexpl.iter_data_cookies"
   in
   Eliom_common.SessionCookies.fold
-    (fun k v thr -> thr >>= fun () -> f (k, v) >>= Lwt.pause)
-    sitedata.Eliom_common.session_data return_unit
+    (fun k v thr ->
+       thr;
+       Fiber.yield (f (k, v)))
+    sitedata.Eliom_common.session_data ()
 
 (** Iterator on persistent cookies *)
 let iter_persistent_cookies f =
   Eliommod_cookies.Persistent_cookies.Cookies.iter (fun k v ->
-    f (k, v) >>= Lwt.pause)
+    Fiber.yield (f (k, v)))
 
 (** Iterator on service cookies *)
 let fold_service_cookies f beg =
@@ -61,10 +65,10 @@ let fold_service_cookies f beg =
   in
   Eliom_common.SessionCookies.fold
     (fun k v thr ->
-       thr >>= fun res1 ->
-       f (k, v) res1 >>= fun res ->
-       Lwt.pause () >>= fun () -> return res)
-    sitedata.Eliom_common.session_services (return beg)
+       let res1 = thr in
+       let res = f (k, v) res1 in
+       Fiber.yield (); res)
+    sitedata.Eliom_common.session_services beg
 
 (** Iterator on data cookies *)
 let fold_data_cookies f beg =
@@ -73,17 +77,17 @@ let fold_data_cookies f beg =
   in
   Eliom_common.SessionCookies.fold
     (fun k v thr ->
-       thr >>= fun res1 ->
-       f (k, v) res1 >>= fun res ->
-       Lwt.pause () >>= fun () -> return res)
-    sitedata.Eliom_common.session_data (return beg)
+       let res1 = thr in
+       let res = f (k, v) res1 in
+       Fiber.yield (); res)
+    sitedata.Eliom_common.session_data beg
 
 (** Iterator on persistent cookies *)
 let fold_persistent_cookies f beg =
   Eliommod_cookies.Persistent_cookies.Cookies.fold
     (fun k v beg ->
-       f (k, v) beg >>= fun res ->
-       Lwt.pause () >>= fun () -> return res)
+       let res = f (k, v) beg in
+       Fiber.yield (); res)
     beg
 
 (*****************************************************************************)

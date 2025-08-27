@@ -1,3 +1,5 @@
+open Eio.Std
+
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2010 Vincent Balat
@@ -311,7 +313,7 @@ let get_site_dir_option () =
     None
 
 let get_site_dir_sp sp = Eliom_common.get_site_dir sp.Eliom_common.sp_sitedata
-let in_request_handler () = Lwt.get Eliom_common.sp_key <> None
+let in_request_handler () = Fiber.get Eliom_common.sp_key <> None
 
 let get_request () =
   let sp = Eliom_common.get_sp () in
@@ -338,8 +340,8 @@ let set_site_handler sitedata handler =
   sitedata.Eliom_common.exn_handler <- handler
 
 type raw_post_data =
-  ((string * string) * (string * string) list) option * Cohttp_lwt.Body.t
+  ((string * string) * (string * string) list) option * Cohttp_eio.Body.t
 
 let raw_post_data sp =
   let ri = get_ri_sp sp in
-  Lwt.return (Ocsigen_request.content_type ri, Ocsigen_request.body ri)
+  Ocsigen_request.content_type ri, Ocsigen_request.body ri
