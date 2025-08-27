@@ -169,7 +169,7 @@ module Configuration = struct
     let rec aux t =
       let () =
         Fiber.any
-          [ (fun () -> Js_of_ocaml_lwt.Lwt_js.sleep t)
+          [ (fun () -> Js_of_ocaml_eio.Eio_js.sleep t)
           ; (fun () -> Promise.await !update_configuration_waiter)
           ; active_waiter ]
       in
@@ -552,7 +552,7 @@ end = struct
                 set_activity hd `Inactive;
                 aux 0)
               else
-                let () = Js_of_ocaml_lwt.Lwt_js.sleep (delay retries) in
+                let () = Js_of_ocaml_eio.Eio_js.sleep (delay retries) in
                 aux (retries + 1)
           | Restart ->
               Logs.info ~src:section (fun fmt -> fmt "restart");

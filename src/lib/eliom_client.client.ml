@@ -1023,7 +1023,7 @@ let init () =
           (* Give the browser the chance to actually display the page NOW *)
             ()
         =
-        Js_of_ocaml_lwt.Lwt_js.sleep 0.001
+        Js_of_ocaml_eio.Eio_js.sleep 0.001
       in
       (* Ordering matters. See [Eliom_client.set_content] for explanations *)
       relink_request_nodes Dom_html.document##.documentElement;
@@ -1060,7 +1060,7 @@ let init () =
   if Dom_html.document##.readyState = Js.string "complete"
   then
     Js_of_ocaml_eio.Eio_js.start (fun () ->
-      let () = Js_of_ocaml_lwt.Lwt_js_events.request_animation_frame () in
+      let () = Js_of_ocaml_eio.Eio_js_events.request_animation_frame () in
       let _ = onload () in
       ())
   else
@@ -2206,13 +2206,13 @@ let () =
             let () = run_lwt_callbacks ev (flush_onchangepage ()) in
             restore_history_dom target_id;
             set_current_uri uri;
-            let () = Js_of_ocaml_lwt.Lwt_js_events.request_animation_frame () in
+            let () = Js_of_ocaml_eio.Eio_js_events.request_animation_frame () in
             scroll_to_fragment ~offset:state.position fragment;
             let
                 (* Wait for the dom to be repainted before scrolling *)
                   ()
               =
-              Js_of_ocaml_lwt.Lwt_js_events.request_animation_frame ()
+              Js_of_ocaml_eio.Eio_js_events.request_animation_frame ()
             in
             scroll_to_fragment ~offset:state.position fragment
             (* When we use iPhone, we need to wait for one more
