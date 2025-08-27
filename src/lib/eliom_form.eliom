@@ -151,14 +151,12 @@ module Make_links (Html : Html) = struct
               then (
                 Dom.preventDefault ev;
                 Dom_html.stopPropagation ev;
-                Fiber.fork
-                  ~sw:(Stdlib.Option.get (Fiber.get Ocsigen_lib.current_switch))
-                  (fun () ->
-                     Eliom_client.change_page ?absolute:~%absolute
-                       ?absolute_path:~%absolute_path ?https:~%https
-                       ~service:~%service ?hostname:~%hostname ?port:~%port
-                       ?fragment:~%fragment ?keep_nl_params:~%keep_nl_params
-                       ?nl_params:~%nl_params ~%getparams ()))]
+                Eliom_lib.fork (fun () ->
+                  Eliom_client.change_page ?absolute:~%absolute
+                    ?absolute_path:~%absolute_path ?https:~%https
+                    ~service:~%service ?hostname:~%hostname ?port:~%port
+                    ?fragment:~%fragment ?keep_nl_params:~%keep_nl_params
+                    ?nl_params:~%nl_params ~%getparams ()))]
         in
         Html.a_onclick f :: href :: a
       else href :: a
