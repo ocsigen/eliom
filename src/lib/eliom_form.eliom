@@ -16,10 +16,12 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 open%shared Js_of_ocaml
+
 [%%client.start]
+
 open Lwt.Syntax
 
 let read_params form y =
@@ -100,8 +102,17 @@ let get_xhr = function
 module Make_links (Html : Html) = struct
   type +'a attrib = 'a Html.attrib
 
-  let make_uri ?absolute ?absolute_path ?https ~service ?hostname ?port
-      ?fragment ?keep_nl_params ?nl_params gp
+  let make_uri
+        ?absolute
+        ?absolute_path
+        ?https
+        ~service
+        ?hostname
+        ?port
+        ?fragment
+        ?keep_nl_params
+        ?nl_params
+        gp
     =
     Html.uri_of_fun @@ fun () ->
     Eliom_uri.make_string_uri ?absolute ?absolute_path ?https ?fragment ~service
@@ -109,8 +120,20 @@ module Make_links (Html : Html) = struct
 
   let uri_of_string = Html.uri_of_fun
 
-  let a ?absolute ?absolute_path ?https ?(a = []) ~service ?hostname ?port
-      ?fragment ?keep_nl_params ?nl_params ?xhr content getparams
+  let a
+        ?absolute
+        ?absolute_path
+        ?https
+        ?(a = [])
+        ~service
+        ?hostname
+        ?port
+        ?fragment
+        ?keep_nl_params
+        ?nl_params
+        ?xhr
+        content
+        getparams
     =
     let a =
       let a = (a :> Html_types.a_attrib attrib list) in
@@ -230,9 +253,20 @@ module Make (Html : Html) = struct
 
   let make_post_uri_components = Eliom_uri.make_post_uri_components
 
-  let get_form_ bind return ?absolute ?absolute_path ?https ?a ~service
-      ?hostname ?port ?fragment
-      ?(nl_params = Eliom_parameter.empty_nl_params_set) ?keep_nl_params f
+  let get_form_
+        bind
+        return
+        ?absolute
+        ?absolute_path
+        ?https
+        ?a
+        ~service
+        ?hostname
+        ?port
+        ?fragment
+        ?(nl_params = Eliom_parameter.empty_nl_params_set)
+        ?keep_nl_params
+        f
     =
     let issuffix, paramnames =
       Eliom_parameter.make_params_names (Eliom_service.get_params_type service)
@@ -275,8 +309,19 @@ module Make (Html : Html) = struct
     in
     return (Html.lazy_form ~a inside)
 
-  let get_form ?absolute ?absolute_path ?https ?a ~service ?hostname ?port
-      ?fragment ?keep_nl_params ?nl_params ?xhr:_ f
+  let get_form
+        ?absolute
+        ?absolute_path
+        ?https
+        ?a
+        ~service
+        ?hostname
+        ?port
+        ?fragment
+        ?keep_nl_params
+        ?nl_params
+        ?xhr:_
+        f
     =
     get_form_
       (fun x f -> f x)
@@ -284,11 +329,22 @@ module Make (Html : Html) = struct
       ?absolute ?absolute_path ?https ?a ~service ?keep_nl_params ?nl_params
       ?hostname ?port ?fragment f
 
-  let post_form_ bind return ?absolute ?absolute_path ?https ?a ~service
-      ?hostname ?port ?fragment
-      ?(nl_params = Eliom_parameter.empty_nl_params_set)
-      ?(keep_nl_params : [`All | `Persistent | `None] option)
-      ?keep_get_na_params f get_params
+  let post_form_
+        bind
+        return
+        ?absolute
+        ?absolute_path
+        ?https
+        ?a
+        ~service
+        ?hostname
+        ?port
+        ?fragment
+        ?(nl_params = Eliom_parameter.empty_nl_params_set)
+        ?(keep_nl_params : [`All | `Persistent | `None] option)
+        ?keep_get_na_params
+        f
+        get_params
     =
     let _, paramnames =
       Eliom_parameter.make_params_names (Eliom_service.post_params_type service)
@@ -316,9 +372,21 @@ module Make (Html : Html) = struct
     in
     return (make_post_form ?a ~action inside)
 
-  let post_form ?absolute ?absolute_path ?https ?a ~service ?hostname ?port
-      ?fragment ?keep_nl_params ?keep_get_na_params ?nl_params ?xhr:_ f
-      getparams
+  let post_form
+        ?absolute
+        ?absolute_path
+        ?https
+        ?a
+        ~service
+        ?hostname
+        ?port
+        ?fragment
+        ?keep_nl_params
+        ?keep_get_na_params
+        ?nl_params
+        ?xhr:_
+        f
+        getparams
     =
     post_form_
       (fun x f -> f x)
@@ -402,8 +470,14 @@ module Make (Html : Html) = struct
         * 'a soption list
     | Option of 'a soption
 
-  let gen_select ?a ?(multiple = false) ?required ~name (fl : 'a select_opt)
-      (ol : 'a select_opt list) string_of
+  let gen_select
+        ?a
+        ?(multiple = false)
+        ?required
+        ~name
+        (fl : 'a select_opt)
+        (ol : 'a select_opt list)
+        string_of
     =
     let a = (a :> Html_types.select_attrib attrib list option) in
     let a =
@@ -512,8 +586,19 @@ module Make (Html : Html) = struct
 
   let a_onsubmit_service info = Html.attrib_of_service "onsubmit" info
 
-  let get_form ?absolute ?absolute_path ?https ?(a = []) ~service ?hostname
-      ?port ?fragment ?keep_nl_params ?nl_params ?xhr contents
+  let get_form
+        ?absolute
+        ?absolute_path
+        ?https
+        ?(a = [])
+        ~service
+        ?hostname
+        ?port
+        ?fragment
+        ?keep_nl_params
+        ?nl_params
+        ?xhr
+        contents
     =
     let a =
       let a = (a :> Html_types.form_attrib attrib list) in
@@ -529,8 +614,19 @@ module Make (Html : Html) = struct
     get_form ?absolute ?absolute_path ?https ~a ~service ?hostname ?port
       ?fragment ?keep_nl_params ?nl_params contents
 
-  let lwt_get_form ?absolute ?absolute_path ?https ?(a = []) ~service ?hostname
-      ?port ?fragment ?keep_nl_params ?nl_params ?xhr contents
+  let lwt_get_form
+        ?absolute
+        ?absolute_path
+        ?https
+        ?(a = [])
+        ~service
+        ?hostname
+        ?port
+        ?fragment
+        ?keep_nl_params
+        ?nl_params
+        ?xhr
+        contents
     =
     let a =
       let a = (a :> Html_types.form_attrib attrib list) in
@@ -546,9 +642,21 @@ module Make (Html : Html) = struct
     get_form_ Lwt.bind Lwt.return ?absolute ?absolute_path ?https ~a ~service
       ?hostname ?port ?fragment ?nl_params ?keep_nl_params contents
 
-  let post_form ?absolute ?absolute_path ?https ?(a = []) ~service ?hostname
-      ?port ?fragment ?keep_nl_params ?keep_get_na_params ?nl_params ?xhr
-      contents getparams
+  let post_form
+        ?absolute
+        ?absolute_path
+        ?https
+        ?(a = [])
+        ~service
+        ?hostname
+        ?port
+        ?fragment
+        ?keep_nl_params
+        ?keep_get_na_params
+        ?nl_params
+        ?xhr
+        contents
+        getparams
     =
     let a =
       let a = (a :> Html_types.form_attrib attrib list) in
@@ -566,9 +674,21 @@ module Make (Html : Html) = struct
       ?fragment ?keep_nl_params ?keep_get_na_params ?nl_params contents
       getparams
 
-  let lwt_post_form ?absolute ?absolute_path ?https ?(a = []) ~service ?hostname
-      ?port ?fragment ?keep_nl_params ?keep_get_na_params ?nl_params ?xhr
-      contents getparams
+  let lwt_post_form
+        ?absolute
+        ?absolute_path
+        ?https
+        ?(a = [])
+        ~service
+        ?hostname
+        ?port
+        ?fragment
+        ?keep_nl_params
+        ?keep_get_na_params
+        ?nl_params
+        ?xhr
+        contents
+        getparams
     =
     let a =
       let a = (a :> Html_types.form_attrib attrib list) in

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 open%shared Js_of_ocaml
 
@@ -135,7 +135,7 @@ module Xml = struct
            Js.Opt.case e##.firstChild
              (fun () ->
                 Dom.appendChild e
-                  Dom_html.document ## (createTextNode (Js.string x)))
+                  Dom_html.document##(createTextNode (Js.string x)))
              (fun e -> Dom.CoerceTo.text e >>! fun e -> e##.data := Js.string x)
          in
          if not ~%synced then update (React.S.value ~%s);

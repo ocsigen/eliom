@@ -598,7 +598,8 @@ end = struct
     try Hashtbl.find handler_ref_table scope_hierarchy
     with Not_found ->
       let eref =
-        Eliom_reference.Volatile.eref ~scope:(`Client_process scope_hierarchy) None
+        Eliom_reference.Volatile.eref ~scope:(`Client_process scope_hierarchy)
+          None
       in
       Hashtbl.add handler_ref_table scope_hierarchy eref;
       eref
