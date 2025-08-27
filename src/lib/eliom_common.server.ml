@@ -1,4 +1,4 @@
-open Lwt.Syntax
+open Eio.Std
 
 (* Ocsigen
  * http://www.ocsigen.org
@@ -242,11 +242,11 @@ type 'a cookie_info1 =
   (* None = new cookie
       (not sent by the browser) *)
   * one_persistent_cookie_info session_cookie ref)
+    Promise.t
     (* SCNo_data = the session has been closed
       SCData_session_expired = the cookie has not been found in the table.
       For both of them, ask the browser to remove the cookie.
     *)
-    Lwt.t
     Lazy.t
     Full_state_name_table.t
     ref
@@ -383,7 +383,7 @@ and naservice_table_content =
   (* max_use *)
   * (float * float ref) option
   (* timeout and expiration date *)
-  * (server_params -> Ocsigen_response.t Lwt.t)
+  * (server_params -> Ocsigen_response.t)
   * (page_table ref * page_table_key, na_key_serv) leftright
       Ocsigen_cache.Dlist.node
       option
@@ -474,7 +474,7 @@ and sitedata =
   ; (* Limitation of the number of groups per site *)
     mutable remove_session_data : string -> unit
   ; mutable not_bound_in_data_tables : string -> bool
-  ; mutable exn_handler : exn -> Ocsigen_response.t Lwt.t
+  ; mutable exn_handler : exn -> Ocsigen_response.t
   ; mutable unregistered_services : Url.path list
   ; mutable unregistered_na_services : na_key_serv list
   ; mutable max_volatile_data_sessions_per_group : int * bool
@@ -597,11 +597,11 @@ let make_server_params
   ; sp_full_state_name = full_state_name
   ; sp_client_process_info = cpi }
 
-let sp_key = Lwt.new_key ()
-let get_sp_option () = Lwt.get sp_key
+let sp_key = Fiber.create_key ()
+let get_sp_option () = Fiber.get sp_key
 
 let get_sp () =
-  match Lwt.get sp_key with
+  match Fiber.get sp_key with
   | Some sp -> sp
   | None ->
       let msg =
@@ -860,7 +860,6 @@ let get_mask4 sitedata = get_mask4 sitedata.ipv4mask
 let get_mask6 sitedata = get_mask6 sitedata.ipv6mask
 
 (*****************************************************************************)
-open Lwt
 
 (* The cookie name is
 
@@ -940,7 +939,7 @@ let get_session_info ~sitedata ~req previous_extension_err =
       Ocsigen_request.post_params ri ci.Ocsigen_extensions.uploaddir
         ci.Ocsigen_extensions.maxuploadfilesize
     with
-    | None -> true, Lwt.return []
+    | None -> true, []
     | Some v -> false, v
   in
   let no_file_param, file_params =
@@ -948,10 +947,10 @@ let get_session_info ~sitedata ~req previous_extension_err =
       Ocsigen_request.files ri ci.Ocsigen_extensions.uploaddir
         ci.Ocsigen_extensions.maxuploadfilesize
     with
-    | None -> true, Lwt.return []
+    | None -> true, []
     | Some v -> false, v
   in
-  let* post_params = p in
+  let post_params = p in
   let previous_tab_cookies_info, tab_cookies, post_params =
     try
       let tci, utc, tc =
@@ -1027,7 +1026,7 @@ let get_session_info ~sitedata ~req previous_extension_err =
   *)
   let get_params0 = get_params in
   let post_params0 = post_params in
-  let* file_params0 = file_params in
+  let file_params0 = file_params in
   let ( get_params
       , post_params
       , file_params
@@ -1272,10 +1271,9 @@ let get_session_info ~sitedata ~req previous_extension_err =
       ; si_expect_process_data =
           epd (*204FORMS*     si_internal_form= internal_form; *) } )
   in
-  Lwt.return
-    ( {req_whole with Ocsigen_extensions.request_info = ri}
-    , sess
-    , previous_tab_cookies_info )
+  ( {req_whole with Ocsigen_extensions.request_info = ri}
+  , sess
+  , previous_tab_cookies_info )
 
 exception Eliom_retry_with of info
 
@@ -1299,7 +1297,7 @@ module Omit_persistent_storage = struct
     | _ -> false
 
   let not_if_omitting_storage f =
-    if check_if_omitting_storage () then Lwt.return_unit else f ()
+    if check_if_omitting_storage () then () else f ()
 end
 
 module Ocsipersist = struct
@@ -1371,34 +1369,38 @@ module Persistent_tables = struct
 
   (** removes the entry from all opened tables *)
   let remove_key_from_all_tables key =
-    (* doesn't remove entry from Persistent_cookies_expiry_dates; not a problem *)
-    Lwt_list.iter_s
+    List.iter
+      (* doesn't remove entry from Persistent_cookies_expiry_dates; not a problem *)
       (fun (module T : Ocsipersist.TABLE with type key = string) ->
          T.remove key)
-      !functorial_tables
-    >>= fun () ->
-    Lwt_list.iter_s (* could be replaced by iter_p *)
+      !functorial_tables;
+    List.iter
+      (* could be replaced by iter_p *)
       (fun t ->
-         Ocsipersist.Polymorphic.open_table t >>= fun table ->
-         Ocsipersist.Polymorphic.remove table key >>= Lwt.pause)
+         let table = Ocsipersist.Polymorphic.open_table t in
+         Fiber.yield (Ocsipersist.Polymorphic.remove table key))
       !polymorphic_tables
 
   let number_of_tables () =
     List.length !polymorphic_tables + List.length !functorial_tables
 
   let number_of_table_elements () =
-    Lwt_list.map_s
-      (fun t ->
-         Ocsipersist.Polymorphic.open_table t >>= fun table ->
-         Ocsipersist.Polymorphic.length table >>= fun e -> Lwt.return (t, e))
-      !polymorphic_tables
-    >>= fun polymorphic_counts ->
-    Lwt_list.map_s
-      (fun (module T : Ocsipersist.TABLE with type key = string) ->
-         T.length () >>= fun n -> Lwt.return (T.name, n))
-      !functorial_tables
-    >>= fun functorial_counts ->
-    Lwt.return @@ polymorphic_counts @ functorial_counts
+    let polymorphic_counts =
+      List.map
+        (fun t ->
+           let table = Ocsipersist.Polymorphic.open_table t in
+           let e = Ocsipersist.Polymorphic.length table in
+           t, e)
+        !polymorphic_tables
+    in
+    let functorial_counts =
+      List.map
+        (fun (module T : Ocsipersist.TABLE with type key = string) ->
+           let n = T.length () in
+           T.name, n)
+        !functorial_tables
+    in
+    polymorphic_counts @ functorial_counts
 end
 
 (**** Wrapper type shared by client/server side ***)

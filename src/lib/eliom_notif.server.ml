@@ -1,4 +1,4 @@
-open Lwt
+open Eio.Std
 
 (* We use a hashtable associating resourceid to a weak set of
    (userid option, notif_ev) corresponding to each tab that want to
@@ -12,7 +12,7 @@ module type S = sig
   type server_notif
   type client_notif
 
-  val init : unit -> unit Lwt.t
+  val init : unit -> unit
   val deinit : unit -> unit
   val listen : key -> unit
   val unlisten : key -> unit
@@ -36,10 +36,10 @@ module type ARG = sig
   type server_notif
   type client_notif
 
-  val prepare : identity -> server_notif -> client_notif option Lwt.t
+  val prepare : identity -> server_notif -> client_notif option
   val equal_key : key -> key -> bool
   val equal_identity : identity -> identity -> bool
-  val get_identity : unit -> identity Lwt.t
+  val get_identity : unit -> identity
   val max_resource : int
   val max_identity_per_resource : int
 end
@@ -102,16 +102,20 @@ module Make (A : ARG) :
       if not (Weak_tbl.mem wt v) then Weak_tbl.add wt v
 
     let iter =
-      let iter (f : Weak_tbl.data -> unit Lwt.t) wt : unit =
-        Weak_tbl.iter (fun data -> Lwt.async (fun () -> f data)) wt
+      let iter (f : Weak_tbl.data -> unit) wt : unit =
+        Weak_tbl.iter
+          (fun data ->
+             Fiber.fork
+               ~sw:(Stdlib.Option.get (Fiber.get Ocsigen_lib.current_switch))
+               (fun () -> f data))
+          wt
       in
       fun f key ->
         try
           let wt = Notif_hashtbl.find tbl key in
           let g data =
             match data with
-            | None ->
-                Weak_tbl.remove wt data; remove_if_empty wt key; Lwt.return_unit
+            | None -> Weak_tbl.remove wt data; remove_if_empty wt key
             | Some v -> f v
           in
           iter g wt
@@ -149,9 +153,10 @@ module Make (A : ARG) :
     Eliom_reference.Volatile.set identity_r (Some (identity, notif_e))
 
   let set_current_identity () =
-    A.get_identity () >>= fun identity -> set_identity identity; Lwt.return_unit
+    let identity = A.get_identity () in
+    set_identity identity
 
-  let init : unit -> unit Lwt.t = fun () -> set_current_identity ()
+  let init : unit -> unit = fun () -> set_current_identity ()
   let deinit () = Eliom_reference.Volatile.set identity_r None
 
   let listen (key : A.key) =
@@ -180,14 +185,10 @@ module Make (A : ARG) :
         | None -> false
       in
       if blocked
-      then Lwt.return_unit
+      then ()
       else
-        A.prepare identity content >>= fun content ->
-        match content with
-        | Some content ->
-            send_e (key, content);
-            Lwt.return_unit
-        | None -> Lwt.return_unit
+        let content = A.prepare identity content in
+        match content with Some content -> send_e (key, content) | None -> ()
     in
     (* on all tabs listening on this resource *)
     I.iter f key
@@ -208,7 +209,7 @@ module type ARG_SIMPLE = sig
   type key
   type notification
 
-  val get_identity : unit -> identity Lwt.t
+  val get_identity : unit -> identity
 end
 
 module Make_Simple (A : ARG_SIMPLE) = Make (struct
@@ -217,7 +218,7 @@ module Make_Simple (A : ARG_SIMPLE) = Make (struct
     type server_notif = A.notification
     type client_notif = A.notification
 
-    let prepare _ n = Lwt.return_some n
+    let prepare _ n = Some n
     let equal_key = ( = )
     let equal_identity = ( = )
     let get_identity = A.get_identity

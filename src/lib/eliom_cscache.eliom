@@ -1,10 +1,10 @@
-open Lwt.Syntax
+open Eio.Std
 
 (* Copyright Vincent Balat *)
 
 [%%shared.start]
 
-type ('a, 'b) t = (unit -> ('a, 'b Lwt.t) Hashtbl.t) Eliom_shared.Value.t
+type ('a, 'b) t = (unit -> ('a, 'b Promise.t) Hashtbl.t) Eliom_shared.Value.t
 
 let%client create_ () =
   let c = Hashtbl.create 100 in
@@ -24,9 +24,9 @@ let do_cache_raw cache id data =
   let c = Eliom_shared.Value.local cache () in
   Hashtbl.replace c id data;
   (* Do not cache exceptions *)
-  ignore (Lwt.catch (fun _ -> data) (fun e -> Hashtbl.remove c id; Lwt.fail e))
+  ignore (try data with e -> Hashtbl.remove c id; raise e)
 
-let do_cache cache id data = do_cache_raw cache id (Lwt.return data)
+let do_cache cache id data = do_cache_raw cache id data
 
 let%server do_cache cache id v =
   do_cache cache id v;
@@ -36,9 +36,9 @@ let%server find cache get_data id =
   try Hashtbl.find ((Eliom_shared.Value.local cache) ()) id
   with Not_found ->
     let th =
-      let* v = get_data id in
+      let v = get_data id in
       ignore [%client.unsafe (do_cache ~%cache ~%id ~%v : unit)];
-      Lwt.return v
+      v
     in
     (* On server side, we put immediately in table the thread that is
        fetching the data.  in order to avoid fetching it several
@@ -62,4 +62,4 @@ let local_find cache id = Hashtbl.find ((Eliom_shared.Value.local cache) ()) id
 
 let find_if_ready cache id =
   let v = local_find cache id in
-  match Lwt.state v with Lwt.Return v -> v | _ -> raise Not_ready
+  match Promise.peek v with Some v -> v | _ -> raise Not_ready

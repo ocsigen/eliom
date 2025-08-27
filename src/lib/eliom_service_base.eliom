@@ -139,12 +139,12 @@ type ('get
   ; (* force https *)
     keep_nl_params : [`All | `Persistent | `None]
   ; mutable send_appl_content : send_appl_content
-    (* XNever when we create the service, then changed at registration
+  ; (* XNever when we create the service, then changed at registration
      :/ *)
-  ; (* If the service has a client-side implementation, we put the
+    (* If the service has a client-side implementation, we put the
      generating function here: *)
     mutable client_fun :
-      ('get -> 'post -> result Lwt.t) option ref Eliom_client_value.t option
+      ('get -> 'post -> result) option ref Eliom_client_value.t option
     (* The function is in a client-side reference, so that it is shared
      by all occurrences of the service sent from the server.
      For some service, we cannot create the client value immediately;
@@ -209,7 +209,7 @@ let priority s = s.priority
 
 let internal_set_client_fun
       ~service
-      (f : ('get -> 'post -> result Lwt.t) Eliom_client_value.t)
+      (f : ('get -> 'post -> result) Eliom_client_value.t)
   =
   service.client_fun <- Some [%client.unsafe ref (Some ~%f)]
 

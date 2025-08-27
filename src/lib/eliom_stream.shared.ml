@@ -1,7 +1,7 @@
+open Eio.Std
+
 (* This file is part of Lwt, released under the MIT license. See LICENSE.md for
    details, or visit https://github.com/ocsigen/lwt/blob/master/LICENSE.md. *)
-
-open Lwt.Infix
 
 exception Closed
 exception Full
@@ -24,9 +24,9 @@ let new_node () =
 
 (* Type of a stream source using a function to create new elements. *)
 type 'a from =
-  { from_create : unit -> 'a option Lwt.t
+  { from_create : unit -> 'a option
   ; (* Function used to create new elements. *)
-    mutable from_thread : unit Lwt.t
+    mutable from_thread : unit Promise.t
     (* Thread which:
 
      - wait for the thread returned by the last call to [from_next],
@@ -40,7 +40,7 @@ type 'a from =
 [@@@ocaml.warning "-69"]
 
 type push =
-  { mutable push_signal : unit Lwt.t
+  { mutable push_signal : unit Promise.t
   ; (* Thread signaled when a new element is added to the stream. *)
     mutable push_waiting : bool
   ; (* Is a thread waiting on [push_signal] ? *)
@@ -49,7 +49,7 @@ type push =
 
 (* Type of a stream source for bounded-push streams. *)
 type 'a push_bounded =
-  { mutable pushb_signal : unit Lwt.t
+  { mutable pushb_signal : unit Promise.t
   ; (* Thread signaled when a new element is added to the stream. *)
     mutable pushb_waiting : bool
   ; (* Is a thread waiting on [pushb_signal] ? *)
@@ -61,7 +61,7 @@ type 'a push_bounded =
   ; (* The next element to push if a thread blocked on push. We store it
      here to be sure it will be the first element to be added when
      space becomes available. *)
-    mutable pushb_push_waiter : unit Lwt.t
+    mutable pushb_push_waiter : unit Promise.t
   ; mutable pushb_push_wakener : unit Lwt.u
   ; (* Thread blocked on push. *)
     mutable pushb_external : Obj.t [@ocaml.warning "-69"]
@@ -81,7 +81,7 @@ type 'a t =
   ; (* The source of the stream. *)
     close : unit Lwt.u
   ; (* A wakener for a thread that sleeps until the stream is closed. *)
-    closed : unit Lwt.t
+    closed : unit Promise.t
   ; (* A waiter for a thread that sleeps until the stream is closed. *)
     mutable node : 'a node
   ; (* Pointer to first pending element, or to [last] if there is no
@@ -92,7 +92,7 @@ type 'a t =
 class type ['a] bounded_push = object
   method size : int
   method resize : int -> unit
-  method push : 'a -> unit Lwt.t
+  method push : 'a -> unit
   method close : unit
   method count : int
   method blocked : bool
@@ -114,10 +114,14 @@ let clone s =
 
 let from_source source =
   let node = new_node () in
-  let closed, close = Lwt.wait () in
+  let closed, close =
+    Promise.create
+      (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
+      ()
+  in
   {source; close; closed; node; last = ref node}
 
-let from f = from_source (From {from_create = f; from_thread = Lwt.return_unit})
+let from f = from_source (From {from_create = f; from_thread = ()})
 let from_direct f = from_source (From_direct f)
 let closed s = s.closed
 let is_closed s = not (Lwt.is_sleeping (closed s))
@@ -133,7 +137,11 @@ let enqueue e s = enqueue' e s.last
 let create_with_reference () =
   (* Create the source for notifications of new elements. *)
   let source, push_signal_resolver =
-    let push_signal, push_signal_resolver = Lwt.wait () in
+    let push_signal, push_signal_resolver =
+      Promise.create
+        (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
+        ()
+    in
     ( {push_signal; push_waiting = false; push_external = Obj.repr ()}
     , ref push_signal_resolver )
   in
@@ -154,14 +162,19 @@ let create_with_reference () =
       source.push_waiting <- false;
       (* Update threads. *)
       let old_push_signal_resolver = !push_signal_resolver in
-      let new_waiter, new_push_signal_resolver = Lwt.wait () in
+      let new_waiter, new_push_signal_resolver =
+        Promise.create
+          (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
+          ()
+      in
       source.push_signal <- new_waiter;
       push_signal_resolver := new_push_signal_resolver;
-      (* Signal that a new value has been received. *)
-      Lwt.wakeup_later old_push_signal_resolver ());
+      Promise.resolve
+        (* Signal that a new value has been received. *)
+        old_push_signal_resolver ());
     (* Do this at the end in case one of the function raise an
        exception. *)
-    if x = None then Lwt.wakeup close ()
+    if x = None then Promise.resolve close ()
   in
   t, push, fun x -> source.push_external <- Obj.repr x
 
@@ -172,7 +185,9 @@ let return a =
 let return_lwt a =
   let source, push, _ = create_with_reference () in
   Lwt.dont_wait
-    (fun () -> Lwt.bind a (fun x -> push (Some x); push None; Lwt.return_unit))
+    (fun () ->
+       let x = a in
+       push (Some x); push None)
     (fun _exc -> push None);
   source
 
@@ -190,7 +205,7 @@ let of_seq s =
 let of_lwt_seq s =
   let s = ref s in
   let get () =
-    !s () >|= function
+    match !s () with
     | Lwt_seq.Nil -> None
     | Lwt_seq.Cons (elt, s') ->
         s := s';
@@ -224,10 +239,15 @@ let notify_pusher info last =
   info.pushb_pending <- None;
   (* Wakeup the pusher. *)
   let old_wakener = info.pushb_push_wakener in
-  let waiter, wakener = Lwt.task () in
+  let waiter, wakener =
+    Promise.create
+      (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
+      (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
+      ()
+  in
   info.pushb_push_waiter <- waiter;
   info.pushb_push_wakener <- wakener;
-  Lwt.wakeup_later old_wakener ()
+  Promise.resolve old_wakener ()
 
 class ['a] bounded_push_impl (info : 'a push_bounded) wakener_cell last close =
   object
@@ -244,23 +264,27 @@ class ['a] bounded_push_impl (info : 'a push_bounded) wakener_cell last close =
 
     method push x =
       if closed
-      then Lwt.fail Closed
+      then raise Closed
       else if info.pushb_pending <> None
-      then Lwt.fail Full
+      then raise Full
       else if info.pushb_count >= info.pushb_size
       then (
         info.pushb_pending <- Some x;
-        Lwt.catch
-          (fun () -> info.pushb_push_waiter)
-          (fun exn ->
-             match exn with
-             | Lwt.Canceled ->
-                 info.pushb_pending <- None;
-                 let waiter, wakener = Lwt.task () in
-                 info.pushb_push_waiter <- waiter;
-                 info.pushb_push_wakener <- wakener;
-                 Lwt.reraise exn
-             | _ -> Lwt.reraise exn))
+        try info.pushb_push_waiter
+        with exn -> (
+          match exn with
+          | Lwt.Canceled ->
+              info.pushb_pending <- None;
+              let waiter, wakener =
+                Promise.create
+                  (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
+                  (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
+                  ()
+              in
+              info.pushb_push_waiter <- waiter;
+              info.pushb_push_wakener <- wakener;
+              Lwt.reraise exn
+          | _ -> Lwt.reraise exn))
       else (
         (* Push the element at the end of the queue. *)
         enqueue' (Some x) last;
@@ -272,12 +296,16 @@ class ['a] bounded_push_impl (info : 'a push_bounded) wakener_cell last close =
           info.pushb_waiting <- false;
           (* Update threads. *)
           let old_wakener = !wakener_cell in
-          let new_waiter, new_wakener = Lwt.wait () in
+          let new_waiter, new_wakener =
+            Promise.create
+              (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
+              ()
+          in
           info.pushb_signal <- new_waiter;
           wakener_cell := new_wakener;
-          (* Signal that a new value has been received. *)
-          Lwt.wakeup_later old_wakener ());
-        Lwt.return_unit)
+          Promise.resolve
+            (* Signal that a new value has been received. *)
+            old_wakener ()))
 
     method close =
       if not closed
@@ -298,8 +326,8 @@ class ['a] bounded_push_impl (info : 'a push_bounded) wakener_cell last close =
           info.pushb_waiting <- false;
           let old_wakener = !wakener_cell in
           (* Signal that a new value has been received. *)
-          Lwt.wakeup_later old_wakener ());
-        Lwt.wakeup close ())
+          Promise.resolve old_wakener ());
+        Promise.resolve close ())
 
     method count = info.pushb_count
     method blocked = info.pushb_pending <> None
@@ -313,8 +341,17 @@ let create_bounded size =
   if size < 0 then invalid_arg "Eliom_stream.create_bounded";
   (* Create the source for notifications of new elements. *)
   let info, wakener_cell =
-    let waiter, wakener = Lwt.wait () in
-    let push_waiter, push_wakener = Lwt.task () in
+    let waiter, wakener =
+      Promise.create
+        (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
+        ()
+    in
+    let push_waiter, push_wakener =
+      Promise.create
+        (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
+        (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
+        ()
+    in
     ( { pushb_signal = waiter
       ; pushb_waiting = false
       ; pushb_size = size
@@ -336,22 +373,24 @@ let feed s =
       (* There is already a thread started to create a new element,
        wait for this one to terminate. *)
       if Lwt.is_sleeping from.from_thread
-      then Lwt.protected from.from_thread
+      then
+        Lwt.protected
+          (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
+          (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
+          from.from_thread
       else
         (* Otherwise request a new element. *)
         let thread =
-          (* The function [from_create] can raise an exception (with
+         (* The function [from_create] can raise an exception (with
            [raise], rather than returning a failed promise with
            [Lwt.fail]). In this case, we have to catch the exception
            and turn it into a safe failed promise. *)
-          Lwt.catch
-            (fun () ->
-               from.from_create () >>= fun x ->
-               (* Push the element to the end of the queue. *)
-               enqueue x s;
-               if x = None then Lwt.wakeup s.close ();
-               Lwt.return_unit)
-            Lwt.reraise
+         fun () ->
+          from.from_create () >>= fun x ->
+          (* Push the element to the end of the queue. *)
+          enqueue x s;
+          if x = None then Lwt.wakeup s.close ();
+          Lwt.return_unit
         in
         (* Allow other threads to access this thread. *)
         from.from_thread <- thread;

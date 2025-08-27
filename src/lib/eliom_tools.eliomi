@@ -249,12 +249,12 @@ val with_css_file : string list -> unit
 (** {2 Other tools} *)
 
 val wrap_handler :
-   (unit -> 'a option Lwt.t)
-  -> ('get -> 'post -> 'res Lwt.t)
-  -> ('a -> 'get -> 'post -> 'res Lwt.t)
+   (unit -> 'a option)
+  -> ('get -> 'post -> 'res)
+  -> ('a -> 'get -> 'post -> 'res)
   -> 'get
   -> 'post
-  -> 'res Lwt.t
+  -> 'res
 (** This function allows one to wrap a service handler easily depending
     on whether certain information is available or not.
 

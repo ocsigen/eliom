@@ -97,7 +97,7 @@ val eref_from_fun :
     if the value has not been set explicitly before (by {!Eliom_reference.set}).
   *)
 
-val get : 'a eref -> 'a Lwt.t
+val get : 'a eref -> 'a
 (** The function [get eref] returns the current value of the Eliom
     reference [eref].
 
@@ -111,7 +111,7 @@ val get : 'a eref -> 'a Lwt.t
 (* That function introduces a Lwt cooperation point only for persistent
    references. *)
 
-val set : 'a eref -> 'a -> unit Lwt.t
+val set : 'a eref -> 'a -> unit
 (** The function [set eref v] set [v] as current value of the Eliom
     reference [eref].
 
@@ -125,7 +125,7 @@ val set : 'a eref -> 'a -> unit Lwt.t
 (* That function introduces a Lwt cooperation point only for persistent
    references. *)
 
-val modify : 'a eref -> ('a -> 'a) -> unit Lwt.t
+val modify : 'a eref -> ('a -> 'a) -> unit
 (** The function [modify eref f] modifies the content of the Eliom
     reference [eref] by applying the function [f] on it.
 
@@ -139,7 +139,7 @@ val modify : 'a eref -> ('a -> 'a) -> unit Lwt.t
 (* That function introduces a Lwt cooperation point only for persistent
    references. *)
 
-val unset : 'a eref -> unit Lwt.t
+val unset : 'a eref -> unit
 (** The function [unset eref] reset the content of the Eliom reference
     [eref] to its initial value.
 
@@ -231,7 +231,7 @@ module Ext : sig
        , [< `Data | `Pers] )
        Eliom_state.Ext.state
     -> 'a eref
-    -> 'a Lwt.t
+    -> 'a
   (** get the value of a reference from outside the state.
       If the value has not been set yet for this state,
       it will raise exception [Eref_not_initialized].
@@ -243,7 +243,7 @@ module Ext : sig
        Eliom_state.Ext.state
     -> 'a eref
     -> 'a
-    -> unit Lwt.t
+    -> unit
 
   val modify :
      ( [< `Session_group | `Session | `Client_process]
@@ -251,7 +251,7 @@ module Ext : sig
        Eliom_state.Ext.state
     -> 'a eref
     -> ('a -> 'a)
-    -> unit Lwt.t
+    -> unit
   (** Warning: the function will be executed with the current context *)
 
   val unset :
@@ -259,5 +259,5 @@ module Ext : sig
        , [< `Data | `Pers] )
        Eliom_state.Ext.state
     -> 'a eref
-    -> unit Lwt.t
+    -> unit
 end

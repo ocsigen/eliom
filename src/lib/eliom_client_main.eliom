@@ -50,20 +50,16 @@ let _force_link =
 let%shared _ =
   Eliom_service.internal_set_client_fun ~service:Eliom_service.reload_action
     [%client
-      fun () () ->
-        Lwt.return (Eliom_service.Reload_action {hidden = false; https = false})];
+      fun () () -> Eliom_service.Reload_action {hidden = false; https = false}];
   Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action_https
     [%client
-      fun () () ->
-        Lwt.return (Eliom_service.Reload_action {hidden = false; https = true})];
+      fun () () -> Eliom_service.Reload_action {hidden = false; https = true}];
   Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action_hidden
     [%client
-      fun () () ->
-        Lwt.return (Eliom_service.Reload_action {hidden = true; https = false})];
+      fun () () -> Eliom_service.Reload_action {hidden = true; https = false}];
   Eliom_service.internal_set_client_fun
     ~service:Eliom_service.reload_action_https_hidden
     [%client
-      fun () () ->
-        Lwt.return (Eliom_service.Reload_action {hidden = true; https = true})]
+      fun () () -> Eliom_service.Reload_action {hidden = true; https = true}]

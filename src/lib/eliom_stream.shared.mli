@@ -1,3 +1,5 @@
+open Eio.Std
+
 (* This file is part of Lwt, released under the MIT license. See LICENSE.md for
    details, or visit https://github.com/ocsigen/lwt/blob/master/LICENSE.md. *)
 
@@ -14,7 +16,7 @@ type 'a t
 
 (** {2 Construction} *)
 
-val from : (unit -> 'a option Lwt.t) -> 'a t
+val from : (unit -> 'a option) -> 'a t
 (** [from f] creates a stream from the given input function. [f] is
     called each time more input is needed, and the stream ends when
     [f] returns [None].
@@ -76,7 +78,7 @@ class type ['a] bounded_push = object
 
       It raises {!Stdlib.Invalid_argument} if [size < 0]. *)
 
-  method push : 'a -> unit Lwt.t
+  method push : 'a -> unit
   (** Pushes a new element to the stream. If the stream is full then
       it will block until one element is consumed. If another thread
       is already blocked on [push], it raises {!Eliom_stream.Full}. *)
@@ -116,7 +118,7 @@ val return : 'a -> 'a t
 
     @since 5.5.0 *)
 
-val return_lwt : 'a Lwt.t -> 'a t
+val return_lwt : 'a Promise.t -> 'a t
 (** [return_lwt l] creates a stream returning the value that [l] resolves to.
     The value is pushed into the stream immediately after the promise becomes
     resolved and the stream is then immediately closed (in the sense of
@@ -176,10 +178,10 @@ val clone : 'a t -> 'a t
 
 (** {2 Destruction} *)
 
-val to_list : 'a t -> 'a list Lwt.t
+val to_list : 'a t -> 'a list
 (** Returns the list of elements of the given stream *)
 
-val to_string : char t -> string Lwt.t
+val to_string : char t -> string
 (** Returns the word composed of all characters of the given
     stream *)
 
@@ -189,48 +191,48 @@ exception Empty
 (** Exception raised when trying to retrieve data from an empty
     stream. *)
 
-val peek : 'a t -> 'a option Lwt.t
+val peek : 'a t -> 'a option
 (** [peek st] returns the first element of the stream, if any,
     without removing it. *)
 
-val npeek : int -> 'a t -> 'a list Lwt.t
+val npeek : int -> 'a t -> 'a list
 (** [npeek n st] returns at most the first [n] elements of [st],
     without removing them. *)
 
-val get : 'a t -> 'a option Lwt.t
+val get : 'a t -> 'a option
 (** [get st] removes and returns the first element of the stream, if
     any. *)
 
-val nget : int -> 'a t -> 'a list Lwt.t
+val nget : int -> 'a t -> 'a list
 (** [nget n st] removes and returns at most the first [n] elements of
     [st]. *)
 
-val get_while : ('a -> bool) -> 'a t -> 'a list Lwt.t
+val get_while : ('a -> bool) -> 'a t -> 'a list
 
-val get_while_s : ('a -> bool Lwt.t) -> 'a t -> 'a list Lwt.t
+val get_while_s : ('a -> bool) -> 'a t -> 'a list
 (** [get_while f st] returns the longest prefix of [st] where all
     elements satisfy [f]. *)
 
-val next : 'a t -> 'a Lwt.t
+val next : 'a t -> 'a
 (** [next st] removes and returns the next element of the stream or
     fails with {!Empty}, if the stream is empty. *)
 
-val last_new : 'a t -> 'a Lwt.t
+val last_new : 'a t -> 'a
 (** [last_new st] returns the last element that can be obtained
     without sleeping, or wait for one if none is available.
 
     It fails with {!Empty} if the stream has no more elements. *)
 
-val junk : 'a t -> unit Lwt.t
+val junk : 'a t -> unit
 (** [junk st] removes the first element of [st]. *)
 
-val njunk : int -> 'a t -> unit Lwt.t
+val njunk : int -> 'a t -> unit
 (** [njunk n st] removes at most the first [n] elements of the
     stream. *)
 
-val junk_while : ('a -> bool) -> 'a t -> unit Lwt.t
+val junk_while : ('a -> bool) -> 'a t -> unit
 
-val junk_while_s : ('a -> bool Lwt.t) -> 'a t -> unit Lwt.t
+val junk_while_s : ('a -> bool) -> 'a t -> unit
 (** [junk_while f st] removes all elements at the beginning of the
     streams which satisfy [f]. *)
 
@@ -246,7 +248,7 @@ val get_available_up_to : int -> 'a t -> 'a list
 (** [get_available_up_to n st] returns up to [n] elements of [l]
     without blocking. *)
 
-val is_empty : 'a t -> bool Lwt.t
+val is_empty : 'a t -> bool
 (** [is_empty st] returns whether the given stream is empty. *)
 
 val is_closed : 'a t -> bool
@@ -257,7 +259,7 @@ val is_closed : 'a t -> bool
 
     @since 2.6.0 *)
 
-val closed : 'a t -> unit Lwt.t
+val closed : 'a t -> unit
 (** [closed st] returns a thread that will sleep until the stream has been
     closed.
 
@@ -265,7 +267,7 @@ val closed : 'a t -> unit Lwt.t
 
 (** {3 Deprecated} *)
 
-val junk_old : 'a t -> unit Lwt.t
+val junk_old : 'a t -> unit
 [@@deprecated "Use junk_available instead"]
 (** @deprecated [junk_old st] is [Lwt.return (junk_available st)]. *)
 
@@ -294,37 +296,37 @@ val choose : 'a t list -> 'a t
 
 val map : ('a -> 'b) -> 'a t -> 'b t
 
-val map_s : ('a -> 'b Lwt.t) -> 'a t -> 'b t
+val map_s : ('a -> 'b) -> 'a t -> 'b t
 (** [map f st] maps the value returned by [st] with [f] *)
 
 val filter : ('a -> bool) -> 'a t -> 'a t
 
-val filter_s : ('a -> bool Lwt.t) -> 'a t -> 'a t
+val filter_s : ('a -> bool) -> 'a t -> 'a t
 (** [filter f st] keeps only values, [x], such that [f x] is [true] *)
 
 val filter_map : ('a -> 'b option) -> 'a t -> 'b t
 
-val filter_map_s : ('a -> 'b option Lwt.t) -> 'a t -> 'b t
+val filter_map_s : ('a -> 'b option) -> 'a t -> 'b t
 (** [filter_map f st] filter and map [st] at the same time *)
 
 val map_list : ('a -> 'b list) -> 'a t -> 'b t
 
-val map_list_s : ('a -> 'b list Lwt.t) -> 'a t -> 'b t
+val map_list_s : ('a -> 'b list) -> 'a t -> 'b t
 (** [map_list f st] applies [f] on each element of [st] and flattens
     the lists returned *)
 
-val fold : ('a -> 'b -> 'b) -> 'a t -> 'b -> 'b Lwt.t
+val fold : ('a -> 'b -> 'b) -> 'a t -> 'b -> 'b
 
-val fold_s : ('a -> 'b -> 'b Lwt.t) -> 'a t -> 'b -> 'b Lwt.t
+val fold_s : ('a -> 'b -> 'b) -> 'a t -> 'b -> 'b
 (** [fold f s x] fold_like function for streams. *)
 
-val iter : ('a -> unit) -> 'a t -> unit Lwt.t
-val iter_p : ('a -> unit Lwt.t) -> 'a t -> unit Lwt.t
+val iter : ('a -> unit) -> 'a t -> unit
+val iter_p : ('a -> unit) -> 'a t -> unit
 
-val iter_s : ('a -> unit Lwt.t) -> 'a t -> unit Lwt.t
+val iter_s : ('a -> unit) -> 'a t -> unit
 (** [iter f s] iterates over all elements of the stream. *)
 
-val iter_n : ?max_concurrency:int -> ('a -> unit Lwt.t) -> 'a t -> unit Lwt.t
+val iter_n : ?max_concurrency:int -> ('a -> unit) -> 'a t -> unit
 (** [iter_n ?max_concurrency f s] iterates over all elements of the stream [s].
     Iteration is performed concurrently with up to [max_threads] concurrent
     instances of [f].
@@ -336,14 +338,14 @@ val iter_n : ?max_concurrency:int -> ('a -> unit Lwt.t) -> 'a t -> unit Lwt.t
     @raise Invalid_argument if [max_concurrency < 1].
     @since 3.3.0 *)
 
-val find : ('a -> bool) -> 'a t -> 'a option Lwt.t
+val find : ('a -> bool) -> 'a t -> 'a option
 
-val find_s : ('a -> bool Lwt.t) -> 'a t -> 'a option Lwt.t
+val find_s : ('a -> bool) -> 'a t -> 'a option
 (** [find f s] find an element in a stream. *)
 
-val find_map : ('a -> 'b option) -> 'a t -> 'b option Lwt.t
+val find_map : ('a -> 'b option) -> 'a t -> 'b option
 
-val find_map_s : ('a -> 'b option Lwt.t) -> 'a t -> 'b option Lwt.t
+val find_map_s : ('a -> 'b option) -> 'a t -> 'b option
 (** [find_map f s] find and map at the same time. *)
 
 val combine : 'a t -> 'b t -> ('a * 'b) t
@@ -375,7 +377,7 @@ val wrap_exn : 'a t -> ('a, exn) result t
 
 (** {2 Parsing} *)
 
-val parse : 'a t -> ('a t -> 'b Lwt.t) -> 'b Lwt.t
+val parse : 'a t -> ('a t -> 'b) -> 'b
 (** [parse st f] parses [st] with [f]. If [f] raise an exception,
     [st] is restored to its previous state.
 

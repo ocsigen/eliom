@@ -1,4 +1,4 @@
-open Lwt.Syntax
+open Eio.Std
 
 (* Ocsigen
  * http://www.ocsigen.org
@@ -479,7 +479,7 @@ let fetch_linked_css e =
           let css =
             Eliom_request.http_get href [] Eliom_request.string_result
           in
-          acc @ [e, (e##.media, href, css >|= snd)]
+          acc @ [e, (e##.media, href, snd css)]
     | Dom.Element e ->
         let c = e##.childNodes in
         let acc = ref acc in
@@ -578,26 +578,25 @@ let rewrite_css_url ~prefix css pos =
 let import_re = Regexp.regexp "@import\\s*"
 
 let rec rewrite_css ~max (media, href, css) =
-  Lwt.catch
-    (fun () ->
-       css >>= function
-       | None -> Lwt.return_nil
-       | Some css ->
-           if !Eliom_config.debug_timings
-           then Console.console##(time (Js.string ("rewrite_CSS: " ^ href)));
-           let* imports, css =
-             rewrite_css_import ~max ~prefix:(basedir href) ~media css 0
-           in
-           if !Eliom_config.debug_timings
-           then Console.console##(timeEnd (Js.string ("rewrite_CSS: " ^ href)));
-           Lwt.return (imports @ [media, css]))
-    (fun _ -> Lwt.return [media, Printf.sprintf "@import url(%s);" href])
+  try
+    match css with
+    | None -> []
+    | Some css ->
+        if !Eliom_config.debug_timings
+        then Console.console##(time (Js.string ("rewrite_CSS: " ^ href)));
+        let imports, css =
+          rewrite_css_import ~max ~prefix:(basedir href) ~media css 0
+        in
+        if !Eliom_config.debug_timings
+        then Console.console##(timeEnd (Js.string ("rewrite_CSS: " ^ href)));
+        imports @ [media, css]
+  with _ -> [media, Printf.sprintf "@import url(%s);" href]
 
 and rewrite_css_import ?(charset = "") ~max ~prefix ~media css pos =
   match Regexp.search import_re css pos with
   | None ->
       (* No @import anymore, rewrite url. *)
-      Lwt.return ([], rewrite_css_url ~prefix css pos)
+      [], rewrite_css_url ~prefix css pos
   | Some (i, res) -> (
       (* Found @import rule, try to preload. *)
       let init = String.sub css pos (i - pos) in
@@ -606,45 +605,46 @@ and rewrite_css_import ?(charset = "") ~max ~prefix ~media css pos =
         let i = i + String.length (Regexp.matched_string res) in
         let i, href = parse_url ~prefix css i in
         let i, media' = parse_media css i in
-        let* import =
-          if max = 0
-          then
-            (* Maximum imbrication of @import reached, rewrite url. *)
-            Lwt.return
-              [media, Printf.sprintf "@import url('%s') %s;\n" href media']
-          else if media##.length > 0 && String.length media' > 0
-          then
-            (* TODO combine media if possible...
+        let (imports, css), import =
+          Fiber.pair
+            (fun () -> rewrite_css_import ~charset ~max ~prefix ~media css i)
+            (fun () ->
+               if
+                 (* TODO: ciao-lwt: This computation might not be suspended correctly. *)
+                 max = 0
+               then
+                 (* Maximum imbrication of @import reached, rewrite url. *)
+                 [media, Printf.sprintf "@import url('%s') %s;\n" href media']
+               else if media##.length > 0 && String.length media' > 0
+               then
+                 (* TODO combine media if possible...
                in the mean time keep explicit import. *)
-            Lwt.return
-              [media, Printf.sprintf "@import url('%s') %s;\n" href media']
-          else
-            let media =
-              if media##.length > 0 then media else Js.string media'
-            in
-            let css =
-              Eliom_request.http_get href [] Eliom_request.string_result
-            in
-            rewrite_css ~max:(max - 1) (media, href, css >|= snd)
-        and* imports, css =
-          rewrite_css_import ~charset ~max ~prefix ~media css i
+                 [media, Printf.sprintf "@import url('%s') %s;\n" href media']
+               else
+                 let media =
+                   if media##.length > 0 then media else Js.string media'
+                 in
+                 let css =
+                   Eliom_request.http_get href [] Eliom_request.string_result
+                 in
+                 rewrite_css ~max:(max - 1) (media, href, snd css))
         in
-        Lwt.return (import @ imports, css)
+        import @ imports, css
       with
-      | Incorrect_url -> Lwt.return ([], rewrite_css_url ~prefix css pos)
+      | Incorrect_url -> [], rewrite_css_url ~prefix css pos
       | exn ->
           Logs.info ~src:section (fun fmt ->
             fmt
               ("Error while importing css" ^^ "@\n%s")
               (Printexc.to_string exn));
-          Lwt.return ([], rewrite_css_url ~prefix css pos))
+          [], rewrite_css_url ~prefix css pos)
 
 let max_preload_depth = ref 4
 
 let build_style (e, css) =
-  let* css = rewrite_css ~max:!max_preload_depth css in
-  (* lwt css = *)
-  Lwt_list.map_p
+  let css = rewrite_css ~max:!max_preload_depth css in
+  Fiber.List.map
+    (* lwt css = *)
     (fun (media, css) ->
        let style = Dom_html.createStyle Dom_html.document in
        style##._type := Js.string "text/css";
@@ -655,7 +655,7 @@ let build_style (e, css) =
        if Js.Optdef.test styleSheet
        then Js.Unsafe.(set styleSheet (Js.string "cssText") (Js.string css))
        else style##.innerHTML := Js.string css;
-       Lwt.return (e, (style :> Dom.node Js.t)))
+       e, (style :> Dom.node Js.t))
     css
 
 (* IE8 doesn't allow appendChild on noscript-elements *)
@@ -669,7 +669,7 @@ let build_style (e, css) =
 let preload_css (doc : Dom_html.element Js.t) =
   if !Eliom_config.debug_timings
   then Console.console##(time (Js.string "preload_css (fetch+rewrite)"));
-  let* css = Lwt_list.map_p build_style (fetch_linked_css (get_head doc)) in
+  let css = Fiber.List.map build_style (fetch_linked_css (get_head doc)) in
   let css = List.concat css in
   List.iter
     (fun (e, css) ->
@@ -682,8 +682,7 @@ let preload_css (doc : Dom_html.element Js.t) =
              section (fun fmt -> fmt "Unique CSS skipped..."))
     css;
   if !Eliom_config.debug_timings
-  then Console.console##(timeEnd (Js.string "preload_css (fetch+rewrite)"));
-  Lwt.return_unit
+  then Console.console##(timeEnd (Js.string "preload_css (fetch+rewrite)"))
 
 (** Window scrolling *)
 

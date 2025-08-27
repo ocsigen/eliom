@@ -1,3 +1,5 @@
+open Eio.Std
+
 (* Ocsigen
  * http://www.ocsigen.org
  * Module Eliom_form
@@ -22,24 +24,22 @@ open%shared Js_of_ocaml
 
 [%%client.start]
 
-open Lwt.Syntax
-
 let read_params form y =
   Eliom_parameter.reconstruct_params_form (Form.form_elements form) y
 
 let error_handler =
-  ref @@ fun _ -> Lwt.fail_with "Cannot parse params for client-side service"
+  ref @@ fun _ -> failwith "Cannot parse params for client-side service"
 
 let set_error_handler f = error_handler := f
 
 let iter_contents y ev f =
-  let fls () = Lwt.return_false in
+  let fls () = false in
   Js.Opt.case ev##.target fls @@ fun target ->
   Js.Opt.case (Dom_html.CoerceTo.form target) fls @@ fun target ->
   match read_params target y with
   | Some v ->
-      let* () = f v in
-      Lwt.return_true
+      let () = f v in
+      true
   | None -> !error_handler ()
 
 type client_form_handler = Eliom_client.client_form_handler
@@ -47,7 +47,7 @@ type client_form_handler = Eliom_client.client_form_handler
 let make_hdlr_get service : client_form_handler =
  fun ev ->
   match Eliom_service.client_fun service with
-  | None -> Lwt.return_false
+  | None -> false
   | Some _ ->
       iter_contents (Eliom_service.get_params_type service) ev @@ fun g ->
       Eliom_client.change_page ~service g ()
@@ -55,7 +55,7 @@ let make_hdlr_get service : client_form_handler =
 let make_hdlr_post service g : client_form_handler =
  fun ev ->
   match Eliom_service.client_fun service with
-  | None -> Lwt.return_false
+  | None -> false
   | Some _ ->
       iter_contents (Eliom_service.post_params_type service) ev @@ fun p ->
       Eliom_client.change_page ~service g p
@@ -152,12 +152,14 @@ module Make_links (Html : Html) = struct
               then (
                 Dom.preventDefault ev;
                 Dom_html.stopPropagation ev;
-                Lwt.async @@ fun () ->
-                Eliom_client.change_page ?absolute:~%absolute
-                  ?absolute_path:~%absolute_path ?https:~%https
-                  ~service:~%service ?hostname:~%hostname ?port:~%port
-                  ?fragment:~%fragment ?keep_nl_params:~%keep_nl_params
-                  ?nl_params:~%nl_params ~%getparams ())]
+                Fiber.fork
+                  ~sw:(Stdlib.Option.get (Fiber.get Ocsigen_lib.current_switch))
+                  (fun () ->
+                     Eliom_client.change_page ?absolute:~%absolute
+                       ?absolute_path:~%absolute_path ?https:~%https
+                       ~service:~%service ?hostname:~%hostname ?port:~%port
+                       ?fragment:~%fragment ?keep_nl_params:~%keep_nl_params
+                       ?nl_params:~%nl_params ~%getparams ()))]
         in
         Html.a_onclick f :: href :: a
       else href :: a
@@ -639,8 +641,11 @@ module Make (Html : Html) = struct
         a_onsubmit_service info :: a
       else a
     in
-    get_form_ Lwt.bind Lwt.return ?absolute ?absolute_path ?https ~a ~service
-      ?hostname ?port ?fragment ?nl_params ?keep_nl_params contents
+    get_form_
+      (fun x1 x2 -> x2 x1)
+      (fun x1 -> x1)
+      ?absolute ?absolute_path ?https ~a ~service ?hostname ?port ?fragment
+      ?nl_params ?keep_nl_params contents
 
   let post_form
         ?absolute
@@ -702,7 +707,9 @@ module Make (Html : Html) = struct
         a_onsubmit_service info :: a
       else a
     in
-    post_form_ Lwt.bind Lwt.return ?absolute ?absolute_path ?https ~a ~service
-      ?hostname ?port ?fragment ?keep_get_na_params ?keep_nl_params ?nl_params
-      contents getparams
+    post_form_
+      (fun x1 x2 -> x2 x1)
+      (fun x1 -> x1)
+      ?absolute ?absolute_path ?https ~a ~service ?hostname ?port ?fragment
+      ?keep_get_na_params ?keep_nl_params ?nl_params contents getparams
 end

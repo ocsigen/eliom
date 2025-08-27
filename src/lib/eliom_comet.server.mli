@@ -120,10 +120,7 @@ module Channel : sig
       number of messages retrieved at the first request. The default
       is [1]. *)
 
-  val wait_timeout :
-     ?scope:Eliom_common.client_process_scope
-    -> float
-    -> unit Lwt.t
+  val wait_timeout : ?scope:Eliom_common.client_process_scope -> float -> unit
   (** [wait_timeout ~scope time] waits for a period of inactivity of
       length [time] in the [scope]. Only activity on stateful
       channels is taken into accounts.

@@ -43,13 +43,13 @@ val compute_session_cookies_to_send :
    Eliom_common.sitedata
   -> Eliom_common.tables Eliom_common.cookie_info
   -> Ocsigen_cookie_map.t
-  -> Ocsigen_cookie_map.t Lwt.t
+  -> Ocsigen_cookie_map.t
 
 val compute_cookies_to_send :
    Eliom_common.sitedata
   -> Eliom_common.tables Eliom_common.cookie_info
   -> Ocsigen_cookie_map.t
-  -> Ocsigen_cookie_map.t Lwt.t
+  -> Ocsigen_cookie_map.t
 
 val compute_new_ri_cookies :
    float
@@ -57,7 +57,7 @@ val compute_new_ri_cookies :
   -> string Ocsigen_cookie_map.Map_inner.t
   -> Eliom_common.tables Eliom_common.cookie_info
   -> Ocsigen_cookie_map.t
-  -> string Ocsigen_cookie_map.Map_inner.t Lwt.t
+  -> string Ocsigen_cookie_map.Map_inner.t
 
 type date = float
 
@@ -74,15 +74,11 @@ module Persistent_cookies : sig
   module Expiry_dates : sig
     include Ocsipersist.TABLE with type key = date and type value = string
 
-    val add_cookie : date -> string -> unit Lwt.t
-    val remove_cookie : date option -> string -> unit Lwt.t
+    val add_cookie : date -> string -> unit
+    val remove_cookie : date option -> string -> unit
   end
 
-  val add : string -> cookie -> unit Lwt.t
-  val replace_if_exists : string -> cookie -> unit Lwt.t
-
-  val garbage_collect :
-     section:Logs.src
-    -> (Cookies.key -> unit Lwt.t)
-    -> unit Lwt.t
+  val add : string -> cookie -> unit
+  val replace_if_exists : string -> cookie -> unit
+  val garbage_collect : section:Logs.src -> (Cookies.key -> unit) -> unit
 end

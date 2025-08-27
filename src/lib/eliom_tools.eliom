@@ -530,6 +530,6 @@ module F = Make (Html.F)
 module D = Make (Html.D)
 
 let wrap_handler information none some get post =
-  Lwt.bind (information ()) (function
-    | None -> none get post
-    | Some value -> some value get post)
+  match information () with
+  | None -> none get post
+  | Some value -> some value get post

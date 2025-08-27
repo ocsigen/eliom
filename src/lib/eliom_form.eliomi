@@ -20,7 +20,7 @@
 
 [%%client.start]
 
-val set_error_handler : (unit -> bool Lwt.t) -> unit
+val set_error_handler : (unit -> bool) -> unit
 
 [%%shared.start]
 

@@ -52,7 +52,7 @@ val activate : unit -> unit
 (** if the client is inactive [activate ()] launch a new xhr
     connection to start receiving server messages *)
 
-val set_handle_exn_function : (?exn:exn -> unit -> unit Lwt.t) -> unit
+val set_handle_exn_function : (?exn:exn -> unit -> unit) -> unit
 (** Makes possible to customize the function called when comet fails
     for unknown reason.
     The usual practice is to warn the user and ask to reload the page.
@@ -142,7 +142,7 @@ val close : 'a Eliom_comet_base.wrapped_channel -> unit
 
 val force_link : unit
 
-val handle_exn : ?exn:exn -> unit -> unit Lwt.t
+val handle_exn : ?exn:exn -> unit -> unit
 (** This function calls manually the function
     that is usually called automatically when an exception
     is received during communication. *)
