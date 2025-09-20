@@ -111,14 +111,18 @@ module type S = sig
 
   (** Cooperative versions of the React operators *)
   module Lwt : sig
-    val map_s : ?eq:('b -> 'b -> bool) sv -> ('a -> 'b) sv -> 'a t -> 'b t
+    val map_s :
+       ?eq:('b -> 'b -> bool) sv
+      -> ('a -> 'b) sv
+      -> 'a t
+      -> 'b t Eio.Promise.or_exn
 
     val l2_s :
        ?eq:('c -> 'c -> bool) sv
       -> ('a -> 'b -> 'c) sv
       -> 'a t
       -> 'b t
-      -> 'c t
+      -> 'c t Eio.Promise.or_exn
 
     val l3_s :
        ?eq:('d -> 'd -> bool) sv
@@ -126,7 +130,7 @@ module type S = sig
       -> 'a t
       -> 'b t
       -> 'c t
-      -> 'd t
+      -> 'd t Eio.Promise.or_exn
 
     val l4_s :
        ?eq:('e -> 'e -> bool) sv
@@ -135,7 +139,7 @@ module type S = sig
       -> 'b t
       -> 'c t
       -> 'd t
-      -> 'e t
+      -> 'e t Eio.Promise.or_exn
 
     val l5_s :
        ?eq:('f -> 'f -> bool) sv
@@ -145,7 +149,7 @@ module type S = sig
       -> 'c t
       -> 'd t
       -> 'e t
-      -> 'f t
+      -> 'f t Eio.Promise.or_exn
 
     val l6_s :
        ?eq:('g -> 'g -> bool) sv
@@ -156,14 +160,14 @@ module type S = sig
       -> 'd t
       -> 'e t
       -> 'f t
-      -> 'g t
+      -> 'g t Eio.Promise.or_exn
 
     val merge_s :
        ?eq:('a -> 'a -> bool) sv
       -> ('a -> 'b -> 'a) sv
       -> 'a
       -> 'b t list
-      -> 'a t
+      -> 'a t Eio.Promise.or_exn
   end
 end
 

@@ -272,7 +272,7 @@ val onload : (unit -> unit) -> unit
 
 *)
 
-val lwt_onload : unit -> unit
+val onload_promise : unit -> unit Eio.Promise.t
 (** Returns a Lwt thread that waits until the next page is loaded. *)
 
 type changepage_event =

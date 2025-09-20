@@ -76,13 +76,13 @@ let run_onunload_wrapper set_content cancel =
       run_callbacks (flush_onunload ());
       set_content ()
 
-let lwt_onload () =
+let onload_promise () =
   let t, u =
     Promise.create
       (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
       ()
   in
-  onload (fun x1 -> Promise.resolve u x1);
+  onload (fun () -> Promise.resolve u ());
   t
 
 (* == Initialize the client values sent with a request *)
@@ -432,11 +432,11 @@ let scroll_to_fragment ?offset fragment =
         let elem = Dom_html.document##(getElementById (Js.string fragment)) in
         Js.Opt.iter elem scroll_to_element)
 
-let with_progress_cursor : 'a Promise.t -> 'a =
- fun t ->
+let with_progress_cursor : (unit -> 'a) -> 'a =
+ fun f ->
   try
     Dom_html.document##.body##.style##.cursor := Js.string "progress";
-    let res = t in
+    let res = f () in
     Dom_html.document##.body##.style##.cursor := Js.string "auto";
     res
   with exn ->
@@ -698,7 +698,7 @@ let set_active_page p =
 
 (* This key serves as a hook to access the page the currently running code is
    generating. *)
-let this_page : page Lwt.key = Fiber.create_key ()
+let this_page : page Fiber.key = Fiber.create_key ()
 
 let get_this_page () =
   match Fiber.get this_page with
@@ -1442,23 +1442,24 @@ module Page_status = struct
     stop_event ?stop @@ React.E.map action @@ maybe_just_once ~once
     @@ Events.inactive ()
 
+  exception Cancelled
+
   let while_active ?now ?(stop = React.E.never) action =
-    let thread = ref () in
-    onactive ?now ~stop (fun () -> thread := action ());
-    oninactive ~stop (fun () ->
-      Lwt.cancel
-        (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
-        (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
-        !thread);
-    Dom_reference.retain_generic (get_this_page ())
-      ~keep:
-        (React.E.map
-           (fun () ->
-              Lwt.cancel
-                (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
-                (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
-                !thread)
-           stop)
+    let active_switch = ref None in
+    onactive ?now ~stop (fun () ->
+      Eio.Switch.run (fun sw ->
+        active_switch := Some sw;
+        Eio.Fiber.fork ~sw action);
+      oninactive ~stop (fun () ->
+        Option.iter (fun sw -> Eio.Switch.fail sw Cancelled) !active_switch);
+      Dom_reference.retain_generic (get_this_page ())
+        ~keep:
+          (React.E.map
+             (fun () ->
+                Option.iter
+                  (fun sw -> Eio.Switch.fail sw Cancelled)
+                  !active_switch)
+             stop))
 end
 
 let is_in_cache state_id =
@@ -1905,8 +1906,8 @@ and change_page :
       ~service ?hostname ?port ?fragment ?keep_nl_params ~nl_params
       ?keep_get_na_params get_params post_params
   else
-    with_progress_cursor
-      (match xhr with
+    with_progress_cursor (fun () ->
+      match xhr with
       | Some (Some tmpl as t)
         when t = Eliom_request_info.get_request_template () ->
           Logs.debug ~src:section_page (fun fmt ->
@@ -2042,29 +2043,28 @@ and reload_without_na_params ~replace ~uri ~fallback =
 (* Function used in "onclick" event handler of <a>.  *)
 let change_page_uri_a ?cookies_info ?tmpl ?(get_params = []) full_uri =
   Logs.debug ~src:section_page (fun fmt -> fmt "Change page uri");
-  with_progress_cursor
-    (let uri, fragment = Url.split_fragment full_uri in
-     if uri <> get_current_uri () || fragment = None
-     then (
-       if is_client_app ()
-       then failwith "Change_page_uri_a called on client app";
-       match tmpl with
-       | Some t when tmpl = Eliom_request_info.get_request_template () ->
-           let uri, content =
-             Eliom_request.http_get ?cookies_info uri
-               ((Eliom_request.nl_template_string, t) :: get_params)
-               Eliom_request.string_result
-           in
-           set_template_content ~replace:false ~uri ?fragment content
-       | _ ->
-           let uri, content =
-             Eliom_request.http_get ~expecting_process_page:true ?cookies_info
-               uri get_params Eliom_request.xml_result
-           in
-           set_content ~replace:false ~uri ?fragment content)
-     else (
-       change_url_string ~replace:true full_uri;
-       scroll_to_fragment fragment))
+  with_progress_cursor (fun () ->
+    let uri, fragment = Url.split_fragment full_uri in
+    if uri <> get_current_uri () || fragment = None
+    then (
+      if is_client_app () then failwith "Change_page_uri_a called on client app";
+      match tmpl with
+      | Some t when tmpl = Eliom_request_info.get_request_template () ->
+          let uri, content =
+            Eliom_request.http_get ?cookies_info uri
+              ((Eliom_request.nl_template_string, t) :: get_params)
+              Eliom_request.string_result
+          in
+          set_template_content ~replace:false ~uri ?fragment content
+      | _ ->
+          let uri, content =
+            Eliom_request.http_get ~expecting_process_page:true ?cookies_info
+              uri get_params Eliom_request.xml_result
+          in
+          set_content ~replace:false ~uri ?fragment content)
+    else (
+      change_url_string ~replace:true full_uri;
+      scroll_to_fragment fragment))
 
 let change_page_uri ?replace full_uri =
   Logs.debug ~src:section_page (fun fmt -> fmt "Change page uri");
@@ -2088,42 +2088,42 @@ let change_page_uri ?replace full_uri =
 (* Functions used in "onsubmit" event handler of <form>.  *)
 
 let change_page_get_form ?cookies_info ?tmpl form full_uri =
-  with_progress_cursor
-    (let form = Js.Unsafe.coerce form in
-     let uri, fragment = Url.split_fragment full_uri in
-     match tmpl with
-     | Some t when tmpl = Eliom_request_info.get_request_template () ->
-         let uri, content =
-           Eliom_request.send_get_form
-             ~get_args:[Eliom_request.nl_template_string, t]
-             ?cookies_info form uri Eliom_request.string_result
-         in
-         set_template_content ~replace:false ~uri ?fragment content
-     | _ ->
-         let uri, content =
-           Eliom_request.send_get_form ~expecting_process_page:true
-             ?cookies_info form uri Eliom_request.xml_result
-         in
-         set_content ~replace:false ~uri ?fragment content)
+  with_progress_cursor (fun () ->
+    let form = Js.Unsafe.coerce form in
+    let uri, fragment = Url.split_fragment full_uri in
+    match tmpl with
+    | Some t when tmpl = Eliom_request_info.get_request_template () ->
+        let uri, content =
+          Eliom_request.send_get_form
+            ~get_args:[Eliom_request.nl_template_string, t]
+            ?cookies_info form uri Eliom_request.string_result
+        in
+        set_template_content ~replace:false ~uri ?fragment content
+    | _ ->
+        let uri, content =
+          Eliom_request.send_get_form ~expecting_process_page:true ?cookies_info
+            form uri Eliom_request.xml_result
+        in
+        set_content ~replace:false ~uri ?fragment content)
 
 let change_page_post_form ?cookies_info ?tmpl form full_uri =
-  with_progress_cursor
-    (let form = Js.Unsafe.coerce form in
-     let uri, fragment = Url.split_fragment full_uri in
-     match tmpl with
-     | Some t when tmpl = Eliom_request_info.get_request_template () ->
-         let uri, content =
-           Eliom_request.send_post_form
-             ~get_args:[Eliom_request.nl_template_string, t]
-             ?cookies_info form uri Eliom_request.string_result
-         in
-         set_template_content ~replace:false ~uri ?fragment content
-     | _ ->
-         let uri, content =
-           Eliom_request.send_post_form ~expecting_process_page:true
-             ?cookies_info form uri Eliom_request.xml_result
-         in
-         set_content ~replace:false ~uri ?fragment content)
+  with_progress_cursor (fun () ->
+    let form = Js.Unsafe.coerce form in
+    let uri, fragment = Url.split_fragment full_uri in
+    match tmpl with
+    | Some t when tmpl = Eliom_request_info.get_request_template () ->
+        let uri, content =
+          Eliom_request.send_post_form
+            ~get_args:[Eliom_request.nl_template_string, t]
+            ?cookies_info form uri Eliom_request.string_result
+        in
+        set_template_content ~replace:false ~uri ?fragment content
+    | _ ->
+        let uri, content =
+          Eliom_request.send_post_form ~expecting_process_page:true
+            ?cookies_info form uri Eliom_request.xml_result
+        in
+        set_content ~replace:false ~uri ?fragment content)
 
 let _ =
   (Eliom_client_core.change_page_uri_ :=
@@ -2189,7 +2189,7 @@ let () =
       Js_of_ocaml_eio.Eio_js.start (fun () ->
         with_progress_cursor
         (* TODO: ciao-lwt: This computation might not be suspended correctly. *)
-        @@
+        @@ fun () ->
         let uri, fragment = Url.split_fragment full_uri in
         if uri = get_current_uri ()
         then (

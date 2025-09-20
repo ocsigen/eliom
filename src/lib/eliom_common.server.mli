@@ -693,7 +693,7 @@ val tab_cookie_action_info_key :
   * string Ocsigen_cookie_map.Map_inner.t)
     Polytables.key
 
-val sp_key : server_params Lwt.key
+val sp_key : server_params Eio.Fiber.key
 val get_sp_option : unit -> server_params option
 val get_sp : unit -> server_params
 val sp_of_option : server_params option -> server_params

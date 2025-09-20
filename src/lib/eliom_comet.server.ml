@@ -128,7 +128,7 @@ end = struct
       let dummy = {dummy_channel with ch_id} in
       try Some (Weak_channel_table.find channels dummy) with Not_found -> None
 
-  let wakeup_waiters channel = Lwt_condition.broadcast channel.ch_wakeup ()
+  let wakeup_waiters channel = Eio.Condition.broadcast channel.ch_wakeup
 
   (* fill the channel with messages from the stream *)
   let run_channel channel stream =
@@ -238,21 +238,20 @@ end = struct
     let rec make_list = function
       | [] -> []
       | Eliom_lib.Left (channel, _) :: q ->
-          Eio.Condition.await_no_mutex channel.ch_wakeup :: make_list q
+          (fun () -> Eio.Condition.await_no_mutex channel.ch_wakeup)
+          :: make_list q
       | Eliom_lib.Right _ :: _ -> assert false
       (* closed channels are considered to have data *)
     in
-    Fiber.any
-      ((* TODO: ciao-lwt: This expression is a ['a Lwt.t list] but a [(unit -> 'a) list] is expected. *)
-       make_list requests)
+    Fiber.any (make_list requests)
 
   let wait_data requests =
     if List.exists has_data requests
     then ()
     else
       Eio.Time.with_timeout_exn
-        (Stdlib.Option.get (Fiber.get Ocsigen_lib.env))#mono_clock (timeout ())
-        (fun () -> really_wait_data requests)
+        (Stdlib.Option.get (Fiber.get Ocsigen_lib.env))#clock (timeout ())
+        (*VVV How to use mono_clock? *) (fun () -> really_wait_data requests)
 
   let handle_request () (_, req) =
     match req with
@@ -326,7 +325,7 @@ end = struct
   type chan_id = string
   type comet_service = Eliom_comet_base.comet_service
   type internal_comet_service = Eliom_comet_base.internal_comet_service
-  type end_request_waiters = unit Lwt.u
+  type end_request_waiters = unit Eio.Promise.u
 
   type activity =
     | Active of end_request_waiters list
@@ -355,7 +354,8 @@ end = struct
       (** streams that are created on the server side, but client did not register *)
     ; mutable hd_registered_chan_id : chan_id list
       (** the fusion of all the streams from hd_active_channels *)
-    ; mutable hd_update_streams_w : [`Data | `Update] Lwt.u option
+    ; mutable hd_update_streams_w :
+        ([`Data | `Update], exn) result Eio.Promise.u option
       (** used to signal new data or new active streams. *)
     ; hd_service : internal_comet_service
     ; mutable hd_last : string * int
@@ -394,7 +394,7 @@ end = struct
               ()
           in
           let t =
-            let () = waiter in
+            let () = Eio.Promise.await waiter in
             let () = Eio_unix.sleep t in
             run ()
           in
@@ -421,7 +421,7 @@ end = struct
     | None -> ()
     | Some wakener ->
         handler.hd_update_streams_w <- None;
-        Lwt.wakeup_exn wakener New_connection
+        Eio.Promise.resolve_error wakener New_connection
 
   (** called when a new channel is made active. It restarts the thread
       wainting for inputs ( wait_data ) such that it can receive the messages from
@@ -431,15 +431,13 @@ end = struct
     | None -> ()
     | Some wakener ->
         handler.hd_update_streams_w <- None;
-        Promise.resolve wakener event
+        Promise.resolve_ok wakener event
 
   let stream_waiter s =
     Fiber.without_binding Eliom_common.sp_key (fun () ->
-      Lwt.no_cancel
-        (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
-        (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
-        (let _ = Eliom_stream.peek s in
-         `Data))
+      Eio.Switch.run (fun _sw ->
+        let _ = Eliom_stream.peek s in
+        Eio.Promise.create_resolved `Data))
 
   (** read up to [n] messages in the list of streams [streams] without blocking. *)
   let read_channels n handler =
@@ -483,11 +481,20 @@ end = struct
           ()
       in
       handler.hd_update_streams_w <- Some hd_update_streams_w;
-      Fiber.any
-        (List.map
-           (fun p () -> Promise.await p)
-           (* TODO: ciao-lwt: The list [wait_closed_connection :: hd_update_streams :: wait_channels handler] is expected to be a list of promises. Use [Fiber.fork_promise] to make a promise. *)
-           (wait_closed_connection :: hd_update_streams :: wait_channels handler))
+      let p, w = Eio.Promise.create () in
+      Eliom_lib.fork (fun () ->
+        ignore
+        @@ Eio.Fiber.List.map
+             (fun f ->
+                match f () with
+                | v -> Eio.Promise.resolve_ok w v
+                | exception e -> Eio.Promise.resolve_error w e)
+             (wait_closed_connection
+             :: (fun () -> Eio.Promise.await_exn hd_update_streams)
+             :: List.map
+                  (fun p () -> Eio.Promise.await p)
+                  (wait_channels handler)));
+      Eio.Promise.await_exn p
     with
     | `Data -> handler.hd_update_streams_w <- None
     | `Update -> wait_data wait_closed_connection handler
@@ -542,8 +549,8 @@ end = struct
           else
             try
               Eio.Time.with_timeout_exn
-                (Stdlib.Option.get (Fiber.get Ocsigen_lib.env))#mono_clock
-                (timeout ()) (fun () ->
+                (Stdlib.Option.get (Fiber.get Ocsigen_lib.env))#clock
+                (*VVV How to use mono_clock? *) (timeout ()) (fun () ->
                 let messages =
                   let messages = read_channels 100 handler in
                   if messages <> [] || idle

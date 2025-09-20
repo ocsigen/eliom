@@ -1,5 +1,3 @@
-open Eio.Std
-
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2010-2011

@@ -40,14 +40,14 @@ val find : ('a, 'b) t -> ('a -> 'b) -> 'a -> 'b
     result in a single call to [get_from_db]. Exceptions are not
     cached.  *)
 
-val do_cache : ('a, 'b) t -> 'a -> 'b Eio.Promise.or_exn -> unit
+val do_cache : ('a, 'b) t -> 'a -> 'b -> unit
 (** [do_cache cache key value] adds the association from [key] to
     [value] in [cache], or replaces it if not already present.  Called
     from client side, it affects only client side cache.  Called from
     server side, it will have effect both on the server cache (scope:
     request) and the client side cache.  *)
 
-val local_find : ('a, 'b) t -> 'a -> 'b Eio.Promise.or_exn
+val local_find : ('a, 'b) t -> 'a -> 'b
 (** Find a piece of data in local cache, without trying to fetch it
     from server. Raises [Not_found] instead.  If the value is currently
     being retrieved, it waits for it to be ready before returning.  *)

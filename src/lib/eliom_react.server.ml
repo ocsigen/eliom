@@ -169,7 +169,7 @@ module S = struct
              (fun v ->
                 store.read <- false;
                 store.value <- v;
-                Lwt_condition.broadcast store.condition ();
+                Eio.Condition.broadcast store.condition;
                 ())
              signal)
       in
@@ -180,11 +180,7 @@ module S = struct
       let rec aux () =
         if store.read
         then
-          let () =
-            Eio.Condition.await
-              (* TODO: ciao-lwt: A mutex must be passed *) store.condition
-              __mutex__
-          in
+          let () = Eio.Condition.await_no_mutex store.condition in
           aux ()
         else (
           store.read <- true;

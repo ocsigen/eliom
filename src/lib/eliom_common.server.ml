@@ -299,8 +299,7 @@ let network_of_ip k mask4 mask6 =
 
 let network_of_request r ~mask4 ~mask6 =
   match Ocsigen_request.client_conn r with
-  | `Inet (ip, _) ->
-      network_of_ip (Ipaddr.of_string_exn (ip :> string)) mask4 mask6
+  | `Inet (ip, _) -> network_of_ip ip mask4 mask6
   | _ -> Ipaddr.(V6 V6.localhost)
 
 module Net_addr_Hashtbl : sig
@@ -831,7 +830,7 @@ let empty_tables max forsession =
                      Ocsigen_request.client_conn
                        sp.sp_request.Ocsigen_extensions.request_info
                    with
-                   | `Inet (ip, _) -> Ipaddr.of_string_exn (ip :> string)
+                   | `Inet (ip, _) -> ip
                    | _ -> default_ip_table_key
                  in
                  ( ip

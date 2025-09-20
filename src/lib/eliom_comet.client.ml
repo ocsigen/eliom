@@ -243,11 +243,11 @@ end = struct
     ; mutable focused : float option
       (** [focused] is None when the page is visible and Some [t]
             when the page became hidden at time [t] (in ms) *)
-    ; mutable active_waiter : unit Promise.t
+    ; mutable active_waiter : unit Promise.or_exn
       (** [active_waiter] terminates when the page get visible *)
-    ; mutable active_wakener : unit Lwt.u
-    ; mutable restart_waiter : Ecb.answer Promise.t
-    ; mutable restart_wakener : Ecb.answer Lwt.u
+    ; mutable active_wakener : (unit, exn) result Eio.Promise.u
+    ; mutable restart_waiter : Ecb.answer Promise.or_exn
+    ; mutable restart_wakener : (Ecb.answer, exn) result Eio.Promise.u
     ; mutable active_channels : Eliom_lib.String.Set.t }
 
   type stateful_state = int ref (* id of the next request *)
@@ -296,7 +296,7 @@ end = struct
           hd.hd_activity.active_waiter <- t;
           let wakener = hd.hd_activity.active_wakener in
           hd.hd_activity.active_wakener <- u;
-          Promise.resolve wakener ()
+          Promise.resolve_ok wakener ()
 
   let is_active hd = hd.hd_activity.active
 
@@ -370,7 +370,7 @@ end = struct
     act.restart_waiter <- t;
     let wakener = act.restart_wakener in
     act.restart_wakener <- u;
-    Lwt.wakeup_exn wakener Restart;
+    Eio.Promise.resolve_error wakener Restart;
     activate hd
 
   let max_retries = 10
@@ -482,7 +482,7 @@ end = struct
       Configuration.sleep_before_next_request
         (fun () -> hd_activity.focused)
         (fun () -> hd_activity.active = `Idle)
-        (fun () -> hd_activity.active_waiter)
+        (fun () -> Eio.Promise.await_exn hd_activity.active_waiter)
     in
     let request = make_request hd in
     let s =
@@ -517,17 +517,18 @@ end = struct
     let rec aux retries =
       if hd.hd_activity.active = `Inactive
       then
-        let () = hd.hd_activity.active_waiter in
+        let () = Eio.Promise.await_exn hd.hd_activity.active_waiter in
         aux 0
       else
         match
           Fiber.any
             [ (fun () -> call_service hd)
             ; (fun () ->
-                hd
-                (* TODO: ciao-lwt: This computation might not be suspended correctly. *)
-                  .hd_activity
-                  .restart_waiter) ]
+                Eio.Promise.await_exn
+                  hd
+                  (* TODO: ciao-lwt: This computation might not be suspended correctly. *)
+                    .hd_activity
+                    .restart_waiter) ]
         with
         | s -> (
           match s with
@@ -779,21 +780,15 @@ let register' hd position (_ : Ecb.comet_service) (chan_id : 'a Ecb.chan_id) =
         | _ -> None)
       (Eliom_stream.clone hd.hd_stream)
   in
-  let protect_and_close t =
-    let t' =
-      Lwt.protected
-        (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
-        (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
-        t
-    in
-    Lwt.on_cancel
-      (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
-      (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
-      t' (fun () -> Service_handler.close hd.hd_service_handler chan_id);
-    t'
+  let protect_and_close f =
+    try Switch.run f
+    with Eio.Cancel.Cancelled _ as e ->
+      Service_handler.close hd.hd_service_handler chan_id;
+      raise e
   in
   (* protect the stream from cancels *)
-  Eliom_stream.from (fun () -> protect_and_close (Eliom_stream.get stream))
+  Eliom_stream.from (fun () ->
+    protect_and_close (fun _sw -> Eliom_stream.get stream))
 
 let register_stateful ?(wake = true) service chan_id =
   let hd = get_stateful_hd service in

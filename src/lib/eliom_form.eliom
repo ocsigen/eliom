@@ -146,7 +146,6 @@ module Make_links (Html : Html) = struct
         let f =
           [%client.unsafe
             fun ev ->
-              let open Eio.Std in
               if not (Eliom_client.middleClick ev)
               then (
                 Dom.preventDefault ev;
