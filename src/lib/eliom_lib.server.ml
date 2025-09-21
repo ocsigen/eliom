@@ -68,3 +68,8 @@ let fork f =
   Eio.Fiber.fork
     ~sw:(Stdlib.Option.get (Eio.Fiber.get Ocsigen_lib.current_switch))
     f
+
+let fork_promise f =
+  Eio.Fiber.fork_promise
+    ~sw:(Stdlib.Option.get (Eio.Fiber.get Ocsigen_lib.current_switch))
+    f

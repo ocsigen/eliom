@@ -203,3 +203,12 @@ module Dom_reference = struct
 end
 
 let fork = Js_of_ocaml_eio.Eio_js.start
+
+let fork_promise f =
+  let p, u = Eio.Promise.create () in
+  Js_of_ocaml_eio.Eio_js.start (fun () ->
+    try
+      let v = f () in
+      Eio.Promise.resolve_ok u v
+    with e -> Eio.Promise.resolve_error u e);
+  p

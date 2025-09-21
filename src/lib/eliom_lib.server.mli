@@ -55,3 +55,4 @@ val make_cryptographic_safe_string : ?len:int -> unit -> string
     Not implemented client-side. *)
 
 val fork : (unit -> unit) -> unit
+val fork_promise : (unit -> 'a) -> 'a Eio.Promise.or_exn
