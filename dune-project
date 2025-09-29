@@ -28,7 +28,6 @@ The client-side code is compiled to JS using Ocsigen Js_of_ocaml or to Wasm usin
   (ppxlib (>= 0.15))
   (js_of_ocaml-compiler (>= 6.0))
   (js_of_ocaml (>= 6.0))
-  (js_of_ocaml-lwt (>= 6.0))
   (js_of_ocaml-ocamlbuild :build)
   (js_of_ocaml-ppx (>= 6.0))
   (js_of_ocaml-ppx_deriving_json (>= 6.0))
