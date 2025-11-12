@@ -422,21 +422,22 @@ module Make (P : PARAM) = struct
            because of optional suffixes *)
       | a :: l -> aux (Some a) l
     in
-    let search_by_priority_generation tables path =
-      (* New in 1.91: There is now one table for each pair
-         (generation, priority) *)
-      List.fold_left
-        (fun prev (_prio, _gen, table) ->
-           try prev with
-           | Exn1 | Eliom_common.Eliom_404 | Eliom_common.Eliom_Wrong_parameter
-             ->
-               search_page_table !table path
-           | e -> raise e)
-        (raise Exn1) tables
+    let rec search_by_priority_generation path e = function
+      | (_prio, _gen, table) :: others -> (
+        (* New in 1.91: There is now one table for each pair
+          (generation, priority) *)
+        try search_page_table !table path
+        with
+        | (Exn1 | Eliom_common.Eliom_404 | Eliom_common.Eliom_Wrong_parameter)
+          as e
+        ->
+          search_by_priority_generation path e others)
+      | [] -> raise e
     in
     try
-      search_by_priority_generation (P.Container.get tables)
+      search_by_priority_generation
         (Url.change_empty_list (P.subpath_of_info info))
+        Exn1 (P.Container.get tables)
     with
     | Exn1 -> raise Eliom_common.Eliom_404
     | e -> raise e

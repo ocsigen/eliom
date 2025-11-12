@@ -104,19 +104,23 @@ let get_page
       sitedata : Ocsigen_response.t
   =
   let tables = session_tables info in
+  let rec try_page e f = function
+    | tables :: others -> (
+      try f tables
+      with
+      | (Eliom_common.Eliom_404 | Eliom_common.Eliom_Wrong_parameter) as e ->
+        try_page e f others)
+    | [] -> raise e
+  in
   try
-    List.fold_left
-      (fun beg (table, table_name) ->
-         try beg with
-         | Eliom_common.Eliom_404 | Eliom_common.Eliom_Wrong_parameter ->
-             Logs.info ~src:section (fun fmt ->
-               fmt "Looking for %s in the %s:"
-                 (Url.string_of_url_path ~encode:true
-                    (Ocsigen_request.sub_path ri.request_info))
-                 table_name);
-             find_aux now sitedata info Eliom_common.Eliom_404 table
-         | e -> raise e)
-      (raise Eliom_common.Eliom_404)
+    try_page Eliom_common.Eliom_404
+      (fun (table, table_name) ->
+         Logs.info ~src:section (fun fmt ->
+           fmt "Looking for %s in the %s:"
+             (Url.string_of_url_path ~encode:true
+                (Ocsigen_request.sub_path ri.request_info))
+             table_name);
+         find_aux now sitedata info Eliom_common.Eliom_404 table)
       tables
   with
   | Eliom_common.Eliom_404 | Eliom_common.Eliom_Wrong_parameter -> (
