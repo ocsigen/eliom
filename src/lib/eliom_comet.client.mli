@@ -31,7 +31,7 @@
 
     To stop receiving inputs from a channel, use Lwt.cancel on a
     thread waiting for data. For instance, if you iterate with
-    [ let t = Lwt_stream.iter f %channel ] calling [Lwt.cancel t]
+    [ let t = Eliom_stream.iter f %channel ] calling [Lwt.cancel t]
     will close the channel. *)
 
 exception Channel_full
@@ -52,7 +52,7 @@ val activate : unit -> unit
 (** if the client is inactive [activate ()] launch a new xhr
     connection to start receiving server messages *)
 
-val set_handle_exn_function : (?exn:exn -> unit -> unit Lwt.t) -> unit
+val set_handle_exn_function : (?exn:exn -> unit -> unit) -> unit
 (** Makes possible to customize the function called when comet fails
     for unknown reason.
     The usual practice is to warn the user and ask to reload the page.
@@ -115,7 +115,7 @@ module Configuration : sig
 end
 
 module Channel : sig
-  type 'a t = 'a Lwt_stream.t
+  type 'a t = 'a Eliom_stream.t
 end
 
 (**/**)
@@ -123,7 +123,7 @@ end
 val register :
    ?wake:bool
   -> 'a Eliom_comet_base.wrapped_channel
-  -> 'a Lwt_stream.t
+  -> 'a Eliom_stream.t
 (** if wake is false, the registration of the channel won't
     activate the handling loop ( no request will be sent ). Default is true *)
 
@@ -142,7 +142,7 @@ val close : 'a Eliom_comet_base.wrapped_channel -> unit
 
 val force_link : unit
 
-val handle_exn : ?exn:exn -> unit -> unit Lwt.t
+val handle_exn : ?exn:exn -> unit -> unit
 (** This function calls manually the function
     that is usually called automatically when an exception
     is received during communication. *)

@@ -1,4 +1,4 @@
-open Lwt.Syntax
+open Eio.Std
 
 (* Ocsigen
  * http://www.ocsigen.org
@@ -25,7 +25,6 @@ open Lwt.Syntax
 let section = Logs.Src.create "eliom:gc"
 
 open Eliom_lib
-open Lwt
 
 (*****************************************************************************)
 let servicesessiongcfrequency = ref (Some 1200.) (* 20 min ? *)
@@ -41,12 +40,12 @@ let get_persistentsessiongcfrequency () = !persistentsessiongcfrequency
 (* garbage collection of timeouted sessions *)
 let gc_timeouted_services now tables =
   let rec aux t filename direltr thr =
-    thr >>= fun () ->
+    thr;
     (* we wait for the previous one to be completed *)
     match !direltr with
-    | Eliom_common.Dir r ->
-        empty_one r >>= fun () ->
-        (match !r with
+    | Eliom_common.Dir r -> (
+        empty_one r;
+        match !r with
         | Eliom_common.Vide -> (
           match !t with
           | Eliom_common.Vide -> ()
@@ -55,13 +54,12 @@ let gc_timeouted_services now tables =
               if String.Table.is_empty newr
               then t := Eliom_common.Vide
               else t := Eliom_common.Table newr)
-        | _ -> ());
-        Lwt.return_unit
-    | Eliom_common.File ptr ->
+        | _ -> ())
+    | Eliom_common.File ptr -> (
         Eliom_common.Serv_Table.fold
           (*VVV not tail recursive: may be a problem if lots of coservices *)
           (fun ptk (`Ptc (nodeopt, l)) thr ->
-             let* _ = thr in
+             let _ = thr in
              (* we wait for the previous one to be completed *)
              (match nodeopt, l with
              | Some node, {Eliom_common.s_expire = Some (_, e); _} :: _
@@ -98,58 +96,49 @@ let gc_timeouted_services now tables =
                            (`Ptc (nodeopt, newl))
                            ll
                with Not_found -> ()));
-             Lwt.pause ())
-          !ptr return_unit
-        >>= fun () ->
-        (if Eliom_common.Serv_Table.is_empty !ptr
-         then
-           match !t with
-           | Eliom_common.Vide -> ()
-           | Eliom_common.Table tr ->
-               let newr = String.Table.remove filename tr in
-               if String.Table.is_empty newr
-               then t := Eliom_common.Vide
-               else t := Eliom_common.Table newr);
-        Lwt.return_unit
+             Fiber.yield ())
+          !ptr ();
+        if Eliom_common.Serv_Table.is_empty !ptr
+        then
+          match !t with
+          | Eliom_common.Vide -> ()
+          | Eliom_common.Table tr ->
+              let newr = String.Table.remove filename tr in
+              if String.Table.is_empty newr
+              then t := Eliom_common.Vide
+              else t := Eliom_common.Table newr)
   and empty_one t =
     match !t with
-    | Eliom_common.Vide -> Lwt.return_unit
-    | Eliom_common.Table r -> (
+    | Eliom_common.Vide -> ()
+    | Eliom_common.Table r ->
         if String.Table.is_empty r
-        then (
-          t := Eliom_common.Vide;
-          Lwt.return_unit)
-        else
-          String.Table.fold (aux t) r Lwt.return_unit >>= fun () ->
+        then t := Eliom_common.Vide
+        else (
+          String.Table.fold (aux t) r ();
           match !t with
           (* !t has probably changed *)
-          | Eliom_common.Vide -> Lwt.return_unit
+          | Eliom_common.Vide -> ()
           | Eliom_common.Table r ->
-              if String.Table.is_empty r then t := Eliom_common.Vide;
-              Lwt.return_unit)
+              if String.Table.is_empty r then t := Eliom_common.Vide)
   in
-  Lwt_list.iter_s
+  List.iter
     (fun (_, _prio, t) -> empty_one t)
-    tables.Eliom_common.table_services
-  >>= fun () ->
+    tables.Eliom_common.table_services;
   tables.Eliom_common.table_services <-
     List.filter
       (fun r -> !(Tuple3.thd r) <> Eliom_common.Vide)
-      tables.Eliom_common.table_services;
-  Lwt.return_unit
+      tables.Eliom_common.table_services
 
 let gc_timeouted_naservices now tr =
   match !tr with
-  | Eliom_common.AVide -> return_unit
+  | Eliom_common.AVide -> ()
   | Eliom_common.ATable t ->
       if Eliom_common.NAserv_Table.is_empty t
-      then (
-        tr := Eliom_common.AVide;
-        Lwt.return_unit)
+      then tr := Eliom_common.AVide
       else
         Eliom_common.NAserv_Table.fold
           (fun k (_, _, expdate, _, nodeopt) thr ->
-             thr >>= fun () ->
+             thr;
              (match expdate with
              | Some (_, e) when !e < now -> (
                match nodeopt with
@@ -158,8 +147,8 @@ let gc_timeouted_naservices now tr =
                    (* will remove from the table automatically *)
                | _ -> tr := Eliom_common.remove_naservice_table !tr k)
              | _ -> ());
-             Lwt.pause ())
-          t return_unit
+             Fiber.yield ())
+          t ()
 
 (* This is a thread that will work for example every hour. *)
 let service_session_gc sitedata =
@@ -168,70 +157,68 @@ let service_session_gc sitedata =
   | None -> () (* No garbage collection *)
   | Some t ->
       let rec f () =
-        Lwt_unix.sleep t >>= fun () ->
+        Eio_unix.sleep t;
         let service_cookie_table = sitedata.Eliom_common.session_services in
         let now = Unix.time () in
         Logs.info ~src:section (fun fmt -> fmt "GC of service sessions");
         (* public continuation tables: *)
-        (if tables.Eliom_common.table_contains_services_with_timeout
-         then gc_timeouted_services now tables
-         else return_unit)
-        >>= fun () ->
-        (if tables.Eliom_common.table_contains_naservices_with_timeout
-         then gc_timeouted_naservices now tables.Eliom_common.table_naservices
-         else return_unit)
-        >>= fun () ->
-        (* private continuation tables: *)
-        Eliom_common.SessionCookies.fold
-          (fun k
-            { Eliom_common.Service_cookie.session_table = tables
-            ; expiry
-            ; session_group
-            ; session_group_node
-            ; _ }
-            thr ->
-             thr >>= fun () ->
-             (match !expiry with
-               | Some exp when exp < now ->
-                   Eliommod_sessiongroups.Serv.remove session_group_node;
-                   Lwt.return_unit
-               | _ ->
-                   (if tables.Eliom_common.table_contains_services_with_timeout
-                    then gc_timeouted_services now tables
-                    else return_unit)
-                   >>= fun () ->
-                   (if
-                      tables.Eliom_common.table_contains_naservices_with_timeout
-                    then
-                      gc_timeouted_naservices now
-                        tables.Eliom_common.table_naservices
-                    else return_unit)
-                   >>= fun () ->
-                   (match !session_group with
-                   | _, _scope, Right _
-                   (* no group *)
-                   (*VVV check this *)
-                     when Eliommod_sessiongroups.Serv.group_size
-                            ( Eliom_common.get_site_dir_string sitedata
-                            , `Client_process
-                            , Left k )
-                          = 0
-                          (* no tab sessions *)
-                          && Eliom_common.service_tables_are_empty tables ->
-                       (* The session is not used in any table
+        if tables.Eliom_common.table_contains_services_with_timeout
+        then gc_timeouted_services now tables
+        else ();
+        if tables.Eliom_common.table_contains_naservices_with_timeout
+        then gc_timeouted_naservices now tables.Eliom_common.table_naservices
+        else ();
+        f
+          (* private continuation tables: *)
+          (Eliom_common.SessionCookies.fold
+             (fun k
+               { Eliom_common.Service_cookie.session_table = tables
+               ; expiry
+               ; session_group
+               ; session_group_node
+               ; _ }
+               thr ->
+                thr;
+                Fiber.yield
+                  (match !expiry with
+                  | Some exp when exp < now ->
+                      Eliommod_sessiongroups.Serv.remove session_group_node
+                  | _ -> (
+                      if
+                        tables.Eliom_common.table_contains_services_with_timeout
+                      then gc_timeouted_services now tables
+                      else ();
+                      if
+                        tables
+                          .Eliom_common.table_contains_naservices_with_timeout
+                      then
+                        gc_timeouted_naservices now
+                          tables.Eliom_common.table_naservices
+                      else ();
+                      match !session_group with
+                      | _, _scope, Right _
+                      (* no group *)
+                      (*VVV check this *)
+                        when Eliommod_sessiongroups.Serv.group_size
+                               ( Eliom_common.get_site_dir_string sitedata
+                               , `Client_process
+                               , Left k )
+                             = 0
+                             (* no tab sessions *)
+                             && Eliom_common.service_tables_are_empty tables ->
+                          (* The session is not used in any table
                    and is not in a group
                    (scope must be `Session,
                    as all tab sessions are in a group),
                    and is not associated to any tab session.
                    We can remove it. *)
-                       Eliommod_sessiongroups.Serv.remove session_group_node
-                   | _ -> () (*VVV enough? *));
-                   return_unit)
-             >>= Lwt.pause)
-          service_cookie_table return_unit
-        >>= f
+                          Eliommod_sessiongroups.Serv.remove session_group_node
+                      | _ -> () (*VVV enough? *))))
+             service_cookie_table ())
       in
-      Lwt.async f
+      Fiber.fork
+        ~sw:(Stdlib.Option.get (Fiber.get Ocsigen_lib.current_switch))
+        f
 
 (* This is a thread that will work for example every hour. *)
 let data_session_gc sitedata =
@@ -239,58 +226,58 @@ let data_session_gc sitedata =
   | None -> () (* No garbage collection *)
   | Some t ->
       let rec f () =
-        Lwt_unix.sleep t >>= fun () ->
+        Eio_unix.sleep t;
         let data_cookie_table = sitedata.Eliom_common.session_data in
         let not_bound_in_data_tables =
           sitedata.Eliom_common.not_bound_in_data_tables
         in
         let now = Unix.time () in
         Logs.info ~src:section (fun fmt -> fmt "GC of session data");
-        (* private continuation tables: *)
-        Eliom_common.SessionCookies.fold
-          (fun k
-            { Eliom_common.Data_cookie.expiry
-            ; session_group
-            ; session_group_node
-            ; _ }
-            thr ->
-             thr >>= fun () ->
-             (match !expiry with
-               | Some exp when exp < now ->
-                   Eliommod_sessiongroups.Data.remove session_group_node;
-                   return_unit
-               | _ -> (
-                 match !session_group with
-                 | _, scope, Right _
-                 (* no group *)
-                   when Eliommod_sessiongroups.Data.group_size
-                          ( Eliom_common.get_site_dir_string sitedata
-                          , `Client_process
-                          , Left k )
-                        = 0
-                        (* no tab sessions *)
-                        && not_bound_in_data_tables k ->
-                     (* The session is not used in any table
+        f
+          (* private continuation tables: *)
+          (Eliom_common.SessionCookies.fold
+             (fun k
+               { Eliom_common.Data_cookie.expiry
+               ; session_group
+               ; session_group_node
+               ; _ }
+               thr ->
+                thr;
+                Fiber.yield
+                  (match !expiry with
+                  | Some exp when exp < now ->
+                      Eliommod_sessiongroups.Data.remove session_group_node
+                  | _ -> (
+                    match !session_group with
+                    | _, scope, Right _
+                    (* no group *)
+                      when Eliommod_sessiongroups.Data.group_size
+                             ( Eliom_common.get_site_dir_string sitedata
+                             , `Client_process
+                             , Left k )
+                           = 0
+                           (* no tab sessions *)
+                           && not_bound_in_data_tables k ->
+                        (* The session is not used in any table
                           and is not in a group
                           (scope must be `Session,
                           as all tab sessions are in a group),
                           and is not associated to any tab session.
                           We can remove it. *)
-                     if scope <> `Session
-                     then
-                       Logs.err ~src:section (fun fmt ->
-                         fmt
-                           "Eliom: Group associated to IP has scope different from `Session. Please report the problem.");
-                     Eliommod_sessiongroups.Data.remove session_group_node;
-                     (* See also the finalisers in Eliommod_sessiongroups
+                        if scope <> `Session
+                        then
+                          Logs.err ~src:section (fun fmt ->
+                            fmt
+                              "Eliom: Group associated to IP has scope different from `Session. Please report the problem.");
+                        Eliommod_sessiongroups.Data.remove session_group_node
+                        (* See also the finalisers in Eliommod_sessiongroups
                           and Eliommod.ml *)
-                     Lwt.return_unit
-                 | _ -> Lwt.return_unit))
-             >>= Lwt.pause)
-          data_cookie_table return_unit
-        >>= f
+                    | _ -> ())))
+             data_cookie_table ())
       in
-      Lwt.async f
+      Fiber.fork
+        ~sw:(Stdlib.Option.get (Fiber.get Ocsigen_lib.current_switch))
+        f
 
 (* garbage collection of timeouted persistent sessions *)
 (* This is a thread that will work every hour/day *)
@@ -312,19 +299,15 @@ let persistent_session_gc sitedata =
       (*WAS: remove_from_all_persistent_tables k *)
       | _ ->
           Logs.info ~src:section (fun fmt ->
-            fmt "cookie not expired: %s" (log_hash cookie));
-          return_unit
+            fmt "cookie not expired: %s" (log_hash cookie))
     in
     let gc_cookie c =
-      Lwt.try_bind
-        (fun () -> Eliommod_cookies.Persistent_cookies.Cookies.find c)
-        (do_gc_cookie c)
-        (function
-          | Not_found ->
-              Logs.info ~src:section (fun fmt ->
-                fmt "cookie does not exist: %s" (log_hash c));
-              Lwt.return_unit
-          | exn -> Lwt.fail exn)
+      match Eliommod_cookies.Persistent_cookies.Cookies.find c with
+      | v -> (do_gc_cookie c) v
+      | exception Not_found ->
+          Logs.info ~src:section (fun fmt ->
+            fmt "cookie does not exist: %s" (log_hash c))
+      | exception exn -> raise exn
     in
     Logs.info ~src:section (fun fmt -> fmt "GC of persistent sessions");
     Eliommod_cookies.Persistent_cookies.garbage_collect ~section gc_cookie
@@ -332,5 +315,7 @@ let persistent_session_gc sitedata =
   match get_persistentsessiongcfrequency () with
   | None -> () (* No garbage collection *)
   | Some t ->
-      let rec f () = Lwt_unix.sleep t >>= gc >>= f in
-      Lwt.async f
+      let rec f () = f (gc (Eio_unix.sleep t)) in
+      Fiber.fork
+        ~sw:(Stdlib.Option.get (Fiber.get Ocsigen_lib.current_switch))
+        f

@@ -63,3 +63,13 @@ let make_cryptographic_safe_string ?len () =
   match len with
   | None -> Ocsigen_lib.make_cryptographic_safe_string ()
   | Some l -> String.sub (Ocsigen_lib.make_cryptographic_safe_string ()) 0 l
+
+let fork f =
+  Eio.Fiber.fork
+    ~sw:(Stdlib.Option.get (Eio.Fiber.get Ocsigen_lib.current_switch))
+    f
+
+let fork_promise f =
+  Eio.Fiber.fork_promise
+    ~sw:(Stdlib.Option.get (Eio.Fiber.get Ocsigen_lib.current_switch))
+    f

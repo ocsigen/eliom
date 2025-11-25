@@ -206,8 +206,8 @@ type sess_info =
       string Full_state_name_table.t
       * string Full_state_name_table.t
       * string Full_state_name_table.t
-    (* the same, but for secure cookies *)
-  ; (* now for tab cookies: *)
+  ; (* the same, but for secure cookies *)
+    (* now for tab cookies: *)
     si_service_session_cookies_tab : string Full_state_name_table.t
   ; si_data_session_cookies_tab : string Full_state_name_table.t
   ; si_persistent_session_cookies_tab : string Full_state_name_table.t
@@ -364,7 +364,7 @@ type ('params, 'result) service =
     s_id : anon_params_type * anon_params_type
   ; mutable s_max_use : int option
   ; s_expire : (float * float ref) option
-  ; s_f : bool -> 'params -> 'result Lwt.t }
+  ; s_f : bool -> 'params -> 'result }
 
 type 'a to_and_of = {of_string : string -> 'a; to_string : 'a -> string}
 

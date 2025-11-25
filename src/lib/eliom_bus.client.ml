@@ -1,4 +1,4 @@
-open Lwt.Syntax
+open Eio.Std
 
 (* Ocsigen
  * http://www.ocsigen.org
@@ -29,34 +29,43 @@ module Ecb = Eliom_comet_base
 
 type ('a, 'b) t =
   { channel : 'b Ecb.wrapped_channel
-  ; stream : 'b Lwt_stream.t Lazy.t
+  ; stream : 'b Eliom_stream.t Lazy.t
   ; queue : 'a Queue.t
   ; mutable max_size : int
-  ; write : 'a list -> unit Lwt.t
-  ; mutable waiter : unit -> unit Lwt.t
-  ; mutable last_wait : unit Lwt.t
+  ; write : 'a list -> unit
+  ; mutable waiter : unit -> unit
+  ; mutable last_wait : Switch.t option
   ; mutable original_stream_available : bool
-  ; error_h : 'b option Lwt.t * exn Lwt.u }
+  ; error_h : 'b option Promise.or_exn * (exn, exn) result Promise.u }
 
 (* clone streams such that each clone of the original stream raise the same exceptions *)
 let consume (t, u) s =
-  let t' =
-    Lwt.catch
-      (fun () -> Lwt_stream.iter (fun _ -> ()) s)
-      (fun e ->
-         (match Lwt.state t with Lwt.Sleep -> Lwt.wakeup_exn u e | _ -> ());
-         Lwt.fail e)
-  in
-  Lwt.choose [Lwt.bind t (fun _ -> Lwt.return_unit); t']
+  let p, w = Promise.create () in
+  Eliom_lib.fork (fun () ->
+    try Promise.resolve_ok w (Eliom_stream.iter (fun _ -> ()) s)
+    with e ->
+      (match Promise.peek t with None -> Promise.resolve_error u e | _ -> ());
+      Promise.resolve_error w e);
+  Eliom_lib.fork (fun () ->
+    try Promise.resolve_ok w (ignore (Promise.await_exn t))
+    with e -> Promise.resolve_error w e);
+  Promise.await_exn p
 
 let clone_exn (t, u) s =
-  let s' = Lwt_stream.clone s in
-  Lwt_stream.from (fun () ->
-    Lwt.catch
-      (fun () -> Lwt.choose [Lwt_stream.get s'; t])
-      (fun e ->
-         (match Lwt.state t with Lwt.Sleep -> Lwt.wakeup_exn u e | _ -> ());
-         Lwt.fail e))
+  let s' = Eliom_stream.clone s in
+  Eliom_stream.from (fun () ->
+    try
+      let p, w = Promise.create () in
+      Eliom_lib.fork (fun () ->
+        try Promise.resolve_ok w (Eliom_stream.get s')
+        with e -> Promise.resolve_error w e);
+      Eliom_lib.fork (fun () ->
+        try Promise.resolve_ok w (Promise.await_exn t)
+        with e -> Promise.resolve_error w e);
+      Promise.await_exn p
+    with e ->
+      (match Promise.peek t with None -> Promise.resolve_error u e | _ -> ());
+      raise e)
 
 type ('a, 'att, 'co, 'ext, 'reg) callable_bus_service =
   ( unit
@@ -74,25 +83,26 @@ type ('a, 'att, 'co, 'ext, 'reg) callable_bus_service =
 
 let create service channel waiter =
   let write x =
-    Lwt.catch
-      (fun () ->
-         let* _ =
-           Eliom_client.call_service
-             ~service:(service :> ('a, _, _, _, _) callable_bus_service)
-             () x
-         in
-         Lwt.return_unit)
-      (function
-        | Eliom_request.Failed_request 204 -> Lwt.return_unit
-        | exc -> Lwt.reraise exc)
+    try
+      let _ =
+        Eliom_client.call_service
+          ~service:(service :> ('a, _, _, _, _) callable_bus_service)
+          () x
+      in
+      ()
+    with Eliom_request.Failed_request 204 -> ()
   in
   let error_h =
-    let t, u = Lwt.wait () in
-    ( Lwt.catch
-        (fun () ->
-           let* _ = t in
-           assert false)
-        (fun e -> Lwt.fail e)
+    let t, (u : (exn, exn) result Promise.u) =
+      Promise.create
+        (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
+        ()
+    in
+    let tt, uu = Promise.create () in
+    ( (try
+         ignore (Promise.await t);
+         assert false
+       with e -> Promise.resolve_error uu e; tt)
     , u )
   in
   let stream =
@@ -109,7 +119,7 @@ let create service channel waiter =
     ; max_size = 20
     ; write
     ; waiter
-    ; last_wait = Lwt.return_unit
+    ; last_wait = None
     ; original_stream_available = true
     ; error_h }
   in
@@ -117,14 +127,13 @@ let create service channel waiter =
      original channel (i.e. without message lost) is only available in
      the first loading phase. *)
   let _ =
-    let* () = Eliom_client.wait_load_end () in
-    t.original_stream_available <- false;
-    Lwt.return_unit
+    let () = Eliom_client.wait_load_end () in
+    t.original_stream_available <- false
   in
   t
 
 let internal_unwrap ((wrapped_bus : ('a, 'b) Ecb.wrapped_bus), _unwrapper) =
-  let waiter () = Js_of_ocaml_lwt.Lwt_js.sleep 0.05 in
+  let waiter () = Js_of_ocaml_eio.Eio_js.sleep 0.05 in
   let channel, Eliom_comet_base.Bus_send_service service = wrapped_bus in
   create service channel waiter
 
@@ -144,15 +153,19 @@ let flush t =
   let l = List.rev (Queue.fold (fun l v -> v :: l) [] t.queue) in
   Queue.clear t.queue; t.write l
 
+exception Cancelled
+
 let try_flush t =
-  Lwt.cancel t.last_wait;
+  Option.iter (fun o -> Switch.fail o Cancelled) t.last_wait;
   if Queue.length t.queue >= t.max_size
   then flush t
   else
-    let th = Lwt.protected (t.waiter ()) in
-    t.last_wait <- th;
-    let _ = th >>= fun () -> flush t in
-    Lwt.return_unit
+    Eliom_lib.fork (fun () ->
+      Switch.run_protected (fun sw ->
+        (*VVV ???*)
+        t.last_wait <- Some sw;
+        t.waiter ());
+      flush t)
 
 let write t v = Queue.add v t.queue; try_flush t
 let close {channel; _} = Eliom_comet.close channel
@@ -160,6 +173,6 @@ let set_queue_size b s = b.max_size <- s
 
 let set_time_before_flush b t =
   b.waiter <-
-    (if t <= 0. then Lwt.pause else fun () -> Js_of_ocaml_lwt.Lwt_js.sleep t)
+    (if t <= 0. then Fiber.yield else fun () -> Js_of_ocaml_eio.Eio_js.sleep t)
 
 let force_link = ()

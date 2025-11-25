@@ -1,5 +1,3 @@
-open Lwt.Syntax
-
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2010-2011
@@ -22,8 +20,7 @@ open Lwt.Syntax
 *)
 
 (* Module for event unwrapping *)
-open Lwt_react
-open Lwt.Infix
+open Eio_react
 
 let section = Logs.Src.create "eliom:comet"
 
@@ -41,8 +38,7 @@ module Down = struct
           "Exception during comet with react. Customize this with Eliom_react.set_handle_react_exn_function. "
         in
         Logs.msg ~src:section Logs.Debug (fun fmt ->
-          fmt "%s%a" s pp_exn_option exn);
-        Lwt.return_unit)
+          fmt "%s%a" s pp_exn_option exn))
     in
     (fun ~exn () -> !r ~exn ()), fun f -> r := f
 
@@ -50,14 +46,14 @@ module Down = struct
     (* We want to catch more exceptions here than the usual exceptions caught
        in Eliom_comet. For example Channel_full. *)
     (* We transform the stream into a stream with exception: *)
-    let stream = Lwt_stream.wrap_exn channel in
-    Lwt.async (fun () ->
-      Lwt_stream.iter_s
+    let stream = Eliom_stream.wrap_exn channel in
+    Js_of_ocaml_eio.Eio_js.start (fun () ->
+      Eliom_stream.iter_s
         (function
           | Error exn ->
-              let* () = handle_react_exn ~exn () in
-              Lwt.fail exn
-          | Ok () -> Lwt.return_unit)
+              let () = handle_react_exn ~exn () in
+              raise exn
+          | Ok () -> ())
         stream);
     E.of_stream channel
 
@@ -67,10 +63,11 @@ module Down = struct
 end
 
 module Up = struct
-  type 'a t = 'a -> unit Lwt.t
+  type 'a t = 'a -> unit
 
   let internal_unwrap (service, _unwrapper) x =
-    Eliom_client.call_service ~service () x >|= fun _ -> ()
+    let _ = Eliom_client.call_service ~service () x in
+    ()
 
   let () =
     Eliom_unwrap.register_unwrapper Eliom_common.react_up_unwrap_id

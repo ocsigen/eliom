@@ -1,5 +1,3 @@
-open Lwt.Syntax
-
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2014 Hugo Heuzard
@@ -108,72 +106,68 @@ let http_stats () =
            hosts) ]
 
 let eliom_stats () =
-  let* persist_nb_of_groups = Eliommod_sessiongroups.Pers.nb_of_groups () in
-  let* number_of_persistent_data_cookies =
+  let persist_nb_of_groups = Eliommod_sessiongroups.Pers.nb_of_groups () in
+  let number_of_persistent_data_cookies =
     Eliom_state.number_of_persistent_data_cookies ()
   in
-  Lwt.return
-    (div
-       [ h3 [ppf "Sessions"]
-       ; ul
-           [ li
-               [ ppf "%d service cookies."
-                   (Eliom_state.number_of_service_cookies ()) ]
-           ; li
-               [ ppf "%d volatile data cookies."
-                   (Eliom_state.number_of_volatile_data_cookies ()) ]
-           ; li
-               [ ppf "%d volatile data tables (volatile Eliom references)."
-                   (Eliom_state.number_of_tables ()) ]
-           ; li
-               [ ppf "%d persistent data cookies."
-                   number_of_persistent_data_cookies ]
-           ; li
-               [ ppf "%d persistent data tables (persistent data reference)."
-                   (Eliom_state.number_of_persistent_tables ()) ] ]
-       ; h3 [ppf "Client processes"]
-       ; p [em [txt "Not implemented yet"]]
-       ; h3 [ppf "Session groups"]
-       ; ul
-           [ li
-               [ ppf "%d service session groups."
-                   (Eliommod_sessiongroups.Serv.nb_of_groups ()) ]
-           ; li
-               [ ppf "%d volatile data session groups."
-                   (Eliommod_sessiongroups.Data.nb_of_groups ()) ]
-           ; li [ppf "%d persistent data session groups." persist_nb_of_groups]
-           ; li
-               [ ppf "Session groups: %s"
-                   (String.concat ", "
-                      (Eliom_state.Ext.get_session_group_list ())) ] ] ])
+  div
+    [ h3 [ppf "Sessions"]
+    ; ul
+        [ li
+            [ ppf "%d service cookies."
+                (Eliom_state.number_of_service_cookies ()) ]
+        ; li
+            [ ppf "%d volatile data cookies."
+                (Eliom_state.number_of_volatile_data_cookies ()) ]
+        ; li
+            [ ppf "%d volatile data tables (volatile Eliom references)."
+                (Eliom_state.number_of_tables ()) ]
+        ; li
+            [ppf "%d persistent data cookies." number_of_persistent_data_cookies]
+        ; li
+            [ ppf "%d persistent data tables (persistent data reference)."
+                (Eliom_state.number_of_persistent_tables ()) ] ]
+    ; h3 [ppf "Client processes"]
+    ; p [em [txt "Not implemented yet"]]
+    ; h3 [ppf "Session groups"]
+    ; ul
+        [ li
+            [ ppf "%d service session groups."
+                (Eliommod_sessiongroups.Serv.nb_of_groups ()) ]
+        ; li
+            [ ppf "%d volatile data session groups."
+                (Eliommod_sessiongroups.Data.nb_of_groups ()) ]
+        ; li [ppf "%d persistent data session groups." persist_nb_of_groups]
+        ; li
+            [ ppf "Session groups: %s"
+                (String.concat ", " (Eliom_state.Ext.get_session_group_list ()))
+            ] ] ]
 
 let content_div () =
-  let* eliom_stats = eliom_stats () in
-  Lwt.return
-    (div
-       [ h1 [ppf "Ocsigen server monitoring"]
-       ; general_stats ()
-       ; h2 [ppf "HTTP connexions"]
-       ; http_stats ()
-       ; h2 [ppf "Eliom sessions"]
-       ; eliom_stats
-       ; h2 [ppf "GC"]
-       ; gc_stats () ])
+  let eliom_stats = eliom_stats () in
+  div
+    [ h1 [ppf "Ocsigen server monitoring"]
+    ; general_stats ()
+    ; h2 [ppf "HTTP connexions"]
+    ; http_stats ()
+    ; h2 [ppf "Eliom sessions"]
+    ; eliom_stats
+    ; h2 [ppf "GC"]
+    ; gc_stats () ]
 
 let content_html () =
-  let* content_div = content_div () in
-  Lwt.return
-    (html
-       (head
-          (title (txt "Server monitoring"))
-          [ link ~rel:[`Stylesheet]
-              ~href:
-                (uri_of_string (fun () ->
-                   "//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"))
-              ()
-          ; link ~rel:[`Stylesheet]
-              ~href:
-                (uri_of_string (fun () ->
-                   "//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css"))
-              () ])
-       (body [div ~a:[a_class ["container"]] [content_div]]))
+  let content_div = content_div () in
+  html
+    (head
+       (title (txt "Server monitoring"))
+       [ link ~rel:[`Stylesheet]
+           ~href:
+             (uri_of_string (fun () ->
+                "//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"))
+           ()
+       ; link ~rel:[`Stylesheet]
+           ~href:
+             (uri_of_string (fun () ->
+                "//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css"))
+           () ])
+    (body [div ~a:[a_class ["container"]] [content_div]])

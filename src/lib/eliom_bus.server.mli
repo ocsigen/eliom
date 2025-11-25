@@ -56,7 +56,7 @@ val create_filtered :
    ?scope:[< Eliom_comet.Channel.comet_scope]
   -> ?name:string
   -> ?size:int
-  -> filter:('a -> 'b Lwt.t)
+  -> filter:('a -> 'b)
   -> 'a Deriving_Json.t
   -> ('a, 'b) t
 (** Same as [create], but data is filtered through [filter] function
@@ -64,12 +64,12 @@ val create_filtered :
     some information, like IP address, or user id.
 *)
 
-val stream : ('a, 'b) t -> 'b Lwt_stream.t
+val stream : ('a, 'b) t -> 'b Eliom_stream.t
 (** [stream b] returns the stream of data sent to bus [b]. Notice you
     should not use that function multiple times on the same bus, it will
     return the same stream. If you want to receive multiple times the
-    same data, you should copy the stream with [Lwt_stream.clone] *)
+    same data, you should copy the stream with [Eliom_stream.clone] *)
 
-val write : ('a, 'b) t -> 'a -> unit Lwt.t
+val write : ('a, 'b) t -> 'a -> unit
 (** [write b x] sends the value [x] on the bus [b]. Every participant,
     including the server, will receive [x]. *)
