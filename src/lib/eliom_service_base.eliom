@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 (* Manipulation of services - this code can be use on server or client side. *)
 
@@ -27,18 +27,17 @@ module Url = Eliom_lib.Url
 
 type suff = [`WithSuffix | `WithoutSuffix]
 
-let params_of_meth :
-    type m gp gn pp pn x.
-    (m, gp, gn, pp, pn, 'tipo, x) meth
-    -> (gp, 'tipo, gn) params * (pp, [`WithoutSuffix], pn) params
+let params_of_meth : type m gp gn pp pn x.
+  (m, gp, gn, pp, pn, 'tipo, x) meth
+  -> (gp, 'tipo, gn) params * (pp, [`WithoutSuffix], pn) params
   = function
   | Get gp -> gp, Eliom_parameter.unit
   | Post (gp, pp) -> gp, pp
   | Put gp -> gp, Eliom_parameter.raw_post_data
   | Delete gp -> gp, Eliom_parameter.raw_post_data
 
-let which_meth_internal :
-    type m gp gn pp pn tipo x. (m, gp, gn, pp, pn, tipo, x) meth -> m which_meth
+let which_meth_internal : type m gp gn pp pn tipo x.
+  (m, gp, gn, pp, pn, tipo, x) meth -> m which_meth
   = function
   | Get _ -> Get'
   | Post _ -> Post'
@@ -75,7 +74,7 @@ type att =
 type non_att =
   { na_name : Eliom_common.na_key_serv
   ; keep_get_na_params : bool
-  (* bool is used only for post and means "keep_get_na_params": do we
+    (* bool is used only for post and means "keep_get_na_params": do we
      keep GET non-attached parameters in links (if any) (31/12/2007 -
      experimental - WAS: 'a, but may be removed (was not used)) *)
   }
@@ -123,7 +122,7 @@ type ('get
       (string * Eliommod_parameters.param) list Eliom_lib.String.Table.t
       (* non localized parameters *)
       * (string * Eliommod_parameters.param) list
-        (* regular parameters *)
+    (* regular parameters *)
   ; get_params_type : ('get, 'tipo, 'getnames) Eliom_parameter.params_type
   ; post_params_type :
       ('post, [`WithoutSuffix], 'postnames) Eliom_parameter.params_type
@@ -140,13 +139,13 @@ type ('get
   ; (* force https *)
     keep_nl_params : [`All | `Persistent | `None]
   ; mutable send_appl_content : send_appl_content
-        (* XNever when we create the service, then changed at registration
+  ; (* XNever when we create the service, then changed at registration
      :/ *)
-  ; (* If the service has a client-side implementation, we put the
+    (* If the service has a client-side implementation, we put the
      generating function here: *)
     mutable client_fun :
-      ('get -> 'post -> result Lwt.t) option ref Eliom_client_value.t option
-        (* The function is in a client-side reference, so that it is shared
+      ('get -> 'post -> result) option ref Eliom_client_value.t option
+    (* The function is in a client-side reference, so that it is shared
      by all occurrences of the service sent from the server.
      For some service, we cannot create the client value immediately;
      this is done later on using [internal_set_client_fun].  *)
@@ -208,8 +207,9 @@ let timeout s = s.timeout
 let https s = s.https
 let priority s = s.priority
 
-let internal_set_client_fun ~service
-    (f : ('get -> 'post -> result Lwt.t) Eliom_client_value.t)
+let internal_set_client_fun
+      ~service
+      (f : ('get -> 'post -> result) Eliom_client_value.t)
   =
   service.client_fun <- Some [%client.unsafe ref (Some ~%f)]
 
@@ -473,9 +473,20 @@ let%client no_client_fun () : _ ref Eliom_client_value.t option =
   Some (ref None)
 
 (** Create a main service (not a coservice), internal or external *)
-let main_service ~https ~prefix ~(path : Url.path) ?force_site_dir ~kind ~meth
-    ?(redirect_suffix = true) ?(keep_nl_params = `None)
-    ?(priority = default_priority) ~get_params ~post_params ~reload_fun ()
+let main_service
+      ~https
+      ~prefix
+      ~(path : Url.path)
+      ?force_site_dir
+      ~kind
+      ~meth
+      ?(redirect_suffix = true)
+      ?(keep_nl_params = `None)
+      ?(priority = default_priority)
+      ~get_params
+      ~post_params
+      ~reload_fun
+      ()
   =
   { pre_applied_parameters = Eliom_lib.String.Table.empty, []
   ; get_params_type = get_params

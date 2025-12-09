@@ -53,3 +53,6 @@ val eliom_logs_src : Logs.src
 val make_cryptographic_safe_string : ?len:int -> unit -> string
 (** Return a base-64 encoded cryptographic safe string of the given length.
     Not implemented client-side. *)
+
+val fork : (unit -> unit) -> unit
+val fork_promise : (unit -> 'a) -> 'a Eio.Promise.or_exn

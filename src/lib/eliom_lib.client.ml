@@ -88,14 +88,7 @@ let raise_error ?exn ?section fmt =
 
 let log_inspect obj = Console.console##log (Obj.repr obj)
 let eliom_logs_src = Logs.Src.create "eliom"
-
-let _ =
-  Logs.set_reporter (Logs_browser.console_reporter ());
-  Lwt.async_exception_hook :=
-    fun exn ->
-      Console.console##error_3 (Js.string "Lwt.async:")
-        (Js.string (Printexc.to_string exn))
-        exn
+let _ = Logs.set_reporter (Logs_browser.console_reporter ())
 
 let trace fmts =
   if Eliom_config.get_tracing ()
@@ -208,3 +201,14 @@ module Dom_reference = struct
          Js.Optdef.iter (m##get key) (fun keep -> retain dst ~key ~keep);
          m##delete key)
 end
+
+let fork = Js_of_ocaml_eio.Eio_js.start
+
+let fork_promise f =
+  let p, u = Eio.Promise.create () in
+  Js_of_ocaml_eio.Eio_js.start (fun () ->
+    try
+      let v = f () in
+      Eio.Promise.resolve_ok u v
+    with e -> Eio.Promise.resolve_error u e);
+  p

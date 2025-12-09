@@ -99,26 +99,26 @@ module Data :
     [`Session] Eliom_common.sessgrp Ocsigen_cache.Dlist.node
 
 module Pers : sig
-  val find : Eliom_common.perssessgrp option -> string list Lwt.t
+  val find : Eliom_common.perssessgrp option -> string list
 
   val add :
      ?set_max:int option
     -> int option
     -> string
     -> Eliom_common.perssessgrp option
-    -> string list Lwt.t
+    -> string list
 
   val remove :
      Eliom_common.sitedata
     -> string
     -> Eliom_common.perssessgrp option
-    -> unit Lwt.t
+    -> unit
 
   val remove_group :
      cookie_level:[`Session | `Client_process of Eliom_common.perssessgrp option]
     -> Eliom_common.sitedata
     -> Eliom_common.perssessgrp option
-    -> unit Lwt.t
+    -> unit
 
   val move :
      Eliom_common.sitedata
@@ -127,15 +127,15 @@ module Pers : sig
     -> string
     -> Eliom_common.perssessgrp option
     -> Eliom_common.perssessgrp option
-    -> string list Lwt.t
+    -> string list
 
-  val up : string -> Eliom_common.perssessgrp option -> unit Lwt.t
-  val nb_of_groups : unit -> int Lwt.t
+  val up : string -> Eliom_common.perssessgrp option -> unit
+  val nb_of_groups : unit -> int
 
   val close_persistent_session2 :
      cookie_level:Eliom_common.cookie_level
     -> Eliom_common.sitedata
     -> Eliom_common.perssessgrp option
     -> string
-    -> unit Lwt.t
+    -> unit
 end

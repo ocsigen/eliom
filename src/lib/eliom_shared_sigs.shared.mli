@@ -113,61 +113,61 @@ module type S = sig
   module Lwt : sig
     val map_s :
        ?eq:('b -> 'b -> bool) sv
-      -> ('a -> 'b Lwt.t) sv
+      -> ('a -> 'b) sv
       -> 'a t
-      -> 'b t Lwt.t
+      -> 'b t Eio.Promise.or_exn
 
     val l2_s :
        ?eq:('c -> 'c -> bool) sv
-      -> ('a -> 'b -> 'c Lwt.t) sv
+      -> ('a -> 'b -> 'c) sv
       -> 'a t
       -> 'b t
-      -> 'c t Lwt.t
+      -> 'c t Eio.Promise.or_exn
 
     val l3_s :
        ?eq:('d -> 'd -> bool) sv
-      -> ('a -> 'b -> 'c -> 'd Lwt.t) sv
+      -> ('a -> 'b -> 'c -> 'd) sv
       -> 'a t
       -> 'b t
       -> 'c t
-      -> 'd t Lwt.t
+      -> 'd t Eio.Promise.or_exn
 
     val l4_s :
        ?eq:('e -> 'e -> bool) sv
-      -> ('a -> 'b -> 'c -> 'd -> 'e Lwt.t) sv
+      -> ('a -> 'b -> 'c -> 'd -> 'e) sv
       -> 'a t
       -> 'b t
       -> 'c t
       -> 'd t
-      -> 'e t Lwt.t
+      -> 'e t Eio.Promise.or_exn
 
     val l5_s :
        ?eq:('f -> 'f -> bool) sv
-      -> ('a -> 'b -> 'c -> 'd -> 'e -> 'f Lwt.t) sv
+      -> ('a -> 'b -> 'c -> 'd -> 'e -> 'f) sv
       -> 'a t
       -> 'b t
       -> 'c t
       -> 'd t
       -> 'e t
-      -> 'f t Lwt.t
+      -> 'f t Eio.Promise.or_exn
 
     val l6_s :
        ?eq:('g -> 'g -> bool) sv
-      -> ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g Lwt.t) sv
+      -> ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g) sv
       -> 'a t
       -> 'b t
       -> 'c t
       -> 'd t
       -> 'e t
       -> 'f t
-      -> 'g t Lwt.t
+      -> 'g t Eio.Promise.or_exn
 
     val merge_s :
        ?eq:('a -> 'a -> bool) sv
-      -> ('a -> 'b -> 'a Lwt.t) sv
+      -> ('a -> 'b -> 'a) sv
       -> 'a
       -> 'b t list
-      -> 'a t Lwt.t
+      -> 'a t Eio.Promise.or_exn
   end
 end
 
@@ -217,6 +217,6 @@ module type RLIST = sig
 
   (** Cooperative versions of the ReactiveData operators *)
   module Lwt : sig
-    val map_p : ('a -> 'b Lwt.t) sv -> 'a t -> 'b t Lwt.t
+    val map_p : ('a -> 'b) sv -> 'a t -> 'b t
   end
 end
