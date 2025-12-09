@@ -21,6 +21,7 @@ The client-side code is compiled to JS using Ocsigen Js_of_ocaml or to Wasm usin
 ")
  (homepage https://ocsigen.org/eliom/)
  (source (github ocsigen/eliom))
+ (maintenance_intent "(latest)")
  (depends
   (ocaml (>= 4.12))
   ocamlfind
