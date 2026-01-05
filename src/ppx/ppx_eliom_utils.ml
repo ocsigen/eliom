@@ -399,7 +399,9 @@ module Cmo = struct
           Typ.class_ ~loc
             (mkloc (ident_of_out_ident id) loc)
             (List.map type_of_out_type tyl)
-      | ((Otyp_alias {aliased; alias; _}) [@if ocaml_version >= (5, 1, 0)]) ->
+      | ((Otyp_alias {aliased; alias; _}) [@if ocaml_version >= (5, 3, 0)]) ->
+          Typ.alias ~loc (type_of_out_type aliased) (mkloc (var alias) loc)
+      | ((Otyp_alias {aliased; alias; _}) [@if (ocaml_version >= (5, 1, 0)) && (ocaml_version < (5, 3, 0))]) ->
           Typ.alias ~loc (type_of_out_type aliased) (var alias)
       | ((Otyp_alias (ty, s)) [@if ocaml_version < (5, 1, 0)]) ->
           Typ.alias ~loc (type_of_out_type ty) (var s)
@@ -587,8 +589,15 @@ module Cannot_have_fragment = struct
 
   let rec expression e =
     match e.pexp_desc with
+<<<<<<< HEAD
     | Pexp_ident _ | Pexp_constant _ | Pexp_function _ | Pexp_lazy _ -> true
     | ((Pexp_fun _) [@if ocaml_version < (5, 3, 0)]) -> true
+=======
+    | Pexp_ident _ | Pexp_constant _ | Pexp_function _ | Pexp_lazy _ ->
+        true
+    | (Pexp_fun _ [@if ocaml_version < (5, 3, 0)]) ->
+        true
+>>>>>>> 6c155646b (Fix compilation with OCaml 5.3)
     | Pexp_newtype (_, e)
     | Pexp_assert e
     | Pexp_field (e, _)
