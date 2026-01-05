@@ -338,7 +338,9 @@ module Cmo = struct
 
   let counter = ref 0
 
-  let type_of_out_type ty =
+  (* We use the same location for all nodes of the constructed type,
+     which is an approximation but sufficient for error reporting. *)
+  let type_of_out_type ?(loc = Location.none) ty =
     let open Outcometree in
     let open Parsetree in
     let map = Hashtbl.create 1 in
@@ -350,7 +352,7 @@ module Cmo = struct
     in
     let rec type_of_out_type ty =
       match ty with
-      | Otyp_var (_, s) -> Typ.var (var s)
+      | Otyp_var (_, s) -> Typ.var ~loc (var s)
       | ((Otyp_arrow (lab, ty1, ty2)) [@if ocaml_version >= (5, 2, 0)]) ->
           let lab =
             match lab with
@@ -358,59 +360,59 @@ module Cmo = struct
             | Labelled lab -> Labelled lab
             | Optional lab -> Optional lab
           in
-          Typ.arrow lab (type_of_out_type ty1) (type_of_out_type ty2)
+          Typ.arrow ~loc lab (type_of_out_type ty1) (type_of_out_type ty2)
       | ((Otyp_arrow (lab, ty1, ty2)) [@if ocaml_version < (5, 2, 0)]) ->
-          Typ.arrow (label_of_string lab) (type_of_out_type ty1)
+          Typ.arrow ~loc (label_of_string lab) (type_of_out_type ty1)
             (type_of_out_type ty2)
-      | Otyp_tuple tyl -> Typ.tuple (List.map type_of_out_type tyl)
+      | Otyp_tuple tyl -> Typ.tuple ~loc (List.map type_of_out_type tyl)
       | Otyp_constr (id, tyl) ->
-          Typ.constr
-            (mkloc (ident_of_out_ident id) Location.none)
+          Typ.constr ~loc
+            (mkloc (ident_of_out_ident id) loc)
             (List.map type_of_out_type tyl)
       | ((Otyp_object {fields; open_row}) [@if ocaml_version >= (5, 1, 0)]) ->
           let fields =
             List.map
               (fun (label, ty) ->
                  { pof_desc =
-                     Otag (mkloc label Location.none, type_of_out_type ty)
-                 ; pof_loc = Location.none
+                     Otag (mkloc label loc, type_of_out_type ty)
+                 ; pof_loc = loc
                  ; pof_attributes = [] })
               fields
           in
-          Typ.object_ fields (if open_row then Open else Closed)
+          Typ.object_ ~loc fields (if open_row then Open else Closed)
       | ((Otyp_object (fields, rest)) [@if ocaml_version < (5, 1, 0)]) ->
           let fields =
             List.map
               (fun (label, ty) ->
                  { pof_desc =
-                     Otag (mkloc label Location.none, type_of_out_type ty)
-                 ; pof_loc = Location.none
+                     Otag (mkloc label loc, type_of_out_type ty)
+                 ; pof_loc = loc
                  ; pof_attributes = [] })
               fields
           in
-          Typ.object_ fields (if rest = None then Closed else Open)
+          Typ.object_ ~loc fields (if rest = None then Closed else Open)
       | ((Otyp_class (id, tyl)) [@if ocaml_version >= (5, 1, 0)]) ->
-          Typ.class_
-            (mkloc (ident_of_out_ident id) Location.none)
+          Typ.class_ ~loc
+            (mkloc (ident_of_out_ident id) loc)
             (List.map type_of_out_type tyl)
       | ((Otyp_class (_, id, tyl)) [@if ocaml_version < (5, 1, 0)]) ->
-          Typ.class_
-            (mkloc (ident_of_out_ident id) Location.none)
+          Typ.class_ ~loc
+            (mkloc (ident_of_out_ident id) loc)
             (List.map type_of_out_type tyl)
       | ((Otyp_alias {aliased; alias; _}) [@if ocaml_version >= (5, 1, 0)]) ->
-          Typ.alias (type_of_out_type aliased) (var alias)
+          Typ.alias ~loc (type_of_out_type aliased) (var alias)
       | ((Otyp_alias (ty, s)) [@if ocaml_version < (5, 1, 0)]) ->
-          Typ.alias (type_of_out_type ty) (var s)
+          Typ.alias ~loc (type_of_out_type ty) (var s)
       | ((Otyp_variant (Ovar_typ ty, closed, tags))
          [@if ocaml_version >= (5, 1, 0)]) ->
-          Typ.variant
-            [Rf.mk (Rinherit (type_of_out_type ty))]
+          Typ.variant ~loc
+            [Rf.mk ~loc (Rinherit (type_of_out_type ty))]
             (if closed then Closed else Open)
             tags
       | ((Otyp_variant (_, Ovar_typ ty, closed, tags))
          [@if ocaml_version < (5, 1, 0)]) ->
-          Typ.variant
-            [Rf.mk (Rinherit (type_of_out_type ty))]
+          Typ.variant ~loc
+            [Rf.mk ~loc (Rinherit (type_of_out_type ty))]
             (if closed then Closed else Open)
             tags
       | ((Otyp_variant (Ovar_fields lst, closed, tags))
@@ -418,30 +420,30 @@ module Cmo = struct
           let row_fields =
             List.map
               (fun (label, const, tyl) ->
-                 Rf.mk
+                 Rf.mk ~loc
                    (Rtag
-                      ( mkloc label Location.none
+                      ( mkloc label loc
                       , const
                       , List.map type_of_out_type tyl )))
               lst
           in
-          Typ.variant row_fields (if closed then Closed else Open) tags
+          Typ.variant ~loc row_fields (if closed then Closed else Open) tags
       | ((Otyp_variant (_, Ovar_fields lst, closed, tags))
          [@if ocaml_version < (5, 1, 0)]) ->
           let row_fields =
             List.map
               (fun (label, const, tyl) ->
-                 Rf.mk
+                 Rf.mk ~loc
                    (Rtag
-                      ( mkloc label Location.none
+                      ( mkloc label loc
                       , const
                       , List.map type_of_out_type tyl )))
               lst
           in
-          Typ.variant row_fields (if closed then Closed else Open) tags
+          Typ.variant ~loc row_fields (if closed then Closed else Open) tags
       | Otyp_poly (sl, ty) ->
-          Typ.poly
-            (List.map (fun v -> mkloc (var v) Location.none) sl)
+          Typ.poly ~loc
+            (List.map (fun v -> mkloc (var v) loc) sl)
             (type_of_out_type ty)
       | Otyp_abstract | Otyp_open | Otyp_sum _ | Otyp_manifest _ | Otyp_record _
       | Otyp_module _ | Otyp_attribute _ | Otyp_stuff _ ->
@@ -451,24 +453,24 @@ module Cmo = struct
 
   [%%if ocaml_version >= (5, 3, 0)]
 
-  let typ ty =
+  let typ ?loc ty =
     let ty =
       Out_type.prepare_for_printing [ty];
       Out_type.tree_of_typexp Type_scheme ty
     in
-    type_of_out_type ty
+    type_of_out_type ?loc ty
 
   [%%else]
 
-  let typ ty =
+  let typ ?loc ty =
     let ty = Printtyp.tree_of_type_scheme ty in
-    type_of_out_type ty
+    type_of_out_type ?loc ty
 
   [%%endif]
 
   let find err loc =
     let {Lexing.pos_fname; pos_cnum; _} = loc.Location.loc_start in
-    try typ (Hashtbl.find (Lazy.force events) (pos_fname, pos_cnum))
+    try typ ~loc (Hashtbl.find (Lazy.force events) (pos_fname, pos_cnum))
     with Not_found ->
       Typ.extension ~loc @@ Location.Error.to_extension
       @@ Location.Error.make ~loc ~sub:[]
