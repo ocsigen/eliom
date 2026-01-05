@@ -57,7 +57,7 @@ module Cmo : sig
   val exists : unit -> bool
   val find_escaped_ident : Location.t -> core_type
   val find_injected_ident : Location.t -> core_type
-  val find_fragment : Location.t -> core_type
+  val find_fragment : Location.t -> core_type option
 end
 
 (** Signature of specific code of a preprocessor. *)
