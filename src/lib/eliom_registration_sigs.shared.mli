@@ -32,7 +32,7 @@ module type PARAM = sig
     -> ?content_type:string
     -> ?headers:Cohttp.Header.t
     -> page
-    -> frame Lwt.t
+    -> frame
 
   val send_appl_content : Eliom_service.send_appl_content
   (** Whether the service is capable of sending application content
@@ -56,7 +56,7 @@ module type PARAM_POLY = sig
     -> ?content_type:string
     -> ?headers:Cohttp.Header.t
     -> _ page
-    -> frame Lwt.t
+    -> frame
 
   val send_appl_content : Eliom_service.send_appl_content
   (** See {!Eliom_reg_sigs.PARAM.send_appl_content}. *)
@@ -104,8 +104,8 @@ module type S = sig
            , _
            , return )
            Eliom_service.t
-    -> ?error_handler:((string * exn) list -> page Lwt.t)
-    -> ('get -> 'post -> page Lwt.t)
+    -> ?error_handler:((string * exn) list -> page)
+    -> ('get -> 'post -> page)
     -> unit
   (** The function [register ~service handler] associates the
       [service] to the function [handler]. The [handler] function takes
@@ -147,7 +147,7 @@ module type S = sig
     -> ?content_type:string
     -> ?headers:Cohttp.Header.t
     -> page
-    -> result Lwt.t
+    -> result
   (** The function [send page] builds the HTTP frame corresponding to
       [page]. This may be used for example in a service handler
       registered with {!Eliom_registration.Any.register}, or when
@@ -175,8 +175,8 @@ module type S_with_create = sig
     -> ?timeout:float
     -> meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'gp_) Eliom_service.meth
     -> path:('att, 'co, 'gp_) Eliom_service.path_option
-    -> ?error_handler:((string * exn) list -> page Lwt.t)
-    -> ('gp -> 'pp -> page Lwt.t)
+    -> ?error_handler:((string * exn) list -> page)
+    -> ('gp -> 'pp -> page)
     -> ( 'gp
          , 'pp
          , 'm
@@ -224,8 +224,8 @@ module type S_with_create = sig
            , return )
            Eliom_service.t
     -> get_params:('gp, [`WithoutSuffix], 'gn) Eliom_parameter.params_type
-    -> ?error_handler:((string * exn) list -> page Lwt.t)
-    -> ('gp -> unit -> page Lwt.t)
+    -> ?error_handler:((string * exn) list -> page)
+    -> ('gp -> unit -> page)
     -> ( 'gp
          , unit
          , Eliom_service.get
@@ -273,8 +273,8 @@ module type S_with_create = sig
            , return )
            Eliom_service.t
     -> post_params:('pp, [`WithoutSuffix], 'pn) Eliom_parameter.params_type
-    -> ?error_handler:((string * exn) list -> page Lwt.t)
-    -> ('gp -> 'pp -> page Lwt.t)
+    -> ?error_handler:((string * exn) list -> page)
+    -> ('gp -> 'pp -> page)
     -> ( 'gp
          , 'pp
          , Eliom_service.post
@@ -320,8 +320,8 @@ module type S_poly = sig
            , _
            , 'a return )
            Eliom_service.t
-    -> ?error_handler:((string * exn) list -> 'a page Lwt.t)
-    -> ('get -> 'post -> 'a page Lwt.t)
+    -> ?error_handler:((string * exn) list -> 'a page)
+    -> ('get -> 'post -> 'a page)
     -> unit
   (** See {!S.register}. *)
 end
@@ -347,8 +347,8 @@ module type S_poly_with_create = sig
     -> ?timeout:float
     -> meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'gp_) Eliom_service.meth
     -> path:('att, 'co, 'gp_) Eliom_service.path_option
-    -> ?error_handler:((string * exn) list -> 'a page Lwt.t)
-    -> ('gp -> 'pp -> 'a page Lwt.t)
+    -> ?error_handler:((string * exn) list -> 'a page)
+    -> ('gp -> 'pp -> 'a page)
     -> ( 'gp
          , 'pp
          , 'm
@@ -393,8 +393,8 @@ module type S_poly_with_create = sig
            , 'a return )
            Eliom_service.t
     -> get_params:('gp, [`WithoutSuffix], 'gn) Eliom_parameter.params_type
-    -> ?error_handler:((string * exn) list -> 'a page Lwt.t)
-    -> ('gp -> unit -> 'a page Lwt.t)
+    -> ?error_handler:((string * exn) list -> 'a page)
+    -> ('gp -> unit -> 'a page)
     -> ( 'gp
          , unit
          , Eliom_service.get
@@ -439,8 +439,8 @@ module type S_poly_with_create = sig
            , 'a return )
            Eliom_service.t
     -> post_params:('pp, [`WithoutSuffix], 'pn) Eliom_parameter.params_type
-    -> ?error_handler:((string * exn) list -> 'a page Lwt.t)
-    -> ('gp -> 'pp -> 'a page Lwt.t)
+    -> ?error_handler:((string * exn) list -> 'a page)
+    -> ('gp -> 'pp -> 'a page)
     -> ( 'gp
          , 'pp
          , Eliom_service.post
@@ -468,7 +468,7 @@ module type S_poly_with_send = sig
     -> ?content_type:string
     -> ?headers:Cohttp.Header.t
     -> 'a page
-    -> 'a result Lwt.t
+    -> 'a result
 end
 
 module type S_poly_with_create_with_send = sig
@@ -483,5 +483,5 @@ module type S_poly_with_create_with_send = sig
     -> ?content_type:string
     -> ?headers:Cohttp.Header.t
     -> 'a page
-    -> 'a result Lwt.t
+    -> 'a result
 end

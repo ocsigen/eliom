@@ -106,9 +106,9 @@ module Any :
    and type 'a result = 'a kind
 
 val appl_self_redirect :
-   ('page -> [< 'a application_content | browser_content] kind Lwt.t)
+   ('page -> [< 'a application_content | browser_content] kind)
   -> 'page
-  -> 'appl application_content kind Lwt.t
+  -> 'appl application_content kind
 (** For compatibility with server-side [appl_self_redirect] *)
 
 (**/**)

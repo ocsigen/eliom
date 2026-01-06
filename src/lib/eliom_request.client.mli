@@ -72,7 +72,7 @@ val send :
   -> ?override_mime_type:string
   -> string
   -> 'a result
-  -> (string * 'a option) Lwt.t
+  -> string * 'a option
 
 val send_get_form :
    ?with_credentials:bool
@@ -86,7 +86,7 @@ val send_get_form :
   -> Dom_html.formElement Js.t
   -> string
   -> 'a result
-  -> (string * 'a option) Lwt.t
+  -> string * 'a option
 
 val send_post_form :
    ?with_credentials:bool
@@ -100,7 +100,7 @@ val send_post_form :
   -> Dom_html.formElement Js.t
   -> string
   -> 'a result
-  -> (string * 'a option) Lwt.t
+  -> string * 'a option
 
 val http_get :
    ?with_credentials:bool
@@ -112,7 +112,7 @@ val http_get :
   -> string
   -> (string * string) list
   -> 'a result
-  -> (string * 'a option) Lwt.t
+  -> string * 'a option
 
 val http_post :
    ?with_credentials:bool
@@ -124,7 +124,7 @@ val http_post :
   -> string
   -> (string * Eliommod_parameters.param) list
   -> 'a result
-  -> (string * 'a option) Lwt.t
+  -> string * 'a option
 
 val http_put :
    ?with_credentials:bool
@@ -136,7 +136,7 @@ val http_put :
   -> string
   -> (string * Eliommod_parameters.param) list
   -> 'a result
-  -> (string * 'a option) Lwt.t
+  -> string * 'a option
 
 val http_delete :
    ?with_credentials:bool
@@ -148,7 +148,7 @@ val http_delete :
   -> string
   -> (string * Eliommod_parameters.param) list
   -> 'a result
-  -> (string * 'a option) Lwt.t
+  -> string * 'a option
 
 val get_cookie_info_for_uri_js : Js.js_string Js.t -> bool * string list
 val max_redirection_level : int

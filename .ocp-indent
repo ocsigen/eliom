@@ -1,4 +1,4 @@
 normal
 with=0
-syntax=lwt mll
+syntax=mll
 max_indent=2

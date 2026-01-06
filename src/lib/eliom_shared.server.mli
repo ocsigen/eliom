@@ -1,3 +1,5 @@
+open Eio.Std
+
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2014
@@ -32,7 +34,7 @@
 val to_signal :
    init:'a
   -> ?eq:('a -> 'a -> bool)
-  -> 'a React.S.t Lwt.t
+  -> 'a React.S.t Promise.or_exn
   -> 'a React.S.t
 (** [to_signal ~init s] converts the Lwt-wrapped signal [s] into a
     regular signal with initial value [init]. *)

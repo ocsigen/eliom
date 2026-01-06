@@ -21,14 +21,14 @@
   ocsigenserver.polytables
   js_of_ocaml
   js_of_ocaml-tyxml
-  js_of_ocaml-lwt
-  lwt_react
+  react
   ocsigenserver.baselib.base
   logs
   logs.browser
   cohttp
   tyxml
-  reactiveData)
+  reactiveData
+  js_of_ocaml-eio)
  (foreign_stubs
   (language c)
   (names eliom_stubs))
