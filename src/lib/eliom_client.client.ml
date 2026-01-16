@@ -19,7 +19,7 @@ open Eio.Std
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 let section = Eliom_client_core.section
 
@@ -77,10 +77,7 @@ let run_onunload_wrapper set_content cancel =
       set_content ()
 
 let onload_promise () =
-  let t, u =
-    Promise.create
-      ()
-  in
+  let t, u = Promise.create () in
   onload (fun () -> Promise.resolve u ());
   t
 
@@ -1060,13 +1057,31 @@ let init () =
   then
     Js_of_ocaml_eio.Eio_js.start (fun () ->
       let () = Js_of_ocaml_eio.Eio_js_events.request_animation_frame () in
-      let _ = onload () in
-      ())
-  else
+      ignore (onload ()))
+  else (
     onload_handler :=
       Some
         (Dom.addEventListener Dom_html.window (Dom.Event.make "load")
            (Dom.handler onload) Js._true);
+    (* WORKAROUND: Poll readyState since load event may not fire due to CPS blocking *)
+    let check_ready = ref None in
+    let called = ref false in
+    let poll_ready () =
+      (* WORKAROUND: Since Eio CPS blocks the page from ever reaching 'complete',
+         and 'interactive' may be missed, just call onload on the first poll.
+         By this time, the module initialization is complete and the DOM is ready enough. *)
+      if not !called
+      then (
+        called := true;
+        (match !check_ready with
+        | Some tid -> Dom_html.window##clearInterval tid
+        | None -> ());
+        ignore (onload ()))
+    in
+    let tid =
+      Dom_html.window##setInterval (Js.wrap_callback poll_ready) (Js.float 50.)
+    in
+    check_ready := Some tid);
   add_string_event_listener Dom_html.window "beforeunload" onbeforeunload_fun
     false;
   ignore
@@ -2186,8 +2201,7 @@ let () =
       in
       let tmpl = state.template in
       Js_of_ocaml_eio.Eio_js.start (fun () ->
-        with_progress_cursor
-        @@ fun () ->
+        with_progress_cursor @@ fun () ->
         let uri, fragment = Url.split_fragment full_uri in
         if uri = get_current_uri ()
         then (
@@ -2299,12 +2313,21 @@ let () =
       and cancel () = () in
       run_onunload_wrapper f cancel
     in
+    Console.console##log
+      (Js.string "[DEBUG] COMMENTED OUT Eio_js.start that was causing deadlock");
+    (* FIXME: This Eio_js.start call causes a deadlock because wait_load_end()
+       blocks waiting for onload to be called, but onload can't be called
+       because the page can't finish loading while this fiber blocks the event loop.
+       This needs to be rewritten to not block at module initialization time. *)
+    (*
     Js_of_ocaml_eio.Eio_js.start (fun () ->
+      Console.console##log (Js.string "[DEBUG] Inside Eio_js.start fiber, about to call wait_load_end");
       let
             ()
         =
         wait_load_end ()
       in
+      Console.console##log (Js.string "[DEBUG] After wait_load_end - THIS LINE WILL NEVER BE REACHED!");
       Logs.debug ~src:section_page (fun fmt ->
         fmt "revisit_wrapper: replaceState");
       Dom_html.window##.history##(replaceState
@@ -2316,6 +2339,7 @@ let () =
                                                  Dom_html.window##.location##.href
                                              ))))
                                     (Js.string "") Js.null));
+    *)
     Dom_html.window##.onpopstate
     := Dom_html.handler (fun event ->
       Logs.debug ~src:section_page (fun fmt ->
@@ -2358,7 +2382,12 @@ let () =
     Eliommod_dom.onhashchange (fun s -> auto_change_page (Js.to_string s));
     let first_fragment = read_fragment () in
     if first_fragment <> !current_pseudo_fragment
-    then
+    then (
+      Console.console##log
+        (Js.string
+           "[DEBUG] COMMENTED OUT second Eio_js.start with wait_load_end");
+      (* FIXME: Same deadlock issue as above *)
+      (*
       Js_of_ocaml_eio.Eio_js.start (fun () ->
         let
               ()
@@ -2366,6 +2395,8 @@ let () =
           wait_load_end ()
         in
         auto_change_page first_fragment)
+      *)
+      ())
 
 let () =
   Eliom_unwrap.register_unwrapper
