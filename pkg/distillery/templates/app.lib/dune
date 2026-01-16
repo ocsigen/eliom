@@ -71,9 +71,11 @@
     ;    %%%MODULE_NAME%%%_i18n
     ))
   (js_of_ocaml
-   (build_runtime_flags :standard --enable use-js-string)
+   (build_runtime_flags :standard --enable use-js-string --enable effects)
    (flags
     :standard
+    --enable
+    effects
     --enable
     with-js-error
     --enable
