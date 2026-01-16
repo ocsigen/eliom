@@ -204,11 +204,15 @@ end
 
 let fork = Js_of_ocaml_eio.Eio_js.start
 
+(* fork_promise launches f in a new Eio fiber and returns a promise for its result.
+   The promise is created before entering the Eio context so it can be returned
+   immediately. Eio.Promise.create() does NOT use Get_context effect - it only
+   uses Trace.mint_id and Broadcast.create which are pure operations. *)
 let fork_promise f =
   let p, u = Eio.Promise.create () in
   Js_of_ocaml_eio.Eio_js.start (fun () ->
     try
       let v = f () in
-      Eio.Promise.resolve_ok u v
-    with e -> Eio.Promise.resolve_error u e);
+      ignore (Eio.Promise.try_resolve u (Ok v))
+    with e -> ignore (Eio.Promise.try_resolve u (Error e)));
   p

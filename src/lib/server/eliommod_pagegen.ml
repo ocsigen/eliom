@@ -317,7 +317,8 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
               Do not try the following extensions.
           *)
           Ocsigen_extensions.Ext_found_stop (fun () -> res)
-        with Not_found -> Ocsigen_extensions.Ext_found (fun () -> res)
+        with Not_found ->
+          Ocsigen_extensions.Ext_found (fun () -> res)
       with
       (* FIXME COHTTP transition ; restore all that *)
       | Eliom_common.Eliom_Typing_Error l ->

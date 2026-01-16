@@ -196,7 +196,10 @@ end = struct
     with Finished l -> l
 
   let get_available_data = function
-    | Eliom_lib.Right ch_id -> [ch_id, Eliom_comet_base.Closed]
+    | Eliom_lib.Right ch_id ->
+        Logs.warn ~src:section (fun fmt ->
+          fmt "Stateless channel not found, sending Closed: %s" ch_id);
+        [ch_id, Eliom_comet_base.Closed]
     | Eliom_lib.Left (channel, position) -> (
       match position with
       (* the first request of the client should be with i = 1 *)
@@ -552,7 +555,7 @@ end = struct
                   if messages <> [] || idle
                   then messages
                   else
-                    let () = wait_data (wait_closed_connection ()) handler in
+                    let () = wait_data wait_closed_connection handler in
                     read_channels 100 handler
                 in
                 let message = encode_downgoing messages in
@@ -642,6 +645,8 @@ end = struct
           ; hd_activity = Inactive (Unix.gettimeofday ()) }
         in
         Eliom_reference.Volatile.set eref (Some handler);
+        Logs.info ~src:section (fun fmt ->
+          fmt "Creating new comet handler and registering service for scope");
         run_handler handler;
         handler
 

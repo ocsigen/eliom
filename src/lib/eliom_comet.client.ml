@@ -1,5 +1,6 @@
 open Eio.Std
 
+
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2010-2011
@@ -83,23 +84,27 @@ module Configuration = struct
         configuration_table
         (first_conf configuration_table)
 
-  let update_configuration_waiter, update_configuration_waker =
-    let t, u =
-      Promise.create
-        ()
-    in
-    ref t, ref u
+  (* Initialized lazily to avoid calling Promise.create at toplevel *)
+  let update_configuration_waiter = ref None
+  let update_configuration_waker = ref None
+
+  let get_configuration_waiter () =
+    match !update_configuration_waiter, !update_configuration_waker with
+    | Some t, Some u -> t, u
+    | _ ->
+        let t, u = Promise.create () in
+        update_configuration_waiter := Some t;
+        update_configuration_waker := Some u;
+        t, u
 
   let update_configuration () =
     global_configuration := get_configuration ();
-    let t, u =
-      Promise.create
-        ()
-    in
-    update_configuration_waiter := t;
-    let wakener = !update_configuration_waker in
-    update_configuration_waker := u;
-    Promise.resolve wakener ()
+    (* Get the old waker BEFORE creating the new promise *)
+    let _old_waiter, old_waker = get_configuration_waiter () in
+    let t, u = Promise.create () in
+    update_configuration_waiter := Some t;
+    update_configuration_waker := Some u;
+    ignore (Eio.Promise.try_resolve old_waker ())
 
   let get () = !global_configuration
 
@@ -168,7 +173,7 @@ module Configuration = struct
       let () =
         Fiber.any
           [ (fun () -> Js_of_ocaml_eio.Eio_js.sleep t)
-          ; (fun () -> Promise.await !update_configuration_waiter)
+          ; (fun () -> Promise.await (fst (get_configuration_waiter ())))
           ; active_waiter ]
       in
       let remaining_time = sleep_duration () -. (Sys.time () -. time) in
@@ -293,7 +298,7 @@ end = struct
           hd.hd_activity.active_waiter <- t;
           let wakener = hd.hd_activity.active_wakener in
           hd.hd_activity.active_wakener <- u;
-          Promise.resolve_ok wakener ()
+          ignore (Eio.Promise.try_resolve wakener (Ok ()))
 
   let is_active hd = hd.hd_activity.active
 
@@ -366,7 +371,7 @@ end = struct
     act.restart_waiter <- t;
     let wakener = act.restart_wakener in
     act.restart_wakener <- u;
-    Eio.Promise.resolve_error wakener Restart;
+    ignore (Eio.Promise.try_resolve wakener (Error Restart));
     activate hd
 
   let max_retries = 10
@@ -562,14 +567,18 @@ end = struct
     update_activity hd; aux 0
 
   let call_commands {hd_service = Ecb.Comet_service (srv, queue); _} command =
-    ignore
-      (try
-         call_service_after_load_end srv queue
-           (false, Ecb.Stateful (Ecb.Commands command))
-       with exn ->
-         Logs.app ~src:section (fun fmt ->
-           fmt ("request failed" ^^ "@\n%s") (Printexc.to_string exn));
-         "")
+    (* Use fork to run the HTTP request in an Eio context.
+       This is necessary because call_commands may be called during
+       unwrapping which happens outside of an Eio fiber. *)
+    Eliom_lib.fork (fun () ->
+      ignore
+        (try
+           call_service_after_load_end srv queue
+             (false, Ecb.Stateful (Ecb.Commands command))
+         with exn ->
+           Logs.app ~src:section (fun fmt ->
+             fmt ("request failed" ^^ "@\n%s") (Printexc.to_string exn));
+           ""))
 
   let close hd chan_id =
     match hd.hd_state with

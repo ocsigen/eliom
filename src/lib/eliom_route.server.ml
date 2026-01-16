@@ -67,21 +67,29 @@ include Eliom_route_base.Make (struct
     let get_number_of_reloads () = Ocsigen_extensions.get_numberofreloads ()
   end)
 
+(* Use Option to avoid immediate evaluation of raise as initial value.
+   In direct-style (Eio), (raise X) as a function argument is evaluated immediately,
+   unlike Lwt where Lwt.fail X returns a value. *)
 let find_aux now sitedata info _ sci : Ocsigen_response.t =
-  Eliom_common.Full_state_name_table.fold
-    (fun fullsessname (_, r) beg ->
-       try beg with
-       | Eliom_common.Eliom_404 | Eliom_common.Eliom_Wrong_parameter -> (
-         match !r with
-         | Eliom_common.SCData_session_expired
-         | Eliom_common.SCNo_data (* cookie removed *) ->
-             beg
-         | Eliom_common.SC c ->
-             find_service now !(c.Eliom_common.sc_table) (Some fullsessname)
-               sitedata info)
-       | e -> raise e)
-    sci
-    (raise Eliom_common.Eliom_404)
+  let result =
+    Eliom_common.Full_state_name_table.fold
+      (fun fullsessname (_, r) acc ->
+         match acc with
+         | Some _ -> acc
+         | None ->
+             match !r with
+             | Eliom_common.SCData_session_expired
+             | Eliom_common.SCNo_data ->
+                 None
+             | Eliom_common.SC c ->
+                 (try Some (find_service now !(c.Eliom_common.sc_table) (Some fullsessname) sitedata info)
+                  with Eliom_common.Eliom_404 | Eliom_common.Eliom_Wrong_parameter -> None))
+      sci
+      None
+  in
+  match result with
+  | Some response -> response
+  | None -> raise Eliom_common.Eliom_404
 
 let session_tables {Eliom_common.all_cookie_info; tab_cookie_info; _} =
   let (service_cookies_info, _, _), (secure_service_cookies_info, _, _) =
@@ -114,12 +122,7 @@ let get_page
   in
   try
     try_page Eliom_common.Eliom_404
-      (fun (table, table_name) ->
-         Logs.info ~src:section (fun fmt ->
-           fmt "Looking for %s in the %s:"
-             (Url.string_of_url_path ~encode:true
-                (Ocsigen_request.sub_path ri.request_info))
-             table_name);
+      (fun (table, _table_name) ->
          find_aux now sitedata info Eliom_common.Eliom_404 table)
       tables
   with

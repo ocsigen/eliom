@@ -160,7 +160,7 @@ module%client ReactiveData = struct
             (Promise.create
                ())
         in
-        Promise.resolve (snd !waiter) ();
+        ignore (Eio.Promise.try_resolve (snd !waiter) ());
         React.E.map
           (fun msg ->
              Eliom_lib.fork (fun () ->
@@ -177,7 +177,7 @@ module%client ReactiveData = struct
                | ReactiveData.RList.Set s -> ReactiveData.RList.set rhandle s
                | ReactiveData.RList.Patch p ->
                    ReactiveData.RList.patch rhandle p);
-               Promise.resolve (snd new_waiter) ()))
+               ignore (Eio.Promise.try_resolve (snd new_waiter) ())))
           event
 
       (** Same as map_p but we do not compute the initial list.

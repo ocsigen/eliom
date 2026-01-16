@@ -55,7 +55,12 @@ let result_of_content ?charset ?content_type ?headers ?status body =
       (Ocsigen_header.of_option headers)
       "cache-control" "no-cache"
   in
-  let response = Cohttp.Response.make ?status ~headers () in
+  (* Pass the body's encoding to Response.make to ensure headers match the actual
+     body encoding. Without this, Response.make defaults to Chunked when encoding
+     is Unknown, but the body may have Fixed encoding, causing the chunk terminator
+     to not be sent. *)
+  let encoding = Ocsigen_response.Body.transfer_encoding body in
+  let response = Cohttp.Response.make ?status ~encoding ~headers () in
   Ocsigen_response.make ~body response
 
 module Result_types : sig
@@ -1151,8 +1156,9 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
         Cohttp.Header.replace h Eliom_common_base.response_url_header
           (Polytables.get ~table ~key:Eliom_mkreg.suffix_redir_uri_key)
       with Not_found -> h
-    and status = Eliom_lib.Option.map Cohttp.Code.status_of_code code
-    and content_type = content_type_html content_type in
+    in
+    let status = Eliom_lib.Option.map Cohttp.Code.status_of_code code in
+    let content_type = content_type_html content_type in
     result_of_content ?charset ?status ~content_type ~headers body
 end
 

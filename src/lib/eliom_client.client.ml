@@ -19,7 +19,7 @@ open Eio.Std
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 let section = Eliom_client_core.section
 
@@ -77,11 +77,9 @@ let run_onunload_wrapper set_content cancel =
       set_content ()
 
 let onload_promise () =
-  let t, u =
-    Promise.create
-      ()
-  in
-  onload (fun () -> Promise.resolve u ());
+  let t, u = Promise.create () in
+  onload (fun () ->
+    ignore (Eio.Promise.try_resolve u ()));
   t
 
 (* == Initialize the client values sent with a request *)
@@ -935,6 +933,11 @@ let set_base_url () =
 
 let dom_history_ready = ref false
 
+(* Queue of callbacks to execute after onload completes *)
+let post_onload_callbacks = ref []
+let register_post_onload_callback f =
+  post_onload_callbacks := f :: !post_onload_callbacks
+
 (* Function called (in Eliom_client_main), once when starting the app.
    Either when sent by a server or initiated on client side.
 
@@ -1049,8 +1052,11 @@ let init () =
         flush_onload ()
         @ [onload_closure_nodes; Eliom_client_core.broadcast_load_end]
       in
-      Eio.Mutex.unlock Eliom_client_core.load_mutex;
+      Eliom_client_core.unlock_load_mutex ();
       run_callbacks load_callbacks;
+      (* Execute post-onload callbacks *)
+      List.iter (fun f -> f ()) (List.rev !post_onload_callbacks);
+      post_onload_callbacks := [];
       if !Eliom_config.debug_timings
       then Console.console##(timeEnd (Js.string "onload")));
     Js._false
@@ -1060,8 +1066,7 @@ let init () =
   then
     Js_of_ocaml_eio.Eio_js.start (fun () ->
       let () = Js_of_ocaml_eio.Eio_js_events.request_animation_frame () in
-      let _ = onload () in
-      ())
+      ignore (onload ()))
   else
     onload_handler :=
       Some
@@ -1317,13 +1322,13 @@ let call_ocaml_service
       ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params ?progress
       ?upload_progress ?override_mime_type get_params post_params
   in
-  let () = Eio.Mutex.lock Eliom_client_core.load_mutex in
+  let () = Eliom_client_core.lock_load_mutex () in
   Eliom_client_core.set_loading_phase ();
   let content, request_data = unwrap_caml_content content in
   do_request_data request_data;
   Eliom_client_core.reset_request_nodes ();
-  let load_callbacks = [Eliom_client_core.broadcast_load_end] in
-  Eio.Mutex.unlock Eliom_client_core.load_mutex;
+  let load_callbacks = flush_onload () @ [Eliom_client_core.broadcast_load_end] in
+  Eliom_client_core.unlock_load_mutex ();
   run_callbacks load_callbacks;
   match content with
   | `Success result -> result
@@ -1446,9 +1451,13 @@ module Page_status = struct
   let while_active ?now ?(stop = React.E.never) action =
     let active_switch = ref None in
     onactive ?now ~stop (fun () ->
-      Eio.Switch.run (fun sw ->
-        active_switch := Some sw;
-        Eio.Fiber.fork ~sw action);
+      (* Fork the switch.run to avoid blocking - the action runs in background *)
+      Eliom_lib.fork (fun () ->
+        try
+          Eio.Switch.run (fun sw ->
+            active_switch := Some sw;
+            Eio.Fiber.fork ~sw action)
+        with Cancelled -> (* Expected: page became inactive *) ());
       oninactive ~stop (fun () ->
         Option.iter (fun sw -> Eio.Switch.fail sw Cancelled) !active_switch);
       Dom_reference.retain_generic (get_this_page ())
@@ -1550,12 +1559,12 @@ let set_template_content ~replace ~uri ?fragment =
     (match fragment with
     | None -> change_url_string ~replace uri
     | Some fragment -> change_url_string ~replace (uri ^ "#" ^ fragment));
-    let () = Eio.Mutex.lock Eliom_client_core.load_mutex in
+    let () = Eliom_client_core.lock_load_mutex () in
     let (), request_data = unwrap_caml_content content in
     do_request_data request_data;
     Eliom_client_core.reset_request_nodes ();
     let load_callbacks = flush_onload () in
-    Eio.Mutex.unlock Eliom_client_core.load_mutex;
+    Eliom_client_core.unlock_load_mutex ();
     run_callbacks load_callbacks
   and cancel () = () in
   function
@@ -1593,7 +1602,7 @@ let set_content_local ?offset ?fragment new_page =
   Logs.debug ~src:section_page (fun fmt -> fmt "Set content local");
   let locked = ref true in
   let recover () =
-    if !locked then Eio.Mutex.unlock Eliom_client_core.load_mutex;
+    if !locked then Eliom_client_core.unlock_load_mutex ();
     if !Eliom_config.debug_timings
     then Console.console##(timeEnd (Js.string "set_content_local"))
   and really_set () =
@@ -1613,7 +1622,7 @@ let set_content_local ?offset ?fragment new_page =
       flush_onload () @ [Eliom_client_core.broadcast_load_end]
     in
     locked := false;
-    Eio.Mutex.unlock Eliom_client_core.load_mutex;
+    Eliom_client_core.unlock_load_mutex ();
     (* run callbacks upon page activation (or now), but just once *)
     Page_status.onactive ~once:true (fun () -> run_callbacks load_callbacks);
     scroll_to_fragment ?offset fragment;
@@ -1623,7 +1632,7 @@ let set_content_local ?offset ?fragment new_page =
   in
   let cancel () = recover () in
   try
-    let () = Eio.Mutex.lock Eliom_client_core.load_mutex in
+    let () = Eliom_client_core.lock_load_mutex () in
     Eliom_client_core.set_loading_phase ();
     if !Eliom_config.debug_timings
     then Console.console##(time (Js.string "set_content_local"));
@@ -1724,19 +1733,19 @@ let set_content ~replace ~uri ?offset ?fragment content =
           flush_onload ()
           @ [onload_closure_nodes; Eliom_client_core.broadcast_load_end]
         in
-        Eio.Mutex.unlock Eliom_client_core.load_mutex;
+        Eliom_client_core.unlock_load_mutex ();
         run_callbacks load_callbacks;
         scroll_to_fragment ?offset fragment;
         advance_page ();
         if !Eliom_config.debug_timings
         then Console.console##(timeEnd (Js.string "set_content"))
       and recover () =
-        if !locked then Eio.Mutex.unlock Eliom_client_core.load_mutex;
+        if !locked then Eliom_client_core.unlock_load_mutex ();
         if !Eliom_config.debug_timings
         then Console.console##(timeEnd (Js.string "set_content"))
       in
       try
-        let () = Eio.Mutex.lock Eliom_client_core.load_mutex in
+        let () = Eliom_client_core.lock_load_mutex () in
         Eliom_client_core.set_loading_phase ();
         if !Eliom_config.debug_timings
         then Console.console##(time (Js.string "set_content"));
@@ -2186,8 +2195,7 @@ let () =
       in
       let tmpl = state.template in
       Js_of_ocaml_eio.Eio_js.start (fun () ->
-        with_progress_cursor
-        @@ fun () ->
+        with_progress_cursor @@ fun () ->
         let uri, fragment = Url.split_fragment full_uri in
         if uri = get_current_uri ()
         then (
@@ -2299,12 +2307,8 @@ let () =
       and cancel () = () in
       run_onunload_wrapper f cancel
     in
-    Js_of_ocaml_eio.Eio_js.start (fun () ->
-      let
-            ()
-        =
-        wait_load_end ()
-      in
+    (* Register callback to set initial history state after onload *)
+    register_post_onload_callback (fun () ->
       Logs.debug ~src:section_page (fun fmt ->
         fmt "revisit_wrapper: replaceState");
       Dom_html.window##.history##(replaceState
@@ -2359,12 +2363,8 @@ let () =
     let first_fragment = read_fragment () in
     if first_fragment <> !current_pseudo_fragment
     then
-      Js_of_ocaml_eio.Eio_js.start (fun () ->
-        let
-              ()
-          =
-          wait_load_end ()
-        in
+      (* Register callback to handle initial fragment after onload *)
+      register_post_onload_callback (fun () ->
         auto_change_page first_fragment)
 
 let () =

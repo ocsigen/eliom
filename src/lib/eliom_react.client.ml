@@ -47,15 +47,24 @@ module Down = struct
        in Eliom_comet. For example Channel_full. *)
     (* We transform the stream into a stream with exception: *)
     let stream = Eliom_stream.wrap_exn channel in
+    (* Create the event outside of Eio context *)
+    let event, push = React.E.create () in
+    (* Start the fiber that will push events - this must be inside Eio_js.start *)
     Js_of_ocaml_eio.Eio_js.start (fun () ->
-      Eliom_stream.iter_s
-        (function
-          | Error exn ->
-              let () = handle_react_exn ~exn () in
-              raise exn
-          | Ok () -> ())
-        stream);
-    E.of_stream channel
+      try
+        Eliom_stream.iter_s
+          (function
+            | Error exn ->
+                let () = handle_react_exn ~exn () in
+                raise exn
+            | Ok () -> ())
+          stream
+      with Eliom_comet.Channel_closed -> ());
+    (* Start another fiber to read from the channel and push to the event *)
+    Js_of_ocaml_eio.Eio_js.start (fun () ->
+      try Eliom_stream.iter push channel
+      with Eliom_comet.Channel_closed -> ());
+    event
 
   let () =
     Eliom_unwrap.register_unwrapper Eliom_common.react_down_unwrap_id
@@ -79,8 +88,13 @@ module S = struct
     type 'a t = 'a React.S.t
 
     let internal_unwrap (channel, value, _unwrapper) =
-      let e = E.of_stream channel in
-      S.hold ~eq:(fun _ _ -> false) value e
+      (* Create the event outside of Eio context *)
+      let event, push = React.E.create () in
+      (* Start the fiber to read from the channel - inside Eio_js.start *)
+      Js_of_ocaml_eio.Eio_js.start (fun () ->
+        try Eliom_stream.iter push channel
+        with Eliom_comet.Channel_closed -> ());
+      S.hold ~eq:(fun _ _ -> false) value event
 
     let () =
       Eliom_unwrap.register_unwrapper Eliom_common.signal_down_unwrap_id

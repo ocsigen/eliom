@@ -71,10 +71,26 @@ let apply_unwrapper unwrapper v =
 
 let late_unwrap_value old_value new_value =
   let old_value = Obj.repr old_value in
-  List.iter
-    (fun {parent; field} ->
-       Obj.set_field parent (field - 1) (Obj.repr new_value))
-    (Obj.obj (Obj.field (Obj.field old_value (Obj.size old_value - 1)) 2))
+  (* Only process if the value is a block with the late-unwrap marker structure.
+     The late-unwrap marker is stored in the last field and should be
+     a block with at least 3 fields (tag, unwrapper_id, mark, occurrences).
+     If the value doesn't have this structure, there are no occurrences
+     to update, so we can skip. *)
+  if Obj.is_block old_value then begin
+    let size = Obj.size old_value in
+    if size >= 1 then begin
+      let last_field = Obj.field old_value (size - 1) in
+      (* Check that last_field is defined (not undefined in JS) before proceeding *)
+      if not (Js.Optdef.test (Obj.magic last_field)) then ()
+      else if Obj.is_block last_field && Obj.size last_field >= 3 then
+        (* This looks like a late-unwrap marker, process the occurrences *)
+        List.iter
+          (fun {parent; field} ->
+             Obj.set_field parent (field - 1) (Obj.repr new_value))
+          (Obj.obj (Obj.field last_field 2))
+      (* else: no late-unwrap marker, nothing to update *)
+    end
+  end
 
 external raw_unmarshal_and_unwrap :
    (unwrapper -> _ -> _ option)

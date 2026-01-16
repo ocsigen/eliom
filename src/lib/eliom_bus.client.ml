@@ -1,5 +1,6 @@
 open Eio.Std
 
+
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2010-2011
@@ -36,19 +37,23 @@ type ('a, 'b) t =
   ; mutable waiter : unit -> unit
   ; mutable last_wait : Switch.t option
   ; mutable original_stream_available : bool
-  ; error_h : 'b option Promise.or_exn * (exn, exn) result Promise.u }
+  ; error_h : ('b option Promise.or_exn * (exn, exn) result Promise.u) Lazy.t }
 
 (* clone streams such that each clone of the original stream raise the same exceptions *)
 let consume (t, u) s =
   let p, w = Promise.create () in
   Eliom_lib.fork (fun () ->
-    try Promise.resolve_ok w (Eliom_stream.iter (fun _ -> ()) s)
+    try
+      let v = Eliom_stream.iter (fun _ -> ()) s in
+      ignore (Eio.Promise.try_resolve w (Ok v))
     with e ->
-      (match Promise.peek t with None -> Promise.resolve_error u e | _ -> ());
-      Promise.resolve_error w e);
+      (match Promise.peek t with None -> ignore (Eio.Promise.try_resolve u (Error e)) | _ -> ());
+      ignore (Eio.Promise.try_resolve w (Error e)));
   Eliom_lib.fork (fun () ->
-    try Promise.resolve_ok w (ignore (Promise.await_exn t))
-    with e -> Promise.resolve_error w e);
+    try
+      ignore (Promise.await_exn t);
+      ignore (Eio.Promise.try_resolve w (Ok ()))
+    with e -> ignore (Eio.Promise.try_resolve w (Error e)));
   Promise.await_exn p
 
 let clone_exn (t, u) s =
@@ -57,14 +62,14 @@ let clone_exn (t, u) s =
     try
       let p, w = Promise.create () in
       Eliom_lib.fork (fun () ->
-        try Promise.resolve_ok w (Eliom_stream.get s')
-        with e -> Promise.resolve_error w e);
+        try ignore (Eio.Promise.try_resolve w (Ok (Eliom_stream.get s')))
+        with e -> ignore (Eio.Promise.try_resolve w (Error e)));
       Eliom_lib.fork (fun () ->
-        try Promise.resolve_ok w (Promise.await_exn t)
-        with e -> Promise.resolve_error w e);
+        try ignore (Eio.Promise.try_resolve w (Ok (Promise.await_exn t)))
+        with e -> ignore (Eio.Promise.try_resolve w (Error e)));
       Promise.await_exn p
     with e ->
-      (match Promise.peek t with None -> Promise.resolve_error u e | _ -> ());
+      (match Promise.peek t with None -> ignore (Eio.Promise.try_resolve u (Error e)) | _ -> ());
       raise e)
 
 type ('a, 'att, 'co, 'ext, 'reg) callable_bus_service =
@@ -81,6 +86,18 @@ type ('a, 'att, 'co, 'ext, 'reg) callable_bus_service =
     , Eliom_registration.Action.return )
     Eliom_service.t
 
+let create_error_h () =
+  let t, (u : (exn, exn) result Promise.u) =
+    Promise.create
+      ()
+  in
+  let tt, uu = Promise.create () in
+  ( (try
+       ignore (Promise.await t);
+       assert false
+     with e -> ignore (Eio.Promise.try_resolve uu (Error e)); tt)
+  , u )
+
 let create service channel waiter =
   let write x =
     try
@@ -92,23 +109,13 @@ let create service channel waiter =
       ()
     with Eliom_request.Failed_request 204 -> ()
   in
-  let error_h =
-    let t, (u : (exn, exn) result Promise.u) =
-      Promise.create
-        ()
-    in
-    let tt, uu = Promise.create () in
-    ( (try
-         ignore (Promise.await t);
-         assert false
-       with e -> Promise.resolve_error uu e; tt)
-    , u )
-  in
+  (* error_h is lazy to avoid Promise.create/await outside Eio context *)
+  let error_h = lazy (create_error_h ()) in
   let stream =
     lazy
       (let stream = Eliom_comet.register channel in
        (* iterate on the stream to consume messages: avoid memory leak *)
-       let _ = consume error_h stream in
+       let _ = consume (Lazy.force error_h) stream in
        stream)
   in
   let t =
@@ -124,10 +131,13 @@ let create service channel waiter =
   in
   (* the comet channel start receiving after the load phase, so the
      original channel (i.e. without message lost) is only available in
-     the first loading phase. *)
+     the first loading phase.
+     Note: we use fork to avoid calling wait_load_end during unmarshalling,
+     which happens outside an Eio context. *)
   let _ =
-    let () = Eliom_client.wait_load_end () in
-    t.original_stream_available <- false
+    Eliom_lib.fork (fun () ->
+      Eliom_client.wait_load_end ();
+      t.original_stream_available <- false)
   in
   t
 
@@ -139,7 +149,7 @@ let internal_unwrap ((wrapped_bus : ('a, 'b) Ecb.wrapped_bus), _unwrapper) =
 let () =
   Eliom_unwrap.register_unwrapper Eliom_common.bus_unwrap_id internal_unwrap
 
-let stream t = clone_exn t.error_h (Lazy.force t.stream)
+let stream t = clone_exn (Lazy.force t.error_h) (Lazy.force t.stream)
 
 let original_stream t =
   if Eliom_client_core.in_onload () && t.original_stream_available

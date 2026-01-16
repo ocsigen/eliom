@@ -263,22 +263,31 @@ let register_request_node, find_request_node, reset_request_nodes =
    *and* to the change_page phase
    *and* to the loading phase after caml services (added 2016-03 --V). *)
 
-let load_mutex = Eio.Mutex.create ()
-let _ = ignore (Eio.Mutex.lock load_mutex)
+(* For synchronization during page loading.
+   We use a simple boolean flag instead of Eio.Mutex because:
+   1. Eio.Mutex operations require being inside an Eio fiber
+   2. The original Lwt code used a mutex that was locked at module init time
+   3. We only need to track "loading in progress" state, not actual mutual exclusion *)
+let load_mutex_locked = ref true  (* Start locked, like the Lwt version *)
 
-let in_onload, broadcast_load_end, wait_load_end, set_loading_phase =
-  let loading_phase = ref true in
-  let load_end = Eio.Condition.create () in
-  let set () = loading_phase := true in
-  let in_onload () = !loading_phase in
-  let broadcast_load_end () =
-    loading_phase := false;
-    Eio.Condition.broadcast load_end
-  in
-  let wait_load_end () =
-    if !loading_phase then Eio.Condition.await_no_mutex load_end else ()
-  in
-  in_onload, broadcast_load_end, wait_load_end, set
+let loading_phase = ref true
+let load_end = lazy (Eio.Condition.create ())
+
+let in_onload () = !loading_phase
+
+let set_loading_phase () = loading_phase := true
+
+let broadcast_load_end () =
+  loading_phase := false;
+  if Lazy.is_val load_end then Eio.Condition.broadcast (Lazy.force load_end)
+
+let wait_load_end () =
+  if !loading_phase then Eio.Condition.await_no_mutex (Lazy.force load_end) else ()
+
+(* Expose the lock state for eliom_client.client.ml *)
+let lock_load_mutex () = load_mutex_locked := true
+let unlock_load_mutex () = load_mutex_locked := false
+let is_load_mutex_locked () = !load_mutex_locked
 
 (* == Helper's functions for Eliom's event handler.
 

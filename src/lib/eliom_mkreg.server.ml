@@ -145,7 +145,8 @@ let send_with_cookies
         (Eliommod_cookies.cookieset_to_json tab_cookies)
     in
     {response with Cohttp.Response.headers}
-  and cookies =
+  in
+  let cookies =
     Ocsigen_cookie_map.add_multi
       (Eliom_request_info.get_user_cookies ())
       (Ocsigen_response.cookies result)
