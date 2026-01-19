@@ -932,6 +932,11 @@ let set_base_url () =
 
 let dom_history_ready = ref false
 
+(* Queue of callbacks to execute after onload completes *)
+let post_onload_callbacks = ref []
+let register_post_onload_callback f =
+  post_onload_callbacks := f :: !post_onload_callbacks
+
 (* Function called (in Eliom_client_main), once when starting the app.
    Either when sent by a server or initiated on client side.
 
@@ -1048,6 +1053,9 @@ let init () =
       in
       Eio.Mutex.unlock Eliom_client_core.load_mutex;
       run_callbacks load_callbacks;
+      (* Execute post-onload callbacks *)
+      List.iter (fun f -> f ()) (List.rev !post_onload_callbacks);
+      post_onload_callbacks := [];
       if !Eliom_config.debug_timings
       then Console.console##(timeEnd (Js.string "onload")));
     Js._false
@@ -1063,24 +1071,16 @@ let init () =
       Some
         (Dom.addEventListener Dom_html.window (Dom.Event.make "load")
            (Dom.handler onload) Js._true);
-    (* WORKAROUND: Poll readyState since load event may not fire due to CPS blocking *)
+    (* WORKAROUND: Eio CPS may block the load event from firing, so we poll and call onload manually *)
     let check_ready = ref None in
     let called = ref false in
     let poll_ready () =
-      (* WORKAROUND: Since Eio CPS blocks the page from ever reaching 'complete',
-         and 'interactive' may be missed, just call onload on the first poll.
-         By this time, the module initialization is complete and the DOM is ready enough. *)
-      if not !called
-      then (
+      if not !called then (
         called := true;
-        (match !check_ready with
-        | Some tid -> Dom_html.window##clearInterval tid
-        | None -> ());
-        ignore (onload ()))
+        (match !check_ready with Some tid -> Dom_html.window##clearInterval tid | None -> ());
+        ignore (onload (Obj.magic ())))
     in
-    let tid =
-      Dom_html.window##setInterval (Js.wrap_callback poll_ready) (Js.float 50.)
-    in
+    let tid = Dom_html.window##setInterval (Js.wrap_callback poll_ready) (Js.float 50.) in
     check_ready := Some tid);
   add_string_event_listener Dom_html.window "beforeunload" onbeforeunload_fun
     false;
@@ -2313,21 +2313,8 @@ let () =
       and cancel () = () in
       run_onunload_wrapper f cancel
     in
-    Console.console##log
-      (Js.string "[DEBUG] COMMENTED OUT Eio_js.start that was causing deadlock");
-    (* FIXME: This Eio_js.start call causes a deadlock because wait_load_end()
-       blocks waiting for onload to be called, but onload can't be called
-       because the page can't finish loading while this fiber blocks the event loop.
-       This needs to be rewritten to not block at module initialization time. *)
-    (*
-    Js_of_ocaml_eio.Eio_js.start (fun () ->
-      Console.console##log (Js.string "[DEBUG] Inside Eio_js.start fiber, about to call wait_load_end");
-      let
-            ()
-        =
-        wait_load_end ()
-      in
-      Console.console##log (Js.string "[DEBUG] After wait_load_end - THIS LINE WILL NEVER BE REACHED!");
+    (* Register callback to set initial history state after onload *)
+    register_post_onload_callback (fun () ->
       Logs.debug ~src:section_page (fun fmt ->
         fmt "revisit_wrapper: replaceState");
       Dom_html.window##.history##(replaceState
@@ -2339,7 +2326,6 @@ let () =
                                                  Dom_html.window##.location##.href
                                              ))))
                                     (Js.string "") Js.null));
-    *)
     Dom_html.window##.onpopstate
     := Dom_html.handler (fun event ->
       Logs.debug ~src:section_page (fun fmt ->
@@ -2382,21 +2368,10 @@ let () =
     Eliommod_dom.onhashchange (fun s -> auto_change_page (Js.to_string s));
     let first_fragment = read_fragment () in
     if first_fragment <> !current_pseudo_fragment
-    then (
-      Console.console##log
-        (Js.string
-           "[DEBUG] COMMENTED OUT second Eio_js.start with wait_load_end");
-      (* FIXME: Same deadlock issue as above *)
-      (*
-      Js_of_ocaml_eio.Eio_js.start (fun () ->
-        let
-              ()
-          =
-          wait_load_end ()
-        in
+    then
+      (* Register callback to handle initial fragment after onload *)
+      register_post_onload_callback (fun () ->
         auto_change_page first_fragment)
-      *)
-      ())
 
 let () =
   Eliom_unwrap.register_unwrapper
