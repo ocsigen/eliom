@@ -158,7 +158,6 @@ module%client ReactiveData = struct
         let waiter =
           ref
             (Promise.create
-               (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
                ())
         in
         Promise.resolve (snd !waiter) ();
@@ -168,7 +167,6 @@ module%client ReactiveData = struct
                let waiter1 = !waiter in
                let new_waiter =
                  Promise.create
-                   (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
                    ()
                in
                waiter := new_waiter;

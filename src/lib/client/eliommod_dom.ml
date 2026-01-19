@@ -610,7 +610,6 @@ and rewrite_css_import ?(charset = "") ~max ~prefix ~media css pos =
             (fun () -> rewrite_css_import ~charset ~max ~prefix ~media css i)
             (fun () ->
                if
-                 (* TODO: ciao-lwt: This computation might not be suspended correctly. *)
                  max = 0
                then
                  (* Maximum imbrication of @import reached, rewrite url. *)

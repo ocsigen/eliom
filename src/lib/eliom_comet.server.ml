@@ -389,8 +389,6 @@ end = struct
       | Active l ->
           let waiter, waker =
             Promise.create
-              (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
-              (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
               ()
           in
           let t =
@@ -476,8 +474,6 @@ end = struct
     match
       let hd_update_streams, hd_update_streams_w =
         Promise.create
-          (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
-          (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
           ()
       in
       handler.hd_update_streams_w <- Some hd_update_streams_w;

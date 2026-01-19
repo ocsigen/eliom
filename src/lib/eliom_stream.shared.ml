@@ -120,7 +120,6 @@ let from_source source =
   let node = new_node () in
   let closed, close =
     Promise.create
-      (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
       ()
   in
   {source; close; closed; node; last = ref node}
@@ -146,7 +145,6 @@ let create_with_reference () =
   let source, push_signal_resolver =
     let push_signal, push_signal_resolver =
       Promise.create
-        (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
         ()
     in
     ( {push_signal; push_waiting = false; push_external = Obj.repr ()}
@@ -171,7 +169,6 @@ let create_with_reference () =
       let old_push_signal_resolver = !push_signal_resolver in
       let new_waiter, new_push_signal_resolver =
         Promise.create
-          (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
           ()
       in
       source.push_signal <- new_waiter;
@@ -236,8 +233,6 @@ let notify_pusher info last =
   let old_wakener = info.pushb_push_wakener in
   let waiter, wakener =
     Promise.create
-      (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
-      (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
       ()
   in
   info.pushb_push_waiter <- waiter;
@@ -286,7 +281,6 @@ class ['a] bounded_push_impl (info : 'a push_bounded) wakener_cell last close =
           let old_wakener = !wakener_cell in
           let new_waiter, new_wakener =
             Promise.create
-              (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
               ()
           in
           info.pushb_signal <- new_waiter;
@@ -330,13 +324,10 @@ let create_bounded size =
   let info, wakener_cell =
     let waiter, wakener =
       Promise.create
-        (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
         ()
     in
     let push_waiter, push_wakener =
       Promise.create
-        (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
-        (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
         ()
     in
     ( { pushb_signal = waiter

@@ -86,7 +86,6 @@ module Configuration = struct
   let update_configuration_waiter, update_configuration_waker =
     let t, u =
       Promise.create
-        (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
         ()
     in
     ref t, ref u
@@ -95,7 +94,6 @@ module Configuration = struct
     global_configuration := get_configuration ();
     let t, u =
       Promise.create
-        (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
         ()
     in
     update_configuration_waiter := t;
@@ -290,7 +288,6 @@ end = struct
           hd.hd_activity.active <- v;
           let t, u =
             Promise.create
-              (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
               ()
           in
           hd.hd_activity.active_waiter <- t;
@@ -364,7 +361,6 @@ end = struct
     let act = hd.hd_activity in
     let t, u =
       Promise.create
-        (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
         ()
     in
     act.restart_waiter <- t;
@@ -526,7 +522,6 @@ end = struct
             ; (fun () ->
                 Eio.Promise.await_exn
                   hd
-                  (* TODO: ciao-lwt: This computation might not be suspended correctly. *)
                     .hd_activity
                     .restart_waiter) ]
         with
@@ -633,12 +628,10 @@ end = struct
   let init_activity () =
     let active_waiter, active_wakener =
       Promise.create
-        (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
         ()
     in
     let restart_waiter, restart_wakener =
       Promise.create
-        (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
         ()
     in
     { active = `Inactive

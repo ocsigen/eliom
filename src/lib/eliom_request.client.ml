@@ -271,7 +271,6 @@ let send
       in
       let wait_for_unlock, unlock =
         Promise.create
-          (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
           ()
       in
       (if not @@ React.S.value locked

@@ -23,15 +23,11 @@ module E = struct
   let next ev =
     let waiter, wakener =
       Promise.create
-        (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
-        (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
         ()
     in
     let _ev = map (fun x -> Promise.resolve wakener x) (once ev) in
     (* XXX restore this if promise can be cancelled
       Lwt.on_cancel
-      (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
-      (* TODO: ciao-lwt: Use [Switch] or [Cancel] for defining a cancellable context. *)
       waiter (fun () -> stop ev);
     *)
     waiter

@@ -60,7 +60,6 @@ let typed_apply ~service f gp pp l l' suffix =
       Fiber.pair
         (fun () ->
            let
-               (* TODO: ciao-lwt: This computation might not be suspended correctly. *)
                  l'
              =
              Some l'
@@ -68,7 +67,6 @@ let typed_apply ~service f gp pp l l' suffix =
            Eliom_parameter.reconstruct_params ~sp:() pp l' None true suffix)
         (fun () ->
            let
-               (* TODO: ciao-lwt: This computation might not be suspended correctly. *)
                  l
              =
              Some l

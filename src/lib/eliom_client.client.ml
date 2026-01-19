@@ -79,7 +79,6 @@ let run_onunload_wrapper set_content cancel =
 let onload_promise () =
   let t, u =
     Promise.create
-      (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
       ()
   in
   onload (fun () -> Promise.resolve u ());
@@ -2188,7 +2187,6 @@ let () =
       let tmpl = state.template in
       Js_of_ocaml_eio.Eio_js.start (fun () ->
         with_progress_cursor
-        (* TODO: ciao-lwt: This computation might not be suspended correctly. *)
         @@ fun () ->
         let uri, fragment = Url.split_fragment full_uri in
         if uri = get_current_uri ()
@@ -2303,7 +2301,6 @@ let () =
     in
     Js_of_ocaml_eio.Eio_js.start (fun () ->
       let
-          (* TODO: ciao-lwt: This computation might not be suspended correctly. *)
             ()
         =
         wait_load_end ()
@@ -2340,7 +2337,6 @@ let () =
     let read_fragment () = Js.to_string Dom_html.window##.location##.hash in
     let auto_change_page fragment =
       Js_of_ocaml_eio.Eio_js.start (fun () ->
-        (* TODO: ciao-lwt: This computation might not be suspended correctly. *)
         let l = String.length fragment in
         if l = 0 || (l > 1 && fragment.[1] = '!')
         then
@@ -2365,7 +2361,6 @@ let () =
     then
       Js_of_ocaml_eio.Eio_js.start (fun () ->
         let
-            (* TODO: ciao-lwt: This computation might not be suspended correctly. *)
               ()
           =
           wait_load_end ()

@@ -95,7 +95,6 @@ let create service channel waiter =
   let error_h =
     let t, (u : (exn, exn) result Promise.u) =
       Promise.create
-        (* TODO: ciao-lwt: Translation is incomplete, [Promise.await] must be called on the promise when it's part of control-flow. *)
         ()
     in
     let tt, uu = Promise.create () in

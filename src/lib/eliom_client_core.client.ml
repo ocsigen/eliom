@@ -568,7 +568,6 @@ let rec rebuild_rattrib node ra =
 let delay f =
   Js_of_ocaml_eio.Eio_js.start (fun () ->
     Fiber.yield
-      (* TODO: ciao-lwt: This computation might not be suspended correctly. *)
       ();
     f ())
 
