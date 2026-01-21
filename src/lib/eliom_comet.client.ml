@@ -1,5 +1,7 @@
 open Eio.Std
 
+let () = print_endline "[DEBUG ELIOM] eliom_comet.client: module start"
+
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2010-2011
@@ -83,22 +85,26 @@ module Configuration = struct
         configuration_table
         (first_conf configuration_table)
 
-  let update_configuration_waiter, update_configuration_waker =
-    let t, u =
-      Promise.create
-        ()
-    in
-    ref t, ref u
+  (* Initialized lazily to avoid calling Promise.create at toplevel *)
+  let update_configuration_waiter = ref None
+  let update_configuration_waker = ref None
+
+  let get_configuration_waiter () =
+    match !update_configuration_waiter, !update_configuration_waker with
+    | Some t, Some u -> t, u
+    | _ ->
+        let t, u = Promise.create () in
+        update_configuration_waiter := Some t;
+        update_configuration_waker := Some u;
+        t, u
 
   let update_configuration () =
     global_configuration := get_configuration ();
-    let t, u =
-      Promise.create
-        ()
-    in
-    update_configuration_waiter := t;
-    let wakener = !update_configuration_waker in
-    update_configuration_waker := u;
+    let t, u = Promise.create () in
+    update_configuration_waiter := Some t;
+    let _, old_waker = get_configuration_waiter () in
+    let wakener = old_waker in
+    update_configuration_waker := Some u;
     Promise.resolve wakener ()
 
   let get () = !global_configuration
@@ -168,7 +174,7 @@ module Configuration = struct
       let () =
         Fiber.any
           [ (fun () -> Js_of_ocaml_eio.Eio_js.sleep t)
-          ; (fun () -> Promise.await !update_configuration_waiter)
+          ; (fun () -> Promise.await (fst (get_configuration_waiter ())))
           ; active_waiter ]
       in
       let remaining_time = sleep_duration () -. (Sys.time () -. time) in

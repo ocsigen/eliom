@@ -1,5 +1,7 @@
 open Eio.Std
 
+let () = print_endline "[DEBUG ELIOM] eliom_bus.client: module start"
+
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2010-2011
@@ -36,7 +38,7 @@ type ('a, 'b) t =
   ; mutable waiter : unit -> unit
   ; mutable last_wait : Switch.t option
   ; mutable original_stream_available : bool
-  ; error_h : 'b option Promise.or_exn * (exn, exn) result Promise.u }
+  ; error_h : ('b option Promise.or_exn * (exn, exn) result Promise.u) Lazy.t }
 
 (* clone streams such that each clone of the original stream raise the same exceptions *)
 let consume (t, u) s =
@@ -81,6 +83,18 @@ type ('a, 'att, 'co, 'ext, 'reg) callable_bus_service =
     , Eliom_registration.Action.return )
     Eliom_service.t
 
+let create_error_h () =
+  let t, (u : (exn, exn) result Promise.u) =
+    Promise.create
+      ()
+  in
+  let tt, uu = Promise.create () in
+  ( (try
+       ignore (Promise.await t);
+       assert false
+     with e -> Promise.resolve_error uu e; tt)
+  , u )
+
 let create service channel waiter =
   let write x =
     try
@@ -92,23 +106,13 @@ let create service channel waiter =
       ()
     with Eliom_request.Failed_request 204 -> ()
   in
-  let error_h =
-    let t, (u : (exn, exn) result Promise.u) =
-      Promise.create
-        ()
-    in
-    let tt, uu = Promise.create () in
-    ( (try
-         ignore (Promise.await t);
-         assert false
-       with e -> Promise.resolve_error uu e; tt)
-    , u )
-  in
+  (* error_h is lazy to avoid Promise.create/await outside Eio context *)
+  let error_h = lazy (create_error_h ()) in
   let stream =
     lazy
       (let stream = Eliom_comet.register channel in
        (* iterate on the stream to consume messages: avoid memory leak *)
-       let _ = consume error_h stream in
+       let _ = consume (Lazy.force error_h) stream in
        stream)
   in
   let t =
@@ -124,10 +128,13 @@ let create service channel waiter =
   in
   (* the comet channel start receiving after the load phase, so the
      original channel (i.e. without message lost) is only available in
-     the first loading phase. *)
+     the first loading phase.
+     Note: we use fork to avoid calling wait_load_end during unmarshalling,
+     which happens outside an Eio context. *)
   let _ =
-    let () = Eliom_client.wait_load_end () in
-    t.original_stream_available <- false
+    Eliom_lib.fork (fun () ->
+      Eliom_client.wait_load_end ();
+      t.original_stream_available <- false)
   in
   t
 
@@ -139,7 +146,7 @@ let internal_unwrap ((wrapped_bus : ('a, 'b) Ecb.wrapped_bus), _unwrapper) =
 let () =
   Eliom_unwrap.register_unwrapper Eliom_common.bus_unwrap_id internal_unwrap
 
-let stream t = clone_exn t.error_h (Lazy.force t.stream)
+let stream t = clone_exn (Lazy.force t.error_h) (Lazy.force t.stream)
 
 let original_stream t =
   if Eliom_client_core.in_onload () && t.original_stream_available

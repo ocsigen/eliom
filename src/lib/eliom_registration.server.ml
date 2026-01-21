@@ -55,7 +55,12 @@ let result_of_content ?charset ?content_type ?headers ?status body =
       (Ocsigen_header.of_option headers)
       "cache-control" "no-cache"
   in
-  let response = Cohttp.Response.make ?status ~headers () in
+  (* Pass the body's encoding to Response.make to ensure headers match the actual
+     body encoding. Without this, Response.make defaults to Chunked when encoding
+     is Unknown, but the body may have Fixed encoding, causing the chunk terminator
+     to not be sent. *)
+  let encoding = Ocsigen_response.Body.transfer_encoding body in
+  let response = Cohttp.Response.make ?status ~encoding ~headers () in
   Ocsigen_response.make ~body response
 
 module Result_types : sig
@@ -931,11 +936,13 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
         (F.script (F.cdata_script script)))
 
   let make_eliom_data_script ?(keep_debug = false) ~sp page =
+    Printf.printf "[DEBUG ELIOM] make_eliom_data_script: start\n%!";
     let ejs_global_data =
       if is_initial_request () && global_data_cache_options () = None
       then Some (get_global_data ~keep_debug)
       else None
     in
+    Printf.printf "[DEBUG ELIOM] make_eliom_data_script: after ejs_global_data\n%!";
     let ejs_request_data =
       let data = Eliom_syntax.get_request_data () in
       if not keep_debug
@@ -947,9 +954,11 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
           data;
       data
     in
+    Printf.printf "[DEBUG ELIOM] make_eliom_data_script: after ejs_request_data\n%!";
     (* wrapping of values could create eliom references that may
        create cookies that needs to be sent along the page. Hence,
        cookies should be calculated after wrapping. *)
+    Printf.printf "[DEBUG ELIOM] make_eliom_data_script: before Xml.wrap\n%!";
     let eliom_data =
       Eliom_content.Xml.wrap
         (Eliom_content.Html.D.toelt page)
@@ -963,11 +972,14 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
               (Eliom_content.Html.D.toelt page)
         ; ejs_sess_info = Eliommod_cli.client_si sp.Eliom_common.sp_si }
     in
+    Printf.printf "[DEBUG ELIOM] make_eliom_data_script: after Xml.wrap\n%!";
     let tab_cookies =
       Eliommod_cookies.compute_cookies_to_send sp.Eliom_common.sp_sitedata
         sp.Eliom_common.sp_tab_cookie_info sp.Eliom_common.sp_user_tab_cookies
     in
+    Printf.printf "[DEBUG ELIOM] make_eliom_data_script: after tab_cookies\n%!";
     let template = Eliom_reference.get request_template in
+    Printf.printf "[DEBUG ELIOM] make_eliom_data_script: before jsmarshal\n%!";
     let script =
       Printf.sprintf
         "__eliom_request_data = \'%s\';\n__eliom_request_cookies = \'%s\';\n__eliom_request_template = \'%s\';"
@@ -975,6 +987,7 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
         (Eliom_lib.jsmarshal tab_cookies)
         (Eliom_lib.jsmarshal (template : string option))
     in
+    Printf.printf "[DEBUG ELIOM] make_eliom_data_script: done\n%!";
     Eliom_content.Html.(F.script (F.cdata_script script))
 
   let global_data_service =
@@ -1037,11 +1050,14 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
     | _ -> assert false
 
   let add_eliom_scripts ~sp page =
+    Printf.printf "[DEBUG ELIOM] add_eliom_scripts: start\n%!";
     let appl_data_script = make_eliom_appl_data_script ~sp in
+    Printf.printf "[DEBUG ELIOM] add_eliom_scripts: after appl_data_script\n%!";
     (* First we build a fake page to build the ref_tree... *)
     let html_attribs, (head_attribs, title, head_elts), body =
       split_page (Eliom_content.Html.D.toelt page)
     in
+    Printf.printf "[DEBUG ELIOM] add_eliom_scripts: after split_page\n%!";
     let encode_slashs = List.map (Eliom_lib.Url.encode ~plus:false) in
     let base_url =
       Eliom_uri.make_proto_prefix
@@ -1080,11 +1096,13 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
         (Eliom_content.Html.F.head ~a:head_attribs title head_elts)
         body
     in
+    Printf.printf "[DEBUG ELIOM] add_eliom_scripts: before make_eliom_data_script\n%!";
     let data_script =
       make_eliom_data_script
         ~keep_debug:(Ocsigen_config.get_debugmode ())
         ~sp fake_page
     in
+    Printf.printf "[DEBUG ELIOM] add_eliom_scripts: after make_eliom_data_script\n%!";
     (* Then we replace the faked data_script *)
     let head_elts =
       (* Eliom_client_core.load_data_script expects data_script to be
@@ -1122,6 +1140,7 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
         ?headers
         content
     =
+    Printf.printf "[DEBUG ELIOM] App.send: start\n%!";
     let sp = Eliom_common.get_sp () in
     (* GRGR FIXME et si le nom de l'application diffère ?? Il faut
        renvoyer un full_redirect... TODO *)
@@ -1130,30 +1149,43 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
       Eliom_state.set_cookie ~cookie_level:`Client_process
         ~name:Eliom_common.appl_name_cookie_name
         ~value:App_param.application_name ();
+    Printf.printf "[DEBUG ELIOM] App.send: before add_eliom_scripts\n%!";
     let body =
       let body =
         match sp.Eliom_common.sp_client_appl_name, options.do_not_launch with
         | None, true -> remove_eliom_scripts content
         | _ -> add_eliom_scripts ~sp content
       in
+      Printf.printf "[DEBUG ELIOM] App.send: after add_eliom_scripts, before asprintf\n%!";
       Ocsigen_response.Body.of_string (Format.asprintf "%a" out body)
     in
+    Printf.printf "[DEBUG ELIOM] App.send: after body creation\n%!";
+    Printf.printf "[DEBUG ELIOM] App.send: computing headers\n%!";
     let headers =
       let h = Ocsigen_header.of_option headers in
+      Printf.printf "[DEBUG ELIOM] App.send: after of_option\n%!";
       let h =
         Cohttp.Header.replace h Eliom_common_base.appl_name_header_name
           App_param.application_name
       in
+      Printf.printf "[DEBUG ELIOM] App.send: after replace appl_name\n%!";
       try
         (* If it is a suffix service with redirection, we may have to
            normalize the uri *)
         let table = Eliom_request_info.get_request_cache () in
+        Printf.printf "[DEBUG ELIOM] App.send: after get_request_cache\n%!";
         Cohttp.Header.replace h Eliom_common_base.response_url_header
           (Polytables.get ~table ~key:Eliom_mkreg.suffix_redir_uri_key)
       with Not_found -> h
-    and status = Eliom_lib.Option.map Cohttp.Code.status_of_code code
-    and content_type = content_type_html content_type in
-    result_of_content ?charset ?status ~content_type ~headers body
+    in
+    Printf.printf "[DEBUG ELIOM] App.send: headers done\n%!";
+    let status = Eliom_lib.Option.map Cohttp.Code.status_of_code code in
+    Printf.printf "[DEBUG ELIOM] App.send: status done\n%!";
+    let content_type = content_type_html content_type in
+    Printf.printf "[DEBUG ELIOM] App.send: before result_of_content\n%!";
+    let res = result_of_content ?charset ?status ~content_type ~headers body in
+    Printf.printf "[DEBUG ELIOM] App.send: after result_of_content, returning\n%!";
+    res
 end
 
 module App (App_param : Eliom_registration_sigs.APP_PARAM) = struct

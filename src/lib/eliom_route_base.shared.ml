@@ -120,7 +120,9 @@ module Make (P : PARAM) = struct
         | _ -> (
           try
             Logs.info ~src:section (fun fmt -> fmt "Trying a service");
+            Printf.printf "[DEBUG ELIOM] eliom_route_base: before s_f\n%!";
             let p = s_f nosuffixversion sp in
+            Printf.printf "[DEBUG ELIOM] eliom_route_base: after s_f\n%!";
             (* warning: the list ll may change during funct
                   if funct register something on the same URL!! *)
             Logs.info ~src:section (fun fmt ->
@@ -145,6 +147,7 @@ module Make (P : PARAM) = struct
                     toremove)
               | _ -> toremove
             in
+            Printf.printf "[DEBUG ELIOM] eliom_route_base: returning Found p\n%!";
             Eliom_common.Found p, newtoremove
           with
           | Eliom_common.Eliom_Wrong_parameter ->
