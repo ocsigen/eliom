@@ -1052,7 +1052,7 @@ let init () =
         flush_onload ()
         @ [onload_closure_nodes; Eliom_client_core.broadcast_load_end]
       in
-      Eio.Mutex.unlock (Lazy.force Eliom_client_core.load_mutex);
+      Eliom_client_core.unlock_load_mutex ();
       run_callbacks load_callbacks;
       (* Execute post-onload callbacks *)
       List.iter (fun f -> f ()) (List.rev !post_onload_callbacks);
@@ -1340,14 +1340,14 @@ let call_ocaml_service
   in
   print_endline "[DEBUG eliom_client] call_ocaml_service: after raw_call_service";
   print_endline "[DEBUG eliom_client] call_ocaml_service: before Eio.Mutex.lock";
-  let () = Eio.Mutex.lock (Lazy.force Eliom_client_core.load_mutex) in
+  let () = Eliom_client_core.lock_load_mutex () in
   print_endline "[DEBUG eliom_client] call_ocaml_service: after Eio.Mutex.lock";
   Eliom_client_core.set_loading_phase ();
   let content, request_data = unwrap_caml_content content in
   do_request_data request_data;
   Eliom_client_core.reset_request_nodes ();
   let load_callbacks = [Eliom_client_core.broadcast_load_end] in
-  Eio.Mutex.unlock (Lazy.force Eliom_client_core.load_mutex);
+  Eliom_client_core.unlock_load_mutex ();
   print_endline "[DEBUG eliom_client] call_ocaml_service: after Eio.Mutex.unlock";
   run_callbacks load_callbacks;
   match content with
@@ -1575,12 +1575,12 @@ let set_template_content ~replace ~uri ?fragment =
     (match fragment with
     | None -> change_url_string ~replace uri
     | Some fragment -> change_url_string ~replace (uri ^ "#" ^ fragment));
-    let () = Eio.Mutex.lock (Lazy.force Eliom_client_core.load_mutex) in
+    let () = Eliom_client_core.lock_load_mutex () in
     let (), request_data = unwrap_caml_content content in
     do_request_data request_data;
     Eliom_client_core.reset_request_nodes ();
     let load_callbacks = flush_onload () in
-    Eio.Mutex.unlock (Lazy.force Eliom_client_core.load_mutex);
+    Eliom_client_core.unlock_load_mutex ();
     run_callbacks load_callbacks
   and cancel () = () in
   function
@@ -1618,7 +1618,7 @@ let set_content_local ?offset ?fragment new_page =
   Logs.debug ~src:section_page (fun fmt -> fmt "Set content local");
   let locked = ref true in
   let recover () =
-    if !locked then Eio.Mutex.unlock (Lazy.force Eliom_client_core.load_mutex);
+    if !locked then Eliom_client_core.unlock_load_mutex ();
     if !Eliom_config.debug_timings
     then Console.console##(timeEnd (Js.string "set_content_local"))
   and really_set () =
@@ -1638,7 +1638,7 @@ let set_content_local ?offset ?fragment new_page =
       flush_onload () @ [Eliom_client_core.broadcast_load_end]
     in
     locked := false;
-    Eio.Mutex.unlock (Lazy.force Eliom_client_core.load_mutex);
+    Eliom_client_core.unlock_load_mutex ();
     (* run callbacks upon page activation (or now), but just once *)
     Page_status.onactive ~once:true (fun () -> run_callbacks load_callbacks);
     scroll_to_fragment ?offset fragment;
@@ -1648,7 +1648,7 @@ let set_content_local ?offset ?fragment new_page =
   in
   let cancel () = recover () in
   try
-    let () = Eio.Mutex.lock (Lazy.force Eliom_client_core.load_mutex) in
+    let () = Eliom_client_core.lock_load_mutex () in
     Eliom_client_core.set_loading_phase ();
     if !Eliom_config.debug_timings
     then Console.console##(time (Js.string "set_content_local"));
@@ -1749,19 +1749,19 @@ let set_content ~replace ~uri ?offset ?fragment content =
           flush_onload ()
           @ [onload_closure_nodes; Eliom_client_core.broadcast_load_end]
         in
-        Eio.Mutex.unlock (Lazy.force Eliom_client_core.load_mutex);
+        Eliom_client_core.unlock_load_mutex ();
         run_callbacks load_callbacks;
         scroll_to_fragment ?offset fragment;
         advance_page ();
         if !Eliom_config.debug_timings
         then Console.console##(timeEnd (Js.string "set_content"))
       and recover () =
-        if !locked then Eio.Mutex.unlock (Lazy.force Eliom_client_core.load_mutex);
+        if !locked then Eliom_client_core.unlock_load_mutex ();
         if !Eliom_config.debug_timings
         then Console.console##(timeEnd (Js.string "set_content"))
       in
       try
-        let () = Eio.Mutex.lock (Lazy.force Eliom_client_core.load_mutex) in
+        let () = Eliom_client_core.lock_load_mutex () in
         Eliom_client_core.set_loading_phase ();
         if !Eliom_config.debug_timings
         then Console.console##(time (Js.string "set_content"));
