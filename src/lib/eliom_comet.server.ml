@@ -555,7 +555,7 @@ end = struct
                   if messages <> [] || idle
                   then messages
                   else
-                    let () = wait_data (wait_closed_connection ()) handler in
+                    let () = wait_data wait_closed_connection handler in
                     read_channels 100 handler
                 in
                 let message = encode_downgoing messages in
