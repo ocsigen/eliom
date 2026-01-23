@@ -1,7 +1,5 @@
 open Eio.Std
 
-let () = print_endline "[DEBUG ELIOM] eliom_client_core: module start"
-
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2010 Vincent Balat

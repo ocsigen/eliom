@@ -950,7 +950,6 @@ let register_post_onload_callback f =
    - __eliom_app_path : path app is under. We use this path for calls to
                         server functions (see Eliom_uri). *)
 let init () =
-  print_endline "[DEBUG ELIOM] init() start";
   (* Initialize client app if the __eliom_server variable is defined *)
   (if
      is_client_app ()
@@ -1179,7 +1178,6 @@ let raw_call_service
       get_params
       post_params
   =
-  print_endline "[DEBUG eliom_client] raw_call_service: entering";
   (* with_credentials = true is necessary for client side apps when
      we want the Eliom server to be different from the server for
      static files (if any). For example when testing a mobile app
@@ -1187,7 +1185,6 @@ let raw_call_service
      Also set with_credentials to true in CORS configuration.
   *)
   let with_credentials = not (Eliom_service.is_external service) in
-  print_endline "[DEBUG eliom_client] raw_call_service: before create_request_";
   let uri, content =
     match
       create_request_ ?absolute ?absolute_path ?https ~service ?hostname ?port
@@ -1195,13 +1192,11 @@ let raw_call_service
         post_params
     with
     | `Get (uri, _) ->
-        print_endline (Printf.sprintf "[DEBUG eliom_client] raw_call_service: GET %s" uri);
         Eliom_request.http_get ~with_credentials
           ?cookies_info:(Eliom_uri.make_cookies_info (https, service))
           uri [] ?progress ?upload_progress ?override_mime_type
           Eliom_request.string_result
     | `Post (uri, _, post_params) ->
-        print_endline (Printf.sprintf "[DEBUG eliom_client] raw_call_service: POST %s" uri);
         Eliom_request.http_post ~with_credentials
           ?cookies_info:(Eliom_uri.make_cookies_info (https, service))
           ?progress ?upload_progress ?override_mime_type uri post_params
@@ -1333,27 +1328,22 @@ let call_ocaml_service
       post_params
   =
   Logs.debug ~src:section (fun fmt -> fmt "Call OCaml service");
-  print_endline "[DEBUG eliom_client] call_ocaml_service: before raw_call_service";
   let _, content =
     raw_call_service ?absolute ?absolute_path ?https ~service ?hostname ?port
       ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params ?progress
       ?upload_progress ?override_mime_type get_params post_params
   in
-  print_endline "[DEBUG eliom_client] call_ocaml_service: after raw_call_service";
-  print_endline "[DEBUG eliom_client] call_ocaml_service: before Eio.Mutex.lock";
   let () = Eliom_client_core.lock_load_mutex () in
-  print_endline "[DEBUG eliom_client] call_ocaml_service: after Eio.Mutex.lock";
   Eliom_client_core.set_loading_phase ();
   let content, request_data = unwrap_caml_content content in
   do_request_data request_data;
   Eliom_client_core.reset_request_nodes ();
   let load_callbacks = [Eliom_client_core.broadcast_load_end] in
   Eliom_client_core.unlock_load_mutex ();
-  print_endline "[DEBUG eliom_client] call_ocaml_service: after Eio.Mutex.unlock";
   run_callbacks load_callbacks;
   match content with
-  | `Success result -> print_endline "[DEBUG eliom_client] call_ocaml_service: returning Success"; result
-  | `Failure msg -> print_endline "[DEBUG eliom_client] call_ocaml_service: returning Failure"; raise (Eliom_client_value.Exception_on_server msg)
+  | `Success result -> result
+  | `Failure msg -> raise (Eliom_client_value.Exception_on_server msg)
 
 (* == Current uri.
 

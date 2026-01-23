@@ -164,7 +164,6 @@ let send
       url
       result
   =
-  print_endline (Printf.sprintf "[DEBUG eliom_request] send: url=%s" url);
   let rec aux i ?cookies_info ?(get_args = []) ?post_args url =
     let https, path =
       match cookies_info with
@@ -260,7 +259,6 @@ let send
       else true
     in
     try
-      print_endline "[DEBUG eliom_request] send/aux: before XmlHttpRequest.perform_raw_url";
       let r =
         let contents =
           match post_args with
@@ -271,7 +269,6 @@ let send
           ?content_type:None ?contents ~get_args ~check_headers ?progress
           ?upload_progress ?override_mime_type url
       in
-      print_endline "[DEBUG eliom_request] send/aux: after XmlHttpRequest.perform_raw_url";
       let wait_for_unlock, unlock =
         Promise.create
           ()

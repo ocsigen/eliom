@@ -18,9 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 *)
 
-let%client () = print_endline "[DEBUG ELIOM] eliom_client_main: before init"
 let%client _ = Eliom_client.init ()
-let%client () = print_endline "[DEBUG ELIOM] eliom_client_main: after init"
 
 let _ =
   Eliommod.register_site_init (fun () ->

@@ -1,5 +1,3 @@
-let () = print_endline "[DEBUG ELIOM] eliom_lib.client: module start"
-
 (* Ocsigen
  * Copyright (C) 2005-2008 Vincent Balat, Stéphane Glondu
  *
