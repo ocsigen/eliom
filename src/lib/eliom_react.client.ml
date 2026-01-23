@@ -51,16 +51,19 @@ module Down = struct
     let event, push = React.E.create () in
     (* Start the fiber that will push events - this must be inside Eio_js.start *)
     Js_of_ocaml_eio.Eio_js.start (fun () ->
-      Eliom_stream.iter_s
-        (function
-          | Error exn ->
-              let () = handle_react_exn ~exn () in
-              raise exn
-          | Ok () -> ())
-        stream);
+      try
+        Eliom_stream.iter_s
+          (function
+            | Error exn ->
+                let () = handle_react_exn ~exn () in
+                raise exn
+            | Ok () -> ())
+          stream
+      with Eliom_comet.Channel_closed -> ());
     (* Start another fiber to read from the channel and push to the event *)
     Js_of_ocaml_eio.Eio_js.start (fun () ->
-      Eliom_stream.iter push channel);
+      try Eliom_stream.iter push channel
+      with Eliom_comet.Channel_closed -> ());
     event
 
   let () =
@@ -89,7 +92,8 @@ module S = struct
       let event, push = React.E.create () in
       (* Start the fiber to read from the channel - inside Eio_js.start *)
       Js_of_ocaml_eio.Eio_js.start (fun () ->
-        Eliom_stream.iter push channel);
+        try Eliom_stream.iter push channel
+        with Eliom_comet.Channel_closed -> ());
       S.hold ~eq:(fun _ _ -> false) value event
 
     let () =
