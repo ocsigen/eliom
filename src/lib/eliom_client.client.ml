@@ -1327,7 +1327,7 @@ let call_ocaml_service
   let content, request_data = unwrap_caml_content content in
   do_request_data request_data;
   Eliom_client_core.reset_request_nodes ();
-  let load_callbacks = [Eliom_client_core.broadcast_load_end] in
+  let load_callbacks = flush_onload () @ [Eliom_client_core.broadcast_load_end] in
   Eliom_client_core.unlock_load_mutex ();
   run_callbacks load_callbacks;
   match content with
