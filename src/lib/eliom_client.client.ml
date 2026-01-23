@@ -1453,9 +1453,11 @@ module Page_status = struct
     onactive ?now ~stop (fun () ->
       (* Fork the switch.run to avoid blocking - the action runs in background *)
       Eliom_lib.fork (fun () ->
-        Eio.Switch.run (fun sw ->
-          active_switch := Some sw;
-          Eio.Fiber.fork ~sw action));
+        try
+          Eio.Switch.run (fun sw ->
+            active_switch := Some sw;
+            Eio.Fiber.fork ~sw action)
+        with Cancelled -> (* Expected: page became inactive *) ());
       oninactive ~stop (fun () ->
         Option.iter (fun sw -> Eio.Switch.fail sw Cancelled) !active_switch);
       Dom_reference.retain_generic (get_this_page ())
