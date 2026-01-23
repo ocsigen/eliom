@@ -262,15 +262,8 @@ let send
       let r =
         let contents =
           match post_args with
-          | Some post_args ->
-              Logs.warn ~src:section (fun fmt ->
-                fmt "[Eliom_request] Sending POST request with %d args to %s"
-                  (List.length post_args) url);
-              Some (`POST_form post_args)
-          | None ->
-              Logs.warn ~src:section (fun fmt ->
-                fmt "[Eliom_request] Sending GET request (no post_args) to %s" url);
-              None
+          | Some post_args -> Some (`POST_form post_args)
+          | None -> None
         in
         XmlHttpRequest.perform_raw_url ?with_credentials ?headers:(Some headers)
           ?content_type:None ?contents ~get_args ~check_headers ?progress
