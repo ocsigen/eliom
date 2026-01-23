@@ -1068,19 +1068,26 @@ let init () =
       let () = Js_of_ocaml_eio.Eio_js_events.request_animation_frame () in
       ignore (onload ()))
   else (
+    (* Guard to ensure onload is only called once, whether via load event or setInterval poll *)
+    let onload_called = ref false in
+    let check_ready = ref None in
+    let call_onload_once () =
+      if not !onload_called then (
+        onload_called := true;
+        (* Clear the interval if it's running *)
+        (match !check_ready with Some tid -> Dom_html.window##clearInterval tid | None -> ());
+        (* Remove the load event listener if it exists *)
+        (match !onload_handler with
+         | Some handler -> Dom.removeEventListener handler; onload_handler := None
+         | None -> ());
+        ignore (onload (Obj.magic ())))
+    in
     onload_handler :=
       Some
         (Dom.addEventListener Dom_html.window (Dom.Event.make "load")
-           (Dom.handler onload) Js._true);
+           (Dom.handler (fun _ -> call_onload_once (); Js._false)) Js._true);
     (* WORKAROUND: Eio CPS may block the load event from firing, so we poll and call onload manually *)
-    let check_ready = ref None in
-    let called = ref false in
-    let poll_ready () =
-      if not !called then (
-        called := true;
-        (match !check_ready with Some tid -> Dom_html.window##clearInterval tid | None -> ());
-        ignore (onload (Obj.magic ())))
-    in
+    let poll_ready () = call_onload_once () in
     let tid = Dom_html.window##setInterval (Js.wrap_callback poll_ready) (Js.float 50.) in
     check_ready := Some tid);
   add_string_event_listener Dom_html.window "beforeunload" onbeforeunload_fun
