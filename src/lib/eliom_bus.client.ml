@@ -44,13 +44,17 @@ type ('a, 'b) t =
 let consume (t, u) s =
   let p, w = Promise.create () in
   Eliom_lib.fork (fun () ->
-    try Promise.resolve_ok w (Eliom_stream.iter (fun _ -> ()) s)
+    try
+      let v = Eliom_stream.iter (fun _ -> ()) s in
+      ignore (Eio.Promise.try_resolve w (Ok v))
     with e ->
-      (match Promise.peek t with None -> Promise.resolve_error u e | _ -> ());
-      Promise.resolve_error w e);
+      (match Promise.peek t with None -> ignore (Eio.Promise.try_resolve u (Error e)) | _ -> ());
+      ignore (Eio.Promise.try_resolve w (Error e)));
   Eliom_lib.fork (fun () ->
-    try Promise.resolve_ok w (ignore (Promise.await_exn t))
-    with e -> Promise.resolve_error w e);
+    try
+      ignore (Promise.await_exn t);
+      ignore (Eio.Promise.try_resolve w (Ok ()))
+    with e -> ignore (Eio.Promise.try_resolve w (Error e)));
   Promise.await_exn p
 
 let clone_exn (t, u) s =
@@ -59,14 +63,14 @@ let clone_exn (t, u) s =
     try
       let p, w = Promise.create () in
       Eliom_lib.fork (fun () ->
-        try Promise.resolve_ok w (Eliom_stream.get s')
-        with e -> Promise.resolve_error w e);
+        try ignore (Eio.Promise.try_resolve w (Ok (Eliom_stream.get s')))
+        with e -> ignore (Eio.Promise.try_resolve w (Error e)));
       Eliom_lib.fork (fun () ->
-        try Promise.resolve_ok w (Promise.await_exn t)
-        with e -> Promise.resolve_error w e);
+        try ignore (Eio.Promise.try_resolve w (Ok (Promise.await_exn t)))
+        with e -> ignore (Eio.Promise.try_resolve w (Error e)));
       Promise.await_exn p
     with e ->
-      (match Promise.peek t with None -> Promise.resolve_error u e | _ -> ());
+      (match Promise.peek t with None -> ignore (Eio.Promise.try_resolve u (Error e)) | _ -> ());
       raise e)
 
 type ('a, 'att, 'co, 'ext, 'reg) callable_bus_service =
@@ -92,7 +96,7 @@ let create_error_h () =
   ( (try
        ignore (Promise.await t);
        assert false
-     with e -> Promise.resolve_error uu e; tt)
+     with e -> ignore (Eio.Promise.try_resolve uu (Error e)); tt)
   , u )
 
 let create service channel waiter =

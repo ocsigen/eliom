@@ -78,7 +78,8 @@ let run_onunload_wrapper set_content cancel =
 
 let onload_promise () =
   let t, u = Promise.create () in
-  onload (fun () -> Promise.resolve u ());
+  onload (fun () ->
+    ignore (Eio.Promise.try_resolve u ()));
   t
 
 (* == Initialize the client values sent with a request *)

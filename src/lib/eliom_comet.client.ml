@@ -100,12 +100,12 @@ module Configuration = struct
 
   let update_configuration () =
     global_configuration := get_configuration ();
+    (* Get the old waker BEFORE creating the new promise *)
+    let _old_waiter, old_waker = get_configuration_waiter () in
     let t, u = Promise.create () in
     update_configuration_waiter := Some t;
-    let _, old_waker = get_configuration_waiter () in
-    let wakener = old_waker in
     update_configuration_waker := Some u;
-    Promise.resolve wakener ()
+    ignore (Eio.Promise.try_resolve old_waker ())
 
   let get () = !global_configuration
 
@@ -299,7 +299,7 @@ end = struct
           hd.hd_activity.active_waiter <- t;
           let wakener = hd.hd_activity.active_wakener in
           hd.hd_activity.active_wakener <- u;
-          Promise.resolve_ok wakener ()
+          ignore (Eio.Promise.try_resolve wakener (Ok ()))
 
   let is_active hd = hd.hd_activity.active
 
@@ -372,7 +372,7 @@ end = struct
     act.restart_waiter <- t;
     let wakener = act.restart_wakener in
     act.restart_wakener <- u;
-    Eio.Promise.resolve_error wakener Restart;
+    ignore (Eio.Promise.try_resolve wakener (Error Restart));
     activate hd
 
   let max_retries = 10

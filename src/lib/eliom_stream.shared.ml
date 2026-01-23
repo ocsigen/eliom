@@ -174,10 +174,10 @@ let create_with_reference () =
       source.push_signal <- new_waiter;
       push_signal_resolver := new_push_signal_resolver;
       (* Signal that a new value has been received. *)
-      Promise.resolve_ok old_push_signal_resolver ());
+      ignore (Eio.Promise.try_resolve old_push_signal_resolver (Ok ())));
     (* Do this at the end in case one of the function raise an
        exception. *)
-    if x = None then Promise.resolve close ()
+    if x = None then ignore (Eio.Promise.try_resolve close ())
   in
   t, push, fun x -> source.push_external <- Obj.repr x
 
@@ -237,7 +237,7 @@ let notify_pusher info last =
   in
   info.pushb_push_waiter <- waiter;
   info.pushb_push_wakener <- wakener;
-  Promise.resolve_ok old_wakener ()
+  ignore (Eio.Promise.try_resolve old_wakener (Ok ()))
 
 class ['a] bounded_push_impl (info : 'a push_bounded) wakener_cell last close =
   object
@@ -286,7 +286,7 @@ class ['a] bounded_push_impl (info : 'a push_bounded) wakener_cell last close =
           info.pushb_signal <- new_waiter;
           wakener_cell := new_wakener;
           (* Signal that a new value has been received. *)
-          Eio.Promise.resolve_ok old_wakener ()))
+          ignore (Eio.Promise.try_resolve old_wakener (Ok ()))))
 
     method close =
       if not closed
@@ -299,7 +299,7 @@ class ['a] bounded_push_impl (info : 'a push_bounded) wakener_cell last close =
         if info.pushb_pending <> None
         then (
           info.pushb_pending <- None;
-          Eio.Promise.resolve_error info.pushb_push_wakener Closed);
+          ignore (Eio.Promise.try_resolve info.pushb_push_wakener (Error Closed)));
         (* Send a signal if at least one thread is waiting for a new
          element. *)
         if info.pushb_waiting
@@ -307,8 +307,9 @@ class ['a] bounded_push_impl (info : 'a push_bounded) wakener_cell last close =
           info.pushb_waiting <- false;
           let old_wakener = !wakener_cell in
           (* Signal that a new value has been received. *)
-          Eio.Promise.resolve_ok old_wakener ());
-        Eio.Promise.resolve close ())
+          ignore (Eio.Promise.try_resolve old_wakener (Ok ())));
+        (* close is only resolved here and closed boolean prevents double call *)
+        ignore (Eio.Promise.try_resolve close ()))
 
     method count = info.pushb_count
     method blocked = info.pushb_pending <> None
@@ -359,9 +360,9 @@ let feed s =
             let x = from.from_create () in
             (* Push the element to the end of the queue. *)
             enqueue x s;
-            if x = None then Eio.Promise.resolve s.close ();
-            Eio.Promise.resolve_ok wakener ()
-          with exn -> Eio.Promise.resolve_error wakener exn);
+            if x = None then ignore (Eio.Promise.try_resolve s.close ());
+            ignore (Eio.Promise.try_resolve wakener (Ok ()))
+          with exn -> ignore (Eio.Promise.try_resolve wakener (Error exn)));
         (* Allow other threads to access this promise: *)
         from.from_promise <- promise;
         promise (*XXX protected *)
@@ -369,7 +370,7 @@ let feed s =
       let x = f () in
       (* Push the element to the end of the queue. *)
       enqueue x s;
-      if x = None then Eio.Promise.resolve s.close ();
+      if x = None then ignore (Eio.Promise.try_resolve s.close ());
       Eio.Promise.create_resolved (Ok ())
   | Push push ->
       push.push_waiting <- true;

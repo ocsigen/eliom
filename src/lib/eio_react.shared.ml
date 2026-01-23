@@ -25,7 +25,7 @@ module E = struct
       Promise.create
         ()
     in
-    let _ev = map (fun x -> Promise.resolve wakener x) (once ev) in
+    let _ev = map (fun x -> ignore (Eio.Promise.try_resolve wakener x)) (once ev) in
     (* XXX restore this if promise can be cancelled
       Lwt.on_cancel
       waiter (fun () -> stop ev);

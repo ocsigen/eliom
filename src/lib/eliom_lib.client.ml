@@ -215,6 +215,6 @@ let fork_promise f =
   Js_of_ocaml_eio.Eio_js.start (fun () ->
     try
       let v = f () in
-      Eio.Promise.resolve_ok u v
-    with e -> Eio.Promise.resolve_error u e);
+      ignore (Eio.Promise.try_resolve u (Ok v))
+    with e -> ignore (Eio.Promise.try_resolve u (Error e)));
   p
