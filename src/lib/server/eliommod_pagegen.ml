@@ -280,16 +280,13 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
             Eliom_route.make_naservice
       in
       try
-        Printf.printf "[DEBUG ELIOM] eliommod_pagegen: before execute\n%!";
         let res = execute now genfun info sitedata in
-        Printf.printf "[DEBUG ELIOM] eliommod_pagegen: after execute\n%!";
         let response = Ocsigen_response.response res
         and all_user_cookies = Ocsigen_response.cookies res in
         let cookies =
           Eliommod_cookies.compute_cookies_to_send sitedata all_cookie_info
             all_user_cookies
         in
-        Printf.printf "[DEBUG ELIOM] eliommod_pagegen: computing final res\n%!";
         let res =
           match
             Ocsigen_request.header ri.Ocsigen_extensions.request_info
@@ -309,7 +306,6 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
               Ocsigen_response.update ~response ~cookies res
           | None -> Ocsigen_response.update ~cookies res
         in
-        Printf.printf "[DEBUG ELIOM] eliommod_pagegen: final res computed\n%!";
         try
           Polytables.get
             ~table:
@@ -320,10 +316,8 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
               (used after an action).
               Do not try the following extensions.
           *)
-          Printf.printf "[DEBUG ELIOM] eliommod_pagegen: returning Ext_found_stop\n%!";
           Ocsigen_extensions.Ext_found_stop (fun () -> res)
         with Not_found ->
-          Printf.printf "[DEBUG ELIOM] eliommod_pagegen: returning Ext_found\n%!";
           Ocsigen_extensions.Ext_found (fun () -> res)
       with
       (* FIXME COHTTP transition ; restore all that *)

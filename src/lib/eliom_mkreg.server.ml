@@ -127,44 +127,31 @@ let send_with_cookies
       ?headers
       content
   =
-  Printf.printf "[DEBUG ELIOM] send_with_cookies: start\n%!";
   let result =
     pages.send ?options ?charset ?code ?content_type ?headers content
   in
-  Printf.printf "[DEBUG ELIOM] send_with_cookies: after pages.send\n%!";
-  Printf.printf "[DEBUG ELIOM] send_with_cookies: before check_process_redir\n%!";
   let () = check_process_redir sp check_after result in
-  Printf.printf "[DEBUG ELIOM] send_with_cookies: after check_process_redir\n%!";
   let tab_cookies =
     Eliommod_cookies.compute_cookies_to_send sp.Eliom_common.sp_sitedata
       sp.Eliom_common.sp_tab_cookie_info sp.Eliom_common.sp_user_tab_cookies
   in
-  Printf.printf "[DEBUG ELIOM] send_with_cookies: after tab_cookies\n%!";
   (* TODO: do not add header when no cookies *)
-  Printf.printf "[DEBUG ELIOM] send_with_cookies: computing response\n%!";
   let response =
     let response = Ocsigen_response.response result in
-    Printf.printf "[DEBUG ELIOM] send_with_cookies: got response\n%!";
     let headers =
       Cohttp.Header.add
         (Cohttp.Response.headers response)
         Eliom_common_base.set_tab_cookies_header_name
         (Eliommod_cookies.cookieset_to_json tab_cookies)
     in
-    Printf.printf "[DEBUG ELIOM] send_with_cookies: headers added\n%!";
     {response with Cohttp.Response.headers}
   in
-  Printf.printf "[DEBUG ELIOM] send_with_cookies: response done, computing cookies\n%!";
   let cookies =
     Ocsigen_cookie_map.add_multi
       (Eliom_request_info.get_user_cookies ())
       (Ocsigen_response.cookies result)
   in
-  Printf.printf "[DEBUG ELIOM] send_with_cookies: cookies done\n%!";
-  Printf.printf "[DEBUG ELIOM] send_with_cookies: before Ocsigen_response.update\n%!";
-  let res = Ocsigen_response.update result ~cookies ~response in
-  Printf.printf "[DEBUG ELIOM] send_with_cookies: after Ocsigen_response.update, returning\n%!";
-  res
+  Ocsigen_response.update result ~cookies ~response
 
 let register_aux
       pages
@@ -210,9 +197,7 @@ let register_aux
           ; s_expire
           ; s_f =
               (fun nosuffixversion sp ->
-                Printf.printf "[DEBUG ELIOM] eliom_mkreg: s_f called\n%!";
                 Fiber.with_binding Eliom_common.sp_key sp (fun () ->
-                  Printf.printf "[DEBUG ELIOM] eliom_mkreg: inside handler\n%!";
                   let ri = Eliom_request_info.get_ri_sp sp
                   and suff = Eliom_request_info.get_suffix_sp sp in
                   let content =
@@ -289,19 +274,13 @@ let register_aux
                             ~value:redir_uri
                       else ();
                       check_process_redir sp check_before service;
-                      Printf.printf "[DEBUG ELIOM] eliom_mkreg: before page_generator\n%!";
-                      let result = page_generator g p in
-                      Printf.printf "[DEBUG ELIOM] eliom_mkreg: after page_generator\n%!";
-                      result
+                      page_generator g p
                     with
                     | Eliom_common.Eliom_Typing_Error l -> error_handler l
                     | e -> raise e
                   in
-                  Printf.printf "[DEBUG ELIOM] eliom_mkreg: before send_with_cookies\n%!";
-                  let result = send_with_cookies sp pages ?options ?charset ?code
-                    ?content_type ?headers content in
-                  Printf.printf "[DEBUG ELIOM] eliom_mkreg: after send_with_cookies, handler done\n%!";
-                  result)) }
+                  send_with_cookies sp pages ?options ?charset ?code
+                    ?content_type ?headers content)) }
       in
       match key_meth, attserget, attserpost with
       | ( (`Post | `Put | `Delete)
