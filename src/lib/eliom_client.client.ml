@@ -1451,9 +1451,11 @@ module Page_status = struct
   let while_active ?now ?(stop = React.E.never) action =
     let active_switch = ref None in
     onactive ?now ~stop (fun () ->
-      Eio.Switch.run (fun sw ->
-        active_switch := Some sw;
-        Eio.Fiber.fork ~sw action);
+      (* Fork the switch.run to avoid blocking - the action runs in background *)
+      Eliom_lib.fork (fun () ->
+        Eio.Switch.run (fun sw ->
+          active_switch := Some sw;
+          Eio.Fiber.fork ~sw action));
       oninactive ~stop (fun () ->
         Option.iter (fun sw -> Eio.Switch.fail sw Cancelled) !active_switch);
       Dom_reference.retain_generic (get_this_page ())
