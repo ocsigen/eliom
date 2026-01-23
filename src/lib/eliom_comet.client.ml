@@ -567,14 +567,18 @@ end = struct
     update_activity hd; aux 0
 
   let call_commands {hd_service = Ecb.Comet_service (srv, queue); _} command =
-    ignore
-      (try
-         call_service_after_load_end srv queue
-           (false, Ecb.Stateful (Ecb.Commands command))
-       with exn ->
-         Logs.app ~src:section (fun fmt ->
-           fmt ("request failed" ^^ "@\n%s") (Printexc.to_string exn));
-         "")
+    (* Use fork to run the HTTP request in an Eio context.
+       This is necessary because call_commands may be called during
+       unwrapping which happens outside of an Eio fiber. *)
+    Eliom_lib.fork (fun () ->
+      ignore
+        (try
+           call_service_after_load_end srv queue
+             (false, Ecb.Stateful (Ecb.Commands command))
+         with exn ->
+           Logs.app ~src:section (fun fmt ->
+             fmt ("request failed" ^^ "@\n%s") (Printexc.to_string exn));
+           ""))
 
   let close hd chan_id =
     match hd.hd_state with

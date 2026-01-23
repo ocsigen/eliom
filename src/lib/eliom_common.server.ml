@@ -1153,6 +1153,7 @@ let get_session_info ~sitedata ~req previous_extension_err =
         match get_naservice_name with
         | RNa_get_ _ | RNa_get' _ ->
             (* GET non attached coservice *)
+            Logs.warn (fun fmt -> fmt "[Eliom] State extraction: GET naservice found, skipping POST state extraction");
             ( get_naservice_name
             , (RAtt_no, RAtt_no)
             , (na_get_params, other_get_params)
