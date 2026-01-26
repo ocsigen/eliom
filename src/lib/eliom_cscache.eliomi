@@ -32,7 +32,7 @@ type ('a, 'b) t
 
 [%%shared.start]
 
-val find : ('a, 'b) t -> ('a -> 'b Lwt.t) -> 'a -> 'b Lwt.t
+val find : ('a, 'b) t -> ('a -> 'b) -> 'a -> 'b
 (** [find cache get_from_db key] returns the value associated to [key]
     in cache.  If not present, it calls [get_from_db] to fetch the
     data from the database. [get_from_db] must be implemented both
@@ -47,7 +47,7 @@ val do_cache : ('a, 'b) t -> 'a -> 'b -> unit
     server side, it will have effect both on the server cache (scope:
     request) and the client side cache.  *)
 
-val local_find : ('a, 'b) t -> 'a -> 'b Lwt.t
+val local_find : ('a, 'b) t -> 'a -> 'b
 (** Find a piece of data in local cache, without trying to fetch it
     from server. Raises [Not_found] instead.  If the value is currently
     being retrieved, it waits for it to be ready before returning.  *)
@@ -61,7 +61,7 @@ val find_if_ready : ('a, 'b) t -> 'a -> 'b
 
 [%%client.start]
 
-val load : ('a, 'b) t -> ('a -> 'b Lwt.t) -> 'a -> 'b Lwt.t
+val load : ('a, 'b) t -> ('a -> 'b) -> 'a -> 'b
 (** Load (or reload) in cache the piece of data from server  *)
 
 [%%server.start]

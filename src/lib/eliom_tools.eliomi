@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 [%%shared.start]
 
@@ -249,12 +249,12 @@ val with_css_file : string list -> unit
 (** {2 Other tools} *)
 
 val wrap_handler :
-   (unit -> 'a option Lwt.t)
-  -> ('get -> 'post -> 'res Lwt.t)
-  -> ('a -> 'get -> 'post -> 'res Lwt.t)
+   (unit -> 'a option)
+  -> ('get -> 'post -> 'res)
+  -> ('a -> 'get -> 'post -> 'res)
   -> 'get
   -> 'post
-  -> 'res Lwt.t
+  -> 'res
 (** This function allows one to wrap a service handler easily depending
     on whether certain information is available or not.
 

@@ -1,4 +1,4 @@
-open Lwt.Syntax
+open Eio.Std
 
 (* Ocsigen
  * http://www.ocsigen.org
@@ -263,22 +263,31 @@ let register_request_node, find_request_node, reset_request_nodes =
    *and* to the change_page phase
    *and* to the loading phase after caml services (added 2016-03 --V). *)
 
-let load_mutex = Lwt_mutex.create ()
-let _ = ignore (Lwt_mutex.lock load_mutex)
+(* For synchronization during page loading.
+   We use a simple boolean flag instead of Eio.Mutex because:
+   1. Eio.Mutex operations require being inside an Eio fiber
+   2. The original Lwt code used a mutex that was locked at module init time
+   3. We only need to track "loading in progress" state, not actual mutual exclusion *)
+let load_mutex_locked = ref true  (* Start locked, like the Lwt version *)
 
-let in_onload, broadcast_load_end, wait_load_end, set_loading_phase =
-  let loading_phase = ref true in
-  let load_end = Lwt_condition.create () in
-  let set () = loading_phase := true in
-  let in_onload () = !loading_phase in
-  let broadcast_load_end () =
-    loading_phase := false;
-    Lwt_condition.broadcast load_end ()
-  in
-  let wait_load_end () =
-    if !loading_phase then Lwt_condition.wait load_end else Lwt.return_unit
-  in
-  in_onload, broadcast_load_end, wait_load_end, set
+let loading_phase = ref true
+let load_end = lazy (Eio.Condition.create ())
+
+let in_onload () = !loading_phase
+
+let set_loading_phase () = loading_phase := true
+
+let broadcast_load_end () =
+  loading_phase := false;
+  if Lazy.is_val load_end then Eio.Condition.broadcast (Lazy.force load_end)
+
+let wait_load_end () =
+  if !loading_phase then Eio.Condition.await_no_mutex (Lazy.force load_end) else ()
+
+(* Expose the lock state for eliom_client.client.ml *)
+let lock_load_mutex () = load_mutex_locked := true
+let unlock_load_mutex () = load_mutex_locked := false
+let is_load_mutex_locked () = !load_mutex_locked
 
 (* == Helper's functions for Eliom's event handler.
 
@@ -305,7 +314,7 @@ let change_page_get_form_ :
 let change_page_post_form_ =
   ref (fun ?cookies_info:_ ?tmpl:_ _form _href -> assert false)
 
-type client_form_handler = Dom_html.event Js.t -> bool Lwt.t
+type client_form_handler = Dom_html.event Js.t -> bool
 
 let raw_a_handler node cookies_info tmpl ev =
   let href = (Js.Unsafe.coerce node : Dom_html.anchorElement Js.t)##.href in
@@ -331,10 +340,9 @@ let raw_form_handler form kind cookies_info tmpl ev client_form_handler =
     | `Form_post -> !change_page_post_form_
   in
   let f () =
-    Lwt.async @@ fun () ->
-    let* b = client_form_handler ev in
-    if not b then change_page_form ?cookies_info ?tmpl form action;
-    Lwt.return_unit
+    Js_of_ocaml_eio.Eio_js.start (fun () ->
+      let b = client_form_handler ev in
+      if not b then change_page_form ?cookies_info ?tmpl form action)
   in
   (not !Eliom_common.is_client_app)
   && ((https = Some true && not Eliom_request_info.ssl_)
@@ -567,7 +575,10 @@ let rec rebuild_rattrib node ra =
    and the function [Eliommod_dom.test_pageshow_pagehide]. *)
 
 let delay f =
-  Lwt.ignore_result (Lwt.pause () >>= fun () -> f (); Lwt.return_unit)
+  Js_of_ocaml_eio.Eio_js.start (fun () ->
+    Fiber.yield
+      ();
+    f ())
 
 module ReactState : sig
   type t

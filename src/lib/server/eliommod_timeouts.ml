@@ -26,7 +26,6 @@
 (*****************************************************************************)
 
 open Eliom_lib
-open Lwt
 
 type kind = [`Service | `Data | `Persistent]
 
@@ -131,15 +130,12 @@ let set_timeout_
             | _, _, ct -> get_default ct)
         in
         ignore
-          (catch
-             (fun () -> update full_st_name sitedata oldt t)
-             (function
-               | exn ->
-               Logs.warn ~src:eliom_logs_src (fun fmt ->
-                 fmt
-                   ("Error while updating timeouts" ^^ "@\n%s")
-                   (Printexc.to_string exn));
-               Lwt.return_unit))
+          (try update full_st_name sitedata oldt t
+           with exn ->
+             Logs.warn ~src:eliom_logs_src (fun fmt ->
+               fmt
+                 ("Error while updating timeouts" ^^ "@\n%s")
+                 (Printexc.to_string exn)))
 (*VVV Check possible exceptions raised *)
 
 (* global timeout = timeout for the whole site (may be changed dynamically) *)

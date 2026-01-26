@@ -1,4 +1,4 @@
-open Lwt.Syntax
+open Eio.Std
 
 (* Ocsigen
  * http://www.ocsigen.org
@@ -27,7 +27,7 @@ exception Failed_request of int
 exception Program_terminated
 exception Non_xml_content
 
-module XmlHttpRequest = Js_of_ocaml_lwt.XmlHttpRequest
+module XmlHttpRequest = Js_of_ocaml_eio.XmlHttpRequest
 
 let section = Logs.Src.create "eliom:request"
 (* == ... *)
@@ -258,123 +258,117 @@ let send
           = Some (Eliom_process.get_application_name ())
       else true
     in
-    Lwt.catch
-      (fun () ->
-         let* r =
-           let contents =
-             match post_args with
-             | Some post_args -> Some (`POST_form post_args)
-             | None -> None
-           in
-           XmlHttpRequest.perform_raw_url ?with_credentials
-             ?headers:(Some headers) ?content_type:None ?contents ~get_args
-             ~check_headers ?progress ?upload_progress ?override_mime_type url
-         in
-         let wait_for_unlock, unlock = Lwt.wait () in
-         (if not @@ React.S.value locked
-          then Lwt.wakeup unlock ()
-          else
-            let unlock_event = React.E.once @@ React.S.changes locked in
-            Dom_reference.retain_generic wait_for_unlock
-              ~keep:(React.E.map (fun _ -> Lwt.wakeup unlock ()) unlock_event));
-         let* () = wait_for_unlock in
-         (if Js.Optdef.test Js.Unsafe.global##.___eliom_use_cookie_substitutes_
-          then
-            match
-              (* Cookie substitutes are for iOS WKWebView *)
-              r.XmlHttpRequest.headers
-                Eliom_common.set_cookie_substitutes_header_name
-            with
-            | None | Some "" -> ()
-            | Some cookie_substitutes ->
-                Eliommod_cookies.update_cookie_table ~in_local_storage:true host
-                  (Eliommod_cookies.cookieset_of_json cookie_substitutes));
-         (match
-            r.XmlHttpRequest.headers Eliom_common.set_tab_cookies_header_name
-          with
-         | None | Some "" -> () (* Empty tab_cookies for IE compat *)
-         | Some tab_cookies ->
-             let tab_cookies = Eliommod_cookies.cookieset_of_json tab_cookies in
-             Eliommod_cookies.update_cookie_table host tab_cookies);
-         if r.XmlHttpRequest.code = 204
-         then
-           match
-             r.XmlHttpRequest.headers Eliom_common.full_xhr_redir_header
-           with
-           | None | Some "" -> (
-             match
-               r.XmlHttpRequest.headers Eliom_common.half_xhr_redir_header
-             with
-             | None | Some "" -> Lwt.return (r.XmlHttpRequest.url, None)
-             | Some _uri ->
-                 redirect_post url
-                   (match post_args with
-                   | Some post_args -> post_args
-                   | None -> []);
-                 Lwt.fail Program_terminated)
-           | Some uri ->
-               if i < max_redirection_level
-               then aux (i + 1) (Url.resolve uri)
-               else Lwt.fail Looping_redirection
-         else if expecting_process_page
-         then
-           let url =
-             match
-               r.XmlHttpRequest.headers Eliom_common.response_url_header
-             with
-             | None | Some "" -> Url.add_get_args url (List.tl get_args)
-             | Some url -> Url.resolve url
-           in
-           Lwt.return (url, Some (result r))
-         else if
-           r.XmlHttpRequest.code = 200
-           || XmlHttpRequest.(r.code = 0 && r.content <> "")
-           (* HACK for file access within Cordova which yields code 0.
+    try
+      let r =
+        let contents =
+          match post_args with
+          | Some post_args -> Some (`POST_form post_args)
+          | None -> None
+        in
+        XmlHttpRequest.perform_raw_url ?with_credentials ?headers:(Some headers)
+          ?content_type:None ?contents ~get_args ~check_headers ?progress
+          ?upload_progress ?override_mime_type url
+      in
+      let wait_for_unlock, unlock =
+        Promise.create
+          ()
+      in
+      (if not @@ React.S.value locked
+       then ignore (Eio.Promise.try_resolve unlock ())
+       else
+         let unlock_event = React.E.once @@ React.S.changes locked in
+         Dom_reference.retain_generic wait_for_unlock
+           ~keep:(React.E.map (fun _ ->
+             ignore (Eio.Promise.try_resolve unlock ())) unlock_event));
+      let () = Promise.await wait_for_unlock in
+      (if Js.Optdef.test Js.Unsafe.global##.___eliom_use_cookie_substitutes_
+       then
+         match
+           (* Cookie substitutes are for iOS WKWebView *)
+           r.XmlHttpRequest.headers
+             Eliom_common.set_cookie_substitutes_header_name
+         with
+         | None | Some "" -> ()
+         | Some cookie_substitutes ->
+             Eliommod_cookies.update_cookie_table ~in_local_storage:true host
+               (Eliommod_cookies.cookieset_of_json cookie_substitutes));
+      (match
+         r.XmlHttpRequest.headers Eliom_common.set_tab_cookies_header_name
+       with
+      | None | Some "" -> () (* Empty tab_cookies for IE compat *)
+      | Some tab_cookies ->
+          let tab_cookies = Eliommod_cookies.cookieset_of_json tab_cookies in
+          Eliommod_cookies.update_cookie_table host tab_cookies);
+      if r.XmlHttpRequest.code = 204
+      then
+        match r.XmlHttpRequest.headers Eliom_common.full_xhr_redir_header with
+        | None | Some "" -> (
+          match r.XmlHttpRequest.headers Eliom_common.half_xhr_redir_header with
+          | None | Some "" -> r.XmlHttpRequest.url, None
+          | Some _uri ->
+              redirect_post url
+                (match post_args with
+                | Some post_args -> post_args
+                | None -> []);
+              raise Program_terminated)
+        | Some uri ->
+            if i < max_redirection_level
+            then aux (i + 1) (Url.resolve uri)
+            else raise Looping_redirection
+      else if expecting_process_page
+      then
+        let url =
+          match r.XmlHttpRequest.headers Eliom_common.response_url_header with
+          | None | Some "" -> Url.add_get_args url (List.tl get_args)
+          | Some url -> Url.resolve url
+        in
+        url, Some (result r)
+      else if
+        r.XmlHttpRequest.code = 200
+        || XmlHttpRequest.(r.code = 0 && r.content <> "")
+        (* HACK for file access within Cordova which yields code 0.
                     Code 0 might mean a network error, but then we have no
                     content. *)
-         then Lwt.return (r.XmlHttpRequest.url, Some (result r))
-         else Lwt.fail (Failed_request r.XmlHttpRequest.code))
-      (function
-        | XmlHttpRequest.Wrong_headers (code, headers) -> (
-          (* We are requesting application content and the headers tels
+      then r.XmlHttpRequest.url, Some (result r)
+      else raise (Failed_request r.XmlHttpRequest.code)
+    with XmlHttpRequest.Wrong_headers (code, headers) -> (
+      (* We are requesting application content and the headers tels
            us that the answer is not application content *)
-          match headers Eliom_common.appl_name_header_name with
-          | None | Some "" ->
-              (* Empty appl_name for IE compat. *)
-              (match post_args with
-              | None -> redirect_get url
-              | _ ->
-                  raise_error ~section
-                    "can't silently redirect a Post request to non application content");
-              Lwt.fail Program_terminated
-          | Some appl_name ->
-              let current_appl_name = Eliom_process.get_application_name () in
-              if appl_name = current_appl_name
-              then
-                assert false
-                (* we can't go here:
+      match headers Eliom_common.appl_name_header_name with
+      | None | Some "" ->
+          (* Empty appl_name for IE compat. *)
+          (match post_args with
+          | None -> redirect_get url
+          | _ ->
+              raise_error ~section
+                "can't silently redirect a Post request to non application content");
+          raise Program_terminated
+      | Some appl_name ->
+          let current_appl_name = Eliom_process.get_application_name () in
+          if appl_name = current_appl_name
+          then
+            assert false
+            (* we can't go here:
                                      this case is already handled before *)
-              else (
-                Logs.warn ~src:section (fun fmt ->
-                  fmt
-                    "received content for application %S when running application %s"
-                    appl_name current_appl_name);
-                Lwt.fail (Failed_request code)))
-        | exc -> Lwt.reraise exc)
+          else (
+            Logs.warn ~src:section (fun fmt ->
+              fmt
+                "received content for application %S when running application %s"
+                appl_name current_appl_name);
+            raise (Failed_request code)))
   in
-  let* url, content = aux 0 ?cookies_info ?get_args ?post_args url in
+  let url, content = aux 0 ?cookies_info ?get_args ?post_args url in
   let filter_url url =
     { url with
       Url.hu_arguments =
         List.filter (fun (e, _) -> e <> nl_template_string) url.Url.hu_arguments
     }
   in
-  Lwt.return
-    ( (match Url.url_of_string url with
-      | Some (Url.Http url) -> Url.string_of_url (Url.Http (filter_url url))
-      | Some (Url.Https url) -> Url.string_of_url (Url.Https (filter_url url))
-      | _ -> url)
-    , content )
+  ( (match Url.url_of_string url with
+    | Some (Url.Http url) -> Url.string_of_url (Url.Http (filter_url url))
+    | Some (Url.Https url) -> Url.string_of_url (Url.Https (filter_url url))
+    | _ -> url)
+  , content )
 
 (* BEGIN FORMDATA HACK *)
 let add_button_arg inj args form =

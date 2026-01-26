@@ -1,4 +1,5 @@
-open Lwt.Syntax
+open Eio.Std
+
 
 (* Ocsigen
  * http://www.ocsigen.org
@@ -83,17 +84,27 @@ module Configuration = struct
         configuration_table
         (first_conf configuration_table)
 
-  let update_configuration_waiter, update_configuration_waker =
-    let t, u = Lwt.wait () in
-    ref t, ref u
+  (* Initialized lazily to avoid calling Promise.create at toplevel *)
+  let update_configuration_waiter = ref None
+  let update_configuration_waker = ref None
+
+  let get_configuration_waiter () =
+    match !update_configuration_waiter, !update_configuration_waker with
+    | Some t, Some u -> t, u
+    | _ ->
+        let t, u = Promise.create () in
+        update_configuration_waiter := Some t;
+        update_configuration_waker := Some u;
+        t, u
 
   let update_configuration () =
     global_configuration := get_configuration ();
-    let t, u = Lwt.wait () in
-    update_configuration_waiter := t;
-    let wakener = !update_configuration_waker in
-    update_configuration_waker := u;
-    Lwt.wakeup wakener ()
+    (* Get the old waker BEFORE creating the new promise *)
+    let _old_waiter, old_waker = get_configuration_waiter () in
+    let t, u = Promise.create () in
+    update_configuration_waiter := Some t;
+    update_configuration_waker := Some u;
+    ignore (Eio.Promise.try_resolve old_waker ())
 
   let get () = !global_configuration
 
@@ -159,17 +170,17 @@ module Configuration = struct
       else (get ()).time_between_request
     in
     let rec aux t =
-      let* () =
-        Lwt.pick
-          [ Js_of_ocaml_lwt.Lwt_js.sleep t
-          ; !update_configuration_waiter
-          ; active_waiter () ]
+      let () =
+        Fiber.any
+          [ (fun () -> Js_of_ocaml_eio.Eio_js.sleep t)
+          ; (fun () -> Promise.await (fst (get_configuration_waiter ())))
+          ; active_waiter ]
       in
       let remaining_time = sleep_duration () -. (Sys.time () -. time) in
-      if remaining_time > 0. then aux remaining_time else Lwt.return_unit
+      if remaining_time > 0. then aux remaining_time else ()
     in
     let sleep_duration = sleep_duration () in
-    if sleep_duration <= 0. then Lwt.return_unit else aux sleep_duration
+    if sleep_duration <= 0. then () else aux sleep_duration
 end
 
 exception Restart
@@ -186,16 +197,14 @@ let handle_exn, set_handle_exn_function =
       in
       match exn with
       | Some exn -> raise_error ~section ~exn "%s" s
-      | None ->
-          Logs.debug ~src:section (fun fmt -> fmt "%s" s);
-          Lwt.return_unit)
+      | None -> Logs.debug ~src:section (fun fmt -> fmt "%s" s))
   in
   ( (fun ?exn () ->
       if not !closed
       then (
         closed := true;
         !r ?exn ())
-      else Lwt.return_unit)
+      else ())
   , fun f -> r := f )
 
 type chan_id = string
@@ -211,9 +220,7 @@ module Service_handler : sig
   val stateful : stateful kind
   val make : Ecb.comet_service -> 'a kind -> 'a t
 
-  val wait_data :
-     'a t
-    -> (chan_id * int option * string Ecb.channel_data) list Lwt.t
+  val wait_data : 'a t -> (chan_id * int option * string Ecb.channel_data) list
   (** Returns the messages received in the last request. If the
       channel is stateless, it also returns the message number in the [int option] *)
 
@@ -239,11 +246,11 @@ end = struct
     ; mutable focused : float option
       (** [focused] is None when the page is visible and Some [t]
             when the page became hidden at time [t] (in ms) *)
-    ; mutable active_waiter : unit Lwt.t
+    ; mutable active_waiter : unit Promise.or_exn
       (** [active_waiter] terminates when the page get visible *)
-    ; mutable active_wakener : unit Lwt.u
-    ; mutable restart_waiter : Ecb.answer Lwt.t
-    ; mutable restart_wakener : Ecb.answer Lwt.u
+    ; mutable active_wakener : (unit, exn) result Eio.Promise.u
+    ; mutable restart_waiter : Ecb.answer Promise.or_exn
+    ; mutable restart_wakener : (Ecb.answer, exn) result Eio.Promise.u
     ; mutable active_channels : Eliom_lib.String.Set.t }
 
   type stateful_state = int ref (* id of the next request *)
@@ -284,11 +291,14 @@ end = struct
       | `Inactive -> hd.hd_activity.active <- `Inactive
       | _ ->
           hd.hd_activity.active <- v;
-          let t, u = Lwt.wait () in
+          let t, u =
+            Promise.create
+              ()
+          in
           hd.hd_activity.active_waiter <- t;
           let wakener = hd.hd_activity.active_wakener in
           hd.hd_activity.active_wakener <- u;
-          Lwt.wakeup wakener ()
+          ignore (Eio.Promise.try_resolve wakener (Ok ()))
 
   let is_active hd = hd.hd_activity.active
 
@@ -354,11 +364,14 @@ end = struct
 
   let restart hd =
     let act = hd.hd_activity in
-    let t, u = Lwt.wait () in
+    let t, u =
+      Promise.create
+        ()
+    in
     act.restart_waiter <- t;
     let wakener = act.restart_wakener in
     act.restart_wakener <- u;
-    Lwt.wakeup_exn wakener Restart;
+    ignore (Eio.Promise.try_resolve wakener (Error Restart));
     activate hd
 
   let max_retries = 10
@@ -375,16 +388,16 @@ end = struct
     match p with
     | _, Ecb.Stateful (Ecb.Commands commands) ->
         queue := List.rev_append (Array.to_list commands) !queue;
-        let* () = Eliom_client.wait_load_end () in
+        let () = Eliom_client.wait_load_end () in
         let q = !queue in
         if q <> []
         then (
           queue := [];
           Eliom_client.call_service ~service ()
             (false, Ecb.Stateful (Ecb.Commands (Array.of_list (List.rev q)))))
-        else Lwt.return ""
+        else ""
     | _ ->
-        let* () = Eliom_client.wait_load_end () in
+        let () = Eliom_client.wait_load_end () in
         Eliom_client.call_service ~service () p
 
   let make_request hd =
@@ -466,17 +479,17 @@ end = struct
   let call_service
         ({hd_activity; hd_service = Ecb.Comet_service (srv, queue); _} as hd)
     =
-    let* () =
+    let () =
       Configuration.sleep_before_next_request
         (fun () -> hd_activity.focused)
         (fun () -> hd_activity.active = `Idle)
-        (fun () -> hd_activity.active_waiter)
+        (fun () -> Eio.Promise.await_exn hd_activity.active_waiter)
     in
     let request = make_request hd in
-    let* s =
+    let s =
       call_service_after_load_end srv queue (hd_activity.active = `Idle, request)
     in
-    Lwt.return (Deriving_Json.from_string Ecb.answer_json s)
+    Deriving_Json.from_string Ecb.answer_json s
 
   let drop_message_index =
     let aux = function
@@ -501,64 +514,71 @@ end = struct
          || not (Configuration.get ()).Configuration.active_until_timeout)
     then set_activity hd (expected_activity hd)
 
-  let wait_data hd : (string * int option * string Ecb.channel_data) list Lwt.t =
+  let wait_data hd : (string * int option * string Ecb.channel_data) list =
     let rec aux retries =
       if hd.hd_activity.active = `Inactive
       then
-        let* () = hd.hd_activity.active_waiter in
+        let () = Eio.Promise.await_exn hd.hd_activity.active_waiter in
         aux 0
       else
-        Lwt.try_bind
-          (fun () -> Lwt.pick [call_service hd; hd.hd_activity.restart_waiter])
-          (fun s ->
-             match s with
-             | Ecb.Timeout ->
-                 update_activity ~timeout:true hd;
-                 aux 0
-             | Ecb.State_closed -> Lwt.return (close_all_channels hd)
-             | Ecb.Comet_error e -> Lwt.fail (Comet_error e)
-             | Ecb.Stateless_messages l ->
-                 let l = Array.to_list l in
-                 update_stateless_state hd l;
-                 Lwt.return (drop_message_index l)
-             | Ecb.Stateful_messages l ->
-                 let l = Array.to_list l in
-                 update_stateful_state hd l;
-                 Lwt.return (add_no_index l))
-          (fun e ->
-             match e with
-             | Eliom_request.Failed_request (0 | 502 | 504) ->
-                 if retries > max_retries
-                 then (
-                   Logs.app ~src:section (fun fmt -> fmt "connection failure");
-                   set_activity hd `Inactive;
-                   aux 0)
-                 else
-                   let* () = Js_of_ocaml_lwt.Lwt_js.sleep (delay retries) in
-                   aux (retries + 1)
-             | Restart ->
-                 Logs.info ~src:section (fun fmt -> fmt "restart");
-                 aux 0
-             | exn ->
-                 Logs.app ~src:section (fun fmt ->
-                   fmt
-                     ("connection failure" ^^ "@\n%s")
-                     (Printexc.to_string exn));
-                 let* () = handle_exn ~exn () in
-                 Lwt.fail exn)
+        match
+          Fiber.any
+            [ (fun () -> call_service hd)
+            ; (fun () ->
+                Eio.Promise.await_exn
+                  hd
+                    .hd_activity
+                    .restart_waiter) ]
+        with
+        | s -> (
+          match s with
+          | Ecb.Timeout ->
+              update_activity ~timeout:true hd;
+              aux 0
+          | Ecb.State_closed -> close_all_channels hd
+          | Ecb.Comet_error e -> raise (Comet_error e)
+          | Ecb.Stateless_messages l ->
+              let l = Array.to_list l in
+              update_stateless_state hd l;
+              drop_message_index l
+          | Ecb.Stateful_messages l ->
+              let l = Array.to_list l in
+              update_stateful_state hd l; add_no_index l)
+        | exception e -> (
+          match e with
+          | Eliom_request.Failed_request (0 | 502 | 504) ->
+              if retries > max_retries
+              then (
+                Logs.app ~src:section (fun fmt -> fmt "connection failure");
+                set_activity hd `Inactive;
+                aux 0)
+              else
+                let () = Js_of_ocaml_eio.Eio_js.sleep (delay retries) in
+                aux (retries + 1)
+          | Restart ->
+              Logs.info ~src:section (fun fmt -> fmt "restart");
+              aux 0
+          | exn ->
+              Logs.app ~src:section (fun fmt ->
+                fmt ("connection failure" ^^ "@\n%s") (Printexc.to_string exn));
+              let () = handle_exn ~exn () in
+              raise exn)
     in
     update_activity hd; aux 0
 
   let call_commands {hd_service = Ecb.Comet_service (srv, queue); _} command =
-    ignore
-      (Lwt.catch
-         (fun () ->
-            call_service_after_load_end srv queue
-              (false, Ecb.Stateful (Ecb.Commands command)))
-         (fun exn ->
-            Logs.app ~src:section (fun fmt ->
-              fmt ("request failed" ^^ "@\n%s") (Printexc.to_string exn));
-            Lwt.return ""))
+    (* Use fork to run the HTTP request in an Eio context.
+       This is necessary because call_commands may be called during
+       unwrapping which happens outside of an Eio fiber. *)
+    Eliom_lib.fork (fun () ->
+      ignore
+        (try
+           call_service_after_load_end srv queue
+             (false, Ecb.Stateful (Ecb.Commands command))
+         with exn ->
+           Logs.app ~src:section (fun fmt ->
+             fmt ("request failed" ^^ "@\n%s") (Printexc.to_string exn));
+           ""))
 
   let close hd chan_id =
     match hd.hd_state with
@@ -615,8 +635,14 @@ end = struct
         restart hd
 
   let init_activity () =
-    let active_waiter, active_wakener = Lwt.wait () in
-    let restart_waiter, restart_wakener = Lwt.wait () in
+    let active_waiter, active_wakener =
+      Promise.create
+        ()
+    in
+    let restart_waiter, restart_wakener =
+      Promise.create
+        ()
+    in
     { active = `Inactive
     ; focused = None
     ; active_waiter
@@ -637,16 +663,16 @@ end
 
 type 'a handler =
   { hd_service_handler : 'a Service_handler.t
-  ; hd_stream : (string * int option * string Ecb.channel_data) Lwt_stream.t }
+  ; hd_stream : (string * int option * string Ecb.channel_data) Eliom_stream.t
+  }
 
 let handler_stream hd =
-  Lwt_stream.map_list
+  Eliom_stream.map_list
     (fun x -> x)
-    (Lwt_stream.from (fun () ->
-       Lwt.try_bind
-         (fun () -> Service_handler.wait_data hd)
-         (fun s -> Lwt.return_some s)
-         (fun _ -> Lwt.return_none)))
+    (Eliom_stream.from (fun () ->
+       match Service_handler.wait_data hd with
+       | s -> Some s
+       | exception _ -> None))
 
 let stateful_handler_table :
   (Ecb.comet_service, Service_handler.stateful handler) Hashtbl.t
@@ -745,25 +771,26 @@ let check_and_update_position position msg_pos data =
 let register' hd position (_ : Ecb.comet_service) (chan_id : 'a Ecb.chan_id) =
   let chan_id = Ecb.string_of_chan_id chan_id in
   let stream =
-    Lwt_stream.filter_map_s
+    Eliom_stream.filter_map_s
       (function
         | id, pos, data
           when id = chan_id && check_and_update_position position pos data -> (
           match data with
-          | Ecb.Full -> Lwt.fail Channel_full
-          | Ecb.Closed -> Lwt.fail Channel_closed
-          | Ecb.Data x -> Lwt.return_some (unmarshal x : 'a))
-        | _ -> Lwt.return_none)
-      (Lwt_stream.clone hd.hd_stream)
+          | Ecb.Full -> raise Channel_full
+          | Ecb.Closed -> raise Channel_closed
+          | Ecb.Data x -> Some (unmarshal x : 'a))
+        | _ -> None)
+      (Eliom_stream.clone hd.hd_stream)
   in
-  let protect_and_close t =
-    let t' = Lwt.protected t in
-    Lwt.on_cancel t' (fun () ->
-      Service_handler.close hd.hd_service_handler chan_id);
-    t'
+  let protect_and_close f =
+    try Switch.run f
+    with Eio.Cancel.Cancelled _ as e ->
+      Service_handler.close hd.hd_service_handler chan_id;
+      raise e
   in
   (* protect the stream from cancels *)
-  Lwt_stream.from (fun () -> protect_and_close (Lwt_stream.get stream))
+  Eliom_stream.from (fun () ->
+    protect_and_close (fun _sw -> Eliom_stream.get stream))
 
 let register_stateful ?(wake = true) service chan_id =
   let hd = get_stateful_hd service in
@@ -809,7 +836,7 @@ let is_active () =
     Hashtbl.fold f stateful_handler_table `Active)
 
 module Channel = struct
-  type 'a t = 'a Lwt_stream.t
+  type 'a t = 'a Eliom_stream.t
 end
 
 let force_link = ()

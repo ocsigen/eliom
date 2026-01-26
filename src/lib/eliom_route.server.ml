@@ -1,5 +1,4 @@
 open Eliom_lib
-open Lwt
 open Ocsigen_extensions
 include Eliom_route_base
 
@@ -61,30 +60,36 @@ include Eliom_route_base.Make (struct
     let make_params = Eliom_common.make_server_params
 
     let handle_directory {Eliom_common.request = r; _} =
-      Lwt.fail
-      @@ Ocsigen_extensions.Ocsigen_is_dir
-           (Ocsigen_extensions.new_url_of_directory_request r)
+      raise
+        (Ocsigen_extensions.Ocsigen_is_dir
+           (Ocsigen_extensions.new_url_of_directory_request r))
 
     let get_number_of_reloads () = Ocsigen_extensions.get_numberofreloads ()
   end)
 
-let find_aux now sitedata info _ sci : Ocsigen_response.t Lwt.t =
-  Eliom_common.Full_state_name_table.fold
-    (fun fullsessname (_, r) beg ->
-       Lwt.catch
-         (fun () -> beg)
-         (function
-           | Eliom_common.Eliom_404 | Eliom_common.Eliom_Wrong_parameter -> (
+(* Use Option to avoid immediate evaluation of raise as initial value.
+   In direct-style (Eio), (raise X) as a function argument is evaluated immediately,
+   unlike Lwt where Lwt.fail X returns a value. *)
+let find_aux now sitedata info _ sci : Ocsigen_response.t =
+  let result =
+    Eliom_common.Full_state_name_table.fold
+      (fun fullsessname (_, r) acc ->
+         match acc with
+         | Some _ -> acc
+         | None ->
              match !r with
              | Eliom_common.SCData_session_expired
-             | Eliom_common.SCNo_data (* cookie removed *) ->
-                 beg
+             | Eliom_common.SCNo_data ->
+                 None
              | Eliom_common.SC c ->
-                 find_service now !(c.Eliom_common.sc_table) (Some fullsessname)
-                   sitedata info)
-           | e -> fail e))
-    sci
-    (fail Eliom_common.Eliom_404)
+                 (try Some (find_service now !(c.Eliom_common.sc_table) (Some fullsessname) sitedata info)
+                  with Eliom_common.Eliom_404 | Eliom_common.Eliom_Wrong_parameter -> None))
+      sci
+      None
+  in
+  match result with
+  | Some response -> response
+  | None -> raise Eliom_common.Eliom_404
 
 let session_tables {Eliom_common.all_cookie_info; tab_cookie_info; _} =
   let (service_cookies_info, _, _), (secure_service_cookies_info, _, _) =
@@ -104,89 +109,81 @@ let drop_most_params ri si =
 let get_page
       now
       ({Eliom_common.request = ri; session_info = si; _} as info)
-      sitedata : Ocsigen_response.t Lwt.t
+      sitedata : Ocsigen_response.t
   =
   let tables = session_tables info in
-  catch
-    (fun () ->
-       List.fold_left
-         (fun beg (table, table_name) ->
-            Lwt.catch
-              (fun () -> beg)
-              (function
-                | Eliom_common.Eliom_404 | Eliom_common.Eliom_Wrong_parameter ->
-                    Logs.info ~src:section (fun fmt ->
-                      fmt "Looking for %s in the %s:"
-                        (Url.string_of_url_path ~encode:true
-                           (Ocsigen_request.sub_path ri.request_info))
-                        table_name);
-                    find_aux now sitedata info Eliom_common.Eliom_404 table
-                | e -> Lwt.fail e))
-         (Lwt.fail Eliom_common.Eliom_404)
-         tables)
-    (function
-      | Eliom_common.Eliom_404 | Eliom_common.Eliom_Wrong_parameter ->
-          catch (* ensuite dans la table globale *)
-            (fun () ->
-               Logs.info ~src:section (fun fmt ->
-                 fmt "Searching in the global table:");
-               find_service now sitedata.Eliom_common.global_services None
-                 sitedata info)
-            (function
-              | (Eliom_common.Eliom_404 | Eliom_common.Eliom_Wrong_parameter) as
-                exn -> (
-                (* si pas trouvé avec, on essaie sans l'état *)
-                match si.Eliom_common.si_state_info with
-                | Eliom_common.RAtt_no, Eliom_common.RAtt_no -> fail exn
-                | g, Eliom_common.RAtt_anon _ | g, Eliom_common.RAtt_named _ ->
-                    (* There was a POST state.
+  let rec try_page e f = function
+    | tables :: others -> (
+      try f tables
+      with
+      | (Eliom_common.Eliom_404 | Eliom_common.Eliom_Wrong_parameter) as e ->
+        try_page e f others)
+    | [] -> raise e
+  in
+  try
+    try_page Eliom_common.Eliom_404
+      (fun (table, _table_name) ->
+         find_aux now sitedata info Eliom_common.Eliom_404 table)
+      tables
+  with
+  | Eliom_common.Eliom_404 | Eliom_common.Eliom_Wrong_parameter -> (
+    try
+      (* ensuite dans la table globale *)
+      Logs.info ~src:section (fun fmt -> fmt "Searching in the global table:");
+      find_service now sitedata.Eliom_common.global_services None sitedata info
+    with
+    | (Eliom_common.Eliom_404 | Eliom_common.Eliom_Wrong_parameter) as exn -> (
+      (* si pas trouvé avec, on essaie sans l'état *)
+      match si.Eliom_common.si_state_info with
+      | Eliom_common.RAtt_no, Eliom_common.RAtt_no -> raise exn
+      | g, Eliom_common.RAtt_anon _ | g, Eliom_common.RAtt_named _ ->
+          (* There was a POST state.
                           We remove it, and remove POST parameters.
-                    *)
-                    Logs.info ~src:section (fun fmt ->
-                      fmt "Link too old. Try without POST parameters:");
-                    Polytables.set
-                      ~table:(Ocsigen_request.request_cache ri.request_info)
-                      ~key:Eliom_common.eliom_link_too_old ~value:true;
-                    let request =
-                      { ri with
-                        request_info =
-                          Ocsigen_request.update ri.request_info ~post_data:None
-                            ~meth:`GET }
-                    and session_info =
-                      { si with
-                        Eliom_common.si_nonatt_info = Eliom_common.RNa_no
-                      ; Eliom_common.si_state_info = g, Eliom_common.RAtt_no }
-                    in
-                    fail
-                    @@ Eliom_common.Eliom_retry_with
-                         {info with Eliom_common.request; session_info}
-                | Eliom_common.RAtt_named _, Eliom_common.RAtt_no
-                | Eliom_common.RAtt_anon _, Eliom_common.RAtt_no ->
-                    (* There was a GET state, but no POST state.
+          *)
+          Logs.info ~src:section (fun fmt ->
+            fmt "Link too old. Try without POST parameters:");
+          Polytables.set
+            ~table:(Ocsigen_request.request_cache ri.request_info)
+            ~key:Eliom_common.eliom_link_too_old ~value:true;
+          let request =
+            { ri with
+              request_info =
+                Ocsigen_request.update ri.request_info ~post_data:None
+                  ~meth:`GET }
+          and session_info =
+            { si with
+              Eliom_common.si_nonatt_info = Eliom_common.RNa_no
+            ; Eliom_common.si_state_info = g, Eliom_common.RAtt_no }
+          in
+          raise
+            (Eliom_common.Eliom_retry_with
+               {info with Eliom_common.request; session_info})
+      | Eliom_common.RAtt_named _, Eliom_common.RAtt_no
+      | Eliom_common.RAtt_anon _, Eliom_common.RAtt_no ->
+          (* There was a GET state, but no POST state.
                      We remove it with its parameters,
                      and remove POST parameters.
-                    *)
-                    Logs.info ~src:section (fun fmt ->
-                      fmt
-                        "Link to old. Trying without GET state parameters and POST parameters:");
-                    Polytables.set
-                      ~table:(Ocsigen_request.request_cache ri.request_info)
-                      ~key:Eliom_common.eliom_link_too_old ~value:true;
-                    let request =
-                      { ri with
-                        request_info = drop_most_params ri.request_info si }
-                    and session_info =
-                      let open Eliom_common in
-                      { si with
-                        si_nonatt_info = RNa_no
-                      ; si_state_info = RAtt_no, RAtt_no
-                      ; si_other_get_params = [] }
-                    in
-                    fail
-                    @@ Eliom_common.Eliom_retry_with
-                         {info with Eliom_common.request; session_info})
-              | e -> fail e)
-      | e -> fail e)
+          *)
+          Logs.info ~src:section (fun fmt ->
+            fmt
+              "Link to old. Trying without GET state parameters and POST parameters:");
+          Polytables.set
+            ~table:(Ocsigen_request.request_cache ri.request_info)
+            ~key:Eliom_common.eliom_link_too_old ~value:true;
+          let request =
+            {ri with request_info = drop_most_params ri.request_info si}
+          and session_info =
+            let open Eliom_common in
+            { si with
+              si_nonatt_info = RNa_no
+            ; si_state_info = RAtt_no, RAtt_no
+            ; si_other_get_params = [] }
+          in
+          raise
+            (Eliom_common.Eliom_retry_with
+               {info with Eliom_common.request; session_info}))
+    | e -> raise e)
+  | e -> raise e
 
 let add_naservice_table at (key, elt) =
   match at with
@@ -309,70 +306,72 @@ let make_naservice
     | Eliom_common.Notfound _ -> raise Not_found
   in
   let tables = session_tables info in
-  (try
-     try
-       let rec f = function
-         | [] -> raise Not_found
-         | (table, table_name) :: l -> (
-             Logs.info ~src:section (fun fmt ->
-               fmt "Looking for a non attached service in the %s:" table_name);
-             try return (find_aux table) with Not_found -> f l)
-       in
-       f tables
-     with Not_found ->
-       Logs.info ~src:section (fun fmt ->
-         fmt "Looking for a non attached service in the global table");
-       return
-         ( find_naservice now sitedata.Eliom_common.global_services
-             (Eliom_common.na_key_serv_of_req si.Eliom_common.si_nonatt_info)
-         , sitedata.Eliom_common.global_services
-         , None )
-   with Not_found -> (
-     (* The non-attached service has not been found.
-      We call the same URL without non-attached parameters.
-     *)
-     match si.Eliom_common.si_nonatt_info with
-     | Eliom_common.RNa_no -> assert false
-     | Eliom_common.RNa_post_ _ | Eliom_common.RNa_post' _ ->
-         (*VVV (Some, Some) or (_, Some)? *)
-         Logs.info ~src:section (fun fmt ->
-           fmt
-             "Link too old to a non-attached POST coservice. Try without POST parameters:");
-         Polytables.set
-           ~table:(Ocsigen_request.request_cache ri.request_info)
-           ~key:Eliom_common.eliom_link_too_old ~value:true;
-         Eliom_common.get_session_info ~sitedata
-           ~req:
-             { ri with
-               Ocsigen_extensions.request_info =
-                 drop_most_params ri.request_info si }
-           si.Eliom_common.si_previous_extension_error
-         >>= fun (ri', si', _previous_tab_cookies_info) ->
-         Lwt.fail
-         @@ Eliom_common.Eliom_retry_with
-              {info with request = ri'; session_info = si'}
-     | Eliom_common.RNa_get_ _ | Eliom_common.RNa_get' _ ->
-         Logs.info ~src:section (fun fmt ->
-           fmt "Link too old. Try without non-attached parameters:");
-         Polytables.set
-           ~table:(Ocsigen_request.request_cache ri.request_info)
-           ~key:Eliom_common.eliom_link_too_old ~value:true;
-         Eliom_common.get_session_info ~sitedata
-           ~req:
-             { ri with
-               Ocsigen_extensions.request_info =
-                 drop_most_params ri.request_info si }
-           si.Eliom_common.si_previous_extension_error
-         >>= fun (ri', si', _previous_tab_cookies_info) ->
-         Lwt.fail
-         @@ Eliom_common.Eliom_retry_with
-              {info with request = ri'; session_info = si'}))
-  >>=
-  fun ( (_, max_use, expdate, naservice, node)
+  let ( (_, max_use, expdate, naservice, node)
       , tablewhereithasbeenfound
-      , fullsessname ) ->
+      , fullsessname )
+    =
+    try
+      try
+        let rec f = function
+          | [] -> raise Not_found
+          | (table, table_name) :: l -> (
+              Logs.info ~src:section (fun fmt ->
+                fmt "Looking for a non attached service in the %s:" table_name);
+              try find_aux table with Not_found -> f l)
+        in
+        f tables
+      with Not_found ->
+        Logs.info ~src:section (fun fmt ->
+          fmt "Looking for a non attached service in the global table");
+        ( find_naservice now sitedata.Eliom_common.global_services
+            (Eliom_common.na_key_serv_of_req si.Eliom_common.si_nonatt_info)
+        , sitedata.Eliom_common.global_services
+        , None )
+    with Not_found -> (
+      (* The non-attached service has not been found.
+      We call the same URL without non-attached parameters.
+      *)
+      match si.Eliom_common.si_nonatt_info with
+      | Eliom_common.RNa_no -> assert false
+      | Eliom_common.RNa_post_ _ | Eliom_common.RNa_post' _ ->
+          (*VVV (Some, Some) or (_, Some)? *)
+          Logs.info ~src:section (fun fmt ->
+            fmt
+              "Link too old to a non-attached POST coservice. Try without POST parameters:");
+          Polytables.set
+            ~table:(Ocsigen_request.request_cache ri.request_info)
+            ~key:Eliom_common.eliom_link_too_old ~value:true;
+          let ri', si', _previous_tab_cookies_info =
+            Eliom_common.get_session_info ~sitedata
+              ~req:
+                { ri with
+                  Ocsigen_extensions.request_info =
+                    drop_most_params ri.request_info si }
+              si.Eliom_common.si_previous_extension_error
+          in
+          raise
+            (Eliom_common.Eliom_retry_with
+               {info with request = ri'; session_info = si'})
+      | Eliom_common.RNa_get_ _ | Eliom_common.RNa_get' _ ->
+          Logs.info ~src:section (fun fmt ->
+            fmt "Link too old. Try without non-attached parameters:");
+          Polytables.set
+            ~table:(Ocsigen_request.request_cache ri.request_info)
+            ~key:Eliom_common.eliom_link_too_old ~value:true;
+          let ri', si', _previous_tab_cookies_info =
+            Eliom_common.get_session_info ~sitedata
+              ~req:
+                { ri with
+                  Ocsigen_extensions.request_info =
+                    drop_most_params ri.request_info si }
+              si.Eliom_common.si_previous_extension_error
+          in
+          raise
+            (Eliom_common.Eliom_retry_with
+               {info with request = ri'; session_info = si'}))
+  in
   let sp = Eliom_common.make_server_params sitedata info None fullsessname in
-  naservice sp >>= fun r ->
+  let r = naservice sp in
   Logs.info ~src:section (fun fmt ->
     fmt "Non attached page found and generated successfully");
   (match expdate with Some (timeout, e) -> e := timeout +. now | None -> ());
@@ -385,4 +384,4 @@ let make_naservice
           (Eliom_common.na_key_serv_of_req si.Eliom_common.si_nonatt_info)
           node
       else r := !r - 1);
-  return r
+  r

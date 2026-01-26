@@ -19,7 +19,6 @@
 *)
 
 open Eliom_lib
-open Lwt
 
 let section = Logs.Src.create "eliom:service"
 
@@ -40,7 +39,7 @@ module type PARAM = sig
     -> Eliom_common.full_state_name option
     -> params
 
-  val handle_directory : info -> result Lwt.t
+  val handle_directory : info -> result
   val get_number_of_reloads : unit -> int
 
   module Node : sig
@@ -100,61 +99,60 @@ module Make (P : PARAM) = struct
         (site_data : P.site_data)
         (info : P.info)
         (urlsuffix : _ option)
-        k : P.result Lwt.t
+        k : P.result
     =
     let sp = P.make_params site_data info urlsuffix fullsessname in
-    Lwt.catch
-      (fun () -> Lwt.return (P.Table.find k !pagetableref))
-      (function Not_found -> fail Eliom_common.Eliom_404 | e -> fail e)
-    >>= fun (node, l) ->
+    let node, l =
+      try P.Table.find k !pagetableref with
+      | Not_found -> raise Eliom_common.Eliom_404
+      | e -> raise e
+    in
     let rec aux toremove = function
-      | [] ->
-          Lwt.return
-            (Eliom_common.Notfound Eliom_common.Eliom_Wrong_parameter, [])
+      | [] -> Eliom_common.Notfound Eliom_common.Eliom_Wrong_parameter, []
       | ({Eliom_common.s_max_use; s_expire; s_f; _} as a) :: l -> (
         match s_expire with
         | Some (_, e) when !e < now ->
             (* Service expired. Removing it. *)
             Logs.info ~src:section (fun fmt ->
               fmt "Service expired. Removing it");
-            aux toremove l >>= fun (r, toremove) -> Lwt.return (r, a :: toremove)
-        | _ ->
-            catch
-              (fun () ->
-                 Logs.info ~src:section (fun fmt -> fmt "Trying a service");
-                 s_f nosuffixversion sp >>= fun p ->
-                 (* warning: the list ll may change during funct
+            let r, toremove = aux toremove l in
+            r, a :: toremove
+        | _ -> (
+          try
+            Logs.info ~src:section (fun fmt -> fmt "Trying a service");
+            let p = s_f nosuffixversion sp in
+            (* warning: the list ll may change during funct
                   if funct register something on the same URL!! *)
-                 Logs.info ~src:section (fun fmt ->
-                   fmt "Page found and generated successfully");
-                 (* If this is an anonymous coservice,
+            Logs.info ~src:section (fun fmt ->
+              fmt "Page found and generated successfully");
+            (* If this is an anonymous coservice,
                   we place it at the top of the dlist
                   (limitation of number of coservices) *)
-                 (match node with
-                 | None -> ()
-                 | Some node -> P.Node.up node);
-                 (* We update the expiration date *)
-                 (match s_expire with
-                 | Some (timeout, e) -> e := timeout +. now
-                 | None -> ());
-                 let newtoremove =
-                   match s_max_use with
-                   | Some s_max_use ->
-                       if s_max_use = 1
-                       then a :: toremove
-                       else (
-                         a.s_max_use <- Some (s_max_use - 1);
-                         toremove)
-                   | _ -> toremove
-                 in
-                 Lwt.return (Eliom_common.Found p, newtoremove))
-              (function
-                | Eliom_common.Eliom_Wrong_parameter ->
-                    aux toremove l >>= fun (r, toremove) ->
-                    Lwt.return (r, toremove)
-                | e -> Lwt.return (Eliom_common.Notfound e, toremove)))
+            (match node with
+            | None -> ()
+            | Some node -> P.Node.up node);
+            (* We update the expiration date *)
+            (match s_expire with
+            | Some (timeout, e) -> e := timeout +. now
+            | None -> ());
+            let newtoremove =
+              match s_max_use with
+              | Some s_max_use ->
+                  if s_max_use = 1
+                  then a :: toremove
+                  else (
+                    a.s_max_use <- Some (s_max_use - 1);
+                    toremove)
+              | _ -> toremove
+            in
+            Eliom_common.Found p, newtoremove
+          with
+          | Eliom_common.Eliom_Wrong_parameter ->
+              let r, toremove = aux toremove l in
+              r, toremove
+          | e -> Eliom_common.Notfound e, toremove))
     in
-    aux [] l >>= fun (r, toremove) ->
+    let r, toremove = aux [] l in
     (match node, toremove with
     | _, [] -> ()
     | Some node, _ ->
@@ -184,8 +182,8 @@ module Make (P : PARAM) = struct
           | newlist -> P.Table.add k (None, newlist) newptr
       with Not_found -> ()));
     match r with
-    | Eliom_common.Found r -> Lwt.return (r : P.result)
-    | Eliom_common.Notfound e -> fail e
+    | Eliom_common.Found r -> (r : P.result)
+    | Eliom_common.Notfound e -> raise e
 
   let remove_id services id =
     List.filter (fun {Eliom_common.s_id; _} -> s_id <> id) services
@@ -355,8 +353,8 @@ module Make (P : PARAM) = struct
 
   exception Exn1
 
-  let find_service now tables fullsessname sitedata info : P.result Lwt.t =
-    let rec search_page_table dircontent : _ -> P.result Lwt.t =
+  let find_service now tables fullsessname sitedata info : P.result =
+    let rec search_page_table dircontent : _ -> P.result =
       let find nosuffixversion page_table_ref suffix =
         let si = P.sess_info_of_info info in
         find_page_table nosuffixversion now page_table_ref fullsessname sitedata
@@ -372,37 +370,35 @@ module Make (P : PARAM) = struct
         let aa =
           match a with None -> Eliom_common.defaultpagename | Some aa -> aa
         in
-        Lwt.catch
-          (fun () ->
-             let dc =
-               try !(find_dircontent dircontent aa)
-               with Not_found -> raise Exn1
-             in
-             match dc with
-             | Eliom_common.Dir dircontentref2 ->
-                 search_page_table !dircontentref2 l
-             | Eliom_common.File page_table_ref -> (
-               match l with
-               | [] -> find false page_table_ref None
-               | _ ->
-                   (* We have a file with suffix *)
-                   raise Eliom_common.Eliom_Wrong_parameter))
-          (function
-            | (Exn1 | Eliom_common.Eliom_Wrong_parameter) as e -> (
-              (* If no service matches, we try a suffix service *)
-              try
-                match
-                  !(try
-                      find_dircontent dircontent
-                        Eliom_common.eliom_suffix_internal_name
-                    with Not_found -> raise e)
-                with
-                | Eliom_common.Dir _ -> Lwt.fail Exn1
-                | Eliom_common.File page_table_ref ->
-                    find false page_table_ref
-                      (if a = None then Some [] else Some (aa :: l))
-              with e -> Lwt.fail e)
-            | e -> Lwt.fail e)
+        try
+          let dc =
+            try !(find_dircontent dircontent aa) with Not_found -> raise Exn1
+          in
+          match dc with
+          | Eliom_common.Dir dircontentref2 ->
+              search_page_table !dircontentref2 l
+          | Eliom_common.File page_table_ref -> (
+            match l with
+            | [] -> find false page_table_ref None
+            | _ ->
+                (* We have a file with suffix *)
+                raise Eliom_common.Eliom_Wrong_parameter)
+        with
+        | (Exn1 | Eliom_common.Eliom_Wrong_parameter) as e -> (
+          (* If no service matches, we try a suffix service *)
+          try
+            match
+              !(try
+                  find_dircontent dircontent
+                    Eliom_common.eliom_suffix_internal_name
+                with Not_found -> raise e)
+            with
+            | Eliom_common.Dir _ -> raise Exn1
+            | Eliom_common.File page_table_ref ->
+                find false page_table_ref
+                  (if a = None then Some [] else Some (aa :: l))
+          with e -> raise e)
+        | e -> raise e
       in
       function
       | [] ->
@@ -418,31 +414,31 @@ module Make (P : PARAM) = struct
                   Eliom_common.eliom_suffix_internal_name
               with Not_found -> raise Exn1)
           with
-          | Eliom_common.Dir _ -> Lwt.fail Exn1
+          | Eliom_common.Dir _ -> raise Exn1
           | Eliom_common.File page_table_ref -> find true page_table_ref None
-        with e -> Lwt.fail e)
+        with e -> raise e)
       (*      | ""::l -> search_page_table dircontent l *)
       (* We do not remove "//" any more
            because of optional suffixes *)
       | a :: l -> aux (Some a) l
     in
-    let search_by_priority_generation tables path =
-      (* New in 1.91: There is now one table for each pair
-         (generation, priority) *)
-      List.fold_left
-        (fun prev (_prio, _gen, table) ->
-           Lwt.catch
-             (fun () -> prev)
-             (function
-               | Exn1 | Eliom_common.Eliom_404
-               | Eliom_common.Eliom_Wrong_parameter ->
-                   search_page_table !table path
-               | e -> fail e))
-        (fail Exn1) tables
+    let rec search_by_priority_generation path e = function
+      | (_prio, _gen, table) :: others -> (
+        (* New in 1.91: There is now one table for each pair
+          (generation, priority) *)
+        try search_page_table !table path
+        with
+        | (Exn1 | Eliom_common.Eliom_404 | Eliom_common.Eliom_Wrong_parameter)
+          as e
+        ->
+          search_by_priority_generation path e others)
+      | [] -> raise e
     in
-    Lwt.catch
-      (fun () ->
-         search_by_priority_generation (P.Container.get tables)
-           (Url.change_empty_list (P.subpath_of_info info)))
-      (function Exn1 -> Lwt.fail Eliom_common.Eliom_404 | e -> Lwt.fail e)
+    try
+      search_by_priority_generation
+        (Url.change_empty_list (P.subpath_of_info info))
+        Exn1 (P.Container.get tables)
+    with
+    | Exn1 -> raise Eliom_common.Eliom_404
+    | e -> raise e
 end

@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 [%%shared type boxed]
 
@@ -55,7 +55,7 @@ module Svg = struct
            let client_boxed = ~%client_boxed in
            let real = Svg.To_dom.of_element (unboxed client_boxed) in
            Js.Opt.iter dummy_dom##.parentNode (fun parent ->
-             parent ## (replaceChild real dummy_dom))
+             parent##(replaceChild real dummy_dom))
            : unit)]
       in
       init

@@ -1,4 +1,4 @@
-open Lwt.Syntax
+open Eio.Std
 
 (* Ocsigen
  * http://www.ocsigen.org
@@ -22,7 +22,7 @@ open Lwt.Syntax
 
 (* Module for event wrapping and related functions *)
 
-open Lwt_react
+open Eio_react
 
 module Down = struct
   type 'a stateful =
@@ -40,10 +40,10 @@ module Down = struct
 
   let wrap_stateful {throttling = t; scope; react = e; name; size} =
     let ee =
-      Lwt.with_value Eliom_common.sp_key None @@ fun () ->
-      match t with
-      | None -> e
-      | Some t -> E.limit (fun () -> Lwt_unix.sleep t) e
+      Fiber.without_binding Eliom_common.sp_key (fun () ->
+        match t with
+        | None -> e
+        | Some t -> E.limit (fun () -> Eio_unix.sleep t) e)
     in
     let channel =
       Eliom_comet.Channel.create_from_events ?scope ?name ?size ee
@@ -66,7 +66,7 @@ module Down = struct
     let ee =
       match throttling with
       | None -> e
-      | Some t -> E.limit (fun () -> Lwt_unix.sleep t) e
+      | Some t -> E.limit (fun () -> Eio_unix.sleep t) e
     in
     Stateless
       (Eliom_comet.Channel.create_from_events ~scope:`Site ?name ?size ee)
@@ -125,7 +125,7 @@ module Up = struct
         ~path:Eliom_service.No_path ()
     in
     Eliom_registration.Action.register ~scope ~options:`NoReload
-      ~service:e_writer (fun () value -> push value; Lwt.return_unit);
+      ~service:e_writer (fun () value -> push value);
     {event = e; service = e_writer; wrapper = up_event_wrapper ()}
 end
 
@@ -140,7 +140,7 @@ module S = struct
 
     type 'a stateless =
       { channel : 'a Eliom_comet.Channel.t
-      ; stream : 'a Lwt_stream.t
+      ; stream : 'a Eliom_stream.t
       ; (* avoid garbage collection *)
         sl_signal : 'a S.t }
     [@@warning "-69"]
@@ -155,21 +155,21 @@ module S = struct
       ; (* to avoid signal GC *)
         mutable value : 'a
       ; mutable read : bool
-      ; condition : unit Lwt_condition.t }
+      ; condition : Eio.Condition.t }
 
     let make_store signal =
       let rec store =
         { s = s'
         ; value = S.value signal
         ; read = false
-        ; condition = Lwt_condition.create () }
+        ; condition = Eio.Condition.create () }
       and s' =
         lazy
           (S.map
              (fun v ->
                 store.read <- false;
                 store.value <- v;
-                Lwt_condition.broadcast store.condition ();
+                Eio.Condition.broadcast store.condition;
                 ())
              signal)
       in
@@ -180,22 +180,22 @@ module S = struct
       let rec aux () =
         if store.read
         then
-          let* () = Lwt_condition.wait store.condition in
+          let () = Eio.Condition.await_no_mutex store.condition in
           aux ()
         else (
           store.read <- true;
-          Lwt.return_some store.value)
+          Some store.value)
       in
-      fun () -> Lwt.with_value Eliom_common.sp_key None @@ aux
+      fun () -> Fiber.without_binding Eliom_common.sp_key aux
 
     let wrap_stateful {throttling = t; signal = s; name; _} =
       let s : 'a S.t =
         match t with
         | None -> s
-        | Some t -> S.limit (fun () -> Lwt_unix.sleep t) s
+        | Some t -> S.limit (fun () -> Eio_unix.sleep t) s
       in
       let store = make_store s in
-      let stream = Lwt_stream.from (read_store store) in
+      let stream = Eliom_stream.from (read_store store) in
       let channel = Eliom_comet.Channel.create_unlimited ?name stream in
       let value : 'a = S.value s in
       ( channel
@@ -221,7 +221,7 @@ module S = struct
       let s =
         match throttling with
         | None -> s
-        | Some t -> S.limit (fun () -> Lwt_unix.sleep t) s
+        | Some t -> S.limit (fun () -> Eio_unix.sleep t) s
       in
       let e = S.changes s in
       let stream = E.to_stream e in

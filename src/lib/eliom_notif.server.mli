@@ -48,7 +48,7 @@ module type S = sig
   type client_notif
   (** client notification type; Can be different from [server_notif]. *)
 
-  val init : unit -> unit Lwt.t
+  val init : unit -> unit
   (** Initialise the notification module for the current client. This function
       needs to be called before using most other functions of this module. It
       isn't called implicitly during module instantiation because it relies on
@@ -126,7 +126,7 @@ module type ARG = sig
   type client_notif
   (** see [S.client_notif] *)
 
-  val prepare : identity -> server_notif -> client_notif option Lwt.t
+  val prepare : identity -> server_notif -> client_notif option
   (** [prepare f] transforms server notifications into client
       notifications. It provides the [identity] as a parameter which identifies
       the client. You can suppress notifications for a specific client (for
@@ -140,7 +140,7 @@ module type ARG = sig
   (** [equal_identity] is the same as [equal_key] but for values of type
       [identity].*)
 
-  val get_identity : unit -> identity Lwt.t
+  val get_identity : unit -> identity
   (** [get_identity] is a function returning a value of type [identity]
       corresponding to a client. *)
 
@@ -187,7 +187,7 @@ module type ARG_SIMPLE = sig
 
   type notification
 
-  val get_identity : unit -> identity Lwt.t
+  val get_identity : unit -> identity
   (** see {!ARG.equal_key} *)
 end
 

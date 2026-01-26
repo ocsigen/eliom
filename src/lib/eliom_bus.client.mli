@@ -25,21 +25,21 @@
 
 type ('a, 'b) t
 
-val stream : ('a, 'b) t -> 'b Lwt_stream.t
+val stream : ('a, 'b) t -> 'b Eliom_stream.t
 (** [stream b] returns the stream of data sent to bus [b]. A new
     stream is created each time this function is called. Some messages
     from the bus can be lost if they were sent before the call to
     [stream]. If you need to receive every message, use original stream
     instead. *)
 
-val original_stream : ('a, 'b) t -> 'b Lwt_stream.t
+val original_stream : ('a, 'b) t -> 'b Eliom_stream.t
 (** [stream b] returns the stream of data sent to bus [b]. A new
     stream is created each time this function is called. Every
     messages sent to the bus after the generation of the page are
     received. This function can be called only in the onload event
     handler, if called outside, it will raise a Failure. *)
 
-val write : ('a, 'b) t -> 'a -> unit Lwt.t
+val write : ('a, 'b) t -> 'a -> unit
 (** [write b v] send [v] to the bus [b]. Every participant of the bus
     will receive [v], including the sender. *)
 

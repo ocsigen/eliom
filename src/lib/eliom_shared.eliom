@@ -1,3 +1,5 @@
+open%client Eio.Std
+
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2014
@@ -16,32 +18,28 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
-
-[%%shared
-open Lwt.Syntax
+*)
 
 (* put this in Lwt_react? Find a better name? *)
-let to_signal ~init ?eq (th : 'a React.S.t Lwt.t) : 'a React.S.t =
+let%shared to_signal ~init ?eq (th : 'a React.S.t Eio.Promise.or_exn) :
+  'a React.S.t
+  =
   let s, set = React.S.create ?eq init in
-  Lwt.async (fun () ->
-    let* ss = th in
+  Eliom_lib.fork (fun () ->
+    let ss = Eio.Promise.await_exn th in
     let effectful_signal = React.S.map (fun v -> set v) ss in
-    ignore (React.S.retain s (fun () -> ignore effectful_signal));
-    Lwt.return_unit);
-  s]
+    ignore (React.S.retain s (fun () -> ignore effectful_signal)));
+  s
 
-[%%client
-module Value = struct
+module%client Value = struct
   type 'a t = 'a
 
   let create _ x = x
   let client x = x
   let local x = x
-end]
+end
 
-[%%server
-module Value = struct
+module%server Value = struct
   type +'a t =
     { sh_server : 'a
     ; sh_client : 'a Eliom_client_value.t
@@ -58,10 +56,9 @@ module Value = struct
 
   let client {sh_client; _} = sh_client
   let local {sh_server; _} = sh_server
-end]
+end
 
-[%%client
-module React = struct
+module%client React = struct
   type step = React.step
 
   module S = struct
@@ -80,43 +77,43 @@ module React = struct
     end
 
     module Lwt = struct
-      let map_s = Lwt_react.S.map_s
+      let map_s = Eio_react.S.map_s
 
       let map_s_init ~init ?eq f s =
         let th = map_s ?eq f s in
         to_signal ~init ?eq th
 
-      let l2_s = Lwt_react.S.l2_s
+      let l2_s = Eio_react.S.l2_s
 
       let l2_s_init ~init ?eq f s1 s2 =
         let th = l2_s ?eq f s1 s2 in
         to_signal ~init ?eq th
 
-      let l3_s = Lwt_react.S.l3_s
+      let l3_s = Eio_react.S.l3_s
 
       let l3_s_init ~init ?eq f s1 s2 s3 =
         let th = l3_s ?eq f s1 s2 s3 in
         to_signal ~init ?eq th
 
-      let l4_s = Lwt_react.S.l4_s
+      let l4_s = Eio_react.S.l4_s
 
       let l4_s_init ~init ?eq f s1 s2 s3 s4 =
         let th = l4_s ?eq f s1 s2 s3 s4 in
         to_signal ~init ?eq th
 
-      let l5_s = Lwt_react.S.l5_s
+      let l5_s = Eio_react.S.l5_s
 
       let l5_s_init ~init ?eq f s1 s2 s3 s4 s5 =
         let th = l5_s ?eq f s1 s2 s3 s4 s5 in
         to_signal ~init ?eq th
 
-      let l6_s = Lwt_react.S.l6_s
+      let l6_s = Eio_react.S.l6_s
 
       let l6_s_init ~init ?eq f s1 s2 s3 s4 s5 s6 =
         let th = l6_s ?eq f s1 s2 s3 s4 s5 s6 in
         to_signal ~init ?eq th
 
-      let merge_s = Lwt_react.S.merge_s
+      let merge_s = Eio_react.S.merge_s
 
       let merge_s_init ~init ?eq f a l =
         let th = merge_s ?eq f a l in
@@ -127,62 +124,68 @@ module React = struct
   module E = React.E
 end
 
-module ReactiveData = struct
+module%client ReactiveData = struct
   module RList = struct
     include ReactiveData.RList
 
     module Lwt = struct
-      let map_data_p_lwt = Lwt_list.map_p
+      let map_data_p_lwt = Eio.Fiber.List.map
 
       let map_patch_p_lwt f = function
         | I (i, x) ->
-            let* p = f x in
-            Lwt.return (I (i, p))
-        | R i -> Lwt.return (R i)
-        | X (i, j) -> Lwt.return (X (i, j))
+            let p = f x in
+            I (i, p)
+        | R i -> R i
+        | X (i, j) -> X (i, j)
         | U (i, x) ->
-            let* p = f x in
-            Lwt.return (U (i, p))
+            let p = f x in
+            U (i, p)
 
-      let map_patch_p_lwt f = Lwt_list.map_p (map_patch_p_lwt f)
+      let map_patch_p_lwt f = Eio.Fiber.List.map (map_patch_p_lwt f)
 
       let map_msg_p_lwt f = function
         | Set l ->
-            let* p = map_data_p_lwt f l in
-            Lwt.return (Set p)
+            let p = map_data_p_lwt f l in
+            Set p
         | Patch p ->
-            let* p = map_patch_p_lwt f p in
-            Lwt.return (Patch p)
+            let p = map_patch_p_lwt f p in
+            Patch p
 
       let map_p_aux r_th f l =
         (* We react to all events occurring on initial list *)
         let event = ReactiveData.RList.event l in
         (* the waiter is used a a lock to keep the order of events *)
-        let waiter = ref (Lwt.wait ()) in
-        Lwt.wakeup (snd !waiter) ();
+        let waiter =
+          ref
+            (Promise.create
+               ())
+        in
+        ignore (Eio.Promise.try_resolve (snd !waiter) ());
         React.E.map
           (fun msg ->
-             Lwt.async (fun () ->
+             Eliom_lib.fork (fun () ->
                let waiter1 = !waiter in
-               let new_waiter = Lwt.wait () in
+               let new_waiter =
+                 Promise.create
+                   ()
+               in
                waiter := new_waiter;
-               let* new_msg = map_msg_p_lwt f msg in
-               let* _, rhandle = r_th in
-               let* () = fst waiter1 in
+               let new_msg = map_msg_p_lwt f msg in
+               let _, rhandle = r_th in
+               let () = Eio.Promise.await (fst waiter1) in
                (match new_msg with
                | ReactiveData.RList.Set s -> ReactiveData.RList.set rhandle s
                | ReactiveData.RList.Patch p ->
                    ReactiveData.RList.patch rhandle p);
-               Lwt.wakeup (snd new_waiter) ();
-               Lwt.return_unit))
+               ignore (Eio.Promise.try_resolve (snd new_waiter) ())))
           event
 
       (** Same as map_p but we do not compute the initial list.
           Instead, we give the initial list as parameter.  To be used
           when the initial list has been computed on server side.  *)
-      let map_p_init ~init (f : 'a -> 'b Lwt.t) (l : 'a t) : 'b t =
+      let map_p_init ~init (f : 'a -> 'b) (l : 'a t) : 'b t =
         let ((rr, _) as r) = ReactiveData.RList.create init in
-        let effectul_event = map_p_aux (Lwt.return r) f l in
+        let effectul_event = map_p_aux r f l in
         (* We keep a reference to the effectul_event in the resulting
            reactive list in order that the effectul_event is garbage
            collected only if the resulting list is garbage
@@ -197,14 +200,14 @@ module ReactiveData = struct
           the previous one has not finished to be computed, we launch
           the computation of [f] in parallel, but we wait for the
           previous one to be applied before applying it.  *)
-      let map_p (f : 'a -> 'b Lwt.t) (l : 'a t) : 'b t Lwt.t =
+      let map_p (f : 'a -> 'b) (l : 'a t) : 'b t =
         (* First we build the initial value of the result list *)
         let r_th =
-          let* r = Lwt_list.map_p f (ReactiveData.RList.value l) in
-          Lwt.return (ReactiveData.RList.create r)
+          let r = Eio.Fiber.List.map f (ReactiveData.RList.value l) in
+          ReactiveData.RList.create r
         in
         let effectul_event = map_p_aux r_th f l in
-        let* rr, _ = r_th in
+        let rr, _ = r_th in
         (* We keep a reference to the effectul_event in the resulting
            reactive list in order that the effectul_event is garbage
            collected only if the resulting list is garbage
@@ -212,7 +215,7 @@ module ReactiveData = struct
         ignore
           (React.E.retain (ReactiveData.RList.event rr) (fun () ->
              ignore effectul_event));
-        Lwt.return rr
+        rr
     end
 
     let create ?default ?(reset_default = false) v =
@@ -232,11 +235,10 @@ module ReactiveData = struct
   end
 end
 
-module FakeReact = React
-module FakeReactiveData = ReactiveData]
+module%client FakeReact = React
+module%client FakeReactiveData = ReactiveData
 
-[%%server
-module FakeReact = struct
+module%server FakeReact = struct
   module S : sig
     type 'a t
 
@@ -308,7 +310,7 @@ module FakeReact = struct
   end
 end
 
-module FakeReactiveData = struct
+module%server FakeReactiveData = struct
   module RList : sig
     type 'a t
     type 'a handle
@@ -334,10 +336,9 @@ module FakeReactiveData = struct
     let map f (l, b) = List.map f l, b
     let from_signal ?eq:_ s = FakeReact.S.(value s, synced s)
   end
-end]
+end
 
-[%%server
-module React = struct
+module%server React = struct
   module S = struct
     type 'a t = 'a FakeReact.S.t Value.t
 
@@ -383,17 +384,22 @@ module React = struct
         (FakeReact.S.map (Value.local f) (Value.local s))
         [%client.unsafe (FakeReact.S.map ?eq:~%eq ~%f ~%s : 'b FakeReact.S.t)]
 
-    let fmap ?(eq : ('b -> 'b -> bool) Value.t option)
-        (f : ('a -> 'b option) Value.t) (i : 'b Value.t)
-        (s : 'a FakeReact.S.t Value.t) : 'b t
+    let fmap
+          ?(eq : ('b -> 'b -> bool) Value.t option)
+          (f : ('a -> 'b option) Value.t)
+          (i : 'b Value.t)
+          (s : 'a FakeReact.S.t Value.t) : 'b t
       =
       Value.create
         (FakeReact.S.fmap (Value.local f) (Value.local i) (Value.local s))
         [%client.unsafe
           (FakeReact.S.fmap ?eq:~%eq ~%f ~%i ~%s : 'b FakeReact.S.t)]
 
-    let merge ?eq (f : ('a -> 'b -> 'a) Value.t) (acc : 'a)
-        (l : 'b FakeReact.S.t Value.t list) : 'a t
+    let merge
+          ?eq
+          (f : ('a -> 'b -> 'a) Value.t)
+          (acc : 'a)
+          (l : 'b FakeReact.S.t Value.t list) : 'a t
       =
       Value.create
         (FakeReact.S.merge (Value.local f) acc (List.map Value.local l))
@@ -405,16 +411,22 @@ module React = struct
         (FakeReact.S.const ~synced:true v)
         [%client.unsafe (React.S.const ~%v : 'a FakeReact.S.t)]
 
-    let l2 ?eq (f : ('a -> 'b -> 'c) Value.t) (s1 : 'a FakeReact.S.t Value.t)
-        (s2 : 'b FakeReact.S.t Value.t) : 'c t
+    let l2
+          ?eq
+          (f : ('a -> 'b -> 'c) Value.t)
+          (s1 : 'a FakeReact.S.t Value.t)
+          (s2 : 'b FakeReact.S.t Value.t) : 'c t
       =
       Value.create
         (FakeReact.S.l2 (Value.local f) (Value.local s1) (Value.local s2))
         [%client.unsafe (React.S.l2 ?eq:~%eq ~%f ~%s1 ~%s2 : 'd FakeReact.S.t)]
 
-    let l3 ?eq (f : ('a -> 'b -> 'c -> 'd) Value.t)
-        (s1 : 'a FakeReact.S.t Value.t) (s2 : 'b FakeReact.S.t Value.t)
-        (s3 : 'c FakeReact.S.t Value.t) : 'd t
+    let l3
+          ?eq
+          (f : ('a -> 'b -> 'c -> 'd) Value.t)
+          (s1 : 'a FakeReact.S.t Value.t)
+          (s2 : 'b FakeReact.S.t Value.t)
+          (s3 : 'c FakeReact.S.t Value.t) : 'd t
       =
       Value.create
         (FakeReact.S.l3 (Value.local f) (Value.local s1) (Value.local s2)
@@ -422,9 +434,13 @@ module React = struct
         [%client.unsafe
           (React.S.l3 ?eq:~%eq ~%f ~%s1 ~%s2 ~%s3 : 'd FakeReact.S.t)]
 
-    let l4 ?eq (f : ('a -> 'b -> 'c -> 'd -> 'e) Value.t)
-        (s1 : 'a FakeReact.S.t Value.t) (s2 : 'b FakeReact.S.t Value.t)
-        (s3 : 'c FakeReact.S.t Value.t) (s4 : 'd FakeReact.S.t Value.t) : 'e t
+    let l4
+          ?eq
+          (f : ('a -> 'b -> 'c -> 'd -> 'e) Value.t)
+          (s1 : 'a FakeReact.S.t Value.t)
+          (s2 : 'b FakeReact.S.t Value.t)
+          (s3 : 'c FakeReact.S.t Value.t)
+          (s4 : 'd FakeReact.S.t Value.t) : 'e t
       =
       Value.create
         (FakeReact.S.l4 (Value.local f) (Value.local s1) (Value.local s2)
@@ -432,10 +448,14 @@ module React = struct
         [%client.unsafe
           (React.S.l4 ?eq:~%eq ~%f ~%s1 ~%s2 ~%s3 ~%s4 : 'e FakeReact.S.t)]
 
-    let l5 ?eq (f : ('a -> 'b -> 'c -> 'd -> 'e -> 'f) Value.t)
-        (s1 : 'a FakeReact.S.t Value.t) (s2 : 'b FakeReact.S.t Value.t)
-        (s3 : 'c FakeReact.S.t Value.t) (s4 : 'd FakeReact.S.t Value.t)
-        (s5 : 'e FakeReact.S.t Value.t) : 'f t
+    let l5
+          ?eq
+          (f : ('a -> 'b -> 'c -> 'd -> 'e -> 'f) Value.t)
+          (s1 : 'a FakeReact.S.t Value.t)
+          (s2 : 'b FakeReact.S.t Value.t)
+          (s3 : 'c FakeReact.S.t Value.t)
+          (s4 : 'd FakeReact.S.t Value.t)
+          (s5 : 'e FakeReact.S.t Value.t) : 'f t
       =
       Value.create
         (FakeReact.S.l5 (Value.local f) (Value.local s1) (Value.local s2)
@@ -443,10 +463,15 @@ module React = struct
         [%client.unsafe
           (React.S.l5 ?eq:~%eq ~%f ~%s1 ~%s2 ~%s3 ~%s4 ~%s5 : 'f FakeReact.S.t)]
 
-    let l6 ?eq (f : ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g) Value.t)
-        (s1 : 'a FakeReact.S.t Value.t) (s2 : 'b FakeReact.S.t Value.t)
-        (s3 : 'c FakeReact.S.t Value.t) (s4 : 'd FakeReact.S.t Value.t)
-        (s5 : 'e FakeReact.S.t Value.t) (s6 : 'f FakeReact.S.t Value.t) : 'g t
+    let l6
+          ?eq
+          (f : ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g) Value.t)
+          (s1 : 'a FakeReact.S.t Value.t)
+          (s2 : 'b FakeReact.S.t Value.t)
+          (s3 : 'c FakeReact.S.t Value.t)
+          (s4 : 'd FakeReact.S.t Value.t)
+          (s5 : 'e FakeReact.S.t Value.t)
+          (s6 : 'f FakeReact.S.t Value.t) : 'g t
       =
       Value.create
         (FakeReact.S.l6 (Value.local f) (Value.local s1) (Value.local s2)
@@ -472,112 +497,128 @@ module React = struct
     end
 
     module Lwt = struct
-      let map_s ?eq (f : ('a -> 'b Lwt.t) Value.t)
-          (s : 'a FakeReact.S.t Value.t) : 'b t Lwt.t
+      let map_s ?eq (f : ('a -> 'b) Value.t) (s : 'a FakeReact.S.t Value.t) :
+        'b t Eio.Promise.or_exn
         =
         let s' = Value.local s in
-        let* server_result = (Value.local f) (FakeReact.S.value s') in
-        let synced = FakeReact.S.synced s' in
-        Lwt.return
-          (Value.create
-             (fst (FakeReact.S.create ~synced server_result))
-             [%client.unsafe
-               (React.S.Lwt.map_s_init ~init:~%server_result ?eq:~%eq ~%f ~%s
-                : 'b FakeReact.S.t)])
+        Eliom_lib.fork_promise (fun () ->
+          let server_result = (Value.local f) (FakeReact.S.value s') in
+          let synced = FakeReact.S.synced s' in
+          Value.create
+            (fst (FakeReact.S.create ~synced server_result))
+            [%client.unsafe
+              (React.S.Lwt.map_s_init ~init:~%server_result ?eq:~%eq ~%f ~%s
+               : 'b FakeReact.S.t)])
 
-      let l2_s ?eq (f : ('a -> 'b -> 'c Lwt.t) Value.t)
-          (s1 : 'a FakeReact.S.t Value.t) (s2 : 'b FakeReact.S.t Value.t) :
-          'c t Lwt.t
+      let l2_s
+            ?eq
+            (f : ('a -> 'b -> 'c) Value.t)
+            (s1 : 'a FakeReact.S.t Value.t)
+            (s2 : 'b FakeReact.S.t Value.t) : 'c t Eio.Promise.or_exn
         =
         let s1' = Value.local s1 and s2' = Value.local s2 in
-        let* server_result =
-          (Value.local f) (FakeReact.S.value s1') (FakeReact.S.value s2')
-        in
-        let synced = FakeReact.S.(synced s1' && synced s2') in
-        Lwt.return
-          (Value.create
-             (fst (FakeReact.S.create ~synced server_result))
-             [%client.unsafe
-               (React.S.Lwt.l2_s_init ~init:~%server_result ?eq:~%eq ~%f ~%s1
-                  ~%s2
-                : 'c FakeReact.S.t)])
+        Eliom_lib.fork_promise (fun () ->
+          let server_result =
+            (Value.local f) (FakeReact.S.value s1') (FakeReact.S.value s2')
+          in
+          let synced = FakeReact.S.(synced s1' && synced s2') in
+          Value.create
+            (fst (FakeReact.S.create ~synced server_result))
+            [%client.unsafe
+              (React.S.Lwt.l2_s_init ~init:~%server_result ?eq:~%eq ~%f ~%s1
+                 ~%s2
+               : 'c FakeReact.S.t)])
 
-      let l3_s ?eq (f : ('a -> 'b -> 'c -> 'd Lwt.t) Value.t)
-          (s1 : 'a FakeReact.S.t Value.t) (s2 : 'b FakeReact.S.t Value.t)
-          (s3 : 'c FakeReact.S.t Value.t) : 'd t Lwt.t
+      let l3_s
+            ?eq
+            (f : ('a -> 'b -> 'c -> 'd) Value.t)
+            (s1 : 'a FakeReact.S.t Value.t)
+            (s2 : 'b FakeReact.S.t Value.t)
+            (s3 : 'c FakeReact.S.t Value.t) : 'd t Eio.Promise.or_exn
         =
         let s1' = Value.local s1
         and s2' = Value.local s2
         and s3' = Value.local s3 in
-        let* server_result =
-          (Value.local f) (FakeReact.S.value s1') (FakeReact.S.value s2')
-            (FakeReact.S.value s3')
-        in
-        let synced = FakeReact.S.(synced s1' && synced s2' && synced s3') in
-        Lwt.return
-          (Value.create
-             (fst (FakeReact.S.create ~synced server_result))
-             [%client.unsafe
-               (React.S.Lwt.l3_s_init ?eq:~%eq ~init:~%server_result ~%f ~%s1
-                  ~%s2 ~%s3
-                : 'd FakeReact.S.t)])
+        Eliom_lib.fork_promise (fun () ->
+          let server_result =
+            (Value.local f) (FakeReact.S.value s1') (FakeReact.S.value s2')
+              (FakeReact.S.value s3')
+          in
+          let synced = FakeReact.S.(synced s1' && synced s2' && synced s3') in
+          Value.create
+            (fst (FakeReact.S.create ~synced server_result))
+            [%client.unsafe
+              (React.S.Lwt.l3_s_init ?eq:~%eq ~init:~%server_result ~%f ~%s1
+                 ~%s2 ~%s3
+               : 'd FakeReact.S.t)])
 
-      let l4_s ?eq (f : ('a -> 'b -> 'c -> 'd -> 'e Lwt.t) Value.t)
-          (s1 : 'a FakeReact.S.t Value.t) (s2 : 'b FakeReact.S.t Value.t)
-          (s3 : 'c FakeReact.S.t Value.t) (s4 : 'd FakeReact.S.t Value.t) :
-          'e t Lwt.t
+      let l4_s
+            ?eq
+            (f : ('a -> 'b -> 'c -> 'd -> 'e) Value.t)
+            (s1 : 'a FakeReact.S.t Value.t)
+            (s2 : 'b FakeReact.S.t Value.t)
+            (s3 : 'c FakeReact.S.t Value.t)
+            (s4 : 'd FakeReact.S.t Value.t) : 'e t Eio.Promise.or_exn
         =
         let s1' = Value.local s1
         and s2' = Value.local s2
         and s3' = Value.local s3
         and s4' = Value.local s4 in
-        let* server_result =
-          (Value.local f) (FakeReact.S.value s1') (FakeReact.S.value s2')
-            (FakeReact.S.value s3') (FakeReact.S.value s4')
-        in
-        let synced =
-          FakeReact.S.(synced s1' && synced s2' && synced s3' && synced s4')
-        in
-        Lwt.return
-          (Value.create
-             (fst (FakeReact.S.create ~synced server_result))
-             [%client.unsafe
-               (React.S.Lwt.l4_s_init ?eq:~%eq ~init:~%server_result ~%f ~%s1
-                  ~%s2 ~%s3 ~%s4
-                : 'e FakeReact.S.t)])
+        Eliom_lib.fork_promise (fun () ->
+          let server_result =
+            (Value.local f) (FakeReact.S.value s1') (FakeReact.S.value s2')
+              (FakeReact.S.value s3') (FakeReact.S.value s4')
+          in
+          let synced =
+            FakeReact.S.(synced s1' && synced s2' && synced s3' && synced s4')
+          in
+          Value.create
+            (fst (FakeReact.S.create ~synced server_result))
+            [%client.unsafe
+              (React.S.Lwt.l4_s_init ?eq:~%eq ~init:~%server_result ~%f ~%s1
+                 ~%s2 ~%s3 ~%s4
+               : 'e FakeReact.S.t)])
 
-      let l5_s ?eq (f : ('a -> 'b -> 'c -> 'd -> 'e -> 'f Lwt.t) Value.t)
-          (s1 : 'a FakeReact.S.t Value.t) (s2 : 'b FakeReact.S.t Value.t)
-          (s3 : 'c FakeReact.S.t Value.t) (s4 : 'd FakeReact.S.t Value.t)
-          (s5 : 'e FakeReact.S.t Value.t) : 'f t Lwt.t
+      let l5_s
+            ?eq
+            (f : ('a -> 'b -> 'c -> 'd -> 'e -> 'f) Value.t)
+            (s1 : 'a FakeReact.S.t Value.t)
+            (s2 : 'b FakeReact.S.t Value.t)
+            (s3 : 'c FakeReact.S.t Value.t)
+            (s4 : 'd FakeReact.S.t Value.t)
+            (s5 : 'e FakeReact.S.t Value.t) : 'f t Eio.Promise.or_exn
         =
         let s1' = Value.local s1
         and s2' = Value.local s2
         and s3' = Value.local s3
         and s4' = Value.local s4
         and s5' = Value.local s5 in
-        let* server_result =
-          (Value.local f) (FakeReact.S.value s1') (FakeReact.S.value s2')
-            (FakeReact.S.value s3') (FakeReact.S.value s4')
-            (FakeReact.S.value s5')
-        in
-        let synced =
-          FakeReact.S.(
-            synced s1' && synced s2' && synced s3' && synced s4' && synced s5')
-        in
-        Lwt.return
-          (Value.create
-             (fst (FakeReact.S.create ~synced server_result))
-             [%client.unsafe
-               (React.S.Lwt.l5_s_init ?eq:~%eq ~init:~%server_result ~%f ~%s1
-                  ~%s2 ~%s3 ~%s4 ~%s5
-                : 'f FakeReact.S.t)])
+        Eliom_lib.fork_promise (fun () ->
+          let server_result =
+            (Value.local f) (FakeReact.S.value s1') (FakeReact.S.value s2')
+              (FakeReact.S.value s3') (FakeReact.S.value s4')
+              (FakeReact.S.value s5')
+          in
+          let synced =
+            FakeReact.S.(
+              synced s1' && synced s2' && synced s3' && synced s4' && synced s5')
+          in
+          Value.create
+            (fst (FakeReact.S.create ~synced server_result))
+            [%client.unsafe
+              (React.S.Lwt.l5_s_init ?eq:~%eq ~init:~%server_result ~%f ~%s1
+                 ~%s2 ~%s3 ~%s4 ~%s5
+               : 'f FakeReact.S.t)])
 
-      let l6_s ?eq (f : ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g Lwt.t) Value.t)
-          (s1 : 'a FakeReact.S.t Value.t) (s2 : 'b FakeReact.S.t Value.t)
-          (s3 : 'c FakeReact.S.t Value.t) (s4 : 'd FakeReact.S.t Value.t)
-          (s5 : 'e FakeReact.S.t Value.t) (s6 : 'f FakeReact.S.t Value.t) :
-          'g t Lwt.t
+      let l6_s
+            ?eq
+            (f : ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g) Value.t)
+            (s1 : 'a FakeReact.S.t Value.t)
+            (s2 : 'b FakeReact.S.t Value.t)
+            (s3 : 'c FakeReact.S.t Value.t)
+            (s4 : 'd FakeReact.S.t Value.t)
+            (s5 : 'e FakeReact.S.t Value.t)
+            (s6 : 'f FakeReact.S.t Value.t) : 'g t Eio.Promise.or_exn
         =
         let s1' = Value.local s1
         and s2' = Value.local s2
@@ -585,48 +626,51 @@ module React = struct
         and s4' = Value.local s4
         and s5' = Value.local s5
         and s6' = Value.local s6 in
-        let* server_result =
-          (Value.local f) (FakeReact.S.value s1') (FakeReact.S.value s2')
-            (FakeReact.S.value s3') (FakeReact.S.value s4')
-            (FakeReact.S.value s5') (FakeReact.S.value s6')
-        in
-        let synced =
-          FakeReact.S.(
-            synced s1' && synced s2' && synced s3' && synced s4' && synced s5'
-            && synced s6')
-        in
-        Lwt.return
-          (Value.create
-             (fst (FakeReact.S.create ~synced server_result))
-             [%client.unsafe
-               (React.S.Lwt.l6_s_init ?eq:~%eq ~init:~%server_result ~%f ~%s1
-                  ~%s2 ~%s3 ~%s4 ~%s5 ~%s6
-                : 'g FakeReact.S.t)])
-
-      let merge_s ?eq (f : ('a -> 'b -> 'a Lwt.t) Value.t) (acc : 'a)
-          (l : 'b FakeReact.S.t Value.t list) : 'a t Lwt.t
-        =
-        let* server_result, synced =
-          let f (acc, _acc_b) v =
-            let v = Value.local v and f = Value.local f in
-            let* acc = f acc (FakeReact.S.value v) in
-            let acc_b = FakeReact.S.synced v in
-            Lwt.return (acc, acc_b)
+        Eliom_lib.fork_promise (fun () ->
+          let server_result =
+            (Value.local f) (FakeReact.S.value s1') (FakeReact.S.value s2')
+              (FakeReact.S.value s3') (FakeReact.S.value s4')
+              (FakeReact.S.value s5') (FakeReact.S.value s6')
           in
-          Lwt_list.fold_left_s f (acc, true) l
-        in
-        Lwt.return
-          (Value.create
-             (fst (FakeReact.S.create ~synced server_result))
-             [%client.unsafe
-               (React.S.Lwt.merge_s_init ~init:~%server_result ?eq:~%eq ~%f
-                  ~%acc ~%l
-                : 'a FakeReact.S.t)])
+          let synced =
+            FakeReact.S.(
+              synced s1' && synced s2' && synced s3' && synced s4' && synced s5'
+              && synced s6')
+          in
+          Value.create
+            (fst (FakeReact.S.create ~synced server_result))
+            [%client.unsafe
+              (React.S.Lwt.l6_s_init ?eq:~%eq ~init:~%server_result ~%f ~%s1
+                 ~%s2 ~%s3 ~%s4 ~%s5 ~%s6
+               : 'g FakeReact.S.t)])
+
+      let merge_s
+            ?eq
+            (f : ('a -> 'b -> 'a) Value.t)
+            (acc : 'a)
+            (l : 'b FakeReact.S.t Value.t list) : 'a t Eio.Promise.or_exn
+        =
+        Eliom_lib.fork_promise (fun () ->
+          let server_result, synced =
+            let f (acc, _acc_b) v =
+              let v = Value.local v and f = Value.local f in
+              let acc = f acc (FakeReact.S.value v) in
+              let acc_b = FakeReact.S.synced v in
+              acc, acc_b
+            in
+            List.fold_left f (acc, true) l
+          in
+          Value.create
+            (fst (FakeReact.S.create ~synced server_result))
+            [%client.unsafe
+              (React.S.Lwt.merge_s_init ~init:~%server_result ?eq:~%eq ~%f ~%acc
+                 ~%l
+               : 'a FakeReact.S.t)])
     end
   end
 end
 
-module ReactiveData = struct
+module%server ReactiveData = struct
   module RList = struct
     type 'a t = 'a FakeReactiveData.RList.t Value.t
     type 'a handle = 'a FakeReactiveData.RList.handle Value.t
@@ -718,19 +762,19 @@ module ReactiveData = struct
     let synced s = Value.local s |> FakeReactiveData.RList.synced
 
     module Lwt = struct
-      let map_p (f : ('a -> 'b Lwt.t) Value.t)
-          (l : 'a FakeReactiveData.RList.t Value.t) : 'b t Lwt.t
+      let map_p
+            (f : ('a -> 'b) Value.t)
+            (l : 'a FakeReactiveData.RList.t Value.t) : 'b t
         =
         let l' = Value.local l in
-        let* server_result =
-          Lwt_list.map_p (Value.local f) (FakeReactiveData.RList.value l')
+        let server_result =
+          Eio.Fiber.List.map (Value.local f) (FakeReactiveData.RList.value l')
         in
         let synced = FakeReactiveData.RList.synced l' in
-        Lwt.return
-          (Value.create
-             (fst (FakeReactiveData.RList.create ~synced server_result))
-             [%client.unsafe
-               ReactiveData.RList.Lwt.map_p_init ~init:~%server_result ~%f ~%l])
+        Value.create
+          (fst (FakeReactiveData.RList.create ~synced server_result))
+          [%client.unsafe
+            ReactiveData.RList.Lwt.map_p_init ~init:~%server_result ~%f ~%l]
     end
   end
-end]
+end

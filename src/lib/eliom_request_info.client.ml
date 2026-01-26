@@ -1,3 +1,5 @@
+open Eio.Std
+
 (* Ocsigen
  * http://www.ocsigen.org
  * Module eliom_sessions.ml
@@ -35,10 +37,10 @@ let client_app_initialised = ref false
 type t = {path : string list; si : Eliom_common.sess_info}
 
 let default_ri = ref None
-let ri_key = Lwt.new_key ()
+let ri_key = Fiber.create_key ()
 
 let get_ri () =
-  match Lwt.get ri_key with
+  match Fiber.get ri_key with
   | Some p -> p
   | None -> (
     match !default_ri with
@@ -51,9 +53,9 @@ let get_sess_info () = (get_ri ()).si
 
 let set_session_info ~uri si f =
   let path = Url.path_of_url_string (if uri = "./" then "" else uri) in
-  let ri = Some {path; si} in
-  default_ri := ri;
-  Lwt.with_value ri_key ri f
+  let ri = {path; si} in
+  default_ri := Some ri;
+  Fiber.with_binding ri_key ri f
 
 let matches_regexp name re =
   try
@@ -97,9 +99,9 @@ let update_session_info ~path ~all_get_params ~all_post_params cont =
     ; si_ignored_get_params = ignored_get
     ; si_ignored_post_params = ignored_post }
   in
-  let ri = Some {path; si} in
-  default_ri := ri;
-  Lwt.with_value ri_key ri cont
+  let ri = {path; si} in
+  default_ri := Some ri;
+  Fiber.with_binding ri_key ri cont
 
 let remove_first_slash path = match path with "" :: l -> l | l -> l
 
@@ -220,7 +222,7 @@ let get_request_data () =
 
 exception Eliom_no_raw_post_data_on_client
 
-let raw_post_data _ = Lwt.fail Eliom_no_raw_post_data_on_client
+let raw_post_data _ = raise Eliom_no_raw_post_data_on_client
 
 type raw_post_data = unit
 

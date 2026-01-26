@@ -1,5 +1,3 @@
-open Lwt.Syntax
-
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2010
@@ -23,11 +21,11 @@ open Lwt.Syntax
 module Ecb = Eliom_comet_base
 
 type ('a, 'b) t =
-  { stream : 'b Lwt_stream.t
+  { stream : 'b Eliom_stream.t
   ; scope : Eliom_comet.Channel.comet_scope
   ; name : string option
   ; channel : 'b Eliom_comet.Channel.t option
-  ; write : 'a -> unit Lwt.t
+  ; write : 'a -> unit
   ; service : 'a Ecb.bus_send_service
   ; service_registered : bool Eliom_state.volatile_table option
   ; size : int option
@@ -36,7 +34,7 @@ type ('a, 'b) t =
 
 let register_sender scope service write =
   Eliom_registration.Action.register ~scope ~options:`NoReload ~service
-    (fun () x -> Lwt_list.iter_s write x)
+    (fun () x -> List.iter write x)
 
 let internal_wrap (bus : ('a, 'b) t) :
   ('a, 'b) Ecb.wrapped_bus * Eliom_common.unwrapper
@@ -46,7 +44,7 @@ let internal_wrap (bus : ('a, 'b) t) :
     | None ->
         Eliom_comet.Channel.create ~scope:bus.scope ?name:bus.name
           ?size:bus.size
-          (Lwt_stream.clone bus.stream)
+          (Eliom_stream.clone bus.stream)
     | Some c -> c
   in
   (match bus.service_registered with
@@ -92,10 +90,10 @@ let deriving_to_list : 'a Deriving_Json.t -> 'a list Deriving_Json.t =
 
 let create_filtered ?scope ?name ?size ~filter typ =
   (*The stream*)
-  let stream, push = Lwt_stream.create () in
+  let stream, push = Eliom_stream.create () in
   let push x =
-    let* y = filter x in
-    push (Some y); Lwt.return_unit
+    let y = filter x in
+    push (Some y)
   in
   let scope =
     match scope with
@@ -107,7 +105,7 @@ let create_filtered ?scope ?name ?size ~filter typ =
     | `Site ->
         Some
           (Eliom_comet.Channel.create ~scope ?name ?size
-             (Lwt_stream.clone stream))
+             (Eliom_stream.clone stream))
     | `Client_process _ -> None
   in
   let typ_list = deriving_to_list typ in
@@ -144,7 +142,7 @@ let create_filtered ?scope ?name ?size ~filter typ =
   bus
 
 let create ?scope ?name ?size typ =
-  create_filtered ~filter:Lwt.return ?scope ?name ?size typ
+  create_filtered ~filter:(fun x1 -> x1) ?scope ?name ?size typ
 
 let stream bus =
   match bus.scope with `Site -> bus.stream | `Client_process _ -> bus.stream
