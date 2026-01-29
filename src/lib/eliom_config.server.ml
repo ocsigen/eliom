@@ -76,6 +76,8 @@ let set_max_volatile_groups_per_site v =
 
 let set_secure_cookies v = Eliommod.default_secure_cookies := v
 let set_application_script v = Eliommod.default_application_script := v
+let set_enable_wasm v = Eliommod.default_enable_wasm := v
+let get_enable_wasm () = !Eliommod.default_enable_wasm
 let set_cache_global_data v = Eliommod.default_cache_global_data := v
 let set_html_content_type v = Eliommod.default_html_content_type := Some v
 

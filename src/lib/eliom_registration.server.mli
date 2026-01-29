@@ -120,6 +120,44 @@ module type APP = sig
       do not include this script in the [<head>] node of your page, it
       will be automatically added at the end of the [<head>] node. *)
 
+  val wasm_detection_script :
+     ?defer:bool
+    -> ?async:bool
+    -> ?js_name:string
+    -> ?wasm_name:string
+    -> unit
+    -> [> `Script] Eliom_content.Html.elt
+  (** The function [wasm_detection_script ()] returns an inline [<script>] node
+      that automatically detects WebAssembly support in the browser and
+      dynamically loads the appropriate version of the application.
+
+      When the browser supports WebAssembly with GC
+      ([window?.WebAssembly?.JSTag] is defined, which is required by
+      wasm_of_ocaml), it loads the WASM version ([.wasm.js]). Otherwise,
+      it falls back to the JavaScript version ([.js]).
+
+      This function is automatically used by Eliom when WebAssembly support is
+      enabled (see {!Eliom_config.set_enable_wasm}). The generated script
+      creates a [<script>] element dynamically with the appropriate [src]
+      attribute and appends it to the document head.
+
+      @param defer If [true], sets the [defer] attribute on the dynamically
+                   created script tag. Default comes from the site's
+                   [application_script] configuration.
+      @param async If [true], sets the [async] attribute on the dynamically
+                   created script tag. Default comes from the site's
+                   [application_script] configuration.
+      @param js_name Optional filename for the JavaScript fallback version.
+                     Useful for specifying cache-busting hashed filenames.
+                     Default is [application_name ^ ".js"].
+      @param wasm_name Optional filename for the WebAssembly version.
+                       Useful for specifying cache-busting hashed filenames.
+                       Default is [application_name ^ ".wasm.js"].
+
+      {e Warning: Like {!application_script}, do not manually include this
+      script in the [<head>] node of your page when using Eliom's automatic
+      script injection.} *)
+
   val application_name : string
   (** Unique identifier for this application. Currently, it is just
       the application name as defined by

@@ -74,6 +74,15 @@ install.static: $(TEST_PREFIX)$(ELIOMSTATICDIR)/$(PROJECT_NAME).js | $(PREFIX)$(
 	HASH=`md5sum _build/default/client/$(PROJECT_NAME).bc.js | cut -d ' ' -f 1` && \
 	install $(addprefix -o ,$(WWWUSER)) $(JS_PREFIX)_$$HASH.js $(PREFIX)$(ELIOMSTATICDIR) && \
 	ln -sf $(PROJECT_NAME)_$$HASH.js $(PREFIX)$(ELIOMSTATICDIR)/$(PROJECT_NAME).js
+ifeq ($(ENABLE_WASM),yes)
+	HASH_WASM=`md5sum _build/default/client/$(PROJECT_NAME).bc.wasm.js | cut -d ' ' -f 1` && \
+	install $(addprefix -o ,$(WWWUSER)) $(JS_PREFIX)_$$HASH_WASM.wasm.js $(PREFIX)$(ELIOMSTATICDIR) && \
+	ln -sf $(PROJECT_NAME)_$$HASH_WASM.wasm.js $(PREFIX)$(ELIOMSTATICDIR)/$(PROJECT_NAME).wasm.js
+	if [ -d _build/default/client/$(PROJECT_NAME).bc.wasm.assets ]; then \
+	  cp -rf _build/default/client/$(PROJECT_NAME).bc.wasm.assets $(PREFIX)$(ELIOMSTATICDIR)/; \
+	  [ -z $(WWWUSER) ] || chown -R $(WWWUSER) $(PREFIX)$(ELIOMSTATICDIR)/$(PROJECT_NAME).bc.wasm.assets; \
+	fi
+endif
 	[ -z $(WWWUSER) ] || chown -R $(WWWUSER) $(PREFIX)$(FILESDIR)
 install.etc: $(TEST_PREFIX)$(ETCDIR)/$(PROJECT_NAME).conf | $(PREFIX)$(ETCDIR)
 	install $< $(PREFIX)$(ETCDIR)/$(PROJECT_NAME).conf
@@ -122,6 +131,11 @@ SED_ARGS += -e "s|%%FILESDIR%%|%%PREFIX%%$(FILESDIR)|g"
 SED_ARGS += -e "s|%%ELIOMSTATICDIR%%|%%PREFIX%%$(ELIOMSTATICDIR)|g"
 SED_ARGS += -e "s|%%APPNAME%%|$(shell basename `readlink $(JS_PREFIX).js` .js)|g"
 SED_ARGS += -e "s|%%CSSNAME%%|$(shell readlink $(CSS_PREFIX).css)|g"
+ifeq ($(ENABLE_WASM),yes)
+  SED_ARGS += -e "s|%%WASMATTR%%|wasm=\"$(shell basename `readlink $(JS_PREFIX).wasm.js` .wasm.js).wasm.js\"|g"
+else
+  SED_ARGS += -e "s|%%WASMATTR%%||g"
+endif
 ifeq ($(DEBUG),yes)
   SED_ARGS += -e "s|%%DEBUGMODE%%|\<debugmode /\>|g"
 else
@@ -156,6 +170,14 @@ config-files: | $(TEST_PREFIX)$(ELIOMSTATICDIR) $(TEST_PREFIX)$(LIBDIR)
 	HASH=`md5sum _build/default/client/$(PROJECT_NAME).bc.js | cut -d ' ' -f 1` && \
 	cp -f _build/default/client/$(PROJECT_NAME).bc.js $(JS_PREFIX)_$$HASH.js && \
 	ln -sf $(PROJECT_NAME)_$$HASH.js $(JS_PREFIX).js
+ifeq ($(ENABLE_WASM),yes)
+	HASH_WASM=`md5sum _build/default/client/$(PROJECT_NAME).bc.wasm.js | cut -d ' ' -f 1` && \
+	cp -f _build/default/client/$(PROJECT_NAME).bc.wasm.js $(JS_PREFIX)_$$HASH_WASM.wasm.js && \
+	ln -sf $(PROJECT_NAME)_$$HASH_WASM.wasm.js $(JS_PREFIX).wasm.js
+	if [ -d _build/default/client/$(PROJECT_NAME).bc.wasm.assets ]; then \
+	  cp -rf _build/default/client/$(PROJECT_NAME).bc.wasm.assets $(TEST_PREFIX)$(ELIOMSTATICDIR)/; \
+	fi
+endif
 	cp -f _build/default/$(PROJECT_NAME).cm* $(TEST_PREFIX)$(LIBDIR)/
 	$(MAKE) $(CONFIG_FILES) $(TEST_CONFIG_FILES) PROJECT_NAME=$(PROJECT_NAME)
 
@@ -164,6 +186,9 @@ all::
 
 js::
 	$(ENV_PSQL) dune build $(DUNE_OPTIONS) client/$(PROJECT_NAME).bc.js
+ifeq ($(ENABLE_WASM),yes)
+	$(ENV_PSQL) dune build $(DUNE_OPTIONS) client/$(PROJECT_NAME).bc.wasm.js
+endif
 
 byte::
 	$(ENV_PSQL) dune build $(DUNE_OPTIONS) @$(PROJECT_NAME)

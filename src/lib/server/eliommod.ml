@@ -44,6 +44,7 @@ let default_max_service_tab_sessions_per_group = ref 50
 let default_max_volatile_data_tab_sessions_per_group = ref 50
 let default_secure_cookies = ref false
 let default_application_script = ref (false, false)
+let default_enable_wasm = ref false
 let default_cache_global_data = ref None
 let default_html_content_type = ref None
 let default_ignored_get_params = ref []
@@ -144,6 +145,7 @@ let create_sitedata_aux site_dir config_info =
     ; ipv4mask = None, false
     ; ipv6mask = None, false
     ; application_script = !default_application_script
+    ; enable_wasm = !default_enable_wasm
     ; cache_global_data = !default_cache_global_data
     ; html_content_type = !default_html_content_type
     ; ignored_get_params = !default_ignored_get_params
@@ -222,6 +224,7 @@ let parse_eliom_option
       , set_ipv4mask
       , set_ipv6mask
       , set_application_script
+      , set_enable_wasm
       , set_global_data_caching
       , set_html_content_type
       , set_ignored_get_params
@@ -476,6 +479,12 @@ let parse_eliom_option
            "Eliom: Wrong attribute value for ipv6subnetmask tag"))
   | Xml.Element ("applicationscript", attrs, []) ->
       set_application_script (parse_application_script_attrs attrs)
+  | Xml.Element ("wasm", [("enabled", v)], []) -> (
+    try
+      let b = bool_of_string v in
+      set_enable_wasm b
+    with Invalid_argument _ ->
+      raise (Error_in_config_file "Eliom: Wrong attribute value for wasm tag"))
   | Xml.Element ("cacheglobaldata", attrs, []) ->
       set_global_data_caching (parse_global_data_caching_attrs attrs)
   | Xml.Element ("htmlcontenttype", [("value", v)], []) ->
@@ -592,6 +601,7 @@ let rec parse_global_config = function
         , (fun v -> Eliom_common.ipv4mask := v)
         , (fun v -> Eliom_common.ipv6mask := v)
         , (fun v -> default_application_script := v)
+        , (fun v -> default_enable_wasm := v)
         , (fun v -> default_cache_global_data := v)
         , (fun v -> default_html_content_type := Some v)
         , (fun regexp ->
@@ -942,6 +952,7 @@ let parse_config _ hostpattern conf_info site_dir =
             , (fun v -> sitedata.Eliom_common.ipv4mask <- Some v, true)
             , (fun v -> sitedata.Eliom_common.ipv6mask <- Some v, true)
             , (fun v -> sitedata.Eliom_common.application_script <- v)
+            , (fun v -> sitedata.Eliom_common.enable_wasm <- v)
             , (fun v -> sitedata.Eliom_common.cache_global_data <- v)
             , (fun v -> sitedata.Eliom_common.html_content_type <- Some v)
             , (fun regexp ->

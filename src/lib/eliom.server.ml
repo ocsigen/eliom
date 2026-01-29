@@ -16,6 +16,7 @@ let run
       ?max_anonymous_services_per_session
       ?secure_cookies
       ?application_script
+      ?enable_wasm
       ?global_data_caching
       ?html_content_type
       ?ignored_get_params
@@ -74,6 +75,9 @@ let run
     max_anonymous_services_per_session;
   Option.iter (fun v -> sitedata.secure_cookies <- v) secure_cookies;
   Option.iter (fun v -> sitedata.application_script <- v) application_script;
+  (* Always update enable_wasm: use provided value or current global default *)
+  sitedata.enable_wasm <-
+    Option.value enable_wasm ~default:!Eliommod.default_enable_wasm;
   Option.iter (fun v -> sitedata.cache_global_data <- v) global_data_caching;
   Option.iter (fun v -> sitedata.html_content_type <- Some v) html_content_type;
   Option.iter

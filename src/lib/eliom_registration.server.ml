@@ -869,6 +869,14 @@ module type APP = sig
     -> unit
     -> [> `Script] Eliom_content.Html.elt
 
+  val wasm_detection_script :
+     ?defer:bool
+    -> ?async:bool
+    -> ?js_name:string
+    -> ?wasm_name:string
+    -> unit
+    -> [> `Script] Eliom_content.Html.elt
+
   val application_name : string
   val is_initial_request : unit -> bool
 
@@ -906,7 +914,64 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
   let eliom_appl_script_id : [`Script] Eliom_content.Html.Id.id =
     Eliom_content.Html.Id.new_elt_id ~global:true ()
 
-  let application_script ?defer ?async () =
+  (* Generate an inline script for detecting and loading WASM/JS *)
+  let wasm_detection_script ?defer ?async ?js_name ?wasm_name () =
+    let defer', async' =
+      (Eliom_request_info.get_sitedata ()).Eliom_common.application_script
+    in
+    let defer = match defer with Some b -> b | None -> defer' in
+    let async = match async with Some b -> b | None -> async' in
+    let defer_str = if defer then "true" else "false" in
+    let async_str = if async then "true" else "false" in
+    (* Use provided filenames with hash, or default to application_name *)
+    let js_filename =
+      match js_name with
+      | Some name -> name
+      | None -> App_param.application_name ^ ".js"
+    in
+    let wasm_filename =
+      match wasm_name with
+      | Some name -> name
+      | None -> App_param.application_name ^ ".wasm.js"
+    in
+    (* Generate full URIs for both JS and WASM versions using make_uri *)
+    let js_uri =
+      Eliom_content.Html.F.string_of_uri
+        (Eliom_content.Html.F.make_uri
+           ~service:(Eliom_service.static_dir ())
+           [js_filename])
+    in
+    let wasm_uri =
+      Eliom_content.Html.F.string_of_uri
+        (Eliom_content.Html.F.make_uri
+           ~service:(Eliom_service.static_dir ())
+           [wasm_filename])
+    in
+    let script_content =
+      Printf.sprintf
+        "(function() {\n\  var script = document.createElement('script');\n\  script.defer = %s;\n\  script.async = %s;\n\  \n\  if (window?.WebAssembly?.JSTag) {\n\    script.src = '%s';\n\  } else {\n\    script.src = '%s';\n\  }\n\  \n\  document.head.appendChild(script);\n})();"
+        defer_str async_str wasm_uri js_uri
+    in
+    Eliom_content.Html.Id.create_named_elt ~id:eliom_appl_script_id
+      (Eliom_content.Html.F.script
+         (Eliom_content.Html.F.cdata_script script_content))
+
+  let wasm_detection_script =
+    (wasm_detection_script
+      : ?defer:_
+        -> ?async:_
+        -> ?js_name:_
+        -> ?wasm_name:_
+        -> _
+        -> [`Script] Eliom_content.Html.elt
+      :> ?defer:_
+         -> ?async:_
+         -> ?js_name:_
+         -> ?wasm_name:_
+         -> _
+         -> [> `Script] Eliom_content.Html.elt)
+
+  let js_only_application_script ?defer ?async () =
     let defer', async' =
       (Eliom_request_info.get_sitedata ()).Eliom_common.application_script
     in
@@ -919,10 +984,16 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
     Eliom_content.Html.Id.create_named_elt ~id:eliom_appl_script_id
       (Eliom_content.Html.D.js_script ~a
          ~uri:
-           (Eliom_content.Html.D.make_uri
+           (Eliom_content.Html.F.make_uri
               ~service:(Eliom_service.static_dir ())
               [App_param.application_name ^ ".js"])
          ())
+
+  (* Automatically return WASM detection script or JS-only script based on config *)
+  let application_script ?defer ?async () =
+    if (Eliom_request_info.get_sitedata ()).Eliom_common.enable_wasm
+    then wasm_detection_script ?defer ?async ()
+    else js_only_application_script ?defer ?async ()
 
   let application_script =
     (application_script
@@ -1070,7 +1141,9 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
     let head_elts =
       if List.exists is_eliom_appl_script head_elts
       then head_elts
-      else head_elts @ [application_script ()]
+      else
+        (* application_script now automatically detects WASM *)
+        head_elts @ [application_script ()]
     in
     let head_elts =
       appl_data_script
@@ -1181,6 +1254,7 @@ module App (App_param : Eliom_registration_sigs.APP_PARAM) = struct
 
   let is_initial_request = Base.is_initial_request
   let application_script = Base.application_script
+  let wasm_detection_script = Base.wasm_detection_script
 
   include Eliom_mkreg.Make (Base)
 
