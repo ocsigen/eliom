@@ -406,14 +406,16 @@ to JavaScript otherwise.
 The syntax is:
 * {{{<wasm enabled="true"/>}}}
 
-The {{{enabled}}} attribute is optional and defaults to {{{true}}}.
+WebAssembly support is disabled by default for backward compatibility.
+The Eliom templates ({{{app.exe}}}, {{{app.lib}}}) enable it explicitly.
 
-When WASM support is enabled, compile your client code with:
-{{{
-dune build client/myapp.bc.js client/myapp.bc.wasm.js
-}}}
+It can also be enabled programmatically using
+{{{Eliom_config.set_enable_wasm true}}} or via the {{{~enable_wasm}}}
+parameter of {{{Eliom.run}}}.
 
-The WASM assets must be copied to your static directory for serving.
+For production, use {{{--profile release}}} (or {{{DEBUG := no}}} in
+{{{Makefile.options}}}) to bundle all WASM modules into a single file,
+avoiding multiple HTTP requests at startup.
 
 === Serving global data through a distinct URL
 
