@@ -17,7 +17,7 @@ open Lwt.Syntax
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 open Eliom_lib
 
@@ -304,8 +304,8 @@ let construct_params_list_raw nlp typ params = aux typ None nlp params "" "" []
     - string
     - bool
  *)
-let rec get_to_and_of : type a c. (a, 'b, c) params_type -> a to_and_of
-  = function
+let rec get_to_and_of : type a c. (a, 'b, c) params_type -> a to_and_of =
+  function
   | TOption (o, _) ->
       let {to_string; of_string} = get_to_and_of o in
       { of_string = (fun s -> try Some (of_string s) with _ -> None)
@@ -506,8 +506,8 @@ let make_non_localized_parameters
     ; param = add_pref_params (Eliom_common.nl_param_prefix ^ name ^ ".") p }
 
 (*****************************************************************************)
-let rec contains_suffix : type a c. (a, 'b, c) params_type -> bool option
-  = function
+let rec contains_suffix : type a c. (a, 'b, c) params_type -> bool option =
+  function
   | TProd (a, b) -> (
     match contains_suffix a with None -> contains_suffix b | c -> c)
   | TSuffix (b, _) -> Some b

@@ -37,7 +37,6 @@ let%server find cache get_data id =
   with Not_found ->
     let th =
       let* v = get_data id in
-
       ignore [%client.unsafe (do_cache ~%cache ~%id ~%v : unit)];
       Lwt.return v
     in

@@ -55,7 +55,7 @@ module Svg = struct
            let client_boxed = ~%client_boxed in
            let real = Svg.To_dom.of_element (unboxed client_boxed) in
            Js.Opt.iter dummy_dom##.parentNode (fun parent ->
-             parent ## (replaceChild real dummy_dom))
+             parent##(replaceChild real dummy_dom))
            : unit)]
       in
       init

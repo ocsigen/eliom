@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 (** Low level functions for Eliom, exceptions and types. *)
 
@@ -499,7 +499,8 @@ and tables =
           The dlist parameter is the table and coservice number
           for attached coservices,
           and the coservice number for non-attached ones.
-    *) }
+    *)
+  }
 
 and sitedata =
   { mutable site_dir : Url.path option

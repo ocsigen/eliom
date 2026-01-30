@@ -19,7 +19,7 @@ open Lwt.Syntax
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*)
+ *)
 
 (* TODO: handle ended stream ( and on client side too ) *)
 
@@ -598,7 +598,8 @@ end = struct
     try Hashtbl.find handler_ref_table scope_hierarchy
     with Not_found ->
       let eref =
-        Eliom_reference.Volatile.eref ~scope:(`Client_process scope_hierarchy) None
+        Eliom_reference.Volatile.eref ~scope:(`Client_process scope_hierarchy)
+          None
       in
       Hashtbl.add handler_ref_table scope_hierarchy eref;
       eref

@@ -585,9 +585,8 @@ module Cannot_have_fragment = struct
 
   let rec expression e =
     match e.pexp_desc with
-    | Pexp_ident _ | Pexp_constant _ | Pexp_function _ | Pexp_lazy _
-    | Pexp_fun _ ->
-        true
+    | Pexp_ident _ | Pexp_constant _ | Pexp_function _ | Pexp_lazy _ -> true
+    | ((Pexp_fun _) [@if ocaml_version < (5, 3, 0)]) -> true
     | Pexp_newtype (_, e)
     | Pexp_assert e
     | Pexp_field (e, _)

@@ -135,7 +135,7 @@ module Xml = struct
            Js.Opt.case e##.firstChild
              (fun () ->
                 Dom.appendChild e
-                  Dom_html.document ## (createTextNode (Js.string x)))
+                  Dom_html.document##(createTextNode (Js.string x)))
              (fun e -> Dom.CoerceTo.text e >>! fun e -> e##.data := Js.string x)
          in
          if not ~%synced then update (React.S.value ~%s);

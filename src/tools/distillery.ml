@@ -263,7 +263,7 @@ let get_templates () =
  * It is supposed each
  * template has a file {!reserve_project_name_filename} file containing the
  * list of reserve project name (one name a line).
-*)
+ *)
 
 let check_reserve_project_name project_name template =
   Filename.concat (template_path template) reserve_project_name_filename

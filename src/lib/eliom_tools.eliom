@@ -349,8 +349,13 @@ module Make (DorF : module type of Eliom_content.Html.F) : HTML5_TOOLS = struct
     try aux service 0 pages
     with Not_found -> find_longest_prefix_in_hierarchy service (main, pages)
 
-  let hierarchical_menu_depth_first ?(classe = []) ?id ?(whole_tree = false)
-      ((_page, pages) as the_menu) ?service ()
+  let hierarchical_menu_depth_first
+        ?(classe = [])
+        ?id
+        ?(whole_tree = false)
+        ((_page, pages) as the_menu)
+        ?service
+        ()
     =
     let rec depth_first_fun pages level pos : [`Ul] elt list =
       let rec one_item first last i s =
@@ -410,8 +415,12 @@ module Make (DorF : module type of Eliom_content.Html.F) : HTML5_TOOLS = struct
       : [`Ul] elt list
       :> [> `Ul] elt list)
 
-  let hierarchical_menu_breadth_first ?(classe = []) ?id
-      ((_page, pages) as the_menu) ?service ()
+  let hierarchical_menu_breadth_first
+        ?(classe = [])
+        ?id
+        ((_page, pages) as the_menu)
+        ?service
+        ()
     =
     let rec breadth_first_fun pages level pos : [`Ul] elt list =
       let rec one_item first last i s =
