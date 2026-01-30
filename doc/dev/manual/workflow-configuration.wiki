@@ -396,6 +396,25 @@ The syntax is:
 
 Both attributes are optional and default to {{{false}}}.
 
+=== WebAssembly support
+
+Eliom applications can be compiled to WebAssembly using {{{wasm_of_ocaml}}}.
+When enabled, the server generates a detection script that automatically
+loads the WASM version if the browser supports WebAssembly, with fallback
+to JavaScript otherwise.
+
+The syntax is:
+* {{{<wasm enabled="true"/>}}}
+
+The {{{enabled}}} attribute is optional and defaults to {{{true}}}.
+
+When WASM support is enabled, compile your client code with:
+{{{
+dune build client/myapp.bc.js client/myapp.bc.wasm.js
+}}}
+
+The WASM assets must be copied to your static directory for serving.
+
 === Serving global data through a distinct URL
 
 When an Eliom program is initiated client-side, it needs to receive

@@ -39,9 +39,22 @@ This creates a project named {{{<name>}}} from the {{{"app.exe"}}}
 template in the directory {{{<dir>}}} or {{{<name>}}} by default.
 The project name should be a valid name for an OCaml compilation unit.
 
-=== Compilation & Running: 
+=== Compilation & Running:
 
 Read the README file provided with the template.
+
+==== WebAssembly compilation
+
+To enable WebAssembly compilation for your application, set {{{ENABLE_WASM=yes}}}
+in the {{{Makefile.options}}} file. This will compile both JavaScript and WASM
+versions of your client code:
+
+<<code language="shell"|
+ENABLE_WASM := yes
+>>
+
+When enabled, use {{{make js}}} to build both versions, and the server will
+automatically detect browser capabilities and serve the appropriate version.
 
 === Using other templates
 
