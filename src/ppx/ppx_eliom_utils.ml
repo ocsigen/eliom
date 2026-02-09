@@ -364,7 +364,10 @@ module Cmo = struct
       | ((Otyp_arrow (lab, ty1, ty2)) [@if ocaml_version < (5, 2, 0)]) ->
           Typ.arrow ~loc (label_of_string lab) (type_of_out_type ty1)
             (type_of_out_type ty2)
-      | Otyp_tuple tyl -> Typ.tuple ~loc (List.map type_of_out_type tyl)
+      | ((Otyp_tuple tyl) [@if ocaml_version >= (5, 4, 0)]) ->
+          Typ.tuple ~loc (List.map (fun (_, ty) -> type_of_out_type ty) tyl)
+      | ((Otyp_tuple tyl) [@if ocaml_version < (5, 4, 0)]) ->
+          Typ.tuple ~loc (List.map type_of_out_type tyl)
       | Otyp_constr (id, tyl) ->
           Typ.constr ~loc
             (mkloc (ident_of_out_ident id) loc)
