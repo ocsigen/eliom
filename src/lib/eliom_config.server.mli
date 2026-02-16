@@ -86,6 +86,23 @@ val set_max_anonymous_services_per_session : int -> unit
 val set_max_volatile_groups_per_site : int -> unit
 val set_secure_cookies : bool -> unit
 val set_application_script : bool * bool -> unit
+
+val set_enable_wasm : bool -> unit
+(** Enable or disable WebAssembly support with automatic browser detection.
+    When enabled, Eliom will generate a script that detects WebAssembly
+    support in the browser and loads either the WASM version (.wasm.js) or
+    the JavaScript fallback (.js) accordingly.
+
+    Disabled by default for backward compatibility. The Eliom templates
+    enable it explicitly.
+
+    This setting can be overridden per-site using the [~enable_wasm] parameter
+    of {!Eliom.run} or the [<wasm enabled="true|false"/>] tag in the
+    configuration file. *)
+
+val get_enable_wasm : unit -> bool
+(** Get the current global setting for WebAssembly support. *)
+
 val set_cache_global_data : (Eliom_lib.Url.path * int) option -> unit
 val set_html_content_type : string -> unit
 val add_ignored_get_params : string * Re.re -> unit

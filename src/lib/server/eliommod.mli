@@ -8,6 +8,7 @@ val default_max_service_tab_sessions_per_group : int ref
 val default_max_volatile_data_tab_sessions_per_group : int ref
 val default_secure_cookies : bool ref
 val default_application_script : (bool * bool) ref
+val default_enable_wasm : bool ref
 val default_cache_global_data : (Eliom_lib.Url.path * int) option ref
 val default_html_content_type : string option ref
 val default_ignored_get_params : (string * Re.re) list ref
@@ -86,6 +87,7 @@ val parse_eliom_option :
    * (int -> unit)
    * (int -> unit)
    * (bool * bool -> unit)
+   * (bool -> unit)
    * ((Eliom_lib.Url.path * int) option -> unit)
    * (string -> unit)
    * (string * Re.re -> unit)
@@ -126,6 +128,7 @@ val parse_eliom_options :
    * (int -> unit)
    * (int -> unit)
    * (bool * bool -> unit)
+   * (bool -> unit)
    * ((Eliom_lib.Url.path * int) option -> unit)
    * (string -> unit)
    * (string * Re.re -> unit)

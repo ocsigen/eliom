@@ -1,4 +1,7 @@
 
+# NOTE: WASM support is only available in modern templates (app.exe, app.lib)
+# This legacy template (basic.ppx) does not support wasm_of_ocaml compilation
+#
 ##----------------------------------------------------------------------
 ## DISCLAIMER
 ##

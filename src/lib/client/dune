@@ -33,7 +33,9 @@
   (language c)
   (names eliom_stubs))
  (js_of_ocaml
-  (javascript_files eliom_client.js)))
+  (javascript_files eliom_client.js))
+ (wasm_of_ocaml
+  (wasm_files eliom_client.wat)))
 
 (include dune.client)
 

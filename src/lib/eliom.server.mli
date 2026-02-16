@@ -32,6 +32,7 @@ val run :
   -> ?max_anonymous_services_per_session:int * bool
   -> ?secure_cookies:bool
   -> ?application_script:bool * bool
+  -> ?enable_wasm:bool
   -> ?global_data_caching:(string list * int) option
   -> ?html_content_type:string
   -> ?ignored_get_params:string * Re.re
@@ -42,4 +43,10 @@ val run :
 (** [run ?app ()] run Eliom application [app] under current site.
     Use this to build a static executable without configuration file.
     Default value of [?app] is [default_app_name].
-    Other optional values correspond to Eliom configuration for this site. *)
+    Other optional values correspond to Eliom configuration for this site.
+
+    When [?enable_wasm] is set to [true], the server will generate a detection
+    script that loads the WASM version of your client code if the browser
+    supports WebAssembly, with automatic fallback to JavaScript otherwise.
+    If not specified, the global default is used
+    (see {!Eliom_config.set_enable_wasm}), which is [false]. *)

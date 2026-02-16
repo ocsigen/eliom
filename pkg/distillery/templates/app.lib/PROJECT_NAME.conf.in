@@ -41,6 +41,8 @@
     <extension findlib-package="eliom.server">
       <!-- Ask Eliom to ignore UTM parameters and others: -->
       <ignoredgetparams regexp="utm_[a-z]*|[a-z]*clid|li_fat_id"/>
+      <!-- Enable WebAssembly support with automatic browser detection: -->
+      <wasm enabled="true"/>
 <!-- Uncomment if you are using https only and want secure cookies:
        <securecookies value="true" />
   -->
@@ -51,7 +53,7 @@
       <static dir="%%FILESDIR%%" />
       %%ELIOM_MODULES%%
       <eliommodule module="%%LIBDIR%%/%%PROJECT_NAME%%.cma">
-        <app name="%%APPNAME%%" css="%%CSSNAME%%" />
+        <app name="%%APPNAME%%" css="%%CSSNAME%%" %%WASMATTR%% />
         <avatars dir="%%FILESDIR%%/avatars" />
         <os-db
           host="%%DB_HOST%%"
