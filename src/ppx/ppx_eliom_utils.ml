@@ -376,8 +376,7 @@ module Cmo = struct
           let fields =
             List.map
               (fun (label, ty) ->
-                 { pof_desc =
-                     Otag (mkloc label loc, type_of_out_type ty)
+                 { pof_desc = Otag (mkloc label loc, type_of_out_type ty)
                  ; pof_loc = loc
                  ; pof_attributes = [] })
               fields
@@ -387,8 +386,7 @@ module Cmo = struct
           let fields =
             List.map
               (fun (label, ty) ->
-                 { pof_desc =
-                     Otag (mkloc label loc, type_of_out_type ty)
+                 { pof_desc = Otag (mkloc label loc, type_of_out_type ty)
                  ; pof_loc = loc
                  ; pof_attributes = [] })
               fields
@@ -404,7 +402,8 @@ module Cmo = struct
             (List.map type_of_out_type tyl)
       | ((Otyp_alias {aliased; alias; _}) [@if ocaml_version >= (5, 3, 0)]) ->
           Typ.alias ~loc (type_of_out_type aliased) (mkloc (var alias) loc)
-      | ((Otyp_alias {aliased; alias; _}) [@if (ocaml_version >= (5, 1, 0)) && (ocaml_version < (5, 3, 0))]) ->
+      | ((Otyp_alias {aliased; alias; _})
+         [@if ocaml_version >= (5, 1, 0) && ocaml_version < (5, 3, 0)]) ->
           Typ.alias ~loc (type_of_out_type aliased) (var alias)
       | ((Otyp_alias (ty, s)) [@if ocaml_version < (5, 1, 0)]) ->
           Typ.alias ~loc (type_of_out_type ty) (var s)
@@ -426,10 +425,7 @@ module Cmo = struct
             List.map
               (fun (label, const, tyl) ->
                  Rf.mk ~loc
-                   (Rtag
-                      ( mkloc label loc
-                      , const
-                      , List.map type_of_out_type tyl )))
+                   (Rtag (mkloc label loc, const, List.map type_of_out_type tyl)))
               lst
           in
           Typ.variant ~loc row_fields (if closed then Closed else Open) tags
@@ -439,10 +435,7 @@ module Cmo = struct
             List.map
               (fun (label, const, tyl) ->
                  Rf.mk ~loc
-                   (Rtag
-                      ( mkloc label loc
-                      , const
-                      , List.map type_of_out_type tyl )))
+                   (Rtag (mkloc label loc, const, List.map type_of_out_type tyl)))
               lst
           in
           Typ.variant ~loc row_fields (if closed then Closed else Open) tags
