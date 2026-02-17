@@ -338,11 +338,56 @@ module Cmo = struct
 
   let counter = ref 0
 
+  (* Collect all variable names referenced by Otyp_var nodes. *)
+  let collect_vars ty =
+    let open Outcometree in
+    let module S = Set.Make (String) in
+    let rec go acc = function
+      | Otyp_var (_, name) -> S.add name acc
+      | ((Otyp_alias {aliased; _}) [@if ocaml_version >= (5, 1, 0)]) ->
+          go acc aliased
+      | ((Otyp_alias (ty, _)) [@if ocaml_version < (5, 1, 0)]) -> go acc ty
+      | Otyp_arrow (_, ty1, ty2) -> go (go acc ty1) ty2
+      | ((Otyp_tuple tyl) [@if ocaml_version >= (5, 4, 0)]) ->
+          List.fold_left (fun acc (_, ty) -> go acc ty) acc tyl
+      | ((Otyp_tuple tyl) [@if ocaml_version < (5, 4, 0)]) ->
+          List.fold_left go acc tyl
+      | Otyp_constr (_, tyl) -> List.fold_left go acc tyl
+      | ((Otyp_object {fields; _}) [@if ocaml_version >= (5, 1, 0)]) ->
+          List.fold_left (fun acc (_, ty) -> go acc ty) acc fields
+      | ((Otyp_object (fields, _)) [@if ocaml_version < (5, 1, 0)]) ->
+          List.fold_left (fun acc (_, ty) -> go acc ty) acc fields
+      | ((Otyp_class (_, tyl)) [@if ocaml_version >= (5, 1, 0)]) ->
+          List.fold_left go acc tyl
+      | ((Otyp_class (_, _, tyl)) [@if ocaml_version < (5, 1, 0)]) ->
+          List.fold_left go acc tyl
+      | ((Otyp_variant (Ovar_typ ty, _, _)) [@if ocaml_version >= (5, 1, 0)]) ->
+          go acc ty
+      | ((Otyp_variant (_, Ovar_typ ty, _, _)) [@if ocaml_version < (5, 1, 0)])
+        ->
+          go acc ty
+      | ((Otyp_variant (Ovar_fields lst, _, _))
+         [@if ocaml_version >= (5, 1, 0)]) ->
+          List.fold_left
+            (fun acc (_, _, tyl) -> List.fold_left go acc tyl)
+            acc lst
+      | ((Otyp_variant (_, Ovar_fields lst, _, _))
+         [@if ocaml_version < (5, 1, 0)]) ->
+          List.fold_left
+            (fun acc (_, _, tyl) -> List.fold_left go acc tyl)
+            acc lst
+      | Otyp_poly (_, ty) -> go acc ty
+      | _ -> acc
+    in
+    go S.empty ty
+
   (* We use the same location for all nodes of the constructed type,
      which is an approximation but sufficient for error reporting. *)
   let type_of_out_type ?(loc = Location.none) ty =
     let open Outcometree in
     let open Parsetree in
+    let module S = Set.Make (String) in
+    let used_vars = collect_vars ty in
     let map = Hashtbl.create 1 in
     let var x =
       try Hashtbl.find map x
@@ -401,12 +446,18 @@ module Cmo = struct
             (mkloc (ident_of_out_ident id) loc)
             (List.map type_of_out_type tyl)
       | ((Otyp_alias {aliased; alias; _}) [@if ocaml_version >= (5, 3, 0)]) ->
-          Typ.alias ~loc (type_of_out_type aliased) (mkloc (var alias) loc)
+          if S.mem alias used_vars
+          then Typ.alias ~loc (type_of_out_type aliased) (mkloc (var alias) loc)
+          else type_of_out_type aliased
       | ((Otyp_alias {aliased; alias; _})
          [@if ocaml_version >= (5, 1, 0) && ocaml_version < (5, 3, 0)]) ->
-          Typ.alias ~loc (type_of_out_type aliased) (var alias)
+          if S.mem alias used_vars
+          then Typ.alias ~loc (type_of_out_type aliased) (var alias)
+          else type_of_out_type aliased
       | ((Otyp_alias (ty, s)) [@if ocaml_version < (5, 1, 0)]) ->
-          Typ.alias ~loc (type_of_out_type ty) (var s)
+          if S.mem s used_vars
+          then Typ.alias ~loc (type_of_out_type ty) (var s)
+          else type_of_out_type ty
       | ((Otyp_variant (Ovar_typ ty, closed, tags))
          [@if ocaml_version >= (5, 1, 0)]) ->
           Typ.variant ~loc
