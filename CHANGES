@@ -1,7 +1,9 @@
-===== unreleased =====
+===== 12.0 =====
 * Eliom_lib
 ** Deprecated logging functions were removed (#821)
    These are: debug_exn, debug, error, error_any, jsdebug
+* Full WASM support: build system and sending either js or wasm depending on the browser 
+* Use Log instead of Lwt_logs
 
 ===== 11.1 =====
 * Compatibility with WASM

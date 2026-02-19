@@ -1,7 +1,7 @@
 (lang dune 3.19)
 
 (name eliom)
-(version 11.1.1)
+(version 12.0.0)
 (maintainers dev@ocsigen.org)
 (authors dev@ocsigen.org)
 (license "LGPL-2.1-only WITH OCaml-LGPL-linking-exception")
@@ -27,17 +27,17 @@ The client-side code is compiled to JS using Ocsigen Js_of_ocaml or to Wasm usin
   ocamlfind
   ppx_deriving
   (ppxlib (>= 0.15))
-  (js_of_ocaml-compiler (>= 6.0))
-  wasm_of_ocaml-compiler
-  (js_of_ocaml (>= 6.0))
-  (js_of_ocaml-lwt (>= 6.0))
+  (js_of_ocaml-compiler (>= 6.3.2))
+  (wasm_of_ocaml-compiler (>= 6.3.2))
+  (js_of_ocaml (>= 6.3.2))
+  (js_of_ocaml-lwt (>= 6.3.2))
   (js_of_ocaml-ocamlbuild :build)
-  (js_of_ocaml-ppx (>= 6.0))
-  (js_of_ocaml-ppx_deriving_json (>= 6.0))
-  (js_of_ocaml-tyxml (>= 6.0))
+  (js_of_ocaml-ppx (>= 6.3.2))
+  (js_of_ocaml-ppx_deriving_json (>= 6.3.2))
+  (js_of_ocaml-tyxml (>= 6.3.2))
   logs
   (tyxml (and (>= 4.6) (< 4.7)))
-  (ocsigenserver (and (>= 6.0) (< 7.0)))
+  (ocsigenserver (and (>= 7.0) (< 8.0)))
   (ipaddr (>= 2.1))
   (reactiveData (>= 0.2.1))
   base-bytes
