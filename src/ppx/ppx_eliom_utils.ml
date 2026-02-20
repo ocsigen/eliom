@@ -531,9 +531,7 @@ module Cmo = struct
   let find_injected_ident = find "injected ident"
 
   let find_fragment loc =
-    match Mli.get_fragment_type (find "client value" loc) with
-    | Some ty -> ty
-    | None -> assert false
+    Mli.get_fragment_type (find "client value" loc)
 end
 
 (** Context convenience module. *)
