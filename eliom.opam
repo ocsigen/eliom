@@ -57,3 +57,5 @@ build: [
 ]
 dev-repo: "git+https://github.com/ocsigen/eliom.git"
 x-maintenance-intent: ["(latest)"]
+# these distributions don't offer a recent enough binaryen for wasm_of_ocaml
+x-ci-accept-failures: ["centos-10" "opensuse-15.6" "opensuse-16.0"]
