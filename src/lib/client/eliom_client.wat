@@ -94,16 +94,17 @@
    ;; Keep in sync with marshal.wat
    (type $intern_state
       (struct
-         (field $src (ref $string))
+         (field $src (mut (ref $string)))
          (field $pos (mut i32))
          (field $obj_table (mut (ref null $block)))
-         (field $obj_counter (mut i32))))
+         (field $obj_counter (mut i32))
+         (field $overflow (mut i32))))
 
    (func $get_intern_state
       (param $src (ref $string)) (param $pos i32) (result (ref $intern_state))
       (struct.new $intern_state
          (local.get $src) (local.get $pos) (ref.null $block)
-         (i32.const 0)))
+         (i32.const 0) (i32.const 0)))
 
    (func $read8u (param $s (ref $intern_state)) (result i32)
       (local $pos i32) (local $res i32)
