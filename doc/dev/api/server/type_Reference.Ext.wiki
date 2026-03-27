@@ -1,0 +1,14 @@
+<<code language="ocaml" | sig
+  val get :
+    ([< `Client_process | `Session | `Session_group ], [< `Data | `Pers ])
+    State.Ext.state -> 'a Reference.eref -> 'a Lwt.t
+  val set :
+    ([< `Client_process | `Session | `Session_group ], [< `Data | `Pers ])
+    State.Ext.state -> 'a Reference.eref -> 'a -> unit Lwt.t
+  val modify :
+    ([< `Client_process | `Session | `Session_group ], [< `Data | `Pers ])
+    State.Ext.state -> 'a Reference.eref -> ('a -> 'a) -> unit Lwt.t
+  val unset :
+    ([< `Client_process | `Session | `Session_group ], [< `Data | `Pers ])
+    State.Ext.state -> 'a Reference.eref -> unit Lwt.t
+end >>

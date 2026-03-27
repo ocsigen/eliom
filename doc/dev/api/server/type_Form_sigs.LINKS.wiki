@@ -1,0 +1,42 @@
+<<code language="ocaml" | sig
+  type +'a elt
+  type +'a attrib
+  type uri
+  val make_uri :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('get, unit, Service.get, 'a, 'b, 'c, 'd,
+             [< `WithSuffix | `WithoutSuffix ], 'e, unit, 'f)
+            Service.t ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Parameter.nl_params_set -> 'get -> Form_sigs.LINKS.uri
+  val uri_of_string : (unit -> string) -> Form_sigs.LINKS.uri
+  val css_link :
+    ?a:[< Html_types.link_attrib ] Form_sigs.LINKS.attrib list ->
+    uri:Form_sigs.LINKS.uri ->
+    unit -> [> Html_types.link ] Form_sigs.LINKS.elt
+  val js_script :
+    ?a:[< Html_types.script_attrib ] Form_sigs.LINKS.attrib list ->
+    uri:Form_sigs.LINKS.uri ->
+    unit -> [> Html_types.script ] Form_sigs.LINKS.elt
+  val a :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    ?a:[< Html_types.a_attrib ] Form_sigs.LINKS.attrib list ->
+    service:('get, unit, Service.get, 'b, 'c, 'd, 'e,
+             [< `WithSuffix | `WithoutSuffix ], 'f, unit, Service.non_ocaml)
+            Service.t ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Parameter.nl_params_set ->
+    ?xhr:bool ->
+    'a Form_sigs.LINKS.elt list ->
+    'get -> [> 'a Html_types.a ] Form_sigs.LINKS.elt
+end >>

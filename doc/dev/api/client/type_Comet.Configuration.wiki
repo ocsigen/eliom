@@ -1,0 +1,11 @@
+<<code language="ocaml" | sig
+  type t
+  val new_configuration : unit -> Comet.Configuration.t
+  val drop_configuration : Comet.Configuration.t -> unit
+  val set_always_active : Comet.Configuration.t -> bool -> unit
+  val set_timeout : Comet.Configuration.t -> float -> unit
+  val set_active_until_timeout : Comet.Configuration.t -> bool -> unit
+  val set_time_between_requests : Comet.Configuration.t -> float -> unit
+  val set_time_between_requests_when_idle :
+    Comet.Configuration.t -> float * float * float -> unit
+end >>

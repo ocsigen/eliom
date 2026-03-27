@@ -1,4 +1,4 @@
 <<code language="ocaml" | sig
   val register : closure_id:string -> closure:('a -> 'b) -> unit
-  val find : closure_id:string -> Eliom_lib.poly -> Eliom_lib.poly
+  val find : closure_id:string -> Lib.poly -> Lib.poly
 end >>

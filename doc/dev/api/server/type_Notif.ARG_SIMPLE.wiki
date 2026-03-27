@@ -1,0 +1,6 @@
+<<code language="ocaml" | sig
+  type identity
+  type key
+  type notification
+  val get_identity : unit -> Notif.ARG_SIMPLE.identity Lwt.t
+end >>

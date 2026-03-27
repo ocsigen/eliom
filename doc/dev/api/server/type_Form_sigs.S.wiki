@@ -1,0 +1,248 @@
+<<code language="ocaml" | sig
+  type 'a param
+  type +'a elt
+  type +'a attrib
+  type uri
+  val float : float Form_sigs.S.param
+  val int : int Form_sigs.S.param
+  val int32 : int32 Form_sigs.S.param
+  val int64 : int64 Form_sigs.S.param
+  val nativeint : nativeint Form_sigs.S.param
+  val bool : bool Form_sigs.S.param
+  val string : string Form_sigs.S.param
+  val user : ('a -> string) -> 'a Form_sigs.S.param
+  val make_post_uri_components :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    service:('get, 'post, Service.post, 'a, 'b, 'c, 'd,
+             [< `WithSuffix | `WithoutSuffix ], 'e, 'f, 'g)
+            Service.t ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Parameter.nl_params_set ->
+    ?keep_get_na_params:bool ->
+    'get ->
+    'post ->
+    string * (string * Eliommod_parameters.param) list * string option *
+    (string * Eliommod_parameters.param) list
+  val get_form :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    ?a:[< Html_types.form_attrib ] Form_sigs.S.attrib list ->
+    service:('a, unit, Service.get, 'b, 'c, 'd, 'e,
+             [< `WithSuffix | `WithoutSuffix ], 'gn, 'f, Service.non_ocaml)
+            Service.t ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Parameter.nl_params_set ->
+    ?xhr:bool ->
+    ('gn -> [< Html_types.form_content ] Form_sigs.S.elt list) ->
+    [> Html_types.form ] Form_sigs.S.elt
+  val lwt_get_form :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    ?a:[< Html_types.form_attrib ] Form_sigs.S.attrib list ->
+    service:('a, unit, Service.get, 'b, 'c, 'd, 'e,
+             [< `WithSuffix | `WithoutSuffix ], 'gn, 'f, Service.non_ocaml)
+            Service.t ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?nl_params:Parameter.nl_params_set ->
+    ?xhr:bool ->
+    ('gn -> [< Html_types.form_content ] Form_sigs.S.elt list Lwt.t) ->
+    [> Html_types.form ] Form_sigs.S.elt Lwt.t
+  val post_form :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    ?a:[< Html_types.form_attrib ] Form_sigs.S.attrib list ->
+    service:('get, 'a, Service.post, 'b, 'c, 'd, 'e,
+             [< `WithSuffix | `WithoutSuffix ], 'f, 'pn, Service.non_ocaml)
+            Service.t ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?keep_get_na_params:bool ->
+    ?nl_params:Parameter.nl_params_set ->
+    ?xhr:bool ->
+    ('pn -> [< Html_types.form_content ] Form_sigs.S.elt list) ->
+    'get -> [> Html_types.form ] Form_sigs.S.elt
+  val lwt_post_form :
+    ?absolute:bool ->
+    ?absolute_path:bool ->
+    ?https:bool ->
+    ?a:[< Html_types.form_attrib ] Form_sigs.S.attrib list ->
+    service:('get, 'a, Service.post, 'b, 'c, 'd, 'e,
+             [< `WithSuffix | `WithoutSuffix ], 'f, 'pn, Service.non_ocaml)
+            Service.t ->
+    ?hostname:string ->
+    ?port:int ->
+    ?fragment:string ->
+    ?keep_nl_params:[ `All | `None | `Persistent ] ->
+    ?keep_get_na_params:bool ->
+    ?nl_params:Parameter.nl_params_set ->
+    ?xhr:bool ->
+    ('pn -> [< Html_types.form_content ] Form_sigs.S.elt list Lwt.t) ->
+    'get -> [> Html_types.form ] Form_sigs.S.elt Lwt.t
+  val input :
+    ?a:[< Html_types.input_attrib ] Form_sigs.S.attrib list ->
+    input_type:[< Html_types.input_type ] ->
+    ?name:[< 'a Parameter.setoneradio ] Parameter.param_name ->
+    ?value:'a ->
+    'a Form_sigs.S.param -> [> Html_types.input ] Form_sigs.S.elt
+  val file_input :
+    ?a:[< Html_types.input_attrib ] Form_sigs.S.attrib list ->
+    name:[< Lib.file_info Parameter.setoneradio ] Parameter.param_name ->
+    unit -> [> Html_types.input ] Form_sigs.S.elt
+  val image_input :
+    ?a:[< Html_types.input_attrib ] Form_sigs.S.attrib list ->
+    name:[< Parameter.coordinates Parameter.oneradio ] Parameter.param_name ->
+    ?src:Form_sigs.S.uri -> unit -> [> Html_types.input ] Form_sigs.S.elt
+  val checkbox :
+    ?a:[< Html_types.input_attrib ] Form_sigs.S.attrib list ->
+    ?checked:bool ->
+    name:[ `Set of 'a ] Parameter.param_name ->
+    value:'a -> 'a Form_sigs.S.param -> [> Html_types.input ] Form_sigs.S.elt
+  val bool_checkbox_one :
+    ?a:[< Html_types.input_attrib ] Form_sigs.S.attrib list ->
+    ?checked:bool ->
+    name:[ `One of bool ] Parameter.param_name ->
+    unit -> [> Html_types.input ] Form_sigs.S.elt
+  val radio :
+    ?a:[< Html_types.input_attrib ] Form_sigs.S.attrib list ->
+    ?checked:bool ->
+    name:[ `Radio of 'a ] Parameter.param_name ->
+    value:'a -> 'a Form_sigs.S.param -> [> Html_types.input ] Form_sigs.S.elt
+  val string_radio_required :
+    ?a:[< Html_types.input_attrib ] Form_sigs.S.attrib list ->
+    ?checked:bool ->
+    name:[ `One of string ] Parameter.param_name ->
+    value:string -> unit -> [> Html_types.input ] Form_sigs.S.elt
+  val button :
+    ?a:[< Html_types.button_attrib ] Form_sigs.S.attrib list ->
+    button_type:[< Form_sigs.button_type ] ->
+    name:[< 'a Parameter.setone ] Parameter.param_name ->
+    value:'a ->
+    'a Form_sigs.S.param ->
+    Html_types.button_content Form_sigs.S.elt list ->
+    [> Html_types.button ] Form_sigs.S.elt
+  val button_no_value :
+    ?a:[< Html_types.button_attrib ] Form_sigs.S.attrib list ->
+    button_type:[< Form_sigs.button_type ] ->
+    Html_types.button_content Form_sigs.S.elt list ->
+    [> Html_types.button ] Form_sigs.S.elt
+  val textarea :
+    ?a:[< Html_types.textarea_attrib ] Form_sigs.S.attrib list ->
+    name:[< string Parameter.setoneradio ] Parameter.param_name ->
+    ?value:string -> unit -> [> Html_types.textarea ] Form_sigs.S.elt
+  type 'a soption =
+      Html_types.option_attrib Form_sigs.S.attrib list * 'a *
+      Html_types.pcdata Form_sigs.S.elt option * bool
+  type 'a select_opt =
+      Optgroup of
+        [ `Accesskey
+        | `Aria
+        | `Class
+        | `Contenteditable
+        | `Contextmenu
+        | `Dir
+        | `Disabled
+        | `Draggable
+        | `Hidden
+        | `Id
+        | `Lang
+        | `OnAbort
+        | `OnBlur
+        | `OnCanPlay
+        | `OnCanPlayThrough
+        | `OnChange
+        | `OnClick
+        | `OnClose
+        | `OnContextMenu
+        | `OnDblClick
+        | `OnDrag
+        | `OnDragEnd
+        | `OnDragEnter
+        | `OnDragLeave
+        | `OnDragOver
+        | `OnDragStart
+        | `OnDrop
+        | `OnDurationChange
+        | `OnEmptied
+        | `OnEnded
+        | `OnError
+        | `OnFocus
+        | `OnFormChange
+        | `OnFormInput
+        | `OnInput
+        | `OnInvalid
+        | `OnKeyDown
+        | `OnKeyPress
+        | `OnKeyUp
+        | `OnLoad
+        | `OnLoadStart
+        | `OnLoadedData
+        | `OnLoadedMetaData
+        | `OnMouseDown
+        | `OnMouseMove
+        | `OnMouseOut
+        | `OnMouseOver
+        | `OnMouseUp
+        | `OnMouseWheel
+        | `OnPause
+        | `OnPlay
+        | `OnPlaying
+        | `OnProgress
+        | `OnRateChange
+        | `OnReadyStateChange
+        | `OnScroll
+        | `OnSeeked
+        | `OnSeeking
+        | `OnSelect
+        | `OnShow
+        | `OnStalled
+        | `OnSubmit
+        | `OnSuspend
+        | `OnTimeUpdate
+        | `OnTouchCancel
+        | `OnTouchEnd
+        | `OnTouchMove
+        | `OnTouchStart
+        | `OnVolumeChange
+        | `OnWaiting
+        | `Role
+        | `Spellcheck
+        | `Style_Attr
+        | `Tabindex
+        | `Title
+        | `Translate
+        | `User_data
+        | `XML_lang
+        | `XMLns ] Form_sigs.S.attrib list * string *
+        'a Form_sigs.S.soption * 'a Form_sigs.S.soption list
+    | Option of 'a Form_sigs.S.soption
+  val select :
+    ?a:[< Html_types.select_attrib ] Form_sigs.S.attrib list ->
+    ?required:Html_types.pcdata Form_sigs.S.elt ->
+    name:[ `One of 'a ] Parameter.param_name ->
+    'a Form_sigs.S.param ->
+    'a Form_sigs.S.select_opt ->
+    'a Form_sigs.S.select_opt list -> [> Html_types.select ] Form_sigs.S.elt
+  val multiple_select :
+    ?a:[< Html_types.select_attrib ] Form_sigs.S.attrib list ->
+    ?required:Html_types.pcdata Form_sigs.S.elt ->
+    name:[ `Set of 'a ] Parameter.param_name ->
+    'a Form_sigs.S.param ->
+    'a Form_sigs.S.select_opt ->
+    'a Form_sigs.S.select_opt list -> [> Html_types.select ] Form_sigs.S.elt
+end >>

@@ -1,0 +1,13 @@
+<<code language="ocaml" | sig
+  type 'a wrapped_value
+  type +'a wrapper
+  val create_wrapper : ('a -> 'b) -> 'a Wrap.wrapper
+  val wrap : 'a -> 'a Wrap.wrapped_value
+  val empty_wrapper : 'a Wrap.wrapper
+  type unwrap_id
+  type unwrapper
+  val create_unwrapper : Wrap.unwrap_id -> Wrap.unwrapper
+  val empty_unwrapper : Wrap.unwrapper
+  val id_of_int : int -> Wrap.unwrap_id
+  val section : Logs.src
+end >>

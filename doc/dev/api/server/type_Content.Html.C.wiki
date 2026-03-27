@@ -1,0 +1,8 @@
+<<code language="ocaml" | sig
+  val node :
+    ?init:'a Content.Html.elt ->
+    'a Content.Html.elt Eliom_client_value.t -> 'a Content.Html.elt
+  val attr :
+    ?init:'a Content.Html.attrib ->
+    'a Content.Html.attrib Eliom_client_value.t -> 'a Content.Html.attrib
+end >>

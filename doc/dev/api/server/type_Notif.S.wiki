@@ -1,0 +1,23 @@
+<<code language="ocaml" | sig
+  type identity
+  type key
+  type server_notif
+  type client_notif
+  val init : unit -> unit Lwt.t
+  val deinit : unit -> unit
+  val listen : Notif.S.key -> unit
+  val unlisten : Notif.S.key -> unit
+  module Ext :
+    sig
+      val unlisten :
+        ?sitedata:Eliom_common.sitedata ->
+        ([< `Client_process ], [< `Data ]) State.Ext.state ->
+        Notif.S.key -> unit
+    end
+  val notify :
+    ?notfor:[ `Id of Notif.S.identity | `Me ] ->
+    Notif.S.key -> Notif.S.server_notif -> unit
+  val client_ev :
+    unit -> (Notif.S.key * Notif.S.client_notif) Eliom_react.Down.t
+  val clean : unit -> unit
+end >>

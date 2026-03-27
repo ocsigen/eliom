@@ -1,0 +1,1 @@
+<<code language="ocaml" | sig val body : unit -> [ `Body ] Content.Html.elt end >>

@@ -1,6 +1,6 @@
 =Module <<a_api_type subproject="server" | module Eliom_client_value >> =
 <<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_client_value>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_client_value >><<span class="ocsforge_color_keyword"|end>>>>
-==@@id="2_Clientandsharedvalues"@@~Client and shared values==
+==@@id="2_Client and shared values"@@~Client and shared values==
 
 
 

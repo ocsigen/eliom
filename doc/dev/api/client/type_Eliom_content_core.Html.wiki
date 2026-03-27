@@ -5,15 +5,14 @@
   type +'a attrib
   type uri = Eliom_content_core.Xml.uri
   module Ev' :
-    functor
-      (A : sig
-             type 'a attrib
-             module Unsafe :
-               sig
-                 val string_attrib :
-                   string -> string -> 'a Eliom_content_core.Html.Ev'.attrib
-               end
-           end)
+    (A : sig
+           type 'a attrib
+           module Unsafe :
+             sig
+               val string_attrib :
+                 string -> string -> 'a Eliom_content_core.Html.Ev'.attrib
+             end
+         end)
       ->
       sig
         val a_onabort : string -> [> `OnAbort ] A.attrib
@@ -7513,6 +7512,9 @@
       val of_li :
         Js_of_ocaml.Dom_html.liElement Js_of_ocaml.Js.t ->
         [> Html_types.li ] elt
+      val of_details :
+        Js_of_ocaml.Dom_html.detailsElement Js_of_ocaml.Js.t ->
+        [> Html_types.details ] elt
       val of_dialog :
         Js_of_ocaml.Dom_html.dialogElement Js_of_ocaml.Js.t ->
         [> Html_types.dialog ] elt

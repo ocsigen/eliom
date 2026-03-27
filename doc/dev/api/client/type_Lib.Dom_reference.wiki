@@ -1,0 +1,9 @@
+<<code language="ocaml" | sig
+  type key
+  val new_key : unit -> Lib.Dom_reference.key
+  val retain :
+    ?key:Lib.Dom_reference.key -> 'a Js_of_ocaml.Js.t -> keep:'b -> unit
+  val retain_generic : ?key:Lib.Dom_reference.key -> 'a -> keep:'b -> unit
+  val release : key:Lib.Dom_reference.key -> 'a -> unit
+  val transfer : key:Lib.Dom_reference.key -> src:'a -> dst:'b -> unit
+end >>

@@ -1,0 +1,26 @@
+<<code language="ocaml" | sig
+  type 'a page = 'a kind
+  type options = unit
+  type 'a return = Service.non_ocaml
+  val register :
+    ?app:string ->
+    ?scope:[< Eliom_common.scope ] ->
+    ?options:options ->
+    ?charset:string ->
+    ?code:int ->
+    ?content_type:string ->
+    ?headers:Service.Cohttp.Header.t ->
+    ?secure_session:bool ->
+    service:('get, 'post, 'b, 'c, 'd, Service.non_ext, Service.reg,
+             [< `WithSuffix | `WithoutSuffix ], 'e, 'f, 'a return)
+            Service.t ->
+    ?error_handler:((string * exn) list -> 'a page Lwt.t) ->
+    ('get -> 'post -> 'a page Lwt.t) -> unit
+  type 'a result = 'a kind
+  val send :
+    ?options:options ->
+    ?charset:string ->
+    ?code:int ->
+    ?content_type:string ->
+    ?headers:Service.Cohttp.Header.t -> 'a page -> 'a result Lwt.t
+end >>

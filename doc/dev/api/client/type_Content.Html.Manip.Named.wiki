@@ -1,0 +1,22 @@
+<<code language="ocaml" | sig
+  val appendChild :
+    ?before:'a Content.Html.elt ->
+    'b Content.Html.Id.id -> 'c Content.Html.elt -> unit
+  val appendChildren :
+    ?before:'a Content.Html.elt ->
+    'b Content.Html.Id.id -> 'c Content.Html.elt list -> unit
+  val removeChild : 'a Content.Html.Id.id -> 'b Content.Html.elt -> unit
+  val replaceChild :
+    'a Content.Html.Id.id ->
+    'b Content.Html.elt -> 'c Content.Html.elt -> unit
+  val removeChildren : 'a Content.Html.Id.id -> unit
+  val replaceChildren :
+    'a Content.Html.Id.id -> 'b Content.Html.elt list -> unit
+  val addEventListener :
+    ?capture:bool ->
+    'a Content.Html.Id.id ->
+    (#Js_of_ocaml.Dom_html.event as 'b) Js_of_ocaml.Js.t
+    Js_of_ocaml.Dom_html.Event.typ ->
+    ('a Content.Html.elt -> 'b Js_of_ocaml.Js.t -> bool) ->
+    Js_of_ocaml.Dom_html.event_listener_id
+end >>

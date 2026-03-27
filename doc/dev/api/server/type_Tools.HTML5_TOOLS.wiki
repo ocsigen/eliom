@@ -1,0 +1,50 @@
+<<code language="ocaml" | sig
+  val menu :
+    ?classe:Html_types.nmtoken list ->
+    ?id:string ->
+    ((unit, unit, Service.get, 'a, 'b, 'c, 'd, [ `WithoutSuffix ], unit,
+      unit, Service.non_ocaml)
+     Service.t *
+     [< Html_types.flow5_without_interactive ] Content.Html.elt list)
+    list ->
+    ?service:(unit, unit, Service.get, 'e, 'f, 'g, 'h, [ `WithoutSuffix ],
+              unit, unit, Service.non_ocaml)
+             Service.t ->
+    unit -> [> `Ul ] Content.Html.elt
+  val hierarchical_menu_depth_first :
+    ?classe:Html_types.nmtoken list ->
+    ?id:string ->
+    ?whole_tree:bool ->
+    [< Html_types.a_content ] Content.Html.elt list Tools.hierarchical_site ->
+    ?service:(unit, unit, Service.get, 'a, 'b, 'c, 'd, [ `WithoutSuffix ],
+              unit, unit, Service.non_ocaml)
+             Service.t ->
+    unit -> [> `Ul ] Content.Html.elt list
+  val hierarchical_menu_breadth_first :
+    ?classe:Html_types.nmtoken list ->
+    ?id:string ->
+    [< Html_types.a_content ] Content.Html.elt list Tools.hierarchical_site ->
+    ?service:(unit, unit, Service.get, 'a, 'b, 'c, 'd, [ `WithoutSuffix ],
+              unit, unit, Service.non_ocaml)
+             Service.t ->
+    unit -> [> `Ul ] Content.Html.elt list
+  val structure_links :
+    [< Html_types.a_content ] Content.Html.elt list Tools.hierarchical_site ->
+    ?service:(unit, unit, Service.get, 'a, 'b, 'c, 'd, [ `WithoutSuffix ],
+              unit, unit, Service.non_ocaml)
+             Service.t ->
+    unit -> [> `Link ] Content.Html.elt list
+  val head :
+    title:string ->
+    ?css:string list list ->
+    ?js:string list list ->
+    ?other:[< Html_types.head_content_fun ] Content.Html.elt list ->
+    unit -> [ `Head ] Content.Html.elt
+  val html :
+    title:string ->
+    ?a:[< Html_types.html_attrib ] Content.Html.attrib list ->
+    ?css:string list list ->
+    ?js:string list list ->
+    ?other_head:[< Html_types.head_content_fun ] Content.Html.elt list ->
+    [ `Body ] Content.Html.elt -> [ `Html ] Content.Html.elt
+end >>

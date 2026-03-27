@@ -1,0 +1,16 @@
+<<code language="ocaml" | sig
+  type page
+  type options
+  type result
+  type frame
+  val send :
+    ?options:Registration_sigs.PARAM.options ->
+    ?charset:string ->
+    ?code:int ->
+    ?content_type:string ->
+    ?headers:Service.Cohttp.Header.t ->
+    Registration_sigs.PARAM.page -> Registration_sigs.PARAM.frame Lwt.t
+  val send_appl_content : Service.send_appl_content
+  val result_of_http_result :
+    Registration_sigs.PARAM.frame -> Registration_sigs.PARAM.result
+end >>

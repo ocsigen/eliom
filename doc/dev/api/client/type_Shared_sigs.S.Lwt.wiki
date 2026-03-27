@@ -1,0 +1,40 @@
+<<code language="ocaml" | sig
+  val map_s :
+    ?eq:('b -> 'b -> bool) Shared_sigs.S.sv ->
+    ('a -> 'b Lwt.t) Shared_sigs.S.sv ->
+    'a Shared_sigs.S.t -> 'b Shared_sigs.S.t Lwt.t
+  val l2_s :
+    ?eq:('c -> 'c -> bool) Shared_sigs.S.sv ->
+    ('a -> 'b -> 'c Lwt.t) Shared_sigs.S.sv ->
+    'a Shared_sigs.S.t -> 'b Shared_sigs.S.t -> 'c Shared_sigs.S.t Lwt.t
+  val l3_s :
+    ?eq:('d -> 'd -> bool) Shared_sigs.S.sv ->
+    ('a -> 'b -> 'c -> 'd Lwt.t) Shared_sigs.S.sv ->
+    'a Shared_sigs.S.t ->
+    'b Shared_sigs.S.t -> 'c Shared_sigs.S.t -> 'd Shared_sigs.S.t Lwt.t
+  val l4_s :
+    ?eq:('e -> 'e -> bool) Shared_sigs.S.sv ->
+    ('a -> 'b -> 'c -> 'd -> 'e Lwt.t) Shared_sigs.S.sv ->
+    'a Shared_sigs.S.t ->
+    'b Shared_sigs.S.t ->
+    'c Shared_sigs.S.t -> 'd Shared_sigs.S.t -> 'e Shared_sigs.S.t Lwt.t
+  val l5_s :
+    ?eq:('f -> 'f -> bool) Shared_sigs.S.sv ->
+    ('a -> 'b -> 'c -> 'd -> 'e -> 'f Lwt.t) Shared_sigs.S.sv ->
+    'a Shared_sigs.S.t ->
+    'b Shared_sigs.S.t ->
+    'c Shared_sigs.S.t ->
+    'd Shared_sigs.S.t -> 'e Shared_sigs.S.t -> 'f Shared_sigs.S.t Lwt.t
+  val l6_s :
+    ?eq:('g -> 'g -> bool) Shared_sigs.S.sv ->
+    ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g Lwt.t) Shared_sigs.S.sv ->
+    'a Shared_sigs.S.t ->
+    'b Shared_sigs.S.t ->
+    'c Shared_sigs.S.t ->
+    'd Shared_sigs.S.t ->
+    'e Shared_sigs.S.t -> 'f Shared_sigs.S.t -> 'g Shared_sigs.S.t Lwt.t
+  val merge_s :
+    ?eq:('a -> 'a -> bool) Shared_sigs.S.sv ->
+    ('a -> 'b -> 'a Lwt.t) Shared_sigs.S.sv ->
+    'a -> 'b Shared_sigs.S.t list -> 'a Shared_sigs.S.t Lwt.t
+end >>

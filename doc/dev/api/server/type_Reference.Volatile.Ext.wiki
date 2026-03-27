@@ -1,0 +1,14 @@
+<<code language="ocaml" | sig
+  val get :
+    ([< `Client_process | `Session | `Session_group ], [< `Data ])
+    State.Ext.state -> 'a Reference.Volatile.eref -> 'a
+  val set :
+    ([< `Client_process | `Session | `Session_group ], [< `Data ])
+    State.Ext.state -> 'a Reference.Volatile.eref -> 'a -> unit
+  val modify :
+    ([< `Client_process | `Session | `Session_group ], [< `Data ])
+    State.Ext.state -> 'a Reference.Volatile.eref -> ('a -> 'a) -> unit
+  val unset :
+    ([< `Client_process | `Session | `Session_group ], [< `Data ])
+    State.Ext.state -> 'a Reference.Volatile.eref -> unit
+end >>

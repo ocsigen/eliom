@@ -6,7 +6,7 @@
 
     ~Warning~: it is not possible to catch exceptions on each channel
     using ~Eliom~_react ~(for example channel closed or full~)~.
-    ~If you need an error handling~, use ~Eliom~_comet~.~Channel instead~.
+    ~If you need an error handling~, use ~Comet~.~Channel instead~.
 
 ----
 

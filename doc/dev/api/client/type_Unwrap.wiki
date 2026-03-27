@@ -1,0 +1,10 @@
+<<code language="ocaml" | sig
+  type unwrap_id
+  val id_of_int : int -> Unwrap.unwrap_id
+  val unwrap_js : Js_of_ocaml.Js.js_string Js_of_ocaml.Js.t -> 'a
+  val register_unwrapper : Unwrap.unwrap_id -> ('a -> 'b) -> unit
+  val unwrap : string -> int -> 'a
+  val register_unwrapper' : Unwrap.unwrap_id -> ('a -> 'b option) -> unit
+  val late_unwrap_value :
+    'a Eliom_runtime.Client_value_server_repr.t -> 'b -> unit
+end >>

@@ -1,0 +1,6 @@
+<<code language="ocaml" | sig
+  val ( >|= ) :
+    'a Shared_sigs.S.t -> ('a -> 'b) Shared_sigs.S.sv -> 'b Shared_sigs.S.t
+  val ( =|< ) :
+    ('a -> 'b) Shared_sigs.S.sv -> 'a Shared_sigs.S.t -> 'b Shared_sigs.S.t
+end >>

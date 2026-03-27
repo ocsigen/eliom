@@ -1,0 +1,13 @@
+<<code language="ocaml" | sig
+  type ('a, 'b) t
+  val create :
+    ?scope:[< Comet.Channel.comet_scope ] ->
+    ?name:string -> ?size:int -> 'a Deriving_Json.t -> ('a, 'a) Bus.t
+  val create_filtered :
+    ?scope:[< Comet.Channel.comet_scope ] ->
+    ?name:string ->
+    ?size:int ->
+    filter:('a -> 'b Lwt.t) -> 'a Deriving_Json.t -> ('a, 'b) Bus.t
+  val stream : ('a, 'b) Bus.t -> 'b Lwt_stream.t
+  val write : ('a, 'b) Bus.t -> 'a -> unit Lwt.t
+end >>

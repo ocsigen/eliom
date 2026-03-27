@@ -1,0 +1,1730 @@
+<<code language="ocaml" | sig
+  type 'a kind
+  type browser_content = [ `Browser ]
+  type block_content
+  type unknown_content
+  type 'a application_content = [ `Appl of 'a ]
+  type 'a application_name
+  type 'a ocaml_content
+  module Html :
+    sig
+      type page = Html_types.html Content.Html.elt
+      type options = unit
+      type return = Service.non_ocaml
+      type result = browser_content kind
+      val register :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        service:('get, 'post, 'a, 'b, 'c, Service.non_ext, Service.reg,
+                 [< `WithSuffix | `WithoutSuffix ], 'd, 'e, return)
+                Service.t ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('get -> 'post -> page Lwt.t) -> unit
+      val send :
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t -> page -> result Lwt.t
+      val create :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        meth:('m, 'gp, 'gn, 'pp, 'pn,
+              [< `WithSuffix | `WithoutSuffix ] as 'a, 'gp_)
+             Service.meth ->
+        path:('att, 'co, 'gp_) Service.path_option ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> 'pp -> page Lwt.t) ->
+        ('gp, 'pp, 'm, 'att, 'co, Service.non_ext, Service.reg, 'a, 'gn, 'pn,
+         return)
+        Service.t
+      val create_attached_get :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        fallback:(unit, unit, Service.get, Service.att, Service.non_co,
+                  Service.non_ext, 'a, [ `WithoutSuffix ], unit, unit,
+                  return)
+                 Service.t ->
+        get_params:('gp, [ `WithoutSuffix ], 'gn) Parameter.params_type ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> unit -> page Lwt.t) ->
+        ('gp, unit, Service.get, Service.att, Service.co, Service.non_ext,
+         Service.reg, [ `WithoutSuffix ], 'gn, unit, return)
+        Service.t
+      val create_attached_post :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        fallback:('gp, unit, Service.get, Service.att, Service.non_co,
+                  Service.non_ext, 'a, [ `WithoutSuffix ], 'gn, unit, 
+                  return)
+                 Service.t ->
+        post_params:('pp, [ `WithoutSuffix ], 'pn) Parameter.params_type ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> 'pp -> page Lwt.t) ->
+        ('gp, 'pp, Service.post, Service.att, Service.co, Service.non_ext,
+         Service.reg, [ `WithoutSuffix ], 'gn, 'pn, return)
+        Service.t
+    end
+  type appl_service_options = { do_not_launch : bool; }
+  val default_appl_service_options : Registration.appl_service_options
+  module type APP =
+    sig
+      val application_script :
+        ?defer:bool -> ?async:bool -> unit -> [> `Script ] Content.Html.elt
+      val wasm_detection_script :
+        ?defer:bool ->
+        ?async:bool ->
+        ?js_name:string ->
+        ?wasm_name:string -> unit -> [> `Script ] Content.Html.elt
+      val application_name : string
+      val is_initial_request : unit -> bool
+      type app_id
+      type page = Html_types.html Content.Html.elt
+      type options = appl_service_options
+      type return = Service.non_ocaml
+      type result = app_id application_content kind
+      val register :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        service:('get, 'post, 'a, 'b, 'c, Service.non_ext, Service.reg,
+                 [< `WithSuffix | `WithoutSuffix ], 'd, 'e, return)
+                Service.t ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('get -> 'post -> page Lwt.t) -> unit
+      val send :
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t -> page -> result Lwt.t
+      val create :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        meth:('m, 'gp, 'gn, 'pp, 'pn,
+              [< `WithSuffix | `WithoutSuffix ] as 'a, 'gp_)
+             Service.meth ->
+        path:('att, 'co, 'gp_) Service.path_option ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> 'pp -> page Lwt.t) ->
+        ('gp, 'pp, 'm, 'att, 'co, Service.non_ext, Service.reg, 'a, 'gn, 'pn,
+         return)
+        Service.t
+      val create_attached_get :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        fallback:(unit, unit, Service.get, Service.att, Service.non_co,
+                  Service.non_ext, 'a, [ `WithoutSuffix ], unit, unit,
+                  return)
+                 Service.t ->
+        get_params:('gp, [ `WithoutSuffix ], 'gn) Parameter.params_type ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> unit -> page Lwt.t) ->
+        ('gp, unit, Service.get, Service.att, Service.co, Service.non_ext,
+         Service.reg, [ `WithoutSuffix ], 'gn, unit, return)
+        Service.t
+      val create_attached_post :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        fallback:('gp, unit, Service.get, Service.att, Service.non_co,
+                  Service.non_ext, 'a, [ `WithoutSuffix ], 'gn, unit, 
+                  return)
+                 Service.t ->
+        post_params:('pp, [ `WithoutSuffix ], 'pn) Parameter.params_type ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> 'pp -> page Lwt.t) ->
+        ('gp, 'pp, Service.post, Service.att, Service.co, Service.non_ext,
+         Service.reg, [ `WithoutSuffix ], 'gn, 'pn, return)
+        Service.t
+      val typed_name : Registration.APP.app_id Registration.application_name
+    end
+  val transform_global_app_uri :
+    (Content.Html.uri -> Content.Html.uri) Stdlib.ref
+  module App : Registration_sigs.APP_PARAM -> APP
+  module type TMPL_PARAMS =
+    sig
+      type t
+      val name : string
+      val make_page :
+        Registration.TMPL_PARAMS.t -> Html_types.html Content.Html.elt Lwt.t
+      val update : Registration.TMPL_PARAMS.t -> unit Eliom_client_value.t
+    end
+  module Eliom_tmpl :
+    (App : APP) (Tmpl_param : TMPL_PARAMS) ->
+      sig
+        type page = Tmpl_param.t
+        type options = appl_service_options
+        type return = Service.non_ocaml
+        type result = App.app_id application_content kind
+        val register :
+          ?app:string ->
+          ?scope:[< Eliom_common.scope ] ->
+          ?options:options ->
+          ?charset:string ->
+          ?code:int ->
+          ?content_type:string ->
+          ?headers:Cohttp.Header.t ->
+          ?secure_session:bool ->
+          service:('get, 'post, 'a, 'b, 'c, Service.non_ext, Service.reg,
+                   [< `WithSuffix | `WithoutSuffix ], 'd, 'e, return)
+                  Service.t ->
+          ?error_handler:((string * exn) list -> page Lwt.t) ->
+          ('get -> 'post -> page Lwt.t) -> unit
+        val send :
+          ?options:options ->
+          ?charset:string ->
+          ?code:int ->
+          ?content_type:string ->
+          ?headers:Cohttp.Header.t -> page -> result Lwt.t
+        val create :
+          ?app:string ->
+          ?scope:[< Eliom_common.scope ] ->
+          ?options:options ->
+          ?charset:string ->
+          ?code:int ->
+          ?content_type:string ->
+          ?headers:Cohttp.Header.t ->
+          ?secure_session:bool ->
+          ?https:bool ->
+          ?name:string ->
+          ?csrf_safe:bool ->
+          ?csrf_scope:[< Eliom_common.user_scope ] ->
+          ?csrf_secure:bool ->
+          ?max_use:int ->
+          ?timeout:float ->
+          meth:('m, 'gp, 'gn, 'pp, 'pn,
+                [< `WithSuffix | `WithoutSuffix ] as 'a, 'gp_)
+               Service.meth ->
+          path:('att, 'co, 'gp_) Service.path_option ->
+          ?error_handler:((string * exn) list -> page Lwt.t) ->
+          ('gp -> 'pp -> page Lwt.t) ->
+          ('gp, 'pp, 'm, 'att, 'co, Service.non_ext, Service.reg, 'a, 'gn,
+           'pn, return)
+          Service.t
+        val create_attached_get :
+          ?app:string ->
+          ?scope:[< Eliom_common.scope ] ->
+          ?options:options ->
+          ?charset:string ->
+          ?code:int ->
+          ?content_type:string ->
+          ?headers:Cohttp.Header.t ->
+          ?secure_session:bool ->
+          ?https:bool ->
+          ?name:string ->
+          ?csrf_safe:bool ->
+          ?csrf_scope:[< Eliom_common.user_scope ] ->
+          ?csrf_secure:bool ->
+          ?max_use:int ->
+          ?timeout:float ->
+          fallback:(unit, unit, Service.get, Service.att, Service.non_co,
+                    Service.non_ext, 'a, [ `WithoutSuffix ], unit, unit,
+                    return)
+                   Service.t ->
+          get_params:('gp, [ `WithoutSuffix ], 'gn) Parameter.params_type ->
+          ?error_handler:((string * exn) list -> page Lwt.t) ->
+          ('gp -> unit -> page Lwt.t) ->
+          ('gp, unit, Service.get, Service.att, Service.co, Service.non_ext,
+           Service.reg, [ `WithoutSuffix ], 'gn, unit, return)
+          Service.t
+        val create_attached_post :
+          ?app:string ->
+          ?scope:[< Eliom_common.scope ] ->
+          ?options:options ->
+          ?charset:string ->
+          ?code:int ->
+          ?content_type:string ->
+          ?headers:Cohttp.Header.t ->
+          ?secure_session:bool ->
+          ?https:bool ->
+          ?name:string ->
+          ?csrf_safe:bool ->
+          ?csrf_scope:[< Eliom_common.user_scope ] ->
+          ?csrf_secure:bool ->
+          ?max_use:int ->
+          ?timeout:float ->
+          fallback:('gp, unit, Service.get, Service.att, Service.non_co,
+                    Service.non_ext, 'a, [ `WithoutSuffix ], 'gn, unit,
+                    return)
+                   Service.t ->
+          post_params:('pp, [ `WithoutSuffix ], 'pn) Parameter.params_type ->
+          ?error_handler:((string * exn) list -> page Lwt.t) ->
+          ('gp -> 'pp -> page Lwt.t) ->
+          ('gp, 'pp, Service.post, Service.att, Service.co, Service.non_ext,
+           Service.reg, [ `WithoutSuffix ], 'gn, 'pn, return)
+          Service.t
+      end
+  module Flow5 :
+    sig
+      type page = Html_types.flow5 Content.Html.elt list
+      type options = unit
+      type return = Service.non_ocaml
+      type result = block_content kind
+      val register :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        service:('get, 'post, 'a, 'b, 'c, Service.non_ext, Service.reg,
+                 [< `WithSuffix | `WithoutSuffix ], 'd, 'e, return)
+                Service.t ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('get -> 'post -> page Lwt.t) -> unit
+      val send :
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t -> page -> result Lwt.t
+      val create :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        meth:('m, 'gp, 'gn, 'pp, 'pn,
+              [< `WithSuffix | `WithoutSuffix ] as 'a, 'gp_)
+             Service.meth ->
+        path:('att, 'co, 'gp_) Service.path_option ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> 'pp -> page Lwt.t) ->
+        ('gp, 'pp, 'm, 'att, 'co, Service.non_ext, Service.reg, 'a, 'gn, 'pn,
+         return)
+        Service.t
+      val create_attached_get :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        fallback:(unit, unit, Service.get, Service.att, Service.non_co,
+                  Service.non_ext, 'a, [ `WithoutSuffix ], unit, unit,
+                  return)
+                 Service.t ->
+        get_params:('gp, [ `WithoutSuffix ], 'gn) Parameter.params_type ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> unit -> page Lwt.t) ->
+        ('gp, unit, Service.get, Service.att, Service.co, Service.non_ext,
+         Service.reg, [ `WithoutSuffix ], 'gn, unit, return)
+        Service.t
+      val create_attached_post :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        fallback:('gp, unit, Service.get, Service.att, Service.non_co,
+                  Service.non_ext, 'a, [ `WithoutSuffix ], 'gn, unit, 
+                  return)
+                 Service.t ->
+        post_params:('pp, [ `WithoutSuffix ], 'pn) Parameter.params_type ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> 'pp -> page Lwt.t) ->
+        ('gp, 'pp, Service.post, Service.att, Service.co, Service.non_ext,
+         Service.reg, [ `WithoutSuffix ], 'gn, 'pn, return)
+        Service.t
+    end
+  module Html_text :
+    sig
+      type page = string
+      type options = unit
+      type return = Service.non_ocaml
+      type result = browser_content kind
+      val register :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        service:('get, 'post, 'a, 'b, 'c, Service.non_ext, Service.reg,
+                 [< `WithSuffix | `WithoutSuffix ], 'd, 'e, return)
+                Service.t ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('get -> 'post -> page Lwt.t) -> unit
+      val send :
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t -> page -> result Lwt.t
+      val create :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        meth:('m, 'gp, 'gn, 'pp, 'pn,
+              [< `WithSuffix | `WithoutSuffix ] as 'a, 'gp_)
+             Service.meth ->
+        path:('att, 'co, 'gp_) Service.path_option ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> 'pp -> page Lwt.t) ->
+        ('gp, 'pp, 'm, 'att, 'co, Service.non_ext, Service.reg, 'a, 'gn, 'pn,
+         return)
+        Service.t
+      val create_attached_get :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        fallback:(unit, unit, Service.get, Service.att, Service.non_co,
+                  Service.non_ext, 'a, [ `WithoutSuffix ], unit, unit,
+                  return)
+                 Service.t ->
+        get_params:('gp, [ `WithoutSuffix ], 'gn) Parameter.params_type ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> unit -> page Lwt.t) ->
+        ('gp, unit, Service.get, Service.att, Service.co, Service.non_ext,
+         Service.reg, [ `WithoutSuffix ], 'gn, unit, return)
+        Service.t
+      val create_attached_post :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        fallback:('gp, unit, Service.get, Service.att, Service.non_co,
+                  Service.non_ext, 'a, [ `WithoutSuffix ], 'gn, unit, 
+                  return)
+                 Service.t ->
+        post_params:('pp, [ `WithoutSuffix ], 'pn) Parameter.params_type ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> 'pp -> page Lwt.t) ->
+        ('gp, 'pp, Service.post, Service.att, Service.co, Service.non_ext,
+         Service.reg, [ `WithoutSuffix ], 'gn, 'pn, return)
+        Service.t
+    end
+  module CssText :
+    sig
+      type page = string
+      type options = int
+      type return = Service.non_ocaml
+      type result = browser_content kind
+      val register :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        service:('get, 'post, 'a, 'b, 'c, Service.non_ext, Service.reg,
+                 [< `WithSuffix | `WithoutSuffix ], 'd, 'e, return)
+                Service.t ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('get -> 'post -> page Lwt.t) -> unit
+      val send :
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t -> page -> result Lwt.t
+      val create :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        meth:('m, 'gp, 'gn, 'pp, 'pn,
+              [< `WithSuffix | `WithoutSuffix ] as 'a, 'gp_)
+             Service.meth ->
+        path:('att, 'co, 'gp_) Service.path_option ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> 'pp -> page Lwt.t) ->
+        ('gp, 'pp, 'm, 'att, 'co, Service.non_ext, Service.reg, 'a, 'gn, 'pn,
+         return)
+        Service.t
+      val create_attached_get :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        fallback:(unit, unit, Service.get, Service.att, Service.non_co,
+                  Service.non_ext, 'a, [ `WithoutSuffix ], unit, unit,
+                  return)
+                 Service.t ->
+        get_params:('gp, [ `WithoutSuffix ], 'gn) Parameter.params_type ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> unit -> page Lwt.t) ->
+        ('gp, unit, Service.get, Service.att, Service.co, Service.non_ext,
+         Service.reg, [ `WithoutSuffix ], 'gn, unit, return)
+        Service.t
+      val create_attached_post :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        fallback:('gp, unit, Service.get, Service.att, Service.non_co,
+                  Service.non_ext, 'a, [ `WithoutSuffix ], 'gn, unit, 
+                  return)
+                 Service.t ->
+        post_params:('pp, [ `WithoutSuffix ], 'pn) Parameter.params_type ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> 'pp -> page Lwt.t) ->
+        ('gp, 'pp, Service.post, Service.att, Service.co, Service.non_ext,
+         Service.reg, [ `WithoutSuffix ], 'gn, 'pn, return)
+        Service.t
+    end
+  module Action :
+    sig
+      type page = unit
+      type options = [ `NoReload | `Reload ]
+      type return = Service.non_ocaml
+      type result = browser_content kind
+      val register :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        service:('get, 'post, 'a, 'b, 'c, Service.non_ext, Service.reg,
+                 [< `WithSuffix | `WithoutSuffix ], 'd, 'e, return)
+                Service.t ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('get -> 'post -> page Lwt.t) -> unit
+      val send :
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t -> page -> result Lwt.t
+      val create :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        meth:('m, 'gp, 'gn, 'pp, 'pn,
+              [< `WithSuffix | `WithoutSuffix ] as 'a, 'gp_)
+             Service.meth ->
+        path:('att, 'co, 'gp_) Service.path_option ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> 'pp -> page Lwt.t) ->
+        ('gp, 'pp, 'm, 'att, 'co, Service.non_ext, Service.reg, 'a, 'gn, 'pn,
+         return)
+        Service.t
+      val create_attached_get :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        fallback:(unit, unit, Service.get, Service.att, Service.non_co,
+                  Service.non_ext, 'a, [ `WithoutSuffix ], unit, unit,
+                  return)
+                 Service.t ->
+        get_params:('gp, [ `WithoutSuffix ], 'gn) Parameter.params_type ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> unit -> page Lwt.t) ->
+        ('gp, unit, Service.get, Service.att, Service.co, Service.non_ext,
+         Service.reg, [ `WithoutSuffix ], 'gn, unit, return)
+        Service.t
+      val create_attached_post :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        fallback:('gp, unit, Service.get, Service.att, Service.non_co,
+                  Service.non_ext, 'a, [ `WithoutSuffix ], 'gn, unit, 
+                  return)
+                 Service.t ->
+        post_params:('pp, [ `WithoutSuffix ], 'pn) Parameter.params_type ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> 'pp -> page Lwt.t) ->
+        ('gp, 'pp, Service.post, Service.att, Service.co, Service.non_ext,
+         Service.reg, [ `WithoutSuffix ], 'gn, 'pn, return)
+        Service.t
+    end
+  module Unit :
+    sig
+      type page = unit
+      type options = unit
+      type return = Service.non_ocaml
+      type result = browser_content kind
+      val register :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        service:('get, 'post, 'a, 'b, 'c, Service.non_ext, Service.reg,
+                 [< `WithSuffix | `WithoutSuffix ], 'd, 'e, return)
+                Service.t ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('get -> 'post -> page Lwt.t) -> unit
+      val send :
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t -> page -> result Lwt.t
+      val create :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        meth:('m, 'gp, 'gn, 'pp, 'pn,
+              [< `WithSuffix | `WithoutSuffix ] as 'a, 'gp_)
+             Service.meth ->
+        path:('att, 'co, 'gp_) Service.path_option ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> 'pp -> page Lwt.t) ->
+        ('gp, 'pp, 'm, 'att, 'co, Service.non_ext, Service.reg, 'a, 'gn, 'pn,
+         return)
+        Service.t
+      val create_attached_get :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        fallback:(unit, unit, Service.get, Service.att, Service.non_co,
+                  Service.non_ext, 'a, [ `WithoutSuffix ], unit, unit,
+                  return)
+                 Service.t ->
+        get_params:('gp, [ `WithoutSuffix ], 'gn) Parameter.params_type ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> unit -> page Lwt.t) ->
+        ('gp, unit, Service.get, Service.att, Service.co, Service.non_ext,
+         Service.reg, [ `WithoutSuffix ], 'gn, unit, return)
+        Service.t
+      val create_attached_post :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        fallback:('gp, unit, Service.get, Service.att, Service.non_co,
+                  Service.non_ext, 'a, [ `WithoutSuffix ], 'gn, unit, 
+                  return)
+                 Service.t ->
+        post_params:('pp, [ `WithoutSuffix ], 'pn) Parameter.params_type ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> 'pp -> page Lwt.t) ->
+        ('gp, 'pp, Service.post, Service.att, Service.co, Service.non_ext,
+         Service.reg, [ `WithoutSuffix ], 'gn, 'pn, return)
+        Service.t
+    end
+  type _ redirection =
+      Redirection :
+        (unit, unit, Service.get, 'b, 'c, 'd, 'e, [ `WithoutSuffix ], 
+         unit, unit, 'a)
+        Service.t -> 'a Registration.redirection
+  module Redirection :
+    sig
+      type 'a page = 'a redirection
+      type options =
+          [ `Found
+          | `MovedPermanently
+          | `NotNodifed
+          | `SeeOther
+          | `TemporaryRedirect
+          | `UseProxy ]
+      type 'a return = 'a
+      val register :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        service:('get, 'post, 'b, 'c, 'd, Service.non_ext, Service.reg,
+                 [< `WithSuffix | `WithoutSuffix ], 'e, 'f, 'a return)
+                Service.t ->
+        ?error_handler:((string * exn) list -> 'a page Lwt.t) ->
+        ('get -> 'post -> 'a page Lwt.t) -> unit
+      val create :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        meth:('m, 'gp, 'gn, 'pp, 'pn,
+              [< `WithSuffix | `WithoutSuffix ] as 'b, 'gp_)
+             Service.meth ->
+        path:('att, 'co, 'gp_) Service.path_option ->
+        ?error_handler:((string * exn) list -> 'a page Lwt.t) ->
+        ('gp -> 'pp -> 'a page Lwt.t) ->
+        ('gp, 'pp, 'm, 'att, 'co, Service.non_ext, Service.reg, 'b, 'gn, 'pn,
+         'a return)
+        Service.t
+      val create_attached_get :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        fallback:(unit, unit, Service.get, Service.att, Service.non_co,
+                  Service.non_ext, 'b, [ `WithoutSuffix ], unit, unit,
+                  'a return)
+                 Service.t ->
+        get_params:('gp, [ `WithoutSuffix ], 'gn) Parameter.params_type ->
+        ?error_handler:((string * exn) list -> 'a page Lwt.t) ->
+        ('gp -> unit -> 'a page Lwt.t) ->
+        ('gp, unit, Service.get, Service.att, Service.co, Service.non_ext,
+         Service.reg, [ `WithoutSuffix ], 'gn, unit, 'a return)
+        Service.t
+      val create_attached_post :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        fallback:('gp, unit, Service.get, Service.att, Service.non_co,
+                  Service.non_ext, 'b, [ `WithoutSuffix ], 'gn, unit,
+                  'a return)
+                 Service.t ->
+        post_params:('pp, [ `WithoutSuffix ], 'pn) Parameter.params_type ->
+        ?error_handler:((string * exn) list -> 'a page Lwt.t) ->
+        ('gp -> 'pp -> 'a page Lwt.t) ->
+        ('gp, 'pp, Service.post, Service.att, Service.co, Service.non_ext,
+         Service.reg, [ `WithoutSuffix ], 'gn, 'pn, 'a return)
+        Service.t
+      val send :
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Ocsigen_header.t -> 'a page -> 'b Registration.kind Lwt.t
+    end
+  module String_redirection :
+    sig
+      type page = Lib.Url.uri
+      type options =
+          [ `Found
+          | `MovedPermanently
+          | `NotNodifed
+          | `SeeOther
+          | `TemporaryRedirect
+          | `UseProxy ]
+      type return = Service.non_ocaml
+      type result = browser_content kind
+      val register :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        service:('get, 'post, 'a, 'b, 'c, Service.non_ext, Service.reg,
+                 [< `WithSuffix | `WithoutSuffix ], 'd, 'e, return)
+                Service.t ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('get -> 'post -> page Lwt.t) -> unit
+      val send :
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t -> page -> result Lwt.t
+      val create :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        meth:('m, 'gp, 'gn, 'pp, 'pn,
+              [< `WithSuffix | `WithoutSuffix ] as 'a, 'gp_)
+             Service.meth ->
+        path:('att, 'co, 'gp_) Service.path_option ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> 'pp -> page Lwt.t) ->
+        ('gp, 'pp, 'm, 'att, 'co, Service.non_ext, Service.reg, 'a, 'gn, 'pn,
+         return)
+        Service.t
+      val create_attached_get :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        fallback:(unit, unit, Service.get, Service.att, Service.non_co,
+                  Service.non_ext, 'a, [ `WithoutSuffix ], unit, unit,
+                  return)
+                 Service.t ->
+        get_params:('gp, [ `WithoutSuffix ], 'gn) Parameter.params_type ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> unit -> page Lwt.t) ->
+        ('gp, unit, Service.get, Service.att, Service.co, Service.non_ext,
+         Service.reg, [ `WithoutSuffix ], 'gn, unit, return)
+        Service.t
+      val create_attached_post :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        fallback:('gp, unit, Service.get, Service.att, Service.non_co,
+                  Service.non_ext, 'a, [ `WithoutSuffix ], 'gn, unit, 
+                  return)
+                 Service.t ->
+        post_params:('pp, [ `WithoutSuffix ], 'pn) Parameter.params_type ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> 'pp -> page Lwt.t) ->
+        ('gp, 'pp, Service.post, Service.att, Service.co, Service.non_ext,
+         Service.reg, [ `WithoutSuffix ], 'gn, 'pn, return)
+        Service.t
+    end
+  module File :
+    sig
+      val check_file : string -> bool
+      type page = string
+      type options = int
+      type return = Service.non_ocaml
+      type result = browser_content kind
+      val register :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        service:('get, 'post, 'a, 'b, 'c, Service.non_ext, Service.reg,
+                 [< `WithSuffix | `WithoutSuffix ], 'd, 'e, return)
+                Service.t ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('get -> 'post -> page Lwt.t) -> unit
+      val send :
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t -> page -> result Lwt.t
+      val create :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        meth:('m, 'gp, 'gn, 'pp, 'pn,
+              [< `WithSuffix | `WithoutSuffix ] as 'a, 'gp_)
+             Service.meth ->
+        path:('att, 'co, 'gp_) Service.path_option ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> 'pp -> page Lwt.t) ->
+        ('gp, 'pp, 'm, 'att, 'co, Service.non_ext, Service.reg, 'a, 'gn, 'pn,
+         return)
+        Service.t
+      val create_attached_get :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        fallback:(unit, unit, Service.get, Service.att, Service.non_co,
+                  Service.non_ext, 'a, [ `WithoutSuffix ], unit, unit,
+                  return)
+                 Service.t ->
+        get_params:('gp, [ `WithoutSuffix ], 'gn) Parameter.params_type ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> unit -> page Lwt.t) ->
+        ('gp, unit, Service.get, Service.att, Service.co, Service.non_ext,
+         Service.reg, [ `WithoutSuffix ], 'gn, unit, return)
+        Service.t
+      val create_attached_post :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        fallback:('gp, unit, Service.get, Service.att, Service.non_co,
+                  Service.non_ext, 'a, [ `WithoutSuffix ], 'gn, unit, 
+                  return)
+                 Service.t ->
+        post_params:('pp, [ `WithoutSuffix ], 'pn) Parameter.params_type ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> 'pp -> page Lwt.t) ->
+        ('gp, 'pp, Service.post, Service.att, Service.co, Service.non_ext,
+         Service.reg, [ `WithoutSuffix ], 'gn, 'pn, return)
+        Service.t
+    end
+  module File_ct :
+    sig
+      val check_file : string -> bool
+      type page = string * string
+      type options = int
+      type return = Service.non_ocaml
+      type result = browser_content kind
+      val register :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        service:('get, 'post, 'a, 'b, 'c, Service.non_ext, Service.reg,
+                 [< `WithSuffix | `WithoutSuffix ], 'd, 'e, return)
+                Service.t ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('get -> 'post -> page Lwt.t) -> unit
+      val send :
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t -> page -> result Lwt.t
+      val create :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        meth:('m, 'gp, 'gn, 'pp, 'pn,
+              [< `WithSuffix | `WithoutSuffix ] as 'a, 'gp_)
+             Service.meth ->
+        path:('att, 'co, 'gp_) Service.path_option ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> 'pp -> page Lwt.t) ->
+        ('gp, 'pp, 'm, 'att, 'co, Service.non_ext, Service.reg, 'a, 'gn, 'pn,
+         return)
+        Service.t
+      val create_attached_get :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        fallback:(unit, unit, Service.get, Service.att, Service.non_co,
+                  Service.non_ext, 'a, [ `WithoutSuffix ], unit, unit,
+                  return)
+                 Service.t ->
+        get_params:('gp, [ `WithoutSuffix ], 'gn) Parameter.params_type ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> unit -> page Lwt.t) ->
+        ('gp, unit, Service.get, Service.att, Service.co, Service.non_ext,
+         Service.reg, [ `WithoutSuffix ], 'gn, unit, return)
+        Service.t
+      val create_attached_post :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        fallback:('gp, unit, Service.get, Service.att, Service.non_co,
+                  Service.non_ext, 'a, [ `WithoutSuffix ], 'gn, unit, 
+                  return)
+                 Service.t ->
+        post_params:('pp, [ `WithoutSuffix ], 'pn) Parameter.params_type ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> 'pp -> page Lwt.t) ->
+        ('gp, 'pp, Service.post, Service.att, Service.co, Service.non_ext,
+         Service.reg, [ `WithoutSuffix ], 'gn, 'pn, return)
+        Service.t
+    end
+  module Ocaml :
+    sig
+      type 'a page = 'a
+      type options = unit
+      type 'a return = 'a Service.ocaml
+      val register :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        service:('get, 'post, 'b, 'c, 'd, Service.non_ext, Service.reg,
+                 [< `WithSuffix | `WithoutSuffix ], 'e, 'f, 'a return)
+                Service.t ->
+        ?error_handler:((string * exn) list -> 'a page Lwt.t) ->
+        ('get -> 'post -> 'a page Lwt.t) -> unit
+      val create :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        meth:('m, 'gp, 'gn, 'pp, 'pn,
+              [< `WithSuffix | `WithoutSuffix ] as 'b, 'gp_)
+             Service.meth ->
+        path:('att, 'co, 'gp_) Service.path_option ->
+        ?error_handler:((string * exn) list -> 'a page Lwt.t) ->
+        ('gp -> 'pp -> 'a page Lwt.t) ->
+        ('gp, 'pp, 'm, 'att, 'co, Service.non_ext, Service.reg, 'b, 'gn, 'pn,
+         'a return)
+        Service.t
+      val create_attached_get :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        fallback:(unit, unit, Service.get, Service.att, Service.non_co,
+                  Service.non_ext, 'b, [ `WithoutSuffix ], unit, unit,
+                  'a return)
+                 Service.t ->
+        get_params:('gp, [ `WithoutSuffix ], 'gn) Parameter.params_type ->
+        ?error_handler:((string * exn) list -> 'a page Lwt.t) ->
+        ('gp -> unit -> 'a page Lwt.t) ->
+        ('gp, unit, Service.get, Service.att, Service.co, Service.non_ext,
+         Service.reg, [ `WithoutSuffix ], 'gn, unit, 'a return)
+        Service.t
+      val create_attached_post :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        fallback:('gp, unit, Service.get, Service.att, Service.non_co,
+                  Service.non_ext, 'b, [ `WithoutSuffix ], 'gn, unit,
+                  'a return)
+                 Service.t ->
+        post_params:('pp, [ `WithoutSuffix ], 'pn) Parameter.params_type ->
+        ?error_handler:((string * exn) list -> 'a page Lwt.t) ->
+        ('gp -> 'pp -> 'a page Lwt.t) ->
+        ('gp, 'pp, Service.post, Service.att, Service.co, Service.non_ext,
+         Service.reg, [ `WithoutSuffix ], 'gn, 'pn, 'a return)
+        Service.t
+      type 'a result = 'a ocaml_content kind
+      val send :
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t -> 'a page -> 'a result Lwt.t
+    end
+  module Any :
+    sig
+      type 'a page = 'a kind
+      type options = unit
+      type 'a return = Service.non_ocaml
+      val register :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        service:('get, 'post, 'b, 'c, 'd, Service.non_ext, Service.reg,
+                 [< `WithSuffix | `WithoutSuffix ], 'e, 'f, 'a return)
+                Service.t ->
+        ?error_handler:((string * exn) list -> 'a page Lwt.t) ->
+        ('get -> 'post -> 'a page Lwt.t) -> unit
+      val create :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        meth:('m, 'gp, 'gn, 'pp, 'pn,
+              [< `WithSuffix | `WithoutSuffix ] as 'b, 'gp_)
+             Service.meth ->
+        path:('att, 'co, 'gp_) Service.path_option ->
+        ?error_handler:((string * exn) list -> 'a page Lwt.t) ->
+        ('gp -> 'pp -> 'a page Lwt.t) ->
+        ('gp, 'pp, 'm, 'att, 'co, Service.non_ext, Service.reg, 'b, 'gn, 'pn,
+         'a return)
+        Service.t
+      val create_attached_get :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        fallback:(unit, unit, Service.get, Service.att, Service.non_co,
+                  Service.non_ext, 'b, [ `WithoutSuffix ], unit, unit,
+                  'a return)
+                 Service.t ->
+        get_params:('gp, [ `WithoutSuffix ], 'gn) Parameter.params_type ->
+        ?error_handler:((string * exn) list -> 'a page Lwt.t) ->
+        ('gp -> unit -> 'a page Lwt.t) ->
+        ('gp, unit, Service.get, Service.att, Service.co, Service.non_ext,
+         Service.reg, [ `WithoutSuffix ], 'gn, unit, 'a return)
+        Service.t
+      val create_attached_post :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        fallback:('gp, unit, Service.get, Service.att, Service.non_co,
+                  Service.non_ext, 'b, [ `WithoutSuffix ], 'gn, unit,
+                  'a return)
+                 Service.t ->
+        post_params:('pp, [ `WithoutSuffix ], 'pn) Parameter.params_type ->
+        ?error_handler:((string * exn) list -> 'a page Lwt.t) ->
+        ('gp -> 'pp -> 'a page Lwt.t) ->
+        ('gp, 'pp, Service.post, Service.att, Service.co, Service.non_ext,
+         Service.reg, [ `WithoutSuffix ], 'gn, 'pn, 'a return)
+        Service.t
+      type 'a result = 'a kind
+      val send :
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t -> 'a page -> 'a result Lwt.t
+    end
+  val appl_self_redirect :
+    ('page -> [< `Appl of 'a | `Browser ] Registration.kind Lwt.t) ->
+    'page -> 'appl Registration.application_content Registration.kind Lwt.t
+  module String :
+    sig
+      type page = string * string
+      type options = int
+      type return = Service.non_ocaml
+      type result = unknown_content kind
+      val register :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        service:('get, 'post, 'a, 'b, 'c, Service.non_ext, Service.reg,
+                 [< `WithSuffix | `WithoutSuffix ], 'd, 'e, return)
+                Service.t ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('get -> 'post -> page Lwt.t) -> unit
+      val send :
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t -> page -> result Lwt.t
+      val create :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        meth:('m, 'gp, 'gn, 'pp, 'pn,
+              [< `WithSuffix | `WithoutSuffix ] as 'a, 'gp_)
+             Service.meth ->
+        path:('att, 'co, 'gp_) Service.path_option ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> 'pp -> page Lwt.t) ->
+        ('gp, 'pp, 'm, 'att, 'co, Service.non_ext, Service.reg, 'a, 'gn, 'pn,
+         return)
+        Service.t
+      val create_attached_get :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        fallback:(unit, unit, Service.get, Service.att, Service.non_co,
+                  Service.non_ext, 'a, [ `WithoutSuffix ], unit, unit,
+                  return)
+                 Service.t ->
+        get_params:('gp, [ `WithoutSuffix ], 'gn) Parameter.params_type ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> unit -> page Lwt.t) ->
+        ('gp, unit, Service.get, Service.att, Service.co, Service.non_ext,
+         Service.reg, [ `WithoutSuffix ], 'gn, unit, return)
+        Service.t
+      val create_attached_post :
+        ?app:string ->
+        ?scope:[< Eliom_common.scope ] ->
+        ?options:options ->
+        ?charset:string ->
+        ?code:int ->
+        ?content_type:string ->
+        ?headers:Cohttp.Header.t ->
+        ?secure_session:bool ->
+        ?https:bool ->
+        ?name:string ->
+        ?csrf_safe:bool ->
+        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_secure:bool ->
+        ?max_use:int ->
+        ?timeout:float ->
+        fallback:('gp, unit, Service.get, Service.att, Service.non_co,
+                  Service.non_ext, 'a, [ `WithoutSuffix ], 'gn, unit, 
+                  return)
+                 Service.t ->
+        post_params:('pp, [ `WithoutSuffix ], 'pn) Parameter.params_type ->
+        ?error_handler:((string * exn) list -> page Lwt.t) ->
+        ('gp -> 'pp -> page Lwt.t) ->
+        ('gp, 'pp, Service.post, Service.att, Service.co, Service.non_ext,
+         Service.reg, [ `WithoutSuffix ], 'gn, 'pn, return)
+        Service.t
+    end
+  module Customize :
+    (R : Registration_sigs.S_with_create)
+    (T : sig
+           type page
+           val translate : Registration.Customize.page -> R.page Lwt.t
+         end)
+      ->
+      sig
+        type page = T.page
+        type options = R.options
+        type return = R.return
+        type result = R.result
+        val register :
+          ?app:string ->
+          ?scope:[< Eliom_common.scope ] ->
+          ?options:options ->
+          ?charset:string ->
+          ?code:int ->
+          ?content_type:string ->
+          ?headers:Cohttp.Header.t ->
+          ?secure_session:bool ->
+          service:('get, 'post, 'a, 'b, 'c, Service.non_ext, Service.reg,
+                   [< `WithSuffix | `WithoutSuffix ], 'd, 'e, return)
+                  Service.t ->
+          ?error_handler:((string * exn) list -> page Lwt.t) ->
+          ('get -> 'post -> page Lwt.t) -> unit
+        val send :
+          ?options:options ->
+          ?charset:string ->
+          ?code:int ->
+          ?content_type:string ->
+          ?headers:Cohttp.Header.t -> page -> result Lwt.t
+        val create :
+          ?app:string ->
+          ?scope:[< Eliom_common.scope ] ->
+          ?options:options ->
+          ?charset:string ->
+          ?code:int ->
+          ?content_type:string ->
+          ?headers:Cohttp.Header.t ->
+          ?secure_session:bool ->
+          ?https:bool ->
+          ?name:string ->
+          ?csrf_safe:bool ->
+          ?csrf_scope:[< Eliom_common.user_scope ] ->
+          ?csrf_secure:bool ->
+          ?max_use:int ->
+          ?timeout:float ->
+          meth:('m, 'gp, 'gn, 'pp, 'pn,
+                [< `WithSuffix | `WithoutSuffix ] as 'a, 'gp_)
+               Service.meth ->
+          path:('att, 'co, 'gp_) Service.path_option ->
+          ?error_handler:((string * exn) list -> page Lwt.t) ->
+          ('gp -> 'pp -> page Lwt.t) ->
+          ('gp, 'pp, 'm, 'att, 'co, Service.non_ext, Service.reg, 'a, 'gn,
+           'pn, return)
+          Service.t
+        val create_attached_get :
+          ?app:string ->
+          ?scope:[< Eliom_common.scope ] ->
+          ?options:options ->
+          ?charset:string ->
+          ?code:int ->
+          ?content_type:string ->
+          ?headers:Cohttp.Header.t ->
+          ?secure_session:bool ->
+          ?https:bool ->
+          ?name:string ->
+          ?csrf_safe:bool ->
+          ?csrf_scope:[< Eliom_common.user_scope ] ->
+          ?csrf_secure:bool ->
+          ?max_use:int ->
+          ?timeout:float ->
+          fallback:(unit, unit, Service.get, Service.att, Service.non_co,
+                    Service.non_ext, 'a, [ `WithoutSuffix ], unit, unit,
+                    return)
+                   Service.t ->
+          get_params:('gp, [ `WithoutSuffix ], 'gn) Parameter.params_type ->
+          ?error_handler:((string * exn) list -> page Lwt.t) ->
+          ('gp -> unit -> page Lwt.t) ->
+          ('gp, unit, Service.get, Service.att, Service.co, Service.non_ext,
+           Service.reg, [ `WithoutSuffix ], 'gn, unit, return)
+          Service.t
+        val create_attached_post :
+          ?app:string ->
+          ?scope:[< Eliom_common.scope ] ->
+          ?options:options ->
+          ?charset:string ->
+          ?code:int ->
+          ?content_type:string ->
+          ?headers:Cohttp.Header.t ->
+          ?secure_session:bool ->
+          ?https:bool ->
+          ?name:string ->
+          ?csrf_safe:bool ->
+          ?csrf_scope:[< Eliom_common.user_scope ] ->
+          ?csrf_secure:bool ->
+          ?max_use:int ->
+          ?timeout:float ->
+          fallback:('gp, unit, Service.get, Service.att, Service.non_co,
+                    Service.non_ext, 'a, [ `WithoutSuffix ], 'gn, unit,
+                    return)
+                   Service.t ->
+          post_params:('pp, [ `WithoutSuffix ], 'pn) Parameter.params_type ->
+          ?error_handler:((string * exn) list -> page Lwt.t) ->
+          ('gp -> 'pp -> page Lwt.t) ->
+          ('gp, 'pp, Service.post, Service.att, Service.co, Service.non_ext,
+           Service.reg, [ `WithoutSuffix ], 'gn, 'pn, return)
+          Service.t
+      end
+  val set_exn_handler :
+    (exn -> Registration.browser_content Registration.kind Lwt.t) -> unit
+  val cast_unknown_content_kind :
+    Registration.unknown_content Registration.kind -> 'a Registration.kind
+  val cast_http_result : Ocsigen_response.t -> 'a Registration.kind
+end >>

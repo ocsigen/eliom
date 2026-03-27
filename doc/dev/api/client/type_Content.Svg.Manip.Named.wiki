@@ -1,0 +1,14 @@
+<<code language="ocaml" | sig
+  val appendChild :
+    ?before:'a Content.Svg.elt ->
+    'b Content.Svg.Id.id -> 'c Content.Svg.elt -> unit
+  val appendChildren :
+    ?before:'a Content.Svg.elt ->
+    'b Content.Svg.Id.id -> 'c Content.Svg.elt list -> unit
+  val removeChild : 'a Content.Svg.Id.id -> 'b Content.Svg.elt -> unit
+  val replaceChild :
+    'a Content.Svg.Id.id -> 'b Content.Svg.elt -> 'c Content.Svg.elt -> unit
+  val removeChildren : 'a Content.Svg.Id.id -> unit
+  val replaceChildren :
+    'a Content.Svg.Id.id -> 'b Content.Svg.elt list -> unit
+end >>

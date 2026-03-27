@@ -1,0 +1,55 @@
+<<code language="ocaml" | sig
+  val appendChild :
+    ?before:'a Content.Svg.elt ->
+    'b Content.Svg.elt -> 'c Content.Svg.elt -> unit
+  val appendChildren :
+    ?before:'a Content.Svg.elt ->
+    'b Content.Svg.elt -> 'c Content.Svg.elt list -> unit
+  val insertFirstChild : 'b Content.Svg.elt -> 'c Content.Svg.elt -> unit
+  val nth : 'a Content.Svg.elt -> int -> 'b Content.Svg.elt option
+  val childLength : 'a Content.Svg.elt -> int
+  val removeChild : 'a Content.Svg.elt -> 'b Content.Svg.elt -> unit
+  val replaceChild :
+    'a Content.Svg.elt -> 'b Content.Svg.elt -> 'c Content.Svg.elt -> unit
+  val removeChildren : 'a Content.Svg.elt -> unit
+  val removeSelf : 'a Content.Svg.elt -> unit
+  val replaceChildren : 'a Content.Svg.elt -> 'b Content.Svg.elt list -> unit
+  val parentNode : 'a Content.Svg.elt -> 'b Content.Svg.elt option
+  val nextSibling : 'a Content.Svg.elt -> 'b Content.Svg.elt option
+  val previousSibling : 'a Content.Svg.elt -> 'b Content.Svg.elt option
+  val insertBefore : before:'a Content.Svg.elt -> 'b Content.Svg.elt -> unit
+  val insertAfter : after:'a Content.Svg.elt -> 'b Content.Svg.elt -> unit
+  val replaceSelf : 'a Content.Svg.elt -> 'b Content.Svg.elt -> unit
+  module Named :
+    sig
+      val appendChild :
+        ?before:'a Content.Svg.elt ->
+        'b Content.Svg.Id.id -> 'c Content.Svg.elt -> unit
+      val appendChildren :
+        ?before:'a Content.Svg.elt ->
+        'b Content.Svg.Id.id -> 'c Content.Svg.elt list -> unit
+      val removeChild : 'a Content.Svg.Id.id -> 'b Content.Svg.elt -> unit
+      val replaceChild :
+        'a Content.Svg.Id.id ->
+        'b Content.Svg.elt -> 'c Content.Svg.elt -> unit
+      val removeChildren : 'a Content.Svg.Id.id -> unit
+      val replaceChildren :
+        'a Content.Svg.Id.id -> 'b Content.Svg.elt list -> unit
+    end
+  val childNodes :
+    'a Content.Svg.elt -> Js_of_ocaml.Dom.node Js_of_ocaml.Js.t list
+  val childElements :
+    'a Content.Svg.elt -> Js_of_ocaml.Dom.element Js_of_ocaml.Js.t list
+  module Class :
+    sig
+      val contain : 'a Content.Svg.elt -> string -> bool
+      val remove : 'a Content.Svg.elt -> string -> unit
+      val removes : 'a Content.Svg.elt -> string list -> unit
+      val add : 'a Content.Svg.elt -> string -> unit
+      val adds : 'a Content.Svg.elt -> string list -> unit
+      val replace : 'a Content.Svg.elt -> string -> string -> unit
+      val clear : 'a Content.Svg.elt -> unit
+      val toggle : 'a Content.Svg.elt -> string -> unit
+      val toggle2 : 'a Content.Svg.elt -> string -> string -> unit
+    end
+end >>

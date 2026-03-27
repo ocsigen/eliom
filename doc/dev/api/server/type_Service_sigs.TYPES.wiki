@@ -1,0 +1,59 @@
+<<code language="ocaml" | sig
+  type get = Get_method
+  type put = Put_method
+  type post = Post_method
+  type delete = Delete_method
+  type co = Co
+  type non_co = Non_co
+  type ext = Ext
+  type non_ext = Non_ext
+  type http = Http_ret
+  type 'a ocaml = Ocaml of 'a
+  type non_ocaml = Non_ocaml
+  type reg = Reg
+  type non_reg = Non_reg
+  type ('get, 'a, 'gn) params = ('get, 'a, 'gn) Parameter.params_type
+    constraint 'a = [< `WithSuffix | `WithoutSuffix ]
+  type ('m, _, _, _, _, _, _) meth =
+      Get :
+        ('gp, 'a, 'gn) Service_sigs.TYPES.params -> (Service_sigs.TYPES.get,
+                                                     'gp, 'gn, unit, 
+                                                     unit,
+                                                     [< `WithSuffix
+                                                      | `WithoutSuffix ]
+                                                     as 'a, unit)
+                                                    Service_sigs.TYPES.meth
+    | Post : ('gp, 'b, 'gn) Service_sigs.TYPES.params *
+        ('pp, [ `WithoutSuffix ], 'pn) Service_sigs.TYPES.params -> (Service_sigs.TYPES.post,
+                                                                    'gp, 'gn,
+                                                                    'pp, 'pn,
+                                                                    [< 
+                                                                    `WithSuffix
+                                                                  | `WithoutSuffix
+                                                                    ] as 'b,
+                                                                    'gp)
+                                                                    Service_sigs.TYPES.meth
+    | Put :
+        ('gp, 'c, 'gn) Service_sigs.TYPES.params -> (Service_sigs.TYPES.put,
+                                                     'gp, 'gn,
+                                                     Parameter.raw_post_data,
+                                                     Parameter.no_param_name,
+                                                     [< `WithSuffix
+                                                      | `WithoutSuffix ]
+                                                     as 'c, unit)
+                                                    Service_sigs.TYPES.meth
+    | Delete :
+        ('gp, 'd, 'gn) Service_sigs.TYPES.params -> (Service_sigs.TYPES.delete,
+                                                     'gp, 'gn,
+                                                     Parameter.raw_post_data,
+                                                     Parameter.no_param_name,
+                                                     [< `WithSuffix
+                                                      | `WithoutSuffix ]
+                                                     as 'd, unit)
+                                                    Service_sigs.TYPES.meth
+  type 'm which_meth =
+      Get' : Service_sigs.TYPES.get Service_sigs.TYPES.which_meth
+    | Post' : Service_sigs.TYPES.post Service_sigs.TYPES.which_meth
+    | Put' : Service_sigs.TYPES.put Service_sigs.TYPES.which_meth
+    | Delete' : Service_sigs.TYPES.delete Service_sigs.TYPES.which_meth
+end >>

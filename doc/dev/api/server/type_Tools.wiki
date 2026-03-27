@@ -1,0 +1,85 @@
+<<code language="ocaml" | sig
+  type srv =
+      Srv :
+        (unit, unit, Service.get, 'a, 'b, 'c, 'd, [ `WithoutSuffix ], 
+         unit, unit, Service.non_ocaml)
+        Service.t -> Tools.srv
+  type 'a hierarchical_site =
+      Tools.main_page * ('a * 'a Tools.hierarchical_site_item) list
+  and 'a hierarchical_site_item =
+      Disabled
+    | Site_tree of 'a Tools.hierarchical_site
+  and main_page =
+      Main_page of Tools.srv
+    | Default_page of Tools.srv
+    | Not_clickable
+  module type HTML5_TOOLS =
+    sig
+      val menu :
+        ?classe:Html_types.nmtoken list ->
+        ?id:string ->
+        ((unit, unit, Service.get, 'a, 'b, 'c, 'd, [ `WithoutSuffix ], 
+          unit, unit, Service.non_ocaml)
+         Service.t *
+         [< Html_types.flow5_without_interactive ] Content.Html.elt list)
+        list ->
+        ?service:(unit, unit, Service.get, 'e, 'f, 'g, 'h,
+                  [ `WithoutSuffix ], unit, unit, Service.non_ocaml)
+                 Service.t ->
+        unit -> [> `Ul ] Content.Html.elt
+      val hierarchical_menu_depth_first :
+        ?classe:Html_types.nmtoken list ->
+        ?id:string ->
+        ?whole_tree:bool ->
+        [< Html_types.a_content ] Content.Html.elt list
+        Tools.hierarchical_site ->
+        ?service:(unit, unit, Service.get, 'a, 'b, 'c, 'd,
+                  [ `WithoutSuffix ], unit, unit, Service.non_ocaml)
+                 Service.t ->
+        unit -> [> `Ul ] Content.Html.elt list
+      val hierarchical_menu_breadth_first :
+        ?classe:Html_types.nmtoken list ->
+        ?id:string ->
+        [< Html_types.a_content ] Content.Html.elt list
+        Tools.hierarchical_site ->
+        ?service:(unit, unit, Service.get, 'a, 'b, 'c, 'd,
+                  [ `WithoutSuffix ], unit, unit, Service.non_ocaml)
+                 Service.t ->
+        unit -> [> `Ul ] Content.Html.elt list
+      val structure_links :
+        [< Html_types.a_content ] Content.Html.elt list
+        Tools.hierarchical_site ->
+        ?service:(unit, unit, Service.get, 'a, 'b, 'c, 'd,
+                  [ `WithoutSuffix ], unit, unit, Service.non_ocaml)
+                 Service.t ->
+        unit -> [> `Link ] Content.Html.elt list
+      val head :
+        title:string ->
+        ?css:string list list ->
+        ?js:string list list ->
+        ?other:[< Html_types.head_content_fun ] Content.Html.elt list ->
+        unit -> [ `Head ] Content.Html.elt
+      val html :
+        title:string ->
+        ?a:[< Html_types.html_attrib ] Content.Html.attrib list ->
+        ?css:string list list ->
+        ?js:string list list ->
+        ?other_head:[< Html_types.head_content_fun ] Content.Html.elt list ->
+        [ `Body ] Content.Html.elt -> [ `Html ] Content.Html.elt
+    end
+  module F : HTML5_TOOLS
+  module D : HTML5_TOOLS
+  val with_js_file : string list -> unit
+  val with_css_file : string list -> unit
+  val wrap_handler :
+    (unit -> 'a option Lwt.t) ->
+    ('get -> 'post -> 'res Lwt.t) ->
+    ('a -> 'get -> 'post -> 'res Lwt.t) -> 'get -> 'post -> 'res Lwt.t
+  val menu_class : string
+  val last_class : string
+  val current_class : string
+  val current_path_class : string
+  val disabled_class : string
+  val first_class : string
+  val level_class : string
+end >>

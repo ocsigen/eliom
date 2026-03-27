@@ -1,0 +1,64 @@
+<<code language="ocaml" | sig
+  type ('a, +'storage) eref'
+  type 'a eref = ('a, [ `Persistent | `Volatile ]) Reference.eref'
+  exception Eref_not_initialized
+  val eref :
+    scope:[< Eliom_common.all_scope ] ->
+    ?secure:bool -> ?persistent:string -> 'a -> 'a Reference.eref
+  val eref_from_fun :
+    scope:[< Eliom_common.all_scope ] ->
+    ?secure:bool -> ?persistent:string -> (unit -> 'a) -> 'a Reference.eref
+  val get : 'a Reference.eref -> 'a Lwt.t
+  val set : 'a Reference.eref -> 'a -> unit Lwt.t
+  val modify : 'a Reference.eref -> ('a -> 'a) -> unit Lwt.t
+  val unset : 'a Reference.eref -> unit Lwt.t
+  module Volatile :
+    sig
+      type 'a eref = ('a, [ `Volatile ]) Reference.eref'
+      val eref :
+        scope:[< Eliom_common.all_scope ] ->
+        ?secure:bool -> 'a -> 'a Reference.Volatile.eref
+      val eref_from_fun :
+        scope:[< Eliom_common.all_scope ] ->
+        ?secure:bool -> (unit -> 'a) -> 'a Reference.Volatile.eref
+      val get : 'a Reference.Volatile.eref -> 'a
+      val set : 'a Reference.Volatile.eref -> 'a -> unit
+      val modify : 'a Reference.Volatile.eref -> ('a -> 'a) -> unit
+      val unset : 'a Reference.Volatile.eref -> unit
+      module Ext :
+        sig
+          val get :
+            ([< `Client_process | `Session | `Session_group ], [< `Data ])
+            State.Ext.state -> 'a Reference.Volatile.eref -> 'a
+          val set :
+            ([< `Client_process | `Session | `Session_group ], [< `Data ])
+            State.Ext.state -> 'a Reference.Volatile.eref -> 'a -> unit
+          val modify :
+            ([< `Client_process | `Session | `Session_group ], [< `Data ])
+            State.Ext.state ->
+            'a Reference.Volatile.eref -> ('a -> 'a) -> unit
+          val unset :
+            ([< `Client_process | `Session | `Session_group ], [< `Data ])
+            State.Ext.state -> 'a Reference.Volatile.eref -> unit
+        end
+    end
+  module Ext :
+    sig
+      val get :
+        ([< `Client_process | `Session | `Session_group ],
+         [< `Data | `Pers ])
+        State.Ext.state -> 'a Reference.eref -> 'a Lwt.t
+      val set :
+        ([< `Client_process | `Session | `Session_group ],
+         [< `Data | `Pers ])
+        State.Ext.state -> 'a Reference.eref -> 'a -> unit Lwt.t
+      val modify :
+        ([< `Client_process | `Session | `Session_group ],
+         [< `Data | `Pers ])
+        State.Ext.state -> 'a Reference.eref -> ('a -> 'a) -> unit Lwt.t
+      val unset :
+        ([< `Client_process | `Session | `Session_group ],
+         [< `Data | `Pers ])
+        State.Ext.state -> 'a Reference.eref -> unit Lwt.t
+    end
+end >>

@@ -5,6 +5,6 @@
     ?scope:Eliom_common.scope ->
     ?name:string ->
     ('a, [ `WithoutSuffix ],
-     [ `One of 'a Eliom_parameter.ocaml ] Eliom_parameter.param_name)
-    Eliom_parameter.params_type -> 'a Eliom_react.Up.t
+     [ `One of 'a Parameter.ocaml ] Parameter.param_name)
+    Parameter.params_type -> 'a Eliom_react.Up.t
 end >>

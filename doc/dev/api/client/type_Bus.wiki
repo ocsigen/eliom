@@ -1,0 +1,11 @@
+<<code language="ocaml" | sig
+  type ('a, 'b) t
+  val stream : ('a, 'b) Bus.t -> 'b Lwt_stream.t
+  val original_stream : ('a, 'b) Bus.t -> 'b Lwt_stream.t
+  val write : ('a, 'b) Bus.t -> 'a -> unit Lwt.t
+  val close : ('a, 'b) Bus.t -> unit
+  val set_queue_size : ('a, 'b) Bus.t -> int -> unit
+  val set_time_before_flush : ('a, 'b) Bus.t -> float -> unit
+  val force_link : unit
+  val section : Logs.src
+end >>

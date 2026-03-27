@@ -1,0 +1,153 @@
+<<code language="ocaml" | sig
+  module type VALUE =
+    sig
+      type +'a t
+      val create : 'a -> 'a Eliom_client_value.t -> 'a Shared_sigs.VALUE.t
+      val client : 'a Shared_sigs.VALUE.t -> 'a Eliom_client_value.t
+      val local : 'a Shared_sigs.VALUE.t -> 'a
+    end
+  module type S =
+    sig
+      type 'a t
+      type 'a sv
+      val const : 'a -> 'a Shared_sigs.S.t
+      val value : 'a Shared_sigs.S.t -> 'a Shared_sigs.S.sv
+      val map :
+        ?eq:('b -> 'b -> bool) Shared_sigs.S.sv ->
+        ('a -> 'b) Shared_sigs.S.sv ->
+        'a Shared_sigs.S.t -> 'b Shared_sigs.S.t
+      val fmap :
+        ?eq:('b -> 'b -> bool) Shared_sigs.S.sv ->
+        ('a -> 'b option) Shared_sigs.S.sv ->
+        'b Shared_sigs.S.sv -> 'a Shared_sigs.S.t -> 'b Shared_sigs.S.t
+      val merge :
+        ?eq:('a -> 'a -> bool) Shared_sigs.S.sv ->
+        ('a -> 'b -> 'a) Shared_sigs.S.sv ->
+        'a -> 'b Shared_sigs.S.t list -> 'a Shared_sigs.S.t
+      val l2 :
+        ?eq:('c -> 'c -> bool) Shared_sigs.S.sv ->
+        ('a -> 'b -> 'c) Shared_sigs.S.sv ->
+        'a Shared_sigs.S.t -> 'b Shared_sigs.S.t -> 'c Shared_sigs.S.t
+      val l3 :
+        ?eq:('d -> 'd -> bool) Shared_sigs.S.sv ->
+        ('a -> 'b -> 'c -> 'd) Shared_sigs.S.sv ->
+        'a Shared_sigs.S.t ->
+        'b Shared_sigs.S.t -> 'c Shared_sigs.S.t -> 'd Shared_sigs.S.t
+      val l4 :
+        ?eq:('e -> 'e -> bool) Shared_sigs.S.sv ->
+        ('a -> 'b -> 'c -> 'd -> 'e) Shared_sigs.S.sv ->
+        'a Shared_sigs.S.t ->
+        'b Shared_sigs.S.t ->
+        'c Shared_sigs.S.t -> 'd Shared_sigs.S.t -> 'e Shared_sigs.S.t
+      val l5 :
+        ?eq:('f -> 'f -> bool) Shared_sigs.S.sv ->
+        ('a -> 'b -> 'c -> 'd -> 'e -> 'f) Shared_sigs.S.sv ->
+        'a Shared_sigs.S.t ->
+        'b Shared_sigs.S.t ->
+        'c Shared_sigs.S.t ->
+        'd Shared_sigs.S.t -> 'e Shared_sigs.S.t -> 'f Shared_sigs.S.t
+      val l6 :
+        ?eq:('g -> 'g -> bool) Shared_sigs.S.sv ->
+        ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g) Shared_sigs.S.sv ->
+        'a Shared_sigs.S.t ->
+        'b Shared_sigs.S.t ->
+        'c Shared_sigs.S.t ->
+        'd Shared_sigs.S.t ->
+        'e Shared_sigs.S.t -> 'f Shared_sigs.S.t -> 'g Shared_sigs.S.t
+      val switch :
+        ?eq:('a -> 'a -> bool) Shared_sigs.S.sv ->
+        'a Shared_sigs.S.t Shared_sigs.S.t -> 'a Shared_sigs.S.t
+      module Infix :
+        sig
+          val ( >|= ) :
+            'a Shared_sigs.S.t ->
+            ('a -> 'b) Shared_sigs.S.sv -> 'b Shared_sigs.S.t
+          val ( =|< ) :
+            ('a -> 'b) Shared_sigs.S.sv ->
+            'a Shared_sigs.S.t -> 'b Shared_sigs.S.t
+        end
+      module Lwt :
+        sig
+          val map_s :
+            ?eq:('b -> 'b -> bool) Shared_sigs.S.sv ->
+            ('a -> 'b Lwt.t) Shared_sigs.S.sv ->
+            'a Shared_sigs.S.t -> 'b Shared_sigs.S.t Lwt.t
+          val l2_s :
+            ?eq:('c -> 'c -> bool) Shared_sigs.S.sv ->
+            ('a -> 'b -> 'c Lwt.t) Shared_sigs.S.sv ->
+            'a Shared_sigs.S.t ->
+            'b Shared_sigs.S.t -> 'c Shared_sigs.S.t Lwt.t
+          val l3_s :
+            ?eq:('d -> 'd -> bool) Shared_sigs.S.sv ->
+            ('a -> 'b -> 'c -> 'd Lwt.t) Shared_sigs.S.sv ->
+            'a Shared_sigs.S.t ->
+            'b Shared_sigs.S.t ->
+            'c Shared_sigs.S.t -> 'd Shared_sigs.S.t Lwt.t
+          val l4_s :
+            ?eq:('e -> 'e -> bool) Shared_sigs.S.sv ->
+            ('a -> 'b -> 'c -> 'd -> 'e Lwt.t) Shared_sigs.S.sv ->
+            'a Shared_sigs.S.t ->
+            'b Shared_sigs.S.t ->
+            'c Shared_sigs.S.t ->
+            'd Shared_sigs.S.t -> 'e Shared_sigs.S.t Lwt.t
+          val l5_s :
+            ?eq:('f -> 'f -> bool) Shared_sigs.S.sv ->
+            ('a -> 'b -> 'c -> 'd -> 'e -> 'f Lwt.t) Shared_sigs.S.sv ->
+            'a Shared_sigs.S.t ->
+            'b Shared_sigs.S.t ->
+            'c Shared_sigs.S.t ->
+            'd Shared_sigs.S.t ->
+            'e Shared_sigs.S.t -> 'f Shared_sigs.S.t Lwt.t
+          val l6_s :
+            ?eq:('g -> 'g -> bool) Shared_sigs.S.sv ->
+            ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g Lwt.t) Shared_sigs.S.sv ->
+            'a Shared_sigs.S.t ->
+            'b Shared_sigs.S.t ->
+            'c Shared_sigs.S.t ->
+            'd Shared_sigs.S.t ->
+            'e Shared_sigs.S.t ->
+            'f Shared_sigs.S.t -> 'g Shared_sigs.S.t Lwt.t
+          val merge_s :
+            ?eq:('a -> 'a -> bool) Shared_sigs.S.sv ->
+            ('a -> 'b -> 'a Lwt.t) Shared_sigs.S.sv ->
+            'a -> 'b Shared_sigs.S.t list -> 'a Shared_sigs.S.t Lwt.t
+        end
+    end
+  module type RLIST =
+    sig
+      type 'a t
+      type 'a handle
+      type 'a signal
+      type 'a sv
+      type 'a ct
+      type 'a chandle
+      val create :
+        ?default:('a Shared_sigs.RLIST.ct * 'a Shared_sigs.RLIST.chandle)
+                 option Eliom_client_value.t ->
+        ?reset_default:bool ->
+        'a list -> 'a Shared_sigs.RLIST.t * 'a Shared_sigs.RLIST.handle
+      val concat :
+        'a Shared_sigs.RLIST.t ->
+        'a Shared_sigs.RLIST.t -> 'a Shared_sigs.RLIST.t
+      val value : 'a Shared_sigs.RLIST.t -> 'a list Shared_sigs.RLIST.sv
+      val signal :
+        ?eq:('a -> 'a -> bool) Shared_sigs.RLIST.sv ->
+        'a Shared_sigs.RLIST.t -> 'a list Shared_sigs.RLIST.signal
+      val singleton_s : 'a Shared_sigs.RLIST.signal -> 'a Shared_sigs.RLIST.t
+      val map :
+        ('a -> 'b) Shared_sigs.RLIST.sv ->
+        'a Shared_sigs.RLIST.t -> 'b Shared_sigs.RLIST.t
+      val from_signal :
+        ?eq:('a -> 'a -> bool) Shared_sigs.RLIST.sv ->
+        'a list Shared_sigs.RLIST.signal -> 'a Shared_sigs.RLIST.t
+      val acc_e :
+        ?init:'a Shared_sigs.RLIST.t * 'a Shared_sigs.RLIST.handle ->
+        'a React.E.t Eliom_client_value.t -> 'a Shared_sigs.RLIST.t
+      module Lwt :
+        sig
+          val map_p :
+            ('a -> 'b Lwt.t) Shared_sigs.RLIST.sv ->
+            'a Shared_sigs.RLIST.t -> 'b Shared_sigs.RLIST.t Lwt.t
+        end
+    end
+end >>

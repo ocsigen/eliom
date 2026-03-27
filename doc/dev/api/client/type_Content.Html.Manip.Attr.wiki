@@ -1,0 +1,8 @@
+<<code language="ocaml" | sig
+  val clientWidth : 'a Content.Html.elt -> int
+  val clientHeight : 'a Content.Html.elt -> int
+  val offsetWidth : 'a Content.Html.elt -> int
+  val offsetHeight : 'a Content.Html.elt -> int
+  val clientLeft : 'a Content.Html.elt -> int
+  val clientTop : 'a Content.Html.elt -> int
+end >>
