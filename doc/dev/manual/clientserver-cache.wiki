@@ -4,7 +4,7 @@
 
 == Caching the data
 
-Module <<a_api subproject="server"|module Eliom_cscache>>
+Module <<a_api subproject="server"|module Eliom.Cscache>>
 implements a cache of data that can be used both for
 keeping data on client side or keeping values in memory during a
 request.
@@ -16,5 +16,5 @@ for a local (client or server) cache that keeps the most recently used values.
 
 == Off-line applications
 
-In the near future, Eliom_cscache will make it possible to save persistent
+In the near future, Eliom.Cscache will make it possible to save persistent
 data, which is useful for implementing off-line applications.

@@ -52,22 +52,22 @@ do everything for you: separating client and server parts, calling
 {{{ocamlc}}}, {{{ocamlopt}}}, {{{js_of_ocaml}}}, etc.
 
 Services belonging to the application are registered using the module
-<<a_api subproject="server"|module Eliom_registration.App>>. More precisely,
+<<a_api subproject="server"|module Eliom.Registration.App>>. More precisely,
 this is a functor that needs to be applied for each application you create.
 These services just return HTML pages as usual (using
-<<a_api subproject="server"|module Eliom_content.Html>>)
+<<a_api subproject="server"|module Eliom.Content.Html>>)
 The client-side program (compiled in JavaScript) is added automatically by Eliom,
 with all its data, and run automatically when the page is loaded.
 
-Module <<a_api subproject="client"|module Eliom_client>> provides
+Module <<a_api subproject="client"|module Eliom.Client>> provides
 useful functions for client side programming with Eliom: e.g.
-<<a_api subproject="client"|val Eliom_client.change_page>>
+<<a_api subproject="client"|val Eliom.Client.change_page>>
 permits switching to another page.
 
-Module <<a_api subproject="server"|module Eliom_comet>> allows the
+Module <<a_api subproject="server"|module Eliom.Comet>> allows the
 server to send notifications
 to the client (even if the client is not explicitely doing a request).
-Use module <<a_api subproject="server"|module Eliom_react>> to make client-server reactive
+Use module <<a_api subproject="server"|module Eliom.React>> to make client-server reactive
 programming (using the [[http://erratique.ch/software/react| React]]
  external library).
 
@@ -79,7 +79,7 @@ by applying the {{{App}}} functor:
 
 <<code language="ocaml"|
 module My_app =
-  Eliom_registration.App (
+  Eliom.Registration.App (
     struct
       let application_name = "the name of your application"
       let global_data_path = None
@@ -97,8 +97,8 @@ Then you can do for example:
 <<code language="ocaml"|
 let my_service =
   My_app.create
-    ~path:(Eliom_service.Path [""])
-    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+    ~path:(Eliom.Service.Path [""])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
     (fun () () -> Lwt.return (html
                                (head (title (txt "Hi!")) [])
                                (body [p [txt "Hey."]])))
@@ -124,7 +124,7 @@ This application will be closed when:
   application interaction (reload the page with {{{F5}}},
   manual typing of URL, ...),
 * the application call the
-  <<a_api subproject="client"|val Eliom_client.exit_to>> function.
+  <<a_api subproject="client"|val Eliom.Client.exit_to>> function.
 
 It is possible to prevent the application from starting when visiting
 an application page by setting the {{{do_not_launch}}} to {{{true}}}
@@ -132,10 +132,10 @@ at the service registration:
 <<code language="ocaml"|
 let no_launch_service =
   My_app.register
-    ~option:{ Eliom_registration.default_appl_service_options with
+    ~option:{ Eliom.Registration.default_appl_service_options with
               do_not_launch = true }
-    ~path:(Eliom_service.Path [""])
-    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+    ~path:(Eliom.Service.Path [""])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
     (fun () () -> Lwt.return (html
                                (head (title (txt "Hi!")) [])
                                (body [p [txt "Hey."]])))
@@ -157,13 +157,13 @@ This will force reloading the application when the link is clicked.
 
 Two functions are available client-side for changing the current page
 without interaction from the user. The function
-<<a_api subproject="client"| val Eliom_client.change_page >> goes to the service
+<<a_api subproject="client"| val Eliom.Client.change_page >> goes to the service
 taken as parameter. If the service is in another application or not in
 an application, the current application will be stopped.
-The function <<a_api subproject="client" | val Eliom_client.window_open >>
+The function <<a_api subproject="client" | val Eliom.Client.window_open >>
 opens an
 Eliom service in a new browser window (cf. JavaScript's {{{window.open}}}).
-<<a_api  subproject="client"| val Eliom_client.exit_to >>
+<<a_api  subproject="client"| val Eliom.Client.exit_to >>
 changes the current page and always leaves the application.
 
 === Leaving application and going back

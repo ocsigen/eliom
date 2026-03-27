@@ -50,32 +50,32 @@ instance, services.
 
 Those values must be transformed before marshalling: We need for this to use
 custom wrappers. This wrapping mechanism is defined in
-<<a_api | module Eliom_wrap >>.
+<<a_api | module Eliom.Wrap >>.
 
-Before sending, the values goes thought <<a_api | val Eliom_wrap.wrap>>
+Before sending, the values goes thought <<a_api | val Eliom.Wrap.wrap>>
 which transform marked values. A value marked is a value which have as its last field
-a value of type <<a_api | type Eliom_wrap.wrapper >>. For instance
+a value of type <<a_api | type Eliom.Wrap.wrapper >>. For instance
 <<code language="ocaml"|type marked_tupple =
-  int * ... * marked_tupple Eliom_wrap.wrapper
+  int * ... * marked_tupple Eliom.Wrap.wrapper
 type marked_record =
   { f1 : int;
     ...
-    fn : marked_record Eliom_wrap.wrapper }
+    fn : marked_record Eliom.Wrap.wrapper }
 >>
 but not
-<<code language="ocaml"|type not_marked_tupple = int * ... * marked_tupple Eliom_wrap.wrapper * float
-type not_marked_tupple = int * ... * (int * marked_tupple Eliom_wrap.wrapper)
-type not_marked_tupple = int * ... * marked_tupple Eliom_wrap.wrapper list
+<<code language="ocaml"|type not_marked_tupple = int * ... * marked_tupple Eliom.Wrap.wrapper * float
+type not_marked_tupple = int * ... * (int * marked_tupple Eliom.Wrap.wrapper)
+type not_marked_tupple = int * ... * marked_tupple Eliom.Wrap.wrapper list
 type not_marked_record =
      { f1 : int;
           ...
-       fn : marked_record Eliom_wrap.wrapper;
+       fn : marked_record Eliom.Wrap.wrapper;
        fk : float; }>>
 
-A wrapper is created by the <<a_api | val Eliom_wrap.create_wrapper>>
+A wrapper is created by the <<a_api | val Eliom.Wrap.create_wrapper>>
 function. It takes a function as parameter which will be called to
 transform the value during the wrapping. There is also a special
-wrapper <<a_api | val Eliom_wrap.empty_wrapper>> which does nothing. It
+wrapper <<a_api | val Eliom.Wrap.empty_wrapper>> which does nothing. It
 is useful to stop calling the wrapper on a value: If there is still a
 wrapper in a value after its transformation, it will be called another
 time, potentially leading to an infinite loop.
@@ -83,19 +83,19 @@ time, potentially leading to an infinite loop.
 For instance
 
 <<code language="ocaml"|type v = Fun of unit -> int | Value of int
-type wrapped_type = v * wrapped_type Eliom_wrap.wrapper
+type wrapped_type = v * wrapped_type Eliom.Wrap.wrapper
 let wrapper =
   let wrap = function
-    | Value i,wrapper -> Value i, Eliom_wrap.empty_wrapper
-    | Fun f,wrapper -> Value (f ()), Eliom_wrap.empty_wrapper
-  in Eliom_wrap.create_wrapper f
+    | Value i,wrapper -> Value i, Eliom.Wrap.empty_wrapper
+    | Fun f,wrapper -> Value (f ()), Eliom.Wrap.empty_wrapper
+  in Eliom.Wrap.create_wrapper f
 let v = ( Fun (fun () -> 1), wrapper )
-let (v', empty_wrapper) = Eliom_wrap.wrap v>>
+let (v', empty_wrapper) = Eliom.Wrap.wrap v>>
 
 At that time {{{v'}}} will be {{{Value 1}}}. Notice that
-<<a_api | val Eliom_wrap.create_wrapper>> does not enforce the output
+<<a_api | val Eliom.Wrap.create_wrapper>> does not enforce the output
 type of the wrapping function to be the same as the input type:
-Eliom_wrap is to be use with much caution! Do not use it if you don't
+Eliom.Wrap is to be use with much caution! Do not use it if you don't
 understand how it works, it may lead to unpredictable segmentation faults
 and corrupted memory.
 
@@ -103,8 +103,8 @@ and corrupted memory.
 
 The Eliom types that are marked are:
 
-* <<a_api | type Eliom_service.t>> transformed to <<a_api | type Eliom_service.t>> (but the client side representation)
-* <<a_api | type Eliom_comet.Channel.t>> transformed to <<a_api project="lwt" | type Lwt_stream.t>>
-* <<a_api | type Eliom_react.Up.t>> transformed to {{{ 'a -> unit }}}
-* <<a_api | type Eliom_react.Down.t>> transformed to {{{ 'a React.E.t }}}
-* <<a_api | type Eliom_bus.t>> transformed to <<a_api | type Eliom_bus.t>>
+* <<a_api | type Eliom.Service.t>> transformed to <<a_api | type Eliom.Service.t>> (but the client side representation)
+* <<a_api | type Eliom.Comet.Channel.t>> transformed to <<a_api project="lwt" | type Lwt_stream.t>>
+* <<a_api | type Eliom.React.Up.t>> transformed to {{{ 'a -> unit }}}
+* <<a_api | type Eliom.React.Down.t>> transformed to {{{ 'a React.E.t }}}
+* <<a_api | type Eliom.Bus.t>> transformed to <<a_api | type Eliom.Bus.t>>

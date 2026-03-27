@@ -7,7 +7,7 @@ independently in each browser tab that visits the Web site.  The
 latter is started with the initial request in a browser tab and keeps
 running while navigating within the Web site, across the usage of
 links, forms, history, and <<a_api subproject="client"
-text="page changes" | val Eliom_client.change_page>>.
+text="page changes" | val Eliom.Client.change_page>>.
 
 Eliom provides three language extensions to OCaml to provide an
 integrated development of client/server-programs, and to deal with the
@@ -96,8 +96,8 @@ In the client program, top-level expressions are evaluated early in
 the initialization phase of the client process, particulary //before
 the DOM is in place//. This means, that you cannot do any DOM
 manipulation or access HTML-elements with <<a_api text="DOM semantics"
-| module Eliom_content.Html.D>>. However, you can postpone that by
-<<a_api subproject="client" | val Eliom_client.onload>>.
+| module Eliom.Content.Html.D>>. However, you can postpone that by
+<<a_api subproject="client" | val Eliom.Client.onload>>.
 
 ==@@id="injections"@@ Injections (in the client-section)
 
@@ -117,7 +117,7 @@ process//.
   let service = ... (* Server-side declaration of a service. *)
 }}
 {client{
-  let f () = Eliom_client.change_page ~service:%service ()
+  let f () = Eliom.Client.change_page ~service:%service ()
   (* Refer to the server-side variable within the client section! *)
 }}
 >>
@@ -132,7 +132,7 @@ resulting value in that specific client process.
 <<code language="ocaml"|
 {client{
   let () =
-    Eliom_lib.alert "Time of the first request on the server: %d"
+    Eliom.Lib.alert "Time of the first request on the server: %d"
       %(Unix.gettimeofday ())
 }}
 >>
@@ -140,7 +140,7 @@ resulting value in that specific client process.
 Note well that the value of an injection is //not updated// when the
 injected value on the server changes. However, you may inject reactive
 signals (cf. <<a_api subproject="server" | val
-Eliom_react.S.Down.of_react>>) to achieve the behavior of a client
+Eliom.React.S.Down.of_react>>) to achieve the behavior of a client
 side values which updates alongside with a server correspondent.
 
 ===@@id="sharedinjection"@@ In a shared section
@@ -214,13 +214,13 @@ ommitted if it is derivible from its //usage// in the server code:
 <<code language="ocaml"|
 {server{
   ...
-  let onclick = {{ fun ev -> Eliom_lib.alert "ohyeah!" }} in
+  let onclick = {{ fun ev -> Eliom.Lib.alert "ohyeah!" }} in
   Eliom.content.Html.F.(div ~a:[a_onclick onclick] [txt "click me!"])
   ...
 >>
 
 Here, the function ##a_onclick## has type ##(#Dom_html.mouseEvent Js.t
--> unit) -> [> `OnClick ] Eliom_content.Html.attrib##; this
+-> unit) -> [> `OnClick ] Eliom.Content.Html.attrib##; this
 determines the type of the client value ##onclick## sufficiently.
 
 ===@@id="clientvaluesemantic"@@ Semantics
@@ -241,17 +241,17 @@ order of evaluation of global client values; it will print the numbers
 
 <<code language="ocaml"|
 {client{
-  let () = Eliom_lib.debug "1"
+  let () = Eliom.Lib.debug "1"
 }}
 {server{
-  let f n = ignore {unit { Eliom_lib.debug "%d" %n }}
+  let f n = ignore {unit { Eliom.Lib.debug "%d" %n }}
   let () =
-    ignore {unit{ Eliom_lib.debug "2" }};
+    ignore {unit{ Eliom.Lib.debug "2" }};
     ignore {unit{ f 3 }};
     ignore {unit{ f 4 }}
 }}
 {client{
-  let () = Eliom_lib.debug "5"
+  let () = Eliom.Lib.debug "5"
 }}
 >>
 
@@ -261,7 +261,7 @@ client values are evaluated after receiving the corresponding request
 on the client in the order of their occurrence on the server. In
 requests which change the content of the page withing the application
 (originating from a service of the <<a_api subproject="server"|module
-Eliom_registration.App>>), the expressions are evaluated //after the
+Eliom.Registration.App>>), the expressions are evaluated //after the
 content has changed//. That way they may refer to the new DOM.
 
 If a client value is created outside of the initialization of the

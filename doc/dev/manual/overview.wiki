@@ -34,23 +34,23 @@ Defining a service on path {{{/foo}}}, taking any GET parameters:
 
 <<code language="ocaml" class="server"|
 let myservice =
-  Eliom_service.create
-    ~path:(Eliom_service.Path ["foo"])
-    ~meth:(Eliom_service.Get (Eliom_parameter.any))
+  Eliom.Service.create
+    ~path:(Eliom.Service.Path ["foo"])
+    ~meth:(Eliom.Service.Get (Eliom.Parameter.any))
     ()
 
 let () =
-  Eliom_registration.Html.register ~service:myservice
+  Eliom.Registration.Html.register ~service:myservice
     (fun get_params () ->
       Lwt.return
-         Eliom_content.Html.F.(html (head (title (txt "")))
+         Eliom.Content.Html.F.(html (head (title (txt "")))
                                     (body [h1 [txt "Hello"]])))
 >>
 
 Inserting a link towards that service, with parameters:
 
 <<code language="ocaml" class="server"|
-Eliom_content.Html.D.a ~service:myservice [txt "Home"] [("param1", "v1"); ("param2", "v2")]
+Eliom.Content.Html.D.a ~service:myservice [txt "Home"] [("param1", "v1"); ("param2", "v2")]
 >>
 
 Event handlers are written in OCaml:
@@ -95,11 +95,11 @@ let%client () =
 Saving session data on the server using Eliom references:
 
 <<code language="ocaml" class="server"|
-let%server r = Eliom_reference.eref ~scope:Eliom_common.default_session_scope 0
+let%server r = Eliom.Reference.eref ~scope:Eliom_common.default_session_scope 0
 
 let%server f () =
-  let%lwt v = Eliom_reference.get r in
-  Eliom_reference.set r (v + 1);
+  let%lwt v = Eliom.Reference.get r in
+  Eliom.Reference.set r (v + 1);
   ...
 
 >>
@@ -111,7 +111,7 @@ Where scope can be:
 * {{{Eliom_common.site_scope}}} (value for the whole site),
 * {{{Eliom_common.global_scope}}} (global value for the whole server).
 Eliom references are persistant if you add optional parameter `~persistent`
-to function `Eliom_reference.eref`.
+to function `Eliom.Reference.eref`.
 
 == Learning Eliom
 
