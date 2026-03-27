@@ -757,11 +757,8 @@ module Shared = struct
     if unsafe
     then
       [%expr
-        Shared.Value.create [%e server_expr]
-          [%client.unsafe [%e client_expr]]]
-    else
-      [%expr
-        Shared.Value.create [%e server_expr] [%client [%e client_expr]]]
+        Shared.Value.create [%e server_expr] [%client.unsafe [%e client_expr]]]
+    else [%expr Shared.Value.create [%e server_expr] [%client [%e client_expr]]]
 end
 
 module Make (Pass : Pass) = struct
