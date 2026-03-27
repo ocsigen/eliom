@@ -1,1 +1,1 @@
-include Comet
+include Eliom.Comet

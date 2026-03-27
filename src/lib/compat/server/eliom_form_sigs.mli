@@ -1,1 +1,1 @@
-include module type of Form_sigs
+include module type of Eliom.Form_sigs

@@ -1,1 +1,1 @@
-include module type of Registration_sigs
+include module type of Eliom.Registration_sigs

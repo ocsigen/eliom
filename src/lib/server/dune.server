@@ -1,3 +1,5 @@
+(rule (copy# ../app.server.ml app.ml))
+(rule (copy# ../app.server.mli app.mli))
 (rule (copy# ../bus.server.ml bus.ml))
 (rule (copy# ../bus.server.mli bus.mli))
 (rule (copy# ../client.server.ml client.ml))
@@ -9,24 +11,22 @@
 (rule (target content.ml) (deps ../content.eliom)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_server --as-pp --impl %{deps})))))
+      (chdir .. (run ppx_eliom_server --as-pp -internal --impl %{deps})))))
 (rule (copy# ../content.server.mli content.mli))
 (rule (copy# ../content_sigs.shared.mli content_sigs.mli))
 (rule (target cscache.ml) (deps ../cscache.eliom)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_server --as-pp --impl %{deps})))))
+      (chdir .. (run ppx_eliom_server --as-pp -internal --impl %{deps})))))
 (rule (target cscache.mli) (deps ../cscache.eliomi)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_server --as-pp --intf %{deps})))))
-(rule (copy# ../eliom.server.ml eliom.ml))
-(rule (copy# ../eliom.server.mli eliom.mli))
+      (chdir .. (run ppx_eliom_server --as-pp -internal --intf %{deps})))))
 (rule (copy# ../eliom_client_base.shared.ml eliom_client_base.ml))
 (rule (target eliom_client_main.ml) (deps ../eliom_client_main.eliom)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_server --as-pp --impl %{deps})))))
+      (chdir .. (run ppx_eliom_server --as-pp -internal --impl %{deps})))))
 (rule (copy# ../eliom_client_value.server.ml eliom_client_value.ml))
 (rule (copy# ../eliom_client_value.server.mli eliom_client_value.mli))
 (rule (copy# ../eliom_comet_base.shared.ml eliom_comet_base.ml))
@@ -42,11 +42,11 @@
 (rule (target eliom_form.ml) (deps ../eliom_form.eliom)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_server --as-pp --impl %{deps})))))
+      (chdir .. (run ppx_eliom_server --as-pp -internal --impl %{deps})))))
 (rule (target eliom_form.mli) (deps ../eliom_form.eliomi)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_server --as-pp --intf %{deps})))))
+      (chdir .. (run ppx_eliom_server --as-pp -internal --intf %{deps})))))
 (rule (copy# ../eliom_lazy.server.ml eliom_lazy.ml))
 (rule (copy# ../eliom_lazy.server.mli eliom_lazy.mli))
 (rule (copy# ../eliom_lib_base.shared.ml eliom_lib_base.ml))
@@ -61,7 +61,7 @@
 (rule (target eliom_service_base.ml) (deps ../eliom_service_base.eliom)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_server --as-pp --impl %{deps})))))
+      (chdir .. (run ppx_eliom_server --as-pp -internal --impl %{deps})))))
 (rule (copy# ../eliom_syntax.server.ml eliom_syntax.ml))
 (rule (copy# ../eliom_syntax.server.mli eliom_syntax.mli))
 (rule (copy# ../eliom_types.server.ml eliom_types.ml))
@@ -97,26 +97,26 @@
 (rule (target shared.ml) (deps ../shared.eliom)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_server --as-pp --impl %{deps})))))
+      (chdir .. (run ppx_eliom_server --as-pp -internal --impl %{deps})))))
 (rule (copy# ../shared.server.mli shared.mli))
 (rule (target shared_content.ml) (deps ../shared_content.eliom)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_server --as-pp --impl %{deps})))))
+      (chdir .. (run ppx_eliom_server --as-pp -internal --impl %{deps})))))
 (rule (target shared_content.mli) (deps ../shared_content.eliomi)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_server --as-pp --intf %{deps})))))
+      (chdir .. (run ppx_eliom_server --as-pp -internal --intf %{deps})))))
 (rule (copy# ../shared_sigs.shared.mli shared_sigs.mli))
 (rule (copy# ../state.server.ml state.ml))
 (rule (copy# ../state.server.mli state.mli))
 (rule (target tools.ml) (deps ../tools.eliom)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_server --as-pp --impl %{deps})))))
+      (chdir .. (run ppx_eliom_server --as-pp -internal --impl %{deps})))))
 (rule (target tools.mli) (deps ../tools.eliomi)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_server --as-pp --intf %{deps})))))
+      (chdir .. (run ppx_eliom_server --as-pp -internal --intf %{deps})))))
 (rule (copy# ../wrap.server.ml wrap.ml))
 (rule (copy# ../wrap.server.mli wrap.mli))

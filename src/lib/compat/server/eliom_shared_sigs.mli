@@ -1,1 +1,1 @@
-include module type of Shared_sigs
+include module type of Eliom.Shared_sigs

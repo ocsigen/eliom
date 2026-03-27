@@ -1,1 +1,1 @@
-include module type of Wrap
+include module type of Eliom.Wrap

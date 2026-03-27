@@ -1,1 +1,1 @@
-include Shared
+include Eliom.Shared

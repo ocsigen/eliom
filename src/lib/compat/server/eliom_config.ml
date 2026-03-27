@@ -1,1 +1,1 @@
-include Config
+include Eliom.Config

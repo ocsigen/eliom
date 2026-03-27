@@ -15,13 +15,16 @@ let handle_file_client nm =
   then
     let nm = Filename.chop_suffix nm ".eliom" in
     Printf.printf
-      "(rule (target %s.ml) (deps ../%s.eliom)\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir .. (run ppx_eliom_client --as-pp -server-cmo %%{cmo:../server/%s} --impl %%{deps})))))\n"
-      nm nm nm
+      "(rule (target %s.ml)\n (deps ../%s.eliom (file ../server/.eliom_server.objs/byte/eliom__%s.cmo))\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir .. (run ppx_eliom_client --as-pp -internal -server-cmo server/.eliom_server.objs/byte/eliom__%s.cmo --impl %s.eliom)))))\n"
+      nm nm
+      (String.capitalize_ascii nm)
+      (String.capitalize_ascii nm)
+      nm
   else if Filename.check_suffix nm ".eliomi"
   then
     let nm = Filename.chop_suffix nm ".eliomi" in
     Printf.printf
-      "(rule (target %s.mli) (deps ../%s.eliomi)\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir .. (run ppx_eliom_client --as-pp --intf %%{deps})))))\n"
+      "(rule (target %s.mli) (deps ../%s.eliomi)\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir .. (run ppx_eliom_client --as-pp -internal --intf %%{deps})))))\n"
       nm nm
 
 (*
@@ -57,13 +60,13 @@ let handle_file_server nm =
   then
     let nm = Filename.chop_suffix nm ".eliom" in
     Printf.printf
-      "(rule (target %s.ml) (deps ../%s.eliom)\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir .. (run ppx_eliom_server --as-pp --impl %%{deps})))))\n"
+      "(rule (target %s.ml) (deps ../%s.eliom)\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir .. (run ppx_eliom_server --as-pp -internal --impl %%{deps})))))\n"
       nm nm
   else if Filename.check_suffix nm ".eliomi"
   then
     let nm = Filename.chop_suffix nm ".eliomi" in
     Printf.printf
-      "(rule (target %s.mli) (deps ../%s.eliomi)\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir .. (run ppx_eliom_server --as-pp --intf %%{deps})))))\n"
+      "(rule (target %s.mli) (deps ../%s.eliomi)\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir .. (run ppx_eliom_server --as-pp -internal --intf %%{deps})))))\n"
       nm nm
 
 let () =

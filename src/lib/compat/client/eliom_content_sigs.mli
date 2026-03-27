@@ -1,1 +1,1 @@
-include module type of Content_sigs
+include module type of Eliom.Content_sigs

@@ -1,1 +1,1 @@
-include module type of Parameter_sigs
+include module type of Eliom.Parameter_sigs

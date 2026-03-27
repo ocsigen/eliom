@@ -1,1 +1,1 @@
-include Extension
+include Eliom.Extension
