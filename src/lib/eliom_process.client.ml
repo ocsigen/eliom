@@ -18,7 +18,7 @@
  *)
 
 open Js_of_ocaml
-open Eliom_lib
+open Lib
 
 (* Logs *)
 let section = Logs.Src.create "eliom:process"
@@ -40,7 +40,7 @@ let get_set_js_serverside_value r name =
             (fun () ->
                failwith
                  (name
-                ^ " not defined. A client Eliom application must either be sent by an Eliom server application or you must call Eliom_client.init_client_app."
+                ^ " not defined. A client Eliom application must either be sent by an Eliom server application or you must call Client.init_client_app."
                  ))
             (fun var ->
                let s = unmarshal_js var in
@@ -108,12 +108,11 @@ let set_base_url, get_base_url =
       | Some s -> s
       | None ->
           failwith
-            "base_url not set. Did you forget to call Eliom_client.init_client_app?"
-  )
+            "base_url not set. Did you forget to call Client.init_client_app?" )
 
 (** None on server side *)
 let appl_name_r = ref None
-(* Set by Eliom_client.init_client_app *)
+(* Set by Client.init_client_app *)
 
 let get_application_name () =
   match !appl_name_r with

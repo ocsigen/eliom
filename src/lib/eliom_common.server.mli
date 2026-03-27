@@ -20,7 +20,7 @@
 
 (** Low level functions for Eliom, exceptions and types. *)
 
-open Eliom_lib
+open Lib
 module Ocsipersist : module type of Ocsipersist
 
 (* those types are not available to the user, a scope must be created using
@@ -108,7 +108,7 @@ exception Eliom_site_information_not_available of string
     In particular, you cannot use the function before the configuration file
     is read for example when you are using {e static linking}.
     In that case you must
-    delay the function call using {!Eliom_service.register_eliom_module}.
+    delay the function call using {!Service.register_eliom_module}.
 *)
 
 exception Cannot_call_this_function_before_app_is_linked_to_a_site
@@ -705,13 +705,13 @@ val found_stop_key : unit Polytables.key
 
 (**** Wrapper type shared by client/server side ***)
 
-type 'a wrapper = 'a Eliom_wrap.wrapper
+type 'a wrapper = 'a Wrap.wrapper
 
 val make_wrapper : ('a -> 'b) -> 'a wrapper
 val empty_wrapper : unit -> 'a wrapper
 
-type unwrapper = Eliom_wrap.unwrapper
-type unwrap_id = Eliom_wrap.unwrap_id
+type unwrapper = Wrap.unwrapper
+type unwrap_id = Wrap.unwrap_id
 
 val make_unwrapper : unwrap_id -> unwrapper
 val empty_unwrapper : unwrapper
@@ -727,7 +727,7 @@ val patch_request_info :
   -> Ocsigen_extensions.request
 
 type eliom_js_page_data =
-  { ejs_global_data : (Eliom_runtime.global_data * Eliom_wrap.unwrapper) option
+  { ejs_global_data : (Eliom_runtime.global_data * Wrap.unwrapper) option
   ; ejs_request_data : Eliom_runtime.request_data
   ; (* Event handlers *)
     ejs_event_handler_table : Eliom_runtime.RawXML.event_handler_table

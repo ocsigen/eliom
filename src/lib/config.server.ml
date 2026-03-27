@@ -92,28 +92,28 @@ let add_ignored_post_params regexp =
 let set_omitpersistentstorage v = Eliommod.default_omitpersistentstorage := v
 
 let get_default_hostname () =
-  let sitedata = Eliom_request_info.find_sitedata "get_default_hostname" in
+  let sitedata = Request_info.find_sitedata "get_default_hostname" in
   (Eliom_common.get_config_info sitedata).Ocsigen_extensions.default_hostname
 
 let get_default_port () =
-  let sitedata = Eliom_request_info.find_sitedata "get_default_port" in
+  let sitedata = Request_info.find_sitedata "get_default_port" in
   (Eliom_common.get_config_info sitedata).Ocsigen_extensions.default_httpport
 
 let get_default_sslport () =
-  let sitedata = Eliom_request_info.find_sitedata "get_default_sslport" in
+  let sitedata = Request_info.find_sitedata "get_default_sslport" in
   (Eliom_common.get_config_info sitedata).Ocsigen_extensions.default_httpsport
 
 let default_protocol_is_https () =
-  let sitedata = Eliom_request_info.find_sitedata "default_protocol_is_https" in
+  let sitedata = Request_info.find_sitedata "default_protocol_is_https" in
   (Eliom_common.get_config_info sitedata)
     .Ocsigen_extensions.default_protocol_is_https
 
 let get_default_links_xhr () =
-  let sitedata = Eliom_request_info.find_sitedata "get_default_links_xhr" in
+  let sitedata = Request_info.find_sitedata "get_default_links_xhr" in
   sitedata.Eliom_common.default_links_xhr#get
 
 let set_default_links_xhr ?override_configfile:_ v =
-  let sitedata = Eliom_request_info.find_sitedata "set_default_links_xhr" in
+  let sitedata = Request_info.find_sitedata "set_default_links_xhr" in
   sitedata.Eliom_common.default_links_xhr#set v
 
 let get_config_default_charset_sp sp =
@@ -140,8 +140,7 @@ let get_config () =
     | None -> failwith "No config file. Is it a statically linked executable?")
   | None ->
       raise
-        (Eliom_common.Eliom_site_information_not_available
-           "Eliom_config.get_config")
+        (Eliom_common.Eliom_site_information_not_available "Config.get_config")
 
 let parse_config ?pcdata ?other_elements elements =
   Ocsigen_extensions.Configuration.process_elements

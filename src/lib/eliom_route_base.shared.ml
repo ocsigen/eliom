@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Eliom_lib
+open Lib
 open Lwt
 
 let section = Logs.Src.create "eliom:service"
@@ -79,7 +79,7 @@ module type PARAM = sig
       -> t
       -> ( Table.t ref * Eliom_common.page_table_key
            , Eliom_common.na_key_serv )
-           Eliom_lib.leftright
+           Lib.leftright
       -> Node.t
 
     val get : t -> (int * int * Table.t Eliom_common.dircontent ref) list

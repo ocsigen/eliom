@@ -34,7 +34,7 @@ open Lwt
 (** Iterator on service cookies *)
 let iter_service_cookies f =
   let sitedata =
-    Eliom_request_info.find_sitedata "Eliommod_sessexpl.iter_service_cookies"
+    Request_info.find_sitedata "Eliommod_sessexpl.iter_service_cookies"
   in
   Eliom_common.SessionCookies.fold
     (fun k v thr -> thr >>= fun () -> f (k, v) >>= Lwt.pause)
@@ -43,7 +43,7 @@ let iter_service_cookies f =
 (** Iterator on data cookies *)
 let iter_data_cookies f =
   let sitedata =
-    Eliom_request_info.find_sitedata "Eliommod_sessexpl.iter_data_cookies"
+    Request_info.find_sitedata "Eliommod_sessexpl.iter_data_cookies"
   in
   Eliom_common.SessionCookies.fold
     (fun k v thr -> thr >>= fun () -> f (k, v) >>= Lwt.pause)
@@ -57,7 +57,7 @@ let iter_persistent_cookies f =
 (** Iterator on service cookies *)
 let fold_service_cookies f beg =
   let sitedata =
-    Eliom_request_info.find_sitedata "Eliommod_sessexpl.fold_service_cookies"
+    Request_info.find_sitedata "Eliommod_sessexpl.fold_service_cookies"
   in
   Eliom_common.SessionCookies.fold
     (fun k v thr ->
@@ -69,7 +69,7 @@ let fold_service_cookies f beg =
 (** Iterator on data cookies *)
 let fold_data_cookies f beg =
   let sitedata =
-    Eliom_request_info.find_sitedata "Eliommod_sessexpl.fold_data_cookies"
+    Request_info.find_sitedata "Eliommod_sessexpl.fold_data_cookies"
   in
   Eliom_common.SessionCookies.fold
     (fun k v thr ->
@@ -91,11 +91,11 @@ let fold_persistent_cookies f beg =
 
 let number_of_service_cookies () =
   Eliom_common.SessionCookies.length
-    (Eliom_request_info.get_sitedata ()).Eliom_common.session_services
+    (Request_info.get_sitedata ()).Eliom_common.session_services
 
 let number_of_data_cookies () =
   Eliom_common.SessionCookies.length
-    (Eliom_request_info.get_sitedata ()).Eliom_common.session_data
+    (Request_info.get_sitedata ()).Eliom_common.session_data
 
 let number_of_tables () = List.length !Eliommod_datasess.counttableelements
 

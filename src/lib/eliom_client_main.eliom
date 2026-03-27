@@ -18,11 +18,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-let%client _ = Eliom_client.init ()
+let%client _ = Client.init ()
 
 let _ =
   Eliommod.register_site_init (fun () ->
-    let sitedata = Eliom_request_info.get_sitedata () in
+    let sitedata = Request_info.get_sitedata () in
     let ignored_get_params =
       List.map fst sitedata.Eliom_common.ignored_get_params
     in
@@ -41,29 +41,29 @@ let _ =
 
 [%%client.start]
 
-(* The following lines are for Eliom_bus, Eliom_comet and Eliom_react
+(* The following lines are for Bus, Comet and Eliom_react
    to be linked. *)
 let _force_link =
-  Eliom_react.force_link, Eliom_comet.force_link, Eliom_bus.force_link
+  Eliom_react.force_link, Comet.force_link, Bus.force_link
 
 (* Client side implementation of reload actions *)
 let%shared _ =
-  Eliom_service.internal_set_client_fun ~service:Eliom_service.reload_action
+  Service.internal_set_client_fun ~service:Service.reload_action
     [%client
       fun () () ->
-        Lwt.return (Eliom_service.Reload_action {hidden = false; https = false})];
-  Eliom_service.internal_set_client_fun
-    ~service:Eliom_service.reload_action_https
+        Lwt.return (Service.Reload_action {hidden = false; https = false})];
+  Service.internal_set_client_fun
+    ~service:Service.reload_action_https
     [%client
       fun () () ->
-        Lwt.return (Eliom_service.Reload_action {hidden = false; https = true})];
-  Eliom_service.internal_set_client_fun
-    ~service:Eliom_service.reload_action_hidden
+        Lwt.return (Service.Reload_action {hidden = false; https = true})];
+  Service.internal_set_client_fun
+    ~service:Service.reload_action_hidden
     [%client
       fun () () ->
-        Lwt.return (Eliom_service.Reload_action {hidden = true; https = false})];
-  Eliom_service.internal_set_client_fun
-    ~service:Eliom_service.reload_action_https_hidden
+        Lwt.return (Service.Reload_action {hidden = true; https = false})];
+  Service.internal_set_client_fun
+    ~service:Service.reload_action_https_hidden
     [%client
       fun () () ->
-        Lwt.return (Eliom_service.Reload_action {hidden = true; https = true})]
+        Lwt.return (Service.Reload_action {hidden = true; https = true})]

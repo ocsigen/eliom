@@ -24,19 +24,19 @@ module Ecb = Eliom_comet_base
 
 type ('a, 'b) t =
   { stream : 'b Lwt_stream.t
-  ; scope : Eliom_comet.Channel.comet_scope
+  ; scope : Comet.Channel.comet_scope
   ; name : string option
-  ; channel : 'b Eliom_comet.Channel.t option
+  ; channel : 'b Comet.Channel.t option
   ; write : 'a -> unit Lwt.t
   ; service : 'a Ecb.bus_send_service
-  ; service_registered : bool Eliom_state.volatile_table option
+  ; service_registered : bool State.volatile_table option
   ; size : int option
   ; bus_mark : ('a, 'b) t Eliom_common.wrapper (* must be the last field ! *) }
 [@@warning "-69"]
 
 let register_sender scope service write =
-  Eliom_registration.Action.register ~scope ~options:`NoReload ~service
-    (fun () x -> Lwt_list.iter_s write x)
+  Registration.Action.register ~scope ~options:`NoReload ~service (fun () x ->
+    Lwt_list.iter_s write x)
 
 let internal_wrap (bus : ('a, 'b) t) :
   ('a, 'b) Ecb.wrapped_bus * Eliom_common.unwrapper
@@ -44,35 +44,23 @@ let internal_wrap (bus : ('a, 'b) t) :
   let channel =
     match bus.channel with
     | None ->
-        Eliom_comet.Channel.create ~scope:bus.scope ?name:bus.name
-          ?size:bus.size
+        Comet.Channel.create ~scope:bus.scope ?name:bus.name ?size:bus.size
           (Lwt_stream.clone bus.stream)
     | Some c -> c
   in
   (match bus.service_registered with
   | None -> ()
   | Some table -> (
-    match Eliom_state.get_volatile_data ~table () with
-    | Eliom_state.Data true -> ()
+    match State.get_volatile_data ~table () with
+    | State.Data true -> ()
     | _ ->
         let {service = Ecb.Bus_send_service srv; _} = bus in
         register_sender bus.scope
           (srv
-            :> ( _
-                 , _ list
-                 , _
-                 , _
-                 , _
-                 , Eliom_service.non_ext
-                 , _
-                 , _
-                 , _
-                 , _
-                 , _ )
-                 Eliom_service.t)
+            :> (_, _ list, _, _, _, Service.non_ext, _, _, _, _, _) Service.t)
           bus.write;
-        Eliom_state.set_volatile_data ~table true));
-  ( (Eliom_comet.Channel.get_wrapped channel, bus.service)
+        State.set_volatile_data ~table true));
+  ( (Comet.Channel.get_wrapped channel, bus.service)
   , Eliom_common.make_unwrapper Eliom_common.bus_unwrap_id )
 
 let bus_mark () = Eliom_common.make_wrapper internal_wrap
@@ -105,29 +93,26 @@ let create_filtered ?scope ?name ?size ~filter typ =
   let channel =
     match scope with
     | `Site ->
-        Some
-          (Eliom_comet.Channel.create ~scope ?name ?size
-             (Lwt_stream.clone stream))
+        Some (Comet.Channel.create ~scope ?name ?size (Lwt_stream.clone stream))
     | `Client_process _ -> None
   in
   let typ_list = deriving_to_list typ in
   (*The service*)
   let post_params =
-    (Eliom_parameter.ocaml "bus_write" typ_list
-     : ('a, 'aa, 'aaa) Eliom_parameter.params_type)
+    (Parameter.ocaml "bus_write" typ_list
+     : ('a, 'aa, 'aaa) Parameter.params_type)
   in
   let distant_write =
-    Eliom_service.create ?name
-      ~meth:(Eliom_service.Post (Eliom_parameter.unit, post_params))
-      ~path:Eliom_service.No_path ()
+    Service.create ?name
+      ~meth:(Service.Post (Parameter.unit, post_params))
+      ~path:Service.No_path ()
   in
   let service_registered =
     match scope with
     | `Site ->
         register_sender scope distant_write push;
         None
-    | `Client_process _ as scope ->
-        Some (Eliom_state.create_volatile_table ~scope ())
+    | `Client_process _ as scope -> Some (State.create_volatile_table ~scope ())
   in
   (*The bus*)
   let bus =

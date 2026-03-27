@@ -20,7 +20,7 @@
 (** Client-side service registration.
 
     The interface is meant to be compatible with server-side
-    {!Eliom_registration}.
+    <<a_api subproject="server" | module Registration >>.
 
     See {{!page-"clientserver-services"}the manual chapter on client-side services}
     for details. *)
@@ -30,39 +30,39 @@ type browser_content = [`Browser]
 type 'a application_content = [`Appl of 'a]
 
 module Html :
-  Eliom_registration_sigs.S
-  with type page = Html_types.html Eliom_content.Html.elt
+  Registration_sigs.S
+  with type page = Html_types.html Content.Html.elt
    and type options = unit
-   and type return = Eliom_service.non_ocaml
+   and type return = Service.non_ocaml
    and type result = browser_content kind
 
 module Action :
-  Eliom_registration_sigs.S
+  Registration_sigs.S
   with type page = unit
    and type options = [`Reload | `NoReload]
-   and type return = Eliom_service.non_ocaml
+   and type return = Service.non_ocaml
    and type result = browser_content kind
 
 module Unit :
-  Eliom_registration_sigs.S
+  Registration_sigs.S
   with type page = unit
    and type options = unit
-   and type return = Eliom_service.non_ocaml
+   and type return = Service.non_ocaml
    and type result = browser_content kind
 
 type appl_service_options = {do_not_launch : bool}
 (** Has no effect on client; for compatibility with server *)
 
-module App (_ : Eliom_registration_sigs.APP_PARAM) : sig
+module App (_ : Registration_sigs.APP_PARAM) : sig
   val application_name : string
 
   type app_id
 
   include
-    Eliom_registration_sigs.S
-    with type page = Html_types.html Eliom_content.Html.elt
+    Registration_sigs.S
+    with type page = Html_types.html Content.Html.elt
      and type options = appl_service_options
-     and type return = Eliom_service.non_ocaml
+     and type return = Service.non_ocaml
      and type result = app_id application_content kind
 end
 
@@ -70,7 +70,7 @@ type _ redirection =
   | Redirection :
       ( unit
         , unit
-        , Eliom_service.get
+        , Service.get
         , _
         , _
         , _
@@ -79,15 +79,15 @@ type _ redirection =
         , unit
         , unit
         , 'a )
-        Eliom_service.t
+        Service.t
       -> 'a redirection
 
 (* [page] et al. are not really polymorphic. The type variables are
     necessary for maintaining type-level compatibility with server
     (for injections) *)
 module Redirection :
-  Eliom_registration_sigs.S_poly_with_send
-  with type 'a page = Eliom_service.non_ocaml redirection
+  Registration_sigs.S_poly_with_send
+  with type 'a page = Service.non_ocaml redirection
    and type options =
     [ `MovedPermanently
     | `Found
@@ -95,14 +95,14 @@ module Redirection :
     | `NotNodifed
     | `UseProxy
     | `TemporaryRedirect ]
-   and type 'a return = Eliom_service.non_ocaml
+   and type 'a return = Service.non_ocaml
    and type 'a result = browser_content kind
 
 module Any :
-  Eliom_registration_sigs.S_poly_with_send
+  Registration_sigs.S_poly_with_send
   with type 'a page = 'a kind
    and type options = unit
-   and type 'a return = Eliom_service.non_ocaml
+   and type 'a return = Service.non_ocaml
    and type 'a result = 'a kind
 
 val appl_self_redirect :
@@ -114,7 +114,7 @@ val appl_self_redirect :
 (**/**)
 
 module type Base = sig
-  type return = Eliom_service.non_ocaml
+  type return = Service.non_ocaml
 end
 
 module Block5 : Base
@@ -126,7 +126,7 @@ module String_redirection : Base
 module Streamlist : Base
 
 module Ocaml : sig
-  type 'a return = 'a Eliom_service.ocaml
+  type 'a return = 'a Service.ocaml
 end
 
 val section : Logs.src

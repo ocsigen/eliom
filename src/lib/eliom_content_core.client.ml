@@ -17,13 +17,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(* This the core of [Eliom_content] without its dependencies to [Eliom_service],
-   [Eliom_client] et al.
+(* This the core of [Content] without its dependencies to [Service],
+   [Client] et al.
    Its name is not [Eliom_content_base] because this would
    suggest the sharing between server and client. *)
 
 open Js_of_ocaml
-open Eliom_lib
+open Lib
 
 module Xml = struct
   include Eliom_runtime.RawXML
@@ -48,7 +48,7 @@ module Xml = struct
     | ReactChildren of econtent * elt ReactiveData.RList.t
 
   and elt =
-    { (* See Eliom_content.Html.To_dom for the 'unwrap' function that convert
+    { (* See Content.Html.To_dom for the 'unwrap' function that convert
        the server's tree representation into the client one. *)
       mutable elt : node lazy_t
     ; node_id : node_id }

@@ -34,13 +34,13 @@ module type LINKS_AND_FORMS = sig
       lazy_star
 
   include
-    Eliom_form_sigs.LINKS
+    Form_sigs.LINKS
     with type +'a elt := 'a elt
      and type +'a attrib := 'a attrib
      and type uri := uri
 
   module Form :
-    Eliom_form_sigs.S
+    Form_sigs.S
     with type +'a elt := 'a elt
      and type +'a attrib := 'a attrib
      and type uri := uri

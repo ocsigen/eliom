@@ -18,7 +18,7 @@
  *)
 
 open Js_of_ocaml
-open Eliom_lib
+open Lib
 include Eliom_cookies_base
 
 (* CCC The tables are indexed by the hostname, not the port appear.

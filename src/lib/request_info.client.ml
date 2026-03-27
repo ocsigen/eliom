@@ -27,7 +27,7 @@
 *)
 
 open Js_of_ocaml
-open Eliom_lib
+open Lib
 include Eliom_types
 
 let client_app_initialised = ref false
@@ -43,8 +43,7 @@ let get_ri () =
   | None -> (
     match !default_ri with
     | Some p -> p
-    | None ->
-        failwith "Eliom_request_info.get_sess_info called before initialization"
+    | None -> failwith "Request_info.get_sess_info called before initialization"
     )
 
 let get_sess_info () = (get_ri ()).si
@@ -90,7 +89,7 @@ let update_session_info ~path ~all_get_params ~all_post_params cont =
     ; si_all_get_params = all_get_params
     ; si_na_get_params = na_get_params
     ; si_nl_get_params = nl_get_params
-    ; si_nl_post_params = Eliom_lib.String.Table.empty
+    ; si_nl_post_params = Lib.String.Table.empty
     ; si_all_post_params = all_post_params
     ; si_all_get_but_nl = all_get_but_nl
     ; si_all_get_but_na_nl = all_get_but_na_nl
@@ -201,9 +200,9 @@ let default_request_data =
       ; si_state_info = Eliom_common.RAtt_no, Eliom_common.RAtt_no
       ; si_previous_extension_error = 404
       ; si_na_get_params = lazy []
-      ; si_nl_get_params = Eliom_lib.String.Table.empty
-      ; si_nl_post_params = Eliom_lib.String.Table.empty
-      ; si_nl_file_params = Eliom_lib.String.Table.empty
+      ; si_nl_get_params = Lib.String.Table.empty
+      ; si_nl_post_params = Lib.String.Table.empty
+      ; si_nl_file_params = Lib.String.Table.empty
       ; si_persistent_nl_get_params = lazy String.Table.empty
       ; si_all_get_but_na_nl = lazy []
       ; si_all_get_but_nl = []
@@ -216,7 +215,7 @@ let get_request_data () =
   let eliom_request_data = Js.Unsafe.global##.___eliom_request_data_ in
   Js.Optdef.case eliom_request_data
     (fun () -> default_request_data)
-    (fun var -> Eliom_unwrap.unwrap_js var)
+    (fun var -> Unwrap.unwrap_js var)
 
 exception Eliom_no_raw_post_data_on_client
 

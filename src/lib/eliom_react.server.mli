@@ -24,7 +24,7 @@
 
     Warning: it is not possible to catch exceptions on each channel
     using Eliom_react (for example channel closed or full).
-    If you need an error handling, use Eliom_comet.Channel instead.
+    If you need an error handling, use Comet.Channel instead.
 *)
 
 (** {b Please read the
@@ -56,7 +56,7 @@ module Down : sig
   (** The abstract type of down events. *)
 
   val of_react :
-     ?scope:[< Eliom_comet.Channel.comet_scope]
+     ?scope:[< Comet.Channel.comet_scope]
     -> ?throttling:float
     -> ?name:string
     -> ?size:int
@@ -70,7 +70,7 @@ module Down : sig
       - [name] for named edges,
       - [size] for the size of the server side buffer.
       - [scope]
-      tell which kind of channel this rely on (See [Eliom_comet.create]). *)
+      tell which kind of channel this rely on (See [Comet.create]). *)
 end
 
 (** Event from client to server. *)
@@ -82,7 +82,7 @@ module Up : sig
 
       Example of use:
       [let e_up = Eliom_react.Up.create
-        (Eliom_parameter.ocaml "a" [%json: string])
+        (Parameter.ocaml "a" [%json: string])
       in
       ... {{ ignore ( %e_up "A") }} ...
       ]
@@ -102,8 +102,8 @@ module Up : sig
     -> ?name:string
     -> ( 'a
          , [`WithoutSuffix]
-         , [`One of 'a Eliom_parameter.ocaml] Eliom_parameter.param_name )
-         Eliom_parameter.params_type
+         , [`One of 'a Parameter.ocaml] Parameter.param_name )
+         Parameter.params_type
     -> 'a t
   (** [create param] creates an Up event.
       If [~name] is present, the coservice used to transmit the event will
@@ -120,7 +120,7 @@ module S : sig
     (** The abstract type of down signals. *)
 
     val of_react :
-       ?scope:[< Eliom_comet.Channel.comet_scope]
+       ?scope:[< Comet.Channel.comet_scope]
       -> ?throttling:float
       -> ?name:string
       -> 'a React.S.t

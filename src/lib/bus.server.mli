@@ -36,7 +36,7 @@ type ('a, 'b) t
     participants. *)
 
 val create :
-   ?scope:[< Eliom_comet.Channel.comet_scope]
+   ?scope:[< Comet.Channel.comet_scope]
   -> ?name:string
   -> ?size:int
   -> 'a Deriving_Json.t
@@ -44,16 +44,16 @@ val create :
 (** [create ?scope ?name ?size ?filter t] creates a fresh bus.
     The [scope] parameter
     is used to chose the kind of channel on which the bus rely
-    (See [Eliom_comet.create] for more information). The [?name] argument
+    (See [Comet.create] for more information). The [?name] argument
     allow one to make bus's persistent over server restart. The [size]
-    argument behaves like the one on {!Eliom_comet.Channel.create}.
+    argument behaves like the one on {!Comet.Channel.create}.
     If [?filter] argument is present, data is filtered through this function
     before entering the bus. Use this for example if you want to add
     some information, like IP address, or user id.
 *)
 
 val create_filtered :
-   ?scope:[< Eliom_comet.Channel.comet_scope]
+   ?scope:[< Comet.Channel.comet_scope]
   -> ?name:string
   -> ?size:int
   -> filter:('a -> 'b Lwt.t)

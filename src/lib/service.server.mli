@@ -25,7 +25,7 @@
 
     See {!create} for the main service creation function.x *)
 
-include Eliom_service_sigs.S
+include Service_sigs.S
 
 val create :
    ?name:string
@@ -44,9 +44,9 @@ val create :
 (** {b Service definition}
 
     The function [create ~id ~path ()] creates a service
-    ({!Eliom_service_sigs.S.t}) identified as per [path] and accepting
-    parameters as per [meth]. See {!Eliom_service_sigs.S.path_option}
-    and {!Eliom_service_sigs.TYPES.meth} for the respective arguments.
+    ({!Service_sigs.S.t}) identified as per [path] and accepting
+    parameters as per [meth]. See {!Service_sigs.S.path_option}
+    and {!Service_sigs.TYPES.meth} for the respective arguments.
 
     If [path = Path p], the service appears on path [p]. Otherwise
     ([No_path]), the service doesn't have its own path. Rather, the
@@ -96,10 +96,10 @@ val create :
     respectively correspond to the [~scope] and [~secure] arguments
     that will be given to the associated [register]
     function. Otherwise the registration will fail with
-    {Eliom_service.Wrong_session_table_for_CSRF_safe_coservice}. See
-    {!Eliom_registration.Html.register},
-    {!Eliom_registration.App.register} or any other
-    {!Eliom_registration}[.*.register] functions for a description
+    {Service.Wrong_session_table_for_CSRF_safe_coservice}. See
+    {!Registration.Html.register},
+    {!Registration.App.register} or any other
+    {!Registration}[.*.register] functions for a description
     of these arguments.
 
     {e Warning: [create] must be called when the site information is
@@ -108,7 +108,7 @@ val create :
     exception {!Eliom_common.Eliom_site_information_not_available}.
     If you are using static linking, you must delay the call to this
     function until the configuration file is read, using
-    {!Eliom_service.register_eliom_module}. Otherwise you will also
+    {!Service.register_eliom_module}. Otherwise you will also
     get this exception.}  *)
 
 val create_attached_get :
@@ -133,7 +133,7 @@ val create_attached_get :
          , unit
          , non_ocaml )
          t
-  -> get_params:('gp, [`WithoutSuffix], 'gn) Eliom_parameter.params_type
+  -> get_params:('gp, [`WithoutSuffix], 'gn) Parameter.params_type
   -> unit
   -> ( 'gp
        , unit
@@ -166,7 +166,7 @@ val create_attached_post :
   -> ?keep_nl_params:[`All | `Persistent | `None]
   -> fallback:
        ('gp, unit, get, att, non_co, non_ext, _, 'suff, 'gn, unit, non_ocaml) t
-  -> post_params:('pp, [`WithoutSuffix], 'pn) Eliom_parameter.params_type
+  -> post_params:('pp, [`WithoutSuffix], 'pn) Parameter.params_type
   -> unit
   -> ('gp, 'pp, post, att, co, non_ext, reg, 'suff, 'gn, 'pn, non_ocaml) t
 (** [create_attached_post ~fallback ~post_params ()] attaches a new service on
@@ -227,9 +227,9 @@ val unregister :
   -> unit
 (** The function [unregister service] unregister the service handler
     previously associated to [service] with
-    {!Eliom_registration.Html.register},
-    {!Eliom_registration.App.register} or any other
-    {!Eliom_registration}[.*.register] functions. See the
+    {!Registration.Html.register},
+    {!Registration.App.register} or any other
+    {!Registration}[.*.register] functions. See the
     documentation of those functions for a description of the [~scope]
     and [~secure] optional parameters. *)
 
@@ -240,7 +240,7 @@ val is_external : (_, _, _, _, _, _, _, _, _, _, _) t -> bool
 
 val pre_applied_parameters :
    (_, _, _, _, _, _, _, _, _, _, _) t
-  -> (string * string) list Eliom_lib.String.Table.t * (string * string) list
+  -> (string * string) list Lib.String.Table.t * (string * string) list
 
 val new_state : unit -> string
 
@@ -309,7 +309,7 @@ val create_attached_get_unsafe :
   -> ?https:bool
   -> ?keep_nl_params:[`All | `Persistent | `None]
   -> fallback:(unit, unit, get, att, non_co, non_ext, _, _, unit, unit, _) t
-  -> get_params:('gp, 'tipo, 'gn) Eliom_parameter.params_type
+  -> get_params:('gp, 'tipo, 'gn) Parameter.params_type
   -> unit
   -> ('gp, unit, get, att, co, non_ext, reg, 'tipo, 'gn, unit, _) t
 
@@ -323,6 +323,6 @@ val create_attached_post_unsafe :
   -> ?https:bool
   -> ?keep_nl_params:[`All | `Persistent | `None]
   -> fallback:('gp, unit, get, att, non_co, non_ext, _, 'tipo, 'gn, unit, _) t
-  -> post_params:('pp, [`WithoutSuffix], 'pn) Eliom_parameter.params_type
+  -> post_params:('pp, [`WithoutSuffix], 'pn) Parameter.params_type
   -> unit
   -> ('gp, 'pp, post, att, co, non_ext, reg, 'tipo, 'gn, 'pn, _) t

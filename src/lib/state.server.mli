@@ -291,7 +291,7 @@ val get_persistent_data_session_group :
     This won't modify existing groups.
     That value will be used only as default value if you do not specify the
     optional parameter [?set_max] of function
-    {!Eliom_state.set_volatile_data_session_group}.
+    {!State.set_volatile_data_session_group}.
 
     If there is no group, the number of sessions is limitated by sub network
     (which can be a problem for example if the server is behind a
@@ -498,7 +498,7 @@ val set_persistent_data_cookie_exp_date :
     by another Lwt thread, as this can take a long time).
     States whose timeout has been set individually with
     functions like
-    {!Eliom_state.set_volatile_data_state_timeout} won't be affected.
+    {!State.set_volatile_data_state_timeout} won't be affected.
 
     If [~scope_hierarchy] is not present,
     it is the default for all scope hierarchies,
@@ -685,7 +685,7 @@ val get_persistent_data_state_timeout :
     {!Eliom_common.Eliom_site_information_not_available}.
     If you are using static linking, you must delay the call to this function
     until the configuration file is read, using
-    {!Eliom_service.register_eliom_module}. Otherwise you will also get
+    {!Service.register_eliom_module}. Otherwise you will also get
     this exception.}
  *)
 
@@ -822,7 +822,7 @@ module Ext : sig
       If you do not call the function during
       a request or during the initialisation phase of the Eliom module,
       you must provide the extra parameter [?sitedata],
-      that you can get by calling {!Eliom_request_info.get_sitedata}
+      that you can get by calling {!Request_info.get_sitedata}
       during the initialisation phase of the Eliom module.
   *)
 
@@ -1043,7 +1043,7 @@ val create_volatile_table :
     {!Eliom_common.Eliom_site_information_not_available}.
     If you are using static linking, you must delay the call to this function
     until the configuration file is read, using
-    {!Eliom_service.register_eliom_module}. Otherwise you will also get
+    {!Service.register_eliom_module}. Otherwise you will also get
     this exception.}
  *)
 

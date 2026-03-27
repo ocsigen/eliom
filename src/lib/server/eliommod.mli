@@ -9,7 +9,7 @@ val default_max_volatile_data_tab_sessions_per_group : int ref
 val default_secure_cookies : bool ref
 val default_application_script : (bool * bool) ref
 val default_enable_wasm : bool ref
-val default_cache_global_data : (Eliom_lib.Url.path * int) option ref
+val default_cache_global_data : (Lib.Url.path * int) option ref
 val default_html_content_type : string option ref
 val default_ignored_get_params : (string * Re.re) list ref
 val default_ignored_post_params : (string * Re.re) list ref
@@ -22,7 +22,7 @@ val default_max_anonymous_services_per_session : int ref
 val default_max_volatile_groups_per_site : int ref
 
 module S : sig
-  type key = Ocsigen_extensions.virtual_hosts * Eliom_lib.Url.path
+  type key = Ocsigen_extensions.virtual_hosts * Lib.Url.path
   type !'a t
 
   val create : int -> 'a t
@@ -51,7 +51,7 @@ end
 
 val create_sitedata :
    Ocsigen_extensions.virtual_hosts
-  -> Eliom_lib.Url.path
+  -> Lib.Url.path
   -> Ocsigen_extensions.config_info
   -> Eliom_common.sitedata
 
@@ -88,7 +88,7 @@ val parse_eliom_option :
    * (int -> unit)
    * (bool * bool -> unit)
    * (bool -> unit)
-   * ((Eliom_lib.Url.path * int) option -> unit)
+   * ((Lib.Url.path * int) option -> unit)
    * (string -> unit)
    * (string * Re.re -> unit)
    * (string * Re.re -> unit)
@@ -129,7 +129,7 @@ val parse_eliom_options :
    * (int -> unit)
    * (bool * bool -> unit)
    * (bool -> unit)
-   * ((Eliom_lib.Url.path * int) option -> unit)
+   * ((Lib.Url.path * int) option -> unit)
    * (string -> unit)
    * (string * Re.re -> unit)
    * (string * Re.re -> unit)
@@ -154,7 +154,7 @@ val site_init : bool ref -> unit
 val update_sitedata :
    string
   -> Ocsigen_extensions.virtual_hosts
-  -> Eliom_lib.Url.path
+  -> Lib.Url.path
   -> Ocsigen_extensions.config_info
   -> Eliom_common.sitedata
 
@@ -187,7 +187,7 @@ val parse_config :
    'a
   -> Ocsigen_extensions.virtual_hosts
   -> Ocsigen_extensions.config_info
-  -> Eliom_lib.Url.path
+  -> Lib.Url.path
   -> 'b
   -> 'c
   -> Xml_light_types.xml

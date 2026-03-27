@@ -20,8 +20,8 @@
 type +'a t = 'a Eliom_runtime.Client_value_server_repr.t
 
 let client_value_unwrapper =
-  Eliom_wrap.create_unwrapper
-    (Eliom_wrap.id_of_int Eliom_runtime.client_value_unwrap_id_int)
+  Wrap.create_unwrapper
+    (Wrap.id_of_int Eliom_runtime.client_value_unwrap_id_int)
 
 let create_client_value ~loc ~instance_id =
   Eliom_runtime.Client_value_server_repr.create ~loc ~instance_id
@@ -36,7 +36,5 @@ let client_value_datum ~closure_id ~args ~value =
 
 exception Client_value_creation_invalid_context of string
 
-let escaped_value value :
-  Eliom_runtime.escaped_value (* * Eliom_wrap.unwrapper *)
-  =
+let escaped_value value : Eliom_runtime.escaped_value (* * Wrap.unwrapper *) =
   Ocsigen_lib.to_poly value

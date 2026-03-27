@@ -41,11 +41,11 @@ val unwrap : string -> int -> 'a
 (** [unwrap s i] unmarshal [s] (starting at character [i]) and
     transform the value [v] using registered wrappers. The marshalled
     value must have been produced with [Marshal.to_string
-    (Eliom_wrap.wrap v)]. This function is for internal use only *)
+    (Wrap.wrap v)]. This function is for internal use only *)
 
 (* == Internals
 
-   [Eliom_unwrap.unwrap] implements basically the unmarshalling of a
+   [Unwrap.unwrap] implements basically the unmarshalling of a
    string to the JavaScript-representation an OCaml value, i.e.
    JavaScript Arrays in lieu of [Obj.t].
 

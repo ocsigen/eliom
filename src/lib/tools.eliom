@@ -18,8 +18,8 @@
 
 [%%shared.start]
 
-open Eliom_lib
-open Eliom_content
+open Lib
+open Content
 
 let menu_class = "eliomtools_menu"
 let last_class = "eliomtools_last"
@@ -37,7 +37,7 @@ type srv =
   | Srv :
       ( unit
         , unit
-        , Eliom_service.get
+        , Service.get
         , _
         , _
         , _
@@ -45,8 +45,8 @@ type srv =
         , [`WithoutSuffix]
         , unit
         , unit
-        , Eliom_service.non_ocaml )
-        Eliom_service.t
+        , Service.non_ocaml )
+        Service.t
       -> srv
 
 type 'a hierarchical_site_item = Disabled | Site_tree of 'a hierarchical_site
@@ -61,7 +61,7 @@ module type HTML5_TOOLS = sig
     -> ?id:string
     -> (( unit
           , unit
-          , Eliom_service.get
+          , Service.get
           , _
           , _
           , _
@@ -69,14 +69,14 @@ module type HTML5_TOOLS = sig
           , [`WithoutSuffix]
           , unit
           , unit
-          , Eliom_service.non_ocaml )
-          Eliom_service.t
+          , Service.non_ocaml )
+          Service.t
        * [< Html_types.flow5_without_interactive] Html.elt list)
          list
     -> ?service:
          ( unit
            , unit
-           , Eliom_service.get
+           , Service.get
            , _
            , _
            , _
@@ -84,8 +84,8 @@ module type HTML5_TOOLS = sig
            , [`WithoutSuffix]
            , unit
            , unit
-           , Eliom_service.non_ocaml )
-           Eliom_service.t
+           , Service.non_ocaml )
+           Service.t
     -> unit
     -> [> `Ul] Html.elt
   (** The function [menu elts ()], where [elts] is a list of pair
@@ -111,7 +111,7 @@ module type HTML5_TOOLS = sig
     -> ?service:
          ( unit
            , unit
-           , Eliom_service.get
+           , Service.get
            , _
            , _
            , _
@@ -119,8 +119,8 @@ module type HTML5_TOOLS = sig
            , [`WithoutSuffix]
            , unit
            , unit
-           , Eliom_service.non_ocaml )
-           Eliom_service.t
+           , Service.non_ocaml )
+           Service.t
     -> unit
     -> [> `Ul] Html.elt list
   (** The function [hierarchical_menu_depth_first site ()] constructs
@@ -145,7 +145,7 @@ module type HTML5_TOOLS = sig
     -> ?service:
          ( unit
            , unit
-           , Eliom_service.get
+           , Service.get
            , _
            , _
            , _
@@ -153,8 +153,8 @@ module type HTML5_TOOLS = sig
            , [`WithoutSuffix]
            , unit
            , unit
-           , Eliom_service.non_ocaml )
-           Eliom_service.t
+           , Service.non_ocaml )
+           Service.t
     -> unit
     -> [> `Ul] Html.elt list
   (** The function [hierarchical_menu_breadth_first site ()]
@@ -175,7 +175,7 @@ module type HTML5_TOOLS = sig
     -> ?service:
          ( unit
            , unit
-           , Eliom_service.get
+           , Service.get
            , _
            , _
            , _
@@ -183,8 +183,8 @@ module type HTML5_TOOLS = sig
            , [`WithoutSuffix]
            , unit
            , unit
-           , Eliom_service.non_ocaml )
-           Eliom_service.t
+           , Service.non_ocaml )
+           Service.t
     -> unit
     -> [> `Link] Html.elt list
   (** The function [structure_links site ()] returns the tags [<link
@@ -217,39 +217,39 @@ module type HTML5_TOOLS = sig
 end
 
 let%server css_files =
-  Eliom_reference.Volatile.eref ~scope:Eliom_common.request_scope []
+  Reference.Volatile.eref ~scope:Eliom_common.request_scope []
 
 let%client css_files = ref []
 
 let%server js_files =
-  Eliom_reference.Volatile.eref ~scope:Eliom_common.request_scope []
+  Reference.Volatile.eref ~scope:Eliom_common.request_scope []
 
 let%client js_files = ref []
 
 let%server with_css_file file =
-  Eliom_reference.Volatile.modify css_files (fun files -> file :: files)
+  Reference.Volatile.modify css_files (fun files -> file :: files)
 
 let%client with_css_file file = css_files := file :: !css_files
 
 let%server with_js_file file =
-  Eliom_reference.Volatile.modify js_files (fun files -> file :: files)
+  Reference.Volatile.modify js_files (fun files -> file :: files)
 
 let%client with_js_file file = js_files := file :: !js_files
-let%server get_css_files () = Eliom_reference.Volatile.get css_files
+let%server get_css_files () = Reference.Volatile.get css_files
 
 let%client get_css_files () =
   let f = !css_files in
   css_files := [];
   f
 
-let%server get_js_files () = Eliom_reference.Volatile.get js_files
+let%server get_js_files () = Reference.Volatile.get js_files
 
 let%client get_js_files () =
   let f = !js_files in
   js_files := [];
   f
 
-module Make (DorF : module type of Eliom_content.Html.F) : HTML5_TOOLS = struct
+module Make (DorF : module type of Content.Html.F) : HTML5_TOOLS = struct
   open Html_types
   open Html.F
 
@@ -265,7 +265,7 @@ module Make (DorF : module type of Eliom_content.Html.F) : HTML5_TOOLS = struct
     in
     match sopt with
     | None ->
-        same_url ("/" ^ Eliom_request_info.get_original_full_path_string ())
+        same_url ("/" ^ Request_info.get_original_full_path_string ())
     | Some s' -> same_url (make_string_uri ~absolute_path:true ~service:s' ())
 
   let menu ?(classe = []) ?id l ?service:current () =
@@ -309,7 +309,7 @@ module Make (DorF : module type of Eliom_content.Html.F) : HTML5_TOOLS = struct
         string_prefix service_url
           ((* MAYBE : use get_original_full_path_string? *)
            "/"
-          ^ Eliom_request_info.get_original_full_path_string ())
+          ^ Request_info.get_original_full_path_string ())
     | Some s' ->
         let node_url = make_string_uri ~absolute_path:true ~service:s' () in
         string_prefix service_url node_url
@@ -503,11 +503,11 @@ module Make (DorF : module type of Eliom_content.Html.F) : HTML5_TOOLS = struct
   let head ~title:ttl ?(css = []) ?(js = []) ?(other = []) () =
     let open DorF in
     let mk_css_link path =
-      let uri = make_uri ~service:(Eliom_service.static_dir ()) path in
+      let uri = make_uri ~service:(Service.static_dir ()) path in
       css_link ~uri ()
     in
     let mk_js_script path =
-      let uri = make_uri ~service:(Eliom_service.static_dir ()) path in
+      let uri = make_uri ~service:(Service.static_dir ()) path in
       js_script ~a:[a_defer ()] ~uri ()
     in
     DorF.head

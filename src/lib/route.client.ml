@@ -12,7 +12,7 @@ module A = struct
 
   (* the suffix is the only thing we seem to need *)
   type params = string list option
-  type result = Eliom_service.result
+  type result = Service.result
 
   let site_data _ = ()
   let sess_info_of_info {i_sess_info; _} = i_sess_info
@@ -38,7 +38,7 @@ module A = struct
   type service =
     ( table ref * Eliom_common.page_table_key
       , Eliom_common.na_key_serv )
-      Eliom_lib.leftright
+      Lib.leftright
 
   and node = service list
   and table = table_content Raw_table.t
@@ -79,7 +79,7 @@ module A = struct
     let dlist_add ?sp:_ _tables _srv = ()
   end
 
-  let handle_directory _ = Lwt.return Eliom_service.No_contents
+  let handle_directory _ = Lwt.return Service.No_contents
 end
 
 include Eliom_route_base.Make (A)
@@ -113,7 +113,7 @@ let rec remove_site_dir p p' =
 
 let call_service ({i_get_params; i_post_params; i_subpath; _} as info) =
   let info =
-    match remove_site_dir (Eliom_request_info.get_site_dir ()) i_subpath with
+    match remove_site_dir (Request_info.get_site_dir ()) i_subpath with
     | Some i_subpath -> {info with i_subpath}
     | None -> info
   in

@@ -31,7 +31,7 @@ module Client_value_server_repr : sig
   val create :
      loc:Eliom_lib_base.pos option
     -> instance_id:int
-    -> unwrapper:Eliom_wrap.unwrapper
+    -> unwrapper:Wrap.unwrapper
     -> _ t
   (** instance_id is zero for local client values, unique for global
       client values *)
@@ -83,7 +83,7 @@ module RawXML : sig
      ([`A | `Form_get | `Form_post]
      * cookie_info option
      * string option
-     * Eliom_lib.poly)
+     * Lib.poly)
        option
        Eliom_lazy.request
     -> internal_event_handler
@@ -177,7 +177,7 @@ type compilation_unit_global_data =
   ; client_sections_data : injection_datum array array }
 (** Data for initializing client values and injections of one compilation unit *)
 
-type global_data = compilation_unit_global_data Eliom_lib.String_map.t
+type global_data = compilation_unit_global_data Lib.String_map.t
 (** Data for initializing client values and injection of the client
     program. Sent with the response to the initial request of a client
     process. *)
@@ -192,4 +192,4 @@ type 'a eliom_caml_service_data =
   {ecs_request_data : request_data; ecs_data : 'a}
 
 (* the data sent on channels *)
-type 'a eliom_comet_data_type = 'a Eliom_wrap.wrapped_value
+type 'a eliom_comet_data_type = 'a Wrap.wrapped_value

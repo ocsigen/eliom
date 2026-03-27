@@ -24,7 +24,7 @@
          ~scope:Eliom_common.default_process_scope *)
 (* TODO: terminology: identity/client/user/listener *)
 
-(** Signature of the functors [Eliom_notif.Make] and [Eliom_notif.Make_Simple].
+(** Signature of the functors [Notif.Make] and [Notif.Make_Simple].
 
     [S] has two types of notifications ([server_notif] and [client_notif])
     because we might need to serialise and deserialise the notification twice
@@ -66,7 +66,7 @@ module type S = sig
   module Ext : sig
     val unlisten :
        ?sitedata:Eliom_common.sitedata
-      -> ([< `Client_process], [< `Data]) Eliom_state.Ext.state
+      -> ([< `Client_process], [< `Data]) State.Ext.state
       -> key
       -> unit
     (** Make a listener stop listening on data [key].

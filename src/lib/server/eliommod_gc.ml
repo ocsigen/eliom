@@ -24,7 +24,7 @@ open Lwt.Syntax
 
 let section = Logs.Src.create "eliom:gc"
 
-open Eliom_lib
+open Lib
 open Lwt
 
 (*****************************************************************************)

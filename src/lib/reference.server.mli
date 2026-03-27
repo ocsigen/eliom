@@ -77,7 +77,7 @@ val eref :
     {!Eliom_common.Eliom_site_information_not_available}. If you are
     using static linking, you must delay the call to this function
     until the configuration file is read, using
-    {!Eliom_service.register_eliom_module}. Otherwise you will also
+    {!Service.register_eliom_module}. Otherwise you will also
     get this exception.}
 *)
 
@@ -87,13 +87,13 @@ val eref_from_fun :
   -> ?persistent:string
   -> (unit -> 'a)
   -> 'a eref
-(** The function [eref_from_fun] works like the above {!Eliom_reference.eref},
+(** The function [eref_from_fun] works like the above {!Reference.eref},
     but instead of providing a value for the initial content, a function [f] for
     {e creating the initial content} is provided (cf. also {!Lazy.from_fun}).
 
     In each scope, the function [f] is called for creating the value of the
-    reference the first time the reference is read (by {!Eliom_reference.get}),
-    if the value has not been set explicitly before (by {!Eliom_reference.set}).
+    reference the first time the reference is read (by {!Reference.get}),
+    if the value has not been set explicitly before (by {!Reference.set}).
   *)
 
 val get : 'a eref -> 'a Lwt.t
@@ -152,13 +152,13 @@ val unset : 'a eref -> unit Lwt.t
 (* That function introduces a Lwt cooperation point only for persistent
    references. *)
 
-(** Same functions as in [Eliom_reference] but a non-Lwt interface
+(** Same functions as in [Reference] but a non-Lwt interface
     for non-persistent Eliom references. *)
 module Volatile : sig
   type 'a eref = ('a, [`Volatile]) eref'
   (** The type of volatile Eliom references.
-      Note that [('a Eliom_reference.Volatile.eref :> 'a Eliom_reference.eref)], i.e. wherever you can use an ['a
-      Eliom_reference.eref] you can also use an ['a Eliom_reference.Volatile.eref :> 'a Eliom_reference.eref].  *)
+      Note that [('a Reference.Volatile.eref :> 'a Reference.eref)], i.e. wherever you can use an ['a
+      Reference.eref] you can also use an ['a Reference.Volatile.eref :> 'a Reference.eref].  *)
 
   val eref : scope:[< Eliom_common.all_scope] -> ?secure:bool -> 'a -> 'a eref
 
@@ -177,14 +177,14 @@ module Volatile : sig
     (** This module allows access to volatile references for other groups,
         sessions, or client processes.
         Use it in conjunction with functions like
-        {!Eliom_state.Ext.iter_volatile_sub_states}
+        {!State.Ext.iter_volatile_sub_states}
         to get the sessions from a group (or the processes from a session).
     *)
 
     val get :
        ( [< `Session_group | `Session | `Client_process]
          , [< `Data] )
-         Eliom_state.Ext.state
+         State.Ext.state
       -> 'a eref
       -> 'a
     (** get the value of a reference from outside the state.
@@ -195,7 +195,7 @@ module Volatile : sig
     val set :
        ( [< `Session_group | `Session | `Client_process]
          , [< `Data] )
-         Eliom_state.Ext.state
+         State.Ext.state
       -> 'a eref
       -> 'a
       -> unit
@@ -203,7 +203,7 @@ module Volatile : sig
     val modify :
        ( [< `Session_group | `Session | `Client_process]
          , [< `Data] )
-         Eliom_state.Ext.state
+         State.Ext.state
       -> 'a eref
       -> ('a -> 'a)
       -> unit
@@ -212,7 +212,7 @@ module Volatile : sig
     val unset :
        ( [< `Session_group | `Session | `Client_process]
          , [< `Data] )
-         Eliom_state.Ext.state
+         State.Ext.state
       -> 'a eref
       -> unit
   end
@@ -221,14 +221,14 @@ end
 (** This module allows access to references for other groups,
     sessions, or client processes.
     Use it in conjunction with functions like
-    {!Eliom_state.Ext.iter_sub_states}
+    {!State.Ext.iter_sub_states}
     to get the sessions from a group (or the processes from a session).
 *)
 module Ext : sig
   val get :
      ( [< `Session_group | `Session | `Client_process]
        , [< `Data | `Pers] )
-       Eliom_state.Ext.state
+       State.Ext.state
     -> 'a eref
     -> 'a Lwt.t
   (** get the value of a reference from outside the state.
@@ -239,7 +239,7 @@ module Ext : sig
   val set :
      ( [< `Session_group | `Session | `Client_process]
        , [< `Data | `Pers] )
-       Eliom_state.Ext.state
+       State.Ext.state
     -> 'a eref
     -> 'a
     -> unit Lwt.t
@@ -247,7 +247,7 @@ module Ext : sig
   val modify :
      ( [< `Session_group | `Session | `Client_process]
        , [< `Data | `Pers] )
-       Eliom_state.Ext.state
+       State.Ext.state
     -> 'a eref
     -> ('a -> 'a)
     -> unit Lwt.t
@@ -256,7 +256,7 @@ module Ext : sig
   val unset :
      ( [< `Session_group | `Session | `Client_process]
        , [< `Data | `Pers] )
-       Eliom_state.Ext.state
+       State.Ext.state
     -> 'a eref
     -> unit Lwt.t
 end

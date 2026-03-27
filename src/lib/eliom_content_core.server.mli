@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** See {!Eliom_content} for complete module. *)
+(** See {% <<a_api | module Content>> %} for complete module. *)
 
 open Js_of_ocaml
 
@@ -57,7 +57,7 @@ module Xml : sig
      ([`A | `Form_get | `Form_post]
      * (bool * string list) option
      * string option
-     * Eliom_lib.poly)
+     * Lib.poly)
        option
        Eliom_lazy.request
     -> internal_event_handler
@@ -72,7 +72,7 @@ module Xml : sig
     | RACamlEventHandler of caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
-    | RAClient of string * attrib option * Eliom_lib.poly
+    | RAClient of string * attrib option * Lib.poly
   (* attrib client_value *)
 
   val racontent : attrib -> racontent
@@ -80,7 +80,7 @@ module Xml : sig
 
   (**/**)
 
-  val wrap : elt -> 'a -> 'a Eliom_wrap.wrapped_value
+  val wrap : elt -> 'a -> 'a Wrap.wrapped_value
   val client_attrib : ?init:attrib -> attrib Eliom_client_value.t -> attrib
 end
 

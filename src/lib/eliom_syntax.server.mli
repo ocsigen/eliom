@@ -22,11 +22,7 @@ val get_request_data : unit -> Eliom_runtime.request_data
 
 (*****************************************************************************)
 
-val client_value :
-   ?pos:Eliom_lib.pos
-  -> string
-  -> 'args
-  -> 'a Eliom_client_value.t
+val client_value : ?pos:Lib.pos -> string -> 'args -> 'a Eliom_client_value.t
 (** Registers a client value datum for the next server section when
     executed in a global_data (cf. {!Eliom_syntax.set_global}) or in
     the request_data when executed in a request. *)
@@ -49,11 +45,12 @@ val close_server_section : string -> unit
     section data of the compilation unit
     ({!Eliom_lib_base.compilation_unit_global_data}).
 
-    Called in parallel with {!Eliom_client.Syntax_helpers.close_server_section}.  *)
+    Called in parallel with <<a_api
+    subproject="client"|Client.Syntax_helpers.close_server_section>>.  *)
 
 val close_client_section :
    string
-  -> (int * Ocsigen_lib.poly * Eliom_lib.pos * string option) list
+  -> (int * Ocsigen_lib.poly * Lib.pos * string option) list
   -> unit
 (** Called at the end of every client or shared section. The first
     argument identifies the compilation unit. The second is the list
@@ -63,7 +60,8 @@ val close_client_section :
     of client section data of the compilation unit
     ({!Eliom_lib_base.compilation_unit_global_data}).
 
-    Called in parallel with {!Eliom_client.Syntax_helpers.open_client_section}.  *)
+    Called in parallel with <<a_api
+    subproject="client"|Client.Syntax_helpers.open_client_section>>.  *)
 
 val escaped_value : 'a -> Eliom_runtime.escaped_value
 (** Convert any value to a {! Eliom_runtime.escaped_value} for usage

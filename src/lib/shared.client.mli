@@ -35,7 +35,7 @@ val to_signal :
 (** [to_signal ~init s] converts the Lwt-wrapped signal [s] into a
     regular signal with initial value [init]. *)
 
-module Value : Eliom_shared_sigs.VALUE with type +'a t = 'a
+module Value : Shared_sigs.VALUE with type +'a t = 'a
 (** Accessing shared values *)
 
 (** Shared implementation of React; client-side behavior is like
@@ -43,9 +43,7 @@ module Value : Eliom_shared_sigs.VALUE with type +'a t = 'a
 module React : sig
   module S : sig
     include module type of React.S
-
-    include
-      Eliom_shared_sigs.S with type 'a t := 'a t and type 'a sv := 'a Value.t
+    include Shared_sigs.S with type 'a t := 'a t and type 'a sv := 'a Value.t
 
     val create :
        ?eq:('a -> 'a -> bool)
@@ -86,7 +84,7 @@ module ReactiveData : sig
        and type 'a handle = 'a ReactiveData.RList.handle
 
     include
-      Eliom_shared_sigs.RLIST
+      Shared_sigs.RLIST
       with type 'a t := 'a t
        and type 'a sv := 'a Value.t
        and type 'a handle := 'a handle

@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module Eliom_form
+ * Module Form
  * Copyright (C) 2007 Vincent Balat
  *
  * This program is free software; you can redistribute it and/or modify
@@ -25,7 +25,7 @@ open%shared Js_of_ocaml
 open Lwt.Syntax
 
 let read_params form y =
-  Eliom_parameter.reconstruct_params_form (Form.form_elements form) y
+  Parameter.reconstruct_params_form (Form.form_elements form) y
 
 let error_handler =
   ref @@ fun _ -> Lwt.fail_with "Cannot parse params for client-side service"
@@ -42,23 +42,23 @@ let iter_contents y ev f =
       Lwt.return_true
   | None -> !error_handler ()
 
-type client_form_handler = Eliom_client.client_form_handler
+type client_form_handler = Client.client_form_handler
 
 let make_hdlr_get service : client_form_handler =
  fun ev ->
-  match Eliom_service.client_fun service with
+  match Service.client_fun service with
   | None -> Lwt.return_false
   | Some _ ->
-      iter_contents (Eliom_service.get_params_type service) ev @@ fun g ->
-      Eliom_client.change_page ~service g ()
+      iter_contents (Service.get_params_type service) ev @@ fun g ->
+      Client.change_page ~service g ()
 
 let make_hdlr_post service g : client_form_handler =
  fun ev ->
-  match Eliom_service.client_fun service with
+  match Service.client_fun service with
   | None -> Lwt.return_false
   | Some _ ->
-      iter_contents (Eliom_service.post_params_type service) ev @@ fun p ->
-      Eliom_client.change_page ~service g p
+      iter_contents (Service.post_params_type service) ev @@ fun p ->
+      Client.change_page ~service g p
 
 [%%server type client_form_handler]
 [%%shared.start]
@@ -87,7 +87,7 @@ module type Html = sig
     -> ([`A | `Form_get | `Form_post]
        * (bool * string list) option
        * string option
-       * Eliom_lib.poly)
+       * Lib.poly)
          option
          Eliom_lazy.request
     -> Html_types.form_attrib attrib
@@ -97,7 +97,7 @@ end
 
 let get_xhr = function
   | Some xhr -> xhr
-  | None -> Eliom_config.get_default_links_xhr ()
+  | None -> Config.get_default_links_xhr ()
 
 module Make_links (Html : Html) = struct
   type +'a attrib = 'a Html.attrib
@@ -148,12 +148,12 @@ module Make_links (Html : Html) = struct
         let f =
           [%client.unsafe
             fun ev ->
-              if not (Eliom_client.middleClick ev)
+              if not (Client.middleClick ev)
               then (
                 Dom.preventDefault ev;
                 Dom_html.stopPropagation ev;
                 Lwt.async @@ fun () ->
-                Eliom_client.change_page ?absolute:~%absolute
+                Client.change_page ?absolute:~%absolute
                   ?absolute_path:~%absolute_path ?https:~%https
                   ~service:~%service ?hostname:~%hostname ?port:~%port
                   ?fragment:~%fragment ?keep_nl_params:~%keep_nl_params
@@ -264,12 +264,12 @@ module Make (Html : Html) = struct
         ?hostname
         ?port
         ?fragment
-        ?(nl_params = Eliom_parameter.empty_nl_params_set)
+        ?(nl_params = Parameter.empty_nl_params_set)
         ?keep_nl_params
         f
     =
     let issuffix, paramnames =
-      Eliom_parameter.make_params_names (Eliom_service.get_params_type service)
+      Parameter.make_params_names (Service.get_params_type service)
     in
     let components =
       Eliom_lazy.from_fun @@ fun () ->
@@ -289,7 +289,7 @@ module Make (Html : Html) = struct
       in
       match fragment with
       | None -> uri
-      | Some f -> String.concat "#" [uri; Eliom_lib.Url.encode f]
+      | Some f -> String.concat "#" [uri; Lib.Url.encode f]
     in
     bind (f paramnames) @@ fun inside ->
     let inside =
@@ -340,14 +340,14 @@ module Make (Html : Html) = struct
         ?hostname
         ?port
         ?fragment
-        ?(nl_params = Eliom_parameter.empty_nl_params_set)
+        ?(nl_params = Parameter.empty_nl_params_set)
         ?(keep_nl_params : [`All | `Persistent | `None] option)
         ?keep_get_na_params
         f
         get_params
     =
     let _, paramnames =
-      Eliom_parameter.make_params_names (Eliom_service.post_params_type service)
+      Parameter.make_params_names (Service.post_params_type service)
     in
     let components =
       Eliom_lazy.from_fun @@ fun () ->
@@ -397,7 +397,7 @@ module Make (Html : Html) = struct
   let option_map f = function Some x -> Some (f x) | None -> None
 
   let gen_input ?a ~input_type ?value ?src ?name string_of =
-    let name = option_map Eliom_parameter.string_of_param_name name
+    let name = option_map Parameter.string_of_param_name name
     and value = option_map string_of value in
     make_input ?a ?value ~typ:input_type ?name ?src ()
 
@@ -407,27 +407,27 @@ module Make (Html : Html) = struct
 
   let file_input ?a ~name () =
     make_input ?a ~typ:`File
-      ~name:(Eliom_parameter.string_of_param_name name)
+      ~name:(Parameter.string_of_param_name name)
       ()
   (* value attribute not supported by browsers for security reasons *)
 
   let image_input ?a ~name ?src () =
     make_input ?a ~typ:`Image
-      ~name:(Eliom_parameter.string_of_param_name name)
+      ~name:(Parameter.string_of_param_name name)
       ?src ()
 
   let checkbox ?a ?checked ~name ~value y =
-    let name = Eliom_parameter.string_of_param_name name
+    let name = Parameter.string_of_param_name name
     and value = string_of_param y value
     and typ = `Checkbox in
     make_input ?a ?checked ~typ ~name ~value ()
 
   let bool_checkbox_one ?a ?checked ~name () =
-    let typ = `Checkbox and name = Eliom_parameter.string_of_param_name name in
+    let typ = `Checkbox and name = Parameter.string_of_param_name name in
     make_input ?a ?checked ~typ ~name ()
 
   let radio ?a ?checked ~name ~value y =
-    let name = Eliom_parameter.string_of_param_name name
+    let name = Parameter.string_of_param_name name
     and value = string_of_param y value
     and typ = `Radio in
     make_input ?a ?checked ~typ ~name ~value ()
@@ -440,18 +440,18 @@ module Make (Html : Html) = struct
       | Some a -> required :: (a :> Html_types.input_attrib attrib list)
     in
     make_input ~a ?checked ~typ:`Radio
-      ~name:(Eliom_parameter.string_of_param_name name)
+      ~name:(Parameter.string_of_param_name name)
       ~value ()
 
   let button ?a ~button_type ~name ~value y c =
-    let name = Eliom_parameter.string_of_param_name name
+    let name = Parameter.string_of_param_name name
     and value = string_of_param y value in
     make_button ?a ~button_type ~name ~value c
 
   let button_no_value ?a ~button_type c = make_button ?a ~button_type c
 
   let textarea ?a ~name =
-    make_textarea ?a ~name:(Eliom_parameter.string_of_param_name name)
+    make_textarea ?a ~name:(Parameter.string_of_param_name name)
 
   type 'a soption =
     Html_types.option_attrib attrib list
@@ -561,26 +561,26 @@ module Make (Html : Html) = struct
 
   let select ?a ?required ~name y fl ol =
     let multiple = false
-    and name = Eliom_parameter.string_of_param_name name
+    and name = Parameter.string_of_param_name name
     and f = string_of_param y in
     gen_select ?a ?required ~multiple ~name fl ol f
 
   let multiple_select ?a ?required ~name y fl ol =
     let multiple = true
-    and name = Eliom_parameter.string_of_param_name name
+    and name = Parameter.string_of_param_name name
     and f = string_of_param y in
     gen_select ?a ?required ~multiple ~name fl ol f
 
   let make_info ~https kind service hdlr =
     let f () =
-      match Eliom_service.xhr_with_cookies service with
+      match Service.xhr_with_cookies service with
       | None -> None
       | Some tmpl ->
           Some
             ( (kind : [`Form_get | `Form_post] :> [`Form_get | `Form_post | `A])
             , Eliom_uri.make_cookies_info (https, service)
             , tmpl
-            , Eliom_lib.to_poly hdlr )
+            , Lib.to_poly hdlr )
     in
     Eliom_lazy.from_fun f
 

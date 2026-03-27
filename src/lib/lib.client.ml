@@ -62,7 +62,7 @@ module Url = struct
 
   let string_of_url_path ~encode l =
     if encode
-    then print_endline "Warning: Eliom_lib.string_of_url_path ignores ~encode";
+    then print_endline "Warning: Lib.string_of_url_path ignores ~encode";
     String.concat "/" l
 
   let path_of_url = function
@@ -98,7 +98,7 @@ let _ =
         exn
 
 let trace fmts =
-  if Eliom_config.get_tracing ()
+  if Config.get_tracing ()
   then Printf.ksprintf (fun msg -> Logs.info (fun fmt -> fmt ">> %s" msg)) fmts
   else Printf.ksprintf ignore fmts
 

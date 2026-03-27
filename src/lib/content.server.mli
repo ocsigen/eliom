@@ -22,18 +22,18 @@
 (**
     XML tree manipulation within Eliom is based on the TyXML library
     but Eliom is using a custom representation for XML values (see
-    {!Xml}). Then, [Eliom_content] redefines the two high level
+    {!Xml}). Then, [Content] redefines the two high level
     interfaces ({!Svg}, {!Html}) that are provided by
     TyXML for valid XML tree creation and printing.
 
-    - If you want to generate typed HTML, use {!Eliom_content.Html},
-    - If you want to write untyped html, use {!Eliom_content.Html_text},
-    - If you want to generate typed svg, use {!Eliom_content.Svg}.
+    - If you want to generate typed HTML, use {!Content.Html},
+    - If you want to write untyped html, use {!Content.Html_text},
+    - If you want to generate typed svg, use {!Content.Svg}.
 
-    Modules {!Eliom_content.Html}, {!Eliom_content.Svg} contain two
-    sub-modules: {!Eliom_content.Html.F}, {!Eliom_content.Html.D}
+    Modules {!Content.Html}, {!Content.Svg} contain two
+    sub-modules: {!Content.Html.F}, {!Content.Html.D}
     corresponding to tow different semantics.
-    They also contain a module {!Eliom_content.Html.C} that allows to
+    They also contain a module {!Content.Html.C} that allows to
     inject client-side content into server-side content.
 
     {5 Functional semantics}
@@ -63,8 +63,8 @@
     Secondly, those values have an identifier,
     which means they can be referred to
     on client side (by [%variable]) or used with the functions in
-    {!Eliom_content.Html.To_dom} and
-    {!Eliom_content.Html.Manip}.
+    {% <<a_api subproject="client"|module Content.Html.To_dom>> %} and
+    {% <<a_api subproject="client"|module Content.Html.Manip>> %}.
 
     In case of doubt, always use [D]-nodes when you are writing a
     client-server Eliom app. You can also mix F-nodes and D-nodes.
@@ -112,8 +112,9 @@ module Xml : sig
   type caml_event_handler
   (** Values of type [caml_event_handler] represents event handler
       build with the [{{ ... }}] syntax (see the Eliom manual for more
-      information on {{!page-"clientserver-html".syntax}syntax extension}). Such values are
-      expected by functions like {!Eliom_content.Html.a_onclick}. *)
+      information on {% <<a_manual chapter="clientserver-html"
+      fragment="syntax"|syntax extension>>%}). Such values are
+      expected by functions like {!Content.Html.a_onclick}. *)
 
   (**/**)
 
@@ -138,7 +139,7 @@ module Xml : sig
     | RACamlEventHandler of caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
-    | RAClient of string * attrib option * Eliom_lib.poly
+    | RAClient of string * attrib option * Lib.poly
 
   (* attrib client_value *)
   val racontent : attrib -> racontent
@@ -146,8 +147,8 @@ module Xml : sig
 
   (**/**)
 
-  val wrap : elt -> 'a -> 'a Eliom_wrap.wrapped_value
-  (** [Eliom_content.Xml.wrap page v] is like [Eliom_wrap.wrap v] but
+  val wrap : elt -> 'a -> 'a Wrap.wrapped_value
+  (** [Content.Xml.wrap page v] is like [Wrap.wrap v] but
       it makes sure that all [elt]s in [v] which are included in
       [page] are sent with empty content. This is safe because such
       elements will be taken from the DOM on the client either
@@ -156,8 +157,8 @@ end
 
 module Xml_shared :
   Xml_sigs.T
-  with type 'a W.t = 'a Eliom_shared.React.S.t
-   and type 'a W.tlist = 'a Eliom_shared.ReactiveData.RList.t
+  with type 'a W.t = 'a Shared.React.S.t
+   and type 'a W.tlist = 'a Shared.ReactiveData.RList.t
    and type event_handler = (Dom_html.event Js.t -> unit) Eliom_client_value.t
    and type mouse_event_handler =
     (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
@@ -230,7 +231,7 @@ module Svg : sig
   end
 
   (** Creation of SVG content from shared reactive signals and data
-      ({!Eliom_shared}).
+      ({% <<a_api project="eliom" subproject="server"|module Shared>> %}).
       For the operations provided, see
       {!Svg_sigs.T}. *)
   module R : sig
@@ -244,7 +245,7 @@ module Svg : sig
     val pcdata : string Xml.W.t -> [> `Unimplemented]
     (** [pcdata] is not implemented reactively for SVG. *)
 
-    val node : 'a elt Eliom_shared.React.S.t -> 'a elt
+    val node : 'a elt Shared.React.S.t -> 'a elt
     (** [node s] produces an ['a elt] out of the shared reactive
         signal [s]. *)
   end
@@ -318,12 +319,13 @@ module Html : sig
   (**/**)
 
   (** Creation of {b F}unctional HTML5 content (copy-able but not
-      referable, see also {!Eliom_content}). *)
+      referable, see also {% <<a_api|module Content>> %}). *)
   module F : sig
     (** {2 Content creation}
 
-        See {!Html_sigs.T}.
-        If you want to create an untyped form, you will have to use {!Eliom_content.Html.F.Raw} otherwise, use
+        See {% <<a_api project="tyxml" | module Html_sigs.T >> %}.
+        If you want to create an untyped form, you will have to use {%
+        <<a_api|module Content.Html.F.Raw>> %} otherwise, use
         Eliom form widgets.  For more information, see
         {{!page-"server-links".forms}the manual}.
          *)
@@ -347,7 +349,7 @@ module Html : sig
     include module type of Raw'
 
     include
-      Eliom_content_sigs.LINKS_AND_FORMS
+      Content_sigs.LINKS_AND_FORMS
       with type +'a elt := 'a elt
        and type +'a attrib := 'a attrib
        and type uri := uri
@@ -356,12 +358,13 @@ module Html : sig
   end
 
   (** Creation of HTML content with {b D}OM semantics (referable, see
-      also {!Eliom_content}). *)
+      also {% <<a_api|module Content>> %}). *)
   module D : sig
     (** {2 Content creation}
 
-        See {!Html_sigs.T}.
-        If you want to create an untyped form, you will have to use {!Eliom_content.Html.F.Raw} otherwise, use
+        See {% <<a_api project="tyxml" | module Html_sigs.T >> %}.
+        If you want to create an untyped form, you will have to use {%
+        <<a_api|module Content.Html.F.Raw>> %} otherwise, use
         Eliom form widgets.  For more information, see
         {{!page-"server-links".forms}the manual}. *)
 
@@ -384,7 +387,7 @@ module Html : sig
     include module type of Raw'
 
     include
-      Eliom_content_sigs.LINKS_AND_FORMS
+      Content_sigs.LINKS_AND_FORMS
       with type +'a elt := 'a elt
        and type +'a attrib := 'a attrib
        and type uri := uri
@@ -446,7 +449,7 @@ module Html : sig
   end
 
   (** Creation of HTML content from shared reactive signals and data
-      ({!Eliom_shared}).
+      ({% <<a_api project="eliom" subproject="server"|module Shared>> %}).
       For the operations provided, see
       {!Html_sigs.T}. *)
   module R : sig
@@ -455,16 +458,16 @@ module Html : sig
       with type 'a elt = 'a elt
        and type 'a attrib = 'a attrib
 
-    val pcdata : string Eliom_shared.React.S.t -> [> Html_types.span] elt
+    val pcdata : string Shared.React.S.t -> [> Html_types.span] elt
     (** [pcdata s] produces a node of type
         [\[> Html_types.span\] elt]
         out of the string signal [s]. *)
 
-    val node : 'a elt Eliom_shared.React.S.t -> 'a elt
+    val node : 'a elt Shared.React.S.t -> 'a elt
     (** [node s] produces an ['a elt] out of the shared reactive
         signal [s]. *)
 
-    val filter_attrib : 'a attrib -> bool Eliom_shared.React.S.t -> 'a attrib
+    val filter_attrib : 'a attrib -> bool Shared.React.S.t -> 'a attrib
     (** [filter_attrib a b] amounts to the attribute [a] while [b] is
         [true], and to no attribute while [b] is [false]. *)
   end
@@ -483,7 +486,8 @@ module Html : sig
       -> unit
       -> 'a t
     (** Create a custom data field by providing string conversion functions.
-        If the [default] is provided, calls to {!Eliom_content.Html.Custom_data.get_dom} return that instead of throwing an
+        If the [default] is provided, calls to {% <<a_api project="eliom" subproject="client" |
+        val Content.Html.Custom_data.get_dom>> %} return that instead of throwing an
         exception [Not_found].  *)
 
     val create_json : name:string -> ?default:'a -> 'a Deriving_Json.t -> 'a t
@@ -492,7 +496,7 @@ module Html : sig
     val attrib : 'a t -> 'a -> [> `User_data] attrib
     (** [attrib my_data value ] creates a HTML attribute for the custom-data
         type [my_data] with value [value] for injecting it into an a HTML tree
-        ({!Eliom_content.Html.elt}). *)
+        ({% <<a_api | type Content.Html.elt >> %}). *)
   end
 
   (** {{:http://dev.w3.org/html5/html-xhtml-author-guide/}"Polyglot"}

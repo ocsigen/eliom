@@ -30,7 +30,7 @@
 (*****************************************************************************)
 (*****************************************************************************)
 
-open Eliom_lib
+open Lib
 open Ocsigen_extensions
 
 (****************************************************************************)
@@ -80,7 +80,7 @@ let default_max_volatile_groups_per_site = ref 1000000
 (*VVV value ??? *)
 
 module S = Hashtbl.Make (struct
-    type t = Ocsigen_extensions.virtual_hosts * Eliom_lib.Url.path
+    type t = Ocsigen_extensions.virtual_hosts * Lib.Url.path
 
     let equal ((vh1, u1) : t) ((vh2, u2) : t) =
       Ocsigen_extensions.equal_virtual_hosts vh1 vh2 && u1 = u2
@@ -103,7 +103,7 @@ let create_sitedata_aux site_dir config_info =
     ; site_dir
     ; (*VVV encode=false??? *)
       site_dir_string =
-        Option.map (Eliom_lib.Url.string_of_url_path ~encode:false) site_dir
+        Option.map (Lib.Url.string_of_url_path ~encode:false) site_dir
     ; config_info
     ; default_links_xhr =
         Eliom_common.tenable_value ~name:"default_links_xhr" true
@@ -273,7 +273,7 @@ let parse_eliom_option
           Eliom_common_base.Default_comet_hier
       | s -> Eliom_common_base.User_hier s
     in
-    a, Eliom_lib.Option.map parse_scope_hierarchy sn, ct
+    a, Lib.Option.map parse_scope_hierarchy sn, ct
   in
   let convert_attr tag f v =
     try f v
@@ -305,7 +305,7 @@ let parse_eliom_option
     let rec aux path max_age attrs =
       match attrs with
       | [] -> Some (path, max_age)
-      | ("path", p) :: rem -> aux (Eliom_lib.Url.split_path p) max_age rem
+      | ("path", p) :: rem -> aux (Lib.Url.split_path p) max_age rem
       | ("cache", v) :: rem ->
           aux path (convert_attr "cache" int_of_string v) rem
       | (tag, _) :: _ ->
@@ -714,7 +714,7 @@ let update_sitedata app vh site_dir conf_info =
   let sitedata = get_sitedata app in
   sitedata.Eliom_common.site_dir <- Some site_dir;
   sitedata.Eliom_common.site_dir_string <-
-    Some (Eliom_lib.Url.string_of_url_path ~encode:false site_dir);
+    Some (Lib.Url.string_of_url_path ~encode:false site_dir);
   sitedata.Eliom_common.config_info <- Some conf_info;
   update_sitedata vh site_dir sitedata;
   sitedata
@@ -863,7 +863,7 @@ let parse_config _ hostpattern conf_info site_dir =
   in
   fun _ _parse_site -> function
     | Xml.Element ("eliommodule", atts, content) ->
-        Eliom_extension.register_eliom_extension default_module_action;
+        Extension.register_eliom_extension default_module_action;
         (match parse_module_attrs None atts with
         | Some file_or_name ->
             exception_during_eliommodule_loading := true;
@@ -871,10 +871,10 @@ let parse_config _ hostpattern conf_info site_dir =
             load_eliom_module sitedata file_or_name "eliommodule" content;
             exception_during_eliommodule_loading := false
         | _ -> ());
-        if Eliom_extension.get_eliom_extension () != default_module_action
+        if Extension.get_eliom_extension () != default_module_action
         then
           Eliommod_pagegen.gen
-            (Some (Eliom_extension.get_eliom_extension ()))
+            (Some (Extension.get_eliom_extension ()))
             sitedata
         else gen_nothing ()
     | Xml.Element ("eliom", atts, content) ->
@@ -970,7 +970,7 @@ let parse_config _ hostpattern conf_info site_dir =
             sitedata.Eliom_common.default_links_xhr#set ~override_tenable:true
               default_links_xhr
         | None -> ());
-        Eliom_extension.register_eliom_extension default_module_action;
+        Extension.register_eliom_extension default_module_action;
         (match parse_module_attrs None atts with
         | Some file_or_name ->
             exception_during_eliommodule_loading := true;
@@ -981,7 +981,7 @@ let parse_config _ hostpattern conf_info site_dir =
         (*VVV 2012/08
         It is not possible to load an eliom extension using <eliom>. Why?
         Is there a reason for this? For now I fail in that case. *)
-        if Eliom_extension.get_eliom_extension () != default_module_action
+        if Extension.get_eliom_extension () != default_module_action
         then
           raise
             (Error_in_config_file

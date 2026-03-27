@@ -21,9 +21,9 @@
 
 [%%shared.start]
 
-module rec Types : Eliom_service_sigs.TYPES = Types
+module rec Types : Service_sigs.TYPES = Types
 include Types
-module Url = Eliom_lib.Url
+module Url = Lib.Url
 
 type suff = [`WithSuffix | `WithoutSuffix]
 
@@ -31,10 +31,10 @@ let params_of_meth : type m gp gn pp pn x.
   (m, gp, gn, pp, pn, 'tipo, x) meth
   -> (gp, 'tipo, gn) params * (pp, [`WithoutSuffix], pn) params
   = function
-  | Get gp -> gp, Eliom_parameter.unit
+  | Get gp -> gp, Parameter.unit
   | Post (gp, pp) -> gp, pp
-  | Put gp -> gp, Eliom_parameter.raw_post_data
-  | Delete gp -> gp, Eliom_parameter.raw_post_data
+  | Put gp -> gp, Parameter.raw_post_data
+  | Delete gp -> gp, Parameter.raw_post_data
 
 let which_meth_internal : type m gp gn pp pn tipo x.
   (m, gp, gn, pp, pn, tipo, x) meth -> m which_meth
@@ -88,7 +88,7 @@ type send_appl_content =
   | XAlways
   | XSame_appl of string * string option
   (** Whether the service is capable to send application content or not.
-    (application content has type Eliom_service.eliom_appl_answer:
+    (application content has type Service.eliom_appl_answer:
     content of the application container, or xhr redirection ...).  A
     link towards a service with send_appl_content = XNever will always
     answer a regular http frame (this will stop the application if
@@ -119,13 +119,13 @@ type ('get
      , 'rt)
      t =
   { pre_applied_parameters :
-      (string * Eliommod_parameters.param) list Eliom_lib.String.Table.t
+      (string * Eliommod_parameters.param) list Lib.String.Table.t
       (* non localized parameters *)
       * (string * Eliommod_parameters.param) list
     (* regular parameters *)
-  ; get_params_type : ('get, 'tipo, 'getnames) Eliom_parameter.params_type
+  ; get_params_type : ('get, 'tipo, 'getnames) Parameter.params_type
   ; post_params_type :
-      ('post, [`WithoutSuffix], 'postnames) Eliom_parameter.params_type
+      ('post, [`WithoutSuffix], 'postnames) Parameter.params_type
   ; max_use : int option
   ; (* Max number of use of this service *)
     timeout : float option
@@ -165,8 +165,8 @@ and result =
 
 let pre_wrap s =
   { s with
-    get_params_type = Eliom_parameter.wrap_param_type s.get_params_type
-  ; post_params_type = Eliom_parameter.wrap_param_type s.post_params_type
+    get_params_type = Parameter.wrap_param_type s.get_params_type
+  ; post_params_type = Parameter.wrap_param_type s.post_params_type
   ; service_mark = Eliom_common.empty_wrapper () }
 
 type%shared unit_service =
@@ -224,11 +224,11 @@ let change_get_num service attser n =
 
 (** Static directories **)
 let static_dir_ ?(https = false) () =
-  { pre_applied_parameters = Eliom_lib.String.Table.empty, []
+  { pre_applied_parameters = Lib.String.Table.empty, []
   ; get_params_type =
-      Eliom_parameter.suffix
-        (Eliom_parameter.all_suffix Eliom_common.eliom_suffix_name)
-  ; post_params_type = Eliom_parameter.unit
+      Parameter.suffix
+        (Parameter.all_suffix Eliom_common.eliom_suffix_name)
+  ; post_params_type = Parameter.unit
   ; max_use = None
   ; timeout = None
   ; kind = `Service
@@ -238,7 +238,7 @@ let static_dir_ ?(https = false) () =
         { prefix = ""
         ; subpath = [""]
         ; fullpath =
-            Eliom_common.defer Eliom_request_info.get_site_dir_option
+            Eliom_common.defer Request_info.get_site_dir_option
               (fun site_dir ->
                  site_dir @ [Eliom_common.eliom_suffix_internal_name])
         ; get_name = Eliom_common.SAtt_no
@@ -258,12 +258,12 @@ let static_dir () = static_dir_ ()
 let https_static_dir () = static_dir_ ~https:true ()
 
 let get_static_dir_ ?(https = false) ?(keep_nl_params = `None) ~get_params () =
-  { pre_applied_parameters = Eliom_lib.String.Table.empty, []
+  { pre_applied_parameters = Lib.String.Table.empty, []
   ; get_params_type =
-      Eliom_parameter.suffix_prod
-        (Eliom_parameter.all_suffix Eliom_common.eliom_suffix_name)
+      Parameter.suffix_prod
+        (Parameter.all_suffix Eliom_common.eliom_suffix_name)
         get_params
-  ; post_params_type = Eliom_parameter.unit
+  ; post_params_type = Parameter.unit
   ; max_use = None
   ; timeout = None
   ; kind = `Service
@@ -273,7 +273,7 @@ let get_static_dir_ ?(https = false) ?(keep_nl_params = `None) ~get_params () =
         { prefix = ""
         ; subpath = [""]
         ; fullpath =
-            Eliom_common.defer Eliom_request_info.get_site_dir_option
+            Eliom_common.defer Request_info.get_site_dir_option
               (fun site_dir ->
                  site_dir @ [Eliom_common.eliom_suffix_internal_name])
         ; get_name = Eliom_common.SAtt_no
@@ -298,7 +298,7 @@ let https_static_dir_with_params ?keep_nl_params ~get_params () =
 let send_appl_content s = s.send_appl_content
 let set_send_appl_content s n = s.send_appl_content <- n
 
-(* will be initialized later (in Eliom_content for now), when client
+(* will be initialized later (in Content for now), when client
    syntax is available, with: fun f getparams -> {{ fun _ pp -> %f
    %getparams pp }} *)
 
@@ -311,13 +311,13 @@ let rec append_suffix l m =
 let preapply ~service getparams =
   let nlp, preapp = service.pre_applied_parameters in
   let suff, nlp, params =
-    Eliom_parameter.construct_params_list_raw nlp service.get_params_type
+    Parameter.construct_params_list_raw nlp service.get_params_type
       getparams
   in
   { service with
     service_mark = service_mark ()
   ; pre_applied_parameters = nlp, params @ preapp
-  ; get_params_type = Eliom_parameter.unit
+  ; get_params_type = Parameter.unit
   ; info =
       (match service.info with
       | Attached k ->
@@ -345,9 +345,9 @@ let preapply ~service getparams =
 let reload_action_aux https =
   { max_use = None
   ; timeout = None
-  ; pre_applied_parameters = Eliom_lib.String.Table.empty, []
-  ; get_params_type = Eliom_parameter.unit
-  ; post_params_type = Eliom_parameter.unit
+  ; pre_applied_parameters = Lib.String.Table.empty, []
+  ; get_params_type = Parameter.unit
+  ; post_params_type = Parameter.unit
   ; kind = `NonattachedCoservice
   ; meth = Get'
   ; info =
@@ -382,7 +382,7 @@ let reload_action_https_hidden = reload_action_hidden_aux true
   services *)
 let add_non_localized_get_parameters ~params ~service =
   { service with
-    get_params_type = Eliom_parameter.nl_prod service.get_params_type params
+    get_params_type = Parameter.nl_prod service.get_params_type params
   ; client_fun =
       Some
         [%client.unsafe
@@ -393,7 +393,7 @@ let add_non_localized_get_parameters ~params ~service =
 
 let add_non_localized_post_parameters ~params ~service =
   { service with
-    post_params_type = Eliom_parameter.nl_prod service.post_params_type params
+    post_params_type = Parameter.nl_prod service.post_params_type params
   ; client_fun =
       Some
         [%client.unsafe
@@ -432,7 +432,7 @@ let untype s =
          t)
 
 type (_, _, _) path_option =
-  | Path : Eliom_lib.Url.path -> (att, non_co, _) path_option
+  | Path : Lib.Url.path -> (att, non_co, _) path_option
   | No_path : (non_att, co, unit) path_option
 
 let eliom_appl_answer_content_type = "application/x-eliom"
@@ -448,7 +448,7 @@ let new_state () =
   (* 72bit of entropy is large enough: CSRF-safe services are
      short-lived; with 65536 services, the probability of a collision
      is about 2^-41.  *)
-  Eliom_lib.make_cryptographic_safe_string ~len:12 ()
+  Lib.make_cryptographic_safe_string ~len:12 ()
 
 let default_csrf_scope = function
   (* We do not use the classical syntax for default value. Otherwise,
@@ -488,7 +488,7 @@ let main_service
       ~reload_fun
       ()
   =
-  { pre_applied_parameters = Eliom_lib.String.Table.empty, []
+  { pre_applied_parameters = Lib.String.Table.empty, []
   ; get_params_type = get_params
   ; post_params_type = post_params
   ; max_use = None
@@ -503,7 +503,7 @@ let main_service
             (match force_site_dir with
             | Some site_dir -> ref (Some (site_dir @ path))
             | None ->
-                Eliom_common.defer Eliom_request_info.get_site_dir_option
+                Eliom_common.defer Request_info.get_site_dir_option
                   (fun site_dir -> site_dir @ path))
         ; get_name = Eliom_common.SAtt_no
         ; post_name = Eliom_common.SAtt_no
@@ -518,7 +518,7 @@ let main_service
 
 let extern ?keep_nl_params ~prefix ~path ~meth () =
   let get_params, post_params = params_of_meth meth in
-  let suffix = Eliom_parameter.contains_suffix get_params in
+  let suffix = Parameter.contains_suffix get_params in
   let meth = which_meth_internal meth in
   main_service ~https:false (* not used for external links *)
     ~prefix

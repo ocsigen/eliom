@@ -19,7 +19,7 @@ open Lwt.Syntax
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Eliom_lib
+open Lib
 
 let section = Logs.Src.create "eliom:parameter"
 
@@ -78,7 +78,7 @@ let to_from_of_atom x =
   {to_string = string_of_atom x; of_string = atom_of_string x}
 
 type 'a filter = ('a -> unit) option
-type raw = Eliom_request_info.raw_post_data
+type raw = Request_info.raw_post_data
 type 'a ocaml = string (* marshaled values of type 'a *)
 type suff = [`WithoutSuffix | `WithSuffix | `Endsuffix]
 
@@ -804,7 +804,7 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
     | TESuffix n ->
         let v, l = List.assoc_remove n params in
         (* cannot have prefix or suffix *)
-        Res_ (Eliom_lib.Url.split_path v, l, files)
+        Res_ (Lib.Url.split_path v, l, files)
     | TESuffixs n ->
         let v, l = List.assoc_remove n params in
         (* cannot have prefix or suffix *)
@@ -868,7 +868,7 @@ let reconstruct_params
   =
   match typ, params, files with
   (* FIXME *)
-  | TRaw_post_data, None, None -> Eliom_request_info.raw_post_data sp
+  | TRaw_post_data, None, None -> Request_info.raw_post_data sp
   | typ, None, None -> (
     try Lwt.return (reconstruct_params_ typ [] [] nosuffixversion urlsuffix)
     with e -> Lwt.fail e)

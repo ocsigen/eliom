@@ -20,7 +20,7 @@ open Lwt.Syntax
  *)
 
 open Js_of_ocaml
-open Eliom_lib
+open Lib
 
 let section = Logs.Src.create "eliom:dom"
 
@@ -103,7 +103,7 @@ let fast_select_request_nodes root =
            (Js.string ("." ^ Eliom_runtime.RawXML.request_node_class)))
 
 let fast_select_nodes root =
-  if !Eliom_config.debug_timings
+  if !Config.debug_timings
   then Console.console##(time (Js.string "fast_select_nodes"));
   let a_nodeList : Dom_html.element Dom.nodeList Js.t =
     root##(querySelectorAll
@@ -132,7 +132,7 @@ let fast_select_nodes root =
     root##(querySelectorAll
              (Js.string ("." ^ Eliom_runtime.RawXML.ce_registered_attr_class)))
   in
-  if !Eliom_config.debug_timings
+  if !Config.debug_timings
   then Console.console##(timeEnd (Js.string "fast_select_nodes"));
   ( a_nodeList
   , form_nodeList
@@ -474,9 +474,7 @@ let fetch_linked_css e =
         then acc
         else
           let href = Js.to_string href in
-          let css =
-            Eliom_request.http_get href [] Eliom_request.string_result
-          in
+          let css = Request.http_get href [] Request.string_result in
           acc @ [e, (e##.media, href, css >|= snd)]
     | Dom.Element e ->
         let c = e##.childNodes in
@@ -581,12 +579,12 @@ let rec rewrite_css ~max (media, href, css) =
        css >>= function
        | None -> Lwt.return_nil
        | Some css ->
-           if !Eliom_config.debug_timings
+           if !Config.debug_timings
            then Console.console##(time (Js.string ("rewrite_CSS: " ^ href)));
            let* imports, css =
              rewrite_css_import ~max ~prefix:(basedir href) ~media css 0
            in
-           if !Eliom_config.debug_timings
+           if !Config.debug_timings
            then Console.console##(timeEnd (Js.string ("rewrite_CSS: " ^ href)));
            Lwt.return (imports @ [media, css]))
     (fun _ -> Lwt.return [media, Printf.sprintf "@import url(%s);" href])
@@ -620,9 +618,7 @@ and rewrite_css_import ?(charset = "") ~max ~prefix ~media css pos =
             let media =
               if media##.length > 0 then media else Js.string media'
             in
-            let css =
-              Eliom_request.http_get href [] Eliom_request.string_result
-            in
+            let css = Request.http_get href [] Request.string_result in
             rewrite_css ~max:(max - 1) (media, href, css >|= snd)
         and* imports, css =
           rewrite_css_import ~charset ~max ~prefix ~media css i
@@ -665,7 +661,7 @@ let build_style (e, css) =
 (* Lwt.return (e, node )*)
 
 let preload_css (doc : Dom_html.element Js.t) =
-  if !Eliom_config.debug_timings
+  if !Config.debug_timings
   then Console.console##(time (Js.string "preload_css (fetch+rewrite)"));
   let* css = Lwt_list.map_p build_style (fetch_linked_css (get_head doc)) in
   let css = List.concat css in
@@ -679,7 +675,7 @@ let preload_css (doc : Dom_html.element Js.t) =
                        in a perfect settings we won't have parsed it... *)
              section (fun fmt -> fmt "Unique CSS skipped..."))
     css;
-  if !Eliom_config.debug_timings
+  if !Config.debug_timings
   then Console.console##(timeEnd (Js.string "preload_css (fetch+rewrite)"));
   Lwt.return_unit
 
@@ -755,7 +751,7 @@ let touch_base () =
 
    This is implemented in:
    * this file -> here and called in load_eliom_data
-   * Eliom_request: in send_post_form
+   * Request: in send_post_form
    * in js_of_ocaml, module Form: the code to emulate FormData *)
 
 let onclick_on_body_handler event =

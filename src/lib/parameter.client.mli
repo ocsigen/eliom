@@ -18,7 +18,7 @@
  *)
 
 open Js_of_ocaml
-include Eliom_parameter_sigs.S with type raw_post_data = unit
+include Parameter_sigs.S with type raw_post_data = unit
 
 val user_type :
    of_string:(string -> 'a)
