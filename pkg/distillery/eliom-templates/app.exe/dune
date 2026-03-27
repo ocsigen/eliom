@@ -4,7 +4,7 @@
  (name %%%PROJECT_NAME%%%)
  (modules
   (:standard \ %%%MODULE_NAME%%%_main))
- (libraries eliom.server ocsipersist-sqlite ocsipersist-sqlite.settings)
+ (libraries eliom.server eliom.compat.server ocsipersist-sqlite ocsipersist-sqlite.settings)
  (library_flags
   (:standard -linkall))
  (wrapped false)
@@ -33,6 +33,7 @@
   (native exe))
  (libraries
   eliom.server
+  eliom.compat.server
   ocsipersist-sqlite
   ocsigenserver.ext.staticmod
   %%%PROJECT_NAME%%%)
@@ -109,7 +110,7 @@
     use-js-string))
   (wasm_of_ocaml
    (flags :standard))
-  (libraries eliom.client))
+  (libraries eliom.client eliom.compat.client))
  (dynamic_include ../gen/dune.client))
 
 ; Main rule:
