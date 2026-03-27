@@ -33,7 +33,7 @@ let fd ~pid =
     `Ok a
   with e -> `Error (Printexc.to_string e)
 
-let ppf fmt = Printf.ksprintf Content.Html.D.txt fmt
+let ppf fmt = Printf.ksprintf Eliom.Content.Html.D.txt fmt
 
 let format_duration t =
   let open Unix in
@@ -47,7 +47,7 @@ let format_duration t =
   let sec = string_of_int tm.tm_sec ^ " seconds" in
   year ^ days ^ hour ^ min ^ sec
 
-open Content.Html.F
+open Eliom.Content.Html.F
 
 let general_stats () =
   let pid = pid () in
@@ -108,42 +108,46 @@ let http_stats () =
            hosts) ]
 
 let eliom_stats () =
-  let* persist_nb_of_groups = Eliommod_sessiongroups.Pers.nb_of_groups () in
+  let* persist_nb_of_groups =
+    Eliom.Eliommod_sessiongroups.Pers.nb_of_groups ()
+  in
   let* number_of_persistent_data_cookies =
-    State.number_of_persistent_data_cookies ()
+    Eliom.State.number_of_persistent_data_cookies ()
   in
   Lwt.return
     (div
        [ h3 [ppf "Sessions"]
        ; ul
-           [ li [ppf "%d service cookies." (State.number_of_service_cookies ())]
+           [ li
+               [ ppf "%d service cookies."
+                   (Eliom.State.number_of_service_cookies ()) ]
            ; li
                [ ppf "%d volatile data cookies."
-                   (State.number_of_volatile_data_cookies ()) ]
+                   (Eliom.State.number_of_volatile_data_cookies ()) ]
            ; li
                [ ppf "%d volatile data tables (volatile Eliom references)."
-                   (State.number_of_tables ()) ]
+                   (Eliom.State.number_of_tables ()) ]
            ; li
                [ ppf "%d persistent data cookies."
                    number_of_persistent_data_cookies ]
            ; li
                [ ppf "%d persistent data tables (persistent data reference)."
-                   (State.number_of_persistent_tables ()) ] ]
+                   (Eliom.State.number_of_persistent_tables ()) ] ]
        ; h3 [ppf "Client processes"]
        ; p [em [txt "Not implemented yet"]]
        ; h3 [ppf "Session groups"]
        ; ul
            [ li
                [ ppf "%d service session groups."
-                   (Eliommod_sessiongroups.Serv.nb_of_groups ()) ]
+                   (Eliom.Eliommod_sessiongroups.Serv.nb_of_groups ()) ]
            ; li
                [ ppf "%d volatile data session groups."
-                   (Eliommod_sessiongroups.Data.nb_of_groups ()) ]
+                   (Eliom.Eliommod_sessiongroups.Data.nb_of_groups ()) ]
            ; li [ppf "%d persistent data session groups." persist_nb_of_groups]
            ; li
                [ ppf "Session groups: %s"
-                   (String.concat ", " (State.Ext.get_session_group_list ())) ]
-           ] ])
+                   (String.concat ", "
+                      (Eliom.State.Ext.get_session_group_list ())) ] ] ])
 
 let content_div () =
   let* eliom_stats = eliom_stats () in
