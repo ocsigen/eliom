@@ -20,8 +20,8 @@
 
 (** Low-level functions for relative or absolute URL calculation. *)
 
-open Eliom_lib
-open Eliom_parameter
+open Lib
+open Parameter
 
 (** {2 Compute service's URL}
 
@@ -35,8 +35,8 @@ open Eliom_parameter
 
     To define {e global} link (i.e. outside of a service handler) and
     recompute a relative URL at each request, use
-    {!Eliom_registration.Html.a} or other specialized functions from
-    {!Eliom_registration.Html}.
+    {!Registration.Html.a} or other specialized functions from
+    {!Registration.Html}.
 
 *)
 
@@ -45,18 +45,7 @@ val make_string_uri :
   -> ?absolute_path:bool
   -> ?https:bool
   -> service:
-       ( 'get
-         , unit
-         , Eliom_service.get
-         , _
-         , _
-         , _
-         , _
-         , _
-         , _
-         , unit
-         , 'return )
-         Eliom_service.t
+       ('get, unit, Service.get, _, _, _, _, _, _, unit, 'return) Service.t
   -> ?hostname:string
   -> ?port:int
   -> ?fragment:string
@@ -68,8 +57,8 @@ val make_string_uri :
     string corresponding to the URL of the service [service] applied
     to the GET parameters [get_params].
 
-    See {!Eliom_registration.Html.make_string_uri} or any other
-    {!Eliom_registration}[.*.make_string_uri] for a detailed
+    See {!Registration.Html.make_string_uri} or any other
+    {!Registration}[.*.make_string_uri] for a detailed
     description of optional parameters.
 
     {e Warning: The function [make_string_uri] should not be called
@@ -86,8 +75,7 @@ val make_uri_components :
    ?absolute:bool
   -> ?absolute_path:bool
   -> ?https:bool
-  -> service:
-       ('get, _, Eliom_service.get, _, _, _, _, _, _, _, _) Eliom_service.t
+  -> service:('get, _, Service.get, _, _, _, _, _, _, _, _) Service.t
   -> ?hostname:string
   -> ?port:int
   -> ?fragment:string
@@ -100,16 +88,15 @@ val make_uri_components :
     of the URL of [service] applied to the GET parameters
     [get_params].
 
-    See {!Eliom_registration.Html.make_uri_components} or any other
-    {!Eliom_registration}[.*.make_uri_components] for a detailed
+    See {!Registration.Html.make_uri_components} or any other
+    {!Registration}[.*.make_uri_components] for a detailed
     description. *)
 
 val make_post_uri_components :
    ?absolute:bool
   -> ?absolute_path:bool
   -> ?https:bool
-  -> service:
-       ('get, 'post, Eliom_service.post, _, _, _, _, _, _, _, _) Eliom_service.t
+  -> service:('get, 'post, Service.post, _, _, _, _, _, _, _, _) Service.t
   -> ?hostname:string
   -> ?port:int
   -> ?fragment:string
@@ -149,13 +136,13 @@ val reconstruct_relative_url_path : string list -> string list -> string list
    make_string_uri and make_post_uri_components with a less
    restrictive type. They should be removed once there is way to
    downcast a "service_method" service to "get" or "post" service. See
-   Eliom_mkreg and Eliom_client. *)
+   Mkreg and Client. *)
 
 val make_string_uri_ :
    ?absolute:bool
   -> ?absolute_path:bool
   -> ?https:bool
-  -> service:('get, _, _, _, _, _, _, _, _, _, _) Eliom_service.t
+  -> service:('get, _, _, _, _, _, _, _, _, _, _) Service.t
   -> ?hostname:string
   -> ?port:int
   -> ?fragment:string
@@ -168,7 +155,7 @@ val make_post_uri_components__ :
    ?absolute:bool
   -> ?absolute_path:bool
   -> ?https:bool
-  -> service:('get, 'post, _, _, _, _, _, _, _, _, _) Eliom_service.t
+  -> service:('get, 'post, _, _, _, _, _, _, _, _, _) Service.t
   -> ?hostname:string
   -> ?port:int
   -> ?fragment:string
@@ -186,7 +173,7 @@ val make_uri_components_ :
    ?absolute:bool
   -> ?absolute_path:bool
   -> ?https:bool
-  -> service:(_, _, _, _, _, _, _, _, _, _, _) Eliom_service.t
+  -> service:(_, _, _, _, _, _, _, _, _, _, _) Service.t
   -> ?hostname:string
   -> ?port:int
   -> ?fragment:string
@@ -199,7 +186,7 @@ val make_post_uri_components_ :
    ?absolute:bool
   -> ?absolute_path:bool
   -> ?https:bool
-  -> service:('get, 'post, _, _, _, _, _, _, _, _, _) Eliom_service.t
+  -> service:('get, 'post, _, _, _, _, _, _, _, _, _) Service.t
   -> ?hostname:string
   -> ?port:int
   -> ?fragment:string
@@ -221,5 +208,5 @@ val make_proto_prefix : ?hostname:string -> ?port:int -> bool -> string
     necessary).  *)
 
 val make_cookies_info :
-   bool option * (_, _, _, _, _, _, _, _, _, _, _) Eliom_service.t
+   bool option * (_, _, _, _, _, _, _, _, _, _, _) Service.t
   -> (bool * Url.path) option

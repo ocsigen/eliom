@@ -30,10 +30,9 @@ let get_global_data, modify_global_data =
      available) and eliommodules (site data available).
      Furthermore, the Eliom services must only send global data from
      ocsigen extensions and their own site.  *)
-  let global_data = ref Eliom_lib.String_map.empty in
+  let global_data = ref Lib.String_map.empty in
   let site_data =
-    Eliom_reference.Volatile.eref ~scope:Eliom_common.site_scope
-      Eliom_lib.String_map.empty
+    Reference.Volatile.eref ~scope:Eliom_common.site_scope Lib.String_map.empty
   in
   let is_site_available () =
     (* Matches valid states for Eliom_common.get_site_data *)
@@ -43,23 +42,23 @@ let get_global_data, modify_global_data =
   let get () =
     if is_site_available ()
     then
-      Eliom_lib.String_map.merge
+      Lib.String_map.merge
         (fun compilation_unit_id global site ->
            match global, site with
            | None, None -> assert false
            | Some data, None | None, Some data -> Some data
            | Some _, Some site_data ->
-               Logs.err ~src:Eliom_lib.eliom_logs_src (fun fmt ->
+               Logs.err ~src:Lib.eliom_logs_src (fun fmt ->
                  fmt "Compilation unit %s linked globally AND as Eliom module"
                    compilation_unit_id);
                Some site_data)
         !global_data
-        (Eliom_reference.Volatile.get site_data)
+        (Reference.Volatile.get site_data)
     else !global_data
   in
   let modify f =
     if is_site_available ()
-    then Eliom_reference.Volatile.modify site_data f
+    then Reference.Volatile.modify site_data f
     else global_data := f !global_data
   in
   get, modify
@@ -67,12 +66,11 @@ let get_global_data, modify_global_data =
 let current_server_section_data = ref []
 
 let get_compilation_unit_global_data compilation_unit_id =
-  (if not (Eliom_lib.String_map.mem compilation_unit_id (get_global_data ()))
+  (if not (Lib.String_map.mem compilation_unit_id (get_global_data ()))
    then
      let data = {server_section = []; client_section = []} in
-     ignore
-       (modify_global_data (Eliom_lib.String_map.add compilation_unit_id data)));
-  Eliom_lib.String_map.find compilation_unit_id (get_global_data ())
+     ignore (modify_global_data (Lib.String_map.add compilation_unit_id data)));
+  Lib.String_map.find compilation_unit_id (get_global_data ())
 
 let close_server_section compilation_unit_id =
   let data = get_compilation_unit_global_data compilation_unit_id in
@@ -93,7 +91,7 @@ let close_client_section compilation_unit_id injection_data =
     Array.map injection_datum injection_data :: data.client_section
 
 let get_global_data () =
-  Eliom_lib.String_map.map
+  Lib.String_map.map
     (fun {server_section; client_section} ->
        { Eliom_runtime.server_sections_data =
            Array.of_list (List.rev server_section)
@@ -102,13 +100,12 @@ let get_global_data () =
 
 (* Request data *)
 
-let request_data :
-  Eliom_runtime.client_value_datum list Eliom_reference.Volatile.eref
+let request_data : Eliom_runtime.client_value_datum list Reference.Volatile.eref
   =
-  Eliom_reference.Volatile.eref ~scope:Eliom_common.request_scope []
+  Reference.Volatile.eref ~scope:Eliom_common.request_scope []
 
 let get_request_data () =
-  Array.of_list (List.rev (Eliom_reference.Volatile.get request_data))
+  Array.of_list (List.rev (Reference.Volatile.get request_data))
 
 (* Register data *)
 
@@ -126,7 +123,7 @@ let register_client_value_data ~closure_id ~args ~value =
       raise
         (Eliom_client_value.Client_value_creation_invalid_context closure_id)
   else
-    Eliom_reference.Volatile.modify request_data (fun sofar ->
+    Reference.Volatile.modify request_data (fun sofar ->
       client_value_datum :: sofar)
 
 (*****************************************************************************)
@@ -138,7 +135,7 @@ let last_id = ref 0
 let client_value ?pos closure_id args =
   let instance_id = if !is_global then (incr last_id; !last_id) else 0 in
   let value = Eliom_client_value.create_client_value ~loc:pos ~instance_id in
-  register_client_value_data ~closure_id ~args:(Eliom_lib.to_poly args) ~value;
+  register_client_value_data ~closure_id ~args:(Lib.to_poly args) ~value;
   Eliom_client_value.client_value_from_server_repr value
 
 let set_global b = is_global := b

@@ -30,7 +30,7 @@ let plain_service
   =
   let get_params, post_params = params_of_meth meth
   and meth = which_meth_internal meth in
-  let redirect_suffix = Eliom_parameter.contains_suffix get_params in
+  let redirect_suffix = Parameter.contains_suffix get_params in
   let path =
     (match redirect_suffix with
       | None -> path
@@ -70,10 +70,9 @@ let create_attached
     if is_post
     then
       ( get_params
-      , Eliom_parameter.add_pref_params Eliom_common.co_param_prefix post_params
-      )
+      , Parameter.add_pref_params Eliom_common.co_param_prefix post_params )
     else
-      ( Eliom_parameter.add_pref_params Eliom_common.co_param_prefix get_params
+      ( Parameter.add_pref_params Eliom_common.co_param_prefix get_params
       , post_params )
   and k = attached_info fallback in
   { pre_applied_parameters = fallback.pre_applied_parameters
@@ -108,8 +107,7 @@ let create_attached
   ; client_fun = no_client_fun ()
   ; reload_fun = Rf_client_fun }
 
-let create_attached_get =
-  create_attached ~meth:Get' ~post_params:Eliom_parameter.unit
+let create_attached_get = create_attached ~meth:Get' ~post_params:Parameter.unit
 
 let create_attached_post
       ?name
@@ -149,9 +147,9 @@ let coservice'
   let csrf_scope = default_csrf_scope csrf_scope in
   { max_use
   ; timeout
-  ; pre_applied_parameters = Eliom_lib.String.Table.empty, []
+  ; pre_applied_parameters = Lib.String.Table.empty, []
   ; get_params_type =
-      Eliom_parameter.add_pref_params Eliom_common.na_co_param_prefix get_params
+      Parameter.add_pref_params Eliom_common.na_co_param_prefix get_params
   ; post_params_type = post_params
   ; meth
   ; kind = `NonattachedCoservice
@@ -293,16 +291,16 @@ let register_delayed_get_or_na_coservice ~sp (k, scope, secure) =
   let f =
     try
       let table =
-        !(Eliom_state.get_session_service_table_if_exists ~sp
+        !(State.get_session_service_table_if_exists ~sp
             ~scope:(scope :> Eliom_common.user_scope)
             ?secure ())
       in
-      Eliom_lib.Int.Table.find k
+      Lib.Int.Table.find k
         table.Eliom_common.csrf_get_or_na_registration_functions
     with Not_found -> (
-      let table = Eliom_state.get_global_table () in
+      let table = State.get_global_table () in
       try
-        Eliom_lib.Int.Table.find k
+        Lib.Int.Table.find k
           table.Eliom_common.csrf_get_or_na_registration_functions
       with Not_found -> raise Unregistered_CSRF_safe_coservice)
   in
@@ -312,30 +310,27 @@ let register_delayed_post_coservice ~sp (k, scope, secure) getname =
   let f =
     try
       let table =
-        !(Eliom_state.get_session_service_table_if_exists ~sp
+        !(State.get_session_service_table_if_exists ~sp
             ~scope:(scope :> Eliom_common.user_scope)
             ?secure ())
       in
-      Eliom_lib.Int.Table.find k
-        table.Eliom_common.csrf_post_registration_functions
+      Lib.Int.Table.find k table.Eliom_common.csrf_post_registration_functions
     with Not_found -> (
-      let table = Eliom_state.get_global_table () in
+      let table = State.get_global_table () in
       try
-        Eliom_lib.Int.Table.find k
-          table.Eliom_common.csrf_post_registration_functions
+        Lib.Int.Table.find k table.Eliom_common.csrf_post_registration_functions
       with Not_found -> raise Unregistered_CSRF_safe_coservice)
   in
   f ~sp getname
 
 let set_delayed_get_or_na_registration_function tables k f =
   tables.Eliom_common.csrf_get_or_na_registration_functions <-
-    Eliom_lib.Int.Table.add k f
+    Lib.Int.Table.add k f
       tables.Eliom_common.csrf_get_or_na_registration_functions
 
 let set_delayed_post_registration_function tables k f =
   tables.Eliom_common.csrf_post_registration_functions <-
-    Eliom_lib.Int.Table.add k f
-      tables.Eliom_common.csrf_post_registration_functions
+    Lib.Int.Table.add k f tables.Eliom_common.csrf_post_registration_functions
 
 let remove_service
       table
@@ -349,18 +344,16 @@ let remove_service
       let attserpost = post_name attser in
       let sgpt = get_params_type service in
       let sppt = post_params_type service in
-      Eliom_route.remove_service table (sub_path attser)
+      Route.remove_service table (sub_path attser)
         { Eliom_common.key_state = attserget, attserpost
         ; Eliom_common.key_meth = key_kind }
         (if
            attserget = Eliom_common.SAtt_no || attserpost = Eliom_common.SAtt_no
-         then
-           Eliom_parameter.(
-             anonymise_params_type sgpt, anonymise_params_type sppt)
+         then Parameter.(anonymise_params_type sgpt, anonymise_params_type sppt)
          else 0, 0)
   | Nonattached naser ->
       let na_name = na_name naser in
-      Eliom_route.remove_naservice table na_name
+      Route.remove_naservice table na_name
 
 let unregister
       ?scope
@@ -382,7 +375,7 @@ let unregister
               raise
                 (Eliom_common.Eliom_site_information_not_available "unregister")
           )
-        | Some _ -> Eliom_state.get_global_table ()
+        | Some _ -> State.get_global_table ()
       in
       remove_service table service
   | Some (#Eliom_common.user_scope as scope) -> (
@@ -392,9 +385,7 @@ let unregister
           (failwith
              "Unregistering service for non global scope must be done during a request")
     | Some sp ->
-        let table =
-          !(Eliom_state.get_session_service_table ~sp ?secure ~scope ())
-        in
+        let table = !(State.get_session_service_table ~sp ?secure ~scope ()) in
         remove_service table service)
 
 let client_fun _ = None

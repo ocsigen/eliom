@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module Eliom_mkreg
+ * Module Mkreg
  * Copyright (C) 2007 Vincent Balat
  *
  * This program is free software; you can redistribute it and/or modify
@@ -20,12 +20,12 @@
 
 (** This module defines the functor to use to creates modules
     generating functions to register services for your own types of
-    pages.  It is used for example in {!Eliom_registration}.  *)
+    pages.  It is used for example in {!Registration}.  *)
 
 (** {2 Creates modules to register services for one type of pages} *)
 module Make
-    (Pages : Eliom_registration_sigs.PARAM with type frame := Ocsigen_response.t) :
-  Eliom_registration_sigs.S_with_create
+    (Pages : Registration_sigs.PARAM with type frame := Ocsigen_response.t) :
+  Registration_sigs.S_with_create
   with type page = Pages.page
    and type options = Pages.options
    and type result = Pages.result
@@ -33,9 +33,8 @@ module Make
 (** {2 Creating modules to register services for one type of
     parametrised pages} *)
 module Make_poly
-    (Pages :
-       Eliom_registration_sigs.PARAM_POLY with type frame := Ocsigen_response.t) :
-  Eliom_registration_sigs.S_poly_with_create
+    (Pages : Registration_sigs.PARAM_POLY with type frame := Ocsigen_response.t) :
+  Registration_sigs.S_poly_with_create
   with type 'a page = 'a Pages.page
    and type options = Pages.options
    and type 'a return = 'a Pages.return

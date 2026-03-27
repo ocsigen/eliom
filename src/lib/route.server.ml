@@ -1,4 +1,4 @@
-open Eliom_lib
+open Lib
 open Lwt
 open Ocsigen_extensions
 include Eliom_route_base

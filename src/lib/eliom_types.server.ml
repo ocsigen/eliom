@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Eliom_lib
+open Lib
 include Eliom_types_base
 
 (* let wrap_parameters (v : 'a) : client_expr_parameters = *)
@@ -25,7 +25,7 @@ include Eliom_types_base
 (* if Obj.is_int v *)
 (* then PImm (Obj.obj v) *)
 (* else *)
-(* let cri = Eliom_request_info.get_sp_client_request_info () in *)
+(* let cri = Request_info.get_sp_client_request_info () in *)
 (* let id = List.length cri.Eliom_common.cri_page_data in *)
 (* cri.Eliom_common.cri_page_data <- *)
 (* (Obj.obj v) :: cri.Eliom_common.cri_page_data; *)
@@ -35,7 +35,7 @@ include Eliom_types_base
 (* the string is urlencoded because otherwise js does strange things
    with strings ... *)
 let encode_eliom_data r =
-  Url.encode ~plus:false (Marshal.to_string (Eliom_wrap.wrap r) [])
+  Url.encode ~plus:false (Marshal.to_string (Wrap.wrap r) [])
 
 (*
    let string_map f s =

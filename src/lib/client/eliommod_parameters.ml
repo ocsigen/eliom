@@ -32,8 +32,8 @@ let to_string : field -> string = function
 let inject_param_list l = List.map (fun (n, v) -> n, insert_string v) l
 let get_param_list l = List.map (fun (n, v) -> n, to_string v) l
 
-let inject_param_table t : (string * param) list Eliom_lib.String.Table.t =
-  Eliom_lib.String.Table.map (fun v -> inject_param_list v) t
+let inject_param_table t : (string * param) list Lib.String.Table.t =
+  Lib.String.Table.map (fun v -> inject_param_list v) t
 
 let string_of_param = function
   | `String s -> Js.to_string s

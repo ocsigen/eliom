@@ -18,7 +18,7 @@
  *)
 
 open Js_of_ocaml
-open Eliom_lib
+open Lib
 open Eliom_content_core
 module Xml = Xml
 
@@ -205,19 +205,19 @@ struct
     Js.Opt.to_option res
 
   let insertBefore ~before elt =
-    Eliom_lib.Option.iter
+    Lib.Option.iter
       (fun parent -> appendChild ~before parent elt)
       (parentNode before)
 
   let insertAfter ~after elt =
-    Eliom_lib.Option.iter
+    Lib.Option.iter
       (fun parent ->
          let before = nextSibling after in
          appendChild ?before parent elt)
       (parentNode after)
 
   let replaceSelf elt1 elt2 =
-    Eliom_lib.Option.iter
+    Lib.Option.iter
       (fun parent -> replaceChild parent elt2 elt1)
       (parentNode elt1)
 

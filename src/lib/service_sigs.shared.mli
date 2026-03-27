@@ -34,15 +34,14 @@ module type TYPES = sig
   type reg = Reg
   type non_reg = Non_reg
 
-  type ('get, 'tipo, 'gn) params =
-    ('get, 'tipo, 'gn) Eliom_parameter.params_type
+  type ('get, 'tipo, 'gn) params = ('get, 'tipo, 'gn) Parameter.params_type
     constraint 'tipo = [< `WithSuffix | `WithoutSuffix]
 
   (** {2 Method specification} *)
 
   (** {b Method specification datatype}
 
-      An Eliom service (see {!Eliom_service_sigs.S.t}) can respond to
+      An Eliom service (see {!Service_sigs.S.t}) can respond to
       one of the following HTTP methods:
 
       - GET ([Get g])
@@ -51,7 +50,7 @@ module type TYPES = sig
       - DELETE ([Delete g])
 
       In all cases, the service parameters need to be provided (see
-      {!Eliom_parameter_sigs.S}). POST ([Post (g, p)]) services accept
+      {!Parameter_sigs.S}). POST ([Post (g, p)]) services accept
       both GET ([g]) and POST ([p]) parameters. For the other methods,
       only GET ([g]) parameters apply.
 
@@ -77,8 +76,8 @@ module type TYPES = sig
         -> ( put
              , 'gp
              , 'gn
-             , Eliom_parameter.raw_post_data
-             , Eliom_parameter.no_param_name
+             , Parameter.raw_post_data
+             , Parameter.no_param_name
              , 'tipo
              , unit )
              meth
@@ -87,8 +86,8 @@ module type TYPES = sig
         -> ( delete
              , 'gp
              , 'gn
-             , Eliom_parameter.raw_post_data
-             , Eliom_parameter.no_param_name
+             , Parameter.raw_post_data
+             , Parameter.no_param_name
              , 'tipo
              , unit )
              meth
@@ -104,7 +103,7 @@ end
 module type S = sig
   (** {2 Services}
 
-      See {!Eliom_service.create} (on the server) for how to create
+      See {!Service.create} (on the server) for how to create
       services. *)
 
   include TYPES
@@ -147,13 +146,13 @@ module type S = sig
       - ['tipo] the type parameter of subtype {!suff} states the kind
         of parameters it uses: suffix or not.
       - ['gn] is the type of GET parameters names. See
-        {!Eliom_parameter.param_name} and form generation functions
-        (e. g. {!Eliom_content.Html.D.get_form} ).
+        {!Parameter.param_name} and form generation functions
+        (e. g. {!Content.Html.D.get_form} ).
       - ['pn] is the type of POST parameters names. See
-        {!Eliom_parameter.param_name} and form generation functions
-        (e. g. {!Eliom_content.Html.D.post_form} ).
+        {!Parameter.param_name} and form generation functions
+        (e. g. {!Content.Html.D.post_form} ).
       - [ 'ret] is an information on what the service returns.  See
-        {!Eliom_registration.kind}. *)
+        {!Registration.kind}. *)
 
   and result =
     | No_contents
@@ -179,7 +178,7 @@ module type S = sig
 
   (** {b Optional service path} *)
   type (_, _, _) path_option =
-    | Path : Eliom_lib.Url.path -> (att, non_co, _) path_option
+    | Path : Lib.Url.path -> (att, non_co, _) path_option
     | No_path : (non_att, co, unit) path_option
 
   (** {3 Predefined services}
@@ -266,7 +265,7 @@ module type S = sig
          , non_ext
          , non_reg
          , [`WithSuffix]
-         , [`One of string list] Eliom_parameter.param_name
+         , [`One of string list] Parameter.param_name
          , unit
          , non_ocaml )
          t
@@ -287,7 +286,7 @@ module type S = sig
          , non_ext
          , non_reg
          , [`WithSuffix]
-         , [`One of string list] Eliom_parameter.param_name
+         , [`One of string list] Parameter.param_name
          , unit
          , non_ocaml )
          t
@@ -295,7 +294,7 @@ module type S = sig
 
   val static_dir_with_params :
      ?keep_nl_params:[`All | `Persistent | `None]
-    -> get_params:('a, [`WithoutSuffix], 'an) Eliom_parameter.params_type
+    -> get_params:('a, [`WithoutSuffix], 'an) Parameter.params_type
     -> unit
     -> ( string list * 'a
          , unit
@@ -305,7 +304,7 @@ module type S = sig
          , non_ext
          , non_reg
          , [`WithSuffix]
-         , [`One of string list] Eliom_parameter.param_name * 'an
+         , [`One of string list] Parameter.param_name * 'an
          , unit
          , non_ocaml )
          t
@@ -313,7 +312,7 @@ module type S = sig
 
   val https_static_dir_with_params :
      ?keep_nl_params:[`All | `Persistent | `None]
-    -> get_params:('a, [`WithoutSuffix], 'an) Eliom_parameter.params_type
+    -> get_params:('a, [`WithoutSuffix], 'an) Parameter.params_type
     -> unit
     -> ( string list * 'a
          , unit
@@ -323,7 +322,7 @@ module type S = sig
          , non_ext
          , non_reg
          , [`WithSuffix]
-         , [`One of string list] Eliom_parameter.param_name * 'an
+         , [`One of string list] Parameter.param_name * 'an
          , unit
          , non_ocaml )
          t
@@ -352,7 +351,7 @@ module type S = sig
       preapplied services may be used in links or as fallbacks. *)
 
   val add_non_localized_get_parameters :
-     params:('p, [`WithoutSuffix], 'pn) Eliom_parameter.non_localized_params
+     params:('p, [`WithoutSuffix], 'pn) Parameter.non_localized_params
     -> service:('a, 'b, 'meth, 'attach, 'co, 'ext, 'reg, 'd, 'e, 'f, 'return) t
     -> ( 'a * 'p
          , 'b
@@ -373,7 +372,7 @@ module type S = sig
       localized parameters>>%}. *)
 
   val add_non_localized_post_parameters :
-     params:('p, [`WithoutSuffix], 'pn) Eliom_parameter.non_localized_params
+     params:('p, [`WithoutSuffix], 'pn) Parameter.non_localized_params
     -> service:('a, 'b, 'meth, 'attach, 'co, 'ext, 'g, 'd, 'e, 'f, 'return) t
     -> ('a, 'b * 'p, 'meth, 'attach, 'co, 'ext, 'g, 'd, 'e, 'f * 'pn, 'return) t
   (** Like {!add_non_localized_get_parameters} but with POST
@@ -382,7 +381,7 @@ module type S = sig
   val extern :
      ?keep_nl_params:[`All | `Persistent | `None]
     -> prefix:string
-    -> path:Eliom_lib.Url.path
+    -> path:Lib.Url.path
     -> meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, _) meth
     -> unit
     -> ('gp, 'pp, 'm, att, non_co, ext, non_reg, 'tipo, 'gn, 'pn, non_ocaml) t
@@ -403,14 +402,14 @@ module type S = sig
 
   val get_params_type :
      ('a, _, _, _, _, _, _, 'b, 'c, _, _) t
-    -> ('a, 'b, 'c) Eliom_parameter.params_type
+    -> ('a, 'b, 'c) Parameter.params_type
 
   val post_params_type :
      (_, 'a, _, _, _, _, _, _, _, 'b, _) t
-    -> ('a, [`WithoutSuffix], 'b) Eliom_parameter.params_type
+    -> ('a, [`WithoutSuffix], 'b) Parameter.params_type
 
-  val sub_path : att -> Eliom_lib.Url.path
-  val full_path : att -> Eliom_lib.Url.path
+  val sub_path : att -> Lib.Url.path
+  val full_path : att -> Lib.Url.path
   val prefix : att -> string
   val get_name : att -> Eliom_common.att_key_serv
   val post_name : att -> Eliom_common.att_key_serv
@@ -453,7 +452,7 @@ module type S = sig
 
   (** Whether the service is capable to send application content or
       not. (application content has type
-      Eliom_service.eliom_appl_answer: content of the application
+      Service.eliom_appl_answer: content of the application
       container, or xhr redirection ...).  A link towards a service
       with send_appl_content = XNever will always answer a regular
       http frame (this will stop the application if used in a regular

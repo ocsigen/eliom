@@ -33,7 +33,7 @@ let fd ~pid =
     `Ok a
   with e -> `Error (Printexc.to_string e)
 
-let ppf fmt = Printf.ksprintf Eliom_content.Html.D.txt fmt
+let ppf fmt = Printf.ksprintf Content.Html.D.txt fmt
 
 let format_duration t =
   let open Unix in
@@ -47,7 +47,7 @@ let format_duration t =
   let sec = string_of_int tm.tm_sec ^ " seconds" in
   year ^ days ^ hour ^ min ^ sec
 
-open Eliom_content.Html.F
+open Content.Html.F
 
 let general_stats () =
   let pid = pid () in
@@ -110,27 +110,25 @@ let http_stats () =
 let eliom_stats () =
   let* persist_nb_of_groups = Eliommod_sessiongroups.Pers.nb_of_groups () in
   let* number_of_persistent_data_cookies =
-    Eliom_state.number_of_persistent_data_cookies ()
+    State.number_of_persistent_data_cookies ()
   in
   Lwt.return
     (div
        [ h3 [ppf "Sessions"]
        ; ul
-           [ li
-               [ ppf "%d service cookies."
-                   (Eliom_state.number_of_service_cookies ()) ]
+           [ li [ppf "%d service cookies." (State.number_of_service_cookies ())]
            ; li
                [ ppf "%d volatile data cookies."
-                   (Eliom_state.number_of_volatile_data_cookies ()) ]
+                   (State.number_of_volatile_data_cookies ()) ]
            ; li
                [ ppf "%d volatile data tables (volatile Eliom references)."
-                   (Eliom_state.number_of_tables ()) ]
+                   (State.number_of_tables ()) ]
            ; li
                [ ppf "%d persistent data cookies."
                    number_of_persistent_data_cookies ]
            ; li
                [ ppf "%d persistent data tables (persistent data reference)."
-                   (Eliom_state.number_of_persistent_tables ()) ] ]
+                   (State.number_of_persistent_tables ()) ] ]
        ; h3 [ppf "Client processes"]
        ; p [em [txt "Not implemented yet"]]
        ; h3 [ppf "Session groups"]
@@ -144,8 +142,8 @@ let eliom_stats () =
            ; li [ppf "%d persistent data session groups." persist_nb_of_groups]
            ; li
                [ ppf "Session groups: %s"
-                   (String.concat ", "
-                      (Eliom_state.Ext.get_session_group_list ())) ] ] ])
+                   (String.concat ", " (State.Ext.get_session_group_list ())) ]
+           ] ])
 
 let content_div () =
   let* eliom_stats = eliom_stats () in

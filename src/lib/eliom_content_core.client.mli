@@ -39,7 +39,7 @@ module Xml : sig
   type attrib
 
   type caml_event_handler =
-    | CE_registered_closure of string * Eliom_lib.poly
+    | CE_registered_closure of string * Lib.poly
     (* 'a Js.t -> unit) client_value_server *)
     | CE_client_closure of (Dom_html.event Js.t -> unit) (* Client side-only *)
     | CE_client_closure_mouse of (Dom_html.mouseEvent Js.t -> unit)
@@ -82,7 +82,7 @@ module Xml : sig
      ([`A | `Form_get | `Form_post]
      * (bool * string list) option
      * string option
-     * Eliom_lib.poly)
+     * Lib.poly)
        option
        Eliom_lazy.request
     -> internal_event_handler
@@ -103,7 +103,7 @@ module Xml : sig
     | RACamlEventHandler of caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
-    | RAClient of string * attrib option * Eliom_lib.poly
+    | RAClient of string * attrib option * Lib.poly
 
   (* attrib Eliom_client_value.t *)
   val racontent : attrib -> racontent
@@ -302,16 +302,16 @@ module Svg : sig
     (** The type of global SVG element identifier. *)
 
     val new_elt_id : ?global:bool -> unit -> 'a id
-    (** See {!Eliom_content.Html.Id.new_elt_id} *)
+    (** See {!Content.Html.Id.new_elt_id} *)
 
     val create_named_elt : id:'a id -> 'a elt -> 'a elt
-    (** See {!Eliom_content.Html.Id.create_named_elt} *)
+    (** See {!Content.Html.Id.create_named_elt} *)
 
     val create_global_elt : 'a elt -> 'a elt
-    (** See {!Eliom_content.Html.Id.create_global_elt} *)
+    (** See {!Content.Html.Id.create_global_elt} *)
 
     val create_request_elt : ?reset:bool -> 'a elt -> 'a elt
-    (** See {!Eliom_content.Html.Id.create_request_elt} *)
+    (** See {!Content.Html.Id.create_request_elt} *)
 
     (**/**)
 
@@ -530,7 +530,7 @@ module Html : sig
         [create_named_elt ~id:(new_elt_id ()) elt]. *)
 
     val create_request_elt : ?reset:bool -> 'a elt -> 'a elt
-    (** See {!Eliom_content.Svg.Id.create_request_elt} *)
+    (** See {!Content.Svg.Id.create_request_elt} *)
 
     (**/**)
 
@@ -552,7 +552,7 @@ module Html : sig
       -> 'a t
     (** Create a custom data field by providing string conversion functions.
         If the [default] is provided, calls to {% <<a_api project="eliom" subproject="client" |
-        val Eliom_content.Html.Custom_data.get_dom>> %} return that instead of throwing an
+        val Content.Html.Custom_data.get_dom>> %} return that instead of throwing an
         exception [Not_found].  *)
 
     val create_json : name:string -> ?default:'a -> 'a Deriving_Json.t -> 'a t
@@ -561,7 +561,7 @@ module Html : sig
     val attrib : 'a t -> 'a -> [> `User_data] attrib
     (** [attrib my_data value ] creates a HTML5 attribute for the custom-data
         type [my_data] with value [value] for injecting it into an a HTML5 tree
-        ({% <<a_api | type Eliom_content.Html.elt >> %}). *)
+        ({% <<a_api | type Content.Html.elt >> %}). *)
 
     val get_dom : Dom_html.element Js.t -> 'a t -> 'a
     (** [get_dom element custom_data] gets the [custom_data] from a JavaScript [element]

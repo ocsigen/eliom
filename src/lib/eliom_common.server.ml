@@ -19,7 +19,7 @@ open Lwt.Syntax
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Eliom_lib
+open Lib
 include Eliom_common_base
 
 exception Eliom_Session_expired
@@ -1404,28 +1404,24 @@ end
 
 (**** Wrapper type shared by client/server side ***)
 
-type 'a wrapper = 'a Eliom_wrap.wrapper
+type 'a wrapper = 'a Wrap.wrapper
 
-let make_wrapper f = Eliom_wrap.create_wrapper f
-let empty_wrapper () = Eliom_wrap.empty_wrapper
+let make_wrapper f = Wrap.create_wrapper f
+let empty_wrapper () = Wrap.empty_wrapper
 
-type unwrap_id = Eliom_wrap.unwrap_id
-type unwrapper = Eliom_wrap.unwrapper
+type unwrap_id = Wrap.unwrap_id
+type unwrapper = Wrap.unwrapper
 
-let make_unwrapper = Eliom_wrap.create_unwrapper
-let empty_unwrapper = Eliom_wrap.empty_unwrapper
-let react_up_unwrap_id : unwrap_id = Eliom_wrap.id_of_int react_up_unwrap_id_int
-
-let react_down_unwrap_id : unwrap_id =
-  Eliom_wrap.id_of_int react_down_unwrap_id_int
-
-let signal_down_unwrap_id : unwrap_id =
-  Eliom_wrap.id_of_int signal_down_unwrap_id_int
+let make_unwrapper = Wrap.create_unwrapper
+let empty_unwrapper = Wrap.empty_unwrapper
+let react_up_unwrap_id : unwrap_id = Wrap.id_of_int react_up_unwrap_id_int
+let react_down_unwrap_id : unwrap_id = Wrap.id_of_int react_down_unwrap_id_int
+let signal_down_unwrap_id : unwrap_id = Wrap.id_of_int signal_down_unwrap_id_int
 
 let comet_channel_unwrap_id : unwrap_id =
-  Eliom_wrap.id_of_int comet_channel_unwrap_id_int
+  Wrap.id_of_int comet_channel_unwrap_id_int
 
-let bus_unwrap_id : unwrap_id = Eliom_wrap.id_of_int bus_unwrap_id_int
+let bus_unwrap_id : unwrap_id = Wrap.id_of_int bus_unwrap_id_int
 
 (* HACK: Remove the 'nl_get_appl_parameter' used to avoid confusion
    between XHR and classical request in App. *)
@@ -1457,12 +1453,12 @@ module To_and_of_shared = struct
   [@@warning "-69"]
 
   let wrapper : wrapper =
-    Obj.magic @@ Eliom_wrap.create_wrapper
+    Obj.magic @@ Wrap.create_wrapper
     @@ function
     | {client = Some tao; _} -> tao
     | {client = None; _} ->
         failwith
-          "Cannot wrap user type parameter.\nUse the ?client_to_and_of parameter of Eliom_parameter.user_type\nor (Eliom_parameter.all_suffix_user)"
+          "Cannot wrap user type parameter.\nUse the ?client_to_and_of parameter of Parameter.user_type\nor (Parameter.all_suffix_user)"
 
   let to_string {server = {to_string; _}; _} = to_string
   let of_string {server = {of_string; _}; _} = of_string

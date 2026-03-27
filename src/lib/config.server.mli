@@ -22,7 +22,7 @@ file.
 
     It make also possible to add configuration options
     in configuration file for your Eliom modules.
-    Use {!Eliom_config.parse_config} for that.
+    Use {!Config.parse_config} for that.
 
     Example:
 
@@ -103,7 +103,7 @@ val set_enable_wasm : bool -> unit
 val get_enable_wasm : unit -> bool
 (** Get the current global setting for WebAssembly support. *)
 
-val set_cache_global_data : (Eliom_lib.Url.path * int) option -> unit
+val set_cache_global_data : (Lib.Url.path * int) option -> unit
 val set_html_content_type : string -> unit
 val add_ignored_get_params : string * Re.re -> unit
 val add_ignored_post_params : string * Re.re -> unit
@@ -145,8 +145,8 @@ val get_config_default_charset : unit -> string
 
 val set_default_links_xhr : ?override_configfile:bool -> bool -> unit
 (** The provided value serves as a default value for the optional parameter
-    [~xhr] in the functions [Eliom_registration.*.{a, get_form, post_form,
-    lwt_get_form, lwt_post_form}] (cf. {!Eliom_registration.Html.a} et al.).
+    [~xhr] in the functions [Registration.*.{a, get_form, post_form,
+    lwt_get_form, lwt_post_form}] (cf. {!Registration.Html.a} et al.).
     This value can also be set in the
     {{:http://ocsigen.org/eliom/dev/manual/config#h5o-25}config file}.  *)
 
@@ -167,7 +167,7 @@ val get_config : unit -> Xml.xml list
     {!Eliom_common.Eliom_site_information_not_available}.
     If you want to build a statically linkable module, you must call this
     function inside the initialisation function given to
-    {!Eliom_service.register_eliom_module}.}
+    {!Service.register_eliom_module}.}
 *)
 
 val parse_config :
@@ -177,7 +177,7 @@ val parse_config :
   -> unit
 (** Process the configuration
     (same as the one returned by
-    {% <<a_api module="Eliom_config" | val get_config>> %})
+    {% <<a_api module="Config" | val get_config>> %})
     by a given specification (cf. {% <<a_api project="ocsigenserver" | type Ocsigen_extensions.Configuration.element >> %}) *)
 
 val get_config_info : unit -> Ocsigen_extensions.config_info

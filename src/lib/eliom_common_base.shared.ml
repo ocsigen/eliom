@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Eliom_lib
+open Lib
 
 exception Eliom_site_information_not_available of string
 
@@ -234,7 +234,7 @@ type sess_info =
     (*204FORMS*     si_internal_form: bool; *) }
 
 type eliom_js_page_data =
-  { ejs_global_data : (Eliom_runtime.global_data * Eliom_wrap.unwrapper) option
+  { ejs_global_data : (Eliom_runtime.global_data * Wrap.unwrapper) option
   ; ejs_request_data : Eliom_runtime.request_data
   ; (* Event handlers *)
     ejs_event_handler_table : Eliom_runtime.RawXML.event_handler_table

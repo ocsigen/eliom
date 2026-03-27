@@ -299,7 +299,7 @@ let get_csp_ssl_sp sp =
 (* *)
 
 let get_site_dir () =
-  let sitedata = find_sitedata "Eliom_request_info.get_site_dir" in
+  let sitedata = find_sitedata "Request_info.get_site_dir" in
   Eliom_common.get_site_dir sitedata
 
 let get_site_dir_option () =

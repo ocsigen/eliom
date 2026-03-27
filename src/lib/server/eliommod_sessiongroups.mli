@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Eliom_lib
+open Lib
 
 val make_full_named_group_name_ :
    cookie_level:Eliom_common.cookie_level

@@ -1,13 +1,13 @@
 type ('a, 'b) server_function_service =
   ( unit
     , 'a
-    , Eliom_service.post
-    , Eliom_service.non_att
-    , Eliom_service.co
-    , Eliom_service.non_ext
-    , Eliom_service.reg
+    , Service.post
+    , Service.non_att
+    , Service.co
+    , Service.non_ext
+    , Service.reg
     , [`WithoutSuffix]
     , unit
-    , [`One of 'a Eliom_parameter.ocaml] Eliom_parameter.param_name
-    , 'b Eliom_service.ocaml )
-    Eliom_service.t
+    , [`One of 'a Parameter.ocaml] Parameter.param_name
+    , 'b Service.ocaml )
+    Service.t

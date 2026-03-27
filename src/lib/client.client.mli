@@ -32,7 +32,7 @@ val init_client_app :
   -> ?ssl:bool
   -> hostname:string
   -> ?port:int
-  -> site_dir:Eliom_lib.Url.path
+  -> site_dir:Lib.Url.path
   -> unit
   -> unit
 (** Call this function if you want to be able to run your client side
@@ -56,8 +56,8 @@ val is_client_app : unit -> bool
     Otherwise, it tests the presence of JS variables added automatically by
     Eliom when the page is sent by a server.
     Example:
-    {[ if not (Eliom_client.is_client_app ())
- then Eliom_client.init_client_app ... ]}
+    {[ if not (Client.is_client_app ())
+ then Client.init_client_app ... ]}
 *)
 
 (** {2 Calling services} *)
@@ -70,13 +70,12 @@ val change_page :
   -> ?absolute:bool
   -> ?absolute_path:bool
   -> ?https:bool
-  -> service:
-       ('a, 'b, _, _, _, _, _, _, _, _, Eliom_service.non_ocaml) Eliom_service.t
+  -> service:('a, 'b, _, _, _, _, _, _, _, _, Service.non_ocaml) Service.t
   -> ?hostname:string
   -> ?port:int
   -> ?fragment:string
   -> ?keep_nl_params:[`All | `None | `Persistent]
-  -> ?nl_params:Eliom_parameter.nl_params_set
+  -> ?nl_params:Parameter.nl_params_set
   -> ?keep_get_na_params:bool
   -> ?progress:(int -> int -> unit)
   -> ?upload_progress:(int -> int -> unit)
@@ -99,24 +98,12 @@ val call_ocaml_service :
    ?absolute:bool
   -> ?absolute_path:bool
   -> ?https:bool
-  -> service:
-       ( 'a
-         , 'b
-         , _
-         , _
-         , _
-         , _
-         , _
-         , _
-         , _
-         , _
-         , 'return Eliom_service.ocaml )
-         Eliom_service.t
+  -> service:('a, 'b, _, _, _, _, _, _, _, _, 'return Service.ocaml) Service.t
   -> ?hostname:string
   -> ?port:int
   -> ?fragment:string
   -> ?keep_nl_params:[`All | `None | `Persistent]
-  -> ?nl_params:Eliom_parameter.nl_params_set
+  -> ?nl_params:Parameter.nl_params_set
   -> ?keep_get_na_params:bool
   -> ?progress:(int -> int -> unit)
   -> ?upload_progress:(int -> int -> unit)
@@ -140,13 +127,12 @@ val exit_to :
   -> ?absolute:bool
   -> ?absolute_path:bool
   -> ?https:bool
-  -> service:
-       ('a, 'b, _, _, _, _, _, _, _, _, Eliom_service.non_ocaml) Eliom_service.t
+  -> service:('a, 'b, _, _, _, _, _, _, _, _, Service.non_ocaml) Service.t
   -> ?hostname:string
   -> ?port:int
   -> ?fragment:string
   -> ?keep_nl_params:[`All | `None | `Persistent]
-  -> ?nl_params:Eliom_parameter.nl_params_set
+  -> ?nl_params:Parameter.nl_params_set
   -> ?keep_get_na_params:bool
   -> 'a
   -> 'b
@@ -168,13 +154,12 @@ val window_open :
   -> ?absolute:bool
   -> ?absolute_path:bool
   -> ?https:bool
-  -> service:
-       ('a, unit, Eliom_service.get, _, _, _, _, _, _, unit, _) Eliom_service.t
+  -> service:('a, unit, Service.get, _, _, _, _, _, _, unit, _) Service.t
   -> ?hostname:string
   -> ?port:int
   -> ?fragment:string
   -> ?keep_nl_params:[`All | `None | `Persistent]
-  -> ?nl_params:Eliom_parameter.nl_params_set
+  -> ?nl_params:Parameter.nl_params_set
   -> ?keep_get_na_params:bool
   -> 'a
   -> Dom_html.window Js.t Js.opt
@@ -186,24 +171,12 @@ val change_url :
   -> ?absolute:bool
   -> ?absolute_path:bool
   -> ?https:bool
-  -> service:
-       ( 'get
-         , unit
-         , Eliom_service.get
-         , _
-         , _
-         , _
-         , _
-         , _
-         , _
-         , unit
-         , _ )
-         Eliom_service.t
+  -> service:('get, unit, Service.get, _, _, _, _, _, _, unit, _) Service.t
   -> ?hostname:string
   -> ?port:int
   -> ?fragment:string
   -> ?keep_nl_params:[`All | `None | `Persistent]
-  -> ?nl_params:Eliom_parameter.nl_params_set
+  -> ?nl_params:Parameter.nl_params_set
   -> 'get
   -> unit
 (** Changes the URL, without doing a request.
@@ -216,12 +189,12 @@ val call_service :
    ?absolute:bool
   -> ?absolute_path:bool
   -> ?https:bool
-  -> service:('a, 'b, _, _, _, _, _, _, _, _, _) Eliom_service.t
+  -> service:('a, 'b, _, _, _, _, _, _, _, _, _) Service.t
   -> ?hostname:string
   -> ?port:int
   -> ?fragment:string
   -> ?keep_nl_params:[`All | `None | `Persistent]
-  -> ?nl_params:Eliom_parameter.nl_params_set
+  -> ?nl_params:Parameter.nl_params_set
   -> ?keep_get_na_params:bool
   -> ?progress:(int -> int -> unit)
   -> ?upload_progress:(int -> int -> unit)
@@ -251,12 +224,12 @@ val onload : (unit -> unit) -> unit
     freshly generated pages as well as pages served from the DOM cache.
 
     {% <<code language="ocaml"|
-    [%%shared open Eliom_lib]
+    [%%shared open Lib]
     [%%client
       let () = alert "Once only during initialization of the client, \
                       i.e. before the document is available."
       let () =
-        Eliom_client.onload
+        Client.onload
           (fun () -> alert "Once only when the document is put in place.")
     ]
     [%%server
@@ -382,7 +355,7 @@ val wait_load_end : unit -> unit Lwt.t
 
 val get_application_name : unit -> string
 (** Returns the name of currently running Eliom application,
-    defined while applying [Eliom_registration.App] functor. *)
+    defined while applying [Registration.App] functor. *)
 
 val persist_document_head : unit -> unit
 (** After this function is called, the document head is no
@@ -395,13 +368,13 @@ val persist_document_head : unit -> unit
 type ('a, +'b) server_function = 'a -> 'b Lwt.t
 (** A [('a, 'b) server_function] provides transparently access to a
     server side function which has been created by {% <<a_api
-    subproject="server"| val Eliom_client.server_function>> %}.
+    subproject="server"| val Client.server_function>> %}.
 
     See also {% <<a_api subproject="server" text="the opaque server
-    side representation"| type Eliom_client.server_function>> %}.
+    side representation"| type Client.server_function>> %}.
 
     The handling of exception on the server corresponds to that of
-    <<a_api subproject="client"|val Eliom_client.call_ocaml_service>>.
+    <<a_api subproject="client"|val Client.call_ocaml_service>>.
 *)
 
 val change_page_uri : ?replace:bool -> string -> unit Lwt.t
@@ -438,7 +411,7 @@ val change_page_unknown :
 (* Documentation rather in eliom_client.ml *)
 
 val init : unit -> unit
-val set_reload_function : (unit -> unit -> Eliom_service.result Lwt.t) -> unit
+val set_reload_function : (unit -> unit -> Service.result Lwt.t) -> unit
 
 module History : sig
   val past : unit -> string list
@@ -465,7 +438,7 @@ val push_history_dom : unit -> unit
     {% <<code language="ocaml"|
     let%shared service_handler =
         fun () () ->
-            ignore [%client (Eliom_client.onload Eliom_client.push_history_dom : unit)];
+            ignore [%client (Client.onload Client.push_history_dom : unit)];
             Lwt.return
                 [div [h1 [pcdata "Hello"];
                       p [pcdata "Blablablabla"] ]
@@ -474,9 +447,9 @@ val push_history_dom : unit -> unit
        onload handler. *)
     let%client () =
         let rec register () =
-            Eliom_client.onload (
+            Client.onload (
                 fun () ->
-                    Eliom_client.push_history_dom ();
+                    Client.push_history_dom ();
                     register ())
         in
         register ()

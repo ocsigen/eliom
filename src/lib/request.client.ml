@@ -20,7 +20,7 @@ open Lwt.Syntax
  *)
 
 open Js_of_ocaml
-open Eliom_lib
+open Lib
 
 exception Looping_redirection
 exception Failed_request of int
@@ -55,9 +55,9 @@ let get_cookie_info_for_uri_js uri_js =
              | "" :: _ -> path (* absolute *)
              | _ ->
                  Eliom_common_base.make_actual_path
-                   (Eliom_request_info.get_csp_original_full_path () @ path)
+                   (Request_info.get_csp_original_full_path () @ path)
            in
-           Eliom_request_info.get_csp_ssl (), path)
+           Request_info.get_csp_ssl (), path)
   | Some (Url.Https {Url.hu_path = path; _}) -> true, path
   | Some (Url.Http {Url.hu_path = path; _}) -> false, path
   | Some (Url.File {Url.fu_path = path; _}) -> false, path
@@ -117,8 +117,8 @@ let redirect_delete ?window_name:_ _url _params =
   raise_error ~section "redirect_delete not implemented"
 
 let nl_template =
-  Eliom_parameter.make_non_localized_parameters ~prefix:"eliom" ~name:"template"
-    (Eliom_parameter.string "name")
+  Parameter.make_non_localized_parameters ~prefix:"eliom" ~name:"template"
+    (Parameter.string "name")
 
 (* Warning: it must correspond to [nl_template]. *)
 let nl_template_string = "__nl_n_eliom-template.name"

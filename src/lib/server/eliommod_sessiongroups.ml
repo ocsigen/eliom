@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Eliom_lib
+open Lib
 
 let make_full_named_group_name_ ~cookie_level sitedata g =
   Eliom_common.get_site_dir_string sitedata, cookie_level, Left g
@@ -297,7 +297,7 @@ Besides, volatile sessions are (hopefully) going to disappear soon.
          (means that we do not use the browser session).
       *)
       (*VVV See also in Eliommod_gc and
-  Eliom_state.close_volatile_session_if_empty.
+  State.close_volatile_session_if_empty.
   Should we use this function here?
       *)
       (*VVV remove is not polymorphic enough -> remove1 remove2 *)
@@ -371,7 +371,7 @@ Besides, volatile sessions are (hopefully) going to disappear soon.
       (*VVV We close even if browser session is in a group.
   It is not coherent with data sessions. *)
       (*VVV See also in Eliommod_gc and
-  Eliom_state.close_service_session_if_empty.
+  State.close_service_session_if_empty.
   Should we use this function here?
       *)
       (*VVV remove is not polymorphic enough -> remove1 remove2 *)

@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module Eliom_form
+ * Module Form
  * Copyright (C) 2007 Vincent Balat
  *
  * This program is free software; you can redistribute it and/or modify
@@ -50,7 +50,7 @@ module type Html = sig
     -> ([`A | `Form_get | `Form_post]
        * (bool * string list) option
        * string option
-       * Eliom_lib.poly)
+       * Lib.poly)
          option
          Eliom_lazy.request
     -> Html_types.form_attrib attrib
@@ -61,13 +61,13 @@ end
 type 'a param
 
 module Make_links (H : Html) :
-  Eliom_form_sigs.LINKS
+  Form_sigs.LINKS
   with type +'a elt := 'a H.elt
    and type +'a attrib := 'a H.attrib
    and type uri := H.uri
 
 module Make (H : Html) :
-  Eliom_form_sigs.S
+  Form_sigs.S
   with type +'a elt := 'a H.elt
    and type +'a attrib := 'a H.attrib
    and type uri := H.uri

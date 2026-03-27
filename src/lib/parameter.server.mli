@@ -18,7 +18,7 @@
  *)
 
 include
-  Eliom_parameter_sigs.S
+  Parameter_sigs.S
   with type raw_post_data =
     ((string * string) * (string * string) list) option * Cohttp_lwt.Body.t
 

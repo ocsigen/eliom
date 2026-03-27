@@ -43,9 +43,9 @@ let error_msg s = answer_to_string (Eliom_comet_base.Comet_error s)
 let json_content_type = "application/json"
 
 let marshal (v : 'a) =
-  let wrapped = Eliom_wrap.wrap v in
+  let wrapped = Wrap.wrap v in
   let value : 'a Eliom_runtime.eliom_comet_data_type = wrapped in
-  Eliom_lib.Url.encode ~plus:false (Marshal.to_string value [])
+  Lib.Url.encode ~plus:false (Marshal.to_string value [])
 
 exception New_connection
 
@@ -55,27 +55,25 @@ module Comet_param = struct
   let translate content = Lwt.return (content, json_content_type)
 end
 
-module Comet =
-  Eliom_registration.Customize (Eliom_registration.String) (Comet_param)
+module Comet = Registration.Customize (Registration.String) (Comet_param)
 
 let comet_path = ["__eliom_comet__"]
 let comet_global_path = ["__eliom_comet_global__"]
 
 let fallback_service =
   Eliom_common.lazy_site_value_from_fun @@ fun () ->
-  Comet.create ~meth:(Eliom_service.Get Eliom_parameter.unit)
-    ~path:(Eliom_service.Path comet_path) (fun () () ->
-    Lwt.return state_closed_msg)
+  Comet.create ~meth:(Service.Get Parameter.unit)
+    ~path:(Service.Path comet_path) (fun () () -> Lwt.return state_closed_msg)
 
 let fallback_global_service =
   Eliom_common.lazy_site_value_from_fun @@ fun () ->
-  Comet.create ~meth:(Eliom_service.Get Eliom_parameter.unit)
-    ~path:(Eliom_service.Path comet_global_path) (fun () () ->
+  Comet.create ~meth:(Service.Get Parameter.unit)
+    ~path:(Service.Path comet_global_path) (fun () () ->
     Lwt.return
       (error_msg
          "request with no post parameters, or there isn't any registered site comet channel"))
 
-let new_id = Eliom_lib.make_cryptographic_safe_string
+let new_id = Lib.make_cryptographic_safe_string
 
 (* ocsigenserver needs to be modified for this to be configurable:
    the connection is closed after a fixed amount of time
@@ -181,7 +179,7 @@ end = struct
 
   let get_channel (ch_id, position) =
     match find_channel ch_id with
-    | Some channel -> Eliom_lib.Left (channel, position)
+    | Some channel -> Lib.Left (channel, position)
     | None -> Right ch_id
 
   exception
@@ -198,8 +196,8 @@ end = struct
     with Finished l -> l
 
   let get_available_data = function
-    | Eliom_lib.Right ch_id -> [ch_id, Eliom_comet_base.Closed]
-    | Eliom_lib.Left (channel, position) -> (
+    | Lib.Right ch_id -> [ch_id, Eliom_comet_base.Closed]
+    | Lib.Left (channel, position) -> (
       match position with
       (* the first request of the client should be with i = 1 *)
       (* when the client is requesting the newest data, only return
@@ -225,9 +223,9 @@ end = struct
           queue_take channel i)
 
   let has_data = function
-    | Eliom_lib.Right _ ->
+    | Lib.Right _ ->
         true (* a channel was closed: need to tell it to the client *)
-    | Eliom_lib.Left (channel, position) -> (
+    | Lib.Left (channel, position) -> (
       match position with
       | Eliom_comet_base.Newest i when i > channel.ch_index -> false
       | Eliom_comet_base.Newest _ -> true
@@ -239,9 +237,9 @@ end = struct
   let really_wait_data requests =
     let rec make_list = function
       | [] -> []
-      | Eliom_lib.Left (channel, _) :: q ->
+      | Lib.Left (channel, _) :: q ->
           Lwt_condition.wait channel.ch_wakeup :: make_list q
-      | Eliom_lib.Right _ :: _ -> assert false
+      | Lib.Right _ :: _ -> assert false
       (* closed channels are considered to have data *)
     in
     Lwt.pick (make_list requests)
@@ -274,7 +272,7 @@ end = struct
     (*VVV Why isn't this a POST non-attached coservice? --Vincent *)
     Comet.create_attached_post
       ~post_params:
-        Eliom_parameter.(bool "idle" ** Eliom_comet_base.comet_request_param)
+        Parameter.(bool "idle" ** Eliom_comet_base.comet_request_param)
       ~fallback:(Eliom_common.force_lazy_site_value fallback_global_service)
       handle_request
 
@@ -513,9 +511,7 @@ end = struct
       List.filter (( <> ) chan_id) handler.hd_registered_chan_id
 
   let wait_closed_connection () =
-    let* () =
-      Ocsigen_request.connection_closed (Eliom_request_info.get_ri ())
-    in
+    let* () = Ocsigen_request.connection_closed (Request_info.get_ri ()) in
     Lwt.fail Connection_closed
 
   (* register the service handler.hd_service *)
@@ -586,7 +582,7 @@ end = struct
   (* as of now only `Client_process scope are handled: so we only stock scope_hierarchy *)
   type handler_ref_table =
     ( Eliom_common.scope_hierarchy
-      , handler option Eliom_reference.Volatile.eref )
+      , handler option Reference.Volatile.eref )
       Hashtbl.t
 
   let handler_ref_table : handler_ref_table = Hashtbl.create 1
@@ -598,24 +594,22 @@ end = struct
     try Hashtbl.find handler_ref_table scope_hierarchy
     with Not_found ->
       let eref =
-        Eliom_reference.Volatile.eref ~scope:(`Client_process scope_hierarchy)
-          None
+        Reference.Volatile.eref ~scope:(`Client_process scope_hierarchy) None
       in
       Hashtbl.add handler_ref_table scope_hierarchy eref;
       eref
 
   let get_handler scope =
     let eref = get_handler_eref scope in
-    match Eliom_reference.Volatile.get eref with
+    match Reference.Volatile.get eref with
     | Some t -> t
     | None ->
         let hd_service =
           Eliom_comet_base.Internal_comet_service
             (* CCC ajouter possibilité d'https *)
-            ( Eliom_service.create_attached_post
-              (*VVV Why is it attached? --Vincent *)
+            ( Service.create_attached_post (*VVV Why is it attached? --Vincent *)
                 ~post_params:
-                  Eliom_parameter.(
+                  Parameter.(
                     bool "idle" ** Eliom_comet_base.comet_request_param)
                 ~fallback:(Eliom_common.force_lazy_site_value fallback_service)
                 (*~name:"comet" (* CCC faut il mettre un nom ? *)*)
@@ -632,7 +626,7 @@ end = struct
           ; hd_last = "", -1
           ; hd_activity = Inactive (Unix.gettimeofday ()) }
         in
-        Eliom_reference.Volatile.set eref (Some handler);
+        Reference.Volatile.set eref (Some handler);
         run_handler handler;
         handler
 
@@ -856,12 +850,12 @@ end = struct
 
   let external_channel ?(history = 1) ?(newest = false) ~prefix ~name () =
     let service =
-      Eliom_service.extern ~prefix ~path:comet_global_path
+      Service.extern ~prefix ~path:comet_global_path
         ~meth:
-          (Eliom_service.Post
-             ( Eliom_parameter.unit
-             , Eliom_parameter.(
-                 bool "idle" ** Eliom_comet_base.comet_request_param) ))
+          (Service.Post
+             ( Parameter.unit
+             , Parameter.(bool "idle" ** Eliom_comet_base.comet_request_param)
+             ))
         ()
     in
     let last = if newest then None else Some history in

@@ -22,7 +22,7 @@
     information about current request.
  *)
 
-open Eliom_lib
+open Lib
 
 (** {2 Getting information about the request} *)
 

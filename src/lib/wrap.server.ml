@@ -393,7 +393,7 @@ type unwrap_id = int
 let id_of_int x = x
 
 type unwrapper =
-  { (* WARNING Must be the same as Eliom_unwrap.unwrapper *)
+  { (* WARNING Must be the same as Unwrap.unwrapper *)
     id : unwrap_id
   ; umark : Mark.t }
 [@@warning "-69"]

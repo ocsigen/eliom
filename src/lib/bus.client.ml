@@ -21,7 +21,7 @@ open Lwt.Syntax
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Eliom_lib
+open Lib
 
 let section = Logs.Src.create "eliom:bus"
 
@@ -61,30 +61,29 @@ let clone_exn (t, u) s =
 type ('a, 'att, 'co, 'ext, 'reg) callable_bus_service =
   ( unit
     , 'a list
-    , Eliom_service.post
+    , Service.post
     , 'att
     , 'co
     , 'ext
     , 'reg
     , [`WithoutSuffix]
     , unit
-    , [`One of 'a list Eliom_parameter.ocaml] Eliom_parameter.param_name
-    , Eliom_registration.Action.return )
-    Eliom_service.t
+    , [`One of 'a list Parameter.ocaml] Parameter.param_name
+    , Registration.Action.return )
+    Service.t
 
 let create service channel waiter =
   let write x =
     Lwt.catch
       (fun () ->
          let* _ =
-           Eliom_client.call_service
+           Client.call_service
              ~service:(service :> ('a, _, _, _, _) callable_bus_service)
              () x
          in
          Lwt.return_unit)
       (function
-        | Eliom_request.Failed_request 204 -> Lwt.return_unit
-        | exc -> Lwt.reraise exc)
+        | Request.Failed_request 204 -> Lwt.return_unit | exc -> Lwt.reraise exc)
   in
   let error_h =
     let t, u = Lwt.wait () in
@@ -97,7 +96,7 @@ let create service channel waiter =
   in
   let stream =
     lazy
-      (let stream = Eliom_comet.register channel in
+      (let stream = Comet.register channel in
        (* iterate on the stream to consume messages: avoid memory leak *)
        let _ = consume error_h stream in
        stream)
@@ -117,7 +116,7 @@ let create service channel waiter =
      original channel (i.e. without message lost) is only available in
      the first loading phase. *)
   let _ =
-    let* () = Eliom_client.wait_load_end () in
+    let* () = Client.wait_load_end () in
     t.original_stream_available <- false;
     Lwt.return_unit
   in
@@ -128,9 +127,7 @@ let internal_unwrap ((wrapped_bus : ('a, 'b) Ecb.wrapped_bus), _unwrapper) =
   let channel, Eliom_comet_base.Bus_send_service service = wrapped_bus in
   create service channel waiter
 
-let () =
-  Eliom_unwrap.register_unwrapper Eliom_common.bus_unwrap_id internal_unwrap
-
+let () = Unwrap.register_unwrapper Eliom_common.bus_unwrap_id internal_unwrap
 let stream t = clone_exn t.error_h (Lazy.force t.stream)
 
 let original_stream t =
@@ -155,7 +152,7 @@ let try_flush t =
     Lwt.return_unit
 
 let write t v = Queue.add v t.queue; try_flush t
-let close {channel; _} = Eliom_comet.close channel
+let close {channel; _} = Comet.close channel
 let set_queue_size b s = b.max_size <- s
 
 let set_time_before_flush b t =

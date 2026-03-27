@@ -24,7 +24,7 @@ open Lwt.Syntax
 (* This file is for client-side comet-programming. *)
 
 open Js_of_ocaml
-open Eliom_lib
+open Lib
 module Ecb = Eliom_comet_base
 
 let section = Logs.Src.create "eliom:comet"
@@ -182,7 +182,7 @@ let handle_exn, set_handle_exn_function =
   let r =
     ref (fun ?exn () ->
       let s =
-        "Unknown exception during comet. Customize this with Eliom_comet.set_handle_exn_function. "
+        "Unknown exception during comet. Customize this with Comet.set_handle_exn_function. "
       in
       match exn with
       | Some exn -> raise_error ~section ~exn "%s" s
@@ -244,11 +244,11 @@ end = struct
     ; mutable active_wakener : unit Lwt.u
     ; mutable restart_waiter : Ecb.answer Lwt.t
     ; mutable restart_wakener : Ecb.answer Lwt.u
-    ; mutable active_channels : Eliom_lib.String.Set.t }
+    ; mutable active_channels : Lib.String.Set.t }
 
   type stateful_state = int ref (* id of the next request *)
   type stateless_state_ = {count : int; position : Ecb.position}
-  type stateless_state = stateless_state_ Eliom_lib.String.Table.t ref
+  type stateless_state = stateless_state_ Lib.String.Table.t ref
   (* index for each channel of the last message *)
 
   type channel_state =
@@ -276,7 +276,7 @@ end = struct
     Dom_html.(add_listener document (Event.make "visibilitychange") f)
 
   let set_activity hd v =
-    if Eliom_lib.String.Set.is_empty hd.hd_activity.active_channels
+    if Lib.String.Set.is_empty hd.hd_activity.active_channels
     then hd.hd_activity.active <- `Inactive
     else if v <> hd.hd_activity.active
     then
@@ -375,24 +375,24 @@ end = struct
     match p with
     | _, Ecb.Stateful (Ecb.Commands commands) ->
         queue := List.rev_append (Array.to_list commands) !queue;
-        let* () = Eliom_client.wait_load_end () in
+        let* () = Client.wait_load_end () in
         let q = !queue in
         if q <> []
         then (
           queue := [];
-          Eliom_client.call_service ~service ()
+          Client.call_service ~service ()
             (false, Ecb.Stateful (Ecb.Commands (Array.of_list (List.rev q)))))
         else Lwt.return ""
     | _ ->
-        let* () = Eliom_client.wait_load_end () in
-        Eliom_client.call_service ~service () p
+        let* () = Client.wait_load_end () in
+        Client.call_service ~service () p
 
   let make_request hd =
     match hd.hd_state with
     | Stateful_state count -> Ecb.Stateful (Ecb.Request_data !count)
     | Stateless_state map ->
         let l =
-          Eliom_lib.String.Table.fold
+          Lib.String.Table.fold
             (fun channel {position; _} l -> (channel, position) :: l)
             !map []
         in
@@ -400,8 +400,8 @@ end = struct
 
   let stop_waiting hd chan_id =
     hd.hd_activity.active_channels <-
-      Eliom_lib.String.Set.remove chan_id hd.hd_activity.active_channels;
-    if Eliom_lib.String.Set.is_empty hd.hd_activity.active_channels
+      Lib.String.Set.remove chan_id hd.hd_activity.active_channels;
+    if Lib.String.Set.is_empty hd.hd_activity.active_channels
     then set_activity hd `Inactive
 
   let update_stateful_state hd message =
@@ -432,10 +432,8 @@ end = struct
 
   let close_all_channels hd =
     let s = hd.hd_activity.active_channels in
-    Eliom_lib.String.Set.iter (fun chan_id -> stop_waiting hd chan_id) s;
-    Eliom_lib.String.Set.fold
-      (fun chan_id l -> (chan_id, None, Ecb.Closed) :: l)
-      s []
+    Lib.String.Set.iter (fun chan_id -> stop_waiting hd chan_id) s;
+    Lib.String.Set.fold (fun chan_id l -> (chan_id, None, Ecb.Closed) :: l) s []
 
   let update_stateless_state hd (message : stateless_message) =
     match hd.hd_state with
@@ -445,10 +443,10 @@ end = struct
             (fun table -> function
                | chan_id, Ecb.Data (_, index) -> (
                  try
-                   let state = Eliom_lib.String.Table.find chan_id table in
+                   let state = Lib.String.Table.find chan_id table in
                    if position_value state.position < index + 1
                    then
-                     Eliom_lib.String.Table.add chan_id
+                     Lib.String.Table.add chan_id
                        { state with
                          position = set_position state.position (index + 1) }
                        table
@@ -456,7 +454,7 @@ end = struct
                  with Not_found -> table)
                | chan_id, Ecb.Closed | chan_id, Ecb.Full ->
                    stop_waiting hd chan_id;
-                   Eliom_lib.String.Table.remove chan_id table)
+                   Lib.String.Table.remove chan_id table)
             !r message
         in
         r := table
@@ -527,7 +525,7 @@ end = struct
                  Lwt.return (add_no_index l))
           (fun e ->
              match e with
-             | Eliom_request.Failed_request (0 | 502 | 504) ->
+             | Request.Failed_request (0 | 502 | 504) ->
                  if retries > max_retries
                  then (
                    Logs.app ~src:section (fun fmt -> fmt "connection failure");
@@ -567,12 +565,12 @@ end = struct
         call_commands hd [|Ecb.Close chan_id|]
     | Stateless_state map -> (
       try
-        let state = Eliom_lib.String.Table.find chan_id !map in
+        let state = Lib.String.Table.find chan_id !map in
         if state.count = 1
-        then map := Eliom_lib.String.Table.remove chan_id !map
+        then map := Lib.String.Table.remove chan_id !map
         else
           map :=
-            Eliom_lib.String.Table.add chan_id
+            Lib.String.Table.add chan_id
               {state with count = state.count - 1}
               !map
       with Not_found ->
@@ -581,7 +579,7 @@ end = struct
 
   let add_channel_stateful hd chan_id =
     hd.hd_activity.active_channels <-
-      Eliom_lib.String.Set.add chan_id hd.hd_activity.active_channels;
+      Lib.String.Set.add chan_id hd.hd_activity.active_channels;
     call_commands hd [|Eliom_comet_base.Register chan_id|]
 
   let min_pos = function
@@ -600,18 +598,18 @@ end = struct
       | Ecb.Last_kind i -> Ecb.Last i
     in
     hd.hd_activity.active_channels <-
-      Eliom_lib.String.Set.add chan_id hd.hd_activity.active_channels;
+      Lib.String.Set.add chan_id hd.hd_activity.active_channels;
     match hd.hd_state with
     | Stateful_state _ -> assert false
     | Stateless_state map ->
         (let state =
            try
-             let old_state = Eliom_lib.String.Table.find chan_id !map in
+             let old_state = Lib.String.Table.find chan_id !map in
              let pos = min_pos (old_state.position, pos) in
              {count = old_state.count + 1; position = pos}
            with Not_found -> {count = 1; position = pos}
          in
-         map := Eliom_lib.String.Table.add chan_id state !map);
+         map := Lib.String.Table.add chan_id state !map);
         restart hd
 
   let init_activity () =
@@ -623,12 +621,12 @@ end = struct
     ; active_wakener
     ; restart_waiter
     ; restart_wakener
-    ; active_channels = Eliom_lib.String.Set.empty }
+    ; active_channels = Lib.String.Set.empty }
 
   let make hd_service hd_kind =
     let hd_state =
       match hd_kind with
-      | Stateless -> Stateless_state (ref Eliom_lib.String.Table.empty)
+      | Stateless -> Stateless_state (ref Lib.String.Table.empty)
       | Stateful -> Stateful_state (ref 0)
     in
     let hd = {hd_service; hd_state; hd_activity = init_activity ()} in
@@ -701,7 +699,7 @@ let close = function
       let {hd_service_handler; _} = get_stateless_hd chan_service in
       Service_handler.close hd_service_handler (Ecb.string_of_chan_id chan_id)
 
-let unmarshal s : 'a = Eliom_unwrap.unwrap (Eliom_lib.Url.decode s) 0
+let unmarshal s : 'a = Unwrap.unwrap (Lib.Url.decode s) 0
 
 type position_relation =
   | Equal
@@ -789,8 +787,7 @@ let register ?(wake = true) (wrapped_chan : 'a Ecb.wrapped_channel) =
 let internal_unwrap (wrapped_chan, _unwrapper) = register wrapped_chan
 
 let () =
-  Eliom_unwrap.register_unwrapper Eliom_common.comet_channel_unwrap_id
-    internal_unwrap
+  Unwrap.register_unwrapper Eliom_common.comet_channel_unwrap_id internal_unwrap
 
 let is_active () =
   (*VVV Check. Isn't it the contrary? (fold from `Inactive?) *)

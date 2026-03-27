@@ -30,7 +30,7 @@ val execute :
   -> Ocsigen_response.t Lwt.t
 
 val gen :
-   Eliom_extension.eliom_extension_sig option
+   Extension.eliom_extension_sig option
   -> Eliom_common.sitedata
   -> Ocsigen_extensions.request_state
   -> Ocsigen_extensions.answer Lwt.t

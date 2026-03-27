@@ -22,8 +22,8 @@ open Js_of_ocaml
 
 module Xml :
   Xml_sigs.T
-  with type 'a W.t = 'a Eliom_shared.React.S.t
-   and type 'a W.tlist = 'a Eliom_shared.ReactiveData.RList.t
+  with type 'a W.t = 'a Shared.React.S.t
+   and type 'a W.tlist = 'a Shared.ReactiveData.RList.t
    and type event_handler = (Dom_html.event Js.t -> unit) Eliom_client_value.t
    and type mouse_event_handler =
     (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
@@ -39,7 +39,7 @@ module Svg : sig
       with type 'a elt = 'a Eliom_content_core.Svg.elt
        and type 'a attrib = 'a Eliom_content_core.Svg.attrib
 
-    val node : 'a elt Eliom_shared.React.S.t -> 'a elt
+    val node : 'a elt Shared.React.S.t -> 'a elt
   end
 end
 
@@ -50,8 +50,8 @@ module Html : sig
       with type 'a elt = 'a Eliom_content_core.Html.elt
        and type 'a attrib = 'a Eliom_content_core.Html.attrib
 
-    val pcdata : string Eliom_shared.React.S.t -> [> Html_types.span] elt
-    val node : 'a elt Eliom_shared.React.S.t -> 'a elt
-    val filter_attrib : 'a attrib -> bool Eliom_shared.React.S.t -> 'a attrib
+    val pcdata : string Shared.React.S.t -> [> Html_types.span] elt
+    val node : 'a elt Shared.React.S.t -> 'a elt
+    val filter_attrib : 'a attrib -> bool Shared.React.S.t -> 'a attrib
   end
 end
