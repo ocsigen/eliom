@@ -21,7 +21,7 @@
 open%shared Js_of_ocaml
 
 [%%server
-open Eliom_shared
+open Shared
 
 let local_value s = React.S.value s |> Value.local]
 
@@ -29,7 +29,7 @@ module Xml = struct
   module W = struct
     include React.S
 
-    type (-'a, 'b) ft = unit -> ('a -> 'b) Eliom_shared.Value.t
+    type (-'a, 'b) ft = unit -> ('a -> 'b) Shared.Value.t
     type 'a tlist = 'a ReactiveData.RList.t
 
     let return = const
@@ -139,7 +139,7 @@ module Xml = struct
              (fun e -> Dom.CoerceTo.text e >>! fun e -> e##.data := Js.string x)
          in
          if not ~%synced then update (React.S.value ~%s);
-         Eliom_lib.Dom_reference.retain e
+         Lib.Dom_reference.retain e
            ~keep:(React.S.changes ~%s |> React.E.map update)
          : unit)]
     in
@@ -180,13 +180,13 @@ module Svg = struct
 
     let string_of_alignment_baseline () =
       ([%shared Raw_wrapped_functions_svg.string_of_alignment_baseline]
-        : (Svg_types.alignment_baseline -> string) Eliom_shared.Value.t
-        :> ([< Svg_types.alignment_baseline] -> string) Eliom_shared.Value.t)
+        : (Svg_types.alignment_baseline -> string) Shared.Value.t
+        :> ([< Svg_types.alignment_baseline] -> string) Shared.Value.t)
 
     let string_of_big_variant () =
       ([%shared Raw_wrapped_functions_svg.string_of_big_variant]
-        : (Svg_types.big_variant -> string) Eliom_shared.Value.t
-        :> ([< Svg_types.big_variant] -> string) Eliom_shared.Value.t)
+        : (Svg_types.big_variant -> string) Shared.Value.t
+        :> ([< Svg_types.big_variant] -> string) Shared.Value.t)
 
     let string_of_bool () = [%shared Raw_wrapped_functions_svg.string_of_bool]
 
@@ -195,21 +195,21 @@ module Svg = struct
 
     let string_of_dominant_baseline () =
       ([%shared Raw_wrapped_functions_svg.string_of_dominant_baseline]
-        : (Svg_types.dominant_baseline -> string) Eliom_shared.Value.t
-        :> ([< Svg_types.dominant_baseline] -> string) Eliom_shared.Value.t)
+        : (Svg_types.dominant_baseline -> string) Shared.Value.t
+        :> ([< Svg_types.dominant_baseline] -> string) Shared.Value.t)
 
     let string_of_fill_rule () =
       ([%shared Raw_wrapped_functions_svg.string_of_fill_rule]
-        : (Svg_types.fill_rule -> string) Eliom_shared.Value.t
-        :> ([< Svg_types.fill_rule] -> string) Eliom_shared.Value.t)
+        : (Svg_types.fill_rule -> string) Shared.Value.t
+        :> ([< Svg_types.fill_rule] -> string) Shared.Value.t)
 
     let string_of_fourfloats () =
       [%shared Raw_wrapped_functions_svg.string_of_fourfloats]
 
     let string_of_in_value () =
       ([%shared Raw_wrapped_functions_svg.string_of_in_value]
-        : (Svg_types.in_value -> string) Eliom_shared.Value.t
-        :> ([< Svg_types.in_value] -> string) Eliom_shared.Value.t)
+        : (Svg_types.in_value -> string) Shared.Value.t
+        :> ([< Svg_types.in_value] -> string) Shared.Value.t)
 
     let string_of_int () = [%shared Raw_wrapped_functions_svg.string_of_int]
 
@@ -233,16 +233,16 @@ module Svg = struct
 
     let string_of_offset () =
       ([%shared Raw_wrapped_functions_svg.string_of_offset]
-        : (Svg_types.offset -> string) Eliom_shared.Value.t
-        :> ([< Svg_types.offset] -> string) Eliom_shared.Value.t)
+        : (Svg_types.offset -> string) Shared.Value.t
+        :> ([< Svg_types.offset] -> string) Shared.Value.t)
 
     let string_of_orient () =
       [%shared Raw_wrapped_functions_svg.string_of_orient]
 
     let string_of_paint () =
       ([%shared Raw_wrapped_functions_svg.string_of_paint]
-        : (Svg_types.paint -> string) Eliom_shared.Value.t
-        :> ([< Svg_types.paint] -> string) Eliom_shared.Value.t)
+        : (Svg_types.paint -> string) Shared.Value.t
+        :> ([< Svg_types.paint] -> string) Shared.Value.t)
 
     let string_of_strokedasharray () =
       [%shared Raw_wrapped_functions_svg.string_of_strokedasharray]
@@ -271,29 +271,29 @@ module Svg = struct
       let _ =
         [%client.unsafe
           (let s =
-             Eliom_shared.React.S.map
+             Shared.React.S.map
                (fun s ->
                   Eliom_content_core.Svg.(
                     Id.create_request_elt s ~reset:false |> D.toelt)
                   |> Eliom_client_core.rebuild_node' `SVG)
                ~%s
            in
-           let key = Eliom_lib.Dom_reference.new_key () in
+           let key = Lib.Dom_reference.new_key () in
            let e = Eliom_client_core.rebuild_node' `SVG ~%e in
            let f =
              let replace e' e =
-               Eliom_lib.Dom_reference.transfer ~key ~src:e ~dst:e';
+               Lib.Dom_reference.transfer ~key ~src:e ~dst:e';
                let f p = Dom.replaceChild p e' e in
                Js.Opt.iter e##.parentNode f
              in
              fun e' ->
                replace e' e;
-               Eliom_lib.Dom_reference.retain ~key e'
+               Lib.Dom_reference.retain ~key e'
                  ~keep:(React.S.diff replace s)
            in
            if ~%synced
            then
-             Eliom_lib.Dom_reference.retain ~key e
+             Lib.Dom_reference.retain ~key e
                ~keep:React.(S.changes s |> E.once |> E.map f)
            else f (React.S.value s)
            : unit)]
@@ -324,8 +324,8 @@ module Html = struct
 
     let string_of_big_variant () =
       ([%shared Raw_wrapped_functions.string_of_big_variant]
-        : (Html_types.big_variant -> string) Eliom_shared.Value.t
-        :> ([< Html_types.big_variant] -> string) Eliom_shared.Value.t)
+        : (Html_types.big_variant -> string) Shared.Value.t
+        :> ([< Html_types.big_variant] -> string) Shared.Value.t)
 
     let string_of_bool () = [%shared Raw_wrapped_functions.string_of_bool]
 
@@ -334,52 +334,52 @@ module Html = struct
 
     let string_of_input_type () =
       ([%shared Raw_wrapped_functions.string_of_input_type]
-        : (Html_types.input_type -> string) Eliom_shared.Value.t
-        :> ([< Html_types.input_type] -> string) Eliom_shared.Value.t)
+        : (Html_types.input_type -> string) Shared.Value.t
+        :> ([< Html_types.input_type] -> string) Shared.Value.t)
 
     let string_of_script_type () =
       ([%shared Raw_wrapped_functions.string_of_script_type]
-        : (Html_types.script_type -> string) Eliom_shared.Value.t
-        :> ([< Html_types.script_type] -> string) Eliom_shared.Value.t)
+        : (Html_types.script_type -> string) Shared.Value.t
+        :> ([< Html_types.script_type] -> string) Shared.Value.t)
 
     let string_of_linktypes () =
       ([%shared Raw_wrapped_functions.string_of_linktypes]
-        : (Html_types.linktype list -> string) Eliom_shared.Value.t
-        :> ([< Html_types.linktype] list -> string) Eliom_shared.Value.t)
+        : (Html_types.linktype list -> string) Shared.Value.t
+        :> ([< Html_types.linktype] list -> string) Shared.Value.t)
 
     let string_of_mediadesc () =
       ([%shared Raw_wrapped_functions.string_of_mediadesc]
-        : (Html_types.mediadesc_token list -> string) Eliom_shared.Value.t
-        :> ([< Html_types.mediadesc_token] list -> string) Eliom_shared.Value.t)
+        : (Html_types.mediadesc_token list -> string) Shared.Value.t
+        :> ([< Html_types.mediadesc_token] list -> string) Shared.Value.t)
 
     let string_of_number_or_datetime () =
       ([%shared Raw_wrapped_functions.string_of_number_or_datetime]
-        : (Html_types.number_or_datetime -> string) Eliom_shared.Value.t
-        :> ([< Html_types.number_or_datetime] -> string) Eliom_shared.Value.t)
+        : (Html_types.number_or_datetime -> string) Shared.Value.t
+        :> ([< Html_types.number_or_datetime] -> string) Shared.Value.t)
 
     let string_of_numbers () = [%shared Raw_wrapped_functions.string_of_numbers]
 
     let string_of_sandbox () =
       ([%shared Raw_wrapped_functions.string_of_sandbox]
-        : (Html_types.sandbox_token list -> string) Eliom_shared.Value.t
-        :> ([< Html_types.sandbox_token] list -> string) Eliom_shared.Value.t)
+        : (Html_types.sandbox_token list -> string) Shared.Value.t
+        :> ([< Html_types.sandbox_token] list -> string) Shared.Value.t)
 
     let string_of_sizes () = [%shared Raw_wrapped_functions.string_of_sizes]
 
     let string_of_srcset () =
       ([%shared Raw_wrapped_functions.string_of_srcset]
         : (Raw_wrapped_functions.image_candidate list -> string)
-            Eliom_shared.Value.t
+            Shared.Value.t
         :> ([< Raw_wrapped_functions.image_candidate] list -> string)
-             Eliom_shared.Value.t)
+             Shared.Value.t)
 
     let string_of_step () = [%shared Raw_wrapped_functions.string_of_step]
     let unoption_string () = [%shared Raw_wrapped_functions.unoption_string]
 
     let string_of_referrerpolicy () =
       ([%shared Raw_wrapped_functions.string_of_referrerpolicy]
-        : (Html_types.referrerpolicy -> string) Eliom_shared.Value.t
-        :> ([< Html_types.referrerpolicy] -> string) Eliom_shared.Value.t)
+        : (Html_types.referrerpolicy -> string) Shared.Value.t
+        :> ([< Html_types.referrerpolicy] -> string) Shared.Value.t)
   end
 
   module R = struct
@@ -393,29 +393,29 @@ module Html = struct
       let _ =
         [%client.unsafe
           (let s =
-             Eliom_shared.React.S.map
+             Shared.React.S.map
                (fun s ->
                   Eliom_content_core.Html.(
                     Id.create_request_elt s ~reset:false |> D.toelt)
                   |> Eliom_client_core.rebuild_node' `HTML5)
                ~%s
            in
-           let key = Eliom_lib.Dom_reference.new_key () in
+           let key = Lib.Dom_reference.new_key () in
            let e = Eliom_client_core.rebuild_node' `HTML5 ~%e in
            let f =
              let replace e' e =
-               Eliom_lib.Dom_reference.transfer ~key ~src:e ~dst:e';
+               Lib.Dom_reference.transfer ~key ~src:e ~dst:e';
                let f p = Dom.replaceChild p e' e in
                Js.Opt.iter e##.parentNode f
              in
              fun e' ->
                replace e' e;
-               Eliom_lib.Dom_reference.retain ~key e'
+               Lib.Dom_reference.retain ~key e'
                  ~keep:(React.S.diff replace s)
            in
            if ~%synced
            then
-             Eliom_lib.Dom_reference.retain ~key e
+             Lib.Dom_reference.retain ~key e
                ~keep:React.(S.changes s |> E.once |> E.map f)
            else f (React.S.value s)
            : unit)]

@@ -25,7 +25,7 @@ module Client_value_server_repr = struct
   type u =
     { mutable loc : Eliom_lib_base.pos option
     ; instance_id : int
-    ; unwrapper : Eliom_wrap.unwrapper }
+    ; unwrapper : Wrap.unwrapper }
   [@@warning "-69"]
 
   type 'a t = u
@@ -258,7 +258,7 @@ type compilation_unit_global_data =
   { server_sections_data : client_value_datum array array
   ; client_sections_data : injection_datum array array }
 
-type global_data = compilation_unit_global_data Eliom_lib.String_map.t
+type global_data = compilation_unit_global_data Lib.String_map.t
 type request_data = client_value_datum array
 
 let global_data_unwrap_id_int = 8
@@ -267,4 +267,4 @@ type 'a eliom_caml_service_data =
   {ecs_request_data : request_data; ecs_data : 'a}
 
 (* the data sent on channels *)
-type 'a eliom_comet_data_type = 'a Eliom_wrap.wrapped_value
+type 'a eliom_comet_data_type = 'a Wrap.wrapped_value

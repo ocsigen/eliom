@@ -20,7 +20,7 @@
 (*****************************************************************************)
 (** {2 Eliom references} *)
 
-open Eliom_state
+open State
 open Lwt.Infix
 
 module Ocsipersist = struct
@@ -78,7 +78,7 @@ module Volatile = struct
   let get ((f, _, table) : _ eref) =
     match table with
     | Req key -> (
-        let table = Eliom_request_info.get_request_cache () in
+        let table = Request_info.get_request_cache () in
         try Polytables.get ~table ~key
         with Not_found ->
           let value = f () in
@@ -104,7 +104,7 @@ module Volatile = struct
   let set ((_, _, table) : _ eref) value =
     match table with
     | Req key ->
-        let table = Eliom_request_info.get_request_cache () in
+        let table = Request_info.get_request_cache () in
         Polytables.set ~table ~key ~value
     | Sit key ->
         let table = Eliom_common.((get_site_data ()).site_value_table) in
@@ -118,7 +118,7 @@ module Volatile = struct
   let unset ((f, _, table) : _ eref) =
     match table with
     | Req key ->
-        let table = Eliom_request_info.get_request_cache () in
+        let table = Request_info.get_request_cache () in
         Polytables.remove ~table ~key
     | Sit key ->
         let table = Eliom_common.((get_site_data ()).site_value_table) in
@@ -131,15 +131,13 @@ module Volatile = struct
     let get state (f, ext, table) =
       match table with
       | Vol t -> (
-        try
-          Eliom_state.Ext.Low_level.get_volatile_data ~state
-            ~table:(Lazy.force t)
+        try State.Ext.Low_level.get_volatile_data ~state ~table:(Lazy.force t)
         with Not_found ->
           if ext
           then (
             let value = f () in
-            Eliom_state.Ext.Low_level.set_volatile_data ~state
-              ~table:(Lazy.force t) value;
+            State.Ext.Low_level.set_volatile_data ~state ~table:(Lazy.force t)
+              value;
             value)
           else
             (* I don't want to run f in the wrong context -> I fail *)
@@ -149,8 +147,8 @@ module Volatile = struct
     let set state (_, _, table) value =
       match table with
       | Vol t ->
-          Eliom_state.Ext.Low_level.set_volatile_data ~state
-            ~table:(Lazy.force t) value
+          State.Ext.Low_level.set_volatile_data ~state ~table:(Lazy.force t)
+            value
       | _ -> failwith "wrong eref for this function"
 
     let modify state eref f = set state eref (f (get state eref))
@@ -158,8 +156,7 @@ module Volatile = struct
     let unset state ((_, _, table) : _ eref) =
       match table with
       | Vol t ->
-          Eliom_state.Ext.Low_level.remove_volatile_data ~state
-            ~table:(Lazy.force t)
+          State.Ext.Low_level.remove_volatile_data ~state ~table:(Lazy.force t)
       | _ -> failwith "wrong eref for this function"
   end
 end
@@ -244,43 +241,41 @@ let unset ((_, _, table) as eref) =
 
 module Ext = struct
   let get state ((f, ext, table) as r) =
-    let state = Eliom_state.Ext.untype_state state in
+    let state = State.Ext.untype_state state in
     match table with
     | Vol _ -> Lwt.return (Volatile.Ext.get state r)
     | Per t ->
         t >>= fun t ->
         Lwt.catch
-          (fun () ->
-             Eliom_state.Ext.Low_level.get_persistent_data ~state ~table:t)
+          (fun () -> State.Ext.Low_level.get_persistent_data ~state ~table:t)
           (function
             | Not_found ->
                 if ext (* We can run the function from another state *)
                 then
                   let value = f () in
-                  Eliom_state.Ext.Low_level.set_persistent_data ~state ~table:t
-                    value
+                  State.Ext.Low_level.set_persistent_data ~state ~table:t value
                   >>= fun () -> Lwt.return value
                 else Lwt.fail Eref_not_initialized
             | e -> Lwt.fail e)
     | _ -> failwith "wrong eref for this function"
 
   let set state ((_, _, table) as r) value =
-    let state = Eliom_state.Ext.untype_state state in
+    let state = State.Ext.untype_state state in
     match table with
     | Vol _ -> Lwt.return (Volatile.Ext.set state r value)
     | Per t ->
         t >>= fun t ->
-        Eliom_state.Ext.Low_level.set_persistent_data ~state ~table:t value
+        State.Ext.Low_level.set_persistent_data ~state ~table:t value
     | _ -> Lwt.fail (Failure "wrong eref for this function")
 
   let modify state eref f = get state eref >>= fun v -> set state eref (f v)
 
   let unset state ((_, _, table) as r) =
-    let state = Eliom_state.Ext.untype_state state in
+    let state = State.Ext.untype_state state in
     match table with
     | Vol _ -> Lwt.return (Volatile.Ext.unset state r)
     | Per t ->
         t >>= fun t ->
-        Eliom_state.Ext.Low_level.remove_persistent_data ~state ~table:t
+        State.Ext.Low_level.remove_persistent_data ~state ~table:t
     | _ -> failwith "wrong eref for this function"
 end

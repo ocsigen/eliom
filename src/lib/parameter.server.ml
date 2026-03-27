@@ -17,10 +17,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Eliom_lib
+open Lib
 include Eliom_parameter_base
 
-type raw_post_data = Eliom_request_info.raw_post_data
+type raw_post_data = Request_info.raw_post_data
 
 open Ocsigen_extensions
 

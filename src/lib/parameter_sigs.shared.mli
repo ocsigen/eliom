@@ -33,7 +33,7 @@ module type S = sig
 
   type ('a, +'b, 'c) params_type constraint 'b = [< suff]
   (** Abstract type for service parameters. See for example the
-      parameter [~get_param] of {!val:Eliom_service.Http.service}.
+      parameter [~get_param] of {!val:Service.Http.service}.
 
       - [ 'a] is the type for the OCaml type of the
         parameter as expected by the service handler.
@@ -42,12 +42,12 @@ module type S = sig
         of the parameter: suffix or not.
 
       - [ 'c] is the type of the parameter name, usually an instance
-        of {!Eliom_parameter.param_name}, as used by forms
+        of {!Parameter.param_name}, as used by forms
         construction functions (e.g., the last parameter of
-        {!Eliom_content.Html.D.get_form}), and specialized form
+        {!Content.Html.D.get_form}), and specialized form
         widget (see for example the section
-        {{!section:Eliom_content.Html.D.form_widgets}Form widget} of
-        {!Eliom_content.HTML5.D}). ) *)
+        {{!section:Content.Html.D.form_widgets}Eliom_form widget} of
+        {!Content.HTML5.D}). ) *)
 
   (** {2 Typed parameter's name} *)
 
@@ -126,9 +126,9 @@ module type S = sig
 
   val file :
      string
-    -> ( Eliom_lib.file_info
+    -> ( Lib.file_info
          , [`WithoutSuffix]
-         , [`One of Eliom_lib.file_info] param_name )
+         , [`One of Lib.file_info] param_name )
          params_type
   (** [file s] means that the service takes a file as the parameter
       named [s]. *)
@@ -217,7 +217,7 @@ module type S = sig
   (** The service takes a list of parameters. The first parameter of
       this function is the name of the list. The service handler will
       receive a list of values. To create the form, an iterator of
-      type {!Eliom_parameter.listnames} is given to generate the name
+      type {!Parameter.listnames} is given to generate the name
       for each value. *)
 
   val suffix :
@@ -355,7 +355,7 @@ module type S = sig
   type params = (string * Eliommod_parameters.param) list
 
   val construct_params :
-     params Eliom_lib.String.Table.t
+     params Lib.String.Table.t
     -> ('a, [< `WithSuffix | `WithoutSuffix], 'b) params_type
     -> 'a
     -> string list option * string
@@ -363,13 +363,13 @@ module type S = sig
   val construct_params_string : params -> string
 
   val construct_params_list_raw :
-     params Eliom_lib.String.Table.t
+     params Lib.String.Table.t
     -> ('a, [< `WithSuffix | `WithoutSuffix], 'b) params_type
     -> 'a
-    -> string list option * params Eliom_lib.String.Table.t * params
+    -> string list option * params Lib.String.Table.t * params
 
   val construct_params_list :
-     params Eliom_lib.String.Table.t
+     params Lib.String.Table.t
     -> ('a, [< `WithSuffix | `WithoutSuffix], 'b) params_type
     -> 'a
     -> string list option * params
@@ -378,9 +378,9 @@ module type S = sig
      sp:Eliom_common.server_params
     -> ('a, [< `WithSuffix | `WithoutSuffix], 'c) params_type
     -> (string * string) list Lwt.t option
-    -> (string * Eliom_lib.file_info) list Lwt.t option
+    -> (string * Lib.file_info) list Lwt.t option
     -> bool
-    -> Eliom_lib.Url.path option
+    -> Lib.Url.path option
     -> 'a Lwt.t
 
   val make_params_names : ('a, 'b, 'c) params_type -> bool * 'c
@@ -394,11 +394,11 @@ module type S = sig
     -> ('a * 's, 'su, 'an * 'sn) params_type
 
   val remove_from_nlp :
-     (string * 'c) list Eliom_lib.String.Table.t
+     (string * 'c) list Lib.String.Table.t
     -> ('a, [< `WithSuffix | `WithoutSuffix], 'b) params_type
-    -> (string * 'c) list Eliom_lib.String.Table.t
+    -> (string * 'c) list Lib.String.Table.t
 
-  val table_of_nl_params_set : nl_params_set -> params Eliom_lib.String.Table.t
+  val table_of_nl_params_set : nl_params_set -> params Lib.String.Table.t
   val list_of_nl_params_set : nl_params_set -> params
   val string_of_nl_params_set : nl_params_set -> string
   val wrap_param_type : ('a, 'b, 'c) params_type -> ('a, 'b, 'c) params_type

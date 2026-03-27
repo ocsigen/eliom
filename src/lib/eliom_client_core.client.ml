@@ -22,7 +22,7 @@ open Lwt.Syntax
  *)
 
 open Js_of_ocaml
-open Eliom_lib
+open Lib
 module Xml = Eliom_content_core.Xml
 
 (* Logs *)
@@ -85,14 +85,14 @@ end = struct
         let pos =
           match Eliom_runtime.Client_value_server_repr.loc server_value with
           | None -> ""
-          | Some p -> Printf.sprintf "(%s)" (Eliom_lib.pos_to_string p)
+          | Some p -> Printf.sprintf "(%s)" (Lib.pos_to_string p)
         in
         raise_error ~section
           "Client closure %s not found %s (is the module linked on the client?)"
           closure_id pos
     in
     let value = closure args in
-    Eliom_unwrap.late_unwrap_value server_value value;
+    Unwrap.late_unwrap_value server_value value;
     (* Only register global client values *)
     let instance_id =
       Eliom_runtime.Client_value_server_repr.instance_id server_value
@@ -130,11 +130,10 @@ end = struct
               match ident, pos with
               | None, None -> Printf.sprintf "%s" name
               | None, Some pos ->
-                  Printf.sprintf "%s at %s" name (Eliom_lib.pos_to_string pos)
+                  Printf.sprintf "%s at %s" name (Lib.pos_to_string pos)
               | Some i, None -> Printf.sprintf "%s (%s)" name i
               | Some i, Some pos ->
-                  Printf.sprintf "%s (%s at %s)" name i
-                    (Eliom_lib.pos_to_string pos)
+                  Printf.sprintf "%s (%s at %s)" name i (Lib.pos_to_string pos)
             in
             raise_error "Did not find injection %s" name))
 
@@ -313,8 +312,8 @@ let raw_a_handler node cookies_info tmpl ev =
   (* Returns true when the default link behaviour is to be kept: *)
   middleClick ev
   || (not !Eliom_common.is_client_app)
-     && ((https = Some true && not Eliom_request_info.ssl_)
-        || (https = Some false && Eliom_request_info.ssl_))
+     && ((https = Some true && not Request_info.ssl_)
+        || (https = Some false && Request_info.ssl_))
   ||
   ((* If a link is clicked, we do not want to continue propagation
        (for example if the link is in a wider clickable area)  *)
@@ -337,15 +336,14 @@ let raw_form_handler form kind cookies_info tmpl ev client_form_handler =
     Lwt.return_unit
   in
   (not !Eliom_common.is_client_app)
-  && ((https = Some true && not Eliom_request_info.ssl_)
-     || (https = Some false && Eliom_request_info.ssl_))
+  && ((https = Some true && not Request_info.ssl_)
+     || (https = Some false && Request_info.ssl_))
   || (f (); false)
 
 let raw_event_handler value =
   let handler =
     (*XXX???*)
-    (Eliom_lib.from_poly (Eliom_lib.to_poly value)
-     : #Dom_html.event Js.t -> unit)
+    (Lib.from_poly (Lib.to_poly value) : #Dom_html.event Js.t -> unit)
   in
   fun ev -> try handler ev; true with Eliom_client_value.False -> false
 
@@ -375,7 +373,7 @@ let reify_caml_event name node ce =
                 raise_error ~section "not a form element")
             in
             raw_form_handler form kind cookies_info tmpl ev
-              (Eliom_lib.from_poly client_hdlr : client_form_handler)) )
+              (Lib.from_poly client_hdlr : client_form_handler)) )
   | Xml.CE_client_closure f ->
       ( name
       , `Other
@@ -553,8 +551,7 @@ let rec rebuild_rattrib node ra =
                (Js.string (Xml.aname ra))
                (Js.string (String.concat "," l)))
   | Xml.RAClient (_, _, value) ->
-      rebuild_rattrib node
-        (Eliom_lib.from_poly (Eliom_lib.to_poly value) : Xml.attrib)
+      rebuild_rattrib node (Lib.from_poly (Lib.to_poly value) : Xml.attrib)
 
 (* TODO: Registering a global "onunload" event handler breaks the
    'bfcache' mechanism of Firefox and Safari. We may try to use

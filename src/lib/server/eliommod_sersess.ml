@@ -25,7 +25,7 @@
 (*****************************************************************************)
 (*****************************************************************************)
 
-open Eliom_lib
+open Lib
 
 let compute_cookie_info sitedata secure_o secure_ci cookie_info =
   let secure = Eliom_common.get_secure ~secure_o ~sitedata () in
@@ -43,7 +43,7 @@ let close_service_state ~scope ~secure_o ?sp () =
     let (cookie_info, _, _), secure_ci =
       Eliom_common.get_cookie_info sp cookie_level
     in
-    let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
+    let sitedata = Request_info.get_sitedata_sp ~sp in
     let cookie_info, secure =
       compute_cookie_info sitedata secure_o secure_ci cookie_info
     in
@@ -76,9 +76,9 @@ let close_service_state ~scope ~secure_o ?sp () =
   with Not_found -> ()
 
 let fullsessgrp ~cookie_level ~sp set_session_group =
-  let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
+  let sitedata = Request_info.get_sitedata_sp ~sp in
   Eliommod_sessiongroups.make_full_group_name ~cookie_level
-    (Eliom_request_info.get_request_sp sp).Ocsigen_extensions.request_info
+    (Request_info.get_request_sp sp).Ocsigen_extensions.request_info
     (Eliom_common.get_site_dir_string sitedata)
     (Eliom_common.get_mask4 sitedata)
     (Eliom_common.get_mask6 sitedata)
@@ -148,7 +148,7 @@ let rec find_or_create_service_cookie_
   let (cookie_info, _, _), secure_ci =
     Eliom_common.get_cookie_info sp cookie_level
   in
-  let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
+  let sitedata = Request_info.get_sitedata_sp ~sp in
   let cookie_info, secure =
     compute_cookie_info sitedata secure_o secure_ci cookie_info
   in
@@ -227,7 +227,7 @@ let find_service_cookie_only ~cookie_scope ~secure_o ?sp () =
     Eliom_common.get_cookie_info sp
       (Eliom_common.cookie_level_of_user_scope cookie_scope)
   in
-  let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
+  let sitedata = Request_info.get_sitedata_sp ~sp in
   let cookie_info, secure =
     compute_cookie_info sitedata secure_o secure_ci cookie_info
   in

@@ -32,7 +32,7 @@ module Down = struct
     ; name : string option
     ; size : int option }
 
-  type 'a stateless = 'a Eliom_comet.Channel.t
+  type 'a stateless = 'a Comet.Channel.t
   type 'a t' = Stateful of 'a stateful | Stateless of 'a stateless
 
   type 'a t = {t : 'a t'; react_down_mark : 'a t Eliom_common.wrapper}
@@ -45,9 +45,7 @@ module Down = struct
       | None -> e
       | Some t -> E.limit (fun () -> Lwt_unix.sleep t) e
     in
-    let channel =
-      Eliom_comet.Channel.create_from_events ?scope ?name ?size ee
-    in
+    let channel = Comet.Channel.create_from_events ?scope ?name ?size ee in
     channel, Eliom_common.make_unwrapper Eliom_common.react_down_unwrap_id
 
   let wrap_stateless channel =
@@ -68,8 +66,7 @@ module Down = struct
       | None -> e
       | Some t -> E.limit (fun () -> Lwt_unix.sleep t) e
     in
-    Stateless
-      (Eliom_comet.Channel.create_from_events ~scope:`Site ?name ?size ee)
+    Stateless (Comet.Channel.create_from_events ~scope:`Site ?name ?size ee)
 
   let of_react ?scope ?throttling ?name ?size (e : 'a E.t) =
     let t =
@@ -88,16 +85,16 @@ module Up = struct
     ; service :
         ( unit
           , 'a
-          , Eliom_service.post
-          , Eliom_service.non_att
-          , Eliom_service.co
-          , Eliom_service.non_ext
-          , Eliom_service.reg
+          , Service.post
+          , Service.non_att
+          , Service.co
+          , Service.non_ext
+          , Service.reg
           , [`WithoutSuffix]
           , unit
-          , [`One of 'a Eliom_parameter.ocaml] Eliom_parameter.param_name
-          , Eliom_registration.Action.return )
-          Eliom_service.t
+          , [`One of 'a Parameter.ocaml] Parameter.param_name
+          , Registration.Action.return )
+          Service.t
     ; wrapper : 'a t Eliom_common.wrapper }
   [@@warning "-69"]
 
@@ -120,12 +117,12 @@ module Up = struct
       | _ -> (Eliom_common.comet_client_process_scope :> Eliom_common.scope)
     in
     let e_writer =
-      Eliom_service.create ?name
-        ~meth:(Eliom_service.Post (Eliom_parameter.unit, post_params))
-        ~path:Eliom_service.No_path ()
+      Service.create ?name
+        ~meth:(Service.Post (Parameter.unit, post_params))
+        ~path:Service.No_path ()
     in
-    Eliom_registration.Action.register ~scope ~options:`NoReload
-      ~service:e_writer (fun () value -> push value; Lwt.return_unit);
+    Registration.Action.register ~scope ~options:`NoReload ~service:e_writer
+      (fun () value -> push value; Lwt.return_unit);
     {event = e; service = e_writer; wrapper = up_event_wrapper ()}
 end
 
@@ -139,7 +136,7 @@ module S = struct
     [@@warning "-69"]
 
     type 'a stateless =
-      { channel : 'a Eliom_comet.Channel.t
+      { channel : 'a Comet.Channel.t
       ; stream : 'a Lwt_stream.t
       ; (* avoid garbage collection *)
         sl_signal : 'a S.t }
@@ -196,7 +193,7 @@ module S = struct
       in
       let store = make_store s in
       let stream = Lwt_stream.from (read_store store) in
-      let channel = Eliom_comet.Channel.create_unlimited ?name stream in
+      let channel = Comet.Channel.create_unlimited ?name stream in
       let value : 'a = S.value s in
       ( channel
       , value
@@ -226,7 +223,7 @@ module S = struct
       let e = S.changes s in
       let stream = E.to_stream e in
       Stateless
-        { channel = Eliom_comet.Channel.create_newest ?name stream
+        { channel = Comet.Channel.create_newest ?name stream
         ; stream
         ; sl_signal = s }
 

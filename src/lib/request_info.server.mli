@@ -44,7 +44,7 @@ val get_original_full_path_string : unit -> string
 (** returns the full path of the URL as first sent by the browser
     (not changed by previous extensions like rewritemod) *)
 
-val get_original_full_path : unit -> Eliom_lib.Url.path
+val get_original_full_path : unit -> Lib.Url.path
 (** returns the full path of the URL as first sent by the browser
     (not changed by previous extensions like rewritemod) *)
 
@@ -54,8 +54,8 @@ val get_current_sub_path_string : unit -> string
     configuration file).
  *)
 
-val get_current_sub_path : unit -> Eliom_lib.Url.path
-(** returns the sub path of the URL using the type [Eliom_lib.Url.path].
+val get_current_sub_path : unit -> Lib.Url.path
+(** returns the sub path of the URL using the type [Lib.Url.path].
     The sub-path is the full path without the path of the site (set in the
     configuration file).
  *)
@@ -87,7 +87,7 @@ val get_accept_language : unit -> (string * float option) list
 (** returns the (string * float option) list corresponding
     to accept_language HTTP header of the request. *)
 
-val get_suffix : unit -> Eliom_lib.Url.path option
+val get_suffix : unit -> Lib.Url.path option
 (** returns the suffix of the current URL *)
 
 val get_cookies :
@@ -142,12 +142,12 @@ val get_file_content_type :
 (** returns the content type sent by the browser with the file
     (if any). *)
 
-val get_site_dir : unit -> Eliom_lib.Url.path
+val get_site_dir : unit -> Lib.Url.path
 (** returns the root of the site.
     Raises [Eliom_common.Eliom_site_information_not_available]
     if unavailable. *)
 
-val get_site_dir_option : unit -> Eliom_lib.Url.path option
+val get_site_dir_option : unit -> Lib.Url.path option
 (** returns the root of the site. *)
 
 (*****************************************************************************)
@@ -174,15 +174,15 @@ val get_other_get_params : unit -> (string * string) list
 (** returns the parameters of the URL (GET parameters)
    that do not concern the running service. *)
 
-val get_nl_get_params : unit -> (string * string) list Eliom_lib.String.Table.t
+val get_nl_get_params : unit -> (string * string) list Lib.String.Table.t
 (** returns non localized parameters in the URL. *)
 
 val get_persistent_nl_get_params :
    unit
-  -> (string * string) list Eliom_lib.String.Table.t
+  -> (string * string) list Lib.String.Table.t
 (** returns persistent non localized parameters in the URL. *)
 
-val get_nl_post_params : unit -> (string * string) list Eliom_lib.String.Table.t
+val get_nl_post_params : unit -> (string * string) list Lib.String.Table.t
 (** returns non localized POST parameters. *)
 
 val get_post_params : unit -> (string * string) list Lwt.t option
@@ -241,7 +241,7 @@ val expecting_process_page : unit -> bool
     Warning: it is different from the URL to which the request has been made.
 *)
 
-val get_csp_original_full_path : unit -> Eliom_lib.Url.path
+val get_csp_original_full_path : unit -> Lib.Url.path
 (** returns the full path of the URL where the client-side process is running.
     If there is no client side process, same as
     {!get_original_full_path}.
@@ -276,10 +276,7 @@ val get_sitedata : unit -> Eliom_common.sitedata
 
 (**/**)
 
-val get_csp_original_full_path_sp :
-   Eliom_common.server_params
-  -> Eliom_lib.Url.path
-
+val get_csp_original_full_path_sp : Eliom_common.server_params -> Lib.Url.path
 val get_csp_hostname_sp : Eliom_common.server_params -> string
 val get_csp_server_port_sp : Eliom_common.server_params -> int
 val get_csp_ssl_sp : Eliom_common.server_params -> bool
@@ -322,7 +319,7 @@ val set_site_handler :
   -> unit
 
 val get_request_sp : Eliom_common.server_params -> Ocsigen_extensions.request
-val get_site_dir_sp : Eliom_common.server_params -> Eliom_lib.Url.path
+val get_site_dir_sp : Eliom_common.server_params -> Lib.Url.path
 val get_hostname_sp : Eliom_common.server_params -> string
 val get_full_url_sp : Eliom_common.server_params -> string
 
@@ -332,17 +329,17 @@ val get_other_get_params_sp :
 
 val get_nl_get_params_sp :
    Eliom_common.server_params
-  -> (string * string) list Eliom_lib.String.Table.t
+  -> (string * string) list Lib.String.Table.t
 
 val get_persistent_nl_get_params_sp :
    Eliom_common.server_params
-  -> (string * string) list Eliom_lib.String.Table.t
+  -> (string * string) list Lib.String.Table.t
 
 val get_nl_post_params_sp :
    Eliom_common.server_params
-  -> (string * string) list Eliom_lib.String.Table.t
+  -> (string * string) list Lib.String.Table.t
 
-val get_original_full_path_sp : Eliom_common.server_params -> Eliom_lib.Url.path
+val get_original_full_path_sp : Eliom_common.server_params -> Lib.Url.path
 val get_original_full_path_string_sp : Eliom_common.server_params -> string
 val get_server_port_sp : Eliom_common.server_params -> int
 val get_ssl_sp : Eliom_common.server_params -> bool
@@ -356,7 +353,7 @@ val get_files_sp :
    Eliom_common.server_params
   -> (string * Ocsigen_extensions.file_info) list Lwt.t option
 
-val get_suffix_sp : Eliom_common.server_params -> Eliom_lib.Url.path option
+val get_suffix_sp : Eliom_common.server_params -> Lib.Url.path option
 val get_request_cache_sp : Eliom_common.server_params -> Polytables.t
 
 type raw_post_data =

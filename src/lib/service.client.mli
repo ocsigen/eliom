@@ -24,9 +24,9 @@
     {% <<a_manual chapter="clientserver-services"|client-side service implementation>>%}.
 
     The main functions about services are documented in
-    {% <<a_api | module Eliom_service_sigs.S >>%}. *)
+    {% <<a_api | module Service_sigs.S >>%}. *)
 
-include Eliom_service_sigs.S
+include Service_sigs.S
 
 val set_client_fun :
    ?app:string
@@ -40,7 +40,7 @@ val reset_reload_fun : (_, _, _, _, _, _, _, _, _, _, _) t -> unit
 
 val pre_applied_parameters :
    (_, _, _, _, _, _, _, _, _, _, _) t
-  -> (string * Eliommod_parameters.param) list Eliom_lib.String.Table.t
+  -> (string * Eliommod_parameters.param) list Lib.String.Table.t
      * (string * Eliommod_parameters.param) list
 
 val reload_fun :

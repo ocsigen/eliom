@@ -18,9 +18,9 @@
  *)
 
 open Js_of_ocaml
-open Eliom_lib
+open Lib
 
-(* This the core of [Eliom_content] without its dependencies to [Eliom_service] et al.
+(* This the core of [Content] without its dependencies to [Service] et al.
    Its name is not [Eliom_content_base] because this would suggest the sharing
    between server and client. *)
 
@@ -45,13 +45,10 @@ module Xml = struct
   and recontent = RELazy of econtent Eliom_lazy.request | RE of econtent
 
   and elt' =
-    { recontent : recontent
-    ; node_id : node_id
-    ; unwrapper_mark : Eliom_wrap.unwrapper }
+    {recontent : recontent; node_id : node_id; unwrapper_mark : Wrap.unwrapper}
   [@@warning "-69"]
 
-  and elt = {elt : elt'; wrapper_mark : elt Eliom_wrap.wrapper}
-  [@@warning "-69"]
+  and elt = {elt : elt'; wrapper_mark : elt Wrap.wrapper} [@@warning "-69"]
   (** Values of type [elt] are wrapped values of type [elt']. *)
 
   let content {elt; _} =
@@ -66,7 +63,7 @@ module Xml = struct
   let node_ids_in_content = ref Node_id_set.empty
 
   let wrapper_mark =
-    Eliom_wrap.create_wrapper (fun {elt; _} ->
+    Wrap.create_wrapper (fun {elt; _} ->
       if Node_id_set.mem elt.node_id !node_ids_in_content
       then {elt with recontent = RE Empty}
       else elt)
@@ -83,25 +80,25 @@ module Xml = struct
     collect_node_ids page;
     node_ids_in_content :=
       List.fold_right Node_id_set.add !node_ids Node_id_set.empty;
-    let res = Eliom_wrap.wrap value in
+    let res = Wrap.wrap value in
     node_ids_in_content := Node_id_set.empty;
     res
 
   let get_node_id {elt; _} = elt.node_id
-  let tyxml_unwrap_id = Eliom_wrap.id_of_int Eliom_runtime.tyxml_unwrap_id_int
+  let tyxml_unwrap_id = Wrap.id_of_int Eliom_runtime.tyxml_unwrap_id_int
 
   let make elt =
     { elt =
         { recontent = RE elt
         ; node_id = NoId
-        ; unwrapper_mark = Eliom_wrap.create_unwrapper tyxml_unwrap_id }
+        ; unwrapper_mark = Wrap.create_unwrapper tyxml_unwrap_id }
     ; wrapper_mark }
 
   let make_lazy elt =
     { elt =
         { recontent = RELazy elt
         ; node_id = NoId
-        ; unwrapper_mark = Eliom_wrap.create_unwrapper tyxml_unwrap_id }
+        ; unwrapper_mark = Wrap.create_unwrapper tyxml_unwrap_id }
     ; wrapper_mark }
 
   let empty () = make Empty
@@ -133,7 +130,7 @@ module Xml = struct
 
   let caml_event_handler cf =
     let crypto = make_cryptographic_safe_string () in
-    CE_registered_closure (crypto, Eliom_lib.to_poly cf)
+    CE_registered_closure (crypto, Lib.to_poly cf)
 
   let event_handler cf = Caml (caml_event_handler cf)
 
@@ -155,7 +152,7 @@ module Xml = struct
   let client_attrib ?init (x : attrib Eliom_client_value.t) =
     let crypto = make_cryptographic_safe_string () in
     let empty_name = "" in
-    empty_name, RAClient (crypto, init, Eliom_lib.to_poly x)
+    empty_name, RAClient (crypto, init, Lib.to_poly x)
 
   let closing_cdata = Re.Pcre.(regexp (quote "]]>"))
 
@@ -447,7 +444,7 @@ module Html = struct
   end
 
   module D = struct
-    (* This is [Eliom_content.Xml] adapted such that request nodes are produced *)
+    (* This is [Content.Xml] adapted such that request nodes are produced *)
     module Xml' = struct
       include Xml
 

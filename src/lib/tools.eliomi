@@ -23,13 +23,13 @@
     chapter="misc" fragment="basic_menu"| menu>>%} or {% <<a_manual
     chapter="misc" fragment="hier_menu"| hierarchical site>>%}. *)
 
-open Eliom_content
+open Content
 
 type srv =
   | Srv :
       ( unit
         , unit
-        , Eliom_service.get
+        , Service.get
         , _
         , _
         , _
@@ -37,8 +37,8 @@ type srv =
         , [`WithoutSuffix]
         , unit
         , unit
-        , Eliom_service.non_ocaml )
-        Eliom_service.t
+        , Service.non_ocaml )
+        Service.t
       -> srv
 
 type 'a hierarchical_site = main_page * ('a * 'a hierarchical_site_item) list
@@ -77,7 +77,7 @@ module type HTML5_TOOLS = sig
     -> ?id:string
     -> (( unit
           , unit
-          , Eliom_service.get
+          , Service.get
           , _
           , _
           , _
@@ -85,14 +85,14 @@ module type HTML5_TOOLS = sig
           , [`WithoutSuffix]
           , unit
           , unit
-          , Eliom_service.non_ocaml )
-          Eliom_service.t
+          , Service.non_ocaml )
+          Service.t
        * [< Html_types.flow5_without_interactive] Html.elt list)
          list
     -> ?service:
          ( unit
            , unit
-           , Eliom_service.get
+           , Service.get
            , _
            , _
            , _
@@ -100,8 +100,8 @@ module type HTML5_TOOLS = sig
            , [`WithoutSuffix]
            , unit
            , unit
-           , Eliom_service.non_ocaml )
-           Eliom_service.t
+           , Service.non_ocaml )
+           Service.t
     -> unit
     -> [> `Ul] Html.elt
   (** The function [menu elts ()], where [elts] is a list of pair
@@ -128,7 +128,7 @@ module type HTML5_TOOLS = sig
     -> ?service:
          ( unit
            , unit
-           , Eliom_service.get
+           , Service.get
            , _
            , _
            , _
@@ -136,8 +136,8 @@ module type HTML5_TOOLS = sig
            , [`WithoutSuffix]
            , unit
            , unit
-           , Eliom_service.non_ocaml )
-           Eliom_service.t
+           , Service.non_ocaml )
+           Service.t
     -> unit
     -> [> `Ul] Html.elt list
   (** The function [hierarchical_menu_depth_first site ()] constructs
@@ -162,7 +162,7 @@ module type HTML5_TOOLS = sig
     -> ?service:
          ( unit
            , unit
-           , Eliom_service.get
+           , Service.get
            , _
            , _
            , _
@@ -170,8 +170,8 @@ module type HTML5_TOOLS = sig
            , [`WithoutSuffix]
            , unit
            , unit
-           , Eliom_service.non_ocaml )
-           Eliom_service.t
+           , Service.non_ocaml )
+           Service.t
     -> unit
     -> [> `Ul] Html.elt list
   (** The function [hierarchical_menu_breadth_first site ()]
@@ -192,7 +192,7 @@ module type HTML5_TOOLS = sig
     -> ?service:
          ( unit
            , unit
-           , Eliom_service.get
+           , Service.get
            , _
            , _
            , _
@@ -200,8 +200,8 @@ module type HTML5_TOOLS = sig
            , [`WithoutSuffix]
            , unit
            , unit
-           , Eliom_service.non_ocaml )
-           Eliom_service.t
+           , Service.non_ocaml )
+           Service.t
     -> unit
     -> [> `Link] Html.elt list
   (** The function [structure_links site ()] returns the tags [<link
@@ -241,10 +241,10 @@ module D : HTML5_TOOLS
 
 val with_js_file : string list -> unit
 (** Record an (external) JavaScript file to be included in
-    {!Eliom_tools.F.html}. *)
+    {!Tools.F.html}. *)
 
 val with_css_file : string list -> unit
-(** Record an CSS file to be included in {!Eliom_tools.F.html}. *)
+(** Record an CSS file to be included in {!Tools.F.html}. *)
 
 (** {2 Other tools} *)
 
@@ -266,12 +266,12 @@ val wrap_handler :
     parameters.
 
     {% <<code language="ocaml"|
-    let user_eref = Eliom_reference.eref ~scope None
+    let user_eref = Reference.eref ~scope None
     let anonymous_handler _ _ =
       Lwt.return (html (head (title "not allowed")) (body []))
     let authenticated_handler f =
-      Eliom_tools.wrap_handler
-        (fun () -> Eliom_reference.get user_eref)
+      Tools.wrap_handler
+        (fun () -> Reference.get user_eref)
         anonymous_handler f
     let guarded_service =
       My_app.register_service ~path ~get_param

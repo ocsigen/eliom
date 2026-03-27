@@ -133,8 +133,8 @@ let get_non_localized_get_parameters {name; param; _} =
     Some
       (reconstruct_params_ param
          (try
-            Eliom_lib.String.Table.find name
-              (Eliom_request_info.get_sess_info ()).si_nl_get_params
+            Lib.String.Table.find name
+              (Request_info.get_sess_info ()).si_nl_get_params
           with Not_found -> [])
          [] false None)
   with Eliom_common.Eliom_Wrong_parameter | Not_found -> None

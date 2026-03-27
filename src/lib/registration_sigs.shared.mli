@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open! Eliom_service
+open! Service
 
 module type PARAM = sig
   type page
@@ -34,10 +34,10 @@ module type PARAM = sig
     -> page
     -> frame Lwt.t
 
-  val send_appl_content : Eliom_service.send_appl_content
+  val send_appl_content : Service.send_appl_content
   (** Whether the service is capable of sending application content
       when required. This field is usually
-      [Eliom_service.XNever]. This value is recorded inside each
+      [Service.XNever]. This value is recorded inside each
       service just after registration.  *)
 
   val result_of_http_result : frame -> result
@@ -58,7 +58,7 @@ module type PARAM_POLY = sig
     -> _ page
     -> frame Lwt.t
 
-  val send_appl_content : Eliom_service.send_appl_content
+  val send_appl_content : Service.send_appl_content
   (** See {!Eliom_reg_sigs.PARAM.send_appl_content}. *)
 end
 
@@ -77,7 +77,7 @@ end
 module type S = sig
   type page
   type options
-  type return = Eliom_service.non_ocaml
+  type return = Service.non_ocaml
   type result
 
   (** {2 Service registration } *)
@@ -97,13 +97,13 @@ module type S = sig
            , _
            , _
            , _
-           , Eliom_service.non_ext
-           , Eliom_service.reg
+           , Service.non_ext
+           , Service.reg
            , _
            , _
            , _
            , return )
-           Eliom_service.t
+           Service.t
     -> ?error_handler:((string * exn) list -> page Lwt.t)
     -> ('get -> 'post -> page Lwt.t)
     -> unit
@@ -150,7 +150,7 @@ module type S = sig
     -> result Lwt.t
   (** The function [send page] builds the HTTP frame corresponding to
       [page]. This may be used for example in a service handler
-      registered with {!Eliom_registration.Any.register}, or when
+      registered with {!Registration.Any.register}, or when
       building a custom output module.  *)
 end
 
@@ -173,8 +173,8 @@ module type S_with_create = sig
     -> ?csrf_secure:bool
     -> ?max_use:int
     -> ?timeout:float
-    -> meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'gp_) Eliom_service.meth
-    -> path:('att, 'co, 'gp_) Eliom_service.path_option
+    -> meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'gp_) Service.meth
+    -> path:('att, 'co, 'gp_) Service.path_option
     -> ?error_handler:((string * exn) list -> page Lwt.t)
     -> ('gp -> 'pp -> page Lwt.t)
     -> ( 'gp
@@ -182,16 +182,16 @@ module type S_with_create = sig
          , 'm
          , 'att
          , 'co
-         , Eliom_service.non_ext
-         , Eliom_service.reg
+         , Service.non_ext
+         , Service.reg
          , 'tipo
          , 'gn
          , 'pn
          , return )
-         Eliom_service.t
+         Service.t
   (** Create a service and register it at the same time.
-      It calls {!Eliom_service.create} and then performs
-      {!Eliom_registration_sigs.S.register}.
+      It calls {!Service.create} and then performs
+      {!Registration_sigs.S.register}.
       Returns the service. *)
 
   val create_attached_get :
@@ -213,34 +213,34 @@ module type S_with_create = sig
     -> fallback:
          ( unit
            , unit
-           , Eliom_service.get
-           , Eliom_service.att
-           , Eliom_service.non_co
-           , Eliom_service.non_ext
+           , Service.get
+           , Service.att
+           , Service.non_co
+           , Service.non_ext
            , _
            , [`WithoutSuffix]
            , unit
            , unit
            , return )
-           Eliom_service.t
-    -> get_params:('gp, [`WithoutSuffix], 'gn) Eliom_parameter.params_type
+           Service.t
+    -> get_params:('gp, [`WithoutSuffix], 'gn) Parameter.params_type
     -> ?error_handler:((string * exn) list -> page Lwt.t)
     -> ('gp -> unit -> page Lwt.t)
     -> ( 'gp
          , unit
-         , Eliom_service.get
-         , Eliom_service.att
-         , Eliom_service.co
-         , Eliom_service.non_ext
-         , Eliom_service.reg
+         , Service.get
+         , Service.att
+         , Service.co
+         , Service.non_ext
+         , Service.reg
          , [`WithoutSuffix]
          , 'gn
          , unit
          , return )
-         Eliom_service.t
+         Service.t
   (** Create an attached service and register it at the same time.
-      It calls {!Eliom_service.create_attached_get} and then performs
-      {!Eliom_registration_sigs.S.register}.
+      It calls {!Service.create_attached_get} and then performs
+      {!Registration_sigs.S.register}.
       Returns the new service. *)
 
   val create_attached_post :
@@ -262,34 +262,34 @@ module type S_with_create = sig
     -> fallback:
          ( 'gp
            , unit
-           , Eliom_service.get
-           , Eliom_service.att
-           , Eliom_service.non_co
-           , Eliom_service.non_ext
+           , Service.get
+           , Service.att
+           , Service.non_co
+           , Service.non_ext
            , _
            , [`WithoutSuffix]
            , 'gn
            , unit
            , return )
-           Eliom_service.t
-    -> post_params:('pp, [`WithoutSuffix], 'pn) Eliom_parameter.params_type
+           Service.t
+    -> post_params:('pp, [`WithoutSuffix], 'pn) Parameter.params_type
     -> ?error_handler:((string * exn) list -> page Lwt.t)
     -> ('gp -> 'pp -> page Lwt.t)
     -> ( 'gp
          , 'pp
-         , Eliom_service.post
-         , Eliom_service.att
-         , Eliom_service.co
-         , Eliom_service.non_ext
-         , Eliom_service.reg
+         , Service.post
+         , Service.att
+         , Service.co
+         , Service.non_ext
+         , Service.reg
          , [`WithoutSuffix]
          , 'gn
          , 'pn
          , return )
-         Eliom_service.t
+         Service.t
   (** Create an attached POST service and register it at the same time.
-      It calls {!Eliom_service.create_attached_post} and then performs
-      {!Eliom_registration_sigs.S.register}.
+      It calls {!Service.create_attached_post} and then performs
+      {!Registration_sigs.S.register}.
       Returns the new service. *)
 end
 
@@ -313,13 +313,13 @@ module type S_poly = sig
            , _
            , _
            , _
-           , Eliom_service.non_ext
-           , Eliom_service.reg
+           , Service.non_ext
+           , Service.reg
            , _
            , _
            , _
            , 'a return )
-           Eliom_service.t
+           Service.t
     -> ?error_handler:((string * exn) list -> 'a page Lwt.t)
     -> ('get -> 'post -> 'a page Lwt.t)
     -> unit
@@ -345,8 +345,8 @@ module type S_poly_with_create = sig
     -> ?csrf_secure:bool
     -> ?max_use:int
     -> ?timeout:float
-    -> meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'gp_) Eliom_service.meth
-    -> path:('att, 'co, 'gp_) Eliom_service.path_option
+    -> meth:('m, 'gp, 'gn, 'pp, 'pn, 'tipo, 'gp_) Service.meth
+    -> path:('att, 'co, 'gp_) Service.path_option
     -> ?error_handler:((string * exn) list -> 'a page Lwt.t)
     -> ('gp -> 'pp -> 'a page Lwt.t)
     -> ( 'gp
@@ -354,13 +354,13 @@ module type S_poly_with_create = sig
          , 'm
          , 'att
          , 'co
-         , Eliom_service.non_ext
-         , Eliom_service.reg
+         , Service.non_ext
+         , Service.reg
          , 'tipo
          , 'gn
          , 'pn
          , 'a return )
-         Eliom_service.t
+         Service.t
   (** See {!S_with_create.create}. *)
 
   val create_attached_get :
@@ -382,31 +382,31 @@ module type S_poly_with_create = sig
     -> fallback:
          ( unit
            , unit
-           , Eliom_service.get
-           , Eliom_service.att
-           , Eliom_service.non_co
-           , Eliom_service.non_ext
+           , Service.get
+           , Service.att
+           , Service.non_co
+           , Service.non_ext
            , _
            , [`WithoutSuffix]
            , unit
            , unit
            , 'a return )
-           Eliom_service.t
-    -> get_params:('gp, [`WithoutSuffix], 'gn) Eliom_parameter.params_type
+           Service.t
+    -> get_params:('gp, [`WithoutSuffix], 'gn) Parameter.params_type
     -> ?error_handler:((string * exn) list -> 'a page Lwt.t)
     -> ('gp -> unit -> 'a page Lwt.t)
     -> ( 'gp
          , unit
-         , Eliom_service.get
-         , Eliom_service.att
-         , Eliom_service.co
-         , Eliom_service.non_ext
-         , Eliom_service.reg
+         , Service.get
+         , Service.att
+         , Service.co
+         , Service.non_ext
+         , Service.reg
          , [`WithoutSuffix]
          , 'gn
          , unit
          , 'a return )
-         Eliom_service.t
+         Service.t
   (** See {!S_with_create.create_attached_get}. *)
 
   val create_attached_post :
@@ -428,31 +428,31 @@ module type S_poly_with_create = sig
     -> fallback:
          ( 'gp
            , unit
-           , Eliom_service.get
-           , Eliom_service.att
-           , Eliom_service.non_co
-           , Eliom_service.non_ext
+           , Service.get
+           , Service.att
+           , Service.non_co
+           , Service.non_ext
            , _
            , [`WithoutSuffix]
            , 'gn
            , unit
            , 'a return )
-           Eliom_service.t
-    -> post_params:('pp, [`WithoutSuffix], 'pn) Eliom_parameter.params_type
+           Service.t
+    -> post_params:('pp, [`WithoutSuffix], 'pn) Parameter.params_type
     -> ?error_handler:((string * exn) list -> 'a page Lwt.t)
     -> ('gp -> 'pp -> 'a page Lwt.t)
     -> ( 'gp
          , 'pp
-         , Eliom_service.post
-         , Eliom_service.att
-         , Eliom_service.co
-         , Eliom_service.non_ext
-         , Eliom_service.reg
+         , Service.post
+         , Service.att
+         , Service.co
+         , Service.non_ext
+         , Service.reg
          , [`WithoutSuffix]
          , 'gn
          , 'pn
          , 'a return )
-         Eliom_service.t
+         Service.t
   (** See {!S_with_create.create_attached_post}. *)
 end
 

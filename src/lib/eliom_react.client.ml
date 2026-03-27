@@ -48,7 +48,7 @@ module Down = struct
 
   let internal_unwrap (channel, _unwrapper) =
     (* We want to catch more exceptions here than the usual exceptions caught
-       in Eliom_comet. For example Channel_full. *)
+       in Comet. For example Channel_full. *)
     (* We transform the stream into a stream with exception: *)
     let stream = Lwt_stream.wrap_exn channel in
     Lwt.async (fun () ->
@@ -62,19 +62,17 @@ module Down = struct
     E.of_stream channel
 
   let () =
-    Eliom_unwrap.register_unwrapper Eliom_common.react_down_unwrap_id
-      internal_unwrap
+    Unwrap.register_unwrapper Eliom_common.react_down_unwrap_id internal_unwrap
 end
 
 module Up = struct
   type 'a t = 'a -> unit Lwt.t
 
   let internal_unwrap (service, _unwrapper) x =
-    Eliom_client.call_service ~service () x >|= fun _ -> ()
+    Client.call_service ~service () x >|= fun _ -> ()
 
   let () =
-    Eliom_unwrap.register_unwrapper Eliom_common.react_up_unwrap_id
-      internal_unwrap
+    Unwrap.register_unwrapper Eliom_common.react_up_unwrap_id internal_unwrap
 end
 
 module S = struct
@@ -86,7 +84,7 @@ module S = struct
       S.hold ~eq:(fun _ _ -> false) value e
 
     let () =
-      Eliom_unwrap.register_unwrapper Eliom_common.signal_down_unwrap_id
+      Unwrap.register_unwrapper Eliom_common.signal_down_unwrap_id
         internal_unwrap
   end
 end

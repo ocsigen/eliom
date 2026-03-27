@@ -89,5 +89,5 @@ module Html = struct
   end
 end]
 
-let%client set_client_fun = Eliom_service.set_client_fun
+let%client set_client_fun = Service.set_client_fun
 let%client set_form_error_handler = Eliom_form.set_error_handler

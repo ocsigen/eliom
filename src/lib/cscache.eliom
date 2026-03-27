@@ -4,7 +4,7 @@ open Lwt.Syntax
 
 [%%shared.start]
 
-type ('a, 'b) t = (unit -> ('a, 'b Lwt.t) Hashtbl.t) Eliom_shared.Value.t
+type ('a, 'b) t = (unit -> ('a, 'b Lwt.t) Hashtbl.t) Shared.Value.t
 
 let%client create_ () =
   let c = Hashtbl.create 100 in
@@ -12,16 +12,16 @@ let%client create_ () =
 
 let%server create_ () =
   let c =
-    Eliom_reference.Volatile.eref_from_fun ~scope:Eliom_common.request_scope
+    Reference.Volatile.eref_from_fun ~scope:Eliom_common.request_scope
       (fun () -> Hashtbl.create 10)
   in
-  fun () -> Eliom_reference.Volatile.get c
+  fun () -> Reference.Volatile.get c
 
 let%server create () =
-  Eliom_shared.Value.create (create_ ()) [%client.unsafe create_ ()]
+  Shared.Value.create (create_ ()) [%client.unsafe create_ ()]
 
 let do_cache_raw cache id data =
-  let c = Eliom_shared.Value.local cache () in
+  let c = Shared.Value.local cache () in
   Hashtbl.replace c id data;
   (* Do not cache exceptions *)
   ignore (Lwt.catch (fun _ -> data) (fun e -> Hashtbl.remove c id; Lwt.fail e))
@@ -33,7 +33,7 @@ let%server do_cache cache id v =
   ignore [%client.unsafe (do_cache ~%cache ~%id ~%v : unit)]
 
 let%server find cache get_data id =
-  try Hashtbl.find ((Eliom_shared.Value.local cache) ()) id
+  try Hashtbl.find ((Shared.Value.local cache) ()) id
   with Not_found ->
     let th =
       let* v = get_data id in
@@ -53,12 +53,12 @@ let%client load cache get_data id =
   do_cache_raw cache id th; th
 
 let%client find cache get_data id =
-  try Hashtbl.find ((Eliom_shared.Value.local cache) ()) id
+  try Hashtbl.find ((Shared.Value.local cache) ()) id
   with Not_found -> load cache get_data id
 
 exception Not_ready
 
-let local_find cache id = Hashtbl.find ((Eliom_shared.Value.local cache) ()) id
+let local_find cache id = Hashtbl.find ((Shared.Value.local cache) ()) id
 
 let find_if_ready cache id =
   let v = local_find cache id in

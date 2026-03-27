@@ -150,7 +150,7 @@ module Pass = struct
            push_nongen_str_item ~fragment:false ~unsafe loc f_id;
            [%expr
              ( [%e int num]
-             , Eliom_lib.to_poly
+             , Lib.to_poly
                  [%e
                    let loc = one_char_location loc0 in
                    [%expr [%e eid f_id] [%e frag_eid]]]

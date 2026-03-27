@@ -20,7 +20,7 @@ module type S = sig
   module Ext : sig
     val unlisten :
        ?sitedata:Eliom_common.sitedata
-      -> ([< `Client_process], [< `Data]) Eliom_state.Ext.state
+      -> ([< `Client_process], [< `Data]) State.Ext.state
       -> key
       -> unit
   end
@@ -119,25 +119,25 @@ module Make (A : ARG) :
   end
 
   let identity_r :
-    (A.identity * notification_react) option Eliom_reference.Volatile.eref
+    (A.identity * notification_react) option Reference.Volatile.eref
     =
-    Eliom_reference.Volatile.eref ~scope:Eliom_common.default_process_scope None
+    Reference.Volatile.eref ~scope:Eliom_common.default_process_scope None
 
   (* notif_e consists in a server side react event,
      its client side counterpart,
      and the server side function to trigger it. *)
-  let notif_e : notification_react Eliom_reference.Volatile.eref =
-    Eliom_reference.Volatile.eref_from_fun
-      ~scope:Eliom_common.default_process_scope (fun () ->
-      let e, send_e = React.E.create () in
-      let client_ev =
-        Eliom_react.Down.of_react
-        (*VVV If we add throttling, some events may be lost
+  let notif_e : notification_react Reference.Volatile.eref =
+    Reference.Volatile.eref_from_fun ~scope:Eliom_common.default_process_scope
+      (fun () ->
+         let e, send_e = React.E.create () in
+         let client_ev =
+           Eliom_react.Down.of_react
+           (*VVV If we add throttling, some events may be lost
                even if buffer size is not 1 :O *)
-          ~size:100 (*VVV ? *)
-          ~scope:Eliom_common.default_process_scope e
-      in
-      client_ev, send_e)
+             ~size:100 (*VVV ? *)
+             ~scope:Eliom_common.default_process_scope e
+         in
+         client_ev, send_e)
 
   let set_identity identity =
     (* For each tab connected to the app,
@@ -145,26 +145,26 @@ module Make (A : ARG) :
        because the table resourceid -> (identity, notif_ev) option
        is weak.
     *)
-    let notif_e = Eliom_reference.Volatile.get notif_e in
-    Eliom_reference.Volatile.set identity_r (Some (identity, notif_e))
+    let notif_e = Reference.Volatile.get notif_e in
+    Reference.Volatile.set identity_r (Some (identity, notif_e))
 
   let set_current_identity () =
     A.get_identity () >>= fun identity -> set_identity identity; Lwt.return_unit
 
   let init : unit -> unit Lwt.t = fun () -> set_current_identity ()
-  let deinit () = Eliom_reference.Volatile.set identity_r None
+  let deinit () = Reference.Volatile.set identity_r None
 
   let listen (key : A.key) =
-    let identity = Eliom_reference.Volatile.get identity_r in
+    let identity = Reference.Volatile.get identity_r in
     I.add identity key
 
   let unlisten (id : A.key) =
-    let identity = Eliom_reference.Volatile.get identity_r in
+    let identity = Reference.Volatile.get identity_r in
     I.remove identity id
 
   module Ext = struct
     let unlisten ?sitedata:_ state (key : A.key) =
-      let uc = Eliom_reference.Volatile.Ext.get state identity_r in
+      let uc = Reference.Volatile.Ext.get state identity_r in
       I.remove uc key
   end
 
@@ -174,7 +174,7 @@ module Make (A : ARG) :
         match notfor with
         | Some `Me ->
             (*TODO: fails outside of a request*)
-            let notif_e = Eliom_reference.Volatile.get notif_e in
+            let notif_e = Reference.Volatile.get notif_e in
             notif == notif_e
         | Some (`Id id) -> identity = id
         | None -> false
@@ -193,7 +193,7 @@ module Make (A : ARG) :
     I.iter f key
 
   let client_ev () =
-    let ev, _ = Eliom_reference.Volatile.get notif_e in
+    let ev, _ = Reference.Volatile.get notif_e in
     ev
 
   let clean () =

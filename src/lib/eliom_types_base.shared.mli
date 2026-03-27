@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Eliom_lib
+open Lib
 
 type sitedata = {site_dir : Url.path; site_dir_string : string}
 type server_params

@@ -30,19 +30,19 @@ type 'a t = 'a
 exception Exception_on_server of string
 (** This exception is raised (in Lwt) on the client if a call to a
     server function {% <<a_api subproject="server"|val
-    Eliom_client.server_function>> %} fails (in Lwt) on the server
+    Client.server_function>> %} fails (in Lwt) on the server
     side.
 
     The argument describes the original exception by
     {!Printexc.to_string}. *)
 
-(** Event handlers like {% <<a_api | Eliom_content.Html.F.a_onclick
+(** Event handlers like {% <<a_api | Content.Html.F.a_onclick
     >> %} may raise [False] to cancel the event (as if the JavaScript
     function returned [false]). *)
 
-(* Cannot re-export exception Eliom_lib.False,
+(* Cannot re-export exception Lib.False,
    cf. http://caml.inria.fr/mantis/view.php?id=5778 *)
-(* (\** See {% <<a_api subproject="client"|exception Eliom_lib.False>>
+(* (\** See {% <<a_api subproject="client"|exception Lib.False>>
    %}. *\) *)
 exception False
 

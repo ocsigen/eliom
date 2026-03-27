@@ -32,7 +32,7 @@ let map : (Obj.t,Obj.t) weakMap Js.t = jsnew weakMap ()
 *)
 
 open Js_of_ocaml
-open Eliom_lib
+open Lib
 
 module Mark : sig
   type t
@@ -84,11 +84,9 @@ external raw_unmarshal_and_unwrap :
   = "caml_unwrap_value_from_string"
 
 let unwrap s i =
-  if !Eliom_config.debug_timings
-  then Console.console##(time (Js.string "unwrap"));
+  if !Config.debug_timings then Console.console##(time (Js.string "unwrap"));
   let res = raw_unmarshal_and_unwrap apply_unwrapper s i in
-  if !Eliom_config.debug_timings
-  then Console.console##(timeEnd (Js.string "unwrap"));
+  if !Config.debug_timings then Console.console##(timeEnd (Js.string "unwrap"));
   res
 
 let unwrap_js s = unwrap (Js.to_bytestring s) 0

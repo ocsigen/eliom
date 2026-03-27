@@ -280,10 +280,10 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
       match si.Eliom_common.si_nonatt_info with
       | Eliom_common.RNa_no ->
           (* page generation *)
-          Eliom_route.get_page
+          Route.get_page
       | _ ->
           (* anonymous service *)
-          Eliom_route.make_naservice
+          Route.make_naservice
     in
     Lwt.catch
       (fun () ->
@@ -383,7 +383,7 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
     ; user_tab_cookies }
   in
   match is_eliom_extension with
-  | Some ext -> Eliom_extension.run_eliom_extension ext now info sitedata
+  | Some ext -> Extension.run_eliom_extension ext now info sitedata
   | None -> gen_aux info
 
 let gen is_eliom_extension sitedata =
