@@ -41,10 +41,10 @@ DIST_FILES = $(ELIOMSTATICDIR)/$(PROJECT_NAME).js $(LIBDIR)/$(PROJECT_NAME).cma
 
 test.byte:: byte | $(addprefix $(TEST_PREFIX),$(DIST_DIRS)) staticfiles
 	@echo "==== The website is available at http://localhost:$(TEST_PORT) ===="
-	dune exec ./$(PROJECT_NAME)_main.bc
+	dune exec ./$(PROJECT_NAME)_server.bc
 test.opt:: opt | $(addprefix $(TEST_PREFIX),$(DIST_DIRS)) staticfiles
 	@echo "==== The website is available at http://localhost:$(TEST_PORT) ===="
-	dune exec ./$(PROJECT_NAME)_main.exe
+	dune exec ./$(PROJECT_NAME)_server.exe
 
 test.static.byte: test.byte
 
@@ -120,11 +120,11 @@ ifeq ($(ENABLE_WASM),yes)
 endif
 
 byte:: js
-	$(ENV_PSQL) dune build $(DUNE_OPTIONS) $(PROJECT_NAME)_main.bc
+	$(ENV_PSQL) dune build $(DUNE_OPTIONS) $(PROJECT_NAME)_server.bc
 	make config-files PROJECT_NAME=$(PROJECT_NAME)
 
 opt:: js
-	$(ENV_PSQL) dune build $(DUNE_OPTIONS) $(PROJECT_NAME)_main.exe
+	$(ENV_PSQL) dune build $(DUNE_OPTIONS) $(PROJECT_NAME)_server.exe
 	make config-files PROJECT_NAME=$(PROJECT_NAME)
 
 run:
