@@ -1,0 +1,13 @@
+(library
+ (name eliom_compat_server)
+ (public_name eliom.compat.server)
+ (synopsis "Eliom: backward-compatible module names (server-side)")
+ (wrapped false)
+ (modules_without_implementation
+  eliom_content_sigs
+  eliom_form_sigs
+  eliom_parameter_sigs
+  eliom_registration_sigs
+  eliom_service_sigs
+  eliom_shared_sigs)
+ (libraries eliom.server))
