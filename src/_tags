@@ -1,4 +1,4 @@
-<{lib,tools,ocamlbuild}/**/*>:warn(+A-4-6-7@8-9@11@12-16@20@23@24@26@27@32..36-37@38-39-40@41-42@43-44@45-48-63-67@68-69-70)
+<{lib,tools,ocamlbuild}/**/*>:warn(+A-4-6-7@8-9@11@12-16@20@23@24@26@27@32-33@35-36-34-37@38-39-40@41-42@43-44@45-48-63-67@68-69-70)
 true:keep_locs
 <lib/**/{client,server}*>:linkall
 <ppx/ppx_eliom_{client,server,type}.cm{,x}a>:linkall
@@ -18,6 +18,7 @@ true:keep_locs
 <lib/server/*.ml{,i}>:package(react,lwt_react,js_of_ocaml)
 <lib/server/*.ml{,i}>:package(js_of_ocaml-ppx_deriving_json)
 <lib/server/*.ml{,i}>:package(xml-light)
+<lib/server/*.ml{,i}>:package(logs)
 
 <lib/*.eliom{,i}>:eliom_ppx
 
@@ -30,6 +31,7 @@ true:keep_locs
 <lib/client/*.ml{,i}>:package(js_of_ocaml.deriving)
 <lib/client/*.ml{,i}>:package(lwt_react,tyxml.functor,js_of_ocaml-tyxml,js_of_ocaml-lwt,js_of_ocaml-lwt.logger)
 <lib/client/*.ml{,i}>:package(react,js_of_ocaml,reactiveData)
+<lib/client/*.ml{,i}>:package(logs,logs.browser)
 
 <lib/client/*.ml{,i}>:package(js_of_ocaml-ppx_deriving_json)
 
@@ -56,4 +58,5 @@ true:keep_locs
 
 <**/api.wikidocdir/index.wiki>: apiref, wikidoc
 
-<lib/eliom_shared.eliom{,i}>:package(reactiveData)
+<lib/shared.eliom{,i}>:package(reactiveData)
+<lib/eliom_form.eliom{,i}>:package(reactiveData)

@@ -1,8 +1,8 @@
 {1 Client API}
 
 {!modules:
-Eliom_lib
-Eliom_client
+Lib
+Client
 Eliom_client_value
 }
 
@@ -18,11 +18,11 @@ Eliom_content.Xml
 {2 Client/server communication}
 
 {!modules:
-Eliom_service
-Eliom_shared
-Eliom_cscache
-Eliom_bus
-Eliom_comet
+Service
+Shared
+Cscache
+Bus
+Comet
 Eliom_react
 }
 
