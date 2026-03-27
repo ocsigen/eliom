@@ -50,3 +50,41 @@ val run :
     supports WebAssembly, with automatic fallback to JavaScript otherwise.
     If not specified, the global default is used
     (see {!Eliom_config.set_enable_wasm}), which is [false]. *)
+
+(** {1 Module aliases}
+
+    Modern-style access to Eliom modules.
+    Use [Eliom.Service] instead of [Eliom_service], etc.
+    The old [Eliom_xxx] names remain available for backward compatibility. *)
+
+module Bus = Bus
+module Client = Client
+module Comet = Comet
+module Config = Config
+module Content = Content
+module Cscache = Cscache
+module Extension = Extension
+module Form = Eliom_form
+module Lazy = Eliom_lazy
+module Lib = Lib
+module Mkreg = Mkreg
+module Notif = Notif
+module Parameter = Parameter
+module React = Eliom_react
+module Reference = Reference
+module Registration = Registration
+module Request_info = Request_info
+module Route = Route
+module Service = Service
+module Shared = Shared
+module Shared_content = Shared_content
+module State = State
+module Tools = Tools
+module Uri = Eliom_uri
+module Wrap = Wrap
+module Content_sigs = Content_sigs
+module Form_sigs = Form_sigs
+module Parameter_sigs = Parameter_sigs
+module Registration_sigs = Registration_sigs
+module Service_sigs = Service_sigs
+module Shared_sigs = Shared_sigs

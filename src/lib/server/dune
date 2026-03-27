@@ -4,12 +4,12 @@
  (synopsis "Eliom: server-side")
  (wrapped false)
  (modules_without_implementation
-  eliom_content_sigs
-  eliom_form_sigs
-  eliom_parameter_sigs
-  eliom_registration_sigs
-  eliom_service_sigs
-  eliom_shared_sigs)
+  content_sigs
+  form_sigs
+  parameter_sigs
+  registration_sigs
+  service_sigs
+  shared_sigs)
  (preprocess
   (pps js_of_ocaml-ppx_deriving_json))
  (flags
