@@ -1,1 +1,1 @@
-include Registration
+include Eliom.Registration

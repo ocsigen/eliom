@@ -1,3 +1,5 @@
+let is_internal = ref false
+
 module Parsetree = Ppxlib.Parsetree
 module Asttypes = Ppxlib.Asttypes
 module Longident = Ppxlib.Longident
@@ -40,6 +42,29 @@ let in_context cref c f x =
 let ( % ) f g x = f (g x)
 let exp_add_attrs attr e = {e with pexp_attributes = attr}
 let eid {Location.txt; loc} = Exp.ident ~loc {loc; txt = Longident.Lident txt}
+
+(** Build a Longident for an Eliom module path.
+    Without [-internal], prepends [Eliom.] to the path.
+    E.g. [eliom_lid "Eliom_syntax.client_value"] gives
+    [Eliom.Eliom_syntax.client_value] in user code. *)
+let eliom_lid path =
+  let lid = Longident.parse path in
+  if !is_internal
+  then lid
+  else
+    let rec prepend = function
+      | Longident.Lident s -> Longident.Ldot (Longident.Lident "Eliom", s)
+      | Longident.Ldot (p, s) -> Longident.Ldot (prepend p, s)
+      | Longident.Lapply (p1, p2) -> Longident.Lapply (prepend p1, p2)
+    in
+    prepend lid
+
+(** Build an expression referencing an Eliom module path. *)
+let eliom_expr ~loc path = Exp.ident ~loc {loc; txt = eliom_lid path}
+
+(** Build a type constructor referencing an Eliom module path. *)
+let eliom_type ~loc path args = Typ.constr ~loc {loc; txt = eliom_lid path} args
+
 let format_args = function [] -> unit () | [e] -> e | l -> Exp.tuple l
 let pat_args = function [] -> punit () | [p] -> p | l -> Pat.tuple l
 
@@ -217,7 +242,11 @@ module Mli = struct
 
   let get_fragment_type = function
     | [%type: [%t? typ] Eliom_client_value.fragment]
-    | [%type: [%t? typ] Eliom_client_value.t] ->
+    | [%type: [%t? typ] Eliom_client_value.t]
+    | [%type: [%t? typ] Eliom__.Eliom_client_value.fragment]
+    | [%type: [%t? typ] Eliom__.Eliom_client_value.t]
+    | [%type: [%t? typ] Eliom.Eliom_client_value.fragment]
+    | [%type: [%t? typ] Eliom.Eliom_client_value.t] ->
         Some typ
     | _ -> None
 
@@ -328,10 +357,18 @@ module Cmo = struct
   let rec ident_of_out_ident id =
     let open Outcometree in
     let open Longident in
+    let strip_wrapper lid =
+      (* When compiling Eliom itself (-internal), strip the Eliom. wrapper
+         prefix from type paths read from the server .cmo, since the client
+         modules are siblings in the same wrapped library. *)
+      if !is_internal
+      then match lid with Ldot (Lident "Eliom", nm) -> Lident nm | _ -> lid
+      else lid
+    in
     match id with
     | Oide_apply (id, id') ->
         Lapply (ident_of_out_ident id, ident_of_out_ident id')
-    | Oide_dot (id, nm) -> Ldot (ident_of_out_ident id, nm)
+    | Oide_dot (id, nm) -> Ldot (strip_wrapper (ident_of_out_ident id), nm)
     | Oide_ident {printed_name = nm} ->
         Lident
           (try String.sub nm 0 (String.index nm '/') with Not_found -> nm)
@@ -541,9 +578,13 @@ module Cmo = struct
   let find_injected_ident = find "injected ident"
 
   let find_fragment loc =
-    match Mli.get_fragment_type (find "client value" loc) with
+    let ty = find "client value" loc in
+    match Mli.get_fragment_type ty with
     | Some ty -> ty
-    | None -> assert false
+    | None ->
+        failwith
+          (Format.asprintf "find_fragment: unexpected type: %a"
+             Ppxlib.Pprintast.core_type ty)
 end
 
 (** Context convenience module. *)
@@ -580,7 +621,10 @@ let driver_args =
     , " Unset explicitly set path from which to load inferred types." )
   ; ( "-server-cmo"
     , Arg.String (fun file -> Cmo.file := Some file)
-    , "FILE Load inferred types from server cmo file FILE." ) ]
+    , "FILE Load inferred types from server cmo file FILE." )
+  ; ( "-internal"
+    , Arg.Set is_internal
+    , " Use short module names (for compiling Eliom itself)." ) ]
 
 let () =
   List.iter
@@ -754,11 +798,14 @@ module Shared = struct
   let expr loc ~unsafe expr =
     let server_expr = server expr in
     let client_expr = client expr in
+    let shared_create =
+      Exp.ident ~loc {loc; txt = eliom_lid "Shared.Value.create"}
+    in
     if unsafe
     then
       [%expr
-        Shared.Value.create [%e server_expr] [%client.unsafe [%e client_expr]]]
-    else [%expr Shared.Value.create [%e server_expr] [%client [%e client_expr]]]
+        [%e shared_create] [%e server_expr] [%client.unsafe [%e client_expr]]]
+    else [%expr [%e shared_create] [%e server_expr] [%client [%e client_expr]]]
 end
 
 module Make (Pass : Pass) = struct

@@ -26,6 +26,10 @@ val id_file_hash : Location.t -> string Location.loc
 
 val eid : string Location.loc -> expression
 val position : Location.t -> expression
+val is_internal : bool ref
+val eliom_lid : string -> Longident.t
+val eliom_expr : loc:Location.t -> string -> expression
+val eliom_type : loc:Location.t -> string -> core_type list -> core_type
 val format_args : expression list -> expression
 val pat_args : pattern list -> pattern
 

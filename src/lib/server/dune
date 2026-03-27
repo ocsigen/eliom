@@ -2,7 +2,8 @@
  (name eliom_server)
  (public_name eliom.server)
  (synopsis "Eliom: server-side")
- (wrapped false)
+ (wrapped
+  (module_name Eliom))
  (modules_without_implementation
   content_sigs
   form_sigs

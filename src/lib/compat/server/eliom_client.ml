@@ -1,1 +1,1 @@
-include Client
+include Eliom.Client

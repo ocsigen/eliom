@@ -7,27 +7,28 @@
 (rule (copy# ../config.client.ml config.ml))
 (rule (copy# ../config.client.mli config.mli))
 (rule (copy# ../content.client.mli content.mli))
-(rule (target content.ml) (deps ../content.eliom)
+(rule (target content.ml)
+ (deps ../content.eliom (file ../server/.eliom_server.objs/byte/eliom__Content.cmo))
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_client --as-pp -server-cmo %{cmo:../server/content} --impl %{deps})))))
+      (chdir .. (run ppx_eliom_client --as-pp -internal -server-cmo server/.eliom_server.objs/byte/eliom__Content.cmo --impl content.eliom)))))
 (rule (copy# ../content_sigs.shared.mli content_sigs.mli))
-(rule (target cscache.ml) (deps ../cscache.eliom)
+(rule (target cscache.ml)
+ (deps ../cscache.eliom (file ../server/.eliom_server.objs/byte/eliom__Cscache.cmo))
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_client --as-pp -server-cmo %{cmo:../server/cscache} --impl %{deps})))))
+      (chdir .. (run ppx_eliom_client --as-pp -internal -server-cmo server/.eliom_server.objs/byte/eliom__Cscache.cmo --impl cscache.eliom)))))
 (rule (target cscache.mli) (deps ../cscache.eliomi)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_client --as-pp --intf %{deps})))))
-(rule (copy# ../eliom.client.ml eliom.ml))
-(rule (copy# ../eliom.client.mli eliom.mli))
+      (chdir .. (run ppx_eliom_client --as-pp -internal --intf %{deps})))))
 (rule (copy# ../eliom_client_base.shared.ml eliom_client_base.ml))
 (rule (copy# ../eliom_client_core.client.ml eliom_client_core.ml))
-(rule (target eliom_client_main.ml) (deps ../eliom_client_main.eliom)
+(rule (target eliom_client_main.ml)
+ (deps ../eliom_client_main.eliom (file ../server/.eliom_server.objs/byte/eliom__Eliom_client_main.cmo))
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_client --as-pp -server-cmo %{cmo:../server/eliom_client_main} --impl %{deps})))))
+      (chdir .. (run ppx_eliom_client --as-pp -internal -server-cmo server/.eliom_server.objs/byte/eliom__Eliom_client_main.cmo --impl eliom_client_main.eliom)))))
 (rule (copy# ../eliom_client_value.client.ml eliom_client_value.ml))
 (rule (copy# ../eliom_client_value.client.mli eliom_client_value.mli))
 (rule (copy# ../eliom_comet_base.shared.ml eliom_comet_base.ml))
@@ -38,14 +39,15 @@
 (rule (copy# ../eliom_content_core.client.ml eliom_content_core.ml))
 (rule (copy# ../eliom_content_core.client.mli eliom_content_core.mli))
 (rule (copy# ../eliom_cookies_base.shared.ml eliom_cookies_base.ml))
-(rule (target eliom_form.ml) (deps ../eliom_form.eliom)
+(rule (target eliom_form.ml)
+ (deps ../eliom_form.eliom (file ../server/.eliom_server.objs/byte/eliom__Eliom_form.cmo))
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_client --as-pp -server-cmo %{cmo:../server/eliom_form} --impl %{deps})))))
+      (chdir .. (run ppx_eliom_client --as-pp -internal -server-cmo server/.eliom_server.objs/byte/eliom__Eliom_form.cmo --impl eliom_form.eliom)))))
 (rule (target eliom_form.mli) (deps ../eliom_form.eliomi)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_client --as-pp --intf %{deps})))))
+      (chdir .. (run ppx_eliom_client --as-pp -internal --intf %{deps})))))
 (rule (copy# ../eliom_lazy.client.ml eliom_lazy.ml))
 (rule (copy# ../eliom_lazy.client.mli eliom_lazy.mli))
 (rule (copy# ../eliom_lib_base.shared.ml eliom_lib_base.ml))
@@ -57,10 +59,11 @@
 (rule (copy# ../eliom_route_base.shared.ml eliom_route_base.ml))
 (rule (copy# ../eliom_runtime.shared.ml eliom_runtime.ml))
 (rule (copy# ../eliom_runtime.shared.mli eliom_runtime.mli))
-(rule (target eliom_service_base.ml) (deps ../eliom_service_base.eliom)
+(rule (target eliom_service_base.ml)
+ (deps ../eliom_service_base.eliom (file ../server/.eliom_server.objs/byte/eliom__Eliom_service_base.cmo))
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_client --as-pp -server-cmo %{cmo:../server/eliom_service_base} --impl %{deps})))))
+      (chdir .. (run ppx_eliom_client --as-pp -internal -server-cmo server/.eliom_server.objs/byte/eliom__Eliom_service_base.cmo --impl eliom_service_base.eliom)))))
 (rule (copy# ../eliom_types.client.ml eliom_types.ml))
 (rule (copy# ../eliom_types_base.shared.ml eliom_types_base.ml))
 (rule (copy# ../eliom_types_base.shared.mli eliom_types_base.mli))
@@ -84,27 +87,30 @@
 (rule (copy# ../service.client.mli service.mli))
 (rule (copy# ../service_sigs.shared.mli service_sigs.mli))
 (rule (copy# ../shared.client.mli shared.mli))
-(rule (target shared.ml) (deps ../shared.eliom)
+(rule (target shared.ml)
+ (deps ../shared.eliom (file ../server/.eliom_server.objs/byte/eliom__Shared.cmo))
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_client --as-pp -server-cmo %{cmo:../server/shared} --impl %{deps})))))
-(rule (target shared_content.ml) (deps ../shared_content.eliom)
+      (chdir .. (run ppx_eliom_client --as-pp -internal -server-cmo server/.eliom_server.objs/byte/eliom__Shared.cmo --impl shared.eliom)))))
+(rule (target shared_content.ml)
+ (deps ../shared_content.eliom (file ../server/.eliom_server.objs/byte/eliom__Shared_content.cmo))
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_client --as-pp -server-cmo %{cmo:../server/shared_content} --impl %{deps})))))
+      (chdir .. (run ppx_eliom_client --as-pp -internal -server-cmo server/.eliom_server.objs/byte/eliom__Shared_content.cmo --impl shared_content.eliom)))))
 (rule (target shared_content.mli) (deps ../shared_content.eliomi)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_client --as-pp --intf %{deps})))))
+      (chdir .. (run ppx_eliom_client --as-pp -internal --intf %{deps})))))
 (rule (copy# ../shared_sigs.shared.mli shared_sigs.mli))
-(rule (target tools.ml) (deps ../tools.eliom)
+(rule (target tools.ml)
+ (deps ../tools.eliom (file ../server/.eliom_server.objs/byte/eliom__Tools.cmo))
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_client --as-pp -server-cmo %{cmo:../server/tools} --impl %{deps})))))
+      (chdir .. (run ppx_eliom_client --as-pp -internal -server-cmo server/.eliom_server.objs/byte/eliom__Tools.cmo --impl tools.eliom)))))
 (rule (target tools.mli) (deps ../tools.eliomi)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_client --as-pp --intf %{deps})))))
+      (chdir .. (run ppx_eliom_client --as-pp -internal --intf %{deps})))))
 (rule (copy# ../unwrap.client.ml unwrap.ml))
 (rule (copy# ../unwrap.client.mli unwrap.mli))
 (rule (copy# ../wrap.client.mli wrap.mli))
