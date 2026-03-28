@@ -45,8 +45,8 @@ let eid {Location.txt; loc} = Exp.ident ~loc {loc; txt = Longident.Lident txt}
 
 (** Build a Longident for an Eliom module path.
     Without [-internal], prepends [Eliom.] to the path.
-    E.g. [eliom_lid "Eliom_syntax.client_value"] gives
-    [Eliom.Eliom_syntax.client_value] in user code. *)
+    E.g. [eliom_lid "Syntax.client_value"] gives
+    [Eliom.Syntax.client_value] in user code. *)
 let eliom_lid path =
   let lid = Longident.parse path in
   if !is_internal

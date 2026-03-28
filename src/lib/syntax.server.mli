@@ -24,7 +24,7 @@ val get_request_data : unit -> Eliom_runtime.request_data
 
 val client_value : ?pos:Lib.pos -> string -> 'args -> 'a Client_value.t
 (** Registers a client value datum for the next server section when
-    executed in a global_data (cf. {!Eliom_syntax.set_global}) or in
+    executed in a global_data (cf. {!Syntax.set_global}) or in
     the request_data when executed in a request. *)
 
 val set_global : bool -> unit
@@ -66,4 +66,4 @@ val close_client_section :
 
 val escaped_value : 'a -> Eliom_runtime.escaped_value
 (** Convert any value to a {! Eliom_runtime.escaped_value} for usage
-    in the [args] argument to {! Eliom_syntax.client_value}. *)
+    in the [args] argument to {! Syntax.client_value}. *)
