@@ -5,8 +5,8 @@ registration_sigs
 service_sigs
 shared_sigs
 bus
-eliom_client_value
-eliom_syntax
+client_value
+syntax
 client
 comet
 eliom_common

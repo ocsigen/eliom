@@ -1,6 +1,7 @@
 (data_only_dirs eliom-templates)
 
 (install
+ (package eliom)
  (section lib)
  (files
   (glob_files eliom-templates/app.exe/**)
