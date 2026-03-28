@@ -891,22 +891,22 @@ let init_client_app ~app_name ?(ssl = false) ~hostname ?(port = 80) ~site_dir ()
   Eliom_process.set_sitedata
     {Eliom_types.site_dir; site_dir_string = String.concat "/" site_dir};
   Eliom_process.set_info
-    { Eliom_common.cpi_ssl = ssl
+    { Common.cpi_ssl = ssl
     ; cpi_hostname = hostname
     ; cpi_server_port = port
     ; cpi_original_full_path = site_dir @ [""] };
   Eliom_process.set_request_template None;
   (* We set the tab cookie table, with the app name inside: *)
   Eliom_process.set_request_cookies
-    (Ocsigen_cookie_map.add ~path:[] Eliom_common.appl_name_cookie_name
+    (Ocsigen_cookie_map.add ~path:[] Common.appl_name_cookie_name
        (Ocsigen_cookie_map.OSet (None, app_name, false))
        Ocsigen_cookie_map.empty);
   ignore (get_global_data ())
 
-let is_client_app () = !Eliom_common.is_client_app
+let is_client_app () = !Common.is_client_app
 
 let _ =
-  Eliom_common.is_client_app :=
+  Common.is_client_app :=
     (* Testing if variable __eliom_appl_process_info exists: *)
     not (Js.Optdef.test Js.Unsafe.global##.___eliom_appl_process_info_foo)
 
@@ -1004,7 +1004,7 @@ let init () =
       let* () =
         Request_info.set_session_info
           ~uri:(String.concat "/" (Request_info.get_csp_original_full_path ()))
-          js_data.Eliom_common.ejs_sess_info
+          js_data.Common.ejs_sess_info
         @@ fun () -> Lwt.return_unit
       in
       (* Give the browser the chance to actually display the page NOW *)
@@ -1015,16 +1015,16 @@ let init () =
       let closure_nodeList, attrib_nodeList =
         relink_page_but_client_values root
       in
-      do_request_data js_data.Eliom_common.ejs_request_data;
+      do_request_data js_data.Common.ejs_request_data;
       (* XXX One should check that all values have been unwrapped.
             In fact, client values should be special and all other values
             should be eagerly unwrapped. *)
       let () =
-        relink_attribs root js_data.Eliom_common.ejs_client_attrib_table
+        relink_attribs root js_data.Common.ejs_client_attrib_table
           attrib_nodeList
       in
       let onload_closure_nodes =
-        relink_closure_nodes root js_data.Eliom_common.ejs_event_handler_table
+        relink_closure_nodes root js_data.Common.ejs_event_handler_table
           closure_nodeList
       in
       Client_core.reset_request_nodes ();
@@ -1448,7 +1448,7 @@ let stash_reload_function f =
 
 let change_url_string ~replace uri =
   Logs.debug ~src:section_page (fun fmt -> fmt "Change url string: %s" uri);
-  let full_uri = if !Eliom_common.is_client_app then uri else Url.resolve uri in
+  let full_uri = if !Common.is_client_app then uri else Url.resolve uri in
   set_current_uri full_uri;
   if Eliom_process.history_api
   then (
@@ -1461,7 +1461,7 @@ let change_url_string ~replace uri =
            (Js.string
               (to_json ~typ:[%json: saved_state] (this_page.page_id, full_uri))))
         (Js.string "")
-        (if !Eliom_common.is_client_app
+        (if !Common.is_client_app
          then Js.null
          else Js.Opt.return (Js.string uri)))
     else (
@@ -1472,7 +1472,7 @@ let change_url_string ~replace uri =
            (Js.string
               (to_json ~typ:[%json: saved_state] (this_page.page_id, full_uri))))
         (Js.string "")
-        (if !Eliom_common.is_client_app
+        (if !Common.is_client_app
          then Js.null
          else Js.Opt.return (Js.string uri)));
     Eliommod_dom.touch_base ())
@@ -1665,24 +1665,24 @@ let set_content ~replace ~uri ?offset ?fragment content =
         let closure_nodeList, attrib_nodeList =
           relink_page_but_client_values fake_page
         in
-        Request_info.set_session_info ~uri js_data.Eliom_common.ejs_sess_info
+        Request_info.set_session_info ~uri js_data.Common.ejs_sess_info
         @@ fun () ->
         (* Really change page contents *)
         replace_page ~do_insert_base:false fake_page;
         (* Initialize and provide client values. May need to access to
          new DOM. Necessary for relinking closure nodes *)
-        do_request_data js_data.Eliom_common.ejs_request_data;
+        do_request_data js_data.Common.ejs_request_data;
         (* Replace closure ids in document with event handlers
          (from client values) *)
         let () =
           relink_attribs
             Dom_html.document##.documentElement
-            js_data.Eliom_common.ejs_client_attrib_table attrib_nodeList
+            js_data.Common.ejs_client_attrib_table attrib_nodeList
         in
         let onload_closure_nodes =
           relink_closure_nodes
             Dom_html.document##.documentElement
-            js_data.Eliom_common.ejs_event_handler_table closure_nodeList
+            js_data.Common.ejs_event_handler_table closure_nodeList
         in
         (* The request node table must be empty when nodes received via
          call_ocaml_service are unwrapped. *)
@@ -1755,13 +1755,13 @@ let route ({Route.i_subpath; i_get_params; i_post_params; _} as info) =
     Route.call_service
       { info with
         Route.i_get_params =
-          Eliom_common.(remove_prefixed_param nl_param_prefix) i_get_params }
+          Common.(remove_prefixed_param nl_param_prefix) i_get_params }
   in
   Lwt.return (uri, result)
 
 let switch_to_https () =
   let info = Eliom_process.get_info () in
-  Eliom_process.set_info {info with Eliom_common.cpi_ssl = true}
+  Eliom_process.set_info {info with Common.cpi_ssl = true}
 
 let string_of_result result =
   match result with
@@ -1983,7 +1983,7 @@ and change_page_unknown
   and i_meth =
     match meth, i_post_params with
     | Some meth, _ ->
-        (meth : [`Get | `Post | `Put | `Delete] :> Eliom_common.meth)
+        (meth : [`Get | `Post | `Put | `Delete] :> Common.meth)
     | None, [] -> `Get
     | _, _ -> `Post
   in
@@ -2003,7 +2003,7 @@ and reload ~replace ~uri ~fallback =
 
 and reload_without_na_params ~replace ~uri ~fallback =
   let path, args = path_and_args_of_uri uri in
-  let args = Eliom_common.remove_na_prefix_params args in
+  let args = Common.remove_na_prefix_params args in
   Logs.debug ~src:section_page (fun fmt -> fmt "reload_without_na_params");
   Lwt.catch
     (fun () -> change_page_unknown ~replace path args [])
@@ -2342,7 +2342,7 @@ let () =
        call_ocaml_service ~absolute:true ~service ())
 
 let get_application_name = Eliom_process.get_application_name
-let set_client_html_file = Eliom_common.set_client_html_file
+let set_client_html_file = Common.set_client_html_file
 let middleClick = Client_core.middleClick
 
 type client_form_handler = Client_core.client_form_handler

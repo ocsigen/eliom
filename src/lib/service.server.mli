@@ -30,7 +30,7 @@ include Service_sigs.S
 val create :
    ?name:string
   -> ?csrf_safe:bool
-  -> ?csrf_scope:[< Eliom_common.user_scope]
+  -> ?csrf_scope:[< Common.user_scope]
   -> ?csrf_secure:bool
   -> ?max_use:int
   -> ?timeout:float
@@ -106,7 +106,7 @@ val create :
     {e Warning: [create] must be called when the site information is
     available, that is, either during a request or during the
     initialisation phase of the site.  Otherwise, it will raise the
-    exception {!Eliom_common.Eliom_site_information_not_available}.
+    exception {!Common.Eliom_site_information_not_available}.
     If you are using static linking, you must delay the call to this
     function until the configuration file is read, using
     {!Service.register_eliom_module}. Otherwise you will also
@@ -115,7 +115,7 @@ val create :
 val create_attached_get :
    ?name:string
   -> ?csrf_safe:bool
-  -> ?csrf_scope:[< Eliom_common.user_scope]
+  -> ?csrf_scope:[< Common.user_scope]
   -> ?csrf_secure:bool
   -> ?max_use:int
   -> ?timeout:float
@@ -159,7 +159,7 @@ val create_attached_get :
 val create_attached_post :
    ?name:string
   -> ?csrf_safe:bool
-  -> ?csrf_scope:[< Eliom_common.user_scope]
+  -> ?csrf_scope:[< Common.user_scope]
   -> ?csrf_secure:bool
   -> ?max_use:int
   -> ?timeout:float
@@ -222,7 +222,7 @@ val register_eliom_module : string -> (unit -> unit) -> unit
     replace the previous one. *)
 
 val unregister :
-   ?scope:[< Eliom_common.scope]
+   ?scope:[< Common.scope]
   -> ?secure:bool
   -> (_, _, _, _, _, non_ext, _, _, _, _, _) t
   -> unit
@@ -250,15 +250,15 @@ val untype :
   -> ('a, 'b, 'meth, 'attached, 'co, 'ext, 'd, 'e, 'f, 'g, 'return) t
 
 val set_delayed_get_or_na_registration_function :
-   Eliom_common.tables
+   Common.tables
   -> int
-  -> (sp:Eliom_common.server_params -> string)
+  -> (sp:Common.server_params -> string)
   -> unit
 
 val set_delayed_post_registration_function :
-   Eliom_common.tables
+   Common.tables
   -> int
-  -> (sp:Eliom_common.server_params -> Eliom_common.att_key_serv -> string)
+  -> (sp:Common.server_params -> Common.att_key_serv -> string)
   -> unit
 
 val set_send_appl_content :
@@ -273,7 +273,7 @@ val eliom_appl_answer_content_type : string
 val create_ocaml :
    ?name:string
   -> ?csrf_safe:bool
-  -> ?csrf_scope:[< Eliom_common.user_scope]
+  -> ?csrf_scope:[< Common.user_scope]
   -> ?csrf_secure:bool
   -> ?max_use:int
   -> ?timeout:float
@@ -288,7 +288,7 @@ val create_ocaml :
 val create_unsafe :
    ?name:string
   -> ?csrf_safe:bool
-  -> ?csrf_scope:[< Eliom_common.user_scope]
+  -> ?csrf_scope:[< Common.user_scope]
   -> ?csrf_secure:bool
   -> ?max_use:int
   -> ?timeout:float
@@ -303,7 +303,7 @@ val create_unsafe :
 val create_attached_get_unsafe :
    ?name:string
   -> ?csrf_safe:bool
-  -> ?csrf_scope:[< Eliom_common.user_scope]
+  -> ?csrf_scope:[< Common.user_scope]
   -> ?csrf_secure:bool
   -> ?max_use:int
   -> ?timeout:float
@@ -317,7 +317,7 @@ val create_attached_get_unsafe :
 val create_attached_post_unsafe :
    ?name:string
   -> ?csrf_safe:bool
-  -> ?csrf_scope:[< Eliom_common.user_scope]
+  -> ?csrf_scope:[< Common.user_scope]
   -> ?csrf_secure:bool
   -> ?max_use:int
   -> ?timeout:float

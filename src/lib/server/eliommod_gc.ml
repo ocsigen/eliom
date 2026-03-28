@@ -44,27 +44,27 @@ let gc_timeouted_services now tables =
     thr >>= fun () ->
     (* we wait for the previous one to be completed *)
     match !direltr with
-    | Eliom_common.Dir r ->
+    | Common.Dir r ->
         empty_one r >>= fun () ->
         (match !r with
-        | Eliom_common.Vide -> (
+        | Common.Vide -> (
           match !t with
-          | Eliom_common.Vide -> ()
-          | Eliom_common.Table tr ->
+          | Common.Vide -> ()
+          | Common.Table tr ->
               let newr = String.Table.remove filename tr in
               if String.Table.is_empty newr
-              then t := Eliom_common.Vide
-              else t := Eliom_common.Table newr)
+              then t := Common.Vide
+              else t := Common.Table newr)
         | _ -> ());
         Lwt.return_unit
-    | Eliom_common.File ptr ->
-        Eliom_common.Serv_Table.fold
+    | Common.File ptr ->
+        Common.Serv_Table.fold
           (*VVV not tail recursive: may be a problem if lots of coservices *)
           (fun ptk (`Ptc (nodeopt, l)) thr ->
              let* _ = thr in
              (* we wait for the previous one to be completed *)
              (match nodeopt, l with
-             | Some node, {Eliom_common.s_expire = Some (_, e); _} :: _
+             | Some node, {Common.s_expire = Some (_, e); _} :: _
              (* it is an anonymous coservice.  The list should
                        have length 1 here *)
                when !e < now ->
@@ -78,14 +78,14 @@ let gc_timeouted_services now tables =
                          (it's ok because the list is probably not large) *)
                try
                  let `Ptc (nodeopt, l), ll =
-                   ( Eliom_common.Serv_Table.find ptk !ptr
-                   , Eliom_common.Serv_Table.remove ptk !ptr )
+                   ( Common.Serv_Table.find ptk !ptr
+                   , Common.Serv_Table.remove ptk !ptr )
                  in
                  if nodeopt = None
                  then
                    match
                      List.fold_right
-                       (fun ({Eliom_common.s_expire; _} as a) foll ->
+                       (fun ({Common.s_expire; _} as a) foll ->
                           match s_expire with
                           | Some (_, e) when !e < now -> foll
                           | _ -> a :: foll)
@@ -94,60 +94,60 @@ let gc_timeouted_services now tables =
                    | [] -> ptr := ll
                    | newl ->
                        ptr :=
-                         Eliom_common.Serv_Table.add ptk
+                         Common.Serv_Table.add ptk
                            (`Ptc (nodeopt, newl))
                            ll
                with Not_found -> ()));
              Lwt.pause ())
           !ptr return_unit
         >>= fun () ->
-        (if Eliom_common.Serv_Table.is_empty !ptr
+        (if Common.Serv_Table.is_empty !ptr
          then
            match !t with
-           | Eliom_common.Vide -> ()
-           | Eliom_common.Table tr ->
+           | Common.Vide -> ()
+           | Common.Table tr ->
                let newr = String.Table.remove filename tr in
                if String.Table.is_empty newr
-               then t := Eliom_common.Vide
-               else t := Eliom_common.Table newr);
+               then t := Common.Vide
+               else t := Common.Table newr);
         Lwt.return_unit
   and empty_one t =
     match !t with
-    | Eliom_common.Vide -> Lwt.return_unit
-    | Eliom_common.Table r -> (
+    | Common.Vide -> Lwt.return_unit
+    | Common.Table r -> (
         if String.Table.is_empty r
         then (
-          t := Eliom_common.Vide;
+          t := Common.Vide;
           Lwt.return_unit)
         else
           String.Table.fold (aux t) r Lwt.return_unit >>= fun () ->
           match !t with
           (* !t has probably changed *)
-          | Eliom_common.Vide -> Lwt.return_unit
-          | Eliom_common.Table r ->
-              if String.Table.is_empty r then t := Eliom_common.Vide;
+          | Common.Vide -> Lwt.return_unit
+          | Common.Table r ->
+              if String.Table.is_empty r then t := Common.Vide;
               Lwt.return_unit)
   in
   Lwt_list.iter_s
     (fun (_, _prio, t) -> empty_one t)
-    tables.Eliom_common.table_services
+    tables.Common.table_services
   >>= fun () ->
-  tables.Eliom_common.table_services <-
+  tables.Common.table_services <-
     List.filter
-      (fun r -> !(Tuple3.thd r) <> Eliom_common.Vide)
-      tables.Eliom_common.table_services;
+      (fun r -> !(Tuple3.thd r) <> Common.Vide)
+      tables.Common.table_services;
   Lwt.return_unit
 
 let gc_timeouted_naservices now tr =
   match !tr with
-  | Eliom_common.AVide -> return_unit
-  | Eliom_common.ATable t ->
-      if Eliom_common.NAserv_Table.is_empty t
+  | Common.AVide -> return_unit
+  | Common.ATable t ->
+      if Common.NAserv_Table.is_empty t
       then (
-        tr := Eliom_common.AVide;
+        tr := Common.AVide;
         Lwt.return_unit)
       else
-        Eliom_common.NAserv_Table.fold
+        Common.NAserv_Table.fold
           (fun k (_, _, expdate, _, nodeopt) thr ->
              thr >>= fun () ->
              (match expdate with
@@ -156,35 +156,35 @@ let gc_timeouted_naservices now tr =
                | Some node ->
                    Ocsigen_cache.Dlist.remove node
                    (* will remove from the table automatically *)
-               | _ -> tr := Eliom_common.remove_naservice_table !tr k)
+               | _ -> tr := Common.remove_naservice_table !tr k)
              | _ -> ());
              Lwt.pause ())
           t return_unit
 
 (* This is a thread that will work for example every hour. *)
 let service_session_gc sitedata =
-  let tables = sitedata.Eliom_common.global_services in
+  let tables = sitedata.Common.global_services in
   match get_servicesessiongcfrequency () with
   | None -> () (* No garbage collection *)
   | Some t ->
       let rec f () =
         Lwt_unix.sleep t >>= fun () ->
-        let service_cookie_table = sitedata.Eliom_common.session_services in
+        let service_cookie_table = sitedata.Common.session_services in
         let now = Unix.time () in
         Logs.info ~src:section (fun fmt -> fmt "GC of service sessions");
         (* public continuation tables: *)
-        (if tables.Eliom_common.table_contains_services_with_timeout
+        (if tables.Common.table_contains_services_with_timeout
          then gc_timeouted_services now tables
          else return_unit)
         >>= fun () ->
-        (if tables.Eliom_common.table_contains_naservices_with_timeout
-         then gc_timeouted_naservices now tables.Eliom_common.table_naservices
+        (if tables.Common.table_contains_naservices_with_timeout
+         then gc_timeouted_naservices now tables.Common.table_naservices
          else return_unit)
         >>= fun () ->
         (* private continuation tables: *)
-        Eliom_common.SessionCookies.fold
+        Common.SessionCookies.fold
           (fun k
-            { Eliom_common.Service_cookie.session_table = tables
+            { Common.Service_cookie.session_table = tables
             ; expiry
             ; session_group
             ; session_group_node
@@ -196,15 +196,15 @@ let service_session_gc sitedata =
                    Eliommod_sessiongroups.Serv.remove session_group_node;
                    Lwt.return_unit
                | _ ->
-                   (if tables.Eliom_common.table_contains_services_with_timeout
+                   (if tables.Common.table_contains_services_with_timeout
                     then gc_timeouted_services now tables
                     else return_unit)
                    >>= fun () ->
                    (if
-                      tables.Eliom_common.table_contains_naservices_with_timeout
+                      tables.Common.table_contains_naservices_with_timeout
                     then
                       gc_timeouted_naservices now
-                        tables.Eliom_common.table_naservices
+                        tables.Common.table_naservices
                     else return_unit)
                    >>= fun () ->
                    (match !session_group with
@@ -212,12 +212,12 @@ let service_session_gc sitedata =
                    (* no group *)
                    (*VVV check this *)
                      when Eliommod_sessiongroups.Serv.group_size
-                            ( Eliom_common.get_site_dir_string sitedata
+                            ( Common.get_site_dir_string sitedata
                             , `Client_process
                             , Left k )
                           = 0
                           (* no tab sessions *)
-                          && Eliom_common.service_tables_are_empty tables ->
+                          && Common.service_tables_are_empty tables ->
                        (* The session is not used in any table
                    and is not in a group
                    (scope must be `Session,
@@ -240,16 +240,16 @@ let data_session_gc sitedata =
   | Some t ->
       let rec f () =
         Lwt_unix.sleep t >>= fun () ->
-        let data_cookie_table = sitedata.Eliom_common.session_data in
+        let data_cookie_table = sitedata.Common.session_data in
         let not_bound_in_data_tables =
-          sitedata.Eliom_common.not_bound_in_data_tables
+          sitedata.Common.not_bound_in_data_tables
         in
         let now = Unix.time () in
         Logs.info ~src:section (fun fmt -> fmt "GC of session data");
         (* private continuation tables: *)
-        Eliom_common.SessionCookies.fold
+        Common.SessionCookies.fold
           (fun k
-            { Eliom_common.Data_cookie.expiry
+            { Common.Data_cookie.expiry
             ; session_group
             ; session_group_node
             ; _ }
@@ -264,7 +264,7 @@ let data_session_gc sitedata =
                  | _, scope, Right _
                  (* no group *)
                    when Eliommod_sessiongroups.Data.group_size
-                          ( Eliom_common.get_site_dir_string sitedata
+                          ( Common.get_site_dir_string sitedata
                           , `Client_process
                           , Left k )
                         = 0
@@ -297,12 +297,12 @@ let data_session_gc sitedata =
 let persistent_session_gc sitedata =
   let gc () =
     let now = Unix.time () in
-    let log_hash c = Eliom_common.Hashed_cookies.(sha256 c) in
+    let log_hash c = Common.Hashed_cookies.(sha256 c) in
     let do_gc_cookie
           cookie
           {Eliommod_cookies.full_state_name; expiry; session_group; _}
       =
-      let scope = full_state_name.Eliom_common.user_scope in
+      let scope = full_state_name.Common.user_scope in
       match expiry with
       | Some exp when exp <= now ->
           Logs.info ~src:section (fun fmt ->

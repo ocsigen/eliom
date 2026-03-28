@@ -12,7 +12,7 @@ let%client create_ () =
 
 let%server create_ () =
   let c =
-    Reference.Volatile.eref_from_fun ~scope:Eliom_common.request_scope
+    Reference.Volatile.eref_from_fun ~scope:Common.request_scope
       (fun () -> Hashtbl.create 10)
   in
   fun () -> Reference.Volatile.get c

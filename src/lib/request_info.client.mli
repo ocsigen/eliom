@@ -78,29 +78,29 @@ type raw_post_data = unit
 
 val raw_post_data : unit -> _ Lwt.t
 val client_app_initialised : bool ref
-val get_request_data : unit -> Eliom_common.eliom_js_page_data
+val get_request_data : unit -> Common.eliom_js_page_data
 val get_request_cookies : unit -> Ocsigen_cookie_map.t
-val get_si : Eliom_common.server_params -> Eliom_common.sess_info
-val get_original_full_path_sp : Eliom_common.server_params -> Url.path
-val get_original_full_path_string_sp : Eliom_common.server_params -> string
-val get_csp_original_full_path_sp : Eliom_common.server_params -> Url.path
-val get_csp_hostname_sp : Eliom_common.server_params -> string
-val get_csp_server_port_sp : Eliom_common.server_params -> int
-val get_csp_ssl_sp : Eliom_common.server_params -> bool
+val get_si : Common.server_params -> Common.sess_info
+val get_original_full_path_sp : Common.server_params -> Url.path
+val get_original_full_path_string_sp : Common.server_params -> string
+val get_csp_original_full_path_sp : Common.server_params -> Url.path
+val get_csp_hostname_sp : Common.server_params -> string
+val get_csp_server_port_sp : Common.server_params -> int
+val get_csp_ssl_sp : Common.server_params -> bool
 
 val get_nl_get_params_sp :
-   Eliom_common.server_params
+   Common.server_params
   -> (string * string) list String.Table.t
 
 val get_persistent_nl_get_params_sp :
-   Eliom_common.server_params
+   Common.server_params
   -> (string * string) list String.Table.t
 
-val get_sess_info : unit -> Eliom_common.sess_info
+val get_sess_info : unit -> Common.sess_info
 
 val set_session_info :
    uri:string
-  -> Eliom_common.sess_info
+  -> Common.sess_info
   -> (unit -> 'a Lwt.t)
   -> 'a Lwt.t
 

@@ -787,7 +787,7 @@ let register ?(wake = true) (wrapped_chan : 'a Ecb.wrapped_channel) =
 let internal_unwrap (wrapped_chan, _unwrapper) = register wrapped_chan
 
 let () =
-  Unwrap.register_unwrapper Eliom_common.comet_channel_unwrap_id internal_unwrap
+  Unwrap.register_unwrapper Common.comet_channel_unwrap_id internal_unwrap
 
 let is_active () =
   (*VVV Check. Isn't it the contrary? (fold from `Inactive?) *)

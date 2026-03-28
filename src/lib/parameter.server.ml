@@ -34,7 +34,7 @@ let user_type
   =
   TUserType
     ( n
-    , Eliom_common.To_and_of_shared.create ?client_to_and_of
+    , Common.To_and_of_shared.create ?client_to_and_of
         {of_string; to_string} )
 
 let all_suffix_user
@@ -45,7 +45,7 @@ let all_suffix_user
   =
   TESuffixu
     ( n
-    , Eliom_common.To_and_of_shared.create ?client_to_and_of
+    , Common.To_and_of_shared.create ?client_to_and_of
         {of_string; to_string} )
 
 (* types available only on server side (no pcre on browser) *)
@@ -96,7 +96,7 @@ let get_non_localized_parameters
     (* first, look in cache: *)
     Polytables.get
       ~table:
-        (Ocsigen_request.request_cache sp.Eliom_common.sp_request.request_info)
+        (Ocsigen_request.request_cache sp.Common.sp_request.request_info)
       ~key
   with Not_found ->
     let p =
@@ -109,23 +109,23 @@ let get_non_localized_parameters
              try String.Table.find name files with Not_found -> []
            in
            reconstruct_params_ paramtype params files false None)
-      with Eliom_common.Eliom_Wrong_parameter | Not_found -> None
+      with Common.Eliom_Wrong_parameter | Not_found -> None
     in
     (* add in cache: *)
     Polytables.set
       ~table:
-        (Ocsigen_request.request_cache sp.Eliom_common.sp_request.request_info)
+        (Ocsigen_request.request_cache sp.Common.sp_request.request_info)
       ~key ~value:p;
     p
 
 let get_non_localized_get_parameters p =
-  let sp = Eliom_common.get_sp () in
+  let sp = Common.get_sp () in
   get_non_localized_parameters
-    sp.Eliom_common.sp_si.Eliom_common.si_nl_get_params
-    sp.Eliom_common.sp_si.Eliom_common.si_nl_file_params ~getorpost:`Get ~sp p
+    sp.Common.sp_si.Common.si_nl_get_params
+    sp.Common.sp_si.Common.si_nl_file_params ~getorpost:`Get ~sp p
 
 let get_non_localized_post_parameters p =
-  let sp = Eliom_common.get_sp () in
+  let sp = Common.get_sp () in
   get_non_localized_parameters
-    sp.Eliom_common.sp_si.Eliom_common.si_nl_post_params
-    sp.Eliom_common.sp_si.Eliom_common.si_nl_file_params ~getorpost:`Post ~sp p
+    sp.Common.sp_si.Common.si_nl_post_params
+    sp.Common.sp_si.Common.si_nl_file_params ~getorpost:`Post ~sp p

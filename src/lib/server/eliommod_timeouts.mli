@@ -20,51 +20,51 @@
 type kind = [`Service | `Data | `Persistent]
 
 val set_default :
-   ?scope_hierarchy:Eliom_common.scope_hierarchy
+   ?scope_hierarchy:Common.scope_hierarchy
   -> [< kind]
-  -> [< Eliom_common.cookie_level]
+  -> [< Common.cookie_level]
   -> float option
   -> unit
 
 val find_global :
    [< kind]
-  -> Eliom_common.full_state_name
-  -> Eliom_common.sitedata
+  -> Common.full_state_name
+  -> Common.sitedata
   -> float option
 
 val get_global :
    kind:[< kind]
-  -> cookie_scope:[< Eliom_common.cookie_scope]
+  -> cookie_scope:[< Common.cookie_scope]
   -> secure:bool
-  -> Eliom_common.sitedata
+  -> Common.sitedata
   -> float option
 
 val set_global :
    kind:[< kind]
-  -> cookie_scope:[< Eliom_common.cookie_scope]
+  -> cookie_scope:[< Common.cookie_scope]
   -> secure:bool
   -> recompute_expdates:bool
   -> bool
-  -> Eliom_common.sitedata
+  -> Common.sitedata
   -> float option
   -> unit
 
 val set_global_ :
-   ?full_st_name:Eliom_common.full_state_name
-  -> ?cookie_level:[< Eliom_common.cookie_level]
+   ?full_st_name:Common.full_state_name
+  -> ?cookie_level:[< Common.cookie_level]
   -> kind:[< kind]
   -> recompute_expdates:bool
   -> bool
   -> bool
-  -> Eliom_common.sitedata
+  -> Common.sitedata
   -> float option
   -> unit
 
 val set_default_global :
    [< kind]
-  -> [< Eliom_common.cookie_level]
+  -> [< Common.cookie_level]
   -> bool
   -> bool
-  -> Eliom_common.sitedata
+  -> Common.sitedata
   -> float option
   -> unit

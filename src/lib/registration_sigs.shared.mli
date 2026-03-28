@@ -84,7 +84,7 @@ module type S = sig
 
   val register :
      ?app:string
-    -> ?scope:[< Eliom_common.scope]
+    -> ?scope:[< Common.scope]
     -> ?options:options
     -> ?charset:string
     -> ?code:int
@@ -112,7 +112,7 @@ module type S = sig
       two parameters, the GET and POST parameters of the current HTTP
       request, and should return the corresponding page.
 
-      The optional parameter [~scope] is {!Eliom_common.global_scope}
+      The optional parameter [~scope] is {!Common.global_scope}
       by default. See the Eliom manual for detailed description {%
       <<a_manual chapter="server-services" fragment="scope"|of
       different scopes>>%}.
@@ -125,7 +125,7 @@ module type S = sig
       Eliom. Use this with care.
 
       The optional parameter [~secure_session] has no effect for scope
-      {!Eliom_common.global_scope}. With other scopes, the parameter
+      {!Common.global_scope}. With other scopes, the parameter
       is used to force the session service table in which the
       [handler] will be registered. By default, the service is
       registered in the non-secure session if the current request's
@@ -138,7 +138,7 @@ module type S = sig
       The optional parameter [~error_handler] is used to specialize
       the error page when actual parameters aren't compatible with the
       expected type. The default error handler is [ fun l -> raise
-      (]{!Eliom_common.Eliom_Typing_Error}[ l) ]. *)
+      (]{!Common.Eliom_Typing_Error}[ l) ]. *)
 
   val send :
      ?options:options
@@ -159,7 +159,7 @@ module type S_with_create = sig
 
   val create :
      ?app:string
-    -> ?scope:[< Eliom_common.scope]
+    -> ?scope:[< Common.scope]
     -> ?options:options
     -> ?charset:string
     -> ?code:int
@@ -169,7 +169,7 @@ module type S_with_create = sig
     -> ?https:bool
     -> ?name:string
     -> ?csrf_safe:bool
-    -> ?csrf_scope:[< Eliom_common.user_scope]
+    -> ?csrf_scope:[< Common.user_scope]
     -> ?csrf_secure:bool
     -> ?max_use:int
     -> ?timeout:float
@@ -196,7 +196,7 @@ module type S_with_create = sig
 
   val create_attached_get :
      ?app:string
-    -> ?scope:[< Eliom_common.scope]
+    -> ?scope:[< Common.scope]
     -> ?options:options
     -> ?charset:string
     -> ?code:int
@@ -206,7 +206,7 @@ module type S_with_create = sig
     -> ?https:bool
     -> ?name:string
     -> ?csrf_safe:bool
-    -> ?csrf_scope:[< Eliom_common.user_scope]
+    -> ?csrf_scope:[< Common.user_scope]
     -> ?csrf_secure:bool
     -> ?max_use:int
     -> ?timeout:float
@@ -245,7 +245,7 @@ module type S_with_create = sig
 
   val create_attached_post :
      ?app:string
-    -> ?scope:[< Eliom_common.scope]
+    -> ?scope:[< Common.scope]
     -> ?options:options
     -> ?charset:string
     -> ?code:int
@@ -255,7 +255,7 @@ module type S_with_create = sig
     -> ?https:bool
     -> ?name:string
     -> ?csrf_safe:bool
-    -> ?csrf_scope:[< Eliom_common.user_scope]
+    -> ?csrf_scope:[< Common.user_scope]
     -> ?csrf_secure:bool
     -> ?max_use:int
     -> ?timeout:float
@@ -300,7 +300,7 @@ module type S_poly = sig
 
   val register :
      ?app:string
-    -> ?scope:[< Eliom_common.scope]
+    -> ?scope:[< Common.scope]
     -> ?options:options
     -> ?charset:string
     -> ?code:int
@@ -331,7 +331,7 @@ module type S_poly_with_create = sig
 
   val create :
      ?app:string
-    -> ?scope:[< Eliom_common.scope]
+    -> ?scope:[< Common.scope]
     -> ?options:options
     -> ?charset:string
     -> ?code:int
@@ -341,7 +341,7 @@ module type S_poly_with_create = sig
     -> ?https:bool
     -> ?name:string
     -> ?csrf_safe:bool
-    -> ?csrf_scope:[< Eliom_common.user_scope]
+    -> ?csrf_scope:[< Common.user_scope]
     -> ?csrf_secure:bool
     -> ?max_use:int
     -> ?timeout:float
@@ -365,7 +365,7 @@ module type S_poly_with_create = sig
 
   val create_attached_get :
      ?app:string
-    -> ?scope:[< Eliom_common.scope]
+    -> ?scope:[< Common.scope]
     -> ?options:options
     -> ?charset:string
     -> ?code:int
@@ -375,7 +375,7 @@ module type S_poly_with_create = sig
     -> ?https:bool
     -> ?name:string
     -> ?csrf_safe:bool
-    -> ?csrf_scope:[< Eliom_common.user_scope]
+    -> ?csrf_scope:[< Common.user_scope]
     -> ?csrf_secure:bool
     -> ?max_use:int
     -> ?timeout:float
@@ -411,7 +411,7 @@ module type S_poly_with_create = sig
 
   val create_attached_post :
      ?app:string
-    -> ?scope:[< Eliom_common.scope]
+    -> ?scope:[< Common.scope]
     -> ?options:options
     -> ?charset:string
     -> ?code:int
@@ -421,7 +421,7 @@ module type S_poly_with_create = sig
     -> ?https:bool
     -> ?name:string
     -> ?csrf_safe:bool
-    -> ?csrf_scope:[< Eliom_common.user_scope]
+    -> ?csrf_scope:[< Common.user_scope]
     -> ?csrf_secure:bool
     -> ?max_use:int
     -> ?timeout:float

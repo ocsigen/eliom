@@ -66,13 +66,13 @@ type att =
   ; (* full path of the service = site_dir@subpath.
        None means the service has been created before site_dir is known.
        In that case, the initialisation is deferred.  *)
-    get_name : Eliom_common.att_key_serv
-  ; post_name : Eliom_common.att_key_serv
+    get_name : Common.att_key_serv
+  ; post_name : Common.att_key_serv
   ; redirect_suffix : bool
   ; priority : int }
 
 type non_att =
-  { na_name : Eliom_common.na_key_serv
+  { na_name : Common.na_key_serv
   ; keep_get_na_params : bool
     (* bool is used only for post and means "keep_get_na_params": do we
      keep GET non-attached parameters in links (if any) (31/12/2007 -
@@ -152,7 +152,7 @@ type ('get
   ; mutable reload_fun : reload_fun
   ; service_mark :
       (unit, unit, 'meth, 'attached, 'co, 'ext, 'reg, suff, unit, unit, unit) t
-        Eliom_common.wrapper }
+        Common.wrapper }
   constraint 'tipo = [< suff]
 
 and result =
@@ -167,7 +167,7 @@ let pre_wrap s =
   { s with
     get_params_type = Parameter.wrap_param_type s.get_params_type
   ; post_params_type = Parameter.wrap_param_type s.post_params_type
-  ; service_mark = Eliom_common.empty_wrapper () }
+  ; service_mark = Common.empty_wrapper () }
 
 type%shared unit_service =
   ( unit
@@ -183,7 +183,7 @@ type%shared unit_service =
     , non_ocaml )
     t
 
-let service_mark () = Eliom_common.make_wrapper pre_wrap
+let service_mark () = Common.make_wrapper pre_wrap
 let info {info; _} = info
 let pre_applied_parameters s = s.pre_applied_parameters
 let get_params_type s = s.get_params_type
@@ -195,7 +195,7 @@ let redirect_suffix s = s.redirect_suffix
 let full_path s =
   match !(s.fullpath) with
   | None ->
-      raise (Eliom_common.Eliom_site_information_not_available "full_path")
+      raise (Common.Eliom_site_information_not_available "full_path")
   | Some a -> a
 
 let get_name s = s.get_name
@@ -227,7 +227,7 @@ let static_dir_ ?(https = false) () =
   { pre_applied_parameters = Lib.String.Table.empty, []
   ; get_params_type =
       Parameter.suffix
-        (Parameter.all_suffix Eliom_common.eliom_suffix_name)
+        (Parameter.all_suffix Common.eliom_suffix_name)
   ; post_params_type = Parameter.unit
   ; max_use = None
   ; timeout = None
@@ -238,11 +238,11 @@ let static_dir_ ?(https = false) () =
         { prefix = ""
         ; subpath = [""]
         ; fullpath =
-            Eliom_common.defer Request_info.get_site_dir_option
+            Common.defer Request_info.get_site_dir_option
               (fun site_dir ->
-                 site_dir @ [Eliom_common.eliom_suffix_internal_name])
-        ; get_name = Eliom_common.SAtt_no
-        ; post_name = Eliom_common.SAtt_no
+                 site_dir @ [Common.eliom_suffix_internal_name])
+        ; get_name = Common.SAtt_no
+        ; post_name = Common.SAtt_no
         ; redirect_suffix = true
         ; priority = default_priority }
   ; https
@@ -261,7 +261,7 @@ let get_static_dir_ ?(https = false) ?(keep_nl_params = `None) ~get_params () =
   { pre_applied_parameters = Lib.String.Table.empty, []
   ; get_params_type =
       Parameter.suffix_prod
-        (Parameter.all_suffix Eliom_common.eliom_suffix_name)
+        (Parameter.all_suffix Common.eliom_suffix_name)
         get_params
   ; post_params_type = Parameter.unit
   ; max_use = None
@@ -273,11 +273,11 @@ let get_static_dir_ ?(https = false) ?(keep_nl_params = `None) ~get_params () =
         { prefix = ""
         ; subpath = [""]
         ; fullpath =
-            Eliom_common.defer Request_info.get_site_dir_option
+            Common.defer Request_info.get_site_dir_option
               (fun site_dir ->
-                 site_dir @ [Eliom_common.eliom_suffix_internal_name])
-        ; get_name = Eliom_common.SAtt_no
-        ; post_name = Eliom_common.SAtt_no
+                 site_dir @ [Common.eliom_suffix_internal_name])
+        ; get_name = Common.SAtt_no
+        ; post_name = Common.SAtt_no
         ; redirect_suffix = true
         ; priority = default_priority }
   ; https
@@ -328,7 +328,7 @@ let preapply ~service getparams =
                 | Some suff -> append_suffix k.subpath suff
                 | _ -> k.subpath)
             ; fullpath =
-                Eliom_common.defer
+                Common.defer
                   (fun () -> !(k.fullpath))
                   (fun fp ->
                      match suff with
@@ -352,7 +352,7 @@ let reload_action_aux https =
   ; meth = Get'
   ; info =
       Nonattached
-        {na_name = Eliom_common.SNa_void_dontkeep; keep_get_na_params = true}
+        {na_name = Common.SNa_void_dontkeep; keep_get_na_params = true}
   ; https
   ; keep_nl_params = `All
   ; service_mark = service_mark ()
@@ -373,7 +373,7 @@ let reload_action_hidden_aux https =
   ; meth = Get'
   ; info =
       Nonattached
-        {na_name = Eliom_common.SNa_void_keep; keep_get_na_params = true} }
+        {na_name = Common.SNa_void_keep; keep_get_na_params = true} }
 
 let reload_action_hidden = reload_action_hidden_aux false
 let reload_action_https_hidden = reload_action_hidden_aux true
@@ -452,10 +452,10 @@ let new_state () =
 
 let default_csrf_scope = function
   (* We do not use the classical syntax for default value. Otherwise,
-     the type for csrf_scope was: [< Eliom_common.user_scope >
+     the type for csrf_scope was: [< Common.user_scope >
      `Session] *)
   | None -> `Session Eliom_common_base.Default_ref_hier
-  | Some c -> (c :> Eliom_common.user_scope)
+  | Some c -> (c :> Common.user_scope)
 
 exception Unreachable_exn
 
@@ -503,10 +503,10 @@ let main_service
             (match force_site_dir with
             | Some site_dir -> ref (Some (site_dir @ path))
             | None ->
-                Eliom_common.defer Request_info.get_site_dir_option
+                Common.defer Request_info.get_site_dir_option
                   (fun site_dir -> site_dir @ path))
-        ; get_name = Eliom_common.SAtt_no
-        ; post_name = Eliom_common.SAtt_no
+        ; get_name = Common.SAtt_no
+        ; post_name = Common.SAtt_no
         ; redirect_suffix
         ; priority }
   ; https
@@ -526,7 +526,7 @@ let extern ?keep_nl_params ~prefix ~path ~meth () =
       (Url.remove_internal_slash
          (match suffix with
          | None -> path
-         | _ -> path @ [Eliom_common.eliom_suffix_internal_name]))
+         | _ -> path @ [Common.eliom_suffix_internal_name]))
     ~force_site_dir:[] ~kind:`External ~meth ?keep_nl_params
     ~redirect_suffix:false ~get_params ~post_params ~reload_fun:Rf_keep ()
 
