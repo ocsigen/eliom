@@ -30,7 +30,7 @@ module Pass = struct
     let add ~fragment ~unsafe loc id =
       let typ =
         if fragment
-        then eliom_type ~loc "Eliom_client_value.t" [[%type: _]]
+        then eliom_type ~loc "Client_value.t" [[%type: _]]
         else [%type: _]
       in
       typing_strs :=
@@ -215,7 +215,7 @@ module Pass = struct
           [%expr
             ([%e eliom_expr ~loc "Eliom_syntax.client_value"]
                ~pos:[%e position loc] [%e str num] [%e e]
-             : [%t eliom_type ~loc "Eliom_client_value.t" [typ]])]]]
+             : [%t eliom_type ~loc "Client_value.t" [typ]])]]]
 
   let escape_inject
         ~loc

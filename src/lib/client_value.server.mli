@@ -29,7 +29,7 @@ type +'a t
     manual>> %}).  They are abstract, but become concrete once sent to
     the client. See also {% <<a_api subproject="client" text="the
     concrete representation on the client" |type
-    Eliom_client_value.t>> %}. *)
+    Client_value.t>> %}. *)
 
 exception Client_value_creation_invalid_context of string
 (** Raised if a client value of the given closure ID is created at a

@@ -150,7 +150,7 @@ let do_request_data request_data =
      only eliom files. *)
   check_global_data !Eliom_client_core.global_data;
   Eliom_client_core.global_data := String_map.empty;
-  Array.iter Eliom_client_core.Client_value.initialize request_data
+  Array.iter Eliom_client_core.Client_value_registry.initialize request_data
 
 (* == Relink
 
@@ -518,7 +518,7 @@ let unwrap_tyxml tmp_elt =
   elt
 
 let unwrap_client_value cv =
-  Eliom_client_core.Client_value.find
+  Eliom_client_core.Client_value_registry.find
     ~instance_id:(Eliom_runtime.Client_value_server_repr.instance_id cv)
 (* BB By returning [None] this value will be registered for late
      unwrapping, and late unwrapped in Client_value.initialize as
@@ -1315,7 +1315,7 @@ let call_ocaml_service
   run_callbacks load_callbacks;
   match content with
   | `Success result -> Lwt.return result
-  | `Failure msg -> Lwt.fail (Eliom_client_value.Exception_on_server msg)
+  | `Failure msg -> Lwt.fail (Client_value.Exception_on_server msg)
 
 (* == Current uri.
 

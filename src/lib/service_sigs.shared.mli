@@ -423,7 +423,7 @@ module type S = sig
 
   val client_fun :
      ('a, 'b, _, _, _, _, _, _, _, _, _) t
-    -> ('a -> 'b -> result Lwt.t) Eliom_client_value.t option
+    -> ('a -> 'b -> result Lwt.t) Client_value.t option
 
   val has_client_fun : (_, _, _, _, _, _, _, _, _, _, _) t -> bool
 
@@ -480,6 +480,6 @@ module type S = sig
 
   val internal_set_client_fun :
      service:('a, 'b, _, _, _, _, _, _, _, _, _) t
-    -> ('a -> 'b -> result Lwt.t) Eliom_client_value.t
+    -> ('a -> 'b -> result Lwt.t) Client_value.t
     -> unit
 end

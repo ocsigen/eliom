@@ -23,7 +23,7 @@ open Js_of_ocaml
 
 (** Server representation of client values.
     Developer-visible functions should always operate on
-    {% <<a_api subproject="server" | type Eliom_client_value.t >> %}.
+    {% <<a_api subproject="server" | type Client_value.t >> %}.
 *)
 module Client_value_server_repr : sig
   type +'a t
@@ -117,7 +117,7 @@ module RawXML : sig
     | RALazyStrL of separator * string Eliom_lazy.request list
     | RAClient of string * attrib option * Ocsigen_lib_base.poly
 
-  (* attrib Eliom_client_value.t *)
+  (* attrib Client_value.t *)
   and attrib = aname * racontent
 
   val aname : attrib -> aname

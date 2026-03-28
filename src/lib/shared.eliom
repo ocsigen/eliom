@@ -44,7 +44,7 @@ end]
 module Value = struct
   type +'a t =
     { sh_server : 'a
-    ; sh_client : 'a Eliom_client_value.t
+    ; sh_client : 'a Client_value.t
     ; sh_mark : 'a t Wrap.wrapper }
   [@@warning "-69"]
 
