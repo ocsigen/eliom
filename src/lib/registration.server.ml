@@ -644,7 +644,7 @@ module Ocaml = struct
 
   let prepare_data data =
     let ecs_request_data =
-      let data = Eliom_syntax.get_request_data () in
+      let data = Syntax.get_request_data () in
       if not (Ocsigen_config.get_debugmode ())
       then
         Array.iter
@@ -830,7 +830,7 @@ let global_data_unwrapper =
   Wrap.create_unwrapper (Wrap.id_of_int Eliom_runtime.global_data_unwrap_id_int)
 
 let get_global_data ~keep_debug =
-  let data = Eliom_syntax.get_global_data () in
+  let data = Syntax.get_global_data () in
   let data =
     if keep_debug
     then data
@@ -1010,7 +1010,7 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
       else None
     in
     let ejs_request_data =
-      let data = Eliom_syntax.get_request_data () in
+      let data = Syntax.get_request_data () in
       if not keep_debug
       then
         Array.iter

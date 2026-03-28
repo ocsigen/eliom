@@ -70,7 +70,7 @@ module Pass = struct
       let aux (loc, id, arg, unsafe) =
         push_nongen_str_item ~fragment:false ~unsafe loc id;
         [%expr
-          [%e eliom_expr ~loc "Eliom_syntax.escaped_value"]
+          [%e eliom_expr ~loc "Syntax.escaped_value"]
             [%e
               let loc = one_char_location loc in
               [%expr [%e eid id] [%e arg]]]]
@@ -130,7 +130,7 @@ module Pass = struct
   let close_server_section loc =
     [%stri
     let () =
-      [%e eliom_expr ~loc "Eliom_syntax.close_server_section"]
+      [%e eliom_expr ~loc "Syntax.close_server_section"]
         [%e eid @@ id_file_hash loc]]
 
   let may_close_server_section ~no_fragment loc =
@@ -154,7 +154,7 @@ module Pass = struct
            push_nongen_str_item ~fragment:false ~unsafe loc f_id;
            [%expr
              ( [%e int num]
-             , [%e eliom_expr ~loc "Eliom_syntax.to_poly"]
+             , [%e eliom_expr ~loc "Syntax.to_poly"]
                  [%e
                    let loc = one_char_location loc0 in
                    [%expr [%e eid f_id] [%e frag_eid]]]
@@ -165,7 +165,7 @@ module Pass = struct
     in
     [%stri
     let () =
-      [%e eliom_expr ~loc "Eliom_syntax.close_client_section"]
+      [%e eliom_expr ~loc "Syntax.close_client_section"]
         [%e eid @@ id_file_hash loc]
         [%e injection_list]]
 
@@ -213,7 +213,7 @@ module Pass = struct
         [%e
           let loc = one_char_location loc in
           [%expr
-            ([%e eliom_expr ~loc "Eliom_syntax.client_value"]
+            ([%e eliom_expr ~loc "Syntax.client_value"]
                ~pos:[%e position loc] [%e str num] [%e e]
              : [%t eliom_type ~loc "Client_value.t" [typ]])]]]
 
@@ -239,7 +239,7 @@ module Pass = struct
         {loc; txt = Longident.Lident (if b then "true" else "false")}
         None
     in
-    [%stri let () = [%e eliom_expr ~loc "Eliom_syntax.set_global"] [%e b]]
+    [%stri let () = [%e eliom_expr ~loc "Syntax.set_global"] [%e b]]
 
   let prelude loc = [set_global ~loc true]
   let postlude loc = [set_global ~loc false]

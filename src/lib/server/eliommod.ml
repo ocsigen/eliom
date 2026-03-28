@@ -742,9 +742,9 @@ let site_init firstmodule =
   if !firstmodule
   then (
     (* I want to be able to define global client values during that phase: *)
-    Eliom_syntax.set_global true;
+    Syntax.set_global true;
     List.iter (fun f -> f ()) !site_init_ref;
-    Eliom_syntax.set_global false;
+    Syntax.set_global false;
     firstmodule := false)
 
 let load_eliom_module _sitedata cmo_or_name parent_tag content =

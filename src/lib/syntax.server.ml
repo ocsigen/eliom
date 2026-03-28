@@ -136,5 +136,6 @@ let client_value ?pos closure_id args =
   register_client_value_data ~closure_id ~args:(Lib.to_poly args) ~value;
   Client_value.client_value_from_server_repr value
 
+let to_poly = Lib.to_poly
 let set_global b = is_global := b
 let global_context () = !is_global

@@ -62,8 +62,6 @@
   (action
     (with-stdout-to %{target}
       (chdir .. (run ppx_eliom_server --as-pp -internal --impl %{deps})))))
-(rule (copy# ../eliom_syntax.server.ml eliom_syntax.ml))
-(rule (copy# ../eliom_syntax.server.mli eliom_syntax.mli))
 (rule (copy# ../eliom_types.server.ml eliom_types.ml))
 (rule (copy# ../eliom_types.server.mli eliom_types.mli))
 (rule (copy# ../eliom_types_base.shared.ml eliom_types_base.ml))
@@ -110,6 +108,8 @@
 (rule (copy# ../shared_sigs.shared.mli shared_sigs.mli))
 (rule (copy# ../state.server.ml state.ml))
 (rule (copy# ../state.server.mli state.mli))
+(rule (copy# ../syntax.server.ml syntax.ml))
+(rule (copy# ../syntax.server.mli syntax.mli))
 (rule (target tools.ml) (deps ../tools.eliom)
   (action
     (with-stdout-to %{target}
