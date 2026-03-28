@@ -2,7 +2,7 @@ val set_app_name : string -> unit
 (** Set your application name. Use this if you want to make it possible
     to link your Eliom application statically and to have several Eliom
     applications on the same Web server.
-    See also parameter [?app_names] of [instruction] or [Eliom.run].
+    See also parameter [?app_names] of [instruction] or [Eliom.App.run].
  *)
 
 val default_app_name : string

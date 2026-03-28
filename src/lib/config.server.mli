@@ -97,7 +97,7 @@ val set_enable_wasm : bool -> unit
     enable it explicitly.
 
     This setting can be overridden per-site using the [~enable_wasm] parameter
-    of {!Eliom.run} or the [<wasm enabled="true|false"/>] tag in the
+    of {!Eliom.App.run} or the [<wasm enabled="true|false"/>] tag in the
     configuration file. *)
 
 val get_enable_wasm : unit -> bool
