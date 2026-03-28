@@ -130,7 +130,7 @@ module Xml = struct
     let _ =
       [%client
         (let ( >>! ) = Js.Opt.iter in
-         let e = Eliom_client_core.rebuild_node' `HTML5 ~%e in
+         let e = Client_core.rebuild_node' `HTML5 ~%e in
          let update x =
            Js.Opt.case e##.firstChild
              (fun () ->
@@ -159,7 +159,7 @@ module Xml = struct
     in
     let _ =
       [%client.unsafe
-        (let f = Eliom_client_core.rebuild_node' ~%ns in
+        (let f = Client_core.rebuild_node' ~%ns in
          let e = f ~%e and l = ReactiveData.RList.map f ~%l in
          Js_of_ocaml_tyxml.Tyxml_js.Util.update_children e l
          : unit)]
@@ -275,11 +275,11 @@ module Svg = struct
                (fun s ->
                   Eliom_content_core.Svg.(
                     Id.create_request_elt s ~reset:false |> D.toelt)
-                  |> Eliom_client_core.rebuild_node' `SVG)
+                  |> Client_core.rebuild_node' `SVG)
                ~%s
            in
            let key = Lib.Dom_reference.new_key () in
-           let e = Eliom_client_core.rebuild_node' `SVG ~%e in
+           let e = Client_core.rebuild_node' `SVG ~%e in
            let f =
              let replace e' e =
                Lib.Dom_reference.transfer ~key ~src:e ~dst:e';
@@ -397,11 +397,11 @@ module Html = struct
                (fun s ->
                   Eliom_content_core.Html.(
                     Id.create_request_elt s ~reset:false |> D.toelt)
-                  |> Eliom_client_core.rebuild_node' `HTML5)
+                  |> Client_core.rebuild_node' `HTML5)
                ~%s
            in
            let key = Lib.Dom_reference.new_key () in
-           let e = Eliom_client_core.rebuild_node' `HTML5 ~%e in
+           let e = Client_core.rebuild_node' `HTML5 ~%e in
            let f =
              let replace e' e =
                Lib.Dom_reference.transfer ~key ~src:e ~dst:e';

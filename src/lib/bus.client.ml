@@ -131,7 +131,7 @@ let () = Unwrap.register_unwrapper Eliom_common.bus_unwrap_id internal_unwrap
 let stream t = clone_exn t.error_h (Lazy.force t.stream)
 
 let original_stream t =
-  if Eliom_client_core.in_onload () && t.original_stream_available
+  if Client_core.in_onload () && t.original_stream_available
   then stream t
   else
     raise_error ~section

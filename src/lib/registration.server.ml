@@ -1159,7 +1159,7 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
     in
     (* Then we replace the faked data_script *)
     let head_elts =
-      (* Eliom_client_core.load_data_script expects data_script to be
+      (* Client_core.load_data_script expects data_script to be
          second in this list *)
       List.hd head_elts :: data_script
       :: add_eliom_global_data_script (List.tl head_elts)
