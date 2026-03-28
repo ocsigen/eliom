@@ -12,3 +12,9 @@ src/**/*.odocl
 ocsigen.org-data
 
 _opam
+
+# Local files (not part of the project)
+AGENTS*.md
+instructions
+eliom-analysis.md
+eliom.opam.template
