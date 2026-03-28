@@ -403,8 +403,8 @@ val change_page_unknown :
   -> unit Lwt.t
 (** [change_page_unknown path get_params post_params] calls the
     service corresponding to [(path, get_params, post_params)]. It may
-    throw [Eliom_common.Eliom_404] or
-    [Eliom_common.Eliom_Wrong_parameter] if there is no appropriate
+    throw [Common.Eliom_404] or
+    [Common.Eliom_Wrong_parameter] if there is no appropriate
     service available. *)
 
 (* Documentation rather in eliom_client.ml *)

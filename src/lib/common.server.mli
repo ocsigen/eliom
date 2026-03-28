@@ -54,15 +54,15 @@ val scope_hierarchy_of_user_scope : [< user_scope] -> scope_hierarchy
 
     If you want to restrict the visibility of an Eliom reference or
     a service:
-    * to a browser session, use [~scope:Eliom_common.default_session_scope],
-    * to a group of sessions, use [~scope:Eliom_common.default_group_scope],
-    * to a client process, use [~scope:Eliom_common.default_process_scope].
+    * to a browser session, use [~scope:Common.default_session_scope],
+    * to a group of sessions, use [~scope:Common.default_group_scope],
+    * to a client process, use [~scope:Common.default_process_scope].
     If you have a client side Eliom program running, and you want to restrict
     the visibility of the service to this instance of the program,
-    use [~scope:Eliom_common.default_process_scope].
+    use [~scope:Common.default_process_scope].
 
     You can create new scope
-    hierarchies with {!Eliom_common.create_scope_hierarchy}.
+    hierarchies with {!Common.create_scope_hierarchy}.
     Thus it is possible to have for example several sessions that can
     be opened or closed independently. They use different cookies.
 
@@ -147,7 +147,7 @@ type 'a tenable_value =
     ~override_tenable:true]. Other attempts will be ignored. *)
 
 val tenable_value : name:string -> 'a -> 'a tenable_value
-(** Create a named {!type:Eliom_common.tenable_value} with the given initial
+(** Create a named {!type:Common.tenable_value} with the given initial
     value. The name will only be used for warnings when setting a strong value
     isn't possible. *)
 

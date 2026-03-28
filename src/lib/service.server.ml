@@ -34,17 +34,17 @@ let plain_service
   let path =
     (match redirect_suffix with
       | None -> path
-      | Some _ -> path @ [Eliom_common.eliom_suffix_internal_name])
+      | Some _ -> path @ [Common.eliom_suffix_internal_name])
     |> Url.remove_slash_at_beginning |> Url.change_empty_list
     |> Url.remove_internal_slash
   in
-  (if Eliom_common.get_sp_option () = None
+  (if Common.get_sp_option () = None
    then
-     match Eliom_common.global_register_allowed () with
+     match Common.global_register_allowed () with
      | Some current_site_data ->
-         Eliom_common.add_unregistered (current_site_data ()) path
+         Common.add_unregistered (current_site_data ()) path
      | None ->
-         raise (Eliom_common.Eliom_site_information_not_available "service"));
+         raise (Common.Eliom_site_information_not_available "service"));
   let reload_fun = Rf_client_fun in
   main_service ~https ~prefix:"" ~path ~kind:`Service ~meth ?redirect_suffix
     ?keep_nl_params ?priority ~get_params ~post_params ~reload_fun ()
@@ -70,9 +70,9 @@ let create_attached
     if is_post
     then
       ( get_params
-      , Parameter.add_pref_params Eliom_common.co_param_prefix post_params )
+      , Parameter.add_pref_params Common.co_param_prefix post_params )
     else
-      ( Parameter.add_pref_params Eliom_common.co_param_prefix get_params
+      ( Parameter.add_pref_params Common.co_param_prefix get_params
       , post_params )
   and k = attached_info fallback in
   { pre_applied_parameters = fallback.pre_applied_parameters
@@ -88,12 +88,12 @@ let create_attached
       (let att_name =
          if csrf_safe
          then
-           Eliom_common.SAtt_csrf_safe
-             (uniqueid (), (csrf_scope :> Eliom_common.user_scope), csrf_secure)
+           Common.SAtt_csrf_safe
+             (uniqueid (), (csrf_scope :> Common.user_scope), csrf_secure)
          else
            match name with
-           | None -> Eliom_common.SAtt_anon (new_state ())
-           | Some name -> Eliom_common.SAtt_named name
+           | None -> Common.SAtt_anon (new_state ())
+           | Some name -> Common.SAtt_named name
        in
        Attached
          { k with
@@ -149,7 +149,7 @@ let coservice'
   ; timeout
   ; pre_applied_parameters = Lib.String.Table.empty, []
   ; get_params_type =
-      Parameter.add_pref_params Eliom_common.na_co_param_prefix get_params
+      Parameter.add_pref_params Common.na_co_param_prefix get_params
   ; post_params_type = post_params
   ; meth
   ; kind = `NonattachedCoservice
@@ -160,21 +160,21 @@ let coservice'
              then
                if is_post
                then
-                 Eliom_common.SNa_post_csrf_safe
+                 Common.SNa_post_csrf_safe
                    ( uniqueid ()
-                   , (csrf_scope :> Eliom_common.user_scope)
+                   , (csrf_scope :> Common.user_scope)
                    , csrf_secure )
                else
-                 Eliom_common.SNa_get_csrf_safe
+                 Common.SNa_get_csrf_safe
                    ( uniqueid ()
-                   , (csrf_scope :> Eliom_common.user_scope)
+                   , (csrf_scope :> Common.user_scope)
                    , csrf_secure )
              else
                match name, is_post with
-               | None, true -> Eliom_common.SNa_post' (new_state ())
-               | None, false -> Eliom_common.SNa_get' (new_state ())
-               | Some name, true -> Eliom_common.SNa_post_ name
-               | Some name, false -> Eliom_common.SNa_get_ name)
+               | None, true -> Common.SNa_post' (new_state ())
+               | None, false -> Common.SNa_get' (new_state ())
+               | Some name, true -> Common.SNa_post_ name
+               | Some name, false -> Common.SNa_get_ name)
         ; keep_get_na_params = true }
   ; https
   ; keep_nl_params
@@ -229,7 +229,7 @@ let attach :
  fun ~fallback ~service () ->
   let {na_name; _} = non_attached_info service in
   let fallbackkind = attached_info fallback in
-  let open Eliom_common in
+  let open Common in
   let error_msg =
     "attach' is not implemented for this kind ofservice. Please report a bug if you need this."
   in
@@ -292,16 +292,16 @@ let register_delayed_get_or_na_coservice ~sp (k, scope, secure) =
     try
       let table =
         !(State.get_session_service_table_if_exists ~sp
-            ~scope:(scope :> Eliom_common.user_scope)
+            ~scope:(scope :> Common.user_scope)
             ?secure ())
       in
       Lib.Int.Table.find k
-        table.Eliom_common.csrf_get_or_na_registration_functions
+        table.Common.csrf_get_or_na_registration_functions
     with Not_found -> (
       let table = State.get_global_table () in
       try
         Lib.Int.Table.find k
-          table.Eliom_common.csrf_get_or_na_registration_functions
+          table.Common.csrf_get_or_na_registration_functions
       with Not_found -> raise Unregistered_CSRF_safe_coservice)
   in
   f ~sp
@@ -311,26 +311,26 @@ let register_delayed_post_coservice ~sp (k, scope, secure) getname =
     try
       let table =
         !(State.get_session_service_table_if_exists ~sp
-            ~scope:(scope :> Eliom_common.user_scope)
+            ~scope:(scope :> Common.user_scope)
             ?secure ())
       in
-      Lib.Int.Table.find k table.Eliom_common.csrf_post_registration_functions
+      Lib.Int.Table.find k table.Common.csrf_post_registration_functions
     with Not_found -> (
       let table = State.get_global_table () in
       try
-        Lib.Int.Table.find k table.Eliom_common.csrf_post_registration_functions
+        Lib.Int.Table.find k table.Common.csrf_post_registration_functions
       with Not_found -> raise Unregistered_CSRF_safe_coservice)
   in
   f ~sp getname
 
 let set_delayed_get_or_na_registration_function tables k f =
-  tables.Eliom_common.csrf_get_or_na_registration_functions <-
+  tables.Common.csrf_get_or_na_registration_functions <-
     Lib.Int.Table.add k f
-      tables.Eliom_common.csrf_get_or_na_registration_functions
+      tables.Common.csrf_get_or_na_registration_functions
 
 let set_delayed_post_registration_function tables k f =
-  tables.Eliom_common.csrf_post_registration_functions <-
-    Lib.Int.Table.add k f tables.Eliom_common.csrf_post_registration_functions
+  tables.Common.csrf_post_registration_functions <-
+    Lib.Int.Table.add k f tables.Common.csrf_post_registration_functions
 
 let remove_service
       table
@@ -345,10 +345,10 @@ let remove_service
       let sgpt = get_params_type service in
       let sppt = post_params_type service in
       Route.remove_service table (sub_path attser)
-        { Eliom_common.key_state = attserget, attserpost
-        ; Eliom_common.key_meth = key_kind }
+        { Common.key_state = attserget, attserpost
+        ; Common.key_meth = key_kind }
         (if
-           attserget = Eliom_common.SAtt_no || attserpost = Eliom_common.SAtt_no
+           attserget = Common.SAtt_no || attserpost = Common.SAtt_no
          then Parameter.(anonymise_params_type sgpt, anonymise_params_type sppt)
          else 0, 0)
   | Nonattached naser ->
@@ -361,24 +361,24 @@ let unregister
       (type m)
       (service : (_, _, m, _, _, _, _, _, _, _, _) t)
   =
-  let sp = Eliom_common.get_sp_option () in
+  let sp = Common.get_sp_option () in
   match scope with
   | None | Some `Site ->
       let table =
         match sp with
         | None -> (
-          match Eliom_common.global_register_allowed () with
+          match Common.global_register_allowed () with
           | Some get_current_sitedata ->
               let sitedata = get_current_sitedata () in
-              sitedata.Eliom_common.global_services
+              sitedata.Common.global_services
           | _ ->
               raise
-                (Eliom_common.Eliom_site_information_not_available "unregister")
+                (Common.Eliom_site_information_not_available "unregister")
           )
         | Some _ -> State.get_global_table ()
       in
       remove_service table service
-  | Some (#Eliom_common.user_scope as scope) -> (
+  | Some (#Common.user_scope as scope) -> (
     match sp with
     | None ->
         raise

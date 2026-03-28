@@ -311,7 +311,7 @@ let raw_a_handler node cookies_info tmpl ev =
   let https = Url.get_ssl (Js.to_string href) in
   (* Returns true when the default link behaviour is to be kept: *)
   middleClick ev
-  || (not !Eliom_common.is_client_app)
+  || (not !Common.is_client_app)
      && ((https = Some true && not Request_info.ssl_)
         || (https = Some false && Request_info.ssl_))
   ||
@@ -335,7 +335,7 @@ let raw_form_handler form kind cookies_info tmpl ev client_form_handler =
     if not b then change_page_form ?cookies_info ?tmpl form action;
     Lwt.return_unit
   in
-  (not !Eliom_common.is_client_app)
+  (not !Common.is_client_app)
   && ((https = Some true && not Request_info.ssl_)
      || (https = Some false && Request_info.ssl_))
   || (f (); false)

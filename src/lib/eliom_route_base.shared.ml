@@ -29,15 +29,15 @@ module type PARAM = sig
   type params
   type result
 
-  val sess_info_of_info : info -> Eliom_common.sess_info
-  val meth_of_info : info -> Eliom_common.meth
+  val sess_info_of_info : info -> Common.sess_info
+  val meth_of_info : info -> Common.meth
   val subpath_of_info : info -> string list
 
   val make_params :
      site_data
     -> info
     -> string list option
-    -> Eliom_common.full_state_name option
+    -> Common.full_state_name option
     -> params
 
   val handle_directory : info -> result Lwt.t
@@ -56,17 +56,17 @@ module type PARAM = sig
     val empty : unit -> t
 
     val add :
-       Eliom_common.page_table_key
-      -> Node.t option * (params, result) Eliom_common.service list
+       Common.page_table_key
+      -> Node.t option * (params, result) Common.service list
       -> t
       -> t
 
     val find :
-       Eliom_common.page_table_key
+       Common.page_table_key
       -> t
-      -> Node.t option * (params, result) Eliom_common.service list
+      -> Node.t option * (params, result) Common.service list
 
-    val remove : Eliom_common.page_table_key -> t -> t
+    val remove : Common.page_table_key -> t -> t
   end
 
   module Container : sig
@@ -75,18 +75,18 @@ module type PARAM = sig
     val set_contains_timeout : t -> bool -> unit
 
     val dlist_add :
-       ?sp:Eliom_common.server_params
+       ?sp:Common.server_params
       -> t
-      -> ( Table.t ref * Eliom_common.page_table_key
-           , Eliom_common.na_key_serv )
+      -> ( Table.t ref * Common.page_table_key
+           , Common.na_key_serv )
            Lib.leftright
       -> Node.t
 
-    val get : t -> (int * int * Table.t Eliom_common.dircontent ref) list
+    val get : t -> (int * int * Table.t Common.dircontent ref) list
 
     val set :
        t
-      -> (int * int * Table.t Eliom_common.dircontent ref) list
+      -> (int * int * Table.t Common.dircontent ref) list
       -> unit
   end
 end
@@ -105,13 +105,13 @@ module Make (P : PARAM) = struct
     let sp = P.make_params site_data info urlsuffix fullsessname in
     Lwt.catch
       (fun () -> Lwt.return (P.Table.find k !pagetableref))
-      (function Not_found -> fail Eliom_common.Eliom_404 | e -> fail e)
+      (function Not_found -> fail Common.Eliom_404 | e -> fail e)
     >>= fun (node, l) ->
     let rec aux toremove = function
       | [] ->
           Lwt.return
-            (Eliom_common.Notfound Eliom_common.Eliom_Wrong_parameter, [])
-      | ({Eliom_common.s_max_use; s_expire; s_f; _} as a) :: l -> (
+            (Common.Notfound Common.Eliom_Wrong_parameter, [])
+      | ({Common.s_max_use; s_expire; s_f; _} as a) :: l -> (
         match s_expire with
         | Some (_, e) when !e < now ->
             (* Service expired. Removing it. *)
@@ -147,12 +147,12 @@ module Make (P : PARAM) = struct
                          toremove)
                    | _ -> toremove
                  in
-                 Lwt.return (Eliom_common.Found p, newtoremove))
+                 Lwt.return (Common.Found p, newtoremove))
               (function
-                | Eliom_common.Eliom_Wrong_parameter ->
+                | Common.Eliom_Wrong_parameter ->
                     aux toremove l >>= fun (r, toremove) ->
                     Lwt.return (r, toremove)
-                | e -> Lwt.return (Eliom_common.Notfound e, toremove)))
+                | e -> Lwt.return (Common.Notfound e, toremove)))
     in
     aux [] l >>= fun (r, toremove) ->
     (match node, toremove with
@@ -184,15 +184,15 @@ module Make (P : PARAM) = struct
           | newlist -> P.Table.add k (None, newlist) newptr
       with Not_found -> ()));
     match r with
-    | Eliom_common.Found r -> Lwt.return (r : P.result)
-    | Eliom_common.Notfound e -> fail e
+    | Common.Found r -> Lwt.return (r : P.result)
+    | Common.Notfound e -> fail e
 
   let remove_id services id =
-    List.filter (fun {Eliom_common.s_id; _} -> s_id <> id) services
+    List.filter (fun {Common.s_id; _} -> s_id <> id) services
 
   let find_and_remove_id services id =
     let found, l =
-      let f (found, l) ({Eliom_common.s_id; _} as x) =
+      let f (found, l) ({Common.s_id; _} as x) =
         if id = s_id then Some x, l else found, x :: l
       in
       List.fold_left f (None, []) services
@@ -204,16 +204,16 @@ module Make (P : PARAM) = struct
         url_act
         tref
         key
-        ({Eliom_common.s_id; s_expire; _} as service)
+        ({Common.s_id; s_expire; _} as service)
     =
-    let sp = Eliom_common.get_sp_option () in
+    let sp = Common.get_sp_option () in
     (match s_expire with
     | Some _ -> P.Container.set_contains_timeout tables true
     | _ -> ());
     (* Duplicate registration forbidden in global table with same generation *)
     match key with
-    | {Eliom_common.key_state = Eliom_common.SAtt_anon _, _; key_meth = `Get}
-    | { Eliom_common.key_state = _, Eliom_common.SAtt_anon _
+    | {Common.key_state = Common.SAtt_anon _, _; key_meth = `Get}
+    | { Common.key_state = _, Common.SAtt_anon _
       ; key_meth = `Post | `Put | `Delete } -> (
       (* Anonymous coservice:
          - only one for each key
@@ -229,7 +229,7 @@ module Make (P : PARAM) = struct
       with Not_found ->
         let node = P.Container.dlist_add ?sp tables (Left (tref, key)) in
         tref := P.Table.add key (Some node, [service]) !tref)
-    | {Eliom_common.key_state = Eliom_common.SAtt_no, Eliom_common.SAtt_no; _}
+    | {Common.key_state = Common.SAtt_no, Common.SAtt_no; _}
       -> (
       try
         let _nodeopt, l = P.Table.find key !tref
@@ -245,7 +245,7 @@ module Make (P : PARAM) = struct
             (* but if there was already one with same generation, we
                 fail (if during initialisation) *)
             raise
-              (Eliom_common.Eliom_duplicate_registration
+              (Common.Eliom_duplicate_registration
                  (Url.string_of_url_path ~encode:false url_act))
           else
             (* We insert as last element so that services are tried
@@ -280,43 +280,43 @@ module Make (P : PARAM) = struct
          "Wrong parameters" instead of "404 Not found" *)
         | newl -> tref := P.Table.add key (None, newl) newt)
 
-  let add_dircontent dc (key, (elt : P.Table.t Eliom_common.direlt ref)) =
+  let add_dircontent dc (key, (elt : P.Table.t Common.direlt ref)) =
     match dc with
-    | Eliom_common.Vide ->
-        Eliom_common.Table (String.Table.add key elt String.Table.empty)
-    | Eliom_common.Table t -> Eliom_common.Table (String.Table.add key elt t)
+    | Common.Vide ->
+        Common.Table (String.Table.add key elt String.Table.empty)
+    | Common.Table t -> Common.Table (String.Table.add key elt t)
 
   let find_dircontent dc k =
     match dc with
-    | Eliom_common.Vide -> raise Not_found
-    | Eliom_common.Table t -> String.Table.find k t
+    | Common.Vide -> raise Not_found
+    | Common.Table t -> String.Table.find k t
 
   let add_or_remove_service f tables table url_act page_table_key va =
     let rec aux dircontentref a l =
       try
         let direltref = find_dircontent !dircontentref a in
         match !direltref with
-        | Eliom_common.Dir dcr -> search_page_table_ref dcr l
-        | Eliom_common.File _ -> raise (Eliom_common.Eliom_page_erasing a)
+        | Common.Dir dcr -> search_page_table_ref dcr l
+        | Common.File _ -> raise (Common.Eliom_page_erasing a)
       with Not_found ->
-        let newdcr = ref (Eliom_common.empty_dircontent ()) in
+        let newdcr = ref (Common.empty_dircontent ()) in
         dircontentref :=
-          add_dircontent !dircontentref (a, ref (Eliom_common.Dir newdcr));
+          add_dircontent !dircontentref (a, ref (Common.Dir newdcr));
         search_page_table_ref newdcr l
     and search_page_table_ref dircontentref = function
       | [] | [""] ->
-          search_page_table_ref dircontentref [Eliom_common.defaultpagename]
+          search_page_table_ref dircontentref [Common.defaultpagename]
       | [a] -> (
         try
           let direltref = find_dircontent !dircontentref a in
           match !direltref with
-          | Eliom_common.Dir _ -> raise (Eliom_common.Eliom_page_erasing a)
-          | Eliom_common.File ptr -> ptr
+          | Common.Dir _ -> raise (Common.Eliom_page_erasing a)
+          | Common.File ptr -> ptr
         with Not_found ->
           let newpagetableref = ref (P.Table.empty ()) in
           dircontentref :=
             add_dircontent !dircontentref
-              (a, ref (Eliom_common.File newpagetableref));
+              (a, ref (Common.File newpagetableref));
           newpagetableref)
       | "" :: l -> search_page_table_ref dircontentref l
       | a :: l -> aux dircontentref a l
@@ -328,11 +328,11 @@ module Make (P : PARAM) = struct
     let generation = P.get_number_of_reloads () in
     let rec find_table = function
       | [] ->
-          let t = ref (Eliom_common.empty_dircontent ()) in
+          let t = ref (Common.empty_dircontent ()) in
           t, [generation, priority, t]
       | (g, p, t) :: _ as l when g = generation && p = priority -> t, l
       | (g, p, _) :: _ as l when g < generation || p < priority ->
-          let t = ref (Eliom_common.empty_dircontent ()) in
+          let t = ref (Common.empty_dircontent ()) in
           t, (generation, priority, t) :: l
       | ((g, p, _) as a) :: l when g = generation && p > priority ->
           let t, ll = find_table l in
@@ -361,16 +361,16 @@ module Make (P : PARAM) = struct
         let si = P.sess_info_of_info info in
         find_page_table nosuffixversion now page_table_ref fullsessname sitedata
           info suffix
-          { Eliom_common.key_state =
-              ( Eliom_common.att_key_serv_of_req
-                  (fst si.Eliom_common.si_state_info)
-              , Eliom_common.att_key_serv_of_req
-                  (snd si.Eliom_common.si_state_info) )
-          ; Eliom_common.key_meth = P.meth_of_info info }
+          { Common.key_state =
+              ( Common.att_key_serv_of_req
+                  (fst si.Common.si_state_info)
+              , Common.att_key_serv_of_req
+                  (snd si.Common.si_state_info) )
+          ; Common.key_meth = P.meth_of_info info }
       in
       let aux a l =
         let aa =
-          match a with None -> Eliom_common.defaultpagename | Some aa -> aa
+          match a with None -> Common.defaultpagename | Some aa -> aa
         in
         Lwt.catch
           (fun () ->
@@ -379,26 +379,26 @@ module Make (P : PARAM) = struct
                with Not_found -> raise Exn1
              in
              match dc with
-             | Eliom_common.Dir dircontentref2 ->
+             | Common.Dir dircontentref2 ->
                  search_page_table !dircontentref2 l
-             | Eliom_common.File page_table_ref -> (
+             | Common.File page_table_ref -> (
                match l with
                | [] -> find false page_table_ref None
                | _ ->
                    (* We have a file with suffix *)
-                   raise Eliom_common.Eliom_Wrong_parameter))
+                   raise Common.Eliom_Wrong_parameter))
           (function
-            | (Exn1 | Eliom_common.Eliom_Wrong_parameter) as e -> (
+            | (Exn1 | Common.Eliom_Wrong_parameter) as e -> (
               (* If no service matches, we try a suffix service *)
               try
                 match
                   !(try
                       find_dircontent dircontent
-                        Eliom_common.eliom_suffix_internal_name
+                        Common.eliom_suffix_internal_name
                     with Not_found -> raise e)
                 with
-                | Eliom_common.Dir _ -> Lwt.fail Exn1
-                | Eliom_common.File page_table_ref ->
+                | Common.Dir _ -> Lwt.fail Exn1
+                | Common.File page_table_ref ->
                     find false page_table_ref
                       (if a = None then Some [] else Some (aa :: l))
               with e -> Lwt.fail e)
@@ -409,17 +409,17 @@ module Make (P : PARAM) = struct
           (* It is a directory, without / at the end. We do a redirection. *)
           P.handle_directory info
       | [""] -> aux None []
-      | [a] when a = Eliom_common.eliom_nosuffix_page -> (
+      | [a] when a = Common.eliom_nosuffix_page -> (
         (* version without suffix of suffix service *)
         try
           match
             !(try
                 find_dircontent dircontent
-                  Eliom_common.eliom_suffix_internal_name
+                  Common.eliom_suffix_internal_name
               with Not_found -> raise Exn1)
           with
-          | Eliom_common.Dir _ -> Lwt.fail Exn1
-          | Eliom_common.File page_table_ref -> find true page_table_ref None
+          | Common.Dir _ -> Lwt.fail Exn1
+          | Common.File page_table_ref -> find true page_table_ref None
         with e -> Lwt.fail e)
       (*      | ""::l -> search_page_table dircontent l *)
       (* We do not remove "//" any more
@@ -434,8 +434,8 @@ module Make (P : PARAM) = struct
            Lwt.catch
              (fun () -> prev)
              (function
-               | Exn1 | Eliom_common.Eliom_404
-               | Eliom_common.Eliom_Wrong_parameter ->
+               | Exn1 | Common.Eliom_404
+               | Common.Eliom_Wrong_parameter ->
                    search_page_table !table path
                | e -> fail e))
         (fail Exn1) tables
@@ -444,5 +444,5 @@ module Make (P : PARAM) = struct
       (fun () ->
          search_by_priority_generation (P.Container.get tables)
            (Url.change_empty_list (P.subpath_of_info info)))
-      (function Exn1 -> Lwt.fail Eliom_common.Eliom_404 | e -> Lwt.fail e)
+      (function Exn1 -> Lwt.fail Common.Eliom_404 | e -> Lwt.fail e)
 end

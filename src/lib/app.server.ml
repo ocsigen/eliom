@@ -1,4 +1,4 @@
-let default_app_name = Eliom_common.default_app_name
+let default_app_name = Common.default_app_name
 let set_app_name = Eliommod.set_app_name
 
 let run
@@ -31,7 +31,7 @@ let run
   (* customize sitedata according to optional parameters: *)
   Option.iter
     (fun v ->
-       sitedata.Eliom_common.default_links_xhr#set ~override_tenable:true v)
+       sitedata.Common.default_links_xhr#set ~override_tenable:true v)
     xhr_links;
   Option.iter
     (fun (level, hierarchyname, v) ->
@@ -90,7 +90,7 @@ let run
     (fun v -> sitedata.omitpersistentstorage <- v)
     omitpersistentstorage;
   (* end sitedata *)
-  Eliom_common.absolute_change_sitedata sitedata;
+  Common.absolute_change_sitedata sitedata;
   Eliommod.site_init (ref true);
   (* Load app: *)
   Eliommod.load_eliom_module sitedata (Eliommod.Name app) "" [];

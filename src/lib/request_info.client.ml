@@ -32,7 +32,7 @@ include Eliom_types
 
 let client_app_initialised = ref false
 
-type t = {path : string list; si : Eliom_common.sess_info}
+type t = {path : string list; si : Common.sess_info}
 
 let default_ri = ref None
 let ri_key = Lwt.new_key ()
@@ -77,15 +77,15 @@ let update_session_info ~path ~all_get_params ~all_post_params cont =
         |> fun (a, b) -> a, Some b
   in
   let nl_get_params, all_get_but_nl =
-    Eliom_common.split_nl_prefix_param all_get_params
+    Common.split_nl_prefix_param all_get_params
   in
   let all_get_but_na_nl =
-    lazy (Eliom_common.remove_na_prefix_params all_get_but_nl)
-  and na_get_params = lazy (Eliom_common.filter_na_get_params all_get_but_nl) in
+    lazy (Common.remove_na_prefix_params all_get_but_nl)
+  and na_get_params = lazy (Common.filter_na_get_params all_get_but_nl) in
   let {si; _} = get_ri () in
   let si =
     { si with
-      Eliom_common.si_other_get_params = []
+      Common.si_other_get_params = []
     ; si_all_get_params = all_get_params
     ; si_na_get_params = na_get_params
     ; si_nl_get_params = nl_get_params
@@ -117,11 +117,11 @@ let get_original_full_path_string () =
   String.concat "/" (get_original_full_path_sp sp)
 
 let get_original_full_path_string_sp = get_original_full_path_string
-let get_nl_get_params () = (get_sess_info ()).Eliom_common.si_nl_get_params
+let get_nl_get_params () = (get_sess_info ()).Common.si_nl_get_params
 let get_nl_get_params_sp = get_nl_get_params
 
 let get_persistent_nl_get_params () =
-  Lazy.force (get_sess_info ()).Eliom_common.si_persistent_nl_get_params
+  Lazy.force (get_sess_info ()).Common.si_persistent_nl_get_params
 
 let get_persistent_nl_get_params_sp = get_persistent_nl_get_params
 let get_si () = get_sess_info ()
@@ -135,7 +135,7 @@ let ssl_ =
 
 let get_csp_ssl () =
   if !client_app_initialised
-  then (Eliom_process.get_info ()).Eliom_common.cpi_ssl
+  then (Eliom_process.get_info ()).Common.cpi_ssl
   else ssl_
 
 let get_csp_ssl_sp = get_csp_ssl
@@ -143,7 +143,7 @@ let host_ = Url.Current.host
 
 let get_csp_hostname () =
   if !client_app_initialised
-  then (Eliom_process.get_info ()).Eliom_common.cpi_hostname
+  then (Eliom_process.get_info ()).Common.cpi_hostname
   else host_
 
 let get_csp_hostname_sp = get_csp_hostname
@@ -153,14 +153,14 @@ let port_ =
 
 let get_csp_server_port () =
   if !client_app_initialised
-  then (Eliom_process.get_info ()).Eliom_common.cpi_server_port
+  then (Eliom_process.get_info ()).Common.cpi_server_port
   else port_
 
 let get_csp_server_port_sp = get_csp_server_port
 
 let get_csp_original_full_path () =
   if !client_app_initialised || Eliom_process.history_api
-  then (Eliom_process.get_info ()).Eliom_common.cpi_original_full_path
+  then (Eliom_process.get_info ()).Common.cpi_original_full_path
   else remove_first_slash Url.Current.path
 
 let get_csp_original_full_path_sp = get_csp_original_full_path
@@ -170,34 +170,34 @@ let get_request_template = Eliom_process.get_request_template
 (* The request data used when it is not sent by server
    (i.e. when the client side process is initiated by client (mobile app...)) *)
 let default_request_data =
-  { Eliom_common.ejs_global_data = None
+  { Common.ejs_global_data = None
   ; ejs_request_data = [||]
   ; ejs_event_handler_table = Eliom_runtime.RawXML.ClosureMap.empty
   ; ejs_client_attrib_table = Eliom_runtime.RawXML.ClosureMap.empty
   ; ejs_sess_info =
-      { Eliom_common.si_other_get_params = []
+      { Common.si_other_get_params = []
       ; si_all_get_params = []
       ; si_all_post_params = None
       ; si_all_file_params = None
-      ; si_service_session_cookies = Eliom_common.Full_state_name_table.empty
-      ; si_data_session_cookies = Eliom_common.Full_state_name_table.empty
-      ; si_persistent_session_cookies = Eliom_common.Full_state_name_table.empty
+      ; si_service_session_cookies = Common.Full_state_name_table.empty
+      ; si_data_session_cookies = Common.Full_state_name_table.empty
+      ; si_persistent_session_cookies = Common.Full_state_name_table.empty
       ; si_secure_cookie_info =
-          ( Eliom_common.Full_state_name_table.empty
-          , Eliom_common.Full_state_name_table.empty
-          , Eliom_common.Full_state_name_table.empty )
+          ( Common.Full_state_name_table.empty
+          , Common.Full_state_name_table.empty
+          , Common.Full_state_name_table.empty )
       ; si_service_session_cookies_tab =
-          Eliom_common.Full_state_name_table.empty
-      ; si_data_session_cookies_tab = Eliom_common.Full_state_name_table.empty
+          Common.Full_state_name_table.empty
+      ; si_data_session_cookies_tab = Common.Full_state_name_table.empty
       ; si_persistent_session_cookies_tab =
-          Eliom_common.Full_state_name_table.empty
+          Common.Full_state_name_table.empty
       ; si_secure_cookie_info_tab =
-          ( Eliom_common.Full_state_name_table.empty
-          , Eliom_common.Full_state_name_table.empty
-          , Eliom_common.Full_state_name_table.empty )
+          ( Common.Full_state_name_table.empty
+          , Common.Full_state_name_table.empty
+          , Common.Full_state_name_table.empty )
       ; si_tab_cookies = Ocsigen_cookie_map.Map_inner.empty
-      ; si_nonatt_info = Eliom_common.RNa_no
-      ; si_state_info = Eliom_common.RAtt_no, Eliom_common.RAtt_no
+      ; si_nonatt_info = Common.RNa_no
+      ; si_state_info = Common.RAtt_no, Common.RAtt_no
       ; si_previous_extension_error = 404
       ; si_na_get_params = lazy []
       ; si_nl_get_params = Lib.String.Table.empty

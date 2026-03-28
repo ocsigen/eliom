@@ -53,25 +53,25 @@ val set_persistent_session_gc_frequency : int option -> unit
     [None] means never. *)
 
 val set_volatile_timeout :
-   ?scope_hierarchy:Eliom_common.scope_hierarchy
+   ?scope_hierarchy:Common.scope_hierarchy
   -> cookie_level:[< `Session | `Client_process]
   -> int option
   -> unit
 
 val set_data_timeout :
-   ?scope_hierarchy:Eliom_common.scope_hierarchy
+   ?scope_hierarchy:Common.scope_hierarchy
   -> cookie_level:[< `Session | `Client_process]
   -> int option
   -> unit
 
 val set_service_timeout :
-   ?scope_hierarchy:Eliom_common.scope_hierarchy
+   ?scope_hierarchy:Common.scope_hierarchy
   -> cookie_level:[< `Session | `Client_process]
   -> int option
   -> unit
 
 val set_persistent_timeout :
-   ?scope_hierarchy:Eliom_common.scope_hierarchy
+   ?scope_hierarchy:Common.scope_hierarchy
   -> cookie_level:[< `Session | `Client_process]
   -> int option
   -> unit
@@ -109,7 +109,7 @@ val add_ignored_get_params : string * Re.re -> unit
 val add_ignored_post_params : string * Re.re -> unit
 
 val set_omitpersistentstorage :
-   Eliom_common.omitpersistentstorage_rule list option
+   Common.omitpersistentstorage_rule list option
   -> unit
 
 val get_default_hostname : unit -> string
@@ -164,7 +164,7 @@ val get_config : unit -> Xml.xml list
     {e Warning: You must call that function during the initialisation of
     your module (not during a Lwt thread or a service)
     otherwise it will raise the exception
-    {!Eliom_common.Eliom_site_information_not_available}.
+    {!Common.Eliom_site_information_not_available}.
     If you want to build a statically linkable module, you must call this
     function inside the initialisation function given to
     {!Service.register_eliom_module}.}
@@ -195,7 +195,7 @@ val get_debugmode : unit -> bool
 (**/**)
 
 val get_config_info_sp :
-   Eliom_common.server_params
+   Common.server_params
   -> Ocsigen_extensions.config_info
 
-val get_config_default_charset_sp : Eliom_common.server_params -> string
+val get_config_default_charset_sp : Common.server_params -> string

@@ -22,21 +22,21 @@ val def_handler : exn -> 'b Lwt.t
 val execute :
    float
   -> (float
-      -> Eliom_common.info
-      -> Eliom_common.sitedata
+      -> Common.info
+      -> Common.sitedata
       -> Ocsigen_response.t Lwt.t)
-  -> Eliom_common.info
-  -> Eliom_common.sitedata
+  -> Common.info
+  -> Common.sitedata
   -> Ocsigen_response.t Lwt.t
 
 val gen :
    Extension.eliom_extension_sig option
-  -> Eliom_common.sitedata
+  -> Common.sitedata
   -> Ocsigen_extensions.request_state
   -> Ocsigen_extensions.answer Lwt.t
 
 val update_cookie_table :
    ?now:float
-  -> Eliom_common.sitedata
-  -> Eliom_common.tables Eliom_common.cookie_info
+  -> Common.sitedata
+  -> Common.tables Common.cookie_info
   -> unit Lwt.t

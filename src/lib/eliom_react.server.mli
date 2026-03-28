@@ -98,7 +98,7 @@ module Up : sig
       be manipulated as a standard event. *)
 
   val create :
-     ?scope:Eliom_common.scope
+     ?scope:Common.scope
     -> ?name:string
     -> ( 'a
          , [`WithoutSuffix]

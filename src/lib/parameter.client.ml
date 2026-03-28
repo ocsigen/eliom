@@ -137,4 +137,4 @@ let get_non_localized_get_parameters {name; param; _} =
               (Request_info.get_sess_info ()).si_nl_get_params
           with Not_found -> [])
          [] false None)
-  with Eliom_common.Eliom_Wrong_parameter | Not_found -> None
+  with Common.Eliom_Wrong_parameter | Not_found -> None

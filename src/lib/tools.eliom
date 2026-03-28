@@ -217,12 +217,12 @@ module type HTML5_TOOLS = sig
 end
 
 let%server css_files =
-  Reference.Volatile.eref ~scope:Eliom_common.request_scope []
+  Reference.Volatile.eref ~scope:Common.request_scope []
 
 let%client css_files = ref []
 
 let%server js_files =
-  Reference.Volatile.eref ~scope:Eliom_common.request_scope []
+  Reference.Volatile.eref ~scope:Common.request_scope []
 
 let%client js_files = ref []
 

@@ -20,7 +20,7 @@ type ('a, 'b) server_function
 
 (* BBB This is not in Service because it depends on Registration *)
 val server_function :
-   ?scope:[< Eliom_common.scope]
+   ?scope:[< Common.scope]
   -> ?options:unit
   -> ?charset:string
   -> ?code:int
@@ -29,7 +29,7 @@ val server_function :
   -> ?secure_session:bool
   -> ?name:string
   -> ?csrf_safe:bool
-  -> ?csrf_scope:[< Eliom_common.user_scope]
+  -> ?csrf_scope:[< Common.user_scope]
   -> ?csrf_secure:bool
   -> ?max_use:int
   -> ?timeout:float

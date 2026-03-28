@@ -36,18 +36,18 @@ let iter_service_cookies f =
   let sitedata =
     Request_info.find_sitedata "Eliommod_sessexpl.iter_service_cookies"
   in
-  Eliom_common.SessionCookies.fold
+  Common.SessionCookies.fold
     (fun k v thr -> thr >>= fun () -> f (k, v) >>= Lwt.pause)
-    sitedata.Eliom_common.session_services return_unit
+    sitedata.Common.session_services return_unit
 
 (** Iterator on data cookies *)
 let iter_data_cookies f =
   let sitedata =
     Request_info.find_sitedata "Eliommod_sessexpl.iter_data_cookies"
   in
-  Eliom_common.SessionCookies.fold
+  Common.SessionCookies.fold
     (fun k v thr -> thr >>= fun () -> f (k, v) >>= Lwt.pause)
-    sitedata.Eliom_common.session_data return_unit
+    sitedata.Common.session_data return_unit
 
 (** Iterator on persistent cookies *)
 let iter_persistent_cookies f =
@@ -59,24 +59,24 @@ let fold_service_cookies f beg =
   let sitedata =
     Request_info.find_sitedata "Eliommod_sessexpl.fold_service_cookies"
   in
-  Eliom_common.SessionCookies.fold
+  Common.SessionCookies.fold
     (fun k v thr ->
        thr >>= fun res1 ->
        f (k, v) res1 >>= fun res ->
        Lwt.pause () >>= fun () -> return res)
-    sitedata.Eliom_common.session_services (return beg)
+    sitedata.Common.session_services (return beg)
 
 (** Iterator on data cookies *)
 let fold_data_cookies f beg =
   let sitedata =
     Request_info.find_sitedata "Eliommod_sessexpl.fold_data_cookies"
   in
-  Eliom_common.SessionCookies.fold
+  Common.SessionCookies.fold
     (fun k v thr ->
        thr >>= fun res1 ->
        f (k, v) res1 >>= fun res ->
        Lwt.pause () >>= fun () -> return res)
-    sitedata.Eliom_common.session_data (return beg)
+    sitedata.Common.session_data (return beg)
 
 (** Iterator on persistent cookies *)
 let fold_persistent_cookies f beg =
@@ -90,12 +90,12 @@ let fold_persistent_cookies f beg =
 (* Exploration *)
 
 let number_of_service_cookies () =
-  Eliom_common.SessionCookies.length
-    (Request_info.get_sitedata ()).Eliom_common.session_services
+  Common.SessionCookies.length
+    (Request_info.get_sitedata ()).Common.session_services
 
 let number_of_data_cookies () =
-  Eliom_common.SessionCookies.length
-    (Request_info.get_sitedata ()).Eliom_common.session_data
+  Common.SessionCookies.length
+    (Request_info.get_sitedata ()).Common.session_data
 
 let number_of_tables () = List.length !Eliommod_datasess.counttableelements
 

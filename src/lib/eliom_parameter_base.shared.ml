@@ -42,7 +42,7 @@ type 'a setoneradio = [`Set of 'a | `One of 'a | `Radio of 'a]
 type 'a oneradio = [`One of 'a | `Radio of 'a]
 type 'a setone = [`Set of 'a | `One of 'a]
 
-type 'a to_and_of = 'a Eliom_common.to_and_of =
+type 'a to_and_of = 'a Common.to_and_of =
   {of_string : string -> 'a; to_string : 'a -> string}
 
 type _ atom =
@@ -102,7 +102,7 @@ type (_, _) params_type_ =
       -> (coordinates, [`One of coordinates] param_name) params_type_
   | TFile : string -> (file_info, [`One of file_info] param_name) params_type_
   | TUserType :
-      (string * 'a Eliom_common.To_and_of_shared.t)
+      (string * 'a Common.To_and_of_shared.t)
       -> ('a, [`One of 'a] param_name) params_type_
   | TTypeFilter : (('a, 'an) params_type_ * 'a filter) -> ('a, 'an) params_type_
   (* remove TCoord *)
@@ -111,7 +111,7 @@ type (_, _) params_type_ =
       -> (string list, [`One of string list] param_name) params_type_
   | TESuffixs : string -> (string, [`One of string] param_name) params_type_
   | TESuffixu :
-      (string * 'a Eliom_common.To_and_of_shared.t)
+      (string * 'a Common.To_and_of_shared.t)
       -> ('a, [`One of 'a] param_name) params_type_
   | TSuffix : (bool * ('s, 'sn) params_type_) -> ('s, 'sn) params_type_
     (* bool = redirect the version without suffix to the suffix version *)
@@ -199,14 +199,14 @@ let rec make_suffix : type a c. (a, 'b, c) params_type -> a -> string list =
     match params with
     | [] -> [""]
     | a :: l -> make_suffix t a @ make_suffix typ l)
-  | TUserType (_, tao) -> [Eliom_common.To_and_of_shared.to_string tao params]
+  | TUserType (_, tao) -> [Common.To_and_of_shared.to_string tao params]
   | TTypeFilter (t, _check) -> make_suffix t params
   | TSum (t1, t2) -> (
     match params with Inj1 p -> make_suffix t1 p | Inj2 p -> make_suffix t2 p)
   | TESuffixs _ -> [params]
   (* | TAny ->       (match params with [] -> [""] | p -> p) *)
   | TESuffix _ -> ( match params with [] -> [""] | p -> p)
-  | TESuffixu (_, tao) -> [Eliom_common.To_and_of_shared.to_string tao params]
+  | TESuffixu (_, tao) -> [Common.To_and_of_shared.to_string tao params]
   | TJson (_, typ) ->
       (* server or client side *)
       [to_json ?typ params]
@@ -272,7 +272,7 @@ let rec aux : type a c.
       ( psuff
       , nlp
       , ( pref ^ name ^ suff
-        , insert_string (Eliom_common.To_and_of_shared.to_string tao params) )
+        , insert_string (Common.To_and_of_shared.to_string tao params) )
         :: l )
   | TTypeFilter (t, _check) -> aux t psuff nlp params pref suff l
   | TUnit -> psuff, nlp, l
@@ -310,8 +310,8 @@ let rec get_to_and_of : type a c. (a, 'b, c) params_type -> a to_and_of =
       let {to_string; of_string} = get_to_and_of o in
       { of_string = (fun s -> try Some (of_string s) with _ -> None)
       ; to_string = (function Some alpha -> to_string alpha | None -> "") }
-  | TUserType (_, tao) -> Eliom_common.To_and_of_shared.to_and_of tao
-  | TESuffixu (_, tao) -> Eliom_common.To_and_of_shared.to_and_of tao
+  | TUserType (_, tao) -> Common.To_and_of_shared.to_and_of tao
+  | TESuffixu (_, tao) -> Common.To_and_of_shared.to_and_of tao
   | TAtom (_, a) -> to_from_of_atom a
   | TJson (_, typ) ->
       (* server or client side *)
@@ -503,7 +503,7 @@ let make_non_localized_parameters
     ; persistent
     ; get = Polytables.make_key ()
     ; post = Polytables.make_key ()
-    ; param = add_pref_params (Eliom_common.nl_param_prefix ^ name ^ ".") p }
+    ; param = add_pref_params (Common.nl_param_prefix ^ name ^ ".") p }
 
 (*****************************************************************************)
 let rec contains_suffix : type a c. (a, 'b, c) params_type -> bool option =
@@ -525,7 +525,7 @@ let rec wrap_param_type : type a c.
   | TSet t -> TSet (wrap_param_type t)
   | TSum (t1, t2) -> TSum (wrap_param_type t1, wrap_param_type t2)
   | TUserType (name, tao) ->
-      (* Eliom_common.To_and_of_shared.wrapper will take care of tao *)
+      (* Common.To_and_of_shared.wrapper will take care of tao *)
       TUserType (name, tao)
   (* We remove the type information here: not possible to send a
      closure.  marshaling is just basic json marshaling on client
@@ -571,10 +571,10 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
     | TESuffixu (_, tao), l -> (
       try
         (*VVV encode=false? *)
-        ( Eliom_common.To_and_of_shared.of_string tao
+        ( Common.To_and_of_shared.of_string tao
             (Url.string_of_url_path ~encode:false l)
         , [] )
-      with e -> raise (Eliom_common.Eliom_Typing_Error ["<suffix>", e]))
+      with e -> raise (Common.Eliom_Typing_Error ["<suffix>", e]))
     | TOption (_, _), [] -> None, []
     | TOption (_, _), "" :: l -> None, l
     | TOption (t, _), l ->
@@ -584,7 +584,7 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
     | TList (_, t), l -> (
         let b, l = parse_suffix t l in
         match l with
-        | [] -> raise Eliom_common.Eliom_Wrong_parameter
+        | [] -> raise Common.Eliom_Wrong_parameter
         | [""] -> [b], []
         | _ ->
             let c, l = parse_suffix typ l in
@@ -595,7 +595,7 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
     | TSet t, l -> (
         let b, l = parse_suffix t l in
         match l with
-        | [] -> raise Eliom_common.Eliom_Wrong_parameter
+        | [] -> raise Common.Eliom_Wrong_parameter
         | [""] -> [b], []
         | _ ->
             let c, l = parse_suffix typ l in
@@ -606,32 +606,32 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
         failwith "Lists or sets in suffixes must be last parameters"
     | TProd (t1, t2), l -> (
       match parse_suffix t1 l with
-      | _, [] -> raise Eliom_common.Eliom_Wrong_parameter
+      | _, [] -> raise Common.Eliom_Wrong_parameter
       | r, l ->
           let rr, ll = parse_suffix t2 l in
           (r, rr), ll)
     | TAtom (_name, t), v :: l -> (
       try atom_of_string t v, l
-      with e -> raise (Eliom_common.Eliom_Typing_Error ["<suffix>", e]))
+      with e -> raise (Common.Eliom_Typing_Error ["<suffix>", e]))
     | TUserType (_name, tao), v :: l -> (
-      try Eliom_common.To_and_of_shared.of_string tao v, l
-      with e -> raise (Eliom_common.Eliom_Typing_Error ["<suffix>", e]))
+      try Common.To_and_of_shared.of_string tao v, l
+      with e -> raise (Common.Eliom_Typing_Error ["<suffix>", e]))
     | TTypeFilter (_, None), _ -> failwith "Type filter without filter"
     | TTypeFilter (t, Some check), l ->
         let ((v, _) as a) = parse_suffix t l in
         check v; a
     | TConst value, v :: l ->
-        if v = value then (), l else raise Eliom_common.Eliom_Wrong_parameter
+        if v = value then (), l else raise Common.Eliom_Wrong_parameter
     | TSum (t1, t2), l -> (
       try
         let x, l = parse_suffix t1 l in
         Inj1 x, l
-      with Eliom_common.Eliom_Wrong_parameter ->
+      with Common.Eliom_Wrong_parameter ->
         let x, l = parse_suffix t2 l in
         Inj2 x, l)
     | TCoord _, l -> (
       match parse_suffix (TAtom ("", TInt)) l with
-      | _, [] -> raise Eliom_common.Eliom_Wrong_parameter
+      | _, [] -> raise Common.Eliom_Wrong_parameter
       | r, l ->
           let rr, ll = parse_suffix (TAtom ("", TInt)) l in
           {abscissa = r; ordinate = rr}, ll)
@@ -646,7 +646,7 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
     | TRaw_post_data, _ -> assert false
     | TUnit, _ -> failwith "It is not possible to use TUnit in suffix."
     | TSuffix _, _ -> failwith "It is not possible to use TSuffix in suffix."
-    | _, [] -> raise Eliom_common.Eliom_Wrong_parameter
+    | _, [] -> raise Common.Eliom_Wrong_parameter
   in
   let rec aux_list : type a c.
     (a, 'b, c) params_type
@@ -790,7 +790,7 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
         )
     | TUserType (name, tao) -> (
         let v, l = List.assoc_remove (pref ^ name ^ suff) params in
-        try Res_ (Eliom_common.To_and_of_shared.of_string tao v, l, files)
+        try Res_ (Common.To_and_of_shared.of_string tao v, l, files)
         with e -> Errors_ ([pref ^ name ^ suff, v, e], l, files))
     | TTypeFilter (_, None) -> failwith "Type filter without filter"
     | TTypeFilter (t, Some check) -> (
@@ -812,24 +812,24 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
     | TESuffixu (n, tao) -> (
         let v, l = List.assoc_remove n params in
         (* cannot have prefix or suffix *)
-        try Res_ (Eliom_common.To_and_of_shared.of_string tao v, l, files)
+        try Res_ (Common.To_and_of_shared.of_string tao v, l, files)
         with e -> Errors_ ([pref ^ n ^ suff, v, e], l, files))
     | TSuffix (_, s) -> (
       match urlsuffix with
       | None ->
           if nosuffixversion (* the special page name "nosuffix" is present *)
           then aux s params files pref suff
-          else raise Eliom_common.Eliom_Wrong_parameter
+          else raise Common.Eliom_Wrong_parameter
       | Some urlsuffix -> (
         match parse_suffix s urlsuffix with
         | p, [] -> Res_ (p, params, files)
-        | _ -> raise Eliom_common.Eliom_Wrong_parameter))
+        | _ -> raise Common.Eliom_Wrong_parameter))
     | TJson (name, Some typ) ->
         let v, l = List.assoc_remove (pref ^ name ^ suff) params in
         Res_ (of_json ~typ v, l, files)
     | TJson (_name, None) -> assert false
     (* Never unmarshal server side without type! *)
-    | TRaw_post_data -> raise Eliom_common.Eliom_Wrong_parameter
+    | TRaw_post_data -> raise Common.Eliom_Wrong_parameter
   in
   try
     match aux typ params files "" "" with
@@ -847,15 +847,15 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
             Logs.debug ~src:section (fun fmt ->
               fmt "Eliom_Wrong_parameter: files non-empty (ERROR): %s"
                 (String.concat ", " (List.map (fun (x, _) -> x) files)));
-          raise Eliom_common.Eliom_Wrong_parameter)
+          raise Common.Eliom_Wrong_parameter)
     | Errors_ (errs, l, files) ->
         if (l, files) = ([], [])
         then
           raise
-            (Eliom_common.Eliom_Typing_Error
+            (Common.Eliom_Typing_Error
                (List.map (fun (v, _, e) -> v, e) errs))
-        else raise Eliom_common.Eliom_Wrong_parameter
-  with Not_found -> raise Eliom_common.Eliom_Wrong_parameter
+        else raise Common.Eliom_Wrong_parameter
+  with Not_found -> raise Common.Eliom_Wrong_parameter
 
 let reconstruct_params
       ~sp

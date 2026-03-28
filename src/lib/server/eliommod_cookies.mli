@@ -23,31 +23,31 @@ val make_new_session_id : unit -> string
 
 val get_cookie_info :
    float
-  -> Eliom_common.sitedata
-  -> Eliom_common.SessionCookies.key Eliom_common.Full_state_name_table.t
-  -> Eliom_common.SessionCookies.key Eliom_common.Full_state_name_table.t
-  -> string Eliom_common.Full_state_name_table.t
-  -> Eliom_common.SessionCookies.key Eliom_common.Full_state_name_table.t
-     * Eliom_common.SessionCookies.key Eliom_common.Full_state_name_table.t
-     * string Eliom_common.Full_state_name_table.t
-  -> Eliom_common.tables Eliom_common.cookie_info
-     * Eliom_common.Full_state_name_table.key list
+  -> Common.sitedata
+  -> Common.SessionCookies.key Common.Full_state_name_table.t
+  -> Common.SessionCookies.key Common.Full_state_name_table.t
+  -> string Common.Full_state_name_table.t
+  -> Common.SessionCookies.key Common.Full_state_name_table.t
+     * Common.SessionCookies.key Common.Full_state_name_table.t
+     * string Common.Full_state_name_table.t
+  -> Common.tables Common.cookie_info
+     * Common.Full_state_name_table.key list
 
 val new_service_cookie_table :
    unit
-  -> Eliom_common.tables Eliom_common.Service_cookie.table
+  -> Common.tables Common.Service_cookie.table
 
-val new_data_cookie_table : unit -> Eliom_common.Data_cookie.table
+val new_data_cookie_table : unit -> Common.Data_cookie.table
 
 val compute_session_cookies_to_send :
-   Eliom_common.sitedata
-  -> Eliom_common.tables Eliom_common.cookie_info
+   Common.sitedata
+  -> Common.tables Common.cookie_info
   -> Ocsigen_cookie_map.t
   -> Ocsigen_cookie_map.t Lwt.t
 
 val compute_cookies_to_send :
-   Eliom_common.sitedata
-  -> Eliom_common.tables Eliom_common.cookie_info
+   Common.sitedata
+  -> Common.tables Common.cookie_info
   -> Ocsigen_cookie_map.t
   -> Ocsigen_cookie_map.t Lwt.t
 
@@ -55,17 +55,17 @@ val compute_new_ri_cookies :
    float
   -> string list
   -> string Ocsigen_cookie_map.Map_inner.t
-  -> Eliom_common.tables Eliom_common.cookie_info
+  -> Common.tables Common.cookie_info
   -> Ocsigen_cookie_map.t
   -> string Ocsigen_cookie_map.Map_inner.t Lwt.t
 
 type date = float
 
 type cookie =
-  { full_state_name : Eliom_common.full_state_name
+  { full_state_name : Common.full_state_name
   ; expiry : date option
-  ; timeout : Eliom_common.timeout
-  ; session_group : Eliom_common.perssessgrp option }
+  ; timeout : Common.timeout
+  ; session_group : Common.perssessgrp option }
 
 module Persistent_cookies : sig
   module Cookies :

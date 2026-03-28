@@ -12,15 +12,15 @@ val run :
    ?app:string
   -> ?xhr_links:bool
   -> ?data_timeout:
-       [< Eliom_common.cookie_level]
+       [< Common.cookie_level]
        * Eliom_common_base.scope_hierarchy option
        * float option
   -> ?service_timeout:
-       [< Eliom_common.cookie_level]
+       [< Common.cookie_level]
        * Eliom_common_base.scope_hierarchy option
        * float option
   -> ?persistent_timeout:
-       [< Eliom_common.cookie_level]
+       [< Common.cookie_level]
        * Eliom_common_base.scope_hierarchy option
        * float option
   -> ?max_service_sessions_per_group:int * bool
@@ -37,7 +37,7 @@ val run :
   -> ?html_content_type:string
   -> ?ignored_get_params:string * Re.re
   -> ?ignored_post_params:string * Re.re
-  -> ?omitpersistentstorage:Eliom_common.omitpersistentstorage_rule list option
+  -> ?omitpersistentstorage:Common.omitpersistentstorage_rule list option
   -> unit
   -> Ocsigen_server.instruction
 (** [run ?app ()] run Eliom application [app] under current site.

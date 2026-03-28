@@ -93,54 +93,54 @@ let set_omitpersistentstorage v = Eliommod.default_omitpersistentstorage := v
 
 let get_default_hostname () =
   let sitedata = Request_info.find_sitedata "get_default_hostname" in
-  (Eliom_common.get_config_info sitedata).Ocsigen_extensions.default_hostname
+  (Common.get_config_info sitedata).Ocsigen_extensions.default_hostname
 
 let get_default_port () =
   let sitedata = Request_info.find_sitedata "get_default_port" in
-  (Eliom_common.get_config_info sitedata).Ocsigen_extensions.default_httpport
+  (Common.get_config_info sitedata).Ocsigen_extensions.default_httpport
 
 let get_default_sslport () =
   let sitedata = Request_info.find_sitedata "get_default_sslport" in
-  (Eliom_common.get_config_info sitedata).Ocsigen_extensions.default_httpsport
+  (Common.get_config_info sitedata).Ocsigen_extensions.default_httpsport
 
 let default_protocol_is_https () =
   let sitedata = Request_info.find_sitedata "default_protocol_is_https" in
-  (Eliom_common.get_config_info sitedata)
+  (Common.get_config_info sitedata)
     .Ocsigen_extensions.default_protocol_is_https
 
 let get_default_links_xhr () =
   let sitedata = Request_info.find_sitedata "get_default_links_xhr" in
-  sitedata.Eliom_common.default_links_xhr#get
+  sitedata.Common.default_links_xhr#get
 
 let set_default_links_xhr ?override_configfile:_ v =
   let sitedata = Request_info.find_sitedata "set_default_links_xhr" in
-  sitedata.Eliom_common.default_links_xhr#set v
+  sitedata.Common.default_links_xhr#set v
 
 let get_config_default_charset_sp sp =
   Ocsigen_charset_mime.default_charset
-    sp.Eliom_common.sp_request.Ocsigen_extensions.request_config
+    sp.Common.sp_request.Ocsigen_extensions.request_config
       .Ocsigen_extensions.charset_assoc
 
 let get_config_default_charset () =
-  let sp = Eliom_common.get_sp () in
+  let sp = Common.get_sp () in
   get_config_default_charset_sp sp
 
 let get_config_info_sp sp =
-  sp.Eliom_common.sp_request.Ocsigen_extensions.request_config
+  sp.Common.sp_request.Ocsigen_extensions.request_config
 
 let get_config_info () =
-  let sp = Eliom_common.get_sp () in
+  let sp = Common.get_sp () in
   get_config_info_sp sp
 
 let get_config () =
-  match Eliom_common.global_register_allowed () with
+  match Common.global_register_allowed () with
   | Some _ -> (
     match !Eliommod.config with
     | Some c -> c
     | None -> failwith "No config file. Is it a statically linked executable?")
   | None ->
       raise
-        (Eliom_common.Eliom_site_information_not_available "Config.get_config")
+        (Common.Eliom_site_information_not_available "Config.get_config")
 
 let parse_config ?pcdata ?other_elements elements =
   Ocsigen_extensions.Configuration.process_elements

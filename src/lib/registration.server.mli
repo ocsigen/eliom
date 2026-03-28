@@ -490,14 +490,14 @@ val set_exn_handler : (exn -> browser_content kind Lwt.t) -> unit
     Note that you should not catch every exception here since some
     Eliom mechanisms are done using exceptions, like redirections.  Do
     not catch exception defined in Eliom except
-    {!Eliom_common.Eliom_404}, {!Eliom_common.Eliom_Wrong_parameter}
-    {!Eliom_common.Eliom_Typing_Error}.
+    {!Common.Eliom_404}, {!Common.Eliom_Wrong_parameter}
+    {!Common.Eliom_Typing_Error}.
 
     {e Warning: This functions must be called when the site
     information is available, that is, either during a request or
     during the initialisation phase of the site.  Otherwise, it will
     raise the exception
-    {!Eliom_common.Eliom_site_information_not_available}.  If you are
+    {!Common.Eliom_site_information_not_available}.  If you are
     using static linking, you must delay the call to this function
     until the configuration file is read, using
     {!Service.register_eliom_module}. Otherwise you will also

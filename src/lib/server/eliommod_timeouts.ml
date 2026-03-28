@@ -34,7 +34,7 @@ type kind = [`Service | `Data | `Persistent]
 (* Table of timeouts for sessions *)
 
 let default_timeouts :
-  ( kind * Eliom_common.cookie_level * Eliom_common.scope_hierarchy option
+  ( kind * Common.cookie_level * Common.scope_hierarchy option
     , float )
     Hashtbl.t
   =
@@ -50,26 +50,26 @@ let default_timeouts :
 let set_default ?scope_hierarchy kind level = function
   | Some t ->
       Hashtbl.replace default_timeouts
-        ((kind :> kind), (level :> Eliom_common.cookie_level), scope_hierarchy)
+        ((kind :> kind), (level :> Common.cookie_level), scope_hierarchy)
         t
   | None ->
       Hashtbl.remove default_timeouts
-        ((kind :> kind), (level :> Eliom_common.cookie_level), scope_hierarchy)
+        ((kind :> kind), (level :> Common.cookie_level), scope_hierarchy)
 
 let get_default kind user_scope =
-  let level = Eliom_common.cookie_level_of_user_scope user_scope
-  and scope_hierarchy = Eliom_common.scope_hierarchy_of_user_scope user_scope in
+  let level = Common.cookie_level_of_user_scope user_scope
+  and scope_hierarchy = Common.scope_hierarchy_of_user_scope user_scope in
   try
     Some
       (Hashtbl.find default_timeouts
          ( (kind :> kind)
-         , (level :> Eliom_common.cookie_level)
+         , (level :> Common.cookie_level)
          , Some scope_hierarchy ))
   with Not_found -> (
     try
       Some
         (Hashtbl.find default_timeouts
-           ((kind :> kind), (level :> Eliom_common.cookie_level), None))
+           ((kind :> kind), (level :> Common.cookie_level), None))
     with Not_found -> None)
 
 let set_timeout_
@@ -104,7 +104,7 @@ let set_timeout_
     | _, _, Some `Client_process ->
         set sitedata (def_bro, Some (t, fromconfigfile), tl)
     | _, _, None -> failwith "set_timeout_")
-  | Some ({Eliom_common.user_scope; _} as full_st_name) ->
+  | Some ({Common.user_scope; _} as full_st_name) ->
       (* recompute_expdates works only if full_st_name is present *)
       let oldtopt =
         try
@@ -146,21 +146,21 @@ let set_timeout_
 
 let sitedata_timeout kind sitedata =
   match kind with
-  | `Service -> sitedata.Eliom_common.servtimeout
-  | `Data -> sitedata.Eliom_common.datatimeout
-  | `Persistent -> sitedata.Eliom_common.perstimeout
+  | `Service -> sitedata.Common.servtimeout
+  | `Data -> sitedata.Common.datatimeout
+  | `Persistent -> sitedata.Common.perstimeout
 
 let set_sitedata_timeout kind sitedata v =
   match kind with
-  | `Service -> sitedata.Eliom_common.servtimeout <- v
-  | `Data -> sitedata.Eliom_common.datatimeout <- v
-  | `Persistent -> sitedata.Eliom_common.perstimeout <- v
+  | `Service -> sitedata.Common.servtimeout <- v
+  | `Data -> sitedata.Common.datatimeout <- v
+  | `Persistent -> sitedata.Common.perstimeout <- v
 
 let find_global kind full_st_name sitedata =
   let def_bro, def_tab, tl = sitedata_timeout kind sitedata in
   try fst (List.assoc full_st_name tl)
   with Not_found -> (
-    match def_bro, def_tab, full_st_name.Eliom_common.user_scope with
+    match def_bro, def_tab, full_st_name.Common.user_scope with
     | Some (t, _), _, `Session _ -> t
     | _, Some (t, _), `Client_process _ -> t
     | _, _, ct -> get_default kind ct)
@@ -173,8 +173,8 @@ let set_global_ ?full_st_name ?cookie_level ~kind ~recompute_expdates a =
 
 let get_global ~kind ~cookie_scope ~secure sitedata =
   let full_st_name =
-    Eliom_common.make_full_state_name2
-      (Eliom_common.get_site_dir_string sitedata)
+    Common.make_full_state_name2
+      (Common.get_site_dir_string sitedata)
       secure ~scope:cookie_scope
   in
   find_global kind full_st_name sitedata
@@ -189,8 +189,8 @@ let set_global
       timeout
   =
   let full_st_name =
-    Eliom_common.make_full_state_name2
-      (Eliom_common.get_site_dir_string sitedata)
+    Common.make_full_state_name2
+      (Common.get_site_dir_string sitedata)
       secure ~scope:cookie_scope
   in
   set_global_ ~kind ~full_st_name ~recompute_expdates override_configfile false

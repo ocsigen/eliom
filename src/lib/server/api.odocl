@@ -9,7 +9,7 @@ client_value
 syntax
 client
 comet
-eliom_common
+common
 config
 content
 extension

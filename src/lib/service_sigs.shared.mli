@@ -410,10 +410,10 @@ module type S = sig
   val sub_path : att -> Lib.Url.path
   val full_path : att -> Lib.Url.path
   val prefix : att -> string
-  val get_name : att -> Eliom_common.att_key_serv
-  val post_name : att -> Eliom_common.att_key_serv
+  val get_name : att -> Common.att_key_serv
+  val post_name : att -> Common.att_key_serv
   val redirect_suffix : att -> bool
-  val na_name : non_att -> Eliom_common.na_key_serv
+  val na_name : non_att -> Common.na_key_serv
   val na_keep_get_na_params : non_att -> bool
   val max_use : (_, _, _, _, _, _, _, _, _, _, _) t -> int option
   val timeout : (_, _, _, _, _, _, _, _, _, _, _) t -> float option
@@ -433,20 +433,20 @@ module type S = sig
   val change_get_num :
      ('a, 'b, 'meth, att, 'co, 'ext, _, 'd, 'e, 'f, 'return) t
     -> att
-    -> Eliom_common.att_key_serv
+    -> Common.att_key_serv
     -> ('a, 'b, 'meth, att, 'co, 'ext, _, 'd, 'e, 'f, 'return) t
 
   (* Not implemented on client side: TODO should not be called in
      Eliom_uri *)
   val register_delayed_get_or_na_coservice :
-     sp:Eliom_common.server_params
-    -> int * [< Eliom_common.user_scope] * bool option
+     sp:Common.server_params
+    -> int * [< Common.user_scope] * bool option
     -> string
 
   val register_delayed_post_coservice :
-     sp:Eliom_common.server_params
-    -> int * [< Eliom_common.user_scope] * bool option
-    -> Eliom_common.att_key_serv
+     sp:Common.server_params
+    -> int * [< Common.user_scope] * bool option
+    -> Common.att_key_serv
     -> string
 
   (** Whether the service is capable to send application content or

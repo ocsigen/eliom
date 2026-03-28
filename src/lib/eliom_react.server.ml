@@ -27,7 +27,7 @@ open Lwt_react
 module Down = struct
   type 'a stateful =
     { throttling : float option
-    ; scope : Eliom_common.client_process_scope option
+    ; scope : Common.client_process_scope option
     ; react : 'a E.t
     ; name : string option
     ; size : int option }
@@ -35,27 +35,27 @@ module Down = struct
   type 'a stateless = 'a Comet.Channel.t
   type 'a t' = Stateful of 'a stateful | Stateless of 'a stateless
 
-  type 'a t = {t : 'a t'; react_down_mark : 'a t Eliom_common.wrapper}
+  type 'a t = {t : 'a t'; react_down_mark : 'a t Common.wrapper}
   [@@warning "-69"]
 
   let wrap_stateful {throttling = t; scope; react = e; name; size} =
     let ee =
-      Lwt.with_value Eliom_common.sp_key None @@ fun () ->
+      Lwt.with_value Common.sp_key None @@ fun () ->
       match t with
       | None -> e
       | Some t -> E.limit (fun () -> Lwt_unix.sleep t) e
     in
     let channel = Comet.Channel.create_from_events ?scope ?name ?size ee in
-    channel, Eliom_common.make_unwrapper Eliom_common.react_down_unwrap_id
+    channel, Common.make_unwrapper Common.react_down_unwrap_id
 
   let wrap_stateless channel =
-    channel, Eliom_common.make_unwrapper Eliom_common.react_down_unwrap_id
+    channel, Common.make_unwrapper Common.react_down_unwrap_id
 
   let internal_wrap = function
     | {t = Stateful v; _} -> wrap_stateful v
     | {t = Stateless v; _} -> wrap_stateless v
 
-  let react_down_mark () = Eliom_common.make_wrapper internal_wrap
+  let react_down_mark () = Common.make_wrapper internal_wrap
 
   let stateful ?scope ?throttling ?name ?size (e : 'a E.t) =
     Stateful {throttling; scope; react = e; name; size}
@@ -95,26 +95,26 @@ module Up = struct
           , [`One of 'a Parameter.ocaml] Parameter.param_name
           , Registration.Action.return )
           Service.t
-    ; wrapper : 'a t Eliom_common.wrapper }
+    ; wrapper : 'a t Common.wrapper }
   [@@warning "-69"]
 
   let to_react t = t.event
 
   let internal_wrap t =
-    t.service, Eliom_common.make_unwrapper Eliom_common.react_up_unwrap_id
+    t.service, Common.make_unwrapper Common.react_up_unwrap_id
 
-  let up_event_wrapper () = Eliom_common.make_wrapper internal_wrap
+  let up_event_wrapper () = Common.make_wrapper internal_wrap
 
   (* An event is created along with a service responsible for it's occurrences.
    * function takes a param_type *)
   let create ?scope ?name post_params =
     let e, push = E.create () in
-    let sp = Eliom_common.get_sp_option () in
+    let sp = Common.get_sp_option () in
     let scope =
       match sp, scope with
       | _, Some l -> l
       | None, _ -> `Site
-      | _ -> (Eliom_common.comet_client_process_scope :> Eliom_common.scope)
+      | _ -> (Common.comet_client_process_scope :> Common.scope)
     in
     let e_writer =
       Service.create ?name
@@ -130,7 +130,7 @@ module S = struct
   module Down = struct
     type 'a stateful =
       { throttling : float option
-      ; scope : Eliom_common.client_process_scope option
+      ; scope : Common.client_process_scope option
       ; signal : 'a S.t
       ; name : string option }
     [@@warning "-69"]
@@ -144,7 +144,7 @@ module S = struct
 
     type 'a t' = Stateful of 'a stateful | Stateless of 'a stateless
 
-    type 'a t = {t : 'a t'; signal_down_mark : 'a t Eliom_common.wrapper}
+    type 'a t = {t : 'a t'; signal_down_mark : 'a t Common.wrapper}
     [@@warning "-69"]
 
     type 'a store =
@@ -183,7 +183,7 @@ module S = struct
           store.read <- true;
           Lwt.return_some store.value)
       in
-      fun () -> Lwt.with_value Eliom_common.sp_key None @@ aux
+      fun () -> Lwt.with_value Common.sp_key None @@ aux
 
     let wrap_stateful {throttling = t; signal = s; name; _} =
       let s : 'a S.t =
@@ -197,19 +197,19 @@ module S = struct
       let value : 'a = S.value s in
       ( channel
       , value
-      , Eliom_common.make_unwrapper Eliom_common.signal_down_unwrap_id )
+      , Common.make_unwrapper Common.signal_down_unwrap_id )
 
     let wrap_stateless {sl_signal = s; channel; _} =
       let value : 'a = S.value s in
       ( channel
       , value
-      , Eliom_common.make_unwrapper Eliom_common.signal_down_unwrap_id )
+      , Common.make_unwrapper Common.signal_down_unwrap_id )
 
     let internal_wrap = function
       | {t = Stateful v; _} -> wrap_stateful v
       | {t = Stateless v; _} -> wrap_stateless v
 
-    let signal_down_mark () = Eliom_common.make_wrapper internal_wrap
+    let signal_down_mark () = Common.make_wrapper internal_wrap
 
     let stateful ?scope ?throttling ?name (s : 'a S.t) =
       Stateful {throttling; scope; signal = s; name}

@@ -53,7 +53,7 @@ let ( set_sitedata
     , (get_sitedata : unit -> Eliom_types.sitedata)
     , reset_sitedata )
   =
-  get_set_js_serverside_value Eliom_common.sitedata "__eliom_appl_sitedata"
+  get_set_js_serverside_value Common.sitedata "__eliom_appl_sitedata"
 
 let ignored_get_params = ref []
 let ignored_post_params = ref []
@@ -67,7 +67,7 @@ let set_ignored_params get post =
 
 let ( set_info
     , is_set_info
-    , (get_info : unit -> Eliom_common.client_process_info)
+    , (get_info : unit -> Common.client_process_info)
     , reset_info )
   =
   get_set_js_serverside_value (ref None) "__eliom_appl_process_info"
@@ -93,7 +93,7 @@ let appl_name =
           and not a JS variable,
           because we want to send it back with each request.
           For mobile apps, we set the cookie from JS variable. *)
-       Ocsigen_cookie_map.Map_inner.find Eliom_common.appl_name_cookie_name
+       Ocsigen_cookie_map.Map_inner.find Common.appl_name_cookie_name
          (Ocsigen_cookie_map.Map_path.find
             (get_sitedata ()).Eliom_types.site_dir
             (Eliommod_cookies.get_table (Some (get_info ()).cpi_hostname)))

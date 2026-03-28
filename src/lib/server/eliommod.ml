@@ -90,13 +90,13 @@ module S = Hashtbl.Make (struct
   end)
 
 let create_sitedata_aux site_dir config_info =
-  let dlist_table = Eliom_common.create_dlist_ip_table 100
+  let dlist_table = Common.create_dlist_ip_table 100
   and group_of_groups =
     Ocsigen_cache.Dlist.create !default_max_volatile_groups_per_site
   in
   let sitedata =
     { (* One dlist for each site? *)
-      Eliom_common.servtimeout = None, None, []
+      Common.servtimeout = None, None, []
     ; datatimeout = None, None, []
     ; perstimeout = None, None, []
     ; site_value_table = Polytables.create ()
@@ -106,12 +106,12 @@ let create_sitedata_aux site_dir config_info =
         Option.map (Lib.Url.string_of_url_path ~encode:false) site_dir
     ; config_info
     ; default_links_xhr =
-        Eliom_common.tenable_value ~name:"default_links_xhr" true
+        Common.tenable_value ~name:"default_links_xhr" true
     ; global_services =
-        Eliom_common.empty_tables
+        Common.empty_tables
           !default_max_anonymous_services_per_subnet
           false
-    ; registered_scope_hierarchies = Eliom_common.Hier_set.empty
+    ; registered_scope_hierarchies = Common.Hier_set.empty
     ; session_services = Eliommod_cookies.new_service_cookie_table ()
     ; session_data = Eliommod_cookies.new_data_cookie_table ()
     ; group_of_groups
@@ -168,7 +168,7 @@ let create_sitedata_aux site_dir config_info =
        match Tuple3.thd fullbrowsersessgrp with
        | Left key ->
            (* iterate on all session data tables: *)
-           sitedata.Eliom_common.remove_session_data key
+           sitedata.Common.remove_session_data key
        | _ ->
            (* No group has been set. No group table.
                    Data associated to default (automatic) groups
@@ -505,7 +505,7 @@ let parse_eliom_option
             in
             let header_name = Ocsigen_header.Name.of_string attr_name in
             let header_regexp = Re.compile @@ Re.Pcre.re attr_value in
-            Eliom_common.HeaderRule (header_name, header_regexp)
+            Common.HeaderRule (header_name, header_regexp)
         | _ -> assert false
       in
       let rules = List.map parse_rule tags in
@@ -598,8 +598,8 @@ let rec parse_global_config = function
         , (fun v -> default_max_anonymous_services_per_subnet := v)
         , (fun v -> default_max_volatile_groups_per_site := v)
         , (fun v -> default_secure_cookies := v)
-        , (fun v -> Eliom_common.ipv4mask := v)
-        , (fun v -> Eliom_common.ipv6mask := v)
+        , (fun v -> Common.ipv4mask := v)
+        , (fun v -> Common.ipv6mask := v)
         , (fun v -> default_application_script := v)
         , (fun v -> default_enable_wasm := v)
         , (fun v -> default_cache_global_data := v)
@@ -627,9 +627,9 @@ let end_init () =
     ()
   else
     try
-      Eliom_common.verify_all_registered (Eliom_common.get_current_sitedata ());
-      Eliom_common.end_current_sitedata ()
-    with Eliom_common.Eliom_site_information_not_available _ -> ()
+      Common.verify_all_registered (Common.get_current_sitedata ());
+      Common.end_current_sitedata ()
+    with Common.Eliom_site_information_not_available _ -> ()
 (*VVV The "try with" looks like a hack:
             end_init is called even for user config files ... but in that case,
             current_sitedata is not set ...
@@ -637,11 +637,11 @@ let end_init () =
 
 (** Function that will handle exceptions during the initialisation phase *)
 let handle_init_exn = function
-  | Eliom_common.Eliom_error_while_loading_site s -> s
-  | Eliom_common.Eliom_duplicate_registration s ->
+  | Common.Eliom_error_while_loading_site s -> s
+  | Common.Eliom_duplicate_registration s ->
       "Eliom: Duplicate registration of service \"" ^ s
       ^ "\". Please correct the module."
-  | Eliom_common.Eliom_there_are_unregistered_services (s, l1, l2) ->
+  | Common.Eliom_there_are_unregistered_services (s, l1, l2) ->
       "Eliom: in site /"
       ^ Url.string_of_url_path ~encode:false s
       ^ " - "
@@ -661,27 +661,27 @@ let handle_init_exn = function
             ^ ". ")
       ^ (match l2 with
         | [] -> ""
-        | [Eliom_common.SNa_get' _] ->
+        | [Common.SNa_get' _] ->
             "One non-attached GET coservice has not been registered."
-        | [Eliom_common.SNa_post' _] ->
+        | [Common.SNa_post' _] ->
             "One non-attached POST coservice has not been registered."
-        | [Eliom_common.SNa_get_ a] ->
+        | [Common.SNa_get_ a] ->
             "The non-attached GET service \"" ^ a
             ^ "\" has not been registered."
-        | [Eliom_common.SNa_post_ a] ->
+        | [Common.SNa_post_ a] ->
             "The non-attached POST service \"" ^ a
             ^ "\" has not been registered."
         | a :: ll ->
             let string_of = function
-              | Eliom_common.SNa_void_keep | Eliom_common.SNa_void_dontkeep
-              | Eliom_common.SNa_no ->
+              | Common.SNa_void_keep | Common.SNa_void_dontkeep
+              | Common.SNa_no ->
                   assert false
-              | Eliom_common.SNa_get' _ -> "<GET coservice>"
-              | Eliom_common.SNa_get_ n -> n ^ " (GET)"
-              | Eliom_common.SNa_post' _ -> "<POST coservice>"
-              | Eliom_common.SNa_post_ n -> n ^ " (POST)"
-              | Eliom_common.SNa_get_csrf_safe _ -> " <GET CSRF-safe coservice>"
-              | Eliom_common.SNa_post_csrf_safe _ ->
+              | Common.SNa_get' _ -> "<GET coservice>"
+              | Common.SNa_get_ n -> n ^ " (GET)"
+              | Common.SNa_post' _ -> "<POST coservice>"
+              | Common.SNa_post_ n -> n ^ " (POST)"
+              | Common.SNa_get_csrf_safe _ -> " <GET CSRF-safe coservice>"
+              | Common.SNa_post_csrf_safe _ ->
                   "<POST CSRF-safe coservice>"
             in
             "Some non-attached services or coservices have not been registered: "
@@ -690,10 +690,10 @@ let handle_init_exn = function
                 (string_of a) ll
             ^ ".")
       ^ "\nPlease correct your modules and make sure you have linked in all the modules..."
-  | Eliom_common.Eliom_site_information_not_available f ->
+  | Common.Eliom_site_information_not_available f ->
       "Eliom: Bad use of function \"" ^ f
       ^ "\". Must be used only during site initialisation phase (or, sometimes, also during request)."
-  | Eliom_common.Eliom_page_erasing s ->
+  | Common.Eliom_page_erasing s ->
       "Eliom: You cannot create a page or directory here. " ^ s
       ^ " already exists. Please correct your modules."
   | e -> raise e
@@ -712,21 +712,21 @@ let get_sitedata =
 
 let update_sitedata app vh site_dir conf_info =
   let sitedata = get_sitedata app in
-  sitedata.Eliom_common.site_dir <- Some site_dir;
-  sitedata.Eliom_common.site_dir_string <-
+  sitedata.Common.site_dir <- Some site_dir;
+  sitedata.Common.site_dir_string <-
     Some (Lib.Url.string_of_url_path ~encode:false site_dir);
-  sitedata.Eliom_common.config_info <- Some conf_info;
+  sitedata.Common.config_info <- Some conf_info;
   update_sitedata vh site_dir sitedata;
   sitedata
 
 let _ =
-  Eliom_common.absolute_change_sitedata
-    (get_sitedata (Eliom_common.get_app_name ()))
+  Common.absolute_change_sitedata
+    (get_sitedata (Common.get_app_name ()))
 
 let set_app_name s =
-  Eliom_common.current_app_name := s;
-  Eliom_common.absolute_change_sitedata
-    (get_sitedata (Eliom_common.get_app_name ()))
+  Common.current_app_name := s;
+  Common.absolute_change_sitedata
+    (get_sitedata (Common.get_app_name ()))
 
 let site_init_ref = ref []
 
@@ -759,7 +759,7 @@ let load_eliom_module _sitedata cmo_or_name parent_tag content =
     | Name name -> Ocsigen_loader.init_module preload postload true name
   with Ocsigen_loader.Dynlink_error (n, e) ->
     raise
-      (Eliom_common.Eliom_error_while_loading_site
+      (Common.Eliom_error_while_loading_site
          (Printf.sprintf "Eliom: while loading %s: %s" n
             (try handle_init_exn e with
             | Dynlink.Error err -> Dynlink.error_message err
@@ -776,12 +776,12 @@ let default_module_action _ = failwith "default_module_action"
 
 let set_timeout
       (f :
-        ?full_st_name:Eliom_common.full_state_name
-        -> ?cookie_level:[< Eliom_common.cookie_level]
+        ?full_st_name:Common.full_state_name
+        -> ?cookie_level:[< Common.cookie_level]
         -> recompute_expdates:bool
         -> bool (* override configfile *)
         -> bool (* from config file *)
-        -> Eliom_common.sitedata
+        -> Common.sitedata
         -> float option
         -> unit)
       sitedata
@@ -795,8 +795,8 @@ let set_timeout
       | `Session -> `Session state_hier
       | `Client_process -> `Client_process state_hier
     in
-    Eliom_common.make_full_state_name2
-      (Eliom_common.get_site_dir_string sitedata)
+    Common.make_full_state_name2
+      (Common.get_site_dir_string sitedata)
       secure ~scope
   in
   (*VVV We set timeout for both secure and unsecure states.
@@ -816,7 +816,7 @@ let parse_config _ hostpattern conf_info site_dir =
   let sitedata = create_sitedata hostpattern site_dir conf_info in
   (*--- then there is one service tree for each <site> *)
   (*--- (mutatis mutandis for the following line:) *)
-  Eliom_common.absolute_change_sitedata sitedata;
+  Common.absolute_change_sitedata sitedata;
   let firsteliomtag = ref true in
   let firstmodule = ref true in
   let eliommodulewarningdisplayed = ref false in
@@ -885,7 +885,7 @@ let parse_config _ hostpattern conf_info site_dir =
   browsers manage cookies (one cookie for one site).
   Thus we can have one site in several cmo (with one session).
         *)
-        let oldipv6mask = sitedata.Eliom_common.ipv6mask in
+        let oldipv6mask = sitedata.Common.ipv6mask in
         let content =
           parse_eliom_options
             ( (fun ct snoo v ->
@@ -903,32 +903,32 @@ let parse_config _ hostpattern conf_info site_dir =
                 (Eliommod_timeouts.set_global_ ~kind:`Persistent)
                 sitedata
             , (fun v ->
-                sitedata.Eliom_common.max_service_sessions_per_group <- v, true)
+                sitedata.Common.max_service_sessions_per_group <- v, true)
             , (fun v ->
-                sitedata.Eliom_common.max_service_sessions_per_subnet <- v, true)
+                sitedata.Common.max_service_sessions_per_subnet <- v, true)
             , (fun v ->
-                sitedata.Eliom_common.max_volatile_data_sessions_per_group <-
+                sitedata.Common.max_volatile_data_sessions_per_group <-
                   v, true)
             , (fun v ->
-                sitedata.Eliom_common.max_volatile_data_sessions_per_subnet <-
+                sitedata.Common.max_volatile_data_sessions_per_subnet <-
                   v, true)
             , (fun v ->
-                sitedata.Eliom_common.max_persistent_data_sessions_per_group <-
+                sitedata.Common.max_persistent_data_sessions_per_group <-
                   Some v, true)
             , (fun v ->
-                sitedata.Eliom_common.max_service_tab_sessions_per_group <-
+                sitedata.Common.max_service_tab_sessions_per_group <-
                   v, true)
             , (fun v ->
-                sitedata.Eliom_common.max_volatile_data_tab_sessions_per_group <-
+                sitedata.Common.max_volatile_data_tab_sessions_per_group <-
                   v, true)
             , (fun v ->
-                sitedata.Eliom_common.max_persistent_data_tab_sessions_per_group <-
+                sitedata.Common.max_persistent_data_tab_sessions_per_group <-
                   Some v, true)
             , (fun v ->
-                sitedata.Eliom_common.max_anonymous_services_per_session <-
+                sitedata.Common.max_anonymous_services_per_session <-
                   v, true)
             , (fun v ->
-                sitedata.Eliom_common.max_anonymous_services_per_subnet <-
+                sitedata.Common.max_anonymous_services_per_subnet <-
                   v, true;
                 (* The global table has already been created, with old max
                    and old ipv6mask.
@@ -936,9 +936,9 @@ let parse_config _ hostpattern conf_info site_dir =
                    for this table: *)
                 try
                   let dlist =
-                    Eliom_common.find_dlist_ip_table
-                      sitedata.Eliom_common.ipv4mask (* unused *) oldipv6mask
-                      sitedata.Eliom_common.dlist_ip_table
+                    Common.find_dlist_ip_table
+                      sitedata.Common.ipv4mask (* unused *) oldipv6mask
+                      sitedata.Common.dlist_ip_table
                       Ipaddr.(V6 V6.localhost)
                   in
                   ignore (Ocsigen_cache.Dlist.set_maxsize dlist v)
@@ -947,27 +947,27 @@ let parse_config _ hostpattern conf_info site_dir =
             , (fun v ->
                 ignore
                   (Ocsigen_cache.Dlist.set_maxsize
-                     sitedata.Eliom_common.group_of_groups v))
-            , (fun v -> sitedata.Eliom_common.secure_cookies <- v)
-            , (fun v -> sitedata.Eliom_common.ipv4mask <- Some v, true)
-            , (fun v -> sitedata.Eliom_common.ipv6mask <- Some v, true)
-            , (fun v -> sitedata.Eliom_common.application_script <- v)
-            , (fun v -> sitedata.Eliom_common.enable_wasm <- v)
-            , (fun v -> sitedata.Eliom_common.cache_global_data <- v)
-            , (fun v -> sitedata.Eliom_common.html_content_type <- Some v)
+                     sitedata.Common.group_of_groups v))
+            , (fun v -> sitedata.Common.secure_cookies <- v)
+            , (fun v -> sitedata.Common.ipv4mask <- Some v, true)
+            , (fun v -> sitedata.Common.ipv6mask <- Some v, true)
+            , (fun v -> sitedata.Common.application_script <- v)
+            , (fun v -> sitedata.Common.enable_wasm <- v)
+            , (fun v -> sitedata.Common.cache_global_data <- v)
+            , (fun v -> sitedata.Common.html_content_type <- Some v)
             , (fun regexp ->
-                sitedata.Eliom_common.ignored_get_params <-
-                  regexp :: sitedata.Eliom_common.ignored_get_params)
+                sitedata.Common.ignored_get_params <-
+                  regexp :: sitedata.Common.ignored_get_params)
             , (fun regexp ->
-                sitedata.Eliom_common.ignored_post_params <-
-                  regexp :: sitedata.Eliom_common.ignored_post_params)
-            , fun v -> sitedata.Eliom_common.omitpersistentstorage <- v )
+                sitedata.Common.ignored_post_params <-
+                  regexp :: sitedata.Common.ignored_post_params)
+            , fun v -> sitedata.Common.omitpersistentstorage <- v )
             content
         in
         let default_links_xhr, atts = parse_default_links_xhr [] None atts in
         (match default_links_xhr with
         | Some default_links_xhr ->
-            sitedata.Eliom_common.default_links_xhr#set ~override_tenable:true
+            sitedata.Common.default_links_xhr#set ~override_tenable:true
               default_links_xhr
         | None -> ());
         Extension.register_eliom_extension default_module_action;

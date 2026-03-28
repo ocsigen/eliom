@@ -97,9 +97,9 @@ let cast_unknown_content_kind (x : unknown_content kind) : 'a kind =
 let cast_http_result = Result_types.cast_result
 
 let content_type_html content_type =
-  let sp = Eliom_common.get_sp () in
+  let sp = Common.get_sp () in
   match
-    content_type, sp.Eliom_common.sp_sitedata.Eliom_common.html_content_type
+    content_type, sp.Common.sp_sitedata.Common.html_content_type
   with
   | None, Some content_type -> content_type
   | Some content_type, _ -> content_type
@@ -234,12 +234,12 @@ module Action_base = struct
        file (they have already been taken into account) *)
     Polytables.set
       ~table:(Ocsigen_request.request_cache ri)
-      ~key:Eliom_common.found_stop_key ~value:();
+      ~key:Common.found_stop_key ~value:();
     res
 
   let update_request ri si cookies_override =
     Ocsigen_request.update ri ~post_data:None ~meth:`GET ~cookies_override
-      ~get_params_flat:si.Eliom_common.si_other_get_params
+      ~get_params_flat:si.Common.si_other_get_params
 
   let send ?(options = `Reload) ?charset ?(code = 204) ?content_type ?headers ()
     =
@@ -268,22 +268,22 @@ module Action_base = struct
          loop.
 
          Be very careful while re-reading this. *)
-        let sp = Eliom_common.get_sp () in
+        let sp = Common.get_sp () in
         let sitedata = Request_info.get_sitedata_sp ~sp in
         let si = Request_info.get_si sp in
         let ri = Request_info.get_request_sp sp in
         let open Ocsigen_extensions in
         match
-          ( si.Eliom_common.si_nonatt_info
-          , si.Eliom_common.si_state_info
+          ( si.Common.si_nonatt_info
+          , si.Common.si_state_info
           , Ocsigen_request.meth ri.request_info )
         with
-        | ( Eliom_common.RNa_no
-          , (Eliom_common.RAtt_no, Eliom_common.RAtt_no)
+        | ( Common.RNa_no
+          , (Common.RAtt_no, Common.RAtt_no)
           , `GET ) ->
             Lwt.return (Ocsigen_response.make (Cohttp.Response.make ()))
         | _ ->
-            let all_cookie_info = sp.Eliom_common.sp_cookie_info in
+            let all_cookie_info = sp.Common.sp_cookie_info in
             let* ric =
               Eliommod_cookies.compute_new_ri_cookies (Unix.time ())
                 (Ocsigen_request.sub_path ri.request_info)
@@ -303,29 +303,29 @@ module Action_base = struct
            lost. *)
             let rc = Request_info.get_request_cache_sp sp in
             Polytables.set ~table:rc
-              ~key:Eliom_common.tab_cookie_action_info_key
+              ~key:Common.tab_cookie_action_info_key
               ~value:
-                ( sp.Eliom_common.sp_tab_cookie_info
-                , sp.Eliom_common.sp_user_tab_cookies
-                , si.Eliom_common.si_tab_cookies );
+                ( sp.Common.sp_tab_cookie_info
+                , sp.Common.sp_user_tab_cookies
+                , si.Common.si_tab_cookies );
             (* Remove some parameters to choose the following service *)
             Polytables.set
               ~table:
                 (Ocsigen_request.request_cache
                    ri.Ocsigen_extensions.request_info)
-              ~key:Eliom_common.eliom_params_after_action
+              ~key:Common.eliom_params_after_action
               ~value:
-                ( si.Eliom_common.si_all_get_params
-                , si.Eliom_common.si_all_post_params
+                ( si.Common.si_all_get_params
+                , si.Common.si_all_post_params
                 , (* is Some [] *)
-                  si.Eliom_common.si_all_file_params
+                  si.Common.si_all_file_params
                 , (* is Some [] *)
-                  si.Eliom_common.si_nl_get_params
-                , si.Eliom_common.si_nl_post_params
-                , si.Eliom_common.si_nl_file_params
-                , si.Eliom_common.si_all_get_but_nl
-                , si.Eliom_common.si_ignored_get_params
-                , si.Eliom_common.si_ignored_post_params );
+                  si.Common.si_nl_get_params
+                , si.Common.si_nl_post_params
+                , si.Common.si_nl_file_params
+                , si.Common.si_all_get_but_nl
+                , si.Common.si_ignored_get_params
+                , si.Common.si_ignored_post_params );
             (*VVV Also put all_cookie_info in this, to avoid
           update_cookie_table and get_cookie_info (?) *)
             let ri = update_request ri.request_info si ric in
@@ -406,7 +406,7 @@ let appl_self_redirect send page =
     let response =
       let headers =
         Cohttp.Header.(add (init ()))
-          Eliom_common.half_xhr_redir_header
+          Common.half_xhr_redir_header
           (Request_info.get_full_url ())
       in
       Cohttp.Response.make ~headers ()
@@ -426,7 +426,7 @@ module File_base = struct
   let send_appl_content = Service.XNever
 
   let send ?options ?charset ?code:_ ?content_type ?headers filename =
-    let sp = Eliom_common.get_sp () in
+    let sp = Common.get_sp () in
     let request = Request_info.get_request_sp sp in
     match
       try Ocsigen_local_files.resolve ~request ~filename ()
@@ -436,7 +436,7 @@ module File_base = struct
       | Ocsigen_local_files.Failed_404
       | Ocsigen_local_files.NotReadableDirectory
       ->
-        raise Eliom_common.Eliom_404
+        raise Common.Eliom_404
     with
     | Ocsigen_local_files.RFile fname ->
         let* res =
@@ -457,7 +457,7 @@ module File = struct
   include Mkreg.Make (File_base)
 
   let check_file filename =
-    let sp = Eliom_common.get_sp () in
+    let sp = Common.get_sp () in
     let request = Request_info.get_request_sp sp in
     try
       ignore (Ocsigen_local_files.resolve ~request ~filename ());
@@ -673,10 +673,10 @@ module Ocaml = struct
         (fun exn ->
            let code = Printf.sprintf "%06x" (Random.int 0x1000000) in
            let argument =
-             let sp = Eliom_common.get_sp () in
+             let sp = Common.get_sp () in
              let si = Request_info.get_si sp in
              let post_params =
-               match si.Eliom_common.si_all_post_params with
+               match si.Common.si_all_post_params with
                | None -> []
                | Some l -> l
              in
@@ -824,7 +824,7 @@ type appl_service_options = {do_not_launch : bool}
     it is not already launched.  Default: [false]. *)
 
 let default_appl_service_options = {do_not_launch = false}
-let request_template = Reference.eref ~scope:Eliom_common.request_scope None
+let request_template = Reference.eref ~scope:Common.request_scope None
 
 let global_data_unwrapper =
   Wrap.create_unwrapper (Wrap.id_of_int Eliom_runtime.global_data_unwrap_id_int)
@@ -897,11 +897,11 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
   let result_of_http_result = Result_types.cast_result
 
   let is_initial_request () =
-    Eliom_common.((get_sp ()).sp_client_appl_name)
+    Common.((get_sp ()).sp_client_appl_name)
     <> Some App_param.application_name
 
   let global_data_cache_options () =
-    (Request_info.get_sitedata ()).Eliom_common.cache_global_data
+    (Request_info.get_sitedata ()).Common.cache_global_data
 
   let eliom_appl_script_id : [`Script] Content.Html.Id.id =
     Content.Html.Id.new_elt_id ~global:true ()
@@ -909,7 +909,7 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
   (* Generate an inline script for detecting and loading WASM/JS *)
   let wasm_detection_script ?defer ?async ?js_name ?wasm_name () =
     let defer', async' =
-      (Request_info.get_sitedata ()).Eliom_common.application_script
+      (Request_info.get_sitedata ()).Common.application_script
     in
     let defer = match defer with Some b -> b | None -> defer' in
     let async = match async with Some b -> b | None -> async' in
@@ -960,7 +960,7 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
 
   let js_only_application_script ?defer ?async () =
     let defer', async' =
-      (Request_info.get_sitedata ()).Eliom_common.application_script
+      (Request_info.get_sitedata ()).Common.application_script
     in
     let defer = match defer with Some b -> b | None -> defer' in
     let async = match async with Some b -> b | None -> async' in
@@ -977,7 +977,7 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
 
   (* Automatically return WASM detection script or JS-only script based on config *)
   let application_script ?defer ?async () =
-    if (Request_info.get_sitedata ()).Eliom_common.enable_wasm
+    if (Request_info.get_sitedata ()).Common.enable_wasm
     then wasm_detection_script ?defer ?async ()
     else js_only_application_script ?defer ?async ()
 
@@ -996,7 +996,7 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
       Printf.sprintf
         "var __eliom_appl_sitedata = \'%s\';\nvar __eliom_appl_process_info = \'%s\'\nvar __eliom_request_data;\nvar __eliom_request_cookies;\nvar __eliom_request_template;\n"
         (Lib.jsmarshal (Eliommod_cli.client_sitedata sp))
-        (Lib.jsmarshal sp.Eliom_common.sp_client_process_info)
+        (Lib.jsmarshal sp.Common.sp_client_process_info)
     in
     Lwt.return
       Content.Html.(
@@ -1026,17 +1026,17 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
     let eliom_data =
       Content.Xml.wrap
         (Content.Html.D.toelt page)
-        { Eliom_common.ejs_global_data
+        { Common.ejs_global_data
         ; ejs_request_data
         ; ejs_event_handler_table =
             Content.Xml.make_event_handler_table (Content.Html.D.toelt page)
         ; ejs_client_attrib_table =
             Content.Xml.make_client_attrib_table (Content.Html.D.toelt page)
-        ; ejs_sess_info = Eliommod_cli.client_si sp.Eliom_common.sp_si }
+        ; ejs_sess_info = Eliommod_cli.client_si sp.Common.sp_si }
     in
     let* tab_cookies =
-      Eliommod_cookies.compute_cookies_to_send sp.Eliom_common.sp_sitedata
-        sp.Eliom_common.sp_tab_cookie_info sp.Eliom_common.sp_user_tab_cookies
+      Eliommod_cookies.compute_cookies_to_send sp.Common.sp_sitedata
+        sp.Common.sp_tab_cookie_info sp.Common.sp_user_tab_cookies
     in
     let* template = Reference.get request_template in
     let script =
@@ -1074,7 +1074,7 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
       (* Using the async flag does not make sense here as we need to
          be sure that this is executed before the application script. *)
       let defer, _ =
-        (Request_info.get_sitedata ()).Eliom_common.application_script
+        (Request_info.get_sitedata ()).Common.application_script
       in
       let uri =
         Content.Html.F.make_uri ~absolute:false
@@ -1195,16 +1195,16 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
         ?headers
         content
     =
-    let sp = Eliom_common.get_sp () in
+    let sp = Common.get_sp () in
     (* GRGR FIXME et si le nom de l'application diffère ?? Il faut
        renvoyer un full_redirect... TODO *)
-    if sp.Eliom_common.sp_client_appl_name <> Some App_param.application_name
+    if sp.Common.sp_client_appl_name <> Some App_param.application_name
     then
       State.set_cookie ~cookie_level:`Client_process
-        ~name:Eliom_common.appl_name_cookie_name
+        ~name:Common.appl_name_cookie_name
         ~value:App_param.application_name ();
     let* body =
-      (match sp.Eliom_common.sp_client_appl_name, options.do_not_launch with
+      (match sp.Common.sp_client_appl_name, options.do_not_launch with
         | None, true -> remove_eliom_scripts content
         | _ -> add_eliom_scripts ~sp content)
       >|= fun body ->
@@ -1353,7 +1353,7 @@ module String_redirection_base = struct
            regular redirection *)
         ( Ocsigen_header.Name.(to_string location)
         , status_of_redirection_options options code )
-      else Eliom_common.half_xhr_redir_header, `OK
+      else Common.half_xhr_redir_header, `OK
     in
     let headers = Cohttp.Header.replace headers header_id uri in
     result_of_content ?charset ?content_type ~status ~headers
@@ -1436,15 +1436,15 @@ module Redirection_base = struct
             | Service.XSame_appl (an, _) when an = anr ->
                 (* Same appl, we do a full XHR redirection (not an HTTP
                 redirection, because we want to send back tab cookies) *)
-                Eliom_common.full_xhr_redir_header
+                Common.full_xhr_redir_header
             | Service.XAlways ->
                 (* It is probably an action, or a void coservice. Full XHR
                 again *)
-                Eliom_common.full_xhr_redir_header
+                Common.full_xhr_redir_header
             | _ ->
                 (* No application, or another application. We ask the
                 browser to do an HTTP redirection. *)
-                Eliom_common.half_xhr_redir_header)
+                Common.half_xhr_redir_header)
             uri
         in
         result_of_content ?charset ?content_type ~status:`No_content ~headers

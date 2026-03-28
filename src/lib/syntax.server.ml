@@ -32,11 +32,11 @@ let get_global_data, modify_global_data =
      ocsigen extensions and their own site.  *)
   let global_data = ref Lib.String_map.empty in
   let site_data =
-    Reference.Volatile.eref ~scope:Eliom_common.site_scope Lib.String_map.empty
+    Reference.Volatile.eref ~scope:Common.site_scope Lib.String_map.empty
   in
   let is_site_available () =
-    (* Matches valid states for Eliom_common.get_site_data *)
-    Eliom_common.(
+    (* Matches valid states for Common.get_site_data *)
+    Common.(
       get_sp_option () <> None || Ocsigen_extensions.during_initialisation ())
   in
   let get () =
@@ -102,7 +102,7 @@ let get_global_data () =
 
 let request_data : Eliom_runtime.client_value_datum list Reference.Volatile.eref
   =
-  Reference.Volatile.eref ~scope:Eliom_common.request_scope []
+  Reference.Volatile.eref ~scope:Common.request_scope []
 
 let get_request_data () =
   Array.of_list (List.rev (Reference.Volatile.get request_data))
@@ -115,7 +115,7 @@ let register_client_value_data ~closure_id ~args ~value =
   let client_value_datum = {Eliom_runtime.closure_id; args; value} in
   if !is_global
   then
-    if Eliom_common.get_sp_option () = None
+    if Common.get_sp_option () = None
     then
       current_server_section_data :=
         client_value_datum :: !current_server_section_data
