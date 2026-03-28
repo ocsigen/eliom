@@ -69,8 +69,8 @@ let typed_apply ~service f gp pp l l' suffix =
        | None -> ());
        f g p)
     (function
-      | Eliom_common.Eliom_Wrong_parameter ->
-          Lwt.fail Eliom_common.Eliom_Wrong_parameter
+      | Common.Eliom_Wrong_parameter ->
+          Lwt.fail Common.Eliom_Wrong_parameter
       | exc -> Lwt.reraise exc)
 
 let wrap service att f _ suffix =
@@ -83,15 +83,15 @@ let wrap service att f _ suffix =
     | None -> []
   in
   match Service.get_name att with
-  | Eliom_common.SAtt_named s | Eliom_common.SAtt_anon s -> (
+  | Common.SAtt_named s | Common.SAtt_anon s -> (
     try
       let eliom_name = List.assoc "__eliom__" l
       and l = List.remove_assoc "__eliom__" l
       and l' = List.remove_assoc "__eliom__" l' in
       if eliom_name = s
       then typed_apply ~service f gp pp l l' suffix
-      else Lwt.fail Eliom_common.Eliom_Wrong_parameter
-    with Not_found -> Lwt.fail Eliom_common.Eliom_Wrong_parameter)
+      else Lwt.fail Common.Eliom_Wrong_parameter
+    with Not_found -> Lwt.fail Common.Eliom_Wrong_parameter)
   | _ -> typed_apply ~service f gp pp l l' suffix
 
 let wrap_na
@@ -104,7 +104,7 @@ let wrap_na
   let gp = Service.get_params_type service
   and pp = Service.post_params_type service
   and si = Request_info.get_sess_info ()
-  and filter l = fst Eliom_common.(split_prefix_param na_co_param_prefix l) in
+  and filter l = fst Common.(split_prefix_param na_co_param_prefix l) in
   let l = filter si.si_all_get_but_nl
   and l' = match si.si_all_post_params with Some l -> filter l | None -> [] in
   typed_apply ~service f gp pp l l' suffix
@@ -122,14 +122,14 @@ let register_att ~service ~att f =
       Logs.info ~src:section (fun fmt ->
         fmt "Service timeout ignored on the client"));
   let s_id =
-    if gn = Eliom_common.SAtt_no || pn = Eliom_common.SAtt_no
+    if gn = Common.SAtt_no || pn = Common.SAtt_no
     then Parameter.(anonymise_params_type sgpt, anonymise_params_type sppt)
     else 0, 0
   and s_max_use = Service.max_use service
   and s_expire = None
   and s_f = wrap service att f in
   Route.add_service priority Route.global_tables (Service.sub_path att)
-    {Eliom_common.key_state = gn, pn; Eliom_common.key_meth :> Eliom_common.meth}
+    {Common.key_state = gn, pn; Common.key_meth :> Common.meth}
     {s_id; s_max_use; s_expire; s_f}
 
 let register_na ~service ~na f =

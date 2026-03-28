@@ -21,7 +21,7 @@
 *)
 
 (* TODO: allow for specifying the scope instead of hard-wiring
-         ~scope:Eliom_common.default_process_scope *)
+         ~scope:Common.default_process_scope *)
 (* TODO: terminology: identity/client/user/listener *)
 
 (** Signature of the functors [Notif.Make] and [Notif.Make_Simple].
@@ -65,7 +65,7 @@ module type S = sig
 
   module Ext : sig
     val unlisten :
-       ?sitedata:Eliom_common.sitedata
+       ?sitedata:Common.sitedata
       -> ([< `Client_process], [< `Data]) State.Ext.state
       -> key
       -> unit

@@ -1,7 +1,7 @@
 type info =
-  { i_sess_info : Eliom_common.sess_info
+  { i_sess_info : Common.sess_info
   ; i_subpath : string list
-  ; i_meth : Eliom_common.meth
+  ; i_meth : Common.meth
   ; i_get_params : (string * string) list
   ; i_post_params : (string * string) list }
 
@@ -27,17 +27,17 @@ module A = struct
       !count
 
   module Raw_table = Map.Make (struct
-      type t = Eliom_common.meth
+      type t = Common.meth
 
       let compare = compare
     end)
 
   type table_content =
-    [`Ptc of unit option * (params, result) Eliom_common.service list]
+    [`Ptc of unit option * (params, result) Common.service list]
 
   type service =
-    ( table ref * Eliom_common.page_table_key
-      , Eliom_common.na_key_serv )
+    ( table ref * Common.page_table_key
+      , Common.na_key_serv )
       Lib.leftright
 
   and node = service list
@@ -46,14 +46,14 @@ module A = struct
   module Table = struct
     type t = table
 
-    let add {Eliom_common.key_meth; _} p m = Raw_table.add key_meth (`Ptc p) m
+    let add {Common.key_meth; _} p m = Raw_table.add key_meth (`Ptc p) m
 
-    let find {Eliom_common.key_meth; _} m =
+    let find {Common.key_meth; _} m =
       let (`Ptc v) = Raw_table.find key_meth m in
       v
 
     let empty () = Raw_table.empty
-    let remove {Eliom_common.key_meth; _} = Raw_table.remove key_meth
+    let remove {Common.key_meth; _} = Raw_table.remove key_meth
   end
 
   (* FIXME: dummy *)
@@ -67,10 +67,10 @@ module A = struct
   module Container = struct
     type t =
       { mutable t_services :
-          (int * int * Table.t Eliom_common.dircontent ref) list
+          (int * int * Table.t Common.dircontent ref) list
       ; mutable t_contains_timeout : bool
       ; mutable t_na_services :
-          (Eliom_common.na_key_serv, bool -> params -> result Lwt.t) Hashtbl.t
+          (Common.na_key_serv, bool -> params -> result Lwt.t) Hashtbl.t
       }
 
     let get {t_services; _} = t_services
@@ -95,13 +95,13 @@ let add_naservice k f {A.Container.t_na_services; _} =
 
 let call_naservice k {A.Container.t_na_services; _} =
   try (Hashtbl.find t_na_services k) true None
-  with Not_found -> Lwt.fail Eliom_common.Eliom_404
+  with Not_found -> Lwt.fail Common.Eliom_404
 
 let rec na_key_of_params ~get = function
-  | (k, v) :: _ when k = Eliom_common.naservice_name ->
-      Some (if get then Eliom_common.SNa_get_ v else Eliom_common.SNa_post_ v)
-  | (k, v) :: _ when k = Eliom_common.naservice_num ->
-      Some (if get then Eliom_common.SNa_get' v else Eliom_common.SNa_post' v)
+  | (k, v) :: _ when k = Common.naservice_name ->
+      Some (if get then Common.SNa_get_ v else Common.SNa_post_ v)
+  | (k, v) :: _ when k = Common.naservice_num ->
+      Some (if get then Common.SNa_get' v else Common.SNa_post' v)
   | _ :: l -> na_key_of_params ~get l
   | [] -> None
 

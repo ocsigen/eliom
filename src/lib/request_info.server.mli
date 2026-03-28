@@ -91,7 +91,7 @@ val get_suffix : unit -> Lib.Url.path option
 (** returns the suffix of the current URL *)
 
 val get_cookies :
-   ?cookie_level:Eliom_common.cookie_level
+   ?cookie_level:Common.cookie_level
   -> unit
   -> string Ocsigen_cookie_map.Map_inner.t
 (** returns the cookies sent by the browser *)
@@ -117,7 +117,7 @@ val get_link_too_old : unit -> bool
 
 val get_expired_service_sessions :
    unit
-  -> Eliom_common.full_state_name list * Eliom_common.full_state_name list
+  -> Common.full_state_name list * Common.full_state_name list
 (** returns the list of names of service sessions expired for the current
     request, for browser sessions and tab sessions. *)
 
@@ -144,7 +144,7 @@ val get_file_content_type :
 
 val get_site_dir : unit -> Lib.Url.path
 (** returns the root of the site.
-    Raises [Eliom_common.Eliom_site_information_not_available]
+    Raises [Common.Eliom_site_information_not_available]
     if unavailable. *)
 
 val get_site_dir_option : unit -> Lib.Url.path option
@@ -217,16 +217,16 @@ val get_ri : unit -> Ocsigen_request.t
 val get_request : unit -> Ocsigen_extensions.request
 (** returns all the information about the request and config. *)
 
-val get_state_name : unit -> Eliom_common.full_state_name option
+val get_state_name : unit -> Common.full_state_name option
 (** returns the name of the sessions to which belongs the running service
     ([None] if it is not a session service)
  *)
 
-val get_persistent_cookies : unit -> string Eliom_common.Full_state_name_table.t
+val get_persistent_cookies : unit -> string Common.Full_state_name_table.t
 (** returns the values of the Eliom's cookies for persistent sessions
    sent by the browser. *)
 
-val get_data_cookies : unit -> string Eliom_common.Full_state_name_table.t
+val get_data_cookies : unit -> string Common.Full_state_name_table.t
 (** returns the values of Eliom's cookies for non persistent sessions
    sent by the browser. *)
 
@@ -272,18 +272,18 @@ val get_csp_ssl : unit -> bool
 *)
 
 (* Getting site configuration data *)
-val get_sitedata : unit -> Eliom_common.sitedata
+val get_sitedata : unit -> Common.sitedata
 
 (**/**)
 
-val get_csp_original_full_path_sp : Eliom_common.server_params -> Lib.Url.path
-val get_csp_hostname_sp : Eliom_common.server_params -> string
-val get_csp_server_port_sp : Eliom_common.server_params -> int
-val get_csp_ssl_sp : Eliom_common.server_params -> bool
+val get_csp_original_full_path_sp : Common.server_params -> Lib.Url.path
+val get_csp_hostname_sp : Common.server_params -> string
+val get_csp_server_port_sp : Common.server_params -> int
+val get_csp_ssl_sp : Common.server_params -> bool
 
 (*****************************************************************************)
 
-val get_sitedata_sp : sp:Eliom_common.server_params -> Eliom_common.sitedata
+val get_sitedata_sp : sp:Common.server_params -> Common.sitedata
 
 (*
    (** returns the cookie expiration date for the session,
@@ -301,62 +301,62 @@ val get_persistent_cookie_exp_date : ?state_name:string ->
   unit -> unit -> float option
 *)
 
-val find_sitedata : string -> Eliom_common.sitedata
-val get_si : Eliom_common.server_params -> Eliom_common.sess_info
+val find_sitedata : string -> Common.sitedata
+val get_si : Common.server_params -> Common.sess_info
 val get_user_cookies : unit -> Ocsigen_cookie_map.t
 val get_user_tab_cookies : unit -> Ocsigen_cookie_map.t
 val get_sp_client_appl_name : unit -> string option
 
 val get_sp_client_process_info_sp :
-   Eliom_common.server_params
-  -> Eliom_common.client_process_info
+   Common.server_params
+  -> Common.client_process_info
 
-val get_sp_client_process_info : unit -> Eliom_common.client_process_info
+val get_sp_client_process_info : unit -> Common.client_process_info
 
 val set_site_handler :
-   Eliom_common.sitedata
+   Common.sitedata
   -> (exn -> Ocsigen_response.t Lwt.t)
   -> unit
 
-val get_request_sp : Eliom_common.server_params -> Ocsigen_extensions.request
-val get_site_dir_sp : Eliom_common.server_params -> Lib.Url.path
-val get_hostname_sp : Eliom_common.server_params -> string
-val get_full_url_sp : Eliom_common.server_params -> string
+val get_request_sp : Common.server_params -> Ocsigen_extensions.request
+val get_site_dir_sp : Common.server_params -> Lib.Url.path
+val get_hostname_sp : Common.server_params -> string
+val get_full_url_sp : Common.server_params -> string
 
 val get_other_get_params_sp :
-   Eliom_common.server_params
+   Common.server_params
   -> (string * string) list
 
 val get_nl_get_params_sp :
-   Eliom_common.server_params
+   Common.server_params
   -> (string * string) list Lib.String.Table.t
 
 val get_persistent_nl_get_params_sp :
-   Eliom_common.server_params
+   Common.server_params
   -> (string * string) list Lib.String.Table.t
 
 val get_nl_post_params_sp :
-   Eliom_common.server_params
+   Common.server_params
   -> (string * string) list Lib.String.Table.t
 
-val get_original_full_path_sp : Eliom_common.server_params -> Lib.Url.path
-val get_original_full_path_string_sp : Eliom_common.server_params -> string
-val get_server_port_sp : Eliom_common.server_params -> int
-val get_ssl_sp : Eliom_common.server_params -> bool
-val get_ri_sp : Eliom_common.server_params -> Ocsigen_request.t
+val get_original_full_path_sp : Common.server_params -> Lib.Url.path
+val get_original_full_path_string_sp : Common.server_params -> string
+val get_server_port_sp : Common.server_params -> int
+val get_ssl_sp : Common.server_params -> bool
+val get_ri_sp : Common.server_params -> Ocsigen_request.t
 
 val get_post_params_sp :
-   Eliom_common.server_params
+   Common.server_params
   -> (string * string) list Lwt.t option
 
 val get_files_sp :
-   Eliom_common.server_params
+   Common.server_params
   -> (string * Ocsigen_extensions.file_info) list Lwt.t option
 
-val get_suffix_sp : Eliom_common.server_params -> Lib.Url.path option
-val get_request_cache_sp : Eliom_common.server_params -> Polytables.t
+val get_suffix_sp : Common.server_params -> Lib.Url.path option
+val get_request_cache_sp : Common.server_params -> Polytables.t
 
 type raw_post_data =
   ((string * string) * (string * string) list) option * Cohttp_lwt.Body.t
 
-val raw_post_data : Eliom_common.server_params -> raw_post_data Lwt.t
+val raw_post_data : Common.server_params -> raw_post_data Lwt.t

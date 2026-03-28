@@ -15,7 +15,7 @@ val default_ignored_get_params : (string * Re.re) list ref
 val default_ignored_post_params : (string * Re.re) list ref
 
 val default_omitpersistentstorage :
-  Eliom_common.omitpersistentstorage_rule list option ref
+  Common.omitpersistentstorage_rule list option ref
 
 val default_max_anonymous_services_per_subnet : int ref
 val default_max_anonymous_services_per_session : int ref
@@ -53,7 +53,7 @@ val create_sitedata :
    Ocsigen_extensions.virtual_hosts
   -> Lib.Url.path
   -> Ocsigen_extensions.config_info
-  -> Eliom_common.sitedata
+  -> Common.sitedata
 
 val parse_eliom_option :
    ([> `Client_process | `Session]
@@ -92,7 +92,7 @@ val parse_eliom_option :
    * (string -> unit)
    * (string * Re.re -> unit)
    * (string * Re.re -> unit)
-   * (Eliom_common.omitpersistentstorage_rule list option -> unit)
+   * (Common.omitpersistentstorage_rule list option -> unit)
   -> Xml_light_types.xml
   -> unit
 
@@ -133,7 +133,7 @@ val parse_eliom_options :
    * (string -> unit)
    * (string * Re.re -> unit)
    * (string * Re.re -> unit)
-   * (Eliom_common.omitpersistentstorage_rule list option -> unit)
+   * (Common.omitpersistentstorage_rule list option -> unit)
   -> Xml_light_types.xml list
   -> Xml_light_types.xml list
 
@@ -156,7 +156,7 @@ val update_sitedata :
   -> Ocsigen_extensions.virtual_hosts
   -> Lib.Url.path
   -> Ocsigen_extensions.config_info
-  -> Eliom_common.sitedata
+  -> Common.sitedata
 
 val load_eliom_module :
    'a
@@ -169,15 +169,15 @@ val gen_nothing : unit -> 'a -> Ocsigen_extensions.answer Lwt.t
 val default_module_action : 'a -> 'b
 
 val set_timeout :
-   (?full_st_name:Eliom_common.full_state_name
-    -> ?cookie_level:([< Eliom_common.cookie_level] as 'a)
+   (?full_st_name:Common.full_state_name
+    -> ?cookie_level:([< Common.cookie_level] as 'a)
     -> recompute_expdates:bool
     -> bool
     -> bool
-    -> Eliom_common.sitedata
+    -> Common.sitedata
     -> float option
     -> unit)
-  -> Eliom_common.sitedata
+  -> Common.sitedata
   -> 'a
   -> Eliom_common_base.scope_hierarchy option
   -> float option

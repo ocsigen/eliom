@@ -34,7 +34,7 @@ module Channel : sig
       transporting data of type [v] *)
 
   type comet_scope =
-    [Eliom_common.site_scope | Eliom_common.client_process_scope]
+    [Common.site_scope | Common.client_process_scope]
 
   val create :
      ?scope:[< comet_scope]
@@ -45,9 +45,9 @@ module Channel : sig
   (** [create s] returns a channel sending the values returned by stream [s].
 
       There are two kinds of channels created depending on the given
-      scope (defaults to [Eliom_common.comet_client_process]).
+      scope (defaults to [Common.comet_client_process]).
 
-      With scope {!Eliom_common.site_scope} all users knowing the name of
+      With scope {!Common.site_scope} all users knowing the name of
       the channel can access it. Only one message queue is created: it
       is what we call a //stateless// channel in the sense that the memory
       used by the channel does not depend on the number of users.  The
@@ -56,7 +56,7 @@ module Channel : sig
       1000). If the client requests too old messages, exception
       [Eliom_coment.Channel_full] will be raised (on client side).
 
-      With a scope of level {!Eliom_common.client_process_scope} the
+      With a scope of level {!Common.client_process_scope} the
       channel can only be accessed by the user who created it. It
       can only be created when client process data is
       available (that is: during a request).
@@ -85,7 +85,7 @@ module Channel : sig
       by the event stream [e]. *)
 
   val create_unlimited :
-     ?scope:Eliom_common.client_process_scope
+     ?scope:Common.client_process_scope
     -> ?name:string
     -> 'a Lwt_stream.t
     -> 'a t
@@ -99,7 +99,7 @@ module Channel : sig
 
   val create_newest : ?name:string -> 'a Lwt_stream.t -> 'a t
   (** [create_newest s] is similar to [create
-      ~scope:Eliom_common.site_scope s] but only the last message is
+      ~scope:Common.site_scope s] but only the last message is
       returned to the client. *)
 
   val external_channel :
@@ -121,14 +121,14 @@ module Channel : sig
       is [1]. *)
 
   val wait_timeout :
-     ?scope:Eliom_common.client_process_scope
+     ?scope:Common.client_process_scope
     -> float
     -> unit Lwt.t
   (** [wait_timeout ~scope time] waits for a period of inactivity of
       length [time] in the [scope]. Only activity on stateful
       channels is taken into accounts.
 
-      The default [scope] is [Eliom_common.comet_client_process]. *)
+      The default [scope] is [Common.comet_client_process]. *)
 
   (**/**)
 

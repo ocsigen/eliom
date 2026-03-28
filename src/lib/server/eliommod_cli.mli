@@ -21,5 +21,5 @@
 
 (* Fresh name generator *)
 val fresh_id : unit -> string
-val client_sitedata : Eliom_common.server_params -> Eliom_types.sitedata
-val client_si : Eliom_common.sess_info -> Eliom_common.sess_info
+val client_sitedata : Common.server_params -> Eliom_types.sitedata
+val client_si : Common.sess_info -> Common.sess_info

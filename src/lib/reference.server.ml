@@ -24,8 +24,8 @@ open State
 open Lwt.Infix
 
 module Ocsipersist = struct
-  include Eliom_common.Ocsipersist.Store
-  include Eliom_common.Ocsipersist.Polymorphic
+  include Common.Ocsipersist.Store
+  include Common.Ocsipersist.Polymorphic
 end
 
 let pers_ref_store = Ocsipersist.open_store "eliom__persistent_refs"
@@ -66,7 +66,7 @@ module Volatile = struct
       | `Request -> Req (Polytables.make_key ())
       | `Global -> Ref (ref (Lazy.from_fun f))
       | `Site -> Sit (Polytables.make_key ())
-      | #Eliom_common.user_scope as scope ->
+      | #Common.user_scope as scope ->
           Vol (lazy (create_volatile_table ~scope ?secure ())) )
 
   let eref_from_fun ~scope ?secure f : 'a eref =
@@ -85,7 +85,7 @@ module Volatile = struct
           Polytables.set ~table ~key ~value;
           value)
     | Sit key -> (
-        let table = Eliom_common.((get_site_data ()).site_value_table) in
+        let table = Common.((get_site_data ()).site_value_table) in
         try Polytables.get ~table ~key
         with Not_found ->
           let value = f () in
@@ -107,7 +107,7 @@ module Volatile = struct
         let table = Request_info.get_request_cache () in
         Polytables.set ~table ~key ~value
     | Sit key ->
-        let table = Eliom_common.((get_site_data ()).site_value_table) in
+        let table = Common.((get_site_data ()).site_value_table) in
         Polytables.set ~table ~key ~value
     | Vol t -> set_volatile_data ~table:(Lazy.force t) value
     | Ref r -> r := Lazy.from_val value
@@ -121,7 +121,7 @@ module Volatile = struct
         let table = Request_info.get_request_cache () in
         Polytables.remove ~table ~key
     | Sit key ->
-        let table = Eliom_common.((get_site_data ()).site_value_table) in
+        let table = Common.((get_site_data ()).site_value_table) in
         Polytables.remove ~table ~key
     | Vol t -> remove_volatile_data ~table:(Lazy.force t) ()
     | Ref r -> r := Lazy.from_fun f
@@ -162,7 +162,7 @@ module Volatile = struct
 end
 
 let eref_from_fun_ ~ext ~scope ?secure ?persistent f : 'a eref =
-  match (scope : [< Eliom_common.all_scope]) with
+  match (scope : [< Common.all_scope]) with
   | `Request -> (Volatile.eref_from_fun_ ~ext ~scope ?secure f :> _ eref)
   | `Global -> (
     match persistent with
@@ -179,7 +179,7 @@ let eref_from_fun_ ~ext ~scope ?secure ?persistent f : 'a eref =
     | Some name ->
         (*VVV!!! ??? CHECK! *)
         f, ext, Ocsiper_sit (Ocsipersist.open_table name))
-  | #Eliom_common.user_scope as scope -> (
+  | #Common.user_scope as scope -> (
     match persistent with
     | None -> (Volatile.eref_from_fun_ ~ext ~scope ?secure f :> _ eref)
     | Some name -> f, ext, Per (create_persistent_table ~scope ?secure name))
@@ -191,9 +191,9 @@ let eref ~scope ?secure ?persistent v =
   eref_from_fun_ ~ext:true ~scope ?secure ?persistent (fun () -> v)
 
 let get_site_id () =
-  let sd = Eliom_common.get_site_data () in
-  (Eliom_common.get_config_info sd).Ocsigen_extensions.default_hostname ^ ":"
-  ^ Eliom_common.get_site_dir_string sd
+  let sd = Common.get_site_data () in
+  (Common.get_config_info sd).Ocsigen_extensions.default_hostname ^ ":"
+  ^ Common.get_site_dir_string sd
 
 let get ((f, _, table) as eref) =
   match table with

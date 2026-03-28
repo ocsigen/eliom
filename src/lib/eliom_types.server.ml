@@ -26,9 +26,9 @@ include Eliom_types_base
 (* then PImm (Obj.obj v) *)
 (* else *)
 (* let cri = Request_info.get_sp_client_request_info () in *)
-(* let id = List.length cri.Eliom_common.cri_page_data in *)
-(* cri.Eliom_common.cri_page_data <- *)
-(* (Obj.obj v) :: cri.Eliom_common.cri_page_data; *)
+(* let id = List.length cri.Common.cri_page_data in *)
+(* cri.Common.cri_page_data <- *)
+(* (Obj.obj v) :: cri.Common.cri_page_data; *)
 (* PRef id *)
 
 (* server to client encoding of eliom data *)

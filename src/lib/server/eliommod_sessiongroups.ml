@@ -21,7 +21,7 @@
 open Lib
 
 let make_full_named_group_name_ ~cookie_level sitedata g =
-  Eliom_common.get_site_dir_string sitedata, cookie_level, Left g
+  Common.get_site_dir_string sitedata, cookie_level, Left g
 
 let make_full_group_name ~cookie_level ri site_dir_string ipv4mask ipv6mask
   = function
@@ -30,35 +30,35 @@ let make_full_group_name ~cookie_level ri site_dir_string ipv4mask ipv6mask
       ( site_dir_string
       , cookie_level
       , Right
-          (Eliom_common.network_of_request ri ~mask4:ipv4mask ~mask6:ipv6mask) )
+          (Common.network_of_request ri ~mask4:ipv4mask ~mask6:ipv6mask) )
   | Some g -> site_dir_string, cookie_level, Left g
 
 let make_persistent_full_group_name =
-  Eliom_common.make_persistent_full_group_name
+  Common.make_persistent_full_group_name
 
 let getsessgrp a = a
-let getperssessgrp = Eliom_common.getperssessgrp
+let getperssessgrp = Common.getperssessgrp
 
 module type MEMTAB = sig
   type group_of_group_data
 
   val add :
      ?set_max:int
-    -> Eliom_common.sitedata
+    -> Common.sitedata
     -> string
-    -> Eliom_common.cookie_level Eliom_common.sessgrp
+    -> Common.cookie_level Common.sessgrp
     -> string Ocsigen_cache.Dlist.node
 
   val remove : 'a Ocsigen_cache.Dlist.node -> unit
-  val remove_group : Eliom_common.cookie_level Eliom_common.sessgrp -> unit
+  val remove_group : Common.cookie_level Common.sessgrp -> unit
 
   val find :
-     [< Eliom_common.cookie_level] Eliom_common.sessgrp
+     [< Common.cookie_level] Common.sessgrp
     -> string Ocsigen_cache.Dlist.t
   (** returns the dlist containing all session group elements *)
 
   val find_node_in_group_of_groups :
-     Eliom_common.cookie_level Eliom_common.sessgrp
+     Common.cookie_level Common.sessgrp
     -> group_of_group_data option
   (** Groups of browser sessions belongs to a group of groups.
         As these groups are not associated to a cookie,
@@ -66,19 +66,19 @@ module type MEMTAB = sig
 
   val move :
      ?set_max:int
-    -> Eliom_common.sitedata
+    -> Common.sitedata
     -> string Ocsigen_cache.Dlist.node
-    -> Eliom_common.cookie_level Eliom_common.sessgrp
+    -> Common.cookie_level Common.sessgrp
     -> string Ocsigen_cache.Dlist.node
 
   val up : string Ocsigen_cache.Dlist.node -> unit
   val nb_of_groups : unit -> int
-  val group_size : Eliom_common.cookie_level Eliom_common.sessgrp -> int
+  val group_size : Common.cookie_level Common.sessgrp -> int
   val set_max : 'a Ocsigen_cache.Dlist.node -> int -> unit
 end
 
 module GroupTable = Hashtbl.Make (struct
-    type t = Eliom_common.cookie_level Eliom_common.sessgrp
+    type t = Common.cookie_level Common.sessgrp
 
     let equal = ( = )
     let hash = Hashtbl.hash
@@ -90,13 +90,13 @@ module Make (A : sig
     val table :
       (group_of_group_data option * string Ocsigen_cache.Dlist.t) GroupTable.t
 
-    val close_session : Eliom_common.sitedata -> string -> unit
-    val max_tab_per_session : Eliom_common.sitedata -> int
-    val max_session_per_group : Eliom_common.sitedata -> int
-    val max_session_per_ip : Eliom_common.sitedata -> int
+    val close_session : Common.sitedata -> string -> unit
+    val max_tab_per_session : Common.sitedata -> int
+    val max_session_per_group : Common.sitedata -> int
+    val max_session_per_ip : Common.sitedata -> int
 
     val clean_session :
-       Eliom_common.sitedata
+       Common.sitedata
       -> GroupTable.key
       -> (GroupTable.key -> group_of_group_data option)
       -> (string Ocsigen_cache.Dlist.node -> unit)
@@ -105,11 +105,11 @@ module Make (A : sig
 
     val node_of_group_of_group_data :
        group_of_group_data
-      -> [`Session] Eliom_common.sessgrp Ocsigen_cache.Dlist.node
+      -> [`Session] Common.sessgrp Ocsigen_cache.Dlist.node
 
     val create_group_of_group_data :
-       Eliom_common.sitedata
-      -> [`Session] Eliom_common.sessgrp Ocsigen_cache.Dlist.node
+       Common.sitedata
+      -> [`Session] Common.sessgrp Ocsigen_cache.Dlist.node
       -> group_of_group_data
   end) : MEMTAB with type group_of_group_data = A.group_of_group_data = struct
   type group_of_group_data = A.group_of_group_data
@@ -192,8 +192,8 @@ module Make (A : sig
         | `Session ->
             ignore
               (Ocsigen_cache.Dlist.add sess_grp
-                 sitedata.Eliom_common.group_of_groups);
-            Ocsigen_cache.Dlist.newest sitedata.Eliom_common.group_of_groups
+                 sitedata.Common.group_of_groups);
+            Ocsigen_cache.Dlist.newest sitedata.Common.group_of_groups
         | _ -> None
       in
       let group_of_group_data =
@@ -239,7 +239,7 @@ end
 
 module Data = Make (struct
     type group_of_group_data =
-      [`Session] Eliom_common.sessgrp Ocsigen_cache.Dlist.node
+      [`Session] Common.sessgrp Ocsigen_cache.Dlist.node
 
     let table :
       (group_of_group_data option * string Ocsigen_cache.Dlist.t) GroupTable.t
@@ -261,20 +261,20 @@ module Data = Make (struct
       GroupTable.create 100
 
     let close_session sitedata sess_id =
-      Eliom_common.SessionCookies.remove sitedata.Eliom_common.session_data
+      Common.SessionCookies.remove sitedata.Common.session_data
         sess_id;
       (* iterate on all session data tables: *)
-      sitedata.Eliom_common.remove_session_data sess_id
+      sitedata.Common.remove_session_data sess_id
     (* see also in eliommod.ml if you modify this *)
 
     let max_tab_per_session sitedata =
-      fst sitedata.Eliom_common.max_volatile_data_tab_sessions_per_group
+      fst sitedata.Common.max_volatile_data_tab_sessions_per_group
 
     let max_session_per_group sitedata =
-      fst sitedata.Eliom_common.max_volatile_data_sessions_per_group
+      fst sitedata.Common.max_volatile_data_sessions_per_group
 
     let max_session_per_ip sitedata =
-      fst sitedata.Eliom_common.max_volatile_data_sessions_per_subnet
+      fst sitedata.Common.max_volatile_data_sessions_per_subnet
 
     let clean_session
           sitedata
@@ -304,14 +304,14 @@ Besides, volatile sessions are (hopefully) going to disappear soon.
       match (sess_grp : GroupTable.key) with
       | _, `Client_process, Left sess_id -> (
         try
-          let {Eliom_common.Data_cookie.session_group; session_group_node; _} =
-            Eliom_common.SessionCookies.find sitedata.Eliom_common.session_data
+          let {Common.Data_cookie.session_group; session_group_node; _} =
+            Common.SessionCookies.find sitedata.Common.session_data
               sess_id
           in
           match !session_group with
           | _, `Session, Right _
           (* no group *)
-            when sitedata.Eliom_common.not_bound_in_data_tables sess_id ->
+            when sitedata.Common.not_bound_in_data_tables sess_id ->
               remove1 session_group_node
           | _ -> ()
         with Not_found -> ())
@@ -327,8 +327,8 @@ Besides, volatile sessions are (hopefully) going to disappear soon.
 
 module Serv = Make (struct
     type group_of_group_data =
-      Eliom_common.tables ref
-      * [`Session] Eliom_common.sessgrp Ocsigen_cache.Dlist.node
+      Common.tables ref
+      * [`Session] Common.sessgrp Ocsigen_cache.Dlist.node
 
     let table :
       (group_of_group_data option * string Ocsigen_cache.Dlist.t) GroupTable.t
@@ -336,17 +336,17 @@ module Serv = Make (struct
       GroupTable.create 100
 
     let close_session sitedata sess_id =
-      Eliom_common.SessionCookies.remove sitedata.Eliom_common.session_services
+      Common.SessionCookies.remove sitedata.Common.session_services
         sess_id
 
     let max_tab_per_session sitedata =
-      fst sitedata.Eliom_common.max_service_tab_sessions_per_group
+      fst sitedata.Common.max_service_tab_sessions_per_group
 
     let max_session_per_group sitedata =
-      fst sitedata.Eliom_common.max_service_sessions_per_group
+      fst sitedata.Common.max_service_sessions_per_group
 
     let max_session_per_ip sitedata =
-      fst sitedata.Eliom_common.max_service_sessions_per_subnet
+      fst sitedata.Common.max_service_sessions_per_subnet
 
     let clean_session
           sitedata
@@ -378,14 +378,14 @@ Besides, volatile sessions are (hopefully) going to disappear soon.
       match (sess_grp : GroupTable.key) with
       | _, `Client_process, Left sess_id -> (
         try
-          let { Eliom_common.Service_cookie.session_table = tables
+          let { Common.Service_cookie.session_table = tables
               ; session_group_node
               ; _ }
             =
-            Eliom_common.SessionCookies.find
-              sitedata.Eliom_common.session_services sess_id
+            Common.SessionCookies.find
+              sitedata.Common.session_services sess_id
           in
-          if Eliom_common.service_tables_are_empty tables
+          if Common.service_tables_are_empty tables
           then remove1 session_group_node
         with Not_found -> ())
       | _, `Session, _ -> (
@@ -397,7 +397,7 @@ Besides, volatile sessions are (hopefully) going to disappear soon.
     let node_of_group_of_group_data = snd
 
     let create_group_of_group_data sitedata x =
-      ref (Eliom_common.new_service_session_tables sitedata), x
+      ref (Common.new_service_session_tables sitedata), x
     (*VVV Check when the table is collected *)
   end)
 
@@ -417,7 +417,7 @@ module Pers = struct
   (*VVV Verify this carefully! *)
   (*VVV VERIFY concurrent access *)
 
-  module Ocsipersist = Eliom_common.Ocsipersist.Polymorphic
+  module Ocsipersist = Common.Ocsipersist.Polymorphic
 
   let grouptable : (nbmax * string list) Ocsipersist.table Lwt.t Lazy.t =
     lazy (Ocsipersist.open_table "__eliom_session_group_table")
@@ -433,14 +433,14 @@ module Pers = struct
         Lwt.catch
           (fun () ->
              !!grouptable >>= fun grouptable ->
-             Ocsipersist.find grouptable (Eliom_common.string_of_perssessgrp g)
+             Ocsipersist.find grouptable (Common.string_of_perssessgrp g)
              >>= fun (_, a) -> Lwt.return a)
           (function Not_found -> Lwt.return_nil | e -> Lwt.fail e)
 
   let add ?set_max defaultmax sess_id sess_grp =
     match sess_grp with
     | Some sg ->
-        let sg = Eliom_common.string_of_perssessgrp sg in
+        let sg = Common.string_of_perssessgrp sg in
         Lwt.catch
           (fun () ->
              !!grouptable >>= fun grouptable ->
@@ -496,14 +496,14 @@ module Pers = struct
          (match sess_grp with
            | None -> Lwt.return_unit
            | Some sg -> (
-             match Eliom_common.getperssessgrp sg with
+             match Common.getperssessgrp sg with
              | _, _, Right _ ->
                  (* No group has been set. No group table.
                  Data associated to default (automatic) groups
                  is removed when closing associated sessions. *)
                  Lwt.return_unit
              | _, _, Left group_name -> (
-                 Eliom_common.Persistent_tables.remove_key_from_all_tables
+                 Common.Persistent_tables.remove_key_from_all_tables
                    group_name
                  >>= fun () ->
                  (* If it is associated to a session,
@@ -520,7 +520,7 @@ module Pers = struct
          (* Then, we remove group from group table: *)
          match sess_grp with
          | Some sg ->
-             let sg = Eliom_common.string_of_perssessgrp sg in
+             let sg = Common.string_of_perssessgrp sg in
              !!grouptable >>= fun grouptable -> Ocsipersist.remove grouptable sg
          | None -> Lwt.return_unit)
       (function Not_found -> Lwt.return_unit | e -> Lwt.fail e)
@@ -537,19 +537,19 @@ module Pers = struct
              (* We remove the session from its group: *)
              remove sitedata cookie fullsessgrp >>= fun () ->
              (* Then, we remove session data: *)
-             Eliom_common.Persistent_tables.remove_key_from_all_tables cookie
+             Common.Persistent_tables.remove_key_from_all_tables cookie
          | `Session ->
              remove_group ~cookie_level:(`Client_process fullsessgrp) sitedata
-               (Eliom_common.make_persistent_full_group_name
+               (Common.make_persistent_full_group_name
                   ~cookie_level:`Client_process
-                  (Eliom_common.get_site_dir_string sitedata)
+                  (Common.get_site_dir_string sitedata)
                   (Some cookie)))
       (function Not_found -> Lwt.return_unit | e -> Lwt.fail e)
 
   and remove _sitedata sess_id sess_grp =
     match sess_grp with
     | Some sg0 ->
-        let sg = Eliom_common.string_of_perssessgrp sg0 in
+        let sg = Common.string_of_perssessgrp sg0 in
         Lwt.catch
           (fun () ->
              !!grouptable >>= fun grouptable ->
@@ -570,7 +570,7 @@ module Pers = struct
     match grp with
     | None -> Lwt.return_unit
     | Some sg ->
-        let sg = Eliom_common.string_of_perssessgrp sg in
+        let sg = Common.string_of_perssessgrp sg in
         Lwt.catch
           (fun () ->
              !!grouptable >>= fun grouptable ->

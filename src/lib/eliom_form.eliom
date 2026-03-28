@@ -283,8 +283,8 @@ module Make (Html : Html) = struct
         if issuffix
         then
           if uri.[String.length uri - 1] = '/'
-          then uri ^ Eliom_common.eliom_nosuffix_page
-          else String.concat "/" [uri; Eliom_common.eliom_nosuffix_page]
+          then uri ^ Common.eliom_nosuffix_page
+          else String.concat "/" [uri; Common.eliom_nosuffix_page]
         else uri
       in
       match fragment with

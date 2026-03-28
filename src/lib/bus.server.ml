@@ -31,7 +31,7 @@ type ('a, 'b) t =
   ; service : 'a Ecb.bus_send_service
   ; service_registered : bool State.volatile_table option
   ; size : int option
-  ; bus_mark : ('a, 'b) t Eliom_common.wrapper (* must be the last field ! *) }
+  ; bus_mark : ('a, 'b) t Common.wrapper (* must be the last field ! *) }
 [@@warning "-69"]
 
 let register_sender scope service write =
@@ -39,7 +39,7 @@ let register_sender scope service write =
     Lwt_list.iter_s write x)
 
 let internal_wrap (bus : ('a, 'b) t) :
-  ('a, 'b) Ecb.wrapped_bus * Eliom_common.unwrapper
+  ('a, 'b) Ecb.wrapped_bus * Common.unwrapper
   =
   let channel =
     match bus.channel with
@@ -61,9 +61,9 @@ let internal_wrap (bus : ('a, 'b) t) :
           bus.write;
         State.set_volatile_data ~table true));
   ( (Comet.Channel.get_wrapped channel, bus.service)
-  , Eliom_common.make_unwrapper Eliom_common.bus_unwrap_id )
+  , Common.make_unwrapper Common.bus_unwrap_id )
 
-let bus_mark () = Eliom_common.make_wrapper internal_wrap
+let bus_mark () = Common.make_wrapper internal_wrap
 
 let deriving_to_list : 'a Deriving_Json.t -> 'a list Deriving_Json.t =
  fun (type typ) typ ->

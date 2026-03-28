@@ -61,12 +61,12 @@ let comet_path = ["__eliom_comet__"]
 let comet_global_path = ["__eliom_comet_global__"]
 
 let fallback_service =
-  Eliom_common.lazy_site_value_from_fun @@ fun () ->
+  Common.lazy_site_value_from_fun @@ fun () ->
   Comet.create ~meth:(Service.Get Parameter.unit)
     ~path:(Service.Path comet_path) (fun () () -> Lwt.return state_closed_msg)
 
 let fallback_global_service =
-  Eliom_common.lazy_site_value_from_fun @@ fun () ->
+  Common.lazy_site_value_from_fun @@ fun () ->
   Comet.create ~meth:(Service.Get Parameter.unit)
     ~path:(Service.Path comet_global_path) (fun () () ->
     Lwt.return
@@ -149,7 +149,7 @@ end = struct
           Lwt.return_unit
     in
     ignore
-      (Lwt.with_value Eliom_common.sp_key None @@ fun () ->
+      (Lwt.with_value Common.sp_key None @@ fun () ->
        Lwt_stream.iter_s f stream
        : unit Lwt.t)
 
@@ -268,19 +268,19 @@ end = struct
         Lwt.return (encode_global_downgoing res)
 
   let global_service =
-    Eliom_common.lazy_site_value_from_fun @@ fun () ->
+    Common.lazy_site_value_from_fun @@ fun () ->
     (*VVV Why isn't this a POST non-attached coservice? --Vincent *)
     Comet.create_attached_post
       ~post_params:
         Parameter.(bool "idle" ** Eliom_comet_base.comet_request_param)
-      ~fallback:(Eliom_common.force_lazy_site_value fallback_global_service)
+      ~fallback:(Common.force_lazy_site_value fallback_global_service)
       handle_request
 
   let get_service =
     let queue = ref [] in
     fun () ->
       Eliom_comet_base.Comet_service
-        (Eliom_common.force_lazy_site_value global_service, queue)
+        (Common.force_lazy_site_value global_service, queue)
 
   let get_id {ch_id; _} = ch_id
 
@@ -293,8 +293,8 @@ end
 (** Register services at site initialization *)
 let () =
   Eliommod.register_site_init (fun () ->
-    ignore (Eliom_common.force_lazy_site_value fallback_global_service);
-    ignore (Eliom_common.force_lazy_site_value fallback_service);
+    ignore (Common.force_lazy_site_value fallback_global_service);
+    ignore (Common.force_lazy_site_value fallback_service);
     ignore (Stateless.get_service ()))
 
 (** String channels on which is build the module Channel *)
@@ -302,14 +302,14 @@ module Stateful : sig
   type t
 
   val create :
-     ?scope:Eliom_common.client_process_scope
+     ?scope:Common.client_process_scope
     -> ?name:chan_id
     -> size:int
     -> _ React.event
     -> t
 
   val create_unlimited :
-     ?scope:Eliom_common.client_process_scope
+     ?scope:Common.client_process_scope
     -> ?name:chan_id
     -> _ Lwt_stream.t
     -> t
@@ -321,7 +321,7 @@ module Stateful : sig
   val get_service : t -> comet_service
 
   val wait_timeout :
-     ?scope:Eliom_common.client_process_scope
+     ?scope:Common.client_process_scope
     -> float
     -> unit Lwt.t
 end = struct
@@ -349,7 +349,7 @@ end = struct
         ; mutable waiter : waiter }
 
   type handler =
-    { hd_scope : Eliom_common.client_process_scope
+    { hd_scope : Common.client_process_scope
     ; (* id : int; pour tester que ce sont des service differents... *)
       mutable hd_active_channels : (chan_id * channel) list
       (** streams that are currently sent to client *)
@@ -431,7 +431,7 @@ end = struct
         Lwt.wakeup wakener event
 
   let stream_waiter s =
-    Lwt.with_value Eliom_common.sp_key None @@ fun () ->
+    Lwt.with_value Common.sp_key None @@ fun () ->
     Lwt.no_cancel
       (let* _ = Lwt_stream.peek s in
        Lwt.return `Data)
@@ -450,7 +450,7 @@ end = struct
             else take (n - 1) ((id, Queue.take queue) :: acc) channels
         | (id, Stream ({stream; _} as s)) :: rem ->
             let l =
-              Lwt.with_value Eliom_common.sp_key None @@ fun () ->
+              Lwt.with_value Common.sp_key None @@ fun () ->
               Lwt_stream.get_available_up_to n stream
             in
             if l <> [] then s.waiter <- stream_waiter stream;
@@ -581,7 +581,7 @@ end = struct
 
   (* as of now only `Client_process scope are handled: so we only stock scope_hierarchy *)
   type handler_ref_table =
-    ( Eliom_common.scope_hierarchy
+    ( Common.scope_hierarchy
       , handler option Reference.Volatile.eref )
       Hashtbl.t
 
@@ -611,7 +611,7 @@ end = struct
                 ~post_params:
                   Parameter.(
                     bool "idle" ** Eliom_comet_base.comet_request_param)
-                ~fallback:(Eliom_common.force_lazy_site_value fallback_service)
+                ~fallback:(Common.force_lazy_site_value fallback_service)
                 (*~name:"comet" (* CCC faut il mettre un nom ? *)*)
                 ()
             , ref [] )
@@ -630,16 +630,16 @@ end = struct
         run_handler handler;
         handler
 
-  let wait_timeout ?(scope = Eliom_common.comet_client_process_scope) t =
+  let wait_timeout ?(scope = Common.comet_client_process_scope) t =
     let hd = get_handler scope in
     wait_handler_timeout hd t
 
   type t = {ch_handler : handler; ch_id : chan_id}
 
-  let name_of_scope (scope : Eliom_common.user_scope) =
-    let sp = Eliom_common.get_sp () in
+  let name_of_scope (scope : Common.user_scope) =
+    let sp = Common.get_sp () in
     let name =
-      Eliom_common.make_full_state_name ~sp ~secure:false (*VVV secure? *)
+      Common.make_full_state_name ~sp ~secure:false (*VVV secure? *)
         ~scope
     in
     let pref =
@@ -648,15 +648,15 @@ end = struct
       | `Session _ -> "session:"
       | `Client_process _ -> "clientprocess:"
     in
-    Eliom_common.make_full_cookie_name pref name
+    Common.make_full_cookie_name pref name
 
   let create
-        ?(scope = Eliom_common.comet_client_process_scope)
+        ?(scope = Common.comet_client_process_scope)
         ?(name = new_id ())
         ~size
         events
     =
-    let name = name_of_scope (scope :> Eliom_common.user_scope) ^ name in
+    let name = name_of_scope (scope :> Common.user_scope) ^ name in
     let handler = get_handler scope in
     Logs.info ~src:section (fun fmt -> fmt "create channel %s" name);
     let channel = Events {queue = Queue.create (); events = None} in
@@ -694,15 +694,15 @@ end = struct
     {ch_handler = handler; ch_id = name}
 
   let create_unlimited
-        ?(scope = Eliom_common.comet_client_process_scope)
+        ?(scope = Common.comet_client_process_scope)
         ?(name = new_id ())
         stream
     =
-    let name = name_of_scope (scope :> Eliom_common.user_scope) ^ name in
+    let name = name_of_scope (scope :> Common.user_scope) ^ name in
     let handler = get_handler scope in
     Logs.info ~src:section (fun fmt -> fmt "create channel %s" name);
     let stream =
-      Lwt.with_value Eliom_common.sp_key None @@ fun () ->
+      Lwt.with_value Common.sp_key None @@ fun () ->
       Lwt_stream.map (fun x -> Eliom_comet_base.Data (marshal x)) stream
     in
     let channel = Stream {stream; waiter = stream_waiter stream} in
@@ -729,7 +729,7 @@ module Channel : sig
   type 'a t
 
   type comet_scope =
-    [Eliom_common.site_scope | Eliom_common.client_process_scope]
+    [Common.site_scope | Common.client_process_scope]
 
   val create_from_events :
      ?scope:[< comet_scope]
@@ -746,7 +746,7 @@ module Channel : sig
     -> 'a t
 
   val create_unlimited :
-     ?scope:Eliom_common.client_process_scope
+     ?scope:Common.client_process_scope
     -> ?name:string
     -> 'a Lwt_stream.t
     -> 'a t
@@ -763,7 +763,7 @@ module Channel : sig
     -> 'a t
 
   val wait_timeout :
-     ?scope:Eliom_common.client_process_scope
+     ?scope:Common.client_process_scope
     -> float
     -> unit Lwt.t
 end = struct
@@ -773,7 +773,7 @@ end = struct
     | Stateful of Stateful.t
     | External of 'a Eliom_comet_base.wrapped_channel
 
-  type 'a t = {channel : 'a channel; channel_mark : 'a t Eliom_common.wrapper}
+  type 'a t = {channel : 'a channel; channel_mark : 'a t Common.wrapper}
   [@@warning "-69"]
 
   let get_wrapped t =
@@ -796,9 +796,9 @@ end = struct
 
   let internal_wrap c =
     ( get_wrapped c
-    , Eliom_common.make_unwrapper Eliom_common.comet_channel_unwrap_id )
+    , Common.make_unwrapper Common.comet_channel_unwrap_id )
 
-  let channel_mark () = Eliom_common.make_wrapper internal_wrap
+  let channel_mark () = Common.make_wrapper internal_wrap
 
   let create_stateful_channel ?scope ?name ~size events =
     Stateful (Stateful.create ?scope ?name ~size events)
@@ -806,13 +806,13 @@ end = struct
   let create_stateless_channel ?name ~size stream =
     Stateless
       (Stateless.create ?name ~size
-         ( Lwt.with_value Eliom_common.sp_key None @@ fun () ->
+         ( Lwt.with_value Common.sp_key None @@ fun () ->
            Lwt_stream.map marshal stream ))
 
   let create_stateless_newest_channel ?name stream =
     Stateless_newest
       (Stateless.create ?name ~size:1
-         ( Lwt.with_value Eliom_common.sp_key None @@ fun () ->
+         ( Lwt.with_value Common.sp_key None @@ fun () ->
            Lwt_stream.map marshal stream ))
 
   let create_stateful ?scope ?name ?(size = 1000) events =
@@ -832,7 +832,7 @@ end = struct
     ; channel_mark = channel_mark () }
 
   type comet_scope =
-    [Eliom_common.site_scope | Eliom_common.client_process_scope]
+    [Common.site_scope | Common.client_process_scope]
 
   let create_from_events ?scope ?name ?(size = 1000) events =
     match scope with

@@ -33,6 +33,6 @@ val get_eliom_extension : unit -> eliom_extension_sig
 val run_eliom_extension :
    eliom_extension_sig
   -> float
-  -> Eliom_common.info
-  -> Eliom_common.sitedata
+  -> Common.info
+  -> Common.sitedata
   -> Ocsigen_extensions.answer Lwt.t

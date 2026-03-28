@@ -127,7 +127,7 @@ let internal_unwrap ((wrapped_bus : ('a, 'b) Ecb.wrapped_bus), _unwrapper) =
   let channel, Eliom_comet_base.Bus_send_service service = wrapped_bus in
   create service channel waiter
 
-let () = Unwrap.register_unwrapper Eliom_common.bus_unwrap_id internal_unwrap
+let () = Unwrap.register_unwrapper Common.bus_unwrap_id internal_unwrap
 let stream t = clone_exn t.error_h (Lazy.force t.stream)
 
 let original_stream t =

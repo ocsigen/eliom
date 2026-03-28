@@ -19,7 +19,7 @@ module type S = sig
 
   module Ext : sig
     val unlisten :
-       ?sitedata:Eliom_common.sitedata
+       ?sitedata:Common.sitedata
       -> ([< `Client_process], [< `Data]) State.Ext.state
       -> key
       -> unit
@@ -121,13 +121,13 @@ module Make (A : ARG) :
   let identity_r :
     (A.identity * notification_react) option Reference.Volatile.eref
     =
-    Reference.Volatile.eref ~scope:Eliom_common.default_process_scope None
+    Reference.Volatile.eref ~scope:Common.default_process_scope None
 
   (* notif_e consists in a server side react event,
      its client side counterpart,
      and the server side function to trigger it. *)
   let notif_e : notification_react Reference.Volatile.eref =
-    Reference.Volatile.eref_from_fun ~scope:Eliom_common.default_process_scope
+    Reference.Volatile.eref_from_fun ~scope:Common.default_process_scope
       (fun () ->
          let e, send_e = React.E.create () in
          let client_ev =
@@ -135,7 +135,7 @@ module Make (A : ARG) :
            (*VVV If we add throttling, some events may be lost
                even if buffer size is not 1 :O *)
              ~size:100 (*VVV ? *)
-             ~scope:Eliom_common.default_process_scope e
+             ~scope:Common.default_process_scope e
          in
          client_ev, send_e)
 

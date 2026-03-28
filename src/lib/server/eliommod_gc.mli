@@ -27,7 +27,7 @@ val get_servicesessiongcfrequency : unit -> float option
 val get_datasessiongcfrequency : unit -> float option
 val set_persistentsessiongcfrequency : float option -> unit
 val get_persistentsessiongcfrequency : unit -> float option
-val service_session_gc : Eliom_common.sitedata -> unit
-val data_session_gc : Eliom_common.sitedata -> unit
-val persistent_session_gc : Eliom_common.sitedata -> unit
+val service_session_gc : Common.sitedata -> unit
+val data_session_gc : Common.sitedata -> unit
+val persistent_session_gc : Common.sitedata -> unit
 val section : Logs.src

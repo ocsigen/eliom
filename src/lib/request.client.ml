@@ -183,7 +183,7 @@ let send
     let host =
       match host with
       | Some host when host = Url.Current.host ->
-          Some (Eliom_process.get_info ()).Eliom_common.cpi_hostname
+          Some (Eliom_process.get_info ()).Common.cpi_hostname
       | _ -> host
     in
     let cookies = Eliommod_cookies.get_cookies_to_send host https path in
@@ -191,7 +191,7 @@ let send
       match cookies with
       | [] -> []
       | _ ->
-          [ ( Eliom_common.tab_cookies_header_name
+          [ ( Common.tab_cookies_header_name
             , encode_header_value ~typ:[%json: (string * string) list] cookies )
           ]
     in
@@ -203,7 +203,7 @@ let send
           Eliommod_cookies.get_cookies_to_send ~in_local_storage:true host https
             path
         in
-        ( Eliom_common.cookie_substitutes_header_name
+        ( Common.cookie_substitutes_header_name
         , encode_header_value ~typ:[%json: (string * string) list] cookies )
         :: headers
       else headers
@@ -221,7 +221,7 @@ let send
     let headers =
       match host with
       | Some host when host = Url.Current.host ->
-          ( Eliom_common.tab_cpi_header_name
+          ( Common.tab_cpi_header_name
           , encode_header_value
               ~typ:[%json: Eliom_common_base.client_process_info]
               (Eliom_process.get_info ()) )
@@ -232,7 +232,7 @@ let send
       if expecting_process_page
       then
         ("Accept", "application/xhtml+xml")
-        :: ( Eliom_common.expecting_process_page_name
+        :: ( Common.expecting_process_page_name
            , encode_header_value ~typ:[%json: bool] true )
         :: headers
       else headers
@@ -245,7 +245,7 @@ let send
          browser won't cache the content of the page ( for instance
          when clicking the back button ). That way we are sure that an
          xhr answer won't be used in place of a normal answer. *)
-      then (Eliom_common.nl_get_appl_parameter, "true") :: get_args
+      then (Common.nl_get_appl_parameter, "true") :: get_args
       else get_args
     in
     let check_headers code headers =
@@ -254,7 +254,7 @@ let send
         if code = 204
         then true
         else
-          headers Eliom_common.appl_name_header_name
+          headers Common.appl_name_header_name
           = Some (Eliom_process.get_application_name ())
       else true
     in
@@ -283,14 +283,14 @@ let send
             match
               (* Cookie substitutes are for iOS WKWebView *)
               r.XmlHttpRequest.headers
-                Eliom_common.set_cookie_substitutes_header_name
+                Common.set_cookie_substitutes_header_name
             with
             | None | Some "" -> ()
             | Some cookie_substitutes ->
                 Eliommod_cookies.update_cookie_table ~in_local_storage:true host
                   (Eliommod_cookies.cookieset_of_json cookie_substitutes));
          (match
-            r.XmlHttpRequest.headers Eliom_common.set_tab_cookies_header_name
+            r.XmlHttpRequest.headers Common.set_tab_cookies_header_name
           with
          | None | Some "" -> () (* Empty tab_cookies for IE compat *)
          | Some tab_cookies ->
@@ -299,11 +299,11 @@ let send
          if r.XmlHttpRequest.code = 204
          then
            match
-             r.XmlHttpRequest.headers Eliom_common.full_xhr_redir_header
+             r.XmlHttpRequest.headers Common.full_xhr_redir_header
            with
            | None | Some "" -> (
              match
-               r.XmlHttpRequest.headers Eliom_common.half_xhr_redir_header
+               r.XmlHttpRequest.headers Common.half_xhr_redir_header
              with
              | None | Some "" -> Lwt.return (r.XmlHttpRequest.url, None)
              | Some _uri ->
@@ -320,7 +320,7 @@ let send
          then
            let url =
              match
-               r.XmlHttpRequest.headers Eliom_common.response_url_header
+               r.XmlHttpRequest.headers Common.response_url_header
              with
              | None | Some "" -> Url.add_get_args url (List.tl get_args)
              | Some url -> Url.resolve url
@@ -338,7 +338,7 @@ let send
         | XmlHttpRequest.Wrong_headers (code, headers) -> (
           (* We are requesting application content and the headers tels
            us that the answer is not application content *)
-          match headers Eliom_common.appl_name_header_name with
+          match headers Common.appl_name_header_name with
           | None | Some "" ->
               (* Empty appl_name for IE compat. *)
               (match post_args with

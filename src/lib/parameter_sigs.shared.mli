@@ -375,7 +375,7 @@ module type S = sig
     -> string list option * params
 
   val reconstruct_params :
-     sp:Eliom_common.server_params
+     sp:Common.server_params
     -> ('a, [< `WithSuffix | `WithoutSuffix], 'c) params_type
     -> (string * string) list Lwt.t option
     -> (string * Lib.file_info) list Lwt.t option
