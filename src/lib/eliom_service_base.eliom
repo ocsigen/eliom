@@ -465,7 +465,7 @@ let non_attached_info = function {info = Nonattached k; _} -> k
 let%server no_client_fun () : _ ref Client_value.t option =
   (* It only makes sense to create a client value when in a global
      context. *)
-  if Eliom_syntax.global_context ()
+  if Syntax.global_context ()
   then Some [%client.unsafe ref None]
   else None
 
