@@ -12,3 +12,8 @@ src/**/*.odocl
 ocsigen.org-data
 
 _opam
+
+# Local files (not part of the project)
+AGENTS*.md
+instructions
+2026-*.md
