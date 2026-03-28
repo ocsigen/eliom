@@ -32,7 +32,7 @@ module type Html = sig
     with type 'a Xml.W.t = 'a
      and type 'a Xml.W.tlist = 'a list
      and type Xml.mouse_event_handler =
-      (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
+      (Dom_html.mouseEvent Js.t -> unit) Client_value.t
 
   type ('a, 'b, 'c) lazy_star =
     ?a:'a attrib list -> 'b elt list Eliom_lazy.request -> 'c elt

@@ -144,7 +144,7 @@ type ('get
   ; (* If the service has a client-side implementation, we put the
      generating function here: *)
     mutable client_fun :
-      ('get -> 'post -> result Lwt.t) option ref Eliom_client_value.t option
+      ('get -> 'post -> result Lwt.t) option ref Client_value.t option
     (* The function is in a client-side reference, so that it is shared
      by all occurrences of the service sent from the server.
      For some service, we cannot create the client value immediately;
@@ -209,7 +209,7 @@ let priority s = s.priority
 
 let internal_set_client_fun
       ~service
-      (f : ('get -> 'post -> result Lwt.t) Eliom_client_value.t)
+      (f : ('get -> 'post -> result Lwt.t) Client_value.t)
   =
   service.client_fun <- Some [%client.unsafe ref (Some ~%f)]
 
@@ -462,14 +462,14 @@ exception Unreachable_exn
 let attached_info = function {info = Attached k; _} -> k
 let non_attached_info = function {info = Nonattached k; _} -> k
 
-let%server no_client_fun () : _ ref Eliom_client_value.t option =
+let%server no_client_fun () : _ ref Client_value.t option =
   (* It only makes sense to create a client value when in a global
      context. *)
   if Eliom_syntax.global_context ()
   then Some [%client.unsafe ref None]
   else None
 
-let%client no_client_fun () : _ ref Eliom_client_value.t option =
+let%client no_client_fun () : _ ref Client_value.t option =
   Some (ref None)
 
 (** Create a main service (not a coservice), internal or external *)

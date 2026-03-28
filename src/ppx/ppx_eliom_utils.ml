@@ -241,12 +241,12 @@ module Mli = struct
     Scanf.sscanf id Name.injected_ident_fmt (fun u n -> u, n)
 
   let get_fragment_type = function
-    | [%type: [%t? typ] Eliom_client_value.fragment]
-    | [%type: [%t? typ] Eliom_client_value.t]
-    | [%type: [%t? typ] Eliom__.Eliom_client_value.fragment]
-    | [%type: [%t? typ] Eliom__.Eliom_client_value.t]
-    | [%type: [%t? typ] Eliom.Eliom_client_value.fragment]
-    | [%type: [%t? typ] Eliom.Eliom_client_value.t] ->
+    | [%type: [%t? typ] Client_value.fragment]
+    | [%type: [%t? typ] Client_value.t]
+    | [%type: [%t? typ] Eliom__.Client_value.fragment]
+    | [%type: [%t? typ] Eliom__.Client_value.t]
+    | [%type: [%t? typ] Eliom.Client_value.fragment]
+    | [%type: [%t? typ] Eliom.Client_value.t] ->
         Some typ
     | _ -> None
 

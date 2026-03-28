@@ -23,7 +23,7 @@ include
     ((string * string) * (string * string) list) option * Cohttp_lwt.Body.t
 
 val user_type :
-   ?client_to_and_of:'a to_and_of Eliom_client_value.t
+   ?client_to_and_of:'a to_and_of Client_value.t
   -> of_string:(string -> 'a)
   -> to_string:('a -> string)
   -> string
@@ -38,7 +38,7 @@ val user_type :
     client code. *)
 
 val all_suffix_user :
-   ?client_to_and_of:'a to_and_of Eliom_client_value.t
+   ?client_to_and_of:'a to_and_of Client_value.t
   -> of_string:(string -> 'a)
   -> to_string:('a -> string)
   -> string

@@ -67,7 +67,7 @@ end = struct
       (fun () -> raise Not_found)
 end
 
-module Client_value : sig
+module Client_value_registry : sig
   val find : instance_id:int -> poly option
   val initialize : Eliom_runtime.client_value_datum -> unit
 end = struct
@@ -115,7 +115,7 @@ module Injection : sig
 
   val initialize :
      compilation_unit_id:string
-    -> Eliom_client_value.injection_datum
+    -> Client_value.injection_datum
     -> unit
 end = struct
   let table = Jstable.create ()
@@ -167,7 +167,7 @@ let do_next_server_section_data ~compilation_unit_id =
     match data.server_section with
     | l :: r ->
         data.server_section <- r;
-        Array.iter Client_value.initialize l
+        Array.iter Client_value_registry.initialize l
     | [] ->
         raise_error ~section
           "Queue of client value data for compilation unit %s is empty (is it linked on the server?)"
@@ -345,7 +345,7 @@ let raw_event_handler value =
     (*XXX???*)
     (Lib.from_poly (Lib.to_poly value) : #Dom_html.event Js.t -> unit)
   in
-  fun ev -> try handler ev; true with Eliom_client_value.False -> false
+  fun ev -> try handler ev; true with Client_value.False -> false
 
 let closure_name_prefix = Eliom_runtime.RawXML.closure_name_prefix
 let closure_name_prefix_len = String.length closure_name_prefix
@@ -375,21 +375,14 @@ let reify_caml_event name node ce =
             raw_form_handler form kind cookies_info tmpl ev
               (Lib.from_poly client_hdlr : client_form_handler)) )
   | Xml.CE_client_closure f ->
-      ( name
-      , `Other
-          (fun ev -> try f ev; true with Eliom_client_value.False -> false) )
+      name, `Other (fun ev -> try f ev; true with Client_value.False -> false)
   | Xml.CE_client_closure_keyboard f ->
       ( name
-      , `Keyboard
-          (fun ev -> try f ev; true with Eliom_client_value.False -> false) )
+      , `Keyboard (fun ev -> try f ev; true with Client_value.False -> false) )
   | Xml.CE_client_closure_touch f ->
-      ( name
-      , `Touch
-          (fun ev -> try f ev; true with Eliom_client_value.False -> false) )
+      name, `Touch (fun ev -> try f ev; true with Client_value.False -> false)
   | Xml.CE_client_closure_mouse f ->
-      ( name
-      , `Mouse
-          (fun ev -> try f ev; true with Eliom_client_value.False -> false) )
+      name, `Mouse (fun ev -> try f ev; true with Client_value.False -> false)
   | Xml.CE_registered_closure (_, cv) ->
       let name =
         let len = String.length name in

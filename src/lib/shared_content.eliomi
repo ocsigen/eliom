@@ -24,13 +24,13 @@ module Xml :
   Xml_sigs.T
   with type 'a W.t = 'a Shared.React.S.t
    and type 'a W.tlist = 'a Shared.ReactiveData.RList.t
-   and type event_handler = (Dom_html.event Js.t -> unit) Eliom_client_value.t
+   and type event_handler = (Dom_html.event Js.t -> unit) Client_value.t
    and type mouse_event_handler =
-    (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
+    (Dom_html.mouseEvent Js.t -> unit) Client_value.t
    and type keyboard_event_handler =
-    (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
+    (Dom_html.keyboardEvent Js.t -> unit) Client_value.t
    and type touch_event_handler =
-    (Dom_html.touchEvent Js.t -> unit) Eliom_client_value.t
+    (Dom_html.touchEvent Js.t -> unit) Client_value.t
 
 module Svg : sig
   module R : sig

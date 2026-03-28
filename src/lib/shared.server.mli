@@ -47,8 +47,7 @@ module React : sig
 
     val create :
        ?default:
-         ('a React.S.t * (?step:React.step -> 'a -> unit)) option
-           Eliom_client_value.t
+         ('a React.S.t * (?step:React.step -> 'a -> unit)) option Client_value.t
       -> ?reset_default:bool
       -> ?eq:('a -> 'a -> bool) Value.t
       -> 'a

@@ -2,6 +2,8 @@
 (rule (copy# ../bus.client.mli bus.mli))
 (rule (copy# ../client.client.ml client.ml))
 (rule (copy# ../client.client.mli client.mli))
+(rule (copy# ../client_value.client.ml client_value.ml))
+(rule (copy# ../client_value.client.mli client_value.mli))
 (rule (copy# ../comet.client.ml comet.ml))
 (rule (copy# ../comet.client.mli comet.mli))
 (rule (copy# ../config.client.ml config.ml))
@@ -29,8 +31,6 @@
   (action
     (with-stdout-to %{target}
       (chdir .. (run ppx_eliom_client --as-pp -internal -server-cmo server/.eliom_server.objs/byte/eliom__Eliom_client_main.cmo --impl eliom_client_main.eliom)))))
-(rule (copy# ../eliom_client_value.client.ml eliom_client_value.ml))
-(rule (copy# ../eliom_client_value.client.mli eliom_client_value.mli))
 (rule (copy# ../eliom_comet_base.shared.ml eliom_comet_base.ml))
 (rule (copy# ../eliom_comet_base.shared.mli eliom_comet_base.mli))
 (rule (copy# ../eliom_common.client.ml eliom_common.ml))

@@ -1448,7 +1448,7 @@ module To_and_of_shared = struct
 
   type 'a t =
     { server : 'a to_and_of
-    ; client : 'a to_and_of Eliom_client_value.t option
+    ; client : 'a to_and_of Client_value.t option
     ; wrapper : wrapper }
   [@@warning "-69"]
 
