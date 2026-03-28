@@ -21,7 +21,11 @@ module Pass = struct
          | Pexp_ident {txt; _}
            when Mli.is_escaped_ident @@ Longident.last_exn txt ->
              let loc = e.pexp_loc in
-             [%expr Eliom_client_core.Syntax_helpers.get_escaped_value [%e e]]
+             [%expr
+               [%e
+                 eliom_expr ~loc
+                   "Eliom_client_core.Syntax_helpers.get_escaped_value"]
+                 [%e e]]
          | _ -> super#expression e
     end)
       #expression
@@ -100,7 +104,9 @@ module Pass = struct
            let args = List.map Pat.var args in
            let loc = expr.pexp_loc in
            [%expr
-             Eliom_client_core.Syntax_helpers.register_client_closure
+             [%e
+               eliom_expr ~loc
+                 "Eliom_client_core.Syntax_helpers.register_client_closure"]
                [%e str num] (fun [%p pat_args args] : [%t typ] ->
                [%e map_get_escaped_values expr])])
         client_value_datas
@@ -135,7 +141,8 @@ module Pass = struct
   let close_server_section loc =
     [%stri
     let () =
-      Eliom_client_core.Syntax_helpers.close_server_section
+      [%e
+        eliom_expr ~loc "Eliom_client_core.Syntax_helpers.close_server_section"]
         [%e eid @@ id_file_hash loc]]
 
   let may_close_server_section ~no_fragment item =
@@ -144,7 +151,8 @@ module Pass = struct
   let open_client_section loc =
     [%stri
     let () =
-      Eliom_client_core.Syntax_helpers.open_client_section
+      [%e
+        eliom_expr ~loc "Eliom_client_core.Syntax_helpers.open_client_section"]
         [%e eid @@ id_file_hash loc]]
 
   let may_open_client_section loc =
