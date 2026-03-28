@@ -15,4 +15,4 @@ let%server _ =
     ~command_pipe:"local/var/run/%%%PROJECT_NAME%%%-cmd"
     ~default_charset:(Some "utf-8")
     [ Ocsigen_server.host
-      [Staticmod.run ~dir:"local/var/www/%%%PROJECT_NAME%%%" (); Eliom.run ()] ]
+      [Staticmod.run ~dir:"local/var/www/%%%PROJECT_NAME%%%" (); Eliom.App.run ()] ]
