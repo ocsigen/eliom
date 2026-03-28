@@ -1,5 +1,7 @@
 let is_internal = ref false
 
+let check_internal () = !is_internal
+
 module Parsetree = Ppxlib.Parsetree
 module Asttypes = Ppxlib.Asttypes
 module Longident = Ppxlib.Longident
@@ -49,7 +51,7 @@ let eid {Location.txt; loc} = Exp.ident ~loc {loc; txt = Longident.Lident txt}
     [Eliom.Syntax.client_value] in user code. *)
 let eliom_lid path =
   let lid = Longident.parse path in
-  if !is_internal
+  if check_internal ()
   then lid
   else
     let rec prepend = function
@@ -361,7 +363,7 @@ module Cmo = struct
       (* When compiling Eliom itself (-internal), strip the Eliom. wrapper
          prefix from type paths read from the server .cmo, since the client
          modules are siblings in the same wrapped library. *)
-      if !is_internal
+      if check_internal ()
       then match lid with Ldot (Lident "Eliom", nm) -> Lident nm | _ -> lid
       else lid
     in
