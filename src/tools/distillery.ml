@@ -10,7 +10,7 @@ let eliomignore_filename = ".eliomignore"
 let eliomverbatim_filename = ".eliomverbatim"
 
 let eliom_template_dir =
-  Filename.concat (Findlib.package_directory "eliom") "templates"
+  Filename.concat (Findlib.package_directory "eliom") "eliom-templates"
 
 let distillery_basic = "client-server.basic", eliom_template_dir
 let template_path (tname, tpath) = tpath ^ "/" ^ tname
@@ -241,7 +241,26 @@ let get_templatedirs () =
       Str.split (Str.regexp ":") paths
     with Not_found -> []
   in
-  eliom_template_dir :: distillery_path_dirs
+  (* Also scan "templates/" subdirectories of all installed ocamlfind
+     packages, so that packages like ocsigen-start can provide their
+     own distillery templates. *)
+  let package_template_dirs =
+    try
+      let packages = Findlib.list_packages' () in
+      List.filter_map
+        (fun pkg ->
+           try
+             let dir =
+               Filename.concat (Findlib.package_directory pkg) "eliom-templates"
+             in
+             if Sys.file_exists dir && Sys.is_directory dir then Some dir
+             else None
+           with _ -> None)
+        packages
+    with _ -> []
+  in
+  let all = eliom_template_dir :: distillery_path_dirs @ package_template_dirs in
+  List.sort_uniq String.compare all
 
 let get_templates () =
   let dirs = List.map (fun d -> d, Unix.opendir d) (get_templatedirs ()) in
