@@ -40,7 +40,7 @@ module MakeManip
        val get_element' : 'a id -> Dom.node Js.t
      end)
     (Ns : sig
-       val content_ns : Eliom_client_core.content_ns
+       val content_ns : Client_core.content_ns
      end) =
 struct
   let get_node elt = (To_dom.of_element elt :> Dom.node Js.t)
@@ -55,7 +55,7 @@ struct
         match Xml.get_node_id elt' with
         | Xml.NoId ->
             log_inspect
-              (Eliom_client_core.rebuild_node' Ns.content_ns (Kind.toelt elt));
+              (Client_core.rebuild_node' Ns.content_ns (Kind.toelt elt));
             raise_error ~section:eliom_logs_src
               "Cannot call %s on an element with functional semantics" context
         | _ -> get_node elt)
@@ -64,8 +64,7 @@ struct
     Js.Opt.case
       (Dom_html.CoerceTo.element (get_unique_node name elt))
       (fun () ->
-         log_inspect
-           (Eliom_client_core.rebuild_node' Ns.content_ns (Kind.toelt elt));
+         log_inspect (Client_core.rebuild_node' Ns.content_ns (Kind.toelt elt));
          raise_error ~section:eliom_logs_src
            "Cannot call %s on a node which is not an element" name)
       id
@@ -323,7 +322,7 @@ module Svg = struct
   module Of_dom = Eliom_content_core.Svg.Of_dom
 
   module To_dom = struct
-    open Eliom_client_core
+    open Client_core
 
     let of_element elt = rebuild_node_svg "of_element" elt
     let of_node elt = rebuild_node_svg "of_node" elt
@@ -335,7 +334,7 @@ module Svg = struct
 
     let get_element' id =
       let id = string_of_id id in
-      let node = Eliom_client_core.getElementById id in
+      let node = Client_core.getElementById id in
       Js.Opt.case
         (Dom_html.CoerceTo.element node)
         (fun () -> failwith (Printf.sprintf "Non element node (%s)" id))
@@ -428,7 +427,7 @@ module Html = struct
   module To_dom = Js_of_ocaml_tyxml.Tyxml_cast.MakeTo (struct
       type 'a elt = 'a F.elt
 
-      let elt x = Js.Unsafe.coerce (Eliom_client_core.rebuild_node "n/a" x)
+      let elt x = Js.Unsafe.coerce (Client_core.rebuild_node "n/a" x)
     end)
 
   module Id = struct
@@ -436,7 +435,7 @@ module Html = struct
 
     let get_element' id =
       let id = string_of_id id in
-      let node = Eliom_client_core.getElementById id in
+      let node = Client_core.getElementById id in
       Js.Opt.case
         (Dom_html.CoerceTo.element node)
         (fun () -> failwith (Printf.sprintf "Non element node (%s)" id))

@@ -21,7 +21,7 @@ open Lwt.Syntax
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-let section = Eliom_client_core.section
+let section = Client_core.section
 
 open Js_of_ocaml
 open Lib
@@ -48,19 +48,19 @@ let (onload, _, flush_onload, _push_onload) :
   * (unit -> (unit -> unit) list)
   * (unit -> unit)
   =
-  Eliom_client_core.create_buffer ()
+  Client_core.create_buffer ()
 
 let ( (onchangepage : (changepage_event -> unit Lwt.t) -> unit)
     , _
     , (flush_onchangepage : unit -> (changepage_event -> unit Lwt.t) list)
     , _ )
   =
-  Eliom_client_core.create_buffer ()
+  Client_core.create_buffer ()
 
-let onunload, _, flush_onunload, _ = Eliom_client_core.create_buffer ()
+let onunload, _, flush_onunload, _ = Client_core.create_buffer ()
 
 let onbeforeunload, run_onbeforeunload, flush_onbeforeunload =
-  let add, get, flush, _ = Eliom_client_core.create_buffer () in
+  let add, get, flush, _ = Client_core.create_buffer () in
   let rec run lst =
     match lst with
     | [] -> None
@@ -87,8 +87,7 @@ let check_global_data global_data =
   let missing_client_values = ref [] in
   let missing_injections = ref [] in
   String_map.iter
-    (fun compilation_unit_id
-      {Eliom_client_core.server_section; client_section} ->
+    (fun compilation_unit_id {Client_core.server_section; client_section} ->
        List.iter
          (fun data ->
             missing_client_values :=
@@ -148,9 +147,9 @@ let do_request_data request_data =
   (* On a request, i.e. after running the toplevel definitions, global_data
      must contain at most empty sections_data lists, which stem from server-
      only eliom files. *)
-  check_global_data !Eliom_client_core.global_data;
-  Eliom_client_core.global_data := String_map.empty;
-  Array.iter Eliom_client_core.Client_value_registry.initialize request_data
+  check_global_data !Client_core.global_data;
+  Client_core.global_data := String_map.empty;
+  Array.iter Client_core.Client_value_registry.initialize request_data
 
 (* == Relink
 
@@ -182,7 +181,7 @@ let a_handler =
           only if raw_a_handler has taken the change page itself *)
     (*VVV Better: use preventdefault rather than returning false *)
     Js.bool
-      (Eliom_client_core.raw_a_handler node
+      (Client_core.raw_a_handler node
          (get_element_cookies_info node)
          (get_element_template node)
          ev))
@@ -201,7 +200,7 @@ let form_handler :
       else `Form_post
     and f _ = Lwt.return_false in
     Js.bool
-      (Eliom_client_core.raw_form_handler form kind
+      (Client_core.raw_form_handler form kind
          (get_element_cookies_info form)
          (get_element_template node)
          ev f))
@@ -213,12 +212,12 @@ let relink_process_node (node : Dom_html.element Js.t) =
       (fun () -> raise_error ~section "unique node without id attribute")
   in
   Js.Optdef.case
-    (Eliom_client_core.find_process_node id)
+    (Client_core.find_process_node id)
     (fun () ->
        Logs.debug ~src:section (fun fmt ->
          fmt "Relink process node: did not find %s. Will add it."
            (Js.to_string id));
-       Eliom_client_core.register_process_node id (node :> Dom.node Js.t))
+       Client_core.register_process_node id (node :> Dom.node Js.t))
     (fun pnode ->
        Logs.debug ~src:section (fun fmt ->
          fmt "Relink process node: found %s" (Js.to_string id));
@@ -238,12 +237,12 @@ let relink_request_node (node : Dom_html.element Js.t) =
       (fun () -> raise_error ~section "unique node without id attribute")
   in
   Js.Optdef.case
-    (Eliom_client_core.find_request_node id)
+    (Client_core.find_request_node id)
     (fun () ->
        Logs.debug ~src:section (fun fmt ->
          fmt "Relink request node: did not find %s. Will add it."
            (Js.to_string id));
-       Eliom_client_core.register_request_node id (node :> Dom.node Js.t))
+       Client_core.register_request_node id (node :> Dom.node Js.t))
     (fun pnode ->
        Logs.debug ~src:section (fun fmt ->
          fmt "Relink request node: found %s" (Js.to_string id));
@@ -314,7 +313,7 @@ let relink_closure_node root onload table (node : Dom_html.element Js.t) =
       let name = get_closure_name attr in
       try
         let cv = Eliom_runtime.RawXML.ClosureMap.find cid table in
-        let closure = Eliom_client_core.raw_event_handler cv in
+        let closure = Client_core.raw_event_handler cv in
         if name = Js.string "onload"
         then (
           if
@@ -367,7 +366,7 @@ let relink_attrib _root table (node : Dom_html.element Js.t) =
         let rattrib : Eliom_content_core.Xml.attrib =
           Lib.from_poly (Lib.to_poly value)
         in
-        Eliom_client_core.rebuild_rattrib node rattrib
+        Client_core.rebuild_rattrib node rattrib
       with Not_found ->
         raise_error ~section "relink_attrib: client value %s not found" cid
   in
@@ -481,16 +480,15 @@ let unwrap_tyxml tmp_elt =
             Logs.debug ~src:section (fun fmt ->
               fmt "Unwrap tyxml from ProcessId %s" process_id);
             Js.Optdef.case
-              (Eliom_client_core.find_process_node (Js.bytestring process_id))
+              (Client_core.find_process_node (Js.bytestring process_id))
               (fun () ->
                  Logs.debug ~src:section (fun fmt -> fmt "not found");
                  let xml_elt : Xml.elt = Xml.make ~id elt in
                  let xml_elt =
                    Eliom_content_core.Xml.set_classes_of_elt xml_elt
                  in
-                 Eliom_client_core.register_process_node
-                   (Js.bytestring process_id)
-                   (Eliom_client_core.rebuild_node_ns `HTML5 context xml_elt);
+                 Client_core.register_process_node (Js.bytestring process_id)
+                   (Client_core.rebuild_node_ns `HTML5 context xml_elt);
                  xml_elt)
               (fun elt ->
                  Logs.debug ~src:section (fun fmt -> fmt "found");
@@ -499,13 +497,12 @@ let unwrap_tyxml tmp_elt =
             Logs.debug ~src:section (fun fmt ->
               fmt "Unwrap tyxml from RequestId %s" request_id);
             Js.Optdef.case
-              (Eliom_client_core.find_request_node (Js.bytestring request_id))
+              (Client_core.find_request_node (Js.bytestring request_id))
               (fun () ->
                  Logs.debug ~src:section (fun fmt -> fmt "not found");
                  let xml_elt : Xml.elt = Xml.make ~id elt in
-                 Eliom_client_core.register_request_node
-                   (Js.bytestring request_id)
-                   (Eliom_client_core.rebuild_node_ns `HTML5 context xml_elt);
+                 Client_core.register_request_node (Js.bytestring request_id)
+                   (Client_core.rebuild_node_ns `HTML5 context xml_elt);
                  xml_elt)
               (fun elt ->
                  Logs.debug ~src:section (fun fmt -> fmt "found");
@@ -514,21 +511,21 @@ let unwrap_tyxml tmp_elt =
             Logs.debug ~src:section (fun fmt -> fmt "Unwrap tyxml from NoId");
             Xml.make ~id elt))
   in
-  Eliom_client_core.register_unwrapped_elt elt;
+  Client_core.register_unwrapped_elt elt;
   elt
 
 let unwrap_client_value cv =
-  Eliom_client_core.Client_value_registry.find
+  Client_core.Client_value_registry.find
     ~instance_id:(Eliom_runtime.Client_value_server_repr.instance_id cv)
 (* BB By returning [None] this value will be registered for late
      unwrapping, and late unwrapped in Client_value.initialize as
      soon as it is available. *)
 
 let unwrap_global_data (global_data', _) =
-  Eliom_client_core.global_data :=
+  Client_core.global_data :=
     String_map.map
       (fun {Eliom_runtime.server_sections_data; client_sections_data} ->
-         { Eliom_client_core.server_section = Array.to_list server_sections_data
+         { Client_core.server_section = Array.to_list server_sections_data
          ; client_section = Array.to_list client_sections_data })
       global_data'
 
@@ -1001,7 +998,7 @@ let init () =
         Dom.removeEventListener h;
         onload_handler := None
     | None -> ());
-    Eliom_client_core.set_initial_load ();
+    Client_core.set_initial_load ();
     Lwt.async (fun () ->
       if !Config.debug_timings then Console.console##(time (Js.string "onload"));
       let* () =
@@ -1030,14 +1027,13 @@ let init () =
         relink_closure_nodes root js_data.Eliom_common.ejs_event_handler_table
           closure_nodeList
       in
-      Eliom_client_core.reset_request_nodes ();
+      Client_core.reset_request_nodes ();
       Eliommod_dom.add_formdata_hack_onclick_handler ();
       if not (is_client_app ()) then dom_history_ready := true;
       let load_callbacks =
-        flush_onload ()
-        @ [onload_closure_nodes; Eliom_client_core.broadcast_load_end]
+        flush_onload () @ [onload_closure_nodes; Client_core.broadcast_load_end]
       in
-      Lwt_mutex.unlock Eliom_client_core.load_mutex;
+      Lwt_mutex.unlock Client_core.load_mutex;
       run_callbacks load_callbacks;
       if !Config.debug_timings
       then Console.console##(timeEnd (Js.string "onload"));
@@ -1305,13 +1301,13 @@ let call_ocaml_service
       ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params ?progress
       ?upload_progress ?override_mime_type get_params post_params
   in
-  let* () = Lwt_mutex.lock Eliom_client_core.load_mutex in
-  Eliom_client_core.set_loading_phase ();
+  let* () = Lwt_mutex.lock Client_core.load_mutex in
+  Client_core.set_loading_phase ();
   let* content, request_data = unwrap_caml_content content in
   do_request_data request_data;
-  Eliom_client_core.reset_request_nodes ();
-  let load_callbacks = [Eliom_client_core.broadcast_load_end] in
-  Lwt_mutex.unlock Eliom_client_core.load_mutex;
+  Client_core.reset_request_nodes ();
+  let load_callbacks = [Client_core.broadcast_load_end] in
+  Lwt_mutex.unlock Client_core.load_mutex;
   run_callbacks load_callbacks;
   match content with
   | `Success result -> Lwt.return result
@@ -1525,12 +1521,12 @@ let set_template_content ~replace ~uri ?fragment =
     (match fragment with
     | None -> change_url_string ~replace uri
     | Some fragment -> change_url_string ~replace (uri ^ "#" ^ fragment));
-    let* () = Lwt_mutex.lock Eliom_client_core.load_mutex in
+    let* () = Lwt_mutex.lock Client_core.load_mutex in
     let* (), request_data = unwrap_caml_content content in
     do_request_data request_data;
-    Eliom_client_core.reset_request_nodes ();
+    Client_core.reset_request_nodes ();
     let load_callbacks = flush_onload () in
-    Lwt_mutex.unlock Eliom_client_core.load_mutex;
+    Lwt_mutex.unlock Client_core.load_mutex;
     run_callbacks load_callbacks;
     Lwt.return_unit
   and cancel () = Lwt.return_unit in
@@ -1569,7 +1565,7 @@ let set_content_local ?offset ?fragment new_page =
   Logs.debug ~src:section_page (fun fmt -> fmt "Set content local");
   let locked = ref true in
   let recover () =
-    if !locked then Lwt_mutex.unlock Eliom_client_core.load_mutex;
+    if !locked then Lwt_mutex.unlock Client_core.load_mutex;
     if !Config.debug_timings
     then Console.console##(timeEnd (Js.string "set_content_local"))
   and really_set () =
@@ -1587,11 +1583,9 @@ let set_content_local ?offset ?fragment new_page =
     replace_page ~do_insert_base:true new_page;
     Eliommod_dom.add_formdata_hack_onclick_handler ();
     dom_history_ready := true;
-    let load_callbacks =
-      flush_onload () @ [Eliom_client_core.broadcast_load_end]
-    in
+    let load_callbacks = flush_onload () @ [Client_core.broadcast_load_end] in
     locked := false;
-    Lwt_mutex.unlock Eliom_client_core.load_mutex;
+    Lwt_mutex.unlock Client_core.load_mutex;
     (* run callbacks upon page activation (or now), but just once *)
     Page_status.onactive ~once:true (fun () -> run_callbacks load_callbacks);
     scroll_to_fragment ?offset fragment;
@@ -1603,8 +1597,8 @@ let set_content_local ?offset ?fragment new_page =
   let cancel () = recover (); Lwt.return_unit in
   Lwt.catch
     (fun () ->
-       let* () = Lwt_mutex.lock Eliom_client_core.load_mutex in
-       Eliom_client_core.set_loading_phase ();
+       let* () = Lwt_mutex.lock Client_core.load_mutex in
+       Client_core.set_loading_phase ();
        if !Config.debug_timings
        then Console.console##(time (Js.string "set_content_local"));
        run_onunload_wrapper really_set cancel)
@@ -1637,8 +1631,7 @@ let set_content ~replace ~uri ?offset ?fragment content =
         set_uri ~replace ?fragment uri;
         (* Convert the DOM nodes from XML elements to HTML elements. *)
         let fake_page =
-          Eliommod_dom.html_document content
-            Eliom_client_core.registered_process_node
+          Eliommod_dom.html_document content Client_core.registered_process_node
         in
         (* insert_base fake_page; Now done server side *)
         (* Inline CSS in the header to avoid the "flashing effect".
@@ -1693,15 +1686,15 @@ let set_content ~replace ~uri ?offset ?fragment content =
         in
         (* The request node table must be empty when nodes received via
          call_ocaml_service are unwrapped. *)
-        Eliom_client_core.reset_request_nodes ();
+        Client_core.reset_request_nodes ();
         Eliommod_dom.add_formdata_hack_onclick_handler ();
         dom_history_ready := true;
         locked := false;
         let load_callbacks =
           flush_onload ()
-          @ [onload_closure_nodes; Eliom_client_core.broadcast_load_end]
+          @ [onload_closure_nodes; Client_core.broadcast_load_end]
         in
-        Lwt_mutex.unlock Eliom_client_core.load_mutex;
+        Lwt_mutex.unlock Client_core.load_mutex;
         run_callbacks load_callbacks;
         scroll_to_fragment ?offset fragment;
         advance_page ();
@@ -1709,14 +1702,14 @@ let set_content ~replace ~uri ?offset ?fragment content =
         then Console.console##(timeEnd (Js.string "set_content"));
         Lwt.return_unit
       and recover () =
-        if !locked then Lwt_mutex.unlock Eliom_client_core.load_mutex;
+        if !locked then Lwt_mutex.unlock Client_core.load_mutex;
         if !Config.debug_timings
         then Console.console##(timeEnd (Js.string "set_content"))
       in
       Lwt.catch
         (fun () ->
-           let* () = Lwt_mutex.lock Eliom_client_core.load_mutex in
-           Eliom_client_core.set_loading_phase ();
+           let* () = Lwt_mutex.lock Client_core.load_mutex in
+           Client_core.set_loading_phase ();
            if !Config.debug_timings
            then Console.console##(time (Js.string "set_content"));
            let g () = recover (); Lwt.return_unit in
@@ -2106,13 +2099,13 @@ let change_page_post_form ?cookies_info ?tmpl form full_uri =
          set_content ~replace:false ~uri ?fragment content)
 
 let _ =
-  (Eliom_client_core.change_page_uri_ :=
+  (Client_core.change_page_uri_ :=
      fun ?cookies_info ?tmpl href ->
        Lwt.ignore_result (change_page_uri_a ?cookies_info ?tmpl href));
-  (Eliom_client_core.change_page_get_form_ :=
+  (Client_core.change_page_get_form_ :=
      fun ?cookies_info ?tmpl form href ->
        Lwt.ignore_result (change_page_get_form ?cookies_info ?tmpl form href));
-  Eliom_client_core.change_page_post_form_ :=
+  Client_core.change_page_post_form_ :=
     fun ?cookies_info ?tmpl form href ->
       Lwt.ignore_result (change_page_post_form ?cookies_info ?tmpl form href)
 
@@ -2140,7 +2133,7 @@ let restore_history_dom id =
       set_active_page page
   | _ -> Logs.err ~src:section (fun fmt -> fmt "cannot find DOM in history")
 
-let wait_load_end = Eliom_client_core.wait_load_end
+let wait_load_end = Client_core.wait_load_end
 
 let () =
   if Eliom_process.history_api
@@ -2350,8 +2343,8 @@ let () =
 
 let get_application_name = Eliom_process.get_application_name
 let set_client_html_file = Eliom_common.set_client_html_file
-let middleClick = Eliom_client_core.middleClick
+let middleClick = Client_core.middleClick
 
-type client_form_handler = Eliom_client_core.client_form_handler
+type client_form_handler = Client_core.client_form_handler
 
 module Additional_headers = Request.Additional_headers

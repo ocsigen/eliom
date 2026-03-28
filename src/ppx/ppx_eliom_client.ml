@@ -11,7 +11,7 @@ module Pass = struct
   (** {2 Auxiliaries} *)
 
   (* Replace every escaped identifier [v] with
-     [Eliom_client_core.Syntax_helpers.get_escaped_value v] *)
+     [Client_core.Syntax_helpers.get_escaped_value v] *)
   let map_get_escaped_values expr =
     (object
        inherit Ppxlib.Ast_traverse.map as super
@@ -23,8 +23,7 @@ module Pass = struct
              let loc = e.pexp_loc in
              [%expr
                [%e
-                 eliom_expr ~loc
-                   "Eliom_client_core.Syntax_helpers.get_escaped_value"]
+                 eliom_expr ~loc "Client_core.Syntax_helpers.get_escaped_value"]
                  [%e e]]
          | _ -> super#expression e
     end)
@@ -106,7 +105,7 @@ module Pass = struct
            [%expr
              [%e
                eliom_expr ~loc
-                 "Eliom_client_core.Syntax_helpers.register_client_closure"]
+                 "Client_core.Syntax_helpers.register_client_closure"]
                [%e str num] (fun [%p pat_args args] : [%t typ] ->
                [%e map_get_escaped_values expr])])
         client_value_datas
@@ -141,8 +140,7 @@ module Pass = struct
   let close_server_section loc =
     [%stri
     let () =
-      [%e
-        eliom_expr ~loc "Eliom_client_core.Syntax_helpers.close_server_section"]
+      [%e eliom_expr ~loc "Client_core.Syntax_helpers.close_server_section"]
         [%e eid @@ id_file_hash loc]]
 
   let may_close_server_section ~no_fragment item =
@@ -151,8 +149,7 @@ module Pass = struct
   let open_client_section loc =
     [%stri
     let () =
-      [%e
-        eliom_expr ~loc "Eliom_client_core.Syntax_helpers.open_client_section"]
+      [%e eliom_expr ~loc "Client_core.Syntax_helpers.open_client_section"]
         [%e eid @@ id_file_hash loc]]
 
   let may_open_client_section loc =
@@ -262,7 +259,7 @@ module Pass = struct
         let u, d = Mli.get_injected_ident_info id.txt in
         let es = str ~loc:id.loc (Printf.sprintf "%s%d" u d) in
         [%expr
-          (Eliom_client_core.Syntax_helpers.get_injection ?ident:[%e ident]
+          (Client_core.Syntax_helpers.get_injection ?ident:[%e ident]
              ~pos:[%e position loc] [%e es]
            : [%t typ])]
 
