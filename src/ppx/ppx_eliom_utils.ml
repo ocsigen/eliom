@@ -1,4 +1,5 @@
 let is_internal = ref false
+let internal_prefix = ref ""
 
 let check_internal () = !is_internal
 
@@ -360,12 +361,16 @@ module Cmo = struct
     let open Outcometree in
     let open Longident in
     let strip_wrapper lid =
-      (* When compiling Eliom itself (-internal), strip the Eliom. wrapper
-         prefix from type paths read from the server .cmo, since the client
-         modules are siblings in the same wrapped library. *)
-      if check_internal ()
-      then match lid with Ldot (Lident "Eliom", nm) -> Lident nm | _ -> lid
-      else lid
+      (* Strip wrapper module prefixes from type paths read from the server
+         .cmo, since the client modules are siblings in the same wrapped
+         library.
+         - [-internal]: strips "Eliom." (for compiling Eliom itself)
+         - [-internal-prefix Os]: strips "Os." (for compiling ocsigen-start) *)
+      match lid with
+      | Ldot (Lident "Eliom", nm) when check_internal () -> Lident nm
+      | Ldot (Lident w, nm) when !internal_prefix <> "" && w = !internal_prefix
+        -> Lident nm
+      | _ -> lid
     in
     match id with
     | Oide_apply (id, id') ->
@@ -616,7 +621,10 @@ let driver_args =
     , "FILE Load inferred types from server cmo file FILE." )
   ; ( "-internal"
     , Arg.Set is_internal
-    , " Use short module names (for compiling Eliom itself)." ) ]
+    , " Use short module names (for compiling Eliom itself)." )
+  ; ( "-internal-prefix"
+    , Arg.String (fun s -> internal_prefix := s)
+    , "PREFIX Strip PREFIX. wrapper prefix from .cmo type paths (for compiling wrapped libraries that depend on Eliom)." ) ]
 
 let () =
   List.iter
