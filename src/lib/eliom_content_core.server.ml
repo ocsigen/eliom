@@ -113,16 +113,13 @@ module Xml = struct
     make_lazy
       (Eliom_lazy.from_fun (fun () -> Node (name, a, Eliom_lazy.force children)))
 
-  type event_handler = (Dom_html.event Js.t -> unit) Eliom_client_value.t
-
-  type mouse_event_handler =
-    (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
+  type event_handler = (Dom_html.event Js.t -> unit) Client_value.t
+  type mouse_event_handler = (Dom_html.mouseEvent Js.t -> unit) Client_value.t
 
   type keyboard_event_handler =
-    (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
+    (Dom_html.keyboardEvent Js.t -> unit) Client_value.t
 
-  type touch_event_handler =
-    (Dom_html.touchEvent Js.t -> unit) Eliom_client_value.t
+  type touch_event_handler = (Dom_html.touchEvent Js.t -> unit) Client_value.t
 
   let make_cryptographic_safe_string () =
     (* FIX: we should directly produce a string of the right length *)
@@ -149,7 +146,7 @@ module Xml = struct
   let touch_event_handler_attrib name (cf : touch_event_handler) =
     biggest_event_handler_attrib name cf
 
-  let client_attrib ?init (x : attrib Eliom_client_value.t) =
+  let client_attrib ?init (x : attrib Client_value.t) =
     let crypto = make_cryptographic_safe_string () in
     let empty_name = "" in
     empty_name, RAClient (crypto, init, Lib.to_poly x)
@@ -312,7 +309,7 @@ module Svg = struct
       include Ev' (Raw')
     end
 
-    let client_attrib ?init (x : 'a Raw.attrib Eliom_client_value.t) =
+    let client_attrib ?init (x : 'a Raw.attrib Client_value.t) =
       Xml.client_attrib ?init x
 
     include Raw'
@@ -471,7 +468,7 @@ module Html = struct
       include Ev' (Raw')
     end
 
-    let client_attrib ?init (x : 'a Raw.attrib Eliom_client_value.t) =
+    let client_attrib ?init (x : 'a Raw.attrib Client_value.t) =
       Xml.client_attrib ?init x
 
     include Raw'

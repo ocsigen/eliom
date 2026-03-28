@@ -22,7 +22,7 @@ val get_request_data : unit -> Eliom_runtime.request_data
 
 (*****************************************************************************)
 
-val client_value : ?pos:Lib.pos -> string -> 'args -> 'a Eliom_client_value.t
+val client_value : ?pos:Lib.pos -> string -> 'args -> 'a Client_value.t
 (** Registers a client value datum for the next server section when
     executed in a global_data (cf. {!Eliom_syntax.set_global}) or in
     the request_data when executed in a request. *)

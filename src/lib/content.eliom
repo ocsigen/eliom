@@ -26,14 +26,14 @@ include Eliom_content_
 let force_link = ()
 
 external unboxed :
-   boxed Eliom_client_value.t
-  -> 'a Eliom_client_value.t
+   boxed Client_value.t
+  -> 'a Client_value.t
   = "%identity"]
 
 [%%server
 external boxed :
-   'a Eliom_client_value.t
-  -> boxed Eliom_client_value.t
+   'a Client_value.t
+  -> boxed Client_value.t
   = "%identity"
 
 module Xml = Eliom_content_.Xml
@@ -71,7 +71,7 @@ module Html = struct
     let node ?(init = D.Unsafe.node "span" []) x =
       let dummy_elt = D.toelt init in
       (* We need to box / unbox the client_value to convince eliom it's not polymorphic *)
-      let client_boxed : boxed Eliom_client_value.t = boxed x in
+      let client_boxed : boxed Client_value.t = boxed x in
       let _ =
         [%client
           (let dummy_dom =

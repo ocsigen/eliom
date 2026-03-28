@@ -119,9 +119,7 @@ let register_client_value_data ~closure_id ~args ~value =
     then
       current_server_section_data :=
         client_value_datum :: !current_server_section_data
-    else
-      raise
-        (Eliom_client_value.Client_value_creation_invalid_context closure_id)
+    else raise (Client_value.Client_value_creation_invalid_context closure_id)
   else
     Reference.Volatile.modify request_data (fun sofar ->
       client_value_datum :: sofar)
@@ -129,14 +127,14 @@ let register_client_value_data ~closure_id ~args ~value =
 (*****************************************************************************)
 (* Syntax helpers *)
 
-let escaped_value = Eliom_client_value.escaped_value
+let escaped_value = Client_value.escaped_value
 let last_id = ref 0
 
 let client_value ?pos closure_id args =
   let instance_id = if !is_global then (incr last_id; !last_id) else 0 in
-  let value = Eliom_client_value.create_client_value ~loc:pos ~instance_id in
+  let value = Client_value.create_client_value ~loc:pos ~instance_id in
   register_client_value_data ~closure_id ~args:(Lib.to_poly args) ~value;
-  Eliom_client_value.client_value_from_server_repr value
+  Client_value.client_value_from_server_repr value
 
 let set_global b = is_global := b
 let global_context () = !is_global

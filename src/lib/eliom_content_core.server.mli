@@ -26,13 +26,13 @@ module Xml : sig
     Xml_sigs.Iterable
     with type 'a wrap = 'a
      and type 'a list_wrap = 'a list
-     and type event_handler = (Dom_html.event Js.t -> unit) Eliom_client_value.t
+     and type event_handler = (Dom_html.event Js.t -> unit) Client_value.t
      and type mouse_event_handler =
-      (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
+      (Dom_html.mouseEvent Js.t -> unit) Client_value.t
      and type keyboard_event_handler =
-      (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
+      (Dom_html.keyboardEvent Js.t -> unit) Client_value.t
      and type touch_event_handler =
-      (Dom_html.touchEvent Js.t -> unit) Eliom_client_value.t
+      (Dom_html.touchEvent Js.t -> unit) Client_value.t
 
   type caml_event_handler
 
@@ -63,7 +63,7 @@ module Xml : sig
     -> internal_event_handler
 
   val caml_event_handler :
-     (Dom_html.event Js.t -> unit) Eliom_client_value.t
+     (Dom_html.event Js.t -> unit) Client_value.t
     -> caml_event_handler
 
   type racontent =
@@ -81,7 +81,7 @@ module Xml : sig
   (**/**)
 
   val wrap : elt -> 'a -> 'a Wrap.wrapped_value
-  val client_attrib : ?init:attrib -> attrib Eliom_client_value.t -> attrib
+  val client_attrib : ?init:attrib -> attrib Client_value.t -> attrib
 end
 
 module Svg : sig
@@ -166,10 +166,7 @@ module Svg : sig
 
     include module type of Raw'
 
-    val client_attrib :
-       ?init:'a attrib
-      -> 'a attrib Eliom_client_value.t
-      -> 'a attrib
+    val client_attrib : ?init:'a attrib -> 'a attrib Client_value.t -> 'a attrib
   end
 
   module Make
@@ -336,10 +333,7 @@ module Html : sig
 
     include module type of Raw'
 
-    val client_attrib :
-       ?init:'a attrib
-      -> 'a attrib Eliom_client_value.t
-      -> 'a attrib
+    val client_attrib : ?init:'a attrib -> 'a attrib Client_value.t -> 'a attrib
 
     (**/**)
 

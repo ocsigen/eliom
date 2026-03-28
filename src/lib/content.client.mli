@@ -113,8 +113,8 @@ module Svg : sig
 
   (** Creation of content from client-side values. *)
   module C : sig
-    val node : ?init:'a D.elt -> 'a elt Eliom_client_value.t -> 'a D.elt
-    val attr : ?init:'a attrib -> 'a attrib Eliom_client_value.t -> 'a attrib
+    val node : ?init:'a D.elt -> 'a elt Client_value.t -> 'a D.elt
+    val attr : ?init:'a attrib -> 'a attrib Client_value.t -> 'a attrib
   end
 
   (** Node identifiers *)
@@ -405,7 +405,7 @@ module Html : sig
         For more information,
         see {{!page-"server-links".forms}the manual}. *)
 
-    val node : 'a elt React.signal Eliom_client_value.t -> 'a elt
+    val node : 'a elt React.signal Client_value.t -> 'a elt
     (** Function [node s] create an HTML5 [elt] from a signal [s].
         The resulting HTML5 [elt] can then be used like any other HTML5 [elt] *)
 
@@ -430,13 +430,13 @@ module Html : sig
   module C : sig
     (** {2 Content injection} *)
 
-    val node : ?init:'a D.elt -> 'a elt Eliom_client_value.t -> 'a D.elt
+    val node : ?init:'a D.elt -> 'a elt Client_value.t -> 'a D.elt
     (** Those two functions are the identity on client-side
         (the [init] argument is ignored).
         See Eliom manual for more detail on
         {{!page-"clientserver-html".inject}Dom & Client-values}. *)
 
-    val attr : ?init:'a attrib -> 'a attrib Eliom_client_value.t -> 'a attrib
+    val attr : ?init:'a attrib -> 'a attrib Client_value.t -> 'a attrib
   end
 
   (** Node identifiers *)

@@ -50,16 +50,16 @@ module Xml = struct
 
   type aname = Eliom_content_core.Xml.aname
   type ename = Eliom_content_core.Xml.ename
-  type event_handler = (Dom_html.event Js.t -> unit) Eliom_client_value.t
+  type event_handler = (Dom_html.event Js.t -> unit) Client_value.t
 
   type mouse_event_handler =
-    (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
+    (Dom_html.mouseEvent Js.t -> unit) Client_value.t
 
   type keyboard_event_handler =
-    (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
+    (Dom_html.keyboardEvent Js.t -> unit) Client_value.t
 
   type touch_event_handler =
-    (Dom_html.touchEvent Js.t -> unit) Eliom_client_value.t
+    (Dom_html.touchEvent Js.t -> unit) Client_value.t
 
   (* attributes *)
 

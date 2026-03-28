@@ -22,8 +22,9 @@
     See the {{!page-"clientserver-language"}manual}. *)
 
 type 'a t = 'a
-(** An ['a] client value on the client is just an ['a].  See also {{!Eliom_client_value.t}the abstract representation on
-    the server}. *)
+(** An ['a] client value on the client is just an ['a].  See also {%
+    <<a_api subproject="server" text="the abstract representation on
+    the server" | type Client_value.t >> %}. *)
 
 exception Exception_on_server of string
 (** This exception is raised (in Lwt) on the client if a call to a

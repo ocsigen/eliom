@@ -198,7 +198,7 @@ module type TMPL_PARAMS = sig
 
   val name : string
   val make_page : t -> Html_types.html Content.Html.elt Lwt.t
-  val update : t -> unit Eliom_client_value.t
+  val update : t -> unit Client_value.t
 end
 
 module Eliom_tmpl (App : APP) (Tmpl_param : TMPL_PARAMS) :

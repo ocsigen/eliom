@@ -22,9 +22,9 @@
 module type VALUE = sig
   type +'a t
 
-  val create : 'a -> 'a Eliom_client_value.t -> 'a t
+  val create : 'a -> 'a Client_value.t -> 'a t
 
-  val client : 'a t -> 'a Eliom_client_value.t
+  val client : 'a t -> 'a Client_value.t
   (** [client x] is the client-side portion of [x]. *)
 
   val local : 'a t -> 'a
@@ -190,7 +190,7 @@ module type RLIST = sig
   (** Client-side version of 'a handle *)
 
   val create :
-     ?default:('a ct * 'a chandle) option Eliom_client_value.t
+     ?default:('a ct * 'a chandle) option Client_value.t
     -> ?reset_default:bool
     -> 'a list
     -> 'a t * 'a handle
@@ -209,11 +209,7 @@ module type RLIST = sig
   val singleton_s : 'a signal -> 'a t
   val map : ('a -> 'b) sv -> 'a t -> 'b t
   val from_signal : ?eq:('a -> 'a -> bool) sv -> 'a list signal -> 'a t
-
-  val acc_e :
-     ?init:'a t * 'a handle
-    -> 'a React.E.t Eliom_client_value.t
-    -> 'a t
+  val acc_e : ?init:'a t * 'a handle -> 'a React.E.t Client_value.t -> 'a t
 
   (** Cooperative versions of the ReactiveData operators *)
   module Lwt : sig

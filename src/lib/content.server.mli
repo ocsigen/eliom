@@ -91,13 +91,13 @@ module Xml : sig
     Xml_sigs.Iterable
     with type 'a wrap = 'a
      and type 'a list_wrap = 'a list
-     and type event_handler = (Dom_html.event Js.t -> unit) Eliom_client_value.t
+     and type event_handler = (Dom_html.event Js.t -> unit) Client_value.t
      and type mouse_event_handler =
-      (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
+      (Dom_html.mouseEvent Js.t -> unit) Client_value.t
      and type keyboard_event_handler =
-      (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
+      (Dom_html.keyboardEvent Js.t -> unit) Client_value.t
      and type touch_event_handler =
-      (Dom_html.touchEvent Js.t -> unit) Eliom_client_value.t
+      (Dom_html.touchEvent Js.t -> unit) Client_value.t
 
   (** {2 Unique nodes } *)
 
@@ -130,7 +130,7 @@ module Xml : sig
   val make_client_attrib_table : elt -> Eliom_runtime.RawXML.client_attrib_table
 
   val caml_event_handler :
-     (Dom_html.event Js.t -> unit) Eliom_client_value.t
+     (Dom_html.event Js.t -> unit) Client_value.t
     -> caml_event_handler
 
   type racontent =
@@ -159,13 +159,13 @@ module Xml_shared :
   Xml_sigs.T
   with type 'a W.t = 'a Shared.React.S.t
    and type 'a W.tlist = 'a Shared.ReactiveData.RList.t
-   and type event_handler = (Dom_html.event Js.t -> unit) Eliom_client_value.t
+   and type event_handler = (Dom_html.event Js.t -> unit) Client_value.t
    and type mouse_event_handler =
-    (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
+    (Dom_html.mouseEvent Js.t -> unit) Client_value.t
    and type keyboard_event_handler =
-    (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
+    (Dom_html.keyboardEvent Js.t -> unit) Client_value.t
    and type touch_event_handler =
-    (Dom_html.touchEvent Js.t -> unit) Eliom_client_value.t
+    (Dom_html.touchEvent Js.t -> unit) Client_value.t
 
 (** Building and pretty-printing valid SVG tree.
 Information about Svg api can be found at {!Svg_sigs.T}*)
@@ -255,7 +255,7 @@ module Svg : sig
       that will be computed on client side (for example reactive
       nodes). *)
   module C : sig
-    val node : ?init:'a elt -> 'a elt Eliom_client_value.t -> 'a elt
+    val node : ?init:'a elt -> 'a elt Client_value.t -> 'a elt
     (** [node e] is a server-side node corresponding to the
         client-side node [e] . [node e] can be used like any other
         server-side node.
@@ -267,7 +267,7 @@ module Svg : sig
         client node). This can be useful in contexts where [span] is
         not allowed. *)
 
-    val attr : ?init:'a attrib -> 'a attrib Eliom_client_value.t -> 'a attrib
+    val attr : ?init:'a attrib -> 'a attrib Client_value.t -> 'a attrib
   end
 
   (** Node identifiers. *)
@@ -425,7 +425,7 @@ module Html : sig
     (** See Eliom manual for more detail on {{!page-"clientserver-html".inject}DOM &
         Client-values}. *)
 
-    val node : ?init:'a elt -> 'a elt Eliom_client_value.t -> 'a elt
+    val node : ?init:'a elt -> 'a elt Client_value.t -> 'a elt
     (** [node e] is a server-side node corresponding to the
         client-side node [e] . [node e] can be used like any other
         server-side node.
@@ -437,7 +437,7 @@ module Html : sig
         client node). This can be useful in contexts where [span] is
         not allowed. *)
 
-    val attr : ?init:'a attrib -> 'a attrib Eliom_client_value.t -> 'a attrib
+    val attr : ?init:'a attrib -> 'a attrib Client_value.t -> 'a attrib
   end
 
   (** Node identifiers *)
