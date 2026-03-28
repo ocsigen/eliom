@@ -22,6 +22,9 @@ val get_request_data : unit -> Eliom_runtime.request_data
 
 (*****************************************************************************)
 
+val to_poly : 'a -> Ocsigen_lib_base.poly
+(** Used by the PPX to serialize injection values. *)
+
 val client_value : ?pos:Lib.pos -> string -> 'args -> 'a Client_value.t
 (** Registers a client value datum for the next server section when
     executed in a global_data (cf. {!Syntax.set_global}) or in
