@@ -77,7 +77,8 @@ We are looking for beta-tester and contributors.
     (bool, [ `WithoutSuffix ], [ `One of bool ] param_name) params_type
   val file :
     string -&gt;
-    (Lib.file_info, [ `WithoutSuffix ], [ `One of Lib.file_info ] param_name)
+    (Eliom.Lib.file_info, [ `WithoutSuffix ],
+     [ `One of Eliom.Lib.file_info ] param_name)
     params_type
   val unit : (unit, [ `WithoutSuffix ], unit) params_type
   type coordinates = { abscissa : int; ordinate : int; }
@@ -168,26 +169,26 @@ We are looking for beta-tester and contributors.
   val add_pref_params :
     string -&gt;
     ('a, [&lt; suff ] as 'b, 'c) params_type -&gt; ('a, 'b, 'c) params_type
-  type params = (string * Eliommod_parameters.param) list
+  type params = (string * Eliom.Eliommod_parameters.param) list
   val construct_params :
-    params Lib.String.Table.t -&gt;
+    params Eliom.Lib.String.Table.t -&gt;
     ('a, [&lt; `WithSuffix | `WithoutSuffix ], 'b) params_type -&gt;
     'a -&gt; string list option * string
   val construct_params_string : params -&gt; string
   val construct_params_list_raw :
-    params Lib.String.Table.t -&gt;
+    params Eliom.Lib.String.Table.t -&gt;
     ('a, [&lt; `WithSuffix | `WithoutSuffix ], 'b) params_type -&gt;
-    'a -&gt; string list option * params Lib.String.Table.t * params
+    'a -&gt; string list option * params Eliom.Lib.String.Table.t * params
   val construct_params_list :
-    params Lib.String.Table.t -&gt;
+    params Eliom.Lib.String.Table.t -&gt;
     ('a, [&lt; `WithSuffix | `WithoutSuffix ], 'b) params_type -&gt;
     'a -&gt; string list option * params
   val reconstruct_params :
-    sp:Eliom_common.server_params -&gt;
+    sp:Eliom.Common.server_params -&gt;
     ('a, [&lt; `WithSuffix | `WithoutSuffix ], 'c) params_type -&gt;
     (string * string) list Lwt.t option -&gt;
-    (string * Lib.file_info) list Lwt.t option -&gt;
-    bool -&gt; Lib.Url.path option -&gt; 'a Lwt.t
+    (string * Eliom.Lib.file_info) list Lwt.t option -&gt;
+    bool -&gt; Eliom.Lib.Url.path option -&gt; 'a Lwt.t
   val make_params_names : ('a, [&lt; suff ], 'c) params_type -&gt; bool * 'c
   val string_of_param_name : 'a param_name -&gt; string
   val nl_prod :
@@ -195,10 +196,11 @@ We are looking for beta-tester and contributors.
     ('s, [ `WithoutSuffix ], 'sn) non_localized_params -&gt;
     ('a * 's, 'b, 'an * 'sn) params_type
   val remove_from_nlp :
-    (string * 'c) list Lib.String.Table.t -&gt;
+    (string * 'c) list Eliom.Lib.String.Table.t -&gt;
     ('a, [&lt; `WithSuffix | `WithoutSuffix ], 'b) params_type -&gt;
-    (string * 'c) list Lib.String.Table.t
-  val table_of_nl_params_set : nl_params_set -&gt; params Lib.String.Table.t
+    (string * 'c) list Eliom.Lib.String.Table.t
+  val table_of_nl_params_set :
+    nl_params_set -&gt; params Eliom.Lib.String.Table.t
   val list_of_nl_params_set : nl_params_set -&gt; params
   val string_of_nl_params_set : nl_params_set -&gt; string
   val wrap_param_type :

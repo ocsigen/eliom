@@ -58,7 +58,7 @@ We are looking for beta-tester and contributors.
   type non_ocaml = Non_ocaml
   type reg = Reg
   type non_reg = Non_reg
-  type ('get, 'a, 'gn) params = ('get, 'a, 'gn) Parameter.params_type
+  type ('get, 'a, 'gn) params = ('get, 'a, 'gn) Eliom.Parameter.params_type
     constraint 'a = [&lt; `WithSuffix | `WithoutSuffix ]
   type ('m, _, _, _, _, _, _) meth =
       Get :
@@ -73,14 +73,16 @@ We are looking for beta-tester and contributors.
                                                   as 'b, 'gp)
                                                  meth
     | Put :
-        ('gp, 'c, 'gn) params -&gt; (put, 'gp, 'gn, Parameter.raw_post_data,
-                                  Parameter.no_param_name,
+        ('gp, 'c, 'gn) params -&gt; (put, 'gp, 'gn,
+                                  Eliom.Parameter.raw_post_data,
+                                  Eliom.Parameter.no_param_name,
                                   [&lt; `WithSuffix | `WithoutSuffix ] as 'c,
                                   unit)
                                  meth
     | Delete :
-        ('gp, 'd, 'gn) params -&gt; (delete, 'gp, 'gn, Parameter.raw_post_data,
-                                  Parameter.no_param_name,
+        ('gp, 'd, 'gn) params -&gt; (delete, 'gp, 'gn,
+                                  Eliom.Parameter.raw_post_data,
+                                  Eliom.Parameter.no_param_name,
                                   [&lt; `WithSuffix | `WithoutSuffix ] as 'd,
                                   unit)
                                  meth
@@ -110,7 +112,7 @@ We are looking for beta-tester and contributors.
        unit, unit, non_ocaml)
       t
   type (_, _, _) path_option =
-      Path : Lib.Url.path -&gt; (att, non_co, 'a) path_option
+      Path : Eliom.Lib.Url.path -&gt; (att, non_co, 'a) path_option
     | No_path : (non_att, co, unit) path_option
   val reload_action :
     (unit, unit, get, non_att, co, non_ext, non_reg, [ `WithoutSuffix ],
@@ -131,28 +133,30 @@ We are looking for beta-tester and contributors.
   val static_dir :
     unit -&gt;
     (string list, unit, get, att, non_co, non_ext, non_reg, [ `WithSuffix ],
-     [ `One of string list ] Parameter.param_name, unit, non_ocaml)
+     [ `One of string list ] Eliom.Parameter.param_name, unit, non_ocaml)
     t
   val https_static_dir :
     unit -&gt;
     (string list, unit, get, att, non_co, non_ext, non_reg, [ `WithSuffix ],
-     [ `One of string list ] Parameter.param_name, unit, non_ocaml)
+     [ `One of string list ] Eliom.Parameter.param_name, unit, non_ocaml)
     t
   val static_dir_with_params :
     ?keep_nl_params:[ `All | `None | `Persistent ] -&gt;
-    get_params:('a, [ `WithoutSuffix ], 'an) Parameter.params_type -&gt;
+    get_params:('a, [ `WithoutSuffix ], 'an) Eliom.Parameter.params_type -&gt;
     unit -&gt;
     (string list * 'a, unit, get, att, non_co, non_ext, non_reg,
-     [ `WithSuffix ], [ `One of string list ] Parameter.param_name * 'an,
-     unit, non_ocaml)
+     [ `WithSuffix ],
+     [ `One of string list ] Eliom.Parameter.param_name * 'an, unit,
+     non_ocaml)
     t
   val https_static_dir_with_params :
     ?keep_nl_params:[ `All | `None | `Persistent ] -&gt;
-    get_params:('a, [ `WithoutSuffix ], 'an) Parameter.params_type -&gt;
+    get_params:('a, [ `WithoutSuffix ], 'an) Eliom.Parameter.params_type -&gt;
     unit -&gt;
     (string list * 'a, unit, get, att, non_co, non_ext, non_reg,
-     [ `WithSuffix ], [ `One of string list ] Parameter.param_name * 'an,
-     unit, non_ocaml)
+     [ `WithSuffix ],
+     [ `One of string list ] Eliom.Parameter.param_name * 'an, unit,
+     non_ocaml)
     t
   val preapply :
     service:('a, 'b, 'meth, att, 'co, 'ext, 'reg,
@@ -163,14 +167,14 @@ We are looking for beta-tester and contributors.
      'return)
     t
   val add_non_localized_get_parameters :
-    params:('p, [ `WithoutSuffix ], 'pn) Parameter.non_localized_params -&gt;
+    params:('p, [ `WithoutSuffix ], 'pn) Eliom.Parameter.non_localized_params -&gt;
     service:('a, 'b, 'meth, 'attach, 'co, 'ext, 'reg,
              [&lt; `WithSuffix | `WithoutSuffix ] as 'c, 'e, 'f, 'return)
             t -&gt;
     ('a * 'p, 'b, 'meth, 'attach, 'co, 'ext, 'reg, 'c, 'e * 'pn, 'f, 'return)
     t
   val add_non_localized_post_parameters :
-    params:('p, [ `WithoutSuffix ], 'pn) Parameter.non_localized_params -&gt;
+    params:('p, [ `WithoutSuffix ], 'pn) Eliom.Parameter.non_localized_params -&gt;
     service:('a, 'b, 'meth, 'attach, 'co, 'ext, 'g,
              [&lt; `WithSuffix | `WithoutSuffix ] as 'c, 'e, 'f, 'return)
             t -&gt;
@@ -178,7 +182,7 @@ We are looking for beta-tester and contributors.
   val extern :
     ?keep_nl_params:[ `All | `None | `Persistent ] -&gt;
     prefix:string -&gt;
-    path:Lib.Url.path -&gt;
+    path:Eliom.Lib.Url.path -&gt;
     meth:('m, 'gp, 'gn, 'pp, 'pn, [&lt; `WithSuffix | `WithoutSuffix ] as 'a,
           'b)
          meth -&gt;
@@ -199,18 +203,18 @@ We are looking for beta-tester and contributors.
   val get_params_type :
     ('a, 'b, 'd, 'e, 'f, 'g, 'h, [&lt; `WithSuffix | `WithoutSuffix ] as 'i, 'c,
      'j, 'k)
-    t -&gt; ('a, 'i, 'c) Parameter.params_type
+    t -&gt; ('a, 'i, 'c) Eliom.Parameter.params_type
   val post_params_type :
     ('c, 'a, 'd, 'e, 'f, 'g, 'h, [&lt; `WithSuffix | `WithoutSuffix ], 'i, 'b,
      'j)
-    t -&gt; ('a, [ `WithoutSuffix ], 'b) Parameter.params_type
-  val sub_path : att -&gt; Lib.Url.path
-  val full_path : att -&gt; Lib.Url.path
+    t -&gt; ('a, [ `WithoutSuffix ], 'b) Eliom.Parameter.params_type
+  val sub_path : att -&gt; Eliom.Lib.Url.path
+  val full_path : att -&gt; Eliom.Lib.Url.path
   val prefix : att -&gt; string
-  val get_name : att -&gt; Eliom_common.att_key_serv
-  val post_name : att -&gt; Eliom_common.att_key_serv
+  val get_name : att -&gt; Eliom.Common.att_key_serv
+  val post_name : att -&gt; Eliom.Common.att_key_serv
   val redirect_suffix : att -&gt; bool
-  val na_name : non_att -&gt; Eliom_common.na_key_serv
+  val na_name : non_att -&gt; Eliom.Common.na_key_serv
   val na_keep_get_na_params : non_att -&gt; bool
   val max_use :
     ('a, 'b, 'c, 'd, 'e, 'f, 'g, [&lt; `WithSuffix | `WithoutSuffix ], 'h, 'i,
@@ -228,7 +232,7 @@ We are looking for beta-tester and contributors.
   val client_fun :
     ('a, 'b, 'c, 'd, 'e, 'f, 'g, [&lt; `WithSuffix | `WithoutSuffix ], 'h, 'i,
      'j)
-    t -&gt; ('a -&gt; 'b -&gt; result Lwt.t) Eliom_client_value.t option
+    t -&gt; ('a -&gt; 'b -&gt; result Lwt.t) Eliom.Client_value.t option
   val has_client_fun :
     ('a, 'b, 'c, 'd, 'e, 'f, 'g, [&lt; `WithSuffix | `WithoutSuffix ], 'h, 'i,
      'j)
@@ -242,15 +246,15 @@ We are looking for beta-tester and contributors.
      [&lt; `WithSuffix | `WithoutSuffix ] as 'd, 'e, 'f, 'return)
     t -&gt;
     att -&gt;
-    Eliom_common.att_key_serv -&gt;
+    Eliom.Common.att_key_serv -&gt;
     ('a, 'b, 'meth, att, 'co, 'ext, 'g, 'd, 'e, 'f, 'return) t
   val register_delayed_get_or_na_coservice :
-    sp:Eliom_common.server_params -&gt;
-    int * [&lt; Eliom_common.user_scope ] * bool option -&gt; string
+    sp:Eliom.Common.server_params -&gt;
+    int * [&lt; Eliom.Common.user_scope ] * bool option -&gt; string
   val register_delayed_post_coservice :
-    sp:Eliom_common.server_params -&gt;
-    int * [&lt; Eliom_common.user_scope ] * bool option -&gt;
-    Eliom_common.att_key_serv -&gt; string
+    sp:Eliom.Common.server_params -&gt;
+    int * [&lt; Eliom.Common.user_scope ] * bool option -&gt;
+    Eliom.Common.att_key_serv -&gt; string
   type send_appl_content =
       XNever
     | XAlways
@@ -267,11 +271,11 @@ We are looking for beta-tester and contributors.
     service:('a, 'b, 'c, 'd, 'e, 'f, 'g, [&lt; `WithSuffix | `WithoutSuffix ],
              'h, 'i, 'j)
             t -&gt;
-    ('a -&gt; 'b -&gt; result Lwt.t) Eliom_client_value.t -&gt; unit
+    ('a -&gt; 'b -&gt; result Lwt.t) Eliom.Client_value.t -&gt; unit
   val create :
     ?name:string -&gt;
     ?csrf_safe:bool -&gt;
-    ?csrf_scope:[&lt; Eliom_common.user_scope ] -&gt;
+    ?csrf_scope:[&lt; Common.user_scope ] -&gt;
     ?csrf_secure:bool -&gt;
     ?max_use:int -&gt;
     ?timeout:float -&gt;
@@ -287,7 +291,7 @@ We are looking for beta-tester and contributors.
   val create_attached_get :
     ?name:string -&gt;
     ?csrf_safe:bool -&gt;
-    ?csrf_scope:[&lt; Eliom_common.user_scope ] -&gt;
+    ?csrf_scope:[&lt; Common.user_scope ] -&gt;
     ?csrf_secure:bool -&gt;
     ?max_use:int -&gt;
     ?timeout:float -&gt;
@@ -304,7 +308,7 @@ We are looking for beta-tester and contributors.
   val create_attached_post :
     ?name:string -&gt;
     ?csrf_safe:bool -&gt;
-    ?csrf_scope:[&lt; Eliom_common.user_scope ] -&gt;
+    ?csrf_scope:[&lt; Common.user_scope ] -&gt;
     ?csrf_secure:bool -&gt;
     ?max_use:int -&gt;
     ?timeout:float -&gt;
@@ -327,7 +331,7 @@ We are looking for beta-tester and contributors.
     ('get, 'post, 'meth, att, co, non_ext, non_reg, 'd, 'gn, 'pn, 'return) t
   val register_eliom_module : string -&gt; (unit -&gt; unit) -&gt; unit
   val unregister :
-    ?scope:[&lt; Eliom_common.scope ] -&gt;
+    ?scope:[&lt; Common.scope ] -&gt;
     ?secure:bool -&gt;
     ('a, 'b, 'c, 'd, 'e, non_ext, 'f, [&lt; `WithSuffix | `WithoutSuffix ], 'g,
      'h, 'i)
@@ -346,13 +350,10 @@ We are looking for beta-tester and contributors.
      [&lt; `WithSuffix | `WithoutSuffix ] as 'c, 'f, 'g, 'rr)
     t -&gt; ('a, 'b, 'meth, 'attached, 'co, 'ext, 'd, 'c, 'f, 'g, 'return) t
   val set_delayed_get_or_na_registration_function :
-    Eliom_common.tables -&gt;
-    int -&gt; (sp:Eliom_common.server_params -&gt; string) -&gt; unit
+    Common.tables -&gt; int -&gt; (sp:Common.server_params -&gt; string) -&gt; unit
   val set_delayed_post_registration_function :
-    Eliom_common.tables -&gt;
-    int -&gt;
-    (sp:Eliom_common.server_params -&gt; Eliom_common.att_key_serv -&gt; string) -&gt;
-    unit
+    Common.tables -&gt;
+    int -&gt; (sp:Common.server_params -&gt; Common.att_key_serv -&gt; string) -&gt; unit
   val set_send_appl_content :
     ('a, 'b, 'c, 'd, 'e, 'f, 'g, [&lt; `WithSuffix | `WithoutSuffix ], 'h, 'i,
      'j)
@@ -362,7 +363,7 @@ We are looking for beta-tester and contributors.
   val create_ocaml :
     ?name:string -&gt;
     ?csrf_safe:bool -&gt;
-    ?csrf_scope:[&lt; Eliom_common.user_scope ] -&gt;
+    ?csrf_scope:[&lt; Common.user_scope ] -&gt;
     ?csrf_secure:bool -&gt;
     ?max_use:int -&gt;
     ?timeout:float -&gt;
@@ -378,7 +379,7 @@ We are looking for beta-tester and contributors.
   val create_unsafe :
     ?name:string -&gt;
     ?csrf_safe:bool -&gt;
-    ?csrf_scope:[&lt; Eliom_common.user_scope ] -&gt;
+    ?csrf_scope:[&lt; Common.user_scope ] -&gt;
     ?csrf_secure:bool -&gt;
     ?max_use:int -&gt;
     ?timeout:float -&gt;
@@ -393,7 +394,7 @@ We are looking for beta-tester and contributors.
   val create_attached_get_unsafe :
     ?name:string -&gt;
     ?csrf_safe:bool -&gt;
-    ?csrf_scope:[&lt; Eliom_common.user_scope ] -&gt;
+    ?csrf_scope:[&lt; Common.user_scope ] -&gt;
     ?csrf_secure:bool -&gt;
     ?max_use:int -&gt;
     ?timeout:float -&gt;
@@ -408,7 +409,7 @@ We are looking for beta-tester and contributors.
   val create_attached_post_unsafe :
     ?name:string -&gt;
     ?csrf_safe:bool -&gt;
-    ?csrf_scope:[&lt; Eliom_common.user_scope ] -&gt;
+    ?csrf_scope:[&lt; Common.user_scope ] -&gt;
     ?csrf_secure:bool -&gt;
     ?max_use:int -&gt;
     ?timeout:float -&gt;

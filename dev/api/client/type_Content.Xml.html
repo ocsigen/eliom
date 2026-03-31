@@ -63,9 +63,10 @@ We are looking for beta-tester and contributors.
   val string_of_uri : string -&gt; uri
   val uri_of_fun : (unit -&gt; string) -&gt; uri
   type aname = string
-  type attrib
+  type attrib = Eliom.Eliom_content_core.Xml.attrib
   type caml_event_handler =
-      CE_registered_closure of string * Lib.poly
+    Eliom.Eliom_content_core.Xml.caml_event_handler =
+      CE_registered_closure of string * Eliom.Lib.poly
     | CE_client_closure of
         (Js_of_ocaml.Dom_html.event Js_of_ocaml.Js.t -&gt; unit)
     | CE_client_closure_mouse of
@@ -77,8 +78,11 @@ We are looking for beta-tester and contributors.
     | CE_call_service of
         ([ `A | `Form_get | `Form_post ] * (bool * string list) option *
          string option * Ocsigen_lib_base.poly)
-        option Eliom_lazy.request
-  type internal_event_handler = Raw of string | Caml of caml_event_handler
+        option Eliom.Eliom_lazy.request
+  type internal_event_handler =
+    Eliom.Eliom_content_core.Xml.internal_event_handler =
+      Raw of string
+    | Caml of caml_event_handler
   type event_handler = Js_of_ocaml.Dom_html.event Js_of_ocaml.Js.t -&gt; unit
   type mouse_event_handler =
       Js_of_ocaml.Dom_html.mouseEvent Js_of_ocaml.Js.t -&gt; unit
@@ -87,10 +91,11 @@ We are looking for beta-tester and contributors.
   type touch_event_handler =
       Js_of_ocaml.Dom_html.touchEvent Js_of_ocaml.Js.t -&gt; unit
   type ename = string
-  type elt
+  type elt = Eliom.Eliom_content_core.Xml.elt
   type 'a wrap = 'a
   type 'a list_wrap = 'a list
-  type econtent = private
+  type econtent =
+    Eliom.Eliom_content_core.Xml.econtent = private
       Empty
     | Comment of string
     | EncodedPCDATA of string
@@ -100,22 +105,24 @@ We are looking for beta-tester and contributors.
     | Node of ename * attrib list * elt list
   val internal_event_handler_of_service :
     ([ `A | `Form_get | `Form_post ] * (bool * string list) option *
-     string option * Lib.poly)
-    option Eliom_lazy.request -&gt; internal_event_handler
-  type separator = Space | Comma
-  type acontent = private
+     string option * Eliom.Lib.poly)
+    option Eliom.Eliom_lazy.request -&gt; internal_event_handler
+  type separator = Eliom.Eliom_content_core.Xml.separator = Space | Comma
+  type acontent =
+    Eliom.Eliom_content_core.Xml.acontent = private
       AFloat of float
     | AInt of int
     | AStr of string
     | AStrL of separator * string list
   val acontent : attrib -&gt; acontent
   type racontent =
+    Eliom.Eliom_content_core.Xml.racontent =
       RA of acontent
     | RAReact of acontent option React.signal
     | RACamlEventHandler of caml_event_handler
-    | RALazyStr of string Eliom_lazy.request
-    | RALazyStrL of separator * string Eliom_lazy.request list
-    | RAClient of string * attrib option * Lib.poly
+    | RALazyStr of string Eliom.Eliom_lazy.request
+    | RALazyStrL of separator * string Eliom.Eliom_lazy.request list
+    | RAClient of string * attrib option * Eliom.Lib.poly
   val racontent : attrib -&gt; racontent
   val aname : attrib -&gt; aname
   val float_attrib : aname -&gt; float -&gt; attrib
@@ -141,11 +148,15 @@ We are looking for beta-tester and contributors.
   val leaf : ?a:attrib list -&gt; ename -&gt; elt
   val node : ?a:attrib list -&gt; ename -&gt; elt list -&gt; elt
   val lazy_node :
-    ?a:attrib list -&gt; ename -&gt; elt list Eliom_lazy.request -&gt; elt
+    ?a:attrib list -&gt; ename -&gt; elt list Eliom.Eliom_lazy.request -&gt; elt
   val cdata : string -&gt; elt
   val cdata_script : string -&gt; elt
   val cdata_style : string -&gt; elt
-  type node_id = NoId | ProcessId of string | RequestId of string
+  type node_id =
+    Eliom.Eliom_content_core.Xml.node_id =
+      NoId
+    | ProcessId of string
+    | RequestId of string
   val string_of_node_id : node_id -&gt; string
   val make : ?id:node_id -&gt; econtent -&gt; elt
   val make_dom : ?id:node_id -&gt; Js_of_ocaml.Dom.node Js_of_ocaml.Js.t -&gt; elt
@@ -156,6 +167,7 @@ We are looking for beta-tester and contributors.
   val make_request_node : ?reset:bool -&gt; elt -&gt; elt
   val get_node_id : elt -&gt; node_id
   type node =
+    Eliom.Eliom_content_core.Xml.node =
       DomNode of Js_of_ocaml.Dom.node Js_of_ocaml.Js.t
     | TyXMLNode of econtent
     | ReactNode of elt React.signal

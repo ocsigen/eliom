@@ -50,16 +50,17 @@ We are looking for beta-tester and contributors.
   type 'a return = Service.non_ocaml
   val register :
     ?app:string -&gt;
-    ?scope:[&lt; Eliom_common.scope ] -&gt;
+    ?scope:[&lt; Eliom.Common.scope ] -&gt;
     ?options:options -&gt;
     ?charset:string -&gt;
     ?code:int -&gt;
     ?content_type:string -&gt;
-    ?headers:Service.Cohttp.Header.t -&gt;
+    ?headers:Eliom.Service.Cohttp.Header.t -&gt;
     ?secure_session:bool -&gt;
-    service:('get, 'post, 'b, 'c, 'd, Service.non_ext, Service.reg,
-             [&lt; `WithSuffix | `WithoutSuffix ], 'e, 'f, 'a return)
-            Service.t -&gt;
+    service:('get, 'post, 'b, 'c, 'd, Eliom.Service.non_ext,
+             Eliom.Service.reg, [&lt; `WithSuffix | `WithoutSuffix ], 'e, 'f,
+             'a return)
+            Eliom.Service.t -&gt;
     ?error_handler:((string * exn) list -&gt; 'a page Lwt.t) -&gt;
     ('get -&gt; 'post -&gt; 'a page Lwt.t) -&gt; unit
   type 'a result = 'a kind
@@ -68,5 +69,5 @@ We are looking for beta-tester and contributors.
     ?charset:string -&gt;
     ?code:int -&gt;
     ?content_type:string -&gt;
-    ?headers:Service.Cohttp.Header.t -&gt; 'a page -&gt; 'a result Lwt.t
+    ?headers:Eliom.Service.Cohttp.Header.t -&gt; 'a page -&gt; 'a result Lwt.t
 end</code></pre></article></div></div></body></html>

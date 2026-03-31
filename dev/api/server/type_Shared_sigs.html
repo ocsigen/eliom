@@ -48,8 +48,8 @@ We are looking for beta-tester and contributors.
   module type VALUE =
     sig
       type +'a t
-      val create : 'a -&gt; 'a Eliom_client_value.t -&gt; 'a Shared_sigs.VALUE.t
-      val client : 'a Shared_sigs.VALUE.t -&gt; 'a Eliom_client_value.t
+      val create : 'a -&gt; 'a Client_value.t -&gt; 'a Shared_sigs.VALUE.t
+      val client : 'a Shared_sigs.VALUE.t -&gt; 'a Client_value.t
       val local : 'a Shared_sigs.VALUE.t -&gt; 'a
     end
   module type S =
@@ -169,7 +169,7 @@ We are looking for beta-tester and contributors.
       type 'a chandle
       val create :
         ?default:('a Shared_sigs.RLIST.ct * 'a Shared_sigs.RLIST.chandle)
-                 option Eliom_client_value.t -&gt;
+                 option Client_value.t -&gt;
         ?reset_default:bool -&gt;
         'a list -&gt; 'a Shared_sigs.RLIST.t * 'a Shared_sigs.RLIST.handle
       val concat :
@@ -188,7 +188,7 @@ We are looking for beta-tester and contributors.
         'a list Shared_sigs.RLIST.signal -&gt; 'a Shared_sigs.RLIST.t
       val acc_e :
         ?init:'a Shared_sigs.RLIST.t * 'a Shared_sigs.RLIST.handle -&gt;
-        'a React.E.t Eliom_client_value.t -&gt; 'a Shared_sigs.RLIST.t
+        'a React.E.t Client_value.t -&gt; 'a Shared_sigs.RLIST.t
       module Lwt :
         sig
           val map_p :

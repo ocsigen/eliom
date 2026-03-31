@@ -50,7 +50,7 @@ We are looking for beta-tester and contributors.
   type _ return
   val register :
     ?app:string -&gt;
-    ?scope:[&lt; Eliom_common.scope ] -&gt;
+    ?scope:[&lt; Common.scope ] -&gt;
     ?options:options -&gt;
     ?charset:string -&gt;
     ?code:int -&gt;
@@ -64,7 +64,7 @@ We are looking for beta-tester and contributors.
     ('get -&gt; 'post -&gt; 'a page Lwt.t) -&gt; unit
   val create :
     ?app:string -&gt;
-    ?scope:[&lt; Eliom_common.scope ] -&gt;
+    ?scope:[&lt; Common.scope ] -&gt;
     ?options:options -&gt;
     ?charset:string -&gt;
     ?code:int -&gt;
@@ -74,7 +74,7 @@ We are looking for beta-tester and contributors.
     ?https:bool -&gt;
     ?name:string -&gt;
     ?csrf_safe:bool -&gt;
-    ?csrf_scope:[&lt; Eliom_common.user_scope ] -&gt;
+    ?csrf_scope:[&lt; Common.user_scope ] -&gt;
     ?csrf_secure:bool -&gt;
     ?max_use:int -&gt;
     ?timeout:float -&gt;
@@ -89,7 +89,7 @@ We are looking for beta-tester and contributors.
     Service.t
   val create_attached_get :
     ?app:string -&gt;
-    ?scope:[&lt; Eliom_common.scope ] -&gt;
+    ?scope:[&lt; Common.scope ] -&gt;
     ?options:options -&gt;
     ?charset:string -&gt;
     ?code:int -&gt;
@@ -99,7 +99,7 @@ We are looking for beta-tester and contributors.
     ?https:bool -&gt;
     ?name:string -&gt;
     ?csrf_safe:bool -&gt;
-    ?csrf_scope:[&lt; Eliom_common.user_scope ] -&gt;
+    ?csrf_scope:[&lt; Common.user_scope ] -&gt;
     ?csrf_secure:bool -&gt;
     ?max_use:int -&gt;
     ?timeout:float -&gt;
@@ -114,7 +114,7 @@ We are looking for beta-tester and contributors.
     Service.t
   val create_attached_post :
     ?app:string -&gt;
-    ?scope:[&lt; Eliom_common.scope ] -&gt;
+    ?scope:[&lt; Common.scope ] -&gt;
     ?options:options -&gt;
     ?charset:string -&gt;
     ?code:int -&gt;
@@ -124,7 +124,7 @@ We are looking for beta-tester and contributors.
     ?https:bool -&gt;
     ?name:string -&gt;
     ?csrf_safe:bool -&gt;
-    ?csrf_scope:[&lt; Eliom_common.user_scope ] -&gt;
+    ?csrf_scope:[&lt; Common.user_scope ] -&gt;
     ?csrf_secure:bool -&gt;
     ?max_use:int -&gt;
     ?timeout:float -&gt;

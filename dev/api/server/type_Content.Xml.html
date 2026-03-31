@@ -65,17 +65,16 @@ We are looking for beta-tester and contributors.
   val uri_of_string : (string, uri) W.ft
   type aname = string
   type event_handler =
-      (Js_of_ocaml.Dom_html.event Js_of_ocaml.Js.t -&gt; unit)
-      Eliom_client_value.t
+      (Js_of_ocaml.Dom_html.event Js_of_ocaml.Js.t -&gt; unit) Client_value.t
   type mouse_event_handler =
       (Js_of_ocaml.Dom_html.mouseEvent Js_of_ocaml.Js.t -&gt; unit)
-      Eliom_client_value.t
+      Client_value.t
   type keyboard_event_handler =
       (Js_of_ocaml.Dom_html.keyboardEvent Js_of_ocaml.Js.t -&gt; unit)
-      Eliom_client_value.t
+      Client_value.t
   type touch_event_handler =
       (Js_of_ocaml.Dom_html.touchEvent Js_of_ocaml.Js.t -&gt; unit)
-      Eliom_client_value.t
+      Client_value.t
   type attrib
   val float_attrib : aname -&gt; float wrap -&gt; attrib
   val int_attrib : aname -&gt; int wrap -&gt; attrib
@@ -129,8 +128,8 @@ We are looking for beta-tester and contributors.
   val make_client_attrib_table :
     elt -&gt; Eliom_runtime.RawXML.client_attrib_table
   val caml_event_handler :
-    (Js_of_ocaml.Dom_html.event Js_of_ocaml.Js.t -&gt; unit)
-    Eliom_client_value.t -&gt; Content.Xml.caml_event_handler
+    (Js_of_ocaml.Dom_html.event Js_of_ocaml.Js.t -&gt; unit) Client_value.t -&gt;
+    Content.Xml.caml_event_handler
   type racontent =
       RA of acontent
     | RAReact of acontent option React.signal

@@ -52,49 +52,49 @@ We are looking for beta-tester and contributors.
   type persistent_cookie_info
   type (+'a, +'b) state
   val volatile_data_group_state :
-    ?scope:Eliom_common.session_group_scope -&gt;
+    ?scope:Common.session_group_scope -&gt;
     string -&gt; ([&gt; `Session_group ], [&gt; `Data ]) State.Ext.state
   val persistent_data_group_state :
-    ?scope:Eliom_common.session_group_scope -&gt;
+    ?scope:Common.session_group_scope -&gt;
     string -&gt; ([&gt; `Session_group ], [&gt; `Pers ]) State.Ext.state
   val service_group_state :
-    ?scope:Eliom_common.session_group_scope -&gt;
+    ?scope:Common.session_group_scope -&gt;
     string -&gt; ([&gt; `Session_group ], [&gt; `Service ]) State.Ext.state
   val current_volatile_data_state :
     ?secure:bool -&gt;
-    ?scope:Eliom_common.user_scope -&gt;
-    unit -&gt; ([&lt; Eliom_common.user_level ], [&lt; `Data ]) State.Ext.state
+    ?scope:Common.user_scope -&gt;
+    unit -&gt; ([&lt; Common.user_level ], [&lt; `Data ]) State.Ext.state
   val current_persistent_data_state :
     ?secure:bool -&gt;
-    ?scope:Eliom_common.user_scope -&gt;
-    unit -&gt; ([&lt; Eliom_common.user_level ], [&lt; `Pers ]) State.Ext.state Lwt.t
+    ?scope:Common.user_scope -&gt;
+    unit -&gt; ([&lt; Common.user_level ], [&lt; `Pers ]) State.Ext.state Lwt.t
   val current_service_state :
     ?secure:bool -&gt;
-    ?scope:Eliom_common.user_scope -&gt;
-    unit -&gt; ([&lt; Eliom_common.user_level ], [&lt; `Service ]) State.Ext.state
+    ?scope:Common.user_scope -&gt;
+    unit -&gt; ([&lt; Common.user_level ], [&lt; `Service ]) State.Ext.state
   val discard_state :
-    ?sitedata:Eliom_common.sitedata -&gt;
+    ?sitedata:Common.sitedata -&gt;
     state:('a, 'b) State.Ext.state -&gt; unit -&gt; unit Lwt.t
   val fold_volatile_sub_states :
-    ?sitedata:Eliom_common.sitedata -&gt;
+    ?sitedata:Common.sitedata -&gt;
     state:([&lt; `Session | `Session_group ], [&lt; `Data | `Service ] as 'k)
           State.Ext.state -&gt;
     ('a -&gt; ([&lt; `Client_process | `Session ], 'k) State.Ext.state -&gt; 'a) -&gt;
     'a -&gt; 'a
   val iter_volatile_sub_states :
-    ?sitedata:Eliom_common.sitedata -&gt;
+    ?sitedata:Common.sitedata -&gt;
     state:([&lt; `Session | `Session_group ], [&lt; `Data | `Service ] as 'k)
           State.Ext.state -&gt;
     (([&lt; `Client_process | `Session ], 'k) State.Ext.state -&gt; unit) -&gt; unit
   val fold_sub_states :
-    ?sitedata:Eliom_common.sitedata -&gt;
+    ?sitedata:Common.sitedata -&gt;
     state:([&lt; `Session | `Session_group ],
            [&lt; `Data | `Pers | `Service ] as 'k)
           State.Ext.state -&gt;
     ('a -&gt; ([&lt; `Client_process | `Session ], 'k) State.Ext.state -&gt; 'a Lwt.t) -&gt;
     'a -&gt; 'a Lwt.t
   val iter_sub_states :
-    ?sitedata:Eliom_common.sitedata -&gt;
+    ?sitedata:Common.sitedata -&gt;
     state:([&lt; `Session | `Session_group ], 'k) State.Ext.state -&gt;
     (([&lt; `Client_process | `Session ], 'k) State.Ext.state -&gt; unit Lwt.t) -&gt;
     unit Lwt.t
@@ -126,22 +126,22 @@ We are looking for beta-tester and contributors.
         table:'a State.persistent_table -&gt; unit Lwt.t
     end
   val get_service_cookie_info :
-    ?sitedata:Eliom_common.sitedata -&gt;
-    ([&lt; Eliom_common.cookie_level ], [ `Service ]) State.Ext.state -&gt;
+    ?sitedata:Common.sitedata -&gt;
+    ([&lt; Common.cookie_level ], [ `Service ]) State.Ext.state -&gt;
     State.Ext.service_cookie_info
   val get_volatile_data_cookie_info :
-    ?sitedata:Eliom_common.sitedata -&gt;
-    ([&lt; Eliom_common.cookie_level ], [ `Data ]) State.Ext.state -&gt;
+    ?sitedata:Common.sitedata -&gt;
+    ([&lt; Common.cookie_level ], [ `Data ]) State.Ext.state -&gt;
     State.Ext.data_cookie_info
   val get_persistent_cookie_info :
-    ([&lt; Eliom_common.cookie_level ], [ `Pers ]) State.Ext.state -&gt;
+    ([&lt; Common.cookie_level ], [ `Pers ]) State.Ext.state -&gt;
     State.Ext.persistent_cookie_info Lwt.t
   val get_service_cookie_scope :
-    cookie:State.Ext.service_cookie_info -&gt; Eliom_common.user_scope
+    cookie:State.Ext.service_cookie_info -&gt; Common.user_scope
   val get_volatile_data_cookie_scope :
-    cookie:State.Ext.data_cookie_info -&gt; Eliom_common.user_scope
+    cookie:State.Ext.data_cookie_info -&gt; Common.user_scope
   val get_persistent_data_cookie_scope :
-    cookie:State.Ext.persistent_cookie_info -&gt; Eliom_common.user_scope
+    cookie:State.Ext.persistent_cookie_info -&gt; Common.user_scope
   val set_service_cookie_timeout :
     cookie:State.Ext.service_cookie_info -&gt; float option -&gt; unit
   val set_volatile_data_cookie_timeout :

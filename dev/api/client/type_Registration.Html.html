@@ -51,16 +51,17 @@ We are looking for beta-tester and contributors.
   type result = browser_content kind
   val register :
     ?app:string -&gt;
-    ?scope:[&lt; Eliom_common.scope ] -&gt;
+    ?scope:[&lt; Eliom.Common.scope ] -&gt;
     ?options:options -&gt;
     ?charset:string -&gt;
     ?code:int -&gt;
     ?content_type:string -&gt;
-    ?headers:Service.Cohttp.Header.t -&gt;
+    ?headers:Eliom.Service.Cohttp.Header.t -&gt;
     ?secure_session:bool -&gt;
-    service:('get, 'post, 'a, 'b, 'c, Service.non_ext, Service.reg,
-             [&lt; `WithSuffix | `WithoutSuffix ], 'd, 'e, return)
-            Service.t -&gt;
+    service:('get, 'post, 'a, 'b, 'c, Eliom.Service.non_ext,
+             Eliom.Service.reg, [&lt; `WithSuffix | `WithoutSuffix ], 'd, 'e,
+             return)
+            Eliom.Service.t -&gt;
     ?error_handler:((string * exn) list -&gt; page Lwt.t) -&gt;
     ('get -&gt; 'post -&gt; page Lwt.t) -&gt; unit
   val send :
@@ -68,5 +69,5 @@ We are looking for beta-tester and contributors.
     ?charset:string -&gt;
     ?code:int -&gt;
     ?content_type:string -&gt;
-    ?headers:Service.Cohttp.Header.t -&gt; page -&gt; result Lwt.t
+    ?headers:Eliom.Service.Cohttp.Header.t -&gt; page -&gt; result Lwt.t
 end</code></pre></article></div></div></body></html>

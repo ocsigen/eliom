@@ -48,7 +48,7 @@ We are looking for beta-tester and contributors.
   val is_client_app : unit -&gt; bool
   type ('a, 'b) server_function
   val server_function :
-    ?scope:[&lt; Eliom_common.scope ] -&gt;
+    ?scope:[&lt; Common.scope ] -&gt;
     ?options:unit -&gt;
     ?charset:string -&gt;
     ?code:int -&gt;
@@ -57,7 +57,7 @@ We are looking for beta-tester and contributors.
     ?secure_session:bool -&gt;
     ?name:string -&gt;
     ?csrf_safe:bool -&gt;
-    ?csrf_scope:[&lt; Eliom_common.user_scope ] -&gt;
+    ?csrf_scope:[&lt; Common.user_scope ] -&gt;
     ?csrf_secure:bool -&gt;
     ?max_use:int -&gt;
     ?timeout:float -&gt;

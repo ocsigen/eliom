@@ -51,16 +51,17 @@ We are looking for beta-tester and contributors.
   type result = unknown_content kind
   val register :
     ?app:string -&gt;
-    ?scope:[&lt; Eliom_common.scope ] -&gt;
+    ?scope:[&lt; Eliom.Common.scope ] -&gt;
     ?options:options -&gt;
     ?charset:string -&gt;
     ?code:int -&gt;
     ?content_type:string -&gt;
     ?headers:Cohttp.Header.t -&gt;
     ?secure_session:bool -&gt;
-    service:('get, 'post, 'a, 'b, 'c, Service.non_ext, Service.reg,
-             [&lt; `WithSuffix | `WithoutSuffix ], 'd, 'e, return)
-            Service.t -&gt;
+    service:('get, 'post, 'a, 'b, 'c, Eliom.Service.non_ext,
+             Eliom.Service.reg, [&lt; `WithSuffix | `WithoutSuffix ], 'd, 'e,
+             return)
+            Eliom.Service.t -&gt;
     ?error_handler:((string * exn) list -&gt; page Lwt.t) -&gt;
     ('get -&gt; 'post -&gt; page Lwt.t) -&gt; unit
   val send :
@@ -70,7 +71,7 @@ We are looking for beta-tester and contributors.
     ?content_type:string -&gt; ?headers:Cohttp.Header.t -&gt; page -&gt; result Lwt.t
   val create :
     ?app:string -&gt;
-    ?scope:[&lt; Eliom_common.scope ] -&gt;
+    ?scope:[&lt; Eliom.Common.scope ] -&gt;
     ?options:options -&gt;
     ?charset:string -&gt;
     ?code:int -&gt;
@@ -80,22 +81,22 @@ We are looking for beta-tester and contributors.
     ?https:bool -&gt;
     ?name:string -&gt;
     ?csrf_safe:bool -&gt;
-    ?csrf_scope:[&lt; Eliom_common.user_scope ] -&gt;
+    ?csrf_scope:[&lt; Eliom.Common.user_scope ] -&gt;
     ?csrf_secure:bool -&gt;
     ?max_use:int -&gt;
     ?timeout:float -&gt;
     meth:('m, 'gp, 'gn, 'pp, 'pn, [&lt; `WithSuffix | `WithoutSuffix ] as 'a,
           'gp_)
-         Service.meth -&gt;
-    path:('att, 'co, 'gp_) Service.path_option -&gt;
+         Eliom.Service.meth -&gt;
+    path:('att, 'co, 'gp_) Eliom.Service.path_option -&gt;
     ?error_handler:((string * exn) list -&gt; page Lwt.t) -&gt;
     ('gp -&gt; 'pp -&gt; page Lwt.t) -&gt;
-    ('gp, 'pp, 'm, 'att, 'co, Service.non_ext, Service.reg, 'a, 'gn, 'pn,
-     return)
-    Service.t
+    ('gp, 'pp, 'm, 'att, 'co, Eliom.Service.non_ext, Eliom.Service.reg, 'a,
+     'gn, 'pn, return)
+    Eliom.Service.t
   val create_attached_get :
     ?app:string -&gt;
-    ?scope:[&lt; Eliom_common.scope ] -&gt;
+    ?scope:[&lt; Eliom.Common.scope ] -&gt;
     ?options:options -&gt;
     ?charset:string -&gt;
     ?code:int -&gt;
@@ -105,22 +106,24 @@ We are looking for beta-tester and contributors.
     ?https:bool -&gt;
     ?name:string -&gt;
     ?csrf_safe:bool -&gt;
-    ?csrf_scope:[&lt; Eliom_common.user_scope ] -&gt;
+    ?csrf_scope:[&lt; Eliom.Common.user_scope ] -&gt;
     ?csrf_secure:bool -&gt;
     ?max_use:int -&gt;
     ?timeout:float -&gt;
-    fallback:(unit, unit, Service.get, Service.att, Service.non_co,
-              Service.non_ext, 'a, [ `WithoutSuffix ], unit, unit, return)
-             Service.t -&gt;
-    get_params:('gp, [ `WithoutSuffix ], 'gn) Parameter.params_type -&gt;
+    fallback:(unit, unit, Eliom.Service.get, Eliom.Service.att,
+              Eliom.Service.non_co, Eliom.Service.non_ext, 'a,
+              [ `WithoutSuffix ], unit, unit, return)
+             Eliom.Service.t -&gt;
+    get_params:('gp, [ `WithoutSuffix ], 'gn) Eliom.Parameter.params_type -&gt;
     ?error_handler:((string * exn) list -&gt; page Lwt.t) -&gt;
     ('gp -&gt; unit -&gt; page Lwt.t) -&gt;
-    ('gp, unit, Service.get, Service.att, Service.co, Service.non_ext,
-     Service.reg, [ `WithoutSuffix ], 'gn, unit, return)
-    Service.t
+    ('gp, unit, Eliom.Service.get, Eliom.Service.att, Eliom.Service.co,
+     Eliom.Service.non_ext, Eliom.Service.reg, [ `WithoutSuffix ], 'gn, 
+     unit, return)
+    Eliom.Service.t
   val create_attached_post :
     ?app:string -&gt;
-    ?scope:[&lt; Eliom_common.scope ] -&gt;
+    ?scope:[&lt; Eliom.Common.scope ] -&gt;
     ?options:options -&gt;
     ?charset:string -&gt;
     ?code:int -&gt;
@@ -130,17 +133,19 @@ We are looking for beta-tester and contributors.
     ?https:bool -&gt;
     ?name:string -&gt;
     ?csrf_safe:bool -&gt;
-    ?csrf_scope:[&lt; Eliom_common.user_scope ] -&gt;
+    ?csrf_scope:[&lt; Eliom.Common.user_scope ] -&gt;
     ?csrf_secure:bool -&gt;
     ?max_use:int -&gt;
     ?timeout:float -&gt;
-    fallback:('gp, unit, Service.get, Service.att, Service.non_co,
-              Service.non_ext, 'a, [ `WithoutSuffix ], 'gn, unit, return)
-             Service.t -&gt;
-    post_params:('pp, [ `WithoutSuffix ], 'pn) Parameter.params_type -&gt;
+    fallback:('gp, unit, Eliom.Service.get, Eliom.Service.att,
+              Eliom.Service.non_co, Eliom.Service.non_ext, 'a,
+              [ `WithoutSuffix ], 'gn, unit, return)
+             Eliom.Service.t -&gt;
+    post_params:('pp, [ `WithoutSuffix ], 'pn) Eliom.Parameter.params_type -&gt;
     ?error_handler:((string * exn) list -&gt; page Lwt.t) -&gt;
     ('gp -&gt; 'pp -&gt; page Lwt.t) -&gt;
-    ('gp, 'pp, Service.post, Service.att, Service.co, Service.non_ext,
-     Service.reg, [ `WithoutSuffix ], 'gn, 'pn, return)
-    Service.t
+    ('gp, 'pp, Eliom.Service.post, Eliom.Service.att, Eliom.Service.co,
+     Eliom.Service.non_ext, Eliom.Service.reg, [ `WithoutSuffix ], 'gn, 'pn,
+     return)
+    Eliom.Service.t
 end</code></pre></article></div></div></body></html>

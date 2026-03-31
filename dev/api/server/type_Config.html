@@ -50,16 +50,16 @@ We are looking for beta-tester and contributors.
   val set_data_session_gc_frequency : int option -&gt; unit
   val set_persistent_session_gc_frequency : int option -&gt; unit
   val set_volatile_timeout :
-    ?scope_hierarchy:Eliom_common.scope_hierarchy -&gt;
+    ?scope_hierarchy:Common.scope_hierarchy -&gt;
     cookie_level:[&lt; `Client_process | `Session ] -&gt; int option -&gt; unit
   val set_data_timeout :
-    ?scope_hierarchy:Eliom_common.scope_hierarchy -&gt;
+    ?scope_hierarchy:Common.scope_hierarchy -&gt;
     cookie_level:[&lt; `Client_process | `Session ] -&gt; int option -&gt; unit
   val set_service_timeout :
-    ?scope_hierarchy:Eliom_common.scope_hierarchy -&gt;
+    ?scope_hierarchy:Common.scope_hierarchy -&gt;
     cookie_level:[&lt; `Client_process | `Session ] -&gt; int option -&gt; unit
   val set_persistent_timeout :
-    ?scope_hierarchy:Eliom_common.scope_hierarchy -&gt;
+    ?scope_hierarchy:Common.scope_hierarchy -&gt;
     cookie_level:[&lt; `Client_process | `Session ] -&gt; int option -&gt; unit
   val set_max_service_sessions_per_group : int -&gt; unit
   val set_max_volatile_data_sessions_per_group : int -&gt; unit
@@ -78,7 +78,7 @@ We are looking for beta-tester and contributors.
   val add_ignored_get_params : string * Re.re -&gt; unit
   val add_ignored_post_params : string * Re.re -&gt; unit
   val set_omitpersistentstorage :
-    Eliom_common.omitpersistentstorage_rule list option -&gt; unit
+    Common.omitpersistentstorage_rule list option -&gt; unit
   val get_default_hostname : unit -&gt; string
   val get_default_port : unit -&gt; int
   val get_default_sslport : unit -&gt; int
@@ -94,6 +94,6 @@ We are looking for beta-tester and contributors.
   val get_config_info : unit -&gt; Ocsigen_extensions.config_info
   val get_debugmode : unit -&gt; bool
   val get_config_info_sp :
-    Eliom_common.server_params -&gt; Ocsigen_extensions.config_info
-  val get_config_default_charset_sp : Eliom_common.server_params -&gt; string
+    Common.server_params -&gt; Ocsigen_extensions.config_info
+  val get_config_default_charset_sp : Common.server_params -&gt; string
 end</code></pre></article></div></div></body></html>

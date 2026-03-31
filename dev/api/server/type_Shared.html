@@ -119,7 +119,7 @@ We are looking for beta-tester and contributors.
             end
           val create :
             ?default:('a React.S.t * (?step:React.step -&gt; 'a -&gt; unit)) option
-                     Eliom_client_value.t -&gt;
+                     Client_value.t -&gt;
             ?reset_default:bool -&gt;
             ?eq:('a -&gt; 'a -&gt; bool) Value.t -&gt;
             'a -&gt; 'a t * (?step:React.step -&gt; 'a -&gt; unit) Value.t
@@ -137,7 +137,7 @@ We are looking for beta-tester and contributors.
           val create :
             ?default:('a FakeReactiveData.RList.t *
                       'a FakeReactiveData.RList.handle)
-                     option Eliom_client_value.t -&gt;
+                     option Eliom.Client_value.t -&gt;
             ?reset_default:bool -&gt; 'a list -&gt; 'a t * 'a handle
           val concat : 'a t -&gt; 'a t -&gt; 'a t
           val value : 'a t -&gt; 'a list Value.t
@@ -149,7 +149,7 @@ We are looking for beta-tester and contributors.
             ?eq:('a -&gt; 'a -&gt; bool) Value.t -&gt; 'a list React.S.t -&gt; 'a t
           val acc_e :
             ?init:'a t * 'a handle -&gt;
-            'a React.E.t Eliom_client_value.t -&gt; 'a t
+            'a React.E.t Eliom.Client_value.t -&gt; 'a t
           module Lwt :
             sig
               val map_p : ('a -&gt; 'b Lwt.t) Value.t -&gt; 'a t -&gt; 'b t Lwt.t

@@ -56,16 +56,17 @@ We are looking for beta-tester and contributors.
       type result = browser_content kind
       val register :
         ?app:string -&gt;
-        ?scope:[&lt; Eliom_common.scope ] -&gt;
+        ?scope:[&lt; Eliom.Common.scope ] -&gt;
         ?options:options -&gt;
         ?charset:string -&gt;
         ?code:int -&gt;
         ?content_type:string -&gt;
-        ?headers:Service.Cohttp.Header.t -&gt;
+        ?headers:Eliom.Service.Cohttp.Header.t -&gt;
         ?secure_session:bool -&gt;
-        service:('get, 'post, 'a, 'b, 'c, Service.non_ext, Service.reg,
-                 [&lt; `WithSuffix | `WithoutSuffix ], 'd, 'e, return)
-                Service.t -&gt;
+        service:('get, 'post, 'a, 'b, 'c, Eliom.Service.non_ext,
+                 Eliom.Service.reg, [&lt; `WithSuffix | `WithoutSuffix ], 'd,
+                 'e, return)
+                Eliom.Service.t -&gt;
         ?error_handler:((string * exn) list -&gt; page Lwt.t) -&gt;
         ('get -&gt; 'post -&gt; page Lwt.t) -&gt; unit
       val send :
@@ -73,7 +74,7 @@ We are looking for beta-tester and contributors.
         ?charset:string -&gt;
         ?code:int -&gt;
         ?content_type:string -&gt;
-        ?headers:Service.Cohttp.Header.t -&gt; page -&gt; result Lwt.t
+        ?headers:Eliom.Service.Cohttp.Header.t -&gt; page -&gt; result Lwt.t
     end
   module Action :
     sig
@@ -83,16 +84,17 @@ We are looking for beta-tester and contributors.
       type result = browser_content kind
       val register :
         ?app:string -&gt;
-        ?scope:[&lt; Eliom_common.scope ] -&gt;
+        ?scope:[&lt; Eliom.Common.scope ] -&gt;
         ?options:options -&gt;
         ?charset:string -&gt;
         ?code:int -&gt;
         ?content_type:string -&gt;
-        ?headers:Service.Cohttp.Header.t -&gt;
+        ?headers:Eliom.Service.Cohttp.Header.t -&gt;
         ?secure_session:bool -&gt;
-        service:('get, 'post, 'a, 'b, 'c, Service.non_ext, Service.reg,
-                 [&lt; `WithSuffix | `WithoutSuffix ], 'd, 'e, return)
-                Service.t -&gt;
+        service:('get, 'post, 'a, 'b, 'c, Eliom.Service.non_ext,
+                 Eliom.Service.reg, [&lt; `WithSuffix | `WithoutSuffix ], 'd,
+                 'e, return)
+                Eliom.Service.t -&gt;
         ?error_handler:((string * exn) list -&gt; page Lwt.t) -&gt;
         ('get -&gt; 'post -&gt; page Lwt.t) -&gt; unit
       val send :
@@ -100,7 +102,7 @@ We are looking for beta-tester and contributors.
         ?charset:string -&gt;
         ?code:int -&gt;
         ?content_type:string -&gt;
-        ?headers:Service.Cohttp.Header.t -&gt; page -&gt; result Lwt.t
+        ?headers:Eliom.Service.Cohttp.Header.t -&gt; page -&gt; result Lwt.t
     end
   module Unit :
     sig
@@ -110,16 +112,17 @@ We are looking for beta-tester and contributors.
       type result = browser_content kind
       val register :
         ?app:string -&gt;
-        ?scope:[&lt; Eliom_common.scope ] -&gt;
+        ?scope:[&lt; Eliom.Common.scope ] -&gt;
         ?options:options -&gt;
         ?charset:string -&gt;
         ?code:int -&gt;
         ?content_type:string -&gt;
-        ?headers:Service.Cohttp.Header.t -&gt;
+        ?headers:Eliom.Service.Cohttp.Header.t -&gt;
         ?secure_session:bool -&gt;
-        service:('get, 'post, 'a, 'b, 'c, Service.non_ext, Service.reg,
-                 [&lt; `WithSuffix | `WithoutSuffix ], 'd, 'e, return)
-                Service.t -&gt;
+        service:('get, 'post, 'a, 'b, 'c, Eliom.Service.non_ext,
+                 Eliom.Service.reg, [&lt; `WithSuffix | `WithoutSuffix ], 'd,
+                 'e, return)
+                Eliom.Service.t -&gt;
         ?error_handler:((string * exn) list -&gt; page Lwt.t) -&gt;
         ('get -&gt; 'post -&gt; page Lwt.t) -&gt; unit
       val send :
@@ -127,7 +130,7 @@ We are looking for beta-tester and contributors.
         ?charset:string -&gt;
         ?code:int -&gt;
         ?content_type:string -&gt;
-        ?headers:Service.Cohttp.Header.t -&gt; page -&gt; result Lwt.t
+        ?headers:Eliom.Service.Cohttp.Header.t -&gt; page -&gt; result Lwt.t
     end
   type appl_service_options = { do_not_launch : bool; }
   module App :
@@ -141,16 +144,17 @@ We are looking for beta-tester and contributors.
         type result = app_id application_content kind
         val register :
           ?app:string -&gt;
-          ?scope:[&lt; Eliom_common.scope ] -&gt;
+          ?scope:[&lt; Eliom.Common.scope ] -&gt;
           ?options:options -&gt;
           ?charset:string -&gt;
           ?code:int -&gt;
           ?content_type:string -&gt;
-          ?headers:Service.Cohttp.Header.t -&gt;
+          ?headers:Eliom.Service.Cohttp.Header.t -&gt;
           ?secure_session:bool -&gt;
-          service:('get, 'post, 'a, 'b, 'c, Service.non_ext, Service.reg,
-                   [&lt; `WithSuffix | `WithoutSuffix ], 'd, 'e, return)
-                  Service.t -&gt;
+          service:('get, 'post, 'a, 'b, 'c, Eliom.Service.non_ext,
+                   Eliom.Service.reg, [&lt; `WithSuffix | `WithoutSuffix ], 'd,
+                   'e, return)
+                  Eliom.Service.t -&gt;
           ?error_handler:((string * exn) list -&gt; page Lwt.t) -&gt;
           ('get -&gt; 'post -&gt; page Lwt.t) -&gt; unit
         val send :
@@ -158,7 +162,7 @@ We are looking for beta-tester and contributors.
           ?charset:string -&gt;
           ?code:int -&gt;
           ?content_type:string -&gt;
-          ?headers:Service.Cohttp.Header.t -&gt; page -&gt; result Lwt.t
+          ?headers:Eliom.Service.Cohttp.Header.t -&gt; page -&gt; result Lwt.t
       end
   type _ redirection =
       Redirection :
@@ -178,16 +182,17 @@ We are looking for beta-tester and contributors.
       type 'a return = Service.non_ocaml
       val register :
         ?app:string -&gt;
-        ?scope:[&lt; Eliom_common.scope ] -&gt;
+        ?scope:[&lt; Eliom.Common.scope ] -&gt;
         ?options:options -&gt;
         ?charset:string -&gt;
         ?code:int -&gt;
         ?content_type:string -&gt;
-        ?headers:Service.Cohttp.Header.t -&gt;
+        ?headers:Eliom.Service.Cohttp.Header.t -&gt;
         ?secure_session:bool -&gt;
-        service:('get, 'post, 'b, 'c, 'd, Service.non_ext, Service.reg,
-                 [&lt; `WithSuffix | `WithoutSuffix ], 'e, 'f, 'a return)
-                Service.t -&gt;
+        service:('get, 'post, 'b, 'c, 'd, Eliom.Service.non_ext,
+                 Eliom.Service.reg, [&lt; `WithSuffix | `WithoutSuffix ], 'e,
+                 'f, 'a return)
+                Eliom.Service.t -&gt;
         ?error_handler:((string * exn) list -&gt; 'a page Lwt.t) -&gt;
         ('get -&gt; 'post -&gt; 'a page Lwt.t) -&gt; unit
       type 'a result = browser_content kind
@@ -196,7 +201,7 @@ We are looking for beta-tester and contributors.
         ?charset:string -&gt;
         ?code:int -&gt;
         ?content_type:string -&gt;
-        ?headers:Service.Cohttp.Header.t -&gt; 'a page -&gt; 'a result Lwt.t
+        ?headers:Eliom.Service.Cohttp.Header.t -&gt; 'a page -&gt; 'a result Lwt.t
     end
   module Any :
     sig
@@ -205,16 +210,17 @@ We are looking for beta-tester and contributors.
       type 'a return = Service.non_ocaml
       val register :
         ?app:string -&gt;
-        ?scope:[&lt; Eliom_common.scope ] -&gt;
+        ?scope:[&lt; Eliom.Common.scope ] -&gt;
         ?options:options -&gt;
         ?charset:string -&gt;
         ?code:int -&gt;
         ?content_type:string -&gt;
-        ?headers:Service.Cohttp.Header.t -&gt;
+        ?headers:Eliom.Service.Cohttp.Header.t -&gt;
         ?secure_session:bool -&gt;
-        service:('get, 'post, 'b, 'c, 'd, Service.non_ext, Service.reg,
-                 [&lt; `WithSuffix | `WithoutSuffix ], 'e, 'f, 'a return)
-                Service.t -&gt;
+        service:('get, 'post, 'b, 'c, 'd, Eliom.Service.non_ext,
+                 Eliom.Service.reg, [&lt; `WithSuffix | `WithoutSuffix ], 'e,
+                 'f, 'a return)
+                Eliom.Service.t -&gt;
         ?error_handler:((string * exn) list -&gt; 'a page Lwt.t) -&gt;
         ('get -&gt; 'post -&gt; 'a page Lwt.t) -&gt; unit
       type 'a result = 'a kind
@@ -223,7 +229,7 @@ We are looking for beta-tester and contributors.
         ?charset:string -&gt;
         ?code:int -&gt;
         ?content_type:string -&gt;
-        ?headers:Service.Cohttp.Header.t -&gt; 'a page -&gt; 'a result Lwt.t
+        ?headers:Eliom.Service.Cohttp.Header.t -&gt; 'a page -&gt; 'a result Lwt.t
     end
   val appl_self_redirect :
     ('page -&gt; [&lt; `Appl of 'a | `Browser ] Registration.kind Lwt.t) -&gt;

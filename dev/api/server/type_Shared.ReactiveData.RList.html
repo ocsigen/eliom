@@ -49,7 +49,7 @@ We are looking for beta-tester and contributors.
   type 'a handle
   val create :
     ?default:('a FakeReactiveData.RList.t * 'a FakeReactiveData.RList.handle)
-             option Eliom_client_value.t -&gt;
+             option Eliom.Client_value.t -&gt;
     ?reset_default:bool -&gt; 'a list -&gt; 'a t * 'a handle
   val concat : 'a t -&gt; 'a t -&gt; 'a t
   val value : 'a t -&gt; 'a list Value.t
@@ -59,7 +59,7 @@ We are looking for beta-tester and contributors.
   val from_signal :
     ?eq:('a -&gt; 'a -&gt; bool) Value.t -&gt; 'a list React.S.t -&gt; 'a t
   val acc_e :
-    ?init:'a t * 'a handle -&gt; 'a React.E.t Eliom_client_value.t -&gt; 'a t
+    ?init:'a t * 'a handle -&gt; 'a React.E.t Eliom.Client_value.t -&gt; 'a t
   module Lwt :
     sig val map_p : ('a -&gt; 'b Lwt.t) Value.t -&gt; 'a t -&gt; 'b t Lwt.t end
   val synced : 'a t -&gt; bool

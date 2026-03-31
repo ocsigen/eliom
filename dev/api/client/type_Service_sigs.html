@@ -286,10 +286,10 @@ We are looking for beta-tester and contributors.
       val sub_path : Service_sigs.S.att -&gt; Lib.Url.path
       val full_path : Service_sigs.S.att -&gt; Lib.Url.path
       val prefix : Service_sigs.S.att -&gt; string
-      val get_name : Service_sigs.S.att -&gt; Eliom_common.att_key_serv
-      val post_name : Service_sigs.S.att -&gt; Eliom_common.att_key_serv
+      val get_name : Service_sigs.S.att -&gt; Common.att_key_serv
+      val post_name : Service_sigs.S.att -&gt; Common.att_key_serv
       val redirect_suffix : Service_sigs.S.att -&gt; bool
-      val na_name : Service_sigs.S.non_att -&gt; Eliom_common.na_key_serv
+      val na_name : Service_sigs.S.non_att -&gt; Common.na_key_serv
       val na_keep_get_na_params : Service_sigs.S.non_att -&gt; bool
       val max_use :
         ('a, 'b, 'c, 'd, 'e, 'f, 'g, [&lt; `WithSuffix | `WithoutSuffix ], 'h,
@@ -308,7 +308,7 @@ We are looking for beta-tester and contributors.
         ('a, 'b, 'c, 'd, 'e, 'f, 'g, [&lt; `WithSuffix | `WithoutSuffix ], 'h,
          'i, 'j)
         Service_sigs.S.t -&gt;
-        ('a -&gt; 'b -&gt; Service_sigs.S.result Lwt.t) Eliom_client_value.t option
+        ('a -&gt; 'b -&gt; Service_sigs.S.result Lwt.t) Client_value.t option
       val has_client_fun :
         ('a, 'b, 'c, 'd, 'e, 'f, 'g, [&lt; `WithSuffix | `WithoutSuffix ], 'h,
          'i, 'j)
@@ -322,17 +322,17 @@ We are looking for beta-tester and contributors.
          [&lt; `WithSuffix | `WithoutSuffix ] as 'd, 'e, 'f, 'return)
         Service_sigs.S.t -&gt;
         Service_sigs.S.att -&gt;
-        Eliom_common.att_key_serv -&gt;
+        Common.att_key_serv -&gt;
         ('a, 'b, 'meth, Service_sigs.S.att, 'co, 'ext, 'g, 'd, 'e, 'f,
          'return)
         Service_sigs.S.t
       val register_delayed_get_or_na_coservice :
-        sp:Eliom_common.server_params -&gt;
-        int * [&lt; Eliom_common.user_scope ] * bool option -&gt; string
+        sp:Common.server_params -&gt;
+        int * [&lt; Common.user_scope ] * bool option -&gt; string
       val register_delayed_post_coservice :
-        sp:Eliom_common.server_params -&gt;
-        int * [&lt; Eliom_common.user_scope ] * bool option -&gt;
-        Eliom_common.att_key_serv -&gt; string
+        sp:Common.server_params -&gt;
+        int * [&lt; Common.user_scope ] * bool option -&gt;
+        Common.att_key_serv -&gt; string
       type send_appl_content =
           XNever
         | XAlways
@@ -349,7 +349,6 @@ We are looking for beta-tester and contributors.
         service:('a, 'b, 'c, 'd, 'e, 'f, 'g,
                  [&lt; `WithSuffix | `WithoutSuffix ], 'h, 'i, 'j)
                 Service_sigs.S.t -&gt;
-        ('a -&gt; 'b -&gt; Service_sigs.S.result Lwt.t) Eliom_client_value.t -&gt;
-        unit
+        ('a -&gt; 'b -&gt; Service_sigs.S.result Lwt.t) Client_value.t -&gt; unit
     end
 end</code></pre></article></div></div></body></html>

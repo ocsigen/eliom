@@ -115,13 +115,13 @@ registration functions by customizing the page type.</p></div><h2 id="2_Using yo
 </p><p>Note that you should not catch every exception here since some
 Eliom mechanisms are done using exceptions, like redirections.  Do
 not catch exception defined in Eliom except
-<span><a href="../.././api/server/Eliom_common#EXCEPTIONEliom_404">Eliom_common.Eliom_404</a></span>, <span><a href="../.././api/server/Eliom_common#EXCEPTIONEliom_Wrong_parameter">Eliom_common.Eliom_Wrong_parameter</a></span>
-<span><a href="../.././api/server/Eliom_common#EXCEPTIONEliom_Typing_Error">Eliom_common.Eliom_Typing_Error</a></span>.
+<span><a href="../.././api/server/Common#EXCEPTIONEliom_404">Common.Eliom_404</a></span>, <span><a href="../.././api/server/Common#EXCEPTIONEliom_Wrong_parameter">Common.Eliom_Wrong_parameter</a></span>
+<span><a href="../.././api/server/Common#EXCEPTIONEliom_Typing_Error">Common.Eliom_Typing_Error</a></span>.
 </p><p><em>Warning: This functions must be called when the site
 information is available, that is, either during a request or
 during the initialisation phase of the site.  Otherwise, it will
 raise the exception
-<span><a href="../.././api/server/Eliom_common#EXCEPTIONEliom_site_information_not_available">Eliom_common.Eliom_site_information_not_available</a></span>.  If you are
+<span><a href="../.././api/server/Common#EXCEPTIONEliom_site_information_not_available">Common.Eliom_site_information_not_available</a></span>.  If you are
 using static linking, you must delay the call to this function
 until the configuration file is read, using
 <span><a href="../.././api/server/Service#VALregister_eliom_module">Service.register_eliom_module</a></span>. Otherwise you will also

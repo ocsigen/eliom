@@ -49,7 +49,7 @@ We are looking for beta-tester and contributors.
     sig
       type 'a t
       type comet_scope =
-          [ `Client_process of Eliom_common.scope_hierarchy | `Site ]
+          [ `Client_process of Common.scope_hierarchy | `Site ]
       val create :
         ?scope:[&lt; Comet.Channel.comet_scope ] -&gt;
         ?name:string -&gt; ?size:int -&gt; 'a Lwt_stream.t -&gt; 'a Comet.Channel.t
@@ -57,7 +57,7 @@ We are looking for beta-tester and contributors.
         ?scope:[&lt; Comet.Channel.comet_scope ] -&gt;
         ?name:string -&gt; ?size:int -&gt; 'a React.event -&gt; 'a Comet.Channel.t
       val create_unlimited :
-        ?scope:Eliom_common.client_process_scope -&gt;
+        ?scope:Common.client_process_scope -&gt;
         ?name:string -&gt; 'a Lwt_stream.t -&gt; 'a Comet.Channel.t
       val create_newest :
         ?name:string -&gt; 'a Lwt_stream.t -&gt; 'a Comet.Channel.t
@@ -66,7 +66,7 @@ We are looking for beta-tester and contributors.
         ?newest:bool -&gt;
         prefix:string -&gt; name:string -&gt; unit -&gt; 'a Comet.Channel.t
       val wait_timeout :
-        ?scope:Eliom_common.client_process_scope -&gt; float -&gt; unit Lwt.t
+        ?scope:Common.client_process_scope -&gt; float -&gt; unit Lwt.t
       val get_wrapped :
         'a Comet.Channel.t -&gt; 'a Eliom_comet_base.wrapped_channel
     end
