@@ -195,15 +195,11 @@ module S = struct
       let stream = Lwt_stream.from (read_store store) in
       let channel = Comet.Channel.create_unlimited ?name stream in
       let value : 'a = S.value s in
-      ( channel
-      , value
-      , Common.make_unwrapper Common.signal_down_unwrap_id )
+      channel, value, Common.make_unwrapper Common.signal_down_unwrap_id
 
     let wrap_stateless {sl_signal = s; channel; _} =
       let value : 'a = S.value s in
-      ( channel
-      , value
-      , Common.make_unwrapper Common.signal_down_unwrap_id )
+      channel, value, Common.make_unwrapper Common.signal_down_unwrap_id
 
     let internal_wrap = function
       | {t = Stateful v; _} -> wrap_stateful v

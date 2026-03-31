@@ -150,8 +150,7 @@ let get_cookie_info
                ; session_group_node
                ; _ }
              =
-             Common.SessionCookies.find
-               sitedata.Common.session_services
+             Common.SessionCookies.find sitedata.Common.session_services
                (Common.Hashed_cookies.to_string hvalue)
            in
            Mod_sessiongroups.Serv.up session_group_node;
@@ -183,8 +182,8 @@ let get_cookie_info
                                  to the browser.
                                  We don't change it *)
                           ; Common.sc_session_group = session_group
-                          ; Common.sc_session_group_node =
-                              session_group_node }) )
+                          ; Common.sc_session_group_node = session_group_node })
+                   )
                    oktable
                , failedlist )
          with Not_found ->
@@ -212,8 +211,7 @@ let get_cookie_info
                   ; session_group_node
                   ; _ }
                 =
-                Common.SessionCookies.find
-                  sitedata.Common.session_data
+                Common.SessionCookies.find sitedata.Common.session_data
                   (Common.Hashed_cookies.to_string hvalue)
               in
               Mod_sessiongroups.Serv.up session_group_node;
@@ -232,8 +230,7 @@ let get_cookie_info
                       (Common.SC
                          { Common.dc_hvalue = hvalue (* value *)
                          ; Common.dc_set_value = None
-                         ; Common.dc_timeout =
-                             timeout (* user timeout ref *)
+                         ; Common.dc_timeout = timeout (* user timeout ref *)
                          ; Common.dc_exp =
                              expiry
                              (* expiration date
@@ -244,8 +241,8 @@ let get_cookie_info
                                  to the browser.
                                  We don't change it *)
                          ; Common.dc_session_group = session_group
-                         ; Common.dc_session_group_node =
-                             session_group_node }) )
+                         ; Common.dc_session_group_node = session_group_node })
+                  )
             with Not_found ->
               ( Some value (* value sent by the browser *)
               , ref Common.SCData_session_expired
@@ -261,9 +258,7 @@ let get_cookie_info
            (catch
               (fun () ->
                  let hvalue = Common.Hashed_cookies.hash value in
-                 let hvalue_string =
-                   Common.Hashed_cookies.to_string hvalue
-                 in
+                 let hvalue_string = Common.Hashed_cookies.to_string hvalue in
                  Persistent_cookies.Cookies.find
                    (Common.Hashed_cookies.to_string hvalue)
                  >>=
@@ -271,8 +266,7 @@ let get_cookie_info
                      ; timeout = perstimeout
                      ; session_group = sessgrp
                      ; _ } ->
-                 Mod_sessiongroups.Pers.up hvalue_string sessgrp
-                 >>= fun () ->
+                 Mod_sessiongroups.Pers.up hvalue_string sessgrp >>= fun () ->
                  match persexp with
                  | Some t when t < now ->
                      (* session expired by timeout *)
@@ -324,8 +318,7 @@ let get_cookie_info
                                   (* persistent cookie expiration
                                     date ref to send to the browser:
                                     We don't change it *)
-                              ; Common.pc_session_group = ref sessgrp })
-                       ))
+                              ; Common.pc_session_group = ref sessgrp }) ))
               (function
                 | Not_found ->
                     return
@@ -366,9 +359,7 @@ let get_cookie_info
 (*****************************************************************************)
 
 (* table cookie -> session table *)
-let new_service_cookie_table () :
-  Common.tables Common.Service_cookie.table
-  =
+let new_service_cookie_table () : Common.tables Common.Service_cookie.table =
   Common.SessionCookies.create 100
 
 let new_data_cookie_table () : Common.Data_cookie.table =
@@ -403,8 +394,7 @@ let compute_session_cookies_to_send
         (let old, newi = Lazy.force v in
          let newinfo =
            match !newi with
-           | Common.SCNo_data | Common.SCData_session_expired ->
-               None
+           | Common.SCNo_data | Common.SCData_session_expired -> None
            | Common.SC c ->
                Some
                  ( c.Common.dc_hvalue
@@ -424,8 +414,7 @@ let compute_session_cookies_to_send
          in
          let newinfo =
            match !newi with
-           | Common.SCNo_data | Common.SCData_session_expired ->
-               None
+           | Common.SCNo_data | Common.SCData_session_expired -> None
            | Common.SC c ->
                Some
                  ( c.Common.pc_hvalue
@@ -453,8 +442,7 @@ let compute_session_cookies_to_send
                 | Some _, None ->
                     Ocsigen_cookie_map.add
                       ~path:(Common.get_site_dir sitedata)
-                      (Common.make_full_cookie_name cookiekind
-                         full_st_name)
+                      (Common.make_full_cookie_name cookiekind full_st_name)
                       OUnset beg
                 (* the path is always site_dir because the cookie cannot
                  have been unset by a service outside
@@ -463,8 +451,7 @@ let compute_session_cookies_to_send
                     (* New value *)
                     Ocsigen_cookie_map.add
                       ~path:(Common.get_site_dir sitedata)
-                      (Common.make_full_cookie_name cookiekind
-                         full_st_name)
+                      (Common.make_full_cookie_name cookiekind full_st_name)
                       (OSet (ch_exp exp, v, secure))
                       beg
                 | Some oldv, Some (_, None, exp) ->
@@ -473,8 +460,7 @@ let compute_session_cookies_to_send
                     else
                       Ocsigen_cookie_map.add
                         ~path:(Common.get_site_dir sitedata)
-                        (Common.make_full_cookie_name cookiekind
-                           full_st_name)
+                        (Common.make_full_cookie_name cookiekind full_st_name)
                         (OSet (ch_exp exp, oldv, secure))
                         beg
                 | None, Some (_, None, _) ->
@@ -485,13 +471,11 @@ let compute_session_cookies_to_send
   in
   aux getpersvexp Common.persistentcookiename false !pers_cookies_info
     (aux getdatavexp Common.datacookiename false !data_cookie_info
-       (aux getservvexp Common.servicecookiename false
-          !service_cookie_info
+       (aux getservvexp Common.servicecookiename false !service_cookie_info
           (let service_cookie_info, data_cookie_info, pers_cookies_info =
              secure_ci
            in
-           aux getpersvexp Common.persistentcookiename true
-             !pers_cookies_info
+           aux getpersvexp Common.persistentcookiename true !pers_cookies_info
              (aux getdatavexp Common.datacookiename true !data_cookie_info
                 (aux getservvexp Common.servicecookiename true
                    !service_cookie_info (return endlist))))))
@@ -565,8 +549,7 @@ let compute_new_ri_cookies
            then beg
            else
              let n =
-               Common.make_full_cookie_name Common.datacookiename
-                 full_st_name
+               Common.make_full_cookie_name Common.datacookiename full_st_name
              in
              if Lazy.is_val v
              then
@@ -588,8 +571,8 @@ let compute_new_ri_cookies
            then beg
            else
              let n =
-               Common.make_full_cookie_name
-                 Common.persistentcookiename full_st_name
+               Common.make_full_cookie_name Common.persistentcookiename
+                 full_st_name
              in
              beg >>= fun beg ->
              if Lazy.is_val v
@@ -600,8 +583,7 @@ let compute_new_ri_cookies
                    Lwt.return (Ocsigen_cookie_map.Map_inner.remove n beg)
                | Common.SC {Common.pc_set_value = Some v; _} ->
                    Lwt.return (Ocsigen_cookie_map.Map_inner.add n v beg)
-               | Common.SC {Common.pc_set_value = None; _} ->
-                   Lwt.return beg
+               | Common.SC {Common.pc_set_value = None; _} -> Lwt.return beg
              else return beg)
         !pers_cookie_info (Lwt.return ric)
     in

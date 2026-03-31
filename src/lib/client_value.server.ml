@@ -20,8 +20,7 @@
 type +'a t = 'a Runtime.Client_value_server_repr.t
 
 let client_value_unwrapper =
-  Wrap.create_unwrapper
-    (Wrap.id_of_int Runtime.client_value_unwrap_id_int)
+  Wrap.create_unwrapper (Wrap.id_of_int Runtime.client_value_unwrap_id_int)
 
 let create_client_value ~loc ~instance_id =
   Runtime.Client_value_server_repr.create ~loc ~instance_id

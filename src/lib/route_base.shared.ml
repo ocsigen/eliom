@@ -77,17 +77,11 @@ module type PARAM = sig
     val dlist_add :
        ?sp:Common.server_params
       -> t
-      -> ( Table.t ref * Common.page_table_key
-           , Common.na_key_serv )
-           Lib.leftright
+      -> (Table.t ref * Common.page_table_key, Common.na_key_serv) Lib.leftright
       -> Node.t
 
     val get : t -> (int * int * Table.t Common.dircontent ref) list
-
-    val set :
-       t
-      -> (int * int * Table.t Common.dircontent ref) list
-      -> unit
+    val set : t -> (int * int * Table.t Common.dircontent ref) list -> unit
   end
 end
 
@@ -108,9 +102,7 @@ module Make (P : PARAM) = struct
       (function Not_found -> fail Common.Eliom_404 | e -> fail e)
     >>= fun (node, l) ->
     let rec aux toremove = function
-      | [] ->
-          Lwt.return
-            (Common.Notfound Common.Eliom_Wrong_parameter, [])
+      | [] -> Lwt.return (Common.Notfound Common.Eliom_Wrong_parameter, [])
       | ({Common.s_max_use; s_expire; s_f; _} as a) :: l -> (
         match s_expire with
         | Some (_, e) when !e < now ->
@@ -229,8 +221,7 @@ module Make (P : PARAM) = struct
       with Not_found ->
         let node = P.Container.dlist_add ?sp tables (Left (tref, key)) in
         tref := P.Table.add key (Some node, [service]) !tref)
-    | {Common.key_state = Common.SAtt_no, Common.SAtt_no; _}
-      -> (
+    | {Common.key_state = Common.SAtt_no, Common.SAtt_no; _} -> (
       try
         let _nodeopt, l = P.Table.find key !tref
         and newt = P.Table.remove key !tref in
@@ -282,8 +273,7 @@ module Make (P : PARAM) = struct
 
   let add_dircontent dc (key, (elt : P.Table.t Common.direlt ref)) =
     match dc with
-    | Common.Vide ->
-        Common.Table (String.Table.add key elt String.Table.empty)
+    | Common.Vide -> Common.Table (String.Table.add key elt String.Table.empty)
     | Common.Table t -> Common.Table (String.Table.add key elt t)
 
   let find_dircontent dc k =
@@ -304,8 +294,7 @@ module Make (P : PARAM) = struct
           add_dircontent !dircontentref (a, ref (Common.Dir newdcr));
         search_page_table_ref newdcr l
     and search_page_table_ref dircontentref = function
-      | [] | [""] ->
-          search_page_table_ref dircontentref [Common.defaultpagename]
+      | [] | [""] -> search_page_table_ref dircontentref [Common.defaultpagename]
       | [a] -> (
         try
           let direltref = find_dircontent !dircontentref a in
@@ -315,8 +304,7 @@ module Make (P : PARAM) = struct
         with Not_found ->
           let newpagetableref = ref (P.Table.empty ()) in
           dircontentref :=
-            add_dircontent !dircontentref
-              (a, ref (Common.File newpagetableref));
+            add_dircontent !dircontentref (a, ref (Common.File newpagetableref));
           newpagetableref)
       | "" :: l -> search_page_table_ref dircontentref l
       | a :: l -> aux dircontentref a l
@@ -362,10 +350,8 @@ module Make (P : PARAM) = struct
         find_page_table nosuffixversion now page_table_ref fullsessname sitedata
           info suffix
           { Common.key_state =
-              ( Common.att_key_serv_of_req
-                  (fst si.Common.si_state_info)
-              , Common.att_key_serv_of_req
-                  (snd si.Common.si_state_info) )
+              ( Common.att_key_serv_of_req (fst si.Common.si_state_info)
+              , Common.att_key_serv_of_req (snd si.Common.si_state_info) )
           ; Common.key_meth = P.meth_of_info info }
       in
       let aux a l =
@@ -379,8 +365,7 @@ module Make (P : PARAM) = struct
                with Not_found -> raise Exn1
              in
              match dc with
-             | Common.Dir dircontentref2 ->
-                 search_page_table !dircontentref2 l
+             | Common.Dir dircontentref2 -> search_page_table !dircontentref2 l
              | Common.File page_table_ref -> (
                match l with
                | [] -> find false page_table_ref None
@@ -413,9 +398,7 @@ module Make (P : PARAM) = struct
         (* version without suffix of suffix service *)
         try
           match
-            !(try
-                find_dircontent dircontent
-                  Common.eliom_suffix_internal_name
+            !(try find_dircontent dircontent Common.eliom_suffix_internal_name
               with Not_found -> raise Exn1)
           with
           | Common.Dir _ -> Lwt.fail Exn1
@@ -434,8 +417,7 @@ module Make (P : PARAM) = struct
            Lwt.catch
              (fun () -> prev)
              (function
-               | Exn1 | Common.Eliom_404
-               | Common.Eliom_Wrong_parameter ->
+               | Exn1 | Common.Eliom_404 | Common.Eliom_Wrong_parameter ->
                    search_page_table !table path
                | e -> fail e))
         (fail Exn1) tables

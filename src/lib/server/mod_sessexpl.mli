@@ -19,8 +19,7 @@
  *)
 
 val iter_service_cookies :
-   (Common.SessionCookies.key
-    * Common.tables Common.Service_cookie.t
+   (Common.SessionCookies.key * Common.tables Common.Service_cookie.t
     -> unit Lwt.t)
   -> unit Lwt.t
 
@@ -33,17 +32,14 @@ val iter_persistent_cookies :
   -> unit Lwt.t
 
 val fold_service_cookies :
-   (Common.SessionCookies.key
-    * Common.tables Common.Service_cookie.t
+   (Common.SessionCookies.key * Common.tables Common.Service_cookie.t
     -> 'a
     -> 'a Lwt.t)
   -> 'a
   -> 'a Lwt.t
 
 val fold_data_cookies :
-   (Common.SessionCookies.key * Common.Data_cookie.t
-    -> 'a
-    -> 'a Lwt.t)
+   (Common.SessionCookies.key * Common.Data_cookie.t -> 'a -> 'a Lwt.t)
   -> 'a
   -> 'a Lwt.t
 

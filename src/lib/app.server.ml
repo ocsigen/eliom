@@ -30,8 +30,7 @@ let run
   let sitedata = Mod_main.update_sitedata app vh site_dir conf_info in
   (* customize sitedata according to optional parameters: *)
   Option.iter
-    (fun v ->
-       sitedata.Common.default_links_xhr#set ~override_tenable:true v)
+    (fun v -> sitedata.Common.default_links_xhr#set ~override_tenable:true v)
     xhr_links;
   Option.iter
     (fun (level, hierarchyname, v) ->

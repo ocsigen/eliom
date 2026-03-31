@@ -200,8 +200,7 @@ let send
       then
         (* Cookie substitutes are for iOS WKWebView *)
         let cookies =
-          Mod_cookies.get_cookies_to_send ~in_local_storage:true host https
-            path
+          Mod_cookies.get_cookies_to_send ~in_local_storage:true host https path
         in
         ( Common.cookie_substitutes_header_name
         , encode_header_value ~typ:[%json: (string * string) list] cookies )
@@ -222,8 +221,7 @@ let send
       match host with
       | Some host when host = Url.Current.host ->
           ( Common.tab_cpi_header_name
-          , encode_header_value
-              ~typ:[%json: Common_base.client_process_info]
+          , encode_header_value ~typ:[%json: Common_base.client_process_info]
               (Process.get_info ()) )
           :: headers
       | _ -> headers
@@ -282,29 +280,22 @@ let send
           then
             match
               (* Cookie substitutes are for iOS WKWebView *)
-              r.XmlHttpRequest.headers
-                Common.set_cookie_substitutes_header_name
+              r.XmlHttpRequest.headers Common.set_cookie_substitutes_header_name
             with
             | None | Some "" -> ()
             | Some cookie_substitutes ->
                 Mod_cookies.update_cookie_table ~in_local_storage:true host
                   (Mod_cookies.cookieset_of_json cookie_substitutes));
-         (match
-            r.XmlHttpRequest.headers Common.set_tab_cookies_header_name
-          with
+         (match r.XmlHttpRequest.headers Common.set_tab_cookies_header_name with
          | None | Some "" -> () (* Empty tab_cookies for IE compat *)
          | Some tab_cookies ->
              let tab_cookies = Mod_cookies.cookieset_of_json tab_cookies in
              Mod_cookies.update_cookie_table host tab_cookies);
          if r.XmlHttpRequest.code = 204
          then
-           match
-             r.XmlHttpRequest.headers Common.full_xhr_redir_header
-           with
+           match r.XmlHttpRequest.headers Common.full_xhr_redir_header with
            | None | Some "" -> (
-             match
-               r.XmlHttpRequest.headers Common.half_xhr_redir_header
-             with
+             match r.XmlHttpRequest.headers Common.half_xhr_redir_header with
              | None | Some "" -> Lwt.return (r.XmlHttpRequest.url, None)
              | Some _uri ->
                  redirect_post url
@@ -319,9 +310,7 @@ let send
          else if expecting_process_page
          then
            let url =
-             match
-               r.XmlHttpRequest.headers Common.response_url_header
-             with
+             match r.XmlHttpRequest.headers Common.response_url_header with
              | None | Some "" -> Url.add_get_args url (List.tl get_args)
              | Some url -> Url.resolve url
            in

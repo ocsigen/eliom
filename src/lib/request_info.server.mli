@@ -322,10 +322,7 @@ val get_request_sp : Common.server_params -> Ocsigen_extensions.request
 val get_site_dir_sp : Common.server_params -> Lib.Url.path
 val get_hostname_sp : Common.server_params -> string
 val get_full_url_sp : Common.server_params -> string
-
-val get_other_get_params_sp :
-   Common.server_params
-  -> (string * string) list
+val get_other_get_params_sp : Common.server_params -> (string * string) list
 
 val get_nl_get_params_sp :
    Common.server_params

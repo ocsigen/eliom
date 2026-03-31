@@ -108,9 +108,7 @@ let http_stats () =
            hosts) ]
 
 let eliom_stats () =
-  let* persist_nb_of_groups =
-    Eliom.Mod_sessiongroups.Pers.nb_of_groups ()
-  in
+  let* persist_nb_of_groups = Eliom.Mod_sessiongroups.Pers.nb_of_groups () in
   let* number_of_persistent_data_cookies =
     Eliom.State.number_of_persistent_data_cookies ()
   in

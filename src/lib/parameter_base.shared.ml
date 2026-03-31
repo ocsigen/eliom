@@ -852,8 +852,7 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
         if (l, files) = ([], [])
         then
           raise
-            (Common.Eliom_Typing_Error
-               (List.map (fun (v, _, e) -> v, e) errs))
+            (Common.Eliom_Typing_Error (List.map (fun (v, _, e) -> v, e) errs))
         else raise Common.Eliom_Wrong_parameter
   with Not_found -> raise Common.Eliom_Wrong_parameter
 

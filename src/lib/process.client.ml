@@ -94,8 +94,7 @@ let appl_name =
           because we want to send it back with each request.
           For mobile apps, we set the cookie from JS variable. *)
        Ocsigen_cookie_map.Map_inner.find Common.appl_name_cookie_name
-         (Ocsigen_cookie_map.Map_path.find
-            (get_sitedata ()).Types.site_dir
+         (Ocsigen_cookie_map.Map_path.find (get_sitedata ()).Types.site_dir
             (Mod_cookies.get_table (Some (get_info ()).cpi_hostname)))
      in
      v)

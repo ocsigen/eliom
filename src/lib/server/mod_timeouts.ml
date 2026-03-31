@@ -34,9 +34,7 @@ type kind = [`Service | `Data | `Persistent]
 (* Table of timeouts for sessions *)
 
 let default_timeouts :
-  ( kind * Common.cookie_level * Common.scope_hierarchy option
-    , float )
-    Hashtbl.t
+  (kind * Common.cookie_level * Common.scope_hierarchy option, float) Hashtbl.t
   =
   let t = Hashtbl.create 9 in
   Hashtbl.add t (`Service, `Session, None) 3600.;
@@ -62,9 +60,7 @@ let get_default kind user_scope =
   try
     Some
       (Hashtbl.find default_timeouts
-         ( (kind :> kind)
-         , (level :> Common.cookie_level)
-         , Some scope_hierarchy ))
+         ((kind :> kind), (level :> Common.cookie_level), Some scope_hierarchy))
   with Not_found -> (
     try
       Some
@@ -168,8 +164,8 @@ let find_global kind full_st_name sitedata =
 let set_global_ ?full_st_name ?cookie_level ~kind ~recompute_expdates a =
   set_timeout_ (sitedata_timeout kind)
     (set_sitedata_timeout kind)
-    (get_default kind) Mod_sessadmin.update_serv_exp ?full_st_name
-    ?cookie_level ~recompute_expdates a
+    (get_default kind) Mod_sessadmin.update_serv_exp ?full_st_name ?cookie_level
+    ~recompute_expdates a
 
 let get_global ~kind ~cookie_scope ~secure sitedata =
   let full_st_name =

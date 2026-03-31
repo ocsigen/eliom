@@ -21,10 +21,7 @@ val def_handler : exn -> 'b Lwt.t
 
 val execute :
    float
-  -> (float
-      -> Common.info
-      -> Common.sitedata
-      -> Ocsigen_response.t Lwt.t)
+  -> (float -> Common.info -> Common.sitedata -> Ocsigen_response.t Lwt.t)
   -> Common.info
   -> Common.sitedata
   -> Ocsigen_response.t Lwt.t
