@@ -17,24 +17,24 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-type +'a t = 'a Eliom_runtime.Client_value_server_repr.t
+type +'a t = 'a Runtime.Client_value_server_repr.t
 
 let client_value_unwrapper =
   Wrap.create_unwrapper
-    (Wrap.id_of_int Eliom_runtime.client_value_unwrap_id_int)
+    (Wrap.id_of_int Runtime.client_value_unwrap_id_int)
 
 let create_client_value ~loc ~instance_id =
-  Eliom_runtime.Client_value_server_repr.create ~loc ~instance_id
+  Runtime.Client_value_server_repr.create ~loc ~instance_id
     ~unwrapper:client_value_unwrapper
 
 let client_value_from_server_repr cv = cv
 
 let client_value_datum ~closure_id ~args ~value =
-  { Eliom_runtime.closure_id
+  { Runtime.closure_id
   ; args
-  ; value = Eliom_runtime.Client_value_server_repr.to_poly value }
+  ; value = Runtime.Client_value_server_repr.to_poly value }
 
 exception Client_value_creation_invalid_context of string
 
-let escaped_value value : Eliom_runtime.escaped_value (* * Wrap.unwrapper *) =
+let escaped_value value : Runtime.escaped_value (* * Wrap.unwrapper *) =
   Ocsigen_lib.to_poly value

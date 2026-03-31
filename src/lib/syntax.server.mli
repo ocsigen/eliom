@@ -17,8 +17,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-val get_global_data : unit -> Eliom_runtime.global_data
-val get_request_data : unit -> Eliom_runtime.request_data
+val get_global_data : unit -> Runtime.global_data
+val get_request_data : unit -> Runtime.request_data
 
 (*****************************************************************************)
 
@@ -45,9 +45,9 @@ val close_server_section : string -> unit
     identifies the compilation unit.
 
     Adds the list of recently registered
-    {!Eliom_runtime.client_value_datum}s into the queue of server
+    {!Runtime.client_value_datum}s into the queue of server
     section data of the compilation unit
-    ({!Eliom_lib_base.compilation_unit_global_data}).
+    ({!Lib_base.compilation_unit_global_data}).
 
     Called in parallel with <<a_api
     subproject="client"|Client.Syntax_helpers.close_server_section>>.  *)
@@ -60,13 +60,13 @@ val close_client_section :
     argument identifies the compilation unit. The second is the list
     of novel injections in that section.
 
-    Adds a list of {!Eliom_lib_base.injection_datum}s into the queue
+    Adds a list of {!Lib_base.injection_datum}s into the queue
     of client section data of the compilation unit
-    ({!Eliom_lib_base.compilation_unit_global_data}).
+    ({!Lib_base.compilation_unit_global_data}).
 
     Called in parallel with <<a_api
     subproject="client"|Client.Syntax_helpers.open_client_section>>.  *)
 
-val escaped_value : 'a -> Eliom_runtime.escaped_value
-(** Convert any value to a {! Eliom_runtime.escaped_value} for usage
+val escaped_value : 'a -> Runtime.escaped_value
+(** Convert any value to a {! Runtime.escaped_value} for usage
     in the [args] argument to {! Syntax.client_value}. *)

@@ -20,7 +20,7 @@ open Lwt.Syntax
  *)
 
 open Lib
-include Eliom_common_base
+include Common_base
 
 exception Eliom_Session_expired
 
@@ -123,7 +123,7 @@ end = struct
 
   let hash c =
     (* To preserve compatibility, we only hash cookies that ends with an
-       'H'.  This is the case for all new cookies (see Eliommod_cookies). *)
+       'H'.  This is the case for all new cookies (see Mod_cookies). *)
     if c <> "" && c.[String.length c - 1] = 'H' then sha256 c else c
 
   let to_string x = x
@@ -609,7 +609,7 @@ let get_sp () =
         "This function cannot be called here because it needs information about the request or the site."
       in
       failwith @@ String.concat "\n"
-      @@ (msg :: Eliom_common_base.backtrace_lwt 2)
+      @@ (msg :: Common_base.backtrace_lwt 2)
 
 let sp_of_option sp = match sp with None -> get_sp () | Some sp -> sp
 
@@ -876,9 +876,9 @@ let full_state_name_of_cookie_name cookie_level cookiename =
   let secure = secure = "S" in
   let sc_hier =
     match hier1 with
-    | "" -> Eliom_common_base.User_hier hiername
-    | "ref" -> Eliom_common_base.Default_ref_hier
-    | "comet" -> Eliom_common_base.Default_comet_hier
+    | "" -> Common_base.User_hier hiername
+    | "ref" -> Common_base.Default_ref_hier
+    | "comet" -> Common_base.Default_comet_hier
     | _ -> raise Not_found
   in
   let user_scope =

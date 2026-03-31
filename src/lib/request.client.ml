@@ -54,7 +54,7 @@ let get_cookie_info_for_uri_js uri_js =
              match path with
              | "" :: _ -> path (* absolute *)
              | _ ->
-                 Eliom_common_base.make_actual_path
+                 Common_base.make_actual_path
                    (Request_info.get_csp_original_full_path () @ path)
            in
            Request_info.get_csp_ssl (), path)
@@ -183,10 +183,10 @@ let send
     let host =
       match host with
       | Some host when host = Url.Current.host ->
-          Some (Eliom_process.get_info ()).Common.cpi_hostname
+          Some (Process.get_info ()).Common.cpi_hostname
       | _ -> host
     in
-    let cookies = Eliommod_cookies.get_cookies_to_send host https path in
+    let cookies = Mod_cookies.get_cookies_to_send host https path in
     let headers =
       match cookies with
       | [] -> []
@@ -200,7 +200,7 @@ let send
       then
         (* Cookie substitutes are for iOS WKWebView *)
         let cookies =
-          Eliommod_cookies.get_cookies_to_send ~in_local_storage:true host https
+          Mod_cookies.get_cookies_to_send ~in_local_storage:true host https
             path
         in
         ( Common.cookie_substitutes_header_name
@@ -223,8 +223,8 @@ let send
       | Some host when host = Url.Current.host ->
           ( Common.tab_cpi_header_name
           , encode_header_value
-              ~typ:[%json: Eliom_common_base.client_process_info]
-              (Eliom_process.get_info ()) )
+              ~typ:[%json: Common_base.client_process_info]
+              (Process.get_info ()) )
           :: headers
       | _ -> headers
     in
@@ -255,7 +255,7 @@ let send
         then true
         else
           headers Common.appl_name_header_name
-          = Some (Eliom_process.get_application_name ())
+          = Some (Process.get_application_name ())
       else true
     in
     Lwt.catch
@@ -287,15 +287,15 @@ let send
             with
             | None | Some "" -> ()
             | Some cookie_substitutes ->
-                Eliommod_cookies.update_cookie_table ~in_local_storage:true host
-                  (Eliommod_cookies.cookieset_of_json cookie_substitutes));
+                Mod_cookies.update_cookie_table ~in_local_storage:true host
+                  (Mod_cookies.cookieset_of_json cookie_substitutes));
          (match
             r.XmlHttpRequest.headers Common.set_tab_cookies_header_name
           with
          | None | Some "" -> () (* Empty tab_cookies for IE compat *)
          | Some tab_cookies ->
-             let tab_cookies = Eliommod_cookies.cookieset_of_json tab_cookies in
-             Eliommod_cookies.update_cookie_table host tab_cookies);
+             let tab_cookies = Mod_cookies.cookieset_of_json tab_cookies in
+             Mod_cookies.update_cookie_table host tab_cookies);
          if r.XmlHttpRequest.code = 204
          then
            match
@@ -348,7 +348,7 @@ let send
                     "can't silently redirect a Post request to non application content");
               Lwt.fail Program_terminated
           | Some appl_name ->
-              let current_appl_name = Eliom_process.get_application_name () in
+              let current_appl_name = Process.get_application_name () in
               if appl_name = current_appl_name
               then
                 assert false

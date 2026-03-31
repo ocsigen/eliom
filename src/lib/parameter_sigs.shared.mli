@@ -352,7 +352,7 @@ module type S = sig
     -> ('a, 'b, 'c) params_type
     -> ('a, 'b, 'c) params_type
 
-  type params = (string * Eliommod_parameters.param) list
+  type params = (string * Mod_parameters.param) list
 
   val construct_params :
      params Lib.String.Table.t

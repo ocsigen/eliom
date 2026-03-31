@@ -22,7 +22,7 @@
 let is_client_app () = false
 
 type ('a, 'b) server_function =
-  ('a, 'b) Eliom_client_base.server_function_service * Wrap.unwrapper
+  ('a, 'b) Client_base.server_function_service * Wrap.unwrapper
 
 let mk_serv_fun a b : ('a, 'b) server_function = a, b
 
@@ -55,4 +55,4 @@ let server_function
        ~path:Service.No_path
        (fun () argument -> f argument))
     (Wrap.create_unwrapper
-       (Wrap.id_of_int Eliom_common_base.server_function_unwrap_id_int))
+       (Wrap.id_of_int Common_base.server_function_unwrap_id_int))

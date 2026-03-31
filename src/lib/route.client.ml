@@ -82,7 +82,7 @@ module A = struct
   let handle_directory _ = Lwt.return Service.No_contents
 end
 
-include Eliom_route_base.Make (A)
+include Route_base.Make (A)
 
 let global_tables =
   A.Container.

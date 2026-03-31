@@ -18,7 +18,7 @@
  *)
 
 open Lib
-include Eliom_parameter_base
+include Parameter_base
 
 type raw_post_data = Request_info.raw_post_data
 

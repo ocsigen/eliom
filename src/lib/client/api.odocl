@@ -11,7 +11,7 @@ client
 comet
 config
 content
-eliom_content_core
+content_core
 eliom_lazy
 lib
 parameter
@@ -21,6 +21,6 @@ cscache
 registration
 service
 tools
-eliom_types
+types
 unwrap
 eliom_uri

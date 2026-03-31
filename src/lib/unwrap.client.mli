@@ -93,7 +93,7 @@ val unwrap : string -> int -> 'a
 
 val register_unwrapper' : unwrap_id -> ('a -> 'b option) -> unit
 
-val late_unwrap_value : _ Eliom_runtime.Client_value_server_repr.t -> _ -> unit
+val late_unwrap_value : _ Runtime.Client_value_server_repr.t -> _ -> unit
 (** [late_unwrap_value old_value new_value] replaces each occurrence
     of [old_value] with [new_value].
 *)
