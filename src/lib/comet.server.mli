@@ -54,7 +54,7 @@ module Channel : sig
       channel can be reclaimed by the GC when there is no more reference to it.
       The buffer channel has a limited buffer of size [size] (default:
       1000). If the client requests too old messages, exception
-      [Eliom_coment.Channel_full] will be raised (on client side).
+      [Comet.Channel_full] will be raised (on client side).
 
       With a scope of level {!Common.client_process_scope} the
       channel can only be accessed by the user who created it. It

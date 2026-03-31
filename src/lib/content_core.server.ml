@@ -21,7 +21,7 @@ open Js_of_ocaml
 open Lib
 
 (* This the core of [Content] without its dependencies to [Service] et al.
-   Its name is not [Eliom_content_base] because this would suggest the sharing
+   Its name is not [Content_base] because this would suggest the sharing
    between server and client. *)
 
 (*****************************************************************************)
