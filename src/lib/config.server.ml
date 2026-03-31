@@ -105,8 +105,7 @@ let get_default_sslport () =
 
 let default_protocol_is_https () =
   let sitedata = Request_info.find_sitedata "default_protocol_is_https" in
-  (Common.get_config_info sitedata)
-    .Ocsigen_extensions.default_protocol_is_https
+  (Common.get_config_info sitedata).Ocsigen_extensions.default_protocol_is_https
 
 let get_default_links_xhr () =
   let sitedata = Request_info.find_sitedata "get_default_links_xhr" in
@@ -139,8 +138,7 @@ let get_config () =
     | Some c -> c
     | None -> failwith "No config file. Is it a statically linked executable?")
   | None ->
-      raise
-        (Common.Eliom_site_information_not_available "Config.get_config")
+      raise (Common.Eliom_site_information_not_available "Config.get_config")
 
 let parse_config ?pcdata ?other_elements elements =
   Ocsigen_extensions.Configuration.process_elements

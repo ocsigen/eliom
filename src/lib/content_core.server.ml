@@ -203,10 +203,7 @@ module Xml = struct
     in
     if reset
     then f ()
-    else
-      match elt'.elt.node_id with
-      | Runtime.RawXML.NoId -> f ()
-      | _ -> elt'
+    else match elt'.elt.node_id with Runtime.RawXML.NoId -> f () | _ -> elt'
 
   (** Ref tree *)
 

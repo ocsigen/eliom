@@ -36,9 +36,7 @@ module A = struct
     [`Ptc of unit option * (params, result) Common.service list]
 
   type service =
-    ( table ref * Common.page_table_key
-      , Common.na_key_serv )
-      Lib.leftright
+    (table ref * Common.page_table_key, Common.na_key_serv) Lib.leftright
 
   and node = service list
   and table = table_content Raw_table.t
@@ -66,12 +64,10 @@ module A = struct
 
   module Container = struct
     type t =
-      { mutable t_services :
-          (int * int * Table.t Common.dircontent ref) list
+      { mutable t_services : (int * int * Table.t Common.dircontent ref) list
       ; mutable t_contains_timeout : bool
       ; mutable t_na_services :
-          (Common.na_key_serv, bool -> params -> result Lwt.t) Hashtbl.t
-      }
+          (Common.na_key_serv, bool -> params -> result Lwt.t) Hashtbl.t }
 
     let get {t_services; _} = t_services
     let set_contains_timeout a b = a.t_contains_timeout <- b

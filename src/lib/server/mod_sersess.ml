@@ -48,9 +48,7 @@ let close_service_state ~scope ~secure_o ?sp () =
       compute_cookie_info sitedata secure_o secure_ci cookie_info
     in
     let full_st_name = Common.make_full_state_name ~sp ~secure ~scope in
-    let _, ior =
-      Common.Full_state_name_table.find full_st_name !cookie_info
-    in
+    let _, ior = Common.Full_state_name_table.find full_st_name !cookie_info in
     match !ior with
     | Common.SC c ->
         (* there is only one way to close a session:
@@ -69,8 +67,7 @@ let close_service_state ~scope ~secure_o ?sp () =
                 fmt "No group of groups. Please report this problem.")
           | Some (_service_table, g) -> Mod_sessiongroups.Serv.remove g)
         | `Session _ | `Client_process _ ->
-            Mod_sessiongroups.Serv.remove
-              c.Common.sc_session_group_node);
+            Mod_sessiongroups.Serv.remove c.Common.sc_session_group_node);
         ior := Common.SCNo_data
     | _ -> ()
   with Not_found -> ()
@@ -140,14 +137,11 @@ let rec find_or_create_service_cookie_
     ; Common.sc_table = str
     ; Common.sc_timeout = timeout
     ; Common.sc_exp = expiry
-    ; Common.sc_cookie_exp =
-        ref (Common.default_client_cookie_exp ())
+    ; Common.sc_cookie_exp = ref (Common.default_client_cookie_exp ())
     ; Common.sc_session_group = session_group
     ; Common.sc_session_group_node = session_group_node }
   in
-  let (cookie_info, _, _), secure_ci =
-    Common.get_cookie_info sp cookie_level
-  in
+  let (cookie_info, _, _), secure_ci = Common.get_cookie_info sp cookie_level in
   let sitedata = Request_info.get_sitedata_sp ~sp in
   let cookie_info, secure =
     compute_cookie_info sitedata secure_o secure_ci cookie_info
@@ -184,8 +178,7 @@ let rec find_or_create_service_cookie_
         c
   with Not_found ->
     let v =
-      new_service_cookie sitedata full_st_name
-        sitedata.Common.session_services
+      new_service_cookie sitedata full_st_name sitedata.Common.session_services
     in
     cookie_info :=
       Common.Full_state_name_table.add full_st_name
@@ -224,8 +217,7 @@ let find_service_cookie_only ~cookie_scope ~secure_o ?sp () =
      Returns the cookie info for the cookie *)
   let sp = Common.sp_of_option sp in
   let (cookie_info, _, _), secure_ci =
-    Common.get_cookie_info sp
-      (Common.cookie_level_of_user_scope cookie_scope)
+    Common.get_cookie_info sp (Common.cookie_level_of_user_scope cookie_scope)
   in
   let sitedata = Request_info.get_sitedata_sp ~sp in
   let cookie_info, secure =
@@ -234,11 +226,8 @@ let find_service_cookie_only ~cookie_scope ~secure_o ?sp () =
   let full_st_name =
     Common.make_full_state_name ~sp ~secure ~scope:cookie_scope
   in
-  let _, ior =
-    Common.Full_state_name_table.find full_st_name !cookie_info
-  in
+  let _, ior = Common.Full_state_name_table.find full_st_name !cookie_info in
   match !ior with
   | Common.SCNo_data -> raise Not_found
-  | Common.SCData_session_expired ->
-      raise Common.Eliom_Session_expired
+  | Common.SCData_session_expired -> raise Common.Eliom_Session_expired
   | Common.SC v -> v

@@ -26,8 +26,7 @@ let xhr_with_cookies s =
     match s.send_appl_content with
     | XAlways -> Some None
     | XNever -> None
-    | XSame_appl (appl, _) when appl <> Process.get_application_name () ->
-        None
+    | XSame_appl (appl, _) when appl <> Process.get_application_name () -> None
     | XSame_appl (_, tmpl) -> Some tmpl
 
 let client_fun service =

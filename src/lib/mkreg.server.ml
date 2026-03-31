@@ -188,8 +188,7 @@ let register_aux
       in
       let f table ((_attserget, _attserpost) as attsernames) =
         Route.add_service priority table (S.sub_path attser)
-          { Common.key_state = attsernames
-          ; Common.key_meth :> Common.meth }
+          {Common.key_state = attsernames; Common.key_meth :> Common.meth}
           { s_id
           ; s_max_use
           ; s_expire
@@ -253,8 +252,7 @@ let register_aux
                                          S.t)
                                 g
                             in
-                            Lwt.fail
-                              (Common.Eliom_do_redirection redir_uri)
+                            Lwt.fail (Common.Eliom_do_redirection redir_uri)
                           else
                             (* It is an internal application form.
                                We don't redirect but we set this
@@ -487,10 +485,9 @@ let register
             (* I suppose that it's a statically linked module
                that is not associated with a site yet.
                I will defer the registration until app is initialised. *)
-            Ocsigen_loader.add_module_init_function
-              (Common.get_app_name ()) (fun () -> aux sitedata)
-      | _ ->
-          raise (Common.Eliom_site_information_not_available "register"))
+            Ocsigen_loader.add_module_init_function (Common.get_app_name ())
+              (fun () -> aux sitedata)
+      | _ -> raise (Common.Eliom_site_information_not_available "register"))
   | None, Some _ | Some `Site, Some _ ->
       register_aux pages ?options ?charset ?code ?content_type ?headers
         ?error_handler

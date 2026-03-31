@@ -42,9 +42,7 @@ let iter_service_cookies f =
 
 (** Iterator on data cookies *)
 let iter_data_cookies f =
-  let sitedata =
-    Request_info.find_sitedata "Mod_sessexpl.iter_data_cookies"
-  in
+  let sitedata = Request_info.find_sitedata "Mod_sessexpl.iter_data_cookies" in
   Common.SessionCookies.fold
     (fun k v thr -> thr >>= fun () -> f (k, v) >>= Lwt.pause)
     sitedata.Common.session_data return_unit
@@ -68,9 +66,7 @@ let fold_service_cookies f beg =
 
 (** Iterator on data cookies *)
 let fold_data_cookies f beg =
-  let sitedata =
-    Request_info.find_sitedata "Mod_sessexpl.fold_data_cookies"
-  in
+  let sitedata = Request_info.find_sitedata "Mod_sessexpl.fold_data_cookies" in
   Common.SessionCookies.fold
     (fun k v thr ->
        thr >>= fun res1 ->

@@ -43,10 +43,7 @@ let iter_persistent_sessions f =
 let close_all_service_states2 full_st_name sitedata =
   Common.SessionCookies.fold
     (fun _
-      { Common.Service_cookie.full_state_name
-      ; timeout
-      ; session_group_node
-      ; _ }
+      {Common.Service_cookie.full_state_name; timeout; session_group_node; _}
       thr ->
        let* () = thr in
        if full_st_name = full_state_name && !timeout = Common.TGlobal
@@ -101,15 +98,11 @@ let close_all_data_states ~scope ~secure sitedata =
 
 let close_all_persistent_states2 full_st_name sitedata =
   Mod_cookies.Persistent_cookies.Cookies.iter
-    (fun
-        k
-         {Mod_cookies.full_state_name; timeout = old_t; session_group; _}
-       ->
+    (fun k {Mod_cookies.full_state_name; timeout = old_t; session_group; _} ->
        let scope = full_state_name.Common.user_scope in
        if full_st_name = full_state_name && old_t = Common.TGlobal
        then
-         Mod_persess.close_persistent_state2 ~scope sitedata session_group
-           k
+         Mod_persess.close_persistent_state2 ~scope sitedata session_group k
          >>= Lwt.pause
        else return_unit)
 

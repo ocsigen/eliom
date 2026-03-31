@@ -57,8 +57,7 @@ let get_get_params () =
   let sp = Common.get_sp () in
   Ocsigen_request.get_params sp.Common.sp_request.request_info
 
-let get_all_current_get_params_sp sp =
-  sp.Common.sp_si.Common.si_all_get_params
+let get_all_current_get_params_sp sp = sp.Common.sp_si.Common.si_all_get_params
 
 let get_all_current_get_params () =
   let sp = Common.get_sp () in
@@ -95,8 +94,7 @@ let get_ignored_post_params () =
   sp.Common.sp_si.Common.si_ignored_post_params
 
 let get_original_full_path_string_sp sp =
-  Ocsigen_request.original_full_path_string
-    sp.Common.sp_request.request_info
+  Ocsigen_request.original_full_path_string sp.Common.sp_request.request_info
 
 let get_original_full_path_string () =
   let sp = Common.get_sp () in
@@ -128,15 +126,13 @@ let get_timeofday () =
   let sp = Common.get_sp () in
   get_timeofday_sp sp
 
-let get_hostname_sp sp =
-  Ocsigen_extensions.get_hostname sp.Common.sp_request
+let get_hostname_sp sp = Ocsigen_extensions.get_hostname sp.Common.sp_request
 
 let get_hostname () =
   let sp = Common.get_sp () in
   get_hostname_sp sp
 
-let get_server_port_sp sp =
-  Ocsigen_extensions.get_port sp.Common.sp_request
+let get_server_port_sp sp = Ocsigen_extensions.get_port sp.Common.sp_request
 
 let get_server_port () =
   let sp = Common.get_sp () in
@@ -173,18 +169,13 @@ let get_nl_post_params () =
   let sp = Common.get_sp () in
   sp.Common.sp_si.Common.si_nl_post_params
 
-let get_other_get_params_sp sp =
-  sp.Common.sp_si.Common.si_other_get_params
-
-let get_nl_get_params_sp sp =
-  sp.Common.sp_si.Common.si_nl_get_params
+let get_other_get_params_sp sp = sp.Common.sp_si.Common.si_other_get_params
+let get_nl_get_params_sp sp = sp.Common.sp_si.Common.si_nl_get_params
 
 let get_persistent_nl_get_params_sp sp =
   Lazy.force sp.Common.sp_si.Common.si_persistent_nl_get_params
 
-let get_nl_post_params_sp sp =
-  sp.Common.sp_si.Common.si_nl_post_params
-
+let get_nl_post_params_sp sp = sp.Common.sp_si.Common.si_nl_post_params
 let get_suffix_sp sp = sp.Common.sp_suffix
 
 let get_suffix () =
@@ -206,8 +197,7 @@ let get_link_too_old () =
   let sp = Common.get_sp () in
   try
     Polytables.get
-      ~table:
-        (Ocsigen_request.request_cache sp.Common.sp_request.request_info)
+      ~table:(Ocsigen_request.request_cache sp.Common.sp_request.request_info)
       ~key:Common.eliom_link_too_old
   with Not_found -> false
 
@@ -215,8 +205,7 @@ let get_expired_service_sessions () =
   let sp = Common.get_sp () in
   try
     Polytables.get
-      ~table:
-        (Ocsigen_request.request_cache sp.Common.sp_request.request_info)
+      ~table:(Ocsigen_request.request_cache sp.Common.sp_request.request_info)
       ~key:Common.eliom_service_session_expired
   with Not_found -> [], []
 
@@ -334,8 +323,7 @@ let get_sitedata_sp ~sp = sp.Common.sp_sitedata
 (***)
 
 (*VVV ici ? pour des raisons de typage... *)
-let set_site_handler sitedata handler =
-  sitedata.Common.exn_handler <- handler
+let set_site_handler sitedata handler = sitedata.Common.exn_handler <- handler
 
 type raw_post_data =
   ((string * string) * (string * string) list) option * Cohttp_lwt.Body.t

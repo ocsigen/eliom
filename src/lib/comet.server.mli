@@ -33,8 +33,7 @@ module Channel : sig
   (** [v t] is the type of server-to-client communication channels
       transporting data of type [v] *)
 
-  type comet_scope =
-    [Common.site_scope | Common.client_process_scope]
+  type comet_scope = [Common.site_scope | Common.client_process_scope]
 
   val create :
      ?scope:[< comet_scope]
@@ -120,10 +119,7 @@ module Channel : sig
       number of messages retrieved at the first request. The default
       is [1]. *)
 
-  val wait_timeout :
-     ?scope:Common.client_process_scope
-    -> float
-    -> unit Lwt.t
+  val wait_timeout : ?scope:Common.client_process_scope -> float -> unit Lwt.t
   (** [wait_timeout ~scope time] waits for a period of inactivity of
       length [time] in the [scope]. Only activity on stateful
       channels is taken into accounts.

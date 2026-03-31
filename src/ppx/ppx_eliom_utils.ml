@@ -1,6 +1,5 @@
 let is_internal = ref false
 let internal_prefix = ref ""
-
 let check_internal () = !is_internal
 
 module Parsetree = Ppxlib.Parsetree
@@ -369,7 +368,8 @@ module Cmo = struct
       match lid with
       | Ldot (Lident "Eliom", nm) when check_internal () -> Lident nm
       | Ldot (Lident w, nm) when !internal_prefix <> "" && w = !internal_prefix
-        -> Lident nm
+        ->
+          Lident nm
       | _ -> lid
     in
     match id with
@@ -624,7 +624,8 @@ let driver_args =
     , " Use short module names (for compiling Eliom itself)." )
   ; ( "-internal-prefix"
     , Arg.String (fun s -> internal_prefix := s)
-    , "PREFIX Strip PREFIX. wrapper prefix from .cmo type paths (for compiling wrapped libraries that depend on Eliom)." ) ]
+    , "PREFIX Strip PREFIX. wrapper prefix from .cmo type paths (for compiling wrapped libraries that depend on Eliom)."
+    ) ]
 
 let () =
   List.iter

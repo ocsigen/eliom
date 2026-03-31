@@ -105,12 +105,9 @@ let create_sitedata_aux site_dir config_info =
       site_dir_string =
         Option.map (Lib.Url.string_of_url_path ~encode:false) site_dir
     ; config_info
-    ; default_links_xhr =
-        Common.tenable_value ~name:"default_links_xhr" true
+    ; default_links_xhr = Common.tenable_value ~name:"default_links_xhr" true
     ; global_services =
-        Common.empty_tables
-          !default_max_anonymous_services_per_subnet
-          false
+        Common.empty_tables !default_max_anonymous_services_per_subnet false
     ; registered_scope_hierarchies = Common.Hier_set.empty
     ; session_services = Mod_cookies.new_service_cookie_table ()
     ; session_data = Mod_cookies.new_data_cookie_table ()
@@ -565,8 +562,7 @@ let rec parse_global_config = function
                 "Eliom: Wrong value for <datasessiongcfrequency>"));
       parse_global_config ll
   | Xml.Element ("persistentsessiongcfrequency", [("value", s)], _) :: ll ->
-      (try
-         Mod_gc.set_persistentsessiongcfrequency (Some (float_of_string s))
+      (try Mod_gc.set_persistentsessiongcfrequency (Some (float_of_string s))
        with Failure _ ->
          if s = "infinity"
          then Mod_gc.set_persistentsessiongcfrequency None
@@ -580,8 +576,7 @@ let rec parse_global_config = function
         ( (fun ct sh m ->
             Mod_timeouts.set_default ?scope_hierarchy:sh `Data ct m;
             Mod_timeouts.set_default ?scope_hierarchy:sh `Service ct m)
-        , (fun ct sh ->
-            Mod_timeouts.set_default ?scope_hierarchy:sh `Data ct)
+        , (fun ct sh -> Mod_timeouts.set_default ?scope_hierarchy:sh `Data ct)
         , (fun ct sh ->
             Mod_timeouts.set_default ?scope_hierarchy:sh `Service ct)
         , (fun ct sh ->
@@ -673,16 +668,15 @@ let handle_init_exn = function
             ^ "\" has not been registered."
         | a :: ll ->
             let string_of = function
-              | Common.SNa_void_keep | Common.SNa_void_dontkeep
-              | Common.SNa_no ->
+              | Common.SNa_void_keep | Common.SNa_void_dontkeep | Common.SNa_no
+                ->
                   assert false
               | Common.SNa_get' _ -> "<GET coservice>"
               | Common.SNa_get_ n -> n ^ " (GET)"
               | Common.SNa_post' _ -> "<POST coservice>"
               | Common.SNa_post_ n -> n ^ " (POST)"
               | Common.SNa_get_csrf_safe _ -> " <GET CSRF-safe coservice>"
-              | Common.SNa_post_csrf_safe _ ->
-                  "<POST CSRF-safe coservice>"
+              | Common.SNa_post_csrf_safe _ -> "<POST CSRF-safe coservice>"
             in
             "Some non-attached services or coservices have not been registered: "
             ^ List.fold_left
@@ -719,14 +713,11 @@ let update_sitedata app vh site_dir conf_info =
   update_sitedata vh site_dir sitedata;
   sitedata
 
-let _ =
-  Common.absolute_change_sitedata
-    (get_sitedata (Common.get_app_name ()))
+let _ = Common.absolute_change_sitedata (get_sitedata (Common.get_app_name ()))
 
 let set_app_name s =
   Common.current_app_name := s;
-  Common.absolute_change_sitedata
-    (get_sitedata (Common.get_app_name ()))
+  Common.absolute_change_sitedata (get_sitedata (Common.get_app_name ()))
 
 let site_init_ref = ref []
 
@@ -872,10 +863,7 @@ let parse_config _ hostpattern conf_info site_dir =
             exception_during_eliommodule_loading := false
         | _ -> ());
         if Extension.get_eliom_extension () != default_module_action
-        then
-          Mod_pagegen.gen
-            (Some (Extension.get_eliom_extension ()))
-            sitedata
+        then Mod_pagegen.gen (Some (Extension.get_eliom_extension ())) sitedata
         else gen_nothing ()
     | Xml.Element ("eliom", atts, content) ->
         (*--- if we put the line "new_sitedata" here, then there is
@@ -896,28 +884,21 @@ let parse_config _ hostpattern conf_info site_dir =
                   (Mod_timeouts.set_global_ ~kind:`Service)
                   sitedata ct snoo v)
             , set_timeout (Mod_timeouts.set_global_ ~kind:`Data) sitedata
-            , set_timeout
-                (Mod_timeouts.set_global_ ~kind:`Service)
-                sitedata
-            , set_timeout
-                (Mod_timeouts.set_global_ ~kind:`Persistent)
-                sitedata
+            , set_timeout (Mod_timeouts.set_global_ ~kind:`Service) sitedata
+            , set_timeout (Mod_timeouts.set_global_ ~kind:`Persistent) sitedata
             , (fun v ->
                 sitedata.Common.max_service_sessions_per_group <- v, true)
             , (fun v ->
                 sitedata.Common.max_service_sessions_per_subnet <- v, true)
             , (fun v ->
-                sitedata.Common.max_volatile_data_sessions_per_group <-
-                  v, true)
+                sitedata.Common.max_volatile_data_sessions_per_group <- v, true)
             , (fun v ->
-                sitedata.Common.max_volatile_data_sessions_per_subnet <-
-                  v, true)
+                sitedata.Common.max_volatile_data_sessions_per_subnet <- v, true)
             , (fun v ->
                 sitedata.Common.max_persistent_data_sessions_per_group <-
                   Some v, true)
             , (fun v ->
-                sitedata.Common.max_service_tab_sessions_per_group <-
-                  v, true)
+                sitedata.Common.max_service_tab_sessions_per_group <- v, true)
             , (fun v ->
                 sitedata.Common.max_volatile_data_tab_sessions_per_group <-
                   v, true)
@@ -925,20 +906,17 @@ let parse_config _ hostpattern conf_info site_dir =
                 sitedata.Common.max_persistent_data_tab_sessions_per_group <-
                   Some v, true)
             , (fun v ->
-                sitedata.Common.max_anonymous_services_per_session <-
-                  v, true)
+                sitedata.Common.max_anonymous_services_per_session <- v, true)
             , (fun v ->
-                sitedata.Common.max_anonymous_services_per_subnet <-
-                  v, true;
+                sitedata.Common.max_anonymous_services_per_subnet <- v, true;
                 (* The global table has already been created, with old max
                    and old ipv6mask.
                    I update it, otherwise the setting has no effect
                    for this table: *)
                 try
                   let dlist =
-                    Common.find_dlist_ip_table
-                      sitedata.Common.ipv4mask (* unused *) oldipv6mask
-                      sitedata.Common.dlist_ip_table
+                    Common.find_dlist_ip_table sitedata.Common.ipv4mask
+                      (* unused *) oldipv6mask sitedata.Common.dlist_ip_table
                       Ipaddr.(V6 V6.localhost)
                   in
                   ignore (Ocsigen_cache.Dlist.set_maxsize dlist v)

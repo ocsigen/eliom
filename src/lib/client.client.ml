@@ -161,8 +161,7 @@ let do_request_data request_data =
 let get_element_cookies_info elt =
   Js.Opt.to_option
     (Js.Opt.map
-       elt##(getAttribute
-               (Js.string Runtime.RawXML.ce_call_service_attrib))
+       elt##(getAttribute (Js.string Runtime.RawXML.ce_call_service_attrib))
        (fun s -> of_json ~typ:[%json: bool * string list] (Js.to_string s)))
 
 let get_element_template elt =
@@ -253,9 +252,7 @@ let relink_request_nodes root =
   Logs.debug ~src:section (fun fmt -> fmt "Relink request nodes");
   if !Config.debug_timings
   then Console.console##(time (Js.string "relink_request_nodes"));
-  Mod_dom.iter_nodeList
-    (Mod_dom.select_request_nodes root)
-    relink_request_node;
+  Mod_dom.iter_nodeList (Mod_dom.select_request_nodes root) relink_request_node;
   if !Config.debug_timings
   then Console.console##(timeEnd (Js.string "relink_request_nodes"))
 
@@ -273,8 +270,7 @@ let relink_page_but_client_values (root : Dom_html.element Js.t) =
     =
     Mod_dom.select_nodes root
   in
-  Mod_dom.iter_nodeList a_nodeList (fun node ->
-    node##.onclick := a_handler);
+  Mod_dom.iter_nodeList a_nodeList (fun node -> node##.onclick := a_handler);
   Mod_dom.iter_nodeList form_nodeList (fun node ->
     node##.onsubmit := form_handler);
   Mod_dom.iter_nodeList process_nodeList relink_process_node;
@@ -484,9 +480,7 @@ let unwrap_tyxml tmp_elt =
               (fun () ->
                  Logs.debug ~src:section (fun fmt -> fmt "not found");
                  let xml_elt : Xml.elt = Xml.make ~id elt in
-                 let xml_elt =
-                   Content_core.Xml.set_classes_of_elt xml_elt
-                 in
+                 let xml_elt = Content_core.Xml.set_classes_of_elt xml_elt in
                  Client_core.register_process_node (Js.bytestring process_id)
                    (Client_core.rebuild_node_ns `HTML5 context xml_elt);
                  xml_elt)
@@ -986,8 +980,7 @@ let init () =
      2016-03 This was done at the beginning of onload below
      but this makes it impossible to use cookies
      during initialisation phase. I move this here. -- Vincent *)
-  Mod_cookies.update_cookie_table
-    (Some (Process.get_info ()).cpi_hostname)
+  Mod_cookies.update_cookie_table (Some (Process.get_info ()).cpi_hostname)
     (Request_info.get_request_cookies ());
   let onload_handler = ref None in
   let onload _ev =
@@ -1982,8 +1975,7 @@ and change_page_unknown
   let i_sess_info = Request_info.get_sess_info ()
   and i_meth =
     match meth, i_post_params with
-    | Some meth, _ ->
-        (meth : [`Get | `Post | `Put | `Delete] :> Common.meth)
+    | Some meth, _ -> (meth : [`Get | `Post | `Put | `Delete] :> Common.meth)
     | None, [] -> `Get
     | _, _ -> `Post
   in

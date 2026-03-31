@@ -149,14 +149,11 @@ end = struct
           Lwt.return_unit
     in
     ignore
-      (Lwt.with_value Common.sp_key None @@ fun () ->
-       Lwt_stream.iter_s f stream
+      (Lwt.with_value Common.sp_key None @@ fun () -> Lwt_stream.iter_s f stream
        : unit Lwt.t)
 
   let make_name name = "stateless:" ^ name
-
-  let chan_id_of_string name =
-    Comet_base.chan_id_of_string (make_name name)
+  let chan_id_of_string name = Comet_base.chan_id_of_string (make_name name)
 
   let create ?(name = new_id ()) ~size stream =
     let name = make_name name in
@@ -207,8 +204,7 @@ end = struct
         (* initialisation of external newest channels *)
         match Dlist.newest channel.ch_content with
         | None -> [] (* should not happen *)
-        | Some node -> [channel.ch_id, Comet_base.Data (Dlist.value node)]
-        )
+        | Some node -> [channel.ch_id, Comet_base.Data (Dlist.value node)])
       (* when the client is requesting the data after index i return
            all data with index gretter or equal to i*)
       | Comet_base.After i when i > channel.ch_index -> []
@@ -271,8 +267,7 @@ end = struct
     Common.lazy_site_value_from_fun @@ fun () ->
     (*VVV Why isn't this a POST non-attached coservice? --Vincent *)
     Comet.create_attached_post
-      ~post_params:
-        Parameter.(bool "idle" ** Comet_base.comet_request_param)
+      ~post_params:Parameter.(bool "idle" ** Comet_base.comet_request_param)
       ~fallback:(Common.force_lazy_site_value fallback_global_service)
       handle_request
 
@@ -319,11 +314,7 @@ module Stateful : sig
   type comet_service = Comet_base.comet_service
 
   val get_service : t -> comet_service
-
-  val wait_timeout :
-     ?scope:Common.client_process_scope
-    -> float
-    -> unit Lwt.t
+  val wait_timeout : ?scope:Common.client_process_scope -> float -> unit Lwt.t
 end = struct
   type chan_id = string
   type comet_service = Comet_base.comet_service
@@ -561,8 +552,7 @@ end = struct
           update_inactive handler;
           List.iter
             (function
-              | Comet_base.Register channel ->
-                  register_channel handler channel
+              | Comet_base.Register channel -> register_channel handler channel
               | Comet_base.Close channel -> close_channel' handler channel)
             (Array.to_list commands);
           (* command connections are replied immediately by an
@@ -581,16 +571,12 @@ end = struct
 
   (* as of now only `Client_process scope are handled: so we only stock scope_hierarchy *)
   type handler_ref_table =
-    ( Common.scope_hierarchy
-      , handler option Reference.Volatile.eref )
-      Hashtbl.t
+    (Common.scope_hierarchy, handler option Reference.Volatile.eref) Hashtbl.t
 
   let handler_ref_table : handler_ref_table = Hashtbl.create 1
 
   let get_handler_eref scope =
-    let scope_hierarchy =
-      Common_base.scope_hierarchy_of_user_scope scope
-    in
+    let scope_hierarchy = Common_base.scope_hierarchy_of_user_scope scope in
     try Hashtbl.find handler_ref_table scope_hierarchy
     with Not_found ->
       let eref =
@@ -609,8 +595,7 @@ end = struct
             (* CCC ajouter possibilité d'https *)
             ( Service.create_attached_post (*VVV Why is it attached? --Vincent *)
                 ~post_params:
-                  Parameter.(
-                    bool "idle" ** Comet_base.comet_request_param)
+                  Parameter.(bool "idle" ** Comet_base.comet_request_param)
                 ~fallback:(Common.force_lazy_site_value fallback_service)
                 (*~name:"comet" (* CCC faut il mettre un nom ? *)*)
                 ()
@@ -639,8 +624,7 @@ end = struct
   let name_of_scope (scope : Common.user_scope) =
     let sp = Common.get_sp () in
     let name =
-      Common.make_full_state_name ~sp ~secure:false (*VVV secure? *)
-        ~scope
+      Common.make_full_state_name ~sp ~secure:false (*VVV secure? *) ~scope
     in
     let pref =
       match scope with
@@ -727,9 +711,7 @@ end
 
 module Channel : sig
   type 'a t
-
-  type comet_scope =
-    [Common.site_scope | Common.client_process_scope]
+  type comet_scope = [Common.site_scope | Common.client_process_scope]
 
   val create_from_events :
      ?scope:[< comet_scope]
@@ -762,10 +744,7 @@ module Channel : sig
     -> unit
     -> 'a t
 
-  val wait_timeout :
-     ?scope:Common.client_process_scope
-    -> float
-    -> unit Lwt.t
+  val wait_timeout : ?scope:Common.client_process_scope -> float -> unit Lwt.t
 end = struct
   type 'a channel =
     | Stateless of Stateless.channel
@@ -795,8 +774,7 @@ end = struct
     | External wrapped -> wrapped
 
   let internal_wrap c =
-    ( get_wrapped c
-    , Common.make_unwrapper Common.comet_channel_unwrap_id )
+    get_wrapped c, Common.make_unwrapper Common.comet_channel_unwrap_id
 
   let channel_mark () = Common.make_wrapper internal_wrap
 
@@ -831,8 +809,7 @@ end = struct
     { channel = create_stateless_newest_channel ?name stream
     ; channel_mark = channel_mark () }
 
-  type comet_scope =
-    [Common.site_scope | Common.client_process_scope]
+  type comet_scope = [Common.site_scope | Common.client_process_scope]
 
   let create_from_events ?scope ?name ?(size = 1000) events =
     match scope with
@@ -854,8 +831,7 @@ end = struct
         ~meth:
           (Service.Post
              ( Parameter.unit
-             , Parameter.(bool "idle" ** Comet_base.comet_request_param)
-             ))
+             , Parameter.(bool "idle" ** Comet_base.comet_request_param) ))
         ()
     in
     let last = if newest then None else Some history in

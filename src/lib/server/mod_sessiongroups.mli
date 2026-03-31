@@ -90,8 +90,7 @@ end
 module Serv :
   MEMTAB
   with type group_of_group_data =
-    Common.tables ref
-    * [`Session] Common.sessgrp Ocsigen_cache.Dlist.node
+    Common.tables ref * [`Session] Common.sessgrp Ocsigen_cache.Dlist.node
 
 module Data :
   MEMTAB

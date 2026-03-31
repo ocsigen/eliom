@@ -98,9 +98,7 @@ let cast_http_result = Result_types.cast_result
 
 let content_type_html content_type =
   let sp = Common.get_sp () in
-  match
-    content_type, sp.Common.sp_sitedata.Common.html_content_type
-  with
+  match content_type, sp.Common.sp_sitedata.Common.html_content_type with
   | None, Some content_type -> content_type
   | Some content_type, _ -> content_type
   | None, None ->
@@ -250,8 +248,8 @@ module Action_base = struct
         let headers =
           match Request_info.get_sp_client_appl_name () with
           | Some anr ->
-              Cohttp.Header.replace headers
-                Common_base.appl_name_header_name anr
+              Cohttp.Header.replace headers Common_base.appl_name_header_name
+                anr
           | _ -> headers
         and status = Cohttp.Code.status_of_code code in
         result_of_content ?charset ?content_type ~headers ~status
@@ -278,9 +276,7 @@ module Action_base = struct
           , si.Common.si_state_info
           , Ocsigen_request.meth ri.request_info )
         with
-        | ( Common.RNa_no
-          , (Common.RAtt_no, Common.RAtt_no)
-          , `GET ) ->
+        | Common.RNa_no, (Common.RAtt_no, Common.RAtt_no), `GET ->
             Lwt.return (Ocsigen_response.make (Cohttp.Response.make ()))
         | _ ->
             let all_cookie_info = sp.Common.sp_cookie_info in
@@ -302,8 +298,7 @@ module Action_base = struct
            If the fallback service is not App, they will be
            lost. *)
             let rc = Request_info.get_request_cache_sp sp in
-            Polytables.set ~table:rc
-              ~key:Common.tab_cookie_action_info_key
+            Polytables.set ~table:rc ~key:Common.tab_cookie_action_info_key
               ~value:
                 ( sp.Common.sp_tab_cookie_info
                 , sp.Common.sp_user_tab_cookies
@@ -648,9 +643,7 @@ module Ocaml = struct
       if not (Ocsigen_config.get_debugmode ())
       then
         Array.iter
-          (fun d ->
-             Runtime.Client_value_server_repr.clear_loc
-               d.Runtime.value)
+          (fun d -> Runtime.Client_value_server_repr.clear_loc d.Runtime.value)
           data;
       data
     in
@@ -839,14 +832,12 @@ let get_global_data ~keep_debug =
         (fun {Runtime.server_sections_data; client_sections_data} ->
            Array.iter
              (Array.iter (fun d ->
-                Runtime.Client_value_server_repr.clear_loc
-                  d.Runtime.value))
+                Runtime.Client_value_server_repr.clear_loc d.Runtime.value))
              server_sections_data;
            { Runtime.server_sections_data
            ; client_sections_data =
                Array.map
-                 (Array.map (fun x ->
-                    {x with Runtime.injection_dbg = None}))
+                 (Array.map (fun x -> {x with Runtime.injection_dbg = None}))
                  client_sections_data })
         data
   in
@@ -897,8 +888,7 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
   let result_of_http_result = Result_types.cast_result
 
   let is_initial_request () =
-    Common.((get_sp ()).sp_client_appl_name)
-    <> Some App_param.application_name
+    Common.((get_sp ()).sp_client_appl_name) <> Some App_param.application_name
 
   let global_data_cache_options () =
     (Request_info.get_sitedata ()).Common.cache_global_data
@@ -1014,9 +1004,7 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
       if not keep_debug
       then
         Array.iter
-          (fun d ->
-             Runtime.Client_value_server_repr.clear_loc
-               d.Runtime.value)
+          (fun d -> Runtime.Client_value_server_repr.clear_loc d.Runtime.value)
           data;
       data
     in
@@ -1073,9 +1061,7 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
     then
       (* Using the async flag does not make sense here as we need to
          be sure that this is executed before the application script. *)
-      let defer, _ =
-        (Request_info.get_sitedata ()).Common.application_script
-      in
+      let defer, _ = (Request_info.get_sitedata ()).Common.application_script in
       let uri =
         Content.Html.F.make_uri ~absolute:false
           ~service:(Lazy.force global_data_service)
@@ -1201,8 +1187,7 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
     if sp.Common.sp_client_appl_name <> Some App_param.application_name
     then
       State.set_cookie ~cookie_level:`Client_process
-        ~name:Common.appl_name_cookie_name
-        ~value:App_param.application_name ();
+        ~name:Common.appl_name_cookie_name ~value:App_param.application_name ();
     let* body =
       (match sp.Common.sp_client_appl_name, options.do_not_launch with
         | None, true -> remove_eliom_scripts content
@@ -1426,8 +1411,7 @@ module Redirection_base = struct
           Ocsigen_response.Body.empty
     | true, Some anr ->
         let headers =
-          Cohttp.Header.replace headers Common_base.appl_name_header_name
-            anr
+          Cohttp.Header.replace headers Common_base.appl_name_header_name anr
         in
         let headers =
           Cohttp.Header.replace headers

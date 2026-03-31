@@ -259,8 +259,7 @@ module Pass = struct
         let u, d = Mli.get_injected_ident_info id.txt in
         let es = str ~loc:id.loc (Printf.sprintf "%s%d" u d) in
         [%expr
-          ([%e
-             eliom_expr ~loc "Client_core.Syntax_helpers.get_injection"]
+          ([%e eliom_expr ~loc "Client_core.Syntax_helpers.get_injection"]
              ?ident:[%e ident] ~pos:[%e position loc] [%e es]
            : [%t typ])]
 

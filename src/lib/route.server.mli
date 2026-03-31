@@ -49,10 +49,7 @@ val add_naservice :
      * (Common.server_params -> Ocsigen_response.t Lwt.t)
   -> unit
 
-val remove_naservice :
-   Common.tables
-  -> Common.NAserv_Table.key
-  -> unit
+val remove_naservice : Common.tables -> Common.NAserv_Table.key -> unit
 
 val make_naservice :
    float

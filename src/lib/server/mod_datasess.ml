@@ -50,8 +50,7 @@ let close_data_state ~scope ~secure_o ?sp () =
     in
     let full_st_name = Common.make_full_state_name ~sp ~secure ~scope in
     let _, ior =
-      Lazy.force
-        (Common.Full_state_name_table.find full_st_name !cookie_info)
+      Lazy.force (Common.Full_state_name_table.find full_st_name !cookie_info)
     in
     match !ior with
     | Common.SC c ->
@@ -74,8 +73,7 @@ let close_data_state ~scope ~secure_o ?sp () =
         | `Session _ | `Client_process _ ->
             (* If we want to close a (tab/browser) session, the node is found
                  in the cookie info: *)
-            Mod_sessiongroups.Data.remove
-              c.Common.dc_session_group_node);
+            Mod_sessiongroups.Data.remove c.Common.dc_session_group_node);
         ior := Common.SCNo_data
     | _ -> ()
   with Not_found -> ()
@@ -140,14 +138,11 @@ let rec find_or_create_data_cookie
     ; Common.dc_set_value = Some c
     ; Common.dc_timeout = usertimeout
     ; Common.dc_exp = serverexp
-    ; Common.dc_cookie_exp =
-        ref (Common.default_client_cookie_exp ())
+    ; Common.dc_cookie_exp = ref (Common.default_client_cookie_exp ())
     ; Common.dc_session_group = fullsessgrpref
     ; Common.dc_session_group_node = node }
   in
-  let (_, cookie_info, _), secure_ci =
-    Common.get_cookie_info sp cookie_level
-  in
+  let (_, cookie_info, _), secure_ci = Common.get_cookie_info sp cookie_level in
   let sitedata = Request_info.get_sitedata_sp ~sp in
   let cookie_info, secure =
     compute_cookie_info sitedata secure_o secure_ci cookie_info
@@ -157,8 +152,7 @@ let rec find_or_create_data_cookie
   in
   try
     let _old, ior =
-      Lazy.force
-        (Common.Full_state_name_table.find full_st_name !cookie_info)
+      Lazy.force (Common.Full_state_name_table.find full_st_name !cookie_info)
     in
     match !ior with
     | Common.SCData_session_expired
@@ -166,8 +160,7 @@ let rec find_or_create_data_cookie
            for security reasons *)
     | Common.SCNo_data ->
         let v =
-          new_data_cookie sitedata full_st_name
-            sitedata.Common.session_data
+          new_data_cookie sitedata full_st_name sitedata.Common.session_data
         in
         ior := Common.SC v;
         v
@@ -213,9 +206,7 @@ let find_data_cookie_only ~cookie_scope ~secure_o ?sp () =
      Returns the cookie info for the cookie *)
   let sp = Common.sp_of_option sp in
   let cookie_level = Common.cookie_level_of_user_scope cookie_scope in
-  let (_, cookie_info, _), secure_ci =
-    Common.get_cookie_info sp cookie_level
-  in
+  let (_, cookie_info, _), secure_ci = Common.get_cookie_info sp cookie_level in
   let sitedata = Request_info.get_sitedata_sp ~sp in
   let cookie_info, secure =
     compute_cookie_info sitedata secure_o secure_ci cookie_info
@@ -224,13 +215,11 @@ let find_data_cookie_only ~cookie_scope ~secure_o ?sp () =
     Common.make_full_state_name ~sp ~secure ~scope:cookie_scope
   in
   let _, ior =
-    Lazy.force
-      (Common.Full_state_name_table.find full_st_name !cookie_info)
+    Lazy.force (Common.Full_state_name_table.find full_st_name !cookie_info)
   in
   match !ior with
   | Common.SCNo_data -> raise Not_found
-  | Common.SCData_session_expired ->
-      raise Common.Eliom_Session_expired
+  | Common.SCData_session_expired -> raise Common.Eliom_Session_expired
   | Common.SC v -> v
 
 (*****************************************************************************)
