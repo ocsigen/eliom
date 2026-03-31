@@ -31,7 +31,8 @@
     (bool, [ `WithoutSuffix ], [ `One of bool ] param_name) params_type
   val file :
     string ->
-    (Lib.file_info, [ `WithoutSuffix ], [ `One of Lib.file_info ] param_name)
+    (Eliom.Lib.file_info, [ `WithoutSuffix ],
+     [ `One of Eliom.Lib.file_info ] param_name)
     params_type
   val unit : (unit, [ `WithoutSuffix ], unit) params_type
   type coordinates = { abscissa : int; ordinate : int; }
@@ -123,26 +124,26 @@
   val add_pref_params :
     string ->
     ('a, [< suff ] as 'b, 'c) params_type -> ('a, 'b, 'c) params_type
-  type params = (string * Eliommod_parameters.param) list
+  type params = (string * Eliom.Eliommod_parameters.param) list
   val construct_params :
-    params Lib.String.Table.t ->
+    params Eliom.Lib.String.Table.t ->
     ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
     'a -> string list option * string
   val construct_params_string : params -> string
   val construct_params_list_raw :
-    params Lib.String.Table.t ->
+    params Eliom.Lib.String.Table.t ->
     ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
-    'a -> string list option * params Lib.String.Table.t * params
+    'a -> string list option * params Eliom.Lib.String.Table.t * params
   val construct_params_list :
-    params Lib.String.Table.t ->
+    params Eliom.Lib.String.Table.t ->
     ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
     'a -> string list option * params
   val reconstruct_params :
-    sp:Eliom_common.server_params ->
+    sp:Eliom.Common.server_params ->
     ('a, [< `WithSuffix | `WithoutSuffix ], 'c) params_type ->
     (string * string) list Lwt.t option ->
-    (string * Lib.file_info) list Lwt.t option ->
-    bool -> Lib.Url.path option -> 'a Lwt.t
+    (string * Eliom.Lib.file_info) list Lwt.t option ->
+    bool -> Eliom.Lib.Url.path option -> 'a Lwt.t
   val make_params_names : ('a, [< suff ], 'c) params_type -> bool * 'c
   val string_of_param_name : 'a param_name -> string
   val nl_prod :
@@ -150,10 +151,11 @@
     ('s, [ `WithoutSuffix ], 'sn) non_localized_params ->
     ('a * 's, 'b, 'an * 'sn) params_type
   val remove_from_nlp :
-    (string * 'c) list Lib.String.Table.t ->
+    (string * 'c) list Eliom.Lib.String.Table.t ->
     ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
-    (string * 'c) list Lib.String.Table.t
-  val table_of_nl_params_set : nl_params_set -> params Lib.String.Table.t
+    (string * 'c) list Eliom.Lib.String.Table.t
+  val table_of_nl_params_set :
+    nl_params_set -> params Eliom.Lib.String.Table.t
   val list_of_nl_params_set : nl_params_set -> params
   val string_of_nl_params_set : nl_params_set -> string
   val wrap_param_type :
@@ -161,12 +163,12 @@
   type _ is_unit = U_not : 'a is_unit | U_yes : unit is_unit
   val is_unit : ('a, [< suff ], 'b) params_type -> 'a is_unit
   val user_type :
-    ?client_to_and_of:'a to_and_of Eliom_client_value.t ->
+    ?client_to_and_of:'a to_and_of Client_value.t ->
     of_string:(string -> 'a) ->
     to_string:('a -> string) ->
     string -> ('a, [ `WithoutSuffix ], [ `One of 'a ] param_name) params_type
   val all_suffix_user :
-    ?client_to_and_of:'a to_and_of Eliom_client_value.t ->
+    ?client_to_and_of:'a to_and_of Client_value.t ->
     of_string:(string -> 'a) ->
     to_string:('a -> string) ->
     string -> ('a, [ `Endsuffix ], [ `One of 'a ] param_name) params_type

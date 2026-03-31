@@ -3,5 +3,5 @@
   val name : string
   val make_page :
     Registration.TMPL_PARAMS.t -> Html_types.html Content.Html.elt Lwt.t
-  val update : Registration.TMPL_PARAMS.t -> unit Eliom_client_value.t
+  val update : Registration.TMPL_PARAMS.t -> unit Client_value.t
 end >>

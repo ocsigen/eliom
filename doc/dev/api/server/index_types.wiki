@@ -1,7 +1,7 @@
 =Index of types=
 
 |@@ @style="tet-align: left;"@@\\A|
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="all_scope"| type Eliom_common.all_scope >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="all_scope"| type Common.all_scope >> ~[<<a_api subproject="server" | module Common >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="app_id"| type Registration.APP.app_id >> ~[<<a_api subproject="server" | module Registration.APP >>~]|<<div class="odocwiki_info"|~The type <<span class="odocwiki_inlinecode"|appl>> is an abstract type for identifying an
       application~.
 >>
@@ -54,11 +54,11 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="client_notif"| type Notif.S.client_notif >> ~[<<a_api subproject="server" | module Notif.S >>~]|<<div class="odocwiki_info"|client notification type~; ~Can be different from <<span class="odocwiki_inlinecode"|server~_notif>>~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="client_process_scope"| type Eliom_common.client_process_scope >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="client_process_scope"| type Common.client_process_scope >> ~[<<a_api subproject="server" | module Common >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="co"| type Service_sigs.TYPES.co >> ~[<<a_api subproject="server" | module Service_sigs.TYPES >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="comet_scope"| type Comet.Channel.comet_scope >> ~[<<a_api subproject="server" | module Comet.Channel >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="cookie_level"| type Eliom_common.cookie_level >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="cookie_scope"| type Eliom_common.cookie_scope >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="cookie_level"| type Common.cookie_level >> ~[<<a_api subproject="server" | module Common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="cookie_scope"| type Common.cookie_scope >> ~[<<a_api subproject="server" | module Common >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="coordinates"| type Parameter_sigs.S.coordinates >> ~[<<a_api subproject="server" | module Parameter_sigs.S >>~]|<<div class="odocwiki_info"|~The type <<span class="odocwiki_inlinecode"|coordinates>> represents the data sent by an <<span class="odocwiki_inlinecode"|~<input
       type~="image" ~.~.~.~>>>~.
 >>
@@ -95,21 +95,17 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="form_param"| type Content_sigs.LINKS_AND_FORMS.form_param >> ~[<<a_api subproject="server" | module Content_sigs.LINKS_AND_FORMS >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="frame"| type Registration_sigs.PARAM_POLY.frame >> ~[<<a_api subproject="server" | module Registration_sigs.PARAM_POLY >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="frame"| type Registration_sigs.PARAM.frame >> ~[<<a_api subproject="server" | module Registration_sigs.PARAM >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="full_state_name"| type Eliom_common.full_state_name >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="full_state_name"| type Common.full_state_name >> ~[<<a_api subproject="server" | module Common >>~]||
 |@@ @style="tet-align: left;"@@\\G|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get"| type Service_sigs.TYPES.get >> ~[<<a_api subproject="server" | module Service_sigs.TYPES >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="global_scope"| type Eliom_common.global_scope >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="global_scope"| type Common.global_scope >> ~[<<a_api subproject="server" | module Common >>~]||
 |@@ @style="tet-align: left;"@@\\H|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="handle"| type Shared.FakeReactiveData.RList.handle >> ~[<<a_api subproject="server" | module Shared.FakeReactiveData.RList >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="handle"| type Shared_sigs.RLIST.handle >> ~[<<a_api subproject="server" | module Shared_sigs.RLIST >>~]|<<div class="odocwiki_info"|~Handles are used to manipulate reactive lists
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="hierarchical_site"| type Tools.hierarchical_site >> ~[<<a_api subproject="server" | module Tools >>~]|<<div class="odocwiki_info"|~Hierarchical sites description~.
->>
-|
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="hierarchical_site_item"| type Tools.hierarchical_site_item >> ~[<<a_api subproject="server" | module Tools >>~]|<<div class="odocwiki_info"|~Menu entry description in a hierarchical site~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="hierarchical_site"| type Tools.hierarchical_site >> ~[<<a_api subproject="server" | module Tools >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="hierarchical_site_item"| type Tools.hierarchical_site_item >> ~[<<a_api subproject="server" | module Tools >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="http"| type Service_sigs.TYPES.http >> ~[<<a_api subproject="server" | module Service_sigs.TYPES >>~]||
 |@@ @style="tet-align: left;"@@\\I|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="id"| type Content.Html.Id.id >> ~[<<a_api subproject="server" | module Content.Html.Id >>~]|<<div class="odocwiki_info"|~The type of global ~H~T~M~L element identifier~.
@@ -149,9 +145,7 @@
 >>
 |
 |@@ @style="tet-align: left;"@@\\M|
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="main_page"| type Tools.main_page >> ~[<<a_api subproject="server" | module Tools >>~]|<<div class="odocwiki_info"|~Main page description for a section of a hierarchical site~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="main_page"| type Tools.main_page >> ~[<<a_api subproject="server" | module Tools >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="meth"| type Service_sigs.TYPES.meth >> ~[<<a_api subproject="server" | module Service_sigs.TYPES >>~]|<<div class="odocwiki_info"|**~Method specification datatype**
 >>
 |
@@ -219,7 +213,7 @@
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="reg"| type Service_sigs.TYPES.reg >> ~[<<a_api subproject="server" | module Service_sigs.TYPES >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="request_scope"| type Eliom_common.request_scope >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="request_scope"| type Common.request_scope >> ~[<<a_api subproject="server" | module Common >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="result"| type Service_sigs.S.result >> ~[<<a_api subproject="server" | module Service_sigs.S >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="result"| type Registration_sigs.S_poly_with_create_with_send.result >> ~[<<a_api subproject="server" | module Registration_sigs.S_poly_with_create_with_send >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="result"| type Registration_sigs.S_poly_with_send.result >> ~[<<a_api subproject="server" | module Registration_sigs.S_poly_with_send >>~]||
@@ -229,8 +223,8 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="return"| type Registration_sigs.S.return >> ~[<<a_api subproject="server" | module Registration_sigs.S >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="return"| type Registration_sigs.PARAM_POLY.return >> ~[<<a_api subproject="server" | module Registration_sigs.PARAM_POLY >>~]||
 |@@ @style="tet-align: left;"@@\\S|
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="scope"| type Eliom_common.scope >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="scope_hierarchy"| type Eliom_common.scope_hierarchy >> ~[<<a_api subproject="server" | module Eliom_common >>~]|<<div class="odocwiki_info"|~Scopes
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="scope"| type Common.scope >> ~[<<a_api subproject="server" | module Common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="scope_hierarchy"| type Common.scope_hierarchy >> ~[<<a_api subproject="server" | module Common >>~]|<<div class="odocwiki_info"|~Scopes
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="select_opt"| type Form_sigs.S.select_opt >> ~[<<a_api subproject="server" | module Form_sigs.S >>~]|<<div class="odocwiki_info"|~The type for <<span class="odocwiki_inlinecode"|~<select~>>> options and groups of options~.
@@ -248,8 +242,8 @@
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="server_params"| type Eliom_types.server_params >> ~[<<a_api subproject="server" | module Eliom_types >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="service_cookie_info"| type State.Ext.service_cookie_info >> ~[<<a_api subproject="server" | module State.Ext >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="session_group_scope"| type Eliom_common.session_group_scope >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="session_scope"| type Eliom_common.session_scope >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="session_group_scope"| type Common.session_group_scope >> ~[<<a_api subproject="server" | module Common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="session_scope"| type Common.session_scope >> ~[<<a_api subproject="server" | module Common >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="setone"| type Parameter_sigs.S.setone >> ~[<<a_api subproject="server" | module Parameter_sigs.S >>~]|<<div class="odocwiki_info"|~Restriction of <<a_api subproject="server" | type Parameter_sigs.S.setoneradio >> unary and set parameters~.
 >>
 |
@@ -257,7 +251,7 @@
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="signal"| type Shared_sigs.RLIST.signal >> ~[<<a_api subproject="server" | module Shared_sigs.RLIST >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="site_scope"| type Eliom_common.site_scope >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="site_scope"| type Common.site_scope >> ~[<<a_api subproject="server" | module Common >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="sitedata"| type Eliom_types.sitedata >> ~[<<a_api subproject="server" | module Eliom_types >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="soption"| type Form_sigs.S.soption >> ~[<<a_api subproject="server" | module Form_sigs.S >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="srv"| type Tools.srv >> ~[<<a_api subproject="server" | module Tools >>~]||
@@ -277,9 +271,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="sv"| type Shared_sigs.S.sv >> ~[<<a_api subproject="server" | module Shared_sigs.S >>~]||
 |@@ @style="tet-align: left;"@@\\T|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="t"| type Registration.TMPL_PARAMS.t >> ~[<<a_api subproject="server" | module Registration.TMPL_PARAMS >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="t"| type Cscache.t >> ~[<<a_api subproject="server" | module Cscache >>~]|<<div class="odocwiki_info"|~The type of association tables ~(implemented using ~Hashtbl~)
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="t"| type Cscache.t >> ~[<<a_api subproject="server" | module Cscache >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="t"| type Shared.FakeReactiveData.RList.t >> ~[<<a_api subproject="server" | module Shared.FakeReactiveData.RList >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="t"| type Eliom_react.S.Down.t >> ~[<<a_api subproject="server" | module Eliom_react.S.Down >>~]|<<div class="odocwiki_info"|~The abstract type of down signals~.
 >>
@@ -298,7 +290,7 @@
       transporting data of type <<span class="odocwiki_inlinecode"|v>>
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="t"| type Eliom_client_value.t >> ~[<<a_api subproject="server" | module Eliom_client_value >>~]|<<div class="odocwiki_info"|~Client values on the server are created by the syntax <<span class="odocwiki_inlinecode"|~{typ~{ expr
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="t"| type Client_value.t >> ~[<<a_api subproject="server" | module Client_value >>~]|<<div class="odocwiki_info"|~Client values on the server are created by the syntax <<span class="odocwiki_inlinecode"|~{typ~{ expr
     ~}~}>> in the server section ~(cf~.
 >>
 |
@@ -329,8 +321,8 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="uri"| type Form_sigs.LINKS.uri >> ~[<<a_api subproject="server" | module Form_sigs.LINKS >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="uri"| type Form_sigs.S.uri >> ~[<<a_api subproject="server" | module Form_sigs.S >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="uri"| type Content_sigs.LINKS_AND_FORMS.uri >> ~[<<a_api subproject="server" | module Content_sigs.LINKS_AND_FORMS >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="user_level"| type Eliom_common.user_level >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="user_scope"| type Eliom_common.user_scope >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="user_level"| type Common.user_level >> ~[<<a_api subproject="server" | module Common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="user_scope"| type Common.user_scope >> ~[<<a_api subproject="server" | module Common >>~]||
 |@@ @style="tet-align: left;"@@\\V|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="volatile_table"| type State.volatile_table >> ~[<<a_api subproject="server" | module State >>~]|<<div class="odocwiki_info"|~The type of ~(volatile~) state data tables~.
 >>

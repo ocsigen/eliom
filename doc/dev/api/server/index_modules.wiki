@@ -27,7 +27,13 @@
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Client"| module Client >> ||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Client_value"| module Client_value >> |<<div class="odocwiki_info"|~Client and shared values
+>>
+|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Comet"| module Comet >> |<<div class="odocwiki_info"|~Primitives to push data to the client~, without explicit request~.
+>>
+|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Common"| module Common >> |<<div class="odocwiki_info"|~Low level functions for ~Eliom~, exceptions and types~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Config"| module Config >> |<<div class="odocwiki_info"|~This module makes also possible get information from the configuration
@@ -38,11 +44,7 @@ file~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Content_sigs"| module Content_sigs >> ||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Cscache"| module Cscache >> |<<div class="odocwiki_info"|~Client~-server cache for ~Eliom applications~, that is used both for
-    keeping data on client side or keeping values in memory during a
-    request~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Cscache"| module Cscache >> ||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="CssText"| module Registration.CssText >> ~[<<a_api subproject="server" | module Registration >>~]|<<div class="odocwiki_info"|~Eliom service registration for services that returns ~C~S~S~.
 >>
 |
@@ -54,9 +56,7 @@ file~.
 >>
 |
 |@@ @style="tet-align: left;"@@\\D|
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="D"| module Tools.D >> ~[<<a_api subproject="server" | module Tools >>~]|<<div class="odocwiki_info"|~Menus with ~D~O~M semantics
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="D"| module Tools.D >> ~[<<a_api subproject="server" | module Tools >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="D"| module Content.Html.D >> ~[<<a_api subproject="server" | module Content.Html >>~]|<<div class="odocwiki_info"|~Creation of ~H~T~M~L content with **~D**~O~M semantics ~(referable~, see
       also <<a_api|module Content>> ~)~.
 >>
@@ -69,18 +69,11 @@ file~.
 >>
 |
 |@@ @style="tet-align: left;"@@\\E|
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_client_value"| module Eliom_client_value >> |<<div class="odocwiki_info"|~Client and shared values
->>
-|
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_common"| module Eliom_common >> |<<div class="odocwiki_info"|~Low level functions for ~Eliom~, exceptions and types~.
->>
-|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_react"| module Eliom_react >> |<<div class="odocwiki_info"|~Propagate events
     occurrences from the server to the client and the other way
     around~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_syntax"| module Eliom_syntax >> ||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_tmpl"| module Registration.Eliom_tmpl >> ~[<<a_api subproject="server" | module Registration >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_types"| module Eliom_types >> |<<div class="odocwiki_info"|~Types shared by client and server~.
 >>
@@ -99,9 +92,7 @@ file~.
 >>
 |
 |@@ @style="tet-align: left;"@@\\F|
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="F"| module Tools.F >> ~[<<a_api subproject="server" | module Tools >>~]|<<div class="odocwiki_info"|~Menus with functional node semantics
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="F"| module Tools.F >> ~[<<a_api subproject="server" | module Tools >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="F"| module Content.Html.F >> ~[<<a_api subproject="server" | module Content.Html >>~]|<<div class="odocwiki_info"|~Creation of **~F**unctional ~H~T~M~L~5 content ~(copy~-able but not
       referable~, see also <<a_api|module Content>> ~)~.
 >>
@@ -129,7 +120,7 @@ file~.
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Form"| module Content_sigs.LINKS_AND_FORMS.Form >> ~[<<a_api subproject="server" | module Content_sigs.LINKS_AND_FORMS >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Form_sigs"| module Form_sigs >> ||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Full_state_name_table"| module Eliom_common.Full_state_name_table >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Full_state_name_table"| module Common.Full_state_name_table >> ~[<<a_api subproject="server" | module Common >>~]||
 |@@ @style="tet-align: left;"@@\\H|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Html"| module Registration.Html >> ~[<<a_api subproject="server" | module Registration >>~]|<<div class="odocwiki_info"|~Eliom service registration for services that return ~H~T~M~L
     pages~.
@@ -193,7 +184,7 @@ file~.
     values~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Ocsipersist"| module Eliom_common.Ocsipersist >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Ocsipersist"| module Common.Ocsipersist >> ~[<<a_api subproject="server" | module Common >>~]||
 |@@ @style="tet-align: left;"@@\\P|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Parameter"| module Parameter >> ||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Parameter_sigs"| module Parameter_sigs >> |<<div class="odocwiki_info"|~Ad~-hoc runtime type representation for service parameters~.
@@ -273,10 +264,9 @@ file~.
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Svg"| module Content.Svg >> ~[<<a_api subproject="server" | module Content >>~]|<<div class="odocwiki_info"|~Building and pretty~-printing valid ~S~V~G tree~.
 >>
 |
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Syntax"| module Syntax >> ||
 |@@ @style="tet-align: left;"@@\\T|
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Tools"| module Tools >> |<<div class="odocwiki_info"|~Helpers for ~(hierarchical~) menu generation in ~H~T~M~L~5~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Tools"| module Tools >> ||
 |@@ @style="tet-align: left;"@@\\U|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Unit"| module Registration.Unit >> ~[<<a_api subproject="server" | module Registration >>~]|<<div class="odocwiki_info"|~Similar to <<span class="odocwiki_inlinecode"|~Actions>> with <<span class="odocwiki_inlinecode"|`~No~Reload>> option~.
 >>

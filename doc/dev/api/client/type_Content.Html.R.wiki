@@ -1,7 +1,6 @@
 <<code language="ocaml" | sig
   val node :
-    'a Content.Html.elt React.signal Eliom_client_value.t ->
-    'a Content.Html.elt
+    'a Content.Html.elt React.signal Client_value.t -> 'a Content.Html.elt
   val filter_attrib :
     'a Content.Html.attrib -> bool React.signal -> 'a Content.Html.attrib
   module Raw :

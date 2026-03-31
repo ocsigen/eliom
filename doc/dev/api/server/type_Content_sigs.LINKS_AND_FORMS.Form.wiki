@@ -12,32 +12,33 @@
     ?absolute:bool ->
     ?absolute_path:bool ->
     ?https:bool ->
-    service:('get, 'post, Service.post, 'a, 'b, 'c, 'd,
+    service:('get, 'post, Eliom.Service.post, 'a, 'b, 'c, 'd,
              [< `WithSuffix | `WithoutSuffix ], 'e, 'f, 'g)
-            Service.t ->
+            Eliom.Service.t ->
     ?hostname:string ->
     ?port:int ->
     ?fragment:string ->
     ?keep_nl_params:[ `All | `None | `Persistent ] ->
-    ?nl_params:Parameter.nl_params_set ->
+    ?nl_params:Eliom.Parameter.nl_params_set ->
     ?keep_get_na_params:bool ->
     'get ->
     'post ->
-    string * (string * Eliommod_parameters.param) list * string option *
-    (string * Eliommod_parameters.param) list
+    string * (string * Eliom.Eliommod_parameters.param) list *
+    string option * (string * Eliom.Eliommod_parameters.param) list
   val get_form :
     ?absolute:bool ->
     ?absolute_path:bool ->
     ?https:bool ->
     ?a:[< Html_types.form_attrib ] attrib list ->
-    service:('a, unit, Service.get, 'b, 'c, 'd, 'e,
-             [< `WithSuffix | `WithoutSuffix ], 'gn, 'f, Service.non_ocaml)
-            Service.t ->
+    service:('a, unit, Eliom.Service.get, 'b, 'c, 'd, 'e,
+             [< `WithSuffix | `WithoutSuffix ], 'gn, 'f,
+             Eliom.Service.non_ocaml)
+            Eliom.Service.t ->
     ?hostname:string ->
     ?port:int ->
     ?fragment:string ->
     ?keep_nl_params:[ `All | `None | `Persistent ] ->
-    ?nl_params:Parameter.nl_params_set ->
+    ?nl_params:Eliom.Parameter.nl_params_set ->
     ?xhr:bool ->
     ('gn -> [< Html_types.form_content ] elt list) ->
     [> Html_types.form ] elt
@@ -46,14 +47,15 @@
     ?absolute_path:bool ->
     ?https:bool ->
     ?a:[< Html_types.form_attrib ] attrib list ->
-    service:('a, unit, Service.get, 'b, 'c, 'd, 'e,
-             [< `WithSuffix | `WithoutSuffix ], 'gn, 'f, Service.non_ocaml)
-            Service.t ->
+    service:('a, unit, Eliom.Service.get, 'b, 'c, 'd, 'e,
+             [< `WithSuffix | `WithoutSuffix ], 'gn, 'f,
+             Eliom.Service.non_ocaml)
+            Eliom.Service.t ->
     ?hostname:string ->
     ?port:int ->
     ?fragment:string ->
     ?keep_nl_params:[ `All | `None | `Persistent ] ->
-    ?nl_params:Parameter.nl_params_set ->
+    ?nl_params:Eliom.Parameter.nl_params_set ->
     ?xhr:bool ->
     ('gn -> [< Html_types.form_content ] elt list Lwt.t) ->
     [> Html_types.form ] elt Lwt.t
@@ -62,15 +64,16 @@
     ?absolute_path:bool ->
     ?https:bool ->
     ?a:[< Html_types.form_attrib ] attrib list ->
-    service:('get, 'a, Service.post, 'b, 'c, 'd, 'e,
-             [< `WithSuffix | `WithoutSuffix ], 'f, 'pn, Service.non_ocaml)
-            Service.t ->
+    service:('get, 'a, Eliom.Service.post, 'b, 'c, 'd, 'e,
+             [< `WithSuffix | `WithoutSuffix ], 'f, 'pn,
+             Eliom.Service.non_ocaml)
+            Eliom.Service.t ->
     ?hostname:string ->
     ?port:int ->
     ?fragment:string ->
     ?keep_nl_params:[ `All | `None | `Persistent ] ->
     ?keep_get_na_params:bool ->
-    ?nl_params:Parameter.nl_params_set ->
+    ?nl_params:Eliom.Parameter.nl_params_set ->
     ?xhr:bool ->
     ('pn -> [< Html_types.form_content ] elt list) ->
     'get -> [> Html_types.form ] elt
@@ -79,65 +82,68 @@
     ?absolute_path:bool ->
     ?https:bool ->
     ?a:[< Html_types.form_attrib ] attrib list ->
-    service:('get, 'a, Service.post, 'b, 'c, 'd, 'e,
-             [< `WithSuffix | `WithoutSuffix ], 'f, 'pn, Service.non_ocaml)
-            Service.t ->
+    service:('get, 'a, Eliom.Service.post, 'b, 'c, 'd, 'e,
+             [< `WithSuffix | `WithoutSuffix ], 'f, 'pn,
+             Eliom.Service.non_ocaml)
+            Eliom.Service.t ->
     ?hostname:string ->
     ?port:int ->
     ?fragment:string ->
     ?keep_nl_params:[ `All | `None | `Persistent ] ->
     ?keep_get_na_params:bool ->
-    ?nl_params:Parameter.nl_params_set ->
+    ?nl_params:Eliom.Parameter.nl_params_set ->
     ?xhr:bool ->
     ('pn -> [< Html_types.form_content ] elt list Lwt.t) ->
     'get -> [> Html_types.form ] elt Lwt.t
   val input :
     ?a:[< Html_types.input_attrib ] attrib list ->
     input_type:[< Html_types.input_type ] ->
-    ?name:[< 'a Parameter.setoneradio ] Parameter.param_name ->
+    ?name:[< 'a Eliom.Parameter.setoneradio ] Eliom.Parameter.param_name ->
     ?value:'a -> 'a param -> [> Html_types.input ] elt
   val file_input :
     ?a:[< Html_types.input_attrib ] attrib list ->
-    name:[< Lib.file_info Parameter.setoneradio ] Parameter.param_name ->
+    name:[< Eliom.Lib.file_info Eliom.Parameter.setoneradio ]
+         Eliom.Parameter.param_name ->
     unit -> [> Html_types.input ] elt
   val image_input :
     ?a:[< Html_types.input_attrib ] attrib list ->
-    name:[< Parameter.coordinates Parameter.oneradio ] Parameter.param_name ->
+    name:[< Eliom.Parameter.coordinates Eliom.Parameter.oneradio ]
+         Eliom.Parameter.param_name ->
     ?src:uri -> unit -> [> Html_types.input ] elt
   val checkbox :
     ?a:[< Html_types.input_attrib ] attrib list ->
     ?checked:bool ->
-    name:[ `Set of 'a ] Parameter.param_name ->
+    name:[ `Set of 'a ] Eliom.Parameter.param_name ->
     value:'a -> 'a param -> [> Html_types.input ] elt
   val bool_checkbox_one :
     ?a:[< Html_types.input_attrib ] attrib list ->
     ?checked:bool ->
-    name:[ `One of bool ] Parameter.param_name ->
+    name:[ `One of bool ] Eliom.Parameter.param_name ->
     unit -> [> Html_types.input ] elt
   val radio :
     ?a:[< Html_types.input_attrib ] attrib list ->
     ?checked:bool ->
-    name:[ `Radio of 'a ] Parameter.param_name ->
+    name:[ `Radio of 'a ] Eliom.Parameter.param_name ->
     value:'a -> 'a param -> [> Html_types.input ] elt
   val string_radio_required :
     ?a:[< Html_types.input_attrib ] attrib list ->
     ?checked:bool ->
-    name:[ `One of string ] Parameter.param_name ->
+    name:[ `One of string ] Eliom.Parameter.param_name ->
     value:string -> unit -> [> Html_types.input ] elt
   val button :
     ?a:[< Html_types.button_attrib ] attrib list ->
-    button_type:[< Form_sigs.button_type ] ->
-    name:[< 'a Parameter.setone ] Parameter.param_name ->
+    button_type:[< Eliom.Form_sigs.button_type ] ->
+    name:[< 'a Eliom.Parameter.setone ] Eliom.Parameter.param_name ->
     value:'a ->
     'a param ->
     Html_types.button_content elt list -> [> Html_types.button ] elt
   val button_no_value :
     ?a:[< Html_types.button_attrib ] attrib list ->
-    button_type:[< Form_sigs.button_type ] ->
+    button_type:[< Eliom.Form_sigs.button_type ] ->
     Html_types.button_content elt list -> [> Html_types.button ] elt
   val textarea :
     ?a:[< Html_types.textarea_attrib ] attrib list ->
-    name:[< string Parameter.setoneradio ] Parameter.param_name ->
+    name:[< string Eliom.Parameter.setoneradio ] Eliom.Parameter.param_name ->
     ?value:string -> unit -> [> Html_types.textarea ] elt
   type 'a soption =
       Html_types.option_attrib attrib list * 'a *
@@ -227,13 +233,13 @@
   val select :
     ?a:[< Html_types.select_attrib ] attrib list ->
     ?required:Html_types.pcdata elt ->
-    name:[ `One of 'a ] Parameter.param_name ->
+    name:[ `One of 'a ] Eliom.Parameter.param_name ->
     'a param ->
     'a select_opt -> 'a select_opt list -> [> Html_types.select ] elt
   val multiple_select :
     ?a:[< Html_types.select_attrib ] attrib list ->
     ?required:Html_types.pcdata elt ->
-    name:[ `Set of 'a ] Parameter.param_name ->
+    name:[ `Set of 'a ] Eliom.Parameter.param_name ->
     'a param ->
     'a select_opt -> 'a select_opt list -> [> Html_types.select ] elt
 end >>

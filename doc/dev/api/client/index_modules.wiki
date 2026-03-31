@@ -22,8 +22,9 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Client"| module Client >> |<<div class="odocwiki_info"|~Call server side services and change the current page~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Client_closure"| module Eliom_client_core.Client_closure >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Client_value"| module Eliom_client_core.Client_value >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Client_value"| module Client_value >> |<<div class="odocwiki_info"|~Client and shared values
+>>
+|
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Comet"| module Comet >> |<<div class="odocwiki_info"|~Handle unsolicited server to client communications~.
 >>
 |
@@ -33,11 +34,7 @@
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Content"| module Content >> ||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Content_sigs"| module Content_sigs >> ||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Cscache"| module Cscache >> |<<div class="odocwiki_info"|~Client~-server cache for ~Eliom applications~, that is used both for
-    keeping data on client side or keeping values in memory during a
-    request~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Cscache"| module Cscache >> ||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Css"| module Content.Html.Manip.Css >> ~[<<a_api subproject="client" | module Content.Html.Manip >>~]|<<div class="odocwiki_info"|~Read the ~C~S~S properties of ~D~O~M elements~.
 >>
 |
@@ -46,9 +43,7 @@
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Custom_data"| module Content.Html.Custom_data >> ~[<<a_api subproject="client" | module Content.Html >>~]||
 |@@ @style="tet-align: left;"@@\\D|
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="D"| module Tools.D >> ~[<<a_api subproject="client" | module Tools >>~]|<<div class="odocwiki_info"|~Menus with ~D~O~M semantics
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="D"| module Tools.D >> ~[<<a_api subproject="client" | module Tools >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="D"| module Eliom_content_core.Html.D >> ~[<<a_api subproject="client" | module Eliom_content_core.Html >>~]|<<div class="odocwiki_info"|~Typed interface for building valid ~H~T~M~L~5 tree ~(~D~O~M semantics~)~.
 >>
 |
@@ -66,16 +61,11 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Down"| module Eliom_react.Down >> ~[<<a_api subproject="client" | module Eliom_react >>~]||
 |@@ @style="tet-align: left;"@@\\E|
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="E"| module Shared.React.E >> ~[<<a_api subproject="client" | module Shared.React >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_client_core"| module Eliom_client_core >> ||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_client_value"| module Eliom_client_value >> |<<div class="odocwiki_info"|~Client and shared values
->>
-|
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_content_core"| module Eliom_content_core >> ||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_lazy"| module Eliom_lazy >> ||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_react"| module Eliom_react >> |<<div class="odocwiki_info"|~Client side type declarations for ~React event propagation~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_types"| module Eliom_types >> ||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_uri"| module Eliom_uri >> |<<div class="odocwiki_info"|~Low~-level functions for relative or absolute ~U~R~L calculation~.
 >>
 |
@@ -86,9 +76,7 @@
 >>
 |
 |@@ @style="tet-align: left;"@@\\F|
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="F"| module Tools.F >> ~[<<a_api subproject="client" | module Tools >>~]|<<div class="odocwiki_info"|~Menus with functional node semantics
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="F"| module Tools.F >> ~[<<a_api subproject="client" | module Tools >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="F"| module Eliom_content_core.Html.F >> ~[<<a_api subproject="client" | module Eliom_content_core.Html >>~]|<<div class="odocwiki_info"|~Typed interface for building valid ~H~T~M~L~5 tree ~(functional semantics~)~.
 >>
 |
@@ -130,7 +118,6 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Infix"| module Shared_sigs.S.Infix >> ~[<<a_api subproject="client" | module Shared_sigs.S >>~]|<<div class="odocwiki_info"|~Infix operators
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Injection"| module Eliom_client_core.Injection >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
 |@@ @style="tet-align: left;"@@\\L|
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Lib"| module Lib >> |<<div class="odocwiki_info"|~Eliom standard library
 >>
@@ -206,7 +193,6 @@
     standard ~React
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="ReactState"| module Eliom_client_core.ReactState >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="ReactiveData"| module Shared.ReactiveData >> ~[<<a_api subproject="client" | module Shared >>~]|<<div class="odocwiki_info"|~Shared implementation of ~Reactive~Data~; client~-side behavior is
     like standard ~Reactive~Data
 >>
@@ -243,7 +229,6 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Svg"| module Content.Svg >> ~[<<a_api subproject="client" | module Content >>~]|<<div class="odocwiki_info"|~Building valid ~S~V~G ~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Syntax_helpers"| module Eliom_client_core.Syntax_helpers >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
 |@@ @style="tet-align: left;"@@\\T|
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="To_dom"| module Content.Html.To_dom >> ~[<<a_api subproject="client" | module Content.Html >>~]|<<div class="odocwiki_info"|~Conversion from ~H~T~M~L~5 <<span class="odocwiki_inlinecode"|elt>>s to ~Javascript ~D~O~M elements ~(<<span class="odocwiki_inlinecode"|~<~:>> <<a_api
       project="js_of_ocaml"| class Js_of_ocaml.Dom_html.element >> ~)~.
@@ -253,9 +238,7 @@
       project="js_of_ocaml"| class Js_of_ocaml.Dom_html.element >> ~)~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Tools"| module Tools >> |<<div class="odocwiki_info"|~Helpers for ~(hierarchical~) menu generation in ~H~T~M~L~5~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Tools"| module Tools >> ||
 |@@ @style="tet-align: left;"@@\\U|
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Unit"| module Registration.Unit >> ~[<<a_api subproject="client" | module Registration >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Unwrap"| module Unwrap >> ||
@@ -272,6 +255,5 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Xml"| module Content.Xml >> ~[<<a_api subproject="client" | module Content >>~]|<<div class="odocwiki_info"|~Low~-level ~X~M~L manipulation~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Xml"| module Eliom_client_core.Xml >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Xml_wed"| module Eliom_content_core.Xml_wed >> ~[<<a_api subproject="client" | module Eliom_content_core >>~]||
 \\

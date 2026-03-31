@@ -1,25 +1,25 @@
 =Index of exceptions=
 
 |@@ @style="tet-align: left;"@@\\C|
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Cannot_call_this_function_before_app_is_linked_to_a_site"| exception Eliom_common.Cannot_call_this_function_before_app_is_linked_to_a_site >> ~[<<a_api subproject="server" | module Eliom_common >>~]|<<div class="odocwiki_info"|~Statically linked app~: ~You cannot call this function before <<span class="odocwiki_inlinecode"|~Eliom~_run>>~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Cannot_call_this_function_before_app_is_linked_to_a_site"| exception Common.Cannot_call_this_function_before_app_is_linked_to_a_site >> ~[<<a_api subproject="server" | module Common >>~]|<<div class="odocwiki_info"|~Statically linked app~: ~You cannot call this function before <<span class="odocwiki_inlinecode"|~Eliom~_run>>~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Client_value_creation_invalid_context"| exception Eliom_client_value.Client_value_creation_invalid_context >> ~[<<a_api subproject="server" | module Eliom_client_value >>~]|<<div class="odocwiki_info"|~Raised if a client value of the given closure ~I~D is created at a
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Client_value_creation_invalid_context"| exception Client_value.Client_value_creation_invalid_context >> ~[<<a_api subproject="server" | module Client_value >>~]|<<div class="odocwiki_info"|~Raised if a client value of the given closure ~I~D is created at a
     point in time where it is neither global ~(i~.e~.
 >>
 |
 |@@ @style="tet-align: left;"@@\\E|
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_404"| exception Eliom_common.Eliom_404 >> ~[<<a_api subproject="server" | module Eliom_common >>~]|<<div class="odocwiki_info"|~Page not found
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_404"| exception Common.Eliom_404 >> ~[<<a_api subproject="server" | module Common >>~]|<<div class="odocwiki_info"|~Page not found
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_Session_expired"| exception Eliom_common.Eliom_Session_expired >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_Typing_Error"| exception Eliom_common.Eliom_Typing_Error >> ~[<<a_api subproject="server" | module Eliom_common >>~]|<<div class="odocwiki_info"|~The service ~(~G~E~T or ~P~O~S~T~) parameters do not match expected type
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_Session_expired"| exception Common.Eliom_Session_expired >> ~[<<a_api subproject="server" | module Common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_Typing_Error"| exception Common.Eliom_Typing_Error >> ~[<<a_api subproject="server" | module Common >>~]|<<div class="odocwiki_info"|~The service ~(~G~E~T or ~P~O~S~T~) parameters do not match expected type
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_Wrong_parameter"| exception Eliom_common.Eliom_Wrong_parameter >> ~[<<a_api subproject="server" | module Eliom_common >>~]|<<div class="odocwiki_info"|~Service called with wrong parameter names
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_Wrong_parameter"| exception Common.Eliom_Wrong_parameter >> ~[<<a_api subproject="server" | module Common >>~]|<<div class="odocwiki_info"|~Service called with wrong parameter names
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_site_information_not_available"| exception Eliom_common.Eliom_site_information_not_available >> ~[<<a_api subproject="server" | module Eliom_common >>~]|<<div class="odocwiki_info"|~That function cannot be used when the site information is not available~,
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_site_information_not_available"| exception Common.Eliom_site_information_not_available >> ~[<<a_api subproject="server" | module Common >>~]|<<div class="odocwiki_info"|~That function cannot be used when the site information is not available~,
     that is~, outside a request or the initialisation phase of your ~Eliom module
     ~(while reading the configuration file~)~.
 >>

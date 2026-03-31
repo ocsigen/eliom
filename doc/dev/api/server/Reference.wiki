@@ -18,7 +18,7 @@
 <<pre id="EXCEPTIONEref_not_initialized" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|exception>> <<span class="odocwiki_name"|Eref_not_initialized>>>><<div class="odocwiki_info"|~Exception raised when trying to access an eref
     that has not been initaliazed~, when we don~'t want to initialize it~.
 >>
-<<pre id="VALeref" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|eref>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| scope: >>[< <<a_api subproject="server" text="Eliom_common.all_scope" | type Eliom_common.all_scope >> ] <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?secure: >>bool <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_label"| ?persistent: >>string <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_delimiter"| -> >> 'a <<a_api subproject="server" text="eref" | type Reference.eref >>>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|eref ~~scope value>> creates an ~Eliom reference for
+<<pre id="VALeref" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|eref>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| scope: >>[< <<a_api subproject="server" text="Common.all_scope" | type Common.all_scope >> ] <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?secure: >>bool <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_label"| ?persistent: >>string <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_delimiter"| -> >> 'a <<a_api subproject="server" text="eref" | type Reference.eref >>>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|eref ~~scope value>> creates an ~Eliom reference for
     the given <<span class="odocwiki_inlinecode"|scope>> and initialize it with <<span class="odocwiki_inlinecode"|value>>~. ~See the ~Eliom
     manual for more information about <<a_manual
     chapter="server-state"|scopes>>~.
@@ -30,13 +30,13 @@
     ~Ocsipersist~)~.  ~Be very careful to use unique names~, and to change
     the name if you change the type of the data~, otherwise the server
     may crash ~(unsafe unmarshaling~)~. ~This parameter has no effect for
-    scope <<a_api subproject="server" | val Eliom_common.request_scope >>~.
+    scope <<a_api subproject="server" | val Common.request_scope >>~.
 
 
     ~Use the optional parameter <<span class="odocwiki_inlinecode"|~~secure~:true>> if you want the data to
     be available only using ~H~T~T~P~S~. ~This parameter has no effect for
-    scopes <<a_api subproject="server" | val Eliom_common.global_scope >>~, <<a_api subproject="server" | val Eliom_common.site_scope >>~, and
-    <<a_api subproject="server" | val Eliom_common.request_scope >>~. ~The default is <<span class="odocwiki_inlinecode"|false>>~, but this default
+    scopes <<a_api subproject="server" | val Common.global_scope >>~, <<a_api subproject="server" | val Common.site_scope >>~, and
+    <<a_api subproject="server" | val Common.request_scope >>~. ~The default is <<span class="odocwiki_inlinecode"|false>>~, but this default
     can be changed in configuration file ~(<<span class="odocwiki_inlinecode"|~<securecookies value~="true"~/~>>>~)~.
     ~This option can be placed as global ~Eliom option ~(inside the <<span class="odocwiki_inlinecode"|~<extension~>>>
     tag which is loading ~Eliom~)~, or in the local configuration of one site
@@ -45,20 +45,20 @@
     ~(and ~N~O~T on the top~-level instructions of the modules loaded before~)~.
 
 
-    //~Warning~: ~Eliom references of scope <<a_api subproject="server" | val Eliom_common.global_scope >>~,
-    <<a_api subproject="server" | val Eliom_common.site_scope >> or
-    <<a_api subproject="server" | val Eliom_common.request_scope >> may be created at any time ~; but for other
+    //~Warning~: ~Eliom references of scope <<a_api subproject="server" | val Common.global_scope >>~,
+    <<a_api subproject="server" | val Common.site_scope >> or
+    <<a_api subproject="server" | val Common.request_scope >> may be created at any time ~; but for other
     scopes~, they must be created when the site information is
     available to ~Eliom~, that is~, either during the initialization
     phase of the server ~(while reading the configuration file~) or
     during a request~. ~Otherwise~, it will raise the exception
-    <<a_api subproject="server" | exception Eliom_common.Eliom_site_information_not_available >>~. ~If you are
+    <<a_api subproject="server" | exception Common.Eliom_site_information_not_available >>~. ~If you are
     using static linking~, you must delay the call to this function
     until the configuration file is read~, using
     <<a_api subproject="server" | val Service.register_eliom_module >>~. ~Otherwise you will also
     get this exception~.//
 >>
-<<pre id="VALeref_from_fun" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|eref~_from~_fun>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| scope: >>[< <<a_api subproject="server" text="Eliom_common.all_scope" | type Eliom_common.all_scope >> ] <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?secure: >>bool <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?persistent: >>string <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_delimiter"| ( >>unit <<span class="ocsforge_color_delimiter"| -> >> 'a<<span class="ocsforge_color_delimiter"| ) >> <<span class="ocsforge_color_delimiter"| -> >> 'a <<a_api subproject="server" text="eref" | type Reference.eref >>>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|eref~_from~_fun>> works like the above <<a_api subproject="server" | val Reference.eref >>~,
+<<pre id="VALeref_from_fun" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|eref~_from~_fun>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  <<span class="ocsforge_color_label"| scope: >>[< <<a_api subproject="server" text="Common.all_scope" | type Common.all_scope >> ] <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?secure: >>bool <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_label"| ?persistent: >>string <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_delimiter"| ( >>unit <<span class="ocsforge_color_delimiter"| -> >> 'a<<span class="ocsforge_color_delimiter"| ) >> <<span class="ocsforge_color_delimiter"| -> >> 'a <<a_api subproject="server" text="eref" | type Reference.eref >>>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|eref~_from~_fun>> works like the above <<a_api subproject="server" | val Reference.eref >>~,
     but instead of providing a value for the initial content~, a function <<span class="odocwiki_inlinecode"|f>> for
     //creating the initial content// is provided ~(cf~. also <<span class="odocwiki_inlinecode"|~Lazy~.from~_fun>>~)~.
 
@@ -73,9 +73,9 @@
 
     //~Warning~: this function cannot be used outside of a service
     handler when <<span class="odocwiki_inlinecode"|eref>> has been created with a scope different of
-    <<a_api subproject="server" | val Eliom_common.global_scope >>~; it can neither be used outside of an
+    <<a_api subproject="server" | val Common.global_scope >>~; it can neither be used outside of an
     ~Eliom module when <<span class="odocwiki_inlinecode"|eref>> has been created with scope
-    <<a_api subproject="server" | val Eliom_common.site_scope >>//
+    <<a_api subproject="server" | val Common.site_scope >>//
 >>
 <<pre id="VALset" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|set>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|'a <<a_api subproject="server" text="eref" | type Reference.eref >> <<span class="ocsforge_color_delimiter"| -> >> 'a <<span class="ocsforge_color_delimiter"| -> >> unit <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|set eref v>> set <<span class="odocwiki_inlinecode"|v>> as current value of the ~Eliom
     reference <<span class="odocwiki_inlinecode"|eref>>~.
@@ -83,9 +83,9 @@
 
     //~Warning~: this function could not be used outside af a service
     handler when <<span class="odocwiki_inlinecode"|eref>> has been created with a scope different of
-    <<a_api subproject="server" | val Eliom_common.global_scope >>~; it can neither be used outside of an
+    <<a_api subproject="server" | val Common.global_scope >>~; it can neither be used outside of an
     ~Eliom module when <<span class="odocwiki_inlinecode"|eref>> has been created with scope
-    <<a_api subproject="server" | val Eliom_common.site_scope >>//
+    <<a_api subproject="server" | val Common.site_scope >>//
 >>
 <<pre id="VALmodify" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|modify>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|'a <<a_api subproject="server" text="eref" | type Reference.eref >> <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_delimiter"| ( >>'a <<span class="ocsforge_color_delimiter"| -> >> 'a<<span class="ocsforge_color_delimiter"| ) >> <<span class="ocsforge_color_delimiter"| -> >> unit <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|modify eref f>> modifies the content of the ~Eliom
     reference <<span class="odocwiki_inlinecode"|eref>> by applying the function <<span class="odocwiki_inlinecode"|f>> on it~.
@@ -93,9 +93,9 @@
 
     //~Warning~: this function could not be used outside af a service
     handler when <<span class="odocwiki_inlinecode"|eref>> has been created with a scope different of
-    <<a_api subproject="server" | val Eliom_common.global_scope >>~; it can neither be used outside of an
+    <<a_api subproject="server" | val Common.global_scope >>~; it can neither be used outside of an
     ~Eliom module when <<span class="odocwiki_inlinecode"|eref>> has been created with scope
-    <<a_api subproject="server" | val Eliom_common.site_scope >>//
+    <<a_api subproject="server" | val Common.site_scope >>//
 >>
 <<pre id="VALunset" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|unset>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|'a <<a_api subproject="server" text="eref" | type Reference.eref >> <<span class="ocsforge_color_delimiter"| -> >> unit <<span class="ocsforge_color_uid"|Lwt>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>>>>>><<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|unset eref>> reset the content of the ~Eliom reference
     <<span class="odocwiki_inlinecode"|eref>> to its initial value~.
@@ -103,9 +103,9 @@
 
     //~Warning~: this function could not be used outside af a service
     handler when <<span class="odocwiki_inlinecode"|eref>> has been created with a scope different of
-    <<a_api subproject="server" | val Eliom_common.global_scope >>~; it can neither be used outside of an
+    <<a_api subproject="server" | val Common.global_scope >>~; it can neither be used outside of an
     ~Eliom module when <<span class="odocwiki_inlinecode"|eref>> has been created with scope
-    <<a_api subproject="server" | val Eliom_common.site_scope >>//
+    <<a_api subproject="server" | val Common.site_scope >>//
 >>
 <<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<a_api subproject="server" text="Volatile" | module Reference.Volatile >> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Reference.Volatile >><<span class="ocsforge_color_keyword"|end>>>><<div class="odocwiki_info"|~Same functions as in <<span class="odocwiki_inlinecode"|~Reference>> but a non~-~Lwt interface
     for non~-persistent ~Eliom references~.

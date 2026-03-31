@@ -175,10 +175,10 @@
   val sub_path : Service_sigs.S.att -> Lib.Url.path
   val full_path : Service_sigs.S.att -> Lib.Url.path
   val prefix : Service_sigs.S.att -> string
-  val get_name : Service_sigs.S.att -> Eliom_common.att_key_serv
-  val post_name : Service_sigs.S.att -> Eliom_common.att_key_serv
+  val get_name : Service_sigs.S.att -> Common.att_key_serv
+  val post_name : Service_sigs.S.att -> Common.att_key_serv
   val redirect_suffix : Service_sigs.S.att -> bool
-  val na_name : Service_sigs.S.non_att -> Eliom_common.na_key_serv
+  val na_name : Service_sigs.S.non_att -> Common.na_key_serv
   val na_keep_get_na_params : Service_sigs.S.non_att -> bool
   val max_use :
     ('a, 'b, 'c, 'd, 'e, 'f, 'g, [< `WithSuffix | `WithoutSuffix ], 'h, 'i,
@@ -197,7 +197,7 @@
     ('a, 'b, 'c, 'd, 'e, 'f, 'g, [< `WithSuffix | `WithoutSuffix ], 'h, 'i,
      'j)
     Service_sigs.S.t ->
-    ('a -> 'b -> Service_sigs.S.result Lwt.t) Eliom_client_value.t option
+    ('a -> 'b -> Service_sigs.S.result Lwt.t) Client_value.t option
   val has_client_fun :
     ('a, 'b, 'c, 'd, 'e, 'f, 'g, [< `WithSuffix | `WithoutSuffix ], 'h, 'i,
      'j)
@@ -211,16 +211,16 @@
      [< `WithSuffix | `WithoutSuffix ] as 'd, 'e, 'f, 'return)
     Service_sigs.S.t ->
     Service_sigs.S.att ->
-    Eliom_common.att_key_serv ->
+    Common.att_key_serv ->
     ('a, 'b, 'meth, Service_sigs.S.att, 'co, 'ext, 'g, 'd, 'e, 'f, 'return)
     Service_sigs.S.t
   val register_delayed_get_or_na_coservice :
-    sp:Eliom_common.server_params ->
-    int * [< Eliom_common.user_scope ] * bool option -> string
+    sp:Common.server_params ->
+    int * [< Common.user_scope ] * bool option -> string
   val register_delayed_post_coservice :
-    sp:Eliom_common.server_params ->
-    int * [< Eliom_common.user_scope ] * bool option ->
-    Eliom_common.att_key_serv -> string
+    sp:Common.server_params ->
+    int * [< Common.user_scope ] * bool option ->
+    Common.att_key_serv -> string
   type send_appl_content =
       XNever
     | XAlways
@@ -237,5 +237,5 @@
     service:('a, 'b, 'c, 'd, 'e, 'f, 'g, [< `WithSuffix | `WithoutSuffix ],
              'h, 'i, 'j)
             Service_sigs.S.t ->
-    ('a -> 'b -> Service_sigs.S.result Lwt.t) Eliom_client_value.t -> unit
+    ('a -> 'b -> Service_sigs.S.result Lwt.t) Client_value.t -> unit
 end >>

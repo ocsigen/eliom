@@ -1,10 +1,10 @@
 <<code language="ocaml" | sig
   type 'a eref = ('a, [ `Volatile ]) Reference.eref'
   val eref :
-    scope:[< Eliom_common.all_scope ] ->
+    scope:[< Common.all_scope ] ->
     ?secure:bool -> 'a -> 'a Reference.Volatile.eref
   val eref_from_fun :
-    scope:[< Eliom_common.all_scope ] ->
+    scope:[< Common.all_scope ] ->
     ?secure:bool -> (unit -> 'a) -> 'a Reference.Volatile.eref
   val get : 'a Reference.Volatile.eref -> 'a
   val set : 'a Reference.Volatile.eref -> 'a -> unit

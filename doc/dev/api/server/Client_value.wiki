@@ -1,5 +1,5 @@
-=Module <<a_api_type subproject="server" | module Eliom_client_value >> =
-<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Eliom_client_value>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Eliom_client_value >><<span class="ocsforge_color_keyword"|end>>>>
+=Module <<a_api_type subproject="server" | module Client_value >> =
+<<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Client_value>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Client_value >><<span class="ocsforge_color_keyword"|end>>>>
 ==@@id="2_Client and shared values"@@~Client and shared values==
 
 
@@ -14,7 +14,7 @@
     manual>> ~)~.  ~They are abstract~, but become concrete once sent to
     the client~. ~See also <<a_api subproject="client" text="the
     concrete representation on the client" |type
-    Eliom_client_value.t>> ~.
+    Client_value.t>> ~.
 >>
 <<pre id="EXCEPTIONClient_value_creation_invalid_context" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|exception>> <<span class="odocwiki_name"|Client_value_creation_invalid_context>> <<span class="ocsforge_color_keyword"|of>> <<span class="odocwiki_type"|string>>>><<div class="odocwiki_info"|~Raised if a client value of the given closure ~I~D is created at a
     point in time where it is neither global ~(i~.e~. during the

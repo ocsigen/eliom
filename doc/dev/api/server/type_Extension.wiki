@@ -5,6 +5,5 @@
   val run_eliom_extension :
     Extension.eliom_extension_sig ->
     float ->
-    Eliom_common.info ->
-    Eliom_common.sitedata -> Ocsigen_extensions.answer Lwt.t
+    Common.info -> Common.sitedata -> Ocsigen_extensions.answer Lwt.t
 end >>

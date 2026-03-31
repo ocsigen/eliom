@@ -181,15 +181,15 @@
     ~Note that you should not catch every exception here since some
     ~Eliom mechanisms are done using exceptions~, like redirections~.  ~Do
     not catch exception defined in ~Eliom except
-    <<a_api subproject="server" | exception Eliom_common.Eliom_404 >>~, <<a_api subproject="server" | exception Eliom_common.Eliom_Wrong_parameter >>
-    <<a_api subproject="server" | exception Eliom_common.Eliom_Typing_Error >>~.
+    <<a_api subproject="server" | exception Common.Eliom_404 >>~, <<a_api subproject="server" | exception Common.Eliom_Wrong_parameter >>
+    <<a_api subproject="server" | exception Common.Eliom_Typing_Error >>~.
 
 
     //~Warning~: ~This functions must be called when the site
     information is available~, that is~, either during a request or
     during the initialisation phase of the site~.  ~Otherwise~, it will
     raise the exception
-    <<a_api subproject="server" | exception Eliom_common.Eliom_site_information_not_available >>~.  ~If you are
+    <<a_api subproject="server" | exception Common.Eliom_site_information_not_available >>~.  ~If you are
     using static linking~, you must delay the call to this function
     until the configuration file is read~, using
     <<a_api subproject="server" | val Service.register_eliom_module >>~. ~Otherwise you will also

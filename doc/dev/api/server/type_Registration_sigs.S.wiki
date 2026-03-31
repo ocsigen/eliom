@@ -5,7 +5,7 @@
   type result
   val register :
     ?app:string ->
-    ?scope:[< Eliom_common.scope ] ->
+    ?scope:[< Common.scope ] ->
     ?options:Registration_sigs.S.options ->
     ?charset:string ->
     ?code:int ->

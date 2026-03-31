@@ -119,21 +119,21 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="client_ev"| value Notif.S.client_ev >> ~[<<a_api subproject="server" | module Notif.S >>~]|<<div class="odocwiki_info"|~Returns the client react event~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="client_value"| value Eliom_syntax.client_value >> ~[<<a_api subproject="server" | module Eliom_syntax >>~]|<<div class="odocwiki_info"|~Registers a client value datum for the next server section when
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="client_value"| value Syntax.client_value >> ~[<<a_api subproject="server" | module Syntax >>~]|<<div class="odocwiki_info"|~Registers a client value datum for the next server section when
     executed in a global~_data ~(cf~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="close_client_section"| value Eliom_syntax.close_client_section >> ~[<<a_api subproject="server" | module Eliom_syntax >>~]|<<div class="odocwiki_info"|~Called at the end of every client or shared section~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="close_client_section"| value Syntax.close_client_section >> ~[<<a_api subproject="server" | module Syntax >>~]|<<div class="odocwiki_info"|~Called at the end of every client or shared section~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="close_server_section"| value Eliom_syntax.close_server_section >> ~[<<a_api subproject="server" | module Eliom_syntax >>~]|<<div class="odocwiki_info"|~Called at the end of each server or shared section~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="close_server_section"| value Syntax.close_server_section >> ~[<<a_api subproject="server" | module Syntax >>~]|<<div class="odocwiki_info"|~Called at the end of each server or shared section~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="comet_client_process_scope"| value Eliom_common.comet_client_process_scope >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="comet_client_process_scope"| value Common.comet_client_process_scope >> ~[<<a_api subproject="server" | module Common >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="concat"| value Shared_sigs.RLIST.concat >> ~[<<a_api subproject="server" | module Shared_sigs.RLIST >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="const"| value Shared_sigs.S.const >> ~[<<a_api subproject="server" | module Shared_sigs.S >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="cookie_level_of_user_scope"| value Eliom_common.cookie_level_of_user_scope >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="cookie_scope_of_user_scope"| value Eliom_common.cookie_scope_of_user_scope >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="cookie_level_of_user_scope"| value Common.cookie_level_of_user_scope >> ~[<<a_api subproject="server" | module Common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="cookie_scope_of_user_scope"| value Common.cookie_scope_of_user_scope >> ~[<<a_api subproject="server" | module Common >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="coordinates"| value Parameter_sigs.S.coordinates >> ~[<<a_api subproject="server" | module Parameter_sigs.S >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|coordinates s>> means that the service takes as parameters the
       coordinates of a point in an <<span class="odocwiki_inlinecode"|~<input type~="image" ~.~.~.~>>>~.
 >>
@@ -141,9 +141,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="create"| value Service.create >> ~[<<a_api subproject="server" | module Service >>~]|<<div class="odocwiki_info"|**~Service definition**
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="create"| value Cscache.create >> ~[<<a_api subproject="server" | module Cscache >>~]|<<div class="odocwiki_info"|~Create a new table~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="create"| value Cscache.create >> ~[<<a_api subproject="server" | module Cscache >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="create"| value Shared.React.S.create >> ~[<<a_api subproject="server" | module Shared.React.S >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|create ~?default ~?reset~_default x>> produces a pair <<span class="odocwiki_inlinecode"|s~, f>>~,
         where <<span class="odocwiki_inlinecode"|s>> is a ~(shared~) reactive signal~, and <<span class="odocwiki_inlinecode"|f>> is a shared
         function for updating the signal~.
@@ -222,7 +220,7 @@
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="create_newest"| value Comet.Channel.create_newest >> ~[<<a_api subproject="server" | module Comet.Channel >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|create~_newest s>> is similar to <<span class="odocwiki_inlinecode"|create
-      ~~scope~:~Eliom~_common~.site~_scope s>> but only the last message is
+      ~~scope~:~Common~.site~_scope s>> but only the last message is
       returned to the client~.
 >>
 |
@@ -234,7 +232,7 @@
         <<span class="odocwiki_inlinecode"|elt>>~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="create_scope_hierarchy"| value Eliom_common.create_scope_hierarchy >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="create_scope_hierarchy"| value Common.create_scope_hierarchy >> ~[<<a_api subproject="server" | module Common >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="create_unlimited"| value Comet.Channel.create_unlimited >> ~[<<a_api subproject="server" | module Comet.Channel >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|create~_unlimited s>> creates a channel which does not read
       immediately on the stream~.
 >>
@@ -246,6 +244,8 @@
       reference a ~Cascading ~Style~Sheet ~(~C~S~S~)~.
 >>
 |
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="current_class"| value Tools.current_class >> ~[<<a_api subproject="server" | module Tools >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="current_path_class"| value Tools.current_path_class >> ~[<<a_api subproject="server" | module Tools >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="current_persistent_data_state"| value State.Ext.current_persistent_data_state >> ~[<<a_api subproject="server" | module State.Ext >>~]|<<div class="odocwiki_info"|~Same for persistent data
 >>
 |
@@ -263,17 +263,18 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="default_appl_service_options"| value Registration.default_appl_service_options >> ~[<<a_api subproject="server" | module Registration >>~]|<<div class="odocwiki_info"|~The default options record for an eliom service~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="default_group_scope"| value Eliom_common.default_group_scope >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="default_process_scope"| value Eliom_common.default_process_scope >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="default_group_scope"| value Common.default_group_scope >> ~[<<a_api subproject="server" | module Common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="default_process_scope"| value Common.default_process_scope >> ~[<<a_api subproject="server" | module Common >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="default_protocol_is_https"| value Config.default_protocol_is_https >> ~[<<a_api subproject="server" | module Config >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|default~_protocol~_is~_https ~(~)>> returns <<span class="odocwiki_inlinecode"|true>>
     if there is option ~(<<span class="odocwiki_inlinecode"|~<host
     defaultprotocol~="https"~>>>~)or false otherwise~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="default_session_scope"| value Eliom_common.default_session_scope >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="default_session_scope"| value Common.default_session_scope >> ~[<<a_api subproject="server" | module Common >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="deinit"| value Notif.S.deinit >> ~[<<a_api subproject="server" | module Notif.S >>~]|<<div class="odocwiki_info"|~Deinitialise~/deactivate the notification module for the current client~.
 >>
 |
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="disabled_class"| value Tools.disabled_class >> ~[<<a_api subproject="server" | module Tools >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="discard"| value State.discard >> ~[<<a_api subproject="server" | module State >>~]|<<div class="odocwiki_info"|~Delete server~-side ~(volatile and persistent~) state data and services
     for a session~,
     a group of sessions~, a client process or a request~.
@@ -302,19 +303,16 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="discard_state"| value State.Ext.discard_state >> ~[<<a_api subproject="server" | module State.Ext >>~]|<<div class="odocwiki_info"|~Discard external states~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="do_cache"| value Cscache.do_cache >> ~[<<a_api subproject="server" | module Cscache >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|do~_cache cache key value>> adds the association from <<span class="odocwiki_inlinecode"|key>> to
-    <<span class="odocwiki_inlinecode"|value>> in <<span class="odocwiki_inlinecode"|cache>>~, or replaces it if not already present~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="do_cache"| value Cscache.do_cache >> ~[<<a_api subproject="server" | module Cscache >>~]||
 |@@ @style="tet-align: left;"@@\\E|
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="eliom_link_too_old"| value Eliom_common.eliom_link_too_old >> ~[<<a_api subproject="server" | module Eliom_common >>~]|<<div class="odocwiki_info"|~If present and true in request data~, it means that
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="eliom_link_too_old"| value Common.eliom_link_too_old >> ~[<<a_api subproject="server" | module Common >>~]|<<div class="odocwiki_info"|~If present and true in request data~, it means that
     the previous coservice does not exist any more
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="eliom_logs_src"| value Lib.eliom_logs_src >> ~[<<a_api subproject="server" | module Lib >>~]|<<div class="odocwiki_info"|~Log section for logs generated by ~Eliom~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="eliom_service_session_expired"| value Eliom_common.eliom_service_session_expired >> ~[<<a_api subproject="server" | module Eliom_common >>~]|<<div class="odocwiki_info"|~If present in request data~, means that
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="eliom_service_session_expired"| value Common.eliom_service_session_expired >> ~[<<a_api subproject="server" | module Common >>~]|<<div class="odocwiki_info"|~If present in request data~, means that
     the service session cookies does not exist any more~.
 >>
 |
@@ -341,8 +339,8 @@
     //creating the initial content// is provided ~(cf~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="escaped_value"| value Eliom_syntax.escaped_value >> ~[<<a_api subproject="server" | module Eliom_syntax >>~]|<<div class="odocwiki_info"|~Convert any value to a <<span class="odocwiki_inlinecode"|~Eliom~_runtime~.escaped~_value>> for usage
-    in the <<span class="odocwiki_inlinecode"|args>> argument to <<a_api subproject="server" | val Eliom_syntax.client_value >>~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="escaped_value"| value Syntax.escaped_value >> ~[<<a_api subproject="server" | module Syntax >>~]|<<div class="odocwiki_info"|~Convert any value to a <<span class="odocwiki_inlinecode"|~Eliom~_runtime~.escaped~_value>> for usage
+    in the <<span class="odocwiki_inlinecode"|args>> argument to <<a_api subproject="server" | val Syntax.client_value >>~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="expecting_process_page"| value Request_info.expecting_process_page >> ~[<<a_api subproject="server" | module Request_info >>~]|<<div class="odocwiki_info"|~Returns <<span class="odocwiki_inlinecode"|true>> if the request was done by a client side ~Eliom program~,
@@ -371,14 +369,9 @@
         <<span class="odocwiki_inlinecode"|true>>~, and to no attribute while <<span class="odocwiki_inlinecode"|b>> is <<span class="odocwiki_inlinecode"|false>>~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="find"| value Cscache.find >> ~[<<a_api subproject="server" | module Cscache >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|find cache get~_from~_db key>> returns the value associated to <<span class="odocwiki_inlinecode"|key>>
-    in cache~.
->>
-|
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="find_if_ready"| value Cscache.find_if_ready >> ~[<<a_api subproject="server" | module Cscache >>~]|<<div class="odocwiki_info"|~Find a piece of data in local cache~, without trying to fetch it
-    from server~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="find"| value Cscache.find >> ~[<<a_api subproject="server" | module Cscache >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="find_if_ready"| value Cscache.find_if_ready >> ~[<<a_api subproject="server" | module Cscache >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="first_class"| value Tools.first_class >> ~[<<a_api subproject="server" | module Tools >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="float"| value Parameter_sigs.S.float >> ~[<<a_api subproject="server" | module Parameter_sigs.S >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|float s>> means that the service takes a float as the parameter
       named <<span class="odocwiki_inlinecode"|s>>~.
 >>
@@ -518,7 +511,7 @@
    that concern the running service~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_global_data"| value Eliom_syntax.get_global_data >> ~[<<a_api subproject="server" | module Eliom_syntax >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_global_data"| value Syntax.get_global_data >> ~[<<a_api subproject="server" | module Syntax >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_global_persistent_data_state_timeout"| value State.get_global_persistent_data_state_timeout >> ~[<<a_api subproject="server" | module State >>~]|<<div class="odocwiki_info"|~Returns the ~(server side~) timeout for persistent states~.
 >>
 |
@@ -620,7 +613,7 @@
     request~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_request_data"| value Eliom_syntax.get_request_data >> ~[<<a_api subproject="server" | module Eliom_syntax >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_request_data"| value Syntax.get_request_data >> ~[<<a_api subproject="server" | module Syntax >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_ri"| value Request_info.get_ri >> ~[<<a_api subproject="server" | module Request_info >>~]|<<div class="odocwiki_info"|returns all the information about the request~.
 >>
 |
@@ -694,7 +687,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_volatile_data_state_timeout"| value State.get_volatile_data_state_timeout >> ~[<<a_api subproject="server" | module State >>~]|<<div class="odocwiki_info"|returns the timeout for current volatile data state~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="global_context"| value Eliom_syntax.global_context >> ~[<<a_api subproject="server" | module Eliom_syntax >>~]|<<div class="odocwiki_info"|~Returns whether client values created in the current context
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="global_context"| value Syntax.global_context >> ~[<<a_api subproject="server" | module Syntax >>~]|<<div class="odocwiki_info"|~Returns whether client values created in the current context
     should be considered global
 >>
 |
@@ -702,27 +695,12 @@
       accessing the global data~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="global_scope"| value Eliom_common.global_scope >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="global_scope"| value Common.global_scope >> ~[<<a_api subproject="server" | module Common >>~]||
 |@@ @style="tet-align: left;"@@\\H|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="have_id"| value Content.Html.Id.have_id >> ~[<<a_api subproject="server" | module Content.Html.Id >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="head"| value Tools.HTML5_TOOLS.head >> ~[<<a_api subproject="server" | module Tools.HTML5_TOOLS >>~]|<<div class="odocwiki_info"|~An auxiliary function for creating an ~H~T~M~L head
-      elements~.
->>
-|
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="hierarchical_menu_breadth_first"| value Tools.HTML5_TOOLS.hierarchical_menu_breadth_first >> ~[<<a_api subproject="server" | module Tools.HTML5_TOOLS >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|hierarchical~_menu~_breadth~_first site ~(~)>>
-      constructs a hierarchical menu by exploring the hierarchical
-      <<span class="odocwiki_inlinecode"|site>> description using a breadth~_first algorithm~: the whole
-      menu for one level will be displayed~, followed by the sub~-menu
-      leading to the current service~, and so one~.
->>
-|
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="hierarchical_menu_depth_first"| value Tools.HTML5_TOOLS.hierarchical_menu_depth_first >> ~[<<a_api subproject="server" | module Tools.HTML5_TOOLS >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|hierarchical~_menu~_depth~_first site ~(~)>> constructs
-      a hieranrchical menu by exploring the hierarchical <<span class="odocwiki_inlinecode"|site>>
-      description using a depth~-first algorithm~: the first menu item
-      will be displayed~, followed by the whole sub~-menu for this item~,
-      then the second menu item with its sub~-menu~, and so on~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="head"| value Tools.HTML5_TOOLS.head >> ~[<<a_api subproject="server" | module Tools.HTML5_TOOLS >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="hierarchical_menu_breadth_first"| value Tools.HTML5_TOOLS.hierarchical_menu_breadth_first >> ~[<<a_api subproject="server" | module Tools.HTML5_TOOLS >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="hierarchical_menu_depth_first"| value Tools.HTML5_TOOLS.hierarchical_menu_depth_first >> ~[<<a_api subproject="server" | module Tools.HTML5_TOOLS >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="html"| value Tools.HTML5_TOOLS.html >> ~[<<a_api subproject="server" | module Tools.HTML5_TOOLS >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="https_static_dir"| value Service_sigs.S.https_static_dir >> ~[<<a_api subproject="server" | module Service_sigs.S >>~]|<<div class="odocwiki_info"|~Like <<a_api subproject="server" | val Service_sigs.S.static_dir >>~, but forces ~H~T~T~P~S link
 >>
@@ -804,22 +782,21 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="l5_s"| value Shared_sigs.S.Lwt.l5_s >> ~[<<a_api subproject="server" | module Shared_sigs.S.Lwt >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="l6"| value Shared_sigs.S.l6 >> ~[<<a_api subproject="server" | module Shared_sigs.S >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="l6_s"| value Shared_sigs.S.Lwt.l6_s >> ~[<<a_api subproject="server" | module Shared_sigs.S.Lwt >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="last_class"| value Tools.last_class >> ~[<<a_api subproject="server" | module Tools >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="lazy_form"| value Content_sigs.LINKS_AND_FORMS.lazy_form >> ~[<<a_api subproject="server" | module Content_sigs.LINKS_AND_FORMS >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="level_of_user_scope"| value Eliom_common.level_of_user_scope >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="level_class"| value Tools.level_class >> ~[<<a_api subproject="server" | module Tools >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="level_of_user_scope"| value Common.level_of_user_scope >> ~[<<a_api subproject="server" | module Common >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="list"| value Parameter_sigs.S.list >> ~[<<a_api subproject="server" | module Parameter_sigs.S >>~]|<<div class="odocwiki_info"|~The service takes a list of parameters~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="list_scope_hierarchies"| value Eliom_common.list_scope_hierarchies >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="list_scope_hierarchies"| value Common.list_scope_hierarchies >> ~[<<a_api subproject="server" | module Common >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="listen"| value Notif.S.listen >> ~[<<a_api subproject="server" | module Notif.S >>~]|<<div class="odocwiki_info"|~Make client process listen on data whose index is <<span class="odocwiki_inlinecode"|key>>
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="local"| value Shared_sigs.VALUE.local >> ~[<<a_api subproject="server" | module Shared_sigs.VALUE >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|local x>> is the local portion of <<span class="odocwiki_inlinecode"|x>>~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="local_find"| value Cscache.local_find >> ~[<<a_api subproject="server" | module Cscache >>~]|<<div class="odocwiki_info"|~Find a piece of data in local cache~, without trying to fetch it
-    from server~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="local_find"| value Cscache.local_find >> ~[<<a_api subproject="server" | module Cscache >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="lwt_get_form"| value Form_sigs.S.lwt_get_form >> ~[<<a_api subproject="server" | module Form_sigs.S >>~]|<<div class="odocwiki_info"|~Same as <<a_api subproject="server" | val Form_sigs.S.get_form >> but taking a cooperative function for
       <<span class="odocwiki_inlinecode"|~<form~>>> content generation~.
 >>
@@ -880,11 +857,8 @@
       able to listen to~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="menu"| value Tools.HTML5_TOOLS.menu >> ~[<<a_api subproject="server" | module Tools.HTML5_TOOLS >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|menu elts ~(~)>>~, where <<span class="odocwiki_inlinecode"|elts>> is a list of pair
-      <<span class="odocwiki_inlinecode"|~(service~, content~)>>~, creates a list of link towards the
-      <<span class="odocwiki_inlinecode"|service>>s~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="menu"| value Tools.HTML5_TOOLS.menu >> ~[<<a_api subproject="server" | module Tools.HTML5_TOOLS >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="menu_class"| value Tools.menu_class >> ~[<<a_api subproject="server" | module Tools >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="merge"| value Shared_sigs.S.merge >> ~[<<a_api subproject="server" | module Shared_sigs.S >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="merge_s"| value Shared_sigs.S.Lwt.merge_s >> ~[<<a_api subproject="server" | module Shared_sigs.S.Lwt >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="modify"| value Reference.Ext.modify >> ~[<<a_api subproject="server" | module Reference.Ext >>~]|<<div class="odocwiki_info"|~Warning~: the function will be executed with the current context
@@ -1034,10 +1008,10 @@
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="remove_persistent_data"| value State.Ext.Low_level.remove_persistent_data >> ~[<<a_api subproject="server" | module State.Ext.Low_level >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="remove_volatile_data"| value State.Ext.Low_level.remove_volatile_data >> ~[<<a_api subproject="server" | module State.Ext.Low_level >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="request_scope"| value Eliom_common.request_scope >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="request_scope"| value Common.request_scope >> ~[<<a_api subproject="server" | module Common >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="result_of_http_result"| value Registration_sigs.PARAM.result_of_http_result >> ~[<<a_api subproject="server" | module Registration_sigs.PARAM >>~]||
 |@@ @style="tet-align: left;"@@\\S|
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="scope_hierarchy_of_user_scope"| value Eliom_common.scope_hierarchy_of_user_scope >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="scope_hierarchy_of_user_scope"| value Common.scope_hierarchy_of_user_scope >> ~[<<a_api subproject="server" | module Common >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="section"| value Comet.section >> ~[<<a_api subproject="server" | module Comet >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="section"| value Parameter_sigs.section >> ~[<<a_api subproject="server" | module Parameter_sigs >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="select"| value Form_sigs.S.select >> ~[<<a_api subproject="server" | module Form_sigs.S >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag~.
@@ -1145,7 +1119,7 @@
     <<span class="odocwiki_inlinecode"|~4~0~4>> or any exception during page generation~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_global"| value Eliom_syntax.set_global >> ~[<<a_api subproject="server" | module Eliom_syntax >>~]|<<div class="odocwiki_info"|~All client values created between <<span class="odocwiki_inlinecode"|set~_global true>> and
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_global"| value Syntax.set_global >> ~[<<a_api subproject="server" | module Syntax >>~]|<<div class="odocwiki_info"|~All client values created between <<span class="odocwiki_inlinecode"|set~_global true>> and
     <<span class="odocwiki_inlinecode"|set~_global false>> are considered global client values
     ~(cf~.
 >>
@@ -1249,7 +1223,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="set_volatile_timeout"| value Config.set_volatile_timeout >> ~[<<a_api subproject="server" | module Config >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="signal"| value Shared_sigs.RLIST.signal >> ~[<<a_api subproject="server" | module Shared_sigs.RLIST >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="singleton_s"| value Shared_sigs.RLIST.singleton_s >> ~[<<a_api subproject="server" | module Shared_sigs.RLIST >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="site_scope"| value Eliom_common.site_scope >> ~[<<a_api subproject="server" | module Eliom_common >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="site_scope"| value Common.site_scope >> ~[<<a_api subproject="server" | module Common >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="sp"| value Eliom_types.sp >> ~[<<a_api subproject="server" | module Eliom_types >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="static_dir"| value Service_sigs.S.static_dir >> ~[<<a_api subproject="server" | module Service_sigs.S >>~]|<<div class="odocwiki_info"|~The predefined service <<span class="odocwiki_inlinecode"|static~_dir>> allows one to create links
       to static files~.
@@ -1268,11 +1242,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="string"| value Form_sigs.S.string >> ~[<<a_api subproject="server" | module Form_sigs.S >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="string_escape"| value Lib.string_escape >> ~[<<a_api subproject="server" | module Lib >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="string_radio_required"| value Form_sigs.S.string_radio_required >> ~[<<a_api subproject="server" | module Form_sigs.S >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="structure_links"| value Tools.HTML5_TOOLS.structure_links >> ~[<<a_api subproject="server" | module Tools.HTML5_TOOLS >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|structure~_links site ~(~)>> returns the tags <<span class="odocwiki_inlinecode"|~<link
-      rel~="subsection" ~.~.~.~>>> and <<span class="odocwiki_inlinecode"|~<link rev~="subsection" ~.~.~.~>>> for the
-      given hierarchical <<span class="odocwiki_inlinecode"|site>>~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="structure_links"| value Tools.HTML5_TOOLS.structure_links >> ~[<<a_api subproject="server" | module Tools.HTML5_TOOLS >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="suffix"| value Parameter_sigs.S.suffix >> ~[<<a_api subproject="server" | module Parameter_sigs.S >>~]|<<div class="odocwiki_info"|~Tells that the parameter of the service handler is the suffix of
       the ~U~R~L of the current service~.
 >>
@@ -1304,6 +1274,9 @@
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="to_json"| value Lib.to_json >> ~[<<a_api subproject="server" | module Lib >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="to_poly"| value Syntax.to_poly >> ~[<<a_api subproject="server" | module Syntax >>~]|<<div class="odocwiki_info"|~Used by the ~P~P~X to serialize injection values~.
+>>
+|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="to_react"| value Eliom_react.Up.to_react >> ~[<<a_api subproject="server" | module Eliom_react.Up >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|to~_react e>> injects the up events <<span class="odocwiki_inlinecode"|e>> into react events so that it can
       be manipulated as a standard event~.
 >>
@@ -1404,23 +1377,15 @@
       dynamically loads the appropriate version of the application~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="with_css_file"| value Tools.with_css_file >> ~[<<a_api subproject="server" | module Tools >>~]|<<div class="odocwiki_info"|~Record an ~C~S~S file to be included in <<span class="odocwiki_inlinecode"|~Tools~.~F~.html>>~.
->>
-|
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="with_js_file"| value Tools.with_js_file >> ~[<<a_api subproject="server" | module Tools >>~]|<<div class="odocwiki_info"|~Record an ~(external~) ~Java~Script file to be included in
-    <<span class="odocwiki_inlinecode"|~Tools~.~F~.html>>~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="with_css_file"| value Tools.with_css_file >> ~[<<a_api subproject="server" | module Tools >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="with_js_file"| value Tools.with_js_file >> ~[<<a_api subproject="server" | module Tools >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="wrap"| value Wrap.wrap >> ~[<<a_api subproject="server" | module Wrap >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="wrap"| value Content.Xml.wrap >> ~[<<a_api subproject="server" | module Content.Xml >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|~Content~.~Xml~.wrap page v>> is like <<span class="odocwiki_inlinecode"|~Wrap~.wrap v>> but
       it makes sure that all <<span class="odocwiki_inlinecode"|elt>>s in <<span class="odocwiki_inlinecode"|v>> which are included in
       <<span class="odocwiki_inlinecode"|page>> are sent with empty content~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="wrap_handler"| value Tools.wrap_handler >> ~[<<a_api subproject="server" | module Tools >>~]|<<div class="odocwiki_info"|~This function allows one to wrap a service handler easily depending
-    on whether certain information is available or not~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="wrap_handler"| value Tools.wrap_handler >> ~[<<a_api subproject="server" | module Tools >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="write"| value Bus.write >> ~[<<a_api subproject="server" | module Bus >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|write b x>> sends the value <<span class="odocwiki_inlinecode"|x>> on the bus <<span class="odocwiki_inlinecode"|b>>~.
 >>
 |

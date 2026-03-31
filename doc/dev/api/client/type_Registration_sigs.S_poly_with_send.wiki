@@ -4,7 +4,7 @@
   type _ return
   val register :
     ?app:string ->
-    ?scope:[< Eliom_common.scope ] ->
+    ?scope:[< Common.scope ] ->
     ?options:options ->
     ?charset:string ->
     ?code:int ->

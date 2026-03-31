@@ -195,7 +195,7 @@
         Parameter_sigs.S.params_type ->
         'a -> string list option * Parameter_sigs.S.params
       val reconstruct_params :
-        sp:Eliom_common.server_params ->
+        sp:Common.server_params ->
         ('a, [< `WithSuffix | `WithoutSuffix ], 'c)
         Parameter_sigs.S.params_type ->
         (string * string) list Lwt.t option ->

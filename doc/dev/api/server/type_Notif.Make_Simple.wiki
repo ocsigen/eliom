@@ -11,7 +11,7 @@
     module Ext :
       sig
         val unlisten :
-          ?sitedata:Eliom_common.sitedata ->
+          ?sitedata:Common.sitedata ->
           ([< `Client_process ], [< `Data ]) State.Ext.state -> key -> unit
       end
     val notify :

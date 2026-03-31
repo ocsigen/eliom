@@ -10,16 +10,17 @@
       type result = browser_content kind
       val register :
         ?app:string ->
-        ?scope:[< Eliom_common.scope ] ->
+        ?scope:[< Eliom.Common.scope ] ->
         ?options:options ->
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Service.Cohttp.Header.t ->
+        ?headers:Eliom.Service.Cohttp.Header.t ->
         ?secure_session:bool ->
-        service:('get, 'post, 'a, 'b, 'c, Service.non_ext, Service.reg,
-                 [< `WithSuffix | `WithoutSuffix ], 'd, 'e, return)
-                Service.t ->
+        service:('get, 'post, 'a, 'b, 'c, Eliom.Service.non_ext,
+                 Eliom.Service.reg, [< `WithSuffix | `WithoutSuffix ], 'd,
+                 'e, return)
+                Eliom.Service.t ->
         ?error_handler:((string * exn) list -> page Lwt.t) ->
         ('get -> 'post -> page Lwt.t) -> unit
       val send :
@@ -27,7 +28,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Service.Cohttp.Header.t -> page -> result Lwt.t
+        ?headers:Eliom.Service.Cohttp.Header.t -> page -> result Lwt.t
     end
   module Action :
     sig
@@ -37,16 +38,17 @@
       type result = browser_content kind
       val register :
         ?app:string ->
-        ?scope:[< Eliom_common.scope ] ->
+        ?scope:[< Eliom.Common.scope ] ->
         ?options:options ->
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Service.Cohttp.Header.t ->
+        ?headers:Eliom.Service.Cohttp.Header.t ->
         ?secure_session:bool ->
-        service:('get, 'post, 'a, 'b, 'c, Service.non_ext, Service.reg,
-                 [< `WithSuffix | `WithoutSuffix ], 'd, 'e, return)
-                Service.t ->
+        service:('get, 'post, 'a, 'b, 'c, Eliom.Service.non_ext,
+                 Eliom.Service.reg, [< `WithSuffix | `WithoutSuffix ], 'd,
+                 'e, return)
+                Eliom.Service.t ->
         ?error_handler:((string * exn) list -> page Lwt.t) ->
         ('get -> 'post -> page Lwt.t) -> unit
       val send :
@@ -54,7 +56,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Service.Cohttp.Header.t -> page -> result Lwt.t
+        ?headers:Eliom.Service.Cohttp.Header.t -> page -> result Lwt.t
     end
   module Unit :
     sig
@@ -64,16 +66,17 @@
       type result = browser_content kind
       val register :
         ?app:string ->
-        ?scope:[< Eliom_common.scope ] ->
+        ?scope:[< Eliom.Common.scope ] ->
         ?options:options ->
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Service.Cohttp.Header.t ->
+        ?headers:Eliom.Service.Cohttp.Header.t ->
         ?secure_session:bool ->
-        service:('get, 'post, 'a, 'b, 'c, Service.non_ext, Service.reg,
-                 [< `WithSuffix | `WithoutSuffix ], 'd, 'e, return)
-                Service.t ->
+        service:('get, 'post, 'a, 'b, 'c, Eliom.Service.non_ext,
+                 Eliom.Service.reg, [< `WithSuffix | `WithoutSuffix ], 'd,
+                 'e, return)
+                Eliom.Service.t ->
         ?error_handler:((string * exn) list -> page Lwt.t) ->
         ('get -> 'post -> page Lwt.t) -> unit
       val send :
@@ -81,7 +84,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Service.Cohttp.Header.t -> page -> result Lwt.t
+        ?headers:Eliom.Service.Cohttp.Header.t -> page -> result Lwt.t
     end
   type appl_service_options = { do_not_launch : bool; }
   module App :
@@ -95,16 +98,17 @@
         type result = app_id application_content kind
         val register :
           ?app:string ->
-          ?scope:[< Eliom_common.scope ] ->
+          ?scope:[< Eliom.Common.scope ] ->
           ?options:options ->
           ?charset:string ->
           ?code:int ->
           ?content_type:string ->
-          ?headers:Service.Cohttp.Header.t ->
+          ?headers:Eliom.Service.Cohttp.Header.t ->
           ?secure_session:bool ->
-          service:('get, 'post, 'a, 'b, 'c, Service.non_ext, Service.reg,
-                   [< `WithSuffix | `WithoutSuffix ], 'd, 'e, return)
-                  Service.t ->
+          service:('get, 'post, 'a, 'b, 'c, Eliom.Service.non_ext,
+                   Eliom.Service.reg, [< `WithSuffix | `WithoutSuffix ], 'd,
+                   'e, return)
+                  Eliom.Service.t ->
           ?error_handler:((string * exn) list -> page Lwt.t) ->
           ('get -> 'post -> page Lwt.t) -> unit
         val send :
@@ -112,7 +116,7 @@
           ?charset:string ->
           ?code:int ->
           ?content_type:string ->
-          ?headers:Service.Cohttp.Header.t -> page -> result Lwt.t
+          ?headers:Eliom.Service.Cohttp.Header.t -> page -> result Lwt.t
       end
   type _ redirection =
       Redirection :
@@ -132,16 +136,17 @@
       type 'a return = Service.non_ocaml
       val register :
         ?app:string ->
-        ?scope:[< Eliom_common.scope ] ->
+        ?scope:[< Eliom.Common.scope ] ->
         ?options:options ->
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Service.Cohttp.Header.t ->
+        ?headers:Eliom.Service.Cohttp.Header.t ->
         ?secure_session:bool ->
-        service:('get, 'post, 'b, 'c, 'd, Service.non_ext, Service.reg,
-                 [< `WithSuffix | `WithoutSuffix ], 'e, 'f, 'a return)
-                Service.t ->
+        service:('get, 'post, 'b, 'c, 'd, Eliom.Service.non_ext,
+                 Eliom.Service.reg, [< `WithSuffix | `WithoutSuffix ], 'e,
+                 'f, 'a return)
+                Eliom.Service.t ->
         ?error_handler:((string * exn) list -> 'a page Lwt.t) ->
         ('get -> 'post -> 'a page Lwt.t) -> unit
       type 'a result = browser_content kind
@@ -150,7 +155,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Service.Cohttp.Header.t -> 'a page -> 'a result Lwt.t
+        ?headers:Eliom.Service.Cohttp.Header.t -> 'a page -> 'a result Lwt.t
     end
   module Any :
     sig
@@ -159,16 +164,17 @@
       type 'a return = Service.non_ocaml
       val register :
         ?app:string ->
-        ?scope:[< Eliom_common.scope ] ->
+        ?scope:[< Eliom.Common.scope ] ->
         ?options:options ->
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Service.Cohttp.Header.t ->
+        ?headers:Eliom.Service.Cohttp.Header.t ->
         ?secure_session:bool ->
-        service:('get, 'post, 'b, 'c, 'd, Service.non_ext, Service.reg,
-                 [< `WithSuffix | `WithoutSuffix ], 'e, 'f, 'a return)
-                Service.t ->
+        service:('get, 'post, 'b, 'c, 'd, Eliom.Service.non_ext,
+                 Eliom.Service.reg, [< `WithSuffix | `WithoutSuffix ], 'e,
+                 'f, 'a return)
+                Eliom.Service.t ->
         ?error_handler:((string * exn) list -> 'a page Lwt.t) ->
         ('get -> 'post -> 'a page Lwt.t) -> unit
       type 'a result = 'a kind
@@ -177,7 +183,7 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Service.Cohttp.Header.t -> 'a page -> 'a result Lwt.t
+        ?headers:Eliom.Service.Cohttp.Header.t -> 'a page -> 'a result Lwt.t
     end
   val appl_self_redirect :
     ('page -> [< `Appl of 'a | `Browser ] Registration.kind Lwt.t) ->

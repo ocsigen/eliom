@@ -45,7 +45,7 @@
       type result
       val register :
         ?app:string ->
-        ?scope:[< Eliom_common.scope ] ->
+        ?scope:[< Common.scope ] ->
         ?options:Registration_sigs.S.options ->
         ?charset:string ->
         ?code:int ->
@@ -74,7 +74,7 @@
       type result
       val register :
         ?app:string ->
-        ?scope:[< Eliom_common.scope ] ->
+        ?scope:[< Common.scope ] ->
         ?options:options ->
         ?charset:string ->
         ?code:int ->
@@ -94,7 +94,7 @@
         ?headers:Cohttp.Header.t -> page -> result Lwt.t
       val create :
         ?app:string ->
-        ?scope:[< Eliom_common.scope ] ->
+        ?scope:[< Common.scope ] ->
         ?options:options ->
         ?charset:string ->
         ?code:int ->
@@ -104,7 +104,7 @@
         ?https:bool ->
         ?name:string ->
         ?csrf_safe:bool ->
-        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_scope:[< Common.user_scope ] ->
         ?csrf_secure:bool ->
         ?max_use:int ->
         ?timeout:float ->
@@ -119,7 +119,7 @@
         Service.t
       val create_attached_get :
         ?app:string ->
-        ?scope:[< Eliom_common.scope ] ->
+        ?scope:[< Common.scope ] ->
         ?options:options ->
         ?charset:string ->
         ?code:int ->
@@ -129,7 +129,7 @@
         ?https:bool ->
         ?name:string ->
         ?csrf_safe:bool ->
-        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_scope:[< Common.user_scope ] ->
         ?csrf_secure:bool ->
         ?max_use:int ->
         ?timeout:float ->
@@ -145,7 +145,7 @@
         Service.t
       val create_attached_post :
         ?app:string ->
-        ?scope:[< Eliom_common.scope ] ->
+        ?scope:[< Common.scope ] ->
         ?options:options ->
         ?charset:string ->
         ?code:int ->
@@ -155,7 +155,7 @@
         ?https:bool ->
         ?name:string ->
         ?csrf_safe:bool ->
-        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_scope:[< Common.user_scope ] ->
         ?csrf_secure:bool ->
         ?max_use:int ->
         ?timeout:float ->
@@ -177,7 +177,7 @@
       type _ return
       val register :
         ?app:string ->
-        ?scope:[< Eliom_common.scope ] ->
+        ?scope:[< Common.scope ] ->
         ?options:Registration_sigs.S_poly.options ->
         ?charset:string ->
         ?code:int ->
@@ -199,7 +199,7 @@
       type _ return
       val register :
         ?app:string ->
-        ?scope:[< Eliom_common.scope ] ->
+        ?scope:[< Common.scope ] ->
         ?options:options ->
         ?charset:string ->
         ?code:int ->
@@ -213,7 +213,7 @@
         ('get -> 'post -> 'a page Lwt.t) -> unit
       val create :
         ?app:string ->
-        ?scope:[< Eliom_common.scope ] ->
+        ?scope:[< Common.scope ] ->
         ?options:options ->
         ?charset:string ->
         ?code:int ->
@@ -223,7 +223,7 @@
         ?https:bool ->
         ?name:string ->
         ?csrf_safe:bool ->
-        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_scope:[< Common.user_scope ] ->
         ?csrf_secure:bool ->
         ?max_use:int ->
         ?timeout:float ->
@@ -238,7 +238,7 @@
         Service.t
       val create_attached_get :
         ?app:string ->
-        ?scope:[< Eliom_common.scope ] ->
+        ?scope:[< Common.scope ] ->
         ?options:options ->
         ?charset:string ->
         ?code:int ->
@@ -248,7 +248,7 @@
         ?https:bool ->
         ?name:string ->
         ?csrf_safe:bool ->
-        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_scope:[< Common.user_scope ] ->
         ?csrf_secure:bool ->
         ?max_use:int ->
         ?timeout:float ->
@@ -264,7 +264,7 @@
         Service.t
       val create_attached_post :
         ?app:string ->
-        ?scope:[< Eliom_common.scope ] ->
+        ?scope:[< Common.scope ] ->
         ?options:options ->
         ?charset:string ->
         ?code:int ->
@@ -274,7 +274,7 @@
         ?https:bool ->
         ?name:string ->
         ?csrf_safe:bool ->
-        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_scope:[< Common.user_scope ] ->
         ?csrf_secure:bool ->
         ?max_use:int ->
         ?timeout:float ->
@@ -296,7 +296,7 @@
       type _ return
       val register :
         ?app:string ->
-        ?scope:[< Eliom_common.scope ] ->
+        ?scope:[< Common.scope ] ->
         ?options:options ->
         ?charset:string ->
         ?code:int ->
@@ -324,7 +324,7 @@
       type _ return
       val register :
         ?app:string ->
-        ?scope:[< Eliom_common.scope ] ->
+        ?scope:[< Common.scope ] ->
         ?options:options ->
         ?charset:string ->
         ?code:int ->
@@ -338,7 +338,7 @@
         ('get -> 'post -> 'a page Lwt.t) -> unit
       val create :
         ?app:string ->
-        ?scope:[< Eliom_common.scope ] ->
+        ?scope:[< Common.scope ] ->
         ?options:options ->
         ?charset:string ->
         ?code:int ->
@@ -348,7 +348,7 @@
         ?https:bool ->
         ?name:string ->
         ?csrf_safe:bool ->
-        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_scope:[< Common.user_scope ] ->
         ?csrf_secure:bool ->
         ?max_use:int ->
         ?timeout:float ->
@@ -363,7 +363,7 @@
         Service.t
       val create_attached_get :
         ?app:string ->
-        ?scope:[< Eliom_common.scope ] ->
+        ?scope:[< Common.scope ] ->
         ?options:options ->
         ?charset:string ->
         ?code:int ->
@@ -373,7 +373,7 @@
         ?https:bool ->
         ?name:string ->
         ?csrf_safe:bool ->
-        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_scope:[< Common.user_scope ] ->
         ?csrf_secure:bool ->
         ?max_use:int ->
         ?timeout:float ->
@@ -389,7 +389,7 @@
         Service.t
       val create_attached_post :
         ?app:string ->
-        ?scope:[< Eliom_common.scope ] ->
+        ?scope:[< Common.scope ] ->
         ?options:options ->
         ?charset:string ->
         ?code:int ->
@@ -399,7 +399,7 @@
         ?https:bool ->
         ?name:string ->
         ?csrf_safe:bool ->
-        ?csrf_scope:[< Eliom_common.user_scope ] ->
+        ?csrf_scope:[< Common.user_scope ] ->
         ?csrf_secure:bool ->
         ?max_use:int ->
         ?timeout:float ->

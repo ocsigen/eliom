@@ -11,9 +11,9 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="attached_info"| type Service_sigs.S.attached_info >> ~[<<a_api subproject="client" | module Service_sigs.S >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="attrib"| type Eliom_content_core.Html.attrib >> ~[<<a_api subproject="client" | module Eliom_content_core.Html >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="attrib"| type Eliom_content_core.Svg.attrib >> ~[<<a_api subproject="client" | module Eliom_content_core.Svg >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="attrib"| type Eliom_content_core.Xml.attrib >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="attrib"| type Content.Html.attrib >> ~[<<a_api subproject="client" | module Content.Html >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="attrib"| type Content.Svg.attrib >> ~[<<a_api subproject="client" | module Content.Svg >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="attrib"| type Eliom_content_core.Xml.attrib >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="attrib"| type Form_sigs.LINKS.attrib >> ~[<<a_api subproject="client" | module Form_sigs.LINKS >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="attrib"| type Form_sigs.S.attrib >> ~[<<a_api subproject="client" | module Form_sigs.S >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="attrib"| type Content_sigs.LINKS_AND_FORMS.attrib >> ~[<<a_api subproject="client" | module Content_sigs.LINKS_AND_FORMS >>~]||
@@ -33,10 +33,7 @@
     page changes~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="client_form_handler"| type Eliom_client_core.client_form_handler >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="co"| type Service_sigs.TYPES.co >> ~[<<a_api subproject="client" | module Service_sigs.TYPES >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="compilation_unit_global_data"| type Eliom_client_core.compilation_unit_global_data >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="content_ns"| type Eliom_client_core.content_ns >> ~[<<a_api subproject="client" | module Eliom_client_core >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="coordinates"| type Parameter_sigs.S.coordinates >> ~[<<a_api subproject="client" | module Parameter_sigs.S >>~]|<<div class="odocwiki_info"|~The type <<span class="odocwiki_inlinecode"|coordinates>> represents the data sent by an <<span class="odocwiki_inlinecode"|~<input
       type~="image" ~.~.~.~>>>~.
 >>
@@ -50,9 +47,9 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="econtent"| type Eliom_content_core.Xml.econtent >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="elt"| type Eliom_content_core.Html.elt >> ~[<<a_api subproject="client" | module Eliom_content_core.Html >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="elt"| type Eliom_content_core.Svg.elt >> ~[<<a_api subproject="client" | module Eliom_content_core.Svg >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="elt"| type Eliom_content_core.Xml.elt >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="elt"| type Content.Html.elt >> ~[<<a_api subproject="client" | module Content.Html >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="elt"| type Content.Svg.elt >> ~[<<a_api subproject="client" | module Content.Svg >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="elt"| type Eliom_content_core.Xml.elt >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="elt"| type Form_sigs.LINKS.elt >> ~[<<a_api subproject="client" | module Form_sigs.LINKS >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="elt"| type Form_sigs.S.elt >> ~[<<a_api subproject="client" | module Form_sigs.S >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="elt"| type Content_sigs.LINKS_AND_FORMS.elt >> ~[<<a_api subproject="client" | module Content_sigs.LINKS_AND_FORMS >>~]||
@@ -74,12 +71,8 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="handle"| type Shared_sigs.RLIST.handle >> ~[<<a_api subproject="client" | module Shared_sigs.RLIST >>~]|<<div class="odocwiki_info"|~Handles are used to manipulate reactive lists
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="hierarchical_site"| type Tools.hierarchical_site >> ~[<<a_api subproject="client" | module Tools >>~]|<<div class="odocwiki_info"|~Hierarchical sites description~.
->>
-|
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="hierarchical_site_item"| type Tools.hierarchical_site_item >> ~[<<a_api subproject="client" | module Tools >>~]|<<div class="odocwiki_info"|~Menu entry description in a hierarchical site~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="hierarchical_site"| type Tools.hierarchical_site >> ~[<<a_api subproject="client" | module Tools >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="hierarchical_site_item"| type Tools.hierarchical_site_item >> ~[<<a_api subproject="client" | module Tools >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="http"| type Service_sigs.TYPES.http >> ~[<<a_api subproject="client" | module Service_sigs.TYPES >>~]||
 |@@ @style="tet-align: left;"@@\\I|
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="id"| type Eliom_content_core.Html.Id.id >> ~[<<a_api subproject="client" | module Eliom_content_core.Html.Id >>~]|<<div class="odocwiki_info"|~The type of global ~H~T~M~L~5 element identifier~.
@@ -108,9 +101,7 @@
 >>
 |
 |@@ @style="tet-align: left;"@@\\M|
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="main_page"| type Tools.main_page >> ~[<<a_api subproject="client" | module Tools >>~]|<<div class="odocwiki_info"|~Main page description for a section of a hierarchical site~.
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="main_page"| type Tools.main_page >> ~[<<a_api subproject="client" | module Tools >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="meth"| type Service_sigs.TYPES.meth >> ~[<<a_api subproject="client" | module Service_sigs.TYPES >>~]|<<div class="odocwiki_info"|**~Method specification datatype**
 >>
 |
@@ -205,9 +196,7 @@
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="sv"| type Shared_sigs.S.sv >> ~[<<a_api subproject="client" | module Shared_sigs.S >>~]||
 |@@ @style="tet-align: left;"@@\\T|
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="t"| type Cscache.t >> ~[<<a_api subproject="client" | module Cscache >>~]|<<div class="odocwiki_info"|~The type of association tables ~(implemented using ~Hashtbl~)
->>
-|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="t"| type Cscache.t >> ~[<<a_api subproject="client" | module Cscache >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="t"| type Shared.FakeReactiveData.RList.t >> ~[<<a_api subproject="client" | module Shared.FakeReactiveData.RList >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="t"| type Eliom_react.S.Down.t >> ~[<<a_api subproject="client" | module Eliom_react.S.Down >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="t"| type Eliom_react.Up.t >> ~[<<a_api subproject="client" | module Eliom_react.Up >>~]||
@@ -224,8 +213,7 @@
                       the active page~, <<span class="odocwiki_inlinecode"|~Active>>~: page is currently being displayed~, <<span class="odocwiki_inlinecode"|~Cached>>~: page is in the browser history with its ~D~O~M stashed in the cache~, <<span class="odocwiki_inlinecode"|~Dead>>~: page is in the browser history without its ~D~O~M being cached
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="t"| type Eliom_client_core.ReactState.t >> ~[<<a_api subproject="client" | module Eliom_client_core.ReactState >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="t"| type Eliom_client_value.t >> ~[<<a_api subproject="client" | module Eliom_client_value >>~]|<<div class="odocwiki_info"|~An <<span class="odocwiki_inlinecode"|~'a>> client value on the client is just an <<span class="odocwiki_inlinecode"|~'a>>~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="t"| type Client_value.t >> ~[<<a_api subproject="client" | module Client_value >>~]|<<div class="odocwiki_info"|~An <<span class="odocwiki_inlinecode"|~'a>> client value on the client is just an <<span class="odocwiki_inlinecode"|~'a>>~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="t"| type Bus.t >> ~[<<a_api subproject="client" | module Bus >>~]||
@@ -246,9 +234,9 @@
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uri"| type Eliom_content_core.Html.uri >> ~[<<a_api subproject="client" | module Eliom_content_core.Html >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uri"| type Eliom_content_core.Svg.uri >> ~[<<a_api subproject="client" | module Eliom_content_core.Svg >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uri"| type Eliom_content_core.Xml.uri >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uri"| type Content.Html.uri >> ~[<<a_api subproject="client" | module Content.Html >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uri"| type Content.Svg.uri >> ~[<<a_api subproject="client" | module Content.Svg >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uri"| type Eliom_content_core.Xml.uri >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uri"| type Form_sigs.LINKS.uri >> ~[<<a_api subproject="client" | module Form_sigs.LINKS >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uri"| type Form_sigs.S.uri >> ~[<<a_api subproject="client" | module Form_sigs.S >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uri"| type Content_sigs.LINKS_AND_FORMS.uri >> ~[<<a_api subproject="client" | module Content_sigs.LINKS_AND_FORMS >>~]||

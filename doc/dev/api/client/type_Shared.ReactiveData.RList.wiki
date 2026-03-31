@@ -29,7 +29,7 @@
   val for_all : ('a -> bool) -> 'a t -> bool React.S.t
   val create :
     ?default:('a ReactiveData.RList.t * 'a ReactiveData.RList.handle) option
-             Eliom_client_value.t ->
+             Eliom.Client_value.t ->
     ?reset_default:bool -> 'a list -> 'a t * 'a handle
   val concat : 'a t -> 'a t -> 'a t
   val value : 'a t -> 'a list Value.t
@@ -39,7 +39,7 @@
   val from_signal :
     ?eq:('a -> 'a -> bool) Value.t -> 'a list React.S.t -> 'a t
   val acc_e :
-    ?init:'a t * 'a handle -> 'a React.E.t Eliom_client_value.t -> 'a t
+    ?init:'a t * 'a handle -> 'a React.E.t Eliom.Client_value.t -> 'a t
   module Lwt :
     sig val map_p : ('a -> 'b Lwt.t) Value.t -> 'a t -> 'b t Lwt.t end
 end >>

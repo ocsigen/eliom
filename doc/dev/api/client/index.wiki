@@ -11,9 +11,7 @@
 |<<a_api subproject="client" | module Client >>|<<div class="odocwiki_info"|~Call server side services and change the current page~.
 >>
 |
-|<<a_api subproject="client" | module Eliom_client_value >>|<<div class="odocwiki_info"|~Client and shared values
->>
-|
+|Eliom_client_value||
 
 
 
@@ -45,11 +43,7 @@
     the ~React and ~Reactive~Data libraries~.
 >>
 |
-|<<a_api subproject="client" | module Cscache >>|<<div class="odocwiki_info"|~Client~-server cache for ~Eliom applications~, that is used both for
-    keeping data on client side or keeping values in memory during a
-    request~.
->>
-|
+|<<a_api subproject="client" | module Cscache >>||
 |<<a_api subproject="client" | module Bus >>|<<div class="odocwiki_info"|~Broadcasting facilities between clients and server~.
 >>
 |

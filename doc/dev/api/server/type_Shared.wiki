@@ -73,7 +73,7 @@
             end
           val create :
             ?default:('a React.S.t * (?step:React.step -> 'a -> unit)) option
-                     Eliom_client_value.t ->
+                     Client_value.t ->
             ?reset_default:bool ->
             ?eq:('a -> 'a -> bool) Value.t ->
             'a -> 'a t * (?step:React.step -> 'a -> unit) Value.t
@@ -91,7 +91,7 @@
           val create :
             ?default:('a FakeReactiveData.RList.t *
                       'a FakeReactiveData.RList.handle)
-                     option Eliom_client_value.t ->
+                     option Eliom.Client_value.t ->
             ?reset_default:bool -> 'a list -> 'a t * 'a handle
           val concat : 'a t -> 'a t -> 'a t
           val value : 'a t -> 'a list Value.t
@@ -103,7 +103,7 @@
             ?eq:('a -> 'a -> bool) Value.t -> 'a list React.S.t -> 'a t
           val acc_e :
             ?init:'a t * 'a handle ->
-            'a React.E.t Eliom_client_value.t -> 'a t
+            'a React.E.t Eliom.Client_value.t -> 'a t
           module Lwt :
             sig
               val map_p : ('a -> 'b Lwt.t) Value.t -> 'a t -> 'b t Lwt.t

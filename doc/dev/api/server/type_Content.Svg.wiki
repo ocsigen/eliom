@@ -6607,10 +6607,10 @@
     sig
       val node :
         ?init:'a Content.Svg.elt ->
-        'a Content.Svg.elt Eliom_client_value.t -> 'a Content.Svg.elt
+        'a Content.Svg.elt Client_value.t -> 'a Content.Svg.elt
       val attr :
         ?init:'a Content.Svg.attrib ->
-        'a Content.Svg.attrib Eliom_client_value.t -> 'a Content.Svg.attrib
+        'a Content.Svg.attrib Client_value.t -> 'a Content.Svg.attrib
     end
   module Id :
     sig

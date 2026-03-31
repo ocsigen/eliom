@@ -12,7 +12,7 @@
       type 'a t
       val to_react : 'a Eliom_react.Up.t -> 'a React.E.t
       val create :
-        ?scope:Eliom_common.scope ->
+        ?scope:Common.scope ->
         ?name:string ->
         ('a, [ `WithoutSuffix ],
          [ `One of 'a Parameter.ocaml ] Parameter.param_name)

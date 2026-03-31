@@ -7,7 +7,7 @@
   type 'a chandle
   val create :
     ?default:('a Shared_sigs.RLIST.ct * 'a Shared_sigs.RLIST.chandle) option
-             Eliom_client_value.t ->
+             Client_value.t ->
     ?reset_default:bool ->
     'a list -> 'a Shared_sigs.RLIST.t * 'a Shared_sigs.RLIST.handle
   val concat :
@@ -26,7 +26,7 @@
     'a list Shared_sigs.RLIST.signal -> 'a Shared_sigs.RLIST.t
   val acc_e :
     ?init:'a Shared_sigs.RLIST.t * 'a Shared_sigs.RLIST.handle ->
-    'a React.E.t Eliom_client_value.t -> 'a Shared_sigs.RLIST.t
+    'a React.E.t Client_value.t -> 'a Shared_sigs.RLIST.t
   module Lwt :
     sig
       val map_p :

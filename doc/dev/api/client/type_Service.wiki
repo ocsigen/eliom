@@ -12,7 +12,7 @@
   type non_ocaml = Non_ocaml
   type reg = Reg
   type non_reg = Non_reg
-  type ('get, 'a, 'gn) params = ('get, 'a, 'gn) Parameter.params_type
+  type ('get, 'a, 'gn) params = ('get, 'a, 'gn) Eliom.Parameter.params_type
     constraint 'a = [< `WithSuffix | `WithoutSuffix ]
   type ('m, _, _, _, _, _, _) meth =
       Get :
@@ -27,14 +27,16 @@
                                                   as 'b, 'gp)
                                                  meth
     | Put :
-        ('gp, 'c, 'gn) params -> (put, 'gp, 'gn, Parameter.raw_post_data,
-                                  Parameter.no_param_name,
+        ('gp, 'c, 'gn) params -> (put, 'gp, 'gn,
+                                  Eliom.Parameter.raw_post_data,
+                                  Eliom.Parameter.no_param_name,
                                   [< `WithSuffix | `WithoutSuffix ] as 'c,
                                   unit)
                                  meth
     | Delete :
-        ('gp, 'd, 'gn) params -> (delete, 'gp, 'gn, Parameter.raw_post_data,
-                                  Parameter.no_param_name,
+        ('gp, 'd, 'gn) params -> (delete, 'gp, 'gn,
+                                  Eliom.Parameter.raw_post_data,
+                                  Eliom.Parameter.no_param_name,
                                   [< `WithSuffix | `WithoutSuffix ] as 'd,
                                   unit)
                                  meth
@@ -64,7 +66,7 @@
        unit, unit, non_ocaml)
       t
   type (_, _, _) path_option =
-      Path : Lib.Url.path -> (att, non_co, 'a) path_option
+      Path : Eliom.Lib.Url.path -> (att, non_co, 'a) path_option
     | No_path : (non_att, co, unit) path_option
   val reload_action :
     (unit, unit, get, non_att, co, non_ext, non_reg, [ `WithoutSuffix ],
@@ -85,28 +87,30 @@
   val static_dir :
     unit ->
     (string list, unit, get, att, non_co, non_ext, non_reg, [ `WithSuffix ],
-     [ `One of string list ] Parameter.param_name, unit, non_ocaml)
+     [ `One of string list ] Eliom.Parameter.param_name, unit, non_ocaml)
     t
   val https_static_dir :
     unit ->
     (string list, unit, get, att, non_co, non_ext, non_reg, [ `WithSuffix ],
-     [ `One of string list ] Parameter.param_name, unit, non_ocaml)
+     [ `One of string list ] Eliom.Parameter.param_name, unit, non_ocaml)
     t
   val static_dir_with_params :
     ?keep_nl_params:[ `All | `None | `Persistent ] ->
-    get_params:('a, [ `WithoutSuffix ], 'an) Parameter.params_type ->
+    get_params:('a, [ `WithoutSuffix ], 'an) Eliom.Parameter.params_type ->
     unit ->
     (string list * 'a, unit, get, att, non_co, non_ext, non_reg,
-     [ `WithSuffix ], [ `One of string list ] Parameter.param_name * 'an,
-     unit, non_ocaml)
+     [ `WithSuffix ],
+     [ `One of string list ] Eliom.Parameter.param_name * 'an, unit,
+     non_ocaml)
     t
   val https_static_dir_with_params :
     ?keep_nl_params:[ `All | `None | `Persistent ] ->
-    get_params:('a, [ `WithoutSuffix ], 'an) Parameter.params_type ->
+    get_params:('a, [ `WithoutSuffix ], 'an) Eliom.Parameter.params_type ->
     unit ->
     (string list * 'a, unit, get, att, non_co, non_ext, non_reg,
-     [ `WithSuffix ], [ `One of string list ] Parameter.param_name * 'an,
-     unit, non_ocaml)
+     [ `WithSuffix ],
+     [ `One of string list ] Eliom.Parameter.param_name * 'an, unit,
+     non_ocaml)
     t
   val preapply :
     service:('a, 'b, 'meth, att, 'co, 'ext, 'reg,
@@ -117,14 +121,14 @@
      'return)
     t
   val add_non_localized_get_parameters :
-    params:('p, [ `WithoutSuffix ], 'pn) Parameter.non_localized_params ->
+    params:('p, [ `WithoutSuffix ], 'pn) Eliom.Parameter.non_localized_params ->
     service:('a, 'b, 'meth, 'attach, 'co, 'ext, 'reg,
              [< `WithSuffix | `WithoutSuffix ] as 'c, 'e, 'f, 'return)
             t ->
     ('a * 'p, 'b, 'meth, 'attach, 'co, 'ext, 'reg, 'c, 'e * 'pn, 'f, 'return)
     t
   val add_non_localized_post_parameters :
-    params:('p, [ `WithoutSuffix ], 'pn) Parameter.non_localized_params ->
+    params:('p, [ `WithoutSuffix ], 'pn) Eliom.Parameter.non_localized_params ->
     service:('a, 'b, 'meth, 'attach, 'co, 'ext, 'g,
              [< `WithSuffix | `WithoutSuffix ] as 'c, 'e, 'f, 'return)
             t ->
@@ -132,7 +136,7 @@
   val extern :
     ?keep_nl_params:[ `All | `None | `Persistent ] ->
     prefix:string ->
-    path:Lib.Url.path ->
+    path:Eliom.Lib.Url.path ->
     meth:('m, 'gp, 'gn, 'pp, 'pn, [< `WithSuffix | `WithoutSuffix ] as 'a,
           'b)
          meth ->
@@ -157,18 +161,18 @@
   val get_params_type :
     ('a, 'b, 'd, 'e, 'f, 'g, 'h, [< `WithSuffix | `WithoutSuffix ] as 'i, 'c,
      'j, 'k)
-    t -> ('a, 'i, 'c) Parameter.params_type
+    t -> ('a, 'i, 'c) Eliom.Parameter.params_type
   val post_params_type :
     ('c, 'a, 'd, 'e, 'f, 'g, 'h, [< `WithSuffix | `WithoutSuffix ], 'i, 'b,
      'j)
-    t -> ('a, [ `WithoutSuffix ], 'b) Parameter.params_type
-  val sub_path : att -> Lib.Url.path
-  val full_path : att -> Lib.Url.path
+    t -> ('a, [ `WithoutSuffix ], 'b) Eliom.Parameter.params_type
+  val sub_path : att -> Eliom.Lib.Url.path
+  val full_path : att -> Eliom.Lib.Url.path
   val prefix : att -> string
-  val get_name : att -> Eliom_common.att_key_serv
-  val post_name : att -> Eliom_common.att_key_serv
+  val get_name : att -> Eliom.Common.att_key_serv
+  val post_name : att -> Eliom.Common.att_key_serv
   val redirect_suffix : att -> bool
-  val na_name : non_att -> Eliom_common.na_key_serv
+  val na_name : non_att -> Eliom.Common.na_key_serv
   val na_keep_get_na_params : non_att -> bool
   val max_use :
     ('a, 'b, 'c, 'd, 'e, 'f, 'g, [< `WithSuffix | `WithoutSuffix ], 'h, 'i,
@@ -186,7 +190,7 @@
   val client_fun :
     ('a, 'b, 'c, 'd, 'e, 'f, 'g, [< `WithSuffix | `WithoutSuffix ], 'h, 'i,
      'j)
-    t -> ('a -> 'b -> result Lwt.t) Eliom_client_value.t option
+    t -> ('a -> 'b -> result Lwt.t) Eliom.Client_value.t option
   val has_client_fun :
     ('a, 'b, 'c, 'd, 'e, 'f, 'g, [< `WithSuffix | `WithoutSuffix ], 'h, 'i,
      'j)
@@ -200,15 +204,15 @@
      [< `WithSuffix | `WithoutSuffix ] as 'd, 'e, 'f, 'return)
     t ->
     att ->
-    Eliom_common.att_key_serv ->
+    Eliom.Common.att_key_serv ->
     ('a, 'b, 'meth, att, 'co, 'ext, 'g, 'd, 'e, 'f, 'return) t
   val register_delayed_get_or_na_coservice :
-    sp:Eliom_common.server_params ->
-    int * [< Eliom_common.user_scope ] * bool option -> string
+    sp:Eliom.Common.server_params ->
+    int * [< Eliom.Common.user_scope ] * bool option -> string
   val register_delayed_post_coservice :
-    sp:Eliom_common.server_params ->
-    int * [< Eliom_common.user_scope ] * bool option ->
-    Eliom_common.att_key_serv -> string
+    sp:Eliom.Common.server_params ->
+    int * [< Eliom.Common.user_scope ] * bool option ->
+    Eliom.Common.att_key_serv -> string
   type send_appl_content =
       XNever
     | XAlways
@@ -225,7 +229,7 @@
     service:('a, 'b, 'c, 'd, 'e, 'f, 'g, [< `WithSuffix | `WithoutSuffix ],
              'h, 'i, 'j)
             t ->
-    ('a -> 'b -> result Lwt.t) Eliom_client_value.t -> unit
+    ('a -> 'b -> result Lwt.t) Eliom.Client_value.t -> unit
   val set_client_fun :
     ?app:string ->
     service:('a, 'b, 'c, 'd, 'e, 'f, 'g, [< `WithSuffix | `WithoutSuffix ],
@@ -245,6 +249,6 @@
   val reload_fun :
     ('a, 'b, 'c, 'd, 'e, 'f, 'g, [< `WithSuffix | `WithoutSuffix ], 'h, 'i,
      'j)
-    t -> ('a -> unit -> result Lwt.t) Eliom_client_value.t option
+    t -> ('a -> unit -> result Lwt.t) Client_value.t option
   module Cohttp : sig module Header : sig type t end end
 end >>

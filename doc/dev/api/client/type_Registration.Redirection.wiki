@@ -10,16 +10,17 @@
   type 'a return = Service.non_ocaml
   val register :
     ?app:string ->
-    ?scope:[< Eliom_common.scope ] ->
+    ?scope:[< Eliom.Common.scope ] ->
     ?options:options ->
     ?charset:string ->
     ?code:int ->
     ?content_type:string ->
-    ?headers:Service.Cohttp.Header.t ->
+    ?headers:Eliom.Service.Cohttp.Header.t ->
     ?secure_session:bool ->
-    service:('get, 'post, 'b, 'c, 'd, Service.non_ext, Service.reg,
-             [< `WithSuffix | `WithoutSuffix ], 'e, 'f, 'a return)
-            Service.t ->
+    service:('get, 'post, 'b, 'c, 'd, Eliom.Service.non_ext,
+             Eliom.Service.reg, [< `WithSuffix | `WithoutSuffix ], 'e, 'f,
+             'a return)
+            Eliom.Service.t ->
     ?error_handler:((string * exn) list -> 'a page Lwt.t) ->
     ('get -> 'post -> 'a page Lwt.t) -> unit
   type 'a result = browser_content kind
@@ -28,5 +29,5 @@
     ?charset:string ->
     ?code:int ->
     ?content_type:string ->
-    ?headers:Service.Cohttp.Header.t -> 'a page -> 'a result Lwt.t
+    ?headers:Eliom.Service.Cohttp.Header.t -> 'a page -> 'a result Lwt.t
 end >>
