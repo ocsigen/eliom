@@ -59,7 +59,7 @@ module type PARAM_POLY = sig
     -> frame Lwt.t
 
   val send_appl_content : Service.send_appl_content
-  (** See {!Eliom_reg_sigs.PARAM.send_appl_content}. *)
+  (** See {!Registration_sigs.PARAM.send_appl_content}. *)
 end
 
 (** Signature for application creation. *)

@@ -228,7 +228,7 @@ module Svg : sig
     (** Dom manipulation by element identifier. *)
     module Named : sig
       (** The module [Named] defines the same functions as
-          [Eliom_dom]. They take as parameter an element identifier
+          [Mod_dom]. They take as parameter an element identifier
           instead of an element with Dom semantics. Those functions only
           works if the element is available in the application (sent in
           the page or along the page). If the element is not available,
@@ -576,7 +576,7 @@ module Html : sig
     (** Dom manipulation by element identifier. *)
     module Named : sig
       (** The module [Named] defines the same functions as
-          [Eliom_dom]. They take as parameter an element identifier
+          [Mod_dom]. They take as parameter an element identifier
           instead of an element with Dom semantics. Those functions only
           works if the element is available in the application (sent in
           the page or along the page). If the element is not available,
