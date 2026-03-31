@@ -158,12 +158,12 @@ let make_uri_components_
           Lib.String.Table.fold
             (fun key v b -> Lib.String.Table.add key v b)
             preappnlp
-            (Eliommod_parameters.inject_param_table
+            (Mod_parameters.inject_param_table
                (Request_info.get_nl_get_params_sp sp))
       | `Persistent ->
           (* We replace current nl params by preapplied ones *)
           Lib.String.Table.fold Lib.String.Table.add preappnlp
-            (Eliommod_parameters.inject_param_table
+            (Mod_parameters.inject_param_table
                (Request_info.get_persistent_nl_get_params_sp sp))
       | `None -> preappnlp)
   in
@@ -204,13 +204,13 @@ let make_uri_components_
       | Common.SAtt_anon s ->
           ( uri
           , ( Common.get_numstate_param_name
-            , Eliommod_parameters.insert_string s )
+            , Mod_parameters.insert_string s )
             :: hiddenparams
           , fragment )
       | Common.SAtt_named s ->
           ( uri
           , ( Common.get_state_param_name
-            , Eliommod_parameters.insert_string s )
+            , Mod_parameters.insert_string s )
             :: hiddenparams
           , fragment )
       | Common.SAtt_csrf_safe csrf_info ->
@@ -218,24 +218,24 @@ let make_uri_components_
           let s = Service.register_delayed_get_or_na_coservice ~sp csrf_info in
           ( uri
           , ( Common.get_numstate_param_name
-            , Eliommod_parameters.insert_string s )
+            , Mod_parameters.insert_string s )
             :: hiddenparams
           , fragment )
       | Common.SAtt_na_anon s ->
           ( uri
-          , (Common.naservice_num, Eliommod_parameters.insert_string s)
+          , (Common.naservice_num, Mod_parameters.insert_string s)
             :: hiddenparams
           , fragment )
       | Common.SAtt_na_named s ->
           ( uri
-          , (Common.naservice_name, Eliommod_parameters.insert_string s)
+          , (Common.naservice_name, Mod_parameters.insert_string s)
             :: hiddenparams
           , fragment )
       | Common.SAtt_na_csrf_safe csrf_info ->
           let sp = Common.get_sp () in
           let s = Service.register_delayed_get_or_na_coservice ~sp csrf_info in
           ( uri
-          , (Common.naservice_num, Eliommod_parameters.insert_string s)
+          , (Common.naservice_num, Mod_parameters.insert_string s)
             :: hiddenparams
           , fragment ))
   | Service.Nonattached naser ->
@@ -265,7 +265,7 @@ let make_uri_components_
         | _ -> assert false
       in
       let params =
-        Eliommod_parameters.inject_param_list params' @ hiddenparams
+        Mod_parameters.inject_param_list params' @ hiddenparams
       in
       let beg =
         match absolute with
@@ -399,7 +399,7 @@ let make_post_uri_components_
             in
             [Common.naservice_num, s]
       in
-      uri, getparams, fragment, Eliommod_parameters.inject_param_list postparams
+      uri, getparams, fragment, Mod_parameters.inject_param_list postparams
   | Service.Nonattached naser ->
       let sp = Common.get_sp () in
       let nl_params = Parameter.table_of_nl_params_set nl_params in
@@ -414,12 +414,12 @@ let make_post_uri_components_
         | `All ->
             (* We replace current nl params by preapplied ones *)
             Lib.String.Table.fold Lib.String.Table.add preappnlp
-              (Eliommod_parameters.inject_param_table
+              (Mod_parameters.inject_param_table
                  (Request_info.get_nl_get_params ()))
         | `Persistent ->
             (* We replace current nl params by preapplied ones *)
             Lib.String.Table.fold Lib.String.Table.add preappnlp
-              (Eliommod_parameters.inject_param_table
+              (Mod_parameters.inject_param_table
                  (Request_info.get_persistent_nl_get_params_sp sp))
         | `None -> preappnlp
       in
@@ -445,7 +445,7 @@ let make_post_uri_components_
       in
       let params =
         params
-        @ Eliommod_parameters.inject_param_list
+        @ Mod_parameters.inject_param_list
             (if keep_get_na_params
              then (Request_info.get_si sp).Common.si_all_get_but_nl
              else
@@ -513,7 +513,7 @@ let make_post_uri_components_
         (* fragment is not sent to the server *)
       in
       let postparams = [naservice_line] in
-      uri, params, fragment, Eliommod_parameters.inject_param_list postparams
+      uri, params, fragment, Mod_parameters.inject_param_list postparams
 
 let make_post_uri_components
       ?absolute

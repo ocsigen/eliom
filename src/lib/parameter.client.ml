@@ -18,7 +18,7 @@
  *)
 
 open Js_of_ocaml
-include Eliom_parameter_base
+include Parameter_base
 
 type raw_post_data = unit
 

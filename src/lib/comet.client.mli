@@ -122,7 +122,7 @@ end
 
 val register :
    ?wake:bool
-  -> 'a Eliom_comet_base.wrapped_channel
+  -> 'a Comet_base.wrapped_channel
   -> 'a Lwt_stream.t
 (** if wake is false, the registration of the channel won't
     activate the handling loop ( no request will be sent ). Default is true *)
@@ -135,7 +135,7 @@ val restart : unit -> unit
     case, preventing client code from receiving the failure
     notification. This shouldn't be used by average user. *)
 
-val close : 'a Eliom_comet_base.wrapped_channel -> unit
+val close : 'a Comet_base.wrapped_channel -> unit
 (** [close c] closes the channel c. This function should be only use
     internally. The normal way to close a channel is to cancel a thread
     waiting on inputs. *)

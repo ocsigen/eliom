@@ -25,7 +25,7 @@ open Lwt.Syntax
 
 open Js_of_ocaml
 open Lib
-module Ecb = Eliom_comet_base
+module Ecb = Comet_base
 
 let section = Logs.Src.create "eliom:comet"
 
@@ -583,7 +583,7 @@ end = struct
   let add_channel_stateful hd chan_id =
     hd.hd_activity.active_channels <-
       Lib.String.Set.add chan_id hd.hd_activity.active_channels;
-    call_commands hd [|Eliom_comet_base.Register chan_id|]
+    call_commands hd [|Comet_base.Register chan_id|]
 
   let min_pos = function
     | Ecb.Newest i, Ecb.Newest j -> Ecb.Newest (min i j)

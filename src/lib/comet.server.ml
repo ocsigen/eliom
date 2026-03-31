@@ -23,28 +23,28 @@ open Lwt.Syntax
 
 (* TODO: handle ended stream ( and on client side too ) *)
 
-module Ecb = Eliom_comet_base
+module Ecb = Comet_base
 
 let section = Logs.Src.create "eliom:comet"
 
 type chan_id = string
 
-let answer_to_string = Deriving_Json.to_string Eliom_comet_base.answer_json
+let answer_to_string = Deriving_Json.to_string Comet_base.answer_json
 
 let encode_downgoing s =
-  answer_to_string (Eliom_comet_base.Stateful_messages (Array.of_list s))
+  answer_to_string (Comet_base.Stateful_messages (Array.of_list s))
 
 let encode_global_downgoing s =
-  answer_to_string (Eliom_comet_base.Stateless_messages (Array.of_list s))
+  answer_to_string (Comet_base.Stateless_messages (Array.of_list s))
 
-let timeout_msg = answer_to_string Eliom_comet_base.Timeout
-let state_closed_msg = answer_to_string Eliom_comet_base.State_closed
-let error_msg s = answer_to_string (Eliom_comet_base.Comet_error s)
+let timeout_msg = answer_to_string Comet_base.Timeout
+let state_closed_msg = answer_to_string Comet_base.State_closed
+let error_msg s = answer_to_string (Comet_base.Comet_error s)
 let json_content_type = "application/json"
 
 let marshal (v : 'a) =
   let wrapped = Wrap.wrap v in
-  let value : 'a Eliom_runtime.eliom_comet_data_type = wrapped in
+  let value : 'a Runtime.eliom_comet_data_type = wrapped in
   Lib.Url.encode ~plus:false (Marshal.to_string value [])
 
 exception New_connection
@@ -90,9 +90,9 @@ module Stateless : sig
 
   val create : ?name:string -> size:int -> string Lwt_stream.t -> channel
   val get_id : channel -> string
-  val get_service : unit -> Eliom_comet_base.comet_service
-  val get_kind : newest:bool -> channel -> Eliom_comet_base.stateless_kind
-  val chan_id_of_string : string -> 'a Eliom_comet_base.chan_id
+  val get_service : unit -> Comet_base.comet_service
+  val get_kind : newest:bool -> channel -> Comet_base.stateless_kind
+  val chan_id_of_string : string -> 'a Comet_base.chan_id
 end = struct
   type channel_id = string
 
@@ -156,7 +156,7 @@ end = struct
   let make_name name = "stateless:" ^ name
 
   let chan_id_of_string name =
-    Eliom_comet_base.chan_id_of_string (make_name name)
+    Comet_base.chan_id_of_string (make_name name)
 
   let create ?(name = new_id ()) ~size stream =
     let name = make_name name in
@@ -183,42 +183,42 @@ end = struct
     | None -> Right ch_id
 
   exception
-    Finished of (channel_id * (string * int) Eliom_comet_base.channel_data) list
+    Finished of (channel_id * (string * int) Comet_base.channel_data) list
 
   let queue_take channel last =
     try
       Dlist.fold
         (fun l (v, index) ->
            if index >= last
-           then (channel.ch_id, Eliom_comet_base.Data (v, index)) :: l
+           then (channel.ch_id, Comet_base.Data (v, index)) :: l
            else raise (Finished l))
         [] channel.ch_content
     with Finished l -> l
 
   let get_available_data = function
-    | Lib.Right ch_id -> [ch_id, Eliom_comet_base.Closed]
+    | Lib.Right ch_id -> [ch_id, Comet_base.Closed]
     | Lib.Left (channel, position) -> (
       match position with
       (* the first request of the client should be with i = 1 *)
       (* when the client is requesting the newest data, only return
            one if he don't already have it *)
-      | Eliom_comet_base.Newest i when i > channel.ch_index -> []
-      | Eliom_comet_base.Newest _ | Eliom_comet_base.Last None -> (
+      | Comet_base.Newest i when i > channel.ch_index -> []
+      | Comet_base.Newest _ | Comet_base.Last None -> (
         (* initialisation of external newest channels *)
         match Dlist.newest channel.ch_content with
         | None -> [] (* should not happen *)
-        | Some node -> [channel.ch_id, Eliom_comet_base.Data (Dlist.value node)]
+        | Some node -> [channel.ch_id, Comet_base.Data (Dlist.value node)]
         )
       (* when the client is requesting the data after index i return
            all data with index gretter or equal to i*)
-      | Eliom_comet_base.After i when i > channel.ch_index -> []
+      | Comet_base.After i when i > channel.ch_index -> []
       (* if the requested value is not in the queue anymore, tell
            the client that its request was dropped *)
-      | Eliom_comet_base.After i
+      | Comet_base.After i
         when i <= channel.ch_index - Dlist.size channel.ch_content ->
-          [channel.ch_id, Eliom_comet_base.Full]
-      | Eliom_comet_base.After i -> queue_take channel i
-      | Eliom_comet_base.Last (Some n) ->
+          [channel.ch_id, Comet_base.Full]
+      | Comet_base.After i -> queue_take channel i
+      | Comet_base.Last (Some n) ->
           let i = channel.ch_index - min (Dlist.size channel.ch_content) n in
           queue_take channel i)
 
@@ -227,12 +227,12 @@ end = struct
         true (* a channel was closed: need to tell it to the client *)
     | Lib.Left (channel, position) -> (
       match position with
-      | Eliom_comet_base.Newest i when i > channel.ch_index -> false
-      | Eliom_comet_base.Newest _ -> true
-      | Eliom_comet_base.After i when i > channel.ch_index -> false
-      | Eliom_comet_base.After _ -> true
-      | Eliom_comet_base.Last _ when Dlist.size channel.ch_content > 0 -> true
-      | Eliom_comet_base.Last _ -> false)
+      | Comet_base.Newest i when i > channel.ch_index -> false
+      | Comet_base.Newest _ -> true
+      | Comet_base.After i when i > channel.ch_index -> false
+      | Comet_base.After _ -> true
+      | Comet_base.Last _ when Dlist.size channel.ch_content > 0 -> true
+      | Comet_base.Last _ -> false)
 
   let really_wait_data requests =
     let rec make_list = function
@@ -252,10 +252,10 @@ end = struct
 
   let handle_request () (_, req) =
     match req with
-    | Eliom_comet_base.Stateful _ ->
+    | Comet_base.Stateful _ ->
         failwith
           "attempting to request data on stateless service with a stateful request"
-    | Eliom_comet_base.Stateless requests ->
+    | Comet_base.Stateless requests ->
         let requests = List.map get_channel (Array.to_list requests) in
         let* res =
           Lwt.catch
@@ -272,27 +272,27 @@ end = struct
     (*VVV Why isn't this a POST non-attached coservice? --Vincent *)
     Comet.create_attached_post
       ~post_params:
-        Parameter.(bool "idle" ** Eliom_comet_base.comet_request_param)
+        Parameter.(bool "idle" ** Comet_base.comet_request_param)
       ~fallback:(Common.force_lazy_site_value fallback_global_service)
       handle_request
 
   let get_service =
     let queue = ref [] in
     fun () ->
-      Eliom_comet_base.Comet_service
+      Comet_base.Comet_service
         (Common.force_lazy_site_value global_service, queue)
 
   let get_id {ch_id; _} = ch_id
 
   let get_kind ~newest {ch_index; _} =
     if newest
-    then Eliom_comet_base.Newest_kind (ch_index + 1)
-    else Eliom_comet_base.After_kind (ch_index + 1)
+    then Comet_base.Newest_kind (ch_index + 1)
+    else Comet_base.After_kind (ch_index + 1)
 end
 
 (** Register services at site initialization *)
 let () =
-  Eliommod.register_site_init (fun () ->
+  Mod_main.register_site_init (fun () ->
     ignore (Common.force_lazy_site_value fallback_global_service);
     ignore (Common.force_lazy_site_value fallback_service);
     ignore (Stateless.get_service ()))
@@ -316,7 +316,7 @@ module Stateful : sig
 
   val get_id : t -> string
 
-  type comet_service = Eliom_comet_base.comet_service
+  type comet_service = Comet_base.comet_service
 
   val get_service : t -> comet_service
 
@@ -326,8 +326,8 @@ module Stateful : sig
     -> unit Lwt.t
 end = struct
   type chan_id = string
-  type comet_service = Eliom_comet_base.comet_service
-  type internal_comet_service = Eliom_comet_base.internal_comet_service
+  type comet_service = Comet_base.comet_service
+  type internal_comet_service = Comet_base.internal_comet_service
   type end_request_waiters = unit Lwt.u
 
   type activity =
@@ -340,12 +340,12 @@ end = struct
 
   type channel =
     | Events of
-        { queue : string Eliom_comet_base.channel_data Queue.t
+        { queue : string Comet_base.channel_data Queue.t
         ; (* Reference to the event stream, so that it does not
              get garbage collected *)
           mutable events : Obj.t option }
     | Stream of
-        { mutable stream : string Eliom_comet_base.channel_data Lwt_stream.t
+        { mutable stream : string Comet_base.channel_data Lwt_stream.t
         ; mutable waiter : waiter }
 
   type handler =
@@ -518,10 +518,10 @@ end = struct
   let run_handler handler =
     let f () (idle, req) =
       match req with
-      | Eliom_comet_base.Stateless _ ->
+      | Comet_base.Stateless _ ->
           failwith
             "attempting to request data on stateful service with a stateless request"
-      | Eliom_comet_base.Stateful (Eliom_comet_base.Request_data number) ->
+      | Comet_base.Stateful (Comet_base.Request_data number) ->
           Logs.info ~src:section (fun fmt -> fmt "received request %i" number);
           (* if a new connection occurs for a service, we reply
            immediately to the previous with no data. *)
@@ -557,19 +557,19 @@ end = struct
                     (* it doesn't matter what we do here *)
                     Lwt.return timeout_msg
                 | e -> set_inactive handler; Lwt.fail e)
-      | Eliom_comet_base.Stateful (Eliom_comet_base.Commands commands) ->
+      | Comet_base.Stateful (Comet_base.Commands commands) ->
           update_inactive handler;
           List.iter
             (function
-              | Eliom_comet_base.Register channel ->
+              | Comet_base.Register channel ->
                   register_channel handler channel
-              | Eliom_comet_base.Close channel -> close_channel' handler channel)
+              | Comet_base.Close channel -> close_channel' handler channel)
             (Array.to_list commands);
           (* command connections are replied immediately by an
                  empty answer *)
           Lwt.return (encode_downgoing [])
     in
-    let {hd_service = Eliom_comet_base.Internal_comet_service (service, _); _} =
+    let {hd_service = Comet_base.Internal_comet_service (service, _); _} =
       handler
     in
     Comet.register ~scope:handler.hd_scope ~service f
@@ -589,7 +589,7 @@ end = struct
 
   let get_handler_eref scope =
     let scope_hierarchy =
-      Eliom_common_base.scope_hierarchy_of_user_scope scope
+      Common_base.scope_hierarchy_of_user_scope scope
     in
     try Hashtbl.find handler_ref_table scope_hierarchy
     with Not_found ->
@@ -605,12 +605,12 @@ end = struct
     | Some t -> t
     | None ->
         let hd_service =
-          Eliom_comet_base.Internal_comet_service
+          Comet_base.Internal_comet_service
             (* CCC ajouter possibilité d'https *)
             ( Service.create_attached_post (*VVV Why is it attached? --Vincent *)
                 ~post_params:
                   Parameter.(
-                    bool "idle" ** Eliom_comet_base.comet_request_param)
+                    bool "idle" ** Comet_base.comet_request_param)
                 ~fallback:(Common.force_lazy_site_value fallback_service)
                 (*~name:"comet" (* CCC faut il mettre un nom ? *)*)
                 ()
@@ -675,11 +675,11 @@ end = struct
                      then (
                        channel.events <- None;
                        Queue.clear queue;
-                       Queue.push Eliom_comet_base.Full queue;
+                       Queue.push Comet_base.Full queue;
                        signal_update handler `Data;
                        true)
                      else (
-                       Queue.push (Eliom_comet_base.Data (marshal x)) queue;
+                       Queue.push (Comet_base.Data (marshal x)) queue;
                        signal_update handler `Data;
                        false))
                   false events)));
@@ -703,7 +703,7 @@ end = struct
     Logs.info ~src:section (fun fmt -> fmt "create channel %s" name);
     let stream =
       Lwt.with_value Common.sp_key None @@ fun () ->
-      Lwt_stream.map (fun x -> Eliom_comet_base.Data (marshal x)) stream
+      Lwt_stream.map (fun x -> Comet_base.Data (marshal x)) stream
     in
     let channel = Stream {stream; waiter = stream_waiter stream} in
     if List.mem name handler.hd_registered_chan_id
@@ -752,7 +752,7 @@ module Channel : sig
     -> 'a t
 
   val create_newest : ?name:string -> 'a Lwt_stream.t -> 'a t
-  val get_wrapped : 'a t -> 'a Eliom_comet_base.wrapped_channel
+  val get_wrapped : 'a t -> 'a Comet_base.wrapped_channel
 
   val external_channel :
      ?history:int
@@ -771,7 +771,7 @@ end = struct
     | Stateless of Stateless.channel
     | Stateless_newest of Stateless.channel
     | Stateful of Stateful.t
-    | External of 'a Eliom_comet_base.wrapped_channel
+    | External of 'a Comet_base.wrapped_channel
 
   type 'a t = {channel : 'a channel; channel_mark : 'a t Common.wrapper}
   [@@warning "-69"]
@@ -779,18 +779,18 @@ end = struct
   let get_wrapped t =
     match t.channel with
     | Stateful channel ->
-        Eliom_comet_base.Stateful_channel
+        Comet_base.Stateful_channel
           ( Stateful.get_service channel
-          , Eliom_comet_base.chan_id_of_string (Stateful.get_id channel) )
+          , Comet_base.chan_id_of_string (Stateful.get_id channel) )
     | Stateless channel ->
-        Eliom_comet_base.Stateless_channel
+        Comet_base.Stateless_channel
           ( Stateless.get_service ()
-          , Eliom_comet_base.chan_id_of_string (Stateless.get_id channel)
+          , Comet_base.chan_id_of_string (Stateless.get_id channel)
           , Stateless.get_kind ~newest:false channel )
     | Stateless_newest channel ->
-        Eliom_comet_base.Stateless_channel
+        Comet_base.Stateless_channel
           ( Stateless.get_service ()
-          , Eliom_comet_base.chan_id_of_string (Stateless.get_id channel)
+          , Comet_base.chan_id_of_string (Stateless.get_id channel)
           , Stateless.get_kind ~newest:true channel )
     | External wrapped -> wrapped
 
@@ -854,17 +854,17 @@ end = struct
         ~meth:
           (Service.Post
              ( Parameter.unit
-             , Parameter.(bool "idle" ** Eliom_comet_base.comet_request_param)
+             , Parameter.(bool "idle" ** Comet_base.comet_request_param)
              ))
         ()
     in
     let last = if newest then None else Some history in
     { channel =
         External
-          (Eliom_comet_base.Stateless_channel
-             ( Eliom_comet_base.Comet_service (service, ref [])
+          (Comet_base.Stateless_channel
+             ( Comet_base.Comet_service (service, ref [])
              , Stateless.chan_id_of_string name
-             , Eliom_comet_base.Last_kind last ))
+             , Comet_base.Last_kind last ))
     ; channel_mark = channel_mark () }
 
   let wait_timeout = Stateful.wait_timeout

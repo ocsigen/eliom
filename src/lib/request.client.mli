@@ -33,19 +33,19 @@ val redirect_get :
 val redirect_post :
    ?window_name:string
   -> string
-  -> (string * Eliommod_parameters.param) list
+  -> (string * Mod_parameters.param) list
   -> unit
 
 val redirect_put :
    ?window_name:string
   -> string
-  -> (string * Eliommod_parameters.param) list
+  -> (string * Mod_parameters.param) list
   -> unit
 
 val redirect_delete :
    ?window_name:string
   -> string
-  -> (string * Eliommod_parameters.param) list
+  -> (string * Mod_parameters.param) list
   -> unit
 
 type 'a result
@@ -66,7 +66,7 @@ val send :
   -> ?expecting_process_page:bool
   -> ?cookies_info:bool * string list
   -> ?get_args:(string * string) list
-  -> ?post_args:(string * Eliommod_parameters.param) list
+  -> ?post_args:(string * Mod_parameters.param) list
   -> ?progress:(int -> int -> unit)
   -> ?upload_progress:(int -> int -> unit)
   -> ?override_mime_type:string
@@ -79,7 +79,7 @@ val send_get_form :
   -> ?expecting_process_page:bool
   -> ?cookies_info:bool * string list
   -> ?get_args:(string * string) list
-  -> ?post_args:(string * Eliommod_parameters.param) list
+  -> ?post_args:(string * Mod_parameters.param) list
   -> ?progress:(int -> int -> unit)
   -> ?upload_progress:(int -> int -> unit)
   -> ?override_mime_type:string
@@ -93,7 +93,7 @@ val send_post_form :
   -> ?expecting_process_page:bool
   -> ?cookies_info:bool * string list
   -> ?get_args:(string * string) list
-  -> ?post_args:(string * Eliommod_parameters.param) list
+  -> ?post_args:(string * Mod_parameters.param) list
   -> ?progress:(int -> int -> unit)
   -> ?upload_progress:(int -> int -> unit)
   -> ?override_mime_type:string
@@ -122,7 +122,7 @@ val http_post :
   -> ?upload_progress:(int -> int -> unit)
   -> ?override_mime_type:string
   -> string
-  -> (string * Eliommod_parameters.param) list
+  -> (string * Mod_parameters.param) list
   -> 'a result
   -> (string * 'a option) Lwt.t
 
@@ -134,7 +134,7 @@ val http_put :
   -> ?upload_progress:(int -> int -> unit)
   -> ?override_mime_type:string
   -> string
-  -> (string * Eliommod_parameters.param) list
+  -> (string * Mod_parameters.param) list
   -> 'a result
   -> (string * 'a option) Lwt.t
 
@@ -146,7 +146,7 @@ val http_delete :
   -> ?upload_progress:(int -> int -> unit)
   -> ?override_mime_type:string
   -> string
-  -> (string * Eliommod_parameters.param) list
+  -> (string * Mod_parameters.param) list
   -> 'a result
   -> (string * 'a option) Lwt.t
 

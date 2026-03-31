@@ -26,7 +26,7 @@
 type eliom_extension_sig = unit -> Ocsigen_extensions.answer Lwt.t
 
 let module_action : eliom_extension_sig ref =
-  ref (fun _ -> failwith "Eliommod_extension")
+  ref (fun _ -> failwith "Mod_extension")
 
 let register_eliom_extension f = module_action := f
 let get_eliom_extension () = !module_action

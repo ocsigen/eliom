@@ -109,7 +109,7 @@ let http_stats () =
 
 let eliom_stats () =
   let* persist_nb_of_groups =
-    Eliom.Eliommod_sessiongroups.Pers.nb_of_groups ()
+    Eliom.Mod_sessiongroups.Pers.nb_of_groups ()
   in
   let* number_of_persistent_data_cookies =
     Eliom.State.number_of_persistent_data_cookies ()
@@ -139,10 +139,10 @@ let eliom_stats () =
        ; ul
            [ li
                [ ppf "%d service session groups."
-                   (Eliom.Eliommod_sessiongroups.Serv.nb_of_groups ()) ]
+                   (Eliom.Mod_sessiongroups.Serv.nb_of_groups ()) ]
            ; li
                [ ppf "%d volatile data session groups."
-                   (Eliom.Eliommod_sessiongroups.Data.nb_of_groups ()) ]
+                   (Eliom.Mod_sessiongroups.Data.nb_of_groups ()) ]
            ; li [ppf "%d persistent data session groups." persist_nb_of_groups]
            ; li
                [ ppf "Session groups: %s"

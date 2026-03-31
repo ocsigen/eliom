@@ -25,7 +25,7 @@ module Ocsipersist : module type of Ocsipersist
 
 (* those types are not available to the user, a scope must be created using
    create_..._scope functions *)
-type scope_hierarchy = Eliom_common_base.scope_hierarchy
+type scope_hierarchy = Common_base.scope_hierarchy
 (** {2 Scopes} *)
 
 type cookie_scope =
@@ -727,12 +727,12 @@ val patch_request_info :
   -> Ocsigen_extensions.request
 
 type eliom_js_page_data =
-  { ejs_global_data : (Eliom_runtime.global_data * Wrap.unwrapper) option
-  ; ejs_request_data : Eliom_runtime.request_data
+  { ejs_global_data : (Runtime.global_data * Wrap.unwrapper) option
+  ; ejs_request_data : Runtime.request_data
   ; (* Event handlers *)
-    ejs_event_handler_table : Eliom_runtime.RawXML.event_handler_table
+    ejs_event_handler_table : Runtime.RawXML.event_handler_table
   ; (* Client attrib *)
-    ejs_client_attrib_table : Eliom_runtime.RawXML.client_attrib_table
+    ejs_client_attrib_table : Runtime.RawXML.client_attrib_table
   ; (* Session info *)
     ejs_sess_info : sess_info }
 

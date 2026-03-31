@@ -1,5 +1,5 @@
 let default_app_name = Common.default_app_name
-let set_app_name = Eliommod.set_app_name
+let set_app_name = Mod_main.set_app_name
 
 let run
       ?(app = default_app_name)
@@ -27,7 +27,7 @@ let run
       conf_info
       site_dir
   =
-  let sitedata = Eliommod.update_sitedata app vh site_dir conf_info in
+  let sitedata = Mod_main.update_sitedata app vh site_dir conf_info in
   (* customize sitedata according to optional parameters: *)
   Option.iter
     (fun v ->
@@ -35,20 +35,20 @@ let run
     xhr_links;
   Option.iter
     (fun (level, hierarchyname, v) ->
-       Eliommod.set_timeout
-         (Eliommod_timeouts.set_global_ ~kind:`Data)
+       Mod_main.set_timeout
+         (Mod_timeouts.set_global_ ~kind:`Data)
          sitedata level hierarchyname v)
     data_timeout;
   Option.iter
     (fun (level, hierarchyname, v) ->
-       Eliommod.set_timeout
-         (Eliommod_timeouts.set_global_ ~kind:`Service)
+       Mod_main.set_timeout
+         (Mod_timeouts.set_global_ ~kind:`Service)
          sitedata level hierarchyname v)
     service_timeout;
   Option.iter
     (fun (level, hierarchyname, v) ->
-       Eliommod.set_timeout
-         (Eliommod_timeouts.set_global_ ~kind:`Persistent)
+       Mod_main.set_timeout
+         (Mod_timeouts.set_global_ ~kind:`Persistent)
          sitedata level hierarchyname v)
     persistent_timeout;
   Option.iter
@@ -77,7 +77,7 @@ let run
   Option.iter (fun v -> sitedata.application_script <- v) application_script;
   (* Always update enable_wasm: use provided value or current global default *)
   sitedata.enable_wasm <-
-    Option.value enable_wasm ~default:!Eliommod.default_enable_wasm;
+    Option.value enable_wasm ~default:!Mod_main.default_enable_wasm;
   Option.iter (fun v -> sitedata.cache_global_data <- v) global_data_caching;
   Option.iter (fun v -> sitedata.html_content_type <- Some v) html_content_type;
   Option.iter
@@ -91,7 +91,7 @@ let run
     omitpersistentstorage;
   (* end sitedata *)
   Common.absolute_change_sitedata sitedata;
-  Eliommod.site_init (ref true);
+  Mod_main.site_init (ref true);
   (* Load app: *)
-  Eliommod.load_eliom_module sitedata (Eliommod.Name app) "" [];
-  Eliommod_pagegen.gen None sitedata
+  Mod_main.load_eliom_module sitedata (Mod_main.Name app) "" [];
+  Mod_pagegen.gen None sitedata

@@ -126,8 +126,8 @@ module Xml : sig
   type node_id
 
   val get_node_id : elt -> node_id
-  val make_event_handler_table : elt -> Eliom_runtime.RawXML.event_handler_table
-  val make_client_attrib_table : elt -> Eliom_runtime.RawXML.client_attrib_table
+  val make_event_handler_table : elt -> Runtime.RawXML.event_handler_table
+  val make_client_attrib_table : elt -> Runtime.RawXML.client_attrib_table
 
   val caml_event_handler :
      (Dom_html.event Js.t -> unit) Client_value.t
@@ -182,7 +182,7 @@ module Svg : sig
 
   (**/**)
 
-  module Ev' = Eliom_content_core.Svg.Ev'
+  module Ev' = Content_core.Svg.Ev'
 
   (**/**)
 
@@ -334,7 +334,7 @@ module Html : sig
 
   (**/**)
 
-  module Ev' = Eliom_content_core.Html.Ev'
+  module Ev' = Content_core.Html.Ev'
 
   (**/**)
 

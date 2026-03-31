@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-include Eliom_service_base
+include Service_base
 
 let xhr_with_cookies s =
   if is_external s
@@ -26,7 +26,7 @@ let xhr_with_cookies s =
     match s.send_appl_content with
     | XAlways -> Some None
     | XNever -> None
-    | XSame_appl (appl, _) when appl <> Eliom_process.get_application_name () ->
+    | XSame_appl (appl, _) when appl <> Process.get_application_name () ->
         None
     | XSame_appl (_, tmpl) -> Some tmpl
 

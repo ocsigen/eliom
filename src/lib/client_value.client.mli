@@ -47,5 +47,5 @@ exception False
 
 (**/**)
 
-type injection_datum = Eliom_runtime.injection_datum
+type injection_datum = Runtime.injection_datum
 type global_data2 (* Global data only needed while unwrapping *)

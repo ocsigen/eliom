@@ -243,9 +243,9 @@ module type S = sig
     -> 'get
     -> 'post
     -> string
-       * (string * Eliommod_parameters.param) list
+       * (string * Mod_parameters.param) list
        * string option
-       * (string * Eliommod_parameters.param) list
+       * (string * Mod_parameters.param) list
   (** Same as {!LINK.make_uri_components}, but also returns a list of
       post parameters. *)
 

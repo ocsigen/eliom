@@ -13,15 +13,15 @@ val run :
   -> ?xhr_links:bool
   -> ?data_timeout:
        [< Common.cookie_level]
-       * Eliom_common_base.scope_hierarchy option
+       * Common_base.scope_hierarchy option
        * float option
   -> ?service_timeout:
        [< Common.cookie_level]
-       * Eliom_common_base.scope_hierarchy option
+       * Common_base.scope_hierarchy option
        * float option
   -> ?persistent_timeout:
        [< Common.cookie_level]
-       * Eliom_common_base.scope_hierarchy option
+       * Common_base.scope_hierarchy option
        * float option
   -> ?max_service_sessions_per_group:int * bool
   -> ?max_volatile_data_sessions_per_group:int * bool

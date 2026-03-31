@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-include Eliom_service_base
+include Service_base
 
 let plain_service
       (type m gp gn pp pn gp')

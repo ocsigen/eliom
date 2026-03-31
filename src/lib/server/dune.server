@@ -4,12 +4,20 @@
 (rule (copy# ../bus.server.mli bus.mli))
 (rule (copy# ../client.server.ml client.ml))
 (rule (copy# ../client.server.mli client.mli))
+(rule (copy# ../client_base.shared.ml client_base.ml))
+(rule (target client_main.ml) (deps ../client_main.eliom)
+  (action
+    (with-stdout-to %{target}
+      (chdir .. (run ppx_eliom_server --as-pp -internal --impl %{deps})))))
 (rule (copy# ../client_value.server.ml client_value.ml))
 (rule (copy# ../client_value.server.mli client_value.mli))
 (rule (copy# ../comet.server.ml comet.ml))
 (rule (copy# ../comet.server.mli comet.mli))
+(rule (copy# ../comet_base.shared.ml comet_base.ml))
+(rule (copy# ../comet_base.shared.mli comet_base.mli))
 (rule (copy# ../common.server.ml common.ml))
 (rule (copy# ../common.server.mli common.mli))
+(rule (copy# ../common_base.shared.ml common_base.ml))
 (rule (copy# ../config.server.ml config.ml))
 (rule (copy# ../config.server.mli config.mli))
 (rule (target content.ml) (deps ../content.eliom)
@@ -17,7 +25,11 @@
     (with-stdout-to %{target}
       (chdir .. (run ppx_eliom_server --as-pp -internal --impl %{deps})))))
 (rule (copy# ../content.server.mli content.mli))
+(rule (copy# ../content_core.server.ml content_core.ml))
+(rule (copy# ../content_core.server.mli content_core.mli))
+(rule (copy# ../content_functor.server.ml content_functor.ml))
 (rule (copy# ../content_sigs.shared.mli content_sigs.mli))
+(rule (copy# ../cookies_base.shared.ml cookies_base.ml))
 (rule (target cscache.ml) (deps ../cscache.eliom)
   (action
     (with-stdout-to %{target}
@@ -26,19 +38,6 @@
   (action
     (with-stdout-to %{target}
       (chdir .. (run ppx_eliom_server --as-pp -internal --intf %{deps})))))
-(rule (copy# ../eliom_client_base.shared.ml eliom_client_base.ml))
-(rule (target eliom_client_main.ml) (deps ../eliom_client_main.eliom)
-  (action
-    (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_server --as-pp -internal --impl %{deps})))))
-(rule (copy# ../eliom_comet_base.shared.ml eliom_comet_base.ml))
-(rule (copy# ../eliom_comet_base.shared.mli eliom_comet_base.mli))
-(rule (copy# ../eliom_common_base.shared.ml eliom_common_base.ml))
-(rule (copy# ../eliom_content_.server.ml eliom_content_.ml))
-(rule (copy# ../eliom_content_core.server.ml eliom_content_core.ml))
-(rule (copy# ../eliom_content_core.server.mli eliom_content_core.mli))
-(rule (copy# ../eliom_cookies_base.shared.ml eliom_cookies_base.ml))
-(rule (copy# ../eliom_error_pages.server.ml eliom_error_pages.ml))
 (rule (target eliom_form.ml) (deps ../eliom_form.eliom)
   (action
     (with-stdout-to %{target}
@@ -49,37 +48,27 @@
       (chdir .. (run ppx_eliom_server --as-pp -internal --intf %{deps})))))
 (rule (copy# ../eliom_lazy.server.ml eliom_lazy.ml))
 (rule (copy# ../eliom_lazy.server.mli eliom_lazy.mli))
-(rule (copy# ../eliom_lib_base.shared.ml eliom_lib_base.ml))
-(rule (copy# ../eliom_lib_base.shared.mli eliom_lib_base.mli))
-(rule (copy# ../eliom_parameter_base.shared.ml eliom_parameter_base.ml))
-(rule (copy# ../eliom_process.server.ml eliom_process.ml))
 (rule (copy# ../eliom_react.server.ml eliom_react.ml))
 (rule (copy# ../eliom_react.server.mli eliom_react.mli))
-(rule (copy# ../eliom_route_base.shared.ml eliom_route_base.ml))
-(rule (copy# ../eliom_runtime.shared.ml eliom_runtime.ml))
-(rule (copy# ../eliom_runtime.shared.mli eliom_runtime.mli))
-(rule (target eliom_service_base.ml) (deps ../eliom_service_base.eliom)
-  (action
-    (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_server --as-pp -internal --impl %{deps})))))
-(rule (copy# ../eliom_types.server.ml eliom_types.ml))
-(rule (copy# ../eliom_types.server.mli eliom_types.mli))
-(rule (copy# ../eliom_types_base.shared.ml eliom_types_base.ml))
-(rule (copy# ../eliom_types_base.shared.mli eliom_types_base.mli))
 (rule (copy# ../eliom_uri.shared.ml eliom_uri.ml))
 (rule (copy# ../eliom_uri.shared.mli eliom_uri.mli))
+(rule (copy# ../error_pages.server.ml error_pages.ml))
 (rule (copy# ../extension.server.ml extension.ml))
 (rule (copy# ../extension.server.mli extension.mli))
 (rule (copy# ../form_sigs.shared.mli form_sigs.mli))
 (rule (copy# ../lib.server.ml lib.ml))
 (rule (copy# ../lib.server.mli lib.mli))
+(rule (copy# ../lib_base.shared.ml lib_base.ml))
+(rule (copy# ../lib_base.shared.mli lib_base.mli))
 (rule (copy# ../mkreg.server.ml mkreg.ml))
 (rule (copy# ../mkreg.server.mli mkreg.mli))
 (rule (copy# ../notif.server.ml notif.ml))
 (rule (copy# ../notif.server.mli notif.mli))
 (rule (copy# ../parameter.server.ml parameter.ml))
 (rule (copy# ../parameter.server.mli parameter.mli))
+(rule (copy# ../parameter_base.shared.ml parameter_base.ml))
 (rule (copy# ../parameter_sigs.shared.mli parameter_sigs.mli))
+(rule (copy# ../process.server.ml process.ml))
 (rule (copy# ../reference.server.ml reference.ml))
 (rule (copy# ../reference.server.mli reference.mli))
 (rule (copy# ../registration.server.ml registration.ml))
@@ -89,8 +78,15 @@
 (rule (copy# ../request_info.server.mli request_info.mli))
 (rule (copy# ../route.server.ml route.ml))
 (rule (copy# ../route.server.mli route.mli))
+(rule (copy# ../route_base.shared.ml route_base.ml))
+(rule (copy# ../runtime.shared.ml runtime.ml))
+(rule (copy# ../runtime.shared.mli runtime.mli))
 (rule (copy# ../service.server.ml service.ml))
 (rule (copy# ../service.server.mli service.mli))
+(rule (target service_base.ml) (deps ../service_base.eliom)
+  (action
+    (with-stdout-to %{target}
+      (chdir .. (run ppx_eliom_server --as-pp -internal --impl %{deps})))))
 (rule (copy# ../service_sigs.shared.mli service_sigs.mli))
 (rule (target shared.ml) (deps ../shared.eliom)
   (action
@@ -118,5 +114,9 @@
   (action
     (with-stdout-to %{target}
       (chdir .. (run ppx_eliom_server --as-pp -internal --intf %{deps})))))
+(rule (copy# ../types.server.ml types.ml))
+(rule (copy# ../types.server.mli types.mli))
+(rule (copy# ../types_base.shared.ml types_base.ml))
+(rule (copy# ../types_base.shared.mli types_base.mli))
 (rule (copy# ../wrap.server.ml wrap.ml))
 (rule (copy# ../wrap.server.mli wrap.mli))
