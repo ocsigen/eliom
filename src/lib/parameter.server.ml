@@ -33,9 +33,7 @@ let user_type
       (n : string)
   =
   TUserType
-    ( n
-    , Common.To_and_of_shared.create ?client_to_and_of
-        {of_string; to_string} )
+    (n, Common.To_and_of_shared.create ?client_to_and_of {of_string; to_string})
 
 let all_suffix_user
       ?client_to_and_of
@@ -44,9 +42,7 @@ let all_suffix_user
       (n : string)
   =
   TESuffixu
-    ( n
-    , Common.To_and_of_shared.create ?client_to_and_of
-        {of_string; to_string} )
+    (n, Common.To_and_of_shared.create ?client_to_and_of {of_string; to_string})
 
 (* types available only on server side (no pcre on browser) *)
 
@@ -95,8 +91,7 @@ let get_non_localized_parameters
   try
     (* first, look in cache: *)
     Polytables.get
-      ~table:
-        (Ocsigen_request.request_cache sp.Common.sp_request.request_info)
+      ~table:(Ocsigen_request.request_cache sp.Common.sp_request.request_info)
       ~key
   with Not_found ->
     let p =
@@ -113,19 +108,16 @@ let get_non_localized_parameters
     in
     (* add in cache: *)
     Polytables.set
-      ~table:
-        (Ocsigen_request.request_cache sp.Common.sp_request.request_info)
+      ~table:(Ocsigen_request.request_cache sp.Common.sp_request.request_info)
       ~key ~value:p;
     p
 
 let get_non_localized_get_parameters p =
   let sp = Common.get_sp () in
-  get_non_localized_parameters
-    sp.Common.sp_si.Common.si_nl_get_params
+  get_non_localized_parameters sp.Common.sp_si.Common.si_nl_get_params
     sp.Common.sp_si.Common.si_nl_file_params ~getorpost:`Get ~sp p
 
 let get_non_localized_post_parameters p =
   let sp = Common.get_sp () in
-  get_non_localized_parameters
-    sp.Common.sp_si.Common.si_nl_post_params
+  get_non_localized_parameters sp.Common.sp_si.Common.si_nl_post_params
     sp.Common.sp_si.Common.si_nl_file_params ~getorpost:`Post ~sp p

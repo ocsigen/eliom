@@ -30,13 +30,9 @@ val get_cookie_info :
   -> Common.SessionCookies.key Common.Full_state_name_table.t
      * Common.SessionCookies.key Common.Full_state_name_table.t
      * string Common.Full_state_name_table.t
-  -> Common.tables Common.cookie_info
-     * Common.Full_state_name_table.key list
+  -> Common.tables Common.cookie_info * Common.Full_state_name_table.key list
 
-val new_service_cookie_table :
-   unit
-  -> Common.tables Common.Service_cookie.table
-
+val new_service_cookie_table : unit -> Common.tables Common.Service_cookie.table
 val new_data_cookie_table : unit -> Common.Data_cookie.table
 
 val compute_session_cookies_to_send :

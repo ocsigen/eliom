@@ -253,13 +253,16 @@ let get_templatedirs () =
              let dir =
                Filename.concat (Findlib.package_directory pkg) "eliom-templates"
              in
-             if Sys.file_exists dir && Sys.is_directory dir then Some dir
+             if Sys.file_exists dir && Sys.is_directory dir
+             then Some dir
              else None
            with _ -> None)
         packages
     with _ -> []
   in
-  let all = eliom_template_dir :: distillery_path_dirs @ package_template_dirs in
+  let all =
+    (eliom_template_dir :: distillery_path_dirs) @ package_template_dirs
+  in
   List.sort_uniq String.compare all
 
 let get_templates () =

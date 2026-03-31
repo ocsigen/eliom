@@ -703,11 +703,7 @@ val discard_everything : unit -> unit Lwt.t
 
 (*CCC missing ~secure? *)
 
-val discard_all :
-   scope:Common.user_scope
-  -> ?secure:bool
-  -> unit
-  -> unit Lwt.t
+val discard_all : scope:Common.user_scope -> ?secure:bool -> unit -> unit Lwt.t
 (** Discard all services and persistent and volatile data for one scope. *)
 
 (*VVV missing: scope group *)
@@ -928,9 +924,7 @@ module Ext : sig
      ([< Common.cookie_level], [`Pers]) state
     -> persistent_cookie_info Lwt.t
 
-  val get_service_cookie_scope :
-     cookie:service_cookie_info
-    -> Common.user_scope
+  val get_service_cookie_scope : cookie:service_cookie_info -> Common.user_scope
 
   val get_volatile_data_cookie_scope :
      cookie:data_cookie_info

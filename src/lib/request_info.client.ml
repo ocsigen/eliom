@@ -65,9 +65,7 @@ let matches_regexps regexps (name, _) =
 
 let update_session_info ~path ~all_get_params ~all_post_params cont =
   let ignored_get, all_get_params =
-    List.partition
-      (matches_regexps !Process.ignored_get_params)
-      all_get_params
+    List.partition (matches_regexps !Process.ignored_get_params) all_get_params
   in
   let ignored_post, all_post_params =
     match all_post_params with
@@ -79,8 +77,7 @@ let update_session_info ~path ~all_get_params ~all_post_params cont =
   let nl_get_params, all_get_but_nl =
     Common.split_nl_prefix_param all_get_params
   in
-  let all_get_but_na_nl =
-    lazy (Common.remove_na_prefix_params all_get_but_nl)
+  let all_get_but_na_nl = lazy (Common.remove_na_prefix_params all_get_but_nl)
   and na_get_params = lazy (Common.filter_na_get_params all_get_but_nl) in
   let {si; _} = get_ri () in
   let si =
@@ -134,9 +131,7 @@ let ssl_ =
   | Some (Url.Http _) | Some (Url.File _) | None -> false
 
 let get_csp_ssl () =
-  if !client_app_initialised
-  then (Process.get_info ()).Common.cpi_ssl
-  else ssl_
+  if !client_app_initialised then (Process.get_info ()).Common.cpi_ssl else ssl_
 
 let get_csp_ssl_sp = get_csp_ssl
 let host_ = Url.Current.host
@@ -186,11 +181,9 @@ let default_request_data =
           ( Common.Full_state_name_table.empty
           , Common.Full_state_name_table.empty
           , Common.Full_state_name_table.empty )
-      ; si_service_session_cookies_tab =
-          Common.Full_state_name_table.empty
+      ; si_service_session_cookies_tab = Common.Full_state_name_table.empty
       ; si_data_session_cookies_tab = Common.Full_state_name_table.empty
-      ; si_persistent_session_cookies_tab =
-          Common.Full_state_name_table.empty
+      ; si_persistent_session_cookies_tab = Common.Full_state_name_table.empty
       ; si_secure_cookie_info_tab =
           ( Common.Full_state_name_table.empty
           , Common.Full_state_name_table.empty

@@ -194,8 +194,5 @@ val get_debugmode : unit -> bool
 
 (**/**)
 
-val get_config_info_sp :
-   Common.server_params
-  -> Ocsigen_extensions.config_info
-
+val get_config_info_sp : Common.server_params -> Ocsigen_extensions.config_info
 val get_config_default_charset_sp : Common.server_params -> string

@@ -83,8 +83,7 @@ let find_aux now sitedata info _ sci : Ocsigen_response.t Lwt.t =
                  find_service now !(c.Common.sc_table) (Some fullsessname)
                    sitedata info)
            | e -> fail e))
-    sci
-    (fail Common.Eliom_404)
+    sci (fail Common.Eliom_404)
 
 let session_tables {Common.all_cookie_info; tab_cookie_info; _} =
   let (service_cookies_info, _, _), (secure_service_cookies_info, _, _) =
@@ -101,10 +100,8 @@ let drop_most_params ri si =
   Ocsigen_request.update ri ~post_data:None ~meth:`GET
     ~get_params_flat:si.Common.si_other_get_params
 
-let get_page
-      now
-      ({Common.request = ri; session_info = si; _} as info)
-      sitedata : Ocsigen_response.t Lwt.t
+let get_page now ({Common.request = ri; session_info = si; _} as info) sitedata
+  : Ocsigen_response.t Lwt.t
   =
   let tables = session_tables info in
   catch
@@ -130,11 +127,10 @@ let get_page
             (fun () ->
                Logs.info ~src:section (fun fmt ->
                  fmt "Searching in the global table:");
-               find_service now sitedata.Common.global_services None
-                 sitedata info)
+               find_service now sitedata.Common.global_services None sitedata
+                 info)
             (function
-              | (Common.Eliom_404 | Common.Eliom_Wrong_parameter) as
-                exn -> (
+              | (Common.Eliom_404 | Common.Eliom_Wrong_parameter) as exn -> (
                 (* si pas trouvé avec, on essaie sans l'état *)
                 match si.Common.si_state_info with
                 | Common.RAtt_no, Common.RAtt_no -> fail exn
@@ -191,10 +187,8 @@ let get_page
 let add_naservice_table at (key, elt) =
   match at with
   | Common.AVide ->
-      Common.ATable
-        (Common.NAserv_Table.add key elt Common.NAserv_Table.empty)
-  | Common.ATable t ->
-      Common.ATable (Common.NAserv_Table.add key elt t)
+      Common.ATable (Common.NAserv_Table.add key elt Common.NAserv_Table.empty)
+  | Common.ATable t -> Common.ATable (Common.NAserv_Table.add key elt t)
 
 let find_naservice_table at k =
   match at with
@@ -213,11 +207,9 @@ let add_naservice tables name (max_use, expdate, naservice) =
        if g = generation
        then
          match name with
-         | Common.SNa_no | Common.SNa_get' _
-         | Common.SNa_post' _ ->
+         | Common.SNa_no | Common.SNa_get' _ | Common.SNa_post' _ ->
              raise
-               (Common.Eliom_duplicate_registration
-                  "<non-attached coservice>")
+               (Common.Eliom_duplicate_registration "<non-attached coservice>")
          | Common.SNa_get_ n ->
              raise
                (Common.Eliom_duplicate_registration
@@ -227,10 +219,8 @@ let add_naservice tables name (max_use, expdate, naservice) =
                (Common.Eliom_duplicate_registration
                   ("POST non-attached service " ^ n))
          | Common.SNa_void_dontkeep | Common.SNa_void_keep ->
-             raise
-               (Common.Eliom_duplicate_registration "<void coservice>")
-         | Common.SNa_get_csrf_safe _ | Common.SNa_post_csrf_safe _
-           ->
+             raise (Common.Eliom_duplicate_registration "<void coservice>")
+         | Common.SNa_get_csrf_safe _ | Common.SNa_post_csrf_safe _ ->
              assert false
      with Not_found -> ());
   (match expdate with
@@ -251,9 +241,7 @@ let remove_naservice_ tables name nodeopt =
   match nodeopt with
   | None ->
       tables.Common.table_naservices :=
-        Common.remove_naservice_table
-          !(tables.Common.table_naservices)
-          name
+        Common.remove_naservice_table !(tables.Common.table_naservices) name
   | Some node -> Ocsigen_cache.Dlist.remove node
 
 let find_naservice now tables name =
@@ -292,14 +280,12 @@ let make_naservice
            | Common.Found _ -> beg
            | Common.Notfound _ -> (
              match !r with
-             | Common.SCNo_data | Common.SCData_session_expired ->
-                 beg
+             | Common.SCNo_data | Common.SCData_session_expired -> beg
              | Common.SC c -> (
                try
                  Common.Found
                    ( find_naservice now !(c.Common.sc_table)
-                       (Common.na_key_serv_of_req
-                          si.Common.si_nonatt_info)
+                       (Common.na_key_serv_of_req si.Common.si_nonatt_info)
                    , !(c.Common.sc_table)
                    , Some fullsessname )
                with Not_found -> beg)))
@@ -349,8 +335,7 @@ let make_naservice
            si.Common.si_previous_extension_error
          >>= fun (ri', si', _previous_tab_cookies_info) ->
          Lwt.fail
-         @@ Common.Eliom_retry_with
-              {info with request = ri'; session_info = si'}
+         @@ Common.Eliom_retry_with {info with request = ri'; session_info = si'}
      | Common.RNa_get_ _ | Common.RNa_get' _ ->
          Logs.info ~src:section (fun fmt ->
            fmt "Link too old. Try without non-attached parameters:");
@@ -365,8 +350,7 @@ let make_naservice
            si.Common.si_previous_extension_error
          >>= fun (ri', si', _previous_tab_cookies_info) ->
          Lwt.fail
-         @@ Common.Eliom_retry_with
-              {info with request = ri'; session_info = si'}))
+         @@ Common.Eliom_retry_with {info with request = ri'; session_info = si'}))
   >>=
   fun ( (_, max_use, expdate, naservice, node)
       , tablewhereithasbeenfound

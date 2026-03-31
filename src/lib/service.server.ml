@@ -43,8 +43,7 @@ let plain_service
      match Common.global_register_allowed () with
      | Some current_site_data ->
          Common.add_unregistered (current_site_data ()) path
-     | None ->
-         raise (Common.Eliom_site_information_not_available "service"));
+     | None -> raise (Common.Eliom_site_information_not_available "service"));
   let reload_fun = Rf_client_fun in
   main_service ~https ~prefix:"" ~path ~kind:`Service ~meth ?redirect_suffix
     ?keep_nl_params ?priority ~get_params ~post_params ~reload_fun ()
@@ -69,11 +68,9 @@ let create_attached
   and get_params_type, post_params_type =
     if is_post
     then
-      ( get_params
-      , Parameter.add_pref_params Common.co_param_prefix post_params )
+      get_params, Parameter.add_pref_params Common.co_param_prefix post_params
     else
-      ( Parameter.add_pref_params Common.co_param_prefix get_params
-      , post_params )
+      Parameter.add_pref_params Common.co_param_prefix get_params, post_params
   and k = attached_info fallback in
   { pre_applied_parameters = fallback.pre_applied_parameters
   ; get_params_type
@@ -161,14 +158,10 @@ let coservice'
                if is_post
                then
                  Common.SNa_post_csrf_safe
-                   ( uniqueid ()
-                   , (csrf_scope :> Common.user_scope)
-                   , csrf_secure )
+                   (uniqueid (), (csrf_scope :> Common.user_scope), csrf_secure)
                else
                  Common.SNa_get_csrf_safe
-                   ( uniqueid ()
-                   , (csrf_scope :> Common.user_scope)
-                   , csrf_secure )
+                   (uniqueid (), (csrf_scope :> Common.user_scope), csrf_secure)
              else
                match name, is_post with
                | None, true -> Common.SNa_post' (new_state ())
@@ -295,13 +288,11 @@ let register_delayed_get_or_na_coservice ~sp (k, scope, secure) =
             ~scope:(scope :> Common.user_scope)
             ?secure ())
       in
-      Lib.Int.Table.find k
-        table.Common.csrf_get_or_na_registration_functions
+      Lib.Int.Table.find k table.Common.csrf_get_or_na_registration_functions
     with Not_found -> (
       let table = State.get_global_table () in
       try
-        Lib.Int.Table.find k
-          table.Common.csrf_get_or_na_registration_functions
+        Lib.Int.Table.find k table.Common.csrf_get_or_na_registration_functions
       with Not_found -> raise Unregistered_CSRF_safe_coservice)
   in
   f ~sp
@@ -317,16 +308,14 @@ let register_delayed_post_coservice ~sp (k, scope, secure) getname =
       Lib.Int.Table.find k table.Common.csrf_post_registration_functions
     with Not_found -> (
       let table = State.get_global_table () in
-      try
-        Lib.Int.Table.find k table.Common.csrf_post_registration_functions
+      try Lib.Int.Table.find k table.Common.csrf_post_registration_functions
       with Not_found -> raise Unregistered_CSRF_safe_coservice)
   in
   f ~sp getname
 
 let set_delayed_get_or_na_registration_function tables k f =
   tables.Common.csrf_get_or_na_registration_functions <-
-    Lib.Int.Table.add k f
-      tables.Common.csrf_get_or_na_registration_functions
+    Lib.Int.Table.add k f tables.Common.csrf_get_or_na_registration_functions
 
 let set_delayed_post_registration_function tables k f =
   tables.Common.csrf_post_registration_functions <-
@@ -345,10 +334,8 @@ let remove_service
       let sgpt = get_params_type service in
       let sppt = post_params_type service in
       Route.remove_service table (sub_path attser)
-        { Common.key_state = attserget, attserpost
-        ; Common.key_meth = key_kind }
-        (if
-           attserget = Common.SAtt_no || attserpost = Common.SAtt_no
+        {Common.key_state = attserget, attserpost; Common.key_meth = key_kind}
+        (if attserget = Common.SAtt_no || attserpost = Common.SAtt_no
          then Parameter.(anonymise_params_type sgpt, anonymise_params_type sppt)
          else 0, 0)
   | Nonattached naser ->
@@ -372,9 +359,7 @@ let unregister
               let sitedata = get_current_sitedata () in
               sitedata.Common.global_services
           | _ ->
-              raise
-                (Common.Eliom_site_information_not_available "unregister")
-          )
+              raise (Common.Eliom_site_information_not_available "unregister"))
         | Some _ -> State.get_global_table ()
       in
       remove_service table service

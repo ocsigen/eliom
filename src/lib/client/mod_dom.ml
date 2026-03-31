@@ -99,8 +99,7 @@ let ancessor =
   if test_compareDocumentPosition () then fast_ancessor else slow_ancessor
 
 let fast_select_request_nodes root =
-  root##(querySelectorAll
-           (Js.string ("." ^ Runtime.RawXML.request_node_class)))
+  root##(querySelectorAll (Js.string ("." ^ Runtime.RawXML.request_node_class)))
 
 let fast_select_nodes root =
   if !Config.debug_timings
@@ -125,8 +124,7 @@ let fast_select_nodes root =
   in
   let closure_nodeList =
     root##(querySelectorAll
-             (Js.string
-                ("." ^ Runtime.RawXML.ce_registered_closure_class)))
+             (Js.string ("." ^ Runtime.RawXML.ce_registered_closure_class)))
   in
   let attrib_nodeList =
     root##(querySelectorAll
@@ -194,21 +192,18 @@ let fast_has_classes (node : Dom_html.element Js.t) =
       node##.classList##(contains
                            (Js.string Runtime.RawXML.ce_call_service_class))
   , Js.to_bool
-      node##.classList##(contains
-                           (Js.string Runtime.RawXML.process_node_class))
+      node##.classList##(contains (Js.string Runtime.RawXML.process_node_class))
   , Js.to_bool
       node##.classList##(contains
-                           (Js.string
-                              Runtime.RawXML.ce_registered_closure_class))
+                           (Js.string Runtime.RawXML.ce_registered_closure_class))
   , Js.to_bool
       node##.classList##(contains
-                           (Js.string
-                              Runtime.RawXML.ce_registered_attr_class)) )
+                           (Js.string Runtime.RawXML.ce_registered_attr_class))
+  )
 
 let fast_has_request_class (node : Dom_html.element Js.t) =
   Js.to_bool
-    node##.classList##(contains
-                         (Js.string Runtime.RawXML.request_node_class))
+    node##.classList##(contains (Js.string Runtime.RawXML.request_node_class))
 
 let has_classes : Dom_html.element Js.t -> bool * bool * bool * bool =
   if test_classList () then fast_has_classes else slow_has_classes
@@ -734,8 +729,7 @@ let setDocumentScroll pos =
 let touch_base () =
   Js.Opt.iter
     (Js.Opt.bind
-       Dom_html.document##(getElementById
-                             (Js.string Common_base.base_elt_id))
+       Dom_html.document##(getElementById (Js.string Common_base.base_elt_id))
        Dom_html.CoerceTo.base)
     (fun e ->
        let href = e##.href in

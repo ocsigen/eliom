@@ -26,8 +26,7 @@ let rec string_of_url_path' = function
   | [a] -> Lib.Url.encode ~plus:false a
   | a :: b :: l when b = Common.eliom_suffix_internal_name ->
       string_of_url_path' (a :: l)
-  | a :: l when a = Common.eliom_suffix_internal_name ->
-      string_of_url_path' l
+  | a :: l when a = Common.eliom_suffix_internal_name -> string_of_url_path' l
   | a :: l -> Lib.Url.encode ~plus:false a ^ "/" ^ string_of_url_path' l
 
 let string_of_url_path_suff u = function
@@ -123,8 +122,7 @@ let make_uri_components_
   let absolute =
     match absolute with
     | Some a -> a
-    | None ->
-        !Common.is_client_app && not (Service.has_client_fun service)
+    | None -> !Common.is_client_app && not (Service.has_client_fun service)
   in
   let ssl =
     match Common.get_sp_option () with
@@ -203,22 +201,19 @@ let make_uri_components_
       | Common.SAtt_no -> uri, hiddenparams, fragment
       | Common.SAtt_anon s ->
           ( uri
-          , ( Common.get_numstate_param_name
-            , Mod_parameters.insert_string s )
+          , (Common.get_numstate_param_name, Mod_parameters.insert_string s)
             :: hiddenparams
           , fragment )
       | Common.SAtt_named s ->
           ( uri
-          , ( Common.get_state_param_name
-            , Mod_parameters.insert_string s )
+          , (Common.get_state_param_name, Mod_parameters.insert_string s)
             :: hiddenparams
           , fragment )
       | Common.SAtt_csrf_safe csrf_info ->
           let sp = Common.get_sp () in
           let s = Service.register_delayed_get_or_na_coservice ~sp csrf_info in
           ( uri
-          , ( Common.get_numstate_param_name
-            , Mod_parameters.insert_string s )
+          , (Common.get_numstate_param_name, Mod_parameters.insert_string s)
             :: hiddenparams
           , fragment )
       | Common.SAtt_na_anon s ->
@@ -245,17 +240,12 @@ let make_uri_components_
         let current_get_params =
           if na_name = Common.SNa_void_keep
           then (Request_info.get_si sp).Common.si_all_get_but_nl
-          else
-            Lazy.force
-              (Request_info.get_si sp).Common.si_all_get_but_na_nl
+          else Lazy.force (Request_info.get_si sp).Common.si_all_get_but_na_nl
         in
         match na_name with
-        | Common.SNa_void_keep | Common.SNa_void_dontkeep ->
-            current_get_params
-        | Common.SNa_get' n ->
-            (Common.naservice_num, n) :: current_get_params
-        | Common.SNa_get_ n ->
-            (Common.naservice_name, n) :: current_get_params
+        | Common.SNa_void_keep | Common.SNa_void_dontkeep -> current_get_params
+        | Common.SNa_get' n -> (Common.naservice_num, n) :: current_get_params
+        | Common.SNa_get_ n -> (Common.naservice_name, n) :: current_get_params
         | Common.SNa_get_csrf_safe csrf_info ->
             let sp = Common.get_sp () in
             let n =
@@ -264,9 +254,7 @@ let make_uri_components_
             (Common.naservice_num, n) :: current_get_params
         | _ -> assert false
       in
-      let params =
-        Mod_parameters.inject_param_list params' @ hiddenparams
-      in
+      let params = Mod_parameters.inject_param_list params' @ hiddenparams in
       let beg =
         match absolute with
         | None ->
@@ -449,8 +437,7 @@ let make_post_uri_components_
             (if keep_get_na_params
              then (Request_info.get_si sp).Common.si_all_get_but_nl
              else
-               Lazy.force
-                 (Request_info.get_si sp).Common.si_all_get_but_na_nl)
+               Lazy.force (Request_info.get_si sp).Common.si_all_get_but_na_nl)
       in
       let ssl = Request_info.get_csp_ssl_sp sp in
       let https = is_https https ssl service in

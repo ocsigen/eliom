@@ -94,9 +94,7 @@ let gc_timeouted_services now tables =
                    | [] -> ptr := ll
                    | newl ->
                        ptr :=
-                         Common.Serv_Table.add ptk
-                           (`Ptc (nodeopt, newl))
-                           ll
+                         Common.Serv_Table.add ptk (`Ptc (nodeopt, newl)) ll
                with Not_found -> ()));
              Lwt.pause ())
           !ptr return_unit
@@ -200,11 +198,9 @@ let service_session_gc sitedata =
                     then gc_timeouted_services now tables
                     else return_unit)
                    >>= fun () ->
-                   (if
-                      tables.Common.table_contains_naservices_with_timeout
+                   (if tables.Common.table_contains_naservices_with_timeout
                     then
-                      gc_timeouted_naservices now
-                        tables.Common.table_naservices
+                      gc_timeouted_naservices now tables.Common.table_naservices
                     else return_unit)
                    >>= fun () ->
                    (match !session_group with
@@ -249,10 +245,7 @@ let data_session_gc sitedata =
         (* private continuation tables: *)
         Common.SessionCookies.fold
           (fun k
-            { Common.Data_cookie.expiry
-            ; session_group
-            ; session_group_node
-            ; _ }
+            {Common.Data_cookie.expiry; session_group; session_group_node; _}
             thr ->
              thr >>= fun () ->
              (match !expiry with

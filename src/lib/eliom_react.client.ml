@@ -61,8 +61,7 @@ module Down = struct
         stream);
     E.of_stream channel
 
-  let () =
-    Unwrap.register_unwrapper Common.react_down_unwrap_id internal_unwrap
+  let () = Unwrap.register_unwrapper Common.react_down_unwrap_id internal_unwrap
 end
 
 module Up = struct
@@ -71,8 +70,7 @@ module Up = struct
   let internal_unwrap (service, _unwrapper) x =
     Client.call_service ~service () x >|= fun _ -> ()
 
-  let () =
-    Unwrap.register_unwrapper Common.react_up_unwrap_id internal_unwrap
+  let () = Unwrap.register_unwrapper Common.react_up_unwrap_id internal_unwrap
 end
 
 module S = struct
@@ -84,8 +82,7 @@ module S = struct
       S.hold ~eq:(fun _ _ -> false) value e
 
     let () =
-      Unwrap.register_unwrapper Common.signal_down_unwrap_id
-        internal_unwrap
+      Unwrap.register_unwrapper Common.signal_down_unwrap_id internal_unwrap
   end
 end
 

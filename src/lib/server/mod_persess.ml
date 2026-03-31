@@ -41,13 +41,11 @@ let compute_cookie_info sitedata secure_o secure_ci cookie_info =
     c, true
   else cookie_info, false
 
-let close_persistent_state2 ~(scope : [< Common.user_scope]) sitedata sg v
-  =
+let close_persistent_state2 ~(scope : [< Common.user_scope]) sitedata sg v =
   (* check *)
   match scope with
   | `Session_group _ ->
-      Mod_sessiongroups.Pers.remove_group ~cookie_level:`Session sitedata
-        sg
+      Mod_sessiongroups.Pers.remove_group ~cookie_level:`Session sitedata sg
   | _ ->
       Mod_sessiongroups.Pers.close_persistent_session2
         ~cookie_level:(Common.cookie_level_of_user_scope scope)
@@ -66,11 +64,8 @@ let close_persistent_state ~scope ~secure_o ?sp () =
        let cookie_info, secure =
          compute_cookie_info sitedata secure_o secure_ci cookie_info
        in
-       let full_st_name =
-         Common.make_full_state_name ~sp ~secure ~scope
-       in
-       Lazy.force
-         (Common.Full_state_name_table.find full_st_name !cookie_info)
+       let full_st_name = Common.make_full_state_name ~sp ~secure ~scope in
+       Lazy.force (Common.Full_state_name_table.find full_st_name !cookie_info)
        >>= fun (_, ior) ->
        match !ior with
        | Common.SC c ->
@@ -110,9 +105,7 @@ let rec find_or_create_persistent_cookie_
           let* r =
             find_or_create_persistent_cookie_
               ~set_max_in_group:
-                (fst
-                   sitedata
-                     .Common.max_persistent_data_tab_sessions_per_group)
+                (fst sitedata.Common.max_persistent_data_tab_sessions_per_group)
               ~cookie_scope:(`Session n) ~secure_o ~sp ()
           in
           Lwt.return_some Common.(Hashed_cookies.to_string r.pc_hvalue)
@@ -154,9 +147,7 @@ let rec find_or_create_persistent_cookie_
           ref (Common.default_client_cookie_exp ()) (* exp on client *)
       ; Common.pc_session_group = ref fullsessgrp }
   in
-  let (_, _, cookie_info), secure_ci =
-    Common.get_cookie_info sp cookie_level
-  in
+  let (_, _, cookie_info), secure_ci = Common.get_cookie_info sp cookie_level in
   let sitedata = Request_info.get_sitedata_sp ~sp in
   let cookie_info, secure =
     compute_cookie_info sitedata secure_o secure_ci cookie_info
@@ -166,8 +157,7 @@ let rec find_or_create_persistent_cookie_
   in
   catch
     (fun () ->
-       Lazy.force
-         (Common.Full_state_name_table.find full_st_name !cookie_info)
+       Lazy.force (Common.Full_state_name_table.find full_st_name !cookie_info)
        >>= fun (_old, ior) ->
        match !ior with
        | Common.SCData_session_expired
@@ -219,9 +209,7 @@ let find_persistent_cookie_only ~cookie_scope ~secure_o ?sp () =
      Returns the cookie info for the cookie *)
   let sp = Common.sp_of_option sp in
   let cookie_level = Common.cookie_level_of_user_scope cookie_scope in
-  let (_, _, cookie_info), secure_ci =
-    Common.get_cookie_info sp cookie_level
-  in
+  let (_, _, cookie_info), secure_ci = Common.get_cookie_info sp cookie_level in
   let sitedata = Request_info.get_sitedata_sp ~sp in
   let cookie_info, secure =
     compute_cookie_info sitedata secure_o secure_ci cookie_info
@@ -233,6 +221,5 @@ let find_persistent_cookie_only ~cookie_scope ~secure_o ?sp () =
   >>= fun (_, ior) ->
   match !ior with
   | Common.SCNo_data -> raise Not_found
-  | Common.SCData_session_expired ->
-      raise Common.Eliom_Session_expired
+  | Common.SCData_session_expired -> raise Common.Eliom_Session_expired
   | Common.SC v -> return v

@@ -25,8 +25,7 @@ open Lwt.Infix
 let headers_with_content_type headers =
   Cohttp.Header.add_opt headers
     Ocsigen_header.Name.(to_string content_type)
-    (Printf.sprintf "%s; charset=utf-8"
-       Content_core.Html.D.Info.content_type)
+    (Printf.sprintf "%s; charset=utf-8" Content_core.Html.D.Info.content_type)
 
 let out =
   let encode x = fst (Xml_print.Utf8.normalize_html x) in
@@ -155,16 +154,14 @@ let update_cookie_table ?now sitedata (ci, sci) =
                      Lwt.catch
                        (fun () ->
                           let cookieid =
-                            Common.(
-                              Hashed_cookies.to_string newc.pc_hvalue)
+                            Common.(Hashed_cookies.to_string newc.pc_hvalue)
                           in
                           Mod_cookies.Persistent_cookies.replace_if_exists
                             cookieid
                             { Mod_cookies.full_state_name = name
                             ; expiry = newexp
                             ; timeout = !(newc.Common.pc_timeout)
-                            ; session_group =
-                                !(newc.Common.pc_session_group) }
+                            ; session_group = !(newc.Common.pc_session_group) }
                           >>= fun () ->
                           Mod_cookies.Persistent_cookies.Expiry_dates
                           .remove_cookie oldexp cookieid)
@@ -178,8 +175,7 @@ let update_cookie_table ?now sitedata (ci, sci) =
                        { Mod_cookies.full_state_name = name
                        ; expiry = newexp
                        ; timeout = !(newc.Common.pc_timeout)
-                       ; session_group = !(newc.Common.pc_session_group)
-                       })
+                       ; session_group = !(newc.Common.pc_session_group) })
              (*VVV Do not forget to change persistent_cookie_table_version
           if you change the type of persistent table data,
           otherwise the server will crash!!!
@@ -247,10 +243,8 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
   in
   let all_cookie_info, closedsessions =
     Mod_cookies.get_cookie_info now sitedata
-      si.Common.si_service_session_cookies
-      si.Common.si_data_session_cookies
-      si.Common.si_persistent_session_cookies
-      si.Common.si_secure_cookie_info
+      si.Common.si_service_session_cookies si.Common.si_data_session_cookies
+      si.Common.si_persistent_session_cookies si.Common.si_secure_cookie_info
   in
   let (tab_cookie_info, closedsessions_tab), user_tab_cookies =
     (* If tab cookie info exists in rc (because an action put them here),
@@ -269,8 +263,8 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
   in
   set_expired_sessions ri (closedsessions, closedsessions_tab);
   let rec gen_aux
-            ({Common.request = ri; session_info = si; all_cookie_info; _}
-             as info)
+            ({Common.request = ri; session_info = si; all_cookie_info; _} as
+             info)
     =
     let sp = Common.make_server_params sitedata info None None in
     (* The last two arguments are not yet available, so for now we use None.
@@ -370,8 +364,7 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
         | Common.Eliom_do_half_xhr_redirection uri ->
             Lwt.return
             @@ do_redirection
-                 (Ocsigen_header.Name.of_string
-                    Common.half_xhr_redir_header)
+                 (Ocsigen_header.Name.of_string Common.half_xhr_redir_header)
                  `No_content uri
         | e -> Lwt.fail e)
   in

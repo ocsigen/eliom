@@ -29,13 +29,10 @@ let make_full_group_name ~cookie_level ri site_dir_string ipv4mask ipv6mask
   | None ->
       ( site_dir_string
       , cookie_level
-      , Right
-          (Common.network_of_request ri ~mask4:ipv4mask ~mask6:ipv6mask) )
+      , Right (Common.network_of_request ri ~mask4:ipv4mask ~mask6:ipv6mask) )
   | Some g -> site_dir_string, cookie_level, Left g
 
-let make_persistent_full_group_name =
-  Common.make_persistent_full_group_name
-
+let make_persistent_full_group_name = Common.make_persistent_full_group_name
 let getsessgrp a = a
 let getperssessgrp = Common.getperssessgrp
 
@@ -191,8 +188,7 @@ module Make (A : sig
         match cookie_level with
         | `Session ->
             ignore
-              (Ocsigen_cache.Dlist.add sess_grp
-                 sitedata.Common.group_of_groups);
+              (Ocsigen_cache.Dlist.add sess_grp sitedata.Common.group_of_groups);
             Ocsigen_cache.Dlist.newest sitedata.Common.group_of_groups
         | _ -> None
       in
@@ -261,8 +257,7 @@ module Data = Make (struct
       GroupTable.create 100
 
     let close_session sitedata sess_id =
-      Common.SessionCookies.remove sitedata.Common.session_data
-        sess_id;
+      Common.SessionCookies.remove sitedata.Common.session_data sess_id;
       (* iterate on all session data tables: *)
       sitedata.Common.remove_session_data sess_id
     (* see also in eliommod.ml if you modify this *)
@@ -305,8 +300,7 @@ Besides, volatile sessions are (hopefully) going to disappear soon.
       | _, `Client_process, Left sess_id -> (
         try
           let {Common.Data_cookie.session_group; session_group_node; _} =
-            Common.SessionCookies.find sitedata.Common.session_data
-              sess_id
+            Common.SessionCookies.find sitedata.Common.session_data sess_id
           in
           match !session_group with
           | _, `Session, Right _
@@ -327,8 +321,7 @@ Besides, volatile sessions are (hopefully) going to disappear soon.
 
 module Serv = Make (struct
     type group_of_group_data =
-      Common.tables ref
-      * [`Session] Common.sessgrp Ocsigen_cache.Dlist.node
+      Common.tables ref * [`Session] Common.sessgrp Ocsigen_cache.Dlist.node
 
     let table :
       (group_of_group_data option * string Ocsigen_cache.Dlist.t) GroupTable.t
@@ -336,8 +329,7 @@ module Serv = Make (struct
       GroupTable.create 100
 
     let close_session sitedata sess_id =
-      Common.SessionCookies.remove sitedata.Common.session_services
-        sess_id
+      Common.SessionCookies.remove sitedata.Common.session_services sess_id
 
     let max_tab_per_session sitedata =
       fst sitedata.Common.max_service_tab_sessions_per_group
@@ -382,8 +374,7 @@ Besides, volatile sessions are (hopefully) going to disappear soon.
               ; session_group_node
               ; _ }
             =
-            Common.SessionCookies.find
-              sitedata.Common.session_services sess_id
+            Common.SessionCookies.find sitedata.Common.session_services sess_id
           in
           if Common.service_tables_are_empty tables
           then remove1 session_group_node
@@ -503,8 +494,7 @@ module Pers = struct
                  is removed when closing associated sessions. *)
                  Lwt.return_unit
              | _, _, Left group_name -> (
-                 Common.Persistent_tables.remove_key_from_all_tables
-                   group_name
+                 Common.Persistent_tables.remove_key_from_all_tables group_name
                  >>= fun () ->
                  (* If it is associated to a session,
                  we remove the session from its group,

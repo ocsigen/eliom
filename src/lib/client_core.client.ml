@@ -137,9 +137,7 @@ end = struct
             in
             raise_error "Did not find injection %s" name))
 
-  let initialize
-        ~compilation_unit_id
-        {Runtime.injection_id; injection_value; _}
+  let initialize ~compilation_unit_id {Runtime.injection_id; injection_value; _}
     =
     Logs.debug ~src:section (fun fmt ->
       fmt "Initialize injection %d" injection_id);

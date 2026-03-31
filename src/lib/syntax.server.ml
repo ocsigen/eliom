@@ -82,9 +82,7 @@ let close_client_section compilation_unit_id injection_data =
   close_server_section compilation_unit_id;
   let data = get_compilation_unit_global_data compilation_unit_id in
   let injection_datum (injection_id, injection_value, loc, ident) =
-    { Runtime.injection_id
-    ; injection_value
-    ; injection_dbg = Some (loc, ident) }
+    {Runtime.injection_id; injection_value; injection_dbg = Some (loc, ident)}
   in
   let injection_data = Array.of_list injection_data in
   data.client_section <-
@@ -93,15 +91,13 @@ let close_client_section compilation_unit_id injection_data =
 let get_global_data () =
   Lib.String_map.map
     (fun {server_section; client_section} ->
-       { Runtime.server_sections_data =
-           Array.of_list (List.rev server_section)
+       { Runtime.server_sections_data = Array.of_list (List.rev server_section)
        ; client_sections_data = Array.of_list (List.rev client_section) })
     (get_global_data ())
 
 (* Request data *)
 
-let request_data : Runtime.client_value_datum list Reference.Volatile.eref
-  =
+let request_data : Runtime.client_value_datum list Reference.Volatile.eref =
   Reference.Volatile.eref ~scope:Common.request_scope []
 
 let get_request_data () =

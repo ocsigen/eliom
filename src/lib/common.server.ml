@@ -608,8 +608,7 @@ let get_sp () =
       let msg =
         "This function cannot be called here because it needs information about the request or the site."
       in
-      failwith @@ String.concat "\n"
-      @@ (msg :: Common_base.backtrace_lwt 2)
+      failwith @@ String.concat "\n" @@ (msg :: Common_base.backtrace_lwt 2)
 
 let sp_of_option sp = match sp with None -> get_sp () | Some sp -> sp
 
