@@ -1,12 +1,12 @@
 =~Client ~A~P~I
 ==[[client/Lib|Lib]]
 ==[[client/Client|Client]]
-==[[client/Eliom_client_value|Eliom_client_value]]
+==[[client/Client_value|Client_value]]
 ==~Content and form creation
-===[[client/Eliom_content.Html|Eliom_content.Html]]
-===[[client/Eliom_content.Html.Manip|Eliom_content.Html.Manip]]
-===[[client/Eliom_content.Svg|Eliom_content.Svg]]
-===[[client/Eliom_content.Xml|Eliom_content.Xml]]
+===[[client/Content.Html|Content.Html]]
+===[[client/Content.Html.Manip|Content.Html.Manip]]
+===[[client/Content.Svg|Content.Svg]]
+===[[client/Content.Xml|Content.Xml]]
 ==~Client~/server communication
 ===[[client/Service|Service]]
 ===[[client/Shared|Shared]]
