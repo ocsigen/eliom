@@ -92,7 +92,7 @@ module type Html = sig
          Eliom_lazy.request
     -> Html_types.form_attrib attrib
 
-  val to_elt : 'a elt -> Eliom_content_core.Xml.elt
+  val to_elt : 'a elt -> Content_core.Xml.elt
 end
 
 let get_xhr = function
@@ -180,7 +180,7 @@ module Make_links (Html : Html) = struct
 end
 
 type _ param =
-  | Atom : 'a Eliom_parameter_base.atom -> 'a param
+  | Atom : 'a Parameter_base.atom -> 'a param
   | User : ('a -> string) -> 'a param
 
 module Make (Html : Html) = struct
@@ -188,16 +188,16 @@ module Make (Html : Html) = struct
   type 'a param = 'a param'
 
   let string_of_param = function
-    | Atom a -> Eliom_parameter_base.string_of_atom a
+    | Atom a -> Parameter_base.string_of_atom a
     | User f -> f
 
-  let float = Atom Eliom_parameter_base.TFloat
-  let int = Atom Eliom_parameter_base.TInt
-  let int32 = Atom Eliom_parameter_base.TInt32
-  let int64 = Atom Eliom_parameter_base.TInt64
-  let nativeint = Atom Eliom_parameter_base.TNativeint
-  let bool = Atom Eliom_parameter_base.TBool
-  let string = Atom Eliom_parameter_base.TString
+  let float = Atom Parameter_base.TFloat
+  let int = Atom Parameter_base.TInt
+  let int32 = Atom Parameter_base.TInt32
+  let int64 = Atom Parameter_base.TInt64
+  let nativeint = Atom Parameter_base.TNativeint
+  let bool = Atom Parameter_base.TBool
+  let string = Atom Parameter_base.TString
   let user f = User f
 
   open Html
@@ -297,7 +297,7 @@ module Make (Html : Html) = struct
       let _, hiddenparams, _ = Eliom_lazy.force components
       and f (n, v) =
         let name = n
-        and value = Eliommod_parameters.to_string v
+        and value = Mod_parameters.to_string v
         and typ = `Hidden in
         make_input ~typ ~name ~value ()
       in
@@ -360,7 +360,7 @@ module Make (Html : Html) = struct
       Eliom_lazy.from_fun @@ fun () ->
       let _, _, _, hiddenparams = Eliom_lazy.force components
       and f (name, value) =
-        let value = Eliommod_parameters.to_string value in
+        let value = Mod_parameters.to_string value in
         make_input ~typ:`Hidden ~name ~value ()
       in
       cons_hidden_fieldset (List.map f hiddenparams)

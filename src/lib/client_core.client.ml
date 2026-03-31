@@ -23,7 +23,7 @@ open Lwt.Syntax
 
 open Js_of_ocaml
 open Lib
-module Xml = Eliom_content_core.Xml
+module Xml = Content_core.Xml
 
 (* Logs *)
 let section = Logs.Src.create "eliom:client"
@@ -69,7 +69,7 @@ end
 
 module Client_value_registry : sig
   val find : instance_id:int -> poly option
-  val initialize : Eliom_runtime.client_value_datum -> unit
+  val initialize : Runtime.client_value_datum -> unit
 end = struct
   let table = new%js Js.array_empty
 
@@ -78,12 +78,12 @@ end = struct
     then (* local client value *) None
     else Js.Optdef.to_option (Js.array_get table instance_id)
 
-  let initialize {Eliom_runtime.closure_id; args; value = server_value} =
+  let initialize {Runtime.closure_id; args; value = server_value} =
     let closure =
       try Client_closure.find ~closure_id
       with Not_found ->
         let pos =
-          match Eliom_runtime.Client_value_server_repr.loc server_value with
+          match Runtime.Client_value_server_repr.loc server_value with
           | None -> ""
           | Some p -> Printf.sprintf "(%s)" (Lib.pos_to_string p)
         in
@@ -95,7 +95,7 @@ end = struct
     Unwrap.late_unwrap_value server_value value;
     (* Only register global client values *)
     let instance_id =
-      Eliom_runtime.Client_value_server_repr.instance_id server_value
+      Runtime.Client_value_server_repr.instance_id server_value
     in
     if instance_id <> 0 then Js.array_set table instance_id value
 end
@@ -139,7 +139,7 @@ end = struct
 
   let initialize
         ~compilation_unit_id
-        {Eliom_runtime.injection_id; injection_value; _}
+        {Runtime.injection_id; injection_value; _}
     =
     Logs.debug ~src:section (fun fmt ->
       fmt "Initialize injection %d" injection_id);
@@ -153,8 +153,8 @@ end
 (* == Populating client values and injections by global data *)
 
 type compilation_unit_global_data =
-  { mutable server_section : Eliom_runtime.client_value_datum array list
-  ; mutable client_section : Eliom_runtime.injection_datum array list }
+  { mutable server_section : Runtime.client_value_datum array list
+  ; mutable client_section : Runtime.injection_datum array list }
 
 let global_data = ref String_map.empty
 
@@ -347,7 +347,7 @@ let raw_event_handler value =
   in
   fun ev -> try handler ev; true with Client_value.False -> false
 
-let closure_name_prefix = Eliom_runtime.RawXML.closure_name_prefix
+let closure_name_prefix = Runtime.RawXML.closure_name_prefix
 let closure_name_prefix_len = String.length closure_name_prefix
 
 let reify_caml_event name node ce =
@@ -418,7 +418,7 @@ let register_event_handler, flush_load_script =
   in
   let flush () =
     let fs = flush () in
-    let ev = Eliommod_dom.createEvent (Js.string "load") in
+    let ev = Mod_dom.createEvent (Js.string "load") in
     ignore (List.for_all (fun f -> f ev) fs)
   in
   register, flush
@@ -554,7 +554,7 @@ let rec rebuild_rattrib node ra =
 
    http://www.webkit.org/blog/516/webkit-page-cache-ii-the-unload-event/
 
-   and the function [Eliommod_dom.test_pageshow_pagehide]. *)
+   and the function [Mod_dom.test_pageshow_pagehide]. *)
 
 let delay f =
   Lwt.ignore_result (Lwt.pause () >>= fun () -> f (); Lwt.return_unit)
@@ -709,7 +709,7 @@ and raw_rebuild_node ns = function
 
 (* [is_before_initial_load] tests whether it is executed before the
    loading of the initial document, e.g. during the initialization of the
-   (OCaml) module, i.e. before [Eliom_client_main.onload]. *)
+   (OCaml) module, i.e. before [Client_main.onload]. *)
 let is_before_initial_load, set_initial_load =
   let before_load = ref true in
   (fun () -> !before_load), fun () -> before_load := false
@@ -717,7 +717,7 @@ let is_before_initial_load, set_initial_load =
 let rebuild_node_ns ns context elt' =
   Logs.debug ~src:section (fun fmt ->
     fmt "Rebuild node %s (%s)"
-      (Eliom_content_core.Xml.string_of_node_id (Xml.get_node_id elt'))
+      (Content_core.Xml.string_of_node_id (Xml.get_node_id elt'))
       context);
   if is_before_initial_load ()
   then (
@@ -733,13 +733,13 @@ let rebuild_node_ns ns context elt' =
   flush_load_script (); node
 
 let rebuild_node_svg context elt =
-  let elt' = Eliom_content_core.Svg.F.toelt elt in
+  let elt' = Content_core.Svg.F.toelt elt in
   rebuild_node_ns `SVG context elt'
 
 (** The first argument describes the calling function (if any) in case
     of an error. *)
 let rebuild_node context elt =
-  let elt' = Eliom_content_core.Html.F.toelt elt in
+  let elt' = Content_core.Html.F.toelt elt in
   rebuild_node_ns `HTML5 context elt'
 
 (******************************************************************************)

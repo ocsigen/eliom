@@ -40,8 +40,8 @@ val reset_reload_fun : (_, _, _, _, _, _, _, _, _, _, _) t -> unit
 
 val pre_applied_parameters :
    (_, _, _, _, _, _, _, _, _, _, _) t
-  -> (string * Eliommod_parameters.param) list Lib.String.Table.t
-     * (string * Eliommod_parameters.param) list
+  -> (string * Mod_parameters.param) list Lib.String.Table.t
+     * (string * Mod_parameters.param) list
 
 val reload_fun :
    ('a, _, _, _, _, _, _, _, _, _, _) t

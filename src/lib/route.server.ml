@@ -1,9 +1,9 @@
 open Lib
 open Lwt
 open Ocsigen_extensions
-include Eliom_route_base
+include Route_base
 
-include Eliom_route_base.Make (struct
+include Route_base.Make (struct
     type site_data = Common.sitedata
     type info = Common.info
 

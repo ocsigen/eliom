@@ -26,7 +26,7 @@ let section = Client_core.section
 open Js_of_ocaml
 open Lib
 module Opt = Lib.Option
-module Xml = Eliom_content_core.Xml
+module Xml = Content_core.Xml
 
 (* == Callbacks for onload, onbeforeunload, and onunload *)
 
@@ -111,11 +111,11 @@ let check_global_data global_data =
         "Code generating the following client values is not linked on the client:\n%s"
         (String.concat "\n"
            (List.rev_map
-              (fun (compilation_unit_id, {Eliom_runtime.closure_id; value; _}) ->
+              (fun (compilation_unit_id, {Runtime.closure_id; value; _}) ->
                  let instance_id =
-                   Eliom_runtime.Client_value_server_repr.instance_id value
+                   Runtime.Client_value_server_repr.instance_id value
                  in
-                 match Eliom_runtime.Client_value_server_repr.loc value with
+                 match Runtime.Client_value_server_repr.loc value with
                  | None ->
                      Printf.sprintf "%s:%s/%d" compilation_unit_id closure_id
                        instance_id
@@ -132,8 +132,8 @@ let check_global_data global_data =
         (String.concat "\n"
            (List.rev_map
               (fun d ->
-                 let id = d.Eliom_runtime.injection_id in
-                 match d.Eliom_runtime.injection_dbg with
+                 let id = d.Runtime.injection_id in
+                 match d.Runtime.injection_dbg with
                  | None -> Printf.sprintf "%d" id
                  | Some (pos, Some i) ->
                      Printf.sprintf "%d (%s at %s)" id i (Lib.pos_to_string pos)
@@ -162,13 +162,13 @@ let get_element_cookies_info elt =
   Js.Opt.to_option
     (Js.Opt.map
        elt##(getAttribute
-               (Js.string Eliom_runtime.RawXML.ce_call_service_attrib))
+               (Js.string Runtime.RawXML.ce_call_service_attrib))
        (fun s -> of_json ~typ:[%json: bool * string list] (Js.to_string s)))
 
 let get_element_template elt =
   Js.Opt.to_option
     (Js.Opt.map
-       elt##(getAttribute (Js.string Eliom_runtime.RawXML.ce_template_attrib))
+       elt##(getAttribute (Js.string Runtime.RawXML.ce_template_attrib))
        (fun s -> Js.to_string s))
 
 let a_handler =
@@ -208,7 +208,7 @@ let form_handler :
 let relink_process_node (node : Dom_html.element Js.t) =
   let id =
     Js.Opt.get
-      node##(getAttribute (Js.string Eliom_runtime.RawXML.node_id_attrib))
+      node##(getAttribute (Js.string Runtime.RawXML.node_id_attrib))
       (fun () -> raise_error ~section "unique node without id attribute")
   in
   Js.Optdef.case
@@ -233,7 +233,7 @@ let relink_process_node (node : Dom_html.element Js.t) =
 let relink_request_node (node : Dom_html.element Js.t) =
   let id =
     Js.Opt.get
-      node##(getAttribute (Js.string Eliom_runtime.RawXML.node_id_attrib))
+      node##(getAttribute (Js.string Runtime.RawXML.node_id_attrib))
       (fun () -> raise_error ~section "unique node without id attribute")
   in
   Js.Optdef.case
@@ -253,8 +253,8 @@ let relink_request_nodes root =
   Logs.debug ~src:section (fun fmt -> fmt "Relink request nodes");
   if !Config.debug_timings
   then Console.console##(time (Js.string "relink_request_nodes"));
-  Eliommod_dom.iter_nodeList
-    (Eliommod_dom.select_request_nodes root)
+  Mod_dom.iter_nodeList
+    (Mod_dom.select_request_nodes root)
     relink_request_node;
   if !Config.debug_timings
   then Console.console##(timeEnd (Js.string "relink_request_nodes"))
@@ -271,13 +271,13 @@ let relink_page_but_client_values (root : Dom_html.element Js.t) =
       , closure_nodeList
       , attrib_nodeList )
     =
-    Eliommod_dom.select_nodes root
+    Mod_dom.select_nodes root
   in
-  Eliommod_dom.iter_nodeList a_nodeList (fun node ->
+  Mod_dom.iter_nodeList a_nodeList (fun node ->
     node##.onclick := a_handler);
-  Eliommod_dom.iter_nodeList form_nodeList (fun node ->
+  Mod_dom.iter_nodeList form_nodeList (fun node ->
     node##.onsubmit := form_handler);
-  Eliommod_dom.iter_nodeList process_nodeList relink_process_node;
+  Mod_dom.iter_nodeList process_nodeList relink_process_node;
   closure_nodeList, attrib_nodeList
 
 (* == Rebuild event handlers
@@ -292,10 +292,10 @@ let relink_page_but_client_values (root : Dom_html.element Js.t) =
 *)
 
 let is_closure_attrib, get_closure_name, get_closure_id =
-  let v_prefix = Eliom_runtime.RawXML.closure_attr_prefix in
+  let v_prefix = Runtime.RawXML.closure_attr_prefix in
   let v_len = String.length v_prefix in
   let v_prefix_js = Js.string v_prefix in
-  let n_prefix = Eliom_runtime.RawXML.closure_name_prefix in
+  let n_prefix = Runtime.RawXML.closure_name_prefix in
   let n_len = String.length n_prefix in
   let n_prefix_js = Js.string n_prefix in
   ( (fun attr ->
@@ -312,12 +312,12 @@ let relink_closure_node root onload table (node : Dom_html.element Js.t) =
       let cid = Js.to_bytestring (get_closure_id attr) in
       let name = get_closure_name attr in
       try
-        let cv = Eliom_runtime.RawXML.ClosureMap.find cid table in
+        let cv = Runtime.RawXML.ClosureMap.find cid table in
         let closure = Client_core.raw_event_handler cv in
         if name = Js.string "onload"
         then (
           if
-            Eliommod_dom.ancessor root node
+            Mod_dom.ancessor root node
             (* if not inside a unique node replaced by an older one *)
           then onload := closure :: !onload)
         else
@@ -327,7 +327,7 @@ let relink_closure_node root onload table (node : Dom_html.element Js.t) =
         Logs.err ~src:section (fun fmt ->
           fmt "relink_closure_node: client value %s not found" cid)
   in
-  Eliommod_dom.iter_attrList node##.attributes aux
+  Mod_dom.iter_attrList node##.attributes aux
 
 let relink_closure_nodes
       (root : Dom_html.element Js.t)
@@ -337,17 +337,17 @@ let relink_closure_nodes
   Logs.debug ~src:section (fun fmt ->
     fmt "Relink %i closure nodes" closure_nodeList##.length);
   let onload = ref [] in
-  Eliommod_dom.iter_nodeList closure_nodeList (fun node ->
+  Mod_dom.iter_nodeList closure_nodeList (fun node ->
     relink_closure_node root onload event_handlers node);
   fun () ->
-    let ev = Eliommod_dom.createEvent (Js.string "load") in
+    let ev = Mod_dom.createEvent (Js.string "load") in
     ignore (List.for_all (fun f -> f ev) (List.rev !onload))
 
 let is_attrib_attrib, get_attrib_id =
-  let v_prefix = Eliom_runtime.RawXML.client_attr_prefix in
+  let v_prefix = Runtime.RawXML.client_attr_prefix in
   let v_len = String.length v_prefix in
   let v_prefix_js = Js.string v_prefix in
-  let n_prefix = Eliom_runtime.RawXML.client_name_prefix in
+  let n_prefix = Runtime.RawXML.client_name_prefix in
   let n_len = String.length n_prefix in
   let n_prefix_js = Js.string n_prefix in
   ( (fun attr ->
@@ -362,20 +362,20 @@ let relink_attrib _root table (node : Dom_html.element Js.t) =
     then
       let cid = Js.to_bytestring (get_attrib_id attr) in
       try
-        let value = Eliom_runtime.RawXML.ClosureMap.find cid table in
-        let rattrib : Eliom_content_core.Xml.attrib =
+        let value = Runtime.RawXML.ClosureMap.find cid table in
+        let rattrib : Content_core.Xml.attrib =
           Lib.from_poly (Lib.to_poly value)
         in
         Client_core.rebuild_rattrib node rattrib
       with Not_found ->
         raise_error ~section "relink_attrib: client value %s not found" cid
   in
-  Eliommod_dom.iter_attrList node##.attributes aux
+  Mod_dom.iter_attrList node##.attributes aux
 
 let relink_attribs (root : Dom_html.element Js.t) attribs attrib_nodeList =
   Logs.debug ~src:section (fun fmt ->
     fmt "Relink %i attributes" attrib_nodeList##.length);
-  Eliommod_dom.iter_nodeList attrib_nodeList (fun node ->
+  Mod_dom.iter_nodeList attrib_nodeList (fun node ->
     relink_attrib root attribs node)
 
 (* == Extract the request data and the request tab-cookies from a page
@@ -386,7 +386,7 @@ let relink_attribs (root : Dom_html.element Js.t) attribs attrib_nodeList =
 
 let load_data_script page =
   Logs.debug ~src:section (fun fmt -> fmt "Load Eliom application data");
-  let head = Eliommod_dom.get_head page in
+  let head = Mod_dom.get_head page in
   let data_script : Dom_html.scriptElement Js.t =
     match Dom.list_of_nodeList head##.childNodes with
     | _ :: _ :: data_script :: _ -> (
@@ -403,8 +403,8 @@ let load_data_script page =
   if !Config.debug_timings
   then Console.console##(time (Js.string "load_data_script"));
   ignore (Js.Unsafe.eval_string (Js.to_string script));
-  Eliom_process.reset_request_template ();
-  Eliom_process.reset_request_cookies ();
+  Process.reset_request_template ();
+  Process.reset_request_cookies ();
   if !Config.debug_timings
   then Console.console##(timeEnd (Js.string "load_data_script"))
 
@@ -415,10 +415,10 @@ let load_data_script page =
 
 let scroll_to_fragment ?offset fragment =
   match offset with
-  | Some pos -> Eliommod_dom.setDocumentScroll pos
+  | Some pos -> Mod_dom.setDocumentScroll pos
   | None -> (
     match fragment with
-    | None | Some "" -> Eliommod_dom.setDocumentScroll Eliommod_dom.top_position
+    | None | Some "" -> Mod_dom.setDocumentScroll Mod_dom.top_position
     | Some fragment ->
         let scroll_to_element e = e##(scrollIntoView Js._true) in
         let elem = Dom_html.document##(getElementById (Js.string fragment)) in
@@ -485,7 +485,7 @@ let unwrap_tyxml tmp_elt =
                  Logs.debug ~src:section (fun fmt -> fmt "not found");
                  let xml_elt : Xml.elt = Xml.make ~id elt in
                  let xml_elt =
-                   Eliom_content_core.Xml.set_classes_of_elt xml_elt
+                   Content_core.Xml.set_classes_of_elt xml_elt
                  in
                  Client_core.register_process_node (Js.bytestring process_id)
                    (Client_core.rebuild_node_ns `HTML5 context xml_elt);
@@ -516,7 +516,7 @@ let unwrap_tyxml tmp_elt =
 
 let unwrap_client_value cv =
   Client_core.Client_value_registry.find
-    ~instance_id:(Eliom_runtime.Client_value_server_repr.instance_id cv)
+    ~instance_id:(Runtime.Client_value_server_repr.instance_id cv)
 (* BB By returning [None] this value will be registered for late
      unwrapping, and late unwrapped in Client_value.initialize as
      soon as it is available. *)
@@ -524,20 +524,20 @@ let unwrap_client_value cv =
 let unwrap_global_data (global_data', _) =
   Client_core.global_data :=
     String_map.map
-      (fun {Eliom_runtime.server_sections_data; client_sections_data} ->
+      (fun {Runtime.server_sections_data; client_sections_data} ->
          { Client_core.server_section = Array.to_list server_sections_data
          ; client_section = Array.to_list client_sections_data })
       global_data'
 
 let _ =
   Unwrap.register_unwrapper'
-    (Unwrap.id_of_int Eliom_common_base.client_value_unwrap_id_int)
+    (Unwrap.id_of_int Common_base.client_value_unwrap_id_int)
     unwrap_client_value;
   Unwrap.register_unwrapper
-    (Unwrap.id_of_int Eliom_runtime.tyxml_unwrap_id_int)
+    (Unwrap.id_of_int Runtime.tyxml_unwrap_id_int)
     unwrap_tyxml;
   Unwrap.register_unwrapper
-    (Unwrap.id_of_int Eliom_common_base.global_data_unwrap_id_int)
+    (Unwrap.id_of_int Common_base.global_data_unwrap_id_int)
     unwrap_global_data;
   ()
 
@@ -580,7 +580,7 @@ let add_string_event_listener o e f capt : unit =
 type state =
   { (* TODO store cookies_info in state... *)
     template : string option
-  ; position : Eliommod_dom.position }
+  ; position : Mod_dom.position }
 [@@deriving json]
 
 [@@@warning "+39"]
@@ -833,7 +833,7 @@ let set_state i (v : state) =
 let update_state () =
   set_state !active_page.page_id
     { template = Request_info.get_request_template ()
-    ; position = Eliommod_dom.getDocumentScroll () }
+    ; position = Mod_dom.getDocumentScroll () }
 
 let lock_request_handling = Request.lock
 let unlock_request_handling = Request.unlock
@@ -852,8 +852,8 @@ down page changes.
 
 let insert_base page =
   let b = Dom_html.createBase Dom_html.document in
-  b##.href := Js.string (Eliom_process.get_base_url ());
-  b##.id := Js.string Eliom_common_base.base_elt_id;
+  b##.href := Js.string (Process.get_base_url ());
+  b##.id := Js.string Common_base.base_elt_id;
   Js.Opt.case
     page##(querySelector (Js.string "head"))
     (fun () -> Logs.debug (fun fmt -> fmt "No <head> found in document"))
@@ -865,7 +865,7 @@ let get_global_data () =
   Js.Opt.case storage##(getItem id) def @@ fun v ->
   Logs.debug (fun fmt -> fmt "Unwrap __global_data");
   match Unwrap.unwrap (Url.decode (Js.to_string v)) 0 with
-  | {Eliom_runtime.ecs_data = `Success v; _} ->
+  | {Runtime.ecs_data = `Success v; _} ->
       Logs.debug (fun fmt -> fmt "Unwrap __global_data success");
       Some v
   | _ -> None
@@ -879,7 +879,7 @@ let normalize_app_path p =
 let init_client_app ~app_name ?(ssl = false) ~hostname ?(port = 80) ~site_dir ()
   =
   Logs.debug (fun fmt -> fmt "Client.init_client_app called.");
-  Eliom_process.appl_name_r := Some app_name;
+  Process.appl_name_r := Some app_name;
   Request_info.client_app_initialised := true;
   (* For site_dir, we want no trailing slash. We tend to concatenate
      it with relative paths, or treat it as a prefix to be removed
@@ -888,16 +888,16 @@ let init_client_app ~app_name ?(ssl = false) ~hostname ?(port = 80) ~site_dir ()
      In contrast, we do need the trailing slash in
      cpi_original_full_path, because we do have the trailing slash in
      page URLs., Hence the site_dir @ [""] below. *)
-  Eliom_process.set_sitedata
-    {Eliom_types.site_dir; site_dir_string = String.concat "/" site_dir};
-  Eliom_process.set_info
+  Process.set_sitedata
+    {Types.site_dir; site_dir_string = String.concat "/" site_dir};
+  Process.set_info
     { Common.cpi_ssl = ssl
     ; cpi_hostname = hostname
     ; cpi_server_port = port
     ; cpi_original_full_path = site_dir @ [""] };
-  Eliom_process.set_request_template None;
+  Process.set_request_template None;
   (* We set the tab cookie table, with the app name inside: *)
-  Eliom_process.set_request_cookies
+  Process.set_request_cookies
     (Ocsigen_cookie_map.add ~path:[] Common.appl_name_cookie_name
        (Ocsigen_cookie_map.OSet (None, app_name, false))
        Ocsigen_cookie_map.empty);
@@ -918,7 +918,7 @@ let onunload_fun _ =
 let onbeforeunload_fun _ = run_onbeforeunload ()
 
 let set_base_url () =
-  Eliom_process.set_base_url
+  Process.set_base_url
     (String.concat ""
        [ Js.to_string Dom_html.window##.location##.protocol
        ; "//"
@@ -927,7 +927,7 @@ let set_base_url () =
 
 let dom_history_ready = ref false
 
-(* Function called (in Eliom_client_main), once when starting the app.
+(* Function called (in Client_main), once when starting the app.
    Either when sent by a server or initiated on client side.
 
    For client apps, we read __eliom_server, __eliom_app_name,
@@ -986,8 +986,8 @@ let init () =
      2016-03 This was done at the beginning of onload below
      but this makes it impossible to use cookies
      during initialisation phase. I move this here. -- Vincent *)
-  Eliommod_cookies.update_cookie_table
-    (Some (Eliom_process.get_info ()).cpi_hostname)
+  Mod_cookies.update_cookie_table
+    (Some (Process.get_info ()).cpi_hostname)
     (Request_info.get_request_cookies ());
   let onload_handler = ref None in
   let onload _ev =
@@ -1028,7 +1028,7 @@ let init () =
           closure_nodeList
       in
       Client_core.reset_request_nodes ();
-      Eliommod_dom.add_formdata_hack_onclick_handler ();
+      Mod_dom.add_formdata_hack_onclick_handler ();
       if not (is_client_app ()) then dom_history_ready := true;
       let load_callbacks =
         flush_onload () @ [onload_closure_nodes; Client_core.broadcast_load_end]
@@ -1273,10 +1273,10 @@ let window_open
 *)
 
 let unwrap_caml_content content =
-  let r : 'a Eliom_runtime.eliom_caml_service_data =
+  let r : 'a Runtime.eliom_caml_service_data =
     Unwrap.unwrap (Url.decode content) 0
   in
-  Lwt.return (r.Eliom_runtime.ecs_data, r.Eliom_runtime.ecs_request_data)
+  Lwt.return (r.Runtime.ecs_data, r.Runtime.ecs_request_data)
 
 let call_ocaml_service
       ?absolute
@@ -1450,7 +1450,7 @@ let change_url_string ~replace uri =
   Logs.debug ~src:section_page (fun fmt -> fmt "Change url string: %s" uri);
   let full_uri = if !Common.is_client_app then uri else Url.resolve uri in
   set_current_uri full_uri;
-  if Eliom_process.history_api
+  if Process.history_api
   then (
     let this_page = get_this_page () in
     if replace
@@ -1475,7 +1475,7 @@ let change_url_string ~replace uri =
         (if !Common.is_client_app
          then Js.null
          else Js.Opt.return (Js.string uri)));
-    Eliommod_dom.touch_base ())
+    Mod_dom.touch_base ())
   else (
     current_pseudo_fragment := url_fragment_prefix_with_sharp ^ uri;
     if uri <> fst (Url.split_fragment Url.Current.as_string)
@@ -1575,13 +1575,13 @@ let set_content_local ?offset ?fragment new_page =
     let preloaded_css =
       if !only_replace_body
       then Lwt.return_unit
-      else Eliommod_dom.preload_css new_page
+      else Mod_dom.preload_css new_page
     in
     (* Wait for CSS to be inlined before substituting global nodes: *)
     let* () = preloaded_css in
     (* Really change page contents *)
     replace_page ~do_insert_base:true new_page;
-    Eliommod_dom.add_formdata_hack_onclick_handler ();
+    Mod_dom.add_formdata_hack_onclick_handler ();
     dom_history_ready := true;
     let load_callbacks = flush_onload () @ [Client_core.broadcast_load_end] in
     locked := false;
@@ -1631,7 +1631,7 @@ let set_content ~replace ~uri ?offset ?fragment content =
         set_uri ~replace ?fragment uri;
         (* Convert the DOM nodes from XML elements to HTML elements. *)
         let fake_page =
-          Eliommod_dom.html_document content Client_core.registered_process_node
+          Mod_dom.html_document content Client_core.registered_process_node
         in
         (* insert_base fake_page; Now done server side *)
         (* Inline CSS in the header to avoid the "flashing effect".
@@ -1640,7 +1640,7 @@ let set_content ~replace ~uri ?offset ?fragment content =
         let preloaded_css =
           if !only_replace_body
           then Lwt.return_unit
-          else Eliommod_dom.preload_css fake_page
+          else Mod_dom.preload_css fake_page
         in
         (* Unique nodes of scope request must be bound before the
          unmarshalling/unwrapping of page data. *)
@@ -1656,7 +1656,7 @@ let set_content ~replace ~uri ?offset ?fragment content =
           | Some (Url.Http url) | Some (Url.Https url) -> Some url.Url.hu_host
           | _ -> None
         in
-        Eliommod_cookies.update_cookie_table host cookies;
+        Mod_cookies.update_cookie_table host cookies;
         (* Wait for CSS to be inlined before substituting global nodes: *)
         let* () = preloaded_css in
         (* Bind unique node (request and global) and register event
@@ -1687,7 +1687,7 @@ let set_content ~replace ~uri ?offset ?fragment content =
         (* The request node table must be empty when nodes received via
          call_ocaml_service are unwrapped. *)
         Client_core.reset_request_nodes ();
-        Eliommod_dom.add_formdata_hack_onclick_handler ();
+        Mod_dom.add_formdata_hack_onclick_handler ();
         dom_history_ready := true;
         locked := false;
         let load_callbacks =
@@ -1760,8 +1760,8 @@ let route ({Route.i_subpath; i_get_params; i_post_params; _} as info) =
   Lwt.return (uri, result)
 
 let switch_to_https () =
-  let info = Eliom_process.get_info () in
-  Eliom_process.set_info {info with Common.cpi_ssl = true}
+  let info = Process.get_info () in
+  Process.set_info {info with Common.cpi_ssl = true}
 
 let string_of_result result =
   match result with
@@ -2136,7 +2136,7 @@ let restore_history_dom id =
 let wait_load_end = Client_core.wait_load_end
 
 let () =
-  if Eliom_process.history_api
+  if Process.history_api
   then (
     let revisit full_uri state_id =
       let state =
@@ -2287,7 +2287,7 @@ let () =
     := Dom_html.handler (fun event ->
       Logs.debug ~src:section_page (fun fmt ->
         fmt "revisit_wrapper: onpopstate");
-      Eliommod_dom.touch_base ();
+      Mod_dom.touch_base ();
       Js.Opt.case
         ((Js.Unsafe.coerce event)##.state : _ Js.opt)
         (fun () -> () (* Ignore dummy popstate event fired by chromium. *))
@@ -2322,7 +2322,7 @@ let () =
            else Lwt.return_unit
          else Lwt.return_unit)
     in
-    Eliommod_dom.onhashchange (fun s -> auto_change_page (Js.to_string s));
+    Mod_dom.onhashchange (fun s -> auto_change_page (Js.to_string s));
     let first_fragment = read_fragment () in
     if first_fragment <> !current_pseudo_fragment
     then
@@ -2333,7 +2333,7 @@ let () =
 
 let () =
   Unwrap.register_unwrapper
-    (Unwrap.id_of_int Eliom_common_base.server_function_unwrap_id_int)
+    (Unwrap.id_of_int Common_base.server_function_unwrap_id_int)
     (fun (service, _) ->
        (* 2013-07-31 I make all RPC's absolute because otherwise
           it does not work with mobile apps.
@@ -2341,7 +2341,7 @@ let () =
           -- Vincent *)
        call_ocaml_service ~absolute:true ~service ())
 
-let get_application_name = Eliom_process.get_application_name
+let get_application_name = Process.get_application_name
 let set_client_html_file = Common.set_client_html_file
 let middleClick = Client_core.middleClick
 

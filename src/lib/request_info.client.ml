@@ -28,7 +28,7 @@
 
 open Js_of_ocaml
 open Lib
-include Eliom_types
+include Types
 
 let client_app_initialised = ref false
 
@@ -66,14 +66,14 @@ let matches_regexps regexps (name, _) =
 let update_session_info ~path ~all_get_params ~all_post_params cont =
   let ignored_get, all_get_params =
     List.partition
-      (matches_regexps !Eliom_process.ignored_get_params)
+      (matches_regexps !Process.ignored_get_params)
       all_get_params
   in
   let ignored_post, all_post_params =
     match all_post_params with
     | None -> [], None
     | Some p ->
-        List.partition (matches_regexps !Eliom_process.ignored_post_params) p
+        List.partition (matches_regexps !Process.ignored_post_params) p
         |> fun (a, b) -> a, Some b
   in
   let nl_get_params, all_get_but_nl =
@@ -104,7 +104,7 @@ let remove_first_slash path = match path with "" :: l -> l | l -> l
 
 let get_original_full_path_sp _sp =
   (* returns current path, not the one when application started *)
-  if not (Eliom_process.history_api || !client_app_initialised)
+  if not (Process.history_api || !client_app_initialised)
   then
     match Url.Current.get () with
     | Some (Url.Http url) | Some (Url.Https url) -> url.Url.hu_path
@@ -125,7 +125,7 @@ let get_persistent_nl_get_params () =
 
 let get_persistent_nl_get_params_sp = get_persistent_nl_get_params
 let get_si () = get_sess_info ()
-let get_site_dir () = (Eliom_process.get_sitedata ()).site_dir
+let get_site_dir () = (Process.get_sitedata ()).site_dir
 let get_site_dir_option () = Some (get_site_dir ())
 
 let ssl_ =
@@ -135,7 +135,7 @@ let ssl_ =
 
 let get_csp_ssl () =
   if !client_app_initialised
-  then (Eliom_process.get_info ()).Common.cpi_ssl
+  then (Process.get_info ()).Common.cpi_ssl
   else ssl_
 
 let get_csp_ssl_sp = get_csp_ssl
@@ -143,7 +143,7 @@ let host_ = Url.Current.host
 
 let get_csp_hostname () =
   if !client_app_initialised
-  then (Eliom_process.get_info ()).Common.cpi_hostname
+  then (Process.get_info ()).Common.cpi_hostname
   else host_
 
 let get_csp_hostname_sp = get_csp_hostname
@@ -153,27 +153,27 @@ let port_ =
 
 let get_csp_server_port () =
   if !client_app_initialised
-  then (Eliom_process.get_info ()).Common.cpi_server_port
+  then (Process.get_info ()).Common.cpi_server_port
   else port_
 
 let get_csp_server_port_sp = get_csp_server_port
 
 let get_csp_original_full_path () =
-  if !client_app_initialised || Eliom_process.history_api
-  then (Eliom_process.get_info ()).Common.cpi_original_full_path
+  if !client_app_initialised || Process.history_api
+  then (Process.get_info ()).Common.cpi_original_full_path
   else remove_first_slash Url.Current.path
 
 let get_csp_original_full_path_sp = get_csp_original_full_path
-let get_request_cookies = Eliom_process.get_request_cookies
-let get_request_template = Eliom_process.get_request_template
+let get_request_cookies = Process.get_request_cookies
+let get_request_template = Process.get_request_template
 
 (* The request data used when it is not sent by server
    (i.e. when the client side process is initiated by client (mobile app...)) *)
 let default_request_data =
   { Common.ejs_global_data = None
   ; ejs_request_data = [||]
-  ; ejs_event_handler_table = Eliom_runtime.RawXML.ClosureMap.empty
-  ; ejs_client_attrib_table = Eliom_runtime.RawXML.ClosureMap.empty
+  ; ejs_event_handler_table = Runtime.RawXML.ClosureMap.empty
+  ; ejs_client_attrib_table = Runtime.RawXML.ClosureMap.empty
   ; ejs_sess_info =
       { Common.si_other_get_params = []
       ; si_all_get_params = []

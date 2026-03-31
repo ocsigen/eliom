@@ -18,78 +18,78 @@
  *)
 let set_session_gc_frequency t =
   let t = Option.map float_of_int t in
-  Eliommod_gc.set_servicesessiongcfrequency t;
-  Eliommod_gc.set_datasessiongcfrequency t
+  Mod_gc.set_servicesessiongcfrequency t;
+  Mod_gc.set_datasessiongcfrequency t
 
 let set_service_session_gc_frequency t =
   let t = Option.map float_of_int t in
-  Eliommod_gc.set_servicesessiongcfrequency t
+  Mod_gc.set_servicesessiongcfrequency t
 
 let set_data_session_gc_frequency t =
   let t = Option.map float_of_int t in
-  Eliommod_gc.set_datasessiongcfrequency t
+  Mod_gc.set_datasessiongcfrequency t
 
 let set_persistent_session_gc_frequency t =
   let t = Option.map float_of_int t in
-  Eliommod_gc.set_persistentsessiongcfrequency t
+  Mod_gc.set_persistentsessiongcfrequency t
 
 let set_volatile_timeout ?scope_hierarchy ~cookie_level v =
   let v = Option.map float_of_int v in
-  Eliommod_timeouts.set_default ?scope_hierarchy `Data cookie_level v;
-  Eliommod_timeouts.set_default ?scope_hierarchy `Service cookie_level v
+  Mod_timeouts.set_default ?scope_hierarchy `Data cookie_level v;
+  Mod_timeouts.set_default ?scope_hierarchy `Service cookie_level v
 
 let set_data_timeout ?scope_hierarchy ~cookie_level v =
   let v = Option.map float_of_int v in
-  Eliommod_timeouts.set_default ?scope_hierarchy `Data cookie_level v
+  Mod_timeouts.set_default ?scope_hierarchy `Data cookie_level v
 
 let set_service_timeout ?scope_hierarchy ~cookie_level v =
   let v = Option.map float_of_int v in
-  Eliommod_timeouts.set_default ?scope_hierarchy `Service cookie_level v
+  Mod_timeouts.set_default ?scope_hierarchy `Service cookie_level v
 
 let set_persistent_timeout ?scope_hierarchy ~cookie_level v =
   let v = Option.map float_of_int v in
-  Eliommod_timeouts.set_default ?scope_hierarchy `Persistent cookie_level v
+  Mod_timeouts.set_default ?scope_hierarchy `Persistent cookie_level v
 
 let set_max_service_sessions_per_group v =
-  Eliommod.default_max_service_sessions_per_group := v
+  Mod_main.default_max_service_sessions_per_group := v
 
 let set_max_volatile_data_sessions_per_group v =
-  Eliommod.default_max_volatile_data_sessions_per_group := v
+  Mod_main.default_max_volatile_data_sessions_per_group := v
 
 let set_max_persistent_data_sessions_per_group v =
-  Eliommod.default_max_persistent_data_sessions_per_group := v
+  Mod_main.default_max_persistent_data_sessions_per_group := v
 
 let set_max_service_tab_sessions_per_group v =
-  Eliommod.default_max_service_tab_sessions_per_group := v
+  Mod_main.default_max_service_tab_sessions_per_group := v
 
 let set_max_volatile_data_tab_sessions_per_group v =
-  Eliommod.default_max_volatile_data_tab_sessions_per_group := v
+  Mod_main.default_max_volatile_data_tab_sessions_per_group := v
 
 let set_max_persistent_data_tab_sessions_per_group v =
-  Eliommod.default_max_persistent_data_tab_sessions_per_group := v
+  Mod_main.default_max_persistent_data_tab_sessions_per_group := v
 
 let set_max_anonymous_services_per_session v =
-  Eliommod.default_max_anonymous_services_per_session := v
+  Mod_main.default_max_anonymous_services_per_session := v
 
 let set_max_volatile_groups_per_site v =
-  Eliommod.default_max_volatile_groups_per_site := v
+  Mod_main.default_max_volatile_groups_per_site := v
 
-let set_secure_cookies v = Eliommod.default_secure_cookies := v
-let set_application_script v = Eliommod.default_application_script := v
-let set_enable_wasm v = Eliommod.default_enable_wasm := v
-let get_enable_wasm () = !Eliommod.default_enable_wasm
-let set_cache_global_data v = Eliommod.default_cache_global_data := v
-let set_html_content_type v = Eliommod.default_html_content_type := Some v
+let set_secure_cookies v = Mod_main.default_secure_cookies := v
+let set_application_script v = Mod_main.default_application_script := v
+let set_enable_wasm v = Mod_main.default_enable_wasm := v
+let get_enable_wasm () = !Mod_main.default_enable_wasm
+let set_cache_global_data v = Mod_main.default_cache_global_data := v
+let set_html_content_type v = Mod_main.default_html_content_type := Some v
 
 let add_ignored_get_params regexp =
-  Eliommod.default_ignored_get_params :=
-    regexp :: !Eliommod.default_ignored_get_params
+  Mod_main.default_ignored_get_params :=
+    regexp :: !Mod_main.default_ignored_get_params
 
 let add_ignored_post_params regexp =
-  Eliommod.default_ignored_post_params :=
-    regexp :: !Eliommod.default_ignored_post_params
+  Mod_main.default_ignored_post_params :=
+    regexp :: !Mod_main.default_ignored_post_params
 
-let set_omitpersistentstorage v = Eliommod.default_omitpersistentstorage := v
+let set_omitpersistentstorage v = Mod_main.default_omitpersistentstorage := v
 
 let get_default_hostname () =
   let sitedata = Request_info.find_sitedata "get_default_hostname" in
@@ -135,7 +135,7 @@ let get_config_info () =
 let get_config () =
   match Common.global_register_allowed () with
   | Some _ -> (
-    match !Eliommod.config with
+    match !Mod_main.config with
     | Some c -> c
     | None -> failwith "No config file. Is it a statically linked executable?")
   | None ->
@@ -144,7 +144,7 @@ let get_config () =
 
 let parse_config ?pcdata ?other_elements elements =
   Ocsigen_extensions.Configuration.process_elements
-    ~in_tag:!Eliommod.config_in_tag ?pcdata ?other_elements ~elements
+    ~in_tag:!Mod_main.config_in_tag ?pcdata ?other_elements ~elements
     (get_config ())
 
 let get_debugmode = Ocsigen_config.get_debugmode

@@ -22,8 +22,8 @@
 (* Global data *)
 
 type compilation_unit_global_data2 =
-  { mutable server_section : Eliom_runtime.client_value_datum array list
-  ; mutable client_section : Eliom_runtime.injection_datum array list }
+  { mutable server_section : Runtime.client_value_datum array list
+  ; mutable client_section : Runtime.injection_datum array list }
 
 let get_global_data, modify_global_data =
   (* We have to classify global data from ocsigen extensions (no site
@@ -82,7 +82,7 @@ let close_client_section compilation_unit_id injection_data =
   close_server_section compilation_unit_id;
   let data = get_compilation_unit_global_data compilation_unit_id in
   let injection_datum (injection_id, injection_value, loc, ident) =
-    { Eliom_runtime.injection_id
+    { Runtime.injection_id
     ; injection_value
     ; injection_dbg = Some (loc, ident) }
   in
@@ -93,14 +93,14 @@ let close_client_section compilation_unit_id injection_data =
 let get_global_data () =
   Lib.String_map.map
     (fun {server_section; client_section} ->
-       { Eliom_runtime.server_sections_data =
+       { Runtime.server_sections_data =
            Array.of_list (List.rev server_section)
        ; client_sections_data = Array.of_list (List.rev client_section) })
     (get_global_data ())
 
 (* Request data *)
 
-let request_data : Eliom_runtime.client_value_datum list Reference.Volatile.eref
+let request_data : Runtime.client_value_datum list Reference.Volatile.eref
   =
   Reference.Volatile.eref ~scope:Common.request_scope []
 
@@ -112,7 +112,7 @@ let get_request_data () =
 let is_global = ref false
 
 let register_client_value_data ~closure_id ~args ~value =
-  let client_value_datum = {Eliom_runtime.closure_id; args; value} in
+  let client_value_datum = {Runtime.closure_id; args; value} in
   if !is_global
   then
     if Common.get_sp_option () = None

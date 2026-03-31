@@ -31,10 +31,10 @@ include
    and type 'a Clist.node = 'a Ocsigen_lib_base.Clist.node
 
 include
-  module type of Eliom_lib_base
-  with type 'a Int64_map.t = 'a Eliom_lib_base.Int64_map.t
-  with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
-  with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t
+  module type of Lib_base
+  with type 'a Int64_map.t = 'a Lib_base.Int64_map.t
+  with type 'a String_map.t = 'a Lib_base.String_map.t
+  with type 'a Int_map.t = 'a Lib_base.Int_map.t
 
 type file_info = File.file Js.t
 

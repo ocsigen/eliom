@@ -31,7 +31,7 @@ open Js_of_ocaml
 
   *)
 
-module Xml : module type of Eliom_content_core.Xml
+module Xml : module type of Content_core.Xml
 (** Low-level XML manipulation. *)
 
 (** Building valid SVG . *)
@@ -47,7 +47,7 @@ module Svg : sig
 
   (**/**)
 
-  module Ev' = Eliom_content_core.Svg.Ev'
+  module Ev' = Content_core.Svg.Ev'
 
   (**/**)
 
@@ -105,7 +105,7 @@ module Svg : sig
         [elt]. *)
 
     module Raw :
-      Svg_sigs.Make(Eliom_content_core.Xml_wed).T
+      Svg_sigs.Make(Content_core.Xml_wed).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 
@@ -311,7 +311,7 @@ module Html : sig
 
   (**/**)
 
-  module Ev' = Eliom_content_core.Html.Ev'
+  module Ev' = Content_core.Html.Ev'
 
   (**/**)
 
@@ -403,7 +403,7 @@ module Html : sig
 
     (** Cf. {% <<a_api project="tyxml" | module Html_sigs.T >> %}. *)
     module Raw :
-      Html_sigs.Make(Eliom_content_core.Xml_wed)(Svg.R.Raw).T
+      Html_sigs.Make(Content_core.Xml_wed)(Svg.R.Raw).T
       with type +'a elt = 'a elt
        and type +'a attrib = 'a attrib
 

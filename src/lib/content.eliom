@@ -21,7 +21,7 @@
 
 [%%client
 open Js_of_ocaml
-include Eliom_content_
+include Content_functor
 
 let force_link = ()
 
@@ -36,11 +36,11 @@ external boxed :
   -> boxed Client_value.t
   = "%identity"
 
-module Xml = Eliom_content_.Xml
-module Xml_shared = Eliom_content_.Xml_shared
+module Xml = Content_functor.Xml
+module Xml_shared = Content_functor.Xml_shared
 
 module Svg = struct
-  include Eliom_content_.Svg
+  include Content_functor.Svg
 
   module C = struct
     let node ?(init = D.Unsafe.node "g" []) x =
@@ -65,7 +65,7 @@ module Svg = struct
 end
 
 module Html = struct
-  include Eliom_content_.Html
+  include Content_functor.Html
 
   module C = struct
     let node ?(init = D.Unsafe.node "span" []) x =

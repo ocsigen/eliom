@@ -251,7 +251,7 @@ module Action_base = struct
           match Request_info.get_sp_client_appl_name () with
           | Some anr ->
               Cohttp.Header.replace headers
-                Eliom_common_base.appl_name_header_name anr
+                Common_base.appl_name_header_name anr
           | _ -> headers
         and status = Cohttp.Code.status_of_code code in
         result_of_content ?charset ?content_type ~headers ~status
@@ -285,13 +285,13 @@ module Action_base = struct
         | _ ->
             let all_cookie_info = sp.Common.sp_cookie_info in
             let* ric =
-              Eliommod_cookies.compute_new_ri_cookies (Unix.time ())
+              Mod_cookies.compute_new_ri_cookies (Unix.time ())
                 (Ocsigen_request.sub_path ri.request_info)
                 (Ocsigen_request.cookies ri.request_info)
                 all_cookie_info user_cookies
             in
             let* all_new_cookies =
-              Eliommod_cookies.compute_cookies_to_send sitedata all_cookie_info
+              Mod_cookies.compute_cookies_to_send sitedata all_cookie_info
                 user_cookies
             in
             (* Now tab cookies:
@@ -330,7 +330,7 @@ module Action_base = struct
           update_cookie_table and get_cookie_info (?) *)
             let ri = update_request ri.request_info si ric in
             let* () =
-              Eliommod_pagegen.update_cookie_table sitedata all_cookie_info
+              Mod_pagegen.update_cookie_table sitedata all_cookie_info
             in
             send_directly ri
               (Ocsigen_extensions.compute_result
@@ -649,14 +649,14 @@ module Ocaml = struct
       then
         Array.iter
           (fun d ->
-             Eliom_runtime.Client_value_server_repr.clear_loc
-               d.Eliom_runtime.value)
+             Runtime.Client_value_server_repr.clear_loc
+               d.Runtime.value)
           data;
       data
     in
     (*     debug_client_value_data (debug "%s") client_value_data; *)
-    let r = {Eliom_runtime.ecs_request_data; ecs_data = data} in
-    Lwt.return (Eliom_types.encode_eliom_data r)
+    let r = {Runtime.ecs_request_data; ecs_data = data} in
+    Lwt.return (Types.encode_eliom_data r)
 
   let make_eh = function
     | None -> None
@@ -827,7 +827,7 @@ let default_appl_service_options = {do_not_launch = false}
 let request_template = Reference.eref ~scope:Common.request_scope None
 
 let global_data_unwrapper =
-  Wrap.create_unwrapper (Wrap.id_of_int Eliom_runtime.global_data_unwrap_id_int)
+  Wrap.create_unwrapper (Wrap.id_of_int Runtime.global_data_unwrap_id_int)
 
 let get_global_data ~keep_debug =
   let data = Syntax.get_global_data () in
@@ -836,17 +836,17 @@ let get_global_data ~keep_debug =
     then data
     else
       Lib.String_map.map
-        (fun {Eliom_runtime.server_sections_data; client_sections_data} ->
+        (fun {Runtime.server_sections_data; client_sections_data} ->
            Array.iter
              (Array.iter (fun d ->
-                Eliom_runtime.Client_value_server_repr.clear_loc
-                  d.Eliom_runtime.value))
+                Runtime.Client_value_server_repr.clear_loc
+                  d.Runtime.value))
              server_sections_data;
-           { Eliom_runtime.server_sections_data
+           { Runtime.server_sections_data
            ; client_sections_data =
                Array.map
                  (Array.map (fun x ->
-                    {x with Eliom_runtime.injection_dbg = None}))
+                    {x with Runtime.injection_dbg = None}))
                  client_sections_data })
         data
   in
@@ -995,7 +995,7 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
     let script =
       Printf.sprintf
         "var __eliom_appl_sitedata = \'%s\';\nvar __eliom_appl_process_info = \'%s\'\nvar __eliom_request_data;\nvar __eliom_request_cookies;\nvar __eliom_request_template;\n"
-        (Lib.jsmarshal (Eliommod_cli.client_sitedata sp))
+        (Lib.jsmarshal (Mod_cli.client_sitedata sp))
         (Lib.jsmarshal sp.Common.sp_client_process_info)
     in
     Lwt.return
@@ -1015,8 +1015,8 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
       then
         Array.iter
           (fun d ->
-             Eliom_runtime.Client_value_server_repr.clear_loc
-               d.Eliom_runtime.value)
+             Runtime.Client_value_server_repr.clear_loc
+               d.Runtime.value)
           data;
       data
     in
@@ -1032,10 +1032,10 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
             Content.Xml.make_event_handler_table (Content.Html.D.toelt page)
         ; ejs_client_attrib_table =
             Content.Xml.make_client_attrib_table (Content.Html.D.toelt page)
-        ; ejs_sess_info = Eliommod_cli.client_si sp.Common.sp_si }
+        ; ejs_sess_info = Mod_cli.client_si sp.Common.sp_si }
     in
     let* tab_cookies =
-      Eliommod_cookies.compute_cookies_to_send sp.Common.sp_sitedata
+      Mod_cookies.compute_cookies_to_send sp.Common.sp_sitedata
         sp.Common.sp_tab_cookie_info sp.Common.sp_user_tab_cookies
     in
     let* template = Reference.get request_template in
@@ -1141,7 +1141,7 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
          Content.Html.(
            F.base
              ~a:
-               [ F.a_id Eliom_common_base.base_elt_id
+               [ F.a_id Common_base.base_elt_id
                ; F.a_href (Content.Xml.uri_of_string base_url) ]
              ())
          :: head_elts
@@ -1213,14 +1213,14 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
     let headers =
       let h = Ocsigen_header.of_option headers in
       let h =
-        Cohttp.Header.replace h Eliom_common_base.appl_name_header_name
+        Cohttp.Header.replace h Common_base.appl_name_header_name
           App_param.application_name
       in
       try
         (* If it is a suffix service with redirection, we may have to
            normalize the uri *)
         let table = Request_info.get_request_cache () in
-        Cohttp.Header.replace h Eliom_common_base.response_url_header
+        Cohttp.Header.replace h Common_base.response_url_header
           (Polytables.get ~table ~key:Mkreg.suffix_redir_uri_key)
       with Not_found -> h
     and status = Lib.Option.map Cohttp.Code.status_of_code code
@@ -1426,7 +1426,7 @@ module Redirection_base = struct
           Ocsigen_response.Body.empty
     | true, Some anr ->
         let headers =
-          Cohttp.Header.replace headers Eliom_common_base.appl_name_header_name
+          Cohttp.Header.replace headers Common_base.appl_name_header_name
             anr
         in
         let headers =

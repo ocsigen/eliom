@@ -25,7 +25,7 @@ open Lib
 
 let section = Logs.Src.create "eliom:bus"
 
-module Ecb = Eliom_comet_base
+module Ecb = Comet_base
 
 type ('a, 'b) t =
   { channel : 'b Ecb.wrapped_channel
@@ -124,7 +124,7 @@ let create service channel waiter =
 
 let internal_unwrap ((wrapped_bus : ('a, 'b) Ecb.wrapped_bus), _unwrapper) =
   let waiter () = Js_of_ocaml_lwt.Lwt_js.sleep 0.05 in
-  let channel, Eliom_comet_base.Bus_send_service service = wrapped_bus in
+  let channel, Comet_base.Bus_send_service service = wrapped_bus in
   create service channel waiter
 
 let () = Unwrap.register_unwrapper Common.bus_unwrap_id internal_unwrap

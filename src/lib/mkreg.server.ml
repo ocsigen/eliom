@@ -80,7 +80,7 @@ let check_before name service =
 let check_after name result =
   match
     Ocsigen_response.header result
-      (Ocsigen_header.Name.of_string Eliom_common_base.appl_name_header_name)
+      (Ocsigen_header.Name.of_string Common_base.appl_name_header_name)
   with
   | Some appl_name -> not (appl_name = name)
   | None ->
@@ -133,7 +133,7 @@ let send_with_cookies
   in
   let* () = check_process_redir sp check_after result in
   let* tab_cookies =
-    Eliommod_cookies.compute_cookies_to_send sp.Common.sp_sitedata
+    Mod_cookies.compute_cookies_to_send sp.Common.sp_sitedata
       sp.Common.sp_tab_cookie_info sp.Common.sp_user_tab_cookies
   in
   (* TODO: do not add header when no cookies *)
@@ -142,8 +142,8 @@ let send_with_cookies
     let headers =
       Cohttp.Header.add
         (Cohttp.Response.headers response)
-        Eliom_common_base.set_tab_cookies_header_name
-        (Eliommod_cookies.cookieset_to_json tab_cookies)
+        Common_base.set_tab_cookies_header_name
+        (Mod_cookies.cookieset_to_json tab_cookies)
     in
     {response with Cohttp.Response.headers}
   and cookies =

@@ -20,7 +20,7 @@ open Lwt.Syntax
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-module Ecb = Eliom_comet_base
+module Ecb = Comet_base
 
 type ('a, 'b) t =
   { stream : 'b Lwt_stream.t
@@ -121,7 +121,7 @@ let create_filtered ?scope ?name ?size ~filter typ =
     ; scope
     ; name
     ; write = push
-    ; service = Eliom_comet_base.Bus_send_service distant_write
+    ; service = Comet_base.Bus_send_service distant_write
     ; service_registered
     ; bus_mark = bus_mark ()
     ; size }

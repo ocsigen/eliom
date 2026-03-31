@@ -132,7 +132,7 @@ module Channel : sig
 
   (**/**)
 
-  val get_wrapped : 'a t -> 'a Eliom_comet_base.wrapped_channel
+  val get_wrapped : 'a t -> 'a Comet_base.wrapped_channel
 end
 
 val section : Logs.src

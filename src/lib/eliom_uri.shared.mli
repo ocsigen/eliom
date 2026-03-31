@@ -82,7 +82,7 @@ val make_uri_components :
   -> ?keep_nl_params:[`All | `None | `Persistent]
   -> ?nl_params:nl_params_set
   -> 'get
-  -> string * (string * Eliommod_parameters.param) list * string option
+  -> string * (string * Mod_parameters.param) list * string option
 (** The function [make_uri_components service get_params] returns the
     a triplet [(path, get_params, fragment)] that is a decomposition
     of the URL of [service] applied to the GET parameters
@@ -106,14 +106,14 @@ val make_post_uri_components :
   -> 'get
   -> 'post
   -> string
-     * (string * Eliommod_parameters.param) list
+     * (string * Mod_parameters.param) list
      * string option
-     * (string * Eliommod_parameters.param) list
+     * (string * Mod_parameters.param) list
 (** Same a {!make_uri_components}, but also returns a table of post
     parameters. *)
 
 val make_string_uri_from_components :
-   string * (string * Eliommod_parameters.param) list * string option
+   string * (string * Mod_parameters.param) list * string option
   -> string
 (** The function [make_string_uri_from_components path get_params
     fragment] build the corresponding string URL. The [path] should
@@ -165,9 +165,9 @@ val make_post_uri_components__ :
   -> 'get
   -> 'post
   -> string
-     * (string * Eliommod_parameters.param) list
+     * (string * Mod_parameters.param) list
      * string option
-     * (string * Eliommod_parameters.param) list
+     * (string * Mod_parameters.param) list
 
 val make_uri_components_ :
    ?absolute:bool
@@ -180,7 +180,7 @@ val make_uri_components_ :
   -> ?keep_nl_params:[`All | `None | `Persistent]
   -> ?nl_params:nl_params_set
   -> unit
-  -> string * (string * Eliommod_parameters.param) list * string option
+  -> string * (string * Mod_parameters.param) list * string option
 
 val make_post_uri_components_ :
    ?absolute:bool
@@ -196,9 +196,9 @@ val make_post_uri_components_ :
   -> 'get
   -> unit
   -> string
-     * (string * Eliommod_parameters.param) list
+     * (string * Mod_parameters.param) list
      * string option
-     * (string * Eliommod_parameters.param) list
+     * (string * Mod_parameters.param) list
 
 val make_actual_path : string list -> string list
 

@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-include Eliom_common_base
+include Common_base
 
 type server_params = unit
 
@@ -45,13 +45,13 @@ let bus_unwrap_id : unwrap_id = Unwrap.id_of_int bus_unwrap_id_int
 (* On client side, we have sitedata.
    Thus, we can define new services.
    That's why this function returns Some sitedata. *)
-let sitedata : Eliom_types.sitedata option ref = ref None
+let sitedata : Types.sitedata option ref = ref None
 
 let global_register_allowed () =
   match !sitedata with None -> None | Some s -> Some (fun () -> s)
 
-let get_site_dir sitedata = sitedata.Eliom_types.site_dir
-let get_site_dir_string sitedata = sitedata.Eliom_types.site_dir_string
+let get_site_dir sitedata = sitedata.Types.site_dir
+let get_site_dir_string sitedata = sitedata.Types.site_dir_string
 let add_unregistered _ _ = ()
 
 module To_and_of_shared = struct
