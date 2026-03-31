@@ -296,10 +296,10 @@ module Action_base = struct
             in
             (* Now tab cookies:
 
-           As tab cookies are sent only by Eliom_app services,
+           As tab cookies are sent only by App services,
            we just need to keep them in rc.
 
-           If the fallback service is not Eliom_app, they will be
+           If the fallback service is not App, they will be
            lost. *)
             let rc = Request_info.get_request_cache_sp sp in
             Polytables.set ~table:rc

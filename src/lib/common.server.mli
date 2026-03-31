@@ -112,7 +112,7 @@ exception Eliom_site_information_not_available of string
 *)
 
 exception Cannot_call_this_function_before_app_is_linked_to_a_site
-(** Statically linked app: You cannot call this function before [Eliom_run]. *)
+(** Statically linked app: You cannot call this function before [App.run]. *)
 
 type full_state_name =
   {user_scope : user_scope; secure : bool; site_dir_str : string}

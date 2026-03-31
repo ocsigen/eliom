@@ -381,7 +381,7 @@ let relink_attribs (root : Dom_html.element Js.t) attribs attrib_nodeList =
 (* == Extract the request data and the request tab-cookies from a page
 
    See the corresponding function on the server side:
-   Registration.Eliom_appl_reg_make_param.make_eliom_data_script.
+   Registration.Appl_reg_make_param.make_eliom_data_script.
 *)
 
 let load_data_script page =

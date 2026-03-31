@@ -49,4 +49,4 @@ val run :
     script that loads the WASM version of your client code if the browser
     supports WebAssembly, with automatic fallback to JavaScript otherwise.
     If not specified, the global default is used
-    (see {!Eliom_config.set_enable_wasm}), which is [false]. *)
+    (see {!Config.set_enable_wasm}), which is [false]. *)

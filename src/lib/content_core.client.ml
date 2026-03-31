@@ -19,7 +19,7 @@
 
 (* This the core of [Content] without its dependencies to [Service],
    [Client] et al.
-   Its name is not [Eliom_content_base] because this would
+   Its name is not [Content_base] because this would
    suggest the sharing between server and client. *)
 
 open Js_of_ocaml

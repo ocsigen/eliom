@@ -3,16 +3,16 @@
 {!modules:
 Lib
 Client
-Eliom_client_value
+Client_value
 }
 
 {2 Content and form creation}
 
 {!modules:
-Eliom_content.Html
-Eliom_content.Html.Manip
-Eliom_content.Svg
-Eliom_content.Xml
+Content.Html
+Content.Html.Manip
+Content.Svg
+Content.Xml
 }
 
 {2 Client/server communication}
