@@ -31,15 +31,15 @@ type ('options, 'page, 'result) param =
       -> ?charset:string
       -> ?code:int
       -> ?content_type:string
-      -> ?headers:Ocsigen_header.t
+      -> ?headers:Ocsigen_http.Header.t
       -> 'page
-      -> Ocsigen_response.t Lwt.t
+      -> Ocsigen.Response.t Lwt.t
   ; send_appl_content : S.send_appl_content
     (** Whether the service is capable to send application content when
           required. This field is usually [Service.XNever]. This
           value is recorded inside each service just after
           registration.  *)
-  ; result_of_http_result : Ocsigen_response.t -> 'result }
+  ; result_of_http_result : Ocsigen.Response.t -> 'result }
 
 (* If it is an xmlHTTPrequest who asked for an internal application
    service but the current service
@@ -79,8 +79,8 @@ let check_before name service =
    be needed: hence we test what we can before page generation. *)
 let check_after name result =
   match
-    Ocsigen_response.header result
-      (Ocsigen_header.Name.of_string Common_base.appl_name_header_name)
+    Ocsigen.Response.header result
+      (Ocsigen_http.Header.Name.of_string Common_base.appl_name_header_name)
   with
   | Some appl_name -> not (appl_name = name)
   | None ->
@@ -108,10 +108,10 @@ let check_process_redir sp f param =
       (Common.Eliom_do_half_xhr_redirection
          ("/"
          ^ Lib.String.may_concat
-             (Ocsigen_request.original_full_path_string ri)
+             (Ocsigen.Request.original_full_path_string ri)
              ~sep:"?"
              (Parameter.construct_params_string
-                (Ocsigen_request.get_params_flat ri))))
+                (Ocsigen.Request.get_params_flat ri))))
   (* We do not put hostname and port.
      It is ok with half or full xhr redirections. *)
   (* If an action occurred before,
@@ -138,7 +138,7 @@ let send_with_cookies
   in
   (* TODO: do not add header when no cookies *)
   let response =
-    let response = Ocsigen_response.response result in
+    let response = Ocsigen.Response.response result in
     let headers =
       Cohttp.Header.add
         (Cohttp.Response.headers response)
@@ -149,9 +149,9 @@ let send_with_cookies
   and cookies =
     Ocsigen_cookie_map.add_multi
       (Request_info.get_user_cookies ())
-      (Ocsigen_response.cookies result)
+      (Ocsigen.Response.cookies result)
   in
-  Lwt.return (Ocsigen_response.update result ~cookies ~response)
+  Lwt.return (Ocsigen.Response.update result ~cookies ~response)
 
 let register_aux
       pages
@@ -200,7 +200,7 @@ let register_aux
                   Lwt.catch
                     (fun () ->
                        Parameter.reconstruct_params ~sp sgpt
-                         (Some (Lwt.return (Ocsigen_request.get_params_flat ri)))
+                         (Some (Lwt.return (Ocsigen.Request.get_params_flat ri)))
                          (Some (Lwt.return []))
                          nosuffixversion suff
                        >>= fun g ->
@@ -360,7 +360,7 @@ let register_aux
                   (fun () ->
                      Parameter.reconstruct_params ~sp
                        (S.get_params_type service)
-                       (Some (Lwt.return (Ocsigen_request.get_params_flat ri)))
+                       (Some (Lwt.return (Ocsigen.Request.get_params_flat ri)))
                        (Some (Lwt.return []))
                        false None
                      >>= fun g ->
@@ -485,7 +485,7 @@ let register
             (* I suppose that it's a statically linked module
                that is not associated with a site yet.
                I will defer the registration until app is initialised. *)
-            Ocsigen_loader.add_module_init_function (Common.get_app_name ())
+            Ocsigen_base.Loader.add_module_init_function (Common.get_app_name ())
               (fun () -> aux sitedata)
       | _ -> raise (Common.Eliom_site_information_not_available "register"))
   | None, Some _ | Some `Site, Some _ ->
@@ -601,7 +601,7 @@ let create_attached_post
   service
 
 module Make
-    (Pages : Registration_sigs.PARAM with type frame := Ocsigen_response.t) =
+    (Pages : Registration_sigs.PARAM with type frame := Ocsigen.Response.t) =
 struct
   type page = Pages.page
   type options = Pages.options
@@ -621,7 +621,7 @@ struct
 end
 
 module Make_poly
-    (Pages : Registration_sigs.PARAM_POLY with type frame := Ocsigen_response.t) =
+    (Pages : Registration_sigs.PARAM_POLY with type frame := Ocsigen.Response.t) =
 struct
   type 'a page = 'a Pages.page
   type options = Pages.options

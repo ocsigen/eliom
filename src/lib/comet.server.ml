@@ -96,7 +96,7 @@ module Stateless : sig
 end = struct
   type channel_id = string
 
-  module Dlist = Ocsigen_cache.Dlist
+  module Dlist = Ocsigen_base.Cache.Dlist
 
   type channel =
     { ch_id : channel_id
@@ -502,7 +502,7 @@ end = struct
       List.filter (( <> ) chan_id) handler.hd_registered_chan_id
 
   let wait_closed_connection () =
-    let* () = Ocsigen_request.connection_closed (Request_info.get_ri ()) in
+    let* () = Ocsigen.Request.connection_closed (Request_info.get_ri ()) in
     Lwt.fail Connection_closed
 
   (* register the service handler.hd_service *)

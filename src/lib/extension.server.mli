@@ -21,7 +21,7 @@
     manual for more information about {% <<a_manual chapter="workflow-configuration"
     fragment="extensions"| Eliom's extensions>>%} *)
 
-type eliom_extension_sig = unit -> Ocsigen_extensions.answer Lwt.t
+type eliom_extension_sig = unit -> Ocsigen.Extensions.answer Lwt.t
 (** Type of the function that must be registered to declare an eliom extension. *)
 
 val register_eliom_extension : eliom_extension_sig -> unit
@@ -35,4 +35,4 @@ val run_eliom_extension :
   -> float
   -> Common.info
   -> Common.sitedata
-  -> Ocsigen_extensions.answer Lwt.t
+  -> Ocsigen.Extensions.answer Lwt.t

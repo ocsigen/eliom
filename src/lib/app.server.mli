@@ -39,7 +39,7 @@ val run :
   -> ?ignored_post_params:string * Re.re
   -> ?omitpersistentstorage:Common.omitpersistentstorage_rule list option
   -> unit
-  -> Ocsigen_server.instruction
+  -> Ocsigen.Server.instruction
 (** [run ?app ()] run Eliom application [app] under current site.
     Use this to build a static executable without configuration file.
     Default value of [?app] is [default_app_name].

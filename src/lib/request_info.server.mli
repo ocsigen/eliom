@@ -127,17 +127,17 @@ val get_previous_extension_error_code : unit -> int
    It is 404 by default.
  *)
 
-val get_tmp_filename : Ocsigen_extensions.file_info -> string
+val get_tmp_filename : Ocsigen.Extensions.file_info -> string
 (** returns the filename used by Ocsigen for the uploaded file. *)
 
-val get_filesize : Ocsigen_extensions.file_info -> int64
+val get_filesize : Ocsigen.Extensions.file_info -> int64
 (** returns the size of the uploaded file. *)
 
-val get_original_filename : Ocsigen_extensions.file_info -> string
+val get_original_filename : Ocsigen.Extensions.file_info -> string
 (** returns the name the file had on the client when it has been sent. *)
 
 val get_file_content_type :
-   Ocsigen_extensions.file_info
+   Ocsigen.Extensions.file_info
   -> ((string * string) * (string * string) list) option
 (** returns the content type sent by the browser with the file
     (if any). *)
@@ -194,7 +194,7 @@ val get_all_post_params : unit -> (string * string) list option
 (** returns all parameters in the body of the HTTP request (POST parameters)
    (even those that are for another service) *)
 
-val get_all_files : unit -> (string * Ocsigen_extensions.file_info) list option
+val get_all_files : unit -> (string * Ocsigen.Extensions.file_info) list option
 (** returns all files in he HTTP request
    (even those that are for another service) *)
 
@@ -211,10 +211,10 @@ val get_ignored_post_params : unit -> (string * string) list
 
 (** You probably don't need these functions. *)
 
-val get_ri : unit -> Ocsigen_request.t
+val get_ri : unit -> Ocsigen.Request.t
 (** returns all the information about the request. *)
 
-val get_request : unit -> Ocsigen_extensions.request
+val get_request : unit -> Ocsigen.Extensions.request
 (** returns all the information about the request and config. *)
 
 val get_state_name : unit -> Common.full_state_name option
@@ -315,10 +315,10 @@ val get_sp_client_process_info : unit -> Common.client_process_info
 
 val set_site_handler :
    Common.sitedata
-  -> (exn -> Ocsigen_response.t Lwt.t)
+  -> (exn -> Ocsigen.Response.t Lwt.t)
   -> unit
 
-val get_request_sp : Common.server_params -> Ocsigen_extensions.request
+val get_request_sp : Common.server_params -> Ocsigen.Extensions.request
 val get_site_dir_sp : Common.server_params -> Lib.Url.path
 val get_hostname_sp : Common.server_params -> string
 val get_full_url_sp : Common.server_params -> string
@@ -340,7 +340,7 @@ val get_original_full_path_sp : Common.server_params -> Lib.Url.path
 val get_original_full_path_string_sp : Common.server_params -> string
 val get_server_port_sp : Common.server_params -> int
 val get_ssl_sp : Common.server_params -> bool
-val get_ri_sp : Common.server_params -> Ocsigen_request.t
+val get_ri_sp : Common.server_params -> Ocsigen.Request.t
 
 val get_post_params_sp :
    Common.server_params
@@ -348,7 +348,7 @@ val get_post_params_sp :
 
 val get_files_sp :
    Common.server_params
-  -> (string * Ocsigen_extensions.file_info) list Lwt.t option
+  -> (string * Ocsigen.Extensions.file_info) list Lwt.t option
 
 val get_suffix_sp : Common.server_params -> Lib.Url.path option
 val get_request_cache_sp : Common.server_params -> Polytables.t

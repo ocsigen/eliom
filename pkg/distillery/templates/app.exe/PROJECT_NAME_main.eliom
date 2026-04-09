@@ -4,7 +4,7 @@
 module%shared %%%MODULE_NAME%%% = %%%MODULE_NAME%%%
 
 let%server _ =
-  Ocsigen_server.start
+  Ocsigen.Server.start
     ~ports:[`All, 8080]
     ~veryverbose:()
     ~debugmode:true
@@ -14,5 +14,5 @@ let%server _ =
     ~usedefaulthostname:true
     ~command_pipe:"local/var/run/%%%PROJECT_NAME%%%-cmd"
     ~default_charset:(Some "utf-8")
-    [ Ocsigen_server.host
+    [ Ocsigen.Server.host
       [Staticmod.run ~dir:"local/var/www/%%%PROJECT_NAME%%%" (); Eliom.App.run ()] ]

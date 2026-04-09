@@ -50,7 +50,7 @@ val client_value_from_server_repr :
 
 val client_value_datum :
    closure_id:string
-  -> args:Ocsigen_lib.poly
+  -> args:Ocsigen_base.Lib.poly
   -> value:'a t
   -> Runtime.client_value_datum
 

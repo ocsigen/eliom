@@ -336,7 +336,7 @@ module Redirection : sig
     -> ?charset:string
     -> ?code:int
     -> ?content_type:string
-    -> ?headers:Ocsigen_header.t
+    -> ?headers:Ocsigen_http.Header.t
     -> _ page
     -> _ kind Lwt.t
   (** More polymorphic version of {!Registration_sigs.send} *)
@@ -521,6 +521,6 @@ val cast_unknown_content_kind : unknown_content kind -> 'a kind
     [Streamlist.send] is the same as some other kind, you can cast it
     with [cast_unknown_content_kind] for use with [Any] module.*)
 
-val cast_http_result : Ocsigen_response.t -> 'a kind
+val cast_http_result : Ocsigen.Response.t -> 'a kind
 (** [cast_http_result] should only be used to register new output
     modules *)

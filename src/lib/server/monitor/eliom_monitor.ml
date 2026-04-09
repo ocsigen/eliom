@@ -54,7 +54,7 @@ let general_stats () =
   div
     [ dl
         [ dt [ppf "Version of Ocsigen"]
-        ; dd [ppf "%s" Ocsigen_config.version_number]
+        ; dd [ppf "%s" Ocsigen.Config.version_number]
         ; dt [ppf "Uptime"]
         ; dd [ppf "%s" (format_duration (uptime ()))]
         ; dt [ppf "PID"]
@@ -78,12 +78,12 @@ let gc_stats () =
                 stat.Gc.top_heap_words ] ] ]
 
 let http_stats () =
-  let hosts = Ocsigen_extensions.get_hosts () in
+  let hosts = Ocsigen.Extensions.get_hosts () in
   div
     [ ul
         [ li
             [ ppf "%d open connection"
-                (Ocsigen_extensions.get_number_of_connected ()) ] ]
+                (Ocsigen.Extensions.get_number_of_connected ()) ] ]
     ; h3 [txt "Hosts"]
     ; ul
         (List.map
@@ -99,9 +99,9 @@ let http_stats () =
                         in
                         Printf.sprintf
                           "%s%s ( default: %s,  http: %d, https: %d )" vhost
-                          optport config.Ocsigen_extensions.default_hostname
-                          config.Ocsigen_extensions.default_httpport
-                          config.Ocsigen_extensions.default_httpsport)
+                          optport config.Ocsigen.Extensions.default_hostname
+                          config.Ocsigen.Extensions.default_httpport
+                          config.Ocsigen.Extensions.default_httpsport)
                      vhosts)
               in
               li [txt (all_vhost : string)])

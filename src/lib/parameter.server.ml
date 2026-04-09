@@ -22,7 +22,7 @@ include Parameter_base
 
 type raw_post_data = Request_info.raw_post_data
 
-open Ocsigen_extensions
+open Ocsigen.Extensions
 
 (* server-specific constructors *)
 
@@ -52,10 +52,10 @@ let regexp reg dest ~to_string n =
       match Re.Pcre.exec ~rex:reg ~pos:0 s with
       | g when Re.Group.start g 0 = 0 -> (
         try
-          Ocsigen_extensions.replace_user_dir reg
-            (Ocsigen_extensions.parse_user_dir dest)
+          Ocsigen.Extensions.replace_user_dir reg
+            (Ocsigen.Extensions.parse_user_dir dest)
             s
-        with Ocsigen_extensions.NoSuchUser ->
+        with Ocsigen.Extensions.NoSuchUser ->
           raise (Failure "User does not exist"))
       | _ | (exception Not_found) -> raise (Failure "Regexp not matching"))
     ~to_string n
@@ -68,10 +68,10 @@ let all_suffix_regexp reg dest ~(to_string : 'a -> string) (n : string) :
       match Re.Pcre.exec ~rex:reg ~pos:0 s with
       | g when Re.Group.start g 0 = 0 -> (
         try
-          Ocsigen_extensions.replace_user_dir reg
-            (Ocsigen_extensions.parse_user_dir dest)
+          Ocsigen.Extensions.replace_user_dir reg
+            (Ocsigen.Extensions.parse_user_dir dest)
             s
-        with Ocsigen_extensions.NoSuchUser ->
+        with Ocsigen.Extensions.NoSuchUser ->
           raise (Failure "User does not exist"))
       | _ | (exception Not_found) -> raise (Failure "Regexp not matching"))
     ~to_string n
@@ -91,7 +91,7 @@ let get_non_localized_parameters
   try
     (* first, look in cache: *)
     Polytables.get
-      ~table:(Ocsigen_request.request_cache sp.Common.sp_request.request_info)
+      ~table:(Ocsigen.Request.request_cache sp.Common.sp_request.request_info)
       ~key
   with Not_found ->
     let p =
@@ -108,7 +108,7 @@ let get_non_localized_parameters
     in
     (* add in cache: *)
     Polytables.set
-      ~table:(Ocsigen_request.request_cache sp.Common.sp_request.request_info)
+      ~table:(Ocsigen.Request.request_cache sp.Common.sp_request.request_info)
       ~key ~value:p;
     p
 
