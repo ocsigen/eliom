@@ -405,7 +405,7 @@ let unset_service_session_group
     in
     let n =
       Mod_sessiongroups.make_full_group_name ~cookie_level:`Session
-        (Request_info.get_request_sp sp).Ocsigen_extensions.request_info
+        (Request_info.get_request_sp sp).Ocsigen.Extensions.request_info
         (Common.get_site_dir_string sitedata)
         (Common.get_mask4 sitedata)
         (Common.get_mask6 sitedata)
@@ -483,7 +483,7 @@ let unset_volatile_data_session_group
     in
     let n =
       Mod_sessiongroups.make_full_group_name ~cookie_level:`Session
-        (Request_info.get_request_sp sp).Ocsigen_extensions.request_info
+        (Request_info.get_request_sp sp).Ocsigen.Extensions.request_info
         (Common.get_site_dir_string sitedata)
         (Common.get_mask4 sitedata)
         (Common.get_mask6 sitedata)
@@ -1333,11 +1333,11 @@ module Ext = struct
     =
     let state' = (state :> ('aa, 'bb) state) in
     let a = fold_sub_states_aux_aux ?sitedata ~state:state' f in
-    fold_sub_states_aux Ocsigen_cache.Dlist.fold Ocsigen_lib.id a e state
+    fold_sub_states_aux Ocsigen_base.Cache.Dlist.fold Ocsigen_base.Lib.id a e state
 
   (** Fold over the snapshot of a Dlist. *)
   let dlist_lwt_fold f acc dlist =
-    Ocsigen_cache.Dlist.fold (fun acc x -> x :: acc) [] dlist
+    Ocsigen_base.Cache.Dlist.fold (fun acc x -> x :: acc) [] dlist
     |> List.rev |> Lwt_list.fold_left_s f acc
 
   let fold_sub_states ?sitedata ~state f e =
@@ -1466,7 +1466,7 @@ module Ext = struct
   let get_session_group_list () =
     let sitedata = Request_info.find_sitedata "get_session_group_list" in
     let dl = sitedata.Common.group_of_groups in
-    Ocsigen_cache.Dlist.fold
+    Ocsigen_base.Cache.Dlist.fold
       (fun l -> function _, `Session, Left s -> s :: l | _ -> l)
       [] dl
 

@@ -23,7 +23,7 @@
 (*****************************************************************************)
 (*****************************************************************************)
 
-type eliom_extension_sig = unit -> Ocsigen_extensions.answer Lwt.t
+type eliom_extension_sig = unit -> Ocsigen.Extensions.answer Lwt.t
 
 let module_action : eliom_extension_sig ref =
   ref (fun _ -> failwith "Mod_extension")

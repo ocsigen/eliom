@@ -40,7 +40,7 @@ let headers_with_content_type ?charset ?content_type headers =
         else None
       in
       Cohttp.Header.replace headers
-        Ocsigen_header.Name.(to_string content_type)
+        Ocsigen_http.Header.Name.(to_string content_type)
         (match charset with
         | Some charset -> Printf.sprintf "%s; charset=%s" content_type charset
         | None -> content_type)
@@ -50,32 +50,32 @@ let result_of_content ?charset ?content_type ?headers ?status body =
   let headers =
     match content_type with
     | Some content_type ->
-        let headers = Ocsigen_header.of_option headers in
+        let headers = Ocsigen_http.Header.of_option headers in
         Some (headers_with_content_type ?charset ~content_type headers)
     | None -> headers
   in
   let headers =
     Cohttp.Header.add_unless_exists
-      (Ocsigen_header.of_option headers)
+      (Ocsigen_http.Header.of_option headers)
       "cache-control" "no-cache"
   in
   let response = Cohttp.Response.make ?status ~headers () in
-  Lwt.return (Ocsigen_response.make ~body response)
+  Lwt.return (Ocsigen.Response.make ~body response)
 
 module Result_types : sig
   type 'a kind
 
-  val cast_result : Ocsigen_response.t -> 'a kind
-  val cast_kind : 'a kind -> Ocsigen_response.t
-  val cast_kind_lwt : 'a kind Lwt.t -> Ocsigen_response.t Lwt.t
-  val cast_result_lwt : Ocsigen_response.t Lwt.t -> 'a kind Lwt.t
+  val cast_result : Ocsigen.Response.t -> 'a kind
+  val cast_kind : 'a kind -> Ocsigen.Response.t
+  val cast_kind_lwt : 'a kind Lwt.t -> Ocsigen.Response.t Lwt.t
+  val cast_result_lwt : Ocsigen.Response.t Lwt.t -> 'a kind Lwt.t
 
   val cast_function_http :
      ('c -> 'a kind Lwt.t)
     -> 'c
-    -> Ocsigen_response.t Lwt.t
+    -> Ocsigen.Response.t Lwt.t
 end = struct
-  type 'a kind = Ocsigen_response.t
+  type 'a kind = Ocsigen.Response.t
 
   let cast_result x = x
   let cast_kind x = x
@@ -103,11 +103,11 @@ let content_type_html content_type =
   | Some content_type, _ -> content_type
   | None, None ->
       let accept =
-        Ocsigen_request.header_multi (Request_info.get_ri ())
-          Ocsigen_header.Name.accept
+        Ocsigen.Request.header_multi (Request_info.get_ri ())
+          Ocsigen_http.Header.Name.accept
       in
-      let accept = Ocsigen_header.Accept.parse accept in
-      Ocsigen_header.Content_type.choose accept Content.Html.D.Info.content_type
+      let accept = Ocsigen_http.Header.Accept.parse accept in
+      Ocsigen_http.Header.Content_type.choose accept Content.Html.D.Info.content_type
         Content.Html.D.Info.alternative_content_types
 
 module Html_base = struct
@@ -125,7 +125,7 @@ module Html_base = struct
   let send ?options:_ ?charset ?code ?content_type ?headers c =
     let status = Lib.Option.map Cohttp.Code.status_of_code code
     and content_type = content_type_html content_type
-    and body = Ocsigen_response.Body.of_string (Format.asprintf "%a" out c) in
+    and body = Ocsigen.Response.Body.of_string (Format.asprintf "%a" out c) in
     result_of_content ?charset ?headers ?status ~content_type body
 end
 
@@ -144,7 +144,7 @@ module Flow5_base = struct
     Content.Html.Printer.pp_elt ~encode ()
 
   let body l =
-    Ocsigen_response.Body.make Cohttp.Transfer.Unknown (fun write ->
+    Ocsigen.Response.Body.make Cohttp.Transfer.Unknown (fun write ->
       Lwt_list.iter_s (fun x -> write (Format.asprintf "%a" out x)) l)
 
   let send ?options:_ ?charset ?code ?content_type ?headers c =
@@ -158,14 +158,14 @@ module Flow5 = Mkreg.Make (Flow5_base)
 
 let add_cache_header cache headers =
   let ( <-< ) h (n, v) =
-    Cohttp.Header.replace h (Ocsigen_header.Name.to_string n) v
+    Cohttp.Header.replace h (Ocsigen_http.Header.Name.to_string n) v
   in
   match cache with
   | None -> headers
-  | Some 0 -> headers <-< (Ocsigen_header.Name.cache_control, "no-cache")
+  | Some 0 -> headers <-< (Ocsigen_http.Header.Name.cache_control, "no-cache")
   | Some duration ->
       headers
-      <-< ( Ocsigen_header.Name.cache_control
+      <-< ( Ocsigen_http.Header.Name.cache_control
           , "max-age: " ^ string_of_int duration )
 
 module String_base = struct
@@ -178,8 +178,8 @@ module String_base = struct
 
   let send ?options ?charset ?code ?content_type:_ ?headers (c, content_type) =
     let status = Lib.Option.map Cohttp.Code.status_of_code code
-    and body = Ocsigen_response.Body.of_string c
-    and headers = add_cache_header options (Ocsigen_header.of_option headers) in
+    and body = Ocsigen.Response.Body.of_string c
+    and headers = add_cache_header options (Ocsigen_http.Header.of_option headers) in
     result_of_content ?charset ?status ~content_type ~headers body
 end
 
@@ -231,12 +231,12 @@ module Action_base = struct
     (* send bypassing the following directives in the configuration
        file (they have already been taken into account) *)
     Polytables.set
-      ~table:(Ocsigen_request.request_cache ri)
+      ~table:(Ocsigen.Request.request_cache ri)
       ~key:Common.found_stop_key ~value:();
     res
 
   let update_request ri si cookies_override =
-    Ocsigen_request.update ri ~post_data:None ~meth:`GET ~cookies_override
+    Ocsigen.Request.update ri ~post_data:None ~meth:`GET ~cookies_override
       ~get_params_flat:si.Common.si_other_get_params
 
   let send ?(options = `Reload) ?charset ?(code = 204) ?content_type ?headers ()
@@ -244,7 +244,7 @@ module Action_base = struct
     let user_cookies = Request_info.get_user_cookies () in
     match options with
     | `NoReload ->
-        let headers = Ocsigen_header.of_option headers in
+        let headers = Ocsigen_http.Header.of_option headers in
         let headers =
           match Request_info.get_sp_client_appl_name () with
           | Some anr ->
@@ -253,7 +253,7 @@ module Action_base = struct
           | _ -> headers
         and status = Cohttp.Code.status_of_code code in
         result_of_content ?charset ?content_type ~headers ~status
-          Ocsigen_response.Body.empty
+          Ocsigen.Response.Body.empty
     | `Reload -> (
         (* It is an action, we reload the page. To do that, we retry
          without POST params.
@@ -270,20 +270,20 @@ module Action_base = struct
         let sitedata = Request_info.get_sitedata_sp ~sp in
         let si = Request_info.get_si sp in
         let ri = Request_info.get_request_sp sp in
-        let open Ocsigen_extensions in
+        let open Ocsigen.Extensions in
         match
           ( si.Common.si_nonatt_info
           , si.Common.si_state_info
-          , Ocsigen_request.meth ri.request_info )
+          , Ocsigen.Request.meth ri.request_info )
         with
         | Common.RNa_no, (Common.RAtt_no, Common.RAtt_no), `GET ->
-            Lwt.return (Ocsigen_response.make (Cohttp.Response.make ()))
+            Lwt.return (Ocsigen.Response.make (Cohttp.Response.make ()))
         | _ ->
             let all_cookie_info = sp.Common.sp_cookie_info in
             let* ric =
               Mod_cookies.compute_new_ri_cookies (Unix.time ())
-                (Ocsigen_request.sub_path ri.request_info)
-                (Ocsigen_request.cookies ri.request_info)
+                (Ocsigen.Request.sub_path ri.request_info)
+                (Ocsigen.Request.cookies ri.request_info)
                 all_cookie_info user_cookies
             in
             let* all_new_cookies =
@@ -306,8 +306,8 @@ module Action_base = struct
             (* Remove some parameters to choose the following service *)
             Polytables.set
               ~table:
-                (Ocsigen_request.request_cache
-                   ri.Ocsigen_extensions.request_info)
+                (Ocsigen.Request.request_cache
+                   ri.Ocsigen.Extensions.request_info)
               ~key:Common.eliom_params_after_action
               ~value:
                 ( si.Common.si_all_get_params
@@ -328,7 +328,7 @@ module Action_base = struct
               Mod_pagegen.update_cookie_table sitedata all_cookie_info
             in
             send_directly ri
-              (Ocsigen_extensions.compute_result
+              (Ocsigen.Extensions.compute_result
                  ~previous_cookies:all_new_cookies ri))
 end
 
@@ -350,7 +350,7 @@ module Unit_base = struct
   let send ?options:_ ?charset ?(code = 204) ?content_type ?headers _content =
     let status = Cohttp.Code.status_of_code code in
     result_of_content ?charset ?content_type ?headers ~status
-      Ocsigen_response.Body.empty
+      Ocsigen.Response.Body.empty
 end
 
 module Unit = Mkreg.Make (Unit_base)
@@ -374,13 +374,13 @@ module Any_base = struct
         (result : 'a kind)
     =
     let result = Result_types.cast_kind result in
-    let cohttp_response = Ocsigen_response.response result in
+    let cohttp_response = Ocsigen.Response.response result in
     let headers =
       headers_with_content_type ?charset ?content_type
         (Cohttp.Response.headers cohttp_response)
     in
     let response = {cohttp_response with Cohttp.Response.headers} in
-    Lwt.return (Ocsigen_response.update ~response result)
+    Lwt.return (Ocsigen.Response.update ~response result)
 end
 
 module Any = struct
@@ -406,7 +406,7 @@ let appl_self_redirect send page =
       in
       Cohttp.Response.make ~headers ()
     in
-    Ocsigen_response.make response |> Result_types.cast_result |> Lwt.return
+    Ocsigen.Response.make response |> Result_types.cast_result |> Lwt.return
   else
     let* r = (Result_types.cast_function_http send) page in
     Lwt.return (Result_types.cast_result r)
@@ -424,28 +424,28 @@ module File_base = struct
     let sp = Common.get_sp () in
     let request = Request_info.get_request_sp sp in
     match
-      try Ocsigen_local_files.resolve ~request ~filename ()
+      try Ocsigen.Local_files.resolve ~request ~filename ()
       with
-      | Ocsigen_local_files.Failed_403
+      | Ocsigen.Local_files.Failed_403
       (* XXXBY : maybe we should signal a true 403 ? *)
-      | Ocsigen_local_files.Failed_404
-      | Ocsigen_local_files.NotReadableDirectory
+      | Ocsigen.Local_files.Failed_404
+      | Ocsigen.Local_files.NotReadableDirectory
       ->
         raise Common.Eliom_404
     with
-    | Ocsigen_local_files.RFile fname ->
+    | Ocsigen.Local_files.RFile fname ->
         let* res =
           let headers =
-            Ocsigen_header.of_option headers
+            Ocsigen_http.Header.of_option headers
             |> add_cache_header options
             |> headers_with_content_type ?charset ?content_type
           in
           Cohttp_lwt_unix.Server.respond_file ~headers ~fname ()
         in
-        Lwt.return (Ocsigen_response.of_cohttp res)
-    | Ocsigen_local_files.RDir _ ->
+        Lwt.return (Ocsigen.Response.of_cohttp res)
+    | Ocsigen.Local_files.RDir _ ->
         (* FIXME COHTTP TRANSITION: implement directories *)
-        raise Ocsigen_local_files.Failed_404
+        raise Ocsigen.Local_files.Failed_404
 end
 
 module File = struct
@@ -455,11 +455,11 @@ module File = struct
     let sp = Common.get_sp () in
     let request = Request_info.get_request_sp sp in
     try
-      ignore (Ocsigen_local_files.resolve ~request ~filename ());
+      ignore (Ocsigen.Local_files.resolve ~request ~filename ());
       true
     with
-    | Ocsigen_local_files.Failed_403 | Ocsigen_local_files.Failed_404
-    | Ocsigen_local_files.NotReadableDirectory
+    | Ocsigen.Local_files.Failed_403 | Ocsigen.Local_files.Failed_404
+    | Ocsigen.Local_files.NotReadableDirectory
     ->
       false
 end
@@ -618,7 +618,7 @@ end
 module Ocaml_base = struct
   type page = string
   type options = unit
-  type result = Ocsigen_response.t
+  type result = Ocsigen.Response.t
 
   let result_of_http_result x = x
   let send_appl_content = Service.XNever
@@ -640,7 +640,7 @@ module Ocaml = struct
   let prepare_data data =
     let ecs_request_data =
       let data = Syntax.get_request_data () in
-      if not (Ocsigen_config.get_debugmode ())
+      if not (Ocsigen.Config.get_debugmode ())
       then
         Array.iter
           (fun d -> Runtime.Client_value_server_repr.clear_loc d.Runtime.value)
@@ -1044,7 +1044,7 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
          | None -> assert false
        in
        let global_data =
-         get_global_data ~keep_debug:(Ocsigen_config.get_debugmode ())
+         get_global_data ~keep_debug:(Ocsigen.Config.get_debugmode ())
          |> Wrap.wrap |> Lib.jsmarshal
        in
        let script =
@@ -1140,7 +1140,7 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
     in
     let* data_script =
       make_eliom_data_script
-        ~keep_debug:(Ocsigen_config.get_debugmode ())
+        ~keep_debug:(Ocsigen.Config.get_debugmode ())
         ~sp fake_page
     in
     (* Then we replace the faked data_script *)
@@ -1193,10 +1193,10 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
         | None, true -> remove_eliom_scripts content
         | _ -> add_eliom_scripts ~sp content)
       >|= fun body ->
-      Ocsigen_response.Body.of_string (Format.asprintf "%a" out body)
+      Ocsigen.Response.Body.of_string (Format.asprintf "%a" out body)
     in
     let headers =
-      let h = Ocsigen_header.of_option headers in
+      let h = Ocsigen_http.Header.of_option headers in
       let h =
         Cohttp.Header.replace h Common_base.appl_name_header_name
           App_param.application_name
@@ -1228,7 +1228,7 @@ module App (App_param : Registration_sigs.APP_PARAM) = struct
   let typed_name = App_param.application_name
 
   let data_service_handler () () =
-    Lwt.return (get_global_data ~keep_debug:(Ocsigen_config.get_debugmode ()))
+    Lwt.return (get_global_data ~keep_debug:(Ocsigen.Config.get_debugmode ()))
 
   let _ =
     match App_param.global_data_path with
@@ -1326,7 +1326,7 @@ module String_redirection_base = struct
   (* actually, the service will decide itself *)
 
   let send ?(options = `Found) ?charset ?code ?content_type ?headers uri =
-    let headers = Ocsigen_header.of_option headers
+    let headers = Ocsigen_http.Header.of_option headers
     and header_id, status =
       (* We decide the kind of redirection we do. If the request is an
          XHR done by a client side Eliom program expecting a process
@@ -1336,13 +1336,13 @@ module String_redirection_base = struct
       then
         (* the browser did not ask application eliom data, we send a
            regular redirection *)
-        ( Ocsigen_header.Name.(to_string location)
+        ( Ocsigen_http.Header.Name.(to_string location)
         , status_of_redirection_options options code )
       else Common.half_xhr_redir_header, `OK
     in
     let headers = Cohttp.Header.replace headers header_id uri in
     result_of_content ?charset ?content_type ~status ~headers
-      Ocsigen_response.Body.empty
+      Ocsigen.Response.Body.empty
 end
 
 module String_redirection = Mkreg.Make (String_redirection_base)
@@ -1380,7 +1380,7 @@ module Redirection_base = struct
         (Redirection service)
     =
     let uri = Eliom_uri.make_string_uri ~service ()
-    and headers = Ocsigen_header.of_option headers in
+    and headers = Ocsigen_http.Header.of_option headers in
     (* Now we decide the kind of redirection we do.
 
        If the request is an xhr done by a client side Eliom program
@@ -1404,11 +1404,11 @@ module Redirection_base = struct
         let status = status_of_redirection_options options code
         and headers =
           Cohttp.Header.replace headers
-            Ocsigen_header.Name.(to_string location)
+            Ocsigen_http.Header.Name.(to_string location)
             uri
         in
         result_of_content ?charset ?content_type ~status ~headers
-          Ocsigen_response.Body.empty
+          Ocsigen.Response.Body.empty
     | true, Some anr ->
         let headers =
           Cohttp.Header.replace headers Common_base.appl_name_header_name anr
@@ -1432,7 +1432,7 @@ module Redirection_base = struct
             uri
         in
         result_of_content ?charset ?content_type ~status:`No_content ~headers
-          Ocsigen_response.Body.empty
+          Ocsigen.Response.Body.empty
 end
 
 module Redirection = struct

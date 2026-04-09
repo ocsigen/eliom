@@ -28,7 +28,7 @@ val make_full_named_group_name_ :
 
 val make_full_group_name :
    cookie_level:Common.cookie_level
-  -> Ocsigen_request.t
+  -> Ocsigen.Request.t
   -> string
   -> int
   -> int
@@ -57,14 +57,14 @@ module type MEMTAB = sig
     -> Common.sitedata
     -> string
     -> [< Common.cookie_level] Common.sessgrp
-    -> string Ocsigen_cache.Dlist.node
+    -> string Ocsigen_base.Cache.Dlist.node
 
-  val remove : 'a Ocsigen_cache.Dlist.node -> unit
+  val remove : 'a Ocsigen_base.Cache.Dlist.node -> unit
   val remove_group : [< Common.cookie_level] Common.sessgrp -> unit
 
   val find :
      [< Common.cookie_level] Common.sessgrp
-    -> string Ocsigen_cache.Dlist.t
+    -> string Ocsigen_base.Cache.Dlist.t
   (** returns the dlist containing all session group elements *)
 
   val find_node_in_group_of_groups :
@@ -77,25 +77,25 @@ module type MEMTAB = sig
   val move :
      ?set_max:int
     -> Common.sitedata
-    -> string Ocsigen_cache.Dlist.node
+    -> string Ocsigen_base.Cache.Dlist.node
     -> [< Common.cookie_level] Common.sessgrp
-    -> string Ocsigen_cache.Dlist.node
+    -> string Ocsigen_base.Cache.Dlist.node
 
-  val up : string Ocsigen_cache.Dlist.node -> unit
+  val up : string Ocsigen_base.Cache.Dlist.node -> unit
   val nb_of_groups : unit -> int
   val group_size : [< Common.cookie_level] Common.sessgrp -> int
-  val set_max : 'a Ocsigen_cache.Dlist.node -> int -> unit
+  val set_max : 'a Ocsigen_base.Cache.Dlist.node -> int -> unit
 end
 
 module Serv :
   MEMTAB
   with type group_of_group_data =
-    Common.tables ref * [`Session] Common.sessgrp Ocsigen_cache.Dlist.node
+    Common.tables ref * [`Session] Common.sessgrp Ocsigen_base.Cache.Dlist.node
 
 module Data :
   MEMTAB
   with type group_of_group_data =
-    [`Session] Common.sessgrp Ocsigen_cache.Dlist.node
+    [`Session] Common.sessgrp Ocsigen_base.Cache.Dlist.node
 
 module Pers : sig
   val find : Common.perssessgrp option -> string list Lwt.t

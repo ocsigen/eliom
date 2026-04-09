@@ -37,7 +37,7 @@ let get_global_data, modify_global_data =
   let is_site_available () =
     (* Matches valid states for Common.get_site_data *)
     Common.(
-      get_sp_option () <> None || Ocsigen_extensions.during_initialisation ())
+      get_sp_option () <> None || Ocsigen.Extensions.during_initialisation ())
   in
   let get () =
     if is_site_available ()

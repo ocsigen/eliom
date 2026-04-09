@@ -22,7 +22,7 @@ val default_max_anonymous_services_per_session : int ref
 val default_max_volatile_groups_per_site : int ref
 
 module S : sig
-  type key = Ocsigen_extensions.virtual_hosts * Lib.Url.path
+  type key = Ocsigen.Extensions.virtual_hosts * Lib.Url.path
   type !'a t
 
   val create : int -> 'a t
@@ -50,9 +50,9 @@ module S : sig
 end
 
 val create_sitedata :
-   Ocsigen_extensions.virtual_hosts
+   Ocsigen.Extensions.virtual_hosts
   -> Lib.Url.path
-  -> Ocsigen_extensions.config_info
+  -> Ocsigen.Extensions.config_info
   -> Common.sitedata
 
 val parse_eliom_option :
@@ -153,9 +153,9 @@ val site_init : bool ref -> unit
 
 val update_sitedata :
    string
-  -> Ocsigen_extensions.virtual_hosts
+  -> Ocsigen.Extensions.virtual_hosts
   -> Lib.Url.path
-  -> Ocsigen_extensions.config_info
+  -> Ocsigen.Extensions.config_info
   -> Common.sitedata
 
 val load_eliom_module :
@@ -165,7 +165,7 @@ val load_eliom_module :
   -> Xml_light_types.xml list
   -> unit
 
-val gen_nothing : unit -> 'a -> Ocsigen_extensions.answer Lwt.t
+val gen_nothing : unit -> 'a -> Ocsigen.Extensions.answer Lwt.t
 val default_module_action : 'a -> 'b
 
 val set_timeout :
@@ -185,11 +185,11 @@ val set_timeout :
 
 val parse_config :
    'a
-  -> Ocsigen_extensions.virtual_hosts
-  -> Ocsigen_extensions.config_info
+  -> Ocsigen.Extensions.virtual_hosts
+  -> Ocsigen.Extensions.config_info
   -> Lib.Url.path
   -> 'b
   -> 'c
   -> Xml_light_types.xml
-  -> Ocsigen_extensions.request_state
-  -> Ocsigen_extensions.answer Lwt.t
+  -> Ocsigen.Extensions.request_state
+  -> Ocsigen.Extensions.answer Lwt.t

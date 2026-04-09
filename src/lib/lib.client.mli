@@ -46,7 +46,7 @@ module Url : sig
 
   include module type of Url_base
   (** See {% <<a_api project="ocsigenserver"| module
-      Ocsigen_lib.Url_base >> %}. *)
+      Ocsigen_base.Lib.Url_base >> %}. *)
 
   include module type of Url
   (** See {% <<a_api project="js_of_ocaml"| module Js_of_ocaml.Url >> %}. *)

@@ -1,6 +1,6 @@
 open Lib
 open Lwt
-open Ocsigen_extensions
+open Ocsigen.Extensions
 include Route_base
 
 include Route_base.Make (struct
@@ -10,7 +10,7 @@ include Route_base.Make (struct
     let sess_info_of_info {Common.session_info; _} = session_info
 
     let meth_of_info {Common.request; _} =
-      match Ocsigen_request.meth request.request_info with
+      match Ocsigen.Request.meth request.request_info with
       | `GET -> `Get
       | `POST -> `Post
       | `PUT -> `Put
@@ -18,7 +18,7 @@ include Route_base.Make (struct
       | _ -> `Other
 
     let subpath_of_info {Common.request; _} =
-      Ocsigen_request.sub_path request.request_info
+      Ocsigen.Request.sub_path request.request_info
 
     module Container = struct
       type t = Common.tables
@@ -32,17 +32,17 @@ include Route_base.Make (struct
     end
 
     type params = Common.server_params
-    type result = Ocsigen_response.t
+    type result = Ocsigen.Response.t
 
     module Node = struct
       type t =
         ( Common.page_table ref * Common.page_table_key
           , Common.na_key_serv )
           leftright
-          Ocsigen_cache.Dlist.node
+          Ocsigen_base.Cache.Dlist.node
 
-      let up = Ocsigen_cache.Dlist.up
-      let remove = Ocsigen_cache.Dlist.remove
+      let up = Ocsigen_base.Cache.Dlist.up
+      let remove = Ocsigen_base.Cache.Dlist.remove
     end
 
     module Table = struct
@@ -62,13 +62,13 @@ include Route_base.Make (struct
 
     let handle_directory {Common.request = r; _} =
       Lwt.fail
-      @@ Ocsigen_extensions.Ocsigen_is_dir
-           (Ocsigen_extensions.new_url_of_directory_request r)
+      @@ Ocsigen.Extensions.Ocsigen_is_dir
+           (Ocsigen.Extensions.new_url_of_directory_request r)
 
-    let get_number_of_reloads () = Ocsigen_extensions.get_numberofreloads ()
+    let get_number_of_reloads () = Ocsigen.Extensions.get_numberofreloads ()
   end)
 
-let find_aux now sitedata info _ sci : Ocsigen_response.t Lwt.t =
+let find_aux now sitedata info _ sci : Ocsigen.Response.t Lwt.t =
   Common.Full_state_name_table.fold
     (fun fullsessname (_, r) beg ->
        Lwt.catch
@@ -97,11 +97,11 @@ let session_tables {Common.all_cookie_info; tab_cookie_info; _} =
   ; !service_cookies_info, "session table" ]
 
 let drop_most_params ri si =
-  Ocsigen_request.update ri ~post_data:None ~meth:`GET
+  Ocsigen.Request.update ri ~post_data:None ~meth:`GET
     ~get_params_flat:si.Common.si_other_get_params
 
 let get_page now ({Common.request = ri; session_info = si; _} as info) sitedata
-  : Ocsigen_response.t Lwt.t
+  : Ocsigen.Response.t Lwt.t
   =
   let tables = session_tables info in
   catch
@@ -115,7 +115,7 @@ let get_page now ({Common.request = ri; session_info = si; _} as info) sitedata
                     Logs.info ~src:section (fun fmt ->
                       fmt "Looking for %s in the %s:"
                         (Url.string_of_url_path ~encode:true
-                           (Ocsigen_request.sub_path ri.request_info))
+                           (Ocsigen.Request.sub_path ri.request_info))
                         table_name);
                     find_aux now sitedata info Common.Eliom_404 table
                 | e -> Lwt.fail e))
@@ -141,12 +141,12 @@ let get_page now ({Common.request = ri; session_info = si; _} as info) sitedata
                     Logs.info ~src:section (fun fmt ->
                       fmt "Link too old. Try without POST parameters:");
                     Polytables.set
-                      ~table:(Ocsigen_request.request_cache ri.request_info)
+                      ~table:(Ocsigen.Request.request_cache ri.request_info)
                       ~key:Common.eliom_link_too_old ~value:true;
                     let request =
                       { ri with
                         request_info =
-                          Ocsigen_request.update ri.request_info ~post_data:None
+                          Ocsigen.Request.update ri.request_info ~post_data:None
                             ~meth:`GET }
                     and session_info =
                       { si with
@@ -166,7 +166,7 @@ let get_page now ({Common.request = ri; session_info = si; _} as info) sitedata
                       fmt
                         "Link to old. Trying without GET state parameters and POST parameters:");
                     Polytables.set
-                      ~table:(Ocsigen_request.request_cache ri.request_info)
+                      ~table:(Ocsigen.Request.request_cache ri.request_info)
                       ~key:Common.eliom_link_too_old ~value:true;
                     let request =
                       { ri with
@@ -197,7 +197,7 @@ let find_naservice_table at k =
 
 let add_naservice tables name (max_use, expdate, naservice) =
   let sp = Common.get_sp_option () in
-  let generation = Ocsigen_extensions.get_numberofreloads () in
+  let generation = Ocsigen.Extensions.get_numberofreloads () in
   (if sp = None (* not duringsession *)
    then
      try
@@ -242,7 +242,7 @@ let remove_naservice_ tables name nodeopt =
   | None ->
       tables.Common.table_naservices :=
         Common.remove_naservice_table !(tables.Common.table_naservices) name
-  | Some node -> Ocsigen_cache.Dlist.remove node
+  | Some node -> Ocsigen_base.Cache.Dlist.remove node
 
 let find_naservice now tables name =
   let ((_, _, expdate, _, nodeopt) as p) =
@@ -257,7 +257,7 @@ let find_naservice now tables name =
       raise Not_found
   | _ ->
       (match nodeopt with
-      | Some node -> Ocsigen_cache.Dlist.up node
+      | Some node -> Ocsigen_base.Cache.Dlist.up node
       | None -> ());
       p
 
@@ -325,12 +325,12 @@ let make_naservice
            fmt
              "Link too old to a non-attached POST coservice. Try without POST parameters:");
          Polytables.set
-           ~table:(Ocsigen_request.request_cache ri.request_info)
+           ~table:(Ocsigen.Request.request_cache ri.request_info)
            ~key:Common.eliom_link_too_old ~value:true;
          Common.get_session_info ~sitedata
            ~req:
              { ri with
-               Ocsigen_extensions.request_info =
+               Ocsigen.Extensions.request_info =
                  drop_most_params ri.request_info si }
            si.Common.si_previous_extension_error
          >>= fun (ri', si', _previous_tab_cookies_info) ->
@@ -340,12 +340,12 @@ let make_naservice
          Logs.info ~src:section (fun fmt ->
            fmt "Link too old. Try without non-attached parameters:");
          Polytables.set
-           ~table:(Ocsigen_request.request_cache ri.request_info)
+           ~table:(Ocsigen.Request.request_cache ri.request_info)
            ~key:Common.eliom_link_too_old ~value:true;
          Common.get_session_info ~sitedata
            ~req:
              { ri with
-               Ocsigen_extensions.request_info =
+               Ocsigen.Extensions.request_info =
                  drop_most_params ri.request_info si }
            si.Common.si_previous_extension_error
          >>= fun (ri', si', _previous_tab_cookies_info) ->
