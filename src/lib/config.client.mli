@@ -31,5 +31,5 @@ val set_tracing : bool -> unit
 val get_tracing : unit -> bool
 
 val get_debugmode : unit -> bool
-(** Same as [Ocsigen_config.get_debugmode].
+(** Same as [Ocsigen.Config.get_debugmode].
     On client side, returns [false] for now. *)

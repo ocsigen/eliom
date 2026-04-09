@@ -44,14 +44,14 @@ module type MEMTAB = sig
     -> Common.sitedata
     -> string
     -> Common.cookie_level Common.sessgrp
-    -> string Ocsigen_cache.Dlist.node
+    -> string Ocsigen_base.Cache.Dlist.node
 
-  val remove : 'a Ocsigen_cache.Dlist.node -> unit
+  val remove : 'a Ocsigen_base.Cache.Dlist.node -> unit
   val remove_group : Common.cookie_level Common.sessgrp -> unit
 
   val find :
      [< Common.cookie_level] Common.sessgrp
-    -> string Ocsigen_cache.Dlist.t
+    -> string Ocsigen_base.Cache.Dlist.t
   (** returns the dlist containing all session group elements *)
 
   val find_node_in_group_of_groups :
@@ -64,14 +64,14 @@ module type MEMTAB = sig
   val move :
      ?set_max:int
     -> Common.sitedata
-    -> string Ocsigen_cache.Dlist.node
+    -> string Ocsigen_base.Cache.Dlist.node
     -> Common.cookie_level Common.sessgrp
-    -> string Ocsigen_cache.Dlist.node
+    -> string Ocsigen_base.Cache.Dlist.node
 
-  val up : string Ocsigen_cache.Dlist.node -> unit
+  val up : string Ocsigen_base.Cache.Dlist.node -> unit
   val nb_of_groups : unit -> int
   val group_size : Common.cookie_level Common.sessgrp -> int
-  val set_max : 'a Ocsigen_cache.Dlist.node -> int -> unit
+  val set_max : 'a Ocsigen_base.Cache.Dlist.node -> int -> unit
 end
 
 module GroupTable = Hashtbl.Make (struct
@@ -85,7 +85,7 @@ module Make (A : sig
     type group_of_group_data
 
     val table :
-      (group_of_group_data option * string Ocsigen_cache.Dlist.t) GroupTable.t
+      (group_of_group_data option * string Ocsigen_base.Cache.Dlist.t) GroupTable.t
 
     val close_session : Common.sitedata -> string -> unit
     val max_tab_per_session : Common.sitedata -> int
@@ -96,17 +96,17 @@ module Make (A : sig
        Common.sitedata
       -> GroupTable.key
       -> (GroupTable.key -> group_of_group_data option)
-      -> (string Ocsigen_cache.Dlist.node -> unit)
+      -> (string Ocsigen_base.Cache.Dlist.node -> unit)
       -> (group_of_group_data -> unit)
       -> unit
 
     val node_of_group_of_group_data :
        group_of_group_data
-      -> [`Session] Common.sessgrp Ocsigen_cache.Dlist.node
+      -> [`Session] Common.sessgrp Ocsigen_base.Cache.Dlist.node
 
     val create_group_of_group_data :
        Common.sitedata
-      -> [`Session] Common.sessgrp Ocsigen_cache.Dlist.node
+      -> [`Session] Common.sessgrp Ocsigen_base.Cache.Dlist.node
       -> group_of_group_data
   end) : MEMTAB with type group_of_group_data = A.group_of_group_data = struct
   type group_of_group_data = A.group_of_group_data
@@ -117,15 +117,15 @@ module Make (A : sig
   let find_node_in_group_of_groups g =
     try fst (GroupTable.find grouptable g) with Not_found -> None
 
-  let remove node = Ocsigen_cache.Dlist.remove node
+  let remove node = Ocsigen_base.Cache.Dlist.remove node
 
   let remove_group sess_grp =
     try
       let cl = find sess_grp in
       let rec close_all cl =
-        match Ocsigen_cache.Dlist.oldest cl with
+        match Ocsigen_base.Cache.Dlist.oldest cl with
         | Some node ->
-            Ocsigen_cache.Dlist.remove node;
+            Ocsigen_base.Cache.Dlist.remove node;
             close_all cl
         | None -> ()
       in
@@ -134,7 +134,7 @@ module Make (A : sig
     with Not_found -> ()
 
   let remove_if_empty sitedata sess_grp cl =
-    if Ocsigen_cache.Dlist.size cl = 0 (* finaliser after *)
+    if Ocsigen_base.Cache.Dlist.size cl = 0 (* finaliser after *)
     then (
       A.clean_session sitedata sess_grp find_node_in_group_of_groups remove
         (fun n -> remove (A.node_of_group_of_group_data n));
@@ -145,7 +145,7 @@ module Make (A : sig
       let cl = find sess_grp in
       (match set_max with
       | None -> ()
-      | Some v -> ignore (Ocsigen_cache.Dlist.set_maxsize cl v));
+      | Some v -> ignore (Ocsigen_base.Cache.Dlist.set_maxsize cl v));
       cl
     with Not_found ->
       (* We create a group *)
@@ -158,11 +158,11 @@ module Make (A : sig
         | Some v, _ -> v
       in
       let cookie_level = Tuple3.snd sess_grp in
-      let cl = Ocsigen_cache.Dlist.create size in
-      Ocsigen_cache.Dlist.set_finaliser_after
+      let cl = Ocsigen_base.Cache.Dlist.create size in
+      Ocsigen_base.Cache.Dlist.set_finaliser_after
         (fun node ->
            (* Finaliser of sessions and client processes *)
-           let name = Ocsigen_cache.Dlist.value node in
+           let name = Ocsigen_base.Cache.Dlist.value node in
            (* First we close all subsessions
              (that is, all sessions in the group associated to the session) *)
            (match cookie_level with
@@ -188,8 +188,8 @@ module Make (A : sig
         match cookie_level with
         | `Session ->
             ignore
-              (Ocsigen_cache.Dlist.add sess_grp sitedata.Common.group_of_groups);
-            Ocsigen_cache.Dlist.newest sitedata.Common.group_of_groups
+              (Ocsigen_base.Cache.Dlist.add sess_grp sitedata.Common.group_of_groups);
+            Ocsigen_base.Cache.Dlist.newest sitedata.Common.group_of_groups
         | _ -> None
       in
       let group_of_group_data =
@@ -202,18 +202,18 @@ module Make (A : sig
 
   let add ?set_max sitedata sess_id sess_grp =
     let cl = get_cl ?set_max sitedata sess_grp in
-    ignore (Ocsigen_cache.Dlist.add sess_id cl);
-    match Ocsigen_cache.Dlist.newest cl with
+    ignore (Ocsigen_base.Cache.Dlist.add sess_id cl);
+    match Ocsigen_base.Cache.Dlist.newest cl with
     | Some v -> v
     | None -> assert false
 
-  let up node = Ocsigen_cache.Dlist.up node
+  let up node = Ocsigen_base.Cache.Dlist.up node
 
   let move ?set_max sitedata node sess_grp =
     (*    if set_max <> None || grp1 <> grp2 then begin *)
     let cl = get_cl ?set_max sitedata sess_grp in
-    ignore (Ocsigen_cache.Dlist.move node cl);
-    match Ocsigen_cache.Dlist.newest cl with
+    ignore (Ocsigen_base.Cache.Dlist.move node cl);
+    match Ocsigen_base.Cache.Dlist.newest cl with
     | Some v -> v
     | None -> assert false
   (*    end
@@ -224,21 +224,21 @@ module Make (A : sig
   let group_size sess_grp =
     try
       let cl = find sess_grp in
-      Ocsigen_cache.Dlist.size cl
+      Ocsigen_base.Cache.Dlist.size cl
     with Not_found -> 0
 
   let set_max node i =
-    match Ocsigen_cache.Dlist.list_of node with
+    match Ocsigen_base.Cache.Dlist.list_of node with
     | None -> ()
-    | Some cl -> ignore (Ocsigen_cache.Dlist.set_maxsize cl i)
+    | Some cl -> ignore (Ocsigen_base.Cache.Dlist.set_maxsize cl i)
 end
 
 module Data = Make (struct
     type group_of_group_data =
-      [`Session] Common.sessgrp Ocsigen_cache.Dlist.node
+      [`Session] Common.sessgrp Ocsigen_base.Cache.Dlist.node
 
     let table :
-      (group_of_group_data option * string Ocsigen_cache.Dlist.t) GroupTable.t
+      (group_of_group_data option * string Ocsigen_base.Cache.Dlist.t) GroupTable.t
       =
       (* The table associates the dlist for a group
          to a full session group name.
@@ -321,10 +321,10 @@ Besides, volatile sessions are (hopefully) going to disappear soon.
 
 module Serv = Make (struct
     type group_of_group_data =
-      Common.tables ref * [`Session] Common.sessgrp Ocsigen_cache.Dlist.node
+      Common.tables ref * [`Session] Common.sessgrp Ocsigen_base.Cache.Dlist.node
 
     let table :
-      (group_of_group_data option * string Ocsigen_cache.Dlist.t) GroupTable.t
+      (group_of_group_data option * string Ocsigen_base.Cache.Dlist.t) GroupTable.t
       =
       GroupTable.create 100
 

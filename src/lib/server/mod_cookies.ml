@@ -25,7 +25,7 @@ open Lwt
 include Cookies_base
 
 (*****************************************************************************)
-let make_new_session_id () = Ocsigen_lib.make_cryptographic_safe_string () ^ "H"
+let make_new_session_id () = Ocsigen_base.Lib.make_cryptographic_safe_string () ^ "H"
 
 type date = float
 

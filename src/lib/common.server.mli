@@ -331,7 +331,7 @@ type 'a one_service_cookie_info =
   ; sc_exp : float option ref
   ; sc_cookie_exp : cookie_exp ref
   ; sc_session_group : cookie_level sessgrp ref (* session group *)
-  ; mutable sc_session_group_node : string Ocsigen_cache.Dlist.node }
+  ; mutable sc_session_group_node : string Ocsigen_base.Cache.Dlist.node }
 
 type one_data_cookie_info =
   { dc_hvalue : Hashed_cookies.t
@@ -340,7 +340,7 @@ type one_data_cookie_info =
   ; dc_exp : float option ref
   ; dc_cookie_exp : cookie_exp ref
   ; dc_session_group : cookie_level sessgrp ref (* session group *)
-  ; mutable dc_session_group_node : string Ocsigen_cache.Dlist.node }
+  ; mutable dc_session_group_node : string Ocsigen_base.Cache.Dlist.node }
 
 type one_persistent_cookie_info =
   { pc_hvalue : Hashed_cookies.t
@@ -373,7 +373,7 @@ module Service_cookie : sig
     ; expiry : float option ref
     ; timeout : timeout ref
     ; session_group : cookie_level sessgrp ref
-    ; session_group_node : string Ocsigen_cache.Dlist.node }
+    ; session_group_node : string Ocsigen_base.Cache.Dlist.node }
 
   type 'a table = 'a t SessionCookies.t
 end
@@ -385,7 +385,7 @@ module Data_cookie : sig
     ; expiry : float option ref
     ; timeout : timeout ref
     ; session_group : cookie_level sessgrp ref
-    ; session_group_node : string Ocsigen_cache.Dlist.node }
+    ; session_group_node : string Ocsigen_base.Cache.Dlist.node }
 
   type table = t SessionCookies.t
 end
@@ -403,7 +403,7 @@ type node_info = {ni_id : node_ref; mutable ni_sent : bool}
 
 module Hier_set : Set.S
 
-type omitpersistentstorage_rule = HeaderRule of Ocsigen_header.Name.t * Re.re
+type omitpersistentstorage_rule = HeaderRule of Ocsigen_http.Header.Name.t * Re.re
 
 type 'a dircontent = Vide | Table of 'a direlt ref String.Table.t
 and 'a direlt = Dir of 'a dircontent ref | File of 'a ref
@@ -415,7 +415,7 @@ type ('params, 'result) service =
   ; s_f : bool -> 'params -> 'result Lwt.t }
 
 type server_params =
-  { sp_request : Ocsigen_extensions.request
+  { sp_request : Ocsigen.Extensions.request
   ; sp_si : sess_info
   ; sp_sitedata : sitedata
   ; sp_cookie_info : tables cookie_info
@@ -443,9 +443,9 @@ and page_table = page_table_content Serv_Table.t
 and page_table_content =
   [ `Ptc of
       (page_table ref * page_table_key, na_key_serv) leftright
-        Ocsigen_cache.Dlist.node
+        Ocsigen_base.Cache.Dlist.node
         option
-      * (server_params, Ocsigen_response.t) service list ]
+      * (server_params, Ocsigen.Response.t) service list ]
 
 and naservice_table_content =
   int
@@ -455,9 +455,9 @@ and naservice_table_content =
   (* max_use *)
   * (float * float ref) option
   (* timeout and expiration date *)
-  * (server_params -> Ocsigen_response.t Lwt.t)
+  * (server_params -> Ocsigen.Response.t Lwt.t)
   * (page_table ref * page_table_key, na_key_serv) leftright
-      Ocsigen_cache.Dlist.node
+      Ocsigen_base.Cache.Dlist.node
       option
 (* for limitation of number of dynamic coservices *)
 
@@ -490,7 +490,7 @@ and tables =
       ?sp:server_params
       -> (page_table ref * page_table_key, na_key_serv) leftright
       -> (page_table ref * page_table_key, na_key_serv) leftright
-           Ocsigen_cache.Dlist.node
+           Ocsigen_base.Cache.Dlist.node
     (* Add in a dlist
           for limiting the number of dynamic anonymous coservices in each table
           (and avoid DoS).
@@ -507,7 +507,7 @@ and sitedata =
     (* None when statically linked 
                                            before module init*)
   ; mutable site_dir_string : string option (* idem *)
-  ; mutable config_info : Ocsigen_extensions.config_info option (* idem *)
+  ; mutable config_info : Ocsigen.Extensions.config_info option (* idem *)
   ; default_links_xhr : bool tenable_value
   ; (* Timeouts:
        - default for site (browser sessions)
@@ -534,11 +534,11 @@ and sitedata =
   ; global_services : tables
   ; session_services : tables Service_cookie.table
   ; session_data : Data_cookie.table
-  ; group_of_groups : [`Session_group] sessgrp Ocsigen_cache.Dlist.t
+  ; group_of_groups : [`Session_group] sessgrp Ocsigen_base.Cache.Dlist.t
   ; (* Limitation of the number of groups per site *)
     mutable remove_session_data : string -> unit
   ; mutable not_bound_in_data_tables : string -> bool
-  ; mutable exn_handler : exn -> Ocsigen_response.t Lwt.t
+  ; mutable exn_handler : exn -> Ocsigen.Response.t Lwt.t
   ; mutable unregistered_services : Url.path list
   ; mutable unregistered_na_services : na_key_serv list
   ; mutable max_volatile_data_sessions_per_group : int * bool
@@ -575,7 +575,7 @@ val force_lazy_site_value : 'a lazy_site_value -> 'a
 val lazy_site_value_from_fun : (unit -> 'a) -> 'a lazy_site_value
 
 type info =
-  { request : Ocsigen_extensions.request
+  { request : Ocsigen.Extensions.request
   ; session_info : sess_info
   ; all_cookie_info : tables cookie_info
   ; tab_cookie_info : tables cookie_info
@@ -604,9 +604,9 @@ val split_prefix_param :
 
 val get_session_info :
    sitedata:sitedata
-  -> req:Ocsigen_extensions.request
+  -> req:Ocsigen.Extensions.request
   -> int
-  -> (Ocsigen_extensions.request
+  -> (Ocsigen.Extensions.request
      * sess_info
      * (tables cookie_info * Ocsigen_cookie_map.t) option)
        Lwt.t
@@ -676,7 +676,7 @@ val remove_naservice_table :
 
 val get_mask4 : sitedata -> int
 val get_mask6 : sitedata -> int
-val network_of_request : Ocsigen_request.t -> mask4:int -> mask6:int -> Ipaddr.t
+val network_of_request : Ocsigen.Request.t -> mask4:int -> mask6:int -> Ipaddr.t
 val ipv4mask : int ref
 val ipv6mask : int ref
 val create_dlist_ip_table : int -> dlist_ip_table
@@ -687,7 +687,7 @@ val find_dlist_ip_table :
   -> dlist_ip_table
   -> Ipaddr.t
   -> (page_table ref * page_table_key, na_key_serv) leftright
-       Ocsigen_cache.Dlist.t
+       Ocsigen_base.Cache.Dlist.t
 
 val get_cookie_info : server_params -> [< cookie_level] -> tables cookie_info
 
@@ -723,8 +723,8 @@ val bus_unwrap_id : unwrap_id
 val nl_get_appl_parameter : string
 
 val patch_request_info :
-   Ocsigen_extensions.request
-  -> Ocsigen_extensions.request
+   Ocsigen.Extensions.request
+  -> Ocsigen.Extensions.request
 
 type eliom_js_page_data =
   { ejs_global_data : (Runtime.global_data * Wrap.unwrapper) option
@@ -738,7 +738,7 @@ type eliom_js_page_data =
 
 val get_site_dir : sitedata -> Url.path
 val get_site_dir_string : sitedata -> string
-val get_config_info : sitedata -> Ocsigen_extensions.config_info
+val get_config_info : sitedata -> Ocsigen.Extensions.config_info
 val get_secure : secure_o:bool option -> sitedata:sitedata -> unit -> bool
 val is_client_app : bool ref
 val make_actual_path : string list -> string list

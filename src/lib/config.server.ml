@@ -93,19 +93,19 @@ let set_omitpersistentstorage v = Mod_main.default_omitpersistentstorage := v
 
 let get_default_hostname () =
   let sitedata = Request_info.find_sitedata "get_default_hostname" in
-  (Common.get_config_info sitedata).Ocsigen_extensions.default_hostname
+  (Common.get_config_info sitedata).Ocsigen.Extensions.default_hostname
 
 let get_default_port () =
   let sitedata = Request_info.find_sitedata "get_default_port" in
-  (Common.get_config_info sitedata).Ocsigen_extensions.default_httpport
+  (Common.get_config_info sitedata).Ocsigen.Extensions.default_httpport
 
 let get_default_sslport () =
   let sitedata = Request_info.find_sitedata "get_default_sslport" in
-  (Common.get_config_info sitedata).Ocsigen_extensions.default_httpsport
+  (Common.get_config_info sitedata).Ocsigen.Extensions.default_httpsport
 
 let default_protocol_is_https () =
   let sitedata = Request_info.find_sitedata "default_protocol_is_https" in
-  (Common.get_config_info sitedata).Ocsigen_extensions.default_protocol_is_https
+  (Common.get_config_info sitedata).Ocsigen.Extensions.default_protocol_is_https
 
 let get_default_links_xhr () =
   let sitedata = Request_info.find_sitedata "get_default_links_xhr" in
@@ -116,16 +116,16 @@ let set_default_links_xhr ?override_configfile:_ v =
   sitedata.Common.default_links_xhr#set v
 
 let get_config_default_charset_sp sp =
-  Ocsigen_charset_mime.default_charset
-    sp.Common.sp_request.Ocsigen_extensions.request_config
-      .Ocsigen_extensions.charset_assoc
+  Ocsigen_http.Charset_mime.default_charset
+    sp.Common.sp_request.Ocsigen.Extensions.request_config
+      .Ocsigen.Extensions.charset_assoc
 
 let get_config_default_charset () =
   let sp = Common.get_sp () in
   get_config_default_charset_sp sp
 
 let get_config_info_sp sp =
-  sp.Common.sp_request.Ocsigen_extensions.request_config
+  sp.Common.sp_request.Ocsigen.Extensions.request_config
 
 let get_config_info () =
   let sp = Common.get_sp () in
@@ -141,8 +141,8 @@ let get_config () =
       raise (Common.Eliom_site_information_not_available "Config.get_config")
 
 let parse_config ?pcdata ?other_elements elements =
-  Ocsigen_extensions.Configuration.process_elements
+  Ocsigen.Extensions.Configuration.process_elements
     ~in_tag:!Mod_main.config_in_tag ?pcdata ?other_elements ~elements
     (get_config ())
 
-let get_debugmode = Ocsigen_config.get_debugmode
+let get_debugmode = Ocsigen.Config.get_debugmode

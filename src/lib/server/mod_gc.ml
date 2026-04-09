@@ -68,9 +68,9 @@ let gc_timeouted_services now tables =
              (* it is an anonymous coservice.  The list should
                        have length 1 here *)
                when !e < now ->
-                 Ocsigen_cache.Dlist.remove node
+                 Ocsigen_base.Cache.Dlist.remove node
              | Some node, [] (* should not occur *) ->
-                 Ocsigen_cache.Dlist.remove node
+                 Ocsigen_base.Cache.Dlist.remove node
              | _ -> (
                (* We find the data associated to ptk once again,
                          because it may have changed, then we update it
@@ -152,7 +152,7 @@ let gc_timeouted_naservices now tr =
              | Some (_, e) when !e < now -> (
                match nodeopt with
                | Some node ->
-                   Ocsigen_cache.Dlist.remove node
+                   Ocsigen_base.Cache.Dlist.remove node
                    (* will remove from the table automatically *)
                | _ -> tr := Common.remove_naservice_table !tr k)
              | _ -> ());

@@ -75,7 +75,7 @@ let close_service_state ~scope ~secure_o ?sp () =
 let fullsessgrp ~cookie_level ~sp set_session_group =
   let sitedata = Request_info.get_sitedata_sp ~sp in
   Mod_sessiongroups.make_full_group_name ~cookie_level
-    (Request_info.get_request_sp sp).Ocsigen_extensions.request_info
+    (Request_info.get_request_sp sp).Ocsigen.Extensions.request_info
     (Common.get_site_dir_string sitedata)
     (Common.get_mask4 sitedata)
     (Common.get_mask6 sitedata)

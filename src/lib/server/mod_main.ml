@@ -31,7 +31,7 @@
 (*****************************************************************************)
 
 open Lib
-open Ocsigen_extensions
+open Ocsigen.Extensions
 
 (****************************************************************************)
 let default_max_persistent_data_sessions_per_group = ref 50
@@ -80,19 +80,19 @@ let default_max_volatile_groups_per_site = ref 1000000
 (*VVV value ??? *)
 
 module S = Hashtbl.Make (struct
-    type t = Ocsigen_extensions.virtual_hosts * Lib.Url.path
+    type t = Ocsigen.Extensions.virtual_hosts * Lib.Url.path
 
     let equal ((vh1, u1) : t) ((vh2, u2) : t) =
-      Ocsigen_extensions.equal_virtual_hosts vh1 vh2 && u1 = u2
+      Ocsigen.Extensions.equal_virtual_hosts vh1 vh2 && u1 = u2
 
     let hash ((vh, u) : t) =
-      Hashtbl.hash (Ocsigen_extensions.hash_virtual_hosts vh, u)
+      Hashtbl.hash (Ocsigen.Extensions.hash_virtual_hosts vh, u)
   end)
 
 let create_sitedata_aux site_dir config_info =
   let dlist_table = Common.create_dlist_ip_table 100
   and group_of_groups =
-    Ocsigen_cache.Dlist.create !default_max_volatile_groups_per_site
+    Ocsigen_base.Cache.Dlist.create !default_max_volatile_groups_per_site
   in
   let sitedata =
     { (* One dlist for each site? *)
@@ -149,11 +149,11 @@ let create_sitedata_aux site_dir config_info =
     ; ignored_post_params = !default_ignored_post_params
     ; omitpersistentstorage = !default_omitpersistentstorage }
   in
-  Ocsigen_cache.Dlist.set_finaliser_after
+  Ocsigen_base.Cache.Dlist.set_finaliser_after
     (fun node ->
        (* Finaliser for the session groups *)
        (* See in eliommod_sessiongroups for the finaliser of sessions *)
-       let fullbrowsersessgrp = Ocsigen_cache.Dlist.value node in
+       let fullbrowsersessgrp = Ocsigen_base.Cache.Dlist.value node in
        (* When removing a group from the dlist, we must close it.
           Actually, it must be the only way to close a group. *)
        (* This finaliser is almost identical to the finaliser for
@@ -500,7 +500,7 @@ let parse_eliom_option
             let attr_name, attr_value =
               match attrs with [a] -> a | _ -> assert false
             in
-            let header_name = Ocsigen_header.Name.of_string attr_name in
+            let header_name = Ocsigen_http.Header.Name.of_string attr_name in
             let header_regexp = Re.compile @@ Re.Pcre.re attr_value in
             Common.HeaderRule (header_name, header_regexp)
         | _ -> assert false
@@ -618,7 +618,7 @@ let end_init () =
   then
     (* An eliom module failed with an exception. We do not check
             for the missing services, so that the exception can be correctly
-            propagated by Ocsigen_extensions *)
+            propagated by Ocsigen.Extensions *)
     ()
   else
     try
@@ -746,9 +746,9 @@ let load_eliom_module _sitedata cmo_or_name parent_tag content =
   let postload () = config := Some [] in
   try
     match cmo_or_name with
-    | Files cmo -> Ocsigen_loader.loadfiles preload postload true cmo
-    | Name name -> Ocsigen_loader.init_module preload postload true name
-  with Ocsigen_loader.Dynlink_error (n, e) ->
+    | Files cmo -> Ocsigen_base.Loader.loadfiles preload postload true cmo
+    | Name name -> Ocsigen_base.Loader.init_module preload postload true name
+  with Ocsigen_base.Loader.Dynlink_error (n, e) ->
     raise
       (Common.Eliom_error_while_loading_site
          (Printf.sprintf "Eliom: while loading %s: %s" n
@@ -760,7 +760,7 @@ let load_eliom_module _sitedata cmo_or_name parent_tag content =
 (* If page has already been generated becauise there are several <eliom>
    tags in the same site:
 *)
-let gen_nothing () _ = Lwt.return Ocsigen_extensions.Ext_do_nothing
+let gen_nothing () _ = Lwt.return Ocsigen.Extensions.Ext_do_nothing
 
 (*****************************************************************************)
 let default_module_action _ = failwith "default_module_action"
@@ -842,8 +842,8 @@ let parse_config _ hostpattern conf_info site_dir =
     | ("findlib-package", s) :: suite -> (
       match file with
       | None -> (
-        try parse_module_attrs (Some (Files (Ocsigen_loader.findfiles s))) suite
-        with Ocsigen_loader.Findlib_error _ as e ->
+        try parse_module_attrs (Some (Files (Ocsigen_base.Loader.findfiles s))) suite
+        with Ocsigen_base.Loader.Findlib_error _ as e ->
           raise
             (Error_in_config_file
                (Printf.sprintf "Findlib error: %s" (Printexc.to_string e))))
@@ -919,12 +919,12 @@ let parse_config _ hostpattern conf_info site_dir =
                       (* unused *) oldipv6mask sitedata.Common.dlist_ip_table
                       Ipaddr.(V6 V6.localhost)
                   in
-                  ignore (Ocsigen_cache.Dlist.set_maxsize dlist v)
+                  ignore (Ocsigen_base.Cache.Dlist.set_maxsize dlist v)
                 with Not_found -> ()
                 (* should not occur *))
             , (fun v ->
                 ignore
-                  (Ocsigen_cache.Dlist.set_maxsize
+                  (Ocsigen_base.Cache.Dlist.set_maxsize
                      sitedata.Common.group_of_groups v))
             , (fun v -> sitedata.Common.secure_cookies <- v)
             , (fun v -> sitedata.Common.ipv4mask <- Some v, true)
@@ -979,12 +979,12 @@ let parse_config _ hostpattern conf_info site_dir =
           eliommodulewarningdisplayed := true;
           gen_nothing ())
     | Xml.Element (t, _, _) ->
-        raise (Ocsigen_extensions.Bad_config_tag_for_extension t)
+        raise (Ocsigen.Extensions.Bad_config_tag_for_extension t)
     | _ -> raise (Error_in_config_file "(Mod_main extension)")
 
 (*****************************************************************************)
 
 (** extension registration *)
 let () =
-  Ocsigen_extensions.register ~name:"eliom" ~fun_site:parse_config ~end_init
+  Ocsigen.Extensions.register ~name:"eliom" ~fun_site:parse_config ~end_init
     ~exn_handler:handle_init_exn ~init_fun:parse_global_config ()

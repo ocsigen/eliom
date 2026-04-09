@@ -41,7 +41,7 @@ let page_bad_param after_action gl pl =
     (body
        (h1 [txt s]
        ::
-       (if Ocsigen_config.get_debugmode ()
+       (if Ocsigen.Config.get_debugmode ()
         then
           [ h2 [txt "Debugging information:"]
           ; (if after_action

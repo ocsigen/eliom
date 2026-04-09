@@ -1,7 +1,7 @@
 (* Please put in this file ONLY extensions of the standard OCaml library.
    And remove all the Eliom/Ocsigen specific stuff. *)
 
-include Ocsigen_lib
+include Ocsigen_base.Lib
 
 include (
   Lib_base :
@@ -26,7 +26,7 @@ let of_json ?typ s =
 
 let eliom_logs_src = Logs.Src.create "eliom"
 
-type file_info = Ocsigen_extensions.file_info
+type file_info = Ocsigen.Extensions.file_info
 
 let b = Buffer.create (16 * 1024)
 
@@ -61,5 +61,5 @@ let jsmarshal v = string_escape (Marshal.to_string v [])
 
 let make_cryptographic_safe_string ?len () =
   match len with
-  | None -> Ocsigen_lib.make_cryptographic_safe_string ()
-  | Some l -> String.sub (Ocsigen_lib.make_cryptographic_safe_string ()) 0 l
+  | None -> Ocsigen_base.Lib.make_cryptographic_safe_string ()
+  | Some l -> String.sub (Ocsigen_base.Lib.make_cryptographic_safe_string ()) 0 l

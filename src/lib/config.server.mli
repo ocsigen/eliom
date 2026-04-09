@@ -173,14 +173,14 @@ val get_config : unit -> Xml.xml list
 val parse_config :
    ?pcdata:(string -> unit)
   -> ?other_elements:(string -> (string * string) list -> Xml.xml list -> unit)
-  -> Ocsigen_extensions.Configuration.element list
+  -> Ocsigen.Extensions.Configuration.element list
   -> unit
 (** Process the configuration
     (same as the one returned by
     {% <<a_api module="Config" | val get_config>> %})
-    by a given specification (cf. {% <<a_api project="ocsigenserver" | type Ocsigen_extensions.Configuration.element >> %}) *)
+    by a given specification (cf. {% <<a_api project="ocsigenserver" | type Ocsigen.Extensions.Configuration.element >> %}) *)
 
-val get_config_info : unit -> Ocsigen_extensions.config_info
+val get_config_info : unit -> Ocsigen.Extensions.config_info
 (** The function [get_config_info ()] returns the information
     concerning the current request from the configuration files
     (must be called during a request).
@@ -189,10 +189,10 @@ val get_config_info : unit -> Ocsigen_extensions.config_info
 *)
 
 val get_debugmode : unit -> bool
-(** Same as [Ocsigen_config.get_debugmode].
+(** Same as [Ocsigen.Config.get_debugmode].
     On client side, returns [false] for now. *)
 
 (**/**)
 
-val get_config_info_sp : Common.server_params -> Ocsigen_extensions.config_info
+val get_config_info_sp : Common.server_params -> Ocsigen.Extensions.config_info
 val get_config_default_charset_sp : Common.server_params -> string

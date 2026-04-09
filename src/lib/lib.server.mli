@@ -18,16 +18,16 @@
  *)
 
 (** A few common functions used by Eliom. Extension of OCaml stdlib.
-    See also {!Ocsigen_lib} *)
+    See also {% <<a_api project="ocsigenserver" | module Ocsigen_base.Lib>> %} *)
 
-(** See {!Ocsigen_lib}. *)
+(** See {% <<a_api project="ocsigenserver"| module Ocsigen_base.Lib>> %}. *)
 include
-  module type of Ocsigen_lib
-  with type poly = Ocsigen_lib.poly
-   and type yesnomaybe = Ocsigen_lib.yesnomaybe
-   and type ('a, 'b) leftright = ('a, 'b) Ocsigen_lib.leftright
-   and type 'a Clist.t = 'a Ocsigen_lib.Clist.t
-   and type 'a Clist.node = 'a Ocsigen_lib.Clist.node
+  module type of Ocsigen_base.Lib
+  with type poly = Ocsigen_base.Lib.poly
+   and type yesnomaybe = Ocsigen_base.Lib.yesnomaybe
+   and type ('a, 'b) leftright = ('a, 'b) Ocsigen_base.Lib.leftright
+   and type 'a Clist.t = 'a Ocsigen_base.Lib.Clist.t
+   and type 'a Clist.node = 'a Ocsigen_base.Lib.Clist.node
 
 include
   module type of Lib_base
@@ -35,7 +35,7 @@ include
   with type 'a String_map.t = 'a Lib_base.String_map.t
   with type 'a Int_map.t = 'a Lib_base.Int_map.t
 
-type file_info = Ocsigen_extensions.file_info
+type file_info = Ocsigen.Extensions.file_info
 
 val string_escape : string -> string
 val to_json : ?typ:'a Deriving_Json.t -> 'a -> string

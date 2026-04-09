@@ -24,14 +24,14 @@ val get_page :
    float
   -> Common.info
   -> Common.sitedata
-  -> Ocsigen_response.t Lwt.t
+  -> Ocsigen.Response.t Lwt.t
 
 val add_service :
    int
   -> Common.tables
   -> String.Table.key list
   -> Common.Serv_Table.key
-  -> (Common.server_params, Ocsigen_response.t) Common.service
+  -> (Common.server_params, Ocsigen.Response.t) Common.service
   -> unit
 
 val remove_service :
@@ -46,7 +46,7 @@ val add_naservice :
   -> Common.NAserv_Table.key
   -> int ref option
      * (float * float ref) option
-     * (Common.server_params -> Ocsigen_response.t Lwt.t)
+     * (Common.server_params -> Ocsigen.Response.t Lwt.t)
   -> unit
 
 val remove_naservice : Common.tables -> Common.NAserv_Table.key -> unit
@@ -55,4 +55,4 @@ val make_naservice :
    float
   -> Common.info
   -> Common.sitedata
-  -> Ocsigen_response.t Lwt.t
+  -> Ocsigen.Response.t Lwt.t

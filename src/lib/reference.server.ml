@@ -192,7 +192,7 @@ let eref ~scope ?secure ?persistent v =
 
 let get_site_id () =
   let sd = Common.get_site_data () in
-  (Common.get_config_info sd).Ocsigen_extensions.default_hostname ^ ":"
+  (Common.get_config_info sd).Ocsigen.Extensions.default_hostname ^ ":"
   ^ Common.get_site_dir_string sd
 
 let get ((f, _, table) as eref) =

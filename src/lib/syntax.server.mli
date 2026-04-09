@@ -53,7 +53,7 @@ val close_server_section : string -> unit
 
 val close_client_section :
    string
-  -> (int * Ocsigen_lib.poly * Lib.pos * string option) list
+  -> (int * Ocsigen_base.Lib.poly * Lib.pos * string option) list
   -> unit
 (** Called at the end of every client or shared section. The first
     argument identifies the compilation unit. The second is the list

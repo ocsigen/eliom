@@ -169,7 +169,7 @@ type 'a one_service_cookie_info =
     *)
   ; sc_cookie_exp : cookie_exp ref (* cookie expiration date to set *)
   ; sc_session_group : cookie_level sessgrp ref (* session group *)
-  ; mutable sc_session_group_node : string Ocsigen_cache.Dlist.node }
+  ; mutable sc_session_group_node : string Ocsigen_base.Cache.Dlist.node }
 
 type one_data_cookie_info =
   { (* in memory data sessions: *)
@@ -186,7 +186,7 @@ type one_data_cookie_info =
     *)
   ; dc_cookie_exp : cookie_exp ref (* cookie expiration date to set *)
   ; dc_session_group : cookie_level sessgrp ref (* session group *)
-  ; mutable dc_session_group_node : string Ocsigen_cache.Dlist.node }
+  ; mutable dc_session_group_node : string Ocsigen_base.Cache.Dlist.node }
 
 type one_persistent_cookie_info =
   { pc_hvalue : Hashed_cookies.t (* hash of current value *)
@@ -262,7 +262,7 @@ module Service_cookie = struct
     ; expiry : float option ref
     ; timeout : timeout ref
     ; session_group : cookie_level sessgrp ref
-    ; session_group_node : string Ocsigen_cache.Dlist.node }
+    ; session_group_node : string Ocsigen_base.Cache.Dlist.node }
 
   type 'a table = 'a t SessionCookies.t
   (* the table contains:
@@ -282,7 +282,7 @@ module Data_cookie = struct
     ; expiry : float option ref
     ; timeout : timeout ref
     ; session_group : cookie_level sessgrp ref
-    ; session_group_node : string Ocsigen_cache.Dlist.node }
+    ; session_group_node : string Ocsigen_base.Cache.Dlist.node }
 
   type table = t SessionCookies.t
 end
@@ -299,7 +299,7 @@ let network_of_ip k mask4 mask6 =
   | Ipaddr.V6 ip -> Ipaddr.(V6 V6.Prefix.(network (make mask6 ip)))
 
 let network_of_request r ~mask4 ~mask6 =
-  match Ocsigen_request.client_conn r with
+  match Ocsigen.Request.client_conn r with
   | `Inet (ip, _) -> network_of_ip ip mask4 mask6
   | _ -> Ipaddr.(V6 V6.localhost)
 
@@ -345,10 +345,10 @@ type node_info = {ni_id : node_ref; mutable ni_sent : bool}
 
 module Hier_set = String.Set
 
-type omitpersistentstorage_rule = HeaderRule of Ocsigen_header.Name.t * Re.re
+type omitpersistentstorage_rule = HeaderRule of Ocsigen_http.Header.Name.t * Re.re
 
 type server_params =
-  { sp_request : Ocsigen_extensions.request
+  { sp_request : Ocsigen.Extensions.request
   ; sp_si : sess_info
   ; sp_sitedata : sitedata (* data for the whole site *)
   ; sp_cookie_info : tables cookie_info
@@ -371,9 +371,9 @@ and page_table = page_table_content Serv_Table.t
 and page_table_content =
   [ `Ptc of
       (page_table ref * page_table_key, na_key_serv) leftright
-        Ocsigen_cache.Dlist.node
+        Ocsigen_base.Cache.Dlist.node
         option
-      * (server_params, Ocsigen_response.t) service list ]
+      * (server_params, Ocsigen.Response.t) service list ]
 
 and naservice_table_content =
   int
@@ -383,9 +383,9 @@ and naservice_table_content =
   (* max_use *)
   * (float * float ref) option
   (* timeout and expiration date *)
-  * (server_params -> Ocsigen_response.t Lwt.t)
+  * (server_params -> Ocsigen.Response.t Lwt.t)
   * (page_table ref * page_table_key, na_key_serv) leftright
-      Ocsigen_cache.Dlist.node
+      Ocsigen_base.Cache.Dlist.node
       option
 (* for limitation of number of dynamic coservices *)
 
@@ -420,7 +420,7 @@ and tables =
       ?sp:server_params
       -> (page_table ref * page_table_key, na_key_serv) leftright
       -> (page_table ref * page_table_key, na_key_serv) leftright
-           Ocsigen_cache.Dlist.node
+           Ocsigen_base.Cache.Dlist.node
     (* We use a dlist for limiting the number of dynamic
             anonymous coservices in each table (and avoid DoS).  There
             is one dlist for each session, and one for each IP in
@@ -434,7 +434,7 @@ and sitedata =
     (* None when statically linked 
                                            before module init*)
   ; mutable site_dir_string : string option (* idem *)
-  ; mutable config_info : Ocsigen_extensions.config_info option (* idem *)
+  ; mutable config_info : Ocsigen.Extensions.config_info option (* idem *)
   ; default_links_xhr : bool tenable_value
   ; (* Timeouts:
        - default for site (browser sessions)
@@ -470,11 +470,11 @@ and sitedata =
                                       (tab and browser sessions)
                                       contains the information about the cookie
                                       (expiration, group ...). *)
-    group_of_groups : [`Session_group] sessgrp Ocsigen_cache.Dlist.t
+    group_of_groups : [`Session_group] sessgrp Ocsigen_base.Cache.Dlist.t
   ; (* Limitation of the number of groups per site *)
     mutable remove_session_data : string -> unit
   ; mutable not_bound_in_data_tables : string -> bool
-  ; mutable exn_handler : exn -> Ocsigen_response.t Lwt.t
+  ; mutable exn_handler : exn -> Ocsigen.Response.t Lwt.t
   ; mutable unregistered_services : Url.path list
   ; mutable unregistered_na_services : na_key_serv list
   ; mutable max_volatile_data_sessions_per_group : int * bool
@@ -501,7 +501,7 @@ and sitedata =
   ; mutable omitpersistentstorage : omitpersistentstorage_rule list option }
 
 and dlist_ip_table =
-  (page_table ref * page_table_key, na_key_serv) leftright Ocsigen_cache.Dlist.t
+  (page_table ref * page_table_key, na_key_serv) leftright Ocsigen_base.Cache.Dlist.t
     Net_addr_Hashtbl.t
 
 let check_initialised field =
@@ -520,7 +520,7 @@ let find_dlist_ip_table :
   -> dlist_ip_table
   -> Ipaddr.t
   -> (page_table ref * page_table_key, na_key_serv) leftright
-       Ocsigen_cache.Dlist.t
+       Ocsigen_base.Cache.Dlist.t
   =
   Net_addr_Hashtbl.find
 (*****************************************************************************)
@@ -552,7 +552,7 @@ let get_cookie_info sp = function
   | `Client_process -> sp.sp_tab_cookie_info
 
 type info =
-  { request : Ocsigen_extensions.request
+  { request : Ocsigen.Extensions.request
   ; session_info : sess_info
   ; all_cookie_info : tables cookie_info
   ; tab_cookie_info : tables cookie_info
@@ -579,12 +579,12 @@ let make_server_params
     match si.si_client_process_info with
     | Some cpi -> cpi
     | None ->
-        let request_info = ri.Ocsigen_extensions.request_info in
-        { cpi_ssl = Ocsigen_request.ssl request_info
-        ; cpi_hostname = Ocsigen_extensions.get_hostname ri
-        ; cpi_server_port = Ocsigen_extensions.get_port ri
+        let request_info = ri.Ocsigen.Extensions.request_info in
+        { cpi_ssl = Ocsigen.Request.ssl request_info
+        ; cpi_hostname = Ocsigen.Extensions.get_hostname ri
+        ; cpi_server_port = Ocsigen.Extensions.get_port ri
         ; cpi_original_full_path =
-            Ocsigen_request.original_full_path request_info }
+            Ocsigen.Request.original_full_path request_info }
   in
   { sp_request = ri
   ; sp_si = si
@@ -712,7 +712,7 @@ let verify_all_registered sitedata =
         (Eliom_there_are_unregistered_services (get_site_dir sitedata, l1, l2))
 
 let global_register_allowed () =
-  if Ocsigen_extensions.during_initialisation ()
+  if Ocsigen.Extensions.during_initialisation ()
   then Some get_current_sitedata
   else None
 
@@ -720,7 +720,7 @@ let get_site_data () =
   match get_sp_option () with
   | Some sp -> sp.sp_sitedata
   | None ->
-      if Ocsigen_extensions.during_initialisation ()
+      if Ocsigen.Extensions.during_initialisation ()
       then get_current_sitedata ()
       else failwith "get_site_data"
 
@@ -773,7 +773,7 @@ let remove_naservice_table at k =
 let dlist_finaliser na_table_ref node =
   (* If the node disappears from the dlist,
      we remove the service from the service table *)
-  match Ocsigen_cache.Dlist.value node with
+  match Ocsigen_base.Cache.Dlist.value node with
   | Left (page_table_ref, page_table_key) ->
       page_table_ref := Serv_Table.remove page_table_key !page_table_ref
   | Right na_key_serv ->
@@ -781,9 +781,9 @@ let dlist_finaliser na_table_ref node =
 
 let dlist_finaliser_ip sitedata ip na_table_ref node =
   dlist_finaliser na_table_ref node;
-  match Ocsigen_cache.Dlist.list_of node with
+  match Ocsigen_base.Cache.Dlist.list_of node with
   | Some cl -> (
-      if Ocsigen_cache.Dlist.size cl = 1
+      if Ocsigen_base.Cache.Dlist.size cl = 1
       then
         try
           Net_addr_Hashtbl.remove sitedata.ipv4mask sitedata.ipv6mask
@@ -792,8 +792,8 @@ let dlist_finaliser_ip sitedata ip na_table_ref node =
   | None -> ()
 
 let add_dlist_ dlist v =
-  ignore (Ocsigen_cache.Dlist.add v dlist);
-  match Ocsigen_cache.Dlist.newest dlist with
+  ignore (Ocsigen_base.Cache.Dlist.add v dlist);
+  match Ocsigen_base.Cache.Dlist.newest dlist with
   | Some a -> a
   | None -> assert false
 
@@ -811,8 +811,8 @@ let empty_tables max forsession =
   ; service_dlist_add =
       (if forsession
        then (
-         let dlist = Ocsigen_cache.Dlist.create max in
-         Ocsigen_cache.Dlist.set_finaliser_before (dlist_finaliser t2) dlist;
+         let dlist = Ocsigen_base.Cache.Dlist.create max in
+         Ocsigen_base.Cache.Dlist.set_finaliser_before (dlist_finaliser t2) dlist;
          fun ?sp:_ v -> add_dlist_ dlist v)
        else
          fun ?sp v ->
@@ -828,8 +828,8 @@ let empty_tables max forsession =
              | Some sp ->
                  let ip =
                    match
-                     Ocsigen_request.client_conn
-                       sp.sp_request.Ocsigen_extensions.request_info
+                     Ocsigen.Request.client_conn
+                       sp.sp_request.Ocsigen.Extensions.request_info
                    with
                    | `Inet (ip, _) -> ip
                    | _ -> default_ip_table_key
@@ -843,10 +843,10 @@ let empty_tables max forsession =
                Net_addr_Hashtbl.find sitedata.ipv4mask sitedata.ipv6mask
                  sitedata.dlist_ip_table ip
              with Not_found ->
-               let dlist = Ocsigen_cache.Dlist.create max in
+               let dlist = Ocsigen_base.Cache.Dlist.create max in
                Net_addr_Hashtbl.add sitedata.ipv4mask sitedata.ipv6mask
                  sitedata.dlist_ip_table ip dlist;
-               Ocsigen_cache.Dlist.set_finaliser_before
+               Ocsigen_base.Cache.Dlist.set_finaliser_before
                  (dlist_finaliser_ip sitedata ip t2)
                  dlist;
                dlist
@@ -868,10 +868,10 @@ sessionkind|S?|sitedirstring|"ref" ou "comet" ou ""|hiername
 *)
 
 let full_state_name_of_cookie_name cookie_level cookiename =
-  let _pref, cookiename = Ocsigen_lib.String.sep '|' cookiename in
-  let secure, cookiename = Ocsigen_lib.String.sep '|' cookiename in
-  let site_dir_str, cookiename = Ocsigen_lib.String.sep '|' cookiename in
-  let hier1, hiername = Ocsigen_lib.String.sep '|' cookiename in
+  let _pref, cookiename = Ocsigen_base.Lib.String.sep '|' cookiename in
+  let secure, cookiename = Ocsigen_base.Lib.String.sep '|' cookiename in
+  let site_dir_str, cookiename = Ocsigen_base.Lib.String.sep '|' cookiename in
+  let hier1, hiername = Ocsigen_base.Lib.String.sep '|' cookiename in
   let secure = secure = "S" in
   let sc_hier =
     match hier1 with
@@ -932,21 +932,21 @@ let matches_regexps regexps (name, _) =
 
 let get_session_info ~sitedata ~req previous_extension_err =
   let req_whole = req
-  and ri = req.Ocsigen_extensions.request_info
-  and ci = req.Ocsigen_extensions.request_config in
-  let rc = Ocsigen_request.request_cache ri in
+  and ri = req.Ocsigen.Extensions.request_info
+  and ci = req.Ocsigen.Extensions.request_config in
+  let rc = Ocsigen.Request.request_cache ri in
   let no_post_param, p =
     match
-      Ocsigen_request.post_params ri ci.Ocsigen_extensions.uploaddir
-        ci.Ocsigen_extensions.maxuploadfilesize
+      Ocsigen.Request.post_params ri ci.Ocsigen.Extensions.uploaddir
+        ci.Ocsigen.Extensions.maxuploadfilesize
     with
     | None -> true, Lwt.return []
     | Some v -> false, v
   in
   let no_file_param, file_params =
     match
-      Ocsigen_request.files ri ci.Ocsigen_extensions.uploaddir
-        ci.Ocsigen_extensions.maxuploadfilesize
+      Ocsigen.Request.files ri ci.Ocsigen.Extensions.uploaddir
+        ci.Ocsigen.Extensions.maxuploadfilesize
     with
     | None -> true, Lwt.return []
     | Some v -> false, v
@@ -973,11 +973,11 @@ let get_session_info ~sitedata ~req previous_extension_err =
               (fun t (k, v) -> Ocsigen_cookie_map.Map_inner.add k v t)
               Ocsigen_cookie_map.Map_inner.empty tc
           , pp )
-          (*Marshal.from_string (Ocsigen_lib.decode tc) 0, pp*)
+          (*Marshal.from_string (Ocsigen_base.Lib.decode tc) 0, pp*)
         with Not_found -> (
           match
-            Ocsigen_request.header ri
-              (Ocsigen_header.Name.of_string tab_cookies_header_name)
+            Ocsigen.Request.header ri
+              (Ocsigen_http.Header.Name.of_string tab_cookies_header_name)
           with
           | Some tc ->
               let tc = [%of_json: (string * string) list] tc in
@@ -991,8 +991,8 @@ let get_session_info ~sitedata ~req previous_extension_err =
   in
   let cpi =
     match
-      Ocsigen_request.header ri
-        (Ocsigen_header.Name.of_string tab_cpi_header_name)
+      Ocsigen.Request.header ri
+        (Ocsigen_http.Header.Name.of_string tab_cpi_header_name)
     with
     | Some cpi -> Some ([%of_json: cpi] cpi)
     | None -> None
@@ -1000,14 +1000,14 @@ let get_session_info ~sitedata ~req previous_extension_err =
   let epd =
     lazy
       (match
-         Ocsigen_request.header ri
-           (Ocsigen_header.Name.of_string expecting_process_page_name)
+         Ocsigen.Request.header ri
+           (Ocsigen_http.Header.Name.of_string expecting_process_page_name)
        with
       | Some epd -> [%of_json: bool] epd
       | None -> false)
   in
   let post_params, get_params, to_be_considered_as_get =
-    let g = Ocsigen_request.get_params_flat ri in
+    let g = Ocsigen.Request.get_params_flat ri in
     try
       ( []
       , g
@@ -1046,7 +1046,7 @@ let get_session_info ~sitedata ~req previous_extension_err =
       , post_params
       , file_params0
       , Polytables.get
-          ~table:(Ocsigen_request.request_cache ri)
+          ~table:(Ocsigen.Request.request_cache ri)
           ~key:eliom_params_after_action )
     with Not_found ->
       let nl_get_params, get_params = split_nl_prefix_param get_params0 in
@@ -1076,15 +1076,15 @@ let get_session_info ~sitedata ~req previous_extension_err =
   in
   let browser_cookies =
     match
-      Ocsigen_request.header ri
-        (Ocsigen_header.Name.of_string cookie_substitutes_header_name)
+      Ocsigen.Request.header ri
+        (Ocsigen_http.Header.Name.of_string cookie_substitutes_header_name)
     with
     | Some tc ->
         List.fold_left
           (fun t (k, v) -> Ocsigen_cookie_map.Map_inner.add k v t)
           Ocsigen_cookie_map.Map_inner.empty
           ([%of_json: (string * string) list] tc)
-    | None -> Ocsigen_request.cookies ri
+    | None -> Ocsigen.Request.cookies ri
   in
   let data_cookies = getcookies false `Session datacookiename browser_cookies in
   let service_cookies =
@@ -1228,9 +1228,9 @@ let get_session_info ~sitedata ~req previous_extension_err =
     (*VVV 2011/02/15 TODO: I think we'd better not change ri here.
   Keep ri for original values and use si for Eliom's values?
     *)
-    ( Ocsigen_request.update ri
+    ( Ocsigen.Request.update ri
         ?meth:
-          (if Ocsigen_request.meth ri = `HEAD || to_be_considered_as_get
+          (if Ocsigen.Request.meth ri = `HEAD || to_be_considered_as_get
            then Some `GET
            else
              None
@@ -1273,7 +1273,7 @@ let get_session_info ~sitedata ~req previous_extension_err =
           epd (*204FORMS*     si_internal_form= internal_form; *) } )
   in
   Lwt.return
-    ( {req_whole with Ocsigen_extensions.request_info = ri}
+    ( {req_whole with Ocsigen.Extensions.request_info = ri}
     , sess
     , previous_tab_cookies_info )
 
@@ -1289,7 +1289,7 @@ module Omit_persistent_storage = struct
         let apply_rule = function
           | HeaderRule (header_name, regexp) -> (
             match
-              Ocsigen_request.header sp_request.Ocsigen_extensions.request_info
+              Ocsigen.Request.header sp_request.Ocsigen.Extensions.request_info
                 header_name
             with
             | None -> false (* no User-Agent header *)
@@ -1424,17 +1424,17 @@ let bus_unwrap_id : unwrap_id = Wrap.id_of_int bus_unwrap_id_int
 
 (* HACK: Remove the 'nl_get_appl_parameter' used to avoid confusion
    between XHR and classical request in App. *)
-let patch_request_info ({Ocsigen_extensions.request_info; _} as r) =
-  let u = Ocsigen_request.uri request_info in
+let patch_request_info ({Ocsigen.Extensions.request_info; _} as r) =
+  let u = Ocsigen.Request.uri request_info in
   match Uri.get_query_param u nl_get_appl_parameter with
   | Some _ ->
       { r with
-        Ocsigen_extensions.request_info =
+        Ocsigen.Extensions.request_info =
           (let get_params_flat =
              List.remove_assoc nl_get_appl_parameter
-               (Ocsigen_request.get_params_flat request_info)
+               (Ocsigen.Request.get_params_flat request_info)
            in
-           Ocsigen_request.update ~get_params_flat request_info) }
+           Ocsigen.Request.update ~get_params_flat request_info) }
   | None -> r
 
 (* Returns if we want secure cookie *)
@@ -1477,7 +1477,7 @@ let defer get f =
   (match get () with
   | Some v -> r := Some (f v)
   | None ->
-      Ocsigen_loader.add_module_init_function (get_app_name ()) (fun () ->
+      Ocsigen_base.Loader.add_module_init_function (get_app_name ()) (fun () ->
         match get () with
         | Some v -> r := Some (f v)
         | None -> raise (Eliom_site_information_not_available "defer")));
