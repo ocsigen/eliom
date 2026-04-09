@@ -13,7 +13,7 @@ gen_doc() {
   case "$SIDE" in
     server)
       CMI_DIR=_build/default/src/lib/server/.eliom_server.objs/byte
-      MLI_DIR=_build/default/src/lib/server
+      MLI_DIR=_build/default/src/lib/server/Eliom
       DUNE_DIR=src/lib/server
       ODOCL=src/lib/server/api.odocl
       INTRO=doc/server.indexdoc
@@ -21,7 +21,7 @@ gen_doc() {
       ;;
     client)
       CMI_DIR=_build/default/src/lib/client/.eliom_client.objs/byte
-      MLI_DIR=_build/default/src/lib/client
+      MLI_DIR=_build/default/src/lib/client/Eliom
       DUNE_DIR=src/lib/client
       ODOCL=src/lib/client/api.odocl
       INTRO=doc/client.indexdoc
