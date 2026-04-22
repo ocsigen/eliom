@@ -37,7 +37,7 @@ module Channel : sig
     [Eliom_common.site_scope | Eliom_common.client_process_scope]
 
   val create :
-     ?scope:[< comet_scope]
+       ?scope:[< comet_scope]
     -> ?name:string
     -> ?size:int
     -> 'a Lwt_stream.t
@@ -76,7 +76,7 @@ module Channel : sig
       [create_unlimited] instead, but be careful of memory leaks. *)
 
   val create_from_events :
-     ?scope:[< comet_scope]
+       ?scope:[< comet_scope]
     -> ?name:string
     -> ?size:int
     -> 'a React.event
@@ -85,7 +85,7 @@ module Channel : sig
       by the event stream [e]. *)
 
   val create_unlimited :
-     ?scope:Eliom_common.client_process_scope
+       ?scope:Eliom_common.client_process_scope
     -> ?name:string
     -> 'a Lwt_stream.t
     -> 'a t
@@ -103,12 +103,7 @@ module Channel : sig
       returned to the client. *)
 
   val external_channel :
-     ?history:int
-    -> ?newest:bool
-    -> prefix:string
-    -> name:string
-    -> unit
-    -> 'a t
+    ?history:int -> ?newest:bool -> prefix:string -> name:string -> unit -> 'a t
   (** [external_channel ~prefix ~name ()] declares an external
       channel. The channel was created by an instance of Eliom serving
       the prefix [prefix] (the prefix configured in the <site> tag of
@@ -121,9 +116,7 @@ module Channel : sig
       is [1]. *)
 
   val wait_timeout :
-     ?scope:Eliom_common.client_process_scope
-    -> float
-    -> unit Lwt.t
+    ?scope:Eliom_common.client_process_scope -> float -> unit Lwt.t
   (** [wait_timeout ~scope time] waits for a period of inactivity of
       length [time] in the [scope]. Only activity on stateful
       channels is taken into accounts.

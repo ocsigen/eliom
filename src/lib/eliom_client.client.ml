@@ -37,24 +37,23 @@ type changepage_event =
   ; origin_uri : string
   ; target_uri : string
   ; origin_id : int
-  ; target_id : int option }
+  ; target_id : int option
+  }
 
 let run_lwt_callbacks : 'a -> ('a -> unit Lwt.t) list -> unit Lwt.t =
  fun ev handlers -> Lwt_list.iter_s (fun h -> h ev) handlers
 
 let (onload, _, flush_onload, _push_onload) :
-  ((unit -> unit) -> unit)
-  * (unit -> (unit -> unit) list)
-  * (unit -> (unit -> unit) list)
-  * (unit -> unit)
-  =
+    ((unit -> unit) -> unit)
+    * (unit -> (unit -> unit) list)
+    * (unit -> (unit -> unit) list)
+    * (unit -> unit) =
   Eliom_client_core.create_buffer ()
 
 let ( (onchangepage : (changepage_event -> unit Lwt.t) -> unit)
     , _
     , (flush_onchangepage : unit -> (changepage_event -> unit Lwt.t) list)
-    , _ )
-  =
+    , _ ) =
   Eliom_client_core.create_buffer ()
 
 let onunload, _, flush_onunload, _ = Eliom_client_core.create_buffer ()
@@ -64,7 +63,9 @@ let onbeforeunload, run_onbeforeunload, flush_onbeforeunload =
   let rec run lst =
     match lst with
     | [] -> None
-    | f :: rem -> ( match f () with None -> run rem | Some s -> Some s)
+    | f :: rem -> (
+      match f () with None -> run rem | Some s -> Some s
+    )
   in
   add, (fun () -> run (get ())), flush
 
@@ -87,24 +88,25 @@ let check_global_data global_data =
   let missing_client_values = ref [] in
   let missing_injections = ref [] in
   String_map.iter
-    (fun compilation_unit_id
-      {Eliom_client_core.server_section; client_section} ->
-       List.iter
-         (fun data ->
-            missing_client_values :=
-              List.rev_append
-                (List.map
-                   (fun cv -> compilation_unit_id, cv)
-                   (Array.to_list data))
-                !missing_client_values)
-         server_section;
-       List.iter
-         (fun data ->
-            missing_injections :=
-              List.rev_append (Array.to_list data) !missing_injections)
-         client_section)
+    (fun compilation_unit_id {Eliom_client_core.server_section; client_section}
+       ->
+      List.iter
+        (fun data ->
+          missing_client_values :=
+            List.rev_append
+              (List.map (fun cv -> compilation_unit_id, cv) (Array.to_list data))
+              !missing_client_values
+        )
+        server_section;
+      List.iter
+        (fun data ->
+          missing_injections :=
+            List.rev_append (Array.to_list data) !missing_injections
+        )
+        client_section
+    )
     global_data;
-  (match !missing_client_values with
+  ( match !missing_client_values with
   | [] -> ()
   | l ->
       Printf.ksprintf
@@ -112,19 +114,24 @@ let check_global_data global_data =
         "Code generating the following client values is not linked on the client:\n%s"
         (String.concat "\n"
            (List.rev_map
-              (fun (compilation_unit_id, {Eliom_runtime.closure_id; value; _}) ->
-                 let instance_id =
-                   Eliom_runtime.Client_value_server_repr.instance_id value
-                 in
-                 match Eliom_runtime.Client_value_server_repr.loc value with
-                 | None ->
-                     Printf.sprintf "%s:%s/%d" compilation_unit_id closure_id
-                       instance_id
-                 | Some pos ->
-                     Printf.sprintf "%s:%s/%d at %s" compilation_unit_id
-                       closure_id instance_id
-                       (Eliom_lib.pos_to_string pos))
-              l)));
+              (fun (compilation_unit_id, {Eliom_runtime.closure_id; value; _})
+                 ->
+                let instance_id =
+                  Eliom_runtime.Client_value_server_repr.instance_id value
+                in
+                match Eliom_runtime.Client_value_server_repr.loc value with
+                | None ->
+                    Printf.sprintf "%s:%s/%d" compilation_unit_id closure_id
+                      instance_id
+                | Some pos ->
+                    Printf.sprintf "%s:%s/%d at %s" compilation_unit_id
+                      closure_id instance_id
+                      (Eliom_lib.pos_to_string pos)
+              )
+              l
+           )
+        )
+  );
   match !missing_injections with
   | [] -> ()
   | l ->
@@ -134,20 +141,23 @@ let check_global_data global_data =
         (String.concat "\n"
            (List.rev_map
               (fun d ->
-                 let id = d.Eliom_runtime.injection_id in
-                 match d.Eliom_runtime.injection_dbg with
-                 | None -> Printf.sprintf "%d" id
-                 | Some (pos, Some i) ->
-                     Printf.sprintf "%d (%s at %s)" id i
-                       (Eliom_lib.pos_to_string pos)
-                 | Some (pos, None) ->
-                     Printf.sprintf "%d (at %s)" id
-                       (Eliom_lib.pos_to_string pos))
-              l))
+                let id = d.Eliom_runtime.injection_id in
+                match d.Eliom_runtime.injection_dbg with
+                | None -> Printf.sprintf "%d" id
+                | Some (pos, Some i) ->
+                    Printf.sprintf "%d (%s at %s)" id i
+                      (Eliom_lib.pos_to_string pos)
+                | Some (pos, None) ->
+                    Printf.sprintf "%d (at %s)" id (Eliom_lib.pos_to_string pos)
+              )
+              l
+           )
+        )
 
 let do_request_data request_data =
   Logs.debug ~src:section (fun fmt ->
-    fmt "Do request data (%d)" (Array.length request_data));
+    fmt "Do request data (%d)" (Array.length request_data)
+  );
   (* On a request, i.e. after running the toplevel definitions, global_data
      must contain at most empty sections_data lists, which stem from server-
      only eliom files. *)
@@ -166,20 +176,24 @@ let get_element_cookies_info elt =
   Js.Opt.to_option
     (Js.Opt.map
        elt##(getAttribute
-               (Js.string Eliom_runtime.RawXML.ce_call_service_attrib))
-       (fun s -> of_json ~typ:[%json: bool * string list] (Js.to_string s)))
+               (Js.string Eliom_runtime.RawXML.ce_call_service_attrib)
+            )
+       (fun s -> of_json ~typ:[%json: bool * string list] (Js.to_string s))
+    )
 
 let get_element_template elt =
   Js.Opt.to_option
     (Js.Opt.map
        elt##(getAttribute (Js.string Eliom_runtime.RawXML.ce_template_attrib))
-       (fun s -> Js.to_string s))
+       (fun s -> Js.to_string s)
+    )
 
 let a_handler =
   Dom_html.full_handler (fun node ev ->
     let node =
       Js.Opt.get (Dom_html.CoerceTo.a node) (fun () ->
-        raise_error ~section "not an anchor element")
+        raise_error ~section "not an anchor element"
+      )
     in
     (* We prevent default behaviour
           only if raw_a_handler has taken the change page itself *)
@@ -188,15 +202,17 @@ let a_handler =
       (Eliom_client_core.raw_a_handler node
          (get_element_cookies_info node)
          (get_element_template node)
-         ev))
+         ev
+      )
+  )
 
 let form_handler :
-  (Dom_html.element Js.t, #Dom_html.event Js.t) Dom_html.event_listener
-  =
+    (Dom_html.element Js.t, #Dom_html.event Js.t) Dom_html.event_listener =
   Dom_html.full_handler (fun node ev ->
     let form =
       Js.Opt.get (Dom_html.CoerceTo.form node) (fun () ->
-        raise_error ~section "not a form element")
+        raise_error ~section "not a form element"
+      )
     in
     let kind =
       if String.lowercase_ascii (Js.to_string form##._method) = "get"
@@ -207,7 +223,9 @@ let form_handler :
       (Eliom_client_core.raw_form_handler form kind
          (get_element_cookies_info form)
          (get_element_template node)
-         ev f))
+         ev f
+      )
+  )
 
 let relink_process_node (node : Dom_html.element Js.t) =
   let id =
@@ -218,21 +236,27 @@ let relink_process_node (node : Dom_html.element Js.t) =
   Js.Optdef.case
     (Eliom_client_core.find_process_node id)
     (fun () ->
-       Logs.debug ~src:section (fun fmt ->
-         fmt "Relink process node: did not find %s. Will add it."
-           (Js.to_string id));
-       Eliom_client_core.register_process_node id (node :> Dom.node Js.t))
+      Logs.debug ~src:section (fun fmt ->
+        fmt "Relink process node: did not find %s. Will add it."
+          (Js.to_string id)
+      );
+      Eliom_client_core.register_process_node id (node :> Dom.node Js.t)
+    )
     (fun pnode ->
-       Logs.debug ~src:section (fun fmt ->
-         fmt "Relink process node: found %s" (Js.to_string id));
-       Js.Opt.iter node##.parentNode (fun parent ->
-         Dom.replaceChild parent pnode node);
-       if String.sub (Js.to_bytestring id) 0 7 <> "global_"
-       then (
-         let childrens = Dom.list_of_nodeList pnode##.childNodes in
-         List.iter (fun c -> ignore pnode##(removeChild c)) childrens;
-         let childrens = Dom.list_of_nodeList node##.childNodes in
-         List.iter (fun c -> ignore pnode##(appendChild c)) childrens))
+      Logs.debug ~src:section (fun fmt ->
+        fmt "Relink process node: found %s" (Js.to_string id)
+      );
+      Js.Opt.iter node##.parentNode (fun parent ->
+        Dom.replaceChild parent pnode node
+      );
+      if String.sub (Js.to_bytestring id) 0 7 <> "global_"
+      then (
+        let childrens = Dom.list_of_nodeList pnode##.childNodes in
+        List.iter (fun c -> ignore pnode##(removeChild c)) childrens;
+        let childrens = Dom.list_of_nodeList node##.childNodes in
+        List.iter (fun c -> ignore pnode##(appendChild c)) childrens
+      )
+    )
 
 let relink_request_node (node : Dom_html.element Js.t) =
   let id =
@@ -243,15 +267,20 @@ let relink_request_node (node : Dom_html.element Js.t) =
   Js.Optdef.case
     (Eliom_client_core.find_request_node id)
     (fun () ->
-       Logs.debug ~src:section (fun fmt ->
-         fmt "Relink request node: did not find %s. Will add it."
-           (Js.to_string id));
-       Eliom_client_core.register_request_node id (node :> Dom.node Js.t))
+      Logs.debug ~src:section (fun fmt ->
+        fmt "Relink request node: did not find %s. Will add it."
+          (Js.to_string id)
+      );
+      Eliom_client_core.register_request_node id (node :> Dom.node Js.t)
+    )
     (fun pnode ->
-       Logs.debug ~src:section (fun fmt ->
-         fmt "Relink request node: found %s" (Js.to_string id));
-       Js.Opt.iter node##.parentNode (fun parent ->
-         Dom.replaceChild parent pnode node))
+      Logs.debug ~src:section (fun fmt ->
+        fmt "Relink request node: found %s" (Js.to_string id)
+      );
+      Js.Opt.iter node##.parentNode (fun parent ->
+        Dom.replaceChild parent pnode node
+      )
+    )
 
 let relink_request_nodes root =
   Logs.debug ~src:section (fun fmt -> fmt "Relink request nodes");
@@ -273,14 +302,13 @@ let relink_page_but_client_values (root : Dom_html.element Js.t) =
       , form_nodeList
       , process_nodeList
       , closure_nodeList
-      , attrib_nodeList )
-    =
+      , attrib_nodeList ) =
     Eliommod_dom.select_nodes root
   in
-  Eliommod_dom.iter_nodeList a_nodeList (fun node ->
-    node##.onclick := a_handler);
+  Eliommod_dom.iter_nodeList a_nodeList (fun node -> node##.onclick := a_handler);
   Eliommod_dom.iter_nodeList form_nodeList (fun node ->
-    node##.onsubmit := form_handler);
+    node##.onsubmit := form_handler
+  );
   Eliommod_dom.iter_nodeList process_nodeList relink_process_node;
   closure_nodeList, attrib_nodeList
 
@@ -304,7 +332,8 @@ let is_closure_attrib, get_closure_name, get_closure_id =
   let n_prefix_js = Js.string n_prefix in
   ( (fun attr ->
       attr##.value##(substring 0 v_len) = v_prefix_js
-      && attr##.name##(substring 0 n_len) = n_prefix_js)
+      && attr##.name##(substring 0 n_len) = n_prefix_js
+    )
   , (fun attr -> attr##.name##(substring_toEnd n_len))
   , fun attr -> attr##.value##(substring_toEnd v_len) )
 
@@ -323,26 +352,27 @@ let relink_closure_node root onload table (node : Dom_html.element Js.t) =
           if
             Eliommod_dom.ancessor root node
             (* if not inside a unique node replaced by an older one *)
-          then onload := closure :: !onload)
+          then onload := closure :: !onload
+        )
         else
           Js.Unsafe.set node name
             (Dom_html.handler (fun ev -> Js.bool (closure ev)))
       with Not_found ->
         Logs.err ~src:section (fun fmt ->
-          fmt "relink_closure_node: client value %s not found" cid)
+          fmt "relink_closure_node: client value %s not found" cid
+        )
   in
   Eliommod_dom.iter_attrList node##.attributes aux
 
-let relink_closure_nodes
-      (root : Dom_html.element Js.t)
-      event_handlers
-      closure_nodeList
-  =
+let relink_closure_nodes (root : Dom_html.element Js.t) event_handlers
+    closure_nodeList =
   Logs.debug ~src:section (fun fmt ->
-    fmt "Relink %i closure nodes" closure_nodeList##.length);
+    fmt "Relink %i closure nodes" closure_nodeList##.length
+  );
   let onload = ref [] in
   Eliommod_dom.iter_nodeList closure_nodeList (fun node ->
-    relink_closure_node root onload event_handlers node);
+    relink_closure_node root onload event_handlers node
+  );
   fun () ->
     let ev = Eliommod_dom.createEvent (Js.string "load") in
     ignore (List.for_all (fun f -> f ev) (List.rev !onload))
@@ -356,7 +386,8 @@ let is_attrib_attrib, get_attrib_id =
   let n_prefix_js = Js.string n_prefix in
   ( (fun attr ->
       attr##.value##(substring 0 v_len) = v_prefix_js
-      && attr##.name##(substring 0 n_len) = n_prefix_js)
+      && attr##.name##(substring 0 n_len) = n_prefix_js
+    )
   , fun attr -> attr##.value##(substring_toEnd v_len) )
 
 let relink_attrib _root table (node : Dom_html.element Js.t) =
@@ -378,9 +409,11 @@ let relink_attrib _root table (node : Dom_html.element Js.t) =
 
 let relink_attribs (root : Dom_html.element Js.t) attribs attrib_nodeList =
   Logs.debug ~src:section (fun fmt ->
-    fmt "Relink %i attributes" attrib_nodeList##.length);
+    fmt "Relink %i attributes" attrib_nodeList##.length
+  );
   Eliommod_dom.iter_nodeList attrib_nodeList (fun node ->
-    relink_attrib root attribs node)
+    relink_attrib root attribs node
+  )
 
 (* == Extract the request data and the request tab-cookies from a page
 
@@ -400,7 +433,8 @@ let load_data_script page =
         | t ->
             raise_error ~section
               "Unable to find Eliom application data (script element expected, found %s element)"
-              t)
+              t
+      )
     | _ -> raise_error ~section "Unable to find Eliom application data."
   in
   let script = data_script##.text in
@@ -426,19 +460,22 @@ let scroll_to_fragment ?offset fragment =
     | Some fragment ->
         let scroll_to_element e = e##(scrollIntoView Js._true) in
         let elem = Dom_html.document##(getElementById (Js.string fragment)) in
-        Js.Opt.iter elem scroll_to_element)
+        Js.Opt.iter elem scroll_to_element
+  )
 
 let with_progress_cursor : 'a Lwt.t -> 'a Lwt.t =
  fun t ->
-  Lwt.catch
-    (fun () ->
+   Lwt.catch
+     (fun () ->
        Dom_html.document##.body##.style##.cursor := Js.string "progress";
        let* res = t in
        Dom_html.document##.body##.style##.cursor := Js.string "auto";
-       Lwt.return res)
-    (fun exn ->
+       Lwt.return res
+     )
+     (fun exn ->
        Dom_html.document##.body##.style##.cursor := Js.string "auto";
-       Lwt.fail exn)
+       Lwt.fail exn
+     )
 
 (* Type for partially unwrapped elt. *)
 type tmp_recontent =
@@ -450,7 +487,8 @@ type tmp_recontent =
 type tmp_elt =
   { (* to be unwrapped *)
     tmp_elt : tmp_recontent
-  ; tmp_node_id : Xml.node_id }
+  ; tmp_node_id : Xml.node_id
+  }
 
 (******************************************************************************)
 (*                            Register unwrappers                             *)
@@ -478,44 +516,52 @@ let unwrap_tyxml tmp_elt =
   let elt =
     let context = "unwrapping (i.e. utilize it in whatsoever form)" in
     Xml.make_lazy ~id:tmp_elt.tmp_node_id
-      (lazy
-        (match tmp_elt.tmp_node_id with
+      ( lazy
+        ( match tmp_elt.tmp_node_id with
         | Xml.ProcessId process_id as id ->
             Logs.debug ~src:section (fun fmt ->
-              fmt "Unwrap tyxml from ProcessId %s" process_id);
+              fmt "Unwrap tyxml from ProcessId %s" process_id
+            );
             Js.Optdef.case
               (Eliom_client_core.find_process_node (Js.bytestring process_id))
               (fun () ->
-                 Logs.debug ~src:section (fun fmt -> fmt "not found");
-                 let xml_elt : Xml.elt = Xml.make ~id elt in
-                 let xml_elt =
-                   Eliom_content_core.Xml.set_classes_of_elt xml_elt
-                 in
-                 Eliom_client_core.register_process_node
-                   (Js.bytestring process_id)
-                   (Eliom_client_core.rebuild_node_ns `HTML5 context xml_elt);
-                 xml_elt)
+                Logs.debug ~src:section (fun fmt -> fmt "not found");
+                let xml_elt : Xml.elt = Xml.make ~id elt in
+                let xml_elt =
+                  Eliom_content_core.Xml.set_classes_of_elt xml_elt
+                in
+                Eliom_client_core.register_process_node
+                  (Js.bytestring process_id)
+                  (Eliom_client_core.rebuild_node_ns `HTML5 context xml_elt);
+                xml_elt
+              )
               (fun elt ->
-                 Logs.debug ~src:section (fun fmt -> fmt "found");
-                 Xml.make_dom ~id elt)
+                Logs.debug ~src:section (fun fmt -> fmt "found");
+                Xml.make_dom ~id elt
+              )
         | Xml.RequestId request_id as id ->
             Logs.debug ~src:section (fun fmt ->
-              fmt "Unwrap tyxml from RequestId %s" request_id);
+              fmt "Unwrap tyxml from RequestId %s" request_id
+            );
             Js.Optdef.case
               (Eliom_client_core.find_request_node (Js.bytestring request_id))
               (fun () ->
-                 Logs.debug ~src:section (fun fmt -> fmt "not found");
-                 let xml_elt : Xml.elt = Xml.make ~id elt in
-                 Eliom_client_core.register_request_node
-                   (Js.bytestring request_id)
-                   (Eliom_client_core.rebuild_node_ns `HTML5 context xml_elt);
-                 xml_elt)
+                Logs.debug ~src:section (fun fmt -> fmt "not found");
+                let xml_elt : Xml.elt = Xml.make ~id elt in
+                Eliom_client_core.register_request_node
+                  (Js.bytestring request_id)
+                  (Eliom_client_core.rebuild_node_ns `HTML5 context xml_elt);
+                xml_elt
+              )
               (fun elt ->
-                 Logs.debug ~src:section (fun fmt -> fmt "found");
-                 Xml.make_dom ~id elt)
+                Logs.debug ~src:section (fun fmt -> fmt "found");
+                Xml.make_dom ~id elt
+              )
         | Xml.NoId as id ->
             Logs.debug ~src:section (fun fmt -> fmt "Unwrap tyxml from NoId");
-            Xml.make ~id elt))
+            Xml.make ~id elt
+        )
+        )
   in
   Eliom_client_core.register_unwrapped_elt elt;
   elt
@@ -531,8 +577,10 @@ let unwrap_global_data (global_data', _) =
   Eliom_client_core.global_data :=
     String_map.map
       (fun {Eliom_runtime.server_sections_data; client_sections_data} ->
-         { Eliom_client_core.server_section = Array.to_list server_sections_data
-         ; client_section = Array.to_list client_sections_data })
+        { Eliom_client_core.server_section = Array.to_list server_sections_data
+        ; client_section = Array.to_list client_sections_data
+        }
+      )
       global_data'
 
 let _ =
@@ -586,7 +634,8 @@ let add_string_event_listener o e f capt : unit =
 type state =
   { (* TODO store cookies_info in state... *)
     template : string option
-  ; position : Eliommod_dom.position }
+  ; position : Eliommod_dom.position
+  }
 [@@deriving json]
 
 [@@@warning "+39"]
@@ -599,7 +648,8 @@ let random_int =
     fun () ->
       let a =
         Js.Unsafe.global##.crypto##(getRandomValues
-                                      (new%js Typed_array.int16Array 2))
+                                      (new%js Typed_array.int16Array 2)
+                                   )
       in
       (Typed_array.unsafe_get a 0 lsl 16) lor Typed_array.unsafe_get a 1
   else fun () -> truncate (4294967296. *. Js.to_float Js.math##random)
@@ -635,7 +685,8 @@ type page =
   ; set_page_status : ?step:React.step -> Page_status_t.t -> unit
   ; mutable dom : Dom_html.bodyElement Js.t option
   ; mutable reload_function :
-      (unit -> unit -> Eliom_service.result Lwt.t) option }
+      (unit -> unit -> Eliom_service.result Lwt.t) option
+  }
 
 let string_of_page p =
   Printf.sprintf "%d/%d %s %s %d %b" p.page_unique_id p.page_id.state_index
@@ -647,7 +698,8 @@ let string_of_page p =
 let set_page_status p st =
   Logs.debug ~src:section_page (fun fmt ->
     fmt "Set page status %d/%d: %s" p.page_unique_id p.page_id.state_index
-      (Page_status_t.to_string st));
+      (Page_status_t.to_string st)
+  );
   p.set_page_status st
 
 let retire_page p =
@@ -666,30 +718,33 @@ let last_page_id = ref (-1)
 let mk_page ?(state_id = next_state_id ()) ?url ?previous_page ~status () =
   incr last_page_id;
   Logs.debug ~src:section_page (fun fmt ->
-    fmt "Create page %d/%d" !last_page_id state_id.state_index);
+    fmt "Create page %d/%d" !last_page_id state_id.state_index
+  );
   let page_status, set_page_status = React.S.create status in
   (* protect page_status from React.S.stop ~strong:true *)
   ignore @@ React.S.map (fun _ -> ()) page_status;
   { page_unique_id = !last_page_id
   ; page_id = state_id
   ; url =
-      (match url with
+      ( match url with
       | Some u -> u
       | None ->
           fst
-            (Url.split_fragment
-               (Js.to_string Dom_html.window##.location##.href)))
+            (Url.split_fragment (Js.to_string Dom_html.window##.location##.href))
+      )
   ; page_status
   ; previous_page
   ; set_page_status
   ; dom = None
-  ; reload_function = None }
+  ; reload_function = None
+  }
 
 let active_page = ref @@ mk_page ~status:Active ()
 
 let set_active_page p =
   Logs.debug ~src:section_page (fun fmt ->
-    fmt "Set active page %d/%d" p.page_unique_id p.page_id.state_index);
+    fmt "Set active page %d/%d" p.page_unique_id p.page_id.state_index
+  );
   retire_page !active_page;
   active_page := p;
   set_page_status !active_page Active
@@ -723,7 +778,8 @@ module History = struct
     let set h =
       Logs.debug ~src:section (fun fmt ->
         fmt "setting history:\n%s"
-          (String.concat "\n" @@ List.map string_of_page !history));
+          (String.concat "\n" @@ List.map string_of_page !history)
+      );
       history := h
     in
     (fun () -> !history), set
@@ -799,7 +855,8 @@ module History = struct
               if !num_doms > max_num_doms
               then (
                 p.dom <- None;
-                set_page_status p Dead)
+                set_page_status p Dead
+              )
         in
         List.iter maybe_delete_dom pages_ordered_by_distance_from_present
 end
@@ -809,10 +866,12 @@ let advance_page () =
   if new_page != !active_page
   then (
     new_page.previous_page <- Some !active_page.page_id.state_index;
-    (match History.find_by_state_index new_page.page_id.state_index with
+    ( match History.find_by_state_index new_page.page_id.state_index with
     | Some _ -> ()
-    | None -> History.advance new_page);
-    set_active_page new_page)
+    | None -> History.advance new_page
+    );
+    set_active_page new_page
+  )
 
 let state_key {session_id; state_index} =
   Js.string (Printf.sprintf "state_history_%x_%x" session_id state_index)
@@ -822,11 +881,13 @@ let get_state state_id : state =
     (Js.Optdef.case
        Dom_html.window##.sessionStorage
        (fun () ->
-          (* We use this only when the history API is
+         (* We use this only when the history API is
              available. Sessionstorage seems to be available
              everywhere the history API exists. *)
-          raise_error ~section "sessionStorage not available")
-       (fun s -> s##(getItem (state_key state_id))))
+         raise_error ~section "sessionStorage not available"
+       )
+       (fun s -> s##(getItem (state_key state_id)))
+    )
     (fun () -> raise Not_found)
     (fun s -> of_json ~typ:[%json: state] (Js.to_string s))
 
@@ -835,12 +896,14 @@ let set_state i (v : state) =
     Dom_html.window##.sessionStorage
     (fun () -> ())
     (fun s ->
-       s##(setItem (state_key i) (Js.string (to_json ~typ:[%json: state] v))))
+      s##(setItem (state_key i) (Js.string (to_json ~typ:[%json: state] v)))
+    )
 
 let update_state () =
   set_state !active_page.page_id
     { template = Eliom_request_info.get_request_template ()
-    ; position = Eliommod_dom.getDocumentScroll () }
+    ; position = Eliommod_dom.getDocumentScroll ()
+    }
 
 let lock_request_handling = Eliom_request.lock
 let unlock_request_handling = Eliom_request.unlock
@@ -884,7 +947,7 @@ let normalize_app_path p =
   match List.rev p with "" :: p -> List.rev p | _ -> p
 
 let init_client_app ~app_name ?(ssl = false) ~hostname ?(port = 80) ~site_dir ()
-  =
+    =
   Logs.debug (fun fmt -> fmt "Eliom_client.init_client_app called.");
   Eliom_process.appl_name_r := Some app_name;
   Eliom_request_info.client_app_initialised := true;
@@ -901,13 +964,15 @@ let init_client_app ~app_name ?(ssl = false) ~hostname ?(port = 80) ~site_dir ()
     { Eliom_common.cpi_ssl = ssl
     ; cpi_hostname = hostname
     ; cpi_server_port = port
-    ; cpi_original_full_path = site_dir @ [""] };
+    ; cpi_original_full_path = site_dir @ [""]
+    };
   Eliom_process.set_request_template None;
   (* We set the tab cookie table, with the app name inside: *)
   Eliom_process.set_request_cookies
     (Ocsigen_cookie_map.add ~path:[] Eliom_common.appl_name_cookie_name
        (Ocsigen_cookie_map.OSet (None, app_name, false))
-       Ocsigen_cookie_map.empty);
+       Ocsigen_cookie_map.empty
+    );
   ignore (get_global_data ())
 
 let is_client_app () = !Eliom_common.is_client_app
@@ -930,7 +995,9 @@ let set_base_url () =
        [ Js.to_string Dom_html.window##.location##.protocol
        ; "//"
        ; Js.to_string Dom_html.window##.location##.host
-       ; Js.to_string Dom_html.window##.location##.pathname ])
+       ; Js.to_string Dom_html.window##.location##.pathname
+       ]
+    )
 
 let dom_history_ready = ref false
 
@@ -947,40 +1014,43 @@ let dom_history_ready = ref false
                         server functions (see Eliom_uri). *)
 let init () =
   (* Initialize client app if the __eliom_server variable is defined *)
-  (if
-     is_client_app ()
-     && Js.Optdef.test Js.Unsafe.global##.___eliom_server_
-     && Js.Optdef.test Js.Unsafe.global##.___eliom_app_name_
-   then
-     let app_name = Js.to_string Js.Unsafe.global##.___eliom_app_name_
-     and site_dir =
-       Js.Optdef.case
-         Js.Unsafe.global##.___eliom_path_
-         (fun () -> [])
-         (fun p -> normalize_app_path (Js.to_string p))
-     in
-     match
-       Url.url_of_string (Js.to_string Js.Unsafe.global##.___eliom_server_)
-     with
-     | Some (Http {hu_host; hu_port; _}) ->
-         init_client_app ~app_name ~ssl:false ~hostname:hu_host ~port:hu_port
-           ~site_dir ()
-     | Some (Https {hu_host; hu_port; _}) ->
-         init_client_app ~app_name ~ssl:true ~hostname:hu_host ~port:hu_port
-           ~site_dir ()
-     | _ -> ());
+  ( if
+      is_client_app ()
+      && Js.Optdef.test Js.Unsafe.global##.___eliom_server_
+      && Js.Optdef.test Js.Unsafe.global##.___eliom_app_name_
+    then
+      let app_name = Js.to_string Js.Unsafe.global##.___eliom_app_name_
+      and site_dir =
+        Js.Optdef.case
+          Js.Unsafe.global##.___eliom_path_
+          (fun () -> [])
+          (fun p -> normalize_app_path (Js.to_string p))
+      in
+      match
+        Url.url_of_string (Js.to_string Js.Unsafe.global##.___eliom_server_)
+      with
+      | Some (Http {hu_host; hu_port; _}) ->
+          init_client_app ~app_name ~ssl:false ~hostname:hu_host ~port:hu_port
+            ~site_dir ()
+      | Some (Https {hu_host; hu_port; _}) ->
+          init_client_app ~app_name ~ssl:true ~hostname:hu_host ~port:hu_port
+            ~site_dir ()
+      | _ -> ()
+  );
   let js_data = lazy (Eliom_request_info.get_request_data ()) in
   Js.Optdef.case
     Js.Unsafe.global##.___eliom_global_data_
     (fun () ->
-       (* Global data are in [js_data], so we unmarshal it right away. *)
-       ignore (Lazy.force js_data))
+      (* Global data are in [js_data], so we unmarshal it right away. *)
+      ignore (Lazy.force js_data)
+    )
     (fun global_data ->
-       (* Global data are in a separate file. We should not unmarshal
+      (* Global data are in a separate file. We should not unmarshal
           [js_data] right away but only once the client program has
           been initialized. *)
-       ignore (Eliom_unwrap.unwrap_js global_data);
-       Js.Unsafe.delete Js.Unsafe.global "__eliom_global_data");
+      ignore (Eliom_unwrap.unwrap_js global_data);
+      Js.Unsafe.delete Js.Unsafe.global "__eliom_global_data"
+    );
   (* <base> *)
   (* The first time we load the page, we record the initial URL in a client
      side ref, in order to set <base> (on client-side) in header for each
@@ -1000,11 +1070,12 @@ let init () =
   let onload _ev =
     let js_data = Lazy.force js_data in
     Logs.debug ~src:section (fun fmt -> fmt "onload (client main)");
-    (match !onload_handler with
+    ( match !onload_handler with
     | Some h ->
         Dom.removeEventListener h;
         onload_handler := None
-    | None -> ());
+    | None -> ()
+    );
     Eliom_client_core.set_initial_load ();
     Lwt.async (fun () ->
       if !Eliom_config.debug_timings
@@ -1013,7 +1084,8 @@ let init () =
         Eliom_request_info.set_session_info
           ~uri:
             (String.concat "/"
-               (Eliom_request_info.get_csp_original_full_path ()))
+               (Eliom_request_info.get_csp_original_full_path ())
+            )
           js_data.Eliom_common.ejs_sess_info
         @@ fun () -> Lwt.return_unit
       in
@@ -1048,7 +1120,8 @@ let init () =
       run_callbacks load_callbacks;
       if !Eliom_config.debug_timings
       then Console.console##(timeEnd (Js.string "onload"));
-      Lwt.return_unit);
+      Lwt.return_unit
+    );
     Js._false
   in
   Logs.debug ~src:section (fun fmt -> fmt "Set load/onload events");
@@ -1062,31 +1135,22 @@ let init () =
     onload_handler :=
       Some
         (Dom.addEventListener Dom_html.window (Dom.Event.make "load")
-           (Dom.handler onload) Js._true);
+           (Dom.handler onload) Js._true
+        );
   add_string_event_listener Dom_html.window "beforeunload" onbeforeunload_fun
     false;
   ignore
     (Dom.addEventListener Dom_html.window (Dom.Event.make "unload")
        (Dom_html.handler onunload_fun)
-       Js._false)
+       Js._false
+    )
 
 (* == Low-level: call service. *)
 
-let create_request__
-      ?absolute
-      ?absolute_path
-      ?https
-      (type m)
-      ~(service : (_, _, m, _, _, _, _, _, _, _, _) Eliom_service.t)
-      ?hostname
-      ?port
-      ?fragment
-      ?keep_nl_params
-      ?nl_params
-      ?keep_get_na_params
-      get_params
-      post_params
-  =
+let create_request__ ?absolute ?absolute_path ?https (type m)
+    ~(service : (_, _, m, _, _, _, _, _, _, _, _) Eliom_service.t) ?hostname
+    ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params get_params
+    post_params =
   let path, get_params, fragment, post_params =
     Eliom_uri.make_post_uri_components__ ?absolute ?absolute_path ?https
       ~service ?hostname ?port ?fragment ?keep_nl_params ?nl_params
@@ -1097,21 +1161,10 @@ let create_request__
   in
   uri, get_params, post_params
 
-let create_request_
-      (type m)
-      ?absolute
-      ?absolute_path
-      ?https
-      ~(service : (_, _, m, _, _, _, _, _, _, _, _) Eliom_service.t)
-      ?hostname
-      ?port
-      ?fragment
-      ?keep_nl_params
-      ?nl_params
-      ?keep_get_na_params
-      get_params
-      post_params
-  =
+let create_request_ (type m) ?absolute ?absolute_path ?https
+    ~(service : (_, _, m, _, _, _, _, _, _, _, _) Eliom_service.t) ?hostname
+    ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params get_params
+    post_params =
   (* TODO: allow get_get_or_post service to return also the service
      with the correct subtype. Then do use Eliom_uri.make_string_uri
      and Eliom_uri.make_post_uri_components instead of
@@ -1129,35 +1182,24 @@ let create_request_
       `Post
         (create_request__ ?absolute ?absolute_path ?https ~service ?hostname
            ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
-           get_params post_params)
+           get_params post_params
+        )
   | Eliom_service.Put' ->
       `Put
         (create_request__ ?absolute ?absolute_path ?https ~service ?hostname
            ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
-           get_params post_params)
+           get_params post_params
+        )
   | Eliom_service.Delete' ->
       `Delete
         (create_request__ ?absolute ?absolute_path ?https ~service ?hostname
            ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
-           get_params post_params)
+           get_params post_params
+        )
 
-let raw_call_service
-      ?absolute
-      ?absolute_path
-      ?https
-      ~service
-      ?hostname
-      ?port
-      ?fragment
-      ?keep_nl_params
-      ?nl_params
-      ?keep_get_na_params
-      ?progress
-      ?upload_progress
-      ?override_mime_type
-      get_params
-      post_params
-  =
+let raw_call_service ?absolute ?absolute_path ?https ~service ?hostname ?port
+    ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params ?progress
+    ?upload_progress ?override_mime_type get_params post_params =
   (* with_credentials = true is necessary for client side apps when
      we want the Eliom server to be different from the server for
      static files (if any). For example when testing a mobile app
@@ -1196,23 +1238,9 @@ let raw_call_service
   | None -> Lwt.fail (Eliom_request.Failed_request 204)
   | Some content -> Lwt.return (uri, content)
 
-let call_service
-      ?absolute
-      ?absolute_path
-      ?https
-      ~service
-      ?hostname
-      ?port
-      ?fragment
-      ?keep_nl_params
-      ?nl_params
-      ?keep_get_na_params
-      ?progress
-      ?upload_progress
-      ?override_mime_type
-      get_params
-      post_params
-  =
+let call_service ?absolute ?absolute_path ?https ~service ?hostname ?port
+    ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params ?progress
+    ?upload_progress ?override_mime_type get_params post_params =
   let* _, content =
     raw_call_service ?absolute ?absolute_path ?https ~service ?hostname ?port
       ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params ?progress
@@ -1222,22 +1250,9 @@ let call_service
 
 (* == Leave an application. *)
 
-let exit_to
-      ?window_name
-      ?window_features
-      ?absolute
-      ?absolute_path
-      ?https
-      ~service
-      ?hostname
-      ?port
-      ?fragment
-      ?keep_nl_params
-      ?nl_params
-      ?keep_get_na_params
-      get_params
-      post_params
-  =
+let exit_to ?window_name ?window_features ?absolute ?absolute_path ?https
+    ~service ?hostname ?port ?fragment ?keep_nl_params ?nl_params
+    ?keep_get_na_params get_params post_params =
   match
     create_request_ ?absolute ?absolute_path ?https ~service ?hostname ?port
       ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params get_params
@@ -1252,28 +1267,17 @@ let exit_to
   | `Delete (uri, _, post_params) ->
       Eliom_request.redirect_delete ?window_name uri post_params
 
-let window_open
-      ~window_name
-      ?window_features
-      ?absolute
-      ?absolute_path
-      ?https
-      ~service
-      ?hostname
-      ?port
-      ?fragment
-      ?keep_nl_params
-      ?nl_params
-      ?keep_get_na_params
-      get_params
-  =
+let window_open ~window_name ?window_features ?absolute ?absolute_path ?https
+    ~service ?hostname ?port ?fragment ?keep_nl_params ?nl_params
+    ?keep_get_na_params get_params =
   match
     create_request_ ?absolute ?absolute_path ?https ~service ?hostname ?port
       ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params get_params ()
   with
   | `Get (uri, _) ->
       Dom_html.window##(open_ (Js.string uri) window_name
-                          (Js.Opt.option window_features))
+                          (Js.Opt.option window_features)
+                       )
   | `Post (_, _, _) -> assert false
   | `Put (_, _, _) -> assert false
   | `Delete (_, _, _) -> assert false
@@ -1290,23 +1294,9 @@ let unwrap_caml_content content =
   in
   Lwt.return (r.Eliom_runtime.ecs_data, r.Eliom_runtime.ecs_request_data)
 
-let call_ocaml_service
-      ?absolute
-      ?absolute_path
-      ?https
-      ~service
-      ?hostname
-      ?port
-      ?fragment
-      ?keep_nl_params
-      ?nl_params
-      ?keep_get_na_params
-      ?progress
-      ?upload_progress
-      ?override_mime_type
-      get_params
-      post_params
-  =
+let call_ocaml_service ?absolute ?absolute_path ?https ~service ?hostname ?port
+    ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params ?progress
+    ?upload_progress ?override_mime_type get_params post_params =
   Logs.debug ~src:section (fun fmt -> fmt "Call OCaml service");
   let* _, content =
     raw_call_service ?absolute ?absolute_path ?https ~service ?hostname ?port
@@ -1344,7 +1334,8 @@ let path_and_args_of_uri uri =
     | Some n ->
         ( path_of_string String.(sub uri 0 n)
         , Url.decode_arguments String.(sub uri (n + 1) (length uri - n - 1)) )
-    | None -> path_of_string uri, [])
+    | None -> path_of_string uri, []
+  )
 
 let set_current_uri, get_current_uri =
   let set_current_uri uri =
@@ -1353,7 +1344,8 @@ let set_current_uri, get_current_uri =
     let path, all_get_params = path_and_args_of_uri current_uri in
     Lwt.async @@ fun () ->
     Eliom_request_info.update_session_info ~path ~all_get_params
-      ~all_post_params:None (fun () -> Lwt.return_unit)
+      ~all_post_params:None (fun () -> Lwt.return_unit
+    )
   in
   let get_current_uri () = (get_this_page ()).url in
   set_current_uri, get_current_uri
@@ -1384,7 +1376,8 @@ let push_history_dom () =
       else Dom_html.document##.documentElement
     in
     page.dom <- Some dom;
-    History.garbage_collect_doms ())
+    History.garbage_collect_doms ()
+  )
 
 module Page_status = struct
   include Page_status_t
@@ -1423,7 +1416,8 @@ module Page_status = struct
     if now && React.S.value (signal ()) = Active
     then (
       action ();
-      if not once then on_event ())
+      if not once then on_event ()
+    )
     else on_event ()
 
   let oncached ?(once = false) ?stop action =
@@ -1455,7 +1449,8 @@ let stash_reload_function f =
   let state_id = page.page_id in
   let id = state_id.state_index in
   Logs.debug ~src:section_page (fun fmt ->
-    fmt "Update reload function for page %d" id);
+    fmt "Update reload function for page %d" id
+  );
   page.reload_function <- Some f
 
 let change_url_string ~replace uri =
@@ -1471,46 +1466,45 @@ let change_url_string ~replace uri =
       Dom_html.window##.history##replaceState
         (Js.Opt.return
            (Js.string
-              (to_json ~typ:[%json: saved_state] (this_page.page_id, full_uri))))
+              (to_json ~typ:[%json: saved_state] (this_page.page_id, full_uri))
+           )
+        )
         (Js.string "")
-        (if !Eliom_common.is_client_app
-         then Js.null
-         else Js.Opt.return (Js.string uri)))
+        ( if !Eliom_common.is_client_app
+          then Js.null
+          else Js.Opt.return (Js.string uri)
+        )
+    )
     else (
       update_state ();
       Opt.iter stash_reload_function !reload_function;
       Dom_html.window##.history##pushState
         (Js.Opt.return
            (Js.string
-              (to_json ~typ:[%json: saved_state] (this_page.page_id, full_uri))))
+              (to_json ~typ:[%json: saved_state] (this_page.page_id, full_uri))
+           )
+        )
         (Js.string "")
-        (if !Eliom_common.is_client_app
-         then Js.null
-         else Js.Opt.return (Js.string uri)));
-    Eliommod_dom.touch_base ())
+        ( if !Eliom_common.is_client_app
+          then Js.null
+          else Js.Opt.return (Js.string uri)
+        )
+    );
+    Eliommod_dom.touch_base ()
+  )
   else (
     current_pseudo_fragment := url_fragment_prefix_with_sharp ^ uri;
     if uri <> fst (Url.split_fragment Url.Current.as_string)
     then
-      Dom_html.window##.location##.hash := Js.string (url_fragment_prefix ^ uri))
+      Dom_html.window##.location##.hash := Js.string (url_fragment_prefix ^ uri)
+  )
 
 (* == Function [change_url] changes the URL, without doing a request.
    It takes a GET (co-)service as parameter and its parameters.
 *)
 
-let change_url
-      ?(replace = false)
-      ?absolute
-      ?absolute_path
-      ?https
-      ~service
-      ?hostname
-      ?port
-      ?fragment
-      ?keep_nl_params
-      ?nl_params
-      params
-  =
+let change_url ?(replace = false) ?absolute ?absolute_path ?https ~service
+    ?hostname ?port ?fragment ?keep_nl_params ?nl_params params =
   Logs.debug ~src:section_page (fun fmt -> fmt "Change url");
   (reload_function :=
      match Eliom_service.xhr_with_cookies service with
@@ -1523,17 +1517,21 @@ let change_url
      | _ -> (
        match Eliom_service.reload_fun service with
        | Some rf -> Some (fun () () -> rf params ())
-       | None -> None));
+       | None -> None
+     )
+  );
   change_url_string ~replace
     (Eliom_uri.make_string_uri ?absolute ?absolute_path ?https ~service
-       ?hostname ?port ?fragment ?keep_nl_params ?nl_params params)
+       ?hostname ?port ?fragment ?keep_nl_params ?nl_params params
+    )
 
 let set_template_content ~replace ~uri ?fragment =
   let really_set content () =
     reload_function := None;
-    (match fragment with
+    ( match fragment with
     | None -> change_url_string ~replace uri
-    | Some fragment -> change_url_string ~replace (uri ^ "#" ^ fragment));
+    | Some fragment -> change_url_string ~replace (uri ^ "#" ^ fragment)
+    );
     let* () = Lwt_mutex.lock Eliom_client_core.load_mutex in
     let* (), request_data = unwrap_caml_content content in
     do_request_data request_data;
@@ -1544,8 +1542,8 @@ let set_template_content ~replace ~uri ?fragment =
     Lwt.return_unit
   and cancel () = Lwt.return_unit in
   function
-  | None -> Lwt.return_unit
-  | Some content -> run_onunload_wrapper (really_set content) cancel
+    | None -> Lwt.return_unit
+    | Some content -> run_onunload_wrapper (really_set content) cancel
 
 let set_uri ~replace ?fragment uri =
   (* Changing url: *)
@@ -1562,14 +1560,16 @@ let replace_page ~do_insert_base new_page =
     Js.Opt.iter new_body (fun new_body ->
       Dom.replaceChild
         Dom_html.document##.documentElement
-        new_body Dom_html.document##.body)
+        new_body Dom_html.document##.body
+    )
   else (
     (* We insert <base> in the page.
        The URLs of all other pages will be computed w.r.t.
        the base URL. *)
     if do_insert_base then insert_base new_page;
     Dom.replaceChild Dom_html.document new_page
-      Dom_html.document##.documentElement);
+      Dom_html.document##.documentElement
+  );
   if !Eliom_config.debug_timings
   then Console.console##(timeEnd (Js.string "replace_page"))
 
@@ -1602,7 +1602,8 @@ let set_content_local ?offset ?fragment new_page =
     locked := false;
     Lwt_mutex.unlock Eliom_client_core.load_mutex;
     (* run callbacks upon page activation (or now), but just once *)
-    Page_status.onactive ~once:true (fun () -> run_callbacks load_callbacks);
+    Page_status.onactive ~once:true (fun () -> run_callbacks load_callbacks
+    );
     scroll_to_fragment ?offset fragment;
     advance_page ();
     if !Eliom_config.debug_timings
@@ -1612,16 +1613,19 @@ let set_content_local ?offset ?fragment new_page =
   let cancel () = recover (); Lwt.return_unit in
   Lwt.catch
     (fun () ->
-       let* () = Lwt_mutex.lock Eliom_client_core.load_mutex in
-       Eliom_client_core.set_loading_phase ();
-       if !Eliom_config.debug_timings
-       then Console.console##(time (Js.string "set_content_local"));
-       run_onunload_wrapper really_set cancel)
+      let* () = Lwt_mutex.lock Eliom_client_core.load_mutex in
+      Eliom_client_core.set_loading_phase ();
+      if !Eliom_config.debug_timings
+      then Console.console##(time (Js.string "set_content_local"));
+      run_onunload_wrapper really_set cancel
+    )
     (fun exn ->
-       recover ();
-       Logs.debug ~src:section (fun fmt ->
-         fmt ("set_content_local" ^^ "@\n%s") (Printexc.to_string exn));
-       Lwt.fail exn)
+      recover ();
+      Logs.debug ~src:section (fun fmt ->
+        fmt ("set_content_local" ^^ "@\n%s") (Printexc.to_string exn)
+      );
+      Lwt.fail exn
+    )
 
 (* Function to be called for server side services: *)
 let set_content ~replace ~uri ?offset ?fragment content =
@@ -1634,7 +1638,8 @@ let set_content ~replace ~uri ?offset ?fragment content =
       ; origin_uri = get_current_uri ()
       ; target_uri
       ; origin_id = !active_page.page_id.state_index
-      ; target_id = None }
+      ; target_id = None
+      }
       (flush_onchangepage ())
   in
   match content with
@@ -1725,17 +1730,20 @@ let set_content ~replace ~uri ?offset ?fragment content =
       in
       Lwt.catch
         (fun () ->
-           let* () = Lwt_mutex.lock Eliom_client_core.load_mutex in
-           Eliom_client_core.set_loading_phase ();
-           if !Eliom_config.debug_timings
-           then Console.console##(time (Js.string "set_content"));
-           let g () = recover (); Lwt.return_unit in
-           run_onunload_wrapper really_set g)
+          let* () = Lwt_mutex.lock Eliom_client_core.load_mutex in
+          Eliom_client_core.set_loading_phase ();
+          if !Eliom_config.debug_timings
+          then Console.console##(time (Js.string "set_content"));
+          let g () = recover (); Lwt.return_unit in
+          run_onunload_wrapper really_set g
+        )
         (fun exn ->
-           recover ();
-           Logs.debug ~src:section (fun fmt ->
-             fmt ("set_content" ^^ "@\n%s") (Printexc.to_string exn));
-           Lwt.fail exn)
+          recover ();
+          Logs.debug ~src:section (fun fmt ->
+            fmt ("set_content" ^^ "@\n%s") (Printexc.to_string exn)
+          );
+          Lwt.fail exn
+        )
 
 let ocamlify_params =
   List.map (function v, `String s -> v, Js.to_string s | _, _ -> assert false)
@@ -1772,7 +1780,8 @@ let route ({Eliom_route.i_subpath; i_get_params; i_post_params; _} as info) =
     Eliom_route.call_service
       { info with
         Eliom_route.i_get_params =
-          Eliom_common.(remove_prefixed_param nl_param_prefix) i_get_params }
+          Eliom_common.(remove_prefixed_param nl_param_prefix) i_get_params
+      }
   in
   Lwt.return (uri, result)
 
@@ -1798,7 +1807,8 @@ let string_of_result result =
 let rec handle_result ~replace ~uri result =
   let* result = result in
   Logs.debug ~src:section_page (fun fmt ->
-    fmt "%s" ("handle_result: result is " ^ string_of_result result));
+    fmt "%s" ("handle_result: result is " ^ string_of_result result)
+  );
   match result with
   | Eliom_service.No_contents -> Lwt.return_unit
   | Dom d ->
@@ -1818,23 +1828,24 @@ let rec handle_result ~replace ~uri result =
         reload ~replace ~uri ~fallback:Eliom_service.reload_action_hidden
     | true, true ->
         switch_to_https ();
-        reload ~replace ~uri ~fallback:Eliom_service.reload_action_https_hidden)
+        reload ~replace ~uri ~fallback:Eliom_service.reload_action_https_hidden
+  )
 
 (* == Main (exported) function: change the content of the page without
    leaving the javascript application. See [change_page_uri] for the
    function used to change page when clicking a link and
    [change_page_{get,post}_form] when submiting a form. *)
 and change_page :
-  'get 'post 'meth 'attached 'co 'ext 'reg 'tipo 'gn 'pn.
-  ?ignore_client_fun:bool
-  -> ?replace:bool
-  -> ?window_name:string
-  -> ?window_features:string
-  -> ?absolute:bool
-  -> ?absolute_path:bool
-  -> ?https:bool
-  -> service:
-       ( 'get
+    'get 'post 'meth 'attached 'co 'ext 'reg 'tipo 'gn 'pn.
+       ?ignore_client_fun:bool
+    -> ?replace:bool
+    -> ?window_name:string
+    -> ?window_features:string
+    -> ?absolute:bool
+    -> ?absolute_path:bool
+    -> ?https:bool
+    -> service:
+         ( 'get
          , 'post
          , 'meth
          , 'attached
@@ -1844,161 +1855,151 @@ and change_page :
          , 'tipo
          , 'gn
          , 'pn
-         , Eliom_service.non_ocaml )
+         , Eliom_service.non_ocaml
+         )
          Eliom_service.t
-  -> ?hostname:string
-  -> ?port:int
-  -> ?fragment:string
-  -> ?keep_nl_params:[`All | `None | `Persistent]
-  -> ?nl_params:Eliom_parameter.nl_params_set
-  -> ?keep_get_na_params:bool
-  -> ?progress:(int -> int -> unit)
-  -> ?upload_progress:(int -> int -> unit)
-  -> ?override_mime_type:string
-  -> 'get
-  -> 'post
-  -> unit Lwt.t
-  =
- fun (type m)
-   ?(ignore_client_fun = false)
-   ?(replace = false)
-   ?window_name
-   ?window_features
-   ?absolute
-   ?absolute_path
-   ?https
-   ~(service : (_, _, m, _, _, _, _, _, _, _, _) Eliom_service.t)
-   ?hostname
-   ?port
-   ?fragment
-   ?keep_nl_params
-   ?(nl_params = Eliom_parameter.empty_nl_params_set)
-   ?keep_get_na_params
-   ?progress
-   ?upload_progress
-   ?override_mime_type
-   get_params
-   post_params ->
-  Logs.debug ~src:section_page (fun fmt -> fmt "Change page");
-  let xhr = Eliom_service.xhr_with_cookies service in
-  if
-    xhr = None
-    || (https = Some true && not Eliom_request_info.ssl_)
-    || (https = Some false && Eliom_request_info.ssl_)
-    || (window_name <> None && window_name <> Some "_self")
-  then
-    let () =
-      Logs.debug ~src:section_page (fun fmt -> fmt "change page: xhr is None")
-    in
-    Lwt.return
-      (exit_to ?window_name ?window_features ?absolute ?absolute_path ?https
-         ~service ?hostname ?port ?fragment ?keep_nl_params ~nl_params
-         ?keep_get_na_params get_params post_params)
-  else
-    with_progress_cursor
-      (match xhr with
-      | Some (Some tmpl as t)
-        when t = Eliom_request_info.get_request_template () ->
-          Logs.debug ~src:section_page (fun fmt ->
-            fmt "change page: xhr is Some of get request template");
-          let nl_params =
-            Eliom_parameter.add_nl_parameter nl_params Eliom_request.nl_template
-              tmpl
-          in
-          let* uri, content =
-            raw_call_service ?absolute ?absolute_path ?https ~service ?hostname
-              ?port ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
-              ?progress ?upload_progress ?override_mime_type get_params
-              post_params
-          in
-          set_template_content ~replace ~uri ?fragment (Some content)
-      | _ -> (
-        match Eliom_service.client_fun service with
-        | Some f when not ignore_client_fun ->
-            Logs.debug ~src:section_page (fun fmt ->
-              fmt
-                "change page: client_fun service is Some and (not ignore_client_fun)");
-            (* The service has a client side implementation.
+    -> ?hostname:string
+    -> ?port:int
+    -> ?fragment:string
+    -> ?keep_nl_params:[`All | `None | `Persistent]
+    -> ?nl_params:Eliom_parameter.nl_params_set
+    -> ?keep_get_na_params:bool
+    -> ?progress:(int -> int -> unit)
+    -> ?upload_progress:(int -> int -> unit)
+    -> ?override_mime_type:string
+    -> 'get
+    -> 'post
+    -> unit Lwt.t =
+ fun (type m) ?(ignore_client_fun = false) ?(replace = false) ?window_name
+     ?window_features ?absolute ?absolute_path ?https
+     ~(service : (_, _, m, _, _, _, _, _, _, _, _) Eliom_service.t) ?hostname
+     ?port ?fragment ?keep_nl_params
+     ?(nl_params = Eliom_parameter.empty_nl_params_set) ?keep_get_na_params
+     ?progress ?upload_progress ?override_mime_type get_params post_params ->
+   Logs.debug ~src:section_page (fun fmt -> fmt "Change page");
+   let xhr = Eliom_service.xhr_with_cookies service in
+   if
+     xhr = None
+     || (https = Some true && not Eliom_request_info.ssl_)
+     || (https = Some false && Eliom_request_info.ssl_)
+     || (window_name <> None && window_name <> Some "_self")
+   then
+     let () =
+       Logs.debug ~src:section_page (fun fmt -> fmt "change page: xhr is None")
+     in
+     Lwt.return
+       (exit_to ?window_name ?window_features ?absolute ?absolute_path ?https
+          ~service ?hostname ?port ?fragment ?keep_nl_params ~nl_params
+          ?keep_get_na_params get_params post_params
+       )
+   else
+     with_progress_cursor
+       ( match xhr with
+       | Some (Some tmpl as t)
+         when t = Eliom_request_info.get_request_template () ->
+           Logs.debug ~src:section_page (fun fmt ->
+             fmt "change page: xhr is Some of get request template"
+           );
+           let nl_params =
+             Eliom_parameter.add_nl_parameter nl_params
+               Eliom_request.nl_template tmpl
+           in
+           let* uri, content =
+             raw_call_service ?absolute ?absolute_path ?https ~service ?hostname
+               ?port ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
+               ?progress ?upload_progress ?override_mime_type get_params
+               post_params
+           in
+           set_template_content ~replace ~uri ?fragment (Some content)
+       | _ -> (
+         match Eliom_service.client_fun service with
+         | Some f when not ignore_client_fun ->
+             Logs.debug ~src:section_page (fun fmt ->
+               fmt
+                 "change page: client_fun service is Some and (not ignore_client_fun)"
+             );
+             (* The service has a client side implementation.
               We do not make the request *)
-            (* I record the function to be used for void coservices: *)
-            Eliom_lib.Option.iter
-              (fun rf -> reload_function := Some (fun () -> rf get_params))
-              (Eliom_service.reload_fun service);
-            let uri, l, l' =
-              match
-                create_request_ ~absolute:true ?absolute_path ?https ~service
-                  ?hostname ?port ?fragment ?keep_nl_params ~nl_params
-                  ?keep_get_na_params get_params post_params
-              with
-              | `Get (uri, l) -> uri, l, None
-              | `Post (uri, l, l') | `Put (uri, l, l') | `Delete (uri, l, l') ->
-                  uri, l, Some (ocamlify_params l')
-            in
-            let l = ocamlify_params l in
-            Eliom_request_info.update_session_info
-              ~path:(Url.path_of_url_string uri)
-              ~all_get_params:l ~all_post_params:l'
-            @@ fun () ->
-            let* () =
-              run_lwt_callbacks
-                { in_cache = is_in_cache !active_page.page_id
-                ; origin_uri = get_current_uri ()
-                ; target_uri = uri
-                ; origin_id = !active_page.page_id.state_index
-                ; target_id = None }
-                (flush_onchangepage ())
-            in
-            with_new_page ~replace () @@ fun () ->
-            handle_result ~replace ~uri (f get_params post_params)
-        | None when is_client_app () ->
-            Logs.debug ~src:section_page (fun fmt ->
-              fmt "change page: client_fun service is None and is_client_app");
-            Lwt.return
-            @@ exit_to ?absolute ?absolute_path ?https ~service ?hostname ?port
-                 ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
-                 get_params post_params
-        | _ ->
-            Logs.debug ~src:section_page (fun fmt ->
-              fmt "change page: client_fun service is anything else");
-            if is_client_app ()
-            then
-              failwith
-                (Printf.sprintf "change page: no client-side service (%b)"
-                   ignore_client_fun);
-            (* No client-side implementation *)
-            with_new_page ~replace () @@ fun () ->
-            reload_function := None;
-            let cookies_info = Eliom_uri.make_cookies_info (https, service) in
-            let* uri, content =
-              match
-                create_request_ ?absolute ?absolute_path ?https ~service
-                  ?hostname ?port ?fragment ?keep_nl_params ~nl_params
-                  ?keep_get_na_params get_params post_params
-              with
-              | `Get (uri, _) ->
-                  Eliom_request.http_get ~expecting_process_page:true
-                    ?cookies_info uri [] Eliom_request.xml_result
-              | `Post (uri, _, p) ->
-                  Eliom_request.http_post ~expecting_process_page:true
-                    ?cookies_info uri p Eliom_request.xml_result
-              | `Put (uri, _, p) ->
-                  Eliom_request.http_put ~expecting_process_page:true
-                    ?cookies_info uri p Eliom_request.xml_result
-              | `Delete (uri, _, p) ->
-                  Eliom_request.http_delete ~expecting_process_page:true
-                    ?cookies_info uri p Eliom_request.xml_result
-            in
-            let uri, fragment = Url.split_fragment uri in
-            set_content ~replace ~uri ?fragment content))
+             (* I record the function to be used for void coservices: *)
+             Eliom_lib.Option.iter
+               (fun rf -> reload_function := Some (fun () -> rf get_params))
+               (Eliom_service.reload_fun service);
+             let uri, l, l' =
+               match
+                 create_request_ ~absolute:true ?absolute_path ?https ~service
+                   ?hostname ?port ?fragment ?keep_nl_params ~nl_params
+                   ?keep_get_na_params get_params post_params
+               with
+               | `Get (uri, l) -> uri, l, None
+               | `Post (uri, l, l') | `Put (uri, l, l') | `Delete (uri, l, l')
+                 ->
+                   uri, l, Some (ocamlify_params l')
+             in
+             let l = ocamlify_params l in
+             Eliom_request_info.update_session_info
+               ~path:(Url.path_of_url_string uri)
+               ~all_get_params:l ~all_post_params:l'
+             @@ fun () ->
+             let* () =
+               run_lwt_callbacks
+                 { in_cache = is_in_cache !active_page.page_id
+                 ; origin_uri = get_current_uri ()
+                 ; target_uri = uri
+                 ; origin_id = !active_page.page_id.state_index
+                 ; target_id = None
+                 }
+                 (flush_onchangepage ())
+             in
+             with_new_page ~replace () @@ fun () ->
+             handle_result ~replace ~uri (f get_params post_params)
+         | None when is_client_app () ->
+             Logs.debug ~src:section_page (fun fmt ->
+               fmt "change page: client_fun service is None and is_client_app"
+             );
+             Lwt.return
+             @@ exit_to ?absolute ?absolute_path ?https ~service ?hostname ?port
+                  ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
+                  get_params post_params
+         | _ ->
+             Logs.debug ~src:section_page (fun fmt ->
+               fmt "change page: client_fun service is anything else"
+             );
+             if is_client_app ()
+             then
+               failwith
+                 (Printf.sprintf "change page: no client-side service (%b)"
+                    ignore_client_fun
+                 );
+             (* No client-side implementation *)
+             with_new_page ~replace () @@ fun () ->
+             reload_function := None;
+             let cookies_info = Eliom_uri.make_cookies_info (https, service) in
+             let* uri, content =
+               match
+                 create_request_ ?absolute ?absolute_path ?https ~service
+                   ?hostname ?port ?fragment ?keep_nl_params ~nl_params
+                   ?keep_get_na_params get_params post_params
+               with
+               | `Get (uri, _) ->
+                   Eliom_request.http_get ~expecting_process_page:true
+                     ?cookies_info uri [] Eliom_request.xml_result
+               | `Post (uri, _, p) ->
+                   Eliom_request.http_post ~expecting_process_page:true
+                     ?cookies_info uri p Eliom_request.xml_result
+               | `Put (uri, _, p) ->
+                   Eliom_request.http_put ~expecting_process_page:true
+                     ?cookies_info uri p Eliom_request.xml_result
+               | `Delete (uri, _, p) ->
+                   Eliom_request.http_delete ~expecting_process_page:true
+                     ?cookies_info uri p Eliom_request.xml_result
+             in
+             let uri, fragment = Url.split_fragment uri in
+             set_content ~replace ~uri ?fragment content
+       )
+       )
 
-and change_page_unknown
-      ?meth
-      ?hostname:_
-      ?(replace = false)
-      i_subpath
-      i_get_params
-      i_post_params
-  =
+and change_page_unknown ?meth ?hostname:_ ?(replace = false) i_subpath
+    i_get_params i_post_params =
   Logs.debug ~src:section_page (fun fmt -> fmt "Change page unknown");
   let i_sess_info = Eliom_request_info.get_sess_info ()
   and i_meth =
@@ -2021,7 +2022,8 @@ and reload ~replace ~uri ~fallback =
   Lwt.catch
     (fun () -> change_page_unknown ~replace path args [])
     (fun _ ->
-       change_page ~replace ~ignore_client_fun:true ~service:fallback () ())
+      change_page ~replace ~ignore_client_fun:true ~service:fallback () ()
+    )
 
 and reload_without_na_params ~replace ~uri ~fallback =
   let path, args = path_and_args_of_uri uri in
@@ -2030,7 +2032,8 @@ and reload_without_na_params ~replace ~uri ~fallback =
   Lwt.catch
     (fun () -> change_page_unknown ~replace path args [])
     (fun _ ->
-       change_page ~replace ~ignore_client_fun:true ~service:fallback () ())
+      change_page ~replace ~ignore_client_fun:true ~service:fallback () ()
+    )
 
 (* Function used in "onclick" event handler of <a>.  *)
 let change_page_uri_a ?cookies_info ?tmpl ?(get_params = []) full_uri =
@@ -2054,31 +2057,39 @@ let change_page_uri_a ?cookies_info ?tmpl ?(get_params = []) full_uri =
              Eliom_request.http_get ~expecting_process_page:true ?cookies_info
                uri get_params Eliom_request.xml_result
            in
-           set_content ~replace:false ~uri ?fragment content)
+           set_content ~replace:false ~uri ?fragment content
+     )
      else (
        change_url_string ~replace:true full_uri;
        scroll_to_fragment fragment;
-       Lwt.return_unit))
+       Lwt.return_unit
+     )
+    )
 
 let change_page_uri ?replace full_uri =
   Logs.debug ~src:section_page (fun fmt -> fmt "Change page uri");
   Lwt.catch
     (fun () ->
-       match Url.url_of_string full_uri with
-       | Some (Url.Http url | Url.Https url) ->
-           Logs.debug ~src:section_page (fun fmt ->
-             fmt "change page uri: url is http or https");
-           change_page_unknown ?replace url.Url.hu_path url.Url.hu_arguments []
-       | _ -> failwith "invalid url")
+      match Url.url_of_string full_uri with
+      | Some (Url.Http url | Url.Https url) ->
+          Logs.debug ~src:section_page (fun fmt ->
+            fmt "change page uri: url is http or https"
+          );
+          change_page_unknown ?replace url.Url.hu_path url.Url.hu_arguments []
+      | _ -> failwith "invalid url"
+    )
     (fun _ ->
-       if is_client_app ()
-       then
-         failwith
-           (Printf.sprintf "Change page uri: can't find service for %s" full_uri)
-       else (
-         Logs.debug ~src:section (fun fmt ->
-           fmt "Change page uri: resort to server");
-         change_page_uri_a full_uri))
+      if is_client_app ()
+      then
+        failwith
+          (Printf.sprintf "Change page uri: can't find service for %s" full_uri)
+      else (
+        Logs.debug ~src:section (fun fmt ->
+          fmt "Change page uri: resort to server"
+        );
+        change_page_uri_a full_uri
+      )
+    )
 
 (* Functions used in "onsubmit" event handler of <form>.  *)
 
@@ -2099,7 +2110,8 @@ let change_page_get_form ?cookies_info ?tmpl form full_uri =
            Eliom_request.send_get_form ~expecting_process_page:true
              ?cookies_info form uri Eliom_request.xml_result
          in
-         set_content ~replace:false ~uri ?fragment content)
+         set_content ~replace:false ~uri ?fragment content
+    )
 
 let change_page_post_form ?cookies_info ?tmpl form full_uri =
   with_progress_cursor
@@ -2118,15 +2130,18 @@ let change_page_post_form ?cookies_info ?tmpl form full_uri =
            Eliom_request.send_post_form ~expecting_process_page:true
              ?cookies_info form uri Eliom_request.xml_result
          in
-         set_content ~replace:false ~uri ?fragment content)
+         set_content ~replace:false ~uri ?fragment content
+    )
 
 let _ =
   (Eliom_client_core.change_page_uri_ :=
      fun ?cookies_info ?tmpl href ->
-       Lwt.ignore_result (change_page_uri_a ?cookies_info ?tmpl href));
+       Lwt.ignore_result (change_page_uri_a ?cookies_info ?tmpl href)
+  );
   (Eliom_client_core.change_page_get_form_ :=
      fun ?cookies_info ?tmpl form href ->
-       Lwt.ignore_result (change_page_get_form ?cookies_info ?tmpl form href));
+       Lwt.ignore_result (change_page_get_form ?cookies_info ?tmpl form href)
+  );
   Eliom_client_core.change_page_post_form_ :=
     fun ?cookies_info ?tmpl form href ->
       Lwt.ignore_result (change_page_post_form ?cookies_info ?tmpl form href)
@@ -2141,7 +2156,7 @@ let _ =
 let restore_history_dom id =
   match History.find_by_state_index id with
   | Some page ->
-      (match page.dom with
+      ( match page.dom with
       | Some dom ->
           if !only_replace_body
           then
@@ -2151,7 +2166,8 @@ let restore_history_dom id =
           else
             Dom.replaceChild Dom_html.document dom
               Dom_html.document##.documentElement
-      | None -> Logs.err ~src:section (fun fmt -> fmt "DOM not actually cached"));
+      | None -> Logs.err ~src:section (fun fmt -> fmt "DOM not actually cached")
+      );
       set_active_page page
   | _ -> Logs.err ~src:section (fun fmt -> fmt "cannot find DOM in history")
 
@@ -2167,7 +2183,8 @@ let () =
           failwith
             (Printf.sprintf
                "revisit: state id %x/%x not found in sessionStorage (%s)"
-               state_id.session_id state_id.state_index full_uri)
+               state_id.session_id state_id.state_index full_uri
+            )
       in
       let target_id = state_id.state_index in
       let ev =
@@ -2175,7 +2192,8 @@ let () =
         ; origin_uri = get_current_uri ()
         ; target_uri = full_uri
         ; origin_id = !active_page.page_id.state_index
-        ; target_id = Some target_id }
+        ; target_id = Some target_id
+        }
       in
       let tmpl = state.template in
       Lwt.ignore_result @@ with_progress_cursor
@@ -2184,15 +2202,18 @@ let () =
       if uri = get_current_uri ()
       then (
         Logs.debug ~src:section_page (fun fmt ->
-          fmt "revisit: uri = get_current_uri");
+          fmt "revisit: uri = get_current_uri"
+        );
         !active_page.page_id <- state_id;
         scroll_to_fragment ~offset:state.position fragment;
-        Lwt.return_unit)
+        Lwt.return_unit
+      )
       else
         try
           (* serve cached page from the from history_doms *)
           Logs.debug ~src:section_page (fun fmt ->
-            fmt "revisit: uri != get_current_uri");
+            fmt "revisit: uri != get_current_uri"
+          );
           if not (is_in_cache state_id) then raise Not_found;
           let* () = run_lwt_callbacks ev (flush_onchangepage ()) in
           restore_history_dom target_id;
@@ -2217,12 +2238,14 @@ let () =
             failwith
               (Printf.sprintf
                  "revisit: session changed on client: %d => %d (%s)"
-                 state_id.session_id session_id full_uri);
+                 state_id.session_id session_id full_uri
+              );
           try
             (* same session *)
             if session_changed then raise Not_found;
             Logs.debug ~src:section_page (fun fmt ->
-              fmt "revisit: session has not changed");
+              fmt "revisit: session has not changed"
+            );
             let old_page = History.find_by_state_index state_id.state_index in
             let rf =
               Option.bind old_page @@ fun {reload_function = rf; _} -> rf
@@ -2240,7 +2263,8 @@ let () =
                     | Eliom_service.Dom d -> set_content_local d
                     | r ->
                         handle_result ~uri:(get_current_uri ()) ~replace:true
-                          (Lwt.return r))
+                          (Lwt.return r)
+                    )
                 in
                 scroll_to_fragment ~offset:state.position fragment;
                 Lwt.return_unit
@@ -2251,7 +2275,8 @@ let () =
             | Some t when tmpl = Eliom_request_info.get_request_template () ->
                 Logs.debug ~src:section_page (fun fmt ->
                   fmt
-                    "revisit: template is Some and equals to get_request_template");
+                    "revisit: template is Some and equals to get_request_template"
+                );
                 let* uri, content =
                   Eliom_request.http_get uri
                     [Eliom_request.nl_template_string, t]
@@ -2266,9 +2291,11 @@ let () =
                   failwith
                     (Printf.sprintf
                        "revisit: could not generate page client-side (%s)"
-                       full_uri);
+                       full_uri
+                    );
                 Logs.debug ~src:section_page (fun fmt ->
-                  fmt "revisit: template is anything else");
+                  fmt "revisit: template is anything else"
+                );
                 with_new_page
                   ?state_id:(if session_changed then None else Some state_id)
                   ~replace:false ()
@@ -2281,7 +2308,9 @@ let () =
                   set_content ~uri ~replace:true ~offset:state.position
                     ?fragment content
                 in
-                Lwt.return_unit))
+                Lwt.return_unit
+          )
+        )
     in
     let revisit_wrapper full_uri state_id =
       Logs.debug ~src:section_page (fun fmt -> fmt "revisit_wrapper");
@@ -2294,7 +2323,8 @@ let () =
     Lwt.ignore_result
       (let* () = wait_load_end () in
        Logs.debug ~src:section_page (fun fmt ->
-         fmt "revisit_wrapper: replaceState");
+         fmt "revisit_wrapper: replaceState"
+       );
        Dom_html.window##.history##(replaceState
                                      (Js.Opt.return
                                         (Js.string
@@ -2302,23 +2332,30 @@ let () =
                                               ( !active_page.page_id
                                               , Js.to_string
                                                   Dom_html.window##.location##.href
-                                              ))))
-                                     (Js.string "") Js.null);
-       Lwt.return_unit);
+                                              )
+                                           )
+                                        )
+                                     )
+                                     (Js.string "") Js.null
+                                  );
+       Lwt.return_unit
+      );
     Dom_html.window##.onpopstate
     := Dom_html.handler (fun event ->
-      Logs.debug ~src:section_page (fun fmt ->
-        fmt "revisit_wrapper: onpopstate");
+      Logs.debug ~src:section_page (fun fmt -> fmt "revisit_wrapper: onpopstate");
       Eliommod_dom.touch_base ();
       Js.Opt.case
         ((Js.Unsafe.coerce event)##.state : _ Js.opt)
         (fun () -> () (* Ignore dummy popstate event fired by chromium. *))
         (fun saved_state ->
-           let state, full_uri =
-             of_json ~typ:[%json: saved_state] (Js.to_string saved_state)
-           in
-           revisit_wrapper full_uri state);
-      Js._false))
+          let state, full_uri =
+            of_json ~typ:[%json: saved_state] (Js.to_string saved_state)
+          in
+          revisit_wrapper full_uri state
+        );
+      Js._false
+    )
+  )
   else (* Without history API *)
     (* FIXME: This should be adapted to work with template...
        Solution: add the "state_id" in the fragment ??
@@ -2340,9 +2377,11 @@ let () =
              in
              Logs.debug ~src:section_page (fun fmt -> fmt "auto_change_page");
              (* CCC TODO handle templates *)
-             change_page_uri uri)
+             change_page_uri uri
+           )
            else Lwt.return_unit
-         else Lwt.return_unit)
+         else Lwt.return_unit
+        )
     in
     Eliommod_dom.onhashchange (fun s -> auto_change_page (Js.to_string s));
     let first_fragment = read_fragment () in
@@ -2351,17 +2390,19 @@ let () =
       Lwt.ignore_result
         (let* () = wait_load_end () in
          auto_change_page first_fragment;
-         Lwt.return_unit)
+         Lwt.return_unit
+        )
 
 let () =
   Eliom_unwrap.register_unwrapper
     (Eliom_unwrap.id_of_int Eliom_common_base.server_function_unwrap_id_int)
     (fun (service, _) ->
-       (* 2013-07-31 I make all RPC's absolute because otherwise
+    (* 2013-07-31 I make all RPC's absolute because otherwise
           it does not work with mobile apps.
           Is it a problem?
           -- Vincent *)
-       call_ocaml_service ~absolute:true ~service ())
+    call_ocaml_service ~absolute:true ~service ()
+  )
 
 let get_application_name = Eliom_process.get_application_name
 let set_client_html_file = Eliom_common.set_client_html_file

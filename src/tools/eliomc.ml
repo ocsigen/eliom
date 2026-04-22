@@ -4,8 +4,7 @@ let force_link_all = ref true
 let link_all () = if !force_link_all then ["-linkall"] else []
 
 let usage () =
-  Printf.eprintf "Usage: %s <options> <files>\n"
-    (Filename.basename Sys.argv.(0));
+  Printf.eprintf "Usage: %s <options> <files>\n" (Filename.basename Sys.argv.(0));
   Printf.eprintf "SPECIFIC OPTIONS:\n";
   Printf.eprintf "  -package <name>\tRefer to package when compiling\n";
   Printf.eprintf
@@ -72,7 +71,8 @@ let rec check_or_create_dir name =
       (* this append sometime with // compilation *)
       | Unix.Unix_error (Unix.EEXIST, _, _) -> ()
       | Unix.Unix_error (_, _, _) ->
-          Printf.eprintf "Unexpected error while creating directory %S" name)
+          Printf.eprintf "Unexpected error while creating directory %S" name
+    )
 
 let prefix_output_dir name =
   match !build_dir with "" -> name | d -> d ^ "/" ^ name
@@ -91,7 +91,8 @@ let output_prefix ?(ty = false) name =
         if !mode = `Compile || !mode = `Infer
         then (
           output_name := None;
-          n)
+          n
+        )
         else prefix_output_dir name
   in
   check_or_create_dir (Filename.dirname name);
@@ -159,13 +160,15 @@ let compile_ocaml ~impl_intf file =
     (["-c"; "-o"; obj] @ !args @ get_thread_opt () @ get_common_include ()
    @ get_common_ppx ()
     @ preprocess_opt ~ocaml:true !ppopt
-    @ [impl_intf_opt impl_intf; file])
+    @ [impl_intf_opt impl_intf; file]
+    )
 
 let output_ocaml_interface file =
   create_process !compiler
     (["-i"] @ !args @ get_common_include () @ get_common_ppx ()
     @ preprocess_opt ~ocaml:true !ppopt
-    @ [file])
+    @ [file]
+    )
 
 let process_ocaml ~impl_intf file =
   if do_compile () then compile_ocaml ~impl_intf file;
@@ -175,7 +178,8 @@ let compile_obj file =
   if do_compile ()
   then (
     create_process !compiler (!args @ [file]);
-    args := !args @ [output_prefix file ^ ext_obj])
+    args := !args @ [output_prefix file ^ ext_obj]
+  )
 
 (* Process eliom and eliomi files *)
 
@@ -207,7 +211,8 @@ let run_sed file =
   run_command ("sed -i -e 's/_\\[\\([<>]\\)/[\\1/g' " ^ file);
   run_command
     (Printf.sprintf "sed -i -e \"s/'\\(_[a-z0-9_]*\\)/'%s\\1/g\" %s"
-       inferred_type_prefix file);
+       inferred_type_prefix file
+    );
   (* For some sed implementations, [-e] is interpreted as an argument
      to [-i], resulting in copy of the original file named [file ^
      "-e"]. If we find such a file, remove it. Slightly less messy
@@ -224,7 +229,8 @@ let compile_server_type_eliom file =
       get_pp_dump [] (("-printer" :: "o" :: ppopts) @ [file])
     in
     create_process camlp4 ppopt;
-    exit 0);
+    exit 0
+  );
   let out =
     Unix.openfile obj [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_TRUNC] 0o666
   in
@@ -232,7 +238,8 @@ let compile_server_type_eliom file =
   create_process ~out ~on_error !compiler
     (["-i"] @ !args @ get_common_include () @ get_common_ppx ()
     @ preprocess_opt ~kind:`Types ppopts
-    @ ["-impl"; file]);
+    @ ["-impl"; file]
+    );
   Unix.close out;
   if !pp_mode = `Ppx then run_sed obj
 
@@ -240,7 +247,8 @@ let output_eliom_interface ~impl_intf file =
   if !do_dump
   then (
     Printf.eprintf "Dump (-dump) not supported for interface inference (-i).";
-    exit 1);
+    exit 1
+  );
   let indent ch =
     let spaces = match !pp_mode with `Ppx -> "" | `Camlp4 -> "  " in
     try
@@ -292,7 +300,8 @@ let compile_eliom ~impl_intf file =
     @ ["-intf-suffix"; ".eliomi"]
     @ get_thread_opt () @ !args @ get_common_include () @ get_common_ppx ()
     @ preprocess_opt ppopts
-    @ [impl_intf_opt impl_intf; file]);
+    @ [impl_intf_opt impl_intf; file]
+    );
   args := !args @ [obj]
 
 let process_eliom ~impl_intf file =
@@ -313,7 +322,8 @@ let build_client () =
   let js = name ^ ".js" in
   create_process !compiler
     (["-o"; exe] @ link_all () @ get_common_include () @ get_client_lib ()
-   @ !args);
+   @ !args
+    );
   create_process !js_of_ocaml (["-o"; js] @ get_client_js () @ !jsopt @ [exe])
 
 let process_option () =

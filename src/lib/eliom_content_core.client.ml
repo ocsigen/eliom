@@ -51,7 +51,8 @@ module Xml = struct
     { (* See Eliom_content.Html.To_dom for the 'unwrap' function that convert
        the server's tree representation into the client one. *)
       mutable elt : node lazy_t
-    ; node_id : node_id }
+    ; node_id : node_id
+    }
 
   let content e =
     match Lazy.force e.elt with
@@ -107,7 +108,8 @@ module Xml = struct
 
   let node_react_children ?(a = []) name children =
     { elt = Lazy.from_val (ReactChildren (Node (name, a, []), children))
-    ; node_id = NoId }
+    ; node_id = NoId
+    }
 
   let end_re = Regexp.regexp_string "]]>"
 
@@ -162,7 +164,8 @@ module Xml = struct
     | ReactChildren _ -> failwith "Eliom_content_core.set_classes_of_elt"
     | TyXMLNode econtent ->
         { elt with
-          elt = Lazy.from_val (TyXMLNode (set_classes elt.node_id econtent)) }
+          elt = Lazy.from_val (TyXMLNode (set_classes elt.node_id econtent))
+        }
 
   let string_of_node_id = function
     | NoId -> "NoId"
@@ -220,7 +223,8 @@ module Xml_wed = struct
     , Xml.RAReact
         (React.S.map
            (fun f -> Some (Xml.AStrL (Xml.Space, Eliom_lazy.force f)))
-           value) )
+           value
+        ) )
 
   type elt = Xml.elt
   type ename = Xml.ename
@@ -239,12 +243,12 @@ end
 
 module Svg = struct
   module Ev' (A : sig
-      type 'a attrib
+    type 'a attrib
 
-      module Unsafe : sig
-        val string_attrib : string -> string -> 'a attrib
-      end
-    end) =
+    module Unsafe : sig
+      val string_attrib : string -> string -> 'a attrib
+    end
+  end) =
   struct
     let a_onabort s = A.Unsafe.string_attrib "onabort" s
     let a_onactivate s = A.Unsafe.string_attrib "onactivate" s
@@ -273,17 +277,17 @@ module Svg = struct
 
   module D = struct
     module Raw' = Svg_f.Make (struct
-        include Xml
+      include Xml
 
-        let make elt = make_request_node (make elt)
-        let empty () = make Empty
-        let comment c = make (Comment c)
-        let pcdata d = make (PCDATA d)
-        let encodedpcdata d = make (EncodedPCDATA d)
-        let entity e = make (Entity e)
-        let leaf ?(a = []) name = make (Leaf (name, a))
-        let node ?(a = []) name children = make (Node (name, a, children))
-      end)
+      let make elt = make_request_node (make elt)
+      let empty () = make Empty
+      let comment c = make (Comment c)
+      let pcdata d = make (PCDATA d)
+      let encodedpcdata d = make (EncodedPCDATA d)
+      let entity e = make (Entity e)
+      let leaf ?(a = []) name = make (Leaf (name, a))
+      let node ?(a = []) name children = make (Node (name, a, children))
+    end)
 
     module Raw = struct
       include Raw'
@@ -343,12 +347,12 @@ end
 
 module Html = struct
   module Ev' (A : sig
-      type 'a attrib
+    type 'a attrib
 
-      module Unsafe : sig
-        val string_attrib : string -> string -> 'a attrib
-      end
-    end) =
+    module Unsafe : sig
+      val string_attrib : string -> string -> 'a attrib
+    end
+  end) =
   struct
     let a_onabort s = A.Unsafe.string_attrib "onabort" s
     let a_onafterprint s = A.Unsafe.string_attrib "onafterprint" s
@@ -458,7 +462,8 @@ module Html = struct
     let lazy_form ?(a = []) elts =
       tot
         (Xml'.lazy_node ~a:(to_xmlattribs a) "form"
-           (Eliom_lazy.from_fun (fun () -> toeltl (Eliom_lazy.force elts))))
+           (Eliom_lazy.from_fun (fun () -> toeltl (Eliom_lazy.force elts)))
+        )
   end
 
   module R = struct
@@ -479,15 +484,19 @@ module Html = struct
               (React.S.map
                  (function
                    | true -> Some (Xml.AStr (Eliom_lazy.force s))
-                   | false -> None)
-                 on)
+                   | false -> None
+                   )
+                 on
+              )
         | Xml.RALazyStrL (sep, l) ->
             Xml.RAReact
               (React.S.map
                  (function
                    | true -> Some (Xml.AStrL (sep, List.map Eliom_lazy.force l))
-                   | false -> None)
-                 on)
+                   | false -> None
+                   )
+                 on
+              )
         | Xml.RACamlEventHandler _ ->
             failwith "R.filter_attrib not implemented for event handler"
         | Xml.RAClient _ -> assert false
@@ -514,7 +523,8 @@ module Html = struct
     let lazy_form ?(a = []) elts =
       tot
         (Xml'.lazy_node ~a:(to_xmlattribs a) "form"
-           (Eliom_lazy.from_fun (fun () -> toeltl (Eliom_lazy.force elts))))
+           (Eliom_lazy.from_fun (fun () -> toeltl (Eliom_lazy.force elts)))
+        )
   end
 
   type +'a elt = 'a F.elt
@@ -544,7 +554,8 @@ module Html = struct
       { name : string
       ; to_string : 'a -> string
       ; of_string : string -> 'a
-      ; default : 'a option }
+      ; default : 'a option
+      }
 
     let create ~name ?default ~to_string ~of_string () =
       {name; of_string; to_string; default}
@@ -561,22 +572,24 @@ module Html = struct
       Js.Opt.case
         element##(getAttribute (Js.string (attribute_name custom_data.name)))
         (fun () ->
-           match custom_data.default with
-           | Some value -> value
-           | None -> raise Not_found)
+          match custom_data.default with
+          | Some value -> value
+          | None -> raise Not_found
+        )
         (fun str -> custom_data.of_string (Js.to_string str))
 
     let set_dom element custom_data value =
       element##(setAttribute
                   (Js.string (attribute_name custom_data.name))
-                  (Js.string (custom_data.to_string value)))
+                  (Js.string (custom_data.to_string value))
+               )
   end
 
   module Of_dom = Js_of_ocaml_tyxml.Tyxml_cast.MakeOf (struct
-      type 'a elt = 'a F.elt
+    type 'a elt = 'a F.elt
 
-      let elt (node : 'a Js.t) : 'a elt = Xml.make_dom (node :> Dom.node Js.t)
-    end)
+    let elt (node : 'a Js.t) : 'a elt = Xml.make_dom (node :> Dom.node Js.t)
+  end)
 
   let set_classes_of_elt elt = F.tot (Xml.set_classes_of_elt (F.toelt elt))
 end

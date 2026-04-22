@@ -41,8 +41,10 @@ module Down = struct
           "Exception during comet with react. Customize this with Eliom_react.set_handle_react_exn_function. "
         in
         Logs.msg ~src:section Logs.Debug (fun fmt ->
-          fmt "%s%a" s pp_exn_option exn);
-        Lwt.return_unit)
+          fmt "%s%a" s pp_exn_option exn
+        );
+        Lwt.return_unit
+      )
     in
     (fun ~exn () -> !r ~exn ()), fun f -> r := f
 
@@ -57,8 +59,10 @@ module Down = struct
           | Error exn ->
               let* () = handle_react_exn ~exn () in
               Lwt.fail exn
-          | Ok () -> Lwt.return_unit)
-        stream);
+          | Ok () -> Lwt.return_unit
+          )
+        stream
+    );
     E.of_stream channel
 
   let () =

@@ -60,7 +60,9 @@ module Html = struct
         Eliom_content_core.(
           Html.F.to_attrib
             (Xml.internal_event_handler_attrib s
-               (Xml.internal_event_handler_of_service info)))
+               (Xml.internal_event_handler_of_service info)
+            )
+        )
 
       let to_elt = toelt
     end
@@ -82,7 +84,9 @@ module Html = struct
         Eliom_content_core.(
           Html.D.to_attrib
             (Xml.internal_event_handler_attrib s
-               (Xml.internal_event_handler_of_service info)))
+               (Xml.internal_event_handler_of_service info)
+            )
+        )
 
       let to_elt = toelt
     end

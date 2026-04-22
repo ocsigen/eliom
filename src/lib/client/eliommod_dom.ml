@@ -30,10 +30,8 @@ let iter_nodeList nodeList f =
     f (Js.Unsafe.get nodeList i)
   done
 
-let iter_attrList
-      (attrList : Dom.attr Dom.namedNodeMap Js.t)
-      (f : Dom.attr Js.t -> unit)
-  =
+let iter_attrList (attrList : Dom.attr Dom.namedNodeMap Js.t)
+    (f : Dom.attr Js.t -> unit) =
   for i = 0 to attrList##.length - 1 do
     (* Unsafe.get is ten time faster than nodeList##item.
        Is it the same for attrList ? *)
@@ -100,37 +98,42 @@ let ancessor =
 
 let fast_select_request_nodes root =
   root##(querySelectorAll
-           (Js.string ("." ^ Eliom_runtime.RawXML.request_node_class)))
+           (Js.string ("." ^ Eliom_runtime.RawXML.request_node_class))
+        )
 
 let fast_select_nodes root =
   if !Eliom_config.debug_timings
   then Console.console##(time (Js.string "fast_select_nodes"));
   let a_nodeList : Dom_html.element Dom.nodeList Js.t =
     root##(querySelectorAll
-             (Js.string ("a." ^ Eliom_runtime.RawXML.ce_call_service_class)))
+             (Js.string ("a." ^ Eliom_runtime.RawXML.ce_call_service_class))
+          )
   in
   let a_nodeList : Dom_html.anchorElement Dom.nodeList Js.t =
     Js.Unsafe.coerce a_nodeList
   in
   let form_nodeList : Dom_html.element Dom.nodeList Js.t =
     root##(querySelectorAll
-             (Js.string ("form." ^ Eliom_runtime.RawXML.ce_call_service_class)))
+             (Js.string ("form." ^ Eliom_runtime.RawXML.ce_call_service_class))
+          )
   in
   let form_nodeList : Dom_html.formElement Dom.nodeList Js.t =
     Js.Unsafe.coerce form_nodeList
   in
   let process_node_nodeList =
     root##(querySelectorAll
-             (Js.string ("." ^ Eliom_runtime.RawXML.process_node_class)))
+             (Js.string ("." ^ Eliom_runtime.RawXML.process_node_class))
+          )
   in
   let closure_nodeList =
     root##(querySelectorAll
-             (Js.string
-                ("." ^ Eliom_runtime.RawXML.ce_registered_closure_class)))
+             (Js.string ("." ^ Eliom_runtime.RawXML.ce_registered_closure_class))
+          )
   in
   let attrib_nodeList =
     root##(querySelectorAll
-             (Js.string ("." ^ Eliom_runtime.RawXML.ce_registered_attr_class)))
+             (Js.string ("." ^ Eliom_runtime.RawXML.ce_registered_attr_class))
+          )
   in
   if !Eliom_config.debug_timings
   then Console.console##(timeEnd (Js.string "fast_select_nodes"));
@@ -192,23 +195,30 @@ let slow_has_request_class (node : Dom_html.element Js.t) =
 let fast_has_classes (node : Dom_html.element Js.t) =
   ( Js.to_bool
       node##.classList##(contains
-                           (Js.string Eliom_runtime.RawXML.ce_call_service_class))
+                           (Js.string Eliom_runtime.RawXML.ce_call_service_class)
+                        )
   , Js.to_bool
       node##.classList##(contains
-                           (Js.string Eliom_runtime.RawXML.process_node_class))
+                           (Js.string Eliom_runtime.RawXML.process_node_class)
+                        )
   , Js.to_bool
       node##.classList##(contains
                            (Js.string
-                              Eliom_runtime.RawXML.ce_registered_closure_class))
+                              Eliom_runtime.RawXML.ce_registered_closure_class
+                           )
+                        )
   , Js.to_bool
       node##.classList##(contains
                            (Js.string
-                              Eliom_runtime.RawXML.ce_registered_attr_class)) )
+                              Eliom_runtime.RawXML.ce_registered_attr_class
+                           )
+                        ) )
 
 let fast_has_request_class (node : Dom_html.element Js.t) =
   Js.to_bool
     node##.classList##(contains
-                         (Js.string Eliom_runtime.RawXML.request_node_class))
+                         (Js.string Eliom_runtime.RawXML.request_node_class)
+                      )
 
 let has_classes : Dom_html.element Js.t -> bool * bool * bool * bool =
   if test_classList () then fast_has_classes else slow_has_classes
@@ -240,14 +250,15 @@ let slow_select_nodes (root : Dom_html.element Js.t) =
     | Dom.ELEMENT ->
         let node = (Js.Unsafe.coerce node : Dom_html.element Js.t) in
         let call_service, process_node, closure, attrib = has_classes node in
-        (if call_service
-         then
-           match Dom_html.tagged node with
-           | Dom_html.A e -> ignore a_array##(push e)
-           | Dom_html.Form e -> ignore form_array##(push e)
-           | _ ->
-               raise_error ~section "%s element tagged as eliom link"
-                 (Js.to_string node##.tagName));
+        ( if call_service
+          then
+            match Dom_html.tagged node with
+            | Dom_html.A e -> ignore a_array##(push e)
+            | Dom_html.Form e -> ignore form_array##(push e)
+            | _ ->
+                raise_error ~section "%s element tagged as eliom link"
+                  (Js.to_string node##.tagName)
+        );
         if process_node then ignore node_array##(push node);
         if closure then ignore closure_array##(push node);
         if attrib then ignore attrib_array##(push node);
@@ -306,14 +317,13 @@ let get_body (page : 'element #get_tag Js.t) : 'element Js.t =
     page##(getElementsByTagName (Js.string "body"))##(item 0)
     (fun () -> raise_error ~section "get_body")
 
-let iter_dom_array
-      (f : 'a -> unit)
-      (a :
-        < length : < get : int ; .. > Js.gen_prop
-        ; item : int -> 'a Js.opt Js.meth
-        ; .. >
-          Js.t)
-  =
+let iter_dom_array (f : 'a -> unit)
+    (a :
+      < length : < get : int ; .. > Js.gen_prop
+      ; item : int -> 'a Js.opt Js.meth
+      ; .. >
+      Js.t
+      ) =
   let length = a##.length in
   for i = 0 to length - 1 do
     Js.Opt.iter a##(item i) f
@@ -365,20 +375,20 @@ let add_childrens (elt : Dom_html.element Js.t) (sons : Dom.node Js.t list) =
         let d = Dom_html.createHead Dom_html.document in
         Dom.appendChild d elt;
         (Js.Unsafe.coerce elt)##.styleSheet##.cssText := concat sons
-    | _ -> raise_error ~section ~exn "add_childrens: can't appendChild")
+    | _ -> raise_error ~section ~exn "add_childrens: can't appendChild"
+  )
 
 (* END IE HACK *)
 
-let copy_element
-      (e : Dom.element Js.t)
-      (registered_process_node : Js.js_string Js.t -> bool) :
-  Dom_html.element Js.t
-  =
+let copy_element (e : Dom.element Js.t)
+    (registered_process_node : Js.js_string Js.t -> bool) :
+    Dom_html.element Js.t =
   let rec aux (e : Dom.element Js.t) =
     let copy = Dom_html.document##(createElement e##.tagName) in
     (* IE<9: Copy className separately, it's not updated when displayed *)
     Js.Opt.iter (Dom_html.CoerceTo.element e) (fun e ->
-      copy##.className := e##.className);
+      copy##.className := e##.className
+    );
     let node_id =
       Js.Opt.to_option
         e##(getAttribute (Js.string Eliom_runtime.RawXML.node_id_attrib))
@@ -395,16 +405,18 @@ let copy_element
           Js.Opt.iter (Dom.CoerceTo.attr a)
             (* we don't use copy##attributes##setNameditem:
              in ie 9 it fail setting types of buttons... *)
-            (fun a -> copy##(setAttribute a##.name a##.value))
+            (fun a -> copy##(setAttribute a##.name a##.value)
+          )
         in
         iter_dom_array add_attribute e##.attributes;
         let child_copies =
           List.map_filter
             (fun child ->
-               match Dom.nodeType child with
-               | Dom.Text t -> Some (copy_text t :> Dom.node Js.t)
-               | Dom.Element child -> (aux child :> Dom.node Js.t option)
-               | _ -> None)
+              match Dom.nodeType child with
+              | Dom.Text t -> Some (copy_text t :> Dom.node Js.t)
+              | Dom.Element child -> (aux child :> Dom.node Js.t option)
+              | _ -> None
+            )
             (Dom.list_of_nodeList e##.childNodes)
         in
         add_childrens copy child_copies;
@@ -413,8 +425,7 @@ let copy_element
   match aux e with None -> raise_error ~section "copy_element" | Some e -> e
 
 let html_document (src : Dom.element Dom.document Js.t) registered_process_node
-  : Dom_html.element Js.t
-  =
+    : Dom_html.element Js.t =
   let content = src##.documentElement in
   match Js.Opt.to_option (Dom_html.CoerceTo.element content) with
   | Some e -> (
@@ -423,17 +434,22 @@ let html_document (src : Dom.element Dom.document Js.t) registered_process_node
       Logs.debug ~src:section (fun fmt ->
         fmt
           ("can't adopt node, import instead" ^^ "@\n%s")
-          (Printexc.to_string exn));
+          (Printexc.to_string exn)
+      );
       try Dom_html.document##(importNode (e :> Dom.element Js.t) Js._true)
       with exn ->
         Logs.debug ~src:section (fun fmt ->
           fmt
             ("can't import node, copy instead" ^^ "@\n%s")
-            (Printexc.to_string exn));
-        copy_element content registered_process_node))
+            (Printexc.to_string exn)
+        );
+        copy_element content registered_process_node
+    )
+  )
   | None ->
       Logs.debug ~src:section (fun fmt ->
-        fmt "can't adopt node, document not parsed as html. copy instead");
+        fmt "can't adopt node, document not parsed as html. copy instead"
+      );
       copy_element content registered_process_node
 
 (** CSS preloading. *)
@@ -446,10 +462,11 @@ let is_stylesheet e =
     (Dom_html.CoerceTo.link (Js.Unsafe.coerce e))
     (fun _ -> false)
     (fun e ->
-       List.exists
-         (fun s -> s = "stylesheet")
-         (Regexp.split spaces_re (Js.to_string e##.rel))
-       && e##._type == Js.string "text/css")
+      List.exists
+        (fun s -> s = "stylesheet")
+        (Regexp.split spaces_re (Js.to_string e##.rel))
+      && e##._type == Js.string "text/css"
+    )
 
 let basedir_re = Regexp.regexp "^(([^/?]*/)*)([^/?]*)(\\?.*)?$"
 
@@ -459,11 +476,14 @@ let basedir path =
   | Some res -> (
     match Regexp.matched_group res 1 with
     | None -> (
-      match Regexp.matched_group res 3 with Some ".." -> "../" | _ -> "/")
+      match Regexp.matched_group res 3 with Some ".." -> "../" | _ -> "/"
+    )
     | Some dir -> (
       match Regexp.matched_group res 3 with
       | Some ".." -> dir ^ "../"
-      | _ -> dir))
+      | _ -> dir
+    )
+  )
 
 let fetch_linked_css e =
   let rec extract acc (e : Dom.node Js.t) =
@@ -498,7 +518,8 @@ let quoted_url_raw = "'(([^\\\\']|\\\\.)*)'"
 let url_re =
   Regexp.regexp
     (Printf.sprintf "url\\s*\\(\\s*(%s|%s|%s)\\s*\\)\\s*" dbl_quoted_url_raw
-       quoted_url_raw url_content_raw)
+       quoted_url_raw url_content_raw
+    )
 
 let raw_url_re =
   Regexp.regexp
@@ -519,8 +540,10 @@ let parse_absolute ~prefix href =
     | Some (i, res) when i = 0 -> (
       match Regexp.matched_group res 1 with
       | Some href -> (* absolute URL -> do not rewrite *) href
-      | None -> raise Incorrect_url)
-    | _ -> prefix ^ href)
+      | None -> raise Incorrect_url
+    )
+    | _ -> prefix ^ href
+  )
 
 let parse_url ~prefix css pos =
   match Regexp.search url_re css pos with
@@ -534,15 +557,20 @@ let parse_url ~prefix css pos =
           | None -> (
             match Regexp.matched_group res 4 with
             | Some href -> parse_absolute ~prefix href
-            | None -> raise Incorrect_url)) ))
+            | None -> raise Incorrect_url
+          )
+        ) )
+    )
   | _ -> (
     match Regexp.search raw_url_re css pos with
     | Some (i, res) when i = pos -> (
         ( i + String.length (Regexp.matched_string res)
         , match Regexp.matched_group res 1 with
           | Some href -> parse_absolute ~prefix href
-          | None -> raise Incorrect_url ))
-    | _ -> raise Incorrect_url)
+          | None -> raise Incorrect_url )
+      )
+    | _ -> raise Incorrect_url
+  )
 
 let parse_media css pos =
   let i =
@@ -571,7 +599,8 @@ let rewrite_css_url ~prefix css pos =
             Buffer.add_string buf "')";
             rewrite i
           with Incorrect_url ->
-            Buffer.add_substring buf css i (String.length css - i))
+            Buffer.add_substring buf css i (String.length css - i)
+        )
   in
   rewrite pos; Buffer.contents buf
 
@@ -580,17 +609,18 @@ let import_re = Regexp.regexp "@import\\s*"
 let rec rewrite_css ~max (media, href, css) =
   Lwt.catch
     (fun () ->
-       css >>= function
-       | None -> Lwt.return_nil
-       | Some css ->
-           if !Eliom_config.debug_timings
-           then Console.console##(time (Js.string ("rewrite_CSS: " ^ href)));
-           let* imports, css =
-             rewrite_css_import ~max ~prefix:(basedir href) ~media css 0
-           in
-           if !Eliom_config.debug_timings
-           then Console.console##(timeEnd (Js.string ("rewrite_CSS: " ^ href)));
-           Lwt.return (imports @ [media, css]))
+      css >>= function
+      | None -> Lwt.return_nil
+      | Some css ->
+          if !Eliom_config.debug_timings
+          then Console.console##(time (Js.string ("rewrite_CSS: " ^ href)));
+          let* imports, css =
+            rewrite_css_import ~max ~prefix:(basedir href) ~media css 0
+          in
+          if !Eliom_config.debug_timings
+          then Console.console##(timeEnd (Js.string ("rewrite_CSS: " ^ href)));
+          Lwt.return (imports @ [media, css])
+    )
     (fun _ -> Lwt.return [media, Printf.sprintf "@import url(%s);" href])
 
 and rewrite_css_import ?(charset = "") ~max ~prefix ~media css pos =
@@ -634,10 +664,10 @@ and rewrite_css_import ?(charset = "") ~max ~prefix ~media css pos =
       | Incorrect_url -> Lwt.return ([], rewrite_css_url ~prefix css pos)
       | exn ->
           Logs.info ~src:section (fun fmt ->
-            fmt
-              ("Error while importing css" ^^ "@\n%s")
-              (Printexc.to_string exn));
-          Lwt.return ([], rewrite_css_url ~prefix css pos))
+            fmt ("Error while importing css" ^^ "@\n%s") (Printexc.to_string exn)
+          );
+          Lwt.return ([], rewrite_css_url ~prefix css pos)
+    )
 
 let max_preload_depth = ref 4
 
@@ -646,16 +676,17 @@ let build_style (e, css) =
   (* lwt css = *)
   Lwt_list.map_p
     (fun (media, css) ->
-       let style = Dom_html.createStyle Dom_html.document in
-       style##._type := Js.string "text/css";
-       style##.media := media;
-       (* IE8: Assigning to style##innerHTML results in
+      let style = Dom_html.createStyle Dom_html.document in
+      style##._type := Js.string "text/css";
+      style##.media := media;
+      (* IE8: Assigning to style##innerHTML results in
           "Unknown runtime error" *)
-       let styleSheet = Js.Unsafe.(get style (Js.string "styleSheet")) in
-       if Js.Optdef.test styleSheet
-       then Js.Unsafe.(set styleSheet (Js.string "cssText") (Js.string css))
-       else style##.innerHTML := Js.string css;
-       Lwt.return (e, (style :> Dom.node Js.t)))
+      let styleSheet = Js.Unsafe.(get style (Js.string "styleSheet")) in
+      if Js.Optdef.test styleSheet
+      then Js.Unsafe.(set styleSheet (Js.string "cssText") (Js.string css))
+      else style##.innerHTML := Js.string css;
+      Lwt.return (e, (style :> Dom.node Js.t))
+    )
     css
 
 (* IE8 doesn't allow appendChild on noscript-elements *)
@@ -673,13 +704,15 @@ let preload_css (doc : Dom_html.element Js.t) =
   let css = List.concat css in
   List.iter
     (fun (e, css) ->
-       try Dom.replaceChild (get_head doc) css e
-       with _ ->
-         Logs.info
-           ~src:
-             (* Node was a unique node that has been removed...
+      try Dom.replaceChild (get_head doc) css e
+      with _ ->
+        Logs.info
+          ~src:
+            (* Node was a unique node that has been removed...
                        in a perfect settings we won't have parsed it... *)
-             section (fun fmt -> fmt "Unique CSS skipped..."))
+            section (fun fmt -> fmt "Unique CSS skipped..."
+        )
+    )
     css;
   if !Eliom_config.debug_timings
   then Console.console##(timeEnd (Js.string "preload_css (fetch+rewrite)"));
@@ -705,7 +738,8 @@ let createDocumentScroll () =
   { html_top = Js.to_float Dom_html.document##.documentElement##.scrollTop
   ; html_left = Js.to_float Dom_html.document##.documentElement##.scrollLeft
   ; body_top = Js.to_float Dom_html.document##.body##.scrollTop
-  ; body_left = Js.to_float Dom_html.document##.body##.scrollLeft }
+  ; body_left = Js.to_float Dom_html.document##.body##.scrollLeft
+  }
 
 (* With firefox, the scroll position is restored before to fire the
    popstate event. We maintain our own position. *)
@@ -716,12 +750,15 @@ let _ =
   (* HACK: Remove this when js_of_ocaml 1.1.2 or greater is released... *)
   (* window##onscroll <- *)
   ignore
-    (Dom.addEventListener Dom_html.document (Dom.Event.make "scroll")
-       (Dom_html.handler (fun _event ->
-          current_position := createDocumentScroll ();
-          Js._false))
-       Js._true
-     : Dom_html.event_listener_id)
+    ( Dom.addEventListener Dom_html.document (Dom.Event.make "scroll")
+        (Dom_html.handler (fun _event ->
+           current_position := createDocumentScroll ();
+           Js._false
+         )
+        )
+        Js._true
+      : Dom_html.event_listener_id
+      )
 
 let getDocumentScroll () = !current_position
 
@@ -739,11 +776,14 @@ let touch_base () =
   Js.Opt.iter
     (Js.Opt.bind
        Dom_html.document##(getElementById
-                             (Js.string Eliom_common_base.base_elt_id))
-       Dom_html.CoerceTo.base)
+                             (Js.string Eliom_common_base.base_elt_id)
+                          )
+       Dom_html.CoerceTo.base
+    )
     (fun e ->
-       let href = e##.href in
-       e##.href := href)
+      let href = e##.href in
+      e##.href := href
+    )
 
 (* BEGIN FORMDATA HACK: This is only needed if FormData is not available in the browser.
    When it will be commonly available, remove all sections marked by "FORMDATA HACK" !
@@ -761,21 +801,23 @@ let touch_base () =
    * in js_of_ocaml, module Form: the code to emulate FormData *)
 
 let onclick_on_body_handler event =
-  (match Dom_html.tagged (Dom_html.eventTarget event) with
+  ( match Dom_html.tagged (Dom_html.eventTarget event) with
   | Dom_html.Button button -> Js.Unsafe.global##.eliomLastButton := Some button
   | Dom_html.Input input when input##._type = Js.string "submit" ->
       Js.Unsafe.global##.eliomLastButton := Some input
-  | _ -> Js.Unsafe.global##.eliomLastButton := None);
+  | _ -> Js.Unsafe.global##.eliomLastButton := None
+  );
   Js._true
 
 let add_formdata_hack_onclick_handler () =
   ignore
-    (Dom_html.addEventListener
-       Dom_html.window##.document##.body
-       Dom_html.Event.click
-       (Dom_html.handler onclick_on_body_handler)
-       Js._true
-     : Dom_html.event_listener_id)
+    ( Dom_html.addEventListener
+        Dom_html.window##.document##.body
+        Dom_html.Event.click
+        (Dom_html.handler onclick_on_body_handler)
+        Js._true
+      : Dom_html.event_listener_id
+      )
 
 (* END FORMDATA HACK *)
 
@@ -787,20 +829,25 @@ let onhashchange f =
   if test_onhashchange ()
   then
     ignore
-      (Dom.addEventListener Dom_html.window hashchange
-         (Dom_html.handler (fun _ ->
-            f Dom_html.window##.location##.hash;
-            Js._false))
-         Js._true
-       : Dom_html.event_listener_id)
+      ( Dom.addEventListener Dom_html.window hashchange
+          (Dom_html.handler (fun _ ->
+             f Dom_html.window##.location##.hash;
+             Js._false
+           )
+          )
+          Js._true
+        : Dom_html.event_listener_id
+        )
   else
     let last_fragment = ref Dom_html.window##.location##.hash in
     let check () =
       if not (Js.equals !last_fragment Dom_html.window##.location##.hash)
       then (
         last_fragment := Dom_html.window##.location##.hash;
-        f Dom_html.window##.location##.hash)
+        f Dom_html.window##.location##.hash
+      )
     in
     ignore
       Dom_html.window##(setInterval (Js.wrap_callback check)
-                          (Js.float (0.2 *. 1000.)))
+                          (Js.float (0.2 *. 1000.))
+                       )

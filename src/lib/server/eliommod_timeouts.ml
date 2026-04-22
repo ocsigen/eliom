@@ -34,10 +34,10 @@ type kind = [`Service | `Data | `Persistent]
 (* Table of timeouts for sessions *)
 
 let default_timeouts :
-  ( kind * Eliom_common.cookie_level * Eliom_common.scope_hierarchy option
-    , float )
-    Hashtbl.t
-  =
+    ( kind * Eliom_common.cookie_level * Eliom_common.scope_hierarchy option
+    , float
+    )
+    Hashtbl.t =
   let t = Hashtbl.create 9 in
   Hashtbl.add t (`Service, `Session, None) 3600.;
   Hashtbl.add t (`Data, `Session, None) 3600.;
@@ -64,27 +64,20 @@ let get_default kind user_scope =
       (Hashtbl.find default_timeouts
          ( (kind :> kind)
          , (level :> Eliom_common.cookie_level)
-         , Some scope_hierarchy ))
+         , Some scope_hierarchy
+         )
+      )
   with Not_found -> (
     try
       Some
         (Hashtbl.find default_timeouts
-           ((kind :> kind), (level :> Eliom_common.cookie_level), None))
-    with Not_found -> None)
+           ((kind :> kind), (level :> Eliom_common.cookie_level), None)
+        )
+    with Not_found -> None
+  )
 
-let set_timeout_
-      get
-      set
-      get_default
-      update
-      ?full_st_name
-      ?cookie_level
-      ~recompute_expdates
-      override_configfile
-      fromconfigfile
-      sitedata
-      t
-  =
+let set_timeout_ get set get_default update ?full_st_name ?cookie_level
+    ~recompute_expdates override_configfile fromconfigfile sitedata t =
   (* cookie_level is useful and mandatory
          only if full_st_name is not present *)
   let def_bro, def_tab, tl = get sitedata in
@@ -103,7 +96,8 @@ let set_timeout_
     | _, _, Some `Session -> set sitedata (Some (t, fromconfigfile), def_tab, tl)
     | _, _, Some `Client_process ->
         set sitedata (def_bro, Some (t, fromconfigfile), tl)
-    | _, _, None -> failwith "set_timeout_")
+    | _, _, None -> failwith "set_timeout_"
+  )
   | Some ({Eliom_common.user_scope; _} as full_st_name) ->
       (* recompute_expdates works only if full_st_name is present *)
       let oldtopt =
@@ -128,7 +122,8 @@ let set_timeout_
             match def_bro, def_tab, user_scope with
             | Some (t, _), _, `Session _ -> t
             | _, Some (t, _), `Client_process _ -> t
-            | _, _, ct -> get_default ct)
+            | _, _, ct -> get_default ct
+          )
         in
         ignore
           (catch
@@ -138,8 +133,11 @@ let set_timeout_
                Logs.warn ~src:eliom_logs_src (fun fmt ->
                  fmt
                    ("Error while updating timeouts" ^^ "@\n%s")
-                   (Printexc.to_string exn));
-               Lwt.return_unit))
+                   (Printexc.to_string exn)
+               );
+               Lwt.return_unit
+               )
+          )
 (*VVV Check possible exceptions raised *)
 
 (* global timeout = timeout for the whole site (may be changed dynamically) *)
@@ -163,7 +161,8 @@ let find_global kind full_st_name sitedata =
     match def_bro, def_tab, full_st_name.Eliom_common.user_scope with
     | Some (t, _), _, `Session _ -> t
     | _, Some (t, _), `Client_process _ -> t
-    | _, _, ct -> get_default kind ct)
+    | _, _, ct -> get_default kind ct
+  )
 
 let set_global_ ?full_st_name ?cookie_level ~kind ~recompute_expdates a =
   set_timeout_ (sitedata_timeout kind)
@@ -179,15 +178,8 @@ let get_global ~kind ~cookie_scope ~secure sitedata =
   in
   find_global kind full_st_name sitedata
 
-let set_global
-      ~kind
-      ~cookie_scope
-      ~secure
-      ~recompute_expdates
-      override_configfile
-      sitedata
-      timeout
-  =
+let set_global ~kind ~cookie_scope ~secure ~recompute_expdates
+    override_configfile sitedata timeout =
   let full_st_name =
     Eliom_common.make_full_state_name2
       (Eliom_common.get_site_dir_string sitedata)
@@ -196,13 +188,7 @@ let set_global
   set_global_ ~kind ~full_st_name ~recompute_expdates override_configfile false
     sitedata timeout
 
-let set_default_global
-      kind
-      cookie_level
-      override_configfile
-      fromconfigfile
-      sitedata
-      timeout
-  =
+let set_default_global kind cookie_level override_configfile fromconfigfile
+    sitedata timeout =
   set_global_ ~kind ~cookie_level ~recompute_expdates:false override_configfile
     fromconfigfile sitedata timeout

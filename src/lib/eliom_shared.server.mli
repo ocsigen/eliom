@@ -30,10 +30,7 @@
     and a server-side implementation. *)
 
 val to_signal :
-   init:'a
-  -> ?eq:('a -> 'a -> bool)
-  -> 'a React.S.t Lwt.t
-  -> 'a React.S.t
+  init:'a -> ?eq:('a -> 'a -> bool) -> 'a React.S.t Lwt.t -> 'a React.S.t
 (** [to_signal ~init s] converts the Lwt-wrapped signal [s] into a
     regular signal with initial value [init]. *)
 
@@ -46,8 +43,8 @@ module React : sig
     include Eliom_shared_sigs.S with type 'a sv := 'a Value.t
 
     val create :
-       ?default:
-         ('a React.S.t * (?step:React.step -> 'a -> unit)) option
+         ?default:
+           ('a React.S.t * (?step:React.step -> 'a -> unit)) option
            Eliom_client_value.t
       -> ?reset_default:bool
       -> ?eq:('a -> 'a -> bool) Value.t
@@ -89,10 +86,10 @@ module ReactiveData : sig
   module RList : sig
     include
       Eliom_shared_sigs.RLIST
-      with type 'a signal := 'a React.S.t
-       and type 'a sv := 'a Value.t
-       and type 'a ct := 'a FakeReactiveData.RList.t
-       and type 'a chandle := 'a FakeReactiveData.RList.handle
+        with type 'a signal := 'a React.S.t
+         and type 'a sv := 'a Value.t
+         and type 'a ct := 'a FakeReactiveData.RList.t
+         and type 'a chandle := 'a FakeReactiveData.RList.handle
 
     val synced : 'a t -> bool
     (** If [synced l] is true, then the server-side and client-side

@@ -9,7 +9,7 @@ val default_app_name : string
 (** The default application name, if you don't specify any *)
 
 val run :
-   ?app:string
+     ?app:string
   -> ?xhr_links:bool
   -> ?data_timeout:
        [< Eliom_common.cookie_level]

@@ -57,21 +57,24 @@ end
 let typed_apply ~service f gp pp l l' suffix =
   Lwt.catch
     (fun () ->
-       let* g =
-         let l = Some (Lwt.return l) in
-         Eliom_parameter.reconstruct_params ~sp:() gp l None true suffix
-       and* p =
-         let l' = Some (Lwt.return l') in
-         Eliom_parameter.reconstruct_params ~sp:() pp l' None true suffix
-       in
-       (match Eliom_service.reload_fun service with
-       | Some _ -> Eliom_client.set_reload_function (fun () () -> f g p)
-       | None -> ());
-       f g p)
+      let* g =
+        let l = Some (Lwt.return l) in
+        Eliom_parameter.reconstruct_params ~sp:() gp l None true suffix
+      and* p =
+        let l' = Some (Lwt.return l') in
+        Eliom_parameter.reconstruct_params ~sp:() pp l' None true suffix
+      in
+      ( match Eliom_service.reload_fun service with
+      | Some _ -> Eliom_client.set_reload_function (fun () () -> f g p)
+      | None -> ()
+      );
+      f g p
+    )
     (function
       | Eliom_common.Eliom_Wrong_parameter ->
           Lwt.fail Eliom_common.Eliom_Wrong_parameter
-      | exc -> Lwt.reraise exc)
+      | exc -> Lwt.reraise exc
+      )
 
 let wrap service att f _ suffix =
   let gp = Eliom_service.get_params_type service
@@ -91,16 +94,12 @@ let wrap service att f _ suffix =
       if eliom_name = s
       then typed_apply ~service f gp pp l l' suffix
       else Lwt.fail Eliom_common.Eliom_Wrong_parameter
-    with Not_found -> Lwt.fail Eliom_common.Eliom_Wrong_parameter)
+    with Not_found -> Lwt.fail Eliom_common.Eliom_Wrong_parameter
+  )
   | _ -> typed_apply ~service f gp pp l l' suffix
 
-let wrap_na
-      (service : (_, _, _, _, _, _, _, _, _, _, _) Eliom_service.t)
-      _non_att
-      f
-      _
-      suffix
-  =
+let wrap_na (service : (_, _, _, _, _, _, _, _, _, _, _) Eliom_service.t)
+    _non_att f _ suffix =
   let gp = Eliom_service.get_params_type service
   and pp = Eliom_service.post_params_type service
   and si = Eliom_request_info.get_sess_info ()
@@ -116,15 +115,16 @@ let register_att ~service ~att f =
   and priority = Eliom_service.priority att in
   let sgpt = Eliom_service.get_params_type service
   and sppt = Eliom_service.post_params_type service in
-  (match Eliom_service.timeout service with
+  ( match Eliom_service.timeout service with
   | None -> ()
   | Some _ ->
       Logs.info ~src:section (fun fmt ->
-        fmt "Service timeout ignored on the client"));
+        fmt "Service timeout ignored on the client"
+      )
+  );
   let s_id =
     if gn = Eliom_common.SAtt_no || pn = Eliom_common.SAtt_no
-    then
-      Eliom_parameter.(anonymise_params_type sgpt, anonymise_params_type sppt)
+    then Eliom_parameter.(anonymise_params_type sgpt, anonymise_params_type sppt)
     else 0, 0
   and s_max_use = Eliom_service.max_use service
   and s_expire = None
@@ -139,11 +139,9 @@ let register_na ~service ~na f =
     Eliom_service.(na_name na)
     (wrap_na service na f) Eliom_route.global_tables
 
-let register
-      (type g p att)
-      ~(service : (g, p, _, att, _, _, _, _, _, _, _) Eliom_service.t)
-      (f : g -> p -> _)
-  =
+let register (type g p att)
+    ~(service : (g, p, _, att, _, _, _, _, _, _, _) Eliom_service.t)
+    (f : g -> p -> _) =
   match Eliom_service.info service with
   | Eliom_service.Attached att -> register_att ~service ~att f
   | Eliom_service.Nonattached na -> register_na ~service ~na f
@@ -157,20 +155,10 @@ module Make (P : PARAM) = struct
   let send ?options ?charset:_ ?code:_ ?content_type:_ ?headers:_ page =
     P.send ?options page
 
-  let register
-        ?app
-        ?scope:_
-        ?options
-        ?charset:_
-        ?code:_
-        ?content_type:_
-        ?headers:_
-        ?secure_session:_
-        (type g p att)
-        ~(service : (g, p, _, att, _, _, _, _, _, _, _) Eliom_service.t)
-        ?error_handler:_
-        (f : g -> p -> _)
-    =
+  let register ?app ?scope:_ ?options ?charset:_ ?code:_ ?content_type:_
+      ?headers:_ ?secure_session:_ (type g p att)
+      ~(service : (g, p, _, att, _, _, _, _, _, _, _) Eliom_service.t)
+      ?error_handler:_ (f : g -> p -> _) =
     let f g p =
       let* page = f g p in
       P.send ?options page
@@ -181,42 +169,41 @@ module Make (P : PARAM) = struct
 end
 
 module Html = Make (struct
-    type page = Html_types.html Eliom_content.Html.elt
-    type options = unit
-    type return = Eliom_service.non_ocaml
-    type result = browser_content kind
+  type page = Html_types.html Eliom_content.Html.elt
+  type options = unit
+  type return = Eliom_service.non_ocaml
+  type result = browser_content kind
 
-    let reset_reload_fun = false
+  let reset_reload_fun = false
 
-    let send ?options:_ page =
-      Lwt.return (Eliom_service.Dom (Eliom_content.Html.To_dom.of_element page))
-  end)
+  let send ?options:_ page =
+    Lwt.return (Eliom_service.Dom (Eliom_content.Html.To_dom.of_element page))
+end)
 
 module Action = Make (struct
-    type page = unit
-    type options = [`Reload | `NoReload]
-    type return = Eliom_service.non_ocaml
-    type result = browser_content kind
+  type page = unit
+  type options = [`Reload | `NoReload]
+  type return = Eliom_service.non_ocaml
+  type result = browser_content kind
 
-    let reset_reload_fun = true
+  let reset_reload_fun = true
 
-    let send ?options _page =
-      match options with
-      | Some `Reload | None ->
-          Lwt.return
-            Eliom_service.(Reload_action {hidden = false; https = false})
-      | _ -> Lwt.return Eliom_service.No_contents
-  end)
+  let send ?options _page =
+    match options with
+    | Some `Reload | None ->
+        Lwt.return Eliom_service.(Reload_action {hidden = false; https = false})
+    | _ -> Lwt.return Eliom_service.No_contents
+end)
 
 module Unit = Make (struct
-    type page = unit
-    type options = unit
-    type return = Eliom_service.non_ocaml
-    type result = browser_content kind
+  type page = unit
+  type options = unit
+  type return = Eliom_service.non_ocaml
+  type result = browser_content kind
 
-    let reset_reload_fun = true
-    let send ?options:_ _page = Lwt.return Eliom_service.No_contents
-  end)
+  let reset_reload_fun = true
+  let send ?options:_ _page = Lwt.return Eliom_service.No_contents
+end)
 
 type appl_service_options = {do_not_launch : bool}
 
@@ -226,33 +213,33 @@ module App (P : Eliom_registration_sigs.APP_PARAM) = struct
   let application_name = P.application_name
 
   include Make (struct
-      type page = Html_types.html Eliom_content.Html.elt
-      type options = appl_service_options
-      type return = Eliom_service.non_ocaml
-      type result = browser_content kind
+    type page = Html_types.html Eliom_content.Html.elt
+    type options = appl_service_options
+    type return = Eliom_service.non_ocaml
+    type result = browser_content kind
 
-      let reset_reload_fun = false
+    let reset_reload_fun = false
 
-      let send ?options:_ page =
-        Lwt.return
-          (Eliom_service.Dom (Eliom_content.Html.To_dom.of_element page))
-    end)
+    let send ?options:_ page =
+      Lwt.return (Eliom_service.Dom (Eliom_content.Html.To_dom.of_element page))
+  end)
 end
 
 type 'a redirection =
   | Redirection :
       ( unit
-        , unit
-        , Eliom_service.get
-        , _
-        , _
-        , _
-        , _
-        , [`WithoutSuffix]
-        , unit
-        , unit
-        , 'a )
-        Eliom_service.t
+      , unit
+      , Eliom_service.get
+      , _
+      , _
+      , _
+      , _
+      , [`WithoutSuffix]
+      , unit
+      , unit
+      , 'a
+      )
+      Eliom_service.t
       -> 'a redirection
 
 module Redirection = struct
@@ -271,30 +258,14 @@ module Redirection = struct
   type _ return = Eliom_service.non_ocaml
   type _ result = browser_content kind
 
-  let send
-        ?options:_
-        ?charset:_
-        ?code:_
-        ?content_type:_
-        ?headers:_
-        (Redirection service)
-    =
+  let send ?options:_ ?charset:_ ?code:_ ?content_type:_ ?headers:_
+      (Redirection service) =
     Lwt.return (Eliom_service.Redirect service)
 
-  let register
-        ?app
-        ?scope:_
-        ?options
-        ?charset:_
-        ?code:_
-        ?content_type:_
-        ?headers:_
-        ?secure_session:_
-        (type g p att)
-        ~(service : (g, p, _, att, _, _, _, _, _, _, _) Eliom_service.t)
-        ?error_handler:_
-        (f : g -> p -> _)
-    =
+  let register ?app ?scope:_ ?options ?charset:_ ?code:_ ?content_type:_
+      ?headers:_ ?secure_session:_ (type g p att)
+      ~(service : (g, p, _, att, _, _, _, _, _, _, _) Eliom_service.t)
+      ?error_handler:_ (f : g -> p -> _) =
     let f g p =
       let* page = f g p in
       send ?options page
@@ -312,19 +283,8 @@ module Any = struct
   let send ?options:_ ?charset:_ ?code:_ ?content_type:_ ?headers:_ page =
     Lwt.return page
 
-  let register
-        ?app
-        ?scope:_
-        ?options:_
-        ?charset:_
-        ?code:_
-        ?content_type:_
-        ?headers:_
-        ?secure_session:_
-        ~service
-        ?error_handler:_
-        f
-    =
+  let register ?app ?scope:_ ?options:_ ?charset:_ ?code:_ ?content_type:_
+      ?headers:_ ?secure_session:_ ~service ?error_handler:_ f =
     let f g p =
       let* page = f g p in
       send page

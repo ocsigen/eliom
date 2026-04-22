@@ -91,7 +91,8 @@ let () =
          "src/ppx/ppx_eliom_server"
      ; Pkg.bin ~auto:true ~dst:"ppx_eliom_client" "src/ppx/ppx_eliom_client_ex"
      ; Pkg.bin ~auto:true ~dst:"ppx_eliom_server" "src/ppx/ppx_eliom_server_ex"
-     ; Pkg.bin ~auto:true ~dst:"ppx_eliom_types" "src/ppx/ppx_eliom_types_ex" ]
+     ; Pkg.bin ~auto:true ~dst:"ppx_eliom_types" "src/ppx/ppx_eliom_types_ex"
+     ]
     (* CLIENT LIBS *)
     @ Pkg.lib ~dst:"client/client" ~exts:[".cma"] "src/lib/client/client"
       :: Pkg.lib ~dst:"client/eliom_client_main.cmo"
@@ -102,7 +103,8 @@ let () =
       :: Pkg.stublibs "src/lib/client/dlleliom_stubs.so"
       :: List.map
            (fun x ->
-              Pkg.lib ~dst:(spf "client/%s" x) (spf "src/lib/client/%s" x))
+             Pkg.lib ~dst:(spf "client/%s" x) (spf "src/lib/client/%s" x)
+           )
            client_extra
     (* SERVER LIBS *)
     @ Pkg.lib ~dst:"server/monitor/eliom_monitor" ~exts:Exts.module_library
@@ -112,19 +114,25 @@ let () =
       :: Pkg.lib ~dst:"server/server" ~exts:exts_lib "src/lib/server/server"
       :: List.map
            (fun x ->
-              Pkg.lib ~dst:(spf "server/%s" x) (spf "src/lib/server/%s" x))
+             Pkg.lib ~dst:(spf "server/%s" x) (spf "src/lib/server/%s" x)
+           )
            server_extra
     @ [ (* MISC *)
         Pkg.doc "README.md"
       ; Pkg.doc "CHANGES"
-      ; Pkg.etc "pkg/etc/mime.types" ]
+      ; Pkg.etc "pkg/etc/mime.types"
+      ]
     @ List.flatten
         (List.map
            (fun (name, files) ->
-              List.map
-                (fun file ->
-                   Pkg.lib
-                     ~dst:(spf "templates/%s/%s" name file)
-                     (spf "%s/%s/%s" templates_dir name file))
-                files)
-           templates_files))
+             List.map
+               (fun file ->
+                 Pkg.lib
+                   ~dst:(spf "templates/%s/%s" name file)
+                   (spf "%s/%s/%s" templates_dir name file)
+               )
+               files
+           )
+           templates_files
+        )
+    )

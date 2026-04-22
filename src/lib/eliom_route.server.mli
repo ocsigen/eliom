@@ -21,13 +21,13 @@
 open Eliom_lib
 
 val get_page :
-   float
+     float
   -> Eliom_common.info
   -> Eliom_common.sitedata
   -> Ocsigen_response.t Lwt.t
 
 val add_service :
-   int
+     int
   -> Eliom_common.tables
   -> String.Table.key list
   -> Eliom_common.Serv_Table.key
@@ -35,14 +35,14 @@ val add_service :
   -> unit
 
 val remove_service :
-   Eliom_common.tables
+     Eliom_common.tables
   -> String.Table.key list
   -> Eliom_common.Serv_Table.key
   -> Eliom_common.anon_params_type * Eliom_common.anon_params_type
   -> unit
 
 val add_naservice :
-   Eliom_common.tables
+     Eliom_common.tables
   -> Eliom_common.NAserv_Table.key
   -> int ref option
      * (float * float ref) option
@@ -50,12 +50,10 @@ val add_naservice :
   -> unit
 
 val remove_naservice :
-   Eliom_common.tables
-  -> Eliom_common.NAserv_Table.key
-  -> unit
+  Eliom_common.tables -> Eliom_common.NAserv_Table.key -> unit
 
 val make_naservice :
-   float
+     float
   -> Eliom_common.info
   -> Eliom_common.sitedata
   -> Ocsigen_response.t Lwt.t

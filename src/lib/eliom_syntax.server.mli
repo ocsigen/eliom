@@ -23,10 +23,7 @@ val get_request_data : unit -> Eliom_runtime.request_data
 (*****************************************************************************)
 
 val client_value :
-   ?pos:Eliom_lib.pos
-  -> string
-  -> 'args
-  -> 'a Eliom_client_value.t
+  ?pos:Eliom_lib.pos -> string -> 'args -> 'a Eliom_client_value.t
 (** Registers a client value datum for the next server section when
     executed in a global_data (cf. {!Eliom_syntax.set_global}) or in
     the request_data when executed in a request. *)
@@ -54,7 +51,7 @@ val close_server_section : string -> unit
     subproject="client"|Eliom_client.Syntax_helpers.close_server_section>>.  *)
 
 val close_client_section :
-   string
+     string
   -> (int * Ocsigen_lib.poly * Eliom_lib.pos * string option) list
   -> unit
 (** Called at the end of every client or shared section. The first

@@ -31,16 +31,17 @@ type ('a, 'b) t =
   ; service : 'a Ecb.bus_send_service
   ; service_registered : bool Eliom_state.volatile_table option
   ; size : int option
-  ; bus_mark : ('a, 'b) t Eliom_common.wrapper (* must be the last field ! *) }
+  ; bus_mark : ('a, 'b) t Eliom_common.wrapper (* must be the last field ! *)
+  }
 [@@warning "-69"]
 
 let register_sender scope service write =
   Eliom_registration.Action.register ~scope ~options:`NoReload ~service
-    (fun () x -> Lwt_list.iter_s write x)
+    (fun () x -> Lwt_list.iter_s write x
+  )
 
 let internal_wrap (bus : ('a, 'b) t) :
-  ('a, 'b) Ecb.wrapped_bus * Eliom_common.unwrapper
-  =
+    ('a, 'b) Ecb.wrapped_bus * Eliom_common.unwrapper =
   let channel =
     match bus.channel with
     | None ->
@@ -49,7 +50,7 @@ let internal_wrap (bus : ('a, 'b) t) :
           (Lwt_stream.clone bus.stream)
     | Some c -> c
   in
-  (match bus.service_registered with
+  ( match bus.service_registered with
   | None -> ()
   | Some table -> (
     match Eliom_state.get_volatile_data ~table () with
@@ -57,21 +58,25 @@ let internal_wrap (bus : ('a, 'b) t) :
     | _ ->
         let {service = Ecb.Bus_send_service srv; _} = bus in
         register_sender bus.scope
-          (srv
+          ( srv
             :> ( _
-                 , _ list
-                 , _
-                 , _
-                 , _
-                 , Eliom_service.non_ext
-                 , _
-                 , _
-                 , _
-                 , _
-                 , _ )
-                 Eliom_service.t)
+               , _ list
+               , _
+               , _
+               , _
+               , Eliom_service.non_ext
+               , _
+               , _
+               , _
+               , _
+               , _
+               )
+               Eliom_service.t
+            )
           bus.write;
-        Eliom_state.set_volatile_data ~table true));
+        Eliom_state.set_volatile_data ~table true
+  )
+  );
   ( (Eliom_comet.Channel.get_wrapped channel, bus.service)
   , Eliom_common.make_unwrapper Eliom_common.bus_unwrap_id )
 
@@ -79,16 +84,16 @@ let bus_mark () = Eliom_common.make_wrapper internal_wrap
 
 let deriving_to_list : 'a Deriving_Json.t -> 'a list Deriving_Json.t =
  fun (type typ) typ ->
-  let (typ_list : typ list Deriving_Json.t) =
-    let module M = Deriving_Json.Json_list (Deriving_Json.Defaults'' (struct
-        type a = typ
+   let (typ_list : typ list Deriving_Json.t) =
+     let module M = Deriving_Json.Json_list (Deriving_Json.Defaults'' (struct
+       type a = typ
 
-        let t = typ
-      end))
-    in
-    M.t
-  in
-  typ_list
+       let t = typ
+     end))
+     in
+     M.t
+   in
+   typ_list
 
 let create_filtered ?scope ?name ?size ~filter typ =
   (*The stream*)
@@ -107,14 +112,16 @@ let create_filtered ?scope ?name ?size ~filter typ =
     | `Site ->
         Some
           (Eliom_comet.Channel.create ~scope ?name ?size
-             (Lwt_stream.clone stream))
+             (Lwt_stream.clone stream)
+          )
     | `Client_process _ -> None
   in
   let typ_list = deriving_to_list typ in
   (*The service*)
   let post_params =
-    (Eliom_parameter.ocaml "bus_write" typ_list
-     : ('a, 'aa, 'aaa) Eliom_parameter.params_type)
+    ( Eliom_parameter.ocaml "bus_write" typ_list
+      : ('a, 'aa, 'aaa) Eliom_parameter.params_type
+      )
   in
   let distant_write =
     Eliom_service.create ?name
@@ -139,7 +146,8 @@ let create_filtered ?scope ?name ?size ~filter typ =
     ; service = Eliom_comet_base.Bus_send_service distant_write
     ; service_registered
     ; bus_mark = bus_mark ()
-    ; size }
+    ; size
+    }
   in
   bus
 

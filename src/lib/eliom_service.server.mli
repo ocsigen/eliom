@@ -28,7 +28,7 @@
 include Eliom_service_sigs.S
 
 val create :
-   ?name:string
+     ?name:string
   -> ?csrf_safe:bool
   -> ?csrf_scope:[< Eliom_common.user_scope]
   -> ?csrf_secure:bool
@@ -113,7 +113,7 @@ val create :
     get this exception.}  *)
 
 val create_attached_get :
-   ?name:string
+     ?name:string
   -> ?csrf_safe:bool
   -> ?csrf_scope:[< Eliom_common.user_scope]
   -> ?csrf_secure:bool
@@ -123,31 +123,33 @@ val create_attached_get :
   -> ?keep_nl_params:[`All | `Persistent | `None]
   -> fallback:
        ( unit
-         , unit
-         , get
-         , att
-         , non_co
-         , non_ext
-         , _
-         , [`WithoutSuffix]
-         , unit
-         , unit
-         , non_ocaml )
-         t
-  -> get_params:('gp, [`WithoutSuffix], 'gn) Eliom_parameter.params_type
-  -> unit
-  -> ( 'gp
        , unit
        , get
        , att
-       , co
+       , non_co
        , non_ext
-       , reg
+       , _
        , [`WithoutSuffix]
-       , 'gn
        , unit
-       , non_ocaml )
+       , unit
+       , non_ocaml
+       )
        t
+  -> get_params:('gp, [`WithoutSuffix], 'gn) Eliom_parameter.params_type
+  -> unit
+  -> ( 'gp
+     , unit
+     , get
+     , att
+     , co
+     , non_ext
+     , reg
+     , [`WithoutSuffix]
+     , 'gn
+     , unit
+     , non_ocaml
+     )
+     t
 (** [create_attached_get ~fallback ~get_params ()] attaches a new service on
     the path of [fallback]. The new service implements the GET method
     and accepts [get_params], in addition to an
@@ -157,7 +159,7 @@ val create_attached_get :
     optional parameters see {!create}. *)
 
 val create_attached_post :
-   ?name:string
+     ?name:string
   -> ?csrf_safe:bool
   -> ?csrf_scope:[< Eliom_common.user_scope]
   -> ?csrf_secure:bool
@@ -179,20 +181,21 @@ val create_attached_post :
     description of the optional parameters see {!create}. *)
 
 val attach :
-   fallback:(unit, unit, get, att, _, non_ext, _, _, unit, unit, 'return1) t
+     fallback:(unit, unit, get, att, _, non_ext, _, _, unit, unit, 'return1) t
   -> service:
        ( 'get
-         , 'post
-         , 'meth
-         , non_att
-         , co
-         , non_ext
-         , _
-         , ([< `WithoutSuffix] as 'sf)
-         , 'gn
-         , 'pn
-         , 'return )
-         t
+       , 'post
+       , 'meth
+       , non_att
+       , co
+       , non_ext
+       , _
+       , ([< `WithoutSuffix] as 'sf)
+       , 'gn
+       , 'pn
+       , 'return
+       )
+       t
   -> unit
   -> ('get, 'post, 'meth, att, co, non_ext, non_reg, 'sf, 'gn, 'pn, 'return) t
 (** [attach ~fallback ~service ()] attaches the preexisting pathless
@@ -222,7 +225,7 @@ val register_eliom_module : string -> (unit -> unit) -> unit
     replace the previous one. *)
 
 val unregister :
-   ?scope:[< Eliom_common.scope]
+     ?scope:[< Eliom_common.scope]
   -> ?secure:bool
   -> (_, _, _, _, _, non_ext, _, _, _, _, _) t
   -> unit
@@ -240,38 +243,36 @@ val is_external : (_, _, _, _, _, _, _, _, _, _, _) t -> bool
 (**/**)
 
 val pre_applied_parameters :
-   (_, _, _, _, _, _, _, _, _, _, _) t
+     (_, _, _, _, _, _, _, _, _, _, _) t
   -> (string * string) list Eliom_lib.String.Table.t * (string * string) list
 
 val new_state : unit -> string
 
 val untype :
-   ('a, 'b, 'meth, 'attached, 'co, 'ext, 'd, 'e, 'f, 'g, 'rr) t
+     ('a, 'b, 'meth, 'attached, 'co, 'ext, 'd, 'e, 'f, 'g, 'rr) t
   -> ('a, 'b, 'meth, 'attached, 'co, 'ext, 'd, 'e, 'f, 'g, 'return) t
 
 val set_delayed_get_or_na_registration_function :
-   Eliom_common.tables
+     Eliom_common.tables
   -> int
   -> (sp:Eliom_common.server_params -> string)
   -> unit
 
 val set_delayed_post_registration_function :
-   Eliom_common.tables
+     Eliom_common.tables
   -> int
   -> (sp:Eliom_common.server_params -> Eliom_common.att_key_serv -> string)
   -> unit
 
 val set_send_appl_content :
-   (_, _, _, _, _, _, _, _, _, _, _) t
-  -> send_appl_content
-  -> unit
+  (_, _, _, _, _, _, _, _, _, _, _) t -> send_appl_content -> unit
 
 exception Wrong_session_table_for_CSRF_safe_coservice
 
 val eliom_appl_answer_content_type : string
 
 val create_ocaml :
-   ?name:string
+     ?name:string
   -> ?csrf_safe:bool
   -> ?csrf_scope:[< Eliom_common.user_scope]
   -> ?csrf_secure:bool
@@ -286,7 +287,7 @@ val create_ocaml :
   -> ('gp, 'pp, 'm, 'att, 'co, non_ext, reg, 'tipo, 'gn, 'pn, 'ret ocaml) t
 
 val create_unsafe :
-   ?name:string
+     ?name:string
   -> ?csrf_safe:bool
   -> ?csrf_scope:[< Eliom_common.user_scope]
   -> ?csrf_secure:bool
@@ -301,7 +302,7 @@ val create_unsafe :
   -> ('gp, 'pp, 'm, 'att, 'co, non_ext, reg, 'tipo, 'gn, 'pn, 'ret) t
 
 val create_attached_get_unsafe :
-   ?name:string
+     ?name:string
   -> ?csrf_safe:bool
   -> ?csrf_scope:[< Eliom_common.user_scope]
   -> ?csrf_secure:bool
@@ -315,7 +316,7 @@ val create_attached_get_unsafe :
   -> ('gp, unit, get, att, co, non_ext, reg, 'tipo, 'gn, unit, _) t
 
 val create_attached_post_unsafe :
-   ?name:string
+     ?name:string
   -> ?csrf_safe:bool
   -> ?csrf_scope:[< Eliom_common.user_scope]
   -> ?csrf_secure:bool

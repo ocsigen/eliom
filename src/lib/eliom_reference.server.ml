@@ -83,21 +83,24 @@ module Volatile = struct
         with Not_found ->
           let value = f () in
           Polytables.set ~table ~key ~value;
-          value)
+          value
+      )
     | Sit key -> (
         let table = Eliom_common.((get_site_data ()).site_value_table) in
         try Polytables.get ~table ~key
         with Not_found ->
           let value = f () in
           Polytables.set ~table ~key ~value;
-          value)
+          value
+      )
     | Vol t -> (
       match get_volatile_data ~table:(Lazy.force t) () with
       | Data d -> d
       | _ ->
           let value = f () in
           set_volatile_data ~table:(Lazy.force t) value;
-          value)
+          value
+    )
     | Ref r -> Lazy.force !r
     | _ -> assert false
 
@@ -140,10 +143,12 @@ module Volatile = struct
             let value = f () in
             Eliom_state.Ext.Low_level.set_volatile_data ~state
               ~table:(Lazy.force t) value;
-            value)
+            value
+          )
           else
             (* I don't want to run f in the wrong context -> I fail *)
-            raise Eref_not_initialized)
+            raise Eref_not_initialized
+      )
       | _ -> failwith "wrong eref for this function"
 
     let set state (_, _, table) value =
@@ -175,17 +180,21 @@ let eref_from_fun_ ~ext ~scope ?secure ?persistent f : 'a eref =
         , ext
         , Ocsiper
             ( pers_ref_store >>= fun store ->
-              Ocsipersist.make_persistent ~store ~name ~default:None ) ))
+              Ocsipersist.make_persistent ~store ~name ~default:None
+            ) )
+  )
   | `Site -> (
     match persistent with
     | None -> (Volatile.eref_from_fun_ ~ext ~scope ?secure f :> _ eref)
     | Some name ->
         (*VVV!!! ??? CHECK! *)
-        f, ext, Ocsiper_sit (Ocsipersist.open_table name))
+        f, ext, Ocsiper_sit (Ocsipersist.open_table name)
+  )
   | #Eliom_common.user_scope as scope -> (
     match persistent with
     | None -> (Volatile.eref_from_fun_ ~ext ~scope ?secure f :> _ eref)
-    | Some name -> f, ext, Per (create_persistent_table ~scope ?secure name))
+    | Some name -> f, ext, Per (create_persistent_table ~scope ?secure name)
+  )
 
 let eref_from_fun ~scope ?secure ?persistent f : 'a eref =
   eref_from_fun_ ~ext:false ~scope ?secure ?persistent f
@@ -206,14 +215,16 @@ let get ((f, _, table) as eref) =
       | Data d -> Lwt.return d
       | _ ->
           let value = f () in
-          set_persistent_data ~table:t value >>= fun () -> Lwt.return value)
+          set_persistent_data ~table:t value >>= fun () -> Lwt.return value
+    )
   | Ocsiper r -> (
       r >>= fun r ->
       Ocsipersist.get r >>= function
       | Some v -> Lwt.return v
       | None ->
           let value = f () in
-          Ocsipersist.set r (Some value) >>= fun () -> Lwt.return value)
+          Ocsipersist.set r (Some value) >>= fun () -> Lwt.return value
+    )
   | Ocsiper_sit t ->
       t >>= fun t ->
       let site_id = get_site_id () in
@@ -223,7 +234,8 @@ let get ((f, _, table) as eref) =
           | Not_found ->
               let value = f () in
               Ocsipersist.add t site_id value >>= fun () -> Lwt.return value
-          | exc -> Lwt.reraise exc)
+          | exc -> Lwt.reraise exc
+          )
   | _ -> Lwt.return (Volatile.get eref)
 
 let set ((_, _, table) as eref) value =
@@ -251,7 +263,8 @@ module Ext = struct
         t >>= fun t ->
         Lwt.catch
           (fun () ->
-             Eliom_state.Ext.Low_level.get_persistent_data ~state ~table:t)
+            Eliom_state.Ext.Low_level.get_persistent_data ~state ~table:t
+          )
           (function
             | Not_found ->
                 if ext (* We can run the function from another state *)
@@ -261,7 +274,8 @@ module Ext = struct
                     value
                   >>= fun () -> Lwt.return value
                 else Lwt.fail Eref_not_initialized
-            | e -> Lwt.fail e)
+            | e -> Lwt.fail e
+            )
     | _ -> failwith "wrong eref for this function"
 
   let set state ((_, _, table) as r) value =

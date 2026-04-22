@@ -45,7 +45,7 @@ let get_ri () =
     | Some p -> p
     | None ->
         failwith "Eliom_request_info.get_sess_info called before initialization"
-    )
+  )
 
 let get_sess_info () = (get_ri ()).si
 
@@ -95,7 +95,8 @@ let update_session_info ~path ~all_get_params ~all_post_params cont =
     ; si_all_get_but_nl = all_get_but_nl
     ; si_all_get_but_na_nl = all_get_but_na_nl
     ; si_ignored_get_params = ignored_get
-    ; si_ignored_post_params = ignored_post }
+    ; si_ignored_post_params = ignored_post
+    }
   in
   let ri = Some {path; si} in
   default_ri := ri;
@@ -110,7 +111,8 @@ let get_original_full_path_sp _sp =
     match Url.Current.get () with
     | Some (Url.Http url) | Some (Url.Https url) -> url.Url.hu_path
     | Some (Url.File url) -> (
-      match url.Url.fu_path with "" :: l -> l | l -> l)
+      match url.Url.fu_path with "" :: l -> l | l -> l
+    )
     | None -> assert false
   else (get_ri ()).path
 
@@ -210,7 +212,9 @@ let default_request_data =
       ; si_ignored_get_params = []
       ; si_ignored_post_params = []
       ; si_client_process_info = None
-      ; si_expect_process_data = lazy false } }
+      ; si_expect_process_data = lazy false
+      }
+  }
 
 let get_request_data () =
   let eliom_request_data = Js.Unsafe.global##.___eliom_request_data_ in

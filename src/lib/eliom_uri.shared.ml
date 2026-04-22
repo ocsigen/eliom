@@ -104,30 +104,22 @@ let is_https https ssl service =
   || Eliom_service.https service
   || (https = None && ssl)
 
-let make_uri_components_
-      ?(* does not take into account getparams *) absolute
-      ?((* absolute is used to force absolute link.
+let make_uri_components_ ?(* does not take into account getparams *) absolute
+    ?((* absolute is used to force absolute link.
        The default is false for regular application.
        But for client side apps (mobile apps), it is true, because
        relative URLs are used for local assets. *)
-        absolute_path = false)
-      ?(* used to force absolute link without protocol/server/port *)
-       https
-      (type a)
-      ~(service : (_, _, _, a, _, _, _, _, _, _, _) Eliom_service.t)
-      ?hostname
-      ?port
-      ?fragment
-      ?keep_nl_params
-      ?(nl_params = Eliom_parameter.empty_nl_params_set)
-      ()
-  =
+      absolute_path = false)
+    ?(* used to force absolute link without protocol/server/port *)
+     https (type a)
+    ~(service : (_, _, _, a, _, _, _, _, _, _, _) Eliom_service.t) ?hostname
+    ?port ?fragment ?keep_nl_params
+    ?(nl_params = Eliom_parameter.empty_nl_params_set) () =
   let absolute =
     match absolute with
     | Some a -> a
     | None ->
-        !Eliom_common.is_client_app
-        && not (Eliom_service.has_client_fun service)
+        !Eliom_common.is_client_app && not (Eliom_service.has_client_fun service)
   in
   let ssl =
     match Eliom_common.get_sp_option () with
@@ -164,13 +156,16 @@ let make_uri_components_
             (fun key v b -> Eliom_lib.String.Table.add key v b)
             preappnlp
             (Eliommod_parameters.inject_param_table
-               (Eliom_request_info.get_nl_get_params_sp sp))
+               (Eliom_request_info.get_nl_get_params_sp sp)
+            )
       | `Persistent ->
           (* We replace current nl params by preapplied ones *)
           Eliom_lib.String.Table.fold Eliom_lib.String.Table.add preappnlp
             (Eliommod_parameters.inject_param_table
-               (Eliom_request_info.get_persistent_nl_get_params_sp sp))
-      | `None -> preappnlp)
+               (Eliom_request_info.get_persistent_nl_get_params_sp sp)
+            )
+      | `None -> preappnlp
+    )
   in
   let nlp =
     (* We replace current nl params by nl_params *)
@@ -213,13 +208,15 @@ let make_uri_components_
       | Eliom_common.SAtt_anon s ->
           ( uri
           , ( Eliom_common.get_numstate_param_name
-            , Eliommod_parameters.insert_string s )
+            , Eliommod_parameters.insert_string s
+            )
             :: hiddenparams
           , fragment )
       | Eliom_common.SAtt_named s ->
           ( uri
           , ( Eliom_common.get_state_param_name
-            , Eliommod_parameters.insert_string s )
+            , Eliommod_parameters.insert_string s
+            )
             :: hiddenparams
           , fragment )
       | Eliom_common.SAtt_csrf_safe csrf_info ->
@@ -229,7 +226,8 @@ let make_uri_components_
           in
           ( uri
           , ( Eliom_common.get_numstate_param_name
-            , Eliommod_parameters.insert_string s )
+            , Eliommod_parameters.insert_string s
+            )
             :: hiddenparams
           , fragment )
       | Eliom_common.SAtt_na_anon s ->
@@ -250,7 +248,8 @@ let make_uri_components_
           ( uri
           , (Eliom_common.naservice_num, Eliommod_parameters.insert_string s)
             :: hiddenparams
-          , fragment ))
+          , fragment )
+    )
   | Eliom_service.Nonattached naser ->
       let sp = Eliom_common.get_sp () in
       let na_name = Eliom_service.na_name naser in
@@ -293,19 +292,9 @@ let make_uri_components_
       in
       beg, params, fragment
 
-let make_uri_components
-      ?absolute
-      ?absolute_path
-      ?https
-      (type a)
-      ~(service : (_, _, _, a, _, _, _, _, _, _, _) Eliom_service.t)
-      ?hostname
-      ?port
-      ?fragment
-      ?keep_nl_params
-      ?nl_params
-      getparams
-  =
+let make_uri_components ?absolute ?absolute_path ?https (type a)
+    ~(service : (_, _, _, a, _, _, _, _, _, _, _) Eliom_service.t) ?hostname
+    ?port ?fragment ?keep_nl_params ?nl_params getparams =
   let uri, pregetparams, fragment =
     make_uri_components_ ?absolute ?absolute_path ?https ~service ?hostname
       ?port ?fragment ?keep_nl_params ?nl_params ()
@@ -337,40 +326,23 @@ let make_string_uri_from_components (uri, params, fragment) =
   in
   match fragment with None -> s | Some f -> Eliom_lib.String.concat "#" [s; f]
 
-let make_string_uri
-      ?absolute
-      ?absolute_path
-      ?https
-      ~service
-      ?hostname
-      ?port
-      ?fragment
-      ?keep_nl_params
-      ?nl_params
-      getparams : string
-  =
+let make_string_uri ?absolute ?absolute_path ?https ~service ?hostname ?port
+    ?fragment ?keep_nl_params ?nl_params getparams : string =
   make_string_uri_from_components
     (make_uri_components ?absolute ?absolute_path ?https ~service ?hostname
-       ?port ?fragment ?keep_nl_params ?nl_params getparams)
+       ?port ?fragment ?keep_nl_params ?nl_params getparams
+    )
 
 let make_string_uri_ = make_string_uri
 
 let make_post_uri_components_
-      ?((* do not take into account postparams *)
-        absolute = !Eliom_common.is_client_app)
-      ?(absolute_path = false)
-      ?https
-      (type a)
-      ~(service : (_, _, _, a, _, _, _, _, _, _, _) Eliom_service.t)
-      ?hostname
-      ?port
-      ?fragment
-      ?(keep_nl_params : [`All | `Persistent | `None] option)
-      ?(nl_params = Eliom_parameter.empty_nl_params_set)
-      ?keep_get_na_params
-      getparams
-      ()
-  =
+    ?((* do not take into account postparams *)
+      absolute = !Eliom_common.is_client_app) ?(absolute_path = false) ?https
+    (type a) ~(service : (_, _, _, a, _, _, _, _, _, _, _) Eliom_service.t)
+    ?hostname ?port ?fragment
+    ?(keep_nl_params : [`All | `Persistent | `None] option)
+    ?(nl_params = Eliom_parameter.empty_nl_params_set) ?keep_get_na_params
+    getparams () =
   match Eliom_service.info service with
   | Eliom_service.Attached attser ->
       let (uri, getparams, fragment), getname =
@@ -383,7 +355,8 @@ let make_post_uri_components_
             let s =
               Eliom_common.SAtt_anon
                 (Eliom_service.register_delayed_get_or_na_coservice ~sp
-                   csrf_info)
+                   csrf_info
+                )
             in
             ( make_uri_components ~absolute ~absolute_path ?https
                 ~service:(Eliom_service.change_get_num service attser s)
@@ -432,12 +405,14 @@ let make_post_uri_components_
             (* We replace current nl params by preapplied ones *)
             Eliom_lib.String.Table.fold Eliom_lib.String.Table.add preappnlp
               (Eliommod_parameters.inject_param_table
-                 (Eliom_request_info.get_nl_get_params ()))
+                 (Eliom_request_info.get_nl_get_params ())
+              )
         | `Persistent ->
             (* We replace current nl params by preapplied ones *)
             Eliom_lib.String.Table.fold Eliom_lib.String.Table.add preappnlp
               (Eliommod_parameters.inject_param_table
-                 (Eliom_request_info.get_persistent_nl_get_params_sp sp))
+                 (Eliom_request_info.get_persistent_nl_get_params_sp sp)
+              )
         | `None -> preappnlp
       in
       let nlp =
@@ -463,12 +438,13 @@ let make_post_uri_components_
       let params =
         params
         @ Eliommod_parameters.inject_param_list
-            (if keep_get_na_params
-             then (Eliom_request_info.get_si sp).Eliom_common.si_all_get_but_nl
-             else
-               Lazy.force
-                 (Eliom_request_info.get_si sp)
-                   .Eliom_common.si_all_get_but_na_nl)
+            ( if keep_get_na_params
+              then (Eliom_request_info.get_si sp).Eliom_common.si_all_get_but_nl
+              else
+                Lazy.force
+                  (Eliom_request_info.get_si sp)
+                    .Eliom_common.si_all_get_but_na_nl
+            )
       in
       let ssl = Eliom_request_info.get_csp_ssl_sp sp in
       let https = is_https https ssl service in
@@ -535,20 +511,9 @@ let make_post_uri_components_
       let postparams = [naservice_line] in
       uri, params, fragment, Eliommod_parameters.inject_param_list postparams
 
-let make_post_uri_components
-      ?absolute
-      ?absolute_path
-      ?https
-      ~service
-      ?hostname
-      ?port
-      ?fragment
-      ?keep_nl_params
-      ?nl_params
-      ?keep_get_na_params
-      getparams
-      postparams
-  =
+let make_post_uri_components ?absolute ?absolute_path ?https ~service ?hostname
+    ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params getparams
+    postparams =
   let uri, getparams, fragment, prepostparams =
     make_post_uri_components_ ?absolute ?absolute_path ?https ~service ?hostname
       ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params getparams
@@ -581,13 +546,11 @@ let make_post_uri_components__ = make_post_uri_components
 *)
 let make_cookies_info (https, service) =
   (* https is what the user asked while creating the link/form *)
-  let get_path_
-        (type a)
-        ~(* simplified version of make_uri_components.
+  let get_path_ (type a)
+      ~(* simplified version of make_uri_components.
                             Returns only the absolute path without
                             protocol/server/port AND WITHOUT SUFFIX *)
-        (service : (_, _, _, a, _, _, _, _, _, _, _) Eliom_service.t)
-    =
+      (service : (_, _, _, a, _, _, _, _, _, _, _) Eliom_service.t) =
     match Eliom_service.info service with
     | Eliom_service.Attached attser ->
         if Eliom_service.is_external service

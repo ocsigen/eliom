@@ -40,11 +40,12 @@ let create_buffer () =
   in
   let flush () =
     let res = get () in
-    (match !stack with
+    ( match !stack with
     | l :: r ->
         elts := l;
         stack := r
-    | [] -> elts := []);
+    | [] -> elts := []
+    );
     res
   in
   add, get, flush, push
@@ -114,9 +115,7 @@ module Injection : sig
   val get : ?ident:string -> ?pos:pos -> name:string -> _
 
   val initialize :
-     compilation_unit_id:string
-    -> Eliom_client_value.injection_datum
-    -> unit
+    compilation_unit_id:string -> Eliom_client_value.injection_datum -> unit
 end = struct
   let table = Jstable.create ()
 
@@ -126,24 +125,25 @@ end = struct
       (Js.Optdef.get
          (Jstable.find table (Js.string name))
          (fun () ->
-            let name =
-              match ident, pos with
-              | None, None -> Printf.sprintf "%s" name
-              | None, Some pos ->
-                  Printf.sprintf "%s at %s" name (Eliom_lib.pos_to_string pos)
-              | Some i, None -> Printf.sprintf "%s (%s)" name i
-              | Some i, Some pos ->
-                  Printf.sprintf "%s (%s at %s)" name i
-                    (Eliom_lib.pos_to_string pos)
-            in
-            raise_error "Did not find injection %s" name))
+           let name =
+             match ident, pos with
+             | None, None -> Printf.sprintf "%s" name
+             | None, Some pos ->
+                 Printf.sprintf "%s at %s" name (Eliom_lib.pos_to_string pos)
+             | Some i, None -> Printf.sprintf "%s (%s)" name i
+             | Some i, Some pos ->
+                 Printf.sprintf "%s (%s at %s)" name i
+                   (Eliom_lib.pos_to_string pos)
+           in
+           raise_error "Did not find injection %s" name
+         )
+      )
 
-  let initialize
-        ~compilation_unit_id
-        {Eliom_runtime.injection_id; injection_value; _}
-    =
+  let initialize ~compilation_unit_id
+      {Eliom_runtime.injection_id; injection_value; _} =
     Logs.debug ~src:section (fun fmt ->
-      fmt "Initialize injection %d" injection_id);
+      fmt "Initialize injection %d" injection_id
+    );
     (* BBB One should assert that injection_value doesn't contain any
        value marked for late unwrapping. How to do this efficiently? *)
     Jstable.add table
@@ -155,14 +155,16 @@ end
 
 type compilation_unit_global_data =
   { mutable server_section : Eliom_runtime.client_value_datum array list
-  ; mutable client_section : Eliom_runtime.injection_datum array list }
+  ; mutable client_section : Eliom_runtime.injection_datum array list
+  }
 
 let global_data = ref String_map.empty
 
 let do_next_server_section_data ~compilation_unit_id =
   Logs.debug ~src:section (fun fmt ->
     fmt "Do next client value data section in compilation unit %s"
-      compilation_unit_id);
+      compilation_unit_id
+  );
   try
     let data = String_map.find compilation_unit_id !global_data in
     match data.server_section with
@@ -179,7 +181,8 @@ let do_next_server_section_data ~compilation_unit_id =
 let do_next_client_section_data ~compilation_unit_id =
   Logs.debug ~src:section (fun fmt ->
     fmt "Do next injection data section in compilation unit %s"
-      compilation_unit_id);
+      compilation_unit_id
+  );
   try
     let data = String_map.find compilation_unit_id !global_data in
     match data.client_section with
@@ -210,12 +213,14 @@ let register_process_node, find_process_node =
   let process_nodes : Dom.node Js.t Jstable.t = Jstable.create () in
   let find id =
     Logs.debug ~src:section (fun fmt ->
-      fmt "Find process node %s" (Js.to_string id));
+      fmt "Find process node %s" (Js.to_string id)
+    );
     Jstable.find process_nodes id
   in
   let register id node =
     Logs.debug ~src:section (fun fmt ->
-      fmt "Register process node %s" (Js.to_string id));
+      fmt "Register process node %s" (Js.to_string id)
+    );
     let node =
       if node##.nodeName##toLowerCase == Js.string "script"
       then
@@ -233,8 +238,9 @@ let getElementById id =
   Js.Optdef.case
     (find_process_node (Js.string id))
     (fun () ->
-       Logs.warn ~src:section (fun fmt -> fmt "getElementById %s: Not_found" id);
-       raise Not_found)
+      Logs.warn ~src:section (fun fmt -> fmt "getElementById %s: Not_found" id);
+      raise Not_found
+    )
     (fun pnode -> pnode)
 
 (* == Request nodes
@@ -245,7 +251,8 @@ let register_request_node, find_request_node, reset_request_nodes =
   let find id = Jstable.find !request_nodes id in
   let register id node =
     Logs.debug ~src:section (fun fmt ->
-      fmt "Register request node %s" (Js.to_string id));
+      fmt "Register request node %s" (Js.to_string id)
+    );
     Jstable.add !request_nodes id node
   in
   let reset () =
@@ -288,18 +295,17 @@ let in_onload, broadcast_load_end, wait_load_end, set_loading_phase =
 
 (* forward declaration... *)
 let change_page_uri_ :
-  (?cookies_info:bool * string list -> ?tmpl:string -> string -> unit) ref
-  =
+    (?cookies_info:bool * string list -> ?tmpl:string -> string -> unit) ref =
   ref (fun ?cookies_info:_ ?tmpl:_ _href -> assert false)
 
 let change_page_get_form_ :
-  (?cookies_info:bool * string list
-   -> ?tmpl:string
-   -> Dom_html.formElement Js.t
-   -> string
-   -> unit)
-    ref
-  =
+    (   ?cookies_info:bool * string list
+     -> ?tmpl:string
+     -> Dom_html.formElement Js.t
+     -> string
+     -> unit
+    )
+    ref =
   ref (fun ?cookies_info:_ ?tmpl:_ _form _href -> assert false)
 
 let change_page_post_form_ =
@@ -314,13 +320,15 @@ let raw_a_handler node cookies_info tmpl ev =
   middleClick ev
   || (not !Eliom_common.is_client_app)
      && ((https = Some true && not Eliom_request_info.ssl_)
-        || (https = Some false && Eliom_request_info.ssl_))
+        || (https = Some false && Eliom_request_info.ssl_)
+        )
   ||
-  ((* If a link is clicked, we do not want to continue propagation
+  ( (* If a link is clicked, we do not want to continue propagation
        (for example if the link is in a wider clickable area)  *)
-   Dom_html.stopPropagation ev;
-   !change_page_uri_ ?cookies_info ?tmpl (Js.to_string href);
-   false)
+    Dom_html.stopPropagation ev;
+    !change_page_uri_ ?cookies_info ?tmpl (Js.to_string href);
+    false
+  )
 
 let raw_form_handler form kind cookies_info tmpl ev client_form_handler =
   let action = Js.to_string form##.action in
@@ -338,14 +346,16 @@ let raw_form_handler form kind cookies_info tmpl ev client_form_handler =
   in
   (not !Eliom_common.is_client_app)
   && ((https = Some true && not Eliom_request_info.ssl_)
-     || (https = Some false && Eliom_request_info.ssl_))
+     || (https = Some false && Eliom_request_info.ssl_)
+     )
   || (f (); false)
 
 let raw_event_handler value =
   let handler =
     (*XXX???*)
-    (Eliom_lib.from_poly (Eliom_lib.to_poly value)
-     : #Dom_html.event Js.t -> unit)
+    ( Eliom_lib.from_poly (Eliom_lib.to_poly value)
+      : #Dom_html.event Js.t -> unit
+      )
   in
   fun ev -> try handler ev; true with Eliom_client_value.False -> false
 
@@ -361,21 +371,25 @@ let reify_caml_event name node ce =
           (fun ev ->
             let node =
               Js.Opt.get (Dom_html.CoerceTo.a node) (fun () ->
-                raise_error ~section "not an anchor element")
+                raise_error ~section "not an anchor element"
+              )
             in
-            raw_a_handler node cookies_info tmpl ev) )
+            raw_a_handler node cookies_info tmpl ev
+          ) )
   | Xml.CE_call_service
-      (Some (((`Form_get | `Form_post) as kind), cookies_info, tmpl, client_hdlr))
-    ->
+      (Some (((`Form_get | `Form_post) as kind), cookies_info, tmpl, client_hdlr)
+        ) ->
       ( name
       , `Other
           (fun ev ->
             let form =
               Js.Opt.get (Dom_html.CoerceTo.form node) (fun () ->
-                raise_error ~section "not a form element")
+                raise_error ~section "not a form element"
+              )
             in
             raw_form_handler form kind cookies_info tmpl ev
-              (Eliom_lib.from_poly client_hdlr : client_form_handler)) )
+              (Eliom_lib.from_poly client_hdlr : client_form_handler)
+          ) )
   | Xml.CE_client_closure f ->
       ( name
       , `Other
@@ -487,7 +501,9 @@ let iter_prop node name f =
 
 let iter_prop_protected node name f =
   match get_prop node name with
-  | Some n -> ( try f n with _ -> ())
+  | Some n -> (
+    try f n with _ -> ()
+  )
   | None -> ()
 
 let space_re = Regexp.regexp " "
@@ -534,24 +550,30 @@ let rec rebuild_rattrib node ra =
                | None ->
                    node##(removeAttribute name);
                    iter_prop_protected node name (fun name ->
-                     Js.Unsafe.set node name Js.null)
+                     Js.Unsafe.set node name Js.null
+                   )
                | Some v ->
                    let v = rebuild_attrib_val v in
                    node##(setAttribute name v);
                    iter_prop_protected node name (fun name ->
-                     Js.Unsafe.set node name v))
-             s)
+                     Js.Unsafe.set node name v
+                   )
+               )
+             s
+          )
   | Xml.RACamlEventHandler ev -> register_event_handler node (Xml.aname ra, ev)
   | Xml.RALazyStr s ->
       node##(setAttribute (Js.string (Xml.aname ra)) (Js.string s))
   | Xml.RALazyStrL (Xml.Space, l) ->
       node##(setAttribute
                (Js.string (Xml.aname ra))
-               (Js.string (String.concat " " l)))
+               (Js.string (String.concat " " l))
+            )
   | Xml.RALazyStrL (Xml.Comma, l) ->
       node##(setAttribute
                (Js.string (Xml.aname ra))
-               (Js.string (String.concat "," l)))
+               (Js.string (String.concat "," l))
+            )
   | Xml.RAClient (_, _, value) ->
       rebuild_rattrib node
         (Eliom_lib.from_poly (Eliom_lib.to_poly value) : Xml.attrib)
@@ -644,9 +666,11 @@ end = struct
         Js.Opt.case dom'##.parentNode
           (fun () -> (* no parent -> no replace needed *) ())
           (fun parent ->
-             Js.Opt.iter (Dom.CoerceTo.element parent) (fun parent ->
-               (* really update the dom *)
-               ignore (Dom_html.element parent)##(replaceChild dom dom')))
+            Js.Opt.iter (Dom.CoerceTo.element parent) (fun parent ->
+              (* really update the dom *)
+              ignore (Dom_html.element parent)##(replaceChild dom dom')
+            )
+          )
 end
 
 type content_ns = [`HTML5 | `SVG]
@@ -667,10 +691,12 @@ let rec rebuild_node' ns elt =
         ReactState.start_signal (fun state ->
           React.S.map
             (fun elt' ->
-               let dom = rebuild_node' ns elt' in
-               Xml.set_dom_node elt dom;
-               ReactState.change_dom state dom)
-            signal)
+              let dom = rebuild_node' ns elt' in
+              Xml.set_dom_node elt dom;
+              ReactState.change_dom state dom
+            )
+            signal
+        )
       in
       Xml.set_dom_node elt dom; dom
   | Xml.TyXMLNode raw_elt -> (
@@ -685,10 +711,12 @@ let rec rebuild_node' ns elt =
         let id = Js.string id in
         Js.Optdef.case (find_process_node id)
           (fun () ->
-             let node = raw_rebuild_node ns (Xml.content elt) in
-             register_process_node id node;
-             node)
-          (fun n -> (n :> Dom.node Js.t)))
+            let node = raw_rebuild_node ns (Xml.content elt) in
+            register_process_node id node;
+            node
+          )
+          (fun n -> (n :> Dom.node Js.t))
+  )
 
 and raw_rebuild_node ns = function
   | Xml.Empty | Xml.Comment _ ->
@@ -711,7 +739,8 @@ and raw_rebuild_node ns = function
         | `SVG ->
             let svg_ns = "http://www.w3.org/2000/svg" in
             Dom_html.document##(createElementNS (Js.string svg_ns)
-                                  (Js.string name))
+                                  (Js.string name)
+                               )
       in
       List.iter (rebuild_rattrib node) attribs;
       List.iter (fun c -> Dom.appendChild node (rebuild_node' ns c)) childrens;
@@ -728,7 +757,8 @@ let rebuild_node_ns ns context elt' =
   Logs.debug ~src:section (fun fmt ->
     fmt "Rebuild node %s (%s)"
       (Eliom_content_core.Xml.string_of_node_id (Xml.get_node_id elt'))
-      context);
+      context
+  );
   if is_before_initial_load ()
   then (
     log_inspect (rebuild_node' ns elt');
@@ -738,7 +768,9 @@ let rebuild_node_ns ns context elt' =
         match get_node_id elt' with
         | NoId -> " "
         | RequestId id -> " on request node " ^ id
-        | ProcessId id -> " on global node " ^ id));
+        | ProcessId id -> " on global node " ^ id
+      )
+  );
   let node = Js.Unsafe.coerce (rebuild_node' ns elt') in
   flush_load_script (); node
 

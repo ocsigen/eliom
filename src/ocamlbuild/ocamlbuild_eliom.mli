@@ -7,7 +7,7 @@ end
 
 module Make (_ : ELIOM) : sig
   val dispatcher :
-     ?oasis_executables:Ocamlbuild_plugin.Pathname.t list
+       ?oasis_executables:Ocamlbuild_plugin.Pathname.t list
     -> Ocamlbuild_plugin.hook
     -> unit
   (** The main dispatcher
@@ -49,7 +49,7 @@ end
 
 module MakeIntern (_ : INTERNALS) (_ : ELIOM) : sig
   val dispatcher :
-     ?oasis_executables:Ocamlbuild_plugin.Pathname.t list
+       ?oasis_executables:Ocamlbuild_plugin.Pathname.t list
     -> Ocamlbuild_plugin.hook
     -> unit
 end
