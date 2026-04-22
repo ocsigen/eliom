@@ -14,25 +14,27 @@ let scan_mli_only dir =
   let has_impl_for modname suffixes =
     List.exists
       (fun f ->
-         module_name f = modname
-         && List.exists (fun s -> Filename.check_suffix f s) suffixes)
+        module_name f = modname
+        && List.exists (fun s -> Filename.check_suffix f s) suffixes
+      )
       files
   in
   List.iter
     (fun f ->
-       let modname = module_name f in
-       if
-         Filename.check_suffix f ".server.mli"
-         || Filename.check_suffix f ".shared.mli"
-       then
-         if not (has_impl_for modname [".server.ml"; ".shared.ml"; ".eliom"])
-         then Hashtbl.replace mli_only_server modname true;
-       if
-         Filename.check_suffix f ".client.mli"
-         || Filename.check_suffix f ".shared.mli"
-       then
-         if not (has_impl_for modname [".client.ml"; ".shared.ml"; ".eliom"])
-         then Hashtbl.replace mli_only_client modname true)
+      let modname = module_name f in
+      if
+        Filename.check_suffix f ".server.mli"
+        || Filename.check_suffix f ".shared.mli"
+      then
+        if not (has_impl_for modname [".server.ml"; ".shared.ml"; ".eliom"])
+        then Hashtbl.replace mli_only_server modname true;
+      if
+        Filename.check_suffix f ".client.mli"
+        || Filename.check_suffix f ".shared.mli"
+      then
+        if not (has_impl_for modname [".client.ml"; ".shared.ml"; ".eliom"])
+        then Hashtbl.replace mli_only_client modname true
+    )
     files
 
 let subdir_copy src dst =
@@ -97,7 +99,8 @@ let () =
   scan_mli_only dir;
   Sys.readdir dir |> Array.to_list |> List.sort compare
   |> List.iter
-       (match Sys.argv.(1) with
+       ( match Sys.argv.(1) with
        | "--server" -> handle_file_server
        | "--client" -> handle_file_client
-       | _ -> assert false)
+       | _ -> assert false
+       )

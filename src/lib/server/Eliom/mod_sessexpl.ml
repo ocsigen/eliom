@@ -38,9 +38,10 @@ let iter_service_cookies f =
   in
   Common.SessionCookies.fold
     (fun k v thr ->
-       let* () = thr in
-       let* () = f (k, v) in
-       Lwt.pause ())
+      let* () = thr in
+      let* () = f (k, v) in
+      Lwt.pause ()
+    )
     sitedata.Common.session_services Lwt.return_unit
 
 (** Iterator on data cookies *)
@@ -48,16 +49,18 @@ let iter_data_cookies f =
   let sitedata = Request_info.find_sitedata "Mod_sessexpl.iter_data_cookies" in
   Common.SessionCookies.fold
     (fun k v thr ->
-       let* () = thr in
-       let* () = f (k, v) in
-       Lwt.pause ())
+      let* () = thr in
+      let* () = f (k, v) in
+      Lwt.pause ()
+    )
     sitedata.Common.session_data Lwt.return_unit
 
 (** Iterator on persistent cookies *)
 let iter_persistent_cookies f =
   Mod_cookies.Persistent_cookies.Cookies.iter (fun k v ->
     let* () = f (k, v) in
-    Lwt.pause ())
+    Lwt.pause ()
+  )
 
 (** Iterator on service cookies *)
 let fold_service_cookies f beg =
@@ -66,10 +69,11 @@ let fold_service_cookies f beg =
   in
   Common.SessionCookies.fold
     (fun k v thr ->
-       let* res1 = thr in
-       let* res = f (k, v) res1 in
-       let* () = Lwt.pause () in
-       Lwt.return res)
+      let* res1 = thr in
+      let* res = f (k, v) res1 in
+      let* () = Lwt.pause () in
+      Lwt.return res
+    )
     sitedata.Common.session_services (Lwt.return beg)
 
 (** Iterator on data cookies *)
@@ -77,19 +81,21 @@ let fold_data_cookies f beg =
   let sitedata = Request_info.find_sitedata "Mod_sessexpl.fold_data_cookies" in
   Common.SessionCookies.fold
     (fun k v thr ->
-       let* res1 = thr in
-       let* res = f (k, v) res1 in
-       let* () = Lwt.pause () in
-       Lwt.return res)
+      let* res1 = thr in
+      let* res = f (k, v) res1 in
+      let* () = Lwt.pause () in
+      Lwt.return res
+    )
     sitedata.Common.session_data (Lwt.return beg)
 
 (** Iterator on persistent cookies *)
 let fold_persistent_cookies f beg =
   Mod_cookies.Persistent_cookies.Cookies.fold
     (fun k v beg ->
-       let* res = f (k, v) beg in
-       let* () = Lwt.pause () in
-       Lwt.return res)
+      let* res = f (k, v) beg in
+      let* () = Lwt.pause () in
+      Lwt.return res
+    )
     beg
 
 (*****************************************************************************)

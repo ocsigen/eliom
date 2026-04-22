@@ -6,9 +6,10 @@ include Ocsigen_base.Lib
 include (
   Lib_base :
     module type of Lib_base
-    with type 'a Int64_map.t = 'a Lib_base.Int64_map.t
-    with type 'a String_map.t = 'a Lib_base.String_map.t
-    with type 'a Int_map.t = 'a Lib_base.Int_map.t)
+      with type 'a Int64_map.t = 'a Lib_base.Int64_map.t
+      with type 'a String_map.t = 'a Lib_base.String_map.t
+      with type 'a Int_map.t = 'a Lib_base.Int_map.t
+)
 
 let debug f = Printf.ksprintf (fun s -> Printf.eprintf "%s\n%!" s) f
 

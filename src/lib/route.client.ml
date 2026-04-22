@@ -3,7 +3,8 @@ type info =
   ; i_subpath : string list
   ; i_meth : Common.meth
   ; i_get_params : (string * string) list
-  ; i_post_params : (string * string) list }
+  ; i_post_params : (string * string) list
+  }
 
 module A = struct
   type site_data = unit
@@ -27,10 +28,10 @@ module A = struct
       !count
 
   module Raw_table = Map.Make (struct
-      type t = Common.meth
+    type t = Common.meth
 
-      let compare = compare
-    end)
+    let compare = compare
+  end)
 
   type table_content =
     [`Ptc of unit option * (params, result) Common.service list]
@@ -67,7 +68,8 @@ module A = struct
       { mutable t_services : Table.t Common.service_table list
       ; mutable t_contains_timeout : bool
       ; mutable t_na_services :
-          (Common.na_key_serv, bool -> params -> result Lwt.t) Hashtbl.t }
+          (Common.na_key_serv, bool -> params -> result Lwt.t) Hashtbl.t
+      }
 
     let get {t_services; _} = t_services
     let set_contains_timeout a b = a.t_contains_timeout <- b
@@ -84,7 +86,8 @@ let global_tables =
   A.Container.
     { t_services = []
     ; t_contains_timeout = false
-    ; t_na_services = Hashtbl.create 256 }
+    ; t_na_services = Hashtbl.create 256
+    }
 
 let add_naservice k f {A.Container.t_na_services; _} =
   Hashtbl.add t_na_services k f
@@ -118,4 +121,5 @@ let call_service ({i_get_params; i_post_params; i_subpath; _} as info) =
   | None -> (
     match na_key_of_params ~get:false i_post_params with
     | Some k -> call_naservice k global_tables
-    | None -> find_service 0. global_tables None () info)
+    | None -> find_service 0. global_tables None () info
+  )

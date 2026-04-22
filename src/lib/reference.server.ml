@@ -34,7 +34,8 @@ let pers_ref_store = Store_json.open_store "eliom__persistent_refs"
 let reset_unreadable ~reset = function
   | Common.Ocsipersist.Decoding_error msg ->
       Logs.warn ~src:section (fun fmt ->
-        fmt "Unreadable persistent reference reset to its default value: %s" msg);
+        fmt "Unreadable persistent reference reset to its default value: %s" msg
+      );
       reset ()
   | exc -> Lwt.fail exc
 
@@ -86,14 +87,17 @@ let open_on_first_use f =
 let global_store ~name ~json () =
   Lwt.catch
     (fun () ->
-       let* store = pers_ref_store in
-       Store_json.make_persistent ~store ~name ~json:(json_option json)
-         ~default:None)
+      let* store = pers_ref_store in
+      Store_json.make_persistent ~store ~name ~json:(json_option json)
+        ~default:None
+    )
     (fun exc ->
-       Logs.err ~src:section (fun fmt ->
-         fmt "Cannot open the store of the persistent reference %s: %s" name
-           (Printexc.to_string exc));
-       Lwt.fail exc)
+      Logs.err ~src:section (fun fmt ->
+        fmt "Cannot open the store of the persistent reference %s: %s" name
+          (Printexc.to_string exc)
+      );
+      Lwt.fail exc
+    )
 
 type 'a typed_table =
   (module Common.Ocsipersist.TABLE with type key = string and type value = 'a)
@@ -115,9 +119,10 @@ type persistent = [`Persistent]
 type ('a, +'storage) eref' =
   { default : unit -> 'a  (** The function to get the initial value *)
   ; ext_safe : bool
-    (** It is safe to call [default] from an external context (for example
+        (** It is safe to call [default] from an external context (for example
         if it is a constant function: eref created from a value) *)
-  ; kind : 'a eref_kind  (** The kind of reference (scope, persistence) *) }
+  ; kind : 'a eref_kind  (** The kind of reference (scope, persistence) *)
+  }
 
 type 'a eref = ('a, [volatile | persistent]) eref'
 
@@ -132,12 +137,14 @@ module Volatile = struct
     { default = f
     ; ext_safe = ext
     ; kind =
-        (match scope with
+        ( match scope with
         | `Request -> Req (Polytables.make_key ())
         | `Global -> Ref (ref (Lazy.from_fun f))
         | `Site -> Sit (Polytables.make_key ())
         | #Common.user_scope as scope ->
-            Vol (lazy (create_volatile_table ~scope ?secure ()))) }
+            Vol (lazy (create_volatile_table ~scope ?secure ()))
+        )
+    }
 
   let eref_from_fun ~scope ?secure f : 'a eref =
     eref_from_fun_ ~ext:false ~scope ?secure f
@@ -153,21 +160,24 @@ module Volatile = struct
         with Not_found ->
           let value = f () in
           Polytables.set ~table ~key ~value;
-          value)
+          value
+      )
     | Sit key -> (
         let table = Common.((get_site_data ()).site_value_table) in
         try Polytables.get ~table ~key
         with Not_found ->
           let value = f () in
           Polytables.set ~table ~key ~value;
-          value)
+          value
+      )
     | Vol t -> (
       match get_volatile_data ~table:(Lazy.force t) () with
       | Data d -> d
       | _ ->
           let value = f () in
           set_volatile_data ~table:(Lazy.force t) value;
-          value)
+          value
+    )
     | Ref r -> Lazy.force !r
     | _ -> assert false
 
@@ -208,10 +218,12 @@ module Volatile = struct
             let value = f () in
             State.Ext.Low_level.set_volatile_data ~state ~table:(Lazy.force t)
               value;
-            value)
+            value
+          )
           else
             (* I don't want to run f in the wrong context -> I fail *)
-            raise Eref_not_initialized)
+            raise Eref_not_initialized
+      )
       | _ -> failwith "wrong eref for this function"
 
     let set state {kind = table; _} value =
@@ -240,7 +252,9 @@ let eref_from_fun_ ~ext ~scope ?secure ?persistent f : 'a eref =
     | Some (name, json) ->
         { default = f
         ; ext_safe = ext
-        ; kind = Ocsiper (open_on_first_use (global_store ~name ~json)) })
+        ; kind = Ocsiper (open_on_first_use (global_store ~name ~json))
+        }
+  )
   | `Site -> (
     match persistent with
     | None -> (Volatile.eref_from_fun_ ~ext ~scope ?secure f :> _ eref)
@@ -248,14 +262,17 @@ let eref_from_fun_ ~ext ~scope ?secure ?persistent f : 'a eref =
         { default = f
         ; ext_safe = ext
         ; kind = Ocsiper_sit (Common.Persistent_tables.create_json ~name json)
-        })
+        }
+  )
   | #Common.user_scope as scope -> (
     match persistent with
     | None -> (Volatile.eref_from_fun_ ~ext ~scope ?secure f :> _ eref)
     | Some (name, json) ->
         { default = f
         ; ext_safe = ext
-        ; kind = Per (create_persistent_table ~scope ?secure ~json name) })
+        ; kind = Per (create_persistent_table ~scope ?secure ~json name)
+        }
+  )
 
 let eref_from_fun ~scope ?secure ?persistent f : 'a eref =
   eref_from_fun_ ~ext:false ~scope ?secure ?persistent f
@@ -301,8 +318,9 @@ let get (type a) ({default = f; kind = table; _} as eref) : a Lwt.t =
       in
       Lwt.catch
         (fun () ->
-           let* data = get_persistent_data ~table:t () in
-           match data with Data d -> Lwt.return d | _ -> reset ())
+          let* data = get_persistent_data ~table:t () in
+          match data with Data d -> Lwt.return d | _ -> reset ()
+        )
         (reset_unreadable ~reset)
   | Ocsiper r ->
       let* r = r () in
@@ -313,8 +331,9 @@ let get (type a) ({default = f; kind = table; _} as eref) : a Lwt.t =
       in
       Lwt.catch
         (fun () ->
-           let* v = Store_json.get r in
-           match v with Some v -> Lwt.return v | None -> reset ())
+          let* v = Store_json.get r in
+          match v with Some v -> Lwt.return v | None -> reset ()
+        )
         (reset_unreadable ~reset)
   | Ocsiper_sit t -> get_site_value t f (get_site_id ())
   | _ -> Lwt.return (Volatile.get eref)
@@ -350,8 +369,9 @@ let unset (type a) ({kind = table; _} as eref) =
       Store_json.set r None
   | Ocsiper_sit t ->
       let module T =
-        (val t
-          : Common.Ocsipersist.TABLE with type key = string and type value = a)
+        ( val t
+            : Common.Ocsipersist.TABLE with type key = string and type value = a
+          )
       in
       T.remove (get_site_id ())
   | _ -> Lwt.return (Volatile.unset eref)
@@ -381,9 +401,11 @@ module Ext = struct
                 (* An unreadable stored value is treated as absent, like in
                    [Reference.get]. *)
                 Logs.warn ~src:section (fun fmt ->
-                  fmt "Unreadable persistent reference read as absent: %s" msg);
+                  fmt "Unreadable persistent reference read as absent: %s" msg
+                );
                 absent ()
-            | e -> Lwt.fail e)
+            | e -> Lwt.fail e
+            )
     | _ -> failwith "wrong eref for this function"
 
   let set state ({kind = table; _} as r) value =

@@ -15,24 +15,29 @@ let test_unregistered () =
   in
   check "one service"
     ("Eliom: in site /s - One service or coservice has not been registered on URL /a/b. "
-   ^ help)
+   ^ help
+    )
     (unregistered ["s"] [["a"; "b"]] []);
   check "several services"
     ("Eliom: in site /s/t - Some services or coservices have not been registered on URLs: /a, /b. "
-   ^ help)
+   ^ help
+    )
     (unregistered ["s"; "t"] [["a"]; ["b"]] []);
   check "root site"
     ("Eliom: in site / - One service or coservice has not been registered on URL /a. "
-   ^ help)
+   ^ help
+    )
     (unregistered [] [["a"]] []);
   check "non-attached coservice"
     ("Eliom: in site /s - The non-attached POST service \"na\" has not been registered."
-   ^ help)
+   ^ help
+    )
     (unregistered ["s"] [] [Common.SNa_post_ "na"]);
   check "services and non-attached coservices"
     ("Eliom: in site /s - One service or coservice has not been registered on URL /a. "
    ^ "Some non-attached services or coservices have not been registered: na (GET), <void coservice>."
-   ^ help)
+   ^ help
+    )
     (unregistered ["s"] [["a"]] [Common.SNa_get_ "na"; Common.SNa_void_keep])
 
 let test_other_errors () =
@@ -61,4 +66,5 @@ let suite =
   ( "initialisation errors"
   , [ Alcotest.test_case "unregistered services" `Quick test_unregistered
     ; Alcotest.test_case "other errors" `Quick test_other_errors
-    ; Alcotest.test_case "other exceptions" `Quick test_other_exceptions ] )
+    ; Alcotest.test_case "other exceptions" `Quick test_other_exceptions
+    ] )

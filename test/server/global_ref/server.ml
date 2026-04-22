@@ -11,17 +11,20 @@ let () =
   string
     (get ["set"] P.(string "v"))
     (fun v () ->
-       let* () = Reference.set Toplevel_ref.value v in
-       text "set")
+      let* () = Reference.set Toplevel_ref.value v in
+      text "set"
+    )
 
 let () =
   string (get ["get"] P.unit) (fun () () ->
     let* v = Reference.get Toplevel_ref.value in
-    text v)
+    text v
+  )
 
 let () =
   string (get ["unset"] P.unit) (fun () () ->
     let* () = Reference.unset Toplevel_ref.value in
-    text "unset")
+    text "unset"
+  )
 
 let () = Eliom_test_server.Server_harness.start [App.run ()]

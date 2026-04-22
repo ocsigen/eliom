@@ -17,7 +17,8 @@ let check_error msg expected s =
 let site =
   lazy
     (Main.create_sitedata [] ["config"]
-       (Ocsigen.Extensions.default_config_info ()))
+       (Ocsigen.Extensions.default_config_info ())
+    )
 
 (* [parse_site s] reads the options [s], the content of an <eliom> element of
    a site, and returns those left to the Eliom modules. *)
@@ -58,13 +59,15 @@ let test_comet_timeout () =
   Alcotest.(check (float 0.)) "set" 2.5 (Main.get_comet_timeout ());
   List.iter
     (fun v ->
-       check_error v "Eliom: Wrong value for <comettimeout>"
-         (Printf.sprintf {|<comettimeout value="%s"/>|} v))
+      check_error v "Eliom: Wrong value for <comettimeout>"
+        (Printf.sprintf {|<comettimeout value="%s"/>|} v)
+    )
     ["soon"; "0"; "-1"; "infinity"; "nan"];
   Alcotest.(check (float 0.)) "unchanged" 2.5 (Main.get_comet_timeout ());
   Alcotest.check_raises "not positive"
     (Invalid_argument "Eliom: the Comet timeout must be a positive number")
-    (fun () -> Main.set_comet_timeout 0.);
+    (fun () -> Main.set_comet_timeout 0.
+  );
   Main.set_comet_timeout 20.
 
 (* The limits, by name *)
@@ -86,7 +89,8 @@ let limits =
       , default_max_persistent_data_tab_sessions_per_group )
     ; "coservices per session", default_max_anonymous_services_per_session
     ; "coservices per site", default_max_anonymous_services_per_site
-    ; "groups per site", default_max_volatile_groups_per_site ]
+    ; "groups per site", default_max_volatile_groups_per_site
+    ]
 
 (* The options setting limits, each with the limits it sets *)
 let limit_options =
@@ -106,20 +110,23 @@ let limit_options =
   ; "maxpersistenttabsessionspergroup", ["persistent tab sessions per group"]
   ; "maxanonymouscoservicespersession", ["coservices per session"]
   ; "maxanonymouscoservicespersite", ["coservices per site"]
-  ; "maxvolatilegroupspersite", ["groups per site"] ]
+  ; "maxvolatilegroupspersite", ["groups per site"]
+  ]
 
 let test_limits () =
   (* Each option sets its limits, and no other one. *)
   List.iteri
     (fun i (tag, set) ->
-       let value = 100 + i in
-       let before = List.map (fun (_, r) -> !r) limits in
-       parse (Printf.sprintf {|<%s value="%d"/>|} tag value);
-       List.iter2
-         (fun (name, r) old ->
-            let expected = if List.mem name set then value else old in
-            Alcotest.(check int) (tag ^ ": " ^ name) expected !r)
-         limits before)
+      let value = 100 + i in
+      let before = List.map (fun (_, r) -> !r) limits in
+      parse (Printf.sprintf {|<%s value="%d"/>|} tag value);
+      List.iter2
+        (fun (name, r) old ->
+          let expected = if List.mem name set then value else old in
+          Alcotest.(check int) (tag ^ ": " ^ name) expected !r
+        )
+        limits before
+    )
     limit_options;
   check_error "not an integer"
     "Eliom: Wrong attribute value for maxdatasessionspergroup tag"
@@ -127,26 +134,29 @@ let test_limits () =
   (* A limit must be positive *)
   List.iter
     (fun (tag, _) ->
-       List.iter
-         (fun v ->
-            let before = List.map (fun (_, r) -> !r) limits in
-            let msg = Printf.sprintf "%s=%d" tag v
-            and expected =
-              Printf.sprintf
-                "Eliom: Wrong attribute value for %s tag: the maximum must be positive"
-                tag
-            and option = Printf.sprintf {|<%s value="%d"/>|} tag v in
-            check_error msg expected option;
-            check_site_error msg expected option;
-            Alcotest.(check (list int))
-              (tag ^ ": unchanged") before
-              (List.map (fun (_, r) -> !r) limits))
-         [0; -1])
+      List.iter
+        (fun v ->
+          let before = List.map (fun (_, r) -> !r) limits in
+          let msg = Printf.sprintf "%s=%d" tag v
+          and expected =
+            Printf.sprintf
+              "Eliom: Wrong attribute value for %s tag: the maximum must be positive"
+              tag
+          and option = Printf.sprintf {|<%s value="%d"/>|} tag v in
+          check_error msg expected option;
+          check_site_error msg expected option;
+          Alcotest.(check (list int))
+            (tag ^ ": unchanged") before
+            (List.map (fun (_, r) -> !r) limits)
+        )
+        [0; -1]
+    )
     limit_options;
   Alcotest.check_raises "Config"
     (Invalid_argument
-       "Config.set_max_service_sessions_per_group: the maximum must be positive")
-    (fun () -> Eliom.Config.set_max_service_sessions_per_group 0)
+       "Config.set_max_service_sessions_per_group: the maximum must be positive"
+    ) (fun () -> Eliom.Config.set_max_service_sessions_per_group 0
+  )
 
 (* The options renamed or removed in Eliom 13 are errors, which tell what
    replaces them, also in the configuration of a site. *)
@@ -164,16 +174,18 @@ let test_renamed () =
   let sessions = renamed "the sessions without a group of the whole site" in
   List.iter
     (fun (tag, expected) ->
-       let option = Printf.sprintf {|<%s value="10"/>|} tag in
-       check_error tag expected option;
-       check_site_error tag expected option)
+      let option = Printf.sprintf {|<%s value="10"/>|} tag in
+      check_error tag expected option;
+      check_site_error tag expected option
+    )
     [ sessions "maxvolatilesessionspersubnet" "maxvolatilesessionswithoutgroup"
     ; sessions "maxservicesessionspersubnet" "maxservicesessionswithoutgroup"
     ; sessions "maxdatasessionspersubnet" "maxdatasessionswithoutgroup"
     ; renamed "the anonymous coservices of the global table of the whole site"
         "maxanonymouscoservicespersubnet" "maxanonymouscoservicespersite"
     ; removed "ipv4subnetmask"
-    ; removed "ipv6subnetmask" ]
+    ; removed "ipv6subnetmask"
+    ]
 
 (* When the configuration of a site is read again (the server reloads it),
    a new limit of the sessions without a group applies to the existing ones:
@@ -187,9 +199,7 @@ let test_site_reload () =
   List.iter
     (fun id -> ignore (Eliom.Mod_sessiongroups.Data.add sitedata id group))
     ["s1"; "s2"; "s3"];
-  Alcotest.(check int)
-    "before" 3
-    (Eliom.Mod_sessiongroups.Data.group_size group);
+  Alcotest.(check int) "before" 3 (Eliom.Mod_sessiongroups.Data.group_size group);
   ignore (parse_site {|<maxdatasessionswithoutgroup value="2"/>|});
   Alcotest.(check int) "after" 2 (Eliom.Mod_sessiongroups.Data.group_size group)
 
@@ -258,13 +268,14 @@ let test_ignored_params () =
 let test_omit_persistent_storage () =
   parse
     {|<omitpersistentstorage><header user-agent=".*bot.*"/></omitpersistentstorage>|};
-  (match !Main.default_omitpersistentstorage with
+  ( match !Main.default_omitpersistentstorage with
   | Some [Eliom.Common.HeaderRule (name, re)] ->
       Alcotest.(check string)
         "header" "user-agent"
         (Ocsigen_http.Header.Name.to_string name);
       Alcotest.(check bool) "regexp" true (Re.execp re "Googlebot/2.1")
-  | _ -> Alcotest.fail "rules not recorded");
+  | _ -> Alcotest.fail "rules not recorded"
+  );
   check_error "wrong rule"
     "Eliom: <omitpersistentstorage> only accepts <header HEADER-NAME=\"REGEXP\"/> elements"
     {|<omitpersistentstorage><cookie name="x"/></omitpersistentstorage>|}
@@ -301,4 +312,5 @@ let suite =
     ; Alcotest.test_case "omit persistent storage" `Quick
         test_omit_persistent_storage
     ; Alcotest.test_case "timeout errors" `Quick test_timeout_errors
-    ; Alcotest.test_case "unknown options" `Quick test_unknown ] )
+    ; Alcotest.test_case "unknown options" `Quick test_unknown
+    ] )

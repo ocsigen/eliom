@@ -71,7 +71,8 @@ module Pass = struct
     ; cv_num : string
     ; cv_id : string Location.loc
     ; cv_expr : expression
-    ; cv_args : string Location.loc list }
+    ; cv_args : string Location.loc list
+    }
 
   let push_client_value_data, flush_client_value_datas =
     let client_value_datas = ref [] in
@@ -81,7 +82,8 @@ module Pass = struct
         ; cv_num = gen_num
         ; cv_id = gen_id
         ; cv_expr = expr
-        ; cv_args = args }
+        ; cv_args = args
+        }
         :: !client_value_datas
     in
     let flush () =
@@ -115,16 +117,19 @@ module Pass = struct
              ; cv_num = num
              ; cv_id = id
              ; cv_expr = expr
-             ; cv_args = args } ->
-           let typ = find_fragment loc id in
-           let args = List.map Pat.var args in
-           let loc = expr.pexp_loc in
-           [%expr
-             [%e
-               eliom_expr ~loc
-                 "Client_core.Syntax_helpers.register_client_closure"]
-               [%e str num] (fun [%p pat_args args] : [%t typ] ->
-               [%e map_get_escaped_values expr])])
+             ; cv_args = args
+             } ->
+          let typ = find_fragment loc id in
+          let args = List.map Pat.var args in
+          let loc = expr.pexp_loc in
+          [%expr
+            [%e
+              eliom_expr ~loc
+                "Client_core.Syntax_helpers.register_client_closure"]
+              [%e str num] (fun [%p pat_args args] : [%t typ] ->
+              [%e map_get_escaped_values expr]
+            )]
+        )
         client_value_datas
     in
     match registrations with
@@ -140,14 +145,16 @@ module Pass = struct
     | _ ->
         let bindings =
           List.map
-            (fun {cv_loc = loc; cv_id = id; cv_expr = expr; cv_args = args; _} ->
-               let patt = Pat.var id in
-               let typ = find_fragment loc id in
-               let args = List.map Pat.var args in
-               let expr =
-                 [%expr fun [%p pat_args args] : [%t typ] -> [%e expr]]
-               in
-               Vb.mk ~loc patt expr)
+            (fun {cv_loc = loc; cv_id = id; cv_expr = expr; cv_args = args; _}
+               ->
+              let patt = Pat.var id in
+              let typ = find_fragment loc id in
+              let args = List.map Pat.var args in
+              let expr =
+                [%expr fun [%p pat_args args] : [%t typ] -> [%e expr]]
+              in
+              Vb.mk ~loc patt expr
+            )
             client_value_datas
         in
         [Str.value ~loc Nonrecursive bindings]
@@ -156,18 +163,18 @@ module Pass = struct
 
   let close_server_section loc =
     [%stri
-    let () =
-      [%e eliom_expr ~loc "Client_core.Syntax_helpers.close_server_section"]
-        [%e eid @@ id_file_hash loc]]
+      let () =
+        [%e eliom_expr ~loc "Client_core.Syntax_helpers.close_server_section"]
+          [%e eid @@ id_file_hash loc]]
 
   let may_close_server_section ~no_fragment item =
     if no_fragment then [] else [close_server_section item.pstr_loc]
 
   let open_client_section loc =
     [%stri
-    let () =
-      [%e eliom_expr ~loc "Client_core.Syntax_helpers.open_client_section"]
-        [%e eid @@ id_file_hash loc]]
+      let () =
+        [%e eliom_expr ~loc "Client_core.Syntax_helpers.open_client_section"]
+          [%e eid @@ id_file_hash loc]]
 
   let may_open_client_section loc =
     if flush_injection () then [open_client_section loc] else []
@@ -195,7 +202,7 @@ module Pass = struct
   let fragment ~loc ?typ ~context ~num ~id ~unsafe expr =
     let frag_eid = eid id in
     let escaped_bindings = flush_escaped_bindings () in
-    (match typ with
+    ( match typ with
     | Some _ -> ()
     | None when not (Mli.exists () || Cmo.exists ()) -> ()
     | None -> (
@@ -203,7 +210,9 @@ module Pass = struct
       | {ptyp_desc = Ptyp_var _; _} when not unsafe ->
           Location.raise_errorf ~loc
             "The types of client values must be monomorphic from its usage or from its type annotation"
-      | _ -> ()));
+      | _ -> ()
+    )
+    );
     push_client_value_data loc num id expr
       (List.map (fun {eb_id; _} -> eb_id) escaped_bindings);
     match context, escaped_bindings with
@@ -216,7 +225,8 @@ module Pass = struct
         let bindings =
           List.map
             (fun {eb_id; eb_expr; _} ->
-               Vb.mk ~loc:eb_expr.pexp_loc (Pat.var eb_id) eb_expr)
+              Vb.mk ~loc:eb_expr.pexp_loc (Pat.var eb_id) eb_expr
+            )
             escaped_bindings
         in
         let args =
@@ -237,19 +247,14 @@ module Pass = struct
             in
             { typ with
               ptyp_attributes = attr :: typ.ptyp_attributes
-            ; ptyp_loc = loc }
+            ; ptyp_loc = loc
+            }
         | _ -> super#core_type typ
     end
       #core_type
 
   let escape_inject
-        ~loc:loc0
-        ?ident
-        ~(context : Context.escape_inject)
-        ~id
-        ~unsafe
-        expr
-    =
+      ~loc:loc0 ?ident ~(context : Context.escape_inject) ~id ~unsafe expr =
     let loc = expr.pexp_loc in
     let frag_eid = eid id in
     let assert_no_variables t = if unsafe then t else check_no_variable t in
@@ -260,7 +265,8 @@ module Pass = struct
           push_escaped_binding id expr (fun () ->
             let typ = find_escaped_ident loc0 id in
             let typ = assert_no_variables typ in
-            typ)
+            typ
+          )
         in
         [%expr ([%e frag_eid] : [%t typ])]
     (* [%%server ... %x ... ] *)
@@ -272,9 +278,10 @@ module Pass = struct
         let u, d = Mli.get_injected_ident_info id.txt in
         let es = str ~loc:id.loc (Printf.sprintf "%s%d" u d) in
         [%expr
-          ([%e eliom_expr ~loc "Client_core.Syntax_helpers.get_injection"]
-             ?ident:[%e ident] ~pos:[%e position loc] [%e es]
-           : [%t typ])]
+          ( [%e eliom_expr ~loc "Client_core.Syntax_helpers.get_injection"]
+              ?ident:[%e ident] ~pos:[%e position loc] [%e es]
+            : [%t typ]
+            )]
 
   let shared_sig item = [item]
   let server_sig _ = []

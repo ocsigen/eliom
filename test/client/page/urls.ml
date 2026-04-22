@@ -20,4 +20,5 @@ let cases (main, root, page, deep, suffix, non_attached, attached, external_) =
   ; "external service", uri ~service:external_ "e"
   ; ( "preapplied"
     , uri ~service:(Eliom.Service.preapply ~service:main (1, "pre")) () )
-  ; "encoded string", Eliom.Lib.Url.encode "a b+c/é%" ]
+  ; "encoded string", Eliom.Lib.Url.encode "a b+c/é%"
+  ]

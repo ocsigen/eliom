@@ -75,8 +75,10 @@ let is_marked o =
       assert (Obj.size f = 1);
       assert (
         let tag = Obj.tag (Obj.field f 0) in
-        tag = Obj.infix_tag || tag = Obj.closure_tag);
-      true)
+        tag = Obj.infix_tag || tag = Obj.closure_tag
+      );
+      true
+    )
     else false
   in
   if
@@ -112,7 +114,8 @@ module DynArray = struct
       let old_a = !a in
       a := Array.make (2 * len) none;
       Array.blit old_a 0 !a 0 len;
-      check_size a i)
+      check_size a i
+    )
 
   let make () = ref (Array.make (1 lsl (bits - 1)) none)
   let get a i = !a.(i)
@@ -147,7 +150,8 @@ module Tbl = struct
                                     table was accurate *)
       on_resize : (int -> unit) list
     ; (* Functions called on resize *)
-      on_merge : (keep:int -> drop:int -> unit) list }
+      on_merge : (keep:int -> drop:int -> unit) list
+    }
   (* Functions called when a block moved by the GC has two indices *)
 
   let cst =
@@ -166,7 +170,8 @@ module Tbl = struct
     then (
       tbl.size <- 2 * old_size;
       tbl.shift <- tbl.shift - 1;
-      List.iter (fun f -> f (tbl.size lsr 1)) tbl.on_resize);
+      List.iter (fun f -> f (tbl.size lsr 1)) tbl.on_resize
+    );
     tbl.obj <- Array.make tbl.size none;
     tbl.idx <- Array.make tbl.size (-1);
     tbl.gc <- gc_count ();
@@ -175,14 +180,16 @@ module Tbl = struct
       if y == none
       then (
         tbl.obj.(h) <- x;
-        tbl.idx.(h) <- idx)
+        tbl.idx.(h) <- idx
+      )
       else if y == x
       then (
         (* Keep the largest index, with what was computed for the other *)
         let keep = max idx tbl.idx.(h)
         and drop = min idx tbl.idx.(h) in
         tbl.idx.(h) <- keep;
-        List.iter (fun f -> f ~keep ~drop) tbl.on_merge)
+        List.iter (fun f -> f ~keep ~drop) tbl.on_merge
+      )
       else insert tbl ((h + 1) land (tbl.size - 1)) x idx
     in
     for i = 0 to old_size - 1 do
@@ -207,7 +214,8 @@ module Tbl = struct
     ; idx
     ; gc
     ; on_resize
-    ; on_merge }
+    ; on_merge
+    }
 
   let rec allocate_rec tbl x i =
     if tbl.obj.(i) == x
@@ -219,7 +227,8 @@ module Tbl = struct
       tbl.idx.(i) <- idx;
       tbl.occupancy <- idx + 1;
       if tbl.occupancy * 2 >= tbl.size then resize tbl;
-      idx)
+      idx
+    )
     else allocate_rec tbl x ((i + 1) land (tbl.size - 1))
 
   (* Insert a block into the hash-table. This may return a new index
@@ -251,7 +260,8 @@ module Tbl = struct
       rehash tbl;
       let idx = get_index_no_retry tbl x in
       assert (idx <> -1);
-      idx)
+      idx
+    )
 
   (* We can check whether the table is up to date, but this has a very
      slight chance to perform an allocation; in which case, the table
@@ -283,7 +293,8 @@ let obj_kind v =
       if tag = Obj.infix_tag
       then failwith "cannot wrap functional values: infix tag";
       (* Should not happen (in case a new kind of value is added) *)
-      failwith (Printf.sprintf "cannot wrap value (unexpected tag %d)" tag))
+      failwith (Printf.sprintf "cannot wrap value (unexpected tag %d)" tag)
+    )
 
 let unchanged =
   (* This block and its descendants can be left unchanged *)
@@ -325,13 +336,15 @@ let rec find_substs tbl subst_tbl v =
              again. Indeed, we don't want to call the wrapping
              function twice on the same value. *)
             Tbl.rehash tbl;
-            find_substs tbl subst_tbl v)
+            find_substs tbl subst_tbl v
+          )
           else (
             incr wrap_count;
             let v' = wrap_locally v in
             DynArray.set subst_tbl idx v';
             ignore (find_substs tbl subst_tbl v');
-            modified)
+            modified
+          )
         else (
           (* We don't know yet whether v needs to be copied.
            We conservatively assume so for now. *)
@@ -344,7 +357,8 @@ let rec find_substs tbl subst_tbl v =
           done;
           let res = if !is_unchanged then unchanged else modified in
           DynArray.set subst_tbl idx res;
-          res)
+          res
+        )
       else v'
 
 let copy_count = ref 0
@@ -382,7 +396,8 @@ let rec duplicate tbl subst_tbl copy_tbl orig =
             let child_copy = duplicate tbl subst_tbl copy_tbl child in
             if child_copy != child then Obj.set_field copy i child_copy
           done;
-          copy)
+          copy
+        )
 
 let perform_wrap =
   with_no_heap_compaction @@ fun v ->
@@ -402,7 +417,8 @@ let perform_wrap =
     fmt
       "Wrap stats: %d visited (%d blocks), %d wrapped, %d copied, %d resizes, %d rehashes"
       !iteration_count tbl.occupancy !wrap_count !copy_count !resize_count
-      !rehash_count);
+      !rehash_count
+  );
   w
 
 type +'a wrapper = marked_value
@@ -419,7 +435,8 @@ let id_of_int x = x
 type unwrapper =
   { (* WARNING Must be the same as Unwrap.unwrapper *)
     id : unwrap_id
-  ; umark : Mark.t }
+  ; umark : Mark.t
+  }
 [@@warning "-69"]
 
 let create_unwrapper id = {id; umark = Mark.unwrap_mark}

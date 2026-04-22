@@ -14,15 +14,18 @@ let store t (r : Browser.response) =
   | Some json ->
       Ocsigen_cookie_map.Map_path.iter
         (fun _path cookies ->
-           Ocsigen_cookie_map.Map_inner.iter
-             (fun name cookie ->
-                let others = List.remove_assoc name t.tab_cookies in
-                t.tab_cookies <-
-                  (match cookie with
-                  | Ocsigen_cookie_map.OSet (_, value, _) ->
-                      (name, value) :: others
-                  | Ocsigen_cookie_map.OUnset -> others))
-             cookies)
+          Ocsigen_cookie_map.Map_inner.iter
+            (fun name cookie ->
+              let others = List.remove_assoc name t.tab_cookies in
+              t.tab_cookies <-
+                ( match cookie with
+                | Ocsigen_cookie_map.OSet (_, value, _) ->
+                    (name, value) :: others
+                | Ocsigen_cookie_map.OUnset -> others
+                )
+            )
+            cookies
+        )
         (Eliom.Cookies_base.cookieset_of_json json)
 
 let headers ?(expecting_process_page = false) t =
@@ -36,7 +39,8 @@ let headers ?(expecting_process_page = false) t =
     [ tab_cookies
     ; "Accept", "application/xhtml+xml"
     ; ( Eliom.Common_base.expecting_process_page_name
-      , Deriving_Json.to_string [%json: bool] true ) ]
+      , Deriving_Json.to_string [%json: bool] true )
+    ]
   else [tab_cookies]
 
 let get ?expecting_process_page t url =

@@ -68,7 +68,8 @@ let client_html_file, set_client_html_file =
 
 let defer get f =
   let r = ref None in
-  (match get () with
+  ( match get () with
   | Some v -> r := Some (f v)
-  | None -> raise (Site_information_not_available "defer"));
+  | None -> raise (Site_information_not_available "defer")
+  );
   r

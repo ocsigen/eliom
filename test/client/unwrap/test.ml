@@ -15,11 +15,13 @@ let print name f =
 let check cases messages =
   List.iteri
     (fun n (Values.Case {name; value = _; show}) ->
-       let encoded, on_server = messages.(n) in
-       print name (fun () ->
-         match show (unwrap encoded) with
-         | shown when shown = on_server -> shown
-         | shown -> Printf.sprintf "%s, NOT %s on the server" shown on_server))
+      let encoded, on_server = messages.(n) in
+      print name (fun () ->
+        match show (unwrap encoded) with
+        | shown when shown = on_server -> shown
+        | shown -> Printf.sprintf "%s, NOT %s on the server" shown on_server
+      )
+    )
     cases
 
 let () = check Values.cases Encoded.cases
@@ -32,8 +34,9 @@ let calls = ref 0
 let () =
   Eliom.Unwrap.register_unwrapper (Eliom.Unwrap.id_of_int 1000)
     (fun (n, s, (_ : unit)) ->
-       incr calls;
-       ref (Printf.sprintf "%d %s" n s));
+    incr calls;
+    ref (Printf.sprintf "%d %s" n s)
+  );
   print "unwrapped" (fun () -> !(unwrap Encoded.unwrapped));
   calls := 0;
   print "shared" (fun () ->
@@ -43,10 +46,12 @@ let () =
       | _ -> failwith "not a list of two values"
     in
     Printf.sprintf "%s, %s, shared: %b, unwrapped %d time(s)" !a !b (a == b)
-      !calls);
+      !calls
+  );
   print "not registered" (fun () ->
     let n, s, (_ : unit) = unwrap Encoded.not_registered in
-    Printf.sprintf "%d %s" n s);
+    Printf.sprintf "%d %s" n s
+  );
   print "not a value" (fun () -> unwrap "not a marshalled value")
 
 let () = check (List.map snd Values.big_endian) Encoded.big_endian

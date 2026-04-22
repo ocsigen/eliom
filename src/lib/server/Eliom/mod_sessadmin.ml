@@ -34,12 +34,13 @@ let section = Logs.Src.create "eliom:admin"
 let close_all_service_states_of_name full_st_name sitedata =
   Common.SessionCookies.fold
     (fun _
-      {Common.Service_cookie.full_state_name; timeout; session_group_node; _}
-      thr ->
-       let* () = thr in
-       if full_st_name = full_state_name && !timeout = Common.TGlobal
-       then Mod_sessiongroups.Serv.remove session_group_node;
-       Lwt.pause ())
+         {Common.Service_cookie.full_state_name; timeout; session_group_node; _}
+         thr ->
+      let* () = thr in
+      if full_st_name = full_state_name && !timeout = Common.TGlobal
+      then Mod_sessiongroups.Serv.remove session_group_node;
+      Lwt.pause ()
+    )
     sitedata.Common.session_services Lwt.return_unit
 
 (** Close all service states for one session name.
@@ -59,13 +60,13 @@ let close_all_service_states ~scope ~secure sitedata =
 
 let close_all_data_states_of_name full_st_name sitedata =
   Common.SessionCookies.fold
-    (fun _
-      {Common.Data_cookie.full_state_name; timeout; session_group_node; _}
-      thr ->
-       let* () = thr in
-       if full_st_name = full_state_name && !timeout = Common.TGlobal
-       then Mod_sessiongroups.Data.remove session_group_node;
-       Lwt.pause ())
+    (fun _ {Common.Data_cookie.full_state_name; timeout; session_group_node; _}
+         thr ->
+      let* () = thr in
+      if full_st_name = full_state_name && !timeout = Common.TGlobal
+      then Mod_sessiongroups.Data.remove session_group_node;
+      Lwt.pause ()
+    )
     sitedata.Common.session_data Lwt.return_unit
 
 (** Close all in memory data sessions for one session name.
@@ -86,15 +87,16 @@ let close_all_data_states ~scope ~secure sitedata =
 let close_all_persistent_states_of_name full_st_name sitedata =
   Mod_cookies.Persistent_cookies.Cookies.iter
     (fun k {Mod_cookies.full_state_name; timeout = old_t; session_group; _} ->
-       let scope = full_state_name.Common.user_scope in
-       if full_st_name = full_state_name && old_t = Common.TGlobal
-       then
-         let* () =
-           Mod_persess.close_persistent_state_of_cookie ~scope sitedata
-             session_group k
-         in
-         Lwt.pause ()
-       else Lwt.return_unit)
+    let scope = full_state_name.Common.user_scope in
+    if full_st_name = full_state_name && old_t = Common.TGlobal
+    then
+      let* () =
+        Mod_persess.close_persistent_state_of_cookie ~scope sitedata
+          session_group k
+      in
+      Lwt.pause ()
+    else Lwt.return_unit
+  )
 
 (** Close all persistent sessions for one session name.
     If the optional parameter [?state_name] (session name) is not present,
@@ -122,7 +124,8 @@ let recompute_expiry ~now ~old_glob_timeout ~new_glob_timeout exp =
 (* Update the expiration date for all service sessions                      *)
 let update_serv_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
   Logs.info ~src:section (fun fmt ->
-    fmt "Updating expiration date for all service sessions");
+    fmt "Updating expiration date for all service sessions"
+  );
   match new_glob_timeout with
   | Some t when t <= 0. ->
       (* We close all sessions but those with user defined timeout *)
@@ -131,14 +134,14 @@ let update_serv_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
       let now = Unix.time () in
       Common.SessionCookies.fold
         (fun _
-          { Common.Service_cookie.full_state_name
-          ; expiry
-          ; timeout
-          ; session_group_node
-          ; _ }
-          thr ->
-           let* () = thr in
-           (if full_st_name = full_state_name && !timeout = Common.TGlobal
+             { Common.Service_cookie.full_state_name
+             ; expiry
+             ; timeout
+             ; session_group_node
+             ; _
+             } thr ->
+          let* () = thr in
+          ( if full_st_name = full_state_name && !timeout = Common.TGlobal
             then
               let newexp =
                 recompute_expiry ~now ~old_glob_timeout ~new_glob_timeout
@@ -147,14 +150,17 @@ let update_serv_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
               match newexp with
               | Some t when t <= now ->
                   Mod_sessiongroups.Serv.remove session_group_node
-              | _ -> expiry := newexp);
-           Lwt.pause ())
+              | _ -> expiry := newexp
+          );
+          Lwt.pause ()
+        )
         sitedata.Common.session_services Lwt.return_unit
 
 (* Update the expiration date for all in memory data sessions                *)
 let update_data_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
   Logs.info ~src:section (fun fmt ->
-    fmt "Updating expiration date for all data sessions");
+    fmt "Updating expiration date for all data sessions"
+  );
   match new_glob_timeout with
   | Some t when t <= 0. ->
       (* We close all sessions but those with user defined timeout *)
@@ -163,14 +169,14 @@ let update_data_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
       let now = Unix.time () in
       Common.SessionCookies.fold
         (fun _
-          { Common.Data_cookie.full_state_name
-          ; expiry
-          ; timeout
-          ; session_group_node
-          ; _ }
-          thr ->
-           let* () = thr in
-           (if full_st_name = full_state_name && !timeout = Common.TGlobal
+             { Common.Data_cookie.full_state_name
+             ; expiry
+             ; timeout
+             ; session_group_node
+             ; _
+             } thr ->
+          let* () = thr in
+          ( if full_st_name = full_state_name && !timeout = Common.TGlobal
             then
               let newexp =
                 recompute_expiry ~now ~old_glob_timeout ~new_glob_timeout
@@ -179,14 +185,17 @@ let update_data_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
               match newexp with
               | Some t when t <= now ->
                   Mod_sessiongroups.Data.remove session_group_node
-              | _ -> expiry := newexp);
-           Lwt.pause ())
+              | _ -> expiry := newexp
+          );
+          Lwt.pause ()
+        )
         sitedata.Common.session_data Lwt.return_unit
 
 (* Update the expiration date for all sessions                               *)
 let update_pers_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
   Logs.info ~src:section (fun fmt ->
-    fmt "Updating expiration date for all persistent sessions");
+    fmt "Updating expiration date for all persistent sessions"
+  );
   match new_glob_timeout with
   | Some t when t <= 0. ->
       (* We close all sessions but those with user defined timeout *)
@@ -202,43 +211,49 @@ let update_pers_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
       let* cookies =
         Mod_cookies.Persistent_cookies.Cookies.fold
           (fun k {Mod_cookies.full_state_name; expiry; timeout; _} l ->
-             Lwt.return
-               (if full_st_name = full_state_name && timeout = Common.TGlobal
+            Lwt.return
+              ( if full_st_name = full_state_name && timeout = Common.TGlobal
                 then (k, expiry) :: l
-                else l))
+                else l
+              )
+          )
           []
       in
       Lwt_list.iter_s
         (fun (k, old_exp) ->
-           let* () =
-             Lwt.try_bind
-               (fun () -> Mod_cookies.Persistent_cookies.Cookies.find k)
-               (fun {Mod_cookies.full_state_name; expiry; timeout; session_group} ->
-                  if expiry <> old_exp || timeout <> Common.TGlobal
-                  then Lwt.return_unit
-                  else
-                    let scope = full_state_name.Common.user_scope in
-                    let newexp =
-                      recompute_expiry ~now ~old_glob_timeout ~new_glob_timeout
-                        old_exp
-                    in
-                    match newexp with
-                    | Some t when t <= now ->
-                        Mod_persess.close_persistent_state_of_cookie ~scope
-                          sitedata session_group k
-                    | _ ->
-                        let* () =
-                          Mod_cookies.Persistent_cookies.update k ~expiry:newexp
-                            ~timeout:Common.TGlobal ()
-                        in
-                        if newexp = old_exp
-                        then Lwt.return_unit
-                        else
-                          Mod_cookies.Persistent_cookies.Expiry_dates
-                          .remove_cookie old_exp k)
-               (function
-                 | Not_found -> Lwt.return_unit (* closed meanwhile *)
-                 | e -> Lwt.fail e)
-           in
-           Lwt.pause ())
+          let* () =
+            Lwt.try_bind
+              (fun () -> Mod_cookies.Persistent_cookies.Cookies.find k)
+              (fun {Mod_cookies.full_state_name; expiry; timeout; session_group}
+                 ->
+                if expiry <> old_exp || timeout <> Common.TGlobal
+                then Lwt.return_unit
+                else
+                  let scope = full_state_name.Common.user_scope in
+                  let newexp =
+                    recompute_expiry ~now ~old_glob_timeout ~new_glob_timeout
+                      old_exp
+                  in
+                  match newexp with
+                  | Some t when t <= now ->
+                      Mod_persess.close_persistent_state_of_cookie ~scope
+                        sitedata session_group k
+                  | _ ->
+                      let* () =
+                        Mod_cookies.Persistent_cookies.update k ~expiry:newexp
+                          ~timeout:Common.TGlobal ()
+                      in
+                      if newexp = old_exp
+                      then Lwt.return_unit
+                      else
+                        Mod_cookies.Persistent_cookies.Expiry_dates
+                        .remove_cookie old_exp k
+              )
+              (function
+                | Not_found -> Lwt.return_unit (* closed meanwhile *)
+                | e -> Lwt.fail e
+                )
+          in
+          Lwt.pause ()
+        )
         cookies

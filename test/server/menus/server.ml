@@ -26,7 +26,8 @@ let site =
     ; ( [H.F.txt "Section"]
       , Tools.Site_tree
           (Tools.Main_page (Tools.Srv section), [leaf "X" x; leaf "Y" y]) )
-    ; [H.F.txt "Off"], Tools.Disabled ] )
+    ; [H.F.txt "Off"], Tools.Disabled
+    ] )
 
 let menus () =
   String.concat "\n"
@@ -36,16 +37,20 @@ let menus () =
         (List.map print (Tools.F.hierarchical_menu_depth_first site ()))
     ; String.concat ""
         (List.map print
-           (Tools.F.hierarchical_menu_depth_first ~whole_tree:true site ()))
+           (Tools.F.hierarchical_menu_depth_first ~whole_tree:true site ())
+        )
     ; String.concat ""
         (List.map print (Tools.F.hierarchical_menu_breadth_first site ()))
-    ; String.concat "" (List.map print (Tools.F.structure_links site ())) ]
+    ; String.concat "" (List.map print (Tools.F.structure_links site ()))
+    ]
 
 let () =
   List.iter
     (fun service ->
-       Registration.String.register ~service (fun () () ->
-         Lwt.return (menus (), "text/plain")))
+      Registration.String.register ~service (fun () () ->
+        Lwt.return (menus (), "text/plain")
+      )
+    )
     [home; a; b; c; section; x; y]
 
 let () = Eliom_test_server.Server_harness.start [App.run ~xhr_links:false ()]

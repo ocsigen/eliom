@@ -31,8 +31,11 @@ let () =
     text
       (Printf.sprintf "data=%s services=%s"
          (string_of_status
-            (State.volatile_data_state_status ~scope:session_scope ()))
-         (string_of_status (State.service_state_status ~scope:session_scope ()))))
+            (State.volatile_data_state_status ~scope:session_scope ())
+         )
+         (string_of_status (State.service_state_status ~scope:session_scope ()))
+      )
+  )
 
 (* Session services: a coservice registered for the session of the request,
    whose fallback answers for the other browsers *)
@@ -45,8 +48,10 @@ let () =
     let service = Service.create_attached_get ~fallback ~get_params:P.unit () in
     let owner = V.get session_value in
     Registration.String.register ~scope:session_scope ~service (fun () () ->
-      text ("coservice of " ^ owner));
-    text (Eliom_uri.make_string_uri ~absolute_path:true ~service ()))
+      text ("coservice of " ^ owner)
+    );
+    text (Eliom_uri.make_string_uri ~absolute_path:true ~service ())
+  )
 
 (* Closing *)
 
@@ -59,22 +64,25 @@ let () =
   string
     (get ["discard"] P.(string "scope"))
     (fun scope () ->
-       let* () = State.discard ~scope:(scope_of_string scope) () in
-       text "discarded")
+      let* () = State.discard ~scope:(scope_of_string scope) () in
+      text "discarded"
+    )
 
 let () =
   string
     (get ["discard_data"] P.(string "scope"))
     (fun scope () ->
-       let* () = State.discard_data ~scope:(scope_of_string scope) () in
-       text "data discarded")
+      let* () = State.discard_data ~scope:(scope_of_string scope) () in
+      text "data discarded"
+    )
 
 let () =
   string
     (get ["discard_services"] P.(string "scope"))
     (fun scope () ->
-       State.discard_services ~scope:(scope_of_string scope) ();
-       text "services discarded")
+      State.discard_services ~scope:(scope_of_string scope) ();
+      text "services discarded"
+    )
 
 (* Persistent session data *)
 
@@ -87,15 +95,17 @@ let () =
   string
     (get ["persistent"; "set"] P.(string "v"))
     (fun v () ->
-       let* () = Reference.set persistent_value v in
-       text "set")
+      let* () = Reference.set persistent_value v in
+      text "set"
+    )
 
 let () =
   string
     (get ["persistent"; "get"] P.unit)
     (fun () () ->
-       let* v = Reference.get persistent_value in
-       text v)
+      let* v = Reference.get persistent_value in
+      text v
+    )
 
 (* Session groups *)
 
@@ -105,14 +115,15 @@ let () =
   string
     (get ["group"; "join"] P.(string "name" ** opt (int "max")))
     (fun (name, set_max) () ->
-       State.set_volatile_data_session_group ?set_max ~scope:session_scope name;
-       State.set_service_session_group ?set_max ~scope:session_scope name;
-       let* () =
-         State.set_persistent_data_session_group
-           ?set_max:(Option.map Option.some set_max)
-           ~scope:session_scope name
-       in
-       text "joined")
+      State.set_volatile_data_session_group ?set_max ~scope:session_scope name;
+      State.set_service_session_group ?set_max ~scope:session_scope name;
+      let* () =
+        State.set_persistent_data_session_group
+          ?set_max:(Option.map Option.some set_max)
+          ~scope:session_scope name
+      in
+      text "joined"
+    )
 
 let () =
   string
@@ -131,26 +142,30 @@ let () =
   string
     (get ["group"; "persistent"; "set"] P.(string "v"))
     (fun v () ->
-       let* () = Reference.set persistent_group_value v in
-       text "set")
+      let* () = Reference.set persistent_group_value v in
+      text "set"
+    )
 
 let () =
   string
     (get ["group"; "persistent"; "get"] P.unit)
     (fun () () ->
-       let* v = Reference.get persistent_group_value in
-       text v)
+      let* v = Reference.get persistent_group_value in
+      text v
+    )
 
 let () =
   string
     (get ["group"; "size"] P.unit)
     (fun () () ->
-       text
-         (match
+      text
+        ( match
             State.get_volatile_data_session_group_size ~scope:session_scope ()
           with
-         | Some n -> string_of_int n
-         | None -> "none"))
+        | Some n -> string_of_int n
+        | None -> "none"
+        )
+    )
 
 (* The sessions of a group, from outside the group, as
    Os.Session.disconnect_all of Ocsigen Start closes them *)
@@ -159,24 +174,25 @@ let () =
   string
     (get ["group"; "sessions"] P.(string "name"))
     (fun name () ->
-       let state =
-         State.Ext.volatile_data_group_state ~scope:group_scope name
-       in
-       text
-         (string_of_int
-            (State.Ext.fold_volatile_sub_states ~state (fun n _ -> n + 1) 0)))
+      let state = State.Ext.volatile_data_group_state ~scope:group_scope name in
+      text
+        (string_of_int
+           (State.Ext.fold_volatile_sub_states ~state (fun n _ -> n + 1) 0)
+        )
+    )
 
 let () =
   string
     (get ["group"; "persistent_sessions"] P.(string "name"))
     (fun name () ->
-       let state =
-         State.Ext.persistent_data_group_state ~scope:group_scope name
-       in
-       let* n =
-         State.Ext.fold_sub_states ~state (fun n _ -> Lwt.return (n + 1)) 0
-       in
-       text (string_of_int n))
+      let state =
+        State.Ext.persistent_data_group_state ~scope:group_scope name
+      in
+      let* n =
+        State.Ext.fold_sub_states ~state (fun n _ -> Lwt.return (n + 1)) 0
+      in
+      text (string_of_int n)
+    )
 
 (* The persistent session group of the browser *)
 
@@ -184,19 +200,21 @@ let () =
   string
     (get ["group"; "persistent"; "name"] P.unit)
     (fun () () ->
-       let+ g =
-         State.get_persistent_data_session_group ~scope:session_scope ()
-       in
-       Option.value g ~default:"none", "text/plain")
+      let+ g =
+        State.get_persistent_data_session_group ~scope:session_scope ()
+      in
+      Option.value g ~default:"none", "text/plain"
+    )
 
 let () =
   string
     (get ["group"; "persistent"; "leave"] P.unit)
     (fun () () ->
-       let* () =
-         State.unset_persistent_data_session_group ~scope:session_scope ()
-       in
-       text "left")
+      let* () =
+        State.unset_persistent_data_session_group ~scope:session_scope ()
+      in
+      text "left"
+    )
 
 (* A slow request of the persistent session of the browser *)
 
@@ -204,12 +222,13 @@ let () =
   string
     (get ["persistent"; "slow"] P.(float "t"))
     (fun t () ->
-       (* The group read at the beginning of the request *)
-       let* g =
-         State.get_persistent_data_session_group ~scope:session_scope ()
-       in
-       let* () = Lwt_unix.sleep t in
-       text (Option.value g ~default:"none"))
+      (* The group read at the beginning of the request *)
+      let* g =
+        State.get_persistent_data_session_group ~scope:session_scope ()
+      in
+      let* () = Lwt_unix.sleep t in
+      text (Option.value g ~default:"none")
+    )
 
 (* A non-attached coservice registered for the session group of the browser *)
 
@@ -217,13 +236,15 @@ let () =
   string
     (get ["group"; "nacoservice"] P.unit)
     (fun () () ->
-       let service =
-         Service.create ~path:Service.No_path ~meth:(Service.Get P.unit) ()
-       in
-       let owner = V.get session_value in
-       Registration.String.register ~scope:group_scope ~service (fun () () ->
-         text ("group nacoservice of " ^ owner));
-       text (Eliom_uri.make_string_uri ~absolute_path:true ~service ()))
+      let service =
+        Service.create ~path:Service.No_path ~meth:(Service.Get P.unit) ()
+      in
+      let owner = V.get session_value in
+      Registration.String.register ~scope:group_scope ~service (fun () () ->
+        text ("group nacoservice of " ^ owner)
+      );
+      text (Eliom_uri.make_string_uri ~absolute_path:true ~service ())
+    )
 
 (* The timeout of the persistent session of the browser, in seconds *)
 
@@ -231,30 +252,31 @@ let () =
   string
     (get ["persistent"; "timeout"] P.(float "t"))
     (fun t () ->
-       let* () =
-         State.set_persistent_data_state_timeout ~cookie_scope:session_scope
-           (Some t)
-       in
-       text "set")
+      let* () =
+        State.set_persistent_data_state_timeout ~cookie_scope:session_scope
+          (Some t)
+      in
+      text "set"
+    )
 
 let () =
   string
     (get ["group"; "close_sessions"] P.(string "name"))
     (fun name () ->
-       let close state =
-         State.Ext.iter_sub_states ~state (fun state ->
-           State.Ext.discard_state ~state ())
-       in
-       let* () =
-         close (State.Ext.volatile_data_group_state ~scope:group_scope name)
-       in
-       let* () =
-         close (State.Ext.service_group_state ~scope:group_scope name)
-       in
-       let* () =
-         close (State.Ext.persistent_data_group_state ~scope:group_scope name)
-       in
-       text "closed")
+      let close state =
+        State.Ext.iter_sub_states ~state (fun state ->
+          State.Ext.discard_state ~state ()
+        )
+      in
+      let* () =
+        close (State.Ext.volatile_data_group_state ~scope:group_scope name)
+      in
+      let* () = close (State.Ext.service_group_state ~scope:group_scope name) in
+      let* () =
+        close (State.Ext.persistent_data_group_state ~scope:group_scope name)
+      in
+      text "closed"
+    )
 
 (* A coservice registered for the session group of the browser *)
 
@@ -262,12 +284,14 @@ let () =
   string
     (get ["group"; "coservice"] P.unit)
     (fun () () ->
-       let service =
-         Service.create_attached_get ~fallback ~get_params:P.unit ()
-       in
-       let owner = V.get session_value in
-       Registration.String.register ~scope:group_scope ~service (fun () () ->
-         text ("group coservice of " ^ owner));
-       text (Eliom_uri.make_string_uri ~absolute_path:true ~service ()))
+      let service =
+        Service.create_attached_get ~fallback ~get_params:P.unit ()
+      in
+      let owner = V.get session_value in
+      Registration.String.register ~scope:group_scope ~service (fun () () ->
+        text ("group coservice of " ^ owner)
+      );
+      text (Eliom_uri.make_string_uri ~absolute_path:true ~service ())
+    )
 
 let () = Eliom_test_server.Server_harness.start [App.run ()]

@@ -5,10 +5,11 @@ open Eliom_test_server
 let form =
   Alcotest.testable
     (fun fmt {Html_form.meth; action; fields} ->
-       Format.fprintf fmt "%s %s [%s]"
-         (match meth with `GET -> "GET" | `POST -> "POST")
-         action
-         (String.concat "; " (List.map (fun (n, v) -> n ^ "=" ^ v) fields)))
+      Format.fprintf fmt "%s %s [%s]"
+        (match meth with `GET -> "GET" | `POST -> "POST")
+        action
+        (String.concat "; " (List.map (fun (n, v) -> n ^ "=" ^ v) fields))
+    )
     ( = )
 
 let check msg expected ~url page =
@@ -27,7 +28,10 @@ let test_fields () =
           ; "select", "b"
           ; "first", "1"
           ; "multiple", "m1"
-          ; "multiple", "m3" ] } ]
+          ; "multiple", "m3"
+          ]
+      }
+    ]
     ~url:"/page"
     {|<form method="post" action="/target">
        <input type="text" name="text" value="a&amp;b &quot;c&quot;"/>
@@ -52,7 +56,8 @@ two &lt;&amp;&gt;</textarea>
 let test_page () =
   check "forms of a page"
     [ {Html_form.meth = `GET; action = "/dir/target?x=1"; fields = ["a", "1"]}
-    ; {Html_form.meth = `GET; action = "/dir/page?p=q"; fields = []} ]
+    ; {Html_form.meth = `GET; action = "/dir/page?p=q"; fields = []}
+    ]
     ~url:"/dir/page?p=q"
     {|<!DOCTYPE html><html><head><!-- <form> -->
        <script>if (a < b) document.write("<form>")</script></head><body>
@@ -64,7 +69,8 @@ let test_set () =
   let f =
     { Html_form.meth = `GET
     ; action = "/target"
-    ; fields = ["a", "1"; "b", "2"; "a", "3"] }
+    ; fields = ["a", "1"; "b", "2"; "a", "3"]
+    }
   in
   Alcotest.check form "replaced"
     {f with fields = ["a", "x"; "b", "2"]}
@@ -78,4 +84,6 @@ let () =
     [ ( "forms"
       , [ Alcotest.test_case "fields" `Quick test_fields
         ; Alcotest.test_case "page" `Quick test_page
-        ; Alcotest.test_case "set" `Quick test_set ] ) ]
+        ; Alcotest.test_case "set" `Quick test_set
+        ] )
+    ]

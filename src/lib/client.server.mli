@@ -19,7 +19,7 @@ type ('a, 'b) server_function
 
 (* BBB This is not in Service because it depends on Registration *)
 val server_function :
-   ?scope:[< Common.scope]
+     ?scope:[< Common.scope]
   -> ?options:unit
   -> ?charset:string
   -> ?code:int

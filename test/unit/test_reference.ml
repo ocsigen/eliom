@@ -28,7 +28,8 @@ let opening () =
     open_on_first_use (fun () ->
       incr attempts;
       let p, u = Lwt.task () in
-      Queue.push u pending; p)
+      Queue.push u pending; p
+    )
   in
   open_, attempts, pending
 
@@ -57,7 +58,8 @@ let test_exception () =
   let open_ =
     open_on_first_use (fun () ->
       incr attempts;
-      if !attempts = 1 then raise not_configured else Lwt.return 1)
+      if !attempts = 1 then raise not_configured else Lwt.return 1
+    )
   in
   check "exception as a rejection" (Rejected not_configured) (open_ ());
   check "opened again" (Fulfilled 1) (open_ ())
@@ -90,4 +92,5 @@ let suite =
     ; Alcotest.test_case "exception" `Quick test_exception
     ; Alcotest.test_case "cancel" `Quick test_cancel
     ; Alcotest.test_case "retry from a failure handler" `Quick
-        test_retry_from_handler ] )
+        test_retry_from_handler
+    ] )

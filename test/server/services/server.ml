@@ -24,7 +24,8 @@ let () =
   string
     (get ["opt"] P.(opt (int "i")))
     (fun i () ->
-       text (match i with None -> "none" | Some i -> string_of_int i))
+      text (match i with None -> "none" | Some i -> string_of_int i)
+    )
 
 let () =
   string
@@ -35,7 +36,8 @@ let () =
   string
     (get ["set"] P.(set int "i"))
     (fun l () ->
-       text (String.concat "," (List.map string_of_int (List.sort compare l))))
+      text (String.concat "," (List.map string_of_int (List.sort compare l)))
+    )
 
 let suffix_service = get ["suffix"] P.(suffix (int "i" ** string "s"))
 
@@ -43,7 +45,9 @@ let () =
   string (get ["suffix_link"] P.unit) (fun () () ->
     text
       (Eliom_uri.make_string_uri ~absolute_path:true ~service:suffix_service
-         (3, "x/y")))
+         (3, "x/y")
+      )
+  )
 
 let () =
   string
@@ -64,20 +68,26 @@ let () =
   string
     (get ["info"] P.(suffix (string "s")))
     (fun _ () ->
-       text
-         (String.concat " "
-            (List.map (String.concat "|")
-               [ Request_info.get_current_sub_path ()
-               ; Request_info.get_original_full_path () ])))
+      text
+        (String.concat " "
+           (List.map (String.concat "|")
+              [ Request_info.get_current_sub_path ()
+              ; Request_info.get_original_full_path ()
+              ]
+           )
+        )
+    )
 
 let () =
   string (get ["client"] P.unit) (fun () () ->
     text
-      (match Request_info.get_client_conn () with
+      ( match Request_info.get_client_conn () with
       | `Inet _ -> "inet"
       | `Forwarded_for ip -> "forwarded " ^ ip
       | `Unix _ -> "unix"
-      | `Unknown -> "unknown"))
+      | `Unknown -> "unknown"
+      )
+  )
 
 let () =
   string suffix_service (fun (i, s) () -> text (Printf.sprintf "i=%d s=%s" i s))
@@ -108,9 +118,7 @@ let () =
     (fun i () -> text ("int " ^ string_of_int i))
 
 let () =
-  string
-    (get ["alternatives"] P.(string "s"))
-    (fun s () -> text ("string " ^ s))
+  string (get ["alternatives"] P.(string "s")) (fun s () -> text ("string " ^ s))
 
 (* Two services accepting the same parameters: the one with the higher
    priority is tried first, although it is registered after the other. *)
@@ -130,7 +138,8 @@ let () = string temporary (fun () () -> text "temporary")
 let () =
   string (get ["unregister"] P.unit) (fun () () ->
     Service.unregister temporary;
-    text "unregistered")
+    text "unregistered"
+  )
 
 let () =
   string (get ["failure"] P.unit) (fun () () -> failwith "handler failure")
@@ -141,26 +150,32 @@ let () =
   Registration.Html.register ~service:(get ["html"] P.unit) (fun () () ->
     Lwt.return
       Content.Html.F.(
-        html (head (title (txt "title")) []) (body [p [txt "body"]])))
+        html (head (title (txt "title")) []) (body [p [txt "body"]])
+      )
+  )
 
 let () =
   Registration.Html_text.register ~service:(get ["html_text"] P.unit)
-    (fun () () -> Lwt.return "<p>text</p>")
+    (fun () () -> Lwt.return "<p>text</p>"
+  )
 
 let () =
   Registration.CssText.register ~options:3600 ~service:(get ["css"] P.unit)
-    (fun () () -> Lwt.return "p {}")
+    (fun () () -> Lwt.return "p {}"
+  )
 
 let () =
   string ~options:0 (get ["no_cache"] P.unit) (fun () () -> text "no cache")
 
 let () =
   string ~code:201 ~headers:(Cohttp.Header.init_with "X-Test" "yes")
-    (get ["code"] P.unit) (fun () () -> text "created")
+    (get ["code"] P.unit) (fun () () -> text "created"
+  )
 
 let () =
   Registration.Unit.register ~service:(get ["unit"] P.unit) (fun () () ->
-    Lwt.return_unit)
+    Lwt.return_unit
+  )
 
 let () =
   Registration.Action.register ~options:`NoReload
@@ -169,44 +184,52 @@ let () =
 
 let () =
   Registration.Redirection.register ~service:(get ["redirect"] P.unit)
-    (fun () () -> Lwt.return (Registration.Redirection hello))
+    (fun () () -> Lwt.return (Registration.Redirection hello)
+  )
 
 let () =
   Registration.Redirection.register ~options:`MovedPermanently
     ~service:(get ["moved"] P.unit) (fun () () ->
-    Lwt.return (Registration.Redirection hello))
+    Lwt.return (Registration.Redirection hello)
+  )
 
 let () =
   Registration.Redirection.register ~options:`NotModified
     ~service:(get ["not_modified"] P.unit) (fun () () ->
-    Lwt.return (Registration.Redirection hello))
+    Lwt.return (Registration.Redirection hello)
+  )
 
 let () =
   Registration.String_redirection.register
     ~service:(get ["redirect_string"] P.unit) (fun () () ->
-    Lwt.return "http://example.org/elsewhere")
+    Lwt.return "http://example.org/elsewhere"
+  )
 
 let () =
   Registration.File.register ~options:60 ~service:(get ["file"] P.unit)
-    (fun () () -> Lwt.return "file.txt")
+    (fun () () -> Lwt.return "file.txt"
+  )
 
 let () =
   Registration.File.register ~service:(get ["missing_file"] P.unit)
-    (fun () () -> Lwt.return "missing.txt")
+    (fun () () -> Lwt.return "missing.txt"
+  )
 
 let () =
   Registration.File_ct.register ~options:60 ~service:(get ["file_ct"] P.unit)
-    (fun () () -> Lwt.return ("file.txt", "text/x-test"))
+    (fun () () -> Lwt.return ("file.txt", "text/x-test")
+  )
 
 let () =
   Registration.Any.register
     ~service:(get ["any"] P.(bool "html"))
     (fun html () ->
-       if html
-       then Registration.Html_text.send "<p>any</p>"
-       else
-         Lwt.map Registration.cast_unknown_content_kind
-           (Registration.String.send ("any", "text/plain")))
+      if html
+      then Registration.Html_text.send "<p>any</p>"
+      else
+        Lwt.map Registration.cast_unknown_content_kind
+          (Registration.String.send ("any", "text/plain"))
+    )
 
 (* Non-localized parameters: [persistent_nl] is kept by default in the links
    of the pages that receive it, [transient_nl] only with
@@ -218,8 +241,7 @@ let persistent_nl =
     P.(string "v")
 
 let transient_nl =
-  P.make_non_localized_parameters ~prefix:"test" ~name:"transient"
-    P.(string "v")
+  P.make_non_localized_parameters ~prefix:"test" ~name:"transient" P.(string "v")
 
 let nl_target = get ["nl"; "target"] P.unit
 
@@ -232,13 +254,16 @@ let nl_target_all =
 let () =
   List.iter
     (fun service ->
-       string service (fun () () ->
-         let value nl =
-           Option.value ~default:"none" (P.get_non_localized_get_parameters nl)
-         in
-         text
-           (Printf.sprintf "persistent=%s transient=%s" (value persistent_nl)
-              (value transient_nl))))
+      string service (fun () () ->
+        let value nl =
+          Option.value ~default:"none" (P.get_non_localized_get_parameters nl)
+        in
+        text
+          (Printf.sprintf "persistent=%s transient=%s" (value persistent_nl)
+             (value transient_nl)
+          )
+      )
+    )
     [nl_target; nl_target_all]
 
 (* /nl/link is a link to /nl/target with both parameters; /nl/link?keep=
@@ -249,36 +274,40 @@ let () =
   string
     (get ["nl"; "link"] P.(opt (string "keep")))
     (fun keep () ->
-       let uri ?keep_nl_params ?nl_params service =
-         Eliom_uri.make_string_uri ~absolute_path:true ?keep_nl_params
-           ?nl_params ~service ()
-       in
-       let preapplied =
-         Service.preapply
-           ~service:
-             (Service.add_non_localized_get_parameters ~params:persistent_nl
-                ~service:nl_target)
-           ((), "q")
-       in
-       text
-         (match keep with
-         | None ->
-             uri
-               ~nl_params:
-                 P.(
-                   add_nl_parameter
-                     (add_nl_parameter empty_nl_params_set persistent_nl "p")
-                     transient_nl "t")
-               nl_target
-         | Some "default" -> uri nl_target
-         | Some "all" -> uri ~keep_nl_params:`All nl_target
-         | Some "persistent" -> uri ~keep_nl_params:`Persistent nl_target
-         | Some "none" -> uri ~keep_nl_params:`None nl_target
-         | Some "service" -> uri nl_target_all
-         | Some "service_none" -> uri ~keep_nl_params:`None nl_target_all
-         | Some "preapplied" -> uri preapplied
-         | Some "preapplied_all" -> uri ~keep_nl_params:`All preapplied
-         | Some k -> invalid_arg k))
+      let uri ?keep_nl_params ?nl_params service =
+        Eliom_uri.make_string_uri ~absolute_path:true ?keep_nl_params ?nl_params
+          ~service ()
+      in
+      let preapplied =
+        Service.preapply
+          ~service:
+            (Service.add_non_localized_get_parameters ~params:persistent_nl
+               ~service:nl_target
+            )
+          ((), "q")
+      in
+      text
+        ( match keep with
+        | None ->
+            uri
+              ~nl_params:
+                P.(
+                  add_nl_parameter
+                    (add_nl_parameter empty_nl_params_set persistent_nl "p")
+                    transient_nl "t"
+                )
+              nl_target
+        | Some "default" -> uri nl_target
+        | Some "all" -> uri ~keep_nl_params:`All nl_target
+        | Some "persistent" -> uri ~keep_nl_params:`Persistent nl_target
+        | Some "none" -> uri ~keep_nl_params:`None nl_target
+        | Some "service" -> uri nl_target_all
+        | Some "service_none" -> uri ~keep_nl_params:`None nl_target_all
+        | Some "preapplied" -> uri preapplied
+        | Some "preapplied_all" -> uri ~keep_nl_params:`All preapplied
+        | Some k -> invalid_arg k
+        )
+    )
 
 (* An action that sets a cookie of path /cookie_page/a, then reloads the
    page, which tells whether the request has the cookie *)
@@ -288,12 +317,14 @@ let cookie_page = get ["cookie_page"] P.(suffix (all_suffix "s"))
 let () =
   string cookie_page (fun _ () ->
     text
-      (match
-         Ocsigen_cookie_map.Map_inner.find_opt "test_action"
-           (Request_info.get_cookies ())
-       with
+      ( match
+          Ocsigen_cookie_map.Map_inner.find_opt "test_action"
+            (Request_info.get_cookies ())
+        with
       | Some v -> "cookie " ^ v
-      | None -> "no cookie"))
+      | None -> "no cookie"
+      )
+  )
 
 let set_cookie =
   Service.create ~path:Service.No_path ~meth:(Service.Post (P.unit, P.unit)) ()
@@ -301,9 +332,10 @@ let set_cookie =
 let () =
   Registration.Action.register ~options:`Reload ~service:set_cookie
     (fun () () ->
-       State.set_cookie ~path:["cookie_page"; "a"] ~name:"test_action"
-         ~value:"set" ();
-       Lwt.return_unit)
+    State.set_cookie ~path:["cookie_page"; "a"] ~name:"test_action" ~value:"set"
+      ();
+    Lwt.return_unit
+  )
 
 (* The POST parameters of the action, one per line, the name and the value
    separated by a tab *)
@@ -312,7 +344,8 @@ let () =
     let _, _, _, params =
       Eliom_uri.make_post_uri_components ~service:set_cookie () ()
     in
-    text (String.concat "\n" (List.map (fun (n, v) -> n ^ "\t" ^ v) params)))
+    text (String.concat "\n" (List.map (fun (n, v) -> n ^ "\t" ^ v) params))
+  )
 
 (* The file served by /file, in the directory of the server *)
 let () =

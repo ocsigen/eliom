@@ -25,7 +25,8 @@ let rec cdata_sections page from =
       | None -> failwith "unterminated CDATA section"
       | Some stop ->
           String.sub page start (stop - start)
-          :: cdata_sections page (stop + String.length close_cdata))
+          :: cdata_sections page (stop + String.length close_cdata)
+    )
 
 let () =
   Eliom_test_server.Server_harness.with_server "./server.exe" @@ fun server ->
@@ -34,4 +35,5 @@ let () =
   cdata_sections r.body 0
   |> List.iter (fun script ->
     Printf.printf "require(\"vm\").runInThisContext(%s);\n"
-      (Js_literal.string script))
+      (Js_literal.string script)
+  )

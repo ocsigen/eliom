@@ -93,22 +93,24 @@ type full_state_name =
 [@@@warning "+39"]
 
 module Full_state_name_table = Map.Make (struct
-    type t = full_state_name
+  type t = full_state_name
 
-    let compare = compare
-  end)
+  let compare = compare
+end)
 
 (* The state cookies sent by a request, for each kind of state. The keys of
    the tables are the full state names. *)
 type state_cookies =
   { service_cookies : string Full_state_name_table.t
   ; data_cookies : string Full_state_name_table.t
-  ; persistent_cookies : string Full_state_name_table.t }
+  ; persistent_cookies : string Full_state_name_table.t
+  }
 
 let no_state_cookies =
   { service_cookies = Full_state_name_table.empty
   ; data_cookies = Full_state_name_table.empty
-  ; persistent_cookies = Full_state_name_table.empty }
+  ; persistent_cookies = Full_state_name_table.empty
+  }
 
 (******************************************************************)
 (* Service kinds: *)
@@ -117,10 +119,11 @@ let no_state_cookies =
 type csrf_info =
   { csrf_id : int  (** Unique id *)
   ; csrf_scope : user_scope
-    (** Scope of the delayed registration, if the service is registered
+        (** Scope of the delayed registration, if the service is registered
             in the global table *)
   ; csrf_secure : bool option
-    (** [?secure] parameter of the delayed registration, likewise *) }
+        (** [?secure] parameter of the delayed registration, likewise *)
+  }
 
 type att_key_serv =
   | SAtt_no (* regular service *)
@@ -219,7 +222,8 @@ type client_process_info =
   { cpi_ssl : bool
   ; cpi_hostname : string
   ; cpi_server_port : int
-  ; cpi_original_full_path : string list }
+  ; cpi_original_full_path : string list
+  }
 [@@deriving json]
 
 [@@@warning "+39"]
@@ -237,7 +241,7 @@ type sess_info =
   ; si_nonatt_info : na_key_req
   ; si_state_info : att_key_req * att_key_req
   ; si_previous_extension_error : int
-    (* HTTP error code sent by previous extension (default: 404) *)
+        (* HTTP error code sent by previous extension (default: 404) *)
   ; si_na_get_params : (string * string) list Lazy.t
   ; si_nl_get_params : (string * string) list String.Table.t
   ; si_nl_post_params : (string * string) list String.Table.t
@@ -248,7 +252,8 @@ type sess_info =
   ; si_ignored_get_params : (string * string) list
   ; si_ignored_post_params : (string * string) list
   ; si_client_process_info : client_process_info option
-  ; si_expect_process_data : bool Lazy.t }
+  ; si_expect_process_data : bool Lazy.t
+  }
 
 type eliom_js_page_data =
   { ejs_global_data : (Runtime.global_data * Wrap.unwrapper) option
@@ -258,7 +263,8 @@ type eliom_js_page_data =
   ; (* Client Attributes *)
     ejs_client_attrib_table : Runtime.RawXML.client_attrib_table
   ; (* Session info *)
-    ejs_sess_info : sess_info }
+    ejs_sess_info : sess_info
+  }
 
 (************ unwrapping identifiers *********************)
 
@@ -381,7 +387,8 @@ type ('params, 'result) service =
     s_id : anon_params_type * anon_params_type
   ; mutable s_max_use : int option
   ; s_expire : (float * float ref) option
-  ; s_f : bool -> 'params -> 'result Lwt.t }
+  ; s_f : bool -> 'params -> 'result Lwt.t
+  }
 
 type 'a to_and_of = {of_string : string -> 'a; to_string : 'a -> string}
 

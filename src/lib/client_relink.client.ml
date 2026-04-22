@@ -35,19 +35,22 @@ let get_element_cookies_info elt =
   Js.Opt.to_option
     (Js.Opt.map
        elt##(getAttribute (Js.string Runtime.RawXML.ce_call_service_attrib))
-       (fun s -> of_json ~typ:Runtime.RawXML.cookie_info_json (Js.to_string s)))
+       (fun s -> of_json ~typ:Runtime.RawXML.cookie_info_json (Js.to_string s))
+    )
 
 let get_element_template elt =
   Js.Opt.to_option
     (Js.Opt.map
        elt##(getAttribute (Js.string Runtime.RawXML.ce_template_attrib))
-       (fun s -> Js.to_string s))
+       (fun s -> Js.to_string s)
+    )
 
 let a_handler =
   Dom_html.full_handler (fun node ev ->
     let node =
       Js.Opt.get (Dom_html.CoerceTo.a node) (fun () ->
-        raise_error ~section "not an anchor element")
+        raise_error ~section "not an anchor element"
+      )
     in
     (* We prevent default behaviour
           only if raw_a_handler has taken the change page itself *)
@@ -56,15 +59,17 @@ let a_handler =
       (Client_core.raw_a_handler node
          (get_element_cookies_info node)
          (get_element_template node)
-         ev))
+         ev
+      )
+  )
 
 let form_handler :
-  (Dom_html.element Js.t, #Dom_html.event Js.t) Dom_html.event_listener
-  =
+    (Dom_html.element Js.t, #Dom_html.event Js.t) Dom_html.event_listener =
   Dom_html.full_handler (fun node ev ->
     let form =
       Js.Opt.get (Dom_html.CoerceTo.form node) (fun () ->
-        raise_error ~section "not a form element")
+        raise_error ~section "not a form element"
+      )
     in
     let kind =
       if String.lowercase_ascii (Js.to_string form##._method) = "get"
@@ -75,7 +80,9 @@ let form_handler :
       (Client_core.raw_form_handler form kind
          (get_element_cookies_info form)
          (get_element_template node)
-         ev f))
+         ev f
+      )
+  )
 
 let relink_process_node (node : Dom_html.element Js.t) =
   let id =
@@ -86,22 +93,28 @@ let relink_process_node (node : Dom_html.element Js.t) =
   Js.Optdef.case
     (Client_core.find_process_node id)
     (fun () ->
-       Logs.debug ~src:section (fun fmt ->
-         fmt "Relink process node: did not find %s. Will add it."
-           (Js.to_string id));
-       Client_core.register_process_node id (node :> Dom.node Js.t))
+      Logs.debug ~src:section (fun fmt ->
+        fmt "Relink process node: did not find %s. Will add it."
+          (Js.to_string id)
+      );
+      Client_core.register_process_node id (node :> Dom.node Js.t)
+    )
     (fun pnode ->
-       Logs.debug ~src:section (fun fmt ->
-         fmt "Relink process node: found %s" (Js.to_string id));
-       Js.Opt.iter node##.parentNode (fun parent ->
-         Dom.replaceChild parent pnode node);
-       let id = Js.to_bytestring id in
-       if not (String.starts_with ~prefix:"global_" id)
-       then (
-         let children = Dom.list_of_nodeList pnode##.childNodes in
-         List.iter (fun c -> ignore pnode##(removeChild c)) children;
-         let children = Dom.list_of_nodeList node##.childNodes in
-         List.iter (fun c -> ignore pnode##(appendChild c)) children))
+      Logs.debug ~src:section (fun fmt ->
+        fmt "Relink process node: found %s" (Js.to_string id)
+      );
+      Js.Opt.iter node##.parentNode (fun parent ->
+        Dom.replaceChild parent pnode node
+      );
+      let id = Js.to_bytestring id in
+      if not (String.starts_with ~prefix:"global_" id)
+      then (
+        let children = Dom.list_of_nodeList pnode##.childNodes in
+        List.iter (fun c -> ignore pnode##(removeChild c)) children;
+        let children = Dom.list_of_nodeList node##.childNodes in
+        List.iter (fun c -> ignore pnode##(appendChild c)) children
+      )
+    )
 
 let relink_request_node (node : Dom_html.element Js.t) =
   let id =
@@ -112,15 +125,20 @@ let relink_request_node (node : Dom_html.element Js.t) =
   Js.Optdef.case
     (Client_core.find_request_node id)
     (fun () ->
-       Logs.debug ~src:section (fun fmt ->
-         fmt "Relink request node: did not find %s. Will add it."
-           (Js.to_string id));
-       Client_core.register_request_node id (node :> Dom.node Js.t))
+      Logs.debug ~src:section (fun fmt ->
+        fmt "Relink request node: did not find %s. Will add it."
+          (Js.to_string id)
+      );
+      Client_core.register_request_node id (node :> Dom.node Js.t)
+    )
     (fun pnode ->
-       Logs.debug ~src:section (fun fmt ->
-         fmt "Relink request node: found %s" (Js.to_string id));
-       Js.Opt.iter node##.parentNode (fun parent ->
-         Dom.replaceChild parent pnode node))
+      Logs.debug ~src:section (fun fmt ->
+        fmt "Relink request node: found %s" (Js.to_string id)
+      );
+      Js.Opt.iter node##.parentNode (fun parent ->
+        Dom.replaceChild parent pnode node
+      )
+    )
 
 let relink_request_nodes root =
   Logs.debug ~src:section (fun fmt -> fmt "Relink request nodes");
@@ -136,8 +154,7 @@ let relink_page_but_client_values (root : Dom_html.element Js.t) =
   Logs.debug ~src:section (fun fmt -> fmt "Relink page");
   let nodes = Mod_dom.select_nodes root in
   Mod_dom.iter_nodeList nodes.links (fun node -> node##.onclick := a_handler);
-  Mod_dom.iter_nodeList nodes.forms (fun node ->
-    node##.onsubmit := form_handler);
+  Mod_dom.iter_nodeList nodes.forms (fun node -> node##.onsubmit := form_handler);
   Mod_dom.iter_nodeList nodes.process_nodes relink_process_node;
   nodes
 
@@ -161,7 +178,8 @@ let is_closure_attrib, get_closure_name, get_closure_id =
   let n_prefix_js = Js.string n_prefix in
   ( (fun attr ->
       attr##.value##(substring 0 v_len) = v_prefix_js
-      && attr##.name##(substring 0 n_len) = n_prefix_js)
+      && attr##.name##(substring 0 n_len) = n_prefix_js
+    )
   , (fun attr -> attr##.name##(substring_toEnd n_len))
   , fun attr -> attr##.value##(substring_toEnd v_len) )
 
@@ -180,26 +198,27 @@ let relink_closure_node root onload table (node : Dom_html.element Js.t) =
           if
             Mod_dom.ancestor root node
             (* if not inside a unique node replaced by an older one *)
-          then onload := closure :: !onload)
+          then onload := closure :: !onload
+        )
         else
           Js.Unsafe.set node name
             (Dom_html.handler (fun ev -> Js.bool (closure ev)))
       with Not_found ->
         Logs.err ~src:section (fun fmt ->
-          fmt "relink_closure_node: client value %s not found" cid)
+          fmt "relink_closure_node: client value %s not found" cid
+        )
   in
   Mod_dom.iter_attrList node##.attributes aux
 
 let relink_closure_nodes
-      (root : Dom_html.element Js.t)
-      event_handlers
-      closure_nodeList
-  =
+    (root : Dom_html.element Js.t) event_handlers closure_nodeList =
   Logs.debug ~src:section (fun fmt ->
-    fmt "Relink %i closure nodes" closure_nodeList##.length);
+    fmt "Relink %i closure nodes" closure_nodeList##.length
+  );
   let onload = ref [] in
   Mod_dom.iter_nodeList closure_nodeList (fun node ->
-    relink_closure_node root onload event_handlers node);
+    relink_closure_node root onload event_handlers node
+  );
   fun () ->
     let ev = Mod_dom.createEvent (Js.string "load") in
     ignore (List.for_all (fun f -> f ev) (List.rev !onload))
@@ -213,7 +232,8 @@ let is_attrib_attrib, get_attrib_id =
   let n_prefix_js = Js.string n_prefix in
   ( (fun attr ->
       attr##.value##(substring 0 v_len) = v_prefix_js
-      && attr##.name##(substring 0 n_len) = n_prefix_js)
+      && attr##.name##(substring 0 n_len) = n_prefix_js
+    )
   , fun attr -> attr##.value##(substring_toEnd v_len) )
 
 let relink_attrib _root table (node : Dom_html.element Js.t) =
@@ -235,6 +255,8 @@ let relink_attrib _root table (node : Dom_html.element Js.t) =
 
 let relink_attribs (root : Dom_html.element Js.t) attribs attrib_nodeList =
   Logs.debug ~src:section (fun fmt ->
-    fmt "Relink %i attributes" attrib_nodeList##.length);
+    fmt "Relink %i attributes" attrib_nodeList##.length
+  );
   Mod_dom.iter_nodeList attrib_nodeList (fun node ->
-    relink_attrib root attribs node)
+    relink_attrib root attribs node
+  )

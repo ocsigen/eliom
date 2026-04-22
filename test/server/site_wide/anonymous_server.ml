@@ -27,11 +27,13 @@ let () =
   string
     (get ["coservice"] P.(string "v"))
     (fun v () ->
-       let service =
-         Service.create_attached_get ~fallback ~get_params:P.unit ()
-       in
-       Registration.String.register ~service (fun () () ->
-         text ("coservice " ^ v));
-       text (uri service))
+      let service =
+        Service.create_attached_get ~fallback ~get_params:P.unit ()
+      in
+      Registration.String.register ~service (fun () () ->
+        text ("coservice " ^ v)
+      );
+      text (uri service)
+    )
 
 let () = Services.start ()

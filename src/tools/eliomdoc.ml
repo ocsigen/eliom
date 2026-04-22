@@ -48,7 +48,9 @@ let compile_ml flag file =
        (preprocess_opt !ppopt @ !args @ get_default_args ()
       @ get_common_include ()
        @ map_include !eliom_inc_dirs
-       @ [flag; file]))
+       @ [flag; file]
+       )
+    )
 
 let compile_intf = compile_ml "-intf"
 let compile_impl = compile_ml "-impl"
@@ -78,7 +80,9 @@ let compile_eliom ~impl_intf file =
        (preprocess_opt ~kind:!kind (pp_opt impl_intf)
        @ !args @ get_default_args () @ get_common_include ()
        @ map_include !eliom_inc_dirs
-       @ [impl_intf_opt impl_intf; file']))
+       @ [impl_intf_opt impl_intf; file']
+       )
+    )
 
 let generate_doc () =
   match !acc_file with

@@ -36,7 +36,8 @@ type cookie =
   { full_state_name : Common.full_state_name
   ; expiry : date option
   ; timeout : Common.timeout
-  ; session_group : Common.perssessgrp option }
+  ; session_group : Common.perssessgrp option
+  }
 [@@deriving json]
 
 [@@@warning "+39"]
@@ -70,10 +71,10 @@ module Persistent_cookies = struct
       end)
       (Ocsipersist.Column.String)
       (Ocsipersist.Column.Json (struct
-           type t = cookie
+        type t = cookie
 
-           let t = [%json: cookie]
-         end))
+        let t = [%json: cookie]
+      end))
 
   let () = Common.Persistent_tables.add_functorial_table (module Cookies)
 
@@ -106,7 +107,8 @@ module Persistent_cookies = struct
           | Some cookies_str ->
               let cookies = String.split_on_char ',' cookies_str in
               let cookies' = List.filter (fun c -> c <> cookie) cookies in
-              if cookies' = [] then None else Some (String.concat "," cookies'))
+              if cookies' = [] then None else Some (String.concat "," cookies')
+        )
   end
 
   let add cookie ({expiry; _} as content) =
@@ -125,11 +127,13 @@ module Persistent_cookies = struct
   let modify_existing cookie f =
     Lwt.catch
       (fun () ->
-         let* c = Cookies.find cookie in
-         let* c = f c in
-         Cookies.replace_if_exists cookie c)
+        let* c = Cookies.find cookie in
+        let* c = f c in
+        Cookies.replace_if_exists cookie c
+      )
       (function
-        | Not_found -> Lwt.return_unit (* closed meanwhile *) | e -> Lwt.fail e)
+        | Not_found -> Lwt.return_unit (* closed meanwhile *) | e -> Lwt.fail e
+        )
 
   let update cookie ~expiry ~timeout ?session_group () =
     modify_existing cookie @@ fun c ->
@@ -141,7 +145,8 @@ module Persistent_cookies = struct
     { c with
       expiry
     ; timeout
-    ; session_group = Option.value session_group ~default:c.session_group }
+    ; session_group = Option.value session_group ~default:c.session_group
+    }
 
   let set_timeout cookie timeout =
     modify_existing cookie @@ fun c -> Lwt.return {c with timeout}
@@ -154,7 +159,8 @@ module Persistent_cookies = struct
       String.concat "," @@ List.map Common.Hashed_cookies.sha256 cookies
     in
     Logs.info ~src:section (fun fmt ->
-      fmt "potentially expired cookies %.0f: %s" date cookies_log);
+      fmt "potentially expired cookies %.0f: %s" date cookies_log
+    );
     let* () = Lwt_list.iter_s gc_cookie cookies in
     Expiry_dates.remove date
 end
@@ -165,70 +171,72 @@ end
 (** look in table to find if the session cookies sent by the browser
     correspond to existing (and not closed) sessions *)
 let get_cookie_info
-      now
-      sitedata
-      (cookies : Common.state_cookies)
-      (secure_cookies : Common.state_cookies) : 'a Common.cookie_info * 'b list
-  =
+    now
+    sitedata
+    (cookies : Common.state_cookies)
+    (secure_cookies : Common.state_cookies) : 'a Common.cookie_info * 'b list =
   (* get info about service session cookies: *)
   let f_serv service_cookies =
     Common.Full_state_name_table.fold
       (fun name value (oktable, failedlist) ->
-         try
-           let hvalue = Common.Hashed_cookies.hash value in
-           let { Common.Service_cookie.session_table
-               ; expiry
-               ; timeout
-               ; session_group
-               ; session_group_node
-               ; _ }
-             =
-             Common.SessionCookies.find sitedata.Common.session_services
-               (Common.Hashed_cookies.to_string hvalue)
-           in
-           Mod_sessiongroups.Serv.up session_group_node;
-           Mod_sessiongroups.Serv.up_group !session_group;
-           match !expiry with
-           | Some t when t < now ->
-               (* session expired by timeout *)
-               Mod_sessiongroups.Serv.remove session_group_node;
-               ( Common.Full_state_name_table.add name
-                   ( Some value (* value sent by the browser *)
-                   , ref Common.SCData_session_expired
-                     (* ask the browser
+        try
+          let hvalue = Common.Hashed_cookies.hash value in
+          let { Common.Service_cookie.session_table
+              ; expiry
+              ; timeout
+              ; session_group
+              ; session_group_node
+              ; _
+              } =
+            Common.SessionCookies.find sitedata.Common.session_services
+              (Common.Hashed_cookies.to_string hvalue)
+          in
+          Mod_sessiongroups.Serv.up session_group_node;
+          Mod_sessiongroups.Serv.up_group !session_group;
+          match !expiry with
+          | Some t when t < now ->
+              (* session expired by timeout *)
+              Mod_sessiongroups.Serv.remove session_group_node;
+              ( Common.Full_state_name_table.add name
+                  ( Some value (* value sent by the browser *)
+                  , ref Common.SCData_session_expired
+                    (* ask the browser
                                           to remove the cookie *)
-                   )
-                   oktable
-               , name :: failedlist )
-           | _ ->
-               ( Common.Full_state_name_table.add name
-                   ( Some value (* value sent by the browser *)
-                   , ref
-                       (Common.SC
-                          { Common.sc_hvalue = hvalue (* value *)
-                          ; Common.sc_set_value = None
-                          ; Common.sc_table = ref session_table
-                          ; Common.sc_timeout = timeout
-                          ; Common.sc_exp = expiry
-                          ; Common.sc_cookie_exp =
-                              ref Common.CENothing
-                              (* cookie expiration date to send
+                  )
+                  oktable
+              , name :: failedlist )
+          | _ ->
+              ( Common.Full_state_name_table.add name
+                  ( Some value (* value sent by the browser *)
+                  , ref
+                      (Common.SC
+                         { Common.sc_hvalue = hvalue (* value *)
+                         ; Common.sc_set_value = None
+                         ; Common.sc_table = ref session_table
+                         ; Common.sc_timeout = timeout
+                         ; Common.sc_exp = expiry
+                         ; Common.sc_cookie_exp =
+                             ref Common.CENothing
+                             (* cookie expiration date to send
                                  to the browser.
                                  We don't change it *)
-                          ; Common.sc_session_group = session_group
-                          ; Common.sc_session_group_node = session_group_node })
-                   )
-                   oktable
-               , failedlist )
-         with Not_found ->
-           ( Common.Full_state_name_table.add name
-               ( Some value (* value sent by the browser *)
-               , ref Common.SCData_session_expired
-                 (* ask the browser
+                         ; Common.sc_session_group = session_group
+                         ; Common.sc_session_group_node = session_group_node
+                         }
+                      )
+                  )
+                  oktable
+              , failedlist )
+        with Not_found ->
+          ( Common.Full_state_name_table.add name
+              ( Some value (* value sent by the browser *)
+              , ref Common.SCData_session_expired
+                (* ask the browser
                                              to remove the cookie *)
-               )
-               oktable
-           , name :: failedlist ))
+              )
+              oktable
+          , name :: failedlist )
+      )
       service_cookies
       (Common.Full_state_name_table.empty, [])
   in
@@ -236,15 +244,15 @@ let get_cookie_info
   let f_data data_cookies =
     Common.Full_state_name_table.map
       (fun value ->
-         lazy
-           (try
+        lazy
+          ( try
               let hvalue = Common.Hashed_cookies.hash value in
               let { Common.Data_cookie.expiry
                   ; timeout
                   ; session_group
                   ; session_group_node
-                  ; _ }
-                =
+                  ; _
+                  } =
                 Common.SessionCookies.find sitedata.Common.session_data
                   (Common.Hashed_cookies.to_string hvalue)
               in
@@ -276,90 +284,102 @@ let get_cookie_info
                                  to the browser.
                                  We don't change it *)
                          ; Common.dc_session_group = session_group
-                         ; Common.dc_session_group_node = session_group_node })
-                  )
+                         ; Common.dc_session_group_node = session_group_node
+                         }
+                      ) )
             with Not_found ->
               ( Some value (* value sent by the browser *)
               , ref Common.SCData_session_expired
                 (* ask the browser
-                   to remove the cookie *) )))
+                   to remove the cookie *) )
+          )
+      )
       data_cookies
   in
   (* *** get info about persistent session cookies: *)
   let f_pers persistent_cookies =
     Common.Full_state_name_table.map
       (fun value ->
-         lazy
-           (Lwt.catch
-              (fun () ->
-                 let hvalue = Common.Hashed_cookies.hash value in
-                 let hvalue_string = Common.Hashed_cookies.to_string hvalue in
-                 let* { full_state_name
-                      ; expiry = persexp
-                      ; timeout = perstimeout
-                      ; session_group = sessgrp
-                      ; _ }
-                   =
-                   Persistent_cookies.Cookies.find
-                     (Common.Hashed_cookies.to_string hvalue)
-                 in
-                 match persexp with
-                 | Some t when t < now ->
-                     (* session expired by timeout: closed as Mod_gc does, so
+        lazy
+          (Lwt.catch
+             (fun () ->
+               let hvalue = Common.Hashed_cookies.hash value in
+               let hvalue_string = Common.Hashed_cookies.to_string hvalue in
+               let* { full_state_name
+                    ; expiry = persexp
+                    ; timeout = perstimeout
+                    ; session_group = sessgrp
+                    ; _
+                    } =
+                 Persistent_cookies.Cookies.find
+                   (Common.Hashed_cookies.to_string hvalue)
+               in
+               match persexp with
+               | Some t when t < now ->
+                   (* session expired by timeout: closed as Mod_gc does, so
                         that it leaves its session group *)
-                     let* () =
-                       Mod_sessiongroups.Pers.close_persistent_session
-                         ~cookie_level:
-                           (Common.cookie_level_of_user_scope
-                              full_state_name.Common.user_scope)
-                         sitedata sessgrp hvalue_string
-                     in
-                     Lwt.return
-                       ( Some
-                           { Common.ps_value = value
-                           ; ps_timeout = perstimeout
-                           ; ps_expiry = persexp
-                           ; ps_group = sessgrp }
-                       , ref Common.SCData_session_expired
-                         (* ask the browser to
+                   let* () =
+                     Mod_sessiongroups.Pers.close_persistent_session
+                       ~cookie_level:
+                         (Common.cookie_level_of_user_scope
+                            full_state_name.Common.user_scope
+                         )
+                       sitedata sessgrp hvalue_string
+                   in
+                   Lwt.return
+                     ( Some
+                         { Common.ps_value = value
+                         ; ps_timeout = perstimeout
+                         ; ps_expiry = persexp
+                         ; ps_group = sessgrp
+                         }
+                     , ref Common.SCData_session_expired
+                       (* ask the browser to
                                                  remove the cookie *)
-                       )
-                 | _ ->
-                     let* () =
-                       Mod_sessiongroups.Pers.up hvalue_string sessgrp
-                     in
-                     Lwt.return
-                       ( Some
-                           { Common.ps_value = value
-                           ; ps_timeout = perstimeout
-                           ; ps_expiry = persexp
-                           ; ps_group = sessgrp }
-                       , ref
-                           (Common.SC
-                              { Common.pc_hvalue = hvalue (* value *)
-                              ; Common.pc_set_value = None
-                              ; Common.pc_timeout =
-                                  ref perstimeout
-                                  (* user persistent timeout ref *)
-                              ; Common.pc_cookie_exp =
-                                  ref Common.CENothing
-                                  (* persistent cookie expiration
+                     )
+               | _ ->
+                   let* () = Mod_sessiongroups.Pers.up hvalue_string sessgrp in
+                   Lwt.return
+                     ( Some
+                         { Common.ps_value = value
+                         ; ps_timeout = perstimeout
+                         ; ps_expiry = persexp
+                         ; ps_group = sessgrp
+                         }
+                     , ref
+                         (Common.SC
+                            { Common.pc_hvalue = hvalue (* value *)
+                            ; Common.pc_set_value = None
+                            ; Common.pc_timeout =
+                                ref perstimeout
+                                (* user persistent timeout ref *)
+                            ; Common.pc_cookie_exp =
+                                ref Common.CENothing
+                                (* persistent cookie expiration
                                     date ref to send to the browser:
                                     We don't change it *)
-                              ; Common.pc_session_group = ref sessgrp }) ))
-              (function
-                | Not_found ->
-                    Lwt.return
-                      ( Some
-                          { Common.ps_value = value
-                          ; ps_timeout = Common.TGlobal
-                          ; ps_expiry = Some 0.
-                          ; ps_group = None }
-                      , ref Common.SCData_session_expired
-                        (* ask the browser
+                            ; Common.pc_session_group = ref sessgrp
+                            }
+                         )
+                     )
+             )
+             (function
+               | Not_found ->
+                   Lwt.return
+                     ( Some
+                         { Common.ps_value = value
+                         ; ps_timeout = Common.TGlobal
+                         ; ps_expiry = Some 0.
+                         ; ps_group = None
+                         }
+                     , ref Common.SCData_session_expired
+                       (* ask the browser
                                              to remove the cookie *)
-                      )
-                | e -> Lwt.fail e)))
+                     )
+               | e -> Lwt.fail e
+               )
+          )
+      )
       persistent_cookies
     (* the persistent cookies sent by the request *)
   in
@@ -372,14 +392,17 @@ let get_cookie_info
     let persoktable = f_pers secure_cookies.persistent_cookies in
     ( { Common.ci_service = ref servoktable
       ; ci_data = ref dataoktable
-      ; ci_persistent = ref persoktable }
+      ; ci_persistent = ref persoktable
+      }
     , servfailedlist )
   in
   ( { Common.ci_unsecure =
         { ci_service = ref servoktable
         ; ci_data = ref dataoktable
-        ; ci_persistent = ref persoktable }
-    ; ci_secure = sec }
+        ; ci_persistent = ref persoktable
+        }
+    ; ci_secure = sec
+    }
   , sservfailedlist @ servfailedlist )
 
 (*****************************************************************************)
@@ -396,14 +419,15 @@ let new_data_cookie_table () : Common.Data_cookie.table =
 (* (from cookie_info)                                                        *)
 
 let compute_cookies_to_send
-      sitedata
-      { Common.ci_unsecure =
-          { ci_service = service_cookie_info
-          ; ci_data = data_cookie_info
-          ; ci_persistent = pers_cookies_info }
-      ; ci_secure = secure_ci }
-      (endlist : Ocsigen_cookie_map.t)
-  =
+    sitedata
+    { Common.ci_unsecure =
+        { ci_service = service_cookie_info
+        ; ci_data = data_cookie_info
+        ; ci_persistent = pers_cookies_info
+        }
+    ; ci_secure = secure_ci
+    }
+    (endlist : Ocsigen_cookie_map.t) =
   let getservvexp (old, newi) =
     Lwt.return
       (let newinfo =
@@ -413,9 +437,11 @@ let compute_cookies_to_send
              Some
                ( c.Common.sc_hvalue
                , c.Common.sc_set_value
-               , !(c.Common.sc_cookie_exp) )
+               , !(c.Common.sc_cookie_exp)
+               )
        in
-       old, newinfo)
+       old, newinfo
+      )
   in
   let getdatavexp v =
     if Lazy.is_val v
@@ -429,9 +455,11 @@ let compute_cookies_to_send
                Some
                  ( c.Common.dc_hvalue
                  , c.Common.dc_set_value
-                 , !(c.Common.dc_cookie_exp) )
+                 , !(c.Common.dc_cookie_exp)
+                 )
          in
-         old, newinfo)
+         old, newinfo
+        )
     else Lwt.fail Not_found
   in
   let getpersvexp v =
@@ -451,9 +479,11 @@ let compute_cookies_to_send
                Some
                  ( c.Common.pc_hvalue
                  , c.Common.pc_set_value
-                 , !(c.Common.pc_cookie_exp) )
+                 , !(c.Common.pc_cookie_exp)
+                 )
          in
-         oldinfo, newinfo)
+         oldinfo, newinfo
+        )
     else Lwt.fail Not_found
   in
   let ch_exp = function
@@ -464,41 +494,44 @@ let compute_cookies_to_send
     let* cooktab = cooktab in
     Common.Full_state_name_table.fold
       (fun full_st_name value beg ->
-         let* beg = beg in
-         Lwt.catch
-           (fun () ->
-              let* old, newc = f value in
-              Lwt.return
-                (match old, newc with
-                | None, None -> beg
-                | Some _, None ->
-                    Ocsigen_cookie_map.add
-                      ~path:(Common.get_site_dir sitedata)
-                      (Common.make_full_cookie_name cookiekind full_st_name)
-                      OUnset beg
-                (* the path is always site_dir because the cookie cannot
+        let* beg = beg in
+        Lwt.catch
+          (fun () ->
+            let* old, newc = f value in
+            Lwt.return
+              ( match old, newc with
+              | None, None -> beg
+              | Some _, None ->
+                  Ocsigen_cookie_map.add
+                    ~path:(Common.get_site_dir sitedata)
+                    (Common.make_full_cookie_name cookiekind full_st_name)
+                    OUnset beg
+              (* the path is always site_dir because the cookie cannot
                  have been unset by a service outside
                  this site directory *)
-                | _, Some (_, Some v, exp) ->
-                    (* New value *)
+              | _, Some (_, Some v, exp) ->
+                  (* New value *)
+                  Ocsigen_cookie_map.add
+                    ~path:(Common.get_site_dir sitedata)
+                    (Common.make_full_cookie_name cookiekind full_st_name)
+                    (OSet (ch_exp exp, v, secure))
+                    beg
+              | Some oldv, Some (_, None, exp) ->
+                  if exp = Common.CENothing
+                  then beg
+                  else
                     Ocsigen_cookie_map.add
                       ~path:(Common.get_site_dir sitedata)
                       (Common.make_full_cookie_name cookiekind full_st_name)
-                      (OSet (ch_exp exp, v, secure))
+                      (OSet (ch_exp exp, oldv, secure))
                       beg
-                | Some oldv, Some (_, None, exp) ->
-                    if exp = Common.CENothing
-                    then beg
-                    else
-                      Ocsigen_cookie_map.add
-                        ~path:(Common.get_site_dir sitedata)
-                        (Common.make_full_cookie_name cookiekind full_st_name)
-                        (OSet (ch_exp exp, oldv, secure))
-                        beg
-                | None, Some (_, None, _) ->
-                    (* Should not happen *)
-                    beg))
-           (function Not_found -> Lwt.return beg | e -> Lwt.fail e))
+              | None, Some (_, None, _) ->
+                  (* Should not happen *)
+                  beg
+              )
+          )
+          (function Not_found -> Lwt.return beg | e -> Lwt.fail e)
+      )
       tab2 (Lwt.return cooktab)
   in
   aux getpersvexp Common.persistentcookiename false !pers_cookies_info
@@ -506,125 +539,134 @@ let compute_cookies_to_send
        (aux getservvexp Common.servicecookiename false !service_cookie_info
           (let { Common.ci_service = service_cookie_info
                ; ci_data = data_cookie_info
-               ; ci_persistent = pers_cookies_info }
-             =
+               ; ci_persistent = pers_cookies_info
+               } =
              secure_ci
            in
            aux getpersvexp Common.persistentcookiename true !pers_cookies_info
              (aux getdatavexp Common.datacookiename true !data_cookie_info
                 (aux getservvexp Common.servicecookiename true
-                   !service_cookie_info (Lwt.return endlist))))))
+                   !service_cookie_info (Lwt.return endlist)
+                )
+             )
+          )
+       )
+    )
 
 let compute_new_ri_cookies' now ripath ricookies cookies_set_by_page =
   Ocsigen_cookie_map.Map_path.fold
     (fun cpath t cookies ->
-       if
-         Url.is_prefix_skip_end_slash
-           (Url.remove_slash_at_beginning cpath)
-           (Url.remove_slash_at_beginning ripath)
-       then
-         Ocsigen_cookie_map.Map_inner.fold
-           (fun name v cookies ->
-              (*VVV We always keep secure cookies, event if the protocol is not secure,
+      if
+        Url.is_prefix_skip_end_slash
+          (Url.remove_slash_at_beginning cpath)
+          (Url.remove_slash_at_beginning ripath)
+      then
+        Ocsigen_cookie_map.Map_inner.fold
+          (fun name v cookies ->
+            (*VVV We always keep secure cookies, event if the protocol is not secure,
   because this function is for actions only. Is that right? *)
-              match v with
-              | OSet (Some exp, value, _secure) when exp > now ->
-                  Ocsigen_cookie_map.Map_inner.add name value cookies
-              | OSet (None, value, _secure) ->
-                  Ocsigen_cookie_map.Map_inner.add name value cookies
-              | OSet (Some exp, _value, _secure) when exp <= now ->
-                  Ocsigen_cookie_map.Map_inner.remove name cookies
-              | OUnset -> Ocsigen_cookie_map.Map_inner.remove name cookies
-              | _ -> cookies)
-           t cookies
-       else cookies)
+            match v with
+            | OSet (Some exp, value, _secure) when exp > now ->
+                Ocsigen_cookie_map.Map_inner.add name value cookies
+            | OSet (None, value, _secure) ->
+                Ocsigen_cookie_map.Map_inner.add name value cookies
+            | OSet (Some exp, _value, _secure) when exp <= now ->
+                Ocsigen_cookie_map.Map_inner.remove name cookies
+            | OUnset -> Ocsigen_cookie_map.Map_inner.remove name cookies
+            | _ -> cookies
+          )
+          t cookies
+      else cookies
+    )
     cookies_set_by_page ricookies
 
 (** Compute new ri.ri_cookies value
     from an old ri.ri_cookies and all_cookie_info
     as if it had been sent by the browser *)
 let compute_new_ri_cookies
-      (now : float)
-      (ripath : string list)
-      (ricookies : string Ocsigen_cookie_map.Map_inner.t)
-      ({Common.ci_unsecure = ci; ci_secure = secure_ci} :
-        Common.tables Common.cookie_info)
-      (cookies_set_by_page : Ocsigen_cookie_map.t) :
-  string Ocsigen_cookie_map.Map_inner.t Lwt.t
-  =
+    (now : float)
+    (ripath : string list)
+    (ricookies : string Ocsigen_cookie_map.Map_inner.t)
+    ({Common.ci_unsecure = ci; ci_secure = secure_ci} :
+      Common.tables Common.cookie_info
+      )
+    (cookies_set_by_page : Ocsigen_cookie_map.t) :
+    string Ocsigen_cookie_map.Map_inner.t Lwt.t =
   (* first we add cookies set by page: *)
   let ric = compute_new_ri_cookies' now ripath ricookies cookies_set_by_page in
   (* then session cookies: *)
   let f
-        _secure
-        { Common.ci_service = service_cookie_info
-        ; ci_data = data_cookie_info
-        ; ci_persistent = pers_cookie_info }
-        ric
-    =
+      _secure
+      { Common.ci_service = service_cookie_info
+      ; ci_data = data_cookie_info
+      ; ci_persistent = pers_cookie_info
+      }
+      ric =
     let ric =
       Common.Full_state_name_table.fold
         (fun ({Common.user_scope = sc; _} as full_st_name) (_, v) beg ->
-           let ct = Common.cookie_level_of_user_scope sc in
-           if ct = `Client_process
-           then beg
-           else
-             let n =
-               Common.make_full_cookie_name Common.servicecookiename
-                 full_st_name
-             in
-             match !v with
-             | Common.SCData_session_expired | Common.SCNo_data ->
-                 Ocsigen_cookie_map.Map_inner.remove n beg
-             | Common.SC {Common.sc_set_value = Some v; _} ->
-                 Ocsigen_cookie_map.Map_inner.add n v beg
-             | Common.SC {Common.sc_set_value = None; _} -> beg)
+          let ct = Common.cookie_level_of_user_scope sc in
+          if ct = `Client_process
+          then beg
+          else
+            let n =
+              Common.make_full_cookie_name Common.servicecookiename full_st_name
+            in
+            match !v with
+            | Common.SCData_session_expired | Common.SCNo_data ->
+                Ocsigen_cookie_map.Map_inner.remove n beg
+            | Common.SC {Common.sc_set_value = Some v; _} ->
+                Ocsigen_cookie_map.Map_inner.add n v beg
+            | Common.SC {Common.sc_set_value = None; _} -> beg
+        )
         !service_cookie_info ric
     in
     let ric =
       Common.Full_state_name_table.fold
         (fun ({Common.user_scope = sc; _} as full_st_name) v beg ->
-           let ct = Common.cookie_level_of_user_scope sc in
-           if ct = `Client_process
-           then beg
-           else
-             let n =
-               Common.make_full_cookie_name Common.datacookiename full_st_name
-             in
-             if Lazy.is_val v
-             then
-               let _, v = Lazy.force v in
-               match !v with
-               | Common.SCData_session_expired | Common.SCNo_data ->
-                   Ocsigen_cookie_map.Map_inner.remove n beg
-               | Common.SC {Common.dc_set_value = Some v; _} ->
-                   Ocsigen_cookie_map.Map_inner.add n v beg
-               | Common.SC {Common.dc_set_value = None; _} -> beg
-             else beg)
+          let ct = Common.cookie_level_of_user_scope sc in
+          if ct = `Client_process
+          then beg
+          else
+            let n =
+              Common.make_full_cookie_name Common.datacookiename full_st_name
+            in
+            if Lazy.is_val v
+            then
+              let _, v = Lazy.force v in
+              match !v with
+              | Common.SCData_session_expired | Common.SCNo_data ->
+                  Ocsigen_cookie_map.Map_inner.remove n beg
+              | Common.SC {Common.dc_set_value = Some v; _} ->
+                  Ocsigen_cookie_map.Map_inner.add n v beg
+              | Common.SC {Common.dc_set_value = None; _} -> beg
+            else beg
+        )
         !data_cookie_info ric
     in
     let ric =
       Common.Full_state_name_table.fold
         (fun ({Common.user_scope = sc; _} as full_st_name) v beg ->
-           let ct = Common.cookie_level_of_user_scope sc in
-           if ct = `Client_process
-           then beg
-           else
-             let n =
-               Common.make_full_cookie_name Common.persistentcookiename
-                 full_st_name
-             in
-             let* beg = beg in
-             if Lazy.is_val v
-             then
-               let* _, v = Lazy.force v in
-               match !v with
-               | Common.SCData_session_expired | Common.SCNo_data ->
-                   Lwt.return (Ocsigen_cookie_map.Map_inner.remove n beg)
-               | Common.SC {Common.pc_set_value = Some v; _} ->
-                   Lwt.return (Ocsigen_cookie_map.Map_inner.add n v beg)
-               | Common.SC {Common.pc_set_value = None; _} -> Lwt.return beg
-             else Lwt.return beg)
+          let ct = Common.cookie_level_of_user_scope sc in
+          if ct = `Client_process
+          then beg
+          else
+            let n =
+              Common.make_full_cookie_name Common.persistentcookiename
+                full_st_name
+            in
+            let* beg = beg in
+            if Lazy.is_val v
+            then
+              let* _, v = Lazy.force v in
+              match !v with
+              | Common.SCData_session_expired | Common.SCNo_data ->
+                  Lwt.return (Ocsigen_cookie_map.Map_inner.remove n beg)
+              | Common.SC {Common.pc_set_value = Some v; _} ->
+                  Lwt.return (Ocsigen_cookie_map.Map_inner.add n v beg)
+              | Common.SC {Common.pc_set_value = None; _} -> Lwt.return beg
+            else Lwt.return beg
+        )
         !pers_cookie_info (Lwt.return ric)
     in
     ric

@@ -22,9 +22,10 @@ include Ocsigen_lib_base
 include (
   Lib_base :
     module type of Lib_base
-    with type 'a Int64_map.t = 'a Lib_base.Int64_map.t
-    with type 'a String_map.t = 'a Lib_base.String_map.t
-    with type 'a Int_map.t = 'a Lib_base.Int_map.t)
+      with type 'a Int64_map.t = 'a Lib_base.Int64_map.t
+      with type 'a String_map.t = 'a Lib_base.String_map.t
+      with type 'a Int_map.t = 'a Lib_base.Int_map.t
+)
 
 (*****************************************************************************)
 
@@ -104,7 +105,8 @@ let _ =
   Lwt.async_exception_hook :=
     fun exn ->
       Logs.err ~src:eliom_logs_src (fun fmt ->
-        fmt "Lwt.async: %s%a" (Printexc.to_string exn) pp_js_stack exn)
+        fmt "Lwt.async: %s%a" (Printexc.to_string exn) pp_js_stack exn
+      )
 
 let trace fmts =
   if Config.get_tracing ()
@@ -142,7 +144,8 @@ let to_json ?typ s =
   | _ -> (
     match typ with
     | Some typ -> Deriving_Json.to_string typ s
-    | None -> Js.to_string (Json.output s))
+    | None -> Js.to_string (Json.output s)
+  )
 
 let of_json ?typ v =
   match Sys.backend_type with
@@ -150,7 +153,8 @@ let of_json ?typ v =
   | _ -> (
     match typ with
     | Some typ -> Deriving_Json.from_string typ v
-    | None -> assert false)
+    | None -> assert false
+  )
 
 let encode_header_value ~typ x =
   (* We remove end of lines *)
@@ -189,9 +193,10 @@ module Dom_reference = struct
       Js.Optdef.get
         (retain_map##get node)
         (fun () ->
-           let m = create_map () in
-           retain_map##set node m;
-           m)
+          let m = create_map () in
+          retain_map##set node m;
+          m
+        )
     in
     m##set key (Obj.repr keep)
 
@@ -206,6 +211,7 @@ module Dom_reference = struct
     Js.Optdef.iter
       (retain_map##get src)
       (fun m ->
-         Js.Optdef.iter (m##get key) (fun keep -> retain dst ~key ~keep);
-         m##delete key)
+        Js.Optdef.iter (m##get key) (fun keep -> retain dst ~key ~keep);
+        m##delete key
+      )
 end

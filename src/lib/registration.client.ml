@@ -59,21 +59,23 @@ let typed_apply ~service f ~get_params ~post_params suffix =
      taken by [wrap] for a wrong parameter). *)
   Lwt.catch
     (fun () ->
-       let* g =
-         Parameter.reconstruct_params ~sp:()
-           (Service.get_params_type service)
-           (Some (Lwt.return get_params))
-           None true suffix
-       and* p =
-         Parameter.reconstruct_params ~sp:()
-           (Service.post_params_type service)
-           (Some (Lwt.return post_params))
-           None true suffix
-       in
-       (match Service.reload_fun service with
-       | Some _ -> Client.set_reload_function (fun () () -> f g p)
-       | None -> ());
-       f g p)
+      let* g =
+        Parameter.reconstruct_params ~sp:()
+          (Service.get_params_type service)
+          (Some (Lwt.return get_params))
+          None true suffix
+      and* p =
+        Parameter.reconstruct_params ~sp:()
+          (Service.post_params_type service)
+          (Some (Lwt.return post_params))
+          None true suffix
+      in
+      ( match Service.reload_fun service with
+      | Some _ -> Client.set_reload_function (fun () () -> f g p)
+      | None -> ()
+      );
+      f g p
+    )
     Lwt.fail
 
 let wrap service att f _ suffix =
@@ -90,16 +92,13 @@ let wrap service att f _ suffix =
       if eliom_name = s
       then typed_apply ~service f ~get_params ~post_params suffix
       else Lwt.fail Common.Eliom_Wrong_parameter
-    with Not_found -> Lwt.fail Common.Eliom_Wrong_parameter)
+    with Not_found -> Lwt.fail Common.Eliom_Wrong_parameter
+  )
   | _ -> typed_apply ~service f ~get_params ~post_params suffix
 
 let wrap_na
-      (service : (_, _, _, _, _, _, _, _, _, _, _) Service.t)
-      _non_att
-      f
-      _
-      suffix
-  =
+    (service : (_, _, _, _, _, _, _, _, _, _, _) Service.t) _non_att f _ suffix
+    =
   let si = Request_info.get_sess_info ()
   and filter l = fst Common.(split_prefix_param na_co_param_prefix l) in
   let get_params = filter si.si_all_get_but_nl
@@ -115,11 +114,13 @@ let register_att ~service ~att f =
   and priority = Service.priority att in
   let sgpt = Service.get_params_type service
   and sppt = Service.post_params_type service in
-  (match Service.timeout service with
+  ( match Service.timeout service with
   | None -> ()
   | Some _ ->
       Logs.info ~src:section (fun fmt ->
-        fmt "Service timeout ignored on the client"));
+        fmt "Service timeout ignored on the client"
+      )
+  );
   let s_id =
     if gn = Common.SAtt_no || pn = Common.SAtt_no
     then Parameter.(anonymise_params_type sgpt, anonymise_params_type sppt)
@@ -137,10 +138,9 @@ let register_na ~service ~na f =
     (wrap_na service na f) Route.global_tables
 
 let register
-      (type g p att)
-      ~(service : (g, p, _, att, _, _, _, _, _, _, _) Service.t)
-      (f : g -> p -> _)
-  =
+    (type g p att)
+    ~(service : (g, p, _, att, _, _, _, _, _, _, _) Service.t)
+    (f : g -> p -> _) =
   match Service.info service with
   | Service.Attached att -> register_att ~service ~att f
   | Service.Nonattached na -> register_na ~service ~na f
@@ -155,19 +155,18 @@ module Make (P : PARAM) = struct
     P.send ?options page
 
   let register
-        ?app
-        ?scope:_
-        ?options
-        ?charset:_
-        ?code:_
-        ?content_type:_
-        ?headers:_
-        ?secure_session:_
-        (type g p att)
-        ~(service : (g, p, _, att, _, _, _, _, _, _, _) Service.t)
-        ?error_handler:_
-        (f : g -> p -> _)
-    =
+      ?app
+      ?scope:_
+      ?options
+      ?charset:_
+      ?code:_
+      ?content_type:_
+      ?headers:_
+      ?secure_session:_
+      (type g p att)
+      ~(service : (g, p, _, att, _, _, _, _, _, _, _) Service.t)
+      ?error_handler:_
+      (f : g -> p -> _) =
     let f g p =
       let* page = f g p in
       P.send ?options page
@@ -178,41 +177,41 @@ module Make (P : PARAM) = struct
 end
 
 module Html = Make (struct
-    type page = Html_types.html Content.Html.elt
-    type options = unit
-    type return = Service.non_ocaml
-    type result = browser_content kind
+  type page = Html_types.html Content.Html.elt
+  type options = unit
+  type return = Service.non_ocaml
+  type result = browser_content kind
 
-    let reset_reload_fun = false
+  let reset_reload_fun = false
 
-    let send ?options:_ page =
-      Lwt.return (Service.Dom (Content.Html.To_dom.of_element page))
-  end)
+  let send ?options:_ page =
+    Lwt.return (Service.Dom (Content.Html.To_dom.of_element page))
+end)
 
 module Action = Make (struct
-    type page = unit
-    type options = [`Reload | `NoReload]
-    type return = Service.non_ocaml
-    type result = browser_content kind
+  type page = unit
+  type options = [`Reload | `NoReload]
+  type return = Service.non_ocaml
+  type result = browser_content kind
 
-    let reset_reload_fun = true
+  let reset_reload_fun = true
 
-    let send ?options _page =
-      match options with
-      | Some `Reload | None ->
-          Lwt.return Service.(Reload_action {hidden = false; https = false})
-      | _ -> Lwt.return Service.No_contents
-  end)
+  let send ?options _page =
+    match options with
+    | Some `Reload | None ->
+        Lwt.return Service.(Reload_action {hidden = false; https = false})
+    | _ -> Lwt.return Service.No_contents
+end)
 
 module Unit = Make (struct
-    type page = unit
-    type options = unit
-    type return = Service.non_ocaml
-    type result = browser_content kind
+  type page = unit
+  type options = unit
+  type return = Service.non_ocaml
+  type result = browser_content kind
 
-    let reset_reload_fun = true
-    let send ?options:_ _page = Lwt.return Service.No_contents
-  end)
+  let reset_reload_fun = true
+  let send ?options:_ _page = Lwt.return Service.No_contents
+end)
 
 type appl_service_options = {do_not_launch : bool}
 
@@ -222,32 +221,33 @@ module App (P : Registration_sigs.APP_PARAM) = struct
   let application_name = P.application_name
 
   include Make (struct
-      type page = Html_types.html Content.Html.elt
-      type options = appl_service_options
-      type return = Service.non_ocaml
-      type result = browser_content kind
+    type page = Html_types.html Content.Html.elt
+    type options = appl_service_options
+    type return = Service.non_ocaml
+    type result = browser_content kind
 
-      let reset_reload_fun = false
+    let reset_reload_fun = false
 
-      let send ?options:_ page =
-        Lwt.return (Service.Dom (Content.Html.To_dom.of_element page))
-    end)
+    let send ?options:_ page =
+      Lwt.return (Service.Dom (Content.Html.To_dom.of_element page))
+  end)
 end
 
 type 'a redirection =
   | Redirection :
       ( unit
-        , unit
-        , Service.get
-        , _
-        , _
-        , _
-        , _
-        , [`WithoutSuffix]
-        , unit
-        , unit
-        , 'a )
-        Service.t
+      , unit
+      , Service.get
+      , _
+      , _
+      , _
+      , _
+      , [`WithoutSuffix]
+      , unit
+      , unit
+      , 'a
+      )
+      Service.t
       -> 'a redirection
 
 module Redirection = struct
@@ -268,29 +268,27 @@ module Redirection = struct
   type _ result = browser_content kind
 
   let send
-        ?options:_
-        ?charset:_
-        ?code:_
-        ?content_type:_
-        ?headers:_
-        (Redirection service)
-    =
+      ?options:_
+      ?charset:_
+      ?code:_
+      ?content_type:_
+      ?headers:_
+      (Redirection service) =
     Lwt.return (Service.Redirect service)
 
   let register
-        ?app
-        ?scope:_
-        ?options
-        ?charset:_
-        ?code:_
-        ?content_type:_
-        ?headers:_
-        ?secure_session:_
-        (type g p att)
-        ~(service : (g, p, _, att, _, _, _, _, _, _, _) Service.t)
-        ?error_handler:_
-        (f : g -> p -> _)
-    =
+      ?app
+      ?scope:_
+      ?options
+      ?charset:_
+      ?code:_
+      ?content_type:_
+      ?headers:_
+      ?secure_session:_
+      (type g p att)
+      ~(service : (g, p, _, att, _, _, _, _, _, _, _) Service.t)
+      ?error_handler:_
+      (f : g -> p -> _) =
     let f g p =
       let* page = f g p in
       send ?options page
@@ -309,18 +307,17 @@ module Any = struct
     Lwt.return page
 
   let register
-        ?app
-        ?scope:_
-        ?options:_
-        ?charset:_
-        ?code:_
-        ?content_type:_
-        ?headers:_
-        ?secure_session:_
-        ~service
-        ?error_handler:_
-        f
-    =
+      ?app
+      ?scope:_
+      ?options:_
+      ?charset:_
+      ?code:_
+      ?content_type:_
+      ?headers:_
+      ?secure_session:_
+      ~service
+      ?error_handler:_
+      f =
     let f g p =
       let* page = f g p in
       send page

@@ -36,7 +36,7 @@ type ('a, 'b) t
     participants. *)
 
 val create :
-   ?scope:[< Comet.Channel.comet_scope]
+     ?scope:[< Comet.Channel.comet_scope]
   -> ?name:string
   -> ?size:int
   -> 'a Deriving_Json.t
@@ -53,7 +53,7 @@ val create :
 *)
 
 val create_filtered :
-   ?scope:[< Comet.Channel.comet_scope]
+     ?scope:[< Comet.Channel.comet_scope]
   -> ?name:string
   -> ?size:int
   -> filter:('a -> 'b Lwt.t)

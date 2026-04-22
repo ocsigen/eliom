@@ -19,19 +19,19 @@
  *)
 
 val make_full_named_group_name_ :
-   cookie_level:Common.cookie_level
+     cookie_level:Common.cookie_level
   -> Common.sitedata
   -> string
   -> Common.scope Common.sessgrp
 
 val make_full_group_name :
-   cookie_level:Common.cookie_level
+     cookie_level:Common.cookie_level
   -> sitedata:Common.sitedata
   -> string option
   -> Common.scope Common.sessgrp
 
 val make_persistent_full_group_name :
-   cookie_level:Common.cookie_level
+     cookie_level:Common.cookie_level
   -> string
   -> string option
   -> Common.perssessgrp option
@@ -42,7 +42,7 @@ module type MEMTAB = sig
   type group_of_group_data
 
   val add :
-     Common.sitedata
+       Common.sitedata
     -> string
     -> [< Common.cookie_level] Common.sessgrp
     -> string Ocsigen_base.Cache.Dlist.node
@@ -51,19 +51,17 @@ module type MEMTAB = sig
   val remove_group : [< Common.cookie_level] Common.sessgrp -> unit
 
   val find :
-     [< Common.cookie_level] Common.sessgrp
-    -> string Ocsigen_base.Cache.Dlist.t
+    [< Common.cookie_level] Common.sessgrp -> string Ocsigen_base.Cache.Dlist.t
   (** returns the dlist containing all session group elements *)
 
   val find_node_in_group_of_groups :
-     [< `Session] Common.sessgrp
-    -> group_of_group_data option
+    [< `Session] Common.sessgrp -> group_of_group_data option
   (** Groups of browser sessions belong to a group of groups.
         As these groups are not associated to a cookie,
         we put this information here. *)
 
   val move :
-     Common.sitedata
+       Common.sitedata
     -> string Ocsigen_base.Cache.Dlist.node
     -> [< Common.cookie_level] Common.sessgrp
     -> string Ocsigen_base.Cache.Dlist.node
@@ -86,39 +84,36 @@ end
 
 module Serv :
   MEMTAB
-  with type group_of_group_data =
-    Common.tables ref
-    * Common.group_of_groups_entry Ocsigen_base.Cache.Dlist.node
+    with type group_of_group_data =
+      Common.tables ref
+      * Common.group_of_groups_entry Ocsigen_base.Cache.Dlist.node
 
 module Data :
   MEMTAB
-  with type group_of_group_data =
-    Common.group_of_groups_entry Ocsigen_base.Cache.Dlist.node
+    with type group_of_group_data =
+      Common.group_of_groups_entry Ocsigen_base.Cache.Dlist.node
 
 module Pers : sig
   val find : Common.perssessgrp option -> string list Lwt.t
 
   val add :
-     ?set_max:int option
+       ?set_max:int option
     -> int option
     -> string
     -> Common.perssessgrp option
     -> string list Lwt.t
 
   val remove :
-     Common.sitedata
-    -> string
-    -> Common.perssessgrp option
-    -> unit Lwt.t
+    Common.sitedata -> string -> Common.perssessgrp option -> unit Lwt.t
 
   val remove_group :
-     cookie_level:[`Session | `Client_process of Common.perssessgrp option]
+       cookie_level:[`Session | `Client_process of Common.perssessgrp option]
     -> Common.sitedata
     -> Common.perssessgrp option
     -> unit Lwt.t
 
   val move :
-     Common.sitedata
+       Common.sitedata
     -> ?set_max:int option
     -> int option
     -> string
@@ -130,7 +125,7 @@ module Pers : sig
   val nb_of_groups : unit -> int Lwt.t
 
   val close_persistent_session :
-     cookie_level:Common.cookie_level
+       cookie_level:Common.cookie_level
     -> Common.sitedata
     -> Common.perssessgrp option
     -> string

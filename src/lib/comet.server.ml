@@ -61,8 +61,9 @@ let comet_global_path = ["__eliom_comet_global__"]
 
 let fallback_service =
   Common.lazy_site_value_from_fun @@ fun () ->
-  Comet.create ~meth:(Service.Get Parameter.unit)
-    ~path:(Service.Path comet_path) (fun () () -> Lwt.return state_closed_msg)
+  Comet.create ~meth:(Service.Get Parameter.unit) ~path:(Service.Path comet_path)
+    (fun () () -> Lwt.return state_closed_msg
+  )
 
 let fallback_global_service =
   Common.lazy_site_value_from_fun @@ fun () ->
@@ -70,7 +71,9 @@ let fallback_global_service =
     ~path:(Service.Path comet_global_path) (fun () () ->
     Lwt.return
       (error_msg
-         "request with no post parameters, or there isn't any registered site comet channel"))
+         "request with no post parameters, or there isn't any registered site comet channel"
+      )
+  )
 
 let new_id = Lib.make_cryptographic_safe_string
 
@@ -103,7 +106,7 @@ end = struct
     ; ch_wakeup : unit Lwt_condition.t
     ; (* condition broadcasted when there is a new message *)
       ch_stream : string Lwt_stream.t
-      (* the source of the messages: the channel keeps it alive, as nothing
+          (* the source of the messages: the channel keeps it alive, as nothing
          else may, for instance for a stream made from a React event *)
     }
 
@@ -124,7 +127,8 @@ end = struct
       ; ch_index = 0
       ; ch_content = Dlist.create 1
       ; ch_wakeup = Lwt_condition.create ()
-      ; ch_stream = Lwt_stream.of_list [] }
+      ; ch_stream = Lwt_stream.of_list []
+      }
     in
     fun ch_id ->
       let dummy = {dummy_channel with ch_id} in
@@ -152,8 +156,9 @@ end = struct
           Lwt.return_unit
     in
     ignore
-      (Lwt.with_value Common.sp_key None @@ fun () -> Lwt_stream.iter_s f stream
-       : unit Lwt.t)
+      ( Lwt.with_value Common.sp_key None @@ fun () -> Lwt_stream.iter_s f stream
+        : unit Lwt.t
+        )
 
   let make_name name = "stateless:" ^ name
   let chan_id_of_string name = Comet_base.chan_id_of_string (make_name name)
@@ -165,7 +170,8 @@ end = struct
       ; ch_index = 0
       ; ch_content = Dlist.create size
       ; ch_wakeup = Lwt_condition.create ()
-      ; ch_stream = stream }
+      ; ch_stream = stream
+      }
     in
     run_channel channel;
     match find_channel name with
@@ -173,7 +179,8 @@ end = struct
         failwith
           (Printf.sprintf
              "can't create channel %s: a channel with the same name already exists"
-             name)
+             name
+          )
     | None ->
         Weak_channel_table.add channels channel;
         channel
@@ -190,9 +197,10 @@ end = struct
     try
       Dlist.fold
         (fun l (v, index) ->
-           if index >= last
-           then (channel.ch_id, Comet_base.Data (v, index)) :: l
-           else raise (Finished l))
+          if index >= last
+          then (channel.ch_id, Comet_base.Data (v, index)) :: l
+          else raise (Finished l)
+        )
         [] channel.ch_content
     with Finished l -> l
 
@@ -208,7 +216,8 @@ end = struct
         (* initialisation of external newest channels *)
         match Dlist.newest channel.ch_content with
         | None -> [] (* should not happen *)
-        | Some node -> [channel.ch_id, Comet_base.Data (Dlist.value node)])
+        | Some node -> [channel.ch_id, Comet_base.Data (Dlist.value node)]
+      )
       (* when the client is requesting the data after index i return
            all data with index gretter or equal to i*)
       | Comet_base.After i when i > channel.ch_index -> []
@@ -222,7 +231,8 @@ end = struct
           let i =
             channel.ch_index - min (Dlist.size channel.ch_content) n + 1
           in
-          queue_take channel i)
+          queue_take channel i
+    )
 
   let has_data = function
     | Either.Right _ ->
@@ -234,7 +244,8 @@ end = struct
       | Comet_base.After i when i > channel.ch_index -> false
       | Comet_base.After _ -> true
       | Comet_base.Last _ when Dlist.size channel.ch_content > 0 -> true
-      | Comet_base.Last _ -> false)
+      | Comet_base.Last _ -> false
+    )
 
   let really_wait_data requests =
     let rec make_list = function
@@ -249,24 +260,24 @@ end = struct
   let wait_data requests =
     if List.exists has_data requests
     then Lwt.return_unit
-    else
-      Lwt_unix.with_timeout (timeout ()) (fun () -> really_wait_data requests)
+    else Lwt_unix.with_timeout (timeout ()) (fun () -> really_wait_data requests)
 
   let handle_request () (_, req) =
     match req with
     | Comet_base.Stateful _ ->
         Lwt.return
           (error_msg
-             "attempting to request data on stateless service with a stateful request")
+             "attempting to request data on stateless service with a stateful request"
+          )
     | Comet_base.Stateless requests ->
         let requests = List.map get_channel (Array.to_list requests) in
         let* res =
           Lwt.catch
             (fun () ->
-               let* () = wait_data requests in
-               Lwt.return (List.concat_map get_available_data requests))
-            (function
-              | Lwt_unix.Timeout -> Lwt.return_nil | exc -> Lwt.fail exc)
+              let* () = wait_data requests in
+              Lwt.return (List.concat_map get_available_data requests)
+            )
+            (function Lwt_unix.Timeout -> Lwt.return_nil | exc -> Lwt.fail exc)
         in
         Lwt.return (encode_global_downgoing res)
 
@@ -278,7 +289,9 @@ end = struct
       ~meth:
         (Service.Post
            ( Parameter.unit
-           , Parameter.(bool "idle" ** Comet_base.comet_request_param) ))
+           , Parameter.(bool "idle" ** Comet_base.comet_request_param)
+           )
+        )
       handle_request
 
   let get_service =
@@ -300,24 +313,22 @@ let () =
   Mod_main.register_site_init (fun () ->
     ignore (Common.force_lazy_site_value fallback_global_service);
     ignore (Common.force_lazy_site_value fallback_service);
-    ignore (Stateless.get_service ()))
+    ignore (Stateless.get_service ())
+  )
 
 (** String channels on which is build the module Channel *)
 module Stateful : sig
   type t
 
   val create :
-     ?scope:Common.client_process_scope
+       ?scope:Common.client_process_scope
     -> ?name:chan_id
     -> size:int
     -> _ React.event
     -> t
 
   val create_unlimited :
-     ?scope:Common.client_process_scope
-    -> ?name:chan_id
-    -> _ Lwt_stream.t
-    -> t
+    ?scope:Common.client_process_scope -> ?name:chan_id -> _ Lwt_stream.t -> t
 
   val get_id : t -> string
 
@@ -333,9 +344,9 @@ end = struct
 
   type activity =
     | Active of end_request_waiters list
-    (** There is currently a request from the client *)
+        (** There is currently a request from the client *)
     | Inactive of float
-    (** The last request from the client completed at that time *)
+        (** The last request from the client completed at that time *)
 
   type waiter = [`Data | `Update] Lwt.t
 
@@ -344,27 +355,30 @@ end = struct
         { queue : string Comet_base.channel_data Queue.t
         ; (* Reference to the event stream, so that it does not
              get garbage collected *)
-          retained_events : bool React.event option ref }
+          retained_events : bool React.event option ref
+        }
     | Stream of
         { mutable stream : string Comet_base.channel_data Lwt_stream.t
-        ; mutable waiter : waiter }
+        ; mutable waiter : waiter
+        }
 
   type handler =
     { hd_scope : Common.client_process_scope
     ; mutable hd_active_channels : (chan_id * channel) list
-      (** streams that are currently sent to client *)
+          (** streams that are currently sent to client *)
     ; mutable hd_unregistered_channels : (chan_id * channel) list
-      (** streams that are created on the server side, but client did not register *)
+          (** streams that are created on the server side, but client did not register *)
     ; mutable hd_registered_chan_id : chan_id list
-      (** the fusion of all the streams from hd_active_channels *)
+          (** the fusion of all the streams from hd_active_channels *)
     ; mutable hd_update_streams_w : [`Data | `Update] Lwt.u option
-      (** used to signal new data or new active streams. *)
+          (** used to signal new data or new active streams. *)
     ; hd_service : internal_comet_service
     ; mutable hd_last : string * int
-      (** the last message sent to the client, if he sends a request
+          (** the last message sent to the client, if he sends a request
             with the same number, this message is immediately sent
             back.*)
-    ; mutable hd_activity : activity }
+    ; mutable hd_activity : activity
+    }
 
   exception Connection_closed
 
@@ -434,7 +448,8 @@ end = struct
     Lwt.with_value Common.sp_key None @@ fun () ->
     Lwt.no_cancel
       (let* _ = Lwt_stream.peek s in
-       Lwt.return `Data)
+       Lwt.return `Data
+      )
 
   (** read up to [n] messages in the list of streams [streams] without blocking. *)
   let read_channels n handler =
@@ -461,9 +476,10 @@ end = struct
   let wait_channels handler =
     List.fold_left
       (fun acc (_, channel) ->
-         match channel with
-         | Events _ -> acc
-         | Stream {waiter; _} -> waiter :: acc)
+        match channel with
+        | Events _ -> acc
+        | Stream {waiter; _} -> waiter :: acc
+      )
       [] handler.hd_active_channels
 
   (** wait for data on any channel that the client asks. It correctly
@@ -509,7 +525,8 @@ end = struct
     then (
       handler.hd_registered_chan_id <-
         List.filter (( <> ) chan_id) handler.hd_registered_chan_id;
-      launch_channel handler chan_id channel)
+      launch_channel handler chan_id channel
+    )
     else
       handler.hd_unregistered_channels <-
         (chan_id, channel) :: handler.hd_unregistered_channels
@@ -534,7 +551,8 @@ end = struct
       | Comet_base.Stateless _ ->
           Lwt.return
             (error_msg
-               "attempting to request data on stateful service with a stateless request")
+               "attempting to request data on stateful service with a stateless request"
+            )
       | Comet_base.Stateful (Comet_base.Request_data number) ->
           Logs.info ~src:section (fun fmt -> fmt "received request %i" number);
           (* if a new connection occurs for a service, we reply
@@ -545,21 +563,21 @@ end = struct
           else
             Lwt.catch
               (fun () ->
-                 Lwt_unix.with_timeout (timeout ()) (fun () ->
-                   let* messages =
-                     let messages = read_channels 100 handler in
-                     if messages <> [] || idle
-                     then Lwt.return messages
-                     else
-                       let* () =
-                         wait_data (wait_closed_connection ()) handler
-                       in
-                       Lwt.return (read_channels 100 handler)
-                   in
-                   let message = encode_downgoing messages in
-                   handler.hd_last <- message, number;
-                   set_inactive handler;
-                   Lwt.return message))
+                Lwt_unix.with_timeout (timeout ()) (fun () ->
+                  let* messages =
+                    let messages = read_channels 100 handler in
+                    if messages <> [] || idle
+                    then Lwt.return messages
+                    else
+                      let* () = wait_data (wait_closed_connection ()) handler in
+                      Lwt.return (read_channels 100 handler)
+                  in
+                  let message = encode_downgoing messages in
+                  handler.hd_last <- message, number;
+                  set_inactive handler;
+                  Lwt.return message
+                )
+              )
               (function
                 | New_connection -> Lwt.return (encode_downgoing [])
                 (* happens if an other connection has been opened on that service *)
@@ -570,13 +588,15 @@ end = struct
                     set_inactive handler;
                     (* it doesn't matter what we do here *)
                     Lwt.return timeout_msg
-                | e -> set_inactive handler; Lwt.fail e)
+                | e -> set_inactive handler; Lwt.fail e
+                )
       | Comet_base.Stateful (Comet_base.Commands commands) ->
           update_inactive handler;
           List.iter
             (function
               | Comet_base.Register channel -> register_channel handler channel
-              | Comet_base.Close channel -> close_channel' handler channel)
+              | Comet_base.Close channel -> close_channel' handler channel
+              )
             (Array.to_list commands);
           (* command connections are replied immediately by an
                  empty answer *)
@@ -621,7 +641,8 @@ end = struct
                   Parameter.(bool "idle" ** Comet_base.comet_request_param)
                 ~fallback:(Common.force_lazy_site_value fallback_service)
                 ()
-            , ref [] )
+            , ref []
+            )
         in
         let handler =
           { hd_scope = scope
@@ -631,7 +652,8 @@ end = struct
           ; hd_service
           ; hd_update_streams_w = None
           ; hd_last = "", -1
-          ; hd_activity = Inactive (Unix.gettimeofday ()) }
+          ; hd_activity = Inactive (Unix.gettimeofday ())
+          }
         in
         Reference.Volatile.set eref (Some handler);
         run_handler handler;
@@ -657,11 +679,10 @@ end = struct
     Common.make_full_cookie_name pref name
 
   let create
-        ?(scope = Common.comet_client_process_scope)
-        ?(name = new_id ())
-        ~size
-        events
-    =
+      ?(scope = Common.comet_client_process_scope)
+      ?(name = new_id ())
+      ~size
+      events =
     let name = name_of_scope (scope :> Common.user_scope) ^ name in
     let handler = get_handler scope in
     Logs.info ~src:section (fun fmt -> fmt "create channel %s" name);
@@ -671,29 +692,30 @@ end = struct
       Some
         (React.E.fold
            (fun full x ->
-              full
-              ||
-              if Queue.length queue >= size
-              then (
-                retained_events := None;
-                Queue.clear queue;
-                Queue.push Comet_base.Full queue;
-                signal_update handler `Data;
-                true)
-              else (
-                Queue.push (Comet_base.Data (marshal x)) queue;
-                signal_update handler `Data;
-                false))
-           false events);
+             full
+             ||
+             if Queue.length queue >= size
+             then (
+               retained_events := None;
+               Queue.clear queue;
+               Queue.push Comet_base.Full queue;
+               signal_update handler `Data;
+               true
+             )
+             else (
+               Queue.push (Comet_base.Data (marshal x)) queue;
+               signal_update handler `Data;
+               false
+             )
+           )
+           false events
+        );
     let channel = Events {queue; retained_events} in
     add_channel handler name channel;
     {ch_handler = handler; ch_id = name}
 
   let create_unlimited
-        ?(scope = Common.comet_client_process_scope)
-        ?(name = new_id ())
-        stream
-    =
+      ?(scope = Common.comet_client_process_scope) ?(name = new_id ()) stream =
     let name = name_of_scope (scope :> Common.user_scope) ^ name in
     let handler = get_handler scope in
     Logs.info ~src:section (fun fmt -> fmt "create channel %s" name);
@@ -719,21 +741,21 @@ module Channel : sig
   type comet_scope = [Common.site_scope | Common.client_process_scope]
 
   val create_from_events :
-     ?scope:[< comet_scope]
+       ?scope:[< comet_scope]
     -> ?name:string
     -> ?size:int
     -> 'a React.event
     -> 'a t
 
   val create :
-     ?scope:[< comet_scope]
+       ?scope:[< comet_scope]
     -> ?name:string
     -> ?size:int
     -> 'a Lwt_stream.t
     -> 'a t
 
   val create_unlimited :
-     ?scope:Common.client_process_scope
+       ?scope:Common.client_process_scope
     -> ?name:string
     -> 'a Lwt_stream.t
     -> 'a t
@@ -742,12 +764,7 @@ module Channel : sig
   val get_wrapped : 'a t -> 'a Comet_base.wrapped_channel
 
   val external_channel :
-     ?history:int
-    -> ?newest:bool
-    -> prefix:string
-    -> name:string
-    -> unit
-    -> 'a t
+    ?history:int -> ?newest:bool -> prefix:string -> name:string -> unit -> 'a t
 
   val wait_timeout : ?scope:Common.client_process_scope -> float -> unit Lwt.t
 end = struct
@@ -765,17 +782,20 @@ end = struct
     | Stateful channel ->
         Comet_base.Stateful_channel
           ( Stateful.get_service channel
-          , Comet_base.chan_id_of_string (Stateful.get_id channel) )
+          , Comet_base.chan_id_of_string (Stateful.get_id channel)
+          )
     | Stateless channel ->
         Comet_base.Stateless_channel
           ( Stateless.get_service ()
           , Comet_base.chan_id_of_string (Stateless.get_id channel)
-          , Stateless.get_kind ~newest:false channel )
+          , Stateless.get_kind ~newest:false channel
+          )
     | Stateless_newest channel ->
         Comet_base.Stateless_channel
           ( Stateless.get_service ()
           , Comet_base.chan_id_of_string (Stateless.get_id channel)
-          , Stateless.get_kind ~newest:true channel )
+          , Stateless.get_kind ~newest:true channel
+          )
     | External wrapped -> wrapped
 
   let internal_wrap c =
@@ -790,29 +810,37 @@ end = struct
     Stateless
       (Stateless.create ?name ~size
          ( Lwt.with_value Common.sp_key None @@ fun () ->
-           Lwt_stream.map marshal stream ))
+           Lwt_stream.map marshal stream
+         )
+      )
 
   let create_stateless_newest_channel ?name stream =
     Stateless_newest
       (Stateless.create ?name ~size:1
          ( Lwt.with_value Common.sp_key None @@ fun () ->
-           Lwt_stream.map marshal stream ))
+           Lwt_stream.map marshal stream
+         )
+      )
 
   let create_stateful ?scope ?name ?(size = 1000) events =
     { channel = create_stateful_channel ?scope ?name ~size events
-    ; channel_mark = channel_mark () }
+    ; channel_mark = channel_mark ()
+    }
 
   let create_unlimited ?scope ?name events =
     { channel = Stateful (Stateful.create_unlimited ?scope ?name events)
-    ; channel_mark = channel_mark () }
+    ; channel_mark = channel_mark ()
+    }
 
   let create_stateless ?name ?(size = 1000) stream =
     { channel = create_stateless_channel ?name ~size stream
-    ; channel_mark = channel_mark () }
+    ; channel_mark = channel_mark ()
+    }
 
   let create_newest ?name stream =
     { channel = create_stateless_newest_channel ?name stream
-    ; channel_mark = channel_mark () }
+    ; channel_mark = channel_mark ()
+    }
 
   type comet_scope = [Common.site_scope | Common.client_process_scope]
 
@@ -836,7 +864,9 @@ end = struct
         ~meth:
           (Service.Post
              ( Parameter.unit
-             , Parameter.(bool "idle" ** Comet_base.comet_request_param) ))
+             , Parameter.(bool "idle" ** Comet_base.comet_request_param)
+             )
+          )
         ()
     in
     let last = if newest then None else Some history in
@@ -845,8 +875,11 @@ end = struct
           (Comet_base.Stateless_channel
              ( Comet_base.Comet_service (service, ref [])
              , Stateless.chan_id_of_string name
-             , Comet_base.Last_kind last ))
-    ; channel_mark = channel_mark () }
+             , Comet_base.Last_kind last
+             )
+          )
+    ; channel_mark = channel_mark ()
+    }
 
   let wait_timeout = Stateful.wait_timeout
 end

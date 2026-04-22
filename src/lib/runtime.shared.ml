@@ -25,7 +25,8 @@ module Client_value_server_repr = struct
   type u =
     { mutable loc : Lib_base.pos option
     ; instance_id : int
-    ; unwrapper : Wrap.unwrapper }
+    ; unwrapper : Wrap.unwrapper
+    }
   [@@warning "-69"]
 
   type 'a t = u
@@ -120,7 +121,8 @@ module RawXML = struct
 
   let acontent = function
     | _, RAReact s -> (
-      match React.S.value s with None -> AStr "" | Some x -> x)
+      match React.S.value s with None -> AStr "" | Some x -> x
+    )
     | _, RA a -> a
     | _, RACamlEventHandler (CE_registered_closure (crypto, _)) ->
         AStr (closure_attr_prefix ^ crypto)
@@ -168,15 +170,15 @@ module RawXML = struct
   type node_id = NoId | ProcessId of string | RequestId of string
 
   module ClosureMap = Map.Make (struct
-      type t = string
+    type t = string
 
-      let compare = compare
-    end)
+    let compare = compare
+  end)
 
   type event_handler_table =
     Ocsigen_lib_base.poly
-      (* (biggest_event Js.t -> unit) client_value *)
-      ClosureMap.t
+    (* (biggest_event Js.t -> unit) client_value *)
+    ClosureMap.t
 
   type client_attrib_table =
     Ocsigen_lib_base.poly (* attrib client_value *) ClosureMap.t
@@ -207,7 +209,8 @@ module RawXML = struct
             | None -> acc_attr
             | Some tmpl -> (ce_template_attrib, RA (AStr tmpl)) :: acc_attr
           in
-          freepos, acc_class, acc_attr)
+          freepos, acc_class, acc_attr
+    )
     | "", RAClient (crypt, Some ("class", RA v), cv) ->
         let acc_class = filter_class_value acc_class v in
         let acc_class = ce_registered_attr_class :: acc_class
@@ -248,16 +251,19 @@ let client_value_unwrap_id_int = 7
 type client_value_datum =
   { closure_id : string
   ; args : Ocsigen_lib_base.poly
-  ; value : Ocsigen_lib_base.poly Client_value_server_repr.t }
+  ; value : Ocsigen_lib_base.poly Client_value_server_repr.t
+  }
 
 type injection_datum =
   { injection_dbg : (Lib_base.pos * string option) option
   ; injection_id : int
-  ; injection_value : Ocsigen_lib_base.poly }
+  ; injection_value : Ocsigen_lib_base.poly
+  }
 
 type compilation_unit_global_data =
   { server_sections_data : client_value_datum array array
-  ; client_sections_data : injection_datum array array }
+  ; client_sections_data : injection_datum array array
+  }
 
 type global_data = compilation_unit_global_data Lib.String_map.t
 type request_data = client_value_datum array

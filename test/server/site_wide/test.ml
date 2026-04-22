@@ -38,32 +38,37 @@ let timeouts server =
     case
       ("global timeout of " ^ kind ^ " states")
       (fun browser ->
-         let admin = browser () and b = browser () in
-         let setting = "/global_timeout?kind=" ^ kind in
-         with_setting admin (setting ^ "&t=1") setting (fun () ->
-           let* url, opened, closed = open_state kind b in
-           let* () = check "before" opened b url in
-           let* () = sleep 1.5 in
-           check "after" closed b url))
+        let admin = browser () and b = browser () in
+        let setting = "/global_timeout?kind=" ^ kind in
+        with_setting admin (setting ^ "&t=1") setting (fun () ->
+          let* url, opened, closed = open_state kind b in
+          let* () = check "before" opened b url in
+          let* () = sleep 1.5 in
+          check "after" closed b url
+        )
+      )
   in
   (* The expiration dates of the open states follow a new global timeout
      only when they are recomputed. *)
   let recompute ?(recompute = true) kind =
     case
       (Printf.sprintf "expiration dates of %s states%s" kind
-         (if recompute then ", recomputed" else ""))
+         (if recompute then ", recomputed" else "")
+      )
       (fun browser ->
-         let admin = browser () and b = browser () in
-         let setting = "/global_timeout?kind=" ^ kind in
-         with_setting admin (setting ^ "&t=10") setting (fun () ->
-           let* url, opened, closed = open_state kind b in
-           let* () = check "before" opened b url in
-           let* _ =
-             text admin
-               (setting ^ "&t=1" ^ if recompute then "&recompute=on" else "")
-           in
-           let* () = sleep 1.5 in
-           check "after" (if recompute then closed else opened) b url))
+        let admin = browser () and b = browser () in
+        let setting = "/global_timeout?kind=" ^ kind in
+        with_setting admin (setting ^ "&t=10") setting (fun () ->
+          let* url, opened, closed = open_state kind b in
+          let* () = check "before" opened b url in
+          let* _ =
+            text admin
+              (setting ^ "&t=1" ^ if recompute then "&recompute=on" else "")
+          in
+          let* () = sleep 1.5 in
+          check "after" (if recompute then closed else opened) b url
+        )
+      )
   in
   ( "timeouts"
   , List.map global_timeout kinds
@@ -79,7 +84,9 @@ let timeouts server =
             let* _ = text c "/timeout?t=5" in
             let* () = sleep 1.5 in
             let* () = check "no timeout" "b" b "/get" in
-            check "longer timeout" "c" c "/get"))
+            check "longer timeout" "c" c "/get"
+          )
+        )
       ; case "default timeout" (fun browser ->
           (* For all scope hierarchies *)
           let admin = browser () and b = browser () in
@@ -88,7 +95,9 @@ let timeouts server =
             let* _ = text b "/other/set?v=o" in
             let* () = check "before" "o" b "/other/get" in
             let* () = sleep 1.5 in
-            check "after" "" b "/other/get"))
+            check "after" "" b "/other/get"
+          )
+        )
       ; case "default timeout of persistent states" (fun browser ->
           (* Of another hierarchy: the tests above set the global timeouts
              of the default hierarchy, which come first. *)
@@ -98,7 +107,10 @@ let timeouts server =
             let* _ = text b "/other/persistent/set?v=o" in
             let* () = check "before" "o" b "/other/persistent/get" in
             let* () = sleep 1.5 in
-            check "after" "" b "/other/persistent/get")) ] )
+            check "after" "" b "/other/persistent/get"
+          )
+        )
+      ] )
 
 let hierarchies server =
   let case = case_browsers server in
@@ -111,7 +123,8 @@ let hierarchies server =
         let* () = check "discarded" "" b "/get" in
         let* () = check "other hierarchy" "o" b "/other/get" in
         let* _ = text b "/discard?scope=other" in
-        check "other hierarchy discarded" "" b "/other/get")
+        check "other hierarchy discarded" "" b "/other/get"
+      )
     ; case "discard all scopes" (fun browser ->
         let b = browser () in
         let* _ = text b "/set?v=a" in
@@ -121,7 +134,9 @@ let hierarchies server =
         let* _ = text b "/discard_all_scopes" in
         let* () = check "session" "" b "/get" in
         let* () = check "other hierarchy" "" b "/other/get" in
-        check "group" "" b "/group/get") ] )
+        check "group" "" b "/group/get"
+      )
+    ] )
 
 let groups server =
   let case = case_browsers server in
@@ -137,7 +152,8 @@ let groups server =
         (* Without a group, the data of the group scope are those of the
            session. *)
         let* () = check "group data" "" a "/group/get" in
-        check "other member" "g" b "/group/get")
+        check "other member" "g" b "/group/get"
+      )
     ; case "list of groups" (fun browser ->
         let a = browser () and b = browser () in
         let* _ = text a "/group/join?name=list-a" in
@@ -146,7 +162,9 @@ let groups server =
         let groups = String.split_on_char ',' groups in
         Alcotest.(check (list bool))
           "listed" [true; true]
-          [List.mem "list-a" groups; List.mem "list-b" groups]) ] )
+          [List.mem "list-a" groups; List.mem "list-b" groups]
+      )
+    ] )
 
 let without_group server =
   let case = case_browsers server in
@@ -162,7 +180,8 @@ let without_group server =
         let* () = check "newest" "c" c "/get" in
         (* Last: reading a session reference without value opens a session,
            which would close another one. *)
-        check "oldest" "" a "/get")
+        check "oldest" "" a "/get"
+      )
     ; case "limit of the parent of a session" (fun browser ->
         (* A session without a group has no parent of its own: it cannot
            lower the limit of all the sessions without a group. *)
@@ -172,7 +191,8 @@ let without_group server =
         let* _ = text a "/max_in_parent?n=1" in
         let* () = check "number of sessions" "2" b "/count" in
         let* () = check "other session" "b" b "/get" in
-        check "session of the request" "a" a "/get")
+        check "session of the request" "a" a "/get"
+      )
     ; case "limit not positive" (fun browser ->
         (* The function raises Invalid_argument, and the limit does not
            change. *)
@@ -182,7 +202,8 @@ let without_group server =
         let* () = check "rejected" "invalid" a "/max_without_group?n=0" in
         let* () = check "number of sessions" "2" b "/count" in
         let* () = check "newest" "b" b "/get" in
-        check "oldest" "a" a "/get")
+        check "oldest" "a" a "/get"
+      )
     ; case "new limit" (fun browser ->
         (* A new limit applies at once: the session used least recently is
            closed. *)
@@ -191,9 +212,12 @@ let without_group server =
         let* _ = text b "/set?v=b" in
         with_setting a "/max_without_group?n=1" "/max_without_group?n=2"
           (fun () ->
-             let* () = check "number of sessions" "1" b "/count" in
-             let* () = check "newest" "b" b "/get" in
-             check "oldest, closed" "" a "/get")) ] )
+          let* () = check "number of sessions" "1" b "/count" in
+          let* () = check "newest" "b" b "/get" in
+          check "oldest, closed" "" a "/get"
+        )
+      )
+    ] )
 
 let collection server =
   let case = case_browsers server in
@@ -206,7 +230,9 @@ let collection server =
         let* () = check "open" "3" a "/count" in
         let* () = sleep 3. in
         (* Collected without being accessed *)
-        check "collected" "0" a "/count") ] )
+        check "collected" "0" a "/count"
+      )
+    ] )
 
 (* The limit of groups of the site, set by a member of a group that has
    states of one kind only: the group used least recently is closed. *)
@@ -223,7 +249,8 @@ let limit_of_groups kind server =
             let* url_c = text c "/service/join?name=gc" in
             let* () = check "second" "coservice" b url_b in
             let* () = check "newest" "coservice" c url_c in
-            check "oldest" "fallback" a url_a)
+            check "oldest" "fallback" a url_a
+          )
         ; case "service states, least recently used" (fun browser ->
             (* [a] uses its group after [b] creates its own: the group of
                [b] is closed. *)
@@ -235,7 +262,9 @@ let limit_of_groups kind server =
             let* url_c = text c "/service/join?name=gc2" in
             let* () = check "kept" "coservice" a url_a in
             let* () = check "newest" "coservice" c url_c in
-            check "least recently used" "fallback" b url_b) ]
+            check "least recently used" "fallback" b url_b
+          )
+        ]
     | `Data ->
         [ case "data states" (fun browser ->
             let a = browser () and b = browser () and c = browser () in
@@ -245,7 +274,8 @@ let limit_of_groups kind server =
             let* _ = text c "/data/join?name=dc&v=c" in
             let* () = check "second" "b" b "/get" in
             let* () = check "newest" "c" c "/get" in
-            check "oldest" "" a "/get")
+            check "oldest" "" a "/get"
+          )
         ; case "data states, least recently used" (fun browser ->
             let a = browser () and b = browser () and c = browser () in
             let* _ = text a "/data/join?name=da2&v=a" in
@@ -257,7 +287,9 @@ let limit_of_groups kind server =
             let* () = check "newest" "c" c "/get" in
             (* Last: reading a session reference without value opens a
                session. *)
-            check "least recently used" "" b "/get") ] )
+            check "least recently used" "" b "/get"
+          )
+        ] )
 
 (* The anonymous coservices of the global table created during requests are
    limited for the whole site; those created during the initialisation of the
@@ -274,22 +306,31 @@ let anonymous_coservices server =
         let* () = check "initialisation" "initial" a initial in
         let* () = check "second" "coservice 2" a u2 in
         let* () = check "newest" "coservice 3" b u3 in
-        check "oldest" "fallback" c u1) ] )
+        check "oldest" "fallback" c u1
+      )
+    ] )
 
 let run name exe suites =
   Server_harness.with_server exe (fun server ->
-    Alcotest.run ~and_exit:false name (suites server))
+    Alcotest.run ~and_exit:false name (suites server)
+  )
 
 let () =
   run "eliom-server-site-wide" "./timeouts_server.exe" (fun server ->
-    [timeouts server; hierarchies server; groups server]);
+    [timeouts server; hierarchies server; groups server]
+  );
   run "eliom-server-without-group" "./no_group_server.exe" (fun server ->
-    [without_group server]);
+    [without_group server]
+  );
   run "eliom-server-collection" "./gc_server.exe" (fun server ->
-    [collection server]);
+    [collection server]
+  );
   run "eliom-server-groups-of-services" "./groups_server.exe" (fun server ->
-    [limit_of_groups `Service server]);
+    [limit_of_groups `Service server]
+  );
   run "eliom-server-groups-of-data" "./groups_server.exe" (fun server ->
-    [limit_of_groups `Data server]);
+    [limit_of_groups `Data server]
+  );
   run "eliom-server-anonymous-coservices" "./anonymous_server.exe"
-    (fun server -> [anonymous_coservices server])
+    (fun server -> [anonymous_coservices server]
+  )

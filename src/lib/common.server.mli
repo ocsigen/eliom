@@ -137,7 +137,8 @@ module Full_state_name_table : Map.S with type key = full_state_name
 type state_cookies =
   { service_cookies : string Full_state_name_table.t
   ; data_cookies : string Full_state_name_table.t
-  ; persistent_cookies : string Full_state_name_table.t }
+  ; persistent_cookies : string Full_state_name_table.t
+  }
 (** The state cookies sent by a request, for each kind of state. The keys of
     the tables are the full state names. *)
 
@@ -186,10 +187,11 @@ val tenable_value : name:string -> 'a -> 'a tenable_value
 type csrf_info =
   { csrf_id : int  (** Unique id *)
   ; csrf_scope : user_scope
-    (** Scope of the delayed registration, if the service is registered
+        (** Scope of the delayed registration, if the service is registered
             in the global table *)
   ; csrf_secure : bool option
-    (** [?secure] parameter of the delayed registration, likewise *) }
+        (** [?secure] parameter of the delayed registration, likewise *)
+  }
 
 type att_key_serv =
   | SAtt_no (* regular service *)
@@ -268,7 +270,8 @@ type client_process_info =
   { cpi_ssl : bool
   ; cpi_hostname : string
   ; cpi_server_port : int
-  ; cpi_original_full_path : Url.path }
+  ; cpi_original_full_path : Url.path
+  }
 
 type sess_info =
   { si_other_get_params : (string * string) list
@@ -293,7 +296,8 @@ type sess_info =
   ; si_ignored_get_params : (string * string) list
   ; si_ignored_post_params : (string * string) list
   ; si_client_process_info : client_process_info option
-  ; si_expect_process_data : bool Lazy.t }
+  ; si_expect_process_data : bool Lazy.t
+  }
 
 module SessionCookies : Hashtbl.S with type key = string
 
@@ -301,7 +305,7 @@ module SessionCookies : Hashtbl.S with type key = string
 type session_group =
   | Group_name of string
   | No_group
-  (** The group of a session: a named group or, for the sessions that are not
+      (** The group of a session: a named group or, for the sessions that are not
     in a group, the automatic group of the site, which limits their number
     together. *)
 
@@ -321,10 +325,7 @@ type 'a sessgrp = full_session_group
 type perssessgrp (* the same information, JSON-encoded *) [@@deriving json]
 
 val make_persistent_full_group_name :
-   cookie_level:cookie_level
-  -> string
-  -> string option
-  -> perssessgrp option
+  cookie_level:cookie_level -> string -> string option -> perssessgrp option
 
 val getperssessgrp : perssessgrp -> 'a sessgrp
 
@@ -373,7 +374,8 @@ type 'a one_service_cookie_info =
   ; sc_exp : float option ref
   ; sc_cookie_exp : cookie_exp ref
   ; sc_session_group : cookie_level sessgrp ref (* session group *)
-  ; mutable sc_session_group_node : string Ocsigen_base.Cache.Dlist.node }
+  ; mutable sc_session_group_node : string Ocsigen_base.Cache.Dlist.node
+  }
 
 type one_data_cookie_info =
   { dc_hvalue : Hashed_cookies.t
@@ -382,39 +384,44 @@ type one_data_cookie_info =
   ; dc_exp : float option ref
   ; dc_cookie_exp : cookie_exp ref
   ; dc_session_group : cookie_level sessgrp ref (* session group *)
-  ; mutable dc_session_group_node : string Ocsigen_base.Cache.Dlist.node }
+  ; mutable dc_session_group_node : string Ocsigen_base.Cache.Dlist.node
+  }
 
 type one_persistent_cookie_info =
   { pc_hvalue : Hashed_cookies.t
   ; pc_set_value : string option
   ; pc_timeout : timeout ref
   ; pc_cookie_exp : cookie_exp ref
-  ; pc_session_group : perssessgrp option ref }
+  ; pc_session_group : perssessgrp option ref
+  }
 
 type persistent_cookie_sent =
   { ps_value : string
   ; ps_timeout : timeout  (** User timeout *)
   ; ps_expiry : float option  (** Server side expiration date, if any *)
-  ; ps_group : perssessgrp option  (** Session group *) }
+  ; ps_group : perssessgrp option  (** Session group *)
+  }
 (** A persistent cookie sent by the browser, with the state of its session
     at the beginning of the request. *)
 
 type 'a cookie_info1 =
   { ci_service :
       (string option * 'a one_service_cookie_info session_cookie ref)
-        Full_state_name_table.t
-        ref
+      Full_state_name_table.t
+      ref
   ; ci_data :
       (string option * one_data_cookie_info session_cookie ref) Lazy.t
-        Full_state_name_table.t
-        ref
+      Full_state_name_table.t
+      ref
   ; ci_persistent :
-      (persistent_cookie_sent option
-      * one_persistent_cookie_info session_cookie ref)
-        Lwt.t
-        Lazy.t
-        Full_state_name_table.t
-        ref }
+      ( persistent_cookie_sent option
+      * one_persistent_cookie_info session_cookie ref
+      )
+      Lwt.t
+      Lazy.t
+      Full_state_name_table.t
+      ref
+  }
 (** The state cookies of a request, for one security level, for each kind
     of state *)
 
@@ -428,7 +435,8 @@ module Service_cookie : sig
     ; expiry : float option ref
     ; timeout : timeout ref
     ; session_group : cookie_level sessgrp ref
-    ; session_group_node : string Ocsigen_base.Cache.Dlist.node }
+    ; session_group_node : string Ocsigen_base.Cache.Dlist.node
+    }
 
   type 'a table = 'a t SessionCookies.t
 end
@@ -440,7 +448,8 @@ module Data_cookie : sig
     ; expiry : float option ref
     ; timeout : timeout ref
     ; session_group : cookie_level sessgrp ref
-    ; session_group_node : string Ocsigen_base.Cache.Dlist.node }
+    ; session_group_node : string Ocsigen_base.Cache.Dlist.node
+    }
 
   type table = t SessionCookies.t
 end
@@ -476,7 +485,8 @@ type ('params, 'result) service =
   { s_id : anon_params_type * anon_params_type
   ; mutable s_max_use : int option
   ; s_expire : (float * float ref) option
-  ; s_f : bool -> 'params -> 'result Lwt.t }
+  ; s_f : bool -> 'params -> 'result Lwt.t
+  }
 
 type 'a configured = {cf_value : 'a; cf_from_config : bool}
 (** A setting, with whether it was set by the configuration file (the
@@ -496,7 +506,8 @@ val check_limit : string -> int -> unit
 type site_timeouts =
   { browser_default : float option configured option
   ; tab_default : float option configured option
-  ; per_state : (full_state_name * float option configured) list }
+  ; per_state : (full_state_name * float option configured) list
+  }
 (** The global timeouts of a site for one kind of state: the defaults for
     browser sessions and for tabs, and the timeouts of given states. *)
 
@@ -522,7 +533,7 @@ type server_params =
     sp_suffix : Url.path option
   ; sp_full_state_name : full_state_name option
   ; sp_client_process_info : client_process_info
-    (* Contains the base URL information from which the client process
+        (* Contains the base URL information from which the client process
      has been launched (if any). All relative links and forms will be
      created with respect to this information (if present - from
      current URL otherwise). It is taken form a client process state
@@ -535,22 +546,23 @@ and page_table = page_table_content Serv_Table.t
 
 and page_table_content =
   [ `Ptc of
-      (page_table ref * page_table_key, na_key_serv) Either.t
-        Ocsigen_base.Cache.Dlist.node
-        option
-      * (server_params, Ocsigen.Response.t) service list ]
+    (page_table ref * page_table_key, na_key_serv) Either.t
+    Ocsigen_base.Cache.Dlist.node
+    option
+    * (server_params, Ocsigen.Response.t) service list ]
 
 and naservice_table_content =
   { na_generation : int
-    (** Number of reloads of sites after which the service was created *)
+        (** Number of reloads of sites after which the service was created *)
   ; na_max_use : int ref option
   ; na_expiry : (float * float ref) option  (** Timeout and expiration date *)
   ; na_handler : server_params -> Ocsigen.Response.t Lwt.t
   ; na_node :
       (page_table ref * page_table_key, na_key_serv) Either.t
-        Ocsigen_base.Cache.Dlist.node
-        option
-    (** For the limitation of the number of dynamic coservices *) }
+      Ocsigen_base.Cache.Dlist.node
+      option
+        (** For the limitation of the number of dynamic coservices *)
+  }
 
 and naservice_table =
   | AEmpty
@@ -578,11 +590,11 @@ and tables =
          the service record.
     *)
     service_dlist_add :
-      ?sp:server_params
+         ?sp:server_params
       -> (page_table ref * page_table_key, na_key_serv) Either.t
       -> (page_table ref * page_table_key, na_key_serv) Either.t
-           Ocsigen_base.Cache.Dlist.node
-    (* Add in a dlist
+         Ocsigen_base.Cache.Dlist.node
+        (* Add in a dlist
           for limiting the number of dynamic anonymous coservices in each table
           (and avoid DoS).
           There is one dlist for each session, and one for each IP
@@ -600,7 +612,7 @@ and group_of_groups_entry = {gg_kind : [`Service | `Data]; gg_name : string}
 
 and sitedata =
   { mutable site_dir : Url.path option
-    (* None when statically linked 
+        (* None when statically linked 
                                            before module init*)
   ; mutable site_dir_string : string option (* idem *)
   ; mutable config_info : Ocsigen.Extensions.config_info option (* idem *)
@@ -648,7 +660,8 @@ and sitedata =
   ; mutable html_content_type : string option
   ; mutable ignored_get_params : (string * Re.re) list
   ; mutable ignored_post_params : (string * Re.re) list
-  ; mutable omitpersistentstorage : omitpersistentstorage_rule list option }
+  ; mutable omitpersistentstorage : omitpersistentstorage_rule list option
+  }
 
 type 'a lazy_site_value
 (** lazy site values, are lazy values with
@@ -664,16 +677,13 @@ type info =
   ; session_info : sess_info
   ; all_cookie_info : tables cookie_info
   ; tab_cookie_info : tables cookie_info
-  ; user_tab_cookies : Ocsigen_cookie_map.t }
+  ; user_tab_cookies : Ocsigen_cookie_map.t
+  }
 
 exception Eliom_retry_with of info
 
 val make_server_params :
-   sitedata
-  -> info
-  -> Url.path option
-  -> full_state_name option
-  -> server_params
+  sitedata -> info -> Url.path option -> full_state_name option -> server_params
 
 val empty_page_table : unit -> page_table
 val empty_dircontent : unit -> 'a dircontent
@@ -697,9 +707,7 @@ val set_max_anonymous_services : anonymous_services -> int -> unit
 val new_service_session_tables : sitedata -> tables
 
 val split_prefix_param :
-   string
-  -> (string * 'a) list
-  -> (string * 'a) list * (string * 'a) list
+  string -> (string * 'a) list -> (string * 'a) list * (string * 'a) list
 
 val sub_path : Ocsigen.Request.t -> Url.path
 (** [sub_path r] is the path of [r] in its site, decoded. Unlike
@@ -712,18 +720,19 @@ val original_full_path : Ocsigen.Request.t -> Url.path
     {!sub_path}. *)
 
 val get_session_info :
-   sitedata:sitedata
+     sitedata:sitedata
   -> req:Ocsigen.Extensions.request
   -> int
-  -> (Ocsigen.Extensions.request
+  -> ( Ocsigen.Extensions.request
      * sess_info
-     * (tables cookie_info * Ocsigen_cookie_map.t) option)
-       Lwt.t
+     * (tables cookie_info * Ocsigen_cookie_map.t) option
+     )
+     Lwt.t
 
 val make_full_cookie_name : string -> full_state_name -> string
 
 val get_state_cookies :
-   bool
+     bool
   -> [< cookie_level]
   -> string Ocsigen_cookie_map.Map_inner.t
   -> state_cookies
@@ -732,26 +741,19 @@ val get_state_cookies :
     built by {!make_full_cookie_name}. *)
 
 val make_full_state_name :
-   sp:server_params
-  -> secure:bool
-  -> scope:[< user_scope]
-  -> full_state_name
+  sp:server_params -> secure:bool -> scope:[< user_scope] -> full_state_name
 
 val make_full_state_name_of_sitedata :
-   sitedata:sitedata
-  -> secure:bool
-  -> scope:[< user_scope]
-  -> full_state_name
+  sitedata:sitedata -> secure:bool -> scope:[< user_scope] -> full_state_name
 
 module Persistent_tables : sig
   val create_json :
-     name:string
+       name:string
     -> 'a Deriving_Json.t
     -> (module Ocsipersist.TABLE with type key = string and type value = 'a)
 
   val add_functorial_table :
-     (module Ocsipersist.TABLE with type key = string)
-    -> unit
+    (module Ocsipersist.TABLE with type key = string) -> unit
 
   val remove_key_from_all_tables : string -> unit Lwt.t
   val number_of_tables : unit -> int
@@ -802,7 +804,8 @@ type params_after_action =
   ; pa_nl_file_params : (string * file_info) list String.Table.t
   ; pa_all_get_but_nl : (string * string) list
   ; pa_ignored_get_params : (string * string) list
-  ; pa_ignored_post_params : (string * string) list }
+  ; pa_ignored_post_params : (string * string) list
+  }
 (** The parameters of a request once an action has run (the parameters
     of the action removed), to choose the service that follows. *)
 
@@ -811,17 +814,16 @@ val att_key_serv_of_req : att_key_req -> att_key_serv
 val na_key_serv_of_req : na_key_req -> na_key_serv
 
 val remove_naservice_table :
-   naservice_table
-  -> NAserv_Table.key
-  -> naservice_table
+  naservice_table -> NAserv_Table.key -> naservice_table
 
 val get_cookie_info : server_params -> [< cookie_level] -> tables cookie_info
 
 val tab_cookie_action_info_key :
-  (tables cookie_info
+  ( tables cookie_info
   * Ocsigen_cookie_map.t
-  * string Ocsigen_cookie_map.Map_inner.t)
-    Polytables.key
+  * string Ocsigen_cookie_map.Map_inner.t
+  )
+  Polytables.key
 
 val sp_key : server_params Lwt.key
 val get_sp_option : unit -> server_params option
@@ -856,8 +858,7 @@ val bus_unwrap_id : unwrap_id
 val nl_get_appl_parameter : string
 
 val patch_request_info :
-   Ocsigen.Extensions.request
-  -> Ocsigen.Extensions.request
+  Ocsigen.Extensions.request -> Ocsigen.Extensions.request
 
 type eliom_js_page_data =
   { ejs_global_data : (Runtime.global_data * Wrap.unwrapper) option
@@ -867,7 +868,8 @@ type eliom_js_page_data =
   ; (* Client attrib *)
     ejs_client_attrib_table : Runtime.RawXML.client_attrib_table
   ; (* Session info *)
-    ejs_sess_info : sess_info }
+    ejs_sess_info : sess_info
+  }
 
 val get_site_dir : sitedata -> Url.path
 val get_site_dir_string : sitedata -> string
@@ -882,9 +884,7 @@ module To_and_of_shared : sig
   type 'a t
 
   val create :
-     ?client_to_and_of:'a to_and_of Client_value.t
-    -> 'a to_and_of
-    -> 'a t
+    ?client_to_and_of:'a to_and_of Client_value.t -> 'a to_and_of -> 'a t
 
   val to_string : 'a t -> 'a -> string
   val of_string : 'a t -> string -> 'a

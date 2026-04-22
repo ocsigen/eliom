@@ -30,9 +30,7 @@ let iter_nodeList nodeList f =
   done
 
 let iter_attrList
-      (attrList : Dom.attr Dom.namedNodeMap Js.t)
-      (f : Dom.attr Js.t -> unit)
-  =
+    (attrList : Dom.attr Dom.namedNodeMap Js.t) (f : Dom.attr Js.t -> unit) =
   for i = 0 to attrList##.length - 1 do
     (* Unsafe.get is ten times faster than nodeList##item. *)
     f (Js.Unsafe.get attrList i)
@@ -47,7 +45,8 @@ type selected_nodes =
   ; forms : Dom_html.formElement Dom.nodeList Js.t
   ; process_nodes : Dom_html.element Dom.nodeList Js.t
   ; closure_nodes : Dom_html.element Dom.nodeList Js.t
-  ; attrib_nodes : Dom_html.element Dom.nodeList Js.t }
+  ; attrib_nodes : Dom_html.element Dom.nodeList Js.t
+  }
 
 let select_request_nodes root =
   root##(querySelectorAll (Js.string ("." ^ Runtime.RawXML.request_node_class)))
@@ -56,36 +55,42 @@ let select_nodes root =
   Config.debug_time "select_nodes";
   let a_nodeList : Dom_html.element Dom.nodeList Js.t =
     root##(querySelectorAll
-             (Js.string ("a." ^ Runtime.RawXML.ce_call_service_class)))
+             (Js.string ("a." ^ Runtime.RawXML.ce_call_service_class))
+          )
   in
   let a_nodeList : Dom_html.anchorElement Dom.nodeList Js.t =
     Js.Unsafe.coerce a_nodeList
   in
   let form_nodeList : Dom_html.element Dom.nodeList Js.t =
     root##(querySelectorAll
-             (Js.string ("form." ^ Runtime.RawXML.ce_call_service_class)))
+             (Js.string ("form." ^ Runtime.RawXML.ce_call_service_class))
+          )
   in
   let form_nodeList : Dom_html.formElement Dom.nodeList Js.t =
     Js.Unsafe.coerce form_nodeList
   in
   let process_node_nodeList =
     root##(querySelectorAll
-             (Js.string ("." ^ Runtime.RawXML.process_node_class)))
+             (Js.string ("." ^ Runtime.RawXML.process_node_class))
+          )
   in
   let closure_nodeList =
     root##(querySelectorAll
-             (Js.string ("." ^ Runtime.RawXML.ce_registered_closure_class)))
+             (Js.string ("." ^ Runtime.RawXML.ce_registered_closure_class))
+          )
   in
   let attrib_nodeList =
     root##(querySelectorAll
-             (Js.string ("." ^ Runtime.RawXML.ce_registered_attr_class)))
+             (Js.string ("." ^ Runtime.RawXML.ce_registered_attr_class))
+          )
   in
   Config.debug_time_end "select_nodes";
   { links = a_nodeList
   ; forms = form_nodeList
   ; process_nodes = process_node_nodeList
   ; closure_nodes = closure_nodeList
-  ; attrib_nodes = attrib_nodeList }
+  ; attrib_nodes = attrib_nodeList
+  }
 
 let createEvent ev_type =
   let evt : #Dom_html.event Js.t =
@@ -111,13 +116,13 @@ let get_body (page : #Dom.element Js.t) : Dom.element Js.t =
     (fun () -> raise_error ~section "get_body")
 
 let iter_dom_array
-      (f : 'a -> unit)
-      (a :
-        < length : < get : int ; .. > Js.gen_prop
-        ; item : int -> 'a Js.opt Js.meth
-        ; .. >
-          Js.t)
-  =
+    (f : 'a -> unit)
+    (a :
+      < length : < get : int ; .. > Js.gen_prop
+      ; item : int -> 'a Js.opt Js.meth
+      ; .. >
+      Js.t
+      ) =
   let length = a##.length in
   for i = 0 to length - 1 do
     Js.Opt.iter a##(item i) f
@@ -129,10 +134,8 @@ let copy_text t = Dom_html.document##(createTextNode t##.data)
    when [html_document] can neither adopt nor import it. *)
 
 let copy_element
-      (e : Dom.element Js.t)
-      (registered_process_node : Js.js_string Js.t -> bool) :
-  Dom_html.element Js.t
-  =
+    (e : Dom.element Js.t) (registered_process_node : Js.js_string Js.t -> bool)
+    : Dom_html.element Js.t =
   let rec aux (e : Dom.element Js.t) =
     let copy = Dom_html.document##(createElement e##.tagName) in
     let node_id =
@@ -151,16 +154,18 @@ let copy_element
           Js.Opt.iter (Dom.CoerceTo.attr a)
             (* we don't use copy##attributes##setNameditem:
              in ie 9 it fail setting types of buttons... *)
-            (fun a -> copy##(setAttribute a##.name a##.value))
+            (fun a -> copy##(setAttribute a##.name a##.value)
+          )
         in
         iter_dom_array add_attribute e##.attributes;
         let child_copies =
           List.filter_map
             (fun child ->
-               match Dom.nodeType child with
-               | Dom.Text t -> Some (copy_text t :> Dom.node Js.t)
-               | Dom.Element child -> (aux child :> Dom.node Js.t option)
-               | _ -> None)
+              match Dom.nodeType child with
+              | Dom.Text t -> Some (copy_text t :> Dom.node Js.t)
+              | Dom.Element child -> (aux child :> Dom.node Js.t option)
+              | _ -> None
+            )
             (Dom.list_of_nodeList e##.childNodes)
         in
         List.iter (Dom.appendChild copy) child_copies;
@@ -169,23 +174,27 @@ let copy_element
   match aux e with None -> raise_error ~section "copy_element" | Some e -> e
 
 let html_document (src : Dom.element Dom.document Js.t) registered_process_node
-  : Dom_html.element Js.t
-  =
+    : Dom_html.element Js.t =
   let content = src##.documentElement in
   match Js.Opt.to_option (Dom_html.CoerceTo.element content) with
   | Some e -> (
     try Dom_html.document##(adoptNode (e :> Dom.element Js.t))
     with exn -> (
       Logs.debug ~src:section (fun fmt ->
-        fmt "can't adopt node, import instead@\n%s" (Printexc.to_string exn));
+        fmt "can't adopt node, import instead@\n%s" (Printexc.to_string exn)
+      );
       try Dom_html.document##(importNode (e :> Dom.element Js.t) Js._true)
       with exn ->
         Logs.debug ~src:section (fun fmt ->
-          fmt "can't import node, copy instead@\n%s" (Printexc.to_string exn));
-        copy_element content registered_process_node))
+          fmt "can't import node, copy instead@\n%s" (Printexc.to_string exn)
+        );
+        copy_element content registered_process_node
+    )
+  )
   | None ->
       Logs.debug ~src:section (fun fmt ->
-        fmt "can't adopt node, document not parsed as html. copy instead");
+        fmt "can't adopt node, document not parsed as html. copy instead"
+      );
       copy_element content registered_process_node
 
 (** CSS preloading. *)
@@ -198,10 +207,11 @@ let is_stylesheet e =
     (Dom_html.CoerceTo.link (Js.Unsafe.coerce e))
     (fun _ -> false)
     (fun e ->
-       List.exists
-         (fun s -> s = "stylesheet")
-         (Regexp.split spaces_re (Js.to_string e##.rel))
-       && e##._type == Js.string "text/css")
+      List.exists
+        (fun s -> s = "stylesheet")
+        (Regexp.split spaces_re (Js.to_string e##.rel))
+      && e##._type == Js.string "text/css"
+    )
 
 let basedir_re = Regexp.regexp "^(([^/?]*/)*)([^/?]*)(\\?.*)?$"
 
@@ -211,11 +221,14 @@ let basedir path =
   | Some res -> (
     match Regexp.matched_group res 1 with
     | None -> (
-      match Regexp.matched_group res 3 with Some ".." -> "../" | _ -> "/")
+      match Regexp.matched_group res 3 with Some ".." -> "../" | _ -> "/"
+    )
     | Some dir -> (
       match Regexp.matched_group res 3 with
       | Some ".." -> dir ^ "../"
-      | _ -> dir))
+      | _ -> dir
+    )
+  )
 
 let fetch_linked_css e =
   let rec extract acc (e : Dom.node Js.t) =
@@ -248,7 +261,8 @@ let quoted_url_raw = "'(([^\\\\']|\\\\.)*)'"
 let url_re =
   Regexp.regexp
     (Printf.sprintf "url\\s*\\(\\s*(%s|%s|%s)\\s*\\)\\s*" dbl_quoted_url_raw
-       quoted_url_raw url_content_raw)
+       quoted_url_raw url_content_raw
+    )
 
 let raw_url_re =
   Regexp.regexp
@@ -269,8 +283,10 @@ let parse_absolute ~prefix href =
     | Some (i, res) when i = 0 -> (
       match Regexp.matched_group res 1 with
       | Some href -> (* absolute URL -> do not rewrite *) href
-      | None -> raise Incorrect_url)
-    | _ -> prefix ^ href)
+      | None -> raise Incorrect_url
+    )
+    | _ -> prefix ^ href
+  )
 
 let parse_url ~prefix css pos =
   match Regexp.search url_re css pos with
@@ -284,15 +300,20 @@ let parse_url ~prefix css pos =
           | None -> (
             match Regexp.matched_group res 4 with
             | Some href -> parse_absolute ~prefix href
-            | None -> raise Incorrect_url)) ))
+            | None -> raise Incorrect_url
+          )
+        ) )
+    )
   | _ -> (
     match Regexp.search raw_url_re css pos with
     | Some (i, res) when i = pos -> (
         ( i + String.length (Regexp.matched_string res)
         , match Regexp.matched_group res 1 with
           | Some href -> parse_absolute ~prefix href
-          | None -> raise Incorrect_url ))
-    | _ -> raise Incorrect_url)
+          | None -> raise Incorrect_url )
+      )
+    | _ -> raise Incorrect_url
+  )
 
 let parse_media css pos =
   let i =
@@ -321,7 +342,8 @@ let rewrite_css_url ~prefix css pos =
             Buffer.add_string buf "')";
             rewrite i
           with Incorrect_url ->
-            Buffer.add_substring buf css i (String.length css - i))
+            Buffer.add_substring buf css i (String.length css - i)
+        )
   in
   rewrite pos; Buffer.contents buf
 
@@ -330,16 +352,17 @@ let import_re = Regexp.regexp "@import\\s*"
 let rec rewrite_css ~max (media, href, css) =
   Lwt.catch
     (fun () ->
-       let* css = css in
-       match css with
-       | None -> Lwt.return_nil
-       | Some css ->
-           Config.debug_time ("rewrite_CSS: " ^ href);
-           let* imports, css =
-             rewrite_css_import ~max ~prefix:(basedir href) ~media css 0
-           in
-           Config.debug_time_end ("rewrite_CSS: " ^ href);
-           Lwt.return (imports @ [media, css]))
+      let* css = css in
+      match css with
+      | None -> Lwt.return_nil
+      | Some css ->
+          Config.debug_time ("rewrite_CSS: " ^ href);
+          let* imports, css =
+            rewrite_css_import ~max ~prefix:(basedir href) ~media css 0
+          in
+          Config.debug_time_end ("rewrite_CSS: " ^ href);
+          Lwt.return (imports @ [media, css])
+    )
     (fun _ -> Lwt.return [media, Printf.sprintf "@import url(%s);" href])
 
 and rewrite_css_import ?(charset = "") ~max ~prefix ~media css pos =
@@ -381,8 +404,10 @@ and rewrite_css_import ?(charset = "") ~max ~prefix ~media css pos =
       | Incorrect_url -> Lwt.return ([], rewrite_css_url ~prefix css pos)
       | exn ->
           Logs.info ~src:section (fun fmt ->
-            fmt "Error while importing css@\n%s" (Printexc.to_string exn));
-          Lwt.return ([], rewrite_css_url ~prefix css pos))
+            fmt "Error while importing css@\n%s" (Printexc.to_string exn)
+          );
+          Lwt.return ([], rewrite_css_url ~prefix css pos)
+    )
 
 let max_preload_depth = ref 4
 
@@ -390,11 +415,12 @@ let build_style (e, css) =
   let* css = rewrite_css ~max:!max_preload_depth css in
   Lwt_list.map_p
     (fun (media, css) ->
-       let style = Dom_html.createStyle Dom_html.document in
-       style##._type := Js.string "text/css";
-       style##.media := media;
-       style##.innerHTML := Js.string css;
-       Lwt.return (e, (style :> Dom.node Js.t)))
+      let style = Dom_html.createStyle Dom_html.document in
+      style##._type := Js.string "text/css";
+      style##.media := media;
+      style##.innerHTML := Js.string css;
+      Lwt.return (e, (style :> Dom.node Js.t))
+    )
     css
 
 let preload_css (doc : Dom_html.element Js.t) =
@@ -403,13 +429,15 @@ let preload_css (doc : Dom_html.element Js.t) =
   let css = List.concat css in
   List.iter
     (fun (e, css) ->
-       try Dom.replaceChild (get_head doc) css e
-       with _ ->
-         Logs.info
-           ~src:
-             (* Node was a unique node that has been removed...
+      try Dom.replaceChild (get_head doc) css e
+      with _ ->
+        Logs.info
+          ~src:
+            (* Node was a unique node that has been removed...
                        in a perfect settings we won't have parsed it... *)
-             section (fun fmt -> fmt "Unique CSS skipped..."))
+            section (fun fmt -> fmt "Unique CSS skipped..."
+        )
+    )
     css;
   Config.debug_time_end "preload_css (fetch+rewrite)";
   Lwt.return_unit
@@ -434,7 +462,8 @@ let createDocumentScroll () =
   { html_top = Js.to_float Dom_html.document##.documentElement##.scrollTop
   ; html_left = Js.to_float Dom_html.document##.documentElement##.scrollLeft
   ; body_top = Js.to_float Dom_html.document##.body##.scrollTop
-  ; body_left = Js.to_float Dom_html.document##.body##.scrollLeft }
+  ; body_left = Js.to_float Dom_html.document##.body##.scrollLeft
+  }
 
 (* With firefox, the scroll position is restored before to fire the
    popstate event. We maintain our own position. *)
@@ -443,12 +472,15 @@ let current_position = ref top_position
 
 let _ =
   ignore
-    (Dom.addEventListener Dom_html.document (Dom.Event.make "scroll")
-       (Dom_html.handler (fun _event ->
-          current_position := createDocumentScroll ();
-          Js._false))
-       Js._true
-     : Dom_html.event_listener_id)
+    ( Dom.addEventListener Dom_html.document (Dom.Event.make "scroll")
+        (Dom_html.handler (fun _event ->
+           current_position := createDocumentScroll ();
+           Js._false
+         )
+        )
+        Js._true
+      : Dom_html.event_listener_id
+      )
 
 let getDocumentScroll () = !current_position
 

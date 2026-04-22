@@ -18,14 +18,14 @@
  *)
 
 val close_service_state :
-   scope:[< Common.user_scope]
+     scope:[< Common.user_scope]
   -> secure_o:bool option
   -> ?sp:Common.server_params
   -> unit
   -> unit
 
 val find_or_create_service_cookie :
-   ?set_session_group:string
+     ?set_session_group:string
   -> cookie_scope:[< Common.cookie_scope]
   -> secure_o:bool option
   -> ?sp:Common.server_params
@@ -33,7 +33,7 @@ val find_or_create_service_cookie :
   -> Common.tables Common.one_service_cookie_info
 
 val find_service_cookie_only :
-   cookie_scope:[< Common.cookie_scope]
+     cookie_scope:[< Common.cookie_scope]
   -> secure_o:bool option
   -> ?sp:Common.server_params
   -> unit

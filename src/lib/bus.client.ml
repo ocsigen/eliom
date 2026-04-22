@@ -35,7 +35,8 @@ type ('a, 'b) t =
   ; mutable waiter : unit -> unit Lwt.t
   ; mutable last_wait : unit Lwt.t
   ; mutable original_stream_available : bool
-  ; error_h : 'b option Lwt.t * 'b option Lwt.u }
+  ; error_h : 'b option Lwt.t * 'b option Lwt.u
+  }
 
 (* clone streams such that each clone of the original stream raise the same exceptions *)
 let consume (t, u) s =
@@ -43,8 +44,9 @@ let consume (t, u) s =
     Lwt.catch
       (fun () -> Lwt_stream.iter (fun _ -> ()) s)
       (fun e ->
-         (match Lwt.state t with Lwt.Sleep -> Lwt.wakeup_exn u e | _ -> ());
-         Lwt.fail e)
+        (match Lwt.state t with Lwt.Sleep -> Lwt.wakeup_exn u e | _ -> ());
+        Lwt.fail e
+      )
   in
   Lwt.choose [Lwt.map ignore t; t']
 
@@ -54,35 +56,40 @@ let clone_exn (t, u) s =
     Lwt.catch
       (fun () -> Lwt.choose [Lwt_stream.get s'; t])
       (fun e ->
-         (match Lwt.state t with Lwt.Sleep -> Lwt.wakeup_exn u e | _ -> ());
-         Lwt.fail e))
+        (match Lwt.state t with Lwt.Sleep -> Lwt.wakeup_exn u e | _ -> ());
+        Lwt.fail e
+      )
+  )
 
 type ('a, 'att, 'co, 'ext, 'reg) callable_bus_service =
   ( unit
-    , 'a list
-    , Service.post
-    , 'att
-    , 'co
-    , 'ext
-    , 'reg
-    , [`WithoutSuffix]
-    , unit
-    , [`One of 'a list Parameter.ocaml] Parameter.param_name
-    , Registration.Action.return )
-    Service.t
+  , 'a list
+  , Service.post
+  , 'att
+  , 'co
+  , 'ext
+  , 'reg
+  , [`WithoutSuffix]
+  , unit
+  , [`One of 'a list Parameter.ocaml] Parameter.param_name
+  , Registration.Action.return
+  )
+  Service.t
 
 let create service channel waiter =
   let write x =
     Lwt.catch
       (fun () ->
-         let* _ =
-           Client.call_service
-             ~service:(service :> ('a, _, _, _, _) callable_bus_service)
-             () x
-         in
-         Lwt.return_unit)
+        let* _ =
+          Client.call_service
+            ~service:(service :> ('a, _, _, _, _) callable_bus_service)
+            () x
+        in
+        Lwt.return_unit
+      )
       (function
-        | Request.Failed_request 204 -> Lwt.return_unit | exc -> Lwt.fail exc)
+        | Request.Failed_request 204 -> Lwt.return_unit | exc -> Lwt.fail exc
+        )
   in
   let error_h = Lwt.wait () in
   let stream =
@@ -90,7 +97,8 @@ let create service channel waiter =
       (let stream = Comet.register channel in
        (* iterate on the stream to consume messages: avoid memory leak *)
        let _ = consume error_h stream in
-       stream)
+       stream
+      )
   in
   let t =
     { channel
@@ -101,7 +109,8 @@ let create service channel waiter =
     ; waiter
     ; last_wait = Lwt.return_unit
     ; original_stream_available = true
-    ; error_h }
+    ; error_h
+    }
   in
   (* the comet channel start receiving after the load phase, so the
      original channel (i.e. without message lost) is only available in

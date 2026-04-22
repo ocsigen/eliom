@@ -33,7 +33,8 @@ let page_url link =
   Uri.path_and_query
     (Uri.add_query_param'
        (Uri.with_path (Uri.remove_query_param uri "to") "/page")
-       ("x", "1"))
+       ("x", "1")
+    )
 
 (* A GET action reloads the page without its coservice. *)
 let actions server =
@@ -43,17 +44,21 @@ let actions server =
         (* The other GET parameters of the page are kept. *)
         let* url = body b "/link?to=non-attached" in
         let+ r = Browser.get b (page_url url) in
-        check_response "page" ~status:200 ~body:"page x=1 value=non-attached" r)
+        check_response "page" ~status:200 ~body:"page x=1 value=non-attached" r
+      )
     ; case "attached" (fun b ->
         let* url = body b "/link?to=attached" in
         let+ r = Browser.get b url in
-        check_response "fallback" ~status:200 ~body:"fallback value=attached" r)
+        check_response "fallback" ~status:200 ~body:"fallback value=attached" r
+      )
     ; case "on a path" (fun b ->
         (* There is no page to reload. *)
         let* r = Browser.get b "/path_action" in
         check_response "action" ~status:200 ~body:"" r;
         let+ r = Browser.get b "/page" in
-        check_response "done" ~status:200 ~body:"page x=none value=path" r) ] )
+        check_response "done" ~status:200 ~body:"page x=none value=path" r
+      )
+    ] )
 
 (* The answer of a service sending an OCaml value to the client-side
    program *)
@@ -68,14 +73,17 @@ let ocaml server =
         check_response "answer" ~status:200 r;
         match ocaml_value r with
         | `Success n -> Alcotest.(check int) "value" 2 n
-        | `Failure _ -> Alcotest.fail "failure")
+        | `Failure _ -> Alcotest.fail "failure"
+      )
     ; case "exception" (fun b ->
         (* The client gets the code of the error, which the server logs. *)
         let+ r = Browser.get b "/ocaml?i=-1" in
         check_response "answer" ~status:200 r;
         match ocaml_value r with
         | `Failure code -> Alcotest.(check int) "code" 6 (String.length code)
-        | `Success _ -> Alcotest.fail "success") ] )
+        | `Success _ -> Alcotest.fail "success"
+      )
+    ] )
 
 let app server =
   let case = case server in
@@ -93,22 +101,26 @@ let app server =
         check_occurrences "data of the request" 1 r.body
           "__eliom_request_data =";
         check_occurrences "program" 1 r.body {|src="./test_app.js"|};
-        check_occurrences "content" 1 r.body "<p>initial request</p>")
+        check_occurrences "content" 1 r.body "<p>initial request</p>"
+      )
     ; case "program given by the page" (fun b ->
         let+ page = body b "/app_with_script" in
-        check_occurrences "program" 1 page {|src="./test_app.js"|})
+        check_occurrences "program" 1 page {|src="./test_app.js"|}
+      )
     ; case "not launched" (fun b ->
         let+ page = body b "/app_not_launched" in
         check_occurrences "program" 0 page "test_app.js";
         check_occurrences "data of the request" 0 page "__eliom_request_data";
-        check_occurrences "content" 1 page "<p>initial request</p>")
+        check_occurrences "content" 1 page "<p>initial request</p>"
+      )
     ; case "request of the client process" (fun b ->
         (* The tab cookies of the first page tell the application. *)
         let tab = Eliom_test_client.Tab.create b in
         let* r = Eliom_test_client.Tab.get tab "/app" in
         check_occurrences "first" 1 r.body "<p>initial request</p>";
         let+ r = Eliom_test_client.Tab.get tab "/app" in
-        check_occurrences "next" 1 r.body "<p>request of the client process</p>")
+        check_occurrences "next" 1 r.body "<p>request of the client process</p>"
+      )
     ; case "unknown URL" (fun b ->
         (* The exception handler of the site sends a page of the
            application, with its status, to the browser and to the client
@@ -127,7 +139,9 @@ let app server =
         let+ r =
           Eliom_test_client.Tab.get ~expecting_process_page:true tab "/unknown"
         in
-        check "client process" r) ] )
+        check "client process" r
+      )
+    ] )
 
 (* The HTTP status set by the handler with [Registration.set_status] *)
 let status server =
@@ -135,30 +149,37 @@ let status server =
   ( "status"
   , [ case "set by the handler" (fun b ->
         let+ r = Browser.get b "/status" in
-        check_response "page" ~status:404 ~body:"404 Not Found" r)
+        check_response "page" ~status:404 ~body:"404 Not Found" r
+      )
     ; case "none by default" (fun b ->
         let+ r = Browser.get b "/no_status" in
-        check_response "page" ~status:200 ~body:"none" r)
+        check_response "page" ~status:200 ~body:"none" r
+      )
     ; case "over the code of the registration" (fun b ->
         let+ r = Browser.get b "/status_over_code" in
-        check_response "page" ~status:404 r)
+        check_response "page" ~status:404 r
+      )
     ; case "page of an application" (fun b ->
         let+ r = Browser.get b "/app_status" in
         check_response "page" ~status:404 r;
         Alcotest.(check (option string))
           "application" (Some "test_app")
-          (Browser.header r "x-eliom-application"))
+          (Browser.header r "x-eliom-application")
+      )
     ; case "action without reload" (fun b ->
         let+ r = Browser.get b "/status_no_reload" in
-        check_response "action" ~status:400 ~body:"" r)
+        check_response "action" ~status:400 ~body:"" r
+      )
     ; case "dropped when the page is reloaded" (fun b ->
         let* url = body b "/link?to=status" in
         let+ r = Browser.get b (page_url url) in
-        check_response "page" ~status:200 ~body:"page x=1 value=status" r)
+        check_response "page" ~status:200 ~body:"page x=1 value=status" r
+      )
     ; case "dropped when the handler raises" (fun b ->
         let+ r = Browser.get b "/status_raise" in
         check_response "error page" ~status:200 r;
-        check_occurrences "content" 1 r.body "<p>error page</p>")
+        check_occurrences "content" 1 r.body "<p>error page</p>"
+      )
     ; case "page of an application, from the client process" (fun b ->
         let tab = Eliom_test_client.Tab.create b in
         let* _ = Eliom_test_client.Tab.get tab "/app" in
@@ -169,9 +190,12 @@ let status server =
         check_response "page" ~status:404 r;
         Alcotest.(check (option string))
           "application" (Some "test_app")
-          (Browser.header r "x-eliom-application")) ] )
+          (Browser.header r "x-eliom-application")
+      )
+    ] )
 
 let () =
   Server_harness.with_server "./server.exe" (fun server ->
     Alcotest.run ~and_exit:false "eliom-server-outputs"
-      [actions server; ocaml server; app server; status server])
+      [actions server; ocaml server; app server; status server]
+  )

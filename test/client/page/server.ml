@@ -7,9 +7,9 @@ open Eliom_test_services
 module P = Parameter
 
 module Client_test = Registration.App (struct
-    let application_name = "client_test"
-    let global_data_path = None
-  end)
+  let application_name = "client_test"
+  let global_data_path = None
+end)
 
 let main = get ["a"; "b"] P.(int "n" ** string "s")
 let root = get [] P.unit
@@ -34,7 +34,8 @@ let services = main, root, page, deep, suffix, non_attached, attached, external_
 
 let register service =
   Registration.String.register ~service (fun _ _ ->
-    Lwt.return ("", "text/plain"))
+    Lwt.return ("", "text/plain")
+  )
 
 let () =
   register main;
@@ -69,7 +70,13 @@ let () =
                     (Printf.sprintf
                        "var services = '%s';\nvar server_urls = [%s];"
                        (Lib.jsmarshal (Wrap.wrap services))
-                       (String.concat ", " urls))) ])
-          (body [])))
+                       (String.concat ", " urls)
+                    )
+                 )
+             ]
+          )
+          (body [])
+      )
+  )
 
 let () = Eliom_test_server.Server_harness.start [App.run ()]

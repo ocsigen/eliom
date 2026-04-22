@@ -21,13 +21,10 @@
 open Lib
 
 val get_page :
-   float
-  -> Common.info
-  -> Common.sitedata
-  -> Ocsigen.Response.t Lwt.t
+  float -> Common.info -> Common.sitedata -> Ocsigen.Response.t Lwt.t
 
 val add_service :
-   int
+     int
   -> Common.tables
   -> String.Table.key list
   -> Common.Serv_Table.key
@@ -35,14 +32,14 @@ val add_service :
   -> unit
 
 val remove_service :
-   Common.tables
+     Common.tables
   -> String.Table.key list
   -> Common.Serv_Table.key
   -> Common.anon_params_type * Common.anon_params_type
   -> unit
 
 val add_naservice :
-   Common.tables
+     Common.tables
   -> Common.NAserv_Table.key
   -> int ref option
      * (float * float ref) option
@@ -52,7 +49,4 @@ val add_naservice :
 val remove_naservice : Common.tables -> Common.NAserv_Table.key -> unit
 
 val make_naservice :
-   float
-  -> Common.info
-  -> Common.sitedata
-  -> Ocsigen.Response.t Lwt.t
+  float -> Common.info -> Common.sitedata -> Ocsigen.Response.t Lwt.t

@@ -39,8 +39,10 @@ module Down = struct
           "Exception during comet with react. Customize this with Eliom_react.set_handle_react_exn_function. "
         in
         Logs.msg ~src:section Logs.Debug (fun fmt ->
-          fmt "%s%a" s pp_exn_option exn);
-        Lwt.return_unit)
+          fmt "%s%a" s pp_exn_option exn
+        );
+        Lwt.return_unit
+      )
     in
     (fun ~exn () -> !r ~exn ()), fun f -> r := f
 
@@ -55,8 +57,10 @@ module Down = struct
           | Error exn ->
               let* () = handle_react_exn ~exn () in
               Lwt.fail exn
-          | Ok () -> Lwt.return_unit)
-        stream);
+          | Ok () -> Lwt.return_unit
+          )
+        stream
+    );
     E.of_stream channel
 
   let () = Unwrap.register_unwrapper Common.react_down_unwrap_id internal_unwrap
@@ -71,7 +75,8 @@ module Up = struct
     Lwt.catch
       (fun () -> Lwt.map ignore (Client.call_service ~service () x))
       (function
-        | Request.Failed_request 204 -> Lwt.return_unit | exc -> Lwt.fail exc)
+        | Request.Failed_request 204 -> Lwt.return_unit | exc -> Lwt.fail exc
+        )
 
   let () = Unwrap.register_unwrapper Common.react_up_unwrap_id internal_unwrap
 end

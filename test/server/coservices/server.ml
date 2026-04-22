@@ -12,9 +12,11 @@ let fallback name =
   in
   string service (fun () () ->
     text
-      (if Request_info.get_link_too_old ()
-       then name ^ ", link too old"
-       else name));
+      ( if Request_info.get_link_too_old ()
+        then name ^ ", link too old"
+        else name
+      )
+  );
   service
 
 let main = fallback "main"
@@ -39,7 +41,10 @@ let () =
          (("named " ^ string_of_int n)
          :: List.map
               (fun (n, v) -> n ^ "=" ^ v)
-              (Request_info.get_other_get_params ()))))
+              (Request_info.get_other_get_params ())
+         )
+      )
+  )
 
 let attached_post =
   Service.create_attached_post ~fallback:main ~post_params:P.(string "v") ()
@@ -136,7 +141,8 @@ let post_uri service post_params =
   in
   String.concat "\n"
     (Eliom_uri.make_string_uri_from_components (path, get_params, None)
-    :: List.map (fun (n, v) -> n ^ "\t" ^ v) post_params)
+    :: List.map (fun (n, v) -> n ^ "\t" ^ v) post_params
+    )
 
 (* Coservices created by a request, with the options [~max_use] or
    [~timeout] *)
@@ -152,27 +158,30 @@ let () =
   string
     (Service.create ~path:(Service.Path ["link"])
        ~meth:(Service.Get P.(string "to"))
-       ())
+       ()
+    )
     (fun target () ->
-       text
-         (match target with
-         | "anonymous" -> get_uri anonymous ()
-         | "named" -> get_uri named 3
-         | "attached_post" -> post_uri attached_post "x"
-         | "once" -> get_uri once ()
-         | "na_anonymous" -> get_uri na_anonymous ()
-         | "na_named" -> get_uri na_named 4
-         | "na_post" -> post_uri na_post "y"
-         | "na_once" -> get_uri na_once ()
-         | "na_attached" -> get_uri na_attached 5
-         | "created_once" -> create_coservice ~max_use:1 ()
-         | "created_timeout" -> create_coservice ~timeout:1. ()
-         | "csrf" -> get_uri csrf ()
-         | "csrf_once" -> get_uri csrf_once ()
-         | "csrf_post" -> post_uri csrf_post "x"
-         | "na_csrf" -> get_uri na_csrf ()
-         | "na_csrf_post" -> post_uri na_csrf_post "y"
-         | "csrf_tab" -> get_uri csrf_tab ()
-         | _ -> invalid_arg target))
+      text
+        ( match target with
+        | "anonymous" -> get_uri anonymous ()
+        | "named" -> get_uri named 3
+        | "attached_post" -> post_uri attached_post "x"
+        | "once" -> get_uri once ()
+        | "na_anonymous" -> get_uri na_anonymous ()
+        | "na_named" -> get_uri na_named 4
+        | "na_post" -> post_uri na_post "y"
+        | "na_once" -> get_uri na_once ()
+        | "na_attached" -> get_uri na_attached 5
+        | "created_once" -> create_coservice ~max_use:1 ()
+        | "created_timeout" -> create_coservice ~timeout:1. ()
+        | "csrf" -> get_uri csrf ()
+        | "csrf_once" -> get_uri csrf_once ()
+        | "csrf_post" -> post_uri csrf_post "x"
+        | "na_csrf" -> get_uri na_csrf ()
+        | "na_csrf_post" -> post_uri na_csrf_post "y"
+        | "csrf_tab" -> get_uri csrf_tab ()
+        | _ -> invalid_arg target
+        )
+    )
 
 let () = Eliom_test_server.Server_harness.start [App.run ()]

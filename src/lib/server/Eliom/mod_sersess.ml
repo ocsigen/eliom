@@ -53,7 +53,7 @@ let close_service_state ~scope ~secure_o ?sp () =
         (* there is only one way to close a session:
              remove it from the session group table.
              It will remove the entry in the session table *)
-        (match scope with
+        ( match scope with
         | `Session_group _ -> (
           match !(c.Common.sc_session_group) with
           | {Common.sg_group = Common.Group_name _; _} as group -> (
@@ -62,14 +62,18 @@ let close_service_state ~scope ~secure_o ?sp () =
             match Mod_sessiongroups.Serv.find_node_in_group_of_groups group with
             | None ->
                 Logs.err ~src:eliom_logs_src (fun fmt ->
-                  fmt "No group of groups. Please report this problem.")
-            | Some (_service_table, g) -> Mod_sessiongroups.Serv.remove g)
+                  fmt "No group of groups. Please report this problem."
+                )
+            | Some (_service_table, g) -> Mod_sessiongroups.Serv.remove g
+          )
           | {Common.sg_group = Common.No_group; _} ->
               (* Without a session group, the session is its own group (see
                  Mod_datasess.close_data_state). *)
-              Mod_sessiongroups.Serv.remove c.Common.sc_session_group_node)
+              Mod_sessiongroups.Serv.remove c.Common.sc_session_group_node
+        )
         | `Session _ | `Client_process _ ->
-            Mod_sessiongroups.Serv.remove c.Common.sc_session_group_node);
+            Mod_sessiongroups.Serv.remove c.Common.sc_session_group_node
+        );
         ior := Common.SCNo_data
     | _ -> ()
   with Not_found -> ()
@@ -80,12 +84,7 @@ let fullsessgrp ~cookie_level ~sp set_session_group =
     set_session_group
 
 let rec find_or_create_service_cookie_
-          ?set_session_group
-          ~(cookie_scope : Common.cookie_scope)
-          ~secure_o
-          ~sp
-          ()
-  =
+    ?set_session_group ~(cookie_scope : Common.cookie_scope) ~secure_o ~sp () =
   (* If the cookie does not exist, create it.
      Returns the cookie info for the cookie *)
   let cookie_level = Common.cookie_level_of_user_scope cookie_scope in
@@ -129,7 +128,8 @@ let rec find_or_create_service_cookie_
       ; expiry
       ; timeout
       ; session_group
-      ; session_group_node };
+      ; session_group_node
+      };
     { Common.sc_hvalue = hc
     ; Common.sc_set_value = Some c
     ; Common.sc_table = str
@@ -137,7 +137,8 @@ let rec find_or_create_service_cookie_
     ; Common.sc_exp = expiry
     ; Common.sc_cookie_exp = ref (Common.default_client_cookie_exp ())
     ; Common.sc_session_group = session_group
-    ; Common.sc_session_group_node = session_group_node }
+    ; Common.sc_session_group_node = session_group_node
+    }
   in
   let cookie_info = Common.get_cookie_info sp cookie_level in
   let sitedata = Request_info.get_sitedata_sp ~sp in
@@ -161,7 +162,7 @@ let rec find_or_create_service_cookie_
         ior := Common.SC v;
         v
     | Common.SC c ->
-        (match set_session_group with
+        ( match set_session_group with
         | None -> ()
         | Some _session_group ->
             let fullsessgrp = fullsessgrp ~cookie_level ~sp set_session_group in
@@ -170,7 +171,8 @@ let rec find_or_create_service_cookie_
                 c.Common.sc_session_group_node fullsessgrp
             in
             c.Common.sc_session_group_node <- node;
-            c.Common.sc_session_group := fullsessgrp);
+            c.Common.sc_session_group := fullsessgrp
+        );
         c
   with Not_found ->
     let v =
@@ -183,27 +185,23 @@ let rec find_or_create_service_cookie_
     v
 
 let find_or_create_service_cookie_ =
-  (find_or_create_service_cookie_
-    : ?set_session_group:string
+  ( find_or_create_service_cookie_
+    :    ?set_session_group:string
       -> cookie_scope:Common.cookie_scope
       -> secure_o:bool option
       -> sp:Common.server_params
       -> unit
       -> Common.tables Common.one_service_cookie_info
-    :> ?set_session_group:string
+    :>    ?set_session_group:string
        -> cookie_scope:[< Common.cookie_scope]
        -> secure_o:bool option
        -> sp:Common.server_params
        -> unit
-       -> Common.tables Common.one_service_cookie_info)
+       -> Common.tables Common.one_service_cookie_info
+    )
 
 let find_or_create_service_cookie
-      ?set_session_group
-      ~cookie_scope
-      ~secure_o
-      ?sp
-      ()
-  =
+    ?set_session_group ~cookie_scope ~secure_o ?sp () =
   let sp = Common.sp_of_option sp in
   find_or_create_service_cookie_ ?set_session_group ~cookie_scope ~secure_o ~sp
     ()

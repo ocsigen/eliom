@@ -35,7 +35,9 @@ let case server name f =
          check "no session at the beginning"
            "data=0 services=0 persistent=0 groups=[]" admin "/count"
        in
-       f (fun () -> Browser.create server) admin))
+       f (fun () -> Browser.create server) admin
+      )
+  )
 
 let collect admin = Lwt.map ignore (text admin "/collect")
 
@@ -51,7 +53,8 @@ let collection server =
         in
         let* () = check "value" "a" a "/get" in
         let* () = sleep 1.5 in
-        collect admin)
+        collect admin
+      )
     ; case "volatile data sessions" (fun browser admin ->
         let a = browser () and b = browser () in
         let* _ = text a "/set?v=a" in
@@ -66,7 +69,8 @@ let collection server =
         in
         let* () = collect admin in
         check "collected" "data=0 services=0 persistent=0 groups=[]" admin
-          "/count")
+          "/count"
+      )
     ; case "sessions in use" (fun browser admin ->
         let a = browser () and b = browser () in
         let* _ = text a "/set?v=a" in
@@ -88,7 +92,8 @@ let collection server =
         in
         let* () = check "value kept" "a" a "/get" in
         let* () = sleep 1.5 in
-        collect admin)
+        collect admin
+      )
     ; case "service sessions" (fun browser admin ->
         let a = browser () in
         let* _ = text a "/coservice" in
@@ -98,7 +103,8 @@ let collection server =
         let* () = sleep 1.5 in
         let* () = collect admin in
         check "collected" "data=0 services=0 persistent=0 groups=[]" admin
-          "/count")
+          "/count"
+      )
     ; case "persistent sessions" (fun browser admin ->
         let a = browser () in
         let* _ = text a "/persistent/set?v=a" in
@@ -108,7 +114,8 @@ let collection server =
         let* () = sleep 1.5 in
         let* () = collect admin in
         check "collected" "data=0 services=0 persistent=0 groups=[]" admin
-          "/count")
+          "/count"
+      )
     ; case "persistent timeout unset" (fun browser admin ->
         (* The cookie expires with the global timeout, without being
            visited again. *)
@@ -119,7 +126,8 @@ let collection server =
         let* () = sleep 1.5 in
         let* () = collect admin in
         check "collected" "data=0 services=0 persistent=0 groups=[]" admin
-          "/count")
+          "/count"
+      )
     ; case "persistent timeout of a cookie" (fun browser admin ->
         let a = browser () in
         let* _ = text a "/persistent/set?v=a" in
@@ -135,7 +143,8 @@ let collection server =
         let* () = sleep 1.5 in
         let* () = collect admin in
         check "collected" "data=0 services=0 persistent=0 groups=[]" admin
-          "/count")
+          "/count"
+      )
     ; case "global persistent timeout" (fun browser admin ->
         (* Changing the global timeout computes the expiration dates of the
            cookies again, in the background. *)
@@ -157,7 +166,8 @@ let collection server =
           wait_for "computed again" (( <> ) "far") admin "/persistent/expiry"
         in
         let* () = collect admin in
-        check "closed" "data=0 services=0 persistent=0 groups=[]" admin "/count")
+        check "closed" "data=0 services=0 persistent=0 groups=[]" admin "/count"
+      )
     ; case "persistent timeout during an update" (fun browser admin ->
         (* A timeout given to a cookie while the expiration dates are
            computed again is kept. The other cookies give the update time
@@ -165,21 +175,24 @@ let collection server =
         let* () =
           Lwt_list.iter_s
             (fun i ->
-               Lwt.map ignore
-                 (text (browser ()) (Printf.sprintf "/persistent/set?v=%d" i)))
+              Lwt.map ignore
+                (text (browser ()) (Printf.sprintf "/persistent/set?v=%d" i))
+            )
             (List.init 10 Fun.id)
         in
         let* () = check "kept" "kept" admin "/persistent/race" in
         let* () = sleep 1.5 in
         let* () = collect admin in
         check "collected" "data=0 services=0 persistent=0 groups=[]" admin
-          "/count")
+          "/count"
+      )
     ; case "persistent timeout of a closed session" (fun browser admin ->
         (* Setting the timeout does not open the session again. *)
         let a = browser () in
         let* _ = text a "/persistent/set?v=a" in
         let* _ = text a "/persistent/close/timeout" in
-        check "closed" "data=0 services=0 persistent=0 groups=[]" admin "/count")
+        check "closed" "data=0 services=0 persistent=0 groups=[]" admin "/count"
+      )
     ; case "session groups" (fun browser admin ->
         (* A group goes with the last of its sessions. *)
         let a = browser () and b = browser () in
@@ -192,8 +205,11 @@ let collection server =
         let* () = sleep 1.5 in
         let* () = collect admin in
         check "collected" "data=0 services=0 persistent=0 groups=[]" admin
-          "/count") ] )
+          "/count"
+      )
+    ] )
 
 let () =
   Server_harness.with_server "./server.exe" (fun server ->
-    Alcotest.run ~and_exit:false "eliom-server-gc" [collection server])
+    Alcotest.run ~and_exit:false "eliom-server-gc" [collection server]
+  )

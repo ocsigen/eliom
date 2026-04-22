@@ -41,7 +41,8 @@ let decode_entities s =
           else int_of_string_opt (String.sub e 1 (String.length e - 1))
         in
         Option.bind code (fun c ->
-          if Uchar.is_valid c then Some (Uchar.of_int c) else None)
+          if Uchar.is_valid c then Some (Uchar.of_int c) else None
+        )
     | _ -> None
   in
   let rec loop i =
@@ -55,7 +56,8 @@ let decode_entities s =
             loop (j + 1)
         | None ->
             Buffer.add_char b '&';
-            loop (i + 1))
+            loop (i + 1)
+      )
       | c, _ ->
           Buffer.add_char b c;
           loop (i + 1)
@@ -115,7 +117,8 @@ let tag s i =
   let attrs, next = attrs stop [] in
   ( { name = String.lowercase_ascii (String.sub s start (stop - start))
     ; closing
-    ; attrs }
+    ; attrs
+    }
   , next )
 
 let attr name t = List.assoc_opt name t.attrs
@@ -125,7 +128,9 @@ let has name t = List.mem_assoc name t.attrs
 let selected ~multiple options =
   match List.filter_map (fun (v, s) -> if s then Some v else None) options with
   | [] when multiple -> []
-  | [] -> ( match options with (v, _) :: _ -> [v] | [] -> [])
+  | [] -> (
+    match options with (v, _) :: _ -> [v] | [] -> []
+  )
   | l when multiple -> l
   | l -> [List.nth l (List.length l - 1)]
 
@@ -140,7 +145,8 @@ let input t fields =
         then (name, Option.value ~default:"on" (attr "value" t)) :: fields
         else fields
     | Some ("submit" | "button" | "image" | "reset" | "file") -> fields
-    | _ -> (name, Option.value ~default:"" (attr "value" t)) :: fields)
+    | _ -> (name, Option.value ~default:"" (attr "value" t)) :: fields
+  )
 
 let forms ~url page =
   let base = Uri.of_string ("http://host" ^ url) in
@@ -203,7 +209,8 @@ let forms ~url page =
               loop stop form
                 (Some (name, multiple, (value, has "selected" t) :: options))
                 forms
-          | None -> loop next form select forms)
+          | None -> loop next form select forms
+        )
         | "select", true, Some (meth, action, fields) ->
             let fields =
               match select with
@@ -215,7 +222,8 @@ let forms ~url page =
               | _ -> fields
             in
             loop next (Some (meth, action, fields)) None forms
-        | _ -> loop next form select forms)
+        | _ -> loop next form select forms
+      )
   in
   loop 0 None None []
 

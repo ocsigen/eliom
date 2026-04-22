@@ -3,7 +3,8 @@ type t =
   ; post_params : (string * string) list
   ; idle_param : string
   ; request_param : string
-  ; channel : string }
+  ; channel : string
+  }
 
 let of_wrapped wrapped =
   let Eliom.Comet_base.Comet_service (service, _), id =
@@ -24,7 +25,8 @@ let of_wrapped wrapped =
   ; post_params
   ; idle_param = Eliom.Parameter.string_of_param_name idle_param
   ; request_param = Eliom.Parameter.string_of_param_name request_param
-  ; channel = Eliom.Comet_base.string_of_chan_id id }
+  ; channel = Eliom.Comet_base.string_of_chan_id id
+  }
 
 let of_channel channel = of_wrapped (Eliom.Comet.Channel.get_wrapped channel)
 let json = [%json: string * (string * string) list * string * string * string]

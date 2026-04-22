@@ -24,24 +24,28 @@ let isolation server =
         let* () = check "own value" "a" a "/get" in
         let* () = check "other browser" "" b "/get" in
         let* _ = text b "/set?v=b" in
-        check "unchanged by the other browser" "a" a "/get")
+        check "unchanged by the other browser" "a" a "/get"
+      )
     ; case "persistent data" (fun browser ->
         let a = browser () and b = browser () in
         let* _ = text a "/persistent/set?v=a" in
         let* () = check "own value" "a" a "/persistent/get" in
-        check "other browser" "" b "/persistent/get")
+        check "other browser" "" b "/persistent/get"
+      )
     ; case "status" (fun browser ->
         let a = browser () in
         let* () = check "new browser" "data=empty services=empty" a "/status" in
         let* _ = text a "/set?v=a" in
-        check "with data" "data=alive services=empty" a "/status")
+        check "with data" "data=alive services=empty" a "/status"
+      )
     ; case "session coservice" (fun browser ->
         let a = browser () and b = browser () in
         let* _ = text a "/set?v=a" in
         let* url = text a "/coservice" in
         let* () = check "owner" "coservice of a" a url in
         let* () = check "services" "data=alive services=alive" a "/status" in
-        check "other browser" "fallback" b url)
+        check "other browser" "fallback" b url
+      )
     ; case "cookie" (fun browser ->
         (* A session is its cookie: whoever sends it gets the session. *)
         let a = browser () and b = browser () in
@@ -49,7 +53,9 @@ let isolation server =
         let+ r =
           Browser.get ~headers:[cookie_header (Browser.cookies a)] b "/get"
         in
-        Alcotest.(check string) "value of the cookie" "a" r.body) ] )
+        Alcotest.(check string) "value of the cookie" "a" r.body
+      )
+    ] )
 
 let closing server =
   let case = case_browsers server in
@@ -72,21 +78,24 @@ let closing server =
         let* () =
           check_replay "persistent data" "" old_cookies c "/persistent/get"
         in
-        check_replay "services" "fallback" old_cookies c url)
+        check_replay "services" "fallback" old_cookies c url
+      )
     ; case "discard the data only" (fun browser ->
         let a = browser () in
         let* _ = text a "/set?v=a" in
         let* url = text a "/coservice" in
         let* _ = text a "/discard_data?scope=session" in
         let* () = check "data" "" a "/get" in
-        check "services kept" "coservice of a" a url)
+        check "services kept" "coservice of a" a url
+      )
     ; case "discard the services only" (fun browser ->
         let a = browser () in
         let* _ = text a "/set?v=a" in
         let* url = text a "/coservice" in
         let* _ = text a "/discard_services?scope=session" in
         let* () = check "services" "fallback" a url in
-        check "data kept" "a" a "/get")
+        check "data kept" "a" a "/get"
+      )
     ; case "other sessions" (fun browser ->
         let a = browser () and b = browser () in
         let* _ = text a "/set?v=a" in
@@ -94,7 +103,9 @@ let closing server =
         let* url = text b "/coservice" in
         let* _ = text a "/discard?scope=session" in
         let* () = check "data of the other browser" "b" b "/get" in
-        check "services of the other browser" "coservice of b" b url) ] )
+        check "services of the other browser" "coservice of b" b url
+      )
+    ] )
 
 (* Each test uses groups of its own, since the server is shared. *)
 let groups server =
@@ -102,7 +113,8 @@ let groups server =
   let join b ?max name =
     text b
       ("/group/join?name=" ^ name
-      ^ match max with Some m -> "&max=" ^ string_of_int m | None -> "")
+      ^ match max with Some m -> "&max=" ^ string_of_int m | None -> ""
+      )
   in
   ( "groups"
   , [ case "group data" (fun browser ->
@@ -115,7 +127,8 @@ let groups server =
         let* () = check "same group" "g" b "/group/get" in
         let* () = check "other group" "" c "/group/get" in
         let* () = check "session data stays private" "" b "/get" in
-        check "size" "2" a "/group/size")
+        check "size" "2" a "/group/size"
+      )
     ; case "discard a group" (fun browser ->
         let a = browser () and b = browser () and c = browser () in
         let* _ = join a "discard-g" in
@@ -138,7 +151,8 @@ let groups server =
           check "persistent data of the other member" "" b "/persistent/get"
         in
         let* () = check "persistent group data" "" b "/group/persistent/get" in
-        check "other group" "c" c "/get")
+        check "other group" "c" c "/get"
+      )
     ; case "discard a group without a named group" (fun browser ->
         (* Without a session group, a session is counted with the sessions
            without a group of the site, which belong to other users: only
@@ -167,7 +181,8 @@ let groups server =
         let* () =
           check_replay "persistent data" "" old_cookies c "/persistent/get"
         in
-        check_replay "services" "fallback" old_cookies c url_a)
+        check_replay "services" "fallback" old_cookies c url_a
+      )
     ; case "limit" (fun browser ->
         let a = browser () and b = browser () and c = browser () in
         let* _ = text a "/set?v=a" in
@@ -180,7 +195,8 @@ let groups server =
         let* () = check "oldest" "" a "/get" in
         let* () = check "second" "b" b "/get" in
         let* () = check "newest" "c" c "/get" in
-        check "size" "2" c "/group/size")
+        check "size" "2" c "/group/size"
+      )
     ; case "limit, services and persistent data" (fun browser ->
         let a = browser () and b = browser () and c = browser () in
         let open_states b v =
@@ -199,7 +215,8 @@ let groups server =
         let* () = check "services, newest" "coservice of c" c url_c in
         let* () = check "persistent, oldest" "" a "/persistent/get" in
         let* () = check "persistent, second" "b" b "/persistent/get" in
-        check "persistent, newest" "c" c "/persistent/get")
+        check "persistent, newest" "c" c "/persistent/get"
+      )
     ; case "limit, least recently used" (fun browser ->
         (* The session closed is the one used least recently, not the
            oldest one: [a] is used after [b] joins, so [b] is closed. *)
@@ -227,7 +244,8 @@ let groups server =
            session. *)
         let* () = check "services, closed" "fallback" b url_b in
         let* () = check "persistent, closed" "" b "/persistent/get" in
-        check "data, closed" "" b "/get")
+        check "data, closed" "" b "/get"
+      )
     ; case "limit, simultaneous logins" (fun browser ->
         (* Browsers join a full group at the same time: the group keeps
            exactly its maximum number of sessions, and the other ones are
@@ -238,9 +256,10 @@ let groups server =
         let* () =
           Lwt_list.iteri_s
             (fun i b ->
-               let v = string_of_int i in
-               let* _ = text b ("/set?v=" ^ v) in
-               Lwt.map ignore (text b ("/persistent/set?v=" ^ v)))
+              let v = string_of_int i in
+              let* _ = text b ("/set?v=" ^ v) in
+              Lwt.map ignore (text b ("/persistent/set?v=" ^ v))
+            )
             browsers
         in
         let* () =
@@ -251,8 +270,9 @@ let groups server =
         let alive url =
           Lwt_list.fold_left_s
             (fun n b ->
-               let+ v = text b url in
-               if v = "" then n else n + 1)
+              let+ v = text b url in
+              if v = "" then n else n + 1
+            )
             0 browsers
         in
         let* () =
@@ -266,7 +286,8 @@ let groups server =
         let* n = alive "/persistent/get" in
         Alcotest.(check int) "persistent sessions alive" 3 n;
         let+ n = alive "/get" in
-        Alcotest.(check int) "data sessions alive" 3 n)
+        Alcotest.(check int) "data sessions alive" 3 n
+      )
     ; case "limit, simultaneous logins of new browsers" (fun browser ->
         (* Same, with browsers that have no session yet: each request opens
            a persistent session in the group, which a request of another
@@ -286,11 +307,13 @@ let groups server =
         let+ n =
           Lwt_list.fold_left_s
             (fun n b ->
-               let+ v = text b "/group/persistent/name" in
-               if v = "limit-new" then n + 1 else n)
+              let+ v = text b "/group/persistent/name" in
+              if v = "limit-new" then n + 1 else n
+            )
             0 browsers
         in
-        Alcotest.(check int) "persistent sessions in the group" 3 n)
+        Alcotest.(check int) "persistent sessions in the group" 3 n
+      )
     ; case "simultaneous logins of a session" (fun browser ->
         (* Two requests of a session join the group at the same time (a
            double click, for instance): the session is listed once. *)
@@ -298,7 +321,8 @@ let groups server =
         let* _ = text a "/persistent/set?v=a" in
         let* _ = Lwt.both (join a "twice-g") (join a "twice-g") in
         check "persistent sessions of the group" "1" admin
-          "/group/persistent_sessions?name=twice-g")
+          "/group/persistent_sessions?name=twice-g"
+      )
     ; case "simultaneous logins of a session, limit of one" (fun browser ->
         (* As "simultaneous logins of a session", in a group of one session:
            a second place of the session in the list would go over the
@@ -309,7 +333,8 @@ let groups server =
           Lwt.both (join a ~max:1 "twice-one") (join a ~max:1 "twice-one")
         in
         let* () = check "persistent data" "a" a "/persistent/get" in
-        check "group" "twice-one" a "/group/persistent/name")
+        check "group" "twice-one" a "/group/persistent/name"
+      )
     ; case "group changed by another request" (fun browser ->
         (* The end of a request writes back the persistent session group
            only if the request changed it: here a slow request of the
@@ -331,7 +356,8 @@ let groups server =
         Alcotest.(check string) "group read by the slow request" "changed-g" v;
         let* () = check "group" "none" a "/group/persistent/name" in
         check "sessions of the group" "0" admin
-          "/group/persistent_sessions?name=changed-g")
+          "/group/persistent_sessions?name=changed-g"
+      )
     ; case "group coservice without a group" (fun browser ->
         (* Without a session group, the session is its own group: a service
            of the group scope is not visible to the other sessions without a
@@ -341,7 +367,8 @@ let groups server =
         let* _ = text b "/set?v=b" in
         let* url = text a "/group/coservice" in
         let* () = check "own" "group coservice of a" a url in
-        check "other session without a group" "fallback" b url)
+        check "other session without a group" "fallback" b url
+      )
     ; case "group coservices" (fun browser ->
         (* The services of the group scope are found for the sessions of
            the group, and only for them *)
@@ -371,7 +398,8 @@ let groups server =
           check "non-attached, other member" "group nacoservice of a" b na
         in
         let* () = check "non-attached, other group" "fallback" c na in
-        check "non-attached, no group" "fallback" d na)
+        check "non-attached, no group" "fallback" d na
+      )
     ; case "expired session" (fun browser ->
         (* A persistent session that has expired leaves its group when it is
            used again, and does not count in the group any more. *)
@@ -387,7 +415,8 @@ let groups server =
         let* () = Lwt_unix.sleep 2. in
         let* () = check "expired" "" a "/persistent/get" in
         let* () = check "other member" "b" b "/persistent/get" in
-        check "after" "1" admin "/group/persistent_sessions?name=expired-g")
+        check "after" "1" admin "/group/persistent_sessions?name=expired-g"
+      )
     ; case "close the sessions of a group" (fun browser ->
         (* From outside the group, as Os.Session.disconnect_all does *)
         let admin = browser () and a = browser () and b = browser () in
@@ -413,7 +442,8 @@ let groups server =
         let* () = check "services" "fallback" a url_a in
         let* () = check "persistent" "" a "/persistent/get" in
         let* () = check "data" "" a "/get" in
-        check "other member" "" b "/get")
+        check "other member" "" b "/get"
+      )
     ; case "simultaneous requests" (fun browser ->
         (* The sessions of a persistent group are listed in one entry of the
            database, which each request that opens or uses a session of the
@@ -427,21 +457,25 @@ let groups server =
         let* members =
           Lwt_list.map_s
             (fun _ ->
-               let b = browser () and c = browser () in
-               let* _ = text b "/persistent/set?v=b" in
-               let* _ = text c "/persistent/set?v=c" in
-               let+ _ =
-                 Lwt.both (join b "simultaneous-g") (join c "simultaneous-g")
-               in
-               [b; c])
+              let b = browser () and c = browser () in
+              let* _ = text b "/persistent/set?v=b" in
+              let* _ = text c "/persistent/set?v=c" in
+              let+ _ =
+                Lwt.both (join b "simultaneous-g") (join c "simultaneous-g")
+              in
+              [b; c]
+            )
             (List.init 5 Fun.id)
         in
         let* _ = text admin "/group/close_sessions?name=simultaneous-g" in
         Lwt_list.iter_s
           (fun b -> check "closed" "" b "/persistent/get")
-          (a :: List.concat members)) ] )
+          (a :: List.concat members)
+      )
+    ] )
 
 let () =
   Server_harness.with_server "./server.exe" (fun server ->
     Alcotest.run ~and_exit:false "eliom-server-state"
-      [isolation server; closing server; groups server])
+      [isolation server; closing server; groups server]
+  )

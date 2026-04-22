@@ -27,31 +27,38 @@ let fields server =
   , [ case "text and checkbox" (fun b ->
         (* An empty field of an optional parameter is the empty string. *)
         let* form = form b "/simple_form" in
-        submitted "submitted" "i=3 s=a b&c o= b=true" b form)
+        submitted "submitted" "i=3 s=a b&c o= b=true" b form
+      )
     ; case "changed values" (fun b ->
         let* form = form b "/simple_form" in
         let form = Html_form.(form |> set "s" "é?=/" |> set "o" "given") in
-        submitted "submitted" "i=3 s=é?=/ o=given b=true" b form)
+        submitted "submitted" "i=3 s=é?=/ o=given b=true" b form
+      )
     ; case "wrong type" (fun b ->
         let* form = form b "/simple_form" in
         let form =
           Html_form.set (List.hd (List.map fst form.Html_form.fields)) "x" form
         in
         let+ r = Html_form.submit b form in
-        check_response "rejected" ~status:400 r)
+        check_response "rejected" ~status:400 r
+      )
     ; case "text area, select, radio buttons and checkboxes" (fun b ->
         let* form = form b "/choices_form" in
         Alcotest.(check bool) "POST" true (form.Html_form.meth = `POST);
-        submitted "submitted" "t=one\ntwo <&> sel=b r=y c=p,q" b form)
+        submitted "submitted" "t=one\ntwo <&> sel=b r=y c=p,q" b form
+      )
     ; case "list" (fun b ->
         let* form = form b "/list_form" in
-        submitted "submitted" "u,v,w" b form)
+        submitted "submitted" "u,v,w" b form
+      )
     ; case "fragment" (fun b ->
         (* In a fragment, + is not a space *)
         let+ r = Browser.get b "/fragment_form" in
         Alcotest.(check bool)
           "fragment of the action" true
-          (contains r.body "#f%20r\"")) ] )
+          (contains r.body "#f%20r\"")
+      )
+    ] )
 
 let coservices server =
   let case = case server in
@@ -62,19 +69,23 @@ let coservices server =
   ( "coservices"
   , [ case "attached" (fun b ->
         let* form = nth b 0 in
-        submitted "submitted" "attached z" b form)
+        submitted "submitted" "attached z" b form
+      )
     ; case "non-attached, GET" (fun b ->
         let* form = nth b 1 in
-        submitted "submitted" "non-attached GET z" b form)
+        submitted "submitted" "non-attached GET z" b form
+      )
     ; case "non-attached, POST" (fun b ->
         let* form = nth b 2 in
-        submitted "submitted" "non-attached POST z" b form)
+        submitted "submitted" "non-attached POST z" b form
+      )
     ; case "CSRF-safe" (fun b ->
         let* form = nth b 3 in
         let* () =
           submitted "other browser" "fallback" (Browser.create server) form
         in
-        submitted "own browser" "CSRF-safe z" b form)
+        submitted "own browser" "CSRF-safe z" b form
+      )
     ; case "suffix" (fun b ->
         (* The form sends the suffix as a parameter: the server redirects
            to the URL with the suffix. *)
@@ -85,9 +96,12 @@ let coservices server =
         | Some location ->
             let+ r = Browser.get b (Uri.path (Uri.of_string location)) in
             check_response "page" ~status:200 ~body:"suffix a" r
-        | None -> Alcotest.fail "no location") ] )
+        | None -> Alcotest.fail "no location"
+      )
+    ] )
 
 let () =
   Server_harness.with_server "./server.exe" (fun server ->
     Alcotest.run ~and_exit:false "eliom-server-forms"
-      [fields server; coservices server])
+      [fields server; coservices server]
+  )

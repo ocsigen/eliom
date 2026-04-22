@@ -129,7 +129,8 @@ let lexing_position ~loc l =
     { Lexing.pos_fname = [%e str l.Lexing.pos_fname]
     ; Lexing.pos_lnum = [%e int @@ l.Lexing.pos_lnum]
     ; Lexing.pos_bol = [%e int @@ l.Lexing.pos_bol]
-    ; Lexing.pos_cnum = [%e int @@ l.Lexing.pos_cnum] }]
+    ; Lexing.pos_cnum = [%e int @@ l.Lexing.pos_cnum]
+    }]
 
 let position loc =
   let start = loc.Location.loc_start in
@@ -295,7 +296,8 @@ module Mli = struct
       @@ Location.Error.make ~loc ~sub:[]
            (Printf.sprintf
               "Error: Inferred type of %s not found. You need to regenerate %s."
-              err (get_type_file ()))
+              err (get_type_file ())
+           )
 
   let find_escaped_ident = find "escaped ident"
   let find_injected_ident = find "injected ident"
@@ -310,16 +312,19 @@ module Cmo = struct
     let open Instruct in
     List.iter
       (fun ev ->
-         match ev with
-         | { ev_loc =
-               { loc_start = {Lexing.pos_fname; pos_cnum; _}
-               ; loc_end = {Lexing.pos_cnum = pos_cnum'; _}
-               ; _ }
-           ; ev_kind = Event_after ty
-           ; _ } ->
-             if pos_cnum' = pos_cnum + 1
-             then Hashtbl.add events (pos_fname, pos_cnum) ty
-         | _ -> ())
+        match ev with
+        | { ev_loc =
+              { loc_start = {Lexing.pos_fname; pos_cnum; _}
+              ; loc_end = {Lexing.pos_cnum = pos_cnum'; _}
+              ; _
+              }
+          ; ev_kind = Event_after ty
+          ; _
+          } ->
+            if pos_cnum' = pos_cnum + 1
+            then Hashtbl.add events (pos_fname, pos_cnum) ty
+        | _ -> ()
+      )
       evl
 
   let get_file () = match !file with Some f -> f | None -> assert false
@@ -382,8 +387,7 @@ module Cmo = struct
         Lapply (ident_of_out_ident id, ident_of_out_ident id')
     | Oide_dot (id, nm) -> Ldot (strip_wrapper (ident_of_out_ident id), nm)
     | Oide_ident {printed_name = nm} ->
-        Lident
-          (try String.sub nm 0 (String.index nm '/') with Not_found -> nm)
+        Lident (try String.sub nm 0 (String.index nm '/') with Not_found -> nm)
 
   (* The type of the alias name follows the ppxlib AST, not the compiler. *)
   let typ_alias ~loc ty alias = Typ.alias ~loc ty (mkloc alias loc)
@@ -420,13 +424,14 @@ module Cmo = struct
       | ((Otyp_variant (_, Ovar_typ ty, _, _)) [@if ocaml_version < (5, 1, 0)])
         ->
           go acc ty
-      | ((Otyp_variant (Ovar_fields lst, _, _))
-         [@if ocaml_version >= (5, 1, 0)]) ->
+      | ((Otyp_variant (Ovar_fields lst, _, _)) [@if ocaml_version >= (5, 1, 0)])
+        ->
           List.fold_left
             (fun acc (_, _, tyl) -> List.fold_left go acc tyl)
             acc lst
       | ((Otyp_variant (_, Ovar_fields lst, _, _))
-         [@if ocaml_version < (5, 1, 0)]) ->
+         [@if ocaml_version < (5, 1, 0)]
+         ) ->
           List.fold_left
             (fun acc (_, _, tyl) -> List.fold_left go acc tyl)
             acc lst
@@ -475,21 +480,26 @@ module Cmo = struct
           let fields =
             List.map
               (fun (label, ty) ->
-                 { pof_desc = Otag (mkloc label loc, type_of_out_type ty)
-                 ; pof_loc = loc
-                 ; pof_attributes = [] })
+                { pof_desc = Otag (mkloc label loc, type_of_out_type ty)
+                ; pof_loc = loc
+                ; pof_attributes = []
+                }
+              )
               fields
           in
           Typ.object_ ~loc fields
             (match row with Orow_closed -> Closed | _ -> Open)
       | ((Otyp_object {fields; open_row})
-         [@if ocaml_version >= (5, 1, 0) && ocaml_version < (5, 5, 0)]) ->
+         [@if ocaml_version >= (5, 1, 0) && ocaml_version < (5, 5, 0)]
+         ) ->
           let fields =
             List.map
               (fun (label, ty) ->
-                 { pof_desc = Otag (mkloc label loc, type_of_out_type ty)
-                 ; pof_loc = loc
-                 ; pof_attributes = [] })
+                { pof_desc = Otag (mkloc label loc, type_of_out_type ty)
+                ; pof_loc = loc
+                ; pof_attributes = []
+                }
+              )
               fields
           in
           Typ.object_ ~loc fields (if open_row then Open else Closed)
@@ -497,9 +507,11 @@ module Cmo = struct
           let fields =
             List.map
               (fun (label, ty) ->
-                 { pof_desc = Otag (mkloc label loc, type_of_out_type ty)
-                 ; pof_loc = loc
-                 ; pof_attributes = [] })
+                { pof_desc = Otag (mkloc label loc, type_of_out_type ty)
+                ; pof_loc = loc
+                ; pof_attributes = []
+                }
+              )
               fields
           in
           Typ.object_ ~loc fields (if rest = None then Closed else Open)
@@ -520,34 +532,40 @@ module Cmo = struct
           then typ_alias ~loc (type_of_out_type ty) (var s)
           else type_of_out_type ty
       | ((Otyp_variant (Ovar_typ ty, closed, tags))
-         [@if ocaml_version >= (5, 1, 0)]) ->
+         [@if ocaml_version >= (5, 1, 0)]
+         ) ->
           Typ.variant ~loc
             [Rf.mk ~loc (Rinherit (type_of_out_type ty))]
             (if closed then Closed else Open)
             tags
       | ((Otyp_variant (_, Ovar_typ ty, closed, tags))
-         [@if ocaml_version < (5, 1, 0)]) ->
+         [@if ocaml_version < (5, 1, 0)]
+         ) ->
           Typ.variant ~loc
             [Rf.mk ~loc (Rinherit (type_of_out_type ty))]
             (if closed then Closed else Open)
             tags
       | ((Otyp_variant (Ovar_fields lst, closed, tags))
-         [@if ocaml_version >= (5, 1, 0)]) ->
+         [@if ocaml_version >= (5, 1, 0)]
+         ) ->
           let row_fields =
             List.map
               (fun (label, const, tyl) ->
-                 Rf.mk ~loc
-                   (Rtag (mkloc label loc, const, List.map type_of_out_type tyl)))
+                Rf.mk ~loc
+                  (Rtag (mkloc label loc, const, List.map type_of_out_type tyl))
+              )
               lst
           in
           Typ.variant ~loc row_fields (if closed then Closed else Open) tags
       | ((Otyp_variant (_, Ovar_fields lst, closed, tags))
-         [@if ocaml_version < (5, 1, 0)]) ->
+         [@if ocaml_version < (5, 1, 0)]
+         ) ->
           let row_fields =
             List.map
               (fun (label, const, tyl) ->
-                 Rf.mk ~loc
-                   (Rtag (mkloc label loc, const, List.map type_of_out_type tyl)))
+                Rf.mk ~loc
+                  (Rtag (mkloc label loc, const, List.map type_of_out_type tyl))
+              )
               lst
           in
           Typ.variant ~loc row_fields (if closed then Closed else Open) tags
@@ -586,7 +604,8 @@ module Cmo = struct
     @@ Location.Error.make ~loc ~sub:[]
          (Printf.sprintf
             "Error: Inferred type of %s not found. You need to regenerate %s."
-            err (get_file ()))
+            err (get_file ())
+         )
 
   let find err loc =
     match lookup loc with Some ty -> ty | None -> not_found err loc
@@ -603,7 +622,9 @@ module Cmo = struct
       | None ->
           failwith
             (Format.asprintf "find_fragment: unexpected type: %a"
-               Ppxlib.Pprintast.core_type ty))
+               Ppxlib.Pprintast.core_type ty
+            )
+    )
 end
 
 (** Context convenience module. *)
@@ -647,7 +668,8 @@ let driver_args =
   ; ( "-internal-prefix"
     , Arg.String (fun s -> internal_prefix := s)
     , "PREFIX Strip PREFIX. wrapper prefix from .cmo type paths (for compiling wrapped libraries that depend on Eliom)."
-    ) ]
+    )
+  ]
 
 let () =
   List.iter
@@ -669,7 +691,7 @@ module type Pass = sig
   val server_sig : signature_item -> signature_item list
 
   val fragment :
-     loc:Location.t
+       loc:Location.t
     -> ?typ:core_type
     -> context:Context.server
     -> num:string
@@ -680,7 +702,7 @@ module type Pass = sig
   (** How to handle "[\%client ...]" and "[\%shared ...]" expr. *)
 
   val escape_inject :
-     loc:Location.t
+       loc:Location.t
     -> ?ident:string
     -> context:Context.escape_inject
     -> id:string Location.loc
@@ -812,7 +834,8 @@ module Shared = struct
         | [%expr [%client.unsafe [%e? fragment_expr]]] ->
             in_context context `Fragment self#expression fragment_expr
         | [%expr ~%[%e? injection_expr]] -> (
-          match !context with `Top -> expr | `Fragment -> injection_expr)
+          match !context with `Top -> expr | `Fragment -> injection_expr
+        )
         | _ -> super#expression expr
     end
       #expression
@@ -849,7 +872,8 @@ module Make (Pass : Pass) = struct
             @@ Location.Error.make ~loc ~sub:[]
                  (Printf.sprintf
                     "The syntax [%%%s ...] is not allowed inside client code."
-                    side)
+                    side
+                 )
         | ( {pexp_desc = Pexp_extension ({txt; _}, _); _}
           , (`Fragment _ | `Escaped_value _ | `Injection _) )
           when is_annotation txt
@@ -862,7 +886,8 @@ module Make (Pass : Pass) = struct
         | ( { pexp_desc =
                 Pexp_extension
                   ({txt; _}, PStr [{pstr_desc = Pstr_eval (side_val, attr'); _}])
-            ; _ }
+            ; _
+            }
           , (`Server | `Shared) )
           when is_annotation txt ["shared"; "shared.unsafe"] ->
             let unsafe = is_annotation txt ["shared.unsafe"] in
@@ -872,7 +897,8 @@ module Make (Pass : Pass) = struct
         | ( { pexp_desc =
                 Pexp_extension
                   ({txt; _}, PStr [{pstr_desc = Pstr_eval (side_val, attr); _}])
-            ; _ }
+            ; _
+            }
           , ((`Server | `Shared) as c) )
           when is_annotation txt ["client"; "client.unsafe"] ->
             Name.reset_escaped_ident ();
@@ -887,7 +913,8 @@ module Make (Pass : Pass) = struct
             in_context context
               (`Fragment (c, unsafe))
               (Pass.fragment ~loc ?typ ~context:c ~num ~id ~unsafe
-              % self#expression)
+              % self#expression
+              )
               (exp_add_attrs attr side_val)
         (* ~%( ... ) ] *)
         | [%expr ~%[%e? inj]], _ -> (
@@ -908,7 +935,8 @@ module Make (Pass : Pass) = struct
                 in_context context new_context
                   (Pass.escape_inject ~loc ?ident ~context:new_context ~id
                      ~unsafe:false
-                  % self#expression)
+                  % self#expression
+                  )
                   inj
             | `Fragment (c, unsafe) ->
                 let id =
@@ -920,14 +948,16 @@ module Make (Pass : Pass) = struct
                 in_context context new_context
                   (Pass.escape_inject ~loc ?ident ~context:new_context ~id
                      ~unsafe
-                  % self#expression)
+                  % self#expression
+                  )
                   inj
             | `Server ->
                 Location.raise_errorf ~loc
                   "The syntax ~%% ... is not allowed inside server code."
             | `Escaped_value _ | `Injection _ ->
                 Location.raise_errorf ~loc
-                  "The syntax ~%% ... can not be nested.")
+                  "The syntax ~%% ... can not be nested."
+          )
         | _ -> super#expression expr
 
       method! structure_item str =
@@ -994,17 +1024,21 @@ module Make (Pass : Pass) = struct
             [ Str.extension ~loc @@ Location.Error.to_extension
               @@ Location.Error.make ~loc ~sub:[]
                    (Printf.sprintf
-                      "The %%%%%s extension doesn't accept arguments." txt) ]
+                      "The %%%%%s extension doesn't accept arguments." txt
+                   )
+            ]
           else (
             maybe_reset_injected_idents !context;
             context := Context.of_string txt;
-            [])
+            []
+          )
       | Pstr_extension (({txt; _}, PStr strs), _)
         when is_annotation txt ["shared"; "client"; "server"] ->
           if strs = []
           then
             [ Str.extension ~loc @@ Location.Error.to_extension
-              @@ Location.Error.make ~loc ~sub:[] (empty_section txt) ]
+              @@ Location.Error.make ~loc ~sub:[] (empty_section txt)
+            ]
           else
             let c = Context.of_string txt in
             let l = List.concat_map (dispatch_str c) strs in
@@ -1013,7 +1047,8 @@ module Make (Pass : Pass) = struct
       | Pstr_include
           { pincl_mod = {pmod_desc = Pmod_structure l; pmod_attributes = []; _}
           ; pincl_attributes = []
-          ; _ } ->
+          ; _
+          } ->
           List.concat_map f l
       | _ -> dispatch_str !context pstr
     in
@@ -1033,10 +1068,13 @@ module Make (Pass : Pass) = struct
             [ Sig.extension ~loc @@ Location.Error.to_extension
               @@ Location.Error.make ~loc ~sub:[]
                    (Printf.sprintf
-                      "The %%%%%s extension doesn't accept arguments." txt) ]
+                      "The %%%%%s extension doesn't accept arguments." txt
+                   )
+            ]
           else (
             context := Context.of_string txt;
-            [])
+            []
+          )
       | Psig_extension (({txt; _}, PSig sigs), _)
         when is_annotation txt ["shared"; "client"; "server"] ->
           let c = Context.of_string txt in
@@ -1052,7 +1090,8 @@ module Make (Pass : Pass) = struct
                 txt
           in
           [ Sig.extension ~loc @@ Location.Error.to_extension
-            @@ Location.Error.make ~loc ~sub:[] msg ]
+            @@ Location.Error.make ~loc ~sub:[] msg
+          ]
       | _ -> dispatch_sig !context psig
     in
     List.concat_map f sigs

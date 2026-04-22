@@ -17,8 +17,11 @@ let tests server =
         Server_harness.restart server;
         let* () = check "kept after a restart" "a" a "/get" in
         let* _ = text a "/unset" in
-        check "unset" "" b "/get") ] )
+        check "unset" "" b "/get"
+      )
+    ] )
 
 let () =
   Server_harness.with_server "./server.exe" (fun server ->
-    Alcotest.run ~and_exit:false "eliom-server-global-ref" [tests server])
+    Alcotest.run ~and_exit:false "eliom-server-global-ref" [tests server]
+  )

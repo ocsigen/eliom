@@ -52,10 +52,12 @@ let tenable_value ~name v =
       if (not tenable) || override_tenable
       then (
         value <- v;
-        tenable <- override_tenable)
+        tenable <- override_tenable
+      )
       else
         Logs.warn ~src:eliom_logs_src (fun fmt ->
-          fmt "Ignored setting tenable value %S." name)
+          fmt "Ignored setting tenable value %S." name
+        )
   end
 
 (*****************************************************************************)
@@ -76,8 +78,7 @@ let eliom_link_too_old : bool Polytables.key = Polytables.make_key ()
     The string lists are the list of names of expired sessions
 *)
 let eliom_service_session_expired :
-  (full_state_name list * full_state_name list) Polytables.key
-  =
+    (full_state_name list * full_state_name list) Polytables.key =
   Polytables.make_key ()
 
 let found_stop_key = Polytables.make_key ()
@@ -117,11 +118,11 @@ type 'table state_table =
 
 (* The table of tables for each session. Keys are hashes of cookies or group names *)
 module SessionCookies = Hashtbl.Make (struct
-    type t = string
+  type t = string
 
-    let equal = ( = )
-    let hash = Hashtbl.hash
-  end)
+  let equal = ( = )
+  let hash = Hashtbl.hash
+end)
 
 (* keys in tables are hashes of cookie values *)
 module Hashed_cookies : sig
@@ -180,7 +181,9 @@ let make_persistent_full_group_name ~cookie_level site_dir_string = function
         (Deriving_Json.to_string [%json: perssessgrp_payload]
            { p_site_dir_str = site_dir_string
            ; p_cookie_level = cookie_level
-           ; p_group = g })
+           ; p_group = g
+           }
+        )
 
 let decode_perssessgrp a =
   match Deriving_Json.from_string [%json: perssessgrp_payload] a with
@@ -192,14 +195,16 @@ let decode_perssessgrp a =
       Logs.info ~src:eliom_logs_src (fun fmt ->
         fmt
           "Unreadable persistent session group (pre-13 or corrupt), session expired: %s"
-          msg);
+          msg
+      );
       raise Eliom_Session_expired
 
 let getperssessgrp a : 'a sessgrp =
   let {p_site_dir_str; p_cookie_level; p_group} = decode_perssessgrp a in
   { sg_site_dir = p_site_dir_str
   ; sg_level = p_cookie_level
-  ; sg_group = Group_name p_group }
+  ; sg_group = Group_name p_group
+  }
 
 let name_of_perssessgrp a = (decode_perssessgrp a).p_group
 
@@ -210,7 +215,8 @@ let of_json_or_default ~what ~default of_json s =
   try of_json s
   with Failure msg ->
     Logs.debug ~src:eliom_logs_src (fun fmt ->
-      fmt "Ignored malformed %s sent by the client: %s" what msg);
+      fmt "Ignored malformed %s sent by the client: %s" what msg
+    );
     default
 
 let string_of_perssessgrp = Fun.id
@@ -222,46 +228,49 @@ type 'a one_service_cookie_info =
     sc_hvalue : Hashed_cookies.t (* hash of current value *)
   ; sc_set_value : string option (* new value to set *)
   ; sc_table : 'a ref
-    (* service session table
+        (* service session table
                                   ref towards cookie table
     *)
   ; sc_timeout : timeout ref
-    (* user timeout -
+        (* user timeout -
                                   ref towards cookie table
     *)
   ; sc_exp : float option ref
-    (* expiration date ref
+        (* expiration date ref
                                   (server side) -
                                   None = never
                                   ref towards cookie table
     *)
   ; sc_cookie_exp : cookie_exp ref (* cookie expiration date to set *)
   ; sc_session_group : cookie_level sessgrp ref (* session group *)
-  ; mutable sc_session_group_node : string Ocsigen_base.Cache.Dlist.node }
+  ; mutable sc_session_group_node : string Ocsigen_base.Cache.Dlist.node
+  }
 
 type one_data_cookie_info =
   { (* in memory data sessions: *)
     dc_hvalue : Hashed_cookies.t (* hash of current value *)
   ; dc_set_value : string option (* new value to set *)
   ; dc_timeout : timeout ref
-    (* user timeout -
+        (* user timeout -
                                          ref towards cookie table
     *)
   ; dc_exp : float option ref
-    (* expiration date ref (server side) -
+        (* expiration date ref (server side) -
                                          None = never
                                          ref towards cookie table
     *)
   ; dc_cookie_exp : cookie_exp ref (* cookie expiration date to set *)
   ; dc_session_group : cookie_level sessgrp ref (* session group *)
-  ; mutable dc_session_group_node : string Ocsigen_base.Cache.Dlist.node }
+  ; mutable dc_session_group_node : string Ocsigen_base.Cache.Dlist.node
+  }
 
 type one_persistent_cookie_info =
   { pc_hvalue : Hashed_cookies.t (* hash of current value *)
   ; pc_set_value : string option (* new value to set *)
   ; pc_timeout : timeout ref (* user timeout *)
   ; pc_cookie_exp : cookie_exp ref (* cookie expiration date to set *)
-  ; pc_session_group : perssessgrp option ref (* session group *) }
+  ; pc_session_group : perssessgrp option ref (* session group *)
+  }
 
 (* A persistent cookie sent by the browser, with the state of its session at
    the beginning of the request *)
@@ -269,7 +278,8 @@ type persistent_cookie_sent =
   { ps_value : string
   ; ps_timeout : timeout (* user timeout *)
   ; ps_expiry : float option (* server side expiration date, if any *)
-  ; ps_group : perssessgrp option (* session group *) }
+  ; ps_group : perssessgrp option (* session group *)
+  }
 
 (* The state cookies of a request, for one security level. In each table,
    the key is the full state name, and the value is:
@@ -283,24 +293,26 @@ type persistent_cookie_sent =
 type 'a cookie_info1 =
   { ci_service :
       (string option * 'a one_service_cookie_info session_cookie ref)
-        Full_state_name_table.t
-        ref
-    (* Not lazy because we must check all service states at each request to
+      Full_state_name_table.t
+      ref
+        (* Not lazy because we must check all service states at each request to
        find the services *)
   ; ci_data :
       (string option * one_data_cookie_info session_cookie ref) Lazy.t
-        Full_state_name_table.t
-        ref
-    (* Lazy because we do not want to ask the browser to unset the cookie if
+      Full_state_name_table.t
+      ref
+        (* Lazy because we do not want to ask the browser to unset the cookie if
        the cookie has not been used, otherwise it is impossible to write a
        message "Your session has expired" *)
   ; ci_persistent :
-      (persistent_cookie_sent option
-      * one_persistent_cookie_info session_cookie ref)
-        Lwt.t
-        Lazy.t
-        Full_state_name_table.t
-        ref }
+      ( persistent_cookie_sent option
+      * one_persistent_cookie_info session_cookie ref
+      )
+      Lwt.t
+      Lazy.t
+      Full_state_name_table.t
+      ref
+  }
 
 type 'a cookie_info =
   {ci_unsecure : 'a cookie_info1; ci_secure : 'a cookie_info1}
@@ -313,7 +325,8 @@ module Service_cookie = struct
     ; expiry : float option ref
     ; timeout : timeout ref
     ; session_group : cookie_level sessgrp ref
-    ; session_group_node : string Ocsigen_base.Cache.Dlist.node }
+    ; session_group_node : string Ocsigen_base.Cache.Dlist.node
+    }
 
   type 'a table = 'a t SessionCookies.t
   (* the table contains:
@@ -333,23 +346,24 @@ module Data_cookie = struct
     ; expiry : float option ref
     ; timeout : timeout ref
     ; session_group : cookie_level sessgrp ref
-    ; session_group_node : string Ocsigen_base.Cache.Dlist.node }
+    ; session_group_node : string Ocsigen_base.Cache.Dlist.node
+    }
 
   type table = t SessionCookies.t
 end
 
 (*****************************************************************************)
 module Serv_Table = Map.Make (struct
-    type t = page_table_key
+  type t = page_table_key
 
-    let compare = compare
-  end)
+  let compare = compare
+end)
 
 module NAserv_Table = Map.Make (struct
-    type t = na_key_serv
+  type t = na_key_serv
 
-    let compare = compare
-  end)
+  let compare = compare
+end)
 
 type node_info = {ni_id : node_ref; mutable ni_sent : bool}
 
@@ -375,7 +389,8 @@ let check_limit name n =
 type site_timeouts =
   { browser_default : float option configured option
   ; tab_default : float option configured option
-  ; per_state : (full_state_name * float option configured) list }
+  ; per_state : (full_state_name * float option configured) list
+  }
 
 let no_site_timeouts =
   {browser_default = None; tab_default = None; per_state = []}
@@ -399,31 +414,33 @@ type server_params =
   ; (* HTTP status set by the service handler, used when sending its page *)
     sp_suffix : Url.path option (* suffix *)
   ; sp_full_state_name : full_state_name option
-    (* the name of the session
+        (* the name of the session
      to which belong the service that answered
      (if it is a session service) *)
-  ; sp_client_process_info : client_process_info }
+  ; sp_client_process_info : client_process_info
+  }
 
 and page_table = page_table_content Serv_Table.t
 
 and page_table_content =
   [ `Ptc of
-      (page_table ref * page_table_key, na_key_serv) Either.t
-        Ocsigen_base.Cache.Dlist.node
-        option
-      * (server_params, Ocsigen.Response.t) service list ]
+    (page_table ref * page_table_key, na_key_serv) Either.t
+    Ocsigen_base.Cache.Dlist.node
+    option
+    * (server_params, Ocsigen.Response.t) service list ]
 
 and naservice_table_content =
   { na_generation : int
-    (** Number of reloads of sites after which the service was created *)
+        (** Number of reloads of sites after which the service was created *)
   ; na_max_use : int ref option
   ; na_expiry : (float * float ref) option  (** Timeout and expiration date *)
   ; na_handler : server_params -> Ocsigen.Response.t Lwt.t
   ; na_node :
       (page_table ref * page_table_key, na_key_serv) Either.t
-        Ocsigen_base.Cache.Dlist.node
-        option
-    (** For the limitation of the number of dynamic coservices *) }
+      Ocsigen_base.Cache.Dlist.node
+      option
+        (** For the limitation of the number of dynamic coservices *)
+  }
 
 and naservice_table =
   | AEmpty
@@ -453,11 +470,11 @@ and tables =
          the service record.
     *)
     service_dlist_add :
-      ?sp:server_params
+         ?sp:server_params
       -> (page_table ref * page_table_key, na_key_serv) Either.t
       -> (page_table ref * page_table_key, na_key_serv) Either.t
-           Ocsigen_base.Cache.Dlist.node
-    (* We use a dlist for limiting the number of dynamic
+         Ocsigen_base.Cache.Dlist.node
+        (* We use a dlist for limiting the number of dynamic
             anonymous coservices in each table (and avoid DoS).  There
             is one dlist for each session, and one for each IP in
             global tables.  The dlist parameter is the table and
@@ -472,7 +489,7 @@ and group_of_groups_entry = {gg_kind : [`Service | `Data]; gg_name : string}
 
 and sitedata =
   { mutable site_dir : Url.path option
-    (* None when statically linked 
+        (* None when statically linked 
                                            before module init*)
   ; mutable site_dir_string : string option (* idem *)
   ; mutable config_info : Ocsigen.Extensions.config_info option (* idem *)
@@ -528,13 +545,14 @@ and sitedata =
   ; mutable html_content_type : string option
   ; mutable ignored_get_params : (string * Re.re) list
   ; mutable ignored_post_params : (string * Re.re) list
-  ; mutable omitpersistentstorage : omitpersistentstorage_rule list option }
+  ; mutable omitpersistentstorage : omitpersistentstorage_rule list option
+  }
 
 (* The anonymous coservices of the global table of a site created during
    requests, limited for the whole site *)
 and anonymous_services =
   (page_table ref * page_table_key, na_key_serv) Either.t
-    Ocsigen_base.Cache.Dlist.t
+  Ocsigen_base.Cache.Dlist.t
 
 let check_initialised field =
   match field with
@@ -563,12 +581,12 @@ let make_full_cookie_name cookieprefix {user_scope; secure; site_dir_str} =
   String.concat "" [cookieprefix; secure; site_dir_str; hier1; hiername]
 
 let make_full_state_name_of_sitedata ~sitedata ~secure ~(scope : [< user_scope])
-  : full_state_name
-  =
+    : full_state_name =
   (* The information in the cookie name, without the kind of session *)
   { user_scope = (scope :> user_scope)
   ; secure
-  ; site_dir_str = get_site_dir_string sitedata }
+  ; site_dir_str = get_site_dir_string sitedata
+  }
 
 let make_full_state_name ~sp ~secure ~(scope : [< user_scope]) =
   make_full_state_name_of_sitedata ~sitedata:sp.sp_sitedata ~secure ~scope
@@ -582,7 +600,8 @@ type info =
   ; session_info : sess_info
   ; all_cookie_info : tables cookie_info
   ; tab_cookie_info : tables cookie_info
-  ; user_tab_cookies : Ocsigen_cookie_map.t }
+  ; user_tab_cookies : Ocsigen_cookie_map.t
+  }
 
 (*****************************************************************************)
 
@@ -607,16 +626,16 @@ let original_full_path ri =
 
 (** Create server parameters record *)
 let make_server_params
-      sitedata
-      ({request = ri; session_info = si; _} as info)
-      suffix
-      full_state_name
-  =
+    sitedata
+    ({request = ri; session_info = si; _} as info)
+    suffix
+    full_state_name =
   let appl_name =
     try
       Some
         (Ocsigen_cookie_map.Map_inner.find appl_name_cookie_name
-           si.si_tab_cookies)
+           si.si_tab_cookies
+        )
       (* It is an XHR from the client application, or an internal form *)
     with Not_found -> None
   in
@@ -628,7 +647,8 @@ let make_server_params
         { cpi_ssl = Ocsigen.Request.ssl request_info
         ; cpi_hostname = Ocsigen.Extensions.get_hostname ri
         ; cpi_server_port = Ocsigen.Extensions.get_port ri
-        ; cpi_original_full_path = original_full_path request_info }
+        ; cpi_original_full_path = original_full_path request_info
+        }
   in
   { sp_request = ri
   ; sp_si = si
@@ -641,7 +661,8 @@ let make_server_params
   ; sp_response_status = None
   ; sp_suffix = suffix
   ; sp_full_state_name = full_state_name
-  ; sp_client_process_info = cpi }
+  ; sp_client_process_info = cpi
+  }
 
 let sp_key = Lwt.new_key ()
 let get_sp_option () = Lwt.get sp_key
@@ -652,7 +673,8 @@ let get_sp () =
   | None ->
       raise
         (Request_information_not_available
-           (String.concat "\n" ("Common.get_sp" :: Common_base.backtrace_lwt 2)))
+           (String.concat "\n" ("Common.get_sp" :: Common_base.backtrace_lwt 2))
+        )
 
 let sp_of_option sp = match sp with None -> get_sp () | Some sp -> sp
 
@@ -684,7 +706,8 @@ let register_scope_hierarchy (name : string) =
       then
         failwith
           (Printf.sprintf "the scope hierarchy %s has already been registered"
-             name)
+             name
+          )
       else
         registered_scope_hierarchies :=
           Hier_set.add name !registered_scope_hierarchies
@@ -695,7 +718,8 @@ let register_scope_hierarchy (name : string) =
       then
         failwith
           (Printf.sprintf "the scope hierarchy %s has already been registered"
-             name)
+             name
+          )
       else
         sp.sp_sitedata.registered_scope_hierarchies <-
           Hier_set.add name sp.sp_sitedata.registered_scope_hierarchies
@@ -712,7 +736,8 @@ let list_scope_hierarchies () =
         (Hier_set.elements !registered_scope_hierarchies)
      @ List.map
          (fun s -> User_hier s)
-         (Hier_set.elements sp.sp_sitedata.registered_scope_hierarchies))
+         (Hier_set.elements sp.sp_sitedata.registered_scope_hierarchies)
+     )
 
 (*****************************************************************************)
 (* The current registration directory *)
@@ -782,7 +807,8 @@ let verify_all_registered sitedata =
       Logs.warn ~src:eliom_logs_src (fun fmt ->
         fmt "In site /%s - %s"
           (Url.string_of_url_path ~encode:false (get_site_dir sitedata))
-          (describe_unregistered_na l))
+          (describe_unregistered_na l)
+      )
   | l1, l2 ->
       raise
         (Eliom_there_are_unregistered_services (get_site_dir sitedata, l1, l2))
@@ -816,7 +842,8 @@ let force_lazy_site_value v =
     | None -> (
       match global_register_allowed () with
       | Some f -> f ()
-      | None -> raise (Site_information_not_available "force_lazy_site_value"))
+      | None -> raise (Site_information_not_available "force_lazy_site_value")
+    )
   in
   try Polytables.get ~table:sitedata.site_value_table ~key:v.lazy_sv_key
   with Not_found ->
@@ -843,9 +870,7 @@ let service_tables_are_empty t =
   List.for_all (fun {st_content; _} -> !st_content = Empty) t.table_services
 
 let remove_naservice_table at k =
-  match at with
-  | AEmpty -> AEmpty
-  | ATable t -> ATable (NAserv_Table.remove k t)
+  match at with AEmpty -> AEmpty | ATable t -> ATable (NAserv_Table.remove k t)
 
 let dlist_finaliser na_table_ref node =
   (* If the node disappears from the dlist,
@@ -877,7 +902,8 @@ let tables t2 service_dlist_add =
   ; table_contains_naservices_with_timeout = false
   ; csrf_get_or_na_registration_functions = Int.Table.empty
   ; csrf_post_registration_functions = Int.Table.empty
-  ; service_dlist_add }
+  ; service_dlist_add
+  }
 
 let empty_tables max =
   let t2 = ref (empty_naservice_table ()) in
@@ -896,7 +922,9 @@ let global_tables max =
       | None -> (
         match global_register_allowed () with
         | None -> failwith "global tables created outside initialisation"
-        | Some _ -> add_dlist_ initialisation v))
+        | Some _ -> add_dlist_ initialisation v
+      )
+    )
   , requests )
 
 let new_service_session_tables sitedata =
@@ -934,15 +962,16 @@ let getcookies secure cookie_level cookienamepref cookies =
   let last = length - 1 in
   Ocsigen_cookie_map.Map_inner.fold
     (fun name value beg ->
-       if String.first_diff cookienamepref name 0 last = length
-       then
-         try
-           let expcn = full_state_name_of_cookie_name cookie_level name in
-           if expcn.secure = secure
-           then Full_state_name_table.add expcn value beg
-           else beg
-         with Not_found -> beg
-       else beg)
+      if String.first_diff cookienamepref name 0 last = length
+      then
+        try
+          let expcn = full_state_name_of_cookie_name cookie_level name in
+          if expcn.secure = secure
+          then Full_state_name_table.add expcn value beg
+          else beg
+        with Not_found -> beg
+      else beg
+    )
     cookies Full_state_name_table.empty
 
 (* The state cookies of the given security and cookie level in [cookies] *)
@@ -950,7 +979,8 @@ let get_state_cookies secure cookie_level cookies =
   { service_cookies = getcookies secure cookie_level servicecookiename cookies
   ; data_cookies = getcookies secure cookie_level datacookiename cookies
   ; persistent_cookies =
-      getcookies secure cookie_level persistentcookiename cookies }
+      getcookies secure cookie_level persistentcookiename cookies
+  }
 
 (* After an action, we do not take into account actual get params,
    but these ones: *)
@@ -963,7 +993,8 @@ type params_after_action =
   ; pa_nl_file_params : (string * file_info) list String.Table.t
   ; pa_all_get_but_nl : (string * string) list
   ; pa_ignored_get_params : (string * string) list
-  ; pa_ignored_post_params : (string * string) list }
+  ; pa_ignored_post_params : (string * string) list
+  }
 
 let eliom_params_after_action : params_after_action Polytables.key =
   Polytables.make_key ()
@@ -977,7 +1008,8 @@ type cpi = client_process_info =
   { cpi_ssl : bool
   ; cpi_hostname : string
   ; cpi_server_port : int
-  ; cpi_original_full_path : string list }
+  ; cpi_original_full_path : string list
+  }
 [@@deriving json]
 
 [@@@warning "+39"]
@@ -1020,7 +1052,8 @@ let get_tab_cookies ri rc post_params =
             (Ocsigen_http.Header.Name.of_string tab_cookies_header_name)
         with
         | Some tc -> cookie_map_of_json ~what:"tab cookies" tc, post_params
-        | None -> Ocsigen_cookie_map.Map_inner.empty, post_params)
+        | None -> Ocsigen_cookie_map.Map_inner.empty, post_params
+      )
     in
     None, tab_cookies, post_params
 
@@ -1061,14 +1094,13 @@ let get_browser_cookies ri =
    and ignored ones, together with all its parameters. After an action, the
    latter are the ones saved by the action. *)
 let split_request_params
-      ~sitedata
-      rc
-      ~no_post_param
-      ~no_file_param
-      get_params0
-      post_params0
-      file_params0
-  =
+    ~sitedata
+    rc
+    ~no_post_param
+    ~no_file_param
+    get_params0
+    post_params0
+    file_params0 =
   try
     ( get_params0
     , post_params0
@@ -1096,7 +1128,8 @@ let split_request_params
       ; pa_nl_file_params = nl_file_params
       ; pa_all_get_but_nl = all_get_but_nl
       ; pa_ignored_get_params = ignored_get
-      ; pa_ignored_post_params = ignored_post } )
+      ; pa_ignored_post_params = ignored_post
+      } )
 
 (* The parameters of a request that identify its service *)
 type service_params =
@@ -1105,7 +1138,8 @@ type service_params =
   ; svc_get_params : (string * string) list
   ; svc_other_get_params : (string * string) list
   ; svc_na_get_params : (string * string) list Lazy.t
-  ; svc_post_params : (string * string) list }
+  ; svc_post_params : (string * string) list
+  }
 
 (* Removes from the GET and POST parameters of a request the ones that
    identify its non-attached service or its state *)
@@ -1118,7 +1152,8 @@ let get_service_params get_params post_params =
       try
         let n, pp = List.assoc_remove naservice_name post_params in
         RNa_post_ n, pp
-      with Not_found -> RNa_no, [])
+      with Not_found -> RNa_no, []
+    )
   in
   match post_naservice_name with
   | RNa_post_ _ | RNa_post' _ ->
@@ -1129,13 +1164,16 @@ let get_service_params get_params post_params =
       ; svc_other_get_params = get_params
       ; svc_na_get_params =
           lazy
-            (try
-               (try naservice_name, List.assoc naservice_name get_params
-                with Not_found ->
-                  naservice_num, List.assoc naservice_num get_params)
-               :: fst (split_prefix_param na_co_param_prefix get_params)
-             with Not_found -> [])
-      ; svc_post_params = na_post_params }
+            ( try
+                ( try naservice_name, List.assoc naservice_name get_params
+                  with Not_found ->
+                    naservice_num, List.assoc naservice_num get_params
+                  )
+                :: fst (split_prefix_param na_co_param_prefix get_params)
+              with Not_found -> []
+            )
+      ; svc_post_params = na_post_params
+      }
   | _ -> (
       let get_naservice_name, na_name_num, (na_get_params, other_get_params) =
         try
@@ -1149,7 +1187,8 @@ let get_service_params get_params post_params =
             ( RNa_get_ n
             , [naservice_name, n]
             , split_prefix_param na_co_param_prefix gp )
-          with Not_found -> RNa_no, [], ([], get_params))
+          with Not_found -> RNa_no, [], ([], get_params)
+        )
       in
       match get_naservice_name with
       | RNa_get_ _ | RNa_get' _ ->
@@ -1159,7 +1198,8 @@ let get_service_params get_params post_params =
           ; svc_get_params = na_get_params
           ; svc_other_get_params = other_get_params
           ; svc_na_get_params = lazy (na_name_num @ na_get_params)
-          ; svc_post_params = [] }
+          ; svc_post_params = []
+          }
           (* Not possible to have POST parameters
                      without naservice_num
                      if there is a GET naservice_num
@@ -1177,7 +1217,8 @@ let get_service_params get_params post_params =
                   List.assoc_remove post_state_param_name post_params
                 in
                 RAtt_named s, pp
-              with Not_found -> RAtt_no, post_params)
+              with Not_found -> RAtt_no, post_params
+            )
           in
           let get_state, (get_params, other_get_params) =
             try
@@ -1189,14 +1230,17 @@ let get_service_params get_params post_params =
               try
                 let s, gp = List.assoc_remove get_state_param_name get_params in
                 RAtt_named s, split_prefix_param co_param_prefix gp
-              with Not_found -> RAtt_no, (get_params, []))
+              with Not_found -> RAtt_no, (get_params, [])
+            )
           in
           { svc_nonatt_info = RNa_no
           ; svc_state_info = get_state, post_state
           ; svc_get_params = get_params
           ; svc_other_get_params = other_get_params
           ; svc_na_get_params = lazy (na_name_num @ na_get_params)
-          ; svc_post_params = post_params })
+          ; svc_post_params = post_params
+          }
+    )
 
 let get_session_info ~sitedata ~req previous_extension_err =
   let req_whole = req
@@ -1247,8 +1291,8 @@ let get_session_info ~sitedata ~req previous_extension_err =
         ; pa_nl_file_params = nl_file_params
         ; pa_all_get_but_nl = all_get_but_nl
         ; pa_ignored_get_params = ignored_get
-        ; pa_ignored_post_params = ignored_post } )
-    =
+        ; pa_ignored_post_params = ignored_post
+        } ) =
     split_request_params ~sitedata rc ~no_post_param ~no_file_param get_params
       post_params file_params
   in
@@ -1260,15 +1304,16 @@ let get_session_info ~sitedata ~req previous_extension_err =
       ; svc_get_params = get_params
       ; svc_other_get_params = other_get_params
       ; svc_na_get_params = na_get_params
-      ; svc_post_params = post_params }
-    =
+      ; svc_post_params = post_params
+      } =
     get_service_params get_params post_params
   in
   let persistent_nl_get_params =
     lazy
       (String.Table.fold
          (fun k a t -> if nl_is_persistent k then String.Table.add k a t else t)
-         nl_get_params String.Table.empty)
+         nl_get_params String.Table.empty
+      )
   in
   let state_cookies_tab = get_state_cookies false `Client_process tab_cookies in
   let secure_state_cookies_tab =
@@ -1280,19 +1325,21 @@ let get_session_info ~sitedata ~req previous_extension_err =
     *)
     ( Ocsigen.Request.update ri
         ?meth:
-          (if Ocsigen.Request.meth ri = `HEAD || to_be_considered_as_get
-           then Some `GET
-           else
-             None
-             (* Here we modify ri, instead of putting service parameters in
+          ( if Ocsigen.Request.meth ri = `HEAD || to_be_considered_as_get
+            then Some `GET
+            else
+              None
+              (* Here we modify ri, instead of putting service parameters in
          si.  Thus it works better after actions: the request can be
          taken by other extensions, with new parameters.  Initial
-         parameters are kept in si.  *))
+         parameters are kept in si.  *)
+          )
         ~get_params_flat:get_params
         ?post_data:
-          (if no_post_param
-           then None
-           else Some (Some (post_params, file_params)))
+          ( if no_post_param
+            then None
+            else Some (Some (post_params, file_params))
+          )
     , { si_state_cookies = state_cookies
       ; si_secure_state_cookies = secure_state_cookies
       ; si_state_cookies_tab = state_cookies_tab
@@ -1315,12 +1362,14 @@ let get_session_info ~sitedata ~req previous_extension_err =
       ; si_ignored_get_params = ignored_get
       ; si_ignored_post_params = ignored_post
       ; si_client_process_info = cpi
-      ; si_expect_process_data = epd } )
+      ; si_expect_process_data = epd
+      } )
   in
   Lwt.return
     ( {req_whole with Ocsigen.Extensions.request_info = ri}
     , sess
-    , previous_tab_cookies_info )
+    , previous_tab_cookies_info
+    )
 
 exception Eliom_retry_with of info
 
@@ -1338,7 +1387,8 @@ module Omit_persistent_storage = struct
                 header_name
             with
             | None -> false (* no User-Agent header *)
-            | Some header_value -> Re.execp regexp header_value)
+            | Some header_value -> Re.execp regexp header_value
+          )
         in
         List.for_all apply_rule rules
     | _ -> false
@@ -1369,27 +1419,28 @@ module Ocsipersist = struct
 
     module Table
         (T : sig
-           val name : string
-         end)
+          val name : string
+        end)
         (Key : COLUMN)
         (Value : COLUMN) =
     struct
       include Table (T) (Key) (Value)
 
       let add key value =
-        Omit_persistent_storage.not_if_omitting_storage (fun () ->
-          add key value)
+        Omit_persistent_storage.not_if_omitting_storage (fun () -> add key value)
 
       let remove key =
         Omit_persistent_storage.not_if_omitting_storage (fun () -> remove key)
 
       let replace_if_exists key value =
         Omit_persistent_storage.not_if_omitting_storage (fun () ->
-          replace_if_exists key value)
+          replace_if_exists key value
+        )
 
       let modify_opt key f =
         Omit_persistent_storage.not_if_omitting_storage (fun () ->
-          modify_opt key f)
+          modify_opt key f
+        )
     end
   end
 end
@@ -1408,8 +1459,7 @@ module Persistent_tables = struct
   let json_table_prefix = "_json_"
 
   let create_json (type a) ~name (json : a Deriving_Json.t) :
-    (module Ocsipersist.TABLE with type key = string and type value = a)
-    =
+      (module Ocsipersist.TABLE with type key = string and type value = a) =
     let name = json_table_prefix ^ name in
     let module T =
       Ocsipersist.Functorial.Table
@@ -1418,10 +1468,10 @@ module Persistent_tables = struct
         end)
         (Ocsipersist.Functorial.Column.String)
         (Ocsipersist.Functorial.Column.Json (struct
-             type t = a
+          type t = a
 
-             let t = json
-           end))
+          let t = json
+        end))
     in
     add_functorial_table (module T : Ocsipersist.TABLE with type key = string);
     (module T : Ocsipersist.TABLE with type key = string and type value = a)
@@ -1430,8 +1480,7 @@ module Persistent_tables = struct
   let remove_key_from_all_tables key =
     (* doesn't remove entry from Persistent_cookies_expiry_dates; not a problem *)
     Lwt_list.iter_s
-      (fun (module T : Ocsipersist.TABLE with type key = string) ->
-         T.remove key)
+      (fun (module T : Ocsipersist.TABLE with type key = string) -> T.remove key)
       !functorial_tables
 
   let number_of_tables () = List.length !functorial_tables
@@ -1439,8 +1488,9 @@ module Persistent_tables = struct
   let number_of_table_elements () =
     Lwt_list.map_s
       (fun (module T : Ocsipersist.TABLE with type key = string) ->
-         let* n = T.length () in
-         Lwt.return (T.name, n))
+        let* n = T.length () in
+        Lwt.return (T.name, n)
+      )
       !functorial_tables
 end
 
@@ -1477,7 +1527,9 @@ let patch_request_info ({Ocsigen.Extensions.request_info; _} as r) =
              List.remove_assoc nl_get_appl_parameter
                (Ocsigen.Request.get_params_flat request_info)
            in
-           Ocsigen.Request.update ~get_params_flat request_info) }
+           Ocsigen.Request.update ~get_params_flat request_info
+          )
+      }
   | None -> r
 
 (* Returns if we want secure cookie *)
@@ -1491,7 +1543,8 @@ module To_and_of_shared = struct
   type 'a t =
     { server : 'a to_and_of
     ; client : 'a to_and_of Client_value.t option
-    ; wrapper : wrapper }
+    ; wrapper : wrapper
+    }
   [@@warning "-69"]
 
   let wrapper : wrapper =
@@ -1517,11 +1570,13 @@ let get_app_name () = !current_app_name
 
 let defer get f =
   let r = ref None in
-  (match get () with
+  ( match get () with
   | Some v -> r := Some (f v)
   | None ->
       Ocsigen_base.Loader.add_module_init_function (get_app_name ()) (fun () ->
         match get () with
         | Some v -> r := Some (f v)
-        | None -> raise (Site_information_not_available "defer")));
+        | None -> raise (Site_information_not_available "defer")
+      )
+  );
   r

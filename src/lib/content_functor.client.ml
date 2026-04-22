@@ -22,26 +22,21 @@ open Lib
 open Content_core
 module Xml = Xml
 
-module MakeManip
-    (Kind : sig
-       type +'a elt
+module MakeManip (Kind : sig
+  type +'a elt
 
-       val toelt : 'a elt -> Xml.elt
-     end)
-    (To_dom : sig
-       val of_element : 'a Kind.elt -> Dom_html.element Js.t
-     end)
-    (Of_dom : sig
-       val of_element : Dom_html.element Js.t -> 'a Kind.elt
-     end)
-    (Id : sig
-       type 'a id
+  val toelt : 'a elt -> Xml.elt
+end) (To_dom : sig
+  val of_element : 'a Kind.elt -> Dom_html.element Js.t
+end) (Of_dom : sig
+  val of_element : Dom_html.element Js.t -> 'a Kind.elt
+end) (Id : sig
+  type 'a id
 
-       val get_element' : 'a id -> Dom.node Js.t
-     end)
-    (Ns : sig
-       val content_ns : Client_core.content_ns
-     end) =
+  val get_element' : 'a id -> Dom.node Js.t
+end) (Ns : sig
+  val content_ns : Client_core.content_ns
+end) =
 struct
   let get_node elt = (To_dom.of_element elt :> Dom.node Js.t)
 
@@ -58,15 +53,17 @@ struct
               (Client_core.rebuild_node' Ns.content_ns (Kind.toelt elt));
             raise_error ~section:eliom_logs_src
               "Cannot call %s on an element with functional semantics" context
-        | _ -> get_node elt)
+        | _ -> get_node elt
+      )
 
   let get_unique_elt name elt : Dom_html.element Js.t =
     Js.Opt.case
       (Dom_html.CoerceTo.element (get_unique_node name elt))
       (fun () ->
-         log_inspect (Client_core.rebuild_node' Ns.content_ns (Kind.toelt elt));
-         raise_error ~section:eliom_logs_src
-           "Cannot call %s on a node which is not an element" name)
+        log_inspect (Client_core.rebuild_node' Ns.content_ns (Kind.toelt elt));
+        raise_error ~section:eliom_logs_src
+          "Cannot call %s on a node which is not an element" name
+      )
       Fun.id
 
   let raw_appendChild ?before node elt2 =
@@ -84,7 +81,8 @@ struct
         let node3 = get_unique_node "appendChild" elt3 in
         List.iter
           (fun elt2 ->
-             ignore node##(insertBefore (get_node elt2) (Js.some node3)))
+            ignore node##(insertBefore (get_node elt2) (Js.some node3))
+          )
           elts
 
   let raw_removeChild node1 elt2 =
@@ -107,7 +105,9 @@ struct
   let elt_of_node_opt node =
     Js.Opt.bind node (fun node ->
       Js.Opt.map (Dom.CoerceTo.element node) (fun node ->
-        Of_dom.of_element (Dom_html.element node)))
+        Of_dom.of_element (Dom_html.element node)
+      )
+    )
 
   let nth elt n =
     let node = get_unique_node "nth" elt in
@@ -164,7 +164,8 @@ struct
     let node = get_unique_node "children" elt in
     List.map Of_dom.of_element
       (filterElements Dom_html.CoerceTo.element
-         (Dom.list_of_nodeList node##.childNodes))
+         (Dom.list_of_nodeList node##.childNodes)
+      )
 
   let parentNode elt =
     let node = get_unique_node "parentNode" elt in
@@ -186,8 +187,9 @@ struct
   let insertAfter ~after elt =
     Option.iter
       (fun parent ->
-         let before = nextSibling after in
-         appendChild ?before parent elt)
+        let before = nextSibling after in
+        appendChild ?before parent elt
+      )
       (parentNode after)
 
   let replaceSelf elt1 elt2 =
@@ -350,7 +352,9 @@ module Html = struct
         Content_core.(
           Html.F.to_attrib
             (Xml.internal_event_handler_attrib s
-               (Xml.internal_event_handler_of_service info)))
+               (Xml.internal_event_handler_of_service info)
+            )
+        )
 
       let to_elt = toelt
     end
@@ -376,7 +380,9 @@ module Html = struct
         Content_core.(
           Html.D.to_attrib
             (Xml.internal_event_handler_attrib s
-               (Xml.internal_event_handler_of_service info)))
+               (Xml.internal_event_handler_of_service info)
+            )
+        )
 
       let to_elt = toelt
     end
@@ -398,26 +404,26 @@ module Html = struct
   module type T = sig
     include
       Html_sigs.Make(Content_core.Xml)(Content_core.Svg.F.Raw').T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     include
       Content_sigs.LINKS_AND_FORMS
-      with type +'a elt := 'a elt
-       and type +'a attrib := 'a attrib
-       and type uri := uri
-       and type ('a, 'b, 'c) star := ('a, 'b, 'c) star
-       and type 'a form_param := 'a form_param
+        with type +'a elt := 'a elt
+         and type +'a attrib := 'a attrib
+         and type uri := uri
+         and type ('a, 'b, 'c) star := ('a, 'b, 'c) star
+         and type 'a form_param := 'a form_param
   end
 
   module Custom_data = Content_core.Html.Custom_data
   module Of_dom = Content_core.Html.Of_dom
 
   module To_dom = Js_of_ocaml_tyxml.Tyxml_cast.MakeTo (struct
-      type 'a elt = 'a F.elt
+    type 'a elt = 'a F.elt
 
-      let elt x = Js.Unsafe.coerce (Client_core.rebuild_node "n/a" x)
-    end)
+    let elt x = Js.Unsafe.coerce (Client_core.rebuild_node "n/a" x)
+  end)
 
   module Id = struct
     include Html.Id
@@ -450,7 +456,9 @@ module Html = struct
     let raw_addEventListener ?(capture = false) node event handler =
       Dom_html.addEventListener node event
         (Dom_html.full_handler (fun n e ->
-           Js.bool (handler (Html.F.tot (Xml.make_dom (n :> Dom.node Js.t))) e)))
+           Js.bool (handler (Html.F.tot (Xml.make_dom (n :> Dom.node Js.t))) e)
+         )
+        )
         (Js.bool capture)
 
     let addEventListener ?capture target event handler =
@@ -474,7 +482,8 @@ module Html = struct
       Js.Opt.case
         (Js.Opt.bind
            (Dom_html.CoerceTo.element (get_unique_node name elt))
-           coerce)
+           coerce
+        )
         (fun () -> failwith (Printf.sprintf "Non element node (%s)" name))
         Fun.id
 
@@ -550,23 +559,23 @@ module Html = struct
 
       let onfocus :> (_, Dom_html.event) ev =
        fun elt f ->
-        let elt = get_unique_elt_input "Ev.onfocus" elt in
-        elt##.onfocus := bool_cb f
+         let elt = get_unique_elt_input "Ev.onfocus" elt in
+         elt##.onfocus := bool_cb f
 
       let onblur :> (_, Dom_html.event) ev =
        fun elt f ->
-        let elt = get_unique_elt_input "Ev.onblur" elt in
-        elt##.onblur := bool_cb f
+         let elt = get_unique_elt_input "Ev.onblur" elt in
+         elt##.onblur := bool_cb f
 
       let onfocus_textarea :> (_, Dom_html.event) ev =
        fun elt f ->
-        let elt = get_unique_elt_textarea "Ev.onfocus" elt in
-        elt##.onfocus := bool_cb f
+         let elt = get_unique_elt_textarea "Ev.onfocus" elt in
+         elt##.onfocus := bool_cb f
 
       let onblur_textarea :> (_, Dom_html.event) ev =
        fun elt f ->
-        let elt = get_unique_elt_textarea "Ev.onblur" elt in
-        elt##.onblur := bool_cb f
+         let elt = get_unique_elt_textarea "Ev.onblur" elt in
+         elt##.onblur := bool_cb f
 
       let onscroll elt f =
         let elt = get_unique_elt "Ev.onscroll" elt in
@@ -1156,8 +1165,7 @@ module Html = struct
         let elt = get_unique_elt "SetCss.borderLeftWidth" elt in
         elt##.style##.borderLeftWidth := Js.bytestring v
 
-      let borderLeftWidthPx elt v =
-        borderLeftWidth elt (Printf.sprintf "%dpx" v)
+      let borderLeftWidthPx elt v = borderLeftWidth elt (Printf.sprintf "%dpx" v)
 
       let borderRight elt v =
         let elt = get_unique_elt "SetCss.borderRight" elt in

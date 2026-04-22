@@ -56,7 +56,7 @@ module Down : sig
   (** The abstract type of down events. *)
 
   val of_react :
-     ?scope:[< Comet.Channel.comet_scope]
+       ?scope:[< Comet.Channel.comet_scope]
     -> ?throttling:float
     -> ?name:string
     -> ?size:int
@@ -98,12 +98,13 @@ module Up : sig
       be manipulated as a standard event. *)
 
   val create :
-     ?scope:Common.scope
+       ?scope:Common.scope
     -> ?name:string
     -> ( 'a
-         , [`WithoutSuffix]
-         , [`One of 'a Parameter.ocaml] Parameter.param_name )
-         Parameter.params_type
+       , [`WithoutSuffix]
+       , [`One of 'a Parameter.ocaml] Parameter.param_name
+       )
+       Parameter.params_type
     -> 'a t
   (** [create param] creates an Up event.
       If [~name] is present, the coservice used to transmit the event will
@@ -120,7 +121,7 @@ module S : sig
     (** The abstract type of down signals. *)
 
     val of_react :
-       ?scope:[< Comet.Channel.comet_scope]
+         ?scope:[< Comet.Channel.comet_scope]
       -> ?throttling:float
       -> ?name:string
       -> 'a React.S.t

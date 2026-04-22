@@ -42,21 +42,25 @@ let get_cookie_info_for_uri_js uri_js =
         short_url_re##(exec uri_js)
         (fun () -> assert false)
         (fun res ->
-           let match_result = Js.match_result res in
-           let path =
-             Url.path_of_path_string
-               (Js.to_string
-                  (Js.Optdef.get (Js.array_get match_result 1) (fun () ->
-                     assert false)))
-           in
-           let path =
-             match path with
-             | "" :: _ -> path (* absolute *)
-             | _ ->
-                 Common_base.make_actual_path
-                   (Request_info.get_csp_original_full_path () @ path)
-           in
-           Request_info.get_csp_ssl (), path)
+          let match_result = Js.match_result res in
+          let path =
+            Url.path_of_path_string
+              (Js.to_string
+                 (Js.Optdef.get (Js.array_get match_result 1) (fun () ->
+                    assert false
+                  )
+                 )
+              )
+          in
+          let path =
+            match path with
+            | "" :: _ -> path (* absolute *)
+            | _ ->
+                Common_base.make_actual_path
+                  (Request_info.get_csp_original_full_path () @ path)
+          in
+          Request_info.get_csp_ssl (), path
+        )
   | Some (Url.Https {Url.hu_path = path; _}) -> true, path
   | Some (Url.Http {Url.hu_path = path; _}) -> false, path
   | Some (Url.File {Url.fu_path = path; _}) -> false, path
@@ -83,7 +87,9 @@ let redirect_get ?window_name ?window_features url =
         Dom_html.window##(open_ (Js.string url) (Js.string window_name)
                             (Js.Opt.map
                                (Js.Opt.option window_features)
-                               Js.string))
+                               Js.string
+                            )
+                         )
 
 let redirect_post ?window_name url params =
   let f = Dom_html.createForm Dom_html.document in
@@ -92,15 +98,16 @@ let redirect_post ?window_name url params =
   (match window_name with None -> () | Some wn -> f##.target := Js.string wn);
   List.iter
     (fun (n, v) ->
-       match v with
-       | `String v ->
-           let i =
-             Dom_html.createTextarea ~name:(Js.string n) Dom_html.document
-           in
-           i##.value := v;
-           Dom.appendChild f i
-       | `File _ ->
-           raise_error ~section "redirect_post not implemented for files")
+      match v with
+      | `String v ->
+          let i =
+            Dom_html.createTextarea ~name:(Js.string n) Dom_html.document
+          in
+          i##.value := v;
+          Dom.appendChild f i
+      | `File _ ->
+          raise_error ~section "redirect_post not implemented for files"
+    )
     params;
   f##.style##.display := Js.string "none";
   Dom.appendChild Dom_html.document##.body f;
@@ -156,18 +163,17 @@ let unlock () = set_locked false
     are always followed with GET.
 *)
 let send
-      ?with_credentials
-      ?(expecting_process_page = false)
-      ?cookies_info
-      ?get_args
-      ?post_args
-      ?override_method
-      ?progress
-      ?upload_progress
-      ?override_mime_type
-      url
-      result
-  =
+    ?with_credentials
+    ?(expecting_process_page = false)
+    ?cookies_info
+    ?get_args
+    ?post_args
+    ?override_method
+    ?progress
+    ?upload_progress
+    ?override_mime_type
+    url
+    result =
   let rec aux i ?cookies_info ?(get_args = []) ?post_args ?override_method url =
     let https, path =
       match cookies_info with
@@ -207,7 +213,8 @@ let send
           Mod_cookies.get_cookies_to_send ~in_local_storage:true host https path
         in
         ( Common.cookie_substitutes_header_name
-        , encode_header_value ~typ:[%json: (string * string) list] cookies )
+        , encode_header_value ~typ:[%json: (string * string) list] cookies
+        )
         :: headers
       else headers
     in
@@ -226,7 +233,8 @@ let send
       | Some host when host = Url.Current.host ->
           ( Common.tab_cpi_header_name
           , encode_header_value ~typ:[%json: Common_base.client_process_info]
-              (Process.get_info ()) )
+              (Process.get_info ())
+          )
           :: headers
       | _ -> headers
     in
@@ -235,7 +243,8 @@ let send
       then
         ("Accept", "application/xhtml+xml")
         :: ( Common.expecting_process_page_name
-           , encode_header_value ~typ:[%json: bool] true )
+           , encode_header_value ~typ:[%json: bool] true
+           )
         :: headers
       else headers
     in
@@ -262,26 +271,27 @@ let send
     in
     Lwt.catch
       (fun () ->
-         let* r =
-           let contents =
-             match post_args with
-             | Some post_args -> Some (`POST_form post_args)
-             | None -> None
-           in
-           XmlHttpRequest.perform_raw_url ?with_credentials
-             ?headers:(Some headers) ?content_type:None ?contents ~get_args
-             ~check_headers ?progress ?upload_progress ?override_mime_type
-             ?override_method url
-         in
-         let wait_for_unlock, unlock = Lwt.wait () in
-         (if not @@ React.S.value locked
+        let* r =
+          let contents =
+            match post_args with
+            | Some post_args -> Some (`POST_form post_args)
+            | None -> None
+          in
+          XmlHttpRequest.perform_raw_url ?with_credentials
+            ?headers:(Some headers) ?content_type:None ?contents ~get_args
+            ~check_headers ?progress ?upload_progress ?override_mime_type
+            ?override_method url
+        in
+        let wait_for_unlock, unlock = Lwt.wait () in
+        ( if not @@ React.S.value locked
           then Lwt.wakeup unlock ()
           else
             let unlock_event = React.E.once @@ React.S.changes locked in
             Dom_reference.retain_generic wait_for_unlock
-              ~keep:(React.E.map (fun _ -> Lwt.wakeup unlock ()) unlock_event));
-         let* () = wait_for_unlock in
-         (if Js.Optdef.test Js.Unsafe.global##.___eliom_use_cookie_substitutes_
+              ~keep:(React.E.map (fun _ -> Lwt.wakeup unlock ()) unlock_event)
+        );
+        let* () = wait_for_unlock in
+        ( if Js.Optdef.test Js.Unsafe.global##.___eliom_use_cookie_substitutes_
           then
             match
               (* Cookie substitutes are for iOS WKWebView *)
@@ -290,41 +300,45 @@ let send
             | None | Some "" -> ()
             | Some cookie_substitutes ->
                 Mod_cookies.update_cookie_table ~in_local_storage:true host
-                  (Mod_cookies.cookieset_of_json cookie_substitutes));
-         (match r.XmlHttpRequest.headers Common.set_tab_cookies_header_name with
-         | None | Some "" -> () (* No tab_cookies header *)
-         | Some tab_cookies ->
-             let tab_cookies = Mod_cookies.cookieset_of_json tab_cookies in
-             Mod_cookies.update_cookie_table host tab_cookies);
-         if r.XmlHttpRequest.code = 204
-         then
-           match r.XmlHttpRequest.headers Common.full_xhr_redir_header with
-           | None | Some "" -> (
-             match r.XmlHttpRequest.headers Common.half_xhr_redir_header with
-             | None | Some "" -> Lwt.return (r.XmlHttpRequest.url, None)
-             | Some _uri ->
-                 redirect_post url (Option.value post_args ~default:[]);
-                 Lwt.fail Program_terminated)
-           | Some uri ->
-               if i < max_redirection_level
-               then aux (i + 1) (Url.resolve uri)
-               else Lwt.fail Looping_redirection
-         else if expecting_process_page
-         then
-           let url =
-             match r.XmlHttpRequest.headers Common.response_url_header with
-             | None | Some "" -> Url.add_get_args url (List.tl get_args)
-             | Some url -> Url.resolve url
-           in
-           Lwt.return (url, Some (result r))
-         else if
-           r.XmlHttpRequest.code = 200
-           || XmlHttpRequest.(r.code = 0 && r.content <> "")
-           (* HACK for file access within Cordova which yields code 0.
+                  (Mod_cookies.cookieset_of_json cookie_substitutes)
+        );
+        ( match r.XmlHttpRequest.headers Common.set_tab_cookies_header_name with
+        | None | Some "" -> () (* No tab_cookies header *)
+        | Some tab_cookies ->
+            let tab_cookies = Mod_cookies.cookieset_of_json tab_cookies in
+            Mod_cookies.update_cookie_table host tab_cookies
+        );
+        if r.XmlHttpRequest.code = 204
+        then
+          match r.XmlHttpRequest.headers Common.full_xhr_redir_header with
+          | None | Some "" -> (
+            match r.XmlHttpRequest.headers Common.half_xhr_redir_header with
+            | None | Some "" -> Lwt.return (r.XmlHttpRequest.url, None)
+            | Some _uri ->
+                redirect_post url (Option.value post_args ~default:[]);
+                Lwt.fail Program_terminated
+          )
+          | Some uri ->
+              if i < max_redirection_level
+              then aux (i + 1) (Url.resolve uri)
+              else Lwt.fail Looping_redirection
+        else if expecting_process_page
+        then
+          let url =
+            match r.XmlHttpRequest.headers Common.response_url_header with
+            | None | Some "" -> Url.add_get_args url (List.tl get_args)
+            | Some url -> Url.resolve url
+          in
+          Lwt.return (url, Some (result r))
+        else if
+          r.XmlHttpRequest.code = 200
+          || XmlHttpRequest.(r.code = 0 && r.content <> "")
+          (* HACK for file access within Cordova which yields code 0.
                     Code 0 might mean a network error, but then we have no
                     content. *)
-         then Lwt.return (r.XmlHttpRequest.url, Some (result r))
-         else Lwt.fail (Failed_request r.XmlHttpRequest.code))
+        then Lwt.return (r.XmlHttpRequest.url, Some (result r))
+        else Lwt.fail (Failed_request r.XmlHttpRequest.code)
+      )
       (function
         | XmlHttpRequest.Wrong_headers (code, headers) -> (
           (* We are requesting application content and the headers tels
@@ -332,11 +346,12 @@ let send
           match headers Common.appl_name_header_name with
           | None | Some "" ->
               (* No application name header. *)
-              (match post_args with
+              ( match post_args with
               | None -> redirect_get url
               | _ ->
                   raise_error ~section
-                    "can't silently redirect a Post request to non application content");
+                    "can't silently redirect a Post request to non application content"
+              );
               Lwt.fail Program_terminated
           | Some appl_name ->
               let current_appl_name = Process.get_application_name () in
@@ -349,9 +364,13 @@ let send
                 Logs.warn ~src:section (fun fmt ->
                   fmt
                     "received content for application %S when running application %s"
-                    appl_name current_appl_name);
-                Lwt.fail (Failed_request code)))
-        | exc -> Lwt.fail exc)
+                    appl_name current_appl_name
+                );
+                Lwt.fail (Failed_request code)
+              )
+        )
+        | exc -> Lwt.fail exc
+        )
   in
   let* url, content =
     aux 0 ?cookies_info ?get_args ?post_args ?override_method url
@@ -363,11 +382,13 @@ let send
     }
   in
   Lwt.return
-    ( (match Url.url_of_string url with
+    ( ( match Url.url_of_string url with
       | Some (Url.Http url) -> Url.string_of_url (Url.Http (filter_url url))
       | Some (Url.Https url) -> Url.string_of_url (Url.Https (filter_url url))
-      | _ -> url)
-    , content )
+      | _ -> url
+      )
+    , content
+    )
 
 (* The image button last clicked, with the point of the click in the
    image. The submit event gives the image button that submitted a form
@@ -402,13 +423,15 @@ let track_image_button_clicks () =
             ( int_of_float (Js.to_float ev##.offsetX)
             , int_of_float (Js.to_float ev##.offsetY) )
         in
-        image_button_click := Some (i, point));
+        image_button_click := Some (i, point)
+    );
     Js._true
   in
   ignore
-    (Dom_html.addEventListener Dom_html.document Dom_html.Event.click
-       (Dom_html.handler record) Js._true
-     : Dom_html.event_listener_id)
+    ( Dom_html.addEventListener Dom_html.document Dom_html.Event.click
+        (Dom_html.handler record) Js._true
+      : Dom_html.event_listener_id
+      )
 
 (* The point that [image] sends when it submits a form. The click is
    forgotten once used, so that a later submission without a click sends
@@ -447,21 +470,21 @@ let submitter_args inj = function
           in
           let coordinate c = inj (Js.string (string_of_int c)) in
           [prefix ^ "x", coordinate x; prefix ^ "y", coordinate y]
-      | _ -> [])
+      | _ -> []
+    )
 
 let send_get_form
-      ?with_credentials
-      ?expecting_process_page
-      ?cookies_info
-      ?(get_args = [])
-      ?post_args
-      ?progress
-      ?upload_progress
-      ?override_mime_type
-      ?submitter
-      form
-      url
-  =
+    ?with_credentials
+    ?expecting_process_page
+    ?cookies_info
+    ?(get_args = [])
+    ?post_args
+    ?progress
+    ?upload_progress
+    ?override_mime_type
+    ?submitter
+    form
+    url =
   let get_args =
     submitter_args Js.to_string submitter
     @ get_args
@@ -471,18 +494,17 @@ let send_get_form
     ?post_args ?progress ?upload_progress ?override_mime_type url
 
 let send_post_form
-      ?with_credentials
-      ?expecting_process_page
-      ?cookies_info
-      ?get_args
-      ?(post_args = [])
-      ?progress
-      ?upload_progress
-      ?override_mime_type
-      ?submitter
-      form
-      url
-  =
+    ?with_credentials
+    ?expecting_process_page
+    ?cookies_info
+    ?get_args
+    ?(post_args = [])
+    ?progress
+    ?upload_progress
+    ?override_mime_type
+    ?submitter
+    form
+    url =
   let post_args =
     submitter_args (fun x -> `String x) submitter
     @ Form.form_elements form @ post_args
@@ -491,53 +513,49 @@ let send_post_form
     ~post_args ?progress ?upload_progress ?override_mime_type url
 
 let http_get
-      ?with_credentials
-      ?expecting_process_page
-      ?cookies_info
-      ?progress
-      ?upload_progress
-      ?override_mime_type
-      url
-      get_args
-  =
+    ?with_credentials
+    ?expecting_process_page
+    ?cookies_info
+    ?progress
+    ?upload_progress
+    ?override_mime_type
+    url
+    get_args =
   send ?with_credentials ?expecting_process_page ?cookies_info ?progress
     ?upload_progress ?override_mime_type ~get_args url
 
 let http_post
-      ?with_credentials
-      ?expecting_process_page
-      ?cookies_info
-      ?progress
-      ?upload_progress
-      ?override_mime_type
-      url
-      post_args
-  =
+    ?with_credentials
+    ?expecting_process_page
+    ?cookies_info
+    ?progress
+    ?upload_progress
+    ?override_mime_type
+    url
+    post_args =
   send ?with_credentials ?expecting_process_page ?cookies_info ~post_args
     ?progress ?upload_progress ?override_mime_type url
 
 let http_put
-      ?with_credentials
-      ?expecting_process_page
-      ?cookies_info
-      ?progress
-      ?upload_progress
-      ?override_mime_type
-      url
-      post_args
-  =
+    ?with_credentials
+    ?expecting_process_page
+    ?cookies_info
+    ?progress
+    ?upload_progress
+    ?override_mime_type
+    url
+    post_args =
   send ?with_credentials ?expecting_process_page ?cookies_info ~post_args
     ~override_method:`PUT ?progress ?upload_progress ?override_mime_type url
 
 let http_delete
-      ?with_credentials
-      ?expecting_process_page
-      ?cookies_info
-      ?progress
-      ?upload_progress
-      ?override_mime_type
-      url
-      post_args
-  =
+    ?with_credentials
+    ?expecting_process_page
+    ?cookies_info
+    ?progress
+    ?upload_progress
+    ?override_mime_type
+    url
+    post_args =
   send ?with_credentials ?expecting_process_page ?cookies_info ~post_args
     ~override_method:`DELETE ?progress ?upload_progress ?override_mime_type url

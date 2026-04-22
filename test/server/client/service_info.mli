@@ -5,11 +5,12 @@
 type t =
   { url : string  (** The URL of the service *)
   ; post_params : (string * string) list
-    (** The hidden POST parameters of the service *)
-  ; param : string  (** The name of the POST parameter *) }
+        (** The hidden POST parameters of the service *)
+  ; param : string  (** The name of the POST parameter *)
+  }
 
 val of_service :
-   ( unit
+     ( unit
      , 'a
      , Eliom.Service.post
      , _
@@ -19,7 +20,8 @@ val of_service :
      , [`WithoutSuffix]
      , unit
      , [`One of 'b] Eliom.Parameter.param_name
-     , _ )
+     , _
+     )
      Eliom.Service.t
   -> t
 (** [of_service s] is the information about [s]. *)

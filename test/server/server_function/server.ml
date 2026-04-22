@@ -10,18 +10,22 @@ module Info = Eliom_test_client.Service_info
    the server function [f] *)
 let info path f =
   string (get [path] P.unit) (fun () () ->
-    text (Info.to_string (Info.of_server_function f)))
+    text (Info.to_string (Info.of_server_function f))
+  )
 
 let () =
   info "incr"
     (Client.server_function [%json: int] (fun i ->
-       if i < 0 then failwith "negative" else Lwt.return (i + 1)))
+       if i < 0 then failwith "negative" else Lwt.return (i + 1)
+     )
+    )
 
 let () =
   info "with_error_handler"
     (Client.server_function
        ~error_handler:(fun _ -> Lwt.return (-1))
-       [%json: int] Lwt.return)
+       [%json: int] Lwt.return
+    )
 
 let () = info "once" (Client.server_function ~max_use:1 [%json: int] Lwt.return)
 
@@ -30,8 +34,10 @@ let () =
   string (get ["of_the_session"] P.unit) (fun () () ->
     let f =
       Client.server_function ~scope:Common.default_session_scope [%json: string]
-        (fun s -> Lwt.return ("of the session " ^ s))
+        (fun s -> Lwt.return ("of the session " ^ s)
+      )
     in
-    text (Info.to_string (Info.of_server_function f)))
+    text (Info.to_string (Info.of_server_function f))
+  )
 
 let () = Eliom_test_server.Server_harness.start [App.run ()]

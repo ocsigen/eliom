@@ -13,7 +13,7 @@ val config_info : Ocsigen.Extensions.config_info
 (** The default configuration of the host of the sites. *)
 
 val init :
-   ?config_info:Ocsigen.Extensions.config_info
+     ?config_info:Ocsigen.Extensions.config_info
   -> ?site_dir:string list
   -> ?run:(app:string -> Ocsigen.Server.instruction)
   -> app:string
@@ -33,7 +33,7 @@ val init :
     @raise Invalid_argument if [app] was already used. *)
 
 val register :
-   ( 'get
+     ( 'get
      , 'post
      , _
      , _
@@ -43,7 +43,8 @@ val register :
      , _
      , _
      , _
-     , Eliom.Service.non_ocaml )
+     , Eliom.Service.non_ocaml
+     )
      Eliom.Service.t
   -> unit
 (** [register service] registers an empty page as the handler of [service]. *)

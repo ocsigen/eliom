@@ -19,8 +19,7 @@ let () =
     (get ["tab"; "set"] P.(string "v"))
     (fun v () -> V.set tab_value v; text "set")
 
-let () =
-  string (get ["tab"; "get"] P.unit) (fun () () -> text (V.get tab_value))
+let () = string (get ["tab"; "get"] P.unit) (fun () () -> text (V.get tab_value))
 
 let persistent_tab_value =
   Reference.eref ~scope:tab_scope
@@ -31,15 +30,17 @@ let () =
   string
     (get ["tab"; "persistent"; "set"] P.(string "v"))
     (fun v () ->
-       let* () = Reference.set persistent_tab_value v in
-       text "set")
+      let* () = Reference.set persistent_tab_value v in
+      text "set"
+    )
 
 let () =
   string
     (get ["tab"; "persistent"; "get"] P.unit)
     (fun () () ->
-       let* v = Reference.get persistent_tab_value in
-       text v)
+      let* v = Reference.get persistent_tab_value in
+      text v
+    )
 
 let () =
   string
@@ -60,12 +61,14 @@ let () =
   string
     (get ["tab"; "coservice"] P.unit)
     (fun () () ->
-       let service =
-         Service.create_attached_get ~fallback ~get_params:P.unit ()
-       in
-       Registration.String.register ~scope:tab_scope ~service (fun () () ->
-         text "coservice of the tab");
-       text (Eliom_uri.make_string_uri ~absolute_path:true ~service ()))
+      let service =
+        Service.create_attached_get ~fallback ~get_params:P.unit ()
+      in
+      Registration.String.register ~scope:tab_scope ~service (fun () () ->
+        text "coservice of the tab"
+      );
+      text (Eliom_uri.make_string_uri ~absolute_path:true ~service ())
+    )
 
 (* A coservice registered for the group of the request *)
 
@@ -73,12 +76,14 @@ let () =
   string
     (get ["group"; "coservice"] P.unit)
     (fun () () ->
-       let service =
-         Service.create_attached_get ~fallback ~get_params:P.unit ()
-       in
-       Registration.String.register ~scope:group_scope ~service (fun () () ->
-         text "coservice of the group");
-       text (Eliom_uri.make_string_uri ~absolute_path:true ~service ()))
+      let service =
+        Service.create_attached_get ~fallback ~get_params:P.unit ()
+      in
+      Registration.String.register ~scope:group_scope ~service (fun () () ->
+        text "coservice of the group"
+      );
+      text (Eliom_uri.make_string_uri ~absolute_path:true ~service ())
+    )
 
 (* The maximum number of tabs of the browser session of the request *)
 
@@ -86,25 +91,28 @@ let () =
   string
     (get ["tab"; "max"] P.(int "n"))
     (fun n () ->
-       State.set_max_volatile_states_in_parent
-         ~scope:(tab_scope :> Common.user_scope)
-         n;
-       text "set")
+      State.set_max_volatile_states_in_parent
+        ~scope:(tab_scope :> Common.user_scope)
+        n;
+      text "set"
+    )
 
 let () =
   string
     (get ["group"; "join"] P.(string "name"))
     (fun name () ->
-       State.set_volatile_data_session_group ~scope:session_scope name;
-       State.set_service_session_group ~scope:session_scope name;
-       text "joined")
+      State.set_volatile_data_session_group ~scope:session_scope name;
+      State.set_service_session_group ~scope:session_scope name;
+      text "joined"
+    )
 
 let () =
   string
     (get ["group"; "leave_services"] P.unit)
     (fun () () ->
-       State.unset_service_session_group ~scope:session_scope ();
-       text "left")
+      State.unset_service_session_group ~scope:session_scope ();
+      text "left"
+    )
 
 let scope_of_string = function
   | "tab" -> (tab_scope :> Common.user_scope)
@@ -116,7 +124,8 @@ let () =
   string
     (get ["discard"] P.(string "scope"))
     (fun scope () ->
-       let* () = State.discard ~scope:(scope_of_string scope) () in
-       text "discarded")
+      let* () = State.discard ~scope:(scope_of_string scope) () in
+      text "discarded"
+    )
 
 let () = Eliom_test_server.Server_harness.start [App.run ()]

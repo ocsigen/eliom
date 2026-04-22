@@ -23,16 +23,16 @@
 (** See {!Ocsigen_base.Lib}. *)
 include
   module type of Ocsigen_base.Lib
-  with type poly = Ocsigen_base.Lib.poly
-   and type yesnomaybe = Ocsigen_base.Lib.yesnomaybe
-   and type 'a Clist.t = 'a Ocsigen_base.Lib.Clist.t
-   and type 'a Clist.node = 'a Ocsigen_base.Lib.Clist.node
+    with type poly = Ocsigen_base.Lib.poly
+     and type yesnomaybe = Ocsigen_base.Lib.yesnomaybe
+     and type 'a Clist.t = 'a Ocsigen_base.Lib.Clist.t
+     and type 'a Clist.node = 'a Ocsigen_base.Lib.Clist.node
 
 include
   module type of Lib_base
-  with type 'a Int64_map.t = 'a Lib_base.Int64_map.t
-  with type 'a String_map.t = 'a Lib_base.String_map.t
-  with type 'a Int_map.t = 'a Lib_base.Int_map.t
+    with type 'a Int64_map.t = 'a Lib_base.Int64_map.t
+    with type 'a String_map.t = 'a Lib_base.String_map.t
+    with type 'a Int_map.t = 'a Lib_base.Int_map.t
 
 type file_info = Ocsigen.Extensions.file_info
 

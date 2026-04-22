@@ -25,7 +25,9 @@ let test_paths () =
     Site.init ~site_dir:["blog"] ~app:"paths" (fun () ->
       [ path (get ["a"; "b"] Parameter.unit)
       ; path (get ["dir"; ""] Parameter.unit)
-      ; path (get [] Parameter.unit) ])
+      ; path (get [] Parameter.unit)
+      ]
+    )
   in
   Alcotest.(check (list string))
     "paths"
@@ -43,7 +45,9 @@ let test_full_path () =
   let paths =
     Site.init ~site_dir:["s"; "t"] ~app:"full path" (fun () ->
       [ full_path (get ["a"; "b"] Parameter.unit)
-      ; full_path (get [] Parameter.unit) ])
+      ; full_path (get [] Parameter.unit)
+      ]
+    )
   in
   Alcotest.(check (list (list string)))
     "paths"
@@ -58,8 +62,10 @@ let test_path_escaping () =
         ~service:
           (get
              ["a b"; "c%d"; "e?f"; "g#h"; "\xc3\xa9"; "i/j"; "k&l"; "m+n"]
-             Parameter.unit)
-        ())
+             Parameter.unit
+          )
+        ()
+    )
   in
   Alcotest.(check string)
     "path" "/s/a%20b/c%25d/e%3Ff/g%23h/%C3%A9/i%2Fj/k%26l/m%2Bn" path
@@ -69,7 +75,8 @@ let test_site_levels () =
     Site.init ~site_dir:["a"; "b"] ~app:"levels" (fun () ->
       let s = get ["c"] Parameter.unit in
       ( Uri.make_string_uri ~absolute_path:true ~service:s ()
-      , Uri.make_string_uri ~absolute:true ~service:s () ))
+      , Uri.make_string_uri ~absolute:true ~service:s () )
+    )
   in
   Alcotest.(check string) "absolute path" "/a/b/c" relative;
   Alcotest.(check string)
@@ -86,7 +93,8 @@ let test_default_protocol () =
       let s = get ["a"] Parameter.unit in
       ( Eliom.Config.default_protocol_is_https ()
       , Uri.make_string_uri ~absolute:true ~service:s ()
-      , Uri.make_string_uri ~absolute:true ~https:false ~service:s () ))
+      , Uri.make_string_uri ~absolute:true ~https:false ~service:s () )
+    )
   in
   Alcotest.(check bool) "protocol" true https;
   Alcotest.(check string)
@@ -103,13 +111,15 @@ let test_standard_ports () =
   let config_info =
     { Site.config_info with
       Ocsigen.Extensions.default_httpport = 80
-    ; default_httpsport = 443 }
+    ; default_httpsport = 443
+    }
   in
   let http, https =
     Site.init ~config_info ~app:"standard ports" (fun () ->
       let s = get ["a"] Parameter.unit in
       ( Uri.make_string_uri ~absolute:true ~service:s ()
-      , Uri.make_string_uri ~absolute:true ~https:true ~service:s () ))
+      , Uri.make_string_uri ~absolute:true ~https:true ~service:s () )
+    )
   in
   Alcotest.(check string) "HTTP" ("http://" ^ Site.hostname ^ "/a") http;
   Alcotest.(check string) "HTTPS" ("https://" ^ Site.hostname ^ "/a") https
@@ -141,7 +151,9 @@ let test_absolute_urls () =
           ~nl_params:
             (Parameter.add_nl_parameter Parameter.empty_nl_params_set nl 7)
           s (1, "x")
-      ; uri ~absolute_path:true (Service.preapply ~service:s (2, "p")) () ])
+      ; uri ~absolute_path:true (Service.preapply ~service:s (2, "p")) ()
+      ]
+    )
   in
   Alcotest.(check (list string))
     "URLs"
@@ -152,7 +164,8 @@ let test_absolute_urls () =
     ; https_prefix ^ "/blog/c"
     ; "/blog/a?s=x&i=1#top"
     ; "/blog/a?s=x&i=1&__nl_n_app-n.x=7"
-    ; "/blog/a?s=p&i=2" ]
+    ; "/blog/a?s=p&i=2"
+    ]
     urls
 
 let test_coservice_urls () =
@@ -169,7 +182,8 @@ let test_coservice_urls () =
       Site.register anonymous;
       Site.register named;
       ( Uri.make_string_uri ~absolute_path:true ~service:anonymous 1
-      , Uri.make_string_uri ~absolute_path:true ~service:named () ))
+      , Uri.make_string_uri ~absolute_path:true ~service:named () )
+    )
   in
   let anonymous, named = urls in
   let path, params =
@@ -203,7 +217,8 @@ let state url =
     List.find_opt
       (String.starts_with ~prefix)
       (String.split_on_char '&'
-         (List.nth (String.split_on_char '?' url @ [""]) 1))
+         (List.nth (String.split_on_char '?' url @ [""]) 1)
+      )
   with
   | Some p ->
       String.sub p (String.length prefix)
@@ -222,7 +237,8 @@ let test_anonymous_coservices () =
       in
       let url s = Uri.make_string_uri ~absolute_path:true ~service:s () in
       let first = anonymous () in
-      url first, url first, url (anonymous ()))
+      url first, url first, url (anonymous ())
+    )
   in
   Alcotest.(check string) "same coservice" (state first) (state again);
   Alcotest.(check bool) "other coservice" false (state first = state second)
@@ -249,10 +265,13 @@ let test_post_urls () =
       Site.register with_get;
       ( show
           (Uri.make_post_uri_components ~absolute_path:true ~service:attached ()
-             "x")
+             "x"
+          )
       , show
           (Uri.make_post_uri_components ~absolute_path:true ~service:with_get 3
-             "z") ))
+             "z"
+          ) )
+    )
   in
   let path, get_params, fragment, names, post_params = attached in
   Alcotest.(check string) "attached, path" "/a" path;
@@ -294,7 +313,9 @@ let test_urls_needing_a_request () =
     Site.register na;
     check "relative URL" (fun () -> Uri.make_string_uri ~service:s ());
     check "non-attached coservice" (fun () ->
-      Uri.make_string_uri ~absolute:true ~service:na ()))
+      Uri.make_string_uri ~absolute:true ~service:na ()
+    )
+  )
 
 let test_configuration () =
   let hostname, port, sslport, https =
@@ -302,7 +323,8 @@ let test_configuration () =
       ( Eliom.Config.get_default_hostname ()
       , Eliom.Config.get_default_port ()
       , Eliom.Config.get_default_sslport ()
-      , Eliom.Config.default_protocol_is_https () ))
+      , Eliom.Config.default_protocol_is_https () )
+    )
   in
   Alcotest.(check string) "hostname" Site.hostname hostname;
   Alcotest.(check int) "port" Site.http_port port;
@@ -324,4 +346,5 @@ let suite =
     ; Alcotest.test_case "POST URLs" `Quick test_post_urls
     ; Alcotest.test_case "URLs needing a request" `Quick
         test_urls_needing_a_request
-    ; Alcotest.test_case "configuration" `Quick test_configuration ] )
+    ; Alcotest.test_case "configuration" `Quick test_configuration
+    ] )

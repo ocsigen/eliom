@@ -36,7 +36,8 @@ let test_escaping () =
   let s =
     print
       Html.F.(
-        div ~a:[a_title "\"><script>x</script>"] [txt "<script>&</script>"])
+        div ~a:[a_title "\"><script>x</script>"] [txt "<script>&</script>"]
+      )
   in
   check_absent "text" s "<script>";
   check_contains "escaped text" s "&lt;script&gt;&amp;&lt;/script&gt;";
@@ -88,7 +89,8 @@ let test_error_param_type () =
   let s =
     print_doc
       (Eliom.Error_pages.page_error_param_type
-         [evil, Failure "x"; "j", Failure "y"])
+         [evil, Failure "x"; "j", Failure "y"]
+      )
   in
   check_contains "names" s "<em>j</em>";
   check_absent "escaped" s "<script>";
@@ -104,12 +106,13 @@ let test_bad_param () =
   Fun.protect
     ~finally:(fun () -> Ocsigen.Config.set_debugmode debugmode)
     (fun () ->
-       Ocsigen.Config.set_debugmode false;
-       check_absent "no details" (page ()) "i=1";
-       Ocsigen.Config.set_debugmode true;
-       let s = page () in
-       check_contains "details" s "i=1";
-       check_absent "escaped" s "<script>")
+      Ocsigen.Config.set_debugmode false;
+      check_absent "no details" (page ()) "i=1";
+      Ocsigen.Config.set_debugmode true;
+      let s = page () in
+      check_contains "details" s "i=1";
+      check_absent "escaped" s "<script>"
+    )
 
 let suite =
   ( "content"
@@ -120,4 +123,5 @@ let suite =
     ; Alcotest.test_case "custom data" `Quick test_custom_data
     ; Alcotest.test_case "wrong parameter type page" `Quick
         test_error_param_type
-    ; Alcotest.test_case "wrong parameters page" `Quick test_bad_param ] )
+    ; Alcotest.test_case "wrong parameters page" `Quick test_bad_param
+    ] )
