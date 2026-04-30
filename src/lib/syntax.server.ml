@@ -35,9 +35,15 @@ let get_global_data, modify_global_data =
     Reference.Volatile.eref ~scope:Common.site_scope Lib.String_map.empty
   in
   let is_site_available () =
-    (* Matches valid states for Common.get_site_data *)
+    (* Matches valid states for Common.get_site_data: either a current
+       request is being processed, or ocsigenserver is in its init
+       phase AND a sitedata has actually been pushed.  Without the
+       second conjunct, top-level [close_server_section] calls
+       inserted by the PPX run before [Mod_main] has had a chance to
+       push the default sitedata, and crash. *)
     Common.(
-      get_sp_option () <> None || Ocsigen.Extensions.during_initialisation ())
+      get_sp_option () <> None
+      || Ocsigen.Extensions.during_initialisation () && has_current_sitedata ())
   in
   let get () =
     if is_site_available ()
