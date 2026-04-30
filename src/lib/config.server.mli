@@ -164,7 +164,7 @@ val get_config : unit -> Xml.xml list
     {e Warning: You must call that function during the initialisation of
     your module (not during a Lwt thread or a service)
     otherwise it will raise the exception
-    {!Common.Eliom_site_information_not_available}.
+    {!Common.Site_information_not_available}.
     If you want to build a statically linkable module, you must call this
     function inside the initialisation function given to
     {!Service.register_eliom_module}.}

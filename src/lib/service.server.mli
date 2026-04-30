@@ -106,7 +106,7 @@ val create :
     {e Warning: [create] must be called when the site information is
     available, that is, either during a request or during the
     initialisation phase of the site.  Otherwise, it will raise the
-    exception {!Common.Eliom_site_information_not_available}.
+    exception {!Common.Site_information_not_available}.
     If you are using static linking, you must delay the call to this
     function until the configuration file is read, using
     {!Service.register_eliom_module}. Otherwise you will also
