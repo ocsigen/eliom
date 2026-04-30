@@ -682,7 +682,7 @@ val get_persistent_data_state_timeout :
     information is available, that is, either
     during a request or during the initialisation phase of the site.
     Otherwise, it will raise the exception
-    {!Common.Eliom_site_information_not_available}.
+    {!Common.Site_information_not_available}.
     If you are using static linking, you must delay the call to this function
     until the configuration file is read, using
     {!Service.register_eliom_module}. Otherwise you will also get
@@ -1034,7 +1034,7 @@ val create_volatile_table :
     information is available, that is, either
     during a request or during the initialisation phase of the site.
     Otherwise, it will raise the exception
-    {!Common.Eliom_site_information_not_available}.
+    {!Common.Site_information_not_available}.
     If you are using static linking, you must delay the call to this function
     until the configuration file is read, using
     {!Service.register_eliom_module}. Otherwise you will also get
