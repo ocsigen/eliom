@@ -43,7 +43,7 @@ let plain_service
      match Common.global_register_allowed () with
      | Some current_site_data ->
          Common.add_unregistered (current_site_data ()) path
-     | None -> raise (Common.Eliom_site_information_not_available "service"));
+     | None -> raise (Common.Site_information_not_available "service"));
   let reload_fun = Rf_client_fun in
   main_service ~https ~prefix:"" ~path ~kind:`Service ~meth ?redirect_suffix
     ?keep_nl_params ?priority ~get_params ~post_params ~reload_fun ()
@@ -359,7 +359,7 @@ let unregister
               let sitedata = get_current_sitedata () in
               sitedata.Common.global_services
           | _ ->
-              raise (Common.Eliom_site_information_not_available "unregister"))
+              raise (Common.Site_information_not_available "unregister"))
         | Some _ -> State.get_global_table ()
       in
       remove_service table service

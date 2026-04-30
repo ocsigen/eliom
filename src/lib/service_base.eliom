@@ -195,7 +195,7 @@ let redirect_suffix s = s.redirect_suffix
 let full_path s =
   match !(s.fullpath) with
   | None ->
-      raise (Common.Eliom_site_information_not_available "full_path")
+      raise (Common.Site_information_not_available "full_path")
   | Some a -> a
 
 let get_name s = s.get_name

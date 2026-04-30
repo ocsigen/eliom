@@ -105,7 +105,7 @@ let check_process_redir sp f param =
     Lwt.fail
       (* we answer to the xhr
          by asking an HTTP redirection *)
-      (Common.Eliom_do_half_xhr_redirection
+      (Common.Do_half_xhr_redirection
          ("/"
          ^ Lib.String.may_concat
              (Ocsigen.Request.original_full_path_string ri)
@@ -252,7 +252,7 @@ let register_aux
                                          S.t)
                                 g
                             in
-                            Lwt.fail (Common.Eliom_do_redirection redir_uri)
+                            Lwt.fail (Common.Do_redirection redir_uri)
                           else
                             (* It is an internal application form.
                                We don't redirect but we set this
@@ -487,7 +487,7 @@ let register
                I will defer the registration until app is initialised. *)
             Ocsigen_base.Loader.add_module_init_function (Common.get_app_name ())
               (fun () -> aux sitedata)
-      | _ -> raise (Common.Eliom_site_information_not_available "register"))
+      | _ -> raise (Common.Site_information_not_available "register"))
   | None, Some _ | Some `Site, Some _ ->
       register_aux pages ?options ?charset ?code ?content_type ?headers
         ?error_handler

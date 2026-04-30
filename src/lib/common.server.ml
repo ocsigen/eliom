@@ -687,7 +687,7 @@ let absolute_change_sitedata, get_current_sitedata, end_current_sitedata, has_cu
   , (fun () ->
       match !f2 with
       | [] ->
-          raise (Eliom_site_information_not_available "get_current_sitedata")
+          raise (Site_information_not_available "get_current_sitedata")
       | sd :: _ -> sd)
     (* get_current_sitedata *)
   , (fun () -> popf2 ()) (* end_current_sitedata *)
@@ -750,7 +750,7 @@ let force_lazy_site_value v =
       match global_register_allowed () with
       | Some f -> f ()
       | None ->
-          raise (Eliom_site_information_not_available "force_lazy_site_value"))
+          raise (Site_information_not_available "force_lazy_site_value"))
   in
   try Polytables.get ~table:sitedata.site_value_table ~key:v.lazy_sv_key
   with Not_found ->
@@ -1489,5 +1489,5 @@ let defer get f =
       Ocsigen_base.Loader.add_module_init_function (get_app_name ()) (fun () ->
         match get () with
         | Some v -> r := Some (f v)
-        | None -> raise (Eliom_site_information_not_available "defer")));
+        | None -> raise (Site_information_not_available "defer")));
   r

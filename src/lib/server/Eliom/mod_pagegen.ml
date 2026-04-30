@@ -357,11 +357,11 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
         | Common.Eliom_404 ->
             Lwt.return (Ocsigen.Extensions.Ext_next previous_extension_err)
         | Common.Eliom_retry_with a -> gen_aux a
-        | Common.Eliom_do_redirection uri ->
+        | Common.Do_redirection uri ->
             Lwt.return
             @@ do_redirection Ocsigen_http.Header.Name.location `Temporary_redirect
                  uri
-        | Common.Eliom_do_half_xhr_redirection uri ->
+        | Common.Do_half_xhr_redirection uri ->
             Lwt.return
             @@ do_redirection
                  (Ocsigen_http.Header.Name.of_string Common.half_xhr_redir_header)

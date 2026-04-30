@@ -624,7 +624,7 @@ let end_init () =
     try
       Common.verify_all_registered (Common.get_current_sitedata ());
       Common.end_current_sitedata ()
-    with Common.Eliom_site_information_not_available _ -> ()
+    with Common.Site_information_not_available _ -> ()
 (*VVV The "try with" looks like a hack:
             end_init is called even for user config files ... but in that case,
             current_sitedata is not set ...
@@ -684,7 +684,7 @@ let handle_init_exn = function
                 (string_of a) ll
             ^ ".")
       ^ "\nPlease correct your modules and make sure you have linked in all the modules..."
-  | Common.Eliom_site_information_not_available f ->
+  | Common.Site_information_not_available f ->
       "Eliom: Bad use of function \"" ^ f
       ^ "\". Must be used only during site initialisation phase (or, sometimes, also during request)."
   | Common.Eliom_page_erasing s ->

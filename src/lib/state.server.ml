@@ -937,7 +937,7 @@ let create_volatile_table ~scope ?secure () =
         Mod_datasess.create_volatile_table ~scope ~secure
     | None ->
         raise
-          (Common.Eliom_site_information_not_available "create_volatile_table"))
+          (Common.Site_information_not_available "create_volatile_table"))
   | Some sp ->
       let sitedata = Request_info.get_sitedata_sp ~sp in
       let secure = Common.get_secure ~secure_o:secure ~sitedata () in

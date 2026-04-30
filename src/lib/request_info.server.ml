@@ -26,7 +26,7 @@ let find_sitedata fun_name =
   | None -> (
     match Common.global_register_allowed () with
     | Some get_current_sitedata -> get_current_sitedata ()
-    | _ -> raise (Common.Eliom_site_information_not_available fun_name))
+    | _ -> raise (Common.Site_information_not_available fun_name))
 
 (*****************************************************************************)
 let get_http_method () =
@@ -295,7 +295,7 @@ let get_site_dir_option () =
   try Some (get_site_dir ())
   with
   | Common.Cannot_call_this_function_before_app_is_linked_to_a_site
-  | Common.Eliom_site_information_not_available _
+  | Common.Site_information_not_available _
   ->
     None
 
