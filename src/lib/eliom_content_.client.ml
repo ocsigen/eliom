@@ -422,6 +422,21 @@ module Html = struct
   type uri = F.uri
   type 'a form_param = 'a Eliom_form.param
 
+  module type T = sig
+    include
+      Html_sigs.Make(Eliom_content_core.Xml)(Eliom_content_core.Svg.F.Raw').T
+      with type +'a elt = 'a elt
+       and type +'a attrib = 'a attrib
+
+    include
+      Content_sigs.LINKS_AND_FORMS
+      with type +'a elt := 'a elt
+       and type +'a attrib := 'a attrib
+       and type uri := uri
+       and type ('a, 'b, 'c) star := ('a, 'b, 'c) star
+       and type 'a form_param := 'a form_param
+  end
+
   module Custom_data = Eliom_content_core.Html.Custom_data
   module Of_dom = Eliom_content_core.Html.Of_dom
 

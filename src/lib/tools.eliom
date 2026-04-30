@@ -250,7 +250,13 @@ let%client get_js_files () =
   js_files := [];
   f
 
-module Make (DorF : module type of Content.Html.F) : HTML5_TOOLS = struct
+(* The functor parameter is constrained to the named signature
+   [Content.Html.T] rather than [module type of Content.Html.F]:
+   the latter captures wrapped module paths and triggers an OCaml
+   strengthening bug when applied to a sister module (here
+   [Content.Html.D]) — see
+   [ia-reports/2026-04-ocaml-wrapped-mtof-bug.md]. *)
+module Make (DorF : Content.Html.T) : HTML5_TOOLS = struct
   open Html_types
   open Html.F
 
