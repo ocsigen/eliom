@@ -73,5 +73,5 @@ let defer get f =
   let r = ref None in
   (match get () with
   | Some v -> r := Some (f v)
-  | None -> raise (Eliom_site_information_not_available "defer"));
+  | None -> raise (Site_information_not_available "defer"));
   r
