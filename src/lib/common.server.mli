@@ -100,7 +100,7 @@ exception Eliom_Session_expired
 exception Eliom_Typing_Error of (string * exn) list
 (** The service (GET or POST) parameters do not match expected type *)
 
-exception Eliom_site_information_not_available of string
+exception Site_information_not_available of string
 (** That function cannot be used when the site information is not available,
     that is, outside a request or the initialisation phase of your Eliom module
     (while reading the configuration file).
@@ -110,6 +110,11 @@ exception Eliom_site_information_not_available of string
     In that case you must
     delay the function call using {!Service.register_eliom_module}.
 *)
+
+exception Eliom_site_information_not_available of string
+(** Backwards-compatible alias for {!Site_information_not_available}.  The
+    [Eliom_] prefix is redundant under the [Eliom.Common] namespace; new
+    code should use {!Site_information_not_available} directly. *)
 
 exception Cannot_call_this_function_before_app_is_linked_to_a_site
 (** Statically linked app: You cannot call this function before [App.run]. *)
@@ -134,10 +139,17 @@ val eliom_service_session_expired :
 
 (*VVV Warning: raising these exceptions will NOT send cookies!
   Do not use them inside services! *)
+exception Do_redirection of string
+
 exception Eliom_do_redirection of string
+(** Backwards-compatible alias; new code should use {!Do_redirection}. *)
 
 (* Used to redirect to the suffix version of the service *)
+exception Do_half_xhr_redirection of string
+
 exception Eliom_do_half_xhr_redirection of string
+(** Backwards-compatible alias; new code should use
+    {!Do_half_xhr_redirection}. *)
 
 type 'a tenable_value =
   < get : 'a ; set : ?override_tenable:bool -> 'a -> unit >

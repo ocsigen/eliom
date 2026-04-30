@@ -30,8 +30,16 @@ exception
 
 exception Cannot_call_this_function_before_app_is_linked_to_a_site
 exception Eliom_error_while_loading_site of string
-exception Eliom_do_redirection of string
-exception Eliom_do_half_xhr_redirection of string
+
+exception Do_redirection of string
+
+(* Backwards-compatible alias; new code should use Do_redirection. *)
+exception Eliom_do_redirection = Do_redirection
+
+exception Do_half_xhr_redirection of string
+
+(* Backwards-compatible alias; new code should use Do_half_xhr_redirection. *)
+exception Eliom_do_half_xhr_redirection = Do_half_xhr_redirection
 
 type 'a tenable_value =
   < get : 'a ; set : ?override_tenable:bool -> 'a -> unit >
