@@ -19,7 +19,12 @@
 
 open Lib
 
-exception Eliom_site_information_not_available of string
+exception Site_information_not_available of string
+
+(* Backwards-compatible alias.  The Eliom_ prefix is redundant under
+   the Eliom.Common namespace; new code should use
+   Site_information_not_available directly. *)
+exception Eliom_site_information_not_available = Site_information_not_available
 
 (******************************************************************)
 
