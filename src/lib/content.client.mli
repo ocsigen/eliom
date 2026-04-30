@@ -302,6 +302,26 @@ module Html : sig
   type uri = Xml.uri
   type 'a form_param
 
+  (** Tyxml HTML signature (with Eliom's links/forms extensions) shared
+      by [F] and [D], suitable as a functor parameter. Avoids
+      [module type of Content.Html.F], which captures wrapped module
+      paths and triggers an OCaml strengthening bug
+      (see [ia-reports/2026-04-ocaml-wrapped-mtof-bug.md]). *)
+  module type T = sig
+    include
+      Html_sigs.Make(Xml)(Svg.F.Raw').T
+      with type +'a elt = 'a elt
+       and type +'a attrib = 'a attrib
+
+    include
+      Content_sigs.LINKS_AND_FORMS
+      with type +'a elt := 'a elt
+       and type +'a attrib := 'a attrib
+       and type uri := uri
+       and type ('a, 'b, 'c) star := ('a, 'b, 'c) star
+       and type 'a form_param := 'a form_param
+  end
+
   (**/**)
 
   module Ev' = Eliom_content_core.Html.Ev'
