@@ -642,6 +642,14 @@ end
 val absolute_change_sitedata : sitedata -> unit
 val get_current_sitedata : unit -> sitedata
 val end_current_sitedata : unit -> unit
+
+val has_current_sitedata : unit -> bool
+(** [true] iff [get_current_sitedata] would succeed.  Used during
+    cmxs/cma loading to detect cases where ocsigenserver is in its
+    initialisation phase but no site is currently being processed,
+    e.g. just after [Dynlink.loadfile] has started running module
+    initializers. *)
+
 val add_unregistered : sitedata -> Url.path -> unit
 val add_unregistered_na : sitedata -> na_key_serv -> unit
 val remove_unregistered : sitedata -> Url.path -> unit

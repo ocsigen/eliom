@@ -672,7 +672,7 @@ let list_scope_hierarchies () =
 
 (*****************************************************************************)
 (* The current registration directory *)
-let absolute_change_sitedata, get_current_sitedata, end_current_sitedata =
+let absolute_change_sitedata, get_current_sitedata, end_current_sitedata, has_current_sitedata =
   let f2 : sitedata list ref = ref [] in
   let popf2 () = match !f2 with _ :: t -> f2 := t | [] -> f2 := [] in
   ( (fun sitedata -> f2 := sitedata :: !f2) (* absolute_change_sitedata *)
@@ -682,7 +682,8 @@ let absolute_change_sitedata, get_current_sitedata, end_current_sitedata =
           raise (Eliom_site_information_not_available "get_current_sitedata")
       | sd :: _ -> sd)
     (* get_current_sitedata *)
-  , fun () -> popf2 () (* end_current_sitedata *) )
+  , (fun () -> popf2 ()) (* end_current_sitedata *)
+  , fun () -> !f2 <> [] (* has_current_sitedata *) )
 (* Warning: these functions are used only during the initialisation
    phase, which is not threaded ... That's why it works, but ...
    it is not really clean ... public registration relies on this
