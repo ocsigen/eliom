@@ -113,6 +113,24 @@ More documentation [here](https://ocsigen.org/tuto/latest/manual/basics).
 
 Write your first Web and mobile application with Eliom using [Ocsigen Start](https://ocsigen.org/ocsigen-start)
 
+## Generating API documentation
+
+Wiki API pages are generated from the `.mli` files using `ocamldoc`
+and the [wikidoc](https://github.com/ocsigen/wikidoc) plugin:
+
+```
+make wikidoc
+```
+
+Output goes to `_build/doc/dev/api/{server,client}/`.
+
+The wiki files are published on the [wikidoc branch] under
+`doc/dev/api/{server,client}/`. To update the published documentation,
+copy the generated `.wiki` files to a checkout of the `wikidoc` branch
+and commit.
+
+[wikidoc branch]: https://github.com/ocsigen/eliom/tree/wikidoc/doc/dev/api
+
 ## Authors
 
 * Vincent Balat
