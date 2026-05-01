@@ -2,7 +2,7 @@
   type +'a elt
   type +'a attrib
   type uri = Content.Xml.uri
-  module Ev' = Eliom_content_core.Svg.Ev'
+  module Ev' = Content_core.Svg.Ev'
   module F :
     sig
       module Raw' :
@@ -4973,11 +4973,11 @@
             sig
               module W :
                 sig
-                  type 'a t = 'a Eliom_content_core.Xml_wed.W.t
+                  type 'a t = 'a Content_core.Xml_wed.W.t
                   val return : 'a -> 'a t
-                  type ('a, 'b) ft = ('a, 'b) Eliom_content_core.Xml_wed.W.ft
+                  type ('a, 'b) ft = ('a, 'b) Content_core.Xml_wed.W.ft
                   val fmap : ('a, 'b) ft -> 'a t -> 'b t
-                  type 'a tlist = 'a Eliom_content_core.Xml_wed.W.tlist
+                  type 'a tlist = 'a Content_core.Xml_wed.W.tlist
                   val nil : unit -> 'a tlist
                   val singleton : 'a t -> 'a tlist
                   val cons : 'a t -> 'a tlist -> 'a tlist
@@ -4986,18 +4986,18 @@
                 end
               type 'a wrap = 'a W.t
               type 'a list_wrap = 'a W.tlist
-              type uri = Eliom_content_core.Xml_wed.uri
+              type uri = Content_core.Xml_wed.uri
               val string_of_uri : (uri, string) W.ft
               val uri_of_string : (string, uri) W.ft
               type aname = string
-              type event_handler = Eliom_content_core.Xml_wed.event_handler
+              type event_handler = Content_core.Xml_wed.event_handler
               type mouse_event_handler =
-                  Eliom_content_core.Xml_wed.mouse_event_handler
+                  Content_core.Xml_wed.mouse_event_handler
               type keyboard_event_handler =
-                  Eliom_content_core.Xml_wed.keyboard_event_handler
+                  Content_core.Xml_wed.keyboard_event_handler
               type touch_event_handler =
-                  Eliom_content_core.Xml_wed.touch_event_handler
-              type attrib = Eliom_content_core.Xml_wed.attrib
+                  Content_core.Xml_wed.touch_event_handler
+              type attrib = Content_core.Xml_wed.attrib
               val float_attrib : aname -> float wrap -> attrib
               val int_attrib : aname -> int wrap -> attrib
               val string_attrib : aname -> string wrap -> attrib
@@ -5012,7 +5012,7 @@
                 aname -> touch_event_handler -> attrib
               val uri_attrib : aname -> uri wrap -> attrib
               val uris_attrib : aname -> uri list wrap -> attrib
-              type elt = Eliom_content_core.Xml_wed.elt
+              type elt = Content_core.Xml_wed.elt
               type ename = string
               val empty : unit -> elt
               val comment : string -> elt
@@ -5822,11 +5822,11 @@
         sig
           module W :
             sig
-              type 'a t = 'a Eliom_content_core.Xml_wed.W.t
+              type 'a t = 'a Content_core.Xml_wed.W.t
               val return : 'a -> 'a t
-              type ('a, 'b) ft = ('a, 'b) Eliom_content_core.Xml_wed.W.ft
+              type ('a, 'b) ft = ('a, 'b) Content_core.Xml_wed.W.ft
               val fmap : ('a, 'b) ft -> 'a t -> 'b t
-              type 'a tlist = 'a Eliom_content_core.Xml_wed.W.tlist
+              type 'a tlist = 'a Content_core.Xml_wed.W.tlist
               val nil : unit -> 'a tlist
               val singleton : 'a t -> 'a tlist
               val cons : 'a t -> 'a tlist -> 'a tlist
@@ -5835,18 +5835,16 @@
             end
           type 'a wrap = 'a W.t
           type 'a list_wrap = 'a W.tlist
-          type uri = Eliom_content_core.Xml_wed.uri
+          type uri = Content_core.Xml_wed.uri
           val string_of_uri : (uri, string) W.ft
           val uri_of_string : (string, uri) W.ft
           type aname = string
-          type event_handler = Eliom_content_core.Xml_wed.event_handler
-          type mouse_event_handler =
-              Eliom_content_core.Xml_wed.mouse_event_handler
+          type event_handler = Content_core.Xml_wed.event_handler
+          type mouse_event_handler = Content_core.Xml_wed.mouse_event_handler
           type keyboard_event_handler =
-              Eliom_content_core.Xml_wed.keyboard_event_handler
-          type touch_event_handler =
-              Eliom_content_core.Xml_wed.touch_event_handler
-          type attrib = Eliom_content_core.Xml_wed.attrib
+              Content_core.Xml_wed.keyboard_event_handler
+          type touch_event_handler = Content_core.Xml_wed.touch_event_handler
+          type attrib = Content_core.Xml_wed.attrib
           val float_attrib : aname -> float wrap -> attrib
           val int_attrib : aname -> int wrap -> attrib
           val string_attrib : aname -> string wrap -> attrib
@@ -5861,7 +5859,7 @@
             aname -> touch_event_handler -> attrib
           val uri_attrib : aname -> uri wrap -> attrib
           val uris_attrib : aname -> uri list wrap -> attrib
-          type elt = Eliom_content_core.Xml_wed.elt
+          type elt = Content_core.Xml_wed.elt
           type ename = string
           val empty : unit -> elt
           val comment : string -> elt

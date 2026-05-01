@@ -6,7 +6,7 @@
 <<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> Url_base>>
 
 ~See <<a_api project="ocsigenserver"| module
-      Ocsigen_lib.Url_base >> ~.
+      Ocsigen_base.Lib.Url_base >> ~.
 <<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|include>> Url>>
 
 ~See <<a_api project="js_of_ocaml"| module Js_of_ocaml.Url >> ~.

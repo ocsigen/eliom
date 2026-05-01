@@ -5,6 +5,5 @@
   val register_unwrapper : Unwrap.unwrap_id -> ('a -> 'b) -> unit
   val unwrap : string -> int -> 'a
   val register_unwrapper' : Unwrap.unwrap_id -> ('a -> 'b option) -> unit
-  val late_unwrap_value :
-    'a Eliom_runtime.Client_value_server_repr.t -> 'b -> unit
+  val late_unwrap_value : 'a Runtime.Client_value_server_repr.t -> 'b -> unit
 end >>

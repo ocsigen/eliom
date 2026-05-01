@@ -161,7 +161,7 @@
     string ->
     ('a, [< Parameter_sigs.S.suff ] as 'b, 'c) Parameter_sigs.S.params_type ->
     ('a, 'b, 'c) Parameter_sigs.S.params_type
-  type params = (string * Eliommod_parameters.param) list
+  type params = (string * Mod_parameters.param) list
   val construct_params :
     Parameter_sigs.S.params Lib.String.Table.t ->
     ('a, [< `WithSuffix | `WithoutSuffix ], 'b) Parameter_sigs.S.params_type ->

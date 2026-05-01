@@ -12,7 +12,6 @@
   val cat : string -> string -> string
   val equal : t -> t -> bool
   val compare : t -> t -> int
-  val starts_with : prefix:string -> string -> bool
   val ends_with : suffix:string -> string -> bool
   val contains_from : string -> int -> char -> bool
   val rcontains_from : string -> int -> char -> bool
@@ -77,6 +76,7 @@
   val basic_sep : char -> string -> string * string
   val sep : char -> string -> string * string
   val split : ?multisep:bool -> char -> string -> string list
+  val starts_with : prefix:string -> string -> bool
   val may_append : string -> sep:string -> string -> string
   val may_concat : string -> sep:string -> string -> string
   val first_diff : string -> string -> int -> int -> int

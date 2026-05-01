@@ -99,7 +99,7 @@
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="attr"| value Content.Html.C.attr >> ~[<<a_api subproject="client" | module Content.Html.C >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="attr"| value Content.Svg.C.attr >> ~[<<a_api subproject="client" | module Content.Svg.C >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="attrib"| value Eliom_content_core.Html.Custom_data.attrib >> ~[<<a_api subproject="client" | module Eliom_content_core.Html.Custom_data >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|attrib my~_data value >> creates a ~H~T~M~L~5 attribute for the custom~-data
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="attrib"| value Content_core.Html.Custom_data.attrib >> ~[<<a_api subproject="client" | module Content_core.Html.Custom_data >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|attrib my~_data value >> creates a ~H~T~M~L~5 attribute for the custom~-data
         type <<span class="odocwiki_inlinecode"|my~_data>> with value <<span class="odocwiki_inlinecode"|value>> for injecting it into an a ~H~T~M~L~5 tree
         ~(<<a_api | type Content.Html.elt >> ~)~.
 >>
@@ -244,7 +244,7 @@
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="color"| value Content.Html.Manip.SetCss.color >> ~[<<a_api subproject="client" | module Content.Html.Manip.SetCss >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="color"| value Content.Html.Manip.Css.color >> ~[<<a_api subproject="client" | module Content.Html.Manip.Css >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="comma_sep_attrib"| value Eliom_content_core.Xml_wed.comma_sep_attrib >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml_wed >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="comma_sep_attrib"| value Content_core.Xml_wed.comma_sep_attrib >> ~[<<a_api subproject="client" | module Content_core.Xml_wed >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="concat"| value Shared_sigs.RLIST.concat >> ~[<<a_api subproject="client" | module Shared_sigs.RLIST >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="confirm"| value Lib.confirm >> ~[<<a_api subproject="client" | module Lib >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="const"| value Shared_sigs.S.const >> ~[<<a_api subproject="client" | module Shared_sigs.S >>~]||
@@ -265,7 +265,7 @@
         updating the signal~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="create"| value Eliom_content_core.Html.Custom_data.create >> ~[<<a_api subproject="client" | module Eliom_content_core.Html.Custom_data >>~]|<<div class="odocwiki_info"|~Create a custom data field by providing string conversion functions~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="create"| value Content_core.Html.Custom_data.create >> ~[<<a_api subproject="client" | module Content_core.Html.Custom_data >>~]|<<div class="odocwiki_info"|~Create a custom data field by providing string conversion functions~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="create"| value Content.Html.Custom_data.create >> ~[<<a_api subproject="client" | module Content.Html.Custom_data >>~]|<<div class="odocwiki_info"|~Create a custom data field by providing string conversion functions~.
@@ -295,11 +295,11 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="create_attached_post"| value Registration_sigs.S_with_create.create_attached_post >> ~[<<a_api subproject="client" | module Registration_sigs.S_with_create >>~]|<<div class="odocwiki_info"|~Create an attached ~P~O~S~T service and register it at the same time~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="create_global_elt"| value Eliom_content_core.Html.Id.create_global_elt >> ~[<<a_api subproject="client" | module Eliom_content_core.Html.Id >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|create~_named~_elt elt>> is equivalent to
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="create_global_elt"| value Content_core.Html.Id.create_global_elt >> ~[<<a_api subproject="client" | module Content_core.Html.Id >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|create~_named~_elt elt>> is equivalent to
         <<span class="odocwiki_inlinecode"|create~_named~_elt ~~id~:~(new~_elt~_id ~(~)~) elt>>~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="create_global_elt"| value Eliom_content_core.Svg.Id.create_global_elt >> ~[<<a_api subproject="client" | module Eliom_content_core.Svg.Id >>~]|<<div class="odocwiki_info"|~See <<a_api subproject="client" | val Content.Html.Id.create_global_elt >>
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="create_global_elt"| value Content_core.Svg.Id.create_global_elt >> ~[<<a_api subproject="client" | module Content_core.Svg.Id >>~]|<<div class="odocwiki_info"|~See <<a_api subproject="client" | val Content.Html.Id.create_global_elt >>
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="create_global_elt"| value Content.Html.Id.create_global_elt >> ~[<<a_api subproject="client" | module Content.Html.Id >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|create~_named~_elt elt>> is equivalent to
@@ -310,17 +310,17 @@
         <<span class="odocwiki_inlinecode"|create~_named~_elt ~~id~:~(new~_elt~_id ~(~)~) elt>>~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="create_json"| value Eliom_content_core.Html.Custom_data.create_json >> ~[<<a_api subproject="client" | module Eliom_content_core.Html.Custom_data >>~]|<<div class="odocwiki_info"|~Create a custom data from a ~Json~-deriving type~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="create_json"| value Content_core.Html.Custom_data.create_json >> ~[<<a_api subproject="client" | module Content_core.Html.Custom_data >>~]|<<div class="odocwiki_info"|~Create a custom data from a ~Json~-deriving type~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="create_json"| value Content.Html.Custom_data.create_json >> ~[<<a_api subproject="client" | module Content.Html.Custom_data >>~]|<<div class="odocwiki_info"|~Create a custom data from a ~Json~-deriving type~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="create_named_elt"| value Eliom_content_core.Html.Id.create_named_elt >> ~[<<a_api subproject="client" | module Eliom_content_core.Html.Id >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|create~_named~_elt ~~id elt>> create a copy of the
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="create_named_elt"| value Content_core.Html.Id.create_named_elt >> ~[<<a_api subproject="client" | module Content_core.Html.Id >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|create~_named~_elt ~~id elt>> create a copy of the
         element <<span class="odocwiki_inlinecode"|elt>> that will be accessible through the name <<span class="odocwiki_inlinecode"|id>>~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="create_named_elt"| value Eliom_content_core.Svg.Id.create_named_elt >> ~[<<a_api subproject="client" | module Eliom_content_core.Svg.Id >>~]|<<div class="odocwiki_info"|~See <<a_api subproject="client" | val Content.Html.Id.create_named_elt >>
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="create_named_elt"| value Content_core.Svg.Id.create_named_elt >> ~[<<a_api subproject="client" | module Content_core.Svg.Id >>~]|<<div class="odocwiki_info"|~See <<a_api subproject="client" | val Content.Html.Id.create_named_elt >>
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="create_named_elt"| value Content.Html.Id.create_named_elt >> ~[<<a_api subproject="client" | module Content.Html.Id >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|create~_named~_elt ~~id elt>> create a copy of the
@@ -332,10 +332,10 @@
         element <<span class="odocwiki_inlinecode"|elt>> that will be accessible through the name <<span class="odocwiki_inlinecode"|id>>~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="create_request_elt"| value Eliom_content_core.Html.Id.create_request_elt >> ~[<<a_api subproject="client" | module Eliom_content_core.Html.Id >>~]|<<div class="odocwiki_info"|~See <<a_api subproject="client" | val Content.Svg.Id.create_request_elt >>
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="create_request_elt"| value Content_core.Html.Id.create_request_elt >> ~[<<a_api subproject="client" | module Content_core.Html.Id >>~]|<<div class="odocwiki_info"|~See <<a_api subproject="client" | val Content.Svg.Id.create_request_elt >>
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="create_request_elt"| value Eliom_content_core.Svg.Id.create_request_elt >> ~[<<a_api subproject="client" | module Eliom_content_core.Svg.Id >>~]|<<div class="odocwiki_info"|~See <<a_api subproject="client" | val Content.Html.Id.create_request_elt >>
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="create_request_elt"| value Content_core.Svg.Id.create_request_elt >> ~[<<a_api subproject="client" | module Content_core.Svg.Id >>~]|<<div class="odocwiki_info"|~See <<a_api subproject="client" | val Content.Html.Id.create_request_elt >>
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="create_request_elt"| value Content.Html.Id.create_request_elt >> ~[<<a_api subproject="client" | module Content.Html.Id >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|create~_request~_elt ~?reset elt>> creates a referable copy of
@@ -396,7 +396,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="file_input"| value Form_sigs.S.file_input >> ~[<<a_api subproject="client" | module Form_sigs.S >>~]|<<div class="odocwiki_info"|~Creates an <<span class="odocwiki_inlinecode"|~<input~>>> tag for sending a file
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="filter_attrib"| value Eliom_content_core.Html.R.filter_attrib >> ~[<<a_api subproject="client" | module Eliom_content_core.Html.R >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="filter_attrib"| value Content_core.Html.R.filter_attrib >> ~[<<a_api subproject="client" | module Content_core.Html.R >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="filter_attrib"| value Content.Html.R.filter_attrib >> ~[<<a_api subproject="client" | module Content.Html.R >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|filter~_attrib att on>> returns an attrib that
         behave like <<span class="odocwiki_inlinecode"|att>> when <<span class="odocwiki_inlinecode"|on>> is <<span class="odocwiki_inlinecode"|true>>
         and behave like if there was no attribute when <<span class="odocwiki_inlinecode"|on>> is <<span class="odocwiki_inlinecode"|false>>
@@ -409,7 +409,7 @@
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="float"| value Form_sigs.S.float >> ~[<<a_api subproject="client" | module Form_sigs.S >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="float_attrib"| value Eliom_content_core.Xml_wed.float_attrib >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml_wed >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="float_attrib"| value Content_core.Xml_wed.float_attrib >> ~[<<a_api subproject="client" | module Content_core.Xml_wed >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="fmap"| value Shared_sigs.S.fmap >> ~[<<a_api subproject="client" | module Shared_sigs.S >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="font"| value Content.Html.Manip.SetCss.font >> ~[<<a_api subproject="client" | module Content.Html.Manip.SetCss >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="font"| value Content.Html.Manip.Css.font >> ~[<<a_api subproject="client" | module Content.Html.Manip.Css >>~]||
@@ -433,14 +433,14 @@
     defined while applying <<span class="odocwiki_inlinecode"|~Registration~.~App>> functor~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_debugmode"| value Config.get_debugmode >> ~[<<a_api subproject="client" | module Config >>~]|<<div class="odocwiki_info"|~Same as <<span class="odocwiki_inlinecode"|~Ocsigen~_config~.get~_debugmode>>~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_debugmode"| value Config.get_debugmode >> ~[<<a_api subproject="client" | module Config >>~]|<<div class="odocwiki_info"|~Same as <<span class="odocwiki_inlinecode"|~Ocsigen~.~Config~.get~_debugmode>>~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_default_hostname"| value Config.get_default_hostname >> ~[<<a_api subproject="client" | module Config >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_default_links_xhr"| value Config.get_default_links_xhr >> ~[<<a_api subproject="client" | module Config >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_default_port"| value Config.get_default_port >> ~[<<a_api subproject="client" | module Config >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_default_sslport"| value Config.get_default_sslport >> ~[<<a_api subproject="client" | module Config >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_dom"| value Eliom_content_core.Html.Custom_data.get_dom >> ~[<<a_api subproject="client" | module Eliom_content_core.Html.Custom_data >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|get~_dom element custom~_data>> gets the <<span class="odocwiki_inlinecode"|custom~_data>> from a ~Java~Script <<span class="odocwiki_inlinecode"|element>>
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="get_dom"| value Content_core.Html.Custom_data.get_dom >> ~[<<a_api subproject="client" | module Content_core.Html.Custom_data >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|get~_dom element custom~_data>> gets the <<span class="odocwiki_inlinecode"|custom~_data>> from a ~Java~Script <<span class="odocwiki_inlinecode"|element>>
         ~(<<a_api project="js_of_ocaml"|class type Js_of_ocaml.Dom_html.element>> ~)~.
 >>
 |
@@ -533,7 +533,7 @@
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int64"| value Form_sigs.S.int64 >> ~[<<a_api subproject="client" | module Form_sigs.S >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int_attrib"| value Eliom_content_core.Xml_wed.int_attrib >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml_wed >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="int_attrib"| value Content_core.Xml_wed.int_attrib >> ~[<<a_api subproject="client" | module Content_core.Xml_wed >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="is_active"| value Comet.is_active >> ~[<<a_api subproject="client" | module Comet >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|is~_active ~(~)>> returns the current activity state
 >>
 |
@@ -687,11 +687,11 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="new_configuration"| value Comet.Configuration.new_configuration >> ~[<<a_api subproject="client" | module Comet.Configuration >>~]|<<div class="odocwiki_info"|~Creates a new configuration with default value~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="new_elt_id"| value Eliom_content_core.Html.Id.new_elt_id >> ~[<<a_api subproject="client" | module Eliom_content_core.Html.Id >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|new~_elt~_id ~(~)>> creates a new ~H~T~M~L~5 element
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="new_elt_id"| value Content_core.Html.Id.new_elt_id >> ~[<<a_api subproject="client" | module Content_core.Html.Id >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|new~_elt~_id ~(~)>> creates a new ~H~T~M~L~5 element
         identifier~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="new_elt_id"| value Eliom_content_core.Svg.Id.new_elt_id >> ~[<<a_api subproject="client" | module Eliom_content_core.Svg.Id >>~]|<<div class="odocwiki_info"|~See <<a_api subproject="client" | val Content.Html.Id.new_elt_id >>
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="new_elt_id"| value Content_core.Svg.Id.new_elt_id >> ~[<<a_api subproject="client" | module Content_core.Svg.Id >>~]|<<div class="odocwiki_info"|~See <<a_api subproject="client" | val Content.Html.Id.new_elt_id >>
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="new_elt_id"| value Content.Html.Id.new_elt_id >> ~[<<a_api subproject="client" | module Content.Html.Id >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|new~_elt~_id ~(~)>> creates a new global ~H~T~M~L~5 element
@@ -712,13 +712,13 @@
         if <<span class="odocwiki_inlinecode"|elt>> is not the last~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="node"| value Eliom_content_core.Html.R.node >> ~[<<a_api subproject="client" | module Eliom_content_core.Html.R >>~]|<<div class="odocwiki_info"|the function <<span class="odocwiki_inlinecode"|node s>> create an ~H~T~M~L~5 <<span class="odocwiki_inlinecode"|elt>> from a signal <<span class="odocwiki_inlinecode"|s>>~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="node"| value Content_core.Html.R.node >> ~[<<a_api subproject="client" | module Content_core.Html.R >>~]|<<div class="odocwiki_info"|the function <<span class="odocwiki_inlinecode"|node s>> create an ~H~T~M~L~5 <<span class="odocwiki_inlinecode"|elt>> from a signal <<span class="odocwiki_inlinecode"|s>>~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="node"| value Eliom_content_core.Svg.R.node >> ~[<<a_api subproject="client" | module Eliom_content_core.Svg.R >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|node s>> creates an ~S~V~G <<span class="odocwiki_inlinecode"|elt>> from a signal <<span class="odocwiki_inlinecode"|s>>~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="node"| value Content_core.Svg.R.node >> ~[<<a_api subproject="client" | module Content_core.Svg.R >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|node s>> creates an ~S~V~G <<span class="odocwiki_inlinecode"|elt>> from a signal <<span class="odocwiki_inlinecode"|s>>~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="node"| value Eliom_content_core.Xml_wed.node >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml_wed >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="node"| value Content_core.Xml_wed.node >> ~[<<a_api subproject="client" | module Content_core.Xml_wed >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="node"| value Content.Html.C.node >> ~[<<a_api subproject="client" | module Content.Html.C >>~]|<<div class="odocwiki_info"|~Those two functions are the identity on client~-side
         ~(the <<span class="odocwiki_inlinecode"|init>> argument is ignored~)~.
 >>
@@ -741,7 +741,7 @@
       side~) program to send some value of type ~'a~, marshaled~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_element"| value Eliom_content_core.Svg.Of_dom.of_element >> ~[<<a_api subproject="client" | module Eliom_content_core.Svg.Of_dom >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_element"| value Content_core.Svg.Of_dom.of_element >> ~[<<a_api subproject="client" | module Content_core.Svg.Of_dom >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_element"| value Content.Svg.Of_dom.of_element >> ~[<<a_api subproject="client" | module Content.Svg.Of_dom >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_element"| value Content.Svg.To_dom.of_element >> ~[<<a_api subproject="client" | module Content.Svg.To_dom >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="of_json"| value Lib.of_json >> ~[<<a_api subproject="client" | module Lib >>~]||
@@ -1009,7 +1009,6 @@
         where <<span class="odocwiki_inlinecode"|elt>> is displayed at the top of the window~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="section"| value Parameter_sigs.section >> ~[<<a_api subproject="client" | module Parameter_sigs >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="select"| value Form_sigs.S.select >> ~[<<a_api subproject="client" | module Form_sigs.S >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag~.
 >>
 |
@@ -1021,7 +1020,7 @@
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="send"| value Registration_sigs.PARAM_POLY.send >> ~[<<a_api subproject="client" | module Registration_sigs.PARAM_POLY >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="send"| value Registration_sigs.PARAM.send >> ~[<<a_api subproject="client" | module Registration_sigs.PARAM >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="send_appl_content"| value Registration_sigs.PARAM_POLY.send_appl_content >> ~[<<a_api subproject="client" | module Registration_sigs.PARAM_POLY >>~]|<<div class="odocwiki_info"|~See <<span class="odocwiki_inlinecode"|~Eliom~_reg~_sigs~.~P~A~R~A~M~.send~_appl~_content>>~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="send_appl_content"| value Registration_sigs.PARAM_POLY.send_appl_content >> ~[<<a_api subproject="client" | module Registration_sigs.PARAM_POLY >>~]|<<div class="odocwiki_info"|~See <<a_api subproject="client" | val Registration_sigs.PARAM.send_appl_content >>~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="send_appl_content"| value Registration_sigs.PARAM.send_appl_content >> ~[<<a_api subproject="client" | module Registration_sigs.PARAM >>~]|<<div class="odocwiki_info"|~Whether the service is capable of sending application content
@@ -1044,7 +1043,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="set_client_html_file"| value Client.set_client_html_file >> ~[<<a_api subproject="client" | module Client >>~]|<<div class="odocwiki_info"|~Set the name of the ~H~T~M~L file loading our client app~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="set_dom"| value Eliom_content_core.Html.Custom_data.set_dom >> ~[<<a_api subproject="client" | module Eliom_content_core.Html.Custom_data >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|set~_dom element custom~_data value>> sets the custom data attribute for
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="set_dom"| value Content_core.Html.Custom_data.set_dom >> ~[<<a_api subproject="client" | module Content_core.Html.Custom_data >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|set~_dom element custom~_data value>> sets the custom data attribute for
         <<span class="odocwiki_inlinecode"|custom~_data>> of an ~Java~Script <<span class="odocwiki_inlinecode"|element>>
         ~(<<a_api project="js_of_ocaml"|class type Js_of_ocaml.Dom_html.element>> ~)
         to <<span class="odocwiki_inlinecode"|value>>~.
@@ -1090,7 +1089,7 @@
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="signal"| value Shared_sigs.RLIST.signal >> ~[<<a_api subproject="client" | module Shared_sigs.RLIST >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="singleton_s"| value Shared_sigs.RLIST.singleton_s >> ~[<<a_api subproject="client" | module Shared_sigs.RLIST >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="space_sep_attrib"| value Eliom_content_core.Xml_wed.space_sep_attrib >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml_wed >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="space_sep_attrib"| value Content_core.Xml_wed.space_sep_attrib >> ~[<<a_api subproject="client" | module Content_core.Xml_wed >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="split_path"| value Lib.Url.split_path >> ~[<<a_api subproject="client" | module Lib.Url >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="static_dir"| value Service_sigs.S.static_dir >> ~[<<a_api subproject="client" | module Service_sigs.S >>~]|<<div class="odocwiki_info"|~The predefined service <<span class="odocwiki_inlinecode"|static~_dir>> allows one to create links
       to static files~.
@@ -1107,8 +1106,8 @@
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string"| value Form_sigs.S.string >> ~[<<a_api subproject="client" | module Form_sigs.S >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_attrib"| value Eliom_content_core.Xml_wed.string_attrib >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml_wed >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_of_uri"| value Eliom_content_core.Xml.string_of_uri >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_attrib"| value Content_core.Xml_wed.string_attrib >> ~[<<a_api subproject="client" | module Content_core.Xml_wed >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_of_uri"| value Content_core.Xml.string_of_uri >> ~[<<a_api subproject="client" | module Content_core.Xml >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_of_url_path"| value Lib.Url.string_of_url_path >> ~[<<a_api subproject="client" | module Lib.Url >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="string_radio_required"| value Form_sigs.S.string_radio_required >> ~[<<a_api subproject="client" | module Form_sigs.S >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="structure_links"| value Tools.HTML5_TOOLS.structure_links >> ~[<<a_api subproject="client" | module Tools.HTML5_TOOLS >>~]||
@@ -1173,14 +1172,14 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="unwrap_js"| value Unwrap.unwrap_js >> ~[<<a_api subproject="client" | module Unwrap >>~]|<<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|unwrap~_js v>> unwraps the content of the ~Java~Script variable <<span class="odocwiki_inlinecode"|v>>
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uri_attrib"| value Eliom_content_core.Xml_wed.uri_attrib >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml_wed >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uri_of_fun"| value Eliom_content_core.Xml.uri_of_fun >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uri_of_string"| value Eliom_content_core.Xml.uri_of_string >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uri_attrib"| value Content_core.Xml_wed.uri_attrib >> ~[<<a_api subproject="client" | module Content_core.Xml_wed >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uri_of_fun"| value Content_core.Xml.uri_of_fun >> ~[<<a_api subproject="client" | module Content_core.Xml >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uri_of_string"| value Content_core.Xml.uri_of_string >> ~[<<a_api subproject="client" | module Content_core.Xml >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uri_of_string"| value Form_sigs.LINKS.uri_of_string >> ~[<<a_api subproject="client" | module Form_sigs.LINKS >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|uri~_of~_string f>> returns a ~U~R~I whose content is
       equivalent to <<span class="odocwiki_inlinecode"|f ~(~)>>~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uris_attrib"| value Eliom_content_core.Xml_wed.uris_attrib >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml_wed >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uris_attrib"| value Content_core.Xml_wed.uris_attrib >> ~[<<a_api subproject="client" | module Content_core.Xml_wed >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="user"| value Form_sigs.S.user >> ~[<<a_api subproject="client" | module Form_sigs.S >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="user_type"| value Parameter.user_type >> ~[<<a_api subproject="client" | module Parameter >>~]|<<div class="odocwiki_info"|~Specifying parameter as <<span class="odocwiki_inlinecode"|user~_type ~~of~_string ~~to~_string s>> tells
     that the service take a parameter~, labeled <<span class="odocwiki_inlinecode"|s>>~, and that the

@@ -107,5 +107,5 @@
     ?charset:string ->
     ?code:int ->
     ?content_type:string ->
-    ?headers:Ocsigen_header.t -> 'a page -> 'b Registration.kind Lwt.t
+    ?headers:Ocsigen_http.Header.t -> 'a page -> 'b Registration.kind Lwt.t
 end >>

@@ -124,7 +124,7 @@
   val add_pref_params :
     string ->
     ('a, [< suff ] as 'b, 'c) params_type -> ('a, 'b, 'c) params_type
-  type params = (string * Eliom.Eliommod_parameters.param) list
+  type params = (string * Eliom.Mod_parameters.param) list
   val construct_params :
     params Eliom.Lib.String.Table.t ->
     ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->

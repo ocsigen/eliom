@@ -9,8 +9,12 @@
 >>
 |
 |<<a_api subproject="server" | module Client >>||
-|Eliom_client_value||
-|Eliom_common||
+|<<a_api subproject="server" | module Client_value >>|<<div class="odocwiki_info"|~Client and shared values
+>>
+|
+|<<a_api subproject="server" | module Common >>|<<div class="odocwiki_info"|~Low level functions for ~Eliom~, exceptions and types~.
+>>
+|
 |<<a_api subproject="server" | module Config >>|<<div class="odocwiki_info"|~This module makes also possible get information from the configuration
 file~.
 >>
@@ -38,9 +42,15 @@ file~.
 |<<a_api subproject="server" | module Content >>|<<div class="odocwiki_info"|~This module allows creating valid ~H~T~M~L content~, or other ~X~M~L formats~.
 >>
 |
-|Eliom_content.Html||
-|Eliom_content.Svg||
-|Eliom_content.Xml||
+|<<a_api subproject="server" | module Content.Html >>|<<div class="odocwiki_info"|~Building and printing valid ~H~T~M~L~5 tree~.
+>>
+|
+|<<a_api subproject="server" | module Content.Svg >>|<<div class="odocwiki_info"|~Building and pretty~-printing valid ~S~V~G tree~.
+>>
+|
+|<<a_api subproject="server" | module Content.Xml >>|<<div class="odocwiki_info"|~Low~-level ~X~M~L manipulation~.
+>>
+|
 |<<a_api subproject="server" | module Tools >>||
 
 
@@ -61,13 +71,33 @@ file~.
     files~, ~.~.~.
 >>
 |
-|Eliom_registration.Html||
-|Eliom_registration.Action||
-|Eliom_registration.Ocaml||
-|Eliom_registration.App||
-|Eliom_registration.File||
-|Eliom_registration.Any||
-|Eliom_registration.Redirection||
+|<<a_api subproject="server" | module Registration.Html >>|<<div class="odocwiki_info"|~Eliom service registration for services that return ~H~T~M~L
+    pages~.
+>>
+|
+|<<a_api subproject="server" | module Registration.Action >>|<<div class="odocwiki_info"|~Eliom service registration for services that only execute
+    actions~.
+>>
+|
+|<<a_api subproject="server" | module Registration.Ocaml >>|<<div class="odocwiki_info"|~Eliom service registration for services that send marshalled ~O~Caml
+    values~.
+>>
+|
+|<<a_api subproject="server" | module Registration.App >>|<<div class="odocwiki_info"|~Functor for application creation~.
+>>
+|
+|<<a_api subproject="server" | module Registration.File >>|<<div class="odocwiki_info"|~Eliom service registration for services that returns file
+    contents~.
+>>
+|
+|<<a_api subproject="server" | module Registration.Any >>|<<div class="odocwiki_info"|~Eliom service registration for services that choose dynamically
+    what they want to send~.
+>>
+|
+|<<a_api subproject="server" | module Registration.Redirection >>|<<div class="odocwiki_info"|~Eliom service registration for services that returns a
+    redirections towards another service~.
+>>
+|
 
 
 

@@ -30,12 +30,12 @@
       val snd : 'a * 'b * 'c -> 'b
       val thd : 'a * 'b * 'c -> 'c
     end
-  type poly = Ocsigen_lib.poly
+  type poly = Ocsigen_base.Lib.poly
   val to_poly : 'a -> poly
   val from_poly : poly -> 'a
-  type yesnomaybe = Ocsigen_lib.yesnomaybe = Yes | No | Maybe
+  type yesnomaybe = Ocsigen_base.Lib.yesnomaybe = Yes | No | Maybe
   type ('a, 'b) leftright =
-    ('a, 'b) Ocsigen_lib.leftright =
+    ('a, 'b) Ocsigen_base.Lib.leftright =
       Left of 'a
     | Right of 'b
   val advert : string
@@ -144,8 +144,8 @@
     end
   module Clist :
     sig
-      type 'a t = 'a Ocsigen_lib.Clist.t
-      type 'a node = 'a Ocsigen_lib.Clist.node
+      type 'a t = 'a Ocsigen_base.Lib.Clist.t
+      type 'a node = 'a Ocsigen_base.Lib.Clist.node
       val make : 'a -> 'a node
       val create : unit -> 'a t
       val insert : 'a t -> 'a node -> unit
@@ -161,7 +161,7 @@
       module Table :
         sig
           type key = int
-          type +!'a t
+          type 'a t = 'a Ocsigen_base.Lib.Int.Table.t
           val empty : 'a t
           val add : key -> 'a -> 'a t -> 'a t
           val add_to_list : key -> 'a -> 'a list t -> 'a list t
@@ -224,7 +224,6 @@
       val cat : string -> string -> string
       val equal : t -> t -> bool
       val compare : t -> t -> int
-      val starts_with : prefix:string -> string -> bool
       val ends_with : suffix:string -> string -> bool
       val contains_from : string -> int -> char -> bool
       val rcontains_from : string -> int -> char -> bool
@@ -289,13 +288,14 @@
       val basic_sep : char -> string -> string * string
       val sep : char -> string -> string * string
       val split : ?multisep:bool -> char -> string -> string list
+      val starts_with : prefix:string -> string -> bool
       val may_append : string -> sep:string -> string -> string
       val may_concat : string -> sep:string -> string -> string
       val first_diff : string -> string -> int -> int -> int
       module Table :
         sig
           type key = string
-          type +!'a t
+          type 'a t = 'a Ocsigen_base.Lib.String_base.Table.t
           val empty : 'a t
           val add : key -> 'a -> 'a t -> 'a t
           val add_to_list : key -> 'a -> 'a list t -> 'a list t
@@ -345,7 +345,7 @@
       module Set :
         sig
           type elt = string
-          type t
+          type t = Ocsigen_base.Lib.String_base.Set.t
           val empty : t
           val add : elt -> t -> t
           val singleton : elt -> t
@@ -393,7 +393,7 @@
       module Map :
         sig
           type key = string
-          type +!'a t
+          type 'a t = 'a Ocsigen_base.Lib.String_base.Map.t
           val empty : 'a t
           val add : key -> 'a -> 'a t -> 'a t
           val add_to_list : key -> 'a -> 'a list t -> 'a list t
@@ -476,7 +476,6 @@
       val cat : string -> string -> string
       val equal : t -> t -> bool
       val compare : t -> t -> int
-      val starts_with : prefix:string -> string -> bool
       val ends_with : suffix:string -> string -> bool
       val contains_from : string -> int -> char -> bool
       val rcontains_from : string -> int -> char -> bool
@@ -541,13 +540,14 @@
       val basic_sep : char -> string -> string * string
       val sep : char -> string -> string * string
       val split : ?multisep:bool -> char -> string -> string list
+      val starts_with : prefix:string -> string -> bool
       val may_append : string -> sep:string -> string -> string
       val may_concat : string -> sep:string -> string -> string
       val first_diff : string -> string -> int -> int -> int
       module Table :
         sig
           type key = string
-          type +!'a t
+          type 'a t = 'a Ocsigen_base.Lib.String.Table.t
           val empty : 'a t
           val add : key -> 'a -> 'a t -> 'a t
           val add_to_list : key -> 'a -> 'a list t -> 'a list t
@@ -597,7 +597,7 @@
       module Set :
         sig
           type elt = string
-          type t
+          type t = Ocsigen_base.Lib.String.Set.t
           val empty : t
           val add : elt -> t -> t
           val singleton : elt -> t
@@ -645,7 +645,7 @@
       module Map :
         sig
           type key = string
-          type +!'a t
+          type 'a t = 'a Ocsigen_base.Lib.String.Map.t
           val empty : 'a t
           val add : key -> 'a -> 'a t -> 'a t
           val add_to_list : key -> 'a -> 'a list t -> 'a list t
@@ -775,13 +775,13 @@
     end
   module Date : sig val to_string : float -> string end
   exception Eliom_Internal_Error of string
-  module type Map_S = Eliom.Eliom_lib_base.Map_S
-  module Int64_map = Eliom.Eliom_lib_base.Int64_map
-  module Int_map = Eliom.Eliom_lib_base.Int_map
-  module String_map = Eliom.Eliom_lib_base.String_map
+  module type Map_S = Eliom.Lib_base.Map_S
+  module Int64_map = Eliom.Lib_base.Int64_map
+  module Int_map = Eliom.Lib_base.Int_map
+  module String_map = Eliom.Lib_base.String_map
   type pos = Lexing.position * Lexing.position
   val pos_to_string : pos -> string
-  type file_info = Ocsigen_extensions.file_info
+  type file_info = Ocsigen.Extensions.file_info
   val string_escape : string -> string
   val to_json : ?typ:'a Deriving_Json.t -> 'a -> string
   val of_json : ?typ:'a Deriving_Json.t -> string -> 'a

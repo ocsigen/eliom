@@ -17,9 +17,9 @@
   val string_of_uri : string -> uri
   val uri_of_fun : (unit -> string) -> uri
   type aname = string
-  type attrib = Eliom.Eliom_content_core.Xml.attrib
+  type attrib = Eliom.Content_core.Xml.attrib
   type caml_event_handler =
-    Eliom.Eliom_content_core.Xml.caml_event_handler =
+    Eliom.Content_core.Xml.caml_event_handler =
       CE_registered_closure of string * Eliom.Lib.poly
     | CE_client_closure of
         (Js_of_ocaml.Dom_html.event Js_of_ocaml.Js.t -> unit)
@@ -34,7 +34,7 @@
          string option * Ocsigen_lib_base.poly)
         option Eliom.Eliom_lazy.request
   type internal_event_handler =
-    Eliom.Eliom_content_core.Xml.internal_event_handler =
+    Eliom.Content_core.Xml.internal_event_handler =
       Raw of string
     | Caml of caml_event_handler
   type event_handler = Js_of_ocaml.Dom_html.event Js_of_ocaml.Js.t -> unit
@@ -45,11 +45,11 @@
   type touch_event_handler =
       Js_of_ocaml.Dom_html.touchEvent Js_of_ocaml.Js.t -> unit
   type ename = string
-  type elt = Eliom.Eliom_content_core.Xml.elt
+  type elt = Eliom.Content_core.Xml.elt
   type 'a wrap = 'a
   type 'a list_wrap = 'a list
   type econtent =
-    Eliom.Eliom_content_core.Xml.econtent = private
+    Eliom.Content_core.Xml.econtent = private
       Empty
     | Comment of string
     | EncodedPCDATA of string
@@ -61,16 +61,16 @@
     ([ `A | `Form_get | `Form_post ] * (bool * string list) option *
      string option * Eliom.Lib.poly)
     option Eliom.Eliom_lazy.request -> internal_event_handler
-  type separator = Eliom.Eliom_content_core.Xml.separator = Space | Comma
+  type separator = Eliom.Content_core.Xml.separator = Space | Comma
   type acontent =
-    Eliom.Eliom_content_core.Xml.acontent = private
+    Eliom.Content_core.Xml.acontent = private
       AFloat of float
     | AInt of int
     | AStr of string
     | AStrL of separator * string list
   val acontent : attrib -> acontent
   type racontent =
-    Eliom.Eliom_content_core.Xml.racontent =
+    Eliom.Content_core.Xml.racontent =
       RA of acontent
     | RAReact of acontent option React.signal
     | RACamlEventHandler of caml_event_handler
@@ -107,7 +107,7 @@
   val cdata_script : string -> elt
   val cdata_style : string -> elt
   type node_id =
-    Eliom.Eliom_content_core.Xml.node_id =
+    Eliom.Content_core.Xml.node_id =
       NoId
     | ProcessId of string
     | RequestId of string
@@ -121,7 +121,7 @@
   val make_request_node : ?reset:bool -> elt -> elt
   val get_node_id : elt -> node_id
   type node =
-    Eliom.Eliom_content_core.Xml.node =
+    Eliom.Content_core.Xml.node =
       DomNode of Js_of_ocaml.Dom.node Js_of_ocaml.Js.t
     | TyXMLNode of econtent
     | ReactNode of elt React.signal

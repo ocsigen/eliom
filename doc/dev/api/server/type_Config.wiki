@@ -44,10 +44,10 @@
   val parse_config :
     ?pcdata:(string -> unit) ->
     ?other_elements:(string -> (string * string) list -> Xml.xml list -> unit) ->
-    Ocsigen_extensions.Configuration.element list -> unit
-  val get_config_info : unit -> Ocsigen_extensions.config_info
+    Ocsigen.Extensions.Configuration.element list -> unit
+  val get_config_info : unit -> Ocsigen.Extensions.config_info
   val get_debugmode : unit -> bool
   val get_config_info_sp :
-    Common.server_params -> Ocsigen_extensions.config_info
+    Common.server_params -> Ocsigen.Extensions.config_info
   val get_config_default_charset_sp : Common.server_params -> string
 end >>

@@ -339,7 +339,7 @@
     //creating the initial content// is provided ~(cf~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="escaped_value"| value Syntax.escaped_value >> ~[<<a_api subproject="server" | module Syntax >>~]|<<div class="odocwiki_info"|~Convert any value to a <<span class="odocwiki_inlinecode"|~Eliom~_runtime~.escaped~_value>> for usage
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="escaped_value"| value Syntax.escaped_value >> ~[<<a_api subproject="server" | module Syntax >>~]|<<div class="odocwiki_info"|~Convert any value to a <<span class="odocwiki_inlinecode"|~Runtime~.escaped~_value>> for usage
     in the <<span class="odocwiki_inlinecode"|args>> argument to <<a_api subproject="server" | val Syntax.client_value >>~.
 >>
 |
@@ -467,7 +467,7 @@
    sent by the browser~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_debugmode"| value Config.get_debugmode >> ~[<<a_api subproject="server" | module Config >>~]|<<div class="odocwiki_info"|~Same as <<span class="odocwiki_inlinecode"|~Ocsigen~_config~.get~_debugmode>>~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_debugmode"| value Config.get_debugmode >> ~[<<a_api subproject="server" | module Config >>~]|<<div class="odocwiki_info"|~Same as <<span class="odocwiki_inlinecode"|~Ocsigen~.~Config~.get~_debugmode>>~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="get_default_hostname"| value Config.get_default_hostname >> ~[<<a_api subproject="server" | module Config >>~]|<<div class="odocwiki_info"|~The function <<span class="odocwiki_inlinecode"|get~_default~_hostname ~(~)>>returns the hostname
@@ -1013,7 +1013,6 @@
 |@@ @style="tet-align: left;"@@\\S|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="scope_hierarchy_of_user_scope"| value Common.scope_hierarchy_of_user_scope >> ~[<<a_api subproject="server" | module Common >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="section"| value Comet.section >> ~[<<a_api subproject="server" | module Comet >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="section"| value Parameter_sigs.section >> ~[<<a_api subproject="server" | module Parameter_sigs >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="select"| value Form_sigs.S.select >> ~[<<a_api subproject="server" | module Form_sigs.S >>~]|<<div class="odocwiki_info"|~Creates a <<span class="odocwiki_inlinecode"|~<select~>>> tag~.
 >>
 |
@@ -1028,7 +1027,7 @@
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="send"| value Registration_sigs.PARAM_POLY.send >> ~[<<a_api subproject="server" | module Registration_sigs.PARAM_POLY >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="send"| value Registration_sigs.PARAM.send >> ~[<<a_api subproject="server" | module Registration_sigs.PARAM >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="send_appl_content"| value Registration_sigs.PARAM_POLY.send_appl_content >> ~[<<a_api subproject="server" | module Registration_sigs.PARAM_POLY >>~]|<<div class="odocwiki_info"|~See <<span class="odocwiki_inlinecode"|~Eliom~_reg~_sigs~.~P~A~R~A~M~.send~_appl~_content>>~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="send_appl_content"| value Registration_sigs.PARAM_POLY.send_appl_content >> ~[<<a_api subproject="server" | module Registration_sigs.PARAM_POLY >>~]|<<div class="odocwiki_info"|~See <<a_api subproject="server" | val Registration_sigs.PARAM.send_appl_content >>~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="send_appl_content"| value Registration_sigs.PARAM.send_appl_content >> ~[<<a_api subproject="server" | module Registration_sigs.PARAM >>~]|<<div class="odocwiki_info"|~Whether the service is capable of sending application content
@@ -1224,7 +1223,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="signal"| value Shared_sigs.RLIST.signal >> ~[<<a_api subproject="server" | module Shared_sigs.RLIST >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="singleton_s"| value Shared_sigs.RLIST.singleton_s >> ~[<<a_api subproject="server" | module Shared_sigs.RLIST >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="site_scope"| value Common.site_scope >> ~[<<a_api subproject="server" | module Common >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="sp"| value Eliom_types.sp >> ~[<<a_api subproject="server" | module Eliom_types >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="sp"| value Types.sp >> ~[<<a_api subproject="server" | module Types >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="static_dir"| value Service_sigs.S.static_dir >> ~[<<a_api subproject="server" | module Service_sigs.S >>~]|<<div class="odocwiki_info"|~The predefined service <<span class="odocwiki_inlinecode"|static~_dir>> allows one to create links
       to static files~.
 >>

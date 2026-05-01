@@ -244,8 +244,8 @@
     ('a, 'b, 'c, 'd, 'e, 'f, 'g, [< `WithSuffix | `WithoutSuffix ], 'h, 'i,
      'j)
     t ->
-    (string * Eliommod_parameters.param) list Lib.String.Table.t *
-    (string * Eliommod_parameters.param) list
+    (string * Mod_parameters.param) list Lib.String.Table.t *
+    (string * Mod_parameters.param) list
   val reload_fun :
     ('a, 'b, 'c, 'd, 'e, 'f, 'g, [< `WithSuffix | `WithoutSuffix ], 'h, 'i,
      'j)

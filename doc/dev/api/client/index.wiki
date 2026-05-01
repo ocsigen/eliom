@@ -11,7 +11,9 @@
 |<<a_api subproject="client" | module Client >>|<<div class="odocwiki_info"|~Call server side services and change the current page~.
 >>
 |
-|Eliom_client_value||
+|<<a_api subproject="client" | module Client_value >>|<<div class="odocwiki_info"|~Client and shared values
+>>
+|
 
 
 
@@ -22,10 +24,18 @@
 
 
 
-|Eliom_content.Html||
-|Eliom_content.Html.Manip||
-|Eliom_content.Svg||
-|Eliom_content.Xml||
+|<<a_api subproject="client" | module Content.Html >>|<<div class="odocwiki_info"|~Building valid ~(~X~)~H~T~M~L~5~.
+>>
+|
+|<<a_api subproject="client" | module Content.Html.Manip >>|<<div class="odocwiki_info"|~D~O~M~-like manipulation functions~.
+>>
+|
+|<<a_api subproject="client" | module Content.Svg >>|<<div class="odocwiki_info"|~Building valid ~S~V~G ~.
+>>
+|
+|<<a_api subproject="client" | module Content.Xml >>|<<div class="odocwiki_info"|~Low~-level ~X~M~L manipulation~.
+>>
+|
 
 
 

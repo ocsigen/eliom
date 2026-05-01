@@ -7,5 +7,7 @@
   module Store : Ocsipersist_lib.Sigs.STORE
   type store = Store.store
   type 'a variable = 'a Store.t
+  module Ref_json : Ocsipersist_lib.Sigs.REF_JSON
+  module Store_json : Ocsipersist_lib.Sigs.STORE_JSON
   val init : unit -> unit
 end >>

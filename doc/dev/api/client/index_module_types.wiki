@@ -26,6 +26,10 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="S_poly_with_send"| module type Registration_sigs.S_poly_with_send >> ~[<<a_api subproject="client" | module Registration_sigs >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="S_with_create"| module type Registration_sigs.S_with_create >> ~[<<a_api subproject="client" | module Registration_sigs >>~]||
 |@@ @style="tet-align: left;"@@\\T|
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="T"| module type Content.Html.T >> ~[<<a_api subproject="client" | module Content.Html >>~]|<<div class="odocwiki_info"|~Tyxml ~H~T~M~L signature ~(with ~Eliom~'s links~/forms extensions~) shared
+      by <<span class="odocwiki_inlinecode"|~F>> and <<span class="odocwiki_inlinecode"|~D>>~, suitable as a functor parameter~.
+>>
+|
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="TYPES"| module type Service_sigs.TYPES >> ~[<<a_api subproject="client" | module Service_sigs >>~]||
 |@@ @style="tet-align: left;"@@\\V|
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="VALUE"| module type Shared_sigs.VALUE >> ~[<<a_api subproject="client" | module Shared_sigs >>~]||

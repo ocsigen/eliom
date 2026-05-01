@@ -1,0 +1,6 @@
+<<code language="ocaml" | sig
+  type sitedata = { site_dir : string list; site_dir_string : string; }
+  type server_params
+  val sp : Types.server_params
+  val encode_eliom_data : 'a -> string
+end >>

@@ -1,7 +1,7 @@
 =Index of types=
 
 |@@ @style="tet-align: left;"@@\\A|
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="aname"| type Eliom_content_core.Xml.aname >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="aname"| type Content_core.Xml.aname >> ~[<<a_api subproject="client" | module Content_core.Xml >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="app_id"| type Registration.App.app_id >> ~[<<a_api subproject="client" | module Registration.App >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="appl_service_options"| type Registration.appl_service_options >> ~[<<a_api subproject="client" | module Registration >>~]|<<div class="odocwiki_info"|~Has no effect on client~; for compatibility with server
 >>
@@ -9,9 +9,9 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="application_content"| type Registration.application_content >> ~[<<a_api subproject="client" | module Registration >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="att"| type Service_sigs.S.att >> ~[<<a_api subproject="client" | module Service_sigs.S >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="attached_info"| type Service_sigs.S.attached_info >> ~[<<a_api subproject="client" | module Service_sigs.S >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="attrib"| type Eliom_content_core.Html.attrib >> ~[<<a_api subproject="client" | module Eliom_content_core.Html >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="attrib"| type Eliom_content_core.Svg.attrib >> ~[<<a_api subproject="client" | module Eliom_content_core.Svg >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="attrib"| type Eliom_content_core.Xml.attrib >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="attrib"| type Content_core.Html.attrib >> ~[<<a_api subproject="client" | module Content_core.Html >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="attrib"| type Content_core.Svg.attrib >> ~[<<a_api subproject="client" | module Content_core.Svg >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="attrib"| type Content_core.Xml.attrib >> ~[<<a_api subproject="client" | module Content_core.Xml >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="attrib"| type Content.Html.attrib >> ~[<<a_api subproject="client" | module Content.Html >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="attrib"| type Content.Svg.attrib >> ~[<<a_api subproject="client" | module Content.Svg >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="attrib"| type Form_sigs.LINKS.attrib >> ~[<<a_api subproject="client" | module Form_sigs.LINKS >>~]||
@@ -25,7 +25,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="browser_content"| type Registration.browser_content >> ~[<<a_api subproject="client" | module Registration >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="button_type"| type Form_sigs.button_type >> ~[<<a_api subproject="client" | module Form_sigs >>~]||
 |@@ @style="tet-align: left;"@@\\C|
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="caml_event_handler"| type Eliom_content_core.Xml.caml_event_handler >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="caml_event_handler"| type Content_core.Xml.caml_event_handler >> ~[<<a_api subproject="client" | module Content_core.Xml >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="chandle"| type Shared_sigs.RLIST.chandle >> ~[<<a_api subproject="client" | module Shared_sigs.RLIST >>~]|<<div class="odocwiki_info"|~Client~-side version of ~'a handle
 >>
 |
@@ -44,19 +44,19 @@
 |@@ @style="tet-align: left;"@@\\D|
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="delete"| type Service_sigs.TYPES.delete >> ~[<<a_api subproject="client" | module Service_sigs.TYPES >>~]||
 |@@ @style="tet-align: left;"@@\\E|
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="econtent"| type Eliom_content_core.Xml.econtent >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="elt"| type Eliom_content_core.Html.elt >> ~[<<a_api subproject="client" | module Eliom_content_core.Html >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="elt"| type Eliom_content_core.Svg.elt >> ~[<<a_api subproject="client" | module Eliom_content_core.Svg >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="elt"| type Eliom_content_core.Xml.elt >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="econtent"| type Content_core.Xml.econtent >> ~[<<a_api subproject="client" | module Content_core.Xml >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="elt"| type Content_core.Html.elt >> ~[<<a_api subproject="client" | module Content_core.Html >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="elt"| type Content_core.Svg.elt >> ~[<<a_api subproject="client" | module Content_core.Svg >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="elt"| type Content_core.Xml.elt >> ~[<<a_api subproject="client" | module Content_core.Xml >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="elt"| type Content.Html.elt >> ~[<<a_api subproject="client" | module Content.Html >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="elt"| type Content.Svg.elt >> ~[<<a_api subproject="client" | module Content.Svg >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="elt"| type Form_sigs.LINKS.elt >> ~[<<a_api subproject="client" | module Form_sigs.LINKS >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="elt"| type Form_sigs.S.elt >> ~[<<a_api subproject="client" | module Form_sigs.S >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="elt"| type Content_sigs.LINKS_AND_FORMS.elt >> ~[<<a_api subproject="client" | module Content_sigs.LINKS_AND_FORMS >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="ename"| type Eliom_content_core.Xml.ename >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="ename"| type Content_core.Xml.ename >> ~[<<a_api subproject="client" | module Content_core.Xml >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="ev"| type Content.Html.Manip.Ev.ev >> ~[<<a_api subproject="client" | module Content.Html.Manip.Ev >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="ev_unit"| type Content.Html.Manip.Ev.ev_unit >> ~[<<a_api subproject="client" | module Content.Html.Manip.Ev >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="event_handler"| type Eliom_content_core.Xml.event_handler >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="event_handler"| type Content_core.Xml.event_handler >> ~[<<a_api subproject="client" | module Content_core.Xml >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="ext"| type Service_sigs.TYPES.ext >> ~[<<a_api subproject="client" | module Service_sigs.TYPES >>~]||
 |@@ @style="tet-align: left;"@@\\F|
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="file_info"| type Lib.file_info >> ~[<<a_api subproject="client" | module Lib >>~]||
@@ -75,10 +75,10 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="hierarchical_site_item"| type Tools.hierarchical_site_item >> ~[<<a_api subproject="client" | module Tools >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="http"| type Service_sigs.TYPES.http >> ~[<<a_api subproject="client" | module Service_sigs.TYPES >>~]||
 |@@ @style="tet-align: left;"@@\\I|
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="id"| type Eliom_content_core.Html.Id.id >> ~[<<a_api subproject="client" | module Eliom_content_core.Html.Id >>~]|<<div class="odocwiki_info"|~The type of global ~H~T~M~L~5 element identifier~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="id"| type Content_core.Html.Id.id >> ~[<<a_api subproject="client" | module Content_core.Html.Id >>~]|<<div class="odocwiki_info"|~The type of global ~H~T~M~L~5 element identifier~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="id"| type Eliom_content_core.Svg.Id.id >> ~[<<a_api subproject="client" | module Eliom_content_core.Svg.Id >>~]|<<div class="odocwiki_info"|~The type of global ~S~V~G element identifier~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="id"| type Content_core.Svg.Id.id >> ~[<<a_api subproject="client" | module Content_core.Svg.Id >>~]|<<div class="odocwiki_info"|~The type of global ~S~V~G element identifier~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="id"| type Content.Html.Id.id >> ~[<<a_api subproject="client" | module Content.Html.Id >>~]|<<div class="odocwiki_info"|~The type of global ~H~T~M~L~5 element identifier~.
@@ -87,16 +87,16 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="id"| type Content.Svg.Id.id >> ~[<<a_api subproject="client" | module Content.Svg.Id >>~]|<<div class="odocwiki_info"|~The type of global ~S~V~G element identifier~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="internal_event_handler"| type Eliom_content_core.Xml.internal_event_handler >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="internal_event_handler"| type Content_core.Xml.internal_event_handler >> ~[<<a_api subproject="client" | module Content_core.Xml >>~]||
 |@@ @style="tet-align: left;"@@\\K|
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="key"| type Lib.Dom_reference.key >> ~[<<a_api subproject="client" | module Lib.Dom_reference >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="keyboard_event_handler"| type Eliom_content_core.Xml.keyboard_event_handler >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="keyboard_event_handler"| type Content_core.Xml.keyboard_event_handler >> ~[<<a_api subproject="client" | module Content_core.Xml >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="kind"| type Registration.kind >> ~[<<a_api subproject="client" | module Registration >>~]||
 |@@ @style="tet-align: left;"@@\\L|
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="lazy_star"| type Content_sigs.LINKS_AND_FORMS.lazy_star >> ~[<<a_api subproject="client" | module Content_sigs.LINKS_AND_FORMS >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="list_wrap"| type Eliom_content_core.Html.list_wrap >> ~[<<a_api subproject="client" | module Eliom_content_core.Html >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="list_wrap"| type Eliom_content_core.Svg.list_wrap >> ~[<<a_api subproject="client" | module Eliom_content_core.Svg >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="list_wrap"| type Eliom_content_core.Xml.list_wrap >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="list_wrap"| type Content_core.Html.list_wrap >> ~[<<a_api subproject="client" | module Content_core.Html >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="list_wrap"| type Content_core.Svg.list_wrap >> ~[<<a_api subproject="client" | module Content_core.Svg >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="list_wrap"| type Content_core.Xml.list_wrap >> ~[<<a_api subproject="client" | module Content_core.Xml >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="listnames"| type Parameter_sigs.S.listnames >> ~[<<a_api subproject="client" | module Parameter_sigs.S >>~]|<<div class="odocwiki_info"|~Helpers type used to construct forms from lists~, see <<a_api subproject="client" | val Parameter_sigs.S.list >>~.
 >>
 |
@@ -105,7 +105,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="meth"| type Service_sigs.TYPES.meth >> ~[<<a_api subproject="client" | module Service_sigs.TYPES >>~]|<<div class="odocwiki_info"|**~Method specification datatype**
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="mouse_event_handler"| type Eliom_content_core.Xml.mouse_event_handler >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="mouse_event_handler"| type Content_core.Xml.mouse_event_handler >> ~[<<a_api subproject="client" | module Content_core.Xml >>~]||
 |@@ @style="tet-align: left;"@@\\N|
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="nl_params_set"| type Parameter_sigs.S.nl_params_set >> ~[<<a_api subproject="client" | module Parameter_sigs.S >>~]|<<div class="odocwiki_info"|~Use this type to give non localized parameters to a link or a
       form
@@ -201,7 +201,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="t"| type Eliom_react.S.Down.t >> ~[<<a_api subproject="client" | module Eliom_react.S.Down >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="t"| type Eliom_react.Up.t >> ~[<<a_api subproject="client" | module Eliom_react.Up >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="t"| type Eliom_react.Down.t >> ~[<<a_api subproject="client" | module Eliom_react.Down >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="t"| type Eliom_content_core.Html.Custom_data.t >> ~[<<a_api subproject="client" | module Eliom_content_core.Html.Custom_data >>~]|<<div class="odocwiki_info"|~Custom data with values of type <<span class="odocwiki_inlinecode"|~'a>>~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="t"| type Content_core.Html.Custom_data.t >> ~[<<a_api subproject="client" | module Content_core.Html.Custom_data >>~]|<<div class="odocwiki_info"|~Custom data with values of type <<span class="odocwiki_inlinecode"|~'a>>~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="t"| type Content.Html.Custom_data.t >> ~[<<a_api subproject="client" | module Content.Html.Custom_data >>~]|<<div class="odocwiki_info"|~Custom data with values of type <<span class="odocwiki_inlinecode"|~'a>>~.
@@ -226,15 +226,15 @@
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="to_and_of"| type Parameter_sigs.S.to_and_of >> ~[<<a_api subproject="client" | module Parameter_sigs.S >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="touch_event_handler"| type Eliom_content_core.Xml.touch_event_handler >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="touch_event_handler"| type Content_core.Xml.touch_event_handler >> ~[<<a_api subproject="client" | module Content_core.Xml >>~]||
 |@@ @style="tet-align: left;"@@\\U|
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="unit_service"| type Service_sigs.S.unit_service >> ~[<<a_api subproject="client" | module Service_sigs.S >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="unwrap_id"| type Unwrap.unwrap_id >> ~[<<a_api subproject="client" | module Unwrap >>~]|<<div class="odocwiki_info"|~Values of type <<span class="odocwiki_inlinecode"|unwrap~_id>> are used to identify a specific unwrapper~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uri"| type Eliom_content_core.Html.uri >> ~[<<a_api subproject="client" | module Eliom_content_core.Html >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uri"| type Eliom_content_core.Svg.uri >> ~[<<a_api subproject="client" | module Eliom_content_core.Svg >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uri"| type Eliom_content_core.Xml.uri >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uri"| type Content_core.Html.uri >> ~[<<a_api subproject="client" | module Content_core.Html >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uri"| type Content_core.Svg.uri >> ~[<<a_api subproject="client" | module Content_core.Svg >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uri"| type Content_core.Xml.uri >> ~[<<a_api subproject="client" | module Content_core.Xml >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uri"| type Content.Html.uri >> ~[<<a_api subproject="client" | module Content.Html >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uri"| type Content.Svg.uri >> ~[<<a_api subproject="client" | module Content.Svg >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="uri"| type Form_sigs.LINKS.uri >> ~[<<a_api subproject="client" | module Form_sigs.LINKS >>~]||
@@ -244,7 +244,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="which_meth"| type Service_sigs.TYPES.which_meth >> ~[<<a_api subproject="client" | module Service_sigs.TYPES >>~]|<<div class="odocwiki_info"|~Like <<a_api subproject="client" | type Service_sigs.TYPES.meth >> but without the parameters
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="wrap"| type Eliom_content_core.Html.wrap >> ~[<<a_api subproject="client" | module Eliom_content_core.Html >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="wrap"| type Eliom_content_core.Svg.wrap >> ~[<<a_api subproject="client" | module Eliom_content_core.Svg >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="wrap"| type Eliom_content_core.Xml.wrap >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="wrap"| type Content_core.Html.wrap >> ~[<<a_api subproject="client" | module Content_core.Html >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="wrap"| type Content_core.Svg.wrap >> ~[<<a_api subproject="client" | module Content_core.Svg >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="wrap"| type Content_core.Xml.wrap >> ~[<<a_api subproject="client" | module Content_core.Xml >>~]||
 \\

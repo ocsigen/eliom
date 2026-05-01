@@ -240,7 +240,7 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="server_notif"| type Notif.S.server_notif >> ~[<<a_api subproject="server" | module Notif.S >>~]|<<div class="odocwiki_info"|server notification type~; ~Can be different from <<span class="odocwiki_inlinecode"|client~_notif>>~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="server_params"| type Eliom_types.server_params >> ~[<<a_api subproject="server" | module Eliom_types >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="server_params"| type Types.server_params >> ~[<<a_api subproject="server" | module Types >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="service_cookie_info"| type State.Ext.service_cookie_info >> ~[<<a_api subproject="server" | module State.Ext >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="session_group_scope"| type Common.session_group_scope >> ~[<<a_api subproject="server" | module Common >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="session_scope"| type Common.session_scope >> ~[<<a_api subproject="server" | module Common >>~]||
@@ -252,7 +252,7 @@
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="signal"| type Shared_sigs.RLIST.signal >> ~[<<a_api subproject="server" | module Shared_sigs.RLIST >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="site_scope"| type Common.site_scope >> ~[<<a_api subproject="server" | module Common >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="sitedata"| type Eliom_types.sitedata >> ~[<<a_api subproject="server" | module Eliom_types >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="sitedata"| type Types.sitedata >> ~[<<a_api subproject="server" | module Types >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="soption"| type Form_sigs.S.soption >> ~[<<a_api subproject="server" | module Form_sigs.S >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="srv"| type Tools.srv >> ~[<<a_api subproject="server" | module Tools >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="star"| type Content_sigs.LINKS_AND_FORMS.star >> ~[<<a_api subproject="server" | module Content_sigs.LINKS_AND_FORMS >>~]||

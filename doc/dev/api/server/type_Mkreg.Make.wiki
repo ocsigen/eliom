@@ -7,9 +7,9 @@
              ?charset:string ->
              ?code:int ->
              ?content_type:string ->
-             ?headers:Cohttp.Header.t -> page -> Ocsigen_response.t Lwt.t
+             ?headers:Cohttp.Header.t -> page -> Ocsigen.Response.t Lwt.t
            val send_appl_content : Eliom.Service.send_appl_content
-           val result_of_http_result : Ocsigen_response.t -> result
+           val result_of_http_result : Ocsigen.Response.t -> result
          end)
   ->
   sig

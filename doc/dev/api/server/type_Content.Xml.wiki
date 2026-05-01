@@ -77,10 +77,8 @@
   val uri_of_fun : (unit -> string) -> uri
   type node_id
   val get_node_id : elt -> Content.Xml.node_id
-  val make_event_handler_table :
-    elt -> Eliom_runtime.RawXML.event_handler_table
-  val make_client_attrib_table :
-    elt -> Eliom_runtime.RawXML.client_attrib_table
+  val make_event_handler_table : elt -> Runtime.RawXML.event_handler_table
+  val make_client_attrib_table : elt -> Runtime.RawXML.client_attrib_table
   val caml_event_handler :
     (Js_of_ocaml.Dom_html.event Js_of_ocaml.Js.t -> unit) Client_value.t ->
     Content.Xml.caml_event_handler

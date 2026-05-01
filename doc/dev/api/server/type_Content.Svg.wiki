@@ -4,7 +4,7 @@
   type 'a wrap = 'a
   type 'a list_wrap = 'a list
   type uri = Content.Xml.uri
-  module Ev' = Eliom_content_core.Svg.Ev'
+  module Ev' = Content_core.Svg.Ev'
   module F :
     sig
       module Raw' :

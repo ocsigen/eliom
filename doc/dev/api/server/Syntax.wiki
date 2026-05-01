@@ -1,7 +1,7 @@
 =Module <<a_api_type subproject="server" | module Syntax >> =
 <<pre class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|module>> <<span class="ocsforge_color_uid"|<<span class="ocsforge_color_uid"|Syntax>>>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="ocsforge_color_keyword"|sig>><<a_api subproject="server" text=".." | module Syntax >><<span class="ocsforge_color_keyword"|end>>>>
 ----
-<<pre id="VALget_global_data" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_global~_data>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Eliom_runtime>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|global_data>>>>>><<pre id="VALget_request_data" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_request~_data>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Eliom_runtime>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|request_data>>>>>><<pre id="VALto_poly" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|to~_poly>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|'a <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Ocsigen_lib_base>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|poly>>>>>><<div class="odocwiki_info"|~Used by the ~P~P~X to serialize injection values~.
+<<pre id="VALget_global_data" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_global~_data>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Runtime>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|global_data>>>>>><<pre id="VALget_request_data" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|get~_request~_data>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|unit <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Runtime>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|request_data>>>>>><<pre id="VALto_poly" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|to~_poly>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|'a <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Ocsigen_lib_base>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|poly>>>>>><<div class="odocwiki_info"|~Used by the ~P~P~X to serialize injection values~.
 >>
 <<pre id="VALclient_value" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|client~_value>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_label"| ?pos: >><<span class="ocsforge_color_uid"|Lib>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|pos>> <<span class="ocsforge_color_delimiter"| -> >> string <<span class="ocsforge_color_delimiter"| -> >> 'args <<span class="ocsforge_color_delimiter"| -> >> 'a <<a_api subproject="server" text="Client_value.t" | type Client_value.t >>>>>><<div class="odocwiki_info"|~Registers a client value datum for the next server section when
     executed in a global~_data ~(cf~. <<a_api subproject="server" | val Syntax.set_global >>~) or in
@@ -20,27 +20,27 @@
 
 
     ~Adds the list of recently registered
-    <<span class="odocwiki_inlinecode"|~Eliom~_runtime~.client~_value~_datum>>s into the queue of server
+    <<span class="odocwiki_inlinecode"|~Runtime~.client~_value~_datum>>s into the queue of server
     section data of the compilation unit
-    ~(<<span class="odocwiki_inlinecode"|~Eliom~_lib~_base~.compilation~_unit~_global~_data>>~)~.
+    ~(<<span class="odocwiki_inlinecode"|~Lib~_base~.compilation~_unit~_global~_data>>~)~.
 
 
     ~Called in parallel with ~<~<a~_api
     subproject~="client"~|~Client~.~Syntax~_helpers~.close~_server~_section~>~>~.
 >>
-<<pre id="VALclose_client_section" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|close~_client~_section>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>int * <<span class="ocsforge_color_uid"|Ocsigen_lib>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|poly>> * <<span class="ocsforge_color_uid"|Lib>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|pos>> * string option<<span class="ocsforge_color_delimiter"| ) >> list <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|~Called at the end of every client or shared section~. ~The first
+<<pre id="VALclose_client_section" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|close~_client~_section>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|\\  string <<span class="ocsforge_color_delimiter"| -> >>\\  <<span class="ocsforge_color_delimiter"| ( >>int * <<span class="ocsforge_color_uid"|Ocsigen_base>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Lib>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|poly>> * <<span class="ocsforge_color_uid"|Lib>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|pos>> * string option<<span class="ocsforge_color_delimiter"| ) >> list <<span class="ocsforge_color_delimiter"| -> >> unit>>>><<div class="odocwiki_info"|~Called at the end of every client or shared section~. ~The first
     argument identifies the compilation unit~. ~The second is the list
     of novel injections in that section~.
 
 
-    ~Adds a list of <<span class="odocwiki_inlinecode"|~Eliom~_lib~_base~.injection~_datum>>s into the queue
+    ~Adds a list of <<span class="odocwiki_inlinecode"|~Lib~_base~.injection~_datum>>s into the queue
     of client section data of the compilation unit
-    ~(<<span class="odocwiki_inlinecode"|~Eliom~_lib~_base~.compilation~_unit~_global~_data>>~)~.
+    ~(<<span class="odocwiki_inlinecode"|~Lib~_base~.compilation~_unit~_global~_data>>~)~.
 
 
     ~Called in parallel with ~<~<a~_api
     subproject~="client"~|~Client~.~Syntax~_helpers~.open~_client~_section~>~>~.
 >>
-<<pre id="VALescaped_value" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|escaped~_value>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|'a <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Eliom_runtime>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|escaped_value>>>>>><<div class="odocwiki_info"|~Convert any value to a <<span class="odocwiki_inlinecode"|~Eliom~_runtime~.escaped~_value>> for usage
+<<pre id="VALescaped_value" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|escaped~_value>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|'a <<span class="ocsforge_color_delimiter"| -> >> <<span class="ocsforge_color_uid"|Runtime>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|escaped_value>>>>>><<div class="odocwiki_info"|~Convert any value to a <<span class="odocwiki_inlinecode"|~Runtime~.escaped~_value>> for usage
     in the <<span class="odocwiki_inlinecode"|args>> argument to <<a_api subproject="server" | val Syntax.client_value >>~.
 >>

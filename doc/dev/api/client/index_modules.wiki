@@ -33,21 +33,22 @@
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Content"| module Content >> ||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Content_core"| module Content_core >> ||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Content_sigs"| module Content_sigs >> ||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Cscache"| module Cscache >> ||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Css"| module Content.Html.Manip.Css >> ~[<<a_api subproject="client" | module Content.Html.Manip >>~]|<<div class="odocwiki_info"|~Read the ~C~S~S properties of ~D~O~M elements~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Custom_data"| module Eliom_content_core.Html.Custom_data >> ~[<<a_api subproject="client" | module Eliom_content_core.Html >>~]|<<div class="odocwiki_info"|~Type~-safe custom data for ~H~T~M~L~5~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Custom_data"| module Content_core.Html.Custom_data >> ~[<<a_api subproject="client" | module Content_core.Html >>~]|<<div class="odocwiki_info"|~Type~-safe custom data for ~H~T~M~L~5~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Custom_data"| module Content.Html.Custom_data >> ~[<<a_api subproject="client" | module Content.Html >>~]||
 |@@ @style="tet-align: left;"@@\\D|
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="D"| module Tools.D >> ~[<<a_api subproject="client" | module Tools >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="D"| module Eliom_content_core.Html.D >> ~[<<a_api subproject="client" | module Eliom_content_core.Html >>~]|<<div class="odocwiki_info"|~Typed interface for building valid ~H~T~M~L~5 tree ~(~D~O~M semantics~)~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="D"| module Content_core.Html.D >> ~[<<a_api subproject="client" | module Content_core.Html >>~]|<<div class="odocwiki_info"|~Typed interface for building valid ~H~T~M~L~5 tree ~(~D~O~M semantics~)~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="D"| module Eliom_content_core.Svg.D >> ~[<<a_api subproject="client" | module Eliom_content_core.Svg >>~]|<<div class="odocwiki_info"|~Typed interface for building valid ~S~V~G tree ~(~D~O~M semantics~)~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="D"| module Content_core.Svg.D >> ~[<<a_api subproject="client" | module Content_core.Svg >>~]|<<div class="odocwiki_info"|~Typed interface for building valid ~S~V~G tree ~(~D~O~M semantics~)~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="D"| module Content.Html.D >> ~[<<a_api subproject="client" | module Content.Html >>~]|<<div class="odocwiki_info"|~Creation of ~H~T~M~L~5 content with //~D//~O~M semantics ~(referable~)
@@ -61,7 +62,6 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Down"| module Eliom_react.Down >> ~[<<a_api subproject="client" | module Eliom_react >>~]||
 |@@ @style="tet-align: left;"@@\\E|
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="E"| module Shared.React.E >> ~[<<a_api subproject="client" | module Shared.React >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_content_core"| module Eliom_content_core >> ||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_lazy"| module Eliom_lazy >> ||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Eliom_react"| module Eliom_react >> |<<div class="odocwiki_info"|~Client side type declarations for ~React event propagation~.
 >>
@@ -77,10 +77,10 @@
 |
 |@@ @style="tet-align: left;"@@\\F|
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="F"| module Tools.F >> ~[<<a_api subproject="client" | module Tools >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="F"| module Eliom_content_core.Html.F >> ~[<<a_api subproject="client" | module Eliom_content_core.Html >>~]|<<div class="odocwiki_info"|~Typed interface for building valid ~H~T~M~L~5 tree ~(functional semantics~)~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="F"| module Content_core.Html.F >> ~[<<a_api subproject="client" | module Content_core.Html >>~]|<<div class="odocwiki_info"|~Typed interface for building valid ~H~T~M~L~5 tree ~(functional semantics~)~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="F"| module Eliom_content_core.Svg.F >> ~[<<a_api subproject="client" | module Eliom_content_core.Svg >>~]|<<div class="odocwiki_info"|~Typed interface for building valid ~S~V~G tree ~(functional semantics~)~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="F"| module Content_core.Svg.F >> ~[<<a_api subproject="client" | module Content_core.Svg >>~]|<<div class="odocwiki_info"|~Typed interface for building valid ~S~V~G tree ~(functional semantics~)~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="F"| module Content.Html.F >> ~[<<a_api subproject="client" | module Content.Html >>~]|<<div class="odocwiki_info"|~Creation of //f//unctional ~H~T~M~L~5 content ~(copy~-able but not referable~)~.
@@ -98,17 +98,17 @@
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Form_sigs"| module Form_sigs >> ||
 |@@ @style="tet-align: left;"@@\\H|
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Html"| module Registration.Html >> ~[<<a_api subproject="client" | module Registration >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Html"| module Eliom_content_core.Html >> ~[<<a_api subproject="client" | module Eliom_content_core >>~]|<<div class="odocwiki_info"|~Building ~Html tree~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Html"| module Content_core.Html >> ~[<<a_api subproject="client" | module Content_core >>~]|<<div class="odocwiki_info"|~Building ~Html tree~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Html"| module Content.Html >> ~[<<a_api subproject="client" | module Content >>~]|<<div class="odocwiki_info"|~Building valid ~(~X~)~H~T~M~L~5~.
 >>
 |
 |@@ @style="tet-align: left;"@@\\I|
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Id"| module Eliom_content_core.Html.Id >> ~[<<a_api subproject="client" | module Eliom_content_core.Html >>~]|<<div class="odocwiki_info"|~Node identifiers
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Id"| module Content_core.Html.Id >> ~[<<a_api subproject="client" | module Content_core.Html >>~]|<<div class="odocwiki_info"|~Node identifiers
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Id"| module Eliom_content_core.Svg.Id >> ~[<<a_api subproject="client" | module Eliom_content_core.Svg >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Id"| module Content_core.Svg.Id >> ~[<<a_api subproject="client" | module Content_core.Svg >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Id"| module Content.Html.Id >> ~[<<a_api subproject="client" | module Content.Html >>~]|<<div class="odocwiki_info"|~Node identifiers
 >>
 |
@@ -143,10 +143,10 @@
 >>
 |
 |@@ @style="tet-align: left;"@@\\O|
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Of_dom"| module Eliom_content_core.Html.Of_dom >> ~[<<a_api subproject="client" | module Eliom_content_core.Html >>~]|<<div class="odocwiki_info"|~Conversion of ~Javascript ~D~O~M elements to ~H~T~M~L~5 elts ~(with ~D~O~M semantics of course~)~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Of_dom"| module Content_core.Html.Of_dom >> ~[<<a_api subproject="client" | module Content_core.Html >>~]|<<div class="odocwiki_info"|~Conversion of ~Javascript ~D~O~M elements to ~H~T~M~L~5 elts ~(with ~D~O~M semantics of course~)~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Of_dom"| module Eliom_content_core.Svg.Of_dom >> ~[<<a_api subproject="client" | module Eliom_content_core.Svg >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Of_dom"| module Content_core.Svg.Of_dom >> ~[<<a_api subproject="client" | module Content_core.Svg >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Of_dom"| module Content.Html.Of_dom >> ~[<<a_api subproject="client" | module Content.Html >>~]|<<div class="odocwiki_info"|~Conversion functions from ~D~O~M nodes ~(<<a_api project="js_of_ocaml"| type Js_of_ocaml.Dom_html.element>>  <<a_api
       project="js_of_ocaml"| type Js_of_ocaml.Js.t>> ~) to ~Eliom nodes ~(<<a_api | type Content.Html.elt>> ~)~.
 >>
@@ -162,8 +162,8 @@
 >>
 |
 |@@ @style="tet-align: left;"@@\\R|
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="R"| module Eliom_content_core.Html.R >> ~[<<a_api subproject="client" | module Eliom_content_core.Html >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="R"| module Eliom_content_core.Svg.R >> ~[<<a_api subproject="client" | module Eliom_content_core.Svg >>~]|<<div class="odocwiki_info"|~Typed interface for building valid reactive ~S~V~G tree~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="R"| module Content_core.Html.R >> ~[<<a_api subproject="client" | module Content_core.Html >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="R"| module Content_core.Svg.R >> ~[<<a_api subproject="client" | module Content_core.Svg >>~]|<<div class="odocwiki_info"|~Typed interface for building valid reactive ~S~V~G tree~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="R"| module Content.Html.R >> ~[<<a_api subproject="client" | module Content.Html >>~]|<<div class="odocwiki_info"|~Creation of ~H~T~M~L~5 content from
@@ -175,12 +175,12 @@
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="RList"| module Shared.ReactiveData.RList >> ~[<<a_api subproject="client" | module Shared.ReactiveData >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="RList"| module Shared.FakeReactiveData.RList >> ~[<<a_api subproject="client" | module Shared.FakeReactiveData >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Raw"| module Eliom_content_core.Html.R.Raw >> ~[<<a_api subproject="client" | module Eliom_content_core.Html.R >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Raw"| module Eliom_content_core.Html.D.Raw >> ~[<<a_api subproject="client" | module Eliom_content_core.Html.D >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Raw"| module Eliom_content_core.Html.F.Raw >> ~[<<a_api subproject="client" | module Eliom_content_core.Html.F >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Raw"| module Eliom_content_core.Svg.R.Raw >> ~[<<a_api subproject="client" | module Eliom_content_core.Svg.R >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Raw"| module Eliom_content_core.Svg.D.Raw >> ~[<<a_api subproject="client" | module Eliom_content_core.Svg.D >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Raw"| module Eliom_content_core.Svg.F.Raw >> ~[<<a_api subproject="client" | module Eliom_content_core.Svg.F >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Raw"| module Content_core.Html.R.Raw >> ~[<<a_api subproject="client" | module Content_core.Html.R >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Raw"| module Content_core.Html.D.Raw >> ~[<<a_api subproject="client" | module Content_core.Html.D >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Raw"| module Content_core.Html.F.Raw >> ~[<<a_api subproject="client" | module Content_core.Html.F >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Raw"| module Content_core.Svg.R.Raw >> ~[<<a_api subproject="client" | module Content_core.Svg.R >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Raw"| module Content_core.Svg.D.Raw >> ~[<<a_api subproject="client" | module Content_core.Svg.D >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Raw"| module Content_core.Svg.F.Raw >> ~[<<a_api subproject="client" | module Content_core.Svg.F >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Raw"| module Content.Html.R.Raw >> ~[<<a_api subproject="client" | module Content.Html.R >>~]|<<div class="odocwiki_info"|~Cf~.
 >>
 |
@@ -223,7 +223,7 @@
     Ocsigen_lib_base.String_base >> ~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Svg"| module Eliom_content_core.Svg >> ~[<<a_api subproject="client" | module Eliom_content_core >>~]|<<div class="odocwiki_info"|~Building ~S~V~G tree~.
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Svg"| module Content_core.Svg >> ~[<<a_api subproject="client" | module Content_core >>~]|<<div class="odocwiki_info"|~Building ~S~V~G tree~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Svg"| module Content.Svg >> ~[<<a_api subproject="client" | module Content >>~]|<<div class="odocwiki_info"|~Building valid ~S~V~G ~.
@@ -249,11 +249,11 @@
 >>
 |
 |@@ @style="tet-align: left;"@@\\W|
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="W"| module Eliom_content_core.Xml.W >> ~[<<a_api subproject="client" | module Eliom_content_core.Xml >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="W"| module Content_core.Xml.W >> ~[<<a_api subproject="client" | module Content_core.Xml >>~]||
 |@@ @style="tet-align: left;"@@\\X|
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Xml"| module Eliom_content_core.Xml >> ~[<<a_api subproject="client" | module Eliom_content_core >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Xml"| module Content_core.Xml >> ~[<<a_api subproject="client" | module Content_core >>~]||
 |@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Xml"| module Content.Xml >> ~[<<a_api subproject="client" | module Content >>~]|<<div class="odocwiki_info"|~Low~-level ~X~M~L manipulation~.
 >>
 |
-|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Xml_wed"| module Eliom_content_core.Xml_wed >> ~[<<a_api subproject="client" | module Eliom_content_core >>~]||
+|@@class="odocwiki_index"@ @@<<a_api subproject="client" text="Xml_wed"| module Content_core.Xml_wed >> ~[<<a_api subproject="client" | module Content_core >>~]||
 \\

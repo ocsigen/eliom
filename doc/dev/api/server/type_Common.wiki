@@ -9,9 +9,11 @@
       module Store : Ocsipersist_lib.Sigs.STORE
       type store = Store.store
       type 'a variable = 'a Store.t
+      module Ref_json : Ocsipersist_lib.Sigs.REF_JSON
+      module Store_json : Ocsipersist_lib.Sigs.STORE_JSON
       val init : unit -> unit
     end
-  type scope_hierarchy = Eliom_common_base.scope_hierarchy
+  type scope_hierarchy = Common_base.scope_hierarchy
   type cookie_scope =
       [ `Client_process of Common.scope_hierarchy
       | `Session of Common.scope_hierarchy ]
@@ -59,6 +61,7 @@
   exception Eliom_Wrong_parameter
   exception Eliom_Session_expired
   exception Eliom_Typing_Error of (string * exn) list
+  exception Site_information_not_available of string
   exception Eliom_site_information_not_available of string
   exception Cannot_call_this_function_before_app_is_linked_to_a_site
   type full_state_name = {
@@ -119,7 +122,9 @@
   val eliom_service_session_expired :
     (Common.full_state_name list * Common.full_state_name list)
     Polytables.key
+  exception Do_redirection of string
   exception Eliom_do_redirection of string
+  exception Do_half_xhr_redirection of string
   exception Eliom_do_half_xhr_redirection of string
   type 'a tenable_value =
       < get : 'a; set : ?override_tenable:bool -> 'a -> unit >
@@ -276,7 +281,7 @@
     sc_session_group :
       (string * Common.cookie_level * (string, Ipaddr.t) Lib.leftright)
       Stdlib.ref;
-    mutable sc_session_group_node : string Ocsigen_cache.Dlist.node;
+    mutable sc_session_group_node : string Ocsigen_base.Cache.Dlist.node;
   }
   type one_data_cookie_info = {
     dc_hvalue : Common.Hashed_cookies.t;
@@ -287,7 +292,7 @@
     dc_session_group :
       (string * Common.cookie_level * (string, Ipaddr.t) Lib.leftright)
       Stdlib.ref;
-    mutable dc_session_group_node : string Ocsigen_cache.Dlist.node;
+    mutable dc_session_group_node : string Ocsigen_base.Cache.Dlist.node;
   }
   type one_persistent_cookie_info = {
     pc_hvalue : Common.Hashed_cookies.t;
@@ -318,7 +323,7 @@
         session_group :
           (string * Common.cookie_level * (string, Ipaddr.t) Lib.leftright)
           Stdlib.ref;
-        session_group_node : string Ocsigen_cache.Dlist.node;
+        session_group_node : string Ocsigen_base.Cache.Dlist.node;
       }
       type 'a table = 'a Common.Service_cookie.t Common.SessionCookies.t
     end
@@ -331,7 +336,7 @@
         session_group :
           (string * Common.cookie_level * (string, Ipaddr.t) Lib.leftright)
           Stdlib.ref;
-        session_group_node : string Ocsigen_cache.Dlist.node;
+        session_group_node : string Ocsigen_base.Cache.Dlist.node;
       }
       type table = Common.Data_cookie.t Common.SessionCookies.t
     end
@@ -444,7 +449,7 @@
   type node_info = { ni_id : Common.node_ref; mutable ni_sent : bool; }
   module Hier_set : Set.S
   type omitpersistentstorage_rule =
-      HeaderRule of Ocsigen_header.Name.t * Re.re
+      HeaderRule of Ocsigen_http.Header.Name.t * Re.re
   type 'a dircontent =
       Vide
     | Table of 'a Common.direlt Stdlib.ref Lib.String.Table.t
@@ -458,7 +463,7 @@
     s_f : bool -> 'params -> 'result Lwt.t;
   }
   type server_params = {
-    sp_request : Ocsigen_extensions.request;
+    sp_request : Ocsigen.Extensions.request;
     sp_si : Common.sess_info;
     sp_sitedata : Common.sitedata;
     sp_cookie_info : Common.tables Common.cookie_info;
@@ -475,14 +480,14 @@
       [ `Ptc of
           (Common.page_table Stdlib.ref * Common.page_table_key,
            Common.na_key_serv)
-          Lib.leftright Ocsigen_cache.Dlist.node option *
-          (Common.server_params, Ocsigen_response.t) Common.service list ]
+          Lib.leftright Ocsigen_base.Cache.Dlist.node option *
+          (Common.server_params, Ocsigen.Response.t) Common.service list ]
   and naservice_table_content =
       int * int Stdlib.ref option * (float * float Stdlib.ref) option *
-      (Common.server_params -> Ocsigen_response.t Lwt.t) *
+      (Common.server_params -> Ocsigen.Response.t Lwt.t) *
       (Common.page_table Stdlib.ref * Common.page_table_key,
        Common.na_key_serv)
-      Lib.leftright Ocsigen_cache.Dlist.node option
+      Lib.leftright Ocsigen_base.Cache.Dlist.node option
   and naservice_table =
       AVide
     | ATable of Common.naservice_table_content Common.NAserv_Table.t
@@ -504,12 +509,12 @@
       Lib.leftright ->
       (Common.page_table Stdlib.ref * Common.page_table_key,
        Common.na_key_serv)
-      Lib.leftright Ocsigen_cache.Dlist.node;
+      Lib.leftright Ocsigen_base.Cache.Dlist.node;
   }
   and sitedata = {
     mutable site_dir : Lib.Url.path option;
     mutable site_dir_string : string option;
-    mutable config_info : Ocsigen_extensions.config_info option;
+    mutable config_info : Ocsigen.Extensions.config_info option;
     default_links_xhr : bool Common.tenable_value;
     mutable servtimeout :
       (float option * bool) option * (float option * bool) option *
@@ -527,10 +532,10 @@
     session_data : Common.Data_cookie.table;
     group_of_groups :
       (string * Common.cookie_level * (string, Ipaddr.t) Lib.leftright)
-      Ocsigen_cache.Dlist.t;
+      Ocsigen_base.Cache.Dlist.t;
     mutable remove_session_data : string -> unit;
     mutable not_bound_in_data_tables : string -> bool;
-    mutable exn_handler : exn -> Ocsigen_response.t Lwt.t;
+    mutable exn_handler : exn -> Ocsigen.Response.t Lwt.t;
     mutable unregistered_services : Lib.Url.path list;
     mutable unregistered_na_services : Common.na_key_serv list;
     mutable max_volatile_data_sessions_per_group : int * bool;
@@ -560,7 +565,7 @@
   val force_lazy_site_value : 'a Common.lazy_site_value -> 'a
   val lazy_site_value_from_fun : (unit -> 'a) -> 'a Common.lazy_site_value
   type info = {
-    request : Ocsigen_extensions.request;
+    request : Ocsigen.Extensions.request;
     session_info : Common.sess_info;
     all_cookie_info : Common.tables Common.cookie_info;
     tab_cookie_info : Common.tables Common.cookie_info;
@@ -582,9 +587,9 @@
     string -> (string * 'a) list -> (string * 'a) list * (string * 'a) list
   val get_session_info :
     sitedata:Common.sitedata ->
-    req:Ocsigen_extensions.request ->
+    req:Ocsigen.Extensions.request ->
     int ->
-    (Ocsigen_extensions.request * Common.sess_info *
+    (Ocsigen.Extensions.request * Common.sess_info *
      (Common.tables Common.cookie_info * Ocsigen_cookie_map.t) option)
     Lwt.t
   type ('a, 'b) foundornot = Found of 'a | Notfound of 'b
@@ -606,6 +611,7 @@
   val absolute_change_sitedata : Common.sitedata -> unit
   val get_current_sitedata : unit -> Common.sitedata
   val end_current_sitedata : unit -> unit
+  val has_current_sitedata : unit -> bool
   val add_unregistered : Common.sitedata -> Lib.Url.path -> unit
   val add_unregistered_na : Common.sitedata -> Common.na_key_serv -> unit
   val remove_unregistered : Common.sitedata -> Lib.Url.path -> unit
@@ -629,7 +635,7 @@
   val get_mask4 : Common.sitedata -> int
   val get_mask6 : Common.sitedata -> int
   val network_of_request :
-    Ocsigen_request.t -> mask4:int -> mask6:int -> Ipaddr.t
+    Ocsigen.Request.t -> mask4:int -> mask6:int -> Ipaddr.t
   val ipv4mask : int Stdlib.ref
   val ipv6mask : int Stdlib.ref
   val create_dlist_ip_table : int -> Common.dlist_ip_table
@@ -640,7 +646,7 @@
     Ipaddr.t ->
     (Common.page_table Stdlib.ref * Common.page_table_key,
      Common.na_key_serv)
-    Lib.leftright Ocsigen_cache.Dlist.t
+    Lib.leftright Ocsigen_base.Cache.Dlist.t
   val get_cookie_info :
     Common.server_params ->
     [< Common.cookie_level ] -> Common.tables Common.cookie_info
@@ -667,17 +673,17 @@
   val bus_unwrap_id : Common.unwrap_id
   val nl_get_appl_parameter : string
   val patch_request_info :
-    Ocsigen_extensions.request -> Ocsigen_extensions.request
+    Ocsigen.Extensions.request -> Ocsigen.Extensions.request
   type eliom_js_page_data = {
-    ejs_global_data : (Eliom_runtime.global_data * Wrap.unwrapper) option;
-    ejs_request_data : Eliom_runtime.request_data;
-    ejs_event_handler_table : Eliom_runtime.RawXML.event_handler_table;
-    ejs_client_attrib_table : Eliom_runtime.RawXML.client_attrib_table;
+    ejs_global_data : (Runtime.global_data * Wrap.unwrapper) option;
+    ejs_request_data : Runtime.request_data;
+    ejs_event_handler_table : Runtime.RawXML.event_handler_table;
+    ejs_client_attrib_table : Runtime.RawXML.client_attrib_table;
     ejs_sess_info : Common.sess_info;
   }
   val get_site_dir : Common.sitedata -> Lib.Url.path
   val get_site_dir_string : Common.sitedata -> string
-  val get_config_info : Common.sitedata -> Ocsigen_extensions.config_info
+  val get_config_info : Common.sitedata -> Ocsigen.Extensions.config_info
   val get_secure :
     secure_o:bool option -> sitedata:Common.sitedata -> unit -> bool
   val is_client_app : bool Stdlib.ref

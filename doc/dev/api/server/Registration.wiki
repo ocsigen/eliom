@@ -189,7 +189,7 @@
     information is available~, that is~, either during a request or
     during the initialisation phase of the site~.  ~Otherwise~, it will
     raise the exception
-    <<a_api subproject="server" | exception Common.Eliom_site_information_not_available >>~.  ~If you are
+    <<a_api subproject="server" | exception Common.Site_information_not_available >>~.  ~If you are
     using static linking~, you must delay the call to this function
     until the configuration file is read~, using
     <<a_api subproject="server" | val Service.register_eliom_module >>~. ~Otherwise you will also
@@ -203,6 +203,6 @@
     <<span class="odocwiki_inlinecode"|~Streamlist~.send>> is the same as some other kind~, you can cast it
     with <<span class="odocwiki_inlinecode"|cast~_unknown~_content~_kind>> for use with <<span class="odocwiki_inlinecode"|~Any>> module~.
 >>
-<<pre id="VALcast_http_result" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|cast~_http~_result>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Ocsigen_response>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>> <<span class="ocsforge_color_delimiter"| -> >> 'a <<a_api subproject="server" text="kind" | type Registration.kind >>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|cast~_http~_result>> should only be used to register new output
+<<pre id="VALcast_http_result" class="ocsforge_color odocwiki_code"|<<span class="ocsforge_color_keyword"|val>> <<span class="odocwiki_name"|cast~_http~_result>> <<span class="ocsforge_color_delimiter"|~:>> <<span class="odocwiki_type"|<<span class="ocsforge_color_uid"|Ocsigen>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_uid"|Response>><<span class="ocsforge_color_delimiter"| . >><<span class="ocsforge_color_lid"|t>> <<span class="ocsforge_color_delimiter"| -> >> 'a <<a_api subproject="server" text="kind" | type Registration.kind >>>>>><<div class="odocwiki_info"|<<span class="odocwiki_inlinecode"|cast~_http~_result>> should only be used to register new output
     modules
 >>

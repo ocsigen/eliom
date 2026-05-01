@@ -1,12 +1,13 @@
 <<code language="ocaml" | sig
-  val get_global_data : unit -> Eliom_runtime.global_data
-  val get_request_data : unit -> Eliom_runtime.request_data
+  val get_global_data : unit -> Runtime.global_data
+  val get_request_data : unit -> Runtime.request_data
   val to_poly : 'a -> Ocsigen_lib_base.poly
   val client_value : ?pos:Lib.pos -> string -> 'args -> 'a Client_value.t
   val set_global : bool -> unit
   val global_context : unit -> bool
   val close_server_section : string -> unit
   val close_client_section :
-    string -> (int * Ocsigen_lib.poly * Lib.pos * string option) list -> unit
-  val escaped_value : 'a -> Eliom_runtime.escaped_value
+    string ->
+    (int * Ocsigen_base.Lib.poly * Lib.pos * string option) list -> unit
+  val escaped_value : 'a -> Runtime.escaped_value
 end >>

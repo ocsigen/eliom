@@ -19,7 +19,7 @@
       channel can be reclaimed by the ~G~C when there is no more reference to it~.
       ~The buffer channel has a limited buffer of size <<span class="odocwiki_inlinecode"|size>> ~(default~:
       ~1~0~0~0~)~. ~If the client requests too old messages~, exception
-      <<span class="odocwiki_inlinecode"|~Eliom~_coment~.~Channel~_full>> will be raised ~(on client side~)~.
+      <<span class="odocwiki_inlinecode"|~Comet~.~Channel~_full>> will be raised ~(on client side~)~.
 
 
       ~With a scope of level <<a_api subproject="server" | type Common.client_process_scope >> the

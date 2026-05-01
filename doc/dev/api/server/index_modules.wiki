@@ -75,9 +75,6 @@ file~.
 >>
 |
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_tmpl"| module Registration.Eliom_tmpl >> ~[<<a_api subproject="server" | module Registration >>~]||
-|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_types"| module Eliom_types >> |<<div class="odocwiki_info"|~Types shared by client and server~.
->>
-|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Eliom_uri"| module Eliom_uri >> |<<div class="odocwiki_info"|~Low~-level functions for relative or absolute ~U~R~L calculation~.
 >>
 |
@@ -267,6 +264,9 @@ file~.
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Syntax"| module Syntax >> ||
 |@@ @style="tet-align: left;"@@\\T|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Tools"| module Tools >> ||
+|@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Types"| module Types >> |<<div class="odocwiki_info"|~Types shared by client and server~.
+>>
+|
 |@@ @style="tet-align: left;"@@\\U|
 |@@class="odocwiki_index"@ @@<<a_api subproject="server" text="Unit"| module Registration.Unit >> ~[<<a_api subproject="server" | module Registration >>~]|<<div class="odocwiki_info"|~Similar to <<span class="odocwiki_inlinecode"|~Actions>> with <<span class="odocwiki_inlinecode"|`~No~Reload>> option~.
 >>

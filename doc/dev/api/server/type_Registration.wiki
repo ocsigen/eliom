@@ -1012,7 +1012,8 @@
         ?charset:string ->
         ?code:int ->
         ?content_type:string ->
-        ?headers:Ocsigen_header.t -> 'a page -> 'b Registration.kind Lwt.t
+        ?headers:Ocsigen_http.Header.t ->
+        'a page -> 'b Registration.kind Lwt.t
     end
   module String_redirection :
     sig
@@ -1792,5 +1793,5 @@
     (exn -> Registration.browser_content Registration.kind Lwt.t) -> unit
   val cast_unknown_content_kind :
     Registration.unknown_content Registration.kind -> 'a Registration.kind
-  val cast_http_result : Ocsigen_response.t -> 'a Registration.kind
+  val cast_http_result : Ocsigen.Response.t -> 'a Registration.kind
 end >>

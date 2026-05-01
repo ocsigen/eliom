@@ -23,8 +23,7 @@
     ?fragment:string ->
     ?keep_nl_params:[ `All | `None | `Persistent ] ->
     ?nl_params:Parameter.nl_params_set ->
-    'get ->
-    string * (string * Eliommod_parameters.param) list * string option
+    'get -> string * (string * Mod_parameters.param) list * string option
   val make_post_uri_components :
     ?absolute:bool ->
     ?absolute_path:bool ->
@@ -40,11 +39,10 @@
     ?keep_get_na_params:bool ->
     'get ->
     'post ->
-    string * (string * Eliommod_parameters.param) list * string option *
-    (string * Eliommod_parameters.param) list
+    string * (string * Mod_parameters.param) list * string option *
+    (string * Mod_parameters.param) list
   val make_string_uri_from_components :
-    string * (string * Eliommod_parameters.param) list * string option ->
-    string
+    string * (string * Mod_parameters.param) list * string option -> string
   val reconstruct_relative_url_path :
     string list -> string list -> string list
   val make_string_uri_ :
@@ -74,8 +72,8 @@
     ?keep_get_na_params:bool ->
     'get ->
     'post ->
-    string * (string * Eliommod_parameters.param) list * string option *
-    (string * Eliommod_parameters.param) list
+    string * (string * Mod_parameters.param) list * string option *
+    (string * Mod_parameters.param) list
   val make_uri_components_ :
     ?absolute:bool ->
     ?absolute_path:bool ->
@@ -88,8 +86,7 @@
     ?fragment:string ->
     ?keep_nl_params:[ `All | `None | `Persistent ] ->
     ?nl_params:Parameter.nl_params_set ->
-    unit ->
-    string * (string * Eliommod_parameters.param) list * string option
+    unit -> string * (string * Mod_parameters.param) list * string option
   val make_post_uri_components_ :
     ?absolute:bool ->
     ?absolute_path:bool ->
@@ -105,8 +102,8 @@
     ?keep_get_na_params:bool ->
     'get ->
     unit ->
-    string * (string * Eliommod_parameters.param) list * string option *
-    (string * Eliommod_parameters.param) list
+    string * (string * Mod_parameters.param) list * string option *
+    (string * Mod_parameters.param) list
   val make_actual_path : string list -> string list
   val make_proto_prefix : ?hostname:string -> ?port:int -> bool -> string
   val make_cookies_info :

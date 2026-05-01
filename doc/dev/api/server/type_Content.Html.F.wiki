@@ -2682,8 +2682,8 @@
         ?keep_get_na_params:bool ->
         'get ->
         'post ->
-        string * (string * Eliom.Eliommod_parameters.param) list *
-        string option * (string * Eliom.Eliommod_parameters.param) list
+        string * (string * Eliom.Mod_parameters.param) list * string option *
+        (string * Eliom.Mod_parameters.param) list
       val get_form :
         ?absolute:bool ->
         ?absolute_path:bool ->
