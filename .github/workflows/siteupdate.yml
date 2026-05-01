@@ -32,7 +32,7 @@ jobs:
       - name: Install OCaml 🐫
         uses: ocaml/setup-ocaml@v3
         with:
-          ocaml-compiler: 4.14.1
+          ocaml-compiler: 5.4.x
 
       - name: Install HOW 🦔
         run: |
