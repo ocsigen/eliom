@@ -1066,10 +1066,12 @@ val remove_volatile_data : table:'a volatile_table -> unit -> unit
 val create_persistent_table :
    scope:Common.user_scope
   -> ?secure:bool
+  -> json:'a Deriving_Json.t
   -> string
   -> 'a persistent_table Lwt.t
 (** creates a table on hard disk where you can store the session data
-    for all users. It uses {!Ocsipersist}.  (low level) *)
+    for all users. It uses {!Ocsipersist} with {!Deriving_Json} serialisation.
+    (low level) *)
 
 val get_persistent_data :
    table:'a persistent_table

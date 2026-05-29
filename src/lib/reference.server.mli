@@ -41,7 +41,7 @@ exception Eref_not_initialized
 val eref :
    scope:[< Common.all_scope]
   -> ?secure:bool
-  -> ?persistent:string
+  -> ?persistent:string * 'a Deriving_Json.t
   -> 'a
   -> 'a eref
 (** The function [eref ~scope value] creates an Eliom reference for
@@ -50,11 +50,12 @@ val eref :
     chapter="server-state"|scopes>>%}.
 
     Use the optional parameter [?persistent] if you want the data to
-    survive after relaunching the server. You must give an unique name
-    to the table in which it will be stored on the hard disk (using
-    Ocsipersist).  Be very careful to use unique names, and to change
-    the name if you change the type of the data, otherwise the server
-    may crash (unsafe unmarshaling). This parameter has no effect for
+    survive after relaunching the server. The argument is a pair
+    [(name, json)] where [name] is a unique table name used by
+    Ocsipersist on disk, and [json] is a {!Deriving_Json.t} codec
+    (typically [\[%json: t\]] when [t] has [\[@@deriving json\]]).
+    Be very careful to use unique names, and to change the name if
+    you change the type of the data. This parameter has no effect for
     scope {!Common.request_scope}.
 
     Use the optional parameter [~secure:true] if you want the data to
@@ -85,7 +86,7 @@ val eref :
 val eref_from_fun :
    scope:[< Common.all_scope]
   -> ?secure:bool
-  -> ?persistent:string
+  -> ?persistent:string * 'a Deriving_Json.t
   -> (unit -> 'a)
   -> 'a eref
 (** The function [eref_from_fun] works like the above {!Reference.eref},
