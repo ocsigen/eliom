@@ -145,14 +145,35 @@ type 'a sessgrp = string * cookie_level * (string, Ipaddr.t) leftright
    The scope is the scope of group members (`Session by default).
    If there is no session group,
    we limit the number of sessions by IP address. *)
-type perssessgrp = string (* same triple, marshaled *)
+type perssessgrp = string (* same triple, JSON-encoded *)
+
+[@@@warning "-39"]
+
+(* Persistent representation of a session group. Stored on disk through
+   {!perssessgrp}: a JSON-encoded value of this record. The triple form is
+   {!sessgrp} but always with [Left g] for persistent groups, hence the
+   simpler representation here. *)
+type perssessgrp_payload =
+  { p_site_dir_str : string
+  ; p_cookie_level : cookie_level
+  ; p_group : string }
+[@@deriving json]
+
+[@@@warning "+39"]
 
 let make_persistent_full_group_name ~cookie_level site_dir_string = function
   | None -> None
   | Some g ->
-      Some (Marshal.to_string (site_dir_string, cookie_level, Left g) [])
+      Some
+        (Deriving_Json.to_string [%json: perssessgrp_payload]
+           {p_site_dir_str = site_dir_string; p_cookie_level = cookie_level; p_group = g})
 
-let getperssessgrp a : 'a sessgrp = Marshal.from_string a 0
+let getperssessgrp a : 'a sessgrp =
+  let {p_site_dir_str; p_cookie_level; p_group} =
+    Deriving_Json.from_string [%json: perssessgrp_payload] a
+  in
+  p_site_dir_str, p_cookie_level, Left p_group
+
 let string_of_perssessgrp = id
 
 (* cookies information during page generation: *)
