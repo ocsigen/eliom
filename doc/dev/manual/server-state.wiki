@@ -470,21 +470,47 @@ Ocsigenserver provides two implementations, one based on {{{SQLite}}},
 the other one based on {{{DBM}}}.
 
 Persistent references are created by adding the {{{~persistent}}}
-parameter to the <<a_api subproject="server" | val Eliom.Reference.eref >> function
-calls. The value of this parameter is the name of the reference in the
-database.
+parameter to the <<a_api subproject="server" | val Eliom.Reference.eref >>
+function calls. Since Eliom 13, the value of this parameter is a pair
+{{{(name, codec)}}}: {{{name}}} is the name of the reference in the
+database, and {{{codec}}} is a {{{Deriving_Json}}} codec used to
+serialise the stored value:
+
+<<code language="ocaml"|
+type user_pref = { lang : string; theme : string } [@@deriving json]
+
+let prefs =
+  Eliom.Reference.eref
+    ~persistent:("user_prefs", [%json: user_pref])
+    ~scope:Eliom.Common.default_group_scope
+    { lang = "en"; theme = "light" }
+>>
+
+The type stored in the reference must be annotated with
+{{{[@@deriving json]}}} (or any equivalent way of producing a
+{{{Deriving_Json.t}}} value, e.g. {{{Deriving_Json.convert}}} for an
+abstract type, or one of the {{{Deriving_Json.Json_xxx}}} functors for
+parametric types).
 
 <<wip |
 
-Persistent data are serialized on hard drive using OCaml's unsafe
-<<span class="code"|Marshal>> module, hence persistent references
-currently suffer some limitations:
+Before Eliom 13, the value parameter of {{{~persistent}}} was just the
+table name (a {{{string}}}), and Eliom used OCaml's unsafe
+{{{Stdlib.Marshal}}} module to serialise persistent data, which led to
+the following limitations:
 
-* It is not possible to serialize closures or services (as we are
-  using dynamic linking),
-* If you ever change the type of serialised data, don't forget to
-  change the persistent reference name, or the server will probably
-  crash while deserializing!
+* On-disk values were unsafe to read across OCaml versions (Marshal
+  gives no inter-version stability guarantee on certain types);
+* It was not possible to serialise closures or services (as we are
+  using dynamic linking);
+* If you ever changed the type of serialised data, you had to also
+  change the persistent reference name, or the server would crash
+  while deserialising.
+
+The Deriving_Json migration removes all of these limitations: serialised
+data is human-readable, stable across OCaml versions, and the
+{{{[@@deriving json]}}} annotation forces the codec to match the
+stored type at compile time.
 
 >>
 
