@@ -392,7 +392,11 @@ Besides, volatile sessions are (hopefully) going to disappear soon.
     (*VVV Check when the table is collected *)
   end)
 
-type nbmax = Val of int | Default | Nolimit
+[@@@warning "-39"]
+
+type nbmax = Val of int | Default | Nolimit [@@deriving json]
+
+[@@@warning "+39"]
 
 let cut n l =
   let rec aux n = function
@@ -408,14 +412,22 @@ module Pers = struct
   (*VVV Verify this carefully! *)
   (*VVV VERIFY concurrent access *)
 
-  module Ocsipersist = Common.Ocsipersist.Polymorphic
+  module Ocsipersist = Common.Ocsipersist.Functorial
 
-  let grouptable : (nbmax * string list) Ocsipersist.table Lwt.t Lazy.t =
-    lazy (Ocsipersist.open_table "__eliom_session_group_table")
-  (* It is lazy because if the module is linked statically,
-         the creation of the table must happen after initialisation
-         of ocsipersist (after reading the configuration file to know
-         the location of the table) *)
+  (* v2 switches from Marshal to Deriving_Json *)
+  module Grouptable =
+    Ocsipersist.Table
+      (struct
+        let name = "__eliom_session_group_table_v2"
+      end)
+      (Ocsipersist.Column.String)
+      (Ocsipersist.Column.Json (struct
+           type t = nbmax * string list
+
+           let t = [%json: nbmax * string list]
+         end))
+
+  let () = Common.Persistent_tables.add_functorial_table (module Grouptable)
 
   let find g =
     match g with
@@ -423,8 +435,7 @@ module Pers = struct
     | Some g ->
         Lwt.catch
           (fun () ->
-             !!grouptable >>= fun grouptable ->
-             Ocsipersist.find grouptable (Common.string_of_perssessgrp g)
+             Grouptable.find (Common.string_of_perssessgrp g)
              >>= fun (_, a) -> Lwt.return a)
           (function Not_found -> Lwt.return_nil | e -> Lwt.fail e)
 
@@ -434,8 +445,7 @@ module Pers = struct
         let sg = Common.string_of_perssessgrp sg in
         Lwt.catch
           (fun () ->
-             !!grouptable >>= fun grouptable ->
-             Ocsipersist.find grouptable sg >>= fun (max2, cl) ->
+             Grouptable.find sg >>= fun (max2, cl) ->
              let max, newmax =
                match set_max with
                | None ->
@@ -448,7 +458,7 @@ module Pers = struct
                | Some (Some v) -> Some v, Val v
              in
              let cl, toclose = cut max cl in
-             Ocsipersist.replace_if_exists grouptable sg (newmax, sess_id :: cl)
+             Grouptable.replace_if_exists sg (newmax, sess_id :: cl)
              >>= fun () -> Lwt.return toclose)
           (function
             | Not_found ->
@@ -458,8 +468,7 @@ module Pers = struct
                   | Some None -> Nolimit
                   | Some (Some v) -> Val v
                 in
-                !!grouptable >>= fun grouptable ->
-                Ocsipersist.add grouptable sg (max, [sess_id]) >>= fun () ->
+                Grouptable.add sg (max, [sess_id]) >>= fun () ->
                 Lwt.return_nil
             | e -> Lwt.fail e)
     | None -> Lwt.return_nil
@@ -511,7 +520,7 @@ module Pers = struct
          match sess_grp with
          | Some sg ->
              let sg = Common.string_of_perssessgrp sg in
-             !!grouptable >>= fun grouptable -> Ocsipersist.remove grouptable sg
+             Grouptable.remove sg
          | None -> Lwt.return_unit)
       (function Not_found -> Lwt.return_unit | e -> Lwt.fail e)
 
@@ -542,8 +551,7 @@ module Pers = struct
         let sg = Common.string_of_perssessgrp sg0 in
         Lwt.catch
           (fun () ->
-             !!grouptable >>= fun grouptable ->
-             Ocsipersist.find grouptable sg >>= fun (max, cl) ->
+             Grouptable.find sg >>= fun (max, cl) ->
              let newcl = List.remove_first_if_any sess_id cl in
              (* Before 2018-10-18, we were closing the session group
              when newcl was empty (no more session in the group).
@@ -552,7 +560,7 @@ module Pers = struct
              information when user closes all their sessions.
              I remove this. -- Vincent
              *)
-             Ocsipersist.replace_if_exists grouptable sg (max, newcl))
+             Grouptable.replace_if_exists sg (max, newcl))
           (function Not_found -> Lwt.return_unit | e -> Lwt.fail e)
     | None -> Lwt.return_unit
 
@@ -563,10 +571,9 @@ module Pers = struct
         let sg = Common.string_of_perssessgrp sg in
         Lwt.catch
           (fun () ->
-             !!grouptable >>= fun grouptable ->
-             Ocsipersist.find grouptable sg >>= fun (max, cl) ->
+             Grouptable.find sg >>= fun (max, cl) ->
              let newcl = List.remove_first_if_any sess_id cl in
-             Ocsipersist.replace_if_exists grouptable sg (max, sess_id :: newcl))
+             Grouptable.replace_if_exists sg (max, sess_id :: newcl))
           (function Not_found -> Lwt.return_unit | e -> Lwt.fail e)
 
   let move sitedata ?set_max max sess_id grp1 grp2 =
@@ -575,5 +582,5 @@ module Pers = struct
       remove sitedata sess_id grp1 >>= fun () -> add ?set_max max sess_id grp2
     else Lwt.return_nil
 
-  let nb_of_groups () = !!grouptable >>= Ocsipersist.length
+  let nb_of_groups () = Grouptable.length ()
 end

@@ -11,6 +11,10 @@
    suffix is bumped to _v6. BREAKING: persistent cookies issued by
    earlier Eliom versions are dropped on upgrade and clients are
    asked to remove the cookie on next visit.
+** Session-group table is migrated from Ocsipersist.Polymorphic to a
+   typed functorial table with Column.Json. Renamed from
+   __eliom_session_group_table to __eliom_session_group_table_v2.
+   BREAKING: existing session groups are dropped on upgrade.
 * Module namespace modernization
 ** Public modules are now accessed as Eliom.Service, Eliom.Content,
    Eliom.Parameter, Eliom.Registration, Eliom.Client, ... instead of
