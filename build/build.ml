@@ -51,18 +51,18 @@ let _ =
             ["ocaml"; "compile"; "pkg_" ^ name]
             (S
                [ A "-ppx"
-               ; Quote (S [P (path ^ name ^ "_ex." ^ best); A "-as-ppx"]) ]);
+               ; Quote (S [P (path ^ name ^ "_ex." ^ best); A "-as-ppx"; A "-internal"]) ]);
           flag
             ["ocaml"; "ocamldep"; "pkg_" ^ name]
             (S
                [ A "-ppx"
-               ; Quote (S [P (path ^ name ^ "_ex." ^ best); A "-as-ppx"]) ]);
+               ; Quote (S [P (path ^ name ^ "_ex." ^ best); A "-as-ppx"; A "-internal"]) ]);
           dep ["ocaml"; "ocamldep"; "pkg_" ^ name] [path ^ name ^ "_ex." ^ best];
           flag_and_dep
             ["ocaml"; "infer_interface"; "pkg_" ^ name]
             (S
                [ A "-ppx"
-               ; Quote (S [P (path ^ name ^ "_ex." ^ best); A "-as-ppx"]) ]);
+               ; Quote (S [P (path ^ name ^ "_ex." ^ best); A "-as-ppx"; A "-internal"]) ]);
           dep
             ["ocaml"; "infer_interface"; "pkg_" ^ name]
             [path ^ name ^ "_ex." ^ best];
@@ -70,7 +70,7 @@ let _ =
             ["doc"; "pkg_" ^ name]
             (S
                [ A "-ppx"
-               ; Quote (S [P (path ^ name ^ "_ex." ^ best); A "-as-ppx"]) ]);
+               ; Quote (S [P (path ^ name ^ "_ex." ^ best); A "-as-ppx"; A "-internal"]) ]);
           dep ["doc"; "pkg_" ^ name] [path ^ name ^ "_ex." ^ best]
         in
         add_syntax "ppx_eliom_utils" "src/ppx/";
