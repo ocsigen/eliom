@@ -1,7 +1,7 @@
 (lang dune 3.19)
 
 (name eliom)
-(version 13.0.0)
+(version 13.0~dev)
 (maintainers dev@ocsigen.org)
 (authors dev@ocsigen.org)
 (license "LGPL-2.1-only WITH OCaml-LGPL-linking-exception")
