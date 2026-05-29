@@ -121,6 +121,7 @@ exception Cannot_call_this_function_before_app_is_linked_to_a_site
 
 type full_state_name =
   {user_scope : user_scope; secure : bool; site_dir_str : string}
+[@@deriving json]
 
 module Full_state_name_table : Map.S with type key = full_state_name
 
@@ -301,7 +302,7 @@ type 'a sessgrp = string * cookie_level * (string, Ipaddr.t) leftright
        The scope is the scope of group members (`Session by default).
        If there is no session group,
        we limit the number of sessions by IP address. *)
-type perssessgrp (* the same triple, marshaled *)
+type perssessgrp (* the same triple, JSON-encoded *) [@@deriving json]
 
 val make_persistent_full_group_name :
    cookie_level:cookie_level
@@ -333,7 +334,7 @@ module Hashed_cookies : sig
   val to_string : t -> string
 end
 
-type timeout = TGlobal | TNone | TSome of float
+type timeout = TGlobal | TNone | TSome of float [@@deriving json]
 
 type 'a one_service_cookie_info =
   { sc_hvalue : Hashed_cookies.t

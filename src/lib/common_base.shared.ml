@@ -28,15 +28,21 @@ exception Eliom_site_information_not_available = Site_information_not_available
 
 (******************************************************************)
 
+[@@@warning "-39"]
+
 type scope_hierarchy =
   | User_hier of string
   | Default_ref_hier
   | Default_comet_hier
+[@@deriving json]
 
 type user_scope =
   [ `Session_group of scope_hierarchy
   | `Session of scope_hierarchy
   | `Client_process of scope_hierarchy ]
+[@@deriving json]
+
+[@@@warning "+39"]
 
 type scope = [`Site | user_scope]
 type all_scope = [scope | `Global | `Request]
@@ -78,8 +84,13 @@ let scope_hierarchy_of_user_scope : [< user_scope] -> scope_hierarchy = function
 (* The key in the table of states. For cookies scopes, it is also the
    information in the cookie name, without the kind of session, and with the
    scope level (that is not in the cookie name). *)
+[@@@warning "-39"]
+
 type full_state_name =
   {user_scope : user_scope; secure : bool; site_dir_str : string}
+[@@deriving json]
+
+[@@@warning "+39"]
 
 module Full_state_name_table = Map.Make (struct
     type t = full_state_name

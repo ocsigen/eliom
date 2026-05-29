@@ -6,6 +6,11 @@
    BREAKING: existing session-group entries from older Eliom
    versions become unreadable; tables are renamed in later commits
    to make this migration explicit.
+** Persistent-cookie table (eliom_persist_cookies) now uses
+   Ocsipersist.Column.Json instead of Column.Marshal. The table
+   suffix is bumped to _v6. BREAKING: persistent cookies issued by
+   earlier Eliom versions are dropped on upgrade and clients are
+   asked to remove the cookie on next visit.
 * Module namespace modernization
 ** Public modules are now accessed as Eliom.Service, Eliom.Content,
    Eliom.Parameter, Eliom.Registration, Eliom.Client, ... instead of

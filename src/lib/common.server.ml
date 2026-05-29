@@ -101,10 +101,15 @@ type cookie_exp =
 *)
 let default_client_cookie_exp () = CESome (Unix.time () +. 315532800.)
 
+[@@@warning "-39"]
+
 type timeout =
   | TGlobal  (** see global setting *)
   | TNone  (** explicitly set no timeout *)
   | TSome of float  (** timeout duration in seconds *)
+[@@deriving json]
+
+[@@@warning "+39"]
 
 (* The table of tables for each session. Keys are hashes of cookies or group names *)
 module SessionCookies = Hashtbl.Make (struct
@@ -145,9 +150,9 @@ type 'a sessgrp = string * cookie_level * (string, Ipaddr.t) leftright
    The scope is the scope of group members (`Session by default).
    If there is no session group,
    we limit the number of sessions by IP address. *)
-type perssessgrp = string (* same triple, JSON-encoded *)
-
 [@@@warning "-39"]
+
+type perssessgrp = string (* same triple, JSON-encoded *) [@@deriving json]
 
 (* Persistent representation of a session group. Stored on disk through
    {!perssessgrp}: a JSON-encoded value of this record. The triple form is
