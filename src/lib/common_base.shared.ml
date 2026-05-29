@@ -49,7 +49,12 @@ type request_scope = [`Request]
 
 (******************************************************************)
 type user_level = [`Session_group | `Session | `Client_process]
-type cookie_level = [`Session | `Client_process]
+
+[@@@warning "-39"]
+
+type cookie_level = [`Session | `Client_process] [@@deriving json]
+
+[@@@warning "+39"]
 
 type cookie_scope =
   [`Session of scope_hierarchy | `Client_process of scope_hierarchy]

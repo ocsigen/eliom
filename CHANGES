@@ -1,4 +1,11 @@
 ===== 13.0~dev =====
+* Persistent storage: replace Stdlib.Marshal with Deriving_Json
+** perssessgrp values (session-group keys) are now serialised with
+   Deriving_Json instead of Stdlib.Marshal. The on-disk format
+   becomes stable across OCaml versions and human-readable.
+   BREAKING: existing session-group entries from older Eliom
+   versions become unreadable; tables are renamed in later commits
+   to make this migration explicit.
 * Module namespace modernization
 ** Public modules are now accessed as Eliom.Service, Eliom.Content,
    Eliom.Parameter, Eliom.Registration, Eliom.Client, ... instead of
