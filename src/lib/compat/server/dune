@@ -1,6 +1,6 @@
 (library
  (name eliom_compat_server)
- (public_name eliom.compat.server)
+ (public_name eliom-compat.server)
  (synopsis "Eliom: backward-compatible module names (server-side)")
  (wrapped false)
  (modules_without_implementation

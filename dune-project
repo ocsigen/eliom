@@ -44,3 +44,9 @@ The client-side code is compiled to JS using Ocsigen Js_of_ocaml or to Wasm usin
   (ocsipersist (and (>= 2.0) (< 3.0)))
   ppx_optcomp
   (xml-light (>= "2.5"))))
+
+(package
+ (name eliom-compat)
+ (synopsis "Eliom: backward-compatible module names (Eliom_xxx)")
+ (description "Provides the old Eliom_xxx module names (e.g. Eliom_service, Eliom_content) as aliases to the new Eliom.Xxx modules. Use this package to ease migration of existing code.")
+ (depends (eliom (= :version))))
