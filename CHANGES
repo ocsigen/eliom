@@ -1,4 +1,4 @@
-===== 13.0 =====
+===== 13.0~dev =====
 * Module namespace modernization
 ** Public modules are now accessed as Eliom.Service, Eliom.Content,
    Eliom.Parameter, Eliom.Registration, Eliom.Client, ... instead of
