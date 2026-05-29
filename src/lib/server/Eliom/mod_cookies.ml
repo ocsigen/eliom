@@ -27,13 +27,18 @@ include Cookies_base
 (*****************************************************************************)
 let make_new_session_id () = Ocsigen_base.Lib.make_cryptographic_safe_string () ^ "H"
 
-type date = float
+[@@@warning "-39"]
+
+type date = float [@@deriving json]
 
 type cookie =
   { full_state_name : Common.full_state_name
   ; expiry : date option
   ; timeout : Common.timeout
   ; session_group : Common.perssessgrp option }
+[@@deriving json]
+
+[@@@warning "+39"]
 
 module Persistent_cookies = struct
   (* Another table, containing the session info for each cookie *)
@@ -50,20 +55,23 @@ module Persistent_cookies = struct
   module Ocsipersist = Common.Ocsipersist.Functorial
 
   (* NOTE: Do not forget to change the version number when the internal format changes! *)
-  let persistent_cookie_table_version = "_v5"
+  let persistent_cookie_table_version = "_v6"
 
   (* v2 introduces session groups *)
   (* v3 introduces tab sessions *)
   (* v4 introduces group tables *)
   (* v5 removes secure scopes *)
+  (* v6 switches from Marshal to Deriving_Json *)
   module Cookies =
     Ocsipersist.Table
       (struct
         let name = "eliom_persist_cookies" ^ persistent_cookie_table_version
       end)
       (Ocsipersist.Column.String)
-      (Ocsipersist.Column.Marshal (struct
+      (Ocsipersist.Column.Json (struct
            type t = cookie
+
+           let t = [%json: cookie]
          end))
 
   let () = Common.Persistent_tables.add_functorial_table (module Cookies)
