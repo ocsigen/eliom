@@ -849,15 +849,18 @@ let get_session_service_table_if_exists ~sp ~scope ?secure () =
 (*****************************************************************************)
 (** {2 persistent sessions} *)
 
-module Ocsipersist = Common.Ocsipersist.Polymorphic
-
 type 'a persistent_table =
-  Common.user_scope * bool * (int64 * 'a) Ocsipersist.table
+  Common.user_scope
+  * bool
+  * (module Common.Ocsipersist.TABLE
+       with type key = string
+        and type value = 'a)
 
-let create_persistent_table ~scope ?secure name : 'a persistent_table Lwt.t =
+let create_persistent_table ~scope ?secure ~json name : 'a persistent_table Lwt.t =
   let sitedata = Request_info.find_sitedata "create_persistent_table" in
   let secure = Common.get_secure ~secure_o:secure ~sitedata () in
-  Common.Persistent_tables.create name >>= fun t -> Lwt.return (scope, secure, t)
+  let t = Common.Persistent_tables.create_json ~name json in
+  Lwt.return (scope, secure, t)
 
 let get_p_table_key_
       ~table:(scope, secure, table)
@@ -888,32 +891,45 @@ let get_p_table_key_
   in
   Lwt.return (table, key)
 
-let get_persistent_data ~table () =
+let get_persistent_data (type a) ~(table : a persistent_table) () =
   catch
     (fun () ->
        get_p_table_key_ ~table Mod_persess.find_persistent_cookie_only
        >>= fun (table, key) ->
-       Ocsipersist.find table key >>= fun (_, v) -> Lwt.return (Data v))
+       let module T =
+         (val table
+             : Common.Ocsipersist.TABLE
+              with type key = string
+               and type value = a)
+       in
+       T.find key >>= fun v -> Lwt.return (Data v))
     (function
       | Common.Eliom_Session_expired -> return Data_session_expired
       | Not_found -> return No_data
       | e -> fail e)
 
-let set_persistent_data ~table value =
+let set_persistent_data (type a) ~(table : a persistent_table) (value : a) =
   let f__ ~cookie_scope ~secure_o ?sp () =
     Mod_persess.find_or_create_persistent_cookie ~cookie_scope ~secure_o ?sp ()
   in
   get_p_table_key_ ~table f__ >>= fun (table, key) ->
-  Ocsipersist.add table key (Int64.zero, value)
+  let module T = (val table) in
+  T.add key value
 
-let remove_persistent_data ~table () =
+let remove_persistent_data (type a) ~(table : a persistent_table) () =
   Lwt.catch
     (fun () ->
        let scope, secure, _ = table in
        let* table, key =
          get_p_table_key_ ~table Mod_persess.find_persistent_cookie_only
        in
-       let* () = Ocsipersist.remove table key in
+       let module T =
+         (val table
+             : Common.Ocsipersist.TABLE
+              with type key = string
+               and type value = a)
+       in
+       let* () = T.remove key in
        close_persistent_state_if_empty ~scope ~secure ())
     (function
       | Not_found | Common.Eliom_Session_expired -> return_unit
@@ -1383,11 +1399,18 @@ module Ext = struct
       Common.SessionCookies.find t cookie
 
     let get_persistent_data
+          (type a)
           ~state:((state_scope, _, cookie) : ('s, [`Pers]) state)
-          ~table:((table_scope, _, t) : 'a persistent_table)
+          ~table:((table_scope, _, t) : a persistent_table)
       =
       lwt_check_scopes table_scope state_scope >>= fun () ->
-      Ocsipersist.find t cookie >>= fun (_, a) -> Lwt.return a
+      let module T =
+        (val t
+            : Common.Ocsipersist.TABLE
+             with type key = string
+              and type value = a)
+      in
+      T.find cookie
 
     let set_volatile_data
           ~state:((state_scope, _, cookie) : ('s, [`Data]) state)
@@ -1398,12 +1421,19 @@ module Ext = struct
       Common.SessionCookies.replace t cookie value
 
     let set_persistent_data
+          (type a)
           ~state:((state_scope, _, cookie) : ('s, [`Pers]) state)
-          ~table:((table_scope, _, t) : 'a persistent_table)
-          value
+          ~table:((table_scope, _, t) : a persistent_table)
+          (value : a)
       =
       lwt_check_scopes table_scope state_scope >>= fun () ->
-      Ocsipersist.add t cookie (Int64.zero, value)
+      let module T =
+        (val t
+            : Common.Ocsipersist.TABLE
+             with type key = string
+              and type value = a)
+      in
+      T.add cookie value
 
     let remove_volatile_data
           ~state:((state_scope, _, cookie) : ('s, [`Data]) state)
@@ -1413,11 +1443,18 @@ module Ext = struct
       Common.SessionCookies.remove t cookie
 
     let remove_persistent_data
+          (type a)
           ~state:((state_scope, _, cookie) : ('s, [`Pers]) state)
-          ~table:((table_scope, _, t) : 'a persistent_table)
+          ~table:((table_scope, _, t) : a persistent_table)
       =
       lwt_check_scopes table_scope state_scope >>= fun () ->
-      Ocsipersist.remove t cookie
+      let module T =
+        (val t
+            : Common.Ocsipersist.TABLE
+             with type key = string
+              and type value = a)
+      in
+      T.remove cookie
   end
 
   let get_service_cookie_scope ~cookie:(_, cookie) =

@@ -1340,27 +1340,18 @@ end
 module Ocsipersist = struct
   include Ocsipersist
 
-  module Polymorphic = struct
-    include Ocsipersist.Polymorphic
-
-    let add table key value =
-      Omit_persistent_storage.not_if_omitting_storage (fun () ->
-        add table key value)
-
-    let remove table key =
-      Omit_persistent_storage.not_if_omitting_storage (fun () ->
-        remove table key)
-
-    let replace_if_exists table key value =
-      Omit_persistent_storage.not_if_omitting_storage (fun () ->
-        replace_if_exists table key value)
-  end
-
-  module Store = struct
-    include Ocsipersist.Store
+  module Store_json = struct
+    include Ocsipersist.Store_json
 
     let set pv value =
       Omit_persistent_storage.not_if_omitting_storage (fun () -> set pv value)
+  end
+
+  module Ref_json = struct
+    include Ocsipersist.Ref_json
+
+    let set r v =
+      Omit_persistent_storage.not_if_omitting_storage (fun () -> set r v)
   end
 
   module Functorial = struct
@@ -1395,14 +1386,27 @@ end
 
 (* keeping track of all the persistent tables *)
 module Persistent_tables = struct
-  let polymorphic_tables = ref []
   let functorial_tables = ref []
 
-  let create name =
-    polymorphic_tables := name :: !polymorphic_tables;
-    Ocsipersist.Polymorphic.open_table name
-
   let add_functorial_table t = functorial_tables := t :: !functorial_tables
+
+  let create_json (type a) ~name (json : a Deriving_Json.t) :
+    (module Ocsipersist.TABLE with type key = string and type value = a)
+    =
+    let module T =
+      Ocsipersist.Functorial.Table
+        (struct
+          let name = name
+        end)
+        (Ocsipersist.Functorial.Column.String)
+        (Ocsipersist.Functorial.Column.Json (struct
+             type t = a
+
+             let t = json
+           end))
+    in
+    add_functorial_table (module T : Ocsipersist.TABLE with type key = string);
+    (module T : Ocsipersist.TABLE with type key = string and type value = a)
 
   (** removes the entry from all opened tables *)
   let remove_key_from_all_tables key =
@@ -1411,29 +1415,14 @@ module Persistent_tables = struct
       (fun (module T : Ocsipersist.TABLE with type key = string) ->
          T.remove key)
       !functorial_tables
-    >>= fun () ->
-    Lwt_list.iter_s (* could be replaced by iter_p *)
-      (fun t ->
-         Ocsipersist.Polymorphic.open_table t >>= fun table ->
-         Ocsipersist.Polymorphic.remove table key >>= Lwt.pause)
-      !polymorphic_tables
 
-  let number_of_tables () =
-    List.length !polymorphic_tables + List.length !functorial_tables
+  let number_of_tables () = List.length !functorial_tables
 
   let number_of_table_elements () =
-    Lwt_list.map_s
-      (fun t ->
-         Ocsipersist.Polymorphic.open_table t >>= fun table ->
-         Ocsipersist.Polymorphic.length table >>= fun e -> Lwt.return (t, e))
-      !polymorphic_tables
-    >>= fun polymorphic_counts ->
     Lwt_list.map_s
       (fun (module T : Ocsipersist.TABLE with type key = string) ->
          T.length () >>= fun n -> Lwt.return (T.name, n))
       !functorial_tables
-    >>= fun functorial_counts ->
-    Lwt.return @@ polymorphic_counts @ functorial_counts
 end
 
 (**** Wrapper type shared by client/server side ***)

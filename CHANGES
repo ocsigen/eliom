@@ -15,6 +15,26 @@
    typed functorial table with Column.Json. Renamed from
    __eliom_session_group_table to __eliom_session_group_table_v2.
    BREAKING: existing session groups are dropped on upgrade.
+** Eliom references and persistent session-data tables drop all
+   reliance on Stdlib.Marshal. The user-facing API now requires a
+   Deriving_Json codec:
+     Reference.eref ~persistent:("name", [%json: t]) v
+     State.create_persistent_table ~scope ~json:[%json: t] "name"
+   The stored values must be annotated with [@@deriving json].
+   Internally:
+     - The global persistent store (Ocsiper) now uses
+       Ocsipersist.Store_json.
+     - Per-site and per-user persistent tables use a typed
+       Ocsipersist functorial table with Column.Json registered
+       via Persistent_tables.create_json.
+     - The vestigial int64 column previously prefixed to every
+       session value is dropped.
+     - Ocsipersist.Polymorphic is no longer used in Eliom and the
+       Common.Ocsipersist.Polymorphic wrapper is removed.
+   BREAKING: existing per-reference / per-session persistent data
+   becomes unreadable on upgrade because the on-disk format changes
+   (Ocsipersist's Store_json stores in a different table than
+   Store; Polymorphic tables are not opened any more).
 * Module namespace modernization
 ** Public modules are now accessed as Eliom.Service, Eliom.Content,
    Eliom.Parameter, Eliom.Registration, Eliom.Client, ... instead of

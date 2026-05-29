@@ -641,7 +641,12 @@ val make_full_state_name2 :
   -> full_state_name
 
 module Persistent_tables : sig
-  val create : string -> 'a Ocsipersist.table Lwt.t
+  val create_json :
+     name:string
+    -> 'a Deriving_Json.t
+    -> (module Ocsipersist.TABLE
+          with type key = string
+           and type value = 'a)
 
   val add_functorial_table :
      (module Ocsipersist.TABLE with type key = string)

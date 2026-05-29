@@ -23,20 +23,32 @@
 open State
 open Lwt.Infix
 
-module Ocsipersist = struct
-  include Common.Ocsipersist.Store
-  include Common.Ocsipersist.Polymorphic
-end
+module Store_json = Common.Ocsipersist.Store_json
 
-let pers_ref_store = Ocsipersist.open_store "eliom__persistent_refs"
+let pers_ref_store = Store_json.open_store "eliom__persistent_refs"
+
+(* Lift a value codec into an [option] codec. *)
+let json_option (type x) (j : x Deriving_Json.t) : x option Deriving_Json.t =
+  let module M = struct
+    type a = x
+
+    let t = j
+  end in
+  let module O = Deriving_Json.Json_option (Deriving_Json.Defaults'' (M)) in
+  O.t
+
+type 'a typed_table =
+  (module Common.Ocsipersist.TABLE
+     with type key = string
+      and type value = 'a)
 
 type 'a eref_kind =
   | Req of 'a Polytables.key
   | Sit of 'a Polytables.key
   | Ref of 'a lazy_t ref (* Ocaml reference *)
   | Vol of 'a volatile_table Lazy.t (* Vol. table (group, session, process) *)
-  | Ocsiper of 'a option Ocsipersist.t Lwt.t (* Global persist. table *)
-  | Ocsiper_sit of 'a Ocsipersist.table Lwt.t (* Persist. table for site *)
+  | Ocsiper of 'a option Store_json.t Lwt.t (* Global persist. table *)
+  | Ocsiper_sit of 'a typed_table (* Persist. table for site *)
   | Per of 'a persistent_table Lwt.t
 (* Persist. table for group session or process *)
 
@@ -167,22 +179,23 @@ let eref_from_fun_ ~ext ~scope ?secure ?persistent f : 'a eref =
   | `Global -> (
     match persistent with
     | None -> (Volatile.eref_from_fun_ ~ext ~scope ?secure f :> _ eref)
-    | Some name ->
+    | Some (name, json) ->
         ( f
         , ext
         , Ocsiper
             ( pers_ref_store >>= fun store ->
-              Ocsipersist.make_persistent ~store ~name ~default:None ) ))
+              Store_json.make_persistent ~store ~name ~json:(json_option json)
+                ~default:None ) ))
   | `Site -> (
     match persistent with
     | None -> (Volatile.eref_from_fun_ ~ext ~scope ?secure f :> _ eref)
-    | Some name ->
-        (*VVV!!! ??? CHECK! *)
-        f, ext, Ocsiper_sit (Ocsipersist.open_table name))
+    | Some (name, json) ->
+        f, ext, Ocsiper_sit (Common.Persistent_tables.create_json ~name json))
   | #Common.user_scope as scope -> (
     match persistent with
     | None -> (Volatile.eref_from_fun_ ~ext ~scope ?secure f :> _ eref)
-    | Some name -> f, ext, Per (create_persistent_table ~scope ?secure name))
+    | Some (name, json) ->
+        f, ext, Per (create_persistent_table ~scope ?secure ~json name))
 
 let eref_from_fun ~scope ?secure ?persistent f : 'a eref =
   eref_from_fun_ ~ext:false ~scope ?secure ?persistent f
@@ -195,8 +208,16 @@ let get_site_id () =
   (Common.get_config_info sd).Ocsigen.Extensions.default_hostname ^ ":"
   ^ Common.get_site_dir_string sd
 
-let get ((f, _, table) as eref) =
-  match table with
+let typed_table_call (type a) (t : a typed_table) =
+  (module (val t)
+    : Common.Ocsipersist.TABLE
+     with type key = string
+      and type value = a)
+  [@@warning "-32"]
+(* helper signature used inside [let module] below *)
+
+let get (type a) ((f, _, table) as eref) : a Lwt.t =
+  match (table : a eref_kind) with
   | Per t -> (
       t >>= fun t ->
       get_persistent_data ~table:t () >>= function
@@ -206,37 +227,56 @@ let get ((f, _, table) as eref) =
           set_persistent_data ~table:t value >>= fun () -> Lwt.return value)
   | Ocsiper r -> (
       r >>= fun r ->
-      Ocsipersist.get r >>= function
+      Store_json.get r >>= function
       | Some v -> Lwt.return v
       | None ->
           let value = f () in
-          Ocsipersist.set r (Some value) >>= fun () -> Lwt.return value)
+          Store_json.set r (Some value) >>= fun () -> Lwt.return value)
   | Ocsiper_sit t ->
-      t >>= fun t ->
+      let module T =
+        (val t
+            : Common.Ocsipersist.TABLE
+             with type key = string
+              and type value = a)
+      in
       let site_id = get_site_id () in
       Lwt.catch
-        (fun () -> Ocsipersist.find t site_id)
+        (fun () -> T.find site_id)
         (function
           | Not_found ->
               let value = f () in
-              Ocsipersist.add t site_id value >>= fun () -> Lwt.return value
+              T.add site_id value >>= fun () -> Lwt.return value
           | exc -> Lwt.reraise exc)
   | _ -> Lwt.return (Volatile.get eref)
 
-let set ((_, _, table) as eref) value =
-  match table with
+let set (type a) ((_, _, table) as eref) (value : a) =
+  match (table : a eref_kind) with
   | Per t -> t >>= fun t -> set_persistent_data ~table:t value
-  | Ocsiper r -> r >>= fun r -> Ocsipersist.set r (Some value)
-  | Ocsiper_sit t -> t >>= fun t -> Ocsipersist.add t (get_site_id ()) value
+  | Ocsiper r -> r >>= fun r -> Store_json.set r (Some value)
+  | Ocsiper_sit t ->
+      let module T =
+        (val t
+            : Common.Ocsipersist.TABLE
+             with type key = string
+              and type value = a)
+      in
+      T.add (get_site_id ()) value
   | _ -> Lwt.return (Volatile.set eref value)
 
 let modify eref f = get eref >>= fun x -> set eref (f x)
 
-let unset ((_, _, table) as eref) =
-  match table with
+let unset (type a) ((_, _, table) as eref) =
+  match (table : a eref_kind) with
   | Per t -> t >>= fun t -> remove_persistent_data ~table:t ()
-  | Ocsiper r -> r >>= fun r -> Ocsipersist.set r None
-  | Ocsiper_sit t -> t >>= fun t -> Ocsipersist.remove t (get_site_id ())
+  | Ocsiper r -> r >>= fun r -> Store_json.set r None
+  | Ocsiper_sit t ->
+      let module T =
+        (val t
+            : Common.Ocsipersist.TABLE
+             with type key = string
+              and type value = a)
+      in
+      T.remove (get_site_id ())
   | _ -> Lwt.return (Volatile.unset eref)
 
 module Ext = struct
