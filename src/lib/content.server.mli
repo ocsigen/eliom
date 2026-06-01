@@ -63,8 +63,8 @@
     Secondly, those values have an identifier,
     which means they can be referred to
     on client side (by [%variable]) or used with the functions in
-    {% <<a_api subproject="client"|module Content.Html.To_dom>> %} and
-    {% <<a_api subproject="client"|module Content.Html.Manip>> %}.
+    {!Content.Html.To_dom} and
+    {!Content.Html.Manip}.
 
     In case of doubt, always use [D]-nodes when you are writing a
     client-server Eliom app. You can also mix F-nodes and D-nodes.
@@ -231,7 +231,7 @@ module Svg : sig
   end
 
   (** Creation of SVG content from shared reactive signals and data
-      ({% <<a_api project="eliom" subproject="server"|module Shared>> %}).
+      ({!Shared}).
       For the operations provided, see
       {!Svg_sigs.T}. *)
   module R : sig
@@ -339,13 +339,12 @@ module Html : sig
   (**/**)
 
   (** Creation of {b F}unctional HTML5 content (copy-able but not
-      referable, see also {% <<a_api|module Content>> %}). *)
+      referable, see also {!Content}). *)
   module F : sig
     (** {2 Content creation}
 
-        See {% <<a_api project="tyxml" | module Html_sigs.T >> %}.
-        If you want to create an untyped form, you will have to use {%
-        <<a_api|module Content.Html.F.Raw>> %} otherwise, use
+        See {!Html_sigs.T}.
+        If you want to create an untyped form, you will have to use {!Content.Html.F.Raw} otherwise, use
         Eliom form widgets.  For more information, see
         {{!page-"server-links".forms}the manual}.
          *)
@@ -378,13 +377,12 @@ module Html : sig
   end
 
   (** Creation of HTML content with {b D}OM semantics (referable, see
-      also {% <<a_api|module Content>> %}). *)
+      also {!Content}). *)
   module D : sig
     (** {2 Content creation}
 
-        See {% <<a_api project="tyxml" | module Html_sigs.T >> %}.
-        If you want to create an untyped form, you will have to use {%
-        <<a_api|module Content.Html.F.Raw>> %} otherwise, use
+        See {!Html_sigs.T}.
+        If you want to create an untyped form, you will have to use {!Content.Html.F.Raw} otherwise, use
         Eliom form widgets.  For more information, see
         {{!page-"server-links".forms}the manual}. *)
 
@@ -469,7 +467,7 @@ module Html : sig
   end
 
   (** Creation of HTML content from shared reactive signals and data
-      ({% <<a_api project="eliom" subproject="server"|module Shared>> %}).
+      ({!Shared}).
       For the operations provided, see
       {!Html_sigs.T}. *)
   module R : sig
@@ -506,8 +504,7 @@ module Html : sig
       -> unit
       -> 'a t
     (** Create a custom data field by providing string conversion functions.
-        If the [default] is provided, calls to {% <<a_api project="eliom" subproject="client" |
-        val Content.Html.Custom_data.get_dom>> %} return that instead of throwing an
+        If the [default] is provided, calls to {!Content.Html.Custom_data.get_dom} return that instead of throwing an
         exception [Not_found].  *)
 
     val create_json : name:string -> ?default:'a -> 'a Deriving_Json.t -> 'a t
@@ -516,7 +513,7 @@ module Html : sig
     val attrib : 'a t -> 'a -> [> `User_data] attrib
     (** [attrib my_data value ] creates a HTML attribute for the custom-data
         type [my_data] with value [value] for injecting it into an a HTML tree
-        ({% <<a_api | type Content.Html.elt >> %}). *)
+        ({!Content.Html.elt}). *)
   end
 
   (** {{:http://dev.w3.org/html5/html-xhtml-author-guide/}"Polyglot"}

@@ -22,27 +22,23 @@
     See the {{!page-"clientserver-language"}manual}. *)
 
 type 'a t = 'a
-(** An ['a] client value on the client is just an ['a].  See also {%
-    <<a_api subproject="server" text="the abstract representation on
-    the server" | type Client_value.t >> %}. *)
+(** An ['a] client value on the client is just an ['a].  See also {{!Client_value.t}the abstract representation on
+    the server}. *)
 
 exception Exception_on_server of string
 (** This exception is raised (in Lwt) on the client if a call to a
-    server function {% <<a_api subproject="server"|val
-    Client.server_function>> %} fails (in Lwt) on the server
+    server function {!Client.server_function} fails (in Lwt) on the server
     side.
 
     The argument describes the original exception by
     {!Printexc.to_string}. *)
 
-(** Event handlers like {% <<a_api | Content.Html.F.a_onclick
-    >> %} may raise [False] to cancel the event (as if the JavaScript
+(** Event handlers like {!Content.Html.F.a_onclick} may raise [False] to cancel the event (as if the JavaScript
     function returned [false]). *)
 
 (* Cannot re-export exception Lib.False,
    cf. http://caml.inria.fr/mantis/view.php?id=5778 *)
-(* (\** See {% <<a_api subproject="client"|exception Lib.False>>
-   %}. *\) *)
+(* (\** See {!Lib.False}. *\) *)
 exception False
 
 (**/**)

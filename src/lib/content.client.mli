@@ -26,7 +26,7 @@ open Js_of_ocaml
     {{!page-"clientserver-html"}Eliom's manual}
     for more information on HTML generation. }
     You can also have a look at the server API of
-    {% <<a_api subproject="server" | module Content >> %}
+    {!Content}
     for an explication of the modules [F] and [D].
 
   *)
@@ -284,8 +284,7 @@ module Svg : sig
     val of_pcdata : [> `Pcdata] elt -> Dom.text Js.t
   end
 
-  (** Conversion functions from DOM nodes ({% <<a_api project="js_of_ocaml"| type Js_of_ocaml.Dom_html.element>> %} {% <<a_api
-      project="js_of_ocaml"| type Js_of_ocaml.Js.t>> %}) to Eliom nodes ({% <<a_api | type Content.Html.elt>> %}). *)
+  (** Conversion functions from DOM nodes ({!Js_of_ocaml.Dom_html.element} {!Js_of_ocaml.Js.t}) to Eliom nodes ({!Content.Html.elt}). *)
   module Of_dom : sig
     val of_element : Dom_html.element Js.t -> 'a elt
   end
@@ -400,7 +399,7 @@ module Html : sig
     (** {2 Content creation}
         See {!Html_sigs.T},
         If you want to create an untyped form,
-        you will have to use {% <<a_api|module Content.Html.D.Raw>> %}
+        you will have to use {!Content.Html.D.Raw}
         otherwise, use the form module.
         For more information,
         see {{!page-"server-links".forms}the manual}. *)
@@ -479,8 +478,7 @@ module Html : sig
       -> unit
       -> 'a t
     (** Create a custom data field by providing string conversion functions.
-        If the [default] is provided, calls to {% <<a_api project="eliom" subproject="client" |
-        val Content.Html.Custom_data.get_dom>> %} return that instead of throwing an
+        If the [default] is provided, calls to {!Content.Html.Custom_data.get_dom} return that instead of throwing an
         exception [Not_found].  *)
 
     val create_json : name:string -> ?default:'a -> 'a Deriving_Json.t -> 'a t
@@ -489,7 +487,7 @@ module Html : sig
     val attrib : 'a t -> 'a -> [> `User_data] attrib
     (** [attrib my_data value ] creates a HTML5 attribute for the custom-data
         type [my_data] with value [value] for injecting it into an a HTML5 tree
-        ({% <<a_api | type Content.Html.elt >> %}). *)
+        ({!Content.Html.elt}). *)
 
     val get_dom : Dom_html.element Js.t -> 'a t -> 'a
     val set_dom : Dom_html.element Js.t -> 'a t -> 'a -> unit
@@ -928,8 +926,7 @@ module Html : sig
   end
 
   module Of_dom : Js_of_ocaml_tyxml.Tyxml_cast_sigs.OF with type 'a elt = 'a elt
-  (** Conversion functions from DOM nodes ({% <<a_api project="js_of_ocaml"| type Js_of_ocaml.Dom_html.element>> %} {% <<a_api
-      project="js_of_ocaml"| type Js_of_ocaml.Js.t>> %}) to Eliom nodes ({% <<a_api | type Content.Html.elt>> %}). *)
+  (** Conversion functions from DOM nodes ({!Js_of_ocaml.Dom_html.element} {!Js_of_ocaml.Js.t}) to Eliom nodes ({!Content.Html.elt}). *)
 end
 
 val force_link : unit

@@ -366,14 +366,13 @@ val persist_document_head : unit -> unit
 
 type ('a, +'b) server_function = 'a -> 'b Lwt.t
 (** A [('a, 'b) server_function] provides transparently access to a
-    server side function which has been created by {% <<a_api
-    subproject="server"| val Client.server_function>> %}.
+    server side function which has been created by {!Client.server_function}.
 
-    See also {% <<a_api subproject="server" text="the opaque server
-    side representation"| type Client.server_function>> %}.
+    See also {{!Client.server_function}the opaque server
+    side representation}.
 
     The handling of exception on the server corresponds to that of
-    <<a_api subproject="client"|val Client.call_ocaml_service>>.
+    {!Client.call_ocaml_service}.
 *)
 
 val change_page_uri : ?replace:bool -> string -> unit Lwt.t

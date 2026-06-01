@@ -19,8 +19,7 @@
 
 open Js_of_ocaml
 
-(** XML building and deconstructing. Cf. {% <<a_api subproject="server" |
-    module Content_core.Xml >> %}. *)
+(** XML building and deconstructing. Cf. {!Content_core.Xml}. *)
 
 module Xml : sig
   module W :
@@ -546,8 +545,7 @@ module Html : sig
       -> unit
       -> 'a t
     (** Create a custom data field by providing string conversion functions.
-        If the [default] is provided, calls to {% <<a_api project="eliom" subproject="client" |
-        val Content.Html.Custom_data.get_dom>> %} return that instead of throwing an
+        If the [default] is provided, calls to {!Content.Html.Custom_data.get_dom} return that instead of throwing an
         exception [Not_found].  *)
 
     val create_json : name:string -> ?default:'a -> 'a Deriving_Json.t -> 'a t
@@ -556,7 +554,7 @@ module Html : sig
     val attrib : 'a t -> 'a -> [> `User_data] attrib
     (** [attrib my_data value ] creates a HTML5 attribute for the custom-data
         type [my_data] with value [value] for injecting it into an a HTML5 tree
-        ({% <<a_api | type Content.Html.elt >> %}). *)
+        ({!Content.Html.elt}). *)
 
     val get_dom : Dom_html.element Js.t -> 'a t -> 'a
     (** [get_dom element custom_data] gets the [custom_data] from a JavaScript [element]

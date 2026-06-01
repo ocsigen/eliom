@@ -23,7 +23,7 @@ open Js_of_ocaml
 
 (** Server representation of client values.
     Developer-visible functions should always operate on
-    {% <<a_api subproject="server" | type Client_value.t >> %}.
+    {!Client_value.t}.
 *)
 module Client_value_server_repr : sig
   type +'a t
