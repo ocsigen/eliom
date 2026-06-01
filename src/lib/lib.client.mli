@@ -21,7 +21,7 @@
 
 open Js_of_ocaml
 
-(** See {% <<a_api project="ocsigenserver"| module Ocsigen_lib_base >> %}. *)
+(** See {!Ocsigen_lib_base}. *)
 include
   module type of Ocsigen_lib_base
   with type poly = Ocsigen_lib_base.poly
@@ -45,11 +45,10 @@ module Url : sig
   (** URL manipulation *)
 
   include module type of Url_base
-  (** See {% <<a_api project="ocsigenserver"| module
-      Ocsigen_base.Lib.Url_base >> %}. *)
+  (** See {!Ocsigen_base.Lib.Url_base}. *)
 
   include module type of Url
-  (** See {% <<a_api project="js_of_ocaml"| module Js_of_ocaml.Url >> %}. *)
+  (** See {!Js_of_ocaml.Url}. *)
 
   val decode : string -> string
   val encode : ?plus:bool -> string -> string
@@ -66,8 +65,7 @@ module Url : sig
       for relative URLs *)
 end
 
-(** Extension of {% <<a_api project="ocsigenserver"| module
-    Ocsigen_lib_base.String_base >> %}. *)
+(** Extension of {!Ocsigen_lib_base.String_base}. *)
 module String : sig
   include module type of String_base
 

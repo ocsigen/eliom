@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** See {% <<a_api | module Content>> %} for complete module. *)
+(** See {!Content} for complete module. *)
 
 open Js_of_ocaml
 

@@ -454,13 +454,12 @@ module String :
 
 (*
    (** Eliom service registration for services that returns "byte"
-    contents with {% <<a_api project="ocsigenserver" text="Ocsigen's
-    streams"| module Ocsigen_stream>>%}. The page content is a pair
+    contents with {{!Ocsigen_stream}Ocsigen's
+    streams}. The page content is a pair
     [(stream_creator_list, content_type)]. See also {!String} for
     another kind of service that returns "byte" contents.
 
-    Streams are created by calling the functions in the list and {%
-    <<a_api project="ocsigenserver"| val Ocsigen_stream.finalize>>%}
+    Streams are created by calling the functions in the list and {!Ocsigen_stream.finalize}
     is called at the end of the stream. If something goes wrong while
     processing a stream, the current stream is closed and the
     following streams are not created. *)

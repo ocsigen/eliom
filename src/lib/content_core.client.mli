@@ -19,8 +19,7 @@
 
 open Js_of_ocaml
 
-(** XML building and deconstructing. Cf. {% <<a_api subproject="server" |
-    module Content_core.Xml >> %}. *)
+(** XML building and deconstructing. Cf. {!Content_core.Xml}. *)
 
 module Xml : sig
   module W :
@@ -234,7 +233,7 @@ module Svg : sig
   (** {2 Functional semantics} *)
 
   (** Typed interface for building valid SVG tree (functional semantics).
-      See {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
+      See {!Svg_sigs.T}. *)
   module F : sig
     (**/**)
 
@@ -251,13 +250,13 @@ module Svg : sig
     end
 
     include module type of Raw'
-    (** See {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
+    (** See {!Svg_sigs.T}. *)
   end
 
   (** {2 DOM semantics} *)
 
   (** Typed interface for building valid SVG tree (DOM semantics). See
-      {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
+      {!Svg_sigs.T}. *)
   module D : sig
     (**/**)
 
@@ -274,7 +273,7 @@ module Svg : sig
     end
 
     include module type of Raw'
-    (** See {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
+    (** See {!Svg_sigs.T}. *)
   end
 
   (** {2 Reactive DOM} *)
@@ -292,7 +291,7 @@ module Svg : sig
        and type +'a attrib = 'a attrib
 
     include module type of Raw
-    (** See {% <<a_api project="tyxml" | module type Svg_sigs.T >> %}. *)
+    (** See {!Svg_sigs.T}. *)
   end
 
   (** {2 Global node} *)
@@ -424,7 +423,7 @@ module Html : sig
   (**/**)
 
   (** Typed interface for building valid HTML5 tree (functional semantics).
-      See {% <<a_api project="tyxml" | module type Html_sigs.T >> %}. *)
+      See {!Html_sigs.T}. *)
   module F : sig
     (**/**)
 
@@ -441,7 +440,7 @@ module Html : sig
     end
 
     include module type of Raw'
-    (** See {% <<a_api project="tyxml" | module type Html_sigs.T >> %}. *)
+    (** See {!Html_sigs.T}. *)
 
     (*BB TODO Hide untyped [input]. *)
 
@@ -458,7 +457,7 @@ module Html : sig
   end
 
   (** Typed interface for building valid HTML5 tree (DOM semantics). See
-      {% <<a_api project="tyxml" | module type Html_sigs.T >> %}. *)
+      {!Html_sigs.T}. *)
   module D : sig
     (**/**)
 
@@ -493,7 +492,7 @@ module Html : sig
       HTML5's trees are automatically updated whenever
       corresponding signals change.
 
-      {% <<a_api project="tyxml" | module type Html_sigs.T >> %}. *)
+      {!Html_sigs.T}. *)
 
   module R : sig
     val node : 'a elt React.signal -> 'a elt
@@ -551,8 +550,7 @@ module Html : sig
       -> unit
       -> 'a t
     (** Create a custom data field by providing string conversion functions.
-        If the [default] is provided, calls to {% <<a_api project="eliom" subproject="client" |
-        val Content.Html.Custom_data.get_dom>> %} return that instead of throwing an
+        If the [default] is provided, calls to {!Content.Html.Custom_data.get_dom} return that instead of throwing an
         exception [Not_found].  *)
 
     val create_json : name:string -> ?default:'a -> 'a Deriving_Json.t -> 'a t
@@ -561,11 +559,11 @@ module Html : sig
     val attrib : 'a t -> 'a -> [> `User_data] attrib
     (** [attrib my_data value ] creates a HTML5 attribute for the custom-data
         type [my_data] with value [value] for injecting it into an a HTML5 tree
-        ({% <<a_api | type Content.Html.elt >> %}). *)
+        ({!Content.Html.elt}). *)
 
     val get_dom : Dom_html.element Js.t -> 'a t -> 'a
     (** [get_dom element custom_data] gets the [custom_data] from a JavaScript [element]
-        ({% <<a_api project="js_of_ocaml"|class type Js_of_ocaml.Dom_html.element>> %}).
+        ({!Js_of_ocaml.Dom_html.element}).
         @return The value encoded in the respective custom data attribute of [element], or the default value, if any.
         @raise Not_found if the element does not contain the respective custom
           data attribute and the [custom_data] was created without [default].
@@ -574,7 +572,7 @@ module Html : sig
     val set_dom : Dom_html.element Js.t -> 'a t -> 'a -> unit
     (** [set_dom element custom_data value] sets the custom data attribute for
         [custom_data] of an JavaScript [element]
-        ({% <<a_api project="js_of_ocaml"|class type Js_of_ocaml.Dom_html.element>> %})
+        ({!Js_of_ocaml.Dom_html.element})
         to [value]. *)
   end
 

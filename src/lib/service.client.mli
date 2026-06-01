@@ -24,7 +24,7 @@
     {% <<a_manual chapter="clientserver-services"|client-side service implementation>>%}.
 
     The main functions about services are documented in
-    {% <<a_api | module Service_sigs.S >>%}. *)
+    {!Service_sigs.S}. *)
 
 include Service_sigs.S
 

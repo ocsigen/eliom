@@ -27,9 +27,8 @@ type +'a t
     }}] in the server section (cf. {% <<a_manual
     chapter="clientserver-language" fragment="clientvalues"|the
     manual>> %}).  They are abstract, but become concrete once sent to
-    the client. See also {% <<a_api subproject="client" text="the
-    concrete representation on the client" |type
-    Client_value.t>> %}. *)
+    the client. See also {{!Client_value.t}the
+    concrete representation on the client}. *)
 
 exception Client_value_creation_invalid_context of string
 (** Raised if a client value of the given closure ID is created at a

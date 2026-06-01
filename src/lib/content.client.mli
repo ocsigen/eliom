@@ -26,7 +26,7 @@ open Js_of_ocaml
     {% <<a_manual chapter="clientserver-html"|Eliom's manual>>%}
     for more information on HTML generation. }
     You can also have a look at the server API of
-    {% <<a_api subproject="server" | module Content >> %}
+    {!Content}
     for an explication of the modules [F] and [D].
 
   *)
@@ -53,9 +53,9 @@ module Svg : sig
 
   (** Creation of {e f}unctional content (copy-able but not referable).
 
-       See {% <<a_api project="tyxml" | module Svg_sigs.T >> %} *)
+       See {!Svg_sigs.T} *)
   module F : sig
-    (** Cf. {% <<a_api project="tyxml" | module Html_sigs.T >> %}. *)
+    (** Cf. {!Html_sigs.T}. *)
 
     (**/**)
 
@@ -76,9 +76,9 @@ module Svg : sig
 
   (** Creation of content with {e D}OM semantics (referable
 
-       See {% <<a_api project="tyxml" | module Svg_sigs.T >> %} *)
+       See {!Svg_sigs.T} *)
   module D : sig
-    (** Cf. {% <<a_api project="tyxml" | module Html_sigs.T >> %}. *)
+    (** Cf. {!Html_sigs.T}. *)
 
     (**/**)
 
@@ -216,8 +216,7 @@ module Svg : sig
 
     (* (\** The function [addEventListener elt evt handler] attach the *)
     (* [handler] for the event [evt] on the element [elt]. See the *)
-    (* Js_of_ocaml manual, for a list of {% <<a_api project="js_of_ocaml" *)
-    (* text="available events"| module Js_of_ocaml.Dom_html.Event >>%}. *\) *)
+    (* Js_of_ocaml manual, for a list of {{!Js_of_ocaml.Dom_html.Event}available events}. *\) *)
     (* val addEventListener: *)
     (* ?capture:bool -> *)
     (* 'a elt -> *)
@@ -281,8 +280,7 @@ module Svg : sig
     end
   end
 
-  (** Conversion from Svg [elt]s to Javascript DOM elements ([<:] {% <<a_api
-      project="js_of_ocaml"| class Js_of_ocaml.Dom_html.element >> %}).
+  (** Conversion from Svg [elt]s to Javascript DOM elements ([<:] {!Js_of_ocaml.Dom_html.element}).
       One conversion function per source type (stressed by the [of_] prefix). *)
   module To_dom : sig
     val of_element : 'a elt -> Dom_html.element Js.t
@@ -290,8 +288,7 @@ module Svg : sig
     val of_pcdata : [> `Pcdata] elt -> Dom.text Js.t
   end
 
-  (** Conversion functions from DOM nodes ({% <<a_api project="js_of_ocaml"| type Js_of_ocaml.Dom_html.element>> %} {% <<a_api
-      project="js_of_ocaml"| type Js_of_ocaml.Js.t>> %}) to Eliom nodes ({% <<a_api | type Content.Html.elt>> %}). *)
+  (** Conversion functions from DOM nodes ({!Js_of_ocaml.Dom_html.element} {!Js_of_ocaml.Js.t}) to Eliom nodes ({!Content.Html.elt}). *)
   module Of_dom : sig
     val of_element : Dom_html.element Js.t -> 'a elt
   end
@@ -338,9 +335,9 @@ module Html : sig
   (** Creation of {e f}unctional HTML5 content (copy-able but not referable). *)
   module F : sig
     (** {2 Content creation}
-        See {% <<a_api project="tyxml" | module Html_sigs.T >> %} *)
+        See {!Html_sigs.T} *)
 
-    (** Cf. {% <<a_api project="tyxml" | module Html_sigs.T >> %}. *)
+    (** Cf. {!Html_sigs.T}. *)
 
     (**/**)
 
@@ -370,9 +367,9 @@ module Html : sig
   (** Creation of HTML5 content with {e D}OM semantics (referable) *)
   module D : sig
     (** {2 Content creation}
-        See {% <<a_api project="tyxml" | module Html_sigs.T >> %} *)
+        See {!Html_sigs.T} *)
 
-    (** Cf. {% <<a_api project="tyxml" | module Html_sigs.T >> %}. *)
+    (** Cf. {!Html_sigs.T}. *)
 
     (**/**)
 
@@ -405,9 +402,9 @@ module Html : sig
       corresponding signals change.  *)
   module R : sig
     (** {2 Content creation}
-        See {% <<a_api project="tyxml" | module Html_sigs.T >> %},
+        See {!Html_sigs.T},
         If you want to create an untyped form,
-        you will have to use {% <<a_api|module Content.Html.D.Raw>> %}
+        you will have to use {!Content.Html.D.Raw}
         otherwise, use the form module.
         For more information,
         see {% <<a_manual chapter="server-links" fragment="forms"|the manual>> %}. *)
@@ -421,7 +418,7 @@ module Html : sig
         behave like [att] when [on] is [true]
         and behave like if there was no attribute when [on] is [false] *)
 
-    (** Cf. {% <<a_api project="tyxml" | module Html_sigs.T >> %}. *)
+    (** Cf. {!Html_sigs.T}. *)
     module Raw :
       Html_sigs.Make(Content_core.Xml_wed)(Svg.R.Raw).T
       with type +'a elt = 'a elt
@@ -488,8 +485,7 @@ module Html : sig
       -> unit
       -> 'a t
     (** Create a custom data field by providing string conversion functions.
-        If the [default] is provided, calls to {% <<a_api project="eliom" subproject="client" |
-        val Content.Html.Custom_data.get_dom>> %} return that instead of throwing an
+        If the [default] is provided, calls to {!Content.Html.Custom_data.get_dom} return that instead of throwing an
         exception [Not_found].  *)
 
     val create_json : name:string -> ?default:'a -> 'a Deriving_Json.t -> 'a t
@@ -498,15 +494,14 @@ module Html : sig
     val attrib : 'a t -> 'a -> [> `User_data] attrib
     (** [attrib my_data value ] creates a HTML5 attribute for the custom-data
         type [my_data] with value [value] for injecting it into an a HTML5 tree
-        ({% <<a_api | type Content.Html.elt >> %}). *)
+        ({!Content.Html.elt}). *)
 
     val get_dom : Dom_html.element Js.t -> 'a t -> 'a
     val set_dom : Dom_html.element Js.t -> 'a t -> 'a -> unit
   end
 
   module To_dom : Js_of_ocaml_tyxml.Tyxml_cast_sigs.TO with type 'a elt = 'a elt
-  (** Conversion from HTML5 [elt]s to Javascript DOM elements ([<:] {% <<a_api
-      project="js_of_ocaml"| class Js_of_ocaml.Dom_html.element >> %}).
+  (** Conversion from HTML5 [elt]s to Javascript DOM elements ([<:] {!Js_of_ocaml.Dom_html.element}).
       One conversion function per source type (stressed by the [of_] prefix). *)
 
   (** DOM-like manipulation functions.
@@ -590,8 +585,7 @@ module Html : sig
       -> Dom_html.event_listener_id
     (** The function [addEventListener elt evt handler] attach the
         [handler] for the event [evt] on the element [elt]. See the
-        Js_of_ocaml manual, for a list of {% <<a_api project="js_of_ocaml"
-        text="available events"| module Js_of_ocaml.Dom_html.Event >>%}. *)
+        Js_of_ocaml manual, for a list of {{!Js_of_ocaml.Dom_html.Event}available events}. *)
 
     (** Dom manipulation by element identifier. *)
     module Named : sig
@@ -940,8 +934,7 @@ module Html : sig
   end
 
   module Of_dom : Js_of_ocaml_tyxml.Tyxml_cast_sigs.OF with type 'a elt = 'a elt
-  (** Conversion functions from DOM nodes ({% <<a_api project="js_of_ocaml"| type Js_of_ocaml.Dom_html.element>> %} {% <<a_api
-      project="js_of_ocaml"| type Js_of_ocaml.Js.t>> %}) to Eliom nodes ({% <<a_api | type Content.Html.elt>> %}). *)
+  (** Conversion functions from DOM nodes ({!Js_of_ocaml.Dom_html.element} {!Js_of_ocaml.Js.t}) to Eliom nodes ({!Content.Html.elt}). *)
 end
 
 val force_link : unit

@@ -20,7 +20,7 @@
 (** Client-side service registration.
 
     The interface is meant to be compatible with server-side
-    <<a_api subproject="server" | module Registration >>.
+    {!Registration}.
 
     See {% <<a_manual chapter="clientserver-services"|the manual chapter on client-side services>> %}
     for details. *)
