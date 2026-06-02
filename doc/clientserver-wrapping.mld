@@ -4,7 +4,7 @@ Reading this chapter is not mandatory for writing Eliom
 applications. However, it is worth reading if you are planning to hack
 on the Eliom codebase.
 
-{%wodoc:outline depth="2"%}  {b Table of contents}  {%wodoc:end%}
+
 
 
 {1 Basics}
