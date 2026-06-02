@@ -177,8 +177,8 @@ val parse_config :
   -> unit
 (** Process the configuration
     (same as the one returned by
-    {% <<a_api module="Eliom_config" | val get_config>> %})
-    by a given specification (cf. {% <<a_api project="ocsigenserver" | type Ocsigen_extensions.Configuration.element >> %}) *)
+    {!Eliom_config.get_config})
+    by a given specification (cf. {!Ocsigen_extensions.Configuration.element}) *)
 
 val get_config_info : unit -> Ocsigen_extensions.config_info
 (** The function [get_config_info ()] returns the information

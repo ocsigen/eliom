@@ -21,7 +21,7 @@
 (** Creation and manipulation of Eliom services.
 
     See the Eliom manual for a detailed introduction to the concept of
-    {% <<a_manual chapter="server-services"|Eliom services>>%}.
+    {{!page-"server-services"}Eliom services}.
 
     See {!create} for the main service creation function.x *)
 
@@ -80,17 +80,16 @@ val create :
     (resp. [~keep_nl_params:`All]) is given, all links towards that
     service will keep persistent (resp. all) non localized GET
     arguments of the current service. The default is [`None]. See
-    the eliom manual for more information about {% <<a_manual
-    chapter="server-params" fragment="nonlocalizedparameters"|non localized
-    parameters>>%}.
+    the eliom manual for more information about {{!page-"server-params".nonlocalizedparameters}non localized
+    parameters}.
 
     The optional [~name] argument provides a name for the service;
     otherwise, it will be anonymous (with an auto-generated internal
     name).
 
     If the optional [~csrf_safe] argument is [true], we create a
-    {% <<a_manual chapter="server-security" fragment="csrf"|"CSRF-safe"
-    service>>%}. In that case the [~name] argument is ignored. The
+    {{!page-"server-security".csrf}"CSRF-safe"
+    service}. In that case the [~name] argument is ignored. The
     default is [false].
 
     The [~csrf_scope] and [~csrf_secure], if present, should

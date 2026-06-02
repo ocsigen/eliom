@@ -368,9 +368,8 @@ module type S = sig
          t
   (** The function [add_non_localized_get_parameters ~params ~service]
       Adds non localized GET parameters [params] to [service]. See the
-      Eliom manual for more information about {% <<a_manual
-      chapter="server-params" fragment="nonlocalizedparameters"|non
-      localized parameters>>%}. *)
+      Eliom manual for more information about {{!page-"server-params".nonlocalizedparameters}non
+      localized parameters}. *)
 
   val add_non_localized_post_parameters :
      params:('p, [`WithoutSuffix], 'pn) Eliom_parameter.non_localized_params

@@ -21,7 +21,7 @@
 
     {b Please read Eliom's manual before this page
     to learn how to use
-    {% <<a_manual chapter="server-params"|service parameters>>%}. }
+    {{!page-"server-params"}service parameters}. }
 
     {% <<outline| <<header| **Table of contents** >> >>%} *)
 
