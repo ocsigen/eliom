@@ -1,0 +1,303 @@
+{0 Services}
+
+{%wodoc:outline depth="2"%}  {b Table of contents}  {%wodoc:end%}
+
+{1 Introduction}
+
+
+
+Services are entry points to your Web site. A service is usually
+attached to a URL, and it generates a Web page. There are other kinds
+of services, e.g., services that are identified by special GET or POST
+parameters, and services representing redirections.
+
+A service is composed of:
+
+- some identification data, allowing Eliom to choose which service
+  should answer an incoming request; and
+- a service handler that will generate the answer.
+
+Services are most commonly used to create links and forms towards a
+service, using for example the function {!val
+Eliom.Content.Html.D.a}. See chapter {{!page-"server-links"}Creating links and forms} for more
+information.
+
+Manipulation of Eliom services can be done through the values of type
+[type Eliom.Service.t] (see {!type
+Eliom.Service_sigs.S.t}).  The service creation can be split in two
+steps:
+
+- create a value of type [Eliom.Service.t],
+  most commonly by using the function
+  {!Eliom.Service.create}; and
+- register a service handler, e.g., using {!val
+  Eliom.Registration.Html.register}. The handler receives the server
+  parameters (GET and POST) and is responsible for producing the
+  content sent to the client.
+
+The rest of this chapter focuses on service creation. See chapter
+{{!page-"server-outputs"}Implementing service handlers} for
+more information on handler implementation and registration.
+
+{1 Service creation}
+
+{%wodoc:div%} Warning: in this manual, we use the
+term {e service} both to denote a value of type [Eliom.Service.t]
+--that only contains some location information about a service--, or a
+fully {e registered} service, that is also composed of a service
+handler. In case of ambiguities, we will use [service] --in green
+monotype-- to designate a value of type [Eliom.Service.t].
+{%wodoc:end%}
+
+The standard way to create a service is a call of the form
+[Eliom.Service.create ~meth ~path ()], where
+
+- [~meth] (see
+   {!Eliom.Service_sigs.TYPES.meth})
+   specifies the HTTP method and the HTTP parameters of the service; and
+- [~path:(Path p)] specifies a path, while
+  [~path:No_path] defines a pathless service
+  (see {!Eliom.Service_sigs.S.path_option}).
+
+{2:http-meth Service method}
+
+Services can respond to any of the GET, POST, PUT, and DELETE HTTP
+methods.
+
+- The GET method is intended to be used to retrieve a document from
+  the server. The page is generated mainly according to the
+  information contained in the URL.  URLs may contain parameters
+  (consisting of name-value pairs in the URL string), and these
+  parameters may come from HTML forms (or not).
+- The POST method is used to send data to the server (files, for
+  example), but also values coming from an HTML form. Data is sent in
+  the body of the HTTP request. It is possible to use the POST method
+  with an empty body. In HTML, it is not possible to mix GET and POST
+  parameters in forms, but it is possible to use a POST form with
+  (fixed) GET parameters in the URL.
+- The PUT and DELETE methods are mostly used to implement RESTful
+  applications.
+
+The corresponding
+{!Eliom.Service_sigs.TYPES.meth}
+constructors
+are [Get g], [Post (g, p)], [Put g], and [Delete g],
+where [g] and [p] belong in
+[Eliom.Parameter.params_type]
+and correspond to the GET and POST parameters.
+
+{%wodoc:div class="concept"%}{b POST or GET?}
+
+
+
+  POST and GET methods are not equivalent, and you must be very
+  careful if you want to use one or the other. Remember that only GET
+  services are bookmarkable. The HTTP method and POST parameters are
+  not stored in bookmarks.
+
+- Use the GET method if you want the user to be able to come back to
+    the service later, or to write the URL manually.
+- Use the POST method for {e hidden services}, that is, when you
+    want different behaviour between the first click and a reload of
+    the page. Usually, using POST triggers a server-side action (like
+    a payment, or adding something to a database), and you don't want
+    it to succeed several times if the page is reloaded or bookmarked.
+
+{%wodoc:end%}
+
+{2:http-params Service parameters}
+
+GET services expect only GET parameters, i.e., parameters that appear
+in the URL. POST, PUT, and DELETE services can also take POST
+parameters which are part of the body of the request.
+
+Values of the type [Eliom.Parameter.params_type]
+represent the set of expected arguments with their types. They are
+built using combinators from the
+{!Eliom.Parameter}
+module. See chapter {{!page-"server-params"}Service
+parameters} for a detailled description of this module.
+
+Type information associated to each argument allows Eliom to
+automatically convert the actual parameters into the corresponding
+OCaml types. If the parameter cannot be converted, the exception
+{!Eliom_common.Eliom_Typing_Error}
+is raised. The handling of such errors may be customized by providing
+the argument [~error_handler] when registering the service.
+
+{2:path Services with path ("regular" services)}
+
+Services attached to paths, or more simply {e regular} services, are
+the main entry points of sites. They are identified by the path of the
+URL and by (GET or POST) parameters.  They correspond to classical
+URLs, and they last forever once registered.
+
+For creating a regular service, the [Path p] constructor of
+{!Eliom.Service_sigs.S.path_option}
+is used.  The path [p] is represented in Eliom as a list of
+strings. For example:
+
+[["foo"; "bar"]] corresponds to the URL [foo/bar]. {%html:<br/>%}
+[["dir"; ""]] corresponds to the URL [dir/] (that is: the
+default page of the directory [dir]). {%html:<br/>%}
+The empty list [[]] is equivalent to [[""]].{%html:<br/>%}
+
+In many cases, the URL corresponding to a POST service must be
+accessible even when a request is done without the POST parameters;
+for instance, when typing the URL in the browser, when reloading, when
+using bookmarks, etc. If that is the case, the programmer needs to
+implement a separate GET service and register it on the same URL.
+
+{e Warning:}
+
+- You cannot create a service on path [["foo"]] (URL [foo],
+   without slash at the end) and another on path [["foo";"bar"]]
+   (URL [foo/bar]), because [foo] cannot be both a directory
+   and a file.  Additionally, be careful not to use a path as a
+   directory with Eliom, if it is a file for Staticmod (and vice
+   versa).
+- [["foo";"bar"]] is not equivalent to [["foo/bar"]]. In the
+   latter, the ["/"] will be encoded in the URL.{%html:<br/>%}
+
+{2:pathless Pathless services}
+
+Pathless services are not attached to a URL path. Such services are
+created with the [No_path] constructor of
+{!Eliom.Service_sigs.S.path_option}.
+
+Pathless services are only identified by a special parameter, no
+matter what the path and the other parameters in the URL are. They are
+used to implement some behavior that should not be attached to a
+particular URL. A link to such a service points to the current URL
+with just an additional special parameter. This is useful when you
+want the same link or form on several pages (for example, a login box)
+but you don't want to go to another URL. Pathless services are often
+used with {{!page-"server-outputs".actions}actions}.
+
+Here is a simple example. Suppose that the function [remove]
+removes one piece of data from a database (based on the identifier of
+the data). If you want to put a link on your page to call this
+function and redisplay the page, just create an action on a pathless
+service like this:
+
+{@ocaml[
+
+let remove_action =
+  Eliom.Registration.Action.create
+    ~meth:
+      (Eliom.Service.Post
+         (Eliom.Parameter.unit,
+          Eliom.Parameter.int "id"))
+    ~path:Eliom.Service.No_path
+    (fun () id -> remove id)
+
+]}
+
+Then wherever you want to add a button to do that action (on data
+[id]), create a form like:
+
+{@ocaml[
+let open Eliom.Content.Html.D in
+Form.post_form
+  ~service:remove_action
+  (fun id_name -> [
+       Form.input ~input_type:`Hidden ~name:id_name ~value:id Form.int;
+       Form.button_no_value ~button_type:`Submit [txt "submit"]
+     ])
+]}
+
+{3 Changing URL when calling a pathless service}
+
+By default, the URL of links or forms to pathless services is the
+current page. If you want to combine the service call with a URL
+change, it is possible to attach a non-attached service to another
+service using function
+{!Eliom.Service.attach}.
+
+Example:
+
+{@ocaml[
+let service =
+  Eliom.Service.attach
+    ~fallback:myfirstservice
+    ~service:myget_coserv'
+    ()
+in
+a ~service [txt "click"] ()
+]}
+
+It works with GET or POST pathless services. The fallback must be a
+GET service without parameters (but you can preapply it).
+
+{3 Options for pathless services}
+
+{4 Timeouts}
+
+It is possible to use timeouts with pathless services, using the
+optional parameter [?timeout] of the creation functions.  For
+example if your service is intended to show the results of a search,
+you probably want it to be available only for a short time.
+
+{e Warning:} forgetting timeouts may cause memory leaks!
+
+{4 Disposability}
+
+It is possible to set a limit to the number of uses of a pathless
+service. Just provide the maximum number of uses with the optional
+[?max_use] parameter while creating the service.
+
+{1 Non-standard services}
+
+Some kinds of services do not fit in our canonical way of defining
+services, {!Eliom.Service.create} .
+
+{2:attached_services Attached services}
+
+Attached services are created using the functions
+{!Eliom.Service.create_attached_get}
+(GET method) and
+{!Eliom.Service.create_attached_post}
+(POST method).
+
+Anonymous GET attached services are often created dynamically with
+respect to previous interaction with the user (e.g. filling forms in
+multiple steps). They handle correctly the classical Web interactions
+("back" button, bookmark, tab,~ ...): you create a new attached
+service each time you want to record a precise point in the
+interaction with the user, to be able to come back there later.
+
+Often, they should be used with a restricted scope (see the section
+{{!page-"server-services".service_scope}service
+scopes}).
+
+POST attached services can be used to customize the behaviour of a
+URL. Some of their uses are:
+
+- For the same purpose as GET attached services, but when you don't
+  want this service to be bookmarkable.
+
+- For performing side effects before serving a page. For example, say
+  you want a disconnection button that leads to the main page of the
+  site, but with the side effect of disconnecting the user.  You will
+  use a (named) POST (attached) service.
+
+If an attached service does not exist anymore (e.g., if its timeout
+has expired, or if the session to which it belongs was closed), the
+fallback is called.
+
+The fallback of a GET attached service cannot take parameters. But it
+is possible to use a {{!page-"server-services".preapplied}pre-applied} service as fallback.
+
+Attached services can have a timeout and can be disposable, just like
+pathless services.
+
+{2:unregistrable_services Unregistrable services}
+
+Some values of type [Eliom.Service.t] cannot be meaningfully
+associated to service handlers. Such values are called {e unregistrable
+services} (as opposed to the standard case of {e registrable
+services}), and represent, for example, links towards external sites,
+or registrable services pre-applied to some parameters. This allows
+use of the [Eliom.Service] API consistently for creating
+links.
+
