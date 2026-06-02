@@ -20,7 +20,7 @@
 (** Storing server-side values for your applications or sessions. *)
 
 (** {b Please read the
-    {% <<a_manual chapter="server-state" | Eliom manual >>%}
+    {{!page-"server-state"}Eliom manual}
     before this page to learn how server side state works. }
 
 {% <<outline| <<header| **Table of contents** >> >>%}

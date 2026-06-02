@@ -19,14 +19,12 @@
 
 (** {2 Client and shared values}
 
-    See the {% <<a_manual chapter="clientserver-language"|manual>>
-    %}. *)
+    See the {{!page-"clientserver-language"}manual}. *)
 
 type +'a t
 (** Client values on the server are created by the syntax [{typ{ expr
-    }}] in the server section (cf. {% <<a_manual
-    chapter="clientserver-language" fragment="clientvalues"|the
-    manual>> %}).  They are abstract, but become concrete once sent to
+    }}] in the server section (cf. {{!page-"clientserver-language".clientvalues}the
+    manual}).  They are abstract, but become concrete once sent to
     the client. See also {{!Client_value.t}the
     concrete representation on the client}. *)
 

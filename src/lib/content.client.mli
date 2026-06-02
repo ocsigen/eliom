@@ -23,7 +23,7 @@ open Js_of_ocaml
     and (X)HTML5.
 
     {b Please read
-    {% <<a_manual chapter="clientserver-html"|Eliom's manual>>%}
+    {{!page-"clientserver-html"}Eliom's manual}
     for more information on HTML generation. }
     You can also have a look at the server API of
     {!Content}
@@ -36,9 +36,8 @@ module Xml : module type of Content_core.Xml
 
 (** Building valid SVG . *)
 module Svg : sig
-  (** See the Eliom manual for more information on {% <<a_manual
-      chapter="clientserver-html" fragment="unique"| dom semantics vs. functional
-      semantics>> %} for HTML5 tree manipulated by client/server
+  (** See the Eliom manual for more information on {{!page-"clientserver-html".unique}dom semantics vs. functional
+      semantics} for HTML5 tree manipulated by client/server
       application. *)
 
   type +'a elt
@@ -125,9 +124,7 @@ module Svg : sig
 
     val new_elt_id : ?global:bool -> unit -> 'a id
     (** The function [new_elt_id ()] creates a new HTML5 element
-        identifier. (see the Eliom manual for more information on {%
-        <<a_manual project="eliom" chapter="clientserver-html"
-        fragment="global"|global element>>%}).*)
+        identifier. (see the Eliom manual for more information on {{!page-"clientserver-html".global}global element}).*)
 
     val create_named_elt : id:'a id -> 'a elt -> 'a elt
     (** The function [create_named_elt ~id elt] create a copy of the
@@ -150,8 +147,7 @@ module Svg : sig
   (** DOM-like manipulation functions.
 
       In this module, all the functions apply only to SVG element with
-      {% <<a_manual chapter="clientserver-html" fragment="unique"|Dom semantics>>
-      %}.
+      {{!page-"clientserver-html".unique}Dom semantics}.
   *)
   module Manip : sig
     val appendChild : ?before:'a elt -> 'b elt -> 'c elt -> unit
@@ -296,9 +292,8 @@ end
 
 (** Building valid (X)HTML5. *)
 module Html : sig
-  (** See the Eliom manual for more information on {% <<a_manual
-      chapter="clientserver-html" fragment="unique"| dom semantics vs. functional
-      semantics>> %} for HTML5 tree manipulated by client/server
+  (** See the Eliom manual for more information on {{!page-"clientserver-html".unique}dom semantics vs. functional
+      semantics} for HTML5 tree manipulated by client/server
       application. *)
 
   type +'a elt
@@ -407,7 +402,7 @@ module Html : sig
         you will have to use {!Content.Html.D.Raw}
         otherwise, use the form module.
         For more information,
-        see {% <<a_manual chapter="server-links" fragment="forms"|the manual>> %}. *)
+        see {{!page-"server-links".forms}the manual}. *)
 
     val node : 'a elt React.signal Client_value.t -> 'a elt
     (** Function [node s] create an HTML5 [elt] from a signal [s].
@@ -438,7 +433,7 @@ module Html : sig
     (** Those two functions are the identity on client-side
         (the [init] argument is ignored).
         See Eliom manual for more detail on
-        {% <<a_manual chapter="clientserver-html" fragment="inject" | Dom & Client-values >>%}. *)
+        {{!page-"clientserver-html".inject}Dom & Client-values}. *)
 
     val attr : ?init:'a attrib -> 'a attrib Client_value.t -> 'a attrib
   end
@@ -450,9 +445,7 @@ module Html : sig
 
     val new_elt_id : ?global:bool -> unit -> 'a id
     (** The function [new_elt_id ()] creates a new global HTML5 element
-        identifier (see the Eliom manual for more information on {%
-        <<a_manual project="eliom" chapter="clientserver-html"
-        fragment="global"|global element>>%}).*)
+        identifier (see the Eliom manual for more information on {{!page-"clientserver-html".global}global element}).*)
 
     val create_named_elt : id:'a id -> 'a elt -> 'a elt
     (** The function [create_named_elt ~id elt] create a copy of the
@@ -507,8 +500,7 @@ module Html : sig
   (** DOM-like manipulation functions.
 
       In this module, all the functions apply only to HTML5 element with
-      {% <<a_manual chapter="clientserver-html" fragment="unique"|Dom semantics>>
-      %}.
+      {{!page-"clientserver-html".unique}Dom semantics}.
   *)
   module Manip : sig
     val appendChild : ?before:'a elt -> 'b elt -> 'c elt -> unit

@@ -362,7 +362,7 @@ val persist_document_head : unit -> unit
 
 (** {2 RPC / Server functions}
 
-    See the {% <<a_manual chapter="clientserver-communication" fragment="rpc"|manual>> %}.*)
+    See the {{!page-"clientserver-communication".rpc}manual}.*)
 
 type ('a, +'b) server_function = 'a -> 'b Lwt.t
 (** A [('a, 'b) server_function] provides transparently access to a

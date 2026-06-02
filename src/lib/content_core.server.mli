@@ -190,9 +190,8 @@ module Svg : sig
 end
 
 module Html : sig
-  (** See the Eliom manual for more information on {% <<a_manual
-      chapter="clientserver-html" fragment="unique"| dom semantics vs. functional
-      semantics>> %} for HTML5 tree manipulated by client/server
+  (** See the Eliom manual for more information on {{!page-"clientserver-html".unique}dom semantics vs. functional
+      semantics} for HTML5 tree manipulated by client/server
       application. *)
 
   type 'a wrap = 'a

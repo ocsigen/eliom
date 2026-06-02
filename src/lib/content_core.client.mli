@@ -179,9 +179,8 @@ end
 
 (** Building SVG tree. *)
 module Svg : sig
-  (** See the Eliom manual for more information on{% <<a_manual
-      chapter="clientserver-html" fragment="unique"| dom semantics vs. functional
-      semantics>> %} for SVG tree manipulated by client/server
+  (** See the Eliom manual for more information on{{!page-"clientserver-html".unique}dom semantics vs. functional
+      semantics} for SVG tree manipulated by client/server
       application. *)
 
   type +'a elt
@@ -324,9 +323,8 @@ end
 
 (** Building Html tree. *)
 module Html : sig
-  (** See the Eliom manual for more information on {% <<a_manual
-      chapter="clientserver-html" fragment="unique"| dom semantics vs. functional
-      semantics>> %} for SVG tree manipulated by client/server
+  (** See the Eliom manual for more information on {{!page-"clientserver-html".unique}dom semantics vs. functional
+      semantics} for SVG tree manipulated by client/server
       application. *)
 
   type +'a elt
@@ -516,9 +514,7 @@ module Html : sig
 
     val new_elt_id : ?global:bool -> unit -> 'a id
     (** The function [new_elt_id ()] creates a new HTML5 element
-        identifier. (see the Eliom manual for more information on {%
-        <<a_manual project="eliom" chapter="clientserver-html"
-        fragment="global"|global element>>%}).*)
+        identifier. (see the Eliom manual for more information on {{!page-"clientserver-html".global}global element}).*)
 
     val create_named_elt : id:'a id -> 'a elt -> 'a elt
     (** The function [create_named_elt ~id elt] create a copy of the
@@ -536,8 +532,7 @@ module Html : sig
     val string_of_id : 'a id -> string
   end
 
-  (** Type-safe custom data for HTML5. See the {% <<a_manual chapter="clientserver-html"
-      fragment="custom_data"|examples in the manual>> %}. *)
+  (** Type-safe custom data for HTML5. See the {{!page-"clientserver-html".custom_data}examples in the manual}. *)
   module Custom_data : sig
     type 'a t
     (** Custom data with values of type ['a]. *)
