@@ -19,7 +19,7 @@
 
 (** {2 Client and shared values}
 
-    See the {{!page-"clientserver-language"}manual}. *)
+    See the {{!page-"eliom-language"}manual}. *)
 
 type 'a t = 'a
 (** An ['a] client value on the client is just an ['a].  See also {{!Client_value.t}the abstract representation on
