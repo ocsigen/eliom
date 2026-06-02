@@ -1,7 +1,7 @@
 
 {0 Service handlers}
 
-
+{%wodoc:outline depth="2"%}  {b Table of contents}  {%wodoc:end%}
 
 {1:predefined_outputs Output modules}
 
@@ -207,7 +207,7 @@ fallback of a service. When an action is called, the service handler is
 executed, then the service handler of the fallback service is
 executed.
 
-Eliom references of scope {!Eliom.Common.request_scope} set in
+Eliom references of scope {!Eliom_common.request_scope} set in
 an action handler are still available in the service handler of the fallback.
 
 A common use of actions and pathless services working synergistically
@@ -358,7 +358,7 @@ module Connected_param = struct
   let translate page =
     match
       Eliom.State.get_volatile_data_session_group
-        ~scope:Eliom.Common.default_session_scope ()
+        ~scope:Eliom_common.default_session_scope ()
     with
     | None ->
       login_page ()
@@ -523,12 +523,12 @@ You can catch exceptions raised during page generation in two places:
   Eliom.Registration.set_exn_handler}
 
 You can use it to catch exception {!exception
-Eliom.Common.Eliom_404} and generate a custom 404 page.
+Eliom_common.Eliom_404} and generate a custom 404 page.
 
 {@ocaml[
 let () =
   Eliom.Registration.set_exn_handler @@ function
-  | Eliom.Common.Eliom_404 ->
+  | Eliom_common.Eliom_404 ->
     Eliom.Registration.Html.send ~code:404
       Eliom.Content.Html.D.(
         html
@@ -536,7 +536,7 @@ let () =
           (body [h1 [txt "Eliom tutorial"];
                  p [txt "Page not found"]])
       )
-  | Eliom.Common.Eliom_Wrong_parameter ->
+  | Eliom_common.Eliom_Wrong_parameter ->
     Eliom.Registration.Html.send
       Eliom.Content.Html.D.(
         html
@@ -562,7 +562,7 @@ Eliom.Request_info.get_expired_service_sessions}
 If something wrong happens during an action, it is possible to inform
 the service generating the page. For instance, you may want to display a
 "wrong password" message after an aborted connection.  To transmit
-this kind of information, use Eliom references (see module {!Eliom.Reference}) created using scope {!Eliom.Common.request_scope}. The value will be available to the service
+this kind of information, use Eliom references (see module {!Eliom.Reference}) created using scope {!Eliom_common.request_scope}. The value will be available to the service
 generating the page.
 
 Other example: creating user accounts using actions. If the

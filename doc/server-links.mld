@@ -1,7 +1,7 @@
 
 {0 Creating links and forms}
 
-
+{%wodoc:outline depth="2"%}  {b Table of contents}  {%wodoc:end%}
 
 {1:links Links}
 
@@ -283,7 +283,7 @@ contains a form to {%wodoc:span class="code"%}post2{%wodoc:end%}, with a GET par
 {%wodoc:span class="code"%}form4{%wodoc:end%} is a form to an external page.
 
 {e Warning:} Some examples in this section use the Tyxml syntax extension.
-(See {{!/tyxml/page-ppx}Tyxml's manual}).
+(See {{:https://ocsigen.org/tyxml/ppx.html}Tyxml's manual}).
 {e Warning:} After installing Tyxml, [tyxml-ppx] should be added to the lists of SERVER PACKAGES and CLIENT PACKAGES
 in the Makefile.options file of your project.
 

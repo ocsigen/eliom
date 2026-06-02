@@ -106,7 +106,7 @@ Saving session data on the server using Eliom references:
 
 {%wodoc:@ class=server%}
 {@ocaml[
-let%server r = Eliom.Reference.eref ~scope:Eliom.Common.default_session_scope 0
+let%server r = Eliom.Reference.eref ~scope:Eliom_common.default_session_scope 0
 
 let%server f () =
   let%lwt v = Eliom.Reference.get r in
@@ -116,11 +116,11 @@ let%server f () =
 ]}
 
 Where scope can be:
-- [Eliom.Common.default_session_scope] (different value for each browser),
-- [Eliom.Common.default_process_scope] (different value for each tab),
-- [Eliom.Common.default_group_scope] (different value for each user),
-- [Eliom.Common.site_scope] (value for the whole site),
-- [Eliom.Common.global_scope] (global value for the whole server).
+- [Eliom_common.default_session_scope] (different value for each browser),
+- [Eliom_common.default_process_scope] (different value for each tab),
+- [Eliom_common.default_group_scope] (different value for each user),
+- [Eliom_common.site_scope] (value for the whole site),
+- [Eliom_common.global_scope] (global value for the whole server).
 Eliom references are persistant if you add optional parameter `~persistent`
 to function `Eliom.Reference.eref`.
 
@@ -132,7 +132,7 @@ or
 {{:https://ocsigen.org/tuto/basics-server.html}website development} (server-side programming).
 
 Write your first Web and mobile application with Eliom using
-{{!/ocsigen-start/page-index}Ocsigen Start}
+{{:../ocsigen-start/}Ocsigen Start}
 
 If you want to use Eliom as a traditional server-side Web framework,
 have a look at these tutorials:
@@ -140,4 +140,4 @@ have a look at these tutorials:
 - {{:https://ocsigen.org/tuto/how-to-register-session-data.html}Session data: Eliom references}
 - {{:https://ocsigen.org/tuto/interaction.html}Service based Web programming}
 
-The full {{!page-"intro"}reference manual}, for technical details
+The full {{:intro}reference manual}, for technical details

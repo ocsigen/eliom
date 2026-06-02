@@ -1,6 +1,6 @@
 {0 Programming client-server applications with Eliom}
 
-
+{%wodoc:outline depth="2"%}  {b Table of contents}  {%wodoc:end%}
 
 {1 General principles}
 {2 What is a client/server Eliom application}
@@ -22,7 +22,7 @@ keep the traditional Web interaction (with URLs, bookmarks, back button, etc).
 For example, if the page is playing music, the music won't stop when
 the user proceeds to other pages on the Web site.
 
-Client-side parts are using {!Lwt}, enabling
+Client-side parts are using {{:https://ocsigen.org/lwt/.html}Lwt}, enabling
 concurrency in the browser very easily.
 
 As both parts are implemented in OCaml, it is very easy to use client-side
@@ -66,7 +66,7 @@ permits switching to another page.
 Module {!Eliom.Comet} allows the
 server to send notifications
 to the client (even if the client is not explicitely doing a request).
-Use module {!Eliom.Eliom_react} to make client-server reactive
+Use module {!Eliom.React} to make client-server reactive
 programming (using the {{:http://erratique.ch/software/react} React}
  external library).
 

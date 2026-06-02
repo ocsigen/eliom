@@ -1,12 +1,12 @@
 
 {0 Compiling and configuring Eliom modules}
 
-
+{%wodoc:outline depth="2"%}  {b Table of contents}  {%wodoc:end%}
 
 This chapter explains how to set Eliom's
 options in the Ocsigen server configuration file, and how to define options for your
 Eliom modules. See the Ocsigen server documentation for more information about the
-{{!/ocsigenserver/page-config}server's configuration}.
+{{:https://ocsigen.org/ocsigenserver/config.html}server's configuration}.
 
 Note, however, that {{!page-"workflow-distillery"}Eliom's
 distillery} provides templates to get started at once with Eliom!
@@ -53,7 +53,7 @@ v}
 
 You should see the page corresponding to service ["coucou"] in site
 [examples/] at url{%html:<br/>%}
-{%wodoc:span class="code"%}http://{e your_server}/examples/coucou{%wodoc:end%}.{%html:<br/>%}
+{%wodoc:span class="code"%}~http:~/~{e /your_server}/examples/coucou{%wodoc:end%}.{%html:<br/>%}
 
 {%wodoc:div class="concept"%}{b Debugging}
 
@@ -134,7 +134,7 @@ Here is the handler used by the tutorial:
 
 {@ocaml[let _ = Eliom.Service.set_exn_handler
    (fun e -> match e with
-    | Eliom.Common.Eliom_404 ->
+    | Eliom_common.Eliom_404 ->
         Eliom.Registration.Html.send ~code:404
           (html
              (head (title (txt "")) [])
@@ -166,7 +166,7 @@ and {%wodoc:span class="code"%}</eliom{%wodoc:end%}>.
 {2:static_linking Static linking of Eliom modules}
 
 From version 1.2, it is possible to link extensions and Eliom modules
-{{!/ocsigenserver/page-staticlink}statically}.
+{{:https://ocsigen.org/ocsigenserver/staticlink.html}statically}.
 But this is not straightforward.  For Eliom modules, service
 registration and option settings must be delayed until the
 configuration file is read. To create a statically linkable Eliom
@@ -396,6 +396,27 @@ The syntax is:
 - [<applicationscript defer="true" async="false"/>]
 
 Both attributes are optional and default to [false].
+
+{2 WebAssembly support}
+
+Eliom applications can be compiled to WebAssembly using [wasm_of_ocaml].
+When enabled, the server generates a detection script that automatically
+loads the WASM version if the browser supports WebAssembly, with fallback
+to JavaScript otherwise.
+
+The syntax is:
+- [<wasm enabled="true"/>]
+
+WebAssembly support is disabled by default for backward compatibility.
+The Eliom templates ([app.exe], [app.lib]) enable it explicitly.
+
+It can also be enabled programmatically using
+[Eliom.Config.set_enable_wasm true] or via the [~enable_wasm]
+parameter of [Eliom.run].
+
+For production, use [--profile release] (or [DEBUG := no] in
+[Makefile.options]) to bundle all WASM modules into a single file,
+avoiding multiple HTTP requests at startup.
 
 {2 Serving global data through a distinct URL}
 

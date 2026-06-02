@@ -1,12 +1,12 @@
 
 {0 Compiling and configuring Eliom modules}
 
-
+{%wodoc:outline depth="2"%}  {b Table of contents}  {%wodoc:end%}
 
 This chapter explains how to compile Eliom module, how to set Eliom's
 options in the configuration file, and how to define options for your
 Eliom modules. See the Ocsigen server documentation for more information about the
-{{!/ocsigenserver/page-config}server's configuration}.
+{{:https://ocsigen.org/ocsigenserver/config.html}server's configuration}.
 
 
 {1:misc Using Eliom modules with Ocsigen server}
@@ -65,7 +65,7 @@ v}
 
 You should see the page corresponding to service ["coucou"] in site
 [examples/] at url{%html:<br/>%}
-{%wodoc:span class="code"%}http://{e your_server}/examples/coucou{%wodoc:end%}.{%html:<br/>%}
+{%wodoc:span class="code"%}~http:~/~{e /your_server}/examples/coucou{%wodoc:end%}.{%html:<br/>%}
 
 {%wodoc:div class="concept"%}{b Debugging}
 
@@ -151,7 +151,7 @@ Here is the handler used by the tutorial:
 
 {@ocaml[let _ = Eliom.Service.set_exn_handler
    (fun e -> match e with
-    | Eliom.Common.Eliom_404 ->
+    | Eliom_common.Eliom_404 ->
         Eliom.Registration.Html.send ~code:404
           (html
              (head (title (txt "")) [])
@@ -183,7 +183,7 @@ and {%wodoc:span class="code"%}</eliom{%wodoc:end%}>.
 {2:static_linking Static linking of Eliom modules}
 
 From version 1.2, it is possible to link extensions and Eliom modules
-{{!/ocsigenserver/page-staticlink}statically}.
+{{:https://ocsigen.org/ocsigenserver/staticlink.html}statically}.
 But this is not straightforward.  For Eliom modules, service
 registration and options setting must be delayed until the
 configuration file is read. To create a statically linkable Eliom

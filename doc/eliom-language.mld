@@ -136,7 +136,7 @@ resulting value in that specific client process.
 Note well that the value of an injection is {e not updated} when the
 injected value on the server changes. However, you may inject reactive
 signals (cf. {!val
-Eliom.Eliom_react.S.Down.of_react}) to achieve the behavior of a client
+Eliom.React.S.Down.of_react}) to achieve the behavior of a client
 side values which updates alongside with a server correspondent.
 
 {2:sharedinjection In a shared section}
@@ -167,7 +167,7 @@ and shared-sections.
 
 The notion {e server-side client values} allows it to declare and deal
 with client values within the server-section (and is also supported in
-the {{:#sharedclientvalues}shared section}).
+the {{:../eliom/doc#sharedclientvalues}shared section}).
 
 A client-value may be declared in the server section as
 
@@ -180,14 +180,14 @@ compiled only for the client program, and may make use of any
 libraries available on the client, and where [exp] has type [typ]
 on the client side.
 
-The hole client value then has type [typ Eliom.Client_value.t].
+The hole client value then has type [typ Eliom_client_value.t].
 
-A value of type [typ Eliom.Client_value.t] is {e abstract on the
+A value of type [typ Eliom_client_value.t] is {e abstract on the
 server} (cf. {!type
-Eliom.Client_value.t} (server)).  But once it is sent to the client
+Eliom_client_value.t} (server)).  But once it is sent to the client
 it becomes the value to which the expression [exp] evaluated on the
 client side (cf. {!type
-Eliom.Client_value.t} (client)).
+Eliom_client_value.t} (client)).
 
 A client value expression is an arbitrary OCaml expression, but may
 additionaly contain {e injections of server variables},
@@ -197,7 +197,7 @@ injected by prefixing it with a percent sign, [%v]. A server-side
 expression [exp] can be injected by [%(exp)].
 
 Note well, that the injection of a server side client-value [v] of
-type [typ Eliom.Client_value.t] results in a value [%v] of
+type [typ Eliom_client_value.t] results in a value [%v] of
 type [typ]. Thus, the value of the client value becomes concrete.
 
 The other way to make a client value concrete is to send it to the
@@ -262,8 +262,8 @@ content has changed}. That way they may refer to the new DOM.
 
 If a client value is created outside of the initialization of the
 server program and also outside of the processing of a request, the
-exception {!Eliom.Client_value.Client_value_creation_invalid_context} is
-raised.
+exception {% {!exception
+Eliom_client_value.Client_value_creation_invalid_context} %} is raised.
 
 {2:sharedclientvalues In a shared section}
 

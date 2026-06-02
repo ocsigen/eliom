@@ -1,6 +1,6 @@
 {0:communication Communication between the client and the server}
 
-
+{%wodoc:outline depth="2"%}  {b Table of contents}  {%wodoc:end%}
 
 Besides injections and client values, as described in the
 documentation of our
@@ -48,7 +48,7 @@ directly on the client; it is impossible to marshal them in OCaml to
 send them to the client. Instead, if an exception is raised in the
 server function, the function application fails (in Lwt) on the client
 with the exception {!exception
-Eliom.Client_value.Exception_on_server} whose argument describes the original
+Eliom_client_value.Exception_on_server} whose argument describes the original
 exception (according to [Printexc.to_string]).
 
 
@@ -297,7 +297,7 @@ Like services, channels have a scope (only site or client process).
 The constraints vary with respect to the scope you choose:
 
 - Channels created with scope
-{!Eliom.Common.site_scope} or
+{!Eliom_common.site_scope} or
 using
 {!Eliom.Comet.Channel.create_newest}
 are stateless channels: the memory consumption does not depend on
@@ -307,7 +307,7 @@ Named stateless channels can be accessed from
 {{!page-"clientserver-applications".cors_channels}other servers}.
 
 - Channels created with scope
-  {!Eliom.Common.default_process_scope}
+  {!Eliom_common.default_process_scope}
 must be created inside a service handler. They
 are assigned to a particular client process. Different channels
 created with the same stream do not share memory. They are closed
@@ -356,14 +356,14 @@ programming. Eliom provides a reactive interface for channels, using
 the {{:http://erratique.ch/software/react} react}. library.
 
 To share a React event or signal with the client, use functions
-{!Eliom.Eliom_react.Down.of_react} or
-{!Eliom.Eliom_react.S.Down.of_react}
+{!Eliom.React.Down.of_react} or
+{!Eliom.React.S.Down.of_react}
 
 On client-side, the value returned by those functions is directly
 a React event or signal.
 
 The opposite is also available using
-{!Eliom.Eliom_react.Up.create}.
+{!Eliom.React.Up.create}.
 
 Since this is implemented using Comet, tuning Comet configuration will
 also affect the behaviour of shared react variables.
@@ -392,5 +392,5 @@ server generating the page and the server that created the channel
 must run exactly the same version of Eliom. By default a browser can't
 do requests to a different server, to allow that the server serving
 the channel must allow Cross-Origin Resource Sharing using the
-{{!/ocsigenserver/page-cors}CORS Ocsigenserver
+{{:https://ocsigen.org/ocsigenserver/cors.html}CORS Ocsigenserver
 extension}.

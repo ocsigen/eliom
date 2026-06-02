@@ -4,7 +4,7 @@ Reading this chapter is not mandatory for writing Eliom
 applications. However, it is worth reading if you are planning to hack
 on the Eliom codebase.
 
-
+{%wodoc:outline depth="2"%}  {b Table of contents}  {%wodoc:end%}
 
 
 {1 Basics}
@@ -105,6 +105,6 @@ The Eliom types that are marked are:
 
 - {!Eliom.Service.t} transformed to {!Eliom.Service.t} (but the client side representation)
 - {!Eliom.Comet.Channel.t} transformed to {!Lwt_stream.t}
-- {!Eliom.Eliom_react.Up.t} transformed to ['a -> unit]
-- {!Eliom.Eliom_react.Down.t} transformed to ['a React.E.t]
+- {!Eliom.React.Up.t} transformed to ['a -> unit]
+- {!Eliom.React.Down.t} transformed to ['a React.E.t]
 - {!Eliom.Bus.t} transformed to {!Eliom.Bus.t}
