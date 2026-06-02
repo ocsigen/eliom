@@ -1,6 +1,6 @@
 {0:communication Communication between the client and the server}
 
-{%wodoc:outline depth="2"%}  {b Table of contents}  {%wodoc:end%}
+
 
 Besides injections and client values, as described in the
 documentation of our

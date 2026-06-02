@@ -1,6 +1,6 @@
 {0 Programming client-server applications with Eliom}
 
-{%wodoc:outline depth="2"%}  {b Table of contents}  {%wodoc:end%}
+
 
 {1 General principles}
 {2 What is a client/server Eliom application}

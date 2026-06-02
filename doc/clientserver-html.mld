@@ -20,7 +20,7 @@ Ocsigen uses them to provide a module with very good HTML typing.
 The full documentation is available
 {{!Tyxml.Html}in the TyXML documentation}.
 
-{%wodoc:outline depth="2"%}  {b Table of contents}  {%wodoc:end%}
+
 
 
 
