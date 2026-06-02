@@ -112,8 +112,7 @@ module Xml : sig
   type caml_event_handler
   (** Values of type [caml_event_handler] represents event handler
       build with the [{{ ... }}] syntax (see the Eliom manual for more
-      information on {% <<a_manual chapter="clientserver-html"
-      fragment="syntax"|syntax extension>>%}). Such values are
+      information on {{!page-"clientserver-html".syntax}syntax extension}). Such values are
       expected by functions like {!Content.Html.a_onclick}. *)
 
   (**/**)
