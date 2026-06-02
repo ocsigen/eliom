@@ -301,3 +301,190 @@ or registrable services pre-applied to some parameters. This allows
 use of the [Eliom.Service] API consistently for creating
 links.
 
+
+
+{3 External services}
+
+It is possible to define external services, that is, services that
+belong to an external Web site (on the same server or not).  To do
+this, use the function [Eliom.Service.extern]
+(see {!Eliom.Service_sigs.S.extern}).
+
+For example, the following code defines a link to the OCaml Wikipedia
+page:
+
+{@ocaml[
+Eliom.Content.Html.D.a
+  (Eliom.Service.extern
+     ~prefix:"http://en.wikipedia.org"
+     ~path:["wiki";""]
+     ~meth:
+       (Eliom.Service.Get
+          Eliom.Parameter.(suffix (all_suffix "suff")))
+     ())
+  [txt "OCaml on Wikipedia"]
+  ["OCaml"]
+]}
+
+{3:staticparts Static files service}
+
+{{:https://ocsigen.org/ocsigenserver/staticmod.html}Staticmod}
+is an Ocsigen Server extension serving static (non-generated) files
+(for example, images and stylesheets). It can be used together with
+Eliom. The predefined service
+{!Eliom.Service.static_dir}
+can be used to make links to static files. It takes as parameter the
+path of the file.
+
+For example, the following code will create this link:
+{{:../ocsigen10.png}download image}.
+
+{@ocaml[
+let open Eliom.Content.Html.F in
+a (static_dir ()) [txt "download image"] ["ocsigen10.png"]
+]}
+
+It is also possible to send static files using Eliom, with
+{!Eliom.Registration.File}.
+See
+{{!page-"server-outputs".eliomfiles}Sending files}.
+
+{3:preapplied Pre-applied services}
+
+It is possible to preapply the GET parameters of a service to obtain a
+service without parameters, or only the POST ones. It is done using
+[Eliom.Service.preapply]
+(see
+{!Eliom.Service_sigs.S.preapply}).
+For example:
+
+{@ocaml[
+let s =
+  Eliom.Service.create
+    ~path:(Eliom.Service.Path ["serv"])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.int)
+    ()
+
+let preappl = Eliom.Service.preapply s 3
+]}
+
+It is not possible to register a handler on a preapplied service, but
+you can use them in links or as fallbacks for attached services.
+
+{3:void Reload actions}
+
+[Eliom.Service.reload_action]
+(see {!Eliom.Service_sigs.S.reload_action})
+is a special non-attached action, with special behavior: it has no
+parameter at all, not even non-attached parameters.  Use it if you
+want to make a link to the current page without non-attached
+parameters.  It is almost equivalent to a POST pathless service
+without POST parameters, on which you register an action that does
+nothing, but instead it is using the GET method, so that you can use
+it with [<a>] links, not only with forms.  Example:
+
+{@ocaml[
+a ~service:Eliom.Service.reload_action [txt "cancel"] ()
+]}
+
+There is also [Eliom.Service.reload_action_https]
+(same, but forces use of HTTPS), [Eliom.Service.reload_action_hidden],
+and [Eliom.Service.reload_action_https_hidden].
+"Hidden" means that they keep GET non-attached parameters.
+
+Use [Eliom.Service.reload_action_hidden] for example
+after a POST request, if you want to do a redirection towards the same
+page without POST parameters (and thus prevent from reposting data if
+the user reloads the page).
+
+{1:identification Service identification}
+
+Eliom has a sophisticated {e service identification mechanism} to
+choose the service handler to be executed --given an incoming
+request-- with respect to many criteria:
+
+- the path of the requested URL,
+- the names of the (GET or POST) parameters,
+- some internal (GET or POST) parameter, added automatically,
+- the HTTP method,
+- the session the client belongs to (or client side process, or
+  session group),
+- ...
+
+But the user does not usually need to bother with this. Eliom
+abstracts this mechanism away through its three main kinds of services
+(regular services, pathless services, and attached services), which we
+have described.
+
+{1:service_scope Service scopes}
+
+By default, services are accessible to anybody ({e scope}
+{e "site"}). It is possible to restrict the scope of a service, making
+it available only to a session, a client side process, or a group of
+sessions.
+
+To limit the scope of a service, just add the argument [~scope] to
+the
+{!Eliom.Registration.Html.register}
+function (same for the other [register] variants). The default scope
+is {!Eliom_common.site_scope}.
+
+The same service can be registered with several scopes.  This makes it
+possible, for example, to generate custom services for a specific
+user.  Eliom will try to find the service by trying the following (in
+order):
+
+- scope {e "client-side process"},
+- scope {e "session"},
+- scope {e "group of session"},
+- and finally scope {e "site"}.
+
+
+
+{1 Tips}
+
+- All services created during initialization must be registered (with
+  {e "site"} scope) during the initialization phase of your module.
+  If not, the server will not start, and an appropriate error message
+  will appear in the logs. This prevents broken links.
+- Services may be registered only during the server's initialization
+  phase (while reading the site configuration) or while processing a
+  request, because Eliom must know the information about the site. Be
+  very careful about this if you want to use static linking (see the
+  section on {{!page-"workflow-configuration".static_linking}static linking} in the chapter about
+  Compiling and configuring Eliom modules).
+- All regular services (but not pathless and attached services) need
+  to be created in a module loaded inside a [<host>] tag of the
+  configuration file. It is not possible to accomplish this using
+  modules loaded inside [<extension>] or [<library>].
+- If you create new main services dynamically, you will dynamically
+  create new URLs!  This may be dangerous as they will disappear if
+  you stop the server.  Be very careful to re-create these URLs when
+  you relaunch the server, otherwise, some external links or bookmarks
+  will be broken!{%html:<br/>%} The use of that feature is discouraged for
+  services without timeout, as such services will be available only
+  until the end of the server process (and it is not possible to
+  re-create them with the same key).
+- Do not register the same service in the same scope twice, and do
+  not replace a service by a directory (or vice versa). If this
+  happens during the initialization phase, the server won't start.  If
+  this happens after server startup, it will be ignored (with a
+  warning in the logs).
+- GET attached services (without POST parameters) can be registered
+  only with a regular service without GET/POST parameters as fallback.
+  But it may be {{!page-"server-services".preapplied}{e preapplied}}.
+- The registration of (main) services must be completed before the end
+  of the loading of the module. It is not possible to launch an Lwt
+  thread with the intention that it will register a service later, as
+  registering a service needs access to config file information (for
+  example the directory of the site).  If you do this, the server will
+  raise an exception most of
+  the time, but you may also get unexpected results (if the thread is
+  executed while another site is loaded).  If you use threads in the
+  initialization phase of your module (for example if you need
+  information from a database), use {!val
+  Lwt_unix.run} to wait for the end of the thread.
+- Some services can be registered multiple times, with different
+  options. This allows for example choosing between different handlers
+  when the request is done in a particular session or protocol (HTTP
+  or HTTPS).
