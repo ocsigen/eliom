@@ -43,7 +43,7 @@ services for one client process, or even set cookies for one tab.
 
 {2 How it works}
 
-The code of an Eliom application is written in OCaml, with {{!page-"clientserver-language"}a syntax extension} to distinguish
+The code of an Eliom application is written in OCaml, with {{!page-"eliom-language"}a syntax extension} to distinguish
 between server and client code. The files using this syntax
 usually have the extension [.eliom]. As the compling process is quite
 complex, we provide commands called [eliomc], [eliomopt] and [js_of_eliom] that
