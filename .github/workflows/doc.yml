@@ -2,13 +2,10 @@
 # theme it with the Ocsigen chrome (wodoc), and publish it on the project's
 # gh-pages branch, served at https://ocsigen.org/eliom/. See doc/README.md.
 #
-# Two entry points:
-#  - push to master (or "Run workflow" with no version) -> rebuild & deploy the
-#    "dev" docs only. Each run replaces only dev/; the other version directories
-#    already on gh-pages are PRESERVED.
-#  - "Run workflow" with a version -> the `release` job freezes the dev docs now
-#    on gh-pages as /<version>/ and repoints `latest` at it (refreshing
-#    versions.json). No rebuild: a release is exactly the dev docs at that point.
+# CI deploys ONLY the "dev" docs and ONLY from master. Stable versions are built
+# by hand and committed to gh-pages at release time, so there is no dispatch /
+# release path here. Each run replaces only the dev/ directory; the other version
+# directories already on gh-pages are PRESERVED.
 #
 # PREREQUISITE: wodoc builds the API with `odoc_driver eliom --remap` on the
 # INSTALLED eliom, and eliom's cross-library links need the odoc_driver `base_args`
@@ -19,27 +16,17 @@ name: Documentation
 on:
   push:
     branches: [master]
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "Publish a stable version: freeze the dev docs now on gh-pages as /<version>/ and repoint `latest` (e.g. 12.0). Leave empty to just rebuild dev."
-        required: false
-        default: ""
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  workflow_dispatch: {}
 
 jobs:
   build-deploy:
-    # push, or a manual run with no version (just rebuild dev). NOT a release run.
-    if: github.repository == 'ocsigen/eliom' && (github.event_name != 'workflow_dispatch' || github.event.inputs.version == '')
+    if: github.repository == 'ocsigen/eliom'
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -48,28 +35,26 @@ jobs:
         with:
           ocaml-compiler: "5.4.0"
 
-      - name: Set up Binaryen
-        # eliom depends on wasm_of_ocaml-compiler, whose build needs a recent
-        # binaryen (wasm-merge); distro binaryen is too old. Same action as
-        # js_of_ocaml's own CI.
-        uses: Aandreba/setup-binaryen@v1.0.0
-        with:
-          token: ${{ github.token }}
-
       - name: Install dependencies
         run: |
-          # Install eliom (from the ref being built) so odoc_driver documents
-          # these sources. eliom is installed WITHOUT --with-doc: its server and
-          # client libraries share module names, so building eliom's own @doc
-          # collides ("Multiple rules for .../eliom/Eliom_bus/index.html"). wodoc
-          # builds the docs via `odoc_driver --remap` instead.
+          # The documented version is the INSTALLED eliom: install it from the ref
+          # being built so odoc_driver documents these sources.
           opam install . --deps-only --with-doc
-          opam install .
-          # wodoc themes the pages. Its opam pin-depends pulls odoc / odoc-driver
-          # from the balat/odoc fork (the cross-library link fix, not yet upstream),
-          # so we do NOT pin odoc ourselves here.
+          opam install . --with-doc
+          # odoc-driver with the base_args fix (cross-library links). TODO: switch
+          # to the upstream release once the fix lands; until then pin the fork.
+          opam pin add -n odoc https://github.com/ocsigen/odoc.git#base-args
+          opam pin add -n odoc-driver https://github.com/ocsigen/odoc.git#base-args
+          opam install odoc odoc-driver
+          # wodoc: the odoc driver that themes the pages with the Ocsigen chrome.
           opam pin add -n wodoc https://github.com/ocsigen/wodoc.git
           opam install wodoc
+
+      - name: Overlay the manual menu (lives on the wikidoc branch)
+        run: |
+          git fetch origin wikidoc
+          mkdir -p doc/manual
+          git show origin/wikidoc:doc/dev/manual/menu.wiki > doc/manual/menu.wiki
 
       - name: Build documentation (dev)
         # wodoc build runs `odoc_driver eliom --remap` on the installed package
@@ -77,7 +62,7 @@ jobs:
         # site from doc/wodoc, and fetches the shared menu from ocsigen.github.io.
         run: >-
           opam exec -- wodoc build --config doc/wodoc
-          --menu https://ocsigen.org/doc/menu.html
+          --menu https://ocsigen.org/wodoc/menu.html
           --out "$PWD/_doc-site/dev" --label dev
 
       - name: Deploy to gh-pages (replace only dev/, keep the rest)
@@ -87,46 +72,3 @@ jobs:
           folder: _doc-site/dev
           target-folder: dev
           clean: true
-
-  release:
-    # Manual run with a version: freeze the dev docs currently on gh-pages as the
-    # stable /<version>/ and repoint `latest` at it (refreshing versions.json).
-    # No rebuild — the docs of a release are exactly the dev docs at that point.
-    if: github.repository == 'ocsigen/eliom' && github.event_name == 'workflow_dispatch' && github.event.inputs.version != ''
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Set up OCaml
-        uses: ocaml/setup-ocaml@v3
-        with:
-          ocaml-compiler: "5.4.0"
-
-      - name: Install wodoc
-        run: |
-          opam pin add -n wodoc https://github.com/ocsigen/wodoc.git
-          opam install wodoc
-
-      - name: Checkout gh-pages
-        uses: actions/checkout@v6
-        with:
-          ref: gh-pages
-          path: site
-          fetch-depth: 0
-
-      - name: Freeze dev as the stable version and repoint latest
-        # wodoc release: cp -a site/dev site/<version>, ln -sfn <version> latest,
-        # write the root index.html redirect if missing, refresh versions.json.
-        run: >-
-          opam exec -- wodoc release --site site --from dev
-          --version "${{ github.event.inputs.version }}"
-
-      - name: Commit and push gh-pages
-        run: |
-          cd site
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git diff --cached --quiet \
-            || git commit -m "Release doc ${{ github.event.inputs.version }} (freeze dev, repoint latest)"
-          git push
