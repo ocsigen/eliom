@@ -41,10 +41,10 @@ jobs:
           # being built so odoc_driver documents these sources.
           opam install . --deps-only --with-doc
           opam install . --with-doc
-          # odoc-driver with the base_args fix (cross-library links). TODO: switch
-          # to the upstream release once the fix lands; until then pin the fork.
-          opam pin add -n odoc https://github.com/ocsigen/odoc.git#base-args
-          opam pin add -n odoc-driver https://github.com/ocsigen/odoc.git#base-args
+          # odoc-driver with the cross-library link fix (driver: link units only
+          # against their actual lib deps). TODO: drop the pin once it lands upstream.
+          opam pin add -n odoc https://github.com/balat/odoc.git#driver-sibling-lib-link-fix
+          opam pin add -n odoc-driver https://github.com/balat/odoc.git#driver-sibling-lib-link-fix
           opam install odoc odoc-driver
           # wodoc: the odoc driver that themes the pages with the Ocsigen chrome.
           opam pin add -n wodoc https://github.com/ocsigen/wodoc.git
