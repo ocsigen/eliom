@@ -1,0 +1,34 @@
+;; Declarative wodoc config for the Eliom documentation (client/server project).
+;;   wodoc build --config doc/wodoc --out <dir>/<label> --label <v> \
+;;               --menu https://ocsigen.org/wodoc/menu.html [--local]
+;;
+;; Eliom ships its server and client APIs as two libraries of the SAME package
+;; (eliom.server / eliom.client) with the SAME module names, so `dune build @doc`
+;; collides. wodoc therefore builds the API with `odoc_driver eliom --remap` (the
+;; engine ocaml.org uses) on the INSTALLED package — i.e. the documented version
+;; is whatever the build switch has installed. Each side gets its own API nav
+;; (from a curated index), a body colour and a switch button; the manual nav is
+;; shared. Cross-references to sibling Ocsigen projects are rewritten from
+;; ocaml.org to relative links by (hosted ...); other deps stay on ocaml.org.
+(project eliom)
+(title Eliom)
+(pub /eliom)
+(odoc-driver eliom)        ; build the API with `odoc_driver eliom --remap`
+(landing eliom/index.html)
+
+;; The manual nav comes from the wiki menu (the manual .mld are built with the
+;; package by odoc_driver; this only orders them). The CI overlays the right
+;; version's menu.wiki from the wikidoc branch into doc/manual/menu.wiki.
+(manual-menu doc/manual/menu.wiki)
+
+(client-server
+  (server (lib eliom.server) (indexdoc doc/server.indexdoc) (heading "Server API") (wrapper Eliom))
+  (client (lib eliom.client) (indexdoc doc/client.indexdoc) (heading "Client API") (wrapper Eliom)))
+
+;; Sibling Ocsigen projects whose ocaml.org xrefs are rewritten to relative
+;; links into their wodoc docs:  (pkg deploy-dir multi-library? wrapper-module)
+(hosted
+  (eliom           eliom           true  Eliom)
+  (ocsigen-toolkit ocsigen-toolkit true  Ot)
+  (ocsigen-start   ocsigen-start   true  Os)
+  (ocsigenserver   ocsigenserver   false Ocsigen))

@@ -1,0 +1,74 @@
+# Build the Eliom documentation (manual + server/client API) with odoc_driver,
+# theme it with the Ocsigen chrome (wodoc), and publish it on the project's
+# gh-pages branch, served at https://ocsigen.org/eliom/. See doc/README.md.
+#
+# CI deploys ONLY the "dev" docs and ONLY from master. Stable versions are built
+# by hand and committed to gh-pages at release time, so there is no dispatch /
+# release path here. Each run replaces only the dev/ directory; the other version
+# directories already on gh-pages are PRESERVED.
+#
+# PREREQUISITE: wodoc builds the API with `odoc_driver eliom --remap` on the
+# INSTALLED eliom, and eliom's cross-library links need the odoc_driver `base_args`
+# fix, which is not yet upstreamed. Until it lands, the "Install dependencies" step
+# must pin odoc / odoc-driver from the patched source (see below).
+name: Documentation
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch: {}
+
+jobs:
+  build-deploy:
+    if: github.repository == 'ocsigen/eliom'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up OCaml
+        uses: ocaml/setup-ocaml@v3
+        with:
+          ocaml-compiler: "5.4.0"
+
+      - name: Install dependencies
+        run: |
+          # The documented version is the INSTALLED eliom: install it from the ref
+          # being built so odoc_driver documents these sources.
+          opam install . --deps-only --with-doc
+          opam install . --with-doc
+          # odoc-driver with the base_args fix (cross-library links). TODO: switch
+          # to the upstream release once the fix lands; until then pin the fork.
+          opam pin add -n odoc https://github.com/ocsigen/odoc.git#base-args
+          opam pin add -n odoc-driver https://github.com/ocsigen/odoc.git#base-args
+          opam install odoc odoc-driver
+          # wodoc: the odoc driver that themes the pages with the Ocsigen chrome.
+          opam pin add -n wodoc https://github.com/ocsigen/wodoc.git
+          opam install wodoc
+
+      - name: Overlay the manual menu (lives on the wikidoc branch)
+        run: |
+          git fetch origin wikidoc
+          mkdir -p doc/manual
+          git show origin/wikidoc:doc/dev/manual/menu.wiki > doc/manual/menu.wiki
+
+      - name: Build documentation (dev)
+        # wodoc build runs `odoc_driver eliom --remap` on the installed package
+        # (after preprocessing the installed manual .mld), assembles the themed
+        # site from doc/wodoc, and fetches the shared menu from ocsigen.github.io.
+        run: >-
+          opam exec -- wodoc build --config doc/wodoc
+          --menu https://ocsigen.org/wodoc/menu.html
+          --out "$PWD/_doc-site/dev" --label dev
+
+      - name: Deploy to gh-pages (replace only dev/, keep the rest)
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: _doc-site/dev
+          target-folder: dev
+          clean: true
