@@ -16,10 +16,35 @@
 (odoc-driver eliom)        ; build the API with `odoc_driver eliom --remap`
 (landing overview.html)
 
-;; The manual nav comes from the wiki menu (the manual .mld are built with the
-;; package by odoc_driver; this only orders them). The CI overlays the right
-;; version's menu.wiki from the wikidoc branch into doc/manual/menu.wiki.
-(manual-menu doc/manual/menu.wiki)
+;; The shared manual nav (the manual .mld are built with the package by
+;; odoc_driver; this only orders them into the left column). Only `dev` is ever
+;; rebuilt, so this static nav always matches the current manual; released
+;; versions keep the nav they were frozen with.
+(nav
+ (section "Eliom's Reference manual"
+  (link "Introduction" intro.html intro)
+  (group "Server-side programming"
+   (group "Services"
+    (link "The different types of services" server-services.html server-services)
+    (link "Typing service parameters" server-params.html server-params)
+    (link "Service handlers" server-outputs.html server-outputs)
+    (link "Creating links and forms" server-links.html server-links))
+   (link "Sessions and server side state" server-state.html server-state)
+   (link "Security" server-security.html server-security))
+  (group "Client-server programming"
+   (link "Eliom applications" clientserver-applications.html clientserver-applications)
+   (link "Multi-tier programming" ppx-syntax.html ppx-syntax)
+   (link "Generating HTML" clientserver-html.html clientserver-html)
+   (link "Communication" clientserver-communication.html clientserver-communication)
+   (link "Client-side services" clientserver-services.html clientserver-services)
+   (link "Shared reactive programming" clientserver-react.html clientserver-react)
+   (link "Caching data and off-line applications" clientserver-cache.html clientserver-cache)
+   (link "Custom wrapping" clientserver-wrapping.html clientserver-wrapping))
+  (group "Workflows"
+   (link "Distillery" workflow-distillery.html workflow-distillery)
+   (link "Mobile apps" mobile-apps.html mobile-apps)
+   (link "Configuration & running" workflow-configuration.html workflow-configuration)
+   (link "Scalability" scalability.html scalability))))
 
 (client-server
   (server (lib eliom.server) (indexdoc doc/server.indexdoc) (heading "Server API") (wrapper Eliom))
