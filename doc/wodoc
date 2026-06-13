@@ -1,6 +1,6 @@
 ;; Declarative wodoc config for the Eliom documentation (client/server project).
 ;;   wodoc build --config doc/wodoc --out <dir>/<label> --label <v> \
-;;               --menu https://ocsigen.org/wodoc/menu.html [--local]
+;;               --menu https://ocsigen.org/doc/menu.html [--local]
 ;;
 ;; Eliom ships its server and client APIs as two libraries of the SAME package
 ;; (eliom.server / eliom.client) with the SAME module names, so `dune build @doc`
