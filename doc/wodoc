@@ -14,7 +14,7 @@
 (title Eliom)
 (pub /eliom)
 (odoc-driver eliom)        ; build the API with `odoc_driver eliom --remap`
-(landing eliom/index.html)
+(landing overview.html)
 
 ;; The manual nav comes from the wiki menu (the manual .mld are built with the
 ;; package by odoc_driver; this only orders them). The CI overlays the right
