@@ -230,7 +230,7 @@ let _ =
 It works for the datatypes you define, and the data types from OCaml's
 standard library. For types defined in third-party libraries, have a
 look at deriving's
-{{:href:http://code.google.com/p/deriving/wiki/Introduction}documentation}
+documentation
 and Js_of_ocaml's {!Deriving_Json}.
 
 {1 Server sending data (lower level interfaces for notifications)}
