@@ -59,12 +59,6 @@ jobs:
           opam pin add -n wodoc https://github.com/ocsigen/wodoc.git
           opam install wodoc
 
-      - name: Overlay the manual menu (lives on the wikidoc branch)
-        run: |
-          git fetch origin wikidoc
-          mkdir -p doc/manual
-          git show origin/wikidoc:doc/dev/manual/menu.wiki > doc/manual/menu.wiki
-
       - name: Build documentation (dev)
         # wodoc build runs `odoc_driver eliom --remap` on the installed package
         # (after preprocessing the installed manual .mld), assembles the themed
