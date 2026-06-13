@@ -37,7 +37,7 @@ opam install wodoc                   # the odoc driver / theming
 # overlay the manual menu (lives on the wikidoc branch):
 git show origin/wikidoc:doc/dev/manual/menu.wiki > doc/manual/menu.wiki
 wodoc build --config doc/wodoc --label dev --out _doc-site/dev \
-  --menu https://ocsigen.org/wodoc/menu.html
+  --menu https://ocsigen.org/doc/menu.html
 ```
 
 `wodoc build` runs `odoc_driver eliom --remap` (after preprocessing the installed
