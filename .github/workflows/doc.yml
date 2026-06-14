@@ -63,8 +63,13 @@ jobs:
           opam install .
           # odoc-driver with the cross-library link fix (driver: link units only
           # against their actual lib deps). TODO: drop the pin once it lands upstream.
-          opam pin add -n odoc https://github.com/balat/odoc.git#driver-sibling-lib-link-fix
-          opam pin add -n odoc-driver https://github.com/balat/odoc.git#driver-sibling-lib-link-fix
+          # The fork is one multi-package repo (odoc, odoc-parser, odoc-md,
+          # sherlodoc, odoc-driver) whose packages pin each other by '= version',
+          # so they must ALL be pinned to the fork or the solver conflicts.
+          FORK=https://github.com/balat/odoc.git#driver-sibling-lib-link-fix
+          for p in odoc odoc-parser odoc-md sherlodoc odoc-driver; do
+            opam pin add -n $p "$FORK"
+          done
           opam install odoc odoc-driver
           # wodoc: the odoc driver that themes the pages with the Ocsigen chrome.
           opam pin add -n wodoc https://github.com/ocsigen/wodoc.git
