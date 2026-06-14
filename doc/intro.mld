@@ -3,7 +3,7 @@
 {e This document is the Eliom manual, where you will find an
 detailed explanation of all Eliom concepts.
 If you want to learn how to program with Ocsigen, please read
-the {{:https://ocsigen.org/tuto/.html}Ocsigen tutorial} first,
+the {{:https://ocsigen.org/tuto/}Ocsigen tutorial} first,
 and especially {{:https://ocsigen.org/tuto/basics.html}this overview of all concepts}
 or the {{:https://ocsigen.org/tuto/basics-server.html}server-side programming guide}.}
 

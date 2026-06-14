@@ -167,7 +167,7 @@ and shared-sections.
 
 The notion {e server-side client values} allows it to declare and deal
 with client values within the server-section (and is also supported in
-the {{:../eliom/doc#sharedclientvalues}shared section}).
+the {{:#sharedclientvalues}shared section}).
 
 A client-value may be declared in the server section as
 

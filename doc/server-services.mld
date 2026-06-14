@@ -337,7 +337,7 @@ can be used to make links to static files. It takes as parameter the
 path of the file.
 
 For example, the following code will create this link:
-{{:../ocsigen10.png}download image}.
+download image.
 
 {@ocaml[
 let open Eliom_content.Html.F in
