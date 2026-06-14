@@ -54,24 +54,16 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # The documented version is the INSTALLED eliom: install it from the ref
-          # being built so odoc_driver documents these sources.
+          # Install eliom (from the ref being built) so odoc_driver documents
+          # these sources. eliom is installed WITHOUT --with-doc: its server and
+          # client libraries share module names, so building eliom's own @doc
+          # collides ("Multiple rules for .../eliom/Eliom_bus/index.html"). wodoc
+          # builds the docs via `odoc_driver --remap` instead.
           opam install . --deps-only --with-doc
-          # install eliom only — NOT its @doc: the server/client libraries share
-          # module names so `dune @doc` collides. wodoc builds the docs via
-          # `odoc_driver --remap` instead.
           opam install .
-          # odoc-driver with the cross-library link fix (driver: link units only
-          # against their actual lib deps). TODO: drop the pin once it lands upstream.
-          # The fork is one multi-package repo (odoc, odoc-parser, odoc-md,
-          # sherlodoc, odoc-driver) whose packages pin each other by '= version',
-          # so they must ALL be pinned to the fork or the solver conflicts.
-          FORK=https://github.com/balat/odoc.git#driver-sibling-lib-link-fix
-          for p in odoc odoc-parser odoc-md sherlodoc odoc-driver; do
-            opam pin add -n $p "$FORK"
-          done
-          opam install odoc odoc-driver
-          # wodoc: the odoc driver that themes the pages with the Ocsigen chrome.
+          # wodoc themes the pages. Its opam pin-depends pulls odoc / odoc-driver
+          # from the balat/odoc fork (the cross-library link fix, not yet upstream),
+          # so we do NOT pin odoc ourselves here.
           opam pin add -n wodoc https://github.com/ocsigen/wodoc.git
           opam install wodoc
 
