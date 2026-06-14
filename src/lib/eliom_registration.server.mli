@@ -23,8 +23,7 @@
     files, ...
 
     {b Please read the Eliom manual before this page to learn how to
-    use {% <<a_manual chapter="server-services" | services >>%} and {%
-    <<a_manual chapter="server-outputs" | predefined outputs >>%}.
+    use {{!page-"server-services"}services} and {{!page-"server-outputs"}predefined outputs}.
     }
 
     {% <<outline| <<header| **Table of contents** >> >> %}
@@ -193,7 +192,7 @@ val transform_global_app_uri :
 (** Function to modify the global_app URI for some obscure reason *)
 
 (** Functor for application creation.
-    See {% <<a_manual chapter="clientserver-applications" | the chapter on applications >> %}
+    See {{!page-"clientserver-applications"}the chapter on applications}
     in the Eliom manual for details. *)
 module App (_ : Eliom_registration_sigs.APP_PARAM) : APP
 
@@ -266,9 +265,8 @@ module CssText :
 (** {2 Other kinds of services} *)
 
 (** Eliom service registration for services that only execute
-    actions. See the Eliom manual for more information about {%
-    <<a_manual chapter="server-outputs" fragment="actions"|Actions
-    outputs>>%}.
+    actions. See the Eliom manual for more information about {{!page-"server-outputs".actions}Actions
+    outputs}.
 
     If you give the optional parameter [~options:`NoReload] to the
     registration function, the action will executed and a [204 No
@@ -307,8 +305,7 @@ type _ redirection =
 
 (** Eliom service registration for services that returns a
     redirections towards another service. See the Eliom manual for
-    more information about {% <<a_manual chapter="server-outputs"
-    fragment="redirections"|Redirections outputs>>%}.
+    more information about {{!page-"server-outputs".redirections}Redirections outputs}.
 
     The default returned HTTP code is [302 Found]. You could use the
     optional parameter [~options] to change this value:
@@ -345,8 +342,7 @@ end
 
 (** Eliom service registration for services that returns a
     redirections towards a string-URL. See the Eliom manual for more
-    information about {% <<a_manual chapter="server-outputs"
-    fragment="redirections"|Redirections outputs>>%}. The URL given
+    information about {{!page-"server-outputs".redirections}Redirections outputs}. The URL given
     must be an absolute URI.
 
     The default returned HTTP code is [302 Found]. You could use the
@@ -367,9 +363,8 @@ module String_redirection :
 
 (** Eliom service registration for services that returns file
     contents. The value returned by service handlers is the name of
-    the file to send. See the Eliom manual for more information on {%
-    <<a_manual chapter="server-outputs" fragment="eliomfiles"|how to
-    send files with Eliom>>%}.  The option is the optional
+    the file to send. See the Eliom manual for more information on {{!page-"server-outputs".eliomfiles}how to
+    send files with Eliom}.  The option is the optional
     "Cache-policy: max-age" header value to be sent. *)
 module File : sig
   val check_file : string -> bool
@@ -414,9 +409,8 @@ module Ocaml :
 (** Eliom service registration for services that choose dynamically
     what they want to send. The content is created using for example
     {!Html.send} or {!String.send} functions. See the Eliom manual
-    for more information about {% <<a_manual chapter="server-outputs"
-    fragment="any"|services that choose dynamically what they want to
-    send>>%} *)
+    for more information about {{!page-"server-outputs".any}services that choose dynamically what they want to
+    send} *)
 module Any :
   Eliom_registration_sigs.S_poly_with_create_with_send
   with type 'a page = 'a kind
@@ -455,13 +449,12 @@ module String :
 
 (*
    (** Eliom service registration for services that returns "byte"
-    contents with {% <<a_api project="ocsigenserver" text="Ocsigen's
-    streams"| module Ocsigen_stream>>%}. The page content is a pair
+    contents with {{!Ocsigen_stream}Ocsigen's
+    streams}. The page content is a pair
     [(stream_creator_list, content_type)]. See also {!String} for
     another kind of service that returns "byte" contents.
 
-    Streams are created by calling the functions in the list and {%
-    <<a_api project="ocsigenserver"| val Ocsigen_stream.finalize>>%}
+    Streams are created by calling the functions in the list and {!Ocsigen_stream.finalize}
     is called at the end of the stream. If something goes wrong while
     processing a stream, the current stream is closed and the
     following streams are not created. *)
@@ -476,9 +469,8 @@ module Streamlist : Eliom_registration_sigs.S_with_create
 (** {2 Customizing registration} *)
 
 (** The [Customize] functor allows specialization of service
-    registration functions by customizing the page type. See the {%
-    <<a_manual project="tutorial" chapter="interaction"| Eliom
-    tutorial>>%} for example. *)
+    registration functions by customizing the page type. See the {{!page-"interaction"}Eliom
+    tutorial} for example. *)
 module Customize
     (R : Eliom_registration_sigs.S_with_create)
     (T : sig

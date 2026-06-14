@@ -19,17 +19,14 @@
 
 (** {2 Client and shared values}
 
-    See the {% <<a_manual chapter="clientserver-language"|manual>>
-    %}. *)
+    See the {{!page-"clientserver-language"}manual}. *)
 
 type +'a t
 (** Client values on the server are created by the syntax [{typ{ expr
-    }}] in the server section (cf. {% <<a_manual
-    chapter="clientserver-language" fragment="clientvalues"|the
-    manual>> %}).  They are abstract, but become concrete once sent to
-    the client. See also {% <<a_api subproject="client" text="the
-    concrete representation on the client" |type
-    Eliom_client_value.t>> %}. *)
+    }}] in the server section (cf. {{!page-"clientserver-language".clientvalues}the
+    manual}).  They are abstract, but become concrete once sent to
+    the client. See also {{!Eliom_client_value.t}the
+    concrete representation on the client}. *)
 
 exception Client_value_creation_invalid_context of string
 (** Raised if a client value of the given closure ID is created at a

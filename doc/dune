@@ -1,0 +1,5 @@
+; Eliom manual pages (odoc .mld), compiled in place with the API by
+; odoc-driver and installed with the package, so they appear on ocaml.org
+; and resolve {{!page-X}} / {!Module} references against the API.
+(documentation
+ (package eliom))

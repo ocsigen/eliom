@@ -18,8 +18,7 @@
  *)
 
 (** Allows Ocsigen's extension to access Eliom data. See the Eliom
-    manual for more information about {% <<a_manual chapter="workflow-configuration"
-    fragment="extensions"| Eliom's extensions>>%} *)
+    manual for more information about {{!page-"workflow-configuration".extensions}Eliom's extensions} *)
 
 type eliom_extension_sig = unit -> Ocsigen_extensions.answer Lwt.t
 (** Type of the function that must be registered to declare an eliom extension. *)
