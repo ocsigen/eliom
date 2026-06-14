@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>How to write secure applications with Eliom — Eliom</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <link rel="stylesheet" href="/css/ocsigen-odoc.css"/>
+  <script src="./highlight.pack.js"></script>
+  <script src="./wodoc-highlight.js"></script>
+</head>
+<body class="wodoc-page wodoc-doc">
+  <!-- Shared site menu — THE single source of truth for the header, top menu and
+     drawer of EVERY Ocsigen doc page (vitrine + all projects). Canonical copy
+     lives here in ocsigen.github.io; each project's build fetches it. Injected
+     by `wodoc assemble --menu`. Holes filled by the tool (braces omitted here so
+     this comment is not itself rewritten by the hole-filler):
+       subproject  the sub-project name shown next to the Ocsigen logo
+                   (empty on the vitrine), via --subproject
+       leftnav     the project's left navigation, expanded into BOTH the mobile
+                   drawer (below) and the left column (in the page template),
+                   via --leftnav
+     The current entry is highlighted by adding the `current` class to the
+     element carrying data-wodoc-page=<id>: --current on the vitrine (page id),
+     --menu-current in a project (the project id). Nothing is hardcoded here, so
+     this file is the ONLY place the menu is defined.
+
+     Links are the FINAL site paths (/<project>/, /<page>): the target layout
+     where each project is served at ocsigen.org/<project>/ — no transitional
+     /wodoc/ prefix. -->
+<div class="page-header">
+  <p class="logo-ocsigen"><a href="/"><img src="/img/ocsigen-white.svg" alt="Ocsigen"/></a></p>
+  <p class="logo-subproject">Eliom</p>
+
+  <div class="mainmenu">
+    <p class="mainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></p>
+    <p class="mainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></p>
+    <p data-wodoc-page="eliom" class="current"><a href="/eliom/">Eliom</a></p>
+    <p data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></p>
+    <p data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></p>
+    <p data-wodoc-page="lwt"><a href="/lwt/">Lwt</a></p>
+    <p data-wodoc-page="tyxml"><a href="/tyxml/">Tyxml</a></p>
+    <p data-wodoc-page="ocsigen-start"><a href="/ocsigen-start/">Start</a></p>
+  </div>
+
+  <form id="googlesearch" action="https://google.com/search">
+    <input name="q" id="gsearch-box" placeholder="Search using Google"/>
+    <label for="gsearch-box"><img src="/img/search.svg" alt="" id="gsearch-icon"/></label>
+    <input type="submit" id="gsearch-submit" onclick="document.getElementById('gsearch-box').value += ' site:ocsigen.org';"/>
+  </form>
+
+  <aside class="how-drawer">
+    <input id="how-drawer-toggle" type="checkbox"/>
+    <label for="how-drawer-toggle" id="how-drawer-label"><span class="how-drawer-icon"></span></label>
+    <nav class="how-drawer-content">
+      <ul class="drawermainmenu">
+        <li class="drawermainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></li>
+        <li class="drawermainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></li>
+        <li class="drawermainmenu-project current" data-wodoc-page="eliom"><a href="/eliom/">Eliom</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="lwt"><a href="/lwt/">Lwt</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="tyxml"><a href="/tyxml/">Tyxml</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-toolkit"><a href="/ocsigen-toolkit/">Toolkit</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-start"><a href="/ocsigen-start/">Start</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsipersist"><a href="/ocsipersist/">Ocsipersist</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="reactiveData"><a href="/reactiveData/">ReactiveData</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-i18n"><a href="/ocsigen-i18n/">i18n</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="wodoc"><a href="/wodoc/">Wodoc</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="projects"><a href="/projects">Other projects</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="papers"><a href="/papers">Research papers</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="credits"><a href="/credits">Who does Ocsigen?</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="contributing"><a href="/contributing">Contributing</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="blog"><a href="/blog">Blog</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="install"><a href="/install">Installation</a></li>
+        <li class="drawermainmenu-page"><a href="https://github.com/ocsigen">Source code</a></li>
+      </ul>
+      <!-- On mobile the left column is hidden; its menu lives here in the burger
+           (.how-doctree, shown only on narrow screens), as the old site did.
+           Empty on the vitrine; the leftnav hole is filled (with the same
+           fragment as the left column) only on project pages. -->
+      <nav class="how-doctree"><div class="docversion">
+  <label>Version:
+    <select class="wodoc-version" onchange="wodocVersion(this.value)">
+      <option value="dev">dev</option>
+    </select>
+  </label>
+</div>
+<div class="cs-switch">
+  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
+  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+</div>
+<div class="page-toc">
+  <h3>On this page</h3>
+  <nav class="odoc-toc odoc-local-toc"><ul><li><a href="#https">HTTPS</a></li><li><a href="#the-application-only-does-client-side-verification">The application only does client-side verification</a></li><li><a href="#incorrect-access-controls">Incorrect access controls</a></li><li><a href="#code-injection">Code injection</a></li><li><a href="#path-traversal">Path traversal</a></li><li><a href="#session-fixation">Session fixation</a></li><li><a href="#cross-site-scripting-(xss)">Cross-site scripting (XSS)</a></li><li><a href="#cross-site-tracing">Cross site tracing</a></li><li><a href="#redirection-attacks">Redirection attacks</a></li><li><a href="#header-injection">Header injection</a></li><li><a href="#on-site-request-forgery">On-site request forgery</a></li><li><a href="#csrf">Cross-site request forgery (XSRF)</a></li><li><a href="#denial-of-service">Denial of service</a></li></ul></nav>
+</div>
+<nav class="api-nav manual-nav">
+<h3>Eliom&#x27;s Reference manual</h3>
+<ul class="api-section">
+<li class="ml3" data-wodoc-page="intro.html"><a href="./intro.html">Introduction</a></li>
+</ul>
+<h4 class="ml3">Server-side programming</h4>
+<h4 class="ml4">Services</h4>
+<ul class="api-section">
+<li class="ml5" data-wodoc-page="server-services.html"><a href="./server-services.html">The different types of services</a></li>
+<li class="ml5" data-wodoc-page="server-params.html"><a href="./server-params.html">Typing service parameters</a></li>
+<li class="ml5" data-wodoc-page="server-outputs.html"><a href="./server-outputs.html">Service handlers</a></li>
+<li class="ml5" data-wodoc-page="server-links.html"><a href="./server-links.html">Creating links and forms</a></li>
+</ul>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="server-state.html"><a href="./server-state.html">Sessions and server side state</a></li>
+<li class="ml4 current" data-wodoc-page="server-security.html"><a href="./server-security.html">Security</a></li>
+</ul>
+<h4 class="ml3">Client-server programming</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="clientserver-applications.html"><a href="./clientserver-applications.html">Eliom applications</a></li>
+<li class="ml4" data-wodoc-page="ppx-syntax.html"><a href="./ppx-syntax.html">Multi-tier programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-html.html"><a href="./clientserver-html.html">Generating HTML</a></li>
+<li class="ml4" data-wodoc-page="clientserver-communication.html"><a href="./clientserver-communication.html">Communication</a></li>
+<li class="ml4" data-wodoc-page="clientserver-services.html"><a href="./clientserver-services.html">Client-side services</a></li>
+<li class="ml4" data-wodoc-page="clientserver-react.html"><a href="./clientserver-react.html">Shared reactive programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-cache.html"><a href="./clientserver-cache.html">Caching data and off-line applications</a></li>
+<li class="ml4" data-wodoc-page="clientserver-wrapping.html"><a href="./clientserver-wrapping.html">Custom wrapping</a></li>
+</ul>
+<h4 class="ml3">Workflows</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="workflow-distillery.html"><a href="./workflow-distillery.html">Distillery</a></li>
+<li class="ml4" data-wodoc-page="mobile-apps.html"><a href="./mobile-apps.html">Mobile apps</a></li>
+<li class="ml4" data-wodoc-page="workflow-configuration.html"><a href="./workflow-configuration.html">Configuration &amp; running</a></li>
+<li class="ml4" data-wodoc-page="scalability.html"><a href="./scalability.html">Scalability</a></li>
+</ul>
+</nav>
+
+<nav class="api-nav">
+<h3>Server API</h3>
+<h4>Server API</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_lib"><a href="./eliom.server/Eliom_lib/index.html">Eliom_lib</a></li>
+<li data-wodoc-page="Eliom_client"><a href="./eliom.server/Eliom_client/index.html">Eliom_client</a></li>
+<li data-wodoc-page="Eliom_client_value"><a href="./eliom.server/Eliom_client_value/index.html">Eliom_client_value</a></li>
+<li data-wodoc-page="Eliom_common"><a href="./eliom.server/Eliom_common/index.html">Eliom_common</a></li>
+<li data-wodoc-page="Eliom_config"><a href="./eliom.server/Eliom_config/index.html">Eliom_config</a></li>
+<li data-wodoc-page="Eliom_request_info"><a href="./eliom.server/Eliom_request_info/index.html">Eliom_request_info</a></li>
+<li data-wodoc-page="Eliom_reference"><a href="./eliom.server/Eliom_reference/index.html">Eliom_reference</a></li>
+<li data-wodoc-page="Eliom_state"><a href="./eliom.server/Eliom_state/index.html">Eliom_state</a></li>
+</ul>
+<h4>Content and form creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_content"><a href="./eliom.server/Eliom_content/index.html">Eliom_content</a></li>
+<li data-wodoc-page="Eliom_content.Html"><a href="./eliom.server/Eliom_content/Html/index.html">Eliom_content.Html</a></li>
+<li data-wodoc-page="Eliom_content.Svg"><a href="./eliom.server/Eliom_content/Svg/index.html">Eliom_content.Svg</a></li>
+<li data-wodoc-page="Eliom_content.Xml"><a href="./eliom.server/Eliom_content/Xml/index.html">Eliom_content.Xml</a></li>
+<li data-wodoc-page="Eliom_tools"><a href="./eliom.server/Eliom_tools/index.html">Eliom_tools</a></li>
+</ul>
+<h4>Service creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_service"><a href="./eliom.server/Eliom_service/index.html">Eliom_service</a></li>
+<li data-wodoc-page="Eliom_parameter"><a href="./eliom.server/Eliom_parameter/index.html">Eliom_parameter</a></li>
+<li data-wodoc-page="Eliom_registration"><a href="./eliom.server/Eliom_registration/index.html">Eliom_registration</a></li>
+<li data-wodoc-page="Eliom_registration.Html"><a href="./eliom.server/Eliom_registration/Html/index.html">Eliom_registration.Html</a></li>
+<li data-wodoc-page="Eliom_registration.Action"><a href="./eliom.server/Eliom_registration/Action/index.html">Eliom_registration.Action</a></li>
+<li data-wodoc-page="Eliom_registration.Ocaml"><a href="./eliom.server/Eliom_registration/Ocaml/index.html">Eliom_registration.Ocaml</a></li>
+<li data-wodoc-page="Eliom_registration.App"><a href="./eliom.server/Eliom_registration/App/index.html">Eliom_registration.App</a></li>
+<li data-wodoc-page="Eliom_registration.File"><a href="./eliom.server/Eliom_registration/File/index.html">Eliom_registration.File</a></li>
+<li data-wodoc-page="Eliom_registration.Any"><a href="./eliom.server/Eliom_registration/Any/index.html">Eliom_registration.Any</a></li>
+<li data-wodoc-page="Eliom_registration.Redirection"><a href="./eliom.server/Eliom_registration/Redirection/index.html">Eliom_registration.Redirection</a></li>
+</ul>
+<h4>Client/server communication</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_shared"><a href="./eliom.server/Eliom_shared/index.html">Eliom_shared</a></li>
+<li data-wodoc-page="Eliom_notif"><a href="./eliom.server/Eliom_notif/index.html">Eliom_notif</a></li>
+<li data-wodoc-page="Eliom_cscache"><a href="./eliom.server/Eliom_cscache/index.html">Eliom_cscache</a></li>
+<li data-wodoc-page="Eliom_bus"><a href="./eliom.server/Eliom_bus/index.html">Eliom_bus</a></li>
+<li data-wodoc-page="Eliom_comet"><a href="./eliom.server/Eliom_comet/index.html">Eliom_comet</a></li>
+<li data-wodoc-page="Eliom_react"><a href="./eliom.server/Eliom_react/index.html">Eliom_react</a></li>
+</ul>
+</nav>
+</nav>
+    </nav>
+  </aside>
+</div>
+
+
+  <div class="project-page">
+    <div class="twocols">
+      <nav class="leftcol">
+        <div class="docversion">
+  <label>Version:
+    <select class="wodoc-version" onchange="wodocVersion(this.value)">
+      <option value="dev">dev</option>
+    </select>
+  </label>
+</div>
+<div class="cs-switch">
+  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
+  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+</div>
+<div class="page-toc">
+  <h3>On this page</h3>
+  <nav class="odoc-toc odoc-local-toc"><ul><li><a href="#https">HTTPS</a></li><li><a href="#the-application-only-does-client-side-verification">The application only does client-side verification</a></li><li><a href="#incorrect-access-controls">Incorrect access controls</a></li><li><a href="#code-injection">Code injection</a></li><li><a href="#path-traversal">Path traversal</a></li><li><a href="#session-fixation">Session fixation</a></li><li><a href="#cross-site-scripting-(xss)">Cross-site scripting (XSS)</a></li><li><a href="#cross-site-tracing">Cross site tracing</a></li><li><a href="#redirection-attacks">Redirection attacks</a></li><li><a href="#header-injection">Header injection</a></li><li><a href="#on-site-request-forgery">On-site request forgery</a></li><li><a href="#csrf">Cross-site request forgery (XSRF)</a></li><li><a href="#denial-of-service">Denial of service</a></li></ul></nav>
+</div>
+<nav class="api-nav manual-nav">
+<h3>Eliom&#x27;s Reference manual</h3>
+<ul class="api-section">
+<li class="ml3" data-wodoc-page="intro.html"><a href="./intro.html">Introduction</a></li>
+</ul>
+<h4 class="ml3">Server-side programming</h4>
+<h4 class="ml4">Services</h4>
+<ul class="api-section">
+<li class="ml5" data-wodoc-page="server-services.html"><a href="./server-services.html">The different types of services</a></li>
+<li class="ml5" data-wodoc-page="server-params.html"><a href="./server-params.html">Typing service parameters</a></li>
+<li class="ml5" data-wodoc-page="server-outputs.html"><a href="./server-outputs.html">Service handlers</a></li>
+<li class="ml5" data-wodoc-page="server-links.html"><a href="./server-links.html">Creating links and forms</a></li>
+</ul>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="server-state.html"><a href="./server-state.html">Sessions and server side state</a></li>
+<li class="ml4 current" data-wodoc-page="server-security.html"><a href="./server-security.html">Security</a></li>
+</ul>
+<h4 class="ml3">Client-server programming</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="clientserver-applications.html"><a href="./clientserver-applications.html">Eliom applications</a></li>
+<li class="ml4" data-wodoc-page="ppx-syntax.html"><a href="./ppx-syntax.html">Multi-tier programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-html.html"><a href="./clientserver-html.html">Generating HTML</a></li>
+<li class="ml4" data-wodoc-page="clientserver-communication.html"><a href="./clientserver-communication.html">Communication</a></li>
+<li class="ml4" data-wodoc-page="clientserver-services.html"><a href="./clientserver-services.html">Client-side services</a></li>
+<li class="ml4" data-wodoc-page="clientserver-react.html"><a href="./clientserver-react.html">Shared reactive programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-cache.html"><a href="./clientserver-cache.html">Caching data and off-line applications</a></li>
+<li class="ml4" data-wodoc-page="clientserver-wrapping.html"><a href="./clientserver-wrapping.html">Custom wrapping</a></li>
+</ul>
+<h4 class="ml3">Workflows</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="workflow-distillery.html"><a href="./workflow-distillery.html">Distillery</a></li>
+<li class="ml4" data-wodoc-page="mobile-apps.html"><a href="./mobile-apps.html">Mobile apps</a></li>
+<li class="ml4" data-wodoc-page="workflow-configuration.html"><a href="./workflow-configuration.html">Configuration &amp; running</a></li>
+<li class="ml4" data-wodoc-page="scalability.html"><a href="./scalability.html">Scalability</a></li>
+</ul>
+</nav>
+
+<nav class="api-nav">
+<h3>Server API</h3>
+<h4>Server API</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_lib"><a href="./eliom.server/Eliom_lib/index.html">Eliom_lib</a></li>
+<li data-wodoc-page="Eliom_client"><a href="./eliom.server/Eliom_client/index.html">Eliom_client</a></li>
+<li data-wodoc-page="Eliom_client_value"><a href="./eliom.server/Eliom_client_value/index.html">Eliom_client_value</a></li>
+<li data-wodoc-page="Eliom_common"><a href="./eliom.server/Eliom_common/index.html">Eliom_common</a></li>
+<li data-wodoc-page="Eliom_config"><a href="./eliom.server/Eliom_config/index.html">Eliom_config</a></li>
+<li data-wodoc-page="Eliom_request_info"><a href="./eliom.server/Eliom_request_info/index.html">Eliom_request_info</a></li>
+<li data-wodoc-page="Eliom_reference"><a href="./eliom.server/Eliom_reference/index.html">Eliom_reference</a></li>
+<li data-wodoc-page="Eliom_state"><a href="./eliom.server/Eliom_state/index.html">Eliom_state</a></li>
+</ul>
+<h4>Content and form creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_content"><a href="./eliom.server/Eliom_content/index.html">Eliom_content</a></li>
+<li data-wodoc-page="Eliom_content.Html"><a href="./eliom.server/Eliom_content/Html/index.html">Eliom_content.Html</a></li>
+<li data-wodoc-page="Eliom_content.Svg"><a href="./eliom.server/Eliom_content/Svg/index.html">Eliom_content.Svg</a></li>
+<li data-wodoc-page="Eliom_content.Xml"><a href="./eliom.server/Eliom_content/Xml/index.html">Eliom_content.Xml</a></li>
+<li data-wodoc-page="Eliom_tools"><a href="./eliom.server/Eliom_tools/index.html">Eliom_tools</a></li>
+</ul>
+<h4>Service creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_service"><a href="./eliom.server/Eliom_service/index.html">Eliom_service</a></li>
+<li data-wodoc-page="Eliom_parameter"><a href="./eliom.server/Eliom_parameter/index.html">Eliom_parameter</a></li>
+<li data-wodoc-page="Eliom_registration"><a href="./eliom.server/Eliom_registration/index.html">Eliom_registration</a></li>
+<li data-wodoc-page="Eliom_registration.Html"><a href="./eliom.server/Eliom_registration/Html/index.html">Eliom_registration.Html</a></li>
+<li data-wodoc-page="Eliom_registration.Action"><a href="./eliom.server/Eliom_registration/Action/index.html">Eliom_registration.Action</a></li>
+<li data-wodoc-page="Eliom_registration.Ocaml"><a href="./eliom.server/Eliom_registration/Ocaml/index.html">Eliom_registration.Ocaml</a></li>
+<li data-wodoc-page="Eliom_registration.App"><a href="./eliom.server/Eliom_registration/App/index.html">Eliom_registration.App</a></li>
+<li data-wodoc-page="Eliom_registration.File"><a href="./eliom.server/Eliom_registration/File/index.html">Eliom_registration.File</a></li>
+<li data-wodoc-page="Eliom_registration.Any"><a href="./eliom.server/Eliom_registration/Any/index.html">Eliom_registration.Any</a></li>
+<li data-wodoc-page="Eliom_registration.Redirection"><a href="./eliom.server/Eliom_registration/Redirection/index.html">Eliom_registration.Redirection</a></li>
+</ul>
+<h4>Client/server communication</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_shared"><a href="./eliom.server/Eliom_shared/index.html">Eliom_shared</a></li>
+<li data-wodoc-page="Eliom_notif"><a href="./eliom.server/Eliom_notif/index.html">Eliom_notif</a></li>
+<li data-wodoc-page="Eliom_cscache"><a href="./eliom.server/Eliom_cscache/index.html">Eliom_cscache</a></li>
+<li data-wodoc-page="Eliom_bus"><a href="./eliom.server/Eliom_bus/index.html">Eliom_bus</a></li>
+<li data-wodoc-page="Eliom_comet"><a href="./eliom.server/Eliom_comet/index.html">Eliom_comet</a></li>
+<li data-wodoc-page="Eliom_react"><a href="./eliom.server/Eliom_react/index.html">Eliom_react</a></li>
+</ul>
+</nav>
+
+      </nav>
+      <article class="rightcol">
+        <header class="odoc-preamble"><h1 id="how-to-write-secure-applications-with-eliom">How to write secure applications with Eliom</h1><p>Eliom and Ocsigen server automatically take charge of a lot of security issues. This unburdens the programmer from having to think about most common security problems. This page details various possible design flaws of Web applications, how Eliom and Ocsigen server (possibly) protects you against a possible exploitation of these flaws, and where you should be careful. <em>Please help us maintaining this page, by sending us any comments.</em></p></header>
+        <div class="odoc-content"><h3 id="https">HTTPS</h3><p>If your Web site is using HTTP, all requests and responses may be intercepted. If you want your Web site to be secure, never send private data through HTTP:</p><ul><li>Pages containing personal data must be sent only through HTTPS</li><li>Passwords must be sent to the server only through HTTPS</li><li>Use secure Eliom references to record user name or user ID once the user is connected, otherwise the session ID may be send through HTTP.</li></ul><h3 id="the-application-only-does-client-side-verification">The application only does client-side verification</h3><p>This is probably the biggest (and most dangerous) possible mistake. As the user has an entire control over the data sent to the server, <b>never</b> assume that the data sent by the client has been verified (even if some validation happens in Js_of_ocaml). Instead, reimplement all verification server-side.</p><ul><li>As a (small) mitigating factor, Eliom automatically checks that the type of the parameters is correct.</li><li>Suggested approach: use permissions to control if the user is allowed to perform an action. Then,</li><li>when creating a form, check if the user has the required permission (if not, you will usually display a message <em>insufficient permissions</em> instead of the form)</li><li>in the service that answers to the form, perform the exact same check</li></ul><p>However, as we are using safe unmarshaling, incorrect data will never crash the server.</p><p>Example: Never trust the (current) user ID sent by the client process. Always take the userid from the session, through cookies.</p><h3 id="incorrect-access-controls">Incorrect access controls</h3><p>This typically happens if authentication is badly implemented, or altogether missing in some places.</p><ul><li>each URL should implement user verification. Never assume that the user comes from a trusted URL, for example because the URL is secret.</li><li>use a programmatic, layered model, which encodes the various user rights (for ex: admin/moderators/editors/connected users/anonymous). Thus a compromised login will not compromise the entire application</li><li>Do not leak information through erroneous login (such as <em>this login does not exist</em>). Always answer <em>Bad login or password</em>, using always the same string</li><li>Do not permit too many near-simultaneous login attempts, either for the same login, or from the same IP. You can use the module Lwt_throttle to delay login, if too many connections are started.</li></ul><h3 id="code-injection"><a href="http://en.wikipedia.org/wiki/Code_injection">Code injection</a></h3><ul><li>Eliom modules are written in OCaml, which is a compiled language. This prevents all code injection possible with scripting languages.</li><li>No SQL injection is possible if you use Macaque or PGOCaml, which use PostgreSQL prepared statements.</li><li>No HTML injection is possible, as unsafe HTML characters are always escaped before being written.</li></ul><h3 id="path-traversal"><a href="http://en.wikipedia.org/wiki/Directory_traversal">Path traversal</a></h3><ul><li>The module <a href="https://ocsigen.org/ocsigenserver/extendconfiguration.html">Extendconfiguration</a> can be used to prevent access to files or entire directories, from both Staticmod and Eliom.</li><li>Even if <a href="https://ocsigen.org/ocsigenserver/userconf.html">userconf</a> is activated, users can only expose their own files; see the <code>localpath</code> option for details.</li><li>Occurrences of the <code>'..'</code> pattern appearing in URLs are automatically removed by the server</li><li>Ocsigen automatically decode HTML entities in URLs, which protects against attacks based on quoted characters</li></ul><h3 id="session-fixation"><a href="http://en.wikipedia.org/wiki/Session_fixation">Session fixation</a></h3><ul><li>Ocsigen cookies are cryptographically generated, and cannot be guessed by the attacker. Thus the attacker cannot control, or supply, the cookie of the client.</li><li>To be completely safe, do not issue tokens to anonymous users, or issue a new token as soon as a login/logout takes place</li></ul><h3 id="cross-site-scripting-(xss)"><a href="http://en.wikipedia.org/wiki/Cross-site_scripting">Cross-site scripting (XSS)</a></h3><ul><li>most XSS attacks require code injection, from which you are automatically protected (see above)</li><li>However, avoid at all costs to put user-supplied text in sensitive tags, including:</li><li><code>&lt;script&gt;</code> tags</li><li>javascripts events such as <code>onmouseover</code></li><li>inside <code>&lt;meta&gt;</code> refresh tags</li><li>if the user can upload files, sanitize very severely html or text files (that can contain javascript). Moreover, IE sometimes disregards the content-type send by the server when it receives an image that is actually html, so you also need to check those files.</li></ul><h3 id="cross-site-tracing"><a href="http://en.wikipedia.org/wiki/Cross-site_tracing">Cross site tracing</a></h3><ul><li>Ocsigen server does not implement the trace directive.</li><li>Furthermore, this attack is no longer really relevant, as current browsers protect against this kind of exploit</li></ul><h3 id="redirection-attacks">Redirection attacks</h3><ul><li>Do not let the user supply the URL to which a page redirects.</li><li>Using Eliom, you can use non-attached co-services to implement functionalities such as login forms. This way:</li><li>you have a login form on each page</li><li>you write the login code only once</li><li>the user will not have control of any redirection</li></ul><h3 id="header-injection"><a href="http://en.wikipedia.org/wiki/HTTP_header_injection">Header injection</a></h3><ul><li>In general, do not let the user write text inside HTTP headers</li><li>Likewise, do not let the user write its own value in a Cookie, as it gives access to this header</li><li>To protect against badly written applications, Ocsigen sanitizes HTTP headers when it prints them: a space is inserted before any CR or LF occurring in the content of a header</li></ul><h3 id="on-site-request-forgery">On-site request forgery</h3><ul><li>If a user has control of a URL (especially one that is automatically read, such as an <code>&lt;img&gt;</code>), remove characters such as <code>?, &amp;, =</code>...</li><li>As a mitigating factor, do not write GET services that actually perform actions. Use only POST, which cannot be invoked from a URL.</li></ul><h3 id="csrf"><a href="http://en.wikipedia.org/wiki/Cross-site_request_forgery">Cross-site request forgery (XSRF)</a></h3><ul><li>Eliom provides automatic protection: see the parameter <code>csrf_safe</code> of coservices</li><li>Alternatively, each time you generate a form, add a hidden field containing a unique id. The service that is called by the form must check that the id is valid.</li></ul><h3 id="denial-of-service">Denial of service</h3><ul><li>Use session groups to prevent a user from creating an unlimited number of sessions or dynamic services. (And do not attribute tokens to anonymous users). Even if you do not use session groups, Eliom limits the number of in memory sessions by sub network. <em>Warning: no limitation of the number of persistent sessions</em>.</li></ul></div>
+      </article>
+    </div>
+  </div>
+
+  <script>
+    // Toggle between the server / client API of the same module.
+    function wodocSwitch(side) {
+      var w = { server: '', client: '' };
+      var p = location.pathname;
+      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
+      location.href = np !== p ? np
+        : './eliom.' + side + '/' + (w[side] || '') + 'index.html';
+    }
+    var wodocPub = "/eliom";
+    // Switch version: keep the current page, swapping only the version segment.
+    function wodocVersion(v) {
+      if (!v) return;
+      var re = new RegExp('^(' + wodocPub + '/)[^/]+');
+      var p = location.pathname;
+      location.href =
+        re.test(p) ? p.replace(re, '$1' + v) : wodocPub + '/' + v + '/index.html';
+    }
+    // Build the version <select> from the project's versions.json (the single
+    // source of truth, refreshed on every build/release), so even older frozen
+    // pages list the current set. Falls back to the baked <option>s on failure.
+    (function () {
+      var seg = (location.pathname.match(
+        new RegExp('^' + wodocPub + '/([^/]+)')) || [])[1];
+      function select(sel) {
+        var i;
+        for (i = 0; i < sel.options.length; i++)
+          if (sel.options[i].value === seg) { sel.selectedIndex = i; return; }
+        if (seg) {
+          var o = document.createElement('option');
+          o.value = seg; o.textContent = seg; o.selected = true;
+          sel.insertBefore(o, sel.firstChild);
+        }
+      }
+      fetch(wodocPub + '/versions.json')
+        .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(function (m) {
+          var list = m.list || [], latest = m.latest;
+          document.querySelectorAll('.wodoc-version').forEach(function (sel) {
+            sel.innerHTML = '';
+            list.forEach(function (v) {
+              var o = document.createElement('option');
+              if (v === latest) { o.value = 'latest'; o.textContent = v + ' (latest)'; }
+              else { o.value = v; o.textContent = v; }
+              sel.appendChild(o);
+            });
+            select(sel);
+          });
+        })
+        .catch(function () {
+          document.querySelectorAll('.wodoc-version').forEach(select);
+        });
+    })();
+  </script>
+</body>
+</html>

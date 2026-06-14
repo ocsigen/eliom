@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Module String.TableSource — Eliom</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <link rel="stylesheet" href="/css/ocsigen-odoc.css"/>
+  <script src="../../../../highlight.pack.js"></script>
+  <script src="../../../../wodoc-highlight.js"></script>
+</head>
+<body class="wodoc-page wodoc-doc wodoc-server">
+  <!-- Shared site menu — THE single source of truth for the header, top menu and
+     drawer of EVERY Ocsigen doc page (vitrine + all projects). Canonical copy
+     lives here in ocsigen.github.io; each project's build fetches it. Injected
+     by `wodoc assemble --menu`. Holes filled by the tool (braces omitted here so
+     this comment is not itself rewritten by the hole-filler):
+       subproject  the sub-project name shown next to the Ocsigen logo
+                   (empty on the vitrine), via --subproject
+       leftnav     the project's left navigation, expanded into BOTH the mobile
+                   drawer (below) and the left column (in the page template),
+                   via --leftnav
+     The current entry is highlighted by adding the `current` class to the
+     element carrying data-wodoc-page=<id>: --current on the vitrine (page id),
+     --menu-current in a project (the project id). Nothing is hardcoded here, so
+     this file is the ONLY place the menu is defined.
+
+     Links are the FINAL site paths (/<project>/, /<page>): the target layout
+     where each project is served at ocsigen.org/<project>/ — no transitional
+     /wodoc/ prefix. -->
+<div class="page-header">
+  <p class="logo-ocsigen"><a href="/"><img src="/img/ocsigen-white.svg" alt="Ocsigen"/></a></p>
+  <p class="logo-subproject">Eliom</p>
+
+  <div class="mainmenu">
+    <p class="mainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></p>
+    <p class="mainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></p>
+    <p data-wodoc-page="eliom" class="current"><a href="/eliom/">Eliom</a></p>
+    <p data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></p>
+    <p data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></p>
+    <p data-wodoc-page="lwt"><a href="/lwt/">Lwt</a></p>
+    <p data-wodoc-page="tyxml"><a href="/tyxml/">Tyxml</a></p>
+    <p data-wodoc-page="ocsigen-start"><a href="/ocsigen-start/">Start</a></p>
+  </div>
+
+  <form id="googlesearch" action="https://google.com/search">
+    <input name="q" id="gsearch-box" placeholder="Search using Google"/>
+    <label for="gsearch-box"><img src="/img/search.svg" alt="" id="gsearch-icon"/></label>
+    <input type="submit" id="gsearch-submit" onclick="document.getElementById('gsearch-box').value += ' site:ocsigen.org';"/>
+  </form>
+
+  <aside class="how-drawer">
+    <input id="how-drawer-toggle" type="checkbox"/>
+    <label for="how-drawer-toggle" id="how-drawer-label"><span class="how-drawer-icon"></span></label>
+    <nav class="how-drawer-content">
+      <ul class="drawermainmenu">
+        <li class="drawermainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></li>
+        <li class="drawermainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></li>
+        <li class="drawermainmenu-project current" data-wodoc-page="eliom"><a href="/eliom/">Eliom</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="lwt"><a href="/lwt/">Lwt</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="tyxml"><a href="/tyxml/">Tyxml</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-toolkit"><a href="/ocsigen-toolkit/">Toolkit</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-start"><a href="/ocsigen-start/">Start</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsipersist"><a href="/ocsipersist/">Ocsipersist</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="reactiveData"><a href="/reactiveData/">ReactiveData</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-i18n"><a href="/ocsigen-i18n/">i18n</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="wodoc"><a href="/wodoc/">Wodoc</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="projects"><a href="/projects">Other projects</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="papers"><a href="/papers">Research papers</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="credits"><a href="/credits">Who does Ocsigen?</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="contributing"><a href="/contributing">Contributing</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="blog"><a href="/blog">Blog</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="install"><a href="/install">Installation</a></li>
+        <li class="drawermainmenu-page"><a href="https://github.com/ocsigen">Source code</a></li>
+      </ul>
+      <!-- On mobile the left column is hidden; its menu lives here in the burger
+           (.how-doctree, shown only on narrow screens), as the old site did.
+           Empty on the vitrine; the leftnav hole is filled (with the same
+           fragment as the left column) only on project pages. -->
+      <nav class="how-doctree"><div class="docversion">
+  <label>Version:
+    <select class="wodoc-version" onchange="wodocVersion(this.value)">
+      <option value="dev">dev</option>
+    </select>
+  </label>
+</div>
+<div class="cs-switch">
+  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
+  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+</div>
+<div class="page-toc">
+  <h3>On this page</h3>
+  <nav class="odoc-toc odoc-local-toc"><ul><li><a href="#maps">Maps</a></li><li><a href="#bindings">Bindings</a></li><li><a href="#searching">Searching</a></li><li><a href="#traversing">Traversing</a></li><li><a href="#transforming">Transforming</a></li><li><a href="#predicates">Predicates and comparisons</a></li><li><a href="#converting">Converting</a></li></ul></nav>
+</div>
+<nav class="api-nav manual-nav">
+<h3>Eliom&#x27;s Reference manual</h3>
+<ul class="api-section">
+<li class="ml3" data-wodoc-page="intro.html"><a href="../../../../intro.html">Introduction</a></li>
+</ul>
+<h4 class="ml3">Server-side programming</h4>
+<h4 class="ml4">Services</h4>
+<ul class="api-section">
+<li class="ml5" data-wodoc-page="server-services.html"><a href="../../../../server-services.html">The different types of services</a></li>
+<li class="ml5" data-wodoc-page="server-params.html"><a href="../../../../server-params.html">Typing service parameters</a></li>
+<li class="ml5" data-wodoc-page="server-outputs.html"><a href="../../../../server-outputs.html">Service handlers</a></li>
+<li class="ml5" data-wodoc-page="server-links.html"><a href="../../../../server-links.html">Creating links and forms</a></li>
+</ul>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="server-state.html"><a href="../../../../server-state.html">Sessions and server side state</a></li>
+<li class="ml4" data-wodoc-page="server-security.html"><a href="../../../../server-security.html">Security</a></li>
+</ul>
+<h4 class="ml3">Client-server programming</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="clientserver-applications.html"><a href="../../../../clientserver-applications.html">Eliom applications</a></li>
+<li class="ml4" data-wodoc-page="ppx-syntax.html"><a href="../../../../ppx-syntax.html">Multi-tier programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-html.html"><a href="../../../../clientserver-html.html">Generating HTML</a></li>
+<li class="ml4" data-wodoc-page="clientserver-communication.html"><a href="../../../../clientserver-communication.html">Communication</a></li>
+<li class="ml4" data-wodoc-page="clientserver-services.html"><a href="../../../../clientserver-services.html">Client-side services</a></li>
+<li class="ml4" data-wodoc-page="clientserver-react.html"><a href="../../../../clientserver-react.html">Shared reactive programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-cache.html"><a href="../../../../clientserver-cache.html">Caching data and off-line applications</a></li>
+<li class="ml4" data-wodoc-page="clientserver-wrapping.html"><a href="../../../../clientserver-wrapping.html">Custom wrapping</a></li>
+</ul>
+<h4 class="ml3">Workflows</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="workflow-distillery.html"><a href="../../../../workflow-distillery.html">Distillery</a></li>
+<li class="ml4" data-wodoc-page="mobile-apps.html"><a href="../../../../mobile-apps.html">Mobile apps</a></li>
+<li class="ml4" data-wodoc-page="workflow-configuration.html"><a href="../../../../workflow-configuration.html">Configuration &amp; running</a></li>
+<li class="ml4" data-wodoc-page="scalability.html"><a href="../../../../scalability.html">Scalability</a></li>
+</ul>
+</nav>
+
+<nav class="api-nav">
+<h3>Server API</h3>
+<h4>Server API</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_lib"><a href="../../../../eliom.server/Eliom_lib/index.html">Eliom_lib</a></li>
+<li data-wodoc-page="Eliom_client"><a href="../../../../eliom.server/Eliom_client/index.html">Eliom_client</a></li>
+<li data-wodoc-page="Eliom_client_value"><a href="../../../../eliom.server/Eliom_client_value/index.html">Eliom_client_value</a></li>
+<li data-wodoc-page="Eliom_common"><a href="../../../../eliom.server/Eliom_common/index.html">Eliom_common</a></li>
+<li data-wodoc-page="Eliom_config"><a href="../../../../eliom.server/Eliom_config/index.html">Eliom_config</a></li>
+<li data-wodoc-page="Eliom_request_info"><a href="../../../../eliom.server/Eliom_request_info/index.html">Eliom_request_info</a></li>
+<li data-wodoc-page="Eliom_reference"><a href="../../../../eliom.server/Eliom_reference/index.html">Eliom_reference</a></li>
+<li data-wodoc-page="Eliom_state"><a href="../../../../eliom.server/Eliom_state/index.html">Eliom_state</a></li>
+</ul>
+<h4>Content and form creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_content"><a href="../../../../eliom.server/Eliom_content/index.html">Eliom_content</a></li>
+<li data-wodoc-page="Eliom_content.Html"><a href="../../../../eliom.server/Eliom_content/Html/index.html">Eliom_content.Html</a></li>
+<li data-wodoc-page="Eliom_content.Svg"><a href="../../../../eliom.server/Eliom_content/Svg/index.html">Eliom_content.Svg</a></li>
+<li data-wodoc-page="Eliom_content.Xml"><a href="../../../../eliom.server/Eliom_content/Xml/index.html">Eliom_content.Xml</a></li>
+<li data-wodoc-page="Eliom_tools"><a href="../../../../eliom.server/Eliom_tools/index.html">Eliom_tools</a></li>
+</ul>
+<h4>Service creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_service"><a href="../../../../eliom.server/Eliom_service/index.html">Eliom_service</a></li>
+<li data-wodoc-page="Eliom_parameter"><a href="../../../../eliom.server/Eliom_parameter/index.html">Eliom_parameter</a></li>
+<li data-wodoc-page="Eliom_registration"><a href="../../../../eliom.server/Eliom_registration/index.html">Eliom_registration</a></li>
+<li data-wodoc-page="Eliom_registration.Html"><a href="../../../../eliom.server/Eliom_registration/Html/index.html">Eliom_registration.Html</a></li>
+<li data-wodoc-page="Eliom_registration.Action"><a href="../../../../eliom.server/Eliom_registration/Action/index.html">Eliom_registration.Action</a></li>
+<li data-wodoc-page="Eliom_registration.Ocaml"><a href="../../../../eliom.server/Eliom_registration/Ocaml/index.html">Eliom_registration.Ocaml</a></li>
+<li data-wodoc-page="Eliom_registration.App"><a href="../../../../eliom.server/Eliom_registration/App/index.html">Eliom_registration.App</a></li>
+<li data-wodoc-page="Eliom_registration.File"><a href="../../../../eliom.server/Eliom_registration/File/index.html">Eliom_registration.File</a></li>
+<li data-wodoc-page="Eliom_registration.Any"><a href="../../../../eliom.server/Eliom_registration/Any/index.html">Eliom_registration.Any</a></li>
+<li data-wodoc-page="Eliom_registration.Redirection"><a href="../../../../eliom.server/Eliom_registration/Redirection/index.html">Eliom_registration.Redirection</a></li>
+</ul>
+<h4>Client/server communication</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_shared"><a href="../../../../eliom.server/Eliom_shared/index.html">Eliom_shared</a></li>
+<li data-wodoc-page="Eliom_notif"><a href="../../../../eliom.server/Eliom_notif/index.html">Eliom_notif</a></li>
+<li data-wodoc-page="Eliom_cscache"><a href="../../../../eliom.server/Eliom_cscache/index.html">Eliom_cscache</a></li>
+<li data-wodoc-page="Eliom_bus"><a href="../../../../eliom.server/Eliom_bus/index.html">Eliom_bus</a></li>
+<li data-wodoc-page="Eliom_comet"><a href="../../../../eliom.server/Eliom_comet/index.html">Eliom_comet</a></li>
+<li data-wodoc-page="Eliom_react"><a href="../../../../eliom.server/Eliom_react/index.html">Eliom_react</a></li>
+</ul>
+</nav>
+</nav>
+    </nav>
+  </aside>
+</div>
+
+
+  <div class="project-page">
+    <div class="twocols">
+      <nav class="leftcol">
+        <div class="docversion">
+  <label>Version:
+    <select class="wodoc-version" onchange="wodocVersion(this.value)">
+      <option value="dev">dev</option>
+    </select>
+  </label>
+</div>
+<div class="cs-switch">
+  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
+  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+</div>
+<div class="page-toc">
+  <h3>On this page</h3>
+  <nav class="odoc-toc odoc-local-toc"><ul><li><a href="#maps">Maps</a></li><li><a href="#bindings">Bindings</a></li><li><a href="#searching">Searching</a></li><li><a href="#traversing">Traversing</a></li><li><a href="#transforming">Transforming</a></li><li><a href="#predicates">Predicates and comparisons</a></li><li><a href="#converting">Converting</a></li></ul></nav>
+</div>
+<nav class="api-nav manual-nav">
+<h3>Eliom&#x27;s Reference manual</h3>
+<ul class="api-section">
+<li class="ml3" data-wodoc-page="intro.html"><a href="../../../../intro.html">Introduction</a></li>
+</ul>
+<h4 class="ml3">Server-side programming</h4>
+<h4 class="ml4">Services</h4>
+<ul class="api-section">
+<li class="ml5" data-wodoc-page="server-services.html"><a href="../../../../server-services.html">The different types of services</a></li>
+<li class="ml5" data-wodoc-page="server-params.html"><a href="../../../../server-params.html">Typing service parameters</a></li>
+<li class="ml5" data-wodoc-page="server-outputs.html"><a href="../../../../server-outputs.html">Service handlers</a></li>
+<li class="ml5" data-wodoc-page="server-links.html"><a href="../../../../server-links.html">Creating links and forms</a></li>
+</ul>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="server-state.html"><a href="../../../../server-state.html">Sessions and server side state</a></li>
+<li class="ml4" data-wodoc-page="server-security.html"><a href="../../../../server-security.html">Security</a></li>
+</ul>
+<h4 class="ml3">Client-server programming</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="clientserver-applications.html"><a href="../../../../clientserver-applications.html">Eliom applications</a></li>
+<li class="ml4" data-wodoc-page="ppx-syntax.html"><a href="../../../../ppx-syntax.html">Multi-tier programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-html.html"><a href="../../../../clientserver-html.html">Generating HTML</a></li>
+<li class="ml4" data-wodoc-page="clientserver-communication.html"><a href="../../../../clientserver-communication.html">Communication</a></li>
+<li class="ml4" data-wodoc-page="clientserver-services.html"><a href="../../../../clientserver-services.html">Client-side services</a></li>
+<li class="ml4" data-wodoc-page="clientserver-react.html"><a href="../../../../clientserver-react.html">Shared reactive programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-cache.html"><a href="../../../../clientserver-cache.html">Caching data and off-line applications</a></li>
+<li class="ml4" data-wodoc-page="clientserver-wrapping.html"><a href="../../../../clientserver-wrapping.html">Custom wrapping</a></li>
+</ul>
+<h4 class="ml3">Workflows</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="workflow-distillery.html"><a href="../../../../workflow-distillery.html">Distillery</a></li>
+<li class="ml4" data-wodoc-page="mobile-apps.html"><a href="../../../../mobile-apps.html">Mobile apps</a></li>
+<li class="ml4" data-wodoc-page="workflow-configuration.html"><a href="../../../../workflow-configuration.html">Configuration &amp; running</a></li>
+<li class="ml4" data-wodoc-page="scalability.html"><a href="../../../../scalability.html">Scalability</a></li>
+</ul>
+</nav>
+
+<nav class="api-nav">
+<h3>Server API</h3>
+<h4>Server API</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_lib"><a href="../../../../eliom.server/Eliom_lib/index.html">Eliom_lib</a></li>
+<li data-wodoc-page="Eliom_client"><a href="../../../../eliom.server/Eliom_client/index.html">Eliom_client</a></li>
+<li data-wodoc-page="Eliom_client_value"><a href="../../../../eliom.server/Eliom_client_value/index.html">Eliom_client_value</a></li>
+<li data-wodoc-page="Eliom_common"><a href="../../../../eliom.server/Eliom_common/index.html">Eliom_common</a></li>
+<li data-wodoc-page="Eliom_config"><a href="../../../../eliom.server/Eliom_config/index.html">Eliom_config</a></li>
+<li data-wodoc-page="Eliom_request_info"><a href="../../../../eliom.server/Eliom_request_info/index.html">Eliom_request_info</a></li>
+<li data-wodoc-page="Eliom_reference"><a href="../../../../eliom.server/Eliom_reference/index.html">Eliom_reference</a></li>
+<li data-wodoc-page="Eliom_state"><a href="../../../../eliom.server/Eliom_state/index.html">Eliom_state</a></li>
+</ul>
+<h4>Content and form creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_content"><a href="../../../../eliom.server/Eliom_content/index.html">Eliom_content</a></li>
+<li data-wodoc-page="Eliom_content.Html"><a href="../../../../eliom.server/Eliom_content/Html/index.html">Eliom_content.Html</a></li>
+<li data-wodoc-page="Eliom_content.Svg"><a href="../../../../eliom.server/Eliom_content/Svg/index.html">Eliom_content.Svg</a></li>
+<li data-wodoc-page="Eliom_content.Xml"><a href="../../../../eliom.server/Eliom_content/Xml/index.html">Eliom_content.Xml</a></li>
+<li data-wodoc-page="Eliom_tools"><a href="../../../../eliom.server/Eliom_tools/index.html">Eliom_tools</a></li>
+</ul>
+<h4>Service creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_service"><a href="../../../../eliom.server/Eliom_service/index.html">Eliom_service</a></li>
+<li data-wodoc-page="Eliom_parameter"><a href="../../../../eliom.server/Eliom_parameter/index.html">Eliom_parameter</a></li>
+<li data-wodoc-page="Eliom_registration"><a href="../../../../eliom.server/Eliom_registration/index.html">Eliom_registration</a></li>
+<li data-wodoc-page="Eliom_registration.Html"><a href="../../../../eliom.server/Eliom_registration/Html/index.html">Eliom_registration.Html</a></li>
+<li data-wodoc-page="Eliom_registration.Action"><a href="../../../../eliom.server/Eliom_registration/Action/index.html">Eliom_registration.Action</a></li>
+<li data-wodoc-page="Eliom_registration.Ocaml"><a href="../../../../eliom.server/Eliom_registration/Ocaml/index.html">Eliom_registration.Ocaml</a></li>
+<li data-wodoc-page="Eliom_registration.App"><a href="../../../../eliom.server/Eliom_registration/App/index.html">Eliom_registration.App</a></li>
+<li data-wodoc-page="Eliom_registration.File"><a href="../../../../eliom.server/Eliom_registration/File/index.html">Eliom_registration.File</a></li>
+<li data-wodoc-page="Eliom_registration.Any"><a href="../../../../eliom.server/Eliom_registration/Any/index.html">Eliom_registration.Any</a></li>
+<li data-wodoc-page="Eliom_registration.Redirection"><a href="../../../../eliom.server/Eliom_registration/Redirection/index.html">Eliom_registration.Redirection</a></li>
+</ul>
+<h4>Client/server communication</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_shared"><a href="../../../../eliom.server/Eliom_shared/index.html">Eliom_shared</a></li>
+<li data-wodoc-page="Eliom_notif"><a href="../../../../eliom.server/Eliom_notif/index.html">Eliom_notif</a></li>
+<li data-wodoc-page="Eliom_cscache"><a href="../../../../eliom.server/Eliom_cscache/index.html">Eliom_cscache</a></li>
+<li data-wodoc-page="Eliom_bus"><a href="../../../../eliom.server/Eliom_bus/index.html">Eliom_bus</a></li>
+<li data-wodoc-page="Eliom_comet"><a href="../../../../eliom.server/Eliom_comet/index.html">Eliom_comet</a></li>
+<li data-wodoc-page="Eliom_react"><a href="../../../../eliom.server/Eliom_react/index.html">Eliom_react</a></li>
+</ul>
+</nav>
+
+      </nav>
+      <article class="rightcol">
+        <header class="odoc-preamble"><h1>Module <code><span>String.Table</span></code><a href="https://ocaml.org/p/ocsigenserver/7.0.0/doc/src/ocsigenserver.baselib.base/ocsigen_lib_base.ml.html#module-String_base.module-Table" class="source_link">Source</a></h1></header>
+        <div class="odoc-content"><h2 id="maps">Maps</h2><div class="odoc-spec"><div class="spec type anchored" id="type-key"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.type-key" class="source_link">Source</a><code><span><span class="keyword">type</span> key</span><span> = string</span></code></div><div class="spec-doc"><p>The type of the map keys.</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-t"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.type-t" class="source_link">Source</a><code><span><span class="keyword">type</span> <span>!+'a t</span></span></code></div><div class="spec-doc"><p>The type of maps from type <code>key</code> to type <code>'a</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-empty"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-empty" class="source_link">Source</a><code><span><span class="keyword">val</span> empty : <span><span class="type-var">'a</span> <a href="#type-t">t</a></span></span></code></div><div class="spec-doc"><p>The empty map.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-add"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-add" class="source_link">Source</a><code><span><span class="keyword">val</span> add : <span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="#type-t">t</a></span></span></code></div><div class="spec-doc"><p><code>add key data m</code> returns a map containing the same bindings as <code>m</code>, plus a binding of <code>key</code> to <code>data</code>. If <code>key</code> was already bound in <code>m</code> to a value that is physically equal to <code>data</code>, <code>m</code> is returned unchanged (the result of the function is then physically equal to <code>m</code>). Otherwise, the previous binding of <code>key</code> in <code>m</code> disappears.</p><ul class="at-tags"><li class="before"><span class="at-tag">before</span> <span class="value">4.03</span> <p>Physical equality was not ensured.</p></li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-add_to_list"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-add_to_list" class="source_link">Source</a><code><span><span class="keyword">val</span> add_to_list : <span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span><span class="type-var">'a</span> list</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> list</span> <a href="#type-t">t</a></span></span></code></div><div class="spec-doc"><p><code>add_to_list key data m</code> is <code>m</code> with <code>key</code> mapped to <code>l</code> such that <code>l</code> is <code>data :: Map.find key m</code> if <code>key</code> was bound in <code>m</code> and <code>[data]</code> otherwise.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 5.1</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-update"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-update" class="source_link">Source</a><code><span><span class="keyword">val</span> update : <span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> <span><span>(<span><span><span class="type-var">'a</span> option</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> option</span>)</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="#type-t">t</a></span></span></code></div><div class="spec-doc"><p><code>update key f m</code> returns a map containing the same bindings as <code>m</code>, except for the binding of <code>key</code>. Depending on the value of <code>y</code> where <code>y</code> is <code>f (find_opt key m)</code>, the binding of <code>key</code> is added, removed or updated. If <code>y</code> is <code>None</code>, the binding is removed if it exists; otherwise, if <code>y</code> is <code>Some z</code> then <code>key</code> is associated to <code>z</code> in the resulting map. If <code>key</code> was already bound in <code>m</code> to a value that is physically equal to <code>z</code>, <code>m</code> is returned unchanged (the result of the function is then physically equal to <code>m</code>).</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.06</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-singleton"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-singleton" class="source_link">Source</a><code><span><span class="keyword">val</span> singleton : <span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="#type-t">t</a></span></span></code></div><div class="spec-doc"><p><code>singleton x y</code> returns the one-element map that contains a binding <code>y</code> for <code>x</code>.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 3.12</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-remove"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-remove" class="source_link">Source</a><code><span><span class="keyword">val</span> remove : <span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="#type-t">t</a></span></span></code></div><div class="spec-doc"><p><code>remove x m</code> returns a map containing the same bindings as <code>m</code>, except for <code>x</code> which is unbound in the returned map. If <code>x</code> was not in <code>m</code>, <code>m</code> is returned unchanged (the result of the function is then physically equal to <code>m</code>).</p><ul class="at-tags"><li class="before"><span class="at-tag">before</span> <span class="value">4.03</span> <p>Physical equality was not ensured.</p></li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-merge"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-merge" class="source_link">Source</a><code><span><span class="keyword">val</span> merge : 
+  <span><span>(<span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> option</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'b</span> option</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'c</span> option</span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span class="type-var">'b</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="type-var">'c</span> <a href="#type-t">t</a></span></span></code></div><div class="spec-doc"><p><code>merge f m1 m2</code> computes a map whose keys are a subset of the keys of <code>m1</code> and of <code>m2</code>. The presence of each such binding, and the corresponding value, is determined with the function <code>f</code>. In terms of the <code>find_opt</code> operation, we have <code>find_opt x (merge f m1 m2) = f x (find_opt x m1) (find_opt x m2)</code> for any key <code>x</code>, provided that <code>f x None None = None</code>.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 3.12</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-union"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-union" class="source_link">Source</a><code><span><span class="keyword">val</span> union : <span><span>(<span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> option</span>)</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="#type-t">t</a></span></span></code></div><div class="spec-doc"><p><code>union f m1 m2</code> computes a map whose keys are a subset of the keys of <code>m1</code> and of <code>m2</code>. When the same binding is defined in both arguments, the function <code>f</code> is used to combine them. This is a special case of <code>merge</code>: <code>union f m1 m2</code> is equivalent to <code>merge f' m1 m2</code>, where</p><ul><li><code>f' _key None None = None</code></li><li><code>f' _key (Some v) None = Some v</code></li><li><code>f' _key None (Some v) = Some v</code></li><li><code>f' key (Some v1) (Some v2) = f key v1 v2</code></li></ul><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.03</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-cardinal"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-cardinal" class="source_link">Source</a><code><span><span class="keyword">val</span> cardinal : <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> int</span></code></div><div class="spec-doc"><p>Return the number of bindings of a map.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 3.12</li></ul></div></div><h2 id="bindings">Bindings</h2><div class="odoc-spec"><div class="spec value anchored" id="val-bindings"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-bindings" class="source_link">Source</a><code><span><span class="keyword">val</span> bindings : <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span>(<a href="#type-key">key</a> * <span class="type-var">'a</span>)</span> list</span></span></code></div><div class="spec-doc"><p>Return the list of all bindings of the given map. The returned list is sorted in increasing order of keys with respect to the ordering <code>Ord.compare</code>, where <code>Ord</code> is the argument given to <code>Map.Make</code>.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 3.12</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-min_binding"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-min_binding" class="source_link">Source</a><code><span><span class="keyword">val</span> min_binding : <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <a href="#type-key">key</a> * <span class="type-var">'a</span></span></code></div><div class="spec-doc"><p>Return the binding with the smallest key in a given map (with respect to the <code>Ord.compare</code> ordering), or raise <code>Not_found</code> if the map is empty.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 3.12</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-min_binding_opt"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-min_binding_opt" class="source_link">Source</a><code><span><span class="keyword">val</span> min_binding_opt : <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span>(<a href="#type-key">key</a> * <span class="type-var">'a</span>)</span> option</span></span></code></div><div class="spec-doc"><p>Return the binding with the smallest key in the given map (with respect to the <code>Ord.compare</code> ordering), or <code>None</code> if the map is empty.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.05</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-max_binding"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-max_binding" class="source_link">Source</a><code><span><span class="keyword">val</span> max_binding : <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <a href="#type-key">key</a> * <span class="type-var">'a</span></span></code></div><div class="spec-doc"><p>Same as <a href="#val-min_binding"><code>min_binding</code></a>, but returns the binding with the largest key in the given map.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 3.12</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-max_binding_opt"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-max_binding_opt" class="source_link">Source</a><code><span><span class="keyword">val</span> max_binding_opt : <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span>(<a href="#type-key">key</a> * <span class="type-var">'a</span>)</span> option</span></span></code></div><div class="spec-doc"><p>Same as <a href="#val-min_binding_opt"><code>min_binding_opt</code></a>, but returns the binding with the largest key in the given map.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.05</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-choose"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-choose" class="source_link">Source</a><code><span><span class="keyword">val</span> choose : <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <a href="#type-key">key</a> * <span class="type-var">'a</span></span></code></div><div class="spec-doc"><p>Return one binding of the given map, or raise <code>Not_found</code> if the map is empty. Which binding is chosen is unspecified, but equal bindings will be chosen for equal maps.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 3.12</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-choose_opt"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-choose_opt" class="source_link">Source</a><code><span><span class="keyword">val</span> choose_opt : <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span>(<a href="#type-key">key</a> * <span class="type-var">'a</span>)</span> option</span></span></code></div><div class="spec-doc"><p>Return one binding of the given map, or <code>None</code> if the map is empty. Which binding is chosen is unspecified, but equal bindings will be chosen for equal maps.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.05</li></ul></div></div><h2 id="searching">Searching</h2><div class="odoc-spec"><div class="spec value anchored" id="val-find"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-find" class="source_link">Source</a><code><span><span class="keyword">val</span> find : <span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'a</span></span></code></div><div class="spec-doc"><p><code>find x m</code> returns the current value of <code>x</code> in <code>m</code>, or raises <code>Not_found</code> if no binding for <code>x</code> exists.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-find_opt"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-find_opt" class="source_link">Source</a><code><span><span class="keyword">val</span> find_opt : <span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> option</span></span></code></div><div class="spec-doc"><p><code>find_opt x m</code> returns <code>Some v</code> if the current value of <code>x</code> in <code>m</code> is <code>v</code>, or <code>None</code> if no binding for <code>x</code> exists.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.05</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-find_first"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-find_first" class="source_link">Source</a><code><span><span class="keyword">val</span> find_first : <span><span>(<span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> bool)</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <a href="#type-key">key</a> * <span class="type-var">'a</span></span></code></div><div class="spec-doc"><p><code>find_first f m</code>, where <code>f</code> is a monotonically increasing function, returns the binding of <code>m</code> with the lowest key <code>k</code> such that <code>f k</code>, or raises <code>Not_found</code> if no such key exists.</p><p>For example, <code>find_first (fun k -&gt; Ord.compare k x &gt;= 0) m</code> will return the first binding <code>k, v</code> of <code>m</code> where <code>Ord.compare k x &gt;= 0</code> (intuitively: <code>k &gt;= x</code>), or raise <code>Not_found</code> if <code>x</code> is greater than any element of <code>m</code>.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.05</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-find_first_opt"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-find_first_opt" class="source_link">Source</a><code><span><span class="keyword">val</span> find_first_opt : <span><span>(<span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> bool)</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span>(<a href="#type-key">key</a> * <span class="type-var">'a</span>)</span> option</span></span></code></div><div class="spec-doc"><p><code>find_first_opt f m</code>, where <code>f</code> is a monotonically increasing function, returns an option containing the binding of <code>m</code> with the lowest key <code>k</code> such that <code>f k</code>, or <code>None</code> if no such key exists.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.05</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-find_last"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-find_last" class="source_link">Source</a><code><span><span class="keyword">val</span> find_last : <span><span>(<span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> bool)</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <a href="#type-key">key</a> * <span class="type-var">'a</span></span></code></div><div class="spec-doc"><p><code>find_last f m</code>, where <code>f</code> is a monotonically decreasing function, returns the binding of <code>m</code> with the highest key <code>k</code> such that <code>f k</code>, or raises <code>Not_found</code> if no such key exists.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.05</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-find_last_opt"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-find_last_opt" class="source_link">Source</a><code><span><span class="keyword">val</span> find_last_opt : <span><span>(<span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> bool)</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span>(<a href="#type-key">key</a> * <span class="type-var">'a</span>)</span> option</span></span></code></div><div class="spec-doc"><p><code>find_last_opt f m</code>, where <code>f</code> is a monotonically decreasing function, returns an option containing the binding of <code>m</code> with the highest key <code>k</code> such that <code>f k</code>, or <code>None</code> if no such key exists.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.05</li></ul></div></div><h2 id="traversing">Traversing</h2><div class="odoc-spec"><div class="spec value anchored" id="val-iter"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-iter" class="source_link">Source</a><code><span><span class="keyword">val</span> iter : <span><span>(<span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> unit)</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div><div class="spec-doc"><p><code>iter f m</code> applies <code>f</code> to all bindings in map <code>m</code>. <code>f</code> receives the key as first argument, and the associated value as second argument. The bindings are passed to <code>f</code> in increasing order with respect to the ordering over the type of the keys.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-fold"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-fold" class="source_link">Source</a><code><span><span class="keyword">val</span> fold : <span><span>(<span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'acc</span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'acc</span>)</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'acc</span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'acc</span></span></code></div><div class="spec-doc"><p><code>fold f m init</code> computes <code>(f kN dN ... (f k1 d1 init)...)</code>, where <code>k1 ... kN</code> are the keys of all bindings in <code>m</code> (in increasing order), and <code>d1 ... dN</code> are the associated data.</p></div></div><h2 id="transforming">Transforming</h2><div class="odoc-spec"><div class="spec value anchored" id="val-map"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-map" class="source_link">Source</a><code><span><span class="keyword">val</span> map : <span><span>(<span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'b</span>)</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'b</span> <a href="#type-t">t</a></span></span></code></div><div class="spec-doc"><p><code>map f m</code> returns a map with same domain as <code>m</code>, where the associated value <code>a</code> of all bindings of <code>m</code> has been replaced by the result of the application of <code>f</code> to <code>a</code>. The bindings are passed to <code>f</code> in increasing order with respect to the ordering over the type of the keys.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-mapi"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-mapi" class="source_link">Source</a><code><span><span class="keyword">val</span> mapi : <span><span>(<span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'b</span>)</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'b</span> <a href="#type-t">t</a></span></span></code></div><div class="spec-doc"><p>Same as <a href="#val-map"><code>map</code></a>, but the function receives as arguments both the key and the associated value for each binding of the map.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-filter"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-filter" class="source_link">Source</a><code><span><span class="keyword">val</span> filter : <span><span>(<span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> bool)</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="#type-t">t</a></span></span></code></div><div class="spec-doc"><p><code>filter f m</code> returns the map with all the bindings in <code>m</code> that satisfy predicate <code>p</code>. If every binding in <code>m</code> satisfies <code>f</code>, <code>m</code> is returned unchanged (the result of the function is then physically equal to <code>m</code>)</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 3.12</li></ul><ul class="at-tags"><li class="before"><span class="at-tag">before</span> <span class="value">4.03</span> <p>Physical equality was not ensured.</p></li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-filter_map"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-filter_map" class="source_link">Source</a><code><span><span class="keyword">val</span> filter_map : <span><span>(<span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'b</span> option</span>)</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'b</span> <a href="#type-t">t</a></span></span></code></div><div class="spec-doc"><p><code>filter_map f m</code> applies the function <code>f</code> to every binding of <code>m</code>, and builds a map from the results. For each binding <code>(k, v)</code> in the input map:</p><ul><li>if <code>f k v</code> is <code>None</code> then <code>k</code> is not in the result,</li><li>if <code>f k v</code> is <code>Some v'</code> then the binding <code>(k, v')</code> is in the output map.</li></ul><p>For example, the following function on maps whose values are lists</p><pre class="language-ocaml"><code>filter_map
+  (fun _k li -&gt; match li with [] -&gt; None | _::tl -&gt; Some tl)
+  m</code></pre><p>drops all bindings of <code>m</code> whose value is an empty list, and pops the first element of each value that is non-empty.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.11</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-partition"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-partition" class="source_link">Source</a><code><span><span class="keyword">val</span> partition : <span><span>(<span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> bool)</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="#type-t">t</a></span> * <span><span class="type-var">'a</span> <a href="#type-t">t</a></span></span></code></div><div class="spec-doc"><p><code>partition f m</code> returns a pair of maps <code>(m1, m2)</code>, where <code>m1</code> contains all the bindings of <code>m</code> that satisfy the predicate <code>f</code>, and <code>m2</code> is the map with all the bindings of <code>m</code> that do not satisfy <code>f</code>.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 3.12</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-split"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-split" class="source_link">Source</a><code><span><span class="keyword">val</span> split : <span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="#type-t">t</a></span> * <span><span class="type-var">'a</span> option</span> * <span><span class="type-var">'a</span> <a href="#type-t">t</a></span></span></code></div><div class="spec-doc"><p><code>split x m</code> returns a triple <code>(l, data, r)</code>, where <code>l</code> is the map with all the bindings of <code>m</code> whose key is strictly less than <code>x</code>; <code>r</code> is the map with all the bindings of <code>m</code> whose key is strictly greater than <code>x</code>; <code>data</code> is <code>None</code> if <code>m</code> contains no binding for <code>x</code>, or <code>Some v</code> if <code>m</code> binds <code>v</code> to <code>x</code>.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 3.12</li></ul></div></div><h2 id="predicates">Predicates and comparisons</h2><div class="odoc-spec"><div class="spec value anchored" id="val-is_empty"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-is_empty" class="source_link">Source</a><code><span><span class="keyword">val</span> is_empty : <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> bool</span></code></div><div class="spec-doc"><p>Test whether a map is empty or not.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-mem"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-mem" class="source_link">Source</a><code><span><span class="keyword">val</span> mem : <span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> bool</span></code></div><div class="spec-doc"><p><code>mem x m</code> returns <code>true</code> if <code>m</code> contains a binding for <code>x</code>, and <code>false</code> otherwise.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-equal"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-equal" class="source_link">Source</a><code><span><span class="keyword">val</span> equal : <span><span>(<span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> bool)</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> bool</span></code></div><div class="spec-doc"><p><code>equal cmp m1 m2</code> tests whether the maps <code>m1</code> and <code>m2</code> are equal, that is, contain equal keys and associate them with equal data. <code>cmp</code> is the equality predicate used to compare the data associated with the keys.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-compare"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-compare" class="source_link">Source</a><code><span><span class="keyword">val</span> compare : <span><span>(<span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> int)</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> int</span></code></div><div class="spec-doc"><p>Total ordering between maps. The first argument is a total ordering used to compare data associated with equal keys in the two maps.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-for_all"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-for_all" class="source_link">Source</a><code><span><span class="keyword">val</span> for_all : <span><span>(<span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> bool)</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> bool</span></code></div><div class="spec-doc"><p><code>for_all f m</code> checks if all the bindings of the map satisfy the predicate <code>f</code>.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 3.12</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-exists"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-exists" class="source_link">Source</a><code><span><span class="keyword">val</span> exists : <span><span>(<span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> bool)</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> bool</span></code></div><div class="spec-doc"><p><code>exists f m</code> checks if at least one binding of the map satisfies the predicate <code>f</code>.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 3.12</li></ul></div></div><h2 id="converting">Converting</h2><div class="odoc-spec"><div class="spec value anchored" id="val-to_list"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-to_list" class="source_link">Source</a><code><span><span class="keyword">val</span> to_list : <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span>(<a href="#type-key">key</a> * <span class="type-var">'a</span>)</span> list</span></span></code></div><div class="spec-doc"><p><code>to_list m</code> is <a href="#val-bindings"><code>bindings</code></a><code> m</code>.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 5.1</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-of_list"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-of_list" class="source_link">Source</a><code><span><span class="keyword">val</span> of_list : <span><span><span>(<a href="#type-key">key</a> * <span class="type-var">'a</span>)</span> list</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="#type-t">t</a></span></span></code></div><div class="spec-doc"><p><code>of_list bs</code> adds the bindings of <code>bs</code> to the empty map, in list order (if a key is bound twice in <code>bs</code> the last one takes over).</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 5.1</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-to_seq"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-to_seq" class="source_link">Source</a><code><span><span class="keyword">val</span> to_seq : <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span>(<a href="#type-key">key</a> * <span class="type-var">'a</span>)</span> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/Seq/index.html#type-t">Seq.t</a></span></span></code></div><div class="spec-doc"><p>Iterate on the whole map, in ascending order of keys</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.07</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-to_rev_seq"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-to_rev_seq" class="source_link">Source</a><code><span><span class="keyword">val</span> to_rev_seq : <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span>(<a href="#type-key">key</a> * <span class="type-var">'a</span>)</span> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/Seq/index.html#type-t">Seq.t</a></span></span></code></div><div class="spec-doc"><p>Iterate on the whole map, in descending order of keys</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.12</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-to_seq_from"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-to_seq_from" class="source_link">Source</a><code><span><span class="keyword">val</span> to_seq_from : <span><a href="#type-key">key</a> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span>(<a href="#type-key">key</a> * <span class="type-var">'a</span>)</span> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/Seq/index.html#type-t">Seq.t</a></span></span></code></div><div class="spec-doc"><p><code>to_seq_from k m</code> iterates on a subset of the bindings of <code>m</code>, in ascending order of keys, from key <code>k</code> or above.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.07</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-add_seq"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-add_seq" class="source_link">Source</a><code><span><span class="keyword">val</span> add_seq : <span><span><span>(<a href="#type-key">key</a> * <span class="type-var">'a</span>)</span> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/Seq/index.html#type-t">Seq.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="#type-t">t</a></span></span></code></div><div class="spec-doc"><p>Add the given bindings to the map, in order.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.07</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-of_seq"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/map.ml.html#module-Make.val-of_seq" class="source_link">Source</a><code><span><span class="keyword">val</span> of_seq : <span><span><span>(<a href="#type-key">key</a> * <span class="type-var">'a</span>)</span> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/Seq/index.html#type-t">Seq.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="#type-t">t</a></span></span></code></div><div class="spec-doc"><p>Build a map from the given bindings</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.07</li></ul></div></div></div>
+      </article>
+    </div>
+  </div>
+
+  <script>
+    // Toggle between the server / client API of the same module.
+    function wodocSwitch(side) {
+      var w = { server: '', client: '' };
+      var p = location.pathname;
+      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
+      location.href = np !== p ? np
+        : '../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
+    }
+    var wodocPub = "/eliom";
+    // Switch version: keep the current page, swapping only the version segment.
+    function wodocVersion(v) {
+      if (!v) return;
+      var re = new RegExp('^(' + wodocPub + '/)[^/]+');
+      var p = location.pathname;
+      location.href =
+        re.test(p) ? p.replace(re, '$1' + v) : wodocPub + '/' + v + '/index.html';
+    }
+    // Build the version <select> from the project's versions.json (the single
+    // source of truth, refreshed on every build/release), so even older frozen
+    // pages list the current set. Falls back to the baked <option>s on failure.
+    (function () {
+      var seg = (location.pathname.match(
+        new RegExp('^' + wodocPub + '/([^/]+)')) || [])[1];
+      function select(sel) {
+        var i;
+        for (i = 0; i < sel.options.length; i++)
+          if (sel.options[i].value === seg) { sel.selectedIndex = i; return; }
+        if (seg) {
+          var o = document.createElement('option');
+          o.value = seg; o.textContent = seg; o.selected = true;
+          sel.insertBefore(o, sel.firstChild);
+        }
+      }
+      fetch(wodocPub + '/versions.json')
+        .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(function (m) {
+          var list = m.list || [], latest = m.latest;
+          document.querySelectorAll('.wodoc-version').forEach(function (sel) {
+            sel.innerHTML = '';
+            list.forEach(function (v) {
+              var o = document.createElement('option');
+              if (v === latest) { o.value = 'latest'; o.textContent = v + ' (latest)'; }
+              else { o.value = v; o.textContent = v; }
+              sel.appendChild(o);
+            });
+            select(sel);
+          });
+        })
+        .catch(function () {
+          document.querySelectorAll('.wodoc-version').forEach(select);
+        });
+    })();
+  </script>
+</body>
+</html>

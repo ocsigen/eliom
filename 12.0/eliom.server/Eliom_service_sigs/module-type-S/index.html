@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Module type Eliom_service_sigs.S — Eliom</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <link rel="stylesheet" href="/css/ocsigen-odoc.css"/>
+  <script src="../../../highlight.pack.js"></script>
+  <script src="../../../wodoc-highlight.js"></script>
+</head>
+<body class="wodoc-page wodoc-doc wodoc-server">
+  <!-- Shared site menu — THE single source of truth for the header, top menu and
+     drawer of EVERY Ocsigen doc page (vitrine + all projects). Canonical copy
+     lives here in ocsigen.github.io; each project's build fetches it. Injected
+     by `wodoc assemble --menu`. Holes filled by the tool (braces omitted here so
+     this comment is not itself rewritten by the hole-filler):
+       subproject  the sub-project name shown next to the Ocsigen logo
+                   (empty on the vitrine), via --subproject
+       leftnav     the project's left navigation, expanded into BOTH the mobile
+                   drawer (below) and the left column (in the page template),
+                   via --leftnav
+     The current entry is highlighted by adding the `current` class to the
+     element carrying data-wodoc-page=<id>: --current on the vitrine (page id),
+     --menu-current in a project (the project id). Nothing is hardcoded here, so
+     this file is the ONLY place the menu is defined.
+
+     Links are the FINAL site paths (/<project>/, /<page>): the target layout
+     where each project is served at ocsigen.org/<project>/ — no transitional
+     /wodoc/ prefix. -->
+<div class="page-header">
+  <p class="logo-ocsigen"><a href="/"><img src="/img/ocsigen-white.svg" alt="Ocsigen"/></a></p>
+  <p class="logo-subproject">Eliom</p>
+
+  <div class="mainmenu">
+    <p class="mainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></p>
+    <p class="mainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></p>
+    <p data-wodoc-page="eliom" class="current"><a href="/eliom/">Eliom</a></p>
+    <p data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></p>
+    <p data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></p>
+    <p data-wodoc-page="lwt"><a href="/lwt/">Lwt</a></p>
+    <p data-wodoc-page="tyxml"><a href="/tyxml/">Tyxml</a></p>
+    <p data-wodoc-page="ocsigen-start"><a href="/ocsigen-start/">Start</a></p>
+  </div>
+
+  <form id="googlesearch" action="https://google.com/search">
+    <input name="q" id="gsearch-box" placeholder="Search using Google"/>
+    <label for="gsearch-box"><img src="/img/search.svg" alt="" id="gsearch-icon"/></label>
+    <input type="submit" id="gsearch-submit" onclick="document.getElementById('gsearch-box').value += ' site:ocsigen.org';"/>
+  </form>
+
+  <aside class="how-drawer">
+    <input id="how-drawer-toggle" type="checkbox"/>
+    <label for="how-drawer-toggle" id="how-drawer-label"><span class="how-drawer-icon"></span></label>
+    <nav class="how-drawer-content">
+      <ul class="drawermainmenu">
+        <li class="drawermainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></li>
+        <li class="drawermainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></li>
+        <li class="drawermainmenu-project current" data-wodoc-page="eliom"><a href="/eliom/">Eliom</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="lwt"><a href="/lwt/">Lwt</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="tyxml"><a href="/tyxml/">Tyxml</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-toolkit"><a href="/ocsigen-toolkit/">Toolkit</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-start"><a href="/ocsigen-start/">Start</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsipersist"><a href="/ocsipersist/">Ocsipersist</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="reactiveData"><a href="/reactiveData/">ReactiveData</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-i18n"><a href="/ocsigen-i18n/">i18n</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="wodoc"><a href="/wodoc/">Wodoc</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="projects"><a href="/projects">Other projects</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="papers"><a href="/papers">Research papers</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="credits"><a href="/credits">Who does Ocsigen?</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="contributing"><a href="/contributing">Contributing</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="blog"><a href="/blog">Blog</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="install"><a href="/install">Installation</a></li>
+        <li class="drawermainmenu-page"><a href="https://github.com/ocsigen">Source code</a></li>
+      </ul>
+      <!-- On mobile the left column is hidden; its menu lives here in the burger
+           (.how-doctree, shown only on narrow screens), as the old site did.
+           Empty on the vitrine; the leftnav hole is filled (with the same
+           fragment as the left column) only on project pages. -->
+      <nav class="how-doctree"><div class="docversion">
+  <label>Version:
+    <select class="wodoc-version" onchange="wodocVersion(this.value)">
+      <option value="dev">dev</option>
+    </select>
+  </label>
+</div>
+<div class="cs-switch">
+  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
+  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+</div>
+<div class="page-toc">
+  <h3>On this page</h3>
+  <nav class="odoc-toc odoc-local-toc"><ul><li><a href="#services">Services</a></li><li><a href="#auxiliary-service-related-types">Auxiliary service-related types</a></li><li><a href="#method-specification">Method specification</a><ul><li><a href="#auxiliary-types">Auxiliary types</a></li><li><a href="#predefined-services">Predefined services</a></li><li><a href="#static-files">Static files</a></li><li><a href="#miscellaneous">Miscellaneous</a></li></ul></li></ul></nav>
+</div>
+<nav class="api-nav manual-nav">
+<h3>Eliom&#x27;s Reference manual</h3>
+<ul class="api-section">
+<li class="ml3" data-wodoc-page="intro.html"><a href="../../../intro.html">Introduction</a></li>
+</ul>
+<h4 class="ml3">Server-side programming</h4>
+<h4 class="ml4">Services</h4>
+<ul class="api-section">
+<li class="ml5" data-wodoc-page="server-services.html"><a href="../../../server-services.html">The different types of services</a></li>
+<li class="ml5" data-wodoc-page="server-params.html"><a href="../../../server-params.html">Typing service parameters</a></li>
+<li class="ml5" data-wodoc-page="server-outputs.html"><a href="../../../server-outputs.html">Service handlers</a></li>
+<li class="ml5" data-wodoc-page="server-links.html"><a href="../../../server-links.html">Creating links and forms</a></li>
+</ul>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="server-state.html"><a href="../../../server-state.html">Sessions and server side state</a></li>
+<li class="ml4" data-wodoc-page="server-security.html"><a href="../../../server-security.html">Security</a></li>
+</ul>
+<h4 class="ml3">Client-server programming</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="clientserver-applications.html"><a href="../../../clientserver-applications.html">Eliom applications</a></li>
+<li class="ml4" data-wodoc-page="ppx-syntax.html"><a href="../../../ppx-syntax.html">Multi-tier programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-html.html"><a href="../../../clientserver-html.html">Generating HTML</a></li>
+<li class="ml4" data-wodoc-page="clientserver-communication.html"><a href="../../../clientserver-communication.html">Communication</a></li>
+<li class="ml4" data-wodoc-page="clientserver-services.html"><a href="../../../clientserver-services.html">Client-side services</a></li>
+<li class="ml4" data-wodoc-page="clientserver-react.html"><a href="../../../clientserver-react.html">Shared reactive programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-cache.html"><a href="../../../clientserver-cache.html">Caching data and off-line applications</a></li>
+<li class="ml4" data-wodoc-page="clientserver-wrapping.html"><a href="../../../clientserver-wrapping.html">Custom wrapping</a></li>
+</ul>
+<h4 class="ml3">Workflows</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="workflow-distillery.html"><a href="../../../workflow-distillery.html">Distillery</a></li>
+<li class="ml4" data-wodoc-page="mobile-apps.html"><a href="../../../mobile-apps.html">Mobile apps</a></li>
+<li class="ml4" data-wodoc-page="workflow-configuration.html"><a href="../../../workflow-configuration.html">Configuration &amp; running</a></li>
+<li class="ml4" data-wodoc-page="scalability.html"><a href="../../../scalability.html">Scalability</a></li>
+</ul>
+</nav>
+
+<nav class="api-nav">
+<h3>Server API</h3>
+<h4>Server API</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_lib"><a href="../../../eliom.server/Eliom_lib/index.html">Eliom_lib</a></li>
+<li data-wodoc-page="Eliom_client"><a href="../../../eliom.server/Eliom_client/index.html">Eliom_client</a></li>
+<li data-wodoc-page="Eliom_client_value"><a href="../../../eliom.server/Eliom_client_value/index.html">Eliom_client_value</a></li>
+<li data-wodoc-page="Eliom_common"><a href="../../../eliom.server/Eliom_common/index.html">Eliom_common</a></li>
+<li data-wodoc-page="Eliom_config"><a href="../../../eliom.server/Eliom_config/index.html">Eliom_config</a></li>
+<li data-wodoc-page="Eliom_request_info"><a href="../../../eliom.server/Eliom_request_info/index.html">Eliom_request_info</a></li>
+<li data-wodoc-page="Eliom_reference"><a href="../../../eliom.server/Eliom_reference/index.html">Eliom_reference</a></li>
+<li data-wodoc-page="Eliom_state"><a href="../../../eliom.server/Eliom_state/index.html">Eliom_state</a></li>
+</ul>
+<h4>Content and form creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_content"><a href="../../../eliom.server/Eliom_content/index.html">Eliom_content</a></li>
+<li data-wodoc-page="Eliom_content.Html"><a href="../../../eliom.server/Eliom_content/Html/index.html">Eliom_content.Html</a></li>
+<li data-wodoc-page="Eliom_content.Svg"><a href="../../../eliom.server/Eliom_content/Svg/index.html">Eliom_content.Svg</a></li>
+<li data-wodoc-page="Eliom_content.Xml"><a href="../../../eliom.server/Eliom_content/Xml/index.html">Eliom_content.Xml</a></li>
+<li data-wodoc-page="Eliom_tools"><a href="../../../eliom.server/Eliom_tools/index.html">Eliom_tools</a></li>
+</ul>
+<h4>Service creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_service"><a href="../../../eliom.server/Eliom_service/index.html">Eliom_service</a></li>
+<li data-wodoc-page="Eliom_parameter"><a href="../../../eliom.server/Eliom_parameter/index.html">Eliom_parameter</a></li>
+<li data-wodoc-page="Eliom_registration"><a href="../../../eliom.server/Eliom_registration/index.html">Eliom_registration</a></li>
+<li data-wodoc-page="Eliom_registration.Html"><a href="../../../eliom.server/Eliom_registration/Html/index.html">Eliom_registration.Html</a></li>
+<li data-wodoc-page="Eliom_registration.Action"><a href="../../../eliom.server/Eliom_registration/Action/index.html">Eliom_registration.Action</a></li>
+<li data-wodoc-page="Eliom_registration.Ocaml"><a href="../../../eliom.server/Eliom_registration/Ocaml/index.html">Eliom_registration.Ocaml</a></li>
+<li data-wodoc-page="Eliom_registration.App"><a href="../../../eliom.server/Eliom_registration/App/index.html">Eliom_registration.App</a></li>
+<li data-wodoc-page="Eliom_registration.File"><a href="../../../eliom.server/Eliom_registration/File/index.html">Eliom_registration.File</a></li>
+<li data-wodoc-page="Eliom_registration.Any"><a href="../../../eliom.server/Eliom_registration/Any/index.html">Eliom_registration.Any</a></li>
+<li data-wodoc-page="Eliom_registration.Redirection"><a href="../../../eliom.server/Eliom_registration/Redirection/index.html">Eliom_registration.Redirection</a></li>
+</ul>
+<h4>Client/server communication</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_shared"><a href="../../../eliom.server/Eliom_shared/index.html">Eliom_shared</a></li>
+<li data-wodoc-page="Eliom_notif"><a href="../../../eliom.server/Eliom_notif/index.html">Eliom_notif</a></li>
+<li data-wodoc-page="Eliom_cscache"><a href="../../../eliom.server/Eliom_cscache/index.html">Eliom_cscache</a></li>
+<li data-wodoc-page="Eliom_bus"><a href="../../../eliom.server/Eliom_bus/index.html">Eliom_bus</a></li>
+<li data-wodoc-page="Eliom_comet"><a href="../../../eliom.server/Eliom_comet/index.html">Eliom_comet</a></li>
+<li data-wodoc-page="Eliom_react"><a href="../../../eliom.server/Eliom_react/index.html">Eliom_react</a></li>
+</ul>
+</nav>
+</nav>
+    </nav>
+  </aside>
+</div>
+
+
+  <div class="project-page">
+    <div class="twocols">
+      <nav class="leftcol">
+        <div class="docversion">
+  <label>Version:
+    <select class="wodoc-version" onchange="wodocVersion(this.value)">
+      <option value="dev">dev</option>
+    </select>
+  </label>
+</div>
+<div class="cs-switch">
+  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
+  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+</div>
+<div class="page-toc">
+  <h3>On this page</h3>
+  <nav class="odoc-toc odoc-local-toc"><ul><li><a href="#services">Services</a></li><li><a href="#auxiliary-service-related-types">Auxiliary service-related types</a></li><li><a href="#method-specification">Method specification</a><ul><li><a href="#auxiliary-types">Auxiliary types</a></li><li><a href="#predefined-services">Predefined services</a></li><li><a href="#static-files">Static files</a></li><li><a href="#miscellaneous">Miscellaneous</a></li></ul></li></ul></nav>
+</div>
+<nav class="api-nav manual-nav">
+<h3>Eliom&#x27;s Reference manual</h3>
+<ul class="api-section">
+<li class="ml3" data-wodoc-page="intro.html"><a href="../../../intro.html">Introduction</a></li>
+</ul>
+<h4 class="ml3">Server-side programming</h4>
+<h4 class="ml4">Services</h4>
+<ul class="api-section">
+<li class="ml5" data-wodoc-page="server-services.html"><a href="../../../server-services.html">The different types of services</a></li>
+<li class="ml5" data-wodoc-page="server-params.html"><a href="../../../server-params.html">Typing service parameters</a></li>
+<li class="ml5" data-wodoc-page="server-outputs.html"><a href="../../../server-outputs.html">Service handlers</a></li>
+<li class="ml5" data-wodoc-page="server-links.html"><a href="../../../server-links.html">Creating links and forms</a></li>
+</ul>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="server-state.html"><a href="../../../server-state.html">Sessions and server side state</a></li>
+<li class="ml4" data-wodoc-page="server-security.html"><a href="../../../server-security.html">Security</a></li>
+</ul>
+<h4 class="ml3">Client-server programming</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="clientserver-applications.html"><a href="../../../clientserver-applications.html">Eliom applications</a></li>
+<li class="ml4" data-wodoc-page="ppx-syntax.html"><a href="../../../ppx-syntax.html">Multi-tier programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-html.html"><a href="../../../clientserver-html.html">Generating HTML</a></li>
+<li class="ml4" data-wodoc-page="clientserver-communication.html"><a href="../../../clientserver-communication.html">Communication</a></li>
+<li class="ml4" data-wodoc-page="clientserver-services.html"><a href="../../../clientserver-services.html">Client-side services</a></li>
+<li class="ml4" data-wodoc-page="clientserver-react.html"><a href="../../../clientserver-react.html">Shared reactive programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-cache.html"><a href="../../../clientserver-cache.html">Caching data and off-line applications</a></li>
+<li class="ml4" data-wodoc-page="clientserver-wrapping.html"><a href="../../../clientserver-wrapping.html">Custom wrapping</a></li>
+</ul>
+<h4 class="ml3">Workflows</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="workflow-distillery.html"><a href="../../../workflow-distillery.html">Distillery</a></li>
+<li class="ml4" data-wodoc-page="mobile-apps.html"><a href="../../../mobile-apps.html">Mobile apps</a></li>
+<li class="ml4" data-wodoc-page="workflow-configuration.html"><a href="../../../workflow-configuration.html">Configuration &amp; running</a></li>
+<li class="ml4" data-wodoc-page="scalability.html"><a href="../../../scalability.html">Scalability</a></li>
+</ul>
+</nav>
+
+<nav class="api-nav">
+<h3>Server API</h3>
+<h4>Server API</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_lib"><a href="../../../eliom.server/Eliom_lib/index.html">Eliom_lib</a></li>
+<li data-wodoc-page="Eliom_client"><a href="../../../eliom.server/Eliom_client/index.html">Eliom_client</a></li>
+<li data-wodoc-page="Eliom_client_value"><a href="../../../eliom.server/Eliom_client_value/index.html">Eliom_client_value</a></li>
+<li data-wodoc-page="Eliom_common"><a href="../../../eliom.server/Eliom_common/index.html">Eliom_common</a></li>
+<li data-wodoc-page="Eliom_config"><a href="../../../eliom.server/Eliom_config/index.html">Eliom_config</a></li>
+<li data-wodoc-page="Eliom_request_info"><a href="../../../eliom.server/Eliom_request_info/index.html">Eliom_request_info</a></li>
+<li data-wodoc-page="Eliom_reference"><a href="../../../eliom.server/Eliom_reference/index.html">Eliom_reference</a></li>
+<li data-wodoc-page="Eliom_state"><a href="../../../eliom.server/Eliom_state/index.html">Eliom_state</a></li>
+</ul>
+<h4>Content and form creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_content"><a href="../../../eliom.server/Eliom_content/index.html">Eliom_content</a></li>
+<li data-wodoc-page="Eliom_content.Html"><a href="../../../eliom.server/Eliom_content/Html/index.html">Eliom_content.Html</a></li>
+<li data-wodoc-page="Eliom_content.Svg"><a href="../../../eliom.server/Eliom_content/Svg/index.html">Eliom_content.Svg</a></li>
+<li data-wodoc-page="Eliom_content.Xml"><a href="../../../eliom.server/Eliom_content/Xml/index.html">Eliom_content.Xml</a></li>
+<li data-wodoc-page="Eliom_tools"><a href="../../../eliom.server/Eliom_tools/index.html">Eliom_tools</a></li>
+</ul>
+<h4>Service creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_service"><a href="../../../eliom.server/Eliom_service/index.html">Eliom_service</a></li>
+<li data-wodoc-page="Eliom_parameter"><a href="../../../eliom.server/Eliom_parameter/index.html">Eliom_parameter</a></li>
+<li data-wodoc-page="Eliom_registration"><a href="../../../eliom.server/Eliom_registration/index.html">Eliom_registration</a></li>
+<li data-wodoc-page="Eliom_registration.Html"><a href="../../../eliom.server/Eliom_registration/Html/index.html">Eliom_registration.Html</a></li>
+<li data-wodoc-page="Eliom_registration.Action"><a href="../../../eliom.server/Eliom_registration/Action/index.html">Eliom_registration.Action</a></li>
+<li data-wodoc-page="Eliom_registration.Ocaml"><a href="../../../eliom.server/Eliom_registration/Ocaml/index.html">Eliom_registration.Ocaml</a></li>
+<li data-wodoc-page="Eliom_registration.App"><a href="../../../eliom.server/Eliom_registration/App/index.html">Eliom_registration.App</a></li>
+<li data-wodoc-page="Eliom_registration.File"><a href="../../../eliom.server/Eliom_registration/File/index.html">Eliom_registration.File</a></li>
+<li data-wodoc-page="Eliom_registration.Any"><a href="../../../eliom.server/Eliom_registration/Any/index.html">Eliom_registration.Any</a></li>
+<li data-wodoc-page="Eliom_registration.Redirection"><a href="../../../eliom.server/Eliom_registration/Redirection/index.html">Eliom_registration.Redirection</a></li>
+</ul>
+<h4>Client/server communication</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_shared"><a href="../../../eliom.server/Eliom_shared/index.html">Eliom_shared</a></li>
+<li data-wodoc-page="Eliom_notif"><a href="../../../eliom.server/Eliom_notif/index.html">Eliom_notif</a></li>
+<li data-wodoc-page="Eliom_cscache"><a href="../../../eliom.server/Eliom_cscache/index.html">Eliom_cscache</a></li>
+<li data-wodoc-page="Eliom_bus"><a href="../../../eliom.server/Eliom_bus/index.html">Eliom_bus</a></li>
+<li data-wodoc-page="Eliom_comet"><a href="../../../eliom.server/Eliom_comet/index.html">Eliom_comet</a></li>
+<li data-wodoc-page="Eliom_react"><a href="../../../eliom.server/Eliom_react/index.html">Eliom_react</a></li>
+</ul>
+</nav>
+
+      </nav>
+      <article class="rightcol">
+        <header class="odoc-preamble"><h1>Module type <code><span>Eliom_service_sigs.S</span></code></h1></header>
+        <div class="odoc-content"><h3 id="services">Services</h3><p>See <a href="../../Eliom_service/index.html#val-create"><code>Eliom_service.create</code></a> (on the server) for how to create services.</p><div class="odoc-include"><details open="open"><summary class="spec include"><code><span><span class="keyword">include</span> <a href="../module-type-TYPES/index.html">TYPES</a></span></code></summary><h3 id="auxiliary-service-related-types">Auxiliary service-related types</h3><div class="odoc-spec"><div class="spec type anchored" id="type-get"><code><span><span class="keyword">type</span> get</span><span> = </span></code><ol><li id="type-get.Get_method" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Get_method</span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-put"><code><span><span class="keyword">type</span> put</span><span> = </span></code><ol><li id="type-put.Put_method" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Put_method</span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-post"><code><span><span class="keyword">type</span> post</span><span> = </span></code><ol><li id="type-post.Post_method" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Post_method</span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-delete"><code><span><span class="keyword">type</span> delete</span><span> = </span></code><ol><li id="type-delete.Delete_method" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Delete_method</span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-co"><code><span><span class="keyword">type</span> co</span><span> = </span></code><ol><li id="type-co.Co" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Co</span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-non_co"><code><span><span class="keyword">type</span> non_co</span><span> = </span></code><ol><li id="type-non_co.Non_co" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Non_co</span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-ext"><code><span><span class="keyword">type</span> ext</span><span> = </span></code><ol><li id="type-ext.Ext" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Ext</span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-non_ext"><code><span><span class="keyword">type</span> non_ext</span><span> = </span></code><ol><li id="type-non_ext.Non_ext" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Non_ext</span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-http"><code><span><span class="keyword">type</span> http</span><span> = </span></code><ol><li id="type-http.Http_ret" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Http_ret</span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-ocaml"><code><span><span class="keyword">type</span> <span>'a ocaml</span></span><span> = </span></code><ol><li id="type-ocaml.Ocaml" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Ocaml</span> <span class="keyword">of</span> <span class="type-var">'a</span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-non_ocaml"><code><span><span class="keyword">type</span> non_ocaml</span><span> = </span></code><ol><li id="type-non_ocaml.Non_ocaml" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Non_ocaml</span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-reg"><code><span><span class="keyword">type</span> reg</span><span> = </span></code><ol><li id="type-reg.Reg" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Reg</span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-non_reg"><code><span><span class="keyword">type</span> non_reg</span><span> = </span></code><ol><li id="type-non_reg.Non_reg" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Non_reg</span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-params"><code><span><span class="keyword">type</span> <span>('get, 'tipo, 'gn) params</span></span><span> = <span><span>(<span class="type-var">'get</span>, <span class="type-var">'tipo</span>, <span class="type-var">'gn</span>)</span> <a href="../../Eliom_parameter/index.html#type-params_type">Eliom_parameter.params_type</a></span></span><span> <span class="keyword">constraint</span> <span class="type-var">'tipo</span> = <span>[&lt; `WithSuffix <span>| `WithoutSuffix</span> ]</span></span></code></div></div><h3 id="method-specification">Method specification</h3><div class="odoc-spec"><div class="spec type anchored" id="type-meth"><code><span><span class="keyword">type</span> <span>('m, _, _, _, _, _, _) meth</span></span><span> = </span></code><ol><li id="type-meth.Get" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Get</span> : <span><span>(<span class="type-var">'gp</span>, <span class="type-var">'tipo</span>, <span class="type-var">'gn</span>)</span> <a href="#type-params">params</a></span> <span class="arrow">&#45;&gt;</span> <span><span>(<a href="#type-get">get</a>, <span class="type-var">'gp</span>, <span class="type-var">'gn</span>, unit, unit, <span class="type-var">'tipo</span>, unit)</span> <a href="#type-meth">meth</a></span></span></code></li><li id="type-meth.Post" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Post</span> : <span><span>(<span class="type-var">'gp</span>, <span class="type-var">'tipo</span>, <span class="type-var">'gn</span>)</span> <a href="#type-params">params</a></span>
+  * <span><span>(<span class="type-var">'pp</span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'pn</span>)</span> <a href="#type-params">params</a></span> <span class="arrow">&#45;&gt;</span> <span><span>(<a href="#type-post">post</a>,
+                                               <span class="type-var">'gp</span>,
+                                               <span class="type-var">'gn</span>,
+                                               <span class="type-var">'pp</span>,
+                                               <span class="type-var">'pn</span>,
+                                               <span class="type-var">'tipo</span>,
+                                               <span class="type-var">'gp</span>)</span>
+                                               <a href="#type-meth">meth</a></span></span></code></li><li id="type-meth.Put" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Put</span> : <span><span>(<span class="type-var">'gp</span>, <span class="type-var">'tipo</span>, <span class="type-var">'gn</span>)</span> <a href="#type-params">params</a></span> <span class="arrow">&#45;&gt;</span> <span><span>(<a href="#type-put">put</a>,
+                                    <span class="type-var">'gp</span>,
+                                    <span class="type-var">'gn</span>,
+                                    <a href="../../Eliom_parameter/index.html#type-raw_post_data">Eliom_parameter.raw_post_data</a>,
+                                    <a href="../../Eliom_parameter/index.html#type-no_param_name">Eliom_parameter.no_param_name</a>,
+                                    <span class="type-var">'tipo</span>,
+                                    unit)</span>
+                                    <a href="#type-meth">meth</a></span></span></code></li><li id="type-meth.Delete" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Delete</span> : <span><span>(<span class="type-var">'gp</span>, <span class="type-var">'tipo</span>, <span class="type-var">'gn</span>)</span> <a href="#type-params">params</a></span> <span class="arrow">&#45;&gt;</span> <span><span>(<a href="#type-delete">delete</a>,
+                                       <span class="type-var">'gp</span>,
+                                       <span class="type-var">'gn</span>,
+                                       <a href="../../Eliom_parameter/index.html#type-raw_post_data">Eliom_parameter.raw_post_data</a>,
+                                       <a href="../../Eliom_parameter/index.html#type-no_param_name">Eliom_parameter.no_param_name</a>,
+                                       <span class="type-var">'tipo</span>,
+                                       unit)</span>
+                                       <a href="#type-meth">meth</a></span></span></code></li></ol></div><div class="spec-doc"><p><b>Method specification datatype</b></p><p>An Eliom service (see <a href="#type-t"><code>Eliom_service_sigs.S.t</code></a>) can respond to one of the following HTTP methods:</p><ul><li>GET (<code>Get g</code>)</li><li>POST (<code>Post (g, p)</code>)</li><li>PUT (<code>Put g</code>)</li><li>DELETE (<code>Delete g</code>)</li></ul><p>In all cases, the service parameters need to be provided (see <a href="../../Eliom_parameter_sigs/module-type-S/index.html"><code>Eliom_parameter_sigs.S</code></a>). POST (<code>Post (g, p)</code>) services accept both GET (<code>g</code>) and POST (<code>p</code>) parameters. For the other methods, only GET (<code>g</code>) parameters apply.</p><p>The type parameters are used to impose various type constraints, and are not necessarily of interest to the programmer. Their technical meaning is as follows.</p><ul><li>0-th param : method</li><li>params 1-4 : GET and POST parameter types and names</li><li>param 5 : suffix parameters permitted or not</li><li>param 6 : non-unit only for the <code>Post (g, p)</code> case when <code>g</code> is not unit ; used to force unit GET parameters when needed</li></ul></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-which_meth"><code><span><span class="keyword">type</span> <span>'m which_meth</span></span><span> = </span></code><ol><li id="type-which_meth.Get'" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Get'</span> : <span><a href="#type-get">get</a> <a href="#type-which_meth">which_meth</a></span></span></code></li><li id="type-which_meth.Post'" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Post'</span> : <span><a href="#type-post">post</a> <a href="#type-which_meth">which_meth</a></span></span></code></li><li id="type-which_meth.Put'" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Put'</span> : <span><a href="#type-put">put</a> <a href="#type-which_meth">which_meth</a></span></span></code></li><li id="type-which_meth.Delete'" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Delete'</span> : <span><a href="#type-delete">delete</a> <a href="#type-which_meth">which_meth</a></span></span></code></li></ol></div><div class="spec-doc"><p>Like <a href="#type-meth"><code>meth</code></a> but without the parameters</p></div></div></details></div><h4 id="auxiliary-types">Auxiliary types</h4><div class="odoc-spec"><div class="spec type anchored" id="type-att"><code><span><span class="keyword">type</span> att</span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-non_att"><code><span><span class="keyword">type</span> non_att</span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-attached_info"><code><span><span class="keyword">type</span> <span>'a attached_info</span></span><span> = </span></code><ol><li id="type-attached_info.Attached" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Attached</span> : <a href="#type-att">att</a> <span class="arrow">&#45;&gt;</span> <span><a href="#type-att">att</a> <a href="#type-attached_info">attached_info</a></span></span></code></li><li id="type-attached_info.Nonattached" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Nonattached</span> : <a href="#type-non_att">non_att</a> <span class="arrow">&#45;&gt;</span> <span><a href="#type-non_att">non_att</a> <a href="#type-attached_info">attached_info</a></span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-t"><code><span><span class="keyword">type</span> <span>('get, 'post, 'meth, 'attached, 'co, 'ext, 'reg, +'tipo, 'gn, 'pn, 'ret) t</span></span><span> <span class="keyword">constraint</span> <span class="type-var">'tipo</span> = <span>[&lt; `WithSuffix <span>| `WithoutSuffix</span> ]</span></span></code></div><div class="spec-doc"><p><b>Type of services</b></p><p>For a service <code>('get, 'post, 'meth, 'attached, 'co, 'ext, 'reg, 'tipo, 'gn, 'pn, 'ret) t</code>:</p><ul><li><code>'get</code> is the type of GET parameters expected by the service.</li><li><code>'post</code> is the type of POST parameters expected by the service.</li><li><code>'meth</code> the HTTP method</li><li><code>'attached</code> attached or non-attached</li><li><code>'co</code> co-service or regular service</li><li><code>'ext</code> external or internal</li><li><code>'reg</code>: possible to register a handler on this service</li><li><code>'tipo</code> the type parameter of subtype <code>suff</code> states the kind of parameters it uses: suffix or not.</li><li><code>'gn</code> is the type of GET parameters names. See <a href="../../Eliom_parameter/index.html#type-param_name"><code>Eliom_parameter.param_name</code></a> and form generation functions (e. g. <code>Eliom_content.Html.D.get_form</code> ).</li><li><code>'pn</code> is the type of POST parameters names. See <a href="../../Eliom_parameter/index.html#type-param_name"><code>Eliom_parameter.param_name</code></a> and form generation functions (e. g. <code>Eliom_content.Html.D.post_form</code> ).</li><li><code> 'ret</code> is an information on what the service returns. See <a href="../../Eliom_registration/index.html#type-kind"><code>Eliom_registration.kind</code></a>.</li></ul></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-result"><code><span><span class="keyword">and</span> result</span><span> = </span></code><ol><li id="type-result.No_contents" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">No_contents</span></span></code></li><li id="type-result.Dom" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Dom</span> <span class="keyword">of</span> <span><a href="https://ocaml.org/p/js_of_ocaml/6.3.2/doc/Js_of_ocaml/Dom_html/class-type-element/index.html">Js_of_ocaml.Dom_html.element</a> <a href="https://ocaml.org/p/js_of_ocaml/6.3.2/doc/Js_of_ocaml/Js/index.html#type-t">Js_of_ocaml.Js.t</a></span></span></code></li><li id="type-result.Redirect" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Redirect</span> : <span><span>(unit,
+             unit,
+             <a href="#type-get">get</a>,
+             <span class="type-var">_</span>,
+             <span class="type-var">_</span>,
+             <span class="type-var">_</span>,
+             <span class="type-var">_</span>,
+             <span>[ `WithoutSuffix ]</span>,
+             unit,
+             unit,
+             <a href="#type-non_ocaml">non_ocaml</a>)</span>
+             <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span> <a href="#type-result">result</a></span></code></li><li id="type-result.Reload_action" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Reload_action</span> <span class="keyword">of</span> </span><span>{</span></code><ol><li id="type-result.hidden" class="def record field anchored"><code><span>hidden : bool;</span></code></li><li id="type-result.https" class="def record field anchored"><code><span>https : bool;</span></code></li></ol><code><span>}</span></code></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-unit_service"><code><span><span class="keyword">type</span> unit_service</span><span> =
+  <span><span>(unit,
+    unit,
+    <a href="#type-get">get</a>,
+    <a href="#type-att">att</a>,
+    <a href="#type-non_co">non_co</a>,
+    <a href="#type-non_ext">non_ext</a>,
+    <a href="#type-non_reg">non_reg</a>,
+    <span>[ `WithoutSuffix ]</span>,
+    unit,
+    unit,
+    <a href="#type-non_ocaml">non_ocaml</a>)</span>
+    <a href="#type-t">t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-path_option"><code><span><span class="keyword">type</span> <span>(_, _, _) path_option</span></span><span> = </span></code><ol><li id="type-path_option.Path" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Path</span> : <a href="../../Eliom_lib/Url/index.html#type-path">Eliom_lib.Url.path</a> <span class="arrow">&#45;&gt;</span> <span><span>(<a href="#type-att">att</a>, <a href="#type-non_co">non_co</a>, <span class="type-var">_</span>)</span> <a href="#type-path_option">path_option</a></span></span></code></li><li id="type-path_option.No_path" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">No_path</span> : <span><span>(<a href="#type-non_att">non_att</a>, <a href="#type-co">co</a>, unit)</span> <a href="#type-path_option">path_option</a></span></span></code></li></ol></div><div class="spec-doc"><p><b>Optional service path</b></p></div></div><h4 id="predefined-services">Predefined services</h4><h5 id="reload-actions">Reload actions</h5><div class="odoc-spec"><div class="spec value anchored" id="val-reload_action"><code><span><span class="keyword">val</span> reload_action : 
+  <span><span>(unit,
+    unit,
+    <a href="#type-get">get</a>,
+    <a href="#type-non_att">non_att</a>,
+    <a href="#type-co">co</a>,
+    <a href="#type-non_ext">non_ext</a>,
+    <a href="#type-non_reg">non_reg</a>,
+    <span>[ `WithoutSuffix ]</span>,
+    unit,
+    unit,
+    <a href="#type-non_ocaml">non_ocaml</a>)</span>
+    <a href="#type-t">t</a></span></span></code></div><div class="spec-doc"><p>The service <code>reload_action</code> is a predefined non-attached action with special behaviour: it has no parameter at all, even non-attached parameters. Use it if you want to make a link to the current page without non-attached parameters. It is almost equivalent to a POST non-attached service without POST parameters, on which you register an action that does nothing, but you can use it with &lt;a&gt; links, not only forms. It does not keep non attached GET parameters.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-reload_action_https"><code><span><span class="keyword">val</span> reload_action_https : 
+  <span><span>(unit,
+    unit,
+    <a href="#type-get">get</a>,
+    <a href="#type-non_att">non_att</a>,
+    <a href="#type-co">co</a>,
+    <a href="#type-non_ext">non_ext</a>,
+    <a href="#type-non_reg">non_reg</a>,
+    <span>[ `WithoutSuffix ]</span>,
+    unit,
+    unit,
+    <a href="#type-non_ocaml">non_ocaml</a>)</span>
+    <a href="#type-t">t</a></span></span></code></div><div class="spec-doc"><p>Like <a href="#val-reload_action"><code>reload_action</code></a>, but forces HTTPS</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-reload_action_hidden"><code><span><span class="keyword">val</span> reload_action_hidden : 
+  <span><span>(unit,
+    unit,
+    <a href="#type-get">get</a>,
+    <a href="#type-non_att">non_att</a>,
+    <a href="#type-co">co</a>,
+    <a href="#type-non_ext">non_ext</a>,
+    <a href="#type-non_reg">non_reg</a>,
+    <span>[ `WithoutSuffix ]</span>,
+    unit,
+    unit,
+    <a href="#type-non_ocaml">non_ocaml</a>)</span>
+    <a href="#type-t">t</a></span></span></code></div><div class="spec-doc"><p>Like <a href="#val-reload_action"><code>reload_action</code></a>, but keeps non-attached GET parameters.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-reload_action_https_hidden"><code><span><span class="keyword">val</span> reload_action_https_hidden : 
+  <span><span>(unit,
+    unit,
+    <a href="#type-get">get</a>,
+    <a href="#type-non_att">non_att</a>,
+    <a href="#type-co">co</a>,
+    <a href="#type-non_ext">non_ext</a>,
+    <a href="#type-non_reg">non_reg</a>,
+    <span>[ `WithoutSuffix ]</span>,
+    unit,
+    unit,
+    <a href="#type-non_ocaml">non_ocaml</a>)</span>
+    <a href="#type-t">t</a></span></span></code></div><div class="spec-doc"><p>Like <a href="#val-reload_action_hidden"><code>reload_action_hidden</code></a>, but forces HTTPS</p></div></div><h4 id="static-files">Static files</h4><div class="odoc-spec"><div class="spec value anchored" id="val-static_dir"><code><span><span class="keyword">val</span> static_dir : 
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span>string list</span>,
+    unit,
+    <a href="#type-get">get</a>,
+    <a href="#type-att">att</a>,
+    <a href="#type-non_co">non_co</a>,
+    <a href="#type-non_ext">non_ext</a>,
+    <a href="#type-non_reg">non_reg</a>,
+    <span>[ `WithSuffix ]</span>,
+    <span><span>[ <span>`One of <span>string list</span></span> ]</span> <a href="../../Eliom_parameter/index.html#type-param_name">Eliom_parameter.param_name</a></span>,
+    unit,
+    <a href="#type-non_ocaml">non_ocaml</a>)</span>
+    <a href="#type-t">t</a></span></span></code></div><div class="spec-doc"><p>The predefined service <code>static_dir</code> allows one to create links to static files. This service takes the name of a static file as a parameter (a string list, slash separated). The actual directory in filesystem where static pages will be found must be set up in the configuration file with the staticmod extension.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-https_static_dir"><code><span><span class="keyword">val</span> https_static_dir : 
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span>string list</span>,
+    unit,
+    <a href="#type-get">get</a>,
+    <a href="#type-att">att</a>,
+    <a href="#type-non_co">non_co</a>,
+    <a href="#type-non_ext">non_ext</a>,
+    <a href="#type-non_reg">non_reg</a>,
+    <span>[ `WithSuffix ]</span>,
+    <span><span>[ <span>`One of <span>string list</span></span> ]</span> <a href="../../Eliom_parameter/index.html#type-param_name">Eliom_parameter.param_name</a></span>,
+    unit,
+    <a href="#type-non_ocaml">non_ocaml</a>)</span>
+    <a href="#type-t">t</a></span></span></code></div><div class="spec-doc"><p>Like <a href="#val-static_dir"><code>static_dir</code></a>, but forces HTTPS link</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-static_dir_with_params"><code><span><span class="keyword">val</span> static_dir_with_params : 
+  <span><span class="optlabel">?keep_nl_params</span>:<span>[ `All <span>| `Persistent</span> <span>| `None</span> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">get_params</span>:<span><span>(<span class="type-var">'a</span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'an</span>)</span> <a href="../../Eliom_parameter/index.html#type-params_type">Eliom_parameter.params_type</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span>string list</span> * <span class="type-var">'a</span>,
+    unit,
+    <a href="#type-get">get</a>,
+    <a href="#type-att">att</a>,
+    <a href="#type-non_co">non_co</a>,
+    <a href="#type-non_ext">non_ext</a>,
+    <a href="#type-non_reg">non_reg</a>,
+    <span>[ `WithSuffix ]</span>,
+    <span><span>[ <span>`One of <span>string list</span></span> ]</span> <a href="../../Eliom_parameter/index.html#type-param_name">Eliom_parameter.param_name</a></span> * <span class="type-var">'an</span>,
+    unit,
+    <a href="#type-non_ocaml">non_ocaml</a>)</span>
+    <a href="#type-t">t</a></span></span></code></div><div class="spec-doc"><p>Like <a href="#val-static_dir"><code>static_dir</code></a>, but allows one to put GET parameters</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-https_static_dir_with_params"><code><span><span class="keyword">val</span> https_static_dir_with_params : 
+  <span><span class="optlabel">?keep_nl_params</span>:<span>[ `All <span>| `Persistent</span> <span>| `None</span> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">get_params</span>:<span><span>(<span class="type-var">'a</span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'an</span>)</span> <a href="../../Eliom_parameter/index.html#type-params_type">Eliom_parameter.params_type</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span>string list</span> * <span class="type-var">'a</span>,
+    unit,
+    <a href="#type-get">get</a>,
+    <a href="#type-att">att</a>,
+    <a href="#type-non_co">non_co</a>,
+    <a href="#type-non_ext">non_ext</a>,
+    <a href="#type-non_reg">non_reg</a>,
+    <span>[ `WithSuffix ]</span>,
+    <span><span>[ <span>`One of <span>string list</span></span> ]</span> <a href="../../Eliom_parameter/index.html#type-param_name">Eliom_parameter.param_name</a></span> * <span class="type-var">'an</span>,
+    unit,
+    <a href="#type-non_ocaml">non_ocaml</a>)</span>
+    <a href="#type-t">t</a></span></span></code></div><div class="spec-doc"><p>Like <a href="#val-static_dir_with_params"><code>static_dir_with_params</code></a>, but forces HTTPS link</p></div></div><h4 id="miscellaneous">Miscellaneous</h4><div class="odoc-spec"><div class="spec value anchored" id="val-preapply"><code><span><span class="keyword">val</span> preapply : 
+  <span><span class="label">service</span>:<span><span>(<span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'meth</span>, <a href="#type-att">att</a>, <span class="type-var">'co</span>, <span class="type-var">'ext</span>, <span class="type-var">'reg</span>, <span class="type-var">_</span>, <span class="type-var">'e</span>, <span class="type-var">'f</span>, <span class="type-var">'return</span>)</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(unit,
+    <span class="type-var">'b</span>,
+    <span class="type-var">'meth</span>,
+    <a href="#type-att">att</a>,
+    <span class="type-var">'co</span>,
+    <span class="type-var">'ext</span>,
+    <a href="#type-non_reg">non_reg</a>,
+    <span>[ `WithoutSuffix ]</span>,
+    unit,
+    <span class="type-var">'f</span>,
+    <span class="type-var">'return</span>)</span>
+    <a href="#type-t">t</a></span></span></code></div><div class="spec-doc"><p>The function <code>preapply ~service parameters</code> creates a new service by preapplying <code>service</code> to the GET <code>parameters</code>. It is not possible to register a handler on an preapplied service; preapplied services may be used in links or as fallbacks.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-add_non_localized_get_parameters"><code><span><span class="keyword">val</span> add_non_localized_get_parameters : 
+  <span><span class="label">params</span>:<span><span>(<span class="type-var">'p</span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'pn</span>)</span> <a href="../../Eliom_parameter/index.html#type-non_localized_params">Eliom_parameter.non_localized_params</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">service</span>:<span><span>(<span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'meth</span>, <span class="type-var">'attach</span>, <span class="type-var">'co</span>, <span class="type-var">'ext</span>, <span class="type-var">'reg</span>, <span class="type-var">'d</span>, <span class="type-var">'e</span>, <span class="type-var">'f</span>, <span class="type-var">'return</span>)</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span class="type-var">'a</span> * <span class="type-var">'p</span>, <span class="type-var">'b</span>, <span class="type-var">'meth</span>, <span class="type-var">'attach</span>, <span class="type-var">'co</span>, <span class="type-var">'ext</span>, <span class="type-var">'reg</span>, <span class="type-var">'d</span>, <span class="type-var">'e</span> * <span class="type-var">'pn</span>, <span class="type-var">'f</span>, <span class="type-var">'return</span>)</span> <a href="#type-t">t</a></span></span></code></div><div class="spec-doc"><p>The function <code>add_non_localized_get_parameters ~params ~service</code> Adds non localized GET parameters <code>params</code> to <code>service</code>. See the Eliom manual for more information about <a href="../../../server-params.html#nonlocalizedparameters" title="nonlocalizedparameters">non localized parameters</a>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-add_non_localized_post_parameters"><code><span><span class="keyword">val</span> add_non_localized_post_parameters : 
+  <span><span class="label">params</span>:<span><span>(<span class="type-var">'p</span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'pn</span>)</span> <a href="../../Eliom_parameter/index.html#type-non_localized_params">Eliom_parameter.non_localized_params</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">service</span>:<span><span>(<span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'meth</span>, <span class="type-var">'attach</span>, <span class="type-var">'co</span>, <span class="type-var">'ext</span>, <span class="type-var">'g</span>, <span class="type-var">'d</span>, <span class="type-var">'e</span>, <span class="type-var">'f</span>, <span class="type-var">'return</span>)</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span class="type-var">'a</span>, <span class="type-var">'b</span> * <span class="type-var">'p</span>, <span class="type-var">'meth</span>, <span class="type-var">'attach</span>, <span class="type-var">'co</span>, <span class="type-var">'ext</span>, <span class="type-var">'g</span>, <span class="type-var">'d</span>, <span class="type-var">'e</span>, <span class="type-var">'f</span> * <span class="type-var">'pn</span>, <span class="type-var">'return</span>)</span> <a href="#type-t">t</a></span></span></code></div><div class="spec-doc"><p>Like <a href="#val-add_non_localized_get_parameters"><code>add_non_localized_get_parameters</code></a> but with POST parameters.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-extern"><code><span><span class="keyword">val</span> extern : 
+  <span><span class="optlabel">?keep_nl_params</span>:<span>[ `All <span>| `Persistent</span> <span>| `None</span> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">prefix</span>:string <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">path</span>:<a href="../../Eliom_lib/Url/index.html#type-path">Eliom_lib.Url.path</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">meth</span>:<span><span>(<span class="type-var">'m</span>, <span class="type-var">'gp</span>, <span class="type-var">'gn</span>, <span class="type-var">'pp</span>, <span class="type-var">'pn</span>, <span class="type-var">'tipo</span>, <span class="type-var">_</span>)</span> <a href="#type-meth">meth</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span class="type-var">'gp</span>, <span class="type-var">'pp</span>, <span class="type-var">'m</span>, <a href="#type-att">att</a>, <a href="#type-non_co">non_co</a>, <a href="#type-ext">ext</a>, <a href="#type-non_reg">non_reg</a>, <span class="type-var">'tipo</span>, <span class="type-var">'gn</span>, <span class="type-var">'pn</span>, <a href="#type-non_ocaml">non_ocaml</a>)</span> <a href="#type-t">t</a></span></span></code></div><div class="spec-doc"><p><code>extern ~prefix ~path ~meth ()</code> creates an external service, i.e., a service implemented by a remote server (not necessarily running Ocsigen/Eliom).</p></div></div></div>
+      </article>
+    </div>
+  </div>
+
+  <script>
+    // Toggle between the server / client API of the same module.
+    function wodocSwitch(side) {
+      var w = { server: '', client: '' };
+      var p = location.pathname;
+      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
+      location.href = np !== p ? np
+        : '../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
+    }
+    var wodocPub = "/eliom";
+    // Switch version: keep the current page, swapping only the version segment.
+    function wodocVersion(v) {
+      if (!v) return;
+      var re = new RegExp('^(' + wodocPub + '/)[^/]+');
+      var p = location.pathname;
+      location.href =
+        re.test(p) ? p.replace(re, '$1' + v) : wodocPub + '/' + v + '/index.html';
+    }
+    // Build the version <select> from the project's versions.json (the single
+    // source of truth, refreshed on every build/release), so even older frozen
+    // pages list the current set. Falls back to the baked <option>s on failure.
+    (function () {
+      var seg = (location.pathname.match(
+        new RegExp('^' + wodocPub + '/([^/]+)')) || [])[1];
+      function select(sel) {
+        var i;
+        for (i = 0; i < sel.options.length; i++)
+          if (sel.options[i].value === seg) { sel.selectedIndex = i; return; }
+        if (seg) {
+          var o = document.createElement('option');
+          o.value = seg; o.textContent = seg; o.selected = true;
+          sel.insertBefore(o, sel.firstChild);
+        }
+      }
+      fetch(wodocPub + '/versions.json')
+        .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(function (m) {
+          var list = m.list || [], latest = m.latest;
+          document.querySelectorAll('.wodoc-version').forEach(function (sel) {
+            sel.innerHTML = '';
+            list.forEach(function (v) {
+              var o = document.createElement('option');
+              if (v === latest) { o.value = 'latest'; o.textContent = v + ' (latest)'; }
+              else { o.value = v; o.textContent = v; }
+              sel.appendChild(o);
+            });
+            select(sel);
+          });
+        })
+        .catch(function () {
+          document.querySelectorAll('.wodoc-version').forEach(select);
+        });
+    })();
+  </script>
+</body>
+</html>

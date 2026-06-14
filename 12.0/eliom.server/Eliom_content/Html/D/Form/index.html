@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Module D.FormSource — Eliom</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <link rel="stylesheet" href="/css/ocsigen-odoc.css"/>
+  <script src="../../../../../highlight.pack.js"></script>
+  <script src="../../../../../wodoc-highlight.js"></script>
+</head>
+<body class="wodoc-page wodoc-doc wodoc-server">
+  <!-- Shared site menu — THE single source of truth for the header, top menu and
+     drawer of EVERY Ocsigen doc page (vitrine + all projects). Canonical copy
+     lives here in ocsigen.github.io; each project's build fetches it. Injected
+     by `wodoc assemble --menu`. Holes filled by the tool (braces omitted here so
+     this comment is not itself rewritten by the hole-filler):
+       subproject  the sub-project name shown next to the Ocsigen logo
+                   (empty on the vitrine), via --subproject
+       leftnav     the project's left navigation, expanded into BOTH the mobile
+                   drawer (below) and the left column (in the page template),
+                   via --leftnav
+     The current entry is highlighted by adding the `current` class to the
+     element carrying data-wodoc-page=<id>: --current on the vitrine (page id),
+     --menu-current in a project (the project id). Nothing is hardcoded here, so
+     this file is the ONLY place the menu is defined.
+
+     Links are the FINAL site paths (/<project>/, /<page>): the target layout
+     where each project is served at ocsigen.org/<project>/ — no transitional
+     /wodoc/ prefix. -->
+<div class="page-header">
+  <p class="logo-ocsigen"><a href="/"><img src="/img/ocsigen-white.svg" alt="Ocsigen"/></a></p>
+  <p class="logo-subproject">Eliom</p>
+
+  <div class="mainmenu">
+    <p class="mainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></p>
+    <p class="mainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></p>
+    <p data-wodoc-page="eliom" class="current"><a href="/eliom/">Eliom</a></p>
+    <p data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></p>
+    <p data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></p>
+    <p data-wodoc-page="lwt"><a href="/lwt/">Lwt</a></p>
+    <p data-wodoc-page="tyxml"><a href="/tyxml/">Tyxml</a></p>
+    <p data-wodoc-page="ocsigen-start"><a href="/ocsigen-start/">Start</a></p>
+  </div>
+
+  <form id="googlesearch" action="https://google.com/search">
+    <input name="q" id="gsearch-box" placeholder="Search using Google"/>
+    <label for="gsearch-box"><img src="/img/search.svg" alt="" id="gsearch-icon"/></label>
+    <input type="submit" id="gsearch-submit" onclick="document.getElementById('gsearch-box').value += ' site:ocsigen.org';"/>
+  </form>
+
+  <aside class="how-drawer">
+    <input id="how-drawer-toggle" type="checkbox"/>
+    <label for="how-drawer-toggle" id="how-drawer-label"><span class="how-drawer-icon"></span></label>
+    <nav class="how-drawer-content">
+      <ul class="drawermainmenu">
+        <li class="drawermainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></li>
+        <li class="drawermainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></li>
+        <li class="drawermainmenu-project current" data-wodoc-page="eliom"><a href="/eliom/">Eliom</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="lwt"><a href="/lwt/">Lwt</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="tyxml"><a href="/tyxml/">Tyxml</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-toolkit"><a href="/ocsigen-toolkit/">Toolkit</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-start"><a href="/ocsigen-start/">Start</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsipersist"><a href="/ocsipersist/">Ocsipersist</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="reactiveData"><a href="/reactiveData/">ReactiveData</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-i18n"><a href="/ocsigen-i18n/">i18n</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="wodoc"><a href="/wodoc/">Wodoc</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="projects"><a href="/projects">Other projects</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="papers"><a href="/papers">Research papers</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="credits"><a href="/credits">Who does Ocsigen?</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="contributing"><a href="/contributing">Contributing</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="blog"><a href="/blog">Blog</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="install"><a href="/install">Installation</a></li>
+        <li class="drawermainmenu-page"><a href="https://github.com/ocsigen">Source code</a></li>
+      </ul>
+      <!-- On mobile the left column is hidden; its menu lives here in the burger
+           (.how-doctree, shown only on narrow screens), as the old site did.
+           Empty on the vitrine; the leftnav hole is filled (with the same
+           fragment as the left column) only on project pages. -->
+      <nav class="how-doctree"><div class="docversion">
+  <label>Version:
+    <select class="wodoc-version" onchange="wodocVersion(this.value)">
+      <option value="dev">dev</option>
+    </select>
+  </label>
+</div>
+<div class="cs-switch">
+  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
+  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+</div>
+<div class="page-toc">
+  <h3>On this page</h3>
+  
+</div>
+<nav class="api-nav manual-nav">
+<h3>Eliom&#x27;s Reference manual</h3>
+<ul class="api-section">
+<li class="ml3" data-wodoc-page="intro.html"><a href="../../../../../intro.html">Introduction</a></li>
+</ul>
+<h4 class="ml3">Server-side programming</h4>
+<h4 class="ml4">Services</h4>
+<ul class="api-section">
+<li class="ml5" data-wodoc-page="server-services.html"><a href="../../../../../server-services.html">The different types of services</a></li>
+<li class="ml5" data-wodoc-page="server-params.html"><a href="../../../../../server-params.html">Typing service parameters</a></li>
+<li class="ml5" data-wodoc-page="server-outputs.html"><a href="../../../../../server-outputs.html">Service handlers</a></li>
+<li class="ml5" data-wodoc-page="server-links.html"><a href="../../../../../server-links.html">Creating links and forms</a></li>
+</ul>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="server-state.html"><a href="../../../../../server-state.html">Sessions and server side state</a></li>
+<li class="ml4" data-wodoc-page="server-security.html"><a href="../../../../../server-security.html">Security</a></li>
+</ul>
+<h4 class="ml3">Client-server programming</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="clientserver-applications.html"><a href="../../../../../clientserver-applications.html">Eliom applications</a></li>
+<li class="ml4" data-wodoc-page="ppx-syntax.html"><a href="../../../../../ppx-syntax.html">Multi-tier programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-html.html"><a href="../../../../../clientserver-html.html">Generating HTML</a></li>
+<li class="ml4" data-wodoc-page="clientserver-communication.html"><a href="../../../../../clientserver-communication.html">Communication</a></li>
+<li class="ml4" data-wodoc-page="clientserver-services.html"><a href="../../../../../clientserver-services.html">Client-side services</a></li>
+<li class="ml4" data-wodoc-page="clientserver-react.html"><a href="../../../../../clientserver-react.html">Shared reactive programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-cache.html"><a href="../../../../../clientserver-cache.html">Caching data and off-line applications</a></li>
+<li class="ml4" data-wodoc-page="clientserver-wrapping.html"><a href="../../../../../clientserver-wrapping.html">Custom wrapping</a></li>
+</ul>
+<h4 class="ml3">Workflows</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="workflow-distillery.html"><a href="../../../../../workflow-distillery.html">Distillery</a></li>
+<li class="ml4" data-wodoc-page="mobile-apps.html"><a href="../../../../../mobile-apps.html">Mobile apps</a></li>
+<li class="ml4" data-wodoc-page="workflow-configuration.html"><a href="../../../../../workflow-configuration.html">Configuration &amp; running</a></li>
+<li class="ml4" data-wodoc-page="scalability.html"><a href="../../../../../scalability.html">Scalability</a></li>
+</ul>
+</nav>
+
+<nav class="api-nav">
+<h3>Server API</h3>
+<h4>Server API</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_lib"><a href="../../../../../eliom.server/Eliom_lib/index.html">Eliom_lib</a></li>
+<li data-wodoc-page="Eliom_client"><a href="../../../../../eliom.server/Eliom_client/index.html">Eliom_client</a></li>
+<li data-wodoc-page="Eliom_client_value"><a href="../../../../../eliom.server/Eliom_client_value/index.html">Eliom_client_value</a></li>
+<li data-wodoc-page="Eliom_common"><a href="../../../../../eliom.server/Eliom_common/index.html">Eliom_common</a></li>
+<li data-wodoc-page="Eliom_config"><a href="../../../../../eliom.server/Eliom_config/index.html">Eliom_config</a></li>
+<li data-wodoc-page="Eliom_request_info"><a href="../../../../../eliom.server/Eliom_request_info/index.html">Eliom_request_info</a></li>
+<li data-wodoc-page="Eliom_reference"><a href="../../../../../eliom.server/Eliom_reference/index.html">Eliom_reference</a></li>
+<li data-wodoc-page="Eliom_state"><a href="../../../../../eliom.server/Eliom_state/index.html">Eliom_state</a></li>
+</ul>
+<h4>Content and form creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_content"><a href="../../../../../eliom.server/Eliom_content/index.html">Eliom_content</a></li>
+<li data-wodoc-page="Eliom_content.Html"><a href="../../../../../eliom.server/Eliom_content/Html/index.html">Eliom_content.Html</a></li>
+<li data-wodoc-page="Eliom_content.Svg"><a href="../../../../../eliom.server/Eliom_content/Svg/index.html">Eliom_content.Svg</a></li>
+<li data-wodoc-page="Eliom_content.Xml"><a href="../../../../../eliom.server/Eliom_content/Xml/index.html">Eliom_content.Xml</a></li>
+<li data-wodoc-page="Eliom_tools"><a href="../../../../../eliom.server/Eliom_tools/index.html">Eliom_tools</a></li>
+</ul>
+<h4>Service creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_service"><a href="../../../../../eliom.server/Eliom_service/index.html">Eliom_service</a></li>
+<li data-wodoc-page="Eliom_parameter"><a href="../../../../../eliom.server/Eliom_parameter/index.html">Eliom_parameter</a></li>
+<li data-wodoc-page="Eliom_registration"><a href="../../../../../eliom.server/Eliom_registration/index.html">Eliom_registration</a></li>
+<li data-wodoc-page="Eliom_registration.Html"><a href="../../../../../eliom.server/Eliom_registration/Html/index.html">Eliom_registration.Html</a></li>
+<li data-wodoc-page="Eliom_registration.Action"><a href="../../../../../eliom.server/Eliom_registration/Action/index.html">Eliom_registration.Action</a></li>
+<li data-wodoc-page="Eliom_registration.Ocaml"><a href="../../../../../eliom.server/Eliom_registration/Ocaml/index.html">Eliom_registration.Ocaml</a></li>
+<li data-wodoc-page="Eliom_registration.App"><a href="../../../../../eliom.server/Eliom_registration/App/index.html">Eliom_registration.App</a></li>
+<li data-wodoc-page="Eliom_registration.File"><a href="../../../../../eliom.server/Eliom_registration/File/index.html">Eliom_registration.File</a></li>
+<li data-wodoc-page="Eliom_registration.Any"><a href="../../../../../eliom.server/Eliom_registration/Any/index.html">Eliom_registration.Any</a></li>
+<li data-wodoc-page="Eliom_registration.Redirection"><a href="../../../../../eliom.server/Eliom_registration/Redirection/index.html">Eliom_registration.Redirection</a></li>
+</ul>
+<h4>Client/server communication</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_shared"><a href="../../../../../eliom.server/Eliom_shared/index.html">Eliom_shared</a></li>
+<li data-wodoc-page="Eliom_notif"><a href="../../../../../eliom.server/Eliom_notif/index.html">Eliom_notif</a></li>
+<li data-wodoc-page="Eliom_cscache"><a href="../../../../../eliom.server/Eliom_cscache/index.html">Eliom_cscache</a></li>
+<li data-wodoc-page="Eliom_bus"><a href="../../../../../eliom.server/Eliom_bus/index.html">Eliom_bus</a></li>
+<li data-wodoc-page="Eliom_comet"><a href="../../../../../eliom.server/Eliom_comet/index.html">Eliom_comet</a></li>
+<li data-wodoc-page="Eliom_react"><a href="../../../../../eliom.server/Eliom_react/index.html">Eliom_react</a></li>
+</ul>
+</nav>
+</nav>
+    </nav>
+  </aside>
+</div>
+
+
+  <div class="project-page">
+    <div class="twocols">
+      <nav class="leftcol">
+        <div class="docversion">
+  <label>Version:
+    <select class="wodoc-version" onchange="wodocVersion(this.value)">
+      <option value="dev">dev</option>
+    </select>
+  </label>
+</div>
+<div class="cs-switch">
+  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
+  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+</div>
+<div class="page-toc">
+  <h3>On this page</h3>
+  
+</div>
+<nav class="api-nav manual-nav">
+<h3>Eliom&#x27;s Reference manual</h3>
+<ul class="api-section">
+<li class="ml3" data-wodoc-page="intro.html"><a href="../../../../../intro.html">Introduction</a></li>
+</ul>
+<h4 class="ml3">Server-side programming</h4>
+<h4 class="ml4">Services</h4>
+<ul class="api-section">
+<li class="ml5" data-wodoc-page="server-services.html"><a href="../../../../../server-services.html">The different types of services</a></li>
+<li class="ml5" data-wodoc-page="server-params.html"><a href="../../../../../server-params.html">Typing service parameters</a></li>
+<li class="ml5" data-wodoc-page="server-outputs.html"><a href="../../../../../server-outputs.html">Service handlers</a></li>
+<li class="ml5" data-wodoc-page="server-links.html"><a href="../../../../../server-links.html">Creating links and forms</a></li>
+</ul>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="server-state.html"><a href="../../../../../server-state.html">Sessions and server side state</a></li>
+<li class="ml4" data-wodoc-page="server-security.html"><a href="../../../../../server-security.html">Security</a></li>
+</ul>
+<h4 class="ml3">Client-server programming</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="clientserver-applications.html"><a href="../../../../../clientserver-applications.html">Eliom applications</a></li>
+<li class="ml4" data-wodoc-page="ppx-syntax.html"><a href="../../../../../ppx-syntax.html">Multi-tier programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-html.html"><a href="../../../../../clientserver-html.html">Generating HTML</a></li>
+<li class="ml4" data-wodoc-page="clientserver-communication.html"><a href="../../../../../clientserver-communication.html">Communication</a></li>
+<li class="ml4" data-wodoc-page="clientserver-services.html"><a href="../../../../../clientserver-services.html">Client-side services</a></li>
+<li class="ml4" data-wodoc-page="clientserver-react.html"><a href="../../../../../clientserver-react.html">Shared reactive programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-cache.html"><a href="../../../../../clientserver-cache.html">Caching data and off-line applications</a></li>
+<li class="ml4" data-wodoc-page="clientserver-wrapping.html"><a href="../../../../../clientserver-wrapping.html">Custom wrapping</a></li>
+</ul>
+<h4 class="ml3">Workflows</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="workflow-distillery.html"><a href="../../../../../workflow-distillery.html">Distillery</a></li>
+<li class="ml4" data-wodoc-page="mobile-apps.html"><a href="../../../../../mobile-apps.html">Mobile apps</a></li>
+<li class="ml4" data-wodoc-page="workflow-configuration.html"><a href="../../../../../workflow-configuration.html">Configuration &amp; running</a></li>
+<li class="ml4" data-wodoc-page="scalability.html"><a href="../../../../../scalability.html">Scalability</a></li>
+</ul>
+</nav>
+
+<nav class="api-nav">
+<h3>Server API</h3>
+<h4>Server API</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_lib"><a href="../../../../../eliom.server/Eliom_lib/index.html">Eliom_lib</a></li>
+<li data-wodoc-page="Eliom_client"><a href="../../../../../eliom.server/Eliom_client/index.html">Eliom_client</a></li>
+<li data-wodoc-page="Eliom_client_value"><a href="../../../../../eliom.server/Eliom_client_value/index.html">Eliom_client_value</a></li>
+<li data-wodoc-page="Eliom_common"><a href="../../../../../eliom.server/Eliom_common/index.html">Eliom_common</a></li>
+<li data-wodoc-page="Eliom_config"><a href="../../../../../eliom.server/Eliom_config/index.html">Eliom_config</a></li>
+<li data-wodoc-page="Eliom_request_info"><a href="../../../../../eliom.server/Eliom_request_info/index.html">Eliom_request_info</a></li>
+<li data-wodoc-page="Eliom_reference"><a href="../../../../../eliom.server/Eliom_reference/index.html">Eliom_reference</a></li>
+<li data-wodoc-page="Eliom_state"><a href="../../../../../eliom.server/Eliom_state/index.html">Eliom_state</a></li>
+</ul>
+<h4>Content and form creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_content"><a href="../../../../../eliom.server/Eliom_content/index.html">Eliom_content</a></li>
+<li data-wodoc-page="Eliom_content.Html"><a href="../../../../../eliom.server/Eliom_content/Html/index.html">Eliom_content.Html</a></li>
+<li data-wodoc-page="Eliom_content.Svg"><a href="../../../../../eliom.server/Eliom_content/Svg/index.html">Eliom_content.Svg</a></li>
+<li data-wodoc-page="Eliom_content.Xml"><a href="../../../../../eliom.server/Eliom_content/Xml/index.html">Eliom_content.Xml</a></li>
+<li data-wodoc-page="Eliom_tools"><a href="../../../../../eliom.server/Eliom_tools/index.html">Eliom_tools</a></li>
+</ul>
+<h4>Service creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_service"><a href="../../../../../eliom.server/Eliom_service/index.html">Eliom_service</a></li>
+<li data-wodoc-page="Eliom_parameter"><a href="../../../../../eliom.server/Eliom_parameter/index.html">Eliom_parameter</a></li>
+<li data-wodoc-page="Eliom_registration"><a href="../../../../../eliom.server/Eliom_registration/index.html">Eliom_registration</a></li>
+<li data-wodoc-page="Eliom_registration.Html"><a href="../../../../../eliom.server/Eliom_registration/Html/index.html">Eliom_registration.Html</a></li>
+<li data-wodoc-page="Eliom_registration.Action"><a href="../../../../../eliom.server/Eliom_registration/Action/index.html">Eliom_registration.Action</a></li>
+<li data-wodoc-page="Eliom_registration.Ocaml"><a href="../../../../../eliom.server/Eliom_registration/Ocaml/index.html">Eliom_registration.Ocaml</a></li>
+<li data-wodoc-page="Eliom_registration.App"><a href="../../../../../eliom.server/Eliom_registration/App/index.html">Eliom_registration.App</a></li>
+<li data-wodoc-page="Eliom_registration.File"><a href="../../../../../eliom.server/Eliom_registration/File/index.html">Eliom_registration.File</a></li>
+<li data-wodoc-page="Eliom_registration.Any"><a href="../../../../../eliom.server/Eliom_registration/Any/index.html">Eliom_registration.Any</a></li>
+<li data-wodoc-page="Eliom_registration.Redirection"><a href="../../../../../eliom.server/Eliom_registration/Redirection/index.html">Eliom_registration.Redirection</a></li>
+</ul>
+<h4>Client/server communication</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_shared"><a href="../../../../../eliom.server/Eliom_shared/index.html">Eliom_shared</a></li>
+<li data-wodoc-page="Eliom_notif"><a href="../../../../../eliom.server/Eliom_notif/index.html">Eliom_notif</a></li>
+<li data-wodoc-page="Eliom_cscache"><a href="../../../../../eliom.server/Eliom_cscache/index.html">Eliom_cscache</a></li>
+<li data-wodoc-page="Eliom_bus"><a href="../../../../../eliom.server/Eliom_bus/index.html">Eliom_bus</a></li>
+<li data-wodoc-page="Eliom_comet"><a href="../../../../../eliom.server/Eliom_comet/index.html">Eliom_comet</a></li>
+<li data-wodoc-page="Eliom_react"><a href="../../../../../eliom.server/Eliom_react/index.html">Eliom_react</a></li>
+</ul>
+</nav>
+
+      </nav>
+      <article class="rightcol">
+        <header class="odoc-preamble"><h1>Module <code><span>D.Form</span></code><a href="../../../../../src/eliom.server/eliom_content_.ml.html#module-Html.module-D.module-Form" class="source_link">Source</a></h1></header>
+        <div class="odoc-content"><div class="odoc-spec"><div class="spec type anchored" id="type-param"><a href="../../../../../src/eliom.server/eliom_form.ml.html#module-Make.type-param" class="source_link">Source</a><code><span><span class="keyword">type</span> <span>'a param</span></span><span> = <span><span class="type-var">'a</span> <a href="../../index.html#type-form_param">form_param</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-float"><a href="../../../../../src/eliom.server/eliom_form.ml.html#module-Make.val-float" class="source_link">Source</a><code><span><span class="keyword">val</span> float : <span>float <a href="#type-param">param</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-int"><a href="../../../../../src/eliom.server/eliom_form.ml.html#module-Make.val-int" class="source_link">Source</a><code><span><span class="keyword">val</span> int : <span>int <a href="#type-param">param</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-int32"><a href="../../../../../src/eliom.server/eliom_form.ml.html#module-Make.val-int32" class="source_link">Source</a><code><span><span class="keyword">val</span> int32 : <span>int32 <a href="#type-param">param</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-int64"><a href="../../../../../src/eliom.server/eliom_form.ml.html#module-Make.val-int64" class="source_link">Source</a><code><span><span class="keyword">val</span> int64 : <span>int64 <a href="#type-param">param</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-nativeint"><a href="../../../../../src/eliom.server/eliom_form.ml.html#module-Make.val-nativeint" class="source_link">Source</a><code><span><span class="keyword">val</span> nativeint : <span>nativeint <a href="#type-param">param</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-bool"><a href="../../../../../src/eliom.server/eliom_form.ml.html#module-Make.val-bool" class="source_link">Source</a><code><span><span class="keyword">val</span> bool : <span>bool <a href="#type-param">param</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-string"><a href="../../../../../src/eliom.server/eliom_form.ml.html#module-Make.val-string" class="source_link">Source</a><code><span><span class="keyword">val</span> string : <span>string <a href="#type-param">param</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-user"><a href="../../../../../src/eliom.server/eliom_form.ml.html#module-Make.val-user" class="source_link">Source</a><code><span><span class="keyword">val</span> user : <span><span>(<span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> string)</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="#type-param">param</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-make_post_uri_components"><a href="../../../../../src/eliom.server/eliom_form.ml.html#module-Make.val-make_post_uri_components" class="source_link">Source</a><code><span><span class="keyword">val</span> make_post_uri_components : 
+  <span><span class="optlabel">?absolute</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?absolute_path</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?https</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">service</span>:
+    <span><span>(<span class="type-var">'get</span>, <span class="type-var">'post</span>, <a href="../../../../Eliom_service/index.html#type-post">Eliom_service.post</a>, <span class="type-var">_</span>, <span class="type-var">_</span>, <span class="type-var">_</span>, <span class="type-var">_</span>, <span class="type-var">_</span>, <span class="type-var">_</span>, <span class="type-var">_</span>, <span class="type-var">_</span>)</span> <a href="../../../../Eliom_service/index.html#type-t">Eliom_service.t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?hostname</span>:string <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?port</span>:int <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?fragment</span>:string <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?keep_nl_params</span>:<span>[ `All <span>| `Persistent</span> <span>| `None</span> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?nl_params</span>:<a href="../../../../Eliom_parameter/index.html#type-nl_params_set">Eliom_parameter.nl_params_set</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?keep_get_na_params</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="type-var">'get</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="type-var">'post</span> <span class="arrow">&#45;&gt;</span></span>
+  string
+  * <span><span>(string * <a href="../../../../Eliommod_parameters/index.html#type-param">Eliommod_parameters.param</a>)</span> list</span>
+  * <span>string option</span>
+  * <span><span>(string * <a href="../../../../Eliommod_parameters/index.html#type-param">Eliommod_parameters.param</a>)</span> list</span></span></code></div><div class="spec-doc"><p>Same as <code>LINK.make_uri_components</code>, but also returns a list of post parameters.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_form"><a href="../../../../../src/eliom.server/eliom_form.ml.html#module-Make.val-get_form" class="source_link">Source</a><code><span><span class="keyword">val</span> get_form : 
+  <span><span class="optlabel">?absolute</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?absolute_path</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?https</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?a</span>:<span><span><span>[&lt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-form_attrib">Html_types.form_attrib</a> ]</span> <a href="../index.html#type-attrib">attrib</a></span> list</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">service</span>:
+    <span><span>(<span class="type-var">_</span>,
+      unit,
+      <a href="../../../../Eliom_service/index.html#type-get">Eliom_service.get</a>,
+      <span class="type-var">_</span>,
+      <span class="type-var">_</span>,
+      <span class="type-var">_</span>,
+      <span class="type-var">_</span>,
+      <span class="type-var">_</span>,
+      <span class="type-var">'gn</span>,
+      <span class="type-var">_</span>,
+      <a href="../../../../Eliom_service/index.html#type-non_ocaml">Eliom_service.non_ocaml</a>)</span>
+      <a href="../../../../Eliom_service/index.html#type-t">Eliom_service.t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?hostname</span>:string <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?port</span>:int <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?fragment</span>:string <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?keep_nl_params</span>:<span>[ `All <span>| `Persistent</span> <span>| `None</span> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?nl_params</span>:<a href="../../../../Eliom_parameter/index.html#type-nl_params_set">Eliom_parameter.nl_params_set</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?xhr</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span><span class="type-var">'gn</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span>[&lt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-form_content">Html_types.form_content</a> ]</span> <a href="../index.html#type-elt">elt</a></span> list</span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>[&gt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-form">Html_types.form</a> ]</span> <a href="../index.html#type-elt">elt</a></span></span></code></div><div class="spec-doc"><p>The function <code>get_form service formgen</code> creates a GET <code>&lt;form&gt;</code> to <code>service</code>. The content of the <code>&lt;form&gt;</code> is generated by the function <code>formgen</code>, that takes the names of the service parameters as parameters. By default, the <code>action</code> attribute is a relative URL recomputed at each request with <a href="../index.html#val-make_uri"><code>make_uri</code></a>.</p><p>By default, the form is realized such that the client-side Eliom application keeps running irrespectable of the usage of the form (cf. <code>Eliom_client.change_page</code>).</p><p>By contrast, if the optional parameter <code>~xhr:false</code> is given, the form is realized as a standard HTML form and submitting it discontinues the Eliom application. The <code>~xhr</code> parameter has no effect outside an Eliom application.</p><p>NB that the default value of <code>~xhr</code> is configurable through <a href="../../../../Eliom_config/index.html#val-set_default_links_xhr"><code>Eliom_config.set_default_links_xhr</code></a>.</p><p>The optional parameter <code>~a</code> allows one to add extra HTML attributes to the generated node.</p><p>See <a href="../index.html#val-make_uri"><code>make_uri</code></a> for description of other optional parameters.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-lwt_get_form"><a href="../../../../../src/eliom.server/eliom_form.ml.html#module-Make.val-lwt_get_form" class="source_link">Source</a><code><span><span class="keyword">val</span> lwt_get_form : 
+  <span><span class="optlabel">?absolute</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?absolute_path</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?https</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?a</span>:<span><span><span>[&lt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-form_attrib">Html_types.form_attrib</a> ]</span> <a href="../index.html#type-attrib">attrib</a></span> list</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">service</span>:
+    <span><span>(<span class="type-var">_</span>,
+      unit,
+      <a href="../../../../Eliom_service/index.html#type-get">Eliom_service.get</a>,
+      <span class="type-var">_</span>,
+      <span class="type-var">_</span>,
+      <span class="type-var">_</span>,
+      <span class="type-var">_</span>,
+      <span class="type-var">_</span>,
+      <span class="type-var">'gn</span>,
+      <span class="type-var">_</span>,
+      <a href="../../../../Eliom_service/index.html#type-non_ocaml">Eliom_service.non_ocaml</a>)</span>
+      <a href="../../../../Eliom_service/index.html#type-t">Eliom_service.t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?hostname</span>:string <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?port</span>:int <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?fragment</span>:string <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?keep_nl_params</span>:<span>[ `All <span>| `Persistent</span> <span>| `None</span> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?nl_params</span>:<a href="../../../../Eliom_parameter/index.html#type-nl_params_set">Eliom_parameter.nl_params_set</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?xhr</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span><span class="type-var">'gn</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span><span>[&lt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-form_content">Html_types.form_content</a> ]</span> <a href="../index.html#type-elt">elt</a></span> list</span> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span>[&gt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-form">Html_types.form</a> ]</span> <a href="../index.html#type-elt">elt</a></span> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p>Same as <a href="#val-get_form"><code>get_form</code></a> but taking a cooperative function for <code>&lt;form&gt;</code> content generation.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-post_form"><a href="../../../../../src/eliom.server/eliom_form.ml.html#module-Make.val-post_form" class="source_link">Source</a><code><span><span class="keyword">val</span> post_form : 
+  <span><span class="optlabel">?absolute</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?absolute_path</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?https</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?a</span>:<span><span><span>[&lt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-form_attrib">Html_types.form_attrib</a> ]</span> <a href="../index.html#type-attrib">attrib</a></span> list</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">service</span>:
+    <span><span>(<span class="type-var">'get</span>,
+      <span class="type-var">_</span>,
+      <a href="../../../../Eliom_service/index.html#type-post">Eliom_service.post</a>,
+      <span class="type-var">_</span>,
+      <span class="type-var">_</span>,
+      <span class="type-var">_</span>,
+      <span class="type-var">_</span>,
+      <span class="type-var">_</span>,
+      <span class="type-var">_</span>,
+      <span class="type-var">'pn</span>,
+      <a href="../../../../Eliom_service/index.html#type-non_ocaml">Eliom_service.non_ocaml</a>)</span>
+      <a href="../../../../Eliom_service/index.html#type-t">Eliom_service.t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?hostname</span>:string <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?port</span>:int <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?fragment</span>:string <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?keep_nl_params</span>:<span>[ `All <span>| `Persistent</span> <span>| `None</span> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?keep_get_na_params</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?nl_params</span>:<a href="../../../../Eliom_parameter/index.html#type-nl_params_set">Eliom_parameter.nl_params_set</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?xhr</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span><span class="type-var">'pn</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span>[&lt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-form_content">Html_types.form_content</a> ]</span> <a href="../index.html#type-elt">elt</a></span> list</span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="type-var">'get</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>[&gt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-form">Html_types.form</a> ]</span> <a href="../index.html#type-elt">elt</a></span></span></code></div><div class="spec-doc"><p>The function <code>post_form service formgen post_params</code> creates a POST <code>&lt;form&gt;</code> to <code>service</code> preapplied to the POST parameters <code>post_params</code>. The content of the <code>&lt;form&gt;</code> is generated by the function <code>formgen</code>, that takes the names of the service parameters as parameters. By default, the <code>action</code> attribute is a relative URL recomputed at each request with <a href="../index.html#val-make_uri"><code>make_uri</code></a>.</p><p>The optional parameter <code>~a</code> allows one to add HTML attributes to the generated node.</p><p>See <code>Eliom_service.make</code> for a description of the <code>~keep_get_na_params</code> optional parameter ; see <a href="#val-get_form"><code>get_form</code></a> for <code>~xhr</code> and see <a href="../index.html#val-make_uri"><code>make_uri</code></a> for other optional parameters.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-lwt_post_form"><a href="../../../../../src/eliom.server/eliom_form.ml.html#module-Make.val-lwt_post_form" class="source_link">Source</a><code><span><span class="keyword">val</span> lwt_post_form : 
+  <span><span class="optlabel">?absolute</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?absolute_path</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?https</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?a</span>:<span><span><span>[&lt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-form_attrib">Html_types.form_attrib</a> ]</span> <a href="../index.html#type-attrib">attrib</a></span> list</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">service</span>:
+    <span><span>(<span class="type-var">'get</span>,
+      <span class="type-var">_</span>,
+      <a href="../../../../Eliom_service/index.html#type-post">Eliom_service.post</a>,
+      <span class="type-var">_</span>,
+      <span class="type-var">_</span>,
+      <span class="type-var">_</span>,
+      <span class="type-var">_</span>,
+      <span class="type-var">_</span>,
+      <span class="type-var">_</span>,
+      <span class="type-var">'pn</span>,
+      <a href="../../../../Eliom_service/index.html#type-non_ocaml">Eliom_service.non_ocaml</a>)</span>
+      <a href="../../../../Eliom_service/index.html#type-t">Eliom_service.t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?hostname</span>:string <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?port</span>:int <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?fragment</span>:string <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?keep_nl_params</span>:<span>[ `All <span>| `Persistent</span> <span>| `None</span> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?keep_get_na_params</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?nl_params</span>:<a href="../../../../Eliom_parameter/index.html#type-nl_params_set">Eliom_parameter.nl_params_set</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?xhr</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span><span class="type-var">'pn</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span><span>[&lt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-form_content">Html_types.form_content</a> ]</span> <a href="../index.html#type-elt">elt</a></span> list</span> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="type-var">'get</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span>[&gt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-form">Html_types.form</a> ]</span> <a href="../index.html#type-elt">elt</a></span> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p>Same as <a href="#val-post_form"><code>post_form</code></a> but taking a cooperative function for <code>&lt;form&gt;</code> content generation.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-input"><a href="../../../../../src/eliom.server/eliom_form.ml.html#module-Make.val-input" class="source_link">Source</a><code><span><span class="keyword">val</span> input : 
+  <span><span class="optlabel">?a</span>:<span><span><span>[&lt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-input_attrib">Html_types.input_attrib</a> ]</span> <a href="../index.html#type-attrib">attrib</a></span> list</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">input_type</span>:<span>[&lt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-input_type">Html_types.input_type</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?name</span>:<span><span>[&lt; <span><span class="type-var">'a</span> <a href="../../../../Eliom_parameter/index.html#type-setoneradio">Eliom_parameter.setoneradio</a></span> ]</span> <a href="../../../../Eliom_parameter/index.html#type-param_name">Eliom_parameter.param_name</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?value</span>:<span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span class="type-var">'a</span> <a href="#type-param">param</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>[&gt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-input">Html_types.input</a> ]</span> <a href="../index.html#type-elt">elt</a></span></span></code></div><div class="spec-doc"><p>Creates an <code>&lt;input&gt;</code> tag.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-file_input"><a href="../../../../../src/eliom.server/eliom_form.ml.html#module-Make.val-file_input" class="source_link">Source</a><code><span><span class="keyword">val</span> file_input : 
+  <span><span class="optlabel">?a</span>:<span><span><span>[&lt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-input_attrib">Html_types.input_attrib</a> ]</span> <a href="../index.html#type-attrib">attrib</a></span> list</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">name</span>:
+    <span><span>[&lt; <span><a href="../../../../Eliom_lib/index.html#type-file_info">Eliom_lib.file_info</a> <a href="../../../../Eliom_parameter/index.html#type-setoneradio">Eliom_parameter.setoneradio</a></span> ]</span>
+      <a href="../../../../Eliom_parameter/index.html#type-param_name">Eliom_parameter.param_name</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span><span>[&gt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-input">Html_types.input</a> ]</span> <a href="../index.html#type-elt">elt</a></span></span></code></div><div class="spec-doc"><p>Creates an <code>&lt;input&gt;</code> tag for sending a file</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-image_input"><a href="../../../../../src/eliom.server/eliom_form.ml.html#module-Make.val-image_input" class="source_link">Source</a><code><span><span class="keyword">val</span> image_input : 
+  <span><span class="optlabel">?a</span>:<span><span><span>[&lt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-input_attrib">Html_types.input_attrib</a> ]</span> <a href="../index.html#type-attrib">attrib</a></span> list</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">name</span>:
+    <span><span>[&lt; <span><a href="../../../../Eliom_parameter/index.html#type-coordinates">Eliom_parameter.coordinates</a> <a href="../../../../Eliom_parameter/index.html#type-oneradio">Eliom_parameter.oneradio</a></span> ]</span>
+      <a href="../../../../Eliom_parameter/index.html#type-param_name">Eliom_parameter.param_name</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?src</span>:<a href="../index.html#type-uri">uri</a> <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span><span>[&gt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-input">Html_types.input</a> ]</span> <a href="../index.html#type-elt">elt</a></span></span></code></div><div class="spec-doc"><p>Creates an <code>&lt;input type=&quot;image&quot; name=&quot;...&quot;&gt;</code> tag. The server receives the coordinates that the user clicked on.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-checkbox"><a href="../../../../../src/eliom.server/eliom_form.ml.html#module-Make.val-checkbox" class="source_link">Source</a><code><span><span class="keyword">val</span> checkbox : 
+  <span><span class="optlabel">?a</span>:<span><span><span>[&lt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-input_attrib">Html_types.input_attrib</a> ]</span> <a href="../index.html#type-attrib">attrib</a></span> list</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?checked</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">name</span>:<span><span>[ <span>`Set of <span class="type-var">'a</span></span> ]</span> <a href="../../../../Eliom_parameter/index.html#type-param_name">Eliom_parameter.param_name</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">value</span>:<span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span class="type-var">'a</span> <a href="#type-param">param</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>[&gt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-input">Html_types.input</a> ]</span> <a href="../index.html#type-elt">elt</a></span></span></code></div><div class="spec-doc"><p>Creates a checkbox <code>&lt;input&gt;</code> tag. You can produce several checkboxes with the same name (and different values). The service must declare a parameter of type <code>set</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-bool_checkbox_one"><a href="../../../../../src/eliom.server/eliom_form.ml.html#module-Make.val-bool_checkbox_one" class="source_link">Source</a><code><span><span class="keyword">val</span> bool_checkbox_one : 
+  <span><span class="optlabel">?a</span>:<span><span><span>[&lt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-input_attrib">Html_types.input_attrib</a> ]</span> <a href="../index.html#type-attrib">attrib</a></span> list</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?checked</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">name</span>:<span><span>[ <span>`One of bool</span> ]</span> <a href="../../../../Eliom_parameter/index.html#type-param_name">Eliom_parameter.param_name</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span><span>[&gt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-input">Html_types.input</a> ]</span> <a href="../index.html#type-elt">elt</a></span></span></code></div><div class="spec-doc"><p>Creates a checkbox <code>&lt;input&gt;</code> tag of type bool. Only one checkbox with the same <code>name</code> is allowed.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-radio"><a href="../../../../../src/eliom.server/eliom_form.ml.html#module-Make.val-radio" class="source_link">Source</a><code><span><span class="keyword">val</span> radio : 
+  <span><span class="optlabel">?a</span>:<span><span><span>[&lt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-input_attrib">Html_types.input_attrib</a> ]</span> <a href="../index.html#type-attrib">attrib</a></span> list</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?checked</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">name</span>:<span><span>[ <span>`Radio of <span class="type-var">'a</span></span> ]</span> <a href="../../../../Eliom_parameter/index.html#type-param_name">Eliom_parameter.param_name</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">value</span>:<span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span class="type-var">'a</span> <a href="#type-param">param</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>[&gt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-input">Html_types.input</a> ]</span> <a href="../index.html#type-elt">elt</a></span></span></code></div><div class="spec-doc"><p>Creates a radio <code>&lt;input&gt;</code> tag.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-string_radio_required"><a href="../../../../../src/eliom.server/eliom_form.ml.html#module-Make.val-string_radio_required" class="source_link">Source</a><code><span><span class="keyword">val</span> string_radio_required : 
+  <span><span class="optlabel">?a</span>:<span><span><span>[&lt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-input_attrib">Html_types.input_attrib</a> ]</span> <a href="../index.html#type-attrib">attrib</a></span> list</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?checked</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">name</span>:<span><span>[ <span>`One of string</span> ]</span> <a href="../../../../Eliom_parameter/index.html#type-param_name">Eliom_parameter.param_name</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">value</span>:string <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span><span>[&gt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-input">Html_types.input</a> ]</span> <a href="../index.html#type-elt">elt</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-button"><a href="../../../../../src/eliom.server/eliom_form.ml.html#module-Make.val-button" class="source_link">Source</a><code><span><span class="keyword">val</span> button : 
+  <span><span class="optlabel">?a</span>:<span><span><span>[&lt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-button_attrib">Html_types.button_attrib</a> ]</span> <a href="../index.html#type-attrib">attrib</a></span> list</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">button_type</span>:<span>[&lt; <a href="../../../../Eliom_form_sigs/index.html#type-button_type">Eliom_form_sigs.button_type</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">name</span>:<span><span>[&lt; <span><span class="type-var">'a</span> <a href="../../../../Eliom_parameter/index.html#type-setone">Eliom_parameter.setone</a></span> ]</span> <a href="../../../../Eliom_parameter/index.html#type-param_name">Eliom_parameter.param_name</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">value</span>:<span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span class="type-var">'a</span> <a href="#type-param">param</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span><a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-button_content">Html_types.button_content</a> <a href="../index.html#type-elt">elt</a></span> list</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>[&gt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-button">Html_types.button</a> ]</span> <a href="../index.html#type-elt">elt</a></span></span></code></div><div class="spec-doc"><p>Creates a <code>&lt;button&gt;</code> tag.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-button_no_value"><a href="../../../../../src/eliom.server/eliom_form.ml.html#module-Make.val-button_no_value" class="source_link">Source</a><code><span><span class="keyword">val</span> button_no_value : 
+  <span><span class="optlabel">?a</span>:<span><span><span>[&lt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-button_attrib">Html_types.button_attrib</a> ]</span> <a href="../index.html#type-attrib">attrib</a></span> list</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">button_type</span>:<span>[&lt; <a href="../../../../Eliom_form_sigs/index.html#type-button_type">Eliom_form_sigs.button_type</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span><a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-button_content">Html_types.button_content</a> <a href="../index.html#type-elt">elt</a></span> list</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>[&gt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-button">Html_types.button</a> ]</span> <a href="../index.html#type-elt">elt</a></span></span></code></div><div class="spec-doc"><p>Creates a <code>&lt;button&gt;</code> tag with no value. No value is sent.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-textarea"><a href="../../../../../src/eliom.server/eliom_form.ml.html#module-Make.val-textarea" class="source_link">Source</a><code><span><span class="keyword">val</span> textarea : 
+  <span><span class="optlabel">?a</span>:<span><span><span>[&lt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-textarea_attrib">Html_types.textarea_attrib</a> ]</span> <a href="../index.html#type-attrib">attrib</a></span> list</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">name</span>:<span><span>[&lt; <span>string <a href="../../../../Eliom_parameter/index.html#type-setoneradio">Eliom_parameter.setoneradio</a></span> ]</span> <a href="../../../../Eliom_parameter/index.html#type-param_name">Eliom_parameter.param_name</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?value</span>:string <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span><span>[&gt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-textarea">Html_types.textarea</a> ]</span> <a href="../index.html#type-elt">elt</a></span></span></code></div><div class="spec-doc"><p>Creates a <code>&lt;textarea&gt;</code> tag</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-soption"><a href="../../../../../src/eliom.server/eliom_form.ml.html#module-Make.type-soption" class="source_link">Source</a><code><span><span class="keyword">type</span> <span>'a soption</span></span><span> =
+  <span><span><a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-option_attrib">Html_types.option_attrib</a> <a href="../index.html#type-attrib">attrib</a></span> list</span>
+  * <span class="type-var">'a</span>
+  * <span><span><a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-pcdata">Html_types.pcdata</a> <a href="../index.html#type-elt">elt</a></span> option</span>
+  * bool</span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-select_opt"><a href="../../../../../src/eliom.server/eliom_form.ml.html#module-Make.type-select_opt" class="source_link">Source</a><code><span><span class="keyword">type</span> <span>'a select_opt</span></span><span> = </span></code><ol><li id="type-select_opt.Optgroup" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Optgroup</span> <span class="keyword">of</span> <span><span><span>[ <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-common">Html_types.common</a> <span>| `Disabled</span> ]</span> <a href="../index.html#type-attrib">attrib</a></span> list</span>
+  * string
+  * <span><span class="type-var">'a</span> <a href="#type-soption">soption</a></span>
+  * <span><span><span class="type-var">'a</span> <a href="#type-soption">soption</a></span> list</span></span></code></li><li id="type-select_opt.Option" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Option</span> <span class="keyword">of</span> <span><span class="type-var">'a</span> <a href="#type-soption">soption</a></span></span></code></li></ol></div><div class="spec-doc"><p>The type for <code>&lt;select&gt;</code> options and groups of options.</p><ul><li>The field of type 'a in <code>soption</code> is the value that will be sent by the form.</li><li>If the <code>Html_types.pcdata elt option</code> is not present it is also the value displayed.</li><li>The string in <code>select_opt</code> is the label</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-select"><a href="../../../../../src/eliom.server/eliom_form.ml.html#module-Make.val-select" class="source_link">Source</a><code><span><span class="keyword">val</span> select : 
+  <span><span class="optlabel">?a</span>:<span><span><span>[&lt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-select_attrib">Html_types.select_attrib</a> ]</span> <a href="../index.html#type-attrib">attrib</a></span> list</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?required</span>:<span><a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-pcdata">Html_types.pcdata</a> <a href="../index.html#type-elt">elt</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">name</span>:<span><span>[ <span>`One of <span class="type-var">'a</span></span> ]</span> <a href="../../../../Eliom_parameter/index.html#type-param_name">Eliom_parameter.param_name</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span class="type-var">'a</span> <a href="#type-param">param</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span class="type-var">'a</span> <a href="#type-select_opt">select_opt</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span><span class="type-var">'a</span> <a href="#type-select_opt">select_opt</a></span> list</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>[&gt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-select">Html_types.select</a> ]</span> <a href="../index.html#type-elt">elt</a></span></span></code></div><div class="spec-doc"><p>Creates a <code>&lt;select&gt;</code> tag.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-multiple_select"><a href="../../../../../src/eliom.server/eliom_form.ml.html#module-Make.val-multiple_select" class="source_link">Source</a><code><span><span class="keyword">val</span> multiple_select : 
+  <span><span class="optlabel">?a</span>:<span><span><span>[&lt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-select_attrib">Html_types.select_attrib</a> ]</span> <a href="../index.html#type-attrib">attrib</a></span> list</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?required</span>:<span><a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-pcdata">Html_types.pcdata</a> <a href="../index.html#type-elt">elt</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">name</span>:<span><span>[ <span>`Set of <span class="type-var">'a</span></span> ]</span> <a href="../../../../Eliom_parameter/index.html#type-param_name">Eliom_parameter.param_name</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span class="type-var">'a</span> <a href="#type-param">param</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span class="type-var">'a</span> <a href="#type-select_opt">select_opt</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span><span class="type-var">'a</span> <a href="#type-select_opt">select_opt</a></span> list</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>[&gt; <a href="https://ocaml.org/p/tyxml/4.6.0/doc/Html_types/index.html#type-select">Html_types.select</a> ]</span> <a href="../index.html#type-elt">elt</a></span></span></code></div><div class="spec-doc"><p>Creates a multiple-selection <code>&lt;select&gt;</code> tag.</p></div></div></div>
+      </article>
+    </div>
+  </div>
+
+  <script>
+    // Toggle between the server / client API of the same module.
+    function wodocSwitch(side) {
+      var w = { server: '', client: '' };
+      var p = location.pathname;
+      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
+      location.href = np !== p ? np
+        : '../../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
+    }
+    var wodocPub = "/eliom";
+    // Switch version: keep the current page, swapping only the version segment.
+    function wodocVersion(v) {
+      if (!v) return;
+      var re = new RegExp('^(' + wodocPub + '/)[^/]+');
+      var p = location.pathname;
+      location.href =
+        re.test(p) ? p.replace(re, '$1' + v) : wodocPub + '/' + v + '/index.html';
+    }
+    // Build the version <select> from the project's versions.json (the single
+    // source of truth, refreshed on every build/release), so even older frozen
+    // pages list the current set. Falls back to the baked <option>s on failure.
+    (function () {
+      var seg = (location.pathname.match(
+        new RegExp('^' + wodocPub + '/([^/]+)')) || [])[1];
+      function select(sel) {
+        var i;
+        for (i = 0; i < sel.options.length; i++)
+          if (sel.options[i].value === seg) { sel.selectedIndex = i; return; }
+        if (seg) {
+          var o = document.createElement('option');
+          o.value = seg; o.textContent = seg; o.selected = true;
+          sel.insertBefore(o, sel.firstChild);
+        }
+      }
+      fetch(wodocPub + '/versions.json')
+        .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(function (m) {
+          var list = m.list || [], latest = m.latest;
+          document.querySelectorAll('.wodoc-version').forEach(function (sel) {
+            sel.innerHTML = '';
+            list.forEach(function (v) {
+              var o = document.createElement('option');
+              if (v === latest) { o.value = 'latest'; o.textContent = v + ' (latest)'; }
+              else { o.value = v; o.textContent = v; }
+              sel.appendChild(o);
+            });
+            select(sel);
+          });
+        })
+        .catch(function () {
+          document.querySelectorAll('.wodoc-version').forEach(select);
+        });
+    })();
+  </script>
+</body>
+</html>
