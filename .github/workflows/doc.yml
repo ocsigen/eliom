@@ -57,7 +57,10 @@ jobs:
           # The documented version is the INSTALLED eliom: install it from the ref
           # being built so odoc_driver documents these sources.
           opam install . --deps-only --with-doc
-          opam install . --with-doc
+          # install eliom only — NOT its @doc: the server/client libraries share
+          # module names so `dune @doc` collides. wodoc builds the docs via
+          # `odoc_driver --remap` instead.
+          opam install .
           # odoc-driver with the cross-library link fix (driver: link units only
           # against their actual lib deps). TODO: drop the pin once it lands upstream.
           opam pin add -n odoc https://github.com/balat/odoc.git#driver-sibling-lib-link-fix
