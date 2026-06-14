@@ -44,6 +44,14 @@ jobs:
         with:
           ocaml-compiler: "5.4.0"
 
+      - name: Set up Binaryen
+        # eliom depends on wasm_of_ocaml-compiler, whose build needs a recent
+        # binaryen (wasm-merge); distro binaryen is too old. Same action as
+        # js_of_ocaml's own CI.
+        uses: Aandreba/setup-binaryen@v1.0.0
+        with:
+          token: ${{ github.token }}
+
       - name: Install dependencies
         run: |
           # The documented version is the INSTALLED eliom: install it from the ref
