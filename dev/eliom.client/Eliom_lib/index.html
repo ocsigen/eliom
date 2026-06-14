@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Module Eliom_libSource — Eliom</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <link rel="stylesheet" href="/css/ocsigen-odoc.css"/>
+  <script src="../../highlight.pack.js"></script>
+  <script src="../../wodoc-highlight.js"></script>
+</head>
+<body class="wodoc-page wodoc-doc wodoc-client">
+  <!-- Shared site menu — THE single source of truth for the header, top menu and
+     drawer of EVERY Ocsigen doc page (vitrine + all projects). Canonical copy
+     lives here in ocsigen.github.io; each project's build fetches it. Injected
+     by `wodoc assemble --menu`. Holes filled by the tool (braces omitted here so
+     this comment is not itself rewritten by the hole-filler):
+       subproject  the sub-project name shown next to the Ocsigen logo
+                   (empty on the vitrine), via --subproject
+       leftnav     the project's left navigation, expanded into BOTH the mobile
+                   drawer (below) and the left column (in the page template),
+                   via --leftnav
+     The current entry is highlighted by adding the `current` class to the
+     element carrying data-wodoc-page=<id>: --current on the vitrine (page id),
+     --menu-current in a project (the project id). Nothing is hardcoded here, so
+     this file is the ONLY place the menu is defined.
+
+     Links are the FINAL site paths (/<project>/, /<page>): the target layout
+     where each project is served at ocsigen.org/<project>/ — no transitional
+     /wodoc/ prefix. -->
+<div class="page-header">
+  <p class="logo-ocsigen"><a href="/"><img src="/img/ocsigen-white.svg" alt="Ocsigen"/></a></p>
+  <p class="logo-subproject">Eliom</p>
+
+  <div class="mainmenu">
+    <p class="mainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></p>
+    <p class="mainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></p>
+    <p data-wodoc-page="eliom" class="current"><a href="/eliom/">Eliom</a></p>
+    <p data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></p>
+    <p data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></p>
+    <p data-wodoc-page="lwt"><a href="/lwt/">Lwt</a></p>
+    <p data-wodoc-page="tyxml"><a href="/tyxml/">Tyxml</a></p>
+    <p data-wodoc-page="ocsigen-start"><a href="/ocsigen-start/">Start</a></p>
+  </div>
+
+  <form id="googlesearch" action="https://google.com/search">
+    <input name="q" id="gsearch-box" placeholder="Search using Google"/>
+    <label for="gsearch-box"><img src="/img/search.svg" alt="" id="gsearch-icon"/></label>
+    <input type="submit" id="gsearch-submit" onclick="document.getElementById('gsearch-box').value += ' site:ocsigen.org';"/>
+  </form>
+
+  <aside class="how-drawer">
+    <input id="how-drawer-toggle" type="checkbox"/>
+    <label for="how-drawer-toggle" id="how-drawer-label"><span class="how-drawer-icon"></span></label>
+    <nav class="how-drawer-content">
+      <ul class="drawermainmenu">
+        <li class="drawermainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></li>
+        <li class="drawermainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></li>
+        <li class="drawermainmenu-project current" data-wodoc-page="eliom"><a href="/eliom/">Eliom</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="lwt"><a href="/lwt/">Lwt</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="tyxml"><a href="/tyxml/">Tyxml</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-toolkit"><a href="/ocsigen-toolkit/">Toolkit</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-start"><a href="/ocsigen-start/">Start</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsipersist"><a href="/ocsipersist/">Ocsipersist</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="reactiveData"><a href="/reactiveData/">ReactiveData</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-i18n"><a href="/ocsigen-i18n/">i18n</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="wodoc"><a href="/wodoc/">Wodoc</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="projects"><a href="/projects">Other projects</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="papers"><a href="/papers">Research papers</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="credits"><a href="/credits">Who does Ocsigen?</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="contributing"><a href="/contributing">Contributing</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="blog"><a href="/blog">Blog</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="install"><a href="/install">Installation</a></li>
+        <li class="drawermainmenu-page"><a href="https://github.com/ocsigen">Source code</a></li>
+      </ul>
+      <!-- On mobile the left column is hidden; its menu lives here in the burger
+           (.how-doctree, shown only on narrow screens), as the old site did.
+           Empty on the vitrine; the leftnav hole is filled (with the same
+           fragment as the left column) only on project pages. -->
+      <nav class="how-doctree"><div class="docversion">
+  <label>Version:
+    <select class="wodoc-version" onchange="wodocVersion(this.value)">
+      <option value="dev">dev</option>
+    </select>
+  </label>
+</div>
+<div class="cs-switch">
+  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
+  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+</div>
+<div class="page-toc">
+  <h3>On this page</h3>
+  
+</div>
+<nav class="api-nav manual-nav">
+<h3>Eliom&#x27;s Reference manual</h3>
+<ul class="api-section">
+<li class="ml3" data-wodoc-page="intro.html"><a href="../../intro.html">Introduction</a></li>
+</ul>
+<h4 class="ml3">Server-side programming</h4>
+<h4 class="ml4">Services</h4>
+<ul class="api-section">
+<li class="ml5" data-wodoc-page="server-services.html"><a href="../../server-services.html">The different types of services</a></li>
+<li class="ml5" data-wodoc-page="server-params.html"><a href="../../server-params.html">Typing service parameters</a></li>
+<li class="ml5" data-wodoc-page="server-outputs.html"><a href="../../server-outputs.html">Service handlers</a></li>
+<li class="ml5" data-wodoc-page="server-links.html"><a href="../../server-links.html">Creating links and forms</a></li>
+</ul>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="server-state.html"><a href="../../server-state.html">Sessions and server side state</a></li>
+<li class="ml4" data-wodoc-page="server-security.html"><a href="../../server-security.html">Security</a></li>
+</ul>
+<h4 class="ml3">Client-server programming</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="clientserver-applications.html"><a href="../../clientserver-applications.html">Eliom applications</a></li>
+<li class="ml4" data-wodoc-page="ppx-syntax.html"><a href="../../ppx-syntax.html">Multi-tier programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-html.html"><a href="../../clientserver-html.html">Generating HTML</a></li>
+<li class="ml4" data-wodoc-page="clientserver-communication.html"><a href="../../clientserver-communication.html">Communication</a></li>
+<li class="ml4" data-wodoc-page="clientserver-services.html"><a href="../../clientserver-services.html">Client-side services</a></li>
+<li class="ml4" data-wodoc-page="clientserver-react.html"><a href="../../clientserver-react.html">Shared reactive programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-cache.html"><a href="../../clientserver-cache.html">Caching data and off-line applications</a></li>
+<li class="ml4" data-wodoc-page="clientserver-wrapping.html"><a href="../../clientserver-wrapping.html">Custom wrapping</a></li>
+</ul>
+<h4 class="ml3">Workflows</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="workflow-distillery.html"><a href="../../workflow-distillery.html">Distillery</a></li>
+<li class="ml4" data-wodoc-page="mobile-apps.html"><a href="../../mobile-apps.html">Mobile apps</a></li>
+<li class="ml4" data-wodoc-page="workflow-configuration.html"><a href="../../workflow-configuration.html">Configuration &amp; running</a></li>
+<li class="ml4" data-wodoc-page="scalability.html"><a href="../../scalability.html">Scalability</a></li>
+</ul>
+</nav>
+
+<nav class="api-nav">
+<h3>Client API</h3>
+<h4>Client API</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_lib" class="current"><a href="../../eliom.client/Eliom_lib/index.html">Eliom_lib</a></li>
+<li data-wodoc-page="Eliom_client"><a href="../../eliom.client/Eliom_client/index.html">Eliom_client</a></li>
+<li data-wodoc-page="Eliom_client_value"><a href="../../eliom.client/Eliom_client_value/index.html">Eliom_client_value</a></li>
+</ul>
+<h4>Content and form creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_content.Html"><a href="../../eliom.client/Eliom_content/Html/index.html">Eliom_content.Html</a></li>
+<li data-wodoc-page="Eliom_content.Html.Manip"><a href="../../eliom.client/Eliom_content/Html/Manip/index.html">Eliom_content.Html.Manip</a></li>
+<li data-wodoc-page="Eliom_content.Svg"><a href="../../eliom.client/Eliom_content/Svg/index.html">Eliom_content.Svg</a></li>
+<li data-wodoc-page="Eliom_content.Xml"><a href="../../eliom.client/Eliom_content/Xml/index.html">Eliom_content.Xml</a></li>
+</ul>
+<h4>Client/server communication</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_service"><a href="../../eliom.client/Eliom_service/index.html">Eliom_service</a></li>
+<li data-wodoc-page="Eliom_shared"><a href="../../eliom.client/Eliom_shared/index.html">Eliom_shared</a></li>
+<li data-wodoc-page="Eliom_cscache"><a href="../../eliom.client/Eliom_cscache/index.html">Eliom_cscache</a></li>
+<li data-wodoc-page="Eliom_bus"><a href="../../eliom.client/Eliom_bus/index.html">Eliom_bus</a></li>
+<li data-wodoc-page="Eliom_comet"><a href="../../eliom.client/Eliom_comet/index.html">Eliom_comet</a></li>
+<li data-wodoc-page="Eliom_react"><a href="../../eliom.client/Eliom_react/index.html">Eliom_react</a></li>
+</ul>
+</nav>
+</nav>
+    </nav>
+  </aside>
+</div>
+
+
+  <div class="project-page">
+    <div class="twocols">
+      <nav class="leftcol">
+        <div class="docversion">
+  <label>Version:
+    <select class="wodoc-version" onchange="wodocVersion(this.value)">
+      <option value="dev">dev</option>
+    </select>
+  </label>
+</div>
+<div class="cs-switch">
+  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
+  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+</div>
+<div class="page-toc">
+  <h3>On this page</h3>
+  
+</div>
+<nav class="api-nav manual-nav">
+<h3>Eliom&#x27;s Reference manual</h3>
+<ul class="api-section">
+<li class="ml3" data-wodoc-page="intro.html"><a href="../../intro.html">Introduction</a></li>
+</ul>
+<h4 class="ml3">Server-side programming</h4>
+<h4 class="ml4">Services</h4>
+<ul class="api-section">
+<li class="ml5" data-wodoc-page="server-services.html"><a href="../../server-services.html">The different types of services</a></li>
+<li class="ml5" data-wodoc-page="server-params.html"><a href="../../server-params.html">Typing service parameters</a></li>
+<li class="ml5" data-wodoc-page="server-outputs.html"><a href="../../server-outputs.html">Service handlers</a></li>
+<li class="ml5" data-wodoc-page="server-links.html"><a href="../../server-links.html">Creating links and forms</a></li>
+</ul>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="server-state.html"><a href="../../server-state.html">Sessions and server side state</a></li>
+<li class="ml4" data-wodoc-page="server-security.html"><a href="../../server-security.html">Security</a></li>
+</ul>
+<h4 class="ml3">Client-server programming</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="clientserver-applications.html"><a href="../../clientserver-applications.html">Eliom applications</a></li>
+<li class="ml4" data-wodoc-page="ppx-syntax.html"><a href="../../ppx-syntax.html">Multi-tier programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-html.html"><a href="../../clientserver-html.html">Generating HTML</a></li>
+<li class="ml4" data-wodoc-page="clientserver-communication.html"><a href="../../clientserver-communication.html">Communication</a></li>
+<li class="ml4" data-wodoc-page="clientserver-services.html"><a href="../../clientserver-services.html">Client-side services</a></li>
+<li class="ml4" data-wodoc-page="clientserver-react.html"><a href="../../clientserver-react.html">Shared reactive programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-cache.html"><a href="../../clientserver-cache.html">Caching data and off-line applications</a></li>
+<li class="ml4" data-wodoc-page="clientserver-wrapping.html"><a href="../../clientserver-wrapping.html">Custom wrapping</a></li>
+</ul>
+<h4 class="ml3">Workflows</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="workflow-distillery.html"><a href="../../workflow-distillery.html">Distillery</a></li>
+<li class="ml4" data-wodoc-page="mobile-apps.html"><a href="../../mobile-apps.html">Mobile apps</a></li>
+<li class="ml4" data-wodoc-page="workflow-configuration.html"><a href="../../workflow-configuration.html">Configuration &amp; running</a></li>
+<li class="ml4" data-wodoc-page="scalability.html"><a href="../../scalability.html">Scalability</a></li>
+</ul>
+</nav>
+
+<nav class="api-nav">
+<h3>Client API</h3>
+<h4>Client API</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_lib" class="current"><a href="../../eliom.client/Eliom_lib/index.html">Eliom_lib</a></li>
+<li data-wodoc-page="Eliom_client"><a href="../../eliom.client/Eliom_client/index.html">Eliom_client</a></li>
+<li data-wodoc-page="Eliom_client_value"><a href="../../eliom.client/Eliom_client_value/index.html">Eliom_client_value</a></li>
+</ul>
+<h4>Content and form creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_content.Html"><a href="../../eliom.client/Eliom_content/Html/index.html">Eliom_content.Html</a></li>
+<li data-wodoc-page="Eliom_content.Html.Manip"><a href="../../eliom.client/Eliom_content/Html/Manip/index.html">Eliom_content.Html.Manip</a></li>
+<li data-wodoc-page="Eliom_content.Svg"><a href="../../eliom.client/Eliom_content/Svg/index.html">Eliom_content.Svg</a></li>
+<li data-wodoc-page="Eliom_content.Xml"><a href="../../eliom.client/Eliom_content/Xml/index.html">Eliom_content.Xml</a></li>
+</ul>
+<h4>Client/server communication</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_service"><a href="../../eliom.client/Eliom_service/index.html">Eliom_service</a></li>
+<li data-wodoc-page="Eliom_shared"><a href="../../eliom.client/Eliom_shared/index.html">Eliom_shared</a></li>
+<li data-wodoc-page="Eliom_cscache"><a href="../../eliom.client/Eliom_cscache/index.html">Eliom_cscache</a></li>
+<li data-wodoc-page="Eliom_bus"><a href="../../eliom.client/Eliom_bus/index.html">Eliom_bus</a></li>
+<li data-wodoc-page="Eliom_comet"><a href="../../eliom.client/Eliom_comet/index.html">Eliom_comet</a></li>
+<li data-wodoc-page="Eliom_react"><a href="../../eliom.client/Eliom_react/index.html">Eliom_react</a></li>
+</ul>
+</nav>
+
+      </nav>
+      <article class="rightcol">
+        <header class="odoc-preamble"><h1>Module <code><span>Eliom_lib</span></code><a href="../../src/eliom.client/eliom_lib.ml.html" class="source_link">Source</a></h1><p>Eliom standard library</p></header>
+        <div class="odoc-content"><div class="odoc-include"><div class="spec-doc"><p>See <a href="../../../../ocsigenserver/latest/Ocsigen_lib_base/index.html"><code>Ocsigen_lib_base</code></a>.</p></div><details open="open"><summary class="spec include"><code><span><span class="keyword">include</span> <span class="keyword">module</span> <span class="keyword">type</span> <span class="keyword">of</span> <a href="../../../../ocsigenserver/latest/Ocsigen_lib_base/index.html">Ocsigen_lib_base</a>
+  <span class="keyword">with</span> <span><span class="keyword">type</span> <a href="../../../../ocsigenserver/latest/Ocsigen_lib_base/index.html#type-poly">poly</a> = <a href="../../../../ocsigenserver/latest/Ocsigen_lib_base/index.html#type-poly">Ocsigen_lib_base.poly</a></span>
+   <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../../../../ocsigenserver/latest/Ocsigen_lib_base/index.html#type-yesnomaybe">yesnomaybe</a> = <a href="../../../../ocsigenserver/latest/Ocsigen_lib_base/index.html#type-yesnomaybe">Ocsigen_lib_base.yesnomaybe</a></span>
+   <span class="keyword">and</span> <span><span class="keyword">type</span> <span>('a, 'b) <a href="../../../../ocsigenserver/latest/Ocsigen_lib_base/index.html#type-leftright">leftright</a></span> = <span><span>(<span class="type-var">'a</span>, <span class="type-var">'b</span>)</span> <a href="../../../../ocsigenserver/latest/Ocsigen_lib_base/index.html#type-leftright">Ocsigen_lib_base.leftright</a></span></span>
+   <span class="keyword">and</span> <span><span class="keyword">type</span> <span>'a <a href="../../../../ocsigenserver/latest/Ocsigen_lib_base/Clist/index.html#type-t">Clist.t</a></span> = <span><span class="type-var">'a</span> <a href="../../../../ocsigenserver/latest/Ocsigen_lib_base/Clist/index.html#type-t">Ocsigen_lib_base.Clist.t</a></span></span>
+   <span class="keyword">and</span> <span><span class="keyword">type</span> <span>'a <a href="../../../../ocsigenserver/latest/Ocsigen_lib_base/Clist/index.html#type-node">Clist.node</a></span> = <span><span class="type-var">'a</span> <a href="../../../../ocsigenserver/latest/Ocsigen_lib_base/Clist/index.html#type-node">Ocsigen_lib_base.Clist.node</a></span></span></span></code></summary><div class="odoc-spec"><div class="spec exception anchored" id="exception-Ocsigen_Internal_Error"><a href="https://ocaml.org/p/ocsigenserver/7.0.0/doc/src/ocsigenserver.baselib.base/ocsigen_lib_base.ml.html#exception-Ocsigen_Internal_Error" class="source_link">Source</a><code><span><span class="keyword">exception</span> </span><span><span class="exception">Ocsigen_Internal_Error</span> <span class="keyword">of</span> string</span></code></div></div><div class="odoc-spec"><div class="spec exception anchored" id="exception-Input_is_too_large"><a href="https://ocaml.org/p/ocsigenserver/7.0.0/doc/src/ocsigenserver.baselib.base/ocsigen_lib_base.ml.html#exception-Input_is_too_large" class="source_link">Source</a><code><span><span class="keyword">exception</span> </span><span><span class="exception">Input_is_too_large</span></span></code></div></div><div class="odoc-spec"><div class="spec exception anchored" id="exception-Ocsigen_Bad_Request"><a href="https://ocaml.org/p/ocsigenserver/7.0.0/doc/src/ocsigenserver.baselib.base/ocsigen_lib_base.ml.html#exception-Ocsigen_Bad_Request" class="source_link">Source</a><code><span><span class="keyword">exception</span> </span><span><span class="exception">Ocsigen_Bad_Request</span></span></code></div></div><div class="odoc-spec"><div class="spec exception anchored" id="exception-Ocsigen_Request_too_long"><a href="https://ocaml.org/p/ocsigenserver/7.0.0/doc/src/ocsigenserver.baselib.base/ocsigen_lib_base.ml.html#exception-Ocsigen_Request_too_long" class="source_link">Source</a><code><span><span class="keyword">exception</span> </span><span><span class="exception">Ocsigen_Request_too_long</span></span></code></div></div><div class="odoc-include"><details open="open"><summary class="spec include"><code><span><span class="keyword">include</span> <span class="keyword">module</span> <span class="keyword">type</span> <span class="keyword">of</span> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/Infix/index.html">Lwt.Infix</a></span></code></summary><div class="odoc-spec"><div class="spec value anchored" id="val-(&gt;&gt;=)"><a href="https://ocaml.org/p/lwt/6.1.2/doc/src/lwt/lwt.ml.html#module-Infix.val-(&gt;&gt;=)" class="source_link">Source</a><code><span><span class="keyword">val</span> (&gt;&gt;=) : <span><span><span class="type-var">'a</span> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span>(<span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'b</span> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'b</span> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p><code>p &gt;&gt;= f</code> is the same as <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#val-bind"><code>Lwt.bind</code></a><code> p f</code>. It requires <code>Lwt.Infix</code> to be opened in scope:</p><pre class="language-ocaml"><code>open Lwt.Infix
+
+let () =
+  Lwt_main.run
+    (Lwt_io.(read_line stdin) &gt;&gt;= Lwt_io.printl)
+
+(* ocamlfind opt -linkpkg -thread -package lwt.unix code.ml &amp;&amp; ./a.out *)</code></pre><p>It is recommended to use the PPX <code>let%lwt</code> syntax instead. This operator is the next-best choice. It is frequently found while reading existing Lwt code.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-(&gt;|=)"><a href="https://ocaml.org/p/lwt/6.1.2/doc/src/lwt/lwt.ml.html#module-Infix.val-(&gt;|=)" class="source_link">Source</a><code><span><span class="keyword">val</span> (&gt;|=) : <span><span><span class="type-var">'a</span> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span>(<span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'b</span>)</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'b</span> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p><code>p &gt;|= f</code> is the same as <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#val-map"><code>Lwt.map</code></a><code> f p</code>. It requires <code>Lwt.Infix</code> to be opened in scope.</p><pre class="language-ocaml"><code>open Lwt.Infix
+
+let () =
+  Lwt_main.run
+    (Lwt_io.(read_line stdin) &gt;|= ignore)
+
+(* ocamlfind opt -linkpkg -thread -package lwt.unix code.ml &amp;&amp; ./a.out *)</code></pre></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-(&lt;&amp;&gt;)"><a href="https://ocaml.org/p/lwt/6.1.2/doc/src/lwt/lwt.ml.html#module-Infix.val-(&lt;&amp;&gt;)" class="source_link">Source</a><code><span><span class="keyword">val</span> (&lt;&amp;&gt;) : <span><span>unit <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span>unit <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span>unit <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p><code>p1 &lt;&amp;&gt; p2</code> is the same as <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#val-join"><code>Lwt.join</code></a><code> [p1; p2]</code>. It requires <code>Lwt.Infix</code> to be opened in scope.</p><p>Unlike with <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#val-bind"><code>Lwt.bind</code></a> and <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#val-map"><code>Lwt.map</code></a>, there are no problems with explicit <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#val-join"><code>Lwt.join</code></a> syntax, so using this operator is not recommended.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-(&lt;?&gt;)"><a href="https://ocaml.org/p/lwt/6.1.2/doc/src/lwt/lwt.ml.html#module-Infix.val-(&lt;?&gt;)" class="source_link">Source</a><code><span><span class="keyword">val</span> (&lt;?&gt;) : <span><span><span class="type-var">'a</span> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p><code>p1 &lt;?&gt; p2</code> is the same as <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#val-choose"><code>Lwt.choose</code></a><code> [p1; p2]</code>. It requires <code>Lwt.Infix</code> to be opened in scope.</p><p>Unlike with <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#val-bind"><code>Lwt.bind</code></a> and <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#val-map"><code>Lwt.map</code></a>, there are no problems with explicit <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#val-choose"><code>Lwt.choose</code></a> syntax, so using this operator is not recommended.</p><p>Furthermore, most users actually need <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#val-pick"><code>Lwt.pick</code></a> instead of <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#val-choose"><code>Lwt.choose</code></a>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-(=&lt;&lt;)"><a href="https://ocaml.org/p/lwt/6.1.2/doc/src/lwt/lwt.ml.html#module-Infix.val-(=&lt;&lt;)" class="source_link">Source</a><code><span><span class="keyword">val</span> (=&lt;&lt;) : <span><span>(<span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'b</span> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'b</span> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p><code>f =&lt;&lt; p</code> is the same as <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#val-bind"><code>Lwt.bind</code></a><code> p f</code>. It requires <code>Lwt.Infix</code> to be opened in scope.</p><p>This operator is obscure and its use is discouraged. It is the same as <code>p &gt;&gt;= f</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-(=|&lt;)"><a href="https://ocaml.org/p/lwt/6.1.2/doc/src/lwt/lwt.ml.html#module-Infix.val-(=|&lt;)" class="source_link">Source</a><code><span><span class="keyword">val</span> (=|&lt;) : <span><span>(<span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'b</span>)</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'b</span> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p><code>f =|&lt; p</code> is the same as <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#val-map"><code>Lwt.map</code></a><code> f p</code>. It requires <code>Lwt.Infix</code> to be opened in scope.</p><p>This operator is obscure and its use is discouraged. It is the same as <code>p &gt;|= f</code>.</p></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Let_syntax"><a href="https://ocaml.org/p/lwt/6.1.2/doc/src/lwt/lwt.ml.html" class="source_link">Source</a><code><span><span class="keyword">module</span> <a href="Let_syntax/index.html">Let_syntax</a></span><span> : <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div><div class="spec-doc"><p>This module provides support for <a href="https://github.com/janestreet/ppx_let">ppx_let</a>.</p></div></div></details></div><div class="odoc-spec"><div class="spec value anchored" id="val-(!!)"><a href="https://ocaml.org/p/ocsigenserver/7.0.0/doc/src/ocsigenserver.baselib.base/ocsigen_lib_base.ml.html#val-(!!)" class="source_link">Source</a><code><span><span class="keyword">val</span> (!!) : <span><span><span class="type-var">'a</span> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/Lazy/index.html#type-t">Lazy.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'a</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-(|&gt;)"><a href="https://ocaml.org/p/ocsigenserver/7.0.0/doc/src/ocsigenserver.baselib.base/ocsigen_lib_base.ml.html#val-(|&gt;)" class="source_link">Source</a><code><span><span class="keyword">val</span> (|&gt;) : <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span><span>(<span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'b</span>)</span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'b</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-(@@)"><a href="https://ocaml.org/p/ocsigenserver/7.0.0/doc/src/ocsigenserver.baselib.base/ocsigen_lib_base.ml.html#val-(@@)" class="source_link">Source</a><code><span><span class="keyword">val</span> (@@) : <span><span>(<span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'b</span>)</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'b</span></span></code></div></div><div class="odoc-spec"><div class="spec value external anchored" id="val-id"><a href="https://ocaml.org/p/ocsigenserver/7.0.0/doc/src/ocsigenserver.baselib.base/ocsigen_lib_base.ml.html#val-id" class="source_link">Source</a><code><span><span class="keyword">val</span> id : <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'a</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-comp"><a href="https://ocaml.org/p/ocsigenserver/7.0.0/doc/src/ocsigenserver.baselib.base/ocsigen_lib_base.ml.html#val-comp" class="source_link">Source</a><code><span><span class="keyword">val</span> comp : <span><span>(<span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'b</span>)</span> <span class="arrow">&#45;&gt;</span></span> <span><span>(<span><span class="type-var">'c</span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'a</span>)</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'c</span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'b</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-curry"><a href="https://ocaml.org/p/ocsigenserver/7.0.0/doc/src/ocsigenserver.baselib.base/ocsigen_lib_base.ml.html#val-curry" class="source_link">Source</a><code><span><span class="keyword">val</span> curry : <span><span>(<span><span>(<span class="type-var">'a</span> * <span class="type-var">'b</span>)</span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'c</span>)</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'b</span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'c</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-uncurry"><a href="https://ocaml.org/p/ocsigenserver/7.0.0/doc/src/ocsigenserver.baselib.base/ocsigen_lib_base.ml.html#val-uncurry" class="source_link">Source</a><code><span><span class="keyword">val</span> uncurry : <span><span>(<span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'b</span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'c</span>)</span> <span class="arrow">&#45;&gt;</span></span> <span><span>(<span class="type-var">'a</span> * <span class="type-var">'b</span>)</span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'c</span></span></code></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Tuple3"><a href="https://ocaml.org/p/ocsigenserver/7.0.0/doc/src/ocsigenserver.baselib.base/ocsigen_lib_base.ml.html" class="source_link">Source</a><code><span><span class="keyword">module</span> <a href="Tuple3/index.html">Tuple3</a></span><span> : <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-poly"><a href="https://ocaml.org/p/ocsigenserver/7.0.0/doc/src/ocsigenserver.baselib.base/ocsigen_lib_base.ml.html#type-poly" class="source_link">Source</a><code><span><span class="keyword">type</span> poly</span><span> = <a href="../../../../ocsigenserver/latest/Ocsigen_lib_base/index.html#type-poly">Ocsigen_lib_base.poly</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-to_poly"><a href="https://ocaml.org/p/ocsigenserver/7.0.0/doc/src/ocsigenserver.baselib.base/ocsigen_lib_base.ml.html#val-to_poly" class="source_link">Source</a><code><span><span class="keyword">val</span> to_poly : <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <a href="#type-poly">poly</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-from_poly"><a href="https://ocaml.org/p/ocsigenserver/7.0.0/doc/src/ocsigenserver.baselib.base/ocsigen_lib_base.ml.html#val-from_poly" class="source_link">Source</a><code><span><span class="keyword">val</span> from_poly : <span><a href="#type-poly">poly</a> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'a</span></span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-yesnomaybe"><a href="https://ocaml.org/p/ocsigenserver/7.0.0/doc/src/ocsigenserver.baselib.base/ocsigen_lib_base.ml.html#type-yesnomaybe" class="source_link">Source</a><code><span><span class="keyword">type</span> yesnomaybe</span><span> = <a href="../../../../ocsigenserver/latest/Ocsigen_lib_base/index.html#type-yesnomaybe">Ocsigen_lib_base.yesnomaybe</a></span><span> = </span></code><ol><li id="type-yesnomaybe.Yes" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Yes</span></span></code></li><li id="type-yesnomaybe.No" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">No</span></span></code></li><li id="type-yesnomaybe.Maybe" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Maybe</span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-leftright"><a href="https://ocaml.org/p/ocsigenserver/7.0.0/doc/src/ocsigenserver.baselib.base/ocsigen_lib_base.ml.html#type-leftright" class="source_link">Source</a><code><span><span class="keyword">type</span> <span>('a, 'b) leftright</span></span><span> = <span><span>(<span class="type-var">'a</span>, <span class="type-var">'b</span>)</span> <a href="../../../../ocsigenserver/latest/Ocsigen_lib_base/index.html#type-leftright">Ocsigen_lib_base.leftright</a></span></span><span> = </span></code><ol><li id="type-leftright.Left" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Left</span> <span class="keyword">of</span> <span class="type-var">'a</span></span></code></li><li id="type-leftright.Right" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Right</span> <span class="keyword">of</span> <span class="type-var">'b</span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-advert"><a href="https://ocaml.org/p/ocsigenserver/7.0.0/doc/src/ocsigenserver.baselib.base/ocsigen_lib_base.ml.html#val-advert" class="source_link">Source</a><code><span><span class="keyword">val</span> advert : string</span></code></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Option"><a href="https://ocaml.org/p/ocsigenserver/7.0.0/doc/src/ocsigenserver.baselib.base/ocsigen_lib_base.ml.html" class="source_link">Source</a><code><span><span class="keyword">module</span> <a href="Option/index.html">Option</a></span><span> : <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div><div class="spec-doc"><p>Module Option to compute type <code>'a option</code></p></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-List"><a href="https://ocaml.org/p/ocsigenserver/7.0.0/doc/src/ocsigenserver.baselib.base/ocsigen_lib_base.ml.html" class="source_link">Source</a><code><span><span class="keyword">module</span> <a href="List/index.html">List</a></span><span> : <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div><div class="spec-doc"><p>Improvement of module List</p></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Clist"><a href="https://ocaml.org/p/ocsigenserver/7.0.0/doc/src/ocsigenserver.baselib.base/ocsigen_lib_base.ml.html" class="source_link">Source</a><code><span><span class="keyword">module</span> <a href="Clist/index.html">Clist</a></span><span> : <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div><div class="spec-doc"><p>Circular lists</p></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Int"><a href="https://ocaml.org/p/ocsigenserver/7.0.0/doc/src/ocsigenserver.baselib.base/ocsigen_lib_base.ml.html" class="source_link">Source</a><code><span><span class="keyword">module</span> <a href="Int/index.html">Int</a></span><span> : <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-String_base"><a href="https://ocaml.org/p/ocsigenserver/7.0.0/doc/src/ocsigenserver.baselib.base/ocsigen_lib_base.ml.html" class="source_link">Source</a><code><span><span class="keyword">module</span> <a href="String_base/index.html">String_base</a></span><span> : <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div><div class="spec-doc"><p>Improvement of module String</p></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Url_base"><a href="https://ocaml.org/p/ocsigenserver/7.0.0/doc/src/ocsigenserver.baselib.base/ocsigen_lib_base.ml.html" class="source_link">Source</a><code><span><span class="keyword">module</span> <a href="Url_base/index.html">Url_base</a></span><span> : <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-debug"><a href="https://ocaml.org/p/ocsigenserver/7.0.0/doc/src/ocsigenserver.baselib.base/ocsigen_lib_base.ml.html#val-debug" class="source_link">Source</a><code><span><span class="keyword">val</span> debug : <span>string <span class="arrow">&#45;&gt;</span></span> unit</span></code></div></div></details></div><div class="odoc-include"><details open="open"><summary class="spec include"><code><span><span class="keyword">include</span> <span class="keyword">module</span> <span class="keyword">type</span> <span class="keyword">of</span> <a href="../Eliom_lib_base/index.html">Eliom_lib_base</a>
+  <span class="keyword">with</span> <span><span class="keyword">type</span> <span>'a <a href="../Eliom_lib_base/Int64_map/index.html#type-t">Int64_map.t</a></span> = <span><span class="type-var">'a</span> <a href="../Eliom_lib_base/Int64_map/index.html#type-t">Eliom_lib_base.Int64_map.t</a></span></span>
+  <span class="keyword">with</span> <span><span class="keyword">type</span> <span>'a <a href="../Eliom_lib_base/String_map/index.html#type-t">String_map.t</a></span> = <span><span class="type-var">'a</span> <a href="../Eliom_lib_base/String_map/index.html#type-t">Eliom_lib_base.String_map.t</a></span></span>
+  <span class="keyword">with</span> <span><span class="keyword">type</span> <span>'a <a href="../Eliom_lib_base/Int_map/index.html#type-t">Int_map.t</a></span> = <span><span class="type-var">'a</span> <a href="../Eliom_lib_base/Int_map/index.html#type-t">Eliom_lib_base.Int_map.t</a></span></span></span></code></summary><div class="odoc-spec"><div class="spec exception anchored" id="exception-Eliom_Internal_Error"><a href="../../src/eliom.client/eliom_lib_base.ml.html#exception-Eliom_Internal_Error" class="source_link">Source</a><code><span><span class="keyword">exception</span> </span><span><span class="exception">Eliom_Internal_Error</span> <span class="keyword">of</span> string</span></code></div></div><div class="odoc-spec"><div class="spec module-type anchored" id="module-type-Map_S"><a href="../../src/eliom.client/eliom_lib_base.ml.html#module-type-Map_S" class="source_link">Source</a><code><span><span class="keyword">module</span> <span class="keyword">type</span> <a href="module-type-Map_S/index.html">Map_S</a></span><span> = <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Int64_map"><a href="../../src/eliom.client/eliom_lib_base.ml.html" class="source_link">Source</a><code><span><span class="keyword">module</span> <a href="Int64_map/index.html">Int64_map</a></span><span> : 
+  <a href="module-type-Map_S/index.html">Map_S</a> <span class="keyword">with</span> <span><span class="keyword">type</span> <a href="module-type-Map_S/index.html#type-key">key</a> = int64</span> <span class="keyword">with</span> <span><span class="keyword">type</span> <span>'a <a href="module-type-Map_S/index.html#type-t">t</a></span> = <span><span class="type-var">'a</span> <a href="../Eliom_lib_base/Int64_map/index.html#type-t">Eliom_lib_base.Int64_map.t</a></span></span></span></code></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Int_map"><a href="../../src/eliom.client/eliom_lib_base.ml.html" class="source_link">Source</a><code><span><span class="keyword">module</span> <a href="Int_map/index.html">Int_map</a></span><span> : 
+  <a href="module-type-Map_S/index.html">Map_S</a> <span class="keyword">with</span> <span><span class="keyword">type</span> <a href="module-type-Map_S/index.html#type-key">key</a> = int</span> <span class="keyword">with</span> <span><span class="keyword">type</span> <span>'a <a href="module-type-Map_S/index.html#type-t">t</a></span> = <span><span class="type-var">'a</span> <a href="../Eliom_lib_base/Int_map/index.html#type-t">Eliom_lib_base.Int_map.t</a></span></span></span></code></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-String_map"><a href="../../src/eliom.client/eliom_lib_base.ml.html" class="source_link">Source</a><code><span><span class="keyword">module</span> <a href="String_map/index.html">String_map</a></span><span> : 
+  <a href="module-type-Map_S/index.html">Map_S</a> <span class="keyword">with</span> <span><span class="keyword">type</span> <a href="module-type-Map_S/index.html#type-key">key</a> = string</span> <span class="keyword">with</span> <span><span class="keyword">type</span> <span>'a <a href="module-type-Map_S/index.html#type-t">t</a></span> = <span><span class="type-var">'a</span> <a href="../Eliom_lib_base/String_map/index.html#type-t">Eliom_lib_base.String_map.t</a></span></span></span></code></div></div></details></div><div class="odoc-spec"><div class="spec type anchored" id="type-file_info"><a href="../../src/eliom.client/eliom_lib.ml.html#type-file_info" class="source_link">Source</a><code><span><span class="keyword">type</span> file_info</span><span> = <span><a href="https://ocaml.org/p/js_of_ocaml/6.3.2/doc/Js_of_ocaml/File/class-type-file/index.html">Js_of_ocaml.File.file</a> <a href="https://ocaml.org/p/js_of_ocaml/6.3.2/doc/Js_of_ocaml/Js/index.html#type-t">Js_of_ocaml.Js.t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-to_json"><a href="../../src/eliom.client/eliom_lib.ml.html#val-to_json" class="source_link">Source</a><code><span><span class="keyword">val</span> to_json : <span><span class="optlabel">?typ</span>:<span><span class="type-var">'a</span> <a href="https://ocaml.org/p/js_of_ocaml/6.3.2/doc/Deriving_Json/index.html#type-t">Deriving_Json.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> string</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-of_json"><a href="../../src/eliom.client/eliom_lib.ml.html#val-of_json" class="source_link">Source</a><code><span><span class="keyword">val</span> of_json : <span><span class="optlabel">?typ</span>:<span><span class="type-var">'a</span> <a href="https://ocaml.org/p/js_of_ocaml/6.3.2/doc/Deriving_Json/index.html#type-t">Deriving_Json.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span>string <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'a</span></span></code></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Url"><a href="../../src/eliom.client/eliom_lib.ml.html#module-Url" class="source_link">Source</a><code><span><span class="keyword">module</span> <a href="Url/index.html">Url</a></span><span> : <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div><div class="spec-doc"><p>URL manipulation</p></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-String"><a href="../../src/eliom.client/eliom_lib.ml.html#module-String" class="source_link">Source</a><code><span><span class="keyword">module</span> <a href="String/index.html">String</a></span><span> : <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div><div class="spec-doc"><p>Extension of <a href="../../../../ocsigenserver/latest/Ocsigen_lib_base/String_base/index.html"><code>Ocsigen_lib_base.String_base</code></a>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-raise_error"><a href="../../src/eliom.client/eliom_lib.ml.html#val-raise_error" class="source_link">Source</a><code><span><span class="keyword">val</span> raise_error : 
+  <span><span class="optlabel">?exn</span>:exn <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?section</span>:<a href="https://ocaml.org/p/logs/0.10.0/doc/Logs/index.html#type-src">Logs.src</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span>(<span class="type-var">'a</span>, unit, string, <span class="type-var">'any</span>)</span> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/index.html#type-format4">format4</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span class="type-var">'a</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-log_inspect"><a href="../../src/eliom.client/eliom_lib.ml.html#val-log_inspect" class="source_link">Source</a><code><span><span class="keyword">val</span> log_inspect : <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div><div class="spec-doc"><p>Print an object in the console.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-eliom_logs_src"><a href="../../src/eliom.client/eliom_lib.ml.html#val-eliom_logs_src" class="source_link">Source</a><code><span><span class="keyword">val</span> eliom_logs_src : <a href="https://ocaml.org/p/logs/0.10.0/doc/Logs/index.html#type-src">Logs.src</a></span></code></div><div class="spec-doc"><p>Log section for logs generated by Eliom.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-alert"><a href="../../src/eliom.client/eliom_lib.ml.html#val-alert" class="source_link">Source</a><code><span><span class="keyword">val</span> alert : <span><span><span>(<span class="type-var">'a</span>, unit, string, unit)</span> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/index.html#type-format4">format4</a></span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'a</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-jsalert"><a href="../../src/eliom.client/eliom_lib.ml.html#val-jsalert" class="source_link">Source</a><code><span><span class="keyword">val</span> jsalert : <span><span><a href="https://ocaml.org/p/js_of_ocaml/6.3.2/doc/Js_of_ocaml/Js/class-type-js_string/index.html">Js_of_ocaml.Js.js_string</a> <a href="https://ocaml.org/p/js_of_ocaml/6.3.2/doc/Js_of_ocaml/Js/index.html#type-t">Js_of_ocaml.Js.t</a></span> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-confirm"><a href="../../src/eliom.client/eliom_lib.ml.html#val-confirm" class="source_link">Source</a><code><span><span class="keyword">val</span> confirm : <span><span><span>(<span class="type-var">'a</span>, unit, string, bool)</span> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/index.html#type-format4">format4</a></span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'a</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-debug_var"><a href="../../src/eliom.client/eliom_lib.ml.html#val-debug_var" class="source_link">Source</a><code><span><span class="keyword">val</span> debug_var : <span>string <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-trace"><a href="../../src/eliom.client/eliom_lib.ml.html#val-trace" class="source_link">Source</a><code><span><span class="keyword">val</span> trace : <span><span><span>(<span class="type-var">'a</span>, unit, string, unit)</span> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/index.html#type-format4">format4</a></span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'a</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-unmarshal_js"><a href="../../src/eliom.client/eliom_lib.ml.html#val-unmarshal_js" class="source_link">Source</a><code><span><span class="keyword">val</span> unmarshal_js : <span><span><a href="https://ocaml.org/p/js_of_ocaml/6.3.2/doc/Js_of_ocaml/Js/class-type-js_string/index.html">Js_of_ocaml.Js.js_string</a> <a href="https://ocaml.org/p/js_of_ocaml/6.3.2/doc/Js_of_ocaml/Js/index.html#type-t">Js_of_ocaml.Js.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'a</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-encode_header_value"><a href="../../src/eliom.client/eliom_lib.ml.html#val-encode_header_value" class="source_link">Source</a><code><span><span class="keyword">val</span> encode_header_value : <span><span class="label">typ</span>:<span><span class="type-var">'a</span> <a href="https://ocaml.org/p/js_of_ocaml/6.3.2/doc/Deriving_Json/index.html#type-t">Deriving_Json.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> string</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-make_cryptographic_safe_string"><a href="../../src/eliom.client/eliom_lib.ml.html#val-make_cryptographic_safe_string" class="source_link">Source</a><code><span><span class="keyword">val</span> make_cryptographic_safe_string : <span><span class="optlabel">?len</span>:int <span class="arrow">&#45;&gt;</span></span> <span>unit <span class="arrow">&#45;&gt;</span></span> string</span></code></div><div class="spec-doc"><p>Return a base-64 encoded cryptographic safe string of the given length. Not implemented client-side.</p></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Dom_reference"><a href="../../src/eliom.client/eliom_lib.ml.html#module-Dom_reference" class="source_link">Source</a><code><span><span class="keyword">module</span> <a href="Dom_reference/index.html">Dom_reference</a></span><span> : <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div></div></div>
+      </article>
+    </div>
+  </div>
+
+  <script>
+    // Toggle between the server / client API of the same module.
+    function wodocSwitch(side) {
+      var w = { server: '', client: '' };
+      var p = location.pathname;
+      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
+      location.href = np !== p ? np
+        : '../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
+    }
+    var wodocPub = "/eliom";
+    // Switch version: keep the current page, swapping only the version segment.
+    function wodocVersion(v) {
+      if (!v) return;
+      var re = new RegExp('^(' + wodocPub + '/)[^/]+');
+      var p = location.pathname;
+      location.href =
+        re.test(p) ? p.replace(re, '$1' + v) : wodocPub + '/' + v + '/index.html';
+    }
+    // Build the version <select> from the project's versions.json (the single
+    // source of truth, refreshed on every build/release), so even older frozen
+    // pages list the current set. Falls back to the baked <option>s on failure.
+    (function () {
+      var seg = (location.pathname.match(
+        new RegExp('^' + wodocPub + '/([^/]+)')) || [])[1];
+      function select(sel) {
+        var i;
+        for (i = 0; i < sel.options.length; i++)
+          if (sel.options[i].value === seg) { sel.selectedIndex = i; return; }
+        if (seg) {
+          var o = document.createElement('option');
+          o.value = seg; o.textContent = seg; o.selected = true;
+          sel.insertBefore(o, sel.firstChild);
+        }
+      }
+      fetch(wodocPub + '/versions.json')
+        .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(function (m) {
+          var list = m.list || [], latest = m.latest;
+          document.querySelectorAll('.wodoc-version').forEach(function (sel) {
+            sel.innerHTML = '';
+            list.forEach(function (v) {
+              var o = document.createElement('option');
+              if (v === latest) { o.value = 'latest'; o.textContent = v + ' (latest)'; }
+              else { o.value = v; o.textContent = v; }
+              sel.appendChild(o);
+            });
+            select(sel);
+          });
+        })
+        .catch(function () {
+          document.querySelectorAll('.wodoc-version').forEach(select);
+        });
+    })();
+  </script>
+</body>
+</html>

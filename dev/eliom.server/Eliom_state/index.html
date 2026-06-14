@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Module Eliom_stateSource — Eliom</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <link rel="stylesheet" href="/css/ocsigen-odoc.css"/>
+  <script src="../../highlight.pack.js"></script>
+  <script src="../../wodoc-highlight.js"></script>
+</head>
+<body class="wodoc-page wodoc-doc wodoc-server">
+  <!-- Shared site menu — THE single source of truth for the header, top menu and
+     drawer of EVERY Ocsigen doc page (vitrine + all projects). Canonical copy
+     lives here in ocsigen.github.io; each project's build fetches it. Injected
+     by `wodoc assemble --menu`. Holes filled by the tool (braces omitted here so
+     this comment is not itself rewritten by the hole-filler):
+       subproject  the sub-project name shown next to the Ocsigen logo
+                   (empty on the vitrine), via --subproject
+       leftnav     the project's left navigation, expanded into BOTH the mobile
+                   drawer (below) and the left column (in the page template),
+                   via --leftnav
+     The current entry is highlighted by adding the `current` class to the
+     element carrying data-wodoc-page=<id>: --current on the vitrine (page id),
+     --menu-current in a project (the project id). Nothing is hardcoded here, so
+     this file is the ONLY place the menu is defined.
+
+     Links are the FINAL site paths (/<project>/, /<page>): the target layout
+     where each project is served at ocsigen.org/<project>/ — no transitional
+     /wodoc/ prefix. -->
+<div class="page-header">
+  <p class="logo-ocsigen"><a href="/"><img src="/img/ocsigen-white.svg" alt="Ocsigen"/></a></p>
+  <p class="logo-subproject">Eliom</p>
+
+  <div class="mainmenu">
+    <p class="mainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></p>
+    <p class="mainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></p>
+    <p data-wodoc-page="eliom" class="current"><a href="/eliom/">Eliom</a></p>
+    <p data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></p>
+    <p data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></p>
+    <p data-wodoc-page="lwt"><a href="/lwt/">Lwt</a></p>
+    <p data-wodoc-page="tyxml"><a href="/tyxml/">Tyxml</a></p>
+    <p data-wodoc-page="ocsigen-start"><a href="/ocsigen-start/">Start</a></p>
+  </div>
+
+  <form id="googlesearch" action="https://google.com/search">
+    <input name="q" id="gsearch-box" placeholder="Search using Google"/>
+    <label for="gsearch-box"><img src="/img/search.svg" alt="" id="gsearch-icon"/></label>
+    <input type="submit" id="gsearch-submit" onclick="document.getElementById('gsearch-box').value += ' site:ocsigen.org';"/>
+  </form>
+
+  <aside class="how-drawer">
+    <input id="how-drawer-toggle" type="checkbox"/>
+    <label for="how-drawer-toggle" id="how-drawer-label"><span class="how-drawer-icon"></span></label>
+    <nav class="how-drawer-content">
+      <ul class="drawermainmenu">
+        <li class="drawermainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></li>
+        <li class="drawermainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></li>
+        <li class="drawermainmenu-project current" data-wodoc-page="eliom"><a href="/eliom/">Eliom</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="lwt"><a href="/lwt/">Lwt</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="tyxml"><a href="/tyxml/">Tyxml</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-toolkit"><a href="/ocsigen-toolkit/">Toolkit</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-start"><a href="/ocsigen-start/">Start</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsipersist"><a href="/ocsipersist/">Ocsipersist</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="reactiveData"><a href="/reactiveData/">ReactiveData</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-i18n"><a href="/ocsigen-i18n/">i18n</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="wodoc"><a href="/wodoc/">Wodoc</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="projects"><a href="/projects">Other projects</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="papers"><a href="/papers">Research papers</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="credits"><a href="/credits">Who does Ocsigen?</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="contributing"><a href="/contributing">Contributing</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="blog"><a href="/blog">Blog</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="install"><a href="/install">Installation</a></li>
+        <li class="drawermainmenu-page"><a href="https://github.com/ocsigen">Source code</a></li>
+      </ul>
+      <!-- On mobile the left column is hidden; its menu lives here in the burger
+           (.how-doctree, shown only on narrow screens), as the old site did.
+           Empty on the vitrine; the leftnav hole is filled (with the same
+           fragment as the left column) only on project pages. -->
+      <nav class="how-doctree"><div class="docversion">
+  <label>Version:
+    <select class="wodoc-version" onchange="wodocVersion(this.value)">
+      <option value="dev">dev</option>
+    </select>
+  </label>
+</div>
+<div class="cs-switch">
+  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
+  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+</div>
+<div class="page-toc">
+  <h3>On this page</h3>
+  <nav class="odoc-toc odoc-local-toc"><ul><li><a href="#managing-the-state-of-an-application">Managing the state of an application</a><ul><li><a href="#closing-sessions,-removing-state-data-and-services">Closing sessions, removing state data and services</a></li><li><a href="#state-status">State status</a></li><li><a href="#user-cookies">User cookies</a></li></ul></li><li><a href="#session-groups">Session groups</a><ul><li><a href="#putting-a-session-in-a-group,-removing-a-session-from-a-group">Putting a session in a group, removing a session from a group</a></li><li><a href="#maximum-group-size">Maximum group size</a></li></ul></li><li><a href="#expiration-of-cookies-and-timeouts">Expiration of cookies and timeouts</a><ul><li><a href="#cookie-expiration">Cookie expiration</a></li><li><a href="#global-configuration-of-state-timeouts">Global configuration of state timeouts</a></li><li><a href="#personalizing-timeouts-for-current-state">Personalizing timeouts for current state</a></li></ul></li><li><a href="#administrating-server-side-state">Administrating server side state</a></li></ul></nav>
+</div>
+<nav class="api-nav manual-nav">
+<h3>Eliom&#x27;s Reference manual</h3>
+<ul class="api-section">
+<li class="ml3" data-wodoc-page="intro.html"><a href="../../intro.html">Introduction</a></li>
+</ul>
+<h4 class="ml3">Server-side programming</h4>
+<h4 class="ml4">Services</h4>
+<ul class="api-section">
+<li class="ml5" data-wodoc-page="server-services.html"><a href="../../server-services.html">The different types of services</a></li>
+<li class="ml5" data-wodoc-page="server-params.html"><a href="../../server-params.html">Typing service parameters</a></li>
+<li class="ml5" data-wodoc-page="server-outputs.html"><a href="../../server-outputs.html">Service handlers</a></li>
+<li class="ml5" data-wodoc-page="server-links.html"><a href="../../server-links.html">Creating links and forms</a></li>
+</ul>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="server-state.html"><a href="../../server-state.html">Sessions and server side state</a></li>
+<li class="ml4" data-wodoc-page="server-security.html"><a href="../../server-security.html">Security</a></li>
+</ul>
+<h4 class="ml3">Client-server programming</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="clientserver-applications.html"><a href="../../clientserver-applications.html">Eliom applications</a></li>
+<li class="ml4" data-wodoc-page="ppx-syntax.html"><a href="../../ppx-syntax.html">Multi-tier programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-html.html"><a href="../../clientserver-html.html">Generating HTML</a></li>
+<li class="ml4" data-wodoc-page="clientserver-communication.html"><a href="../../clientserver-communication.html">Communication</a></li>
+<li class="ml4" data-wodoc-page="clientserver-services.html"><a href="../../clientserver-services.html">Client-side services</a></li>
+<li class="ml4" data-wodoc-page="clientserver-react.html"><a href="../../clientserver-react.html">Shared reactive programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-cache.html"><a href="../../clientserver-cache.html">Caching data and off-line applications</a></li>
+<li class="ml4" data-wodoc-page="clientserver-wrapping.html"><a href="../../clientserver-wrapping.html">Custom wrapping</a></li>
+</ul>
+<h4 class="ml3">Workflows</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="workflow-distillery.html"><a href="../../workflow-distillery.html">Distillery</a></li>
+<li class="ml4" data-wodoc-page="mobile-apps.html"><a href="../../mobile-apps.html">Mobile apps</a></li>
+<li class="ml4" data-wodoc-page="workflow-configuration.html"><a href="../../workflow-configuration.html">Configuration &amp; running</a></li>
+<li class="ml4" data-wodoc-page="scalability.html"><a href="../../scalability.html">Scalability</a></li>
+</ul>
+</nav>
+
+<nav class="api-nav">
+<h3>Server API</h3>
+<h4>Server API</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_lib"><a href="../../eliom.server/Eliom_lib/index.html">Eliom_lib</a></li>
+<li data-wodoc-page="Eliom_client"><a href="../../eliom.server/Eliom_client/index.html">Eliom_client</a></li>
+<li data-wodoc-page="Eliom_client_value"><a href="../../eliom.server/Eliom_client_value/index.html">Eliom_client_value</a></li>
+<li data-wodoc-page="Eliom_common"><a href="../../eliom.server/Eliom_common/index.html">Eliom_common</a></li>
+<li data-wodoc-page="Eliom_config"><a href="../../eliom.server/Eliom_config/index.html">Eliom_config</a></li>
+<li data-wodoc-page="Eliom_request_info"><a href="../../eliom.server/Eliom_request_info/index.html">Eliom_request_info</a></li>
+<li data-wodoc-page="Eliom_reference"><a href="../../eliom.server/Eliom_reference/index.html">Eliom_reference</a></li>
+<li data-wodoc-page="Eliom_state" class="current"><a href="../../eliom.server/Eliom_state/index.html">Eliom_state</a></li>
+</ul>
+<h4>Content and form creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_content"><a href="../../eliom.server/Eliom_content/index.html">Eliom_content</a></li>
+<li data-wodoc-page="Eliom_content.Html"><a href="../../eliom.server/Eliom_content/Html/index.html">Eliom_content.Html</a></li>
+<li data-wodoc-page="Eliom_content.Svg"><a href="../../eliom.server/Eliom_content/Svg/index.html">Eliom_content.Svg</a></li>
+<li data-wodoc-page="Eliom_content.Xml"><a href="../../eliom.server/Eliom_content/Xml/index.html">Eliom_content.Xml</a></li>
+<li data-wodoc-page="Eliom_tools"><a href="../../eliom.server/Eliom_tools/index.html">Eliom_tools</a></li>
+</ul>
+<h4>Service creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_service"><a href="../../eliom.server/Eliom_service/index.html">Eliom_service</a></li>
+<li data-wodoc-page="Eliom_parameter"><a href="../../eliom.server/Eliom_parameter/index.html">Eliom_parameter</a></li>
+<li data-wodoc-page="Eliom_registration"><a href="../../eliom.server/Eliom_registration/index.html">Eliom_registration</a></li>
+<li data-wodoc-page="Eliom_registration.Html"><a href="../../eliom.server/Eliom_registration/Html/index.html">Eliom_registration.Html</a></li>
+<li data-wodoc-page="Eliom_registration.Action"><a href="../../eliom.server/Eliom_registration/Action/index.html">Eliom_registration.Action</a></li>
+<li data-wodoc-page="Eliom_registration.Ocaml"><a href="../../eliom.server/Eliom_registration/Ocaml/index.html">Eliom_registration.Ocaml</a></li>
+<li data-wodoc-page="Eliom_registration.App"><a href="../../eliom.server/Eliom_registration/App/index.html">Eliom_registration.App</a></li>
+<li data-wodoc-page="Eliom_registration.File"><a href="../../eliom.server/Eliom_registration/File/index.html">Eliom_registration.File</a></li>
+<li data-wodoc-page="Eliom_registration.Any"><a href="../../eliom.server/Eliom_registration/Any/index.html">Eliom_registration.Any</a></li>
+<li data-wodoc-page="Eliom_registration.Redirection"><a href="../../eliom.server/Eliom_registration/Redirection/index.html">Eliom_registration.Redirection</a></li>
+</ul>
+<h4>Client/server communication</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_shared"><a href="../../eliom.server/Eliom_shared/index.html">Eliom_shared</a></li>
+<li data-wodoc-page="Eliom_notif"><a href="../../eliom.server/Eliom_notif/index.html">Eliom_notif</a></li>
+<li data-wodoc-page="Eliom_cscache"><a href="../../eliom.server/Eliom_cscache/index.html">Eliom_cscache</a></li>
+<li data-wodoc-page="Eliom_bus"><a href="../../eliom.server/Eliom_bus/index.html">Eliom_bus</a></li>
+<li data-wodoc-page="Eliom_comet"><a href="../../eliom.server/Eliom_comet/index.html">Eliom_comet</a></li>
+<li data-wodoc-page="Eliom_react"><a href="../../eliom.server/Eliom_react/index.html">Eliom_react</a></li>
+</ul>
+</nav>
+</nav>
+    </nav>
+  </aside>
+</div>
+
+
+  <div class="project-page">
+    <div class="twocols">
+      <nav class="leftcol">
+        <div class="docversion">
+  <label>Version:
+    <select class="wodoc-version" onchange="wodocVersion(this.value)">
+      <option value="dev">dev</option>
+    </select>
+  </label>
+</div>
+<div class="cs-switch">
+  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
+  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+</div>
+<div class="page-toc">
+  <h3>On this page</h3>
+  <nav class="odoc-toc odoc-local-toc"><ul><li><a href="#managing-the-state-of-an-application">Managing the state of an application</a><ul><li><a href="#closing-sessions,-removing-state-data-and-services">Closing sessions, removing state data and services</a></li><li><a href="#state-status">State status</a></li><li><a href="#user-cookies">User cookies</a></li></ul></li><li><a href="#session-groups">Session groups</a><ul><li><a href="#putting-a-session-in-a-group,-removing-a-session-from-a-group">Putting a session in a group, removing a session from a group</a></li><li><a href="#maximum-group-size">Maximum group size</a></li></ul></li><li><a href="#expiration-of-cookies-and-timeouts">Expiration of cookies and timeouts</a><ul><li><a href="#cookie-expiration">Cookie expiration</a></li><li><a href="#global-configuration-of-state-timeouts">Global configuration of state timeouts</a></li><li><a href="#personalizing-timeouts-for-current-state">Personalizing timeouts for current state</a></li></ul></li><li><a href="#administrating-server-side-state">Administrating server side state</a></li></ul></nav>
+</div>
+<nav class="api-nav manual-nav">
+<h3>Eliom&#x27;s Reference manual</h3>
+<ul class="api-section">
+<li class="ml3" data-wodoc-page="intro.html"><a href="../../intro.html">Introduction</a></li>
+</ul>
+<h4 class="ml3">Server-side programming</h4>
+<h4 class="ml4">Services</h4>
+<ul class="api-section">
+<li class="ml5" data-wodoc-page="server-services.html"><a href="../../server-services.html">The different types of services</a></li>
+<li class="ml5" data-wodoc-page="server-params.html"><a href="../../server-params.html">Typing service parameters</a></li>
+<li class="ml5" data-wodoc-page="server-outputs.html"><a href="../../server-outputs.html">Service handlers</a></li>
+<li class="ml5" data-wodoc-page="server-links.html"><a href="../../server-links.html">Creating links and forms</a></li>
+</ul>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="server-state.html"><a href="../../server-state.html">Sessions and server side state</a></li>
+<li class="ml4" data-wodoc-page="server-security.html"><a href="../../server-security.html">Security</a></li>
+</ul>
+<h4 class="ml3">Client-server programming</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="clientserver-applications.html"><a href="../../clientserver-applications.html">Eliom applications</a></li>
+<li class="ml4" data-wodoc-page="ppx-syntax.html"><a href="../../ppx-syntax.html">Multi-tier programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-html.html"><a href="../../clientserver-html.html">Generating HTML</a></li>
+<li class="ml4" data-wodoc-page="clientserver-communication.html"><a href="../../clientserver-communication.html">Communication</a></li>
+<li class="ml4" data-wodoc-page="clientserver-services.html"><a href="../../clientserver-services.html">Client-side services</a></li>
+<li class="ml4" data-wodoc-page="clientserver-react.html"><a href="../../clientserver-react.html">Shared reactive programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-cache.html"><a href="../../clientserver-cache.html">Caching data and off-line applications</a></li>
+<li class="ml4" data-wodoc-page="clientserver-wrapping.html"><a href="../../clientserver-wrapping.html">Custom wrapping</a></li>
+</ul>
+<h4 class="ml3">Workflows</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="workflow-distillery.html"><a href="../../workflow-distillery.html">Distillery</a></li>
+<li class="ml4" data-wodoc-page="mobile-apps.html"><a href="../../mobile-apps.html">Mobile apps</a></li>
+<li class="ml4" data-wodoc-page="workflow-configuration.html"><a href="../../workflow-configuration.html">Configuration &amp; running</a></li>
+<li class="ml4" data-wodoc-page="scalability.html"><a href="../../scalability.html">Scalability</a></li>
+</ul>
+</nav>
+
+<nav class="api-nav">
+<h3>Server API</h3>
+<h4>Server API</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_lib"><a href="../../eliom.server/Eliom_lib/index.html">Eliom_lib</a></li>
+<li data-wodoc-page="Eliom_client"><a href="../../eliom.server/Eliom_client/index.html">Eliom_client</a></li>
+<li data-wodoc-page="Eliom_client_value"><a href="../../eliom.server/Eliom_client_value/index.html">Eliom_client_value</a></li>
+<li data-wodoc-page="Eliom_common"><a href="../../eliom.server/Eliom_common/index.html">Eliom_common</a></li>
+<li data-wodoc-page="Eliom_config"><a href="../../eliom.server/Eliom_config/index.html">Eliom_config</a></li>
+<li data-wodoc-page="Eliom_request_info"><a href="../../eliom.server/Eliom_request_info/index.html">Eliom_request_info</a></li>
+<li data-wodoc-page="Eliom_reference"><a href="../../eliom.server/Eliom_reference/index.html">Eliom_reference</a></li>
+<li data-wodoc-page="Eliom_state" class="current"><a href="../../eliom.server/Eliom_state/index.html">Eliom_state</a></li>
+</ul>
+<h4>Content and form creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_content"><a href="../../eliom.server/Eliom_content/index.html">Eliom_content</a></li>
+<li data-wodoc-page="Eliom_content.Html"><a href="../../eliom.server/Eliom_content/Html/index.html">Eliom_content.Html</a></li>
+<li data-wodoc-page="Eliom_content.Svg"><a href="../../eliom.server/Eliom_content/Svg/index.html">Eliom_content.Svg</a></li>
+<li data-wodoc-page="Eliom_content.Xml"><a href="../../eliom.server/Eliom_content/Xml/index.html">Eliom_content.Xml</a></li>
+<li data-wodoc-page="Eliom_tools"><a href="../../eliom.server/Eliom_tools/index.html">Eliom_tools</a></li>
+</ul>
+<h4>Service creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_service"><a href="../../eliom.server/Eliom_service/index.html">Eliom_service</a></li>
+<li data-wodoc-page="Eliom_parameter"><a href="../../eliom.server/Eliom_parameter/index.html">Eliom_parameter</a></li>
+<li data-wodoc-page="Eliom_registration"><a href="../../eliom.server/Eliom_registration/index.html">Eliom_registration</a></li>
+<li data-wodoc-page="Eliom_registration.Html"><a href="../../eliom.server/Eliom_registration/Html/index.html">Eliom_registration.Html</a></li>
+<li data-wodoc-page="Eliom_registration.Action"><a href="../../eliom.server/Eliom_registration/Action/index.html">Eliom_registration.Action</a></li>
+<li data-wodoc-page="Eliom_registration.Ocaml"><a href="../../eliom.server/Eliom_registration/Ocaml/index.html">Eliom_registration.Ocaml</a></li>
+<li data-wodoc-page="Eliom_registration.App"><a href="../../eliom.server/Eliom_registration/App/index.html">Eliom_registration.App</a></li>
+<li data-wodoc-page="Eliom_registration.File"><a href="../../eliom.server/Eliom_registration/File/index.html">Eliom_registration.File</a></li>
+<li data-wodoc-page="Eliom_registration.Any"><a href="../../eliom.server/Eliom_registration/Any/index.html">Eliom_registration.Any</a></li>
+<li data-wodoc-page="Eliom_registration.Redirection"><a href="../../eliom.server/Eliom_registration/Redirection/index.html">Eliom_registration.Redirection</a></li>
+</ul>
+<h4>Client/server communication</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_shared"><a href="../../eliom.server/Eliom_shared/index.html">Eliom_shared</a></li>
+<li data-wodoc-page="Eliom_notif"><a href="../../eliom.server/Eliom_notif/index.html">Eliom_notif</a></li>
+<li data-wodoc-page="Eliom_cscache"><a href="../../eliom.server/Eliom_cscache/index.html">Eliom_cscache</a></li>
+<li data-wodoc-page="Eliom_bus"><a href="../../eliom.server/Eliom_bus/index.html">Eliom_bus</a></li>
+<li data-wodoc-page="Eliom_comet"><a href="../../eliom.server/Eliom_comet/index.html">Eliom_comet</a></li>
+<li data-wodoc-page="Eliom_react"><a href="../../eliom.server/Eliom_react/index.html">Eliom_react</a></li>
+</ul>
+</nav>
+
+      </nav>
+      <article class="rightcol">
+        <header class="odoc-preamble"><h1>Module <code><span>Eliom_state</span></code><a href="../../src/eliom.server/eliom_state.ml.html" class="source_link">Source</a></h1><p>Storing server-side values for your applications or sessions.</p></header>
+        <div class="odoc-content"><p><b>Please read the <a href="../../server-state.html" title="server-state">Eliom manual</a> before this page to learn how server side state works.</b></p><p><code> &lt;&lt;outline| &lt;&lt;header| **Table of contents** &gt;&gt; &gt;&gt;</code></p><h3 id="managing-the-state-of-an-application">Managing the state of an application</h3><h4 id="closing-sessions,-removing-state-data-and-services">Closing sessions, removing state data and services</h4><div class="odoc-spec"><div class="spec value anchored" id="val-discard"><a href="../../src/eliom.server/eliom_state.ml.html#val-discard" class="source_link">Source</a><code><span><span class="keyword">val</span> discard : 
+  <span><span class="label">scope</span>:<span>[&lt; <a href="../Eliom_common/index.html#type-user_scope">Eliom_common.user_scope</a> <span>| <a href="../Eliom_common/index.html#type-request_scope">Eliom_common.request_scope</a></span> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p>Delete server-side (volatile and persistent) state data and services for a session, a group of sessions, a client process or a request.</p><p>Use that function to close a session (using scope <code>Eliom_common.default_session_scope</code>).</p><p>Closing a group of sessions will close all sessions in the group.</p><p>By default will remove both secure and unsecure data and services, unless <code>~secure</code> is present.</p><p><em>Warning: you may also want to unset some request-scoped Eliom references when discarding a state.</em></p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-discard_all_scopes"><a href="../../src/eliom.server/eliom_state.ml.html#val-discard_all_scopes" class="source_link">Source</a><code><span><span class="keyword">val</span> discard_all_scopes : <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span> <span>unit <span class="arrow">&#45;&gt;</span></span> <span>unit <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-discard_data"><a href="../../src/eliom.server/eliom_state.ml.html#val-discard_data" class="source_link">Source</a><code><span><span class="keyword">val</span> discard_data : 
+  <span><span class="optlabel">?persistent</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">scope</span>:<span>[&lt; <a href="../Eliom_common/index.html#type-user_scope">Eliom_common.user_scope</a> <span>| <a href="../Eliom_common/index.html#type-request_scope">Eliom_common.request_scope</a></span> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p>Remove current state data.</p><p>If the optional parameter <code>?persistent</code> is not present, will remove both volatile and persistent data. Otherwise only volatile or persistent data.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-discard_services"><a href="../../src/eliom.server/eliom_state.ml.html#val-discard_services" class="source_link">Source</a><code><span><span class="keyword">val</span> discard_services : 
+  <span><span class="label">scope</span>:<span>[&lt; <a href="../Eliom_common/index.html#type-user_scope">Eliom_common.user_scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div><div class="spec-doc"><p>Remove all services registered for the given scope (the default being <code>`Session</code>).</p></div></div><h4 id="state-status">State status</h4><p>The following functions return the current state of the state for a given scope:</p><ul><li><code>Alive_state</code> means that data has been recorded for this scope</li><li><code>Empty_state</code> means that there is no data for this scope</li><li><code>Expired_state</code> means that data for this scope has been removed because the timeout has been reached.</li></ul><p>The default scope is <code>`Session</code>.</p><div class="odoc-spec"><div class="spec type anchored" id="type-state_status"><a href="../../src/eliom.server/eliom_state.ml.html#type-state_status" class="source_link">Source</a><code><span><span class="keyword">type</span> state_status</span><span> = </span></code><ol><li id="type-state_status.Alive_state" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Alive_state</span></span></code></li><li id="type-state_status.Empty_state" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Empty_state</span></span></code></li><li id="type-state_status.Expired_state" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Expired_state</span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-service_state_status"><a href="../../src/eliom.server/eliom_state.ml.html#val-service_state_status" class="source_link">Source</a><code><span><span class="keyword">val</span> service_state_status : 
+  <span><span class="label">scope</span>:<span>[&lt; <a href="../Eliom_common/index.html#type-user_scope">Eliom_common.user_scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <a href="#type-state_status">state_status</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-volatile_data_state_status"><a href="../../src/eliom.server/eliom_state.ml.html#val-volatile_data_state_status" class="source_link">Source</a><code><span><span class="keyword">val</span> volatile_data_state_status : 
+  <span><span class="label">scope</span>:<span>[&lt; <a href="../Eliom_common/index.html#type-user_scope">Eliom_common.user_scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <a href="#type-state_status">state_status</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-persistent_data_state_status"><a href="../../src/eliom.server/eliom_state.ml.html#val-persistent_data_state_status" class="source_link">Source</a><code><span><span class="keyword">val</span> persistent_data_state_status : 
+  <span><span class="label">scope</span>:<span>[&lt; <a href="../Eliom_common/index.html#type-user_scope">Eliom_common.user_scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span><a href="#type-state_status">state_status</a> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div></div><h4 id="user-cookies">User cookies</h4><p>If you want to store a client-side state, and ask the browser to send it back with each request, you can set manually your own cookies. Usual cookies correspond to scope <code>`Session</code> (that is, one browser). The browser send them with each request to the same Web site. But Eliom also implements client-side process cookies (scope <code>`Client_process</code>), that behave in the same way, but for one instance of the client-side Eliom program (if there is one).</p><p>Cookies can be limited to a subsite using the <code>?path</code> optional parameter. This path is relative to the main path of your Web site. (It is not possible to set a cookie for a subsite larger than your current Web site).</p><p>Cookies can have an expiration date, specified (in seconds since the 1st of January 1970) in the optional parameter <code>?exp</code> (see how to set default expiration dates below).</p><p>Secure cookies are sent by the browser only with HTTPS (default: <code>false</code>).</p><div class="odoc-spec"><div class="spec value anchored" id="val-set_cookie"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_cookie" class="source_link">Source</a><code><span><span class="keyword">val</span> set_cookie : 
+  <span><span class="optlabel">?cookie_level</span>:<a href="../Eliom_common/index.html#type-cookie_level">Eliom_common.cookie_level</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?path</span>:<span>string list</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?exp</span>:float <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">name</span>:string <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">value</span>:string <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div><div class="spec-doc"><p>Ask the browser to record a cookie.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-unset_cookie"><a href="../../src/eliom.server/eliom_state.ml.html#val-unset_cookie" class="source_link">Source</a><code><span><span class="keyword">val</span> unset_cookie : 
+  <span><span class="optlabel">?cookie_level</span>:<a href="../Eliom_common/index.html#type-cookie_level">Eliom_common.cookie_level</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?path</span>:<span>string list</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">name</span>:string <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div><div class="spec-doc"><p>Ask the browser to remove a cookie.</p></div></div><h3 id="session-groups">Session groups</h3><p>If your Web site has users, it is a good idea to group together all the sessions for one user. Otherwise, you may want to group sessions according to another criterion.</p><p>Session groups may be used for example to limit the number of sessions one user can open at the same time, or to implement a &quot;close all your sessions&quot; feature. Usually, the group is the user name.</p><h4 id="putting-a-session-in-a-group,-removing-a-session-from-a-group">Putting a session in a group, removing a session from a group</h4><div class="odoc-spec"><div class="spec value anchored" id="val-set_service_session_group"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_service_session_group" class="source_link">Source</a><code><span><span class="keyword">val</span> set_service_session_group : 
+  <span><span class="optlabel">?set_max</span>:int <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?scope</span>:<a href="../Eliom_common/index.html#type-session_scope">Eliom_common.session_scope</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>string <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div><div class="spec-doc"><p>sets the group to which belong the service session.</p><p>If the optional <code>?set_max</code> parameter is present, also sets the maximum number of sessions in the group. Default: follow current configuration for the group or default configuration if the group does not exist.</p><p>If <code>~secure</code> is true, it will affect the secure session (secure cookies), otherwise (default), the unsecure one (behavior change in Eliom 4).</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-unset_service_session_group"><a href="../../src/eliom.server/eliom_state.ml.html#val-unset_service_session_group" class="source_link">Source</a><code><span><span class="keyword">val</span> unset_service_session_group : 
+  <span><span class="optlabel">?set_max</span>:int <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?scope</span>:<a href="../Eliom_common/index.html#type-session_scope">Eliom_common.session_scope</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div><div class="spec-doc"><p>Remove the session from its group. Will not close the session if it contains data.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_service_session_group"><a href="../../src/eliom.server/eliom_state.ml.html#val-get_service_session_group" class="source_link">Source</a><code><span><span class="keyword">val</span> get_service_session_group : 
+  <span><span class="optlabel">?scope</span>:<a href="../Eliom_common/index.html#type-session_scope">Eliom_common.session_scope</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span>string option</span></span></code></div><div class="spec-doc"><p>returns the group to which belong the service session. If the session does not belong to any group, or if no session is opened, return <code>None</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_service_session_group_size"><a href="../../src/eliom.server/eliom_state.ml.html#val-get_service_session_group_size" class="source_link">Source</a><code><span><span class="keyword">val</span> get_service_session_group_size : 
+  <span><span class="optlabel">?scope</span>:<a href="../Eliom_common/index.html#type-session_scope">Eliom_common.session_scope</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span>int option</span></span></code></div><div class="spec-doc"><p>returns the number of sessions in the group. If he session does not belong to any group or if no session is opened, returns <code>None</code></p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_volatile_data_session_group"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_volatile_data_session_group" class="source_link">Source</a><code><span><span class="keyword">val</span> set_volatile_data_session_group : 
+  <span><span class="optlabel">?set_max</span>:int <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?scope</span>:<a href="../Eliom_common/index.html#type-session_scope">Eliom_common.session_scope</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>string <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div><div class="spec-doc"><p>sets the group to which belong the volatile data session.</p><p>If the optional <code>?set_max</code> parameter is present, also sets the maximum number of sessions in the group. Default: follow current configuration for the group or default configuration if the group does not exist.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-unset_volatile_data_session_group"><a href="../../src/eliom.server/eliom_state.ml.html#val-unset_volatile_data_session_group" class="source_link">Source</a><code><span><span class="keyword">val</span> unset_volatile_data_session_group : 
+  <span><span class="optlabel">?set_max</span>:int <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?scope</span>:<a href="../Eliom_common/index.html#type-session_scope">Eliom_common.session_scope</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div><div class="spec-doc"><p>Remove the session from its group. Will not close the session if it contains data.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_volatile_data_session_group"><a href="../../src/eliom.server/eliom_state.ml.html#val-get_volatile_data_session_group" class="source_link">Source</a><code><span><span class="keyword">val</span> get_volatile_data_session_group : 
+  <span><span class="optlabel">?scope</span>:<a href="../Eliom_common/index.html#type-session_scope">Eliom_common.session_scope</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span>string option</span></span></code></div><div class="spec-doc"><p>returns the group to which belong the data session. If the session does not belong to any group, or if no session is opened, return <code>None</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_volatile_data_session_group_size"><a href="../../src/eliom.server/eliom_state.ml.html#val-get_volatile_data_session_group_size" class="source_link">Source</a><code><span><span class="keyword">val</span> get_volatile_data_session_group_size : 
+  <span><span class="optlabel">?scope</span>:<a href="../Eliom_common/index.html#type-session_scope">Eliom_common.session_scope</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span>int option</span></span></code></div><div class="spec-doc"><p>returns the number of sessions in the group. If he session does not belong to any group or if no session is opened, returns <code>None</code></p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_persistent_data_session_group"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_persistent_data_session_group" class="source_link">Source</a><code><span><span class="keyword">val</span> set_persistent_data_session_group : 
+  <span><span class="optlabel">?set_max</span>:<span>int option</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?scope</span>:<a href="../Eliom_common/index.html#type-session_scope">Eliom_common.session_scope</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>string <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p>sets the group to which belong the persistent session.</p><p>If the optional <code>?set_max</code> parameter is present, also sets the maximum number of sessions in the group. When <code>~set_max:None</code> is present, the number of session is unlimited. Default: follow current configuration for the group or default configuration if the group does not exist.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-unset_persistent_data_session_group"><a href="../../src/eliom.server/eliom_state.ml.html#val-unset_persistent_data_session_group" class="source_link">Source</a><code><span><span class="keyword">val</span> unset_persistent_data_session_group : 
+  <span><span class="optlabel">?scope</span>:<a href="../Eliom_common/index.html#type-session_scope">Eliom_common.session_scope</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p>Remove the session from its group. Will not close the session if it contains data.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_persistent_data_session_group"><a href="../../src/eliom.server/eliom_state.ml.html#val-get_persistent_data_session_group" class="source_link">Source</a><code><span><span class="keyword">val</span> get_persistent_data_session_group : 
+  <span><span class="optlabel">?scope</span>:<a href="../Eliom_common/index.html#type-session_scope">Eliom_common.session_scope</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span><span>string option</span> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p>returns the group to which belong the persistent session. If the session does not belong to any group, or if no session is opened, return <code>None</code>.</p></div></div><h4 id="maximum-group-size">Maximum group size</h4><p>The following functions of this section set the maximum number of sessions in a session group, for the different kinds of session. This won't modify existing groups. That value will be used only as default value if you do not specify the optional parameter <code>?set_max</code> of function <a href="#val-set_volatile_data_session_group"><code>Eliom_state.set_volatile_data_session_group</code></a>.</p><p>If there is no group, the number of sessions is limitated by sub network (which can be a problem for example if the server is behind a reverse proxy). It is highly recommended to use session groups!</p><ul><li>Default number of sessions in a group: 5</li><li>Default number of sessions in a sub network: 1000000</li><li>Default IPV4 sub network: /16</li><li>Default IPV6 sub network: /56</li></ul><p>These default can be changed from configuration file and/or using these functions.</p><p>If <code>~override_configfile</code> is <code>true</code> (default (<code>false</code>), then the function will set the value even if it has been modified in the configuration file. It means that by default, these functions have no effect if there is a value in the configuration file. This gives the ability to override the values chosen by the module in the configuration file. Use <code>~override_configfile:true</code> for example if your Eliom module wants to change the values afterwards (for example in the site configuration Web interface).</p><div class="odoc-spec"><div class="spec value anchored" id="val-set_default_max_service_sessions_per_group"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_default_max_service_sessions_per_group" class="source_link">Source</a><code><span><span class="keyword">val</span> set_default_max_service_sessions_per_group : 
+  <span><span class="optlabel">?override_configfile</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>int <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div><div class="spec-doc"><p>Sets the maximum number of service sessions in a session group (see above).</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_default_max_volatile_data_sessions_per_group"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_default_max_volatile_data_sessions_per_group" class="source_link">Source</a><code><span><span class="keyword">val</span> set_default_max_volatile_data_sessions_per_group : 
+  <span><span class="optlabel">?override_configfile</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>int <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div><div class="spec-doc"><p>Sets the maximum number of volatile data sessions in a session group (see above).</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_default_max_persistent_data_sessions_per_group"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_default_max_persistent_data_sessions_per_group" class="source_link">Source</a><code><span><span class="keyword">val</span> set_default_max_persistent_data_sessions_per_group : 
+  <span><span class="optlabel">?override_configfile</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span>int option</span> <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div><div class="spec-doc"><p>Sets the maximum number of persistent data sessions in a session group (see above). <code>None</code> means &quot;no limitation&quot;.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_default_max_volatile_sessions_per_group"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_default_max_volatile_sessions_per_group" class="source_link">Source</a><code><span><span class="keyword">val</span> set_default_max_volatile_sessions_per_group : 
+  <span><span class="optlabel">?override_configfile</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>int <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div><div class="spec-doc"><p>Sets the maximum number of volatile sessions (data and service) in a session group (see above).</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_default_max_service_sessions_per_subnet"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_default_max_service_sessions_per_subnet" class="source_link">Source</a><code><span><span class="keyword">val</span> set_default_max_service_sessions_per_subnet : 
+  <span><span class="optlabel">?override_configfile</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>int <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div><div class="spec-doc"><p>Sets the maximum number of service sessions in a subnet (see above).</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_default_max_volatile_data_sessions_per_subnet"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_default_max_volatile_data_sessions_per_subnet" class="source_link">Source</a><code><span><span class="keyword">val</span> set_default_max_volatile_data_sessions_per_subnet : 
+  <span><span class="optlabel">?override_configfile</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>int <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div><div class="spec-doc"><p>Sets the maximum number of volatile data sessions in a subnet (see above).</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_default_max_volatile_sessions_per_subnet"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_default_max_volatile_sessions_per_subnet" class="source_link">Source</a><code><span><span class="keyword">val</span> set_default_max_volatile_sessions_per_subnet : 
+  <span><span class="optlabel">?override_configfile</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>int <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div><div class="spec-doc"><p>Sets the maximum number of volatile sessions (data and service) in a subnet (see above).</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_default_max_service_tab_sessions_per_group"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_default_max_service_tab_sessions_per_group" class="source_link">Source</a><code><span><span class="keyword">val</span> set_default_max_service_tab_sessions_per_group : 
+  <span><span class="optlabel">?override_configfile</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>int <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div><div class="spec-doc"><p>Sets the maximum number of tab service sessions in a session group (see above).</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_default_max_volatile_data_tab_sessions_per_group"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_default_max_volatile_data_tab_sessions_per_group" class="source_link">Source</a><code><span><span class="keyword">val</span> set_default_max_volatile_data_tab_sessions_per_group : 
+  <span><span class="optlabel">?override_configfile</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>int <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div><div class="spec-doc"><p>Sets the maximum number of volatile data tab sessions in a session group (see above).</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_default_max_persistent_data_tab_sessions_per_group"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_default_max_persistent_data_tab_sessions_per_group" class="source_link">Source</a><code><span><span class="keyword">val</span> set_default_max_persistent_data_tab_sessions_per_group : 
+  <span><span class="optlabel">?override_configfile</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span>int option</span> <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div><div class="spec-doc"><p>Sets the maximum number of persistent data tab sessions in a session group (see above).</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_default_max_volatile_tab_sessions_per_group"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_default_max_volatile_tab_sessions_per_group" class="source_link">Source</a><code><span><span class="keyword">val</span> set_default_max_volatile_tab_sessions_per_group : 
+  <span><span class="optlabel">?override_configfile</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>int <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div><div class="spec-doc"><p>Sets the maximum number of volatile tab sessions (data and service) in a session group (see above).</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_ipv4_subnet_mask"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_ipv4_subnet_mask" class="source_link">Source</a><code><span><span class="keyword">val</span> set_ipv4_subnet_mask : <span><span class="optlabel">?override_configfile</span>:bool <span class="arrow">&#45;&gt;</span></span> <span>int <span class="arrow">&#45;&gt;</span></span> unit</span></code></div><div class="spec-doc"><p>Sets the mask for subnet (IPV4).</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_ipv6_subnet_mask"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_ipv6_subnet_mask" class="source_link">Source</a><code><span><span class="keyword">val</span> set_ipv6_subnet_mask : <span><span class="optlabel">?override_configfile</span>:bool <span class="arrow">&#45;&gt;</span></span> <span>int <span class="arrow">&#45;&gt;</span></span> unit</span></code></div><div class="spec-doc"><p>Sets the mask for subnet (IPV6).</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_max_service_states_for_group_or_subnet"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_max_service_states_for_group_or_subnet" class="source_link">Source</a><code><span><span class="keyword">val</span> set_max_service_states_for_group_or_subnet : 
+  <span><span class="label">scope</span>:<a href="../Eliom_common/index.html#type-user_scope">Eliom_common.user_scope</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>int <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div><div class="spec-doc"><p>Sets the maximum number of service sessions in the current session group (or for the client sub network, if there is no group).</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_max_volatile_data_states_for_group_or_subnet"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_max_volatile_data_states_for_group_or_subnet" class="source_link">Source</a><code><span><span class="keyword">val</span> set_max_volatile_data_states_for_group_or_subnet : 
+  <span><span class="label">scope</span>:<a href="../Eliom_common/index.html#type-user_scope">Eliom_common.user_scope</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>int <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div><div class="spec-doc"><p>Sets the maximum number of volatile data sessions in the current session group (or for the client sub network, if there is no group).</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_max_volatile_states_for_group_or_subnet"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_max_volatile_states_for_group_or_subnet" class="source_link">Source</a><code><span><span class="keyword">val</span> set_max_volatile_states_for_group_or_subnet : 
+  <span><span class="label">scope</span>:<a href="../Eliom_common/index.html#type-user_scope">Eliom_common.user_scope</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>int <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div><div class="spec-doc"><p>Sets the maximum number of volatile sessions (both data and service sessions) in the current group (or for the client sub network, if there is no group).</p></div></div><h3 id="expiration-of-cookies-and-timeouts">Expiration of cookies and timeouts</h3><h4 id="cookie-expiration">Cookie expiration</h4><p>The functions in this section ask the browser to set the state cookie expiration date, for the different kinds of session, in seconds, since the 1st of January 1970. <code>None</code> means the cookie will expire when the browser is closed. There is no way to set cookies for an infinite time on browsers. By default, Eliom sets default expiration date to 10 years after opening the session.</p><p>By default, it will affect regular browser cookies (sessions). But if you set <code>~cookie_level:`Client_process</code>, it will only affect the client-side Eliom process (if there is one), which simulates some kind of &quot;tab cookies&quot;.</p><div class="odoc-spec"><div class="spec value anchored" id="val-set_service_cookie_exp_date"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_service_cookie_exp_date" class="source_link">Source</a><code><span><span class="keyword">val</span> set_service_cookie_exp_date : 
+  <span><span class="label">cookie_scope</span>:<a href="../Eliom_common/index.html#type-cookie_scope">Eliom_common.cookie_scope</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span>float option</span> <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div><div class="spec-doc"><p>Sets the cookie expiration date for the current service state (see above).</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_volatile_data_cookie_exp_date"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_volatile_data_cookie_exp_date" class="source_link">Source</a><code><span><span class="keyword">val</span> set_volatile_data_cookie_exp_date : 
+  <span><span class="label">cookie_scope</span>:<a href="../Eliom_common/index.html#type-cookie_scope">Eliom_common.cookie_scope</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span>float option</span> <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div><div class="spec-doc"><p>Sets the cookie expiration date for the current data state (see above).</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_persistent_data_cookie_exp_date"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_persistent_data_cookie_exp_date" class="source_link">Source</a><code><span><span class="keyword">val</span> set_persistent_data_cookie_exp_date : 
+  <span><span class="label">cookie_scope</span>:<a href="../Eliom_common/index.html#type-cookie_scope">Eliom_common.cookie_scope</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span>float option</span> <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p>Sets the cookie expiration date for the persistent state (see above).</p></div></div><h4 id="global-configuration-of-state-timeouts">Global configuration of state timeouts</h4><p>The following functions set the timeout for states, for the different kinds of states. States will be closed after this amount of time of inactivity from the user. <code>None</code> means no timeout.</p><p>The optional parameter <code>?recompute_expdates</code> is <code>false</code> by default. If you set it to <code>true</code>, the expiration dates for all states in the table will be recomputed with the new timeout. That is, the difference between the new timeout and the old one will be added to their expiration dates (asynchronously, by another Lwt thread, as this can take a long time). States whose timeout has been set individually with functions like <a href="#val-set_volatile_data_state_timeout"><code>Eliom_state.set_volatile_data_state_timeout</code></a> won't be affected.</p><p>If <code>~scope_hierarchy</code> is not present, it is the default for all scope hierarchies, and in that case <code>recompute_expdates</code> is ignored. <code>~scope_hierarchy:None</code> means the default scope hierarchy.</p><p>If <code>~override_configfile</code> is <code>true</code> (default (<code>false</code>), then the function will set the timeout even if it has been modified in the configuration file. It means that by default, these functions have no effect if there is a value in the configuration file. This gives the ability to override the values chosen by the module in the configuration file. Use <code>~override_configfile:true</code> for example if your Eliom module wants to change the values afterwards (for example in the site configuration Web interface).</p><div class="odoc-spec"><div class="spec value anchored" id="val-set_global_volatile_state_timeout"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_global_volatile_state_timeout" class="source_link">Source</a><code><span><span class="keyword">val</span> set_global_volatile_state_timeout : 
+  <span><span class="label">cookie_scope</span>:<span>[&lt; <a href="../Eliom_common/index.html#type-cookie_scope">Eliom_common.cookie_scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?recompute_expdates</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?override_configfile</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span>float option</span> <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div><div class="spec-doc"><p>Sets the (server side) timeout for volatile (= &quot;in memory&quot;) sessions (both service session and volatile data session).</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_global_service_state_timeout"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_global_service_state_timeout" class="source_link">Source</a><code><span><span class="keyword">val</span> set_global_service_state_timeout : 
+  <span><span class="label">cookie_scope</span>:<span>[&lt; <a href="../Eliom_common/index.html#type-cookie_scope">Eliom_common.cookie_scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?recompute_expdates</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?override_configfile</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span>float option</span> <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div><div class="spec-doc"><p>Sets the (server side) timeout for service states.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_default_global_service_state_timeout"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_default_global_service_state_timeout" class="source_link">Source</a><code><span><span class="keyword">val</span> set_default_global_service_state_timeout : 
+  <span><span class="label">cookie_level</span>:<span>[&lt; <a href="../Eliom_common/index.html#type-cookie_level">Eliom_common.cookie_level</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?override_configfile</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span>float option</span> <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_global_volatile_data_state_timeout"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_global_volatile_data_state_timeout" class="source_link">Source</a><code><span><span class="keyword">val</span> set_global_volatile_data_state_timeout : 
+  <span><span class="label">cookie_scope</span>:<span>[&lt; <a href="../Eliom_common/index.html#type-cookie_scope">Eliom_common.cookie_scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?recompute_expdates</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?override_configfile</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span>float option</span> <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div><div class="spec-doc"><p>Sets the (server side) timeout for volatile (= &quot;in memory&quot;) data states.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_default_global_volatile_data_state_timeout"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_default_global_volatile_data_state_timeout" class="source_link">Source</a><code><span><span class="keyword">val</span> set_default_global_volatile_data_state_timeout : 
+  <span><span class="label">cookie_level</span>:<span>[&lt; <a href="../Eliom_common/index.html#type-cookie_level">Eliom_common.cookie_level</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?override_configfile</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span>float option</span> <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_global_persistent_data_state_timeout"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_global_persistent_data_state_timeout" class="source_link">Source</a><code><span><span class="keyword">val</span> set_global_persistent_data_state_timeout : 
+  <span><span class="label">cookie_scope</span>:<span>[&lt; <a href="../Eliom_common/index.html#type-cookie_scope">Eliom_common.cookie_scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?recompute_expdates</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?override_configfile</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span>float option</span> <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div><div class="spec-doc"><p>Sets the (server side) timeout for persistent states.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_default_global_persistent_data_state_timeout"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_default_global_persistent_data_state_timeout" class="source_link">Source</a><code><span><span class="keyword">val</span> set_default_global_persistent_data_state_timeout : 
+  <span><span class="label">cookie_level</span>:<span>[&lt; <a href="../Eliom_common/index.html#type-cookie_level">Eliom_common.cookie_level</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?override_configfile</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span>float option</span> <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_global_service_state_timeout"><a href="../../src/eliom.server/eliom_state.ml.html#val-get_global_service_state_timeout" class="source_link">Source</a><code><span><span class="keyword">val</span> get_global_service_state_timeout : 
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">cookie_scope</span>:<span>[&lt; <a href="../Eliom_common/index.html#type-cookie_scope">Eliom_common.cookie_scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span>float option</span></span></code></div><div class="spec-doc"><p>Returns the (server side) timeout for service states.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_global_volatile_data_state_timeout"><a href="../../src/eliom.server/eliom_state.ml.html#val-get_global_volatile_data_state_timeout" class="source_link">Source</a><code><span><span class="keyword">val</span> get_global_volatile_data_state_timeout : 
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">cookie_scope</span>:<span>[&lt; <a href="../Eliom_common/index.html#type-cookie_scope">Eliom_common.cookie_scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span>float option</span></span></code></div><div class="spec-doc"><p>Returns the (server side) timeout for &quot;volatile data&quot; states.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_global_persistent_data_state_timeout"><a href="../../src/eliom.server/eliom_state.ml.html#val-get_global_persistent_data_state_timeout" class="source_link">Source</a><code><span><span class="keyword">val</span> get_global_persistent_data_state_timeout : 
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">cookie_scope</span>:<span>[&lt; <a href="../Eliom_common/index.html#type-cookie_scope">Eliom_common.cookie_scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span>float option</span></span></code></div><div class="spec-doc"><p>Returns the (server side) timeout for persistent states.</p></div></div><h4 id="personalizing-timeouts-for-current-state">Personalizing timeouts for current state</h4><div class="odoc-spec"><div class="spec value anchored" id="val-set_service_state_timeout"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_service_state_timeout" class="source_link">Source</a><code><span><span class="keyword">val</span> set_service_state_timeout : 
+  <span><span class="label">cookie_scope</span>:<a href="../Eliom_common/index.html#type-cookie_scope">Eliom_common.cookie_scope</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span>float option</span> <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div><div class="spec-doc"><p>sets the timeout for service state (server side) for current user, in seconds. <code>None</code> = no timeout</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-unset_service_state_timeout"><a href="../../src/eliom.server/eliom_state.ml.html#val-unset_service_state_timeout" class="source_link">Source</a><code><span><span class="keyword">val</span> unset_service_state_timeout : 
+  <span><span class="label">cookie_scope</span>:<span>[&lt; <a href="../Eliom_common/index.html#type-cookie_scope">Eliom_common.cookie_scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div><div class="spec-doc"><p>remove the service state timeout for current user (and turn back to the default).</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_service_state_timeout"><a href="../../src/eliom.server/eliom_state.ml.html#val-get_service_state_timeout" class="source_link">Source</a><code><span><span class="keyword">val</span> get_service_state_timeout : 
+  <span><span class="label">cookie_scope</span>:<span>[&lt; <a href="../Eliom_common/index.html#type-cookie_scope">Eliom_common.cookie_scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span>float option</span></span></code></div><div class="spec-doc"><p>returns the timeout for current service state. <code>None</code> = no timeout</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_volatile_data_state_timeout"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_volatile_data_state_timeout" class="source_link">Source</a><code><span><span class="keyword">val</span> set_volatile_data_state_timeout : 
+  <span><span class="label">cookie_scope</span>:<span>[&lt; <a href="../Eliom_common/index.html#type-cookie_scope">Eliom_common.cookie_scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span>float option</span> <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div><div class="spec-doc"><p>sets the (server side) timeout for volatile data state for current user, in seconds. <code>None</code> = no timeout</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-unset_volatile_data_state_timeout"><a href="../../src/eliom.server/eliom_state.ml.html#val-unset_volatile_data_state_timeout" class="source_link">Source</a><code><span><span class="keyword">val</span> unset_volatile_data_state_timeout : 
+  <span><span class="label">cookie_scope</span>:<span>[&lt; <a href="../Eliom_common/index.html#type-cookie_scope">Eliom_common.cookie_scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div><div class="spec-doc"><p>remove the &quot;volatile data&quot; state timeout for current user (and turn back to the default).</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_volatile_data_state_timeout"><a href="../../src/eliom.server/eliom_state.ml.html#val-get_volatile_data_state_timeout" class="source_link">Source</a><code><span><span class="keyword">val</span> get_volatile_data_state_timeout : 
+  <span><span class="label">cookie_scope</span>:<span>[&lt; <a href="../Eliom_common/index.html#type-cookie_scope">Eliom_common.cookie_scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span>float option</span></span></code></div><div class="spec-doc"><p>returns the timeout for current volatile data state. <code>None</code> = no timeout</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_persistent_data_state_timeout"><a href="../../src/eliom.server/eliom_state.ml.html#val-set_persistent_data_state_timeout" class="source_link">Source</a><code><span><span class="keyword">val</span> set_persistent_data_state_timeout : 
+  <span><span class="label">cookie_scope</span>:<span>[&lt; <a href="../Eliom_common/index.html#type-cookie_scope">Eliom_common.cookie_scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span>float option</span> <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p>sets the (server side) timeout for persistent state for current user, in seconds. <code>None</code> = no timeout</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-unset_persistent_data_state_timeout"><a href="../../src/eliom.server/eliom_state.ml.html#val-unset_persistent_data_state_timeout" class="source_link">Source</a><code><span><span class="keyword">val</span> unset_persistent_data_state_timeout : 
+  <span><span class="label">cookie_scope</span>:<span>[&lt; <a href="../Eliom_common/index.html#type-cookie_scope">Eliom_common.cookie_scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p>remove the persistent state timeout for current user (and turn back to the default).</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_persistent_data_state_timeout"><a href="../../src/eliom.server/eliom_state.ml.html#val-get_persistent_data_state_timeout" class="source_link">Source</a><code><span><span class="keyword">val</span> get_persistent_data_state_timeout : 
+  <span><span class="label">cookie_scope</span>:<span>[&lt; <a href="../Eliom_common/index.html#type-cookie_scope">Eliom_common.cookie_scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span><span>float option</span> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p>returns the persistent state timeout for current user. <code>None</code> = no timeout</p></div></div><h3 id="administrating-server-side-state">Administrating server side state</h3><p><em>Warning: Most these functions must be called when the site information is available, that is, either during a request or during the initialisation phase of the site. Otherwise, it will raise the exception <a href="../Eliom_common/index.html#exception-Eliom_site_information_not_available"><code>Eliom_common.Eliom_site_information_not_available</code></a>. If you are using static linking, you must delay the call to this function until the configuration file is read, using <a href="../Eliom_service/index.html#val-register_eliom_module"><code>Eliom_service.register_eliom_module</code></a>. Otherwise you will also get this exception.</em></p><div class="odoc-spec"><div class="spec type anchored" id="type-volatile_table"><a href="../../src/eliom.server/eliom_state.ml.html#type-volatile_table" class="source_link">Source</a><code><span><span class="keyword">type</span> <span>'a volatile_table</span></span></code></div><div class="spec-doc"><p>The type of (volatile) state data tables.</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-persistent_table"><a href="../../src/eliom.server/eliom_state.ml.html#type-persistent_table" class="source_link">Source</a><code><span><span class="keyword">type</span> <span>'a persistent_table</span></span></code></div><div class="spec-doc"><p>The type of persistent state data tables.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-discard_everything"><a href="../../src/eliom.server/eliom_state.ml.html#val-discard_everything" class="source_link">Source</a><code><span><span class="keyword">val</span> discard_everything : <span>unit <span class="arrow">&#45;&gt;</span></span> <span>unit <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p>Discard all services and persistent and volatile data for every scopes.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-discard_all"><a href="../../src/eliom.server/eliom_state.ml.html#val-discard_all" class="source_link">Source</a><code><span><span class="keyword">val</span> discard_all : 
+  <span><span class="label">scope</span>:<a href="../Eliom_common/index.html#type-user_scope">Eliom_common.user_scope</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p>Discard all services and persistent and volatile data for one scope.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-discard_all_data"><a href="../../src/eliom.server/eliom_state.ml.html#val-discard_all_data" class="source_link">Source</a><code><span><span class="keyword">val</span> discard_all_data : 
+  <span><span class="optlabel">?persistent</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">scope</span>:<a href="../Eliom_common/index.html#type-user_scope">Eliom_common.user_scope</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p>Discard server side data for all clients, for the given scope.</p><p>If the optional parameter <code>?persistent</code> is not present, both the persistent and volatile data will be removed.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-discard_all_services"><a href="../../src/eliom.server/eliom_state.ml.html#val-discard_all_services" class="source_link">Source</a><code><span><span class="keyword">val</span> discard_all_services : 
+  <span><span class="label">scope</span>:<a href="../Eliom_common/index.html#type-user_scope">Eliom_common.user_scope</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p>Remove all services registered for clients for the given scope.</p></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Ext"><a href="../../src/eliom.server/eliom_state.ml.html#module-Ext" class="source_link">Source</a><code><span><span class="keyword">module</span> <a href="Ext/index.html">Ext</a></span><span> : <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div></div></div>
+      </article>
+    </div>
+  </div>
+
+  <script>
+    // Toggle between the server / client API of the same module.
+    function wodocSwitch(side) {
+      var w = { server: '', client: '' };
+      var p = location.pathname;
+      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
+      location.href = np !== p ? np
+        : '../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
+    }
+    var wodocPub = "/eliom";
+    // Switch version: keep the current page, swapping only the version segment.
+    function wodocVersion(v) {
+      if (!v) return;
+      var re = new RegExp('^(' + wodocPub + '/)[^/]+');
+      var p = location.pathname;
+      location.href =
+        re.test(p) ? p.replace(re, '$1' + v) : wodocPub + '/' + v + '/index.html';
+    }
+    // Build the version <select> from the project's versions.json (the single
+    // source of truth, refreshed on every build/release), so even older frozen
+    // pages list the current set. Falls back to the baked <option>s on failure.
+    (function () {
+      var seg = (location.pathname.match(
+        new RegExp('^' + wodocPub + '/([^/]+)')) || [])[1];
+      function select(sel) {
+        var i;
+        for (i = 0; i < sel.options.length; i++)
+          if (sel.options[i].value === seg) { sel.selectedIndex = i; return; }
+        if (seg) {
+          var o = document.createElement('option');
+          o.value = seg; o.textContent = seg; o.selected = true;
+          sel.insertBefore(o, sel.firstChild);
+        }
+      }
+      fetch(wodocPub + '/versions.json')
+        .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(function (m) {
+          var list = m.list || [], latest = m.latest;
+          document.querySelectorAll('.wodoc-version').forEach(function (sel) {
+            sel.innerHTML = '';
+            list.forEach(function (v) {
+              var o = document.createElement('option');
+              if (v === latest) { o.value = 'latest'; o.textContent = v + ' (latest)'; }
+              else { o.value = v; o.textContent = v; }
+              sel.appendChild(o);
+            });
+            select(sel);
+          });
+        })
+        .catch(function () {
+          document.querySelectorAll('.wodoc-version').forEach(select);
+        });
+    })();
+  </script>
+</body>
+</html>

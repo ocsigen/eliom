@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Sessions and server side state — Eliom</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <link rel="stylesheet" href="/css/ocsigen-odoc.css"/>
+  <script src="./highlight.pack.js"></script>
+  <script src="./wodoc-highlight.js"></script>
+</head>
+<body class="wodoc-page wodoc-doc">
+  <!-- Shared site menu — THE single source of truth for the header, top menu and
+     drawer of EVERY Ocsigen doc page (vitrine + all projects). Canonical copy
+     lives here in ocsigen.github.io; each project's build fetches it. Injected
+     by `wodoc assemble --menu`. Holes filled by the tool (braces omitted here so
+     this comment is not itself rewritten by the hole-filler):
+       subproject  the sub-project name shown next to the Ocsigen logo
+                   (empty on the vitrine), via --subproject
+       leftnav     the project's left navigation, expanded into BOTH the mobile
+                   drawer (below) and the left column (in the page template),
+                   via --leftnav
+     The current entry is highlighted by adding the `current` class to the
+     element carrying data-wodoc-page=<id>: --current on the vitrine (page id),
+     --menu-current in a project (the project id). Nothing is hardcoded here, so
+     this file is the ONLY place the menu is defined.
+
+     Links are the FINAL site paths (/<project>/, /<page>): the target layout
+     where each project is served at ocsigen.org/<project>/ — no transitional
+     /wodoc/ prefix. -->
+<div class="page-header">
+  <p class="logo-ocsigen"><a href="/"><img src="/img/ocsigen-white.svg" alt="Ocsigen"/></a></p>
+  <p class="logo-subproject">Eliom</p>
+
+  <div class="mainmenu">
+    <p class="mainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></p>
+    <p class="mainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></p>
+    <p data-wodoc-page="eliom" class="current"><a href="/eliom/">Eliom</a></p>
+    <p data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></p>
+    <p data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></p>
+    <p data-wodoc-page="lwt"><a href="/lwt/">Lwt</a></p>
+    <p data-wodoc-page="tyxml"><a href="/tyxml/">Tyxml</a></p>
+    <p data-wodoc-page="ocsigen-start"><a href="/ocsigen-start/">Start</a></p>
+  </div>
+
+  <form id="googlesearch" action="https://google.com/search">
+    <input name="q" id="gsearch-box" placeholder="Search using Google"/>
+    <label for="gsearch-box"><img src="/img/search.svg" alt="" id="gsearch-icon"/></label>
+    <input type="submit" id="gsearch-submit" onclick="document.getElementById('gsearch-box').value += ' site:ocsigen.org';"/>
+  </form>
+
+  <aside class="how-drawer">
+    <input id="how-drawer-toggle" type="checkbox"/>
+    <label for="how-drawer-toggle" id="how-drawer-label"><span class="how-drawer-icon"></span></label>
+    <nav class="how-drawer-content">
+      <ul class="drawermainmenu">
+        <li class="drawermainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></li>
+        <li class="drawermainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></li>
+        <li class="drawermainmenu-project current" data-wodoc-page="eliom"><a href="/eliom/">Eliom</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="lwt"><a href="/lwt/">Lwt</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="tyxml"><a href="/tyxml/">Tyxml</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-toolkit"><a href="/ocsigen-toolkit/">Toolkit</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-start"><a href="/ocsigen-start/">Start</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsipersist"><a href="/ocsipersist/">Ocsipersist</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="reactiveData"><a href="/reactiveData/">ReactiveData</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-i18n"><a href="/ocsigen-i18n/">i18n</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="wodoc"><a href="/wodoc/">Wodoc</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="projects"><a href="/projects">Other projects</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="papers"><a href="/papers">Research papers</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="credits"><a href="/credits">Who does Ocsigen?</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="contributing"><a href="/contributing">Contributing</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="blog"><a href="/blog">Blog</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="install"><a href="/install">Installation</a></li>
+        <li class="drawermainmenu-page"><a href="https://github.com/ocsigen">Source code</a></li>
+      </ul>
+      <!-- On mobile the left column is hidden; its menu lives here in the burger
+           (.how-doctree, shown only on narrow screens), as the old site did.
+           Empty on the vitrine; the leftnav hole is filled (with the same
+           fragment as the left column) only on project pages. -->
+      <nav class="how-doctree"><div class="docversion">
+  <label>Version:
+    <select class="wodoc-version" onchange="wodocVersion(this.value)">
+      <option value="dev">dev</option>
+    </select>
+  </label>
+</div>
+<div class="cs-switch">
+  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
+  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+</div>
+<div class="page-toc">
+  <h3>On this page</h3>
+  <nav class="odoc-toc odoc-local-toc"><ul><li><a href="#introduction">Introduction</a></li><li><a href="#scopes">Scopes, cookies and sessions</a><ul><li><a href="#basics">Basics</a></li><li><a href="#creating-sessions-and-scopes">Creating sessions and scopes</a><ul><li><a href="#automatic-session-creation">Automatic session creation</a></li><li><a href="#new_scope">Hierarchies of scopes and multiple sessions (advanced use)</a></li></ul></li><li><a href="#closing_sessions">Closing sessions (and other states)</a></li><li><a href="#timeouts">Timeouts and session duration</a></li><li><a href="#secure_state">Secure session</a></li><li><a href="#session_groups">Session groups</a><ul><li><a href="#sharing-data-between-a-group-of-sessions">Sharing data between a group of sessions</a></li><li><a href="#limit-the-number-of-session-within-a-group">Limit the number of session within a group</a></li><li><a href="#close-all-session-of-a-group">Close all session of a group</a></li></ul></li></ul></li><li><a href="#eref">Eliom references</a><ul><li><a href="#principles">Principles</a></li><li><a href="#persistent_eref">Persistent references</a><ul><li><a href="#volatile-references">Volatile references</a></li></ul></li></ul></li><li><a href="#accessing-other-states">Accessing other states</a></li><li><a href="#low-level-cookies-manipulation">Low-level cookies manipulation</a></li></ul></nav>
+</div>
+<nav class="api-nav manual-nav">
+<h3>Eliom&#x27;s Reference manual</h3>
+<ul class="api-section">
+<li class="ml3" data-wodoc-page="intro.html"><a href="./intro.html">Introduction</a></li>
+</ul>
+<h4 class="ml3">Server-side programming</h4>
+<h4 class="ml4">Services</h4>
+<ul class="api-section">
+<li class="ml5" data-wodoc-page="server-services.html"><a href="./server-services.html">The different types of services</a></li>
+<li class="ml5" data-wodoc-page="server-params.html"><a href="./server-params.html">Typing service parameters</a></li>
+<li class="ml5" data-wodoc-page="server-outputs.html"><a href="./server-outputs.html">Service handlers</a></li>
+<li class="ml5" data-wodoc-page="server-links.html"><a href="./server-links.html">Creating links and forms</a></li>
+</ul>
+<ul class="api-section">
+<li class="ml4 current" data-wodoc-page="server-state.html"><a href="./server-state.html">Sessions and server side state</a></li>
+<li class="ml4" data-wodoc-page="server-security.html"><a href="./server-security.html">Security</a></li>
+</ul>
+<h4 class="ml3">Client-server programming</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="clientserver-applications.html"><a href="./clientserver-applications.html">Eliom applications</a></li>
+<li class="ml4" data-wodoc-page="ppx-syntax.html"><a href="./ppx-syntax.html">Multi-tier programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-html.html"><a href="./clientserver-html.html">Generating HTML</a></li>
+<li class="ml4" data-wodoc-page="clientserver-communication.html"><a href="./clientserver-communication.html">Communication</a></li>
+<li class="ml4" data-wodoc-page="clientserver-services.html"><a href="./clientserver-services.html">Client-side services</a></li>
+<li class="ml4" data-wodoc-page="clientserver-react.html"><a href="./clientserver-react.html">Shared reactive programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-cache.html"><a href="./clientserver-cache.html">Caching data and off-line applications</a></li>
+<li class="ml4" data-wodoc-page="clientserver-wrapping.html"><a href="./clientserver-wrapping.html">Custom wrapping</a></li>
+</ul>
+<h4 class="ml3">Workflows</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="workflow-distillery.html"><a href="./workflow-distillery.html">Distillery</a></li>
+<li class="ml4" data-wodoc-page="mobile-apps.html"><a href="./mobile-apps.html">Mobile apps</a></li>
+<li class="ml4" data-wodoc-page="workflow-configuration.html"><a href="./workflow-configuration.html">Configuration &amp; running</a></li>
+<li class="ml4" data-wodoc-page="scalability.html"><a href="./scalability.html">Scalability</a></li>
+</ul>
+</nav>
+
+<nav class="api-nav">
+<h3>Server API</h3>
+<h4>Server API</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_lib"><a href="./eliom.server/Eliom_lib/index.html">Eliom_lib</a></li>
+<li data-wodoc-page="Eliom_client"><a href="./eliom.server/Eliom_client/index.html">Eliom_client</a></li>
+<li data-wodoc-page="Eliom_client_value"><a href="./eliom.server/Eliom_client_value/index.html">Eliom_client_value</a></li>
+<li data-wodoc-page="Eliom_common"><a href="./eliom.server/Eliom_common/index.html">Eliom_common</a></li>
+<li data-wodoc-page="Eliom_config"><a href="./eliom.server/Eliom_config/index.html">Eliom_config</a></li>
+<li data-wodoc-page="Eliom_request_info"><a href="./eliom.server/Eliom_request_info/index.html">Eliom_request_info</a></li>
+<li data-wodoc-page="Eliom_reference"><a href="./eliom.server/Eliom_reference/index.html">Eliom_reference</a></li>
+<li data-wodoc-page="Eliom_state"><a href="./eliom.server/Eliom_state/index.html">Eliom_state</a></li>
+</ul>
+<h4>Content and form creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_content"><a href="./eliom.server/Eliom_content/index.html">Eliom_content</a></li>
+<li data-wodoc-page="Eliom_content.Html"><a href="./eliom.server/Eliom_content/Html/index.html">Eliom_content.Html</a></li>
+<li data-wodoc-page="Eliom_content.Svg"><a href="./eliom.server/Eliom_content/Svg/index.html">Eliom_content.Svg</a></li>
+<li data-wodoc-page="Eliom_content.Xml"><a href="./eliom.server/Eliom_content/Xml/index.html">Eliom_content.Xml</a></li>
+<li data-wodoc-page="Eliom_tools"><a href="./eliom.server/Eliom_tools/index.html">Eliom_tools</a></li>
+</ul>
+<h4>Service creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_service"><a href="./eliom.server/Eliom_service/index.html">Eliom_service</a></li>
+<li data-wodoc-page="Eliom_parameter"><a href="./eliom.server/Eliom_parameter/index.html">Eliom_parameter</a></li>
+<li data-wodoc-page="Eliom_registration"><a href="./eliom.server/Eliom_registration/index.html">Eliom_registration</a></li>
+<li data-wodoc-page="Eliom_registration.Html"><a href="./eliom.server/Eliom_registration/Html/index.html">Eliom_registration.Html</a></li>
+<li data-wodoc-page="Eliom_registration.Action"><a href="./eliom.server/Eliom_registration/Action/index.html">Eliom_registration.Action</a></li>
+<li data-wodoc-page="Eliom_registration.Ocaml"><a href="./eliom.server/Eliom_registration/Ocaml/index.html">Eliom_registration.Ocaml</a></li>
+<li data-wodoc-page="Eliom_registration.App"><a href="./eliom.server/Eliom_registration/App/index.html">Eliom_registration.App</a></li>
+<li data-wodoc-page="Eliom_registration.File"><a href="./eliom.server/Eliom_registration/File/index.html">Eliom_registration.File</a></li>
+<li data-wodoc-page="Eliom_registration.Any"><a href="./eliom.server/Eliom_registration/Any/index.html">Eliom_registration.Any</a></li>
+<li data-wodoc-page="Eliom_registration.Redirection"><a href="./eliom.server/Eliom_registration/Redirection/index.html">Eliom_registration.Redirection</a></li>
+</ul>
+<h4>Client/server communication</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_shared"><a href="./eliom.server/Eliom_shared/index.html">Eliom_shared</a></li>
+<li data-wodoc-page="Eliom_notif"><a href="./eliom.server/Eliom_notif/index.html">Eliom_notif</a></li>
+<li data-wodoc-page="Eliom_cscache"><a href="./eliom.server/Eliom_cscache/index.html">Eliom_cscache</a></li>
+<li data-wodoc-page="Eliom_bus"><a href="./eliom.server/Eliom_bus/index.html">Eliom_bus</a></li>
+<li data-wodoc-page="Eliom_comet"><a href="./eliom.server/Eliom_comet/index.html">Eliom_comet</a></li>
+<li data-wodoc-page="Eliom_react"><a href="./eliom.server/Eliom_react/index.html">Eliom_react</a></li>
+</ul>
+</nav>
+</nav>
+    </nav>
+  </aside>
+</div>
+
+
+  <div class="project-page">
+    <div class="twocols">
+      <nav class="leftcol">
+        <div class="docversion">
+  <label>Version:
+    <select class="wodoc-version" onchange="wodocVersion(this.value)">
+      <option value="dev">dev</option>
+    </select>
+  </label>
+</div>
+<div class="cs-switch">
+  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
+  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+</div>
+<div class="page-toc">
+  <h3>On this page</h3>
+  <nav class="odoc-toc odoc-local-toc"><ul><li><a href="#introduction">Introduction</a></li><li><a href="#scopes">Scopes, cookies and sessions</a><ul><li><a href="#basics">Basics</a></li><li><a href="#creating-sessions-and-scopes">Creating sessions and scopes</a><ul><li><a href="#automatic-session-creation">Automatic session creation</a></li><li><a href="#new_scope">Hierarchies of scopes and multiple sessions (advanced use)</a></li></ul></li><li><a href="#closing_sessions">Closing sessions (and other states)</a></li><li><a href="#timeouts">Timeouts and session duration</a></li><li><a href="#secure_state">Secure session</a></li><li><a href="#session_groups">Session groups</a><ul><li><a href="#sharing-data-between-a-group-of-sessions">Sharing data between a group of sessions</a></li><li><a href="#limit-the-number-of-session-within-a-group">Limit the number of session within a group</a></li><li><a href="#close-all-session-of-a-group">Close all session of a group</a></li></ul></li></ul></li><li><a href="#eref">Eliom references</a><ul><li><a href="#principles">Principles</a></li><li><a href="#persistent_eref">Persistent references</a><ul><li><a href="#volatile-references">Volatile references</a></li></ul></li></ul></li><li><a href="#accessing-other-states">Accessing other states</a></li><li><a href="#low-level-cookies-manipulation">Low-level cookies manipulation</a></li></ul></nav>
+</div>
+<nav class="api-nav manual-nav">
+<h3>Eliom&#x27;s Reference manual</h3>
+<ul class="api-section">
+<li class="ml3" data-wodoc-page="intro.html"><a href="./intro.html">Introduction</a></li>
+</ul>
+<h4 class="ml3">Server-side programming</h4>
+<h4 class="ml4">Services</h4>
+<ul class="api-section">
+<li class="ml5" data-wodoc-page="server-services.html"><a href="./server-services.html">The different types of services</a></li>
+<li class="ml5" data-wodoc-page="server-params.html"><a href="./server-params.html">Typing service parameters</a></li>
+<li class="ml5" data-wodoc-page="server-outputs.html"><a href="./server-outputs.html">Service handlers</a></li>
+<li class="ml5" data-wodoc-page="server-links.html"><a href="./server-links.html">Creating links and forms</a></li>
+</ul>
+<ul class="api-section">
+<li class="ml4 current" data-wodoc-page="server-state.html"><a href="./server-state.html">Sessions and server side state</a></li>
+<li class="ml4" data-wodoc-page="server-security.html"><a href="./server-security.html">Security</a></li>
+</ul>
+<h4 class="ml3">Client-server programming</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="clientserver-applications.html"><a href="./clientserver-applications.html">Eliom applications</a></li>
+<li class="ml4" data-wodoc-page="ppx-syntax.html"><a href="./ppx-syntax.html">Multi-tier programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-html.html"><a href="./clientserver-html.html">Generating HTML</a></li>
+<li class="ml4" data-wodoc-page="clientserver-communication.html"><a href="./clientserver-communication.html">Communication</a></li>
+<li class="ml4" data-wodoc-page="clientserver-services.html"><a href="./clientserver-services.html">Client-side services</a></li>
+<li class="ml4" data-wodoc-page="clientserver-react.html"><a href="./clientserver-react.html">Shared reactive programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-cache.html"><a href="./clientserver-cache.html">Caching data and off-line applications</a></li>
+<li class="ml4" data-wodoc-page="clientserver-wrapping.html"><a href="./clientserver-wrapping.html">Custom wrapping</a></li>
+</ul>
+<h4 class="ml3">Workflows</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="workflow-distillery.html"><a href="./workflow-distillery.html">Distillery</a></li>
+<li class="ml4" data-wodoc-page="mobile-apps.html"><a href="./mobile-apps.html">Mobile apps</a></li>
+<li class="ml4" data-wodoc-page="workflow-configuration.html"><a href="./workflow-configuration.html">Configuration &amp; running</a></li>
+<li class="ml4" data-wodoc-page="scalability.html"><a href="./scalability.html">Scalability</a></li>
+</ul>
+</nav>
+
+<nav class="api-nav">
+<h3>Server API</h3>
+<h4>Server API</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_lib"><a href="./eliom.server/Eliom_lib/index.html">Eliom_lib</a></li>
+<li data-wodoc-page="Eliom_client"><a href="./eliom.server/Eliom_client/index.html">Eliom_client</a></li>
+<li data-wodoc-page="Eliom_client_value"><a href="./eliom.server/Eliom_client_value/index.html">Eliom_client_value</a></li>
+<li data-wodoc-page="Eliom_common"><a href="./eliom.server/Eliom_common/index.html">Eliom_common</a></li>
+<li data-wodoc-page="Eliom_config"><a href="./eliom.server/Eliom_config/index.html">Eliom_config</a></li>
+<li data-wodoc-page="Eliom_request_info"><a href="./eliom.server/Eliom_request_info/index.html">Eliom_request_info</a></li>
+<li data-wodoc-page="Eliom_reference"><a href="./eliom.server/Eliom_reference/index.html">Eliom_reference</a></li>
+<li data-wodoc-page="Eliom_state"><a href="./eliom.server/Eliom_state/index.html">Eliom_state</a></li>
+</ul>
+<h4>Content and form creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_content"><a href="./eliom.server/Eliom_content/index.html">Eliom_content</a></li>
+<li data-wodoc-page="Eliom_content.Html"><a href="./eliom.server/Eliom_content/Html/index.html">Eliom_content.Html</a></li>
+<li data-wodoc-page="Eliom_content.Svg"><a href="./eliom.server/Eliom_content/Svg/index.html">Eliom_content.Svg</a></li>
+<li data-wodoc-page="Eliom_content.Xml"><a href="./eliom.server/Eliom_content/Xml/index.html">Eliom_content.Xml</a></li>
+<li data-wodoc-page="Eliom_tools"><a href="./eliom.server/Eliom_tools/index.html">Eliom_tools</a></li>
+</ul>
+<h4>Service creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_service"><a href="./eliom.server/Eliom_service/index.html">Eliom_service</a></li>
+<li data-wodoc-page="Eliom_parameter"><a href="./eliom.server/Eliom_parameter/index.html">Eliom_parameter</a></li>
+<li data-wodoc-page="Eliom_registration"><a href="./eliom.server/Eliom_registration/index.html">Eliom_registration</a></li>
+<li data-wodoc-page="Eliom_registration.Html"><a href="./eliom.server/Eliom_registration/Html/index.html">Eliom_registration.Html</a></li>
+<li data-wodoc-page="Eliom_registration.Action"><a href="./eliom.server/Eliom_registration/Action/index.html">Eliom_registration.Action</a></li>
+<li data-wodoc-page="Eliom_registration.Ocaml"><a href="./eliom.server/Eliom_registration/Ocaml/index.html">Eliom_registration.Ocaml</a></li>
+<li data-wodoc-page="Eliom_registration.App"><a href="./eliom.server/Eliom_registration/App/index.html">Eliom_registration.App</a></li>
+<li data-wodoc-page="Eliom_registration.File"><a href="./eliom.server/Eliom_registration/File/index.html">Eliom_registration.File</a></li>
+<li data-wodoc-page="Eliom_registration.Any"><a href="./eliom.server/Eliom_registration/Any/index.html">Eliom_registration.Any</a></li>
+<li data-wodoc-page="Eliom_registration.Redirection"><a href="./eliom.server/Eliom_registration/Redirection/index.html">Eliom_registration.Redirection</a></li>
+</ul>
+<h4>Client/server communication</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_shared"><a href="./eliom.server/Eliom_shared/index.html">Eliom_shared</a></li>
+<li data-wodoc-page="Eliom_notif"><a href="./eliom.server/Eliom_notif/index.html">Eliom_notif</a></li>
+<li data-wodoc-page="Eliom_cscache"><a href="./eliom.server/Eliom_cscache/index.html">Eliom_cscache</a></li>
+<li data-wodoc-page="Eliom_bus"><a href="./eliom.server/Eliom_bus/index.html">Eliom_bus</a></li>
+<li data-wodoc-page="Eliom_comet"><a href="./eliom.server/Eliom_comet/index.html">Eliom_comet</a></li>
+<li data-wodoc-page="Eliom_react"><a href="./eliom.server/Eliom_react/index.html">Eliom_react</a></li>
+</ul>
+</nav>
+
+      </nav>
+      <article class="rightcol">
+        <header class="odoc-preamble"><h1 id="sessions-and-server-side-state">Sessions and server side state</h1><div class="concept"><p><b>Summary</b></p><p><em>Eliom references</em> allow to store data on server for one user (session data). The interface is very similar to regular OCaml references, with extra parameters <code>?scope</code> (session, client process, group of sessions) and <code>?persistent</code> (for keeping the values on hard disk). For example if you create an Eliom reference of <em>scope</em> session, its value will be different for each session (one session = one browser process).</p><p>To create an Eliom reference containing initial value <code>None</code>:</p><pre class="language-ocaml"><code>let myref = Eliom_reference.Volatile.eref ~scope None</code></pre><p>Where <code>~scope</code> may be (amongst others):</p><ul><li><code>Eliom_common.default_session_scope</code> if you want to store server side data for one browser (one session),</li><li><code>Eliom_common.default_process_scope</code> if you want to store server side data for one tab of a browser (one client process),</li><li><code>Eliom_common.request_scope</code> if you want to store server side data during one request,</li><li><code>Eliom_common.default_group_scope</code> if you want to store server side data for a group of sessions (for example all browsers belonging to the same user -- see below).</li></ul><p>Setting this reference, during a request:</p><pre class="language-ocaml"><code>...
+Eliom_reference.Volatile.Ext.set myref (Some &quot;user data&quot;)</code></pre><p>Getting the value of this reference (different for each user):</p><pre class="language-ocaml"><code>  Eliom_reference.Volatile.Ext.get myref</code></pre><p>Most of the time, what we want is to store data for one user, not for one browser instance. To do that, we use scope &quot;group of sessions&quot;. A session is attached to a group of session by calling function <a href="eliom.server/Eliom_state/index.html#val-set_volatile_data_session_group"><code>Eliom_state.set_volatile_data_session_group</code></a> (for non-persistent groups). The name of the group may be for example the user id. This will automatically create a session (and set a cookie) if needed.</p><p>Example:</p><pre class="language-ocaml"><code>let open_session login password =
+  let%lwt b = check_password login password in
+  if b then
+    Eliom_state.set_volatile_data_session_group
+      ~scope:Eliom_common.default_session_scope
+      (Int64.to_string (get_userid login))
+  else
+    ...</code></pre></div></header>
+        <div class="odoc-content"><h2 id="introduction">Introduction</h2><p><div class="paragraph"> Different scopes for data and services </div></p><p>The server-side state of an application refers to server-side data that can be shared by all clients, or that can be specific to a limited <em>scope</em>, such as:</p><ul><li>the site,</li><li>a session,</li><li>a group of sessions (for example all sessions of the same user),</li><li>a client-side process (when programming an Eliom app), or</li><li>the current request.</li></ul><p>For a given scope, server-side state consists of:</p><ul><li><em>services</em> registered with this specific scope, and</li><li>data encapsulated within an <em>Eliom reference</em> created with this specific scope.</li><li>Bus, channels, etc. (actually implemented using services and Eliom references)</li></ul><p>States disappear either when the associated scope is explicitely discarded, or after a timeout.</p><p><div class="paragraph"> Scope and cookies </div></p><p>From a technical point of view, sessions and groups of sessions are implemented automatically within Eliom by asking the browser to send a session identifier in a cookie. Client-side processes also send an identifier with each request, using a kind of &quot;client-side process-cookie&quot;.</p><p>It is possible to create different scopes of the same level if you want several states for the same application (advanced use). Each scope uses its own cookies, and you can discard data for a single scope.</p><p><div class="paragraph"> Secure cookies </div></p><p>States can be secure or not. Secure means that the state data or service will be associated to a secure cookie, that is a cookie that is sent by the browser only if the protocol is HTTPS. Use secure states to access confidential data, that you do not want to send through HTTP.</p><p><div class="paragraph"> Three kind of states </div></p><p>In the current implementation, because of a limitation in OCaml's serialization mechanism, there are three kinds of states (for each scope):</p><ul><li>volatile data states,</li><li>volatile service states,</li><li>persistent data states.</li></ul><p>Volatile states will not survive after relaunching the server. There is no persistent service state. Be very careful if you use both persistent state data and service state, as your session may become inconsistent. (Use service states only for volatile services, like coservices with timeouts.)</p><p>We hope to simplify this when OCaml's serialization mechanism evolves. In the meantime, be very careful where you store your data. To avoid shutting down the server, note that it is possible to ask the server to dynamically load new versions of your site (see <a href="workflow-configuration.html#reload" title="reload">command <code>reload</code></a>).</p><h2 id="scopes">Scopes, cookies and sessions</h2><h3 id="basics">Basics</h3><p>Eliom uses a notion of <em>scopes</em> to restrict the visibility of server-side data to a set of clients. Together with <a href="#eref" title="eref">Eliom references</a>, this is a very convenient way to implement a session mechanism for your Web site.</p><p>There are two categories of scopes:</p><ul><li><em>Eliom scopes</em>, which are:</li><li><a href="eliom.server/Eliom_common/index.html#type-global_scope"><code>Eliom_common.global_scope</code></a>: for data shared by all clients,</li><li><a href="eliom.server/Eliom_common/index.html#type-site_scope"><code>Eliom_common.site_scope</code></a>: for data and services shared by all clients of an Eliom site, and</li><li><a href="eliom.server/Eliom_common/index.html#type-request_scope"><code>Eliom_common.request_scope</code></a>: for data specific to the current request.</li><li><em>User scopes</em>: used to restrict the accessibility of a piece of data or a service to a subset of the clients.</li></ul><p>Within the user scopes, Eliom distinguishes three scopes that differ with respect to how Eliom associates clients and data.</p><ul><li>Data and dynamic services created with scope <a href="eliom.server/Eliom_common/index.html#val-default_session_scope"><code>Eliom_common.default_session_scope</code></a> are only visible to the client belonging to a same session (all tabs of a single browser).</li><li>Data and dynamic services created with scope <code>val
+Eliom_common.default_group_scope</code> are only visible to the clients whose sessions belong to the same session group. See section <a href="#session_groups" title="session_groups">Session groups</a> for more information.</li><li>Data and dynamic services created with scope <code>val
+Eliom_common.default_process_scope</code> are only visible to a specific instance of the Eliom application (i.e., a single tab, running the Eliom client process). See section <span class="xref-unresolved" title="clientserver-applications.session_groups">Eliom applications</span> for more information.</li></ul><p>User scopes are organised in a <em>hierarchy</em>: client processes belong to a session, and sessions belong to a group of sessions.</p><p>Data and dynamic services with a user scope can be discarded explicitely or via a timeout. See sections <a href="#closing_sessions" title="closing_sessions">Closing session</a> and <a href="#timeouts" title="timeouts">Timeouts and session duration</a> for more information.</p><p>If you want to handle multiple sessions for the same site ---~ e.g. several different data sessions that could be created and discarded independently~ --- you can create new users scopes that will use different cookies. See section <a href="#new_scope" title="new_scope">Hierarchies of scopes</a> for more information.</p><h3 id="creating-sessions-and-scopes">Creating sessions and scopes</h3><h4 id="automatic-session-creation">Automatic session creation</h4><p>Eliom automatically creates a session ---~ and sets the corresponding cookie on the client~ --- when you first modify an Eliom reference of scope <a href="eliom.server/Eliom_common/index.html#val-default_session_scope" title="Eliom_common.default_session_scope">session</a>, when you register a service with this scope or when you enter a session group.</p><p>By default, Eliom is using three cookies for sessions (and session groups):</p><ul><li>one for session services,</li><li>one for volatile session data,</li><li>one for persistent session data.</li></ul><p>For client side processes, it uses the same three kinds of client side process cookies.</p><h4 id="new_scope">Hierarchies of scopes and multiple sessions (advanced use)</h4><p>If you want to handle multiple sessions for the same site that can be created and discarded independently, you can create a new hierarchy of users scope that will use different cookies, with the function <a href="eliom.server/Eliom_common/index.html#val-create_scope_hierarchy"><code>Eliom_common.create_scope_hierarchy</code></a>.</p><pre class="language-ocaml"><code>let custom_session_hierarchy = Eliom_common.create_scope_hierarchy &quot;custom&quot;
+let custom_session = `Session custom_session_hierarchy</code></pre><p>Then, the value <code>custom_session</code> can replace the usual <a href="eliom.server/Eliom_common/index.html#val-default_session_scope"><code>Eliom_common.default_session_scope</code></a> for the <code>~scope</code> parameter of the functions <a href="eliom.server/Eliom_reference/index.html#type-eref"><code>Eliom_reference.eref</code></a>, <code>val
+Eliom_registration.Html.register</code>, <a href="eliom.server/Eliom_state/index.html#val-discard"><code>Eliom_state.discard</code></a>,~ ...</p><p>(Same for <code>`Client_process</code> or <code>`Session_group</code> scope levels).</p><p>The function <code>val
+Eliom_common.create_scope_hierarchy</code> will prevent you from creating two scope hierarchies with the same name.</p><h5 id="example-of-use:">Example of use:</h5><p>A typical use of hierarchies is to have one hierarchy for connected users (the default hierarchy), and one independent from connection. Use the first hierarchy to save user-related content. It will be discarded when the user logs out. Use the second hierarchy to save data corresponding to a tab or browser, (the user being connected or not), for example because this data must be available before the user logs in.</p><h3 id="closing_sessions">Closing sessions (and other states)</h3><p>To discard a state, use the <a href="eliom.server/Eliom_state/index.html#val-discard"><code>Eliom_state.discard</code></a> function. It will remove all server-side services and data (persistent or not) for the given scope. Used with <code>~scope:Eliom_common.default_session_scope</code>, this will close a session. Used with <code>~scope:Eliom_common.default_group_scope</code>, this will close all sessions in the group.</p><p>It is also possible to selectively discard only services, persistent data, or volatile data (see the <a href="eliom.server/Eliom_state/index.html"><code>Eliom_state</code></a> module). But this may be periculous. Be very careful when doing this, as you are desynchronizing the three kinds of sessions.</p><div class="wip"><p>The behaviour of <a href="eliom.server/Eliom_state/index.html#val-discard"><code>Eliom_state.discard</code></a> on a session group is subject to discussion and may evolve in future versions.</p></div><div><p>Warnings:</p><ul><li>It is a good idea to close the session when a user tries to connect, even if it is already connected.</li><li>You may also want to unset some request-scoped Eliom references when discarding a state,</li><li>If your state data contains opened file descriptors, they won't be closed by OCaml's garbage collector. Close them yourself! (for example using <span class="code">Gc.finalise</span>).</li></ul></div><h3 id="timeouts">Timeouts and session duration</h3><p>The default timeout for sessions is one hour. Sessions will be automatically closed after this amount of time of inactivity from the user. You can change the timeout for your whole site using the <a href="eliom.server/Eliom_state/index.html#val-set_global_volatile_state_timeout"><code>Eliom_state.set_global_volatile_state_timeout</code></a>.</p><p>It is also possible to change the default value for Eliom through the configuration file, like this:</p><pre class="language-ocaml"><code>&lt;extension findlib-package=&quot;ocsigenserver.ext.eliom&quot;&gt;
+  &lt;volatiletimeout value=&quot;7200&quot;/&gt;
+&lt;/extension&gt;</code></pre><p>In the configuration files the value <code>&quot;infinity&quot;</code> means no timeout.</p><div><p>This default may be overriden by each site using <code>val
+Eliom_state.set_global_volatile_state_timeout</code> or <code>val
+Eliom_state.set_default_volatile_state_timeout</code>. If you want your user to be able to set the default in the configuration file for your site (between <code>&lt;site&gt;</code> and <code>&lt;/site&gt;</code>), you must parse the configuration (using <a href="eliom.server/Eliom_config/index.html#val-get_config"><code>Eliom_config.get_config</code></a> function). You can also change the timeout for a specific user only with the following functions: <a href="eliom.server/Eliom_state/index.html#val-set_volatile_data_state_timeout"><code>Eliom_state.set_volatile_data_state_timeout</code></a>. For more details, see the <a href="eliom.server/Eliom_state/index.html"><code>Eliom_state</code></a> module's interface.</p></div><h3 id="secure_state">Secure session</h3><p>By default, data and services saved in a session are available to requests using both HTTP and HTTPS. If you want to keep some state in a <em>secure session</em> that is visible only to a client accessing with the HTTPS protocol, you may provide the optional parameter <code>~secure:true</code> when calling functions like <code>val
+Eliom_reference.eref</code>, <code>val
+Eliom_registration.Html.register</code>, etc.</p><p>The default can be set in the configuration file:</p><pre class="language-ocaml"><code>&lt;extension findlib-package=&quot;eliom.server&quot;&gt;
+   &lt;securecookies value=&quot;true&quot; /&gt;
+&lt;/extension&gt;</code></pre><p>This option can also be set inside a <code>&lt;eliom&gt;</code> tag, but be careful: in that case it will affect only the actions performed after setting this option, in the same site (and NOT the top-level instructions of the modules loaded before).</p><p>Secure sessions are using secure cookies, i.e., Ocsigen Server will ask the browsers to send the cookie only if the protocol is HTTPS. Thus it is not possible to access secure references and services if the user is using HTTP.</p><p>The server does not check the protocol currently used, neither to send or receive the cookies, which means that it will work even if your server is using HTTP behind a local proxy.</p><h3 id="session_groups">Session groups</h3><h4 id="sharing-data-between-a-group-of-sessions">Sharing data between a group of sessions</h4><p>Session group is a kind of scope that allows sharing data or services between a set of sessions, typically all sessions for given user. For example, using persistent Eliom references with scope <code>val
+Eliom_common.default_group_scope</code> is a convenient way to store data about a user without having to explicitly use an external database. (Persistent session group states are not discarded when all the sessions are closed).</p><p>A session group is identified by a name. The current session could be attached to a group of sessions using one of the following functions ---~ depending on the nature of the data you want to share. They take the session group name as parameter:</p><ul><li><a href="eliom.server/Eliom_state/index.html#val-set_service_session_group"><code>Eliom_state.set_service_session_group</code></a></li><li><a href="eliom.server/Eliom_state/index.html#val-set_volatile_data_session_group"><code>Eliom_state.set_volatile_data_session_group</code></a></li><li><a href="eliom.server/Eliom_state/index.html#val-set_persistent_data_session_group"><code>Eliom_state.set_persistent_data_session_group</code></a></li></ul><p>A session could be only attached to one group at a time, but it is possible to create multiple sessions for a same client attached to different groups, see section <a href="#new_scope" title="new_scope">Hierarchies of scopes</a> for more information.</p><p>It's possible to fetch the current session group name of a session, if any, or to detach a session from a group. See the module <a href="eliom.server/Eliom_state/index.html"><code>Eliom_state</code></a> for more information.</p><h4 id="limit-the-number-of-session-within-a-group">Limit the number of session within a group</h4><p>The number of sessions in a group is limited. If all sessions are in a group you will prevent malicious users from opening too many sessions. If you do not use session groups, the number of sessions is limited by IP address, which can be a problem for example if the server is behind a reverse proxy or if many user are using the same NAT. That's why we always recommend to set the session group (usually it's the user name or id).</p><p><div class="wip"> Explain how to change the maximum number of sessions in a group. </div></p><h4 id="close-all-session-of-a-group">Close all session of a group</h4><p>Session groups allows the implementation of features like &quot;close all sessions&quot; for one user (even those opened on other browsers). Consider the following scenario: a user logs in from home using a &quot;Remember me on this computer&quot; feature, which sets an (almost) no-expiration cookie on his browser and session timeouts of infinity on the server. The user goes on vacation, and while logging from a cyber-café, he also sets the &quot;Remember me&quot; option. Back home he realises the mistake, and wishes to do a &quot;global logout&quot;, i.e., closing all existing sessions associated with his user name.</p><p>For this kind of usage, it is highly recommended to set a group for each of the three kinds of states you use (services, volatile data and persistent data).</p><p>To close all sessions from a group, close the group.</p><p>See section <a href="#closing_sessions" title="closing_sessions">Closing sessions</a> for more information.</p><h2 id="eref">Eliom references</h2><h3 id="principles">Principles</h3><p><em>Eliom references</em> (<em>erefs</em>) are a kind of references with a (possibly) limited <a href="#scopes" title="scopes">scope</a>. You declare a reference with an initial value and a scope. Then, when you change the associated value, it actually changes only for the scope you specified.</p><p>Eliom references can be persistent or not (that is: can survive after relaunching the server or not).</p><p>Eliom references are used for example:</p><ul><li>to store session data, server side data for a client process, or user data (scope: session, client process, session group),</li><li>or to keep some information about the current request (scope: request), for example to give information to the service taking in charge the request after an action,</li><li>to implement persistent references (scope: global)</li><li>for caching functions (<a href="eliom.server/Eliom_reference/index.html#val-eref_from_fun"><code>Eliom_reference.eref_from_fun</code></a>).</li></ul><p>Non persistent global Eliom references are equivalent to regular OCaml references.</p><p>Eliom references are either created using the function <code>val
+Eliom_reference.eref</code>, that works like the usual Ocaml <code>ref</code> function, but with at least one additional scope parameter. Or they may be created by the function <code>val
+Eliom_reference.eref_from_fun</code>: Its argument function is evaluated the first time the reference is accessed (through <a href="eliom.server/Eliom_reference/index.html#val-get"><code>Eliom_reference.get</code></a>), within one scope or after the reference has been reset.</p><p>The <a href="eliom.server/Eliom_reference/index.html"><code>Eliom_reference</code></a> module also defines functions to <a href="eliom.server/Eliom_reference/index.html#val-get" title="Eliom_reference.get">get</a> the value, <a href="eliom.server/Eliom_reference/index.html#val-set" title="Eliom_reference.set">set</a>, <a href="eliom.server/Eliom_reference/index.html#val-modify" title="Eliom_reference.modify">modify</a> it (by applying a function to its content), and <a href="eliom.server/Eliom_reference/index.html#val-unset" title="Eliom_reference.unset">unset</a> it, this is reset to the initial value.</p><h3 id="persistent_eref">Persistent references</h3><p>Persistent references are Eliom references that survives after relaunching the server. They are implemented using the <code>Ocsipersist</code> module for which Ocsigenserver provides two implementations, one based on <code>SQLite</code>, the other one based on <code>DBM</code>.</p><p>Persistent references are created by adding the <code>~persistent</code> parameter to the <a href="eliom.server/Eliom_reference/index.html#type-eref"><code>Eliom_reference.eref</code></a> function calls. The value of this parameter is the name of the reference in the database.</p><div class="wip"><p>Persistent data are serialized on hard drive using OCaml's unsafe <span class="code">Marshal</span> module, hence persistent references currently suffer some limitations:</p><ul><li>It is not possible to serialize closures or services (as we are using dynamic linking),</li><li>If you ever change the type of serialised data, don't forget to change the persistent reference name, or the server will probably crash while deserializing!</li></ul></div><h4 id="volatile-references">Volatile references</h4><p>The module <a href="eliom.server/Eliom_reference/Volatile/index.html"><code>Eliom_reference.Volatile</code></a> allows the creation of non-persistent Eliom references, which can then be used through a non-Lwt interface.</p><p>As <a href="eliom.server/Eliom_reference/Volatile/index.html#type-eref"><code>Eliom_reference.Volatile.eref</code></a> is a subtype of <a href="eliom.server/Eliom_reference/index.html#type-eref"><code>Eliom_reference.eref</code></a>, a volatile reference <code>eref</code> may be used as <code>(eref : _ Eliom_reference.eref)</code> with the Lwt-interface of <a href="eliom.server/Eliom_reference/index.html"><code>Eliom_reference</code></a> alike.</p><h2 id="accessing-other-states">Accessing other states</h2><p>Sometimes, it is useful to access other states. For example if you want to send a notification to another user, you may want to find the communication channel registered for this user. It can probably be found as an Eliom reference in the group corresponding to this user.</p><p>Use module <a href="eliom.server/Eliom_state/Ext/index.html"><code>Eliom_state.Ext</code></a> to get the state corresponding to a group name. Use <a href="eliom.server/Eliom_state/Ext/index.html#val-iter_sub_states"><code>Eliom_state.Ext.iter_sub_states</code></a> to iterate on all sessions in a group, or on all client processes in a session.</p><p>Use <a href="eliom.server/Eliom_reference/Ext/index.html"><code>Eliom_reference.Ext</code></a> to access Eliom references belonging to another state.</p><h2 id="low-level-cookies-manipulation">Low-level cookies manipulation</h2><p>Eliom references are used to store data on the server-side. It is also possible to ask the browser or the client-side process to record some piece of data and send it back to the server with each request.</p><p>This is implemented using the usual browser cookies for sessions ---~ and a simulation of browser cookies by Eliom client side processes~ --- with the functions <a href="eliom.server/Eliom_state/index.html#val-set_cookie"><code>Eliom_state.set_cookie</code></a> and <code>Eliom_state.get_cookie</code>.</p></div>
+      </article>
+    </div>
+  </div>
+
+  <script>
+    // Toggle between the server / client API of the same module.
+    function wodocSwitch(side) {
+      var w = { server: '', client: '' };
+      var p = location.pathname;
+      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
+      location.href = np !== p ? np
+        : './eliom.' + side + '/' + (w[side] || '') + 'index.html';
+    }
+    var wodocPub = "/eliom";
+    // Switch version: keep the current page, swapping only the version segment.
+    function wodocVersion(v) {
+      if (!v) return;
+      var re = new RegExp('^(' + wodocPub + '/)[^/]+');
+      var p = location.pathname;
+      location.href =
+        re.test(p) ? p.replace(re, '$1' + v) : wodocPub + '/' + v + '/index.html';
+    }
+    // Build the version <select> from the project's versions.json (the single
+    // source of truth, refreshed on every build/release), so even older frozen
+    // pages list the current set. Falls back to the baked <option>s on failure.
+    (function () {
+      var seg = (location.pathname.match(
+        new RegExp('^' + wodocPub + '/([^/]+)')) || [])[1];
+      function select(sel) {
+        var i;
+        for (i = 0; i < sel.options.length; i++)
+          if (sel.options[i].value === seg) { sel.selectedIndex = i; return; }
+        if (seg) {
+          var o = document.createElement('option');
+          o.value = seg; o.textContent = seg; o.selected = true;
+          sel.insertBefore(o, sel.firstChild);
+        }
+      }
+      fetch(wodocPub + '/versions.json')
+        .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(function (m) {
+          var list = m.list || [], latest = m.latest;
+          document.querySelectorAll('.wodoc-version').forEach(function (sel) {
+            sel.innerHTML = '';
+            list.forEach(function (v) {
+              var o = document.createElement('option');
+              if (v === latest) { o.value = 'latest'; o.textContent = v + ' (latest)'; }
+              else { o.value = v; o.textContent = v; }
+              sel.appendChild(o);
+            });
+            select(sel);
+          });
+        })
+        .catch(function () {
+          document.querySelectorAll('.wodoc-version').forEach(select);
+        });
+    })();
+  </script>
+</body>
+</html>

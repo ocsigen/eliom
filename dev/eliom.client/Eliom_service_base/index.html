@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Module Eliom_service_baseSource — Eliom</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <link rel="stylesheet" href="/css/ocsigen-odoc.css"/>
+  <script src="../../highlight.pack.js"></script>
+  <script src="../../wodoc-highlight.js"></script>
+</head>
+<body class="wodoc-page wodoc-doc wodoc-client">
+  <!-- Shared site menu — THE single source of truth for the header, top menu and
+     drawer of EVERY Ocsigen doc page (vitrine + all projects). Canonical copy
+     lives here in ocsigen.github.io; each project's build fetches it. Injected
+     by `wodoc assemble --menu`. Holes filled by the tool (braces omitted here so
+     this comment is not itself rewritten by the hole-filler):
+       subproject  the sub-project name shown next to the Ocsigen logo
+                   (empty on the vitrine), via --subproject
+       leftnav     the project's left navigation, expanded into BOTH the mobile
+                   drawer (below) and the left column (in the page template),
+                   via --leftnav
+     The current entry is highlighted by adding the `current` class to the
+     element carrying data-wodoc-page=<id>: --current on the vitrine (page id),
+     --menu-current in a project (the project id). Nothing is hardcoded here, so
+     this file is the ONLY place the menu is defined.
+
+     Links are the FINAL site paths (/<project>/, /<page>): the target layout
+     where each project is served at ocsigen.org/<project>/ — no transitional
+     /wodoc/ prefix. -->
+<div class="page-header">
+  <p class="logo-ocsigen"><a href="/"><img src="/img/ocsigen-white.svg" alt="Ocsigen"/></a></p>
+  <p class="logo-subproject">Eliom</p>
+
+  <div class="mainmenu">
+    <p class="mainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></p>
+    <p class="mainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></p>
+    <p data-wodoc-page="eliom" class="current"><a href="/eliom/">Eliom</a></p>
+    <p data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></p>
+    <p data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></p>
+    <p data-wodoc-page="lwt"><a href="/lwt/">Lwt</a></p>
+    <p data-wodoc-page="tyxml"><a href="/tyxml/">Tyxml</a></p>
+    <p data-wodoc-page="ocsigen-start"><a href="/ocsigen-start/">Start</a></p>
+  </div>
+
+  <form id="googlesearch" action="https://google.com/search">
+    <input name="q" id="gsearch-box" placeholder="Search using Google"/>
+    <label for="gsearch-box"><img src="/img/search.svg" alt="" id="gsearch-icon"/></label>
+    <input type="submit" id="gsearch-submit" onclick="document.getElementById('gsearch-box').value += ' site:ocsigen.org';"/>
+  </form>
+
+  <aside class="how-drawer">
+    <input id="how-drawer-toggle" type="checkbox"/>
+    <label for="how-drawer-toggle" id="how-drawer-label"><span class="how-drawer-icon"></span></label>
+    <nav class="how-drawer-content">
+      <ul class="drawermainmenu">
+        <li class="drawermainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></li>
+        <li class="drawermainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></li>
+        <li class="drawermainmenu-project current" data-wodoc-page="eliom"><a href="/eliom/">Eliom</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="lwt"><a href="/lwt/">Lwt</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="tyxml"><a href="/tyxml/">Tyxml</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-toolkit"><a href="/ocsigen-toolkit/">Toolkit</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-start"><a href="/ocsigen-start/">Start</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsipersist"><a href="/ocsipersist/">Ocsipersist</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="reactiveData"><a href="/reactiveData/">ReactiveData</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-i18n"><a href="/ocsigen-i18n/">i18n</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="wodoc"><a href="/wodoc/">Wodoc</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="projects"><a href="/projects">Other projects</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="papers"><a href="/papers">Research papers</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="credits"><a href="/credits">Who does Ocsigen?</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="contributing"><a href="/contributing">Contributing</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="blog"><a href="/blog">Blog</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="install"><a href="/install">Installation</a></li>
+        <li class="drawermainmenu-page"><a href="https://github.com/ocsigen">Source code</a></li>
+      </ul>
+      <!-- On mobile the left column is hidden; its menu lives here in the burger
+           (.how-doctree, shown only on narrow screens), as the old site did.
+           Empty on the vitrine; the leftnav hole is filled (with the same
+           fragment as the left column) only on project pages. -->
+      <nav class="how-doctree"><div class="docversion">
+  <label>Version:
+    <select class="wodoc-version" onchange="wodocVersion(this.value)">
+      <option value="dev">dev</option>
+    </select>
+  </label>
+</div>
+<div class="cs-switch">
+  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
+  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+</div>
+<div class="page-toc">
+  <h3>On this page</h3>
+  <nav class="odoc-toc odoc-local-toc"><ul><li><a href="#auxiliary-service-related-types">Auxiliary service-related types</a></li><li><a href="#method-specification">Method specification</a></li></ul></nav>
+</div>
+<nav class="api-nav manual-nav">
+<h3>Eliom&#x27;s Reference manual</h3>
+<ul class="api-section">
+<li class="ml3" data-wodoc-page="intro.html"><a href="../../intro.html">Introduction</a></li>
+</ul>
+<h4 class="ml3">Server-side programming</h4>
+<h4 class="ml4">Services</h4>
+<ul class="api-section">
+<li class="ml5" data-wodoc-page="server-services.html"><a href="../../server-services.html">The different types of services</a></li>
+<li class="ml5" data-wodoc-page="server-params.html"><a href="../../server-params.html">Typing service parameters</a></li>
+<li class="ml5" data-wodoc-page="server-outputs.html"><a href="../../server-outputs.html">Service handlers</a></li>
+<li class="ml5" data-wodoc-page="server-links.html"><a href="../../server-links.html">Creating links and forms</a></li>
+</ul>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="server-state.html"><a href="../../server-state.html">Sessions and server side state</a></li>
+<li class="ml4" data-wodoc-page="server-security.html"><a href="../../server-security.html">Security</a></li>
+</ul>
+<h4 class="ml3">Client-server programming</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="clientserver-applications.html"><a href="../../clientserver-applications.html">Eliom applications</a></li>
+<li class="ml4" data-wodoc-page="ppx-syntax.html"><a href="../../ppx-syntax.html">Multi-tier programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-html.html"><a href="../../clientserver-html.html">Generating HTML</a></li>
+<li class="ml4" data-wodoc-page="clientserver-communication.html"><a href="../../clientserver-communication.html">Communication</a></li>
+<li class="ml4" data-wodoc-page="clientserver-services.html"><a href="../../clientserver-services.html">Client-side services</a></li>
+<li class="ml4" data-wodoc-page="clientserver-react.html"><a href="../../clientserver-react.html">Shared reactive programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-cache.html"><a href="../../clientserver-cache.html">Caching data and off-line applications</a></li>
+<li class="ml4" data-wodoc-page="clientserver-wrapping.html"><a href="../../clientserver-wrapping.html">Custom wrapping</a></li>
+</ul>
+<h4 class="ml3">Workflows</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="workflow-distillery.html"><a href="../../workflow-distillery.html">Distillery</a></li>
+<li class="ml4" data-wodoc-page="mobile-apps.html"><a href="../../mobile-apps.html">Mobile apps</a></li>
+<li class="ml4" data-wodoc-page="workflow-configuration.html"><a href="../../workflow-configuration.html">Configuration &amp; running</a></li>
+<li class="ml4" data-wodoc-page="scalability.html"><a href="../../scalability.html">Scalability</a></li>
+</ul>
+</nav>
+
+<nav class="api-nav">
+<h3>Client API</h3>
+<h4>Client API</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_lib"><a href="../../eliom.client/Eliom_lib/index.html">Eliom_lib</a></li>
+<li data-wodoc-page="Eliom_client"><a href="../../eliom.client/Eliom_client/index.html">Eliom_client</a></li>
+<li data-wodoc-page="Eliom_client_value"><a href="../../eliom.client/Eliom_client_value/index.html">Eliom_client_value</a></li>
+</ul>
+<h4>Content and form creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_content.Html"><a href="../../eliom.client/Eliom_content/Html/index.html">Eliom_content.Html</a></li>
+<li data-wodoc-page="Eliom_content.Html.Manip"><a href="../../eliom.client/Eliom_content/Html/Manip/index.html">Eliom_content.Html.Manip</a></li>
+<li data-wodoc-page="Eliom_content.Svg"><a href="../../eliom.client/Eliom_content/Svg/index.html">Eliom_content.Svg</a></li>
+<li data-wodoc-page="Eliom_content.Xml"><a href="../../eliom.client/Eliom_content/Xml/index.html">Eliom_content.Xml</a></li>
+</ul>
+<h4>Client/server communication</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_service"><a href="../../eliom.client/Eliom_service/index.html">Eliom_service</a></li>
+<li data-wodoc-page="Eliom_shared"><a href="../../eliom.client/Eliom_shared/index.html">Eliom_shared</a></li>
+<li data-wodoc-page="Eliom_cscache"><a href="../../eliom.client/Eliom_cscache/index.html">Eliom_cscache</a></li>
+<li data-wodoc-page="Eliom_bus"><a href="../../eliom.client/Eliom_bus/index.html">Eliom_bus</a></li>
+<li data-wodoc-page="Eliom_comet"><a href="../../eliom.client/Eliom_comet/index.html">Eliom_comet</a></li>
+<li data-wodoc-page="Eliom_react"><a href="../../eliom.client/Eliom_react/index.html">Eliom_react</a></li>
+</ul>
+</nav>
+</nav>
+    </nav>
+  </aside>
+</div>
+
+
+  <div class="project-page">
+    <div class="twocols">
+      <nav class="leftcol">
+        <div class="docversion">
+  <label>Version:
+    <select class="wodoc-version" onchange="wodocVersion(this.value)">
+      <option value="dev">dev</option>
+    </select>
+  </label>
+</div>
+<div class="cs-switch">
+  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
+  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+</div>
+<div class="page-toc">
+  <h3>On this page</h3>
+  <nav class="odoc-toc odoc-local-toc"><ul><li><a href="#auxiliary-service-related-types">Auxiliary service-related types</a></li><li><a href="#method-specification">Method specification</a></li></ul></nav>
+</div>
+<nav class="api-nav manual-nav">
+<h3>Eliom&#x27;s Reference manual</h3>
+<ul class="api-section">
+<li class="ml3" data-wodoc-page="intro.html"><a href="../../intro.html">Introduction</a></li>
+</ul>
+<h4 class="ml3">Server-side programming</h4>
+<h4 class="ml4">Services</h4>
+<ul class="api-section">
+<li class="ml5" data-wodoc-page="server-services.html"><a href="../../server-services.html">The different types of services</a></li>
+<li class="ml5" data-wodoc-page="server-params.html"><a href="../../server-params.html">Typing service parameters</a></li>
+<li class="ml5" data-wodoc-page="server-outputs.html"><a href="../../server-outputs.html">Service handlers</a></li>
+<li class="ml5" data-wodoc-page="server-links.html"><a href="../../server-links.html">Creating links and forms</a></li>
+</ul>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="server-state.html"><a href="../../server-state.html">Sessions and server side state</a></li>
+<li class="ml4" data-wodoc-page="server-security.html"><a href="../../server-security.html">Security</a></li>
+</ul>
+<h4 class="ml3">Client-server programming</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="clientserver-applications.html"><a href="../../clientserver-applications.html">Eliom applications</a></li>
+<li class="ml4" data-wodoc-page="ppx-syntax.html"><a href="../../ppx-syntax.html">Multi-tier programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-html.html"><a href="../../clientserver-html.html">Generating HTML</a></li>
+<li class="ml4" data-wodoc-page="clientserver-communication.html"><a href="../../clientserver-communication.html">Communication</a></li>
+<li class="ml4" data-wodoc-page="clientserver-services.html"><a href="../../clientserver-services.html">Client-side services</a></li>
+<li class="ml4" data-wodoc-page="clientserver-react.html"><a href="../../clientserver-react.html">Shared reactive programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-cache.html"><a href="../../clientserver-cache.html">Caching data and off-line applications</a></li>
+<li class="ml4" data-wodoc-page="clientserver-wrapping.html"><a href="../../clientserver-wrapping.html">Custom wrapping</a></li>
+</ul>
+<h4 class="ml3">Workflows</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="workflow-distillery.html"><a href="../../workflow-distillery.html">Distillery</a></li>
+<li class="ml4" data-wodoc-page="mobile-apps.html"><a href="../../mobile-apps.html">Mobile apps</a></li>
+<li class="ml4" data-wodoc-page="workflow-configuration.html"><a href="../../workflow-configuration.html">Configuration &amp; running</a></li>
+<li class="ml4" data-wodoc-page="scalability.html"><a href="../../scalability.html">Scalability</a></li>
+</ul>
+</nav>
+
+<nav class="api-nav">
+<h3>Client API</h3>
+<h4>Client API</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_lib"><a href="../../eliom.client/Eliom_lib/index.html">Eliom_lib</a></li>
+<li data-wodoc-page="Eliom_client"><a href="../../eliom.client/Eliom_client/index.html">Eliom_client</a></li>
+<li data-wodoc-page="Eliom_client_value"><a href="../../eliom.client/Eliom_client_value/index.html">Eliom_client_value</a></li>
+</ul>
+<h4>Content and form creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_content.Html"><a href="../../eliom.client/Eliom_content/Html/index.html">Eliom_content.Html</a></li>
+<li data-wodoc-page="Eliom_content.Html.Manip"><a href="../../eliom.client/Eliom_content/Html/Manip/index.html">Eliom_content.Html.Manip</a></li>
+<li data-wodoc-page="Eliom_content.Svg"><a href="../../eliom.client/Eliom_content/Svg/index.html">Eliom_content.Svg</a></li>
+<li data-wodoc-page="Eliom_content.Xml"><a href="../../eliom.client/Eliom_content/Xml/index.html">Eliom_content.Xml</a></li>
+</ul>
+<h4>Client/server communication</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_service"><a href="../../eliom.client/Eliom_service/index.html">Eliom_service</a></li>
+<li data-wodoc-page="Eliom_shared"><a href="../../eliom.client/Eliom_shared/index.html">Eliom_shared</a></li>
+<li data-wodoc-page="Eliom_cscache"><a href="../../eliom.client/Eliom_cscache/index.html">Eliom_cscache</a></li>
+<li data-wodoc-page="Eliom_bus"><a href="../../eliom.client/Eliom_bus/index.html">Eliom_bus</a></li>
+<li data-wodoc-page="Eliom_comet"><a href="../../eliom.client/Eliom_comet/index.html">Eliom_comet</a></li>
+<li data-wodoc-page="Eliom_react"><a href="../../eliom.client/Eliom_react/index.html">Eliom_react</a></li>
+</ul>
+</nav>
+
+      </nav>
+      <article class="rightcol">
+        <header class="odoc-preamble"><h1>Module <code><span>Eliom_service_base</span></code><a href="../../src/eliom.client/eliom_service_base.ml.html" class="source_link">Source</a></h1></header>
+        <div class="odoc-content"><div class="odoc-spec"><div class="spec value anchored" id="val-__eliom__compilation_unit_id__8wyVC6"><a href="../../src/eliom.client/eliom_service_base.ml.html" class="source_link">Source</a><code><span><span class="keyword">val</span> __eliom__compilation_unit_id__8wyVC6 : string</span></code></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Types"><a href="../../src/eliom.client/eliom_service_base.ml.html#module-Types" class="source_link">Source</a><code><span><span class="keyword">module</span> <a href="Types/index.html">Types</a></span><span> : <a href="../Eliom_service_sigs/module-type-TYPES/index.html">Eliom_service_sigs.TYPES</a></span></code></div></div><div class="odoc-include"><details open="open"><summary class="spec include"><code><span><span class="keyword">include</span> <span class="keyword">module</span> <span class="keyword">type</span> <span class="keyword">of</span> <span class="keyword">struct</span> <span class="keyword">include</span> <a href="Types/index.html">Types</a> <span class="keyword">end</span></span></code></summary><h3 id="auxiliary-service-related-types">Auxiliary service-related types</h3><div class="odoc-spec"><div class="spec type anchored" id="type-get"><code><span><span class="keyword">type</span> get</span><span> = <a href="Types/index.html#type-get">Types.get</a></span><span> = </span></code><ol><li id="type-get.Get_method" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Get_method</span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-put"><code><span><span class="keyword">type</span> put</span><span> = <a href="Types/index.html#type-put">Types.put</a></span><span> = </span></code><ol><li id="type-put.Put_method" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Put_method</span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-post"><code><span><span class="keyword">type</span> post</span><span> = <a href="Types/index.html#type-post">Types.post</a></span><span> = </span></code><ol><li id="type-post.Post_method" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Post_method</span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-delete"><code><span><span class="keyword">type</span> delete</span><span> = <a href="Types/index.html#type-delete">Types.delete</a></span><span> = </span></code><ol><li id="type-delete.Delete_method" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Delete_method</span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-co"><code><span><span class="keyword">type</span> co</span><span> = <a href="Types/index.html#type-co">Types.co</a></span><span> = </span></code><ol><li id="type-co.Co" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Co</span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-non_co"><code><span><span class="keyword">type</span> non_co</span><span> = <a href="Types/index.html#type-non_co">Types.non_co</a></span><span> = </span></code><ol><li id="type-non_co.Non_co" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Non_co</span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-ext"><code><span><span class="keyword">type</span> ext</span><span> = <a href="Types/index.html#type-ext">Types.ext</a></span><span> = </span></code><ol><li id="type-ext.Ext" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Ext</span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-non_ext"><code><span><span class="keyword">type</span> non_ext</span><span> = <a href="Types/index.html#type-non_ext">Types.non_ext</a></span><span> = </span></code><ol><li id="type-non_ext.Non_ext" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Non_ext</span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-http"><code><span><span class="keyword">type</span> http</span><span> = <a href="Types/index.html#type-http">Types.http</a></span><span> = </span></code><ol><li id="type-http.Http_ret" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Http_ret</span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-ocaml"><code><span><span class="keyword">type</span> <span>'a ocaml</span></span><span> = <span><span class="type-var">'a</span> <a href="Types/index.html#type-ocaml">Types.ocaml</a></span></span><span> = </span></code><ol><li id="type-ocaml.Ocaml" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Ocaml</span> <span class="keyword">of</span> <span class="type-var">'a</span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-non_ocaml"><code><span><span class="keyword">type</span> non_ocaml</span><span> = <a href="Types/index.html#type-non_ocaml">Types.non_ocaml</a></span><span> = </span></code><ol><li id="type-non_ocaml.Non_ocaml" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Non_ocaml</span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-reg"><code><span><span class="keyword">type</span> reg</span><span> = <a href="Types/index.html#type-reg">Types.reg</a></span><span> = </span></code><ol><li id="type-reg.Reg" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Reg</span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-non_reg"><code><span><span class="keyword">type</span> non_reg</span><span> = <a href="Types/index.html#type-non_reg">Types.non_reg</a></span><span> = </span></code><ol><li id="type-non_reg.Non_reg" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Non_reg</span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-params"><code><span><span class="keyword">type</span> <span>('get, 'tipo, 'gn) params</span></span><span> = <span><span>(<span class="type-var">'get</span>, <span class="type-var">'tipo</span>, <span class="type-var">'gn</span>)</span> <a href="../Eliom_parameter/index.html#type-params_type">Eliom_parameter.params_type</a></span></span><span> <span class="keyword">constraint</span> <span class="type-var">'tipo</span> = <span>[&lt; `WithSuffix <span>| `WithoutSuffix</span> ]</span></span></code></div></div><h3 id="method-specification">Method specification</h3><div class="odoc-spec"><div class="spec type anchored" id="type-meth"><code><span><span class="keyword">type</span> <span>('m, _, _, _, _, _, _) meth</span></span><span> = <span><span>(<span class="type-var">'m</span>, <span class="type-var">_</span>, <span class="type-var">_</span>, <span class="type-var">_</span>, <span class="type-var">_</span>, <span class="type-var">_</span>, <span class="type-var">_</span>)</span> <a href="Types/index.html#type-meth">Types.meth</a></span></span><span> = </span></code><ol><li id="type-meth.Get" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Get</span> : <span><span>(<span class="type-var">'gp</span>, <span class="type-var">'tipo</span>, <span class="type-var">'gn</span>)</span> <a href="#type-params">params</a></span> <span class="arrow">&#45;&gt;</span> <span><span>(<a href="#type-get">get</a>, <span class="type-var">'gp</span>, <span class="type-var">'gn</span>, unit, unit, <span class="type-var">'tipo</span>, unit)</span> <a href="#type-meth">meth</a></span></span></code></li><li id="type-meth.Post" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Post</span> : <span><span>(<span class="type-var">'gp</span>, <span class="type-var">'tipo</span>, <span class="type-var">'gn</span>)</span> <a href="#type-params">params</a></span>
+  * <span><span>(<span class="type-var">'pp</span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'pn</span>)</span> <a href="#type-params">params</a></span> <span class="arrow">&#45;&gt;</span> <span><span>(<a href="#type-post">post</a>,
+                                               <span class="type-var">'gp</span>,
+                                               <span class="type-var">'gn</span>,
+                                               <span class="type-var">'pp</span>,
+                                               <span class="type-var">'pn</span>,
+                                               <span class="type-var">'tipo</span>,
+                                               <span class="type-var">'gp</span>)</span>
+                                               <a href="#type-meth">meth</a></span></span></code></li><li id="type-meth.Put" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Put</span> : <span><span>(<span class="type-var">'gp</span>, <span class="type-var">'tipo</span>, <span class="type-var">'gn</span>)</span> <a href="#type-params">params</a></span> <span class="arrow">&#45;&gt;</span> <span><span>(<a href="#type-put">put</a>,
+                                    <span class="type-var">'gp</span>,
+                                    <span class="type-var">'gn</span>,
+                                    <a href="../Eliom_parameter/index.html#type-raw_post_data">Eliom_parameter.raw_post_data</a>,
+                                    <a href="../Eliom_parameter/index.html#type-no_param_name">Eliom_parameter.no_param_name</a>,
+                                    <span class="type-var">'tipo</span>,
+                                    unit)</span>
+                                    <a href="#type-meth">meth</a></span></span></code></li><li id="type-meth.Delete" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Delete</span> : <span><span>(<span class="type-var">'gp</span>, <span class="type-var">'tipo</span>, <span class="type-var">'gn</span>)</span> <a href="#type-params">params</a></span> <span class="arrow">&#45;&gt;</span> <span><span>(<a href="#type-delete">delete</a>,
+                                       <span class="type-var">'gp</span>,
+                                       <span class="type-var">'gn</span>,
+                                       <a href="../Eliom_parameter/index.html#type-raw_post_data">Eliom_parameter.raw_post_data</a>,
+                                       <a href="../Eliom_parameter/index.html#type-no_param_name">Eliom_parameter.no_param_name</a>,
+                                       <span class="type-var">'tipo</span>,
+                                       unit)</span>
+                                       <a href="#type-meth">meth</a></span></span></code></li></ol></div><div class="spec-doc"><p><b>Method specification datatype</b></p><p>An Eliom service (see <a href="../Eliom_service_sigs/module-type-S/index.html#type-t"><code>Eliom_service_sigs.S.t</code></a>) can respond to one of the following HTTP methods:</p><ul><li>GET (<code>Get g</code>)</li><li>POST (<code>Post (g, p)</code>)</li><li>PUT (<code>Put g</code>)</li><li>DELETE (<code>Delete g</code>)</li></ul><p>In all cases, the service parameters need to be provided (see <a href="../Eliom_parameter_sigs/module-type-S/index.html"><code>Eliom_parameter_sigs.S</code></a>). POST (<code>Post (g, p)</code>) services accept both GET (<code>g</code>) and POST (<code>p</code>) parameters. For the other methods, only GET (<code>g</code>) parameters apply.</p><p>The type parameters are used to impose various type constraints, and are not necessarily of interest to the programmer. Their technical meaning is as follows.</p><ul><li>0-th param : method</li><li>params 1-4 : GET and POST parameter types and names</li><li>param 5 : suffix parameters permitted or not</li><li>param 6 : non-unit only for the <code>Post (g, p)</code> case when <code>g</code> is not unit ; used to force unit GET parameters when needed</li></ul></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-which_meth"><code><span><span class="keyword">type</span> <span>'m which_meth</span></span><span> = <span><span class="type-var">'m</span> <a href="Types/index.html#type-which_meth">Types.which_meth</a></span></span><span> = </span></code><ol><li id="type-which_meth.Get'" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Get'</span> : <span><a href="#type-get">get</a> <a href="#type-which_meth">which_meth</a></span></span></code></li><li id="type-which_meth.Post'" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Post'</span> : <span><a href="#type-post">post</a> <a href="#type-which_meth">which_meth</a></span></span></code></li><li id="type-which_meth.Put'" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Put'</span> : <span><a href="#type-put">put</a> <a href="#type-which_meth">which_meth</a></span></span></code></li><li id="type-which_meth.Delete'" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Delete'</span> : <span><a href="#type-delete">delete</a> <a href="#type-which_meth">which_meth</a></span></span></code></li></ol></div><div class="spec-doc"><p>Like <a href="#val-meth"><code>meth</code></a> but without the parameters</p></div></div></details></div><div class="odoc-spec"><div class="spec module anchored" id="module-Url"><a href="../../src/eliom.client/eliom_lib.ml.html#module-Url" class="source_link">Source</a><code><span><span class="keyword">module</span> Url</span><span> = <a href="../Eliom_lib/Url/index.html">Eliom_lib.Url</a></span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-suff"><a href="../../src/eliom.client/eliom_service_base.ml.html#type-suff" class="source_link">Source</a><code><span><span class="keyword">type</span> suff</span><span> = </span><span>[ </span></code><ol><li id="type-suff.WithSuffix" class="def variant constructor anchored"><code><span>| </span><span>`WithSuffix</span></code></li><li id="type-suff.WithoutSuffix" class="def variant constructor anchored"><code><span>| </span><span>`WithoutSuffix</span></code></li></ol><code><span> ]</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-params_of_meth"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-params_of_meth" class="source_link">Source</a><code><span><span class="keyword">val</span> params_of_meth : 
+  'm 'gp 'gn 'pp 'pn 'x. <span><span><span>(<span class="type-var">'m</span>,
+                           <span class="type-var">'gp</span>,
+                           <span class="type-var">'gn</span>,
+                           <span class="type-var">'pp</span>,
+                           <span class="type-var">'pn</span>,
+                           <span>[&lt; `WithSuffix <span>| `WithoutSuffix</span> ]</span> <span class="keyword">as</span> 'a,
+                           <span class="type-var">'x</span>)</span>
+                           <a href="#type-meth">meth</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span class="type-var">'gp</span>, <span class="type-var">'a</span>, <span class="type-var">'gn</span>)</span> <a href="#type-params">params</a></span> * <span><span>(<span class="type-var">'pp</span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'pn</span>)</span> <a href="#type-params">params</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-which_meth_internal"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-which_meth_internal" class="source_link">Source</a><code><span><span class="keyword">val</span> which_meth_internal : 
+  'm 'gp 'gn 'pp 'pn 'tipo 'x. <span><span><span>(<span class="type-var">'m</span>, <span class="type-var">'gp</span>, <span class="type-var">'gn</span>, <span class="type-var">'pp</span>, <span class="type-var">'pn</span>, <span class="type-var">'tipo</span>, <span class="type-var">'x</span>)</span> <a href="#type-meth">meth</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="type-var">'m</span> <a href="#type-which_meth">which_meth</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-is_post"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-is_post" class="source_link">Source</a><code><span><span class="keyword">val</span> is_post : 
+  'm 'gp 'gn 'pp 'pn 'x. <span><span><span>(<span class="type-var">'m</span>,
+                           <span class="type-var">'gp</span>,
+                           <span class="type-var">'gn</span>,
+                           <span class="type-var">'pp</span>,
+                           <span class="type-var">'pn</span>,
+                           <span>[&lt; `WithSuffix <span>| `WithoutSuffix</span> ]</span>,
+                           <span class="type-var">'x</span>)</span>
+                           <a href="#type-meth">meth</a></span> <span class="arrow">&#45;&gt;</span></span>
+  bool</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-is_post'"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-is_post'" class="source_link">Source</a><code><span><span class="keyword">val</span> is_post' : 'm. <span><span><span class="type-var">'m</span> <a href="#type-which_meth">which_meth</a></span> <span class="arrow">&#45;&gt;</span></span> bool</span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-reload_fun"><a href="../../src/eliom.client/eliom_service_base.ml.html#type-reload_fun" class="source_link">Source</a><code><span><span class="keyword">type</span> reload_fun</span><span> = </span></code><ol><li id="type-reload_fun.Rf_keep" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Rf_keep</span></span></code></li><li id="type-reload_fun.Rf_client_fun" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Rf_client_fun</span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-att"><a href="../../src/eliom.client/eliom_service_base.ml.html#type-att" class="source_link">Source</a><code><span><span class="keyword">type</span> att</span><span> = </span><span>{</span></code><ol><li id="type-att.prefix" class="def record field anchored"><code><span>prefix : string;</span></code></li><li id="type-att.subpath" class="def record field anchored"><code><span>subpath : <a href="../Eliom_lib/Url/index.html#type-path">Url.path</a>;</span></code></li><li id="type-att.fullpath" class="def record field anchored"><code><span>fullpath : <span><span><a href="../Eliom_lib/Url/index.html#type-path">Url.path</a> option</span> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/index.html#type-ref">ref</a></span>;</span></code></li><li id="type-att.get_name" class="def record field anchored"><code><span>get_name : <a href="../Eliom_common/index.html#type-att_key_serv">Eliom_common.att_key_serv</a>;</span></code></li><li id="type-att.post_name" class="def record field anchored"><code><span>post_name : <a href="../Eliom_common/index.html#type-att_key_serv">Eliom_common.att_key_serv</a>;</span></code></li><li id="type-att.redirect_suffix" class="def record field anchored"><code><span>redirect_suffix : bool;</span></code></li><li id="type-att.priority" class="def record field anchored"><code><span>priority : int;</span></code></li></ol><code><span>}</span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-non_att"><a href="../../src/eliom.client/eliom_service_base.ml.html#type-non_att" class="source_link">Source</a><code><span><span class="keyword">type</span> non_att</span><span> = </span><span>{</span></code><ol><li id="type-non_att.na_name" class="def record field anchored"><code><span>na_name : <a href="../Eliom_common/index.html#type-na_key_serv">Eliom_common.na_key_serv</a>;</span></code></li><li id="type-non_att.keep_get_na_params" class="def record field anchored"><code><span>keep_get_na_params : bool;</span></code></li></ol><code><span>}</span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-attached_info"><a href="../../src/eliom.client/eliom_service_base.ml.html#type-attached_info" class="source_link">Source</a><code><span><span class="keyword">type</span> <span>'a attached_info</span></span><span> = </span></code><ol><li id="type-attached_info.Attached" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Attached</span> : <a href="#type-att">att</a> <span class="arrow">&#45;&gt;</span> <span><a href="#type-att">att</a> <a href="#type-attached_info">attached_info</a></span></span></code></li><li id="type-attached_info.Nonattached" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Nonattached</span> : <a href="#type-non_att">non_att</a> <span class="arrow">&#45;&gt;</span> <span><a href="#type-non_att">non_att</a> <a href="#type-attached_info">attached_info</a></span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-send_appl_content"><a href="../../src/eliom.client/eliom_service_base.ml.html#type-send_appl_content" class="source_link">Source</a><code><span><span class="keyword">type</span> send_appl_content</span><span> = </span></code><ol><li id="type-send_appl_content.XNever" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">XNever</span></span></code></li><li id="type-send_appl_content.XAlways" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">XAlways</span></span></code></li><li id="type-send_appl_content.XSame_appl" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">XSame_appl</span> <span class="keyword">of</span> string * <span>string option</span></span></code><div class="def-doc"><span class="comment-delim">(*</span><p>Whether the service is capable to send application content or not. (application content has type Eliom_service.eliom_appl_answer: content of the application container, or xhr redirection ...). A link towards a service with send_appl_content = XNever will always answer a regular http frame (this will stop the application if used in a regular link or form, but not with XHR). XAlways means &quot;for all applications&quot; (like redirections/actions). XSame_appl means &quot;only for this application&quot;. If there is a client side application, and the service has XAlways or XSame_appl when it is the same application, then the link (or form or change_page) will expect application content.</p><span class="comment-delim">*)</span></div></li></ol></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-service_kind"><a href="../../src/eliom.client/eliom_service_base.ml.html#type-service_kind" class="source_link">Source</a><code><span><span class="keyword">type</span> service_kind</span><span> = </span><span>[ </span></code><ol><li id="type-service_kind.Service" class="def variant constructor anchored"><code><span>| </span><span>`Service</span></code></li><li id="type-service_kind.AttachedCoservice" class="def variant constructor anchored"><code><span>| </span><span>`AttachedCoservice</span></code></li><li id="type-service_kind.NonattachedCoservice" class="def variant constructor anchored"><code><span>| </span><span>`NonattachedCoservice</span></code></li><li id="type-service_kind.External" class="def variant constructor anchored"><code><span>| </span><span>`External</span></code></li></ol><code><span> ]</span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-t"><a href="../../src/eliom.client/eliom_service_base.ml.html#type-t" class="source_link">Source</a><code><span><span class="keyword">type</span> <span>('get, 'post, 'meth, 'attached, 'co, 'ext, 'reg, +'tipo, 'getnames, 'postnames, 'rt)
+  t</span></span><span> =
+  </span><span>{</span></code><ol><li id="type-t.pre_applied_parameters" class="def record field anchored"><code><span>pre_applied_parameters : <span><span><span>(string * <a href="../Eliommod_parameters/index.html#type-param">Eliommod_parameters.param</a>)</span> list</span>
+                           <a href="../Eliom_lib/String/Table/index.html#type-t">Eliom_lib.String.Table.t</a></span>
+                         * <span><span>(string * <a href="../Eliommod_parameters/index.html#type-param">Eliommod_parameters.param</a>)</span> list</span>;</span></code></li><li id="type-t.get_params_type" class="def record field anchored"><code><span>get_params_type : <span><span>(<span class="type-var">'get</span>, <span class="type-var">'tipo</span>, <span class="type-var">'getnames</span>)</span> <a href="../Eliom_parameter/index.html#type-params_type">Eliom_parameter.params_type</a></span>;</span></code></li><li id="type-t.post_params_type" class="def record field anchored"><code><span>post_params_type : <span><span>(<span class="type-var">'post</span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'postnames</span>)</span>
+                     <a href="../Eliom_parameter/index.html#type-params_type">Eliom_parameter.params_type</a></span>;</span></code></li><li id="type-t.max_use" class="def record field anchored"><code><span>max_use : <span>int option</span>;</span></code></li><li id="type-t.timeout" class="def record field anchored"><code><span>timeout : <span>float option</span>;</span></code></li><li id="type-t.meth" class="def record field anchored"><code><span>meth : <span><span class="type-var">'meth</span> <a href="#type-which_meth">which_meth</a></span>;</span></code></li><li id="type-t.kind" class="def record field anchored"><code><span>kind : <a href="#type-service_kind">service_kind</a>;</span></code></li><li id="type-t.info" class="def record field anchored"><code><span>info : <span><span class="type-var">'attached</span> <a href="#type-attached_info">attached_info</a></span>;</span></code></li><li id="type-t.https" class="def record field anchored"><code><span>https : bool;</span></code></li><li id="type-t.keep_nl_params" class="def record field anchored"><code><span>keep_nl_params : <span>[ `All <span>| `Persistent</span> <span>| `None</span> ]</span>;</span></code></li><li id="type-t.send_appl_content" class="def record field anchored"><code><span><span class="keyword">mutable</span> send_appl_content : <a href="#type-send_appl_content">send_appl_content</a>;</span></code></li><li id="type-t.client_fun" class="def record field anchored"><code><span><span class="keyword">mutable</span> client_fun : <span><span><span><span><span>(<span><span class="type-var">'get</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'post</span> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-result">result</a> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span>)</span> option</span> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/index.html#type-ref">ref</a></span>
+                       <a href="../Eliom_client_value/index.html#type-t">Eliom_client_value.t</a></span>
+                       option</span>;</span></code></li><li id="type-t.reload_fun" class="def record field anchored"><code><span><span class="keyword">mutable</span> reload_fun : <a href="#type-reload_fun">reload_fun</a>;</span></code></li><li id="type-t.service_mark" class="def record field anchored"><code><span>service_mark : <span><span><span>(unit,
+                 unit,
+                 <span class="type-var">'meth</span>,
+                 <span class="type-var">'attached</span>,
+                 <span class="type-var">'co</span>,
+                 <span class="type-var">'ext</span>,
+                 <span class="type-var">'reg</span>,
+                 <a href="#type-suff">suff</a>,
+                 unit,
+                 unit,
+                 unit)</span>
+                 <a href="#type-t">t</a></span>
+                 <a href="../Eliom_common/index.html#type-wrapper">Eliom_common.wrapper</a></span>;</span></code></li></ol><code><span>}</span><span> <span class="keyword">constraint</span> <span class="type-var">'tipo</span> = <span>[&lt; <a href="#type-suff">suff</a> ]</span></span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-result"><a href="../../src/eliom.client/eliom_service_base.ml.html#type-result" class="source_link">Source</a><code><span><span class="keyword">and</span> result</span><span> = </span></code><ol><li id="type-result.No_contents" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">No_contents</span></span></code></li><li id="type-result.Dom" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Dom</span> <span class="keyword">of</span> <span><a href="https://ocaml.org/p/js_of_ocaml/6.3.2/doc/Js_of_ocaml/Dom_html/class-type-element/index.html">Js_of_ocaml.Dom_html.element</a> <a href="https://ocaml.org/p/js_of_ocaml/6.3.2/doc/Js_of_ocaml/Js/index.html#type-t">Js_of_ocaml.Js.t</a></span></span></code></li><li id="type-result.Redirect" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Redirect</span> : <span><span>(unit,
+             unit,
+             <a href="#type-get">get</a>,
+             <span class="type-var">_</span>,
+             <span class="type-var">_</span>,
+             <span class="type-var">_</span>,
+             <span class="type-var">_</span>,
+             <span>[ `WithoutSuffix ]</span>,
+             unit,
+             unit,
+             <a href="#type-non_ocaml">non_ocaml</a>)</span>
+             <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span> <a href="#type-result">result</a></span></code></li><li id="type-result.Reload_action" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Reload_action</span> <span class="keyword">of</span> </span><span>{</span></code><ol><li id="type-result.hidden" class="def record field anchored"><code><span>hidden : bool;</span></code></li><li id="type-result.https" class="def record field anchored"><code><span>https : bool;</span></code></li></ol><code><span>}</span></code></li></ol></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-pre_wrap"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-pre_wrap" class="source_link">Source</a><code><span><span class="keyword">val</span> pre_wrap : 
+  <span><span><span>(<span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'c</span>, <span class="type-var">'d</span>, <span class="type-var">'e</span>, <span class="type-var">'f</span>, <span class="type-var">'g</span>, <span>[&lt; <a href="#type-suff">suff</a> ]</span> <span class="keyword">as</span> 'h, <span class="type-var">'i</span>, <span class="type-var">'j</span>, <span class="type-var">'k</span>)</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'c</span>, <span class="type-var">'d</span>, <span class="type-var">'l</span>, <span class="type-var">'m</span>, <span class="type-var">'n</span>, <span class="type-var">'h</span>, <span class="type-var">'i</span>, <span class="type-var">'j</span>, <span class="type-var">'o</span>)</span> <a href="#type-t">t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-unit_service"><a href="../../src/eliom.client/eliom_service_base.ml.html#type-unit_service" class="source_link">Source</a><code><span><span class="keyword">type</span> unit_service</span><span> =
+  <span><span>(unit,
+    unit,
+    <a href="#type-get">get</a>,
+    <a href="#type-att">att</a>,
+    <a href="#type-non_co">non_co</a>,
+    <a href="#type-non_ext">non_ext</a>,
+    <a href="#type-non_reg">non_reg</a>,
+    <span>[ `WithoutSuffix ]</span>,
+    unit,
+    unit,
+    <a href="#type-non_ocaml">non_ocaml</a>)</span>
+    <a href="#type-t">t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-service_mark"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-service_mark" class="source_link">Source</a><code><span><span class="keyword">val</span> service_mark : <span>unit <span class="arrow">&#45;&gt;</span></span> unit</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-info"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-info" class="source_link">Source</a><code><span><span class="keyword">val</span> info : 
+  <span><span><span>(<span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'c</span>, <span class="type-var">'d</span>, <span class="type-var">'e</span>, <span class="type-var">'f</span>, <span class="type-var">'g</span>, <span>[&lt; <a href="#type-suff">suff</a> ]</span>, <span class="type-var">'h</span>, <span class="type-var">'i</span>, <span class="type-var">'j</span>)</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="type-var">'d</span> <a href="#type-attached_info">attached_info</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-pre_applied_parameters"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-pre_applied_parameters" class="source_link">Source</a><code><span><span class="keyword">val</span> pre_applied_parameters : 
+  <span><span><span>(<span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'c</span>, <span class="type-var">'d</span>, <span class="type-var">'e</span>, <span class="type-var">'f</span>, <span class="type-var">'g</span>, <span>[&lt; <a href="#type-suff">suff</a> ]</span>, <span class="type-var">'h</span>, <span class="type-var">'i</span>, <span class="type-var">'j</span>)</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span>(string * <a href="../Eliommod_parameters/index.html#type-param">Eliommod_parameters.param</a>)</span> list</span> <a href="../Eliom_lib/String/Table/index.html#type-t">Eliom_lib.String.Table.t</a></span>
+  * <span><span>(string * <a href="../Eliommod_parameters/index.html#type-param">Eliommod_parameters.param</a>)</span> list</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_params_type"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-get_params_type" class="source_link">Source</a><code><span><span class="keyword">val</span> get_params_type : 
+  <span><span><span>(<span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'c</span>, <span class="type-var">'d</span>, <span class="type-var">'e</span>, <span class="type-var">'f</span>, <span class="type-var">'g</span>, <span>[&lt; <a href="#type-suff">suff</a> ]</span> <span class="keyword">as</span> 'h, <span class="type-var">'i</span>, <span class="type-var">'j</span>, <span class="type-var">'k</span>)</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span class="type-var">'a</span>, <span class="type-var">'h</span>, <span class="type-var">'i</span>)</span> <a href="../Eliom_parameter/index.html#type-params_type">Eliom_parameter.params_type</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-post_params_type"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-post_params_type" class="source_link">Source</a><code><span><span class="keyword">val</span> post_params_type : 
+  <span><span><span>(<span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'c</span>, <span class="type-var">'d</span>, <span class="type-var">'e</span>, <span class="type-var">'f</span>, <span class="type-var">'g</span>, <span>[&lt; <a href="#type-suff">suff</a> ]</span>, <span class="type-var">'h</span>, <span class="type-var">'i</span>, <span class="type-var">'j</span>)</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span class="type-var">'b</span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'i</span>)</span> <a href="../Eliom_parameter/index.html#type-params_type">Eliom_parameter.params_type</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-prefix"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-prefix" class="source_link">Source</a><code><span><span class="keyword">val</span> prefix : <span><a href="#type-att">att</a> <span class="arrow">&#45;&gt;</span></span> string</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-sub_path"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-sub_path" class="source_link">Source</a><code><span><span class="keyword">val</span> sub_path : <span><a href="#type-att">att</a> <span class="arrow">&#45;&gt;</span></span> <a href="../Eliom_lib/Url/index.html#type-path">Url.path</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-redirect_suffix"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-redirect_suffix" class="source_link">Source</a><code><span><span class="keyword">val</span> redirect_suffix : <span><a href="#type-att">att</a> <span class="arrow">&#45;&gt;</span></span> bool</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-full_path"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-full_path" class="source_link">Source</a><code><span><span class="keyword">val</span> full_path : <span><a href="#type-att">att</a> <span class="arrow">&#45;&gt;</span></span> <a href="../Eliom_lib/Url/index.html#type-path">Url.path</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_name"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-get_name" class="source_link">Source</a><code><span><span class="keyword">val</span> get_name : <span><a href="#type-att">att</a> <span class="arrow">&#45;&gt;</span></span> <a href="../Eliom_common/index.html#type-att_key_serv">Eliom_common.att_key_serv</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-post_name"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-post_name" class="source_link">Source</a><code><span><span class="keyword">val</span> post_name : <span><a href="#type-att">att</a> <span class="arrow">&#45;&gt;</span></span> <a href="../Eliom_common/index.html#type-att_key_serv">Eliom_common.att_key_serv</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-na_name"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-na_name" class="source_link">Source</a><code><span><span class="keyword">val</span> na_name : <span><a href="#type-non_att">non_att</a> <span class="arrow">&#45;&gt;</span></span> <a href="../Eliom_common/index.html#type-na_key_serv">Eliom_common.na_key_serv</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-na_keep_get_na_params"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-na_keep_get_na_params" class="source_link">Source</a><code><span><span class="keyword">val</span> na_keep_get_na_params : <span><a href="#type-non_att">non_att</a> <span class="arrow">&#45;&gt;</span></span> bool</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-max_use"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-max_use" class="source_link">Source</a><code><span><span class="keyword">val</span> max_use : 
+  <span><span><span>(<span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'c</span>, <span class="type-var">'d</span>, <span class="type-var">'e</span>, <span class="type-var">'f</span>, <span class="type-var">'g</span>, <span>[&lt; <a href="#type-suff">suff</a> ]</span>, <span class="type-var">'h</span>, <span class="type-var">'i</span>, <span class="type-var">'j</span>)</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span>int option</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-timeout"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-timeout" class="source_link">Source</a><code><span><span class="keyword">val</span> timeout : 
+  <span><span><span>(<span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'c</span>, <span class="type-var">'d</span>, <span class="type-var">'e</span>, <span class="type-var">'f</span>, <span class="type-var">'g</span>, <span>[&lt; <a href="#type-suff">suff</a> ]</span>, <span class="type-var">'h</span>, <span class="type-var">'i</span>, <span class="type-var">'j</span>)</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span>float option</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-https"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-https" class="source_link">Source</a><code><span><span class="keyword">val</span> https : <span><span><span>(<span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'c</span>, <span class="type-var">'d</span>, <span class="type-var">'e</span>, <span class="type-var">'f</span>, <span class="type-var">'g</span>, <span>[&lt; <a href="#type-suff">suff</a> ]</span>, <span class="type-var">'h</span>, <span class="type-var">'i</span>, <span class="type-var">'j</span>)</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> bool</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-priority"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-priority" class="source_link">Source</a><code><span><span class="keyword">val</span> priority : <span><a href="#type-att">att</a> <span class="arrow">&#45;&gt;</span></span> int</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-_eliom_fragment_8wyVC61"><a href="../../src/eliom.client/eliom_service_base.ml.html" class="source_link">Source</a><code><span><span class="keyword">val</span> _eliom_fragment_8wyVC61 : 
+  <span><span><span>(<span><span class="type-var">'eliom_inferred_type_get_1</span> <span class="arrow">&#45;&gt;</span></span>
+    <span><span class="type-var">'eliom_inferred_type_post_0</span> <span class="arrow">&#45;&gt;</span></span>
+    <span><a href="#type-result">result</a> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span>)</span>
+    <a href="../Eliom_client_value/index.html#type-t">Eliom_client_value.t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span>(<span><span class="type-var">'eliom_inferred_type_get_1</span> <span class="arrow">&#45;&gt;</span></span>
+    <span><span class="type-var">'eliom_inferred_type_post_0</span> <span class="arrow">&#45;&gt;</span></span>
+    <span><a href="#type-result">result</a> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span>)</span>
+    option</span>
+    <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/index.html#type-ref">ref</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-internal_set_client_fun"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-internal_set_client_fun" class="source_link">Source</a><code><span><span class="keyword">val</span> internal_set_client_fun : 
+  <span><span class="label">service</span>:<span><span>(<span class="type-var">'get</span>, <span class="type-var">'post</span>, <span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'c</span>, <span class="type-var">'d</span>, <span class="type-var">'e</span>, <span>[&lt; <a href="#type-suff">suff</a> ]</span>, <span class="type-var">'f</span>, <span class="type-var">'g</span>, <span class="type-var">'h</span>)</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span>(<span><span class="type-var">'get</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'post</span> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-result">result</a> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <a href="../Eliom_client_value/index.html#type-t">Eliom_client_value.t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-is_external"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-is_external" class="source_link">Source</a><code><span><span class="keyword">val</span> is_external : <span><span><span>(<span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'c</span>, <span class="type-var">'d</span>, <span class="type-var">'e</span>, <span class="type-var">'f</span>, <span class="type-var">'g</span>, <span>[&lt; <a href="#type-suff">suff</a> ]</span>, <span class="type-var">'h</span>, <span class="type-var">'i</span>, <span class="type-var">'j</span>)</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span> bool</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-default_priority"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-default_priority" class="source_link">Source</a><code><span><span class="keyword">val</span> default_priority : int</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-meth"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-meth" class="source_link">Source</a><code><span><span class="keyword">val</span> meth : 
+  <span><span><span>(<span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'c</span>, <span class="type-var">'d</span>, <span class="type-var">'e</span>, <span class="type-var">'f</span>, <span class="type-var">'g</span>, <span>[&lt; <a href="#type-suff">suff</a> ]</span>, <span class="type-var">'h</span>, <span class="type-var">'i</span>, <span class="type-var">'j</span>)</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="type-var">'c</span> <a href="#type-which_meth">which_meth</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-change_get_num"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-change_get_num" class="source_link">Source</a><code><span><span class="keyword">val</span> change_get_num : 
+  <span><span><span>(<span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'c</span>, <span class="type-var">'d</span>, <span class="type-var">'e</span>, <span class="type-var">'f</span>, <span class="type-var">'g</span>, <span>[&lt; <a href="#type-suff">suff</a> ]</span> <span class="keyword">as</span> 'h, <span class="type-var">'i</span>, <span class="type-var">'j</span>, <span class="type-var">'k</span>)</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><a href="#type-att">att</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><a href="../Eliom_common/index.html#type-att_key_serv">Eliom_common.att_key_serv</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'c</span>, <a href="#type-att">att</a>, <span class="type-var">'l</span>, <span class="type-var">'m</span>, <span class="type-var">'n</span>, <span class="type-var">'h</span>, <span class="type-var">'i</span>, <span class="type-var">'j</span>, <span class="type-var">'o</span>)</span> <a href="#type-t">t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-static_dir_"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-static_dir_" class="source_link">Source</a><code><span><span class="keyword">val</span> static_dir_ : 
+  <span><span class="optlabel">?https</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span>string list</span>,
+    unit,
+    <a href="#type-get">get</a>,
+    <a href="#type-att">att</a>,
+    <span class="type-var">'a</span>,
+    <span class="type-var">'b</span>,
+    <span class="type-var">'c</span>,
+    <span>[ `WithSuffix ]</span>,
+    <span><span>[ <span>`One of <span>string list</span></span> ]</span> <a href="../Eliom_parameter/index.html#type-param_name">Eliom_parameter.param_name</a></span>,
+    unit,
+    <span class="type-var">'d</span>)</span>
+    <a href="#type-t">t</a></span></span></code></div><div class="spec-doc"><p>Static directories *</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-static_dir"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-static_dir" class="source_link">Source</a><code><span><span class="keyword">val</span> static_dir : 
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span>string list</span>,
+    unit,
+    <a href="#type-get">get</a>,
+    <a href="#type-att">att</a>,
+    <span class="type-var">'a</span>,
+    <span class="type-var">'b</span>,
+    <span class="type-var">'c</span>,
+    <span>[ `WithSuffix ]</span>,
+    <span><span>[ <span>`One of <span>string list</span></span> ]</span> <a href="../Eliom_parameter/index.html#type-param_name">Eliom_parameter.param_name</a></span>,
+    unit,
+    <span class="type-var">'d</span>)</span>
+    <a href="#type-t">t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-https_static_dir"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-https_static_dir" class="source_link">Source</a><code><span><span class="keyword">val</span> https_static_dir : 
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span>string list</span>,
+    unit,
+    <a href="#type-get">get</a>,
+    <a href="#type-att">att</a>,
+    <span class="type-var">'a</span>,
+    <span class="type-var">'b</span>,
+    <span class="type-var">'c</span>,
+    <span>[ `WithSuffix ]</span>,
+    <span><span>[ <span>`One of <span>string list</span></span> ]</span> <a href="../Eliom_parameter/index.html#type-param_name">Eliom_parameter.param_name</a></span>,
+    unit,
+    <span class="type-var">'d</span>)</span>
+    <a href="#type-t">t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_static_dir_"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-get_static_dir_" class="source_link">Source</a><code><span><span class="keyword">val</span> get_static_dir_ : 
+  <span><span class="optlabel">?https</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?keep_nl_params</span>:<span>[ `All <span>| `None</span> <span>| `Persistent</span> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">get_params</span>:<span><span>(<span class="type-var">'a</span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'b</span>)</span> <a href="../Eliom_parameter/index.html#type-params_type">Eliom_parameter.params_type</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span>string list</span> * <span class="type-var">'a</span>,
+    unit,
+    <a href="#type-get">get</a>,
+    <a href="#type-att">att</a>,
+    <span class="type-var">'c</span>,
+    <span class="type-var">'d</span>,
+    <span class="type-var">'e</span>,
+    <span>[ `WithSuffix ]</span>,
+    <span><span>[ <span>`One of <span>string list</span></span> ]</span> <a href="../Eliom_parameter/index.html#type-param_name">Eliom_parameter.param_name</a></span> * <span class="type-var">'b</span>,
+    unit,
+    <span class="type-var">'f</span>)</span>
+    <a href="#type-t">t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-static_dir_with_params"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-static_dir_with_params" class="source_link">Source</a><code><span><span class="keyword">val</span> static_dir_with_params : 
+  <span><span class="optlabel">?keep_nl_params</span>:<span>[ `All <span>| `None</span> <span>| `Persistent</span> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">get_params</span>:<span><span>(<span class="type-var">'a</span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'b</span>)</span> <a href="../Eliom_parameter/index.html#type-params_type">Eliom_parameter.params_type</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span>string list</span> * <span class="type-var">'a</span>,
+    unit,
+    <a href="#type-get">get</a>,
+    <a href="#type-att">att</a>,
+    <span class="type-var">'c</span>,
+    <span class="type-var">'d</span>,
+    <span class="type-var">'e</span>,
+    <span>[ `WithSuffix ]</span>,
+    <span><span>[ <span>`One of <span>string list</span></span> ]</span> <a href="../Eliom_parameter/index.html#type-param_name">Eliom_parameter.param_name</a></span> * <span class="type-var">'b</span>,
+    unit,
+    <span class="type-var">'f</span>)</span>
+    <a href="#type-t">t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-https_static_dir_with_params"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-https_static_dir_with_params" class="source_link">Source</a><code><span><span class="keyword">val</span> https_static_dir_with_params : 
+  <span><span class="optlabel">?keep_nl_params</span>:<span>[ `All <span>| `None</span> <span>| `Persistent</span> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">get_params</span>:<span><span>(<span class="type-var">'a</span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'b</span>)</span> <a href="../Eliom_parameter/index.html#type-params_type">Eliom_parameter.params_type</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span>string list</span> * <span class="type-var">'a</span>,
+    unit,
+    <a href="#type-get">get</a>,
+    <a href="#type-att">att</a>,
+    <span class="type-var">'c</span>,
+    <span class="type-var">'d</span>,
+    <span class="type-var">'e</span>,
+    <span>[ `WithSuffix ]</span>,
+    <span><span>[ <span>`One of <span>string list</span></span> ]</span> <a href="../Eliom_parameter/index.html#type-param_name">Eliom_parameter.param_name</a></span> * <span class="type-var">'b</span>,
+    unit,
+    <span class="type-var">'f</span>)</span>
+    <a href="#type-t">t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-send_appl_content"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-send_appl_content" class="source_link">Source</a><code><span><span class="keyword">val</span> send_appl_content : 
+  <span><span><span>(<span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'c</span>, <span class="type-var">'d</span>, <span class="type-var">'e</span>, <span class="type-var">'f</span>, <span class="type-var">'g</span>, <span>[&lt; <a href="#type-suff">suff</a> ]</span>, <span class="type-var">'h</span>, <span class="type-var">'i</span>, <span class="type-var">'j</span>)</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <a href="#type-send_appl_content">send_appl_content</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_send_appl_content"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-set_send_appl_content" class="source_link">Source</a><code><span><span class="keyword">val</span> set_send_appl_content : 
+  <span><span><span>(<span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'c</span>, <span class="type-var">'d</span>, <span class="type-var">'e</span>, <span class="type-var">'f</span>, <span class="type-var">'g</span>, <span>[&lt; <a href="#type-suff">suff</a> ]</span>, <span class="type-var">'h</span>, <span class="type-var">'i</span>, <span class="type-var">'j</span>)</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><a href="#type-send_appl_content">send_appl_content</a> <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-append_suffix"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-append_suffix" class="source_link">Source</a><code><span><span class="keyword">val</span> append_suffix : <span><span><span class="type-var">'a</span> list</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> list</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> list</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-_eliom_fragment_8wyVC62"><a href="../../src/eliom.client/eliom_service_base.ml.html" class="source_link">Source</a><code><span><span class="keyword">val</span> _eliom_fragment_8wyVC62 : 
+  <span><span>(<span><span>(<span class="type-var">'eliom_inferred_type_a_8</span>,
+     <span class="type-var">'eliom_inferred_type_a_19</span>,
+     <span class="type-var">'eliom_inferred_type_c_10</span>,
+     <a href="#type-att">att</a>,
+     <span class="type-var">'eliom_inferred_type_d_11</span>,
+     <span class="type-var">'eliom_inferred_type_e_12</span>,
+     <span class="type-var">'eliom_inferred_type_f_13</span>,
+     <span>[&lt; <a href="#type-suff">suff</a> ]</span>,
+     <span class="type-var">'eliom_inferred_type_g_14</span>,
+     <span class="type-var">'eliom_inferred_type_h_15</span>,
+     <span class="type-var">'eliom_inferred_type_i_16</span>)</span>
+     <a href="#type-t">t</a></span>
+   * <span class="type-var">'eliom_inferred_type_a_8</span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span>(<span>unit <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'eliom_inferred_type_a_19</span> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-result">result</a> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span>)</span> option</span> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/index.html#type-ref">ref</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-preapply"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-preapply" class="source_link">Source</a><code><span><span class="keyword">val</span> preapply : 
+  <span><span class="label">service</span>:<span><span>(<span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'c</span>, <a href="#type-att">att</a>, <span class="type-var">'d</span>, <span class="type-var">'e</span>, <span class="type-var">'f</span>, <span>[&lt; <a href="#type-suff">suff</a> ]</span>, <span class="type-var">'g</span>, <span class="type-var">'h</span>, <span class="type-var">'i</span>)</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(unit, <span class="type-var">'b</span>, <span class="type-var">'c</span>, <a href="#type-att">att</a>, <span class="type-var">'j</span>, <span class="type-var">'k</span>, <span class="type-var">'l</span>, <span>[ `WithoutSuffix ]</span>, unit, <span class="type-var">'h</span>, <span class="type-var">'m</span>)</span> <a href="#type-t">t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-reload_action_aux"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-reload_action_aux" class="source_link">Source</a><code><span><span class="keyword">val</span> reload_action_aux : 
+  <span>bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(unit, unit, <a href="#type-get">get</a>, <a href="#type-non_att">non_att</a>, <span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'c</span>, <span>[ `WithoutSuffix ]</span>, unit, unit, <span class="type-var">'d</span>)</span> <a href="#type-t">t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-reload_action"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-reload_action" class="source_link">Source</a><code><span><span class="keyword">val</span> reload_action : 
+  <span><span>(unit, unit, <a href="#type-get">get</a>, <a href="#type-non_att">non_att</a>, <span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'c</span>, <span>[ `WithoutSuffix ]</span>, unit, unit, <span class="type-var">'d</span>)</span> <a href="#type-t">t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-reload_action_https"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-reload_action_https" class="source_link">Source</a><code><span><span class="keyword">val</span> reload_action_https : 
+  <span><span>(unit, unit, <a href="#type-get">get</a>, <a href="#type-non_att">non_att</a>, <span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'c</span>, <span>[ `WithoutSuffix ]</span>, unit, unit, <span class="type-var">'d</span>)</span> <a href="#type-t">t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-reload_action_hidden_aux"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-reload_action_hidden_aux" class="source_link">Source</a><code><span><span class="keyword">val</span> reload_action_hidden_aux : 
+  <span>bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(unit, unit, <a href="#type-get">get</a>, <a href="#type-non_att">non_att</a>, <span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'c</span>, <span>[ `WithoutSuffix ]</span>, unit, unit, <span class="type-var">'d</span>)</span> <a href="#type-t">t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-reload_action_hidden"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-reload_action_hidden" class="source_link">Source</a><code><span><span class="keyword">val</span> reload_action_hidden : 
+  <span><span>(unit, unit, <a href="#type-get">get</a>, <a href="#type-non_att">non_att</a>, <span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'c</span>, <span>[ `WithoutSuffix ]</span>, unit, unit, <span class="type-var">'d</span>)</span> <a href="#type-t">t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-reload_action_https_hidden"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-reload_action_https_hidden" class="source_link">Source</a><code><span><span class="keyword">val</span> reload_action_https_hidden : 
+  <span><span>(unit, unit, <a href="#type-get">get</a>, <a href="#type-non_att">non_att</a>, <span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'c</span>, <span>[ `WithoutSuffix ]</span>, unit, unit, <span class="type-var">'d</span>)</span> <a href="#type-t">t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-_eliom_fragment_8wyVC63"><a href="../../src/eliom.client/eliom_service_base.ml.html" class="source_link">Source</a><code><span><span class="keyword">val</span> _eliom_fragment_8wyVC63 : 
+  <span><span><span>(<span class="type-var">'eliom_inferred_type_a_35</span>,
+    <span class="type-var">'eliom_inferred_type_c_34</span>,
+    <span class="type-var">'eliom_inferred_type_c_23</span>,
+    <span class="type-var">'eliom_inferred_type_d_24</span>,
+    <span class="type-var">'eliom_inferred_type_e_25</span>,
+    <span class="type-var">'eliom_inferred_type_f_26</span>,
+    <span class="type-var">'eliom_inferred_type_g_27</span>,
+    <span>[&lt; <a href="#type-suff">suff</a> ]</span>,
+    <span class="type-var">'eliom_inferred_type_h_28</span>,
+    <span class="type-var">'eliom_inferred_type_i_29</span>,
+    <span class="type-var">'eliom_inferred_type_j_30</span>)</span>
+    <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span>(<span><span>(<span class="type-var">'eliom_inferred_type_a_35</span> * <span class="type-var">'eliom_inferred_type_b_36</span>)</span> <span class="arrow">&#45;&gt;</span></span>
+    <span><span class="type-var">'eliom_inferred_type_c_34</span> <span class="arrow">&#45;&gt;</span></span>
+    <span><a href="#type-result">result</a> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span>)</span>
+    option</span>
+    <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/index.html#type-ref">ref</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-add_non_localized_get_parameters"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-add_non_localized_get_parameters" class="source_link">Source</a><code><span><span class="keyword">val</span> add_non_localized_get_parameters : 
+  <span><span class="label">params</span>:<span><span>(<span class="type-var">'a</span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'b</span>)</span> <a href="../Eliom_parameter/index.html#type-non_localized_params">Eliom_parameter.non_localized_params</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">service</span>:<span><span>(<span class="type-var">'c</span>, <span class="type-var">'d</span>, <span class="type-var">'e</span>, <span class="type-var">'f</span>, <span class="type-var">'g</span>, <span class="type-var">'h</span>, <span class="type-var">'i</span>, <span>[&lt; <a href="#type-suff">suff</a> ]</span> <span class="keyword">as</span> 'j, <span class="type-var">'k</span>, <span class="type-var">'l</span>, <span class="type-var">'m</span>)</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span class="type-var">'c</span> * <span class="type-var">'a</span>, <span class="type-var">'d</span>, <span class="type-var">'e</span>, <span class="type-var">'f</span>, <span class="type-var">'n</span>, <span class="type-var">'o</span>, <span class="type-var">'p</span>, <span class="type-var">'j</span>, <span class="type-var">'k</span> * <span class="type-var">'b</span>, <span class="type-var">'l</span>, <span class="type-var">'q</span>)</span> <a href="#type-t">t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-_eliom_fragment_8wyVC64"><a href="../../src/eliom.client/eliom_service_base.ml.html" class="source_link">Source</a><code><span><span class="keyword">val</span> _eliom_fragment_8wyVC64 : 
+  <span><span><span>(<span class="type-var">'eliom_inferred_type_a_55</span>,
+    <span class="type-var">'eliom_inferred_type_b_53</span>,
+    <span class="type-var">'eliom_inferred_type_c_42</span>,
+    <span class="type-var">'eliom_inferred_type_d_43</span>,
+    <span class="type-var">'eliom_inferred_type_e_44</span>,
+    <span class="type-var">'eliom_inferred_type_f_45</span>,
+    <span class="type-var">'eliom_inferred_type_g_46</span>,
+    <span>[&lt; <a href="#type-suff">suff</a> ]</span>,
+    <span class="type-var">'eliom_inferred_type_h_47</span>,
+    <span class="type-var">'eliom_inferred_type_i_48</span>,
+    <span class="type-var">'eliom_inferred_type_j_49</span>)</span>
+    <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span>(<span><span class="type-var">'eliom_inferred_type_a_55</span> <span class="arrow">&#45;&gt;</span></span>
+    <span><span>(<span class="type-var">'eliom_inferred_type_b_53</span> * <span class="type-var">'eliom_inferred_type_c_54</span>)</span> <span class="arrow">&#45;&gt;</span></span>
+    <span><a href="#type-result">result</a> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span>)</span>
+    option</span>
+    <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/index.html#type-ref">ref</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-add_non_localized_post_parameters"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-add_non_localized_post_parameters" class="source_link">Source</a><code><span><span class="keyword">val</span> add_non_localized_post_parameters : 
+  <span><span class="label">params</span>:<span><span>(<span class="type-var">'a</span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'b</span>)</span> <a href="../Eliom_parameter/index.html#type-non_localized_params">Eliom_parameter.non_localized_params</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">service</span>:<span><span>(<span class="type-var">'c</span>, <span class="type-var">'d</span>, <span class="type-var">'e</span>, <span class="type-var">'f</span>, <span class="type-var">'g</span>, <span class="type-var">'h</span>, <span class="type-var">'i</span>, <span>[&lt; <a href="#type-suff">suff</a> ]</span> <span class="keyword">as</span> 'j, <span class="type-var">'k</span>, <span class="type-var">'l</span>, <span class="type-var">'m</span>)</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span class="type-var">'c</span>, <span class="type-var">'d</span> * <span class="type-var">'a</span>, <span class="type-var">'e</span>, <span class="type-var">'f</span>, <span class="type-var">'n</span>, <span class="type-var">'o</span>, <span class="type-var">'p</span>, <span class="type-var">'j</span>, <span class="type-var">'k</span>, <span class="type-var">'l</span> * <span class="type-var">'b</span>, <span class="type-var">'q</span>)</span> <a href="#type-t">t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-keep_nl_params"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-keep_nl_params" class="source_link">Source</a><code><span><span class="keyword">val</span> keep_nl_params : 
+  <span><span><span>(<span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'c</span>, <span class="type-var">'d</span>, <span class="type-var">'e</span>, <span class="type-var">'f</span>, <span class="type-var">'g</span>, <span>[&lt; <a href="#type-suff">suff</a> ]</span>, <span class="type-var">'h</span>, <span class="type-var">'i</span>, <span class="type-var">'j</span>)</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span>[ `All <span>| `None</span> <span>| `Persistent</span> ]</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-untype"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-untype" class="source_link">Source</a><code><span><span class="keyword">val</span> untype : 
+  <span><span><span>(<span class="type-var">'get</span>,
+    <span class="type-var">'post</span>,
+    <span class="type-var">'meth</span>,
+    <span class="type-var">'attached</span>,
+    <span class="type-var">'co</span>,
+    <span class="type-var">'ext</span>,
+    <span class="type-var">'tipo</span>,
+    <span>[&lt; <a href="#type-suff">suff</a> ]</span> <span class="keyword">as</span> 'a,
+    <span class="type-var">'postnames</span>,
+    <span class="type-var">'register</span>,
+    <span class="type-var">'b</span>)</span>
+    <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span class="type-var">'get</span>,
+    <span class="type-var">'post</span>,
+    <span class="type-var">'meth</span>,
+    <span class="type-var">'attached</span>,
+    <span class="type-var">'co</span>,
+    <span class="type-var">'ext</span>,
+    <span class="type-var">'tipo</span>,
+    <span class="type-var">'a</span>,
+    <span class="type-var">'postnames</span>,
+    <span class="type-var">'register</span>,
+    <span class="type-var">'c</span>)</span>
+    <a href="#type-t">t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-path_option"><a href="../../src/eliom.client/eliom_service_base.ml.html#type-path_option" class="source_link">Source</a><code><span><span class="keyword">type</span> <span>(_, _, _) path_option</span></span><span> = </span></code><ol><li id="type-path_option.Path" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Path</span> : <a href="../Eliom_lib/Url/index.html#type-path">Eliom_lib.Url.path</a> <span class="arrow">&#45;&gt;</span> <span><span>(<a href="#type-att">att</a>, <a href="#type-non_co">non_co</a>, <span class="type-var">_</span>)</span> <a href="#type-path_option">path_option</a></span></span></code></li><li id="type-path_option.No_path" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">No_path</span> : <span><span>(<a href="#type-non_att">non_att</a>, <a href="#type-co">co</a>, unit)</span> <a href="#type-path_option">path_option</a></span></span></code></li></ol></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-eliom_appl_answer_content_type"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-eliom_appl_answer_content_type" class="source_link">Source</a><code><span><span class="keyword">val</span> eliom_appl_answer_content_type : string</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-uniqueid"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-uniqueid" class="source_link">Source</a><code><span><span class="keyword">val</span> uniqueid : <span>unit <span class="arrow">&#45;&gt;</span></span> int</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-new_state"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-new_state" class="source_link">Source</a><code><span><span class="keyword">val</span> new_state : <span>unit <span class="arrow">&#45;&gt;</span></span> string</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-default_csrf_scope"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-default_csrf_scope" class="source_link">Source</a><code><span><span class="keyword">val</span> default_csrf_scope : 
+  <span><span><span>[&lt; <a href="../Eliom_common/index.html#type-user_scope">Eliom_common.user_scope</a> ]</span> option</span> <span class="arrow">&#45;&gt;</span></span>
+  <a href="../Eliom_common/index.html#type-user_scope">Eliom_common.user_scope</a></span></code></div></div><div class="odoc-spec"><div class="spec exception anchored" id="exception-Unreachable_exn"><a href="../../src/eliom.client/eliom_service_base.ml.html#exception-Unreachable_exn" class="source_link">Source</a><code><span><span class="keyword">exception</span> </span><span><span class="exception">Unreachable_exn</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-attached_info"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-attached_info" class="source_link">Source</a><code><span><span class="keyword">val</span> attached_info : 
+  <span><span><span>(<span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'c</span>, <a href="#type-att">att</a>, <span class="type-var">'d</span>, <span class="type-var">'e</span>, <span class="type-var">'f</span>, <span>[&lt; <a href="#type-suff">suff</a> ]</span>, <span class="type-var">'g</span>, <span class="type-var">'h</span>, <span class="type-var">'i</span>)</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <a href="#type-att">att</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-non_attached_info"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-non_attached_info" class="source_link">Source</a><code><span><span class="keyword">val</span> non_attached_info : 
+  <span><span><span>(<span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'c</span>, <a href="#type-non_att">non_att</a>, <span class="type-var">'d</span>, <span class="type-var">'e</span>, <span class="type-var">'f</span>, <span>[&lt; <a href="#type-suff">suff</a> ]</span>, <span class="type-var">'g</span>, <span class="type-var">'h</span>, <span class="type-var">'i</span>)</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <a href="#type-non_att">non_att</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-no_client_fun"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-no_client_fun" class="source_link">Source</a><code><span><span class="keyword">val</span> no_client_fun : <span>unit <span class="arrow">&#45;&gt;</span></span> <span><span><span><span><span class="type-var">'a</span> option</span> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/index.html#type-ref">ref</a></span> <a href="../Eliom_client_value/index.html#type-t">Eliom_client_value.t</a></span> option</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-main_service"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-main_service" class="source_link">Source</a><code><span><span class="keyword">val</span> main_service : 
+  <span><span class="label">https</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">prefix</span>:string <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">path</span>:<a href="../Eliom_lib/Url/index.html#type-path">Url.path</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?force_site_dir</span>:<span>string list</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">kind</span>:<a href="#type-service_kind">service_kind</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">meth</span>:<span><span class="type-var">'a</span> <a href="#type-which_meth">which_meth</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?redirect_suffix</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?keep_nl_params</span>:<span>[ `All <span>| `None</span> <span>| `Persistent</span> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?priority</span>:int <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">get_params</span>:<span><span>(<span class="type-var">'b</span>, <span>[&lt; <a href="#type-suff">suff</a> ]</span> <span class="keyword">as</span> 'c, <span class="type-var">'d</span>)</span> <a href="../Eliom_parameter/index.html#type-params_type">Eliom_parameter.params_type</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">post_params</span>:<span><span>(<span class="type-var">'e</span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'f</span>)</span> <a href="../Eliom_parameter/index.html#type-params_type">Eliom_parameter.params_type</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">reload_fun</span>:<a href="#type-reload_fun">reload_fun</a> <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span class="type-var">'b</span>, <span class="type-var">'e</span>, <span class="type-var">'a</span>, <a href="#type-att">att</a>, <span class="type-var">'g</span>, <span class="type-var">'h</span>, <span class="type-var">'i</span>, <span class="type-var">'c</span>, <span class="type-var">'d</span>, <span class="type-var">'f</span>, <span class="type-var">'j</span>)</span> <a href="#type-t">t</a></span></span></code></div><div class="spec-doc"><p>Create a main service (not a coservice), internal or external</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-extern"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-extern" class="source_link">Source</a><code><span><span class="keyword">val</span> extern : 
+  <span><span class="optlabel">?keep_nl_params</span>:<span>[ `All <span>| `None</span> <span>| `Persistent</span> ]</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">prefix</span>:string <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">path</span>:<a href="../Eliom_lib/Url/index.html#type-path">Url.path</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">meth</span>:<span><span>(<span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'c</span>, <span class="type-var">'d</span>, <span class="type-var">'e</span>, <span>[&lt; <a href="#type-suff">suff</a> ]</span> <span class="keyword">as</span> 'f, <span class="type-var">'g</span>)</span> <a href="#type-meth">meth</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span class="type-var">'b</span>, <span class="type-var">'d</span>, <span class="type-var">'a</span>, <a href="#type-att">att</a>, <span class="type-var">'h</span>, <span class="type-var">'i</span>, <span class="type-var">'j</span>, <span class="type-var">'f</span>, <span class="type-var">'c</span>, <span class="type-var">'e</span>, <span class="type-var">'k</span>)</span> <a href="#type-t">t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-which_meth"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-which_meth" class="source_link">Source</a><code><span><span class="keyword">val</span> which_meth : 
+  <span><span><span>(<span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'c</span>, <span class="type-var">'d</span>, <span class="type-var">'e</span>, <span class="type-var">'f</span>, <span class="type-var">'g</span>, <span>[&lt; <a href="#type-suff">suff</a> ]</span>, <span class="type-var">'h</span>, <span class="type-var">'i</span>, <span class="type-var">'j</span>)</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="type-var">'c</span> <a href="#type-which_meth">which_meth</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-which_meth_untyped"><a href="../../src/eliom.client/eliom_service_base.ml.html#val-which_meth_untyped" class="source_link">Source</a><code><span><span class="keyword">val</span> which_meth_untyped : 
+  <span><span><span>(<span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'m</span>, <span class="type-var">'c</span>, <span class="type-var">'d</span>, <span class="type-var">'e</span>, <span class="type-var">'f</span>, <span>[&lt; <a href="#type-suff">suff</a> ]</span>, <span class="type-var">'g</span>, <span class="type-var">'h</span>, <span class="type-var">'i</span>)</span> <a href="#type-t">t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span>[&gt; `Delete <span>| `Get</span> <span>| `Post</span> <span>| `Put</span> ]</span></span></code></div></div></div>
+      </article>
+    </div>
+  </div>
+
+  <script>
+    // Toggle between the server / client API of the same module.
+    function wodocSwitch(side) {
+      var w = { server: '', client: '' };
+      var p = location.pathname;
+      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
+      location.href = np !== p ? np
+        : '../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
+    }
+    var wodocPub = "/eliom";
+    // Switch version: keep the current page, swapping only the version segment.
+    function wodocVersion(v) {
+      if (!v) return;
+      var re = new RegExp('^(' + wodocPub + '/)[^/]+');
+      var p = location.pathname;
+      location.href =
+        re.test(p) ? p.replace(re, '$1' + v) : wodocPub + '/' + v + '/index.html';
+    }
+    // Build the version <select> from the project's versions.json (the single
+    // source of truth, refreshed on every build/release), so even older frozen
+    // pages list the current set. Falls back to the baked <option>s on failure.
+    (function () {
+      var seg = (location.pathname.match(
+        new RegExp('^' + wodocPub + '/([^/]+)')) || [])[1];
+      function select(sel) {
+        var i;
+        for (i = 0; i < sel.options.length; i++)
+          if (sel.options[i].value === seg) { sel.selectedIndex = i; return; }
+        if (seg) {
+          var o = document.createElement('option');
+          o.value = seg; o.textContent = seg; o.selected = true;
+          sel.insertBefore(o, sel.firstChild);
+        }
+      }
+      fetch(wodocPub + '/versions.json')
+        .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(function (m) {
+          var list = m.list || [], latest = m.latest;
+          document.querySelectorAll('.wodoc-version').forEach(function (sel) {
+            sel.innerHTML = '';
+            list.forEach(function (v) {
+              var o = document.createElement('option');
+              if (v === latest) { o.value = 'latest'; o.textContent = v + ' (latest)'; }
+              else { o.value = v; o.textContent = v; }
+              sel.appendChild(o);
+            });
+            select(sel);
+          });
+        })
+        .catch(function () {
+          document.querySelectorAll('.wodoc-version').forEach(select);
+        });
+    })();
+  </script>
+</body>
+</html>

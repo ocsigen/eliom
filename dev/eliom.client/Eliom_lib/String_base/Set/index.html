@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Module String_base.SetSource — Eliom</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <link rel="stylesheet" href="/css/ocsigen-odoc.css"/>
+  <script src="../../../../highlight.pack.js"></script>
+  <script src="../../../../wodoc-highlight.js"></script>
+</head>
+<body class="wodoc-page wodoc-doc wodoc-client">
+  <!-- Shared site menu — THE single source of truth for the header, top menu and
+     drawer of EVERY Ocsigen doc page (vitrine + all projects). Canonical copy
+     lives here in ocsigen.github.io; each project's build fetches it. Injected
+     by `wodoc assemble --menu`. Holes filled by the tool (braces omitted here so
+     this comment is not itself rewritten by the hole-filler):
+       subproject  the sub-project name shown next to the Ocsigen logo
+                   (empty on the vitrine), via --subproject
+       leftnav     the project's left navigation, expanded into BOTH the mobile
+                   drawer (below) and the left column (in the page template),
+                   via --leftnav
+     The current entry is highlighted by adding the `current` class to the
+     element carrying data-wodoc-page=<id>: --current on the vitrine (page id),
+     --menu-current in a project (the project id). Nothing is hardcoded here, so
+     this file is the ONLY place the menu is defined.
+
+     Links are the FINAL site paths (/<project>/, /<page>): the target layout
+     where each project is served at ocsigen.org/<project>/ — no transitional
+     /wodoc/ prefix. -->
+<div class="page-header">
+  <p class="logo-ocsigen"><a href="/"><img src="/img/ocsigen-white.svg" alt="Ocsigen"/></a></p>
+  <p class="logo-subproject">Eliom</p>
+
+  <div class="mainmenu">
+    <p class="mainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></p>
+    <p class="mainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></p>
+    <p data-wodoc-page="eliom" class="current"><a href="/eliom/">Eliom</a></p>
+    <p data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></p>
+    <p data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></p>
+    <p data-wodoc-page="lwt"><a href="/lwt/">Lwt</a></p>
+    <p data-wodoc-page="tyxml"><a href="/tyxml/">Tyxml</a></p>
+    <p data-wodoc-page="ocsigen-start"><a href="/ocsigen-start/">Start</a></p>
+  </div>
+
+  <form id="googlesearch" action="https://google.com/search">
+    <input name="q" id="gsearch-box" placeholder="Search using Google"/>
+    <label for="gsearch-box"><img src="/img/search.svg" alt="" id="gsearch-icon"/></label>
+    <input type="submit" id="gsearch-submit" onclick="document.getElementById('gsearch-box').value += ' site:ocsigen.org';"/>
+  </form>
+
+  <aside class="how-drawer">
+    <input id="how-drawer-toggle" type="checkbox"/>
+    <label for="how-drawer-toggle" id="how-drawer-label"><span class="how-drawer-icon"></span></label>
+    <nav class="how-drawer-content">
+      <ul class="drawermainmenu">
+        <li class="drawermainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></li>
+        <li class="drawermainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></li>
+        <li class="drawermainmenu-project current" data-wodoc-page="eliom"><a href="/eliom/">Eliom</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="lwt"><a href="/lwt/">Lwt</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="tyxml"><a href="/tyxml/">Tyxml</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-toolkit"><a href="/ocsigen-toolkit/">Toolkit</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-start"><a href="/ocsigen-start/">Start</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsipersist"><a href="/ocsipersist/">Ocsipersist</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="reactiveData"><a href="/reactiveData/">ReactiveData</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-i18n"><a href="/ocsigen-i18n/">i18n</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="wodoc"><a href="/wodoc/">Wodoc</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="projects"><a href="/projects">Other projects</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="papers"><a href="/papers">Research papers</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="credits"><a href="/credits">Who does Ocsigen?</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="contributing"><a href="/contributing">Contributing</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="blog"><a href="/blog">Blog</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="install"><a href="/install">Installation</a></li>
+        <li class="drawermainmenu-page"><a href="https://github.com/ocsigen">Source code</a></li>
+      </ul>
+      <!-- On mobile the left column is hidden; its menu lives here in the burger
+           (.how-doctree, shown only on narrow screens), as the old site did.
+           Empty on the vitrine; the leftnav hole is filled (with the same
+           fragment as the left column) only on project pages. -->
+      <nav class="how-doctree"><div class="docversion">
+  <label>Version:
+    <select class="wodoc-version" onchange="wodocVersion(this.value)">
+      <option value="dev">dev</option>
+    </select>
+  </label>
+</div>
+<div class="cs-switch">
+  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
+  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+</div>
+<div class="page-toc">
+  <h3>On this page</h3>
+  <nav class="odoc-toc odoc-local-toc"><ul><li><a href="#sets">Sets</a></li><li><a href="#elements">Elements</a></li><li><a href="#searching">Searching</a></li><li><a href="#traversing">Traversing</a></li><li><a href="#transforming">Transforming</a></li><li><a href="#predicates">Predicates and comparisons</a></li><li><a href="#converting">Converting</a></li></ul></nav>
+</div>
+<nav class="api-nav manual-nav">
+<h3>Eliom&#x27;s Reference manual</h3>
+<ul class="api-section">
+<li class="ml3" data-wodoc-page="intro.html"><a href="../../../../intro.html">Introduction</a></li>
+</ul>
+<h4 class="ml3">Server-side programming</h4>
+<h4 class="ml4">Services</h4>
+<ul class="api-section">
+<li class="ml5" data-wodoc-page="server-services.html"><a href="../../../../server-services.html">The different types of services</a></li>
+<li class="ml5" data-wodoc-page="server-params.html"><a href="../../../../server-params.html">Typing service parameters</a></li>
+<li class="ml5" data-wodoc-page="server-outputs.html"><a href="../../../../server-outputs.html">Service handlers</a></li>
+<li class="ml5" data-wodoc-page="server-links.html"><a href="../../../../server-links.html">Creating links and forms</a></li>
+</ul>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="server-state.html"><a href="../../../../server-state.html">Sessions and server side state</a></li>
+<li class="ml4" data-wodoc-page="server-security.html"><a href="../../../../server-security.html">Security</a></li>
+</ul>
+<h4 class="ml3">Client-server programming</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="clientserver-applications.html"><a href="../../../../clientserver-applications.html">Eliom applications</a></li>
+<li class="ml4" data-wodoc-page="ppx-syntax.html"><a href="../../../../ppx-syntax.html">Multi-tier programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-html.html"><a href="../../../../clientserver-html.html">Generating HTML</a></li>
+<li class="ml4" data-wodoc-page="clientserver-communication.html"><a href="../../../../clientserver-communication.html">Communication</a></li>
+<li class="ml4" data-wodoc-page="clientserver-services.html"><a href="../../../../clientserver-services.html">Client-side services</a></li>
+<li class="ml4" data-wodoc-page="clientserver-react.html"><a href="../../../../clientserver-react.html">Shared reactive programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-cache.html"><a href="../../../../clientserver-cache.html">Caching data and off-line applications</a></li>
+<li class="ml4" data-wodoc-page="clientserver-wrapping.html"><a href="../../../../clientserver-wrapping.html">Custom wrapping</a></li>
+</ul>
+<h4 class="ml3">Workflows</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="workflow-distillery.html"><a href="../../../../workflow-distillery.html">Distillery</a></li>
+<li class="ml4" data-wodoc-page="mobile-apps.html"><a href="../../../../mobile-apps.html">Mobile apps</a></li>
+<li class="ml4" data-wodoc-page="workflow-configuration.html"><a href="../../../../workflow-configuration.html">Configuration &amp; running</a></li>
+<li class="ml4" data-wodoc-page="scalability.html"><a href="../../../../scalability.html">Scalability</a></li>
+</ul>
+</nav>
+
+<nav class="api-nav">
+<h3>Client API</h3>
+<h4>Client API</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_lib"><a href="../../../../eliom.client/Eliom_lib/index.html">Eliom_lib</a></li>
+<li data-wodoc-page="Eliom_client"><a href="../../../../eliom.client/Eliom_client/index.html">Eliom_client</a></li>
+<li data-wodoc-page="Eliom_client_value"><a href="../../../../eliom.client/Eliom_client_value/index.html">Eliom_client_value</a></li>
+</ul>
+<h4>Content and form creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_content.Html"><a href="../../../../eliom.client/Eliom_content/Html/index.html">Eliom_content.Html</a></li>
+<li data-wodoc-page="Eliom_content.Html.Manip"><a href="../../../../eliom.client/Eliom_content/Html/Manip/index.html">Eliom_content.Html.Manip</a></li>
+<li data-wodoc-page="Eliom_content.Svg"><a href="../../../../eliom.client/Eliom_content/Svg/index.html">Eliom_content.Svg</a></li>
+<li data-wodoc-page="Eliom_content.Xml"><a href="../../../../eliom.client/Eliom_content/Xml/index.html">Eliom_content.Xml</a></li>
+</ul>
+<h4>Client/server communication</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_service"><a href="../../../../eliom.client/Eliom_service/index.html">Eliom_service</a></li>
+<li data-wodoc-page="Eliom_shared"><a href="../../../../eliom.client/Eliom_shared/index.html">Eliom_shared</a></li>
+<li data-wodoc-page="Eliom_cscache"><a href="../../../../eliom.client/Eliom_cscache/index.html">Eliom_cscache</a></li>
+<li data-wodoc-page="Eliom_bus"><a href="../../../../eliom.client/Eliom_bus/index.html">Eliom_bus</a></li>
+<li data-wodoc-page="Eliom_comet"><a href="../../../../eliom.client/Eliom_comet/index.html">Eliom_comet</a></li>
+<li data-wodoc-page="Eliom_react"><a href="../../../../eliom.client/Eliom_react/index.html">Eliom_react</a></li>
+</ul>
+</nav>
+</nav>
+    </nav>
+  </aside>
+</div>
+
+
+  <div class="project-page">
+    <div class="twocols">
+      <nav class="leftcol">
+        <div class="docversion">
+  <label>Version:
+    <select class="wodoc-version" onchange="wodocVersion(this.value)">
+      <option value="dev">dev</option>
+    </select>
+  </label>
+</div>
+<div class="cs-switch">
+  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
+  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+</div>
+<div class="page-toc">
+  <h3>On this page</h3>
+  <nav class="odoc-toc odoc-local-toc"><ul><li><a href="#sets">Sets</a></li><li><a href="#elements">Elements</a></li><li><a href="#searching">Searching</a></li><li><a href="#traversing">Traversing</a></li><li><a href="#transforming">Transforming</a></li><li><a href="#predicates">Predicates and comparisons</a></li><li><a href="#converting">Converting</a></li></ul></nav>
+</div>
+<nav class="api-nav manual-nav">
+<h3>Eliom&#x27;s Reference manual</h3>
+<ul class="api-section">
+<li class="ml3" data-wodoc-page="intro.html"><a href="../../../../intro.html">Introduction</a></li>
+</ul>
+<h4 class="ml3">Server-side programming</h4>
+<h4 class="ml4">Services</h4>
+<ul class="api-section">
+<li class="ml5" data-wodoc-page="server-services.html"><a href="../../../../server-services.html">The different types of services</a></li>
+<li class="ml5" data-wodoc-page="server-params.html"><a href="../../../../server-params.html">Typing service parameters</a></li>
+<li class="ml5" data-wodoc-page="server-outputs.html"><a href="../../../../server-outputs.html">Service handlers</a></li>
+<li class="ml5" data-wodoc-page="server-links.html"><a href="../../../../server-links.html">Creating links and forms</a></li>
+</ul>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="server-state.html"><a href="../../../../server-state.html">Sessions and server side state</a></li>
+<li class="ml4" data-wodoc-page="server-security.html"><a href="../../../../server-security.html">Security</a></li>
+</ul>
+<h4 class="ml3">Client-server programming</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="clientserver-applications.html"><a href="../../../../clientserver-applications.html">Eliom applications</a></li>
+<li class="ml4" data-wodoc-page="ppx-syntax.html"><a href="../../../../ppx-syntax.html">Multi-tier programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-html.html"><a href="../../../../clientserver-html.html">Generating HTML</a></li>
+<li class="ml4" data-wodoc-page="clientserver-communication.html"><a href="../../../../clientserver-communication.html">Communication</a></li>
+<li class="ml4" data-wodoc-page="clientserver-services.html"><a href="../../../../clientserver-services.html">Client-side services</a></li>
+<li class="ml4" data-wodoc-page="clientserver-react.html"><a href="../../../../clientserver-react.html">Shared reactive programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-cache.html"><a href="../../../../clientserver-cache.html">Caching data and off-line applications</a></li>
+<li class="ml4" data-wodoc-page="clientserver-wrapping.html"><a href="../../../../clientserver-wrapping.html">Custom wrapping</a></li>
+</ul>
+<h4 class="ml3">Workflows</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="workflow-distillery.html"><a href="../../../../workflow-distillery.html">Distillery</a></li>
+<li class="ml4" data-wodoc-page="mobile-apps.html"><a href="../../../../mobile-apps.html">Mobile apps</a></li>
+<li class="ml4" data-wodoc-page="workflow-configuration.html"><a href="../../../../workflow-configuration.html">Configuration &amp; running</a></li>
+<li class="ml4" data-wodoc-page="scalability.html"><a href="../../../../scalability.html">Scalability</a></li>
+</ul>
+</nav>
+
+<nav class="api-nav">
+<h3>Client API</h3>
+<h4>Client API</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_lib"><a href="../../../../eliom.client/Eliom_lib/index.html">Eliom_lib</a></li>
+<li data-wodoc-page="Eliom_client"><a href="../../../../eliom.client/Eliom_client/index.html">Eliom_client</a></li>
+<li data-wodoc-page="Eliom_client_value"><a href="../../../../eliom.client/Eliom_client_value/index.html">Eliom_client_value</a></li>
+</ul>
+<h4>Content and form creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_content.Html"><a href="../../../../eliom.client/Eliom_content/Html/index.html">Eliom_content.Html</a></li>
+<li data-wodoc-page="Eliom_content.Html.Manip"><a href="../../../../eliom.client/Eliom_content/Html/Manip/index.html">Eliom_content.Html.Manip</a></li>
+<li data-wodoc-page="Eliom_content.Svg"><a href="../../../../eliom.client/Eliom_content/Svg/index.html">Eliom_content.Svg</a></li>
+<li data-wodoc-page="Eliom_content.Xml"><a href="../../../../eliom.client/Eliom_content/Xml/index.html">Eliom_content.Xml</a></li>
+</ul>
+<h4>Client/server communication</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_service"><a href="../../../../eliom.client/Eliom_service/index.html">Eliom_service</a></li>
+<li data-wodoc-page="Eliom_shared"><a href="../../../../eliom.client/Eliom_shared/index.html">Eliom_shared</a></li>
+<li data-wodoc-page="Eliom_cscache"><a href="../../../../eliom.client/Eliom_cscache/index.html">Eliom_cscache</a></li>
+<li data-wodoc-page="Eliom_bus"><a href="../../../../eliom.client/Eliom_bus/index.html">Eliom_bus</a></li>
+<li data-wodoc-page="Eliom_comet"><a href="../../../../eliom.client/Eliom_comet/index.html">Eliom_comet</a></li>
+<li data-wodoc-page="Eliom_react"><a href="../../../../eliom.client/Eliom_react/index.html">Eliom_react</a></li>
+</ul>
+</nav>
+
+      </nav>
+      <article class="rightcol">
+        <header class="odoc-preamble"><h1>Module <code><span>String_base.Set</span></code><a href="https://ocaml.org/p/ocsigenserver/7.0.0/doc/src/ocsigenserver.baselib.base/ocsigen_lib_base.ml.html#module-String_base.module-Set" class="source_link">Source</a></h1></header>
+        <div class="odoc-content"><h2 id="sets">Sets</h2><div class="odoc-spec"><div class="spec type anchored" id="type-elt"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.type-elt" class="source_link">Source</a><code><span><span class="keyword">type</span> elt</span><span> = string</span></code></div><div class="spec-doc"><p>The type of the set elements.</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-t"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.type-t" class="source_link">Source</a><code><span><span class="keyword">type</span> t</span></code></div><div class="spec-doc"><p>The type of sets.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-empty"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-empty" class="source_link">Source</a><code><span><span class="keyword">val</span> empty : <a href="#type-t">t</a></span></code></div><div class="spec-doc"><p>The empty set.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-add"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-add" class="source_link">Source</a><code><span><span class="keyword">val</span> add : <span><a href="#type-elt">elt</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-t">t</a></span></code></div><div class="spec-doc"><p><code>add x s</code> returns a set containing all elements of <code>s</code>, plus <code>x</code>. If <code>x</code> was already in <code>s</code>, <code>s</code> is returned unchanged (the result of the function is then physically equal to <code>s</code>).</p><ul class="at-tags"><li class="before"><span class="at-tag">before</span> <span class="value">4.03</span> <p>Physical equality was not ensured.</p></li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-singleton"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-singleton" class="source_link">Source</a><code><span><span class="keyword">val</span> singleton : <span><a href="#type-elt">elt</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-t">t</a></span></code></div><div class="spec-doc"><p><code>singleton x</code> returns the one-element set containing only <code>x</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-remove"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-remove" class="source_link">Source</a><code><span><span class="keyword">val</span> remove : <span><a href="#type-elt">elt</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-t">t</a></span></code></div><div class="spec-doc"><p><code>remove x s</code> returns a set containing all elements of <code>s</code>, except <code>x</code>. If <code>x</code> was not in <code>s</code>, <code>s</code> is returned unchanged (the result of the function is then physically equal to <code>s</code>).</p><ul class="at-tags"><li class="before"><span class="at-tag">before</span> <span class="value">4.03</span> <p>Physical equality was not ensured.</p></li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-union"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-union" class="source_link">Source</a><code><span><span class="keyword">val</span> union : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-t">t</a></span></code></div><div class="spec-doc"><p>Set union.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-inter"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-inter" class="source_link">Source</a><code><span><span class="keyword">val</span> inter : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-t">t</a></span></code></div><div class="spec-doc"><p>Set intersection.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-disjoint"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-disjoint" class="source_link">Source</a><code><span><span class="keyword">val</span> disjoint : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> bool</span></code></div><div class="spec-doc"><p>Test if two sets are disjoint.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.08</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-diff"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-diff" class="source_link">Source</a><code><span><span class="keyword">val</span> diff : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-t">t</a></span></code></div><div class="spec-doc"><p>Set difference: <code>diff s1 s2</code> contains the elements of <code>s1</code> that are not in <code>s2</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-cardinal"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-cardinal" class="source_link">Source</a><code><span><span class="keyword">val</span> cardinal : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> int</span></code></div><div class="spec-doc"><p>Return the number of elements of a set.</p></div></div><h2 id="elements">Elements</h2><div class="odoc-spec"><div class="spec value anchored" id="val-elements"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-elements" class="source_link">Source</a><code><span><span class="keyword">val</span> elements : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-elt">elt</a> list</span></span></code></div><div class="spec-doc"><p>Return the list of all elements of the given set. The returned list is sorted in increasing order with respect to the ordering <code>Ord.compare</code>, where <code>Ord</code> is the argument given to <code>Set.Make</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-min_elt"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-min_elt" class="source_link">Source</a><code><span><span class="keyword">val</span> min_elt : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-elt">elt</a></span></code></div><div class="spec-doc"><p>Return the smallest element of the given set (with respect to the <code>Ord.compare</code> ordering), or raise <code>Not_found</code> if the set is empty.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-min_elt_opt"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-min_elt_opt" class="source_link">Source</a><code><span><span class="keyword">val</span> min_elt_opt : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-elt">elt</a> option</span></span></code></div><div class="spec-doc"><p>Return the smallest element of the given set (with respect to the <code>Ord.compare</code> ordering), or <code>None</code> if the set is empty.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.05</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-max_elt"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-max_elt" class="source_link">Source</a><code><span><span class="keyword">val</span> max_elt : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-elt">elt</a></span></code></div><div class="spec-doc"><p>Same as <a href="#val-min_elt"><code>min_elt</code></a>, but returns the largest element of the given set.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-max_elt_opt"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-max_elt_opt" class="source_link">Source</a><code><span><span class="keyword">val</span> max_elt_opt : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-elt">elt</a> option</span></span></code></div><div class="spec-doc"><p>Same as <a href="#val-min_elt_opt"><code>min_elt_opt</code></a>, but returns the largest element of the given set.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.05</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-choose"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-choose" class="source_link">Source</a><code><span><span class="keyword">val</span> choose : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-elt">elt</a></span></code></div><div class="spec-doc"><p>Return one element of the given set, or raise <code>Not_found</code> if the set is empty. Which element is chosen is unspecified, but equal elements will be chosen for equal sets.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-choose_opt"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-choose_opt" class="source_link">Source</a><code><span><span class="keyword">val</span> choose_opt : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-elt">elt</a> option</span></span></code></div><div class="spec-doc"><p>Return one element of the given set, or <code>None</code> if the set is empty. Which element is chosen is unspecified, but equal elements will be chosen for equal sets.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.05</li></ul></div></div><h2 id="searching">Searching</h2><div class="odoc-spec"><div class="spec value anchored" id="val-find"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-find" class="source_link">Source</a><code><span><span class="keyword">val</span> find : <span><a href="#type-elt">elt</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-elt">elt</a></span></code></div><div class="spec-doc"><p><code>find x s</code> returns the element of <code>s</code> equal to <code>x</code> (according to <code>Ord.compare</code>), or raise <code>Not_found</code> if no such element exists.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.01</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-find_opt"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-find_opt" class="source_link">Source</a><code><span><span class="keyword">val</span> find_opt : <span><a href="#type-elt">elt</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-elt">elt</a> option</span></span></code></div><div class="spec-doc"><p><code>find_opt x s</code> returns the element of <code>s</code> equal to <code>x</code> (according to <code>Ord.compare</code>), or <code>None</code> if no such element exists.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.05</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-find_first"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-find_first" class="source_link">Source</a><code><span><span class="keyword">val</span> find_first : <span><span>(<span><a href="#type-elt">elt</a> <span class="arrow">&#45;&gt;</span></span> bool)</span> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-elt">elt</a></span></code></div><div class="spec-doc"><p><code>find_first f s</code>, where <code>f</code> is a monotonically increasing function, returns the lowest element <code>e</code> of <code>s</code> such that <code>f e</code>, or raises <code>Not_found</code> if no such element exists.</p><p>For example, <code>find_first (fun e -&gt; Ord.compare e x &gt;= 0) s</code> will return the first element <code>e</code> of <code>s</code> where <code>Ord.compare e x &gt;= 0</code> (intuitively: <code>e &gt;= x</code>), or raise <code>Not_found</code> if <code>x</code> is greater than any element of <code>s</code>.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.05</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-find_first_opt"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-find_first_opt" class="source_link">Source</a><code><span><span class="keyword">val</span> find_first_opt : <span><span>(<span><a href="#type-elt">elt</a> <span class="arrow">&#45;&gt;</span></span> bool)</span> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-elt">elt</a> option</span></span></code></div><div class="spec-doc"><p><code>find_first_opt f s</code>, where <code>f</code> is a monotonically increasing function, returns an option containing the lowest element <code>e</code> of <code>s</code> such that <code>f e</code>, or <code>None</code> if no such element exists.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.05</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-find_last"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-find_last" class="source_link">Source</a><code><span><span class="keyword">val</span> find_last : <span><span>(<span><a href="#type-elt">elt</a> <span class="arrow">&#45;&gt;</span></span> bool)</span> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-elt">elt</a></span></code></div><div class="spec-doc"><p><code>find_last f s</code>, where <code>f</code> is a monotonically decreasing function, returns the highest element <code>e</code> of <code>s</code> such that <code>f e</code>, or raises <code>Not_found</code> if no such element exists.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.05</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-find_last_opt"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-find_last_opt" class="source_link">Source</a><code><span><span class="keyword">val</span> find_last_opt : <span><span>(<span><a href="#type-elt">elt</a> <span class="arrow">&#45;&gt;</span></span> bool)</span> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-elt">elt</a> option</span></span></code></div><div class="spec-doc"><p><code>find_last_opt f s</code>, where <code>f</code> is a monotonically decreasing function, returns an option containing the highest element <code>e</code> of <code>s</code> such that <code>f e</code>, or <code>None</code> if no such element exists.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.05</li></ul></div></div><h2 id="traversing">Traversing</h2><div class="odoc-spec"><div class="spec value anchored" id="val-iter"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-iter" class="source_link">Source</a><code><span><span class="keyword">val</span> iter : <span><span>(<span><a href="#type-elt">elt</a> <span class="arrow">&#45;&gt;</span></span> unit)</span> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div><div class="spec-doc"><p><code>iter f s</code> applies <code>f</code> in turn to all elements of <code>s</code>. The elements of <code>s</code> are presented to <code>f</code> in increasing order with respect to the ordering over the type of the elements.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-fold"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-fold" class="source_link">Source</a><code><span><span class="keyword">val</span> fold : <span><span>(<span><a href="#type-elt">elt</a> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'acc</span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'acc</span>)</span> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'acc</span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'acc</span></span></code></div><div class="spec-doc"><p><code>fold f s init</code> computes <code>(f xN ... (f x2 (f x1 init))...)</code>, where <code>x1 ... xN</code> are the elements of <code>s</code>, in increasing order.</p></div></div><h2 id="transforming">Transforming</h2><div class="odoc-spec"><div class="spec value anchored" id="val-map"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-map" class="source_link">Source</a><code><span><span class="keyword">val</span> map : <span><span>(<span><a href="#type-elt">elt</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-elt">elt</a>)</span> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-t">t</a></span></code></div><div class="spec-doc"><p><code>map f s</code> is the set whose elements are <code>f a0</code>,<code>f a1</code>... <code>f aN</code>, where <code>a0</code>,<code>a1</code>...<code>aN</code> are the elements of <code>s</code>.</p><p>The elements are passed to <code>f</code> in increasing order with respect to the ordering over the type of the elements.</p><p>If no element of <code>s</code> is changed by <code>f</code>, <code>s</code> is returned unchanged. (If each output of <code>f</code> is physically equal to its input, the returned set is physically equal to <code>s</code>.)</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.04</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-filter"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-filter" class="source_link">Source</a><code><span><span class="keyword">val</span> filter : <span><span>(<span><a href="#type-elt">elt</a> <span class="arrow">&#45;&gt;</span></span> bool)</span> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-t">t</a></span></code></div><div class="spec-doc"><p><code>filter f s</code> returns the set of all elements in <code>s</code> that satisfy predicate <code>f</code>. If <code>f</code> satisfies every element in <code>s</code>, <code>s</code> is returned unchanged (the result of the function is then physically equal to <code>s</code>).</p><ul class="at-tags"><li class="before"><span class="at-tag">before</span> <span class="value">4.03</span> <p>Physical equality was not ensured.</p></li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-filter_map"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-filter_map" class="source_link">Source</a><code><span><span class="keyword">val</span> filter_map : <span><span>(<span><a href="#type-elt">elt</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-elt">elt</a> option</span>)</span> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-t">t</a></span></code></div><div class="spec-doc"><p><code>filter_map f s</code> returns the set of all <code>v</code> such that <code>f x = Some v</code> for some element <code>x</code> of <code>s</code>.</p><p>For example,</p><pre class="language-ocaml"><code>filter_map (fun n -&gt; if n mod 2 = 0 then Some (n / 2) else None) s</code></pre><p>is the set of halves of the even elements of <code>s</code>.</p><p>If no element of <code>s</code> is changed or dropped by <code>f</code> (if <code>f x = Some x</code> for each element <code>x</code>), then <code>s</code> is returned unchanged: the result of the function is then physically equal to <code>s</code>.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.11</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-partition"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-partition" class="source_link">Source</a><code><span><span class="keyword">val</span> partition : <span><span>(<span><a href="#type-elt">elt</a> <span class="arrow">&#45;&gt;</span></span> bool)</span> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-t">t</a> * <a href="#type-t">t</a></span></code></div><div class="spec-doc"><p><code>partition f s</code> returns a pair of sets <code>(s1, s2)</code>, where <code>s1</code> is the set of all the elements of <code>s</code> that satisfy the predicate <code>f</code>, and <code>s2</code> is the set of all the elements of <code>s</code> that do not satisfy <code>f</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-split"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-split" class="source_link">Source</a><code><span><span class="keyword">val</span> split : <span><a href="#type-elt">elt</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-t">t</a> * bool * <a href="#type-t">t</a></span></code></div><div class="spec-doc"><p><code>split x s</code> returns a triple <code>(l, present, r)</code>, where <code>l</code> is the set of elements of <code>s</code> that are strictly less than <code>x</code>; <code>r</code> is the set of elements of <code>s</code> that are strictly greater than <code>x</code>; <code>present</code> is <code>false</code> if <code>s</code> contains no element equal to <code>x</code>, or <code>true</code> if <code>s</code> contains an element equal to <code>x</code>.</p></div></div><h2 id="predicates">Predicates and comparisons</h2><div class="odoc-spec"><div class="spec value anchored" id="val-is_empty"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-is_empty" class="source_link">Source</a><code><span><span class="keyword">val</span> is_empty : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> bool</span></code></div><div class="spec-doc"><p>Test whether a set is empty or not.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-mem"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-mem" class="source_link">Source</a><code><span><span class="keyword">val</span> mem : <span><a href="#type-elt">elt</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> bool</span></code></div><div class="spec-doc"><p><code>mem x s</code> tests whether <code>x</code> belongs to the set <code>s</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-equal"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-equal" class="source_link">Source</a><code><span><span class="keyword">val</span> equal : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> bool</span></code></div><div class="spec-doc"><p><code>equal s1 s2</code> tests whether the sets <code>s1</code> and <code>s2</code> are equal, that is, contain equal elements.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-compare"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-compare" class="source_link">Source</a><code><span><span class="keyword">val</span> compare : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> int</span></code></div><div class="spec-doc"><p>Total ordering between sets. Can be used as the ordering function for doing sets of sets.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-subset"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-subset" class="source_link">Source</a><code><span><span class="keyword">val</span> subset : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> bool</span></code></div><div class="spec-doc"><p><code>subset s1 s2</code> tests whether the set <code>s1</code> is a subset of the set <code>s2</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-for_all"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-for_all" class="source_link">Source</a><code><span><span class="keyword">val</span> for_all : <span><span>(<span><a href="#type-elt">elt</a> <span class="arrow">&#45;&gt;</span></span> bool)</span> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> bool</span></code></div><div class="spec-doc"><p><code>for_all f s</code> checks if all elements of the set satisfy the predicate <code>f</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-exists"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-exists" class="source_link">Source</a><code><span><span class="keyword">val</span> exists : <span><span>(<span><a href="#type-elt">elt</a> <span class="arrow">&#45;&gt;</span></span> bool)</span> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> bool</span></code></div><div class="spec-doc"><p><code>exists f s</code> checks if at least one element of the set satisfies the predicate <code>f</code>.</p></div></div><h2 id="converting">Converting</h2><div class="odoc-spec"><div class="spec value anchored" id="val-to_list"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-to_list" class="source_link">Source</a><code><span><span class="keyword">val</span> to_list : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-elt">elt</a> list</span></span></code></div><div class="spec-doc"><p><code>to_list s</code> is <a href="#val-elements"><code>elements</code></a><code> s</code>.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 5.1</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-of_list"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-of_list" class="source_link">Source</a><code><span><span class="keyword">val</span> of_list : <span><span><a href="#type-elt">elt</a> list</span> <span class="arrow">&#45;&gt;</span></span> <a href="#type-t">t</a></span></code></div><div class="spec-doc"><p><code>of_list l</code> creates a set from a list of elements. This is usually more efficient than folding <code>add</code> over the list, except perhaps for lists with many duplicated elements.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.02</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-to_seq_from"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-to_seq_from" class="source_link">Source</a><code><span><span class="keyword">val</span> to_seq_from : <span><a href="#type-elt">elt</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-elt">elt</a> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/Seq/index.html#type-t">Seq.t</a></span></span></code></div><div class="spec-doc"><p><code>to_seq_from x s</code> iterates on a subset of the elements of <code>s</code> in ascending order, from <code>x</code> or above.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.07</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-to_seq"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-to_seq" class="source_link">Source</a><code><span><span class="keyword">val</span> to_seq : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-elt">elt</a> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/Seq/index.html#type-t">Seq.t</a></span></span></code></div><div class="spec-doc"><p>Iterate on the whole set, in ascending order</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.07</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-to_rev_seq"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-to_rev_seq" class="source_link">Source</a><code><span><span class="keyword">val</span> to_rev_seq : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-elt">elt</a> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/Seq/index.html#type-t">Seq.t</a></span></span></code></div><div class="spec-doc"><p>Iterate on the whole set, in descending order</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.12</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-add_seq"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-add_seq" class="source_link">Source</a><code><span><span class="keyword">val</span> add_seq : <span><span><a href="#type-elt">elt</a> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/Seq/index.html#type-t">Seq.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-t">t</a></span></code></div><div class="spec-doc"><p>Add the given elements to the set, in order.</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.07</li></ul></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-of_seq"><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/src/stdlib/set.ml.html#module-Make.val-of_seq" class="source_link">Source</a><code><span><span class="keyword">val</span> of_seq : <span><span><a href="#type-elt">elt</a> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/Seq/index.html#type-t">Seq.t</a></span> <span class="arrow">&#45;&gt;</span></span> <a href="#type-t">t</a></span></code></div><div class="spec-doc"><p>Build a set from the given bindings</p><ul class="at-tags"><li class="since"><span class="at-tag">since</span> 4.07</li></ul></div></div></div>
+      </article>
+    </div>
+  </div>
+
+  <script>
+    // Toggle between the server / client API of the same module.
+    function wodocSwitch(side) {
+      var w = { server: '', client: '' };
+      var p = location.pathname;
+      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
+      location.href = np !== p ? np
+        : '../../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
+    }
+    var wodocPub = "/eliom";
+    // Switch version: keep the current page, swapping only the version segment.
+    function wodocVersion(v) {
+      if (!v) return;
+      var re = new RegExp('^(' + wodocPub + '/)[^/]+');
+      var p = location.pathname;
+      location.href =
+        re.test(p) ? p.replace(re, '$1' + v) : wodocPub + '/' + v + '/index.html';
+    }
+    // Build the version <select> from the project's versions.json (the single
+    // source of truth, refreshed on every build/release), so even older frozen
+    // pages list the current set. Falls back to the baked <option>s on failure.
+    (function () {
+      var seg = (location.pathname.match(
+        new RegExp('^' + wodocPub + '/([^/]+)')) || [])[1];
+      function select(sel) {
+        var i;
+        for (i = 0; i < sel.options.length; i++)
+          if (sel.options[i].value === seg) { sel.selectedIndex = i; return; }
+        if (seg) {
+          var o = document.createElement('option');
+          o.value = seg; o.textContent = seg; o.selected = true;
+          sel.insertBefore(o, sel.firstChild);
+        }
+      }
+      fetch(wodocPub + '/versions.json')
+        .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(function (m) {
+          var list = m.list || [], latest = m.latest;
+          document.querySelectorAll('.wodoc-version').forEach(function (sel) {
+            sel.innerHTML = '';
+            list.forEach(function (v) {
+              var o = document.createElement('option');
+              if (v === latest) { o.value = 'latest'; o.textContent = v + ' (latest)'; }
+              else { o.value = v; o.textContent = v; }
+              sel.appendChild(o);
+            });
+            select(sel);
+          });
+        })
+        .catch(function () {
+          document.querySelectorAll('.wodoc-version').forEach(select);
+        });
+    })();
+  </script>
+</body>
+</html>
