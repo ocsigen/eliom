@@ -26,6 +26,13 @@ on:
         required: false
         default: ""
 
+# Serialise gh-pages writes: a push (rebuilds dev/) and a release
+# workflow_dispatch (freezes <version>/ and repoints latest) must never push to
+# gh-pages at the same time, or the second push fails non-fast-forward.
+concurrency:
+  group: doc-deploy-${{ github.workflow }}
+  cancel-in-progress: false
+
 jobs:
   build-deploy:
     # push, or a manual run with no version (just rebuild dev). NOT a release run.
@@ -82,6 +89,10 @@ jobs:
     # No rebuild — the docs of a release are exactly the dev docs at that point.
     if: github.repository == 'ocsigen/eliom' && github.event_name == 'workflow_dispatch' && github.event.inputs.version != ''
     runs-on: ubuntu-latest
+    # Pass the user-supplied version through the environment; never interpolate
+    # it directly into a run: shell (avoids command injection from the input).
+    env:
+      VERSION: ${{ github.event.inputs.version }}
     permissions:
       contents: write
     steps:
@@ -107,7 +118,7 @@ jobs:
         # write the root index.html redirect if missing, refresh versions.json.
         run: >-
           opam exec -- wodoc release --site site --from dev
-          --version "${{ github.event.inputs.version }}"
+          --version "$VERSION"
 
       - name: Commit and push gh-pages
         run: |
@@ -116,5 +127,5 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
           git diff --cached --quiet \
-            || git commit -m "Release doc ${{ github.event.inputs.version }} (freeze dev, repoint latest)"
+            || git commit -m "Release doc $VERSION (freeze dev, repoint latest)"
           git push
