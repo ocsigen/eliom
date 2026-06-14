@@ -53,7 +53,7 @@ v}
 
 You should see the page corresponding to service ["coucou"] in site
 [examples/] at url{%html:<br/>%}
-{%wodoc:span class="code"%}~http:~/~{e /your_server}/examples/coucou{%wodoc:end%}.{%html:<br/>%}
+{%wodoc:span class="code"%}http://{e your_server}/examples/coucou{%wodoc:end%}.{%html:<br/>%}
 
 {%wodoc:div class="concept"%}{b Debugging}
 
