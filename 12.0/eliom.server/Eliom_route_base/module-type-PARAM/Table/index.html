@@ -35,6 +35,7 @@
   <div class="mainmenu">
     <p class="mainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></p>
     <p class="mainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></p>
+    <p class="mainmenu-blog" data-wodoc-page="blog"><a href="/blog/">Blog</a></p>
     <p data-wodoc-page="eliom" class="current"><a href="/eliom/">Eliom</a></p>
     <p data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></p>
     <p data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></p>
@@ -71,7 +72,7 @@
         <li class="drawermainmenu-page" data-wodoc-page="papers"><a href="/papers">Research papers</a></li>
         <li class="drawermainmenu-page" data-wodoc-page="credits"><a href="/credits">Who does Ocsigen?</a></li>
         <li class="drawermainmenu-page" data-wodoc-page="contributing"><a href="/contributing">Contributing</a></li>
-        <li class="drawermainmenu-page" data-wodoc-page="blog"><a href="/blog">Blog</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="blog"><a href="/blog/">Blog</a></li>
         <li class="drawermainmenu-page" data-wodoc-page="install"><a href="/install">Installation</a></li>
         <li class="drawermainmenu-page"><a href="https://github.com/ocsigen">Source code</a></li>
       </ul>
@@ -283,15 +284,15 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>PARAM.Table</span></code><a href="../../../../src/eliom.server/eliom_route_base.ml.html#module-type-PARAM" class="source_link">Source</a></h1></header>
-        <div class="odoc-content"><div class="odoc-spec"><div class="spec type anchored" id="type-t"><a href="../../../../src/eliom.server/eliom_route_base.ml.html#module-type-PARAM" class="source_link">Source</a><code><span><span class="keyword">type</span> t</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-empty"><a href="../../../../src/eliom.server/eliom_route_base.ml.html#module-type-PARAM" class="source_link">Source</a><code><span><span class="keyword">val</span> empty : <span>unit <span class="arrow">&#45;&gt;</span></span> <a href="#type-t">t</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-add"><a href="../../../../src/eliom.server/eliom_route_base.ml.html#module-type-PARAM" class="source_link">Source</a><code><span><span class="keyword">val</span> add : 
+        <header class="odoc-preamble"><h1>Module <code><span>PARAM.Table</span></code></h1></header>
+        <div class="odoc-content"><div class="odoc-spec"><div class="spec type anchored" id="type-t"><code><span><span class="keyword">type</span> t</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-empty"><code><span><span class="keyword">val</span> empty : <span>unit <span class="arrow">&#45;&gt;</span></span> <a href="#type-t">t</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-add"><code><span><span class="keyword">val</span> add : 
   <span><span class="xref-unresolved">Eliom_common.page_table_key</span> <span class="arrow">&#45;&gt;</span></span>
   <span><span>(<span><a href="../Node/index.html#type-t">Node.t</a> option</span> * <span><span><span>(<a href="../index.html#type-params">params</a>, <a href="../index.html#type-result">result</a>)</span> <span class="xref-unresolved">Eliom_common.service</span></span> list</span>)</span> <span class="arrow">&#45;&gt;</span></span>
   <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span>
-  <a href="#type-t">t</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-find"><a href="../../../../src/eliom.server/eliom_route_base.ml.html#module-type-PARAM" class="source_link">Source</a><code><span><span class="keyword">val</span> find : 
+  <a href="#type-t">t</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-find"><code><span><span class="keyword">val</span> find : 
   <span><span class="xref-unresolved">Eliom_common.page_table_key</span> <span class="arrow">&#45;&gt;</span></span>
   <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span>
-  <span><a href="../Node/index.html#type-t">Node.t</a> option</span> * <span><span><span>(<a href="../index.html#type-params">params</a>, <a href="../index.html#type-result">result</a>)</span> <span class="xref-unresolved">Eliom_common.service</span></span> list</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-remove"><a href="../../../../src/eliom.server/eliom_route_base.ml.html#module-type-PARAM" class="source_link">Source</a><code><span><span class="keyword">val</span> remove : <span><span class="xref-unresolved">Eliom_common.page_table_key</span> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-t">t</a></span></code></div></div></div>
+  <span><a href="../Node/index.html#type-t">Node.t</a> option</span> * <span><span><span>(<a href="../index.html#type-params">params</a>, <a href="../index.html#type-result">result</a>)</span> <span class="xref-unresolved">Eliom_common.service</span></span> list</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-remove"><code><span><span class="keyword">val</span> remove : <span><span class="xref-unresolved">Eliom_common.page_table_key</span> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-t">t</a></span></code></div></div></div>
       </article>
     </div>
   </div>

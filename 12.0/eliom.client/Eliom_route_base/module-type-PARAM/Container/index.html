@@ -35,6 +35,7 @@
   <div class="mainmenu">
     <p class="mainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></p>
     <p class="mainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></p>
+    <p class="mainmenu-blog" data-wodoc-page="blog"><a href="/blog/">Blog</a></p>
     <p data-wodoc-page="eliom" class="current"><a href="/eliom/">Eliom</a></p>
     <p data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></p>
     <p data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></p>
@@ -71,7 +72,7 @@
         <li class="drawermainmenu-page" data-wodoc-page="papers"><a href="/papers">Research papers</a></li>
         <li class="drawermainmenu-page" data-wodoc-page="credits"><a href="/credits">Who does Ocsigen?</a></li>
         <li class="drawermainmenu-page" data-wodoc-page="contributing"><a href="/contributing">Contributing</a></li>
-        <li class="drawermainmenu-page" data-wodoc-page="blog"><a href="/blog">Blog</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="blog"><a href="/blog/">Blog</a></li>
         <li class="drawermainmenu-page" data-wodoc-page="install"><a href="/install">Installation</a></li>
         <li class="drawermainmenu-page"><a href="https://github.com/ocsigen">Source code</a></li>
       </ul>
@@ -245,13 +246,13 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>PARAM.Container</span></code><a href="../../../../src/eliom.client/eliom_route_base.ml.html#module-type-PARAM" class="source_link">Source</a></h1></header>
-        <div class="odoc-content"><div class="odoc-spec"><div class="spec type anchored" id="type-t"><a href="../../../../src/eliom.client/eliom_route_base.ml.html#module-type-PARAM" class="source_link">Source</a><code><span><span class="keyword">type</span> t</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_contains_timeout"><a href="../../../../src/eliom.client/eliom_route_base.ml.html#module-type-PARAM" class="source_link">Source</a><code><span><span class="keyword">val</span> set_contains_timeout : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <span>bool <span class="arrow">&#45;&gt;</span></span> unit</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-dlist_add"><a href="../../../../src/eliom.client/eliom_route_base.ml.html#module-type-PARAM" class="source_link">Source</a><code><span><span class="keyword">val</span> dlist_add : 
+        <header class="odoc-preamble"><h1>Module <code><span>PARAM.Container</span></code></h1></header>
+        <div class="odoc-content"><div class="odoc-spec"><div class="spec type anchored" id="type-t"><code><span><span class="keyword">type</span> t</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_contains_timeout"><code><span><span class="keyword">val</span> set_contains_timeout : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <span>bool <span class="arrow">&#45;&gt;</span></span> unit</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-dlist_add"><code><span><span class="keyword">val</span> dlist_add : 
   <span><span class="optlabel">?sp</span>:<a href="../../../Eliom_common/index.html#type-server_params">Eliom_common.server_params</a> <span class="arrow">&#45;&gt;</span></span>
   <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span>
   <span><span><span>(<span><a href="../Table/index.html#type-t">Table.t</a> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/index.html#type-ref">ref</a></span> * <a href="../../../Eliom_common/index.html#type-page_table_key">Eliom_common.page_table_key</a>, <a href="../../../Eliom_common/index.html#type-na_key_serv">Eliom_common.na_key_serv</a>)</span>
     <a href="../../../Eliom_lib/index.html#type-leftright">Eliom_lib.leftright</a></span> <span class="arrow">&#45;&gt;</span></span>
-  <a href="../Node/index.html#type-t">Node.t</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get"><a href="../../../../src/eliom.client/eliom_route_base.ml.html#module-type-PARAM" class="source_link">Source</a><code><span><span class="keyword">val</span> get : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <span><span>(int * int * <span><span><a href="../Table/index.html#type-t">Table.t</a> <a href="../../../Eliom_common/index.html#type-dircontent">Eliom_common.dircontent</a></span> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/index.html#type-ref">ref</a></span>)</span> list</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set"><a href="../../../../src/eliom.client/eliom_route_base.ml.html#module-type-PARAM" class="source_link">Source</a><code><span><span class="keyword">val</span> set : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <span><span><span>(int * int * <span><span><a href="../Table/index.html#type-t">Table.t</a> <a href="../../../Eliom_common/index.html#type-dircontent">Eliom_common.dircontent</a></span> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/index.html#type-ref">ref</a></span>)</span> list</span> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div></div></div>
+  <a href="../Node/index.html#type-t">Node.t</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get"><code><span><span class="keyword">val</span> get : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <span><span>(int * int * <span><span><a href="../Table/index.html#type-t">Table.t</a> <a href="../../../Eliom_common/index.html#type-dircontent">Eliom_common.dircontent</a></span> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/index.html#type-ref">ref</a></span>)</span> list</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set"><code><span><span class="keyword">val</span> set : <span><a href="#type-t">t</a> <span class="arrow">&#45;&gt;</span></span> <span><span><span>(int * int * <span><span><a href="../Table/index.html#type-t">Table.t</a> <a href="../../../Eliom_common/index.html#type-dircontent">Eliom_common.dircontent</a></span> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/index.html#type-ref">ref</a></span>)</span> list</span> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div></div></div>
       </article>
     </div>
   </div>

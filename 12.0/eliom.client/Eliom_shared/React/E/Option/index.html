@@ -6,6 +6,7 @@
   <title>Module E.OptionSource — Eliom</title>
   <link rel="stylesheet" href="/css/style.css"/>
   <link rel="stylesheet" href="/css/ocsigen-odoc.css"/>
+  <link rel="alternate" type="text/markdown" href="../../../../../eliom.client/Eliom_shared-React-E-Option.md"/>
   <script src="../../../../../highlight.pack.js"></script>
   <script src="../../../../../wodoc-highlight.js"></script>
 </head>
@@ -35,6 +36,7 @@
   <div class="mainmenu">
     <p class="mainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></p>
     <p class="mainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></p>
+    <p class="mainmenu-blog" data-wodoc-page="blog"><a href="/blog/">Blog</a></p>
     <p data-wodoc-page="eliom" class="current"><a href="/eliom/">Eliom</a></p>
     <p data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></p>
     <p data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></p>
@@ -71,7 +73,7 @@
         <li class="drawermainmenu-page" data-wodoc-page="papers"><a href="/papers">Research papers</a></li>
         <li class="drawermainmenu-page" data-wodoc-page="credits"><a href="/credits">Who does Ocsigen?</a></li>
         <li class="drawermainmenu-page" data-wodoc-page="contributing"><a href="/contributing">Contributing</a></li>
-        <li class="drawermainmenu-page" data-wodoc-page="blog"><a href="/blog">Blog</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="blog"><a href="/blog/">Blog</a></li>
         <li class="drawermainmenu-page" data-wodoc-page="install"><a href="/install">Installation</a></li>
         <li class="drawermainmenu-page"><a href="https://github.com/ocsigen">Source code</a></li>
       </ul>
@@ -245,8 +247,8 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>E.Option</span></code><a href="https://ocaml.org/p/react/1.2.2/doc/src/react/react.ml.html#module-E.module-Option" class="source_link">Source</a></h1><p>Events with option occurences.</p></header>
-        <div class="odoc-content"><div class="odoc-spec"><div class="spec value anchored" id="val-some"><a href="https://ocaml.org/p/react/1.2.2/doc/src/react/react.ml.html#module-E.module-Option.val-some" class="source_link">Source</a><code><span><span class="keyword">val</span> some : <span><span><span class="type-var">'a</span> <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-event">React.event</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> option</span> <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-event">React.event</a></span></span></code></div><div class="spec-doc"><p><code>some e</code> is <code>map (fun v -&gt; Some v) e</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-value"><a href="https://ocaml.org/p/react/1.2.2/doc/src/react/react.ml.html#module-E.module-Option.val-value" class="source_link">Source</a><code><span><span class="keyword">val</span> value : <span><span class="optlabel">?default</span>:<span><span class="type-var">'a</span> <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-signal">React.signal</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span><span><span class="type-var">'a</span> option</span> <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-event">React.event</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-event">React.event</a></span></span></code></div><div class="spec-doc"><p><code>value default e</code> either silences <code>None</code> occurences if <code>default</code> is unspecified or replaces them by the value of <code>default</code> at the occurence time.</p><ul><li>[<code>value ~default e</code>]<sub>t</sub><code> = v</code> if [<code>e</code>]<sub>t</sub> <code>= Some (Some v)</code>.</li><li>[<code>value ?default:None e</code>]<sub>t</sub><code> = None</code> if [<code>e</code>]<sub>t</sub> = <code>None</code>.</li><li>[<code>value ?default:(Some s) e</code>]<sub>t</sub><code> = v</code> if [<code>e</code>]<sub>t</sub> = <code>None</code> and [<code>s</code>]<sub>t</sub> <code>= v</code>.</li></ul></div></div></div>
+        <header class="odoc-preamble"><h1>Module <code><span>E.Option</span></code></h1><p>Events with option occurences.</p></header>
+        <div class="odoc-content"><div class="odoc-spec"><div class="spec value anchored" id="val-some"><code><span><span class="keyword">val</span> some : <span><span><span class="type-var">'a</span> <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-event">React.event</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> option</span> <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-event">React.event</a></span></span></code></div><div class="spec-doc"><p><code>some e</code> is <code>map (fun v -&gt; Some v) e</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-value"><code><span><span class="keyword">val</span> value : <span><span class="optlabel">?default</span>:<span><span class="type-var">'a</span> <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-signal">React.signal</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span><span><span class="type-var">'a</span> option</span> <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-event">React.event</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-event">React.event</a></span></span></code></div><div class="spec-doc"><p><code>value default e</code> either silences <code>None</code> occurences if <code>default</code> is unspecified or replaces them by the value of <code>default</code> at the occurence time.</p><ul><li>[<code>value ~default e</code>]<sub>t</sub><code> = v</code> if [<code>e</code>]<sub>t</sub> <code>= Some (Some v)</code>.</li><li>[<code>value ?default:None e</code>]<sub>t</sub><code> = None</code> if [<code>e</code>]<sub>t</sub> = <code>None</code>.</li><li>[<code>value ?default:(Some s) e</code>]<sub>t</sub><code> = v</code> if [<code>e</code>]<sub>t</sub> = <code>None</code> and [<code>s</code>]<sub>t</sub> <code>= v</code>.</li></ul></div></div></div>
       </article>
     </div>
   </div>

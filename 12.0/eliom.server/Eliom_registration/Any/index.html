@@ -6,6 +6,7 @@
   <title>Module Eliom_registration.AnySource — Eliom</title>
   <link rel="stylesheet" href="/css/style.css"/>
   <link rel="stylesheet" href="/css/ocsigen-odoc.css"/>
+  <link rel="alternate" type="text/markdown" href="../../../eliom.server/Eliom_registration-Any.md"/>
   <script src="../../../highlight.pack.js"></script>
   <script src="../../../wodoc-highlight.js"></script>
 </head>
@@ -35,6 +36,7 @@
   <div class="mainmenu">
     <p class="mainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></p>
     <p class="mainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></p>
+    <p class="mainmenu-blog" data-wodoc-page="blog"><a href="/blog/">Blog</a></p>
     <p data-wodoc-page="eliom" class="current"><a href="/eliom/">Eliom</a></p>
     <p data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></p>
     <p data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></p>
@@ -71,7 +73,7 @@
         <li class="drawermainmenu-page" data-wodoc-page="papers"><a href="/papers">Research papers</a></li>
         <li class="drawermainmenu-page" data-wodoc-page="credits"><a href="/credits">Who does Ocsigen?</a></li>
         <li class="drawermainmenu-page" data-wodoc-page="contributing"><a href="/contributing">Contributing</a></li>
-        <li class="drawermainmenu-page" data-wodoc-page="blog"><a href="/blog">Blog</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="blog"><a href="/blog/">Blog</a></li>
         <li class="drawermainmenu-page" data-wodoc-page="install"><a href="/install">Installation</a></li>
         <li class="drawermainmenu-page"><a href="https://github.com/ocsigen">Source code</a></li>
       </ul>
@@ -283,14 +285,14 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Eliom_registration.Any</span></code><a href="../../../src/eliom.server/eliom_registration.ml.html#module-Any" class="source_link">Source</a></h1><p>Eliom service registration for services that choose dynamically what they want to send. The content is created using for example <a href="../Html/index.html#val-send"><code>Html.send</code></a> or <a href="../String/index.html#val-send"><code>String.send</code></a> functions. See the Eliom manual for more information about <a href="../../../server-outputs.html#any" title="any">services that choose dynamically what they want to send</a></p></header>
+        <header class="odoc-preamble"><h1>Module <code><span>Eliom_registration.Any</span></code></h1><p>Eliom service registration for services that choose dynamically what they want to send. The content is created using for example <a href="../Html/index.html#val-send"><code>Html.send</code></a> or <a href="../String/index.html#val-send"><code>String.send</code></a> functions. See the Eliom manual for more information about <a href="../../../server-outputs.html#any" title="any">services that choose dynamically what they want to send</a></p></header>
         <div class="odoc-content"><div class="odoc-include"><details open="open"><summary class="spec include"><code><span><span class="keyword">include</span> <a href="../../Eliom_registration_sigs/module-type-S_poly_with_create/index.html">Eliom_registration_sigs.S_poly_with_create</a>
   <span class="keyword">with</span> <span><span class="keyword">type</span> <span>'a <a href="../../Eliom_registration_sigs/module-type-S_poly_with_create/index.html#type-page">page</a></span> = <span><span class="type-var">'a</span> <a href="../index.html#type-kind">kind</a></span></span>
   <span class="keyword">with</span> <span><span class="keyword">type</span> <a href="../../Eliom_registration_sigs/module-type-S_poly_with_create/index.html#type-options">options</a> = unit</span>
   <span class="keyword">with</span> <span><span class="keyword">type</span> <span>'a <a href="../../Eliom_registration_sigs/module-type-S_poly_with_create/index.html#type-return">return</a></span> = <a href="../../Eliom_service/index.html#type-non_ocaml">Eliom_service.non_ocaml</a></span></span></code></summary><div class="odoc-include"><details open="open"><summary class="spec include"><code><span><span class="keyword">include</span> <a href="../../Eliom_registration_sigs/module-type-S_poly/index.html">Eliom_registration_sigs.S_poly</a>
   <span class="keyword">with</span> <span><span class="keyword">type</span> <span>'a <a href="../../Eliom_registration_sigs/module-type-S_poly/index.html#type-page">page</a></span> = <span><span class="type-var">'a</span> <a href="../index.html#type-kind">kind</a></span></span>
   <span class="keyword">with</span> <span><span class="keyword">type</span> <a href="../../Eliom_registration_sigs/module-type-S_poly/index.html#type-options">options</a> = unit</span>
-  <span class="keyword">with</span> <span><span class="keyword">type</span> <span>'a <a href="../../Eliom_registration_sigs/module-type-S_poly/index.html#type-return">return</a></span> = <a href="../../Eliom_service/index.html#type-non_ocaml">Eliom_service.non_ocaml</a></span></span></code></summary><div class="odoc-spec"><div class="spec type anchored" id="type-page"><a href="../../../src/eliom.server/eliom_mkreg.ml.html#module-Make_poly.type-page" class="source_link">Source</a><code><span><span class="keyword">type</span> <span>'a page</span></span><span> = <span><span class="type-var">'a</span> <a href="../index.html#type-kind">kind</a></span></span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-options"><a href="../../../src/eliom.server/eliom_mkreg.ml.html#module-Make_poly.type-options" class="source_link">Source</a><code><span><span class="keyword">type</span> options</span><span> = unit</span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-return"><a href="../../../src/eliom.server/eliom_mkreg.ml.html#module-Make_poly.type-return" class="source_link">Source</a><code><span><span class="keyword">type</span> <span>'a return</span></span><span> = <a href="../../Eliom_service/index.html#type-non_ocaml">Eliom_service.non_ocaml</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-register"><a href="../../../src/eliom.server/eliom_mkreg.ml.html#module-Make_poly.val-register" class="source_link">Source</a><code><span><span class="keyword">val</span> register : 
+  <span class="keyword">with</span> <span><span class="keyword">type</span> <span>'a <a href="../../Eliom_registration_sigs/module-type-S_poly/index.html#type-return">return</a></span> = <a href="../../Eliom_service/index.html#type-non_ocaml">Eliom_service.non_ocaml</a></span></span></code></summary><div class="odoc-spec"><div class="spec type anchored" id="type-page"><code><span><span class="keyword">type</span> <span>'a page</span></span><span> = <span><span class="type-var">'a</span> <a href="../index.html#type-kind">kind</a></span></span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-options"><code><span><span class="keyword">type</span> options</span><span> = unit</span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-return"><code><span><span class="keyword">type</span> <span>'a return</span></span><span> = <a href="../../Eliom_service/index.html#type-non_ocaml">Eliom_service.non_ocaml</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-register"><code><span><span class="keyword">val</span> register : 
   <span><span class="optlabel">?app</span>:string <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?scope</span>:<span>[&lt; <a href="../../Eliom_common/index.html#type-scope">Eliom_common.scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?options</span>:<a href="#type-options">options</a> <span class="arrow">&#45;&gt;</span></span>
@@ -314,7 +316,7 @@
       <a href="../../Eliom_service/index.html#type-t">Eliom_service.t</a></span> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?error_handler</span>:<span>(<span><span><span>(string * exn)</span> list</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
   <span><span>(<span><span class="type-var">'get</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'post</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
-  unit</span></code></div><div class="spec-doc"><p>See <code>S.register</code>.</p></div></div></details></div><div class="odoc-spec"><div class="spec value anchored" id="val-create"><a href="../../../src/eliom.server/eliom_mkreg.ml.html#module-Make_poly.val-create" class="source_link">Source</a><code><span><span class="keyword">val</span> create : 
+  unit</span></code></div><div class="spec-doc"><p>See <code>S.register</code>.</p></div></div></details></div><div class="odoc-spec"><div class="spec value anchored" id="val-create"><code><span><span class="keyword">val</span> create : 
   <span><span class="optlabel">?app</span>:string <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?scope</span>:<span>[&lt; <a href="../../Eliom_common/index.html#type-scope">Eliom_common.scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?options</span>:<a href="#type-options">options</a> <span class="arrow">&#45;&gt;</span></span>
@@ -345,7 +347,7 @@
     <span class="type-var">'gn</span>,
     <span class="type-var">'pn</span>,
     <span><span class="type-var">'a</span> <a href="#type-return">return</a></span>)</span>
-    <a href="../../Eliom_service/index.html#type-t">Eliom_service.t</a></span></span></code></div><div class="spec-doc"><p>See <code>S_with_create.create</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-create_attached_get"><a href="../../../src/eliom.server/eliom_mkreg.ml.html#module-Make_poly.val-create_attached_get" class="source_link">Source</a><code><span><span class="keyword">val</span> create_attached_get : 
+    <a href="../../Eliom_service/index.html#type-t">Eliom_service.t</a></span></span></code></div><div class="spec-doc"><p>See <code>S_with_create.create</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-create_attached_get"><code><span><span class="keyword">val</span> create_attached_get : 
   <span><span class="optlabel">?app</span>:string <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?scope</span>:<span>[&lt; <a href="../../Eliom_common/index.html#type-scope">Eliom_common.scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?options</span>:<a href="#type-options">options</a> <span class="arrow">&#45;&gt;</span></span>
@@ -388,7 +390,7 @@
     <span class="type-var">'gn</span>,
     unit,
     <span><span class="type-var">'a</span> <a href="#type-return">return</a></span>)</span>
-    <a href="../../Eliom_service/index.html#type-t">Eliom_service.t</a></span></span></code></div><div class="spec-doc"><p>See <code>S_with_create.create_attached_get</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-create_attached_post"><a href="../../../src/eliom.server/eliom_mkreg.ml.html#module-Make_poly.val-create_attached_post" class="source_link">Source</a><code><span><span class="keyword">val</span> create_attached_post : 
+    <a href="../../Eliom_service/index.html#type-t">Eliom_service.t</a></span></span></code></div><div class="spec-doc"><p>See <code>S_with_create.create_attached_get</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-create_attached_post"><code><span><span class="keyword">val</span> create_attached_post : 
   <span><span class="optlabel">?app</span>:string <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?scope</span>:<span>[&lt; <a href="../../Eliom_common/index.html#type-scope">Eliom_common.scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?options</span>:<a href="#type-options">options</a> <span class="arrow">&#45;&gt;</span></span>
@@ -431,7 +433,7 @@
     <span class="type-var">'gn</span>,
     <span class="type-var">'pn</span>,
     <span><span class="type-var">'a</span> <a href="#type-return">return</a></span>)</span>
-    <a href="../../Eliom_service/index.html#type-t">Eliom_service.t</a></span></span></code></div><div class="spec-doc"><p>See <code>S_with_create.create_attached_post</code>.</p></div></div></details></div><div class="odoc-spec"><div class="spec type anchored" id="type-result"><a href="../../../src/eliom.server/eliom_registration.ml.html#module-Any.type-result" class="source_link">Source</a><code><span><span class="keyword">type</span> <span>'a result</span></span><span> = <span><span class="type-var">'a</span> <a href="../index.html#type-kind">kind</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-send"><a href="../../../src/eliom.server/eliom_registration.ml.html#module-Any.val-send" class="source_link">Source</a><code><span><span class="keyword">val</span> send : 
+    <a href="../../Eliom_service/index.html#type-t">Eliom_service.t</a></span></span></code></div><div class="spec-doc"><p>See <code>S_with_create.create_attached_post</code>.</p></div></div></details></div><div class="odoc-spec"><div class="spec type anchored" id="type-result"><code><span><span class="keyword">type</span> <span>'a result</span></span><span> = <span><span class="type-var">'a</span> <a href="../index.html#type-kind">kind</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-send"><code><span><span class="keyword">val</span> send : 
   <span><span class="optlabel">?options</span>:<a href="#type-options">options</a> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?charset</span>:string <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?code</span>:int <span class="arrow">&#45;&gt;</span></span>

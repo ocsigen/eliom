@@ -6,6 +6,7 @@
   <title>Module Eliom_reference.ExtSource — Eliom</title>
   <link rel="stylesheet" href="/css/style.css"/>
   <link rel="stylesheet" href="/css/ocsigen-odoc.css"/>
+  <link rel="alternate" type="text/markdown" href="../../../eliom.server/Eliom_reference-Ext.md"/>
   <script src="../../../highlight.pack.js"></script>
   <script src="../../../wodoc-highlight.js"></script>
 </head>
@@ -35,6 +36,7 @@
   <div class="mainmenu">
     <p class="mainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></p>
     <p class="mainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></p>
+    <p class="mainmenu-blog" data-wodoc-page="blog"><a href="/blog/">Blog</a></p>
     <p data-wodoc-page="eliom" class="current"><a href="/eliom/">Eliom</a></p>
     <p data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></p>
     <p data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></p>
@@ -71,7 +73,7 @@
         <li class="drawermainmenu-page" data-wodoc-page="papers"><a href="/papers">Research papers</a></li>
         <li class="drawermainmenu-page" data-wodoc-page="credits"><a href="/credits">Who does Ocsigen?</a></li>
         <li class="drawermainmenu-page" data-wodoc-page="contributing"><a href="/contributing">Contributing</a></li>
-        <li class="drawermainmenu-page" data-wodoc-page="blog"><a href="/blog">Blog</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="blog"><a href="/blog/">Blog</a></li>
         <li class="drawermainmenu-page" data-wodoc-page="install"><a href="/install">Installation</a></li>
         <li class="drawermainmenu-page"><a href="https://github.com/ocsigen">Source code</a></li>
       </ul>
@@ -283,22 +285,22 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Eliom_reference.Ext</span></code><a href="../../../src/eliom.server/eliom_reference.ml.html#module-Ext" class="source_link">Source</a></h1><p>This module allows access to references for other groups, sessions, or client processes. Use it in conjunction with functions like <a href="../../Eliom_state/Ext/index.html#val-iter_sub_states"><code>Eliom_state.Ext.iter_sub_states</code></a> to get the sessions from a group (or the processes from a session).</p></header>
-        <div class="odoc-content"><div class="odoc-spec"><div class="spec value anchored" id="val-get"><a href="../../../src/eliom.server/eliom_reference.ml.html#module-Ext.val-get" class="source_link">Source</a><code><span><span class="keyword">val</span> get : 
+        <header class="odoc-preamble"><h1>Module <code><span>Eliom_reference.Ext</span></code></h1><p>This module allows access to references for other groups, sessions, or client processes. Use it in conjunction with functions like <a href="../../Eliom_state/Ext/index.html#val-iter_sub_states"><code>Eliom_state.Ext.iter_sub_states</code></a> to get the sessions from a group (or the processes from a session).</p></header>
+        <div class="odoc-content"><div class="odoc-spec"><div class="spec value anchored" id="val-get"><code><span><span class="keyword">val</span> get : 
   <span><span><span>(<span>[&lt; `Session_group <span>| `Session</span> <span>| `Client_process</span> ]</span>, <span>[&lt; `Data <span>| `Pers</span> ]</span>)</span>
     <a href="../../Eliom_state/Ext/index.html#type-state">Eliom_state.Ext.state</a></span> <span class="arrow">&#45;&gt;</span></span>
   <span><span><span class="type-var">'a</span> <a href="../index.html#type-eref">eref</a></span> <span class="arrow">&#45;&gt;</span></span>
-  <span><span class="type-var">'a</span> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p>get the value of a reference from outside the state. If the value has not been set yet for this state, it will raise exception <code>Eref_not_initialized</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set"><a href="../../../src/eliom.server/eliom_reference.ml.html#module-Ext.val-set" class="source_link">Source</a><code><span><span class="keyword">val</span> set : 
+  <span><span class="type-var">'a</span> <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p>get the value of a reference from outside the state. If the value has not been set yet for this state, it will raise exception <code>Eref_not_initialized</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set"><code><span><span class="keyword">val</span> set : 
   <span><span><span>(<span>[&lt; `Session_group <span>| `Session</span> <span>| `Client_process</span> ]</span>, <span>[&lt; `Data <span>| `Pers</span> ]</span>)</span>
     <a href="../../Eliom_state/Ext/index.html#type-state">Eliom_state.Ext.state</a></span> <span class="arrow">&#45;&gt;</span></span>
   <span><span><span class="type-var">'a</span> <a href="../index.html#type-eref">eref</a></span> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span>
-  <span>unit <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-modify"><a href="../../../src/eliom.server/eliom_reference.ml.html#module-Ext.val-modify" class="source_link">Source</a><code><span><span class="keyword">val</span> modify : 
+  <span>unit <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-modify"><code><span><span class="keyword">val</span> modify : 
   <span><span><span>(<span>[&lt; `Session_group <span>| `Session</span> <span>| `Client_process</span> ]</span>, <span>[&lt; `Data <span>| `Pers</span> ]</span>)</span>
     <a href="../../Eliom_state/Ext/index.html#type-state">Eliom_state.Ext.state</a></span> <span class="arrow">&#45;&gt;</span></span>
   <span><span><span class="type-var">'a</span> <a href="../index.html#type-eref">eref</a></span> <span class="arrow">&#45;&gt;</span></span>
   <span><span>(<span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'a</span>)</span> <span class="arrow">&#45;&gt;</span></span>
-  <span>unit <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p>Warning: the function will be executed with the current context</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-unset"><a href="../../../src/eliom.server/eliom_reference.ml.html#module-Ext.val-unset" class="source_link">Source</a><code><span><span class="keyword">val</span> unset : 
+  <span>unit <a href="https://ocaml.org/p/lwt/6.1.2/doc/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p>Warning: the function will be executed with the current context</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-unset"><code><span><span class="keyword">val</span> unset : 
   <span><span><span>(<span>[&lt; `Session_group <span>| `Session</span> <span>| `Client_process</span> ]</span>, <span>[&lt; `Data <span>| `Pers</span> ]</span>)</span>
     <a href="../../Eliom_state/Ext/index.html#type-state">Eliom_state.Ext.state</a></span> <span class="arrow">&#45;&gt;</span></span>
   <span><span><span class="type-var">'a</span> <a href="../index.html#type-eref">eref</a></span> <span class="arrow">&#45;&gt;</span></span>

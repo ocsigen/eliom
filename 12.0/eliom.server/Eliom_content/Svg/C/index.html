@@ -6,6 +6,7 @@
   <title>Module Svg.CSource — Eliom</title>
   <link rel="stylesheet" href="/css/style.css"/>
   <link rel="stylesheet" href="/css/ocsigen-odoc.css"/>
+  <link rel="alternate" type="text/markdown" href="../../../../eliom.server/Eliom_content-Svg-C.md"/>
   <script src="../../../../highlight.pack.js"></script>
   <script src="../../../../wodoc-highlight.js"></script>
 </head>
@@ -35,6 +36,7 @@
   <div class="mainmenu">
     <p class="mainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></p>
     <p class="mainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></p>
+    <p class="mainmenu-blog" data-wodoc-page="blog"><a href="/blog/">Blog</a></p>
     <p data-wodoc-page="eliom" class="current"><a href="/eliom/">Eliom</a></p>
     <p data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></p>
     <p data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></p>
@@ -71,7 +73,7 @@
         <li class="drawermainmenu-page" data-wodoc-page="papers"><a href="/papers">Research papers</a></li>
         <li class="drawermainmenu-page" data-wodoc-page="credits"><a href="/credits">Who does Ocsigen?</a></li>
         <li class="drawermainmenu-page" data-wodoc-page="contributing"><a href="/contributing">Contributing</a></li>
-        <li class="drawermainmenu-page" data-wodoc-page="blog"><a href="/blog">Blog</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="blog"><a href="/blog/">Blog</a></li>
         <li class="drawermainmenu-page" data-wodoc-page="install"><a href="/install">Installation</a></li>
         <li class="drawermainmenu-page"><a href="https://github.com/ocsigen">Source code</a></li>
       </ul>
@@ -283,8 +285,8 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Svg.C</span></code><a href="../../../../src/eliom.server/eliom_content.ml.html#module-Svg.module-C" class="source_link">Source</a></h1><p>Creation of content from client-side values. This makes possible to insert in server side generated pages some nodes that will be computed on client side (for example reactive nodes).</p></header>
-        <div class="odoc-content"><div class="odoc-spec"><div class="spec value anchored" id="val-node"><a href="../../../../src/eliom.server/eliom_content.ml.html#module-Svg.module-C.val-node" class="source_link">Source</a><code><span><span class="keyword">val</span> node : <span><span class="optlabel">?init</span>:<span><span class="type-var">'a</span> <a href="../index.html#type-elt">elt</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span><span><span class="type-var">'a</span> <a href="../index.html#type-elt">elt</a></span> <a href="../../../Eliom_client_value/index.html#type-t">Eliom_client_value.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="../index.html#type-elt">elt</a></span></span></code></div><div class="spec-doc"><p><code>node e</code> is a server-side node corresponding to the client-side node <code>e</code> . <code>node e</code> can be used like any other server-side node.</p><p>The implementation uses an initial placeholder node that is later replaced by the client node. By default, the placeholder node is <code>span</code>. The <code>~init</code> argument can be used to provide a custom placeholder node (e.g., one with the same tag as the client node). This can be useful in contexts where <code>span</code> is not allowed.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-attr"><a href="../../../../src/eliom.server/eliom_content.ml.html#module-Svg.module-C.val-attr" class="source_link">Source</a><code><span><span class="keyword">val</span> attr : <span><span class="optlabel">?init</span>:<span><span class="type-var">'a</span> <a href="../index.html#type-attrib">attrib</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span><span><span class="type-var">'a</span> <a href="../index.html#type-attrib">attrib</a></span> <a href="../../../Eliom_client_value/index.html#type-t">Eliom_client_value.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="../index.html#type-attrib">attrib</a></span></span></code></div></div></div>
+        <header class="odoc-preamble"><h1>Module <code><span>Svg.C</span></code></h1><p>Creation of content from client-side values. This makes possible to insert in server side generated pages some nodes that will be computed on client side (for example reactive nodes).</p></header>
+        <div class="odoc-content"><div class="odoc-spec"><div class="spec value anchored" id="val-node"><code><span><span class="keyword">val</span> node : <span><span class="optlabel">?init</span>:<span><span class="type-var">'a</span> <a href="../index.html#type-elt">elt</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span><span><span class="type-var">'a</span> <a href="../index.html#type-elt">elt</a></span> <a href="../../../Eliom_client_value/index.html#type-t">Eliom_client_value.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="../index.html#type-elt">elt</a></span></span></code></div><div class="spec-doc"><p><code>node e</code> is a server-side node corresponding to the client-side node <code>e</code> . <code>node e</code> can be used like any other server-side node.</p><p>The implementation uses an initial placeholder node that is later replaced by the client node. By default, the placeholder node is <code>span</code>. The <code>~init</code> argument can be used to provide a custom placeholder node (e.g., one with the same tag as the client node). This can be useful in contexts where <code>span</code> is not allowed.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-attr"><code><span><span class="keyword">val</span> attr : <span><span class="optlabel">?init</span>:<span><span class="type-var">'a</span> <a href="../index.html#type-attrib">attrib</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span><span><span class="type-var">'a</span> <a href="../index.html#type-attrib">attrib</a></span> <a href="../../../Eliom_client_value/index.html#type-t">Eliom_client_value.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="../index.html#type-attrib">attrib</a></span></span></code></div></div></div>
       </article>
     </div>
   </div>

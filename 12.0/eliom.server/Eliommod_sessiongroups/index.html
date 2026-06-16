@@ -6,6 +6,7 @@
   <title>Module Eliommod_sessiongroupsSource — Eliom</title>
   <link rel="stylesheet" href="/css/style.css"/>
   <link rel="stylesheet" href="/css/ocsigen-odoc.css"/>
+  <link rel="alternate" type="text/markdown" href="../../eliom.server/Eliommod_sessiongroups.md"/>
   <script src="../../highlight.pack.js"></script>
   <script src="../../wodoc-highlight.js"></script>
 </head>
@@ -35,6 +36,7 @@
   <div class="mainmenu">
     <p class="mainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></p>
     <p class="mainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></p>
+    <p class="mainmenu-blog" data-wodoc-page="blog"><a href="/blog/">Blog</a></p>
     <p data-wodoc-page="eliom" class="current"><a href="/eliom/">Eliom</a></p>
     <p data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></p>
     <p data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></p>
@@ -71,7 +73,7 @@
         <li class="drawermainmenu-page" data-wodoc-page="papers"><a href="/papers">Research papers</a></li>
         <li class="drawermainmenu-page" data-wodoc-page="credits"><a href="/credits">Who does Ocsigen?</a></li>
         <li class="drawermainmenu-page" data-wodoc-page="contributing"><a href="/contributing">Contributing</a></li>
-        <li class="drawermainmenu-page" data-wodoc-page="blog"><a href="/blog">Blog</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="blog"><a href="/blog/">Blog</a></li>
         <li class="drawermainmenu-page" data-wodoc-page="install"><a href="/install">Installation</a></li>
         <li class="drawermainmenu-page"><a href="https://github.com/ocsigen">Source code</a></li>
       </ul>
@@ -283,34 +285,34 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Eliommod_sessiongroups</span></code><a href="../../src/eliom.server/eliommod_sessiongroups.ml.html" class="source_link">Source</a></h1></header>
-        <div class="odoc-content"><div class="odoc-spec"><div class="spec value anchored" id="val-make_full_named_group_name_"><a href="../../src/eliom.server/eliommod_sessiongroups.ml.html#val-make_full_named_group_name_" class="source_link">Source</a><code><span><span class="keyword">val</span> make_full_named_group_name_ : 
+        <header class="odoc-preamble"><h1>Module <code><span>Eliommod_sessiongroups</span></code></h1></header>
+        <div class="odoc-content"><div class="odoc-spec"><div class="spec value anchored" id="val-make_full_named_group_name_"><code><span><span class="keyword">val</span> make_full_named_group_name_ : 
   <span><span class="label">cookie_level</span>:<a href="../Eliom_common/index.html#type-cookie_level">Eliom_common.cookie_level</a> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="xref-unresolved">Eliom_common.sitedata</span> <span class="arrow">&#45;&gt;</span></span>
   <span>string <span class="arrow">&#45;&gt;</span></span>
-  <span><a href="../Eliom_common/index.html#type-scope">Eliom_common.scope</a> <span class="xref-unresolved">Eliom_common.sessgrp</span></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-make_full_group_name"><a href="../../src/eliom.server/eliommod_sessiongroups.ml.html#val-make_full_group_name" class="source_link">Source</a><code><span><span class="keyword">val</span> make_full_group_name : 
+  <span><a href="../Eliom_common/index.html#type-scope">Eliom_common.scope</a> <span class="xref-unresolved">Eliom_common.sessgrp</span></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-make_full_group_name"><code><span><span class="keyword">val</span> make_full_group_name : 
   <span><span class="label">cookie_level</span>:<a href="../Eliom_common/index.html#type-cookie_level">Eliom_common.cookie_level</a> <span class="arrow">&#45;&gt;</span></span>
   <span><a href="../../../../ocsigenserver/latest/Ocsigen_request/index.html#type-t">Ocsigen_request.t</a> <span class="arrow">&#45;&gt;</span></span>
   <span>string <span class="arrow">&#45;&gt;</span></span>
   <span>int <span class="arrow">&#45;&gt;</span></span>
   <span>int <span class="arrow">&#45;&gt;</span></span>
   <span><span>string option</span> <span class="arrow">&#45;&gt;</span></span>
-  <span><a href="../Eliom_common/index.html#type-scope">Eliom_common.scope</a> <span class="xref-unresolved">Eliom_common.sessgrp</span></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-make_persistent_full_group_name"><a href="../../src/eliom.server/eliommod_sessiongroups.ml.html#val-make_persistent_full_group_name" class="source_link">Source</a><code><span><span class="keyword">val</span> make_persistent_full_group_name : 
+  <span><a href="../Eliom_common/index.html#type-scope">Eliom_common.scope</a> <span class="xref-unresolved">Eliom_common.sessgrp</span></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-make_persistent_full_group_name"><code><span><span class="keyword">val</span> make_persistent_full_group_name : 
   <span><span class="label">cookie_level</span>:<a href="../Eliom_common/index.html#type-cookie_level">Eliom_common.cookie_level</a> <span class="arrow">&#45;&gt;</span></span>
   <span>string <span class="arrow">&#45;&gt;</span></span>
   <span><span>string option</span> <span class="arrow">&#45;&gt;</span></span>
-  <span><span class="xref-unresolved">Eliom_common.perssessgrp</span> option</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-getsessgrp"><a href="../../src/eliom.server/eliommod_sessiongroups.ml.html#val-getsessgrp" class="source_link">Source</a><code><span><span class="keyword">val</span> getsessgrp : 
+  <span><span class="xref-unresolved">Eliom_common.perssessgrp</span> option</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-getsessgrp"><code><span><span class="keyword">val</span> getsessgrp : 
   <span><span><a href="../Eliom_common/index.html#type-scope">Eliom_common.scope</a> <span class="xref-unresolved">Eliom_common.sessgrp</span></span> <span class="arrow">&#45;&gt;</span></span>
-  string * <a href="../Eliom_common/index.html#type-cookie_level">Eliom_common.cookie_level</a> * <span><span>(string, <a href="https://ocaml.org/p/ipaddr/5.6.2/doc/Ipaddr/index.html#type-t">Ipaddr.t</a>)</span> <a href="../Eliom_lib/index.html#type-leftright">Eliom_lib.leftright</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-getperssessgrp"><a href="../../src/eliom.server/eliommod_sessiongroups.ml.html#val-getperssessgrp" class="source_link">Source</a><code><span><span class="keyword">val</span> getperssessgrp : 
+  string * <a href="../Eliom_common/index.html#type-cookie_level">Eliom_common.cookie_level</a> * <span><span>(string, <a href="https://ocaml.org/p/ipaddr/5.6.2/doc/Ipaddr/index.html#type-t">Ipaddr.t</a>)</span> <a href="../Eliom_lib/index.html#type-leftright">Eliom_lib.leftright</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-getperssessgrp"><code><span><span class="keyword">val</span> getperssessgrp : 
   <span><span class="xref-unresolved">Eliom_common.perssessgrp</span> <span class="arrow">&#45;&gt;</span></span>
-  string * <a href="../Eliom_common/index.html#type-cookie_level">Eliom_common.cookie_level</a> * <span><span>(string, <a href="https://ocaml.org/p/ipaddr/5.6.2/doc/Ipaddr/index.html#type-t">Ipaddr.t</a>)</span> <a href="../Eliom_lib/index.html#type-leftright">Eliom_lib.leftright</a></span></span></code></div></div><div class="odoc-spec"><div class="spec module-type anchored" id="module-type-MEMTAB"><a href="../../src/eliom.server/eliommod_sessiongroups.ml.html#module-type-MEMTAB" class="source_link">Source</a><code><span><span class="keyword">module</span> <span class="keyword">type</span> <a href="module-type-MEMTAB/index.html">MEMTAB</a></span><span> = <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Serv"><a href="../../src/eliom.server/eliommod_sessiongroups.ml.html#module-Serv" class="source_link">Source</a><code><span><span class="keyword">module</span> <a href="Serv/index.html">Serv</a></span><span> : 
+  string * <a href="../Eliom_common/index.html#type-cookie_level">Eliom_common.cookie_level</a> * <span><span>(string, <a href="https://ocaml.org/p/ipaddr/5.6.2/doc/Ipaddr/index.html#type-t">Ipaddr.t</a>)</span> <a href="../Eliom_lib/index.html#type-leftright">Eliom_lib.leftright</a></span></span></code></div></div><div class="odoc-spec"><div class="spec module-type anchored" id="module-type-MEMTAB"><code><span><span class="keyword">module</span> <span class="keyword">type</span> <a href="module-type-MEMTAB/index.html">MEMTAB</a></span><span> = <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Serv"><code><span><span class="keyword">module</span> <a href="Serv/index.html">Serv</a></span><span> : 
   <a href="module-type-MEMTAB/index.html">MEMTAB</a>
     <span class="keyword">with</span> <span><span class="keyword">type</span> <a href="module-type-MEMTAB/index.html#type-group_of_group_data">group_of_group_data</a> =
            <span><span class="xref-unresolved">Eliom_common.tables</span> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/index.html#type-ref">ref</a></span>
-           * <span><span><span>[ `Session ]</span> <span class="xref-unresolved">Eliom_common.sessgrp</span></span> <a href="../../../../ocsigenserver/latest/Ocsigen_cache/Dlist/index.html#type-node">Ocsigen_cache.Dlist.node</a></span></span></span></code></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Data"><a href="../../src/eliom.server/eliommod_sessiongroups.ml.html#module-Data" class="source_link">Source</a><code><span><span class="keyword">module</span> <a href="Data/index.html">Data</a></span><span> : 
+           * <span><span><span>[ `Session ]</span> <span class="xref-unresolved">Eliom_common.sessgrp</span></span> <a href="../../../../ocsigenserver/latest/Ocsigen_cache/Dlist/index.html#type-node">Ocsigen_cache.Dlist.node</a></span></span></span></code></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Data"><code><span><span class="keyword">module</span> <a href="Data/index.html">Data</a></span><span> : 
   <a href="module-type-MEMTAB/index.html">MEMTAB</a>
     <span class="keyword">with</span> <span><span class="keyword">type</span> <a href="module-type-MEMTAB/index.html#type-group_of_group_data">group_of_group_data</a> =
-           <span><span><span>[ `Session ]</span> <span class="xref-unresolved">Eliom_common.sessgrp</span></span> <a href="../../../../ocsigenserver/latest/Ocsigen_cache/Dlist/index.html#type-node">Ocsigen_cache.Dlist.node</a></span></span></span></code></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Pers"><a href="../../src/eliom.server/eliommod_sessiongroups.ml.html#module-Pers" class="source_link">Source</a><code><span><span class="keyword">module</span> <a href="Pers/index.html">Pers</a></span><span> : <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div></div></div>
+           <span><span><span>[ `Session ]</span> <span class="xref-unresolved">Eliom_common.sessgrp</span></span> <a href="../../../../ocsigenserver/latest/Ocsigen_cache/Dlist/index.html#type-node">Ocsigen_cache.Dlist.node</a></span></span></span></code></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Pers"><code><span><span class="keyword">module</span> <a href="Pers/index.html">Pers</a></span><span> : <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div></div></div>
       </article>
     </div>
   </div>

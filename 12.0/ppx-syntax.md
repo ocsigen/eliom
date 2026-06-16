@@ -1,0 +1,111 @@
+
+# Eliom PPX syntax extension
+
+The eliom syntax extension allows to write, in one file, both the client and server part of your application. The extension is automatically enabled by the default build system on `.eliom` and `.eliomi` files.
+
+The extensions presented here are also available with the `eliom.` prefix.
+
+
+## Sections
+
+The location of code execution is specified by section annotations. We can specify that a declaration is performed on the server, or on the client:
+
+<!--wodoc:@ class=server-->
+```ocaml
+  let%server s = ...
+```
+<!--wodoc:@ class=client-->
+```ocaml
+  let%client c = ...
+```
+Or, alternatively: <!--wodoc:@ class=server-->
+
+```ocaml
+[%%server
+  let s = ...
+]
+```
+<!--wodoc:@ class=client-->
+```ocaml
+[%%client
+  let c = ...
+]
+```
+Finally, it's also possible to start a section for the rest of the file:
+
+```ocaml
+[%%server.start]
+let s = ..
+```
+In `.eliomi` files, only the last version is available.
+
+Sections are only available at top level and cannot be nested.
+
+Similarly, you can write for example `type%server`, `module%server`, `open%server`, etc ...
+
+
+### Shared sections
+
+Shared sections are also available for code that should be on the client and on the server.
+
+<!--wodoc:@ class=shared-->
+```ocaml
+let%shared sh = ...
+```
+This is equivalent to duplicating the code in a client and a server section.
+
+
+## Client fragments
+
+A client-side expression can be included inside a server section, and the server can thereafter refer to it: an expression placed inside `[%client ... ]` will be computed on the client when it receives the page; but the eventual client-side value of the expression can be manipulated as a black box on the server.
+
+<!--wodoc:@ class=server-->
+```ocaml
+let%server x = [%client 1 + 3 ]
+```
+For example, here, the expression `1 + 3` will be evaluated on the client, but it’s possible to refer server-side to the future value of this expression (for example, put it in a list). The value of a client fragment cannot be accessed on the server.
+
+In this case, `x` has type `int Eliom_client_value.t`. Eliom can't always infer the type of fragments. In this case, you may annotate the type: `[%client ( ... : <type> ) ]`.
+
+Client fragments cannot be nested.
+
+
+### Shared fragments
+
+It is also possible to use shared fragments. <!--wodoc:@ class=server-->
+
+```ocaml
+let%server x = [%shared ...]
+```
+It will produce values of type [`Eliom_shared.Value.t`](./eliom.server/Eliom_shared-Value.md#type-t).
+
+Shared fragments can be nested and can contain client fragments.
+
+
+## Injections and escaped values
+
+Values that have been computed on the server can be used on the client by prefixing them with a percent symbol `~%`. We call this an *injection*.
+
+```ocaml
+let%server s = 1 + 2
+let%client c = ~%s + 1
+```
+Here, the expression `1 + 2` is evaluated and bound to variable `s` on the server. The resulting value `3` is transferred to the client together with the Web page, then the expression `~%s + 1` is computed client-side. An injection makes it possible to access client-side a client fragment which has been specified on the server:
+
+```ocaml
+let%server x = [%client 1 + 3 ]
+let%client c = 3 + ~%x
+```
+The value inside the client fragment is extracted by `~%x`, whose value is `4` here.
+
+
+## Restrictions
+
+It is not possible to use injections on values containing a closure. This includes lazy values, objects, or anything containing functions. You can use either [`Eliom_client.server_function`](./eliom.server/Eliom_client.md#type-server_function) (`let%rpc`) and client or shared fragments to circumvent this limitation.
+
+To extend and customize the serialization from client to server, see chapter [Wrapping values](./clientserver-wrapping.md).
+
+
+## Note about evaluation
+
+Regardless of the construction used and their combination, there is only one communication from server to client, when the Web page is sent. This is due to the fact that client fragments are not executed immediately when encountered inside server code. The intuitive semantic is the following: client code is not executed when encountered, instead it is registered for later execution, once the Web page has been sent to the client. Then all the client code is executed in the order it was encountered on the server.
