@@ -249,7 +249,7 @@ val onload : (unit -> unit) -> unit
     avoid this problem rely on [Page_status.onactive] which is triggered for
     freshly generated pages as well as pages served from the DOM cache.
 
-    {% <<code language="ocaml"|
+    {[
     [%%shared open Eliom_lib]
     [%%client
       let () = alert "Once only during initialization of the client, \
@@ -267,7 +267,7 @@ val onload : (unit -> unit) -> unit
            }};
            Lwt.return html
     ]
-    >> %}
+    ]}
 
 *)
 
@@ -460,7 +460,7 @@ val push_history_dom : unit -> unit
 
     A typical use case of this function is storing the dom when loading
     a page. i.e.
-    {% <<code language="ocaml"|
+    {[
     let%shared service_handler =
         fun () () ->
             ignore [%client (Eliom_client.onload Eliom_client.push_history_dom : unit)];
@@ -478,7 +478,7 @@ val push_history_dom : unit -> unit
                     register ())
         in
         register ()
-    >> %}
+    ]}
 *)
 
 (* [set_max_dist_history_doms (Some n)] limits the number of cached DOMs

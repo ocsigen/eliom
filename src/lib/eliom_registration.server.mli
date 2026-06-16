@@ -26,8 +26,6 @@
     use {{!page-"server-services"}services} and {{!page-"server-outputs"}predefined outputs}.
     }
 
-    {% <<outline| <<header| **Table of contents** >> >> %}
-
     {2 Type definitions} *)
 
 type 'a kind
