@@ -5,8 +5,6 @@ Eliom services registration for various kinds of page content: Eliom application
 
 **Please read the Eliom manual before this page to learn how to use [services](./../server-services.md) and [predefined outputs](./../server-outputs.md).**
 
-` <<outline| <<header| **Table of contents** >> >> `
-
 
 ### Type definitions
 

@@ -5,8 +5,6 @@ Ad-hoc runtime type representation for service parameters.
 
 **Please read Eliom's manual before this page to learn how to use [service parameters](./../server-params.md).**
 
-` <<outline| <<header| **Table of contents** >> >>`
-
 ```ocaml
 module type S = sig ... end
 ```

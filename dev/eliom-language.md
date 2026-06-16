@@ -164,8 +164,7 @@ Client values created while launching the server, i.e. while evaluating the top-
 Client values which are evaluated during the processing of a request are termed *request client values*. The expressions of request client values are evaluated after receiving the corresponding request on the client in the order of their occurrence on the server. In requests which change the content of the page withing the application (originating from a service of the `module
 Eliom_registration.App`), the expressions are evaluated *after the content has changed*. That way they may refer to the new DOM.
 
-If a client value is created outside of the initialization of the server program and also outside of the processing of a request, the exception ` {!exception
-Eliom_client_value.Client_value_creation_invalid_context} ` is raised.
+If a client value is created outside of the initialization of the server program and also outside of the processing of a request, the exception [`Eliom_client_value.Client_value_creation_invalid_context`](./eliom.server/Eliom_client_value.md#exception-Client_value_creation_invalid_context) is raised.
 
 
 ### In a shared section

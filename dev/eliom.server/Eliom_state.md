@@ -5,8 +5,6 @@ Storing server-side values for your applications or sessions.
 
 **Please read the [Eliom manual](./../server-state.md) before this page to learn how server side state works.**
 
-` <<outline| <<header| **Table of contents** >> >>`
-
 
 ### Managing the state of an application
 

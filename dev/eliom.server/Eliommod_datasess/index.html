@@ -285,27 +285,27 @@
 
       </nav>
       <article class="rightcol">
-        <header class="odoc-preamble"><h1>Module <code><span>Eliommod_datasess</span></code><a href="../../src/eliom.server/eliommod_datasess.ml.html" class="source_link">Source</a></h1></header>
-        <div class="odoc-content"><div class="odoc-spec"><div class="spec value anchored" id="val-close_data_state"><a href="../../src/eliom.server/eliommod_datasess.ml.html#val-close_data_state" class="source_link">Source</a><code><span><span class="keyword">val</span> close_data_state : 
+        <header class="odoc-preamble"><h1>Module <code><span>Eliommod_datasess</span></code></h1></header>
+        <div class="odoc-content"><div class="odoc-spec"><div class="spec value anchored" id="val-close_data_state"><code><span><span class="keyword">val</span> close_data_state : 
   <span><span class="label">scope</span>:<span>[&lt; <a href="../Eliom_common/index.html#type-user_scope">Eliom_common.user_scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="label">secure_o</span>:<span>bool option</span> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?sp</span>:<span class="xref-unresolved">Eliom_common.server_params</span> <span class="arrow">&#45;&gt;</span></span>
   <span>unit <span class="arrow">&#45;&gt;</span></span>
-  unit</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-find_or_create_data_cookie"><a href="../../src/eliom.server/eliommod_datasess.ml.html#val-find_or_create_data_cookie" class="source_link">Source</a><code><span><span class="keyword">val</span> find_or_create_data_cookie : 
+  unit</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-find_or_create_data_cookie"><code><span><span class="keyword">val</span> find_or_create_data_cookie : 
   <span><span class="optlabel">?set_session_group</span>:string <span class="arrow">&#45;&gt;</span></span>
   <span><span class="label">cookie_scope</span>:<span>[&lt; <a href="../Eliom_common/index.html#type-cookie_scope">Eliom_common.cookie_scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="label">secure_o</span>:<span>bool option</span> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?sp</span>:<span class="xref-unresolved">Eliom_common.server_params</span> <span class="arrow">&#45;&gt;</span></span>
   <span>unit <span class="arrow">&#45;&gt;</span></span>
-  <span class="xref-unresolved">Eliom_common.one_data_cookie_info</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-find_data_cookie_only"><a href="../../src/eliom.server/eliommod_datasess.ml.html#val-find_data_cookie_only" class="source_link">Source</a><code><span><span class="keyword">val</span> find_data_cookie_only : 
+  <span class="xref-unresolved">Eliom_common.one_data_cookie_info</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-find_data_cookie_only"><code><span><span class="keyword">val</span> find_data_cookie_only : 
   <span><span class="label">cookie_scope</span>:<span>[&lt; <a href="../Eliom_common/index.html#type-cookie_scope">Eliom_common.cookie_scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="label">secure_o</span>:<span>bool option</span> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?sp</span>:<span class="xref-unresolved">Eliom_common.server_params</span> <span class="arrow">&#45;&gt;</span></span>
   <span>unit <span class="arrow">&#45;&gt;</span></span>
-  <span class="xref-unresolved">Eliom_common.one_data_cookie_info</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-counttableelements"><a href="../../src/eliom.server/eliommod_datasess.ml.html#val-counttableelements" class="source_link">Source</a><code><span><span class="keyword">val</span> counttableelements : <span><span><span>(<span>unit <span class="arrow">&#45;&gt;</span></span> int)</span> list</span> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/index.html#type-ref">ref</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-create_volatile_table"><a href="../../src/eliom.server/eliommod_datasess.ml.html#def_95" class="source_link">Source</a><code><span><span class="keyword">val</span> create_volatile_table : 
+  <span class="xref-unresolved">Eliom_common.one_data_cookie_info</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-counttableelements"><code><span><span class="keyword">val</span> counttableelements : <span><span><span>(<span>unit <span class="arrow">&#45;&gt;</span></span> int)</span> list</span> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/index.html#type-ref">ref</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-create_volatile_table"><code><span><span class="keyword">val</span> create_volatile_table : 
   <span><span class="label">scope</span>:<span>(<span>[&lt; <a href="../Eliom_common/index.html#type-user_scope">Eliom_common.user_scope</a> ]</span> <span class="keyword">as</span> 'b)</span> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="label">secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
-  <span class="type-var">'b</span> * bool * <span><span class="type-var">'a</span> <span class="xref-unresolved">Eliom_common.SessionCookies.t</span></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-create_volatile_table_during_session"><a href="../../src/eliom.server/eliommod_datasess.ml.html#def_95" class="source_link">Source</a><code><span><span class="keyword">val</span> create_volatile_table_during_session : 
+  <span class="type-var">'b</span> * bool * <span><span class="type-var">'a</span> <span class="xref-unresolved">Eliom_common.SessionCookies.t</span></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-create_volatile_table_during_session"><code><span><span class="keyword">val</span> create_volatile_table_during_session : 
   <span><span class="label">scope</span>:<span>(<span>[&lt; <a href="../Eliom_common/index.html#type-user_scope">Eliom_common.user_scope</a> ]</span> <span class="keyword">as</span> 'b)</span> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="label">secure</span>:bool <span class="arrow">&#45;&gt;</span></span>
   <span><span class="xref-unresolved">Eliom_common.sitedata</span> <span class="arrow">&#45;&gt;</span></span>

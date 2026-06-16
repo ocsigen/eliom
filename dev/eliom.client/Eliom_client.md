@@ -183,26 +183,25 @@ It complements as a toplevel expression in the client module with the side effec
 
 Beware of using `onload` when using the DOM caching functionality, i.e. `push_history_dom`. When switching to a cached page (e.g. by going back) the onload event is not triggered (as the page is not loaded). To avoid this problem rely on `Page_status.onactive` which is triggered for freshly generated pages as well as pages served from the DOM cache.
 
-` <<code language="ocaml"|
-    [%%shared open Eliom_lib]
-    [%%client
-      let () = alert "Once only during initialization of the client, \
-                      i.e. before the document is available."
-      let () =
-        Eliom_client.onload
-          (fun () -> alert "Once only when the document is put in place.")
-    ]
-    [%%server
-      let _ = My_app.register_service ~path ~get_params
-        (fun () () ->
-           ignore {unit{
-             alert "Each time this service is called and the sent document \
-                    is put in place."
-           }};
-           Lwt.return html
-    ]
-    >> `
-
+```ocaml
+[%%shared open Eliom_lib]
+[%%client
+  let () = alert "Once only during initialization of the client, \
+                  i.e. before the document is available."
+  let () =
+    Eliom_client.onload
+      (fun () -> alert "Once only when the document is put in place.")
+]
+[%%server
+  let _ = My_app.register_service ~path ~get_params
+    (fun () () ->
+       ignore {unit{
+         alert "Each time this service is called and the sent document \
+                is put in place."
+       }};
+       Lwt.return html
+]
+```
 ```ocaml
 val lwt_onload : unit -> unit Lwt.t
 ```

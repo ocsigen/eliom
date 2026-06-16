@@ -4110,8 +4110,7 @@ Client values created while launching the server, i.e. while evaluating the top-
 Client values which are evaluated during the processing of a request are termed *request client values*. The expressions of request client values are evaluated after receiving the corresponding request on the client in the order of their occurrence on the server. In requests which change the content of the page withing the application (originating from a service of the `module
 Eliom_registration.App`), the expressions are evaluated *after the content has changed*. That way they may refer to the new DOM.
 
-If a client value is created outside of the initialization of the server program and also outside of the processing of a request, the exception ` {!exception
-Eliom_client_value.Client_value_creation_invalid_context} ` is raised.
+If a client value is created outside of the initialization of the server program and also outside of the processing of a request, the exception [`Eliom_client_value.Client_value_creation_invalid_context`](./eliom.server/Eliom_client_value.md#exception-Client_value_creation_invalid_context) is raised.
 
 
 ### In a shared section
@@ -5075,26 +5074,25 @@ It complements as a toplevel expression in the client module with the side effec
 
 Beware of using `onload` when using the DOM caching functionality, i.e. `push_history_dom`. When switching to a cached page (e.g. by going back) the onload event is not triggered (as the page is not loaded). To avoid this problem rely on `Page_status.onactive` which is triggered for freshly generated pages as well as pages served from the DOM cache.
 
-` <<code language="ocaml"|
-    [%%shared open Eliom_lib]
-    [%%client
-      let () = alert "Once only during initialization of the client, \
-                      i.e. before the document is available."
-      let () =
-        Eliom_client.onload
-          (fun () -> alert "Once only when the document is put in place.")
-    ]
-    [%%server
-      let _ = My_app.register_service ~path ~get_params
-        (fun () () ->
-           ignore {unit{
-             alert "Each time this service is called and the sent document \
-                    is put in place."
-           }};
-           Lwt.return html
-    ]
-    >> `
-
+```ocaml
+[%%shared open Eliom_lib]
+[%%client
+  let () = alert "Once only during initialization of the client, \
+                  i.e. before the document is available."
+  let () =
+    Eliom_client.onload
+      (fun () -> alert "Once only when the document is put in place.")
+]
+[%%server
+  let _ = My_app.register_service ~path ~get_params
+    (fun () () ->
+       ignore {unit{
+         alert "Each time this service is called and the sent document \
+                is put in place."
+       }};
+       Lwt.return html
+]
+```
 ```ocaml
 val lwt_onload : unit -> unit Lwt.t
 ```
@@ -90743,8 +90741,6 @@ Given a parameter type, get the two functions that converts from and to strings.
 Ad-hoc runtime type representation for service parameters.
 
 **Please read Eliom's manual before this page to learn how to use [service parameters](./../server-params.md).**
-
-` <<outline| <<header| **Table of contents** >> >>`
 
 ```ocaml
 module type S = sig ... end
@@ -177328,8 +177324,6 @@ Ad-hoc runtime type representation for service parameters.
 
 **Please read Eliom's manual before this page to learn how to use [service parameters](./../server-params.md).**
 
-` <<outline| <<header| **Table of contents** >> >>`
-
 ```ocaml
 module type S = sig ... end
 ```
@@ -181818,8 +181812,6 @@ val update : t -> unit Eliom_client_value.t
 Eliom services registration for various kinds of page content: Eliom application, valid [`Html`](./Eliom_registration-Html.md), actions, redirections, static files, ...
 
 **Please read the Eliom manual before this page to learn how to use [services](./../server-services.md) and [predefined outputs](./../server-outputs.md).**
-
-` <<outline| <<header| **Table of contents** >> >> `
 
 
 ### Type definitions
@@ -190586,8 +190578,6 @@ Iterator on persistent cookies. `Lwt.pause` is called automatically after each i
 Storing server-side values for your applications or sessions.
 
 **Please read the [Eliom manual](./../server-state.md) before this page to learn how server side state works.**
-
-` <<outline| <<header| **Table of contents** >> >>`
 
 
 ### Managing the state of an application
