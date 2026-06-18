@@ -22,9 +22,6 @@
 (** {b Please read the
     {{!page-"server-state"}Eliom manual}
     before this page to learn how server side state works. }
-
-{% <<outline| <<header| **Table of contents** >> >>%}
-
 *)
 
 (*****************************************************************************)
