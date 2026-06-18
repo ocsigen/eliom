@@ -222,7 +222,7 @@ val onload : (unit -> unit) -> unit
     avoid this problem rely on [Page_status.onactive] which is triggered for
     freshly generated pages as well as pages served from the DOM cache.
 
-    {% <<code language="ocaml"|
+    {[
     [%%shared open Lib]
     [%%client
       let () = alert "Once only during initialization of the client, \
