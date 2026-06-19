@@ -37,6 +37,14 @@ jobs:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
           opam-pin: false
 
+      # wasm_of_ocaml-compiler (pulled in transitively) needs wasm-merge from
+      # Binaryen at build time; Ubuntu's binaryen package is too old, so install
+      # a recent one the same way js_of_ocaml's CI does.
+      - name: Set-up Binaryen
+        uses: Aandreba/setup-binaryen@v1.0.0
+        with:
+          token: ${{ github.token }}
+
       - run: opam pin -y git+https://github.com/ocsigen/ocsigenserver#master
       - run: opam install . --deps-only -y
 
