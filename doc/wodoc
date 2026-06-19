@@ -61,4 +61,5 @@
   (ocsigenserver   ocsigenserver   false Ocsigen)
   (js_of_ocaml     js_of_ocaml     subdir)
   (tyxml           tyxml           subdir)
+  (lwt             lwt             subdir)
   (reactiveData    reactiveData    root))
