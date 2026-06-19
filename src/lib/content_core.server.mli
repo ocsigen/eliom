@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** See {% <<a_api | module Content>> %} for complete module. *)
+(** See {!Content} for complete module. *)
 
 open Js_of_ocaml
 
@@ -190,9 +190,8 @@ module Svg : sig
 end
 
 module Html : sig
-  (** See the Eliom manual for more information on {% <<a_manual
-      chapter="clientserver-html" fragment="unique"| dom semantics vs. functional
-      semantics>> %} for HTML5 tree manipulated by client/server
+  (** See the Eliom manual for more information on {{!page-"clientserver-html".unique}dom semantics vs. functional
+      semantics} for HTML5 tree manipulated by client/server
       application. *)
 
   type 'a wrap = 'a

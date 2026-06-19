@@ -33,8 +33,7 @@ val client_value : ?pos:Lib.pos -> string -> 'args -> 'a Client_value.t
 val set_global : bool -> unit
 (** All client values created between [set_global true] and
     [set_global false] are considered global client values
-    (cf. <<a_manual chapter="clientserver-language"
-    chapter="clientvalues"|the manual>>).  *)
+    (cf. {{!page-"eliom-language"}the manual}).  *)
 
 val global_context : unit -> bool
 (** Returns whether client values created in the current context
@@ -49,8 +48,7 @@ val close_server_section : string -> unit
     section data of the compilation unit
     ({!Lib_base.compilation_unit_global_data}).
 
-    Called in parallel with <<a_api
-    subproject="client"|Client.Syntax_helpers.close_server_section>>.  *)
+    Called in parallel with {!Client.Syntax_helpers.close_server_section}.  *)
 
 val close_client_section :
    string
@@ -64,8 +62,7 @@ val close_client_section :
     of client section data of the compilation unit
     ({!Lib_base.compilation_unit_global_data}).
 
-    Called in parallel with <<a_api
-    subproject="client"|Client.Syntax_helpers.open_client_section>>.  *)
+    Called in parallel with {!Client.Syntax_helpers.open_client_section}.  *)
 
 val escaped_value : 'a -> Runtime.escaped_value
 (** Convert any value to a {! Runtime.escaped_value} for usage

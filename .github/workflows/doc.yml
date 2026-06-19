@@ -1,0 +1,131 @@
+# Build the Eliom documentation (manual + server/client API) with odoc_driver,
+# theme it with the Ocsigen chrome (wodoc), and publish it on the project's
+# gh-pages branch, served at https://ocsigen.org/eliom/. See doc/README.md.
+#
+# Two entry points:
+#  - push to master (or "Run workflow" with no version) -> rebuild & deploy the
+#    "dev" docs only. Each run replaces only dev/; the other version directories
+#    already on gh-pages are PRESERVED.
+#  - "Run workflow" with a version -> the `release` job freezes the dev docs now
+#    on gh-pages as /<version>/ and repoints `latest` at it (refreshing
+#    versions.json). No rebuild: a release is exactly the dev docs at that point.
+#
+# PREREQUISITE: wodoc builds the API with `odoc_driver eliom --remap` on the
+# INSTALLED eliom, and eliom's cross-library links need the odoc_driver `base_args`
+# fix, which is not yet upstreamed. Until it lands, the "Install dependencies" step
+# must pin odoc / odoc-driver from the patched source (see below).
+name: Documentation
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Publish a stable version: freeze the dev docs now on gh-pages as /<version>/ and repoint `latest` (e.g. 12.0). Leave empty to just rebuild dev."
+        required: false
+        default: ""
+
+# Serialise gh-pages writes: a push (rebuilds dev/) and a release
+# workflow_dispatch (freezes <version>/ and repoints latest) must never push to
+# gh-pages at the same time, or the second push fails non-fast-forward.
+concurrency:
+  group: doc-deploy-${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  build-deploy:
+    # push, or a manual run with no version (just rebuild dev). NOT a release run.
+    if: github.repository == 'ocsigen/eliom' && (github.event_name != 'workflow_dispatch' || github.event.inputs.version == '')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up OCaml
+        uses: ocaml/setup-ocaml@v3
+        with:
+          ocaml-compiler: "5.4.0"
+
+      - name: Install dependencies
+        run: |
+          # The documented version is the INSTALLED eliom: install it from the ref
+          # being built so odoc_driver documents these sources.
+          opam install . --deps-only --with-doc
+          opam install . --with-doc
+          # odoc-driver with the cross-library link fix (driver: link units only
+          # against their actual lib deps). TODO: drop the pin once it lands upstream.
+          opam pin add -n odoc https://github.com/balat/odoc.git#driver-sibling-lib-link-fix
+          opam pin add -n odoc-driver https://github.com/balat/odoc.git#driver-sibling-lib-link-fix
+          opam install odoc odoc-driver
+          # wodoc: the odoc driver that themes the pages with the Ocsigen chrome.
+          opam pin add -n wodoc https://github.com/ocsigen/wodoc.git
+          opam install wodoc
+
+      - name: Build documentation (dev)
+        # wodoc build runs `odoc_driver eliom --remap` on the installed package
+        # (after preprocessing the installed manual .mld), assembles the themed
+        # site from doc/wodoc, and fetches the shared menu from ocsigen.github.io.
+        run: >-
+          opam exec -- wodoc build --config doc/wodoc
+          --menu https://ocsigen.org/doc/menu.html
+          --out "$PWD/_doc-site/dev" --label dev
+
+      - name: Deploy to gh-pages (replace only dev/, keep the rest)
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: _doc-site/dev
+          target-folder: dev
+          clean: true
+
+  release:
+    # Manual run with a version: freeze the dev docs currently on gh-pages as the
+    # stable /<version>/ and repoint `latest` at it (refreshing versions.json).
+    # No rebuild — the docs of a release are exactly the dev docs at that point.
+    if: github.repository == 'ocsigen/eliom' && github.event_name == 'workflow_dispatch' && github.event.inputs.version != ''
+    runs-on: ubuntu-latest
+    # Pass the user-supplied version through the environment; never interpolate
+    # it directly into a run: shell (avoids command injection from the input).
+    env:
+      VERSION: ${{ github.event.inputs.version }}
+    permissions:
+      contents: write
+    steps:
+      - name: Set up OCaml
+        uses: ocaml/setup-ocaml@v3
+        with:
+          ocaml-compiler: "5.4.0"
+
+      - name: Install wodoc
+        run: |
+          opam pin add -n wodoc https://github.com/ocsigen/wodoc.git
+          opam install wodoc
+
+      - name: Checkout gh-pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: site
+          fetch-depth: 0
+
+      - name: Freeze dev as the stable version and repoint latest
+        # wodoc release: cp -a site/dev site/<version>, ln -sfn <version> latest,
+        # write the root index.html redirect if missing, refresh versions.json.
+        run: >-
+          opam exec -- wodoc release --site site --from dev
+          --version "$VERSION"
+
+      - name: Commit and push gh-pages
+        run: |
+          cd site
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet \
+            || git commit -m "Release doc $VERSION (freeze dev, repoint latest)"
+          git push

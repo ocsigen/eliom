@@ -114,8 +114,7 @@ val call_ocaml_service :
 (** Call a server side service that return an OCaml value.
 
     If the service raises an exception, the call to the
-    [call_ocaml_service] raises an exception {% <<a_api|exception
-    Exception_on_server>> %} whose argument describes the server-side
+    [call_ocaml_service] raises an exception {!Exception_on_server} whose argument describes the server-side
     exception.
     (NB that we cannot send the original exception as-it, because
     OCaml permits the marshalling of exceptions ...)
@@ -223,7 +222,7 @@ val onload : (unit -> unit) -> unit
     avoid this problem rely on [Page_status.onactive] which is triggered for
     freshly generated pages as well as pages served from the DOM cache.
 
-    {% <<code language="ocaml"|
+    {[
     [%%shared open Lib]
     [%%client
       let () = alert "Once only during initialization of the client, \
@@ -241,7 +240,7 @@ val onload : (unit -> unit) -> unit
            }};
            Lwt.return html
     ]
-    >> %}
+    ]}
 
 *)
 
@@ -363,18 +362,17 @@ val persist_document_head : unit -> unit
 
 (** {2 RPC / Server functions}
 
-    See the {% <<a_manual chapter="clientserver-communication" fragment="rpc"|manual>> %}.*)
+    See the {{!page-"clientserver-communication".rpc}manual}.*)
 
 type ('a, +'b) server_function = 'a -> 'b Lwt.t
 (** A [('a, 'b) server_function] provides transparently access to a
-    server side function which has been created by {% <<a_api
-    subproject="server"| val Client.server_function>> %}.
+    server side function which has been created by {!Client.server_function}.
 
-    See also {% <<a_api subproject="server" text="the opaque server
-    side representation"| type Client.server_function>> %}.
+    See also {{!Client.server_function}the opaque server
+    side representation}.
 
     The handling of exception on the server corresponds to that of
-    <<a_api subproject="client"|val Client.call_ocaml_service>>.
+    {!Client.call_ocaml_service}.
 *)
 
 val change_page_uri : ?replace:bool -> string -> unit Lwt.t
@@ -435,7 +433,7 @@ val push_history_dom : unit -> unit
 
     A typical use case of this function is storing the dom when loading
     a page. i.e.
-    {% <<code language="ocaml"|
+    {[
     let%shared service_handler =
         fun () () ->
             ignore [%client (Client.onload Client.push_history_dom : unit)];
@@ -453,7 +451,7 @@ val push_history_dom : unit -> unit
                     register ())
         in
         register ()
-    >> %}
+    ]}
 *)
 
 (* [set_max_dist_history_doms (Some n)] limits the number of cached DOMs

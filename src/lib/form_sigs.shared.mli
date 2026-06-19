@@ -104,9 +104,8 @@ module type LINKS = sig
 
       The optional parameter [nl_params] allows one to add non
       localized GET parameter to the URL.  See the eliom manual for
-      more information about {% <<a_manual chapter="server-params"
-      fragment="nonlocalizedparameters"|non localized
-      parameters>>%}.  *)
+      more information about {{!page-"server-params".nonlocalizedparameters}non localized
+      parameters}.  *)
 
   val uri_of_string : (unit -> string) -> uri
   (** The function [uri_of_string f] returns a URI whose content is
@@ -187,16 +186,14 @@ module type LINKS = sig
 
       By default, the link is implemented in a way that allows the
       client-side Eliom application to keep running, irrespectable of
-      the usage of the link (cf. {% <<a_api project="eliom"
-      subproject="client" | val Client.change_page>> %}).
+      the usage of the link (cf. {!Client.change_page}).
 
       By contrast, if the optional parameter [~xhr:false] is given,
       the link is realized as a standard HTML link and clicking it
       discontinues the Eliom application.  The [~xhr] parameter has no
       effect outside an Eliom application.
       The default value of [~xhr] is configurable through
-      {% <<a_api project="eliom" subproject="server" | val
-      Config.set_default_links_xhr >> %}.
+      {!Config.set_default_links_xhr}.
 
       The optional parameter [~a] allows one to add extra HTML
       attributes to the generated node.
@@ -284,8 +281,7 @@ module type S = sig
 
       By default, the form is realized such that the client-side Eliom
       application keeps running irrespectable of the usage of the form
-      (cf. {% <<a_api project="eliom" subproject="client" | val
-      Client.change_page>> %}).
+      (cf. {!Client.change_page}).
 
       By contrast, if the optional parameter [~xhr:false] is given,
       the form is realized as a standard HTML form and submitting it
@@ -293,8 +289,7 @@ module type S = sig
       effect outside an Eliom application.
 
       NB that the default value of [~xhr] is configurable through
-      {% <<a_api project="eliom" subproject="server" | val
-      Config.set_default_links_xhr >> %}.
+      {!Config.set_default_links_xhr}.
 
       The optional parameter [~a] allows one to add extra HTML
       attributes to the generated node.

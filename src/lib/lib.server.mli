@@ -18,9 +18,9 @@
  *)
 
 (** A few common functions used by Eliom. Extension of OCaml stdlib.
-    See also {% <<a_api project="ocsigenserver" | module Ocsigen_base.Lib>> %} *)
+    See also {!Ocsigen_base.Lib} *)
 
-(** See {% <<a_api project="ocsigenserver"| module Ocsigen_base.Lib>> %}. *)
+(** See {!Ocsigen_base.Lib}. *)
 include
   module type of Ocsigen_base.Lib
   with type poly = Ocsigen_base.Lib.poly

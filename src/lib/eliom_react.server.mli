@@ -28,8 +28,8 @@
 *)
 
 (** {b Please read the
-    {% <<a_manual chapter="clientserver-communication" | chapter on
-    communication >>%} of Eliom's manual
+    {{!page-"clientserver-communication"}chapter on
+    communication} of Eliom's manual
     before this page to learn how client and server parts communicate. }
 
     The use of this module is pretty much useless without it's client counter
