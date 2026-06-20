@@ -14,7 +14,7 @@
 (title Eliom)
 (pub /eliom)
 (odoc-driver eliom)        ; build the API with `odoc_driver eliom --remap`
-(landing overview.html)
+(landing index.html)
 
 ;; The shared manual nav (the manual .mld are built with the package by
 ;; odoc_driver; this only orders them into the left column). Only `dev` is ever
