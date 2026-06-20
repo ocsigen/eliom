@@ -12,8 +12,8 @@
 ;; ocaml.org to relative links by (hosted ...); other deps stay on ocaml.org.
 (project eliom)
 (title Eliom)
-(pub /eliom)
-(odoc-driver eliom)        ; build the API with `odoc_driver eliom --remap`
+(url-prefix /eliom)
+(css /css/style.css /css/ocsigen-odoc.css)  ; shared Ocsigen theme (wodoc css default changed)
 (landing overview.html)
 
 ;; The shared manual nav (the manual .mld are built with the package by
