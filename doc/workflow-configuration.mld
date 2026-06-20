@@ -6,7 +6,7 @@
 This chapter explains how to set Eliom's
 options in the Ocsigen server configuration file, and how to define options for your
 Eliom modules. See the Ocsigen server documentation for more information about the
-{{:https://ocsigen.org/ocsigenserver/config.html}server's configuration}.
+{{!/ocsigenserver/page-config}server's configuration}.
 
 Note, however, that {{!page-"workflow-distillery"}Eliom's
 distillery} provides templates to get started at once with Eliom!
@@ -166,7 +166,7 @@ and {%wodoc:span class="code"%}</eliom{%wodoc:end%}>.
 {2:static_linking Static linking of Eliom modules}
 
 From version 1.2, it is possible to link extensions and Eliom modules
-{{:https://ocsigen.org/ocsigenserver/staticlink.html}statically}.
+{{!/ocsigenserver/page-staticlink}statically}.
 But this is not straightforward.  For Eliom modules, service
 registration and option settings must be delayed until the
 configuration file is read. To create a statically linkable Eliom
