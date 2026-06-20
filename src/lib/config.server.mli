@@ -148,7 +148,7 @@ val set_default_links_xhr : ?override_configfile:bool -> bool -> unit
     [~xhr] in the functions [Registration.*.{a, get_form, post_form,
     lwt_get_form, lwt_post_form}] (cf. {!Registration.Html.a} et al.).
     This value can also be set in the
-    {{:http://ocsigen.org/eliom/dev/manual/config#h5o-25}config file}.  *)
+    {{!page-config}config file}.  *)
 
 (**/**)
 
