@@ -392,5 +392,5 @@ server generating the page and the server that created the channel
 must run exactly the same version of Eliom. By default a browser can't
 do requests to a different server, to allow that the server serving
 the channel must allow Cross-Origin Resource Sharing using the
-{{:https://ocsigen.org/ocsigenserver/cors.html}CORS Ocsigenserver
+{{!/ocsigenserver/page-cors}CORS Ocsigenserver
 extension}.

@@ -29,7 +29,7 @@ The full documentation is available
 {2 The TyXML library vs. the DOM API}
 
 On client side there are two kinds of HTML representations: one is
-based on the {{:https://ocsigen.org/tyxml/.html}TyXML library} and the other
+based on the {{!/tyxml/page-index}TyXML library} and the other
 one is the browser DOM tree accessible through Js_of_ocaml modules
 {!Js_of_ocaml.Dom} and {!Js_of_ocaml.Dom_html}. The TyXML representation is
 a OCaml immutable typed tree. The DOM tree is mutable structure
@@ -478,7 +478,7 @@ let%server _ =
 
 It is possible to use regular HTML syntax using Tyxml's PPX syntax extension.
 
-See {{:https://ocsigen.org/tyxml/ppx.html}Tyxml's manual}.
+See {{!/tyxml/page-ppx}Tyxml's manual}.
 
 
 {2:text_html Text HTML}
