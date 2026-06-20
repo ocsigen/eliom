@@ -213,7 +213,7 @@ let my_service_with_get_and_post =
 
 To create a POST form, use the `Eliom_content.Html.D.Form.post_form` function. It is similar to `Eliom_content.Html.D.Form.get_form` with an additional parameter for the GET parameters you want to put in the URL (if any). Here, <!--wodoc:span class="code"-->form2<!--wodoc:end--> is a page containing a form to the service <!--wodoc:span class="code"-->post<!--wodoc:end--> (using Html.F's functions) and <!--wodoc:span class="code"-->form3<!--wodoc:end--> (defined using the syntax contains a form to <!--wodoc:span class="code"-->post2<!--wodoc:end-->, with a GET parameter. <!--wodoc:span class="code"-->form4<!--wodoc:end--> is a form to an external page.
 
-*Warning:* Some examples in this section use the Tyxml syntax extension. (See [Tyxml's manual](https://ocsigen.org/tyxml/ppx.html)). *Warning:* After installing Tyxml, `tyxml-ppx` should be added to the lists of SERVER PACKAGES and CLIENT PACKAGES in the Makefile.options file of your project.
+*Warning:* Some examples in this section use the Tyxml syntax extension. (See `Tyxml's manual`). *Warning:* After installing Tyxml, `tyxml-ppx` should be added to the lists of SERVER PACKAGES and CLIENT PACKAGES in the Makefile.options file of your project.
 
 ```ocaml
   let form2 =

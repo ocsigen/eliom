@@ -257,7 +257,7 @@ Eliom_content.Html.D.a
 
 #### Static files service
 
-[Staticmod](https://ocsigen.org/ocsigenserver/staticmod.html) is an Ocsigen Server extension serving static (non-generated) files (for example, images and stylesheets). It can be used together with Eliom. The predefined service [`Eliom_service.static_dir`](./eliom.server/Eliom_service.md#val-static_dir) can be used to make links to static files. It takes as parameter the path of the file.
+`Staticmod` is an Ocsigen Server extension serving static (non-generated) files (for example, images and stylesheets). It can be used together with Eliom. The predefined service [`Eliom_service.static_dir`](./eliom.server/Eliom_service.md#val-static_dir) can be used to make links to static files. It takes as parameter the path of the file.
 
 For example, the following code will create this link: download image.
 
@@ -1241,7 +1241,7 @@ let my_service_with_get_and_post =
 
 To create a POST form, use the `Eliom_content.Html.D.Form.post_form` function. It is similar to `Eliom_content.Html.D.Form.get_form` with an additional parameter for the GET parameters you want to put in the URL (if any). Here, <!--wodoc:span class="code"-->form2<!--wodoc:end--> is a page containing a form to the service <!--wodoc:span class="code"-->post<!--wodoc:end--> (using Html.F's functions) and <!--wodoc:span class="code"-->form3<!--wodoc:end--> (defined using the syntax contains a form to <!--wodoc:span class="code"-->post2<!--wodoc:end-->, with a GET parameter. <!--wodoc:span class="code"-->form4<!--wodoc:end--> is a form to an external page.
 
-*Warning:* Some examples in this section use the Tyxml syntax extension. (See [Tyxml's manual](https://ocsigen.org/tyxml/ppx.html)). *Warning:* After installing Tyxml, `tyxml-ppx` should be added to the lists of SERVER PACKAGES and CLIENT PACKAGES in the Makefile.options file of your project.
+*Warning:* Some examples in this section use the Tyxml syntax extension. (See `Tyxml's manual`). *Warning:* After installing Tyxml, `tyxml-ppx` should be added to the lists of SERVER PACKAGES and CLIENT PACKAGES in the Makefile.options file of your project.
 
 ```ocaml
   let form2 =
@@ -2050,8 +2050,8 @@ This typically happens if authentication is badly implemented, or altogether mis
 
 ### [Path traversal](http://en.wikipedia.org/wiki/Directory_traversal)
 
-- The module [Extendconfiguration](https://ocsigen.org/ocsigenserver/extendconfiguration.html) can be used to prevent access to files or entire directories, from both Staticmod and Eliom.
-- Even if [userconf](https://ocsigen.org/ocsigenserver/userconf.html) is activated, users can only expose their own files; see the `localpath` option for details.
+- The module `Extendconfiguration` can be used to prevent access to files or entire directories, from both Staticmod and Eliom.
+- Even if `userconf` is activated, users can only expose their own files; see the `localpath` option for details.
 - Occurrences of the `'..'` pattern appearing in URLs are automatically removed by the server
 - Ocsigen automatically decode HTML entities in URLs, which protects against attacks based on quoted characters
 
@@ -2119,7 +2119,7 @@ For developing an Eliom application, we recommend that you use our [PPX syntax e
 
 An interesting feature of Eliom applications is that the client-side process does not stop when you click on a link or send a form, and it is possible to keep the traditional Web interaction (with URLs, bookmarks, back button, etc). For example, if the page is playing music, the music won't stop when the user proceeds to other pages on the Web site.
 
-Client-side parts are using [Lwt](https://ocsigen.org/lwt/), enabling concurrency in the browser very easily.
+Client-side parts are using `Lwt`, enabling concurrency in the browser very easily.
 
 As both parts are implemented in OCaml, it is very easy to use client-side OCaml data on server side, and vice-versa. Eliom handles the communication between client and server automatically in both directions. For example, it is possible to use a server-side variable in the client program.
 
@@ -2340,7 +2340,7 @@ The types in OCaml closest to XML types are *polymorphic variants*. Ocsigen uses
 
 ### The TyXML library vs. the DOM API
 
-On client side there are two kinds of HTML representations: one is based on the [TyXML library](https://ocsigen.org/tyxml/) and the other one is the browser DOM tree accessible through Js\_of\_ocaml modules `Js_of_ocaml.Dom` and `Js_of_ocaml.Dom_html`. The TyXML representation is a OCaml immutable typed tree. The DOM tree is mutable structure manipulated using the browser API which permit the modification of the displayed page. In the DOM represention adding a node as a child to an other node removes it from its previous ancessor.
+On client side there are two kinds of HTML representations: one is based on the `TyXML library` and the other one is the browser DOM tree accessible through Js\_of\_ocaml modules `Js_of_ocaml.Dom` and `Js_of_ocaml.Dom_html`. The TyXML representation is a OCaml immutable typed tree. The DOM tree is mutable structure manipulated using the browser API which permit the modification of the displayed page. In the DOM represention adding a node as a child to an other node removes it from its previous ancessor.
 
 Since those representation does not behave at all the same way, they are not used for the same thing.
 
@@ -2696,7 +2696,7 @@ let%server _ =
 
 It is possible to use regular HTML syntax using Tyxml's PPX syntax extension.
 
-See [Tyxml's manual](https://ocsigen.org/tyxml/ppx.html).
+See `Tyxml's manual`.
 
 
 ### Text HTML
@@ -3028,7 +3028,7 @@ Like comet channels, the behaviour of buses can be tuned using the module `Eliom
 
 ## Another Server sending data (Comet on another server)
 
-It is possible to access a named stateless channel created on another server. It has to be declared using [`Eliom_comet.Channel.external_channel`](./eliom.server/Eliom_comet-Channel.md#val-external_channel). The declaration of the channel must match exactly the creation. The server generating the page and the server that created the channel must run exactly the same version of Eliom. By default a browser can't do requests to a different server, to allow that the server serving the channel must allow Cross-Origin Resource Sharing using the [CORS Ocsigenserver extension](https://ocsigen.org/ocsigenserver/cors.html).
+It is possible to access a named stateless channel created on another server. It has to be declared using [`Eliom_comet.Channel.external_channel`](./eliom.server/Eliom_comet-Channel.md#val-external_channel). The declaration of the channel must match exactly the creation. The server generating the page and the server that created the channel must run exactly the same version of Eliom. By default a browser can't do requests to a different server, to allow that the server serving the channel must allow Cross-Origin Resource Sharing using the `CORS Ocsigenserver extension`.
 
 
 ---
@@ -3372,7 +3372,7 @@ For examples, see pre-defined templates like `app.exe`, `app.lib`, `basic.ppx` a
 
 Starting with Eliom 6\.0, you can write HTML5 mobile apps with Eliom. It is also possible to have one single code base for your Web and mobile apps (Android, iOS, Windows ...).
 
-The best way to start with this feature is to install [Ocsigen Start](https://ocsigen.org/ocsigen-start/). It contains all the instructions and a template with code samples that you can adapt to your needs.
+The best way to start with this feature is to install `Ocsigen Start`. It contains all the instructions and a template with code samples that you can adapt to your needs.
 
 Here are the main principle for writing multi-platform apps with Eliom:
 
@@ -3380,11 +3380,11 @@ Here are the main principle for writing multi-platform apps with Eliom:
 - Register all your services in shared sections. The mobile app will use the client-side implementation. The Web app will generate the pages server-side during the first request, and by default, subsequent pages will be generated client-side. For more info, see the [client-side services chapter](./clientserver-services.md) of this manual.
 - Be careful with the order of evaluation, which is different when pages are generated client-side. Client sections sent by the server will be executed when the page is ready and already diplayed. But if the page is generated client-side, client sections will be executed straight-away. You may sometimes want to delay their execution until the element is inserted in the page (try `Ot_nodeready.nodeready`).
 - Use Apache Cordova or Phonegap to access the mobile device APIs.
-- The main difference between the Web and mobile version is that the mobile app starts client-side, whereas the Web app is sent by the server. This means that the server won't be able to send global injections (`~%v` where `v` is a global server-side value) to the client. To solve this problem, [Ocsigen Start](https://ocsigen.org/ocsigen-start/) provides a module `Eliom_loader` which will get the global data from the server when starting the app.
-- Define JavaScript variables `__eliom_server` and `__eliom_app_name` in the `index.html` of your mobile app, to set the main server and the name of the app. See `Eliom_client.init_client_app` and the default `eliom.html` file generated by [Ocsigen Start](https://ocsigen.org/ocsigen-start/).
-- Use function [`Eliom_client.is_client_app`](./eliom.server/Eliom_client.md#val-is_client_app) to test whether you are running a mobile app (an app that was started client-side). [Ocsigen Start](https://ocsigen.org/ocsigen-start/) also has a class `os-client-app` on the `html` tag.
+- The main difference between the Web and mobile version is that the mobile app starts client-side, whereas the Web app is sent by the server. This means that the server won't be able to send global injections (`~%v` where `v` is a global server-side value) to the client. To solve this problem, `Ocsigen Start` provides a module `Eliom_loader` which will get the global data from the server when starting the app.
+- Define JavaScript variables `__eliom_server` and `__eliom_app_name` in the `index.html` of your mobile app, to set the main server and the name of the app. See `Eliom_client.init_client_app` and the default `eliom.html` file generated by `Ocsigen Start`.
+- Use function [`Eliom_client.is_client_app`](./eliom.server/Eliom_client.md#val-is_client_app) to test whether you are running a mobile app (an app that was started client-side). `Ocsigen Start` also has a class `os-client-app` on the `html` tag.
 - The JavaScript file generated by Js\_of\_ocaml will be included in your mobile app. But it must match exactly the version of the app that is running on the server. To ensure that, we recommend:
-- To do an automatic update of the client-side app when the server is updated (for example with Cordova Hot-code-push, as in [Ocsigen Start](https://ocsigen.org/ocsigen-start/))
+- To do an automatic update of the client-side app when the server is updated (for example with Cordova Hot-code-push, as in `Ocsigen Start`)
 - And possibly to keep several versions of your server app, if you can, with a load balancer to reach the server that corresponds to the client-side version.
 - By default, all URLs generated by the client app are absolute. Use ~absolute:false for the URLs of all the local assets (css, js...)
 Some caveats:
@@ -3402,7 +3402,7 @@ Suggestions:
 
 # Compiling and configuring Eliom modules
 
-This chapter explains how to set Eliom's options in the Ocsigen server configuration file, and how to define options for your Eliom modules. See the Ocsigen server documentation for more information about the [server's configuration](https://ocsigen.org/ocsigenserver/config.html).
+This chapter explains how to set Eliom's options in the Ocsigen server configuration file, and how to define options for your Eliom modules. See the Ocsigen server documentation for more information about the `server's configuration`.
 
 Note, however, that [Eliom's distillery](./workflow-distillery.md) provides templates to get started at once with Eliom\!
 
@@ -3518,7 +3518,7 @@ Use [`Eliom_config.get_config`](./eliom.server/Eliom_config.md#val-get_config) d
 
 ### Static linking of Eliom modules
 
-From version 1\.2, it is possible to link extensions and Eliom modules [statically](https://ocsigen.org/ocsigenserver/staticlink.html). But this is not straightforward. For Eliom modules, service registration and option settings must be delayed until the configuration file is read. To create a statically linkable Eliom module, use function [`Eliom_service.register_eliom_module`](./eliom.server/Eliom_service.md#val-register_eliom_module). It takes as parameters the name of the module and the initialization function that will be called once the module is initialized in the configuration file. That function should register the module services (and possibly call [`Eliom_config.get_config`](./eliom.server/Eliom_config.md#val-get_config) if the module has configuration options).
+From version 1\.2, it is possible to link extensions and Eliom modules `statically`. But this is not straightforward. For Eliom modules, service registration and option settings must be delayed until the configuration file is read. To create a statically linkable Eliom module, use function [`Eliom_service.register_eliom_module`](./eliom.server/Eliom_service.md#val-register_eliom_module). It takes as parameters the name of the module and the initialization function that will be called once the module is initialized in the configuration file. That function should register the module services (and possibly call [`Eliom_config.get_config`](./eliom.server/Eliom_config.md#val-get_config) if the module has configuration options).
 
 <!--wodoc:div class="wip"-->How to improve this and this easier to use?<!--wodoc:end-->
 
@@ -3679,7 +3679,7 @@ Here are a few hints on how to write scalable Eliom applications, running on mul
 
 # Compiling and configuring Eliom modules
 
-This chapter explains how to compile Eliom module, how to set Eliom's options in the configuration file, and how to define options for your Eliom modules. See the Ocsigen server documentation for more information about the [server's configuration](https://ocsigen.org/ocsigenserver/config.html).
+This chapter explains how to compile Eliom module, how to set Eliom's options in the configuration file, and how to define options for your Eliom modules. See the Ocsigen server documentation for more information about the `server's configuration`.
 
 
 ## Using Eliom modules with Ocsigen server
@@ -3804,7 +3804,7 @@ Use [`Eliom_config.get_config`](./eliom.server/Eliom_config.md#val-get_config) d
 
 ### Static linking of Eliom modules
 
-From version 1\.2, it is possible to link extensions and Eliom modules [statically](https://ocsigen.org/ocsigenserver/staticlink.html). But this is not straightforward. For Eliom modules, service registration and options setting must be delayed until the configuration file is read. To create a statically linkable Eliom module, use the function [`Eliom_service.register_eliom_module`](./eliom.server/Eliom_service.md#val-register_eliom_module). It takes as parameters the name of the module and the initialization function, that will be called when the module is initialized in the configuration file. That function will register services (and possibly call [`Eliom_config.get_config`](./eliom.server/Eliom_config.md#val-get_config) if the module has configuration options).
+From version 1\.2, it is possible to link extensions and Eliom modules `statically`. But this is not straightforward. For Eliom modules, service registration and options setting must be delayed until the configuration file is read. To create a statically linkable Eliom module, use the function [`Eliom_service.register_eliom_module`](./eliom.server/Eliom_service.md#val-register_eliom_module). It takes as parameters the name of the module and the initialization function, that will be called when the module is initialized in the configuration file. That function will register services (and possibly call [`Eliom_config.get_config`](./eliom.server/Eliom_config.md#val-get_config) if the module has configuration options).
 
 <!--wodoc:div class="wip"-->How to improve this and this easier to use?<!--wodoc:end-->
 
@@ -4405,7 +4405,7 @@ Where scope can be:
 
 More documentation [here](https://ocsigen.org/tuto/latest/manual/basics).
 
-Write your first Web and mobile application with Eliom using [Ocsigen Start](https://ocsigen.org/ocsigen-start).
+Write your first Web and mobile application with Eliom using `Ocsigen Start`.
 
 
 ---
@@ -4707,7 +4707,7 @@ Where scope can be:
 
 To learn Eliom, read one the main documentation pages first: [application development](https://ocsigen.org/tuto/basics.html) (client-server programming) or [website development](https://ocsigen.org/tuto/basics-server.html) (server-side programming).
 
-Write your first Web and mobile application with Eliom using [Ocsigen Start](https://ocsigen.org/ocsigen-start/)
+Write your first Web and mobile application with Eliom using `Ocsigen Start`
 
 If you want to use Eliom as a traditional server-side Web framework, have a look at these tutorials:
 

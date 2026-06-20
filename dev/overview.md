@@ -114,7 +114,7 @@ Where scope can be:
 
 To learn Eliom, read one the main documentation pages first: [application development](https://ocsigen.org/tuto/basics.html) (client-server programming) or [website development](https://ocsigen.org/tuto/basics-server.html) (server-side programming).
 
-Write your first Web and mobile application with Eliom using [Ocsigen Start](https://ocsigen.org/ocsigen-start/)
+Write your first Web and mobile application with Eliom using `Ocsigen Start`
 
 If you want to use Eliom as a traditional server-side Web framework, have a look at these tutorials:
 

@@ -14,7 +14,7 @@ The types in OCaml closest to XML types are *polymorphic variants*. Ocsigen uses
 
 ### The TyXML library vs. the DOM API
 
-On client side there are two kinds of HTML representations: one is based on the [TyXML library](https://ocsigen.org/tyxml/) and the other one is the browser DOM tree accessible through Js\_of\_ocaml modules `Js_of_ocaml.Dom` and `Js_of_ocaml.Dom_html`. The TyXML representation is a OCaml immutable typed tree. The DOM tree is mutable structure manipulated using the browser API which permit the modification of the displayed page. In the DOM represention adding a node as a child to an other node removes it from its previous ancessor.
+On client side there are two kinds of HTML representations: one is based on the `TyXML library` and the other one is the browser DOM tree accessible through Js\_of\_ocaml modules `Js_of_ocaml.Dom` and `Js_of_ocaml.Dom_html`. The TyXML representation is a OCaml immutable typed tree. The DOM tree is mutable structure manipulated using the browser API which permit the modification of the displayed page. In the DOM represention adding a node as a child to an other node removes it from its previous ancessor.
 
 Since those representation does not behave at all the same way, they are not used for the same thing.
 
@@ -370,7 +370,7 @@ let%server _ =
 
 It is possible to use regular HTML syntax using Tyxml's PPX syntax extension.
 
-See [Tyxml's manual](https://ocsigen.org/tyxml/ppx.html).
+See `Tyxml's manual`.
 
 
 ### Text HTML
