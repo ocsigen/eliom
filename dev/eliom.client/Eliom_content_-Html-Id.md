@@ -32,7 +32,7 @@ val create_request_elt :
   'a Eliom_content_core.Html.elt ->
   'a Eliom_content_core.Html.elt
 ```
-See [`Eliom_content.Svg.Id.create_request_elt`](./Eliom_content-Svg-Id.md#val-create_request_elt)
+See [`Eliom_content.Svg.Id.create_request_elt`](./../eliom.server/Eliom_content-Svg-Id.md#val-create_request_elt)
 
 ```ocaml
 val get_element' : 'a id -> Js_of_ocaml__Dom_html.element Js_of_ocaml.Js.t

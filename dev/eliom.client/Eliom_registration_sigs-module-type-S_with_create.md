@@ -65,7 +65,7 @@ val send :
   page ->
   result Lwt.t
 ```
-The function `send page` builds the HTTP frame corresponding to `page`. This may be used for example in a service handler registered with [`Eliom_registration.Any.register`](./Eliom_registration-Any.md#val-register), or when building a custom output module.
+The function `send page` builds the HTTP frame corresponding to `page`. This may be used for example in a service handler registered with [`Eliom_registration.Any.register`](./../eliom.server/Eliom_registration-Any.md#val-register), or when building a custom output module.
 
 ```ocaml
 val create : 
