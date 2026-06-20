@@ -22,6 +22,7 @@
 ;; versions keep the nav they were frozen with.
 (nav
  (section "Eliom's Reference manual"
+  (link "Overview" index.html index)
   (link "Introduction" intro.html intro)
   (group "Server-side programming"
    (group "Services"
