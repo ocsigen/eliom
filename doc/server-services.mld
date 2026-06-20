@@ -328,7 +328,7 @@ Eliom.Content.Html.D.a
 
 {3:staticparts Static files service}
 
-{{:https://ocsigen.org/ocsigenserver/staticmod.html}Staticmod}
+{{!/ocsigenserver/page-staticmod}Staticmod}
 is an Ocsigen Server extension serving static (non-generated) files
 (for example, images and stylesheets). It can be used together with
 Eliom. The predefined service
