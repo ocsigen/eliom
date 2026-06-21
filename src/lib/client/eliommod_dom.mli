@@ -21,13 +21,8 @@
 
 open Js_of_ocaml
 
-class type ['element] get_tag = object
-  method getElementsByTagName :
-    Js.js_string Js.t -> 'element Dom.nodeList Js.t Js.meth
-end
-
-val get_body : 'element #get_tag Js.t -> 'element Js.t
-val get_head : 'element #get_tag Js.t -> 'element Js.t
+val get_body : #Dom.element Js.t -> Dom.element Js.t
+val get_head : #Dom.element Js.t -> Dom.element Js.t
 
 (** [select_nodes root] finds the nodes below [root]
     in the page annotated to be:
