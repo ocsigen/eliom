@@ -43,6 +43,9 @@ jobs:
           token: ${{ github.token }}
 
       - run: opam pin -y git+https://github.com/ocsigen/ocsigenserver#master
+      # Published js_of_ocaml (6.3.2) caps at ocaml < 5.5; pin master for
+      # 5.5 support (also pulls wasm_of_ocaml, hence the binaryen set-up).
+      - run: opam pin -y git+https://github.com/ocsigen/js_of_ocaml#master
       - run: opam install . --deps-only -y
 
       - run: opam exec -- dune build -p eliom
