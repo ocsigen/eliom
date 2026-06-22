@@ -47,6 +47,9 @@ jobs:
       # 5.5 support (also pulls wasm_of_ocaml, hence the binaryen set-up).
       - run: opam pin -y git+https://github.com/ocsigen/js_of_ocaml#master
       - run: opam install . --deps-only -y
+      # wasm_of_ocaml-compiler is now an optional dependency; install it
+      # explicitly so the WebAssembly client target stays covered by CI.
+      - run: opam install -y wasm_of_ocaml-compiler
 
       - run: opam exec -- dune build -p eliom
 
