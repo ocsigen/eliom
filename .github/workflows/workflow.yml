@@ -37,6 +37,11 @@ jobs:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
           opam-pin: false
 
+      - name: Set-up Binaryen
+        uses: Aandreba/setup-binaryen@v1.0.0
+        with:
+          token: ${{ github.token }}
+
       - run: opam pin -y git+https://github.com/ocsigen/ocsigenserver#master
       - run: opam install . --deps-only -y
 
