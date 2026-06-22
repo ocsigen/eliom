@@ -131,21 +131,28 @@ end
 (* We do not use the deriving (un)marshaling even if typ is available
    because direct jsn (un)marshaling is very fast client side
 *)
-let to_json ?typ s =
+(* [Json.output]/[Json.unsafe_input] are provided by both the js_of_ocaml and
+   wasm_of_ocaml runtimes, so use the fast path on either web backend. *)
+let is_web_client =
   match Sys.backend_type with
-  | Other "js_of_ocaml" -> Js.to_string (Json.output s)
-  | _ -> (
+  | Other ("js_of_ocaml" | "wasm_of_ocaml") -> true
+  | Native | Bytecode | Other _ -> false
+
+let to_json ?typ s =
+  if is_web_client
+  then Js.to_string (Json.output s)
+  else
     match typ with
     | Some typ -> Deriving_Json.to_string typ s
-    | None -> Js.to_string (Json.output s))
+    | None -> Js.to_string (Json.output s)
 
 let of_json ?typ v =
-  match Sys.backend_type with
-  | Other "js_of_ocaml" -> Json.unsafe_input (Js.string v)
-  | _ -> (
+  if is_web_client
+  then Json.unsafe_input (Js.string v)
+  else
     match typ with
     | Some typ -> Deriving_Json.from_string typ v
-    | None -> assert false)
+    | None -> assert false
 
 (* Url.urlencode ~with_plus:true (Marshal.to_string x [])
     (* I encode the data because it seems that multipart does not
