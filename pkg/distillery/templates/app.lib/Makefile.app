@@ -190,11 +190,11 @@ ifeq ($(ENABLE_WASM),yes)
 	$(ENV_PSQL) dune build $(DUNE_OPTIONS) client/$(PROJECT_NAME).bc.wasm.js
 endif
 
-byte::
+byte:: js
 	$(ENV_PSQL) dune build $(DUNE_OPTIONS) @$(PROJECT_NAME)
 	make config-files PROJECT_NAME=$(PROJECT_NAME)
 
-opt::
+opt:: js
 	$(ENV_PSQL) dune build $(DUNE_OPTIONS) $(PROJECT_NAME).cmxs @$(PROJECT_NAME)
 	make config-files PROJECT_NAME=$(PROJECT_NAME)
 

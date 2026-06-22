@@ -122,7 +122,6 @@
   %%%PROJECT_NAME%%%_main.exe
   client/%%%PROJECT_NAME%%%.bc
   client/%%%PROJECT_NAME%%%.bc.js
-  client/%%%PROJECT_NAME%%%.bc.wasm.js
   tools/check_modules.ml)
  (action
   (run ocaml -I +unix -I +str tools/check_modules.ml %%%PROJECT_NAME%%%)))
