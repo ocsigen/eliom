@@ -37,7 +37,7 @@
  (wrapped false)
  (modules ppx_eliom_utils)
  (preprocess
-  (pps ppxlib.metaquot ppx_optcomp))
+  (pps ppxlib.metaquot ppx_optcomp_light))
  (libraries ppxlib))
 
 (executable

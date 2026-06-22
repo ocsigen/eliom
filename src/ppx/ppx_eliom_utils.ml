@@ -429,7 +429,7 @@ module Cmo = struct
           Typ.object_ ~loc fields
             (match row with Orow_closed -> Closed | _ -> Open)
       | ((Otyp_object {fields; open_row})
-        [@if ocaml_version >= (5, 1, 0) && ocaml_version < (5, 5, 0)]) ->
+         [@if ocaml_version >= (5, 1, 0) && ocaml_version < (5, 5, 0)]) ->
           let fields =
             List.map
               (fun (label, ty) ->
@@ -506,15 +506,13 @@ module Cmo = struct
           Typ.poly ~loc
             (List.map (fun v -> mkloc (var v) loc) sl)
             (type_of_out_type ty)
-      | ((Otyp_external _ | Otyp_functor _) [@if ocaml_version >= (5, 5, 0)]) ->
-          assert false
+      | ((Otyp_external _) [@if ocaml_version >= (5, 5, 0)]) -> assert false
+      | ((Otyp_functor _) [@if ocaml_version >= (5, 5, 0)]) -> assert false
       | Otyp_abstract | Otyp_open | Otyp_sum _ | Otyp_manifest _ | Otyp_record _
       | Otyp_module _ | Otyp_attribute _ | Otyp_stuff _ ->
           assert false
     in
     type_of_out_type ty
-
-  [%%if ocaml_version >= (5, 3, 0)]
 
   let typ ?loc ty =
     let ty =
@@ -522,14 +520,12 @@ module Cmo = struct
       Out_type.tree_of_typexp Type_scheme ty
     in
     type_of_out_type ?loc ty
-
-  [%%else]
+  [@@if ocaml_version >= (5, 3, 0)]
 
   let typ ?loc ty =
     let ty = Printtyp.tree_of_type_scheme ty in
     type_of_out_type ?loc ty
-
-  [%%endif]
+  [@@if ocaml_version < (5, 3, 0)]
 
   let find err loc =
     let {Lexing.pos_fname; pos_cnum; _} = loc.Location.loc_start in
