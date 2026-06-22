@@ -4,13 +4,14 @@
 Cross browser dom manipulation functions
 
 ```ocaml
-class type 'element get_tag = object ... end
+val get_body : 
+  Js_of_ocaml.Dom.element Js_of_ocaml.Js.t ->
+  Js_of_ocaml.Dom.element Js_of_ocaml.Js.t
 ```
 ```ocaml
-val get_body : 'element get_tag Js_of_ocaml.Js.t -> 'element Js_of_ocaml.Js.t
-```
-```ocaml
-val get_head : 'element get_tag Js_of_ocaml.Js.t -> 'element Js_of_ocaml.Js.t
+val get_head : 
+  Js_of_ocaml.Dom.element Js_of_ocaml.Js.t ->
+  Js_of_ocaml.Dom.element Js_of_ocaml.Js.t
 ```
 `select_nodes root` finds the nodes below `root` in the page annotated to be: \* eliom links \* eliom forms \* process unique nodes \* nodes with closures ( events ) \* nodes with attributes
 

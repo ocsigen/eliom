@@ -26,4 +26,4 @@ The function `create_named_elt elt` is equivalent to `create_named_elt ~id:(new_
 ```ocaml
 val create_request_elt : ?reset:bool -> 'a elt -> 'a elt
 ```
-See [`Eliom_content.Svg.Id.create_request_elt`](./../eliom.server/Eliom_content-Svg-Id.md#val-create_request_elt)
+See [`Eliom_content.Svg.Id.create_request_elt`](./Eliom_content-Svg-Id.md#val-create_request_elt)

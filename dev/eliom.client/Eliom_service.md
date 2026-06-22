@@ -158,7 +158,7 @@ For a service `('get, 'post, 'meth, 'attached, 'co, 'ext, 'reg, 'tipo, 'gn, 'pn,
 - `'tipo` the type parameter of subtype `suff` states the kind of parameters it uses: suffix or not.
 - `'gn` is the type of GET parameters names. See [`Eliom_parameter.param_name`](./Eliom_parameter.md#type-param_name) and form generation functions (e. g. `Eliom_content.Html.D.get_form` ).
 - `'pn` is the type of POST parameters names. See [`Eliom_parameter.param_name`](./Eliom_parameter.md#type-param_name) and form generation functions (e. g. `Eliom_content.Html.D.post_form` ).
-- ` 'ret` is an information on what the service returns. See [`Eliom_registration.kind`](./../eliom.server/Eliom_registration.md#type-kind).
+- ` 'ret` is an information on what the service returns. See [`Eliom_registration.kind`](./Eliom_registration.md#type-kind).
 ```ocaml
 and result = 
   | No_contents

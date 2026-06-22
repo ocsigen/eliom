@@ -10,7 +10,7 @@ Please note that for many functions of this section, the returned URL depends on
 
 - relative URL could not be computed outside of a service handler.
 - "kept" non localized parameters outside a service handler are restricted to preapplied parameters.
-To define *global* link (i.e. outside of a service handler) and recompute a relative URL at each request, use `Eliom_registration.Html.a` or other specialized functions from [`Eliom_registration.Html`](./../eliom.server/Eliom_registration-Html.md).
+To define *global* link (i.e. outside of a service handler) and recompute a relative URL at each request, use `Eliom_registration.Html.a` or other specialized functions from [`Eliom_registration.Html`](./Eliom_registration-Html.md).
 
 ```ocaml
 val make_string_uri : 
@@ -30,7 +30,7 @@ val make_string_uri :
 ```
 The function `make_string_uri ~service get_params` creates the string corresponding to the URL of the service `service` applied to the GET parameters `get_params`.
 
-See `Eliom_registration.Html.make_string_uri` or any other [`Eliom_registration`](./../eliom.server/Eliom_registration.md)`.*.make_string_uri` for a detailed description of optional parameters.
+See `Eliom_registration.Html.make_string_uri` or any other [`Eliom_registration`](./Eliom_registration.md)`.*.make_string_uri` for a detailed description of optional parameters.
 
 *Warning: The function `make_string_uri` should not be called outside of a service handler, unless `hostname` is not `None` and one of the following condition is met:*
 
@@ -55,7 +55,7 @@ val make_uri_components :
 ```
 The function `make_uri_components service get_params` returns the a triplet `(path, get_params, fragment)` that is a decomposition of the URL of `service` applied to the GET parameters `get_params`.
 
-See `Eliom_registration.Html.make_uri_components` or any other [`Eliom_registration`](./../eliom.server/Eliom_registration.md)`.*.make_uri_components` for a detailed description.
+See `Eliom_registration.Html.make_uri_components` or any other [`Eliom_registration`](./Eliom_registration.md)`.*.make_uri_components` for a detailed description.
 
 ```ocaml
 val make_post_uri_components : 

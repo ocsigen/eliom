@@ -431,7 +431,6 @@
 - [Module `Eliommod_cookies.Map_inner`](eliom.client/Eliommod_cookies-Map_inner.md)
 - [Module `Eliommod_cookies.Map_path`](eliom.client/Eliommod_cookies-Map_path.md)
 - [Module `Eliommod_cookies`](eliom.client/Eliommod_cookies.md)
-- [Class type `Eliommod_dom.get_tag`](eliom.client/Eliommod_dom-class-type-get_tag.md)
 - [Module `Eliommod_dom`](eliom.client/Eliommod_dom.md)
 - [Module `Eliommod_parameters`](eliom.client/Eliommod_parameters.md)
 - [Module `Eliombuild.Conf`](eliom.ocamlbuild/Eliombuild-Conf.md)

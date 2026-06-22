@@ -17,7 +17,7 @@ Abstract type for service parameters. See for example the parameter `~get_param`
 
 - ` 'a` is the type for the OCaml type of the parameter as expected by the service handler.
 - ` 'b` is a phantom type, subtype of [`suff`](./#type-suff), stating the kind of the parameter: suffix or not.
-- ` 'c` is the type of the parameter name, usually an instance of [`Eliom_parameter.param_name`](./../eliom.server/Eliom_parameter.md#type-param_name), as used by forms construction functions (e.g., the last parameter of `Eliom_content.Html.D.get_form`), and specialized form widget (see for example the section `Form widget` of `Eliom_content.HTML5.D`). )
+- ` 'c` is the type of the parameter name, usually an instance of [`Eliom_parameter.param_name`](./Eliom_parameter.md#type-param_name), as used by forms construction functions (e.g., the last parameter of `Eliom_content.Html.D.get_form`), and specialized form widget (see for example the section `Form widget` of `Eliom_content.HTML5.D`). )
 
 ### Typed parameter's name
 
@@ -226,7 +226,7 @@ val list :
   ('a, [ `WithoutSuffix ], 'b) params_type ->
   ('a list, [ `WithoutSuffix ], 'b listnames) params_type
 ```
-The service takes a list of parameters. The first parameter of this function is the name of the list. The service handler will receive a list of values. To create the form, an iterator of type [`Eliom_parameter.listnames`](./../eliom.server/Eliom_parameter.md#type-listnames) is given to generate the name for each value.
+The service takes a list of parameters. The first parameter of this function is the name of the list. The service handler will receive a list of values. To create the form, an iterator of type [`Eliom_parameter.listnames`](./Eliom_parameter.md#type-listnames) is given to generate the name for each value.
 
 ```ocaml
 val suffix : 
