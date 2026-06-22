@@ -26,7 +26,10 @@ The client-side code is compiled to JS using Ocsigen Js_of_ocaml or to Wasm usin
   (ocaml (>= 4.12))
   ocamlfind
   ppx_deriving
-  (ppxlib (>= 0.37))
+  ; 0.35 is the newest ppxlib the OCaml 4.14 Jane Street ppx stack
+  ; (ppx_sexp_conv, pulled via ocsigenserver -> cohttp) allows; newer OCaml
+  ; resolves a more recent ppxlib. The ppx builds against the whole range.
+  (ppxlib (>= 0.35.0))
   (js_of_ocaml-compiler (>= 6.3.2))
   (wasm_of_ocaml-compiler (>= 6.3.2))
   (js_of_ocaml (>= 6.3.2))
