@@ -182,14 +182,14 @@ module ReactiveData = struct
           when the initial list has been computed on server side.  *)
       let map_p_init ~init (f : 'a -> 'b Lwt.t) (l : 'a t) : 'b t =
         let ((rr, _) as r) = ReactiveData.RList.create init in
-        let effectul_event = map_p_aux (Lwt.return r) f l in
-        (* We keep a reference to the effectul_event in the resulting
-           reactive list in order that the effectul_event is garbage
+        let effectful_event = map_p_aux (Lwt.return r) f l in
+        (* We keep a reference to the effectful_event in the resulting
+           reactive list in order that the effectful_event is garbage
            collected only if the resulting list is garbage
            collected. *)
         ignore
           (React.E.retain (ReactiveData.RList.event rr) (fun () ->
-             ignore effectul_event));
+             ignore effectful_event));
         rr
 
       (** [map_p f l] is the equivalent of [ReactiveData.Rlist.map]
@@ -203,15 +203,15 @@ module ReactiveData = struct
           let* r = Lwt_list.map_p f (ReactiveData.RList.value l) in
           Lwt.return (ReactiveData.RList.create r)
         in
-        let effectul_event = map_p_aux r_th f l in
+        let effectful_event = map_p_aux r_th f l in
         let* rr, _ = r_th in
-        (* We keep a reference to the effectul_event in the resulting
-           reactive list in order that the effectul_event is garbage
+        (* We keep a reference to the effectful_event in the resulting
+           reactive list in order that the effectful_event is garbage
            collected only if the resulting list is garbage
            collected. *)
         ignore
           (React.E.retain (ReactiveData.RList.event rr) (fun () ->
-             ignore effectul_event));
+             ignore effectful_event));
         Lwt.return rr
     end
 
