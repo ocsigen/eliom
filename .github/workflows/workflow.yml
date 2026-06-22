@@ -73,11 +73,16 @@ jobs:
         with:
           token: ${{ github.token }}
 
-      - run: opam pin -y git+https://github.com/ocsigen/ocsigenserver#master
-      - run: opam pin -y git+https://github.com/ocsigen/js_of_ocaml#master
+      # Pin with -n (no install): pinning the js_of_ocaml repo otherwise
+      # installs every package in it, including wasm_of_ocaml-compiler, which
+      # would make the JS-only phase below build wasm anyway. With -n, only
+      # eliom's actual dependencies get installed by `opam install .` (wasm is
+      # an optional dep, so it stays out).
+      - run: opam pin -n -y git+https://github.com/ocsigen/ocsigenserver#master
+      - run: opam pin -n -y git+https://github.com/ocsigen/js_of_ocaml#master
       # Install eliom itself: it provides eliom-distillery and the project
       # templates. wasm_of_ocaml-compiler is optional and left uninstalled for
-      # now, so the first build below is JS-only.
+      # now, so the first build below is genuinely JS-only.
       - run: opam install . -y
 
       # Generate a project from each template, install its dependencies and
@@ -91,6 +96,8 @@ jobs:
             opam exec -- eliom-distillery -y -name testapp -template "$tmpl" -target-directory "/tmp/$tmpl"
             opam install "/tmp/$tmpl" --deps-only -y
             opam exec -- make -C "/tmp/$tmpl"
+            test ! -f "/tmp/$tmpl/_build/default/client/testapp.bc.wasm.js" \
+              || { echo "wasm unexpectedly built for $tmpl without wasm_of_ocaml"; exit 1; }
           done
 
       # Install the wasm toolchain and rebuild: the templates auto-detect
