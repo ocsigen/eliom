@@ -121,7 +121,7 @@ parameters} for a detailled description of this module.
 Type information associated to each argument allows Eliom to
 automatically convert the actual parameters into the corresponding
 OCaml types. If the parameter cannot be converted, the exception
-{!Eliom_common.Eliom_Typing_Error}
+{!Eliom.Common.Eliom_Typing_Error}
 is raised. The handling of such errors may be customized by providing
 the argument [~error_handler] when registering the service.
 
@@ -427,7 +427,7 @@ To limit the scope of a service, just add the argument [~scope] to
 the
 {!Eliom.Registration.Html.register}
 function (same for the other [register] variants). The default scope
-is {!Eliom_common.site_scope}.
+is {!Eliom.Common.site_scope}.
 
 The same service can be registered with several scopes.  This makes it
 possible, for example, to generate custom services for a specific

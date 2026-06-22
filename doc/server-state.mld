@@ -20,13 +20,13 @@ let myref = Eliom.Reference.Volatile.eref ~scope None
 ]}
 
 Where [~scope] may be (amongst others):
-- [Eliom_common.default_session_scope] if you want to store server side
+- [Eliom.Common.default_session_scope] if you want to store server side
 data for one browser (one session),
-- [Eliom_common.default_process_scope] if you want to store server side
+- [Eliom.Common.default_process_scope] if you want to store server side
 data for one tab of a browser (one client process),
-- [Eliom_common.request_scope] if you want to store server side data
+- [Eliom.Common.request_scope] if you want to store server side data
 during one request,
-- [Eliom_common.default_group_scope] if you want to store server side
+- [Eliom.Common.default_group_scope] if you want to store server side
 data for a group of sessions (for example all browsers belonging to the same
 user -- see below).
 
@@ -54,7 +54,7 @@ let open_session login password =
   let%lwt b = check_password login password in
   if b then
     Eliom.State.set_volatile_data_session_group
-      ~scope:Eliom_common.default_session_scope
+      ~scope:Eliom.Common.default_session_scope
       (Int64.to_string (get_userid login))
   else
     ...
@@ -144,11 +144,11 @@ very convenient way to implement a session mechanism for your Web site.
 There are two categories of scopes:
 
 - {e Eliom scopes}, which are:
-- {!Eliom_common.global_scope}: for data
+- {!Eliom.Common.global_scope}: for data
    shared by all clients,
-- {!Eliom_common.site_scope}: for data
+- {!Eliom.Common.site_scope}: for data
    and services shared by all clients of an Eliom site, and
-- {!Eliom_common.request_scope}: for
+- {!Eliom.Common.request_scope}: for
    data specific to the current request.
 - {e User scopes}: used to restrict the accessibility of a piece of
   data or a service to a subset of the clients.
@@ -157,16 +157,16 @@ Within the user scopes, Eliom distinguishes three scopes that differ
 with respect to how Eliom associates clients and data.
 
 - Data and dynamic services created with scope
-  {!Eliom_common.default_session_scope} are only
+  {!Eliom.Common.default_session_scope} are only
   visible to the client belonging to a same session
   (all tabs of a single browser).
 - Data and dynamic services created with scope {!val
-  Eliom_common.default_group_scope} are only visible to the clients
+  Eliom.Common.default_group_scope} are only visible to the clients
   whose sessions belong to the same session group.  See section
   {{!page-"server-state".session_groups}Session
   groups} for more information.
 - Data and dynamic services created with scope {!val
-  Eliom_common.default_process_scope} are only visible to a specific
+  Eliom.Common.default_process_scope} are only visible to a specific
   instance of the Eliom application (i.e., a single tab, running the
   Eliom client process).  See section {{!page-"clientserver-applications".session_groups}Eliom
   applications} for more information.
@@ -193,7 +193,7 @@ use different cookies. See section {{!page-"server-state".new_scope}Hierarchies 
 
 Eliom automatically creates a session ---~ and sets the corresponding
 cookie on the client~ --- when you first modify an Eliom reference of
-scope {{!Eliom_common.default_session_scope}session},
+scope {{!Eliom.Common.default_session_scope}session},
 when you register a service with this scope or when you enter a session
 group.
 
@@ -210,14 +210,14 @@ process cookies.
 
 If you want to handle multiple sessions for the same site that can
 be created and discarded independently, you can create a new hierarchy of
-users scope that will use different cookies, with the function {!Eliom_common.create_scope_hierarchy}.
+users scope that will use different cookies, with the function {!Eliom.Common.create_scope_hierarchy}.
 
 {@ocaml[
-let custom_session_hierarchy = Eliom_common.create_scope_hierarchy "custom"
+let custom_session_hierarchy = Eliom.Common.create_scope_hierarchy "custom"
 let custom_session = `Session custom_session_hierarchy
 ]}
 
-Then, the value [custom_session] can replace the usual {!Eliom_common.default_session_scope} for the [~scope] parameter of
+Then, the value [custom_session] can replace the usual {!Eliom.Common.default_session_scope} for the [~scope] parameter of
 the functions
 {!Eliom.Reference.eref}, {!val
 Eliom.Registration.Html.register},
@@ -226,7 +226,7 @@ Eliom.Registration.Html.register},
 (Same for [`Client_process] or  [`Session_group] scope levels).
 
 The function {!val
-Eliom_common.create_scope_hierarchy} will prevent you from creating
+Eliom.Common.create_scope_hierarchy} will prevent you from creating
 two scope hierarchies with the same name.
 
 {4 Example of use:}
@@ -245,8 +245,8 @@ user logs in.
 To discard a state, use the {!Eliom.State.discard}
 function. It will remove all server-side services and data (persistent
 or not) for the given scope. Used with
-[~scope:Eliom_common.default_session_scope], this will close a session. Used
-with [~scope:Eliom_common.default_group_scope], this will close all
+[~scope:Eliom.Common.default_session_scope], this will close a session. Used
+with [~scope:Eliom.Common.default_group_scope], this will close all
 sessions in the group.
 
 It is also possible to selectively discard only services, persistent
@@ -349,7 +349,7 @@ it will work even if your server is using HTTP behind a local proxy.
 Session group is a kind of scope that allows sharing data or services
 between a set of sessions, typically all sessions for given user. For
 example, using persistent Eliom references with scope {!val
-Eliom_common.default_group_scope} is a convenient way to store data about
+Eliom.Common.default_group_scope} is a convenient way to store data about
 a user without having to explicitly use an external database.
 (Persistent session group states are not discarded when all the sessions are
 closed).

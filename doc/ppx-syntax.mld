@@ -81,7 +81,7 @@ client, but it’s possible to refer server-side to the future value of
 this expression (for example, put it in a list). The value of a client
 fragment cannot be accessed on the server.
 
-In this case, [x] has type [int Eliom_client_value.t].
+In this case, [x] has type [int Eliom.Client_value.t].
 Eliom can't always
 infer the type of fragments. In this case, you may annotate the type:
 [[%client ( ... : <type> ) ]].

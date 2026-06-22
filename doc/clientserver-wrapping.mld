@@ -105,6 +105,6 @@ The Eliom types that are marked are:
 
 - {!Eliom.Service.t} transformed to {!Eliom.Service.t} (but the client side representation)
 - {!Eliom.Comet.Channel.t} transformed to {!Lwt_stream.t}
-- {!Eliom.React.Up.t} transformed to ['a -> unit]
-- {!Eliom.React.Down.t} transformed to ['a React.E.t]
+- {!Eliom.Eliom_react.Up.t} transformed to ['a -> unit]
+- {!Eliom.Eliom_react.Down.t} transformed to ['a React.E.t]
 - {!Eliom.Bus.t} transformed to {!Eliom.Bus.t}

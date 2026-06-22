@@ -108,7 +108,7 @@ Saving session data on the server using Eliom references:
 
 {%wodoc:@ class=server%}
 {@ocaml[
-let%server r = Eliom.Reference.eref ~scope:Eliom_common.default_session_scope 0
+let%server r = Eliom.Reference.eref ~scope:Eliom.Common.default_session_scope 0
 
 let%server f () =
   let%lwt v = Eliom.Reference.get r in
@@ -118,11 +118,11 @@ let%server f () =
 ]}
 
 Where scope can be:
-- [Eliom_common.default_session_scope] (different value for each browser),
-- [Eliom_common.default_process_scope] (different value for each tab),
-- [Eliom_common.default_group_scope] (different value for each user),
-- [Eliom_common.site_scope] (value for the whole site),
-- [Eliom_common.global_scope] (global value for the whole server).
+- [Eliom.Common.default_session_scope] (different value for each browser),
+- [Eliom.Common.default_process_scope] (different value for each tab),
+- [Eliom.Common.default_group_scope] (different value for each user),
+- [Eliom.Common.site_scope] (value for the whole site),
+- [Eliom.Common.global_scope] (global value for the whole server).
 Eliom references are persistant if you add optional parameter `~persistent`
 to function `Eliom.Reference.eref`.
 
