@@ -1486,8 +1486,7 @@ let change_url_string ~replace uri =
         (Js.string "")
         (if !Eliom_common.is_client_app
          then Js.null
-         else Js.Opt.return (Js.string uri)));
-    Eliommod_dom.touch_base ())
+         else Js.Opt.return (Js.string uri))))
   else (
     current_pseudo_fragment := url_fragment_prefix_with_sharp ^ uri;
     if uri <> fst (Url.split_fragment Url.Current.as_string)
@@ -2309,7 +2308,6 @@ let () =
     := Dom_html.handler (fun event ->
       Logs.debug ~src:section_page (fun fmt ->
         fmt "revisit_wrapper: onpopstate");
-      Eliommod_dom.touch_base ();
       Js.Opt.case
         ((Js.Unsafe.coerce event)##.state : _ Js.opt)
         (fun () -> () (* Ignore dummy popstate event fired by chromium. *))
