@@ -31,7 +31,6 @@ The client-side code is compiled to JS using Ocsigen Js_of_ocaml or to Wasm usin
   ; resolves a more recent ppxlib. The ppx builds against the whole range.
   (ppxlib (>= 0.35.0))
   (js_of_ocaml-compiler (>= 6.3.2))
-  (wasm_of_ocaml-compiler (>= 6.3.2))
   (js_of_ocaml (>= 6.3.2))
   (js_of_ocaml-lwt (>= 6.3.2))
   (js_of_ocaml-ocamlbuild :build)
@@ -45,4 +44,9 @@ The client-side code is compiled to JS using Ocsigen Js_of_ocaml or to Wasm usin
   (reactiveData (>= 0.2.1))
   base-bytes
   (ocsipersist (and (>= 2.0) (< 3.0)))
-  (xml-light (>= "2.5"))))
+  (xml-light (>= "2.5")))
+ ; Only needed to compile the client side to WebAssembly. Eliom itself
+ ; builds without it (the client lib is byte-mode; eliom_client.wat is
+ ; installed as a runtime asset, not compiled), so keep it optional.
+ (depopts
+  (wasm_of_ocaml-compiler (>= 6.3.2))))

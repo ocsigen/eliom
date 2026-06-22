@@ -23,7 +23,6 @@ depends: [
   "ppx_deriving"
   "ppxlib" {>= "0.35.0"}
   "js_of_ocaml-compiler" {>= "6.3.2"}
-  "wasm_of_ocaml-compiler" {>= "6.3.2"}
   "js_of_ocaml" {>= "6.3.2"}
   "js_of_ocaml-lwt" {>= "6.3.2"}
   "js_of_ocaml-ocamlbuild" {build}
@@ -39,6 +38,9 @@ depends: [
   "ocsipersist" {>= "2.0" & < "3.0"}
   "xml-light" {>= "2.5"}
   "odoc" {with-doc}
+]
+depopts: [
+  "wasm_of_ocaml-compiler" {>= "6.3.2"}
 ]
 build: [
   ["dune" "subst"] {dev}
