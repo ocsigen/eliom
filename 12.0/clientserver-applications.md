@@ -13,7 +13,7 @@ For developing an Eliom application, we recommend that you use our [PPX syntax e
 
 An interesting feature of Eliom applications is that the client-side process does not stop when you click on a link or send a form, and it is possible to keep the traditional Web interaction (with URLs, bookmarks, back button, etc). For example, if the page is playing music, the music won't stop when the user proceeds to other pages on the Web site.
 
-Client-side parts are using [Lwt](https://ocsigen.org/lwt/), enabling concurrency in the browser very easily.
+Client-side parts are using `Lwt`, enabling concurrency in the browser very easily.
 
 As both parts are implemented in OCaml, it is very easy to use client-side OCaml data on server side, and vice-versa. Eliom handles the communication between client and server automatically in both directions. For example, it is possible to use a server-side variable in the client program.
 

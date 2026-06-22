@@ -187,7 +187,7 @@ Eliom_content.Html.D.a
 
 #### Static files service
 
-[Staticmod](https://ocsigen.org/ocsigenserver/staticmod.html) is an Ocsigen Server extension serving static (non-generated) files (for example, images and stylesheets). It can be used together with Eliom. The predefined service [`Eliom_service.static_dir`](./eliom.server/Eliom_service.md#val-static_dir) can be used to make links to static files. It takes as parameter the path of the file.
+`Staticmod` is an Ocsigen Server extension serving static (non-generated) files (for example, images and stylesheets). It can be used together with Eliom. The predefined service [`Eliom_service.static_dir`](./eliom.server/Eliom_service.md#val-static_dir) can be used to make links to static files. It takes as parameter the path of the file.
 
 For example, the following code will create this link: download image.
 

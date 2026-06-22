@@ -98,4 +98,4 @@ Where scope can be:
 
 More documentation [here](https://ocsigen.org/tuto/latest/manual/basics).
 
-Write your first Web and mobile application with Eliom using [Ocsigen Start](https://ocsigen.org/ocsigen-start).
+Write your first Web and mobile application with Eliom using `Ocsigen Start`.

@@ -1,7 +1,7 @@
 
 # Compiling and configuring Eliom modules
 
-This chapter explains how to compile Eliom module, how to set Eliom's options in the configuration file, and how to define options for your Eliom modules. See the Ocsigen server documentation for more information about the [server's configuration](https://ocsigen.org/ocsigenserver/config.html).
+This chapter explains how to compile Eliom module, how to set Eliom's options in the configuration file, and how to define options for your Eliom modules. See the Ocsigen server documentation for more information about the `server's configuration`.
 
 
 ## Using Eliom modules with Ocsigen server
@@ -126,7 +126,7 @@ Use [`Eliom_config.get_config`](./eliom.server/Eliom_config.md#val-get_config) d
 
 ### Static linking of Eliom modules
 
-From version 1\.2, it is possible to link extensions and Eliom modules [statically](https://ocsigen.org/ocsigenserver/staticlink.html). But this is not straightforward. For Eliom modules, service registration and options setting must be delayed until the configuration file is read. To create a statically linkable Eliom module, use the function [`Eliom_service.register_eliom_module`](./eliom.server/Eliom_service.md#val-register_eliom_module). It takes as parameters the name of the module and the initialization function, that will be called when the module is initialized in the configuration file. That function will register services (and possibly call [`Eliom_config.get_config`](./eliom.server/Eliom_config.md#val-get_config) if the module has configuration options).
+From version 1\.2, it is possible to link extensions and Eliom modules `statically`. But this is not straightforward. For Eliom modules, service registration and options setting must be delayed until the configuration file is read. To create a statically linkable Eliom module, use the function [`Eliom_service.register_eliom_module`](./eliom.server/Eliom_service.md#val-register_eliom_module). It takes as parameters the name of the module and the initialization function, that will be called when the module is initialized in the configuration file. That function will register services (and possibly call [`Eliom_config.get_config`](./eliom.server/Eliom_config.md#val-get_config) if the module has configuration options).
 
 <!--wodoc:div class="wip"-->How to improve this and this easier to use?<!--wodoc:end-->
 
