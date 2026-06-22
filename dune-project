@@ -42,5 +42,4 @@ The client-side code is compiled to JS using Ocsigen Js_of_ocaml or to Wasm usin
   (reactiveData (>= 0.2.1))
   base-bytes
   (ocsipersist (and (>= 2.0) (< 3.0)))
-  ppx_optcomp
   (xml-light (>= "2.5"))))

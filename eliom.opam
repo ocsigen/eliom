@@ -37,7 +37,6 @@ depends: [
   "reactiveData" {>= "0.2.1"}
   "base-bytes"
   "ocsipersist" {>= "2.0" & < "3.0"}
-  "ppx_optcomp"
   "xml-light" {>= "2.5"}
   "odoc" {with-doc}
 ]
