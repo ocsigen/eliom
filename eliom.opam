@@ -39,9 +39,6 @@ depends: [
   "xml-light" {>= "2.5"}
   "odoc" {with-doc}
 ]
-depopts: [
-  "wasm_of_ocaml-compiler" {>= "6.3.2"}
-]
 build: [
   ["dune" "subst"] {dev}
   [

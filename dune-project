@@ -44,9 +44,7 @@ The client-side code is compiled to JS using Ocsigen Js_of_ocaml or to Wasm usin
   (reactiveData (>= 0.2.1))
   base-bytes
   (ocsipersist (and (>= 2.0) (< 3.0)))
-  (xml-light (>= "2.5")))
- ; Only needed to compile the client side to WebAssembly. Eliom itself
- ; builds without it (the client lib is byte-mode; eliom_client.wat is
- ; installed as a runtime asset, not compiled), so keep it optional.
- (depopts
-  (wasm_of_ocaml-compiler (>= 6.3.2))))
+  ; wasm_of_ocaml-compiler is intentionally not listed: eliom does not build
+  ; against it (eliom_client.wat is shipped as a runtime asset, not compiled).
+  ; It is only needed downstream to compile a client to WebAssembly.
+  (xml-light (>= "2.5"))))
