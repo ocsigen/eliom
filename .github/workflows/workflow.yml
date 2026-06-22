@@ -53,6 +53,41 @@ jobs:
 
       - run: opam exec -- dune build -p eliom
 
+  distillery:
+    # Builds projects generated from the distillery templates. Runs on OCaml 4
+    # because the templates' ocsipersist-sqlite backend pulls lwt_log, which
+    # requires OCaml < 5.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tree
+        uses: actions/checkout@v6
+
+      - name: Set-up OCaml
+        uses: ocaml/setup-ocaml@v3
+        with:
+          ocaml-compiler: 4
+          opam-pin: false
+
+      - run: opam pin -y git+https://github.com/ocsigen/ocsigenserver#master
+      - run: opam pin -y git+https://github.com/ocsigen/js_of_ocaml#master
+      # Install eliom itself: it provides eliom-distillery and the project
+      # templates. wasm_of_ocaml-compiler is optional and left uninstalled, so
+      # the generated projects are built JS-only (their WASM build auto-disables
+      # because wasm_of_ocaml is not on PATH).
+      - run: opam install . -y
+
+      # Generate a project from each template, install its dependencies and
+      # build it (default target, which exercises the project alias). This
+      # checks the templates build out-of-the-box on a JS-only install.
+      - name: Generate and build templates
+        run: |
+          for tmpl in app.exe app.lib; do
+            rm -rf "/tmp/$tmpl"
+            opam exec -- eliom-distillery -y -name testapp -template "$tmpl" -target-directory "/tmp/$tmpl"
+            opam install "/tmp/$tmpl" --deps-only -y
+            opam exec -- make -C "/tmp/$tmpl"
+          done
+
   lint-fmt:
     runs-on: ubuntu-latest
     steps:
