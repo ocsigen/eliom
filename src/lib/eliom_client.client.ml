@@ -1313,17 +1313,25 @@ let call_ocaml_service
       ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params ?progress
       ?upload_progress ?override_mime_type get_params post_params
   in
-  let* () = Lwt_mutex.lock Eliom_client_core.load_mutex in
-  Eliom_client_core.set_loading_phase ();
-  let* content, request_data = unwrap_caml_content content in
-  do_request_data request_data;
-  Eliom_client_core.reset_request_nodes ();
-  let load_callbacks = [Eliom_client_core.broadcast_load_end] in
-  Lwt_mutex.unlock Eliom_client_core.load_mutex;
-  run_callbacks load_callbacks;
-  match content with
-  | `Success result -> Lwt.return result
-  | `Failure msg -> Lwt.fail (Eliom_client_value.Exception_on_server msg)
+  let locked = ref true in
+  let recover () =
+    if !locked then Lwt_mutex.unlock Eliom_client_core.load_mutex
+  in
+  Lwt.catch
+    (fun () ->
+       let* () = Lwt_mutex.lock Eliom_client_core.load_mutex in
+       Eliom_client_core.set_loading_phase ();
+       let* content, request_data = unwrap_caml_content content in
+       do_request_data request_data;
+       Eliom_client_core.reset_request_nodes ();
+       let load_callbacks = [Eliom_client_core.broadcast_load_end] in
+       locked := false;
+       Lwt_mutex.unlock Eliom_client_core.load_mutex;
+       run_callbacks load_callbacks;
+       match content with
+       | `Success result -> Lwt.return result
+       | `Failure msg -> Lwt.fail (Eliom_client_value.Exception_on_server msg))
+    (fun exn -> recover (); Lwt.fail exn)
 
 (* == Current uri.
 
@@ -1534,14 +1542,22 @@ let set_template_content ~replace ~uri ?fragment =
     (match fragment with
     | None -> change_url_string ~replace uri
     | Some fragment -> change_url_string ~replace (uri ^ "#" ^ fragment));
-    let* () = Lwt_mutex.lock Eliom_client_core.load_mutex in
-    let* (), request_data = unwrap_caml_content content in
-    do_request_data request_data;
-    Eliom_client_core.reset_request_nodes ();
-    let load_callbacks = flush_onload () in
-    Lwt_mutex.unlock Eliom_client_core.load_mutex;
-    run_callbacks load_callbacks;
-    Lwt.return_unit
+    let locked = ref true in
+    let recover () =
+      if !locked then Lwt_mutex.unlock Eliom_client_core.load_mutex
+    in
+    Lwt.catch
+      (fun () ->
+         let* () = Lwt_mutex.lock Eliom_client_core.load_mutex in
+         let* (), request_data = unwrap_caml_content content in
+         do_request_data request_data;
+         Eliom_client_core.reset_request_nodes ();
+         let load_callbacks = flush_onload () in
+         locked := false;
+         Lwt_mutex.unlock Eliom_client_core.load_mutex;
+         run_callbacks load_callbacks;
+         Lwt.return_unit)
+      (fun exn -> recover (); Lwt.fail exn)
   and cancel () = Lwt.return_unit in
   function
   | None -> Lwt.return_unit
