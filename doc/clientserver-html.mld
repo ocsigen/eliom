@@ -3,9 +3,9 @@
 Ocsigen provides several ways to generate and type HTML pages.
 
 - The default technique to produce HTML pages using Eliom are the
-   {!Eliom_content.Html.F},
-   {!Eliom_content.Html.D} and
-   {!Eliom_content.Html.R}
+   {!Eliom.Content.Html.F},
+   {!Eliom.Content.Html.D} and
+   {!Eliom.Content.Html.R}
    modules. It is the only one supported for client-server Eliom programs.
    This module provides a typing based on OCaml's polymorphic variants,
    which ensures at compile time, that the pages you will generate will
@@ -51,16 +51,16 @@ are not used for the same thing.
   to create each node separately then append them to their parents.
 
 For example, here is a [div] element built with TyXML and then
-converted to the DOM representation using the module {!Eliom_content.Html}:
+converted to the DOM representation using the module {!Eliom.Content.Html}:
 
 {%wodoc:@ class=client%}
 {@ocaml[
-open%client Eliom_content.Html.D
+open%client Eliom.Content.Html.D
 let%client n = div ~a:[a_id "some div id"]
   [ txt "some text";
     br ();
     txt "some other text"; ]
-let%client b = Eliom_content.Html.To_dom.of_div n
+let%client b = Eliom.Content.Html.To_dom.of_div n
 ]}
 
 And here the same built using the DOM API:
@@ -89,10 +89,10 @@ section for HTML element manipulation, by value and by reference.
 {2:unique HTML element manipulation, by value and by reference}
 
 There are four modules to create typed HTML:
-   {!Eliom_content.Html.F},
-   {!Eliom_content.Html.D},
-   {!Eliom_content.Html.C} and
-   {!Eliom_content.Html.R}.
+   {!Eliom.Content.Html.F},
+   {!Eliom.Content.Html.D},
+   {!Eliom.Content.Html.C} and
+   {!Eliom.Content.Html.R}.
 The last one is for reactive elements and is addressed in
 {{!page-"clientserver-html"}another section}.
 
@@ -127,15 +127,15 @@ included in the initial html document from event handlers, as the
 {@ocaml[
 let%server main_service =
   My_app.register_service
-    ~path:(Eliom_service.Path [""])
-    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+    ~path:(Eliom.Service.Path [""])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
     (fun () () ->
-       let open Eliom_content.Html.D in
+       let open Eliom.Content.Html.D in
        let input = input ~a:[a_input_type `Text] () in
        let onclick_handler = [%client (fun _ ->
             let v =
               Js.to_string
-                (Eliom_content.Html.To_dom.of_input ~%input)##.value
+                (Eliom.Content.Html.To_dom.of_input ~%input)##.value
             in
             Dom_html.window##alert(Js.string ("Input value :" ^ v)))
        ] in
@@ -178,13 +178,13 @@ two different pages will produce two distinct nodes. If you want to
 define a element reference that is preserved accross the different
 page of an application, you must explicitely name this element with
 the function {!val
-Eliom_content.Html.Id.create_named_elt}, that takes as parameters an
+Eliom.Content.Html.Id.create_named_elt}, that takes as parameters an
 element identifier and a non named element.  Element identifiers are
 created with the function {!val
-Eliom_content.Html.Id.new_elt_id}. See also section {{!page-"clientserver-applications".global}Global elements of an
+Eliom.Content.Html.Id.new_elt_id}. See also section {{!page-"clientserver-applications".global}Global elements of an
 application}.
 
-The module {!Eliom_content.Html.Manip}
+The module {!Eliom.Content.Html.Manip}
 allows using the classical DOM manipulation functions
 (e.g. appendChild, addEventlistener, ...) directly on the identifier
 of an HTML elements.
@@ -192,7 +192,7 @@ of an HTML elements.
 
 {2:reactive Reactive DOM}
 
-[Eliom_content.Html.R] allows one to insert time-varying values
+[Eliom.Content.Html.R] allows one to insert time-varying values
 into the DOM tree.
 It relies on React's signal ['a React.signal]. More information about react
 can be found on the {{:http://erratique.ch/software/react} homepage}.
@@ -218,15 +218,15 @@ to insert a reactive node in a page.
 
 {%wodoc:@ class=shared%}
 {@ocaml[
-open%shared Eliom_lib
-open%shared Eliom_content
+open%shared Eliom.Lib
+open%shared Eliom.Content
 open%shared Html
 open%shared F
 ]}
 {%wodoc:@ class=server%}
 {@ocaml[
 module%server Reactivenodes_app =
-  Eliom_registration.App (
+  Eliom.Registration.App (
   struct
     let application_name = "reactivenodes"
     let global_data_path = None
@@ -234,7 +234,7 @@ module%server Reactivenodes_app =
 ]}
 {%wodoc:@ class=client%}
 {@ocaml[
-open%client Eliom_content.Html
+open%client Eliom.Content.Html
 
 let%client split s =
       let len = String.length s in
@@ -284,9 +284,9 @@ let%server make_input () =
   inp
 
 let%server main_service =
-  Eliom_service.create
-    ~path:(Eliom_service.Path [])
-    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+  Eliom.Service.create
+    ~path:(Eliom.Service.Path [])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
     ()
 
 let%server () =
@@ -296,7 +296,7 @@ let%server () =
        let inp = make_input () in
        let cldiv = C.node [%client D.div (make_client_nodes ())] in
        Lwt.return
-         (Eliom_tools.F.html
+         (Eliom.Tools.F.html
             ~title:"reactivenodes"
             ~css:[["css"; "reactivenodes.css"]]
             (body [F.h1 [txt "Reactive DOM"];
@@ -308,7 +308,7 @@ let%server () =
 ]}
 
 {2:inject Dom & Client-values}
-[Eliom_content.Html.C] allows one to insert client-side content
+[Eliom.Content.Html.C] allows one to insert client-side content
 into server-side HTML-trees. This makes possible, for example, to insert
 reactive nodes in a server-side generated page.
 
@@ -316,29 +316,29 @@ reactive nodes in a server-side generated page.
 
 {%wodoc:@ class=shared%}
 {@ocaml[
-open%shared Eliom_lib
-open%shared Eliom_content
+open%shared Eliom.Lib
+open%shared Eliom.Content
 open%shared Html
 open%shared F
 ]}
 {%wodoc:@ class=server%}
 {@ocaml[
 module%server Testnodes_app =
-  Eliom_registration.App (
+  Eliom.Registration.App (
   struct
     let application_name = "testnodes"
     let global_data_path = None
   end)
 
 let%server main_service =
-  Eliom_service.create
-    ~path:(Eliom_service.Path [])
-    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+  Eliom.Service.create
+    ~path:(Eliom.Service.Path [])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
     ()
 ]}
 {%wodoc:@ class=client%}
 {@ocaml[
-open%client Eliom_content.Html
+open%client Eliom.Content.Html
 let%client
   (value_signal : string React.signal), set_value = React.S.create "initial"
 ]}
@@ -357,7 +357,7 @@ let%server () =
     ~service:main_service
     (fun () () ->
        Lwt.return
-         (Eliom_tools.F.html
+         (Eliom.Tools.F.html
             ~title:"testnodes"
             ~css:[["css"; "testnodes.css"]]
             (body [
@@ -382,7 +382,7 @@ elements are instantied only once for an application and that unique
 instance is used in every page that references the element.
 
 To create a global element, use function {{!val
-Eliom_content.Html.Id.create_global_elt}Eliom_content.Html.Id.create_global_elt}.
+Eliom.Content.Html.Id.create_global_elt}Eliom.Content.Html.Id.create_global_elt}.
 
 {@ocaml[
 val create_global_elt: 'a elt -> 'a elt
@@ -393,24 +393,24 @@ preserved when you click on the "reload page" link.
 
 {%wodoc:@ class=shared%}
 {@ocaml[
-open%shared Eliom_content.Html.D
+open%shared Eliom.Content.Html.D
 ]}
 {%wodoc:@ class=server%}
 {@ocaml[
 module%server My_app =
-  Eliom_registration.App (
+  Eliom.Registration.App (
   struct
     let application_name = "myo"
     let global_data_path = None
   end)
 
-let%server global_list = Eliom_content.Html.Id.create_global_elt (ul [])
+let%server global_list = Eliom.Content.Html.Id.create_global_elt (ul [])
 let%server cpt = ref 0
 
 let%server main_service =
-  Eliom_service.create
-    ~path:(Eliom_service.Path [""])
-    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+  Eliom.Service.create
+    ~path:(Eliom.Service.Path [""])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
     ()
 
 let%server reload_link =
@@ -422,8 +422,8 @@ let%server _ =
        let page_number = incr cpt; string_of_int !cpt in
        let append_item = [%client
 	 let item_text = "item inserted in page #" ^ ~%page_number in
-         let item = Eliom_client.Html.of_li (li [txt item_text]) in
-         Dom.appendChild (Eliom_client.Html.of_ul ~%global_list) item
+         let item = Eliom.Client.Html.of_li (li [txt item_text]) in
+         Dom.appendChild (Eliom.Client.Html.of_ul ~%global_list) item
        ]
        in
        let append_link =
@@ -446,18 +446,18 @@ every time you click on the "reload page" link.
 
 {%wodoc:@ class=server%}
 {@ocaml[
-open%server Eliom_content.Html.D
+open%server Eliom.Content.Html.D
 
 let%server global_script =
-  Eliom_content.Html.Id.create_global_elt
+  Eliom.Content.Html.Id.create_global_elt
     (script (cdata_script "alert(\"global script\")"))
 let%server simple_script =
   script (cdata_script "alert(\"non global script\")")
 
 let%server main_service =
-  Eliom_service.create
-    ~path:(Eliom_service.Path [])
-    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+  Eliom.Service.create
+    ~path:(Eliom.Service.Path [])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
     ()
 
 let%server reload_link =
@@ -489,9 +489,9 @@ containing your pages. Here is an example:
 {%wodoc:@ class=server%}
 {@ocaml[
 let%server hello =
-  Eliom_registration.Html_text.create
-    ~path:(Eliom_service.Path ["hello"])
-    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+  Eliom.Registration.Html_text.create
+    ~path:(Eliom.Service.Path ["hello"])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
     (fun () () -> Lwt.return "<html>Hello</html>")
 ]}
 
@@ -501,22 +501,22 @@ We do not recommend this.
 
 {2:custom_data Custom data for HTML}
 
-Eliom provides a type-safe interface for create new attributes of the form [data-*], using  {!Eliom_content.Html.Custom_data}.
+Eliom provides a type-safe interface for create new attributes of the form [data-*], using  {!Eliom.Content.Html.Custom_data}.
 
 {3 Creation}
 Custom data may be created either from string-conversation functions by {!val
-Eliom_content.Html.Custom_data.create}
+Eliom.Content.Html.Custom_data.create}
 
 {%wodoc:@ class=server%}
 {@ocaml[
-open%server Eliom_content
+open%server Eliom.Content
 let%server my_int_data =
   Html.Custom_data.create ~name:"my_int"
     ~of_string:int_of_string
     ~to_string:string_of_int ()
 ]}
 
-or by a Json-deriving type {!Eliom_content.Html.Custom_data.create_json}
+or by a Json-deriving type {!Eliom.Content.Html.Custom_data.create_json}
 
 {%wodoc:@ class=shared%}
 {@ocaml[
@@ -527,7 +527,7 @@ let%shared coord_data =
 
 {3 Injecting}
 
-Custom data can be injected into HTML-trees of type {!Eliom_content.Html.elt} by the function {!Eliom_content.Html.Custom_data.attrib}:
+Custom data can be injected into HTML-trees of type {!Eliom.Content.Html.elt} by the function {!Eliom.Content.Html.Custom_data.attrib}:
 
 {@ocaml[
   div ~a:[Html.Custom_data.attrib coord_data {x = 100; y = 200}] []
@@ -539,13 +539,13 @@ On the client side, custom data can be read from and written to JavaScript DOM
 elements of type {!type Js_of_ocaml.Dom_html.element}.
 
 Custom data can be read from a DOM-element with the function
-{!Eliom_content.Html.Custom_data.get_dom}.
+{!Eliom.Content.Html.Custom_data.get_dom}.
 If no respective custom data attribute can be found in the element
 - the [default] value from creating the custom data is returned, if any, or
 - an exception [Not_found] is raised, otherwise.
 
 The custom data of a DOM-element can be set with the function
-{!Eliom_content.Html.Custom_data.set_dom}.
+{!Eliom.Content.Html.Custom_data.set_dom}.
 
 {@ocaml[
   [%client
@@ -559,7 +559,7 @@ The custom data of a DOM-element can be set with the function
 {3 Default value}
 If a custom data is created with the optional argument [default], calls to
 {!val
-Eliom_content.Html.Custom_data.get_dom} return that instead of throwing an
+Eliom.Content.Html.Custom_data.get_dom} return that instead of throwing an
 exception [Not_found].
 
 {@ocaml[

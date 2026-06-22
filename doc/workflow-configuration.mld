@@ -129,13 +129,13 @@ When an exception is raised during the generation of a page, or when
 the page has not been found or has wrong parameters, an HTTP error 500
 or 404 is sent to the client. You may want to catch these exceptions
 to print your own error page.  Do this using
-{!Eliom_service.set_exn_handler}.
+{!Eliom.Service.set_exn_handler}.
 Here is the handler used by the tutorial:
 
-{@ocaml[let _ = Eliom_service.set_exn_handler
+{@ocaml[let _ = Eliom.Service.set_exn_handler
    (fun e -> match e with
-    | Eliom_common.Eliom_404 ->
-        Eliom_registration.Html.send ~code:404
+    | Eliom.Common.Eliom_404 ->
+        Eliom.Registration.Html.send ~code:404
           (html
              (head (title (txt "")) [])
              (body [h1 [txt "Eliom tutorial"];
@@ -154,7 +154,7 @@ site. For example:
     </eliommodule>
 ]}
 
-Use {!Eliom_config.get_config} during the initialization
+Use {!Eliom.Config.get_config} during the initialization
 of your module to get the data between {%wodoc:span class="code"%}<eliom{%wodoc:end%}>
 and {%wodoc:span class="code"%}</eliom{%wodoc:end%}>.
 
@@ -171,11 +171,11 @@ But this is not straightforward.  For Eliom modules, service
 registration and option settings must be delayed until the
 configuration file is read. To create a statically linkable Eliom
 module, use function
-{!Eliom_service.register_eliom_module}.
+{!Eliom.Service.register_eliom_module}.
 It takes as parameters the name of the module and the initialization
 function that will be called once the module is initialized in the
 configuration file. That function should register the module services
-(and possibly call {!Eliom_config.get_config} if the module has
+(and possibly call {!Eliom.Config.get_config} if the module has
 configuration options).
 
 {%wodoc:div class="wip"%}How to improve this and this easier to use?{%wodoc:end%}
@@ -198,7 +198,7 @@ v}
 with the exception that it does not load the module using {%wodoc:span class="code"%}Dynlink{%wodoc:end%}, but calls the initialization function.{%html:<br/>%}
 
 You can use functions such as
-{!Eliom_state.create_volatile_table}
+{!Eliom.State.create_volatile_table}
 that needs information about the site (here, volatile tables are
 associated to a site), only during a request or during the
 initialization phase of the server.
@@ -206,7 +206,7 @@ initialization phase of the server.
 If you want to use this kind of function before the initialization
 phase, for example if your module is linked statically with the
 server, you must call these function using function
-{!Eliom_service.register_eliom_module}.
+{!Eliom.Service.register_eliom_module}.
 (One solution is to use a lazy value to delay the creation of the
 table, and force that value from the registration function).
 
@@ -216,7 +216,7 @@ table, and force that value from the registration function).
 If you want an Ocsigen extension with access to Eliom's data (for
 example if you want an extension that will register some services),
 you can use the function
-{!Eliom_extension.register_eliom_extension}
+{!Eliom.Extension.register_eliom_extension}
 to register the function that will generate the
 {!Ocsigen_extensions.answer}.
 
@@ -235,9 +235,9 @@ State timeouts can be set either inside tag
 for all sites), or inside a [<eliom/>] tag (default for one site).
 
 Timeouts can also be modified programmatically using functions like
-[Eliom_state.set_global_volatile_timeout], but by default these
+[Eliom.State.set_global_volatile_timeout], but by default these
 functions will not override configuration files.
-(see module {!Eliom_state} for other functions).
+(see module {!Eliom.State} for other functions).
 Thus, a Web site can set its own defaults and the user can still
 override them from the configuration file.  If you want to set a
 timeout programmatically even if it has been modified in a
@@ -359,9 +359,9 @@ The limits and the subnet mask can be set programmatically by each module
 configuration file
 (for instance, to adapt the values to the size of memory or network
 configuration)
-(see module  {!Eliom_state}).
+(see module  {!Eliom.State}).
 By default, functions like
-[Eliom_state.set_default_max_volatile_sessions_per_group]
+[Eliom.State.set_default_max_volatile_sessions_per_group]
 will not override a value set in the configuration file
 (but if you use [~override_configfile:true]).
 Thus, a Web site can set its own defaults and the user can still
@@ -439,4 +439,4 @@ Then, all links will perform a normal HTTP request unless explicitely
 created with the [~xhr:true] option.
 
 This value can also be set through function
-{!Eliom_config.set_default_links_xhr}.
+{!Eliom.Config.set_default_links_xhr}.

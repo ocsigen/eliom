@@ -6,15 +6,15 @@
 {1:links Links}
 
 To create a link ([<a>]), use the
- {!Eliom_content.Html.D.a} function,
+ {!Eliom.Content.Html.D.a} function,
 as in these examples:
 
 {@ocaml[
- open Eliom_content
+ open Eliom.Content
 
- let links = Eliom_registration.Html.create
-   ~path:(Eliom_service.Path ["rep";"links"])
-   ~meth:(Eliom_service.Get Eliom_parameter.unit)
+ let links = Eliom.Registration.Html.create
+   ~path:(Eliom.Service.Path ["rep";"links"])
+   ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
  (fun () () ->
    Lwt.return
     Html.D.(
@@ -33,11 +33,11 @@ as in these examples:
            a ~service:raw_serv
              [txt "raw_serv"] [("sun","yellow");("sea","blue and pink")]; br ();
            a
-             ~service:(Eliom_service.extern
+             ~service:(Eliom.Service.extern
                 ~prefix:"http://fr.wikipedia.org"
                 ~path:["wiki";""]
-                ~meth:(Eliom_service.Get
-                         Eliom_parameter.(suffix (all_suffix "suff")))
+                ~meth:(Eliom.Service.Get
+                         Eliom.Parameter.(suffix (all_suffix "suff")))
                 ())
              [txt "OCaml on wikipedia"]
              ["OCaml"]; br ();
@@ -47,7 +47,7 @@ as in these examples:
          ]])))
 ]}
 
-{!Eliom_content.Html.D.a} takes as first parameter
+{!Eliom.Content.Html.D.a} takes as first parameter
 the service you want to link to.
 The second parameter is the text of the link.
 The last parameter is for
@@ -59,7 +59,7 @@ on the service you link to.
 The link to Wikipedia shows how to define an external service (here it
 uses a suffix URL).
 For an external service without parameters, you can use the low level
-function  {!Eliom_content.Html.D.Raw.a}, if you don't want to create an
+function  {!Eliom.Content.Html.D.Raw.a}, if you don't want to create an
 external service explicitly.
 Note that the path must be a list of strings:
 do not write [["foo/bar"]],
@@ -68,17 +68,17 @@ the URL.{%html:<br/>%}
 
 
 If you want to create (mutually or not) recursive pages, create the
-service using {!Eliom_service.create} first, then
-register it in the table using (for example) {!Eliom_registration.Html.register}:
+service using {!Eliom.Service.create} first, then
+register it in the table using (for example) {!Eliom.Registration.Html.register}:
 
 {@ocaml[
 let linkrec =
-  Eliom_service.create
-    ~path:(Eliom_service.Path ["linkrec"])
-    ~meth:(Eliom_service.Get Eliom_parameter.unit) ()
+  Eliom.Service.create
+    ~path:(Eliom.Service.Path ["linkrec"])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit) ()
 
 let _ =
-  Eliom_registration.Html.register
+  Eliom.Registration.Html.register
     linkrec
     (fun () () ->
        Lwt.return
@@ -88,14 +88,14 @@ let _ =
 ]}
 
 (You can also refer to {e the current service} via [reload_action]
-({!Eliom_service_sigs.S.reload_action}).
+({!Eliom.Service_sigs.S.reload_action}).
 
 {1:forms Forms}
 
 {2 Raw forms}
 
-Modules {!Eliom_content.Html.F} and
-{!Eliom_content.Html.D}
+Modules {!Eliom.Content.Html.F} and
+{!Eliom.Content.Html.D}
 define form elements with the usual typed interface from TyXML.
 Use this for example if you have a client side program and
 want to manipulate the form contents from client side functions
@@ -106,8 +106,8 @@ Example:
 {@ocaml[
 let%shared mk_form ()
   =
-  let open Eliom_content.Html in
-  let open Eliom_content.Html.F in
+  let open Eliom.Content.Html in
+  let open Eliom.Content.Html.F in
   let theinput = D.input () in
   let thesubmit =
     D.input ~a:[a_input_type `Submit; a_value "Go"] ()
@@ -127,8 +127,8 @@ let%shared mk_form ()
 
 {2 Typed forms towards GET services}
 
-In contrast, modules [Eliom_content.Html.D.Form]
-and [Eliom_content.Html.F.Form] provide functions
+In contrast, modules [Eliom.Content.Html.D.Form]
+and [Eliom.Content.Html.F.Form] provide functions
 for creating typed forms towards Eliom services.
 Use them if you want to create regular HTML forms,
 (with submit button).
@@ -136,12 +136,12 @@ Use them if you want to create regular HTML forms,
 Our examples use shorthands to these modules, e.g.,
 simply [Form], assuming an appropriate context.
 See
-{!Eliom_content_sigs.LINKS_AND_FORMS.Form}
+{!Eliom.Content_sigs.LINKS_AND_FORMS.Form}
 for the [Form] API documentation.
 
-The function [Eliom_content.Html.D.Form.get_form]
+The function [Eliom.Content.Html.D.Form.get_form]
 allows creation of forms that use the GET method (parameters in the
-URL). It works like {!Eliom_content.Html.D.a} but takes
+URL). It works like {!Eliom.Content.Html.D.a} but takes
 a {e function} that creates the form from the parameters names as
 parameter.
 
@@ -159,9 +159,9 @@ let create_form =
     ))
 
 let form =
-  Eliom_registration.Html.create
-    ~path:(Eliom_service.Path ["form"])
-    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+  Eliom.Registration.Html.create
+    ~path:(Eliom.Service.Path ["form"])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
     (fun () () ->
        let f = Html.D.Form.get_form ~service:service_with_params create_form in
        Lwt.return
@@ -171,9 +171,9 @@ let form =
 ]}
 
 Parameter names are typed to make sure that they are used
-properly. The form-creating functions in {%wodoc:span class="code"%}Eliom_content.Html.D.Form{%wodoc:end%} (respectively {%wodoc:span class="code"%}Eliom_content.Html.F.Form{%wodoc:end%}) accept an argument of type
-[Eliom_content.Html.D.Form.param] (respectively
-[Eliom_content.Html.F.Form.param]), which needs to
+properly. The form-creating functions in {%wodoc:span class="code"%}Eliom.Content.Html.D.Form{%wodoc:end%} (respectively {%wodoc:span class="code"%}Eliom.Content.Html.F.Form{%wodoc:end%}) accept an argument of type
+[Eliom.Content.Html.D.Form.param] (respectively
+[Eliom.Content.Html.F.Form.param]), which needs to
 match the type of the parameter used. For example,
 {%wodoc:span class="code"%}number_name{%wodoc:end%} has type {%wodoc:span class="code"%}int param_name{%wodoc:end%}, so {%wodoc:span class="code"%}Form.int{%wodoc:end%}
 must be used with {%wodoc:span class="code"%}Form.input{%wodoc:end%}
@@ -183,17 +183,17 @@ must be used with {%wodoc:span class="code"%}Form.input{%wodoc:end%}
 and must be used in conjunction with the argument
 {%wodoc:span class="code"%}Form.string{%wodoc:end%}.
 Creating form widgets are described in detail in
-[Eliom_content.Html.D.Form]
-(and [Eliom_content.Html.F.Form]).
+[Eliom.Content.Html.D.Form]
+(and [Eliom.Content.Html.F.Form]).
 
-For untyped forms, you may use functions from the module {!Eliom_content.Html.D.Raw}.
+For untyped forms, you may use functions from the module {!Eliom.Content.Html.D.Raw}.
 Here is a form linking to our (untyped) service [raw_serv].
 
 {@ocaml[
 let raw_form =
-  Eliom_registration.Html.create
-    ~path:(Eliom_service.Path ["anyform"])
-    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+  Eliom.Registration.Html.create
+    ~path:(Eliom.Service.Path ["anyform"])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
     (fun () () ->
       Lwt.return
         Html.D.(html
@@ -219,9 +219,9 @@ A Web page may also expect POST parameters
 request, if the POST method is used).
 
 {@ocaml[let no_post_param_service =
-  Eliom_registration.Html.create
-    ~path:(Eliom_service.Path ["post"])
-    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+  Eliom.Registration.Html.create
+    ~path:(Eliom.Service.Path ["post"])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
     (fun () () ->
       Lwt.return
         (html
@@ -230,9 +230,9 @@ request, if the POST method is used).
                       "Version of the page without POST parameters"]])))
 
 let my_service_with_post_params =
-  Eliom_registration.Html.create_attached_post
+  Eliom.Registration.Html.create_attached_post
     ~fallback:no_post_param_service
-    ~post_params:Eliom_parameter.(string "value")
+    ~post_params:Eliom.Parameter.(string "value")
     (fun () value ->
       Lwt.return
         (html
@@ -244,9 +244,9 @@ Services may take both GET and POST parameters:
 
 
 {@ocaml[let get_no_post_param_service =
-  Eliom_registration.Html.create
-    ~path:(Eliom_service.Path ["post2"])
-    ~meth:(Eliom_service.Get (Eliom_parameter.int "i"))
+  Eliom.Registration.Html.create
+    ~path:(Eliom.Service.Path ["post2"])
+    ~meth:(Eliom.Service.Get (Eliom.Parameter.int "i"))
     (fun i () ->
       Lwt.return
         (html
@@ -255,10 +255,10 @@ Services may take both GET and POST parameters:
                    em [txt (string_of_int i)]]])))
 
 let my_service_with_get_and_post =
-  Eliom_registration.Html.create
-    ~path:(Eliom_service.Path ["post2"])
-    ~meth:(Eliom_service.Post (Eliom_parameter.int "i",
-                               Eliom_parameter.string "value"))
+  Eliom.Registration.Html.create
+    ~path:(Eliom.Service.Path ["post2"])
+    ~meth:(Eliom.Service.Post (Eliom.Parameter.int "i",
+                               Eliom.Parameter.string "value"))
     (fun i value ->
       Lwt.return
         (html
@@ -273,8 +273,8 @@ let my_service_with_get_and_post =
 
 
 To create a POST form, use the
-[Eliom_content.Html.D.Form.post_form] function.
-It is similar to [Eliom_content.Html.D.Form.get_form]
+[Eliom.Content.Html.D.Form.post_form] function.
+It is similar to [Eliom.Content.Html.D.Form.get_form]
 with an additional parameter for the GET parameters you want to put in
 the URL (if any). Here, {%wodoc:span class="code"%}form2{%wodoc:end%} is a page containing
 a form to the service {%wodoc:span class="code"%}post{%wodoc:end%} (using Html.F's
@@ -289,12 +289,12 @@ in the Makefile.options file of your project.
 
 {@ocaml[
   let form2 =
-    Eliom_registration.Html.create
-      ~path:(Eliom_service.Path ["form2"])
-      ~meth:(Eliom_service.Get Eliom_parameter.unit)
+    Eliom.Registration.Html.create
+      ~path:(Eliom.Service.Path ["form2"])
+      ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
       (fun () () ->
          let f =
-           (Eliom_content.Html.D.Form.post_form ~service:my_service_with_post_params
+           (Eliom.Content.Html.D.Form.post_form ~service:my_service_with_post_params
               (fun chaine ->
                  [p [txt "Write a string: ";
                   Form.input
@@ -307,13 +307,13 @@ in the Makefile.options file of your project.
              (body [f])))
 
 let form3 =
-  Eliom_registration.Html.create
-    ~path:(Eliom_service.Path ["form3"])
-    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+  Eliom.Registration.Html.create
+    ~path:(Eliom.Service.Path ["form3"])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
     (fun () () ->
        let module Html = Html.D in
        let f  =
-         (Eliom_content.Html.D.Form.post_form ~service:my_service_with_get_and_post
+         (Eliom.Content.Html.D.Form.post_form ~service:my_service_with_get_and_post
             (fun chaine ->
               [ [%html "<p> Write a string:
                       "[Form.input
@@ -326,17 +326,17 @@ let form3 =
               <body>"[f]"</body></html>"])
 
 let form4 =
-  Eliom_registration.Html.create
-    ~path:(Eliom_service.Path ["form4"])
-    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+  Eliom.Registration.Html.create
+    ~path:(Eliom.Service.Path ["form4"])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
   (fun () () ->
-     let module Html = Eliom_content.Html.D in
+     let module Html = Eliom.Content.Html.D in
      let f  =
-       (Eliom_content.Html.D.Form.post_form
-          ~service:(Eliom_service.extern
+       (Eliom.Content.Html.D.Form.post_form
+          ~service:(Eliom.Service.extern
              ~prefix:"http://www.petizomverts.com"
              ~path:["zebulon"]
-             ~meth:(Eliom_service.Post (int "i", string "chaine"))
+             ~meth:(Eliom.Service.Post (int "i", string "chaine"))
              ())
           (fun chaine ->
             [ [%html "<p> Write a string:
@@ -357,7 +357,7 @@ corresponding forms.
 {2 Parsing parameters using regular expressions}
 
 
-Eliom_parameter.regexp allows parsing page parameters using (Perl-compatible)
+Eliom.Parameter.regexp allows parsing page parameters using (Perl-compatible)
 regular expressions. We use the module {%wodoc:span class="code"%}Netstring_pcre{%wodoc:end%},
 from {e OCamlnet}. See the documentation about OCamlnet
 for more information.
@@ -368,11 +368,11 @@ values enclosed between {%wodoc:span class="code"%}[{%wodoc:end%} and {%wodoc:sp
 let r = Netstring_pcre.regexp "\\\\[(.*)\\\\]"
 
 let regexp =
-  Eliom_registration.Html.create
-    ~path:(Eliom_service.Path ["regexp"])
+  Eliom.Registration.Html.create
+    ~path:(Eliom.Service.Path ["regexp"])
     ~meth:
-      (Eliom_service.Get
-        Eliom_parameter.(regexp r "$1" (fun s -> s) "myparam"))
+      (Eliom.Service.Get
+        Eliom.Parameter.(regexp r "$1" (fun s -> s) "myparam"))
     (fun g () ->
       Lwt.return
         Html.D.(html
@@ -384,10 +384,10 @@ let regexp =
 {@ocaml[let myregexp = Netstring_pcre.regexp "\\[(.*)\\]"
 
 let regexpserv =
-  Eliom_registration.Html.create
-    ~path:(Eliom_service.Path ["regexp"])
-    ~meth:(Eliom_service.Get
-            Eliom_parameter.(regexp myregexp "$1" (fun s -> s) "myparam"))
+  Eliom.Registration.Html.create
+    ~path:(Eliom.Service.Path ["regexp"])
+    ~meth:(Eliom.Service.Get
+            Eliom.Parameter.(regexp myregexp "$1" (fun s -> s) "myparam"))
     (fun g () ->
       Lwt.return
         Html.D.(html
@@ -403,9 +403,9 @@ with {e boolean checkboxes}, as in the example below:
 
 {@ocaml[(* Form with bool checkbox: *)
 let bool_params =
-  Eliom_registration.Html.create
-    ~path:(Eliom_service.Path ["bool"])
-    ~meth:(Eliom_service.Get Eliom_parameter.(bool "case"))
+  Eliom.Registration.Html.create
+    ~path:(Eliom.Service.Path ["bool"])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.(bool "case"))
   (fun case () ->
     let module Html = Html.D in
     Lwt.return
@@ -424,9 +424,9 @@ let create_form_bool casename =
         "[Form.input ~input_type:`Submit ~value:"Click" Form.string]"</p> "] ]
 
 let form_bool =
-  Eliom_registration.Html.create
-    ~path:(Eliom_service.Path ["formbool"])
-    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+  Eliom.Registration.Html.create
+    ~path:(Eliom.Service.Path ["formbool"])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
   (fun () () ->
      let module Html = Html.D in
      let f = Form.get_form ~service:bool_params create_form_bool in
@@ -450,26 +450,26 @@ they are tried in order of registration.
 The first matching service will answer.{%html:<br/>%}
 
 Other types similar to bool:
-- [Eliom_parameter.opt] (page taking an optional parameter),
-- [Eliom_parameter.sum] (either a parameter or another).
+- [Eliom.Parameter.opt] (page taking an optional parameter),
+- [Eliom.Parameter.sum] (either a parameter or another).
 
-See {!Eliom_parameter_sigs.S}.
+See {!Eliom.Parameter_sigs.S}.
 
 {2 Type {%wodoc:span class="code"%}set{%wodoc:end%}}
 
 Page may take several parameters of the same name.
 It is useful when you want to create a form with a variable number
 of fields.
-To do that with Eliom, use the type [Eliom_parameter.set].
+To do that with Eliom, use the type [Eliom.Parameter.set].
 For example, {%wodoc:span class="code"%}set int "val"{%wodoc:end%} means that the page will take
 zero, one, or several parameters of name {%wodoc:span class="code"%}"val"{%wodoc:end%},
 all of type {%wodoc:span class="code"%}int{%wodoc:end%}.
 The function you register will receive the parameters in a list.
 Example:
 
-{@ocaml[let set = Eliom_registration.Html.create
-    ~path:(Eliom_service.Path ["set"])
-    ~meth:(Eliom_service.Get Eliom_parameter.(set string "s"))
+{@ocaml[let set = Eliom.Registration.Html.create
+    ~path:(Eliom.Service.Path ["set"])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.(set string "s"))
   (fun l () ->
     let module Html = Html.D in
     let ll =
@@ -494,9 +494,9 @@ same name, but with different values:
 
 {@ocaml[
 (* form to set *)
-let setform = Eliom_registration.Html.create
-    ~path:(Eliom_service.Path ["setform"])
-    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+let setform = Eliom.Registration.Html.create
+    ~path:(Eliom.Service.Path ["setform"])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
     (fun () () ->
       Lwt.return
         (html
@@ -536,9 +536,9 @@ will answer.
 
 Here is an example of a select box.
 
-{@ocaml[let select_example_result = Eliom_registration.Html.create
-    ~path:(Eliom_service.Path ["select"])
-    ~meth:(Eliom_service.Get Eliom_parameter.(string "s"))
+{@ocaml[let select_example_result = Eliom.Registration.Html.create
+    ~path:(Eliom.Service.Path ["select"])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.(string "s"))
     (fun g () ->
       Lwt.return
         (html
@@ -568,9 +568,9 @@ let create_select_form =
     ))
 
 let select_example =
-  Eliom_registration.Html.create
-    ~path:(Eliom_service.Path ["select"])
-    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+  Eliom.Registration.Html.create
+    ~path:(Eliom.Service.Path ["select"])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
   (fun () () ->
      let open Html.D in
      let f = Form.get_form ~service:select_example_result create_select_form in
@@ -581,9 +581,9 @@ let select_example =
 ]}
 
 To do "multiple" select boxes, use functions like
-[Eliom_content.Html.D.Form.multiple_select].
+[Eliom.Content.Html.D.Form.multiple_select].
 As you can see in the type, the service must be declared with parameters
-of type [Eliom_parameter.set].
+of type [Eliom.Parameter.set].
 
 {2 Clickable images}
 
@@ -592,9 +592,9 @@ Here is an example of clickable image.
       You receive the coordinates the user clicked on.
 
 {@ocaml[
-  let coord = Eliom_registration.Html.create
-    ~path:(Eliom_service.Path ["coord"])
-    ~meth:(Eliom_service.Get Eliom_parameter.(coordinates "coord"))
+  let coord = Eliom.Registration.Html.create
+    ~path:(Eliom.Service.Path ["coord"])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.(coordinates "coord"))
   (fun c () ->
     let module Html = Html.D in
     Lwt.return
@@ -609,9 +609,9 @@ Here is an example of clickable image.
          </html> "])
 
 (* form to image *)
-let imageform = Eliom_registration.Html.create
-    ~path:(Eliom_service.Path ["imageform"])
-    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+let imageform = Eliom.Registration.Html.create
+    ~path:(Eliom.Service.Path ["imageform"])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
     (fun () () ->
       Lwt.return
         (html
@@ -620,7 +620,7 @@ let imageform = Eliom_registration.Html.create
                   Form.get_form ~service:coord
                     (fun n ->
                       [p [Form.image_input
-                            ~src:(make_uri ~service:(Eliom_service.static_dir ()) ["ocsigen5.png"])
+                            ~src:(make_uri ~service:(Eliom.Service.static_dir ()) ["ocsigen5.png"])
                             ~name:n
                             ()]])
                 ])))
@@ -628,19 +628,19 @@ let imageform = Eliom_registration.Html.create
 
 {2 Type {%wodoc:span class="code"%}list{%wodoc:end%}}
 
-Another way (than [Eliom_parameter.set]) to do variable length forms
-is to use indexed lists (using  [Eliom_parameter.list]).
+Another way (than [Eliom.Parameter.set]) to do variable length forms
+is to use indexed lists (using  [Eliom.Parameter.list]).
 The use of that feature is a bit more complex than {%wodoc:span class="code"%}set{%wodoc:end%}.
 Here is an example of service taking an indexed list as parameter:
 
 {@ocaml[
 (* lists *)
 let service_list =
-  Eliom_registration.Html.create
-    ~path:(Eliom_service.Path ["thepath"])
-    ~meth:(Eliom_service.Get Eliom_parameter.(list "a" (string "str")))
+  Eliom.Registration.Html.create
+    ~path:(Eliom.Service.Path ["thepath"])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.(list "a" (string "str")))
     (fun l () ->
-      let open Eliom_content.Html.D in
+      let open Eliom.Content.Html.D in
       let ll = List.map (fun s -> strong [txt s]) l in
       Lwt.return (html (head (title (txt "Example")) []) (body [p ll])))
 ]}
@@ -665,8 +665,8 @@ let create_listform f =
      The last parameter of f.it is the code that must be appended at the
      end of the list created
   *)
-  let open Eliom_content.Html.D in
-  f.Eliom_parameter.it
+  let open Eliom.Content.Html.D in
+  f.Eliom.Parameter.it
     (fun stringname v init ->
       p
         [ txt "Write the value for "
@@ -678,11 +678,11 @@ let create_listform f =
     [p [Form.input ~input_type:`Submit ~value:"Click" Form.string]]
 
 let _ =
-  Eliom_registration.Html.create
-    ~path:(Eliom_service.Path ["listform"])
-    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+  Eliom.Registration.Html.create
+    ~path:(Eliom.Service.Path ["listform"])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
     (fun () () ->
-      let open Eliom_content.Html.D in
+      let open Eliom.Content.Html.D in
       let f = Form.get_form ~service:service_list create_listform in
       Lwt.return (html (head (title (txt "Example")) []) (body [f])))
 ]}
@@ -703,7 +703,7 @@ Example:
 
 {@ocaml[(* Form for service with suffix: *)
 let create_suffixform ((suff, endsuff),i) =
-     let module Html = Eliom_content.Html.D in
+     let module Html = Eliom.Content.Html.D in
     [%html "<p>Write the suffix:
       "[Form.input ~input_type:`Text ~name:suff Form.int]" <br/>
       Write a string: "[Form.input
@@ -712,12 +712,12 @@ let create_suffixform ((suff, endsuff),i) =
       Write an int: "[Form.input ~input_type:`Text ~name:i Form.int]" <br/>
       "[Form.input ~input_type:`Submit ~value:"Click" Form.string]"</p> "]
 
-let suffixform = Eliom_registration.Html.create
-  ~path:(Eliom_service.Path ["suffixform"])
-  ~meth:(Eliom_service.Get Eliom_parameter.unit)
+let suffixform = Eliom.Registration.Html.create
+  ~path:(Eliom.Service.Path ["suffixform"])
+  ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
   (fun () () ->
      let f = Form.get_form ~service:isuffix create_suffixform in
-     let module Html = Eliom_content.Html.D in
+     let module Html = Eliom.Content.Html.D in
      Lwt.return
       [%html "<html>
            <head><title>Example</title></head>
@@ -730,10 +730,10 @@ Decode the URL encoded string using [Ocsigen_lib.Url.string_of_url_path ~encode:
 
 {2 Uploading files}
 
-The [Eliom_parameter.file] parameter type allows files to be sent in your
+The [Eliom.Parameter.file] parameter type allows files to be sent in your
 request. The service gets something of type
  {!Ocsigen_extensions.file_info}. You can extract information
-using this using these functions (from  {!Eliom_request_info}):
+using this using these functions (from  {!Eliom.Request_info}):
 
 {@ocaml[val get_tmp_filename : Ocsigen_extensions.file_info -> string
 val get_filesize : Ocsigen_extensions.file_info -> int64
@@ -742,9 +742,9 @@ val get_original_filename : Ocsigen_extensions.file_info -> string
 ]}
 
 
- {!Eliom_request_info.get_tmp_filename} returns the actual name
+ {!Eliom.Request_info.get_tmp_filename} returns the actual name
 of the uploaded file on the hard drive.
- {!Eliom_request_info.get_original_filename} gives the original filename.
+ {!Eliom.Request_info.get_original_filename} gives the original filename.
 
 To enable file upload, you must configure a directory for uploaded
 files in Ocsigen's configuration file.  For example:
@@ -758,23 +758,23 @@ the following example, we create a new hard link to the file to keep
 it. (The destination must be on the same partition of the disk.)
 
 
-{@ocaml[let upload = Eliom_service.create
-    ~path:(Eliom_service.Path ["upload"])
-    ~meth:(Eliom_service.Get unit)
+{@ocaml[let upload = Eliom.Service.create
+    ~path:(Eliom.Service.Path ["upload"])
+    ~meth:(Eliom.Service.Get unit)
     ()
 
-let upload2 = Eliom_registration.Html.create
-   ~path:(Eliom_service.Path ["upload"])
-   ~meth:(Eliom_service.Post (Eliom_parameter.unit,
-                              Eliom_parameter.file "file"))
+let upload2 = Eliom.Registration.Html.create
+   ~path:(Eliom.Service.Path ["upload"])
+   ~meth:(Eliom.Service.Post (Eliom.Parameter.unit,
+                              Eliom.Parameter.file "file"))
     (fun () file ->
       let to_display =
         let newname = "/tmp/thefile" in
         (try
           Unix.unlink newname;
         with _ -> ());
-        Lwt_log.ign_debug (Eliom_request_info.get_tmp_filename file);
-        Unix.link (Eliom_request_info.get_tmp_filename file) newname;
+        Lwt_log.ign_debug (Eliom.Request_info.get_tmp_filename file);
+        Unix.link (Eliom.Request_info.get_tmp_filename file) newname;
         let fd_in = open_in newname in
         try
           let line = input_line fd_in in close_in fd_in; line (*end*)
@@ -786,7 +786,7 @@ let upload2 = Eliom_registration.Html.create
            (body [h1 [txt to_display]])))
 
 
-let uploadform = Eliom_registration.Html.register upload
+let uploadform = Eliom.Registration.Html.register upload
     (fun () () ->
       let f =
         (Form.post_form ~service:upload2
@@ -805,7 +805,7 @@ let uploadform = Eliom_registration.Html.register upload
 
 {2 Raw POST data (advanced use)}
 
-By specifying [~post_params:Eliom_parameter.raw_post_params],
+By specifying [~post_params:Eliom.Parameter.raw_post_params],
 it is possible to create a service that takes as parameter any POST
 data, as a stream. The only restriction is that it does not work if
 the content-type corresponds to URL encoded form data or multipart data

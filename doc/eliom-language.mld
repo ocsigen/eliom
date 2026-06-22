@@ -6,7 +6,7 @@ constantly run on the Web server.  The client program will run
 independently in each browser tab that visits the Web site.  The
 latter is started with the initial request in a browser tab and keeps
 running while navigating within the Web site, across the usage of
-links, forms, history, and {{!Eliom_client.change_page}page changes}.
+links, forms, history, and {{!Eliom.Client.change_page}page changes}.
 
 Eliom provides three language extensions to OCaml to provide an
 integrated development of client/server-programs, and to deal with the
@@ -92,8 +92,8 @@ the server. {e No request information is available at that time}.
 In the client program, top-level expressions are evaluated early in
 the initialization phase of the client process, particulary {e before
 the DOM is in place}. This means, that you cannot do any DOM
-manipulation or access HTML-elements with {{!Eliom_content.Html.D}DOM semantics}. However, you can postpone that by
-{!Eliom_client.onload}.
+manipulation or access HTML-elements with {{!Eliom.Content.Html.D}DOM semantics}. However, you can postpone that by
+{!Eliom.Client.onload}.
 
 {1:injections Injections (in the client-section)}
 
@@ -113,7 +113,7 @@ process}.
   let service = ... (* Server-side declaration of a service. *)
 }}
 {client{
-  let f () = Eliom_client.change_page ~service:%service ()
+  let f () = Eliom.Client.change_page ~service:%service ()
   (* Refer to the server-side variable within the client section! *)
 }}
 ]}
@@ -128,7 +128,7 @@ resulting value in that specific client process.
 {@ocaml[
 {client{
   let () =
-    Eliom_lib.alert "Time of the first request on the server: %d"
+    Eliom.Lib.alert "Time of the first request on the server: %d"
       %(Unix.gettimeofday ())
 }}
 ]}
@@ -136,7 +136,7 @@ resulting value in that specific client process.
 Note well that the value of an injection is {e not updated} when the
 injected value on the server changes. However, you may inject reactive
 signals (cf. {!val
-Eliom_react.S.Down.of_react}) to achieve the behavior of a client
+Eliom.Eliom_react.S.Down.of_react}) to achieve the behavior of a client
 side values which updates alongside with a server correspondent.
 
 {2:sharedinjection In a shared section}
@@ -180,14 +180,14 @@ compiled only for the client program, and may make use of any
 libraries available on the client, and where [exp] has type [typ]
 on the client side.
 
-The hole client value then has type [typ Eliom_client_value.t].
+The hole client value then has type [typ Eliom.Client_value.t].
 
-A value of type [typ Eliom_client_value.t] is {e abstract on the
+A value of type [typ Eliom.Client_value.t] is {e abstract on the
 server} (cf. {!type
-Eliom_client_value.t} (server)).  But once it is sent to the client
+Eliom.Client_value.t} (server)).  But once it is sent to the client
 it becomes the value to which the expression [exp] evaluated on the
 client side (cf. {!type
-Eliom_client_value.t} (client)).
+Eliom.Client_value.t} (client)).
 
 A client value expression is an arbitrary OCaml expression, but may
 additionaly contain {e injections of server variables},
@@ -197,7 +197,7 @@ injected by prefixing it with a percent sign, [%v]. A server-side
 expression [exp] can be injected by [%(exp)].
 
 Note well, that the injection of a server side client-value [v] of
-type [typ Eliom_client_value.t] results in a value [%v] of
+type [typ Eliom.Client_value.t] results in a value [%v] of
 type [typ]. Thus, the value of the client value becomes concrete.
 
 The other way to make a client value concrete is to send it to the
@@ -210,13 +210,13 @@ ommitted if it is derivible from its {e usage} in the server code:
 {@ocaml[
 {server{
   ...
-  let onclick = {{ fun ev -> Eliom_lib.alert "ohyeah!" }} in
+  let onclick = {{ fun ev -> Eliom.Lib.alert "ohyeah!" }} in
   Eliom.content.Html.F.(div ~a:[a_onclick onclick] [txt "click me!"])
   ...
 ]}
 
 Here, the function [a_onclick] has type [(#Dom_html.mouseEvent Js.t
--> unit) -> [> `OnClick ] Eliom_content.Html.attrib]; this
+-> unit) -> [> `OnClick ] Eliom.Content.Html.attrib]; this
 determines the type of the client value [onclick] sufficiently.
 
 {2:clientvaluesemantic Semantics}
@@ -237,17 +237,17 @@ order of evaluation of global client values; it will print the numbers
 
 {@ocaml[
 {client{
-  let () = Eliom_lib.debug "1"
+  let () = Eliom.Lib.debug "1"
 }}
 {server{
-  let f n = ignore {unit { Eliom_lib.debug "%d" %n }}
+  let f n = ignore {unit { Eliom.Lib.debug "%d" %n }}
   let () =
-    ignore {unit{ Eliom_lib.debug "2" }};
+    ignore {unit{ Eliom.Lib.debug "2" }};
     ignore {unit{ f 3 }};
     ignore {unit{ f 4 }}
 }}
 {client{
-  let () = Eliom_lib.debug "5"
+  let () = Eliom.Lib.debug "5"
 }}
 ]}
 
@@ -257,12 +257,12 @@ client values are evaluated after receiving the corresponding request
 on the client in the order of their occurrence on the server. In
 requests which change the content of the page withing the application
 (originating from a service of the {!module
-Eliom_registration.App}), the expressions are evaluated {e after the
+Eliom.Registration.App}), the expressions are evaluated {e after the
 content has changed}. That way they may refer to the new DOM.
 
 If a client value is created outside of the initialization of the
 server program and also outside of the processing of a request, the
-exception {!Eliom_client_value.Client_value_creation_invalid_context} is
+exception {!Eliom.Client_value.Client_value_creation_invalid_context} is
 raised.
 
 {2:sharedclientvalues In a shared section}
