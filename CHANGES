@@ -1,4 +1,4 @@
-===== dev =====
+===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
   gained Otyp_external and Otyp_functor)
