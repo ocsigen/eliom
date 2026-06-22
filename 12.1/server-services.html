@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Services — Eliom</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <link rel="stylesheet" href="/css/ocsigen-odoc.css"/>
+  <link rel="alternate" type="text/markdown" href="./server-services.md"/>
+  <script src="./highlight.pack.js"></script>
+  <script src="./wodoc-highlight.js"></script>
+</head>
+<body class="wodoc-page wodoc-doc">
+  <!-- Shared site menu — THE single source of truth for the header, top menu and
+     drawer of EVERY Ocsigen doc page (vitrine + all projects). Canonical copy
+     lives here in ocsigen.github.io; each project's build fetches it. Injected
+     by `wodoc assemble --menu`. Holes filled by the tool (braces omitted here so
+     this comment is not itself rewritten by the hole-filler):
+       subproject  the sub-project name shown next to the Ocsigen logo
+                   (empty on the vitrine), via --subproject
+       leftnav     the project's left navigation, expanded into BOTH the mobile
+                   drawer (below) and the left column (in the page template),
+                   via --leftnav
+     The current entry is highlighted by adding the `current` class to the
+     element carrying data-wodoc-page=<id>: --current on the vitrine (page id),
+     --menu-current in a project (the project id). Nothing is hardcoded here, so
+     this file is the ONLY place the menu is defined.
+
+     Links are the FINAL site paths (/<project>/, /<page>): the target layout
+     where each project is served at ocsigen.org/<project>/ — no transitional
+     /wodoc/ prefix. -->
+<div class="page-header">
+  <p class="logo-ocsigen"><a href="/"><img src="/img/ocsigen-white.svg" alt="Ocsigen"/></a></p>
+  <p class="logo-subproject">Eliom</p>
+
+  <div class="mainmenu">
+    <p class="mainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></p>
+    <p class="mainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></p>
+    <p class="mainmenu-blog" data-wodoc-page="blog"><a href="/blog/">Blog</a></p>
+    <p data-wodoc-page="eliom" class="current"><a href="/eliom/">Eliom</a></p>
+    <p data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></p>
+    <p data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></p>
+    <p data-wodoc-page="lwt"><a href="/lwt/">Lwt</a></p>
+    <p data-wodoc-page="tyxml"><a href="/tyxml/">Tyxml</a></p>
+    <p data-wodoc-page="ocsigen-start"><a href="/ocsigen-start/">Start</a></p>
+  </div>
+
+  <form id="googlesearch" action="https://google.com/search">
+    <input name="q" id="gsearch-box" placeholder="Search using Google"/>
+    <label for="gsearch-box"><img src="/img/search.svg" alt="" id="gsearch-icon"/></label>
+    <input type="submit" id="gsearch-submit" onclick="document.getElementById('gsearch-box').value += ' site:ocsigen.org';"/>
+  </form>
+
+  <aside class="how-drawer">
+    <input id="how-drawer-toggle" type="checkbox"/>
+    <label for="how-drawer-toggle" id="how-drawer-label"><span class="how-drawer-icon"></span></label>
+    <nav class="how-drawer-content">
+      <ul class="drawermainmenu">
+        <li class="drawermainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></li>
+        <li class="drawermainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></li>
+        <li class="drawermainmenu-project current" data-wodoc-page="eliom"><a href="/eliom/">Eliom</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="lwt"><a href="/lwt/">Lwt</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="tyxml"><a href="/tyxml/">Tyxml</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-toolkit"><a href="/ocsigen-toolkit/">Toolkit</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-start"><a href="/ocsigen-start/">Start</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsipersist"><a href="/ocsipersist/">Ocsipersist</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="reactiveData"><a href="/reactiveData/">ReactiveData</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-i18n"><a href="/ocsigen-i18n/">i18n</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="wodoc"><a href="/wodoc/">Wodoc</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="projects"><a href="/projects">Other projects</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="papers"><a href="/papers">Research papers</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="credits"><a href="/credits">Who does Ocsigen?</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="contributing"><a href="/contributing">Contributing</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="blog"><a href="/blog/">Blog</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="install"><a href="/install">Installation</a></li>
+        <li class="drawermainmenu-page"><a href="https://github.com/ocsigen">Source code</a></li>
+      </ul>
+      <!-- On mobile the left column is hidden; its menu lives here in the burger
+           (.how-doctree, shown only on narrow screens), as the old site did.
+           Empty on the vitrine; the leftnav hole is filled (with the same
+           fragment as the left column) only on project pages. -->
+      <nav class="how-doctree"><div class="docversion">
+  <label>Version:
+    <select class="wodoc-version" onchange="wodocVersion(this.value)">
+      <option value="dev">dev</option>
+    </select>
+  </label>
+</div>
+<div class="cs-switch">
+  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
+  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+</div>
+<div class="page-toc">
+  <h3>On this page</h3>
+  <nav class="odoc-toc odoc-local-toc"><ul><li><a href="#introduction">Introduction</a></li><li><a href="#service-creation">Service creation</a><ul><li><a href="#http-meth">Service method</a></li><li><a href="#http-params">Service parameters</a></li><li><a href="#path">Services with path (&quot;regular&quot; services)</a></li><li><a href="#pathless">Pathless services</a><ul><li><a href="#changing-url-when-calling-a-pathless-service">Changing URL when calling a pathless service</a></li><li><a href="#options-for-pathless-services">Options for pathless services</a></li></ul></li></ul></li><li><a href="#non-standard-services">Non-standard services</a><ul><li><a href="#attached_services">Attached services</a></li><li><a href="#unregistrable_services">Unregistrable services</a><ul><li><a href="#external-services">External services</a></li><li><a href="#staticparts">Static files service</a></li><li><a href="#preapplied">Pre-applied services</a></li><li><a href="#void">Reload actions</a></li></ul></li></ul></li><li><a href="#identification">Service identification</a></li><li><a href="#service_scope">Service scopes</a></li><li><a href="#tips">Tips</a></li></ul></nav>
+</div>
+<nav class="api-nav manual-nav">
+<h3>Eliom&#x27;s Reference manual</h3>
+<ul class="api-section">
+<li class="ml3" data-wodoc-page="intro.html"><a href="./intro.html">Introduction</a></li>
+</ul>
+<h4 class="ml3">Server-side programming</h4>
+<h4 class="ml4">Services</h4>
+<ul class="api-section">
+<li class="ml5 current" data-wodoc-page="server-services.html"><a href="./server-services.html">The different types of services</a></li>
+<li class="ml5" data-wodoc-page="server-params.html"><a href="./server-params.html">Typing service parameters</a></li>
+<li class="ml5" data-wodoc-page="server-outputs.html"><a href="./server-outputs.html">Service handlers</a></li>
+<li class="ml5" data-wodoc-page="server-links.html"><a href="./server-links.html">Creating links and forms</a></li>
+</ul>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="server-state.html"><a href="./server-state.html">Sessions and server side state</a></li>
+<li class="ml4" data-wodoc-page="server-security.html"><a href="./server-security.html">Security</a></li>
+</ul>
+<h4 class="ml3">Client-server programming</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="clientserver-applications.html"><a href="./clientserver-applications.html">Eliom applications</a></li>
+<li class="ml4" data-wodoc-page="ppx-syntax.html"><a href="./ppx-syntax.html">Multi-tier programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-html.html"><a href="./clientserver-html.html">Generating HTML</a></li>
+<li class="ml4" data-wodoc-page="clientserver-communication.html"><a href="./clientserver-communication.html">Communication</a></li>
+<li class="ml4" data-wodoc-page="clientserver-services.html"><a href="./clientserver-services.html">Client-side services</a></li>
+<li class="ml4" data-wodoc-page="clientserver-react.html"><a href="./clientserver-react.html">Shared reactive programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-cache.html"><a href="./clientserver-cache.html">Caching data and off-line applications</a></li>
+<li class="ml4" data-wodoc-page="clientserver-wrapping.html"><a href="./clientserver-wrapping.html">Custom wrapping</a></li>
+</ul>
+<h4 class="ml3">Workflows</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="workflow-distillery.html"><a href="./workflow-distillery.html">Distillery</a></li>
+<li class="ml4" data-wodoc-page="mobile-apps.html"><a href="./mobile-apps.html">Mobile apps</a></li>
+<li class="ml4" data-wodoc-page="workflow-configuration.html"><a href="./workflow-configuration.html">Configuration &amp; running</a></li>
+<li class="ml4" data-wodoc-page="scalability.html"><a href="./scalability.html">Scalability</a></li>
+</ul>
+</nav>
+
+<nav class="api-nav">
+<h3>Server API</h3>
+<h4>Server API</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_lib"><a href="./eliom.server/Eliom_lib/index.html">Eliom_lib</a></li>
+<li data-wodoc-page="Eliom_client"><a href="./eliom.server/Eliom_client/index.html">Eliom_client</a></li>
+<li data-wodoc-page="Eliom_client_value"><a href="./eliom.server/Eliom_client_value/index.html">Eliom_client_value</a></li>
+<li data-wodoc-page="Eliom_common"><a href="./eliom.server/Eliom_common/index.html">Eliom_common</a></li>
+<li data-wodoc-page="Eliom_config"><a href="./eliom.server/Eliom_config/index.html">Eliom_config</a></li>
+<li data-wodoc-page="Eliom_request_info"><a href="./eliom.server/Eliom_request_info/index.html">Eliom_request_info</a></li>
+<li data-wodoc-page="Eliom_reference"><a href="./eliom.server/Eliom_reference/index.html">Eliom_reference</a></li>
+<li data-wodoc-page="Eliom_state"><a href="./eliom.server/Eliom_state/index.html">Eliom_state</a></li>
+</ul>
+<h4>Content and form creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_content"><a href="./eliom.server/Eliom_content/index.html">Eliom_content</a></li>
+<li data-wodoc-page="Eliom_content.Html"><a href="./eliom.server/Eliom_content/Html/index.html">Eliom_content.Html</a></li>
+<li data-wodoc-page="Eliom_content.Svg"><a href="./eliom.server/Eliom_content/Svg/index.html">Eliom_content.Svg</a></li>
+<li data-wodoc-page="Eliom_content.Xml"><a href="./eliom.server/Eliom_content/Xml/index.html">Eliom_content.Xml</a></li>
+<li data-wodoc-page="Eliom_tools"><a href="./eliom.server/Eliom_tools/index.html">Eliom_tools</a></li>
+</ul>
+<h4>Service creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_service"><a href="./eliom.server/Eliom_service/index.html">Eliom_service</a></li>
+<li data-wodoc-page="Eliom_parameter"><a href="./eliom.server/Eliom_parameter/index.html">Eliom_parameter</a></li>
+<li data-wodoc-page="Eliom_registration"><a href="./eliom.server/Eliom_registration/index.html">Eliom_registration</a></li>
+<li data-wodoc-page="Eliom_registration.Html"><a href="./eliom.server/Eliom_registration/Html/index.html">Eliom_registration.Html</a></li>
+<li data-wodoc-page="Eliom_registration.Action"><a href="./eliom.server/Eliom_registration/Action/index.html">Eliom_registration.Action</a></li>
+<li data-wodoc-page="Eliom_registration.Ocaml"><a href="./eliom.server/Eliom_registration/Ocaml/index.html">Eliom_registration.Ocaml</a></li>
+<li data-wodoc-page="Eliom_registration.App"><a href="./eliom.server/Eliom_registration/App/index.html">Eliom_registration.App</a></li>
+<li data-wodoc-page="Eliom_registration.File"><a href="./eliom.server/Eliom_registration/File/index.html">Eliom_registration.File</a></li>
+<li data-wodoc-page="Eliom_registration.Any"><a href="./eliom.server/Eliom_registration/Any/index.html">Eliom_registration.Any</a></li>
+<li data-wodoc-page="Eliom_registration.Redirection"><a href="./eliom.server/Eliom_registration/Redirection/index.html">Eliom_registration.Redirection</a></li>
+</ul>
+<h4>Client/server communication</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_shared"><a href="./eliom.server/Eliom_shared/index.html">Eliom_shared</a></li>
+<li data-wodoc-page="Eliom_notif"><a href="./eliom.server/Eliom_notif/index.html">Eliom_notif</a></li>
+<li data-wodoc-page="Eliom_cscache"><a href="./eliom.server/Eliom_cscache/index.html">Eliom_cscache</a></li>
+<li data-wodoc-page="Eliom_bus"><a href="./eliom.server/Eliom_bus/index.html">Eliom_bus</a></li>
+<li data-wodoc-page="Eliom_comet"><a href="./eliom.server/Eliom_comet/index.html">Eliom_comet</a></li>
+<li data-wodoc-page="Eliom_react"><a href="./eliom.server/Eliom_react/index.html">Eliom_react</a></li>
+</ul>
+</nav>
+</nav>
+    </nav>
+  </aside>
+</div>
+
+
+  <div class="project-page">
+    <div class="twocols">
+      <nav class="leftcol">
+        <div class="docversion">
+  <label>Version:
+    <select class="wodoc-version" onchange="wodocVersion(this.value)">
+      <option value="dev">dev</option>
+    </select>
+  </label>
+</div>
+<div class="cs-switch">
+  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
+  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+</div>
+<div class="page-toc">
+  <h3>On this page</h3>
+  <nav class="odoc-toc odoc-local-toc"><ul><li><a href="#introduction">Introduction</a></li><li><a href="#service-creation">Service creation</a><ul><li><a href="#http-meth">Service method</a></li><li><a href="#http-params">Service parameters</a></li><li><a href="#path">Services with path (&quot;regular&quot; services)</a></li><li><a href="#pathless">Pathless services</a><ul><li><a href="#changing-url-when-calling-a-pathless-service">Changing URL when calling a pathless service</a></li><li><a href="#options-for-pathless-services">Options for pathless services</a></li></ul></li></ul></li><li><a href="#non-standard-services">Non-standard services</a><ul><li><a href="#attached_services">Attached services</a></li><li><a href="#unregistrable_services">Unregistrable services</a><ul><li><a href="#external-services">External services</a></li><li><a href="#staticparts">Static files service</a></li><li><a href="#preapplied">Pre-applied services</a></li><li><a href="#void">Reload actions</a></li></ul></li></ul></li><li><a href="#identification">Service identification</a></li><li><a href="#service_scope">Service scopes</a></li><li><a href="#tips">Tips</a></li></ul></nav>
+</div>
+<nav class="api-nav manual-nav">
+<h3>Eliom&#x27;s Reference manual</h3>
+<ul class="api-section">
+<li class="ml3" data-wodoc-page="intro.html"><a href="./intro.html">Introduction</a></li>
+</ul>
+<h4 class="ml3">Server-side programming</h4>
+<h4 class="ml4">Services</h4>
+<ul class="api-section">
+<li class="ml5 current" data-wodoc-page="server-services.html"><a href="./server-services.html">The different types of services</a></li>
+<li class="ml5" data-wodoc-page="server-params.html"><a href="./server-params.html">Typing service parameters</a></li>
+<li class="ml5" data-wodoc-page="server-outputs.html"><a href="./server-outputs.html">Service handlers</a></li>
+<li class="ml5" data-wodoc-page="server-links.html"><a href="./server-links.html">Creating links and forms</a></li>
+</ul>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="server-state.html"><a href="./server-state.html">Sessions and server side state</a></li>
+<li class="ml4" data-wodoc-page="server-security.html"><a href="./server-security.html">Security</a></li>
+</ul>
+<h4 class="ml3">Client-server programming</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="clientserver-applications.html"><a href="./clientserver-applications.html">Eliom applications</a></li>
+<li class="ml4" data-wodoc-page="ppx-syntax.html"><a href="./ppx-syntax.html">Multi-tier programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-html.html"><a href="./clientserver-html.html">Generating HTML</a></li>
+<li class="ml4" data-wodoc-page="clientserver-communication.html"><a href="./clientserver-communication.html">Communication</a></li>
+<li class="ml4" data-wodoc-page="clientserver-services.html"><a href="./clientserver-services.html">Client-side services</a></li>
+<li class="ml4" data-wodoc-page="clientserver-react.html"><a href="./clientserver-react.html">Shared reactive programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-cache.html"><a href="./clientserver-cache.html">Caching data and off-line applications</a></li>
+<li class="ml4" data-wodoc-page="clientserver-wrapping.html"><a href="./clientserver-wrapping.html">Custom wrapping</a></li>
+</ul>
+<h4 class="ml3">Workflows</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="workflow-distillery.html"><a href="./workflow-distillery.html">Distillery</a></li>
+<li class="ml4" data-wodoc-page="mobile-apps.html"><a href="./mobile-apps.html">Mobile apps</a></li>
+<li class="ml4" data-wodoc-page="workflow-configuration.html"><a href="./workflow-configuration.html">Configuration &amp; running</a></li>
+<li class="ml4" data-wodoc-page="scalability.html"><a href="./scalability.html">Scalability</a></li>
+</ul>
+</nav>
+
+<nav class="api-nav">
+<h3>Server API</h3>
+<h4>Server API</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_lib"><a href="./eliom.server/Eliom_lib/index.html">Eliom_lib</a></li>
+<li data-wodoc-page="Eliom_client"><a href="./eliom.server/Eliom_client/index.html">Eliom_client</a></li>
+<li data-wodoc-page="Eliom_client_value"><a href="./eliom.server/Eliom_client_value/index.html">Eliom_client_value</a></li>
+<li data-wodoc-page="Eliom_common"><a href="./eliom.server/Eliom_common/index.html">Eliom_common</a></li>
+<li data-wodoc-page="Eliom_config"><a href="./eliom.server/Eliom_config/index.html">Eliom_config</a></li>
+<li data-wodoc-page="Eliom_request_info"><a href="./eliom.server/Eliom_request_info/index.html">Eliom_request_info</a></li>
+<li data-wodoc-page="Eliom_reference"><a href="./eliom.server/Eliom_reference/index.html">Eliom_reference</a></li>
+<li data-wodoc-page="Eliom_state"><a href="./eliom.server/Eliom_state/index.html">Eliom_state</a></li>
+</ul>
+<h4>Content and form creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_content"><a href="./eliom.server/Eliom_content/index.html">Eliom_content</a></li>
+<li data-wodoc-page="Eliom_content.Html"><a href="./eliom.server/Eliom_content/Html/index.html">Eliom_content.Html</a></li>
+<li data-wodoc-page="Eliom_content.Svg"><a href="./eliom.server/Eliom_content/Svg/index.html">Eliom_content.Svg</a></li>
+<li data-wodoc-page="Eliom_content.Xml"><a href="./eliom.server/Eliom_content/Xml/index.html">Eliom_content.Xml</a></li>
+<li data-wodoc-page="Eliom_tools"><a href="./eliom.server/Eliom_tools/index.html">Eliom_tools</a></li>
+</ul>
+<h4>Service creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_service"><a href="./eliom.server/Eliom_service/index.html">Eliom_service</a></li>
+<li data-wodoc-page="Eliom_parameter"><a href="./eliom.server/Eliom_parameter/index.html">Eliom_parameter</a></li>
+<li data-wodoc-page="Eliom_registration"><a href="./eliom.server/Eliom_registration/index.html">Eliom_registration</a></li>
+<li data-wodoc-page="Eliom_registration.Html"><a href="./eliom.server/Eliom_registration/Html/index.html">Eliom_registration.Html</a></li>
+<li data-wodoc-page="Eliom_registration.Action"><a href="./eliom.server/Eliom_registration/Action/index.html">Eliom_registration.Action</a></li>
+<li data-wodoc-page="Eliom_registration.Ocaml"><a href="./eliom.server/Eliom_registration/Ocaml/index.html">Eliom_registration.Ocaml</a></li>
+<li data-wodoc-page="Eliom_registration.App"><a href="./eliom.server/Eliom_registration/App/index.html">Eliom_registration.App</a></li>
+<li data-wodoc-page="Eliom_registration.File"><a href="./eliom.server/Eliom_registration/File/index.html">Eliom_registration.File</a></li>
+<li data-wodoc-page="Eliom_registration.Any"><a href="./eliom.server/Eliom_registration/Any/index.html">Eliom_registration.Any</a></li>
+<li data-wodoc-page="Eliom_registration.Redirection"><a href="./eliom.server/Eliom_registration/Redirection/index.html">Eliom_registration.Redirection</a></li>
+</ul>
+<h4>Client/server communication</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_shared"><a href="./eliom.server/Eliom_shared/index.html">Eliom_shared</a></li>
+<li data-wodoc-page="Eliom_notif"><a href="./eliom.server/Eliom_notif/index.html">Eliom_notif</a></li>
+<li data-wodoc-page="Eliom_cscache"><a href="./eliom.server/Eliom_cscache/index.html">Eliom_cscache</a></li>
+<li data-wodoc-page="Eliom_bus"><a href="./eliom.server/Eliom_bus/index.html">Eliom_bus</a></li>
+<li data-wodoc-page="Eliom_comet"><a href="./eliom.server/Eliom_comet/index.html">Eliom_comet</a></li>
+<li data-wodoc-page="Eliom_react"><a href="./eliom.server/Eliom_react/index.html">Eliom_react</a></li>
+</ul>
+</nav>
+
+      </nav>
+      <article class="rightcol">
+        <header class="odoc-preamble"><h1 id="services">Services</h1></header>
+        <div class="odoc-content"><h2 id="introduction">Introduction</h2><p>Services are entry points to your Web site. A service is usually attached to a URL, and it generates a Web page. There are other kinds of services, e.g., services that are identified by special GET or POST parameters, and services representing redirections.</p><p>A service is composed of:</p><ul><li>some identification data, allowing Eliom to choose which service should answer an incoming request; and</li><li>a service handler that will generate the answer.</li></ul><p>Services are most commonly used to create links and forms towards a service, using for example the function <code>val
+Eliom_content.Html.D.a</code>. See chapter <a href="server-links.html" title="server-links">Creating links and forms</a> for more information.</p><p>Manipulation of Eliom services can be done through the values of type <code>type Eliom_service.t</code> (see <code>type
+Eliom_service_sigs.S.t</code>). The service creation can be split in two steps:</p><ul><li>create a value of type <code>Eliom_service.t</code>, most commonly by using the function <a href="eliom.server/Eliom_service/index.html#val-create"><code>Eliom_service.create</code></a>; and</li><li>register a service handler, e.g., using <code>val
+Eliom_registration.Html.register</code>. The handler receives the server parameters (GET and POST) and is responsible for producing the content sent to the client.</li></ul><p>The rest of this chapter focuses on service creation. See chapter <a href="server-outputs.html" title="server-outputs">Implementing service handlers</a> for more information on handler implementation and registration.</p><h2 id="service-creation">Service creation</h2><p><div> Warning: in this manual, we use the term <em>service</em> both to denote a value of type <code>Eliom_service.t</code> --that only contains some location information about a service--, or a fully <em>registered</em> service, that is also composed of a service handler. In case of ambiguities, we will use <code>service</code> --in green monotype-- to designate a value of type <code>Eliom_service.t</code>. </div></p><p>The standard way to create a service is a call of the form <code>Eliom_service.create ~meth ~path ()</code>, where</p><ul><li><code>~meth</code> (see <a href="eliom.server/Eliom_service_sigs/module-type-TYPES/index.html#type-meth"><code>Eliom_service_sigs.TYPES.meth</code></a>) specifies the HTTP method and the HTTP parameters of the service; and</li><li><code>~path:(Path p)</code> specifies a path, while <code>~path:No_path</code> defines a pathless service (see <a href="eliom.server/Eliom_service_sigs/module-type-S/index.html#type-path_option"><code>Eliom_service_sigs.S.path_option</code></a>).</li></ul><h3 id="http-meth">Service method</h3><p>Services can respond to any of the GET, POST, PUT, and DELETE HTTP methods.</p><ul><li>The GET method is intended to be used to retrieve a document from the server. The page is generated mainly according to the information contained in the URL. URLs may contain parameters (consisting of name-value pairs in the URL string), and these parameters may come from HTML forms (or not).</li><li>The POST method is used to send data to the server (files, for example), but also values coming from an HTML form. Data is sent in the body of the HTTP request. It is possible to use the POST method with an empty body. In HTML, it is not possible to mix GET and POST parameters in forms, but it is possible to use a POST form with (fixed) GET parameters in the URL.</li><li>The PUT and DELETE methods are mostly used to implement RESTful applications.</li></ul><p>The corresponding <a href="eliom.server/Eliom_service_sigs/module-type-TYPES/index.html#type-meth"><code>Eliom_service_sigs.TYPES.meth</code></a> constructors are <code>Get g</code>, <code>Post (g, p)</code>, <code>Put g</code>, and <code>Delete g</code>, where <code>g</code> and <code>p</code> belong in <code>Eliom_parameter.params_type</code> and correspond to the GET and POST parameters.</p><div class="concept"><p><b>POST or GET?</b></p><p>POST and GET methods are not equivalent, and you must be very careful if you want to use one or the other. Remember that only GET services are bookmarkable. The HTTP method and POST parameters are not stored in bookmarks.</p><ul><li>Use the GET method if you want the user to be able to come back to the service later, or to write the URL manually.</li><li>Use the POST method for <em>hidden services</em>, that is, when you want different behaviour between the first click and a reload of the page. Usually, using POST triggers a server-side action (like a payment, or adding something to a database), and you don't want it to succeed several times if the page is reloaded or bookmarked.</li></ul></div><h3 id="http-params">Service parameters</h3><p>GET services expect only GET parameters, i.e., parameters that appear in the URL. POST, PUT, and DELETE services can also take POST parameters which are part of the body of the request.</p><p>Values of the type <code>Eliom_parameter.params_type</code> represent the set of expected arguments with their types. They are built using combinators from the <a href="eliom.server/Eliom_parameter/index.html"><code>Eliom_parameter</code></a> module. See chapter <a href="server-params.html" title="server-params">Service parameters</a> for a detailled description of this module.</p><p>Type information associated to each argument allows Eliom to automatically convert the actual parameters into the corresponding OCaml types. If the parameter cannot be converted, the exception <a href="eliom.server/Eliom_common/index.html#exception-Eliom_Typing_Error"><code>Eliom_common.Eliom_Typing_Error</code></a> is raised. The handling of such errors may be customized by providing the argument <code>~error_handler</code> when registering the service.</p><h3 id="path">Services with path (&quot;regular&quot; services)</h3><p>Services attached to paths, or more simply <em>regular</em> services, are the main entry points of sites. They are identified by the path of the URL and by (GET or POST) parameters. They correspond to classical URLs, and they last forever once registered.</p><p>For creating a regular service, the <code>Path p</code> constructor of <a href="eliom.server/Eliom_service_sigs/module-type-S/index.html#type-path_option"><code>Eliom_service_sigs.S.path_option</code></a> is used. The path <code>p</code> is represented in Eliom as a list of strings. For example:</p><p><code>[&quot;foo&quot;; &quot;bar&quot;]</code> corresponds to the URL <code>foo/bar</code>. <br/> <code>[&quot;dir&quot;; &quot;&quot;]</code> corresponds to the URL <code>dir/</code> (that is: the default page of the directory <code>dir</code>). <br/> The empty list <code>[]</code> is equivalent to <code>[&quot;&quot;]</code>.<br/></p><p>In many cases, the URL corresponding to a POST service must be accessible even when a request is done without the POST parameters; for instance, when typing the URL in the browser, when reloading, when using bookmarks, etc. If that is the case, the programmer needs to implement a separate GET service and register it on the same URL.</p><p><em>Warning:</em></p><ul><li>You cannot create a service on path <code>[&quot;foo&quot;]</code> (URL <code>foo</code>, without slash at the end) and another on path <code>[&quot;foo&quot;;&quot;bar&quot;]</code> (URL <code>foo/bar</code>), because <code>foo</code> cannot be both a directory and a file. Additionally, be careful not to use a path as a directory with Eliom, if it is a file for Staticmod (and vice versa).</li><li><code>[&quot;foo&quot;;&quot;bar&quot;]</code> is not equivalent to <code>[&quot;foo/bar&quot;]</code>. In the latter, the <code>&quot;/&quot;</code> will be encoded in the URL.<br/></li></ul><h3 id="pathless">Pathless services</h3><p>Pathless services are not attached to a URL path. Such services are created with the <code>No_path</code> constructor of <a href="eliom.server/Eliom_service_sigs/module-type-S/index.html#type-path_option"><code>Eliom_service_sigs.S.path_option</code></a>.</p><p>Pathless services are only identified by a special parameter, no matter what the path and the other parameters in the URL are. They are used to implement some behavior that should not be attached to a particular URL. A link to such a service points to the current URL with just an additional special parameter. This is useful when you want the same link or form on several pages (for example, a login box) but you don't want to go to another URL. Pathless services are often used with <a href="server-outputs.html#actions" title="actions">actions</a>.</p><p>Here is a simple example. Suppose that the function <code>remove</code> removes one piece of data from a database (based on the identifier of the data). If you want to put a link on your page to call this function and redisplay the page, just create an action on a pathless service like this:</p><pre class="language-ocaml"><code>
+let remove_action =
+  Eliom_registration.Action.create
+    ~meth:
+      (Eliom_service.Post
+         (Eliom_parameter.unit,
+          Eliom_parameter.int &quot;id&quot;))
+    ~path:Eliom_service.No_path
+    (fun () id -&gt; remove id)
+</code></pre><p>Then wherever you want to add a button to do that action (on data <code>id</code>), create a form like:</p><pre class="language-ocaml"><code>let open Eliom_content.Html.D in
+Form.post_form
+  ~service:remove_action
+  (fun id_name -&gt; [
+       Form.input ~input_type:`Hidden ~name:id_name ~value:id Form.int;
+       Form.button_no_value ~button_type:`Submit [txt &quot;submit&quot;]
+     ])</code></pre><h4 id="changing-url-when-calling-a-pathless-service">Changing URL when calling a pathless service</h4><p>By default, the URL of links or forms to pathless services is the current page. If you want to combine the service call with a URL change, it is possible to attach a non-attached service to another service using function <a href="eliom.server/Eliom_service/index.html#val-attach"><code>Eliom_service.attach</code></a>.</p><p>Example:</p><pre class="language-ocaml"><code>let service =
+  Eliom_service.attach
+    ~fallback:myfirstservice
+    ~service:myget_coserv'
+    ()
+in
+a ~service [txt &quot;click&quot;] ()</code></pre><p>It works with GET or POST pathless services. The fallback must be a GET service without parameters (but you can preapply it).</p><h4 id="options-for-pathless-services">Options for pathless services</h4><h5 id="timeouts">Timeouts</h5><p>It is possible to use timeouts with pathless services, using the optional parameter <code>?timeout</code> of the creation functions. For example if your service is intended to show the results of a search, you probably want it to be available only for a short time.</p><p><em>Warning:</em> forgetting timeouts may cause memory leaks!</p><h5 id="disposability">Disposability</h5><p>It is possible to set a limit to the number of uses of a pathless service. Just provide the maximum number of uses with the optional <code>?max_use</code> parameter while creating the service.</p><h2 id="non-standard-services">Non-standard services</h2><p>Some kinds of services do not fit in our canonical way of defining services, <a href="eliom.server/Eliom_service/index.html#val-create"><code>Eliom_service.create</code></a> .</p><h3 id="attached_services">Attached services</h3><p>Attached services are created using the functions <a href="eliom.server/Eliom_service/index.html#val-create_attached_get"><code>Eliom_service.create_attached_get</code></a> (GET method) and <a href="eliom.server/Eliom_service/index.html#val-create_attached_post"><code>Eliom_service.create_attached_post</code></a> (POST method).</p><p>Anonymous GET attached services are often created dynamically with respect to previous interaction with the user (e.g. filling forms in multiple steps). They handle correctly the classical Web interactions (&quot;back&quot; button, bookmark, tab,~ ...): you create a new attached service each time you want to record a precise point in the interaction with the user, to be able to come back there later.</p><p>Often, they should be used with a restricted scope (see the section <a href="#service_scope" title="service_scope">service scopes</a>).</p><p>POST attached services can be used to customize the behaviour of a URL. Some of their uses are:</p><ul><li>For the same purpose as GET attached services, but when you don't want this service to be bookmarkable.</li></ul><ul><li>For performing side effects before serving a page. For example, say you want a disconnection button that leads to the main page of the site, but with the side effect of disconnecting the user. You will use a (named) POST (attached) service.</li></ul><p>If an attached service does not exist anymore (e.g., if its timeout has expired, or if the session to which it belongs was closed), the fallback is called.</p><p>The fallback of a GET attached service cannot take parameters. But it is possible to use a <a href="#preapplied" title="preapplied">pre-applied</a> service as fallback.</p><p>Attached services can have a timeout and can be disposable, just like pathless services.</p><h3 id="unregistrable_services">Unregistrable services</h3><p>Some values of type <code>Eliom_service.t</code> cannot be meaningfully associated to service handlers. Such values are called <em>unregistrable services</em> (as opposed to the standard case of <em>registrable services</em>), and represent, for example, links towards external sites, or registrable services pre-applied to some parameters. This allows use of the <code>Eliom_service</code> API consistently for creating links.</p><h4 id="external-services">External services</h4><p>It is possible to define external services, that is, services that belong to an external Web site (on the same server or not). To do this, use the function <code>Eliom_service.extern</code> (see <a href="eliom.server/Eliom_service_sigs/module-type-S/index.html#val-extern"><code>Eliom_service_sigs.S.extern</code></a>).</p><p>For example, the following code defines a link to the OCaml Wikipedia page:</p><pre class="language-ocaml"><code>Eliom_content.Html.D.a
+  (Eliom_service.extern
+     ~prefix:&quot;http://en.wikipedia.org&quot;
+     ~path:[&quot;wiki&quot;;&quot;&quot;]
+     ~meth:
+       (Eliom_service.Get
+          Eliom_parameter.(suffix (all_suffix &quot;suff&quot;)))
+     ())
+  [txt &quot;OCaml on Wikipedia&quot;]
+  [&quot;OCaml&quot;]</code></pre><h4 id="staticparts">Static files service</h4><p><a href="./../../ocsigenserver/latest/staticmod.html">Staticmod</a> is an Ocsigen Server extension serving static (non-generated) files (for example, images and stylesheets). It can be used together with Eliom. The predefined service <a href="eliom.server/Eliom_service/index.html#val-static_dir"><code>Eliom_service.static_dir</code></a> can be used to make links to static files. It takes as parameter the path of the file.</p><p>For example, the following code will create this link: download image.</p><pre class="language-ocaml"><code>let open Eliom_content.Html.F in
+a (static_dir ()) [txt &quot;download image&quot;] [&quot;ocsigen10.png&quot;]</code></pre><p>It is also possible to send static files using Eliom, with <a href="eliom.server/Eliom_registration/File/index.html"><code>Eliom_registration.File</code></a>. See <a href="server-outputs.html#eliomfiles" title="eliomfiles">Sending files</a>.</p><h4 id="preapplied">Pre-applied services</h4><p>It is possible to preapply the GET parameters of a service to obtain a service without parameters, or only the POST ones. It is done using <code>Eliom_service.preapply</code> (see <a href="eliom.server/Eliom_service_sigs/module-type-S/index.html#val-preapply"><code>Eliom_service_sigs.S.preapply</code></a>). For example:</p><pre class="language-ocaml"><code>let s =
+  Eliom_service.create
+    ~path:(Eliom_service.Path [&quot;serv&quot;])
+    ~meth:(Eliom_service.Get Eliom_parameter.int)
+    ()
+
+let preappl = Eliom_service.preapply s 3</code></pre><p>It is not possible to register a handler on a preapplied service, but you can use them in links or as fallbacks for attached services.</p><h4 id="void">Reload actions</h4><p><code>Eliom_service.reload_action</code> (see <a href="eliom.server/Eliom_service_sigs/module-type-S/index.html#val-reload_action"><code>Eliom_service_sigs.S.reload_action</code></a>) is a special non-attached action, with special behavior: it has no parameter at all, not even non-attached parameters. Use it if you want to make a link to the current page without non-attached parameters. It is almost equivalent to a POST pathless service without POST parameters, on which you register an action that does nothing, but instead it is using the GET method, so that you can use it with <code>&lt;a&gt;</code> links, not only with forms. Example:</p><pre class="language-ocaml"><code>a ~service:Eliom_service.reload_action [txt &quot;cancel&quot;] ()</code></pre><p>There is also <code>Eliom_service.reload_action_https</code> (same, but forces use of HTTPS), <code>Eliom_service.reload_action_hidden</code>, and <code>Eliom_service.reload_action_https_hidden</code>. &quot;Hidden&quot; means that they keep GET non-attached parameters.</p><p>Use <code>Eliom_service.reload_action_hidden</code> for example after a POST request, if you want to do a redirection towards the same page without POST parameters (and thus prevent from reposting data if the user reloads the page).</p><h2 id="identification">Service identification</h2><p>Eliom has a sophisticated <em>service identification mechanism</em> to choose the service handler to be executed --given an incoming request-- with respect to many criteria:</p><ul><li>the path of the requested URL,</li><li>the names of the (GET or POST) parameters,</li><li>some internal (GET or POST) parameter, added automatically,</li><li>the HTTP method,</li><li>the session the client belongs to (or client side process, or session group),</li><li>...</li></ul><p>But the user does not usually need to bother with this. Eliom abstracts this mechanism away through its three main kinds of services (regular services, pathless services, and attached services), which we have described.</p><h2 id="service_scope">Service scopes</h2><p>By default, services are accessible to anybody (<em>scope</em> <em>&quot;site&quot;</em>). It is possible to restrict the scope of a service, making it available only to a session, a client side process, or a group of sessions.</p><p>To limit the scope of a service, just add the argument <code>~scope</code> to the <a href="eliom.server/Eliom_registration/Html/index.html#val-register"><code>Eliom_registration.Html.register</code></a> function (same for the other <code>register</code> variants). The default scope is <a href="eliom.server/Eliom_common/index.html#type-site_scope"><code>Eliom_common.site_scope</code></a>.</p><p>The same service can be registered with several scopes. This makes it possible, for example, to generate custom services for a specific user. Eliom will try to find the service by trying the following (in order):</p><ul><li>scope <em>&quot;client-side process&quot;</em>,</li><li>scope <em>&quot;session&quot;</em>,</li><li>scope <em>&quot;group of session&quot;</em>,</li><li>and finally scope <em>&quot;site&quot;</em>.</li></ul><h2 id="tips">Tips</h2><ul><li>All services created during initialization must be registered (with <em>&quot;site&quot;</em> scope) during the initialization phase of your module. If not, the server will not start, and an appropriate error message will appear in the logs. This prevents broken links.</li><li>Services may be registered only during the server's initialization phase (while reading the site configuration) or while processing a request, because Eliom must know the information about the site. Be very careful about this if you want to use static linking (see the section on <a href="workflow-configuration.html#static_linking" title="static_linking">static linking</a> in the chapter about Compiling and configuring Eliom modules).</li><li>All regular services (but not pathless and attached services) need to be created in a module loaded inside a <code>&lt;host&gt;</code> tag of the configuration file. It is not possible to accomplish this using modules loaded inside <code>&lt;extension&gt;</code> or <code>&lt;library&gt;</code>.</li><li>If you create new main services dynamically, you will dynamically create new URLs! This may be dangerous as they will disappear if you stop the server. Be very careful to re-create these URLs when you relaunch the server, otherwise, some external links or bookmarks will be broken!<br/> The use of that feature is discouraged for services without timeout, as such services will be available only until the end of the server process (and it is not possible to re-create them with the same key).</li><li>Do not register the same service in the same scope twice, and do not replace a service by a directory (or vice versa). If this happens during the initialization phase, the server won't start. If this happens after server startup, it will be ignored (with a warning in the logs).</li><li>GET attached services (without POST parameters) can be registered only with a regular service without GET/POST parameters as fallback. But it may be <a href="#preapplied" title="preapplied"><em>preapplied</em></a>.</li><li>The registration of (main) services must be completed before the end of the loading of the module. It is not possible to launch an Lwt thread with the intention that it will register a service later, as registering a service needs access to config file information (for example the directory of the site). If you do this, the server will raise an exception most of the time, but you may also get unexpected results (if the thread is executed while another site is loaded). If you use threads in the initialization phase of your module (for example if you need information from a database), use <code>val
+Lwt_unix.run</code> to wait for the end of the thread.</li><li>Some services can be registered multiple times, with different options. This allows for example choosing between different handlers when the request is done in a particular session or protocol (HTTP or HTTPS).</li></ul></div>
+      </article>
+    </div>
+  </div>
+
+  <script>
+    // Toggle between the server / client API of the same module.
+    function wodocSwitch(side) {
+      var w = { server: '', client: '' };
+      var p = location.pathname;
+      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
+      location.href = np !== p ? np
+        : './eliom.' + side + '/' + (w[side] || '') + 'index.html';
+    }
+    var wodocPub = "/eliom";
+    // Switch version: keep the current page, swapping only the version segment.
+    function wodocVersion(v) {
+      if (!v) return;
+      var re = new RegExp('^(' + wodocPub + '/)[^/]+');
+      var p = location.pathname;
+      location.href =
+        re.test(p) ? p.replace(re, '$1' + v) : wodocPub + '/' + v + '/index.html';
+    }
+    // Build the version <select> from the project's versions.json (the single
+    // source of truth, refreshed on every build/release), so even older frozen
+    // pages list the current set. Falls back to the baked <option>s on failure.
+    (function () {
+      var seg = (location.pathname.match(
+        new RegExp('^' + wodocPub + '/([^/]+)')) || [])[1];
+      function select(sel) {
+        var i;
+        for (i = 0; i < sel.options.length; i++)
+          if (sel.options[i].value === seg) { sel.selectedIndex = i; return; }
+        if (seg) {
+          var o = document.createElement('option');
+          o.value = seg; o.textContent = seg; o.selected = true;
+          sel.insertBefore(o, sel.firstChild);
+        }
+      }
+      fetch(wodocPub + '/versions.json')
+        .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(function (m) {
+          var list = m.list || [], latest = m.latest;
+          document.querySelectorAll('.wodoc-version').forEach(function (sel) {
+            sel.innerHTML = '';
+            list.forEach(function (v) {
+              var o = document.createElement('option');
+              if (v === latest) { o.value = 'latest'; o.textContent = v + ' (latest)'; }
+              else { o.value = v; o.textContent = v; }
+              sel.appendChild(o);
+            });
+            select(sel);
+          });
+        })
+        .catch(function () {
+          document.querySelectorAll('.wodoc-version').forEach(select);
+        });
+    })();
+  </script>
+</body>
+</html>

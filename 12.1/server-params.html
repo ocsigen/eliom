@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Service parameters — Eliom</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <link rel="stylesheet" href="/css/ocsigen-odoc.css"/>
+  <link rel="alternate" type="text/markdown" href="./server-params.md"/>
+  <script src="./highlight.pack.js"></script>
+  <script src="./wodoc-highlight.js"></script>
+</head>
+<body class="wodoc-page wodoc-doc">
+  <!-- Shared site menu — THE single source of truth for the header, top menu and
+     drawer of EVERY Ocsigen doc page (vitrine + all projects). Canonical copy
+     lives here in ocsigen.github.io; each project's build fetches it. Injected
+     by `wodoc assemble --menu`. Holes filled by the tool (braces omitted here so
+     this comment is not itself rewritten by the hole-filler):
+       subproject  the sub-project name shown next to the Ocsigen logo
+                   (empty on the vitrine), via --subproject
+       leftnav     the project's left navigation, expanded into BOTH the mobile
+                   drawer (below) and the left column (in the page template),
+                   via --leftnav
+     The current entry is highlighted by adding the `current` class to the
+     element carrying data-wodoc-page=<id>: --current on the vitrine (page id),
+     --menu-current in a project (the project id). Nothing is hardcoded here, so
+     this file is the ONLY place the menu is defined.
+
+     Links are the FINAL site paths (/<project>/, /<page>): the target layout
+     where each project is served at ocsigen.org/<project>/ — no transitional
+     /wodoc/ prefix. -->
+<div class="page-header">
+  <p class="logo-ocsigen"><a href="/"><img src="/img/ocsigen-white.svg" alt="Ocsigen"/></a></p>
+  <p class="logo-subproject">Eliom</p>
+
+  <div class="mainmenu">
+    <p class="mainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></p>
+    <p class="mainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></p>
+    <p class="mainmenu-blog" data-wodoc-page="blog"><a href="/blog/">Blog</a></p>
+    <p data-wodoc-page="eliom" class="current"><a href="/eliom/">Eliom</a></p>
+    <p data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></p>
+    <p data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></p>
+    <p data-wodoc-page="lwt"><a href="/lwt/">Lwt</a></p>
+    <p data-wodoc-page="tyxml"><a href="/tyxml/">Tyxml</a></p>
+    <p data-wodoc-page="ocsigen-start"><a href="/ocsigen-start/">Start</a></p>
+  </div>
+
+  <form id="googlesearch" action="https://google.com/search">
+    <input name="q" id="gsearch-box" placeholder="Search using Google"/>
+    <label for="gsearch-box"><img src="/img/search.svg" alt="" id="gsearch-icon"/></label>
+    <input type="submit" id="gsearch-submit" onclick="document.getElementById('gsearch-box').value += ' site:ocsigen.org';"/>
+  </form>
+
+  <aside class="how-drawer">
+    <input id="how-drawer-toggle" type="checkbox"/>
+    <label for="how-drawer-toggle" id="how-drawer-label"><span class="how-drawer-icon"></span></label>
+    <nav class="how-drawer-content">
+      <ul class="drawermainmenu">
+        <li class="drawermainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></li>
+        <li class="drawermainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></li>
+        <li class="drawermainmenu-project current" data-wodoc-page="eliom"><a href="/eliom/">Eliom</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="lwt"><a href="/lwt/">Lwt</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="tyxml"><a href="/tyxml/">Tyxml</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-toolkit"><a href="/ocsigen-toolkit/">Toolkit</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-start"><a href="/ocsigen-start/">Start</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsipersist"><a href="/ocsipersist/">Ocsipersist</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="reactiveData"><a href="/reactiveData/">ReactiveData</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-i18n"><a href="/ocsigen-i18n/">i18n</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="wodoc"><a href="/wodoc/">Wodoc</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="projects"><a href="/projects">Other projects</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="papers"><a href="/papers">Research papers</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="credits"><a href="/credits">Who does Ocsigen?</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="contributing"><a href="/contributing">Contributing</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="blog"><a href="/blog/">Blog</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="install"><a href="/install">Installation</a></li>
+        <li class="drawermainmenu-page"><a href="https://github.com/ocsigen">Source code</a></li>
+      </ul>
+      <!-- On mobile the left column is hidden; its menu lives here in the burger
+           (.how-doctree, shown only on narrow screens), as the old site did.
+           Empty on the vitrine; the leftnav hole is filled (with the same
+           fragment as the left column) only on project pages. -->
+      <nav class="how-doctree"><div class="docversion">
+  <label>Version:
+    <select class="wodoc-version" onchange="wodocVersion(this.value)">
+      <option value="dev">dev</option>
+    </select>
+  </label>
+</div>
+<div class="cs-switch">
+  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
+  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+</div>
+<div class="page-toc">
+  <h3>On this page</h3>
+  <nav class="odoc-toc odoc-local-toc"><ul><li><a href="#parameters">Parameters</a><ul><li><a href="#services-with-parameters">Services with parameters</a></li><li><a href="#suffix">Path suffixes as parameters</a></li><li><a href="#custom-parameter-types">Custom parameter types</a></li><li><a href="#any">Untyped parameters</a></li></ul></li><li><a href="#nonlocalizedparameters">Non localized parameters</a></li></ul></nav>
+</div>
+<nav class="api-nav manual-nav">
+<h3>Eliom&#x27;s Reference manual</h3>
+<ul class="api-section">
+<li class="ml3" data-wodoc-page="intro.html"><a href="./intro.html">Introduction</a></li>
+</ul>
+<h4 class="ml3">Server-side programming</h4>
+<h4 class="ml4">Services</h4>
+<ul class="api-section">
+<li class="ml5" data-wodoc-page="server-services.html"><a href="./server-services.html">The different types of services</a></li>
+<li class="ml5 current" data-wodoc-page="server-params.html"><a href="./server-params.html">Typing service parameters</a></li>
+<li class="ml5" data-wodoc-page="server-outputs.html"><a href="./server-outputs.html">Service handlers</a></li>
+<li class="ml5" data-wodoc-page="server-links.html"><a href="./server-links.html">Creating links and forms</a></li>
+</ul>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="server-state.html"><a href="./server-state.html">Sessions and server side state</a></li>
+<li class="ml4" data-wodoc-page="server-security.html"><a href="./server-security.html">Security</a></li>
+</ul>
+<h4 class="ml3">Client-server programming</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="clientserver-applications.html"><a href="./clientserver-applications.html">Eliom applications</a></li>
+<li class="ml4" data-wodoc-page="ppx-syntax.html"><a href="./ppx-syntax.html">Multi-tier programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-html.html"><a href="./clientserver-html.html">Generating HTML</a></li>
+<li class="ml4" data-wodoc-page="clientserver-communication.html"><a href="./clientserver-communication.html">Communication</a></li>
+<li class="ml4" data-wodoc-page="clientserver-services.html"><a href="./clientserver-services.html">Client-side services</a></li>
+<li class="ml4" data-wodoc-page="clientserver-react.html"><a href="./clientserver-react.html">Shared reactive programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-cache.html"><a href="./clientserver-cache.html">Caching data and off-line applications</a></li>
+<li class="ml4" data-wodoc-page="clientserver-wrapping.html"><a href="./clientserver-wrapping.html">Custom wrapping</a></li>
+</ul>
+<h4 class="ml3">Workflows</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="workflow-distillery.html"><a href="./workflow-distillery.html">Distillery</a></li>
+<li class="ml4" data-wodoc-page="mobile-apps.html"><a href="./mobile-apps.html">Mobile apps</a></li>
+<li class="ml4" data-wodoc-page="workflow-configuration.html"><a href="./workflow-configuration.html">Configuration &amp; running</a></li>
+<li class="ml4" data-wodoc-page="scalability.html"><a href="./scalability.html">Scalability</a></li>
+</ul>
+</nav>
+
+<nav class="api-nav">
+<h3>Server API</h3>
+<h4>Server API</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_lib"><a href="./eliom.server/Eliom_lib/index.html">Eliom_lib</a></li>
+<li data-wodoc-page="Eliom_client"><a href="./eliom.server/Eliom_client/index.html">Eliom_client</a></li>
+<li data-wodoc-page="Eliom_client_value"><a href="./eliom.server/Eliom_client_value/index.html">Eliom_client_value</a></li>
+<li data-wodoc-page="Eliom_common"><a href="./eliom.server/Eliom_common/index.html">Eliom_common</a></li>
+<li data-wodoc-page="Eliom_config"><a href="./eliom.server/Eliom_config/index.html">Eliom_config</a></li>
+<li data-wodoc-page="Eliom_request_info"><a href="./eliom.server/Eliom_request_info/index.html">Eliom_request_info</a></li>
+<li data-wodoc-page="Eliom_reference"><a href="./eliom.server/Eliom_reference/index.html">Eliom_reference</a></li>
+<li data-wodoc-page="Eliom_state"><a href="./eliom.server/Eliom_state/index.html">Eliom_state</a></li>
+</ul>
+<h4>Content and form creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_content"><a href="./eliom.server/Eliom_content/index.html">Eliom_content</a></li>
+<li data-wodoc-page="Eliom_content.Html"><a href="./eliom.server/Eliom_content/Html/index.html">Eliom_content.Html</a></li>
+<li data-wodoc-page="Eliom_content.Svg"><a href="./eliom.server/Eliom_content/Svg/index.html">Eliom_content.Svg</a></li>
+<li data-wodoc-page="Eliom_content.Xml"><a href="./eliom.server/Eliom_content/Xml/index.html">Eliom_content.Xml</a></li>
+<li data-wodoc-page="Eliom_tools"><a href="./eliom.server/Eliom_tools/index.html">Eliom_tools</a></li>
+</ul>
+<h4>Service creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_service"><a href="./eliom.server/Eliom_service/index.html">Eliom_service</a></li>
+<li data-wodoc-page="Eliom_parameter"><a href="./eliom.server/Eliom_parameter/index.html">Eliom_parameter</a></li>
+<li data-wodoc-page="Eliom_registration"><a href="./eliom.server/Eliom_registration/index.html">Eliom_registration</a></li>
+<li data-wodoc-page="Eliom_registration.Html"><a href="./eliom.server/Eliom_registration/Html/index.html">Eliom_registration.Html</a></li>
+<li data-wodoc-page="Eliom_registration.Action"><a href="./eliom.server/Eliom_registration/Action/index.html">Eliom_registration.Action</a></li>
+<li data-wodoc-page="Eliom_registration.Ocaml"><a href="./eliom.server/Eliom_registration/Ocaml/index.html">Eliom_registration.Ocaml</a></li>
+<li data-wodoc-page="Eliom_registration.App"><a href="./eliom.server/Eliom_registration/App/index.html">Eliom_registration.App</a></li>
+<li data-wodoc-page="Eliom_registration.File"><a href="./eliom.server/Eliom_registration/File/index.html">Eliom_registration.File</a></li>
+<li data-wodoc-page="Eliom_registration.Any"><a href="./eliom.server/Eliom_registration/Any/index.html">Eliom_registration.Any</a></li>
+<li data-wodoc-page="Eliom_registration.Redirection"><a href="./eliom.server/Eliom_registration/Redirection/index.html">Eliom_registration.Redirection</a></li>
+</ul>
+<h4>Client/server communication</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_shared"><a href="./eliom.server/Eliom_shared/index.html">Eliom_shared</a></li>
+<li data-wodoc-page="Eliom_notif"><a href="./eliom.server/Eliom_notif/index.html">Eliom_notif</a></li>
+<li data-wodoc-page="Eliom_cscache"><a href="./eliom.server/Eliom_cscache/index.html">Eliom_cscache</a></li>
+<li data-wodoc-page="Eliom_bus"><a href="./eliom.server/Eliom_bus/index.html">Eliom_bus</a></li>
+<li data-wodoc-page="Eliom_comet"><a href="./eliom.server/Eliom_comet/index.html">Eliom_comet</a></li>
+<li data-wodoc-page="Eliom_react"><a href="./eliom.server/Eliom_react/index.html">Eliom_react</a></li>
+</ul>
+</nav>
+</nav>
+    </nav>
+  </aside>
+</div>
+
+
+  <div class="project-page">
+    <div class="twocols">
+      <nav class="leftcol">
+        <div class="docversion">
+  <label>Version:
+    <select class="wodoc-version" onchange="wodocVersion(this.value)">
+      <option value="dev">dev</option>
+    </select>
+  </label>
+</div>
+<div class="cs-switch">
+  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
+  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+</div>
+<div class="page-toc">
+  <h3>On this page</h3>
+  <nav class="odoc-toc odoc-local-toc"><ul><li><a href="#parameters">Parameters</a><ul><li><a href="#services-with-parameters">Services with parameters</a></li><li><a href="#suffix">Path suffixes as parameters</a></li><li><a href="#custom-parameter-types">Custom parameter types</a></li><li><a href="#any">Untyped parameters</a></li></ul></li><li><a href="#nonlocalizedparameters">Non localized parameters</a></li></ul></nav>
+</div>
+<nav class="api-nav manual-nav">
+<h3>Eliom&#x27;s Reference manual</h3>
+<ul class="api-section">
+<li class="ml3" data-wodoc-page="intro.html"><a href="./intro.html">Introduction</a></li>
+</ul>
+<h4 class="ml3">Server-side programming</h4>
+<h4 class="ml4">Services</h4>
+<ul class="api-section">
+<li class="ml5" data-wodoc-page="server-services.html"><a href="./server-services.html">The different types of services</a></li>
+<li class="ml5 current" data-wodoc-page="server-params.html"><a href="./server-params.html">Typing service parameters</a></li>
+<li class="ml5" data-wodoc-page="server-outputs.html"><a href="./server-outputs.html">Service handlers</a></li>
+<li class="ml5" data-wodoc-page="server-links.html"><a href="./server-links.html">Creating links and forms</a></li>
+</ul>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="server-state.html"><a href="./server-state.html">Sessions and server side state</a></li>
+<li class="ml4" data-wodoc-page="server-security.html"><a href="./server-security.html">Security</a></li>
+</ul>
+<h4 class="ml3">Client-server programming</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="clientserver-applications.html"><a href="./clientserver-applications.html">Eliom applications</a></li>
+<li class="ml4" data-wodoc-page="ppx-syntax.html"><a href="./ppx-syntax.html">Multi-tier programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-html.html"><a href="./clientserver-html.html">Generating HTML</a></li>
+<li class="ml4" data-wodoc-page="clientserver-communication.html"><a href="./clientserver-communication.html">Communication</a></li>
+<li class="ml4" data-wodoc-page="clientserver-services.html"><a href="./clientserver-services.html">Client-side services</a></li>
+<li class="ml4" data-wodoc-page="clientserver-react.html"><a href="./clientserver-react.html">Shared reactive programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-cache.html"><a href="./clientserver-cache.html">Caching data and off-line applications</a></li>
+<li class="ml4" data-wodoc-page="clientserver-wrapping.html"><a href="./clientserver-wrapping.html">Custom wrapping</a></li>
+</ul>
+<h4 class="ml3">Workflows</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="workflow-distillery.html"><a href="./workflow-distillery.html">Distillery</a></li>
+<li class="ml4" data-wodoc-page="mobile-apps.html"><a href="./mobile-apps.html">Mobile apps</a></li>
+<li class="ml4" data-wodoc-page="workflow-configuration.html"><a href="./workflow-configuration.html">Configuration &amp; running</a></li>
+<li class="ml4" data-wodoc-page="scalability.html"><a href="./scalability.html">Scalability</a></li>
+</ul>
+</nav>
+
+<nav class="api-nav">
+<h3>Server API</h3>
+<h4>Server API</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_lib"><a href="./eliom.server/Eliom_lib/index.html">Eliom_lib</a></li>
+<li data-wodoc-page="Eliom_client"><a href="./eliom.server/Eliom_client/index.html">Eliom_client</a></li>
+<li data-wodoc-page="Eliom_client_value"><a href="./eliom.server/Eliom_client_value/index.html">Eliom_client_value</a></li>
+<li data-wodoc-page="Eliom_common"><a href="./eliom.server/Eliom_common/index.html">Eliom_common</a></li>
+<li data-wodoc-page="Eliom_config"><a href="./eliom.server/Eliom_config/index.html">Eliom_config</a></li>
+<li data-wodoc-page="Eliom_request_info"><a href="./eliom.server/Eliom_request_info/index.html">Eliom_request_info</a></li>
+<li data-wodoc-page="Eliom_reference"><a href="./eliom.server/Eliom_reference/index.html">Eliom_reference</a></li>
+<li data-wodoc-page="Eliom_state"><a href="./eliom.server/Eliom_state/index.html">Eliom_state</a></li>
+</ul>
+<h4>Content and form creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_content"><a href="./eliom.server/Eliom_content/index.html">Eliom_content</a></li>
+<li data-wodoc-page="Eliom_content.Html"><a href="./eliom.server/Eliom_content/Html/index.html">Eliom_content.Html</a></li>
+<li data-wodoc-page="Eliom_content.Svg"><a href="./eliom.server/Eliom_content/Svg/index.html">Eliom_content.Svg</a></li>
+<li data-wodoc-page="Eliom_content.Xml"><a href="./eliom.server/Eliom_content/Xml/index.html">Eliom_content.Xml</a></li>
+<li data-wodoc-page="Eliom_tools"><a href="./eliom.server/Eliom_tools/index.html">Eliom_tools</a></li>
+</ul>
+<h4>Service creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_service"><a href="./eliom.server/Eliom_service/index.html">Eliom_service</a></li>
+<li data-wodoc-page="Eliom_parameter"><a href="./eliom.server/Eliom_parameter/index.html">Eliom_parameter</a></li>
+<li data-wodoc-page="Eliom_registration"><a href="./eliom.server/Eliom_registration/index.html">Eliom_registration</a></li>
+<li data-wodoc-page="Eliom_registration.Html"><a href="./eliom.server/Eliom_registration/Html/index.html">Eliom_registration.Html</a></li>
+<li data-wodoc-page="Eliom_registration.Action"><a href="./eliom.server/Eliom_registration/Action/index.html">Eliom_registration.Action</a></li>
+<li data-wodoc-page="Eliom_registration.Ocaml"><a href="./eliom.server/Eliom_registration/Ocaml/index.html">Eliom_registration.Ocaml</a></li>
+<li data-wodoc-page="Eliom_registration.App"><a href="./eliom.server/Eliom_registration/App/index.html">Eliom_registration.App</a></li>
+<li data-wodoc-page="Eliom_registration.File"><a href="./eliom.server/Eliom_registration/File/index.html">Eliom_registration.File</a></li>
+<li data-wodoc-page="Eliom_registration.Any"><a href="./eliom.server/Eliom_registration/Any/index.html">Eliom_registration.Any</a></li>
+<li data-wodoc-page="Eliom_registration.Redirection"><a href="./eliom.server/Eliom_registration/Redirection/index.html">Eliom_registration.Redirection</a></li>
+</ul>
+<h4>Client/server communication</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_shared"><a href="./eliom.server/Eliom_shared/index.html">Eliom_shared</a></li>
+<li data-wodoc-page="Eliom_notif"><a href="./eliom.server/Eliom_notif/index.html">Eliom_notif</a></li>
+<li data-wodoc-page="Eliom_cscache"><a href="./eliom.server/Eliom_cscache/index.html">Eliom_cscache</a></li>
+<li data-wodoc-page="Eliom_bus"><a href="./eliom.server/Eliom_bus/index.html">Eliom_bus</a></li>
+<li data-wodoc-page="Eliom_comet"><a href="./eliom.server/Eliom_comet/index.html">Eliom_comet</a></li>
+<li data-wodoc-page="Eliom_react"><a href="./eliom.server/Eliom_react/index.html">Eliom_react</a></li>
+</ul>
+</nav>
+
+      </nav>
+      <article class="rightcol">
+        <header class="odoc-preamble"><h1 id="service-parameters">Service parameters</h1></header>
+        <div class="odoc-content"><h2 id="parameters">Parameters</h2><h3 id="services-with-parameters">Services with parameters</h3><p>Service handlers take two parameters. The first one is for GET parameters (that is, parameters in the URL) and the second one for POST parameters (parameters in the body of the HTTP request).</p><p>The parameters of a service are provided via the arguments of the <a href="eliom.server/Eliom_service_sigs/module-type-TYPES/index.html#type-meth"><code>Eliom_service_sigs.TYPES.meth</code></a> constructors. The specification of parameter types is done using combinators defined in the module <a href="eliom.server/Eliom_parameter/index.html"><code>Eliom_parameter</code></a>. For example, <code>Eliom_parameter.unit</code> means that the service does not take any parameter, and <code>Eliom_parameter.int &quot;foo&quot;</code> means that the service takes a parameter called <code>foo</code>, which is of type <code>int</code>. See <a href="eliom.server/Eliom_parameter_sigs/module-type-S/index.html"><code>Eliom_parameter_sigs.S</code></a> for documentation on the combinators.</p><p>Here is an example of a service with GET parameters:</p><pre class="language-ocaml"><code>let writeparams (i1, (i2, s1)) () = Lwt.return @@
+  let open Eliom_content.Html.D in
+  html
+    (head (title (txt &quot;&quot;)) [])
+    (body
+       [p [txt &quot;You sent: &quot;;
+           strong [txt (string_of_int i1)];
+           txt &quot;, &quot;;
+           strong [txt (string_of_int i2)];
+           txt &quot; and &quot;;
+           strong [txt s1]]])</code></pre><pre class="language-ocaml"><code>let service_with_params =
+  Eliom_registration.Html.create
+    ~path:(Eliom_service.Path [&quot;thepath&quot;])
+    ~meth:
+      (Eliom_service.Get
+         Eliom_parameter.(int &quot;i&quot; ** (int &quot;ii&quot; ** string &quot;s&quot;)))
+    writeparams</code></pre><p>Eliom will automaticaly try to convert the parameters and call the handler with the right OCaml types (here <code>int * (int * string)</code>).</p><p>It is possible to register several services on the same path, if they do not have the same parameters. Eliom will try them in order of registration until one of them is able to answer. We send an error otherwise.</p><p>In the example above, if <code>i</code> is not an integer, the server will display an error message (try to change the value in the URL).<br/></p><p><em>Warning:</em> The infix function <code>( ** )</code> can only be used to construct pairs (not tuples).<br/></p><h3 id="suffix">Path suffixes as parameters</h3><p>The following example shows how to create a service with a &quot;suffix&quot; parameter (taking the end of the URL as a parameter, as wikis very often do), and how to get server information:</p><pre class="language-ocaml"><code>let uasuffix =
+  Eliom_registration.Html.create
+    ~path:(Eliom_service.Path [&quot;uasuffix&quot;])
+    ~meth:
+      (Eliom_service.Get
+         Eliom_parameter.(suffix (int &quot;year&quot; ** int &quot;month&quot;)))
+    (fun (year, month) () -&gt; Lwt.return @@
+      let open Eliom_content.Html.D in
+      html
+        (head (title (txt &quot;&quot;)) [])
+        (body
+           [p [txt &quot;The suffix of the url is &quot;;
+               strong [txt (string_of_int year ^ &quot;/&quot; ^
+                               string_of_int month)];
+               txt &quot;, your user-agent is &quot;;
+               strong [txt (Eliom_request_info.get_user_agent ())];
+               txt &quot;, your IP is &quot;;
+               strong [txt (Eliom_request_info.get_remote_ip ())]]]))</code></pre><p>This service will answer to URLs like <code>http://.../uasuffix/2000/11</code>.</p><p>Suffix parameters have names, because we can create forms towards these services. <code>uasuffix/2000/11</code> is equivalent to <code>uasuffix/?year=2000&amp;month=11</code>.<br/> <code>suffix_prod</code> allows both a suffix and other parameters.<br/> <code>all_suffix</code> allows the end of the suffix to be taken as a <code>string list</code>.<br/></p><pre class="language-ocaml"><code>let isuffix =
+  Eliom_registration.Html.create
+    ~path:(Eliom_service.Path [&quot;isuffix&quot;])
+    ~meth:
+      (Eliom_service.Get
+         Eliom_parameter.
+           (suffix_prod (int &quot;suff&quot; ** all_suffix &quot;endsuff&quot;) (int &quot;i&quot;)))
+    (fun ((suff, endsuff), i_param) () -&gt; Lwt.return @@
+      let open Eliom_content.Html.D in
+      html
+        (head (title (txt &quot;&quot;)) [])
+        (body
+           [p [txt &quot;The suffix of the url is &quot;;
+               strong [txt (string_of_int suff)];
+               txt &quot; followed by &quot;;
+               strong [txt
+                         (Ocsigen_lib.Url.string_of_url_path
+                            ~encode:false
+                            endsuff)];
+               txt &quot; and i is equal to &quot;;
+               strong [txt (string_of_int i_param)]]]))</code></pre><p>If you want parameters in the path but not always at the end, use the <code>const</code> parameter specification. It will match for example URLs like <code>/param1/const/param2</code>. Example:</p><pre class="language-ocaml"><code>let constfix =
+  Eliom_registration.Html.create
+    ~path:(Eliom_service.Path [&quot;constfix&quot;])
+    ~meth:
+      (Eliom_service.Get
+         Eliom_parameter.
+           (suffix (string &quot;s1&quot; ** (suffix_const &quot;toto&quot; ** string &quot;s2&quot;))))
+    (fun (s1, ((), s2)) () -&gt; Lwt.return @@
+      let open Eliom_content.Html.D in
+      html
+        (head (title (txt &quot;&quot;)) [])
+        (body [
+           h1 [txt &quot;Suffix with constants&quot;];
+           p [txt (&quot;Parameters are &quot;^s1^&quot; and &quot;^s2)]]))</code></pre><h3 id="custom-parameter-types">Custom parameter types</h3><p>The following example shows how to use your own types :</p><pre class="language-ocaml"><code>type mysum = A | B
+
+let mysum_of_string = function
+  | &quot;A&quot; -&gt; A
+  | &quot;B&quot; -&gt; B
+  | _ -&gt; raise (Failure &quot;mysum_of_string&quot;)
+
+let string_of_mysum = function
+  | A -&gt; &quot;A&quot;
+  | B -&gt; &quot;B&quot;
+
+let mytype =
+  Eliom_registration.Html.create
+    ~path:(Eliom_service.Path [&quot;mytype&quot;])
+    ~meth:
+      (Eliom_service.Get
+         (Eliom_parameter.user_type
+            mysum_of_string
+            string_of_mysum
+            &quot;value&quot;))
+    (fun x () -&gt; Lwt.return @@
+      let open Eliom_content.Html.D in
+      html
+        (head (title (txt &quot;&quot;)) [])
+        (body [p [txt
+                    (string_of_mysum x ^
+                     &quot; is valid. Now try with another value.&quot;)]]))</code></pre><p>See also <a href="clientserver-communication.html#client_sending_data" title="client_sending_data">Client sending data</a> in the chapter about client-server communication, which shows how to use a <code>user_type</code> from the client-side.</p><h3 id="any">Untyped parameters</h3><p>If you want a service that answers to requests with any parameters, use the <code>any</code> combinator. The service will get an association list of strings. For example:</p><pre class="language-ocaml"><code>let raw_serv =
+  Eliom_registration.Html.create
+    ~path:(Eliom_service.Path [&quot;any&quot;])
+    ~meth:(Eliom_service.Get Eliom_parameter.any)
+  (fun l () -&gt;
+    let module Html = Eliom_content.Html.D in
+    let ll =
+      List.map
+        (fun (a,s) -&gt; strong [txt a; txt &quot;, &quot;; txt s]) l
+    in
+    Lwt.return
+      [%html &quot;&lt;html&gt;
+          &lt;head&gt;&lt;title&gt;Example&lt;/title&gt;&lt;/head&gt;
+          &lt;body&gt;
+          &lt;p&gt;
+            You sent:&quot;
+            ll
+          &quot;&lt;/p&gt;
+          &lt;/body&gt;
+        &lt;/html&gt;&quot;])</code></pre><p>It is possible to use <code>Eliom_parameter.any</code> with other parameter combinators, but <code>any</code> must be the last one. For example: <code>(int &quot;i&quot; ** any)</code>.</p><h2 id="nonlocalizedparameters">Non localized parameters</h2><p>Non-localized parameters are GET or POST parameters that are not taken into account by Eliom for choosing the service. They have a special prefix (added automatically by Eliom). Use this if you want some information to be available or not, through parameters, for all of your services.</p><pre class="language-ocaml"><code>let my_nl_params =
+  Eliom_parameter.make_non_localized_parameters
+    ~prefix:&quot;tutoeliom&quot;
+    ~name:&quot;mynlparams&quot;
+    Eliom_parameter.(int &quot;a&quot; ** string &quot;s&quot;)
+
+let nlparams =
+  let open Eliom_content.Html.D in
+  Eliom_registration.Html.create
+    ~path:(Eliom_service.Path [&quot;nlparams&quot;])
+    ~meth:(Eliom_service.Get (Eliom_parameter.int &quot;i&quot;))
+    (fun i () -&gt; Lwt.return @@
+      html
+        (head (title (txt &quot;&quot;)) [])
+        (body [
+           p [txt &quot;i = &quot;; strong [txt (string_of_int i)]];
+           match Eliom_parameter.get_non_localized_get_parameters
+                   my_nl_params
+           with
+           | None -&gt;
+             p [txt &quot;I do not have my non localized parameters&quot;]
+           | Some (a, s) -&gt;
+             p [txt &quot;I have my non localized parameters, &quot;;
+                txt (Printf.sprintf &quot;with values a = %d and s = %s.&quot; a s)]
+         ]))</code></pre><p>To create a link or a form with non-localized parameters, use the optional parameter <span class="code">nl_params</span> of functions <code>Eliom_content.Html.D.a</code>, <code>Eliom_content.Html.D.Form.get_form</code>, or <code>Eliom_content.Html.D.Form.post_form</code>. Example:</p><pre class="language-ocaml"><code>let tonlparams =
+  Eliom_registration.Html.create
+    ~path:(Eliom_service.Path [&quot;nlparams&quot;])
+    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+    (fun i () -&gt; Lwt.return @@
+      let open Eliom_content.Html.D in
+      html
+        (head (title (txt &quot;&quot;)) [])
+        (body
+           [p [a ~service:nlparams [txt &quot;without nl params&quot;] 4];
+            p [a ~service:nlparams
+                 ~nl_params:
+                   (Eliom_parameter.add_nl_parameter
+                      Eliom_parameter.empty_nl_params_set
+                      my_nl_params
+                      (22, &quot;oh&quot;))
+                 [txt &quot;with nl params&quot;]
+                 5];
+            Form.get_form
+              ~service:nlparams
+              ~nl_params:
+                (Eliom_parameter.add_nl_parameter
+                   Eliom_parameter.empty_nl_params_set
+                   my_nl_params
+                   (22, &quot;oh&quot;))
+              (fun iname -&gt;
+                 [p [txt &quot;form with hidden nl params&quot;;
+                     Form.input
+                       ~input_type:`Text ~name:iname
+                       Form.int;
+                     Form.input
+                       ~input_type:`Submit ~value:&quot;Send&quot;
+                       Form.string]]);
+            Form.get_form ~service:nlparams (fun iname -&gt;
+              let (aname, sname) =
+                Eliom_parameter.get_nl_params_names my_nl_params
+              in
+              [p [
+                 txt &quot;form with nl params fields&quot;;
+                 Form.input ~input_type:`Text ~name:iname Form.int;
+                 Form.input ~input_type:`Text ~name:aname Form.int;
+                 Form.input ~input_type:`Text ~name:sname Form.string;
+                 Form.input ~input_type:`Submit ~value:&quot;Send&quot; Form.string]]);
+           ]))</code></pre><p>It is also possible to create a new service by adding the non-localized parameters to an existing service:</p><pre class="language-ocaml"><code>let nlparams_with_nlp =
+  Eliom_service.add_non_localized_get_parameters my_nl_params nlparams</code></pre><p>Then create your link as usual.</p></div>
+      </article>
+    </div>
+  </div>
+
+  <script>
+    // Toggle between the server / client API of the same module.
+    function wodocSwitch(side) {
+      var w = { server: '', client: '' };
+      var p = location.pathname;
+      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
+      location.href = np !== p ? np
+        : './eliom.' + side + '/' + (w[side] || '') + 'index.html';
+    }
+    var wodocPub = "/eliom";
+    // Switch version: keep the current page, swapping only the version segment.
+    function wodocVersion(v) {
+      if (!v) return;
+      var re = new RegExp('^(' + wodocPub + '/)[^/]+');
+      var p = location.pathname;
+      location.href =
+        re.test(p) ? p.replace(re, '$1' + v) : wodocPub + '/' + v + '/index.html';
+    }
+    // Build the version <select> from the project's versions.json (the single
+    // source of truth, refreshed on every build/release), so even older frozen
+    // pages list the current set. Falls back to the baked <option>s on failure.
+    (function () {
+      var seg = (location.pathname.match(
+        new RegExp('^' + wodocPub + '/([^/]+)')) || [])[1];
+      function select(sel) {
+        var i;
+        for (i = 0; i < sel.options.length; i++)
+          if (sel.options[i].value === seg) { sel.selectedIndex = i; return; }
+        if (seg) {
+          var o = document.createElement('option');
+          o.value = seg; o.textContent = seg; o.selected = true;
+          sel.insertBefore(o, sel.firstChild);
+        }
+      }
+      fetch(wodocPub + '/versions.json')
+        .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(function (m) {
+          var list = m.list || [], latest = m.latest;
+          document.querySelectorAll('.wodoc-version').forEach(function (sel) {
+            sel.innerHTML = '';
+            list.forEach(function (v) {
+              var o = document.createElement('option');
+              if (v === latest) { o.value = 'latest'; o.textContent = v + ' (latest)'; }
+              else { o.value = v; o.textContent = v; }
+              sel.appendChild(o);
+            });
+            select(sel);
+          });
+        })
+        .catch(function () {
+          document.querySelectorAll('.wodoc-version').forEach(select);
+        });
+    })();
+  </script>
+</body>
+</html>

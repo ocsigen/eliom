@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Eliom -- the language extensions — Eliom</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <link rel="stylesheet" href="/css/ocsigen-odoc.css"/>
+  <link rel="alternate" type="text/markdown" href="./eliom-language.md"/>
+  <script src="./highlight.pack.js"></script>
+  <script src="./wodoc-highlight.js"></script>
+</head>
+<body class="wodoc-page wodoc-doc">
+  <!-- Shared site menu — THE single source of truth for the header, top menu and
+     drawer of EVERY Ocsigen doc page (vitrine + all projects). Canonical copy
+     lives here in ocsigen.github.io; each project's build fetches it. Injected
+     by `wodoc assemble --menu`. Holes filled by the tool (braces omitted here so
+     this comment is not itself rewritten by the hole-filler):
+       subproject  the sub-project name shown next to the Ocsigen logo
+                   (empty on the vitrine), via --subproject
+       leftnav     the project's left navigation, expanded into BOTH the mobile
+                   drawer (below) and the left column (in the page template),
+                   via --leftnav
+     The current entry is highlighted by adding the `current` class to the
+     element carrying data-wodoc-page=<id>: --current on the vitrine (page id),
+     --menu-current in a project (the project id). Nothing is hardcoded here, so
+     this file is the ONLY place the menu is defined.
+
+     Links are the FINAL site paths (/<project>/, /<page>): the target layout
+     where each project is served at ocsigen.org/<project>/ — no transitional
+     /wodoc/ prefix. -->
+<div class="page-header">
+  <p class="logo-ocsigen"><a href="/"><img src="/img/ocsigen-white.svg" alt="Ocsigen"/></a></p>
+  <p class="logo-subproject">Eliom</p>
+
+  <div class="mainmenu">
+    <p class="mainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></p>
+    <p class="mainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></p>
+    <p class="mainmenu-blog" data-wodoc-page="blog"><a href="/blog/">Blog</a></p>
+    <p data-wodoc-page="eliom" class="current"><a href="/eliom/">Eliom</a></p>
+    <p data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></p>
+    <p data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></p>
+    <p data-wodoc-page="lwt"><a href="/lwt/">Lwt</a></p>
+    <p data-wodoc-page="tyxml"><a href="/tyxml/">Tyxml</a></p>
+    <p data-wodoc-page="ocsigen-start"><a href="/ocsigen-start/">Start</a></p>
+  </div>
+
+  <form id="googlesearch" action="https://google.com/search">
+    <input name="q" id="gsearch-box" placeholder="Search using Google"/>
+    <label for="gsearch-box"><img src="/img/search.svg" alt="" id="gsearch-icon"/></label>
+    <input type="submit" id="gsearch-submit" onclick="document.getElementById('gsearch-box').value += ' site:ocsigen.org';"/>
+  </form>
+
+  <aside class="how-drawer">
+    <input id="how-drawer-toggle" type="checkbox"/>
+    <label for="how-drawer-toggle" id="how-drawer-label"><span class="how-drawer-icon"></span></label>
+    <nav class="how-drawer-content">
+      <ul class="drawermainmenu">
+        <li class="drawermainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></li>
+        <li class="drawermainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></li>
+        <li class="drawermainmenu-project current" data-wodoc-page="eliom"><a href="/eliom/">Eliom</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="lwt"><a href="/lwt/">Lwt</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="tyxml"><a href="/tyxml/">Tyxml</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-toolkit"><a href="/ocsigen-toolkit/">Toolkit</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-start"><a href="/ocsigen-start/">Start</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsipersist"><a href="/ocsipersist/">Ocsipersist</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="reactiveData"><a href="/reactiveData/">ReactiveData</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-i18n"><a href="/ocsigen-i18n/">i18n</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="wodoc"><a href="/wodoc/">Wodoc</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="projects"><a href="/projects">Other projects</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="papers"><a href="/papers">Research papers</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="credits"><a href="/credits">Who does Ocsigen?</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="contributing"><a href="/contributing">Contributing</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="blog"><a href="/blog/">Blog</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="install"><a href="/install">Installation</a></li>
+        <li class="drawermainmenu-page"><a href="https://github.com/ocsigen">Source code</a></li>
+      </ul>
+      <!-- On mobile the left column is hidden; its menu lives here in the burger
+           (.how-doctree, shown only on narrow screens), as the old site did.
+           Empty on the vitrine; the leftnav hole is filled (with the same
+           fragment as the left column) only on project pages. -->
+      <nav class="how-doctree"><div class="docversion">
+  <label>Version:
+    <select class="wodoc-version" onchange="wodocVersion(this.value)">
+      <option value="dev">dev</option>
+    </select>
+  </label>
+</div>
+<div class="cs-switch">
+  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
+  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+</div>
+<div class="page-toc">
+  <h3>On this page</h3>
+  <nav class="odoc-toc odoc-local-toc"><ul><li><a href="#sections">Sections (partitioning into client- and server-side)</a></li><li><a href="#semantics">Semantics</a></li><li><a href="#injections">Injections (in the client-section)</a><ul><li><a href="#sharedinjection">In a shared section</a></li></ul></li><li><a href="#clientvalues">Client values (in the server-section)</a><ul><li><a href="#clientvaluesemantic">Semantics</a></li><li><a href="#sharedclientvalues">In a shared section</a></li></ul></li></ul></nav>
+</div>
+<nav class="api-nav manual-nav">
+<h3>Eliom&#x27;s Reference manual</h3>
+<ul class="api-section">
+<li class="ml3" data-wodoc-page="intro.html"><a href="./intro.html">Introduction</a></li>
+</ul>
+<h4 class="ml3">Server-side programming</h4>
+<h4 class="ml4">Services</h4>
+<ul class="api-section">
+<li class="ml5" data-wodoc-page="server-services.html"><a href="./server-services.html">The different types of services</a></li>
+<li class="ml5" data-wodoc-page="server-params.html"><a href="./server-params.html">Typing service parameters</a></li>
+<li class="ml5" data-wodoc-page="server-outputs.html"><a href="./server-outputs.html">Service handlers</a></li>
+<li class="ml5" data-wodoc-page="server-links.html"><a href="./server-links.html">Creating links and forms</a></li>
+</ul>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="server-state.html"><a href="./server-state.html">Sessions and server side state</a></li>
+<li class="ml4" data-wodoc-page="server-security.html"><a href="./server-security.html">Security</a></li>
+</ul>
+<h4 class="ml3">Client-server programming</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="clientserver-applications.html"><a href="./clientserver-applications.html">Eliom applications</a></li>
+<li class="ml4" data-wodoc-page="ppx-syntax.html"><a href="./ppx-syntax.html">Multi-tier programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-html.html"><a href="./clientserver-html.html">Generating HTML</a></li>
+<li class="ml4" data-wodoc-page="clientserver-communication.html"><a href="./clientserver-communication.html">Communication</a></li>
+<li class="ml4" data-wodoc-page="clientserver-services.html"><a href="./clientserver-services.html">Client-side services</a></li>
+<li class="ml4" data-wodoc-page="clientserver-react.html"><a href="./clientserver-react.html">Shared reactive programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-cache.html"><a href="./clientserver-cache.html">Caching data and off-line applications</a></li>
+<li class="ml4" data-wodoc-page="clientserver-wrapping.html"><a href="./clientserver-wrapping.html">Custom wrapping</a></li>
+</ul>
+<h4 class="ml3">Workflows</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="workflow-distillery.html"><a href="./workflow-distillery.html">Distillery</a></li>
+<li class="ml4" data-wodoc-page="mobile-apps.html"><a href="./mobile-apps.html">Mobile apps</a></li>
+<li class="ml4" data-wodoc-page="workflow-configuration.html"><a href="./workflow-configuration.html">Configuration &amp; running</a></li>
+<li class="ml4" data-wodoc-page="scalability.html"><a href="./scalability.html">Scalability</a></li>
+</ul>
+</nav>
+
+<nav class="api-nav">
+<h3>Server API</h3>
+<h4>Server API</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_lib"><a href="./eliom.server/Eliom_lib/index.html">Eliom_lib</a></li>
+<li data-wodoc-page="Eliom_client"><a href="./eliom.server/Eliom_client/index.html">Eliom_client</a></li>
+<li data-wodoc-page="Eliom_client_value"><a href="./eliom.server/Eliom_client_value/index.html">Eliom_client_value</a></li>
+<li data-wodoc-page="Eliom_common"><a href="./eliom.server/Eliom_common/index.html">Eliom_common</a></li>
+<li data-wodoc-page="Eliom_config"><a href="./eliom.server/Eliom_config/index.html">Eliom_config</a></li>
+<li data-wodoc-page="Eliom_request_info"><a href="./eliom.server/Eliom_request_info/index.html">Eliom_request_info</a></li>
+<li data-wodoc-page="Eliom_reference"><a href="./eliom.server/Eliom_reference/index.html">Eliom_reference</a></li>
+<li data-wodoc-page="Eliom_state"><a href="./eliom.server/Eliom_state/index.html">Eliom_state</a></li>
+</ul>
+<h4>Content and form creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_content"><a href="./eliom.server/Eliom_content/index.html">Eliom_content</a></li>
+<li data-wodoc-page="Eliom_content.Html"><a href="./eliom.server/Eliom_content/Html/index.html">Eliom_content.Html</a></li>
+<li data-wodoc-page="Eliom_content.Svg"><a href="./eliom.server/Eliom_content/Svg/index.html">Eliom_content.Svg</a></li>
+<li data-wodoc-page="Eliom_content.Xml"><a href="./eliom.server/Eliom_content/Xml/index.html">Eliom_content.Xml</a></li>
+<li data-wodoc-page="Eliom_tools"><a href="./eliom.server/Eliom_tools/index.html">Eliom_tools</a></li>
+</ul>
+<h4>Service creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_service"><a href="./eliom.server/Eliom_service/index.html">Eliom_service</a></li>
+<li data-wodoc-page="Eliom_parameter"><a href="./eliom.server/Eliom_parameter/index.html">Eliom_parameter</a></li>
+<li data-wodoc-page="Eliom_registration"><a href="./eliom.server/Eliom_registration/index.html">Eliom_registration</a></li>
+<li data-wodoc-page="Eliom_registration.Html"><a href="./eliom.server/Eliom_registration/Html/index.html">Eliom_registration.Html</a></li>
+<li data-wodoc-page="Eliom_registration.Action"><a href="./eliom.server/Eliom_registration/Action/index.html">Eliom_registration.Action</a></li>
+<li data-wodoc-page="Eliom_registration.Ocaml"><a href="./eliom.server/Eliom_registration/Ocaml/index.html">Eliom_registration.Ocaml</a></li>
+<li data-wodoc-page="Eliom_registration.App"><a href="./eliom.server/Eliom_registration/App/index.html">Eliom_registration.App</a></li>
+<li data-wodoc-page="Eliom_registration.File"><a href="./eliom.server/Eliom_registration/File/index.html">Eliom_registration.File</a></li>
+<li data-wodoc-page="Eliom_registration.Any"><a href="./eliom.server/Eliom_registration/Any/index.html">Eliom_registration.Any</a></li>
+<li data-wodoc-page="Eliom_registration.Redirection"><a href="./eliom.server/Eliom_registration/Redirection/index.html">Eliom_registration.Redirection</a></li>
+</ul>
+<h4>Client/server communication</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_shared"><a href="./eliom.server/Eliom_shared/index.html">Eliom_shared</a></li>
+<li data-wodoc-page="Eliom_notif"><a href="./eliom.server/Eliom_notif/index.html">Eliom_notif</a></li>
+<li data-wodoc-page="Eliom_cscache"><a href="./eliom.server/Eliom_cscache/index.html">Eliom_cscache</a></li>
+<li data-wodoc-page="Eliom_bus"><a href="./eliom.server/Eliom_bus/index.html">Eliom_bus</a></li>
+<li data-wodoc-page="Eliom_comet"><a href="./eliom.server/Eliom_comet/index.html">Eliom_comet</a></li>
+<li data-wodoc-page="Eliom_react"><a href="./eliom.server/Eliom_react/index.html">Eliom_react</a></li>
+</ul>
+</nav>
+</nav>
+    </nav>
+  </aside>
+</div>
+
+
+  <div class="project-page">
+    <div class="twocols">
+      <nav class="leftcol">
+        <div class="docversion">
+  <label>Version:
+    <select class="wodoc-version" onchange="wodocVersion(this.value)">
+      <option value="dev">dev</option>
+    </select>
+  </label>
+</div>
+<div class="cs-switch">
+  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
+  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+</div>
+<div class="page-toc">
+  <h3>On this page</h3>
+  <nav class="odoc-toc odoc-local-toc"><ul><li><a href="#sections">Sections (partitioning into client- and server-side)</a></li><li><a href="#semantics">Semantics</a></li><li><a href="#injections">Injections (in the client-section)</a><ul><li><a href="#sharedinjection">In a shared section</a></li></ul></li><li><a href="#clientvalues">Client values (in the server-section)</a><ul><li><a href="#clientvaluesemantic">Semantics</a></li><li><a href="#sharedclientvalues">In a shared section</a></li></ul></li></ul></nav>
+</div>
+<nav class="api-nav manual-nav">
+<h3>Eliom&#x27;s Reference manual</h3>
+<ul class="api-section">
+<li class="ml3" data-wodoc-page="intro.html"><a href="./intro.html">Introduction</a></li>
+</ul>
+<h4 class="ml3">Server-side programming</h4>
+<h4 class="ml4">Services</h4>
+<ul class="api-section">
+<li class="ml5" data-wodoc-page="server-services.html"><a href="./server-services.html">The different types of services</a></li>
+<li class="ml5" data-wodoc-page="server-params.html"><a href="./server-params.html">Typing service parameters</a></li>
+<li class="ml5" data-wodoc-page="server-outputs.html"><a href="./server-outputs.html">Service handlers</a></li>
+<li class="ml5" data-wodoc-page="server-links.html"><a href="./server-links.html">Creating links and forms</a></li>
+</ul>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="server-state.html"><a href="./server-state.html">Sessions and server side state</a></li>
+<li class="ml4" data-wodoc-page="server-security.html"><a href="./server-security.html">Security</a></li>
+</ul>
+<h4 class="ml3">Client-server programming</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="clientserver-applications.html"><a href="./clientserver-applications.html">Eliom applications</a></li>
+<li class="ml4" data-wodoc-page="ppx-syntax.html"><a href="./ppx-syntax.html">Multi-tier programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-html.html"><a href="./clientserver-html.html">Generating HTML</a></li>
+<li class="ml4" data-wodoc-page="clientserver-communication.html"><a href="./clientserver-communication.html">Communication</a></li>
+<li class="ml4" data-wodoc-page="clientserver-services.html"><a href="./clientserver-services.html">Client-side services</a></li>
+<li class="ml4" data-wodoc-page="clientserver-react.html"><a href="./clientserver-react.html">Shared reactive programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-cache.html"><a href="./clientserver-cache.html">Caching data and off-line applications</a></li>
+<li class="ml4" data-wodoc-page="clientserver-wrapping.html"><a href="./clientserver-wrapping.html">Custom wrapping</a></li>
+</ul>
+<h4 class="ml3">Workflows</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="workflow-distillery.html"><a href="./workflow-distillery.html">Distillery</a></li>
+<li class="ml4" data-wodoc-page="mobile-apps.html"><a href="./mobile-apps.html">Mobile apps</a></li>
+<li class="ml4" data-wodoc-page="workflow-configuration.html"><a href="./workflow-configuration.html">Configuration &amp; running</a></li>
+<li class="ml4" data-wodoc-page="scalability.html"><a href="./scalability.html">Scalability</a></li>
+</ul>
+</nav>
+
+<nav class="api-nav">
+<h3>Server API</h3>
+<h4>Server API</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_lib"><a href="./eliom.server/Eliom_lib/index.html">Eliom_lib</a></li>
+<li data-wodoc-page="Eliom_client"><a href="./eliom.server/Eliom_client/index.html">Eliom_client</a></li>
+<li data-wodoc-page="Eliom_client_value"><a href="./eliom.server/Eliom_client_value/index.html">Eliom_client_value</a></li>
+<li data-wodoc-page="Eliom_common"><a href="./eliom.server/Eliom_common/index.html">Eliom_common</a></li>
+<li data-wodoc-page="Eliom_config"><a href="./eliom.server/Eliom_config/index.html">Eliom_config</a></li>
+<li data-wodoc-page="Eliom_request_info"><a href="./eliom.server/Eliom_request_info/index.html">Eliom_request_info</a></li>
+<li data-wodoc-page="Eliom_reference"><a href="./eliom.server/Eliom_reference/index.html">Eliom_reference</a></li>
+<li data-wodoc-page="Eliom_state"><a href="./eliom.server/Eliom_state/index.html">Eliom_state</a></li>
+</ul>
+<h4>Content and form creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_content"><a href="./eliom.server/Eliom_content/index.html">Eliom_content</a></li>
+<li data-wodoc-page="Eliom_content.Html"><a href="./eliom.server/Eliom_content/Html/index.html">Eliom_content.Html</a></li>
+<li data-wodoc-page="Eliom_content.Svg"><a href="./eliom.server/Eliom_content/Svg/index.html">Eliom_content.Svg</a></li>
+<li data-wodoc-page="Eliom_content.Xml"><a href="./eliom.server/Eliom_content/Xml/index.html">Eliom_content.Xml</a></li>
+<li data-wodoc-page="Eliom_tools"><a href="./eliom.server/Eliom_tools/index.html">Eliom_tools</a></li>
+</ul>
+<h4>Service creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_service"><a href="./eliom.server/Eliom_service/index.html">Eliom_service</a></li>
+<li data-wodoc-page="Eliom_parameter"><a href="./eliom.server/Eliom_parameter/index.html">Eliom_parameter</a></li>
+<li data-wodoc-page="Eliom_registration"><a href="./eliom.server/Eliom_registration/index.html">Eliom_registration</a></li>
+<li data-wodoc-page="Eliom_registration.Html"><a href="./eliom.server/Eliom_registration/Html/index.html">Eliom_registration.Html</a></li>
+<li data-wodoc-page="Eliom_registration.Action"><a href="./eliom.server/Eliom_registration/Action/index.html">Eliom_registration.Action</a></li>
+<li data-wodoc-page="Eliom_registration.Ocaml"><a href="./eliom.server/Eliom_registration/Ocaml/index.html">Eliom_registration.Ocaml</a></li>
+<li data-wodoc-page="Eliom_registration.App"><a href="./eliom.server/Eliom_registration/App/index.html">Eliom_registration.App</a></li>
+<li data-wodoc-page="Eliom_registration.File"><a href="./eliom.server/Eliom_registration/File/index.html">Eliom_registration.File</a></li>
+<li data-wodoc-page="Eliom_registration.Any"><a href="./eliom.server/Eliom_registration/Any/index.html">Eliom_registration.Any</a></li>
+<li data-wodoc-page="Eliom_registration.Redirection"><a href="./eliom.server/Eliom_registration/Redirection/index.html">Eliom_registration.Redirection</a></li>
+</ul>
+<h4>Client/server communication</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_shared"><a href="./eliom.server/Eliom_shared/index.html">Eliom_shared</a></li>
+<li data-wodoc-page="Eliom_notif"><a href="./eliom.server/Eliom_notif/index.html">Eliom_notif</a></li>
+<li data-wodoc-page="Eliom_cscache"><a href="./eliom.server/Eliom_cscache/index.html">Eliom_cscache</a></li>
+<li data-wodoc-page="Eliom_bus"><a href="./eliom.server/Eliom_bus/index.html">Eliom_bus</a></li>
+<li data-wodoc-page="Eliom_comet"><a href="./eliom.server/Eliom_comet/index.html">Eliom_comet</a></li>
+<li data-wodoc-page="Eliom_react"><a href="./eliom.server/Eliom_react/index.html">Eliom_react</a></li>
+</ul>
+</nav>
+
+      </nav>
+      <article class="rightcol">
+        <header class="odoc-preamble"><h1 id="eliom----the-language-extensions">Eliom -- the language extensions</h1><p>In Eliom it possible to define the functionality of the server and the client program at in a single source file. The server program will constantly run on the Web server. The client program will run independently in each browser tab that visits the Web site. The latter is started with the initial request in a browser tab and keeps running while navigating within the Web site, across the usage of links, forms, history, and <span class="xref-unresolved" title="Eliom_client.change_page">page changes</span>.</p><p>Eliom provides three language extensions to OCaml to provide an integrated development of client/server-programs, and to deal with the mentioned asymetricity between the client- and server-program: The partitioning of the program into client-, and server-sections, the direct usage of server-side toplevel values in client sections, and the declaration and handling of client values within the code for the server.</p><p>It is advisable to read the section about <span class="xref-unresolved" title="workflow-compilation.compilation">compiling eliom applications</span> first.</p><p>For an outline of the implementation of those features, please refer to the chapter on <span class="xref-unresolved" title="workflow-compilation.implementation">compiling eliom applications</span>.</p></header>
+        <div class="odoc-content"><h2 id="sections">Sections (partitioning into client- and server-side)</h2><p>The source code of an Eliom module can be partitioned on its top-level into several <em>sections</em> to specify which code is to be compiled for and run in the server program, in the client program, or in both.</p><p>A common OCaml module is comprised of a sequence of <em>structure items</em>, i.e. top level declarations of variables, types, modules etc. An Eliom module consists of a sequence of such structure items and client, server, and shared <em>sections</em>. The section declarations in turn may contain any number and kind of structure items. Code outside of those sections is compiled for the server side only.</p><p>The sections (the latter contain code to be compiled and run on both sides) are introduced by the following syntax and may occur in any number or ordering:</p><pre class="language-ocaml"><code>{client{
+  (* client only structure items *)
+}}
+...
+{server{
+  (* server only structure item *)
+}}
+...
+{shared{
+  (* structure items for server and client *)
+}}
+(* Code outside of section is compiled only to the server program *)
+...</code></pre><p>Declarations in the shared section are compiled separately for both the client <em>and</em> for the server program. They may refer only to declarations which are available on the client-side <em>and</em> on the server side.</p><p>Note well, that they will refer possibly to different implementations:</p><pre class="language-ocaml"><code>{server{
+  let output str = print_endline str (*1*)
+{client{
+  let output str = Dom_html.window##alert(str) (*2*)
+}}
+{shared{
+  let () = output &quot;GUGA!&quot;
+  (* output refers to (*1*) when compiled for the server, to (*2*) when
+     compiled to the client! *)
+}}</code></pre><h2 id="semantics">Semantics</h2><p>Sections as-it act as a filter on the original source code during compilation: Only the structure items on the top-level, the server-section, and the shared-sections are compiled to the server program (or bytecode object files) by <code>eliomc</code>. And only the structure items in client- and shared-sections are compiled to the client program (or bytecode object files) by <code>js_of_eliom</code>.</p><p>All top-level expressions are evaluated <em>early</em> while launching the program. In the server program they are thus evaluated while launching the server. <em>No request information is available at that time</em>.</p><p>In the client program, top-level expressions are evaluated early in the initialization phase of the client process, particulary <em>before the DOM is in place</em>. This means, that you cannot do any DOM manipulation or access HTML-elements with <a href="eliom.server/Eliom_content/Html/D/index.html" title="Eliom_content.Html.D">DOM semantics</a>. However, you can postpone that by <code>Eliom_client.onload</code>.</p><h2 id="injections">Injections (in the client-section)</h2><p>Eliom permits the direct usage of top-level server-side variables, and also of arbitrary expressions, in the client sections. Such a usage is called <em>injection</em>. It is also supported inside a <a href="#sharedinjection">shared section</a>.</p><p>Assuming you have a top-level variable <code>v</code> defined on the server, its injection in the client section is introduced by prefixing it with a percent-sign <code>%v</code>. It then holds the value of the server-side variable <code>v</code> <em>at the time of the initial request of the client process</em>.</p><pre class="language-ocaml"><code>{server{
+  let service = ... (* Server-side declaration of a service. *)
+}}
+{client{
+  let f () = Eliom_client.change_page ~service:%service ()
+  (* Refer to the server-side variable within the client section! *)
+}}</code></pre><p>It is also possible to inject an arbitrary server-side expression <code>exp</code> in a client section. The injection is introduced by prefixing it with a percent-sign and parentheses, <code>%(exp)</code>. Whenever an initial request of a client process is handled from the server, the expression <code>exp</code> is evaluated. The injection then holds the resulting value in that specific client process.</p><pre class="language-ocaml"><code>{client{
+  let () =
+    Eliom_lib.alert &quot;Time of the first request on the server: %d&quot;
+      %(Unix.gettimeofday ())
+}}</code></pre><p>Note well that the value of an injection is <em>not updated</em> when the injected value on the server changes. However, you may inject reactive signals (cf. <code>val
+Eliom_react.S.Down.of_react</code>) to achieve the behavior of a client side values which updates alongside with a server correspondent.</p><h3 id="sharedinjection">In a shared section</h3><p>Injections are also supported in the shared sections of an Eliom source file. When compiling the shared section to the client, the semantics is as described. However, when compiling an injection of a variable to the server program, it becomes just a new name of that variable. I.e. it will actually reflect changes made to the original variable.</p><p>However, the same scoping rules hold for injections into the client- and shared-sections.</p><pre class="language-ocaml"><code>{server{
+  let v = &quot;server&quot; (*1*)
+}}
+{shared{
+  let v = &quot;shared&quot; (*2*)
+  let () = assert (%v = &quot;server&quot;)
+  (* %v refers to (*1*), also when compiling to the server,
+     i.e. when (*2*) is in scope as v here *)
+}}</code></pre><h2 id="clientvalues">Client values (in the server-section)</h2><p>The notion <em>server-side client values</em> allows it to declare and deal with client values within the server-section (and is also supported in the <a href="#sharedclientvalues">shared section</a>).</p><p>A client-value may be declared in the server section as</p><pre class="language-ocaml"><code>  ... {typ{ exp }} ...</code></pre><p>where <code>exp</code> is an expression on the client side, which means it is compiled only for the client program, and may make use of any libraries available on the client, and where <code>exp</code> has type <code>typ</code> on the client side.</p><p>The hole client value then has type <code>typ Eliom_client_value.t</code>.</p><p>A value of type <code>typ Eliom_client_value.t</code> is <em>abstract on the server</em> (cf. <code>type
+Eliom_client_value.t</code> (server)). But once it is sent to the client it becomes the value to which the expression <code>exp</code> evaluated on the client side (cf. <code>type
+Eliom_client_value.t</code> (client)).</p><p>A client value expression is an arbitrary OCaml expression, but may additionaly contain <em>injections of server variables</em>, (cf. <a href="#injections">Injections into the client section</a>). A variable <code>v</code> in the scope of a client-value expression can be injected by prefixing it with a percent sign, <code>%v</code>. A server-side expression <code>exp</code> can be injected by <code>%(exp)</code>.</p><p>Note well, that the injection of a server side client-value <code>v</code> of type <code>typ Eliom_client_value.t</code> results in a value <code>%v</code> of type <code>typ</code>. Thus, the value of the client value becomes concrete.</p><p>The other way to make a client value concrete is to send it to the client, e.g. by using it in the HTML tree sent from the server in an Eliom application-service, or by sending it as-it in an Ocaml-service.</p><p>For convenience, the indication of the type of a client value may be ommitted if it is derivible from its <em>usage</em> in the server code:</p><pre class="language-ocaml"><code>{server{
+  ...
+  let onclick = {{ fun ev -&gt; Eliom_lib.alert &quot;ohyeah!&quot; }} in
+  Eliom.content.Html.F.(div ~a:[a_onclick onclick] [txt &quot;click me!&quot;])
+  ...</code></pre><p>Here, the function <code>a_onclick</code> has type <code>(#Dom_html.mouseEvent Js.t -&gt; unit) -&gt; [&gt; `OnClick ] Eliom_content.Html.attrib</code>; this determines the type of the client value <code>onclick</code> sufficiently.</p><h3 id="clientvaluesemantic">Semantics</h3><p>The point in time of the evaluation of the expression of a client value (which also includes the occurrence of its side effects) depends on the context of the creation of the client value on the server. In Eliom, global client values are distinguished from request client values.</p><p>Client values created while launching the server, i.e. while evaluating the top-level declarations of the server program, are termed <em>global client values</em>. The expressions of global client values are evaluated early in the initialization phase of the client process. Consider the following example to get an intuition of the order of evaluation of global client values; it will print the numbers 1 to 5 to the browser's console consecutively.</p><pre class="language-ocaml"><code>{client{
+  let () = Eliom_lib.debug &quot;1&quot;
+}}
+{server{
+  let f n = ignore {unit { Eliom_lib.debug &quot;%d&quot; %n }}
+  let () =
+    ignore {unit{ Eliom_lib.debug &quot;2&quot; }};
+    ignore {unit{ f 3 }};
+    ignore {unit{ f 4 }}
+}}
+{client{
+  let () = Eliom_lib.debug &quot;5&quot;
+}}</code></pre><p>Client values which are evaluated during the processing of a request are termed <em>request client values</em>. The expressions of request client values are evaluated after receiving the corresponding request on the client in the order of their occurrence on the server. In requests which change the content of the page withing the application (originating from a service of the <code>module
+Eliom_registration.App</code>), the expressions are evaluated <em>after the content has changed</em>. That way they may refer to the new DOM.</p><p>If a client value is created outside of the initialization of the server program and also outside of the processing of a request, the exception <a href="eliom.server/Eliom_client_value/index.html#exception-Client_value_creation_invalid_context"><code>Eliom_client_value.Client_value_creation_invalid_context</code></a> is raised.</p><h3 id="sharedclientvalues">In a shared section</h3><p>Client values are also supported in the shared-section of an Eliom program. They are then just directly compiled into the surrounding code. However, the same scoping rules apply to them:</p><pre class="language-ocaml"><code>{server{
+  let v = &quot;server&quot; (*1*)
+}}
+{shared{
+  let v = &quot;shared&quot; (*2*)
+  let () = {unit{ assert (%v = &quot;server&quot;)
+  (* Although v refers to (*2*) here *)
+}}</code></pre></div>
+      </article>
+    </div>
+  </div>
+
+  <script>
+    // Toggle between the server / client API of the same module.
+    function wodocSwitch(side) {
+      var w = { server: '', client: '' };
+      var p = location.pathname;
+      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
+      location.href = np !== p ? np
+        : './eliom.' + side + '/' + (w[side] || '') + 'index.html';
+    }
+    var wodocPub = "/eliom";
+    // Switch version: keep the current page, swapping only the version segment.
+    function wodocVersion(v) {
+      if (!v) return;
+      var re = new RegExp('^(' + wodocPub + '/)[^/]+');
+      var p = location.pathname;
+      location.href =
+        re.test(p) ? p.replace(re, '$1' + v) : wodocPub + '/' + v + '/index.html';
+    }
+    // Build the version <select> from the project's versions.json (the single
+    // source of truth, refreshed on every build/release), so even older frozen
+    // pages list the current set. Falls back to the baked <option>s on failure.
+    (function () {
+      var seg = (location.pathname.match(
+        new RegExp('^' + wodocPub + '/([^/]+)')) || [])[1];
+      function select(sel) {
+        var i;
+        for (i = 0; i < sel.options.length; i++)
+          if (sel.options[i].value === seg) { sel.selectedIndex = i; return; }
+        if (seg) {
+          var o = document.createElement('option');
+          o.value = seg; o.textContent = seg; o.selected = true;
+          sel.insertBefore(o, sel.firstChild);
+        }
+      }
+      fetch(wodocPub + '/versions.json')
+        .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(function (m) {
+          var list = m.list || [], latest = m.latest;
+          document.querySelectorAll('.wodoc-version').forEach(function (sel) {
+            sel.innerHTML = '';
+            list.forEach(function (v) {
+              var o = document.createElement('option');
+              if (v === latest) { o.value = 'latest'; o.textContent = v + ' (latest)'; }
+              else { o.value = v; o.textContent = v; }
+              sel.appendChild(o);
+            });
+            select(sel);
+          });
+        })
+        .catch(function () {
+          document.querySelectorAll('.wodoc-version').forEach(select);
+        });
+    })();
+  </script>
+</body>
+</html>

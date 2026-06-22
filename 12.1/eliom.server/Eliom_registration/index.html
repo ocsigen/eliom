@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Module Eliom_registrationSource — Eliom</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <link rel="stylesheet" href="/css/ocsigen-odoc.css"/>
+  <link rel="alternate" type="text/markdown" href="../../eliom.server/Eliom_registration.md"/>
+  <script src="../../highlight.pack.js"></script>
+  <script src="../../wodoc-highlight.js"></script>
+</head>
+<body class="wodoc-page wodoc-doc wodoc-server">
+  <!-- Shared site menu — THE single source of truth for the header, top menu and
+     drawer of EVERY Ocsigen doc page (vitrine + all projects). Canonical copy
+     lives here in ocsigen.github.io; each project's build fetches it. Injected
+     by `wodoc assemble --menu`. Holes filled by the tool (braces omitted here so
+     this comment is not itself rewritten by the hole-filler):
+       subproject  the sub-project name shown next to the Ocsigen logo
+                   (empty on the vitrine), via --subproject
+       leftnav     the project's left navigation, expanded into BOTH the mobile
+                   drawer (below) and the left column (in the page template),
+                   via --leftnav
+     The current entry is highlighted by adding the `current` class to the
+     element carrying data-wodoc-page=<id>: --current on the vitrine (page id),
+     --menu-current in a project (the project id). Nothing is hardcoded here, so
+     this file is the ONLY place the menu is defined.
+
+     Links are the FINAL site paths (/<project>/, /<page>): the target layout
+     where each project is served at ocsigen.org/<project>/ — no transitional
+     /wodoc/ prefix. -->
+<div class="page-header">
+  <p class="logo-ocsigen"><a href="/"><img src="/img/ocsigen-white.svg" alt="Ocsigen"/></a></p>
+  <p class="logo-subproject">Eliom</p>
+
+  <div class="mainmenu">
+    <p class="mainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></p>
+    <p class="mainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></p>
+    <p class="mainmenu-blog" data-wodoc-page="blog"><a href="/blog/">Blog</a></p>
+    <p data-wodoc-page="eliom" class="current"><a href="/eliom/">Eliom</a></p>
+    <p data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></p>
+    <p data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></p>
+    <p data-wodoc-page="lwt"><a href="/lwt/">Lwt</a></p>
+    <p data-wodoc-page="tyxml"><a href="/tyxml/">Tyxml</a></p>
+    <p data-wodoc-page="ocsigen-start"><a href="/ocsigen-start/">Start</a></p>
+  </div>
+
+  <form id="googlesearch" action="https://google.com/search">
+    <input name="q" id="gsearch-box" placeholder="Search using Google"/>
+    <label for="gsearch-box"><img src="/img/search.svg" alt="" id="gsearch-icon"/></label>
+    <input type="submit" id="gsearch-submit" onclick="document.getElementById('gsearch-box').value += ' site:ocsigen.org';"/>
+  </form>
+
+  <aside class="how-drawer">
+    <input id="how-drawer-toggle" type="checkbox"/>
+    <label for="how-drawer-toggle" id="how-drawer-label"><span class="how-drawer-icon"></span></label>
+    <nav class="how-drawer-content">
+      <ul class="drawermainmenu">
+        <li class="drawermainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></li>
+        <li class="drawermainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></li>
+        <li class="drawermainmenu-project current" data-wodoc-page="eliom"><a href="/eliom/">Eliom</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="lwt"><a href="/lwt/">Lwt</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="tyxml"><a href="/tyxml/">Tyxml</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-toolkit"><a href="/ocsigen-toolkit/">Toolkit</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-start"><a href="/ocsigen-start/">Start</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsipersist"><a href="/ocsipersist/">Ocsipersist</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="reactiveData"><a href="/reactiveData/">ReactiveData</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-i18n"><a href="/ocsigen-i18n/">i18n</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="wodoc"><a href="/wodoc/">Wodoc</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="projects"><a href="/projects">Other projects</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="papers"><a href="/papers">Research papers</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="credits"><a href="/credits">Who does Ocsigen?</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="contributing"><a href="/contributing">Contributing</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="blog"><a href="/blog/">Blog</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="install"><a href="/install">Installation</a></li>
+        <li class="drawermainmenu-page"><a href="https://github.com/ocsigen">Source code</a></li>
+      </ul>
+      <!-- On mobile the left column is hidden; its menu lives here in the burger
+           (.how-doctree, shown only on narrow screens), as the old site did.
+           Empty on the vitrine; the leftnav hole is filled (with the same
+           fragment as the left column) only on project pages. -->
+      <nav class="how-doctree"><div class="docversion">
+  <label>Version:
+    <select class="wodoc-version" onchange="wodocVersion(this.value)">
+      <option value="dev">dev</option>
+    </select>
+  </label>
+</div>
+<div class="cs-switch">
+  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
+  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+</div>
+<div class="page-toc">
+  <h3>On this page</h3>
+  <nav class="odoc-toc odoc-local-toc"><ul><li><a href="#type-definitions">Type definitions</a><ul><li><a href="#return-types-for-">Return types for Eliom_service.service</a></li></ul></li><li><a href="#using-html-with-services">Using HTML with services</a></li><li><a href="#eliom-client/server-applications">Eliom client/server applications</a><ul><li><a href="#services-returning-html-(or-other-tyxml)-fragments">Services returning HTML (or other TyXML) fragments</a></li></ul></li><li><a href="#untyped-pages">Untyped pages</a></li><li><a href="#other-kinds-of-services">Other kinds of services</a></li><li><a href="#customizing-registration">Customizing registration</a></li><li><a href="#using-your-own-error-pages">Using your own error pages</a></li><li><a href="#unsafe-cast-of-contents">Unsafe cast of contents</a></li></ul></nav>
+</div>
+<nav class="api-nav manual-nav">
+<h3>Eliom&#x27;s Reference manual</h3>
+<ul class="api-section">
+<li class="ml3" data-wodoc-page="intro.html"><a href="../../intro.html">Introduction</a></li>
+</ul>
+<h4 class="ml3">Server-side programming</h4>
+<h4 class="ml4">Services</h4>
+<ul class="api-section">
+<li class="ml5" data-wodoc-page="server-services.html"><a href="../../server-services.html">The different types of services</a></li>
+<li class="ml5" data-wodoc-page="server-params.html"><a href="../../server-params.html">Typing service parameters</a></li>
+<li class="ml5" data-wodoc-page="server-outputs.html"><a href="../../server-outputs.html">Service handlers</a></li>
+<li class="ml5" data-wodoc-page="server-links.html"><a href="../../server-links.html">Creating links and forms</a></li>
+</ul>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="server-state.html"><a href="../../server-state.html">Sessions and server side state</a></li>
+<li class="ml4" data-wodoc-page="server-security.html"><a href="../../server-security.html">Security</a></li>
+</ul>
+<h4 class="ml3">Client-server programming</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="clientserver-applications.html"><a href="../../clientserver-applications.html">Eliom applications</a></li>
+<li class="ml4" data-wodoc-page="ppx-syntax.html"><a href="../../ppx-syntax.html">Multi-tier programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-html.html"><a href="../../clientserver-html.html">Generating HTML</a></li>
+<li class="ml4" data-wodoc-page="clientserver-communication.html"><a href="../../clientserver-communication.html">Communication</a></li>
+<li class="ml4" data-wodoc-page="clientserver-services.html"><a href="../../clientserver-services.html">Client-side services</a></li>
+<li class="ml4" data-wodoc-page="clientserver-react.html"><a href="../../clientserver-react.html">Shared reactive programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-cache.html"><a href="../../clientserver-cache.html">Caching data and off-line applications</a></li>
+<li class="ml4" data-wodoc-page="clientserver-wrapping.html"><a href="../../clientserver-wrapping.html">Custom wrapping</a></li>
+</ul>
+<h4 class="ml3">Workflows</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="workflow-distillery.html"><a href="../../workflow-distillery.html">Distillery</a></li>
+<li class="ml4" data-wodoc-page="mobile-apps.html"><a href="../../mobile-apps.html">Mobile apps</a></li>
+<li class="ml4" data-wodoc-page="workflow-configuration.html"><a href="../../workflow-configuration.html">Configuration &amp; running</a></li>
+<li class="ml4" data-wodoc-page="scalability.html"><a href="../../scalability.html">Scalability</a></li>
+</ul>
+</nav>
+
+<nav class="api-nav">
+<h3>Server API</h3>
+<h4>Server API</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_lib"><a href="../../eliom.server/Eliom_lib/index.html">Eliom_lib</a></li>
+<li data-wodoc-page="Eliom_client"><a href="../../eliom.server/Eliom_client/index.html">Eliom_client</a></li>
+<li data-wodoc-page="Eliom_client_value"><a href="../../eliom.server/Eliom_client_value/index.html">Eliom_client_value</a></li>
+<li data-wodoc-page="Eliom_common"><a href="../../eliom.server/Eliom_common/index.html">Eliom_common</a></li>
+<li data-wodoc-page="Eliom_config"><a href="../../eliom.server/Eliom_config/index.html">Eliom_config</a></li>
+<li data-wodoc-page="Eliom_request_info"><a href="../../eliom.server/Eliom_request_info/index.html">Eliom_request_info</a></li>
+<li data-wodoc-page="Eliom_reference"><a href="../../eliom.server/Eliom_reference/index.html">Eliom_reference</a></li>
+<li data-wodoc-page="Eliom_state"><a href="../../eliom.server/Eliom_state/index.html">Eliom_state</a></li>
+</ul>
+<h4>Content and form creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_content"><a href="../../eliom.server/Eliom_content/index.html">Eliom_content</a></li>
+<li data-wodoc-page="Eliom_content.Html"><a href="../../eliom.server/Eliom_content/Html/index.html">Eliom_content.Html</a></li>
+<li data-wodoc-page="Eliom_content.Svg"><a href="../../eliom.server/Eliom_content/Svg/index.html">Eliom_content.Svg</a></li>
+<li data-wodoc-page="Eliom_content.Xml"><a href="../../eliom.server/Eliom_content/Xml/index.html">Eliom_content.Xml</a></li>
+<li data-wodoc-page="Eliom_tools"><a href="../../eliom.server/Eliom_tools/index.html">Eliom_tools</a></li>
+</ul>
+<h4>Service creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_service"><a href="../../eliom.server/Eliom_service/index.html">Eliom_service</a></li>
+<li data-wodoc-page="Eliom_parameter"><a href="../../eliom.server/Eliom_parameter/index.html">Eliom_parameter</a></li>
+<li data-wodoc-page="Eliom_registration" class="current"><a href="../../eliom.server/Eliom_registration/index.html">Eliom_registration</a></li>
+<li data-wodoc-page="Eliom_registration.Html"><a href="../../eliom.server/Eliom_registration/Html/index.html">Eliom_registration.Html</a></li>
+<li data-wodoc-page="Eliom_registration.Action"><a href="../../eliom.server/Eliom_registration/Action/index.html">Eliom_registration.Action</a></li>
+<li data-wodoc-page="Eliom_registration.Ocaml"><a href="../../eliom.server/Eliom_registration/Ocaml/index.html">Eliom_registration.Ocaml</a></li>
+<li data-wodoc-page="Eliom_registration.App"><a href="../../eliom.server/Eliom_registration/App/index.html">Eliom_registration.App</a></li>
+<li data-wodoc-page="Eliom_registration.File"><a href="../../eliom.server/Eliom_registration/File/index.html">Eliom_registration.File</a></li>
+<li data-wodoc-page="Eliom_registration.Any"><a href="../../eliom.server/Eliom_registration/Any/index.html">Eliom_registration.Any</a></li>
+<li data-wodoc-page="Eliom_registration.Redirection"><a href="../../eliom.server/Eliom_registration/Redirection/index.html">Eliom_registration.Redirection</a></li>
+</ul>
+<h4>Client/server communication</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_shared"><a href="../../eliom.server/Eliom_shared/index.html">Eliom_shared</a></li>
+<li data-wodoc-page="Eliom_notif"><a href="../../eliom.server/Eliom_notif/index.html">Eliom_notif</a></li>
+<li data-wodoc-page="Eliom_cscache"><a href="../../eliom.server/Eliom_cscache/index.html">Eliom_cscache</a></li>
+<li data-wodoc-page="Eliom_bus"><a href="../../eliom.server/Eliom_bus/index.html">Eliom_bus</a></li>
+<li data-wodoc-page="Eliom_comet"><a href="../../eliom.server/Eliom_comet/index.html">Eliom_comet</a></li>
+<li data-wodoc-page="Eliom_react"><a href="../../eliom.server/Eliom_react/index.html">Eliom_react</a></li>
+</ul>
+</nav>
+</nav>
+    </nav>
+  </aside>
+</div>
+
+
+  <div class="project-page">
+    <div class="twocols">
+      <nav class="leftcol">
+        <div class="docversion">
+  <label>Version:
+    <select class="wodoc-version" onchange="wodocVersion(this.value)">
+      <option value="dev">dev</option>
+    </select>
+  </label>
+</div>
+<div class="cs-switch">
+  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
+  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+</div>
+<div class="page-toc">
+  <h3>On this page</h3>
+  <nav class="odoc-toc odoc-local-toc"><ul><li><a href="#type-definitions">Type definitions</a><ul><li><a href="#return-types-for-">Return types for Eliom_service.service</a></li></ul></li><li><a href="#using-html-with-services">Using HTML with services</a></li><li><a href="#eliom-client/server-applications">Eliom client/server applications</a><ul><li><a href="#services-returning-html-(or-other-tyxml)-fragments">Services returning HTML (or other TyXML) fragments</a></li></ul></li><li><a href="#untyped-pages">Untyped pages</a></li><li><a href="#other-kinds-of-services">Other kinds of services</a></li><li><a href="#customizing-registration">Customizing registration</a></li><li><a href="#using-your-own-error-pages">Using your own error pages</a></li><li><a href="#unsafe-cast-of-contents">Unsafe cast of contents</a></li></ul></nav>
+</div>
+<nav class="api-nav manual-nav">
+<h3>Eliom&#x27;s Reference manual</h3>
+<ul class="api-section">
+<li class="ml3" data-wodoc-page="intro.html"><a href="../../intro.html">Introduction</a></li>
+</ul>
+<h4 class="ml3">Server-side programming</h4>
+<h4 class="ml4">Services</h4>
+<ul class="api-section">
+<li class="ml5" data-wodoc-page="server-services.html"><a href="../../server-services.html">The different types of services</a></li>
+<li class="ml5" data-wodoc-page="server-params.html"><a href="../../server-params.html">Typing service parameters</a></li>
+<li class="ml5" data-wodoc-page="server-outputs.html"><a href="../../server-outputs.html">Service handlers</a></li>
+<li class="ml5" data-wodoc-page="server-links.html"><a href="../../server-links.html">Creating links and forms</a></li>
+</ul>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="server-state.html"><a href="../../server-state.html">Sessions and server side state</a></li>
+<li class="ml4" data-wodoc-page="server-security.html"><a href="../../server-security.html">Security</a></li>
+</ul>
+<h4 class="ml3">Client-server programming</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="clientserver-applications.html"><a href="../../clientserver-applications.html">Eliom applications</a></li>
+<li class="ml4" data-wodoc-page="ppx-syntax.html"><a href="../../ppx-syntax.html">Multi-tier programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-html.html"><a href="../../clientserver-html.html">Generating HTML</a></li>
+<li class="ml4" data-wodoc-page="clientserver-communication.html"><a href="../../clientserver-communication.html">Communication</a></li>
+<li class="ml4" data-wodoc-page="clientserver-services.html"><a href="../../clientserver-services.html">Client-side services</a></li>
+<li class="ml4" data-wodoc-page="clientserver-react.html"><a href="../../clientserver-react.html">Shared reactive programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-cache.html"><a href="../../clientserver-cache.html">Caching data and off-line applications</a></li>
+<li class="ml4" data-wodoc-page="clientserver-wrapping.html"><a href="../../clientserver-wrapping.html">Custom wrapping</a></li>
+</ul>
+<h4 class="ml3">Workflows</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="workflow-distillery.html"><a href="../../workflow-distillery.html">Distillery</a></li>
+<li class="ml4" data-wodoc-page="mobile-apps.html"><a href="../../mobile-apps.html">Mobile apps</a></li>
+<li class="ml4" data-wodoc-page="workflow-configuration.html"><a href="../../workflow-configuration.html">Configuration &amp; running</a></li>
+<li class="ml4" data-wodoc-page="scalability.html"><a href="../../scalability.html">Scalability</a></li>
+</ul>
+</nav>
+
+<nav class="api-nav">
+<h3>Server API</h3>
+<h4>Server API</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_lib"><a href="../../eliom.server/Eliom_lib/index.html">Eliom_lib</a></li>
+<li data-wodoc-page="Eliom_client"><a href="../../eliom.server/Eliom_client/index.html">Eliom_client</a></li>
+<li data-wodoc-page="Eliom_client_value"><a href="../../eliom.server/Eliom_client_value/index.html">Eliom_client_value</a></li>
+<li data-wodoc-page="Eliom_common"><a href="../../eliom.server/Eliom_common/index.html">Eliom_common</a></li>
+<li data-wodoc-page="Eliom_config"><a href="../../eliom.server/Eliom_config/index.html">Eliom_config</a></li>
+<li data-wodoc-page="Eliom_request_info"><a href="../../eliom.server/Eliom_request_info/index.html">Eliom_request_info</a></li>
+<li data-wodoc-page="Eliom_reference"><a href="../../eliom.server/Eliom_reference/index.html">Eliom_reference</a></li>
+<li data-wodoc-page="Eliom_state"><a href="../../eliom.server/Eliom_state/index.html">Eliom_state</a></li>
+</ul>
+<h4>Content and form creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_content"><a href="../../eliom.server/Eliom_content/index.html">Eliom_content</a></li>
+<li data-wodoc-page="Eliom_content.Html"><a href="../../eliom.server/Eliom_content/Html/index.html">Eliom_content.Html</a></li>
+<li data-wodoc-page="Eliom_content.Svg"><a href="../../eliom.server/Eliom_content/Svg/index.html">Eliom_content.Svg</a></li>
+<li data-wodoc-page="Eliom_content.Xml"><a href="../../eliom.server/Eliom_content/Xml/index.html">Eliom_content.Xml</a></li>
+<li data-wodoc-page="Eliom_tools"><a href="../../eliom.server/Eliom_tools/index.html">Eliom_tools</a></li>
+</ul>
+<h4>Service creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_service"><a href="../../eliom.server/Eliom_service/index.html">Eliom_service</a></li>
+<li data-wodoc-page="Eliom_parameter"><a href="../../eliom.server/Eliom_parameter/index.html">Eliom_parameter</a></li>
+<li data-wodoc-page="Eliom_registration" class="current"><a href="../../eliom.server/Eliom_registration/index.html">Eliom_registration</a></li>
+<li data-wodoc-page="Eliom_registration.Html"><a href="../../eliom.server/Eliom_registration/Html/index.html">Eliom_registration.Html</a></li>
+<li data-wodoc-page="Eliom_registration.Action"><a href="../../eliom.server/Eliom_registration/Action/index.html">Eliom_registration.Action</a></li>
+<li data-wodoc-page="Eliom_registration.Ocaml"><a href="../../eliom.server/Eliom_registration/Ocaml/index.html">Eliom_registration.Ocaml</a></li>
+<li data-wodoc-page="Eliom_registration.App"><a href="../../eliom.server/Eliom_registration/App/index.html">Eliom_registration.App</a></li>
+<li data-wodoc-page="Eliom_registration.File"><a href="../../eliom.server/Eliom_registration/File/index.html">Eliom_registration.File</a></li>
+<li data-wodoc-page="Eliom_registration.Any"><a href="../../eliom.server/Eliom_registration/Any/index.html">Eliom_registration.Any</a></li>
+<li data-wodoc-page="Eliom_registration.Redirection"><a href="../../eliom.server/Eliom_registration/Redirection/index.html">Eliom_registration.Redirection</a></li>
+</ul>
+<h4>Client/server communication</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_shared"><a href="../../eliom.server/Eliom_shared/index.html">Eliom_shared</a></li>
+<li data-wodoc-page="Eliom_notif"><a href="../../eliom.server/Eliom_notif/index.html">Eliom_notif</a></li>
+<li data-wodoc-page="Eliom_cscache"><a href="../../eliom.server/Eliom_cscache/index.html">Eliom_cscache</a></li>
+<li data-wodoc-page="Eliom_bus"><a href="../../eliom.server/Eliom_bus/index.html">Eliom_bus</a></li>
+<li data-wodoc-page="Eliom_comet"><a href="../../eliom.server/Eliom_comet/index.html">Eliom_comet</a></li>
+<li data-wodoc-page="Eliom_react"><a href="../../eliom.server/Eliom_react/index.html">Eliom_react</a></li>
+</ul>
+</nav>
+
+      </nav>
+      <article class="rightcol">
+        <header class="odoc-preamble"><h1>Module <code><span>Eliom_registration</span></code></h1><p>Eliom services registration for various kinds of page content: Eliom application, valid <a href="Html/index.html"><code>Html</code></a>, actions, redirections, static files, ...</p><p><b>Please read the Eliom manual before this page to learn how to use <a href="../../server-services.html" title="server-services">services</a> and <a href="../../server-outputs.html" title="server-outputs">predefined outputs</a>.</b></p></header>
+        <div class="odoc-content"><h3 id="type-definitions">Type definitions</h3><div class="odoc-spec"><div class="spec type anchored" id="type-kind"><code><span><span class="keyword">type</span> <span>'a kind</span></span></code></div><div class="spec-doc"><p>The type <code>kind</code> is an abstract type for the HTTP frame returned by a service. The type parameter indicates the content type, and is one of the following types:</p><ul><li><a href="#type-application_content"><code>application_content</code></a></li><li><a href="#type-browser_content"><code>browser_content</code></a></li><li><a href="#type-block_content"><code>block_content</code></a></li><li><a href="#type-unknown_content"><code>unknown_content</code></a></li><li><a href="#type-ocaml_content"><code>ocaml_content</code></a></li></ul></div></div><h4 id="return-types-for-">Return types for <code>Eliom_service.service</code></h4><h5 id="classical-content">Classical content</h5><div class="odoc-spec"><div class="spec type anchored" id="type-browser_content"><code><span><span class="keyword">type</span> browser_content</span><span> = </span><span>[ </span></code><ol><li id="type-browser_content.Browser" class="def variant constructor anchored"><code><span>| </span><span>`Browser</span></code></li></ol><code><span> ]</span></code></div><div class="spec-doc"><p>The type <code>browser_content</code> is to be used as a phantom type parameter for <a href="#type-kind"><code>Eliom_registration.kind</code></a>. It means the returned content must be interpreted in the browser as stated by the content-type header. This is most common return type for an eliom service, see for example <a href="Html/index.html"><code>Html</code></a>, <a href="CssText/index.html"><code>CssText</code></a>, <a href="File/index.html"><code>File</code></a>, <a href="Redirection/index.html"><code>Redirection</code></a>.</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-block_content"><code><span><span class="keyword">type</span> block_content</span></code></div><div class="spec-doc"><p>The type <code>block_content</code> is to be used as a phantom type parameter for <a href="#type-kind"><code>Eliom_registration.kind</code></a>. It means the returned content is a subtree of an XML value. See for example <code>Block5</code> or <code>Make_typed_xml_registration</code>.</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-unknown_content"><code><span><span class="keyword">type</span> unknown_content</span></code></div><div class="spec-doc"><p>The type <code>unknown_content</code> is to be used as a phantom type parameter for <a href="#type-kind"><code>Eliom_registration.kind</code></a> when the content-type can't be determined statically. See <code>Text</code> or <a href="Any/index.html"><code>Any</code></a>.</p></div></div><h5 id="application-content">Application content</h5><div class="odoc-spec"><div class="spec type anchored" id="type-application_content"><code><span><span class="keyword">type</span> <span>'a application_content</span></span><span> = </span><span>[ </span></code><ol><li id="type-application_content.Appl" class="def variant constructor anchored"><code><span>| </span><span>`Appl <span class="keyword">of</span> <span class="type-var">'a</span></span></code></li></ol><code><span> ]</span></code></div><div class="spec-doc"><p>The type <code>application_content</code> is a refinement of <code>appl_service</code> to be used as a phantom type parameters for <a href="#type-kind"><code>Eliom_registration.kind</code></a>. The parameter <code>'a</code> is phantom type that is unique for a given application.</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-application_name"><code><span><span class="keyword">type</span> <span>'a application_name</span></span></code></div><div class="spec-doc"><p>Typed application name</p></div></div><h5 id="ocaml-content">OCaml content</h5><div class="odoc-spec"><div class="spec type anchored" id="type-ocaml_content"><code><span><span class="keyword">type</span> <span>'a ocaml_content</span></span></code></div><div class="spec-doc"><p>The type <code>ocaml_content</code> is an synomyn for <code>Eliom_service.ocaml_service</code> to be used as a phantom type parameters for <a href="#type-kind"><code>Eliom_registration.kind</code></a>. See <a href="Ocaml/index.html"><code>Ocaml</code></a>.</p></div></div><h3 id="using-html-with-services">Using HTML with services</h3><div class="odoc-spec"><div class="spec module anchored" id="module-Html"><code><span><span class="keyword">module</span> <a href="Html/index.html">Html</a></span><span> : 
+  <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html">Eliom_registration_sigs.S_with_create</a>
+    <span class="keyword">with</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-page">page</a> = <span><a href="../../../../tyxml/latest/tyxml/Html_types/index.html#type-html">Html_types.html</a> <a href="../Eliom_content/Html/index.html#type-elt">Eliom_content.Html.elt</a></span></span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-options">options</a> = unit</span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-return">return</a> = <a href="../Eliom_service/index.html#type-non_ocaml">Eliom_service.non_ocaml</a></span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-result">result</a> = <span><a href="#type-browser_content">browser_content</a> <a href="#type-kind">kind</a></span></span></span></code></div><div class="spec-doc"><p>Eliom service registration for services that return HTML pages.</p></div></div><h3 id="eliom-client/server-applications">Eliom client/server applications</h3><div class="odoc-spec"><div class="spec type anchored" id="type-appl_service_options"><code><span><span class="keyword">type</span> appl_service_options</span><span> = </span><span>{</span></code><ol><li id="type-appl_service_options.do_not_launch" class="def record field anchored"><code><span>do_not_launch : bool;</span></code></li></ol><code><span>}</span></code></div><div class="spec-doc"><p>Type for the options of an Eliom application service.</p><p>If you set <code>do_not_launch</code> to <code>true</code> when creating an application service, it will send the page without launching the client side program. However, if the program is already lanched, the client side process won't be stopped. Use this if some of your pages are not using the client side program and you want to make them load faster.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-default_appl_service_options"><code><span><span class="keyword">val</span> default_appl_service_options : <a href="#type-appl_service_options">appl_service_options</a></span></code></div><div class="spec-doc"><p>The default options record for an eliom service. See <a href="#type-appl_service_options"><code>appl_service_options</code></a>.</p></div></div><div class="odoc-spec"><div class="spec module-type anchored" id="module-type-APP"><code><span><span class="keyword">module</span> <span class="keyword">type</span> <a href="module-type-APP/index.html">APP</a></span><span> = <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-transform_global_app_uri"><code><span><span class="keyword">val</span> transform_global_app_uri : 
+  <span><span>(<span><a href="../Eliom_content/Html/index.html#type-uri">Eliom_content.Html.uri</a> <span class="arrow">&#45;&gt;</span></span> <a href="../Eliom_content/Html/index.html#type-uri">Eliom_content.Html.uri</a>)</span> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/index.html#type-ref">ref</a></span></span></code></div><div class="spec-doc"><p>Function to modify the global_app URI for some obscure reason</p></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-App"><code><span><span class="keyword">module</span> <a href="App/index.html">App</a></span><span> (<a href="App/argument-1-_/index.html">_</a> : <a href="../Eliom_registration_sigs/module-type-APP_PARAM/index.html">Eliom_registration_sigs.APP_PARAM</a>) : <a href="module-type-APP/index.html">APP</a></span></code></div><div class="spec-doc"><p>Functor for application creation. See <a href="../../clientserver-applications.html" title="clientserver-applications">the chapter on applications</a> in the Eliom manual for details.</p></div></div><div class="odoc-spec"><div class="spec module-type anchored" id="module-type-TMPL_PARAMS"><code><span><span class="keyword">module</span> <span class="keyword">type</span> <a href="module-type-TMPL_PARAMS/index.html">TMPL_PARAMS</a></span><span> = <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Eliom_tmpl"><code><span><span class="keyword">module</span> <a href="Eliom_tmpl/index.html">Eliom_tmpl</a></span><span>
+  (<a href="Eliom_tmpl/argument-1-App/index.html">App</a> : <a href="module-type-APP/index.html">APP</a>)
+  (<a href="Eliom_tmpl/argument-2-Tmpl_param/index.html">Tmpl_param</a> : <a href="module-type-TMPL_PARAMS/index.html">TMPL_PARAMS</a>) : 
+  <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html">Eliom_registration_sigs.S_with_create</a>
+    <span class="keyword">with</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-page">page</a> = <a href="Eliom_tmpl/argument-2-Tmpl_param/index.html#type-t">Tmpl_param.t</a></span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-options">options</a> = <a href="#type-appl_service_options">appl_service_options</a></span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-return">return</a> = <a href="../Eliom_service/index.html#type-non_ocaml">Eliom_service.non_ocaml</a></span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-result">result</a> = <span><span><a href="Eliom_tmpl/argument-1-App/index.html#type-app_id">App.app_id</a> <a href="#type-application_content">application_content</a></span> <a href="#type-kind">kind</a></span></span></span></code></div></div><h4 id="services-returning-html-(or-other-tyxml)-fragments">Services returning HTML (or other TyXML) fragments</h4><div class="odoc-spec"><div class="spec module anchored" id="module-Flow5"><code><span><span class="keyword">module</span> <a href="Flow5/index.html">Flow5</a></span><span> : 
+  <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html">Eliom_registration_sigs.S_with_create</a>
+    <span class="keyword">with</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-page">page</a> = <span><span><a href="../../../../tyxml/latest/tyxml/Html_types/index.html#type-flow5">Html_types.flow5</a> <a href="../Eliom_content/Html/index.html#type-elt">Eliom_content.Html.elt</a></span> list</span></span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-options">options</a> = unit</span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-return">return</a> = <a href="../Eliom_service/index.html#type-non_ocaml">Eliom_service.non_ocaml</a></span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-result">result</a> = <span><a href="#type-block_content">block_content</a> <a href="#type-kind">kind</a></span></span></span></code></div><div class="spec-doc"><p>Eliom service registration and forms creation for fragment of HTML page.</p></div></div><h3 id="untyped-pages">Untyped pages</h3><div class="odoc-spec"><div class="spec module anchored" id="module-Html_text"><code><span><span class="keyword">module</span> <a href="Html_text/index.html">Html_text</a></span><span> : 
+  <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html">Eliom_registration_sigs.S_with_create</a>
+    <span class="keyword">with</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-page">page</a> = string</span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-options">options</a> = unit</span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-return">return</a> = <a href="../Eliom_service/index.html#type-non_ocaml">Eliom_service.non_ocaml</a></span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-result">result</a> = <span><a href="#type-browser_content">browser_content</a> <a href="#type-kind">kind</a></span></span></span></code></div><div class="spec-doc"><p>Eliom service registration and forms creation for untyped HTML page. The page content is a <code>string</code> that must contains valid HTML and the content type is always <code>text/html</code>.</p></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-CssText"><code><span><span class="keyword">module</span> <a href="CssText/index.html">CssText</a></span><span> : 
+  <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html">Eliom_registration_sigs.S_with_create</a>
+    <span class="keyword">with</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-page">page</a> = string</span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-options">options</a> = int</span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-return">return</a> = <a href="../Eliom_service/index.html#type-non_ocaml">Eliom_service.non_ocaml</a></span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-result">result</a> = <span><a href="#type-browser_content">browser_content</a> <a href="#type-kind">kind</a></span></span></span></code></div><div class="spec-doc"><p>Eliom service registration for services that returns CSS. The page content is a <code>string</code> that must contains valid CSS and the content type is always <code>text/css</code>. The option is the optional &quot;Cache-policy: max-age&quot; header value to be sent.</p></div></div><h3 id="other-kinds-of-services">Other kinds of services</h3><div class="odoc-spec"><div class="spec module anchored" id="module-Action"><code><span><span class="keyword">module</span> <a href="Action/index.html">Action</a></span><span> : 
+  <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html">Eliom_registration_sigs.S_with_create</a>
+    <span class="keyword">with</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-return">return</a> = <a href="../Eliom_service/index.html#type-non_ocaml">Eliom_service.non_ocaml</a></span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-page">page</a> = unit</span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-options">options</a> = <span>[ `Reload <span>| `NoReload</span> ]</span></span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-result">result</a> = <span><a href="#type-browser_content">browser_content</a> <a href="#type-kind">kind</a></span></span></span></code></div><div class="spec-doc"><p>Eliom service registration for services that only execute actions. See the Eliom manual for more information about <a href="../../server-outputs.html#actions" title="actions">Actions outputs</a>.</p></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Unit"><code><span><span class="keyword">module</span> <a href="Unit/index.html">Unit</a></span><span> : 
+  <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html">Eliom_registration_sigs.S_with_create</a>
+    <span class="keyword">with</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-page">page</a> = unit</span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-options">options</a> = unit</span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-return">return</a> = <a href="../Eliom_service/index.html#type-non_ocaml">Eliom_service.non_ocaml</a></span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-result">result</a> = <span><a href="#type-browser_content">browser_content</a> <a href="#type-kind">kind</a></span></span></span></code></div><div class="spec-doc"><p>Similar to <code>Actions</code> with <code>`NoReload</code> option.</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-redirection"><code><span><span class="keyword">type</span> <span>_ redirection</span></span><span> = </span></code><ol><li id="type-redirection.Redirection" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Redirection</span> : <span><span>(unit,
+                unit,
+                <a href="../Eliom_service/index.html#type-get">Eliom_service.get</a>,
+                <span class="type-var">_</span>,
+                <span class="type-var">_</span>,
+                <span class="type-var">_</span>,
+                <span class="type-var">_</span>,
+                <span>[ `WithoutSuffix ]</span>,
+                unit,
+                unit,
+                <span class="type-var">'a</span>)</span>
+                <a href="../Eliom_service/index.html#type-t">Eliom_service.t</a></span> <span class="arrow">&#45;&gt;</span> <span><span class="type-var">'a</span> <a href="#type-redirection">redirection</a></span></span></code></li></ol></div><div class="spec-doc"><p>Auxiliarry type to hide non-interesting type parameters</p></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Redirection"><code><span><span class="keyword">module</span> <a href="Redirection/index.html">Redirection</a></span><span> : <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div><div class="spec-doc"><p>Eliom service registration for services that returns a redirections towards another service. See the Eliom manual for more information about <a href="../../server-outputs.html#redirections" title="redirections">Redirections outputs</a>.</p></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-String_redirection"><code><span><span class="keyword">module</span> <a href="String_redirection/index.html">String_redirection</a></span><span> : 
+  <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html">Eliom_registration_sigs.S_with_create</a>
+    <span class="keyword">with</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-page">page</a> = <a href="../Eliom_lib/Url/index.html#type-uri">Eliom_lib.Url.uri</a></span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-options">options</a> =
+           <span>[ `MovedPermanently
+           <span>| `Found</span>
+           <span>| `SeeOther</span>
+           <span>| `NotNodifed</span>
+           <span>| `UseProxy</span>
+           <span>| `TemporaryRedirect</span> ]</span></span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-return">return</a> = <a href="../Eliom_service/index.html#type-non_ocaml">Eliom_service.non_ocaml</a></span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-result">result</a> = <span><a href="#type-browser_content">browser_content</a> <a href="#type-kind">kind</a></span></span></span></code></div><div class="spec-doc"><p>Eliom service registration for services that returns a redirections towards a string-URL. See the Eliom manual for more information about <a href="../../server-outputs.html#redirections" title="redirections">Redirections outputs</a>. The URL given must be an absolute URI.</p></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-File"><code><span><span class="keyword">module</span> <a href="File/index.html">File</a></span><span> : <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div><div class="spec-doc"><p>Eliom service registration for services that returns file contents. The value returned by service handlers is the name of the file to send. See the Eliom manual for more information on <a href="../../server-outputs.html#eliomfiles" title="eliomfiles">how to send files with Eliom</a>. The option is the optional &quot;Cache-policy: max-age&quot; header value to be sent.</p></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-File_ct"><code><span><span class="keyword">module</span> <a href="File_ct/index.html">File_ct</a></span><span> : <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div><div class="spec-doc"><p>Same as file but makes possible to specify the content type for each file. The value returned by service handlers is a pair <code>(file_name, content_type)</code>.</p></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Ocaml"><code><span><span class="keyword">module</span> <a href="Ocaml/index.html">Ocaml</a></span><span> : 
+  <a href="../Eliom_registration_sigs/module-type-S_poly_with_create_with_send/index.html">Eliom_registration_sigs.S_poly_with_create_with_send</a>
+    <span class="keyword">with</span> <span><span class="keyword">type</span> <span>'a <a href="../Eliom_registration_sigs/module-type-S_poly_with_create_with_send/index.html#type-page">page</a></span> = <span class="type-var">'a</span></span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_poly_with_create_with_send/index.html#type-options">options</a> = unit</span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <span>'a <a href="../Eliom_registration_sigs/module-type-S_poly_with_create_with_send/index.html#type-return">return</a></span> = <span><span class="type-var">'a</span> <a href="../Eliom_service/index.html#type-ocaml">Eliom_service.ocaml</a></span></span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <span>'a <a href="../Eliom_registration_sigs/module-type-S_poly_with_create_with_send/index.html#type-result">result</a></span> = <span><span><span class="type-var">'a</span> <a href="#type-ocaml_content">ocaml_content</a></span> <a href="#type-kind">kind</a></span></span></span></code></div><div class="spec-doc"><p>Eliom service registration for services that send marshalled OCaml values.</p></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Any"><code><span><span class="keyword">module</span> <a href="Any/index.html">Any</a></span><span> : 
+  <a href="../Eliom_registration_sigs/module-type-S_poly_with_create_with_send/index.html">Eliom_registration_sigs.S_poly_with_create_with_send</a>
+    <span class="keyword">with</span> <span><span class="keyword">type</span> <span>'a <a href="../Eliom_registration_sigs/module-type-S_poly_with_create_with_send/index.html#type-page">page</a></span> = <span><span class="type-var">'a</span> <a href="#type-kind">kind</a></span></span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_poly_with_create_with_send/index.html#type-options">options</a> = unit</span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <span>'a <a href="../Eliom_registration_sigs/module-type-S_poly_with_create_with_send/index.html#type-return">return</a></span> = <a href="../Eliom_service/index.html#type-non_ocaml">Eliom_service.non_ocaml</a></span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <span>'a <a href="../Eliom_registration_sigs/module-type-S_poly_with_create_with_send/index.html#type-result">result</a></span> = <span><span class="type-var">'a</span> <a href="#type-kind">kind</a></span></span></span></code></div><div class="spec-doc"><p>Eliom service registration for services that choose dynamically what they want to send. The content is created using for example <a href="Html/index.html#val-send"><code>Html.send</code></a> or <a href="String/index.html#val-send"><code>String.send</code></a> functions. See the Eliom manual for more information about <a href="../../server-outputs.html#any" title="any">services that choose dynamically what they want to send</a></p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-appl_self_redirect"><code><span><span class="keyword">val</span> appl_self_redirect : 
+  <span><span>(<span><span class="type-var">'page</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span>[&lt; <span><span class="type-var">'a</span> <a href="#type-application_content">application_content</a></span> <span>| <a href="#type-browser_content">browser_content</a></span> ]</span> <a href="#type-kind">kind</a></span> <a href="../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="type-var">'page</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span><span class="type-var">'appl</span> <a href="#type-application_content">application_content</a></span> <a href="#type-kind">kind</a></span> <a href="../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div><div class="spec-doc"><p>The function <code>appl_self_redirect send page</code> is an helper function required for defining <a href="Any/index.html"><code>Any</code></a> service usable inside an Eliom application (<a href="App/index.html"><code>App</code></a>). It allows casting an Eliom senders that do not returns <a href="#type-application_content"><code>application_content</code></a> (like <a href="File/index.html#val-send"><code>File.send</code></a>, <a href="String/index.html#val-send"><code>String.send</code></a>, ...) into a senders returns <a href="#type-application_content"><code>application_content</code></a>.</p><p>When the service is called from an Eliom application, this is implemented with half-redirection (a redirection that leaves the application). Hence, the service may be called two times in a row and you should not use this function for services that use POST parameters.</p></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-String"><code><span><span class="keyword">module</span> <a href="String/index.html">String</a></span><span> : 
+  <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html">Eliom_registration_sigs.S_with_create</a>
+    <span class="keyword">with</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-page">page</a> = string * string</span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-options">options</a> = int</span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-return">return</a> = <a href="../Eliom_service/index.html#type-non_ocaml">Eliom_service.non_ocaml</a></span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-result">result</a> = <span><a href="#type-unknown_content">unknown_content</a> <a href="#type-kind">kind</a></span></span></span></code></div><div class="spec-doc"><p>Eliom service registration for services that returns &quot;byte&quot;-string contents. The page content is a pair <code>(raw_content, content_type)</code>. See also <code>Streamlist</code> for another kind of service that returns &quot;byte&quot; contents. The option is the optional &quot;Cache-policy: max-age&quot; header value to be sent.</p></div></div><h3 id="customizing-registration">Customizing registration</h3><div class="odoc-spec"><div class="spec module anchored" id="module-Customize"><code><span><span class="keyword">module</span> <a href="Customize/index.html">Customize</a></span><span>
+  (<a href="Customize/argument-1-R/index.html">R</a> : <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html">Eliom_registration_sigs.S_with_create</a>)
+  (<a href="Customize/argument-2-T/index.html">T</a> : <span class="keyword">sig</span> ... <span class="keyword">end</span>) : 
+  <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html">Eliom_registration_sigs.S_with_create</a>
+    <span class="keyword">with</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-options">options</a> = <a href="Customize/argument-1-R/index.html#type-options">R.options</a></span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-return">return</a> = <a href="Customize/argument-1-R/index.html#type-return">R.return</a></span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-page">page</a> = <a href="Customize/argument-2-T/index.html#type-page">T.page</a></span>
+     <span class="keyword">and</span> <span><span class="keyword">type</span> <a href="../Eliom_registration_sigs/module-type-S_with_create/index.html#type-result">result</a> = <a href="Customize/argument-1-R/index.html#type-result">R.result</a></span></span></code></div><div class="spec-doc"><p>The <code>Customize</code> functor allows specialization of service registration functions by customizing the page type. See the <span class="xref-unresolved" title="interaction">Eliom tutorial</span> for example.</p></div></div><h3 id="using-your-own-error-pages">Using your own error pages</h3><div class="odoc-spec"><div class="spec value anchored" id="val-set_exn_handler"><code><span><span class="keyword">val</span> set_exn_handler : <span><span>(<span>exn <span class="arrow">&#45;&gt;</span></span> <span><span><a href="#type-browser_content">browser_content</a> <a href="#type-kind">kind</a></span> <a href="../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div><div class="spec-doc"><p>The <code>set_exn_handler handler</code> allows redefinition of error pages: <code>404</code> or any exception during page generation.</p><p>Note that you should not catch every exception here since some Eliom mechanisms are done using exceptions, like redirections. Do not catch exception defined in Eliom except <a href="../Eliom_common/index.html#exception-Eliom_404"><code>Eliom_common.Eliom_404</code></a>, <a href="../Eliom_common/index.html#exception-Eliom_Wrong_parameter"><code>Eliom_common.Eliom_Wrong_parameter</code></a> <a href="../Eliom_common/index.html#exception-Eliom_Typing_Error"><code>Eliom_common.Eliom_Typing_Error</code></a>.</p><p><em>Warning: This functions must be called when the site information is available, that is, either during a request or during the initialisation phase of the site. Otherwise, it will raise the exception <a href="../Eliom_common/index.html#exception-Eliom_site_information_not_available"><code>Eliom_common.Eliom_site_information_not_available</code></a>. If you are using static linking, you must delay the call to this function until the configuration file is read, using <a href="../Eliom_service/index.html#val-register_eliom_module"><code>Eliom_service.register_eliom_module</code></a>. Otherwise you will also get this exception.</em></p></div></div><h3 id="unsafe-cast-of-contents">Unsafe cast of contents</h3><div class="odoc-spec"><div class="spec value anchored" id="val-cast_unknown_content_kind"><code><span><span class="keyword">val</span> cast_unknown_content_kind : <span><span><a href="#type-unknown_content">unknown_content</a> <a href="#type-kind">kind</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="#type-kind">kind</a></span></span></code></div><div class="spec-doc"><p>If you know that the content you generated using <code>Text.send</code> or <code>Streamlist.send</code> is the same as some other kind, you can cast it with <code>cast_unknown_content_kind</code> for use with <code>Any</code> module.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-cast_http_result"><code><span><span class="keyword">val</span> cast_http_result : <span><a href="../../../../ocsigenserver/latest/Ocsigen_response/index.html#type-t">Ocsigen_response.t</a> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="#type-kind">kind</a></span></span></code></div><div class="spec-doc"><p><code>cast_http_result</code> should only be used to register new output modules</p></div></div></div>
+      </article>
+    </div>
+  </div>
+
+  <script>
+    // Toggle between the server / client API of the same module.
+    function wodocSwitch(side) {
+      var w = { server: '', client: '' };
+      var p = location.pathname;
+      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
+      location.href = np !== p ? np
+        : '../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
+    }
+    var wodocPub = "/eliom";
+    // Switch version: keep the current page, swapping only the version segment.
+    function wodocVersion(v) {
+      if (!v) return;
+      var re = new RegExp('^(' + wodocPub + '/)[^/]+');
+      var p = location.pathname;
+      location.href =
+        re.test(p) ? p.replace(re, '$1' + v) : wodocPub + '/' + v + '/index.html';
+    }
+    // Build the version <select> from the project's versions.json (the single
+    // source of truth, refreshed on every build/release), so even older frozen
+    // pages list the current set. Falls back to the baked <option>s on failure.
+    (function () {
+      var seg = (location.pathname.match(
+        new RegExp('^' + wodocPub + '/([^/]+)')) || [])[1];
+      function select(sel) {
+        var i;
+        for (i = 0; i < sel.options.length; i++)
+          if (sel.options[i].value === seg) { sel.selectedIndex = i; return; }
+        if (seg) {
+          var o = document.createElement('option');
+          o.value = seg; o.textContent = seg; o.selected = true;
+          sel.insertBefore(o, sel.firstChild);
+        }
+      }
+      fetch(wodocPub + '/versions.json')
+        .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(function (m) {
+          var list = m.list || [], latest = m.latest;
+          document.querySelectorAll('.wodoc-version').forEach(function (sel) {
+            sel.innerHTML = '';
+            list.forEach(function (v) {
+              var o = document.createElement('option');
+              if (v === latest) { o.value = 'latest'; o.textContent = v + ' (latest)'; }
+              else { o.value = v; o.textContent = v; }
+              sel.appendChild(o);
+            });
+            select(sel);
+          });
+        })
+        .catch(function () {
+          document.querySelectorAll('.wodoc-version').forEach(select);
+        });
+    })();
+  </script>
+</body>
+</html>

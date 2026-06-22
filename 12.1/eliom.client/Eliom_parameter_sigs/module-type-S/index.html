@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Module type Eliom_parameter_sigs.S — Eliom</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <link rel="stylesheet" href="/css/ocsigen-odoc.css"/>
+  <script src="../../../highlight.pack.js"></script>
+  <script src="../../../wodoc-highlight.js"></script>
+</head>
+<body class="wodoc-page wodoc-doc wodoc-client">
+  <!-- Shared site menu — THE single source of truth for the header, top menu and
+     drawer of EVERY Ocsigen doc page (vitrine + all projects). Canonical copy
+     lives here in ocsigen.github.io; each project's build fetches it. Injected
+     by `wodoc assemble --menu`. Holes filled by the tool (braces omitted here so
+     this comment is not itself rewritten by the hole-filler):
+       subproject  the sub-project name shown next to the Ocsigen logo
+                   (empty on the vitrine), via --subproject
+       leftnav     the project's left navigation, expanded into BOTH the mobile
+                   drawer (below) and the left column (in the page template),
+                   via --leftnav
+     The current entry is highlighted by adding the `current` class to the
+     element carrying data-wodoc-page=<id>: --current on the vitrine (page id),
+     --menu-current in a project (the project id). Nothing is hardcoded here, so
+     this file is the ONLY place the menu is defined.
+
+     Links are the FINAL site paths (/<project>/, /<page>): the target layout
+     where each project is served at ocsigen.org/<project>/ — no transitional
+     /wodoc/ prefix. -->
+<div class="page-header">
+  <p class="logo-ocsigen"><a href="/"><img src="/img/ocsigen-white.svg" alt="Ocsigen"/></a></p>
+  <p class="logo-subproject">Eliom</p>
+
+  <div class="mainmenu">
+    <p class="mainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></p>
+    <p class="mainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></p>
+    <p class="mainmenu-blog" data-wodoc-page="blog"><a href="/blog/">Blog</a></p>
+    <p data-wodoc-page="eliom" class="current"><a href="/eliom/">Eliom</a></p>
+    <p data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></p>
+    <p data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></p>
+    <p data-wodoc-page="lwt"><a href="/lwt/">Lwt</a></p>
+    <p data-wodoc-page="tyxml"><a href="/tyxml/">Tyxml</a></p>
+    <p data-wodoc-page="ocsigen-start"><a href="/ocsigen-start/">Start</a></p>
+  </div>
+
+  <form id="googlesearch" action="https://google.com/search">
+    <input name="q" id="gsearch-box" placeholder="Search using Google"/>
+    <label for="gsearch-box"><img src="/img/search.svg" alt="" id="gsearch-icon"/></label>
+    <input type="submit" id="gsearch-submit" onclick="document.getElementById('gsearch-box').value += ' site:ocsigen.org';"/>
+  </form>
+
+  <aside class="how-drawer">
+    <input id="how-drawer-toggle" type="checkbox"/>
+    <label for="how-drawer-toggle" id="how-drawer-label"><span class="how-drawer-icon"></span></label>
+    <nav class="how-drawer-content">
+      <ul class="drawermainmenu">
+        <li class="drawermainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></li>
+        <li class="drawermainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></li>
+        <li class="drawermainmenu-project current" data-wodoc-page="eliom"><a href="/eliom/">Eliom</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="lwt"><a href="/lwt/">Lwt</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="tyxml"><a href="/tyxml/">Tyxml</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-toolkit"><a href="/ocsigen-toolkit/">Toolkit</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-start"><a href="/ocsigen-start/">Start</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsipersist"><a href="/ocsipersist/">Ocsipersist</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="reactiveData"><a href="/reactiveData/">ReactiveData</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-i18n"><a href="/ocsigen-i18n/">i18n</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="wodoc"><a href="/wodoc/">Wodoc</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="projects"><a href="/projects">Other projects</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="papers"><a href="/papers">Research papers</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="credits"><a href="/credits">Who does Ocsigen?</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="contributing"><a href="/contributing">Contributing</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="blog"><a href="/blog/">Blog</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="install"><a href="/install">Installation</a></li>
+        <li class="drawermainmenu-page"><a href="https://github.com/ocsigen">Source code</a></li>
+      </ul>
+      <!-- On mobile the left column is hidden; its menu lives here in the burger
+           (.how-doctree, shown only on narrow screens), as the old site did.
+           Empty on the vitrine; the leftnav hole is filled (with the same
+           fragment as the left column) only on project pages. -->
+      <nav class="how-doctree"><div class="docversion">
+  <label>Version:
+    <select class="wodoc-version" onchange="wodocVersion(this.value)">
+      <option value="dev">dev</option>
+    </select>
+  </label>
+</div>
+<div class="cs-switch">
+  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
+  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+</div>
+<div class="page-toc">
+  <h3>On this page</h3>
+  <nav class="odoc-toc odoc-local-toc"><ul><li><a href="#typed-parameter's-name">Typed parameter's name</a></li><li><a href="#type-helpers">Type helpers</a></li><li><a href="#basic-types-of-pages-parameters">Basic types of pages parameters</a></li><li><a href="#composing-types-of-pages-parameters">Composing types of pages parameters</a></li><li><a href="#non-localized-parameters">Non localized parameters</a></li></ul></nav>
+</div>
+<nav class="api-nav manual-nav">
+<h3>Eliom&#x27;s Reference manual</h3>
+<ul class="api-section">
+<li class="ml3" data-wodoc-page="intro.html"><a href="../../../intro.html">Introduction</a></li>
+</ul>
+<h4 class="ml3">Server-side programming</h4>
+<h4 class="ml4">Services</h4>
+<ul class="api-section">
+<li class="ml5" data-wodoc-page="server-services.html"><a href="../../../server-services.html">The different types of services</a></li>
+<li class="ml5" data-wodoc-page="server-params.html"><a href="../../../server-params.html">Typing service parameters</a></li>
+<li class="ml5" data-wodoc-page="server-outputs.html"><a href="../../../server-outputs.html">Service handlers</a></li>
+<li class="ml5" data-wodoc-page="server-links.html"><a href="../../../server-links.html">Creating links and forms</a></li>
+</ul>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="server-state.html"><a href="../../../server-state.html">Sessions and server side state</a></li>
+<li class="ml4" data-wodoc-page="server-security.html"><a href="../../../server-security.html">Security</a></li>
+</ul>
+<h4 class="ml3">Client-server programming</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="clientserver-applications.html"><a href="../../../clientserver-applications.html">Eliom applications</a></li>
+<li class="ml4" data-wodoc-page="ppx-syntax.html"><a href="../../../ppx-syntax.html">Multi-tier programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-html.html"><a href="../../../clientserver-html.html">Generating HTML</a></li>
+<li class="ml4" data-wodoc-page="clientserver-communication.html"><a href="../../../clientserver-communication.html">Communication</a></li>
+<li class="ml4" data-wodoc-page="clientserver-services.html"><a href="../../../clientserver-services.html">Client-side services</a></li>
+<li class="ml4" data-wodoc-page="clientserver-react.html"><a href="../../../clientserver-react.html">Shared reactive programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-cache.html"><a href="../../../clientserver-cache.html">Caching data and off-line applications</a></li>
+<li class="ml4" data-wodoc-page="clientserver-wrapping.html"><a href="../../../clientserver-wrapping.html">Custom wrapping</a></li>
+</ul>
+<h4 class="ml3">Workflows</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="workflow-distillery.html"><a href="../../../workflow-distillery.html">Distillery</a></li>
+<li class="ml4" data-wodoc-page="mobile-apps.html"><a href="../../../mobile-apps.html">Mobile apps</a></li>
+<li class="ml4" data-wodoc-page="workflow-configuration.html"><a href="../../../workflow-configuration.html">Configuration &amp; running</a></li>
+<li class="ml4" data-wodoc-page="scalability.html"><a href="../../../scalability.html">Scalability</a></li>
+</ul>
+</nav>
+
+<nav class="api-nav">
+<h3>Client API</h3>
+<h4>Client API</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_lib"><a href="../../../eliom.client/Eliom_lib/index.html">Eliom_lib</a></li>
+<li data-wodoc-page="Eliom_client"><a href="../../../eliom.client/Eliom_client/index.html">Eliom_client</a></li>
+<li data-wodoc-page="Eliom_client_value"><a href="../../../eliom.client/Eliom_client_value/index.html">Eliom_client_value</a></li>
+</ul>
+<h4>Content and form creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_content.Html"><a href="../../../eliom.client/Eliom_content/Html/index.html">Eliom_content.Html</a></li>
+<li data-wodoc-page="Eliom_content.Html.Manip"><a href="../../../eliom.client/Eliom_content/Html/Manip/index.html">Eliom_content.Html.Manip</a></li>
+<li data-wodoc-page="Eliom_content.Svg"><a href="../../../eliom.client/Eliom_content/Svg/index.html">Eliom_content.Svg</a></li>
+<li data-wodoc-page="Eliom_content.Xml"><a href="../../../eliom.client/Eliom_content/Xml/index.html">Eliom_content.Xml</a></li>
+</ul>
+<h4>Client/server communication</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_service"><a href="../../../eliom.client/Eliom_service/index.html">Eliom_service</a></li>
+<li data-wodoc-page="Eliom_shared"><a href="../../../eliom.client/Eliom_shared/index.html">Eliom_shared</a></li>
+<li data-wodoc-page="Eliom_cscache"><a href="../../../eliom.client/Eliom_cscache/index.html">Eliom_cscache</a></li>
+<li data-wodoc-page="Eliom_bus"><a href="../../../eliom.client/Eliom_bus/index.html">Eliom_bus</a></li>
+<li data-wodoc-page="Eliom_comet"><a href="../../../eliom.client/Eliom_comet/index.html">Eliom_comet</a></li>
+<li data-wodoc-page="Eliom_react"><a href="../../../eliom.client/Eliom_react/index.html">Eliom_react</a></li>
+</ul>
+</nav>
+</nav>
+    </nav>
+  </aside>
+</div>
+
+
+  <div class="project-page">
+    <div class="twocols">
+      <nav class="leftcol">
+        <div class="docversion">
+  <label>Version:
+    <select class="wodoc-version" onchange="wodocVersion(this.value)">
+      <option value="dev">dev</option>
+    </select>
+  </label>
+</div>
+<div class="cs-switch">
+  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
+  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+</div>
+<div class="page-toc">
+  <h3>On this page</h3>
+  <nav class="odoc-toc odoc-local-toc"><ul><li><a href="#typed-parameter's-name">Typed parameter's name</a></li><li><a href="#type-helpers">Type helpers</a></li><li><a href="#basic-types-of-pages-parameters">Basic types of pages parameters</a></li><li><a href="#composing-types-of-pages-parameters">Composing types of pages parameters</a></li><li><a href="#non-localized-parameters">Non localized parameters</a></li></ul></nav>
+</div>
+<nav class="api-nav manual-nav">
+<h3>Eliom&#x27;s Reference manual</h3>
+<ul class="api-section">
+<li class="ml3" data-wodoc-page="intro.html"><a href="../../../intro.html">Introduction</a></li>
+</ul>
+<h4 class="ml3">Server-side programming</h4>
+<h4 class="ml4">Services</h4>
+<ul class="api-section">
+<li class="ml5" data-wodoc-page="server-services.html"><a href="../../../server-services.html">The different types of services</a></li>
+<li class="ml5" data-wodoc-page="server-params.html"><a href="../../../server-params.html">Typing service parameters</a></li>
+<li class="ml5" data-wodoc-page="server-outputs.html"><a href="../../../server-outputs.html">Service handlers</a></li>
+<li class="ml5" data-wodoc-page="server-links.html"><a href="../../../server-links.html">Creating links and forms</a></li>
+</ul>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="server-state.html"><a href="../../../server-state.html">Sessions and server side state</a></li>
+<li class="ml4" data-wodoc-page="server-security.html"><a href="../../../server-security.html">Security</a></li>
+</ul>
+<h4 class="ml3">Client-server programming</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="clientserver-applications.html"><a href="../../../clientserver-applications.html">Eliom applications</a></li>
+<li class="ml4" data-wodoc-page="ppx-syntax.html"><a href="../../../ppx-syntax.html">Multi-tier programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-html.html"><a href="../../../clientserver-html.html">Generating HTML</a></li>
+<li class="ml4" data-wodoc-page="clientserver-communication.html"><a href="../../../clientserver-communication.html">Communication</a></li>
+<li class="ml4" data-wodoc-page="clientserver-services.html"><a href="../../../clientserver-services.html">Client-side services</a></li>
+<li class="ml4" data-wodoc-page="clientserver-react.html"><a href="../../../clientserver-react.html">Shared reactive programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-cache.html"><a href="../../../clientserver-cache.html">Caching data and off-line applications</a></li>
+<li class="ml4" data-wodoc-page="clientserver-wrapping.html"><a href="../../../clientserver-wrapping.html">Custom wrapping</a></li>
+</ul>
+<h4 class="ml3">Workflows</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="workflow-distillery.html"><a href="../../../workflow-distillery.html">Distillery</a></li>
+<li class="ml4" data-wodoc-page="mobile-apps.html"><a href="../../../mobile-apps.html">Mobile apps</a></li>
+<li class="ml4" data-wodoc-page="workflow-configuration.html"><a href="../../../workflow-configuration.html">Configuration &amp; running</a></li>
+<li class="ml4" data-wodoc-page="scalability.html"><a href="../../../scalability.html">Scalability</a></li>
+</ul>
+</nav>
+
+<nav class="api-nav">
+<h3>Client API</h3>
+<h4>Client API</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_lib"><a href="../../../eliom.client/Eliom_lib/index.html">Eliom_lib</a></li>
+<li data-wodoc-page="Eliom_client"><a href="../../../eliom.client/Eliom_client/index.html">Eliom_client</a></li>
+<li data-wodoc-page="Eliom_client_value"><a href="../../../eliom.client/Eliom_client_value/index.html">Eliom_client_value</a></li>
+</ul>
+<h4>Content and form creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_content.Html"><a href="../../../eliom.client/Eliom_content/Html/index.html">Eliom_content.Html</a></li>
+<li data-wodoc-page="Eliom_content.Html.Manip"><a href="../../../eliom.client/Eliom_content/Html/Manip/index.html">Eliom_content.Html.Manip</a></li>
+<li data-wodoc-page="Eliom_content.Svg"><a href="../../../eliom.client/Eliom_content/Svg/index.html">Eliom_content.Svg</a></li>
+<li data-wodoc-page="Eliom_content.Xml"><a href="../../../eliom.client/Eliom_content/Xml/index.html">Eliom_content.Xml</a></li>
+</ul>
+<h4>Client/server communication</h4>
+<ul class="api-section">
+<li data-wodoc-page="Eliom_service"><a href="../../../eliom.client/Eliom_service/index.html">Eliom_service</a></li>
+<li data-wodoc-page="Eliom_shared"><a href="../../../eliom.client/Eliom_shared/index.html">Eliom_shared</a></li>
+<li data-wodoc-page="Eliom_cscache"><a href="../../../eliom.client/Eliom_cscache/index.html">Eliom_cscache</a></li>
+<li data-wodoc-page="Eliom_bus"><a href="../../../eliom.client/Eliom_bus/index.html">Eliom_bus</a></li>
+<li data-wodoc-page="Eliom_comet"><a href="../../../eliom.client/Eliom_comet/index.html">Eliom_comet</a></li>
+<li data-wodoc-page="Eliom_react"><a href="../../../eliom.client/Eliom_react/index.html">Eliom_react</a></li>
+</ul>
+</nav>
+
+      </nav>
+      <article class="rightcol">
+        <header class="odoc-preamble"><h1>Module type <code><span>Eliom_parameter_sigs.S</span></code></h1></header>
+        <div class="odoc-content"><div class="odoc-spec"><div class="spec type anchored" id="type-suff"><code><span><span class="keyword">type</span> suff</span><span> = </span><span>[ </span></code><ol><li id="type-suff.WithoutSuffix" class="def variant constructor anchored"><code><span>| </span><span>`WithoutSuffix</span></code></li><li id="type-suff.WithSuffix" class="def variant constructor anchored"><code><span>| </span><span>`WithSuffix</span></code></li><li id="type-suff.Endsuffix" class="def variant constructor anchored"><code><span>| </span><span>`Endsuffix</span></code></li></ol><code><span> ]</span></code></div><div class="spec-doc"><p>This type is used as a phantom type in <a href="#type-params_type"><code>params_type</code></a> to describe whether a parameter is encoded in the path of the URI as a suffix parameter.</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-params_type"><code><span><span class="keyword">type</span> <span>('a, +'b, 'c) params_type</span></span><span> <span class="keyword">constraint</span> <span class="type-var">'b</span> = <span>[&lt; <a href="#type-suff">suff</a> ]</span></span></code></div><div class="spec-doc"><p>Abstract type for service parameters. See for example the parameter <code>~get_param</code> of <code>Eliom_service.Http.service</code>.</p><ul><li><code> 'a</code> is the type for the OCaml type of the parameter as expected by the service handler.</li></ul><ul><li><code> 'b</code> is a phantom type, subtype of <a href="#type-suff"><code>suff</code></a>, stating the kind of the parameter: suffix or not.</li></ul><ul><li><code> 'c</code> is the type of the parameter name, usually an instance of <a href="../../Eliom_parameter/index.html#type-param_name"><code>Eliom_parameter.param_name</code></a>, as used by forms construction functions (e.g., the last parameter of <code>Eliom_content.Html.D.get_form</code>), and specialized form widget (see for example the section <span class="xref-unresolved" title="Eliom_content.Html.D.form_widgets">Form widget</span> of <code>Eliom_content.HTML5.D</code>). )</li></ul></div></div><h3 id="typed-parameter's-name">Typed parameter's name</h3><div class="odoc-spec"><div class="spec type anchored" id="type-param_name"><code><span><span class="keyword">type</span> <span>+'a param_name</span></span></code></div><div class="spec-doc"><p>Abstract type for parameters' name. The <code>'a</code> type parameter is a phantom type, usually a subtype of <a href="#type-setoneradio"><code>setoneradio</code></a>, used to denotes the parameter's arity.</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-no_param_name"><code><span><span class="keyword">type</span> no_param_name</span></code></div><div class="spec-doc"><p>Empty type used to denotes it is not possible to use the parameter in a form. See for example <a href="#val-raw_post_data"><code>raw_post_data</code></a>.</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-setoneradio"><code><span><span class="keyword">type</span> <span>+'a setoneradio</span></span><span> = </span><span>[ </span></code><ol><li id="type-setoneradio.Set" class="def variant constructor anchored"><code><span>| </span><span>`Set <span class="keyword">of</span> <span class="type-var">'a</span></span></code></li><li id="type-setoneradio.One" class="def variant constructor anchored"><code><span>| </span><span>`One <span class="keyword">of</span> <span class="type-var">'a</span></span></code></li><li id="type-setoneradio.Radio" class="def variant constructor anchored"><code><span>| </span><span>`Radio <span class="keyword">of</span> <span class="type-var">'a</span></span></code></li></ol><code><span> ]</span></code></div><div class="spec-doc"><p>A parameter arity could either be:</p><ul><li><code>`Set of 'a</code> means: any number of <code>'a</code>.</li><li><code>`One of 'a</code> means: exactly one <code>'a</code>.</li><li><code>`Radio of 'a</code> means: zero or one <code>'a</code>.</li></ul></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-oneradio"><code><span><span class="keyword">type</span> <span>+'a oneradio</span></span><span> = </span><span>[ </span></code><ol><li id="type-oneradio.One" class="def variant constructor anchored"><code><span>| </span><span>`One <span class="keyword">of</span> <span class="type-var">'a</span></span></code></li><li id="type-oneradio.Radio" class="def variant constructor anchored"><code><span>| </span><span>`Radio <span class="keyword">of</span> <span class="type-var">'a</span></span></code></li></ol><code><span> ]</span></code></div><div class="spec-doc"><p>Restriction of <a href="#type-setoneradio"><code>setoneradio</code></a> unary and optional parameters.</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-setone"><code><span><span class="keyword">type</span> <span>+'a setone</span></span><span> = </span><span>[ </span></code><ol><li id="type-setone.Set" class="def variant constructor anchored"><code><span>| </span><span>`Set <span class="keyword">of</span> <span class="type-var">'a</span></span></code></li><li id="type-setone.One" class="def variant constructor anchored"><code><span>| </span><span>`One <span class="keyword">of</span> <span class="type-var">'a</span></span></code></li></ol><code><span> ]</span></code></div><div class="spec-doc"><p>Restriction of <a href="#type-setoneradio"><code>setoneradio</code></a> unary and set parameters.</p></div></div><h3 id="type-helpers">Type helpers</h3><div class="odoc-spec"><div class="spec type anchored" id="type-binsum"><code><span><span class="keyword">type</span> <span>('a, 'b) binsum</span></span><span> = </span></code><ol><li id="type-binsum.Inj1" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Inj1</span> <span class="keyword">of</span> <span class="type-var">'a</span></span></code></li><li id="type-binsum.Inj2" class="def variant constructor anchored"><code><span>| </span><span><span class="constructor">Inj2</span> <span class="keyword">of</span> <span class="type-var">'b</span></span></code></li></ol></div><div class="spec-doc"><p>Helpers type used for parameters of type binary sum, see <a href="#val-sum"><code>sum</code></a>.</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-listnames"><code><span><span class="keyword">type</span> <span>'an listnames</span></span><span> = </span><span>{</span></code><ol><li id="type-listnames.it" class="def record field anchored"><code><span>it : 'el 'a. <span><span>(<span><span class="type-var">'an</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'el</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'a</span>)</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'el</span> list</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'a</span>;</span></code></li></ol><code><span>}</span></code></div><div class="spec-doc"><p>Helpers type used to construct forms from lists, see <a href="#val-list"><code>list</code></a>.</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-to_and_of"><code><span><span class="keyword">type</span> <span>'a to_and_of</span></span><span> = </span><span>{</span></code><ol><li id="type-to_and_of.of_string" class="def record field anchored"><code><span>of_string : <span>string <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'a</span>;</span></code></li><li id="type-to_and_of.to_string" class="def record field anchored"><code><span>to_string : <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> string;</span></code></li></ol><code><span>}</span></code></div></div><h3 id="basic-types-of-pages-parameters">Basic types of pages parameters</h3><div class="odoc-spec"><div class="spec value anchored" id="val-int"><code><span><span class="keyword">val</span> int : 
+  <span>string <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(int, <span>[ `WithoutSuffix ]</span>, <span><span>[ <span>`One of int</span> ]</span> <a href="#type-param_name">param_name</a></span>)</span> <a href="#type-params_type">params_type</a></span></span></code></div><div class="spec-doc"><p><code>int s</code> means that the service takes an integer as the parameter named <code>s</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-int32"><code><span><span class="keyword">val</span> int32 : 
+  <span>string <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(int32, <span>[ `WithoutSuffix ]</span>, <span><span>[ <span>`One of int32</span> ]</span> <a href="#type-param_name">param_name</a></span>)</span> <a href="#type-params_type">params_type</a></span></span></code></div><div class="spec-doc"><p><code>int32 s</code> means that the service takes a 32-bit integer as the parameter named <code>s</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-int64"><code><span><span class="keyword">val</span> int64 : 
+  <span>string <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(int64, <span>[ `WithoutSuffix ]</span>, <span><span>[ <span>`One of int64</span> ]</span> <a href="#type-param_name">param_name</a></span>)</span> <a href="#type-params_type">params_type</a></span></span></code></div><div class="spec-doc"><p><code>int64 s</code> means that the service takes a 64-bit integer as the parameter named <code>s</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-float"><code><span><span class="keyword">val</span> float : 
+  <span>string <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(float, <span>[ `WithoutSuffix ]</span>, <span><span>[ <span>`One of float</span> ]</span> <a href="#type-param_name">param_name</a></span>)</span> <a href="#type-params_type">params_type</a></span></span></code></div><div class="spec-doc"><p><code>float s</code> means that the service takes a float as the parameter named <code>s</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-string"><code><span><span class="keyword">val</span> string : 
+  <span>string <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(string, <span>[ `WithoutSuffix ]</span>, <span><span>[ <span>`One of string</span> ]</span> <a href="#type-param_name">param_name</a></span>)</span> <a href="#type-params_type">params_type</a></span></span></code></div><div class="spec-doc"><p><code>string s</code> means that the service takes a string as the parameter named <code>s</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-bool"><code><span><span class="keyword">val</span> bool : 
+  <span>string <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(bool, <span>[ `WithoutSuffix ]</span>, <span><span>[ <span>`One of bool</span> ]</span> <a href="#type-param_name">param_name</a></span>)</span> <a href="#type-params_type">params_type</a></span></span></code></div><div class="spec-doc"><p><code>bool s</code> means that the service takes a Boolean as the parameter named <code>s</code>. (To be used, for example, with Boolean checkboxes.)</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-file"><code><span><span class="keyword">val</span> file : 
+  <span>string <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<a href="../../Eliom_lib/index.html#type-file_info">Eliom_lib.file_info</a>,
+    <span>[ `WithoutSuffix ]</span>,
+    <span><span>[ <span>`One of <a href="../../Eliom_lib/index.html#type-file_info">Eliom_lib.file_info</a></span> ]</span> <a href="#type-param_name">param_name</a></span>)</span>
+    <a href="#type-params_type">params_type</a></span></span></code></div><div class="spec-doc"><p><code>file s</code> means that the service takes a file as the parameter named <code>s</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-unit"><code><span><span class="keyword">val</span> unit : <span><span>(unit, <span>[ `WithoutSuffix ]</span>, unit)</span> <a href="#type-params_type">params_type</a></span></span></code></div><div class="spec-doc"><p>Specifying parameter as <code>unit</code> is used for services that don't have any parameters</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-coordinates"><code><span><span class="keyword">type</span> coordinates</span><span> = </span><span>{</span></code><ol><li id="type-coordinates.abscissa" class="def record field anchored"><code><span>abscissa : int;</span></code></li><li id="type-coordinates.ordinate" class="def record field anchored"><code><span>ordinate : int;</span></code></li></ol><code><span>}</span></code></div><div class="spec-doc"><p>The type <code>coordinates</code> represents the data sent by an <code>&lt;input type=&quot;image&quot; ...&gt;</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-coordinates"><code><span><span class="keyword">val</span> coordinates : 
+  <span>string <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<a href="#type-coordinates">coordinates</a>, <span>[ `WithoutSuffix ]</span>, <span><span>[ <span>`One of <a href="#type-coordinates">coordinates</a></span> ]</span> <a href="#type-param_name">param_name</a></span>)</span>
+    <a href="#type-params_type">params_type</a></span></span></code></div><div class="spec-doc"><p><code>coordinates s</code> means that the service takes as parameters the coordinates of a point in an <code>&lt;input type=&quot;image&quot; ...&gt;</code>.</p></div></div><h3 id="composing-types-of-pages-parameters">Composing types of pages parameters</h3><div class="odoc-spec"><div class="spec value anchored" id="val-(**)"><code><span><span class="keyword">val</span> (**) : 
+  <span><span><span>(<span class="type-var">'a</span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'b</span>)</span> <a href="#type-params_type">params_type</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span>(<span class="type-var">'c</span>, <span>[&lt; `WithoutSuffix <span>| `Endsuffix</span> ]</span> <span class="keyword">as</span> 'e, <span class="type-var">'d</span>)</span> <a href="#type-params_type">params_type</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span class="type-var">'a</span> * <span class="type-var">'c</span>, <span class="type-var">'e</span>, <span class="type-var">'b</span> * <span class="type-var">'d</span>)</span> <a href="#type-params_type">params_type</a></span></span></code></div><div class="spec-doc"><p>The combinator <code>p1 ** p2</code> allows one to define a service that takes a pair of parameters. The associated service handler should expect a pair <code>(p1, p2)</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-prod"><code><span><span class="keyword">val</span> prod : 
+  <span><span><span>(<span class="type-var">'a</span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'b</span>)</span> <a href="#type-params_type">params_type</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span>(<span class="type-var">'c</span>, <span>[&lt; `WithoutSuffix <span>| `Endsuffix</span> ]</span> <span class="keyword">as</span> 'e, <span class="type-var">'d</span>)</span> <a href="#type-params_type">params_type</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span class="type-var">'a</span> * <span class="type-var">'c</span>, <span class="type-var">'e</span>, <span class="type-var">'b</span> * <span class="type-var">'d</span>)</span> <a href="#type-params_type">params_type</a></span></span></code></div><div class="spec-doc"><p>Same as <a href="#val-(**)"><code>(**)</code></a>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-sum"><code><span><span class="keyword">val</span> sum : 
+  <span><span><span>(<span class="type-var">'a</span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'b</span>)</span> <a href="#type-params_type">params_type</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span>(<span class="type-var">'c</span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'d</span>)</span> <a href="#type-params_type">params_type</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span><span>(<span class="type-var">'a</span>, <span class="type-var">'c</span>)</span> <a href="#type-binsum">binsum</a></span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'b</span> * <span class="type-var">'d</span>)</span> <a href="#type-params_type">params_type</a></span></span></code></div><div class="spec-doc"><p>The combinator <code>sum p1 p2</code> allows one to define service that expect either the parameter <code>p1</code> or the parameter <code>p2</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-opt"><code><span><span class="keyword">val</span> opt : 
+  <span><span><span>(<span class="type-var">'a</span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'b</span>)</span> <a href="#type-params_type">params_type</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span><span class="type-var">'a</span> option</span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'b</span>)</span> <a href="#type-params_type">params_type</a></span></span></code></div><div class="spec-doc"><p>The combinator <code>opt p</code> allows defining optional parameters.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-neopt"><code><span><span class="keyword">val</span> neopt : 
+  <span><span><span>(<span class="type-var">'a</span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'b</span>)</span> <a href="#type-params_type">params_type</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span><span class="type-var">'a</span> option</span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'b</span>)</span> <a href="#type-params_type">params_type</a></span></span></code></div><div class="spec-doc"><p>The combinator <code>neopt p</code> allows defining an optional parameter assumed to be None if empty.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-radio"><code><span><span class="keyword">val</span> radio : 
+  <span><span>(<span>string <span class="arrow">&#45;&gt;</span></span> <span><span>(<span class="type-var">'a</span>, <span>[ `WithoutSuffix ]</span>, <span><span>[ <span>`One of <span class="type-var">'b</span></span> ]</span> <a href="#type-param_name">param_name</a></span>)</span> <a href="#type-params_type">params_type</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span>string <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span><span class="type-var">'a</span> option</span>, <span>[ `WithoutSuffix ]</span>, <span><span>[ <span>`Radio of <span class="type-var">'b</span></span> ]</span> <a href="#type-param_name">param_name</a></span>)</span> <a href="#type-params_type">params_type</a></span></span></code></div><div class="spec-doc"><p>A parameter as <code>radio f s</code> specifies that the service takes an optional argument labeled <code>s</code>, of type <code>f s</code>. Use <code>radio</code> instead of <a href="#val-opt"><code>opt</code></a> if you want to use this parameter with a radio button.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-any"><code><span><span class="keyword">val</span> any : <span><span>(<span><span>(string * string)</span> list</span>, <span>[ `WithoutSuffix ]</span>, unit)</span> <a href="#type-params_type">params_type</a></span></span></code></div><div class="spec-doc"><p>Use this if you want to take any parameters. The service will answer to all the request, and get all parameters as an association list of strings.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set"><code><span><span class="keyword">val</span> set : 
+  <span><span>(<span>string <span class="arrow">&#45;&gt;</span></span> <span><span>(<span class="type-var">'a</span>, <span>[ `WithoutSuffix ]</span>, <span><span>[ <span>`One of <span class="type-var">'b</span></span> ]</span> <a href="#type-param_name">param_name</a></span>)</span> <a href="#type-params_type">params_type</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span>string <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span><span class="type-var">'a</span> list</span>, <span>[ `WithoutSuffix ]</span>, <span><span>[ <span>`Set of <span class="type-var">'b</span></span> ]</span> <a href="#type-param_name">param_name</a></span>)</span> <a href="#type-params_type">params_type</a></span></span></code></div><div class="spec-doc"><p>Use this if you want your service to take several parameters with the same name. The service handler will receive a list of values. To create the form, just use the same name several times. For example <code>set int &quot;i&quot;</code> will match the parameter string <code>i=4&amp;i=22&amp;i=111</code> and send to the service handler a list containing the three integers 4, 22 and 111. The order is unspecified.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-list"><code><span><span class="keyword">val</span> list : 
+  <span>string <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span>(<span class="type-var">'a</span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'b</span>)</span> <a href="#type-params_type">params_type</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span><span class="type-var">'a</span> list</span>, <span>[ `WithoutSuffix ]</span>, <span><span class="type-var">'b</span> <a href="#type-listnames">listnames</a></span>)</span> <a href="#type-params_type">params_type</a></span></span></code></div><div class="spec-doc"><p>The service takes a list of parameters. The first parameter of this function is the name of the list. The service handler will receive a list of values. To create the form, an iterator of type <a href="../../Eliom_parameter/index.html#type-listnames"><code>Eliom_parameter.listnames</code></a> is given to generate the name for each value.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-suffix"><code><span><span class="keyword">val</span> suffix : 
+  <span><span class="optlabel">?redirect_if_not_suffix</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span>(<span class="type-var">'s</span>, <span>[&lt; `WithoutSuffix <span>| `Endsuffix</span> ]</span>, <span class="type-var">'sn</span>)</span> <a href="#type-params_type">params_type</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span class="type-var">'s</span>, <span>[ `WithSuffix ]</span>, <span class="type-var">'sn</span>)</span> <a href="#type-params_type">params_type</a></span></span></code></div><div class="spec-doc"><p>Tells that the parameter of the service handler is the suffix of the URL of the current service. e.g. <code>suffix (int &quot;i&quot; ** string &quot;s&quot;)</code> will match an URL ending by <code>380/yo</code>. and send <code>(380, &quot;yo&quot;)</code> to the service handler.</p><p>For each service with suffix, there is also a service with regular parameters (without suffix) that will be used if you create a form towards a service with suffix. If <code>redirect_if_not_suffix</code> is <code>true</code> (default), this service without suffix will be redirected to the suffix version.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-all_suffix"><code><span><span class="keyword">val</span> all_suffix : 
+  <span>string <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span>string list</span>, <span>[ `Endsuffix ]</span>, <span><span>[ <span>`One of <span>string list</span></span> ]</span> <a href="#type-param_name">param_name</a></span>)</span> <a href="#type-params_type">params_type</a></span></span></code></div><div class="spec-doc"><p>Takes the whole suffix, as long as possible, as a (slash separated) string list</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-all_suffix_string"><code><span><span class="keyword">val</span> all_suffix_string : 
+  <span>string <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(string, <span>[ `Endsuffix ]</span>, <span><span>[ <span>`One of string</span> ]</span> <a href="#type-param_name">param_name</a></span>)</span> <a href="#type-params_type">params_type</a></span></span></code></div><div class="spec-doc"><p>Takes the whole suffix, as long as possible, as a string</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-suffix_prod"><code><span><span class="keyword">val</span> suffix_prod : 
+  <span><span class="optlabel">?redirect_if_not_suffix</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span>(<span class="type-var">'s</span>, <span>[&lt; `WithoutSuffix <span>| `Endsuffix</span> ]</span>, <span class="type-var">'sn</span>)</span> <a href="#type-params_type">params_type</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span>(<span class="type-var">'a</span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'an</span>)</span> <a href="#type-params_type">params_type</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span class="type-var">'s</span> * <span class="type-var">'a</span>, <span>[ `WithSuffix ]</span>, <span class="type-var">'sn</span> * <span class="type-var">'an</span>)</span> <a href="#type-params_type">params_type</a></span></span></code></div><div class="spec-doc"><p>Tells that the function that will generate the service takes a pair whose first element is the suffix of the URL of the current service, and the second element corresponds to other (regular) parameters. e.g.: <code>suffix_prod (int &quot;suff&quot; ** all_suffix &quot;endsuff&quot;) (int &quot;i&quot;)</code> will match an URL ending by <code>777/go/go/go?i=320</code> and send the value <code>((777, [&quot;go&quot;;&quot;go&quot;;&quot;go&quot;]), 320)</code> to the service handler.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-suffix_const"><code><span><span class="keyword">val</span> suffix_const : 
+  <span>string <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(unit, <span>[ `WithoutSuffix ]</span>, <span><span>[ <span>`One of unit</span> ]</span> <a href="#type-param_name">param_name</a></span>)</span> <a href="#type-params_type">params_type</a></span></span></code></div><div class="spec-doc"><p><code>suffix_const v</code> is used only inside suffixes. It does nothing for regular parameters. It specifies that the service takes a constant parameter inside the suffix, whose value must be <code>v</code>. It is used for putting constant directory names inside suffix parameters (and thus allows suffix parameters that are anywhere in the path, e.g. <code>/param1/const/param2</code>).</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-ocaml"><code><span><span class="keyword">type</span> <span>'a ocaml</span></span></code></div><div class="spec-doc"><p>marshaled OCaml values of type 'a</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-ocaml"><code><span><span class="keyword">val</span> ocaml : 
+  <span>string <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span class="type-var">'a</span> <a href="../../../../../js_of_ocaml/latest/js_of_ocaml/Deriving_Json/index.html#type-t">Deriving_Json.t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span class="type-var">'a</span>, <span>[ `WithoutSuffix ]</span>, <span><span>[ <span>`One of <span><span class="type-var">'a</span> <a href="#type-ocaml">ocaml</a></span></span> ]</span> <a href="#type-param_name">param_name</a></span>)</span> <a href="#type-params_type">params_type</a></span></span></code></div><div class="spec-doc"><p><code>ocaml s</code> tells that the service is expecting some caml (client side) program to send some value of type 'a, marshaled. As usual <code>s</code> is the name of the parameter.</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-raw_post_data"><code><span><span class="keyword">type</span> raw_post_data</span></code></div><div class="spec-doc"><p>When the content type is neither URLencoded form data nor multipart data, it is possible to get it as a stream of strings. The first element of the pair is the content-type. This kind of parameter cannot be combined with others. It is not possible to create a form towards a service taking such a parameter.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-raw_post_data"><code><span><span class="keyword">val</span> raw_post_data : 
+  <span><span>(<a href="#type-raw_post_data">raw_post_data</a>, <span>[ `WithoutSuffix ]</span>, <a href="#type-no_param_name">no_param_name</a>)</span> <a href="#type-params_type">params_type</a></span></span></code></div></div><h3 id="non-localized-parameters">Non localized parameters</h3><div class="odoc-spec"><div class="spec type anchored" id="type-non_localized_params"><code><span><span class="keyword">type</span> <span>('a, +'b, 'names) non_localized_params</span></span><span> <span class="keyword">constraint</span> <span class="type-var">'b</span> = <span>[&lt; <a href="#type-suff">suff</a> ]</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-make_non_localized_parameters"><code><span><span class="keyword">val</span> make_non_localized_parameters : 
+  <span><span class="label">prefix</span>:string <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">name</span>:string <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?persistent</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span>(<span class="type-var">'a</span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'b</span>)</span> <a href="#type-params_type">params_type</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span class="type-var">'a</span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'b</span>)</span> <a href="#type-non_localized_params">non_localized_params</a></span></span></code></div><div class="spec-doc"><p>Create a new specification for non localized parameters. You must give a name to this set of parameters. Warning: the names must be unique for the whole application. That's why the name is composed by a prefix (the name of your project) and another string (the name of your non localized parameters).</p><p>Will fail with exception <code>Failure _</code> if the name contains a dot. If <code>?persistent</code> is <code>true</code>, the non localized parameter may remain if you call another service, if this service allows this (default <code>false</code>).</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-nl_params_set"><code><span><span class="keyword">type</span> nl_params_set</span></code></div><div class="spec-doc"><p>Use this type to give non localized parameters to a link or a form</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-empty_nl_params_set"><code><span><span class="keyword">val</span> empty_nl_params_set : <a href="#type-nl_params_set">nl_params_set</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-add_nl_parameter"><code><span><span class="keyword">val</span> add_nl_parameter : 
+  <span><a href="#type-nl_params_set">nl_params_set</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span>(<span class="type-var">'a</span>, <span>[&lt; `WithSuffix <span>| `WithoutSuffix</span> ]</span>, <span class="type-var">_</span>)</span> <a href="#type-non_localized_params">non_localized_params</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span>
+  <a href="#type-nl_params_set">nl_params_set</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_nl_params_names"><code><span><span class="keyword">val</span> get_nl_params_names : 
+  <span><span><span>(<span class="type-var">_</span>, <span>[&lt; `WithSuffix <span>| `WithoutSuffix</span> ]</span>, <span class="type-var">'a</span>)</span> <a href="#type-non_localized_params">non_localized_params</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span class="type-var">'a</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_to_and_of"><code><span><span class="keyword">val</span> get_to_and_of : <span><span><span>(<span class="type-var">'a</span>, <span class="type-var">'b</span>, <span class="type-var">'c</span>)</span> <a href="#type-params_type">params_type</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="#type-to_and_of">to_and_of</a></span></span></code></div><div class="spec-doc"><p>Given a parameter type, get the two functions that converts from and to strings. You should only use this function on</p><ul><li>options ;</li><li>basic types : int, int32, int64, float, string</li><li>marshal</li><li>unit</li><li>string</li><li>bool</li></ul></div></div></div>
+      </article>
+    </div>
+  </div>
+
+  <script>
+    // Toggle between the server / client API of the same module.
+    function wodocSwitch(side) {
+      var w = { server: '', client: '' };
+      var p = location.pathname;
+      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
+      location.href = np !== p ? np
+        : '../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
+    }
+    var wodocPub = "/eliom";
+    // Switch version: keep the current page, swapping only the version segment.
+    function wodocVersion(v) {
+      if (!v) return;
+      var re = new RegExp('^(' + wodocPub + '/)[^/]+');
+      var p = location.pathname;
+      location.href =
+        re.test(p) ? p.replace(re, '$1' + v) : wodocPub + '/' + v + '/index.html';
+    }
+    // Build the version <select> from the project's versions.json (the single
+    // source of truth, refreshed on every build/release), so even older frozen
+    // pages list the current set. Falls back to the baked <option>s on failure.
+    (function () {
+      var seg = (location.pathname.match(
+        new RegExp('^' + wodocPub + '/([^/]+)')) || [])[1];
+      function select(sel) {
+        var i;
+        for (i = 0; i < sel.options.length; i++)
+          if (sel.options[i].value === seg) { sel.selectedIndex = i; return; }
+        if (seg) {
+          var o = document.createElement('option');
+          o.value = seg; o.textContent = seg; o.selected = true;
+          sel.insertBefore(o, sel.firstChild);
+        }
+      }
+      fetch(wodocPub + '/versions.json')
+        .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(function (m) {
+          var list = m.list || [], latest = m.latest;
+          document.querySelectorAll('.wodoc-version').forEach(function (sel) {
+            sel.innerHTML = '';
+            list.forEach(function (v) {
+              var o = document.createElement('option');
+              if (v === latest) { o.value = 'latest'; o.textContent = v + ' (latest)'; }
+              else { o.value = v; o.textContent = v; }
+              sel.appendChild(o);
+            });
+            select(sel);
+          });
+        })
+        .catch(function () {
+          document.querySelectorAll('.wodoc-version').forEach(select);
+        });
+    })();
+  </script>
+</body>
+</html>
