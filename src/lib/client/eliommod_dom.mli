@@ -88,12 +88,9 @@ val top_position : position
 val getDocumentScroll : unit -> position
 val setDocumentScroll : position -> unit
 
-(* Test if the "pageshow" and "pagehide" event exists. *)
-val test_pageshow_pagehide : unit -> bool
 val onhashchange : (Js.js_string Js.t -> unit) -> unit
 
 (**/**)
 
-val touch_base : unit -> unit
 val add_formdata_hack_onclick_handler : unit -> unit
 val section : Logs.src

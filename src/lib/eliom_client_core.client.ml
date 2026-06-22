@@ -562,9 +562,7 @@ let rec rebuild_rattrib node ra =
 
    https://developer.mozilla.org/En/Using_Firefox_1.5_caching
 
-   http://www.webkit.org/blog/516/webkit-page-cache-ii-the-unload-event/
-
-   and the function [Eliommod_dom.test_pageshow_pagehide]. *)
+   http://www.webkit.org/blog/516/webkit-page-cache-ii-the-unload-event/ *)
 
 let delay f =
   Lwt.ignore_result (Lwt.pause () >>= fun () -> f (); Lwt.return_unit)

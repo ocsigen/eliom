@@ -292,7 +292,7 @@ let send
          (match
             r.XmlHttpRequest.headers Eliom_common.set_tab_cookies_header_name
           with
-         | None | Some "" -> () (* Empty tab_cookies for IE compat *)
+         | None | Some "" -> () (* No tab_cookies header *)
          | Some tab_cookies ->
              let tab_cookies = Eliommod_cookies.cookieset_of_json tab_cookies in
              Eliommod_cookies.update_cookie_table host tab_cookies);
@@ -340,7 +340,7 @@ let send
            us that the answer is not application content *)
           match headers Eliom_common.appl_name_header_name with
           | None | Some "" ->
-              (* Empty appl_name for IE compat. *)
+              (* No application name header. *)
               (match post_args with
               | None -> redirect_get url
               | _ ->
