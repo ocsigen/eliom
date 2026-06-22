@@ -417,7 +417,19 @@ module Cmo = struct
           Typ.constr ~loc
             (mkloc (ident_of_out_ident id) loc)
             (List.map type_of_out_type tyl)
-      | ((Otyp_object {fields; open_row}) [@if ocaml_version >= (5, 1, 0)]) ->
+      | ((Otyp_object {fields; row}) [@if ocaml_version >= (5, 5, 0)]) ->
+          let fields =
+            List.map
+              (fun (label, ty) ->
+                 { pof_desc = Otag (mkloc label loc, type_of_out_type ty)
+                 ; pof_loc = loc
+                 ; pof_attributes = [] })
+              fields
+          in
+          Typ.object_ ~loc fields
+            (match row with Orow_closed -> Closed | _ -> Open)
+      | ((Otyp_object {fields; open_row})
+        [@if ocaml_version >= (5, 1, 0) && ocaml_version < (5, 5, 0)]) ->
           let fields =
             List.map
               (fun (label, ty) ->
@@ -494,6 +506,8 @@ module Cmo = struct
           Typ.poly ~loc
             (List.map (fun v -> mkloc (var v) loc) sl)
             (type_of_out_type ty)
+      | ((Otyp_external _ | Otyp_functor _) [@if ocaml_version >= (5, 5, 0)]) ->
+          assert false
       | Otyp_abstract | Otyp_open | Otyp_sum _ | Otyp_manifest _ | Otyp_record _
       | Otyp_module _ | Otyp_attribute _ | Otyp_stuff _ ->
           assert false
