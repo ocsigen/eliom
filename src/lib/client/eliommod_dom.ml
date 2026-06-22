@@ -474,20 +474,17 @@ let setDocumentScroll pos =
   current_position := pos
 
 
-(* BEGIN FORMDATA HACK: This is only needed if FormData is not available in the browser.
-   When it will be commonly available, remove all sections marked by "FORMDATA HACK" !
-   Notice: this hack is used to circumvent a limitation in FF4 implementation of formdata:
-     if the user click on a button in a form, formdatas created in the onsubmit callback normally contains the value of the button. ( it is the behaviour of chromium )
-     in FF4, it is not the case: we must do this hack to find which button was clicked.
-
-   NOTICE: this may not be corrected the way we want:
-     see https://bugzilla.mozilla.org/show_bug.cgi?id=647231
-     html5 will explicitly specify that chromium behaviour is wrong...
+(* BEGIN FORMDATA HACK:
+   Eliom submits forms through XHR rather than natively, serializing
+   their contents with [Form.get_form_contents]/[Form.form_elements].
+   Those functions read the form fields but cannot know which submit
+   button triggered the submission (the "submitter" only exists for a
+   native submit), so the clicked button's name/value would be lost.
+   We track the last clicked button here and add it back to the request.
 
    This is implemented in:
    * this file -> here and called in load_eliom_data
-   * Eliom_request: in send_post_form
-   * in js_of_ocaml, module Form: the code to emulate FormData *)
+   * Eliom_request: in send_post_form and send_get_form *)
 
 let onclick_on_body_handler event =
   (match Dom_html.tagged (Dom_html.eventTarget event) with
