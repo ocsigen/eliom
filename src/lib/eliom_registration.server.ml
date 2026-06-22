@@ -35,15 +35,17 @@ let headers_with_content_type ?charset ?content_type headers =
              let suffix =
                String.sub content_type (String.length content_type - 4) 4
              in
-             suffix = "/xml" || suffix = "=xml")
+             suffix = "/xml" || suffix = "=xml"
+             )
         then Some (Eliom_config.get_config_default_charset ())
         else None
       in
       Cohttp.Header.replace headers
         Ocsigen_header.Name.(to_string content_type)
-        (match charset with
+        ( match charset with
         | Some charset -> Printf.sprintf "%s; charset=%s" content_type charset
-        | None -> content_type)
+        | None -> content_type
+        )
   | None -> headers
 
 let result_of_content ?charset ?content_type ?headers ?status body =
@@ -71,9 +73,7 @@ module Result_types : sig
   val cast_result_lwt : Ocsigen_response.t Lwt.t -> 'a kind Lwt.t
 
   val cast_function_http :
-     ('c -> 'a kind Lwt.t)
-    -> 'c
-    -> Ocsigen_response.t Lwt.t
+    ('c -> 'a kind Lwt.t) -> 'c -> Ocsigen_response.t Lwt.t
 end = struct
   type 'a kind = Ocsigen_response.t
 
@@ -149,7 +149,8 @@ module Flow5_base = struct
 
   let body l =
     Ocsigen_response.Body.make Cohttp.Transfer.Unknown (fun write ->
-      Lwt_list.iter_s (fun x -> write (Format.asprintf "%a" out x)) l)
+      Lwt_list.iter_s (fun x -> write (Format.asprintf "%a" out x)) l
+    )
 
   let send ?options:_ ?charset ?code ?content_type ?headers c =
     let status = Eliom_lib.Option.map Cohttp.Code.status_of_code code
@@ -170,7 +171,8 @@ let add_cache_header cache headers =
   | Some duration ->
       headers
       <-< ( Ocsigen_header.Name.cache_control
-          , "max-age: " ^ string_of_int duration )
+          , "max-age: " ^ string_of_int duration
+          )
 
 module String_base = struct
   type page = string * string
@@ -244,7 +246,7 @@ module Action_base = struct
       ~get_params_flat:si.Eliom_common.si_other_get_params
 
   let send ?(options = `Reload) ?charset ?(code = 204) ?content_type ?headers ()
-    =
+      =
     let user_cookies = Eliom_request_info.get_user_cookies () in
     match options with
     | `NoReload ->
@@ -309,12 +311,14 @@ module Action_base = struct
               ~value:
                 ( sp.Eliom_common.sp_tab_cookie_info
                 , sp.Eliom_common.sp_user_tab_cookies
-                , si.Eliom_common.si_tab_cookies );
+                , si.Eliom_common.si_tab_cookies
+                );
             (* Remove some parameters to choose the following service *)
             Polytables.set
               ~table:
                 (Ocsigen_request.request_cache
-                   ri.Ocsigen_extensions.request_info)
+                   ri.Ocsigen_extensions.request_info
+                )
               ~key:Eliom_common.eliom_params_after_action
               ~value:
                 ( si.Eliom_common.si_all_get_params
@@ -327,7 +331,8 @@ module Action_base = struct
                 , si.Eliom_common.si_nl_file_params
                 , si.Eliom_common.si_all_get_but_nl
                 , si.Eliom_common.si_ignored_get_params
-                , si.Eliom_common.si_ignored_post_params );
+                , si.Eliom_common.si_ignored_post_params
+                );
             (*VVV Also put all_cookie_info in this, to avoid
           update_cookie_table and get_cookie_info (?) *)
             let ri = update_request ri.request_info si ric in
@@ -336,7 +341,9 @@ module Action_base = struct
             in
             send_directly ri
               (Ocsigen_extensions.compute_result
-                 ~previous_cookies:all_new_cookies ri))
+                 ~previous_cookies:all_new_cookies ri
+              )
+      )
 end
 
 module Action = Eliom_mkreg.Make (Action_base)
@@ -372,14 +379,8 @@ module Any_base = struct
   (* let send_appl_content = Eliom_service.XNever *)
   let send_appl_content = Eliom_service.XAlways
 
-  let send
-        ?options:_
-        ?charset
-        ?code:_
-        ?content_type
-        ?headers:_
-        (result : 'a kind)
-    =
+  let send ?options:_ ?charset ?code:_ ?content_type ?headers:_
+      (result : 'a kind) =
     let result = Result_types.cast_kind result in
     let cohttp_response = Ocsigen_response.response result in
     let headers =
@@ -479,14 +480,8 @@ module File_ct_base = struct
   let result_of_http_result = Result_types.cast_result
   let send_appl_content = Eliom_service.XNever
 
-  let send
-        ?options
-        ?charset
-        ?code
-        ?content_type
-        ?headers
-        (filename, content_type')
-    =
+  let send ?options ?charset ?code ?content_type ?headers
+      (filename, content_type') =
     let content_type =
       match content_type with
       | Some content_type -> content_type
@@ -506,10 +501,10 @@ end
 module Customize
     (R : Eliom_registration_sigs.S_with_create)
     (T : sig
-       type page
+      type page
 
-       val translate : page -> R.page Lwt.t
-     end) =
+      val translate : page -> R.page Lwt.t
+    end) =
 struct
   type page = T.page
   type return = R.return
@@ -526,96 +521,32 @@ struct
     T.translate content >>= fun c ->
     R.send ?options ?charset ?code ?content_type ?headers c
 
-  let register
-        ?app
-        ?scope
-        ?options
-        ?charset
-        ?code
-        ?content_type
-        ?headers
-        ?secure_session
-        ~service
-        ?error_handler
-        (f : 'get -> 'post -> 'return Lwt.t)
-    =
+  let register ?app ?scope ?options ?charset ?code ?content_type ?headers
+      ?secure_session ~service ?error_handler
+      (f : 'get -> 'post -> 'return Lwt.t) =
     R.register ?app ?scope ?options ?charset ?code ?content_type ?headers
       ?secure_session ~service ?error_handler:(make_eh error_handler)
       (make_service_handler f)
 
-  let create
-        ?app
-        ?scope
-        ?options
-        ?charset
-        ?code
-        ?content_type
-        ?headers
-        ?secure_session
-        ?https
-        ?name
-        ?csrf_safe
-        ?csrf_scope
-        ?csrf_secure
-        ?max_use
-        ?timeout
-        ~meth
-        ~path
-        ?error_handler
-        f
-    =
+  let create ?app ?scope ?options ?charset ?code ?content_type ?headers
+      ?secure_session ?https ?name ?csrf_safe ?csrf_scope ?csrf_secure ?max_use
+      ?timeout ~meth ~path ?error_handler f =
     R.create ?app ?scope ?options ?charset ?code ?content_type ?headers
       ?secure_session ?https ?name ?csrf_safe ?csrf_scope ?csrf_secure ?max_use
       ?timeout ~meth ~path ?error_handler:(make_eh error_handler)
       (make_service_handler f)
 
-  let create_attached_get
-        ?app
-        ?scope
-        ?options
-        ?charset
-        ?code
-        ?content_type
-        ?headers
-        ?secure_session
-        ?https
-        ?name
-        ?csrf_safe
-        ?csrf_scope
-        ?csrf_secure
-        ?max_use
-        ?timeout
-        ~fallback
-        ~get_params
-        ?error_handler
-        f
-    =
+  let create_attached_get ?app ?scope ?options ?charset ?code ?content_type
+      ?headers ?secure_session ?https ?name ?csrf_safe ?csrf_scope ?csrf_secure
+      ?max_use ?timeout ~fallback ~get_params ?error_handler f =
     R.create_attached_get ?app ?scope ?options ?charset ?code ?content_type
       ?headers ?secure_session ?https ?name ?csrf_safe ?csrf_scope ?csrf_secure
       ?max_use ?timeout ~fallback ~get_params
       ?error_handler:(make_eh error_handler) (make_service_handler f)
 
-  let create_attached_post
-        ?app
-        ?scope
-        ?options
-        ?charset
-        ?code
-        ?content_type
-        ?headers
-        ?secure_session
-        ?https
-        ?name
-        ?csrf_safe
-        ?csrf_scope
-        ?csrf_secure
-        ?max_use
-        ?timeout
-        ~fallback
-        ~post_params
-        ?error_handler
-        f
-    =
+  let create_attached_post ?app ?scope ?options ?charset ?code ?content_type
+      ?headers ?secure_session ?https ?name ?csrf_safe ?csrf_scope ?csrf_secure
+      ?max_use ?timeout ~fallback ~post_params ?error_handler f =
     R.create_attached_post ?app ?scope ?options ?charset ?code ?content_type
       ?headers ?secure_session ?https ?name ?csrf_safe ?csrf_scope ?csrf_secure
       ?max_use ?timeout ~fallback ~post_params
@@ -633,7 +564,8 @@ module Ocaml_base = struct
   let send ?options:_ ?charset ?code ?content_type ?headers content =
     Result_types.cast_kind_lwt
       (String.send ?charset ?code ?content_type ?headers
-         (content, Eliom_service.eliom_appl_answer_content_type))
+         (content, Eliom_service.eliom_appl_answer_content_type)
+      )
 end
 
 module Ocaml = struct
@@ -651,8 +583,9 @@ module Ocaml = struct
       then
         Array.iter
           (fun d ->
-             Eliom_runtime.Client_value_server_repr.clear_loc
-               d.Eliom_runtime.value)
+            Eliom_runtime.Client_value_server_repr.clear_loc
+              d.Eliom_runtime.value
+          )
           data;
       data
     in
@@ -670,35 +603,40 @@ module Ocaml = struct
     let* data =
       Lwt.catch
         (fun () ->
-           let* res = f g p in
-           Lwt.return (`Success res))
+          let* res = f g p in
+          Lwt.return (`Success res)
+        )
         (fun exn ->
-           let code = Printf.sprintf "%06x" (Random.int 0x1000000) in
-           let argument =
-             let sp = Eliom_common.get_sp () in
-             let si = Eliom_request_info.get_si sp in
-             let post_params =
-               match si.Eliom_common.si_all_post_params with
-               | None -> []
-               | Some l -> l
-             in
-             try Printf.sprintf " (%s)" (List.assoc "argument" post_params)
-             with Not_found -> ""
-           in
-           (match name with
-           | Some name ->
-               Logs.err (fun fmt ->
-                 fmt
-                   ("Uncaught exception in service %s [%s]%s" ^^ "@\n%s")
-                   name code
-                   (Str.global_replace string_regexp "\"xxx\"" argument)
-                   (Printexc.to_string exn))
-           | None ->
-               Logs.err (fun fmt ->
-                 fmt
-                   ("Uncaught exception [%s]%s" ^^ "@\n%s")
-                   code argument (Printexc.to_string exn)));
-           Lwt.return (`Failure code))
+          let code = Printf.sprintf "%06x" (Random.int 0x1000000) in
+          let argument =
+            let sp = Eliom_common.get_sp () in
+            let si = Eliom_request_info.get_si sp in
+            let post_params =
+              match si.Eliom_common.si_all_post_params with
+              | None -> []
+              | Some l -> l
+            in
+            try Printf.sprintf " (%s)" (List.assoc "argument" post_params)
+            with Not_found -> ""
+          in
+          ( match name with
+          | Some name ->
+              Logs.err (fun fmt ->
+                fmt
+                  ("Uncaught exception in service %s [%s]%s" ^^ "@\n%s")
+                  name code
+                  (Str.global_replace string_regexp "\"xxx\"" argument)
+                  (Printexc.to_string exn)
+              )
+          | None ->
+              Logs.err (fun fmt ->
+                fmt
+                  ("Uncaught exception [%s]%s" ^^ "@\n%s")
+                  code argument (Printexc.to_string exn)
+              )
+          );
+          Lwt.return (`Failure code)
+        )
     in
     prepare_data data
 
@@ -707,85 +645,42 @@ module Ocaml = struct
     Result_types.cast_result_lwt
       (M.send ?options ?charset ?code ?content_type ?headers content)
 
-  let register
-        ?app
-        ?scope
-        ?options
-        ?charset
-        ?code
-        ?content_type
-        ?headers
-        ?secure_session
-        ~(service :
-           ( 'get
-             , 'post
-             , _
-             , _
-             , _
-             , Eliom_service.non_ext
-             , Eliom_service.reg
-             , _
-             , _
-             , _
-             , 'return Eliom_service.ocaml )
-             Eliom_service.t)
-        ?(error_handler : ((string * exn) list -> 'return Lwt.t) option)
-        (f : 'get -> 'post -> 'return Lwt.t)
-    =
+  let register ?app ?scope ?options ?charset ?code ?content_type ?headers
+      ?secure_session
+      ~(service :
+         ( 'get
+         , 'post
+         , _
+         , _
+         , _
+         , Eliom_service.non_ext
+         , Eliom_service.reg
+         , _
+         , _
+         , _
+         , 'return Eliom_service.ocaml
+         )
+         Eliom_service.t
+         ) ?(error_handler : ((string * exn) list -> 'return Lwt.t) option)
+      (f : 'get -> 'post -> 'return Lwt.t) =
     M.register ?app ?scope ?options ?charset ?code ?content_type ?headers
       ?secure_session
       ~service:(Eliom_service.untype service)
       ?error_handler:(make_eh error_handler)
       (make_service_handler ~name:None f)
 
-  let create
-        ?app
-        ?scope
-        ?options
-        ?charset
-        ?code
-        ?content_type
-        ?headers
-        ?secure_session
-        ?https
-        ?name
-        ?csrf_safe
-        ?csrf_scope
-        ?csrf_secure
-        ?max_use
-        ?timeout
-        ~meth
-        ~path
-        ?error_handler
-        f
-    =
+  let create ?app ?scope ?options ?charset ?code ?content_type ?headers
+      ?secure_session ?https ?name ?csrf_safe ?csrf_scope ?csrf_secure ?max_use
+      ?timeout ~meth ~path ?error_handler f =
     Eliom_service.untype
     @@ M.create ?app ?scope ?options ?charset ?code ?content_type ?headers
          ?secure_session ?https ?name ?csrf_safe ?csrf_scope ?csrf_secure
          ?max_use ?timeout ~meth ~path ?error_handler:(make_eh error_handler)
          (make_service_handler ~name f)
 
-  let create_attached_get
-        ?app
-        ?scope
-        ?options
-        ?charset
-        ?code
-        ?content_type
-        ?headers
-        ?secure_session
-        ?https
-        ?name
-        ?csrf_safe
-        ?csrf_scope
-        ?csrf_secure
-        ?max_use
-        ?timeout
-        ~fallback
-        ~get_params
-        ?error_handler
-        f
-    =
+  let create_attached_get ?app ?scope ?options ?charset ?code ?content_type
+      ?headers ?secure_session ?https ?name ?csrf_safe ?csrf_scope ?csrf_secure
+      ?max_use ?timeout ~fallback ~get_params ?error_handler f =
     Eliom_service.untype
     @@ M.create_attached_get ?app ?scope ?options ?charset ?code ?content_type
          ?headers ?secure_session ?https ?name ?csrf_safe ?csrf_scope
@@ -794,27 +689,9 @@ module Ocaml = struct
          ~get_params ?error_handler:(make_eh error_handler)
          (make_service_handler ~name f)
 
-  let create_attached_post
-        ?app
-        ?scope
-        ?options
-        ?charset
-        ?code
-        ?content_type
-        ?headers
-        ?secure_session
-        ?https
-        ?name
-        ?csrf_safe
-        ?csrf_scope
-        ?csrf_secure
-        ?max_use
-        ?timeout
-        ~fallback
-        ~post_params
-        ?error_handler
-        f
-    =
+  let create_attached_post ?app ?scope ?options ?charset ?code ?content_type
+      ?headers ?secure_session ?https ?name ?csrf_safe ?csrf_scope ?csrf_secure
+      ?max_use ?timeout ~fallback ~post_params ?error_handler f =
     Eliom_service.untype
     @@ M.create_attached_post ?app ?scope ?options ?charset ?code ?content_type
          ?headers ?secure_session ?https ?name ?csrf_safe ?csrf_scope
@@ -845,17 +722,21 @@ let get_global_data ~keep_debug =
     else
       Eliom_lib.String_map.map
         (fun {Eliom_runtime.server_sections_data; client_sections_data} ->
-           Array.iter
-             (Array.iter (fun d ->
-                Eliom_runtime.Client_value_server_repr.clear_loc
-                  d.Eliom_runtime.value))
-             server_sections_data;
-           { Eliom_runtime.server_sections_data
-           ; client_sections_data =
-               Array.map
-                 (Array.map (fun x ->
-                    {x with Eliom_runtime.injection_dbg = None}))
-                 client_sections_data })
+          Array.iter
+            (Array.iter (fun d ->
+               Eliom_runtime.Client_value_server_repr.clear_loc
+                 d.Eliom_runtime.value
+             )
+            )
+            server_sections_data;
+          { Eliom_runtime.server_sections_data
+          ; client_sections_data =
+              Array.map
+                (Array.map (fun x -> {x with Eliom_runtime.injection_dbg = None})
+                )
+                client_sections_data
+          }
+        )
         data
   in
   data, global_data_unwrapper
@@ -864,13 +745,10 @@ let transform_global_app_uri = ref (fun x -> x)
 
 module type APP = sig
   val application_script :
-     ?defer:bool
-    -> ?async:bool
-    -> unit
-    -> [> `Script] Eliom_content.Html.elt
+    ?defer:bool -> ?async:bool -> unit -> [> `Script] Eliom_content.Html.elt
 
   val wasm_detection_script :
-     ?defer:bool
+       ?defer:bool
     -> ?async:bool
     -> ?js_name:string
     -> ?wasm_name:string
@@ -888,10 +766,10 @@ module type APP = sig
 
   include
     Eliom_registration_sigs.S_with_create
-    with type page := page
-     and type options := options
-     and type return := return
-     and type result := result
+      with type page := page
+       and type options := options
+       and type return := return
+       and type result := result
 
   val typed_name : app_id application_name
 end
@@ -939,13 +817,15 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
       Eliom_content.Html.F.string_of_uri
         (Eliom_content.Html.F.make_uri
            ~service:(Eliom_service.static_dir ())
-           [js_filename])
+           [js_filename]
+        )
     in
     let wasm_uri =
       Eliom_content.Html.F.string_of_uri
         (Eliom_content.Html.F.make_uri
            ~service:(Eliom_service.static_dir ())
-           [wasm_filename])
+           [wasm_filename]
+        )
     in
     let script_content =
       Printf.sprintf
@@ -954,22 +834,24 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
     in
     Eliom_content.Html.Id.create_named_elt ~id:eliom_appl_script_id
       (Eliom_content.Html.F.script
-         (Eliom_content.Html.F.cdata_script script_content))
+         (Eliom_content.Html.F.cdata_script script_content)
+      )
 
   let wasm_detection_script =
-    (wasm_detection_script
-      : ?defer:_
+    ( wasm_detection_script
+      :    ?defer:_
         -> ?async:_
         -> ?js_name:_
         -> ?wasm_name:_
         -> _
         -> [`Script] Eliom_content.Html.elt
-      :> ?defer:_
+      :>    ?defer:_
          -> ?async:_
          -> ?js_name:_
          -> ?wasm_name:_
          -> _
-         -> [> `Script] Eliom_content.Html.elt)
+         -> [> `Script] Eliom_content.Html.elt
+      )
 
   let js_only_application_script ?defer ?async () =
     let defer', async' =
@@ -986,8 +868,10 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
          ~uri:
            (Eliom_content.Html.F.make_uri
               ~service:(Eliom_service.static_dir ())
-              [App_param.application_name ^ ".js"])
-         ())
+              [App_param.application_name ^ ".js"]
+           )
+         ()
+      )
 
   (* Automatically return WASM detection script or JS-only script based on config *)
   let application_script ?defer ?async () =
@@ -996,9 +880,10 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
     else js_only_application_script ?defer ?async ()
 
   let application_script =
-    (application_script
+    ( application_script
       : ?defer:_ -> ?async:_ -> _ -> [`Script] Eliom_content.Html.elt
-      :> ?defer:_ -> ?async:_ -> _ -> [> `Script] Eliom_content.Html.elt)
+      :> ?defer:_ -> ?async:_ -> _ -> [> `Script] Eliom_content.Html.elt
+      )
 
   let is_eliom_appl_script elt =
     Eliom_content.Html.Id.have_id eliom_appl_script_id elt
@@ -1016,7 +901,8 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
     Lwt.return
       Eliom_content.Html.(
         Id.create_named_elt ~id:eliom_appl_data_script_id
-          (F.script (F.cdata_script script)))
+          (F.script (F.cdata_script script))
+      )
 
   let make_eliom_data_script ?(keep_debug = false) ~sp page =
     let ejs_global_data =
@@ -1030,8 +916,9 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
       then
         Array.iter
           (fun d ->
-             Eliom_runtime.Client_value_server_repr.clear_loc
-               d.Eliom_runtime.value)
+            Eliom_runtime.Client_value_server_repr.clear_loc
+              d.Eliom_runtime.value
+          )
           data;
       data
     in
@@ -1049,7 +936,8 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
         ; ejs_client_attrib_table =
             Eliom_content.Xml.make_client_attrib_table
               (Eliom_content.Html.D.toelt page)
-        ; ejs_sess_info = Eliommod_cli.client_si sp.Eliom_common.sp_si }
+        ; ejs_sess_info = Eliommod_cli.client_si sp.Eliom_common.sp_si
+        }
     in
     let* tab_cookies =
       Eliommod_cookies.compute_cookies_to_send sp.Eliom_common.sp_sitedata
@@ -1083,7 +971,8 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
        String.create ~options:max_age
          ~path:(Eliom_service.Path (path @ [name]))
          ~meth:(Get Eliom_parameter.unit)
-         (fun _ _ -> Lwt.return (script, "application/x-javascript")))
+         (fun _ _ -> Lwt.return (script, "application/x-javascript"))
+      )
 
   let add_eliom_global_data_script rem =
     if global_data_cache_options () <> None
@@ -1106,12 +995,12 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
     else rem
 
   let split_page page :
-    Html_types.html_attrib Eliom_content.Html.attrib list
-    * (Html_types.head_attrib Eliom_content.Html.attrib list
-      * Html_types.title Eliom_content.Html.elt
-      * Html_types.head_content_fun Eliom_content.Html.elt list)
-    * Html_types.body Eliom_content.Html.elt
-    =
+      Html_types.html_attrib Eliom_content.Html.attrib list
+      * ( Html_types.head_attrib Eliom_content.Html.attrib list
+        * Html_types.title Eliom_content.Html.elt
+        * Html_types.head_content_fun Eliom_content.Html.elt list
+        )
+      * Html_types.body Eliom_content.Html.elt =
     match Eliom_content.Xml.content page with
     | Eliom_content.Xml.Node (_, html_attribs, [head; body]) -> (
       match Eliom_content.Xml.content head with
@@ -1119,9 +1008,11 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
           ( List.map Eliom_content.Html.D.to_attrib html_attribs
           , ( List.map Eliom_content.Html.D.to_attrib head_attribs
             , Eliom_content.Html.D.tot (List.hd head_elts)
-            , Eliom_content.Html.D.totl (List.tl head_elts) )
+            , Eliom_content.Html.D.totl (List.tl head_elts)
+            )
           , Eliom_content.Html.D.tot body )
-      | _ -> assert false)
+      | _ -> assert false
+    )
     | _ -> assert false
 
   let add_eliom_scripts ~sp page =
@@ -1134,7 +1025,8 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
     let base_url =
       Eliom_uri.make_proto_prefix
         (Eliom_config.default_protocol_is_https ()
-        || Eliom_request_info.get_csp_ssl_sp sp)
+        || Eliom_request_info.get_csp_ssl_sp sp
+        )
       ^ Eliom_lib.String.concat "/"
           (encode_slashs (Eliom_request_info.get_csp_original_full_path ()))
     in
@@ -1154,16 +1046,19 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
          to make it possible to have truly relative URLs in HTML pages.
       *)
       ::
-      (if Eliom_request_info.expecting_process_page ()
-       then
-         Eliom_content.Html.(
-           F.base
-             ~a:
-               [ F.a_id Eliom_common_base.base_elt_id
-               ; F.a_href (Eliom_content.Xml.uri_of_string base_url) ]
-             ())
-         :: head_elts
-       else head_elts)
+      ( if Eliom_request_info.expecting_process_page ()
+        then
+          Eliom_content.Html.(
+            F.base
+              ~a:
+                [ F.a_id Eliom_common_base.base_elt_id
+                ; F.a_href (Eliom_content.Xml.uri_of_string base_url)
+                ]
+              ()
+          )
+          :: head_elts
+        else head_elts
+      )
     in
     let fake_page =
       Eliom_content.Html.F.html ~a:html_attribs
@@ -1185,7 +1080,8 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
     Lwt.return
       (Eliom_content.Html.F.html ~a:html_attribs
          (Eliom_content.Html.F.head ~a:head_attribs title head_elts)
-         body)
+         body
+      )
 
   let remove_eliom_scripts page =
     let html_attribs, (head_attribs, title, head_elts), body =
@@ -1197,7 +1093,8 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
     Lwt.return
       (Eliom_content.Html.F.html ~a:html_attribs
          (Eliom_content.Html.F.head ~a:head_attribs title head_elts)
-         body)
+         body
+      )
 
   let send_appl_content =
     Eliom_service.XSame_appl (App_param.application_name, None)
@@ -1206,14 +1103,8 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
     let encode x = fst (Xml_print.Utf8.normalize_html x) in
     Eliom_content.Html.Printer.pp ~encode ()
 
-  let send
-        ?(options = default_appl_service_options)
-        ?charset
-        ?code
-        ?content_type
-        ?headers
-        content
-    =
+  let send ?(options = default_appl_service_options) ?charset ?code
+      ?content_type ?headers content =
     let sp = Eliom_common.get_sp () in
     (* GRGR FIXME et si le nom de l'application diffère ?? Il faut
        renvoyer un full_redirect... TODO *)
@@ -1223,9 +1114,10 @@ module App_base (App_param : Eliom_registration_sigs.APP_PARAM) = struct
         ~name:Eliom_common.appl_name_cookie_name
         ~value:App_param.application_name ();
     let* body =
-      (match sp.Eliom_common.sp_client_appl_name, options.do_not_launch with
+      ( match sp.Eliom_common.sp_client_appl_name, options.do_not_launch with
         | None, true -> remove_eliom_scripts content
-        | _ -> add_eliom_scripts ~sp content)
+        | _ -> add_eliom_scripts ~sp content
+        )
       >|= fun body ->
       Ocsigen_response.Body.of_string (Format.asprintf "%a" out body)
     in
@@ -1297,14 +1189,8 @@ struct
       ~name:"template"
       (Eliom_parameter.string "name")
 
-  let send
-        ?(options = default_appl_service_options)
-        ?charset
-        ?code
-        ?content_type
-        ?headers
-        content
-    =
+  let send ?(options = default_appl_service_options) ?charset ?code
+      ?content_type ?headers content =
     match Eliom_parameter.get_non_localized_get_parameters nl_template with
     | None ->
         let* () = Eliom_reference.set request_template (Some Tmpl_param.name) in
@@ -1338,7 +1224,8 @@ let status_of_redirection_options options code =
     | `SeeOther -> `See_other
     | `NotNodifed -> `Not_modified
     | `UseProxy -> `Use_proxy
-    | `TemporaryRedirect -> `Temporary_redirect)
+    | `TemporaryRedirect -> `Temporary_redirect
+  )
 
 (* Redirection services are like services, but send a redirection
    instead of a page.
@@ -1385,17 +1272,18 @@ module String_redirection = Eliom_mkreg.Make (String_redirection_base)
 type _ redirection =
   | Redirection :
       ( unit
-        , unit
-        , Eliom_service.get
-        , _
-        , _
-        , _
-        , _
-        , [`WithoutSuffix]
-        , unit
-        , unit
-        , 'a )
-        Eliom_service.t
+      , unit
+      , Eliom_service.get
+      , _
+      , _
+      , _
+      , _
+      , [`WithoutSuffix]
+      , unit
+      , unit
+      , 'a
+      )
+      Eliom_service.t
       -> 'a redirection
 
 module Redirection_base = struct
@@ -1406,14 +1294,8 @@ module Redirection_base = struct
   let send_appl_content = Eliom_service.XAlways
   (* actually, the service will decide itself *)
 
-  let send
-        ?(options = `Found)
-        ?charset
-        ?code
-        ?content_type
-        ?headers
-        (Redirection service)
-    =
+  let send ?(options = `Found) ?charset ?code ?content_type ?headers
+      (Redirection service) =
     let uri = Eliom_uri.make_string_uri ~service ()
     and headers = Ocsigen_header.of_option headers in
     (* Now we decide the kind of redirection we do.
@@ -1451,7 +1333,7 @@ module Redirection_base = struct
         in
         let headers =
           Cohttp.Header.replace headers
-            (match Eliom_service.send_appl_content service with
+            ( match Eliom_service.send_appl_content service with
             (* the appl name of the destination service *)
             | Eliom_service.XSame_appl (an, _) when an = anr ->
                 (* Same appl, we do a full XHR redirection (not an HTTP
@@ -1464,7 +1346,8 @@ module Redirection_base = struct
             | _ ->
                 (* No application, or another application. We ask the
                 browser to do an HTTP redirection. *)
-                Eliom_common.half_xhr_redir_header)
+                Eliom_common.half_xhr_redir_header
+            )
             uri
         in
         result_of_content ?charset ?content_type ~status:`No_content ~headers
@@ -1477,7 +1360,8 @@ module Redirection = struct
   let send ?options ?charset ?code ?content_type ?headers content =
     Result_types.cast_result_lwt
       (Redirection_base.send ?options ?charset ?code ?content_type ?headers
-         content)
+         content
+      )
 end
 
 let set_exn_handler h =

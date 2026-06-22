@@ -24,17 +24,16 @@ include Eliom_cookies_base
 (* CCC The tables are indexed by the hostname, not the port appear.
    there are no particular reason. If needed it is possible to add it *)
 let cookie_tables :
-  (float option * string * bool) Ocsigen_cookie_map.Map_inner.t
+    (float option * string * bool) Ocsigen_cookie_map.Map_inner.t
     Ocsigen_cookie_map.Map_path.t
-    Jstable.t
-  =
+    Jstable.t =
   Jstable.create ()
 
 module Map (Ord : sig
-    type key [@@deriving json]
+  type key [@@deriving json]
 
-    val compare : key -> key -> int
-  end) =
+  val compare : key -> key -> int
+end) =
 struct
   type 'a t =
     | Empty
@@ -60,7 +59,8 @@ struct
             match lr with
             | Empty -> invalid_arg "Map.bal"
             | Node {l = lrl; v = lrv; d = lrd; r = lrr; _} ->
-                create (create ll lv ld lrl) lrv lrd (create lrr x d r))
+                create (create ll lv ld lrl) lrv lrd (create lrr x d r)
+        )
     else if hr > hl + 2
     then
       match r with
@@ -72,7 +72,8 @@ struct
             match rl with
             | Empty -> invalid_arg "Map.bal"
             | Node {l = rll; v = rlv; d = rld; r = rlr; _} ->
-                create (create l x d rll) rlv rld (create rlr rv rd rr))
+                create (create l x d rll) rlv rld (create rlr rv rd rr)
+        )
     else Node {l; v = x; d; r; h = (if hl >= hr then hl + 1 else hr + 1)}
 
   let rec add x data = function
@@ -100,16 +101,16 @@ end
 [@@@warning "-39"]
 
 module Map_path = Map (struct
-    type key = string list [@@deriving json]
+  type key = string list [@@deriving json]
 
-    let compare = compare
-  end)
+  let compare = compare
+end)
 
 module Map_inner = Map (struct
-    type key = string [@@deriving json]
+  type key = string [@@deriving json]
 
-    let compare = compare
-  end)
+  let compare = compare
+end)
 
 [@@@warning "+39"]
 
@@ -119,18 +120,21 @@ let json_cookies =
 let extern_cookies c =
   Ocsigen_cookie_map.Map_path.fold
     (fun path inner m ->
-       Map_path.add path
-         (Ocsigen_cookie_map.Map_inner.fold Map_inner.add inner Map_inner.empty)
-         m)
+      Map_path.add path
+        (Ocsigen_cookie_map.Map_inner.fold Map_inner.add inner Map_inner.empty)
+        m
+    )
     c Map_path.empty
 
 let intern_cookies c =
   Map_path.fold
     (fun path inner m ->
-       Ocsigen_cookie_map.Map_path.add path
-         (Map_inner.fold Ocsigen_cookie_map.Map_inner.add inner
-            Ocsigen_cookie_map.Map_inner.empty)
-         m)
+      Ocsigen_cookie_map.Map_path.add path
+        (Map_inner.fold Ocsigen_cookie_map.Map_inner.add inner
+           Ocsigen_cookie_map.Map_inner.empty
+        )
+        m
+    )
     c Ocsigen_cookie_map.Map_path.empty
 
 (** [in_local_storage] implements cookie substitutes for iOS WKWebView *)
@@ -144,11 +148,13 @@ let get_table ?(in_local_storage = false) = function
           Dom_html.window##.localStorage
           (fun () -> Ocsigen_cookie_map.Map_path.empty)
           (fun st ->
-             Js.Opt.case
-               st##(getItem host)
-               (fun () -> Ocsigen_cookie_map.Map_path.empty)
-               (fun v ->
-                  intern_cookies (of_json ~typ:json_cookies (Js.to_string v))))
+            Js.Opt.case
+              st##(getItem host)
+              (fun () -> Ocsigen_cookie_map.Map_path.empty)
+              (fun v ->
+                intern_cookies (of_json ~typ:json_cookies (Js.to_string v))
+              )
+          )
       else
         Js.Optdef.get
           (Jstable.find cookie_tables (Js.string host))
@@ -166,8 +172,10 @@ let set_table ?(in_local_storage = false) host t =
           Dom_html.window##.localStorage
           (fun () -> ())
           (fun st ->
-             st##(setItem host
-                    (Js.string (to_json ~typ:json_cookies (extern_cookies t)))))
+            st##(setItem host
+                   (Js.string (to_json ~typ:json_cookies (extern_cookies t)))
+                )
+          )
       else Jstable.add cookie_tables (Js.string host) t
 
 let now () =
@@ -179,21 +187,26 @@ let update_cookie_table ?(in_local_storage = false) host cookies =
   let now = now () in
   Ocsigen_cookie_map.Map_path.iter
     (fun path table ->
-       Ocsigen_cookie_map.Map_inner.iter
-         (fun name -> function
-            | OSet (Some exp, _, _) when exp <= now ->
-                set_table ~in_local_storage host
-                  (Ocsigen_cookie_map.Poly.remove ~path name
-                     (get_table ~in_local_storage host))
-            | OUnset ->
-                set_table ~in_local_storage host
-                  (Ocsigen_cookie_map.Poly.remove ~path name
-                     (get_table ~in_local_storage host))
-            | OSet (exp, value, secure) ->
-                set_table ~in_local_storage host
-                  (Ocsigen_cookie_map.Poly.add ~path name (exp, value, secure)
-                     (get_table ~in_local_storage host)))
-         table)
+      Ocsigen_cookie_map.Map_inner.iter
+        (fun name -> function
+          | OSet (Some exp, _, _) when exp <= now ->
+              set_table ~in_local_storage host
+                (Ocsigen_cookie_map.Poly.remove ~path name
+                   (get_table ~in_local_storage host)
+                )
+          | OUnset ->
+              set_table ~in_local_storage host
+                (Ocsigen_cookie_map.Poly.remove ~path name
+                   (get_table ~in_local_storage host)
+                )
+          | OSet (exp, value, secure) ->
+              set_table ~in_local_storage host
+                (Ocsigen_cookie_map.Poly.add ~path name (exp, value, secure)
+                   (get_table ~in_local_storage host)
+                )
+          )
+        table
+    )
     cookies
 
 (** [in_local_storage] implements cookie substitutes for iOS WKWebView *)
@@ -201,25 +214,28 @@ let get_cookies_to_send ?(in_local_storage = false) host https path =
   let now = now () in
   Ocsigen_cookie_map.Map_path.fold
     (fun cpath t cookies_to_send ->
-       if
-         Url.is_prefix_skip_end_slash
-           (Url.remove_slash_at_beginning cpath)
-           (Url.remove_slash_at_beginning path)
-       then
-         Ocsigen_cookie_map.Map_inner.fold
-           (fun name (exp, value, secure) cookies_to_send ->
-              match exp with
-              | Some exp when exp <= now ->
-                  set_table ~in_local_storage host
-                    (Ocsigen_cookie_map.Poly.remove ~path:cpath name
-                       (get_table ~in_local_storage host));
-                  cookies_to_send
-              | _ ->
-                  if (not secure) || https
-                  then (name, value) :: cookies_to_send
-                  else cookies_to_send)
-           t cookies_to_send
-       else cookies_to_send)
+      if
+        Url.is_prefix_skip_end_slash
+          (Url.remove_slash_at_beginning cpath)
+          (Url.remove_slash_at_beginning path)
+      then
+        Ocsigen_cookie_map.Map_inner.fold
+          (fun name (exp, value, secure) cookies_to_send ->
+            match exp with
+            | Some exp when exp <= now ->
+                set_table ~in_local_storage host
+                  (Ocsigen_cookie_map.Poly.remove ~path:cpath name
+                     (get_table ~in_local_storage host)
+                  );
+                cookies_to_send
+            | _ ->
+                if (not secure) || https
+                then (name, value) :: cookies_to_send
+                else cookies_to_send
+          )
+          t cookies_to_send
+      else cookies_to_send
+    )
     (get_table ~in_local_storage host)
     []
 

@@ -30,7 +30,8 @@ module Down = struct
     ; scope : Eliom_common.client_process_scope option
     ; react : 'a E.t
     ; name : string option
-    ; size : int option }
+    ; size : int option
+    }
 
   type 'a stateless = 'a Eliom_comet.Channel.t
   type 'a t' = Stateful of 'a stateful | Stateless of 'a stateless
@@ -87,18 +88,20 @@ module Up = struct
     { event : 'a E.t
     ; service :
         ( unit
-          , 'a
-          , Eliom_service.post
-          , Eliom_service.non_att
-          , Eliom_service.co
-          , Eliom_service.non_ext
-          , Eliom_service.reg
-          , [`WithoutSuffix]
-          , unit
-          , [`One of 'a Eliom_parameter.ocaml] Eliom_parameter.param_name
-          , Eliom_registration.Action.return )
-          Eliom_service.t
-    ; wrapper : 'a t Eliom_common.wrapper }
+        , 'a
+        , Eliom_service.post
+        , Eliom_service.non_att
+        , Eliom_service.co
+        , Eliom_service.non_ext
+        , Eliom_service.reg
+        , [`WithoutSuffix]
+        , unit
+        , [`One of 'a Eliom_parameter.ocaml] Eliom_parameter.param_name
+        , Eliom_registration.Action.return
+        )
+        Eliom_service.t
+    ; wrapper : 'a t Eliom_common.wrapper
+    }
   [@@warning "-69"]
 
   let to_react t = t.event
@@ -125,7 +128,8 @@ module Up = struct
         ~path:Eliom_service.No_path ()
     in
     Eliom_registration.Action.register ~scope ~options:`NoReload
-      ~service:e_writer (fun () value -> push value; Lwt.return_unit);
+      ~service:e_writer (fun () value -> push value; Lwt.return_unit
+    );
     {event = e; service = e_writer; wrapper = up_event_wrapper ()}
 end
 
@@ -135,14 +139,16 @@ module S = struct
       { throttling : float option
       ; scope : Eliom_common.client_process_scope option
       ; signal : 'a S.t
-      ; name : string option }
+      ; name : string option
+      }
     [@@warning "-69"]
 
     type 'a stateless =
       { channel : 'a Eliom_comet.Channel.t
       ; stream : 'a Lwt_stream.t
       ; (* avoid garbage collection *)
-        sl_signal : 'a S.t }
+        sl_signal : 'a S.t
+      }
     [@@warning "-69"]
 
     type 'a t' = Stateful of 'a stateful | Stateless of 'a stateless
@@ -155,23 +161,27 @@ module S = struct
       ; (* to avoid signal GC *)
         mutable value : 'a
       ; mutable read : bool
-      ; condition : unit Lwt_condition.t }
+      ; condition : unit Lwt_condition.t
+      }
 
     let make_store signal =
       let rec store =
         { s = s'
         ; value = S.value signal
         ; read = false
-        ; condition = Lwt_condition.create () }
+        ; condition = Lwt_condition.create ()
+        }
       and s' =
         lazy
           (S.map
              (fun v ->
-                store.read <- false;
-                store.value <- v;
-                Lwt_condition.broadcast store.condition ();
-                ())
-             signal)
+               store.read <- false;
+               store.value <- v;
+               Lwt_condition.broadcast store.condition ();
+               ()
+             )
+             signal
+          )
       in
       ignore (Lazy.force store.s);
       store
@@ -184,7 +194,8 @@ module S = struct
           aux ()
         else (
           store.read <- true;
-          Lwt.return_some store.value)
+          Lwt.return_some store.value
+        )
       in
       fun () -> Lwt.with_value Eliom_common.sp_key None @@ aux
 
@@ -228,7 +239,8 @@ module S = struct
       Stateless
         { channel = Eliom_comet.Channel.create_newest ?name stream
         ; stream
-        ; sl_signal = s }
+        ; sl_signal = s
+        }
 
     let of_react ?scope ?throttling ?name (s : 'a S.t) =
       let t =

@@ -47,7 +47,8 @@ module Xml = struct
   and elt' =
     { recontent : recontent
     ; node_id : node_id
-    ; unwrapper_mark : Eliom_wrap.unwrapper }
+    ; unwrapper_mark : Eliom_wrap.unwrapper
+    }
   [@@warning "-69"]
 
   and elt = {elt : elt'; wrapper_mark : elt Eliom_wrap.wrapper}
@@ -58,10 +59,10 @@ module Xml = struct
     match elt.recontent with RE e -> e | RELazy e -> Eliom_lazy.force e
 
   module Node_id_set = Set.Make (struct
-      type t = node_id
+    type t = node_id
 
-      let compare : t -> t -> int = compare
-    end)
+    let compare : t -> t -> int = compare
+  end)
 
   let node_ids_in_content = ref Node_id_set.empty
 
@@ -69,7 +70,8 @@ module Xml = struct
     Eliom_wrap.create_wrapper (fun {elt; _} ->
       if Node_id_set.mem elt.node_id !node_ids_in_content
       then {elt with recontent = RE Empty}
-      else elt)
+      else elt
+    )
 
   let wrap page value =
     let node_ids = ref [] in
@@ -94,15 +96,19 @@ module Xml = struct
     { elt =
         { recontent = RE elt
         ; node_id = NoId
-        ; unwrapper_mark = Eliom_wrap.create_unwrapper tyxml_unwrap_id }
-    ; wrapper_mark }
+        ; unwrapper_mark = Eliom_wrap.create_unwrapper tyxml_unwrap_id
+        }
+    ; wrapper_mark
+    }
 
   let make_lazy elt =
     { elt =
         { recontent = RELazy elt
         ; node_id = NoId
-        ; unwrapper_mark = Eliom_wrap.create_unwrapper tyxml_unwrap_id }
-    ; wrapper_mark }
+        ; unwrapper_mark = Eliom_wrap.create_unwrapper tyxml_unwrap_id
+        }
+    ; wrapper_mark
+    }
 
   let empty () = make Empty
   let comment c = make (Comment c)
@@ -228,10 +234,11 @@ module Xml = struct
     let f acc attribs =
       List.fold_right
         (fun att acc ->
-           match racontent att with
-           | RACamlEventHandler (CE_registered_closure (closure_id, cv)) ->
-               ClosureMap.add closure_id cv acc
-           | _ -> acc)
+          match racontent att with
+          | RACamlEventHandler (CE_registered_closure (closure_id, cv)) ->
+              ClosureMap.add closure_id cv acc
+          | _ -> acc
+        )
         attribs acc
     in
     fold_attrib f ClosureMap.empty elt
@@ -240,9 +247,10 @@ module Xml = struct
     let f acc attribs =
       List.fold_right
         (fun att acc ->
-           match racontent att with
-           | RAClient (id, _, cv) -> ClosureMap.add id cv acc
-           | _ -> acc)
+          match racontent att with
+          | RAClient (id, _, cv) -> ClosureMap.add id cv acc
+          | _ -> acc
+        )
         attribs acc
     in
     fold_attrib f ClosureMap.empty elt
@@ -262,12 +270,12 @@ end
 
 module Svg = struct
   module Ev' (A : sig
-      type 'a attrib
+    type 'a attrib
 
-      module Unsafe : sig
-        val string_attrib : string -> string -> 'a attrib
-      end
-    end) =
+    module Unsafe : sig
+      val string_attrib : string -> string -> 'a attrib
+    end
+  end) =
   struct
     let a_onabort s = A.Unsafe.string_attrib "onabort" s
     let a_onactivate s = A.Unsafe.string_attrib "onactivate" s
@@ -363,12 +371,12 @@ end
 
 module Html = struct
   module Ev' (A : sig
-      type 'a attrib
+    type 'a attrib
 
-      module Unsafe : sig
-        val string_attrib : string -> string -> 'a attrib
-      end
-    end) =
+    module Unsafe : sig
+      val string_attrib : string -> string -> 'a attrib
+    end
+  end) =
   struct
     let a_onabort s = A.Unsafe.string_attrib "onabort" s
     let a_onafterprint s = A.Unsafe.string_attrib "onafterprint" s
@@ -464,7 +472,9 @@ module Html = struct
       let lazy_node ?(a = []) name children =
         make_lazy
           (Eliom_lazy.from_fun (fun () ->
-             Node (name, a, Eliom_lazy.force children)))
+             Node (name, a, Eliom_lazy.force children)
+           )
+          )
     end
 
     module Raw' = Html_f.Make (Xml') (Svg.F.Raw')
@@ -485,7 +495,8 @@ module Html = struct
     let lazy_form ?(a = []) elts =
       tot
         (Xml'.lazy_node ~a:(to_xmlattribs a) "form"
-           (Eliom_lazy.from_fun (fun () -> toeltl (Eliom_lazy.force elts))))
+           (Eliom_lazy.from_fun (fun () -> toeltl (Eliom_lazy.force elts)))
+        )
   end
 
   module F = struct
@@ -505,7 +516,8 @@ module Html = struct
     let lazy_form ?(a = []) elts =
       tot
         (Xml'.lazy_node ~a:(to_xmlattribs a) "form"
-           (Eliom_lazy.from_fun (fun () -> toeltl (Eliom_lazy.force elts))))
+           (Eliom_lazy.from_fun (fun () -> toeltl (Eliom_lazy.force elts)))
+        )
   end
 
   module Make
@@ -542,7 +554,8 @@ module Html = struct
       { name : string
       ; to_string : 'a -> string
       ; of_string : string -> 'a
-      ; default : 'a option }
+      ; default : 'a option
+      }
     [@@warning "-69"]
 
     let create ~name ?default ~to_string ~of_string () =

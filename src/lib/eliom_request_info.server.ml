@@ -26,7 +26,8 @@ let find_sitedata fun_name =
   | None -> (
     match Eliom_common.global_register_allowed () with
     | Some get_current_sitedata -> get_current_sitedata ()
-    | _ -> raise (Eliom_common.Eliom_site_information_not_available fun_name))
+    | _ -> raise (Eliom_common.Eliom_site_information_not_available fun_name)
+  )
 
 (*****************************************************************************)
 let get_http_method () =
@@ -151,7 +152,8 @@ let get_ssl () =
 let get_accept_language_sp sp =
   Ocsigen_header.Accept_language.parse
     (Ocsigen_request.header_multi sp.Eliom_common.sp_request.request_info
-       Ocsigen_header.Name.accept_language)
+       Ocsigen_header.Name.accept_language
+    )
 
 let get_accept_language () =
   let sp = Eliom_common.get_sp () in

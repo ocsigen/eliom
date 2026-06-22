@@ -61,10 +61,14 @@ let general_stats () =
         ; dd [ppf "%d" pid]
         ; dt [ppf "Numbers of file descriptors"]
         ; dd
-            [ (match fd ~pid with
+            [ ( match fd ~pid with
               | `Error s ->
                   ppf "Information on file descriptors not accessible (%s)." s
-              | `Ok fd -> ppf "%d file descriptors opened." fd) ] ] ]
+              | `Ok fd -> ppf "%d file descriptors opened." fd
+              )
+            ]
+        ]
+    ]
 
 let gc_stats () =
   let stat = Gc.quick_stat () in
@@ -75,7 +79,10 @@ let gc_stats () =
         ; li [ppf "%d compactions of the heap." stat.Gc.compactions]
         ; li
             [ ppf "%d words in the the major heap (max %d)." stat.Gc.heap_words
-                stat.Gc.top_heap_words ] ] ]
+                stat.Gc.top_heap_words
+            ]
+        ]
+    ]
 
 let http_stats () =
   let hosts = Ocsigen_extensions.get_hosts () in
@@ -83,29 +90,36 @@ let http_stats () =
     [ ul
         [ li
             [ ppf "%d open connection"
-                (Ocsigen_extensions.get_number_of_connected ()) ] ]
+                (Ocsigen_extensions.get_number_of_connected ())
+            ]
+        ]
     ; h3 [txt "Hosts"]
     ; ul
         (List.map
            (fun (vhosts, config, _) ->
-              let all_vhost =
-                String.concat ", "
-                  (List.map
-                     (fun (vhost, _, vport) ->
-                        let optport =
-                          match vport with
-                          | None -> ""
-                          | Some p -> Printf.sprintf ":%d" p
-                        in
-                        Printf.sprintf
-                          "%s%s ( default: %s,  http: %d, https: %d )" vhost
-                          optport config.Ocsigen_extensions.default_hostname
-                          config.Ocsigen_extensions.default_httpport
-                          config.Ocsigen_extensions.default_httpsport)
-                     vhosts)
-              in
-              li [txt (all_vhost : string)])
-           hosts) ]
+             let all_vhost =
+               String.concat ", "
+                 (List.map
+                    (fun (vhost, _, vport) ->
+                      let optport =
+                        match vport with
+                        | None -> ""
+                        | Some p -> Printf.sprintf ":%d" p
+                      in
+                      Printf.sprintf
+                        "%s%s ( default: %s,  http: %d, https: %d )" vhost
+                        optport config.Ocsigen_extensions.default_hostname
+                        config.Ocsigen_extensions.default_httpport
+                        config.Ocsigen_extensions.default_httpsport
+                    )
+                    vhosts
+                 )
+             in
+             li [txt (all_vhost : string)]
+           )
+           hosts
+        )
+    ]
 
 let eliom_stats () =
   let* persist_nb_of_groups = Eliommod_sessiongroups.Pers.nb_of_groups () in
@@ -118,34 +132,47 @@ let eliom_stats () =
        ; ul
            [ li
                [ ppf "%d service cookies."
-                   (Eliom_state.number_of_service_cookies ()) ]
+                   (Eliom_state.number_of_service_cookies ())
+               ]
            ; li
                [ ppf "%d volatile data cookies."
-                   (Eliom_state.number_of_volatile_data_cookies ()) ]
+                   (Eliom_state.number_of_volatile_data_cookies ())
+               ]
            ; li
                [ ppf "%d volatile data tables (volatile Eliom references)."
-                   (Eliom_state.number_of_tables ()) ]
+                   (Eliom_state.number_of_tables ())
+               ]
            ; li
                [ ppf "%d persistent data cookies."
-                   number_of_persistent_data_cookies ]
+                   number_of_persistent_data_cookies
+               ]
            ; li
                [ ppf "%d persistent data tables (persistent data reference)."
-                   (Eliom_state.number_of_persistent_tables ()) ] ]
+                   (Eliom_state.number_of_persistent_tables ())
+               ]
+           ]
        ; h3 [ppf "Client processes"]
        ; p [em [txt "Not implemented yet"]]
        ; h3 [ppf "Session groups"]
        ; ul
            [ li
                [ ppf "%d service session groups."
-                   (Eliommod_sessiongroups.Serv.nb_of_groups ()) ]
+                   (Eliommod_sessiongroups.Serv.nb_of_groups ())
+               ]
            ; li
                [ ppf "%d volatile data session groups."
-                   (Eliommod_sessiongroups.Data.nb_of_groups ()) ]
+                   (Eliommod_sessiongroups.Data.nb_of_groups ())
+               ]
            ; li [ppf "%d persistent data session groups." persist_nb_of_groups]
            ; li
                [ ppf "Session groups: %s"
                    (String.concat ", "
-                      (Eliom_state.Ext.get_session_group_list ())) ] ] ])
+                      (Eliom_state.Ext.get_session_group_list ())
+                   )
+               ]
+           ]
+       ]
+    )
 
 let content_div () =
   let* eliom_stats = eliom_stats () in
@@ -158,7 +185,9 @@ let content_div () =
        ; h2 [ppf "Eliom sessions"]
        ; eliom_stats
        ; h2 [ppf "GC"]
-       ; gc_stats () ])
+       ; gc_stats ()
+       ]
+    )
 
 let content_html () =
   let* content_div = content_div () in
@@ -169,11 +198,18 @@ let content_html () =
           [ link ~rel:[`Stylesheet]
               ~href:
                 (uri_of_string (fun () ->
-                   "//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"))
+                   "//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"
+                 )
+                )
               ()
           ; link ~rel:[`Stylesheet]
               ~href:
                 (uri_of_string (fun () ->
-                   "//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css"))
-              () ])
-       (body [div ~a:[a_class ["container"]] [content_div]]))
+                   "//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css"
+                 )
+                )
+              ()
+          ]
+       )
+       (body [div ~a:[a_class ["container"]] [content_div]])
+    )

@@ -24,9 +24,9 @@ open Js_of_ocaml
 module Xml : sig
   module W :
     Xml_wrap.T
-    with type 'a t = 'a
-     and type 'a tlist = 'a list
-     and type (-'a, 'b) ft = 'a -> 'b
+      with type 'a t = 'a
+       and type 'a tlist = 'a list
+       and type (-'a, 'b) ft = 'a -> 'b
 
   type uri = string
 
@@ -48,13 +48,14 @@ module Xml : sig
     | CE_client_closure_touch of (Dom_html.touchEvent Js.t -> unit)
       (* Client side-only *)
     | CE_call_service of
-        ([`A | `Form_get | `Form_post]
+        ( [`A | `Form_get | `Form_post]
         * (bool * string list) option
         * string option
-        * Ocsigen_lib_base.poly)
-          (* (unit -> bool) client_value *)
-          option
-          Eliom_lazy.request
+        * Ocsigen_lib_base.poly
+        )
+        (* (unit -> bool) client_value *)
+        option
+        Eliom_lazy.request
 
   type internal_event_handler = Raw of string | Caml of caml_event_handler
   type event_handler = Dom_html.event Js.t -> unit
@@ -78,10 +79,11 @@ module Xml : sig
   (**/**)
 
   val internal_event_handler_of_service :
-     ([`A | `Form_get | `Form_post]
-     * (bool * string list) option
-     * string option
-     * Eliom_lib.poly)
+       ( [`A | `Form_get | `Form_post]
+       * (bool * string list) option
+       * string option
+       * Eliom_lib.poly
+       )
        option
        Eliom_lazy.request
     -> internal_event_handler
@@ -158,14 +160,14 @@ end
 module Xml_wed : sig
   include
     Xml_sigs.T
-    with module W = Js_of_ocaml_tyxml.Tyxml_js.Wrap
-     and type elt = Xml.elt
-     and type aname = Xml.aname
-     and type attrib = Xml.attrib
-     and type uri = Xml.uri
-     and type 'a W.t = 'a React.signal
-     and type 'a W.tlist = 'a ReactiveData.RList.t
-     and type ('a, 'b) W.ft = 'a -> 'b
+      with module W = Js_of_ocaml_tyxml.Tyxml_js.Wrap
+       and type elt = Xml.elt
+       and type aname = Xml.aname
+       and type attrib = Xml.attrib
+       and type uri = Xml.uri
+       and type 'a W.t = 'a React.signal
+       and type 'a W.tlist = 'a ReactiveData.RList.t
+       and type ('a, 'b) W.ft = 'a -> 'b
 
   val float_attrib : aname -> float React.S.t -> attrib
   val int_attrib : aname -> int React.S.t -> attrib
@@ -192,12 +194,12 @@ module Svg : sig
   (**/**)
 
   module Ev' (A : sig
-      type 'a attrib
+    type 'a attrib
 
-      module Unsafe : sig
-        val string_attrib : string -> string -> 'a attrib
-      end
-    end) : sig
+    module Unsafe : sig
+      val string_attrib : string -> string -> 'a attrib
+    end
+  end) : sig
     val a_onabort : string -> [> `OnAbort] A.attrib
     val a_onactivate : string -> [> `OnActivate] A.attrib
     val a_onbegin : string -> [> `OnBegin] A.attrib
@@ -238,8 +240,8 @@ module Svg : sig
 
     module Raw' :
       Svg_sigs.Make(Xml).T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     (**/**)
 
@@ -261,8 +263,8 @@ module Svg : sig
 
     module Raw' :
       Svg_sigs.Make(Xml).T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     (**/**)
 
@@ -286,8 +288,8 @@ module Svg : sig
 
     module Raw :
       Svg_sigs.Make(Xml_wed).T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     include module type of Raw
     (** See {!Svg_sigs.T}. *)
@@ -336,12 +338,12 @@ module Html : sig
   (**/**)
 
   module Ev' (A : sig
-      type 'a attrib
+    type 'a attrib
 
-      module Unsafe : sig
-        val string_attrib : string -> string -> 'a attrib
-      end
-    end) : sig
+    module Unsafe : sig
+      val string_attrib : string -> string -> 'a attrib
+    end
+  end) : sig
     val a_onabort : string -> [> `OnAbort] A.attrib
     val a_onafterprint : string -> [> `OnAfterPrint] A.attrib
     val a_onbeforeprint : string -> [> `OnBeforePrint] A.attrib
@@ -427,8 +429,8 @@ module Html : sig
 
     module Raw' :
       Html_sigs.Make(Xml)(Svg.F.Raw').T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     (**/**)
 
@@ -449,9 +451,10 @@ module Html : sig
 
     val lazy_form :
       ( [< Html_types.form_attrib]
-        , [< Html_types.form_content_fun]
-        , [> Html_types.form] )
-        lazy_star
+      , [< Html_types.form_content_fun]
+      , [> Html_types.form]
+      )
+      lazy_star
   end
 
   (** Typed interface for building valid HTML5 tree (DOM semantics). See
@@ -461,8 +464,8 @@ module Html : sig
 
     module Raw' :
       Html_sigs.Make(Xml)(Svg.D.Raw').T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     (**/**)
 
@@ -480,9 +483,10 @@ module Html : sig
 
     val lazy_form :
       ( [< Html_types.form_attrib]
-        , [< Html_types.form_content_fun]
-        , [> Html_types.form] )
-        lazy_star
+      , [< Html_types.form_content_fun]
+      , [> Html_types.form]
+      )
+      lazy_star
   end
 
   (** Typed interface for building valid HTML5 tree from
@@ -501,8 +505,8 @@ module Html : sig
 
     module Raw :
       Html_sigs.Make(Xml_wed)(Svg.R.Raw).T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     include module type of Raw
   end
@@ -538,7 +542,7 @@ module Html : sig
     (** Custom data with values of type ['a]. *)
 
     val create :
-       name:string
+         name:string
       -> ?default:'a
       -> to_string:('a -> string)
       -> of_string:(string -> 'a)

@@ -89,15 +89,16 @@ module Xml : sig
 
   include
     Xml_sigs.Iterable
-    with type 'a wrap = 'a
-     and type 'a list_wrap = 'a list
-     and type event_handler = (Dom_html.event Js.t -> unit) Eliom_client_value.t
-     and type mouse_event_handler =
-      (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
-     and type keyboard_event_handler =
-      (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
-     and type touch_event_handler =
-      (Dom_html.touchEvent Js.t -> unit) Eliom_client_value.t
+      with type 'a wrap = 'a
+       and type 'a list_wrap = 'a list
+       and type event_handler =
+        (Dom_html.event Js.t -> unit) Eliom_client_value.t
+       and type mouse_event_handler =
+        (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
+       and type keyboard_event_handler =
+        (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
+       and type touch_event_handler =
+        (Dom_html.touchEvent Js.t -> unit) Eliom_client_value.t
 
   (** {2 Unique nodes } *)
 
@@ -129,8 +130,7 @@ module Xml : sig
   val make_client_attrib_table : elt -> Eliom_runtime.RawXML.client_attrib_table
 
   val caml_event_handler :
-     (Dom_html.event Js.t -> unit) Eliom_client_value.t
-    -> caml_event_handler
+    (Dom_html.event Js.t -> unit) Eliom_client_value.t -> caml_event_handler
 
   type racontent =
     | RA of acontent
@@ -156,15 +156,15 @@ end
 
 module Xml_shared :
   Xml_sigs.T
-  with type 'a W.t = 'a Eliom_shared.React.S.t
-   and type 'a W.tlist = 'a Eliom_shared.ReactiveData.RList.t
-   and type event_handler = (Dom_html.event Js.t -> unit) Eliom_client_value.t
-   and type mouse_event_handler =
-    (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
-   and type keyboard_event_handler =
-    (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
-   and type touch_event_handler =
-    (Dom_html.touchEvent Js.t -> unit) Eliom_client_value.t
+    with type 'a W.t = 'a Eliom_shared.React.S.t
+     and type 'a W.tlist = 'a Eliom_shared.ReactiveData.RList.t
+     and type event_handler = (Dom_html.event Js.t -> unit) Eliom_client_value.t
+     and type mouse_event_handler =
+      (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
+     and type keyboard_event_handler =
+      (Dom_html.keyboardEvent Js.t -> unit) Eliom_client_value.t
+     and type touch_event_handler =
+      (Dom_html.touchEvent Js.t -> unit) Eliom_client_value.t
 
 (** Building and pretty-printing valid SVG tree.
 Information about Svg api can be found at {!Svg_sigs.T}*)
@@ -194,8 +194,8 @@ module Svg : sig
 
     module Raw' :
       Svg_sigs.Make(Xml).T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     (**/**)
 
@@ -216,8 +216,8 @@ module Svg : sig
 
     module Raw' :
       Svg_sigs.Make(Xml).T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     (**/**)
 
@@ -236,8 +236,8 @@ module Svg : sig
   module R : sig
     module Raw :
       Svg_sigs.Make(Xml_shared).T
-      with type 'a elt = 'a elt
-       and type 'a attrib = 'a attrib
+        with type 'a elt = 'a elt
+         and type 'a attrib = 'a attrib
 
     include module type of Raw
 
@@ -334,8 +334,8 @@ module Html : sig
 
     module Raw' :
       Html_sigs.Make(Xml)(Svg.F.Raw').T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     (**/**)
 
@@ -348,11 +348,11 @@ module Html : sig
 
     include
       Eliom_content_sigs.LINKS_AND_FORMS
-      with type +'a elt := 'a elt
-       and type +'a attrib := 'a attrib
-       and type uri := uri
-       and type ('a, 'b, 'c) star := ('a, 'b, 'c) star
-       and type 'a form_param := 'a form_param
+        with type +'a elt := 'a elt
+         and type +'a attrib := 'a attrib
+         and type uri := uri
+         and type ('a, 'b, 'c) star := ('a, 'b, 'c) star
+         and type 'a form_param := 'a form_param
   end
 
   (** Creation of HTML content with {b D}OM semantics (referable, see
@@ -371,8 +371,8 @@ module Html : sig
 
     module Raw' :
       Html_sigs.Make(Xml)(Svg.D.Raw').T
-      with type +'a elt = 'a elt
-       and type +'a attrib = 'a attrib
+        with type +'a elt = 'a elt
+         and type +'a attrib = 'a attrib
 
     (**/**)
 
@@ -385,11 +385,11 @@ module Html : sig
 
     include
       Eliom_content_sigs.LINKS_AND_FORMS
-      with type +'a elt := 'a elt
-       and type +'a attrib := 'a attrib
-       and type uri := uri
-       and type ('a, 'b, 'c) star := ('a, 'b, 'c) star
-       and type 'a form_param := 'a form_param
+        with type +'a elt := 'a elt
+         and type +'a attrib := 'a attrib
+         and type uri := uri
+         and type ('a, 'b, 'c) star := ('a, 'b, 'c) star
+         and type 'a form_param := 'a form_param
   end
 
   (** Creation of HTML content from client-side values.  This makes
@@ -452,8 +452,8 @@ module Html : sig
   module R : sig
     include
       Html_sigs.Make(Xml_shared)(Svg.R.Raw).T
-      with type 'a elt = 'a elt
-       and type 'a attrib = 'a attrib
+        with type 'a elt = 'a elt
+         and type 'a attrib = 'a attrib
 
     val pcdata : string Eliom_shared.React.S.t -> [> Html_types.span] elt
     (** [pcdata s] produces a node of type
@@ -476,7 +476,7 @@ module Html : sig
     (** Custom data with values of type ['a]. *)
 
     val create :
-       name:string
+         name:string
       -> ?default:'a
       -> to_string:('a -> string)
       -> of_string:(string -> 'a)

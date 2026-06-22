@@ -15,7 +15,8 @@ module Intern = struct
     Some
       (function
         | `Client -> "src/ppx/ppx_eliom_client_ex." ^ best
-        | `Server -> "src/ppx/ppx_eliom_server_ex." ^ best)
+        | `Server -> "src/ppx/ppx_eliom_server_ex." ^ best
+        )
 
   let with_package = function
     | "eliom.ppx.type" -> "pkg_ppx_eliom_types"
@@ -35,8 +36,8 @@ let _ =
         Doc.init ();
         let link source dest =
           rule (Printf.sprintf "%s -> %s" source dest) ~dep:source ~prod:dest
-            (fun env _ ->
-               Cmd (S [A "ln"; A "-f"; P (env source); P (env dest)]))
+            (fun env _ -> Cmd (S [A "ln"; A "-f"; P (env source); P (env dest)])
+          )
         in
         (* add I pflag *)
         pflag ["ocaml"; "compile"] "I" (fun x -> S [A "-I"; A x]);
@@ -51,18 +52,24 @@ let _ =
             ["ocaml"; "compile"; "pkg_" ^ name]
             (S
                [ A "-ppx"
-               ; Quote (S [P (path ^ name ^ "_ex." ^ best); A "-as-ppx"]) ]);
+               ; Quote (S [P (path ^ name ^ "_ex." ^ best); A "-as-ppx"])
+               ]
+            );
           flag
             ["ocaml"; "ocamldep"; "pkg_" ^ name]
             (S
                [ A "-ppx"
-               ; Quote (S [P (path ^ name ^ "_ex." ^ best); A "-as-ppx"]) ]);
+               ; Quote (S [P (path ^ name ^ "_ex." ^ best); A "-as-ppx"])
+               ]
+            );
           dep ["ocaml"; "ocamldep"; "pkg_" ^ name] [path ^ name ^ "_ex." ^ best];
           flag_and_dep
             ["ocaml"; "infer_interface"; "pkg_" ^ name]
             (S
                [ A "-ppx"
-               ; Quote (S [P (path ^ name ^ "_ex." ^ best); A "-as-ppx"]) ]);
+               ; Quote (S [P (path ^ name ^ "_ex." ^ best); A "-as-ppx"])
+               ]
+            );
           dep
             ["ocaml"; "infer_interface"; "pkg_" ^ name]
             [path ^ name ^ "_ex." ^ best];
@@ -70,7 +77,9 @@ let _ =
             ["doc"; "pkg_" ^ name]
             (S
                [ A "-ppx"
-               ; Quote (S [P (path ^ name ^ "_ex." ^ best); A "-as-ppx"]) ]);
+               ; Quote (S [P (path ^ name ^ "_ex." ^ best); A "-as-ppx"])
+               ]
+            );
           dep ["doc"; "pkg_" ^ name] [path ^ name ^ "_ex." ^ best]
         in
         add_syntax "ppx_eliom_utils" "src/ppx/";
@@ -86,7 +95,8 @@ let _ =
         in
         List.iter (link_exec "eliomc") ["eliomopt"; "eliomcp"; "js_of_eliom"];
         link_exec "distillery" "eliom-distillery"
-    | _ -> ())
+    | _ -> ()
+  )
 
 let _ =
   Options.make_links := false;

@@ -45,7 +45,7 @@ module type Pkg = sig
   (** The type for install moves. *)
 
   type field =
-    ?cond:bool
+       ?cond:bool
     -> ?exts:string list
     -> ?dst:string
     -> ?target:string
@@ -128,7 +128,8 @@ end = struct
               ignore (List.assoc key acc);
               err_mdef key
             with Not_found -> parse_env ((key, bool) :: acc) args
-        with Invalid_argument _ | Not_found | Exit -> err_parse arg)
+        with Invalid_argument _ | Not_found | Exit -> err_parse arg
+      )
       | [] -> acc
     in
     match List.tl (Array.to_list Sys.argv) with
@@ -174,7 +175,7 @@ module Pkg : Pkg = struct
   type moves = move list
 
   type field =
-    ?cond:bool
+       ?cond:bool
     -> ?exts:string list
     -> ?dst:string
     -> ?target:string
@@ -235,8 +236,9 @@ module Pkg : Pkg = struct
         let l = List.filter (fun f -> has_suffix f s_suffix) l in
         List.map
           (fun s ->
-             ( str "%s/%s%s" bdir s_path s
-             , str "%s%s%s" d_path (Filename.chop_suffix s s_suffix) d_suffix ))
+            ( str "%s/%s%s" bdir s_path s
+            , str "%s%s%s" d_path (Filename.chop_suffix s s_suffix) d_suffix )
+          )
           l
 
   let build_install bdir mvs =
@@ -251,8 +253,9 @@ module Pkg : Pkg = struct
           in
           List.iter
             (fun (src, dst) ->
-               Buffer.add_string install
-                 (str "\n  \"%s%s\" {\"%s\"}" option src dst))
+              Buffer.add_string install
+                (str "\n  \"%s%s\" {\"%s\"}" option src dst)
+            )
             (list_files bdir src dst);
           add_mvs current mvs
       | {field_name = field} :: _ as mvs ->

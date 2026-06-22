@@ -52,7 +52,9 @@ let compile_intf file =
        (preprocess_opt !ppopt @ !args @ get_default_args ()
       @ get_common_include ()
        @ map_include !eliom_inc_dirs
-       @ ["-intf"; file]))
+       @ ["-intf"; file]
+       )
+    )
 
 let compile_impl file =
   wait
@@ -60,7 +62,9 @@ let compile_impl file =
        (preprocess_opt !ppopt @ !args @ get_default_args ()
       @ get_common_include ()
        @ map_include !eliom_inc_dirs
-       @ ["-impl"; file]))
+       @ ["-impl"; file]
+       )
+    )
 
 let server_pp_opt impl_intf =
   match !pp_mode with
@@ -86,7 +90,9 @@ let compile_server_eliom ~impl_intf file =
        (preprocess_opt ~kind:`Server (server_pp_opt impl_intf)
        @ !args @ get_default_args () @ get_common_include ()
        @ map_include !eliom_inc_dirs
-       @ [impl_intf_opt impl_intf; file']))
+       @ [impl_intf_opt impl_intf; file']
+       )
+    )
 
 let compile_client_eliom ~impl_intf file =
   let file', out = generate_temp_file file in
@@ -96,7 +102,9 @@ let compile_client_eliom ~impl_intf file =
        (preprocess_opt ~kind:`Client (client_pp_opt impl_intf)
        @ !args @ get_default_args () @ get_common_include ()
        @ map_include !eliom_inc_dirs
-       @ [impl_intf_opt impl_intf; file']))
+       @ [impl_intf_opt impl_intf; file']
+       )
+    )
 
 let compile_eliom ~impl_intf file =
   match !kind with

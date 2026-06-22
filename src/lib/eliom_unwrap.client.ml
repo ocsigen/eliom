@@ -73,14 +73,12 @@ let late_unwrap_value old_value new_value =
   let old_value = Obj.repr old_value in
   List.iter
     (fun {parent; field} ->
-       Obj.set_field parent (field - 1) (Obj.repr new_value))
+      Obj.set_field parent (field - 1) (Obj.repr new_value)
+    )
     (Obj.obj (Obj.field (Obj.field old_value (Obj.size old_value - 1)) 2))
 
 external raw_unmarshal_and_unwrap :
-   (unwrapper -> _ -> _ option)
-  -> string
-  -> int
-  -> _
+  (unwrapper -> _ -> _ option) -> string -> int -> _
   = "caml_unwrap_value_from_string"
 
 let unwrap s i =

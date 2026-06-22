@@ -53,25 +53,25 @@ val set_persistent_session_gc_frequency : int option -> unit
     [None] means never. *)
 
 val set_volatile_timeout :
-   ?scope_hierarchy:Eliom_common.scope_hierarchy
+     ?scope_hierarchy:Eliom_common.scope_hierarchy
   -> cookie_level:[< `Session | `Client_process]
   -> int option
   -> unit
 
 val set_data_timeout :
-   ?scope_hierarchy:Eliom_common.scope_hierarchy
+     ?scope_hierarchy:Eliom_common.scope_hierarchy
   -> cookie_level:[< `Session | `Client_process]
   -> int option
   -> unit
 
 val set_service_timeout :
-   ?scope_hierarchy:Eliom_common.scope_hierarchy
+     ?scope_hierarchy:Eliom_common.scope_hierarchy
   -> cookie_level:[< `Session | `Client_process]
   -> int option
   -> unit
 
 val set_persistent_timeout :
-   ?scope_hierarchy:Eliom_common.scope_hierarchy
+     ?scope_hierarchy:Eliom_common.scope_hierarchy
   -> cookie_level:[< `Session | `Client_process]
   -> int option
   -> unit
@@ -109,8 +109,7 @@ val add_ignored_get_params : string * Re.re -> unit
 val add_ignored_post_params : string * Re.re -> unit
 
 val set_omitpersistentstorage :
-   Eliom_common.omitpersistentstorage_rule list option
-  -> unit
+  Eliom_common.omitpersistentstorage_rule list option -> unit
 
 val get_default_hostname : unit -> string
 (** The function [get_default_hostname ()]returns the hostname
@@ -171,7 +170,7 @@ val get_config : unit -> Xml.xml list
 *)
 
 val parse_config :
-   ?pcdata:(string -> unit)
+     ?pcdata:(string -> unit)
   -> ?other_elements:(string -> (string * string) list -> Xml.xml list -> unit)
   -> Ocsigen_extensions.Configuration.element list
   -> unit
@@ -195,7 +194,6 @@ val get_debugmode : unit -> bool
 (**/**)
 
 val get_config_info_sp :
-   Eliom_common.server_params
-  -> Ocsigen_extensions.config_info
+  Eliom_common.server_params -> Ocsigen_extensions.config_info
 
 val get_config_default_charset_sp : Eliom_common.server_params -> string

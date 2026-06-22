@@ -121,9 +121,7 @@ end
 (**/**)
 
 val register :
-   ?wake:bool
-  -> 'a Eliom_comet_base.wrapped_channel
-  -> 'a Lwt_stream.t
+  ?wake:bool -> 'a Eliom_comet_base.wrapped_channel -> 'a Lwt_stream.t
 (** if wake is false, the registration of the channel won't
     activate the handling loop ( no request will be sent ). Default is true *)
 

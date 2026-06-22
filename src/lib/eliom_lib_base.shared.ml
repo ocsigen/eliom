@@ -46,10 +46,10 @@ module type Map_S = sig
 end
 
 module Map_make (Ord : sig
-    include Map.OrderedType
+  include Map.OrderedType
 
-    val to_string : t -> string
-  end) =
+  val to_string : t -> string
+end) =
 struct
   include Map.Make (Ord)
 
@@ -59,20 +59,21 @@ struct
     String.concat sep
       (List.map
          (fun (key, value) -> Ord.to_string key ^ ":" ^ value_to_string value)
-         (bindings map))
+         (bindings map)
+      )
 end
 
 module Int64_map = Map_make (Int64)
 
 module Int_map = Map_make (struct
-    type t = int
+  type t = int
 
-    let compare = ( - )
-    let to_string = string_of_int
-  end)
+  let compare = ( - )
+  let to_string = string_of_int
+end)
 
 module String_map = Map_make (struct
-    include String
+  include String
 
-    let to_string x = x
-  end)
+  let to_string x = x
+end)

@@ -3,7 +3,8 @@ type info =
   ; i_subpath : string list
   ; i_meth : Eliom_common.meth
   ; i_get_params : (string * string) list
-  ; i_post_params : (string * string) list }
+  ; i_post_params : (string * string) list
+  }
 
 module A = struct
   type site_data = unit
@@ -27,18 +28,19 @@ module A = struct
       !count
 
   module Raw_table = Map.Make (struct
-      type t = Eliom_common.meth
+    type t = Eliom_common.meth
 
-      let compare = compare
-    end)
+    let compare = compare
+  end)
 
   type table_content =
     [`Ptc of unit option * (params, result) Eliom_common.service list]
 
   type service =
     ( table ref * Eliom_common.page_table_key
-      , Eliom_common.na_key_serv )
-      Eliom_lib.leftright
+    , Eliom_common.na_key_serv
+    )
+    Eliom_lib.leftright
 
   and node = service list
   and table = table_content Raw_table.t
@@ -88,7 +90,8 @@ let global_tables =
   A.Container.
     { t_services = []
     ; t_contains_timeout = false
-    ; t_na_services = Hashtbl.create 256 }
+    ; t_na_services = Hashtbl.create 256
+    }
 
 let add_naservice k f {A.Container.t_na_services; _} =
   Hashtbl.add t_na_services k f
@@ -122,4 +125,5 @@ let call_service ({i_get_params; i_post_params; i_subpath; _} as info) =
   | None -> (
     match na_key_of_params ~get:false i_post_params with
     | Some k -> call_naservice k global_tables
-    | None -> find_service 0. global_tables None () info)
+    | None -> find_service 0. global_tables None () info
+  )

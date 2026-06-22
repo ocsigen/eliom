@@ -72,10 +72,10 @@ type full_state_name =
   {user_scope : user_scope; secure : bool; site_dir_str : string}
 
 module Full_state_name_table = Map.Make (struct
-    type t = full_state_name
+  type t = full_state_name
 
-    let compare = compare
-  end)
+  let compare = compare
+end)
 
 (******************************************************************)
 (* Service kinds: *)
@@ -183,7 +183,8 @@ type client_process_info =
   { cpi_ssl : bool
   ; cpi_hostname : string
   ; cpi_server_port : int
-  ; cpi_original_full_path : string list }
+  ; cpi_original_full_path : string list
+  }
 [@@deriving json]
 
 [@@@warning "+39"]
@@ -206,7 +207,7 @@ type sess_info =
       string Full_state_name_table.t
       * string Full_state_name_table.t
       * string Full_state_name_table.t
-    (* the same, but for secure cookies *)
+        (* the same, but for secure cookies *)
   ; (* now for tab cookies: *)
     si_service_session_cookies_tab : string Full_state_name_table.t
   ; si_data_session_cookies_tab : string Full_state_name_table.t
@@ -219,7 +220,7 @@ type sess_info =
   ; si_nonatt_info : na_key_req
   ; si_state_info : att_key_req * att_key_req
   ; si_previous_extension_error : int
-    (* HTTP error code sent by previous extension (default: 404) *)
+        (* HTTP error code sent by previous extension (default: 404) *)
   ; si_na_get_params : (string * string) list Lazy.t
   ; si_nl_get_params : (string * string) list String.Table.t
   ; si_nl_post_params : (string * string) list String.Table.t
@@ -231,7 +232,8 @@ type sess_info =
   ; si_ignored_post_params : (string * string) list
   ; si_client_process_info : client_process_info option
   ; si_expect_process_data : bool Lazy.t
-    (*204FORMS*     si_internal_form: bool; *) }
+        (*204FORMS*     si_internal_form: bool; *)
+  }
 
 type eliom_js_page_data =
   { ejs_global_data : (Eliom_runtime.global_data * Eliom_wrap.unwrapper) option
@@ -241,7 +243,8 @@ type eliom_js_page_data =
   ; (* Client Attributes *)
     ejs_client_attrib_table : Eliom_runtime.RawXML.client_attrib_table
   ; (* Session info *)
-    ejs_sess_info : sess_info }
+    ejs_sess_info : sess_info
+  }
 
 (************ unwrapping identifiers *********************)
 
@@ -312,7 +315,8 @@ let split_prefix_param pref l =
   let len = String.length pref in
   List.partition
     (fun (n, _) ->
-       try String.sub n 0 len = pref with Invalid_argument _ -> false)
+      try String.sub n 0 len = pref with Invalid_argument _ -> false
+    )
     l
 
 (* Remove all parameters whose name starts with pref *)
@@ -322,7 +326,8 @@ let remove_prefixed_param pref l =
     | [] -> []
     | ((n, _) as a) :: l -> (
       try if String.sub n 0 len = pref then aux l else a :: aux l
-      with Invalid_argument _ -> a :: aux l)
+      with Invalid_argument _ -> a :: aux l
+    )
   in
   aux l
 
@@ -364,7 +369,8 @@ type ('params, 'result) service =
     s_id : anon_params_type * anon_params_type
   ; mutable s_max_use : int option
   ; s_expire : (float * float ref) option
-  ; s_f : bool -> 'params -> 'result Lwt.t }
+  ; s_f : bool -> 'params -> 'result Lwt.t
+  }
 
 type 'a to_and_of = {of_string : string -> 'a; to_string : 'a -> string}
 

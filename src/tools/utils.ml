@@ -132,16 +132,16 @@ let get_syntax_package pkg =
         (Lazy.force syntax_predicates @ pkg_predicates)
         (List.filter
            (fun p ->
-              let all_predicates =
-                pkg_predicates @ Lazy.force syntax_predicates
-              in
-              try
-                let objs =
-                  Findlib.package_property all_predicates p "archive"
-                in
-                List.concat (List.map (split ',') (split ' ' objs)) <> []
-              with Not_found -> false)
-           pkgs)
+             let all_predicates =
+               pkg_predicates @ Lazy.force syntax_predicates
+             in
+             try
+               let objs = Findlib.package_property all_predicates p "archive" in
+               List.concat (List.map (split ',') (split ' ' objs)) <> []
+             with Not_found -> false
+           )
+           pkgs
+        )
     with Findlib.No_such_package (name, _) ->
       Printf.eprintf "Unknown package: %s\n%!" name;
       exit 1
@@ -160,17 +160,21 @@ let get_ppxs l =
     List.concat
       (List.map
          (fun pname ->
-            try
-              let opts = Findlib.package_property [] pname "ppxopt" in
-              List.concat
-                (List.map
-                   (fun opts ->
-                      match split ',' opts with
-                      | pkg :: opts -> [pkg, (pname, opts)]
-                      | [] -> [])
-                   (split ' ' opts))
-            with Not_found -> [])
-         l)
+           try
+             let opts = Findlib.package_property [] pname "ppxopt" in
+             List.concat
+               (List.map
+                  (fun opts ->
+                    match split ',' opts with
+                    | pkg :: opts -> [pkg, (pname, opts)]
+                    | [] -> []
+                  )
+                  (split ' ' opts)
+               )
+           with Not_found -> []
+         )
+         l
+      )
   in
   let f p acc =
     let d = Findlib.package_directory p in
@@ -181,9 +185,11 @@ let get_ppxs l =
         List.concat
           (List.map
              (fun (_, (pname, opts)) ->
-                let base = Findlib.package_directory pname in
-                List.map (Findlib.resolve_path ~base ~explicit:true) opts)
-             (List.filter (fun (p', _) -> p' = p) meta_ppx_opts))
+               let base = Findlib.package_directory pname in
+               List.map (Findlib.resolve_path ~base ~explicit:true) opts
+             )
+             (List.filter (fun (p', _) -> p' = p) meta_ppx_opts)
+          )
       in
       "-ppx" :: String.concat " " (ppx :: options) :: acc
     with Not_found -> acc
@@ -202,14 +208,15 @@ let rec map_include xs =
 
 let get_common_include ?kind:k ?build_dir:dir ?package:p () =
   let dir = match dir with Some d -> d | None -> !build_dir in
-  (match get_kind k with
+  ( match get_kind k with
     | `Server | `ServerOpt ->
         "js_of_ocaml" :: get_server_package ?kind:k ?package:p ()
         |> List.map Findlib.package_directory
         |> map_include
     | `Client ->
         map_include
-          (List.map Findlib.package_directory (get_client_package ?kind:k ())))
+          (List.map Findlib.package_directory (get_client_package ?kind:k ()))
+    )
   @ match dir with "" | "." -> [] | d -> ["-I"; d]
 
 let get_common_syntax pkg =
@@ -219,38 +226,45 @@ let get_common_syntax pkg =
   @ List.concat
       (List.map
          (fun p ->
-            try
-              let objs =
-                Findlib.package_property
-                  ("byte" :: Lazy.force syntax_predicates)
-                  p "archive"
-              in
-              List.concat (List.map (split ',') (split ' ' objs))
-            with Not_found -> [])
-         syntax_pkg)
+           try
+             let objs =
+               Findlib.package_property
+                 ("byte" :: Lazy.force syntax_predicates)
+                 p "archive"
+             in
+             List.concat (List.map (split ',') (split ' ' objs))
+           with Not_found -> []
+         )
+         syntax_pkg
+      )
 
 let get_client_lib ?kind:k () =
   List.concat
     (List.map
        (fun p ->
-          try
-            split ' '
-              (Findlib.package_property (get_predicates ?kind:k ()) p "archive")
-          with Not_found -> [])
-       (get_client_package ?kind:k ()))
+         try
+           split ' '
+             (Findlib.package_property (get_predicates ?kind:k ()) p "archive")
+         with Not_found -> []
+       )
+       (get_client_package ?kind:k ())
+    )
 
 let get_client_js () =
   List.concat
     (List.map
        (fun p ->
-          try
-            let base = Findlib.package_directory p in
-            List.map
-              (fun r -> Findlib.resolve_path ~base r)
-              (split ' '
-                 (Findlib.package_property (get_predicates ()) p "jsoo_runtime"))
-          with Not_found -> [])
-       (get_client_package ()))
+         try
+           let base = Findlib.package_directory p in
+           List.map
+             (fun r -> Findlib.resolve_path ~base r)
+             (split ' '
+                (Findlib.package_property (get_predicates ()) p "jsoo_runtime")
+             )
+         with Not_found -> []
+       )
+       (get_client_package ())
+    )
 
 (* Should be called only with -dump... *)
 let get_pp_dump pkg opt =
@@ -261,7 +275,8 @@ let get_pp_dump pkg opt =
       ignore (String.index pp ' ');
       Printf.eprintf "Incompatible option: -pp and -dump\n%!";
       exit 1
-    with Not_found -> pp, get_common_syntax pkg @ opt)
+    with Not_found -> pp, get_common_syntax pkg @ opt
+  )
 
 let get_pp pkg =
   let s =
@@ -337,18 +352,14 @@ let rec wait ?(on_error = fun _ -> ()) pid =
       on_error e;
       wait pid
 
-let create_process
-      ?(in_ = Unix.stdin)
-      ?(out = Unix.stdout)
-      ?(err = Unix.stderr)
-      name
-      args
-  =
+let create_process ?(in_ = Unix.stdin) ?(out = Unix.stdout) ?(err = Unix.stderr)
+    name args =
   if !verbose
   then (
     Printf.eprintf "+ %s" name;
     List.iter (Printf.eprintf " '%s'") args;
-    Printf.eprintf "\n%!");
+    Printf.eprintf "\n%!"
+  );
   Unix.create_process name (Array.of_list (name :: args)) in_ out err
 
 let create_filter name args f =

@@ -32,15 +32,16 @@ module Pass = struct
         if fragment then [%type: _ Eliom_client_value.t] else [%type: _]
       in
       typing_strs :=
-        (if unsafe || Mli.exists ()
-         then [%stri let [%p Pat.var id] = fun y -> (y : [%t typ] :> [%t typ])]
-         else
-           [%stri
-           let [%p Pat.var id] =
-             let x = Stdlib.ref None in
-             fun y ->
-               if false then x := Some y;
-               (y : [%t typ] :> [%t typ])])
+        ( if unsafe || Mli.exists ()
+          then [%stri let [%p Pat.var id] = fun y -> (y : [%t typ] :> [%t typ])]
+          else
+            [%stri
+              let [%p Pat.var id] =
+                let x = Stdlib.ref None in
+                fun y ->
+                  if false then x := Some y;
+                  (y : [%t typ] :> [%t typ])]
+        )
         :: !typing_strs
     in
     let flush loc =
@@ -54,7 +55,9 @@ module Pass = struct
     { loc with
       Location.loc_end =
         { loc.Location.loc_start with
-          pos_cnum = loc.Location.loc_start.Lexing.pos_cnum + 1 } }
+          pos_cnum = loc.Location.loc_start.Lexing.pos_cnum + 1
+        }
+    }
 
   let push_escaped_binding, flush_escaped_bindings =
     let args = ref [] in
@@ -86,7 +89,8 @@ module Pass = struct
       if not (SSet.mem id !gen_ids)
       then (
         gen_ids := SSet.add id !gen_ids;
-        buffer := (loc, id, orig_expr, ident, unsafe) :: !buffer)
+        buffer := (loc, id, orig_expr, ident, unsafe) :: !buffer
+      )
     in
     let flush_all () =
       let res = List.rev !buffer in
@@ -105,7 +109,8 @@ module Pass = struct
       in
       List.iter
         (function
-          | _, gen_id, _, _, _ -> global_known := SSet.add gen_id !global_known)
+          | _, gen_id, _, _, _ -> global_known := SSet.add gen_id !global_known
+          )
         novel;
       all
     in
@@ -119,15 +124,16 @@ module Pass = struct
     let bindings =
       List.map
         (fun (_, txt, expr, _, _) ->
-           let loc = expr.pexp_loc in
-           Vb.mk ~loc (Pat.var ~loc {txt; loc}) expr)
+          let loc = expr.pexp_loc in
+          Vb.mk ~loc (Pat.var ~loc {txt; loc}) expr
+        )
         injections
     in
     Str.value Nonrecursive bindings
 
   let close_server_section loc =
     [%stri
-    let () = Eliom_syntax.close_server_section [%e eid @@ id_file_hash loc]]
+      let () = Eliom_syntax.close_server_section [%e eid @@ id_file_hash loc]]
 
   let may_close_server_section ~no_fragment loc =
     if no_fragment then [] else [close_server_section loc]
@@ -137,33 +143,35 @@ module Pass = struct
     let injection_list =
       List.fold_right
         (fun (loc0, txt, expr, ident, unsafe) sofar ->
-           let loc = expr.pexp_loc in
-           let loc_expr = position loc in
-           let frag_eid = eid {txt; loc} in
-           let ident =
-             match ident with
-             | None -> [%expr None]
-             | Some i -> [%expr Some [%e str i]]
-           in
-           let _, num = Mli.get_injected_ident_info txt in
-           let f_id = {txt = txt ^ "_f"; loc} in
-           push_nongen_str_item ~fragment:false ~unsafe loc f_id;
-           [%expr
-             ( [%e int num]
-             , Eliom_lib.to_poly
-                 [%e
-                   let loc = one_char_location loc0 in
-                   [%expr [%e eid f_id] [%e frag_eid]]]
-             , [%e loc_expr]
-             , [%e ident] )
-             :: [%e sofar]])
+          let loc = expr.pexp_loc in
+          let loc_expr = position loc in
+          let frag_eid = eid {txt; loc} in
+          let ident =
+            match ident with
+            | None -> [%expr None]
+            | Some i -> [%expr Some [%e str i]]
+          in
+          let _, num = Mli.get_injected_ident_info txt in
+          let f_id = {txt = txt ^ "_f"; loc} in
+          push_nongen_str_item ~fragment:false ~unsafe loc f_id;
+          [%expr
+            ( [%e int num]
+            , Eliom_lib.to_poly
+                [%e
+                  let loc = one_char_location loc0 in
+                  [%expr [%e eid f_id] [%e frag_eid]]]
+            , [%e loc_expr]
+            , [%e ident]
+            )
+            :: [%e sofar]]
+        )
         injections [%expr []]
     in
     [%stri
-    let () =
-      Eliom_syntax.close_client_section
-        [%e eid @@ id_file_hash loc]
-        [%e injection_list]]
+      let () =
+        Eliom_syntax.close_client_section
+          [%e eid @@ id_file_hash loc]
+          [%e injection_list]]
 
   (** Syntax extension *)
 
@@ -209,18 +217,13 @@ module Pass = struct
         [%e
           let loc = one_char_location loc in
           [%expr
-            (Eliom_syntax.client_value ~pos:[%e position loc] [%e str num]
-               [%e e]
-             : [%t typ] Eliom_client_value.t)]]]
+            ( Eliom_syntax.client_value ~pos:[%e position loc] [%e str num]
+                [%e e]
+              : [%t typ] Eliom_client_value.t
+              )]]]
 
-  let escape_inject
-        ~loc
-        ?ident
-        ~(context : Context.escape_inject)
-        ~id
-        ~unsafe
-        expr
-    =
+  let escape_inject ~loc ?ident ~(context : Context.escape_inject) ~id ~unsafe
+      expr =
     match context with
     | `Escaped_value _ ->
         push_escaped_binding loc expr id ~unsafe;

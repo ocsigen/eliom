@@ -19,7 +19,7 @@ type ('a, 'b) server_function
 
 (* BBB This is not in Eliom_service because it depends on Eliom_registration *)
 val server_function :
-   ?scope:[< Eliom_common.scope]
+     ?scope:[< Eliom_common.scope]
   -> ?options:unit
   -> ?charset:string
   -> ?code:int

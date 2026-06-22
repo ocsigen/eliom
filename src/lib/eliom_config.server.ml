@@ -137,11 +137,13 @@ let get_config () =
   | Some _ -> (
     match !Eliommod.config with
     | Some c -> c
-    | None -> failwith "No config file. Is it a statically linked executable?")
+    | None -> failwith "No config file. Is it a statically linked executable?"
+  )
   | None ->
       raise
         (Eliom_common.Eliom_site_information_not_available
-           "Eliom_config.get_config")
+           "Eliom_config.get_config"
+        )
 
 let parse_config ?pcdata ?other_elements elements =
   Ocsigen_extensions.Configuration.process_elements

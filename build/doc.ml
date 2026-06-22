@@ -32,11 +32,13 @@ let init_wikidoc () =
       ~stamp:"%.wikidocdir/wiki.stamp" ~dep:"%.odocl"
       (Ocamlbuild_pack.Ocaml_tools.document_ocaml_project
          ~ocamldoc:ocamldoc_wiki "%.odocl" "%.wikidocdir/index.wiki"
-         "%.wikidocdir");
+         "%.wikidocdir"
+      );
     flag ["wikidoc"]
     & S [A "-colorize-code"; A "-i"; A wikidoc_dir; A "-g"; A "odoc_wiki.cma"];
     pflag ["wikidoc"] "subproject" (fun sub ->
-      S [A "-passopt"; A "-subproject"; A sub])
+      S [A "-passopt"; A "-subproject"; A sub]
+    )
   with Failure e -> ()
 (* Silently fail if the package wikidoc isn't available *)
 
@@ -46,12 +48,15 @@ let init_mandoc () =
     ~prod:"%.mandocdir/man.%(ext)" ~stamp:"%.mandocdir/man.%(ext).stamp"
     ~dep:"%.odocl"
     (Ocamlbuild_pack.Ocaml_tools.document_ocaml_project ~ocamldoc:ocamldoc_man
-       "%.odocl" "%.mandocdir/man.%(ext)" "%.mandocdir");
+       "%.odocl" "%.mandocdir/man.%(ext)" "%.mandocdir"
+    );
   pflag ["apiref"] "man_ext" (fun ext ->
-    S [A "-man-mini"; A "-man-section"; A ext; A "-man-suffix"; A ext])
+    S [A "-man-mini"; A "-man-section"; A ext; A "-man-suffix"; A ext]
+  )
 
 let init () =
   init_wikidoc ();
   init_mandoc ();
   (* ocamldoc intro *)
-  pflag_and_dep ["doc"] "with_intro" (fun f -> S [A "-intro"; P f])
+  pflag_and_dep ["doc"] "with_intro" (fun f -> S [A "-intro"; P f]
+  )

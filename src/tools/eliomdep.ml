@@ -90,7 +90,8 @@ let compile_intf file =
     (preprocess_opt ~ocaml:true !ppopt
     @ eliom_synonyms @ !args
     @ map_include !eliom_inc_dirs
-    @ ["-intf"; file])
+    @ ["-intf"; file]
+    )
     (on_each_line add_build_dirs)
 
 let compile_impl file =
@@ -98,7 +99,8 @@ let compile_impl file =
     (preprocess_opt ~ocaml:true !ppopt
     @ eliom_synonyms @ !args
     @ map_include !eliom_inc_dirs
-    @ ["-impl"; file])
+    @ ["-impl"; file]
+    )
     (on_each_line add_build_dirs)
 
 let server_pp_opt impl_intf =
@@ -119,13 +121,15 @@ let compile_server_eliom ~impl_intf file =
       get_pp_dump [] (("-printer" :: "o" :: server_pp_opt impl_intf) @ [file])
     in
     ignore (create_process camlp4 ppopt);
-    exit 0);
+    exit 0
+  );
   create_filter !compiler
     (eliom_synonyms @ !args
     @ map_include !eliom_inc_dirs
     @ get_common_ppx ~kind:`Server ()
     @ preprocess_opt ~kind:`Server (server_pp_opt impl_intf)
-    @ [impl_intf_opt impl_intf; file])
+    @ [impl_intf_opt impl_intf; file]
+    )
     (on_each_line add_build_dirs)
 
 let compile_type_eliom ~impl_intf file =
@@ -136,13 +140,15 @@ let compile_type_eliom ~impl_intf file =
       get_pp_dump [] (("-printer" :: "o" :: type_pp_opt impl_intf) @ [file])
     in
     ignore (create_process camlp4 ppopt);
-    exit 0);
+    exit 0
+  );
   create_filter !compiler
     (eliom_synonyms @ !args
     @ map_include !eliom_inc_dirs
     @ get_common_ppx ~kind:`Server ()
     @ preprocess_opt ~kind:`Types (type_pp_opt impl_intf)
-    @ [impl_intf_opt impl_intf; file])
+    @ [impl_intf_opt impl_intf; file]
+    )
     (on_each_line server_type_file_dependencies)
 
 let compile_client_eliom ~impl_intf file =
@@ -152,27 +158,31 @@ let compile_client_eliom ~impl_intf file =
       get_pp_dump [] (("-printer" :: "o" :: client_pp_opt impl_intf) @ [file])
     in
     ignore (create_process camlp4 ppopt);
-    exit 0);
+    exit 0
+  );
   create_filter !compiler
     (eliom_synonyms @ !args
     @ map_include !eliom_inc_dirs
     @ get_common_ppx ~kind:`Client ()
     @ preprocess_opt ~kind:`Client (client_pp_opt impl_intf)
-    @ [impl_intf_opt impl_intf; file])
+    @ [impl_intf_opt impl_intf; file]
+    )
     (on_each_line add_build_dirs)
 
 let compile_eliom ~impl_intf file =
   let basename = chop_extension_if_any file in
-  (match !kind with
+  ( match !kind with
   | `Server ->
       compile_server_eliom ~impl_intf file;
       if impl_intf = `Impl then compile_type_eliom ~impl_intf file
   | `Client -> compile_client_eliom ~impl_intf file
-  | _ -> assert false);
+  | _ -> assert false
+  );
   if impl_intf = `Impl
   then (
     Printf.printf "%s.cmo : %s\n" (add_build_dir basename) (get_type_file file);
-    Printf.printf "%s.cmx : %s\n" (add_build_dir basename) (get_type_file file))
+    Printf.printf "%s.cmx : %s\n" (add_build_dir basename) (get_type_file file)
+  )
 
 let sort () =
   let ppopt =
@@ -186,7 +196,9 @@ let sort () =
        @ get_common_ppx ~kind:!kind ()
        @ preprocess_opt ~kind:!kind ppopt
        @ map_include !eliom_inc_dirs
-       @ List.(concat (map (fun file -> ["-impl"; file]) !sort_files))));
+       @ List.(concat (map (fun file -> ["-impl"; file]) !sort_files))
+       )
+    );
   0
 
 let process_option () =

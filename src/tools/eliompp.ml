@@ -43,29 +43,30 @@ let for_client () =
   match current_section () with `Client | `Shared -> true | `Server -> false
 
 let pretty_print filename lexbuf =
-  (if !kind = `Client
-   then
-     match Eliompp_lexer.token lexbuf with
-     | Eliompp_lexer.RAW s ->
-         if we_are_ppx () && for_client () then printf "%s" s
-     | Eliompp_lexer.CHAR c ->
-         if we_are_ppx () && for_client () then printf "%c" c
-     | Eliompp_lexer.CLIENT_SECTION (loc, cnt) ->
-         printf "# %d \"%s\"\n%s\n\n" loc filename cnt
-     | Eliompp_lexer.SHARED_SECTION (loc, cnt) ->
-         printf "# %d \"%s\"\n%s\n\n" loc filename cnt
-     | _ -> ()
-   else
-     match Eliompp_lexer.token lexbuf with
-     | Eliompp_lexer.RAW s ->
-         if (not (we_are_ppx ())) || for_server () then printf "%s" s
-     | Eliompp_lexer.CHAR c ->
-         if (not (we_are_ppx ())) || for_server () then printf "%c" c
-     | Eliompp_lexer.SERVER_SECTION (loc, cnt) ->
-         printf "# %d \"%s\"\n%s\n" loc filename cnt
-     | Eliompp_lexer.SHARED_SECTION (loc, cnt) ->
-         printf "# %d \"%s\"\n%s\n" loc filename cnt
-     | _ -> ());
+  ( if !kind = `Client
+    then
+      match Eliompp_lexer.token lexbuf with
+      | Eliompp_lexer.RAW s ->
+          if we_are_ppx () && for_client () then printf "%s" s
+      | Eliompp_lexer.CHAR c ->
+          if we_are_ppx () && for_client () then printf "%c" c
+      | Eliompp_lexer.CLIENT_SECTION (loc, cnt) ->
+          printf "# %d \"%s\"\n%s\n\n" loc filename cnt
+      | Eliompp_lexer.SHARED_SECTION (loc, cnt) ->
+          printf "# %d \"%s\"\n%s\n\n" loc filename cnt
+      | _ -> ()
+    else
+      match Eliompp_lexer.token lexbuf with
+      | Eliompp_lexer.RAW s ->
+          if (not (we_are_ppx ())) || for_server () then printf "%s" s
+      | Eliompp_lexer.CHAR c ->
+          if (not (we_are_ppx ())) || for_server () then printf "%c" c
+      | Eliompp_lexer.SERVER_SECTION (loc, cnt) ->
+          printf "# %d \"%s\"\n%s\n" loc filename cnt
+      | Eliompp_lexer.SHARED_SECTION (loc, cnt) ->
+          printf "# %d \"%s\"\n%s\n" loc filename cnt
+      | _ -> ()
+  );
   flush stdout
 
 let preprocess filename =
@@ -84,9 +85,10 @@ let process () =
   kind := process_kind ();
   let i = ref 2 in
   while !i < Array.length Sys.argv do
-    (match Sys.argv.(!i) with
+    ( match Sys.argv.(!i) with
     | "-debug" -> debug := true
-    | _ as filename -> preprocess filename);
+    | _ as filename -> preprocess filename
+    );
     incr i
   done
 

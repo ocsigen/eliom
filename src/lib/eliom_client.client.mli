@@ -28,7 +28,7 @@ val unlock_request_handling : unit -> unit
 (** {2 Mobile applications} *)
 
 val init_client_app :
-   app_name:string
+     app_name:string
   -> ?ssl:bool
   -> hostname:string
   -> ?port:int
@@ -63,7 +63,7 @@ val is_client_app : unit -> bool
 (** {2 Calling services} *)
 
 val change_page :
-   ?ignore_client_fun:bool
+     ?ignore_client_fun:bool
   -> ?replace:bool
   -> ?window_name:string
   -> ?window_features:string
@@ -96,22 +96,23 @@ val change_page :
 *)
 
 val call_ocaml_service :
-   ?absolute:bool
+     ?absolute:bool
   -> ?absolute_path:bool
   -> ?https:bool
   -> service:
        ( 'a
-         , 'b
-         , _
-         , _
-         , _
-         , _
-         , _
-         , _
-         , _
-         , _
-         , 'return Eliom_service.ocaml )
-         Eliom_service.t
+       , 'b
+       , _
+       , _
+       , _
+       , _
+       , _
+       , _
+       , _
+       , _
+       , 'return Eliom_service.ocaml
+       )
+       Eliom_service.t
   -> ?hostname:string
   -> ?port:int
   -> ?fragment:string
@@ -134,7 +135,7 @@ val call_ocaml_service :
 *)
 
 val exit_to :
-   ?window_name:string
+     ?window_name:string
   -> ?window_features:string
   -> ?absolute:bool
   -> ?absolute_path:bool
@@ -162,7 +163,7 @@ val exit_to :
 *)
 
 val window_open :
-   window_name:Js.js_string Js.t
+     window_name:Js.js_string Js.t
   -> ?window_features:Js.js_string Js.t
   -> ?absolute:bool
   -> ?absolute_path:bool
@@ -181,23 +182,24 @@ val window_open :
 *)
 
 val change_url :
-   ?replace:bool
+     ?replace:bool
   -> ?absolute:bool
   -> ?absolute_path:bool
   -> ?https:bool
   -> service:
        ( 'get
-         , unit
-         , Eliom_service.get
-         , _
-         , _
-         , _
-         , _
-         , _
-         , _
-         , unit
-         , _ )
-         Eliom_service.t
+       , unit
+       , Eliom_service.get
+       , _
+       , _
+       , _
+       , _
+       , _
+       , _
+       , unit
+       , _
+       )
+       Eliom_service.t
   -> ?hostname:string
   -> ?port:int
   -> ?fragment:string
@@ -212,7 +214,7 @@ val change_url :
  *)
 
 val call_service :
-   ?absolute:bool
+     ?absolute:bool
   -> ?absolute_path:bool
   -> ?https:bool
   -> service:('a, 'b, _, _, _, _, _, _, _, _, _) Eliom_service.t
@@ -279,7 +281,8 @@ type changepage_event =
   ; origin_uri : string
   ; target_uri : string
   ; origin_id : int
-  ; target_id : int option }
+  ; target_id : int option
+  }
 (** [changepage_event] is a record of some parameters related to
     page changes. [in_cache] is true if the dom of the page is cached by
     [push_history_dom].
@@ -321,11 +324,7 @@ module Page_status : sig
   end
 
   val onactive :
-     ?now:bool
-    -> ?once:bool
-    -> ?stop:unit React.E.t
-    -> (unit -> unit)
-    -> unit
+    ?now:bool -> ?once:bool -> ?stop:unit React.E.t -> (unit -> unit) -> unit
   (** [onactive] is convenience function that attaches a handler to
       [Events.active], which behaves exactly like [fun f -> React.E.map f
       Events.active].
@@ -348,10 +347,7 @@ module Page_status : sig
   val oninactive : ?once:bool -> ?stop:unit React.E.t -> (unit -> unit) -> unit
 
   val while_active :
-     ?now:bool
-    -> ?stop:unit React.E.t
-    -> (unit -> unit Lwt.t)
-    -> unit
+    ?now:bool -> ?stop:unit React.E.t -> (unit -> unit Lwt.t) -> unit
   (** [while_active] initiates an action as [onactive] but cancels it whenever
       the page is not active anymore. *)
 end
@@ -420,7 +416,7 @@ val set_client_html_file : string -> unit
 (**/**)
 
 val change_page_unknown :
-   ?meth:[`Get | `Post | `Put | `Delete]
+     ?meth:[`Get | `Post | `Put | `Delete]
   -> ?hostname:string
   -> ?replace:bool
   -> string list

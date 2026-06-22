@@ -70,7 +70,8 @@ let () =
   Sys.readdir Sys.argv.(2)
   |> Array.to_list |> List.sort compare
   |> List.iter
-       (match Sys.argv.(1) with
+       ( match Sys.argv.(1) with
        | "--server" -> handle_file_server
        | "--client" -> handle_file_client
-       | _ -> assert false)
+       | _ -> assert false
+       )

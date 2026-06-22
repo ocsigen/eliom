@@ -40,28 +40,16 @@ module type S = sig
   val map : ?eq:('b -> 'b -> bool) sv -> ('a -> 'b) sv -> 'a t -> 'b t
 
   val fmap :
-     ?eq:('b -> 'b -> bool) sv
-    -> ('a -> 'b option) sv
-    -> 'b sv
-    -> 'a t
-    -> 'b t
+    ?eq:('b -> 'b -> bool) sv -> ('a -> 'b option) sv -> 'b sv -> 'a t -> 'b t
 
   val merge :
-     ?eq:('a -> 'a -> bool) sv
-    -> ('a -> 'b -> 'a) sv
-    -> 'a
-    -> 'b t list
-    -> 'a t
+    ?eq:('a -> 'a -> bool) sv -> ('a -> 'b -> 'a) sv -> 'a -> 'b t list -> 'a t
 
   val l2 :
-     ?eq:('c -> 'c -> bool) sv
-    -> ('a -> 'b -> 'c) sv
-    -> 'a t
-    -> 'b t
-    -> 'c t
+    ?eq:('c -> 'c -> bool) sv -> ('a -> 'b -> 'c) sv -> 'a t -> 'b t -> 'c t
 
   val l3 :
-     ?eq:('d -> 'd -> bool) sv
+       ?eq:('d -> 'd -> bool) sv
     -> ('a -> 'b -> 'c -> 'd) sv
     -> 'a t
     -> 'b t
@@ -69,7 +57,7 @@ module type S = sig
     -> 'd t
 
   val l4 :
-     ?eq:('e -> 'e -> bool) sv
+       ?eq:('e -> 'e -> bool) sv
     -> ('a -> 'b -> 'c -> 'd -> 'e) sv
     -> 'a t
     -> 'b t
@@ -78,7 +66,7 @@ module type S = sig
     -> 'e t
 
   val l5 :
-     ?eq:('f -> 'f -> bool) sv
+       ?eq:('f -> 'f -> bool) sv
     -> ('a -> 'b -> 'c -> 'd -> 'e -> 'f) sv
     -> 'a t
     -> 'b t
@@ -88,7 +76,7 @@ module type S = sig
     -> 'f t
 
   val l6 :
-     ?eq:('g -> 'g -> bool) sv
+       ?eq:('g -> 'g -> bool) sv
     -> ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g) sv
     -> 'a t
     -> 'b t
@@ -112,20 +100,17 @@ module type S = sig
   (** Cooperative versions of the React operators *)
   module Lwt : sig
     val map_s :
-       ?eq:('b -> 'b -> bool) sv
-      -> ('a -> 'b Lwt.t) sv
-      -> 'a t
-      -> 'b t Lwt.t
+      ?eq:('b -> 'b -> bool) sv -> ('a -> 'b Lwt.t) sv -> 'a t -> 'b t Lwt.t
 
     val l2_s :
-       ?eq:('c -> 'c -> bool) sv
+         ?eq:('c -> 'c -> bool) sv
       -> ('a -> 'b -> 'c Lwt.t) sv
       -> 'a t
       -> 'b t
       -> 'c t Lwt.t
 
     val l3_s :
-       ?eq:('d -> 'd -> bool) sv
+         ?eq:('d -> 'd -> bool) sv
       -> ('a -> 'b -> 'c -> 'd Lwt.t) sv
       -> 'a t
       -> 'b t
@@ -133,7 +118,7 @@ module type S = sig
       -> 'd t Lwt.t
 
     val l4_s :
-       ?eq:('e -> 'e -> bool) sv
+         ?eq:('e -> 'e -> bool) sv
       -> ('a -> 'b -> 'c -> 'd -> 'e Lwt.t) sv
       -> 'a t
       -> 'b t
@@ -142,7 +127,7 @@ module type S = sig
       -> 'e t Lwt.t
 
     val l5_s :
-       ?eq:('f -> 'f -> bool) sv
+         ?eq:('f -> 'f -> bool) sv
       -> ('a -> 'b -> 'c -> 'd -> 'e -> 'f Lwt.t) sv
       -> 'a t
       -> 'b t
@@ -152,7 +137,7 @@ module type S = sig
       -> 'f t Lwt.t
 
     val l6_s :
-       ?eq:('g -> 'g -> bool) sv
+         ?eq:('g -> 'g -> bool) sv
       -> ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g Lwt.t) sv
       -> 'a t
       -> 'b t
@@ -163,7 +148,7 @@ module type S = sig
       -> 'g t Lwt.t
 
     val merge_s :
-       ?eq:('a -> 'a -> bool) sv
+         ?eq:('a -> 'a -> bool) sv
       -> ('a -> 'b -> 'a Lwt.t) sv
       -> 'a
       -> 'b t list
@@ -190,7 +175,7 @@ module type RLIST = sig
   (** Client-side version of 'a handle *)
 
   val create :
-     ?default:('a ct * 'a chandle) option Eliom_client_value.t
+       ?default:('a ct * 'a chandle) option Eliom_client_value.t
     -> ?reset_default:bool
     -> 'a list
     -> 'a t * 'a handle
@@ -211,9 +196,7 @@ module type RLIST = sig
   val from_signal : ?eq:('a -> 'a -> bool) sv -> 'a list signal -> 'a t
 
   val acc_e :
-     ?init:'a t * 'a handle
-    -> 'a React.E.t Eliom_client_value.t
-    -> 'a t
+    ?init:'a t * 'a handle -> 'a React.E.t Eliom_client_value.t -> 'a t
 
   (** Cooperative versions of the ReactiveData operators *)
   module Lwt : sig

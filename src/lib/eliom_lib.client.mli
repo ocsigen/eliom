@@ -24,17 +24,17 @@ open Js_of_ocaml
 (** See {!Ocsigen_lib_base}. *)
 include
   module type of Ocsigen_lib_base
-  with type poly = Ocsigen_lib_base.poly
-   and type yesnomaybe = Ocsigen_lib_base.yesnomaybe
-   and type ('a, 'b) leftright = ('a, 'b) Ocsigen_lib_base.leftright
-   and type 'a Clist.t = 'a Ocsigen_lib_base.Clist.t
-   and type 'a Clist.node = 'a Ocsigen_lib_base.Clist.node
+    with type poly = Ocsigen_lib_base.poly
+     and type yesnomaybe = Ocsigen_lib_base.yesnomaybe
+     and type ('a, 'b) leftright = ('a, 'b) Ocsigen_lib_base.leftright
+     and type 'a Clist.t = 'a Ocsigen_lib_base.Clist.t
+     and type 'a Clist.node = 'a Ocsigen_lib_base.Clist.node
 
 include
   module type of Eliom_lib_base
-  with type 'a Int64_map.t = 'a Eliom_lib_base.Int64_map.t
-  with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
-  with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t
+    with type 'a Int64_map.t = 'a Eliom_lib_base.Int64_map.t
+    with type 'a String_map.t = 'a Eliom_lib_base.String_map.t
+    with type 'a Int_map.t = 'a Eliom_lib_base.Int_map.t
 
 type file_info = File.file Js.t
 
@@ -73,10 +73,7 @@ module String : sig
 end
 
 val raise_error :
-   ?exn:exn
-  -> ?section:Logs.src
-  -> ('a, unit, string, 'any) format4
-  -> 'a
+  ?exn:exn -> ?section:Logs.src -> ('a, unit, string, 'any) format4 -> 'a
 
 val log_inspect : 'a -> unit
 (** Print an object in the console. *)

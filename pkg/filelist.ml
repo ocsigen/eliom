@@ -8,7 +8,8 @@ let server =
       ; "eliom_parameter_sigs"
       ; "eliom_registration_sigs"
       ; "eliom_service_sigs"
-      ; "eliom_shared_sigs" ]
+      ; "eliom_shared_sigs"
+      ]
   ; interface =
       [ "eliom_bus"
       ; "eliom_client_value"
@@ -34,7 +35,8 @@ let server =
       ; "eliom_tools"
       ; "eliom_types"
       ; "eliom_uri"
-      ; "eliom_wrap" ]
+      ; "eliom_wrap"
+      ]
   ; internal =
       [ "eliom_comet_base"
       ; "eliom_common_base"
@@ -66,7 +68,9 @@ let server =
       ; "eliommod_sessadmin"
       ; "eliommod_sessexpl"
       ; "eliommod_sessiongroups"
-      ; "eliommod_timeouts" ] }
+      ; "eliommod_timeouts"
+      ]
+  }
 
 let client =
   { interface_only =
@@ -75,7 +79,8 @@ let client =
       ; "eliom_parameter_sigs"
       ; "eliom_registration_sigs"
       ; "eliom_service_sigs"
-      ; "eliom_shared_sigs" ]
+      ; "eliom_shared_sigs"
+      ]
   ; interface =
       [ "eliom_bus"
       ; "eliom_client_value"
@@ -96,7 +101,8 @@ let client =
       ; "eliom_tools"
       ; "eliom_types"
       ; "eliom_unwrap"
-      ; "eliom_uri" ]
+      ; "eliom_uri"
+      ]
   ; internal =
       [ "eliom_comet_base"
       ; "eliom_common"
@@ -117,12 +123,15 @@ let client =
       ; "eliom_types_base"
       ; "eliommod_cookies"
       ; "eliommod_dom"
-      ; "eliommod_parameters" ] }
+      ; "eliommod_parameters"
+      ]
+  }
 
 let server_ext =
   { interface_only = []
   ; interface = ["atom_feed"; "eliom_atom"; "eliom_openid"; "eliom_s2s"]
-  ; internal = [] }
+  ; internal = []
+  }
 
 let ocamlbuild =
   {interface_only = []; interface = ["ocamlbuild_eliom"]; internal = []}
@@ -131,7 +140,8 @@ let ppx =
   { interface_only = []
   ; interface =
       ["ppx_eliom"; "ppx_eliom_client"; "ppx_eliom_type"; "ppx_eliom_server"]
-  ; internal = ["ppx_eliom_utils"] }
+  ; internal = ["ppx_eliom_utils"]
+  }
 
 let ( -.- ) name ext = name ^ "." ^ ext
 

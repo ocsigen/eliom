@@ -56,7 +56,7 @@ let close_service_state ~scope ~secure_o ?sp () =
         (* there is only one way to close a session:
              remove it from the session group table.
              It will remove the entry in the session table *)
-        (match scope with
+        ( match scope with
         | `Session_group _ -> (
           (* If we want to close all the group of browser sessions,
                    the node is found in the group table: *)
@@ -66,11 +66,14 @@ let close_service_state ~scope ~secure_o ?sp () =
           with
           | None ->
               Logs.err ~src:eliom_logs_src (fun fmt ->
-                fmt "No group of groups. Please report this problem.")
-          | Some (_service_table, g) -> Eliommod_sessiongroups.Serv.remove g)
+                fmt "No group of groups. Please report this problem."
+              )
+          | Some (_service_table, g) -> Eliommod_sessiongroups.Serv.remove g
+        )
         | `Session _ | `Client_process _ ->
             Eliommod_sessiongroups.Serv.remove
-              c.Eliom_common.sc_session_group_node);
+              c.Eliom_common.sc_session_group_node
+        );
         ior := Eliom_common.SCNo_data
     | _ -> ()
   with Not_found -> ()
@@ -84,13 +87,8 @@ let fullsessgrp ~cookie_level ~sp set_session_group =
     (Eliom_common.get_mask6 sitedata)
     set_session_group
 
-let rec find_or_create_service_cookie_
-          ?set_session_group
-          ~(cookie_scope : Eliom_common.cookie_scope)
-          ~secure_o
-          ~sp
-          ()
-  =
+let rec find_or_create_service_cookie_ ?set_session_group
+    ~(cookie_scope : Eliom_common.cookie_scope) ~secure_o ~sp () =
   (* If the cookie does not exist, create it.
      Returns the cookie info for the cookie *)
   let cookie_level = Eliom_common.cookie_level_of_user_scope cookie_scope in
@@ -134,7 +132,8 @@ let rec find_or_create_service_cookie_
       ; expiry
       ; timeout
       ; session_group
-      ; session_group_node };
+      ; session_group_node
+      };
     { Eliom_common.sc_hvalue = hc
     ; Eliom_common.sc_set_value = Some c
     ; Eliom_common.sc_table = str
@@ -143,7 +142,8 @@ let rec find_or_create_service_cookie_
     ; Eliom_common.sc_cookie_exp =
         ref (Eliom_common.default_client_cookie_exp ())
     ; Eliom_common.sc_session_group = session_group
-    ; Eliom_common.sc_session_group_node = session_group_node }
+    ; Eliom_common.sc_session_group_node = session_group_node
+    }
   in
   let (cookie_info, _, _), secure_ci =
     Eliom_common.get_cookie_info sp cookie_level
@@ -171,7 +171,7 @@ let rec find_or_create_service_cookie_
         ior := Eliom_common.SC v;
         v
     | Eliom_common.SC c ->
-        (match set_session_group with
+        ( match set_session_group with
         | None -> ()
         | Some _session_group ->
             let fullsessgrp = fullsessgrp ~cookie_level ~sp set_session_group in
@@ -180,7 +180,8 @@ let rec find_or_create_service_cookie_
                 c.Eliom_common.sc_session_group_node fullsessgrp
             in
             c.Eliom_common.sc_session_group_node <- node;
-            c.Eliom_common.sc_session_group := fullsessgrp);
+            c.Eliom_common.sc_session_group := fullsessgrp
+        );
         c
   with Not_found ->
     let v =
@@ -194,27 +195,23 @@ let rec find_or_create_service_cookie_
     v
 
 let find_or_create_service_cookie_ =
-  (find_or_create_service_cookie_
-    : ?set_session_group:string
+  ( find_or_create_service_cookie_
+    :    ?set_session_group:string
       -> cookie_scope:Eliom_common.cookie_scope
       -> secure_o:bool option
       -> sp:Eliom_common.server_params
       -> unit
       -> Eliom_common.tables Eliom_common.one_service_cookie_info
-    :> ?set_session_group:string
+    :>    ?set_session_group:string
        -> cookie_scope:[< Eliom_common.cookie_scope]
        -> secure_o:bool option
        -> sp:Eliom_common.server_params
        -> unit
-       -> Eliom_common.tables Eliom_common.one_service_cookie_info)
+       -> Eliom_common.tables Eliom_common.one_service_cookie_info
+    )
 
-let find_or_create_service_cookie
-      ?set_session_group
-      ~cookie_scope
-      ~secure_o
-      ?sp
-      ()
-  =
+let find_or_create_service_cookie ?set_session_group ~cookie_scope ~secure_o ?sp
+    () =
   let sp = Eliom_common.sp_of_option sp in
   find_or_create_service_cookie_ ?set_session_group ~cookie_scope ~secure_o ~sp
     ()

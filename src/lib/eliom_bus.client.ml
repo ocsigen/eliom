@@ -36,7 +36,8 @@ type ('a, 'b) t =
   ; mutable waiter : unit -> unit Lwt.t
   ; mutable last_wait : unit Lwt.t
   ; mutable original_stream_available : bool
-  ; error_h : 'b option Lwt.t * exn Lwt.u }
+  ; error_h : 'b option Lwt.t * exn Lwt.u
+  }
 
 (* clone streams such that each clone of the original stream raise the same exceptions *)
 let consume (t, u) s =
@@ -44,8 +45,9 @@ let consume (t, u) s =
     Lwt.catch
       (fun () -> Lwt_stream.iter (fun _ -> ()) s)
       (fun e ->
-         (match Lwt.state t with Lwt.Sleep -> Lwt.wakeup_exn u e | _ -> ());
-         Lwt.fail e)
+        (match Lwt.state t with Lwt.Sleep -> Lwt.wakeup_exn u e | _ -> ());
+        Lwt.fail e
+      )
   in
   Lwt.choose [Lwt.bind t (fun _ -> Lwt.return_unit); t']
 
@@ -55,43 +57,49 @@ let clone_exn (t, u) s =
     Lwt.catch
       (fun () -> Lwt.choose [Lwt_stream.get s'; t])
       (fun e ->
-         (match Lwt.state t with Lwt.Sleep -> Lwt.wakeup_exn u e | _ -> ());
-         Lwt.fail e))
+        (match Lwt.state t with Lwt.Sleep -> Lwt.wakeup_exn u e | _ -> ());
+        Lwt.fail e
+      )
+  )
 
 type ('a, 'att, 'co, 'ext, 'reg) callable_bus_service =
   ( unit
-    , 'a list
-    , Eliom_service.post
-    , 'att
-    , 'co
-    , 'ext
-    , 'reg
-    , [`WithoutSuffix]
-    , unit
-    , [`One of 'a list Eliom_parameter.ocaml] Eliom_parameter.param_name
-    , Eliom_registration.Action.return )
-    Eliom_service.t
+  , 'a list
+  , Eliom_service.post
+  , 'att
+  , 'co
+  , 'ext
+  , 'reg
+  , [`WithoutSuffix]
+  , unit
+  , [`One of 'a list Eliom_parameter.ocaml] Eliom_parameter.param_name
+  , Eliom_registration.Action.return
+  )
+  Eliom_service.t
 
 let create service channel waiter =
   let write x =
     Lwt.catch
       (fun () ->
-         let* _ =
-           Eliom_client.call_service
-             ~service:(service :> ('a, _, _, _, _) callable_bus_service)
-             () x
-         in
-         Lwt.return_unit)
+        let* _ =
+          Eliom_client.call_service
+            ~service:(service :> ('a, _, _, _, _) callable_bus_service)
+            () x
+        in
+        Lwt.return_unit
+      )
       (function
         | Eliom_request.Failed_request 204 -> Lwt.return_unit
-        | exc -> Lwt.reraise exc)
+        | exc -> Lwt.reraise exc
+        )
   in
   let error_h =
     let t, u = Lwt.wait () in
     ( Lwt.catch
         (fun () ->
-           let* _ = t in
-           assert false)
+          let* _ = t in
+          assert false
+        )
         (fun e -> Lwt.fail e)
     , u )
   in
@@ -100,7 +108,8 @@ let create service channel waiter =
       (let stream = Eliom_comet.register channel in
        (* iterate on the stream to consume messages: avoid memory leak *)
        let _ = consume error_h stream in
-       stream)
+       stream
+      )
   in
   let t =
     { channel
@@ -111,7 +120,8 @@ let create service channel waiter =
     ; waiter
     ; last_wait = Lwt.return_unit
     ; original_stream_available = true
-    ; error_h }
+    ; error_h
+    }
   in
   (* the comet channel start receiving after the load phase, so the
      original channel (i.e. without message lost) is only available in
