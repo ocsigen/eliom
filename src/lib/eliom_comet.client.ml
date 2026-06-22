@@ -270,7 +270,10 @@ end = struct
 
   let add_listener target event f =
     let listener = Dom_html.handler (fun _ -> f (); Js._true) in
-    ignore @@ Dom_html.(addEventListener target event listener Js._false)
+    (* Note: no [Dom_html.(...)] local open here: since js_of_ocaml 6.4 it
+       would resolve [listener] to [Dom_html.listener] instead of the local
+       binding. *)
+    ignore (Dom_html.addEventListener target event listener Js._false)
 
   let add_visibility_change_listener f =
     Dom_html.(add_listener document (Event.make "visibilitychange") f)

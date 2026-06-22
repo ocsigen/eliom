@@ -290,18 +290,16 @@ let createEvent =
 
 (* DOM traversal *)
 
-class type ['element] get_tag = object
-  method getElementsByTagName :
-    Js.js_string Js.t -> 'element Dom.nodeList Js.t Js.meth
-end
-
-(* We can't use Dom_html.document##head: it is not defined in ff3.6... *)
-let get_head (page : 'element #get_tag Js.t) : 'element Js.t =
+(* We can't use Dom_html.document##head: it is not defined in ff3.6...
+   [getElementsByTagName] returns a [Dom.nodeList] on js_of_ocaml < 6.4 and a
+   [Dom.collection] since 6.4; both provide [item], so we just require a
+   [#Dom.element]. *)
+let get_head (page : #Dom.element Js.t) : Dom.element Js.t =
   Js.Opt.get
     page##(getElementsByTagName (Js.string "head"))##(item 0)
     (fun () -> raise_error ~section "get_head")
 
-let get_body (page : 'element #get_tag Js.t) : 'element Js.t =
+let get_body (page : #Dom.element Js.t) : Dom.element Js.t =
   Js.Opt.get
     page##(getElementsByTagName (Js.string "body"))##(item 0)
     (fun () -> raise_error ~section "get_body")
