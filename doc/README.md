@@ -66,9 +66,9 @@ replaces only the `dev/` directory; the other version directories already on
 The CI builds only `dev/`. To publish a stable version, trigger the
 **Documentation** workflow's `release` job with the **version** input — either:
 
-- **CLI** (from a clone of the repo): `gh workflow run doc.yml -f version=1.2.3`
+- **CLI** (from a clone of the repo): `gh workflow run doc.yml -f version=12.1`
 - **GitHub UI**: repo → *Actions* → *Documentation* (left sidebar) → *Run workflow*
-  (top-right) → set **version** (e.g. `1.2.3`) → *Run workflow*.
+  (top-right) → set **version** (e.g. `12.1`) → *Run workflow*.
 
 The `release` job freezes the current `dev/` docs as `/<version>/`, repoints the
 `latest` symlink, writes the root redirect and refreshes `versions.json` — via
