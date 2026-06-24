@@ -1,7 +1,7 @@
 
 # Module `Eliom_common.Ocsipersist`
 
-Persistent key-value store interface for OCaml. This is an virtual library defining a unified frontend for a number of key-value storage implementations. Implementations of the following backends currently exist: SQLite, DBM, PostgreSQL. You can choose the backend you prefer by installing packages `ocsipersist-sqlite`, `ocsipersist-dbm` or `ocsipersist-pgsql`.
+Persistent key-value store interface for OCaml. This is a virtual library defining a unified frontend for a number of key-value storage implementations. Implementations of the following backends currently exist: SQLite, DBM, PostgreSQL. You can choose the backend you prefer by installing packages `ocsipersist-sqlite`, `ocsipersist-dbm` or `ocsipersist-pgsql`.
 
 Library `Ocsipersist_settings`, provided by each of the backends, contain the configuration options for your stores.
 
@@ -63,6 +63,16 @@ type store = Store.store
 ```ocaml
 type 'a variable = 'a Store.t
 ```
+```ocaml
+module Ref_json : Ocsipersist_lib.Sigs.REF_JSON
+```
+Type-safe persistent references using [`Deriving_Json`](./../../js_of_ocaml/js_of_ocaml.deriving/Deriving_Json.md) for serialisation. Unlike [`Ref`](./Eliom_common-Ocsipersist-Ref.md), this does not rely on [`Stdlib.Marshal`](./../../ocaml-compiler/stdlib/Stdlib-Marshal.md) and is safe across OCaml versions. Requires types annotated with `[@@deriving json]` (from `js_of_ocaml-ppx_deriving_json`).
+
+```ocaml
+module Store_json : Ocsipersist_lib.Sigs.STORE_JSON
+```
+Type-safe variable store using [`Deriving_Json`](./../../js_of_ocaml/js_of_ocaml.deriving/Deriving_Json.md) for serialisation. Unlike [`Store`](./Eliom_common-Ocsipersist-Store.md), this does not rely on [`Stdlib.Marshal`](./../../ocaml-compiler/stdlib/Stdlib-Marshal.md) and is safe across OCaml versions. Requires types annotated with `[@@deriving json]` (from `js_of_ocaml-ppx_deriving_json`).
+
 ```ocaml
 val init : unit -> unit
 ```

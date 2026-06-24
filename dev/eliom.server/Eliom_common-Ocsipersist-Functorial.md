@@ -11,7 +11,7 @@ module type COLUMN = sig ... end
 ```
 ```ocaml
 module Table
-  (T : sig ... end)
+  (_ : sig ... end)
   (Key : COLUMN)
   (Value : COLUMN) : 
   Ocsipersist_lib.Sigs.TABLE with type key = Key.t and type value = Value.t

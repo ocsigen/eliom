@@ -170,6 +170,9 @@ val raw_addEventListener :
     ; compareDocumentPosition : 
       Js_of_ocaml.Dom.node Js_of_ocaml.Js.t ->
       Js_of_ocaml.Dom.DocumentPosition.t Js_of_ocaml.Js.meth
+    ; contains : 
+      Js_of_ocaml.Dom.node Js_of_ocaml.Js.t ->
+      bool Js_of_ocaml.Js.t Js_of_ocaml.Js.meth
     ; dispatchEvent : 
       Js_of_ocaml.Dom_html.event Js_of_ocaml.Js.t ->
       bool Js_of_ocaml.Js.t Js_of_ocaml.Js.meth
@@ -179,11 +182,22 @@ val raw_addEventListener :
           Js_of_ocaml.Dom.node Js_of_ocaml.Js.t Js_of_ocaml.Js.opt ->
           unit.. >
         Js_of_ocaml__Js.gen_prop
+    ; getRootNode : Js_of_ocaml.Dom.node Js_of_ocaml__Js.t Js_of_ocaml__Js.meth
+    ; getRootNode_options : 
+      Js_of_ocaml.Dom.getRootNodeOptions Js_of_ocaml.Js.t ->
+      Js_of_ocaml.Dom.node Js_of_ocaml__Js.t Js_of_ocaml__Js.meth
     ; hasChildNodes : bool Js_of_ocaml.Js.t Js_of_ocaml.Js.meth
     ; insertBefore : 
       Js_of_ocaml.Dom.node Js_of_ocaml.Js.t ->
       Js_of_ocaml.Dom.node Js_of_ocaml.Js.t Js_of_ocaml.Js.opt ->
       Js_of_ocaml.Dom.node Js_of_ocaml__Js.t Js_of_ocaml__Js.meth
+    ; isConnected : < get : bool Js_of_ocaml.Js.t.. > Js_of_ocaml__Js.gen_prop
+    ; isEqualNode : 
+      Js_of_ocaml.Dom.node Js_of_ocaml.Js.t ->
+      bool Js_of_ocaml.Js.t Js_of_ocaml.Js.meth
+    ; isSameNode : 
+      Js_of_ocaml.Dom.node Js_of_ocaml.Js.t ->
+      bool Js_of_ocaml.Js.t Js_of_ocaml.Js.meth
     ; lastChild : 
       < get : Js_of_ocaml.Dom.node Js_of_ocaml.Js.t Js_of_ocaml.Js.opt
         ; set : 
@@ -217,6 +231,7 @@ val raw_addEventListener :
     ; nodeValue : 
       < get : Js_of_ocaml.Js.js_string Js_of_ocaml.Js.t Js_of_ocaml.Js.opt.. >
         Js_of_ocaml__Js.gen_prop
+    ; normalize : unit Js_of_ocaml.Js.meth
     ; onanimationcancel : 
       ('a Js_of_ocaml.Js.t,
         Js_of_ocaml.Dom_html.animationEvent Js_of_ocaml.Js.t)
@@ -235,6 +250,10 @@ val raw_addEventListener :
     ; onanimationstart : 
       ('a Js_of_ocaml.Js.t,
         Js_of_ocaml.Dom_html.animationEvent Js_of_ocaml.Js.t)
+        Js_of_ocaml.Dom_html.event_listener
+        Js_of_ocaml.Js.writeonly_prop
+    ; onbeforetoggle : 
+      ('a Js_of_ocaml.Js.t, Js_of_ocaml.Dom_html.toggleEvent Js_of_ocaml.Js.t)
         Js_of_ocaml.Dom_html.event_listener
         Js_of_ocaml.Js.writeonly_prop
     ; onclick : 
@@ -352,6 +371,10 @@ val raw_addEventListener :
       ('a Js_of_ocaml.Js.t, Js_of_ocaml.Dom_html.event Js_of_ocaml.Js.t)
         Js_of_ocaml.Dom_html.event_listener
         Js_of_ocaml.Js.writeonly_prop
+    ; ontoggle : 
+      ('a Js_of_ocaml.Js.t, Js_of_ocaml.Dom_html.toggleEvent Js_of_ocaml.Js.t)
+        Js_of_ocaml.Dom_html.event_listener
+        Js_of_ocaml.Js.writeonly_prop
     ; ontransitioncancel : 
       ('a Js_of_ocaml.Js.t,
         Js_of_ocaml.Dom_html.transitionEvent Js_of_ocaml.Js.t)
@@ -376,6 +399,9 @@ val raw_addEventListener :
       ('a Js_of_ocaml.Js.t, Js_of_ocaml.Dom_html.wheelEvent Js_of_ocaml.Js.t)
         Js_of_ocaml.Dom_html.event_listener
         Js_of_ocaml.Js.writeonly_prop
+    ; parentElement : 
+      < get : Js_of_ocaml.Dom.element Js_of_ocaml.Js.t Js_of_ocaml.Js.opt.. >
+        Js_of_ocaml__Js.gen_prop
     ; parentNode : 
       < get : Js_of_ocaml.Dom.node Js_of_ocaml.Js.t Js_of_ocaml.Js.opt
         ; set : 

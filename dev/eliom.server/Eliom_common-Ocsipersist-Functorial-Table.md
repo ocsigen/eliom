@@ -5,7 +5,7 @@
 ## Parameters
 
 ```ocaml
-module T : sig ... end
+module _ : sig ... end
 ```
 ```ocaml
 module Key : COLUMN

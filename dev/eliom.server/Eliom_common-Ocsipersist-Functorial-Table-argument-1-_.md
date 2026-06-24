@@ -1,5 +1,5 @@
 
-# Parameter `Table.T`
+# Parameter `Table._`
 
 ```ocaml
 val name : string

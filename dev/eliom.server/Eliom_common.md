@@ -6,7 +6,7 @@ Low level functions for Eliom, exceptions and types.
 ```ocaml
 module Ocsipersist : module type of Ocsipersist
 ```
-Persistent key-value store interface for OCaml. This is an virtual library defining a unified frontend for a number of key-value storage implementations. Implementations of the following backends currently exist: SQLite, DBM, PostgreSQL. You can choose the backend you prefer by installing packages `ocsipersist-sqlite`, `ocsipersist-dbm` or `ocsipersist-pgsql`.
+Persistent key-value store interface for OCaml. This is a virtual library defining a unified frontend for a number of key-value storage implementations. Implementations of the following backends currently exist: SQLite, DBM, PostgreSQL. You can choose the backend you prefer by installing packages `ocsipersist-sqlite`, `ocsipersist-dbm` or `ocsipersist-pgsql`.
 
 ```ocaml
 type scope_hierarchy = Eliom_common_base.scope_hierarchy
