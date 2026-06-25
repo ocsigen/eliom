@@ -3,15 +3,6 @@
 all:
 	dune build
 
-### Doc
-.PHONY: wikidoc doccp
-API_DIR=_build/doc/dev/api
-wikidoc:
-	bash build/gen_wikidoc.sh all
-
-doccp: wikidoc
-	cp -Rf doc/index.wiki $(API_DIR)/
-
 ### Cleaning ###
 .PHONY: clean distclean
 clean:
