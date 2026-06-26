@@ -35,7 +35,7 @@ let client_fun service =
 let has_client_fun service = client_fun service <> None
 
 let set_client_fun ?app ~service f =
-  Lib.Option.iter
+  Option.iter
     (fun name -> service.send_appl_content <- XSame_appl (name, None))
     app;
   match service.client_fun with

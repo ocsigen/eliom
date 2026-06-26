@@ -416,7 +416,7 @@ let make_params_names params =
   in
   aux false "" "" params
 
-let string_of_param_name = id
+let string_of_param_name = Fun.id
 
 (* Add a prefix to parameters *)
 let rec add_pref_params : type a c.
@@ -475,7 +475,7 @@ let empty_nl_params_set = String.Table.empty
 let add_nl_parameter (s : nl_params_set) t v =
   (fun (_, a, _) -> a) (construct_params_list_raw s (TNLParams t) v)
 
-let table_of_nl_params_set = id
+let table_of_nl_params_set = Fun.id
 let list_of_nl_params_set nlp = snd (construct_params_list nlp unit ())
 
 let string_of_nl_params_set nlp =

@@ -25,7 +25,7 @@ let section = Client_core.section
 
 open Js_of_ocaml
 open Lib
-module Opt = Lib.Option
+module Opt = Option
 module Xml = Content_core.Xml
 
 (* == Callbacks for onload, onbeforeunload, and onunload *)
@@ -1893,7 +1893,7 @@ and change_page :
             (* The service has a client side implementation.
               We do not make the request *)
             (* I record the function to be used for void coservices: *)
-            Lib.Option.iter
+            Option.iter
               (fun rf -> reload_function := Some (fun () -> rf get_params))
               (Service.reload_fun service);
             let uri, l, l' =

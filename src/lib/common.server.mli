@@ -295,7 +295,7 @@ type sess_info =
 module SessionCookies : Hashtbl.S with type key = string
 
 (* session groups *)
-type 'a sessgrp = string * cookie_level * (string, Ipaddr.t) leftright
+type 'a sessgrp = string * cookie_level * (string, Ipaddr.t) Either.t
 
 (* The full session group is the triple
        (site_dir_string, scope, session group name).
@@ -456,7 +456,7 @@ and page_table = page_table_content Serv_Table.t
 
 and page_table_content =
   [ `Ptc of
-      (page_table ref * page_table_key, na_key_serv) leftright
+      (page_table ref * page_table_key, na_key_serv) Either.t
         Ocsigen_base.Cache.Dlist.node
         option
       * (server_params, Ocsigen.Response.t) service list ]
@@ -470,7 +470,7 @@ and naservice_table_content =
   * (float * float ref) option
   (* timeout and expiration date *)
   * (server_params -> Ocsigen.Response.t Lwt.t)
-  * (page_table ref * page_table_key, na_key_serv) leftright
+  * (page_table ref * page_table_key, na_key_serv) Either.t
       Ocsigen_base.Cache.Dlist.node
       option
 (* for limitation of number of dynamic coservices *)
@@ -502,8 +502,8 @@ and tables =
     *)
     service_dlist_add :
       ?sp:server_params
-      -> (page_table ref * page_table_key, na_key_serv) leftright
-      -> (page_table ref * page_table_key, na_key_serv) leftright
+      -> (page_table ref * page_table_key, na_key_serv) Either.t
+      -> (page_table ref * page_table_key, na_key_serv) Either.t
            Ocsigen_base.Cache.Dlist.node
     (* Add in a dlist
           for limiting the number of dynamic anonymous coservices in each table
@@ -711,7 +711,7 @@ val find_dlist_ip_table :
   -> int option * 'a
   -> dlist_ip_table
   -> Ipaddr.t
-  -> (page_table ref * page_table_key, na_key_serv) leftright
+  -> (page_table ref * page_table_key, na_key_serv) Either.t
        Ocsigen_base.Cache.Dlist.t
 
 val get_cookie_info : server_params -> [< cookie_level] -> tables cookie_info
