@@ -1878,7 +1878,7 @@ val a :
 ```
 The function `a service a_content get_params` creates a `<a>` node that link to `service` applied to GET parameters `get_params` and whose content is `a_content`. By default, the `href` attribute is a relative URL recomputed at each request with [`make_uri`](./#val-make_uri).
 
-By default, the link is implemented in a way that allows the client-side Eliom application to keep running, irrespectable of the usage of the link (cf. `Eliom_client.change_page`).
+By default, the link is implemented in a way that allows the client-side Eliom application to keep running, irrespective of the usage of the link (cf. `Eliom_client.change_page`).
 
 By contrast, if the optional parameter `~xhr:false` is given, the link is realized as a standard HTML link and clicking it discontinues the Eliom application. The `~xhr` parameter has no effect outside an Eliom application. The default value of `~xhr` is configurable through [`Eliom_config.set_default_links_xhr`](./Eliom_config.md#val-set_default_links_xhr).
 
