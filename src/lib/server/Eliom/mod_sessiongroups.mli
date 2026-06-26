@@ -18,8 +18,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Lib
-
 val make_full_named_group_name_ :
    cookie_level:Common.cookie_level
   -> Common.sitedata
@@ -43,11 +41,11 @@ val make_persistent_full_group_name :
 
 val getsessgrp :
    Common.scope Common.sessgrp
-  -> string * Common.cookie_level * (string, Ipaddr.t) leftright
+  -> string * Common.cookie_level * (string, Ipaddr.t) Either.t
 
 val getperssessgrp :
    Common.perssessgrp
-  -> string * Common.cookie_level * (string, Ipaddr.t) leftright
+  -> string * Common.cookie_level * (string, Ipaddr.t) Either.t
 
 module type MEMTAB = sig
   type group_of_group_data

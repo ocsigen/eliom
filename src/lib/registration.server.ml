@@ -124,7 +124,7 @@ module Html_base = struct
     Content.Html.Printer.pp ~encode ()
 
   let send ?options:_ ?charset ?code ?content_type ?headers c =
-    let status = Lib.Option.map Cohttp.Code.status_of_code code
+    let status = Option.map Cohttp.Code.status_of_code code
     and content_type = content_type_html content_type
     and body = Ocsigen.Response.Body.of_string (Format.asprintf "%a" out c) in
     result_of_content ?charset ?headers ?status ~content_type body
@@ -149,7 +149,7 @@ module Flow5_base = struct
       Lwt_list.iter_s (fun x -> write (Format.asprintf "%a" out x)) l)
 
   let send ?options:_ ?charset ?code ?content_type ?headers c =
-    let status = Lib.Option.map Cohttp.Code.status_of_code code
+    let status = Option.map Cohttp.Code.status_of_code code
     and content_type = content_type_html content_type
     and body = body c in
     result_of_content ?charset ?headers ?status ~content_type body
@@ -178,7 +178,7 @@ module String_base = struct
   let send_appl_content = Service.XNever
 
   let send ?options ?charset ?code ?content_type:_ ?headers (c, content_type) =
-    let status = Lib.Option.map Cohttp.Code.status_of_code code
+    let status = Option.map Cohttp.Code.status_of_code code
     and body = Ocsigen.Response.Body.of_string c
     and headers =
       add_cache_header options (Ocsigen_http.Header.of_option headers)
@@ -1211,7 +1211,7 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
         Cohttp.Header.replace h Common_base.response_url_header
           (Polytables.get ~table ~key:Mkreg.suffix_redir_uri_key)
       with Not_found -> h
-    and status = Lib.Option.map Cohttp.Code.status_of_code code
+    and status = Option.map Cohttp.Code.status_of_code code
     and content_type = content_type_html content_type in
     result_of_content ?charset ?status ~content_type ~headers body
 end

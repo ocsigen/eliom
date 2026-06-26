@@ -301,7 +301,7 @@ let make_uri_components
         then uri ^ suff
         else String.concat "/" [uri; suff]
   in
-  let fragment = Lib.Option.map Lib.Url.encode fragment in
+  let fragment = Option.map Lib.Url.encode fragment in
   uri, params @ pregetparams, fragment
 
 let make_string_uri_from_components (uri, params, fragment) =

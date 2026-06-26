@@ -392,7 +392,7 @@ let copy_element
         in
         iter_dom_array add_attribute e##.attributes;
         let child_copies =
-          List.map_filter
+          List.filter_map
             (fun child ->
                match Dom.nodeType child with
                | Dom.Text t -> Some (copy_text t :> Dom.node Js.t)
