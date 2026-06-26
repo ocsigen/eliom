@@ -176,8 +176,8 @@ end = struct
 
   let get_channel (ch_id, position) =
     match find_channel ch_id with
-    | Some channel -> Lib.Left (channel, position)
-    | None -> Right ch_id
+    | Some channel -> Either.Left (channel, position)
+    | None -> Either.Right ch_id
 
   exception
     Finished of (channel_id * (string * int) Comet_base.channel_data) list
@@ -193,8 +193,8 @@ end = struct
     with Finished l -> l
 
   let get_available_data = function
-    | Lib.Right ch_id -> [ch_id, Comet_base.Closed]
-    | Lib.Left (channel, position) -> (
+    | Either.Right ch_id -> [ch_id, Comet_base.Closed]
+    | Either.Left (channel, position) -> (
       match position with
       (* the first request of the client should be with i = 1 *)
       (* when the client is requesting the newest data, only return
@@ -219,9 +219,9 @@ end = struct
           queue_take channel i)
 
   let has_data = function
-    | Lib.Right _ ->
+    | Either.Right _ ->
         true (* a channel was closed: need to tell it to the client *)
-    | Lib.Left (channel, position) -> (
+    | Either.Left (channel, position) -> (
       match position with
       | Comet_base.Newest i when i > channel.ch_index -> false
       | Comet_base.Newest _ -> true
@@ -233,9 +233,9 @@ end = struct
   let really_wait_data requests =
     let rec make_list = function
       | [] -> []
-      | Lib.Left (channel, _) :: q ->
+      | Either.Left (channel, _) :: q ->
           Lwt_condition.wait channel.ch_wakeup :: make_list q
-      | Lib.Right _ :: _ -> assert false
+      | Either.Right _ :: _ -> assert false
       (* closed channels are considered to have data *)
     in
     Lwt.pick (make_list requests)

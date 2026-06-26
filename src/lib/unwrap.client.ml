@@ -57,7 +57,7 @@ let register_unwrapper' id f =
   if Js.Optdef.test (Js.array_get unwrap_table id)
   then
     failwith (Printf.sprintf ">> the unwrapper id %i is already registered" id);
-  let f x = Ocsigen_lib_base.Option.map Obj.repr (f (Obj.obj x)) in
+  let f x = Option.map Obj.repr (f (Obj.obj x)) in
   (* Store unwrapper *)
   Js.array_set unwrap_table id f
 

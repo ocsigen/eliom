@@ -284,8 +284,8 @@ let register_aux
         , Common.SAtt_csrf_safe (id, scope, secure_session) ) ->
           let tablereg, forsession =
             match table with
-            | Lib.Left globtbl -> globtbl, false
-            | Lib.Right (sp, ct, sec) ->
+            | Either.Left globtbl -> globtbl, false
+            | Either.Right (sp, ct, sec) ->
                 if secure_session <> sec || scope <> ct
                 then raise S.Wrong_session_table_for_CSRF_safe_coservice;
                 ( !(State.get_session_service_table ?secure:secure_session
@@ -311,8 +311,8 @@ let register_aux
       | `Get, Common.SAtt_csrf_safe (id, scope, secure_session), _ ->
           let tablereg, forsession =
             match table with
-            | Left globtbl -> globtbl, false
-            | Right (sp, ct, sec) ->
+            | Either.Left globtbl -> globtbl, false
+            | Either.Right (sp, ct, sec) ->
                 if secure_session <> sec || ct <> scope
                 then raise S.Wrong_session_table_for_CSRF_safe_coservice;
                 ( !(State.get_session_service_table ?secure:secure_session
@@ -337,8 +337,8 @@ let register_aux
       | _ ->
           let tablereg =
             match table with
-            | Left globtbl -> globtbl
-            | Right (sp, scope, secure_session) ->
+            | Either.Left globtbl -> globtbl
+            | Either.Right (sp, scope, secure_session) ->
                 !(State.get_session_service_table ?secure:secure_session ~scope
                     ~sp ())
           in
@@ -384,8 +384,8 @@ let register_aux
           (* CSRF safe coservice: we'll do the registration later *)
           let tablereg, forsession =
             match table with
-            | Left globtbl -> globtbl, false
-            | Right (sp, ct, sec) ->
+            | Either.Left globtbl -> globtbl, false
+            | Either.Right (sp, ct, sec) ->
                 if secure_session <> sec || ct <> scope
                 then raise S.Wrong_session_table_for_CSRF_safe_coservice;
                 ( !(State.get_session_service_table ?secure:secure_session
@@ -410,8 +410,8 @@ let register_aux
           (* CSRF safe coservice: we'll do the registration later *)
           let tablereg, forsession =
             match table with
-            | Left globtbl -> globtbl, false
-            | Right (sp, ct, sec) ->
+            | Either.Left globtbl -> globtbl, false
+            | Either.Right (sp, ct, sec) ->
                 if secure_session <> sec || ct <> scope
                 then raise S.Wrong_session_table_for_CSRF_safe_coservice;
                 ( !(State.get_session_service_table ?secure:secure_session
@@ -435,8 +435,8 @@ let register_aux
       | _ ->
           let tablereg =
             match table with
-            | Left globtbl -> globtbl
-            | Right (sp, scope, secure_session) ->
+            | Either.Left globtbl -> globtbl
+            | Either.Right (sp, scope, secure_session) ->
                 !(State.get_session_service_table ?secure:secure_session ~scope
                     ~sp ())
           in
@@ -473,7 +473,7 @@ let register
         | S.Nonattached naser ->
             Common.remove_unregistered_na sitedata (S.na_name naser));
         register_aux pages ?options ?charset ?code ?content_type ?headers
-          (Left sitedata.Common.global_services) ~service ?error_handler
+          (Either.Left sitedata.Common.global_services) ~service ?error_handler
           page_gen
       in
       match Common.global_register_allowed () with
@@ -491,13 +491,13 @@ let register
   | None, Some _ | Some `Site, Some _ ->
       register_aux pages ?options ?charset ?code ?content_type ?headers
         ?error_handler
-        (Lib.Left (State.get_global_table ()))
+        (Either.Left (State.get_global_table ()))
         ~service page_gen
   | _, None -> raise (failwith "Missing sp while registering service")
   | Some (#Common.user_scope as scope), Some sp ->
       register_aux pages ?options ?charset ?code ?content_type ?headers
         ?error_handler
-        (Right (sp, scope, secure_session))
+        (Either.Right (sp, scope, secure_session))
         ~service page_gen
 
 (* WARNING: if we create a new service without registering it,
