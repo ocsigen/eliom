@@ -26,54 +26,39 @@ The main predefined output modules are:
 
 {%wodoc:div class="paragraph"%} Generating content for the browser {%wodoc:end%}
 
-;{!Eliom_registration.Html}
-: Registration of functions that generate HTML pages statically checked
+- {!Eliom_registration.Html}: Registration of functions that generate HTML pages statically checked
 using polymorphic variant types. You may use constructor functions from {!Eliom_content.Html.D} or a syntax extension close to the standard HTML syntax.
-;{!Eliom_registration.Flow5}
-: Registration of functions that generate a portion of page using {!Eliom_content.Html.F} or the syntax extension (useful for [XMLHttpRequest] requests for example). Do not use with Eliom applications: you can instead use {!Eliom_client.server_function} (or the [let%rpc] syntax) to call server functions that produce HTML nodes.
-;{!Eliom_registration.Html_text}
-: Registration of functions that generate text HTML pages, without any validation of the content. The content type sent by the server is "[text/html]".
-;{!Eliom_registration.CssText}
-: Registration of functions that   generate CSS pages, without any validation of the content. The content type sent by the server is "[text/css]".
-;{!Eliom_registration.String}
-: Registration of functions that   generate text pages, without any validation of the content. The services return a pair of strings. The first string is the content   of the page, while the second string is the content type.
-;{!Eliom_registration.File}
-: Registration of services that send files. See {{!page-"server-outputs".eliomfiles}here} for an example of use.
-;{!Eliom_registration.Streamlist}
-: Registration of services that send "byte" contents. It is used when big content (that does not fit in memory) is generated.
+- {!Eliom_registration.Flow5}: Registration of functions that generate a portion of page using {!Eliom_content.Html.F} or the syntax extension (useful for [XMLHttpRequest] requests for example). Do not use with Eliom applications: you can instead use {!Eliom_client.server_function} (or the [let%rpc] syntax) to call server functions that produce HTML nodes.
+- {!Eliom_registration.Html_text}: Registration of functions that generate text HTML pages, without any validation of the content. The content type sent by the server is "[text/html]".
+- {!Eliom_registration.CssText}: Registration of functions that   generate CSS pages, without any validation of the content. The content type sent by the server is "[text/css]".
+- {!Eliom_registration.String}: Registration of functions that   generate text pages, without any validation of the content. The services return a pair of strings. The first string is the content   of the page, while the second string is the content type.
+- {!Eliom_registration.File}: Registration of services that send files. See {{!page-"server-outputs".eliomfiles}here} for an example of use.
+- {!Eliom_registration.Streamlist}: Registration of services that send "byte" contents. It is used when big content (that does not fit in memory) is generated.
 
 {%wodoc:div class="paragraph"%} Generating content for client-server applications {%wodoc:end%}
 
-;{!Eliom_registration.App}
-: Functor that allows creation of services belonging to a client-server Eliom application (see {{!page-"clientserver-applications"}chapter client-server applications}).
+- {!Eliom_registration.App}: Functor that allows creation of services belonging to a client-server Eliom application (see {{!page-"clientserver-applications"}chapter client-server applications}).
 
 {%wodoc:div class="paragraph"%} Special browser interraction {%wodoc:end%}
 
-;{!Eliom_registration.Action}
-: Registration of actions (functions that do not generate any page. See {{!page-"server-outputs".actions}Action}). The page corresponding to the URL (without the special parameter identifying the action) is reloaded after the action by default if possible.
-;{!Eliom_registration.Unit}
-: Like {!Eliom_registration.Action}, but the URL is not reloaded after the action. (Same as [Eliom_registration.Action] with [[`NoReload]] option).
-;{!Eliom_registration.Redirection}
-: Registration of HTTP redirections. The handler returns the service (without parameter) of the page you want to redirect to. The browser will get a 301 or 307 code in answer and redo the request to the new URL. To specify whether you want temporary (307) or permanent (301) redirections, use the {%wodoc:span class="code"%}?options{%wodoc:end%} parameter of registration functions. For example: {%wodoc:span class="code"%}register ~options:`Permanent ...{%wodoc:end%} or {%wodoc:span class="code"%}register ~options:`Temporary ...{%wodoc:end%}.
-;{!Eliom_registration.String_redirection}
-: Same but the ouput type is a string. Use with care! Warning: According to the RFC of the HTTP protocol, the URL must be absolute!
+- {!Eliom_registration.Action}: Registration of actions (functions that do not generate any page. See {{!page-"server-outputs".actions}Action}). The page corresponding to the URL (without the special parameter identifying the action) is reloaded after the action by default if possible.
+- {!Eliom_registration.Unit}: Like {!Eliom_registration.Action}, but the URL is not reloaded after the action. (Same as [Eliom_registration.Action] with [[`NoReload]] option).
+- {!Eliom_registration.Redirection}: Registration of HTTP redirections. The handler returns the service (without parameter) of the page you want to redirect to. The browser will get a 301 or 307 code in answer and redo the request to the new URL. To specify whether you want temporary (307) or permanent (301) redirections, use the {%wodoc:span class="code"%}?options{%wodoc:end%} parameter of registration functions. For example: {%wodoc:span class="code"%}register ~options:`Permanent ...{%wodoc:end%} or {%wodoc:span class="code"%}register ~options:`Temporary ...{%wodoc:end%}.
+- {!Eliom_registration.String_redirection}: Same but the ouput type is a string. Use with care! Warning: According to the RFC of the HTTP protocol, the URL must be absolute!
 
 {%wodoc:div class="paragraph"%} Customization of other outputs {%wodoc:end%}
 
 
-;{!Eliom_registration.Customize}
-: Specialization of service registration functions by customizing the page type.
+- {!Eliom_registration.Customize}: Specialization of service registration functions by customizing the page type.
 
 {%wodoc:div class="paragraph"%} Sending caml values to client side code {%wodoc:end%}
 
-;{!Eliom_registration.Ocaml}
-: Registration of services sending marshalled OCaml values. See the section on
+- {!Eliom_registration.Ocaml}: Registration of services sending marshalled OCaml values. See the section on
 {{!page-"clientserver-applications".communication}communications in the chapter about client-server applications}.
 
 {%wodoc:div class="paragraph"%} Runtime choice of content {%wodoc:end%}
 
-;{!Eliom_registration.Any}
-: Registration of services that can choose what they send, for example an HTML page or a file, depending on some situation (parameter, user logged or not, page present in a cache ...). It is also possible to create your own modules for other types of pages. See {{!page-"server-services".any}here} for an example of use.
+- {!Eliom_registration.Any}: Registration of services that can choose what they send, for example an HTML page or a file, depending on some situation (parameter, user logged or not, page present in a cache ...). It is also possible to create your own modules for other types of pages. See {{!page-"server-services".any}here} for an example of use.
 
 {2 Advanced output modules}
 
