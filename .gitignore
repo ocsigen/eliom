@@ -9,6 +9,10 @@ src/**/*.mllib
 src/**/*.mldylib
 src/**/*.odocl
 
+# Generated odoc/wodoc documentation output
+_wodoc-html/
+_wodoc-md/
+
 ocsigen.org-data
 
 _opam
