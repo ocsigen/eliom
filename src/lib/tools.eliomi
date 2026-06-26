@@ -138,7 +138,7 @@ module type HTML5_TOOLS = sig
     -> unit
     -> [> `Ul] Html.elt list
   (** The function [hierarchical_menu_depth_first site ()] constructs
-      a hieranrchical menu by exploring the hierarchical [site]
+      a hierarchical menu by exploring the hierarchical [site]
       description using a depth-first algorithm: the first menu item
       will be displayed, followed by the whole sub-menu for this item,
       then the second menu item with its sub-menu, and so on.

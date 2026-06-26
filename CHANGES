@@ -94,6 +94,13 @@
    compilation-unit data into !global_data when no site is active,
    matching the design intent stated in the comment on
    get_global_data.
+===== 12.1.0 =====
+* Compatibility with OCaml 5.5
+  (Outcometree's Otyp_object replaced open_row with a row field, and out_type
+  gained Otyp_external and Otyp_functor)
+* Compatibility with js_of_ocaml 6.4
+  (getElementsByTagName now returns a Dom.collection, and Dom_html gained a
+  `listener` value that shadowed a local binding)
 
 ===== 12.0 =====
 * Eliom_lib

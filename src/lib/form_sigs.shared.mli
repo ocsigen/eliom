@@ -185,7 +185,7 @@ module type LINKS = sig
       with {!make_uri}.
 
       By default, the link is implemented in a way that allows the
-      client-side Eliom application to keep running, irrespectable of
+      client-side Eliom application to keep running, irrespective of
       the usage of the link (cf. {!Client.change_page}).
 
       By contrast, if the optional parameter [~xhr:false] is given,
@@ -280,7 +280,7 @@ module type S = sig
       a relative URL recomputed at each request with {!make_uri}.
 
       By default, the form is realized such that the client-side Eliom
-      application keeps running irrespectable of the usage of the form
+      application keeps running irrespective of the usage of the form
       (cf. {!Client.change_page}).
 
       By contrast, if the optional parameter [~xhr:false] is given,

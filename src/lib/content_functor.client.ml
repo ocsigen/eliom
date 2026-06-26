@@ -525,7 +525,7 @@ module Html = struct
         Fun.id
 
     let scrollIntoView ?(bottom = false) elt =
-      let elt = get_unique_elt "Css.background" elt in
+      let elt = get_unique_elt "scrollIntoView" elt in
       elt##(scrollIntoView (Js.bool (not bottom)))
 
     module Elt = struct
