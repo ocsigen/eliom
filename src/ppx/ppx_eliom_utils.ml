@@ -214,17 +214,17 @@ module Mli = struct
       fun s ->
         String.length s >= len && String.sub s 0 len = inferred_type_prefix
     in
-    (object
-       inherit Ppxlib.Ast_traverse.map as super
+    object
+      inherit Ppxlib.Ast_traverse.map as super
 
-       method! core_type ty =
-         match ty.ptyp_desc with
-         (* | Ptyp_constr  (_, Ast.TyAny _, ty) *)
-         (* | Ptyp_constr (_, ty, Ast.TyAny _) -> ty *)
-         | Ptyp_var var when has_pfix var ->
-             super#core_type {ty with ptyp_desc = Ptyp_var (rename var)}
-         | _ -> super#core_type ty
-    end)
+      method! core_type ty =
+        match ty.ptyp_desc with
+        (* | Ptyp_constr  (_, Ast.TyAny _, ty) *)
+        (* | Ptyp_constr (_, ty, Ast.TyAny _) -> ty *)
+        | Ptyp_var var when has_pfix var ->
+            super#core_type {ty with ptyp_desc = Ptyp_var (rename var)}
+        | _ -> super#core_type ty
+    end
       #core_type
 
   let is_injected_ident id =
@@ -777,32 +777,32 @@ end
 
 module Shared = struct
   let server =
-    (object
-       inherit Ppxlib.Ast_traverse.map as super
+    object
+      inherit Ppxlib.Ast_traverse.map as super
 
-       method! expression expr =
-         match expr with
-         | [%expr [%client [%e? _]]] -> expr
-         | [%expr [%client.unsafe [%e? _]]] -> expr
-         | [%expr ~%[%e? injection_expr]] -> injection_expr
-         | _ -> super#expression expr
-    end)
+      method! expression expr =
+        match expr with
+        | [%expr [%client [%e? _]]] -> expr
+        | [%expr [%client.unsafe [%e? _]]] -> expr
+        | [%expr ~%[%e? injection_expr]] -> injection_expr
+        | _ -> super#expression expr
+    end
       #expression
 
   let client expr =
     let context = ref `Top in
-    (object (self)
-       inherit Ppxlib.Ast_traverse.map as super
+    object (self)
+      inherit Ppxlib.Ast_traverse.map as super
 
-       method! expression expr =
-         match expr with
-         | [%expr [%client [%e? fragment_expr]]]
-         | [%expr [%client.unsafe [%e? fragment_expr]]] ->
-             in_context context `Fragment self#expression fragment_expr
-         | [%expr ~%[%e? injection_expr]] -> (
-           match !context with `Top -> expr | `Fragment -> injection_expr)
-         | _ -> super#expression expr
-    end)
+      method! expression expr =
+        match expr with
+        | [%expr [%client [%e? fragment_expr]]]
+        | [%expr [%client.unsafe [%e? fragment_expr]]] ->
+            in_context context `Fragment self#expression fragment_expr
+        | [%expr ~%[%e? injection_expr]] -> (
+          match !context with `Top -> expr | `Fragment -> injection_expr)
+        | _ -> super#expression expr
+    end
       #expression
       expr
 

@@ -416,7 +416,8 @@ type node_info = {ni_id : node_ref; mutable ni_sent : bool}
 
 module Hier_set : Set.S
 
-type omitpersistentstorage_rule = HeaderRule of Ocsigen_http.Header.Name.t * Re.re
+type omitpersistentstorage_rule =
+  | HeaderRule of Ocsigen_http.Header.Name.t * Re.re
 
 type 'a dircontent = Vide | Table of 'a direlt ref String.Table.t
 and 'a direlt = Dir of 'a dircontent ref | File of 'a ref
@@ -644,9 +645,7 @@ module Persistent_tables : sig
   val create_json :
      name:string
     -> 'a Deriving_Json.t
-    -> (module Ocsipersist.TABLE
-          with type key = string
-           and type value = 'a)
+    -> (module Ocsipersist.TABLE with type key = string and type value = 'a)
 
   val add_functorial_table :
      (module Ocsipersist.TABLE with type key = string)

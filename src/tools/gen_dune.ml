@@ -1,7 +1,8 @@
 let pf = Printf.printf
 
 let module_name nm =
-  try let nm = Filename.chop_extension nm in
+  try
+    let nm = Filename.chop_extension nm in
     try Filename.chop_extension nm with Invalid_argument _ -> nm
   with Invalid_argument _ -> nm
 
@@ -20,13 +21,15 @@ let scan_mli_only dir =
   List.iter
     (fun f ->
        let modname = module_name f in
-       if Filename.check_suffix f ".server.mli"
-          || Filename.check_suffix f ".shared.mli"
+       if
+         Filename.check_suffix f ".server.mli"
+         || Filename.check_suffix f ".shared.mli"
        then
          if not (has_impl_for modname [".server.ml"; ".shared.ml"; ".eliom"])
          then Hashtbl.replace mli_only_server modname true;
-       if Filename.check_suffix f ".client.mli"
-          || Filename.check_suffix f ".shared.mli"
+       if
+         Filename.check_suffix f ".client.mli"
+         || Filename.check_suffix f ".shared.mli"
        then
          if not (has_impl_for modname [".client.ml"; ".shared.ml"; ".eliom"])
          then Hashtbl.replace mli_only_client modname true)
@@ -47,41 +50,27 @@ let handle_file_client nm =
   then (
     copy_file ".client.mli";
     let modname = module_name nm in
-    if Hashtbl.mem mli_only_client modname then
-      subdir_copy nm (modname ^ ".ml"))
+    if Hashtbl.mem mli_only_client modname then subdir_copy nm (modname ^ ".ml"))
   else if Filename.check_suffix nm ".shared.mli"
   then (
     copy_file ".shared.mli";
     let modname = module_name nm in
-    if Hashtbl.mem mli_only_client modname then
-      subdir_copy nm (modname ^ ".ml"))
+    if Hashtbl.mem mli_only_client modname then subdir_copy nm (modname ^ ".ml"))
   else if Filename.check_suffix nm ".eliom"
-  then (
+  then
     let nm = Filename.chop_suffix nm ".eliom" in
     pf
-      "(subdir Eliom\n\
-      \ (rule (target %s.ml)\n\
-      \  (deps ../../%s.eliom (file \
-       ../../server/.eliom_server.objs/byte/eliom__%s.cmo))\n\
-      \  (action\n\
-      \    (with-stdout-to %%{target}\n\
-      \      (chdir ../.. (run ppx_eliom_client --as-pp -internal -server-cmo \
-       server/.eliom_server.objs/byte/eliom__%s.cmo --impl %s.eliom))))))\n"
+      "(subdir Eliom\n\ (rule (target %s.ml)\n\  (deps ../../%s.eliom (file ../../server/.eliom_server.objs/byte/eliom__%s.cmo))\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir ../.. (run ppx_eliom_client --as-pp -internal -server-cmo server/.eliom_server.objs/byte/eliom__%s.cmo --impl %s.eliom))))))\n"
       nm nm
       (String.capitalize_ascii nm)
       (String.capitalize_ascii nm)
-      nm)
+      nm
   else if Filename.check_suffix nm ".eliomi"
-  then (
+  then
     let nm = Filename.chop_suffix nm ".eliomi" in
     pf
-      "(subdir Eliom\n\
-      \ (rule (target %s.mli) (deps ../../%s.eliomi)\n\
-      \  (action\n\
-      \    (with-stdout-to %%{target}\n\
-      \      (chdir ../.. (run ppx_eliom_client --as-pp -internal --intf \
-       %s.eliomi))))))\n"
-      nm nm nm)
+      "(subdir Eliom\n\ (rule (target %s.mli) (deps ../../%s.eliomi)\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir ../.. (run ppx_eliom_client --as-pp -internal --intf %s.eliomi))))))\n"
+      nm nm nm
 
 let handle_file_server nm =
   let subdir_copy src dst =
@@ -98,36 +87,24 @@ let handle_file_server nm =
   then (
     copy_file ".server.mli";
     let modname = module_name nm in
-    if Hashtbl.mem mli_only_server modname then
-      subdir_copy nm (modname ^ ".ml"))
+    if Hashtbl.mem mli_only_server modname then subdir_copy nm (modname ^ ".ml"))
   else if Filename.check_suffix nm ".shared.mli"
   then (
     copy_file ".shared.mli";
     let modname = module_name nm in
-    if Hashtbl.mem mli_only_server modname then
-      subdir_copy nm (modname ^ ".ml"))
+    if Hashtbl.mem mli_only_server modname then subdir_copy nm (modname ^ ".ml"))
   else if Filename.check_suffix nm ".eliom"
-  then (
+  then
     let nm = Filename.chop_suffix nm ".eliom" in
     pf
-      "(subdir Eliom\n\
-      \ (rule (target %s.ml) (deps ../../%s.eliom)\n\
-      \  (action\n\
-      \    (with-stdout-to %%{target}\n\
-      \      (chdir ../.. (run ppx_eliom_server --as-pp -internal --impl \
-       %s.eliom))))))\n"
-      nm nm nm)
+      "(subdir Eliom\n\ (rule (target %s.ml) (deps ../../%s.eliom)\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir ../.. (run ppx_eliom_server --as-pp -internal --impl %s.eliom))))))\n"
+      nm nm nm
   else if Filename.check_suffix nm ".eliomi"
-  then (
+  then
     let nm = Filename.chop_suffix nm ".eliomi" in
     pf
-      "(subdir Eliom\n\
-      \ (rule (target %s.mli) (deps ../../%s.eliomi)\n\
-      \  (action\n\
-      \    (with-stdout-to %%{target}\n\
-      \      (chdir ../.. (run ppx_eliom_server --as-pp -internal --intf \
-       %s.eliomi))))))\n"
-      nm nm nm)
+      "(subdir Eliom\n\ (rule (target %s.mli) (deps ../../%s.eliomi)\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir ../.. (run ppx_eliom_server --as-pp -internal --intf %s.eliomi))))))\n"
+      nm nm nm
 
 let () =
   let dir = Sys.argv.(2) in

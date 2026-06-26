@@ -85,7 +85,8 @@ module Make (A : sig
     type group_of_group_data
 
     val table :
-      (group_of_group_data option * string Ocsigen_base.Cache.Dlist.t) GroupTable.t
+      (group_of_group_data option * string Ocsigen_base.Cache.Dlist.t)
+        GroupTable.t
 
     val close_session : Common.sitedata -> string -> unit
     val max_tab_per_session : Common.sitedata -> int
@@ -188,7 +189,8 @@ module Make (A : sig
         match cookie_level with
         | `Session ->
             ignore
-              (Ocsigen_base.Cache.Dlist.add sess_grp sitedata.Common.group_of_groups);
+              (Ocsigen_base.Cache.Dlist.add sess_grp
+                 sitedata.Common.group_of_groups);
             Ocsigen_base.Cache.Dlist.newest sitedata.Common.group_of_groups
         | _ -> None
       in
@@ -238,7 +240,8 @@ module Data = Make (struct
       [`Session] Common.sessgrp Ocsigen_base.Cache.Dlist.node
 
     let table :
-      (group_of_group_data option * string Ocsigen_base.Cache.Dlist.t) GroupTable.t
+      (group_of_group_data option * string Ocsigen_base.Cache.Dlist.t)
+        GroupTable.t
       =
       (* The table associates the dlist for a group
          to a full session group name.
@@ -321,10 +324,12 @@ Besides, volatile sessions are (hopefully) going to disappear soon.
 
 module Serv = Make (struct
     type group_of_group_data =
-      Common.tables ref * [`Session] Common.sessgrp Ocsigen_base.Cache.Dlist.node
+      Common.tables ref
+      * [`Session] Common.sessgrp Ocsigen_base.Cache.Dlist.node
 
     let table :
-      (group_of_group_data option * string Ocsigen_base.Cache.Dlist.t) GroupTable.t
+      (group_of_group_data option * string Ocsigen_base.Cache.Dlist.t)
+        GroupTable.t
       =
       GroupTable.create 100
 
@@ -435,8 +440,8 @@ module Pers = struct
     | Some g ->
         Lwt.catch
           (fun () ->
-             Grouptable.find (Common.string_of_perssessgrp g)
-             >>= fun (_, a) -> Lwt.return a)
+             Grouptable.find (Common.string_of_perssessgrp g) >>= fun (_, a) ->
+             Lwt.return a)
           (function Not_found -> Lwt.return_nil | e -> Lwt.fail e)
 
   let add ?set_max defaultmax sess_id sess_grp =
@@ -468,8 +473,7 @@ module Pers = struct
                   | Some None -> Nolimit
                   | Some (Some v) -> Val v
                 in
-                Grouptable.add sg (max, [sess_id]) >>= fun () ->
-                Lwt.return_nil
+                Grouptable.add sg (max, [sess_id]) >>= fun () -> Lwt.return_nil
             | e -> Lwt.fail e)
     | None -> Lwt.return_nil
 

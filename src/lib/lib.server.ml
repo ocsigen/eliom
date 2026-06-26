@@ -62,4 +62,5 @@ let jsmarshal v = string_escape (Marshal.to_string v [])
 let make_cryptographic_safe_string ?len () =
   match len with
   | None -> Ocsigen_base.Lib.make_cryptographic_safe_string ()
-  | Some l -> String.sub (Ocsigen_base.Lib.make_cryptographic_safe_string ()) 0 l
+  | Some l ->
+      String.sub (Ocsigen_base.Lib.make_cryptographic_safe_string ()) 0 l

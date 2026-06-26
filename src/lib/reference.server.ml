@@ -22,7 +22,6 @@
 
 open State
 open Lwt.Infix
-
 module Store_json = Common.Ocsipersist.Store_json
 
 let pers_ref_store = Store_json.open_store "eliom__persistent_refs"
@@ -38,9 +37,7 @@ let json_option (type x) (j : x Deriving_Json.t) : x option Deriving_Json.t =
   O.t
 
 type 'a typed_table =
-  (module Common.Ocsipersist.TABLE
-     with type key = string
-      and type value = 'a)
+  (module Common.Ocsipersist.TABLE with type key = string and type value = 'a)
 
 type 'a eref_kind =
   | Req of 'a Polytables.key
@@ -209,11 +206,10 @@ let get_site_id () =
   ^ Common.get_site_dir_string sd
 
 let typed_table_call (type a) (t : a typed_table) =
-  (module (val t)
-    : Common.Ocsipersist.TABLE
+  (module (val t) : Common.Ocsipersist.TABLE
      with type key = string
       and type value = a)
-  [@@warning "-32"]
+[@@warning "-32"]
 (* helper signature used inside [let module] below *)
 
 let get (type a) ((f, _, table) as eref) : a Lwt.t =
@@ -235,9 +231,7 @@ let get (type a) ((f, _, table) as eref) : a Lwt.t =
   | Ocsiper_sit t ->
       let module T =
         (val t
-            : Common.Ocsipersist.TABLE
-             with type key = string
-              and type value = a)
+          : Common.Ocsipersist.TABLE with type key = string and type value = a)
       in
       let site_id = get_site_id () in
       Lwt.catch
@@ -256,9 +250,7 @@ let set (type a) ((_, _, table) as eref) (value : a) =
   | Ocsiper_sit t ->
       let module T =
         (val t
-            : Common.Ocsipersist.TABLE
-             with type key = string
-              and type value = a)
+          : Common.Ocsipersist.TABLE with type key = string and type value = a)
       in
       T.add (get_site_id ()) value
   | _ -> Lwt.return (Volatile.set eref value)
@@ -272,9 +264,7 @@ let unset (type a) ((_, _, table) as eref) =
   | Ocsiper_sit t ->
       let module T =
         (val t
-            : Common.Ocsipersist.TABLE
-             with type key = string
-              and type value = a)
+          : Common.Ocsipersist.TABLE with type key = string and type value = a)
       in
       T.remove (get_site_id ())
   | _ -> Lwt.return (Volatile.unset eref)
