@@ -67,7 +67,7 @@ struct
          log_inspect (Client_core.rebuild_node' Ns.content_ns (Kind.toelt elt));
          raise_error ~section:eliom_logs_src
            "Cannot call %s on a node which is not an element" name)
-      id
+      Fun.id
 
   let raw_appendChild ?before node elt2 =
     match before with
@@ -204,21 +204,19 @@ struct
     Js.Opt.to_option res
 
   let insertBefore ~before elt =
-    Lib.Option.iter
+    Option.iter
       (fun parent -> appendChild ~before parent elt)
       (parentNode before)
 
   let insertAfter ~after elt =
-    Lib.Option.iter
+    Option.iter
       (fun parent ->
          let before = nextSibling after in
          appendChild ?before parent elt)
       (parentNode after)
 
   let replaceSelf elt1 elt2 =
-    Lib.Option.iter
-      (fun parent -> replaceChild parent elt2 elt1)
-      (parentNode elt1)
+    Option.iter (fun parent -> replaceChild parent elt2 elt1) (parentNode elt1)
 
   module RawNamed = struct
     let appendChild ?before id1 elt2 =
@@ -500,7 +498,7 @@ module Html = struct
            (Dom_html.CoerceTo.element (get_unique_node name elt))
            Dom_html.CoerceTo.input)
         (fun () -> failwith (Printf.sprintf "Non element node (%s)" name))
-        id
+        Fun.id
 
     let get_unique_elt_select name elt : Dom_html.selectElement Js.t =
       Js.Opt.case
@@ -508,7 +506,7 @@ module Html = struct
            (Dom_html.CoerceTo.element (get_unique_node name elt))
            Dom_html.CoerceTo.select)
         (fun () -> failwith (Printf.sprintf "Non element node (%s)" name))
-        id
+        Fun.id
 
     let get_unique_elt_textarea name elt : Dom_html.textAreaElement Js.t =
       Js.Opt.case
@@ -516,7 +514,7 @@ module Html = struct
            (Dom_html.CoerceTo.element (get_unique_node name elt))
            Dom_html.CoerceTo.textarea)
         (fun () -> failwith (Printf.sprintf "Non element node (%s)" name))
-        id
+        Fun.id
 
     let get_unique_elt_img name elt : Dom_html.imageElement Js.t =
       Js.Opt.case
@@ -524,7 +522,7 @@ module Html = struct
            (Dom_html.CoerceTo.element (get_unique_node name elt))
            Dom_html.CoerceTo.img)
         (fun () -> failwith (Printf.sprintf "Non element node (%s)" name))
-        id
+        Fun.id
 
     let scrollIntoView ?(bottom = false) elt =
       let elt = get_unique_elt "Css.background" elt in

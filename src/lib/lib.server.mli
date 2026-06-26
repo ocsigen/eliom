@@ -25,7 +25,6 @@ include
   module type of Ocsigen_base.Lib
   with type poly = Ocsigen_base.Lib.poly
    and type yesnomaybe = Ocsigen_base.Lib.yesnomaybe
-   and type ('a, 'b) leftright = ('a, 'b) Ocsigen_base.Lib.leftright
    and type 'a Clist.t = 'a Ocsigen_base.Lib.Clist.t
    and type 'a Clist.node = 'a Ocsigen_base.Lib.Clist.node
 

@@ -304,13 +304,13 @@ let rec close_service_state_if_empty ~scope ?secure () =
     match scope with
     | `Session _ ->
         (*VVV ???        (match !(c.Common.sc_session_group) with
-          | (_, _, Right _) (* no group *)
+          | (_, _, Either.Right _) (* no group *)
               when *)
         if
           Mod_sessiongroups.Data.group_size
             ( Common.get_site_dir_string sitedata
             , `Client_process
-            , Left Common.(Hashed_cookies.to_string c.sc_hvalue) )
+            , Either.Left Common.(Hashed_cookies.to_string c.sc_hvalue) )
           = 0
           (* no tab sessions *)
           && Common.service_tables_are_empty !(c.Common.sc_table)
@@ -340,12 +340,12 @@ let rec close_volatile_state_if_empty ~scope ?secure () =
     match scope with
     | `Session _ -> (
       match !(c.Common.dc_session_group) with
-      | _, _, Right _
+      | _, _, Either.Right _
       (* no group *)
         when Mod_sessiongroups.Data.group_size
                ( Common.get_site_dir_string sitedata
                , `Client_process
-               , Left Common.(Hashed_cookies.to_string c.dc_hvalue) )
+               , Either.Left Common.(Hashed_cookies.to_string c.dc_hvalue) )
              = 0
              (* no tab sessions *)
              && sitedata.Common.not_bound_in_data_tables
@@ -431,8 +431,8 @@ let get_service_session_group ?(scope = Common.default_session_scope) ?secure ()
         ~secure_o:secure ()
     in
     match !(c.Common.sc_session_group) with
-    | _, _, Right _ -> None
-    | _, _, Left v -> Some v
+    | _, _, Either.Right _ -> None
+    | _, _, Either.Left v -> Some v
   with Not_found | Common.Eliom_Session_expired -> None
 
 let get_service_session_group_size
@@ -447,8 +447,8 @@ let get_service_session_group_size
         ~secure_o:secure ()
     in
     match !(c.Common.sc_session_group) with
-    | _, _, Right _ -> None
-    | _, _, Left _ ->
+    | _, _, Either.Right _ -> None
+    | _, _, Either.Left _ ->
         Some (Mod_sessiongroups.Serv.group_size !(c.Common.sc_session_group))
   with Not_found | Common.Eliom_Session_expired -> None
 
@@ -512,8 +512,8 @@ let get_volatile_data_session_group
         ~secure_o:secure ()
     in
     match !(c.Common.dc_session_group) with
-    | _, _, Right _ -> None
-    | _, _, Left v -> Some v
+    | _, _, Either.Right _ -> None
+    | _, _, Either.Left v -> Some v
   with Not_found | Common.Eliom_Session_expired -> None
 
 let get_volatile_data_session_group_size
@@ -528,8 +528,8 @@ let get_volatile_data_session_group_size
         ~secure_o:secure ()
     in
     match !(c.Common.dc_session_group) with
-    | _, _, Right _ -> None
-    | _, _, Left _ ->
+    | _, _, Either.Right _ -> None
+    | _, _, Either.Left _ ->
         Some (Mod_sessiongroups.Data.group_size !(c.Common.dc_session_group))
   with Not_found | Common.Eliom_Session_expired -> None
 
@@ -613,7 +613,7 @@ let get_persistent_data_session_group
          | None -> None
          | Some v -> (
            match Mod_sessiongroups.getperssessgrp v with
-           | _, _, Left s -> Some s
+           | _, _, Either.Left s -> Some s
            | _ -> None)))
     (function
       | Not_found | Common.Eliom_Session_expired -> Lwt.return_none
@@ -1238,7 +1238,7 @@ module Ext = struct
         ()
     =
     let make_sessgrp n =
-      Common.get_site_dir_string sitedata, `Session, Left n
+      Common.get_site_dir_string sitedata, `Session, Either.Left n
     in
     match state with
     | `Session_group _, `Data, group_name ->
@@ -1322,7 +1322,9 @@ module Ext = struct
       try
         let dl =
           Mod_sessiongroups.Data.find
-            (Common.get_site_dir_string sitedata, sub_states_level, Left id)
+            ( Common.get_site_dir_string sitedata
+            , sub_states_level
+            , Either.Left id )
         in
         fold f e dl
       with Not_found -> return e)
@@ -1330,7 +1332,9 @@ module Ext = struct
       try
         let dl =
           Mod_sessiongroups.Serv.find
-            (Common.get_site_dir_string sitedata, sub_states_level, Left id)
+            ( Common.get_site_dir_string sitedata
+            , sub_states_level
+            , Either.Left id )
         in
         fold f e dl
       with Not_found -> return e)
@@ -1344,8 +1348,7 @@ module Ext = struct
     =
     let state' = (state :> ('aa, 'bb) state) in
     let a = fold_sub_states_aux_aux ?sitedata ~state:state' f in
-    fold_sub_states_aux Ocsigen_base.Cache.Dlist.fold Ocsigen_base.Lib.id a e
-      state
+    fold_sub_states_aux Ocsigen_base.Cache.Dlist.fold Fun.id a e state
 
   (** Fold over the snapshot of a Dlist. *)
   let dlist_lwt_fold f acc dlist =
@@ -1494,7 +1497,7 @@ module Ext = struct
     let sitedata = Request_info.find_sitedata "get_session_group_list" in
     let dl = sitedata.Common.group_of_groups in
     Ocsigen_base.Cache.Dlist.fold
-      (fun l -> function _, `Session, Left s -> s :: l | _ -> l)
+      (fun l -> function _, `Session, Either.Left s -> s :: l | _ -> l)
       [] dl
 
   (** Iterator on service cookies *)

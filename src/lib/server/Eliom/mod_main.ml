@@ -163,7 +163,7 @@ let create_sitedata_aux site_dir config_info =
        Mod_sessiongroups.Data.remove_group fullbrowsersessgrp;
        (* Then we remove data from group tables: *)
        match Tuple3.thd fullbrowsersessgrp with
-       | Left key ->
+       | Either.Left key ->
            (* iterate on all session data tables: *)
            sitedata.Common.remove_session_data key
        | _ ->
@@ -270,7 +270,7 @@ let parse_eliom_option
           Common_base.Default_comet_hier
       | s -> Common_base.User_hier s
     in
-    a, Lib.Option.map parse_scope_hierarchy sn, ct
+    a, Option.map parse_scope_hierarchy sn, ct
   in
   let convert_attr tag f v =
     try f v

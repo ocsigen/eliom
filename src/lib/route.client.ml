@@ -36,7 +36,7 @@ module A = struct
     [`Ptc of unit option * (params, result) Common.service list]
 
   type service =
-    (table ref * Common.page_table_key, Common.na_key_serv) Lib.leftright
+    (table ref * Common.page_table_key, Common.na_key_serv) Either.t
 
   and node = service list
   and table = table_content Raw_table.t

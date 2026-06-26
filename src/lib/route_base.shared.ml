@@ -77,7 +77,7 @@ module type PARAM = sig
     val dlist_add :
        ?sp:Common.server_params
       -> t
-      -> (Table.t ref * Common.page_table_key, Common.na_key_serv) Lib.leftright
+      -> (Table.t ref * Common.page_table_key, Common.na_key_serv) Either.t
       -> Node.t
 
     val get : t -> (int * int * Table.t Common.dircontent ref) list
@@ -219,7 +219,7 @@ module Make (P : PARAM) = struct
         | Some node -> P.Node.up node);
         tref := P.Table.add key (nodeopt, [service]) newt
       with Not_found ->
-        let node = P.Container.dlist_add ?sp tables (Left (tref, key)) in
+        let node = P.Container.dlist_add ?sp tables (Either.Left (tref, key)) in
         tref := P.Table.add key (Some node, [service]) !tref)
     | {Common.key_state = Common.SAtt_no, Common.SAtt_no; _} -> (
       try
