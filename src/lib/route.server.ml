@@ -38,7 +38,7 @@ include Route_base.Make (struct
       type t =
         ( Common.page_table ref * Common.page_table_key
           , Common.na_key_serv )
-          leftright
+          Either.t
           Ocsigen_base.Cache.Dlist.node
 
       let up = Ocsigen_base.Cache.Dlist.up
@@ -229,7 +229,7 @@ let add_naservice tables name (max_use, expdate, naservice) =
   let node =
     match name with
     | Common.SNa_get' _ | Common.SNa_post' _ ->
-        Some (tables.Common.service_dlist_add ?sp (Right name))
+        Some (tables.Common.service_dlist_add ?sp (Either.Right name))
     | _ -> None
   in
   tables.Common.table_naservices :=

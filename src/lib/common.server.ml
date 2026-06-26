@@ -141,7 +141,7 @@ end = struct
 end
 
 (* session groups *)
-type 'a sessgrp = string * cookie_level * (string, Ipaddr.t) leftright
+type 'a sessgrp = string * cookie_level * (string, Ipaddr.t) Either.t
 
 (* The full session group is the triple
    (site_dir_string, scope, session group name).
@@ -154,7 +154,7 @@ type perssessgrp = string (* same triple, JSON-encoded *) [@@deriving json]
 
 (* Persistent representation of a session group. Stored on disk through
    {!perssessgrp}: a JSON-encoded value of this record. The triple form is
-   {!sessgrp} but always with [Left g] for persistent groups, hence the
+   {!sessgrp} but always with [Either.Left g] for persistent groups, hence the
    simpler representation here. *)
 type perssessgrp_payload =
   {p_site_dir_str : string; p_cookie_level : cookie_level; p_group : string}
@@ -175,9 +175,9 @@ let getperssessgrp a : 'a sessgrp =
   let {p_site_dir_str; p_cookie_level; p_group} =
     Deriving_Json.from_string [%json: perssessgrp_payload] a
   in
-  p_site_dir_str, p_cookie_level, Left p_group
+  p_site_dir_str, p_cookie_level, Either.Left p_group
 
-let string_of_perssessgrp = id
+let string_of_perssessgrp = Fun.id
 
 (* cookies information during page generation: *)
 
@@ -403,7 +403,7 @@ and page_table = page_table_content Serv_Table.t
 
 and page_table_content =
   [ `Ptc of
-      (page_table ref * page_table_key, na_key_serv) leftright
+      (page_table ref * page_table_key, na_key_serv) Either.t
         Ocsigen_base.Cache.Dlist.node
         option
       * (server_params, Ocsigen.Response.t) service list ]
@@ -417,7 +417,7 @@ and naservice_table_content =
   * (float * float ref) option
   (* timeout and expiration date *)
   * (server_params -> Ocsigen.Response.t Lwt.t)
-  * (page_table ref * page_table_key, na_key_serv) leftright
+  * (page_table ref * page_table_key, na_key_serv) Either.t
       Ocsigen_base.Cache.Dlist.node
       option
 (* for limitation of number of dynamic coservices *)
@@ -451,8 +451,8 @@ and tables =
     *)
     service_dlist_add :
       ?sp:server_params
-      -> (page_table ref * page_table_key, na_key_serv) leftright
-      -> (page_table ref * page_table_key, na_key_serv) leftright
+      -> (page_table ref * page_table_key, na_key_serv) Either.t
+      -> (page_table ref * page_table_key, na_key_serv) Either.t
            Ocsigen_base.Cache.Dlist.node
     (* We use a dlist for limiting the number of dynamic
             anonymous coservices in each table (and avoid DoS).  There
@@ -534,7 +534,7 @@ and sitedata =
   ; mutable omitpersistentstorage : omitpersistentstorage_rule list option }
 
 and dlist_ip_table =
-  (page_table ref * page_table_key, na_key_serv) leftright
+  (page_table ref * page_table_key, na_key_serv) Either.t
     Ocsigen_base.Cache.Dlist.t
     Net_addr_Hashtbl.t
 
@@ -553,7 +553,7 @@ let find_dlist_ip_table :
   -> int option * 'b
   -> dlist_ip_table
   -> Ipaddr.t
-  -> (page_table ref * page_table_key, na_key_serv) leftright
+  -> (page_table ref * page_table_key, na_key_serv) Either.t
        Ocsigen_base.Cache.Dlist.t
   =
   Net_addr_Hashtbl.find
@@ -811,9 +811,9 @@ let dlist_finaliser na_table_ref node =
   (* If the node disappears from the dlist,
      we remove the service from the service table *)
   match Ocsigen_base.Cache.Dlist.value node with
-  | Left (page_table_ref, page_table_key) ->
+  | Either.Left (page_table_ref, page_table_key) ->
       page_table_ref := Serv_Table.remove page_table_key !page_table_ref
-  | Right na_key_serv ->
+  | Either.Right na_key_serv ->
       na_table_ref := remove_naservice_table !na_table_ref na_key_serv
 
 let dlist_finaliser_ip sitedata ip na_table_ref node =
