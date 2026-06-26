@@ -30,13 +30,13 @@ The client-side code is compiled to JS using Ocsigen Js_of_ocaml or to Wasm usin
   ; (ppx_sexp_conv, pulled via ocsigenserver -> cohttp) allows; newer OCaml
   ; resolves a more recent ppxlib. The ppx builds against the whole range.
   (ppxlib (>= 0.35.0))
-  (js_of_ocaml-compiler (>= 6.3.2))
-  (wasm_of_ocaml-compiler (>= 6.3.2))
-  (js_of_ocaml (>= 6.3.2))
-  (js_of_ocaml-lwt (>= 6.3.2))
-  (js_of_ocaml-ppx (>= 6.3.2))
-  (js_of_ocaml-ppx_deriving_json (>= 6.3.2))
-  (js_of_ocaml-tyxml (>= 6.3.2))
+  (js_of_ocaml-compiler (>= 6.4.0))
+  (wasm_of_ocaml-compiler (>= 6.4.0))
+  (js_of_ocaml (>= 6.4.0))
+  (js_of_ocaml-lwt (>= 6.4.0))
+  (js_of_ocaml-ppx (>= 6.4.0))
+  (js_of_ocaml-ppx_deriving_json (>= 6.4.0))
+  (js_of_ocaml-tyxml (>= 6.4.0))
   logs
   (tyxml (and (>= 4.6) (< 4.7)))
   (ocsigenserver (and (>= 8.0) (< 9.0)))
