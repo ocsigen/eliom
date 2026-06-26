@@ -21,7 +21,7 @@
 open Lib
 
 let make_full_named_group_name_ ~cookie_level sitedata g =
-  Common.get_site_dir_string sitedata, cookie_level, Left g
+  Common.get_site_dir_string sitedata, cookie_level, Either.Left g
 
 let make_full_group_name ~cookie_level ri site_dir_string ipv4mask ipv6mask
   = function
@@ -29,8 +29,9 @@ let make_full_group_name ~cookie_level ri site_dir_string ipv4mask ipv6mask
   | None ->
       ( site_dir_string
       , cookie_level
-      , Right (Common.network_of_request ri ~mask4:ipv4mask ~mask6:ipv6mask) )
-  | Some g -> site_dir_string, cookie_level, Left g
+      , Either.Right
+          (Common.network_of_request ri ~mask4:ipv4mask ~mask6:ipv6mask) )
+  | Some g -> site_dir_string, cookie_level, Either.Left g
 
 let make_persistent_full_group_name = Common.make_persistent_full_group_name
 let getsessgrp a = a
@@ -152,9 +153,10 @@ module Make (A : sig
       (* We create a group *)
       let size =
         match set_max, sess_grp with
-        | None, (_, `Session, Left _) -> A.max_session_per_group sitedata
-        | None, (_, `Client_process, Left _) -> A.max_tab_per_session sitedata
-        | None, (_, `Session, Right _) -> A.max_session_per_ip sitedata
+        | None, (_, `Session, Either.Left _) -> A.max_session_per_group sitedata
+        | None, (_, `Client_process, Either.Left _) ->
+            A.max_tab_per_session sitedata
+        | None, (_, `Session, Either.Right _) -> A.max_session_per_ip sitedata
         | None, _ -> assert false
         | Some v, _ -> v
       in
@@ -300,13 +302,13 @@ Besides, volatile sessions are (hopefully) going to disappear soon.
       *)
       (*VVV remove is not polymorphic enough -> remove1 remove2 *)
       match (sess_grp : GroupTable.key) with
-      | _, `Client_process, Left sess_id -> (
+      | _, `Client_process, Either.Left sess_id -> (
         try
           let {Common.Data_cookie.session_group; session_group_node; _} =
             Common.SessionCookies.find sitedata.Common.session_data sess_id
           in
           match !session_group with
-          | _, `Session, Right _
+          | _, `Session, Either.Right _
           (* no group *)
             when sitedata.Common.not_bound_in_data_tables sess_id ->
               remove1 session_group_node
@@ -373,7 +375,7 @@ Besides, volatile sessions are (hopefully) going to disappear soon.
       *)
       (*VVV remove is not polymorphic enough -> remove1 remove2 *)
       match (sess_grp : GroupTable.key) with
-      | _, `Client_process, Left sess_id -> (
+      | _, `Client_process, Either.Left sess_id -> (
         try
           let { Common.Service_cookie.session_table = tables
               ; session_group_node
@@ -501,12 +503,12 @@ module Pers = struct
            | None -> Lwt.return_unit
            | Some sg -> (
              match Common.getperssessgrp sg with
-             | _, _, Right _ ->
+             | _, _, Either.Right _ ->
                  (* No group has been set. No group table.
                  Data associated to default (automatic) groups
                  is removed when closing associated sessions. *)
                  Lwt.return_unit
-             | _, _, Left group_name -> (
+             | _, _, Either.Left group_name -> (
                  Common.Persistent_tables.remove_key_from_all_tables group_name
                  >>= fun () ->
                  (* If it is associated to a session,
