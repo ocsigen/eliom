@@ -485,8 +485,8 @@ let register
             (* I suppose that it's a statically linked module
                that is not associated with a site yet.
                I will defer the registration until app is initialised. *)
-            Ocsigen_base.Loader.add_module_init_function (Common.get_app_name ())
-              (fun () -> aux sitedata)
+            Ocsigen_base.Loader.add_module_init_function
+              (Common.get_app_name ()) (fun () -> aux sitedata)
       | _ -> raise (Common.Site_information_not_available "register"))
   | None, Some _ | Some `Site, Some _ ->
       register_aux pages ?options ?charset ?code ?content_type ?headers

@@ -107,8 +107,7 @@ let update_cookie_table ?now sitedata (ci, sci) =
 
       let within_tolerance_opt x y =
         match x, y with Some x, Some y -> within_tolerance x y | _ -> x = y
-    end
-    in
+    end in
     (* Update persistent expiration date, user timeout and value *)
     (* 2018-07-17 We do this for all persistent sessions
        only if one persistent session has been used:
@@ -228,7 +227,9 @@ let do_redirection header_id status uri =
     (fun () ->
       let response =
         let headers =
-          Cohttp.Header.init_with Ocsigen_http.Header.Name.(to_string header_id) uri
+          Cohttp.Header.init_with
+            Ocsigen_http.Header.Name.(to_string header_id)
+            uri
         in
         Cohttp.Response.make ~status ~headers ()
       in
@@ -359,12 +360,13 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
         | Common.Eliom_retry_with a -> gen_aux a
         | Common.Do_redirection uri ->
             Lwt.return
-            @@ do_redirection Ocsigen_http.Header.Name.location `Temporary_redirect
-                 uri
+            @@ do_redirection Ocsigen_http.Header.Name.location
+                 `Temporary_redirect uri
         | Common.Do_half_xhr_redirection uri ->
             Lwt.return
             @@ do_redirection
-                 (Ocsigen_http.Header.Name.of_string Common.half_xhr_redir_header)
+                 (Ocsigen_http.Header.Name.of_string
+                    Common.half_xhr_redir_header)
                  `No_content uri
         | e -> Lwt.fail e)
   in

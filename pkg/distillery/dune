@@ -2,6 +2,7 @@
 
 ; Install the distillery templates into lib/eliom/templates/<name>/
 ; so that eliom-distillery picks them up at the standard location.
+
 (install
  (package eliom)
  (section lib_root)

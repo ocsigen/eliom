@@ -842,7 +842,10 @@ let parse_config _ hostpattern conf_info site_dir =
     | ("findlib-package", s) :: suite -> (
       match file with
       | None -> (
-        try parse_module_attrs (Some (Files (Ocsigen_base.Loader.findfiles s))) suite
+        try
+          parse_module_attrs
+            (Some (Files (Ocsigen_base.Loader.findfiles s)))
+            suite
         with Ocsigen_base.Loader.Findlib_error _ as e ->
           raise
             (Error_in_config_file

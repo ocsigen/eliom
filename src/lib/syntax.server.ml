@@ -43,7 +43,7 @@ let get_global_data, modify_global_data =
        push the default sitedata, and crash. *)
     Common.(
       get_sp_option () <> None
-      || Ocsigen.Extensions.during_initialisation () && has_current_sitedata ())
+      || (Ocsigen.Extensions.during_initialisation () && has_current_sitedata ()))
   in
   let get () =
     if is_site_available ()

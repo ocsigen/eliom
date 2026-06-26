@@ -358,8 +358,7 @@ let unregister
           | Some get_current_sitedata ->
               let sitedata = get_current_sitedata () in
               sitedata.Common.global_services
-          | _ ->
-              raise (Common.Site_information_not_available "unregister"))
+          | _ -> raise (Common.Site_information_not_available "unregister"))
         | Some _ -> State.get_global_table ()
       in
       remove_service table service

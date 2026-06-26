@@ -407,4 +407,3 @@ module type S = sig
   val is_unit : ('a, _, _) params_type -> 'a is_unit
   val anonymise_params_type : ('a, 'b, 'c) params_type -> int
 end
-

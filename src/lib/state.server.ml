@@ -852,11 +852,11 @@ let get_session_service_table_if_exists ~sp ~scope ?secure () =
 type 'a persistent_table =
   Common.user_scope
   * bool
-  * (module Common.Ocsipersist.TABLE
-       with type key = string
-        and type value = 'a)
+  * (module Common.Ocsipersist.TABLE with type key = string and type value = 'a)
 
-let create_persistent_table ~scope ?secure ~json name : 'a persistent_table Lwt.t =
+let create_persistent_table ~scope ?secure ~json name :
+  'a persistent_table Lwt.t
+  =
   let sitedata = Request_info.find_sitedata "create_persistent_table" in
   let secure = Common.get_secure ~secure_o:secure ~sitedata () in
   let t = Common.Persistent_tables.create_json ~name json in
@@ -898,9 +898,7 @@ let get_persistent_data (type a) ~(table : a persistent_table) () =
        >>= fun (table, key) ->
        let module T =
          (val table
-             : Common.Ocsipersist.TABLE
-              with type key = string
-               and type value = a)
+           : Common.Ocsipersist.TABLE with type key = string and type value = a)
        in
        T.find key >>= fun v -> Lwt.return (Data v))
     (function
@@ -925,9 +923,7 @@ let remove_persistent_data (type a) ~(table : a persistent_table) () =
        in
        let module T =
          (val table
-             : Common.Ocsipersist.TABLE
-              with type key = string
-               and type value = a)
+           : Common.Ocsipersist.TABLE with type key = string and type value = a)
        in
        let* () = T.remove key in
        close_persistent_state_if_empty ~scope ~secure ())
@@ -952,8 +948,7 @@ let create_volatile_table ~scope ?secure () =
         let secure = Common.get_secure ~secure_o:secure ~sitedata () in
         Mod_datasess.create_volatile_table ~scope ~secure
     | None ->
-        raise
-          (Common.Site_information_not_available "create_volatile_table"))
+        raise (Common.Site_information_not_available "create_volatile_table"))
   | Some sp ->
       let sitedata = Request_info.get_sitedata_sp ~sp in
       let secure = Common.get_secure ~secure_o:secure ~sitedata () in
@@ -1349,7 +1344,8 @@ module Ext = struct
     =
     let state' = (state :> ('aa, 'bb) state) in
     let a = fold_sub_states_aux_aux ?sitedata ~state:state' f in
-    fold_sub_states_aux Ocsigen_base.Cache.Dlist.fold Ocsigen_base.Lib.id a e state
+    fold_sub_states_aux Ocsigen_base.Cache.Dlist.fold Ocsigen_base.Lib.id a e
+      state
 
   (** Fold over the snapshot of a Dlist. *)
   let dlist_lwt_fold f acc dlist =
@@ -1406,9 +1402,7 @@ module Ext = struct
       lwt_check_scopes table_scope state_scope >>= fun () ->
       let module T =
         (val t
-            : Common.Ocsipersist.TABLE
-             with type key = string
-              and type value = a)
+          : Common.Ocsipersist.TABLE with type key = string and type value = a)
       in
       T.find cookie
 
@@ -1429,9 +1423,7 @@ module Ext = struct
       lwt_check_scopes table_scope state_scope >>= fun () ->
       let module T =
         (val t
-            : Common.Ocsipersist.TABLE
-             with type key = string
-              and type value = a)
+          : Common.Ocsipersist.TABLE with type key = string and type value = a)
       in
       T.add cookie value
 
@@ -1450,9 +1442,7 @@ module Ext = struct
       lwt_check_scopes table_scope state_scope >>= fun () ->
       let module T =
         (val t
-            : Common.Ocsipersist.TABLE
-             with type key = string
-              and type value = a)
+          : Common.Ocsipersist.TABLE with type key = string and type value = a)
       in
       T.remove cookie
   end
