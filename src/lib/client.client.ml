@@ -1295,9 +1295,7 @@ let call_ocaml_service
       ?upload_progress ?override_mime_type get_params post_params
   in
   let locked = ref true in
-  let recover () =
-    if !locked then Lwt_mutex.unlock Client_core.load_mutex
-  in
+  let recover () = if !locked then Lwt_mutex.unlock Client_core.load_mutex in
   Lwt.catch
     (fun () ->
        let* () = Lwt_mutex.lock Client_core.load_mutex in
@@ -1523,9 +1521,7 @@ let set_template_content ~replace ~uri ?fragment =
     | None -> change_url_string ~replace uri
     | Some fragment -> change_url_string ~replace (uri ^ "#" ^ fragment));
     let locked = ref true in
-    let recover () =
-      if !locked then Lwt_mutex.unlock Client_core.load_mutex
-    in
+    let recover () = if !locked then Lwt_mutex.unlock Client_core.load_mutex in
     Lwt.catch
       (fun () ->
          let* () = Lwt_mutex.lock Client_core.load_mutex in

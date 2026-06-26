@@ -278,7 +278,8 @@ let parse_eliom_option
       raise
         (Error_in_config_file
            (Printf.sprintf
-              "Eliom: Wrong attribute value for tag %s in element %s" tag element))
+              "Eliom: Wrong attribute value for tag %s in element %s" tag
+              element))
   in
   let parse_application_script_attrs attrs =
     let rec aux defer async attrs =
