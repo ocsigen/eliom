@@ -107,7 +107,8 @@ let content_type_html content_type =
           Ocsigen_http.Header.Name.accept
       in
       let accept = Ocsigen_http.Header.Accept.parse accept in
-      Ocsigen_http.Header.Content_type.choose accept Content.Html.D.Info.content_type
+      Ocsigen_http.Header.Content_type.choose accept
+        Content.Html.D.Info.content_type
         Content.Html.D.Info.alternative_content_types
 
 module Html_base = struct
@@ -179,7 +180,9 @@ module String_base = struct
   let send ?options ?charset ?code ?content_type:_ ?headers (c, content_type) =
     let status = Lib.Option.map Cohttp.Code.status_of_code code
     and body = Ocsigen.Response.Body.of_string c
-    and headers = add_cache_header options (Ocsigen_http.Header.of_option headers) in
+    and headers =
+      add_cache_header options (Ocsigen_http.Header.of_option headers)
+    in
     result_of_content ?charset ?status ~content_type ~headers body
 end
 

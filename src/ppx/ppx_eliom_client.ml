@@ -13,20 +13,20 @@ module Pass = struct
   (* Replace every escaped identifier [v] with
      [Client_core.Syntax_helpers.get_escaped_value v] *)
   let map_get_escaped_values expr =
-    (object
-       inherit Ppxlib.Ast_traverse.map as super
+    object
+      inherit Ppxlib.Ast_traverse.map as super
 
-       method! expression e =
-         match e.pexp_desc with
-         | Pexp_ident {txt; _}
-           when Mli.is_escaped_ident @@ Longident.last_exn txt ->
-             let loc = e.pexp_loc in
-             [%expr
-               [%e
-                 eliom_expr ~loc "Client_core.Syntax_helpers.get_escaped_value"]
-                 [%e e]]
-         | _ -> super#expression e
-    end)
+      method! expression e =
+        match e.pexp_desc with
+        | Pexp_ident {txt; _}
+          when Mli.is_escaped_ident @@ Longident.last_exn txt ->
+            let loc = e.pexp_loc in
+            [%expr
+              [%e
+                eliom_expr ~loc "Client_core.Syntax_helpers.get_escaped_value"]
+                [%e e]]
+        | _ -> super#expression e
+    end
       #expression
       expr
 
@@ -208,21 +208,21 @@ module Pass = struct
         Exp.let_ ~loc Nonrecursive bindings [%expr [%e frag_eid] [%e args]]
 
   let check_no_variable =
-    (object
-       inherit Ppxlib.Ast_traverse.map as super
+    object
+      inherit Ppxlib.Ast_traverse.map as super
 
-       method! core_type typ =
-         match typ with
-         | {ptyp_desc = Ptyp_var _; ptyp_loc = loc; _} ->
-             let attr =
-               attribute_of_warning loc
-                 "The type of this injected value contains a type variable that could be wrongly inferred."
-             in
-             { typ with
-               ptyp_attributes = attr :: typ.ptyp_attributes
-             ; ptyp_loc = loc }
-         | _ -> super#core_type typ
-    end)
+      method! core_type typ =
+        match typ with
+        | {ptyp_desc = Ptyp_var _; ptyp_loc = loc; _} ->
+            let attr =
+              attribute_of_warning loc
+                "The type of this injected value contains a type variable that could be wrongly inferred."
+            in
+            { typ with
+              ptyp_attributes = attr :: typ.ptyp_attributes
+            ; ptyp_loc = loc }
+        | _ -> super#core_type typ
+    end
       #core_type
 
   let escape_inject

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Source: eliom_monitor_main.ml (eliom.src.eliom.server.monitor.start)</title><meta charset="utf-8"/><link rel="stylesheet" href="../../../odoc.css"/><meta name="generator" content="odoc 3.2.1"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head><body class="odoc-src"><nav class="odoc-nav"><a href="../index.html">Up</a> – <a href="../../../index.html">Package index</a> &#x00BB; <a href="../../index.html">Eliom</a> &#x00BB; <a href="../index.html">Sources</a> &#x00BB; eliom.server.monitor.start &#x00BB; eliom_monitor_main.ml</nav><header class="odoc-preamble"><h1>Source file <code><span>eliom_monitor_main.ml</span></code></h1></header><div class="odoc-tocs"><nav class="odoc-toc odoc-global-toc"><ul><li><a href="../../index.html">Eliom</a><ul><li><a href="../../clientserver-applications.html">Programming client-server applications with Eliom</a></li><li><a href="../../clientserver-cache.html">Caching the data and off-line applications</a></li><li><a href="../../clientserver-communication.html">Communication between the client and the server</a></li><li><a href="../../clientserver-html.html">Generating HTML pages</a></li><li><a href="../../clientserver-react.html">Shared reactive programming</a></li><li><a href="../../clientserver-services.html">Client-side services</a></li><li><a href="../../clientserver-wrapping.html">Wrapping</a></li><li><a href="../../config.html">Compiling and configuring Eliom modules</a></li><li><a href="../../eliom-language.html">Eliom -- the language extensions</a></li><li><a href="../../intro.html">Introduction</a></li><li><a href="../../misc.html">Miscellaneous</a></li><li><a href="../../mobile-apps.html">Writing multi-platform apps with Eliom (Web and mobile)</a></li><li><a href="../../overview.html">Eliom</a></li><li><a href="../../ppx-migration.html">Migration from Camlp4 to PPX</a></li><li><a href="../../ppx-syntax.html">Eliom PPX syntax extension</a></li><li><a href="../../scalability.html">Scalability of Eliom apps</a></li><li><a href="../../server-links.html">Creating links and forms</a></li><li><a href="../../server-outputs.html">Service handlers</a></li><li><a href="../../server-params.html">Service parameters</a></li><li><a href="../../server-security.html">How to write secure applications with Eliom</a></li><li><a href="../../server-services.html">Services</a></li><li><a href="../../server-state.html">Sessions and server side state</a></li><li><a href="../../workflow-configuration.html">Compiling and configuring Eliom modules</a></li><li><a href="../../workflow-distillery.html">Eliom's Distillery</a></li><li>Library <code>eliom.client</code><ul><li><a href="../../eliom.client/Eliom/index.html">Eliom</a></li></ul></li><li>Library <code>eliom.ppx.client</code><ul><li><a href="../../eliom.ppx.client/Ppx_eliom_client/index.html">Ppx_eliom_client</a></li></ul></li><li>Library <code>eliom.ppx.server</code><ul><li><a href="../../eliom.ppx.server/Ppx_eliom_server/index.html">Ppx_eliom_server</a></li></ul></li><li>Library <code>eliom.ppx.type</code><ul><li><a href="../../eliom.ppx.type/Ppx_eliom_type/index.html">Ppx_eliom_type</a></li></ul></li><li>Library <code>eliom.ppx.utils</code><ul><li><a href="../../eliom.ppx.utils/Ppx_eliom_utils/index.html">Ppx_eliom_utils</a></li></ul></li><li>Library <code>eliom.server</code><ul><li><a href="../../eliom.server/Eliom/index.html">Eliom</a></li></ul></li><li>Library <code>eliom.server.monitor</code><ul><li><a href="../../eliom.server.monitor/Eliom_monitor/index.html">Eliom_monitor</a></li></ul></li><li>Library <code>eliom.server.monitor.start</code><ul><li><a href="../../eliom.server.monitor.start/Eliom_monitor_main/index.html">Eliom_monitor_main</a></li></ul></li><li><a href="../index.html">Sources</a><ul><li>eliom.ppx.client<ul><li><a href="../eliom.ppx.client/ppx_eliom_client.ml.html">ppx_eliom_client.ml</a></li></ul></li><li>eliom.ppx.server<ul><li><a href="../eliom.ppx.server/ppx_eliom_server.ml.html">ppx_eliom_server.ml</a></li></ul></li><li>eliom.ppx.type<ul><li><a href="../eliom.ppx.type/ppx_eliom_type.ml.html">ppx_eliom_type.ml</a></li></ul></li><li>eliom.ppx.utils<ul><li><a href="../eliom.ppx.utils/ppx_eliom_utils.ml.html">ppx_eliom_utils.ml</a></li></ul></li><li>eliom.server.monitor<ul><li><a href="../eliom.server.monitor/eliom_monitor.ml.html">eliom_monitor.ml</a></li></ul></li><li>eliom.server.monitor.start<ul><li><a href="#" class="current_unit">eliom_monitor_main.ml</a></li></ul></li></ul></li></ul></li></ul></nav></div><pre class="source_container"><code class="source_line_column"><a id="L1" class="source_line" href="#L1">1</a>
+<a id="L2" class="source_line" href="#L2">2</a>
+<a id="L3" class="source_line" href="#L3">3</a>
+<a id="L4" class="source_line" href="#L4">4</a>
+<a id="L5" class="source_line" href="#L5">5</a>
+<a id="L6" class="source_line" href="#L6">6</a>
+<a id="L7" class="source_line" href="#L7">7</a>
+<a id="L8" class="source_line" href="#L8">8</a>
+<a id="L9" class="source_line" href="#L9">9</a>
+<a id="L10" class="source_line" href="#L10">10</a>
+<a id="L11" class="source_line" href="#L11">11</a>
+<a id="L12" class="source_line" href="#L12">12</a>
+<a id="L13" class="source_line" href="#L13">13</a>
+<a id="L14" class="source_line" href="#L14">14</a>
+<a id="L15" class="source_line" href="#L15">15</a>
+<a id="L16" class="source_line" href="#L16">16</a>
+<a id="L17" class="source_line" href="#L17">17</a>
+<a id="L18" class="source_line" href="#L18">18</a>
+<a id="L19" class="source_line" href="#L19">19</a>
+<a id="L20" class="source_line" href="#L20">20</a>
+<a id="L21" class="source_line" href="#L21">21</a>
+<a id="L22" class="source_line" href="#L22">22</a>
+</code><code class="source_code"><span><span class="COMMENT">(* Ocsigen
+ * http://www.ocsigen.org
+ * Copyright (C) 2014 Hugo Heuzard
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, with linking exception;
+ * either version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *)</span><span class="EOL">
+</span><span class="EOL">
+</span><span class="LET">let</span> <span class="UNDERSCORE">_</span> <span class="EQUAL">=</span><span class="EOL">
+</span>  <span class="UIDENT">Eliom</span><span class="DOT">.</span><span class="UIDENT">Registration</span><span class="DOT">.</span><span class="UIDENT">Html</span><span class="DOT">.</span><span class="LIDENT">create</span> <span class="LABEL">~meth:</span><span class="LPAREN">(</span><span class="UIDENT">Eliom</span><span class="DOT">.</span><span class="UIDENT">Service</span><span class="DOT">.</span><span class="UIDENT">Get</span> <span class="UIDENT">Eliom</span><span class="DOT">.</span><span class="UIDENT">Parameter</span><span class="DOT">.</span><span class="LIDENT">unit</span><span class="RPAREN">)</span><span class="EOL">
+</span>    <span class="LABEL">~path:</span><span class="LPAREN">(</span><span class="UIDENT">Eliom</span><span class="DOT">.</span><span class="UIDENT">Service</span><span class="DOT">.</span><span class="UIDENT">Path</span> <span class="LBRACKET">[</span><span class="RBRACKET">]</span><span class="RPAREN">)</span> <span class="LPAREN">(</span><span class="FUN">fun</span> <span class="UNDERSCORE">_</span> <span class="UNDERSCORE">_</span> <span class="MINUSGREATER">-&gt;</span> <a href="../eliom.server.monitor/eliom_monitor.ml.html#val-content_html"><span class="UIDENT">Eliom_monitor</span><span class="DOT">.</span><span class="LIDENT">content_html</span></a> <span class="LPAREN">(</span><span class="RPAREN">)</span><span class="RPAREN">)</span><span class="EOL">
+</span></span></code></pre></body></html>

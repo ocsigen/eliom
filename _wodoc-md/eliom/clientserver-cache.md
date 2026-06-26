@@ -1,0 +1,16 @@
+
+# Caching the data and off-line applications
+
+
+## Caching the data
+
+Module [`Eliom.Cscache`](./eliom.server/Eliom-Cscache.md) implements a cache of data that can be used both for keeping data on client side or keeping values in memory during a request.
+
+Have look at the documentation of this module for more information.
+
+Also have a look to `Ocsigen_cache` for a local (client or server) cache that keeps the most recently used values.
+
+
+## Off-line applications
+
+In the near future, Eliom.Cscache will make it possible to save persistent data, which is useful for implementing off-line applications.

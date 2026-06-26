@@ -30,12 +30,10 @@ exception
 
 exception Cannot_call_this_function_before_app_is_linked_to_a_site
 exception Eliom_error_while_loading_site of string
-
 exception Do_redirection of string
 
 (* Backwards-compatible alias; new code should use Do_redirection. *)
 exception Eliom_do_redirection = Do_redirection
-
 exception Do_half_xhr_redirection of string
 
 (* Backwards-compatible alias; new code should use Do_half_xhr_redirection. *)
@@ -159,9 +157,7 @@ type perssessgrp = string (* same triple, JSON-encoded *) [@@deriving json]
    {!sessgrp} but always with [Left g] for persistent groups, hence the
    simpler representation here. *)
 type perssessgrp_payload =
-  { p_site_dir_str : string
-  ; p_cookie_level : cookie_level
-  ; p_group : string }
+  {p_site_dir_str : string; p_cookie_level : cookie_level; p_group : string}
 [@@deriving json]
 
 [@@@warning "+39"]
@@ -171,7 +167,9 @@ let make_persistent_full_group_name ~cookie_level site_dir_string = function
   | Some g ->
       Some
         (Deriving_Json.to_string [%json: perssessgrp_payload]
-           {p_site_dir_str = site_dir_string; p_cookie_level = cookie_level; p_group = g})
+           { p_site_dir_str = site_dir_string
+           ; p_cookie_level = cookie_level
+           ; p_group = g })
 
 let getperssessgrp a : 'a sessgrp =
   let {p_site_dir_str; p_cookie_level; p_group} =
@@ -379,7 +377,8 @@ type node_info = {ni_id : node_ref; mutable ni_sent : bool}
 
 module Hier_set = String.Set
 
-type omitpersistentstorage_rule = HeaderRule of Ocsigen_http.Header.Name.t * Re.re
+type omitpersistentstorage_rule =
+  | HeaderRule of Ocsigen_http.Header.Name.t * Re.re
 
 type server_params =
   { sp_request : Ocsigen.Extensions.request
@@ -535,7 +534,8 @@ and sitedata =
   ; mutable omitpersistentstorage : omitpersistentstorage_rule list option }
 
 and dlist_ip_table =
-  (page_table ref * page_table_key, na_key_serv) leftright Ocsigen_base.Cache.Dlist.t
+  (page_table ref * page_table_key, na_key_serv) leftright
+    Ocsigen_base.Cache.Dlist.t
     Net_addr_Hashtbl.t
 
 let check_initialised field =
@@ -706,14 +706,17 @@ let list_scope_hierarchies () =
 
 (*****************************************************************************)
 (* The current registration directory *)
-let absolute_change_sitedata, get_current_sitedata, end_current_sitedata, has_current_sitedata =
+let ( absolute_change_sitedata
+    , get_current_sitedata
+    , end_current_sitedata
+    , has_current_sitedata )
+  =
   let f2 : sitedata list ref = ref [] in
   let popf2 () = match !f2 with _ :: t -> f2 := t | [] -> f2 := [] in
   ( (fun sitedata -> f2 := sitedata :: !f2) (* absolute_change_sitedata *)
   , (fun () ->
       match !f2 with
-      | [] ->
-          raise (Site_information_not_available "get_current_sitedata")
+      | [] -> raise (Site_information_not_available "get_current_sitedata")
       | sd :: _ -> sd)
     (* get_current_sitedata *)
   , (fun () -> popf2 ()) (* end_current_sitedata *)
@@ -775,8 +778,7 @@ let force_lazy_site_value v =
     | None -> (
       match global_register_allowed () with
       | Some f -> f ()
-      | None ->
-          raise (Site_information_not_available "force_lazy_site_value"))
+      | None -> raise (Site_information_not_available "force_lazy_site_value"))
   in
   try Polytables.get ~table:sitedata.site_value_table ~key:v.lazy_sv_key
   with Not_found ->
@@ -847,7 +849,8 @@ let empty_tables max forsession =
       (if forsession
        then (
          let dlist = Ocsigen_base.Cache.Dlist.create max in
-         Ocsigen_base.Cache.Dlist.set_finaliser_before (dlist_finaliser t2) dlist;
+         Ocsigen_base.Cache.Dlist.set_finaliser_before (dlist_finaliser t2)
+           dlist;
          fun ?sp:_ v -> add_dlist_ dlist v)
        else
          fun ?sp v ->
@@ -1387,7 +1390,6 @@ end
 (* keeping track of all the persistent tables *)
 module Persistent_tables = struct
   let functorial_tables = ref []
-
   let add_functorial_table t = functorial_tables := t :: !functorial_tables
 
   let create_json (type a) ~name (json : a Deriving_Json.t) :
