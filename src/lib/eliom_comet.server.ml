@@ -423,7 +423,7 @@ end = struct
         Lwt.wakeup_exn wakener New_connection
 
   (** called when a new channel is made active. It restarts the thread
-      wainting for inputs ( wait_data ) such that it can receive the messages from
+      waiting for inputs ( wait_data ) such that it can receive the messages from
       the new channel *)
   let signal_update handler event =
     match handler.hd_update_streams_w with

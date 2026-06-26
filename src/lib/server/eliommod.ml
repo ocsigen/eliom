@@ -275,23 +275,26 @@ let parse_eliom_option
     in
     a, Eliom_lib.Option.map parse_scope_hierarchy sn, ct
   in
-  let convert_attr tag f v =
+  let convert_attr ~element tag f v =
     try f v
     with Invalid_argument _ ->
       raise
         (Error_in_config_file
            (Printf.sprintf
-              "Eliom: Wrong attribute value for tag %s in element cacheglobaldata"
-              tag))
+              "Eliom: Wrong attribute value for tag %s in element %s" tag element))
   in
   let parse_application_script_attrs attrs =
     let rec aux defer async attrs =
       match attrs with
       | [] -> defer, async
       | ("defer", v) :: rem ->
-          aux (convert_attr "defer" bool_of_string v) async rem
+          aux
+            (convert_attr ~element:"applicationscript" "defer" bool_of_string v)
+            async rem
       | ("async", v) :: rem ->
-          aux defer (convert_attr "async" bool_of_string v) rem
+          aux defer
+            (convert_attr ~element:"applicationscript" "async" bool_of_string v)
+            rem
       | (tag, _) :: _ ->
           raise
             (Error_in_config_file
@@ -307,7 +310,9 @@ let parse_eliom_option
       | [] -> Some (path, max_age)
       | ("path", p) :: rem -> aux (Eliom_lib.Url.split_path p) max_age rem
       | ("cache", v) :: rem ->
-          aux path (convert_attr "cache" int_of_string v) rem
+          aux path
+            (convert_attr ~element:"cacheglobaldata" "cache" int_of_string v)
+            rem
       | (tag, _) :: _ ->
           raise
             (Error_in_config_file

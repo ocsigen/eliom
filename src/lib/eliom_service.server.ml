@@ -233,7 +233,7 @@ let attach :
   let fallbackkind = attached_info fallback in
   let open Eliom_common in
   let error_msg =
-    "attach' is not implemented for this kind ofservice. Please report a bug if you need this."
+    "attach is not implemented for this kind of service. Please report a bug if you need this."
   in
   let get_name =
     match na_name with
