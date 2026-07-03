@@ -114,6 +114,14 @@ let file_position str =
   | {pstr_loc; _} :: _ -> Location.in_file @@ pstr_loc.loc_start.pos_fname
   | [] -> Location.none
 
+(** Cross-tier Eliom processing applies only to [.eliom]/[.eliomi] files.
+    Plain [.ml]/[.mli] files are ordinary (server- or client-only) OCaml and
+    must be left untouched: wrapping them in [set_global] would make e.g.
+    [Eliom_service.create] allocate an orphan client value ([no_client_fun])
+    that no client code ever consumes (reported by [check_global_data]). *)
+let is_plain_ocaml pos_fname =
+  match Filename.extension pos_fname with ".ml" | ".mli" -> true | _ -> false
+
 let lexing_position ~loc l =
   [%expr
     { Lexing.pos_fname = [%e str l.Lexing.pos_fname]
@@ -1028,7 +1036,17 @@ module Make (Pass : Pass) = struct
     let c = ref `Server in
     object
       inherit Ppxlib.Ast_traverse.map
-      method! structure s = toplevel_structure c s
-      method! signature s = toplevel_signature c s
+
+      method! structure s =
+        match s with
+        | {pstr_loc; _} :: _ when is_plain_ocaml pstr_loc.loc_start.pos_fname ->
+            s
+        | _ -> toplevel_structure c s
+
+      method! signature s =
+        match s with
+        | {psig_loc; _} :: _ when is_plain_ocaml psig_loc.loc_start.pos_fname ->
+            s
+        | _ -> toplevel_signature c s
     end
 end
