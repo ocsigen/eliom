@@ -51,20 +51,51 @@ jobs:
         with:
           ocaml-compiler: "5.4.0"
 
-      - name: Install dependencies
+      - name: Set up Binaryen
+        # eliom depends on wasm_of_ocaml-compiler, whose build needs a recent
+        # binaryen (wasm-merge); distro binaryen is too old. Same action as
+        # js_of_ocaml's own CI.
+        uses: Aandreba/setup-binaryen@v1.0.0
+        with:
+          token: ${{ github.token }}
+
+      # The bottleneck of this job is compiling the dependency tree (~6 min): lwt,
+      # js_of_ocaml, wasm_of_ocaml, react, tyxml, ocsigenserver... plus wodoc/odoc
+      # from source. setup-ocaml only caches the base switch (the compiler), so
+      # they recompiled on every push. Cache the whole _opam switch keyed on
+      # eliom.opam (the dep set) and wodoc's HEAD commit. On a cache hit the deps
+      # and wodoc are restored and only eliom itself is (re)built below; the key
+      # changes — and the deps/wodoc rebuild once — only when eliom.opam or wodoc
+      # move.
+      - name: Resolve wodoc HEAD commit
+        id: wodoc
+        run: echo "sha=$(git ls-remote https://github.com/ocsigen/wodoc.git HEAD | cut -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache the opam switch (deps + wodoc)
+        id: switch-cache
+        uses: actions/cache@v4
+        with:
+          path: _opam
+          key: opam-switch-${{ runner.os }}-ocaml5.4.0-${{ hashFiles('eliom.opam') }}-wodoc-${{ steps.wodoc.outputs.sha }}
+
+      - name: Install dependencies and wodoc
+        # Cache miss only: build the dependency tree and wodoc once, then re-cache.
+        if: steps.switch-cache.outputs.cache-hit != 'true'
         run: |
-          # The documented version is the INSTALLED eliom: install it from the ref
-          # being built so odoc_driver documents these sources.
           opam install . --deps-only --with-doc
-          opam install . --with-doc
-          # odoc-driver with the cross-library link fix (driver: link units only
-          # against their actual lib deps). TODO: drop the pin once it lands upstream.
-          opam pin add -n odoc https://github.com/balat/odoc.git#driver-sibling-lib-link-fix
-          opam pin add -n odoc-driver https://github.com/balat/odoc.git#driver-sibling-lib-link-fix
-          opam install odoc odoc-driver
-          # wodoc: the odoc driver that themes the pages with the Ocsigen chrome.
+          # wodoc themes the pages. Its opam pin-depends pulls odoc / odoc-driver
+          # from the balat/odoc fork (the cross-library link fix, not yet upstream),
+          # so we do NOT pin odoc ourselves here.
           opam pin add -n wodoc https://github.com/ocsigen/wodoc.git
           opam install wodoc
+
+      - name: Install eliom
+        # Always: eliom's own sources change on every push, so odoc_driver must
+        # document the freshly-built package. eliom is installed WITHOUT --with-doc:
+        # its server and client libraries share module names, so building eliom's
+        # own @doc collides ("Multiple rules for .../eliom/Eliom_bus/index.html").
+        # wodoc builds the docs via `odoc_driver --remap` instead.
+        run: opam install .
 
       - name: Build documentation (dev)
         # wodoc build runs `odoc_driver eliom --remap` on the installed package
