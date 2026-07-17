@@ -214,20 +214,33 @@ let typed_table_call (type a) (t : a typed_table) =
 
 let get (type a) ((f, _, table) as eref) : a Lwt.t =
   match (table : a eref_kind) with
-  | Per t -> (
+  | Per t ->
       t >>= fun t ->
-      get_persistent_data ~table:t () >>= function
-      | Data d -> Lwt.return d
-      | _ ->
-          let value = f () in
-          set_persistent_data ~table:t value >>= fun () -> Lwt.return value)
-  | Ocsiper r -> (
+      let reset () =
+        let value = f () in
+        set_persistent_data ~table:t value >>= fun () -> Lwt.return value
+      in
+      (* A [Failure] means the stored value cannot be deserialised (old
+         format or corruption): reset it to the default rather than let the
+         exception escape and brick the request. *)
+      Lwt.catch
+        (fun () ->
+           get_persistent_data ~table:t () >>= function
+           | Data d -> Lwt.return d
+           | _ -> reset ())
+        (function Failure _ -> reset () | exc -> Lwt.reraise exc)
+  | Ocsiper r ->
       r >>= fun r ->
-      Store_json.get r >>= function
-      | Some v -> Lwt.return v
-      | None ->
-          let value = f () in
-          Store_json.set r (Some value) >>= fun () -> Lwt.return value)
+      let reset () =
+        let value = f () in
+        Store_json.set r (Some value) >>= fun () -> Lwt.return value
+      in
+      Lwt.catch
+        (fun () ->
+           Store_json.get r >>= function
+           | Some v -> Lwt.return v
+           | None -> reset ())
+        (function Failure _ -> reset () | exc -> Lwt.reraise exc)
   | Ocsiper_sit t ->
       let module T =
         (val t
@@ -237,7 +250,7 @@ let get (type a) ((f, _, table) as eref) : a Lwt.t =
       Lwt.catch
         (fun () -> T.find site_id)
         (function
-          | Not_found ->
+          | Not_found | Failure _ ->
               let value = f () in
               T.add site_id value >>= fun () -> Lwt.return value
           | exc -> Lwt.reraise exc)

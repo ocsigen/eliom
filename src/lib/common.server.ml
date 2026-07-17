@@ -172,10 +172,14 @@ let make_persistent_full_group_name ~cookie_level site_dir_string = function
            ; p_group = g })
 
 let getperssessgrp a : 'a sessgrp =
-  let {p_site_dir_str; p_cookie_level; p_group} =
-    Deriving_Json.from_string [%json: perssessgrp_payload] a
-  in
-  p_site_dir_str, p_cookie_level, Either.Left p_group
+  match Deriving_Json.from_string [%json: perssessgrp_payload] a with
+  | {p_site_dir_str; p_cookie_level; p_group} ->
+      p_site_dir_str, p_cookie_level, Either.Left p_group
+  | exception Failure _ ->
+      (* Old (pre-Eliom-13, Marshal-encoded) or corrupt persistent
+         session-group cookie: treat it as an expired session instead of
+         letting the Deriving_Json failure escape and 500 every request. *)
+      raise Eliom_Session_expired
 
 let string_of_perssessgrp = Fun.id
 
@@ -1006,7 +1010,9 @@ let get_session_info ~sitedata ~req previous_extension_err =
    It should never be both.
           *)
           let tc, pp = List.assoc_remove tab_cookies_param_name post_params in
-          let tc = [%of_json: (string * string) list] tc in
+          let tc =
+            try [%of_json: (string * string) list] tc with Failure _ -> []
+          in
           ( List.fold_left
               (fun t (k, v) -> Ocsigen_cookie_map.Map_inner.add k v t)
               Ocsigen_cookie_map.Map_inner.empty tc
@@ -1018,7 +1024,9 @@ let get_session_info ~sitedata ~req previous_extension_err =
               (Ocsigen_http.Header.Name.of_string tab_cookies_header_name)
           with
           | Some tc ->
-              let tc = [%of_json: (string * string) list] tc in
+              let tc =
+                try [%of_json: (string * string) list] tc with Failure _ -> []
+              in
               ( List.fold_left
                   (fun t (k, v) -> Ocsigen_cookie_map.Map_inner.add k v t)
                   Ocsigen_cookie_map.Map_inner.empty tc
@@ -1032,7 +1040,7 @@ let get_session_info ~sitedata ~req previous_extension_err =
       Ocsigen.Request.header ri
         (Ocsigen_http.Header.Name.of_string tab_cpi_header_name)
     with
-    | Some cpi -> Some ([%of_json: cpi] cpi)
+    | Some cpi -> ( try Some ([%of_json: cpi] cpi) with Failure _ -> None)
     | None -> None
   in
   let epd =
@@ -1041,7 +1049,7 @@ let get_session_info ~sitedata ~req previous_extension_err =
          Ocsigen.Request.header ri
            (Ocsigen_http.Header.Name.of_string expecting_process_page_name)
        with
-      | Some epd -> [%of_json: bool] epd
+      | Some epd -> ( try [%of_json: bool] epd with Failure _ -> false)
       | None -> false)
   in
   let post_params, get_params, to_be_considered_as_get =
@@ -1121,7 +1129,7 @@ let get_session_info ~sitedata ~req previous_extension_err =
         List.fold_left
           (fun t (k, v) -> Ocsigen_cookie_map.Map_inner.add k v t)
           Ocsigen_cookie_map.Map_inner.empty
-          ([%of_json: (string * string) list] tc)
+          (try [%of_json: (string * string) list] tc with Failure _ -> [])
     | None -> Ocsigen.Request.cookies ri
   in
   let data_cookies = getcookies false `Session datacookiename browser_cookies in
