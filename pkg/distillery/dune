@@ -1,8 +1,15 @@
 (data_only_dirs templates)
 
+; Install the distillery templates into lib/eliom/templates/<name>/
+; so that eliom-distillery picks them up at the standard location.
+
 (install
- (section lib)
+ (package eliom)
+ (section lib_root)
  (files
-  (glob_files templates/app.exe/**)
-  (glob_files templates/app.lib/**)
-  (glob_files templates/basic.ppx/**)))
+  (glob_files_rec
+   (templates/app.exe/* with_prefix eliom/templates/app.exe))
+  (glob_files_rec
+   (templates/app.lib/* with_prefix eliom/templates/app.lib))
+  (glob_files_rec
+   (templates/basic.ppx/* with_prefix eliom/templates/basic.ppx))))

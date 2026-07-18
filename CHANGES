@@ -1,3 +1,120 @@
+===== 13.0~dev =====
+* PPX: the Eliom syntax extension is now a no-op on plain .ml/.mli files;
+  only .eliom/.eliomi files are processed as client-server code. This
+  prevents server-only .ml modules that create services at toplevel from
+  emitting client values that are never linked on the client (reported as
+  "Code generating the following client values is not linked on the client").
+* Persistent storage: replace Stdlib.Marshal with Deriving_Json
+** perssessgrp values (session-group keys) are now serialised with
+   Deriving_Json instead of Stdlib.Marshal. The on-disk format
+   becomes stable across OCaml versions and human-readable.
+   BREAKING: existing session-group entries from older Eliom
+   versions become unreadable; tables are renamed in later commits
+   to make this migration explicit.
+** Persistent-cookie table (eliom_persist_cookies) now uses
+   Ocsipersist.Column.Json instead of Column.Marshal. The table
+   suffix is bumped to _v6. BREAKING: persistent cookies issued by
+   earlier Eliom versions are dropped on upgrade and clients are
+   asked to remove the cookie on next visit.
+** Session-group table is migrated from Ocsipersist.Polymorphic to a
+   typed functorial table with Column.Json. Renamed from
+   __eliom_session_group_table to __eliom_session_group_table_v2.
+   BREAKING: existing session groups are dropped on upgrade.
+** Eliom references and persistent session-data tables drop all
+   reliance on Stdlib.Marshal. The user-facing API now requires a
+   Deriving_Json codec:
+     Reference.eref ~persistent:("name", [%json: t]) v
+     State.create_persistent_table ~scope ~json:[%json: t] "name"
+   The stored values must be annotated with [@@deriving json].
+   Internally:
+     - The global persistent store (Ocsiper) now uses
+       Ocsipersist.Store_json.
+     - Per-site and per-user persistent tables use a typed
+       Ocsipersist functorial table with Column.Json registered
+       via Persistent_tables.create_json. These tables are named
+       with a "_json_" prefix, so they never share a name with the
+       pre-13 Marshal-encoded table (which used the bare name). The
+       column type also changes (bytea -> text), so reusing the old
+       table would be incorrect: the stale Marshal tables are left
+       orphaned instead, and Eliom 13 starts from fresh tables.
+     - The vestigial int64 column previously prefixed to every
+       session value is dropped.
+     - Ocsipersist.Polymorphic is no longer used in Eliom and the
+       Common.Ocsipersist.Polymorphic wrapper is removed.
+   BREAKING: on upgrade from Eliom 12, all persistent data
+   (references, per-session and per-site state, cookies and session
+   groups) is left behind and resets to its default value, because
+   the JSON tables use new names and the old Marshal tables are
+   never read. The old tables are kept on disk, not deleted. A value
+   that cannot be deserialised never raises: it is treated as an
+   absent value (fresh session / default reference) instead of a
+   500 error.
+* Module namespace modernization
+** Public modules are now accessed as Eliom.Service, Eliom.Content,
+   Eliom.Parameter, Eliom.Registration, Eliom.Client, ... instead of
+   the legacy flat Eliom_xxx prefix. Implemented with
+   (include_subdirs qualified) + (wrapped false) in dune.
+** Eliom_common is now Eliom.Common; most internal modules lost
+   their eliom_/eliommod_ prefix as well (Content_core, Mod_main,
+   Mod_pagegen, ...). A few names are kept as-is for conflict
+   reasons (Eliom_form, Eliom_lazy, Eliom_react, Eliom_uri).
+** New eliom-compat opam package: provides the legacy Eliom_xxx
+   module names as include-aliases of the new Eliom.Xxx modules,
+   to ease migration of existing code.
+** BREAKING: Eliom.run is now Eliom.App.run (the auto-generated
+   wrapper module cannot contain val declarations).
+* Eliom.Content.Html.T
+** New named module type for the Tyxml HTML signature shared by F
+   and D, with Eliom's LINKS_AND_FORMS extensions. Use it as the
+   parameter signature of functors that need to abstract over the
+   F/D choice, instead of [module type of Content.Html.F]. The
+   latter triggers an OCaml strengthening bug in wrapped libraries.
+   Tools.Make, Ot.Icons.Make and the os_template Make functor all
+   use it.
+* Distillery template install path
+** Eliom's three templates (app.exe, app.lib, basic.ppx) are now
+   installed at lib/eliom/templates/<name>/ via the standard dune
+   (install (section lib_root) ... (with_prefix ...)) pattern.
+   Third-party packages (e.g. ocsigen-start) that ship templates
+   are expected to install at the same location.
+* Build system
+** Migrated to wrapped ocsigenserver module names (Ocsigen.Server,
+   Ocsigen.Extensions, Ocsigen.Request, Ocsigen.Response,
+   Ocsigen.Config, Ocsigen_base.Lib, Ocsigen_http.Header, ...).
+** PPX gained -internal and -internal-prefix flags for compiling
+   wrapped libraries.
+** Removed the eliom.ocamlbuild plugin and the legacy topkg/pkg
+   build artifacts. API documentation is now generated by
+   build/gen_wikidoc.sh (ocamldoc + wikidoc, no ocamlbuild
+   dependency); run via [make wikidoc].
+* Exception renames
+** Common.Eliom_site_information_not_available is now
+   Common.Site_information_not_available, Common.Eliom_do_redirection
+   is now Common.Do_redirection, and Common.Eliom_do_half_xhr_redirection
+   is now Common.Do_half_xhr_redirection. The old names are kept as
+   backwards-compatible aliases (exception X = Y).
+** The internal client exception
+   Request_info.Eliom_no_raw_post_data_on_client was renamed to
+   No_raw_post_data_on_client (no alias kept, as it was not exposed).
+* Bug fixes
+** Syntax.is_site_available now checks that the sitedata stack is
+   actually non-empty during initialisation, instead of just
+   relying on Ocsigen.Extensions.during_initialisation. Fixes a
+   crash on startup
+   (Eliom_site_information_not_available "get_current_sitedata")
+   exposed by the new module link order: PPX-inserted top-level
+   close_server_section calls in extension-linked .eliom files
+   (Service_base, Content, Tools, ...) now correctly route their
+   compilation-unit data into !global_data when no site is active,
+   matching the design intent stated in the comment on
+   get_global_data.
+** Client values created during site initialisation (register_site_init
+   callbacks: set_ignored_params, the Comet fallback services) are now
+   flushed into a dedicated section (__eliom_site_init__) and consumed by
+   the client in do_request_data, instead of leaking into the next loaded
+   module's section. Previously they were reported as unlinked on the
+   client whenever that module was not linked there (e.g. an unused
+   Ot widget), and set_ignored_params was in fact never reliably applied.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
@@ -10,7 +127,7 @@
 * Eliom_lib
 ** Deprecated logging functions were removed (#821)
    These are: debug_exn, debug, error, error_any, jsdebug
-* Full WASM support: build system and sending either js or wasm depending on the browser 
+* Full WASM support: build system and sending either js or wasm depending on the browser
 * Use Log instead of Lwt_logs
 
 ===== 11.1 =====

@@ -1,0 +1,1 @@
+include Eliom.Shared_content

@@ -1,3 +1,7 @@
+let is_internal = ref false
+let internal_prefix = ref ""
+let check_internal () = !is_internal
+
 module Parsetree = Ppxlib.Parsetree
 module Asttypes = Ppxlib.Asttypes
 module Longident = Ppxlib.Longident
@@ -40,6 +44,29 @@ let in_context cref c f x =
 let ( % ) f g x = f (g x)
 let exp_add_attrs attr e = {e with pexp_attributes = attr}
 let eid {Location.txt; loc} = Exp.ident ~loc {loc; txt = Longident.Lident txt}
+
+(** Build a Longident for an Eliom module path.
+    Without [-internal], prepends [Eliom.] to the path.
+    E.g. [eliom_lid "Syntax.client_value"] gives
+    [Eliom.Syntax.client_value] in user code. *)
+let eliom_lid path =
+  let lid = Longident.parse path in
+  if check_internal ()
+  then lid
+  else
+    let rec prepend = function
+      | Longident.Lident s -> Longident.Ldot (Longident.Lident "Eliom", s)
+      | Longident.Ldot (p, s) -> Longident.Ldot (prepend p, s)
+      | Longident.Lapply (p1, p2) -> Longident.Lapply (prepend p1, p2)
+    in
+    prepend lid
+
+(** Build an expression referencing an Eliom module path. *)
+let eliom_expr ~loc path = Exp.ident ~loc {loc; txt = eliom_lid path}
+
+(** Build a type constructor referencing an Eliom module path. *)
+let eliom_type ~loc path args = Typ.constr ~loc {loc; txt = eliom_lid path} args
+
 let format_args = function [] -> unit () | [e] -> e | l -> Exp.tuple l
 let pat_args = function [] -> punit () | [p] -> p | l -> Pat.tuple l
 
@@ -86,6 +113,14 @@ let file_position str =
   match str with
   | {pstr_loc; _} :: _ -> Location.in_file @@ pstr_loc.loc_start.pos_fname
   | [] -> Location.none
+
+(** Cross-tier Eliom processing applies only to [.eliom]/[.eliomi] files.
+    Plain [.ml]/[.mli] files are ordinary (server- or client-only) OCaml and
+    must be left untouched: wrapping them in [set_global] would make e.g.
+    [Eliom_service.create] allocate an orphan client value ([no_client_fun])
+    that no client code ever consumes (reported by [check_global_data]). *)
+let is_plain_ocaml pos_fname =
+  match Filename.extension pos_fname with ".ml" | ".mli" -> true | _ -> false
 
 let lexing_position ~loc l =
   [%expr
@@ -162,7 +197,7 @@ module Name = struct
 end
 
 (* WARNING: if you change this, also change inferred_type_prefix in
-   tools/eliomc.ml and ocamlbuild/ocamlbuild_eliom.ml *)
+   tools/eliomc.ml *)
 let inferred_type_prefix = "eliom_inferred_type_"
 
 module Mli = struct
@@ -187,17 +222,17 @@ module Mli = struct
       fun s ->
         String.length s >= len && String.sub s 0 len = inferred_type_prefix
     in
-    (object
-       inherit Ppxlib.Ast_traverse.map as super
+    object
+      inherit Ppxlib.Ast_traverse.map as super
 
-       method! core_type ty =
-         match ty.ptyp_desc with
-         (* | Ptyp_constr  (_, Ast.TyAny _, ty) *)
-         (* | Ptyp_constr (_, ty, Ast.TyAny _) -> ty *)
-         | Ptyp_var var when has_pfix var ->
-             super#core_type {ty with ptyp_desc = Ptyp_var (rename var)}
-         | _ -> super#core_type ty
-    end)
+      method! core_type ty =
+        match ty.ptyp_desc with
+        (* | Ptyp_constr  (_, Ast.TyAny _, ty) *)
+        (* | Ptyp_constr (_, ty, Ast.TyAny _) -> ty *)
+        | Ptyp_var var when has_pfix var ->
+            super#core_type {ty with ptyp_desc = Ptyp_var (rename var)}
+        | _ -> super#core_type ty
+    end
       #core_type
 
   let is_injected_ident id =
@@ -216,8 +251,12 @@ module Mli = struct
     Scanf.sscanf id Name.injected_ident_fmt (fun u n -> u, n)
 
   let get_fragment_type = function
-    | [%type: [%t? typ] Eliom_client_value.fragment]
-    | [%type: [%t? typ] Eliom_client_value.t] ->
+    | [%type: [%t? typ] Client_value.fragment]
+    | [%type: [%t? typ] Client_value.t]
+    | [%type: [%t? typ] Eliom__.Client_value.fragment]
+    | [%type: [%t? typ] Eliom__.Client_value.t]
+    | [%type: [%t? typ] Eliom.Client_value.fragment]
+    | [%type: [%t? typ] Eliom.Client_value.t] ->
         Some typ
     | _ -> None
 
@@ -328,10 +367,23 @@ module Cmo = struct
   let rec ident_of_out_ident id =
     let open Outcometree in
     let open Longident in
+    let strip_wrapper lid =
+      (* Strip wrapper module prefixes from type paths read from the server
+         .cmo, since the client modules are siblings in the same wrapped
+         library.
+         - [-internal]: strips "Eliom." (for compiling Eliom itself)
+         - [-internal-prefix Os]: strips "Os." (for compiling ocsigen-start) *)
+      match lid with
+      | Ldot (Lident "Eliom", nm) when check_internal () -> Lident nm
+      | Ldot (Lident w, nm) when !internal_prefix <> "" && w = !internal_prefix
+        ->
+          Lident nm
+      | _ -> lid
+    in
     match id with
     | Oide_apply (id, id') ->
         Lapply (ident_of_out_ident id, ident_of_out_ident id')
-    | Oide_dot (id, nm) -> Ldot (ident_of_out_ident id, nm)
+    | Oide_dot (id, nm) -> Ldot (strip_wrapper (ident_of_out_ident id), nm)
     | Oide_ident {printed_name = nm} ->
         Lident
           (try String.sub nm 0 (String.index nm '/') with Not_found -> nm)
@@ -541,9 +593,13 @@ module Cmo = struct
   let find_injected_ident = find "injected ident"
 
   let find_fragment loc =
-    match Mli.get_fragment_type (find "client value" loc) with
+    let ty = find "client value" loc in
+    match Mli.get_fragment_type ty with
     | Some ty -> ty
-    | None -> assert false
+    | None ->
+        failwith
+          (Format.asprintf "find_fragment: unexpected type: %a"
+             Ppxlib.Pprintast.core_type ty)
 end
 
 (** Context convenience module. *)
@@ -580,7 +636,14 @@ let driver_args =
     , " Unset explicitly set path from which to load inferred types." )
   ; ( "-server-cmo"
     , Arg.String (fun file -> Cmo.file := Some file)
-    , "FILE Load inferred types from server cmo file FILE." ) ]
+    , "FILE Load inferred types from server cmo file FILE." )
+  ; ( "-internal"
+    , Arg.Set is_internal
+    , " Use short module names (for compiling Eliom itself)." )
+  ; ( "-internal-prefix"
+    , Arg.String (fun s -> internal_prefix := s)
+    , "PREFIX Strip PREFIX. wrapper prefix from .cmo type paths (for compiling wrapped libraries that depend on Eliom)."
+    ) ]
 
 let () =
   List.iter
@@ -722,46 +785,46 @@ end
 
 module Shared = struct
   let server =
-    (object
-       inherit Ppxlib.Ast_traverse.map as super
+    object
+      inherit Ppxlib.Ast_traverse.map as super
 
-       method! expression expr =
-         match expr with
-         | [%expr [%client [%e? _]]] -> expr
-         | [%expr [%client.unsafe [%e? _]]] -> expr
-         | [%expr ~%[%e? injection_expr]] -> injection_expr
-         | _ -> super#expression expr
-    end)
+      method! expression expr =
+        match expr with
+        | [%expr [%client [%e? _]]] -> expr
+        | [%expr [%client.unsafe [%e? _]]] -> expr
+        | [%expr ~%[%e? injection_expr]] -> injection_expr
+        | _ -> super#expression expr
+    end
       #expression
 
   let client expr =
     let context = ref `Top in
-    (object (self)
-       inherit Ppxlib.Ast_traverse.map as super
+    object (self)
+      inherit Ppxlib.Ast_traverse.map as super
 
-       method! expression expr =
-         match expr with
-         | [%expr [%client [%e? fragment_expr]]]
-         | [%expr [%client.unsafe [%e? fragment_expr]]] ->
-             in_context context `Fragment self#expression fragment_expr
-         | [%expr ~%[%e? injection_expr]] -> (
-           match !context with `Top -> expr | `Fragment -> injection_expr)
-         | _ -> super#expression expr
-    end)
+      method! expression expr =
+        match expr with
+        | [%expr [%client [%e? fragment_expr]]]
+        | [%expr [%client.unsafe [%e? fragment_expr]]] ->
+            in_context context `Fragment self#expression fragment_expr
+        | [%expr ~%[%e? injection_expr]] -> (
+          match !context with `Top -> expr | `Fragment -> injection_expr)
+        | _ -> super#expression expr
+    end
       #expression
       expr
 
   let expr loc ~unsafe expr =
     let server_expr = server expr in
     let client_expr = client expr in
+    let shared_create =
+      Exp.ident ~loc {loc; txt = eliom_lid "Shared.Value.create"}
+    in
     if unsafe
     then
       [%expr
-        Eliom_shared.Value.create [%e server_expr]
-          [%client.unsafe [%e client_expr]]]
-    else
-      [%expr
-        Eliom_shared.Value.create [%e server_expr] [%client [%e client_expr]]]
+        [%e shared_create] [%e server_expr] [%client.unsafe [%e client_expr]]]
+    else [%expr [%e shared_create] [%e server_expr] [%client [%e client_expr]]]
 end
 
 module Make (Pass : Pass) = struct
@@ -973,7 +1036,17 @@ module Make (Pass : Pass) = struct
     let c = ref `Server in
     object
       inherit Ppxlib.Ast_traverse.map
-      method! structure s = toplevel_structure c s
-      method! signature s = toplevel_signature c s
+
+      method! structure s =
+        match s with
+        | {pstr_loc; _} :: _ when is_plain_ocaml pstr_loc.loc_start.pos_fname ->
+            s
+        | _ -> toplevel_structure c s
+
+      method! signature s =
+        match s with
+        | {psig_loc; _} :: _ when is_plain_ocaml psig_loc.loc_start.pos_fname ->
+            s
+        | _ -> toplevel_signature c s
     end
 end

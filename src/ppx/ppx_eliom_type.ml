@@ -99,8 +99,11 @@ module Pass = struct
     [%expr
       [%e flush_typing_expr ()];
       [%e frag_eid] :=
-        Some (Eliom_syntax.client_value "" 0 : [%t typ] Eliom_client_value.t);
-      (Stdlib.Option.get ![%e frag_eid] : _ Eliom_client_value.t)]
+        Some
+          ([%e eliom_expr ~loc "Syntax.client_value"] "" 0
+           : [%t eliom_type ~loc "Client_value.t" [typ]]);
+      (Stdlib.Option.get ![%e frag_eid]
+       : [%t eliom_type ~loc "Client_value.t" [Typ.any ~loc ()]])]
 
   let escape_inject
         ~loc

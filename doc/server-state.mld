@@ -16,35 +16,35 @@ will be different for each session (one session = one browser process).
 
 To create an Eliom reference containing initial value [None]:
 {@ocaml[
-let myref = Eliom_reference.Volatile.eref ~scope None
+let myref = Eliom.Reference.Volatile.eref ~scope None
 ]}
 
 Where [~scope] may be (amongst others):
-- [Eliom_common.default_session_scope] if you want to store server side
+- [Eliom.Common.default_session_scope] if you want to store server side
 data for one browser (one session),
-- [Eliom_common.default_process_scope] if you want to store server side
+- [Eliom.Common.default_process_scope] if you want to store server side
 data for one tab of a browser (one client process),
-- [Eliom_common.request_scope] if you want to store server side data
+- [Eliom.Common.request_scope] if you want to store server side data
 during one request,
-- [Eliom_common.default_group_scope] if you want to store server side
+- [Eliom.Common.default_group_scope] if you want to store server side
 data for a group of sessions (for example all browsers belonging to the same
 user -- see below).
 
 Setting this reference, during a request:
 {@ocaml[
 ...
-Eliom_reference.Volatile.Ext.set myref (Some "user data")
+Eliom.Reference.Volatile.Ext.set myref (Some "user data")
 ]}
 
 Getting the value of this reference (different for each user):
 {@ocaml[
-  Eliom_reference.Volatile.Ext.get myref
+  Eliom.Reference.Volatile.Ext.get myref
 ]}
 
 Most of the time, what we want is to store data for one user,
 not for one browser instance. To do that, we use scope "group of sessions".
 A session is attached to a group of session by calling function
-{!Eliom_state.set_volatile_data_session_group} (for non-persistent groups).
+{!Eliom.State.set_volatile_data_session_group} (for non-persistent groups).
 The name of the group may be for example the user id.
 This will automatically create a session (and set a cookie) if needed.
 
@@ -53,8 +53,8 @@ Example:
 let open_session login password =
   let%lwt b = check_password login password in
   if b then
-    Eliom_state.set_volatile_data_session_group
-      ~scope:Eliom_common.default_session_scope
+    Eliom.State.set_volatile_data_session_group
+      ~scope:Eliom.Common.default_session_scope
       (Int64.to_string (get_userid login))
   else
     ...
@@ -144,11 +144,11 @@ very convenient way to implement a session mechanism for your Web site.
 There are two categories of scopes:
 
 - {e Eliom scopes}, which are:
-- {!Eliom_common.global_scope}: for data
+- {!Eliom.Common.global_scope}: for data
    shared by all clients,
-- {!Eliom_common.site_scope}: for data
+- {!Eliom.Common.site_scope}: for data
    and services shared by all clients of an Eliom site, and
-- {!Eliom_common.request_scope}: for
+- {!Eliom.Common.request_scope}: for
    data specific to the current request.
 - {e User scopes}: used to restrict the accessibility of a piece of
   data or a service to a subset of the clients.
@@ -157,16 +157,16 @@ Within the user scopes, Eliom distinguishes three scopes that differ
 with respect to how Eliom associates clients and data.
 
 - Data and dynamic services created with scope
-  {!Eliom_common.default_session_scope} are only
+  {!Eliom.Common.default_session_scope} are only
   visible to the client belonging to a same session
   (all tabs of a single browser).
 - Data and dynamic services created with scope {!val
-  Eliom_common.default_group_scope} are only visible to the clients
+  Eliom.Common.default_group_scope} are only visible to the clients
   whose sessions belong to the same session group.  See section
   {{!page-"server-state".session_groups}Session
   groups} for more information.
 - Data and dynamic services created with scope {!val
-  Eliom_common.default_process_scope} are only visible to a specific
+  Eliom.Common.default_process_scope} are only visible to a specific
   instance of the Eliom application (i.e., a single tab, running the
   Eliom client process).  See section {{!page-"clientserver-applications".session_groups}Eliom
   applications} for more information.
@@ -193,7 +193,7 @@ use different cookies. See section {{!page-"server-state".new_scope}Hierarchies 
 
 Eliom automatically creates a session ---~ and sets the corresponding
 cookie on the client~ --- when you first modify an Eliom reference of
-scope {{!Eliom_common.default_session_scope}session},
+scope {{!Eliom.Common.default_session_scope}session},
 when you register a service with this scope or when you enter a session
 group.
 
@@ -210,23 +210,23 @@ process cookies.
 
 If you want to handle multiple sessions for the same site that can
 be created and discarded independently, you can create a new hierarchy of
-users scope that will use different cookies, with the function {!Eliom_common.create_scope_hierarchy}.
+users scope that will use different cookies, with the function {!Eliom.Common.create_scope_hierarchy}.
 
 {@ocaml[
-let custom_session_hierarchy = Eliom_common.create_scope_hierarchy "custom"
+let custom_session_hierarchy = Eliom.Common.create_scope_hierarchy "custom"
 let custom_session = `Session custom_session_hierarchy
 ]}
 
-Then, the value [custom_session] can replace the usual {!Eliom_common.default_session_scope} for the [~scope] parameter of
+Then, the value [custom_session] can replace the usual {!Eliom.Common.default_session_scope} for the [~scope] parameter of
 the functions
-{!Eliom_reference.eref}, {!val
-Eliom_registration.Html.register},
-{!Eliom_state.discard},~ ...
+{!Eliom.Reference.eref}, {!val
+Eliom.Registration.Html.register},
+{!Eliom.State.discard},~ ...
 
 (Same for [`Client_process] or  [`Session_group] scope levels).
 
 The function {!val
-Eliom_common.create_scope_hierarchy} will prevent you from creating
+Eliom.Common.create_scope_hierarchy} will prevent you from creating
 two scope hierarchies with the same name.
 
 {4 Example of use:}
@@ -242,21 +242,21 @@ user logs in.
 
 {2:closing_sessions Closing sessions (and other states)}
 
-To discard a state, use the {!Eliom_state.discard}
+To discard a state, use the {!Eliom.State.discard}
 function. It will remove all server-side services and data (persistent
 or not) for the given scope. Used with
-[~scope:Eliom_common.default_session_scope], this will close a session. Used
-with [~scope:Eliom_common.default_group_scope], this will close all
+[~scope:Eliom.Common.default_session_scope], this will close a session. Used
+with [~scope:Eliom.Common.default_group_scope], this will close all
 sessions in the group.
 
 It is also possible to selectively discard only services, persistent
-data, or volatile data (see the {!Eliom_state}
+data, or volatile data (see the {!Eliom.State}
 module). But this may be periculous.  Be very careful when doing this,
 as you are desynchronizing the three kinds of sessions.
 
 {%wodoc:div class="wip"%}
 
-  The behaviour of {!Eliom_state.discard} on a session
+  The behaviour of {!Eliom.State.discard} on a session
   group is subject to discussion and may evolve in future versions.
 
 {%wodoc:end%}
@@ -282,7 +282,7 @@ as you are desynchronizing the three kinds of sessions.
 
 The default timeout for sessions is one hour. Sessions will be
 automatically closed after this amount of time of inactivity from the
-user. You can change the timeout for your whole site using the {!Eliom_state.set_global_volatile_state_timeout}.
+user. You can change the timeout for your whole site using the {!Eliom.State.set_global_volatile_state_timeout}.
 
 It is also possible to change the default value for Eliom through the
 configuration file, like this:
@@ -299,13 +299,13 @@ timeout.
 {%wodoc:div%}
 
   This default may be overriden by each site using {!val
-  Eliom_state.set_global_volatile_state_timeout} or {!val
-  Eliom_state.set_default_volatile_state_timeout}.  If you want your user
+  Eliom.State.set_global_volatile_state_timeout} or {!val
+  Eliom.State.set_default_volatile_state_timeout}.  If you want your user
   to be able to set the default in the configuration file for your
   site (between [<site>] and [</site>]), you must parse the configuration (using
-  {!Eliom_config.get_config} function).  You can also
+  {!Eliom.Config.get_config} function).  You can also
   change the timeout for a specific user only with the following
-  functions: {!Eliom_state.set_volatile_data_state_timeout}.  For more details, see the {!Eliom_state}
+  functions: {!Eliom.State.set_volatile_data_state_timeout}.  For more details, see the {!Eliom.State}
   module's interface.
 
 {%wodoc:end%}
@@ -318,8 +318,8 @@ requests using both HTTP and HTTPS. If you want to keep some state in
 a {e secure session} that is visible only to a client accessing with
 the HTTPS protocol, you may provide the optional parameter
 [~secure:true] when calling functions like {!val
-Eliom_reference.eref}, {!val
-Eliom_registration.Html.register}, etc.
+Eliom.Reference.eref}, {!val
+Eliom.Registration.Html.register}, etc.
 
 The default can be set in the configuration file:
 {[
@@ -349,7 +349,7 @@ it will work even if your server is using HTTP behind a local proxy.
 Session group is a kind of scope that allows sharing data or services
 between a set of sessions, typically all sessions for given user. For
 example, using persistent Eliom references with scope {!val
-Eliom_common.default_group_scope} is a convenient way to store data about
+Eliom.Common.default_group_scope} is a convenient way to store data about
 a user without having to explicitly use an external database.
 (Persistent session group states are not discarded when all the sessions are
 closed).
@@ -359,16 +359,16 @@ attached to a group of sessions using one of the following functions
 ---~ depending on the nature of the data you want to share. They take the
 session group name as parameter:
 
-- {!Eliom_state.set_service_session_group}
-- {!Eliom_state.set_volatile_data_session_group}
-- {!Eliom_state.set_persistent_data_session_group}
+- {!Eliom.State.set_service_session_group}
+- {!Eliom.State.set_volatile_data_session_group}
+- {!Eliom.State.set_persistent_data_session_group}
 
 A session could be only attached to one group at a time, but it is
 possible to create multiple sessions for a same client attached to
 different groups, see section {{!page-"server-state".new_scope}Hierarchies of scopes} for more information.
 
 It's possible to fetch the current session group name of a session, if
-any, or to detach a session from a group. See the module {!Eliom_state} for more information.
+any, or to detach a session from a group. See the module {!Eliom.State} for more information.
 
 {3 Limit the number of session within a group}
 
@@ -431,21 +431,21 @@ Eliom references are used for example:
   request), for example to give information to the service taking in
   charge the request after an action,
 - to implement persistent references (scope: global)
-- for caching functions ({!Eliom_reference.eref_from_fun}).
+- for caching functions ({!Eliom.Reference.eref_from_fun}).
 
 Non persistent global Eliom references are equivalent to regular OCaml
 references.
 
 Eliom references are either created using the function {!val
-Eliom_reference.eref}, that works like the usual Ocaml [ref]
+Eliom.Reference.eref}, that works like the usual Ocaml [ref]
 function, but with at least one additional scope parameter.
 Or they may be created by the function {!val
-Eliom_reference.eref_from_fun}: Its argument function is evaluated the first
-time the reference is accessed (through {!Eliom_reference.get}),
+Eliom.Reference.eref_from_fun}: Its argument function is evaluated the first
+time the reference is accessed (through {!Eliom.Reference.get}),
 within one scope or after the reference has been reset.
 
-The {!Eliom_reference} module also defines functions to
-{{!Eliom_reference.get}get} the value, {{!Eliom_reference.set}set}, {{!Eliom_reference.modify}modify} it (by applying a function to its content), and {{!Eliom_reference.unset}unset} it, this is reset to the initial value.
+The {!Eliom.Reference} module also defines functions to
+{{!Eliom.Reference.get}get} the value, {{!Eliom.Reference.set}set}, {{!Eliom.Reference.modify}modify} it (by applying a function to its content), and {{!Eliom.Reference.unset}unset} it, this is reset to the initial value.
 
 {2:persistent_eref Persistent references}
 
@@ -455,32 +455,69 @@ Ocsigenserver provides two implementations, one based on [SQLite],
 the other one based on [DBM].
 
 Persistent references are created by adding the [~persistent]
-parameter to the {!Eliom_reference.eref} function
-calls. The value of this parameter is the name of the reference in the
-database.
+parameter to the {!Eliom.Reference.eref}
+function calls. Since Eliom 13, the value of this parameter is a pair
+[(name, codec)]: [name] is the name of the reference in the
+database, and [codec] is a [Deriving_Json] codec used to
+serialise the stored value:
+
+{@ocaml[
+type user_pref = { lang : string; theme : string } [@@deriving json]
+
+let prefs =
+  Eliom.Reference.eref
+    ~persistent:("user_prefs", [%json: user_pref])
+    ~scope:Eliom.Common.default_group_scope
+    { lang = "en"; theme = "light" }
+]}
+
+The type stored in the reference must be annotated with
+[[@@deriving json]] (or any equivalent way of producing a
+[Deriving_Json.t] value, e.g. [Deriving_Json.convert] for an
+abstract type, or one of the [Deriving_Json.Json_xxx] functors for
+parametric types).
 
 {%wodoc:div class="wip"%}
 
-Persistent data are serialized on hard drive using OCaml's unsafe
-{%wodoc:span class="code"%}Marshal{%wodoc:end%} module, hence persistent references
-currently suffer some limitations:
+Before Eliom 13, the value parameter of [~persistent] was just the
+table name (a [string]), and Eliom used OCaml's unsafe
+[Stdlib.Marshal] module to serialise persistent data, which led to
+the following limitations:
 
-- It is not possible to serialize closures or services (as we are
-  using dynamic linking),
-- If you ever change the type of serialised data, don't forget to
-  change the persistent reference name, or the server will probably
-  crash while deserializing!
+- On-disk values were unsafe to read across OCaml versions (Marshal
+  gives no inter-version stability guarantee on certain types);
+- It was not possible to serialise closures or services (as we are
+  using dynamic linking);
+- If you ever changed the type of serialised data, you had to also
+  change the persistent reference name, or the server would crash
+  while deserialising.
+
+The Deriving_Json migration removes all of these limitations: serialised
+data is human-readable, stable across OCaml versions, and the
+[[@@deriving json]] annotation forces the codec to match the
+stored type at compile time.
+
+{b Upgrading an existing site to Eliom 13 resets all persistent
+data.} The JSON tables are given new names (a [_json_] prefix for
+references and per-session/site state; new version suffixes for
+cookies and session groups), so the pre-13 Marshal tables are left
+orphaned and never read. Persistent references start again from
+their default value and users are logged out once. The old tables
+are kept on disk (they are not deleted), so their content can still
+be inspected or recovered by hand if needed. A stored value that
+cannot be deserialised is treated as an absent value rather than
+raising, so an incomplete migration never turns into a server error.
 
 {%wodoc:end%}
 
 {3 Volatile references}
 
-The module {!Eliom_reference.Volatile} allows the creation of
+The module {!Eliom.Reference.Volatile} allows the creation of
 non-persistent Eliom references, which can then be used through a non-Lwt
 interface.
 
-As {!Eliom_reference.Volatile.eref} is a subtype of {!Eliom_reference.eref}, a volatile reference [eref] may be used
-as [(eref : _ Eliom_reference.eref)] with the Lwt-interface of {!Eliom_reference} alike.
+As {!Eliom.Reference.Volatile.eref} is a subtype of {!Eliom.Reference.eref}, a volatile reference [eref] may be used
+as [(eref : _ Eliom.Reference.eref)] with the Lwt-interface of {!Eliom.Reference} alike.
 
 {1 Accessing other states}
 
@@ -490,13 +527,13 @@ you may want to find the communication channel registered for this
 user. It can probably be found as an Eliom reference in the group
 corresponding to this user.
 
-Use module {!Eliom_state.Ext}
+Use module {!Eliom.State.Ext}
 to get the state corresponding to a group name.
-Use {!Eliom_state.Ext.iter_sub_states}
+Use {!Eliom.State.Ext.iter_sub_states}
 to iterate on all sessions in a group, or on all client processes
 in a session.
 
-Use {!Eliom_reference.Ext}
+Use {!Eliom.Reference.Ext}
 to access Eliom references belonging to another state.
 
 
@@ -508,4 +545,4 @@ piece of data and send it back to the server with each request.
 
 This is implemented using the usual browser cookies for sessions ---~ and
 a simulation of browser cookies by Eliom client side processes~ --- with
-the functions {!Eliom_state.set_cookie} and {!Eliom_state.get_cookie}.
+the functions {!Eliom.State.set_cookie} and {!Eliom.State.get_cookie}.

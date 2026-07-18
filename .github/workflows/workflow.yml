@@ -43,6 +43,9 @@ jobs:
           token: ${{ github.token }}
 
       - run: opam pin -y git+https://github.com/ocsigen/ocsigenserver#master
+      # ocsipersist's released version targets the old flat module names; the
+      # master pin tracks the Ocsigen Server 8 API.
+      - run: opam pin -yn git+https://github.com/ocsigen/ocsipersist#master
       # Published js_of_ocaml (6.3.2) caps at ocaml < 5.5; pin master for
       # 5.5 support (also pulls wasm_of_ocaml, hence the binaryen set-up).
       - run: opam pin -y git+https://github.com/ocsigen/js_of_ocaml#master

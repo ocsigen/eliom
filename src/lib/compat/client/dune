@@ -1,0 +1,15 @@
+(library
+ (name eliom_compat_client)
+ (public_name eliom-compat.client)
+ (synopsis "Eliom: backward-compatible module names (client-side)")
+ (wrapped false)
+ (modes byte)
+ (modules_without_implementation
+  eliom_content_sigs
+  eliom_form_sigs
+  eliom_parameter_sigs
+  eliom_registration_sigs
+  eliom_service_sigs
+  eliom_shared_sigs
+  eliom_wrap)
+ (libraries eliom.client))

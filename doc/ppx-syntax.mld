@@ -81,7 +81,7 @@ client, but it’s possible to refer server-side to the future value of
 this expression (for example, put it in a list). The value of a client
 fragment cannot be accessed on the server.
 
-In this case, [x] has type [int Eliom_client_value.t].
+In this case, [x] has type [int Eliom.Client_value.t].
 Eliom can't always
 infer the type of fragments. In this case, you may annotate the type:
 [[%client ( ... : <type> ) ]].
@@ -97,7 +97,7 @@ let%server x = [%shared ...]
 ]}
 
 It will produce values of type
-{!Eliom_shared.Value.t}.
+{!Eliom.Shared.Value.t}.
 
 Shared fragments can be nested and can contain client fragments.
 
@@ -132,7 +132,7 @@ value is [4] here.
 It is not possible to use injections on values containing a
 closure. This includes lazy values, objects, or anything containing
 functions. You can use either
-{!Eliom_client.server_function} ([let%rpc])
+{!Eliom.Client.server_function} ([let%rpc])
 and client or shared fragments to circumvent this limitation.
 
 To extend and customize the serialization from client to server, see

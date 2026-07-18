@@ -19,19 +19,19 @@ A service is composed of:
 
 Services are most commonly used to create links and forms towards a
 service, using for example the function {!val
-Eliom_content.Html.D.a}. See chapter {{!page-"server-links"}Creating links and forms} for more
+Eliom.Content.Html.D.a}. See chapter {{!page-"server-links"}Creating links and forms} for more
 information.
 
 Manipulation of Eliom services can be done through the values of type
-[type Eliom_service.t] (see {!type
-Eliom_service_sigs.S.t}).  The service creation can be split in two
+[type Eliom.Service.t] (see {!type
+Eliom.Service_sigs.S.t}).  The service creation can be split in two
 steps:
 
-- create a value of type [Eliom_service.t],
+- create a value of type [Eliom.Service.t],
   most commonly by using the function
-  {!Eliom_service.create}; and
+  {!Eliom.Service.create}; and
 - register a service handler, e.g., using {!val
-  Eliom_registration.Html.register}. The handler receives the server
+  Eliom.Registration.Html.register}. The handler receives the server
   parameters (GET and POST) and is responsible for producing the
   content sent to the client.
 
@@ -42,22 +42,22 @@ more information on handler implementation and registration.
 {1 Service creation}
 
 {%wodoc:div%} Warning: in this manual, we use the
-term {e service} both to denote a value of type [Eliom_service.t]
+term {e service} both to denote a value of type [Eliom.Service.t]
 --that only contains some location information about a service--, or a
 fully {e registered} service, that is also composed of a service
 handler. In case of ambiguities, we will use [service] --in green
-monotype-- to designate a value of type [Eliom_service.t].
+monotype-- to designate a value of type [Eliom.Service.t].
 {%wodoc:end%}
 
 The standard way to create a service is a call of the form
-[Eliom_service.create ~meth ~path ()], where
+[Eliom.Service.create ~meth ~path ()], where
 
 - [~meth] (see
-   {!Eliom_service_sigs.TYPES.meth})
+   {!Eliom.Service_sigs.TYPES.meth})
    specifies the HTTP method and the HTTP parameters of the service; and
 - [~path:(Path p)] specifies a path, while
   [~path:No_path] defines a pathless service
-  (see {!Eliom_service_sigs.S.path_option}).
+  (see {!Eliom.Service_sigs.S.path_option}).
 
 {2:http-meth Service method}
 
@@ -79,11 +79,11 @@ methods.
   applications.
 
 The corresponding
-{!Eliom_service_sigs.TYPES.meth}
+{!Eliom.Service_sigs.TYPES.meth}
 constructors
 are [Get g], [Post (g, p)], [Put g], and [Delete g],
 where [g] and [p] belong in
-[Eliom_parameter.params_type]
+[Eliom.Parameter.params_type]
 and correspond to the GET and POST parameters.
 
 {%wodoc:div class="concept"%}{b POST or GET?}
@@ -111,17 +111,17 @@ GET services expect only GET parameters, i.e., parameters that appear
 in the URL. POST, PUT, and DELETE services can also take POST
 parameters which are part of the body of the request.
 
-Values of the type [Eliom_parameter.params_type]
+Values of the type [Eliom.Parameter.params_type]
 represent the set of expected arguments with their types. They are
 built using combinators from the
-{!Eliom_parameter}
+{!Eliom.Parameter}
 module. See chapter {{!page-"server-params"}Service
 parameters} for a detailled description of this module.
 
 Type information associated to each argument allows Eliom to
 automatically convert the actual parameters into the corresponding
 OCaml types. If the parameter cannot be converted, the exception
-{!Eliom_common.Eliom_Typing_Error}
+{!Eliom.Common.Eliom_Typing_Error}
 is raised. The handling of such errors may be customized by providing
 the argument [~error_handler] when registering the service.
 
@@ -133,7 +133,7 @@ URL and by (GET or POST) parameters.  They correspond to classical
 URLs, and they last forever once registered.
 
 For creating a regular service, the [Path p] constructor of
-{!Eliom_service_sigs.S.path_option}
+{!Eliom.Service_sigs.S.path_option}
 is used.  The path [p] is represented in Eliom as a list of
 strings. For example:
 
@@ -163,7 +163,7 @@ implement a separate GET service and register it on the same URL.
 
 Pathless services are not attached to a URL path. Such services are
 created with the [No_path] constructor of
-{!Eliom_service_sigs.S.path_option}.
+{!Eliom.Service_sigs.S.path_option}.
 
 Pathless services are only identified by a special parameter, no
 matter what the path and the other parameters in the URL are. They are
@@ -183,12 +183,12 @@ service like this:
 {@ocaml[
 
 let remove_action =
-  Eliom_registration.Action.create
+  Eliom.Registration.Action.create
     ~meth:
-      (Eliom_service.Post
-         (Eliom_parameter.unit,
-          Eliom_parameter.int "id"))
-    ~path:Eliom_service.No_path
+      (Eliom.Service.Post
+         (Eliom.Parameter.unit,
+          Eliom.Parameter.int "id"))
+    ~path:Eliom.Service.No_path
     (fun () id -> remove id)
 
 ]}
@@ -197,7 +197,7 @@ Then wherever you want to add a button to do that action (on data
 [id]), create a form like:
 
 {@ocaml[
-let open Eliom_content.Html.D in
+let open Eliom.Content.Html.D in
 Form.post_form
   ~service:remove_action
   (fun id_name -> [
@@ -212,13 +212,13 @@ By default, the URL of links or forms to pathless services is the
 current page. If you want to combine the service call with a URL
 change, it is possible to attach a non-attached service to another
 service using function
-{!Eliom_service.attach}.
+{!Eliom.Service.attach}.
 
 Example:
 
 {@ocaml[
 let service =
-  Eliom_service.attach
+  Eliom.Service.attach
     ~fallback:myfirstservice
     ~service:myget_coserv'
     ()
@@ -249,14 +249,14 @@ service. Just provide the maximum number of uses with the optional
 {1 Non-standard services}
 
 Some kinds of services do not fit in our canonical way of defining
-services, {!Eliom_service.create} .
+services, {!Eliom.Service.create} .
 
 {2:attached_services Attached services}
 
 Attached services are created using the functions
-{!Eliom_service.create_attached_get}
+{!Eliom.Service.create_attached_get}
 (GET method) and
-{!Eliom_service.create_attached_post}
+{!Eliom.Service.create_attached_post}
 (POST method).
 
 Anonymous GET attached services are often created dynamically with
@@ -293,12 +293,12 @@ pathless services.
 
 {2:unregistrable_services Unregistrable services}
 
-Some values of type [Eliom_service.t] cannot be meaningfully
+Some values of type [Eliom.Service.t] cannot be meaningfully
 associated to service handlers. Such values are called {e unregistrable
 services} (as opposed to the standard case of {e registrable
 services}), and represent, for example, links towards external sites,
 or registrable services pre-applied to some parameters. This allows
-use of the [Eliom_service] API consistently for creating
+use of the [Eliom.Service] API consistently for creating
 links.
 
 
@@ -307,20 +307,20 @@ links.
 
 It is possible to define external services, that is, services that
 belong to an external Web site (on the same server or not).  To do
-this, use the function [Eliom_service.extern]
-(see {!Eliom_service_sigs.S.extern}).
+this, use the function [Eliom.Service.extern]
+(see {!Eliom.Service_sigs.S.extern}).
 
 For example, the following code defines a link to the OCaml Wikipedia
 page:
 
 {@ocaml[
-Eliom_content.Html.D.a
-  (Eliom_service.extern
+Eliom.Content.Html.D.a
+  (Eliom.Service.extern
      ~prefix:"http://en.wikipedia.org"
      ~path:["wiki";""]
      ~meth:
-       (Eliom_service.Get
-          Eliom_parameter.(suffix (all_suffix "suff")))
+       (Eliom.Service.Get
+          Eliom.Parameter.(suffix (all_suffix "suff")))
      ())
   [txt "OCaml on Wikipedia"]
   ["OCaml"]
@@ -332,7 +332,7 @@ Eliom_content.Html.D.a
 is an Ocsigen Server extension serving static (non-generated) files
 (for example, images and stylesheets). It can be used together with
 Eliom. The predefined service
-{!Eliom_service.static_dir}
+{!Eliom.Service.static_dir}
 can be used to make links to static files. It takes as parameter the
 path of the file.
 
@@ -340,12 +340,12 @@ For example, the following code will create this link:
 download image.
 
 {@ocaml[
-let open Eliom_content.Html.F in
+let open Eliom.Content.Html.F in
 a (static_dir ()) [txt "download image"] ["ocsigen10.png"]
 ]}
 
 It is also possible to send static files using Eliom, with
-{!Eliom_registration.File}.
+{!Eliom.Registration.File}.
 See
 {{!page-"server-outputs".eliomfiles}Sending files}.
 
@@ -353,19 +353,19 @@ See
 
 It is possible to preapply the GET parameters of a service to obtain a
 service without parameters, or only the POST ones. It is done using
-[Eliom_service.preapply]
+[Eliom.Service.preapply]
 (see
-{!Eliom_service_sigs.S.preapply}).
+{!Eliom.Service_sigs.S.preapply}).
 For example:
 
 {@ocaml[
 let s =
-  Eliom_service.create
-    ~path:(Eliom_service.Path ["serv"])
-    ~meth:(Eliom_service.Get Eliom_parameter.int)
+  Eliom.Service.create
+    ~path:(Eliom.Service.Path ["serv"])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.int)
     ()
 
-let preappl = Eliom_service.preapply s 3
+let preappl = Eliom.Service.preapply s 3
 ]}
 
 It is not possible to register a handler on a preapplied service, but
@@ -373,8 +373,8 @@ you can use them in links or as fallbacks for attached services.
 
 {3:void Reload actions}
 
-[Eliom_service.reload_action]
-(see {!Eliom_service_sigs.S.reload_action})
+[Eliom.Service.reload_action]
+(see {!Eliom.Service_sigs.S.reload_action})
 is a special non-attached action, with special behavior: it has no
 parameter at all, not even non-attached parameters.  Use it if you
 want to make a link to the current page without non-attached
@@ -384,15 +384,15 @@ nothing, but instead it is using the GET method, so that you can use
 it with [<a>] links, not only with forms.  Example:
 
 {@ocaml[
-a ~service:Eliom_service.reload_action [txt "cancel"] ()
+a ~service:Eliom.Service.reload_action [txt "cancel"] ()
 ]}
 
-There is also [Eliom_service.reload_action_https]
-(same, but forces use of HTTPS), [Eliom_service.reload_action_hidden],
-and [Eliom_service.reload_action_https_hidden].
+There is also [Eliom.Service.reload_action_https]
+(same, but forces use of HTTPS), [Eliom.Service.reload_action_hidden],
+and [Eliom.Service.reload_action_https_hidden].
 "Hidden" means that they keep GET non-attached parameters.
 
-Use [Eliom_service.reload_action_hidden] for example
+Use [Eliom.Service.reload_action_hidden] for example
 after a POST request, if you want to do a redirection towards the same
 page without POST parameters (and thus prevent from reposting data if
 the user reloads the page).
@@ -425,9 +425,9 @@ sessions.
 
 To limit the scope of a service, just add the argument [~scope] to
 the
-{!Eliom_registration.Html.register}
+{!Eliom.Registration.Html.register}
 function (same for the other [register] variants). The default scope
-is {!Eliom_common.site_scope}.
+is {!Eliom.Common.site_scope}.
 
 The same service can be registered with several scopes.  This makes it
 possible, for example, to generate custom services for a specific

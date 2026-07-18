@@ -9,6 +9,16 @@ src/**/*.mllib
 src/**/*.mldylib
 src/**/*.odocl
 
+# Generated odoc/wodoc documentation output
+_wodoc-html/
+_wodoc-md/
+
 ocsigen.org-data
 
 _opam
+
+# Local files (not part of the project)
+AGENTS*.md
+instructions
+2026-*.md
+doc/manual/menu.wiki
