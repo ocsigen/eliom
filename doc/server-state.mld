@@ -497,6 +497,17 @@ data is human-readable, stable across OCaml versions, and the
 [[@@deriving json]] annotation forces the codec to match the
 stored type at compile time.
 
+{b Upgrading an existing site to Eliom 13 resets all persistent
+data.} The JSON tables are given new names (a [_json_] prefix for
+references and per-session/site state; new version suffixes for
+cookies and session groups), so the pre-13 Marshal tables are left
+orphaned and never read. Persistent references start again from
+their default value and users are logged out once. The old tables
+are kept on disk (they are not deleted), so their content can still
+be inspected or recovered by hand if needed. A stored value that
+cannot be deserialised is treated as an absent value rather than
+raising, so an incomplete migration never turns into a server error.
+
 {%wodoc:end%}
 
 {3 Volatile references}

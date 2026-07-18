@@ -1400,9 +1400,18 @@ module Persistent_tables = struct
   let functorial_tables = ref []
   let add_functorial_table t = functorial_tables := t :: !functorial_tables
 
+  (* Prefix of the JSON-encoded persistent tables (Eliom 13). Before Eliom
+     13 these tables held Stdlib.Marshal data under their bare [name]; the
+     JSON tables now use a distinct name so that the stale Marshal tables of
+     the same logical name are left orphaned (never read) instead of being
+     decoded as JSON. "_json_" begins with '_', hence a valid unquoted
+     PostgreSQL identifier. *)
+  let json_table_prefix = "_json_"
+
   let create_json (type a) ~name (json : a Deriving_Json.t) :
     (module Ocsipersist.TABLE with type key = string and type value = a)
     =
+    let name = json_table_prefix ^ name in
     let module T =
       Ocsipersist.Functorial.Table
         (struct

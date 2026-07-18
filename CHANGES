@@ -31,15 +31,24 @@
        Ocsipersist.Store_json.
      - Per-site and per-user persistent tables use a typed
        Ocsipersist functorial table with Column.Json registered
-       via Persistent_tables.create_json.
+       via Persistent_tables.create_json. These tables are named
+       with a "_json_" prefix, so they never share a name with the
+       pre-13 Marshal-encoded table (which used the bare name). The
+       column type also changes (bytea -> text), so reusing the old
+       table would be incorrect: the stale Marshal tables are left
+       orphaned instead, and Eliom 13 starts from fresh tables.
      - The vestigial int64 column previously prefixed to every
        session value is dropped.
      - Ocsipersist.Polymorphic is no longer used in Eliom and the
        Common.Ocsipersist.Polymorphic wrapper is removed.
-   BREAKING: existing per-reference / per-session persistent data
-   becomes unreadable on upgrade because the on-disk format changes
-   (Ocsipersist's Store_json stores in a different table than
-   Store; Polymorphic tables are not opened any more).
+   BREAKING: on upgrade from Eliom 12, all persistent data
+   (references, per-session and per-site state, cookies and session
+   groups) is left behind and resets to its default value, because
+   the JSON tables use new names and the old Marshal tables are
+   never read. The old tables are kept on disk, not deleted. A value
+   that cannot be deserialised never raises: it is treated as an
+   absent value (fresh session / default reference) instead of a
+   500 error.
 * Module namespace modernization
 ** Public modules are now accessed as Eliom.Service, Eliom.Content,
    Eliom.Parameter, Eliom.Registration, Eliom.Client, ... instead of
