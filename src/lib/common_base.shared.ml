@@ -279,6 +279,14 @@ let global_data_unwrap_id_int = Runtime.global_data_unwrap_id_int
 let () = assert (global_data_unwrap_id_int = 8)
 let server_function_unwrap_id_int = 9
 
+(* Client values created during site initialisation (register_site_init
+   callbacks, e.g. set_ignored_params or the Comet fallback services) are
+   flushed under this synthetic compilation unit, so that they are not
+   attributed to whichever module happens to close the next server section
+   (which may not be linked on the client). The client consumes this section
+   in do_request_data. *)
+let site_init_compilation_unit_id = "__eliom_site_init__"
+
 type node_ref = string
 
 (****** *)

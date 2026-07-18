@@ -108,6 +108,13 @@
    compilation-unit data into !global_data when no site is active,
    matching the design intent stated in the comment on
    get_global_data.
+** Client values created during site initialisation (register_site_init
+   callbacks: set_ignored_params, the Comet fallback services) are now
+   flushed into a dedicated section (__eliom_site_init__) and consumed by
+   the client in do_request_data, instead of leaking into the next loaded
+   module's section. Previously they were reported as unlinked on the
+   client whenever that module was not linked there (e.g. an unused
+   Ot widget), and set_ignored_params was in fact never reliably applied.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type

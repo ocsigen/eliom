@@ -147,6 +147,11 @@ let do_request_data request_data =
   (* On a request, i.e. after running the toplevel definitions, global_data
      must contain at most empty sections_data lists, which stem from server-
      only eliom files. *)
+  (* Client values created during site initialisation (see site_init on the
+     server) are gathered in a dedicated section; consume them now, before the
+     check, so they are initialised and not reported as unlinked. *)
+  Client_core.do_next_server_section_data
+    ~compilation_unit_id:Common_base.site_init_compilation_unit_id;
   check_global_data !Client_core.global_data;
   Client_core.global_data := String_map.empty;
   Array.iter Client_core.Client_value_registry.initialize request_data

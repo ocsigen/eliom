@@ -741,6 +741,12 @@ let site_init firstmodule =
     (* I want to be able to define global client values during that phase: *)
     Syntax.set_global true;
     List.iter (fun f -> f ()) !site_init_ref;
+    (* Flush the client values created above into a dedicated section instead
+       of leaving them in the buffer, where the next loaded module's
+       close_server_section would capture them (and never be consumed on the
+       client if that module is not linked there). Consumed in
+       Eliom_client.do_request_data. *)
+    Syntax.close_server_section Common_base.site_init_compilation_unit_id;
     Syntax.set_global false;
     firstmodule := false)
 
