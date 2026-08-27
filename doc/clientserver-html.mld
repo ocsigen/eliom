@@ -181,7 +181,7 @@ the function {!val
 Eliom_content.Html.Id.create_named_elt}, that takes as parameters an
 element identifier and a non named element.  Element identifiers are
 created with the function {!val
-Eliom_content.Html.Id.new_elt_id}. See also section {{!page-"clientserver-applications".global}Global elements of an
+Eliom_content.Html.Id.new_elt_id}. See also section {{!section:global}Global elements of an
 application}.
 
 The module {!Eliom_content.Html.Manip}
