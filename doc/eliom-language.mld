@@ -135,8 +135,8 @@ resulting value in that specific client process.
 
 Note well that the value of an injection is {e not updated} when the
 injected value on the server changes. However, you may inject reactive
-signals (cf. {!val
-Eliom_react.S.Down.of_react}) to achieve the behavior of a client
+signals (cf. {!val:Eliom_react.S.Down.of_react}
+) to achieve the behavior of a client
 side values which updates alongside with a server correspondent.
 
 {2:sharedinjection In a shared section}
@@ -183,11 +183,11 @@ on the client side.
 The hole client value then has type [typ Eliom_client_value.t].
 
 A value of type [typ Eliom_client_value.t] is {e abstract on the
-server} (cf. {!type
-Eliom_client_value.t} (server)).  But once it is sent to the client
+server} (cf. {!type:Eliom_client_value.t}
+(server)).  But once it is sent to the client
 it becomes the value to which the expression [exp] evaluated on the
-client side (cf. {!type
-Eliom_client_value.t} (client)).
+client side (cf. {!type:Eliom_client_value.t}
+(client)).
 
 A client value expression is an arbitrary OCaml expression, but may
 additionaly contain {e injections of server variables},
@@ -256,8 +256,8 @@ are termed {e request client values}. The expressions of request
 client values are evaluated after receiving the corresponding request
 on the client in the order of their occurrence on the server. In
 requests which change the content of the page withing the application
-(originating from a service of the {!module
-Eliom_registration.App}), the expressions are evaluated {e after the
+(originating from a service of the {!module:Eliom_registration.App}
+), the expressions are evaluated {e after the
 content has changed}. That way they may refer to the new DOM.
 
 If a client value is created outside of the initialization of the

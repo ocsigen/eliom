@@ -177,11 +177,11 @@ HTTP request: hence, sending an element built with
 two different pages will produce two distinct nodes. If you want to
 define a element reference that is preserved accross the different
 page of an application, you must explicitely name this element with
-the function {!val
-Eliom_content.Html.Id.create_named_elt}, that takes as parameters an
+the function {!val:Eliom_content.Html.Id.create_named_elt}
+, that takes as parameters an
 element identifier and a non named element.  Element identifiers are
-created with the function {!val
-Eliom_content.Html.Id.new_elt_id}. See also section {{!section:global}Global elements of an
+created with the function {!val:Eliom_content.Html.Id.new_elt_id}
+. See also section {{!section:global}Global elements of an
 application}.
 
 The module {!Eliom_content.Html.Manip}
@@ -381,8 +381,8 @@ your site. For this purpose, Eliom provides a notion of global element. Such
 elements are instantied only once for an application and that unique
 instance is used in every page that references the element.
 
-To create a global element, use function {{!val
-Eliom_content.Html.Id.create_global_elt}Eliom_content.Html.Id.create_global_elt}.
+To create a global element, use function {{!val:Eliom_content.Html.Id.create_global_elt}Eliom_content.Html.Id.create_global_elt}
+.
 
 {@ocaml[
 val create_global_elt: 'a elt -> 'a elt
@@ -504,8 +504,7 @@ We do not recommend this.
 Eliom provides a type-safe interface for create new attributes of the form [data-*], using  {!Eliom_content.Html.Custom_data}.
 
 {3 Creation}
-Custom data may be created either from string-conversation functions by {!val
-Eliom_content.Html.Custom_data.create}
+Custom data may be created either from string-conversation functions by {!val:Eliom_content.Html.Custom_data.create}
 
 {%wodoc:@ class=server%}
 {@ocaml[
@@ -536,7 +535,7 @@ Custom data can be injected into HTML-trees of type {!Eliom_content.Html.elt} by
 {3 Reading/writing the DOM}
 
 On the client side, custom data can be read from and written to JavaScript DOM
-elements of type {!type Js_of_ocaml.Dom_html.element}.
+elements of type {!type:Js_of_ocaml.Dom_html.element}.
 
 Custom data can be read from a DOM-element with the function
 {!Eliom_content.Html.Custom_data.get_dom}.
@@ -558,8 +557,8 @@ The custom data of a DOM-element can be set with the function
 
 {3 Default value}
 If a custom data is created with the optional argument [default], calls to
-{!val
-Eliom_content.Html.Custom_data.get_dom} return that instead of throwing an
+{!val:Eliom_content.Html.Custom_data.get_dom}
+return that instead of throwing an
 exception [Not_found].
 
 {@ocaml[
