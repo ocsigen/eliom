@@ -31,8 +31,7 @@ let%shared msg_of_int i =
 let s_as_string () : string Eliom_shared.React.S.t =
   Eliom_shared.React.S.map [%shared msg_of_int] s
 ```
-`module
-Eliom_shared.React.S` implements an interface very similar to plain `React.S`. In the example, we create a signal `s` via `create`, which also gives us the function `f` for updating it. `f` can *only* be called on the client side; calling it on the server raises an exception.
+[`Eliom_shared.React.S`](./eliom.server/Eliom_shared-React-S.md) implements an interface very similar to plain `React.S`. In the example, we create a signal `s` via `create`, which also gives us the function `f` for updating it. `f` can *only* be called on the client side; calling it on the server raises an exception.
 
 The client-side function `incr_s` gets the current value of `s` and uses `f` to increase the value by 1\. Note that we use injections `~%` to pass `s` and `f` to the client.
 

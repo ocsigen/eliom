@@ -10,15 +10,12 @@ A service is composed of:
 
 - some identification data, allowing Eliom to choose which service should answer an incoming request; and
 - a service handler that will generate the answer.
-Services are most commonly used to create links and forms towards a service, using for example the function `val
-Eliom_content.Html.D.a`. See chapter [Creating links and forms](./server-links.md) for more information.
+Services are most commonly used to create links and forms towards a service, using for example the function [`Eliom_content.Html.D.a`](./eliom.server/Eliom_content-Html-D.md#val-a) . See chapter [Creating links and forms](./server-links.md) for more information.
 
-Manipulation of Eliom services can be done through the values of type `type Eliom_service.t` (see `type
-Eliom_service_sigs.S.t`). The service creation can be split in two steps:
+Manipulation of Eliom services can be done through the values of type `type Eliom_service.t` (see [`Eliom_service_sigs.S.t`](./eliom.server/Eliom_service_sigs-module-type-S.md#type-t) ). The service creation can be split in two steps:
 
 - create a value of type `Eliom_service.t`, most commonly by using the function [`Eliom_service.create`](./eliom.server/Eliom_service.md#val-create); and
-- register a service handler, e.g., using `val
-Eliom_registration.Html.register`. The handler receives the server parameters (GET and POST) and is responsible for producing the content sent to the client.
+- register a service handler, e.g., using [`Eliom_registration.Html.register`](./eliom.server/Eliom_registration-Html.md#val-register) . The handler receives the server parameters (GET and POST) and is responsible for producing the content sent to the client.
 The rest of this chapter focuses on service creation. See chapter [Implementing service handlers](./server-outputs.md) for more information on handler implementation and registration.
 
 
@@ -260,6 +257,5 @@ The same service can be registered with several scopes. This makes it possible, 
 - If you create new main services dynamically, you will dynamically create new URLs\! This may be dangerous as they will disappear if you stop the server. Be very careful to re-create these URLs when you relaunch the server, otherwise, some external links or bookmarks will be broken\!<br/> The use of that feature is discouraged for services without timeout, as such services will be available only until the end of the server process (and it is not possible to re-create them with the same key).
 - Do not register the same service in the same scope twice, and do not replace a service by a directory (or vice versa). If this happens during the initialization phase, the server won't start. If this happens after server startup, it will be ignored (with a warning in the logs).
 - GET attached services (without POST parameters) can be registered only with a regular service without GET/POST parameters as fallback. But it may be [*preapplied*](./#preapplied).
-- The registration of (main) services must be completed before the end of the loading of the module. It is not possible to launch an Lwt thread with the intention that it will register a service later, as registering a service needs access to config file information (for example the directory of the site). If you do this, the server will raise an exception most of the time, but you may also get unexpected results (if the thread is executed while another site is loaded). If you use threads in the initialization phase of your module (for example if you need information from a database), use `val
-Lwt_unix.run` to wait for the end of the thread.
+- The registration of (main) services must be completed before the end of the loading of the module. It is not possible to launch an Lwt thread with the intention that it will register a service later, as registering a service needs access to config file information (for example the directory of the site). If you do this, the server will raise an exception most of the time, but you may also get unexpected results (if the thread is executed while another site is loaded). If you use threads in the initialization phase of your module (for example if you need information from a database), use `Lwt_unix.run` to wait for the end of the thread.
 - Some services can be registered multiple times, with different options. This allows for example choosing between different handlers when the request is done in a particular session or protocol (HTTP or HTTPS).

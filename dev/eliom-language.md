@@ -83,8 +83,7 @@ It is also possible to inject an arbitrary server-side expression `exp` in a cli
       %(Unix.gettimeofday ())
 }}
 ```
-Note well that the value of an injection is *not updated* when the injected value on the server changes. However, you may inject reactive signals (cf. `val
-Eliom_react.S.Down.of_react`) to achieve the behavior of a client side values which updates alongside with a server correspondent.
+Note well that the value of an injection is *not updated* when the injected value on the server changes. However, you may inject reactive signals (cf. [`Eliom_react.S.Down.of_react`](./eliom.server/Eliom_react-S-Down.md#val-of_react) ) to achieve the behavior of a client side values which updates alongside with a server correspondent.
 
 
 ### In a shared section
@@ -118,9 +117,7 @@ where `exp` is an expression on the client side, which means it is compiled only
 
 The hole client value then has type `typ Eliom_client_value.t`.
 
-A value of type `typ Eliom_client_value.t` is *abstract on the server* (cf. `type
-Eliom_client_value.t` (server)). But once it is sent to the client it becomes the value to which the expression `exp` evaluated on the client side (cf. `type
-Eliom_client_value.t` (client)).
+A value of type `typ Eliom_client_value.t` is *abstract on the server* (cf. [`Eliom_client_value.t`](./eliom.server/Eliom_client_value.md#type-t) (server)). But once it is sent to the client it becomes the value to which the expression `exp` evaluated on the client side (cf. [`Eliom_client_value.t`](./eliom.server/Eliom_client_value.md#type-t) (client)).
 
 A client value expression is an arbitrary OCaml expression, but may additionaly contain *injections of server variables*, (cf. [Injections into the client section](#injections)). A variable `v` in the scope of a client-value expression can be injected by prefixing it with a percent sign, `%v`. A server-side expression `exp` can be injected by `%(exp)`.
 
@@ -161,8 +158,7 @@ Client values created while launching the server, i.e. while evaluating the top-
   let () = Eliom_lib.debug "5"
 }}
 ```
-Client values which are evaluated during the processing of a request are termed *request client values*. The expressions of request client values are evaluated after receiving the corresponding request on the client in the order of their occurrence on the server. In requests which change the content of the page withing the application (originating from a service of the `module
-Eliom_registration.App`), the expressions are evaluated *after the content has changed*. That way they may refer to the new DOM.
+Client values which are evaluated during the processing of a request are termed *request client values*. The expressions of request client values are evaluated after receiving the corresponding request on the client in the order of their occurrence on the server. In requests which change the content of the page withing the application (originating from a service of the [`Eliom_registration.App`](./eliom.server/Eliom_registration-App.md) ), the expressions are evaluated *after the content has changed*. That way they may refer to the new DOM.
 
 If a client value is created outside of the initialization of the server program and also outside of the processing of a request, the exception [`Eliom_client_value.Client_value_creation_invalid_context`](./eliom.server/Eliom_client_value.md#exception-Client_value_creation_invalid_context) is raised.
 

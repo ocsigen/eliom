@@ -101,9 +101,7 @@ There are still two situations where sending elements by value is still required
 - one have a large page with a lot elements. Handling elements by references add a small overhead while loading the page, around 50ms per 1000 elements on a not so fast computer.
 In any case, it is possible to mix elements sent by references and elements sent by value in the same document.
 
-By default, a reference on an element is only valid in the current HTTP request: hence, sending an element built with `Html.D` in two different pages will produce two distinct nodes. If you want to define a element reference that is preserved accross the different page of an application, you must explicitely name this element with the function `val
-Eliom_content.Html.Id.create_named_elt`, that takes as parameters an element identifier and a non named element. Element identifiers are created with the function `val
-Eliom_content.Html.Id.new_elt_id`. See also section [Global elements of an application](./#global).
+By default, a reference on an element is only valid in the current HTTP request: hence, sending an element built with `Html.D` in two different pages will produce two distinct nodes. If you want to define a element reference that is preserved accross the different page of an application, you must explicitely name this element with the function [`Eliom_content.Html.Id.create_named_elt`](./eliom.server/Eliom_content-Html-Id.md#val-create_named_elt) , that takes as parameters an element identifier and a non named element. Element identifiers are created with the function [`Eliom_content.Html.Id.new_elt_id`](./eliom.server/Eliom_content-Html-Id.md#val-new_elt_id) . See also section [Global elements of an application](./#global).
 
 The module `Eliom_content.Html.Manip` allows using the classical DOM manipulation functions (e.g. appendChild, addEventlistener, ...) directly on the identifier of an HTML elements.
 
@@ -281,7 +279,7 @@ Module C is also available on client-side, to make it possible to use it in shar
 
 Sometimes you may want to modify the content of an HTML element and to keep the element and its modified content when changing page. For example a `div` element which contains a chat box or a music player should be preserved while browsing across the different pages of your site. For this purpose, Eliom provides a notion of global element. Such elements are instantied only once for an application and that unique instance is used in every page that references the element.
 
-To create a global element, use function `Eliom_content.Html.Id.create_global_elt`.
+To create a global element, use function [Eliom\_content.Html.Id.create\_global\_elt](./eliom.server/Eliom_content-Html-Id.md#val-create_global_elt) .
 
 ```ocaml
 val create_global_elt: 'a elt -> 'a elt
@@ -395,8 +393,7 @@ Eliom provides a type-safe interface for create new attributes of the form `data
 
 #### Creation
 
-Custom data may be created either from string-conversation functions by `val
-Eliom_content.Html.Custom_data.create`
+Custom data may be created either from string-conversation functions by [`Eliom_content.Html.Custom_data.create`](./eliom.server/Eliom_content-Html-Custom_data.md#val-create)
 
 <!--wodoc:@ class=server-->
 ```ocaml
@@ -425,7 +422,7 @@ Custom data can be injected into HTML-trees of type [`Eliom_content.Html.elt`](.
 
 #### Reading/writing the DOM
 
-On the client side, custom data can be read from and written to JavaScript DOM elements of type `typeJs_of_ocaml.Dom_html.element`.
+On the client side, custom data can be read from and written to JavaScript DOM elements of type `Js_of_ocaml.Dom_html.element`.
 
 Custom data can be read from a DOM-element with the function `Eliom_content.Html.Custom_data.get_dom`. If no respective custom data attribute can be found in the element
 
@@ -444,8 +441,7 @@ The custom data of a DOM-element can be set with the function `Eliom_content.Htm
 
 #### Default value
 
-If a custom data is created with the optional argument `default`, calls to `val
-Eliom_content.Html.Custom_data.get_dom` return that instead of throwing an exception `Not_found`.
+If a custom data is created with the optional argument `default`, calls to `Eliom_content.Html.Custom_data.get_dom` return that instead of throwing an exception `Not_found`.
 
 ```ocaml
   let coord_data' =

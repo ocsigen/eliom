@@ -192,8 +192,7 @@ When using [`Eliom_registration.Any`](./eliom.server/Eliom_registration-Any.md),
 - Application content: pages of application.
 - Ocaml content: marshalled OCaml values.
 - Unknown content: content generated as text.
-Yet sometimes you may want to mix the kinds of contents a service can return. The function `val
-Eliom_registration.appl_self_redirect` allows one to cast browser content to application content. When an application requests some content cast through that function, the server sends some information asking the client to exit to a specific address. You should not use that on POST services: leaving the application sending POST parameters is not always possible and the request will be performed two times.
+Yet sometimes you may want to mix the kinds of contents a service can return. The function [`Eliom_registration.appl_self_redirect`](./eliom.server/Eliom_registration.md#val-appl_self_redirect) allows one to cast browser content to application content. When an application requests some content cast through that function, the server sends some information asking the client to exit to a specific address. You should not use that on POST services: leaving the application sending POST parameters is not always possible and the request will be performed two times.
 
 For instance, you may want to serve a file if it exists, and generate some error message with client-side code otherwise. You can achieve this as follows.
 
@@ -214,8 +213,7 @@ let file_or_application =
            (head (title (txt "no page")) [])
            (body [p [txt "the file does not exist"]])))
 ```
-Unknown content can be cast to browser content using `val
-Eliom_registration.cast_unknown_content_kind`.
+Unknown content can be cast to browser content using [`Eliom_registration.cast_unknown_content_kind`](./eliom.server/Eliom_registration.md#val-cast_unknown_content_kind) .
 
 
 ### Creating your own output modules
@@ -378,10 +376,8 @@ let looong2 =
 You can catch exceptions raised during page generation in two places:
 
 - add an exception handler to services using the `?error_handler` parameter of the registration functions.
-- add a global exception handler using `val
-Eliom_registration.set_exn_handler`
-You can use it to catch exception `exception
-Eliom_common.Eliom_404` and generate a custom 404 page.
+- add a global exception handler using [`Eliom_registration.set_exn_handler`](./eliom.server/Eliom_registration.md#val-set_exn_handler)
+You can use it to catch exception [`Eliom_common.Eliom_404`](./eliom.server/Eliom_common.md#exception-Eliom_404) and generate a custom 404 page.
 
 ```ocaml
 let () =
@@ -408,9 +404,7 @@ let () =
 
 #### Fallback services
 
-You can check whether a service was directly called or if it was used as a fallback using the `val
-Eliom_request_info.get_link_too_old` function. In case of services registered with a restricted scope, you can find out which state was closed using `val
-Eliom_request_info.get_expired_service_sessions`
+You can check whether a service was directly called or if it was used as a fallback using the [`Eliom_request_info.get_link_too_old`](./eliom.server/Eliom_request_info.md#val-get_link_too_old) function. In case of services registered with a restricted scope, you can find out which state was closed using [`Eliom_request_info.get_expired_service_sessions`](./eliom.server/Eliom_request_info.md#val-get_expired_service_sessions)
 
 
 #### Error in service handlers of actions

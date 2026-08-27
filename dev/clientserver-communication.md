@@ -33,8 +33,7 @@ Example: <!--wodoc:@ class=shared-->
 type%shared t = A | B
 [@@deriving json]
 ```
-Exceptions raised in the server-side function cannot be handled directly on the client; it is impossible to marshal them in OCaml to send them to the client. Instead, if an exception is raised in the server function, the function application fails (in Lwt) on the client with the exception `exception
-Eliom_client_value.Exception_on_server` whose argument describes the original exception (according to `Printexc.to_string`).
+Exceptions raised in the server-side function cannot be handled directly on the client; it is impossible to marshal them in OCaml to send them to the client. Instead, if an exception is raised in the server function, the function application fails (in Lwt) on the client with the exception `Eliom_client_value.Exception_on_server` whose argument describes the original exception (according to `Printexc.to_string`).
 
 
 ## Remote Procedure Calls: low level API

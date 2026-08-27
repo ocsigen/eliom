@@ -100,10 +100,8 @@ There are two categories of scopes:
 Within the user scopes, Eliom distinguishes three scopes that differ with respect to how Eliom associates clients and data.
 
 - Data and dynamic services created with scope [`Eliom_common.default_session_scope`](./eliom.server/Eliom_common.md#val-default_session_scope) are only visible to the client belonging to a same session (all tabs of a single browser).
-- Data and dynamic services created with scope `val
-Eliom_common.default_group_scope` are only visible to the clients whose sessions belong to the same session group. See section [Session groups](./#session_groups) for more information.
-- Data and dynamic services created with scope `val
-Eliom_common.default_process_scope` are only visible to a specific instance of the Eliom application (i.e., a single tab, running the Eliom client process). See section `Eliom applications` for more information.
+- Data and dynamic services created with scope [`Eliom_common.default_group_scope`](./eliom.server/Eliom_common.md#val-default_group_scope) are only visible to the clients whose sessions belong to the same session group. See section [Session groups](./#session_groups) for more information.
+- Data and dynamic services created with scope [`Eliom_common.default_process_scope`](./eliom.server/Eliom_common.md#val-default_process_scope) are only visible to a specific instance of the Eliom application (i.e., a single tab, running the Eliom client process). See section `Eliom applications` for more information.
 User scopes are organised in a *hierarchy*: client processes belong to a session, and sessions belong to a group of sessions.
 
 Data and dynamic services with a user scope can be discarded explicitely or via a timeout. See sections [Closing session](./#closing_sessions) and [Timeouts and session duration](./#timeouts) for more information.
@@ -134,13 +132,11 @@ If you want to handle multiple sessions for the same site that can be created an
 let custom_session_hierarchy = Eliom_common.create_scope_hierarchy "custom"
 let custom_session = `Session custom_session_hierarchy
 ```
-Then, the value `custom_session` can replace the usual [`Eliom_common.default_session_scope`](./eliom.server/Eliom_common.md#val-default_session_scope) for the `~scope` parameter of the functions [`Eliom_reference.eref`](./eliom.server/Eliom_reference.md#type-eref), `val
-Eliom_registration.Html.register`, [`Eliom_state.discard`](./eliom.server/Eliom_state.md#val-discard),~ ...
+Then, the value `custom_session` can replace the usual [`Eliom_common.default_session_scope`](./eliom.server/Eliom_common.md#val-default_session_scope) for the `~scope` parameter of the functions [`Eliom_reference.eref`](./eliom.server/Eliom_reference.md#type-eref), [`Eliom_registration.Html.register`](./eliom.server/Eliom_registration-Html.md#val-register) , [`Eliom_state.discard`](./eliom.server/Eliom_state.md#val-discard),~ ...
 
 (Same for ``Client_process` or ``Session_group` scope levels).
 
-The function `val
-Eliom_common.create_scope_hierarchy` will prevent you from creating two scope hierarchies with the same name.
+The function [`Eliom_common.create_scope_hierarchy`](./eliom.server/Eliom_common.md#val-create_scope_hierarchy) will prevent you from creating two scope hierarchies with the same name.
 
 
 ##### Example of use:
@@ -180,17 +176,13 @@ It is also possible to change the default value for Eliom through the configurat
 In the configuration files the value `"infinity"` means no timeout.
 
 <!--wodoc:div-->
-This default may be overriden by each site using `val
-Eliom_state.set_global_volatile_state_timeout` or `val
-Eliom_state.set_default_volatile_state_timeout`. If you want your user to be able to set the default in the configuration file for your site (between `<site>` and `</site>`), you must parse the configuration (using [`Eliom_config.get_config`](./eliom.server/Eliom_config.md#val-get_config) function). You can also change the timeout for a specific user only with the following functions: [`Eliom_state.set_volatile_data_state_timeout`](./eliom.server/Eliom_state.md#val-set_volatile_data_state_timeout). For more details, see the [`Eliom_state`](./eliom.server/Eliom_state.md) module's interface.
+This default may be overriden by each site using [`Eliom_state.set_global_volatile_state_timeout`](./eliom.server/Eliom_state.md#val-set_global_volatile_state_timeout) or `Eliom_state.set_default_volatile_state_timeout` . If you want your user to be able to set the default in the configuration file for your site (between `<site>` and `</site>`), you must parse the configuration (using [`Eliom_config.get_config`](./eliom.server/Eliom_config.md#val-get_config) function). You can also change the timeout for a specific user only with the following functions: [`Eliom_state.set_volatile_data_state_timeout`](./eliom.server/Eliom_state.md#val-set_volatile_data_state_timeout). For more details, see the [`Eliom_state`](./eliom.server/Eliom_state.md) module's interface.
 
 <!--wodoc:end-->
 
 ### Secure session
 
-By default, data and services saved in a session are available to requests using both HTTP and HTTPS. If you want to keep some state in a *secure session* that is visible only to a client accessing with the HTTPS protocol, you may provide the optional parameter `~secure:true` when calling functions like `val
-Eliom_reference.eref`, `val
-Eliom_registration.Html.register`, etc.
+By default, data and services saved in a session are available to requests using both HTTP and HTTPS. If you want to keep some state in a *secure session* that is visible only to a client accessing with the HTTPS protocol, you may provide the optional parameter `~secure:true` when calling functions like [`Eliom_reference.eref`](./eliom.server/Eliom_reference.md#val-eref) , [`Eliom_registration.Html.register`](./eliom.server/Eliom_registration-Html.md#val-register) , etc.
 
 The default can be set in the configuration file:
 
@@ -211,8 +203,7 @@ The server does not check the protocol currently used, neither to send or receiv
 
 #### Sharing data between a group of sessions
 
-Session group is a kind of scope that allows sharing data or services between a set of sessions, typically all sessions for given user. For example, using persistent Eliom references with scope `val
-Eliom_common.default_group_scope` is a convenient way to store data about a user without having to explicitly use an external database. (Persistent session group states are not discarded when all the sessions are closed).
+Session group is a kind of scope that allows sharing data or services between a set of sessions, typically all sessions for given user. For example, using persistent Eliom references with scope [`Eliom_common.default_group_scope`](./eliom.server/Eliom_common.md#val-default_group_scope) is a convenient way to store data about a user without having to explicitly use an external database. (Persistent session group states are not discarded when all the sessions are closed).
 
 A session group is identified by a name. The current session could be attached to a group of sessions using one of the following functions \---~ depending on the nature of the data you want to share. They take the session group name as parameter:
 
@@ -259,9 +250,7 @@ Eliom references are used for example:
 - for caching functions ([`Eliom_reference.eref_from_fun`](./eliom.server/Eliom_reference.md#val-eref_from_fun)).
 Non persistent global Eliom references are equivalent to regular OCaml references.
 
-Eliom references are either created using the function `val
-Eliom_reference.eref`, that works like the usual Ocaml `ref` function, but with at least one additional scope parameter. Or they may be created by the function `val
-Eliom_reference.eref_from_fun`: Its argument function is evaluated the first time the reference is accessed (through [`Eliom_reference.get`](./eliom.server/Eliom_reference.md#val-get)), within one scope or after the reference has been reset.
+Eliom references are either created using the function [`Eliom_reference.eref`](./eliom.server/Eliom_reference.md#val-eref) , that works like the usual Ocaml `ref` function, but with at least one additional scope parameter. Or they may be created by the function [`Eliom_reference.eref_from_fun`](./eliom.server/Eliom_reference.md#val-eref_from_fun) : Its argument function is evaluated the first time the reference is accessed (through [`Eliom_reference.get`](./eliom.server/Eliom_reference.md#val-get)), within one scope or after the reference has been reset.
 
 The [`Eliom_reference`](./eliom.server/Eliom_reference.md) module also defines functions to [get](./eliom.server/Eliom_reference.md#val-get) the value, [set](./eliom.server/Eliom_reference.md#val-set), [modify](./eliom.server/Eliom_reference.md#val-modify) it (by applying a function to its content), and [unset](./eliom.server/Eliom_reference.md#val-unset) it, this is reset to the initial value.
 
