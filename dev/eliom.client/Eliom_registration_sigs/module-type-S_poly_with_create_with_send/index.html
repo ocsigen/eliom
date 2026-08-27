@@ -283,8 +283,8 @@
       <span class="type-var">_</span>,
       <span><span class="type-var">'a</span> <a href="#type-return">return</a></span>)</span>
       <a href="../../Eliom_service/index.html#type-t">Eliom_service.t</a></span> <span class="arrow">&#45;&gt;</span></span>
-  <span><span class="optlabel">?error_handler</span>:<span>(<span><span><span>(string * exn)</span> list</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
-  <span><span>(<span><span class="type-var">'get</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'post</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?error_handler</span>:<span>(<span><span><span>(string * exn)</span> list</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/dev/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span><span class="type-var">'get</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'post</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/dev/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
   unit</span></code></div><div class="spec-doc"><p>See <a href="../module-type-S/index.html#val-register"><code>S.register</code></a>.</p></div></div></details></div><div class="odoc-spec"><div class="spec value anchored" id="val-create"><code><span><span class="keyword">val</span> create : 
   <span><span class="optlabel">?app</span>:string <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?scope</span>:<span>[&lt; <a href="../../Eliom_common/index.html#type-scope">Eliom_common.scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
@@ -303,8 +303,8 @@
   <span><span class="optlabel">?timeout</span>:float <span class="arrow">&#45;&gt;</span></span>
   <span><span class="label">meth</span>:<span><span>(<span class="type-var">'m</span>, <span class="type-var">'gp</span>, <span class="type-var">'gn</span>, <span class="type-var">'pp</span>, <span class="type-var">'pn</span>, <span class="type-var">'tipo</span>, <span class="type-var">'gp_</span>)</span> <a href="../../Eliom_service/index.html#type-meth">Eliom_service.meth</a></span> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="label">path</span>:<span><span>(<span class="type-var">'att</span>, <span class="type-var">'co</span>, <span class="type-var">'gp_</span>)</span> <a href="../../Eliom_service/index.html#type-path_option">Eliom_service.path_option</a></span> <span class="arrow">&#45;&gt;</span></span>
-  <span><span class="optlabel">?error_handler</span>:<span>(<span><span><span>(string * exn)</span> list</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
-  <span><span>(<span><span class="type-var">'gp</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'pp</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?error_handler</span>:<span>(<span><span><span>(string * exn)</span> list</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/dev/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span><span class="type-var">'gp</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'pp</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/dev/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
   <span><span>(<span class="type-var">'gp</span>,
     <span class="type-var">'pp</span>,
     <span class="type-var">'m</span>,
@@ -346,8 +346,8 @@
       <span><span class="type-var">'a</span> <a href="#type-return">return</a></span>)</span>
       <a href="../../Eliom_service/index.html#type-t">Eliom_service.t</a></span> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="label">get_params</span>:<span><span>(<span class="type-var">'gp</span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'gn</span>)</span> <a href="../../Eliom_parameter/index.html#type-params_type">Eliom_parameter.params_type</a></span> <span class="arrow">&#45;&gt;</span></span>
-  <span><span class="optlabel">?error_handler</span>:<span>(<span><span><span>(string * exn)</span> list</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
-  <span><span>(<span><span class="type-var">'gp</span> <span class="arrow">&#45;&gt;</span></span> <span>unit <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?error_handler</span>:<span>(<span><span><span>(string * exn)</span> list</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/dev/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span><span class="type-var">'gp</span> <span class="arrow">&#45;&gt;</span></span> <span>unit <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/dev/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
   <span><span>(<span class="type-var">'gp</span>,
     unit,
     <a href="../../Eliom_service/index.html#type-get">Eliom_service.get</a>,
@@ -389,8 +389,8 @@
       <span><span class="type-var">'a</span> <a href="#type-return">return</a></span>)</span>
       <a href="../../Eliom_service/index.html#type-t">Eliom_service.t</a></span> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="label">post_params</span>:<span><span>(<span class="type-var">'pp</span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'pn</span>)</span> <a href="../../Eliom_parameter/index.html#type-params_type">Eliom_parameter.params_type</a></span> <span class="arrow">&#45;&gt;</span></span>
-  <span><span class="optlabel">?error_handler</span>:<span>(<span><span><span>(string * exn)</span> list</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
-  <span><span>(<span><span class="type-var">'gp</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'pp</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?error_handler</span>:<span>(<span><span><span>(string * exn)</span> list</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/dev/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span><span class="type-var">'gp</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'pp</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/dev/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
   <span><span>(<span class="type-var">'gp</span>,
     <span class="type-var">'pp</span>,
     <a href="../../Eliom_service/index.html#type-post">Eliom_service.post</a>,
@@ -409,7 +409,7 @@
   <span><span class="optlabel">?content_type</span>:string <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?headers</span>:<span class="xref-unresolved">Eliom_service.Cohttp.Header.t</span> <span class="arrow">&#45;&gt;</span></span>
   <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <span class="arrow">&#45;&gt;</span></span>
-  <span><span><span class="type-var">'a</span> <a href="#type-result">result</a></span> <a href="../../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div></div></div>
+  <span><span><span class="type-var">'a</span> <a href="#type-result">result</a></span> <a href="../../../../../lwt/dev/lwt/Lwt/index.html#type-t">Lwt.t</a></span></span></code></div></div></div>
       </article>
     </div>
   </div>

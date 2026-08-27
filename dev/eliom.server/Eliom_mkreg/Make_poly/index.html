@@ -286,7 +286,7 @@
       </nav>
       <article class="rightcol">
         <header class="odoc-preamble"><h1>Module <code><span>Eliom_mkreg.Make_poly</span></code></h1></header>
-        <div class="odoc-content"><h3 id="creating-modules-to-register-services-for-one-type-of-parametrised-pages">Creating modules to register services for one type of parametrised pages</h3><h2 id="parameters">Parameters</h2><div class="odoc-spec"><div class="spec parameter anchored" id="argument-1-Pages"><code><span><span class="keyword">module</span> </span><span><a href="argument-1-Pages/index.html">Pages</a></span><span> : <a href="../../Eliom_registration_sigs/module-type-PARAM_POLY/index.html">Eliom_registration_sigs.PARAM_POLY</a> <span class="keyword">with</span> <span><span class="keyword">type</span> <a href="../../Eliom_registration_sigs/module-type-PARAM_POLY/index.html#type-frame">frame</a> := <a href="../../../../../ocsigenserver/latest/Ocsigen_response/index.html#type-t">Ocsigen_response.t</a></span></span></code></div></div><h2 id="signature">Signature</h2><div class="odoc-include"><details open="open"><summary class="spec include"><code><span><span class="keyword">include</span> <a href="../../Eliom_registration_sigs/module-type-S_poly/index.html">Eliom_registration_sigs.S_poly</a>
+        <div class="odoc-content"><h3 id="creating-modules-to-register-services-for-one-type-of-parametrised-pages">Creating modules to register services for one type of parametrised pages</h3><h2 id="parameters">Parameters</h2><div class="odoc-spec"><div class="spec parameter anchored" id="argument-1-Pages"><code><span><span class="keyword">module</span> </span><span><a href="argument-1-Pages/index.html">Pages</a></span><span> : <a href="../../Eliom_registration_sigs/module-type-PARAM_POLY/index.html">Eliom_registration_sigs.PARAM_POLY</a> <span class="keyword">with</span> <span><span class="keyword">type</span> <a href="../../Eliom_registration_sigs/module-type-PARAM_POLY/index.html#type-frame">frame</a> := <a href="../../../../../ocsigenserver/dev/Ocsigen_response/index.html#type-t">Ocsigen_response.t</a></span></span></code></div></div><h2 id="signature">Signature</h2><div class="odoc-include"><details open="open"><summary class="spec include"><code><span><span class="keyword">include</span> <a href="../../Eliom_registration_sigs/module-type-S_poly/index.html">Eliom_registration_sigs.S_poly</a>
   <span class="keyword">with</span> <span><span class="keyword">type</span> <span>'a <a href="../../Eliom_registration_sigs/module-type-S_poly/index.html#type-page">page</a></span> = <span><span class="type-var">'a</span> <a href="argument-1-Pages/index.html#type-page">Pages.page</a></span></span>
   <span class="keyword">with</span> <span><span class="keyword">type</span> <a href="../../Eliom_registration_sigs/module-type-S_poly/index.html#type-options">options</a> = <a href="argument-1-Pages/index.html#type-options">Pages.options</a></span>
   <span class="keyword">with</span> <span><span class="keyword">type</span> <span>'a <a href="../../Eliom_registration_sigs/module-type-S_poly/index.html#type-return">return</a></span> = <span><span class="type-var">'a</span> <a href="argument-1-Pages/index.html#type-return">Pages.return</a></span></span></span></code></summary><div class="odoc-spec"><div class="spec type anchored" id="type-page"><code><span><span class="keyword">type</span> <span>'a page</span></span><span> = <span><span class="type-var">'a</span> <a href="argument-1-Pages/index.html#type-page">Pages.page</a></span></span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-options"><code><span><span class="keyword">type</span> options</span><span> = <a href="argument-1-Pages/index.html#type-options">Pages.options</a></span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-return"><code><span><span class="keyword">type</span> <span>'a return</span></span><span> = <span><span class="type-var">'a</span> <a href="argument-1-Pages/index.html#type-return">Pages.return</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-register"><code><span><span class="keyword">val</span> register : 
@@ -296,7 +296,7 @@
   <span><span class="optlabel">?charset</span>:string <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?code</span>:int <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?content_type</span>:string <span class="arrow">&#45;&gt;</span></span>
-  <span><span class="optlabel">?headers</span>:<a href="https://ocaml.org/p/cohttp/6.2.1/doc/Cohttp/Header/index.html#type-t">Cohttp.Header.t</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?headers</span>:<a href="https://ocaml.org/p/cohttp/6.3.0/doc/Cohttp/Header/index.html#type-t">Cohttp.Header.t</a> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?secure_session</span>:bool <span class="arrow">&#45;&gt;</span></span>
   <span><span class="label">service</span>:
     <span><span>(<span class="type-var">'get</span>,
@@ -311,8 +311,8 @@
       <span class="type-var">_</span>,
       <span><span class="type-var">'a</span> <a href="#type-return">return</a></span>)</span>
       <a href="../../Eliom_service/index.html#type-t">Eliom_service.t</a></span> <span class="arrow">&#45;&gt;</span></span>
-  <span><span class="optlabel">?error_handler</span>:<span>(<span><span><span>(string * exn)</span> list</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
-  <span><span>(<span><span class="type-var">'get</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'post</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?error_handler</span>:<span>(<span><span><span>(string * exn)</span> list</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/dev/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span><span class="type-var">'get</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'post</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/dev/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
   unit</span></code></div><div class="spec-doc"><p>See <code>S.register</code>.</p></div></div></details></div><div class="odoc-spec"><div class="spec value anchored" id="val-create"><code><span><span class="keyword">val</span> create : 
   <span><span class="optlabel">?app</span>:string <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?scope</span>:<span>[&lt; <a href="../../Eliom_common/index.html#type-scope">Eliom_common.scope</a> ]</span> <span class="arrow">&#45;&gt;</span></span>
@@ -320,7 +320,7 @@
   <span><span class="optlabel">?charset</span>:string <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?code</span>:int <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?content_type</span>:string <span class="arrow">&#45;&gt;</span></span>
-  <span><span class="optlabel">?headers</span>:<a href="https://ocaml.org/p/cohttp/6.2.1/doc/Cohttp/Header/index.html#type-t">Cohttp.Header.t</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?headers</span>:<a href="https://ocaml.org/p/cohttp/6.3.0/doc/Cohttp/Header/index.html#type-t">Cohttp.Header.t</a> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?secure_session</span>:bool <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?https</span>:bool <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?name</span>:string <span class="arrow">&#45;&gt;</span></span>
@@ -331,8 +331,8 @@
   <span><span class="optlabel">?timeout</span>:float <span class="arrow">&#45;&gt;</span></span>
   <span><span class="label">meth</span>:<span><span>(<span class="type-var">'m</span>, <span class="type-var">'gp</span>, <span class="type-var">'gn</span>, <span class="type-var">'pp</span>, <span class="type-var">'pn</span>, <span class="type-var">'tipo</span>, <span class="type-var">'gp_</span>)</span> <a href="../../Eliom_service/index.html#type-meth">Eliom_service.meth</a></span> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="label">path</span>:<span><span>(<span class="type-var">'att</span>, <span class="type-var">'co</span>, <span class="type-var">'gp_</span>)</span> <a href="../../Eliom_service/index.html#type-path_option">Eliom_service.path_option</a></span> <span class="arrow">&#45;&gt;</span></span>
-  <span><span class="optlabel">?error_handler</span>:<span>(<span><span><span>(string * exn)</span> list</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
-  <span><span>(<span><span class="type-var">'gp</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'pp</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?error_handler</span>:<span>(<span><span><span>(string * exn)</span> list</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/dev/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span><span class="type-var">'gp</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'pp</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/dev/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
   <span><span>(<span class="type-var">'gp</span>,
     <span class="type-var">'pp</span>,
     <span class="type-var">'m</span>,
@@ -351,7 +351,7 @@
   <span><span class="optlabel">?charset</span>:string <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?code</span>:int <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?content_type</span>:string <span class="arrow">&#45;&gt;</span></span>
-  <span><span class="optlabel">?headers</span>:<a href="https://ocaml.org/p/cohttp/6.2.1/doc/Cohttp/Header/index.html#type-t">Cohttp.Header.t</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?headers</span>:<a href="https://ocaml.org/p/cohttp/6.3.0/doc/Cohttp/Header/index.html#type-t">Cohttp.Header.t</a> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?secure_session</span>:bool <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?https</span>:bool <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?name</span>:string <span class="arrow">&#45;&gt;</span></span>
@@ -374,8 +374,8 @@
       <span><span class="type-var">'a</span> <a href="#type-return">return</a></span>)</span>
       <a href="../../Eliom_service/index.html#type-t">Eliom_service.t</a></span> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="label">get_params</span>:<span><span>(<span class="type-var">'gp</span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'gn</span>)</span> <a href="../../Eliom_parameter/index.html#type-params_type">Eliom_parameter.params_type</a></span> <span class="arrow">&#45;&gt;</span></span>
-  <span><span class="optlabel">?error_handler</span>:<span>(<span><span><span>(string * exn)</span> list</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
-  <span><span>(<span><span class="type-var">'gp</span> <span class="arrow">&#45;&gt;</span></span> <span>unit <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?error_handler</span>:<span>(<span><span><span>(string * exn)</span> list</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/dev/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span><span class="type-var">'gp</span> <span class="arrow">&#45;&gt;</span></span> <span>unit <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/dev/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
   <span><span>(<span class="type-var">'gp</span>,
     unit,
     <a href="../../Eliom_service/index.html#type-get">Eliom_service.get</a>,
@@ -394,7 +394,7 @@
   <span><span class="optlabel">?charset</span>:string <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?code</span>:int <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?content_type</span>:string <span class="arrow">&#45;&gt;</span></span>
-  <span><span class="optlabel">?headers</span>:<a href="https://ocaml.org/p/cohttp/6.2.1/doc/Cohttp/Header/index.html#type-t">Cohttp.Header.t</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?headers</span>:<a href="https://ocaml.org/p/cohttp/6.3.0/doc/Cohttp/Header/index.html#type-t">Cohttp.Header.t</a> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?secure_session</span>:bool <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?https</span>:bool <span class="arrow">&#45;&gt;</span></span>
   <span><span class="optlabel">?name</span>:string <span class="arrow">&#45;&gt;</span></span>
@@ -417,8 +417,8 @@
       <span><span class="type-var">'a</span> <a href="#type-return">return</a></span>)</span>
       <a href="../../Eliom_service/index.html#type-t">Eliom_service.t</a></span> <span class="arrow">&#45;&gt;</span></span>
   <span><span class="label">post_params</span>:<span><span>(<span class="type-var">'pp</span>, <span>[ `WithoutSuffix ]</span>, <span class="type-var">'pn</span>)</span> <a href="../../Eliom_parameter/index.html#type-params_type">Eliom_parameter.params_type</a></span> <span class="arrow">&#45;&gt;</span></span>
-  <span><span class="optlabel">?error_handler</span>:<span>(<span><span><span>(string * exn)</span> list</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
-  <span><span>(<span><span class="type-var">'gp</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'pp</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/latest/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?error_handler</span>:<span>(<span><span><span>(string * exn)</span> list</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/dev/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span><span class="type-var">'gp</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'pp</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <a href="#type-page">page</a></span> <a href="../../../../../lwt/dev/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
   <span><span>(<span class="type-var">'gp</span>,
     <span class="type-var">'pp</span>,
     <a href="../../Eliom_service/index.html#type-post">Eliom_service.post</a>,
