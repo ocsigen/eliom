@@ -168,7 +168,7 @@ with respect to how Eliom associates clients and data.
 - Data and dynamic services created with scope {!val:Eliom_common.default_process_scope}
   are only visible to a specific
   instance of the Eliom application (i.e., a single tab, running the
-  Eliom client process).  See section {{!page-"clientserver-applications".session_groups}Eliom
+  Eliom client process).  See section {{!page-"clientserver-applications"}Eliom
   applications} for more information.
 
 User scopes are organised in a {e hierarchy}: client processes belong

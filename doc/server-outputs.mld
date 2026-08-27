@@ -54,11 +54,11 @@ using polymorphic variant types. You may use constructor functions from {!Eliom_
 {%wodoc:div class="paragraph"%} Sending caml values to client side code {%wodoc:end%}
 
 - {!Eliom_registration.Ocaml}: Registration of services sending marshalled OCaml values. See the section on
-{{!page-"clientserver-applications".communication}communications in the chapter about client-server applications}.
+{{!page-"clientserver-communication"}communications in the chapter about client-server applications}.
 
 {%wodoc:div class="paragraph"%} Runtime choice of content {%wodoc:end%}
 
-- {!Eliom_registration.Any}: Registration of services that can choose what they send, for example an HTML page or a file, depending on some situation (parameter, user logged or not, page present in a cache ...). It is also possible to create your own modules for other types of pages. See {{!page-"server-services".any}here} for an example of use.
+- {!Eliom_registration.Any}: Registration of services that can choose what they send, for example an HTML page or a file, depending on some situation (parameter, user logged or not, page present in a cache ...). It is also possible to create your own modules for other types of pages. See {{:https://ocsigen.org/tuto/latest/how-to-register-a-service-that-decides-itself-what-to-send.html}here} for an example of use.
 
 {2 Advanced output modules}
 
