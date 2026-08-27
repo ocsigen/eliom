@@ -18,20 +18,20 @@ A service is composed of:
 - a service handler that will generate the answer.
 
 Services are most commonly used to create links and forms towards a
-service, using for example the function {!val
-Eliom_content.Html.D.a}. See chapter {{!page-"server-links"}Creating links and forms} for more
+service, using for example the function {!val:Eliom_content.Html.D.a}
+. See chapter {{!page-"server-links"}Creating links and forms} for more
 information.
 
 Manipulation of Eliom services can be done through the values of type
-[type Eliom_service.t] (see {!type
-Eliom_service_sigs.S.t}).  The service creation can be split in two
+[type Eliom_service.t] (see {!type:Eliom_service_sigs.S.t}
+).  The service creation can be split in two
 steps:
 
 - create a value of type [Eliom_service.t],
   most commonly by using the function
   {!Eliom_service.create}; and
-- register a service handler, e.g., using {!val
-  Eliom_registration.Html.register}. The handler receives the server
+- register a service handler, e.g., using {!val:Eliom_registration.Html.register}
+  . The handler receives the server
   parameters (GET and POST) and is responsible for producing the
   content sent to the client.
 
@@ -482,8 +482,8 @@ order):
   the time, but you may also get unexpected results (if the thread is
   executed while another site is loaded).  If you use threads in the
   initialization phase of your module (for example if you need
-  information from a database), use {!val
-  Lwt_unix.run} to wait for the end of the thread.
+  information from a database), use {!val:Lwt_unix.run}
+  to wait for the end of the thread.
 - Some services can be registered multiple times, with different
   options. This allows for example choosing between different handlers
   when the request is done in a particular session or protocol (HTTP
