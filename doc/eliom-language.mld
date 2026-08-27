@@ -16,13 +16,8 @@ direct usage of server-side toplevel values in client sections, and
 the declaration and handling of client values within the code for the
 server.
 
-It is advisable to read the section about {{!page-"workflow-compilation".compilation}compiling eliom
+It is advisable to read the section about {{!page-"workflow-distillery".compilation}compiling eliom
 applications} first.
-
-For an outline of the implementation of those features, please refer
-to the chapter on {{!page-"workflow-compilation".implementation}compiling eliom applications}.
-
-
 
 {1:sections Sections (partitioning into client- and server-side)}
 

@@ -304,7 +304,7 @@ are stateless channels: the memory consumption does not depend on
 the number of users requesting data on it. When the channels are not
 reachable from the server code, they are garbage-collected and closed.
 Named stateless channels can be accessed from
-{{!page-"clientserver-applications".cors_channels}other servers}.
+{{!section:cors_channels}other servers}.
 
 - Channels created with scope
   {!Eliom_common.default_process_scope}

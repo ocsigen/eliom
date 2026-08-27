@@ -474,7 +474,7 @@ let%server _ =
             (body [p [reload_link]])))
 ]}
 
-{2 HTML syntax extension}
+{2:syntax HTML syntax extension}
 
 It is possible to use regular HTML syntax using Tyxml's PPX syntax extension.
 

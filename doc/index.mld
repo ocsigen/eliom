@@ -110,6 +110,6 @@ to function [Eliom_reference.eref].
 
 {1 Learning Eliom}
 
-More documentation {{:https://ocsigen.org/tuto/latest/manual/basics}here}.
+More documentation {{:https://ocsigen.org/tuto/latest/basics.html}here}.
 
 Write your first Web and mobile application with Eliom using {{!/ocsigen-start/page-index}Ocsigen Start}.
