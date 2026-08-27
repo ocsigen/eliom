@@ -136,8 +136,8 @@ Write your first Web and mobile application with Eliom using
 
 If you want to use Eliom as a traditional server-side Web framework,
 have a look at these tutorials:
-- {{:https://ocsigen.org/tuto/basicwebsite.html}A basic Web site in OCaml}
-- {{:https://ocsigen.org/tuto/how-to-register-session-data.html}Session data: Eliom references}
-- {{:https://ocsigen.org/tuto/interaction.html}Service based Web programming}
+- {{:https://ocsigen.org/tuto/latest/basics-server.html}A basic Web site in OCaml}
+- {{:https://ocsigen.org/tuto/latest/how-to-register-session-data.html}Session data: Eliom references}
+- {{:https://ocsigen.org/tuto/latest/interaction.html}Service based Web programming}
 
 The full {{!page-"intro"}reference manual}, for technical details
