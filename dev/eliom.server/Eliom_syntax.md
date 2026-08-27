@@ -19,7 +19,7 @@ Registers a client value datum for the next server section when executed in a gl
 ```ocaml
 val set_global : bool -> unit
 ```
-All client values created between `set_global true` and `set_global false` are considered global client values (cf. `the manual`).
+All client values created between `set_global true` and `set_global false` are considered global client values (cf. [the manual](./../eliom-language.md)).
 
 ```ocaml
 val global_context : unit -> bool

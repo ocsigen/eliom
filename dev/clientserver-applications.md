@@ -26,7 +26,7 @@ On the server, it is possible to save data (some state) for each client process 
 
 ### How it works
 
-The code of an Eliom application is written in OCaml, with `a syntax extension` to distinguish between server and client code. The files using this syntax usually have the extension `.eliom`. As the compling process is quite complex, we provide commands called `eliomc`, `eliomopt` and `js_of_eliom` that do everything for you: separating client and server parts, calling `ocamlc`, `ocamlopt`, `js_of_ocaml`, etc.
+The code of an Eliom application is written in OCaml, with [a syntax extension](./eliom-language.md) to distinguish between server and client code. The files using this syntax usually have the extension `.eliom`. As the compling process is quite complex, we provide commands called `eliomc`, `eliomopt` and `js_of_eliom` that do everything for you: separating client and server parts, calling `ocamlc`, `ocamlopt`, `js_of_ocaml`, etc.
 
 Services belonging to the application are registered using the module [`Eliom_registration.App`](./eliom.server/Eliom_registration-App.md). More precisely, this is a functor that needs to be applied for each application you create. These services just return HTML pages as usual (using [`Eliom_content.Html`](./eliom.server/Eliom_content-Html.md)) The client-side program (compiled in JavaScript) is added automatically by Eliom, with all its data, and run automatically when the page is loaded.
 

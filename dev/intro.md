@@ -1,7 +1,7 @@
 
 # Introduction
 
-*This document is the Eliom manual, where you will find an detailed explanation of all Eliom concepts. If you want to learn how to program with Ocsigen, please read the [Ocsigen tutorial](https://ocsigen.org/tuto/) first, and especially [this overview of all concepts](https://ocsigen.org/tuto/basics.html) or the [server-side programming guide](https://ocsigen.org/tuto/basics-server.html).*
+*This document is the Eliom manual, where you will find an detailed explanation of all Eliom concepts. If you want to learn how to program with Ocsigen, please read the [Ocsigen tutorial](https://ocsigen.org/tuto/) first, and especially [this overview of all concepts](https://ocsigen.org/tuto/latest/basics.html) or the [server-side programming guide](https://ocsigen.org/tuto/latest/basics-server.html).*
 
 Eliom is a framework for developing Web and mobile applications. It can be used to implement either basic server-side Web sites, or advanced client-server applications accessible through a Web browser. From Eliom 6\.0, it is also possible to implement, with a single code base, **multi-platform applications** that will run on a **Web browser** or a **mobile** device (iOS, Android~ ...).
 

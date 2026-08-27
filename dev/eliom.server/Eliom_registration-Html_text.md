@@ -47,7 +47,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description `of different scopes`.
+The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 

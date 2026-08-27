@@ -7,7 +7,7 @@
 
 # Introduction
 
-*This document is the Eliom manual, where you will find an detailed explanation of all Eliom concepts. If you want to learn how to program with Ocsigen, please read the [Ocsigen tutorial](https://ocsigen.org/tuto/) first, and especially [this overview of all concepts](https://ocsigen.org/tuto/basics.html) or the [server-side programming guide](https://ocsigen.org/tuto/basics-server.html).*
+*This document is the Eliom manual, where you will find an detailed explanation of all Eliom concepts. If you want to learn how to program with Ocsigen, please read the [Ocsigen tutorial](https://ocsigen.org/tuto/) first, and especially [this overview of all concepts](https://ocsigen.org/tuto/latest/basics.html) or the [server-side programming guide](https://ocsigen.org/tuto/latest/basics-server.html).*
 
 Eliom is a framework for developing Web and mobile applications. It can be used to implement either basic server-side Web sites, or advanced client-server applications accessible through a Web browser. From Eliom 6\.0, it is also possible to implement, with a single code base, **multi-platform applications** that will run on a **Web browser** or a **mobile** device (iOS, Android~ ...).
 
@@ -638,10 +638,10 @@ Services can send several types of data, using a variety of predefined modules. 
 - [`Eliom_registration.Customize`](./eliom.server/Eliom_registration-Customize.md): Specialization of service registration functions by customizing the page type.
 <!--wodoc:div class="paragraph"--> Sending caml values to client side code <!--wodoc:end-->
 
-- [`Eliom_registration.Ocaml`](./eliom.server/Eliom_registration-Ocaml.md): Registration of services sending marshalled OCaml values. See the section on `communications in the chapter about client-server applications`.
+- [`Eliom_registration.Ocaml`](./eliom.server/Eliom_registration-Ocaml.md): Registration of services sending marshalled OCaml values. See the section on [communications in the chapter about client-server applications](./clientserver-communication.md).
 <!--wodoc:div class="paragraph"--> Runtime choice of content <!--wodoc:end-->
 
-- [`Eliom_registration.Any`](./eliom.server/Eliom_registration-Any.md): Registration of services that can choose what they send, for example an HTML page or a file, depending on some situation (parameter, user logged or not, page present in a cache ...). It is also possible to create your own modules for other types of pages. See `here` for an example of use.
+- [`Eliom_registration.Any`](./eliom.server/Eliom_registration-Any.md): Registration of services that can choose what they send, for example an HTML page or a file, depending on some situation (parameter, user logged or not, page present in a cache ...). It is also possible to create your own modules for other types of pages. See [here](https://ocsigen.org/tuto/latest/how-to-register-a-service-that-decides-itself-what-to-send.html) for an example of use.
 
 ### Advanced output modules
 
@@ -1797,7 +1797,7 @@ Within the user scopes, Eliom distinguishes three scopes that differ with respec
 
 - Data and dynamic services created with scope [`Eliom_common.default_session_scope`](./eliom.server/Eliom_common.md#val-default_session_scope) are only visible to the client belonging to a same session (all tabs of a single browser).
 - Data and dynamic services created with scope [`Eliom_common.default_group_scope`](./eliom.server/Eliom_common.md#val-default_group_scope) are only visible to the clients whose sessions belong to the same session group. See section [Session groups](./#session_groups) for more information.
-- Data and dynamic services created with scope [`Eliom_common.default_process_scope`](./eliom.server/Eliom_common.md#val-default_process_scope) are only visible to a specific instance of the Eliom application (i.e., a single tab, running the Eliom client process). See section `Eliom applications` for more information.
+- Data and dynamic services created with scope [`Eliom_common.default_process_scope`](./eliom.server/Eliom_common.md#val-default_process_scope) are only visible to a specific instance of the Eliom application (i.e., a single tab, running the Eliom client process). See section [Eliom applications](./clientserver-applications.md) for more information.
 User scopes are organised in a *hierarchy*: client processes belong to a session, and sessions belong to a group of sessions.
 
 Data and dynamic services with a user scope can be discarded explicitely or via a timeout. See sections [Closing session](./#closing_sessions) and [Timeouts and session duration](./#timeouts) for more information.
@@ -2114,7 +2114,7 @@ On the server, it is possible to save data (some state) for each client process 
 
 ### How it works
 
-The code of an Eliom application is written in OCaml, with `a syntax extension` to distinguish between server and client code. The files using this syntax usually have the extension `.eliom`. As the compling process is quite complex, we provide commands called `eliomc`, `eliomopt` and `js_of_eliom` that do everything for you: separating client and server parts, calling `ocamlc`, `ocamlopt`, `js_of_ocaml`, etc.
+The code of an Eliom application is written in OCaml, with [a syntax extension](./eliom-language.md) to distinguish between server and client code. The files using this syntax usually have the extension `.eliom`. As the compling process is quite complex, we provide commands called `eliomc`, `eliomopt` and `js_of_eliom` that do everything for you: separating client and server parts, calling `ocamlc`, `ocamlopt`, `js_of_ocaml`, etc.
 
 Services belonging to the application are registered using the module [`Eliom_registration.App`](./eliom.server/Eliom_registration-App.md). More precisely, this is a functor that needs to be applied for each application you create. These services just return HTML pages as usual (using [`Eliom_content.Html`](./eliom.server/Eliom_content-Html.md)) The client-side program (compiled in JavaScript) is added automatically by Eliom, with all its data, and run automatically when the page is loaded.
 
@@ -2956,7 +2956,7 @@ Channels can be closed on client side by cancelling a thread waiting for data on
 
 Like services, channels have a scope (only site or client process). The constraints vary with respect to the scope you choose:
 
-- Channels created with scope [`Eliom_common.site_scope`](./eliom.server/Eliom_common.md#type-site_scope) or using [`Eliom_comet.Channel.create_newest`](./eliom.server/Eliom_comet-Channel.md#val-create_newest) are stateless channels: the memory consumption does not depend on the number of users requesting data on it. When the channels are not reachable from the server code, they are garbage-collected and closed. Named stateless channels can be accessed from `other servers`.
+- Channels created with scope [`Eliom_common.site_scope`](./eliom.server/Eliom_common.md#type-site_scope) or using [`Eliom_comet.Channel.create_newest`](./eliom.server/Eliom_comet-Channel.md#val-create_newest) are stateless channels: the memory consumption does not depend on the number of users requesting data on it. When the channels are not reachable from the server code, they are garbage-collected and closed. Named stateless channels can be accessed from [other servers](./#cors_channels).
 - Channels created with scope [`Eliom_common.default_process_scope`](./eliom.server/Eliom_common.md#val-default_process_scope) must be created inside a service handler. They are assigned to a particular client process. Different channels created with the same stream do not share memory. They are closed when requested or when the client process is closed. It is possible to know when a client stop requesting data on those channels using [`Eliom_comet.Channel.wait_timeout`](./eliom.server/Eliom_comet-Channel.md#val-wait_timeout). Be careful about memory consumption when using client process channels.
 
 ### Comet configuration
@@ -3927,9 +3927,7 @@ In Eliom it possible to define the functionality of the server and the client pr
 
 Eliom provides three language extensions to OCaml to provide an integrated development of client/server-programs, and to deal with the mentioned asymetricity between the client- and server-program: The partitioning of the program into client-, and server-sections, the direct usage of server-side toplevel values in client sections, and the declaration and handling of client values within the code for the server.
 
-It is advisable to read the section about `compiling eliom applications` first.
-
-For an outline of the implementation of those features, please refer to the chapter on `compiling eliom applications`.
+It is advisable to read the section about [compiling eliom applications](./workflow-distillery.md#compilation) first.
 
 
 ## Sections (partitioning into client- and server-side)
@@ -4375,7 +4373,7 @@ Where scope can be:
 
 ## Learning Eliom
 
-More documentation [here](https://ocsigen.org/tuto/latest/manual/basics).
+More documentation [here](https://ocsigen.org/tuto/latest/basics.html).
 
 Write your first Web and mobile application with Eliom using `Ocsigen Start`.
 
@@ -4677,15 +4675,15 @@ Where scope can be:
 
 ## Learning Eliom
 
-To learn Eliom, read one the main documentation pages first: [application development](https://ocsigen.org/tuto/basics.html) (client-server programming) or [website development](https://ocsigen.org/tuto/basics-server.html) (server-side programming).
+To learn Eliom, read one the main documentation pages first: [application development](https://ocsigen.org/tuto/latest/basics.html) (client-server programming) or [website development](https://ocsigen.org/tuto/latest/basics-server.html) (server-side programming).
 
 Write your first Web and mobile application with Eliom using `Ocsigen Start`
 
 If you want to use Eliom as a traditional server-side Web framework, have a look at these tutorials:
 
-- [A basic Web site in OCaml](https://ocsigen.org/tuto/basicwebsite.html)
-- [Session data: Eliom references](https://ocsigen.org/tuto/how-to-register-session-data.html)
-- [Service based Web programming](https://ocsigen.org/tuto/interaction.html)
+- [A basic Web site in OCaml](https://ocsigen.org/tuto/latest/basics-server.html)
+- [Session data: Eliom references](https://ocsigen.org/tuto/latest/how-to-register-session-data.html)
+- [Service based Web programming](https://ocsigen.org/tuto/latest/interaction.html)
 The full [reference manual](./intro.md), for technical details
 
 
@@ -5585,7 +5583,7 @@ val _eliom_fragment_enI33N5 :
 
 ### Client and shared values
 
-See the `manual`.
+See the [manual](./../eliom-language.md).
 
 ```ocaml
 type 'a t = 'a
@@ -90954,7 +90952,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description `of different scopes`.
+The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -91112,7 +91110,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description `of different scopes`.
+The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -91183,7 +91181,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description `of different scopes`.
+The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -91318,7 +91316,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description `of different scopes`.
+The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -91577,7 +91575,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description `of different scopes`.
+The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -92112,7 +92110,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description `of different scopes`.
+The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -99259,12 +99257,12 @@ val __eliom__compilation_unit_id__enI33N : string
 
 ### Client and shared values
 
-See the `manual`.
+See the [manual](./../eliom-language.md).
 
 ```ocaml
 type +'a t
 ```
-Client values on the server are created by the syntax `{typ{ expr }}` in the server section (cf. `the manual`). They are abstract, but become concrete once sent to the client. See also [the concrete representation on the client](./#type-t).
+Client values on the server are created by the syntax `{typ{ expr }}` in the server section (cf. [the manual](./../eliom-language.md#clientvalues)). They are abstract, but become concrete once sent to the client. See also [the concrete representation on the client](./#type-t).
 
 ```ocaml
 exception Client_value_creation_invalid_context of string
@@ -123879,7 +123877,7 @@ Unique nodes are XML nodes that are manipulated 'by reference' when sent to the 
 ```ocaml
 type caml_event_handler
 ```
-Values of type `caml_event_handler` represents event handler build with the `{{ ... }}` syntax (see the Eliom manual for more information on `syntax extension`). Such values are expected by functions like `Eliom_content.Html.a_onclick`.
+Values of type `caml_event_handler` represents event handler build with the `{{ ... }}` syntax (see the Eliom manual for more information on [syntax extension](./../clientserver-html.md#syntax)). Such values are expected by functions like `Eliom_content.Html.a_onclick`.
 
 ```ocaml
 val wrap : elt -> 'a -> 'a Eliom_wrap.wrapped_value
@@ -175345,7 +175343,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description `of different scopes`.
+The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -177876,7 +177874,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description `of different scopes`.
+The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -178343,7 +178341,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description `of different scopes`.
+The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -178548,7 +178546,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description `of different scopes`.
+The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -178751,7 +178749,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description `of different scopes`.
+The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -178922,7 +178920,7 @@ val translate : page -> R.page Lwt.t
 
 # Module `Eliom_registration.Customize`
 
-The `Customize` functor allows specialization of service registration functions by customizing the page type. See the `Eliom tutorial` for example.
+The `Customize` functor allows specialization of service registration functions by customizing the page type. See the [Eliom tutorial](https://ocsigen.org/tuto/latest/interaction.html) for example.
 
 
 ## Parameters
@@ -178980,7 +178978,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description `of different scopes`.
+The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -179230,7 +179228,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description `of different scopes`.
+The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -179463,7 +179461,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description `of different scopes`.
+The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -179673,7 +179671,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description `of different scopes`.
+The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -179883,7 +179881,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description `of different scopes`.
+The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -180090,7 +180088,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description `of different scopes`.
+The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -180295,7 +180293,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description `of different scopes`.
+The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -180500,7 +180498,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description `of different scopes`.
+The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -181100,7 +181098,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description `of different scopes`.
+The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -181314,7 +181312,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description `of different scopes`.
+The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -181519,7 +181517,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description `of different scopes`.
+The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -181769,7 +181767,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description `of different scopes`.
+The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -182226,7 +182224,7 @@ module Customize
      and type page = T.page
      and type result = R.result
 ```
-The `Customize` functor allows specialization of service registration functions by customizing the page type. See the `Eliom tutorial` for example.
+The `Customize` functor allows specialization of service registration functions by customizing the page type. See the [Eliom tutorial](https://ocsigen.org/tuto/latest/interaction.html) for example.
 
 
 ### Using your own error pages
@@ -182387,7 +182385,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description `of different scopes`.
+The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -182922,7 +182920,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description `of different scopes`.
+The optional parameter `~scope` is [`Eliom_common.global_scope`](./Eliom_common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -191397,7 +191395,7 @@ Registers a client value datum for the next server section when executed in a gl
 ```ocaml
 val set_global : bool -> unit
 ```
-All client values created between `set_global true` and `set_global false` are considered global client values (cf. `the manual`).
+All client values created between `set_global true` and `set_global false` are considered global client values (cf. [the manual](./../eliom-language.md)).
 
 ```ocaml
 val global_context : unit -> bool

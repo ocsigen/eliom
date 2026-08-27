@@ -96,6 +96,6 @@ Where scope can be:
 
 ## Learning Eliom
 
-More documentation [here](https://ocsigen.org/tuto/latest/manual/basics).
+More documentation [here](https://ocsigen.org/tuto/latest/basics.html).
 
 Write your first Web and mobile application with Eliom using `Ocsigen Start`.

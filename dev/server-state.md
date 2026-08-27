@@ -101,7 +101,7 @@ Within the user scopes, Eliom distinguishes three scopes that differ with respec
 
 - Data and dynamic services created with scope [`Eliom_common.default_session_scope`](./eliom.server/Eliom_common.md#val-default_session_scope) are only visible to the client belonging to a same session (all tabs of a single browser).
 - Data and dynamic services created with scope [`Eliom_common.default_group_scope`](./eliom.server/Eliom_common.md#val-default_group_scope) are only visible to the clients whose sessions belong to the same session group. See section [Session groups](./#session_groups) for more information.
-- Data and dynamic services created with scope [`Eliom_common.default_process_scope`](./eliom.server/Eliom_common.md#val-default_process_scope) are only visible to a specific instance of the Eliom application (i.e., a single tab, running the Eliom client process). See section `Eliom applications` for more information.
+- Data and dynamic services created with scope [`Eliom_common.default_process_scope`](./eliom.server/Eliom_common.md#val-default_process_scope) are only visible to a specific instance of the Eliom application (i.e., a single tab, running the Eliom client process). See section [Eliom applications](./clientserver-applications.md) for more information.
 User scopes are organised in a *hierarchy*: client processes belong to a session, and sessions belong to a group of sessions.
 
 Data and dynamic services with a user scope can be discarded explicitely or via a timeout. See sections [Closing session](./#closing_sessions) and [Timeouts and session duration](./#timeouts) for more information.

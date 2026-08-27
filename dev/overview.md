@@ -112,13 +112,13 @@ Where scope can be:
 
 ## Learning Eliom
 
-To learn Eliom, read one the main documentation pages first: [application development](https://ocsigen.org/tuto/basics.html) (client-server programming) or [website development](https://ocsigen.org/tuto/basics-server.html) (server-side programming).
+To learn Eliom, read one the main documentation pages first: [application development](https://ocsigen.org/tuto/latest/basics.html) (client-server programming) or [website development](https://ocsigen.org/tuto/latest/basics-server.html) (server-side programming).
 
 Write your first Web and mobile application with Eliom using `Ocsigen Start`
 
 If you want to use Eliom as a traditional server-side Web framework, have a look at these tutorials:
 
-- [A basic Web site in OCaml](https://ocsigen.org/tuto/basicwebsite.html)
-- [Session data: Eliom references](https://ocsigen.org/tuto/how-to-register-session-data.html)
-- [Service based Web programming](https://ocsigen.org/tuto/interaction.html)
+- [A basic Web site in OCaml](https://ocsigen.org/tuto/latest/basics-server.html)
+- [Session data: Eliom references](https://ocsigen.org/tuto/latest/how-to-register-session-data.html)
+- [Service based Web programming](https://ocsigen.org/tuto/latest/interaction.html)
 The full [reference manual](./intro.md), for technical details

@@ -5,9 +5,7 @@ In Eliom it possible to define the functionality of the server and the client pr
 
 Eliom provides three language extensions to OCaml to provide an integrated development of client/server-programs, and to deal with the mentioned asymetricity between the client- and server-program: The partitioning of the program into client-, and server-sections, the direct usage of server-side toplevel values in client sections, and the declaration and handling of client values within the code for the server.
 
-It is advisable to read the section about `compiling eliom applications` first.
-
-For an outline of the implementation of those features, please refer to the chapter on `compiling eliom applications`.
+It is advisable to read the section about [compiling eliom applications](./workflow-distillery.md#compilation) first.
 
 
 ## Sections (partitioning into client- and server-side)

@@ -34,10 +34,10 @@ Services can send several types of data, using a variety of predefined modules. 
 - [`Eliom_registration.Customize`](./eliom.server/Eliom_registration-Customize.md): Specialization of service registration functions by customizing the page type.
 <!--wodoc:div class="paragraph"--> Sending caml values to client side code <!--wodoc:end-->
 
-- [`Eliom_registration.Ocaml`](./eliom.server/Eliom_registration-Ocaml.md): Registration of services sending marshalled OCaml values. See the section on `communications in the chapter about client-server applications`.
+- [`Eliom_registration.Ocaml`](./eliom.server/Eliom_registration-Ocaml.md): Registration of services sending marshalled OCaml values. See the section on [communications in the chapter about client-server applications](./clientserver-communication.md).
 <!--wodoc:div class="paragraph"--> Runtime choice of content <!--wodoc:end-->
 
-- [`Eliom_registration.Any`](./eliom.server/Eliom_registration-Any.md): Registration of services that can choose what they send, for example an HTML page or a file, depending on some situation (parameter, user logged or not, page present in a cache ...). It is also possible to create your own modules for other types of pages. See `here` for an example of use.
+- [`Eliom_registration.Any`](./eliom.server/Eliom_registration-Any.md): Registration of services that can choose what they send, for example an HTML page or a file, depending on some situation (parameter, user logged or not, page present in a cache ...). It is also possible to create your own modules for other types of pages. See [here](https://ocsigen.org/tuto/latest/how-to-register-a-service-that-decides-itself-what-to-send.html) for an example of use.
 
 ### Advanced output modules
 

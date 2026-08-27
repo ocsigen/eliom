@@ -281,7 +281,7 @@ module Customize
      and type page = T.page
      and type result = R.result
 ```
-The `Customize` functor allows specialization of service registration functions by customizing the page type. See the `Eliom tutorial` for example.
+The `Customize` functor allows specialization of service registration functions by customizing the page type. See the [Eliom tutorial](https://ocsigen.org/tuto/latest/interaction.html) for example.
 
 
 ### Using your own error pages

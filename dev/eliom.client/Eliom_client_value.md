@@ -4,7 +4,7 @@
 
 ### Client and shared values
 
-See the `manual`.
+See the [manual](./../eliom-language.md).
 
 ```ocaml
 type 'a t = 'a
