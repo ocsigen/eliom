@@ -19,11 +19,11 @@
 
 (** {2 Client and shared values}
 
-    See the {{!page-"clientserver-language"}manual}. *)
+    See the {{!page-"eliom-language"}manual}. *)
 
 type +'a t
 (** Client values on the server are created by the syntax [{typ{ expr
-    }}] in the server section (cf. {{!page-"clientserver-language".clientvalues}the
+    }}] in the server section (cf. {{!page-"eliom-language".clientvalues}the
     manual}).  They are abstract, but become concrete once sent to
     the client. See also {{!Eliom_client_value.t}the
     concrete representation on the client}. *)

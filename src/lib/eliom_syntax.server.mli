@@ -34,7 +34,7 @@ val client_value :
 val set_global : bool -> unit
 (** All client values created between [set_global true] and
     [set_global false] are considered global client values
-    (cf. {{!page-"clientserver-language"}the manual}).  *)
+    (cf. {{!page-"eliom-language"}the manual}).  *)
 
 val global_context : unit -> bool
 (** Returns whether client values created in the current context
