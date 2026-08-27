@@ -127,9 +127,9 @@ to function `Eliom_reference.eref`.
 {1 Learning Eliom}
 
 To learn Eliom, read one the main documentation pages first:
-{{:https://ocsigen.org/tuto/basics.html}application development} (client-server programming)
+{{:https://ocsigen.org/tuto/latest/basics.html}application development} (client-server programming)
 or
-{{:https://ocsigen.org/tuto/basics-server.html}website development} (server-side programming).
+{{:https://ocsigen.org/tuto/latest/basics-server.html}website development} (server-side programming).
 
 Write your first Web and mobile application with Eliom using
 {{!/ocsigen-start/page-index}Ocsigen Start}

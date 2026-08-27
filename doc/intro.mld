@@ -4,8 +4,8 @@
 detailed explanation of all Eliom concepts.
 If you want to learn how to program with Ocsigen, please read
 the {{:https://ocsigen.org/tuto/}Ocsigen tutorial} first,
-and especially {{:https://ocsigen.org/tuto/basics.html}this overview of all concepts}
-or the {{:https://ocsigen.org/tuto/basics-server.html}server-side programming guide}.}
+and especially {{:https://ocsigen.org/tuto/latest/basics.html}this overview of all concepts}
+or the {{:https://ocsigen.org/tuto/latest/basics-server.html}server-side programming guide}.}
 
 Eliom is a framework for developing Web and mobile applications.
 It can be used to implement either basic server-side Web sites,
