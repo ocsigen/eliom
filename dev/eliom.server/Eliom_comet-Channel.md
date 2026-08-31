@@ -1,4 +1,3 @@
-
 # Module `Eliom_comet.Channel`
 
 Basic primitives needed for server push.

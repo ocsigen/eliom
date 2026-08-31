@@ -1,4 +1,3 @@
-
 # Module `E.Option`
 
 Events with option occurences.

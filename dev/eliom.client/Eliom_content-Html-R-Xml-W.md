@@ -1,4 +1,3 @@
-
 # Module `Xml.W`
 
 ```ocaml

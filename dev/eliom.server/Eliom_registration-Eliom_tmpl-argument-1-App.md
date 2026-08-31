@@ -1,4 +1,3 @@
-
 # Parameter `Eliom_tmpl.App`
 
 ```ocaml

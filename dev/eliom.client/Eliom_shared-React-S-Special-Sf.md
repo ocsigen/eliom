@@ -1,4 +1,3 @@
-
 # Module `Special.Sf`
 
 Specialization for floats.

@@ -1,4 +1,3 @@
-
 # Module `Html.Custom_data`
 
 ```ocaml

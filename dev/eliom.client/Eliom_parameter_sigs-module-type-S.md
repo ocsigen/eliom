@@ -1,4 +1,3 @@
-
 # Module type `Eliom_parameter_sigs.S`
 
 ```ocaml
@@ -58,7 +57,6 @@ type +'a setone = [
  ]
 ```
 Restriction of [`setoneradio`](./#type-setoneradio) unary and set parameters.
-
 
 ### Type helpers
 
@@ -157,7 +155,6 @@ val coordinates :
     params_type
 ```
 `coordinates s` means that the service takes as parameters the coordinates of a point in an `<input type="image" ...>`.
-
 
 ### Composing types of pages parameters
 

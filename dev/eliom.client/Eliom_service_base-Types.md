@@ -1,6 +1,4 @@
-
 # Module `Eliom_service_base.Types`
-
 
 ### Auxiliary service-related types
 

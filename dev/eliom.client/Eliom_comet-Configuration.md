@@ -1,4 +1,3 @@
-
 # Module `Eliom_comet.Configuration`
 
 Change the reactivity of channels. Multiples configurations ( of type `t` ) can be created. The resulting behaviour is the minimal ( in the meaning of maximal reactivity ) between all configurations

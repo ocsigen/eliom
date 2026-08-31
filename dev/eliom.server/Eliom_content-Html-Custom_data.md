@@ -1,4 +1,3 @@
-
 # Module `Html.Custom_data`
 
 Type-safe custom data for HTML. See the [examples in the manual](./../clientserver-html.md#custom_data).

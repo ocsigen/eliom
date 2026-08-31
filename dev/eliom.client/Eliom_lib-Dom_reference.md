@@ -1,4 +1,3 @@
-
 # Module `Eliom_lib.Dom_reference`
 
 ```ocaml

@@ -1,4 +1,3 @@
-
 # Module `R.Raw`
 
 ```ocaml
@@ -80,7 +79,6 @@ A star element is an element that has any number of children, including zero.
 module Info : Xml_sigs.Info
 ```
 Various information about SVG, such as the doctype, ...
-
 
 #### Uri
 
@@ -913,7 +911,6 @@ val a_stroke_opacity : float wrap -> [> `Stroke_Opacity ] attrib
 ```
 
 ### Events
-
 
 #### Javascript events
 

@@ -1,9 +1,6 @@
-
 # Programming client-server applications with Eliom
 
-
 ## General principles
-
 
 ### What is a client/server Eliom application
 
@@ -23,7 +20,6 @@ Client-side parts of the program can use most Eliom features, just as usual, for
 
 On the server, it is possible to save data (some state) for each client process (that is, one tab in a browser), simply by using Eliom references with scope ``Client_process`. You can register services for one client process, or even set cookies for one tab.
 
-
 ### How it works
 
 The code of an Eliom application is written in OCaml, with [a syntax extension](./eliom-language.md) to distinguish between server and client code. The files using this syntax usually have the extension `.eliom`. As the compling process is quite complex, we provide commands called `eliomc`, `eliomopt` and `js_of_eliom` that do everything for you: separating client and server parts, calling `ocamlc`, `ocamlopt`, `js_of_ocaml`, etc.
@@ -33,7 +29,6 @@ Services belonging to the application are registered using the module [`Eliom_re
 Module [`Eliom_client`](./eliom.server/Eliom_client.md) provides useful functions for client side programming with Eliom: e.g. `Eliom_client.change_page` permits switching to another page.
 
 Module [`Eliom_comet`](./eliom.server/Eliom_comet.md) allows the server to send notifications to the client (even if the client is not explicitely doing a request). Use module [`Eliom_react`](./eliom.server/Eliom_react.md) to make client-server reactive programming (using the [React](http://erratique.ch/software/react) external library).
-
 
 ### The App functor
 
@@ -64,7 +59,6 @@ let my_service =
 ```
 Eliom will add automatically the required headers to send the client side program and all its data.
 
-
 ## Application, life and death
 
 When an user enters the page of a service registered by an application module (created with the `App` functor), the application is started. During the life of the application, a single OCaml program will run on the browser: Lwt threads will keep running, global variables will stay available, etc. until the application is closed. The application will keep running when the user clicks on links to pages inside the same application.
@@ -92,11 +86,9 @@ That way, you can delay JavaScript loading until it is really needed. Visiting a
 
 By default, every link of form towards another service of the same application is reimplemented by Eliom so that it does not stop the application. Instead of asking the browser to load a new page, Eliom does an XML HTTP request (XHR). You can avoid this and insert regular links or forms by adding the optional parameter `~xhr:false`. This will force reloading the application when the link is clicked.
 
-
 ### Navigating in and out of the application.
 
 Two functions are available client-side for changing the current page without interaction from the user. The function `Eliom_client.change_page` goes to the service taken as parameter. If the service is in another application or not in an application, the current application will be stopped. The function `Eliom_client.window_open` opens an Eliom service in a new browser window (cf. JavaScript's `window.open`). `Eliom_client.exit_to` changes the current page and always leaves the application.
-
 
 ### Leaving application and going back
 

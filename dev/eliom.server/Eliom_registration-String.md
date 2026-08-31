@@ -1,4 +1,3 @@
-
 # Module `Eliom_registration.String`
 
 Eliom service registration for services that returns "byte"-string contents. The page content is a pair `(raw_content, content_type)`. See also `Streamlist` for another kind of service that returns "byte" contents. The option is the optional "Cache-policy: max-age" header value to be sent.

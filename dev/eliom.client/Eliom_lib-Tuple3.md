@@ -1,4 +1,3 @@
-
 # Module `Eliom_lib.Tuple3`
 
 ```ocaml

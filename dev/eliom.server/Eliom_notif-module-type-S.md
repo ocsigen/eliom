@@ -1,4 +1,3 @@
-
 # Module type `Eliom_notif.S`
 
 Signature of the functors `Eliom_notif.Make` and `Eliom_notif.Make_Simple`.

@@ -1,4 +1,3 @@
-
 # Module `A.Container`
 
 ```ocaml

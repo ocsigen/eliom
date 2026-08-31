@@ -1,4 +1,3 @@
-
 # Module type `Eliom_registration_sigs.APP_PARAM`
 
 Signature for application creation.

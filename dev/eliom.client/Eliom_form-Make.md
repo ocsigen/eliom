@@ -1,6 +1,4 @@
-
 # Module `Eliom_form.Make`
-
 
 ## Parameters
 

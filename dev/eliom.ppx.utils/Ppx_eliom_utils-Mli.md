@@ -1,4 +1,3 @@
-
 # Module `Ppx_eliom_utils.Mli`
 
 ```ocaml

@@ -1,6 +1,4 @@
-
 # Services
-
 
 ## Introduction
 
@@ -18,10 +16,9 @@ Manipulation of Eliom services can be done through the values of type `type Elio
 - register a service handler, e.g., using [`Eliom_registration.Html.register`](./eliom.server/Eliom_registration-Html.md#val-register) . The handler receives the server parameters (GET and POST) and is responsible for producing the content sent to the client.
 The rest of this chapter focuses on service creation. See chapter [Implementing service handlers](./server-outputs.md) for more information on handler implementation and registration.
 
-
 ## Service creation
 
-<!--wodoc:div--> Warning: in this manual, we use the term *service* both to denote a value of type `Eliom_service.t` \--that only contains some location information about a service--, or a fully *registered* service, that is also composed of a service handler. In case of ambiguities, we will use `service` \--in green monotype-- to designate a value of type `Eliom_service.t`. <!--wodoc:end-->
+ Warning: in this manual, we use the term *service* both to denote a value of type `Eliom_service.t` \--that only contains some location information about a service--, or a fully *registered* service, that is also composed of a service handler. In case of ambiguities, we will use `service` \--in green monotype-- to designate a value of type `Eliom_service.t`.
 
 The standard way to create a service is a call of the form `Eliom_service.create ~meth ~path ()`, where
 
@@ -37,13 +34,12 @@ Services can respond to any of the GET, POST, PUT, and DELETE HTTP methods.
 - The PUT and DELETE methods are mostly used to implement RESTful applications.
 The corresponding [`Eliom_service_sigs.TYPES.meth`](./eliom.server/Eliom_service_sigs-module-type-TYPES.md#type-meth) constructors are `Get g`, `Post (g, p)`, `Put g`, and `Delete g`, where `g` and `p` belong in `Eliom_parameter.params_type` and correspond to the GET and POST parameters.
 
-<!--wodoc:div class="concept"-->**POST or GET?**
+**POST or GET?**
 
 POST and GET methods are not equivalent, and you must be very careful if you want to use one or the other. Remember that only GET services are bookmarkable. The HTTP method and POST parameters are not stored in bookmarks.
 
 - Use the GET method if you want the user to be able to come back to the service later, or to write the URL manually.
 - Use the POST method for *hidden services*, that is, when you want different behaviour between the first click and a reload of the page. Usually, using POST triggers a server-side action (like a payment, or adding something to a database), and you don't want it to succeed several times if the page is reloaded or bookmarked.
-<!--wodoc:end-->
 
 ### Service parameters
 
@@ -52,7 +48,6 @@ GET services expect only GET parameters, i.e., parameters that appear in the URL
 Values of the type `Eliom_parameter.params_type` represent the set of expected arguments with their types. They are built using combinators from the [`Eliom_parameter`](./eliom.server/Eliom_parameter.md) module. See chapter [Service parameters](./server-params.md) for a detailled description of this module.
 
 Type information associated to each argument allows Eliom to automatically convert the actual parameters into the corresponding OCaml types. If the parameter cannot be converted, the exception [`Eliom_common.Eliom_Typing_Error`](./eliom.server/Eliom_common.md#exception-Eliom_Typing_Error) is raised. The handling of such errors may be customized by providing the argument `~error_handler` when registering the service.
-
 
 ### Services with path ("regular" services)
 
@@ -118,9 +113,7 @@ a ~service [txt "click"] ()
 ```
 It works with GET or POST pathless services. The fallback must be a GET service without parameters (but you can preapply it).
 
-
 #### Options for pathless services
-
 
 ##### Timeouts
 
@@ -128,16 +121,13 @@ It is possible to use timeouts with pathless services, using the optional parame
 
 *Warning:* forgetting timeouts may cause memory leaks\!
 
-
 ##### Disposability
 
 It is possible to set a limit to the number of uses of a pathless service. Just provide the maximum number of uses with the optional `?max_use` parameter while creating the service.
 
-
 ## Non-standard services
 
 Some kinds of services do not fit in our canonical way of defining services, [`Eliom_service.create`](./eliom.server/Eliom_service.md#val-create) .
-
 
 ### Attached services
 
@@ -157,11 +147,9 @@ The fallback of a GET attached service cannot take parameters. But it is possibl
 
 Attached services can have a timeout and can be disposable, just like pathless services.
 
-
 ### Unregistrable services
 
 Some values of type `Eliom_service.t` cannot be meaningfully associated to service handlers. Such values are called *unregistrable services* (as opposed to the standard case of *registrable services*), and represent, for example, links towards external sites, or registrable services pre-applied to some parameters. This allows use of the `Eliom_service` API consistently for creating links.
-
 
 #### External services
 
@@ -194,7 +182,6 @@ a (static_dir ()) [txt "download image"] ["ocsigen10.png"]
 ```
 It is also possible to send static files using Eliom, with [`Eliom_registration.File`](./eliom.server/Eliom_registration-File.md). See [Sending files](./server-outputs.md#eliomfiles).
 
-
 #### Pre-applied services
 
 It is possible to preapply the GET parameters of a service to obtain a service without parameters, or only the POST ones. It is done using `Eliom_service.preapply` (see [`Eliom_service_sigs.S.preapply`](./eliom.server/Eliom_service_sigs-module-type-S.md#val-preapply)). For example:
@@ -210,7 +197,6 @@ let preappl = Eliom_service.preapply s 3
 ```
 It is not possible to register a handler on a preapplied service, but you can use them in links or as fallbacks for attached services.
 
-
 #### Reload actions
 
 `Eliom_service.reload_action` (see [`Eliom_service_sigs.S.reload_action`](./eliom.server/Eliom_service_sigs-module-type-S.md#val-reload_action)) is a special non-attached action, with special behavior: it has no parameter at all, not even non-attached parameters. Use it if you want to make a link to the current page without non-attached parameters. It is almost equivalent to a POST pathless service without POST parameters, on which you register an action that does nothing, but instead it is using the GET method, so that you can use it with `<a>` links, not only with forms. Example:
@@ -221,7 +207,6 @@ a ~service:Eliom_service.reload_action [txt "cancel"] ()
 There is also `Eliom_service.reload_action_https` (same, but forces use of HTTPS), `Eliom_service.reload_action_hidden`, and `Eliom_service.reload_action_https_hidden`. "Hidden" means that they keep GET non-attached parameters.
 
 Use `Eliom_service.reload_action_hidden` for example after a POST request, if you want to do a redirection towards the same page without POST parameters (and thus prevent from reposting data if the user reloads the page).
-
 
 ## Service identification
 
@@ -234,7 +219,6 @@ Eliom has a sophisticated *service identification mechanism* to choose the servi
 - the session the client belongs to (or client side process, or session group),
 - ...
 But the user does not usually need to bother with this. Eliom abstracts this mechanism away through its three main kinds of services (regular services, pathless services, and attached services), which we have described.
-
 
 ## Service scopes
 

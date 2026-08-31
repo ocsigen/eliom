@@ -1,4 +1,3 @@
-
 # Module `Eliom_react`
 
 Propagate events occurrences from the server to the client and the other way around. Occurrence propagation is done asynchronously.

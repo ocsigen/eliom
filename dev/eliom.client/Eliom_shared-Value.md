@@ -1,4 +1,3 @@
-
 # Module `Eliom_shared.Value`
 
 Accessing shared values

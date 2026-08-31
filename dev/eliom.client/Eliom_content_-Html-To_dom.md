@@ -1,4 +1,3 @@
-
 # Module `Html.To_dom`
 
 ```ocaml

@@ -1,4 +1,3 @@
-
 # Module type `Eliom_registration_sigs.S_with_create`
 
 ```ocaml

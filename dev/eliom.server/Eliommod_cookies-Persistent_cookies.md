@@ -1,4 +1,3 @@
-
 # Module `Eliommod_cookies.Persistent_cookies`
 
 ```ocaml

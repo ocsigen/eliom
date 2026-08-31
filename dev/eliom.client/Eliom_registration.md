@@ -1,4 +1,3 @@
-
 # Module `Eliom_registration`
 
 Client-side service registration.

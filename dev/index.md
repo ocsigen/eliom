@@ -1,4 +1,3 @@
-
 # Eliom
 
 Eliom is a framework for building client/server Web and mobile applications in OCaml.
@@ -12,7 +11,6 @@ This simplifies a lot the communication between server and client. Applications 
 Eliom has support for reactive pages (generated on server or client), advanced session mechanism, server to client communication, continuation based Web programming, etc.
 
 Eliom is part of the [Ocsigen project](http://ocsigen.org).
-
 
 ## Installation instructions
 

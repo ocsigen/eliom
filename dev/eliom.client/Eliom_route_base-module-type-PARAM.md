@@ -1,4 +1,3 @@
-
 # Module type `Eliom_route_base.PARAM`
 
 ```ocaml

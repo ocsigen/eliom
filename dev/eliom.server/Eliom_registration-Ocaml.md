@@ -1,4 +1,3 @@
-
 # Module `Eliom_registration.Ocaml`
 
 Eliom service registration for services that send marshalled OCaml values.

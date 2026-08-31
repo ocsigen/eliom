@@ -1,4 +1,3 @@
-
 # Module `Make.Xml`
 
 Underlying XML data-structure

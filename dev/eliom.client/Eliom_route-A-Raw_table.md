@@ -1,4 +1,3 @@
-
 # Module `A.Raw_table`
 
 ```ocaml

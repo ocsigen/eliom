@@ -1,4 +1,3 @@
-
 # Module `ReactiveData.RList`
 
 ```ocaml

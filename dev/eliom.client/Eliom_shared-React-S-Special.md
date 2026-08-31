@@ -1,4 +1,3 @@
-
 # Module `S.Special`
 
 Specialization for booleans, integers and floats.

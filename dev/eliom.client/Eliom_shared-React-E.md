@@ -1,10 +1,8 @@
-
 # Module `React.E`
 
 Event combinators.
 
 Consult their `semantics.`
-
 
 ## Primitive and basics
 
@@ -57,7 +55,6 @@ val trace :
   'a React.event
 ```
 `trace iff tr e` is `e` except `tr` is invoked with e's occurence when `iff` is `true` (defaults to `S.const true`). For all t where \[`e`\]t `= Some v` and \[`iff`\]t \= `true`, `tr` is invoked with `v`.
-
 
 ## Transforming and filtering
 
@@ -200,7 +197,6 @@ In `fix ef`, `ef` is called with an event `e` that represents the event returned
 - \[`e`\]t `=` `None` if t \= 0
 - \[`e`\]t `=` \[`e'`\]t-dt otherwise
 **Raises.** `Invalid_argument` if `e'` is directly a delayed event (i.e. an event given to a fixing function).
-
 
 ## Lifting
 

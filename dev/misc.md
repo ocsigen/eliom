@@ -1,9 +1,6 @@
-
 # Miscellaneous
 
-
 ## HTML widgets
-
 
 ### Images, CSS, Javascript
 
@@ -77,7 +74,6 @@ The argument to the optional parameter `service` determines which menu item to h
 You may then personalize the element in your CSS stylesheet as normal.
 
 Note: [`Eliom_tools.D.menu`](./eliom.server/Eliom_tools-D.md#val-menu) takes a list of services without GET parameters. If you want one of the links to contain GET parameters, pre-apply the service.
-
 
 ### Hierarchical menus
 

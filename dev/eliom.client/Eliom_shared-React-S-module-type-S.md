@@ -1,4 +1,3 @@
-
 # Module type `S.S`
 
 Output signature of [`Make`](./Eliom_shared-React-S-Make.md)

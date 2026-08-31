@@ -1,4 +1,3 @@
-
 # Module `Eliom_cscache`
 
 Client-server cache for Eliom applications, that is used both for keeping data on client side or keeping values in memory during a request.

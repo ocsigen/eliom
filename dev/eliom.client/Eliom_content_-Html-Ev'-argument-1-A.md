@@ -1,4 +1,3 @@
-
 # Parameter `Ev'.A`
 
 ```ocaml

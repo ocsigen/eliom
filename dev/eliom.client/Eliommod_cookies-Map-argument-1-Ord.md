@@ -1,4 +1,3 @@
-
 # Parameter `Map.Ord`
 
 ```ocaml

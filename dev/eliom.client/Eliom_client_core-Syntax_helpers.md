@@ -1,4 +1,3 @@
-
 # Module `Eliom_client_core.Syntax_helpers`
 
 ```ocaml

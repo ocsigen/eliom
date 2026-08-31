@@ -1,4 +1,3 @@
-
 # Module `Eliom_registration.Redirection`
 
 Eliom service registration for services that returns a redirections towards another service. See the Eliom manual for more information about [Redirections outputs](./../server-outputs.md#redirections).

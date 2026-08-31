@@ -1,4 +1,3 @@
-
 # Module `Eliom_content.Xml`
 
 Low-level XML manipulation.

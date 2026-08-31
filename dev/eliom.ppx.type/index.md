@@ -1,4 +1,3 @@
-
 # Library `eliom.ppx.type`
 
-[`Ppx_eliom_type`](./Ppx_eliom_type.md) 
+[`Ppx_eliom_type`](./Ppx_eliom_type.md)

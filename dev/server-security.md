@@ -1,8 +1,6 @@
-
 # How to write secure applications with Eliom
 
 Eliom and Ocsigen server automatically take charge of a lot of security issues. This unburdens the programmer from having to think about most common security problems. This page details various possible design flaws of Web applications, how Eliom and Ocsigen server (possibly) protects you against a possible exploitation of these flaws, and where you should be careful. *Please help us maintaining this page, by sending us any comments.*
-
 
 ### HTTPS
 
@@ -23,7 +21,6 @@ This is probably the biggest (and most dangerous) possible mistake. As the user 
 However, as we are using safe unmarshaling, incorrect data will never crash the server.
 
 Example: Never trust the (current) user ID sent by the client process. Always take the userid from the session, through cookies.
-
 
 ### Incorrect access controls
 

@@ -1,4 +1,3 @@
-
 # Module `Eliom_comet`
 
 Primitives to push data to the client, without explicit request.

@@ -1,8 +1,6 @@
-
 # Module `Eliom_registration.App`
 
 Functor for application creation. See [the chapter on applications](./../clientserver-applications.md) in the Eliom manual for details.
-
 
 ## Parameters
 

@@ -1,4 +1,3 @@
-
 # Module `Manip.Css`
 
 Read the CSS properties of DOM elements.

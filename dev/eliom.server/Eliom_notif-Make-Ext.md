@@ -1,4 +1,3 @@
-
 # Module `Make.Ext`
 
 ```ocaml

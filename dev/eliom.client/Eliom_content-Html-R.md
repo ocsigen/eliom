@@ -1,8 +1,6 @@
-
 # Module `Html.R`
 
 Creation of HTML5 content from [React](http://erratique.ch/software/react) signals. HTML5's trees are automatically updated whenever corresponding signals change.
-
 
 ### Content creation
 
@@ -114,7 +112,6 @@ module Info : Xml_sigs.Info
 ```
 Various information about HTML, such as the doctype, ...
 
-
 #### Uri
 
 ```ocaml
@@ -163,7 +160,6 @@ Values of the title attribute may be rendered by user agents in a variety of way
 
 The title attribute has an additional role when used with the `link` element to designate an external style sheet. Please consult the section on links and style sheets for details.
 
-
 #### I18N
 
 ```ocaml
@@ -174,7 +170,6 @@ val a_lang : Html_types.languagecode wrap -> [> `Lang ] attrib
 ```
 
 #### Events
-
 
 ##### Javascript events
 
@@ -554,7 +549,7 @@ val a_referrerpolicy :
   Html_types.referrerpolicy wrap ->
   [> `Referrerpolicy ] attrib
 ```
-see [https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe\#Attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe#Attributes) 
+see [https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe\#Attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe#Attributes)
 ```ocaml
 val a_required : unit -> [> `Required ] attrib
 ```
@@ -1118,7 +1113,7 @@ val dialog :
     [> Html_types.dialog ])
     star
 ```
-see [https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog) 
+see [https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog)
 ```ocaml
 val div : 
   ([< Html_types.div_attrib ],

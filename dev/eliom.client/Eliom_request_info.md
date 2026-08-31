@@ -1,8 +1,6 @@
-
 # Module `Eliom_request_info`
 
 This module contains the functions you need to get (or set) information about current request.
-
 
 ### Getting information about the request
 
@@ -36,11 +34,9 @@ val get_ignored_post_params : unit -> (string * string) list
 ```
 returns the POST parameters that have been ignored using \<ignoredpostparams/\> in config file.
 
-
 ### Other low level functions
 
 You probably don't need these functions.
-
 
 #### Getting information about the URL of the client side process (csp)
 

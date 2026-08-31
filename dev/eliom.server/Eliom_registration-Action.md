@@ -1,4 +1,3 @@
-
 # Module `Eliom_registration.Action`
 
 Eliom service registration for services that only execute actions. See the Eliom manual for more information about [Actions outputs](./../server-outputs.md#actions).

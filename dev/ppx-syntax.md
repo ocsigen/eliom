@@ -1,31 +1,28 @@
-
 # Eliom PPX syntax extension
 
 The eliom syntax extension allows to write, in one file, both the client and server part of your application. The extension is automatically enabled by the default build system on `.eliom` and `.eliomi` files.
 
 The extensions presented here are also available with the `eliom.` prefix.
 
-
 ## Sections
 
 The location of code execution is specified by section annotations. We can specify that a declaration is performed on the server, or on the client:
 
-<!--wodoc:@ class=server-->
 ```ocaml
   let%server s = ...
 ```
-<!--wodoc:@ class=client-->
+
 ```ocaml
   let%client c = ...
 ```
-Or, alternatively: <!--wodoc:@ class=server-->
+Or, alternatively:
 
 ```ocaml
 [%%server
   let s = ...
 ]
 ```
-<!--wodoc:@ class=client-->
+
 ```ocaml
 [%%client
   let c = ...
@@ -43,23 +40,19 @@ Sections are only available at top level and cannot be nested.
 
 Similarly, you can write for example `type%server`, `module%server`, `open%server`, etc ...
 
-
 ### Shared sections
 
 Shared sections are also available for code that should be on the client and on the server.
 
-<!--wodoc:@ class=shared-->
 ```ocaml
 let%shared sh = ...
 ```
 This is equivalent to duplicating the code in a client and a server section.
 
-
 ## Client fragments
 
 A client-side expression can be included inside a server section, and the server can thereafter refer to it: an expression placed inside `[%client ... ]` will be computed on the client when it receives the page; but the eventual client-side value of the expression can be manipulated as a black box on the server.
 
-<!--wodoc:@ class=server-->
 ```ocaml
 let%server x = [%client 1 + 3 ]
 ```
@@ -69,10 +62,9 @@ In this case, `x` has type `int Eliom_client_value.t`. Eliom can't always infer 
 
 Client fragments cannot be nested.
 
-
 ### Shared fragments
 
-It is also possible to use shared fragments. <!--wodoc:@ class=server-->
+It is also possible to use shared fragments.
 
 ```ocaml
 let%server x = [%shared ...]
@@ -80,7 +72,6 @@ let%server x = [%shared ...]
 It will produce values of type [`Eliom_shared.Value.t`](./eliom.server/Eliom_shared-Value.md#type-t).
 
 Shared fragments can be nested and can contain client fragments.
-
 
 ## Injections and escaped values
 
@@ -98,13 +89,11 @@ let%client c = 3 + ~%x
 ```
 The value inside the client fragment is extracted by `~%x`, whose value is `4` here.
 
-
 ## Restrictions
 
 It is not possible to use injections on values containing a closure. This includes lazy values, objects, or anything containing functions. You can use either [`Eliom_client.server_function`](./eliom.server/Eliom_client.md#type-server_function) (`let%rpc`) and client or shared fragments to circumvent this limitation.
 
 To extend and customize the serialization from client to server, see chapter [Wrapping values](./clientserver-wrapping.md).
-
 
 ## Note about evaluation
 

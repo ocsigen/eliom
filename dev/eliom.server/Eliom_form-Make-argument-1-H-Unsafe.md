@@ -1,4 +1,3 @@
-
 # Module `H.Unsafe`
 
 Unsafe features.

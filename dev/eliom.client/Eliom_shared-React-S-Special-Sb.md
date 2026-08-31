@@ -1,4 +1,3 @@
-
 # Module `Special.Sb`
 
 Specialization for booleans.

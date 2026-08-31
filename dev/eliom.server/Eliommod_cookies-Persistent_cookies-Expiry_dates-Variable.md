@@ -1,4 +1,3 @@
-
 # Module `Expiry_dates.Variable`
 
 ```ocaml

@@ -1,8 +1,6 @@
-
 # Module `Html.C`
 
 Creation of HTML5 content from client-side values. This module is available on client side only to make possible to use C-nodes in shared sections.
-
 
 ### Content injection
 

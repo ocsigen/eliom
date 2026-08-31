@@ -1,11 +1,8 @@
-
 # Module type `Eliom_service_sigs.S`
-
 
 ### Services
 
 See [`Eliom_service.create`](./Eliom_service.md#val-create) (on the server) for how to create services.
-
 
 ### Auxiliary service-related types
 
@@ -121,7 +118,6 @@ type 'm which_meth =
 ```
 Like [`meth`](./#type-meth) but without the parameters
 
-
 #### Auxiliary types
 
 ```ocaml
@@ -196,9 +192,7 @@ type (_, _, _) path_option =
 ```
 **Optional service path**
 
-
 #### Predefined services
-
 
 ##### Reload actions
 
@@ -269,7 +263,6 @@ val reload_action_https_hidden :
     t
 ```
 Like [`reload_action_hidden`](./#val-reload_action_hidden), but forces HTTPS
-
 
 #### Static files
 
@@ -348,7 +341,6 @@ val https_static_dir_with_params :
     t
 ```
 Like [`static_dir_with_params`](./#val-static_dir_with_params), but forces HTTPS link
-
 
 #### Miscellaneous
 

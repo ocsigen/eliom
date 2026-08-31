@@ -1,4 +1,3 @@
-
 # Module `Svg.Printer`
 
 SVG printer. See [`Xml_sigs.Typed_pp`](./../../tyxml/tyxml.functor/Xml_sigs-module-type-Typed_pp.md).

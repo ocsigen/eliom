@@ -1,4 +1,3 @@
-
 # Module `Svg.C`
 
 Creation of content from client-side values. This makes possible to insert in server side generated pages some nodes that will be computed on client side (for example reactive nodes).

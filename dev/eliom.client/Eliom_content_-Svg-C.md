@@ -1,4 +1,3 @@
-
 # Module `Svg.C`
 
 ```ocaml

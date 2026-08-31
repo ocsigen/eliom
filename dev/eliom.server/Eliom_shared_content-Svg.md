@@ -1,4 +1,3 @@
-
 # Module `Eliom_shared_content.Svg`
 
 ```ocaml

@@ -1,4 +1,3 @@
-
 # Module type `Eliom_form_sigs.S`
 
 ```ocaml

@@ -1,4 +1,3 @@
-
 # Module `Eliom_content_core`
 
 See [`Eliom_content`](./Eliom_content.md) for complete module.

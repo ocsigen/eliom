@@ -1,4 +1,3 @@
-
 # Module type `Eliom_registration.APP`
 
 ```ocaml

@@ -1,4 +1,3 @@
-
 # Module `Svg.Info`
 
 Various information about SVG, such as the doctype, ...

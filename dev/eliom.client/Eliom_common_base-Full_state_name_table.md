@@ -1,4 +1,3 @@
-
 # Module `Eliom_common_base.Full_state_name_table`
 
 ```ocaml

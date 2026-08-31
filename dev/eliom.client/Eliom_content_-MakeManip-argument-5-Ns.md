@@ -1,4 +1,3 @@
-
 # Parameter `MakeManip.Ns`
 
 ```ocaml

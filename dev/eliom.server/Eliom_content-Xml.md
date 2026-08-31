@@ -1,8 +1,6 @@
-
 # Module `Eliom_content.Xml`
 
 Low-level XML manipulation.
-
 
 ### Base functions
 
@@ -158,7 +156,6 @@ val content : elt -> econtent
 ### Unique nodes
 
 Unique nodes are XML nodes that are manipulated 'by reference' when sent to the client part of an Eliom-application: the created element is allocated only one time in each instance of an application. See [the eliom manual](./../clientserver-html.md#unique) for more details.
-
 
 ### Event handlers
 

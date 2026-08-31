@@ -1,6 +1,4 @@
-
 # Module `Eliom_client_value`
-
 
 ### Client and shared values
 

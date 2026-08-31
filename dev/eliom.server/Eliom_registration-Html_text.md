@@ -1,4 +1,3 @@
-
 # Module `Eliom_registration.Html_text`
 
 Eliom service registration and forms creation for untyped HTML page. The page content is a `string` that must contains valid HTML and the content type is always `text/html`.

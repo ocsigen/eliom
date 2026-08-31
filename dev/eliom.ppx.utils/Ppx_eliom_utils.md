@@ -1,6 +1,4 @@
-
 # Module `Ppx_eliom_utils`
-
 
 ### Various helping functions
 

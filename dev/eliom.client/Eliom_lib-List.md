@@ -1,4 +1,3 @@
-
 # Module `Eliom_lib.List`
 
 Improvement of module List
@@ -104,7 +103,6 @@ val flatten : 'a list list -> 'a list
 ```
 Same as [`concat`](./#val-concat). Not tail-recursive (length of the argument \+ length of the longest sub-list).
 
-
 ## Comparison
 
 ```ocaml
@@ -187,7 +185,6 @@ val fold_right : ('a -> 'acc -> 'acc) -> 'a list -> 'acc -> 'acc
 ```
 `fold_right f [a1; ...; an] init` is `f a1 (f a2 (... (f an init) ...))`. Not tail-recursive.
 
-
 ## Iterators on two lists
 
 ```ocaml
@@ -263,7 +260,6 @@ val mem : 'a -> 'a list -> bool
 val memq : 'a -> 'a list -> bool
 ```
 Same as [`mem`](./#val-mem), but uses physical equality instead of structural equality to compare list elements.
-
 
 ## List searching
 
@@ -409,7 +405,6 @@ val remove_assq : 'a -> ('a * 'b) list -> ('a * 'b) list
 ```
 Same as [`remove_assoc`](./#val-remove_assoc), but uses physical equality instead of structural equality to compare keys. Not tail-recursive.
 
-
 ## Lists of pairs
 
 ```ocaml
@@ -456,7 +451,6 @@ before 5\.4 the element kept was not necessarily the first one.
 val merge : ('a -> 'a -> int) -> 'a list -> 'a list -> 'a list
 ```
 Merge two lists: Assuming that `l1` and `l2` are sorted according to the comparison function `cmp`, `merge cmp l1 l2` will return a sorted list containing all the elements of `l1` and `l2`. If several elements compare equal, the elements of `l1` will be before the elements of `l2`. Not tail-recursive (sum of the lengths of the arguments).
-
 
 ## Lists and Sequences
 

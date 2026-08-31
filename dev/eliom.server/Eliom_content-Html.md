@@ -1,4 +1,3 @@
-
 # Module `Eliom_content.Html`
 
 Building and printing valid HTML5 tree. Information about Html api can be found at [`Html_sigs.T`](./../../tyxml/tyxml.functor/Html_sigs-module-type-T.md) .

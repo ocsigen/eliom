@@ -1,4 +1,3 @@
-
 # Module `PARAM.Node`
 
 ```ocaml

@@ -1,4 +1,3 @@
-
 # Parameter `App._`
 
 ```ocaml

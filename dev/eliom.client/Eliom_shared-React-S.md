@@ -1,6 +1,4 @@
-
 # Module `React.S`
-
 
 ## Primitive and basics
 
@@ -38,7 +36,6 @@ val equal :
 val trace : ?iff:bool t -> ('a -> unit) -> 'a React.signal -> 'a React.signal
 ```
 `trace iff tr s` is `s` except `tr` is invoked with `s`'s current value and on `s` changes when `iff` is `true` (defaults to `S.const true`). For all t where \[`s`\]t `= v` and (t \= 0 or (\[`s`\]t-dt`= v'` and `eq v v' = false`)) and \[`iff`\]t \= `true`, `tr` is invoked with `v`.
-
 
 ## From events
 
@@ -153,7 +150,6 @@ val fold :
 ```
 `fold f i e` is `S.hold i (`[`E.fold`](./Eliom_shared-React-E.md#val-fold)` f i e)`.
 
-
 ## Combining
 
 ```ocaml
@@ -185,9 +181,9 @@ In `fix sf`, `sf` is called with a signal `s` that represents the signal returne
 **Note.** Regarding values depending on the result `r` of `s', r = sf s` the following two cases need to be distinguished :
 
 - After `sf s` is applied, `s'` does not depend on a value that is in a step and `s` has no dependents in a step (e.g in the simple case where `fix` is applied outside a step).
-  
+
   In that case if the initial value of `s'` differs from `i`, `s` and its dependents need to be updated and a special update step will be triggered for this. Values depending on the result `r` will be created only after this special update step has finished (e.g. they won't see the `i` of `s` if `r = s`).
-  
+
 - Otherwise, values depending on `r` will be created in the same step as `s` and `s'` (e.g. they will see the `i` of `s` if `r = s`).
 
 ## Lifting

@@ -1,4 +1,3 @@
-
 # Module `Eliom_shared`
 
 This module implements shared (i.e., client-server) versions of the React and ReactiveData libraries.

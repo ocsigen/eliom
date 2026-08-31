@@ -1,4 +1,3 @@
-
 # Module `Manip.Class`
 
 ```ocaml

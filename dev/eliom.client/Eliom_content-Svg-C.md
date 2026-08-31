@@ -1,4 +1,3 @@
-
 # Module `Svg.C`
 
 Creation of content from client-side values.

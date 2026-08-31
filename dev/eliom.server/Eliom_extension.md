@@ -1,4 +1,3 @@
-
 # Module `Eliom_extension`
 
 Allows Ocsigen's extension to access Eliom data. See the Eliom manual for more information about [Eliom's extensions](./../workflow-configuration.md#extensions)

@@ -1,4 +1,3 @@
-
 # Module type `Eliom_shared_sigs.RLIST`
 
 ```ocaml

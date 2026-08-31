@@ -1,4 +1,3 @@
-
 # Module `Eliom_lib.Let_syntax`
 
 This module provides support for [ppx\_let](https://github.com/janestreet/ppx_let).

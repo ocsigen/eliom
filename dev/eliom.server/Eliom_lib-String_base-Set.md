@@ -1,6 +1,4 @@
-
 # Module `String_base.Set`
-
 
 ## Sets
 
@@ -61,7 +59,6 @@ Set difference: `diff s1 s2` contains the elements of `s1` that are not in `s2`.
 val cardinal : t -> int
 ```
 Return the number of elements of a set.
-
 
 ## Elements
 
@@ -157,7 +154,6 @@ val fold : (elt -> 'acc -> 'acc) -> t -> 'acc -> 'acc
 ```
 `fold f s init` computes `(f xN ... (f x2 (f x1 init))...)`, where `x1 ... xN` are the elements of `s`, in increasing order.
 
-
 ## Transforming
 
 ```ocaml
@@ -201,7 +197,6 @@ val split : elt -> t -> t * bool * t
 ```
 `split x s` returns a triple `(l, present, r)`, where `l` is the set of elements of `s` that are strictly less than `x`; `r` is the set of elements of `s` that are strictly greater than `x`; `present` is `false` if `s` contains no element equal to `x`, or `true` if `s` contains an element equal to `x`.
 
-
 ## Predicates and comparisons
 
 ```ocaml
@@ -238,7 +233,6 @@ val for_all : (elt -> bool) -> t -> bool
 val exists : (elt -> bool) -> t -> bool
 ```
 `exists f s` checks if at least one element of the set satisfies the predicate `f`.
-
 
 ## Converting
 

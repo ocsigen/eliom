@@ -1,4 +1,3 @@
-
 # Module `Eliom_service`
 
 Creation and manipulation of Eliom services.
@@ -7,11 +6,9 @@ See the Eliom manual for a detailed introduction to the concept of [Eliom servic
 
 See [`create`](./#val-create) for the main service creation function.x
 
-
 ### Services
 
 See [`Eliom_service.create`](./#val-create) (on the server) for how to create services.
-
 
 ### Auxiliary service-related types
 
@@ -127,7 +124,6 @@ type 'm which_meth =
 ```
 Like [`meth`](./#type-meth) but without the parameters
 
-
 #### Auxiliary types
 
 ```ocaml
@@ -202,9 +198,7 @@ type (_, _, _) path_option =
 ```
 **Optional service path**
 
-
 #### Predefined services
-
 
 ##### Reload actions
 
@@ -275,7 +269,6 @@ val reload_action_https_hidden :
     t
 ```
 Like [`reload_action_hidden`](./#val-reload_action_hidden), but forces HTTPS
-
 
 #### Static files
 
@@ -354,7 +347,6 @@ val https_static_dir_with_params :
     t
 ```
 Like [`static_dir_with_params`](./#val-static_dir_with_params), but forces HTTPS link
-
 
 #### Miscellaneous
 
@@ -524,7 +516,6 @@ val attach :
   ('get, 'post, 'meth, att, co, non_ext, non_reg, 'sf, 'gn, 'pn, 'return) t
 ```
 `attach ~fallback ~service ()` attaches the preexisting pathless service `service` on the URL of `fallback`. This allows creating a link to a pathless service but with another URL than the current one. It is not possible to register something on the service returned by this function.
-
 
 ### Static loading of Eliom modules
 

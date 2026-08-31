@@ -1,4 +1,3 @@
-
 # Parameter `Marshal.C`
 
 ```ocaml

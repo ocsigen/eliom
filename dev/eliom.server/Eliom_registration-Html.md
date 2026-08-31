@@ -1,4 +1,3 @@
-
 # Module `Eliom_registration.Html`
 
 Eliom service registration for services that return HTML pages.

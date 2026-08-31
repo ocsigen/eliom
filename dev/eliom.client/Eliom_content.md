@@ -1,4 +1,3 @@
-
 # Module `Eliom_content`
 
 This module provides the creation of valid XML content, i.e. XML, SVG, and (X)HTML5.

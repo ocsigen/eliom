@@ -1,4 +1,3 @@
-
 # Module type `Eliommod_sessiongroups.MEMTAB`
 
 ```ocaml

@@ -1,4 +1,3 @@
-
 # Parameter `MakeManip.Id`
 
 ```ocaml

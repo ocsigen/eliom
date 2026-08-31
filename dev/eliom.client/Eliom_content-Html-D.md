@@ -1,8 +1,6 @@
-
 # Module `Html.D`
 
 Creation of HTML5 content with *D*OM semantics (referable)
-
 
 ### Content creation
 
@@ -98,7 +96,6 @@ module Info : Xml_sigs.Info
 ```
 Various information about HTML, such as the doctype, ...
 
-
 ###### Uri
 
 ```ocaml
@@ -144,7 +141,6 @@ Values of the title attribute may be rendered by user agents in a variety of way
 
 The title attribute has an additional role when used with the `link` element to designate an external style sheet. Please consult the section on links and style sheets for details.
 
-
 ###### I18N
 
 ```ocaml
@@ -155,7 +151,6 @@ val a_lang : Html_types.languagecode wrap -> [> `Lang ] attrib
 ```
 
 ###### Events
-
 
 ####### Javascript events
 
@@ -535,7 +530,7 @@ val a_referrerpolicy :
   Html_types.referrerpolicy wrap ->
   [> `Referrerpolicy ] attrib
 ```
-see [https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe\#Attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe#Attributes) 
+see [https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe\#Attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe#Attributes)
 ```ocaml
 val a_required : unit -> [> `Required ] attrib
 ```
@@ -1099,7 +1094,7 @@ val dialog :
     [> Html_types.dialog ])
     star
 ```
-see [https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog) 
+see [https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog)
 ```ocaml
 val div : 
   ([< Html_types.div_attrib ],
@@ -1313,7 +1308,6 @@ val var :
 ```
 
 ###### Hypertext
-
 
 ###### Edit
 
@@ -1787,19 +1781,19 @@ The function `make_uri service get_params` returns the URL of the service `servi
 When only the first condition is met (`~absolute_path` is `true`) the returned URL is just the absolute path, but when any other condition is satisfied the returned URL is prefixed with `protocol://hostname[:port]`, where:
 
 - `protocol` is:
-  
+
   - `https` if the `service` has been created with `~https:true` or the optional parameter `~https` is `true`;
   - `http` if the optional parameter `~https` is `false`;
   - the current request protocol if available;
   - `http` in any other case.
 - `hostname` is:
-  
+
   - the optional parameter `~hostname` if given;
   - the attribute `defaulthostname` of `<host>` tag in configuration file or the machine hostname if the option `<usedefaulthostname/>` is set;
   - the `Host` http header of the current request if available;
   - the attribute `defaulthostname` of `<host>` tag in configuration file or the machine hostname in any other case.
 - `port` is:
-  
+
   - the optional parameter `~port` if given;
   - the attribute `defaulthttpsport` (resp. `defaulthttpport`) of `<host>` tag in configuration file or `443` (resp. 80\) if `protocol` is `https` (resp. `http`) and the current request protocol is `http` (resp. `https`);
   - the attribute `defaulthttpsport` (resp. `defaulthttpsport`) of `<host>` tag in configuration file or `443` (resp. 80\) if the option `<usedefaulthostname/>` is set and `protocol` is `https` (resp. `http`);

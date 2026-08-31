@@ -1,4 +1,3 @@
-
 # Module `Eliom_lib`
 
 A few common functions used by Eliom. Extension of OCaml stdlib. See also [`Ocsigen_lib`](./../../ocsigenserver/ocsigenserver.baselib/Ocsigen_lib.md)

@@ -1,6 +1,4 @@
-
 # Module `Eliommod_cookies.Map`
-
 
 ## Parameters
 

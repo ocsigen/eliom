@@ -1,10 +1,8 @@
-
 # Module `Eliom_notif.Make`
 
 Use this functor if you need to customise your notifications with client-specific data (or block notifications for specific clients). This is made to work specifically in a multi-server set-up as well, where In a multi-server set-up notifications might need to be serialised twice, once before broadcasting them to the other servers (without client information present), and then once more to forward them to the clients possibly augmenting it with client-specific data or block for specific clients; see `ARG.prepare`.
 
 Note: The communication between servers is not implemented in this module. To \`plug in' your method of transporting notifications between servers you can override `S.notify`. See the manual for an example (coming soon).
-
 
 ## Parameters
 

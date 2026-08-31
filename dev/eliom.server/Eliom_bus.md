@@ -1,4 +1,3 @@
-
 # Module `Eliom_bus`
 
 Broadcasting facilities between clients and server

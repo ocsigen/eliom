@@ -1,4 +1,3 @@
-
 # Module `Eliom_shared.ReactiveData`
 
 Shared implementation of ReactiveData

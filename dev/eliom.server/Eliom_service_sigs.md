@@ -1,4 +1,3 @@
-
 # Module `Eliom_service_sigs`
 
 ```ocaml

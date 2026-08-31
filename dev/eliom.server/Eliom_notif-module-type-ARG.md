@@ -1,4 +1,3 @@
-
 # Module type `Eliom_notif.ARG`
 
 `ARG` is for making `Make`

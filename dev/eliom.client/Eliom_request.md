@@ -1,4 +1,3 @@
-
 # Module `Eliom_request`
 
 ```ocaml

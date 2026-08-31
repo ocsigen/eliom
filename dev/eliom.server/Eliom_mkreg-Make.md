@@ -1,9 +1,6 @@
-
 # Module `Eliom_mkreg.Make`
 
-
 ### Creates modules to register services for one type of pages
-
 
 ## Parameters
 

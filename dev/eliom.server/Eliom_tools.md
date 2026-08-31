@@ -1,4 +1,3 @@
-
 # Module `Eliom_tools`
 
 Helpers for (hierarchical) menu generation in HTML5. See the Eliom manual for more information about [menu](./../misc.md#basic_menu) or [hierarchical site](./../misc.md#hier_menu).
@@ -38,7 +37,6 @@ and main_page =
 ```
 Main page description for a section of a hierarchical site.
 
-
 ### Tools for generating certain HTML elements
 
 ```ocaml
@@ -63,7 +61,6 @@ Record an (external) JavaScript file to be included in [`Eliom_tools.F.html`](./
 val with_css_file : string list -> unit
 ```
 Record an CSS file to be included in [`Eliom_tools.F.html`](./Eliom_tools-F.md#val-html).
-
 
 ### Other tools
 

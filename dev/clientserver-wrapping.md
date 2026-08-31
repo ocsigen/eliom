@@ -1,8 +1,6 @@
-
 # Wrapping
 
 Reading this chapter is not mandatory for writing Eliom applications. However, it is worth reading if you are planning to hack on the Eliom codebase.
-
 
 ## Basics
 
@@ -33,9 +31,7 @@ ignore [%client
 ```
 This code will display 42\. After being sent, the client and server side values are distinct: the server side version of `a` won't be modified by the client side affectation and conversely the client side value won't change if `a` is changed later on server side.
 
-
 ## Special types
-
 
 ### Custom wrappers
 
@@ -81,7 +77,6 @@ let v = ( Fun (fun () -> 1), wrapper )
 let (v', empty_wrapper) = Eliom_wrap.wrap v
 ```
 At that time `v'` will be `Value 1`. Notice that [`Eliom_wrap.create_wrapper`](./eliom.server/Eliom_wrap.md#val-create_wrapper) does not enforce the output type of the wrapping function to be the same as the input type: Eliom\_wrap is to be use with much caution\! Do not use it if you don't understand how it works, it may lead to unpredictable segmentation faults and corrupted memory.
-
 
 ## Eliom types with predefined custom wrappers
 

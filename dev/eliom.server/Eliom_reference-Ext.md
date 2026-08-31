@@ -1,4 +1,3 @@
-
 # Module `Eliom_reference.Ext`
 
 This module allows access to references for other groups, sessions, or client processes. Use it in conjunction with functions like [`Eliom_state.Ext.iter_sub_states`](./Eliom_state-Ext.md#val-iter_sub_states) to get the sessions from a group (or the processes from a session).

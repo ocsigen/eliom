@@ -1,4 +1,3 @@
-
 # Module `Column.String`
 
 ```ocaml

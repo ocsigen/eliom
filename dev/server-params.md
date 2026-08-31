@@ -1,9 +1,6 @@
-
 # Service parameters
 
-
 ## Parameters
-
 
 ### Services with parameters
 
@@ -42,7 +39,6 @@ It is possible to register several services on the same path, if they do not hav
 In the example above, if `i` is not an integer, the server will display an error message (try to change the value in the URL).<br/>
 
 *Warning:* The infix function `( ** )` can only be used to construct pairs (not tuples).<br/>
-
 
 ### Path suffixes as parameters
 
@@ -149,7 +145,6 @@ let mytype =
 ```
 See also [Client sending data](./clientserver-communication.md#client_sending_data) in the chapter about client-server communication, which shows how to use a `user_type` from the client-side.
 
-
 ### Untyped parameters
 
 If you want a service that answers to requests with any parameters, use the `any` combinator. The service will get an association list of strings. For example:
@@ -177,7 +172,6 @@ let raw_serv =
         </html>"])
 ```
 It is possible to use `Eliom_parameter.any` with other parameter combinators, but `any` must be the last one. For example: `(int "i" ** any)`.
-
 
 ## Non localized parameters
 
@@ -210,7 +204,7 @@ let nlparams =
                 txt (Printf.sprintf "with values a = %d and s = %s." a s)]
          ]))
 ```
-To create a link or a form with non-localized parameters, use the optional parameter <!--wodoc:span class="code"-->nl\_params<!--wodoc:end--> of functions `Eliom_content.Html.D.a`, `Eliom_content.Html.D.Form.get_form`, or `Eliom_content.Html.D.Form.post_form`. Example:
+To create a link or a form with non-localized parameters, use the optional parameter nl\_params of functions `Eliom_content.Html.D.a`, `Eliom_content.Html.D.Form.get_form`, or `Eliom_content.Html.D.Form.post_form`. Example:
 
 ```ocaml
 let tonlparams =

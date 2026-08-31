@@ -1,4 +1,3 @@
-
 # Module `Eliom_registration.Unit`
 
 Similar to `Actions` with ``NoReload` option.

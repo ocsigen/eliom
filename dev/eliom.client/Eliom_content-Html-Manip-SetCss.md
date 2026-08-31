@@ -1,4 +1,3 @@
-
 # Module `Manip.SetCss`
 
 Modify the CSS properties of DOM elements.

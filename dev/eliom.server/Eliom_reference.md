@@ -1,6 +1,4 @@
-
 # Module `Eliom_reference`
-
 
 ### Server side state data, a.k.a Eliom references
 

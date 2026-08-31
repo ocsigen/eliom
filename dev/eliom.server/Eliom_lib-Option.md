@@ -1,4 +1,3 @@
-
 # Module `Eliom_lib.Option`
 
 Module Option to compute type `'a option`

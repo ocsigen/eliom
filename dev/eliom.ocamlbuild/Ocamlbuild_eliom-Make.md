@@ -1,6 +1,4 @@
-
 # Module `Ocamlbuild_eliom.Make`
-
 
 ## Parameters
 

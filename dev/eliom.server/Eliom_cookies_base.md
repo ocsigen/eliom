@@ -1,4 +1,3 @@
-
 # Module `Eliom_cookies_base`
 
 ```ocaml

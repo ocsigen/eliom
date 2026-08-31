@@ -1,6 +1,4 @@
-
 # Module type `Eliom_tools.HTML5_TOOLS`
-
 
 ### Simple menu
 
@@ -43,7 +41,6 @@ The function `menu elts ()`, where `elts` is a list of pair `(service, content)`
 The optional parameter `service` is used to find which item(s) to highlight (by adding the class `eliomtools_current` to the corresponding `<li>` node). The default is to highlight the item corresponding to the current url.
 
 The optional parameters `id` and `classe` allow to specify the corresponding attributes in the generated `<ul>` node. The default class for the `<ul>` node is `eliomtools_menu`.
-
 
 ### Hierchical sites
 

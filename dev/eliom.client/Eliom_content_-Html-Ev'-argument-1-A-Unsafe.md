@@ -1,4 +1,3 @@
-
 # Module `A.Unsafe`
 
 ```ocaml

@@ -1,4 +1,3 @@
-
 # Writing multi-platform apps with Eliom (Web and mobile)
 
 Starting with Eliom 6\.0, you can write HTML5 mobile apps with Eliom. It is also possible to have one single code base for your Web and mobile apps (Android, iOS, Windows ...).

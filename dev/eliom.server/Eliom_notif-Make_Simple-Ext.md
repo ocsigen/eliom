@@ -1,4 +1,3 @@
-
 # Module `Make_Simple.Ext`
 
 ```ocaml

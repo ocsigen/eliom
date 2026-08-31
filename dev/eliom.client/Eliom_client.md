@@ -1,4 +1,3 @@
-
 # Module `Eliom_client`
 
 Call server side services and change the current page.
@@ -171,7 +170,6 @@ val call_service :
 ```
 (low level) Call a server side service and return the content of the resulting HTTP frame as a string.
 
-
 ### Misc
 
 ```ocaml
@@ -254,7 +252,6 @@ Returns the name of currently running Eliom application, defined while applying 
 val persist_document_head : unit -> unit
 ```
 After this function is called, the document head is no longer changed on page change.
-
 
 ### RPC / Server functions
 

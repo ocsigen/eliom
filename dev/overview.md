@@ -1,4 +1,3 @@
-
 # Eliom
 
 *The full-stack OCaml Web and mobile framework*
@@ -13,7 +12,6 @@ Applications can run on any Web browser or mobile device (iOS, Android), saving 
 
 Eliom has support for reactive pages (generated on server or client), advanced session mechanism, server to client communication, continuation based Web programming, etc.
 
-
 ## Installation Instructions
 
 ```
@@ -26,7 +24,6 @@ Here is a quick overview of what programming with Eliom look like.
 
 Defining a service on path `/foo`, taking any GET parameters:
 
-<!--wodoc:@ class=server-->
 ```ocaml
 let myservice =
   Eliom_service.create
@@ -43,48 +40,43 @@ let () =
 ```
 Inserting a link towards that service, with parameters:
 
-<!--wodoc:@ class=server-->
 ```ocaml
 Eliom_content.Html.D.a ~service:myservice [txt "Home"] [("param1", "v1"); ("param2", "v2")]
 ```
 Event handlers are written in OCaml:
 
-<!--wodoc:@ class=server-->
 ```ocaml
 div ~a:[a_onclick [%client fun ev -> ... ]] [ ... ]
 ```
 The client-side and server programs are written as a single program:
 
-<!--wodoc:@ class=server-->
 ```ocaml
 let%server a = ... (* code for the server part of the application *)
 ```
-<!--wodoc:@ class=client-->
+
 ```ocaml
 let%client b = ... (* code for the client part of the application *)
 ```
-<!--wodoc:@ class=shared-->
+
 ```ocaml
 let%shared a = ... (* code that will be included in both parts *)
 ```
 Using a server-side value in client-side code:
 
-<!--wodoc:@ class=server-->
 ```ocaml
 let%server a = ...
 ```
-<!--wodoc:@ class=client-->
+
 ```ocaml
 let%client f () =
   [%client (print_endline ~%a : unit)] (* print in browser console *)
 ```
 Calling a server function from the client program:
 
-<!--wodoc:@ class=shared-->
 ```ocaml
 let%rpc f (x : int) : unit Lwt.t = ... (* server-side code *)
 ```
-<!--wodoc:@ class=client-->
+
 ```ocaml
 let%client () =
   let%lwt r = f 4 in
@@ -92,7 +84,6 @@ let%client () =
 ```
 Saving session data on the server using Eliom references:
 
-<!--wodoc:@ class=server-->
 ```ocaml
 let%server r = Eliom_reference.eref ~scope:Eliom_common.default_session_scope 0
 

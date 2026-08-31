@@ -1,4 +1,3 @@
-
 # Module `Eliom_registration.File_ct`
 
 Same as file but makes possible to specify the content type for each file. The value returned by service handlers is a pair `(file_name, content_type)`.

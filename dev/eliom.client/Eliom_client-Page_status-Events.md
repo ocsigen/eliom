@@ -1,4 +1,3 @@
-
 # Module `Page_status.Events`
 
 convenience functions for retrieving a react event for the current page that is triggered whenever it reaches the respective status

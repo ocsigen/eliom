@@ -1,4 +1,3 @@
-
 # Module `Eliom_react.Down`
 
 Event from server to client.

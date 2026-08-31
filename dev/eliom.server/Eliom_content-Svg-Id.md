@@ -1,4 +1,3 @@
-
 # Module `Svg.Id`
 
 Node identifiers.

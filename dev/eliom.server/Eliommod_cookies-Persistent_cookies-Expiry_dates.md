@@ -1,4 +1,3 @@
-
 # Module `Persistent_cookies.Expiry_dates`
 
 ```ocaml

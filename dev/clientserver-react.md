@@ -1,4 +1,3 @@
-
 # Shared reactive programming
 
 In reactive programming, the programmer declaratively defines relationships between different pieces of data, and between the data and what is displayed in the interface. This allows rapid development of robust user interfaces. [Another manual section](./clientserver-html.md#reactive) describes Eliom's client-side reactive infrastructure.
@@ -6,7 +5,6 @@ In reactive programming, the programmer declaratively defines relationships betw
 Client-side reactive programming in itself does not adequately cover all the requirements of the modern Web. Namely, with client-centric programming, the initialization of the interface happens on the client, sometimes with a noticeable lag. Also, the HTML sent by the server contains little of the actual content, thus being unsuitable for search-engine indexing.
 
 To overcome this limitation, Eliom 5\.0 and higher enable what we call *shared* reactive programming. This means that we operate on signals that have both a server-side and a client-side meaning. The server-side signals produce a first version of the interface that is more than a skeleton, while the client-side signals are responsible for the dynamic updates.
-
 
 ## Shared signals
 
@@ -39,7 +37,6 @@ Similarly to plain `React`, we can use `Eliom_shared.React.S.map` to derive new 
 
 Since the signals do not get updated on the server, all server-side computation is one-off. For example, the server-side `msg_of_int` will be called only once. On the client, updates happen just like for plain `React`.
 
-
 ## HTML and SVG content
 
 The server-side module [`Eliom_content.Html.R`](./eliom.server/Eliom_content-Html-R.md) enables constructing HTML elements that get updated automatically based on [`Eliom_shared.React`](./eliom.server/Eliom_shared-React.md) signals. Continuing our example, we can use the signal `s_as_string ()` as follows:
@@ -66,7 +63,6 @@ let () =
     ])
 ```
 [`Eliom_content.Svg.R`](./eliom.server/Eliom_content-Svg-R.md) operates in a similar fashion, allowing for shared reactive graphics.
-
 
 ## ReactiveData
 
@@ -101,7 +97,6 @@ Shared reactive lists can (and need to) be used wherever [`Eliom_content.Html.R`
 let l_div () = Eliom_content.Html.R.div (l_nodes ())
 ```
 Adding a new element via `cons_to_l` does not rebuild the whole `l_div ()`, but only adds a new child. Similarly, in the case where existing nodes are updated, only the modified ones are re-rendered after every update operation.
-
 
 ## Links
 

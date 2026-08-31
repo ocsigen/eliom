@@ -1,4 +1,3 @@
-
 # Module type `Eliom_registration.TMPL_PARAMS`
 
 ```ocaml

@@ -1,4 +1,3 @@
-
 # Module `Eliom_parameter_sigs`
 
 Ad-hoc runtime type representation for service parameters.

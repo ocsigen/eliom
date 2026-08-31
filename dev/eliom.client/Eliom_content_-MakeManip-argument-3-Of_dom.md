@@ -1,4 +1,3 @@
-
 # Parameter `MakeManip.Of_dom`
 
 ```ocaml

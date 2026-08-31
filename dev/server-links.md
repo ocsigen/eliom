@@ -1,6 +1,4 @@
-
 # Creating links and forms
-
 
 ## Links
 
@@ -66,15 +64,13 @@ let _ =
 ```
 (You can also refer to *the current service* via `reload_action` ([`Eliom_service_sigs.S.reload_action`](./eliom.server/Eliom_service_sigs-module-type-S.md#val-reload_action)).
 
-
 ## Forms
-
 
 ### Raw forms
 
 Modules [`Eliom_content.Html.F`](./eliom.server/Eliom_content-Html-F.md) and [`Eliom_content.Html.D`](./eliom.server/Eliom_content-Html-D.md) define form elements with the usual typed interface from TyXML. Use this for example if you have a client side program and want to manipulate the form contents from client side functions (for example do a server function call with the form elements content).
 
-Example: <!--wodoc:@ class=shared-->
+Example:
 
 ```ocaml
 let%shared mk_form ()
@@ -129,7 +125,7 @@ let form =
            (head (title (txt "")) [])
            (body [f])))
 ```
-Parameter names are typed to make sure that they are used properly. The form-creating functions in <!--wodoc:span class="code"-->Eliom\_content.Html.D.Form<!--wodoc:end--> (respectively <!--wodoc:span class="code"-->Eliom\_content.Html.F.Form<!--wodoc:end-->) accept an argument of type `Eliom_content.Html.D.Form.param` (respectively `Eliom_content.Html.F.Form.param`), which needs to match the type of the parameter used. For example, <!--wodoc:span class="code"-->number\_name<!--wodoc:end--> has type <!--wodoc:span class="code"-->int param\_name<!--wodoc:end-->, so <!--wodoc:span class="code"-->Form.int<!--wodoc:end--> must be used with <!--wodoc:span class="code"-->Form.input<!--wodoc:end--> (or with the other widgets), whereas <!--wodoc:span class="code"-->string\_name<!--wodoc:end--> has type <!--wodoc:span class="code"-->string param\_name<!--wodoc:end--> and must be used in conjunction with the argument <!--wodoc:span class="code"-->Form.string<!--wodoc:end-->. Creating form widgets are described in detail in `Eliom_content.Html.D.Form` (and `Eliom_content.Html.F.Form`).
+Parameter names are typed to make sure that they are used properly. The form-creating functions in Eliom\_content.Html.D.Form (respectively Eliom\_content.Html.F.Form) accept an argument of type `Eliom_content.Html.D.Form.param` (respectively `Eliom_content.Html.F.Form.param`), which needs to match the type of the parameter used. For example, number\_name has type int param\_name, so Form.int must be used with Form.input (or with the other widgets), whereas string\_name has type string param\_name and must be used in conjunction with the argument Form.string. Creating form widgets are described in detail in `Eliom_content.Html.D.Form` (and `Eliom_content.Html.F.Form`).
 
 For untyped forms, you may use functions from the module [`Eliom_content.Html.D.Raw`](./eliom.server/Eliom_content-Html-D-Raw.md). Here is a form linking to our (untyped) service `raw_serv`.
 
@@ -211,7 +207,7 @@ let my_service_with_get_and_post =
 
 ### POST forms
 
-To create a POST form, use the `Eliom_content.Html.D.Form.post_form` function. It is similar to `Eliom_content.Html.D.Form.get_form` with an additional parameter for the GET parameters you want to put in the URL (if any). Here, <!--wodoc:span class="code"-->form2<!--wodoc:end--> is a page containing a form to the service <!--wodoc:span class="code"-->post<!--wodoc:end--> (using Html.F's functions) and <!--wodoc:span class="code"-->form3<!--wodoc:end--> (defined using the syntax contains a form to <!--wodoc:span class="code"-->post2<!--wodoc:end-->, with a GET parameter. <!--wodoc:span class="code"-->form4<!--wodoc:end--> is a form to an external page.
+To create a POST form, use the `Eliom_content.Html.D.Form.post_form` function. It is similar to `Eliom_content.Html.D.Form.get_form` with an additional parameter for the GET parameters you want to put in the URL (if any). Here, form2 is a page containing a form to the service post (using Html.F's functions) and form3 (defined using the syntax contains a form to post2, with a GET parameter. form4 is a form to an external page.
 
 *Warning:* Some examples in this section use the Tyxml syntax extension. (See `Tyxml's manual`). *Warning:* After installing Tyxml, `tyxml-ppx` should be added to the lists of SERVER PACKAGES and CLIENT PACKAGES in the Makefile.options file of your project.
 
@@ -281,10 +277,9 @@ let form4 =
 
 This section shows more advanced use of page parameters and corresponding forms.
 
-
 ### Parsing parameters using regular expressions
 
-Eliom\_parameter.regexp allows parsing page parameters using (Perl-compatible) regular expressions. We use the module <!--wodoc:span class="code"-->Netstring\_pcre<!--wodoc:end-->, from *OCamlnet*. See the documentation about OCamlnet for more information. The following example shows a service that accepts only parameters values enclosed between <!--wodoc:span class="code"-->`{%html:<!--wodoc:end-->%} and {%html:<!--wodoc:span class="code"-->%}`<!--wodoc:end-->:
+Eliom\_parameter.regexp allows parsing page parameters using (Perl-compatible) regular expressions. We use the module Netstring\_pcre, from *OCamlnet*. See the documentation about OCamlnet for more information. The following example shows a service that accepts only parameters values enclosed between `{%html:%} and {%html:%}`:
 
 ```ocaml
 let r = Netstring_pcre.regexp "\\\\[(.*)\\\\]"
@@ -319,7 +314,7 @@ let regexpserv =
 
 ### Boolean checkboxes
 
-Page may take parameter of type <!--wodoc:span class="code"-->bool<!--wodoc:end-->. A possible use of this type is in a form with *boolean checkboxes*, as in the example below:
+Page may take parameter of type bool. A possible use of this type is in a form with *boolean checkboxes*, as in the example below:
 
 ```ocaml
 (* Form with bool checkbox: *)
@@ -367,10 +362,9 @@ Other types similar to bool:
 - `Eliom_parameter.sum` (either a parameter or another).
 See [`Eliom_parameter_sigs.S`](./eliom.server/Eliom_parameter_sigs-module-type-S.md).
 
+### Type set
 
-### Type <!--wodoc:span class="code"-->set<!--wodoc:end-->
-
-Page may take several parameters of the same name. It is useful when you want to create a form with a variable number of fields. To do that with Eliom, use the type `Eliom_parameter.set`. For example, <!--wodoc:span class="code"-->set int "val"<!--wodoc:end--> means that the page will take zero, one, or several parameters of name <!--wodoc:span class="code"-->"val"<!--wodoc:end-->, all of type <!--wodoc:span class="code"-->int<!--wodoc:end-->. The function you register will receive the parameters in a list. Example:
+Page may take several parameters of the same name. It is useful when you want to create a form with a variable number of fields. To do that with Eliom, use the type `Eliom_parameter.set`. For example, set int "val" means that the page will take zero, one, or several parameters of name "val", all of type int. The function you register will receive the parameters in a list. Example:
 
 ```ocaml
 let set = Eliom_registration.Html.create
@@ -427,7 +421,6 @@ let setform = Eliom_registration.Html.create
 ```
 Once again, note that there is no difference between an empty set or no parameter at all. If you register a service without parameters and a service with a set of parameters on the same URL, the service with higher priority, or the firstly registered service that matches, will answer.
 
-
 ### Select
 
 Here is an example of a select box.
@@ -478,7 +471,6 @@ let select_example =
 ```
 To do "multiple" select boxes, use functions like `Eliom_content.Html.D.Form.multiple_select`. As you can see in the type, the service must be declared with parameters of type `Eliom_parameter.set`.
 
-
 ### Clickable images
 
 Here is an example of clickable image. You receive the coordinates the user clicked on.
@@ -518,9 +510,9 @@ let imageform = Eliom_registration.Html.create
                 ])))
 ```
 
-### Type <!--wodoc:span class="code"-->list<!--wodoc:end-->
+### Type list
 
-Another way (than `Eliom_parameter.set`) to do variable length forms is to use indexed lists (using `Eliom_parameter.list`). The use of that feature is a bit more complex than <!--wodoc:span class="code"-->set<!--wodoc:end-->. Here is an example of service taking an indexed list as parameter:
+Another way (than `Eliom_parameter.set`) to do variable length forms is to use indexed lists (using `Eliom_parameter.list`). The use of that feature is a bit more complex than set. Here is an example of service taking an indexed list as parameter:
 
 ```ocaml
 (* lists *)
@@ -570,7 +562,6 @@ let _ =
 ```
 *Important warning:* As we have seen in the section about boolean (or optional) parameters, it is not possible to distinguish between a boolean with value "false", and no parameter at all. This causes problems if you create a list of boolean or optional values, as it is not possible to know the length of the list. In that case, Eliom always takes the shortest possible list.
 
-
 ### Forms and suffixes
 
 Service with "suffix" URLs have an equivalent version with usual parameters, allowing creation of forms towards such services. Example:
@@ -602,7 +593,6 @@ let suffixform = Eliom_registration.Html.create
 ```
 Decode the URL encoded string using `Ocsigen_lib.Url.string_of_url_path ~encode:false`
 
-
 ### Uploading files
 
 The `Eliom_parameter.file` parameter type allows files to be sent in your request. The service gets something of type `Ocsigen_extensions.file_info`. You can extract information using this using these functions (from [`Eliom_request_info`](./eliom.server/Eliom_request_info.md)):
@@ -615,7 +605,7 @@ val get_original_filename : Ocsigen_extensions.file_info -> string
 ```
 [`Eliom_request_info.get_tmp_filename`](./eliom.server/Eliom_request_info.md#val-get_tmp_filename) returns the actual name of the uploaded file on the hard drive. [`Eliom_request_info.get_original_filename`](./eliom.server/Eliom_request_info.md#val-get_original_filename) gives the original filename.
 
-To enable file upload, you must configure a directory for uploaded files in Ocsigen's configuration file. For example: <!--wodoc:div class="pre"--> \<uploaddir\>/tmp\</uploaddir\> <!--wodoc:end-->
+To enable file upload, you must configure a directory for uploaded files in Ocsigen's configuration file. For example:  \<uploaddir\>/tmp\</uploaddir\>
 
 Files are kept in this directory only while processing the request. They are automatically removed afterwards. Therefore, your services must copy the files somewhere else, if the files are to be kept. In the following example, we create a new hard link to the file to keep it. (The destination must be on the same partition of the disk.)
 

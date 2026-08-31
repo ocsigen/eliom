@@ -1,6 +1,4 @@
-
 # Module `Eliom_route_base.Make`
-
 
 ## Parameters
 

@@ -1,8 +1,6 @@
-
 # Module `Eliom_registration.Customize`
 
 The `Customize` functor allows specialization of service registration functions by customizing the page type. See the [Eliom tutorial](https://ocsigen.org/tuto/latest/interaction.html) for example.
-
 
 ## Parameters
 

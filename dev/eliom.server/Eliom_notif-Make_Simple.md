@@ -1,8 +1,6 @@
-
 # Module `Eliom_notif.Make_Simple`
 
 Use this functor if you have no need of customising your notifications with client-specific data.
-
 
 ## Parameters
 

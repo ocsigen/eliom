@@ -1,4 +1,3 @@
-
 # Parameter `Customize.T`
 
 ```ocaml

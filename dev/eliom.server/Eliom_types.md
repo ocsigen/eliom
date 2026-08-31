@@ -1,4 +1,3 @@
-
 # Module `Eliom_types`
 
 Types shared by client and server.

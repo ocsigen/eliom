@@ -1,4 +1,3 @@
-
 # Module `Eliommod_cookies.Map_inner`
 
 ```ocaml

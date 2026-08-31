@@ -1,8 +1,6 @@
-
 # Module `S.Make`
 
 Functor specializing the combinators for the given signal value type
-
 
 ## Parameters
 

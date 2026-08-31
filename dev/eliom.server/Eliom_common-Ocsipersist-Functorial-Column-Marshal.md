@@ -1,6 +1,4 @@
-
 # Module `Column.Marshal`
-
 
 ## Parameters
 

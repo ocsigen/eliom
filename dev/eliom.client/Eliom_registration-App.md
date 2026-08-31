@@ -1,6 +1,4 @@
-
 # Module `Eliom_registration.App`
-
 
 ## Parameters
 

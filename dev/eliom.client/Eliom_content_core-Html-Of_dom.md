@@ -1,4 +1,3 @@
-
 # Module `Html.Of_dom`
 
 Conversion of Javascript DOM elements to HTML5 elts (with DOM semantics of course). One conversion function per source type (stressed by the `of_` prefix).

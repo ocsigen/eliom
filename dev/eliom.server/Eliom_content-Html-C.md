@@ -1,8 +1,6 @@
-
 # Module `Html.C`
 
 Creation of HTML content from client-side values. This makes possible to insert in server side generated pages some nodes that will be computed on client side (for example reactive nodes).
-
 
 ### Content injection
 

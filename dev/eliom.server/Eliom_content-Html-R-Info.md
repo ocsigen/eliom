@@ -1,4 +1,3 @@
-
 # Module `R.Info`
 
 Various information about HTML, such as the doctype, ...

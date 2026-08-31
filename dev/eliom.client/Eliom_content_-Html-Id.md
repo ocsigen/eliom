@@ -1,4 +1,3 @@
-
 # Module `Html.Id`
 
 ```ocaml

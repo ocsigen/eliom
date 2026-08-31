@@ -1,4 +1,3 @@
-
 # Module `Svg.D`
 
 Creation of content with *D*OM semantics (referable
@@ -86,7 +85,6 @@ A star element is an element that has any number of children, including zero.
 module Info : Xml_sigs.Info
 ```
 Various information about SVG, such as the doctype, ...
-
 
 #### Uri
 
@@ -919,7 +917,6 @@ val a_stroke_opacity : float wrap -> [> `Stroke_Opacity ] attrib
 ```
 
 ### Events
-
 
 #### Javascript events
 

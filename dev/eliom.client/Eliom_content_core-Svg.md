@@ -1,4 +1,3 @@
-
 # Module `Eliom_content_core.Svg`
 
 Building SVG tree.
@@ -28,7 +27,6 @@ module F : sig ... end
 ```
 Typed interface for building valid SVG tree (functional semantics). See [`Svg_sigs.T`](./../../tyxml/tyxml.functor/Svg_sigs-module-type-T.md).
 
-
 ### DOM semantics
 
 ```ocaml
@@ -36,14 +34,12 @@ module D : sig ... end
 ```
 Typed interface for building valid SVG tree (DOM semantics). See [`Svg_sigs.T`](./../../tyxml/tyxml.functor/Svg_sigs-module-type-T.md).
 
-
 ### Reactive DOM
 
 ```ocaml
 module R : sig ... end
 ```
 Typed interface for building valid reactive SVG tree.
-
 
 ### Global node
 

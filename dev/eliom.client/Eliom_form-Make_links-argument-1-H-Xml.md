@@ -1,4 +1,3 @@
-
 # Module `H.Xml`
 
 Underlying XML data-structure

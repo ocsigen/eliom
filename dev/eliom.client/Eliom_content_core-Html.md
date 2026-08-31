@@ -1,4 +1,3 @@
-
 # Module `Eliom_content_core.Html`
 
 Building Html tree.

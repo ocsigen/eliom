@@ -1,4 +1,3 @@
-
 # Module `Eliom_reference.Volatile`
 
 Same functions as in `Eliom_reference` but a non-Lwt interface for non-persistent Eliom references.

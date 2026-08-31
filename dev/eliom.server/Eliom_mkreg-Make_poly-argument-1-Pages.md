@@ -1,4 +1,3 @@
-
 # Parameter `Make_poly.Pages`
 
 ```ocaml

@@ -1,4 +1,3 @@
-
 # Module `Ocsipersist.Functorial`
 
 Functorial frontent. Allows for custom (de)serialisation functions, which keeps data human-readable in the backend.

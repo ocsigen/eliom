@@ -1,4 +1,3 @@
-
 # Module `Eliom_registration.Flow5`
 
 Eliom service registration and forms creation for fragment of HTML page.

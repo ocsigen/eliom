@@ -1,4 +1,3 @@
-
 # Module `Html.Xml`
 
 Underlying XML data-structure

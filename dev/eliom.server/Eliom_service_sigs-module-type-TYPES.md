@@ -1,6 +1,4 @@
-
 # Module type `Eliom_service_sigs.TYPES`
-
 
 ### Auxiliary service-related types
 

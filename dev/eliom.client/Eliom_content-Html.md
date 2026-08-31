@@ -1,4 +1,3 @@
-
 # Module `Eliom_content.Html`
 
 Building valid (X)HTML5.

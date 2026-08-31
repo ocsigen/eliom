@@ -1,4 +1,3 @@
-
 # Module `Html.Printer`
 
 ["Polyglot"](http://dev.w3.org/html5/html-xhtml-author-guide/) HTML printer. See [`Xml_sigs.Typed_pp`](./../../tyxml/tyxml.functor/Xml_sigs-module-type-Typed_pp.md).

@@ -1,4 +1,3 @@
-
 # Module `Manip.RawNamed`
 
 ```ocaml

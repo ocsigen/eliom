@@ -1,4 +1,3 @@
-
 # Module `R.Xml`
 
 Underlying XML data-structure

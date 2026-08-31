@@ -1,4 +1,3 @@
-
 # Module `Make.Info`
 
 Various information about SVG, such as the doctype, ...

@@ -1,4 +1,3 @@
-
 # Module `Html.Info`
 
 Various information about HTML, such as the doctype, ...

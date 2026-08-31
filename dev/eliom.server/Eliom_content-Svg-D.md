@@ -1,4 +1,3 @@
-
 # Module `Svg.D`
 
 Typed interface for building valid SVG tree (DOM semantics). See [`Svg_sigs.T`](./../../tyxml/tyxml.functor/Svg_sigs-module-type-T.md).
@@ -84,7 +83,6 @@ A star element is an element that has any number of children, including zero.
 module Info : Xml_sigs.Info
 ```
 Various information about SVG, such as the doctype, ...
-
 
 #### Uri
 
@@ -917,7 +915,6 @@ val a_stroke_opacity : float wrap -> [> `Stroke_Opacity ] attrib
 ```
 
 ### Events
-
 
 #### Javascript events
 

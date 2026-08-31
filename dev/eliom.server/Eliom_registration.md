@@ -1,10 +1,8 @@
-
 # Module `Eliom_registration`
 
 Eliom services registration for various kinds of page content: Eliom application, valid [`Html`](./Eliom_registration-Html.md), actions, redirections, static files, ...
 
 **Please read the Eliom manual before this page to learn how to use [services](./../server-services.md) and [predefined outputs](./../server-outputs.md).**
-
 
 ### Type definitions
 
@@ -20,7 +18,6 @@ The type `kind` is an abstract type for the HTTP frame returned by a service. Th
 - [`ocaml_content`](./#type-ocaml_content)
 
 #### Return types for `Eliom_service.service`
-
 
 ##### Classical content
 
@@ -41,7 +38,6 @@ type unknown_content
 ```
 The type `unknown_content` is to be used as a phantom type parameter for [`Eliom_registration.kind`](./#type-kind) when the content-type can't be determined statically. See `Text` or [`Any`](./Eliom_registration-Any.md).
 
-
 ##### Application content
 
 ```ocaml
@@ -56,14 +52,12 @@ type 'a application_name
 ```
 Typed application name
 
-
 ##### OCaml content
 
 ```ocaml
 type 'a ocaml_content
 ```
 The type `ocaml_content` is an synomyn for `Eliom_service.ocaml_service` to be used as a phantom type parameters for [`Eliom_registration.kind`](./#type-kind). See [`Ocaml`](./Eliom_registration-Ocaml.md).
-
 
 ### Using HTML with services
 
@@ -76,7 +70,6 @@ module Html :
      and type result = browser_content kind
 ```
 Eliom service registration for services that return HTML pages.
-
 
 ### Eliom client/server applications
 
@@ -134,7 +127,6 @@ module Flow5 :
 ```
 Eliom service registration and forms creation for fragment of HTML page.
 
-
 ### Untyped pages
 
 ```ocaml
@@ -156,7 +148,6 @@ module CssText :
      and type result = browser_content kind
 ```
 Eliom service registration for services that returns CSS. The page content is a `string` that must contains valid CSS and the content type is always `text/css`. The option is the optional "Cache-policy: max-age" header value to be sent.
-
 
 ### Other kinds of services
 
@@ -268,7 +259,6 @@ module String :
 ```
 Eliom service registration for services that returns "byte"-string contents. The page content is a pair `(raw_content, content_type)`. See also `Streamlist` for another kind of service that returns "byte" contents. The option is the optional "Cache-policy: max-age" header value to be sent.
 
-
 ### Customizing registration
 
 ```ocaml
@@ -283,7 +273,6 @@ module Customize
 ```
 The `Customize` functor allows specialization of service registration functions by customizing the page type. See the [Eliom tutorial](https://ocsigen.org/tuto/latest/interaction.html) for example.
 
-
 ### Using your own error pages
 
 ```ocaml
@@ -294,7 +283,6 @@ The `set_exn_handler handler` allows redefinition of error pages: `404` or any e
 Note that you should not catch every exception here since some Eliom mechanisms are done using exceptions, like redirections. Do not catch exception defined in Eliom except [`Eliom_common.Eliom_404`](./Eliom_common.md#exception-Eliom_404), [`Eliom_common.Eliom_Wrong_parameter`](./Eliom_common.md#exception-Eliom_Wrong_parameter) [`Eliom_common.Eliom_Typing_Error`](./Eliom_common.md#exception-Eliom_Typing_Error).
 
 *Warning: This functions must be called when the site information is available, that is, either during a request or during the initialisation phase of the site. Otherwise, it will raise the exception [`Eliom_common.Eliom_site_information_not_available`](./Eliom_common.md#exception-Eliom_site_information_not_available). If you are using static linking, you must delay the call to this function until the configuration file is read, using [`Eliom_service.register_eliom_module`](./Eliom_service.md#val-register_eliom_module). Otherwise you will also get this exception.*
-
 
 ### Unsafe cast of contents
 

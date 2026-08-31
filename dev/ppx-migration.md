@@ -1,4 +1,3 @@
-
 # Migration from Camlp4 to PPX
 
 Recent versions of OCaml (4.02 and newer) provide PPX, which is a new mechanism for extending the language. Eliom 5\.0 utilizes PPX to provide a superset of OCaml, which is suitable for developing client-server Web applications.
@@ -6,7 +5,6 @@ Recent versions of OCaml (4.02 and newer) provide PPX, which is a new mechanism 
 This document provides a migration guide from our older Camlp4-based language to the new PPX-based language. While our Camlp4 language is still supported, future development will focus on PPX, and therefore users are advised to migrate.
 
 For more extensive information on the PPX extension itself, refer to the [corresponding manual page](./ppx-syntax.md).
-
 
 ## Source code conversion
 
@@ -28,7 +26,6 @@ Eliom provides wrappers around the standard OCaml and js\_of\_ocaml tools, e.g.,
 Our tools do not automatically load PPX extensions for js\_of\_ocaml, Lwt, etc.; these need to be loaded explicitly, e.g., by loading Ocamlfind packages like `js_of_ocaml.ppx` and `lwt_ppx` (via the `-package` argument). Similarly, Ocamlfind packages need to be loaded for any `ppx_deriving` plugins that apply. Note that `ppx_deriving` needs to be installed manually, since it is only an optional dependency of Eliom and js\_of\_ocaml.
 
 Camlp4 and PPX extensions cannot be used in the same file. Code relying on Camlp4 extensions with no PPX equivalents (as is the case for Macaque and PGOcaml) needs to be moved to separate files that are preprocessed through Camlp4.
-
 
 ## Good style
 

@@ -1,6 +1,4 @@
-
 # Module `Eliom_common.Full_state_name_table`
-
 
 ## Maps
 
@@ -172,7 +170,6 @@ val iter : (key -> 'a -> unit) -> 'a t -> unit
 val fold : (key -> 'a -> 'acc -> 'acc) -> 'a t -> 'acc -> 'acc
 ```
 `fold f m init` computes `(f kN dN ... (f k1 d1 init)...)`, where `k1 ... kN` are the keys of all bindings in `m` (in increasing order), and `d1 ... dN` are the associated data.
-
 
 ## Transforming
 

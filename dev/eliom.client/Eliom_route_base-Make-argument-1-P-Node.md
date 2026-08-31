@@ -1,4 +1,3 @@
-
 # Module `P.Node`
 
 ```ocaml

@@ -1,4 +1,3 @@
-
 # Module `Html.Manip`
 
 DOM-like manipulation functions.

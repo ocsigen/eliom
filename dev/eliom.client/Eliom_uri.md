@@ -1,8 +1,6 @@
-
 # Module `Eliom_uri`
 
 Low-level functions for relative or absolute URL calculation.
-
 
 ### Compute service's URL
 
@@ -87,7 +85,6 @@ val make_string_uri_from_components :
 The function `make_string_uri_from_components path get_params fragment` build the corresponding string URL. The `path` should be URL encoded.
 
 The function [`make_string_uri`](./#val-make_string_uri) is the composition of [`make_uri_components`](./#val-make_uri_components) and `make_string_uri_from_components`.
-
 
 ### Relative paths
 

@@ -1,10 +1,8 @@
-
 # Eliom's Distillery
 
 The easiest way to initialize, compile, and run an Ocsigen/Eliom project is to use `eliom-distillery`.
 
 `eliom-distillery` is self-documenting (refer to `eliom-distillery -help` and the generated `README`), but here is a bit information on how to work with it.
-
 
 ### Project Initialization
 
@@ -24,11 +22,9 @@ $ eliom-distillery -name <name> -template app.exe [-target-directory <dir>]
 ```
 This creates a project named `<name>` from the `"app.exe"` template in the directory `<dir>` or `<name>` by default. The project name should be a valid name for an OCaml compilation unit.
 
-
 ### Compilation & Running:
 
 Read the README file provided with the template.
-
 
 ### Using other templates
 

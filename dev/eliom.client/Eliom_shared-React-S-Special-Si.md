@@ -1,4 +1,3 @@
-
 # Module `Special.Si`
 
 Specialization for integers.

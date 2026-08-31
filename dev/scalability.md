@@ -1,4 +1,3 @@
-
 # Scalability of Eliom apps
 
 Here are a few hints on how to write scalable Eliom applications, running on multiple cores or servers.

@@ -1,9 +1,6 @@
-
 # Module `Eliom_mkreg.Make_poly`
 
-
 ### Creating modules to register services for one type of parametrised pages
-
 
 ## Parameters
 

@@ -1,4 +1,3 @@
-
 # Module `Eliom_common`
 
 Low level functions for Eliom, exceptions and types.

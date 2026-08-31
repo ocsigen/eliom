@@ -1,4 +1,3 @@
-
 # Module `Eliombuild.Eliom_plugin`
 
 ```ocaml

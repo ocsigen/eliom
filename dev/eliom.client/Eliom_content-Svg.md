@@ -1,4 +1,3 @@
-
 # Module `Eliom_content.Svg`
 
 Building valid SVG .

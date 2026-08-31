@@ -1,4 +1,3 @@
-
 # Parameter `Table.Value`
 
 ```ocaml

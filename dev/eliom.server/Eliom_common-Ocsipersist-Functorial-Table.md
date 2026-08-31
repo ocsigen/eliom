@@ -1,6 +1,4 @@
-
 # Module `Functorial.Table`
-
 
 ## Parameters
 

@@ -1,4 +1,3 @@
-
 # Eliom \-- the language extensions
 
 In Eliom it possible to define the functionality of the server and the client program at in a single source file. The server program will constantly run on the Web server. The client program will run independently in each browser tab that visits the Web site. The latter is started with the initial request in a browser tab and keeps running while navigating within the Web site, across the usage of links, forms, history, and `page changes`.
@@ -6,7 +5,6 @@ In Eliom it possible to define the functionality of the server and the client pr
 Eliom provides three language extensions to OCaml to provide an integrated development of client/server-programs, and to deal with the mentioned asymetricity between the client- and server-program: The partitioning of the program into client-, and server-sections, the direct usage of server-side toplevel values in client sections, and the declaration and handling of client values within the code for the server.
 
 It is advisable to read the section about [compiling eliom applications](./workflow-distillery.md#compilation) first.
-
 
 ## Sections (partitioning into client- and server-side)
 
@@ -56,7 +54,6 @@ All top-level expressions are evaluated *early* while launching the program. In 
 
 In the client program, top-level expressions are evaluated early in the initialization phase of the client process, particulary *before the DOM is in place*. This means, that you cannot do any DOM manipulation or access HTML-elements with [DOM semantics](./eliom.server/Eliom_content-Html-D.md). However, you can postpone that by `Eliom_client.onload`.
 
-
 ## Injections (in the client-section)
 
 Eliom permits the direct usage of top-level server-side variables, and also of arbitrary expressions, in the client sections. Such a usage is called *injection*. It is also supported inside a [shared section](#sharedinjection).
@@ -82,7 +79,6 @@ It is also possible to inject an arbitrary server-side expression `exp` in a cli
 }}
 ```
 Note well that the value of an injection is *not updated* when the injected value on the server changes. However, you may inject reactive signals (cf. [`Eliom_react.S.Down.of_react`](./eliom.server/Eliom_react-S-Down.md#val-of_react) ) to achieve the behavior of a client side values which updates alongside with a server correspondent.
-
 
 ### In a shared section
 
@@ -134,7 +130,6 @@ For convenience, the indication of the type of a client value may be ommitted if
 ```
 Here, the function `a_onclick` has type `(#Dom_html.mouseEvent Js.t -> unit) -> [> `OnClick ] Eliom_content.Html.attrib`; this determines the type of the client value `onclick` sufficiently.
 
-
 ### Semantics
 
 The point in time of the evaluation of the expression of a client value (which also includes the occurrence of its side effects) depends on the context of the creation of the client value on the server. In Eliom, global client values are distinguished from request client values.
@@ -159,7 +154,6 @@ Client values created while launching the server, i.e. while evaluating the top-
 Client values which are evaluated during the processing of a request are termed *request client values*. The expressions of request client values are evaluated after receiving the corresponding request on the client in the order of their occurrence on the server. In requests which change the content of the page withing the application (originating from a service of the [`Eliom_registration.App`](./eliom.server/Eliom_registration-App.md) ), the expressions are evaluated *after the content has changed*. That way they may refer to the new DOM.
 
 If a client value is created outside of the initialization of the server program and also outside of the processing of a request, the exception [`Eliom_client_value.Client_value_creation_invalid_context`](./eliom.server/Eliom_client_value.md#exception-Client_value_creation_invalid_context) is raised.
-
 
 ### In a shared section
 

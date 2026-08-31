@@ -1,4 +1,3 @@
-
 # Module `Eliom_content.Svg`
 
 Building and pretty-printing valid SVG tree. Information about Svg api can be found at [`Svg_sigs.T`](./../../tyxml/tyxml.functor/Svg_sigs-module-type-T.md)

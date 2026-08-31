@@ -1,10 +1,8 @@
-
 # Client-side services
 
 Starting with Eliom 6\.0, services can have client-side handlers. Registering client-side handlers for services allows us to perform most of the operations (e.g., building the user interface) locally, and only call the server for operations that are by necessity non-local (e.g., retrieving database data).
 
 Client-side service implementation is required for building mobile applications with Eliom, but can also be used to change page faster within a Web application. In this manual chapter, we focus on the client-side service mechanics and do not go into the details of setting up a complete mobile application. The complete setup needed is discussed in the [mobile applications chapter](./mobile-apps.md) of this manual.
-
 
 ## Service creation and registering
 
@@ -39,7 +37,6 @@ The types of the handlers are compatible between the two sides. For instance, [`
 For application services, the [`Eliom_registration.App`](./eliom.server/Eliom_registration-App.md) functor needs to be called just like on the server. The signatures are compatible between the two sides, and therefore the functor invocation can happen in a shared section.
 
 A service registered as above can be called via links (e.g., `Eliom_content.Html.D.a`) and forms just like a standard server-only service. Eliom detects the existence of a client-side implementation and calls that instead of performing a request to the server. If no client-side implementation exists, a standard server request is performed, which may cause problems in the context of mobile applications.
-
 
 ## Service routing
 

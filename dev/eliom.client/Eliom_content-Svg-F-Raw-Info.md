@@ -1,4 +1,3 @@
-
 # Module `Raw.Info`
 
 Various information about SVG, such as the doctype, ...

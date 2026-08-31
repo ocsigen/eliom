@@ -1,4 +1,3 @@
-
 # Module `Eliommod_sessiongroups.Pers`
 
 ```ocaml

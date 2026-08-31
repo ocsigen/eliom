@@ -1,4 +1,3 @@
-
 # Module type `Eliom_notif.ARG_SIMPLE`
 
 `ARG_SIMPLE` is for making [`Make_Simple`](./Eliom_notif-Make_Simple.md)

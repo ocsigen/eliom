@@ -1,4 +1,3 @@
-
 # Module `Xml_shared.W`
 
 ```ocaml

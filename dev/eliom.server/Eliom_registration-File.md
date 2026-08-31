@@ -1,4 +1,3 @@
-
 # Module `Eliom_registration.File`
 
 Eliom service registration for services that returns file contents. The value returned by service handlers is the name of the file to send. See the Eliom manual for more information on [how to send files with Eliom](./../server-outputs.md#eliomfiles). The option is the optional "Cache-policy: max-age" header value to be sent.

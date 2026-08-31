@@ -1,4 +1,3 @@
-
 # Module `Eliom_content_core.Html`
 
 See the Eliom manual for more information on [dom semantics vs. functional semantics](./../clientserver-html.md#unique) for HTML5 tree manipulated by client/server application.

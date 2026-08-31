@@ -1,4 +1,3 @@
-
 # Module `Svg.Of_dom`
 
 ```ocaml

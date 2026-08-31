@@ -1,4 +1,3 @@
-
 # Module `Eliom_registration.String_redirection`
 
 Eliom service registration for services that returns a redirections towards a string-URL. See the Eliom manual for more information about [Redirections outputs](./../server-outputs.md#redirections). The URL given must be an absolute URI.

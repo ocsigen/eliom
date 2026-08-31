@@ -1,8 +1,6 @@
-
 # Module `Eliom_request_info`
 
 This module contains the functions you need to get (or set) information about current request.
-
 
 ### Getting information about the request
 
@@ -94,7 +92,6 @@ val get_timeofday : unit -> float
 ```
 returns an Unix timestamp associated to the request
 
-
 #### Exceptions and fallbacks
 
 ```ocaml
@@ -150,7 +147,6 @@ returns the root of the site. Raises `Eliom_common.Eliom_site_information_not_av
 val get_site_dir_option : unit -> Eliom_lib.Url.path option
 ```
 returns the root of the site.
-
 
 ### Getting parameters (low level)
 
@@ -215,7 +211,6 @@ val get_ignored_post_params : unit -> (string * string) list
 ```
 returns the POST parameters that have been ignored using \<ignoredpostparams/\> in config file.
 
-
 ### Other low level functions
 
 You probably don't need these functions.
@@ -251,7 +246,6 @@ returns the values of Eliom's cookies for non persistent sessions sent by the br
 val expecting_process_page : unit -> bool
 ```
 Returns `true` if the request was done by a client side Eliom program, which was expecting to receive a new HTML page to display inside the process.
-
 
 #### Getting information about the URL of the client side process (csp)
 

@@ -1,4 +1,3 @@
-
 # Module `Eliom_common.To_and_of_shared`
 
 ```ocaml

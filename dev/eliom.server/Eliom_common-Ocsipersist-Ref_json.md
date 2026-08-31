@@ -1,4 +1,3 @@
-
 # Module `Ocsipersist.Ref_json`
 
 Type-safe persistent references using [`Deriving_Json`](./../../js_of_ocaml/js_of_ocaml.deriving/Deriving_Json.md) for serialisation. Unlike [`Ref`](./Eliom_common-Ocsipersist-Ref.md), this does not rely on [`Stdlib.Marshal`](./../../ocaml-compiler/stdlib/Stdlib-Marshal.md) and is safe across OCaml versions. Requires types annotated with `[@@deriving json]` (from `js_of_ocaml-ppx_deriving_json`).

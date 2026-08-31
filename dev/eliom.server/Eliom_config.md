@@ -1,4 +1,3 @@
-
 # Module `Eliom_config`
 
 This module makes also possible get information from the configuration file.

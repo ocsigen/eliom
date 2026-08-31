@@ -1,4 +1,3 @@
-
 # Module `Eliom_react.Up`
 
 Event from client to server.

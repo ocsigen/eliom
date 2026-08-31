@@ -1,4 +1,3 @@
-
 # Module `Eliom_lib.Url_base`
 
 ```ocaml

@@ -1,6 +1,4 @@
-
 # Module `Eliom_content_.MakeManip`
-
 
 ## Parameters
 

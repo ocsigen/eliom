@@ -1,6 +1,4 @@
-
 # Caching the data and off-line applications
-
 
 ## Caching the data
 
@@ -9,7 +7,6 @@ Module [`Eliom_cscache`](./eliom.server/Eliom_cscache.md) implements a cache of 
 Have look at the documentation of this module for more information.
 
 Also have a look to `Ocsigen_cache` for a local (client or server) cache that keeps the most recently used values.
-
 
 ## Off-line applications
 

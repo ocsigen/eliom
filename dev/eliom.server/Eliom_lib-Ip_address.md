@@ -1,4 +1,3 @@
-
 # Module `Eliom_lib.Ip_address`
 
 ```ocaml

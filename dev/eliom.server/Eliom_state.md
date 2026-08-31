@@ -1,13 +1,10 @@
-
 # Module `Eliom_state`
 
 Storing server-side values for your applications or sessions.
 
 **Please read the [Eliom manual](./../server-state.md) before this page to learn how server side state works.**
 
-
 ### Managing the state of an application
-
 
 #### Closing sessions, removing state data and services
 
@@ -51,7 +48,6 @@ val discard_services :
   unit
 ```
 Remove all services registered for the given scope (the default being ``Session`).
-
 
 #### State status
 
@@ -123,13 +119,11 @@ val unset_cookie :
 ```
 Ask the browser to remove a cookie.
 
-
 ### Session groups
 
 If your Web site has users, it is a good idea to group together all the sessions for one user. Otherwise, you may want to group sessions according to another criterion.
 
 Session groups may be used for example to limit the number of sessions one user can open at the same time, or to implement a "close all your sessions" feature. Usually, the group is the user name.
-
 
 #### Putting a session in a group, removing a session from a group
 
@@ -244,7 +238,6 @@ val get_persistent_data_session_group :
   string option Lwt.t
 ```
 returns the group to which belong the persistent session. If the session does not belong to any group, or if no session is opened, return `None`.
-
 
 #### Maximum group size
 
@@ -385,9 +378,7 @@ val set_max_volatile_states_for_group_or_subnet :
 ```
 Sets the maximum number of volatile sessions (both data and service sessions) in the current group (or for the client sub network, if there is no group).
 
-
 ### Expiration of cookies and timeouts
-
 
 #### Cookie expiration
 
@@ -421,7 +412,6 @@ val set_persistent_data_cookie_exp_date :
   unit Lwt.t
 ```
 Sets the cookie expiration date for the persistent state (see above).
-
 
 #### Global configuration of state timeouts
 
@@ -525,7 +515,6 @@ val get_global_persistent_data_state_timeout :
 ```
 Returns the (server side) timeout for persistent states.
 
-
 #### Personalizing timeouts for current state
 
 ```ocaml
@@ -608,7 +597,6 @@ val get_persistent_data_state_timeout :
   float option Lwt.t
 ```
 returns the persistent state timeout for current user. `None` \= no timeout
-
 
 ### Administrating server side state
 

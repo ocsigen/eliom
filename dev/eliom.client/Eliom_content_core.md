@@ -1,4 +1,3 @@
-
 # Module `Eliom_content_core`
 
 XML building and deconstructing. Cf. [`Eliom_content_core.Xml`](./Eliom_content_core-Xml.md).

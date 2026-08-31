@@ -1,4 +1,3 @@
-
 # Module `Eliom_common.Ocsipersist`
 
 Persistent key-value store interface for OCaml. This is a virtual library defining a unified frontend for a number of key-value storage implementations. Implementations of the following backends currently exist: SQLite, DBM, PostgreSQL. You can choose the backend you prefer by installing packages `ocsipersist-sqlite`, `ocsipersist-dbm` or `ocsipersist-pgsql`.

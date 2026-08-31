@@ -1,4 +1,3 @@
-
 # Module `Manip.Named`
 
 Dom manipulation by element identifier.

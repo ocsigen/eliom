@@ -1,8 +1,6 @@
-
 # Module `Eliom_lib.String`
 
 Improvement of module String
-
 
 ## Strings
 
@@ -57,7 +55,6 @@ since 4\.13
 val blit : string -> int -> bytes -> int -> int -> unit
 ```
 Same as [`Bytes.blit_string`](./../../ocaml-compiler/stdlib/Stdlib-Bytes.md#val-blit_string) which should be preferred.
-
 
 ## Concatenating
 
@@ -118,7 +115,6 @@ raises [`Invalid_argument`](./../../ocaml-compiler/stdlib/Stdlib.md#exception-In
 val contains : string -> char -> bool
 ```
 `contains s c` is [`String.contains_from`](./#val-contains_from)` s 0 c`.
-
 
 ## Extracting substrings
 
@@ -323,7 +319,6 @@ val is_valid_utf_8 : t -> bool
 ```
 `is_valid_utf_8 b` is `true` if and only if `b` contains valid UTF-8 data.
 
-
 ### UTF-16BE
 
 ```ocaml
@@ -336,7 +331,6 @@ val is_valid_utf_16be : t -> bool
 ```
 `is_valid_utf_16be b` is `true` if and only if `b` contains valid UTF-16BE data.
 
-
 ### UTF-16LE
 
 ```ocaml
@@ -348,7 +342,6 @@ val get_utf_16le_uchar : t -> int -> Uchar.utf_decode
 val is_valid_utf_16le : t -> bool
 ```
 `is_valid_utf_16le b` is `true` if and only if `b` contains valid UTF-16LE data.
-
 
 ## Spellchecking
 

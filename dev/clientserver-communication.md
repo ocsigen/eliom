@@ -1,21 +1,19 @@
-
 # Communication between the client and the server
 
 Besides injections and client values, as described in the documentation of our [PPX syntax extension](./ppx-syntax.md), there are multiple ways for the client and the server to exchange values.
-
 
 ## Remote Procedure Calls
 
 Eliom provides an easy way to call server functions from the client using a PPX syntax extension (provided by opam package `ocsigen-ppx-rpc`).
 
-Example: <!--wodoc:@ class=shared-->
+Example:
 
 ```ocaml
 let%rpc log (str : string) : unit Lwt.t =
   Lwt_io.write_line Lwt_io.stdout str
 
 ```
-<!--wodoc:@ class=client-->
+
 ```ocaml
 let%client () =
   Eliom_client.onload
@@ -27,14 +25,13 @@ let%client () =
 ```
 The type annotations are mandatory, for the syntax extension to be able to inject the correct serialisation functions. The serialisation functions for each types must be derivable using `Deriving_Json`. To do that, just add `[@@deriving json]` after your type definitions.
 
-Example: <!--wodoc:@ class=shared-->
+Example:
 
 ```ocaml
 type%shared t = A | B
 [@@deriving json]
 ```
 Exceptions raised in the server-side function cannot be handled directly on the client; it is impossible to marshal them in OCaml to send them to the client. Instead, if an exception is raised in the server function, the function application fails (in Lwt) on the client with the exception `Eliom_client_value.Exception_on_server` whose argument describes the original exception (according to `Printexc.to_string`).
-
 
 ## Remote Procedure Calls: low level API
 
@@ -54,7 +51,6 @@ It is necessary to provide an instance of `Deriving_Json` for the argument type,
 
 Every call to `server_function` creates a new pathless POST service. If you want to use a server function in multiple places, it is thus advisable to only apply `server_function` once and bind it to an identifier.
 
-
 ## Notifications from server to clients
 
 Module [`Eliom_notif`](./eliom.server/Eliom_notif.md) makes it possible for a server to send values to clients with a very simple interface. See later in this chapter for lower level server push notifications.
@@ -66,7 +62,6 @@ Each client process must subscribe to each resource for which it wants to receiv
 Then, the server can send a notification to all the clients listening on a resource, using function [`Eliom_notif.Make_Simple.notify`](./eliom.server/Eliom_notif-Make_Simple.md#val-notify).
 
 More details in the API documentation of module [`Eliom_notif`](./eliom.server/Eliom_notif.md).
-
 
 ## Services returning OCaml values
 
@@ -109,7 +104,6 @@ let _ =
              (body [])))
 ```
 Since the client-side representation of values differs from the server-side representation, there are restrictions on what can be sent. The restrictions are the same as for the `~%variable` mechanism. (See [chapter Wrapping](./clientserver-wrapping.md).)
-
 
 ## Send OCaml values to services
 
@@ -167,7 +161,6 @@ let _ =
 ```
 It works for the datatypes you define, and the data types from OCaml's standard library. For types defined in third-party libraries, have a look at deriving's [documentation](href:http://code.google.com/p/deriving/wiki/Introduction) and Js\_of\_ocaml's `Deriving_Json`.
 
-
 ## Server sending data (lower level interfaces for notifications)
 
 Module [`Eliom_notif`](./eliom.server/Eliom_notif.md) described above is implemented on top of a mechanism to allow the server to send data to a client. We call this mechanism *Comet*. The same idea is also known as *HTTP push*.
@@ -221,7 +214,6 @@ ignore (Lwt_js.sleep 10. >|= (fun () -> drop_configuration fast_c))
 ```
 The original setting will be reset after the drop.
 
-
 ## Reactive values
 
 A common usage of comet is for the server to update a value available on client side. A convenient way to implement this is to use reactive programming. Eliom provides a reactive interface for channels, using the [react](http://erratique.ch/software/react). library.
@@ -234,13 +226,11 @@ The opposite is also available using [`Eliom_react.Up.create`](./eliom.server/El
 
 Since this is implemented using Comet, tuning Comet configuration will also affect the behaviour of shared react variables.
 
-
 ## Client-Server shared bus
 
 It is sometimes useful to have a bidirectional channel shared between multiple clients. This is the purpose of buses. Those are created using [`Eliom_bus.create`](./eliom.server/Eliom_bus.md#val-create). Since the server will also receive data on the bus, the description of the type (using `deriving`) is needed to create a bus.
 
 Like comet channels, the behaviour of buses can be tuned using the module `Eliom_comet.Configuration`. There are additionnal configuration options available for buses to tune the client-side buffering.
-
 
 ## Another Server sending data (Comet on another server)
 

@@ -1,4 +1,3 @@
-
 # Module `Eliom_client.Page_status`
 
 ```ocaml

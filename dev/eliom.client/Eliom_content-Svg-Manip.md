@@ -1,4 +1,3 @@
-
 # Module `Svg.Manip`
 
 DOM-like manipulation functions.
