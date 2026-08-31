@@ -73,8 +73,9 @@ CSS_PREFIX            := $(LOCAL_STATIC_CSS)/${PROJECT_NAME}
 # JavaScript, ocsigenserver
 DEBUG                 := yes
 
-# Enable WASM compilation (yes/no): Requires wasm_of_ocaml (enabled by default)
-ENABLE_WASM           := yes
+# Enable WASM compilation (yes/no): requires wasm_of_ocaml. Defaults to "yes"
+# when the wasm_of_ocaml compiler is available, "no" otherwise.
+ENABLE_WASM           := $(shell command -v wasm_of_ocaml > /dev/null 2>&1 && echo yes || echo no)
 
 ##----------------------------------------------------------------------
 

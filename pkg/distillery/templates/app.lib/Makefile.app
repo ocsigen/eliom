@@ -187,14 +187,19 @@ all::
 js::
 	$(ENV_PSQL) dune build $(DUNE_OPTIONS) client/$(PROJECT_NAME).bc.js
 ifeq ($(ENABLE_WASM),yes)
+	@command -v wasm_of_ocaml > /dev/null 2>&1 || { \
+	  echo "Error: ENABLE_WASM=yes but the wasm_of_ocaml compiler is not installed."; \
+	  echo "Install it with: opam install wasm_of_ocaml-compiler"; \
+	  echo "or set ENABLE_WASM=no in Makefile.options to build JavaScript only."; \
+	  exit 1; }
 	$(ENV_PSQL) dune build $(DUNE_OPTIONS) client/$(PROJECT_NAME).bc.wasm.js
 endif
 
-byte::
+byte:: js
 	$(ENV_PSQL) dune build $(DUNE_OPTIONS) @$(PROJECT_NAME)
 	make config-files PROJECT_NAME=$(PROJECT_NAME)
 
-opt::
+opt:: js
 	$(ENV_PSQL) dune build $(DUNE_OPTIONS) $(PROJECT_NAME).cmxs @$(PROJECT_NAME)
 	make config-files PROJECT_NAME=$(PROJECT_NAME)
 
