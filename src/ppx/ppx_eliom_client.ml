@@ -88,9 +88,10 @@ module Pass = struct
   let find_fragment loc id =
     if Mli.exists ()
     then Mli.find_fragment id
-    else if Cmo.exists ()
-    then Cmo.find_fragment loc
-    else [%type: _]
+    else
+      match if Cmo.exists () then Cmo.find_fragment loc else None with
+      | Some typ -> typ
+      | None -> [%type: _]
 
   let register_client_closures client_value_datas =
     let registrations =
