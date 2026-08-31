@@ -231,6 +231,9 @@ module Svg = struct
     let string_of_numbers_semicolon () =
       [%shared Raw_wrapped_functions_svg.string_of_numbers_semicolon]
 
+    let string_of_semicolonstrings () =
+      [%shared Raw_wrapped_functions_svg.string_of_semicolonstrings]
+
     let string_of_offset () =
       ([%shared Raw_wrapped_functions_svg.string_of_offset]
         : (Svg_types.offset -> string) Eliom_shared.Value.t
@@ -252,6 +255,9 @@ module Svg = struct
 
     let string_of_transforms () =
       [%shared Raw_wrapped_functions_svg.string_of_transforms]
+
+    let unoption_string () =
+      [%shared Raw_wrapped_functions_svg.unoption_string]
   end
 
   module Xml = struct
@@ -329,6 +335,11 @@ module Html = struct
 
     let string_of_bool () = [%shared Raw_wrapped_functions.string_of_bool]
 
+    let string_of_blocking () =
+      ([%shared Raw_wrapped_functions.string_of_blocking]
+        : (Html_types.blocking_token list -> string) Eliom_shared.Value.t
+        :> ([< Html_types.blocking_token] list -> string) Eliom_shared.Value.t)
+
     let string_of_character () =
       [%shared Raw_wrapped_functions.string_of_character]
 
@@ -358,6 +369,11 @@ module Html = struct
         :> ([< Html_types.number_or_datetime] -> string) Eliom_shared.Value.t)
 
     let string_of_numbers () = [%shared Raw_wrapped_functions.string_of_numbers]
+
+    let string_of_ol_type () =
+      ([%shared Raw_wrapped_functions.string_of_ol_type]
+        : (Html_types.ol_type -> string) Eliom_shared.Value.t
+        :> ([< Html_types.ol_type] -> string) Eliom_shared.Value.t)
 
     let string_of_sandbox () =
       ([%shared Raw_wrapped_functions.string_of_sandbox]

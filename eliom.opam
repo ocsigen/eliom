@@ -31,7 +31,7 @@ depends: [
   "js_of_ocaml-ppx_deriving_json" {>= "6.3.2"}
   "js_of_ocaml-tyxml" {>= "6.3.2"}
   "logs"
-  "tyxml" {>= "4.6" & < "4.7"}
+  "tyxml" {>= "5.0" & < "6.0"}
   "ocsigenserver" {>= "7.0" & < "8.0"}
   "ipaddr" {>= "2.1"}
   "reactiveData" {>= "0.2.1"}
