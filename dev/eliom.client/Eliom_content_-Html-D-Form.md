@@ -273,23 +273,45 @@ type !'a soption =
 type !'a select_opt = 'a Eliom_form.Make(Arg).select_opt = 
   | Optgroup of [ `Accesskey
               | `Aria
+              | `Autocapitalize
+              | `Autocorrect
               | `Class
               | `Contenteditable
               | `Contextmenu
               | `Dir
               | `Disabled
               | `Draggable
+              | `Enterkeyhint
+              | `Exportparts
               | `Hidden
               | `Id
+              | `Inert
+              | `Is
+              | `Itemid
+              | `Itemprop
+              | `Itemref
+              | `Itemscope
+              | `Itemtype
               | `Lang
+              | `Nonce
               | `OnAbort
+              | `OnAuxClick
+              | `OnBeforeInput
+              | `OnBeforeMatch
+              | `OnBeforeToggle
               | `OnBlur
               | `OnCanPlay
               | `OnCanPlayThrough
+              | `OnCancel
               | `OnChange
               | `OnClick
               | `OnClose
+              | `OnContextLost
               | `OnContextMenu
+              | `OnContextRestored
+              | `OnCopy
+              | `OnCueChange
+              | `OnCut
               | `OnDblClick
               | `OnDrag
               | `OnDragEnd
@@ -305,6 +327,7 @@ type !'a select_opt = 'a Eliom_form.Make(Arg).select_opt =
               | `OnFocus
               | `OnFormChange
               | `OnFormInput
+              | `OnGotPointerCapture
               | `OnInput
               | `OnInvalid
               | `OnKeyDown
@@ -314,40 +337,59 @@ type !'a select_opt = 'a Eliom_form.Make(Arg).select_opt =
               | `OnLoadStart
               | `OnLoadedData
               | `OnLoadedMetaData
+              | `OnLostPointerCapture
               | `OnMouseDown
               | `OnMouseMove
               | `OnMouseOut
               | `OnMouseOver
               | `OnMouseUp
               | `OnMouseWheel
+              | `OnPaste
               | `OnPause
               | `OnPlay
               | `OnPlaying
+              | `OnPointerCancel
+              | `OnPointerDown
+              | `OnPointerEnter
+              | `OnPointerLeave
+              | `OnPointerMove
+              | `OnPointerOut
+              | `OnPointerOver
+              | `OnPointerUp
               | `OnProgress
               | `OnRateChange
               | `OnReadyStateChange
               | `OnScroll
+              | `OnScrollEnd
+              | `OnSecurityPolicyViolation
               | `OnSeeked
               | `OnSeeking
               | `OnSelect
               | `OnShow
+              | `OnSlotChange
               | `OnStalled
               | `OnSubmit
               | `OnSuspend
               | `OnTimeUpdate
+              | `OnToggle
               | `OnTouchCancel
               | `OnTouchEnd
               | `OnTouchMove
               | `OnTouchStart
               | `OnVolumeChange
               | `OnWaiting
+              | `OnWheel
+              | `Part
+              | `Popover
               | `Role
+              | `Slot
               | `Spellcheck
               | `Style_Attr
               | `Tabindex
               | `Title
               | `Translate
               | `User_data
+              | `Writingsuggestions
               | `XML_lang
               | `XMLns ]
                 Arg.attrib

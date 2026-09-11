@@ -74,7 +74,7 @@ A nullary element is an element that doesn't have any children.
 ```ocaml
 type ('a, 'b, 'c) unary = ?a:'a attrib list -> 'b elt wrap -> 'c elt
 ```
-A unary element is an element that have exactly one children.
+A unary element is an element that has exactly one child.
 
 ```ocaml
 type ('a, 'b, 'c) star = ?a:'a attrib list -> 'b elt list_wrap -> 'c elt
@@ -124,6 +124,19 @@ val a_height : Svg_types.Unit.length wrap -> [> `Height ] attrib
 val a_preserveAspectRatio : string wrap -> [> `PreserveAspectRatio ] attrib
 ```
 ```ocaml
+val a_crossorigin : 
+  [< `Anonymous | `Use_credentials ] wrap ->
+  [> `Crossorigin ] attrib
+```
+```ocaml
+val a_decoding : [< `Sync | `Async | `Auto ] wrap -> [> `Decoding ] attrib
+```
+```ocaml
+val a_fetchpriority : 
+  [< `High | `Low | `Auto ] wrap ->
+  [> `Fetchpriority ] attrib
+```
+```ocaml
 val a_contentScriptType : string wrap -> [> `ContentScriptType ] attrib
 ```
 deprecated Removed in SVG2
@@ -132,13 +145,14 @@ val a_contentStyleType : string wrap -> [> `ContentStyleType ] attrib
 ```
 deprecated Removed in SVG2
 ```ocaml
-val a_zoomAndPan : [< `Disable | `Magnify ] wrap -> [> `ZoomAndSpan ] attrib
+val a_zoomAndPan : [< `Disable | `Magnify ] wrap -> [> `ZoomAndPan ] attrib
+```
+deprecated Removed in SVG2
+```ocaml
+val a_href : Xml.uri wrap -> [> `Xlink_href ] attrib
 ```
 ```ocaml
-val a_href : Svg_types.iri wrap -> [> `Xlink_href ] attrib
-```
-```ocaml
-val a_xlink_href : Svg_types.iri wrap -> [> `Xlink_href ] attrib
+val a_xlink_href : Xml.uri wrap -> [> `Xlink_href ] attrib
 ```
 deprecated Use a\_href
 ```ocaml
@@ -150,7 +164,7 @@ deprecated Removed in SVG2
 ```ocaml
 val a_requiredExtensions : 
   Svg_types.spacestrings wrap ->
-  [> `RequiredExtension ] attrib
+  [> `RequiredExtensions ] attrib
 ```
 ```ocaml
 val a_systemLanguage : 
@@ -158,10 +172,11 @@ val a_systemLanguage :
   [> `SystemLanguage ] attrib
 ```
 ```ocaml
-val a_externalRessourcesRequired : 
+val a_externalResourcesRequired : 
   bool wrap ->
-  [> `ExternalRessourcesRequired ] attrib
+  [> `ExternalResourcesRequired ] attrib
 ```
+deprecated Removed in SVG2
 ```ocaml
 val a_id : string wrap -> [> `Id ] attrib
 ```
@@ -169,14 +184,30 @@ val a_id : string wrap -> [> `Id ] attrib
 val a_user_data : string -> string wrap -> [> `User_data ] attrib
 ```
 ```ocaml
-val a_xml_base : Svg_types.iri wrap -> [> `Xml_Base ] attrib
+val a_autofocus : unit -> [> `Autofocus ] attrib
+```
+Requests that the element be focused as soon as the document is loaded.
+
+```ocaml
+val a_tabindex : int wrap -> [> `Tabindex ] attrib
+```
+Position of the element in the tabbing order.
+
+see [https://www.w3.org/TR/SVG2/interact.html\#TabindexAttribute](https://www.w3.org/TR/SVG2/interact.html#TabindexAttribute) tabindex
+```ocaml
+val a_lang : string wrap -> [> `Lang ] attrib
+```
+Language of the element content. It is a global attribute in SVG 2, whereas SVG 1\.1 only allowed it on the `glyph` element.
+
+```ocaml
+val a_xml_base : Xml.uri wrap -> [> `Xml_base ] attrib
 ```
 deprecated Removed in SVG2
 ```ocaml
-val a_xml_lang : Svg_types.iri wrap -> [> `Xml_Lang ] attrib
+val a_xml_lang : string wrap -> [> `Xml_lang ] attrib
 ```
 ```ocaml
-val a_xml_space : [< `Default | `Preserve ] wrap -> [> `Xml_Space ] attrib
+val a_xml_space : [< `Default | `Preserve ] wrap -> [> `Xml_space ] attrib
 ```
 deprecated Use CSS white-space
 ```ocaml
@@ -186,15 +217,47 @@ val a_type : string wrap -> [> `Type ] attrib
 val a_media : Svg_types.commastrings wrap -> [> `Media ] attrib
 ```
 ```ocaml
-val a_xlink_title : string wrap -> [> `Title ] attrib
+val a_title : string wrap -> [> `Title ] attrib
+```
+```ocaml
+val a_xlink_title : string wrap -> [> `Xlink_title ] attrib
 ```
 deprecated Use a child title element
+```ocaml
+val a_xlink_type : string wrap -> [> `Xlink_type ] attrib
+```
+deprecated Removed in SVG2
+```ocaml
+val a_xlink_role : Xml.uri wrap -> [> `Xlink_role ] attrib
+```
+deprecated Removed in SVG2
+```ocaml
+val a_xlink_arcrole : Xml.uri wrap -> [> `Xlink_arcrole ] attrib
+```
+deprecated Removed in SVG2
 ```ocaml
 val a_class : Svg_types.spacestrings wrap -> [> `Class ] attrib
 ```
 ```ocaml
 val a_style : string wrap -> [> `Style ] attrib
 ```
+
+#### ARIA support
+
+[WAI-ARIA](https://www.w3.org/TR/wai-aria-1.1/) attributes are part of SVG 2, and provide additional semantics to improve accessibility.
+
+see [https://www.w3.org/TR/SVG2/struct.html\#implicit-aria-semantics](https://www.w3.org/TR/SVG2/struct.html#implicit-aria-semantics) Implicit ARIA semantics of SVG elements
+```ocaml
+val a_role : string list wrap -> [> `Role ] attrib
+```
+see [https://www.w3.org/TR/role-attribute](https://www.w3.org/TR/role-attribute) Role attribute specification
+see [https://www.w3.org/TR/wai-aria-1.1/\#role\_definitions](https://www.w3.org/TR/wai-aria-1.1/#role_definitions) List of WAI-ARIA roles
+```ocaml
+val a_aria : string -> string list wrap -> [> `Aria ] attrib
+```
+Basic support for WAI-ARIA attributes: `a_aria "foo"` corresponds to an "aria-foo" attribute.
+
+see [https://www.w3.org/TR/wai-aria-1.1/\#state\_prop\_def](https://www.w3.org/TR/wai-aria-1.1/#state_prop_def) List of WAI-ARIA attributes
 ```ocaml
 val a_transform : Svg_types.transforms wrap -> [> `Transform ] attrib
 ```
@@ -296,6 +359,11 @@ val a_method : [< `Align | `Stretch ] wrap -> [> `Method ] attrib
 val a_spacing : [< `Auto | `Exact ] wrap -> [> `Spacing ] attrib
 ```
 ```ocaml
+val a_side : [< `Left | `Right ] wrap -> [> `Side ] attrib
+```
+Side of the path a `textPath` is rendered on. New in SVG 2\.
+
+```ocaml
 val a_glyphRef : string wrap -> [> `GlyphRef ] attrib
 ```
 ```ocaml
@@ -332,7 +400,7 @@ val a_rendering_intent :
   | `Saturation
   | `Absolute_colorimetric ]
     wrap ->
-  [> `Rendering_Indent ] attrib
+  [> `Rendering_Intent ] attrib
 ```
 ```ocaml
 val a_gradientUnits : 
@@ -356,6 +424,11 @@ val a_fx : Svg_types.coord wrap -> [> `Fx ] attrib
 val a_fy : Svg_types.coord wrap -> [> `Fy ] attrib
 ```
 ```ocaml
+val a_fr : Svg_types.Unit.length wrap -> [> `Fr ] attrib
+```
+Radius of the focal circle of a radial gradient. New in SVG 2\.
+
+```ocaml
 val a_offset : 
   [< `Number of Svg_types.number | `Percentage of Svg_types.percentage ] wrap ->
   [> `Offset ] attrib
@@ -376,6 +449,9 @@ val a_patternTransform :
   [> `PatternTransform ] attrib
 ```
 ```ocaml
+val a_clip_path : Svg_types.iri wrap -> [> `Clip_Path ] attrib
+```
+```ocaml
 val a_clipPathUnits : 
   [< `UserSpaceOnUse | `ObjectBoundingBox ] wrap ->
   [> `ClipPathUnits ] attrib
@@ -391,6 +467,11 @@ val a_maskContentUnits :
   [> `MaskContentUnits ] attrib
 ```
 ```ocaml
+val a_filterUnits : 
+  [< `UserSpaceOnUse | `ObjectBoundingBox ] wrap ->
+  [> `FilterUnits ] attrib
+```
+```ocaml
 val a_primitiveUnits : 
   [< `UserSpaceOnUse | `ObjectBoundingBox ] wrap ->
   [> `PrimitiveUnits ] attrib
@@ -398,8 +479,9 @@ val a_primitiveUnits :
 ```ocaml
 val a_filterRes : 
   Svg_types.number_optional_number wrap ->
-  [> `FilterResUnits ] attrib
+  [> `FilterRes ] attrib
 ```
+deprecated Removed in SVG2
 ```ocaml
 val a_result : string wrap -> [> `Result ] attrib
 ```
@@ -434,6 +516,11 @@ val a_azimuth : float wrap -> [> `Azimuth ] attrib
 val a_elevation : float wrap -> [> `Elevation ] attrib
 ```
 ```ocaml
+val a_z : Svg_types.number wrap -> [> `Z ] attrib
+```
+The `z` coordinate of a light source.
+
+```ocaml
 val a_pointsAtX : float wrap -> [> `PointsAtX ] attrib
 ```
 ```ocaml
@@ -453,9 +540,27 @@ val a_limitingConeAngle : float wrap -> [> `LimitingConeAngle ] attrib
 ```
 ```ocaml
 val a_mode : 
-  [< `Normal | `Multiply | `Screen | `Darken | `Lighten ] wrap ->
+  [< `Normal
+  | `Multiply
+  | `Screen
+  | `Overlay
+  | `Darken
+  | `Lighten
+  | `Color_dodge
+  | `Color_burn
+  | `Hard_light
+  | `Soft_light
+  | `Difference
+  | `Exclusion
+  | `Hue
+  | `Saturation
+  | `Color
+  | `Luminosity ]
+    wrap ->
   [> `Mode ] attrib
 ```
+The blend mode of `feBlend`. SVG 2 allows every CSS compositing blend mode, not only the five modes of SVG 1\.1.
+
 ```ocaml
 val a_feColorMatrix_type : 
   [< `Matrix | `Saturate | `HueRotate | `LuminanceToAlpha ] wrap ->
@@ -525,10 +630,10 @@ val a_targetX : int wrap -> [> `TargetX ] attrib
 val a_targetY : int wrap -> [> `TargetY ] attrib
 ```
 ```ocaml
-val a_edgeMode : [< `Duplicate | `Wrap | `None ] wrap -> [> `TargetY ] attrib
+val a_edgeMode : [< `Duplicate | `Wrap | `None ] wrap -> [> `EdgeMode ] attrib
 ```
 ```ocaml
-val a_preserveAlpha : bool wrap -> [> `TargetY ] attrib
+val a_preserveAlpha : bool wrap -> [> `PreserveAlpha ] attrib
 ```
 ```ocaml
 val a_surfaceScale : Svg_types.number wrap -> [> `SurfaceScale ] attrib
@@ -563,7 +668,7 @@ val a_feMorphology_operator :
 val a_radius : Svg_types.number_optional_number wrap -> [> `Radius ] attrib
 ```
 ```ocaml
-val a_baseFrenquency : 
+val a_baseFrequency : 
   Svg_types.number_optional_number wrap ->
   [> `BaseFrequency ] attrib
 ```
@@ -592,8 +697,44 @@ val a_xlink_actuate :
 ```
 deprecated Removed in SVG2
 ```ocaml
-val a_target : string wrap -> [> `Xlink_target ] attrib
+val a_target : string wrap -> [> `Target ] attrib
 ```
+
+#### Link attributes
+
+These attributes apply to the `a` element, as in HTML.
+
+```ocaml
+val a_download : string option wrap -> [> `Download ] attrib
+```
+`None` downloads the resource under its default name.
+
+```ocaml
+val a_hreflang : string wrap -> [> `Hreflang ] attrib
+```
+```ocaml
+val a_ping : Xml.uri list wrap -> [> `Ping ] attrib
+```
+Space separated list of URLs to ping when the link is followed.
+
+```ocaml
+val a_referrerpolicy : 
+  [< `No_referrer
+  | `No_referrer_when_downgrade
+  | `Origin
+  | `Origin_when_cross_origin
+  | `Same_origin
+  | `Strict_origin
+  | `Strict_origin_when_cross_origin
+  | `Unsafe_url ]
+    wrap ->
+  [> `Referrerpolicy ] attrib
+```
+```ocaml
+val a_rel : Svg_types.spacestrings wrap -> [> `Rel ] attrib
+```
+Space separated list of link types describing the relationship between the current document and the linked resource.
+
 ```ocaml
 val a_viewTarget : string wrap -> [> `ViewTarget ] attrib
 ```
@@ -611,6 +752,9 @@ val a_begin : string wrap -> [> `Begin ] attrib
 ```
 ```ocaml
 val a_dur : string wrap -> [> `Dur ] attrib
+```
+```ocaml
+val a_end : string wrap -> [> `End ] attrib
 ```
 ```ocaml
 val a_min : string wrap -> [> `Min ] attrib
@@ -646,13 +790,15 @@ val a_calcMode :
   [> `CalcMode ] attrib
 ```
 ```ocaml
-val a_animation_values : Svg_types.strings wrap -> [> `Valuesanim ] attrib
+val a_animation_values : 
+  Svg_types.semicolonstrings wrap ->
+  [> `Valuesanim ] attrib
 ```
 ```ocaml
-val a_keyTimes : Svg_types.strings wrap -> [> `KeyTimes ] attrib
+val a_keyTimes : Svg_types.semicolonstrings wrap -> [> `KeyTimes ] attrib
 ```
 ```ocaml
-val a_keySplines : Svg_types.strings wrap -> [> `KeySplines ] attrib
+val a_keySplines : Svg_types.semicolonstrings wrap -> [> `KeySplines ] attrib
 ```
 ```ocaml
 val a_from : string wrap -> [> `From ] attrib
@@ -671,6 +817,9 @@ val a_accumulate : [< `None | `Sum ] wrap -> [> `Accumulate ] attrib
 ```
 ```ocaml
 val a_keyPoints : Svg_types.numbers_semicolon wrap -> [> `KeyPoints ] attrib
+```
+```ocaml
+val a_origin : string wrap -> [> `Origin ] attrib
 ```
 ```ocaml
 val a_path : string wrap -> [> `Path ] attrib
@@ -702,7 +851,7 @@ val a_vert_adv_y : Svg_types.number wrap -> [> `VertAdvY ] attrib
 val a_unicode : string wrap -> [> `Unicode ] attrib
 ```
 ```ocaml
-val a_glyph_name : string wrap -> [> `glyphname ] attrib
+val a_glyph_name : string wrap -> [> `GlyphName ] attrib
 ```
 ```ocaml
 val a_orientation : [< `H | `V ] wrap -> [> `Orientation ] attrib
@@ -710,10 +859,7 @@ val a_orientation : [< `H | `V ] wrap -> [> `Orientation ] attrib
 ```ocaml
 val a_arabic_form : 
   [< `Initial | `Medial | `Terminal | `Isolated ] wrap ->
-  [> `Arabicform ] attrib
-```
-```ocaml
-val a_lang : string wrap -> [> `Lang ] attrib
+  [> `ArabicForm ] attrib
 ```
 ```ocaml
 val a_u1 : string wrap -> [> `U1 ] attrib
@@ -755,6 +901,9 @@ val a_unicode_range : string wrap -> [> `UnicodeRange ] attrib
 val a_units_per_em : string wrap -> [> `UnitsPerEm ] attrib
 ```
 ```ocaml
+val a_panose_1 : string wrap -> [> `Panose1 ] attrib
+```
+```ocaml
 val a_stemv : Svg_types.number wrap -> [> `Stemv ] attrib
 ```
 ```ocaml
@@ -774,6 +923,9 @@ val a_accent_height : Svg_types.number wrap -> [> `AccentHeight ] attrib
 ```
 ```ocaml
 val a_ascent : Svg_types.number wrap -> [> `Ascent ] attrib
+```
+```ocaml
+val a_descent : Svg_types.number wrap -> [> `Descent ] attrib
 ```
 ```ocaml
 val a_widths : string wrap -> [> `Widths ] attrib
@@ -855,6 +1007,8 @@ val a_alignment_baseline :
   | `Alphabetic
   | `Hanging
   | `Mathematical
+  | `Text_bottom
+  | `Text_top
   | `Inherit ]
     wrap ->
   [> `Alignment_Baseline ] attrib
@@ -873,6 +1027,8 @@ val a_dominant_baseline :
   | `Middle
   | `Text_after_edge
   | `Text_before_edge
+  | `Text_bottom
+  | `Text_top
   | `Inherit ]
     wrap ->
   [> `Dominant_Baseline ] attrib
@@ -896,7 +1052,7 @@ val a_stroke_linecap :
 ```
 ```ocaml
 val a_stroke_linejoin : 
-  [< `Miter | `Round | `Bever ] wrap ->
+  [< `Miter | `Miter_clip | `Round | `Bevel | `Arcs ] wrap ->
   [> `Stroke_Linejoin ] attrib
 ```
 ```ocaml
@@ -915,6 +1071,188 @@ val a_stroke_dashoffset :
 ```ocaml
 val a_stroke_opacity : float wrap -> [> `Stroke_Opacity ] attrib
 ```
+```ocaml
+val a_baseline_shift : string wrap -> [> `Baseline_Shift ] attrib
+```
+```ocaml
+val a_clip : string wrap -> [> `Clip ] attrib
+```
+deprecated Deprecated in SVG2, use a\_clip\_path
+```ocaml
+val a_clip_rule : 
+  [< `Nonzero | `Evenodd | `Inherit ] wrap ->
+  [> `Clip_Rule ] attrib
+```
+```ocaml
+val a_color : Svg_types.color wrap -> [> `Color ] attrib
+```
+```ocaml
+val a_color_interpolation : 
+  [< `Auto | `SRGB | `LinearRGB | `Inherit ] wrap ->
+  [> `Color_Interpolation ] attrib
+```
+```ocaml
+val a_color_interpolation_filters : 
+  [< `Auto | `SRGB | `LinearRGB | `Inherit ] wrap ->
+  [> `Color_interpolation_filters ] attrib
+```
+```ocaml
+val a_color_profile : string wrap -> [> `Color_profile ] attrib
+```
+deprecated Removed in SVG2
+```ocaml
+val a_color_rendering : 
+  [< `Auto | `OptimizeSpeed | `OptimizeQuality | `Inherit ] wrap ->
+  [> `Color_rendering ] attrib
+```
+```ocaml
+val a_cursor : string wrap -> [> `Cursor ] attrib
+```
+```ocaml
+val a_direction : [< `Ltr | `Rtl | `Inherit ] wrap -> [> `Direction ] attrib
+```
+```ocaml
+val a_display : string wrap -> [> `Display ] attrib
+```
+```ocaml
+val a_enable_background : 
+  [< `Accumulate | `New | `Inherit ] wrap ->
+  [> `Enable_background ] attrib
+```
+deprecated Removed in SVG2
+```ocaml
+val a_fill_opacity : Svg_types.number wrap -> [> `Fill_opacity ] attrib
+```
+```ocaml
+val a_filter : string wrap -> [> `Filter ] attrib
+```
+```ocaml
+val a_flood_color : Svg_types.color wrap -> [> `Flood_Color ] attrib
+```
+```ocaml
+val a_flood_opacity : Svg_types.number wrap -> [> `Flood_Opacity ] attrib
+```
+```ocaml
+val a_font_size_adjust : string wrap -> [> `Font_Size_Adjust ] attrib
+```
+```ocaml
+val a_glyph_orientation_horizontal : 
+  string wrap ->
+  [> `Glyph_Orientation_Horizontal ] attrib
+```
+deprecated Removed in SVG2
+```ocaml
+val a_glyph_orientation_vertical : 
+  string wrap ->
+  [> `Glyph_Orientation_Vertical ] attrib
+```
+deprecated Removed in SVG2
+```ocaml
+val a_image_rendering : 
+  [< `Auto | `OptimizeSpeed | `OptimizeQuality | `Inherit ] wrap ->
+  [> `Image_Rendering ] attrib
+```
+```ocaml
+val a_kerning : string wrap -> [> `Kerning ] attrib
+```
+deprecated Removed in SVG2, use CSS font-kerning
+```ocaml
+val a_letter_spacing : string wrap -> [> `Letter_Spacing ] attrib
+```
+```ocaml
+val a_lighting_color : Svg_types.color wrap -> [> `Lighting_Color ] attrib
+```
+```ocaml
+val a_marker_end : Svg_types.iri wrap -> [> `Marker_End ] attrib
+```
+```ocaml
+val a_marker_mid : Svg_types.iri wrap -> [> `Marker_Mid ] attrib
+```
+```ocaml
+val a_marker_start : Svg_types.iri wrap -> [> `Marker_Start ] attrib
+```
+```ocaml
+val a_mask : Svg_types.iri wrap -> [> `Mask ] attrib
+```
+```ocaml
+val a_opacity : Svg_types.number wrap -> [> `Opacity ] attrib
+```
+```ocaml
+val a_overflow : 
+  [< `Visible | `Hidden | `Scroll | `Auto | `Inherit ] wrap ->
+  [> `Overflow ] attrib
+```
+```ocaml
+val a_pointer_events : 
+  [< `VisiblePainted
+  | `VisibleFill
+  | `VisibleStroke
+  | `Visible
+  | `Painted
+  | `Fill
+  | `Stroke
+  | `All
+  | `None
+  | `Inherit ]
+    wrap ->
+  [> `Pointer_Events ] attrib
+```
+```ocaml
+val a_shape_rendering : 
+  [< `Auto | `OptimizeSpeed | `CrispEdges | `GeometricPrecision | `Inherit ]
+    wrap ->
+  [> `Shape_Rendering ] attrib
+```
+```ocaml
+val a_unicode_bidi : 
+  [< `Normal | `Embed | `Bidi_override | `Inherit ] wrap ->
+  [> `Unicode_Bidi ] attrib
+```
+```ocaml
+val a_visibility : 
+  [< `Visible | `Hidden | `Collapse | `Inherit ] wrap ->
+  [> `Visibility ] attrib
+```
+```ocaml
+val a_word_spacing : string wrap -> [> `Word_Spacing ] attrib
+```
+```ocaml
+val a_writing_mode : 
+  [< `Horizontal_tb | `Vertical_rl | `Vertical_lr | `Inherit ] wrap ->
+  [> `Writing_Mode ] attrib
+```
+
+#### Presentation attributes new in SVG 2
+
+```ocaml
+val a_paint_order : string wrap -> [> `Paint_Order ] attrib
+```
+Order in which the fill, stroke and markers of a shape are painted.
+
+see [https://www.w3.org/TR/SVG2/painting.html\#PaintOrder](https://www.w3.org/TR/SVG2/painting.html#PaintOrder) paint-order
+```ocaml
+val a_text_overflow : [< `Clip | `Ellipsis ] wrap -> [> `Text_Overflow ] attrib
+```
+```ocaml
+val a_transform_origin : string wrap -> [> `Transform_Origin ] attrib
+```
+```ocaml
+val a_vector_effect : 
+  [< `None
+  | `Non_scaling_stroke
+  | `Non_scaling_size
+  | `Non_rotation
+  | `Fixed_position ]
+    wrap ->
+  [> `Vector_Effect ] attrib
+```
+see [https://www.w3.org/TR/SVG2/coords.html\#VectorEffects](https://www.w3.org/TR/SVG2/coords.html#VectorEffects) vector-effect
+```ocaml
+val a_white_space : 
+  [< `Normal | `Pre | `Nowrap | `Pre_wrap | `Break_spaces | `Pre_line ] wrap ->
+  [> `White_Space ] attrib
+```
+Replaces the deprecated `xml:space` attribute.
 
 ### Events
 
@@ -926,6 +1264,7 @@ val a_onabort : Xml.event_handler -> [> `OnAbort ] attrib
 ```ocaml
 val a_onactivate : Xml.event_handler -> [> `OnActivate ] attrib
 ```
+deprecated Removed in SVG2
 ```ocaml
 val a_onbegin : Xml.event_handler -> [> `OnBegin ] attrib
 ```
@@ -938,13 +1277,14 @@ val a_onerror : Xml.event_handler -> [> `OnError ] attrib
 ```ocaml
 val a_onfocusin : Xml.event_handler -> [> `OnFocusIn ] attrib
 ```
+deprecated Removed in SVG2
 ```ocaml
 val a_onfocusout : Xml.event_handler -> [> `OnFocusOut ] attrib
 ```
+deprecated Removed in SVG2
 ```ocaml
 val a_onload : Xml.event_handler -> [> `OnLoad ] attrib
 ```
-deprecated Removed in SVG2
 ```ocaml
 val a_onrepeat : Xml.event_handler -> [> `OnRepeat ] attrib
 ```
@@ -959,6 +1299,277 @@ val a_onunload : Xml.event_handler -> [> `OnUnload ] attrib
 ```
 ```ocaml
 val a_onzoom : Xml.event_handler -> [> `OnZoom ] attrib
+```
+deprecated Removed in SVG2
+
+#### Javascript document events
+
+These apply to the outermost `svg` element only.
+
+```ocaml
+val a_onafterprint : Xml.event_handler -> [> `OnAfterPrint ] attrib
+```
+```ocaml
+val a_onbeforeprint : Xml.event_handler -> [> `OnBeforePrint ] attrib
+```
+```ocaml
+val a_onbeforeunload : Xml.event_handler -> [> `OnBeforeUnload ] attrib
+```
+```ocaml
+val a_onhashchange : Xml.event_handler -> [> `OnHashChange ] attrib
+```
+```ocaml
+val a_onlanguagechange : Xml.event_handler -> [> `OnLanguageChange ] attrib
+```
+```ocaml
+val a_onmessage : Xml.event_handler -> [> `OnMessage ] attrib
+```
+```ocaml
+val a_onoffline : Xml.event_handler -> [> `OnOffLine ] attrib
+```
+```ocaml
+val a_ononline : Xml.event_handler -> [> `OnOnLine ] attrib
+```
+```ocaml
+val a_onpagehide : Xml.event_handler -> [> `OnPageHide ] attrib
+```
+```ocaml
+val a_onpageshow : Xml.event_handler -> [> `OnPageShow ] attrib
+```
+```ocaml
+val a_onpopstate : Xml.event_handler -> [> `OnPopState ] attrib
+```
+```ocaml
+val a_onreadystatechange : Xml.event_handler -> [> `OnReadyStateChange ] attrib
+```
+```ocaml
+val a_onredo : Xml.event_handler -> [> `OnRedo ] attrib
+```
+```ocaml
+val a_onrejectionhandled : Xml.event_handler -> [> `OnRejectionHandled ] attrib
+```
+```ocaml
+val a_onstorage : Xml.event_handler -> [> `OnStorage ] attrib
+```
+```ocaml
+val a_onundo : Xml.event_handler -> [> `OnUndo ] attrib
+```
+```ocaml
+val a_onunhandledrejection : 
+  Xml.event_handler ->
+  [> `OnUnhandledRejection ] attrib
+```
+
+#### Javascript global events
+
+SVG 2 reuses the event handler content attributes of HTML; these apply to every SVG element.
+
+```ocaml
+val a_onauxclick : Xml.mouse_event_handler -> [> `OnAuxClick ] attrib
+```
+```ocaml
+val a_onbeforeinput : Xml.event_handler -> [> `OnBeforeInput ] attrib
+```
+```ocaml
+val a_onbeforematch : Xml.event_handler -> [> `OnBeforeMatch ] attrib
+```
+```ocaml
+val a_onbeforetoggle : Xml.event_handler -> [> `OnBeforeToggle ] attrib
+```
+```ocaml
+val a_onblur : Xml.event_handler -> [> `OnBlur ] attrib
+```
+```ocaml
+val a_oncancel : Xml.event_handler -> [> `OnCancel ] attrib
+```
+```ocaml
+val a_oncanplay : Xml.event_handler -> [> `OnCanPlay ] attrib
+```
+```ocaml
+val a_oncanplaythrough : Xml.event_handler -> [> `OnCanPlayThrough ] attrib
+```
+```ocaml
+val a_onchange : Xml.event_handler -> [> `OnChange ] attrib
+```
+```ocaml
+val a_onclose : Xml.event_handler -> [> `OnClose ] attrib
+```
+```ocaml
+val a_oncontextlost : Xml.event_handler -> [> `OnContextLost ] attrib
+```
+```ocaml
+val a_oncontextmenu : Xml.mouse_event_handler -> [> `OnContextMenu ] attrib
+```
+```ocaml
+val a_oncontextrestored : Xml.event_handler -> [> `OnContextRestored ] attrib
+```
+```ocaml
+val a_oncopy : Xml.event_handler -> [> `OnCopy ] attrib
+```
+```ocaml
+val a_oncuechange : Xml.event_handler -> [> `OnCueChange ] attrib
+```
+```ocaml
+val a_oncut : Xml.event_handler -> [> `OnCut ] attrib
+```
+```ocaml
+val a_ondblclick : Xml.mouse_event_handler -> [> `OnDblClick ] attrib
+```
+```ocaml
+val a_ondrag : Xml.mouse_event_handler -> [> `OnDrag ] attrib
+```
+```ocaml
+val a_ondragend : Xml.mouse_event_handler -> [> `OnDragEnd ] attrib
+```
+```ocaml
+val a_ondragenter : Xml.mouse_event_handler -> [> `OnDragEnter ] attrib
+```
+```ocaml
+val a_ondragleave : Xml.mouse_event_handler -> [> `OnDragLeave ] attrib
+```
+```ocaml
+val a_ondragover : Xml.mouse_event_handler -> [> `OnDragOver ] attrib
+```
+```ocaml
+val a_ondragstart : Xml.mouse_event_handler -> [> `OnDragStart ] attrib
+```
+```ocaml
+val a_ondrop : Xml.mouse_event_handler -> [> `OnDrop ] attrib
+```
+```ocaml
+val a_ondurationchange : Xml.event_handler -> [> `OnDurationChange ] attrib
+```
+```ocaml
+val a_onemptied : Xml.event_handler -> [> `OnEmptied ] attrib
+```
+```ocaml
+val a_onended : Xml.event_handler -> [> `OnEnded ] attrib
+```
+```ocaml
+val a_onfocus : Xml.event_handler -> [> `OnFocus ] attrib
+```
+```ocaml
+val a_ongotpointercapture : 
+  Xml.mouse_event_handler ->
+  [> `OnGotPointerCapture ] attrib
+```
+```ocaml
+val a_oninput : Xml.event_handler -> [> `OnInput ] attrib
+```
+```ocaml
+val a_oninvalid : Xml.event_handler -> [> `OnInvalid ] attrib
+```
+```ocaml
+val a_onkeydown : Xml.keyboard_event_handler -> [> `OnKeyDown ] attrib
+```
+```ocaml
+val a_onkeypress : Xml.keyboard_event_handler -> [> `OnKeyPress ] attrib
+```
+```ocaml
+val a_onkeyup : Xml.keyboard_event_handler -> [> `OnKeyUp ] attrib
+```
+```ocaml
+val a_onloadeddata : Xml.event_handler -> [> `OnLoadedData ] attrib
+```
+```ocaml
+val a_onloadedmetadata : Xml.event_handler -> [> `OnLoadedMetaData ] attrib
+```
+```ocaml
+val a_onloadstart : Xml.event_handler -> [> `OnLoadStart ] attrib
+```
+```ocaml
+val a_onlostpointercapture : 
+  Xml.mouse_event_handler ->
+  [> `OnLostPointerCapture ] attrib
+```
+```ocaml
+val a_onmousewheel : Xml.event_handler -> [> `OnMouseWheel ] attrib
+```
+```ocaml
+val a_onpaste : Xml.event_handler -> [> `OnPaste ] attrib
+```
+```ocaml
+val a_onpause : Xml.event_handler -> [> `OnPause ] attrib
+```
+```ocaml
+val a_onplay : Xml.event_handler -> [> `OnPlay ] attrib
+```
+```ocaml
+val a_onplaying : Xml.event_handler -> [> `OnPlaying ] attrib
+```
+```ocaml
+val a_onpointercancel : Xml.mouse_event_handler -> [> `OnPointerCancel ] attrib
+```
+```ocaml
+val a_onpointerdown : Xml.mouse_event_handler -> [> `OnPointerDown ] attrib
+```
+```ocaml
+val a_onpointerenter : Xml.mouse_event_handler -> [> `OnPointerEnter ] attrib
+```
+```ocaml
+val a_onpointerleave : Xml.mouse_event_handler -> [> `OnPointerLeave ] attrib
+```
+```ocaml
+val a_onpointermove : Xml.mouse_event_handler -> [> `OnPointerMove ] attrib
+```
+```ocaml
+val a_onpointerout : Xml.mouse_event_handler -> [> `OnPointerOut ] attrib
+```
+```ocaml
+val a_onpointerover : Xml.mouse_event_handler -> [> `OnPointerOver ] attrib
+```
+```ocaml
+val a_onpointerup : Xml.mouse_event_handler -> [> `OnPointerUp ] attrib
+```
+```ocaml
+val a_onprogress : Xml.event_handler -> [> `OnProgress ] attrib
+```
+```ocaml
+val a_onratechange : Xml.event_handler -> [> `OnRateChange ] attrib
+```
+```ocaml
+val a_onscrollend : Xml.event_handler -> [> `OnScrollEnd ] attrib
+```
+```ocaml
+val a_onsecuritypolicyviolation : 
+  Xml.event_handler ->
+  [> `OnSecurityPolicyViolation ] attrib
+```
+```ocaml
+val a_onseeked : Xml.event_handler -> [> `OnSeeked ] attrib
+```
+```ocaml
+val a_onseeking : Xml.event_handler -> [> `OnSeeking ] attrib
+```
+```ocaml
+val a_onselect : Xml.event_handler -> [> `OnSelect ] attrib
+```
+```ocaml
+val a_onshow : Xml.event_handler -> [> `OnShow ] attrib
+```
+```ocaml
+val a_onstalled : Xml.event_handler -> [> `OnStalled ] attrib
+```
+```ocaml
+val a_onsubmit : Xml.event_handler -> [> `OnSubmit ] attrib
+```
+```ocaml
+val a_onsuspend : Xml.event_handler -> [> `OnSuspend ] attrib
+```
+```ocaml
+val a_ontimeupdate : Xml.event_handler -> [> `OnTimeUpdate ] attrib
+```
+```ocaml
+val a_ontoggle : Xml.event_handler -> [> `OnToggle ] attrib
+```
+```ocaml
+val a_onvolumechange : Xml.event_handler -> [> `OnVolumeChange ] attrib
+```
+```ocaml
+val a_onwaiting : Xml.event_handler -> [> `OnWaiting ] attrib
+```
+```ocaml
+val a_onwheel : Xml.mouse_event_handler -> [> `OnWheel ] attrib
 ```
 
 #### Javascript mouse events
@@ -1211,6 +1822,11 @@ val clipPath :
     star
 ```
 ```ocaml
+val mask : 
+  ([< Svg_types.mask_attr ], [< Svg_types.mask_content ], [> Svg_types.mask ])
+    star
+```
+```ocaml
 val filter : 
   ([< Svg_types.filter_attr ],
     [< Svg_types.filter_content ],
@@ -1316,6 +1932,13 @@ val feDisplacementMap :
     star
 ```
 ```ocaml
+val feDropShadow : 
+  ([< Svg_types.fedropshadow_attr ],
+    [< Svg_types.fedropshadow_content ],
+    [> Svg_types.fedropshadow ])
+    star
+```
+```ocaml
 val feFlood : 
   ([< Svg_types.feflood_attr ],
     [< Svg_types.feflood_content ],
@@ -1341,6 +1964,13 @@ val feMerge :
   ([< Svg_types.femerge_attr ],
     [< Svg_types.femerge_content ],
     [> Svg_types.femerge ])
+    star
+```
+```ocaml
+val feMergeNode : 
+  ([< Svg_types.femergenode_attr ],
+    [< Svg_types.femergenode_content ],
+    [> Svg_types.femergenode ])
     star
 ```
 ```ocaml
@@ -1385,6 +2015,7 @@ val cursor :
     [> Svg_types.cursor ])
     star
 ```
+deprecated Removed in SVG2
 ```ocaml
 val a : 
   ([< Svg_types.a_attr ], [< Svg_types.a_content ], [> Svg_types.a ]) star
@@ -1434,6 +2065,7 @@ val animateColor :
     [> Svg_types.animatecolor ])
     star
 ```
+deprecated Removed in SVG2
 ```ocaml
 val animateTransform : 
   ([< Svg_types.animatetransform_attr ],

@@ -40,6 +40,12 @@ val string_of_referrerpolicy :
 val string_of_numbers : (Html_types.numbers, string) Xml.W.ft
 ```
 ```ocaml
+val string_of_blocking : ([< Html_types.blocking_token ] list, string) Xml.W.ft
+```
+```ocaml
+val string_of_ol_type : ([< Html_types.ol_type ], string) Xml.W.ft
+```
+```ocaml
 val string_of_sandbox : ([< Html_types.sandbox_token ] list, string) Xml.W.ft
 ```
 ```ocaml
