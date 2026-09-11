@@ -930,10 +930,18 @@ module Make (Pass : Pass) = struct
             [])
       | Pstr_extension (({txt; _}, PStr strs), _)
         when is_annotation txt ["shared"; "client"; "server"] ->
-          let c = Context.of_string txt in
-          let l = flatmap (dispatch_str c) strs in
-          maybe_reset_injected_idents c;
-          l
+          if strs = []
+          then
+            [ Str.extension ~loc @@ Location.Error.to_extension
+              @@ Location.Error.make ~loc ~sub:[]
+                   (Printf.sprintf
+                      "Empty [%%%%%s] extension. Did you mean [%%%%%s.start] ?"
+                      txt txt) ]
+          else
+            let c = Context.of_string txt in
+            let l = flatmap (dispatch_str c) strs in
+            maybe_reset_injected_idents c;
+            l
       | Pstr_include
           { pincl_mod = {pmod_desc = Pmod_structure l; pmod_attributes = []; _}
           ; pincl_attributes = []
