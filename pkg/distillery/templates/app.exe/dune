@@ -1,128 +1,50 @@
-(dirs tools client gen assets static local)
-
-(library
- (name %%%PROJECT_NAME%%%)
- (modules
-  (:standard \ %%%MODULE_NAME%%%_main))
- (libraries eliom.server ocsipersist-sqlite ocsipersist-sqlite.settings)
- (library_flags
-  (:standard -linkall))
- (wrapped false)
- (preprocess
-  (pps
-   ;   pgocaml_ppx
-   js_of_ocaml-ppx_deriving_json
-   ;   ocsigen-i18n
-   ocsigen-ppx-rpc
-   eliom.ppx.server
-   --
-   --rpc-raw
-   ;   --prefix
-   ;   %%%MODULE_NAME%%%_
-   ;   --suffix
-   ;   _i18n
-   ;   --default-module
-   ;   %%%MODULE_NAME%%%_i18n
-   )))
-
-(executables
- (names %%%PROJECT_NAME%%%_main)
- (public_names %%%PROJECT_NAME%%%)
- (modes
-  (byte exe)
-  (native exe))
- (libraries
-  eliom.server
-  ocsipersist-sqlite
-  ocsigenserver.ext.staticmod
-  %%%PROJECT_NAME%%%)
- (modules %%%MODULE_NAME%%%_main)
- (preprocess
-  (pps
-   ;   pgocaml_ppx
-   js_of_ocaml-ppx_deriving_json
-   ;   ocsigen-i18n
-   ocsigen-ppx-rpc
-   eliom.ppx.server
-   ;   --
-   ;   --prefix
-   ;   %%%MODULE_NAME%%%_
-   ;   --suffix
-   ;   _i18n
-   ;   --default-module
-   ;   %%%MODULE_NAME%%%_i18n
-   )))
-
-;(rule
-; (target %%%PROJECT_NAME%%%_i18n.eliom)
-; (deps assets/%%%PROJECT_NAME%%%_i18n.tsv)
-; (action
-;  (with-stdout-to
-;   %{target}
-;   (with-stdin-from
-;    %{deps}
-;    (pipe-stdout
-;     (run
-;      ocsigen-i18n-generator
-;      --languages
-;      en,fr
-;      --default-language
-;      fr
-;      %{deps})
-;     (run
-;      sed
-;      "1 s/]/[@@deriving json]]\\n[%%shared [@@@ocaml.warning\"-27\"]]/"))))))
+; To run the application locally:
+;  dune build
+;  dune exec %%%PROJECT_NAME%%%
+;
+; The initial 'dune build' is needed to make sure that static files are updated.
 
 (subdir
- gen
+ local/var/www/%%%PROJECT_NAME%%%
  (rule
-  (deps ../tools/gen_dune.ml)
+  (mode promote)
   (action
-   (with-stdout-to
-    dune.client
-    (run ocaml ../tools/gen_dune.ml)))))
+   (copy %{workspace_root}/app/client/%%%PROJECT_NAME%%%.bc.js %%%PROJECT_NAME%%%.js)))
+ (rule
+  (mode promote)
+  ; Depend on assets dir as it's not build by default
+  (deps %%%PROJECT_NAME%%%.bc.wasm.assets)
+  (action
+   (copy
+    %{workspace_root}/app/client/%%%PROJECT_NAME%%%.bc.wasm.js
+    %%%PROJECT_NAME%%%.wasm.js)))
+ (rule
+  (mode promote)
+  ; Name is hardcoded into compiled wasm files
+  (targets
+   (dir %%%PROJECT_NAME%%%.bc.wasm.assets))
+  (deps %{workspace_root}/app/client/%%%PROJECT_NAME%%%.bc.wasm.assets)
+  (action
+   (run cp -r %{deps} .)))
+ (subdir
+  css
+  (rule
+   (mode promote)
+   (action
+    (copy %{workspace_root}/static/css/%%%PROJECT_NAME%%%.css %%%PROJECT_NAME%%%.css)))))
 
-(subdir
- client
- (executables
-  (names %%%PROJECT_NAME%%%)
-  (modes js byte wasm)
-  (preprocess
-   (pps
-    js_of_ocaml-ppx
-    ;    ocsigen-i18n
-    ;    --
-    ;    --prefix
-    ;    %%%MODULE_NAME%%%_
-    ;    --suffix
-    ;    _i18n
-    ;    --default-module
-    ;    %%%MODULE_NAME%%%_i18n
-    ))
-  (js_of_ocaml
-   (build_runtime_flags :standard --enable use-js-string)
-   (flags
-    :standard
-    --enable
-    with-js-error
-    --enable
-    use-js-string))
-  (wasm_of_ocaml
-   (flags :standard))
-  (libraries eliom.client))
- (dynamic_include ../gen/dune.client))
+; Install the www directory
 
-; Main rule:
-
-(rule
- (alias %%%PROJECT_NAME%%%)
- (deps
-  %%%PROJECT_NAME%%%.cma
-  %%%PROJECT_NAME%%%_main.bc
-  %%%PROJECT_NAME%%%_main.exe
-  client/%%%PROJECT_NAME%%%.bc
-  client/%%%PROJECT_NAME%%%.bc.js
-  client/%%%PROJECT_NAME%%%.bc.wasm.js
-  tools/check_modules.ml)
- (action
-  (run ocaml -I +unix -I +str tools/check_modules.ml %%%PROJECT_NAME%%%)))
+(install
+ (section share)
+ (package %%%PROJECT_NAME%%%)
+ (files
+  (app/client/%%%PROJECT_NAME%%%.bc.js as www/%%%PROJECT_NAME%%%.js)
+  (app/client/%%%PROJECT_NAME%%%.bc.wasm.js as www/%%%PROJECT_NAME%%%.wasm.js)
+  ; It seems that we can't change the wasm assets directory name
+  (glob_files_rec
+   (app/client/%%%PROJECT_NAME%%%.bc.wasm.assets/**
+    with_prefix
+    www/%%%PROJECT_NAME%%%.bc.wasm.assets))
+  (glob_files_rec
+   (static/** with_prefix www))))
