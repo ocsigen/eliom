@@ -4,3 +4,11 @@
 
 (documentation
  (package eliom))
+
+; The per-package odoc configuration must sit at the root of the installed
+; doc directory, next to odoc-pages/, for odoc_driver to find it.
+
+(install
+ (section doc)
+ (package eliom)
+ (files odoc-config.sexp))

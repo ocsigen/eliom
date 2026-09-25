@@ -11,7 +11,7 @@ request.
 
 Have look at the documentation of this module for more information.
 
-Also have a look to {!Ocsigen_cache}
+Also have a look to {!/ocsigenserver.baselib/Ocsigen_base.Cache} (from Ocsigen Server)
 for a local (client or server) cache that keeps the most recently used values.
 
 {1 Off-line applications}

@@ -298,8 +298,9 @@ timeout.
 {%wodoc:div%}
 
   This default may be overriden by each site using
-  {!val:Eliom.State.set_global_volatile_state_timeout} or
-  {!val:Eliom.State.set_default_volatile_state_timeout}.  If you want your user
+  {!val:Eliom.State.set_global_volatile_state_timeout} (or, for all
+  sites at once, [set_default_volatile_session_timeout] and
+  [set_default_volatile_data_session_timeout]).  If you want your user
   to be able to set the default in the configuration file for your
   site (between [<site>] and [</site>]), you must parse the configuration (using
   {!Eliom.Config.get_config} function).  You can also
@@ -448,7 +449,8 @@ The {!Eliom.Reference} module also defines functions to
 {2:persistent_eref Persistent references}
 
 Persistent references are Eliom references that survives after
-relaunching the server. They are implemented using the {!Ocsipersist} module for which
+relaunching the server. They are implemented using the
+{!/ocsipersist/Ocsipersist} module for which
 Ocsigenserver provides two implementations, one based on [SQLite],
 the other one based on [DBM].
 
@@ -475,7 +477,7 @@ The type stored in the reference must be annotated with
 abstract type, or one of the [Deriving_Json.Json_xxx] functors for
 parametric types).
 
-{%wodoc:div class="wip"%}
+{%wodoc:div%}
 
 Before Eliom 13, the value parameter of [~persistent] was just the
 table name (a [string]), and Eliom used OCaml's unsafe
@@ -543,4 +545,5 @@ piece of data and send it back to the server with each request.
 
 This is implemented using the usual browser cookies for sessions ---~ and
 a simulation of browser cookies by Eliom client side processes~ --- with
-the functions {!Eliom.State.set_cookie} and {!Eliom.State.get_cookie}.
+the function {!Eliom.State.set_cookie}; the cookies sent by the client
+can be read back with {!val:Eliom.Request_info.get_cookies}.

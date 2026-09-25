@@ -96,12 +96,11 @@ For example, there would be a module for new message notifications in a chat.
 
 Each client process must subscribe to each resource for which it wants
 to receive the notifications
-(each chat currently opened, in our example), using function
-{!Eliom.Notif.Make_Simple.listen}.
+(each chat currently opened, in our example), using the [listen] function
+of the module produced by {!Eliom.Notif.Make_Simple}.
 
 Then, the server can send a notification to all the clients listening
-on a resource, using function
-{!Eliom.Notif.Make_Simple.notify}.
+on a resource, using its [notify] function.
 
 More details in the API documentation of module
 {!Eliom.Notif}.

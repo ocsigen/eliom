@@ -482,7 +482,7 @@ order):
   the time, but you may also get unexpected results (if the thread is
   executed while another site is loaded).  If you use threads in the
   initialization phase of your module (for example if you need
-  information from a database), use {!val:Lwt_unix.run}
+  information from a database), use {!/lwt.unix/Lwt_main.val-run}
   to wait for the end of the thread.
 - Some services can be registered multiple times, with different
   options. This allows for example choosing between different handlers

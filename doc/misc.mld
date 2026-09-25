@@ -67,8 +67,8 @@ Here is a simple example:
 
 [items] is a list of pairs correlating the services to be linked with the
 text to be displayed: [home], [info], and [tutorial] are our three
-services (generated, for example, by {!Eliom.Registration.App.create}
-or {!Eliom.Service.create}).
+services (generated, for example, by {!Eliom.Service.create} and
+registered with an application module made with {!Eliom.Registration.App}).
 
 The argument to the optional parameter [classe] adds the class
 [menuprincipal] to the resulting menu element.

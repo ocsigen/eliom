@@ -102,7 +102,7 @@ let sendfile2 =
          Eliom.Parameter.(suffix (all_suffix "filename")))
     (fun s () -> Lwt.return @@
       "//path//" ^
-      Ocsigen_lib.Url.string_of_url_path ~encode:false s)
+      Ocsigen_base.Lib.Url.string_of_url_path ~encode:false s)
 ]}
 
 The extension {{!page-"server-services".staticparts}Staticmod} is another way to

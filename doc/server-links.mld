@@ -726,18 +726,18 @@ let suffixform = Eliom.Registration.Html.create
 
 ]}
 
-Decode the URL encoded string using [Ocsigen_lib.Url.string_of_url_path ~encode:false]
+Decode the URL encoded string using [Ocsigen_base.Lib.Url.string_of_url_path ~encode:false]
 
 {2 Uploading files}
 
 The [Eliom.Parameter.file] parameter type allows files to be sent in your
 request. The service gets something of type
- {!Ocsigen_extensions.file_info}. You can extract information
+ {!/ocsigenserver/Ocsigen.Extensions.type-file_info}. You can extract information
 using this using these functions (from  {!Eliom.Request_info}):
 
-{@ocaml[val get_tmp_filename : Ocsigen_extensions.file_info -> string
-val get_filesize : Ocsigen_extensions.file_info -> int64
-val get_original_filename : Ocsigen_extensions.file_info -> string
+{@ocaml[val get_tmp_filename : Ocsigen.Extensions.file_info -> string
+val get_filesize : Ocsigen.Extensions.file_info -> int64
+val get_original_filename : Ocsigen.Extensions.file_info -> string
 
 ]}
 
