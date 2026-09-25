@@ -73,7 +73,7 @@ jobs:
 
       - name: Cache the opam switch (deps + wodoc)
         id: switch-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: _opam
           key: opam-switch-${{ runner.os }}-ocaml5.4.0-${{ hashFiles('eliom.opam') }}-wodoc-${{ steps.wodoc.outputs.sha }}
@@ -105,6 +105,7 @@ jobs:
           opam exec -- wodoc build --config doc/wodoc
           --menu https://ocsigen.org/doc/menu.html
           --out "$PWD/_doc-site/dev" --label dev
+          --strict-refs
 
       - name: Deploy to gh-pages (replace only dev/, keep the rest)
         uses: JamesIves/github-pages-deploy-action@v4

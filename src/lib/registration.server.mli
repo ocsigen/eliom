@@ -466,7 +466,7 @@ module Streamlist : Registration_sigs.S_with_create
 (** {2 Customizing registration} *)
 
 (** The [Customize] functor allows specialization of service
-    registration functions by customizing the page type. See the {{!page-"interaction"}Eliom
+    registration functions by customizing the page type. See the {{:https://ocsigen.org/tuto/latest/interaction.html}Eliom
     tutorial} for example. *)
 module Customize
     (R : Registration_sigs.S_with_create)

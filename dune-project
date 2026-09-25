@@ -1,5 +1,7 @@
 (lang dune 3.19)
 
+(cram enable)
+
 (name eliom)
 (version 13.0~dev)
 (maintainers dev@ocsigen.org)

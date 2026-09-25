@@ -39,7 +39,7 @@ This creates a project named [<name>] from the ["app.exe"]
 template in the directory [<dir>] or [<name>] by default.
 The project name should be a valid name for an OCaml compilation unit.
 
-{2 Compilation & Running:}
+{2:compilation Compilation & Running:}
 
 Read the README file provided with the template.
 
