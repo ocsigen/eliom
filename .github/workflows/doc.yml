@@ -26,9 +26,12 @@ on:
         required: false
         default: ""
 
+# Serialise gh-pages writes: a push (rebuilds dev/) and a release
+# workflow_dispatch (freezes <version>/ and repoints latest) must never push to
+# gh-pages at the same time, or the second push fails non-fast-forward.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: doc-deploy-${{ github.workflow }}
+  cancel-in-progress: false
 
 jobs:
   build-deploy:
@@ -79,6 +82,14 @@ jobs:
         # Cache miss only: build the dependency tree and wodoc once, then re-cache.
         if: steps.switch-cache.outputs.cache-hit != 'true'
         run: |
+          # Ocsigen Server 8 and ocsipersist 3.1 are released on GitHub but
+          # not yet published on opam (ocaml/opam-repository#30806): pin the
+          # release tags until then. ocsipersist needs explicit versions, as
+          # opam infers a pinned package's version from opam-repository when
+          # the project declares none.
+          opam pin -yn git+https://github.com/ocsigen/ocsigenserver#8.0.0
+          opam pin -yn ocsipersist-lib.3.1.0 git+https://github.com/ocsigen/ocsipersist#3.1.0
+          opam pin -yn ocsipersist.3.1.0 git+https://github.com/ocsigen/ocsipersist#3.1.0
           opam install . --deps-only --with-doc
           # wodoc themes the pages. Its opam pin-depends pulls odoc / odoc-driver
           # from the balat/odoc fork (the cross-library link fix, not yet upstream),
@@ -118,6 +129,10 @@ jobs:
     # No rebuild — the docs of a release are exactly the dev docs at that point.
     if: github.repository == 'ocsigen/eliom' && github.event_name == 'workflow_dispatch' && github.event.inputs.version != ''
     runs-on: ubuntu-latest
+    # Pass the user-supplied version through the environment; never interpolate
+    # it directly into a run: shell (avoids command injection from the input).
+    env:
+      VERSION: ${{ github.event.inputs.version }}
     permissions:
       contents: write
     steps:
@@ -143,7 +158,7 @@ jobs:
         # write the root index.html redirect if missing, refresh versions.json.
         run: >-
           opam exec -- wodoc release --site site --from dev
-          --version "${{ github.event.inputs.version }}"
+          --version "$VERSION"
 
       - name: Commit and push gh-pages
         run: |
@@ -152,5 +167,5 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
           git diff --cached --quiet \
-            || git commit -m "Release doc ${{ github.event.inputs.version }} (freeze dev, repoint latest)"
+            || git commit -m "Release doc $VERSION (freeze dev, repoint latest)"
           git push

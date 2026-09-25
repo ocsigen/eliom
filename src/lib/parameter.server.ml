@@ -1,0 +1,123 @@
+(* Ocsigen
+ * http://www.ocsigen.org
+ * Copyright (C) 2007 Vincent Balat
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, with linking exception;
+ * either version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *)
+
+open Lib
+include Parameter_base
+
+type raw_post_data = Request_info.raw_post_data
+
+open Ocsigen.Extensions
+
+(* server-specific constructors *)
+
+let user_type
+      ?client_to_and_of
+      ~(of_string : string -> 'a)
+      ~(to_string : 'a -> string)
+      (n : string)
+  =
+  TUserType
+    (n, Common.To_and_of_shared.create ?client_to_and_of {of_string; to_string})
+
+let all_suffix_user
+      ?client_to_and_of
+      ~(of_string : string -> 'a)
+      ~(to_string : 'a -> string)
+      (n : string)
+  =
+  TESuffixu
+    (n, Common.To_and_of_shared.create ?client_to_and_of {of_string; to_string})
+
+(* types available only on server side (no pcre on browser) *)
+
+let regexp reg dest ~to_string n =
+  user_type
+    ~of_string:(fun s ->
+      match Re.Pcre.exec ~rex:reg ~pos:0 s with
+      | g when Re.Group.start g 0 = 0 -> (
+        try
+          Ocsigen.Extensions.replace_user_dir reg
+            (Ocsigen.Extensions.parse_user_dir dest)
+            s
+        with Ocsigen.Extensions.NoSuchUser ->
+          raise (Failure "User does not exist"))
+      | _ | (exception Not_found) -> raise (Failure "Regexp not matching"))
+    ~to_string n
+
+let all_suffix_regexp reg dest ~(to_string : 'a -> string) (n : string) :
+  (string, [`Endsuffix], [`One of string] param_name) params_type
+  =
+  all_suffix_user
+    ~of_string:(fun s ->
+      match Re.Pcre.exec ~rex:reg ~pos:0 s with
+      | g when Re.Group.start g 0 = 0 -> (
+        try
+          Ocsigen.Extensions.replace_user_dir reg
+            (Ocsigen.Extensions.parse_user_dir dest)
+            s
+        with Ocsigen.Extensions.NoSuchUser ->
+          raise (Failure "User does not exist"))
+      | _ | (exception Not_found) -> raise (Failure "Regexp not matching"))
+    ~to_string n
+
+(* Non localized parameters *)
+
+let get_non_localized_parameters
+      params
+      files
+      ~getorpost
+      ~sp
+      {name; get; post; param = paramtype; _}
+  =
+  (* non localized parameters are parsed only once,
+     and cached in request_cache *)
+  let key = match getorpost with `Get -> get | `Post -> post in
+  try
+    (* first, look in cache: *)
+    Polytables.get
+      ~table:(Ocsigen.Request.request_cache sp.Common.sp_request.request_info)
+      ~key
+  with Not_found ->
+    let p =
+      try
+        Some
+          (let params =
+             try String.Table.find name params with Not_found -> []
+           in
+           let files =
+             try String.Table.find name files with Not_found -> []
+           in
+           reconstruct_params_ paramtype params files false None)
+      with Common.Eliom_Wrong_parameter | Not_found -> None
+    in
+    (* add in cache: *)
+    Polytables.set
+      ~table:(Ocsigen.Request.request_cache sp.Common.sp_request.request_info)
+      ~key ~value:p;
+    p
+
+let get_non_localized_get_parameters p =
+  let sp = Common.get_sp () in
+  get_non_localized_parameters sp.Common.sp_si.Common.si_nl_get_params
+    sp.Common.sp_si.Common.si_nl_file_params ~getorpost:`Get ~sp p
+
+let get_non_localized_post_parameters p =
+  let sp = Common.get_sp () in
+  get_non_localized_parameters sp.Common.sp_si.Common.si_nl_post_params
+    sp.Common.sp_si.Common.si_nl_file_params ~getorpost:`Post ~sp p

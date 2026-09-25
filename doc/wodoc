@@ -12,9 +12,9 @@
 ;; ocaml.org to relative links by (hosted ...); other deps stay on ocaml.org.
 (project eliom)
 (title Eliom)
-(url-prefix /eliom)
-(css /css/style.css /css/ocsigen-odoc.css)  ; shared Ocsigen theme (wodoc css default changed)
-(landing overview.html)
+(pub /eliom)
+(odoc-driver eliom)        ; build the API with `odoc_driver eliom --remap`
+(landing index.html)
 
 ;; The shared manual nav (the manual .mld are built with the package by
 ;; odoc_driver; this only orders them into the left column). Only `dev` is ever
@@ -22,6 +22,7 @@
 ;; versions keep the nav they were frozen with.
 (nav
  (section "Eliom's Reference manual"
+  (link "Overview" index.html index)
   (link "Introduction" intro.html intro)
   (group "Server-side programming"
    (group "Services"
@@ -47,8 +48,8 @@
    (link "Scalability" scalability.html scalability))))
 
 (client-server
-  (server (lib eliom.server) (indexdoc doc/server.indexdoc) (heading "Server API"))
-  (client (lib eliom.client) (indexdoc doc/client.indexdoc) (heading "Client API")))
+  (server (lib eliom.server) (indexdoc doc/server.indexdoc) (heading "Server API") (wrapper Eliom))
+  (client (lib eliom.client) (indexdoc doc/client.indexdoc) (heading "Client API") (wrapper Eliom)))
 
 ;; Sibling Ocsigen projects whose ocaml.org xrefs are rewritten to relative
 ;; links into their wodoc docs:  (pkg deploy-dir layout wrapper-module)

@@ -56,7 +56,8 @@ and can communicate with the server. The entire application is written
 in OCaml, as a single program, with special syntax to distinguish
 between server-side and client-side code.  Client-side code is
 compiled to JavaScript, using the Js~_of~_ocaml compiler, to be
-executed by the browser.
+executed by the browser. It can also be compiled to WebAssembly using
+wasm~_of~_ocaml, with automatic browser detection and fallback.
 
 It is possible to refer on the client side to values defined in
 server-side code. Communication between the server and the client is

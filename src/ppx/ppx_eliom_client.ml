@@ -11,19 +11,22 @@ module Pass = struct
   (** {2 Auxiliaries} *)
 
   (* Replace every escaped identifier [v] with
-     [Eliom_client_core.Syntax_helpers.get_escaped_value v] *)
+     [Client_core.Syntax_helpers.get_escaped_value v] *)
   let map_get_escaped_values expr =
-    (object
-       inherit Ppxlib.Ast_traverse.map as super
+    object
+      inherit Ppxlib.Ast_traverse.map as super
 
-       method! expression e =
-         match e.pexp_desc with
-         | Pexp_ident {txt; _}
-           when Mli.is_escaped_ident @@ Longident.last_exn txt ->
-             let loc = e.pexp_loc in
-             [%expr Eliom_client_core.Syntax_helpers.get_escaped_value [%e e]]
-         | _ -> super#expression e
-    end)
+      method! expression e =
+        match e.pexp_desc with
+        | Pexp_ident {txt; _}
+          when Mli.is_escaped_ident @@ Longident.last_exn txt ->
+            let loc = e.pexp_loc in
+            [%expr
+              [%e
+                eliom_expr ~loc "Client_core.Syntax_helpers.get_escaped_value"]
+                [%e e]]
+        | _ -> super#expression e
+    end
       #expression
       expr
 
@@ -100,7 +103,9 @@ module Pass = struct
            let args = List.map Pat.var args in
            let loc = expr.pexp_loc in
            [%expr
-             Eliom_client_core.Syntax_helpers.register_client_closure
+             [%e
+               eliom_expr ~loc
+                 "Client_core.Syntax_helpers.register_client_closure"]
                [%e str num] (fun [%p pat_args args] : [%t typ] ->
                [%e map_get_escaped_values expr])])
         client_value_datas
@@ -135,7 +140,7 @@ module Pass = struct
   let close_server_section loc =
     [%stri
     let () =
-      Eliom_client_core.Syntax_helpers.close_server_section
+      [%e eliom_expr ~loc "Client_core.Syntax_helpers.close_server_section"]
         [%e eid @@ id_file_hash loc]]
 
   let may_close_server_section ~no_fragment item =
@@ -144,7 +149,7 @@ module Pass = struct
   let open_client_section loc =
     [%stri
     let () =
-      Eliom_client_core.Syntax_helpers.open_client_section
+      [%e eliom_expr ~loc "Client_core.Syntax_helpers.open_client_section"]
         [%e eid @@ id_file_hash loc]]
 
   let may_open_client_section loc =
@@ -203,21 +208,21 @@ module Pass = struct
         Exp.let_ ~loc Nonrecursive bindings [%expr [%e frag_eid] [%e args]]
 
   let check_no_variable =
-    (object
-       inherit Ppxlib.Ast_traverse.map as super
+    object
+      inherit Ppxlib.Ast_traverse.map as super
 
-       method! core_type typ =
-         match typ with
-         | {ptyp_desc = Ptyp_var _; ptyp_loc = loc; _} ->
-             let attr =
-               attribute_of_warning loc
-                 "The type of this injected value contains a type variable that could be wrongly inferred."
-             in
-             { typ with
-               ptyp_attributes = attr :: typ.ptyp_attributes
-             ; ptyp_loc = loc }
-         | _ -> super#core_type typ
-    end)
+      method! core_type typ =
+        match typ with
+        | {ptyp_desc = Ptyp_var _; ptyp_loc = loc; _} ->
+            let attr =
+              attribute_of_warning loc
+                "The type of this injected value contains a type variable that could be wrongly inferred."
+            in
+            { typ with
+              ptyp_attributes = attr :: typ.ptyp_attributes
+            ; ptyp_loc = loc }
+        | _ -> super#core_type typ
+    end
       #core_type
 
   let escape_inject
@@ -254,8 +259,8 @@ module Pass = struct
         let u, d = Mli.get_injected_ident_info id.txt in
         let es = str ~loc:id.loc (Printf.sprintf "%s%d" u d) in
         [%expr
-          (Eliom_client_core.Syntax_helpers.get_injection ?ident:[%e ident]
-             ~pos:[%e position loc] [%e es]
+          ([%e eliom_expr ~loc "Client_core.Syntax_helpers.get_injection"]
+             ?ident:[%e ident] ~pos:[%e position loc] [%e es]
            : [%t typ])]
 
   let shared_sig item = [item]

@@ -33,7 +33,7 @@ let fd ~pid =
     `Ok a
   with e -> `Error (Printexc.to_string e)
 
-let ppf fmt = Printf.ksprintf Eliom_content.Html.D.txt fmt
+let ppf fmt = Printf.ksprintf Eliom.Content.Html.D.txt fmt
 
 let format_duration t =
   let open Unix in
@@ -47,14 +47,14 @@ let format_duration t =
   let sec = string_of_int tm.tm_sec ^ " seconds" in
   year ^ days ^ hour ^ min ^ sec
 
-open Eliom_content.Html.F
+open Eliom.Content.Html.F
 
 let general_stats () =
   let pid = pid () in
   div
     [ dl
         [ dt [ppf "Version of Ocsigen"]
-        ; dd [ppf "%s" Ocsigen_config.version_number]
+        ; dd [ppf "%s" Ocsigen.Config.version_number]
         ; dt [ppf "Uptime"]
         ; dd [ppf "%s" (format_duration (uptime ()))]
         ; dt [ppf "PID"]
@@ -78,12 +78,12 @@ let gc_stats () =
                 stat.Gc.top_heap_words ] ] ]
 
 let http_stats () =
-  let hosts = Ocsigen_extensions.get_hosts () in
+  let hosts = Ocsigen.Extensions.get_hosts () in
   div
     [ ul
         [ li
             [ ppf "%d open connection"
-                (Ocsigen_extensions.get_number_of_connected ()) ] ]
+                (Ocsigen.Extensions.get_number_of_connected ()) ] ]
     ; h3 [txt "Hosts"]
     ; ul
         (List.map
@@ -99,18 +99,18 @@ let http_stats () =
                         in
                         Printf.sprintf
                           "%s%s ( default: %s,  http: %d, https: %d )" vhost
-                          optport config.Ocsigen_extensions.default_hostname
-                          config.Ocsigen_extensions.default_httpport
-                          config.Ocsigen_extensions.default_httpsport)
+                          optport config.Ocsigen.Extensions.default_hostname
+                          config.Ocsigen.Extensions.default_httpport
+                          config.Ocsigen.Extensions.default_httpsport)
                      vhosts)
               in
               li [txt (all_vhost : string)])
            hosts) ]
 
 let eliom_stats () =
-  let* persist_nb_of_groups = Eliommod_sessiongroups.Pers.nb_of_groups () in
+  let* persist_nb_of_groups = Eliom.Mod_sessiongroups.Pers.nb_of_groups () in
   let* number_of_persistent_data_cookies =
-    Eliom_state.number_of_persistent_data_cookies ()
+    Eliom.State.number_of_persistent_data_cookies ()
   in
   Lwt.return
     (div
@@ -118,34 +118,34 @@ let eliom_stats () =
        ; ul
            [ li
                [ ppf "%d service cookies."
-                   (Eliom_state.number_of_service_cookies ()) ]
+                   (Eliom.State.number_of_service_cookies ()) ]
            ; li
                [ ppf "%d volatile data cookies."
-                   (Eliom_state.number_of_volatile_data_cookies ()) ]
+                   (Eliom.State.number_of_volatile_data_cookies ()) ]
            ; li
                [ ppf "%d volatile data tables (volatile Eliom references)."
-                   (Eliom_state.number_of_tables ()) ]
+                   (Eliom.State.number_of_tables ()) ]
            ; li
                [ ppf "%d persistent data cookies."
                    number_of_persistent_data_cookies ]
            ; li
                [ ppf "%d persistent data tables (persistent data reference)."
-                   (Eliom_state.number_of_persistent_tables ()) ] ]
+                   (Eliom.State.number_of_persistent_tables ()) ] ]
        ; h3 [ppf "Client processes"]
        ; p [em [txt "Not implemented yet"]]
        ; h3 [ppf "Session groups"]
        ; ul
            [ li
                [ ppf "%d service session groups."
-                   (Eliommod_sessiongroups.Serv.nb_of_groups ()) ]
+                   (Eliom.Mod_sessiongroups.Serv.nb_of_groups ()) ]
            ; li
                [ ppf "%d volatile data session groups."
-                   (Eliommod_sessiongroups.Data.nb_of_groups ()) ]
+                   (Eliom.Mod_sessiongroups.Data.nb_of_groups ()) ]
            ; li [ppf "%d persistent data session groups." persist_nb_of_groups]
            ; li
                [ ppf "Session groups: %s"
                    (String.concat ", "
-                      (Eliom_state.Ext.get_session_group_list ())) ] ] ])
+                      (Eliom.State.Ext.get_session_group_list ())) ] ] ])
 
 let content_div () =
   let* eliom_stats = eliom_stats () in

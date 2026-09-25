@@ -1,3 +1,5 @@
+(include_subdirs no)
+
 (library
  (name monitor)
  (public_name eliom.server.monitor)

@@ -43,6 +43,7 @@
 (executable
  (name ppx_eliom_server_ex)
  (public_name ppx_eliom_server)
+ (package eliom)
  (libraries ppx_server)
  (preprocess
   (pps ppxlib.metaquot))
@@ -51,6 +52,7 @@
 (executable
  (name ppx_eliom_client_ex)
  (public_name ppx_eliom_client)
+ (package eliom)
  (libraries ppx_client)
  (preprocess
   (pps ppxlib.metaquot))
@@ -59,6 +61,7 @@
 (executable
  (name ppx_eliom_types_ex)
  (public_name ppx_eliom_types)
+ (package eliom)
  (libraries ppx_type)
  (preprocess
   (pps ppxlib.metaquot))

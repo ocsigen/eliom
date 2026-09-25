@@ -43,6 +43,19 @@ The project name should be a valid name for an OCaml compilation unit.
 
 Read the README file provided with the template.
 
+{3 WebAssembly compilation}
+
+To enable WebAssembly compilation for your application, set [ENABLE_WASM=yes]
+in the [Makefile.options] file. This will compile both JavaScript and WASM
+versions of your client code:
+
+{@shell[
+ENABLE_WASM := yes
+]}
+
+When enabled, use [make js] to build both versions, and the server will
+automatically detect browser capabilities and serve the appropriate version.
+
 {2 Using other templates}
 
 If you want to start from a more complete or more specific template,

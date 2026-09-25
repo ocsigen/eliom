@@ -1,122 +1,220 @@
-(rule (copy# ../eliom.server.ml eliom.ml))
-(rule (copy# ../eliom.server.mli eliom.mli))
-(rule (copy# ../eliom_bus.server.ml eliom_bus.ml))
-(rule (copy# ../eliom_bus.server.mli eliom_bus.mli))
-(rule (copy# ../eliom_client.server.ml eliom_client.ml))
-(rule (copy# ../eliom_client.server.mli eliom_client.mli))
-(rule (copy# ../eliom_client_base.shared.ml eliom_client_base.ml))
-(rule (target eliom_client_main.ml) (deps ../eliom_client_main.eliom)
+(subdir Eliom
+ (rule (copy# ../../app.server.ml app.ml)))
+(subdir Eliom
+ (rule (copy# ../../app.server.mli app.mli)))
+(subdir Eliom
+ (rule (copy# ../../bus.server.ml bus.ml)))
+(subdir Eliom
+ (rule (copy# ../../bus.server.mli bus.mli)))
+(subdir Eliom
+ (rule (copy# ../../client.server.ml client.ml)))
+(subdir Eliom
+ (rule (copy# ../../client.server.mli client.mli)))
+(subdir Eliom
+ (rule (copy# ../../client_base.shared.ml client_base.ml)))
+(subdir Eliom
+ (rule (target client_main.ml) (deps ../../client_main.eliom)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_server --as-pp --impl %{deps})))))
-(rule (copy# ../eliom_client_value.server.ml eliom_client_value.ml))
-(rule (copy# ../eliom_client_value.server.mli eliom_client_value.mli))
-(rule (copy# ../eliom_comet.server.ml eliom_comet.ml))
-(rule (copy# ../eliom_comet.server.mli eliom_comet.mli))
-(rule (copy# ../eliom_comet_base.shared.ml eliom_comet_base.ml))
-(rule (copy# ../eliom_comet_base.shared.mli eliom_comet_base.mli))
-(rule (copy# ../eliom_common.server.ml eliom_common.ml))
-(rule (copy# ../eliom_common.server.mli eliom_common.mli))
-(rule (copy# ../eliom_common_base.shared.ml eliom_common_base.ml))
-(rule (copy# ../eliom_config.server.ml eliom_config.ml))
-(rule (copy# ../eliom_config.server.mli eliom_config.mli))
-(rule (target eliom_content.ml) (deps ../eliom_content.eliom)
+      (chdir ../.. (run ppx_eliom_server --as-pp -internal --impl client_main.eliom))))))
+(subdir Eliom
+ (rule (copy# ../../client_value.server.ml client_value.ml)))
+(subdir Eliom
+ (rule (copy# ../../client_value.server.mli client_value.mli)))
+(subdir Eliom
+ (rule (copy# ../../comet.server.ml comet.ml)))
+(subdir Eliom
+ (rule (copy# ../../comet.server.mli comet.mli)))
+(subdir Eliom
+ (rule (copy# ../../comet_base.shared.ml comet_base.ml)))
+(subdir Eliom
+ (rule (copy# ../../comet_base.shared.mli comet_base.mli)))
+(subdir Eliom
+ (rule (copy# ../../common.server.ml common.ml)))
+(subdir Eliom
+ (rule (copy# ../../common.server.mli common.mli)))
+(subdir Eliom
+ (rule (copy# ../../common_base.shared.ml common_base.ml)))
+(subdir Eliom
+ (rule (copy# ../../config.server.ml config.ml)))
+(subdir Eliom
+ (rule (copy# ../../config.server.mli config.mli)))
+(subdir Eliom
+ (rule (target content.ml) (deps ../../content.eliom)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_server --as-pp --impl %{deps})))))
-(rule (copy# ../eliom_content.server.mli eliom_content.mli))
-(rule (copy# ../eliom_content_.server.ml eliom_content_.ml))
-(rule (copy# ../eliom_content_core.server.ml eliom_content_core.ml))
-(rule (copy# ../eliom_content_core.server.mli eliom_content_core.mli))
-(rule (copy# ../eliom_content_sigs.shared.mli eliom_content_sigs.mli))
-(rule (copy# ../eliom_cookies_base.shared.ml eliom_cookies_base.ml))
-(rule (target eliom_cscache.ml) (deps ../eliom_cscache.eliom)
+      (chdir ../.. (run ppx_eliom_server --as-pp -internal --impl content.eliom))))))
+(subdir Eliom
+ (rule (copy# ../../content.server.mli content.mli)))
+(subdir Eliom
+ (rule (copy# ../../content_core.server.ml content_core.ml)))
+(subdir Eliom
+ (rule (copy# ../../content_core.server.mli content_core.mli)))
+(subdir Eliom
+ (rule (copy# ../../content_functor.server.ml content_functor.ml)))
+(subdir Eliom
+ (rule (copy# ../../content_sigs.shared.mli content_sigs.mli)))
+(subdir Eliom
+ (rule (copy# ../../content_sigs.shared.mli content_sigs.ml)))
+(subdir Eliom
+ (rule (copy# ../../cookies_base.shared.ml cookies_base.ml)))
+(subdir Eliom
+ (rule (target cscache.ml) (deps ../../cscache.eliom)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_server --as-pp --impl %{deps})))))
-(rule (target eliom_cscache.mli) (deps ../eliom_cscache.eliomi)
+      (chdir ../.. (run ppx_eliom_server --as-pp -internal --impl cscache.eliom))))))
+(subdir Eliom
+ (rule (target cscache.mli) (deps ../../cscache.eliomi)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_server --as-pp --intf %{deps})))))
-(rule (copy# ../eliom_error_pages.server.ml eliom_error_pages.ml))
-(rule (copy# ../eliom_extension.server.ml eliom_extension.ml))
-(rule (copy# ../eliom_extension.server.mli eliom_extension.mli))
-(rule (target eliom_form.ml) (deps ../eliom_form.eliom)
+      (chdir ../.. (run ppx_eliom_server --as-pp -internal --intf cscache.eliomi))))))
+(subdir Eliom
+ (rule (target eliom_form.ml) (deps ../../eliom_form.eliom)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_server --as-pp --impl %{deps})))))
-(rule (target eliom_form.mli) (deps ../eliom_form.eliomi)
+      (chdir ../.. (run ppx_eliom_server --as-pp -internal --impl eliom_form.eliom))))))
+(subdir Eliom
+ (rule (target eliom_form.mli) (deps ../../eliom_form.eliomi)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_server --as-pp --intf %{deps})))))
-(rule (copy# ../eliom_form_sigs.shared.mli eliom_form_sigs.mli))
-(rule (copy# ../eliom_lazy.server.ml eliom_lazy.ml))
-(rule (copy# ../eliom_lazy.server.mli eliom_lazy.mli))
-(rule (copy# ../eliom_lib.server.ml eliom_lib.ml))
-(rule (copy# ../eliom_lib.server.mli eliom_lib.mli))
-(rule (copy# ../eliom_lib_base.shared.ml eliom_lib_base.ml))
-(rule (copy# ../eliom_lib_base.shared.mli eliom_lib_base.mli))
-(rule (copy# ../eliom_mkreg.server.ml eliom_mkreg.ml))
-(rule (copy# ../eliom_mkreg.server.mli eliom_mkreg.mli))
-(rule (copy# ../eliom_notif.server.ml eliom_notif.ml))
-(rule (copy# ../eliom_notif.server.mli eliom_notif.mli))
-(rule (copy# ../eliom_parameter.server.ml eliom_parameter.ml))
-(rule (copy# ../eliom_parameter.server.mli eliom_parameter.mli))
-(rule (copy# ../eliom_parameter_base.shared.ml eliom_parameter_base.ml))
-(rule (copy# ../eliom_parameter_sigs.shared.mli eliom_parameter_sigs.mli))
-(rule (copy# ../eliom_process.server.ml eliom_process.ml))
-(rule (copy# ../eliom_react.server.ml eliom_react.ml))
-(rule (copy# ../eliom_react.server.mli eliom_react.mli))
-(rule (copy# ../eliom_reference.server.ml eliom_reference.ml))
-(rule (copy# ../eliom_reference.server.mli eliom_reference.mli))
-(rule (copy# ../eliom_registration.server.ml eliom_registration.ml))
-(rule (copy# ../eliom_registration.server.mli eliom_registration.mli))
-(rule (copy# ../eliom_registration_sigs.shared.mli eliom_registration_sigs.mli))
-(rule (copy# ../eliom_request_info.server.ml eliom_request_info.ml))
-(rule (copy# ../eliom_request_info.server.mli eliom_request_info.mli))
-(rule (copy# ../eliom_route.server.ml eliom_route.ml))
-(rule (copy# ../eliom_route.server.mli eliom_route.mli))
-(rule (copy# ../eliom_route_base.shared.ml eliom_route_base.ml))
-(rule (copy# ../eliom_runtime.shared.ml eliom_runtime.ml))
-(rule (copy# ../eliom_runtime.shared.mli eliom_runtime.mli))
-(rule (copy# ../eliom_service.server.ml eliom_service.ml))
-(rule (copy# ../eliom_service.server.mli eliom_service.mli))
-(rule (target eliom_service_base.ml) (deps ../eliom_service_base.eliom)
+      (chdir ../.. (run ppx_eliom_server --as-pp -internal --intf eliom_form.eliomi))))))
+(subdir Eliom
+ (rule (copy# ../../eliom_lazy.server.ml eliom_lazy.ml)))
+(subdir Eliom
+ (rule (copy# ../../eliom_lazy.server.mli eliom_lazy.mli)))
+(subdir Eliom
+ (rule (copy# ../../eliom_react.server.ml eliom_react.ml)))
+(subdir Eliom
+ (rule (copy# ../../eliom_react.server.mli eliom_react.mli)))
+(subdir Eliom
+ (rule (copy# ../../eliom_uri.shared.ml eliom_uri.ml)))
+(subdir Eliom
+ (rule (copy# ../../eliom_uri.shared.mli eliom_uri.mli)))
+(subdir Eliom
+ (rule (copy# ../../error_pages.server.ml error_pages.ml)))
+(subdir Eliom
+ (rule (copy# ../../extension.server.ml extension.ml)))
+(subdir Eliom
+ (rule (copy# ../../extension.server.mli extension.mli)))
+(subdir Eliom
+ (rule (copy# ../../form_sigs.shared.mli form_sigs.mli)))
+(subdir Eliom
+ (rule (copy# ../../form_sigs.shared.mli form_sigs.ml)))
+(subdir Eliom
+ (rule (copy# ../../lib.server.ml lib.ml)))
+(subdir Eliom
+ (rule (copy# ../../lib.server.mli lib.mli)))
+(subdir Eliom
+ (rule (copy# ../../lib_base.shared.ml lib_base.ml)))
+(subdir Eliom
+ (rule (copy# ../../lib_base.shared.mli lib_base.mli)))
+(subdir Eliom
+ (rule (copy# ../../mkreg.server.ml mkreg.ml)))
+(subdir Eliom
+ (rule (copy# ../../mkreg.server.mli mkreg.mli)))
+(subdir Eliom
+ (rule (copy# ../../notif.server.ml notif.ml)))
+(subdir Eliom
+ (rule (copy# ../../notif.server.mli notif.mli)))
+(subdir Eliom
+ (rule (copy# ../../parameter.server.ml parameter.ml)))
+(subdir Eliom
+ (rule (copy# ../../parameter.server.mli parameter.mli)))
+(subdir Eliom
+ (rule (copy# ../../parameter_base.shared.ml parameter_base.ml)))
+(subdir Eliom
+ (rule (copy# ../../parameter_sigs.shared.mli parameter_sigs.mli)))
+(subdir Eliom
+ (rule (copy# ../../parameter_sigs.shared.mli parameter_sigs.ml)))
+(subdir Eliom
+ (rule (copy# ../../process.server.ml process.ml)))
+(subdir Eliom
+ (rule (copy# ../../reference.server.ml reference.ml)))
+(subdir Eliom
+ (rule (copy# ../../reference.server.mli reference.mli)))
+(subdir Eliom
+ (rule (copy# ../../registration.server.ml registration.ml)))
+(subdir Eliom
+ (rule (copy# ../../registration.server.mli registration.mli)))
+(subdir Eliom
+ (rule (copy# ../../registration_sigs.shared.mli registration_sigs.mli)))
+(subdir Eliom
+ (rule (copy# ../../registration_sigs.shared.mli registration_sigs.ml)))
+(subdir Eliom
+ (rule (copy# ../../request_info.server.ml request_info.ml)))
+(subdir Eliom
+ (rule (copy# ../../request_info.server.mli request_info.mli)))
+(subdir Eliom
+ (rule (copy# ../../route.server.ml route.ml)))
+(subdir Eliom
+ (rule (copy# ../../route.server.mli route.mli)))
+(subdir Eliom
+ (rule (copy# ../../route_base.shared.ml route_base.ml)))
+(subdir Eliom
+ (rule (copy# ../../runtime.shared.ml runtime.ml)))
+(subdir Eliom
+ (rule (copy# ../../runtime.shared.mli runtime.mli)))
+(subdir Eliom
+ (rule (copy# ../../service.server.ml service.ml)))
+(subdir Eliom
+ (rule (copy# ../../service.server.mli service.mli)))
+(subdir Eliom
+ (rule (target service_base.ml) (deps ../../service_base.eliom)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_server --as-pp --impl %{deps})))))
-(rule (copy# ../eliom_service_sigs.shared.mli eliom_service_sigs.mli))
-(rule (target eliom_shared.ml) (deps ../eliom_shared.eliom)
+      (chdir ../.. (run ppx_eliom_server --as-pp -internal --impl service_base.eliom))))))
+(subdir Eliom
+ (rule (copy# ../../service_sigs.shared.mli service_sigs.mli)))
+(subdir Eliom
+ (rule (copy# ../../service_sigs.shared.mli service_sigs.ml)))
+(subdir Eliom
+ (rule (target shared.ml) (deps ../../shared.eliom)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_server --as-pp --impl %{deps})))))
-(rule (copy# ../eliom_shared.server.mli eliom_shared.mli))
-(rule (target eliom_shared_content.ml) (deps ../eliom_shared_content.eliom)
+      (chdir ../.. (run ppx_eliom_server --as-pp -internal --impl shared.eliom))))))
+(subdir Eliom
+ (rule (copy# ../../shared.server.mli shared.mli)))
+(subdir Eliom
+ (rule (target shared_content.ml) (deps ../../shared_content.eliom)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_server --as-pp --impl %{deps})))))
-(rule (target eliom_shared_content.mli) (deps ../eliom_shared_content.eliomi)
+      (chdir ../.. (run ppx_eliom_server --as-pp -internal --impl shared_content.eliom))))))
+(subdir Eliom
+ (rule (target shared_content.mli) (deps ../../shared_content.eliomi)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_server --as-pp --intf %{deps})))))
-(rule (copy# ../eliom_shared_sigs.shared.mli eliom_shared_sigs.mli))
-(rule (copy# ../eliom_state.server.ml eliom_state.ml))
-(rule (copy# ../eliom_state.server.mli eliom_state.mli))
-(rule (copy# ../eliom_syntax.server.ml eliom_syntax.ml))
-(rule (copy# ../eliom_syntax.server.mli eliom_syntax.mli))
-(rule (target eliom_tools.ml) (deps ../eliom_tools.eliom)
+      (chdir ../.. (run ppx_eliom_server --as-pp -internal --intf shared_content.eliomi))))))
+(subdir Eliom
+ (rule (copy# ../../shared_sigs.shared.mli shared_sigs.mli)))
+(subdir Eliom
+ (rule (copy# ../../shared_sigs.shared.mli shared_sigs.ml)))
+(subdir Eliom
+ (rule (copy# ../../state.server.ml state.ml)))
+(subdir Eliom
+ (rule (copy# ../../state.server.mli state.mli)))
+(subdir Eliom
+ (rule (copy# ../../syntax.server.ml syntax.ml)))
+(subdir Eliom
+ (rule (copy# ../../syntax.server.mli syntax.mli)))
+(subdir Eliom
+ (rule (target tools.ml) (deps ../../tools.eliom)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_server --as-pp --impl %{deps})))))
-(rule (target eliom_tools.mli) (deps ../eliom_tools.eliomi)
+      (chdir ../.. (run ppx_eliom_server --as-pp -internal --impl tools.eliom))))))
+(subdir Eliom
+ (rule (target tools.mli) (deps ../../tools.eliomi)
   (action
     (with-stdout-to %{target}
-      (chdir .. (run ppx_eliom_server --as-pp --intf %{deps})))))
-(rule (copy# ../eliom_types.server.ml eliom_types.ml))
-(rule (copy# ../eliom_types.server.mli eliom_types.mli))
-(rule (copy# ../eliom_types_base.shared.ml eliom_types_base.ml))
-(rule (copy# ../eliom_types_base.shared.mli eliom_types_base.mli))
-(rule (copy# ../eliom_uri.shared.ml eliom_uri.ml))
-(rule (copy# ../eliom_uri.shared.mli eliom_uri.mli))
-(rule (copy# ../eliom_wrap.server.ml eliom_wrap.ml))
-(rule (copy# ../eliom_wrap.server.mli eliom_wrap.mli))
+      (chdir ../.. (run ppx_eliom_server --as-pp -internal --intf tools.eliomi))))))
+(subdir Eliom
+ (rule (copy# ../../types.server.ml types.ml)))
+(subdir Eliom
+ (rule (copy# ../../types.server.mli types.mli)))
+(subdir Eliom
+ (rule (copy# ../../types_base.shared.ml types_base.ml)))
+(subdir Eliom
+ (rule (copy# ../../types_base.shared.mli types_base.mli)))
+(subdir Eliom
+ (rule (copy# ../../wrap.server.ml wrap.ml)))
+(subdir Eliom
+ (rule (copy# ../../wrap.server.mli wrap.mli)))

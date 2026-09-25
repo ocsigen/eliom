@@ -1,20 +1,20 @@
 [%%shared
-open Eliom_lib
-open Eliom_content
+open Eliom.Lib
+open Eliom.Content
 open Html.D
 ]
 
 module %%%MODULE_NAME%%%_app =
-  Eliom_registration.App (
+  Eliom.Registration.App (
   struct
     let application_name = "%%%PROJECT_NAME%%%"
     let global_data_path = None
   end)
 
 let main_service =
-  Eliom_service.create
-    ~path:(Eliom_service.Path [])
-    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+  Eliom.Service.create
+    ~path:(Eliom.Service.Path [])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
     ()
 
 let () =
@@ -22,7 +22,7 @@ let () =
     ~service:main_service
     (fun () () ->
        Lwt.return
-         (Eliom_tools.F.html
+         (Eliom.Tools.F.html
             ~title:"%%%PROJECT_NAME%%%"
             ~css:[["css";"%%%PROJECT_NAME%%%.css"]]
             Html.F.(body [

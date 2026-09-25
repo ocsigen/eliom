@@ -29,7 +29,9 @@ module Pass = struct
     let typing_strs = ref [] in
     let add ~fragment ~unsafe loc id =
       let typ =
-        if fragment then [%type: _ Eliom_client_value.t] else [%type: _]
+        if fragment
+        then eliom_type ~loc "Client_value.t" [[%type: _]]
+        else [%type: _]
       in
       typing_strs :=
         (if unsafe || Mli.exists ()
@@ -68,7 +70,7 @@ module Pass = struct
       let aux (loc, id, arg, unsafe) =
         push_nongen_str_item ~fragment:false ~unsafe loc id;
         [%expr
-          Eliom_syntax.escaped_value
+          [%e eliom_expr ~loc "Syntax.escaped_value"]
             [%e
               let loc = one_char_location loc in
               [%expr [%e eid id] [%e arg]]]]
@@ -127,7 +129,9 @@ module Pass = struct
 
   let close_server_section loc =
     [%stri
-    let () = Eliom_syntax.close_server_section [%e eid @@ id_file_hash loc]]
+    let () =
+      [%e eliom_expr ~loc "Syntax.close_server_section"]
+        [%e eid @@ id_file_hash loc]]
 
   let may_close_server_section ~no_fragment loc =
     if no_fragment then [] else [close_server_section loc]
@@ -150,7 +154,7 @@ module Pass = struct
            push_nongen_str_item ~fragment:false ~unsafe loc f_id;
            [%expr
              ( [%e int num]
-             , Eliom_lib.to_poly
+             , [%e eliom_expr ~loc "Syntax.to_poly"]
                  [%e
                    let loc = one_char_location loc0 in
                    [%expr [%e eid f_id] [%e frag_eid]]]
@@ -161,7 +165,7 @@ module Pass = struct
     in
     [%stri
     let () =
-      Eliom_syntax.close_client_section
+      [%e eliom_expr ~loc "Syntax.close_client_section"]
         [%e eid @@ id_file_hash loc]
         [%e injection_list]]
 
@@ -209,9 +213,9 @@ module Pass = struct
         [%e
           let loc = one_char_location loc in
           [%expr
-            (Eliom_syntax.client_value ~pos:[%e position loc] [%e str num]
-               [%e e]
-             : [%t typ] Eliom_client_value.t)]]]
+            ([%e eliom_expr ~loc "Syntax.client_value"]
+               ~pos:[%e position loc] [%e str num] [%e e]
+             : [%t eliom_type ~loc "Client_value.t" [typ]])]]]
 
   let escape_inject
         ~loc
@@ -235,7 +239,7 @@ module Pass = struct
         {loc; txt = Longident.Lident (if b then "true" else "false")}
         None
     in
-    [%stri let () = Eliom_syntax.set_global [%e b]]
+    [%stri let () = [%e eliom_expr ~loc "Syntax.set_global"] [%e b]]
 
   let prelude loc = [set_global ~loc true]
   let postlude loc = [set_global ~loc false]

@@ -2,19 +2,19 @@
    Feel free to use it, modify it, and redistribute it as you wish. *)
 
 let%server application_name = "%%%PROJECT_NAME%%%"
-let%client application_name = Eliom_client.get_application_name ()
+let%client application_name = Eliom.Client.get_application_name ()
 
 let%server () =
     Ocsipersist_settings.set_db_file "local/var/data/%%%PROJECT_NAME%%%/%%%PROJECT_NAME%%%_db"
     (* Enable WebAssembly support with automatic browser detection.
        The server will load the WASM version if the browser supports it,
        with fallback to JavaScript otherwise. *)
-    ; Eliom_config.set_enable_wasm true
+    ; Eliom.Config.set_enable_wasm true
 
 (* Create a module for the application. See
    https://ocsigen.org/eliom/manual/clientserver-applications for more
    information. *)
-module%shared App = Eliom_registration.App (struct
+module%shared App = Eliom.Registration.App (struct
     let application_name = application_name
     let global_data_path = Some ["__global_data__"]
   end)
@@ -22,25 +22,25 @@ module%shared App = Eliom_registration.App (struct
 (* As the headers (stylesheets, etc) won't change, we ask Eliom not to
    update the <head> of the page when changing page. (This also avoids
    blinking when changing page in iOS). *)
-let%client _ = Eliom_client.persist_document_head ()
+let%client _ = Eliom.Client.persist_document_head ()
 
 let%server main_service =
-  Eliom_service.create ~path:(Eliom_service.Path [])
-    ~meth:(Eliom_service.Get Eliom_parameter.unit) ()
+  Eliom.Service.create ~path:(Eliom.Service.Path [])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit) ()
 
 let%client main_service = ~%main_service
 
 let%shared () =
   App.register ~service:main_service (fun () () ->
     Lwt.return
-      Eliom_content.Html.F.(
+      Eliom.Content.Html.F.(
         html
           (head
              (title (txt "%%%PROJECT_NAME%%%"))
              [ css_link
                  ~uri:
                    (make_uri
-                      ~service:(Eliom_service.static_dir ())
+                      ~service:(Eliom.Service.static_dir ())
                       ["css"; "%%%PROJECT_NAME%%%.css"])
                  () ])
           (body [h1 [txt "Welcome to Eliom!"]])))

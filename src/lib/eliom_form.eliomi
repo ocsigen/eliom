@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module Eliom_form
+ * Module Form
  * Copyright (C) 2007 Vincent Balat
  *
  * This program is free software; you can redistribute it and/or modify
@@ -32,7 +32,7 @@ module type Html = sig
     with type 'a Xml.W.t = 'a
      and type 'a Xml.W.tlist = 'a list
      and type Xml.mouse_event_handler =
-      (Dom_html.mouseEvent Js.t -> unit) Eliom_client_value.t
+      (Dom_html.mouseEvent Js.t -> unit) Client_value.t
 
   type ('a, 'b, 'c) lazy_star =
     ?a:'a attrib list -> 'b elt list Eliom_lazy.request -> 'c elt
@@ -50,24 +50,24 @@ module type Html = sig
     -> ([`A | `Form_get | `Form_post]
        * (bool * string list) option
        * string option
-       * Eliom_lib.poly)
+       * Lib.poly)
          option
          Eliom_lazy.request
     -> Html_types.form_attrib attrib
 
-  val to_elt : 'a elt -> Eliom_content_core.Xml.elt
+  val to_elt : 'a elt -> Content_core.Xml.elt
 end
 
 type 'a param
 
 module Make_links (H : Html) :
-  Eliom_form_sigs.LINKS
+  Form_sigs.LINKS
   with type +'a elt := 'a H.elt
    and type +'a attrib := 'a H.attrib
    and type uri := H.uri
 
 module Make (H : Html) :
-  Eliom_form_sigs.S
+  Form_sigs.S
   with type +'a elt := 'a H.elt
    and type +'a attrib := 'a H.attrib
    and type uri := H.uri

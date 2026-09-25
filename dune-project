@@ -3,10 +3,12 @@
 (cram enable)
 
 (name eliom)
-(version 12.1.0)
+(version 13.0~dev)
 (maintainers dev@ocsigen.org)
 (authors dev@ocsigen.org)
 (license "LGPL-2.1-only WITH OCaml-LGPL-linking-exception")
+(homepage https://ocsigen.org/eliom/)
+(source (github ocsigen/eliom))
 
 (generate_opam_files true)
 
@@ -21,8 +23,6 @@ These client-side features remain compatible with traditional Web programming (l
 It is possible to generate mobile applications for Android and iOS with the exact same code as your Web application.
 The client-side code is compiled to JS using Ocsigen Js_of_ocaml or to Wasm using Wasm_of_ocaml.
 ")
- (homepage https://ocsigen.org/eliom/)
- (source (github ocsigen/eliom))
  (maintenance_intent "(latest)")
  (depends
   (ocaml (>= 4.12))
@@ -32,19 +32,24 @@ The client-side code is compiled to JS using Ocsigen Js_of_ocaml or to Wasm usin
   ; (ppx_sexp_conv, pulled via ocsigenserver -> cohttp) allows; newer OCaml
   ; resolves a more recent ppxlib. The ppx builds against the whole range.
   (ppxlib (>= 0.35.0))
-  (js_of_ocaml-compiler (>= 6.3.2))
-  (wasm_of_ocaml-compiler (>= 6.3.2))
-  (js_of_ocaml (>= 6.3.2))
-  (js_of_ocaml-lwt (>= 6.3.2))
-  (js_of_ocaml-ocamlbuild :build)
-  (js_of_ocaml-ppx (>= 6.3.2))
-  (js_of_ocaml-ppx_deriving_json (>= 6.3.2))
-  (js_of_ocaml-tyxml (>= 6.3.2))
+  (js_of_ocaml-compiler (>= 6.4.0))
+  (wasm_of_ocaml-compiler (>= 6.4.0))
+  (js_of_ocaml (>= 6.4.0))
+  (js_of_ocaml-lwt (>= 6.4.0))
+  (js_of_ocaml-ppx (>= 6.4.0))
+  (js_of_ocaml-ppx_deriving_json (>= 6.4.0))
+  (js_of_ocaml-tyxml (>= 6.4.0))
   logs
   (tyxml (and (>= 5.0) (< 6.0)))
-  (ocsigenserver (and (>= 7.0) (< 8.0)))
+  (ocsigenserver (and (>= 8.0) (< 9.0)))
   (ipaddr (>= 2.1))
   (reactiveData (>= 0.2.1))
   base-bytes
-  (ocsipersist (and (>= 2.0) (< 3.0)))
+  (ocsipersist (and (>= 3.1) (< 4.0)))
   (xml-light (>= "2.5"))))
+
+(package
+ (name eliom-compat)
+ (synopsis "Eliom: backward-compatible module names (Eliom_xxx)")
+ (description "Provides the old Eliom_xxx module names (e.g. Eliom_service, Eliom_content) as aliases to the new Eliom.Xxx modules. Use this package to ease migration of existing code.")
+ (depends (eliom (= :version))))

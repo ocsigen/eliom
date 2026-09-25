@@ -1,17 +1,11 @@
+(include_subdirs qualified)
+
 (library
  (name eliom_client)
  (public_name eliom.client)
  (synopsis "Eliom: client-side")
  (wrapped false)
  (modes byte)
- (modules_without_implementation
-  eliom_content_sigs
-  eliom_form_sigs
-  eliom_parameter_sigs
-  eliom_registration_sigs
-  eliom_service_sigs
-  eliom_shared_sigs
-  eliom_wrap)
  (preprocess
   (pps js_of_ocaml-ppx js_of_ocaml-ppx_deriving_json))
  (library_flags
