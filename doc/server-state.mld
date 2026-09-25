@@ -508,6 +508,20 @@ be inspected or recovered by hand if needed. A stored value that
 cannot be deserialised is treated as an absent value rather than
 raising, so an incomplete migration never turns into a server error.
 
+Beware that this reset concerns more than sessions: persistent
+references with the session-group scope are commonly keyed by user
+(the group name being the user id) and used to store {e durable
+per-user data} such as preferences; those also restart from their
+default value, silently. If your application keeps data it cannot
+afford to lose in persistent references (group, site or global
+scope), export it {e before} upgrading, with the Eliom 12 version of
+your application (for example into your SQL database), and re-import
+it through the new API afterwards. Reading the orphaned Marshal
+tables later remains possible in theory, but requires code built
+with the exact types the old application stored. Once the upgrade
+is validated, the old tables can be dropped from the storage backend
+to reclaim space.
+
 {%wodoc:end%}
 
 {3 Volatile references}

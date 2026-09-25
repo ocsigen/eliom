@@ -50,7 +50,15 @@
    (references, per-session and per-site state, cookies and session
    groups) is left behind and resets to its default value, because
    the JSON tables use new names and the old Marshal tables are
-   never read. The old tables are kept on disk, not deleted. A value
+   never read. The old tables are kept on disk, not deleted. This
+   reset concerns more than sessions: group-scope persistent
+   references are commonly keyed by user and hold durable per-user
+   data (preferences, ...), which silently restarts from the default.
+   Applications that cannot afford this should export such data
+   before upgrading, with the Eliom 12 version of the application
+   (for example into their SQL database), and re-import it through
+   the new API; reading the orphaned Marshal tables later requires
+   code built with the old types. A value
    that cannot be deserialised never raises: it is treated as an
    absent value (fresh session / default reference) instead of a
    500 error, and the fallback is logged (sources "eliom" and
