@@ -24,7 +24,19 @@ open State
 open Lwt.Infix
 module Store_json = Common.Ocsipersist.Store_json
 
+let section = Logs.Src.create "eliom:reference"
 let pers_ref_store = Store_json.open_store "eliom__persistent_refs"
+
+(* A stored value that cannot be deserialised (the type changed without the
+   reference being renamed, or the data is corrupted) is replaced by the
+   default value instead of failing every access. Backend errors are not
+   [Decoding_error] and still escape. *)
+let reset_unreadable ~reset = function
+  | Common.Ocsipersist.Decoding_error msg ->
+      Logs.warn ~src:section (fun fmt ->
+        fmt "Unreadable persistent reference reset to its default value: %s" msg);
+      reset ()
+  | exc -> Lwt.reraise exc
 
 (* Lift a value codec into an [option] codec. *)
 let json_option (type x) (j : x Deriving_Json.t) : x option Deriving_Json.t =
@@ -213,15 +225,12 @@ let get (type a) ((f, _, table) as eref) : a Lwt.t =
         let value = f () in
         set_persistent_data ~table:t value >>= fun () -> Lwt.return value
       in
-      (* A [Failure] means the stored value cannot be deserialised (old
-         format or corruption): reset it to the default rather than let the
-         exception escape and brick the request. *)
       Lwt.catch
         (fun () ->
            get_persistent_data ~table:t () >>= function
            | Data d -> Lwt.return d
            | _ -> reset ())
-        (function Failure _ -> reset () | exc -> Lwt.reraise exc)
+        (reset_unreadable ~reset)
   | Ocsiper r ->
       r >>= fun r ->
       let reset () =
@@ -233,20 +242,20 @@ let get (type a) ((f, _, table) as eref) : a Lwt.t =
            Store_json.get r >>= function
            | Some v -> Lwt.return v
            | None -> reset ())
-        (function Failure _ -> reset () | exc -> Lwt.reraise exc)
+        (reset_unreadable ~reset)
   | Ocsiper_sit t ->
       let module T =
         (val t
           : Common.Ocsipersist.TABLE with type key = string and type value = a)
       in
       let site_id = get_site_id () in
+      let reset () =
+        let value = f () in
+        T.add site_id value >>= fun () -> Lwt.return value
+      in
       Lwt.catch
         (fun () -> T.find site_id)
-        (function
-          | Not_found | Failure _ ->
-              let value = f () in
-              T.add site_id value >>= fun () -> Lwt.return value
-          | exc -> Lwt.reraise exc)
+        (function Not_found -> reset () | exc -> reset_unreadable ~reset exc)
   | _ -> Lwt.return (Volatile.get eref)
 
 let set (type a) ((_, _, table) as eref) (value : a) =
@@ -282,16 +291,24 @@ module Ext = struct
     | Vol _ -> Lwt.return (Volatile.Ext.get state r)
     | Per t ->
         t >>= fun t ->
+        let absent () =
+          if ext (* We can run the function from another state *)
+          then
+            let value = f () in
+            State.Ext.Low_level.set_persistent_data ~state ~table:t value
+            >>= fun () -> Lwt.return value
+          else Lwt.fail Eref_not_initialized
+        in
         Lwt.catch
           (fun () -> State.Ext.Low_level.get_persistent_data ~state ~table:t)
           (function
-            | Not_found ->
-                if ext (* We can run the function from another state *)
-                then
-                  let value = f () in
-                  State.Ext.Low_level.set_persistent_data ~state ~table:t value
-                  >>= fun () -> Lwt.return value
-                else Lwt.fail Eref_not_initialized
+            | Not_found -> absent ()
+            | Common.Ocsipersist.Decoding_error msg ->
+                (* An unreadable stored value is treated as absent, like in
+                   [Reference.get]. *)
+                Logs.warn ~src:section (fun fmt ->
+                  fmt "Unreadable persistent reference read as absent: %s" msg);
+                absent ()
             | e -> Lwt.fail e)
     | _ -> failwith "wrong eref for this function"
 

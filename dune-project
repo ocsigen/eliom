@@ -45,7 +45,7 @@ The client-side code is compiled to JS using Ocsigen Js_of_ocaml or to Wasm usin
   (ipaddr (>= 2.1))
   (reactiveData (>= 0.2.1))
   base-bytes
-  (ocsipersist (and (>= 2.0) (< 3.0)))
+  (ocsipersist (and (>= 3.1) (< 4.0)))
   (xml-light (>= "2.5"))))
 
 (package

@@ -35,7 +35,7 @@ depends: [
   "ipaddr" {>= "2.1"}
   "reactiveData" {>= "0.2.1"}
   "base-bytes"
-  "ocsipersist" {>= "2.0" & < "3.0"}
+  "ocsipersist" {>= "3.1" & < "4.0"}
   "xml-light" {>= "2.5"}
   "odoc" {with-doc}
 ]
