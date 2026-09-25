@@ -5,4 +5,4 @@ Here are a few hints on how to write scalable Eliom applications, running on mul
 - Use an external load balancer that will route all the requests of a same user agent to the same server (using cookies for example).
 - Be careful with all global data (references, dynamically created services ...).
 - Use a distributed backend for Ocsipersist (postgresql for example), and disable persistent GC for all but one (by setting `<persistentsessiongcfrequency value="infinity" />`).
-- If you are using [`Eliom_notif`](./eliom.server/Eliom_notif.md) or `Os_notif`, broadcast your notifications to all the servers.
+- If you are using [`Eliom.Notif`](./eliom.server/Eliom-Notif.md) or `/ocsigen-start.server/Os.Notif`, broadcast your notifications to all the servers.

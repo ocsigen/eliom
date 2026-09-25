@@ -6,13 +6,13 @@
 
 Service handlers take two parameters. The first one is for GET parameters (that is, parameters in the URL) and the second one for POST parameters (parameters in the body of the HTTP request).
 
-The parameters of a service are provided via the arguments of the [`Eliom_service_sigs.TYPES.meth`](./eliom.server/Eliom_service_sigs-module-type-TYPES.md#type-meth) constructors. The specification of parameter types is done using combinators defined in the module [`Eliom_parameter`](./eliom.server/Eliom_parameter.md). For example, `Eliom_parameter.unit` means that the service does not take any parameter, and `Eliom_parameter.int "foo"` means that the service takes a parameter called `foo`, which is of type `int`. See [`Eliom_parameter_sigs.S`](./eliom.server/Eliom_parameter_sigs-module-type-S.md) for documentation on the combinators.
+The parameters of a service are provided via the arguments of the [`Eliom.Service_sigs.TYPES.meth`](./eliom.server/Eliom-Service_sigs-module-type-TYPES.md#type-meth) constructors. The specification of parameter types is done using combinators defined in the module [`Eliom.Parameter`](./eliom.server/Eliom-Parameter.md). For example, `Eliom.Parameter.unit` means that the service does not take any parameter, and `Eliom.Parameter.int "foo"` means that the service takes a parameter called `foo`, which is of type `int`. See [`Eliom.Parameter_sigs.S`](./eliom.server/Eliom-Parameter_sigs-module-type-S.md) for documentation on the combinators.
 
 Here is an example of a service with GET parameters:
 
 ```ocaml
 let writeparams (i1, (i2, s1)) () = Lwt.return @@
-  let open Eliom_content.Html.D in
+  let open Eliom.Content.Html.D in
   html
     (head (title (txt "")) [])
     (body
@@ -25,11 +25,11 @@ let writeparams (i1, (i2, s1)) () = Lwt.return @@
 ```
 ```ocaml
 let service_with_params =
-  Eliom_registration.Html.create
-    ~path:(Eliom_service.Path ["thepath"])
+  Eliom.Registration.Html.create
+    ~path:(Eliom.Service.Path ["thepath"])
     ~meth:
-      (Eliom_service.Get
-         Eliom_parameter.(int "i" ** (int "ii" ** string "s")))
+      (Eliom.Service.Get
+         Eliom.Parameter.(int "i" ** (int "ii" ** string "s")))
     writeparams
 ```
 Eliom will automaticaly try to convert the parameters and call the handler with the right OCaml types (here `int * (int * string)`).
@@ -46,13 +46,13 @@ The following example shows how to create a service with a "suffix" parameter (t
 
 ```ocaml
 let uasuffix =
-  Eliom_registration.Html.create
-    ~path:(Eliom_service.Path ["uasuffix"])
+  Eliom.Registration.Html.create
+    ~path:(Eliom.Service.Path ["uasuffix"])
     ~meth:
-      (Eliom_service.Get
-         Eliom_parameter.(suffix (int "year" ** int "month")))
+      (Eliom.Service.Get
+         Eliom.Parameter.(suffix (int "year" ** int "month")))
     (fun (year, month) () -> Lwt.return @@
-      let open Eliom_content.Html.D in
+      let open Eliom.Content.Html.D in
       html
         (head (title (txt "")) [])
         (body
@@ -60,9 +60,9 @@ let uasuffix =
                strong [txt (string_of_int year ^ "/" ^
                                string_of_int month)];
                txt ", your user-agent is ";
-               strong [txt (Eliom_request_info.get_user_agent ())];
+               strong [txt (Eliom.Request_info.get_user_agent ())];
                txt ", your IP is ";
-               strong [txt (Eliom_request_info.get_remote_ip ())]]]))
+               strong [txt (Eliom.Request_info.get_remote_ip ())]]]))
 ```
 This service will answer to URLs like `http://.../uasuffix/2000/11`.
 
@@ -70,14 +70,14 @@ Suffix parameters have names, because we can create forms towards these services
 
 ```ocaml
 let isuffix =
-  Eliom_registration.Html.create
-    ~path:(Eliom_service.Path ["isuffix"])
+  Eliom.Registration.Html.create
+    ~path:(Eliom.Service.Path ["isuffix"])
     ~meth:
-      (Eliom_service.Get
-         Eliom_parameter.
+      (Eliom.Service.Get
+         Eliom.Parameter.
            (suffix_prod (int "suff" ** all_suffix "endsuff") (int "i")))
     (fun ((suff, endsuff), i_param) () -> Lwt.return @@
-      let open Eliom_content.Html.D in
+      let open Eliom.Content.Html.D in
       html
         (head (title (txt "")) [])
         (body
@@ -95,14 +95,14 @@ If you want parameters in the path but not always at the end, use the `const` pa
 
 ```ocaml
 let constfix =
-  Eliom_registration.Html.create
-    ~path:(Eliom_service.Path ["constfix"])
+  Eliom.Registration.Html.create
+    ~path:(Eliom.Service.Path ["constfix"])
     ~meth:
-      (Eliom_service.Get
-         Eliom_parameter.
+      (Eliom.Service.Get
+         Eliom.Parameter.
            (suffix (string "s1" ** (suffix_const "toto" ** string "s2"))))
     (fun (s1, ((), s2)) () -> Lwt.return @@
-      let open Eliom_content.Html.D in
+      let open Eliom.Content.Html.D in
       html
         (head (title (txt "")) [])
         (body [
@@ -127,16 +127,16 @@ let string_of_mysum = function
   | B -> "B"
 
 let mytype =
-  Eliom_registration.Html.create
-    ~path:(Eliom_service.Path ["mytype"])
+  Eliom.Registration.Html.create
+    ~path:(Eliom.Service.Path ["mytype"])
     ~meth:
-      (Eliom_service.Get
-         (Eliom_parameter.user_type
+      (Eliom.Service.Get
+         (Eliom.Parameter.user_type
             mysum_of_string
             string_of_mysum
             "value"))
     (fun x () -> Lwt.return @@
-      let open Eliom_content.Html.D in
+      let open Eliom.Content.Html.D in
       html
         (head (title (txt "")) [])
         (body [p [txt
@@ -151,11 +151,11 @@ If you want a service that answers to requests with any parameters, use the `any
 
 ```ocaml
 let raw_serv =
-  Eliom_registration.Html.create
-    ~path:(Eliom_service.Path ["any"])
-    ~meth:(Eliom_service.Get Eliom_parameter.any)
+  Eliom.Registration.Html.create
+    ~path:(Eliom.Service.Path ["any"])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.any)
   (fun l () ->
-    let module Html = Eliom_content.Html.D in
+    let module Html = Eliom.Content.Html.D in
     let ll =
       List.map
         (fun (a,s) -> strong [txt a; txt ", "; txt s]) l
@@ -171,7 +171,7 @@ let raw_serv =
           </body>
         </html>"])
 ```
-It is possible to use `Eliom_parameter.any` with other parameter combinators, but `any` must be the last one. For example: `(int "i" ** any)`.
+It is possible to use `Eliom.Parameter.any` with other parameter combinators, but `any` must be the last one. For example: `(int "i" ** any)`.
 
 ## Non localized parameters
 
@@ -179,22 +179,22 @@ Non-localized parameters are GET or POST parameters that are not taken into acco
 
 ```ocaml
 let my_nl_params =
-  Eliom_parameter.make_non_localized_parameters
+  Eliom.Parameter.make_non_localized_parameters
     ~prefix:"tutoeliom"
     ~name:"mynlparams"
-    Eliom_parameter.(int "a" ** string "s")
+    Eliom.Parameter.(int "a" ** string "s")
 
 let nlparams =
-  let open Eliom_content.Html.D in
-  Eliom_registration.Html.create
-    ~path:(Eliom_service.Path ["nlparams"])
-    ~meth:(Eliom_service.Get (Eliom_parameter.int "i"))
+  let open Eliom.Content.Html.D in
+  Eliom.Registration.Html.create
+    ~path:(Eliom.Service.Path ["nlparams"])
+    ~meth:(Eliom.Service.Get (Eliom.Parameter.int "i"))
     (fun i () -> Lwt.return @@
       html
         (head (title (txt "")) [])
         (body [
            p [txt "i = "; strong [txt (string_of_int i)]];
-           match Eliom_parameter.get_non_localized_get_parameters
+           match Eliom.Parameter.get_non_localized_get_parameters
                    my_nl_params
            with
            | None ->
@@ -204,23 +204,23 @@ let nlparams =
                 txt (Printf.sprintf "with values a = %d and s = %s." a s)]
          ]))
 ```
-To create a link or a form with non-localized parameters, use the optional parameter nl\_params of functions `Eliom_content.Html.D.a`, `Eliom_content.Html.D.Form.get_form`, or `Eliom_content.Html.D.Form.post_form`. Example:
+To create a link or a form with non-localized parameters, use the optional parameter nl\_params of functions `Eliom.Content.Html.D.a`, `Eliom.Content.Html.D.Form.get_form`, or `Eliom.Content.Html.D.Form.post_form`. Example:
 
 ```ocaml
 let tonlparams =
-  Eliom_registration.Html.create
-    ~path:(Eliom_service.Path ["nlparams"])
-    ~meth:(Eliom_service.Get Eliom_parameter.unit)
+  Eliom.Registration.Html.create
+    ~path:(Eliom.Service.Path ["nlparams"])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
     (fun i () -> Lwt.return @@
-      let open Eliom_content.Html.D in
+      let open Eliom.Content.Html.D in
       html
         (head (title (txt "")) [])
         (body
            [p [a ~service:nlparams [txt "without nl params"] 4];
             p [a ~service:nlparams
                  ~nl_params:
-                   (Eliom_parameter.add_nl_parameter
-                      Eliom_parameter.empty_nl_params_set
+                   (Eliom.Parameter.add_nl_parameter
+                      Eliom.Parameter.empty_nl_params_set
                       my_nl_params
                       (22, "oh"))
                  [txt "with nl params"]
@@ -228,8 +228,8 @@ let tonlparams =
             Form.get_form
               ~service:nlparams
               ~nl_params:
-                (Eliom_parameter.add_nl_parameter
-                   Eliom_parameter.empty_nl_params_set
+                (Eliom.Parameter.add_nl_parameter
+                   Eliom.Parameter.empty_nl_params_set
                    my_nl_params
                    (22, "oh"))
               (fun iname ->
@@ -242,7 +242,7 @@ let tonlparams =
                        Form.string]]);
             Form.get_form ~service:nlparams (fun iname ->
               let (aname, sname) =
-                Eliom_parameter.get_nl_params_names my_nl_params
+                Eliom.Parameter.get_nl_params_names my_nl_params
               in
               [p [
                  txt "form with nl params fields";
@@ -256,6 +256,6 @@ It is also possible to create a new service by adding the non-localized paramete
 
 ```ocaml
 let nlparams_with_nlp =
-  Eliom_service.add_non_localized_get_parameters my_nl_params nlparams
+  Eliom.Service.add_non_localized_get_parameters my_nl_params nlparams
 ```
 Then create your link as usual.

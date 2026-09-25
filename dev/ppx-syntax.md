@@ -58,7 +58,7 @@ let%server x = [%client 1 + 3 ]
 ```
 For example, here, the expression `1 + 3` will be evaluated on the client, but it’s possible to refer server-side to the future value of this expression (for example, put it in a list). The value of a client fragment cannot be accessed on the server.
 
-In this case, `x` has type `int Eliom_client_value.t`. Eliom can't always infer the type of fragments. In this case, you may annotate the type: `[%client ( ... : <type> ) ]`.
+In this case, `x` has type `int Eliom.Client_value.t`. Eliom can't always infer the type of fragments. In this case, you may annotate the type: `[%client ( ... : <type> ) ]`.
 
 Client fragments cannot be nested.
 
@@ -69,7 +69,7 @@ It is also possible to use shared fragments.
 ```ocaml
 let%server x = [%shared ...]
 ```
-It will produce values of type [`Eliom_shared.Value.t`](./eliom.server/Eliom_shared-Value.md#type-t).
+It will produce values of type [`Eliom.Shared.Value.t`](./eliom.server/Eliom-Shared-Value.md#type-t).
 
 Shared fragments can be nested and can contain client fragments.
 
@@ -91,7 +91,7 @@ The value inside the client fragment is extracted by `~%x`, whose value is `4` h
 
 ## Restrictions
 
-It is not possible to use injections on values containing a closure. This includes lazy values, objects, or anything containing functions. You can use either [`Eliom_client.server_function`](./eliom.server/Eliom_client.md#type-server_function) (`let%rpc`) and client or shared fragments to circumvent this limitation.
+It is not possible to use injections on values containing a closure. This includes lazy values, objects, or anything containing functions. You can use either [`Eliom.Client.server_function`](./eliom.server/Eliom-Client.md#type-server_function) (`let%rpc`) and client or shared fragments to circumvent this limitation.
 
 To extend and customize the serialization from client to server, see chapter [Wrapping values](./clientserver-wrapping.md).
 

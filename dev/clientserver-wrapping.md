@@ -37,53 +37,53 @@ This code will display 42\. After being sent, the client and server side values 
 
 Usually, client and server side values are represented the same way, and it is sufficient to only copy their content ( marshalled ) to the client. But certain types can't be transmitted this easily: for instance, services.
 
-Those values must be transformed before marshalling: We need for this to use custom wrappers. This wrapping mechanism is defined in [`Eliom_wrap`](./eliom.server/Eliom_wrap.md).
+Those values must be transformed before marshalling: We need for this to use custom wrappers. This wrapping mechanism is defined in [`Eliom.Wrap`](./eliom.server/Eliom-Wrap.md).
 
-Before sending, the values goes thought [`Eliom_wrap.wrap`](./eliom.server/Eliom_wrap.md#val-wrap) which transform marked values. A value marked is a value which have as its last field a value of type [`Eliom_wrap.wrapper`](./eliom.server/Eliom_wrap.md#type-wrapper). For instance
+Before sending, the values goes thought [`Eliom.Wrap.wrap`](./eliom.server/Eliom-Wrap.md#val-wrap) which transform marked values. A value marked is a value which have as its last field a value of type [`Eliom.Wrap.wrapper`](./eliom.server/Eliom-Wrap.md#type-wrapper). For instance
 
 ```ocaml
 type marked_tupple =
-  int * ... * marked_tupple Eliom_wrap.wrapper
+  int * ... * marked_tupple Eliom.Wrap.wrapper
 type marked_record =
   { f1 : int;
     ...
-    fn : marked_record Eliom_wrap.wrapper }
+    fn : marked_record Eliom.Wrap.wrapper }
 ```
 but not
 
 ```ocaml
-type not_marked_tupple = int * ... * marked_tupple Eliom_wrap.wrapper * float
-type not_marked_tupple = int * ... * (int * marked_tupple Eliom_wrap.wrapper)
-type not_marked_tupple = int * ... * marked_tupple Eliom_wrap.wrapper list
+type not_marked_tupple = int * ... * marked_tupple Eliom.Wrap.wrapper * float
+type not_marked_tupple = int * ... * (int * marked_tupple Eliom.Wrap.wrapper)
+type not_marked_tupple = int * ... * marked_tupple Eliom.Wrap.wrapper list
 type not_marked_record =
      { f1 : int;
           ...
-       fn : marked_record Eliom_wrap.wrapper;
+       fn : marked_record Eliom.Wrap.wrapper;
        fk : float; }
 ```
-A wrapper is created by the [`Eliom_wrap.create_wrapper`](./eliom.server/Eliom_wrap.md#val-create_wrapper) function. It takes a function as parameter which will be called to transform the value during the wrapping. There is also a special wrapper [`Eliom_wrap.empty_wrapper`](./eliom.server/Eliom_wrap.md#val-empty_wrapper) which does nothing. It is useful to stop calling the wrapper on a value: If there is still a wrapper in a value after its transformation, it will be called another time, potentially leading to an infinite loop.
+A wrapper is created by the [`Eliom.Wrap.create_wrapper`](./eliom.server/Eliom-Wrap.md#val-create_wrapper) function. It takes a function as parameter which will be called to transform the value during the wrapping. There is also a special wrapper [`Eliom.Wrap.empty_wrapper`](./eliom.server/Eliom-Wrap.md#val-empty_wrapper) which does nothing. It is useful to stop calling the wrapper on a value: If there is still a wrapper in a value after its transformation, it will be called another time, potentially leading to an infinite loop.
 
 For instance
 
 ```ocaml
 type v = Fun of unit -> int | Value of int
-type wrapped_type = v * wrapped_type Eliom_wrap.wrapper
+type wrapped_type = v * wrapped_type Eliom.Wrap.wrapper
 let wrapper =
   let wrap = function
-    | Value i,wrapper -> Value i, Eliom_wrap.empty_wrapper
-    | Fun f,wrapper -> Value (f ()), Eliom_wrap.empty_wrapper
-  in Eliom_wrap.create_wrapper f
+    | Value i,wrapper -> Value i, Eliom.Wrap.empty_wrapper
+    | Fun f,wrapper -> Value (f ()), Eliom.Wrap.empty_wrapper
+  in Eliom.Wrap.create_wrapper f
 let v = ( Fun (fun () -> 1), wrapper )
-let (v', empty_wrapper) = Eliom_wrap.wrap v
+let (v', empty_wrapper) = Eliom.Wrap.wrap v
 ```
-At that time `v'` will be `Value 1`. Notice that [`Eliom_wrap.create_wrapper`](./eliom.server/Eliom_wrap.md#val-create_wrapper) does not enforce the output type of the wrapping function to be the same as the input type: Eliom\_wrap is to be use with much caution\! Do not use it if you don't understand how it works, it may lead to unpredictable segmentation faults and corrupted memory.
+At that time `v'` will be `Value 1`. Notice that [`Eliom.Wrap.create_wrapper`](./eliom.server/Eliom-Wrap.md#val-create_wrapper) does not enforce the output type of the wrapping function to be the same as the input type: Eliom.Wrap is to be use with much caution\! Do not use it if you don't understand how it works, it may lead to unpredictable segmentation faults and corrupted memory.
 
 ## Eliom types with predefined custom wrappers
 
 The Eliom types that are marked are:
 
-- [`Eliom_service.t`](./eliom.server/Eliom_service.md#type-t) transformed to [`Eliom_service.t`](./eliom.server/Eliom_service.md#type-t) (but the client side representation)
-- [`Eliom_comet.Channel.t`](./eliom.server/Eliom_comet-Channel.md#type-t) transformed to `Lwt_stream.t`
-- [`Eliom_react.Up.t`](./eliom.server/Eliom_react-Up.md#type-t) transformed to `'a -> unit`
-- [`Eliom_react.Down.t`](./eliom.server/Eliom_react-Down.md#type-t) transformed to `'a React.E.t`
-- [`Eliom_bus.t`](./eliom.server/Eliom_bus.md#type-t) transformed to [`Eliom_bus.t`](./eliom.server/Eliom_bus.md#type-t)
+- [`Eliom.Service.t`](./eliom.server/Eliom-Service.md#type-t) transformed to [`Eliom.Service.t`](./eliom.server/Eliom-Service.md#type-t) (but the client side representation)
+- [`Eliom.Comet.Channel.t`](./eliom.server/Eliom-Comet-Channel.md#type-t) transformed to [`Lwt_stream.t`](./../lwt/lwt/Lwt_stream.md#type-t)
+- [`Eliom.Eliom_react.Up.t`](./eliom.server/Eliom-Eliom_react-Up.md#type-t) transformed to `'a -> unit`
+- [`Eliom.Eliom_react.Down.t`](./eliom.server/Eliom-Eliom_react-Down.md#type-t) transformed to `'a React.E.t`
+- [`Eliom.Bus.t`](./eliom.server/Eliom-Bus.md#type-t) transformed to [`Eliom.Bus.t`](./eliom.server/Eliom-Bus.md#type-t)

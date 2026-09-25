@@ -35,6 +35,25 @@ val eid : string Ppxlib.Location.loc -> Ppxlib.Parsetree.expression
 val position : Ppxlib.Location.t -> Ppxlib.Parsetree.expression
 ```
 ```ocaml
+val is_internal : bool ref
+```
+```ocaml
+val internal_prefix : string ref
+```
+```ocaml
+val eliom_lid : string -> Ppxlib.Longident.t
+```
+```ocaml
+val eliom_expr : loc:Ppxlib.Location.t -> string -> Ppxlib.Parsetree.expression
+```
+```ocaml
+val eliom_type : 
+  loc:Ppxlib.Location.t ->
+  string ->
+  Ppxlib.Parsetree.core_type list ->
+  Ppxlib.Parsetree.core_type
+```
+```ocaml
 val format_args : 
   Ppxlib.Parsetree.expression list ->
   Ppxlib.Parsetree.expression

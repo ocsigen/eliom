@@ -26,6 +26,15 @@ This creates a project named `<name>` from the `"app.exe"` template in the direc
 
 Read the README file provided with the template.
 
+#### WebAssembly compilation
+
+To enable WebAssembly compilation for your application, set `ENABLE_WASM=yes` in the `Makefile.options` file. This will compile both JavaScript and WASM versions of your client code:
+
+```shell
+ENABLE_WASM := yes
+```
+When enabled, use `make js` to build both versions, and the server will automatically detect browser capabilities and serve the appropriate version.
+
 ### Using other templates
 
 If you want to start from a more complete or more specific template, you can get other templates from the internet, such as Ocsigen Start. You can either install these templates into eliom's own directory (this is what their installer generally does), or, if doing so is not practical, you can use the `ELIOM_DISTILLERY_PATH` environment variable to point to your templates. This environment variable is a colon-separated list of absolute paths (that is, `export ELIOM_DISTILLERY_PATH=/usr/lib/template1:/usr/local/lib/template2`).

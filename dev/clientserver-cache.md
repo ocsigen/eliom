@@ -2,12 +2,12 @@
 
 ## Caching the data
 
-Module [`Eliom_cscache`](./eliom.server/Eliom_cscache.md) implements a cache of data that can be used both for keeping data on client side or keeping values in memory during a request.
+Module [`Eliom.Cscache`](./eliom.server/Eliom-Cscache.md) implements a cache of data that can be used both for keeping data on client side or keeping values in memory during a request.
 
 Have look at the documentation of this module for more information.
 
-Also have a look to `Ocsigen_cache` for a local (client or server) cache that keeps the most recently used values.
+Also have a look to [`Ocsigen_base.Cache`](./../ocsigenserver/ocsigenserver.baselib/Ocsigen_base-Cache.md) (from Ocsigen Server) for a local (client or server) cache that keeps the most recently used values.
 
 ## Off-line applications
 
-In the near future, Eliom\_cscache will make it possible to save persistent data, which is useful for implementing off-line applications.
+In the near future, Eliom.Cscache will make it possible to save persistent data, which is useful for implementing off-line applications.

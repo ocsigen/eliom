@@ -1,6 +1,6 @@
 # Compiling and configuring Eliom modules
 
-This chapter explains how to set Eliom's options in the Ocsigen server configuration file, and how to define options for your Eliom modules. See the Ocsigen server documentation for more information about the `server's configuration`.
+This chapter explains how to set Eliom's options in the Ocsigen server configuration file, and how to define options for your Eliom modules. See the Ocsigen server documentation for more information about the [server's configuration](./../ocsigenserver/config.md).
 
 Note, however, that [Eliom's distillery](./workflow-distillery.md) provides templates to get started at once with Eliom\!
 
@@ -80,13 +80,13 @@ Warning:
 
 ### Defining an exception handler for the whole site
 
-When an exception is raised during the generation of a page, or when the page has not been found or has wrong parameters, an HTTP error 500 or 404 is sent to the client. You may want to catch these exceptions to print your own error page. Do this using `Eliom_service.set_exn_handler`. Here is the handler used by the tutorial:
+When an exception is raised during the generation of a page, or when the page has not been found or has wrong parameters, an HTTP error 500 or 404 is sent to the client. You may want to catch these exceptions to print your own error page. Do this using [`Eliom.Registration.set_exn_handler`](./eliom.server/Eliom-Registration.md#val-set_exn_handler). Here is the handler used by the tutorial:
 
 ```ocaml
-let _ = Eliom_service.set_exn_handler
+let _ = Eliom.Registration.set_exn_handler
    (fun e -> match e with
-    | Eliom_common.Eliom_404 ->
-        Eliom_registration.Html.send ~code:404
+    | Eliom.Common.Eliom_404 ->
+        Eliom.Registration.Html.send ~code:404
           (html
              (head (title (txt "")) [])
              (body [h1 [txt "Eliom tutorial"];
@@ -103,13 +103,13 @@ You can add your own options in the configuration file for your Web site. For ex
       <youroptions> ...
     </eliommodule>
 ```
-Use [`Eliom_config.get_config`](./eliom.server/Eliom_config.md#val-get_config) during the initialization of your module to get the data between \<eliom\> and \</eliom\>.
+Use [`Eliom.Config.get_config`](./eliom.server/Eliom-Config.md#val-get_config) during the initialization of your module to get the data between \<eliom\> and \</eliom\>.
 
  Warning: parsing these data is very basic for now. That feature will be improved in the future.
 
 ### Static linking of Eliom modules
 
-From version 1\.2, it is possible to link extensions and Eliom modules `statically`. But this is not straightforward. For Eliom modules, service registration and option settings must be delayed until the configuration file is read. To create a statically linkable Eliom module, use function [`Eliom_service.register_eliom_module`](./eliom.server/Eliom_service.md#val-register_eliom_module). It takes as parameters the name of the module and the initialization function that will be called once the module is initialized in the configuration file. That function should register the module services (and possibly call [`Eliom_config.get_config`](./eliom.server/Eliom_config.md#val-get_config) if the module has configuration options).
+From version 1\.2, it is possible to link extensions and Eliom modules [statically](./../ocsigenserver/staticlink.md). But this is not straightforward. For Eliom modules, service registration and option settings must be delayed until the configuration file is read. To create a statically linkable Eliom module, use function [`Eliom.Service.register_eliom_module`](./eliom.server/Eliom-Service.md#val-register_eliom_module). It takes as parameters the name of the module and the initialization function that will be called once the module is initialized in the configuration file. That function should register the module services (and possibly call [`Eliom.Config.get_config`](./eliom.server/Eliom-Config.md#val-get_config) if the module has configuration options).
 
 How to improve this and this easier to use?
 
@@ -127,13 +127,13 @@ To initialize the module from the configuration file, use the syntax:
 
 with the exception that it does not load the module using Dynlink, but calls the initialization function.<br/>
 
-You can use functions such as [`Eliom_state.create_volatile_table`](./eliom.server/Eliom_state.md#val-create_volatile_table) that needs information about the site (here, volatile tables are associated to a site), only during a request or during the initialization phase of the server.
+You can use functions such as [`Eliom.State.create_volatile_table`](./eliom.server/Eliom-State.md#val-create_volatile_table) that needs information about the site (here, volatile tables are associated to a site), only during a request or during the initialization phase of the server.
 
-If you want to use this kind of function before the initialization phase, for example if your module is linked statically with the server, you must call these function using function [`Eliom_service.register_eliom_module`](./eliom.server/Eliom_service.md#val-register_eliom_module). (One solution is to use a lazy value to delay the creation of the table, and force that value from the registration function).
+If you want to use this kind of function before the initialization phase, for example if your module is linked statically with the server, you must call these function using function [`Eliom.Service.register_eliom_module`](./eliom.server/Eliom-Service.md#val-register_eliom_module). (One solution is to use a lazy value to delay the creation of the table, and force that value from the registration function).
 
 ### Advanced use: create an extension for the server that access Eliom's data
 
-If you want an Ocsigen extension with access to Eliom's data (for example if you want an extension that will register some services), you can use the function [`Eliom_extension.register_eliom_extension`](./eliom.server/Eliom_extension.md#val-register_eliom_extension) to register the function that will generate the `Ocsigen_extensions.answer`.
+If you want an Ocsigen extension with access to Eliom's data (for example if you want an extension that will register some services), you can use the function [`Eliom.Extension.register_eliom_extension`](./eliom.server/Eliom-Extension.md#val-register_eliom_extension) to register the function that will generate the [`Ocsigen.Extensions.answer`](./../ocsigenserver/ocsigenserver/Ocsigen-Extensions.md#type-answer).
 
 Add more details about this
 
@@ -147,7 +147,7 @@ Revoir les timeouts pour client processes et groupes
 
 State timeouts can be set either inside tag `<extension findlib-package="eliom.server"/>` (default value for all sites), or inside a `<eliom/>` tag (default for one site).
 
-Timeouts can also be modified programmatically using functions like `Eliom_state.set_global_volatile_timeout`, but by default these functions will not override configuration files. (see module [`Eliom_state`](./eliom.server/Eliom_state.md) for other functions). Thus, a Web site can set its own defaults and the user can still override them from the configuration file. If you want to set a timeout programmatically even if it has been modified in a configuration file, use the optional parameter `~override_configfile:true`.
+Timeouts can also be modified programmatically using functions like `Eliom.State.set_global_volatile_timeout`, but by default these functions will not override configuration files. (see module [`Eliom.State`](./eliom.server/Eliom-State.md) for other functions). Thus, a Web site can set its own defaults and the user can still override them from the configuration file. If you want to set a timeout programmatically even if it has been modified in a configuration file, use the optional parameter `~override_configfile:true`.
 
 Timeouts can be set either for all scopes hierarchies, for one precise hierarchy, or for the default scope hierarchy. To do this programmatically, use the optional parameter `~scope`. In a configuration file, use the optional attribute `hierarchyname` (where an empty string value means default hierarchy). If this attribute is absent, the timeout will affect all states for which no other default has been set. The `hierarchyname` attribute exists only inside an `<eliom/>` tag (and not inside `<extension findlib-package="eliom.server"/>`).
 
@@ -191,7 +191,7 @@ Note that there is no limitation of named coservices or regular services. It is 
 
 #### How to set limits
 
-The limits and the subnet mask can be set programmatically by each module (for example to adapt the values to the size of session data) or in the configuration file (for instance, to adapt the values to the size of memory or network configuration) (see module [`Eliom_state`](./eliom.server/Eliom_state.md)). By default, functions like `Eliom_state.set_default_max_volatile_sessions_per_group` will not override a value set in the configuration file (but if you use `~override_configfile:true`). Thus, a Web site can set its own defaults and the user can still override them from the configuration file.
+The limits and the subnet mask can be set programmatically by each module (for example to adapt the values to the size of session data) or in the configuration file (for instance, to adapt the values to the size of memory or network configuration) (see module [`Eliom.State`](./eliom.server/Eliom-State.md)). By default, functions like `Eliom.State.set_default_max_volatile_sessions_per_group` will not override a value set in the configuration file (but if you use `~override_configfile:true`). Thus, a Web site can set its own defaults and the user can still override them from the configuration file.
 
 The configuration file options can be set either inside the tag `<extension findlib-package="eliom.server"/>` (global configuration), or inside the `<eliom/>` tag (configuration for each site). But the limits always are for one site (that is: a global limit value of 10 means 10 for each Eliom site).
 
@@ -218,6 +218,19 @@ The syntax is:
 - `<applicationscript defer="true" async="false"/>`
 Both attributes are optional and default to `false`.
 
+### WebAssembly support
+
+Eliom applications can be compiled to WebAssembly using `wasm_of_ocaml`. When enabled, the server generates a detection script that automatically loads the WASM version if the browser supports WebAssembly, with fallback to JavaScript otherwise.
+
+The syntax is:
+
+- `<wasm enabled="true"/>`
+WebAssembly support is disabled by default for backward compatibility. The Eliom templates (`app.exe`, `app.lib`) enable it explicitly.
+
+It can also be enabled programmatically using `Eliom.Config.set_enable_wasm true` or via the `~enable_wasm` parameter of `Eliom.run`.
+
+For production, use `--profile release` (or `DEBUG := no` in `Makefile.options`) to bundle all WASM modules into a single file, avoiding multiple HTTP requests at startup.
+
 ### Serving global data through a distinct URL
 
 When an Eliom program is initiated client-side, it needs to receive some global data from the server (that are persistent from request to request). This data is normally included in the HTML page sent by the server. Alternatively, it can be served through a separate request. This is more efficient as it allows this state to be serialized by the server only once, and cached by the clients (or possibly a CDN if your server is running behind one), but the client will receive stale data if global data changes over time.
@@ -242,4 +255,4 @@ You can change this default by adding the attribute `xhr-links` to the content o
 ```
 Then, all links will perform a normal HTTP request unless explicitely created with the `~xhr:true` option.
 
-This value can also be set through function [`Eliom_config.set_default_links_xhr`](./eliom.server/Eliom_config.md#val-set_default_links_xhr).
+This value can also be set through function [`Eliom.Config.set_default_links_xhr`](./eliom.server/Eliom-Config.md#val-set_default_links_xhr).

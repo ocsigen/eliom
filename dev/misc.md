@@ -4,33 +4,33 @@
 
 ### Images, CSS, Javascript
 
-To include an image, simply use function [`Eliom_content.Html.D.img`](./eliom.server/Eliom_content-Html-D.md#val-img):
+To include an image, simply use function [`Eliom.Content.Html.D.img`](./eliom.server/Eliom-Content-Html-D.md#val-img):
 
 ```ocaml
 img ~alt:"Ocsigen"
-    ~src:(Eliom_content.Html.F.make_uri
-            ~service:(Eliom_service.static_dir ())
+    ~src:(Eliom.Content.Html.F.make_uri
+            ~service:(Eliom.Service.static_dir ())
             ["images"; "ocsigen1024.jpg"])
     ()
 ```
-The function [`Eliom_content.Html.D.make_uri`](./eliom.server/Eliom_content-Html-D.md#val-make_uri) creates a relative URL string from current URL (see above) to the URL of the image (here in the static directory configured in the configuration file).
+The function [`Eliom.Content.Html.D.make_uri`](./eliom.server/Eliom-Content-Html-D.md#val-make_uri) creates a relative URL string from current URL (see above) to the URL of the image (here in the static directory configured in the configuration file).
 
 To simplify the creation of `<link>` tags for CSS or `<script>` tags for Javascript, use the following functions:
 
 ```ocaml
-Eliom_content.Html.F.css_link
-  ~uri:(Eliom_content.Html.F.make_uri
-         ~service:(Eliom_service.static_dir ()) ["style.css"]) ()
+Eliom.Content.Html.F.css_link
+  ~uri:(Eliom.Content.Html.F.make_uri
+         ~service:(Eliom.Service.static_dir ()) ["style.css"]) ()
 ```
 ```ocaml
-Eliom_content.Html.F.js_script
-  ~uri:(Eliom_content.Html.F.make_uri
-         ~service:(Eliom_service.static_dir ()) ["funs.js"]) ()
+Eliom.Content.Html.F.js_script
+  ~uri:(Eliom.Content.Html.F.make_uri
+         ~service:(Eliom.Service.static_dir ()) ["funs.js"]) ()
 ```
 
 ### Basic menus
 
-To generate a context-aware menu on your Web page, you can use the function [`Eliom_tools.HTML5_TOOLS.menu`](./eliom.server/Eliom_tools-module-type-HTML5_TOOLS.md#val-menu). This function can be used from either of the modules `Eliom_tools.Html.D` or `Eliom_tools.Html.F`. (See [HTML element manipulation, by value and by reference](./clientserver-html.md#unique)).
+To generate a context-aware menu on your Web page, you can use the function [`Eliom.Tools.HTML5_TOOLS.menu`](./eliom.server/Eliom-Tools-module-type-HTML5_TOOLS.md#val-menu). This function can be used from either of the modules `Eliom.Tools.Html.D` or `Eliom.Tools.Html.F`. (See [HTML element manipulation, by value and by reference](./clientserver-html.md#unique)).
 
 Here is a simple example:
 
@@ -41,16 +41,16 @@ let mymenu =
      (info,     [txt "More info"]);
      (tutorial, [txt "Documentation"])]
   in
-    Eliom_tools.D.menu
+    Eliom.Tools.D.menu
     ~classe:["menuprincipal"]
     items
-    ~service:Eliom_service.reload_action
+    ~service:Eliom.Service.reload_action
 ```
-`items` is a list of pairs correlating the services to be linked with the text to be displayed: `home`, `info`, and `tutorial` are our three services (generated, for example, by [`Eliom_registration.App.create`](./eliom.server/Eliom_registration-App.md#val-create) or [`Eliom_service.create`](./eliom.server/Eliom_service.md#val-create)).
+`items` is a list of pairs correlating the services to be linked with the text to be displayed: `home`, `info`, and `tutorial` are our three services (generated, for example, by [`Eliom.Service.create`](./eliom.server/Eliom-Service.md#val-create) and registered with an application module made with [`Eliom.Registration.App`](./eliom.server/Eliom-Registration-App.md)).
 
 The argument to the optional parameter `classe` adds the class `menuprincipal` to the resulting menu element.
 
-The argument to the optional parameter `service` determines which menu item to highlight. In this case, we use [`Eliom_service.reload_action`](./eliom.server/Eliom_service.md#val-reload_action) to highlight whichever service is currently being visited.
+The argument to the optional parameter `service` determines which menu item to highlight. In this case, we use [`Eliom.Service.reload_action`](./eliom.server/Eliom-Service.md#val-reload_action) to highlight whichever service is currently being visited.
 
 `mymenu ()`, when viewed on the home page, will generate the following HTML:
 
@@ -73,7 +73,7 @@ The argument to the optional parameter `service` determines which menu item to h
 ```
 You may then personalize the element in your CSS stylesheet as normal.
 
-Note: [`Eliom_tools.D.menu`](./eliom.server/Eliom_tools-D.md#val-menu) takes a list of services without GET parameters. If you want one of the links to contain GET parameters, pre-apply the service.
+Note: [`Eliom.Tools.D.menu`](./eliom.server/Eliom-Tools-D.md#val-menu) takes a list of services without GET parameters. If you want one of the links to contain GET parameters, pre-apply the service.
 
 ### Hierarchical menus
 

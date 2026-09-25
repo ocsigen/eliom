@@ -1,0 +1,212 @@
+/* wodoc default theme. Override with the (css …) config stanza. */
+
+:root {
+  --fg: #1b1f24;
+  --muted: #5b6570;
+  --bg: #ffffff;
+  --sidebar-bg: #f6f8fa;
+  --border: #e2e6ea;
+  --accent: #2f6f4f;
+  --accent-weak: #e7f1ec;
+  --code-bg: #f6f8fa;
+  --maxwidth: 1180px;
+  --sidebar-w: 17rem;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+body.wodoc-page {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--fg);
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* --- default top bar (the built-in --menu) ------------------------------- */
+.wodoc-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.7rem 1.2rem;
+  background: var(--fg);
+  color: #fff;
+}
+.wodoc-header a { color: #fff; }
+.logo-subproject { margin: 0; font-weight: 700; font-size: 1.05rem; }
+
+/* --- the two-column body ------------------------------------------------- */
+.project-page { max-width: var(--maxwidth); margin: 0 auto; padding: 0 1.2rem; }
+.twocols {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+  gap: 2.4rem;
+  align-items: start;
+}
+.leftcol {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  max-height: 100vh;
+  overflow-y: auto;
+  padding: 1.6rem 0;
+  font-size: 0.92rem;
+}
+.rightcol { min-width: 0; padding: 1.6rem 0 4rem; }
+
+/* --- version selector ---------------------------------------------------- */
+.docversion { margin-bottom: 1.3rem; }
+.docversion label { color: var(--muted); font-size: 0.85rem; }
+.wodoc-version {
+  margin-top: 0.3rem;
+  display: block;
+  width: 100%;
+  padding: 0.3rem 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+/* --- "on this page" panel ------------------------------------------------ */
+.page-toc { margin-bottom: 1.3rem; }
+.page-toc h3 {
+  margin: 0 0 0.4rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.page-toc .odoc-toc ul { list-style: none; margin: 0; padding: 0; }
+.page-toc .odoc-toc li { margin: 0.15rem 0; }
+.page-toc .odoc-toc ul ul { padding-left: 0.8rem; }
+.page-toc .odoc-local-toc:empty { display: none; }
+
+/* --- left navigation ----------------------------------------------------- */
+.api-nav { margin-bottom: 1.5rem; }
+.api-nav h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.api-nav h4 { margin: 0.7rem 0 0.3rem; font-size: 0.85rem; color: var(--fg); }
+.api-section { list-style: none; margin: 0; padding: 0; }
+.api-section li { margin: 0.1rem 0; }
+.api-section li a { display: block; padding: 0.15rem 0.5rem; border-radius: 5px; color: var(--fg); }
+.api-section li a:hover { background: var(--accent-weak); text-decoration: none; }
+.api-section li.current > a { background: var(--accent-weak); color: var(--accent); font-weight: 600; }
+.ml2 { padding-left: 0; }
+.ml3 { padding-left: 0.4rem; }
+.ml4 { padding-left: 1.2rem; }
+.ml5 { padding-left: 2rem; }
+
+/* --- client/server switch ------------------------------------------------ */
+.cs-switch { display: flex; gap: 0.4rem; margin: 0 0 1.2rem; }
+.cs-switch button, .cs-switch a {
+  flex: 1;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-align: center;
+}
+.cs-switch .current { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* --- blog ---------------------------------------------------------------- */
+.wodoc-blog-list { list-style: none; margin: 1.5rem 0; padding: 0; display: grid; gap: 1rem; }
+.wodoc-blog-card { border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; }
+.wodoc-blog-title { margin: 0 0 0.2rem; font-size: 1.1rem; }
+.wodoc-blog-meta { margin: 0 0 0.5rem; color: var(--muted); font-size: 0.85rem; }
+.wodoc-blog-excerpt { margin: 0; color: var(--fg); }
+
+/* --- odoc content -------------------------------------------------------- */
+.odoc-preamble, .odoc-content { font-size: 1rem; }
+.odoc-preamble { margin-bottom: 1.5rem; }
+.odoc-content h1, .odoc-preamble h1 { font-size: 2rem; line-height: 1.25; margin: 0 0 1rem; }
+.odoc-content h2 { font-size: 1.5rem; margin: 2.2rem 0 0.8rem; padding-bottom: 0.2rem; border-bottom: 1px solid var(--border); }
+.odoc-content h3 { font-size: 1.2rem; margin: 1.8rem 0 0.6rem; }
+.odoc-content h4 { font-size: 1.05rem; margin: 1.4rem 0 0.5rem; }
+.odoc-content .anchor { color: var(--muted); padding-right: 0.3rem; opacity: 0; }
+.odoc-content :hover > .anchor { opacity: 1; }
+.odoc-content p { margin: 0.8rem 0; }
+.odoc-content ul, .odoc-content ol { margin: 0.8rem 0; padding-left: 1.4rem; }
+.odoc-content li { margin: 0.25rem 0; }
+.odoc-content blockquote { margin: 1rem 0; padding: 0.2rem 1rem; border-left: 3px solid var(--border); color: var(--muted); }
+.odoc-content img { max-width: 100%; }
+
+.odoc-content code, .odoc-content pre, .spec, .odoc-spec { font-family: var(--mono); font-size: 0.9em; }
+.odoc-content code { background: var(--code-bg); padding: 0.12em 0.35em; border-radius: 4px; }
+.odoc-content pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  overflow-x: auto;
+  line-height: 1.45;
+}
+.odoc-content pre code { background: none; padding: 0; border-radius: 0; }
+
+/* Syntax highlighting (highlight.js tokens). odoc emits <pre class="language-…">
+   and defers colouring to a client-side highlighter; wodoc ships odoc's bundled
+   highlight.js plus wodoc-highlight.js, which adds the Ocsigen syntax extensions.
+   Every class the starter can emit gets a colour here (keep this list in sync with
+   the starter in lib/build.ml — default_highlight). */
+.hljs-keyword, .hljs-type { color: #8250df; }   /* let/fun/match, %ppx, let* / and* */
+.hljs-string, .hljs-char { color: #0a7d33; }
+.hljs-comment { color: var(--muted); font-style: italic; }
+.hljs-number, .hljs-literal { color: #b35900; }
+.hljs-title, .hljs-function { color: #1f5fbf; } /* names bound by let / and        */
+.hljs-operator { color: #8250df; }              /* js_of_ocaml ## and ##.          */
+.hljs-label { color: var(--muted); }            /* labels ~name: / ?name:          */
+.hljs-subst { color: #1f5fbf; font-weight: 600; } /* eliom ~%x client-value injection */
+/* eliom side markers (let%client / %server / %shared / %rpc), coloured per side
+   to match the block borders below. */
+.hljs-eliom-server { color: #b35900; font-weight: 600; }
+.hljs-eliom-client { color: #1f5fbf; font-weight: 600; }
+.hljs-eliom-shared, .hljs-eliom-rpc { color: #2f6f4f; font-weight: 600; }
+
+.server-code { border-left: 3px solid #b35900; }
+.client-code { border-left: 3px solid #1f5fbf; }
+.shared-code { border-left: 3px solid #2f6f4f; }
+
+.spec, .odoc-spec {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+  padding: 0.5rem 0.8rem;
+  margin: 0.8rem 0;
+  overflow-x: auto;
+}
+.spec .keyword, .odoc-spec .keyword { color: #8250df; }
+
+.odoc-content table {
+  border-collapse: collapse;
+  margin: 1rem 0;
+  width: 100%;
+  display: block;
+  overflow-x: auto;
+}
+.odoc-content th, .odoc-content td { border: 1px solid var(--border); padding: 0.4rem 0.7rem; text-align: left; }
+.odoc-content th { background: var(--sidebar-bg); }
+.odoc-content hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+
+/* --- responsive ---------------------------------------------------------- */
+@media (max-width: 800px) {
+  .twocols { grid-template-columns: 1fr; gap: 0; }
+  .leftcol { position: static; max-height: none; border-bottom: 1px solid var(--border); margin-bottom: 1rem; }
+}

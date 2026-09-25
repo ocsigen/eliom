@@ -10,8 +10,8 @@ val pid : unit -> int
 val fd : pid:int -> [ `Ok of int | `Error of string ]
 ```
 ```ocaml
-val content_div : unit -> [> Html_types.div ] Eliom_content.Html.elt Lwt.t
+val content_div : unit -> [> Html_types.div ] Eliom.Content.Html.elt Lwt.t
 ```
 ```ocaml
-val content_html : unit -> [> Html_types.html ] Eliom_content.Html.elt Lwt.t
+val content_html : unit -> [> Html_types.html ] Eliom.Content.Html.elt Lwt.t
 ```

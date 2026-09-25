@@ -19,7 +19,7 @@ Eliom Web sites are written as OCaml modules (producing `cma` or `cmxs` files) t
 
 ## Client/server applications
 
-Eliom applications are applications distributed between a server and a browser. An instance of the application is running in a browser tab, and can communicate with the server. The entire application is written in OCaml, as a single program, with special syntax to distinguish between server-side and client-side code. Client-side code is compiled to JavaScript, using the Js~\_of~\_ocaml compiler, to be executed by the browser.
+Eliom applications are applications distributed between a server and a browser. An instance of the application is running in a browser tab, and can communicate with the server. The entire application is written in OCaml, as a single program, with special syntax to distinguish between server-side and client-side code. Client-side code is compiled to JavaScript, using the Js~\_of~\_ocaml compiler, to be executed by the browser. It can also be compiled to WebAssembly using wasm~\_of~\_ocaml, with automatic browser detection and fallback.
 
 It is possible to refer on the client side to values defined in server-side code. Communication between the server and the client is handled by Eliom automatically. The use of the same language on both sides makes it very easy to exchange data.
 

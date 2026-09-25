@@ -39,8 +39,8 @@ This typically happens if authentication is badly implemented, or altogether mis
 
 ### [Path traversal](http://en.wikipedia.org/wiki/Directory_traversal)
 
-- The module `Extendconfiguration` can be used to prevent access to files or entire directories, from both Staticmod and Eliom.
-- Even if `userconf` is activated, users can only expose their own files; see the `localpath` option for details.
+- The module [Extendconfiguration](./../ocsigenserver/extendconfiguration.md) can be used to prevent access to files or entire directories, from both Staticmod and Eliom.
+- Even if [userconf](./../ocsigenserver/userconf.md) is activated, users can only expose their own files; see the `localpath` option for details.
 - Occurrences of the `'..'` pattern appearing in URLs are automatically removed by the server
 - Ocsigen automatically decode HTML entities in URLs, which protects against attacks based on quoted characters
 
