@@ -42,9 +42,12 @@ jobs:
         with:
           token: ${{ github.token }}
 
-      - run: opam pin -y git+https://github.com/ocsigen/ocsigenserver#master
-      # ocsipersist's released version targets the old flat module names; the
-      # master pin tracks the Ocsigen Server 8 API.
+      # Ocsigen Server 8.0.0 is released on GitHub but not yet published on
+      # opam (ocaml/opam-repository#30806): pin the release tag until then,
+      # so CI tests the declared artifact.
+      - run: opam pin -y git+https://github.com/ocsigen/ocsigenserver#8.0.0
+      # Eliom needs ocsipersist's Decoding_error API, not released yet
+      # (3.1.0, ocsigen/ocsipersist#34): pin master until then.
       - run: opam pin -yn git+https://github.com/ocsigen/ocsipersist#master
       # Published js_of_ocaml (6.3.2) caps at ocaml < 5.5; pin master for
       # 5.5 support (also pulls wasm_of_ocaml, hence the binaryen set-up).
