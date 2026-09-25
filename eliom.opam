@@ -23,7 +23,6 @@ depends: [
   "ppx_deriving"
   "ppxlib" {>= "0.35.0"}
   "js_of_ocaml-compiler" {>= "6.3.2"}
-  "wasm_of_ocaml-compiler" {>= "6.3.2"}
   "js_of_ocaml" {>= "6.3.2"}
   "js_of_ocaml-lwt" {>= "6.3.2"}
   "js_of_ocaml-ocamlbuild" {build}
@@ -56,5 +55,3 @@ build: [
 ]
 dev-repo: "git+https://github.com/ocsigen/eliom.git"
 x-maintenance-intent: ["(latest)"]
-# these distributions don't offer a recent enough binaryen for wasm_of_ocaml
-x-ci-accept-failures: ["centos-10" "opensuse-15.6" "opensuse-16.0"]

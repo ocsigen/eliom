@@ -47,8 +47,73 @@ jobs:
       # 5.5 support (also pulls wasm_of_ocaml, hence the binaryen set-up).
       - run: opam pin -y git+https://github.com/ocsigen/js_of_ocaml#master
       - run: opam install . --deps-only -y
+      # wasm_of_ocaml-compiler is now an optional dependency; install it
+      # explicitly so the WebAssembly client target stays covered by CI.
+      - run: opam install -y wasm_of_ocaml-compiler
 
       - run: opam exec -- dune build -p eliom
+
+  distillery:
+    # Builds projects generated from the distillery templates. Runs on OCaml 4
+    # because the templates' ocsipersist-sqlite backend pulls lwt_log, which
+    # requires OCaml < 5.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tree
+        uses: actions/checkout@v6
+
+      - name: Set-up OCaml
+        uses: ocaml/setup-ocaml@v3
+        with:
+          ocaml-compiler: 4
+          opam-pin: false
+
+      - name: Set-up Binaryen
+        uses: Aandreba/setup-binaryen@v1.0.0
+        with:
+          token: ${{ github.token }}
+
+      # Pin with -n (no install): pinning the js_of_ocaml repo otherwise
+      # installs every package in it, including wasm_of_ocaml-compiler, which
+      # would make the JS-only phase below build wasm anyway. With -n, only
+      # eliom's actual dependencies get installed by `opam install .` (wasm is
+      # an optional dep, so it stays out).
+      - run: opam pin -n -y git+https://github.com/ocsigen/ocsigenserver#master
+      - run: opam pin -n -y git+https://github.com/ocsigen/js_of_ocaml#master
+      # Install eliom itself: it provides eliom-distillery and the project
+      # templates. wasm_of_ocaml-compiler is optional and left uninstalled for
+      # now, so the first build below is genuinely JS-only.
+      - run: opam install . -y
+
+      # Generate a project from each template, install its dependencies and
+      # build it (default target, which exercises the project alias). With
+      # wasm_of_ocaml absent the project's WASM build auto-disables, so this
+      # checks the templates build out-of-the-box on a JS-only install.
+      - name: Generate and build templates (JS only)
+        run: |
+          for tmpl in app.exe app.lib; do
+            rm -rf "/tmp/$tmpl"
+            opam exec -- eliom-distillery -y -name testapp -template "$tmpl" -target-directory "/tmp/$tmpl"
+            opam install "/tmp/$tmpl" --deps-only -y
+            opam exec -- make -C "/tmp/$tmpl"
+            test ! -f "/tmp/$tmpl/_build/default/client/testapp.bc.wasm.js" \
+              || { echo "wasm unexpectedly built for $tmpl without wasm_of_ocaml"; exit 1; }
+          done
+
+      # Install the wasm toolchain and rebuild: the templates auto-detect
+      # wasm_of_ocaml and compile the client to WebAssembly. This is the only
+      # job that actually exercises wasm_of_ocaml compilation end to end.
+      - name: Generate and build templates (wasm enabled)
+        run: |
+          opam install -y wasm_of_ocaml-compiler
+          for tmpl in app.exe app.lib; do
+            rm -rf "/tmp/$tmpl-wasm"
+            opam exec -- eliom-distillery -y -name testapp -template "$tmpl" -target-directory "/tmp/$tmpl-wasm"
+            opam install "/tmp/$tmpl-wasm" --deps-only -y
+            opam exec -- make -C "/tmp/$tmpl-wasm"
+            test -f "/tmp/$tmpl-wasm/_build/default/client/testapp.bc.wasm.js" \
+              || { echo "wasm artifact not built for $tmpl"; exit 1; }
+          done
 
   lint-fmt:
     runs-on: ubuntu-latest
