@@ -82,6 +82,14 @@ jobs:
         # Cache miss only: build the dependency tree and wodoc once, then re-cache.
         if: steps.switch-cache.outputs.cache-hit != 'true'
         run: |
+          # Ocsigen Server 8 and ocsipersist 3.1 are released on GitHub but
+          # not yet published on opam (ocaml/opam-repository#30806): pin the
+          # release tags until then. ocsipersist needs explicit versions, as
+          # opam infers a pinned package's version from opam-repository when
+          # the project declares none.
+          opam pin -yn git+https://github.com/ocsigen/ocsigenserver#8.0.0
+          opam pin -yn ocsipersist-lib.3.1.0 git+https://github.com/ocsigen/ocsipersist#3.1.0
+          opam pin -yn ocsipersist.3.1.0 git+https://github.com/ocsigen/ocsipersist#3.1.0
           opam install . --deps-only --with-doc
           # wodoc themes the pages. Its opam pin-depends pulls odoc / odoc-driver
           # from the balat/odoc fork (the cross-library link fix, not yet upstream),

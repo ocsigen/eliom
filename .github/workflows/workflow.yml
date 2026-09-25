@@ -46,9 +46,12 @@ jobs:
       # opam (ocaml/opam-repository#30806): pin the release tag until then,
       # so CI tests the declared artifact.
       - run: opam pin -y git+https://github.com/ocsigen/ocsigenserver#8.0.0
-      # Eliom needs ocsipersist's Decoding_error API, not released yet
-      # (3.1.0, ocsigen/ocsipersist#34): pin master until then.
-      - run: opam pin -yn git+https://github.com/ocsigen/ocsipersist#master
+      # Eliom needs ocsipersist >= 3.1, released on GitHub but not yet
+      # published on opam. The version must be explicit: opam infers a pinned
+      # package's version from opam-repository (2.1.0) when the project
+      # declares none.
+      - run: opam pin -yn ocsipersist-lib.3.1.0 git+https://github.com/ocsigen/ocsipersist#3.1.0
+      - run: opam pin -yn ocsipersist.3.1.0 git+https://github.com/ocsigen/ocsipersist#3.1.0
       # Published js_of_ocaml (6.3.2) caps at ocaml < 5.5; pin master for
       # 5.5 support (also pulls wasm_of_ocaml, hence the binaryen set-up).
       - run: opam pin -y git+https://github.com/ocsigen/js_of_ocaml#master
