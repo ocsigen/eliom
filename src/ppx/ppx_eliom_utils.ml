@@ -1047,12 +1047,16 @@ module Make (Pass : Pass) = struct
 
       method! structure s =
         match s with
+        (* An empty file has no location to inspect, and transforming it
+           would only inject a useless preamble: leave it untouched. *)
+        | [] -> s
         | {pstr_loc; _} :: _ when is_plain_ocaml pstr_loc.loc_start.pos_fname ->
             s
         | _ -> toplevel_structure c s
 
       method! signature s =
         match s with
+        | [] -> s
         | {psig_loc; _} :: _ when is_plain_ocaml psig_loc.loc_start.pos_fname ->
             s
         | _ -> toplevel_signature c s
