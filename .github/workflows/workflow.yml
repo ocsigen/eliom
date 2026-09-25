@@ -51,7 +51,7 @@ jobs:
       - run: opam pin -y git+https://github.com/ocsigen/js_of_ocaml#master
       - run: opam install . --deps-only -y
 
-      - run: opam exec -- dune build -p eliom
+      - run: opam exec -- dune build -p eliom,eliom-compat
 
   lint-fmt:
     runs-on: ubuntu-latest
