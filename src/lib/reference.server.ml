@@ -205,13 +205,6 @@ let get_site_id () =
   (Common.get_config_info sd).Ocsigen.Extensions.default_hostname ^ ":"
   ^ Common.get_site_dir_string sd
 
-let typed_table_call (type a) (t : a typed_table) =
-  (module (val t) : Common.Ocsipersist.TABLE
-     with type key = string
-      and type value = a)
-[@@warning "-32"]
-(* helper signature used inside [let module] below *)
-
 let get (type a) ((f, _, table) as eref) : a Lwt.t =
   match (table : a eref_kind) with
   | Per t ->
