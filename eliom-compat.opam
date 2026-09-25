@@ -7,6 +7,8 @@ description:
 maintainer: ["dev@ocsigen.org"]
 authors: ["dev@ocsigen.org"]
 license: "LGPL-2.1-only WITH OCaml-LGPL-linking-exception"
+homepage: "https://ocsigen.org/eliom/"
+bug-reports: "https://github.com/ocsigen/eliom/issues"
 depends: [
   "dune" {>= "3.19"}
   "eliom" {= version}
@@ -26,4 +28,5 @@ build: [
     "@doc" {with-doc}
   ]
 ]
+dev-repo: "git+https://github.com/ocsigen/eliom.git"
 x-maintenance-intent: ["(latest)"]

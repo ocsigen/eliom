@@ -7,6 +7,8 @@
 (maintainers dev@ocsigen.org)
 (authors dev@ocsigen.org)
 (license "LGPL-2.1-only WITH OCaml-LGPL-linking-exception")
+(homepage https://ocsigen.org/eliom/)
+(source (github ocsigen/eliom))
 
 (generate_opam_files true)
 
@@ -21,8 +23,6 @@ These client-side features remain compatible with traditional Web programming (l
 It is possible to generate mobile applications for Android and iOS with the exact same code as your Web application.
 The client-side code is compiled to JS using Ocsigen Js_of_ocaml or to Wasm using Wasm_of_ocaml.
 ")
- (homepage https://ocsigen.org/eliom/)
- (source (github ocsigen/eliom))
  (maintenance_intent "(latest)")
  (depends
   (ocaml (>= 4.12))
