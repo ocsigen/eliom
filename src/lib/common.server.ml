@@ -1017,7 +1017,6 @@ let get_session_info ~sitedata ~req previous_extension_err =
               (fun t (k, v) -> Ocsigen_cookie_map.Map_inner.add k v t)
               Ocsigen_cookie_map.Map_inner.empty tc
           , pp )
-          (*Marshal.from_string (Ocsigen_base.Lib.decode tc) 0, pp*)
         with Not_found -> (
           match
             Ocsigen.Request.header ri
