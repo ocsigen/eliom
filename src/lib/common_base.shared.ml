@@ -98,6 +98,18 @@ module Full_state_name_table = Map.Make (struct
     let compare = compare
   end)
 
+(* The state cookies sent by a request, for each kind of state. The keys of
+   the tables are the full state names. *)
+type state_cookies =
+  { service_cookies : string Full_state_name_table.t
+  ; data_cookies : string Full_state_name_table.t
+  ; persistent_cookies : string Full_state_name_table.t }
+
+let no_state_cookies =
+  { service_cookies = Full_state_name_table.empty
+  ; data_cookies = Full_state_name_table.empty
+  ; persistent_cookies = Full_state_name_table.empty }
+
 (******************************************************************)
 (* Service kinds: *)
 (* A CSRF-safe coservice, whose registration is delayed until a link or a
@@ -217,28 +229,10 @@ type sess_info =
   ; si_all_get_params : (string * string) list
   ; si_all_post_params : (string * string) list option
   ; si_all_file_params : (string * file_info) list option
-  ; si_service_session_cookies : string Full_state_name_table.t
-  ; (* the session service cookies sent by the request *)
-    (* the key is the cookie name (or site dir) *)
-    si_data_session_cookies : string Full_state_name_table.t
-  ; (* the session data cookies sent by the request *)
-    (* the key is the cookie name (or site dir) *)
-    si_persistent_session_cookies : string Full_state_name_table.t
-  ; (* the persistent session cookies sent by the request *)
-    (* the key is the cookie name (or site dir) *)
-    si_secure_cookie_info :
-      string Full_state_name_table.t
-      * string Full_state_name_table.t
-      * string Full_state_name_table.t
-    (* the same, but for secure cookies *)
-  ; (* now for tab cookies: *)
-    si_service_session_cookies_tab : string Full_state_name_table.t
-  ; si_data_session_cookies_tab : string Full_state_name_table.t
-  ; si_persistent_session_cookies_tab : string Full_state_name_table.t
-  ; si_secure_cookie_info_tab :
-      string Full_state_name_table.t
-      * string Full_state_name_table.t
-      * string Full_state_name_table.t
+  ; si_state_cookies : state_cookies (* the state cookies sent by the request *)
+  ; si_secure_state_cookies : state_cookies (* the same, for secure cookies *)
+  ; si_state_cookies_tab : state_cookies (* the same, for tab cookies *)
+  ; si_secure_state_cookies_tab : state_cookies
   ; si_tab_cookies : string Ocsigen_cookie_map.Map_inner.t
   ; si_nonatt_info : na_key_req
   ; si_state_info : att_key_req * att_key_req

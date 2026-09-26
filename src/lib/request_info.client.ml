@@ -170,20 +170,10 @@ let default_request_data =
       ; si_all_get_params = []
       ; si_all_post_params = None
       ; si_all_file_params = None
-      ; si_service_session_cookies = Common.Full_state_name_table.empty
-      ; si_data_session_cookies = Common.Full_state_name_table.empty
-      ; si_persistent_session_cookies = Common.Full_state_name_table.empty
-      ; si_secure_cookie_info =
-          ( Common.Full_state_name_table.empty
-          , Common.Full_state_name_table.empty
-          , Common.Full_state_name_table.empty )
-      ; si_service_session_cookies_tab = Common.Full_state_name_table.empty
-      ; si_data_session_cookies_tab = Common.Full_state_name_table.empty
-      ; si_persistent_session_cookies_tab = Common.Full_state_name_table.empty
-      ; si_secure_cookie_info_tab =
-          ( Common.Full_state_name_table.empty
-          , Common.Full_state_name_table.empty
-          , Common.Full_state_name_table.empty )
+      ; si_state_cookies = Common.no_state_cookies
+      ; si_secure_state_cookies = Common.no_state_cookies
+      ; si_state_cookies_tab = Common.no_state_cookies
+      ; si_secure_state_cookies_tab = Common.no_state_cookies
       ; si_tab_cookies = Ocsigen_cookie_map.Map_inner.empty
       ; si_nonatt_info = Common.RNa_no
       ; si_state_info = Common.RAtt_no, Common.RAtt_no
