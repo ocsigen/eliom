@@ -227,8 +227,6 @@ module Mli = struct
 
       method! core_type ty =
         match ty.ptyp_desc with
-        (* | Ptyp_constr  (_, Ast.TyAny _, ty) *)
-        (* | Ptyp_constr (_, ty, Ast.TyAny _) -> ty *)
         | Ptyp_var var when has_pfix var ->
             super#core_type {ty with ptyp_desc = Ptyp_var (rename var)}
         | _ -> super#core_type ty

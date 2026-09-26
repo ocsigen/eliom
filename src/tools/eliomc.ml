@@ -282,11 +282,6 @@ let compile_eliom ~impl_intf file =
     output_prefix file ^ ext
   in
   let ppopts = get_ppopts ~impl_intf file in
-  (* if !do_dump then begin *)
-  (*   let camlp4, ppopt = get_pp_dump pkg ("-printer" :: "o" :: ppopts @ [file]) in *)
-  (*   create_process camlp4 ppopt; *)
-  (*   exit 0 *)
-  (* end; *)
   create_process !compiler
     (["-c"; "-o"; obj]
     @ ["-intf-suffix"; ".eliomi"]
