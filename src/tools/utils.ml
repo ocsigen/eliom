@@ -94,11 +94,7 @@ let get_pkg_predicates pkgs =
     (Findlib.package_deep_ancestors (Lazy.force syntax_predicates) pkgs)
 
 let with_autoload all_pkgs =
-  if !autoload_predef
-  then
-    (* Format.eprintf "\nAUTOLOADING PREDEF PKGS\n%s\n@." (String.concat ", " all_pkgs); *)
-    "eliom.syntax.predef" :: all_pkgs
-  else all_pkgs
+  if !autoload_predef then "eliom.syntax.predef" :: all_pkgs else all_pkgs
 
 let get_server_package ?kind:k ?package:p () =
   let package = match p with Some p -> p | None -> !package in
@@ -125,7 +121,6 @@ let get_client_package ?kind:k () =
 
 let get_syntax_package pkg =
   let resolve_syntax_packages pkgs =
-    (* Format.eprintf "pkgs: %s@." (String.concat ", " pkgs); *)
     let pkg_predicates = get_pkg_predicates pkgs in
     try
       Findlib.package_deep_ancestors
@@ -214,7 +209,6 @@ let get_common_include ?kind:k ?build_dir:dir ?package:p () =
 
 let get_common_syntax pkg =
   let syntax_pkg = get_syntax_package pkg in
-  (* Format.eprintf "pkgs: %s@." (String.concat ", " syntax_pkg); *)
   map_include (List.map Findlib.package_directory syntax_pkg)
   @ List.concat
       (List.map
@@ -268,7 +262,6 @@ let get_pp pkg =
     match !pp with
     | None -> String.concat " " (!camlp4 :: get_common_syntax pkg)
     | Some pp -> pp ^ " " ^ String.concat " " (get_common_syntax pkg)
-    (* Format.eprintf "get_pp %S@." s *)
   in
   s
 
