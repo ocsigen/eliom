@@ -529,51 +529,36 @@ let parse_eliom_options f l =
 (*****************************************************************************)
 (** Parsing global configuration for Mod_main: *)
 
+(* "infinity" means no garbage collection. It must be tested first, since
+   float_of_string accepts it. *)
+let parse_gc_frequency tag s =
+  if s = "infinity"
+  then None
+  else
+    match float_of_string_opt s with
+    | Some t -> Some t
+    | None ->
+        raise
+          (Error_in_config_file
+             (Printf.sprintf "Eliom: Wrong value for <%s>" tag))
+
 let rec parse_global_config = function
   | [] -> ()
-  | Xml.Element ("sessiongcfrequency", [("value", s)], _) :: ll ->
-      (try
-         let t = float_of_string s in
-         Mod_gc.set_servicesessiongcfrequency (Some t);
-         Mod_gc.set_datasessiongcfrequency (Some t)
-       with Failure _ ->
-         if s = "infinity"
-         then (
-           Mod_gc.set_servicesessiongcfrequency None;
-           Mod_gc.set_datasessiongcfrequency None)
-         else
-           raise
-             (Error_in_config_file "Eliom: Wrong value for <sessiongcfrequency>"));
+  | Xml.Element (("sessiongcfrequency" as tag), [("value", s)], _) :: ll ->
+      let t = parse_gc_frequency tag s in
+      Mod_gc.set_servicesessiongcfrequency t;
+      Mod_gc.set_datasessiongcfrequency t;
       parse_global_config ll
-  | Xml.Element ("servicesessiongcfrequency", [("value", s)], _) :: ll ->
-      (try Mod_gc.set_servicesessiongcfrequency (Some (float_of_string s))
-       with Failure _ ->
-         if s = "infinity"
-         then Mod_gc.set_servicesessiongcfrequency None
-         else
-           raise
-             (Error_in_config_file
-                "Eliom: Wrong value for <servicesessiongcfrequency>"));
+  | Xml.Element (("servicesessiongcfrequency" as tag), [("value", s)], _) :: ll
+    ->
+      Mod_gc.set_servicesessiongcfrequency (parse_gc_frequency tag s);
       parse_global_config ll
-  | Xml.Element ("datasessiongcfrequency", [("value", s)], _) :: ll ->
-      (try Mod_gc.set_datasessiongcfrequency (Some (float_of_string s))
-       with Failure _ ->
-         if s = "infinity"
-         then Mod_gc.set_datasessiongcfrequency None
-         else
-           raise
-             (Error_in_config_file
-                "Eliom: Wrong value for <datasessiongcfrequency>"));
+  | Xml.Element (("datasessiongcfrequency" as tag), [("value", s)], _) :: ll ->
+      Mod_gc.set_datasessiongcfrequency (parse_gc_frequency tag s);
       parse_global_config ll
-  | Xml.Element ("persistentsessiongcfrequency", [("value", s)], _) :: ll ->
-      (try Mod_gc.set_persistentsessiongcfrequency (Some (float_of_string s))
-       with Failure _ ->
-         if s = "infinity"
-         then Mod_gc.set_persistentsessiongcfrequency None
-         else
-           raise
-             (Error_in_config_file
-                "Eliom: Wrong value for <persistentsessiongcfrequency>"));
+  | Xml.Element (("persistentsessiongcfrequency" as tag), [("value", s)], _)
+    :: ll ->
+      Mod_gc.set_persistentsessiongcfrequency (parse_gc_frequency tag s);
       parse_global_config ll
   | e :: ll ->
       parse_eliom_option

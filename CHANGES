@@ -171,6 +171,11 @@
    Error_in_config_file with a message instead of an Assert_failure.
 ** A non-integer cache attribute of <cacheglobaldata> now raises
    Error_in_config_file instead of an uncaught Failure.
+** The value "infinity" of the <sessiongcfrequency>,
+   <servicesessiongcfrequency>, <datasessiongcfrequency> and
+   <persistentsessiongcfrequency> options now disables the corresponding
+   garbage collection, as intended. It used to start a collector
+   sleeping for an infinite time.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
