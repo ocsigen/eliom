@@ -1048,6 +1048,39 @@ let get_tab_cookies ri rc post_params =
     in
     None, tab_cookies, post_params
 
+(* The client process info sent by a client-side program *)
+let get_client_process_info ri =
+  match
+    Ocsigen.Request.header ri
+      (Ocsigen_http.Header.Name.of_string tab_cpi_header_name)
+  with
+  | Some cpi ->
+      of_json_or_default ~what:"client process info" ~default:None
+        (fun s -> Some ([%of_json: cpi] s))
+        cpi
+  | None -> None
+
+(* Whether the client expects a page for its process *)
+let get_expecting_process_page ri =
+  match
+    Ocsigen.Request.header ri
+      (Ocsigen_http.Header.Name.of_string expecting_process_page_name)
+  with
+  | Some epd ->
+      of_json_or_default ~what:"expecting-process-page flag" ~default:false
+        [%of_json: bool] epd
+  | None -> false
+
+(* The cookies of the browser, or the substitutes sent by a client-side
+   program that cannot use them *)
+let get_browser_cookies ri =
+  match
+    Ocsigen.Request.header ri
+      (Ocsigen_http.Header.Name.of_string cookie_substitutes_header_name)
+  with
+  | Some tc -> cookie_map_of_json ~what:"cookie substitutes" tc
+  | None -> Ocsigen.Request.cookies ri
+
 let get_session_info ~sitedata ~req previous_extension_err =
   let req_whole = req
   and ri = req.Ocsigen.Extensions.request_info
@@ -1073,28 +1106,8 @@ let get_session_info ~sitedata ~req previous_extension_err =
   let previous_tab_cookies_info, tab_cookies, post_params =
     get_tab_cookies ri rc post_params
   in
-  let cpi =
-    match
-      Ocsigen.Request.header ri
-        (Ocsigen_http.Header.Name.of_string tab_cpi_header_name)
-    with
-    | Some cpi ->
-        of_json_or_default ~what:"client process info" ~default:None
-          (fun s -> Some ([%of_json: cpi] s))
-          cpi
-    | None -> None
-  in
-  let epd =
-    lazy
-      (match
-         Ocsigen.Request.header ri
-           (Ocsigen_http.Header.Name.of_string expecting_process_page_name)
-       with
-      | Some epd ->
-          of_json_or_default ~what:"expecting-process-page flag" ~default:false
-            [%of_json: bool] epd
-      | None -> false)
-  in
+  let cpi = get_client_process_info ri in
+  let epd = lazy (get_expecting_process_page ri) in
   let post_params, get_params, to_be_considered_as_get =
     let g = Ocsigen.Request.get_params_flat ri in
     try
@@ -1156,14 +1169,7 @@ let get_session_info ~sitedata ~req previous_extension_err =
         ; pa_ignored_get_params = ignored_get
         ; pa_ignored_post_params = ignored_post } )
   in
-  let browser_cookies =
-    match
-      Ocsigen.Request.header ri
-        (Ocsigen_http.Header.Name.of_string cookie_substitutes_header_name)
-    with
-    | Some tc -> cookie_map_of_json ~what:"cookie substitutes" tc
-    | None -> Ocsigen.Request.cookies ri
-  in
+  let browser_cookies = get_browser_cookies ri in
   let state_cookies = get_state_cookies false `Session browser_cookies in
   let secure_state_cookies = get_state_cookies true `Session browser_cookies in
   let ( naservice_info
