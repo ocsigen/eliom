@@ -83,7 +83,7 @@ let create service channel waiter =
          in
          Lwt.return_unit)
       (function
-        | Request.Failed_request 204 -> Lwt.return_unit | exc -> Lwt.reraise exc)
+        | Request.Failed_request 204 -> Lwt.return_unit | exc -> Lwt.fail exc)
   in
   let error_h =
     let t, u = Lwt.wait () in
