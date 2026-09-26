@@ -687,7 +687,7 @@ and raw_rebuild_node ns = function
       let node = Dom_html.document##(createElement (Js.string name)) in
       List.iter (rebuild_rattrib node) attribs;
       (node :> Dom.node Js.t)
-  | Xml.Node (name, attribs, childrens) ->
+  | Xml.Node (name, attribs, children) ->
       let ns = if name = "svg" then `SVG else ns in
       let node =
         match ns with
@@ -698,7 +698,7 @@ and raw_rebuild_node ns = function
                                   (Js.string name))
       in
       List.iter (rebuild_rattrib node) attribs;
-      List.iter (fun c -> Dom.appendChild node (rebuild_node' ns c)) childrens;
+      List.iter (fun c -> Dom.appendChild node (rebuild_node' ns c)) children;
       (node :> Dom.node Js.t)
 
 (* [is_before_initial_load] tests whether it is executed before the

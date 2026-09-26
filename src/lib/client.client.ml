@@ -229,10 +229,10 @@ let relink_process_node (node : Dom_html.element Js.t) =
        let id = Js.to_bytestring id in
        if not (String.length id >= 7 && String.sub id 0 7 = "global_")
        then (
-         let childrens = Dom.list_of_nodeList pnode##.childNodes in
-         List.iter (fun c -> ignore pnode##(removeChild c)) childrens;
-         let childrens = Dom.list_of_nodeList node##.childNodes in
-         List.iter (fun c -> ignore pnode##(appendChild c)) childrens))
+         let children = Dom.list_of_nodeList pnode##.childNodes in
+         List.iter (fun c -> ignore pnode##(removeChild c)) children;
+         let children = Dom.list_of_nodeList node##.childNodes in
+         List.iter (fun c -> ignore pnode##(appendChild c)) children))
 
 let relink_request_node (node : Dom_html.element Js.t) =
   let id =
@@ -318,7 +318,7 @@ let relink_closure_node root onload table (node : Dom_html.element Js.t) =
         if name = Js.string "onload"
         then (
           if
-            Mod_dom.ancessor root node
+            Mod_dom.ancestor root node
             (* if not inside a unique node replaced by an older one *)
           then onload := closure :: !onload)
         else

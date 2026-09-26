@@ -79,11 +79,11 @@ let test_onhashchange () =
   Js.Optdef.test
     (Js.Unsafe.coerce Dom_html.window : dom_tester Js.t)##.onhashchange
 
-let fast_ancessor (elt1 : #Dom.node Js.t) (elt2 : #Dom.node Js.t) =
+let fast_ancestor (elt1 : #Dom.node Js.t) (elt2 : #Dom.node Js.t) =
   let open Dom.DocumentPosition in
   has elt1##(compareDocumentPosition (elt2 :> Dom.node Js.t)) contained_by
 
-let slow_ancessor (elt1 : #Dom.node Js.t) (elt2 : #Dom.node Js.t) =
+let slow_ancestor (elt1 : #Dom.node Js.t) (elt2 : #Dom.node Js.t) =
   let rec check_parent n =
     if Js.strict_equals n (elt1 :> Dom.node Js.t)
     then true
@@ -94,8 +94,8 @@ let slow_ancessor (elt1 : #Dom.node Js.t) (elt2 : #Dom.node Js.t) =
   in
   check_parent (elt2 :> Dom.node Js.t)
 
-let ancessor =
-  if test_compareDocumentPosition () then fast_ancessor else slow_ancessor
+let ancestor =
+  if test_compareDocumentPosition () then fast_ancestor else slow_ancestor
 
 let fast_select_request_nodes root =
   root##(querySelectorAll (Js.string ("." ^ Runtime.RawXML.request_node_class)))

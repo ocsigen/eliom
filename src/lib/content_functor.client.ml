@@ -96,8 +96,8 @@ struct
     ignore node1##(replaceChild (get_node elt2) node3)
 
   let raw_removeChildren node =
-    let childrens = Dom.list_of_nodeList node##.childNodes in
-    List.iter (fun c -> ignore node##(removeChild c)) childrens
+    let children = Dom.list_of_nodeList node##.childNodes in
+    List.iter (fun c -> ignore node##(removeChild c)) children
 
   let raw_replaceChildren node elts =
     raw_removeChildren node;
