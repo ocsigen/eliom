@@ -1738,8 +1738,7 @@ let make_uri subpath params =
     if is_client_app ()
     then match subpath with _ :: _ -> String.concat "/" subpath | [] -> "/"
     else
-      let path =
-        match subpath with _ :: _ -> String.concat "/" subpath | [] -> ""
+      let path = String.concat "/" subpath
       and port =
         match Url.Current.port with
         | Some port -> Printf.sprintf ":%d" port
@@ -1779,19 +1778,13 @@ let string_of_result result =
   | Dom _ -> "Dom"
   | Redirect _ -> "Redirect"
   | Reload_action {hidden; https} ->
-      let values =
-        match hidden, https with
-        | false, false -> "false, false"
-        | false, true -> "false, true"
-        | true, false -> "true, false"
-        | true, true -> "true, true"
-      in
-      "Reload_action with hidden and https as " ^ values
+      Printf.sprintf "Reload_action with hidden and https as %b, %b" hidden
+        https
 
 let rec handle_result ~replace ~uri result =
   let* result = result in
   Logs.debug ~src:section_page (fun fmt ->
-    fmt "%s" ("handle_result: result is " ^ string_of_result result));
+    fmt "handle_result: result is %s" (string_of_result result));
   match result with
   | Service.No_contents -> Lwt.return_unit
   | Dom d ->
