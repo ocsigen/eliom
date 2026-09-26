@@ -802,9 +802,8 @@ let get_session_service_table_if_exists ~sp ~scope ?secure () =
 (** {2 persistent sessions} *)
 
 type 'a persistent_table =
-  Common.user_scope
-  * bool
-  * (module Common.Ocsipersist.TABLE with type key = string and type value = 'a)
+  (module Common.Ocsipersist.TABLE with type key = string and type value = 'a)
+    Common.state_table
 
 let create_persistent_table ~scope ?secure ~json name :
   'a persistent_table Lwt.t
@@ -812,10 +811,10 @@ let create_persistent_table ~scope ?secure ~json name :
   let sitedata = Request_info.find_sitedata "create_persistent_table" in
   let secure = Common.get_secure ~secure_o:secure ~sitedata in
   let t = Common.Persistent_tables.create_json ~name json in
-  Lwt.return (scope, secure, t)
+  Lwt.return {Common.table_scope = scope; table_secure = secure; table = t}
 
 let get_p_table_key_
-      ~table:(scope, secure, table)
+      ~table:{Common.table_scope = scope; table_secure = secure; table}
       (find_cookie :
         cookie_scope:Common.cookie_scope
         -> secure_o:bool option
@@ -869,7 +868,7 @@ let set_persistent_data (type a) ~(table : a persistent_table) (value : a) =
 let remove_persistent_data (type a) ~(table : a persistent_table) () =
   Lwt.catch
     (fun () ->
-       let scope, secure, _ = table in
+       let {Common.table_scope = scope; table_secure = secure; _} = table in
        let* table, key =
          get_p_table_key_ ~table Mod_persess.find_persistent_cookie_only
        in
@@ -886,7 +885,7 @@ let remove_persistent_data (type a) ~(table : a persistent_table) () =
 (*****************************************************************************)
 (** {2 session data in memory} *)
 
-type 'a volatile_table = Common.user_scope * bool * 'a Common.SessionCookies.t
+type 'a volatile_table = 'a Common.SessionCookies.t Common.state_table
 
 let create_volatile_table ~scope ?secure () =
   match Common.get_sp_option () with
@@ -904,7 +903,7 @@ let create_volatile_table ~scope ?secure () =
       Mod_datasess.create_volatile_table_during_session ~scope ~secure sitedata
 
 let get_table_key_
-      ~table:(scope, secure, table)
+      ~table:{Common.table_scope = scope; table_secure = secure; table}
       (find_cookie :
         cookie_scope:Common.cookie_scope
         -> secure_o:bool option
@@ -948,7 +947,7 @@ let set_volatile_data ~table value =
 
 let remove_volatile_data ~table () =
   try
-    let scope, secure, _ = table in
+    let {Common.table_scope = scope; table_secure = secure; _} = table in
     let table, key = get_table_key_ ~table Mod_datasess.find_data_cookie_only in
     Common.SessionCookies.remove table key;
     (* Now we want to close the session if it has not data inside
@@ -1326,7 +1325,7 @@ module Ext = struct
     (*VVV Does not work with volatile group data *)
     let get_volatile_data
           ~state:((state_scope, _, cookie) : ('s, [`Data]) state)
-          ~table:((table_scope, _secure, t) : 'a volatile_table)
+          ~table:({Common.table_scope; table = t; _} : 'a volatile_table)
       =
       check_scopes table_scope state_scope;
       Common.SessionCookies.find t cookie
@@ -1334,7 +1333,7 @@ module Ext = struct
     let get_persistent_data
           (type a)
           ~state:((state_scope, _, cookie) : ('s, [`Pers]) state)
-          ~table:((table_scope, _, t) : a persistent_table)
+          ~table:({Common.table_scope; table = t; _} : a persistent_table)
       =
       lwt_check_scopes table_scope state_scope >>= fun () ->
       let module T =
@@ -1345,7 +1344,7 @@ module Ext = struct
 
     let set_volatile_data
           ~state:((state_scope, _, cookie) : ('s, [`Data]) state)
-          ~table:((table_scope, _secure, t) : 'a volatile_table)
+          ~table:({Common.table_scope; table = t; _} : 'a volatile_table)
           value
       =
       check_scopes table_scope state_scope;
@@ -1354,7 +1353,7 @@ module Ext = struct
     let set_persistent_data
           (type a)
           ~state:((state_scope, _, cookie) : ('s, [`Pers]) state)
-          ~table:((table_scope, _, t) : a persistent_table)
+          ~table:({Common.table_scope; table = t; _} : a persistent_table)
           (value : a)
       =
       lwt_check_scopes table_scope state_scope >>= fun () ->
@@ -1366,7 +1365,7 @@ module Ext = struct
 
     let remove_volatile_data
           ~state:((state_scope, _, cookie) : ('s, [`Data]) state)
-          ~table:((table_scope, _, t) : 'a volatile_table)
+          ~table:({Common.table_scope; table = t; _} : 'a volatile_table)
       =
       check_scopes table_scope state_scope;
       Common.SessionCookies.remove t cookie
@@ -1374,7 +1373,7 @@ module Ext = struct
     let remove_persistent_data
           (type a)
           ~state:((state_scope, _, cookie) : ('s, [`Pers]) state)
-          ~table:((table_scope, _, t) : a persistent_table)
+          ~table:({Common.table_scope; table = t; _} : a persistent_table)
       =
       lwt_check_scopes table_scope state_scope >>= fun () ->
       let module T =

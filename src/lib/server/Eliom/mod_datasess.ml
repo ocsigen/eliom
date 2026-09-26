@@ -242,7 +242,9 @@ let create_volatile_table_during_session ~scope ~secure sitedata =
       && not (Common.SessionCookies.mem t cookie));
   counttableelements :=
     (fun () -> Common.SessionCookies.length t) :: !counttableelements;
-  scope, secure, t
+  { Common.table_scope = (scope :> Common.user_scope)
+  ; table_secure = secure
+  ; table = t }
 
 let create_volatile_table ~scope ~secure =
   create_volatile_table_during_session ~scope ~secure
