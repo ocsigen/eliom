@@ -1018,6 +1018,36 @@ let cookie_map_of_json ~what s =
        (fun t (k, v) -> Ocsigen_cookie_map.Map_inner.add k v t)
        Ocsigen_cookie_map.Map_inner.empty
 
+(* The tab cookies of a request, and its POST parameters without the one
+   that may carry them. After an action, they are taken from the request
+   cache, together with the tab cookies info of the action. *)
+let get_tab_cookies ri rc post_params =
+  try
+    let tci, utc, tc =
+      Polytables.get ~table:rc ~key:tab_cookie_action_info_key
+    in
+    Polytables.remove ~table:rc ~key:tab_cookie_action_info_key;
+    Some (tci, utc), tc, post_params
+  with Not_found ->
+    let tab_cookies, post_params =
+      try
+        (* Tab cookies are found in HTTP headers,
+   but also sometimes in POST params (when we do not want to do an XHR
+   because we want to stop the client side process).
+   It should never be both.
+          *)
+        let tc, pp = List.assoc_remove tab_cookies_param_name post_params in
+        cookie_map_of_json ~what:"tab cookies" tc, pp
+      with Not_found -> (
+        match
+          Ocsigen.Request.header ri
+            (Ocsigen_http.Header.Name.of_string tab_cookies_header_name)
+        with
+        | Some tc -> cookie_map_of_json ~what:"tab cookies" tc, post_params
+        | None -> Ocsigen_cookie_map.Map_inner.empty, post_params)
+    in
+    None, tab_cookies, post_params
+
 let get_session_info ~sitedata ~req previous_extension_err =
   let req_whole = req
   and ri = req.Ocsigen.Extensions.request_info
@@ -1041,31 +1071,7 @@ let get_session_info ~sitedata ~req previous_extension_err =
   in
   let* post_params = p in
   let previous_tab_cookies_info, tab_cookies, post_params =
-    try
-      let tci, utc, tc =
-        Polytables.get ~table:rc ~key:tab_cookie_action_info_key
-      in
-      Polytables.remove ~table:rc ~key:tab_cookie_action_info_key;
-      Some (tci, utc), tc, post_params
-    with Not_found ->
-      let tab_cookies, post_params =
-        try
-          (* Tab cookies are found in HTTP headers,
-   but also sometimes in POST params (when we do not want to do an XHR
-   because we want to stop the client side process).
-   It should never be both.
-          *)
-          let tc, pp = List.assoc_remove tab_cookies_param_name post_params in
-          cookie_map_of_json ~what:"tab cookies" tc, pp
-        with Not_found -> (
-          match
-            Ocsigen.Request.header ri
-              (Ocsigen_http.Header.Name.of_string tab_cookies_header_name)
-          with
-          | Some tc -> cookie_map_of_json ~what:"tab cookies" tc, post_params
-          | None -> Ocsigen_cookie_map.Map_inner.empty, post_params)
-      in
-      None, tab_cookies, post_params
+    get_tab_cookies ri rc post_params
   in
   let cpi =
     match
