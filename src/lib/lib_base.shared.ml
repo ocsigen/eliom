@@ -67,7 +67,7 @@ module Int64_map = Map_make (Int64)
 module Int_map = Map_make (struct
     type t = int
 
-    let compare = ( - )
+    let compare = Stdlib.Int.compare
     let to_string = string_of_int
   end)
 
