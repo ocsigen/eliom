@@ -385,8 +385,8 @@ type 'a cookie_info1 =
 (** The state cookies of a request, for one security level, for each kind
     of state *)
 
-type 'a cookie_info = 'a cookie_info1 (* unsecure *) * 'a cookie_info1
-(* secure *)
+type 'a cookie_info =
+  {ci_unsecure : 'a cookie_info1; ci_secure : 'a cookie_info1}
 
 module Service_cookie : sig
   type 'a t =

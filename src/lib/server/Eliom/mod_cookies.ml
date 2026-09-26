@@ -365,10 +365,11 @@ let get_cookie_info
       ; ci_persistent = ref persoktable }
     , servfailedlist )
   in
-  ( ( { Common.ci_service = ref servoktable
-      ; ci_data = ref dataoktable
-      ; ci_persistent = ref persoktable }
-    , sec )
+  ( { Common.ci_unsecure =
+        { ci_service = ref servoktable
+        ; ci_data = ref dataoktable
+        ; ci_persistent = ref persoktable }
+    ; ci_secure = sec }
   , sservfailedlist @ servfailedlist )
 
 (*****************************************************************************)
@@ -386,10 +387,11 @@ let new_data_cookie_table () : Common.Data_cookie.table =
 
 let compute_cookies_to_send
       sitedata
-      ( { Common.ci_service = service_cookie_info
-        ; ci_data = data_cookie_info
-        ; ci_persistent = pers_cookies_info }
-      , secure_ci )
+      { Common.ci_unsecure =
+          { ci_service = service_cookie_info
+          ; ci_data = data_cookie_info
+          ; ci_persistent = pers_cookies_info }
+      ; ci_secure = secure_ci }
       (endlist : Ocsigen_cookie_map.t)
   =
   let getservvexp (old, newi) =
@@ -533,7 +535,8 @@ let compute_new_ri_cookies
       (now : float)
       (ripath : string list)
       (ricookies : string Ocsigen_cookie_map.Map_inner.t)
-      ((ci, secure_ci) : Common.tables Common.cookie_info)
+      ({Common.ci_unsecure = ci; ci_secure = secure_ci} :
+        Common.tables Common.cookie_info)
       (cookies_set_by_page : Ocsigen_cookie_map.t) :
   string Ocsigen_cookie_map.Map_inner.t Lwt.t
   =

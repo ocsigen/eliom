@@ -28,25 +28,19 @@
 
 open Lib
 
-let compute_cookie_info sitedata secure_o secure_ci cookie_info =
+let compute_cookie_info sitedata secure_o {Common.ci_unsecure; ci_secure} =
   let secure = Common.get_secure ~secure_o ~sitedata in
-  if secure
-  then
-    let c = secure_ci.Common.ci_data in
-    c, true
-  else cookie_info, false
+  (if secure then ci_secure else ci_unsecure).Common.ci_data, secure
 
 (* to be called during a request *)
 let close_data_state ~scope ~secure_o ?sp () =
   let sp = Common.sp_of_option sp in
   try
     let cookie_level = Common.cookie_level_of_user_scope scope in
-    let {Common.ci_data = cookie_info; _}, secure_ci =
-      Common.get_cookie_info sp cookie_level
-    in
+    let cookie_info = Common.get_cookie_info sp cookie_level in
     let sitedata = Request_info.get_sitedata_sp ~sp in
     let cookie_info, secure =
-      compute_cookie_info sitedata secure_o secure_ci cookie_info
+      compute_cookie_info sitedata secure_o cookie_info
     in
     let full_st_name = Common.make_full_state_name ~sp ~secure ~scope in
     let _, ior =
@@ -139,13 +133,9 @@ let rec find_or_create_data_cookie
     ; Common.dc_session_group = fullsessgrpref
     ; Common.dc_session_group_node = node }
   in
-  let {Common.ci_data = cookie_info; _}, secure_ci =
-    Common.get_cookie_info sp cookie_level
-  in
+  let cookie_info = Common.get_cookie_info sp cookie_level in
   let sitedata = Request_info.get_sitedata_sp ~sp in
-  let cookie_info, secure =
-    compute_cookie_info sitedata secure_o secure_ci cookie_info
-  in
+  let cookie_info, secure = compute_cookie_info sitedata secure_o cookie_info in
   let full_st_name =
     Common.make_full_state_name ~sp ~secure ~scope:cookie_scope
   in
@@ -205,13 +195,9 @@ let find_data_cookie_only ~cookie_scope ~secure_o ?sp () =
      Returns the cookie info for the cookie *)
   let sp = Common.sp_of_option sp in
   let cookie_level = Common.cookie_level_of_user_scope cookie_scope in
-  let {Common.ci_data = cookie_info; _}, secure_ci =
-    Common.get_cookie_info sp cookie_level
-  in
+  let cookie_info = Common.get_cookie_info sp cookie_level in
   let sitedata = Request_info.get_sitedata_sp ~sp in
-  let cookie_info, secure =
-    compute_cookie_info sitedata secure_o secure_ci cookie_info
-  in
+  let cookie_info, secure = compute_cookie_info sitedata secure_o cookie_info in
   let full_st_name =
     Common.make_full_state_name ~sp ~secure ~scope:cookie_scope
   in

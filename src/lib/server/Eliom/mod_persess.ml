@@ -34,13 +34,9 @@ open Lwt.Syntax
 
 open Lwt
 
-let compute_cookie_info sitedata secure_o secure_ci cookie_info =
+let compute_cookie_info sitedata secure_o {Common.ci_unsecure; ci_secure} =
   let secure = Common.get_secure ~secure_o ~sitedata in
-  if secure
-  then
-    let c = secure_ci.Common.ci_persistent in
-    c, true
-  else cookie_info, false
+  (if secure then ci_secure else ci_unsecure).Common.ci_persistent, secure
 
 let close_persistent_state_of_cookie
       ~(scope : [< Common.user_scope])
@@ -63,12 +59,10 @@ let close_persistent_state ~scope ~secure_o ?sp () =
   catch
     (fun () ->
        let cookie_level = Common.cookie_level_of_user_scope scope in
-       let {Common.ci_persistent = cookie_info; _}, secure_ci =
-         Common.get_cookie_info sp cookie_level
-       in
+       let cookie_info = Common.get_cookie_info sp cookie_level in
        let sitedata = Request_info.get_sitedata_sp ~sp in
        let cookie_info, secure =
-         compute_cookie_info sitedata secure_o secure_ci cookie_info
+         compute_cookie_info sitedata secure_o cookie_info
        in
        let full_st_name = Common.make_full_state_name ~sp ~secure ~scope in
        Lazy.force (Common.Full_state_name_table.find full_st_name !cookie_info)
@@ -153,13 +147,9 @@ let rec find_or_create_persistent_cookie_
           ref (Common.default_client_cookie_exp ()) (* exp on client *)
       ; Common.pc_session_group = ref fullsessgrp }
   in
-  let {Common.ci_persistent = cookie_info; _}, secure_ci =
-    Common.get_cookie_info sp cookie_level
-  in
+  let cookie_info = Common.get_cookie_info sp cookie_level in
   let sitedata = Request_info.get_sitedata_sp ~sp in
-  let cookie_info, secure =
-    compute_cookie_info sitedata secure_o secure_ci cookie_info
-  in
+  let cookie_info, secure = compute_cookie_info sitedata secure_o cookie_info in
   let full_st_name =
     Common.make_full_state_name ~sp ~secure ~scope:cookie_scope
   in
@@ -217,13 +207,9 @@ let find_persistent_cookie_only ~cookie_scope ~secure_o ?sp () =
      Returns the cookie info for the cookie *)
   let sp = Common.sp_of_option sp in
   let cookie_level = Common.cookie_level_of_user_scope cookie_scope in
-  let {Common.ci_persistent = cookie_info; _}, secure_ci =
-    Common.get_cookie_info sp cookie_level
-  in
+  let cookie_info = Common.get_cookie_info sp cookie_level in
   let sitedata = Request_info.get_sitedata_sp ~sp in
-  let cookie_info, secure =
-    compute_cookie_info sitedata secure_o secure_ci cookie_info
-  in
+  let cookie_info, secure = compute_cookie_info sitedata secure_o cookie_info in
   let full_st_name =
     Common.make_full_state_name ~sp ~secure ~scope:cookie_scope
   in

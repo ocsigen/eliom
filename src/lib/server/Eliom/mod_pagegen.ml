@@ -43,7 +43,8 @@ let make_response ?headers ~status body =
 let def_handler e = Lwt.fail e
 
 (* Update cookie tables *)
-let update_cookie_table ?now sitedata (ci, sci) =
+let update_cookie_table ?now sitedata {Common.ci_unsecure = ci; ci_secure = sci}
+  =
   let now = match now with Some n -> n | None -> Unix.gettimeofday () in
   let expiry kind name = function
     | Common.TGlobal ->
