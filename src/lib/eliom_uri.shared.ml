@@ -97,6 +97,14 @@ let is_https https ssl service =
   || Service.https service
   || (https = None && ssl)
 
+(* The prefix of an absolute link, if the link must be absolute *)
+let absolute_prefix ~absolute ~absolute_path ?hostname ?port ~https ~ssl () =
+  if absolute || https <> ssl
+  then Some (make_proto_prefix ?hostname ?port https)
+  else if absolute_path
+  then Some "/"
+  else None
+
 let make_uri_components_
       ?(* does not take into account getparams *) absolute
       ?((* absolute is used to force absolute link.
@@ -127,18 +135,12 @@ let make_uri_components_
   in
   let https = is_https https ssl service in
   let absolute =
-    if absolute || https <> ssl
-    then Some (make_proto_prefix ?hostname ?port https)
-    else if absolute_path
-    then Some "/"
-    else None
+    absolute_prefix ~absolute ~absolute_path ?hostname ?port ~https ~ssl ()
   in
   (*VVV We trust current protocol? *)
   let nl_params = Parameter.table_of_nl_params_set nl_params in
   let keep_nl_params =
-    match keep_nl_params with
-    | None -> Service.keep_nl_params service
-    | Some b -> b
+    Option.value keep_nl_params ~default:(Service.keep_nl_params service)
   in
   (* for preapplied non localized and not non localized: *)
   let preappnlp, preapplied_params = Service.pre_applied_parameters service in
@@ -193,42 +195,26 @@ let make_uri_components_
                 (Request_info.get_csp_original_full_path_sp sp)
                 (Service.full_path attser) suff
       in
-      match Service.get_name attser with
-      | Common.SAtt_no -> uri, hiddenparams, fragment
-      | Common.SAtt_anon s ->
-          ( uri
-          , (Common.get_numstate_param_name, Mod_parameters.insert_string s)
-            :: hiddenparams
-          , fragment )
-      | Common.SAtt_named s ->
-          ( uri
-          , (Common.get_state_param_name, Mod_parameters.insert_string s)
-            :: hiddenparams
-          , fragment )
-      | Common.SAtt_csrf_safe csrf_info ->
-          let sp = Common.get_sp () in
-          let s = Service.register_delayed_get_or_na_coservice ~sp csrf_info in
-          ( uri
-          , (Common.get_numstate_param_name, Mod_parameters.insert_string s)
-            :: hiddenparams
-          , fragment )
-      | Common.SAtt_na_anon s ->
-          ( uri
-          , (Common.naservice_num, Mod_parameters.insert_string s)
-            :: hiddenparams
-          , fragment )
-      | Common.SAtt_na_named s ->
-          ( uri
-          , (Common.naservice_name, Mod_parameters.insert_string s)
-            :: hiddenparams
-          , fragment )
-      | Common.SAtt_na_csrf_safe csrf_info ->
-          let sp = Common.get_sp () in
-          let s = Service.register_delayed_get_or_na_coservice ~sp csrf_info in
-          ( uri
-          , (Common.naservice_num, Mod_parameters.insert_string s)
-            :: hiddenparams
-          , fragment ))
+      let register_csrf_safe csrf_info =
+        Service.register_delayed_get_or_na_coservice ~sp:(Common.get_sp ())
+          csrf_info
+      in
+      let state_param =
+        match Service.get_name attser with
+        | Common.SAtt_no -> None
+        | Common.SAtt_anon s -> Some (Common.get_numstate_param_name, s)
+        | Common.SAtt_named s -> Some (Common.get_state_param_name, s)
+        | Common.SAtt_csrf_safe csrf_info ->
+            Some (Common.get_numstate_param_name, register_csrf_safe csrf_info)
+        | Common.SAtt_na_anon s -> Some (Common.naservice_num, s)
+        | Common.SAtt_na_named s -> Some (Common.naservice_name, s)
+        | Common.SAtt_na_csrf_safe csrf_info ->
+            Some (Common.naservice_num, register_csrf_safe csrf_info)
+      in
+      match state_param with
+      | None -> uri, hiddenparams, fragment
+      | Some (name, s) ->
+          uri, (name, Mod_parameters.insert_string s) :: hiddenparams, fragment)
   | Service.Nonattached naser ->
       let sp = Common.get_sp () in
       let na_name = Service.na_name naser in
@@ -388,9 +374,7 @@ let make_post_uri_components_
       let sp = Common.get_sp () in
       let nl_params = Parameter.table_of_nl_params_set nl_params in
       let keep_nl_params =
-        match keep_nl_params with
-        | None -> Service.keep_nl_params service
-        | Some b -> b
+        Option.value keep_nl_params ~default:(Service.keep_nl_params service)
       in
       let preappnlp, preapp = Service.pre_applied_parameters service in
       let nlp =
@@ -438,11 +422,7 @@ let make_post_uri_components_
       let ssl = Request_info.get_csp_ssl_sp sp in
       let https = is_https https ssl service in
       let absolute =
-        if absolute || https <> ssl
-        then Some (make_proto_prefix ?hostname ?port https)
-        else if absolute_path
-        then Some "/"
-        else None
+        absolute_prefix ~absolute ~absolute_path ?hostname ?port ~https ~ssl ()
       in
       (* absolute URL does not work behind a reverse proxy! *)
       let uri =
