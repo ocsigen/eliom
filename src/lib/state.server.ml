@@ -261,7 +261,7 @@ let unset_persistent_data_state_timeout ~cookie_scope ?secure () =
        return_unit)
     (function
       | Not_found | Common.Eliom_Session_expired -> return_unit
-      | exc -> Lwt.reraise exc)
+      | exc -> Lwt.fail exc)
 
 let get_persistent_data_state_timeout ~cookie_scope ?secure () =
   let sp = Common.get_sp () in
@@ -286,7 +286,7 @@ let get_persistent_data_state_timeout ~cookie_scope ?secure () =
           return
             (Mod_timeouts.get_global ~kind:`Persistent ~cookie_scope ~secure
                sitedata)
-      | exc -> Lwt.reraise exc)
+      | exc -> Lwt.fail exc)
 
 (* Preventing memory leaks: we must close empty sessions *)
 
@@ -594,7 +594,7 @@ let unset_persistent_data_session_group
          ?secure ())
     (function
       | Not_found | Common.Eliom_Session_expired -> Lwt.return_unit
-      | exc -> Lwt.reraise exc)
+      | exc -> Lwt.fail exc)
 
 let get_persistent_data_session_group
       ?(scope = Common.default_session_scope)
@@ -617,7 +617,7 @@ let get_persistent_data_session_group
            | _ -> None)))
     (function
       | Not_found | Common.Eliom_Session_expired -> Lwt.return_none
-      | exc -> Lwt.reraise exc)
+      | exc -> Lwt.fail exc)
 
 (* max *)
 let set_default_max_service_sessions_per_group ?(override_configfile = false) n =
@@ -929,7 +929,7 @@ let remove_persistent_data (type a) ~(table : a persistent_table) () =
        close_persistent_state_if_empty ~scope ~secure ())
     (function
       | Not_found | Common.Eliom_Session_expired -> return_unit
-      | exc -> Lwt.reraise exc)
+      | exc -> Lwt.fail exc)
 
 (*****************************************************************************)
 (** {2 session data in memory} *)
@@ -1290,7 +1290,7 @@ module Ext = struct
                 let cookie_level = Common.cookie_level_of_user_scope scope in
                 Mod_sessiongroups.Pers.close_persistent_session2 ~cookie_level
                   sitedata session_group cookie)
-          (function Not_found -> Lwt.return_unit | exc -> Lwt.reraise exc)
+          (function Not_found -> Lwt.return_unit | exc -> Lwt.fail exc)
   (*VVV!!! est-ce que session_group est fullsessgrp ? *)
 
   let fold_sub_states_aux_aux
@@ -1562,7 +1562,7 @@ let get_persistent_data_cookie ~cookie_scope ?secure () =
        return_some c.Common.pc_hvalue)
     (function
       | Not_found | Common.Eliom_Session_expired -> return_none
-      | exc -> Lwt.reraise exc)
+      | exc -> Lwt.fail exc)
 
 (*****************************************************************************)
 (** {2 User cookies} *)

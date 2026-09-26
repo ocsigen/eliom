@@ -176,6 +176,12 @@
    <persistentsessiongcfrequency> options now disables the corresponding
    garbage collection, as intended. It used to start a collector
    sleeping for an infinite time.
+** State functions on persistent states (get_persistent_data_cookie,
+   get_persistent_data_state_timeout, unset_persistent_data_state_timeout,
+   get_persistent_data_session_group, unset_persistent_data_session_group,
+   remove_persistent_data, Ext.discard_state) now return a rejected promise
+   on an unexpected error. When the error was already known, as with a
+   synchronous storage backend, they raised it synchronously instead.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
