@@ -65,22 +65,12 @@ module Configuration = struct
     ; time_between_request = min c1.time_between_request c2.time_between_request
     }
 
-  exception C of configuration_data
-
-  let first_conf c =
-    try
-      ignore (Hashtbl.fold (fun _ v -> raise (C v)) c ());
-      assert false
-    with C v -> v
-
   let get_configuration () =
-    if Hashtbl.length configuration_table = 0
-    then default_configuration
-    else
-      Hashtbl.fold
-        (fun _ -> config_min)
-        configuration_table
-        (first_conf configuration_table)
+    Hashtbl.fold
+      (fun _ c acc ->
+         Some (match acc with None -> c | Some acc -> config_min c acc))
+      configuration_table None
+    |> Option.value ~default:default_configuration
 
   let update_configuration_waiter, update_configuration_waker =
     let t, u = Lwt.wait () in
