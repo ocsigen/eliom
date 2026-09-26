@@ -303,14 +303,16 @@ let change_page_post_form_ =
 
 type client_form_handler = Dom_html.event Js.t -> bool Lwt.t
 
+(* Whether [https] asks for another protocol than the one of the current page *)
+let changes_protocol https =
+  match https with Some https -> https <> Request_info.ssl_ | None -> false
+
 let raw_a_handler node cookies_info tmpl ev =
   let href = (Js.Unsafe.coerce node : Dom_html.anchorElement Js.t)##.href in
   let https = Url.get_ssl (Js.to_string href) in
   (* Returns true when the default link behaviour is to be kept: *)
   middleClick ev
-  || (not !Common.is_client_app)
-     && ((https = Some true && not Request_info.ssl_)
-        || (https = Some false && Request_info.ssl_))
+  || ((not !Common.is_client_app) && changes_protocol https)
   ||
   ((* If a link is clicked, we do not want to continue propagation
        (for example if the link is in a wider clickable area)  *)
@@ -332,10 +334,7 @@ let raw_form_handler form kind cookies_info tmpl ev client_form_handler =
     if not b then change_page_form ?cookies_info ?tmpl form action;
     Lwt.return_unit
   in
-  (not !Common.is_client_app)
-  && ((https = Some true && not Request_info.ssl_)
-     || (https = Some false && Request_info.ssl_))
-  || (f (); false)
+  ((not !Common.is_client_app) && changes_protocol https) || (f (); false)
 
 let raw_event_handler value =
   let handler =
