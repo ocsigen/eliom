@@ -457,8 +457,6 @@ let default_csrf_scope = function
   | None -> `Session Common_base.Default_ref_hier
   | Some c -> (c :> Common.user_scope)
 
-exception Unreachable_exn
-
 let attached_info = function {info = Attached k; _} -> k
 let non_attached_info = function {info = Nonattached k; _} -> k
 

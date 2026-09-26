@@ -34,7 +34,6 @@ let make_full_group_name ~cookie_level ri site_dir_string ipv4mask ipv6mask
   | Some g -> site_dir_string, cookie_level, Either.Left g
 
 let make_persistent_full_group_name = Common.make_persistent_full_group_name
-let getsessgrp a = a
 let getperssessgrp = Common.getperssessgrp
 
 module type MEMTAB = sig

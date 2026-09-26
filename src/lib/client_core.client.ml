@@ -553,9 +553,6 @@ let rec rebuild_rattrib node ra =
 
    and the function [Mod_dom.test_pageshow_pagehide]. *)
 
-let delay f =
-  Lwt.ignore_result (Lwt.pause () >>= fun () -> f (); Lwt.return_unit)
-
 module ReactState : sig
   type t
 

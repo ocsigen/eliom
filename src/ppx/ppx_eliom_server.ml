@@ -90,26 +90,11 @@ module Pass = struct
         gen_ids := SSet.add id !gen_ids;
         buffer := (loc, id, orig_expr, ident, unsafe) :: !buffer)
     in
-    let flush_all () =
+    let flush () =
       let res = List.rev !buffer in
       gen_ids := SSet.empty;
       buffer := [];
       res
-    in
-    let global_known = ref SSet.empty in
-    let flush () =
-      let all = flush_all () in
-      let novel =
-        let is_fresh (_, gen_id, _, _, _) =
-          not (SSet.mem gen_id !global_known)
-        in
-        List.filter is_fresh all
-      in
-      List.iter
-        (function
-          | _, gen_id, _, _, _ -> global_known := SSet.add gen_id !global_known)
-        novel;
-      all
     in
     push, flush
 

@@ -39,10 +39,6 @@ val make_persistent_full_group_name :
   -> string option
   -> Common.perssessgrp option
 
-val getsessgrp :
-   Common.scope Common.sessgrp
-  -> string * Common.cookie_level * (string, Ipaddr.t) Either.t
-
 val getperssessgrp :
    Common.perssessgrp
   -> string * Common.cookie_level * (string, Ipaddr.t) Either.t
