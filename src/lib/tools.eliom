@@ -29,10 +29,6 @@ let disabled_class = "eliomtools_disabled"
 let first_class = "eliomtools_first"
 let level_class = "eliomtools_level"
 
-let string_prefix s1 s2 =
-  String.length s1 <= String.length s2
-  && s1 = String.sub s2 0 (String.length s1)
-
 type srv =
   | Srv :
       ( unit
@@ -310,13 +306,13 @@ module Make (DorF : Content.Html.T) : HTML5_TOOLS = struct
     let service_url = make_string_uri ~absolute_path:true ~service:s () in
     match sopt with
     | None ->
-        string_prefix service_url
+        String.starts_with ~prefix:service_url
           ((* MAYBE : use get_original_full_path_string? *)
            "/"
           ^ Request_info.get_original_full_path_string ())
     | Some s' ->
         let node_url = make_string_uri ~absolute_path:true ~service:s' () in
-        string_prefix service_url node_url
+        String.starts_with ~prefix:service_url node_url
 
   let find_longest_prefix_in_hierarchy service (_main, pages) =
     let rec aux prefix ((max_len, _) as max) i = function

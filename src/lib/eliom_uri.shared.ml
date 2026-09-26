@@ -433,8 +433,7 @@ let make_post_uri_components_
               &&
               let s = Request_info.get_original_full_path_string_sp sp
               and s' = Common.client_html_file () in
-              let n = String.length s and n' = String.length s' in
-              n >= n' && String.(sub s (n - n') n') = s'
+              String.ends_with ~suffix:s' s
             then
               (* Workaround for GitHub issue #465.
 

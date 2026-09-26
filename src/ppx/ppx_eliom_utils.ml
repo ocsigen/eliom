@@ -219,11 +219,7 @@ module Mli = struct
       fun s ->
         incr c;
         Printf.sprintf "an_%s_%d" s !c
-    and has_pfix =
-      let len = String.length inferred_type_prefix in
-      fun s ->
-        String.length s >= len && String.sub s 0 len = inferred_type_prefix
-    in
+    and has_pfix = fun s -> String.starts_with ~prefix:inferred_type_prefix s in
     object
       inherit Ppxlib.Ast_traverse.map as super
 

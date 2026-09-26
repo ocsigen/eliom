@@ -382,7 +382,7 @@ let reify_caml_event name node ce =
         let len = String.length name in
         if
           len > closure_name_prefix_len
-          && String.sub name 0 closure_name_prefix_len = closure_name_prefix
+          && String.starts_with ~prefix:closure_name_prefix name
         then
           String.sub name closure_name_prefix_len (len - closure_name_prefix_len)
         else name
