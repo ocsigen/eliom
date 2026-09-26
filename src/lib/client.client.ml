@@ -560,6 +560,11 @@ type state =
   ; position : Mod_dom.position }
 [@@deriving json]
 
+type state_id = {session_id : int; state_index : int (* point in history *)}
+[@@deriving json]
+
+type saved_state = state_id * string [@@deriving json]
+
 [@@@warning "+39"]
 
 let random_int =
@@ -576,15 +581,6 @@ let random_int =
   else fun () -> truncate (4294967296. *. Js.to_float Js.math##random)
 
 let section_page = Logs.Src.create "eliom:client:page"
-
-[@@@warning "-39"]
-
-type state_id = {session_id : int; state_index : int (* point in history *)}
-[@@deriving json]
-
-type saved_state = state_id * string [@@deriving json]
-
-[@@@warning "+39"]
 
 (* The history.state value of the page [page_id] at [uri] *)
 let history_state page_id uri =
