@@ -28,6 +28,9 @@ module Ecb = Comet_base
 
 let section = Logs.Src.create "eliom:comet"
 
+(* The current time, in milliseconds *)
+let now_ms () = Js.to_float (new%js Js.date_now)##getTime
+
 module Configuration = struct
   type configuration_data =
     { active_until_timeout : bool
@@ -130,7 +133,7 @@ module Configuration = struct
       then
         match (get ()).time_between_request_unfocused, focused () with
         | Some ((a, b, c) :: l), Some start ->
-            let now = Js.to_float (new%js Js.date_now)##getTime in
+            let now = now_ms () in
             (* time from idle start *)
             let t =
               max 0. (((now -. start) *. 0.001) -. (get ()).time_after_unfocus)
@@ -302,9 +305,7 @@ end = struct
     in
     let suspend_activity () =
       if handler.hd_activity.focused = None
-      then
-        handler.hd_activity.focused <-
-          Some (Js.to_float (new%js Js.date_now)##getTime)
+      then handler.hd_activity.focused <- Some (now_ms ())
     in
     let visibility_change_callback () =
       if document_hidden () then suspend_activity () else resume_activity ()
@@ -321,7 +322,7 @@ end = struct
         if tbru = Some [0., 0., 0.] (* Always active *)
         then `Active
         else
-          let now = Js.to_float (new%js Js.date_now)##getTime in
+          let now = now_ms () in
           if
             now -. t
             < (Configuration.get ()).Configuration.time_after_unfocus *. 1000.
@@ -338,7 +339,7 @@ end = struct
       then
         hd.hd_activity.focused <-
           Some
-            (Js.to_float (new%js Js.date_now)##getTime
+            (now_ms ()
             -. ((Configuration.get ()).Configuration.time_after_unfocus *. 1000.)
             ))
     else hd.hd_activity.focused <- None;
