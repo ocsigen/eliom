@@ -844,9 +844,6 @@ let update_state () =
     { template = Request_info.get_request_template ()
     ; position = Mod_dom.getDocumentScroll () }
 
-let lock_request_handling = Request.lock
-let unlock_request_handling = Request.unlock
-
 type ('a, +'b) server_function = 'a -> 'b Lwt.t
 
 (*
@@ -2053,8 +2050,6 @@ let restore_history_dom id =
       set_active_page page
   | _ -> Logs.err ~src:section (fun fmt -> fmt "cannot find DOM in history")
 
-let wait_load_end = Client_core.wait_load_end
-
 let () =
   let revisit full_uri state_id =
     let state =
@@ -2187,7 +2182,7 @@ let () =
     run_onunload_wrapper f cancel
   in
   Lwt.ignore_result
-    (let* () = wait_load_end () in
+    (let* () = Client_core.wait_load_end () in
      Logs.debug ~src:section_page (fun fmt ->
        fmt "revisit_wrapper: replaceState");
      Dom_html.window##.history##(replaceState
@@ -2229,6 +2224,9 @@ let () =
           -- Vincent *)
        call_ocaml_service ~absolute:true ~service ())
 
+let lock_request_handling = Request.lock
+let unlock_request_handling = Request.unlock
+let wait_load_end = Client_core.wait_load_end
 let get_application_name = Process.get_application_name
 let set_client_html_file = Common.set_client_html_file
 let middleClick = Client_core.middleClick
