@@ -154,14 +154,14 @@ let set_service_state_timeout ~cookie_scope ?secure t =
     Mod_sersess.find_or_create_service_cookie ~cookie_scope ~secure_o:secure ()
   in
   let tor = c.Common.sc_timeout in
-  match t with None -> tor := Common.TNone | Some t -> tor := Common.TSome t
+  tor := Common.timeout_of_option t
 
 let set_volatile_data_state_timeout ~cookie_scope ?secure t =
   let c =
     Mod_datasess.find_or_create_data_cookie ~cookie_scope ~secure_o:secure ()
   in
   let tor = c.Common.dc_timeout in
-  match t with None -> tor := Common.TNone | Some t -> tor := Common.TSome t
+  tor := Common.timeout_of_option t
 
 let unset_service_state_timeout ~cookie_scope ?secure () =
   try
@@ -223,10 +223,7 @@ let set_persistent_data_state_timeout ~cookie_scope ?secure t =
       ()
   in
   let tor = c.Common.pc_timeout in
-  return
-    (match t with
-    | None -> tor := Common.TNone
-    | Some t -> tor := Common.TSome t)
+  return (tor := Common.timeout_of_option t)
 
 let unset_persistent_data_state_timeout ~cookie_scope ?secure () =
   Lwt.catch
@@ -1397,15 +1394,13 @@ module Ext = struct
     cookie.Mod_cookies.full_state_name.Common.user_scope
 
   let set_service_cookie_timeout ~cookie:(_, cookie) t =
-    cookie.Common.Service_cookie.timeout :=
-      match t with None -> TNone | Some t -> TSome t
+    cookie.Common.Service_cookie.timeout := Common.timeout_of_option t
 
   let set_volatile_data_cookie_timeout ~cookie:(_, data_cookie) t =
-    data_cookie.Common.Data_cookie.timeout :=
-      match t with None -> TNone | Some t -> TSome t
+    data_cookie.Common.Data_cookie.timeout := Common.timeout_of_option t
 
   let set_persistent_data_cookie_timeout ~cookie:(c, cookie) t =
-    let ti = match t with None -> TNone | Some t -> TSome t in
+    let ti = Common.timeout_of_option t in
     Mod_cookies.Persistent_cookies.add c {cookie with Mod_cookies.timeout = ti}
 
   let get_service_cookie_timeout ~cookie:(_, cookie) =

@@ -330,6 +330,9 @@ end
 
 type timeout = TGlobal | TNone | TSome of float [@@deriving json]
 
+val timeout_of_option : float option -> timeout
+(** [None] is [TNone], [Some t] is [TSome t]. *)
+
 type 'a one_service_cookie_info =
   { sc_hvalue : Hashed_cookies.t
   ; sc_set_value : string option
