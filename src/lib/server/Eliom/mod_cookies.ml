@@ -141,10 +141,8 @@ end
 let get_cookie_info
       now
       sitedata
-      service_cookies
-      data_cookies
-      persistent_cookies
-      secure_cookies : 'a Common.cookie_info * 'b list
+      (cookies : Common.state_cookies)
+      (secure_cookies : Common.state_cookies) : 'a Common.cookie_info * 'b list
   =
   (* get info about service session cookies: *)
   let f_serv service_cookies =
@@ -328,14 +326,13 @@ let get_cookie_info
       persistent_cookies
     (* the persistent cookies sent by the request *)
   in
-  let servoktable, servfailedlist = f_serv service_cookies in
-  let dataoktable = f_data data_cookies in
-  let persoktable = f_pers persistent_cookies in
+  let servoktable, servfailedlist = f_serv cookies.service_cookies in
+  let dataoktable = f_data cookies.data_cookies in
+  let persoktable = f_pers cookies.persistent_cookies in
   let sec, sservfailedlist =
-    let sc, dc, pc = secure_cookies in
-    let servoktable, servfailedlist = f_serv sc in
-    let dataoktable = f_data dc in
-    let persoktable = f_pers pc in
+    let servoktable, servfailedlist = f_serv secure_cookies.service_cookies in
+    let dataoktable = f_data secure_cookies.data_cookies in
+    let persoktable = f_pers secure_cookies.persistent_cookies in
     ( { Common.ci_service = ref servoktable
       ; ci_data = ref dataoktable
       ; ci_persistent = ref persoktable }

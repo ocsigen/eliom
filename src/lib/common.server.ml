@@ -942,6 +942,13 @@ let getcookies secure cookie_level cookienamepref cookies =
        else beg)
     cookies Full_state_name_table.empty
 
+(* The state cookies of the given security and cookie level in [cookies] *)
+let get_state_cookies secure cookie_level cookies =
+  { service_cookies = getcookies secure cookie_level servicecookiename cookies
+  ; data_cookies = getcookies secure cookie_level datacookiename cookies
+  ; persistent_cookies =
+      getcookies secure cookie_level persistentcookiename cookies }
+
 (* After an action, we do not take into account actual get params,
    but these ones: *)
 type params_after_action =
@@ -1124,25 +1131,8 @@ let get_session_info ~sitedata ~req previous_extension_err =
     | Some tc -> cookie_map_of_json ~what:"cookie substitutes" tc
     | None -> Ocsigen.Request.cookies ri
   in
-  let data_cookies = getcookies false `Session datacookiename browser_cookies in
-  let service_cookies =
-    getcookies false `Session servicecookiename browser_cookies
-  in
-  let persistent_cookies =
-    getcookies false `Session persistentcookiename browser_cookies
-  in
-  let secure_cookie_info =
-    let sdata_cookies =
-      getcookies true `Session datacookiename browser_cookies
-    in
-    let sservice_cookies =
-      getcookies true `Session servicecookiename browser_cookies
-    in
-    let spersistent_cookies =
-      getcookies true `Session persistentcookiename browser_cookies
-    in
-    sservice_cookies, sdata_cookies, spersistent_cookies
-  in
+  let state_cookies = get_state_cookies false `Session browser_cookies in
+  let secure_state_cookies = get_state_cookies true `Session browser_cookies in
   let ( naservice_info
       , (get_state, post_state)
       , (get_params, other_get_params)
@@ -1241,26 +1231,9 @@ let get_session_info ~sitedata ~req previous_extension_err =
          (fun k a t -> if nl_is_persistent k then String.Table.add k a t else t)
          nl_get_params String.Table.empty)
   in
-  let data_cookies_tab =
-    getcookies false `Client_process datacookiename tab_cookies
-  in
-  let service_cookies_tab =
-    getcookies false `Client_process servicecookiename tab_cookies
-  in
-  let persistent_cookies_tab =
-    getcookies false `Client_process persistentcookiename tab_cookies
-  in
-  let secure_cookie_info_tab =
-    let sdata_cookies =
-      getcookies true `Client_process datacookiename tab_cookies
-    in
-    let sservice_cookies =
-      getcookies true `Client_process servicecookiename tab_cookies
-    in
-    let spersistent_cookies =
-      getcookies true `Client_process persistentcookiename tab_cookies
-    in
-    sservice_cookies, sdata_cookies, spersistent_cookies
+  let state_cookies_tab = get_state_cookies false `Client_process tab_cookies in
+  let secure_state_cookies_tab =
+    get_state_cookies true `Client_process tab_cookies
   in
   let ri, sess =
     (*VVV 2011/02/15 TODO: I think we'd better not change ri here.
@@ -1281,14 +1254,10 @@ let get_session_info ~sitedata ~req previous_extension_err =
           (if no_post_param
            then None
            else Some (Some (post_params, file_params)))
-    , { si_service_session_cookies = service_cookies
-      ; si_data_session_cookies = data_cookies
-      ; si_persistent_session_cookies = persistent_cookies
-      ; si_secure_cookie_info = secure_cookie_info
-      ; si_service_session_cookies_tab = service_cookies_tab
-      ; si_data_session_cookies_tab = data_cookies_tab
-      ; si_persistent_session_cookies_tab = persistent_cookies_tab
-      ; si_secure_cookie_info_tab = secure_cookie_info_tab
+    , { si_state_cookies = state_cookies
+      ; si_secure_state_cookies = secure_state_cookies
+      ; si_state_cookies_tab = state_cookies_tab
+      ; si_secure_state_cookies_tab = secure_state_cookies_tab
       ; si_tab_cookies = tab_cookies
       ; si_nonatt_info = naservice_info
       ; si_state_info = get_state, post_state

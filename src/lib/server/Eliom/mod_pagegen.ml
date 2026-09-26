@@ -228,9 +228,8 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
     Common.get_session_info ~sitedata ~req 404
   in
   let all_cookie_info, closedsessions =
-    Mod_cookies.get_cookie_info now sitedata
-      si.Common.si_service_session_cookies si.Common.si_data_session_cookies
-      si.Common.si_persistent_session_cookies si.Common.si_secure_cookie_info
+    Mod_cookies.get_cookie_info now sitedata si.Common.si_state_cookies
+      si.Common.si_secure_state_cookies
   in
   let (tab_cookie_info, closedsessions_tab), user_tab_cookies =
     (* If tab cookie info exists in rc (because an action put them here),
@@ -241,10 +240,7 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
     | Some (atci, utc) -> (atci, []), utc
     | None ->
         ( Mod_cookies.get_cookie_info now sitedata
-            si.Common.si_service_session_cookies_tab
-            si.Common.si_data_session_cookies_tab
-            si.Common.si_persistent_session_cookies_tab
-            si.Common.si_secure_cookie_info_tab
+            si.Common.si_state_cookies_tab si.Common.si_secure_state_cookies_tab
         , Ocsigen_cookie_map.empty )
   in
   set_expired_sessions ri (closedsessions, closedsessions_tab);
