@@ -176,7 +176,7 @@ module Make (A : ARG) :
             (*TODO: fails outside of a request*)
             let notif_e = Reference.Volatile.get notif_e in
             notif == notif_e
-        | Some (`Id id) -> identity = id
+        | Some (`Id id) -> A.equal_identity identity id
         | None -> false
       in
       if blocked

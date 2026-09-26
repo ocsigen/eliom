@@ -147,6 +147,9 @@
    sessions instead, and could close a browser session in use.
 ** Notif.S.clean no longer removes entries from the table while iterating
    over it, which the Stdlib leaves unspecified.
+** Notif.S.notify ~notfor:(`Id id) now compares identities with the
+   equal_identity function of the functor argument instead of the
+   polymorphic equality.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
