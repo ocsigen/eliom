@@ -463,7 +463,7 @@ let fetch_linked_css e =
         else
           let href = Js.to_string href in
           let css = Request.http_get href [] Request.string_result in
-          acc @ [e, (e##.media, href, css >|= snd)]
+          acc @ [e, (e##.media, href, Lwt.map snd css)]
     | Dom.Element e ->
         let c = e##.childNodes in
         let acc = ref acc in
@@ -564,7 +564,8 @@ let import_re = Regexp.regexp "@import\\s*"
 let rec rewrite_css ~max (media, href, css) =
   Lwt.catch
     (fun () ->
-       css >>= function
+       let* css = css in
+       match css with
        | None -> Lwt.return_nil
        | Some css ->
            Config.debug_time ("rewrite_CSS: " ^ href);
@@ -605,7 +606,7 @@ and rewrite_css_import ?(charset = "") ~max ~prefix ~media css pos =
               if media##.length > 0 then media else Js.string media'
             in
             let css = Request.http_get href [] Request.string_result in
-            rewrite_css ~max:(max - 1) (media, href, css >|= snd)
+            rewrite_css ~max:(max - 1) (media, href, Lwt.map snd css)
         and* imports, css =
           rewrite_css_import ~charset ~max ~prefix ~media css i
         in
