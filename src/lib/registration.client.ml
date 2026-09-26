@@ -54,13 +54,17 @@ module type PARAM = sig
   val send : ?options:options -> page -> [`Browser] kind Lwt.t
 end
 
-let typed_apply ~service f gp pp l l' suffix =
+let typed_apply ~service f ~get_params ~post_params suffix =
   let* g =
-    let l = Some (Lwt.return l) in
-    Parameter.reconstruct_params ~sp:() gp l None true suffix
+    Parameter.reconstruct_params ~sp:()
+      (Service.get_params_type service)
+      (Some (Lwt.return get_params))
+      None true suffix
   and* p =
-    let l' = Some (Lwt.return l') in
-    Parameter.reconstruct_params ~sp:() pp l' None true suffix
+    Parameter.reconstruct_params ~sp:()
+      (Service.post_params_type service)
+      (Some (Lwt.return post_params))
+      None true suffix
   in
   (match Service.reload_fun service with
   | Some _ -> Client.set_reload_function (fun () () -> f g p)
@@ -68,23 +72,21 @@ let typed_apply ~service f gp pp l l' suffix =
   f g p
 
 let wrap service att f _ suffix =
-  let gp = Service.get_params_type service
-  and pp = Service.post_params_type service
-  and l = (Request_info.get_sess_info ()).si_all_get_but_nl
-  and l' =
+  let get_params = (Request_info.get_sess_info ()).si_all_get_but_nl
+  and post_params =
     Option.value (Request_info.get_sess_info ()).si_all_post_params ~default:[]
   in
   match Service.get_name att with
   | Common.SAtt_named s | Common.SAtt_anon s -> (
     try
-      let eliom_name = List.assoc "__eliom__" l
-      and l = List.remove_assoc "__eliom__" l
-      and l' = List.remove_assoc "__eliom__" l' in
+      let eliom_name = List.assoc "__eliom__" get_params
+      and get_params = List.remove_assoc "__eliom__" get_params
+      and post_params = List.remove_assoc "__eliom__" post_params in
       if eliom_name = s
-      then typed_apply ~service f gp pp l l' suffix
+      then typed_apply ~service f ~get_params ~post_params suffix
       else Lwt.fail Common.Eliom_Wrong_parameter
     with Not_found -> Lwt.fail Common.Eliom_Wrong_parameter)
-  | _ -> typed_apply ~service f gp pp l l' suffix
+  | _ -> typed_apply ~service f ~get_params ~post_params suffix
 
 let wrap_na
       (service : (_, _, _, _, _, _, _, _, _, _, _) Service.t)
@@ -93,13 +95,13 @@ let wrap_na
       _
       suffix
   =
-  let gp = Service.get_params_type service
-  and pp = Service.post_params_type service
-  and si = Request_info.get_sess_info ()
+  let si = Request_info.get_sess_info ()
   and filter l = fst Common.(split_prefix_param na_co_param_prefix l) in
-  let l = filter si.si_all_get_but_nl
-  and l' = match si.si_all_post_params with Some l -> filter l | None -> [] in
-  typed_apply ~service f gp pp l l' suffix
+  let get_params = filter si.si_all_get_but_nl
+  and post_params =
+    match si.si_all_post_params with Some l -> filter l | None -> []
+  in
+  typed_apply ~service f ~get_params ~post_params suffix
 
 let register_att ~service ~att f =
   let key_meth = Service.which_meth_untyped service
