@@ -48,13 +48,7 @@ module Xml : sig
     | CE_client_closure_touch of (Dom_html.touchEvent Js.t -> unit)
       (* Client side-only *)
     | CE_call_service of
-        ([`A | `Form_get | `Form_post]
-        * (bool * string list) option
-        * string option
-        * Ocsigen_lib_base.poly)
-          (* (unit -> bool) client_value *)
-          option
-          Eliom_lazy.request
+        Runtime.RawXML.call_service_info option Eliom_lazy.request
 
   type internal_event_handler = Raw of string | Caml of caml_event_handler
   type event_handler = Dom_html.event Js.t -> unit
@@ -78,12 +72,7 @@ module Xml : sig
   (**/**)
 
   val internal_event_handler_of_service :
-     ([`A | `Form_get | `Form_post]
-     * (bool * string list) option
-     * string option
-     * Lib.poly)
-       option
-       Eliom_lazy.request
+     Runtime.RawXML.call_service_info option Eliom_lazy.request
     -> internal_event_handler
 
   type separator = Space | Comma

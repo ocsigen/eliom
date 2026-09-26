@@ -54,12 +54,7 @@ module Xml : sig
   val internal_event_handler_attrib : aname -> internal_event_handler -> attrib
 
   val internal_event_handler_of_service :
-     ([`A | `Form_get | `Form_post]
-     * (bool * string list) option
-     * string option
-     * Lib.poly)
-       option
-       Eliom_lazy.request
+     Runtime.RawXML.call_service_info option Eliom_lazy.request
     -> internal_event_handler
 
   val caml_event_handler :
