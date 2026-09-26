@@ -307,7 +307,7 @@ let rec close_service_state_if_empty ~scope ?secure () =
           | (_, _, Either.Right _) (* no group *)
               when *)
         if
-          Mod_sessiongroups.Data.group_size
+          Mod_sessiongroups.Serv.group_size
             ( Common.get_site_dir_string sitedata
             , `Client_process
             , Either.Left Common.(Hashed_cookies.to_string c.sc_hvalue) )

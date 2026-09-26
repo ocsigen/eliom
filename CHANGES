@@ -142,6 +142,9 @@
    scope now change the limit of the right group. They used to look the
    group up in each other's table, so the limit was applied to the wrong
    group, or not at all.
+** State.unset_service_session_group now keeps a browser service session
+   that still has tab service sessions. It used to count the tab data
+   sessions instead, and could close a browser session in use.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
