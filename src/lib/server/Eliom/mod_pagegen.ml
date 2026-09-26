@@ -19,7 +19,6 @@
  *)
 
 open Lwt.Syntax
-open Lwt.Infix
 
 let headers_with_content_type headers =
   Cohttp.Header.add_opt headers
@@ -112,7 +111,7 @@ let update_cookie_table ?now sitedata {Common.ci_unsecure = ci; ci_secure = sci}
       Common.Full_state_name_table.fold
         (fun name v thr ->
            let thr2 =
-             Lazy.force v >>= fun (oldvalue, newr) ->
+             let* oldvalue, newr = Lazy.force v in
              match !newr with
              | Common.SCData_session_expired | Common.SCNo_data ->
                  (* The cookie has been removed *)
@@ -140,13 +139,15 @@ let update_cookie_table ?now sitedata {Common.ci_unsecure = ci; ci_secure = sci}
                           let cookieid =
                             Common.(Hashed_cookies.to_string newc.pc_hvalue)
                           in
-                          Mod_cookies.Persistent_cookies.replace_if_exists
-                            cookieid
-                            { Mod_cookies.full_state_name = name
-                            ; expiry = newexp
-                            ; timeout = !(newc.Common.pc_timeout)
-                            ; session_group = !(newc.Common.pc_session_group) }
-                          >>= fun () ->
+                          let* () =
+                            Mod_cookies.Persistent_cookies.replace_if_exists
+                              cookieid
+                              { Mod_cookies.full_state_name = name
+                              ; expiry = newexp
+                              ; timeout = !(newc.Common.pc_timeout)
+                              ; session_group = !(newc.Common.pc_session_group)
+                              }
+                          in
                           Mod_cookies.Persistent_cookies.Expiry_dates
                           .remove_cookie oldexp cookieid)
                        (function
@@ -165,11 +166,12 @@ let update_cookie_table ?now sitedata {Common.ci_unsecure = ci; ci_secure = sci}
           otherwise the server will crash!!!
              *)
            in
-           thr >>= fun () -> thr2)
+           let* () = thr in
+           thr2)
         !pers_cookies_info Lwt.return_unit
     else Lwt.return_unit
   in
-  update_exp ci >>= fun () ->
+  let* () = update_exp ci in
   (* the same, for secure cookies: *)
   update_exp sci
 
