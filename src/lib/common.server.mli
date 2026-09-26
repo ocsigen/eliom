@@ -463,6 +463,12 @@ type 'a configured = {cf_value : 'a; cf_from_config : bool}
 (** A setting, with whether it was set by the configuration file (the
     program only overrides such a setting when asked to). *)
 
+val set_configured : override:bool -> 'a configured -> 'a -> 'a configured
+(** [set_configured ~override c v] is [c] set to [v], unless [c] was set by
+    the configuration file and [override] is false. *)
+
+val configured_of_pair : 'a * bool -> 'a configured
+
 type site_timeouts =
   { browser_default : float option configured option
   ; tab_default : float option configured option
@@ -588,21 +594,21 @@ and sitedata =
   ; mutable exn_handler : exn -> Ocsigen.Response.t Lwt.t
   ; mutable unregistered_services : Url.path list
   ; mutable unregistered_na_services : na_key_serv list
-  ; mutable max_volatile_data_sessions_per_group : int * bool
-  ; mutable max_volatile_data_sessions_per_subnet : int * bool
-  ; mutable max_volatile_data_tab_sessions_per_group : int * bool
-  ; mutable max_service_sessions_per_group : int * bool
-  ; mutable max_service_sessions_per_subnet : int * bool
-  ; mutable max_service_tab_sessions_per_group : int * bool
-  ; mutable max_persistent_data_sessions_per_group : int option * bool
-  ; mutable max_persistent_data_tab_sessions_per_group : int option * bool
-  ; mutable max_anonymous_services_per_session : int * bool
-  ; mutable max_anonymous_services_per_subnet : int * bool
+  ; mutable max_volatile_data_sessions_per_group : int configured
+  ; mutable max_volatile_data_sessions_per_subnet : int configured
+  ; mutable max_volatile_data_tab_sessions_per_group : int configured
+  ; mutable max_service_sessions_per_group : int configured
+  ; mutable max_service_sessions_per_subnet : int configured
+  ; mutable max_service_tab_sessions_per_group : int configured
+  ; mutable max_persistent_data_sessions_per_group : int option configured
+  ; mutable max_persistent_data_tab_sessions_per_group : int option configured
+  ; mutable max_anonymous_services_per_session : int configured
+  ; mutable max_anonymous_services_per_subnet : int configured
   ; mutable secure_cookies : bool
   ; (* Use secure cookies (default is false). *)
     dlist_ip_table : dlist_ip_table
-  ; mutable ipv4mask : int option * bool
-  ; mutable ipv6mask : int option * bool
+  ; mutable ipv4mask : int option configured
+  ; mutable ipv6mask : int option configured
   ; mutable application_script : bool (* defer *) * bool
   ; (* async *)
     mutable enable_wasm : bool

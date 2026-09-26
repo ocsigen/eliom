@@ -118,29 +118,40 @@ let create_sitedata_aux site_dir config_info =
     ; unregistered_services = []
     ; unregistered_na_services = []
     ; max_service_sessions_per_group =
-        !default_max_service_sessions_per_group, false
+        { Common.cf_value = !default_max_service_sessions_per_group
+        ; cf_from_config = false }
     ; max_volatile_data_sessions_per_group =
-        !default_max_volatile_data_sessions_per_group, false
+        { Common.cf_value = !default_max_volatile_data_sessions_per_group
+        ; cf_from_config = false }
     ; max_persistent_data_sessions_per_group =
-        Some !default_max_persistent_data_sessions_per_group, false
+        { Common.cf_value = Some !default_max_persistent_data_sessions_per_group
+        ; cf_from_config = false }
     ; max_service_tab_sessions_per_group =
-        !default_max_service_tab_sessions_per_group, false
+        { Common.cf_value = !default_max_service_tab_sessions_per_group
+        ; cf_from_config = false }
     ; max_volatile_data_tab_sessions_per_group =
-        !default_max_volatile_data_tab_sessions_per_group, false
+        { Common.cf_value = !default_max_volatile_data_tab_sessions_per_group
+        ; cf_from_config = false }
     ; max_persistent_data_tab_sessions_per_group =
-        Some !default_max_persistent_data_tab_sessions_per_group, false
+        { Common.cf_value =
+            Some !default_max_persistent_data_tab_sessions_per_group
+        ; cf_from_config = false }
     ; max_service_sessions_per_subnet =
-        !default_max_service_sessions_per_subnet, false
+        { Common.cf_value = !default_max_service_sessions_per_subnet
+        ; cf_from_config = false }
     ; max_volatile_data_sessions_per_subnet =
-        !default_max_volatile_data_sessions_per_subnet, false
+        { Common.cf_value = !default_max_volatile_data_sessions_per_subnet
+        ; cf_from_config = false }
     ; max_anonymous_services_per_session =
-        !default_max_anonymous_services_per_session, false
+        { Common.cf_value = !default_max_anonymous_services_per_session
+        ; cf_from_config = false }
     ; max_anonymous_services_per_subnet =
-        !default_max_anonymous_services_per_subnet, false
+        { Common.cf_value = !default_max_anonymous_services_per_subnet
+        ; cf_from_config = false }
     ; secure_cookies = !default_secure_cookies
     ; dlist_ip_table = dlist_table
-    ; ipv4mask = None, false
-    ; ipv6mask = None, false
+    ; ipv4mask = {Common.cf_value = None; cf_from_config = false}
+    ; ipv6mask = {Common.cf_value = None; cf_from_config = false}
     ; application_script = !default_application_script
     ; enable_wasm = !default_enable_wasm
     ; cache_global_data = !default_cache_global_data
@@ -871,39 +882,44 @@ let parse_config _ hostpattern conf_info site_dir =
                   sitedata
             ; set_max_service_sessions_per_group =
                 (fun v ->
-                  sitedata.Common.max_service_sessions_per_group <- v, true)
+                  sitedata.Common.max_service_sessions_per_group <-
+                    {Common.cf_value = v; cf_from_config = true})
             ; set_max_service_sessions_per_subnet =
                 (fun v ->
-                  sitedata.Common.max_service_sessions_per_subnet <- v, true)
+                  sitedata.Common.max_service_sessions_per_subnet <-
+                    {Common.cf_value = v; cf_from_config = true})
             ; set_max_data_sessions_per_group =
                 (fun v ->
                   sitedata.Common.max_volatile_data_sessions_per_group <-
-                    v, true)
+                    {Common.cf_value = v; cf_from_config = true})
             ; set_max_data_sessions_per_subnet =
                 (fun v ->
                   sitedata.Common.max_volatile_data_sessions_per_subnet <-
-                    v, true)
+                    {Common.cf_value = v; cf_from_config = true})
             ; set_max_persistent_sessions_per_group =
                 (fun v ->
                   sitedata.Common.max_persistent_data_sessions_per_group <-
-                    Some v, true)
+                    {Common.cf_value = Some v; cf_from_config = true})
             ; set_max_service_tab_sessions_per_group =
                 (fun v ->
-                  sitedata.Common.max_service_tab_sessions_per_group <- v, true)
+                  sitedata.Common.max_service_tab_sessions_per_group <-
+                    {Common.cf_value = v; cf_from_config = true})
             ; set_max_data_tab_sessions_per_group =
                 (fun v ->
                   sitedata.Common.max_volatile_data_tab_sessions_per_group <-
-                    v, true)
+                    {Common.cf_value = v; cf_from_config = true})
             ; set_max_persistent_tab_sessions_per_group =
                 (fun v ->
                   sitedata.Common.max_persistent_data_tab_sessions_per_group <-
-                    Some v, true)
+                    {Common.cf_value = Some v; cf_from_config = true})
             ; set_max_services_per_session =
                 (fun v ->
-                  sitedata.Common.max_anonymous_services_per_session <- v, true)
+                  sitedata.Common.max_anonymous_services_per_session <-
+                    {Common.cf_value = v; cf_from_config = true})
             ; set_max_services_per_subnet =
                 (fun v ->
-                  sitedata.Common.max_anonymous_services_per_subnet <- v, true;
+                  sitedata.Common.max_anonymous_services_per_subnet <-
+                    {Common.cf_value = v; cf_from_config = true};
                   (* The global table has already been created, with old max
                    and old ipv6mask.
                    I update it, otherwise the setting has no effect
@@ -925,8 +941,14 @@ let parse_config _ hostpattern conf_info site_dir =
                        sitedata.Common.group_of_groups v))
             ; set_secure_cookies =
                 (fun v -> sitedata.Common.secure_cookies <- v)
-            ; set_ipv4mask = (fun v -> sitedata.Common.ipv4mask <- Some v, true)
-            ; set_ipv6mask = (fun v -> sitedata.Common.ipv6mask <- Some v, true)
+            ; set_ipv4mask =
+                (fun v ->
+                  sitedata.Common.ipv4mask <-
+                    {Common.cf_value = Some v; cf_from_config = true})
+            ; set_ipv6mask =
+                (fun v ->
+                  sitedata.Common.ipv6mask <-
+                    {Common.cf_value = Some v; cf_from_config = true})
             ; set_application_script =
                 (fun v -> sitedata.Common.application_script <- v)
             ; set_enable_wasm = (fun v -> sitedata.Common.enable_wasm <- v)
