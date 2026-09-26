@@ -86,19 +86,14 @@ let find_aux now sitedata info _ sci : Ocsigen.Response.t Lwt.t =
     sci (fail Common.Eliom_404)
 
 let session_tables {Common.all_cookie_info; tab_cookie_info; _} =
-  let ( {Common.ci_service = service_cookies_info; _}
-      , {Common.ci_service = secure_service_cookies_info; _} )
-    =
-    all_cookie_info
-  and ( {Common.ci_service = service_cookies_info_tab; _}
-      , {Common.ci_service = secure_service_cookies_info_tab; _} )
-    =
+  let {Common.ci_unsecure; ci_secure} = all_cookie_info
+  and {Common.ci_unsecure = tab_unsecure; ci_secure = tab_secure} =
     tab_cookie_info
   in
-  [ !secure_service_cookies_info_tab, "secure tab session table"
-  ; !service_cookies_info_tab, "tab session table"
-  ; !secure_service_cookies_info, "secure session table"
-  ; !service_cookies_info, "session table" ]
+  [ !(tab_secure.ci_service), "secure tab session table"
+  ; !(tab_unsecure.ci_service), "tab session table"
+  ; !(ci_secure.ci_service), "secure session table"
+  ; !(ci_unsecure.ci_service), "session table" ]
 
 let drop_most_params ri si =
   Ocsigen.Request.update ri ~post_data:None ~meth:`GET
