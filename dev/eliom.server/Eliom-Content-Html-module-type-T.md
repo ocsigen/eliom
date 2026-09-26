@@ -1,6 +1,6 @@
 # Module type `Html.T`
 
-Tyxml HTML signature (with Eliom's links/forms extensions) shared by `F` and `D`, suitable as a functor parameter. Avoids `module type of Content.Html.F`, which captures wrapped module paths and triggers an OCaml strengthening bug (see `ia-reports/2026-04-ocaml-wrapped-mtof-bug.md`).
+Tyxml HTML signature (with Eliom's links/forms extensions) shared by `F` and `D`, suitable as a functor parameter. Avoids `module type of Content.Html.F`, which captures wrapped module paths and triggers an OCaml strengthening bug.
 
 ```ocaml
 type +'a elt = 'a elt
