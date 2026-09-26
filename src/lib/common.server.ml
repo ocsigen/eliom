@@ -250,6 +250,14 @@ type one_persistent_cookie_info =
   ; pc_cookie_exp : cookie_exp ref (* cookie expiration date to set *)
   ; pc_session_group : perssessgrp option ref (* session group *) }
 
+(* A persistent cookie sent by the browser, with the state of its session at
+   the beginning of the request *)
+type persistent_cookie_sent =
+  { ps_value : string
+  ; ps_timeout : timeout (* user timeout *)
+  ; ps_expiry : float option (* server side expiration date, if any *)
+  ; ps_group : perssessgrp option (* session group *) }
+
 (* The state cookies of a request, for one security level. In each table,
    the key is the full state name, and the value is:
    - what the browser sent: None for a new cookie (not sent by the browser),
@@ -274,7 +282,7 @@ type 'a cookie_info1 =
        the cookie has not been used, otherwise it is impossible to write a
        message "Your session has expired" *)
   ; ci_persistent :
-      ((string * timeout * float option * perssessgrp option) option
+      (persistent_cookie_sent option
       * one_persistent_cookie_info session_cookie ref)
         Lwt.t
         Lazy.t
