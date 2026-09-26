@@ -38,7 +38,7 @@ let compute_cookie_info sitedata secure_o secure_ci cookie_info =
   let secure = Common.get_secure ~secure_o ~sitedata in
   if secure
   then
-    let _, _, c = secure_ci in
+    let c = secure_ci.Common.ci_persistent in
     c, true
   else cookie_info, false
 
@@ -63,7 +63,7 @@ let close_persistent_state ~scope ~secure_o ?sp () =
   catch
     (fun () ->
        let cookie_level = Common.cookie_level_of_user_scope scope in
-       let (_, _, cookie_info), secure_ci =
+       let {Common.ci_persistent = cookie_info; _}, secure_ci =
          Common.get_cookie_info sp cookie_level
        in
        let sitedata = Request_info.get_sitedata_sp ~sp in
@@ -153,7 +153,9 @@ let rec find_or_create_persistent_cookie_
           ref (Common.default_client_cookie_exp ()) (* exp on client *)
       ; Common.pc_session_group = ref fullsessgrp }
   in
-  let (_, _, cookie_info), secure_ci = Common.get_cookie_info sp cookie_level in
+  let {Common.ci_persistent = cookie_info; _}, secure_ci =
+    Common.get_cookie_info sp cookie_level
+  in
   let sitedata = Request_info.get_sitedata_sp ~sp in
   let cookie_info, secure =
     compute_cookie_info sitedata secure_o secure_ci cookie_info
@@ -215,7 +217,9 @@ let find_persistent_cookie_only ~cookie_scope ~secure_o ?sp () =
      Returns the cookie info for the cookie *)
   let sp = Common.sp_of_option sp in
   let cookie_level = Common.cookie_level_of_user_scope cookie_scope in
-  let (_, _, cookie_info), secure_ci = Common.get_cookie_info sp cookie_level in
+  let {Common.ci_persistent = cookie_info; _}, secure_ci =
+    Common.get_cookie_info sp cookie_level
+  in
   let sitedata = Request_info.get_sitedata_sp ~sp in
   let cookie_info, secure =
     compute_cookie_info sitedata secure_o secure_ci cookie_info

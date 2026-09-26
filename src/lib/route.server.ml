@@ -86,9 +86,13 @@ let find_aux now sitedata info _ sci : Ocsigen.Response.t Lwt.t =
     sci (fail Common.Eliom_404)
 
 let session_tables {Common.all_cookie_info; tab_cookie_info; _} =
-  let (service_cookies_info, _, _), (secure_service_cookies_info, _, _) =
+  let ( {Common.ci_service = service_cookies_info; _}
+      , {Common.ci_service = secure_service_cookies_info; _} )
+    =
     all_cookie_info
-  and (service_cookies_info_tab, _, _), (secure_service_cookies_info_tab, _, _) =
+  and ( {Common.ci_service = service_cookies_info_tab; _}
+      , {Common.ci_service = secure_service_cookies_info_tab; _} )
+    =
     tab_cookie_info
   in
   [ !secure_service_cookies_info_tab, "secure tab session table"

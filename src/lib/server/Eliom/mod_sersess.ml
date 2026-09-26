@@ -31,7 +31,7 @@ let compute_cookie_info sitedata secure_o secure_ci cookie_info =
   let secure = Common.get_secure ~secure_o ~sitedata in
   if secure
   then
-    let c, _, _ = secure_ci in
+    let c = secure_ci.Common.ci_service in
     c, true
   else cookie_info, false
 
@@ -40,7 +40,7 @@ let close_service_state ~scope ~secure_o ?sp () =
   let sp = Common.sp_of_option sp in
   try
     let cookie_level = Common.cookie_level_of_user_scope scope in
-    let (cookie_info, _, _), secure_ci =
+    let {Common.ci_service = cookie_info; _}, secure_ci =
       Common.get_cookie_info sp cookie_level
     in
     let sitedata = Request_info.get_sitedata_sp ~sp in
@@ -138,7 +138,9 @@ let rec find_or_create_service_cookie_
     ; Common.sc_session_group = session_group
     ; Common.sc_session_group_node = session_group_node }
   in
-  let (cookie_info, _, _), secure_ci = Common.get_cookie_info sp cookie_level in
+  let {Common.ci_service = cookie_info; _}, secure_ci =
+    Common.get_cookie_info sp cookie_level
+  in
   let sitedata = Request_info.get_sitedata_sp ~sp in
   let cookie_info, secure =
     compute_cookie_info sitedata secure_o secure_ci cookie_info
@@ -213,7 +215,7 @@ let find_service_cookie_only ~cookie_scope ~secure_o ?sp () =
   (* If the cookie does not exist, do not create it, raise Not_found.
      Returns the cookie info for the cookie *)
   let sp = Common.sp_of_option sp in
-  let (cookie_info, _, _), secure_ci =
+  let {Common.ci_service = cookie_info; _}, secure_ci =
     Common.get_cookie_info sp (Common.cookie_level_of_user_scope cookie_scope)
   in
   let sitedata = Request_info.get_sitedata_sp ~sp in

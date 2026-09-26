@@ -53,7 +53,11 @@ let update_cookie_table ?now sitedata (ci, sci) =
     | Common.TNone -> None
     | Common.TSome t -> Some (t +. now)
   in
-  let update_exp (service_cookies_info, data_cookies_info, pers_cookies_info) =
+  let update_exp
+        { Common.ci_service = service_cookies_info
+        ; ci_data = data_cookies_info
+        ; ci_persistent = pers_cookies_info }
+    =
     (* Update service expiration date and value *)
     Common.Full_state_name_table.iter
       (fun name (_oldvalue, newr) ->

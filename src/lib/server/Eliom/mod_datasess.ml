@@ -32,7 +32,7 @@ let compute_cookie_info sitedata secure_o secure_ci cookie_info =
   let secure = Common.get_secure ~secure_o ~sitedata in
   if secure
   then
-    let _, c, _ = secure_ci in
+    let c = secure_ci.Common.ci_data in
     c, true
   else cookie_info, false
 
@@ -41,7 +41,7 @@ let close_data_state ~scope ~secure_o ?sp () =
   let sp = Common.sp_of_option sp in
   try
     let cookie_level = Common.cookie_level_of_user_scope scope in
-    let (_, cookie_info, _), secure_ci =
+    let {Common.ci_data = cookie_info; _}, secure_ci =
       Common.get_cookie_info sp cookie_level
     in
     let sitedata = Request_info.get_sitedata_sp ~sp in
@@ -139,7 +139,9 @@ let rec find_or_create_data_cookie
     ; Common.dc_session_group = fullsessgrpref
     ; Common.dc_session_group_node = node }
   in
-  let (_, cookie_info, _), secure_ci = Common.get_cookie_info sp cookie_level in
+  let {Common.ci_data = cookie_info; _}, secure_ci =
+    Common.get_cookie_info sp cookie_level
+  in
   let sitedata = Request_info.get_sitedata_sp ~sp in
   let cookie_info, secure =
     compute_cookie_info sitedata secure_o secure_ci cookie_info
@@ -203,7 +205,9 @@ let find_data_cookie_only ~cookie_scope ~secure_o ?sp () =
      Returns the cookie info for the cookie *)
   let sp = Common.sp_of_option sp in
   let cookie_level = Common.cookie_level_of_user_scope cookie_scope in
-  let (_, cookie_info, _), secure_ci = Common.get_cookie_info sp cookie_level in
+  let {Common.ci_data = cookie_info; _}, secure_ci =
+    Common.get_cookie_info sp cookie_level
+  in
   let sitedata = Request_info.get_sitedata_sp ~sp in
   let cookie_info, secure =
     compute_cookie_info sitedata secure_o secure_ci cookie_info
