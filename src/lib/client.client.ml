@@ -2119,9 +2119,6 @@ let _ =
     fun ?cookies_info ?tmpl form href ->
       Lwt.ignore_result (change_page_post_form ?cookies_info ?tmpl form href)
 
-(* == Main (internal) function: change the content of the page without leaving
-      the javascript application. *)
-
 (* == Navigating through the history... *)
 
 (* Given a state_id, [replace_page_in_history] replaces the current DOM with a

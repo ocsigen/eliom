@@ -42,11 +42,5 @@ let is_tracing = ref false
 let set_tracing value = is_tracing := value
 let get_tracing () = !is_tracing
 
-(* let () = *)
-(*   if Js.to_string Dom_html.window##location##hash = "#__trace" then *)
-(*     set_tracing true; *)
-(*   if Js.to_string Dom_html.window##location##hash = "#__timings" then *)
-(*     debug_timings := true *)
-
 let get_debugmode () =
   try Js.to_bool Js.Unsafe.global##.___eliom_debug_mode_ with _ -> false
