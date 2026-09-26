@@ -376,12 +376,8 @@ let unset_service_session_group
         ~secure_o:secure ~sp ()
     in
     let n =
-      Mod_sessiongroups.make_full_group_name ~cookie_level:`Session
-        (Request_info.get_request_sp sp).Ocsigen.Extensions.request_info
-        (Common.get_site_dir_string sitedata)
-        (Common.get_mask4 sitedata)
-        (Common.get_mask6 sitedata)
-        None
+      Mod_sessiongroups.make_full_group_name ~cookie_level:`Session ~sitedata
+        (Request_info.get_request_sp sp).Ocsigen.Extensions.request_info None
     in
     let node =
       Mod_sessiongroups.Serv.move ?set_max sitedata
@@ -454,12 +450,8 @@ let unset_volatile_data_session_group
         ~secure_o:secure ~sp ()
     in
     let n =
-      Mod_sessiongroups.make_full_group_name ~cookie_level:`Session
-        (Request_info.get_request_sp sp).Ocsigen.Extensions.request_info
-        (Common.get_site_dir_string sitedata)
-        (Common.get_mask4 sitedata)
-        (Common.get_mask6 sitedata)
-        None
+      Mod_sessiongroups.make_full_group_name ~cookie_level:`Session ~sitedata
+        (Request_info.get_request_sp sp).Ocsigen.Extensions.request_info None
     in
     let node =
       Mod_sessiongroups.Data.move ?set_max sitedata
