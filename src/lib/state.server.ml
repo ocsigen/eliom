@@ -314,10 +314,10 @@ let rec close_service_state_if_empty ~scope ?secure () =
           = 0
           (* no tab sessions *)
           && Common.service_tables_are_empty !(c.Common.sc_table)
-        then Mod_sessiongroups.Data.remove c.Common.sc_session_group_node
+        then Mod_sessiongroups.Serv.remove c.Common.sc_session_group_node
     | `Client_process _ ->
         if Common.service_tables_are_empty !(c.Common.sc_table)
-        then Mod_sessiongroups.Data.remove c.Common.sc_session_group_node
+        then Mod_sessiongroups.Serv.remove c.Common.sc_session_group_node
     | `Session_group scope_hierarchy ->
         (* There is a browser session, we do not close the group,
            but we may close the browser session (this will close
@@ -387,7 +387,7 @@ let set_service_session_group
   in
   match set_max with
   | None -> ()
-  | Some m -> Mod_sessiongroups.Data.set_max c.Common.sc_session_group_node m
+  | Some m -> Mod_sessiongroups.Serv.set_max c.Common.sc_session_group_node m
 
 let unset_service_session_group
       ?set_max

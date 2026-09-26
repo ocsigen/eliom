@@ -223,7 +223,7 @@ let get_cookie_info
                 Common.SessionCookies.find sitedata.Common.session_data
                   (Common.Hashed_cookies.to_string hvalue)
               in
-              Mod_sessiongroups.Serv.up session_group_node;
+              Mod_sessiongroups.Data.up session_group_node;
               match !expiry with
               | Some t when t < now ->
                   (* session expired by timeout *)
