@@ -201,7 +201,7 @@ let add_naservice tables name (max_use, expdate, naservice) =
   (if sp = None (* not duringsession *)
    then
      try
-       let g, _, _, _, _ =
+       let {Common.na_generation = g; _} =
          find_naservice_table !(tables.Common.table_naservices) name
        in
        if g = generation
@@ -235,7 +235,12 @@ let add_naservice tables name (max_use, expdate, naservice) =
   tables.Common.table_naservices :=
     add_naservice_table
       !(tables.Common.table_naservices)
-      (name, (generation, max_use, expdate, naservice, node))
+      ( name
+      , { Common.na_generation = generation
+        ; na_max_use = max_use
+        ; na_expiry = expdate
+        ; na_handler = naservice
+        ; na_node = node } )
 
 let remove_naservice_ tables name nodeopt =
   match nodeopt with
@@ -245,7 +250,7 @@ let remove_naservice_ tables name nodeopt =
   | Some node -> Ocsigen_base.Cache.Dlist.remove node
 
 let find_naservice now tables name =
-  let ((_, _, expdate, _, nodeopt) as p) =
+  let ({Common.na_expiry = expdate; na_node = nodeopt; _} as p) =
     find_naservice_table !(tables.Common.table_naservices) name
   in
   match expdate with
@@ -262,7 +267,7 @@ let find_naservice now tables name =
       p
 
 let remove_naservice tables name =
-  let _, _, _, _, nodeopt =
+  let {Common.na_node = nodeopt; _} =
     find_naservice_table !(tables.Common.table_naservices) name
   in
   remove_naservice_ tables name nodeopt
@@ -352,7 +357,11 @@ let make_naservice
          Lwt.fail
          @@ Common.Eliom_retry_with {info with request = ri'; session_info = si'}))
   >>=
-  fun ( (_, max_use, expdate, naservice, node)
+  fun ( { Common.na_max_use = max_use
+        ; na_expiry = expdate
+        ; na_handler = naservice
+        ; na_node = node
+        ; _ }
       , tablewhereithasbeenfound
       , fullsessname ) ->
   let sp = Common.make_server_params sitedata info None fullsessname in

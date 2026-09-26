@@ -427,18 +427,16 @@ and page_table_content =
       * (server_params, Ocsigen.Response.t) service list ]
 
 and naservice_table_content =
-  int
-  (* generation (= number of reloads of sites
-          after which that service has been created) *)
-  * int ref option
-  (* max_use *)
-  * (float * float ref) option
-  (* timeout and expiration date *)
-  * (server_params -> Ocsigen.Response.t Lwt.t)
-  * (page_table ref * page_table_key, na_key_serv) Either.t
-      Ocsigen_base.Cache.Dlist.node
-      option
-(* for limitation of number of dynamic coservices *)
+  { na_generation : int
+    (** Number of reloads of sites after which the service was created *)
+  ; na_max_use : int ref option
+  ; na_expiry : (float * float ref) option  (** Timeout and expiration date *)
+  ; na_handler : server_params -> Ocsigen.Response.t Lwt.t
+  ; na_node :
+      (page_table ref * page_table_key, na_key_serv) Either.t
+        Ocsigen_base.Cache.Dlist.node
+        option
+    (** For the limitation of the number of dynamic coservices *) }
 
 and naservice_table =
   | AEmpty

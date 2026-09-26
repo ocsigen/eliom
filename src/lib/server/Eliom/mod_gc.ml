@@ -146,7 +146,7 @@ let gc_timeouted_naservices now tr =
         Lwt.return_unit)
       else
         Common.NAserv_Table.fold
-          (fun k (_, _, expdate, _, nodeopt) thr ->
+          (fun k {Common.na_expiry = expdate; na_node = nodeopt; _} thr ->
              thr >>= fun () ->
              (match expdate with
              | Some (_, e) when !e < now -> (
