@@ -123,7 +123,7 @@ let get_page now ({Common.request = ri; session_info = si; _} as info) sitedata
          tables)
     (function
       | Common.Eliom_404 | Common.Eliom_Wrong_parameter ->
-          Lwt.catch (* ensuite dans la table globale *)
+          Lwt.catch (* then in the global table *)
             (fun () ->
                Logs.info ~src:section (fun fmt ->
                  fmt "Searching in the global table:");
