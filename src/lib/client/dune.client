@@ -17,6 +17,10 @@
     (with-stdout-to %{target}
       (chdir ../.. (run ppx_eliom_client --as-pp -internal -server-cmo server/.eliom_server.objs/byte/eliom__Client_main.cmo --impl client_main.eliom))))))
 (subdir Eliom
+ (rule (copy# ../../client_relink.client.ml client_relink.ml)))
+(subdir Eliom
+ (rule (copy# ../../client_relink.client.mli client_relink.mli)))
+(subdir Eliom
  (rule (copy# ../../client_value.client.ml client_value.ml)))
 (subdir Eliom
  (rule (copy# ../../client_value.client.mli client_value.mli)))
