@@ -408,12 +408,7 @@ let build_style (e, css) =
        let style = Dom_html.createStyle Dom_html.document in
        style##._type := Js.string "text/css";
        style##.media := media;
-       (* IE8: Assigning to style##innerHTML results in
-          "Unknown runtime error" *)
-       let styleSheet = Js.Unsafe.(get style (Js.string "styleSheet")) in
-       if Js.Optdef.test styleSheet
-       then Js.Unsafe.(set styleSheet (Js.string "cssText") (Js.string css))
-       else style##.innerHTML := Js.string css;
+       style##.innerHTML := Js.string css;
        Lwt.return (e, (style :> Dom.node Js.t)))
     css
 
