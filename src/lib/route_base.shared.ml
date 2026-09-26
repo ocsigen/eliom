@@ -19,7 +19,7 @@
  *)
 
 open Lib
-open Lwt
+open Lwt.Syntax
 
 let section = Logs.Src.create "eliom:service"
 
@@ -97,10 +97,11 @@ module Make (P : PARAM) = struct
         k : P.result Lwt.t
     =
     let sp = P.make_params site_data info urlsuffix fullsessname in
-    Lwt.catch
-      (fun () -> Lwt.return (P.Table.find k !pagetableref))
-      (function Not_found -> fail Common.Eliom_404 | e -> fail e)
-    >>= fun (node, l) ->
+    let* node, l =
+      Lwt.catch
+        (fun () -> Lwt.return (P.Table.find k !pagetableref))
+        (function Not_found -> Lwt.fail Common.Eliom_404 | e -> Lwt.fail e)
+    in
     let rec aux toremove = function
       | [] -> Lwt.return (Error Common.Eliom_Wrong_parameter, [])
       | ({Common.s_max_use; s_expire; s_f; _} as a) :: l -> (
@@ -109,12 +110,13 @@ module Make (P : PARAM) = struct
             (* Service expired. Removing it. *)
             Logs.info ~src:section (fun fmt ->
               fmt "Service expired. Removing it");
-            aux toremove l >>= fun (r, toremove) -> Lwt.return (r, a :: toremove)
+            let* r, toremove = aux toremove l in
+            Lwt.return (r, a :: toremove)
         | _ ->
-            catch
+            Lwt.catch
               (fun () ->
                  Logs.info ~src:section (fun fmt -> fmt "Trying a service");
-                 s_f nosuffixversion sp >>= fun p ->
+                 let* p = s_f nosuffixversion sp in
                  (* warning: the list ll may change during funct
                   if funct register something on the same URL!! *)
                  Logs.info ~src:section (fun fmt ->
@@ -142,11 +144,11 @@ module Make (P : PARAM) = struct
                  Lwt.return (Ok p, newtoremove))
               (function
                 | Common.Eliom_Wrong_parameter ->
-                    aux toremove l >>= fun (r, toremove) ->
+                    let* r, toremove = aux toremove l in
                     Lwt.return (r, toremove)
                 | e -> Lwt.return (Error e, toremove)))
     in
-    aux [] l >>= fun (r, toremove) ->
+    let* r, toremove = aux [] l in
     (match node, toremove with
     | _, [] -> ()
     | Some node, _ ->
@@ -175,7 +177,7 @@ module Make (P : PARAM) = struct
           | [] -> newptr
           | newlist -> P.Table.add k (None, newlist) newptr
       with Not_found -> ()));
-    match r with Ok r -> Lwt.return (r : P.result) | Error e -> fail e
+    match r with Ok r -> Lwt.return (r : P.result) | Error e -> Lwt.fail e
 
   let remove_id services id =
     List.filter (fun {Common.s_id; _} -> s_id <> id) services
@@ -426,8 +428,8 @@ module Make (P : PARAM) = struct
              (function
                | Exn1 | Common.Eliom_404 | Common.Eliom_Wrong_parameter ->
                    search_page_table !table path
-               | e -> fail e))
-        (fail Exn1) tables
+               | e -> Lwt.fail e))
+        (Lwt.fail Exn1) tables
     in
     Lwt.catch
       (fun () ->
