@@ -11,6 +11,10 @@
 (subdir Eliom
  (rule (copy# ../../client_core.client.ml client_core.ml)))
 (subdir Eliom
+ (rule (copy# ../../client_history.client.ml client_history.ml)))
+(subdir Eliom
+ (rule (copy# ../../client_history.client.mli client_history.mli)))
+(subdir Eliom
  (rule (target client_main.ml)
   (deps ../../client_main.eliom (file ../../server/.eliom_server.objs/byte/eliom__Client_main.cmo))
   (action
