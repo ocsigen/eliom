@@ -93,18 +93,9 @@ let update_session_info ~path ~all_get_params ~all_post_params cont =
   default_ri := ri;
   Lwt.with_value ri_key ri cont
 
-let remove_first_slash path = match path with "" :: l -> l | l -> l
-
 let get_original_full_path_sp _sp =
   (* returns current path, not the one when application started *)
-  if not (Process.history_api || !client_app_initialised)
-  then
-    match Url.Current.get () with
-    | Some (Url.Http url) | Some (Url.Https url) -> url.Url.hu_path
-    | Some (Url.File url) -> (
-      match url.Url.fu_path with "" :: l -> l | l -> l)
-    | None -> assert false
-  else (get_ri ()).path
+  (get_ri ()).path
 
 let get_original_full_path_string () =
   String.concat "/" (get_original_full_path_sp sp)
@@ -150,9 +141,7 @@ let get_csp_server_port () =
 let get_csp_server_port_sp = get_csp_server_port
 
 let get_csp_original_full_path () =
-  if !client_app_initialised || Process.history_api
-  then (Process.get_info ()).Common.cpi_original_full_path
-  else remove_first_slash Url.Current.path
+  (Process.get_info ()).Common.cpi_original_full_path
 
 let get_csp_original_full_path_sp = get_csp_original_full_path
 let get_request_cookies = Process.get_request_cookies

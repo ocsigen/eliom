@@ -810,9 +810,8 @@ let get_state state_id : state =
     (Js.Optdef.case
        Dom_html.window##.sessionStorage
        (fun () ->
-          (* We use this only when the history API is
-             available. Sessionstorage seems to be available
-             everywhere the history API exists. *)
+          (* Session storage is available wherever the History API
+             is. *)
           raise_error ~section "sessionStorage not available")
        (fun s -> s##(getItem (state_key state_id))))
     (fun () -> raise Not_found)
@@ -1342,15 +1341,9 @@ let set_current_uri, get_current_uri =
   let get_current_uri () = (get_this_page ()).url in
   set_current_uri, get_current_uri
 
-(* == Function [change_url_string] changes the URL, without doing a request.
+(* == Function [change_url_string] changes the URL, without doing a request,
+   through the History API. *)
 
-   It uses the History API if present, otherwise we write the new URL
-   in the fragment part of the URL (see 'redirection_script' in
-   'server/eliom_registration.ml'). *)
-
-let current_pseudo_fragment = ref ""
-let url_fragment_prefix = "!"
-let url_fragment_prefix_with_sharp = "#!"
 let current_reload_function = ref None
 let set_reload_function f = current_reload_function := Some f
 
@@ -1446,33 +1439,22 @@ let change_url_string ~replace uri =
   Logs.debug ~src:section_page (fun fmt -> fmt "Change url string: %s" uri);
   let full_uri = if !Common.is_client_app then uri else Url.resolve uri in
   set_current_uri full_uri;
-  if Process.history_api
+  let this_page = get_this_page () in
+  if replace
   then (
-    let this_page = get_this_page () in
-    if replace
-    then (
-      Option.iter stash_reload_function !current_reload_function;
-      Dom_html.window##.history##replaceState
-        (history_state this_page.page_id full_uri)
-        (Js.string "")
-        (if !Common.is_client_app
-         then Js.null
-         else Js.Opt.return (Js.string uri)))
-    else (
-      update_state ();
-      Option.iter stash_reload_function !current_reload_function;
-      Dom_html.window##.history##pushState
-        (history_state this_page.page_id full_uri)
-        (Js.string "")
-        (if !Common.is_client_app
-         then Js.null
-         else Js.Opt.return (Js.string uri)));
-    Mod_dom.touch_base ())
+    Option.iter stash_reload_function !current_reload_function;
+    Dom_html.window##.history##replaceState
+      (history_state this_page.page_id full_uri)
+      (Js.string "")
+      (if !Common.is_client_app then Js.null else Js.Opt.return (Js.string uri)))
   else (
-    current_pseudo_fragment := url_fragment_prefix_with_sharp ^ uri;
-    if uri <> fst (Url.split_fragment Url.Current.as_string)
-    then
-      Dom_html.window##.location##.hash := Js.string (url_fragment_prefix ^ uri))
+    update_state ();
+    Option.iter stash_reload_function !current_reload_function;
+    Dom_html.window##.history##pushState
+      (history_state this_page.page_id full_uri)
+      (Js.string "")
+      (if !Common.is_client_app then Js.null else Js.Opt.return (Js.string uri)));
+  Mod_dom.touch_base ()
 
 (* == Function [change_url] changes the URL, without doing a request.
    It takes a GET (co-)service as parameter and its parameters.
@@ -2108,197 +2090,159 @@ let restore_history_dom id =
 let wait_load_end = Client_core.wait_load_end
 
 let () =
-  if Process.history_api
-  then (
-    let revisit full_uri state_id =
-      let state =
-        try get_state state_id
-        with Not_found ->
-          failwith
-            (Printf.sprintf
-               "revisit: state id %x/%x not found in sessionStorage (%s)"
-               state_id.session_id state_id.state_index full_uri)
-      in
-      let target_id = state_id.state_index in
-      let ev =
-        { in_cache = is_in_cache state_id
-        ; origin_uri = get_current_uri ()
-        ; target_uri = full_uri
-        ; origin_id = !active_page.page_id.state_index
-        ; target_id = Some target_id }
-      in
-      let tmpl = state.template in
-      Lwt.ignore_result @@ with_progress_cursor
-      @@
-      let uri, fragment = Url.split_fragment full_uri in
-      if uri = get_current_uri ()
-      then (
+  let revisit full_uri state_id =
+    let state =
+      try get_state state_id
+      with Not_found ->
+        failwith
+          (Printf.sprintf
+             "revisit: state id %x/%x not found in sessionStorage (%s)"
+             state_id.session_id state_id.state_index full_uri)
+    in
+    let target_id = state_id.state_index in
+    let ev =
+      { in_cache = is_in_cache state_id
+      ; origin_uri = get_current_uri ()
+      ; target_uri = full_uri
+      ; origin_id = !active_page.page_id.state_index
+      ; target_id = Some target_id }
+    in
+    let tmpl = state.template in
+    Lwt.ignore_result @@ with_progress_cursor
+    @@
+    let uri, fragment = Url.split_fragment full_uri in
+    if uri = get_current_uri ()
+    then (
+      Logs.debug ~src:section_page (fun fmt ->
+        fmt "revisit: uri = get_current_uri");
+      !active_page.page_id <- state_id;
+      scroll_to_fragment ~offset:state.position fragment;
+      Lwt.return_unit)
+    else
+      try
+        (* serve cached page from the from history_doms *)
         Logs.debug ~src:section_page (fun fmt ->
-          fmt "revisit: uri = get_current_uri");
-        !active_page.page_id <- state_id;
+          fmt "revisit: uri != get_current_uri");
+        if not (is_in_cache state_id) then raise Not_found;
+        let* () = run_lwt_callbacks ev (flush_onchangepage ()) in
+        restore_history_dom target_id;
+        set_current_uri uri;
+        let* () = Js_of_ocaml_lwt.Lwt_js_events.request_animation_frame () in
         scroll_to_fragment ~offset:state.position fragment;
-        Lwt.return_unit)
-      else
-        try
-          (* serve cached page from the from history_doms *)
-          Logs.debug ~src:section_page (fun fmt ->
-            fmt "revisit: uri != get_current_uri");
-          if not (is_in_cache state_id) then raise Not_found;
-          let* () = run_lwt_callbacks ev (flush_onchangepage ()) in
-          restore_history_dom target_id;
-          set_current_uri uri;
-          let* () = Js_of_ocaml_lwt.Lwt_js_events.request_animation_frame () in
-          scroll_to_fragment ~offset:state.position fragment;
-          (* Wait for the dom to be repainted before scrolling *)
-          let* () = Js_of_ocaml_lwt.Lwt_js_events.request_animation_frame () in
-          scroll_to_fragment ~offset:state.position fragment;
-          (* When we use iPhone, we need to wait for one more
+        (* Wait for the dom to be repainted before scrolling *)
+        let* () = Js_of_ocaml_lwt.Lwt_js_events.request_animation_frame () in
+        scroll_to_fragment ~offset:state.position fragment;
+        (* When we use iPhone, we need to wait for one more
                    [request_animation_frame] before scrolling.The
                    function [scroll_to_fragment] is called twice. In
                    other words, we want to call [scroll_to_fragment]
                    as early as possible so that the scroll position
                    will not jump after the second [request_animation_frame]
                    if the dom has already be painted after the first one. *)
-          Lwt.return_unit
+        Lwt.return_unit
+      with Not_found -> (
+        let session_changed = state_id.session_id <> session_id in
+        if session_changed && is_client_app ()
+        then
+          failwith
+            (Printf.sprintf "revisit: session changed on client: %d => %d (%s)"
+               state_id.session_id session_id full_uri);
+        try
+          (* same session *)
+          if session_changed then raise Not_found;
+          Logs.debug ~src:section_page (fun fmt ->
+            fmt "revisit: session has not changed");
+          let old_page = History.find_by_state_index state_id.state_index in
+          let rf =
+            Option.bind old_page @@ fun {reload_function = rf; _} -> rf
+          in
+          match rf with
+          | None -> raise Not_found
+          | Some f ->
+              current_reload_function := rf;
+              let* () = run_lwt_callbacks ev (flush_onchangepage ()) in
+              with_new_page ~state_id ?old_page ~replace:false () @@ fun () ->
+              set_current_uri uri;
+              History.replace (get_this_page ());
+              let* () =
+                let* result = f () () in
+                match result with
+                | Service.Dom d -> set_content_local d
+                | r ->
+                    handle_result ~uri:(get_current_uri ()) ~replace:true
+                      (Lwt.return r)
+              in
+              scroll_to_fragment ~offset:state.position fragment;
+              Lwt.return_unit
         with Not_found -> (
-          let session_changed = state_id.session_id <> session_id in
-          if session_changed && is_client_app ()
-          then
-            failwith
-              (Printf.sprintf
-                 "revisit: session changed on client: %d => %d (%s)"
-                 state_id.session_id session_id full_uri);
-          try
-            (* same session *)
-            if session_changed then raise Not_found;
-            Logs.debug ~src:section_page (fun fmt ->
-              fmt "revisit: session has not changed");
-            let old_page = History.find_by_state_index state_id.state_index in
-            let rf =
-              Option.bind old_page @@ fun {reload_function = rf; _} -> rf
-            in
-            match rf with
-            | None -> raise Not_found
-            | Some f ->
-                current_reload_function := rf;
-                let* () = run_lwt_callbacks ev (flush_onchangepage ()) in
-                with_new_page ~state_id ?old_page ~replace:false () @@ fun () ->
-                set_current_uri uri;
-                History.replace (get_this_page ());
-                let* () =
-                  let* result = f () () in
-                  match result with
-                  | Service.Dom d -> set_content_local d
-                  | r ->
-                      handle_result ~uri:(get_current_uri ()) ~replace:true
-                        (Lwt.return r)
-                in
-                scroll_to_fragment ~offset:state.position fragment;
-                Lwt.return_unit
-          with Not_found -> (
-            (* different session ID *)
-            set_current_uri uri;
-            match tmpl with
-            | Some t when tmpl = Request_info.get_request_template () ->
-                Logs.debug ~src:section_page (fun fmt ->
-                  fmt
-                    "revisit: template is Some and equals to get_request_template");
-                let* uri, content =
-                  Request.http_get uri
-                    [Request.nl_template_string, t]
-                    Request.string_result
-                in
-                let* () = set_template_content content ~replace:true ~uri in
-                scroll_to_fragment ~offset:state.position fragment;
-                Lwt.return_unit
-            | _ ->
-                if is_client_app ()
-                then
-                  failwith
-                    (Printf.sprintf
-                       "revisit: could not generate page client-side (%s)"
-                       full_uri);
-                Logs.debug ~src:section_page (fun fmt ->
-                  fmt "revisit: template is anything else");
-                with_new_page
-                  ?state_id:(if session_changed then None else Some state_id)
-                  ~replace:false ()
-                @@ fun () ->
-                let* uri, content =
-                  Request.http_get ~expecting_process_page:true uri []
-                    Request.xml_result
-                in
-                let* () =
-                  set_content ~uri ~replace:true ~offset:state.position
-                    ?fragment content
-                in
-                Lwt.return_unit))
-    in
-    let revisit_wrapper full_uri state_id =
-      Logs.debug ~src:section_page (fun fmt -> fmt "revisit_wrapper");
-      (* CHECKME: is it OK that set_state happens after the unload
+          (* different session ID *)
+          set_current_uri uri;
+          match tmpl with
+          | Some t when tmpl = Request_info.get_request_template () ->
+              Logs.debug ~src:section_page (fun fmt ->
+                fmt
+                  "revisit: template is Some and equals to get_request_template");
+              let* uri, content =
+                Request.http_get uri
+                  [Request.nl_template_string, t]
+                  Request.string_result
+              in
+              let* () = set_template_content content ~replace:true ~uri in
+              scroll_to_fragment ~offset:state.position fragment;
+              Lwt.return_unit
+          | _ ->
+              if is_client_app ()
+              then
+                failwith
+                  (Printf.sprintf
+                     "revisit: could not generate page client-side (%s)"
+                     full_uri);
+              Logs.debug ~src:section_page (fun fmt ->
+                fmt "revisit: template is anything else");
+              with_new_page
+                ?state_id:(if session_changed then None else Some state_id)
+                ~replace:false ()
+              @@ fun () ->
+              let* uri, content =
+                Request.http_get ~expecting_process_page:true uri []
+                  Request.xml_result
+              in
+              let* () =
+                set_content ~uri ~replace:true ~offset:state.position ?fragment
+                  content
+              in
+              Lwt.return_unit))
+  in
+  let revisit_wrapper full_uri state_id =
+    Logs.debug ~src:section_page (fun fmt -> fmt "revisit_wrapper");
+    (* CHECKME: is it OK that set_state happens after the unload
          callbacks are executed? *)
-      let f () = update_state (); revisit full_uri state_id
-      and cancel () = () in
-      run_onunload_wrapper f cancel
-    in
-    Lwt.ignore_result
-      (let* () = wait_load_end () in
-       Logs.debug ~src:section_page (fun fmt ->
-         fmt "revisit_wrapper: replaceState");
-       Dom_html.window##.history##(replaceState
-                                     (history_state !active_page.page_id
-                                        (Js.to_string
-                                           Dom_html.window##.location##.href))
-                                     (Js.string "") Js.null);
-       Lwt.return_unit);
-    Dom_html.window##.onpopstate
-    := Dom_html.handler (fun event ->
-      Logs.debug ~src:section_page (fun fmt ->
-        fmt "revisit_wrapper: onpopstate");
-      Mod_dom.touch_base ();
-      Js.Opt.case
-        ((Js.Unsafe.coerce event)##.state : _ Js.opt)
-        (fun () -> () (* Ignore dummy popstate event fired by chromium. *))
-        (fun saved_state ->
-           let state, full_uri =
-             of_json ~typ:[%json: saved_state] (Js.to_string saved_state)
-           in
-           revisit_wrapper full_uri state);
-      Js._false))
-  else (* Without history API *)
-    (* FIXME: This should be adapted to work with template...
-       Solution: add the "state_id" in the fragment ??
-    *)
-    let read_fragment () = Js.to_string Dom_html.window##.location##.hash in
-    let auto_change_page fragment =
-      Lwt.ignore_result
-        (let l = String.length fragment in
-         if l = 0 || (l > 1 && fragment.[1] = '!')
-         then
-           if fragment <> !current_pseudo_fragment
-           then (
-             current_pseudo_fragment := fragment;
-             let uri =
-               match l with
-               | 2 -> "./" (* fix for firefox *)
-               | 0 | 1 -> fst (Url.split_fragment Url.Current.as_string)
-               | _ -> String.sub fragment 2 (String.length fragment - 2)
-             in
-             Logs.debug ~src:section_page (fun fmt -> fmt "auto_change_page");
-             (* CCC TODO handle templates *)
-             change_page_uri uri)
-           else Lwt.return_unit
-         else Lwt.return_unit)
-    in
-    Mod_dom.onhashchange (fun s -> auto_change_page (Js.to_string s));
-    let first_fragment = read_fragment () in
-    if first_fragment <> !current_pseudo_fragment
-    then
-      Lwt.ignore_result
-        (let* () = wait_load_end () in
-         auto_change_page first_fragment;
-         Lwt.return_unit)
+    let f () = update_state (); revisit full_uri state_id and cancel () = () in
+    run_onunload_wrapper f cancel
+  in
+  Lwt.ignore_result
+    (let* () = wait_load_end () in
+     Logs.debug ~src:section_page (fun fmt ->
+       fmt "revisit_wrapper: replaceState");
+     Dom_html.window##.history##(replaceState
+                                   (history_state !active_page.page_id
+                                      (Js.to_string
+                                         Dom_html.window##.location##.href))
+                                   (Js.string "") Js.null);
+     Lwt.return_unit);
+  Dom_html.window##.onpopstate
+  := Dom_html.handler (fun event ->
+    Logs.debug ~src:section_page (fun fmt -> fmt "revisit_wrapper: onpopstate");
+    Mod_dom.touch_base ();
+    Js.Opt.case
+      ((Js.Unsafe.coerce event)##.state : _ Js.opt)
+      (fun () -> () (* Ignore dummy popstate event fired by chromium. *))
+      (fun saved_state ->
+         let state, full_uri =
+           of_json ~typ:[%json: saved_state] (Js.to_string saved_state)
+         in
+         revisit_wrapper full_uri state);
+    Js._false)
 
 let () =
   Unwrap.register_unwrapper
