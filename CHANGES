@@ -111,6 +111,12 @@
 ** The internal client exception
    Request_info.Eliom_no_raw_post_data_on_client was renamed to
    No_raw_post_data_on_client (no alias kept, as it was not exposed).
+* New exception Common.Request_information_not_available, raised by the
+  functions that need the current request when they are called outside
+  one: Common.get_sp (and the functions using it, which raised Failure),
+  and registering a service with a session, session group or client
+  process scope (which raised Failure "Missing sp while registering
+  service").
 * Browser support
 ** The client side of Eliom applications now requires a browser with
    the History API, querySelectorAll, compareDocumentPosition,

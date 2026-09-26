@@ -670,6 +670,9 @@ let handle_init_exn = function
   | Common.Site_information_not_available f ->
       "Eliom: Bad use of function \"" ^ f
       ^ "\". Must be used only during site initialisation phase (or, sometimes, also during request)."
+  | Common.Request_information_not_available f ->
+      "Eliom: Bad use of function \"" ^ f
+      ^ "\". It needs the current request, so it cannot be used during the site initialisation phase (for instance, register session services during a request)."
   | Common.Eliom_page_erasing s ->
       "Eliom: You cannot create a page or directory here. " ^ s
       ^ " already exists. Please correct your modules."

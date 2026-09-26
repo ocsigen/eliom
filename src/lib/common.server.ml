@@ -22,6 +22,7 @@ open Lib
 include Common_base
 
 exception Eliom_Session_expired
+exception Request_information_not_available of string
 
 exception
   Eliom_there_are_unregistered_services of
@@ -670,10 +671,9 @@ let get_sp () =
   match Lwt.get sp_key with
   | Some sp -> sp
   | None ->
-      let msg =
-        "This function cannot be called here because it needs information about the request or the site."
-      in
-      failwith @@ String.concat "\n" @@ (msg :: Common_base.backtrace_lwt 2)
+      raise
+        (Request_information_not_available
+           (String.concat "\n" ("Common.get_sp" :: Common_base.backtrace_lwt 2)))
 
 let sp_of_option sp = match sp with None -> get_sp () | Some sp -> sp
 

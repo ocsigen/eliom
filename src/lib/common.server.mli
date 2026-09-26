@@ -116,6 +116,15 @@ exception Eliom_site_information_not_available of string
     [Eliom_] prefix is redundant under the [Eliom.Common] namespace; new
     code should use {!Site_information_not_available} directly. *)
 
+exception Request_information_not_available of string
+(** That function needs the current request, and cannot be used outside a
+    request, for instance during the initialisation phase of your Eliom
+    module. The argument tells where the request was needed.
+
+    This is the case of the functions that act on the session of the
+    current user, such as registering a service with a session, session
+    group or client process scope. *)
+
 exception Cannot_call_this_function_before_app_is_linked_to_a_site
 (** Statically linked app: You cannot call this function before [App.run]. *)
 
@@ -765,8 +774,15 @@ val tab_cookie_action_info_key :
 
 val sp_key : server_params Lwt.key
 val get_sp_option : unit -> server_params option
+
 val get_sp : unit -> server_params
+(** [get_sp ()] is the server parameters of the current request.
+    @raise Request_information_not_available outside a request. *)
+
 val sp_of_option : server_params option -> server_params
+(** [sp_of_option sp] is [s] if [sp] is [Some s], and [get_sp ()]
+    otherwise. *)
+
 val found_stop_key : unit Polytables.key
 
 (**** Wrapper type shared by client/server side ***)

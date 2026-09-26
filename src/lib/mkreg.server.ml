@@ -461,7 +461,8 @@ let register
         ?error_handler
         (Global_table (State.get_global_table ()))
         ~service page_gen
-  | _, None -> failwith "Missing sp while registering service"
+  | _, None ->
+      raise (Common.Request_information_not_available "Registration.register")
   | Some (#Common.user_scope as scope), Some sp ->
       register_aux pages ?options ?charset ?code ?content_type ?headers
         ?error_handler
