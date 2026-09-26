@@ -108,6 +108,8 @@ type timeout =
 
 [@@@warning "+39"]
 
+let timeout_of_option = function None -> TNone | Some t -> TSome t
+
 (* The table of tables for each session. Keys are hashes of cookies or group names *)
 module SessionCookies = Hashtbl.Make (struct
     type t = string
