@@ -1152,31 +1152,28 @@ let raw_call_service
      Also set with_credentials to true in CORS configuration.
   *)
   let with_credentials = not (Service.is_external service) in
+  let request =
+    create_request_ ?absolute ?absolute_path ?https ~service ?hostname ?port
+      ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params get_params
+      post_params
+  in
+  let cookies_info = Eliom_uri.make_cookies_info (https, service) in
   let* uri, content =
-    match
-      create_request_ ?absolute ?absolute_path ?https ~service ?hostname ?port
-        ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params get_params
-        post_params
-    with
+    match request with
     | `Get (uri, _) ->
-        Request.http_get ~with_credentials
-          ?cookies_info:(Eliom_uri.make_cookies_info (https, service))
-          uri [] ?progress ?upload_progress ?override_mime_type
-          Request.string_result
+        Request.http_get ~with_credentials ?cookies_info uri [] ?progress
+          ?upload_progress ?override_mime_type Request.string_result
     | `Post (uri, _, post_params) ->
-        Request.http_post ~with_credentials
-          ?cookies_info:(Eliom_uri.make_cookies_info (https, service))
-          ?progress ?upload_progress ?override_mime_type uri post_params
+        Request.http_post ~with_credentials ?cookies_info ?progress
+          ?upload_progress ?override_mime_type uri post_params
           Request.string_result
     | `Put (uri, _, post_params) ->
-        Request.http_put ~with_credentials
-          ?cookies_info:(Eliom_uri.make_cookies_info (https, service))
-          ?progress ?upload_progress ?override_mime_type uri post_params
+        Request.http_put ~with_credentials ?cookies_info ?progress
+          ?upload_progress ?override_mime_type uri post_params
           Request.string_result
     | `Delete (uri, _, post_params) ->
-        Request.http_delete ~with_credentials
-          ?cookies_info:(Eliom_uri.make_cookies_info (https, service))
-          ?progress ?upload_progress ?override_mime_type uri post_params
+        Request.http_delete ~with_credentials ?cookies_info ?progress
+          ?upload_progress ?override_mime_type uri post_params
           Request.string_result
   in
   match content with
