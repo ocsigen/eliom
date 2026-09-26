@@ -2050,137 +2050,133 @@ let restore_history_dom id =
       set_active_page page
   | _ -> Logs.err ~src:section (fun fmt -> fmt "cannot find DOM in history")
 
-let () =
-  let revisit full_uri state_id =
-    let state =
-      try get_state state_id
-      with Not_found ->
-        failwith
-          (Printf.sprintf
-             "revisit: state id %x/%x not found in sessionStorage (%s)"
-             state_id.session_id state_id.state_index full_uri)
-    in
-    let target_id = state_id.state_index in
-    let ev =
-      { in_cache = is_in_cache state_id
-      ; origin_uri = get_current_uri ()
-      ; target_uri = full_uri
-      ; origin_id = !active_page.page_id.state_index
-      ; target_id = Some target_id }
-    in
-    let tmpl = state.template in
-    Lwt.ignore_result @@ with_progress_cursor
-    @@
-    let uri, fragment = Url.split_fragment full_uri in
-    if uri = get_current_uri ()
-    then (
+let revisit full_uri state_id =
+  let state =
+    try get_state state_id
+    with Not_found ->
+      failwith
+        (Printf.sprintf
+           "revisit: state id %x/%x not found in sessionStorage (%s)"
+           state_id.session_id state_id.state_index full_uri)
+  in
+  let target_id = state_id.state_index in
+  let ev =
+    { in_cache = is_in_cache state_id
+    ; origin_uri = get_current_uri ()
+    ; target_uri = full_uri
+    ; origin_id = !active_page.page_id.state_index
+    ; target_id = Some target_id }
+  in
+  let tmpl = state.template in
+  Lwt.ignore_result @@ with_progress_cursor
+  @@
+  let uri, fragment = Url.split_fragment full_uri in
+  if uri = get_current_uri ()
+  then (
+    Logs.debug ~src:section_page (fun fmt ->
+      fmt "revisit: uri = get_current_uri");
+    !active_page.page_id <- state_id;
+    scroll_to_fragment ~offset:state.position fragment;
+    Lwt.return_unit)
+  else
+    try
+      (* serve cached page from the from history_doms *)
       Logs.debug ~src:section_page (fun fmt ->
-        fmt "revisit: uri = get_current_uri");
-      !active_page.page_id <- state_id;
+        fmt "revisit: uri != get_current_uri");
+      if not (is_in_cache state_id) then raise Not_found;
+      let* () = run_lwt_callbacks ev (flush_onchangepage ()) in
+      restore_history_dom target_id;
+      set_current_uri uri;
+      let* () = Js_of_ocaml_lwt.Lwt_js_events.request_animation_frame () in
       scroll_to_fragment ~offset:state.position fragment;
-      Lwt.return_unit)
-    else
-      try
-        (* serve cached page from the from history_doms *)
-        Logs.debug ~src:section_page (fun fmt ->
-          fmt "revisit: uri != get_current_uri");
-        if not (is_in_cache state_id) then raise Not_found;
-        let* () = run_lwt_callbacks ev (flush_onchangepage ()) in
-        restore_history_dom target_id;
-        set_current_uri uri;
-        let* () = Js_of_ocaml_lwt.Lwt_js_events.request_animation_frame () in
-        scroll_to_fragment ~offset:state.position fragment;
-        (* Wait for the dom to be repainted before scrolling *)
-        let* () = Js_of_ocaml_lwt.Lwt_js_events.request_animation_frame () in
-        scroll_to_fragment ~offset:state.position fragment;
-        (* When we use iPhone, we need to wait for one more
+      (* Wait for the dom to be repainted before scrolling *)
+      let* () = Js_of_ocaml_lwt.Lwt_js_events.request_animation_frame () in
+      scroll_to_fragment ~offset:state.position fragment;
+      (* When we use iPhone, we need to wait for one more
                    [request_animation_frame] before scrolling.The
                    function [scroll_to_fragment] is called twice. In
                    other words, we want to call [scroll_to_fragment]
                    as early as possible so that the scroll position
                    will not jump after the second [request_animation_frame]
                    if the dom has already be painted after the first one. *)
-        Lwt.return_unit
+      Lwt.return_unit
+    with Not_found -> (
+      let session_changed = state_id.session_id <> session_id in
+      if session_changed && is_client_app ()
+      then
+        failwith
+          (Printf.sprintf "revisit: session changed on client: %d => %d (%s)"
+             state_id.session_id session_id full_uri);
+      try
+        (* same session *)
+        if session_changed then raise Not_found;
+        Logs.debug ~src:section_page (fun fmt ->
+          fmt "revisit: session has not changed");
+        let old_page = History.find_by_state_index state_id.state_index in
+        let rf = Option.bind old_page @@ fun {reload_function = rf; _} -> rf in
+        match rf with
+        | None -> raise Not_found
+        | Some f ->
+            current_reload_function := rf;
+            let* () = run_lwt_callbacks ev (flush_onchangepage ()) in
+            with_new_page ~state_id ?old_page ~replace:false () @@ fun () ->
+            set_current_uri uri;
+            History.replace (get_this_page ());
+            let* () =
+              let* result = f () () in
+              match result with
+              | Service.Dom d -> set_content_local d
+              | r ->
+                  handle_result ~uri:(get_current_uri ()) ~replace:true
+                    (Lwt.return r)
+            in
+            scroll_to_fragment ~offset:state.position fragment;
+            Lwt.return_unit
       with Not_found -> (
-        let session_changed = state_id.session_id <> session_id in
-        if session_changed && is_client_app ()
-        then
-          failwith
-            (Printf.sprintf "revisit: session changed on client: %d => %d (%s)"
-               state_id.session_id session_id full_uri);
-        try
-          (* same session *)
-          if session_changed then raise Not_found;
-          Logs.debug ~src:section_page (fun fmt ->
-            fmt "revisit: session has not changed");
-          let old_page = History.find_by_state_index state_id.state_index in
-          let rf =
-            Option.bind old_page @@ fun {reload_function = rf; _} -> rf
-          in
-          match rf with
-          | None -> raise Not_found
-          | Some f ->
-              current_reload_function := rf;
-              let* () = run_lwt_callbacks ev (flush_onchangepage ()) in
-              with_new_page ~state_id ?old_page ~replace:false () @@ fun () ->
-              set_current_uri uri;
-              History.replace (get_this_page ());
-              let* () =
-                let* result = f () () in
-                match result with
-                | Service.Dom d -> set_content_local d
-                | r ->
-                    handle_result ~uri:(get_current_uri ()) ~replace:true
-                      (Lwt.return r)
-              in
-              scroll_to_fragment ~offset:state.position fragment;
-              Lwt.return_unit
-        with Not_found -> (
-          (* different session ID *)
-          set_current_uri uri;
-          match tmpl with
-          | Some t when tmpl = Request_info.get_request_template () ->
-              Logs.debug ~src:section_page (fun fmt ->
-                fmt
-                  "revisit: template is Some and equals to get_request_template");
-              let* uri, content =
-                Request.http_get uri
-                  [Request.nl_template_string, t]
-                  Request.string_result
-              in
-              let* () = set_template_content content ~replace:true ~uri in
-              scroll_to_fragment ~offset:state.position fragment;
-              Lwt.return_unit
-          | _ ->
-              if is_client_app ()
-              then
-                failwith
-                  (Printf.sprintf
-                     "revisit: could not generate page client-side (%s)"
-                     full_uri);
-              Logs.debug ~src:section_page (fun fmt ->
-                fmt "revisit: template is anything else");
-              with_new_page
-                ?state_id:(if session_changed then None else Some state_id)
-                ~replace:false ()
-              @@ fun () ->
-              let* uri, content =
-                Request.http_get ~expecting_process_page:true uri []
-                  Request.xml_result
-              in
-              let* () =
-                set_content ~uri ~replace:true ~offset:state.position ?fragment
-                  content
-              in
-              Lwt.return_unit))
-  in
-  let revisit_wrapper full_uri state_id =
-    Logs.debug ~src:section_page (fun fmt -> fmt "revisit_wrapper");
-    (* CHECKME: is it OK that set_state happens after the unload
+        (* different session ID *)
+        set_current_uri uri;
+        match tmpl with
+        | Some t when tmpl = Request_info.get_request_template () ->
+            Logs.debug ~src:section_page (fun fmt ->
+              fmt "revisit: template is Some and equals to get_request_template");
+            let* uri, content =
+              Request.http_get uri
+                [Request.nl_template_string, t]
+                Request.string_result
+            in
+            let* () = set_template_content content ~replace:true ~uri in
+            scroll_to_fragment ~offset:state.position fragment;
+            Lwt.return_unit
+        | _ ->
+            if is_client_app ()
+            then
+              failwith
+                (Printf.sprintf
+                   "revisit: could not generate page client-side (%s)" full_uri);
+            Logs.debug ~src:section_page (fun fmt ->
+              fmt "revisit: template is anything else");
+            with_new_page
+              ?state_id:(if session_changed then None else Some state_id)
+              ~replace:false ()
+            @@ fun () ->
+            let* uri, content =
+              Request.http_get ~expecting_process_page:true uri []
+                Request.xml_result
+            in
+            let* () =
+              set_content ~uri ~replace:true ~offset:state.position ?fragment
+                content
+            in
+            Lwt.return_unit))
+
+let revisit_wrapper full_uri state_id =
+  Logs.debug ~src:section_page (fun fmt -> fmt "revisit_wrapper");
+  (* CHECKME: is it OK that set_state happens after the unload
          callbacks are executed? *)
-    let f () = update_state (); revisit full_uri state_id and cancel () = () in
-    run_onunload_wrapper f cancel
-  in
+  let f () = update_state (); revisit full_uri state_id and cancel () = () in
+  run_onunload_wrapper f cancel
+
+let () =
   Lwt.ignore_result
     (let* () = Client_core.wait_load_end () in
      Logs.debug ~src:section_page (fun fmt ->
