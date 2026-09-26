@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-val close_persistent_state2 :
+val close_persistent_state_of_cookie :
    scope:Common.user_scope
   -> Common.sitedata
   -> Common.perssessgrp option

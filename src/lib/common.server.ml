@@ -591,14 +591,16 @@ let make_full_cookie_name cookieprefix {user_scope; secure; site_dir_str} =
   in
   String.concat "" [cookieprefix; secure; site_dir_str; hier1; hiername]
 
-let make_full_state_name2 site_dir_str secure ~(scope : [< user_scope]) :
-  full_state_name
+let make_full_state_name_of_sitedata ~sitedata ~secure ~(scope : [< user_scope])
+  : full_state_name
   =
   (* The information in the cookie name, without the kind of session *)
-  {user_scope = (scope :> user_scope); secure; site_dir_str}
+  { user_scope = (scope :> user_scope)
+  ; secure
+  ; site_dir_str = get_site_dir_string sitedata }
 
 let make_full_state_name ~sp ~secure ~(scope : [< user_scope]) =
-  make_full_state_name2 (get_site_dir_string sp.sp_sitedata) secure ~scope
+  make_full_state_name_of_sitedata ~sitedata:sp.sp_sitedata ~secure ~scope
 
 let get_cookie_info sp = function
   | `Session -> sp.sp_cookie_info

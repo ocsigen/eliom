@@ -42,13 +42,18 @@ let compute_cookie_info sitedata secure_o secure_ci cookie_info =
     c, true
   else cookie_info, false
 
-let close_persistent_state2 ~(scope : [< Common.user_scope]) sitedata sg v =
+let close_persistent_state_of_cookie
+      ~(scope : [< Common.user_scope])
+      sitedata
+      sg
+      v
+  =
   (* check *)
   match scope with
   | `Session_group _ ->
       Mod_sessiongroups.Pers.remove_group ~cookie_level:`Session sitedata sg
   | _ ->
-      Mod_sessiongroups.Pers.close_persistent_session2
+      Mod_sessiongroups.Pers.close_persistent_session
         ~cookie_level:(Common.cookie_level_of_user_scope scope)
         sitedata sg v
 
@@ -70,7 +75,7 @@ let close_persistent_state ~scope ~secure_o ?sp () =
        >>= fun (_, ior) ->
        match !ior with
        | Common.SC c ->
-           close_persistent_state2
+           close_persistent_state_of_cookie
              ~scope:(scope :> Common.user_scope)
              sp.Common.sp_sitedata
              !(c.Common.pc_session_group)
@@ -135,7 +140,7 @@ let rec find_or_create_persistent_cookie_
       hc_string fullsessgrp
     >>= fun l ->
     Lwt_list.iter_p
-      (close_persistent_state2
+      (close_persistent_state_of_cookie
          ~scope:(cookie_scope :> Common.user_scope)
          sitedata None)
       l

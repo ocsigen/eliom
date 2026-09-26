@@ -173,9 +173,8 @@ let set_global_ ?full_st_name ?cookie_level ~kind ~recompute_expdates a =
 
 let get_global ~kind ~cookie_scope ~secure sitedata =
   let full_st_name =
-    Common.make_full_state_name2
-      (Common.get_site_dir_string sitedata)
-      secure ~scope:cookie_scope
+    Common.make_full_state_name_of_sitedata ~sitedata ~secure
+      ~scope:cookie_scope
   in
   find_global kind full_st_name sitedata
 
@@ -189,9 +188,8 @@ let set_global
       timeout
   =
   let full_st_name =
-    Common.make_full_state_name2
-      (Common.get_site_dir_string sitedata)
-      secure ~scope:cookie_scope
+    Common.make_full_state_name_of_sitedata ~sitedata ~secure
+      ~scope:cookie_scope
   in
   set_global_ ~kind ~full_st_name ~recompute_expdates override_configfile false
     sitedata timeout

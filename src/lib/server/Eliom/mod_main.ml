@@ -781,9 +781,7 @@ let set_timeout
       | `Session -> `Session state_hier
       | `Client_process -> `Client_process state_hier
     in
-    Common.make_full_state_name2
-      (Common.get_site_dir_string sitedata)
-      secure ~scope
+    Common.make_full_state_name_of_sitedata ~sitedata ~secure ~scope
   in
   (*VVV We set timeout for both secure and unsecure states.
 Make possible to customize this? *)

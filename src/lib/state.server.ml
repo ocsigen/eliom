@@ -532,7 +532,7 @@ let set_persistent_data_session_group
   in
   let* () =
     Lwt_list.iter_p
-      (Mod_persess.close_persistent_state2
+      (Mod_persess.close_persistent_state_of_cookie
          ~scope:(scope :> Common.user_scope)
          sitedata None)
       l
@@ -870,10 +870,10 @@ let get_persistent_data (type a) ~(table : a persistent_table) () =
       | e -> fail e)
 
 let set_persistent_data (type a) ~(table : a persistent_table) (value : a) =
-  let f__ ~cookie_scope ~secure_o ?sp () =
+  let find_or_create_cookie ~cookie_scope ~secure_o ?sp () =
     Mod_persess.find_or_create_persistent_cookie ~cookie_scope ~secure_o ?sp ()
   in
-  get_p_table_key_ ~table f__ >>= fun (table, key) ->
+  get_p_table_key_ ~table find_or_create_cookie >>= fun (table, key) ->
   let module T = (val table) in
   T.add key value
 
@@ -951,10 +951,10 @@ let get_volatile_data ~table () =
   | Common.Eliom_Session_expired -> Data_session_expired
 
 let set_volatile_data ~table value =
-  let f__ ~cookie_scope ~secure_o ?sp () =
+  let find_or_create_cookie ~cookie_scope ~secure_o ?sp () =
     Mod_datasess.find_or_create_data_cookie ~cookie_scope ~secure_o ?sp ()
   in
-  let table, key = get_table_key_ ~table f__ in
+  let table, key = get_table_key_ ~table find_or_create_cookie in
   Common.SessionCookies.replace table key value
 
 let remove_volatile_data ~table () =
@@ -1234,12 +1234,12 @@ module Ext = struct
             | cookie, {Mod_cookies.full_state_name; session_group; _} ->
                 let scope = full_state_name.Common.user_scope in
                 let cookie_level = Common.cookie_level_of_user_scope scope in
-                Mod_sessiongroups.Pers.close_persistent_session2 ~cookie_level
+                Mod_sessiongroups.Pers.close_persistent_session ~cookie_level
                   sitedata session_group cookie)
           (function Not_found -> Lwt.return_unit | exc -> Lwt.fail exc)
   (*VVV!!! Is session_group a full session group name (fullsessgrp)? *)
 
-  let fold_sub_states_aux_aux
+  let prepare_sub_states_fold
         ?(sitedata = Request_info.find_sitedata "State (state iterator)")
         ~state:
           ((s, k, id) :
@@ -1293,7 +1293,7 @@ module Ext = struct
         e
     =
     let state' = (state :> ('aa, 'bb) state) in
-    let a = fold_sub_states_aux_aux ?sitedata ~state:state' f in
+    let a = prepare_sub_states_fold ?sitedata ~state:state' f in
     fold_sub_states_aux Ocsigen_base.Cache.Dlist.fold Fun.id a e state
 
   (** Fold over the snapshot of a Dlist. *)
@@ -1303,7 +1303,7 @@ module Ext = struct
 
   let fold_sub_states ?sitedata ~state f e =
     let ((sitedata, sub_states_level, id, f) as a) =
-      fold_sub_states_aux_aux ?sitedata ~state f
+      prepare_sub_states_fold ?sitedata ~state f
     in
     match state with
     | _, `Pers, _ ->
