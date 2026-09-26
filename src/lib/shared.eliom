@@ -652,11 +652,10 @@ module React = struct
             (l : 'b FakeReact.S.t Value.t list) : 'a t Lwt.t
         =
         let* server_result, synced =
-          let f (acc, _acc_b) v =
+          let f (acc, acc_b) v =
             let v = Value.local v and f = Value.local f in
             let* acc = f acc (FakeReact.S.value v) in
-            let acc_b = FakeReact.S.synced v in
-            Lwt.return (acc, acc_b)
+            Lwt.return (acc, acc_b && FakeReact.S.synced v)
           in
           Lwt_list.fold_left_s f (acc, true) l
         in

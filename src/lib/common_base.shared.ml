@@ -361,9 +361,10 @@ let remove_na_prefix_params l =
   |> List.remove_assoc naservice_num
 
 let filter_na_get_params =
+  let len = String.length na_co_param_prefix in
   List.filter @@ fun (s, (_ : string)) ->
   s = naservice_name || s = naservice_num
-  || String.sub s 0 (String.length na_co_param_prefix) = na_co_param_prefix
+  || (String.length s >= len && String.sub s 0 len = na_co_param_prefix)
 
 exception Eliom_404
 

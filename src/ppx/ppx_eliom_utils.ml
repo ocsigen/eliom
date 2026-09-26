@@ -131,7 +131,7 @@ let lexing_position ~loc l =
 
 let position loc =
   let start = loc.Location.loc_start in
-  let stop = loc.Location.loc_start in
+  let stop = loc.Location.loc_end in
   Exp.tuple ~loc [lexing_position ~loc start; lexing_position ~loc stop]
 
 let is_annotation txt l = List.exists (fun s -> txt = s || txt = "eliom." ^ s) l
@@ -388,6 +388,11 @@ module Cmo = struct
         Lident
           (try String.sub nm 0 (String.index nm '/') with Not_found -> nm)
 
+  (* The type of the alias name follows the ppxlib AST, not the compiler. *)
+  let typ_alias ~loc ty alias = Typ.alias ~loc ty (mkloc alias loc)
+  [@@if ast_version >= 502]
+
+  let typ_alias ~loc ty alias = Typ.alias ~loc ty alias [@@if ast_version < 502]
   let counter = ref 0
 
   (* Collect all variable names referenced by Otyp_var nodes. *)
@@ -509,18 +514,13 @@ module Cmo = struct
           Typ.class_ ~loc
             (mkloc (ident_of_out_ident id) loc)
             (List.map type_of_out_type tyl)
-      | ((Otyp_alias {aliased; alias; _}) [@if ocaml_version >= (5, 3, 0)]) ->
+      | ((Otyp_alias {aliased; alias; _}) [@if ocaml_version >= (5, 1, 0)]) ->
           if S.mem alias used_vars
-          then Typ.alias ~loc (type_of_out_type aliased) (mkloc (var alias) loc)
-          else type_of_out_type aliased
-      | ((Otyp_alias {aliased; alias; _})
-         [@if ocaml_version >= (5, 1, 0) && ocaml_version < (5, 3, 0)]) ->
-          if S.mem alias used_vars
-          then Typ.alias ~loc (type_of_out_type aliased) (var alias)
+          then typ_alias ~loc (type_of_out_type aliased) (var alias)
           else type_of_out_type aliased
       | ((Otyp_alias (ty, s)) [@if ocaml_version < (5, 1, 0)]) ->
           if S.mem s used_vars
-          then Typ.alias ~loc (type_of_out_type ty) (var s)
+          then typ_alias ~loc (type_of_out_type ty) (var s)
           else type_of_out_type ty
       | ((Otyp_variant (Ovar_typ ty, closed, tags))
          [@if ocaml_version >= (5, 1, 0)]) ->
@@ -710,7 +710,7 @@ module Cannot_have_fragment = struct
   let rec expression e =
     match e.pexp_desc with
     | Pexp_ident _ | Pexp_constant _ | Pexp_function _ | Pexp_lazy _ -> true
-    | ((Pexp_fun _) [@if ocaml_version < (5, 3, 0)]) -> true
+    | ((Pexp_fun _) [@if ast_version < 502]) -> true
     | Pexp_newtype (_, e)
     | Pexp_assert e
     | Pexp_field (e, _)

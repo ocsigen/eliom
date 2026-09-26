@@ -274,7 +274,7 @@ let parse_eliom_option
   in
   let convert_attr ~element tag f v =
     try f v
-    with Invalid_argument _ ->
+    with Invalid_argument _ | Failure _ ->
       raise
         (Error_in_config_file
            (Printf.sprintf
@@ -498,18 +498,16 @@ let parse_eliom_option
   | Xml.Element ("ignoredpostparams", [("regexp", v)], []) ->
       let re = Re.seq [Re.start; Re.Pcre.re v; Re.stop] |> Re.compile in
       set_ignored_post_params (v, re)
-  | Xml.Element ("omitpersistentstorage", attrs, tags) ->
-      assert (attrs = []);
+  | Xml.Element ("omitpersistentstorage", [], tags) ->
       let parse_rule = function
-        | Xml.Element ("header", attrs, tags) ->
-            assert (tags = []);
-            let attr_name, attr_value =
-              match attrs with [a] -> a | _ -> assert false
-            in
+        | Xml.Element ("header", [(attr_name, attr_value)], []) ->
             let header_name = Ocsigen_http.Header.Name.of_string attr_name in
             let header_regexp = Re.compile @@ Re.Pcre.re attr_value in
             Common.HeaderRule (header_name, header_regexp)
-        | _ -> assert false
+        | _ ->
+            raise
+              (Error_in_config_file
+                 "Eliom: <omitpersistentstorage> only accepts <header HEADER-NAME=\"REGEXP\"/> elements")
       in
       let rules = List.map parse_rule tags in
       set_omitpersistentstorage (Some rules)
@@ -531,51 +529,36 @@ let parse_eliom_options f l =
 (*****************************************************************************)
 (** Parsing global configuration for Mod_main: *)
 
+(* "infinity" means no garbage collection. It must be tested first, since
+   float_of_string accepts it. *)
+let parse_gc_frequency tag s =
+  if s = "infinity"
+  then None
+  else
+    match float_of_string_opt s with
+    | Some t -> Some t
+    | None ->
+        raise
+          (Error_in_config_file
+             (Printf.sprintf "Eliom: Wrong value for <%s>" tag))
+
 let rec parse_global_config = function
   | [] -> ()
-  | Xml.Element ("sessiongcfrequency", [("value", s)], _) :: ll ->
-      (try
-         let t = float_of_string s in
-         Mod_gc.set_servicesessiongcfrequency (Some t);
-         Mod_gc.set_datasessiongcfrequency (Some t)
-       with Failure _ ->
-         if s = "infinity"
-         then (
-           Mod_gc.set_servicesessiongcfrequency None;
-           Mod_gc.set_datasessiongcfrequency None)
-         else
-           raise
-             (Error_in_config_file "Eliom: Wrong value for <sessiongcfrequency>"));
+  | Xml.Element (("sessiongcfrequency" as tag), [("value", s)], _) :: ll ->
+      let t = parse_gc_frequency tag s in
+      Mod_gc.set_servicesessiongcfrequency t;
+      Mod_gc.set_datasessiongcfrequency t;
       parse_global_config ll
-  | Xml.Element ("servicesessiongcfrequency", [("value", s)], _) :: ll ->
-      (try Mod_gc.set_servicesessiongcfrequency (Some (float_of_string s))
-       with Failure _ ->
-         if s = "infinity"
-         then Mod_gc.set_servicesessiongcfrequency None
-         else
-           raise
-             (Error_in_config_file
-                "Eliom: Wrong value for <servicesessiongcfrequency>"));
+  | Xml.Element (("servicesessiongcfrequency" as tag), [("value", s)], _) :: ll
+    ->
+      Mod_gc.set_servicesessiongcfrequency (parse_gc_frequency tag s);
       parse_global_config ll
-  | Xml.Element ("datasessiongcfrequency", [("value", s)], _) :: ll ->
-      (try Mod_gc.set_datasessiongcfrequency (Some (float_of_string s))
-       with Failure _ ->
-         if s = "infinity"
-         then Mod_gc.set_datasessiongcfrequency None
-         else
-           raise
-             (Error_in_config_file
-                "Eliom: Wrong value for <datasessiongcfrequency>"));
+  | Xml.Element (("datasessiongcfrequency" as tag), [("value", s)], _) :: ll ->
+      Mod_gc.set_datasessiongcfrequency (parse_gc_frequency tag s);
       parse_global_config ll
-  | Xml.Element ("persistentsessiongcfrequency", [("value", s)], _) :: ll ->
-      (try Mod_gc.set_persistentsessiongcfrequency (Some (float_of_string s))
-       with Failure _ ->
-         if s = "infinity"
-         then Mod_gc.set_persistentsessiongcfrequency None
-         else
-           raise
-             (Error_in_config_file
-                "Eliom: Wrong value for <persistentsessiongcfrequency>"));
+  | Xml.Element (("persistentsessiongcfrequency" as tag), [("value", s)], _)
+    :: ll ->
+      Mod_gc.set_persistentsessiongcfrequency (parse_gc_frequency tag s);
       parse_global_config ll
   | e :: ll ->
       parse_eliom_option

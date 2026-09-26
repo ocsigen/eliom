@@ -130,6 +130,72 @@
    module's section. Previously they were reported as unlinked on the
    client whenever that module was not linked there (e.g. an unused
    Ot widget), and set_ignored_params was in fact never reliably applied.
+** State.set_global_volatile_data_state_timeout and
+   set_global_persistent_data_state_timeout with ~recompute_expdates:true
+   now recompute the expiration dates of data and persistent states.
+   They used to recompute those of service states instead.
+** State.set_default_global_persistent_data_state_timeout now sets the
+   default timeout of persistent states. It used to set the default
+   timeout of service states.
+** State.set_max_service_states_for_group_or_subnet and
+   set_max_volatile_data_states_for_group_or_subnet with a session group
+   scope now change the limit of the right group. They used to look the
+   group up in each other's table, so the limit was applied to the wrong
+   group, or not at all.
+** State.unset_service_session_group now keeps a browser service session
+   that still has tab service sessions. It used to count the tab data
+   sessions instead, and could close a browser session in use.
+** Notif.S.clean no longer removes entries from the table while iterating
+   over it, which the Stdlib leaves unspecified.
+** Notif.S.notify ~notfor:(`Id id) now compares identities with the
+   equal_identity function of the functor argument instead of the
+   polymorphic equality.
+** Client-side error messages about client values and injections now show
+   the whole source range of the expression instead of its first
+   character only.
+** The PPX now builds with any supported ppxlib on any supported OCaml
+   version. It selected the shape of Pexp_fun and Typ.alias from the
+   compiler version instead of the ppxlib AST version, and failed to
+   build, for instance, on OCaml 4.14 with ppxlib >= 0.36.
+** Shared.React.S.Lwt.merge_s now marks its result as synced only when
+   all the merged signals are synced, like merge and the l*_s functions.
+   It used to take the flag of the last signal of the list.
+** On the client, calling a PUT or DELETE service (Client.call_service,
+   change_page...) now sends a PUT or DELETE request. Request.http_put and
+   http_delete used to send a POST request. Request.send takes a new
+   optional ~override_method parameter.
+** Content.Html.Id.get_element and Content.Svg.Id.get_element now return
+   None when no element has the given id, as documented. They used to
+   raise Not_found.
+** A malformed <omitpersistentstorage> configuration now raises
+   Error_in_config_file with a message instead of an Assert_failure.
+** A non-integer cache attribute of <cacheglobaldata> now raises
+   Error_in_config_file instead of an uncaught Failure.
+** The value "infinity" of the <sessiongcfrequency>,
+   <servicesessiongcfrequency>, <datasessiongcfrequency> and
+   <persistentsessiongcfrequency> options now disables the corresponding
+   garbage collection, as intended. It used to start a collector
+   sleeping for an infinite time.
+** State functions on persistent states (get_persistent_data_cookie,
+   get_persistent_data_state_timeout, unset_persistent_data_state_timeout,
+   get_persistent_data_session_group, unset_persistent_data_session_group,
+   remove_persistent_data, Ext.discard_state) now return a rejected promise
+   on an unexpected error. When the error was already known, as with a
+   synchronous storage backend, they raised it synchronously instead.
+** Getting a persistent Eliom reference now returns a rejected promise on a
+   storage error. With a synchronous storage backend, the error was raised
+   synchronously instead.
+** A stateless Comet request whose wait fails immediately now gets a
+   rejected promise instead of a synchronous exception.
+** On the client, Request.send (hence change_page, call_service, ...) now
+   returns a rejected promise when the XHR fails immediately, instead of
+   raising the error synchronously.
+** On the client, writing to a Bus now returns a rejected promise when the
+   call to the bus service fails immediately, instead of raising the error
+   synchronously.
+** On the client, a service handler whose parameters cannot be decoded now
+   returns a rejected promise instead of raising the error synchronously
+   when the decoding fails immediately.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type

@@ -152,6 +152,11 @@ let set_sitedata_timeout kind sitedata v =
   | `Data -> sitedata.Common.datatimeout <- v
   | `Persistent -> sitedata.Common.perstimeout <- v
 
+let update_exp = function
+  | `Service -> Mod_sessadmin.update_serv_exp
+  | `Data -> Mod_sessadmin.update_data_exp
+  | `Persistent -> Mod_sessadmin.update_pers_exp
+
 let find_global kind full_st_name sitedata =
   let def_bro, def_tab, tl = sitedata_timeout kind sitedata in
   try fst (List.assoc full_st_name tl)
@@ -164,7 +169,7 @@ let find_global kind full_st_name sitedata =
 let set_global_ ?full_st_name ?cookie_level ~kind ~recompute_expdates a =
   set_timeout_ (sitedata_timeout kind)
     (set_sitedata_timeout kind)
-    (get_default kind) Mod_sessadmin.update_serv_exp ?full_st_name ?cookie_level
+    (get_default kind) (update_exp kind) ?full_st_name ?cookie_level
     ~recompute_expdates a
 
 let get_global ~kind ~cookie_scope ~secure sitedata =

@@ -139,7 +139,7 @@ let set_default_global_persistent_data_state_timeout
       timeout
   =
   let sitedata = Request_info.find_sitedata "set_global_persistent_timeout" in
-  Mod_timeouts.set_default_global `Service cookie_level override_configfile
+  Mod_timeouts.set_default_global `Persistent cookie_level override_configfile
     false sitedata timeout
 
 let set_global_persistent_data_state_timeout
@@ -261,7 +261,7 @@ let unset_persistent_data_state_timeout ~cookie_scope ?secure () =
        return_unit)
     (function
       | Not_found | Common.Eliom_Session_expired -> return_unit
-      | exc -> Lwt.reraise exc)
+      | exc -> Lwt.fail exc)
 
 let get_persistent_data_state_timeout ~cookie_scope ?secure () =
   let sp = Common.get_sp () in
@@ -286,7 +286,7 @@ let get_persistent_data_state_timeout ~cookie_scope ?secure () =
           return
             (Mod_timeouts.get_global ~kind:`Persistent ~cookie_scope ~secure
                sitedata)
-      | exc -> Lwt.reraise exc)
+      | exc -> Lwt.fail exc)
 
 (* Preventing memory leaks: we must close empty sessions *)
 
@@ -307,17 +307,17 @@ let rec close_service_state_if_empty ~scope ?secure () =
           | (_, _, Either.Right _) (* no group *)
               when *)
         if
-          Mod_sessiongroups.Data.group_size
+          Mod_sessiongroups.Serv.group_size
             ( Common.get_site_dir_string sitedata
             , `Client_process
             , Either.Left Common.(Hashed_cookies.to_string c.sc_hvalue) )
           = 0
           (* no tab sessions *)
           && Common.service_tables_are_empty !(c.Common.sc_table)
-        then Mod_sessiongroups.Data.remove c.Common.sc_session_group_node
+        then Mod_sessiongroups.Serv.remove c.Common.sc_session_group_node
     | `Client_process _ ->
         if Common.service_tables_are_empty !(c.Common.sc_table)
-        then Mod_sessiongroups.Data.remove c.Common.sc_session_group_node
+        then Mod_sessiongroups.Serv.remove c.Common.sc_session_group_node
     | `Session_group scope_hierarchy ->
         (* There is a browser session, we do not close the group,
            but we may close the browser session (this will close
@@ -387,7 +387,7 @@ let set_service_session_group
   in
   match set_max with
   | None -> ()
-  | Some m -> Mod_sessiongroups.Data.set_max c.Common.sc_session_group_node m
+  | Some m -> Mod_sessiongroups.Serv.set_max c.Common.sc_session_group_node m
 
 let unset_service_session_group
       ?set_max
@@ -594,7 +594,7 @@ let unset_persistent_data_session_group
          ?secure ())
     (function
       | Not_found | Common.Eliom_Session_expired -> Lwt.return_unit
-      | exc -> Lwt.reraise exc)
+      | exc -> Lwt.fail exc)
 
 let get_persistent_data_session_group
       ?(scope = Common.default_session_scope)
@@ -617,7 +617,7 @@ let get_persistent_data_session_group
            | _ -> None)))
     (function
       | Not_found | Common.Eliom_Session_expired -> Lwt.return_none
-      | exc -> Lwt.reraise exc)
+      | exc -> Lwt.fail exc)
 
 (* max *)
 let set_default_max_service_sessions_per_group ?(override_configfile = false) n =
@@ -738,12 +738,12 @@ let set_max_service_states_for_group_or_subnet ~scope ?secure m =
   match scope with
   | `Session_group _ -> (
     match
-      Mod_sessiongroups.Data.find_node_in_group_of_groups
+      Mod_sessiongroups.Serv.find_node_in_group_of_groups
         !(c.Common.sc_session_group)
     with
-    | Some node -> Mod_sessiongroups.Data.set_max node m
+    | Some (_, node) -> Mod_sessiongroups.Serv.set_max node m
     | _ -> ())
-  | _ -> Mod_sessiongroups.Data.set_max c.Common.sc_session_group_node m
+  | _ -> Mod_sessiongroups.Serv.set_max c.Common.sc_session_group_node m
 
 let set_max_volatile_data_states_for_group_or_subnet ~scope ?secure m =
   let cookie_scope = Common.cookie_scope_of_user_scope scope in
@@ -753,10 +753,10 @@ let set_max_volatile_data_states_for_group_or_subnet ~scope ?secure m =
   match scope with
   | `Session_group _ -> (
     match
-      Mod_sessiongroups.Serv.find_node_in_group_of_groups
+      Mod_sessiongroups.Data.find_node_in_group_of_groups
         !(c.Common.dc_session_group)
     with
-    | Some (_, node) -> Mod_sessiongroups.Data.set_max node m
+    | Some node -> Mod_sessiongroups.Data.set_max node m
     | _ -> ())
   | _ -> Mod_sessiongroups.Data.set_max c.Common.dc_session_group_node m
 
@@ -929,7 +929,7 @@ let remove_persistent_data (type a) ~(table : a persistent_table) () =
        close_persistent_state_if_empty ~scope ~secure ())
     (function
       | Not_found | Common.Eliom_Session_expired -> return_unit
-      | exc -> Lwt.reraise exc)
+      | exc -> Lwt.fail exc)
 
 (*****************************************************************************)
 (** {2 session data in memory} *)
@@ -1290,7 +1290,7 @@ module Ext = struct
                 let cookie_level = Common.cookie_level_of_user_scope scope in
                 Mod_sessiongroups.Pers.close_persistent_session2 ~cookie_level
                   sitedata session_group cookie)
-          (function Not_found -> Lwt.return_unit | exc -> Lwt.reraise exc)
+          (function Not_found -> Lwt.return_unit | exc -> Lwt.fail exc)
   (*VVV!!! est-ce que session_group est fullsessgrp ? *)
 
   let fold_sub_states_aux_aux
@@ -1562,7 +1562,7 @@ let get_persistent_data_cookie ~cookie_scope ?secure () =
        return_some c.Common.pc_hvalue)
     (function
       | Not_found | Common.Eliom_Session_expired -> return_none
-      | exc -> Lwt.reraise exc)
+      | exc -> Lwt.fail exc)
 
 (*****************************************************************************)
 (** {2 User cookies} *)
