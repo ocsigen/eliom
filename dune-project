@@ -25,7 +25,7 @@ The client-side code is compiled to JS using Ocsigen Js_of_ocaml or to Wasm usin
 ")
  (maintenance_intent "(latest)")
  (depends
-  (ocaml (>= 4.12))
+  (ocaml (>= 4.14))
   ocamlfind
   ppx_deriving
   ; 0.35 is the newest ppxlib the OCaml 4.14 Jane Street ppx stack
