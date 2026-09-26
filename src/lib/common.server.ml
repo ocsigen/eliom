@@ -982,6 +982,13 @@ let matches_regexp name (_, re) = Re.execp re name
 let matches_regexps regexps (name, _) =
   List.exists (matches_regexp name) regexps
 
+(* Decode a JSON list of (name, value) pairs into a cookie map *)
+let cookie_map_of_json ~what s =
+  of_json_or_default ~what ~default:[] [%of_json: (string * string) list] s
+  |> List.fold_left
+       (fun t (k, v) -> Ocsigen_cookie_map.Map_inner.add k v t)
+       Ocsigen_cookie_map.Map_inner.empty
+
 let get_session_info ~sitedata ~req previous_extension_err =
   let req_whole = req
   and ri = req.Ocsigen.Extensions.request_info
@@ -1020,28 +1027,13 @@ let get_session_info ~sitedata ~req previous_extension_err =
    It should never be both.
           *)
           let tc, pp = List.assoc_remove tab_cookies_param_name post_params in
-          let tc =
-            of_json_or_default ~what:"tab cookies" ~default:[]
-              [%of_json: (string * string) list] tc
-          in
-          ( List.fold_left
-              (fun t (k, v) -> Ocsigen_cookie_map.Map_inner.add k v t)
-              Ocsigen_cookie_map.Map_inner.empty tc
-          , pp )
+          cookie_map_of_json ~what:"tab cookies" tc, pp
         with Not_found -> (
           match
             Ocsigen.Request.header ri
               (Ocsigen_http.Header.Name.of_string tab_cookies_header_name)
           with
-          | Some tc ->
-              let tc =
-                of_json_or_default ~what:"tab cookies" ~default:[]
-                  [%of_json: (string * string) list] tc
-              in
-              ( List.fold_left
-                  (fun t (k, v) -> Ocsigen_cookie_map.Map_inner.add k v t)
-                  Ocsigen_cookie_map.Map_inner.empty tc
-              , post_params )
+          | Some tc -> cookie_map_of_json ~what:"tab cookies" tc, post_params
           | None -> Ocsigen_cookie_map.Map_inner.empty, post_params)
       in
       None, tab_cookies, post_params
@@ -1132,12 +1124,7 @@ let get_session_info ~sitedata ~req previous_extension_err =
       Ocsigen.Request.header ri
         (Ocsigen_http.Header.Name.of_string cookie_substitutes_header_name)
     with
-    | Some tc ->
-        List.fold_left
-          (fun t (k, v) -> Ocsigen_cookie_map.Map_inner.add k v t)
-          Ocsigen_cookie_map.Map_inner.empty
-          (of_json_or_default ~what:"cookie substitutes" ~default:[]
-             [%of_json: (string * string) list] tc)
+    | Some tc -> cookie_map_of_json ~what:"cookie substitutes" tc
     | None -> Ocsigen.Request.cookies ri
   in
   let data_cookies = getcookies false `Session datacookiename browser_cookies in
