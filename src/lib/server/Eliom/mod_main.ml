@@ -765,8 +765,8 @@ let set_timeout
         ?full_st_name:Common.full_state_name
         -> ?cookie_level:[< Common.cookie_level]
         -> recompute_expdates:bool
-        -> bool (* override configfile *)
-        -> bool (* from config file *)
+        -> override_configfile:bool
+        -> from_configfile:bool
         -> Common.sitedata
         -> float option
         -> unit)
@@ -787,12 +787,12 @@ let set_timeout
 Make possible to customize this? *)
   f
     ?full_st_name:(Option.map (make_full_st_name false) state_hier)
-    ?cookie_level:(Some cookie_type) ~recompute_expdates:false true true
-    sitedata v;
+    ?cookie_level:(Some cookie_type) ~recompute_expdates:false
+    ~override_configfile:true ~from_configfile:true sitedata v;
   f
     ?full_st_name:(Option.map (make_full_st_name true) state_hier)
-    ?cookie_level:(Some cookie_type) ~recompute_expdates:false true true
-    sitedata v
+    ?cookie_level:(Some cookie_type) ~recompute_expdates:false
+    ~override_configfile:true ~from_configfile:true sitedata v
 
 (** Parsing of config file for each site: *)
 let parse_config _ hostpattern conf_info site_dir =
