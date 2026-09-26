@@ -35,7 +35,7 @@ type ('a, 'b) t =
   ; mutable waiter : unit -> unit Lwt.t
   ; mutable last_wait : unit Lwt.t
   ; mutable original_stream_available : bool
-  ; error_h : 'b option Lwt.t * exn Lwt.u }
+  ; error_h : 'b option Lwt.t * 'b option Lwt.u }
 
 (* clone streams such that each clone of the original stream raise the same exceptions *)
 let consume (t, u) s =
@@ -84,15 +84,7 @@ let create service channel waiter =
       (function
         | Request.Failed_request 204 -> Lwt.return_unit | exc -> Lwt.fail exc)
   in
-  let error_h =
-    let t, u = Lwt.wait () in
-    ( Lwt.catch
-        (fun () ->
-           let* _ = t in
-           assert false)
-        (fun e -> Lwt.fail e)
-    , u )
-  in
+  let error_h = Lwt.wait () in
   let stream =
     lazy
       (let stream = Comet.register channel in
