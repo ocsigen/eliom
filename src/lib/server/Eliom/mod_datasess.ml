@@ -225,29 +225,25 @@ let find_data_cookie_only ~cookie_scope ~secure_o ?sp () =
 let counttableelements = ref []
 (* Here only for exploration functions *)
 
-let create_volatile_table, create_volatile_table_during_session =
-  let aux ~scope ~secure sitedata =
-    let t = Common.SessionCookies.create 100 in
-    let old_remove_session_data = sitedata.Common.remove_session_data in
-    sitedata.Common.remove_session_data <-
-      (fun cookie ->
-        (* cookie is actually either a cookie or a a group name *)
-        (* In session group tables, keys may be either group names,
-            or a cookie values when no group name has been set. *)
-        old_remove_session_data cookie;
-        Common.SessionCookies.remove t cookie);
-    let old_not_bound_in_data_tables =
-      sitedata.Common.not_bound_in_data_tables
-    in
-    sitedata.Common.not_bound_in_data_tables <-
-      (fun cookie ->
-        old_not_bound_in_data_tables cookie
-        && not (Common.SessionCookies.mem t cookie));
-    counttableelements :=
-      (fun () -> Common.SessionCookies.length t) :: !counttableelements;
-    scope, secure, t
-  in
-  ( (fun ~scope ~secure ->
-      let sitedata = Common.get_current_sitedata () in
-      aux ~scope ~secure sitedata)
-  , fun ~scope ~secure sitedata -> aux ~scope ~secure sitedata )
+let create_volatile_table_during_session ~scope ~secure sitedata =
+  let t = Common.SessionCookies.create 100 in
+  let old_remove_session_data = sitedata.Common.remove_session_data in
+  sitedata.Common.remove_session_data <-
+    (fun cookie ->
+      (* cookie is actually either a cookie or a a group name *)
+      (* In session group tables, keys may be either group names,
+          or a cookie values when no group name has been set. *)
+      old_remove_session_data cookie;
+      Common.SessionCookies.remove t cookie);
+  let old_not_bound_in_data_tables = sitedata.Common.not_bound_in_data_tables in
+  sitedata.Common.not_bound_in_data_tables <-
+    (fun cookie ->
+      old_not_bound_in_data_tables cookie
+      && not (Common.SessionCookies.mem t cookie));
+  counttableelements :=
+    (fun () -> Common.SessionCookies.length t) :: !counttableelements;
+  scope, secure, t
+
+let create_volatile_table ~scope ~secure =
+  create_volatile_table_during_session ~scope ~secure
+    (Common.get_current_sitedata ())
