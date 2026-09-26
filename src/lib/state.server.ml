@@ -1332,8 +1332,7 @@ module Ext = struct
     let check_scopes table_scope state_scope =
       if table_scope <> state_scope then raise Wrong_scope
 
-    let lwt_check_scopes a b =
-      try check_scopes a b; Lwt.return_unit with e -> Lwt.fail e
+    let lwt_check_scopes a b = Lwt.wrap2 check_scopes a b
 
     (*VVV Does not work with volatile group data *)
     let get_volatile_data

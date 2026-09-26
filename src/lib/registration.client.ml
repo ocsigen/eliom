@@ -55,22 +55,17 @@ module type PARAM = sig
 end
 
 let typed_apply ~service f gp pp l l' suffix =
-  Lwt.catch
-    (fun () ->
-       let* g =
-         let l = Some (Lwt.return l) in
-         Parameter.reconstruct_params ~sp:() gp l None true suffix
-       and* p =
-         let l' = Some (Lwt.return l') in
-         Parameter.reconstruct_params ~sp:() pp l' None true suffix
-       in
-       (match Service.reload_fun service with
-       | Some _ -> Client.set_reload_function (fun () () -> f g p)
-       | None -> ());
-       f g p)
-    (function
-      | Common.Eliom_Wrong_parameter -> Lwt.fail Common.Eliom_Wrong_parameter
-      | exc -> Lwt.fail exc)
+  let* g =
+    let l = Some (Lwt.return l) in
+    Parameter.reconstruct_params ~sp:() gp l None true suffix
+  and* p =
+    let l' = Some (Lwt.return l') in
+    Parameter.reconstruct_params ~sp:() pp l' None true suffix
+  in
+  (match Service.reload_fun service with
+  | Some _ -> Client.set_reload_function (fun () () -> f g p)
+  | None -> ());
+  f g p
 
 let wrap service att f _ suffix =
   let gp = Service.get_params_type service

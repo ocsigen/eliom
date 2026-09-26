@@ -866,17 +866,15 @@ let reconstruct_params
   match typ, params, files with
   (* FIXME *)
   | TRaw_post_data, None, None -> Request_info.raw_post_data sp
-  | typ, None, None -> (
-    try Lwt.return (reconstruct_params_ typ [] [] nosuffixversion urlsuffix)
-    with e -> Lwt.fail e)
-  | typ, _, _ -> (
+  | typ, None, None ->
+      Lwt.wrap (fun () ->
+        reconstruct_params_ typ [] [] nosuffixversion urlsuffix)
+  | typ, _, _ ->
       let* params =
         match params with Some params -> params | None -> Lwt.return_nil
       in
       let* files =
         match files with Some files -> files | None -> Lwt.return_nil
       in
-      try
-        Lwt.return
-          (reconstruct_params_ typ params files nosuffixversion urlsuffix)
-      with e -> Lwt.fail e)
+      Lwt.wrap (fun () ->
+        reconstruct_params_ typ params files nosuffixversion urlsuffix)
