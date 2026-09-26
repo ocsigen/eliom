@@ -541,9 +541,7 @@ end = struct
                  aux 0
              | exn ->
                  Logs.app ~src:section (fun fmt ->
-                   fmt
-                     ("connection failure" ^^ "@\n%s")
-                     (Printexc.to_string exn));
+                   fmt "connection failure@\n%s" (Printexc.to_string exn));
                  let* () = handle_exn ~exn () in
                  Lwt.fail exn)
     in
@@ -557,7 +555,7 @@ end = struct
               (false, Ecb.Stateful (Ecb.Commands command)))
          (fun exn ->
             Logs.app ~src:section (fun fmt ->
-              fmt ("request failed" ^^ "@\n%s") (Printexc.to_string exn));
+              fmt "request failed@\n%s" (Printexc.to_string exn));
             Lwt.return ""))
 
   let close hd chan_id =

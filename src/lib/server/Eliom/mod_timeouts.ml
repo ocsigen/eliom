@@ -132,8 +132,7 @@ let set_timeout_
              (function
                | exn ->
                Logs.warn ~src:eliom_logs_src (fun fmt ->
-                 fmt
-                   ("Error while updating timeouts" ^^ "@\n%s")
+                 fmt "Error while updating timeouts@\n%s"
                    (Printexc.to_string exn));
                Lwt.return_unit))
 (*VVV Check possible exceptions raised *)

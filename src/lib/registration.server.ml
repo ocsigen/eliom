@@ -671,16 +671,13 @@ module Ocaml = struct
            (match name with
            | Some name ->
                Logs.err (fun fmt ->
-                 fmt
-                   ("Uncaught exception in service %s [%s]%s" ^^ "@\n%s")
-                   name code
+                 fmt "Uncaught exception in service %s [%s]%s@\n%s" name code
                    (Str.global_replace string_regexp "\"xxx\"" argument)
                    (Printexc.to_string exn))
            | None ->
                Logs.err (fun fmt ->
-                 fmt
-                   ("Uncaught exception [%s]%s" ^^ "@\n%s")
-                   code argument (Printexc.to_string exn)));
+                 fmt "Uncaught exception [%s]%s@\n%s" code argument
+                   (Printexc.to_string exn)));
            Lwt.return (`Failure code))
     in
     prepare_data data

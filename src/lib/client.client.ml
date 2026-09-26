@@ -1615,7 +1615,7 @@ let set_content_local ?offset ?fragment new_page =
     (fun exn ->
        recover ();
        Logs.debug ~src:section (fun fmt ->
-         fmt ("set_content_local" ^^ "@\n%s") (Printexc.to_string exn));
+         fmt "set_content_local@\n%s" (Printexc.to_string exn));
        Lwt.fail exn)
 
 (* Function to be called for server side services: *)
@@ -1727,7 +1727,7 @@ let set_content ~replace ~uri ?offset ?fragment content =
         (fun exn ->
            recover ();
            Logs.debug ~src:section (fun fmt ->
-             fmt ("set_content" ^^ "@\n%s") (Printexc.to_string exn));
+             fmt "set_content@\n%s" (Printexc.to_string exn));
            Lwt.fail exn)
 
 let ocamlify_params =
