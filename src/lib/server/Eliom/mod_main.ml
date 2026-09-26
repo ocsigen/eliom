@@ -282,6 +282,14 @@ let parse_eliom_option
               "Eliom: Wrong attribute value for tag %s in element %s" tag
               element))
   in
+  let int_value tag v =
+    match int_of_string_opt v with
+    | Some i -> i
+    | None ->
+        raise
+          (Error_in_config_file
+             (Printf.sprintf "Eliom: Wrong attribute value for %s tag" tag))
+  in
   let parse_application_script_attrs attrs =
     let rec aux defer async attrs =
       match attrs with
@@ -334,127 +342,46 @@ let parse_eliom_option
   | Xml.Element ("persistenttimeout", attrs, []) ->
       let t, snoo, ct = parse_timeout_attrs "persistenttimeout" attrs in
       set_persistent_timeout ct snoo t
-  | Xml.Element ("maxvolatilesessionspergroup", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
+  | Xml.Element (("maxvolatilesessionspergroup" as tag), [("value", v)], []) ->
+      let i = int_value tag v in
       set_max_service_sessions_per_group i;
       set_max_data_sessions_per_group i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxvolatilesessionspergroup tag"))
-  | Xml.Element ("maxservicesessionspergroup", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_service_sessions_per_group i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxservicesessionspergroup tag"))
-  | Xml.Element ("maxdatasessionspergroup", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_data_sessions_per_group i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxdatasessionspergroup tag"))
-  | Xml.Element ("maxvolatilesessionspersubnet", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
+  | Xml.Element (("maxservicesessionspergroup" as tag), [("value", v)], []) ->
+      set_max_service_sessions_per_group (int_value tag v)
+  | Xml.Element (("maxdatasessionspergroup" as tag), [("value", v)], []) ->
+      set_max_data_sessions_per_group (int_value tag v)
+  | Xml.Element (("maxvolatilesessionspersubnet" as tag), [("value", v)], []) ->
+      let i = int_value tag v in
       set_max_service_sessions_per_subnet i;
       set_max_data_sessions_per_subnet i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxvolatilesessionspersubnet tag"))
-  | Xml.Element ("maxservicesessionspersubnet", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_service_sessions_per_subnet i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxservicesessionspersubnet tag"))
-  | Xml.Element ("maxdatasessionspersubnet", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_data_sessions_per_subnet i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxdatasessionspersubnet tag"))
-  | Xml.Element ("maxpersistentsessionspergroup", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_persistent_sessions_per_group i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxpersistentsessionspergroup tag")
-    )
-  | Xml.Element ("maxvolatiletabsessionspergroup", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
+  | Xml.Element (("maxservicesessionspersubnet" as tag), [("value", v)], []) ->
+      set_max_service_sessions_per_subnet (int_value tag v)
+  | Xml.Element (("maxdatasessionspersubnet" as tag), [("value", v)], []) ->
+      set_max_data_sessions_per_subnet (int_value tag v)
+  | Xml.Element (("maxpersistentsessionspergroup" as tag), [("value", v)], [])
+    ->
+      set_max_persistent_sessions_per_group (int_value tag v)
+  | Xml.Element (("maxvolatiletabsessionspergroup" as tag), [("value", v)], [])
+    ->
+      let i = int_value tag v in
       set_max_service_tab_sessions_per_group i;
       set_max_data_tab_sessions_per_group i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxvolatiletabsessionspergroup tag")
-    )
-  | Xml.Element ("maxservicetabsessionspergroup", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_service_tab_sessions_per_group i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxservicetabsessionspergroup tag")
-    )
-  | Xml.Element ("maxdatatabsessionspergroup", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_data_tab_sessions_per_group i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxdatatabsessionspergroup tag"))
-  | Xml.Element ("maxpersistenttabsessionspergroup", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_persistent_tab_sessions_per_group i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxpersistenttabsessionspergroup tag")
-    )
-  | Xml.Element ("maxanonymouscoservicespersession", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_services_per_session i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxanonymouscoservicespersession tag")
-    )
-  | Xml.Element ("maxanonymouscoservicespersubnet", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_services_per_subnet i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxanonymouscoservicespersubnet tag")
-    )
-  | Xml.Element ("maxvolatilegroupspersite", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_volatile_groups_per_site i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxvolatilegroupspersite tag"))
+  | Xml.Element (("maxservicetabsessionspergroup" as tag), [("value", v)], [])
+    ->
+      set_max_service_tab_sessions_per_group (int_value tag v)
+  | Xml.Element (("maxdatatabsessionspergroup" as tag), [("value", v)], []) ->
+      set_max_data_tab_sessions_per_group (int_value tag v)
+  | Xml.Element (("maxpersistenttabsessionspergroup" as tag), [("value", v)], [])
+    ->
+      set_max_persistent_tab_sessions_per_group (int_value tag v)
+  | Xml.Element (("maxanonymouscoservicespersession" as tag), [("value", v)], [])
+    ->
+      set_max_services_per_session (int_value tag v)
+  | Xml.Element (("maxanonymouscoservicespersubnet" as tag), [("value", v)], [])
+    ->
+      set_max_services_per_subnet (int_value tag v)
+  | Xml.Element (("maxvolatilegroupspersite" as tag), [("value", v)], []) ->
+      set_max_volatile_groups_per_site (int_value tag v)
   | Xml.Element ("securecookies", [("value", v)], []) -> (
     try
       let i =
@@ -465,22 +392,10 @@ let parse_eliom_option
       raise
         (Error_in_config_file
            "Eliom: Wrong attribute value for securecookies tag"))
-  | Xml.Element ("ipv4subnetmask", [("value", v)], []) -> (
-    try
-      let mask = int_of_string v in
-      set_ipv4mask mask
-    with _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for ipv4subnetmask tag"))
-  | Xml.Element ("ipv6subnetmask", [("value", v)], []) -> (
-    try
-      let mask = int_of_string v in
-      set_ipv6mask mask
-    with _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for ipv6subnetmask tag"))
+  | Xml.Element (("ipv4subnetmask" as tag), [("value", v)], []) ->
+      set_ipv4mask (int_value tag v)
+  | Xml.Element (("ipv6subnetmask" as tag), [("value", v)], []) ->
+      set_ipv6mask (int_value tag v)
   | Xml.Element ("applicationscript", attrs, []) ->
       set_application_script (parse_application_script_attrs attrs)
   | Xml.Element ("wasm", [("enabled", v)], []) -> (
