@@ -19,7 +19,6 @@
 
 open Lwt.Syntax
 open Lib
-open Lwt
 
 (* Expired session? *)
 type state_status = Alive_state | Empty_state | Expired_state
@@ -46,14 +45,17 @@ let volatile_data_state_status ~scope ?secure () =
 
 let persistent_data_state_status ~scope ?secure () =
   let cookie_scope = Common.cookie_scope_of_user_scope scope in
-  catch
+  Lwt.catch
     (fun () ->
-       Mod_persess.find_persistent_cookie_only ~cookie_scope ~secure_o:secure ()
-       >>= fun _ -> return Alive_state)
+       let* _ =
+         Mod_persess.find_persistent_cookie_only ~cookie_scope ~secure_o:secure
+           ()
+       in
+       Lwt.return Alive_state)
     (function
       | Not_found -> Lwt.return Empty_state
       | Common.Eliom_Session_expired -> Lwt.return Expired_state
-      | e -> fail e)
+      | e -> Lwt.fail e)
 
 (************)
 let set_default_global_service_state_timeout
@@ -223,7 +225,7 @@ let set_persistent_data_state_timeout ~cookie_scope ?secure t =
       ()
   in
   let tor = c.Common.pc_timeout in
-  return (tor := Common.timeout_of_option t)
+  Lwt.return (tor := Common.timeout_of_option t)
 
 let unset_persistent_data_state_timeout ~cookie_scope ?secure () =
   Lwt.catch
@@ -234,9 +236,9 @@ let unset_persistent_data_state_timeout ~cookie_scope ?secure () =
        in
        let tor = c.Common.pc_timeout in
        tor := Common.TGlobal;
-       return_unit)
+       Lwt.return_unit)
     (function
-      | Not_found | Common.Eliom_Session_expired -> return_unit
+      | Not_found | Common.Eliom_Session_expired -> Lwt.return_unit
       | exc -> Lwt.fail exc)
 
 let get_persistent_data_state_timeout ~cookie_scope ?secure () =
@@ -250,7 +252,7 @@ let get_persistent_data_state_timeout ~cookie_scope ?secure () =
            ~secure_o:(Some secure) ~sp ()
        in
        let tor = c.Common.pc_timeout in
-       return
+       Lwt.return
          (match !tor with
          | Common.TGlobal ->
              Mod_timeouts.get_global ~kind:`Persistent ~cookie_scope ~secure
@@ -259,7 +261,7 @@ let get_persistent_data_state_timeout ~cookie_scope ?secure () =
          | Common.TSome t -> Some t))
     (function
       | Not_found | Common.Eliom_Session_expired ->
-          return
+          Lwt.return
             (Mod_timeouts.get_global ~kind:`Persistent ~cookie_scope ~secure
                sitedata)
       | exc -> Lwt.fail exc)
@@ -758,7 +760,7 @@ let set_persistent_data_cookie_exp_date ~cookie_scope ?secure t =
       ()
   in
   let exp = c.Common.pc_cookie_exp in
-  return
+  Lwt.return
     (match t with
     | None -> exp := Common.CEBrowser
     | Some t -> exp := Common.CESome t)
@@ -835,39 +837,42 @@ let get_p_table_key_
   in
   let* key =
     match scope with
-    | `Session_group state_name ->
-        Lwt.bind
-          (get_persistent_data_session_group ~scope:(`Session state_name)
-             ~secure ())
-          (function
-            | Some a -> Lwt.return a
-            | None ->
-                (* No session group. We use the session cookie as key. *)
-                get_cookie ())
+    | `Session_group state_name -> (
+        let* group =
+          get_persistent_data_session_group ~scope:(`Session state_name) ~secure
+            ()
+        in
+        match group with
+        | Some a -> Lwt.return a
+        | None ->
+            (* No session group. We use the session cookie as key. *)
+            get_cookie ())
     | _ -> get_cookie ()
   in
   Lwt.return (table, key)
 
 let get_persistent_data (type a) ~(table : a persistent_table) () =
-  catch
+  Lwt.catch
     (fun () ->
-       get_p_table_key_ ~table Mod_persess.find_persistent_cookie_only
-       >>= fun (table, key) ->
+       let* table, key =
+         get_p_table_key_ ~table Mod_persess.find_persistent_cookie_only
+       in
        let module T =
          (val table
            : Common.Ocsipersist.TABLE with type key = string and type value = a)
        in
-       T.find key >>= fun v -> Lwt.return (Data v))
+       let* v = T.find key in
+       Lwt.return (Data v))
     (function
-      | Common.Eliom_Session_expired -> return Data_session_expired
-      | Not_found -> return No_data
-      | e -> fail e)
+      | Common.Eliom_Session_expired -> Lwt.return Data_session_expired
+      | Not_found -> Lwt.return No_data
+      | e -> Lwt.fail e)
 
 let set_persistent_data (type a) ~(table : a persistent_table) (value : a) =
   let find_or_create_cookie ~cookie_scope ~secure_o ?sp () =
     Mod_persess.find_or_create_persistent_cookie ~cookie_scope ~secure_o ?sp ()
   in
-  get_p_table_key_ ~table find_or_create_cookie >>= fun (table, key) ->
+  let* table, key = get_p_table_key_ ~table find_or_create_cookie in
   let module T = (val table) in
   T.add key value
 
@@ -885,7 +890,7 @@ let remove_persistent_data (type a) ~(table : a persistent_table) () =
        let* () = T.remove key in
        close_persistent_state_if_empty ~scope ~secure ())
     (function
-      | Not_found | Common.Eliom_Session_expired -> return_unit
+      | Not_found | Common.Eliom_Session_expired -> Lwt.return_unit
       | exc -> Lwt.fail exc)
 
 (*****************************************************************************)
@@ -967,8 +972,9 @@ let remove_volatile_data ~table () =
 let discard_persistent_data ~scope ?secure () =
   match secure with
   | None ->
-      Mod_persess.close_persistent_state ~scope ~secure_o:(Some true) ()
-      >>= fun () ->
+      let* () =
+        Mod_persess.close_persistent_state ~scope ~secure_o:(Some true) ()
+      in
       Mod_persess.close_persistent_state ~scope ~secure_o:(Some false) ()
   | _ -> Mod_persess.close_persistent_state ~scope ~secure_o:secure ()
 
@@ -1131,18 +1137,19 @@ module Ext = struct
     =
     let scope = (scope :> Common.user_scope) in
     match scope with
-    | `Session_group h ->
-        Lwt.bind
-          (get_persistent_data_session_group ~scope:(`Session h) ?secure ())
-          (function
-            | Some g ->
-                persistent_data_group_state ~scope:(`Session_group h) g
-                |> Lwt.return
-            | None -> Lwt.fail Not_found)
+    | `Session_group h -> (
+        let* group =
+          get_persistent_data_session_group ~scope:(`Session h) ?secure ()
+        in
+        match group with
+        | Some g ->
+            Lwt.return (persistent_data_group_state ~scope:(`Session_group h) g)
+        | None -> Lwt.fail Not_found)
     | #Common.cookie_scope as cookie_scope ->
-        Mod_persess.find_or_create_persistent_cookie ~secure_o:secure
-          ~cookie_scope ()
-        >>= fun cookie ->
+        let* cookie =
+          Mod_persess.find_or_create_persistent_cookie ~secure_o:secure
+            ~cookie_scope ()
+        in
         Lwt.return
           { state_scope = scope
           ; state_kind = `Pers
@@ -1184,7 +1191,7 @@ module Ext = struct
   let get_persistent_cookie_info
         ({state_id = cookie; _} : ([< Common.cookie_level], [< `Pers]) state)
     =
-    Mod_cookies.Persistent_cookies.Cookies.find cookie >>= fun v ->
+    let* v = Mod_cookies.Persistent_cookies.Cookies.find cookie in
     Lwt.return (cookie, v)
 
   let discard_state
@@ -1325,11 +1332,14 @@ module Ext = struct
     in
     match state with
     | {state_kind = `Pers; _} ->
-        Mod_sessiongroups.Pers.find
-          (Common.make_persistent_full_group_name ~cookie_level:sub_states_level
-             (Common.get_site_dir_string sitedata)
-             (Some id))
-        >>= fun l -> Lwt_list.fold_left_s f e l
+        let* l =
+          Mod_sessiongroups.Pers.find
+            (Common.make_persistent_full_group_name
+               ~cookie_level:sub_states_level
+               (Common.get_site_dir_string sitedata)
+               (Some id))
+        in
+        Lwt_list.fold_left_s f e l
     | _ -> fold_sub_states_aux dlist_lwt_fold Lwt.return a e state
 
   let iter_volatile_sub_states ?sitedata ~state f =
@@ -1365,7 +1375,7 @@ module Ext = struct
           ~state:({state_scope; state_id = cookie; _} : ('s, [< `Pers]) state)
           ~table:({Common.table_scope; table = t; _} : a persistent_table)
       =
-      lwt_check_scopes table_scope state_scope >>= fun () ->
+      let* () = lwt_check_scopes table_scope state_scope in
       let module T =
         (val t
           : Common.Ocsipersist.TABLE with type key = string and type value = a)
@@ -1386,7 +1396,7 @@ module Ext = struct
           ~table:({Common.table_scope; table = t; _} : a persistent_table)
           (value : a)
       =
-      lwt_check_scopes table_scope state_scope >>= fun () ->
+      let* () = lwt_check_scopes table_scope state_scope in
       let module T =
         (val t
           : Common.Ocsipersist.TABLE with type key = string and type value = a)
@@ -1405,7 +1415,7 @@ module Ext = struct
           ~state:({state_scope; state_id = cookie; _} : ('s, [< `Pers]) state)
           ~table:({Common.table_scope; table = t; _} : a persistent_table)
       =
-      lwt_check_scopes table_scope state_scope >>= fun () ->
+      let* () = lwt_check_scopes table_scope state_scope in
       let module T =
         (val t
           : Common.Ocsipersist.TABLE with type key = string and type value = a)
@@ -1448,9 +1458,10 @@ module Ext = struct
     data_cookie.Common.Data_cookie.timeout := TGlobal
 
   let unset_persistent_data_cookie_timeout ~cookie:(c, cookie) =
-    Mod_cookies.Persistent_cookies.Cookies.add c
-      {cookie with Mod_cookies.timeout = TGlobal}
-    >>= fun () ->
+    let* () =
+      Mod_cookies.Persistent_cookies.Cookies.add c
+        {cookie with Mod_cookies.timeout = TGlobal}
+    in
     let {Mod_cookies.expiry; _} = cookie in
     Mod_cookies.Persistent_cookies.Expiry_dates.remove_cookie expiry c
 
@@ -1523,9 +1534,9 @@ let get_persistent_data_cookie ~cookie_scope ?secure () =
          Mod_persess.find_persistent_cookie_only ~cookie_scope ~secure_o:secure
            ()
        in
-       return_some c.Common.pc_hvalue)
+       Lwt.return_some c.Common.pc_hvalue)
     (function
-      | Not_found | Common.Eliom_Session_expired -> return_none
+      | Not_found | Common.Eliom_Session_expired -> Lwt.return_none
       | exc -> Lwt.fail exc)
 
 (*****************************************************************************)
