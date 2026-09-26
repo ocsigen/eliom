@@ -110,6 +110,10 @@ type timeout =
 
 let timeout_of_option = function None -> TNone | Some t -> TSome t
 
+(* A table of state data, with the scope and security of its states *)
+type 'table state_table =
+  {table_scope : user_scope; table_secure : bool; table : 'table}
+
 (* The table of tables for each session. Keys are hashes of cookies or group names *)
 module SessionCookies = Hashtbl.Make (struct
     type t = string
