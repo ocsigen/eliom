@@ -105,8 +105,8 @@ let rec find_or_create_persistent_cookie_
           let* r =
             find_or_create_persistent_cookie_
               ~set_max_in_group:
-                (fst sitedata.Common.max_persistent_data_tab_sessions_per_group)
-              ~cookie_scope:(`Session n) ~secure_o ~sp ()
+                sitedata.Common.max_persistent_data_tab_sessions_per_group
+                  .Common.cf_value ~cookie_scope:(`Session n) ~secure_o ~sp ()
           in
           Lwt.return_some Common.(Hashed_cookies.to_string r.pc_hvalue)
       | _ -> Lwt.return set_session_group
@@ -130,7 +130,7 @@ let rec find_or_create_persistent_cookie_
         ; session_group = fullsessgrp }
     in
     Mod_sessiongroups.Pers.add ?set_max:set_max_in_group
-      (fst sitedata.Common.max_persistent_data_sessions_per_group)
+      sitedata.Common.max_persistent_data_sessions_per_group.Common.cf_value
       hc_string fullsessgrp
     >>= fun l ->
     Lwt_list.iter_p

@@ -519,7 +519,7 @@ let set_persistent_data_session_group
   let grp = c.Common.pc_session_group in
   let* l =
     Mod_sessiongroups.Pers.move sitedata ?set_max
-      (fst sitedata.Common.max_persistent_data_sessions_per_group)
+      sitedata.Common.max_persistent_data_sessions_per_group.Common.cf_value
       Common.(Hashed_cookies.to_string c.pc_hvalue)
       !grp n
   in
@@ -589,9 +589,9 @@ let set_default_max_service_sessions_per_group ?(override_configfile = false) n 
   let sitedata =
     Request_info.find_sitedata "set_default_max_service_sessions_per_group"
   in
-  let b = snd sitedata.Common.max_service_sessions_per_group in
-  if override_configfile || not b
-  then sitedata.Common.max_service_sessions_per_group <- n, b
+  sitedata.Common.max_service_sessions_per_group <-
+    Common.set_configured ~override:override_configfile
+      sitedata.Common.max_service_sessions_per_group n
 
 let set_default_max_volatile_data_sessions_per_group
       ?(override_configfile = false)
@@ -601,9 +601,9 @@ let set_default_max_volatile_data_sessions_per_group
     Request_info.find_sitedata
       "set_default_max_volatile_data_sessions_per_group"
   in
-  let b = snd sitedata.Common.max_volatile_data_sessions_per_group in
-  if override_configfile || not b
-  then sitedata.Common.max_volatile_data_sessions_per_group <- n, b
+  sitedata.Common.max_volatile_data_sessions_per_group <-
+    Common.set_configured ~override:override_configfile
+      sitedata.Common.max_volatile_data_sessions_per_group n
 
 let set_default_max_persistent_data_sessions_per_group
       ?(override_configfile = false)
@@ -613,18 +613,18 @@ let set_default_max_persistent_data_sessions_per_group
     Request_info.find_sitedata
       "set_default_max_persistent_data_sessions_per_group"
   in
-  let b = snd sitedata.Common.max_persistent_data_sessions_per_group in
-  if override_configfile || not b
-  then sitedata.Common.max_persistent_data_sessions_per_group <- n, b
+  sitedata.Common.max_persistent_data_sessions_per_group <-
+    Common.set_configured ~override:override_configfile
+      sitedata.Common.max_persistent_data_sessions_per_group n
 
 let set_default_max_service_sessions_per_subnet ?(override_configfile = false) n
   =
   let sitedata =
     Request_info.find_sitedata "set_default_max_service_sessions_per_subnet"
   in
-  let b = snd sitedata.Common.max_service_sessions_per_subnet in
-  if override_configfile || not b
-  then sitedata.Common.max_service_sessions_per_subnet <- n, b
+  sitedata.Common.max_service_sessions_per_subnet <-
+    Common.set_configured ~override:override_configfile
+      sitedata.Common.max_service_sessions_per_subnet n
 
 let set_default_max_volatile_data_sessions_per_subnet
       ?(override_configfile = false)
@@ -634,9 +634,9 @@ let set_default_max_volatile_data_sessions_per_subnet
     Request_info.find_sitedata
       "set_default_max_volatile_data_sessions_per_subnet"
   in
-  let b = snd sitedata.Common.max_volatile_data_sessions_per_subnet in
-  if override_configfile || not b
-  then sitedata.Common.max_volatile_data_sessions_per_subnet <- n, b
+  sitedata.Common.max_volatile_data_sessions_per_subnet <-
+    Common.set_configured ~override:override_configfile
+      sitedata.Common.max_volatile_data_sessions_per_subnet n
 
 let set_default_max_volatile_sessions_per_group ?override_configfile n =
   set_default_max_service_sessions_per_group ?override_configfile n;
@@ -653,9 +653,9 @@ let set_default_max_service_tab_sessions_per_group
   let sitedata =
     Request_info.find_sitedata "set_default_max_service_tab_sessions_per_group"
   in
-  let b = snd sitedata.Common.max_service_tab_sessions_per_group in
-  if override_configfile || not b
-  then sitedata.Common.max_service_tab_sessions_per_group <- n, b
+  sitedata.Common.max_service_tab_sessions_per_group <-
+    Common.set_configured ~override:override_configfile
+      sitedata.Common.max_service_tab_sessions_per_group n
 
 let set_default_max_volatile_data_tab_sessions_per_group
       ?(override_configfile = false)
@@ -665,9 +665,9 @@ let set_default_max_volatile_data_tab_sessions_per_group
     Request_info.find_sitedata
       "set_default_max_volatile_data_tab_sessions_per_group"
   in
-  let b = snd sitedata.Common.max_volatile_data_tab_sessions_per_group in
-  if override_configfile || not b
-  then sitedata.Common.max_volatile_data_tab_sessions_per_group <- n, b
+  sitedata.Common.max_volatile_data_tab_sessions_per_group <-
+    Common.set_configured ~override:override_configfile
+      sitedata.Common.max_volatile_data_tab_sessions_per_group n
 
 let set_default_max_persistent_data_tab_sessions_per_group
       ?(override_configfile = false)
@@ -677,9 +677,9 @@ let set_default_max_persistent_data_tab_sessions_per_group
     Request_info.find_sitedata
       "set_default_max_persistent_data_tab_sessions_per_group"
   in
-  let b = snd sitedata.Common.max_persistent_data_tab_sessions_per_group in
-  if override_configfile || not b
-  then sitedata.Common.max_persistent_data_tab_sessions_per_group <- n, b
+  sitedata.Common.max_persistent_data_tab_sessions_per_group <-
+    Common.set_configured ~override:override_configfile
+      sitedata.Common.max_persistent_data_tab_sessions_per_group n
 
 let set_default_max_volatile_tab_sessions_per_group ?override_configfile n =
   set_default_max_service_tab_sessions_per_group ?override_configfile n;
@@ -687,13 +687,15 @@ let set_default_max_volatile_tab_sessions_per_group ?override_configfile n =
 
 let set_ipv4_subnet_mask ?(override_configfile = false) n =
   let sitedata = Request_info.find_sitedata "set_ipv4_subnet_mask" in
-  let b = snd sitedata.Common.ipv4mask in
-  if override_configfile || not b then sitedata.Common.ipv4mask <- Some n, b
+  sitedata.Common.ipv4mask <-
+    Common.set_configured ~override:override_configfile sitedata.Common.ipv4mask
+      (Some n)
 
 let set_ipv6_subnet_mask ?(override_configfile = false) n =
   let sitedata = Request_info.find_sitedata "set_ipv6_subnet_mask" in
-  let b = snd sitedata.Common.ipv6mask in
-  if override_configfile || not b then sitedata.Common.ipv6mask <- Some n, b
+  sitedata.Common.ipv6mask <-
+    Common.set_configured ~override:override_configfile sitedata.Common.ipv6mask
+      (Some n)
 
 let set_max_service_states_for_group_or_subnet ~scope ?secure m =
   let cookie_scope = Common.cookie_scope_of_user_scope scope in

@@ -279,13 +279,13 @@ module Data = Make (struct
     (* see also in eliommod.ml if you modify this *)
 
     let max_tab_per_session sitedata =
-      fst sitedata.Common.max_volatile_data_tab_sessions_per_group
+      sitedata.Common.max_volatile_data_tab_sessions_per_group.Common.cf_value
 
     let max_session_per_group sitedata =
-      fst sitedata.Common.max_volatile_data_sessions_per_group
+      sitedata.Common.max_volatile_data_sessions_per_group.Common.cf_value
 
     let max_session_per_ip sitedata =
-      fst sitedata.Common.max_volatile_data_sessions_per_subnet
+      sitedata.Common.max_volatile_data_sessions_per_subnet.Common.cf_value
 
     let clean_session
           sitedata
@@ -352,13 +352,13 @@ module Serv = Make (struct
       Common.SessionCookies.remove sitedata.Common.session_services sess_id
 
     let max_tab_per_session sitedata =
-      fst sitedata.Common.max_service_tab_sessions_per_group
+      sitedata.Common.max_service_tab_sessions_per_group.Common.cf_value
 
     let max_session_per_group sitedata =
-      fst sitedata.Common.max_service_sessions_per_group
+      sitedata.Common.max_service_sessions_per_group.Common.cf_value
 
     let max_session_per_ip sitedata =
-      fst sitedata.Common.max_service_sessions_per_subnet
+      sitedata.Common.max_service_sessions_per_subnet.Common.cf_value
 
     let clean_session
           sitedata

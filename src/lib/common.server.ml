@@ -393,6 +393,13 @@ type omitpersistentstorage_rule =
    only overrides such a setting when asked to) *)
 type 'a configured = {cf_value : 'a; cf_from_config : bool}
 
+(* [c] set to [v], unless [c] was set by the configuration file and
+   [override] is false *)
+let set_configured ~override c v =
+  if override || not c.cf_from_config then {c with cf_value = v} else c
+
+let configured_of_pair (cf_value, cf_from_config) = {cf_value; cf_from_config}
+
 (* The global timeouts of a site for one kind of state: the defaults for
    browser sessions and for tabs, and the timeouts of given states *)
 type site_timeouts =
@@ -522,20 +529,20 @@ and sitedata =
   ; mutable exn_handler : exn -> Ocsigen.Response.t Lwt.t
   ; mutable unregistered_services : Url.path list
   ; mutable unregistered_na_services : na_key_serv list
-  ; mutable max_volatile_data_sessions_per_group : int * bool
-  ; mutable max_volatile_data_sessions_per_subnet : int * bool
-  ; mutable max_volatile_data_tab_sessions_per_group : int * bool
-  ; mutable max_service_sessions_per_group : int * bool
-  ; mutable max_service_sessions_per_subnet : int * bool
-  ; mutable max_service_tab_sessions_per_group : int * bool
-  ; mutable max_persistent_data_sessions_per_group : int option * bool
-  ; mutable max_persistent_data_tab_sessions_per_group : int option * bool
-  ; mutable max_anonymous_services_per_session : int * bool
-  ; mutable max_anonymous_services_per_subnet : int * bool
+  ; mutable max_volatile_data_sessions_per_group : int configured
+  ; mutable max_volatile_data_sessions_per_subnet : int configured
+  ; mutable max_volatile_data_tab_sessions_per_group : int configured
+  ; mutable max_service_sessions_per_group : int configured
+  ; mutable max_service_sessions_per_subnet : int configured
+  ; mutable max_service_tab_sessions_per_group : int configured
+  ; mutable max_persistent_data_sessions_per_group : int option configured
+  ; mutable max_persistent_data_tab_sessions_per_group : int option configured
+  ; mutable max_anonymous_services_per_session : int configured
+  ; mutable max_anonymous_services_per_subnet : int configured
   ; mutable secure_cookies : bool
   ; dlist_ip_table : dlist_ip_table
-  ; mutable ipv4mask : int option * bool
-  ; mutable ipv6mask : int option * bool
+  ; mutable ipv4mask : int option configured
+  ; mutable ipv6mask : int option configured
   ; mutable application_script : bool (* defer *) * bool
   ; (* async *)
     mutable enable_wasm : bool
@@ -558,8 +565,13 @@ let check_initialised field =
 let get_site_dir sitedata = check_initialised sitedata.site_dir
 let get_site_dir_string sitedata = check_initialised sitedata.site_dir_string
 let get_config_info sitedata = check_initialised sitedata.config_info
-let get_mask4 sitedata = Option.value (fst sitedata.ipv4mask) ~default:!ipv4mask
-let get_mask6 sitedata = Option.value (fst sitedata.ipv6mask) ~default:!ipv6mask
+
+let get_mask4 sitedata =
+  Option.value sitedata.ipv4mask.cf_value ~default:!ipv4mask
+
+let get_mask6 sitedata =
+  Option.value sitedata.ipv6mask.cf_value ~default:!ipv6mask
+
 let create_dlist_ip_table = Net_addr_Hashtbl.create
 
 let find_dlist_ip_table :
@@ -890,7 +902,7 @@ let empty_tables max forsession =
                    | _ -> default_ip_table_key
                  in
                  ( ip
-                 , fst sp.sp_sitedata.max_anonymous_services_per_subnet
+                 , sp.sp_sitedata.max_anonymous_services_per_subnet.cf_value
                  , sp.sp_sitedata )
            in
            let dlist =
@@ -909,7 +921,7 @@ let empty_tables max forsession =
            add_dlist_ dlist v) }
 
 let new_service_session_tables sitedata =
-  empty_tables (fst sitedata.max_anonymous_services_per_session) true
+  empty_tables sitedata.max_anonymous_services_per_session.cf_value true
 
 (*****************************************************************************)
 open Lwt
