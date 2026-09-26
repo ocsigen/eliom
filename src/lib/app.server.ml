@@ -85,7 +85,9 @@ let run
          Common.configured_of_pair v)
     max_anonymous_services_per_session;
   Option.iter (fun v -> sitedata.secure_cookies <- v) secure_cookies;
-  Option.iter (fun v -> sitedata.application_script <- v) application_script;
+  Option.iter
+    (fun (defer, async) -> sitedata.application_script <- {defer; async})
+    application_script;
   (* Always update enable_wasm: use provided value or current global default *)
   sitedata.enable_wasm <-
     Option.value enable_wasm ~default:!Mod_main.default_enable_wasm;

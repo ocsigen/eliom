@@ -43,7 +43,7 @@ let default_max_persistent_data_tab_sessions_per_group = ref 50
 let default_max_service_tab_sessions_per_group = ref 50
 let default_max_volatile_data_tab_sessions_per_group = ref 50
 let default_secure_cookies = ref false
-let default_application_script = ref (false, false)
+let default_application_script = ref {Common.defer = false; async = false}
 let default_enable_wasm = ref false
 let default_cache_global_data = ref None
 let default_html_content_type = ref None
@@ -249,7 +249,7 @@ type option_setters =
   ; set_secure_cookies : bool -> unit
   ; set_ipv4mask : int -> unit
   ; set_ipv6mask : int -> unit
-  ; set_application_script : bool * bool -> unit
+  ; set_application_script : Common.application_script -> unit
   ; set_enable_wasm : bool -> unit
   ; set_global_data_caching : (Lib.Url.path * int) option -> unit
   ; set_html_content_type : string -> unit
@@ -350,7 +350,7 @@ let parse_eliom_option
   let parse_application_script_attrs attrs =
     let rec aux defer async attrs =
       match attrs with
-      | [] -> defer, async
+      | [] -> {Common.defer; async}
       | ("defer", v) :: rem ->
           aux
             (convert_attr ~element:"applicationscript" "defer" bool_of_string v)
