@@ -25,10 +25,6 @@ let usage () =
   create_filter !compiler ["-help"] (help_filter 2 "STANDARD OPTIONS:");
   exit 1
 
-(* We use inode for eliom include directories, it's the easier way to
- * detect if two directories are the same *)
-let inode_of_dir d = (Unix.stat d).Unix.st_ino
-
 (** Context *)
 
 let acc_file = ref None
@@ -46,28 +42,18 @@ let get_default_args () =
 let eliom_inc_dirs = ref []
 let eliom_inc_inodes = ref []
 
-let compile_intf file =
+let compile_ml flag file =
   wait
     (create_process !compiler
        (preprocess_opt !ppopt @ !args @ get_default_args ()
       @ get_common_include ()
        @ map_include !eliom_inc_dirs
-       @ ["-intf"; file]))
+       @ [flag; file]))
 
-let compile_impl file =
-  wait
-    (create_process !compiler
-       (preprocess_opt !ppopt @ !args @ get_default_args ()
-      @ get_common_include ()
-       @ map_include !eliom_inc_dirs
-       @ ["-impl"; file]))
+let compile_intf = compile_ml "-intf"
+let compile_impl = compile_ml "-impl"
 
-let server_pp_opt impl_intf =
-  match !pp_mode with
-  | `Camlp4 -> ("-printer" :: "o" :: !ppopt) @ [impl_intf_opt impl_intf]
-  | `Ppx -> !ppopt
-
-let client_pp_opt impl_intf =
+let pp_opt impl_intf =
   match !pp_mode with
   | `Camlp4 -> ("-printer" :: "o" :: !ppopt) @ [impl_intf_opt impl_intf]
   | `Ppx -> !ppopt
@@ -78,31 +64,21 @@ let generate_temp_file file =
   ( temp_file
   , Unix.openfile temp_file [Unix.O_TRUNC; Unix.O_CREAT; Unix.O_WRONLY] 0o640 )
 
-let compile_server_eliom ~impl_intf file =
-  let file', out = generate_temp_file file in
-  wait (create_process ~out "eliompp" ["-server"; file]);
-  wait
-    (create_process !compiler
-       (preprocess_opt ~kind:`Server (server_pp_opt impl_intf)
-       @ !args @ get_default_args () @ get_common_include ()
-       @ map_include !eliom_inc_dirs
-       @ [impl_intf_opt impl_intf; file']))
-
-let compile_client_eliom ~impl_intf file =
-  let file', out = generate_temp_file file in
-  wait (create_process ~out "eliompp" ["-client"; file]);
-  wait
-    (create_process !compiler
-       (preprocess_opt ~kind:`Client (client_pp_opt impl_intf)
-       @ !args @ get_default_args () @ get_common_include ()
-       @ map_include !eliom_inc_dirs
-       @ [impl_intf_opt impl_intf; file']))
-
 let compile_eliom ~impl_intf file =
-  match !kind with
-  | `Server -> compile_server_eliom ~impl_intf file
-  | `Client -> compile_client_eliom ~impl_intf file
-  | _ -> assert false
+  let side =
+    match !kind with
+    | `Server -> "-server"
+    | `Client -> "-client"
+    | _ -> assert false
+  in
+  let file', out = generate_temp_file file in
+  wait (create_process ~out "eliompp" [side; file]);
+  wait
+    (create_process !compiler
+       (preprocess_opt ~kind:!kind (pp_opt impl_intf)
+       @ !args @ get_default_args () @ get_common_include ()
+       @ map_include !eliom_inc_dirs
+       @ [impl_intf_opt impl_intf; file']))
 
 let generate_doc () =
   match !acc_file with
