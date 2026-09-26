@@ -1,5 +1,5 @@
 open Lib
-open Lwt
+open Lwt.Syntax
 open Ocsigen.Extensions
 include Route_base
 
@@ -82,8 +82,9 @@ let find_aux now sitedata info _ sci : Ocsigen.Response.t Lwt.t =
              | Common.SC c ->
                  find_service now !(c.Common.sc_table) (Some fullsessname)
                    sitedata info)
-           | e -> fail e))
-    sci (fail Common.Eliom_404)
+           | e -> Lwt.fail e))
+    sci
+    (Lwt.fail Common.Eliom_404)
 
 let session_tables {Common.all_cookie_info; tab_cookie_info; _} =
   let {Common.ci_unsecure; ci_secure} = all_cookie_info
@@ -103,7 +104,7 @@ let get_page now ({Common.request = ri; session_info = si; _} as info) sitedata
   : Ocsigen.Response.t Lwt.t
   =
   let tables = session_tables info in
-  catch
+  Lwt.catch
     (fun () ->
        List.fold_left
          (fun beg (table, table_name) ->
@@ -122,7 +123,7 @@ let get_page now ({Common.request = ri; session_info = si; _} as info) sitedata
          tables)
     (function
       | Common.Eliom_404 | Common.Eliom_Wrong_parameter ->
-          catch (* ensuite dans la table globale *)
+          Lwt.catch (* ensuite dans la table globale *)
             (fun () ->
                Logs.info ~src:section (fun fmt ->
                  fmt "Searching in the global table:");
@@ -132,7 +133,7 @@ let get_page now ({Common.request = ri; session_info = si; _} as info) sitedata
               | (Common.Eliom_404 | Common.Eliom_Wrong_parameter) as exn -> (
                 (* If not found with the state, try without it *)
                 match si.Common.si_state_info with
-                | Common.RAtt_no, Common.RAtt_no -> fail exn
+                | Common.RAtt_no, Common.RAtt_no -> Lwt.fail exn
                 | g, Common.RAtt_anon _ | g, Common.RAtt_named _ ->
                     (* There was a POST state.
                           We remove it, and remove POST parameters.
@@ -152,7 +153,7 @@ let get_page now ({Common.request = ri; session_info = si; _} as info) sitedata
                         Common.si_nonatt_info = Common.RNa_no
                       ; Common.si_state_info = g, Common.RAtt_no }
                     in
-                    fail
+                    Lwt.fail
                     @@ Common.Eliom_retry_with
                          {info with Common.request; session_info}
                 | Common.RAtt_named _, Common.RAtt_no
@@ -177,11 +178,11 @@ let get_page now ({Common.request = ri; session_info = si; _} as info) sitedata
                       ; si_state_info = RAtt_no, RAtt_no
                       ; si_other_get_params = [] }
                     in
-                    fail
+                    Lwt.fail
                     @@ Common.Eliom_retry_with
                          {info with Common.request; session_info})
-              | e -> fail e)
-      | e -> fail e)
+              | e -> Lwt.fail e)
+      | e -> Lwt.fail e)
 
 let add_naservice_table at (key, elt) =
   match at with
@@ -299,72 +300,77 @@ let make_naservice
     | None -> raise Not_found
   in
   let tables = session_tables info in
-  (try
-     try
-       let rec f = function
-         | [] -> raise Not_found
-         | (table, table_name) :: l -> (
-             Logs.info ~src:section (fun fmt ->
-               fmt "Looking for a non attached service in the %s:" table_name);
-             try return (find_aux table) with Not_found -> f l)
-       in
-       f tables
-     with Not_found ->
-       Logs.info ~src:section (fun fmt ->
-         fmt "Looking for a non attached service in the global table");
-       return
-         ( find_naservice now sitedata.Common.global_services
-             (Common.na_key_serv_of_req si.Common.si_nonatt_info)
-         , sitedata.Common.global_services
-         , None )
-   with Not_found -> (
-     (* The non-attached service has not been found.
+  let* ( { Common.na_max_use = max_use
+         ; na_expiry = expdate
+         ; na_handler = naservice
+         ; na_node = node
+         ; _ }
+       , tablewhereithasbeenfound
+       , fullsessname )
+    =
+    try
+      try
+        let rec f = function
+          | [] -> raise Not_found
+          | (table, table_name) :: l -> (
+              Logs.info ~src:section (fun fmt ->
+                fmt "Looking for a non attached service in the %s:" table_name);
+              try Lwt.return (find_aux table) with Not_found -> f l)
+        in
+        f tables
+      with Not_found ->
+        Logs.info ~src:section (fun fmt ->
+          fmt "Looking for a non attached service in the global table");
+        Lwt.return
+          ( find_naservice now sitedata.Common.global_services
+              (Common.na_key_serv_of_req si.Common.si_nonatt_info)
+          , sitedata.Common.global_services
+          , None )
+    with Not_found -> (
+      (* The non-attached service has not been found.
       We call the same URL without non-attached parameters.
      *)
-     match si.Common.si_nonatt_info with
-     | Common.RNa_no -> assert false
-     | Common.RNa_post_ _ | Common.RNa_post' _ ->
-         (*VVV (Some, Some) or (_, Some)? *)
-         Logs.info ~src:section (fun fmt ->
-           fmt
-             "Link too old to a non-attached POST coservice. Try without POST parameters:");
-         Polytables.set
-           ~table:(Ocsigen.Request.request_cache ri.request_info)
-           ~key:Common.eliom_link_too_old ~value:true;
-         Common.get_session_info ~sitedata
-           ~req:
-             { ri with
-               Ocsigen.Extensions.request_info =
-                 drop_most_params ri.request_info si }
-           si.Common.si_previous_extension_error
-         >>= fun (ri', si', _previous_tab_cookies_info) ->
-         Lwt.fail
-         @@ Common.Eliom_retry_with {info with request = ri'; session_info = si'}
-     | Common.RNa_get_ _ | Common.RNa_get' _ ->
-         Logs.info ~src:section (fun fmt ->
-           fmt "Link too old. Try without non-attached parameters:");
-         Polytables.set
-           ~table:(Ocsigen.Request.request_cache ri.request_info)
-           ~key:Common.eliom_link_too_old ~value:true;
-         Common.get_session_info ~sitedata
-           ~req:
-             { ri with
-               Ocsigen.Extensions.request_info =
-                 drop_most_params ri.request_info si }
-           si.Common.si_previous_extension_error
-         >>= fun (ri', si', _previous_tab_cookies_info) ->
-         Lwt.fail
-         @@ Common.Eliom_retry_with {info with request = ri'; session_info = si'}))
-  >>=
-  fun ( { Common.na_max_use = max_use
-        ; na_expiry = expdate
-        ; na_handler = naservice
-        ; na_node = node
-        ; _ }
-      , tablewhereithasbeenfound
-      , fullsessname ) ->
+      match si.Common.si_nonatt_info with
+      | Common.RNa_no -> assert false
+      | Common.RNa_post_ _ | Common.RNa_post' _ ->
+          (*VVV (Some, Some) or (_, Some)? *)
+          Logs.info ~src:section (fun fmt ->
+            fmt
+              "Link too old to a non-attached POST coservice. Try without POST parameters:");
+          Polytables.set
+            ~table:(Ocsigen.Request.request_cache ri.request_info)
+            ~key:Common.eliom_link_too_old ~value:true;
+          let* ri', si', _previous_tab_cookies_info =
+            Common.get_session_info ~sitedata
+              ~req:
+                { ri with
+                  Ocsigen.Extensions.request_info =
+                    drop_most_params ri.request_info si }
+              si.Common.si_previous_extension_error
+          in
+          Lwt.fail
+          @@ Common.Eliom_retry_with
+               {info with request = ri'; session_info = si'}
+      | Common.RNa_get_ _ | Common.RNa_get' _ ->
+          Logs.info ~src:section (fun fmt ->
+            fmt "Link too old. Try without non-attached parameters:");
+          Polytables.set
+            ~table:(Ocsigen.Request.request_cache ri.request_info)
+            ~key:Common.eliom_link_too_old ~value:true;
+          let* ri', si', _previous_tab_cookies_info =
+            Common.get_session_info ~sitedata
+              ~req:
+                { ri with
+                  Ocsigen.Extensions.request_info =
+                    drop_most_params ri.request_info si }
+              si.Common.si_previous_extension_error
+          in
+          Lwt.fail
+          @@ Common.Eliom_retry_with
+               {info with request = ri'; session_info = si'})
+  in
   let sp = Common.make_server_params sitedata info None fullsessname in
-  naservice sp >>= fun r ->
+  let* r = naservice sp in
   Logs.info ~src:section (fun fmt ->
     fmt "Non attached page found and generated successfully");
   (match expdate with Some (timeout, e) -> e := timeout +. now | None -> ());
@@ -377,4 +383,4 @@ let make_naservice
           (Common.na_key_serv_of_req si.Common.si_nonatt_info)
           node
       else r := !r - 1);
-  return r
+  Lwt.return r
