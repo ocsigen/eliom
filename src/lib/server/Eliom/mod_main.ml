@@ -96,9 +96,9 @@ let create_sitedata_aux site_dir config_info =
   in
   let sitedata =
     { (* One dlist for each site? *)
-      Common.servtimeout = None, None, []
-    ; datatimeout = None, None, []
-    ; perstimeout = None, None, []
+      Common.servtimeout = Common.no_site_timeouts
+    ; datatimeout = Common.no_site_timeouts
+    ; perstimeout = Common.no_site_timeouts
     ; site_value_table = Polytables.create ()
     ; site_dir
     ; (*VVV encode=false??? *)
