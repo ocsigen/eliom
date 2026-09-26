@@ -187,6 +187,9 @@
    synchronously instead.
 ** A stateless Comet request whose wait fails immediately now gets a
    rejected promise instead of a synchronous exception.
+** On the client, Request.send (hence change_page, call_service, ...) now
+   returns a rejected promise when the XHR fails immediately, instead of
+   raising the error synchronously.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type

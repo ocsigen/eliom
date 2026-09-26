@@ -355,7 +355,7 @@ let send
                     "received content for application %S when running application %s"
                     appl_name current_appl_name);
                 Lwt.fail (Failed_request code)))
-        | exc -> Lwt.reraise exc)
+        | exc -> Lwt.fail exc)
   in
   let* url, content =
     aux 0 ?cookies_info ?get_args ?post_args ?override_method url
