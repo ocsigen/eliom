@@ -151,6 +151,10 @@ let unlock () = set_locked false
     containing the information (secure, path)
     that is taken into account for finding tab cookies to send.
     If not present, the path and protocol are taken from the URL.
+
+    The optional parameter [~override_method] forces the method of the
+    request, as in XmlHttpRequest.perform_raw_url. Full XHR redirections
+    are always followed with GET.
 *)
 let send
       ?with_credentials
@@ -158,13 +162,14 @@ let send
       ?cookies_info
       ?get_args
       ?post_args
+      ?override_method
       ?progress
       ?upload_progress
       ?override_mime_type
       url
       result
   =
-  let rec aux i ?cookies_info ?(get_args = []) ?post_args url =
+  let rec aux i ?cookies_info ?(get_args = []) ?post_args ?override_method url =
     let https, path =
       match cookies_info with
       | Some c -> c
@@ -266,7 +271,8 @@ let send
            in
            XmlHttpRequest.perform_raw_url ?with_credentials
              ?headers:(Some headers) ?content_type:None ?contents ~get_args
-             ~check_headers ?progress ?upload_progress ?override_mime_type url
+             ~check_headers ?progress ?upload_progress ?override_mime_type
+             ?override_method url
          in
          let wait_for_unlock, unlock = Lwt.wait () in
          (if not @@ React.S.value locked
@@ -351,7 +357,9 @@ let send
                 Lwt.fail (Failed_request code)))
         | exc -> Lwt.reraise exc)
   in
-  let* url, content = aux 0 ?cookies_info ?get_args ?post_args url in
+  let* url, content =
+    aux 0 ?cookies_info ?get_args ?post_args ?override_method url
+  in
   let filter_url url =
     { url with
       Url.hu_arguments =
@@ -475,7 +483,7 @@ let http_put
       post_args
   =
   send ?with_credentials ?expecting_process_page ?cookies_info ~post_args
-    ?progress ?upload_progress ?override_mime_type url
+    ~override_method:`PUT ?progress ?upload_progress ?override_mime_type url
 
 let http_delete
       ?with_credentials
@@ -488,4 +496,4 @@ let http_delete
       post_args
   =
   send ?with_credentials ?expecting_process_page ?cookies_info ~post_args
-    ?progress ?upload_progress ?override_mime_type url
+    ~override_method:`DELETE ?progress ?upload_progress ?override_mime_type url

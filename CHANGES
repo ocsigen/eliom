@@ -160,6 +160,10 @@
 ** Shared.React.S.Lwt.merge_s now marks its result as synced only when
    all the merged signals are synced, like merge and the l*_s functions.
    It used to take the flag of the last signal of the list.
+** On the client, calling a PUT or DELETE service (Client.call_service,
+   change_page...) now sends a PUT or DELETE request. Request.http_put and
+   http_delete used to send a POST request. Request.send takes a new
+   optional ~override_method parameter.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
