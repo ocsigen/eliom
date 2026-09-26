@@ -134,7 +134,7 @@ let get_syntax_package pkg =
                 let objs =
                   Findlib.package_property all_predicates p "archive"
                 in
-                List.concat (List.map (split ',') (split ' ' objs)) <> []
+                List.concat_map (split ',') (split ' ' objs) <> []
               with Not_found -> false)
            pkgs)
     with Findlib.No_such_package (name, _) ->
@@ -152,20 +152,18 @@ let has_package name =
 
 let get_ppxs l =
   let meta_ppx_opts =
-    List.concat
-      (List.map
-         (fun pname ->
-            try
-              let opts = Findlib.package_property [] pname "ppxopt" in
-              List.concat
-                (List.map
-                   (fun opts ->
-                      match split ',' opts with
-                      | pkg :: opts -> [pkg, (pname, opts)]
-                      | [] -> [])
-                   (split ' ' opts))
-            with Not_found -> [])
-         l)
+    List.concat_map
+      (fun pname ->
+         try
+           let opts = Findlib.package_property [] pname "ppxopt" in
+           List.concat_map
+             (fun opts ->
+                match split ',' opts with
+                | pkg :: opts -> [pkg, (pname, opts)]
+                | [] -> [])
+             (split ' ' opts)
+         with Not_found -> [])
+      l
   in
   let f p acc =
     let d = Findlib.package_directory p in
@@ -173,12 +171,11 @@ let get_ppxs l =
       let ppx = Findlib.package_property [] p "ppx" in
       let ppx = Findlib.resolve_path ~base:d ~explicit:true ppx in
       let options =
-        List.concat
-          (List.map
-             (fun (_, (pname, opts)) ->
-                let base = Findlib.package_directory pname in
-                List.map (Findlib.resolve_path ~base ~explicit:true) opts)
-             (List.filter (fun (p', _) -> p' = p) meta_ppx_opts))
+        List.concat_map
+          (fun (_, (pname, opts)) ->
+             let base = Findlib.package_directory pname in
+             List.map (Findlib.resolve_path ~base ~explicit:true) opts)
+          (List.filter (fun (p', _) -> p' = p) meta_ppx_opts)
       in
       "-ppx" :: String.concat " " (ppx :: options) :: acc
     with Not_found -> acc
@@ -192,8 +189,7 @@ let get_common_ppx ?kind ?package () =
   | `Server | `ServerOpt -> get_server_package ?kind ?package ()
   | `Client -> get_client_package ?kind ()
 
-let rec map_include xs =
-  match xs with [] -> [] | x :: xs -> "-I" :: x :: map_include xs
+let map_include = List.concat_map (fun x -> ["-I"; x])
 
 let get_common_include ?kind:k ?build_dir:dir ?package:p () =
   let dir = match dir with Some d -> d | None -> !build_dir in
@@ -210,41 +206,38 @@ let get_common_include ?kind:k ?build_dir:dir ?package:p () =
 let get_common_syntax pkg =
   let syntax_pkg = get_syntax_package pkg in
   map_include (List.map Findlib.package_directory syntax_pkg)
-  @ List.concat
-      (List.map
-         (fun p ->
-            try
-              let objs =
-                Findlib.package_property
-                  ("byte" :: Lazy.force syntax_predicates)
-                  p "archive"
-              in
-              List.concat (List.map (split ',') (split ' ' objs))
-            with Not_found -> [])
-         syntax_pkg)
+  @ List.concat_map
+      (fun p ->
+         try
+           let objs =
+             Findlib.package_property
+               ("byte" :: Lazy.force syntax_predicates)
+               p "archive"
+           in
+           List.concat_map (split ',') (split ' ' objs)
+         with Not_found -> [])
+      syntax_pkg
 
 let get_client_lib ?kind:k () =
-  List.concat
-    (List.map
-       (fun p ->
-          try
-            split ' '
-              (Findlib.package_property (get_predicates ?kind:k ()) p "archive")
-          with Not_found -> [])
-       (get_client_package ?kind:k ()))
+  List.concat_map
+    (fun p ->
+       try
+         split ' '
+           (Findlib.package_property (get_predicates ?kind:k ()) p "archive")
+       with Not_found -> [])
+    (get_client_package ?kind:k ())
 
 let get_client_js () =
-  List.concat
-    (List.map
-       (fun p ->
-          try
-            let base = Findlib.package_directory p in
-            List.map
-              (fun r -> Findlib.resolve_path ~base r)
-              (split ' '
-                 (Findlib.package_property (get_predicates ()) p "jsoo_runtime"))
-          with Not_found -> [])
-       (get_client_package ()))
+  List.concat_map
+    (fun p ->
+       try
+         let base = Findlib.package_directory p in
+         List.map
+           (fun r -> Findlib.resolve_path ~base r)
+           (split ' '
+              (Findlib.package_property (get_predicates ()) p "jsoo_runtime"))
+       with Not_found -> [])
+    (get_client_package ())
 
 (* Should be called only with -dump... *)
 let get_pp_dump pkg opt =

@@ -256,7 +256,7 @@ end = struct
           Lwt.catch
             (fun () ->
                let* () = wait_data requests in
-               Lwt.return (List.flatten (List.map get_available_data requests)))
+               Lwt.return (List.concat_map get_available_data requests))
             (function
               | Lwt_unix.Timeout -> Lwt.return_nil | exc -> Lwt.fail exc)
         in

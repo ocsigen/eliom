@@ -253,7 +253,7 @@ let get_templates () =
       else aux ((f, path) :: rl) (path, dir)
     with End_of_file -> Unix.closedir dir; rl
   in
-  List.concat (List.map (aux []) dirs)
+  List.concat_map (aux []) dirs
 
 (* ------------------------------------------ *)
 (* ---------- Reserve project name ---------- *)
