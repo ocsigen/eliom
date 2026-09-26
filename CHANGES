@@ -130,6 +130,10 @@
    module's section. Previously they were reported as unlinked on the
    client whenever that module was not linked there (e.g. an unused
    Ot widget), and set_ignored_params was in fact never reliably applied.
+** State.set_global_volatile_data_state_timeout and
+   set_global_persistent_data_state_timeout with ~recompute_expdates:true
+   now recompute the expiration dates of data and persistent states.
+   They used to recompute those of service states instead.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
