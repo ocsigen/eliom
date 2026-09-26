@@ -965,7 +965,19 @@ let getcookies secure cookie_level cookienamepref cookies =
 
 (* After an action, we do not take into account actual get params,
    but these ones: *)
-let eliom_params_after_action = Polytables.make_key ()
+type params_after_action =
+  { pa_all_get_params : (string * string) list
+  ; pa_all_post_params : (string * string) list option
+  ; pa_all_file_params : (string * file_info) list option
+  ; pa_nl_get_params : (string * string) list String.Table.t
+  ; pa_nl_post_params : (string * string) list String.Table.t
+  ; pa_nl_file_params : (string * file_info) list String.Table.t
+  ; pa_all_get_but_nl : (string * string) list
+  ; pa_ignored_get_params : (string * string) list
+  ; pa_ignored_post_params : (string * string) list }
+
+let eliom_params_after_action : params_after_action Polytables.key =
+  Polytables.make_key ()
 
 (* After an action, we get tab_cookies info from rc: *)
 let tab_cookie_action_info_key = Polytables.make_key ()
@@ -1080,15 +1092,15 @@ let get_session_info ~sitedata ~req previous_extension_err =
   let ( get_params
       , post_params
       , file_params
-      , ( all_get_params
-        , all_post_params
-        , all_file_params
-        , nl_get_params
-        , nl_post_params
-        , nl_file_params
-        , all_get_but_nl
-        , ignored_get
-        , ignored_post ) )
+      , { pa_all_get_params = all_get_params
+        ; pa_all_post_params = all_post_params
+        ; pa_all_file_params = all_file_params
+        ; pa_nl_get_params = nl_get_params
+        ; pa_nl_post_params = nl_post_params
+        ; pa_nl_file_params = nl_file_params
+        ; pa_all_get_but_nl = all_get_but_nl
+        ; pa_ignored_get_params = ignored_get
+        ; pa_ignored_post_params = ignored_post } )
     =
     try
       ( get_params
@@ -1113,15 +1125,17 @@ let get_session_info ~sitedata ~req previous_extension_err =
       ( get_params
       , post_params
       , file_params
-      , ( get_params0
-        , (if no_post_param then None else Some post_params0)
-        , (if no_file_param then None else Some file_params0)
-        , nl_get_params
-        , nl_post_params
-        , nl_file_params
-        , all_get_but_nl
-        , ignored_get
-        , ignored_post ) )
+      , { pa_all_get_params = get_params0
+        ; pa_all_post_params =
+            (if no_post_param then None else Some post_params0)
+        ; pa_all_file_params =
+            (if no_file_param then None else Some file_params0)
+        ; pa_nl_get_params = nl_get_params
+        ; pa_nl_post_params = nl_post_params
+        ; pa_nl_file_params = nl_file_params
+        ; pa_all_get_but_nl = all_get_but_nl
+        ; pa_ignored_get_params = ignored_get
+        ; pa_ignored_post_params = ignored_post } )
   in
   let browser_cookies =
     match

@@ -312,17 +312,17 @@ module Action_base = struct
                    ri.Ocsigen.Extensions.request_info)
               ~key:Common.eliom_params_after_action
               ~value:
-                ( si.Common.si_all_get_params
-                , si.Common.si_all_post_params
-                , (* is Some [] *)
-                  si.Common.si_all_file_params
-                , (* is Some [] *)
-                  si.Common.si_nl_get_params
-                , si.Common.si_nl_post_params
-                , si.Common.si_nl_file_params
-                , si.Common.si_all_get_but_nl
-                , si.Common.si_ignored_get_params
-                , si.Common.si_ignored_post_params );
+                { Common.pa_all_get_params = si.Common.si_all_get_params
+                ; pa_all_post_params =
+                    si.Common.si_all_post_params (* is Some [] *)
+                ; pa_all_file_params =
+                    si.Common.si_all_file_params (* is Some [] *)
+                ; pa_nl_get_params = si.Common.si_nl_get_params
+                ; pa_nl_post_params = si.Common.si_nl_post_params
+                ; pa_nl_file_params = si.Common.si_nl_file_params
+                ; pa_all_get_but_nl = si.Common.si_all_get_but_nl
+                ; pa_ignored_get_params = si.Common.si_ignored_get_params
+                ; pa_ignored_post_params = si.Common.si_ignored_post_params };
             (*VVV Also put all_cookie_info in this, to avoid
           update_cookie_table and get_cookie_info (?) *)
             let ri = update_request ri.request_info si ric in
