@@ -476,6 +476,9 @@ type site_timeouts =
 (** The global timeouts of a site for one kind of state: the defaults for
     browser sessions and for tabs, and the timeouts of given states. *)
 
+type application_script = {defer : bool; async : bool}
+(** The attributes of the script tag loading the client program. *)
+
 val no_site_timeouts : site_timeouts
 
 type server_params =
@@ -609,7 +612,7 @@ and sitedata =
     dlist_ip_table : dlist_ip_table
   ; mutable ipv4mask : int option configured
   ; mutable ipv6mask : int option configured
-  ; mutable application_script : bool (* defer *) * bool
+  ; mutable application_script : application_script
   ; (* async *)
     mutable enable_wasm : bool
   ; mutable cache_global_data : (string list * int) option

@@ -887,7 +887,7 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
 
   (* Generate an inline script for detecting and loading WASM/JS *)
   let wasm_detection_script ?defer ?async ?js_name ?wasm_name () =
-    let defer', async' =
+    let {Common.defer = defer'; async = async'} =
       (Request_info.get_sitedata ()).Common.application_script
     in
     let defer = Option.value defer ~default:defer' in
@@ -938,7 +938,7 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
          -> [> `Script] Content.Html.elt)
 
   let js_only_application_script ?defer ?async () =
-    let defer', async' =
+    let {Common.defer = defer'; async = async'} =
       (Request_info.get_sitedata ()).Common.application_script
     in
     let defer = Option.value defer ~default:defer' in
@@ -1050,7 +1050,9 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
     then
       (* Using the async flag does not make sense here as we need to
          be sure that this is executed before the application script. *)
-      let defer, _ = (Request_info.get_sitedata ()).Common.application_script in
+      let {Common.defer; _} =
+        (Request_info.get_sitedata ()).Common.application_script
+      in
       let uri =
         Content.Html.F.make_uri ~absolute:false
           ~service:(Lazy.force global_data_service)

@@ -7,7 +7,7 @@ val default_max_persistent_data_tab_sessions_per_group : int ref
 val default_max_service_tab_sessions_per_group : int ref
 val default_max_volatile_data_tab_sessions_per_group : int ref
 val default_secure_cookies : bool ref
-val default_application_script : (bool * bool) ref
+val default_application_script : Common.application_script ref
 val default_enable_wasm : bool ref
 val default_cache_global_data : (Lib.Url.path * int) option ref
 val default_html_content_type : string option ref

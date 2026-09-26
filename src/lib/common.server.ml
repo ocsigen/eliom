@@ -410,6 +410,9 @@ type site_timeouts =
 let no_site_timeouts =
   {browser_default = None; tab_default = None; per_state = []}
 
+(* The attributes of the script tag loading the client program *)
+type application_script = {defer : bool; async : bool}
+
 type server_params =
   { sp_request : Ocsigen.Extensions.request
   ; sp_si : sess_info
@@ -543,7 +546,7 @@ and sitedata =
   ; dlist_ip_table : dlist_ip_table
   ; mutable ipv4mask : int option configured
   ; mutable ipv6mask : int option configured
-  ; mutable application_script : bool (* defer *) * bool
+  ; mutable application_script : application_script
   ; (* async *)
     mutable enable_wasm : bool
   ; mutable cache_global_data : (string list * int) option
