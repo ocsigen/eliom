@@ -840,8 +840,6 @@ let unlock_request_handling = Request.unlock
 
 type ('a, +'b) server_function = 'a -> 'b Lwt.t
 
-let only_replace_body = ref false
-let persist_document_head () = only_replace_body := true
 (*
    Cordova does not allow to read from a file when using the WkWebview.
 So, CSS preloading does not work. This provide a work-around.
@@ -849,6 +847,8 @@ Also, with Chrome, the corresponding XHRs will block if other requests
 have been scheduled before, even when the CSS is cached. This can slow
 down page changes.
 *)
+let only_replace_body = ref false
+let persist_document_head () = only_replace_body := true
 
 let insert_base page =
   let b = Dom_html.createBase Dom_html.document in
@@ -2121,7 +2121,7 @@ let _ =
 
 (* == Navigating through the history... *)
 
-(* Given a state_id, [replace_page_in_history] replaces the current DOM with a
+(* Given a state_id, [restore_history_dom] replaces the current DOM with a
    DOM from the DOM cache. *)
 let restore_history_dom id =
   match History.find_by_state_index id with
