@@ -157,6 +157,9 @@
    version. It selected the shape of Pexp_fun and Typ.alias from the
    compiler version instead of the ppxlib AST version, and failed to
    build, for instance, on OCaml 4.14 with ppxlib >= 0.36.
+** Shared.React.S.Lwt.merge_s now marks its result as synced only when
+   all the merged signals are synced, like merge and the l*_s functions.
+   It used to take the flag of the last signal of the list.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
