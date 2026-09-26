@@ -21,7 +21,7 @@
 (** {2 Eliom references} *)
 
 open State
-open Lwt.Infix
+open Lwt.Syntax
 module Store_json = Common.Ocsipersist.Store_json
 
 let section = Logs.Src.create "eliom:reference"
@@ -194,9 +194,9 @@ let eref_from_fun_ ~ext ~scope ?secure ?persistent f : 'a eref =
         ; ext_safe = ext
         ; kind =
             Ocsiper
-              ( pers_ref_store >>= fun store ->
-                Store_json.make_persistent ~store ~name ~json:(json_option json)
-                  ~default:None ) })
+              (let* store = pers_ref_store in
+               Store_json.make_persistent ~store ~name ~json:(json_option json)
+                 ~default:None) })
   | `Site -> (
     match persistent with
     | None -> (Volatile.eref_from_fun_ ~ext ~scope ?secure f :> _ eref)
@@ -227,28 +227,28 @@ let get_site_id () =
 let get (type a) ({default = f; kind = table; _} as eref) : a Lwt.t =
   match (table : a eref_kind) with
   | Per t ->
-      t >>= fun t ->
+      let* t = t in
       let reset () =
         let value = f () in
-        set_persistent_data ~table:t value >>= fun () -> Lwt.return value
+        let* () = set_persistent_data ~table:t value in
+        Lwt.return value
       in
       Lwt.catch
         (fun () ->
-           get_persistent_data ~table:t () >>= function
-           | Data d -> Lwt.return d
-           | _ -> reset ())
+           let* data = get_persistent_data ~table:t () in
+           match data with Data d -> Lwt.return d | _ -> reset ())
         (reset_unreadable ~reset)
   | Ocsiper r ->
-      r >>= fun r ->
+      let* r = r in
       let reset () =
         let value = f () in
-        Store_json.set r (Some value) >>= fun () -> Lwt.return value
+        let* () = Store_json.set r (Some value) in
+        Lwt.return value
       in
       Lwt.catch
         (fun () ->
-           Store_json.get r >>= function
-           | Some v -> Lwt.return v
-           | None -> reset ())
+           let* v = Store_json.get r in
+           match v with Some v -> Lwt.return v | None -> reset ())
         (reset_unreadable ~reset)
   | Ocsiper_sit t ->
       let module T =
@@ -258,7 +258,8 @@ let get (type a) ({default = f; kind = table; _} as eref) : a Lwt.t =
       let site_id = get_site_id () in
       let reset () =
         let value = f () in
-        T.add site_id value >>= fun () -> Lwt.return value
+        let* () = T.add site_id value in
+        Lwt.return value
       in
       Lwt.catch
         (fun () -> T.find site_id)
@@ -267,8 +268,12 @@ let get (type a) ({default = f; kind = table; _} as eref) : a Lwt.t =
 
 let set (type a) ({kind = table; _} as eref) (value : a) =
   match (table : a eref_kind) with
-  | Per t -> t >>= fun t -> set_persistent_data ~table:t value
-  | Ocsiper r -> r >>= fun r -> Store_json.set r (Some value)
+  | Per t ->
+      let* t = t in
+      set_persistent_data ~table:t value
+  | Ocsiper r ->
+      let* r = r in
+      Store_json.set r (Some value)
   | Ocsiper_sit t ->
       let module T =
         (val t
@@ -277,12 +282,18 @@ let set (type a) ({kind = table; _} as eref) (value : a) =
       T.add (get_site_id ()) value
   | _ -> Lwt.return (Volatile.set eref value)
 
-let modify eref f = get eref >>= fun x -> set eref (f x)
+let modify eref f =
+  let* x = get eref in
+  set eref (f x)
 
 let unset (type a) ({kind = table; _} as eref) =
   match (table : a eref_kind) with
-  | Per t -> t >>= fun t -> remove_persistent_data ~table:t ()
-  | Ocsiper r -> r >>= fun r -> Store_json.set r None
+  | Per t ->
+      let* t = t in
+      remove_persistent_data ~table:t ()
+  | Ocsiper r ->
+      let* r = r in
+      Store_json.set r None
   | Ocsiper_sit t ->
       let module T =
         (val t
@@ -297,13 +308,15 @@ module Ext = struct
     match table with
     | Vol _ -> Lwt.return (Volatile.Ext.get state r)
     | Per t ->
-        t >>= fun t ->
+        let* t = t in
         let absent () =
           if ext (* We can run the function from another state *)
           then
             let value = f () in
-            State.Ext.Low_level.set_persistent_data ~state ~table:t value
-            >>= fun () -> Lwt.return value
+            let* () =
+              State.Ext.Low_level.set_persistent_data ~state ~table:t value
+            in
+            Lwt.return value
           else Lwt.fail Eref_not_initialized
         in
         Lwt.catch
@@ -324,18 +337,20 @@ module Ext = struct
     match table with
     | Vol _ -> Lwt.return (Volatile.Ext.set state r value)
     | Per t ->
-        t >>= fun t ->
+        let* t = t in
         State.Ext.Low_level.set_persistent_data ~state ~table:t value
     | _ -> Lwt.fail (Failure "wrong eref for this function")
 
-  let modify state eref f = get state eref >>= fun v -> set state eref (f v)
+  let modify state eref f =
+    let* v = get state eref in
+    set state eref (f v)
 
   let unset state ({kind = table; _} as r) =
     let state = State.Ext.untype_state state in
     match table with
     | Vol _ -> Lwt.return (Volatile.Ext.unset state r)
     | Per t ->
-        t >>= fun t ->
+        let* t = t in
         State.Ext.Low_level.remove_persistent_data ~state ~table:t
     | _ -> failwith "wrong eref for this function"
 end
