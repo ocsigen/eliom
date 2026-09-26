@@ -139,7 +139,7 @@ let set_default_global_persistent_data_state_timeout
       timeout
   =
   let sitedata = Request_info.find_sitedata "set_global_persistent_timeout" in
-  Mod_timeouts.set_default_global `Service cookie_level override_configfile
+  Mod_timeouts.set_default_global `Persistent cookie_level override_configfile
     false sitedata timeout
 
 let set_global_persistent_data_state_timeout

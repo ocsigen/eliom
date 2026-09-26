@@ -134,6 +134,9 @@
    set_global_persistent_data_state_timeout with ~recompute_expdates:true
    now recompute the expiration dates of data and persistent states.
    They used to recompute those of service states instead.
+** State.set_default_global_persistent_data_state_timeout now sets the
+   default timeout of persistent states. It used to set the default
+   timeout of service states.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
