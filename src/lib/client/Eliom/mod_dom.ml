@@ -46,15 +46,10 @@ let iter_attrList
 (* Dummy type used in the following "test_*" functions to test the
    presence of methods in various browsers. *)
 class type dom_tester = object
-  method createEvent : unit Js.optdef Js.prop
   method onpageshow : unit Js.optdef Js.prop
   method onpagehide : unit Js.optdef Js.prop
   method onhashchange : unit Js.optdef Js.prop
 end
-
-let test_createEvent () =
-  Js.Optdef.test
-    (Js.Unsafe.coerce Dom_html.document : dom_tester Js.t)##.createEvent
 
 let test_pageshow_pagehide () =
   let tester = (Js.Unsafe.coerce Dom_html.window : dom_tester Js.t) in
@@ -106,24 +101,12 @@ let select_nodes root =
   , closure_nodeList
   , attrib_nodeList )
 
-(* createEvent for ie < 9 *)
-
-let createEvent_ie ev_type =
-  let evt : #Dom_html.event Js.t =
-    (Js.Unsafe.coerce Dom_html.document)##createEventObject
-  in
-  (Js.Unsafe.coerce evt)##._type := (Js.string "on")##(concat ev_type);
-  evt
-
-let createEvent_normal ev_type =
+let createEvent ev_type =
   let evt : #Dom_html.event Js.t =
     (Js.Unsafe.coerce Dom_html.document)##(createEvent (Js.string "HTMLEvents"))
   in
   let () = (Js.Unsafe.coerce evt)##(initEvent ev_type false false) in
   evt
-
-let createEvent =
-  if test_createEvent () then createEvent_normal else createEvent_ie
 
 (* DOM traversal *)
 
