@@ -102,7 +102,7 @@ module Make (P : PARAM) = struct
       (function Not_found -> fail Common.Eliom_404 | e -> fail e)
     >>= fun (node, l) ->
     let rec aux toremove = function
-      | [] -> Lwt.return (Common.Notfound Common.Eliom_Wrong_parameter, [])
+      | [] -> Lwt.return (Error Common.Eliom_Wrong_parameter, [])
       | ({Common.s_max_use; s_expire; s_f; _} as a) :: l -> (
         match s_expire with
         | Some (_, e) when !e < now ->
@@ -139,12 +139,12 @@ module Make (P : PARAM) = struct
                          toremove)
                    | _ -> toremove
                  in
-                 Lwt.return (Common.Found p, newtoremove))
+                 Lwt.return (Ok p, newtoremove))
               (function
                 | Common.Eliom_Wrong_parameter ->
                     aux toremove l >>= fun (r, toremove) ->
                     Lwt.return (r, toremove)
-                | e -> Lwt.return (Common.Notfound e, toremove)))
+                | e -> Lwt.return (Error e, toremove)))
     in
     aux [] l >>= fun (r, toremove) ->
     (match node, toremove with
@@ -175,9 +175,7 @@ module Make (P : PARAM) = struct
           | [] -> newptr
           | newlist -> P.Table.add k (None, newlist) newptr
       with Not_found -> ()));
-    match r with
-    | Common.Found r -> Lwt.return (r : P.result)
-    | Common.Notfound e -> fail e
+    match r with Ok r -> Lwt.return (r : P.result) | Error e -> fail e
 
   let remove_id services id =
     List.filter (fun {Common.s_id; _} -> s_id <> id) services

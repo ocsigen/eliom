@@ -367,8 +367,6 @@ let filter_na_get_params =
 
 exception Eliom_404
 
-type ('a, 'b) foundornot = Found of 'a | Notfound of 'b
-
 (** Service called with wrong parameter names *)
 
 exception Eliom_Wrong_parameter
