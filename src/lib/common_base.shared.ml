@@ -251,8 +251,7 @@ type sess_info =
   ; si_ignored_get_params : (string * string) list
   ; si_ignored_post_params : (string * string) list
   ; si_client_process_info : client_process_info option
-  ; si_expect_process_data : bool Lazy.t
-    (*204FORMS*     si_internal_form: bool; *) }
+  ; si_expect_process_data : bool Lazy.t }
 
 type eliom_js_page_data =
   { ejs_global_data : (Runtime.global_data * Wrap.unwrapper) option

@@ -213,14 +213,11 @@ module Make (A : sig
   let up node = Ocsigen_base.Cache.Dlist.up node
 
   let move ?set_max sitedata node sess_grp =
-    (*    if set_max <> None || grp1 <> grp2 then begin *)
     let cl = get_cl ?set_max sitedata sess_grp in
     ignore (Ocsigen_base.Cache.Dlist.move node cl);
     match Ocsigen_base.Cache.Dlist.newest cl with
     | Some v -> v
     | None -> assert false
-  (*    end
-    else [] *)
 
   let nb_of_groups () = GroupTable.length grouptable
 

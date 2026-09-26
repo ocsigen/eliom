@@ -302,7 +302,6 @@ let persistent_session_gc sitedata =
             fmt "remove expired cookie %s" (log_hash cookie));
           Mod_persess.close_persistent_state2 ~scope sitedata session_group
             cookie
-      (*WAS: remove_from_all_persistent_tables k *)
       | _ ->
           Logs.info ~src:section (fun fmt ->
             fmt "cookie not expired: %s" (log_hash cookie));

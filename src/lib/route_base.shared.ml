@@ -404,9 +404,7 @@ module Make (P : PARAM) = struct
           | Common.Dir _ -> Lwt.fail Exn1
           | Common.File page_table_ref -> find true page_table_ref None
         with e -> Lwt.fail e)
-      (*      | ""::l -> search_page_table dircontent l *)
-      (* We do not remove "//" any more
-           because of optional suffixes *)
+      (* We do not remove "//" any more because of optional suffixes *)
       | a :: l -> aux (Some a) l
     in
     let search_by_priority_generation tables path =

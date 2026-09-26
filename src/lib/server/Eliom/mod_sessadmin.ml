@@ -33,14 +33,6 @@ open Lwt
 
 let section = Logs.Src.create "eliom:admin"
 
-(*
-   (** Iterator on volatile sessions *)
-let iter_sessions f =
-
-(** Iterator on persistent sessions *)
-let iter_persistent_sessions f =
-*)
-
 let close_all_service_states2 full_st_name sitedata =
   Common.SessionCookies.fold
     (fun _

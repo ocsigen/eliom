@@ -236,11 +236,6 @@ val nl_param_prefix : string
 val eliom_internal_nlp_prefix : string
 val pnl_param_prefix : string
 val npnl_param_prefix : string
-(*204FORMS* old implementation of forms with 204 and change_page_event
-val internal_form_name : string
-val internal_form_bool_name : string
-*)
-
 val datacookiename : string
 val servicecookiename : string
 val persistentcookiename : string
@@ -289,8 +284,7 @@ type sess_info =
   ; si_ignored_get_params : (string * string) list
   ; si_ignored_post_params : (string * string) list
   ; si_client_process_info : client_process_info option
-  ; si_expect_process_data : bool Lazy.t (*204FORMS*  si_internal_form: bool; *)
-  }
+  ; si_expect_process_data : bool Lazy.t }
 
 module SessionCookies : Hashtbl.S with type key = string
 
@@ -686,7 +680,6 @@ val eliom_params_after_action :
   * (string * string) list String.Table.t
   * (string * file_info) list String.Table.t
   * (string * string) list
-  (*204FORMS* * bool *)
   * (string * string) list
   * (string * string) list)
     Polytables.key
