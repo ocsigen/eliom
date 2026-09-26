@@ -29,24 +29,21 @@ let section = Logs.Src.create "eliom:client"
 
 (* == Auxiliaries *)
 
+(* A buffer of elements: [get] returns them in the order they were added,
+   [flush] also empties the buffer *)
+type 'a buffer =
+  {add : 'a -> unit; get : unit -> 'a list; flush : unit -> 'a list}
+
 let create_buffer () =
-  let stack = ref [] in
   let elts = ref [] in
-  let add x = elts := x :: !elts and get () = List.rev !elts in
-  let push () =
-    stack := !elts :: !stack;
-    elts := []
-  in
-  let flush () =
-    let res = get () in
-    (match !stack with
-    | l :: r ->
-        elts := l;
-        stack := r
-    | [] -> elts := []);
-    res
-  in
-  add, get, flush, push
+  let get () = List.rev !elts in
+  { add = (fun x -> elts := x :: !elts)
+  ; get
+  ; flush =
+      (fun () ->
+        let res = get () in
+        elts := [];
+        res) }
 
 (* == Closure *)
 
@@ -392,7 +389,7 @@ let reify_caml_event name node ce =
       name, `Other (raw_event_handler cv)
 
 let register_event_handler, flush_load_script =
-  let add, _, flush, _ = create_buffer () in
+  let {add; flush; _} = create_buffer () in
   let register node (name, ev) =
     match reify_caml_event name node ev with
     | "onload", `Other f -> add f
