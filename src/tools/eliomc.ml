@@ -77,9 +77,6 @@ let rec check_or_create_dir name =
 let prefix_output_dir name =
   match !build_dir with "" -> name | d -> d ^ "/" ^ name
 
-let chop_extension_if_any name =
-  try Filename.chop_extension name with Invalid_argument _ -> name
-
 let output_prefix ?(ty = false) name =
   let name =
     match !output_name with
@@ -127,24 +124,10 @@ let get_product_name () =
       check_or_create_dir (Filename.dirname name);
       name
 
-let build_library () =
+(* Build the product named with -o, with the given mode flag of the compiler *)
+let build_product flag =
   create_process !compiler
-    (["-a"; "-o"; get_product_name ()] @ get_common_include () @ !args)
-
-let build_pack () =
-  create_process !compiler
-    (["-pack"; "-o"; get_product_name ()] @ get_common_include () @ !args)
-
-let build_obj () =
-  create_process !compiler
-    (["-output-obj"; "-o"; get_product_name ()] @ get_common_include () @ !args)
-
-let build_shared () =
-  create_process !compiler
-    (["-shared"; "-o"; get_product_name ()] @ get_common_include () @ !args)
-
-let get_thread_opt () =
-  match !kind with `Client -> [] | `Server | `ServerOpt -> ["-thread"]
+    ([flag; "-o"; get_product_name ()] @ get_common_include () @ !args)
 
 let obj_ext () = if !kind = `ServerOpt then ".cmx" else ".cmo"
 
@@ -407,10 +390,10 @@ let process_option () =
         incr i
   done;
   match !mode with
-  | `Library -> build_library ()
-  | `Pack -> build_pack ()
-  | `Obj -> build_obj ()
-  | `Shared -> build_shared ()
+  | `Library -> build_product "-a"
+  | `Pack -> build_product "-pack"
+  | `Obj -> build_product "-output-obj"
+  | `Shared -> build_product "-shared"
   | `Link when !kind = `Client -> build_client ()
   | `Link (* Server and ServerOpt *) -> build_server ?name:!output_name ()
   | `Compile | `Infer | `Interface -> ()
