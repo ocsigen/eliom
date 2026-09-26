@@ -927,7 +927,6 @@ let new_service_session_tables sitedata =
   empty_tables sitedata.max_anonymous_services_per_session.cf_value true
 
 (*****************************************************************************)
-open Lwt
 
 (* The cookie name is
 
@@ -1428,7 +1427,8 @@ module Persistent_tables = struct
   let number_of_table_elements () =
     Lwt_list.map_s
       (fun (module T : Ocsipersist.TABLE with type key = string) ->
-         T.length () >>= fun n -> Lwt.return (T.name, n))
+         let* n = T.length () in
+         Lwt.return (T.name, n))
       !functorial_tables
 end
 
