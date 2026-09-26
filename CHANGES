@@ -145,6 +145,8 @@
 ** State.unset_service_session_group now keeps a browser service session
    that still has tab service sessions. It used to count the tab data
    sessions instead, and could close a browser session in use.
+** Notif.S.clean no longer removes entries from the table while iterating
+   over it, which the Stdlib leaves unspecified.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type

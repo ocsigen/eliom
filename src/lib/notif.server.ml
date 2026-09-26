@@ -197,10 +197,10 @@ module Make (A : ARG) :
     ev
 
   let clean () =
-    let f key weak_tbl =
-      if Weak_tbl.count weak_tbl = 0 then Notif_hashtbl.remove I.tbl key
-    in
-    Notif_hashtbl.iter f I.tbl
+    Notif_hashtbl.filter_map_inplace
+      (fun _ weak_tbl ->
+         if Weak_tbl.count weak_tbl = 0 then None else Some weak_tbl)
+      I.tbl
 end
 
 module type ARG_SIMPLE = sig
