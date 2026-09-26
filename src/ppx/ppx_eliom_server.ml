@@ -129,11 +129,7 @@ module Pass = struct
            let loc = expr.pexp_loc in
            let loc_expr = position loc in
            let frag_eid = eid {txt; loc} in
-           let ident =
-             match ident with
-             | None -> [%expr None]
-             | Some i -> [%expr Some [%e str i]]
-           in
+           let ident = str_option ~loc ident in
            let _, num = Mli.get_injected_ident_info txt in
            let f_id = {txt = txt ^ "_f"; loc} in
            push_nongen_str_item ~fragment:false ~unsafe loc f_id;
