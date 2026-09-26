@@ -423,6 +423,11 @@ type omitpersistentstorage_rule =
 type 'a dircontent = Empty | Table of 'a direlt ref String.Table.t
 and 'a direlt = Dir of 'a dircontent ref | File of 'a ref
 
+type 'a service_table =
+  {st_generation : int; st_priority : int; st_content : 'a dircontent ref}
+(** The services of a site registered during one reload of the site, with one
+    priority. *)
+
 type ('params, 'result) service =
   { s_id : anon_params_type * anon_params_type
   ; mutable s_max_use : int option
@@ -479,9 +484,7 @@ and naservice_table =
   | ATable of naservice_table_content NAserv_Table.t
 
 and tables =
-  { mutable table_services :
-      (int (* generation *) * int (* priority *) * page_table dircontent ref)
-        list
+  { mutable table_services : page_table service_table list
   ; table_naservices : naservice_table ref
   ; (* Information for the GC: *)
     mutable table_contains_services_with_timeout : bool

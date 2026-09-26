@@ -64,7 +64,7 @@ module A = struct
 
   module Container = struct
     type t =
-      { mutable t_services : (int * int * Table.t Common.dircontent ref) list
+      { mutable t_services : Table.t Common.service_table list
       ; mutable t_contains_timeout : bool
       ; mutable t_na_services :
           (Common.na_key_serv, bool -> params -> result Lwt.t) Hashtbl.t }
