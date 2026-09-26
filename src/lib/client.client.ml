@@ -907,7 +907,7 @@ let is_client_app () = !Common.is_client_app
 let _ =
   Common.is_client_app :=
     (* Testing if variable __eliom_appl_process_info exists: *)
-    not (Js.Optdef.test Js.Unsafe.global##.___eliom_appl_process_info_foo)
+    not (Js.Optdef.test Js.Unsafe.global##.___eliom_appl_process_info_)
 
 let onunload_fun _ =
   update_state ();
