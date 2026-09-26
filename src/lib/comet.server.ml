@@ -459,16 +459,17 @@ end = struct
       handles new channels the server creates after that the client
       registered them *)
   let rec wait_data wait_closed_connection handler =
-    Lwt.bind
-      (let hd_update_streams, hd_update_streams_w = Lwt.task () in
-       handler.hd_update_streams_w <- Some hd_update_streams_w;
-       Lwt.choose
-         (wait_closed_connection :: hd_update_streams :: wait_channels handler))
-      (function
-        | `Data ->
-            handler.hd_update_streams_w <- None;
-            Lwt.return_unit
-        | `Update -> wait_data wait_closed_connection handler)
+    let hd_update_streams, hd_update_streams_w = Lwt.task () in
+    handler.hd_update_streams_w <- Some hd_update_streams_w;
+    let* event =
+      Lwt.choose
+        (wait_closed_connection :: hd_update_streams :: wait_channels handler)
+    in
+    match event with
+    | `Data ->
+        handler.hd_update_streams_w <- None;
+        Lwt.return_unit
+    | `Update -> wait_data wait_closed_connection handler
 
   let launch_channel handler chan_id channel =
     handler.hd_active_channels <-
