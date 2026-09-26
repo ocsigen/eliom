@@ -1506,10 +1506,7 @@ let change_url
   Logs.debug ~src:section_page (fun fmt -> fmt "Change url");
   (current_reload_function :=
      match Service.xhr_with_cookies service with
-     | None
-       when (https = Some true && not Request_info.ssl_)
-            || (https = Some false && Request_info.ssl_) ->
-         None
+     | None when Client_core.changes_protocol https -> None
      | Some (Some _ as t) when t = Request_info.get_request_template () -> None
      | _ -> (
        match Service.reload_fun service with
@@ -1867,8 +1864,7 @@ and change_page :
   let xhr = Service.xhr_with_cookies service in
   if
     xhr = None
-    || (https = Some true && not Request_info.ssl_)
-    || (https = Some false && Request_info.ssl_)
+    || Client_core.changes_protocol https
     || (window_name <> None && window_name <> Some "_self")
   then
     let () =
