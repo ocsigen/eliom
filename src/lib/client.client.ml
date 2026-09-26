@@ -544,14 +544,7 @@ let add_string_event_listener o e f capt : unit =
     | None -> Js.undefined
   in
   let f = Js.Unsafe.callback f in
-  ignore
-  @@
-  if not (Js.Optdef.test (Js.Unsafe.coerce o)##.addEventListener)
-  then
-    let e = (Js.string "on")##(concat e)
-    and cb e = Js.Unsafe.call (f, e, [||]) in
-    (Js.Unsafe.coerce o)##(attachEvent e cb)
-  else (Js.Unsafe.coerce o)##(addEventListener e f capt)
+  ignore (Js.Unsafe.coerce o)##(addEventListener e f capt)
 
 (* == Associate data to state of the History API.
 
