@@ -165,6 +165,34 @@ let register_aux
       ?(error_handler = fun l -> raise (Common.Eliom_Typing_Error l))
       page_generator
   =
+  (* The table where the service is registered *)
+  let registration_table () =
+    match table with
+    | Either.Left globtbl -> globtbl
+    | Either.Right (sp, scope, secure_session) ->
+        !(State.get_session_service_table ?secure:secure_session ~scope ~sp ())
+  in
+  (* For a CSRF-safe coservice: the table that stores the delayed
+     registration function, and the function giving the table where each
+     new coservice is registered *)
+  let csrf_safe_tables ~scope ~secure_session =
+    match table with
+    | Either.Left globtbl ->
+        ( globtbl
+        , fun ~sp ->
+            (* we do not register in global table,
+               but in the table specified while creating
+               the csrf safe service *)
+            !(State.get_session_service_table ?secure:secure_session ~scope ~sp
+                ()) )
+    | Either.Right (sp, ct, sec) ->
+        if secure_session <> sec || ct <> scope
+        then raise S.Wrong_session_table_for_CSRF_safe_coservice;
+        let tablereg =
+          !(State.get_session_service_table ?secure:secure_session ~scope ~sp ())
+        in
+        tablereg, fun ~sp:_ -> tablereg
+  in
   S.set_send_appl_content service pages.send_appl_content;
   match S.info service with
   | S.Attached attser -> (
@@ -281,66 +309,24 @@ let register_aux
       | ( (`Post | `Put | `Delete)
         , _
         , Common.SAtt_csrf_safe (id, scope, secure_session) ) ->
-          let tablereg, forsession =
-            match table with
-            | Either.Left globtbl -> globtbl, false
-            | Either.Right (sp, ct, sec) ->
-                if secure_session <> sec || scope <> ct
-                then raise S.Wrong_session_table_for_CSRF_safe_coservice;
-                ( !(State.get_session_service_table ?secure:secure_session
-                      ~scope ~sp ())
-                , true )
-          in
+          let tablereg, table_for = csrf_safe_tables ~scope ~secure_session in
           S.set_delayed_post_registration_function tablereg id
             (fun ~sp attserget ->
                let n = S.new_state () in
                let attserpost = Common.SAtt_anon n in
-               let table =
-                 if forsession
-                 then tablereg
-                 else
-                   (* we do not register in global table,
-                         but in the table specified while creating
-                         the csrf safe service *)
-                   !(State.get_session_service_table ?secure:secure_session
-                       ~scope ~sp ())
-               in
+               let table = table_for ~sp in
                f table (attserget, attserpost);
                n)
       | `Get, Common.SAtt_csrf_safe (id, scope, secure_session), _ ->
-          let tablereg, forsession =
-            match table with
-            | Either.Left globtbl -> globtbl, false
-            | Either.Right (sp, ct, sec) ->
-                if secure_session <> sec || ct <> scope
-                then raise S.Wrong_session_table_for_CSRF_safe_coservice;
-                ( !(State.get_session_service_table ?secure:secure_session
-                      ~scope ~sp ())
-                , true )
-          in
+          let tablereg, table_for = csrf_safe_tables ~scope ~secure_session in
           S.set_delayed_get_or_na_registration_function tablereg id (fun ~sp ->
             let n = S.new_state () in
             let attserget = Common.SAtt_anon n in
-            let table =
-              if forsession
-              then tablereg
-              else
-                (* we do not register in global table,
-                         but in the table specified while creating
-                         the csrf safe service *)
-                !(State.get_session_service_table ?secure:secure_session ~scope
-                    ~sp ())
-            in
+            let table = table_for ~sp in
             f table (attserget, attserpost);
             n)
       | _ ->
-          let tablereg =
-            match table with
-            | Either.Left globtbl -> globtbl
-            | Either.Right (sp, scope, secure_session) ->
-                !(State.get_session_service_table ?secure:secure_session ~scope
-                    ~sp ())
-          in
+          let tablereg = registration_table () in
           f tablereg (attserget, attserpost))
   | S.Nonattached naser -> (
       let na_name = S.na_name naser in
@@ -377,64 +363,22 @@ let register_aux
       match na_name with
       | Common.SNa_get_csrf_safe (id, scope, secure_session) ->
           (* CSRF safe coservice: we'll do the registration later *)
-          let tablereg, forsession =
-            match table with
-            | Either.Left globtbl -> globtbl, false
-            | Either.Right (sp, ct, sec) ->
-                if secure_session <> sec || ct <> scope
-                then raise S.Wrong_session_table_for_CSRF_safe_coservice;
-                ( !(State.get_session_service_table ?secure:secure_session
-                      ~scope ~sp ())
-                , true )
-          in
+          let tablereg, table_for = csrf_safe_tables ~scope ~secure_session in
           S.set_delayed_get_or_na_registration_function tablereg id (fun ~sp ->
             let n = S.new_state () in
             let na_name = Common.SNa_get' n in
-            let table =
-              if forsession
-              then tablereg
-              else
-                (* we do not register in global table,
-                         but in the table specified while creating
-                         the csrf safe service *)
-                !(State.get_session_service_table ?secure:secure_session ~scope
-                    ~sp ())
-            in
+            let table = table_for ~sp in
             f table na_name; n)
       | Common.SNa_post_csrf_safe (id, scope, secure_session) ->
           (* CSRF safe coservice: we'll do the registration later *)
-          let tablereg, forsession =
-            match table with
-            | Either.Left globtbl -> globtbl, false
-            | Either.Right (sp, ct, sec) ->
-                if secure_session <> sec || ct <> scope
-                then raise S.Wrong_session_table_for_CSRF_safe_coservice;
-                ( !(State.get_session_service_table ?secure:secure_session
-                      ~scope ~sp ())
-                , true )
-          in
+          let tablereg, table_for = csrf_safe_tables ~scope ~secure_session in
           S.set_delayed_get_or_na_registration_function tablereg id (fun ~sp ->
             let n = S.new_state () in
             let na_name = Common.SNa_post' n in
-            let table =
-              if forsession
-              then tablereg
-              else
-                (* we do not register in global table,
-                         but in the table specified while creating
-                         the csrf safe service *)
-                !(State.get_session_service_table ?secure:secure_session ~scope
-                    ~sp ())
-            in
+            let table = table_for ~sp in
             f table na_name; n)
       | _ ->
-          let tablereg =
-            match table with
-            | Either.Left globtbl -> globtbl
-            | Either.Right (sp, scope, secure_session) ->
-                !(State.get_session_service_table ?secure:secure_session ~scope
-                    ~sp ())
-          in
+          let tablereg = registration_table () in
           f tablereg na_name)
 
 let send pages ?options ?charset ?code ?content_type ?headers content =
