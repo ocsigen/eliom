@@ -490,6 +490,18 @@ end = struct
         handler.hd_registered_chan_id <-
           chan_id :: handler.hd_registered_chan_id
 
+  (* Launch a new channel if the client already registered it, otherwise keep
+     it until the client does *)
+  let add_channel handler chan_id channel =
+    if List.mem chan_id handler.hd_registered_chan_id
+    then (
+      handler.hd_registered_chan_id <-
+        List.filter (( <> ) chan_id) handler.hd_registered_chan_id;
+      launch_channel handler chan_id channel)
+    else
+      handler.hd_unregistered_channels <-
+        (chan_id, channel) :: handler.hd_unregistered_channels
+
   let close_channel' handler chan_id =
     Logs.info ~src:section (fun fmt -> fmt "close channel %s" chan_id);
     handler.hd_active_channels <-
@@ -661,14 +673,7 @@ end = struct
                 false))
            false events);
     let channel = Events {queue; retained_events} in
-    if List.mem name handler.hd_registered_chan_id
-    then (
-      handler.hd_registered_chan_id <-
-        List.filter (( <> ) name) handler.hd_registered_chan_id;
-      launch_channel handler name channel)
-    else
-      handler.hd_unregistered_channels <-
-        (name, channel) :: handler.hd_unregistered_channels;
+    add_channel handler name channel;
     {ch_handler = handler; ch_id = name}
 
   let create_unlimited
@@ -684,14 +689,7 @@ end = struct
       Lwt_stream.map (fun x -> Comet_base.Data (marshal x)) stream
     in
     let channel = Stream {stream; waiter = stream_waiter stream} in
-    if List.mem name handler.hd_registered_chan_id
-    then (
-      handler.hd_registered_chan_id <-
-        List.filter (( <> ) name) handler.hd_registered_chan_id;
-      launch_channel handler name channel)
-    else
-      handler.hd_unregistered_channels <-
-        (name, channel) :: handler.hd_unregistered_channels;
+    add_channel handler name channel;
     {ch_handler = handler; ch_id = name}
 
   let get_id {ch_id; _} = ch_id
