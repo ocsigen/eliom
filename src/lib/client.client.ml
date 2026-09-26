@@ -525,20 +525,6 @@ let _ =
     unwrap_global_data;
   ()
 
-let add_string_event_listener o e f capt : unit =
-  let e = Js.string e
-  and capt = Js.bool capt
-  and f e =
-    match f e with
-    | Some s ->
-        let s = Js.string s in
-        (Js.Unsafe.coerce e)##.returnValue := s;
-        Js.def s
-    | None -> Js.undefined
-  in
-  let f = Js.Unsafe.callback f in
-  ignore (Js.Unsafe.coerce o)##(addEventListener e f capt)
-
 (* == Associate data to state of the History API.
 
    We store an 'id' in the state, and store data in an association
@@ -944,6 +930,20 @@ let _ =
   Common.is_client_app :=
     (* Testing if variable __eliom_appl_process_info exists: *)
     not (Js.Optdef.test Js.Unsafe.global##.___eliom_appl_process_info_)
+
+let add_string_event_listener o e f capt : unit =
+  let e = Js.string e
+  and capt = Js.bool capt
+  and f e =
+    match f e with
+    | Some s ->
+        let s = Js.string s in
+        (Js.Unsafe.coerce e)##.returnValue := s;
+        Js.def s
+    | None -> Js.undefined
+  in
+  let f = Js.Unsafe.callback f in
+  ignore (Js.Unsafe.coerce o)##(addEventListener e f capt)
 
 let onunload_fun _ =
   update_state ();
