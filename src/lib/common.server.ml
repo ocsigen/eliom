@@ -1492,7 +1492,7 @@ let patch_request_info ({Ocsigen.Extensions.request_info; _} as r) =
 
 (* Returns if we want secure cookie *)
 let get_secure ~secure_o ~sitedata =
-  match secure_o with None -> sitedata.secure_cookies | Some s -> s
+  Option.value secure_o ~default:sitedata.secure_cookies
 
 module To_and_of_shared = struct
   (* FIXME : work-around for weak polymorphism in create :( *)

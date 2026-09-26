@@ -481,11 +481,7 @@ module File_ct_base = struct
         ?headers
         (filename, content_type')
     =
-    let content_type =
-      match content_type with
-      | Some content_type -> content_type
-      | None -> content_type'
-    in
+    let content_type = Option.value content_type ~default:content_type' in
     File_base.send ?options ?charset ?code ?headers ~content_type filename
 end
 
@@ -510,10 +506,7 @@ struct
   type options = R.options
   type result = R.result
 
-  let make_eh = function
-    | None -> None
-    | Some eh -> Some (fun l -> eh l >>= T.translate)
-
+  let make_eh = Option.map (fun eh l -> eh l >>= T.translate)
   let make_service_handler f g p = f g p >>= T.translate
 
   let send ?options ?charset ?code ?content_type ?headers content =
@@ -670,9 +663,7 @@ module Ocaml = struct
              let sp = Common.get_sp () in
              let si = Request_info.get_si sp in
              let post_params =
-               match si.Common.si_all_post_params with
-               | None -> []
-               | Some l -> l
+               Option.value si.Common.si_all_post_params ~default:[]
              in
              try Printf.sprintf " (%s)" (List.assoc "argument" post_params)
              with Not_found -> ""
@@ -902,8 +893,8 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
     let defer', async' =
       (Request_info.get_sitedata ()).Common.application_script
     in
-    let defer = match defer with Some b -> b | None -> defer' in
-    let async = match async with Some b -> b | None -> async' in
+    let defer = Option.value defer ~default:defer' in
+    let async = Option.value async ~default:async' in
     let defer_str = if defer then "true" else "false" in
     let async_str = if async then "true" else "false" in
     (* Use provided filenames with hash, or default to application_name *)
@@ -953,8 +944,8 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
     let defer', async' =
       (Request_info.get_sitedata ()).Common.application_script
     in
-    let defer = match defer with Some b -> b | None -> defer' in
-    let async = match async with Some b -> b | None -> async' in
+    let defer = Option.value defer ~default:defer' in
+    let async = Option.value async ~default:async' in
     let a =
       (if defer then [Content.Html.D.a_defer ()] else [])
       @ if async then [Content.Html.D.a_async ()] else []

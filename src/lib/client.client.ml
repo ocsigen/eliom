@@ -633,8 +633,8 @@ let string_of_page p =
   Printf.sprintf "%d/%d %s %s %d %b" p.page_unique_id p.page_id.state_index
     p.url
     (Page_status_t.to_string @@ React.S.value p.page_status)
-    (match p.previous_page with Some pp -> pp | None -> 0)
-    (match p.dom with Some _ -> true | None -> false)
+    (Option.value p.previous_page ~default:0)
+    (Option.is_some p.dom)
 
 let set_page_status p st =
   Logs.debug ~src:section_page (fun fmt ->

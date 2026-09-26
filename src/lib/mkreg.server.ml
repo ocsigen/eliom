@@ -346,12 +346,8 @@ let register_aux
       let na_name = S.na_name naser in
       let f table na_name =
         Route.add_naservice table na_name
-          ( (match S.max_use service with
-            | None -> None
-            | Some i -> Some (ref i))
-          , (match S.timeout service with
-            | None -> None
-            | Some t -> Some (t, ref (t +. Unix.time ())))
+          ( Option.map ref (S.max_use service)
+          , Option.map (fun t -> t, ref (t +. Unix.time ())) (S.timeout service)
           , fun sp ->
               Lwt.with_value Common.sp_key (Some sp) (fun () ->
                 let ri = Request_info.get_ri_sp sp in

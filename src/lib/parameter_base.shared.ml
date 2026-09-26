@@ -870,11 +870,7 @@ let reconstruct_params
       Lwt.wrap (fun () ->
         reconstruct_params_ typ [] [] nosuffixversion urlsuffix)
   | typ, _, _ ->
-      let* params =
-        match params with Some params -> params | None -> Lwt.return_nil
-      in
-      let* files =
-        match files with Some files -> files | None -> Lwt.return_nil
-      in
+      let* params = Option.value params ~default:Lwt.return_nil in
+      let* files = Option.value files ~default:Lwt.return_nil in
       Lwt.wrap (fun () ->
         reconstruct_params_ typ params files nosuffixversion urlsuffix)

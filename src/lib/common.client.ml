@@ -46,10 +46,7 @@ let bus_unwrap_id : unwrap_id = Unwrap.id_of_int bus_unwrap_id_int
    Thus, we can define new services.
    That's why this function returns Some sitedata. *)
 let sitedata : Types.sitedata option ref = ref None
-
-let global_register_allowed () =
-  match !sitedata with None -> None | Some s -> Some (fun () -> s)
-
+let global_register_allowed () = Option.map (fun s () -> s) !sitedata
 let get_site_dir sitedata = sitedata.Types.site_dir
 let get_site_dir_string sitedata = sitedata.Types.site_dir_string
 let add_unregistered _ _ = ()

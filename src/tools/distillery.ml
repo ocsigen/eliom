@@ -336,7 +336,7 @@ let main () =
     let template, name, dest_dir =
       match !template, !name with
       | template, Some name ->
-          let dir = match !dest_dir with Some dir -> dir | None -> name in
+          let dir = Option.value !dest_dir ~default:name in
           template, name, dir
       | _ -> Arg.usage spec usage_msg; exit 1
     in
