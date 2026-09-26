@@ -73,7 +73,7 @@ let set_global_service_state_timeout
       timeout
   =
   let sitedata = Request_info.find_sitedata "set_global_service_timeout" in
-  let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+  let secure = Common.get_secure ~secure_o:secure ~sitedata in
   Mod_timeouts.set_global ~kind:`Service ~cookie_scope ~secure
     ~recompute_expdates override_configfile sitedata timeout
 
@@ -94,7 +94,7 @@ let set_global_volatile_data_state_timeout
       timeout
   =
   let sitedata = Request_info.find_sitedata "set_global_data_timeout" in
-  let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+  let secure = Common.get_secure ~secure_o:secure ~sitedata in
   Mod_timeouts.set_global ~kind:`Data ~cookie_scope ~secure ~recompute_expdates
     override_configfile sitedata timeout
 
@@ -106,7 +106,7 @@ let set_global_volatile_state_timeout
       timeout
   =
   let sitedata = Request_info.find_sitedata "set_global_volatile_timeouts" in
-  let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+  let secure = Common.get_secure ~secure_o:secure ~sitedata in
   Mod_timeouts.set_global ~kind:`Service ~cookie_scope ~secure
     ~recompute_expdates override_configfile sitedata timeout;
   Mod_timeouts.set_global ~kind:`Data ~cookie_scope ~secure ~recompute_expdates
@@ -129,23 +129,23 @@ let set_global_persistent_data_state_timeout
       timeout
   =
   let sitedata = Request_info.find_sitedata "set_global_persistent_timeout" in
-  let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+  let secure = Common.get_secure ~secure_o:secure ~sitedata in
   Mod_timeouts.set_global ~kind:`Persistent ~cookie_scope ~secure
     ~recompute_expdates override_configfile sitedata timeout
 
 let get_global_service_state_timeout ?secure ~cookie_scope () =
   let sitedata = Request_info.find_sitedata "get_global_timeout" in
-  let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+  let secure = Common.get_secure ~secure_o:secure ~sitedata in
   Mod_timeouts.get_global ~kind:`Service ~cookie_scope ~secure sitedata
 
 let get_global_volatile_data_state_timeout ?secure ~cookie_scope () =
   let sitedata = Request_info.find_sitedata "get_global_timeout" in
-  let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+  let secure = Common.get_secure ~secure_o:secure ~sitedata in
   Mod_timeouts.get_global ~kind:`Data ~cookie_scope ~secure sitedata
 
 let get_global_persistent_data_state_timeout ?secure ~cookie_scope () =
   let sitedata = Request_info.find_sitedata "get_global_persistent_timeout" in
-  let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+  let secure = Common.get_secure ~secure_o:secure ~sitedata in
   Mod_timeouts.get_global ~kind:`Persistent ~cookie_scope ~secure sitedata
 
 (* Now for current session *)
@@ -184,7 +184,7 @@ let unset_volatile_data_state_timeout ~cookie_scope ?secure () =
 let get_service_state_timeout ~cookie_scope ?secure () =
   let sp = Common.get_sp () in
   let sitedata = Request_info.get_sitedata_sp ~sp in
-  let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+  let secure = Common.get_secure ~secure_o:secure ~sitedata in
   try
     let c =
       Mod_sersess.find_service_cookie_only ~cookie_scope ~secure_o:(Some secure)
@@ -202,7 +202,7 @@ let get_service_state_timeout ~cookie_scope ?secure () =
 let get_volatile_data_state_timeout ~cookie_scope ?secure () =
   let sp = Common.get_sp () in
   let sitedata = Request_info.get_sitedata_sp ~sp in
-  let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+  let secure = Common.get_secure ~secure_o:secure ~sitedata in
   try
     let c =
       Mod_datasess.find_data_cookie_only ~cookie_scope ~secure_o:(Some secure)
@@ -245,7 +245,7 @@ let unset_persistent_data_state_timeout ~cookie_scope ?secure () =
 let get_persistent_data_state_timeout ~cookie_scope ?secure () =
   let sp = Common.get_sp () in
   let sitedata = Request_info.get_sitedata_sp ~sp in
-  let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+  let secure = Common.get_secure ~secure_o:secure ~sitedata in
   Lwt.catch
     (fun () ->
        let* c =
@@ -821,7 +821,7 @@ let create_persistent_table ~scope ?secure ~json name :
   'a persistent_table Lwt.t
   =
   let sitedata = Request_info.find_sitedata "create_persistent_table" in
-  let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+  let secure = Common.get_secure ~secure_o:secure ~sitedata in
   let t = Common.Persistent_tables.create_json ~name json in
   Lwt.return (scope, secure, t)
 
@@ -905,13 +905,13 @@ let create_volatile_table ~scope ?secure () =
     match Common.global_register_allowed () with
     | Some get_current_sitedata ->
         let sitedata = get_current_sitedata () in
-        let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+        let secure = Common.get_secure ~secure_o:secure ~sitedata in
         Mod_datasess.create_volatile_table ~scope ~secure
     | None ->
         raise (Common.Site_information_not_available "create_volatile_table"))
   | Some sp ->
       let sitedata = Request_info.get_sitedata_sp ~sp in
-      let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+      let secure = Common.get_secure ~secure_o:secure ~sitedata in
       Mod_datasess.create_volatile_table_during_session ~scope ~secure sitedata
 
 let get_table_key_
@@ -1026,13 +1026,13 @@ let discard_all_scopes ?secure () =
 
 let discard_all_volatile_data ~scope ?secure () =
   let sitedata = Request_info.find_sitedata "discard_all_volatile_data" in
-  let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+  let secure = Common.get_secure ~secure_o:secure ~sitedata in
   Mod_sessadmin.close_all_data_states ~scope ~secure sitedata
 (*VVV missing: scope group *)
 
 let discard_all_persistent_data ~scope ?secure () =
   let sitedata = Request_info.find_sitedata "discard_all_persistent_data" in
-  let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+  let secure = Common.get_secure ~secure_o:secure ~sitedata in
   Mod_sessadmin.close_all_persistent_states ~scope ~secure sitedata
 (*VVV missing: scope group *)
 
@@ -1048,7 +1048,7 @@ let discard_all_data ?persistent ~scope ?secure () =
 
 let discard_all_services ~scope ?secure () =
   let sitedata = Request_info.find_sitedata "close_all_service_sessions" in
-  let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+  let secure = Common.get_secure ~secure_o:secure ~sitedata in
   Mod_sessadmin.close_all_service_states ~scope ~secure sitedata
 (*VVV missing: scope group *)
 
@@ -1522,7 +1522,7 @@ let set_cookie ?(cookie_level = `Session) ?path ?exp ?secure ~name ~value () =
   let sp = Common.get_sp () in
   let path = change_pathopt_ sp path in
   let sitedata = Request_info.find_sitedata "set_cookie" in
-  let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+  let secure = Common.get_secure ~secure_o:secure ~sitedata in
   match cookie_level with
   | `Session ->
       sp.Common.sp_user_cookies <-

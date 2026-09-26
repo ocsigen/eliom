@@ -29,7 +29,7 @@
 open Lib
 
 let compute_cookie_info sitedata secure_o secure_ci cookie_info =
-  let secure = Common.get_secure ~secure_o ~sitedata () in
+  let secure = Common.get_secure ~secure_o ~sitedata in
   if secure
   then
     let _, c, _ = secure_ci in

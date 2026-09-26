@@ -1491,7 +1491,7 @@ let patch_request_info ({Ocsigen.Extensions.request_info; _} as r) =
   | None -> r
 
 (* Returns if we want secure cookie *)
-let get_secure ~secure_o ~sitedata () =
+let get_secure ~secure_o ~sitedata =
   match secure_o with None -> sitedata.secure_cookies | Some s -> s
 
 module To_and_of_shared = struct
