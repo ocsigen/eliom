@@ -100,23 +100,26 @@ module Full_state_name_table = Map.Make (struct
 
 (******************************************************************)
 (* Service kinds: *)
+(* A CSRF-safe coservice, whose registration is delayed until a link or a
+   form to it is created *)
+type csrf_info =
+  { csrf_id : int  (** Unique id *)
+  ; csrf_scope : user_scope
+    (** Scope of the delayed registration, if the service is registered
+            in the global table *)
+  ; csrf_secure : bool option
+    (** [?secure] parameter of the delayed registration, likewise *) }
+
 type att_key_serv =
   | SAtt_no (* regular service *)
   | SAtt_named of string (* named coservice *)
   | SAtt_anon of string (* anonymous coservice *)
-  | SAtt_csrf_safe of (int * user_scope * bool option)
-  (* CSRF safe anonymous coservice *)
-  (* CSRF safe service registration delayed until form/link creation *)
-  (* the int is an unique id,
-         the user_scope is used for delayed registration
-         (if the service is registered in the global table),
-         the bool option is the ?secure parameter for delayed registration
-         (if the service is registered in the global table) *)
+  | SAtt_csrf_safe of csrf_info (* CSRF safe anonymous coservice *)
   (* The following three are for non-attached coservices
      that have been attached on a service afterwards *)
   | SAtt_na_named of string
   | SAtt_na_anon of string
-  | SAtt_na_csrf_safe of (int * user_scope * bool option)
+  | SAtt_na_csrf_safe of csrf_info
 
 type na_key_serv =
   | SNa_no (* no na information *)
@@ -126,9 +129,9 @@ type na_key_serv =
   | SNa_post_ of string (* named *)
   | SNa_get' of string (* anonymous *)
   | SNa_post' of string (* anonymous *)
-  | SNa_get_csrf_safe of (int * user_scope * bool option)
+  | SNa_get_csrf_safe of csrf_info
   (* CSRF safe anonymous coservice *)
-  | SNa_post_csrf_safe of (int * user_scope * bool option)
+  | SNa_post_csrf_safe of csrf_info
 (* CSRF safe anonymous coservice *)
 
 (* the same, for incoming requests: *)

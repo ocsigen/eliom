@@ -314,7 +314,10 @@ let register_aux
       match key_meth, attserget, attserpost with
       | ( (`Post | `Put | `Delete)
         , _
-        , Common.SAtt_csrf_safe (id, scope, secure_session) ) ->
+        , Common.SAtt_csrf_safe
+            { Common.csrf_id = id
+            ; csrf_scope = scope
+            ; csrf_secure = secure_session } ) ->
           let tablereg, table_for = csrf_safe_tables ~scope ~secure_session in
           S.set_delayed_post_registration_function tablereg id
             (fun ~sp attserget ->
@@ -323,7 +326,12 @@ let register_aux
                let table = table_for ~sp in
                f table (attserget, attserpost);
                n)
-      | `Get, Common.SAtt_csrf_safe (id, scope, secure_session), _ ->
+      | ( `Get
+        , Common.SAtt_csrf_safe
+            { Common.csrf_id = id
+            ; csrf_scope = scope
+            ; csrf_secure = secure_session }
+        , _ ) ->
           let tablereg, table_for = csrf_safe_tables ~scope ~secure_session in
           S.set_delayed_get_or_na_registration_function tablereg id (fun ~sp ->
             let n = S.new_state () in
@@ -367,7 +375,9 @@ let register_aux
                   ?headers content) )
       in
       match na_name with
-      | Common.SNa_get_csrf_safe (id, scope, secure_session) ->
+      | Common.SNa_get_csrf_safe
+          {Common.csrf_id = id; csrf_scope = scope; csrf_secure = secure_session}
+        ->
           (* CSRF safe coservice: we'll do the registration later *)
           let tablereg, table_for = csrf_safe_tables ~scope ~secure_session in
           S.set_delayed_get_or_na_registration_function tablereg id (fun ~sp ->
@@ -375,7 +385,9 @@ let register_aux
             let na_name = Common.SNa_get' n in
             let table = table_for ~sp in
             f table na_name; n)
-      | Common.SNa_post_csrf_safe (id, scope, secure_session) ->
+      | Common.SNa_post_csrf_safe
+          {Common.csrf_id = id; csrf_scope = scope; csrf_secure = secure_session}
+        ->
           (* CSRF safe coservice: we'll do the registration later *)
           let tablereg, table_for = csrf_safe_tables ~scope ~secure_session in
           S.set_delayed_get_or_na_registration_function tablereg id (fun ~sp ->
