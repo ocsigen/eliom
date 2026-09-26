@@ -2186,11 +2186,12 @@ let () =
                 set_current_uri uri;
                 History.replace (get_this_page ());
                 let* () =
-                  Lwt.bind (f () ()) (function
-                    | Service.Dom d -> set_content_local d
-                    | r ->
-                        handle_result ~uri:(get_current_uri ()) ~replace:true
-                          (Lwt.return r))
+                  let* result = f () () in
+                  match result with
+                  | Service.Dom d -> set_content_local d
+                  | r ->
+                      handle_result ~uri:(get_current_uri ()) ~replace:true
+                        (Lwt.return r)
                 in
                 scroll_to_fragment ~offset:state.position fragment;
                 Lwt.return_unit
