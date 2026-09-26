@@ -182,6 +182,9 @@
    remove_persistent_data, Ext.discard_state) now return a rejected promise
    on an unexpected error. When the error was already known, as with a
    synchronous storage backend, they raised it synchronously instead.
+** Getting a persistent Eliom reference now returns a rejected promise on a
+   storage error. With a synchronous storage backend, the error was raised
+   synchronously instead.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type

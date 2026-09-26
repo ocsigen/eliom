@@ -36,7 +36,7 @@ let reset_unreadable ~reset = function
       Logs.warn ~src:section (fun fmt ->
         fmt "Unreadable persistent reference reset to its default value: %s" msg);
       reset ()
-  | exc -> Lwt.reraise exc
+  | exc -> Lwt.fail exc
 
 (* Lift a value codec into an [option] codec. *)
 let json_option (type x) (j : x Deriving_Json.t) : x option Deriving_Json.t =
