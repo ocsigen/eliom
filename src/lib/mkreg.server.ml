@@ -20,7 +20,6 @@
 
 open Lwt.Syntax
 module S = Service
-open Lwt.Infix
 
 let suffix_redir_uri_key = Polytables.make_key ()
 
@@ -230,84 +229,92 @@ let register_aux
                 Lwt.with_value Common.sp_key (Some sp) (fun () ->
                   let ri = Request_info.get_ri_sp sp
                   and suff = Request_info.get_suffix_sp sp in
-                  Lwt.catch
-                    (fun () ->
-                       Parameter.reconstruct_params ~sp sgpt
-                         (Some (Lwt.return (Ocsigen.Request.get_params_flat ri)))
-                         (Some (Lwt.return []))
-                         nosuffixversion suff
-                       >>= fun g ->
-                       let post_params = Request_info.get_post_params_sp sp in
-                       let files = Request_info.get_files_sp sp in
-                       Parameter.reconstruct_params ~sp sppt post_params files
-                         false None
-                       >>= fun p ->
-                       (* GRGR TODO: avoid
+                  let* content =
+                    Lwt.catch
+                      (fun () ->
+                         let* g =
+                           Parameter.reconstruct_params ~sp sgpt
+                             (Some
+                                (Lwt.return
+                                   (Ocsigen.Request.get_params_flat ri)))
+                             (Some (Lwt.return []))
+                             nosuffixversion suff
+                         in
+                         let post_params = Request_info.get_post_params_sp sp in
+                         let files = Request_info.get_files_sp sp in
+                         let* p =
+                           Parameter.reconstruct_params ~sp sppt post_params
+                             files false None
+                         in
+                         (* GRGR TODO: avoid
                            Eliom_uri.make_string_uri_. But we need to
                            "downcast" the type of service to the
                            correct "get service". *)
-                       (if
-                          Request_info.get_http_method () = `GET
-                          && nosuffixversion && suffix_with_redirect
-                        then (
-                          if
-                            (* it is a suffix service in version
+                         let* () =
+                           if
+                             Request_info.get_http_method () = `GET
+                             && nosuffixversion && suffix_with_redirect
+                           then (
+                             if
+                               (* it is a suffix service in version
                                without suffix. We redirect. *)
-                            not (Request_info.expecting_process_page ())
-                          then
-                            let redir_uri =
-                              Eliom_uri.make_string_uri_ ~absolute:true
-                                ~service:
-                                  (service
-                                    : ( 'a
-                                        , 'b
-                                        , _
-                                        , _
-                                        , _
-                                        , S.non_ext
-                                        , S.reg
-                                        , _
-                                        , 'c
-                                        , 'd
-                                        , 'return )
-                                        S.t
-                                    :> ( 'a
-                                         , 'b
-                                         , _
-                                         , _
-                                         , _
-                                         , _
-                                         , _
-                                         , _
-                                         , 'c
-                                         , 'd
-                                         , 'return )
-                                         S.t)
-                                g
-                            in
-                            Lwt.fail (Common.Do_redirection redir_uri)
-                          else
-                            (* It is an internal application form.
+                               not (Request_info.expecting_process_page ())
+                             then
+                               let redir_uri =
+                                 Eliom_uri.make_string_uri_ ~absolute:true
+                                   ~service:
+                                     (service
+                                       : ( 'a
+                                           , 'b
+                                           , _
+                                           , _
+                                           , _
+                                           , S.non_ext
+                                           , S.reg
+                                           , _
+                                           , 'c
+                                           , 'd
+                                           , 'return )
+                                           S.t
+                                       :> ( 'a
+                                            , 'b
+                                            , _
+                                            , _
+                                            , _
+                                            , _
+                                            , _
+                                            , _
+                                            , 'c
+                                            , 'd
+                                            , 'return )
+                                            S.t)
+                                   g
+                               in
+                               Lwt.fail (Common.Do_redirection redir_uri)
+                             else
+                               (* It is an internal application form.
                                We don't redirect but we set this
                                special information for url to be displayed
                                by the browser
                                (see Request_info.rebuild_uri_without_iternal_form_info_)
                             *)
-                            let redir_uri =
-                              Eliom_uri.make_string_uri_ ~service g
-                            in
-                            let rc = Request_info.get_request_cache_sp sp in
-                            Polytables.set ~table:rc ~key:suffix_redir_uri_key
-                              ~value:redir_uri;
-                            Lwt.return_unit)
-                        else Lwt.return_unit)
-                       >>= fun () ->
-                       check_process_redir sp check_before service >>= fun () ->
-                       page_generator g p)
-                    (function
-                      | Common.Eliom_Typing_Error l -> error_handler l
-                      | e -> Lwt.fail e)
-                  >>= fun content ->
+                               let redir_uri =
+                                 Eliom_uri.make_string_uri_ ~service g
+                               in
+                               let rc = Request_info.get_request_cache_sp sp in
+                               Polytables.set ~table:rc
+                                 ~key:suffix_redir_uri_key ~value:redir_uri;
+                               Lwt.return_unit)
+                           else Lwt.return_unit
+                         in
+                         let* () =
+                           check_process_redir sp check_before service
+                         in
+                         page_generator g p)
+                      (function
+                        | Common.Eliom_Typing_Error l -> error_handler l
+                        | e -> Lwt.fail e)
+                  in
                   send_with_cookies sp pages ?options ?charset ?code
                     ?content_type ?headers content)) }
       in
@@ -351,26 +358,30 @@ let register_aux
           , fun sp ->
               Lwt.with_value Common.sp_key (Some sp) (fun () ->
                 let ri = Request_info.get_ri_sp sp in
-                Lwt.catch
-                  (fun () ->
-                     Parameter.reconstruct_params ~sp
-                       (S.get_params_type service)
-                       (Some (Lwt.return (Ocsigen.Request.get_params_flat ri)))
-                       (Some (Lwt.return []))
-                       false None
-                     >>= fun g ->
-                     let post_params = Request_info.get_post_params_sp sp in
-                     let files = Request_info.get_files_sp sp in
-                     Parameter.reconstruct_params ~sp
-                       (S.post_params_type service)
-                       post_params files false None
-                     >>= fun p ->
-                     check_process_redir sp check_before service >>= fun () ->
-                     page_generator g p)
-                  (function
-                    | Common.Eliom_Typing_Error l -> error_handler l
-                    | e -> Lwt.fail e)
-                >>= fun content ->
+                let* content =
+                  Lwt.catch
+                    (fun () ->
+                       let* g =
+                         Parameter.reconstruct_params ~sp
+                           (S.get_params_type service)
+                           (Some
+                              (Lwt.return (Ocsigen.Request.get_params_flat ri)))
+                           (Some (Lwt.return []))
+                           false None
+                       in
+                       let post_params = Request_info.get_post_params_sp sp in
+                       let files = Request_info.get_files_sp sp in
+                       let* p =
+                         Parameter.reconstruct_params ~sp
+                           (S.post_params_type service)
+                           post_params files false None
+                       in
+                       let* () = check_process_redir sp check_before service in
+                       page_generator g p)
+                    (function
+                      | Common.Eliom_Typing_Error l -> error_handler l
+                      | e -> Lwt.fail e)
+                in
                 send_with_cookies sp pages ?options ?charset ?code ?content_type
                   ?headers content) )
       in
