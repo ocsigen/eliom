@@ -131,7 +131,7 @@ let lexing_position ~loc l =
 
 let position loc =
   let start = loc.Location.loc_start in
-  let stop = loc.Location.loc_start in
+  let stop = loc.Location.loc_end in
   Exp.tuple ~loc [lexing_position ~loc start; lexing_position ~loc stop]
 
 let is_annotation txt l = List.exists (fun s -> txt = s || txt = "eliom." ^ s) l

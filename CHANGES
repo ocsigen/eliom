@@ -150,6 +150,9 @@
 ** Notif.S.notify ~notfor:(`Id id) now compares identities with the
    equal_identity function of the functor argument instead of the
    polymorphic equality.
+** Client-side error messages about client values and injections now show
+   the whole source range of the expression instead of its first
+   character only.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
