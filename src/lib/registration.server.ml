@@ -19,7 +19,6 @@
  *)
 
 open Lwt.Syntax
-open Lwt.Infix
 
 let headers_with_content_type ?charset ?content_type headers =
   match content_type with
@@ -506,11 +505,17 @@ struct
   type options = R.options
   type result = R.result
 
-  let make_eh = Option.map (fun eh l -> eh l >>= T.translate)
-  let make_service_handler f g p = f g p >>= T.translate
+  let make_eh =
+    Option.map (fun eh l ->
+      let* r = eh l in
+      T.translate r)
+
+  let make_service_handler f g p =
+    let* r = f g p in
+    T.translate r
 
   let send ?options ?charset ?code ?content_type ?headers content =
-    T.translate content >>= fun c ->
+    let* c = T.translate content in
     R.send ?options ?charset ?code ?content_type ?headers c
 
   let register
@@ -647,7 +652,11 @@ module Ocaml = struct
 
   let make_eh = function
     | None -> None
-    | Some eh -> Some (fun l -> eh l >>= prepare_data)
+    | Some eh ->
+        Some
+          (fun l ->
+            let* r = eh l in
+            prepare_data r)
 
   let string_regexp = Str.regexp "\"\\([^\\\"]\\|\\\\.\\)*\""
 
@@ -1180,10 +1189,11 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
       State.set_cookie ~cookie_level:`Client_process
         ~name:Common.appl_name_cookie_name ~value:App_param.application_name ();
     let* body =
-      (match sp.Common.sp_client_appl_name, options.do_not_launch with
-        | None, true -> remove_eliom_scripts content
-        | _ -> add_eliom_scripts ~sp content)
-      >|= fun body ->
+      match sp.Common.sp_client_appl_name, options.do_not_launch with
+      | None, true -> remove_eliom_scripts content
+      | _ -> add_eliom_scripts ~sp content
+    in
+    let body =
       Ocsigen.Response.Body.of_string (Format.asprintf "%a" out body)
     in
     let headers =
