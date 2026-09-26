@@ -80,11 +80,8 @@ let close_data_state ~scope ~secure_o ?sp () =
 
 let fullsessgrp ~cookie_level ~sp set_session_group =
   Mod_sessiongroups.make_full_group_name ~cookie_level
-    sp.Common.sp_request.Ocsigen.Extensions.request_info
-    (Common.get_site_dir_string sp.Common.sp_sitedata)
-    (Common.get_mask4 sp.Common.sp_sitedata)
-    (Common.get_mask6 sp.Common.sp_sitedata)
-    set_session_group
+    ~sitedata:sp.Common.sp_sitedata
+    sp.Common.sp_request.Ocsigen.Extensions.request_info set_session_group
 
 let rec find_or_create_data_cookie
           ?set_session_group

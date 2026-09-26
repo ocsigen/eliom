@@ -23,14 +23,17 @@ open Lib
 let make_full_named_group_name_ ~cookie_level sitedata g =
   Common.get_site_dir_string sitedata, cookie_level, Either.Left g
 
-let make_full_group_name ~cookie_level ri site_dir_string ipv4mask ipv6mask
-  = function
+let make_full_group_name ~cookie_level ~sitedata ri =
+  let site_dir_string = Common.get_site_dir_string sitedata in
+  function
   (* The scope is the scope of group members (`Session by default). *)
   | None ->
       ( site_dir_string
       , cookie_level
       , Either.Right
-          (Common.network_of_request ri ~mask4:ipv4mask ~mask6:ipv6mask) )
+          (Common.network_of_request ri
+             ~mask4:(Common.get_mask4 sitedata)
+             ~mask6:(Common.get_mask6 sitedata)) )
   | Some g -> site_dir_string, cookie_level, Either.Left g
 
 let make_persistent_full_group_name = Common.make_persistent_full_group_name
