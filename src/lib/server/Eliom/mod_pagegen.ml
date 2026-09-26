@@ -122,14 +122,18 @@ let update_cookie_table ?now sitedata {Common.ci_unsecure = ci; ci_secure = sci}
                    expiry `Persistent name !(newc.Common.pc_timeout)
                  in
                  match oldvalue with
-                 | Some (_, oldti, oldexp, oldgrp)
+                 | Some
+                     { Common.ps_timeout = oldti
+                     ; ps_expiry = oldexp
+                     ; ps_group = oldgrp
+                     ; _ }
                    when Expiry_tolerance.within_tolerance_opt oldexp newexp
                         && oldti = !(newc.Common.pc_timeout)
                         && oldgrp = !(newc.Common.pc_session_group)
                         && newc.Common.pc_set_value = None ->
                      Lwt.return ()
                  (* nothing to do *)
-                 | Some (_, _oldti, oldexp, _oldgrp)
+                 | Some {Common.ps_expiry = oldexp; _}
                    when newc.Common.pc_set_value = None ->
                      Lwt.catch
                        (fun () ->

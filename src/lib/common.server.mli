@@ -366,6 +366,14 @@ type one_persistent_cookie_info =
   ; pc_cookie_exp : cookie_exp ref
   ; pc_session_group : perssessgrp option ref }
 
+type persistent_cookie_sent =
+  { ps_value : string
+  ; ps_timeout : timeout  (** User timeout *)
+  ; ps_expiry : float option  (** Server side expiration date, if any *)
+  ; ps_group : perssessgrp option  (** Session group *) }
+(** A persistent cookie sent by the browser, with the state of its session
+    at the beginning of the request. *)
+
 type 'a cookie_info1 =
   { ci_service :
       (string option * 'a one_service_cookie_info session_cookie ref)
@@ -376,7 +384,7 @@ type 'a cookie_info1 =
         Full_state_name_table.t
         ref
   ; ci_persistent :
-      ((string * timeout * float option * perssessgrp option) option
+      (persistent_cookie_sent option
       * one_persistent_cookie_info session_cookie ref)
         Lwt.t
         Lazy.t

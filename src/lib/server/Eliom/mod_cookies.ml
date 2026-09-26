@@ -284,18 +284,10 @@ let get_cookie_info
                      >>= fun () ->
                      return
                        ( Some
-                           ( value
-                             (* value at the beginning
-                                                 of the request *)
-                           , perstimeout
-                             (* user persistent timeout
-                                                 at the beginning
-                                                 of the request *)
-                           , persexp
-                             (* expiration date (server)
-                                                 at the beginning
-                                                 of the request *)
-                           , sessgrp (* session group at beginning *) )
+                           { Common.ps_value = value
+                           ; ps_timeout = perstimeout
+                           ; ps_expiry = persexp
+                           ; ps_group = sessgrp }
                        , ref Common.SCData_session_expired
                          (* ask the browser to
                                                  remove the cookie *)
@@ -303,18 +295,10 @@ let get_cookie_info
                  | _ ->
                      return
                        ( Some
-                           ( value
-                             (* value at the beginning
-                                              of the request *)
-                           , perstimeout
-                             (* user persistent timeout
-                                              at the beginning
-                                              of the request *)
-                           , persexp
-                             (* expiration date (server)
-                                              at the beginning
-                                              of the request *)
-                           , sessgrp (* session group at beginning *) )
+                           { Common.ps_value = value
+                           ; ps_timeout = perstimeout
+                           ; ps_expiry = persexp
+                           ; ps_group = sessgrp }
                        , ref
                            (Common.SC
                               { Common.pc_hvalue = hvalue (* value *)
@@ -332,18 +316,10 @@ let get_cookie_info
                 | Not_found ->
                     return
                       ( Some
-                          ( value
-                            (* value at the beginning
-                                             of the request *)
-                          , Common.TGlobal
-                            (* user persistent timeout
-                                             at the beginning
-                                             of the request *)
-                          , Some 0.
-                            (* expiration date (server)
-                                             at the beginning
-                                             of the request *)
-                          , None (* session group at beginning *) )
+                          { Common.ps_value = value
+                          ; ps_timeout = Common.TGlobal
+                          ; ps_expiry = Some 0.
+                          ; ps_group = None }
                       , ref Common.SCData_session_expired
                         (* ask the browser
                                              to remove the cookie *)
@@ -430,7 +406,9 @@ let compute_cookies_to_send
       Lazy.force v >>= fun (old, newi) ->
       return
         (let oldinfo =
-           match old with None -> None | Some (v, _, _, _) -> Some v
+           match old with
+           | None -> None
+           | Some {Common.ps_value = v; _} -> Some v
          in
          let newinfo =
            match !newi with
