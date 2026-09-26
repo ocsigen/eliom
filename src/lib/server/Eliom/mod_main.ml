@@ -274,7 +274,7 @@ let parse_eliom_option
   in
   let convert_attr ~element tag f v =
     try f v
-    with Invalid_argument _ ->
+    with Invalid_argument _ | Failure _ ->
       raise
         (Error_in_config_file
            (Printf.sprintf
