@@ -167,6 +167,8 @@
 ** Content.Html.Id.get_element and Content.Svg.Id.get_element now return
    None when no element has the given id, as documented. They used to
    raise Not_found.
+** A malformed <omitpersistentstorage> configuration now raises
+   Error_in_config_file with a message instead of an Assert_failure.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type

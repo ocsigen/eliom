@@ -498,18 +498,16 @@ let parse_eliom_option
   | Xml.Element ("ignoredpostparams", [("regexp", v)], []) ->
       let re = Re.seq [Re.start; Re.Pcre.re v; Re.stop] |> Re.compile in
       set_ignored_post_params (v, re)
-  | Xml.Element ("omitpersistentstorage", attrs, tags) ->
-      assert (attrs = []);
+  | Xml.Element ("omitpersistentstorage", [], tags) ->
       let parse_rule = function
-        | Xml.Element ("header", attrs, tags) ->
-            assert (tags = []);
-            let attr_name, attr_value =
-              match attrs with [a] -> a | _ -> assert false
-            in
+        | Xml.Element ("header", [(attr_name, attr_value)], []) ->
             let header_name = Ocsigen_http.Header.Name.of_string attr_name in
             let header_regexp = Re.compile @@ Re.Pcre.re attr_value in
             Common.HeaderRule (header_name, header_regexp)
-        | _ -> assert false
+        | _ ->
+            raise
+              (Error_in_config_file
+                 "Eliom: <omitpersistentstorage> only accepts <header HEADER-NAME=\"REGEXP\"/> elements")
       in
       let rules = List.map parse_rule tags in
       set_omitpersistentstorage (Some rules)
