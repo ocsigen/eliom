@@ -255,11 +255,9 @@ let relink_request_node (node : Dom_html.element Js.t) =
 
 let relink_request_nodes root =
   Logs.debug ~src:section (fun fmt -> fmt "Relink request nodes");
-  if !Config.debug_timings
-  then Console.console##(time (Js.string "relink_request_nodes"));
+  Config.debug_time "relink_request_nodes";
   Mod_dom.iter_nodeList (Mod_dom.select_request_nodes root) relink_request_node;
-  if !Config.debug_timings
-  then Console.console##(timeEnd (Js.string "relink_request_nodes"))
+  Config.debug_time_end "relink_request_nodes"
 
 (* Relinks a-elements, form-elements, and process nodes. The list of
    closure nodes is returned for application on [relink_closure_node]
@@ -401,13 +399,11 @@ let load_data_script page =
     | _ -> raise_error ~section "Unable to find Eliom application data."
   in
   let script = data_script##.text in
-  if !Config.debug_timings
-  then Console.console##(time (Js.string "load_data_script"));
+  Config.debug_time "load_data_script";
   ignore (Js.Unsafe.eval_string (Js.to_string script));
   Process.reset_request_template ();
   Process.reset_request_cookies ();
-  if !Config.debug_timings
-  then Console.console##(timeEnd (Js.string "load_data_script"))
+  Config.debug_time_end "load_data_script"
 
 (* == Scroll the current page such that the top of element with the id
    [fragment] is aligned with the window's top. If the optional
@@ -998,7 +994,7 @@ let init () =
     | None -> ());
     Client_core.set_initial_load ();
     Lwt.async (fun () ->
-      if !Config.debug_timings then Console.console##(time (Js.string "onload"));
+      Config.debug_time "onload";
       let* () =
         Request_info.set_session_info
           ~uri:(String.concat "/" (Request_info.get_csp_original_full_path ()))
@@ -1033,8 +1029,7 @@ let init () =
       in
       Lwt_mutex.unlock Client_core.load_mutex;
       run_callbacks load_callbacks;
-      if !Config.debug_timings
-      then Console.console##(timeEnd (Js.string "onload"));
+      Config.debug_time_end "onload";
       Lwt.return_unit);
     Js._false
   in
@@ -1545,8 +1540,7 @@ let set_uri ~replace ?fragment uri =
   | Some fragment -> change_url_string ~replace (uri ^ "#" ^ fragment)
 
 let replace_page ~do_insert_base new_page =
-  if !Config.debug_timings
-  then Console.console##(time (Js.string "replace_page"));
+  Config.debug_time "replace_page";
   if !only_replace_body
   then
     let new_body = new_page##.childNodes##(item 1) in
@@ -1561,8 +1555,7 @@ let replace_page ~do_insert_base new_page =
     if do_insert_base then insert_base new_page;
     Dom.replaceChild Dom_html.document new_page
       Dom_html.document##.documentElement);
-  if !Config.debug_timings
-  then Console.console##(timeEnd (Js.string "replace_page"))
+  Config.debug_time_end "replace_page"
 
 (* Function to be called for client side services: *)
 let set_content_local ?offset ?fragment new_page =
@@ -1570,8 +1563,7 @@ let set_content_local ?offset ?fragment new_page =
   let locked = ref true in
   let recover () =
     if !locked then Lwt_mutex.unlock Client_core.load_mutex;
-    if !Config.debug_timings
-    then Console.console##(timeEnd (Js.string "set_content_local"))
+    Config.debug_time_end "set_content_local"
   and really_set () =
     (* Inline CSS in the header to avoid the "flashing effect".
        Otherwise, the browser start to display the page before
@@ -1594,8 +1586,7 @@ let set_content_local ?offset ?fragment new_page =
     Page_status.onactive ~once:true (fun () -> run_callbacks load_callbacks);
     scroll_to_fragment ?offset fragment;
     advance_page ();
-    if !Config.debug_timings
-    then Console.console##(timeEnd (Js.string "set_content_local"));
+    Config.debug_time_end "set_content_local";
     Lwt.return_unit
   in
   let cancel () = recover (); Lwt.return_unit in
@@ -1603,8 +1594,7 @@ let set_content_local ?offset ?fragment new_page =
     (fun () ->
        let* () = Lwt_mutex.lock Client_core.load_mutex in
        Client_core.set_loading_phase ();
-       if !Config.debug_timings
-       then Console.console##(time (Js.string "set_content_local"));
+       Config.debug_time "set_content_local";
        run_onunload_wrapper really_set cancel)
     (fun exn ->
        recover ();
@@ -1704,20 +1694,17 @@ let set_content ~replace ~uri ?offset ?fragment content =
         run_callbacks load_callbacks;
         scroll_to_fragment ?offset fragment;
         advance_page ();
-        if !Config.debug_timings
-        then Console.console##(timeEnd (Js.string "set_content"));
+        Config.debug_time_end "set_content";
         Lwt.return_unit
       and recover () =
         if !locked then Lwt_mutex.unlock Client_core.load_mutex;
-        if !Config.debug_timings
-        then Console.console##(timeEnd (Js.string "set_content"))
+        Config.debug_time_end "set_content"
       in
       Lwt.catch
         (fun () ->
            let* () = Lwt_mutex.lock Client_core.load_mutex in
            Client_core.set_loading_phase ();
-           if !Config.debug_timings
-           then Console.console##(time (Js.string "set_content"));
+           Config.debug_time "set_content";
            let g () = recover (); Lwt.return_unit in
            run_onunload_wrapper really_set g)
         (fun exn ->
