@@ -41,25 +41,21 @@ type changepage_event =
 let run_lwt_callbacks : 'a -> ('a -> unit Lwt.t) list -> unit Lwt.t =
  fun ev handlers -> Lwt_list.iter_s (fun h -> h ev) handlers
 
-let (onload, _, flush_onload, _push_onload) :
-  ((unit -> unit) -> unit)
-  * (unit -> (unit -> unit) list)
-  * (unit -> (unit -> unit) list)
-  * (unit -> unit)
+let ({add = onload; flush = flush_onload; _} :
+      (unit -> unit) Client_core.buffer)
   =
   Client_core.create_buffer ()
 
-let ( (onchangepage : (changepage_event -> unit Lwt.t) -> unit)
-    , _
-    , (flush_onchangepage : unit -> (changepage_event -> unit Lwt.t) list)
-    , _ )
+let ({add = onchangepage; flush = flush_onchangepage; _} :
+      (changepage_event -> unit Lwt.t) Client_core.buffer)
   =
   Client_core.create_buffer ()
 
-let onunload, _, flush_onunload, _ = Client_core.create_buffer ()
+let {Client_core.add = onunload; flush = flush_onunload; _} =
+  Client_core.create_buffer ()
 
 let onbeforeunload, run_onbeforeunload, flush_onbeforeunload =
-  let add, get, flush, _ = Client_core.create_buffer () in
+  let {Client_core.add; get; flush} = Client_core.create_buffer () in
   let rec run lst =
     match lst with
     | [] -> None
