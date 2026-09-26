@@ -9,6 +9,10 @@
 (subdir Eliom
  (rule (copy# ../../client_base.shared.ml client_base.ml)))
 (subdir Eliom
+ (rule (copy# ../../client_call.client.ml client_call.ml)))
+(subdir Eliom
+ (rule (copy# ../../client_call.client.mli client_call.mli)))
+(subdir Eliom
  (rule (copy# ../../client_core.client.ml client_core.ml)))
 (subdir Eliom
  (rule (copy# ../../client_history.client.ml client_history.ml)))
