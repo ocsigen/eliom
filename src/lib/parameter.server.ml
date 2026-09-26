@@ -46,35 +46,25 @@ let all_suffix_user
 
 (* types available only on server side (no pcre on browser) *)
 
+(* The string [s] rewritten with [dest] if it matches [reg] from its start *)
+let regexp_of_string reg dest s =
+  match Re.Pcre.exec ~rex:reg ~pos:0 s with
+  | g when Re.Group.start g 0 = 0 -> (
+    try
+      Ocsigen.Extensions.replace_user_dir reg
+        (Ocsigen.Extensions.parse_user_dir dest)
+        s
+    with Ocsigen.Extensions.NoSuchUser ->
+      raise (Failure "User does not exist"))
+  | _ | (exception Not_found) -> raise (Failure "Regexp not matching")
+
 let regexp reg dest ~to_string n =
-  user_type
-    ~of_string:(fun s ->
-      match Re.Pcre.exec ~rex:reg ~pos:0 s with
-      | g when Re.Group.start g 0 = 0 -> (
-        try
-          Ocsigen.Extensions.replace_user_dir reg
-            (Ocsigen.Extensions.parse_user_dir dest)
-            s
-        with Ocsigen.Extensions.NoSuchUser ->
-          raise (Failure "User does not exist"))
-      | _ | (exception Not_found) -> raise (Failure "Regexp not matching"))
-    ~to_string n
+  user_type ~of_string:(regexp_of_string reg dest) ~to_string n
 
 let all_suffix_regexp reg dest ~(to_string : 'a -> string) (n : string) :
   (string, [`Endsuffix], [`One of string] param_name) params_type
   =
-  all_suffix_user
-    ~of_string:(fun s ->
-      match Re.Pcre.exec ~rex:reg ~pos:0 s with
-      | g when Re.Group.start g 0 = 0 -> (
-        try
-          Ocsigen.Extensions.replace_user_dir reg
-            (Ocsigen.Extensions.parse_user_dir dest)
-            s
-        with Ocsigen.Extensions.NoSuchUser ->
-          raise (Failure "User does not exist"))
-      | _ | (exception Not_found) -> raise (Failure "Regexp not matching"))
-    ~to_string n
+  all_suffix_user ~of_string:(regexp_of_string reg dest) ~to_string n
 
 (* Non localized parameters *)
 
