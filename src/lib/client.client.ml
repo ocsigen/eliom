@@ -513,18 +513,6 @@ let unwrap_global_data (global_data', _) =
          ; client_section = Array.to_list client_sections_data })
       global_data'
 
-let _ =
-  Unwrap.register_unwrapper'
-    (Unwrap.id_of_int Common_base.client_value_unwrap_id_int)
-    unwrap_client_value;
-  Unwrap.register_unwrapper
-    (Unwrap.id_of_int Runtime.tyxml_unwrap_id_int)
-    unwrap_tyxml;
-  Unwrap.register_unwrapper
-    (Unwrap.id_of_int Common_base.global_data_unwrap_id_int)
-    unwrap_global_data;
-  ()
-
 (* == Associate data to state of the History API.
 
    We store an 'id' in the state, and store data in an association
@@ -2223,6 +2211,15 @@ let () =
     Js._false)
 
 let () =
+  Unwrap.register_unwrapper'
+    (Unwrap.id_of_int Common_base.client_value_unwrap_id_int)
+    unwrap_client_value;
+  Unwrap.register_unwrapper
+    (Unwrap.id_of_int Runtime.tyxml_unwrap_id_int)
+    unwrap_tyxml;
+  Unwrap.register_unwrapper
+    (Unwrap.id_of_int Common_base.global_data_unwrap_id_int)
+    unwrap_global_data;
   Unwrap.register_unwrapper
     (Unwrap.id_of_int Common_base.server_function_unwrap_id_int)
     (fun (service, _) ->
