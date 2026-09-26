@@ -439,7 +439,9 @@ and naservice_table_content =
       option
 (* for limitation of number of dynamic coservices *)
 
-and naservice_table = AVide | ATable of naservice_table_content NAserv_Table.t
+and naservice_table =
+  | AEmpty
+  | ATable of naservice_table_content NAserv_Table.t
 
 and tables =
   { mutable table_services :
@@ -813,16 +815,18 @@ let lazy_site_value_from_fun f =
     or a table of "answers" (functions that will generate the page) *)
 
 let empty_page_table () = Serv_Table.empty
-let empty_naservice_table () = AVide
+let empty_naservice_table () = AEmpty
 
 let service_tables_are_empty t =
-  !(t.table_naservices) = AVide
+  !(t.table_naservices) = AEmpty
   &&
   (* !(t.table_services) = [] <---- probably enough? *)
-  List.for_all (fun (_, _, r) -> !r = Vide) t.table_services
+  List.for_all (fun (_, _, r) -> !r = Empty) t.table_services
 
 let remove_naservice_table at k =
-  match at with AVide -> AVide | ATable t -> ATable (NAserv_Table.remove k t)
+  match at with
+  | AEmpty -> AEmpty
+  | ATable t -> ATable (NAserv_Table.remove k t)
 
 let dlist_finaliser na_table_ref node =
   (* If the node disappears from the dlist,

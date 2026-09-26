@@ -363,7 +363,7 @@ module Make (DorF : Content.Html.T) : HTML5_TOOLS = struct
     let rec depth_first_fun pages level pos : [`Ul] elt list =
       let rec one_item first last i s =
         let s = (s :> flow5_without_interactive elt list * _) in
-        let classe, pos2, deplier =
+        let classe, pos2, expand =
           match pos with
           | [] -> [], [], false
           | [a] when a = i -> [current_class], [], true
@@ -384,7 +384,7 @@ module Make (DorF : Content.Html.T) : HTML5_TOOLS = struct
             li ~a:attclass
               (a ~service:page text ()
               ::
-              (if deplier || whole_tree
+              (if expand || whole_tree
                then
                  (depth_first_fun hsl (level + 1) pos2
                    : [`Ul] elt list
@@ -394,7 +394,7 @@ module Make (DorF : Content.Html.T) : HTML5_TOOLS = struct
             li ~a:attclass
               (a ~service:page text ()
               ::
-              (if deplier || whole_tree
+              (if expand || whole_tree
                then
                  (depth_first_fun hsl (level + 1) pos2 :> li_content elt list)
                else []))
@@ -402,7 +402,7 @@ module Make (DorF : Content.Html.T) : HTML5_TOOLS = struct
             li ~a:attclass
               ((text :> li_content elt list)
               @
-              if deplier || whole_tree
+              if expand || whole_tree
               then (depth_first_fun hsl (level + 1) pos2 :> li_content elt list)
               else [])
       and one_menu first i = function
@@ -428,7 +428,7 @@ module Make (DorF : Content.Html.T) : HTML5_TOOLS = struct
     let rec breadth_first_fun pages level pos : [`Ul] elt list =
       let rec one_item first last i s =
         let s = (s :> flow5_without_interactive elt list * _) in
-        let classe, _pos2, _deplier =
+        let classe, _pos2, _expand =
           match pos with
           | [] -> [], [], false
           | [a] when a = i -> [current_class], [], true

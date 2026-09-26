@@ -413,7 +413,7 @@ module Hier_set : Set.S
 type omitpersistentstorage_rule =
   | HeaderRule of Ocsigen_http.Header.Name.t * Re.re
 
-type 'a dircontent = Vide | Table of 'a direlt ref String.Table.t
+type 'a dircontent = Empty | Table of 'a direlt ref String.Table.t
 and 'a direlt = Dir of 'a dircontent ref | File of 'a ref
 
 type ('params, 'result) service =
@@ -469,7 +469,9 @@ and naservice_table_content =
       option
 (* for limitation of number of dynamic coservices *)
 
-and naservice_table = AVide | ATable of naservice_table_content NAserv_Table.t
+and naservice_table =
+  | AEmpty
+  | ATable of naservice_table_content NAserv_Table.t
 
 and tables =
   { mutable table_services :
