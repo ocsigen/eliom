@@ -70,7 +70,7 @@ let typed_apply ~service f gp pp l l' suffix =
        f g p)
     (function
       | Common.Eliom_Wrong_parameter -> Lwt.fail Common.Eliom_Wrong_parameter
-      | exc -> Lwt.reraise exc)
+      | exc -> Lwt.fail exc)
 
 let wrap service att f _ suffix =
   let gp = Service.get_params_type service

@@ -193,6 +193,9 @@
 ** On the client, writing to a Bus now returns a rejected promise when the
    call to the bus service fails immediately, instead of raising the error
    synchronously.
+** On the client, a service handler whose parameters cannot be decoded now
+   returns a rejected promise instead of raising the error synchronously
+   when the decoding fails immediately.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
