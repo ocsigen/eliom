@@ -679,18 +679,20 @@ val get_site_data : unit -> sitedata
 (** Get the site data, which is only available {e during the loading of eliom
     modules, and during a request.} *)
 
-val eliom_params_after_action :
-  ((string * string) list
-  * (string * string) list option
-  * (string * file_info) list option
-  * (string * string) list String.Table.t
-  * (string * string) list String.Table.t
-  * (string * file_info) list String.Table.t
-  * (string * string) list
-  * (string * string) list
-  * (string * string) list)
-    Polytables.key
+type params_after_action =
+  { pa_all_get_params : (string * string) list
+  ; pa_all_post_params : (string * string) list option
+  ; pa_all_file_params : (string * file_info) list option
+  ; pa_nl_get_params : (string * string) list String.Table.t
+  ; pa_nl_post_params : (string * string) list String.Table.t
+  ; pa_nl_file_params : (string * file_info) list String.Table.t
+  ; pa_all_get_but_nl : (string * string) list
+  ; pa_ignored_get_params : (string * string) list
+  ; pa_ignored_post_params : (string * string) list }
+(** The parameters of a request once an action has run (the parameters
+    of the action removed), to choose the service that follows. *)
 
+val eliom_params_after_action : params_after_action Polytables.key
 val att_key_serv_of_req : att_key_req -> att_key_serv
 val na_key_serv_of_req : na_key_req -> na_key_serv
 
