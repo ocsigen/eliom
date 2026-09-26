@@ -30,6 +30,10 @@ let split c s =
 let chop_extension_if_any name =
   try Filename.chop_extension name with Invalid_argument _ -> name
 
+(* We use inode for eliom include directories, it's the easier way to
+ * detect if two directories are the same *)
+let inode_of_dir d = (Unix.stat d).Unix.st_ino
+
 (** Context *)
 
 let verbose : bool ref = ref false
