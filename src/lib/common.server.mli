@@ -125,6 +125,13 @@ type full_state_name =
 
 module Full_state_name_table : Map.S with type key = full_state_name
 
+type state_cookies =
+  { service_cookies : string Full_state_name_table.t
+  ; data_cookies : string Full_state_name_table.t
+  ; persistent_cookies : string Full_state_name_table.t }
+(** The state cookies sent by a request, for each kind of state. The keys of
+    the tables are the full state names. *)
+
 val eliom_link_too_old : bool Polytables.key
 (** If present and true in request data, it means that
     the previous coservice does not exist any more *)
@@ -165,23 +172,26 @@ val tenable_value : name:string -> 'a -> 'a tenable_value
     isn't possible. *)
 
 (* Service kinds: *)
+(* A CSRF-safe coservice, whose registration is delayed until a link or a
+   form to it is created *)
+type csrf_info =
+  { csrf_id : int  (** Unique id *)
+  ; csrf_scope : user_scope
+    (** Scope of the delayed registration, if the service is registered
+            in the global table *)
+  ; csrf_secure : bool option
+    (** [?secure] parameter of the delayed registration, likewise *) }
+
 type att_key_serv =
   | SAtt_no (* regular service *)
   | SAtt_named of string (* named coservice *)
   | SAtt_anon of string (* anonymous coservice *)
-  | SAtt_csrf_safe of (int * user_scope * bool option)
-  (* CSRF safe anonymous coservice *)
-  (* CSRF safe service registration delayed until form/link creation *)
-  (* the int is an unique id,
-         the user_scope is used for delayed registration
-         (if the service is registered in the global table),
-         the bool option is the ?secure parameter for delayed registration
-         (if the service is registered in the global table) *)
+  | SAtt_csrf_safe of csrf_info (* CSRF safe anonymous coservice *)
   (* The following three are for non-attached coservices
      that have been attached on a service afterwards *)
   | SAtt_na_named of string
   | SAtt_na_anon of string
-  | SAtt_na_csrf_safe of (int * user_scope * bool option)
+  | SAtt_na_csrf_safe of csrf_info
 
 type na_key_serv =
   | SNa_no (* no na information *)
@@ -191,9 +201,9 @@ type na_key_serv =
   | SNa_post_ of string (* named *)
   | SNa_get' of string (* anonymous *)
   | SNa_post' of string (* anonymous *)
-  | SNa_get_csrf_safe of (int * user_scope * bool option)
+  | SNa_get_csrf_safe of csrf_info
   (* CSRF safe anonymous coservice *)
-  | SNa_post_csrf_safe of (int * user_scope * bool option)
+  | SNa_post_csrf_safe of csrf_info
 (* CSRF safe anonymous coservice *)
 
 (* the same, for incoming requests: *)
@@ -236,11 +246,6 @@ val nl_param_prefix : string
 val eliom_internal_nlp_prefix : string
 val pnl_param_prefix : string
 val npnl_param_prefix : string
-(*204FORMS* old implementation of forms with 204 and change_page_event
-val internal_form_name : string
-val internal_form_bool_name : string
-*)
-
 val datacookiename : string
 val servicecookiename : string
 val persistentcookiename : string
@@ -261,20 +266,10 @@ type sess_info =
   ; si_all_get_params : (string * string) list
   ; si_all_post_params : (string * string) list option
   ; si_all_file_params : (string * file_info) list option
-  ; si_service_session_cookies : string Full_state_name_table.t
-  ; si_data_session_cookies : string Full_state_name_table.t
-  ; si_persistent_session_cookies : string Full_state_name_table.t
-  ; si_secure_cookie_info :
-      string Full_state_name_table.t
-      * string Full_state_name_table.t
-      * string Full_state_name_table.t
-  ; si_service_session_cookies_tab : string Full_state_name_table.t
-  ; si_data_session_cookies_tab : string Full_state_name_table.t
-  ; si_persistent_session_cookies_tab : string Full_state_name_table.t
-  ; si_secure_cookie_info_tab :
-      string Full_state_name_table.t
-      * string Full_state_name_table.t
-      * string Full_state_name_table.t
+  ; si_state_cookies : state_cookies
+  ; si_secure_state_cookies : state_cookies
+  ; si_state_cookies_tab : state_cookies
+  ; si_secure_state_cookies_tab : state_cookies
   ; si_tab_cookies : string Ocsigen_cookie_map.Map_inner.t
   ; si_nonatt_info : na_key_req
   ; si_state_info : att_key_req * att_key_req
@@ -289,20 +284,31 @@ type sess_info =
   ; si_ignored_get_params : (string * string) list
   ; si_ignored_post_params : (string * string) list
   ; si_client_process_info : client_process_info option
-  ; si_expect_process_data : bool Lazy.t (*204FORMS*  si_internal_form: bool; *)
-  }
+  ; si_expect_process_data : bool Lazy.t }
 
 module SessionCookies : Hashtbl.S with type key = string
 
 (* session groups *)
-type 'a sessgrp = string * cookie_level * (string, Ipaddr.t) Either.t
+type session_group =
+  | Group_name of string
+  | Subnet of Ipaddr.t
+  (** The group of a session: a named group or, for sessions that are not in a
+    group, the subnet of the client. *)
+
+type full_session_group =
+  {sg_site_dir : string; sg_level : cookie_level; sg_group : session_group}
+(** A full session group: the site, the cookie level of the group members
+    and the group. *)
+
+type 'a sessgrp = full_session_group
+(** The parameter only documents the level of the group. *)
 
 (* The full session group is the triple
        (site_dir_string, scope, session group name).
        The scope is the scope of group members (`Session by default).
        If there is no session group,
        we limit the number of sessions by IP address. *)
-type perssessgrp (* the same triple, JSON-encoded *) [@@deriving json]
+type perssessgrp (* the same information, JSON-encoded *) [@@deriving json]
 
 val make_persistent_full_group_name :
    cookie_level:cookie_level
@@ -336,6 +342,13 @@ end
 
 type timeout = TGlobal | TNone | TSome of float [@@deriving json]
 
+val timeout_of_option : float option -> timeout
+(** [None] is [TNone], [Some t] is [TSome t]. *)
+
+type 'table state_table =
+  {table_scope : user_scope; table_secure : bool; table : 'table}
+(** A table of state data, with the scope and security of its states. *)
+
 type 'a one_service_cookie_info =
   { sc_hvalue : Hashed_cookies.t
   ; sc_set_value : string option
@@ -362,22 +375,35 @@ type one_persistent_cookie_info =
   ; pc_cookie_exp : cookie_exp ref
   ; pc_session_group : perssessgrp option ref }
 
-type 'a cookie_info1 =
-  (string option * 'a one_service_cookie_info session_cookie ref)
-    Full_state_name_table.t
-    ref
-  * (string option * one_data_cookie_info session_cookie ref) Lazy.t
-      Full_state_name_table.t
-      ref
-  * ((string * timeout * float option * perssessgrp option) option
-    * one_persistent_cookie_info session_cookie ref)
-      Lwt.t
-      Lazy.t
-      Full_state_name_table.t
-      ref
+type persistent_cookie_sent =
+  { ps_value : string
+  ; ps_timeout : timeout  (** User timeout *)
+  ; ps_expiry : float option  (** Server side expiration date, if any *)
+  ; ps_group : perssessgrp option  (** Session group *) }
+(** A persistent cookie sent by the browser, with the state of its session
+    at the beginning of the request. *)
 
-type 'a cookie_info = 'a cookie_info1 (* unsecure *) * 'a cookie_info1
-(* secure *)
+type 'a cookie_info1 =
+  { ci_service :
+      (string option * 'a one_service_cookie_info session_cookie ref)
+        Full_state_name_table.t
+        ref
+  ; ci_data :
+      (string option * one_data_cookie_info session_cookie ref) Lazy.t
+        Full_state_name_table.t
+        ref
+  ; ci_persistent :
+      (persistent_cookie_sent option
+      * one_persistent_cookie_info session_cookie ref)
+        Lwt.t
+        Lazy.t
+        Full_state_name_table.t
+        ref }
+(** The state cookies of a request, for one security level, for each kind
+    of state *)
+
+type 'a cookie_info =
+  {ci_unsecure : 'a cookie_info1; ci_secure : 'a cookie_info1}
 
 module Service_cookie : sig
   type 'a t =
@@ -419,14 +445,41 @@ module Hier_set : Set.S
 type omitpersistentstorage_rule =
   | HeaderRule of Ocsigen_http.Header.Name.t * Re.re
 
-type 'a dircontent = Vide | Table of 'a direlt ref String.Table.t
+type 'a dircontent = Empty | Table of 'a direlt ref String.Table.t
 and 'a direlt = Dir of 'a dircontent ref | File of 'a ref
+
+type 'a service_table =
+  {st_generation : int; st_priority : int; st_content : 'a dircontent ref}
+(** The services of a site registered during one reload of the site, with one
+    priority. *)
 
 type ('params, 'result) service =
   { s_id : anon_params_type * anon_params_type
   ; mutable s_max_use : int option
   ; s_expire : (float * float ref) option
   ; s_f : bool -> 'params -> 'result Lwt.t }
+
+type 'a configured = {cf_value : 'a; cf_from_config : bool}
+(** A setting, with whether it was set by the configuration file (the
+    program only overrides such a setting when asked to). *)
+
+val set_configured : override:bool -> 'a configured -> 'a -> 'a configured
+(** [set_configured ~override c v] is [c] set to [v], unless [c] was set by
+    the configuration file and [override] is false. *)
+
+val configured_of_pair : 'a * bool -> 'a configured
+
+type site_timeouts =
+  { browser_default : float option configured option
+  ; tab_default : float option configured option
+  ; per_state : (full_state_name * float option configured) list }
+(** The global timeouts of a site for one kind of state: the defaults for
+    browser sessions and for tabs, and the timeouts of given states. *)
+
+type application_script = {defer : bool; async : bool}
+(** The attributes of the script tag loading the client program. *)
+
+val no_site_timeouts : site_timeouts
 
 type server_params =
   { sp_request : Ocsigen.Extensions.request
@@ -462,25 +515,23 @@ and page_table_content =
       * (server_params, Ocsigen.Response.t) service list ]
 
 and naservice_table_content =
-  int
-  (* generation (= number of reloads of sites
-            after which that service has been created) *)
-  * int ref option
-  (* max_use *)
-  * (float * float ref) option
-  (* timeout and expiration date *)
-  * (server_params -> Ocsigen.Response.t Lwt.t)
-  * (page_table ref * page_table_key, na_key_serv) Either.t
-      Ocsigen_base.Cache.Dlist.node
-      option
-(* for limitation of number of dynamic coservices *)
+  { na_generation : int
+    (** Number of reloads of sites after which the service was created *)
+  ; na_max_use : int ref option
+  ; na_expiry : (float * float ref) option  (** Timeout and expiration date *)
+  ; na_handler : server_params -> Ocsigen.Response.t Lwt.t
+  ; na_node :
+      (page_table ref * page_table_key, na_key_serv) Either.t
+        Ocsigen_base.Cache.Dlist.node
+        option
+    (** For the limitation of the number of dynamic coservices *) }
 
-and naservice_table = AVide | ATable of naservice_table_content NAserv_Table.t
+and naservice_table =
+  | AEmpty
+  | ATable of naservice_table_content NAserv_Table.t
 
 and tables =
-  { mutable table_services :
-      (int (* generation *) * int (* priority *) * page_table dircontent ref)
-        list
+  { mutable table_services : page_table service_table list
   ; table_naservices : naservice_table ref
   ; (* Information for the GC: *)
     mutable table_contains_services_with_timeout : bool
@@ -529,18 +580,9 @@ and sitedata =
        - then default for each full state name
       The booleans means "has been set from config file"
     *)
-    mutable servtimeout :
-      (float option * bool) option
-      * (float option * bool) option
-      * (full_state_name * (float option * bool)) list
-  ; mutable datatimeout :
-      (float option * bool) option
-      * (float option * bool) option
-      * (full_state_name * (float option * bool)) list
-  ; mutable perstimeout :
-      (float option * bool) option
-      * (float option * bool) option
-      * (full_state_name * (float option * bool)) list
+    mutable servtimeout : site_timeouts
+  ; mutable datatimeout : site_timeouts
+  ; mutable perstimeout : site_timeouts
   ; site_value_table : Polytables.t
   ; (* table containing evaluated
                                       lazy site values *)
@@ -555,22 +597,22 @@ and sitedata =
   ; mutable exn_handler : exn -> Ocsigen.Response.t Lwt.t
   ; mutable unregistered_services : Url.path list
   ; mutable unregistered_na_services : na_key_serv list
-  ; mutable max_volatile_data_sessions_per_group : int * bool
-  ; mutable max_volatile_data_sessions_per_subnet : int * bool
-  ; mutable max_volatile_data_tab_sessions_per_group : int * bool
-  ; mutable max_service_sessions_per_group : int * bool
-  ; mutable max_service_sessions_per_subnet : int * bool
-  ; mutable max_service_tab_sessions_per_group : int * bool
-  ; mutable max_persistent_data_sessions_per_group : int option * bool
-  ; mutable max_persistent_data_tab_sessions_per_group : int option * bool
-  ; mutable max_anonymous_services_per_session : int * bool
-  ; mutable max_anonymous_services_per_subnet : int * bool
+  ; mutable max_volatile_data_sessions_per_group : int configured
+  ; mutable max_volatile_data_sessions_per_subnet : int configured
+  ; mutable max_volatile_data_tab_sessions_per_group : int configured
+  ; mutable max_service_sessions_per_group : int configured
+  ; mutable max_service_sessions_per_subnet : int configured
+  ; mutable max_service_tab_sessions_per_group : int configured
+  ; mutable max_persistent_data_sessions_per_group : int option configured
+  ; mutable max_persistent_data_tab_sessions_per_group : int option configured
+  ; mutable max_anonymous_services_per_session : int configured
+  ; mutable max_anonymous_services_per_subnet : int configured
   ; mutable secure_cookies : bool
   ; (* Use secure cookies (default is false). *)
     dlist_ip_table : dlist_ip_table
-  ; mutable ipv4mask : int option * bool
-  ; mutable ipv6mask : int option * bool
-  ; mutable application_script : bool (* defer *) * bool
+  ; mutable ipv4mask : int option configured
+  ; mutable ipv6mask : int option configured
+  ; mutable application_script : application_script
   ; (* async *)
     mutable enable_wasm : bool
   ; mutable cache_global_data : (string list * int) option
@@ -625,8 +667,6 @@ val get_session_info :
      * (tables cookie_info * Ocsigen_cookie_map.t) option)
        Lwt.t
 
-type ('a, 'b) foundornot = Found of 'a | Notfound of 'b
-
 val make_full_cookie_name : string -> full_state_name -> string
 
 val make_full_state_name :
@@ -635,9 +675,9 @@ val make_full_state_name :
   -> scope:[< user_scope]
   -> full_state_name
 
-val make_full_state_name2 :
-   string
-  -> bool
+val make_full_state_name_of_sitedata :
+   sitedata:sitedata
+  -> secure:bool
   -> scope:[< user_scope]
   -> full_state_name
 
@@ -678,19 +718,20 @@ val get_site_data : unit -> sitedata
 (** Get the site data, which is only available {e during the loading of eliom
     modules, and during a request.} *)
 
-val eliom_params_after_action :
-  ((string * string) list
-  * (string * string) list option
-  * (string * file_info) list option
-  * (string * string) list String.Table.t
-  * (string * string) list String.Table.t
-  * (string * file_info) list String.Table.t
-  * (string * string) list
-  (*204FORMS* * bool *)
-  * (string * string) list
-  * (string * string) list)
-    Polytables.key
+type params_after_action =
+  { pa_all_get_params : (string * string) list
+  ; pa_all_post_params : (string * string) list option
+  ; pa_all_file_params : (string * file_info) list option
+  ; pa_nl_get_params : (string * string) list String.Table.t
+  ; pa_nl_post_params : (string * string) list String.Table.t
+  ; pa_nl_file_params : (string * file_info) list String.Table.t
+  ; pa_all_get_but_nl : (string * string) list
+  ; pa_ignored_get_params : (string * string) list
+  ; pa_ignored_post_params : (string * string) list }
+(** The parameters of a request once an action has run (the parameters
+    of the action removed), to choose the service that follows. *)
 
+val eliom_params_after_action : params_after_action Polytables.key
 val att_key_serv_of_req : att_key_req -> att_key_serv
 val na_key_serv_of_req : na_key_req -> na_key_serv
 
@@ -707,8 +748,8 @@ val ipv6mask : int ref
 val create_dlist_ip_table : int -> dlist_ip_table
 
 val find_dlist_ip_table :
-   int option * 'a
-  -> int option * 'a
+   mask4:int
+  -> mask6:int
   -> dlist_ip_table
   -> Ipaddr.t
   -> (page_table ref * page_table_key, na_key_serv) Either.t
@@ -764,7 +805,7 @@ type eliom_js_page_data =
 val get_site_dir : sitedata -> Url.path
 val get_site_dir_string : sitedata -> string
 val get_config_info : sitedata -> Ocsigen.Extensions.config_info
-val get_secure : secure_o:bool option -> sitedata:sitedata -> unit -> bool
+val get_secure : secure_o:bool option -> sitedata:sitedata -> bool
 val is_client_app : bool ref
 val make_actual_path : string list -> string list
 

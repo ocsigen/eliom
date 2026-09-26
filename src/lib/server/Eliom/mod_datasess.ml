@@ -28,25 +28,19 @@
 
 open Lib
 
-let compute_cookie_info sitedata secure_o secure_ci cookie_info =
-  let secure = Common.get_secure ~secure_o ~sitedata () in
-  if secure
-  then
-    let _, c, _ = secure_ci in
-    c, true
-  else cookie_info, false
+let compute_cookie_info sitedata secure_o {Common.ci_unsecure; ci_secure} =
+  let secure = Common.get_secure ~secure_o ~sitedata in
+  (if secure then ci_secure else ci_unsecure).Common.ci_data, secure
 
 (* to be called during a request *)
 let close_data_state ~scope ~secure_o ?sp () =
   let sp = Common.sp_of_option sp in
   try
     let cookie_level = Common.cookie_level_of_user_scope scope in
-    let (_, cookie_info, _), secure_ci =
-      Common.get_cookie_info sp cookie_level
-    in
+    let cookie_info = Common.get_cookie_info sp cookie_level in
     let sitedata = Request_info.get_sitedata_sp ~sp in
     let cookie_info, secure =
-      compute_cookie_info sitedata secure_o secure_ci cookie_info
+      compute_cookie_info sitedata secure_o cookie_info
     in
     let full_st_name = Common.make_full_state_name ~sp ~secure ~scope in
     let _, ior =
@@ -80,11 +74,8 @@ let close_data_state ~scope ~secure_o ?sp () =
 
 let fullsessgrp ~cookie_level ~sp set_session_group =
   Mod_sessiongroups.make_full_group_name ~cookie_level
-    sp.Common.sp_request.Ocsigen.Extensions.request_info
-    (Common.get_site_dir_string sp.Common.sp_sitedata)
-    (Common.get_mask4 sp.Common.sp_sitedata)
-    (Common.get_mask6 sp.Common.sp_sitedata)
-    set_session_group
+    ~sitedata:sp.Common.sp_sitedata
+    sp.Common.sp_request.Ocsigen.Extensions.request_info set_session_group
 
 let rec find_or_create_data_cookie
           ?set_session_group
@@ -142,11 +133,9 @@ let rec find_or_create_data_cookie
     ; Common.dc_session_group = fullsessgrpref
     ; Common.dc_session_group_node = node }
   in
-  let (_, cookie_info, _), secure_ci = Common.get_cookie_info sp cookie_level in
+  let cookie_info = Common.get_cookie_info sp cookie_level in
   let sitedata = Request_info.get_sitedata_sp ~sp in
-  let cookie_info, secure =
-    compute_cookie_info sitedata secure_o secure_ci cookie_info
-  in
+  let cookie_info, secure = compute_cookie_info sitedata secure_o cookie_info in
   let full_st_name =
     Common.make_full_state_name ~sp ~secure ~scope:cookie_scope
   in
@@ -206,11 +195,9 @@ let find_data_cookie_only ~cookie_scope ~secure_o ?sp () =
      Returns the cookie info for the cookie *)
   let sp = Common.sp_of_option sp in
   let cookie_level = Common.cookie_level_of_user_scope cookie_scope in
-  let (_, cookie_info, _), secure_ci = Common.get_cookie_info sp cookie_level in
+  let cookie_info = Common.get_cookie_info sp cookie_level in
   let sitedata = Request_info.get_sitedata_sp ~sp in
-  let cookie_info, secure =
-    compute_cookie_info sitedata secure_o secure_ci cookie_info
-  in
+  let cookie_info, secure = compute_cookie_info sitedata secure_o cookie_info in
   let full_st_name =
     Common.make_full_state_name ~sp ~secure ~scope:cookie_scope
   in
@@ -228,29 +215,27 @@ let find_data_cookie_only ~cookie_scope ~secure_o ?sp () =
 let counttableelements = ref []
 (* Here only for exploration functions *)
 
-let create_volatile_table, create_volatile_table_during_session =
-  let aux ~scope ~secure sitedata =
-    let t = Common.SessionCookies.create 100 in
-    let old_remove_session_data = sitedata.Common.remove_session_data in
-    sitedata.Common.remove_session_data <-
-      (fun cookie ->
-        (* cookie is actually either a cookie or a a group name *)
-        (* In session group tables, keys may be either group names,
-            or a cookie values when no group name has been set. *)
-        old_remove_session_data cookie;
-        Common.SessionCookies.remove t cookie);
-    let old_not_bound_in_data_tables =
-      sitedata.Common.not_bound_in_data_tables
-    in
-    sitedata.Common.not_bound_in_data_tables <-
-      (fun cookie ->
-        old_not_bound_in_data_tables cookie
-        && not (Common.SessionCookies.mem t cookie));
-    counttableelements :=
-      (fun () -> Common.SessionCookies.length t) :: !counttableelements;
-    scope, secure, t
-  in
-  ( (fun ~scope ~secure ->
-      let sitedata = Common.get_current_sitedata () in
-      aux ~scope ~secure sitedata)
-  , fun ~scope ~secure sitedata -> aux ~scope ~secure sitedata )
+let create_volatile_table_during_session ~scope ~secure sitedata =
+  let t = Common.SessionCookies.create 100 in
+  let old_remove_session_data = sitedata.Common.remove_session_data in
+  sitedata.Common.remove_session_data <-
+    (fun cookie ->
+      (* cookie is actually either a cookie or a a group name *)
+      (* In session group tables, keys may be either group names,
+          or a cookie values when no group name has been set. *)
+      old_remove_session_data cookie;
+      Common.SessionCookies.remove t cookie);
+  let old_not_bound_in_data_tables = sitedata.Common.not_bound_in_data_tables in
+  sitedata.Common.not_bound_in_data_tables <-
+    (fun cookie ->
+      old_not_bound_in_data_tables cookie
+      && not (Common.SessionCookies.mem t cookie));
+  counttableelements :=
+    (fun () -> Common.SessionCookies.length t) :: !counttableelements;
+  { Common.table_scope = (scope :> Common.user_scope)
+  ; table_secure = secure
+  ; table = t }
+
+let create_volatile_table ~scope ~secure =
+  create_volatile_table_during_session ~scope ~secure
+    (Common.get_current_sitedata ())

@@ -29,10 +29,6 @@ let disabled_class = "eliomtools_disabled"
 let first_class = "eliomtools_first"
 let level_class = "eliomtools_level"
 
-let string_prefix s1 s2 =
-  String.length s1 <= String.length s2
-  && s1 = String.sub s2 0 (String.length s1)
-
 type srv =
   | Srv :
       ( unit
@@ -279,7 +275,6 @@ module Make (DorF : Content.Html.T) : HTML5_TOOLS = struct
       | [] -> []
       | [(url, text)] ->
           let classe = [last_class] in
-          let _ = li [a ~service:url text ()] in
           if same_service_opt url current
           then [li ~a:[a_class (current_class :: classe)] text]
           else [li ~a:[a_class classe] [a ~service:url text ()]]
@@ -311,13 +306,13 @@ module Make (DorF : Content.Html.T) : HTML5_TOOLS = struct
     let service_url = make_string_uri ~absolute_path:true ~service:s () in
     match sopt with
     | None ->
-        string_prefix service_url
+        String.starts_with ~prefix:service_url
           ((* MAYBE : use get_original_full_path_string? *)
            "/"
           ^ Request_info.get_original_full_path_string ())
     | Some s' ->
         let node_url = make_string_uri ~absolute_path:true ~service:s' () in
-        string_prefix service_url node_url
+        String.starts_with ~prefix:service_url node_url
 
   let find_longest_prefix_in_hierarchy service (_main, pages) =
     let rec aux prefix ((max_len, _) as max) i = function
@@ -364,7 +359,7 @@ module Make (DorF : Content.Html.T) : HTML5_TOOLS = struct
     let rec depth_first_fun pages level pos : [`Ul] elt list =
       let rec one_item first last i s =
         let s = (s :> flow5_without_interactive elt list * _) in
-        let classe, pos2, deplier =
+        let classe, pos2, expand =
           match pos with
           | [] -> [], [], false
           | [a] when a = i -> [current_class], [], true
@@ -385,7 +380,7 @@ module Make (DorF : Content.Html.T) : HTML5_TOOLS = struct
             li ~a:attclass
               (a ~service:page text ()
               ::
-              (if deplier || whole_tree
+              (if expand || whole_tree
                then
                  (depth_first_fun hsl (level + 1) pos2
                    : [`Ul] elt list
@@ -395,7 +390,7 @@ module Make (DorF : Content.Html.T) : HTML5_TOOLS = struct
             li ~a:attclass
               (a ~service:page text ()
               ::
-              (if deplier || whole_tree
+              (if expand || whole_tree
                then
                  (depth_first_fun hsl (level + 1) pos2 :> li_content elt list)
                else []))
@@ -403,7 +398,7 @@ module Make (DorF : Content.Html.T) : HTML5_TOOLS = struct
             li ~a:attclass
               ((text :> li_content elt list)
               @
-              if deplier || whole_tree
+              if expand || whole_tree
               then (depth_first_fun hsl (level + 1) pos2 :> li_content elt list)
               else [])
       and one_menu first i = function
@@ -429,7 +424,7 @@ module Make (DorF : Content.Html.T) : HTML5_TOOLS = struct
     let rec breadth_first_fun pages level pos : [`Ul] elt list =
       let rec one_item first last i s =
         let s = (s :> flow5_without_interactive elt list * _) in
-        let classe, _pos2, _deplier =
+        let classe, _pos2, _expand =
           match pos with
           | [] -> [], [], false
           | [a] when a = i -> [current_class], [], true

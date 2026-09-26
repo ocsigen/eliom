@@ -7,7 +7,7 @@ val default_max_persistent_data_tab_sessions_per_group : int ref
 val default_max_service_tab_sessions_per_group : int ref
 val default_max_volatile_data_tab_sessions_per_group : int ref
 val default_secure_cookies : bool ref
-val default_application_script : (bool * bool) ref
+val default_application_script : Common.application_script ref
 val default_enable_wasm : bool ref
 val default_cache_global_data : (Lib.Url.path * int) option ref
 val default_html_content_type : string option ref
@@ -55,88 +55,6 @@ val create_sitedata :
   -> Ocsigen.Extensions.config_info
   -> Common.sitedata
 
-val parse_eliom_option :
-   ([> `Client_process | `Session]
-    -> Common_base.scope_hierarchy option
-    -> float option
-    -> unit)
-   * ([> `Client_process | `Session]
-      -> Common_base.scope_hierarchy option
-      -> float option
-      -> unit)
-   * ([> `Client_process | `Session]
-      -> Common_base.scope_hierarchy option
-      -> float option
-      -> unit)
-   * ([> `Client_process | `Session]
-      -> Common_base.scope_hierarchy option
-      -> float option
-      -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (bool -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (bool * bool -> unit)
-   * (bool -> unit)
-   * ((Lib.Url.path * int) option -> unit)
-   * (string -> unit)
-   * (string * Re.re -> unit)
-   * (string * Re.re -> unit)
-   * (Common.omitpersistentstorage_rule list option -> unit)
-  -> Xml_light_types.xml
-  -> unit
-
-val parse_eliom_options :
-   ([> `Client_process | `Session]
-    -> Common_base.scope_hierarchy option
-    -> float option
-    -> unit)
-   * ([> `Client_process | `Session]
-      -> Common_base.scope_hierarchy option
-      -> float option
-      -> unit)
-   * ([> `Client_process | `Session]
-      -> Common_base.scope_hierarchy option
-      -> float option
-      -> unit)
-   * ([> `Client_process | `Session]
-      -> Common_base.scope_hierarchy option
-      -> float option
-      -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (bool -> unit)
-   * (int -> unit)
-   * (int -> unit)
-   * (bool * bool -> unit)
-   * (bool -> unit)
-   * ((Lib.Url.path * int) option -> unit)
-   * (string -> unit)
-   * (string * Re.re -> unit)
-   * (string * Re.re -> unit)
-   * (Common.omitpersistentstorage_rule list option -> unit)
-  -> Xml_light_types.xml list
-  -> Xml_light_types.xml list
-
 val parse_global_config : Xml_light_types.xml list -> unit
 val exception_during_eliommodule_loading : bool ref
 val end_init : unit -> unit
@@ -172,8 +90,8 @@ val set_timeout :
    (?full_st_name:Common.full_state_name
     -> ?cookie_level:([< Common.cookie_level] as 'a)
     -> recompute_expdates:bool
-    -> bool
-    -> bool
+    -> override_configfile:bool
+    -> from_configfile:bool
     -> Common.sitedata
     -> float option
     -> unit)

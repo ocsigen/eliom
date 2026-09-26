@@ -1,5 +1,3 @@
-open Lwt.Syntax
-
 (* Ocsigen
  * http://www.ocsigen.org
  * Module Registration
@@ -20,7 +18,7 @@ open Lwt.Syntax
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Lwt.Infix
+open Lwt.Syntax
 
 let headers_with_content_type ?charset ?content_type headers =
   match content_type with
@@ -30,12 +28,9 @@ let headers_with_content_type ?charset ?content_type headers =
         then charset
         else if
           String.length content_type >= 5
-          && (String.sub content_type 0 5 = "text/"
-             ||
-             let suffix =
-               String.sub content_type (String.length content_type - 4) 4
-             in
-             suffix = "/xml" || suffix = "=xml")
+          && (String.starts_with ~prefix:"text/" content_type
+             || String.ends_with ~suffix:"/xml" content_type
+             || String.ends_with ~suffix:"=xml" content_type)
         then Some (Config.get_config_default_charset ())
         else None
       in
@@ -313,17 +308,17 @@ module Action_base = struct
                    ri.Ocsigen.Extensions.request_info)
               ~key:Common.eliom_params_after_action
               ~value:
-                ( si.Common.si_all_get_params
-                , si.Common.si_all_post_params
-                , (* is Some [] *)
-                  si.Common.si_all_file_params
-                , (* is Some [] *)
-                  si.Common.si_nl_get_params
-                , si.Common.si_nl_post_params
-                , si.Common.si_nl_file_params
-                , si.Common.si_all_get_but_nl
-                , si.Common.si_ignored_get_params
-                , si.Common.si_ignored_post_params );
+                { Common.pa_all_get_params = si.Common.si_all_get_params
+                ; pa_all_post_params =
+                    si.Common.si_all_post_params (* is Some [] *)
+                ; pa_all_file_params =
+                    si.Common.si_all_file_params (* is Some [] *)
+                ; pa_nl_get_params = si.Common.si_nl_get_params
+                ; pa_nl_post_params = si.Common.si_nl_post_params
+                ; pa_nl_file_params = si.Common.si_nl_file_params
+                ; pa_all_get_but_nl = si.Common.si_all_get_but_nl
+                ; pa_ignored_get_params = si.Common.si_ignored_get_params
+                ; pa_ignored_post_params = si.Common.si_ignored_post_params };
             (*VVV Also put all_cookie_info in this, to avoid
           update_cookie_table and get_cookie_info (?) *)
             let ri = update_request ri.request_info si ric in
@@ -365,7 +360,6 @@ module Any_base = struct
   type options = unit
   type 'a return = Service.non_ocaml
 
-  (* let send_appl_content = Service.XNever *)
   let send_appl_content = Service.XAlways
 
   let send
@@ -483,11 +477,7 @@ module File_ct_base = struct
         ?headers
         (filename, content_type')
     =
-    let content_type =
-      match content_type with
-      | Some content_type -> content_type
-      | None -> content_type'
-    in
+    let content_type = Option.value content_type ~default:content_type' in
     File_base.send ?options ?charset ?code ?headers ~content_type filename
 end
 
@@ -512,14 +502,17 @@ struct
   type options = R.options
   type result = R.result
 
-  let make_eh = function
-    | None -> None
-    | Some eh -> Some (fun l -> eh l >>= T.translate)
+  let make_eh =
+    Option.map (fun eh l ->
+      let* r = eh l in
+      T.translate r)
 
-  let make_service_handler f g p = f g p >>= T.translate
+  let make_service_handler f g p =
+    let* r = f g p in
+    T.translate r
 
   let send ?options ?charset ?code ?content_type ?headers content =
-    T.translate content >>= fun c ->
+    let* c = T.translate content in
     R.send ?options ?charset ?code ?content_type ?headers c
 
   let register
@@ -656,7 +649,11 @@ module Ocaml = struct
 
   let make_eh = function
     | None -> None
-    | Some eh -> Some (fun l -> eh l >>= prepare_data)
+    | Some eh ->
+        Some
+          (fun l ->
+            let* r = eh l in
+            prepare_data r)
 
   let string_regexp = Str.regexp "\"\\([^\\\"]\\|\\\\.\\)*\""
 
@@ -672,9 +669,7 @@ module Ocaml = struct
              let sp = Common.get_sp () in
              let si = Request_info.get_si sp in
              let post_params =
-               match si.Common.si_all_post_params with
-               | None -> []
-               | Some l -> l
+               Option.value si.Common.si_all_post_params ~default:[]
              in
              try Printf.sprintf " (%s)" (List.assoc "argument" post_params)
              with Not_found -> ""
@@ -682,16 +677,13 @@ module Ocaml = struct
            (match name with
            | Some name ->
                Logs.err (fun fmt ->
-                 fmt
-                   ("Uncaught exception in service %s [%s]%s" ^^ "@\n%s")
-                   name code
+                 fmt "Uncaught exception in service %s [%s]%s@\n%s" name code
                    (Str.global_replace string_regexp "\"xxx\"" argument)
                    (Printexc.to_string exn))
            | None ->
                Logs.err (fun fmt ->
-                 fmt
-                   ("Uncaught exception [%s]%s" ^^ "@\n%s")
-                   code argument (Printexc.to_string exn)));
+                 fmt "Uncaught exception [%s]%s@\n%s" code argument
+                   (Printexc.to_string exn)));
            Lwt.return (`Failure code))
     in
     prepare_data data
@@ -846,7 +838,7 @@ let get_global_data ~keep_debug =
   in
   data, global_data_unwrapper
 
-let transform_global_app_uri = ref (fun x -> x)
+let transform_global_app_uri = ref Fun.id
 
 module type APP = sig
   val application_script :
@@ -901,11 +893,11 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
 
   (* Generate an inline script for detecting and loading WASM/JS *)
   let wasm_detection_script ?defer ?async ?js_name ?wasm_name () =
-    let defer', async' =
+    let {Common.defer = defer'; async = async'} =
       (Request_info.get_sitedata ()).Common.application_script
     in
-    let defer = match defer with Some b -> b | None -> defer' in
-    let async = match async with Some b -> b | None -> async' in
+    let defer = Option.value defer ~default:defer' in
+    let async = Option.value async ~default:async' in
     let defer_str = if defer then "true" else "false" in
     let async_str = if async then "true" else "false" in
     (* Use provided filenames with hash, or default to application_name *)
@@ -952,11 +944,11 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
          -> [> `Script] Content.Html.elt)
 
   let js_only_application_script ?defer ?async () =
-    let defer', async' =
+    let {Common.defer = defer'; async = async'} =
       (Request_info.get_sitedata ()).Common.application_script
     in
-    let defer = match defer with Some b -> b | None -> defer' in
-    let async = match async with Some b -> b | None -> async' in
+    let defer = Option.value defer ~default:defer' in
+    let async = Option.value async ~default:async' in
     let a =
       (if defer then [Content.Html.D.a_defer ()] else [])
       @ if async then [Content.Html.D.a_async ()] else []
@@ -1064,7 +1056,9 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
     then
       (* Using the async flag does not make sense here as we need to
          be sure that this is executed before the application script. *)
-      let defer, _ = (Request_info.get_sitedata ()).Common.application_script in
+      let {Common.defer; _} =
+        (Request_info.get_sitedata ()).Common.application_script
+      in
       let uri =
         Content.Html.F.make_uri ~absolute:false
           ~service:(Lazy.force global_data_service)
@@ -1185,17 +1179,18 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
         content
     =
     let sp = Common.get_sp () in
-    (* GRGR FIXME et si le nom de l'application diffère ?? Il faut
-       renvoyer un full_redirect... TODO *)
+    (* GRGR FIXME What if the application name differs? We should send
+       a full_redirect... TODO *)
     if sp.Common.sp_client_appl_name <> Some App_param.application_name
     then
       State.set_cookie ~cookie_level:`Client_process
         ~name:Common.appl_name_cookie_name ~value:App_param.application_name ();
     let* body =
-      (match sp.Common.sp_client_appl_name, options.do_not_launch with
-        | None, true -> remove_eliom_scripts content
-        | _ -> add_eliom_scripts ~sp content)
-      >|= fun body ->
+      match sp.Common.sp_client_appl_name, options.do_not_launch with
+      | None, true -> remove_eliom_scripts content
+      | _ -> add_eliom_scripts ~sp content
+    in
+    let body =
       Ocsigen.Response.Body.of_string (Format.asprintf "%a" out body)
     in
     let headers =

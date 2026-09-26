@@ -1,5 +1,3 @@
-open Lwt.Syntax
-
 (* Ocsigen
  * http://www.ocsigen.org
  * Module eliommod_pagegen.ml
@@ -20,7 +18,7 @@ open Lwt.Syntax
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Lwt.Infix
+open Lwt.Syntax
 
 let headers_with_content_type headers =
   Cohttp.Header.add_opt headers
@@ -39,35 +37,36 @@ let make_response ?headers ~status body =
   in
   Lwt.return (Ocsigen.Response.make ~body response)
 
-(* module Html_content = Ocsigen_senders.Make_XML_Content(Xml)(Html.F) *)
-
 (* Exception handler for the site *)
 
 let def_handler e = Lwt.fail e
 
 (* Update cookie tables *)
-let update_cookie_table ?now sitedata (ci, sci) =
+let update_cookie_table ?now sitedata {Common.ci_unsecure = ci; ci_secure = sci}
+  =
   let now = match now with Some n -> n | None -> Unix.gettimeofday () in
-  let update_exp (service_cookies_info, data_cookies_info, pers_cookies_info) =
+  let expiry kind name = function
+    | Common.TGlobal ->
+        Option.map
+          (fun t -> t +. now)
+          (Mod_timeouts.find_global kind name sitedata)
+    | Common.TNone -> None
+    | Common.TSome t -> Some (t +. now)
+  in
+  let update_exp
+        { Common.ci_service = service_cookies_info
+        ; ci_data = data_cookies_info
+        ; ci_persistent = pers_cookies_info }
+    =
     (* Update service expiration date and value *)
     Common.Full_state_name_table.iter
       (fun name (_oldvalue, newr) ->
-         (* catch fun () -> *)
          match !newr with
          | Common.SCData_session_expired | Common.SCNo_data ->
              () (* The cookie has been removed *)
-         | Common.SC newc -> (
+         | Common.SC newc ->
              newc.Common.sc_exp :=
-               match !(newc.Common.sc_timeout) with
-               | Common.TGlobal -> (
-                   let globaltimeout =
-                     Mod_timeouts.find_global `Service name sitedata
-                   in
-                   match globaltimeout with
-                   | None -> None
-                   | Some t -> Some (t +. now))
-               | Common.TNone -> None
-               | Common.TSome t -> Some (t +. now)))
+               expiry `Service name !(newc.Common.sc_timeout))
       !service_cookies_info;
     (* Update "in memory data" expiration date and value *)
     Common.Full_state_name_table.iter
@@ -83,18 +82,8 @@ let update_cookie_table ?now sitedata (ci, sci) =
          match !newr with
          | Common.SCData_session_expired | Common.SCNo_data ->
              () (* The cookie has been removed *)
-         | Common.SC newc -> (
-             newc.Common.dc_exp :=
-               match !(newc.Common.dc_timeout) with
-               | Common.TGlobal -> (
-                   let globaltimeout =
-                     Mod_timeouts.find_global `Data name sitedata
-                   in
-                   match globaltimeout with
-                   | None -> None
-                   | Some t -> Some (t +. now))
-               | Common.TNone -> None
-               | Common.TSome t -> Some (t +. now)))
+         | Common.SC newc ->
+             newc.Common.dc_exp := expiry `Data name !(newc.Common.dc_timeout))
       !data_cookies_info;
     let module Expiry_tolerance = struct
       (* Avoid cookie updates that only change the cookie
@@ -122,46 +111,43 @@ let update_cookie_table ?now sitedata (ci, sci) =
       Common.Full_state_name_table.fold
         (fun name v thr ->
            let thr2 =
-             Lazy.force v >>= fun (oldvalue, newr) ->
+             let* oldvalue, newr = Lazy.force v in
              match !newr with
              | Common.SCData_session_expired | Common.SCNo_data ->
                  (* The cookie has been removed *)
                  Lwt.return ()
              | Common.SC newc -> (
                  let newexp =
-                   match !(newc.Common.pc_timeout) with
-                   | Common.TGlobal -> (
-                       let globaltimeout =
-                         Mod_timeouts.find_global `Persistent name sitedata
-                       in
-                       match globaltimeout with
-                       | None -> None
-                       | Some t -> Some (t +. now))
-                   | Common.TNone -> None
-                   | Common.TSome t -> Some (t +. now)
+                   expiry `Persistent name !(newc.Common.pc_timeout)
                  in
                  match oldvalue with
-                 | Some (_, oldti, oldexp, oldgrp)
+                 | Some
+                     { Common.ps_timeout = oldti
+                     ; ps_expiry = oldexp
+                     ; ps_group = oldgrp
+                     ; _ }
                    when Expiry_tolerance.within_tolerance_opt oldexp newexp
                         && oldti = !(newc.Common.pc_timeout)
                         && oldgrp = !(newc.Common.pc_session_group)
                         && newc.Common.pc_set_value = None ->
                      Lwt.return ()
                  (* nothing to do *)
-                 | Some (_, _oldti, oldexp, _oldgrp)
+                 | Some {Common.ps_expiry = oldexp; _}
                    when newc.Common.pc_set_value = None ->
                      Lwt.catch
                        (fun () ->
                           let cookieid =
                             Common.(Hashed_cookies.to_string newc.pc_hvalue)
                           in
-                          Mod_cookies.Persistent_cookies.replace_if_exists
-                            cookieid
-                            { Mod_cookies.full_state_name = name
-                            ; expiry = newexp
-                            ; timeout = !(newc.Common.pc_timeout)
-                            ; session_group = !(newc.Common.pc_session_group) }
-                          >>= fun () ->
+                          let* () =
+                            Mod_cookies.Persistent_cookies.replace_if_exists
+                              cookieid
+                              { Mod_cookies.full_state_name = name
+                              ; expiry = newexp
+                              ; timeout = !(newc.Common.pc_timeout)
+                              ; session_group = !(newc.Common.pc_session_group)
+                              }
+                          in
                           Mod_cookies.Persistent_cookies.Expiry_dates
                           .remove_cookie oldexp cookieid)
                        (function
@@ -180,11 +166,12 @@ let update_cookie_table ?now sitedata (ci, sci) =
           otherwise the server will crash!!!
              *)
            in
-           thr >>= fun () -> thr2)
+           let* () = thr in
+           thr2)
         !pers_cookies_info Lwt.return_unit
     else Lwt.return_unit
   in
-  update_exp ci >>= fun () ->
+  let* () = update_exp ci in
   (* the same, for secure cookies: *)
   update_exp sci
 
@@ -243,9 +230,8 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
     Common.get_session_info ~sitedata ~req 404
   in
   let all_cookie_info, closedsessions =
-    Mod_cookies.get_cookie_info now sitedata
-      si.Common.si_service_session_cookies si.Common.si_data_session_cookies
-      si.Common.si_persistent_session_cookies si.Common.si_secure_cookie_info
+    Mod_cookies.get_cookie_info now sitedata si.Common.si_state_cookies
+      si.Common.si_secure_state_cookies
   in
   let (tab_cookie_info, closedsessions_tab), user_tab_cookies =
     (* If tab cookie info exists in rc (because an action put them here),
@@ -256,10 +242,7 @@ let gen_req_not_found ~is_eliom_extension ~sitedata ~previous_extension_err ~req
     | Some (atci, utc) -> (atci, []), utc
     | None ->
         ( Mod_cookies.get_cookie_info now sitedata
-            si.Common.si_service_session_cookies_tab
-            si.Common.si_data_session_cookies_tab
-            si.Common.si_persistent_session_cookies_tab
-            si.Common.si_secure_cookie_info_tab
+            si.Common.si_state_cookies_tab si.Common.si_secure_state_cookies_tab
         , Ocsigen_cookie_map.empty )
   in
   set_expired_sessions ri (closedsessions, closedsessions_tab);

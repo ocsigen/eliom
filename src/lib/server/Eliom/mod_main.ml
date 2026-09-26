@@ -43,7 +43,7 @@ let default_max_persistent_data_tab_sessions_per_group = ref 50
 let default_max_service_tab_sessions_per_group = ref 50
 let default_max_volatile_data_tab_sessions_per_group = ref 50
 let default_secure_cookies = ref false
-let default_application_script = ref (false, false)
+let default_application_script = ref {Common.defer = false; async = false}
 let default_enable_wasm = ref false
 let default_cache_global_data = ref None
 let default_html_content_type = ref None
@@ -96,9 +96,9 @@ let create_sitedata_aux site_dir config_info =
   in
   let sitedata =
     { (* One dlist for each site? *)
-      Common.servtimeout = None, None, []
-    ; datatimeout = None, None, []
-    ; perstimeout = None, None, []
+      Common.servtimeout = Common.no_site_timeouts
+    ; datatimeout = Common.no_site_timeouts
+    ; perstimeout = Common.no_site_timeouts
     ; site_value_table = Polytables.create ()
     ; site_dir
     ; (*VVV encode=false??? *)
@@ -118,29 +118,40 @@ let create_sitedata_aux site_dir config_info =
     ; unregistered_services = []
     ; unregistered_na_services = []
     ; max_service_sessions_per_group =
-        !default_max_service_sessions_per_group, false
+        { Common.cf_value = !default_max_service_sessions_per_group
+        ; cf_from_config = false }
     ; max_volatile_data_sessions_per_group =
-        !default_max_volatile_data_sessions_per_group, false
+        { Common.cf_value = !default_max_volatile_data_sessions_per_group
+        ; cf_from_config = false }
     ; max_persistent_data_sessions_per_group =
-        Some !default_max_persistent_data_sessions_per_group, false
+        { Common.cf_value = Some !default_max_persistent_data_sessions_per_group
+        ; cf_from_config = false }
     ; max_service_tab_sessions_per_group =
-        !default_max_service_tab_sessions_per_group, false
+        { Common.cf_value = !default_max_service_tab_sessions_per_group
+        ; cf_from_config = false }
     ; max_volatile_data_tab_sessions_per_group =
-        !default_max_volatile_data_tab_sessions_per_group, false
+        { Common.cf_value = !default_max_volatile_data_tab_sessions_per_group
+        ; cf_from_config = false }
     ; max_persistent_data_tab_sessions_per_group =
-        Some !default_max_persistent_data_tab_sessions_per_group, false
+        { Common.cf_value =
+            Some !default_max_persistent_data_tab_sessions_per_group
+        ; cf_from_config = false }
     ; max_service_sessions_per_subnet =
-        !default_max_service_sessions_per_subnet, false
+        { Common.cf_value = !default_max_service_sessions_per_subnet
+        ; cf_from_config = false }
     ; max_volatile_data_sessions_per_subnet =
-        !default_max_volatile_data_sessions_per_subnet, false
+        { Common.cf_value = !default_max_volatile_data_sessions_per_subnet
+        ; cf_from_config = false }
     ; max_anonymous_services_per_session =
-        !default_max_anonymous_services_per_session, false
+        { Common.cf_value = !default_max_anonymous_services_per_session
+        ; cf_from_config = false }
     ; max_anonymous_services_per_subnet =
-        !default_max_anonymous_services_per_subnet, false
+        { Common.cf_value = !default_max_anonymous_services_per_subnet
+        ; cf_from_config = false }
     ; secure_cookies = !default_secure_cookies
     ; dlist_ip_table = dlist_table
-    ; ipv4mask = None, false
-    ; ipv6mask = None, false
+    ; ipv4mask = {Common.cf_value = None; cf_from_config = false}
+    ; ipv6mask = {Common.cf_value = None; cf_from_config = false}
     ; application_script = !default_application_script
     ; enable_wasm = !default_enable_wasm
     ; cache_global_data = !default_cache_global_data
@@ -162,8 +173,8 @@ let create_sitedata_aux site_dir config_info =
           removing the group from its dlist: *)
        Mod_sessiongroups.Data.remove_group fullbrowsersessgrp;
        (* Then we remove data from group tables: *)
-       match Tuple3.thd fullbrowsersessgrp with
-       | Either.Left key ->
+       match fullbrowsersessgrp.Common.sg_group with
+       | Common.Group_name key ->
            (* iterate on all session data tables: *)
            sitedata.Common.remove_session_data key
        | _ ->
@@ -178,20 +189,21 @@ let create_sitedata_aux site_dir config_info =
   Mod_gc.persistent_session_gc sitedata;
   sitedata
 
+(* We want to keep the old site data even if we reload the server.
+   To do that, we keep the site data in a table *)
+let sitedata_table = S.create 5
+
 (** We associate to each service a function server_params -> page *)
-let create_sitedata, update_sitedata =
-  (* We want to keep the old site data even if we reload the server.
-     To do that, we keep the site data in a table *)
-  let t = S.create 5 in
-  ( (fun host site_dir config_info ->
-      let key = host, site_dir in
-      try S.find t key
-      with Not_found ->
-        let sitedata = create_sitedata_aux (Some site_dir) (Some config_info) in
-        S.add t key sitedata; sitedata)
-  , fun host site_dir sitedata ->
-      let key = host, site_dir in
-      S.replace t key sitedata )
+let create_sitedata host site_dir config_info =
+  let key = host, site_dir in
+  try S.find sitedata_table key
+  with Not_found ->
+    let sitedata = create_sitedata_aux (Some site_dir) (Some config_info) in
+    S.add sitedata_table key sitedata;
+    sitedata
+
+let replace_sitedata host site_dir sitedata =
+  S.replace sitedata_table (host, site_dir) sitedata
 
 (*****************************************************************************)
 (* Session service table *)
@@ -200,33 +212,79 @@ let create_sitedata, update_sitedata =
 (****************************************************************************)
 (****************************************************************************)
 
+(* The functions setting each Eliom option, in the global configuration or
+   in the configuration of a site *)
+type option_setters =
+  { set_volatile_timeout :
+      Common.cookie_level
+      -> Common_base.scope_hierarchy option
+      -> float option
+      -> unit
+  ; set_data_timeout :
+      Common.cookie_level
+      -> Common_base.scope_hierarchy option
+      -> float option
+      -> unit
+  ; set_service_timeout :
+      Common.cookie_level
+      -> Common_base.scope_hierarchy option
+      -> float option
+      -> unit
+  ; set_persistent_timeout :
+      Common.cookie_level
+      -> Common_base.scope_hierarchy option
+      -> float option
+      -> unit
+  ; set_max_service_sessions_per_group : int -> unit
+  ; set_max_service_sessions_per_subnet : int -> unit
+  ; set_max_data_sessions_per_group : int -> unit
+  ; set_max_data_sessions_per_subnet : int -> unit
+  ; set_max_persistent_sessions_per_group : int -> unit
+  ; set_max_service_tab_sessions_per_group : int -> unit
+  ; set_max_data_tab_sessions_per_group : int -> unit
+  ; set_max_persistent_tab_sessions_per_group : int -> unit
+  ; set_max_services_per_session : int -> unit
+  ; set_max_services_per_subnet : int -> unit
+  ; set_max_volatile_groups_per_site : int -> unit
+  ; set_secure_cookies : bool -> unit
+  ; set_ipv4mask : int -> unit
+  ; set_ipv6mask : int -> unit
+  ; set_application_script : Common.application_script -> unit
+  ; set_enable_wasm : bool -> unit
+  ; set_global_data_caching : (Lib.Url.path * int) option -> unit
+  ; set_html_content_type : string -> unit
+  ; set_ignored_get_params : string * Re.re -> unit
+  ; set_ignored_post_params : string * Re.re -> unit
+  ; set_omitpersistentstorage :
+      Common.omitpersistentstorage_rule list option -> unit }
+
 (* The following is common to global config and site config *)
 let parse_eliom_option
-      ( set_volatile_timeout
-      , set_data_timeout
-      , set_service_timeout
-      , set_persistent_timeout
-      , set_max_service_sessions_per_group
-      , set_max_service_sessions_per_subnet
-      , set_max_data_sessions_per_group
-      , set_max_data_sessions_per_subnet
-      , set_max_persistent_sessions_per_group
-      , set_max_service_tab_sessions_per_group
-      , set_max_data_tab_sessions_per_group
-      , set_max_persistent_tab_sessions_per_group
-      , set_max_services_per_session
-      , set_max_services_per_subnet
-      , set_max_volatile_groups_per_site
-      , set_secure_cookies
-      , set_ipv4mask
-      , set_ipv6mask
-      , set_application_script
-      , set_enable_wasm
-      , set_global_data_caching
-      , set_html_content_type
-      , set_ignored_get_params
-      , set_ignored_post_params
-      , set_omitpersistentstorage )
+      { set_volatile_timeout
+      ; set_data_timeout
+      ; set_service_timeout
+      ; set_persistent_timeout
+      ; set_max_service_sessions_per_group
+      ; set_max_service_sessions_per_subnet
+      ; set_max_data_sessions_per_group
+      ; set_max_data_sessions_per_subnet
+      ; set_max_persistent_sessions_per_group
+      ; set_max_service_tab_sessions_per_group
+      ; set_max_data_tab_sessions_per_group
+      ; set_max_persistent_tab_sessions_per_group
+      ; set_max_services_per_session
+      ; set_max_services_per_subnet
+      ; set_max_volatile_groups_per_site
+      ; set_secure_cookies
+      ; set_ipv4mask
+      ; set_ipv6mask
+      ; set_application_script
+      ; set_enable_wasm
+      ; set_global_data_caching
+      ; set_html_content_type
+      ; set_ignored_get_params
+      ; set_ignored_post_params
+      ; set_omitpersistentstorage }
   =
   let parse_timeout_attrs tn attrs =
     let rec aux ((v, sn, ct) as res) = function
@@ -281,10 +339,18 @@ let parse_eliom_option
               "Eliom: Wrong attribute value for tag %s in element %s" tag
               element))
   in
+  let int_value tag v =
+    match int_of_string_opt v with
+    | Some i -> i
+    | None ->
+        raise
+          (Error_in_config_file
+             (Printf.sprintf "Eliom: Wrong attribute value for %s tag" tag))
+  in
   let parse_application_script_attrs attrs =
     let rec aux defer async attrs =
       match attrs with
-      | [] -> defer, async
+      | [] -> {Common.defer; async}
       | ("defer", v) :: rem ->
           aux
             (convert_attr ~element:"applicationscript" "defer" bool_of_string v)
@@ -333,127 +399,46 @@ let parse_eliom_option
   | Xml.Element ("persistenttimeout", attrs, []) ->
       let t, snoo, ct = parse_timeout_attrs "persistenttimeout" attrs in
       set_persistent_timeout ct snoo t
-  | Xml.Element ("maxvolatilesessionspergroup", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
+  | Xml.Element (("maxvolatilesessionspergroup" as tag), [("value", v)], []) ->
+      let i = int_value tag v in
       set_max_service_sessions_per_group i;
       set_max_data_sessions_per_group i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxvolatilesessionspergroup tag"))
-  | Xml.Element ("maxservicesessionspergroup", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_service_sessions_per_group i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxservicesessionspergroup tag"))
-  | Xml.Element ("maxdatasessionspergroup", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_data_sessions_per_group i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxdatasessionspergroup tag"))
-  | Xml.Element ("maxvolatilesessionspersubnet", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
+  | Xml.Element (("maxservicesessionspergroup" as tag), [("value", v)], []) ->
+      set_max_service_sessions_per_group (int_value tag v)
+  | Xml.Element (("maxdatasessionspergroup" as tag), [("value", v)], []) ->
+      set_max_data_sessions_per_group (int_value tag v)
+  | Xml.Element (("maxvolatilesessionspersubnet" as tag), [("value", v)], []) ->
+      let i = int_value tag v in
       set_max_service_sessions_per_subnet i;
       set_max_data_sessions_per_subnet i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxvolatilesessionspersubnet tag"))
-  | Xml.Element ("maxservicesessionspersubnet", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_service_sessions_per_subnet i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxservicesessionspersubnet tag"))
-  | Xml.Element ("maxdatasessionspersubnet", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_data_sessions_per_subnet i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxdatasessionspersubnet tag"))
-  | Xml.Element ("maxpersistentsessionspergroup", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_persistent_sessions_per_group i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxpersistentsessionspergroup tag")
-    )
-  | Xml.Element ("maxvolatiletabsessionspergroup", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
+  | Xml.Element (("maxservicesessionspersubnet" as tag), [("value", v)], []) ->
+      set_max_service_sessions_per_subnet (int_value tag v)
+  | Xml.Element (("maxdatasessionspersubnet" as tag), [("value", v)], []) ->
+      set_max_data_sessions_per_subnet (int_value tag v)
+  | Xml.Element (("maxpersistentsessionspergroup" as tag), [("value", v)], [])
+    ->
+      set_max_persistent_sessions_per_group (int_value tag v)
+  | Xml.Element (("maxvolatiletabsessionspergroup" as tag), [("value", v)], [])
+    ->
+      let i = int_value tag v in
       set_max_service_tab_sessions_per_group i;
       set_max_data_tab_sessions_per_group i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxvolatiletabsessionspergroup tag")
-    )
-  | Xml.Element ("maxservicetabsessionspergroup", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_service_tab_sessions_per_group i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxservicetabsessionspergroup tag")
-    )
-  | Xml.Element ("maxdatatabsessionspergroup", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_data_tab_sessions_per_group i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxdatatabsessionspergroup tag"))
-  | Xml.Element ("maxpersistenttabsessionspergroup", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_persistent_tab_sessions_per_group i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxpersistenttabsessionspergroup tag")
-    )
-  | Xml.Element ("maxanonymouscoservicespersession", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_services_per_session i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxanonymouscoservicespersession tag")
-    )
-  | Xml.Element ("maxanonymouscoservicespersubnet", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_services_per_subnet i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxanonymouscoservicespersubnet tag")
-    )
-  | Xml.Element ("maxvolatilegroupspersite", [("value", v)], []) -> (
-    try
-      let i = int_of_string v in
-      set_max_volatile_groups_per_site i
-    with Failure _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for maxvolatilegroupspersite tag"))
+  | Xml.Element (("maxservicetabsessionspergroup" as tag), [("value", v)], [])
+    ->
+      set_max_service_tab_sessions_per_group (int_value tag v)
+  | Xml.Element (("maxdatatabsessionspergroup" as tag), [("value", v)], []) ->
+      set_max_data_tab_sessions_per_group (int_value tag v)
+  | Xml.Element (("maxpersistenttabsessionspergroup" as tag), [("value", v)], [])
+    ->
+      set_max_persistent_tab_sessions_per_group (int_value tag v)
+  | Xml.Element (("maxanonymouscoservicespersession" as tag), [("value", v)], [])
+    ->
+      set_max_services_per_session (int_value tag v)
+  | Xml.Element (("maxanonymouscoservicespersubnet" as tag), [("value", v)], [])
+    ->
+      set_max_services_per_subnet (int_value tag v)
+  | Xml.Element (("maxvolatilegroupspersite" as tag), [("value", v)], []) ->
+      set_max_volatile_groups_per_site (int_value tag v)
   | Xml.Element ("securecookies", [("value", v)], []) -> (
     try
       let i =
@@ -464,22 +449,10 @@ let parse_eliom_option
       raise
         (Error_in_config_file
            "Eliom: Wrong attribute value for securecookies tag"))
-  | Xml.Element ("ipv4subnetmask", [("value", v)], []) -> (
-    try
-      let mask = int_of_string v in
-      set_ipv4mask mask
-    with _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for ipv4subnetmask tag"))
-  | Xml.Element ("ipv6subnetmask", [("value", v)], []) -> (
-    try
-      let mask = int_of_string v in
-      set_ipv6mask mask
-    with _ ->
-      raise
-        (Error_in_config_file
-           "Eliom: Wrong attribute value for ipv6subnetmask tag"))
+  | Xml.Element (("ipv4subnetmask" as tag), [("value", v)], []) ->
+      set_ipv4mask (int_value tag v)
+  | Xml.Element (("ipv6subnetmask" as tag), [("value", v)], []) ->
+      set_ipv6mask (int_value tag v)
   | Xml.Element ("applicationscript", attrs, []) ->
       set_application_script (parse_application_script_attrs attrs)
   | Xml.Element ("wasm", [("enabled", v)], []) -> (
@@ -562,38 +535,57 @@ let rec parse_global_config = function
       parse_global_config ll
   | e :: ll ->
       parse_eliom_option
-        ( (fun ct sh m ->
-            Mod_timeouts.set_default ?scope_hierarchy:sh `Data ct m;
-            Mod_timeouts.set_default ?scope_hierarchy:sh `Service ct m)
-        , (fun ct sh -> Mod_timeouts.set_default ?scope_hierarchy:sh `Data ct)
-        , (fun ct sh ->
-            Mod_timeouts.set_default ?scope_hierarchy:sh `Service ct)
-        , (fun ct sh ->
-            Mod_timeouts.set_default ?scope_hierarchy:sh `Persistent ct)
-        , (fun v -> default_max_service_sessions_per_group := v)
-        , (fun v -> default_max_service_sessions_per_subnet := v)
-        , (fun v -> default_max_volatile_data_sessions_per_group := v)
-        , (fun v -> default_max_volatile_data_sessions_per_subnet := v)
-        , (fun v -> default_max_persistent_data_sessions_per_group := v)
-        , (fun v -> default_max_service_tab_sessions_per_group := v)
-        , (fun v -> default_max_volatile_data_tab_sessions_per_group := v)
-        , (fun v -> default_max_persistent_data_tab_sessions_per_group := v)
-        , (fun v -> default_max_anonymous_services_per_session := v)
-        , (fun v -> default_max_anonymous_services_per_subnet := v)
-        , (fun v -> default_max_volatile_groups_per_site := v)
-        , (fun v -> default_secure_cookies := v)
-        , (fun v -> Common.ipv4mask := v)
-        , (fun v -> Common.ipv6mask := v)
-        , (fun v -> default_application_script := v)
-        , (fun v -> default_enable_wasm := v)
-        , (fun v -> default_cache_global_data := v)
-        , (fun v -> default_html_content_type := Some v)
-        , (fun regexp ->
-            default_ignored_get_params := regexp :: !default_ignored_get_params)
-        , (fun regexp ->
-            default_ignored_post_params :=
-              regexp :: !default_ignored_post_params)
-        , fun v -> default_omitpersistentstorage := v )
+        { set_volatile_timeout =
+            (fun ct sh m ->
+              Mod_timeouts.set_default ?scope_hierarchy:sh `Data ct m;
+              Mod_timeouts.set_default ?scope_hierarchy:sh `Service ct m)
+        ; set_data_timeout =
+            (fun ct sh -> Mod_timeouts.set_default ?scope_hierarchy:sh `Data ct)
+        ; set_service_timeout =
+            (fun ct sh ->
+              Mod_timeouts.set_default ?scope_hierarchy:sh `Service ct)
+        ; set_persistent_timeout =
+            (fun ct sh ->
+              Mod_timeouts.set_default ?scope_hierarchy:sh `Persistent ct)
+        ; set_max_service_sessions_per_group =
+            (fun v -> default_max_service_sessions_per_group := v)
+        ; set_max_service_sessions_per_subnet =
+            (fun v -> default_max_service_sessions_per_subnet := v)
+        ; set_max_data_sessions_per_group =
+            (fun v -> default_max_volatile_data_sessions_per_group := v)
+        ; set_max_data_sessions_per_subnet =
+            (fun v -> default_max_volatile_data_sessions_per_subnet := v)
+        ; set_max_persistent_sessions_per_group =
+            (fun v -> default_max_persistent_data_sessions_per_group := v)
+        ; set_max_service_tab_sessions_per_group =
+            (fun v -> default_max_service_tab_sessions_per_group := v)
+        ; set_max_data_tab_sessions_per_group =
+            (fun v -> default_max_volatile_data_tab_sessions_per_group := v)
+        ; set_max_persistent_tab_sessions_per_group =
+            (fun v -> default_max_persistent_data_tab_sessions_per_group := v)
+        ; set_max_services_per_session =
+            (fun v -> default_max_anonymous_services_per_session := v)
+        ; set_max_services_per_subnet =
+            (fun v -> default_max_anonymous_services_per_subnet := v)
+        ; set_max_volatile_groups_per_site =
+            (fun v -> default_max_volatile_groups_per_site := v)
+        ; set_secure_cookies = (fun v -> default_secure_cookies := v)
+        ; set_ipv4mask = (fun v -> Common.ipv4mask := v)
+        ; set_ipv6mask = (fun v -> Common.ipv6mask := v)
+        ; set_application_script = (fun v -> default_application_script := v)
+        ; set_enable_wasm = (fun v -> default_enable_wasm := v)
+        ; set_global_data_caching = (fun v -> default_cache_global_data := v)
+        ; set_html_content_type = (fun v -> default_html_content_type := Some v)
+        ; set_ignored_get_params =
+            (fun regexp ->
+              default_ignored_get_params :=
+                regexp :: !default_ignored_get_params)
+        ; set_ignored_post_params =
+            (fun regexp ->
+              default_ignored_post_params :=
+                regexp :: !default_ignored_post_params)
+        ; set_omitpersistentstorage =
+            (fun v -> default_omitpersistentstorage := v) }
         e;
       parse_global_config ll
 
@@ -699,7 +691,7 @@ let update_sitedata app vh site_dir conf_info =
   sitedata.Common.site_dir_string <-
     Some (Lib.Url.string_of_url_path ~encode:false site_dir);
   sitedata.Common.config_info <- Some conf_info;
-  update_sitedata vh site_dir sitedata;
+  replace_sitedata vh site_dir sitedata;
   sitedata
 
 let _ = Common.absolute_change_sitedata (get_sitedata (Common.get_app_name ()))
@@ -765,8 +757,8 @@ let set_timeout
         ?full_st_name:Common.full_state_name
         -> ?cookie_level:[< Common.cookie_level]
         -> recompute_expdates:bool
-        -> bool (* override configfile *)
-        -> bool (* from config file *)
+        -> override_configfile:bool
+        -> from_configfile:bool
         -> Common.sitedata
         -> float option
         -> unit)
@@ -781,20 +773,18 @@ let set_timeout
       | `Session -> `Session state_hier
       | `Client_process -> `Client_process state_hier
     in
-    Common.make_full_state_name2
-      (Common.get_site_dir_string sitedata)
-      secure ~scope
+    Common.make_full_state_name_of_sitedata ~sitedata ~secure ~scope
   in
   (*VVV We set timeout for both secure and unsecure states.
 Make possible to customize this? *)
   f
     ?full_st_name:(Option.map (make_full_st_name false) state_hier)
-    ?cookie_level:(Some cookie_type) ~recompute_expdates:false true true
-    sitedata v;
+    ?cookie_level:(Some cookie_type) ~recompute_expdates:false
+    ~override_configfile:true ~from_configfile:true sitedata v;
   f
     ?full_st_name:(Option.map (make_full_st_name true) state_hier)
-    ?cookie_level:(Some cookie_type) ~recompute_expdates:false true true
-    sitedata v
+    ?cookie_level:(Some cookie_type) ~recompute_expdates:false
+    ~override_configfile:true ~from_configfile:true sitedata v
 
 (** Parsing of config file for each site: *)
 let parse_config _ hostpattern conf_info site_dir =
@@ -871,73 +861,111 @@ let parse_config _ hostpattern conf_info site_dir =
   browsers manage cookies (one cookie for one site).
   Thus we can have one site in several cmo (with one session).
         *)
-        let oldipv6mask = sitedata.Common.ipv6mask in
+        let oldipv6mask = Common.get_mask6 sitedata in
         let content =
           parse_eliom_options
-            ( (fun ct snoo v ->
+            { set_volatile_timeout =
+                (fun ct snoo v ->
+                  set_timeout
+                    (Mod_timeouts.set_global_ ~kind:`Data)
+                    sitedata ct snoo v;
+                  set_timeout
+                    (Mod_timeouts.set_global_ ~kind:`Service)
+                    sitedata ct snoo v)
+            ; set_data_timeout =
+                set_timeout (Mod_timeouts.set_global_ ~kind:`Data) sitedata
+            ; set_service_timeout =
+                set_timeout (Mod_timeouts.set_global_ ~kind:`Service) sitedata
+            ; set_persistent_timeout =
                 set_timeout
-                  (Mod_timeouts.set_global_ ~kind:`Data)
-                  sitedata ct snoo v;
-                set_timeout
-                  (Mod_timeouts.set_global_ ~kind:`Service)
-                  sitedata ct snoo v)
-            , set_timeout (Mod_timeouts.set_global_ ~kind:`Data) sitedata
-            , set_timeout (Mod_timeouts.set_global_ ~kind:`Service) sitedata
-            , set_timeout (Mod_timeouts.set_global_ ~kind:`Persistent) sitedata
-            , (fun v ->
-                sitedata.Common.max_service_sessions_per_group <- v, true)
-            , (fun v ->
-                sitedata.Common.max_service_sessions_per_subnet <- v, true)
-            , (fun v ->
-                sitedata.Common.max_volatile_data_sessions_per_group <- v, true)
-            , (fun v ->
-                sitedata.Common.max_volatile_data_sessions_per_subnet <- v, true)
-            , (fun v ->
-                sitedata.Common.max_persistent_data_sessions_per_group <-
-                  Some v, true)
-            , (fun v ->
-                sitedata.Common.max_service_tab_sessions_per_group <- v, true)
-            , (fun v ->
-                sitedata.Common.max_volatile_data_tab_sessions_per_group <-
-                  v, true)
-            , (fun v ->
-                sitedata.Common.max_persistent_data_tab_sessions_per_group <-
-                  Some v, true)
-            , (fun v ->
-                sitedata.Common.max_anonymous_services_per_session <- v, true)
-            , (fun v ->
-                sitedata.Common.max_anonymous_services_per_subnet <- v, true;
-                (* The global table has already been created, with old max
+                  (Mod_timeouts.set_global_ ~kind:`Persistent)
+                  sitedata
+            ; set_max_service_sessions_per_group =
+                (fun v ->
+                  sitedata.Common.max_service_sessions_per_group <-
+                    {Common.cf_value = v; cf_from_config = true})
+            ; set_max_service_sessions_per_subnet =
+                (fun v ->
+                  sitedata.Common.max_service_sessions_per_subnet <-
+                    {Common.cf_value = v; cf_from_config = true})
+            ; set_max_data_sessions_per_group =
+                (fun v ->
+                  sitedata.Common.max_volatile_data_sessions_per_group <-
+                    {Common.cf_value = v; cf_from_config = true})
+            ; set_max_data_sessions_per_subnet =
+                (fun v ->
+                  sitedata.Common.max_volatile_data_sessions_per_subnet <-
+                    {Common.cf_value = v; cf_from_config = true})
+            ; set_max_persistent_sessions_per_group =
+                (fun v ->
+                  sitedata.Common.max_persistent_data_sessions_per_group <-
+                    {Common.cf_value = Some v; cf_from_config = true})
+            ; set_max_service_tab_sessions_per_group =
+                (fun v ->
+                  sitedata.Common.max_service_tab_sessions_per_group <-
+                    {Common.cf_value = v; cf_from_config = true})
+            ; set_max_data_tab_sessions_per_group =
+                (fun v ->
+                  sitedata.Common.max_volatile_data_tab_sessions_per_group <-
+                    {Common.cf_value = v; cf_from_config = true})
+            ; set_max_persistent_tab_sessions_per_group =
+                (fun v ->
+                  sitedata.Common.max_persistent_data_tab_sessions_per_group <-
+                    {Common.cf_value = Some v; cf_from_config = true})
+            ; set_max_services_per_session =
+                (fun v ->
+                  sitedata.Common.max_anonymous_services_per_session <-
+                    {Common.cf_value = v; cf_from_config = true})
+            ; set_max_services_per_subnet =
+                (fun v ->
+                  sitedata.Common.max_anonymous_services_per_subnet <-
+                    {Common.cf_value = v; cf_from_config = true};
+                  (* The global table has already been created, with old max
                    and old ipv6mask.
                    I update it, otherwise the setting has no effect
                    for this table: *)
-                try
-                  let dlist =
-                    Common.find_dlist_ip_table sitedata.Common.ipv4mask
-                      (* unused *) oldipv6mask sitedata.Common.dlist_ip_table
-                      Ipaddr.(V6 V6.localhost)
-                  in
-                  ignore (Ocsigen_base.Cache.Dlist.set_maxsize dlist v)
-                with Not_found -> ()
-                (* should not occur *))
-            , (fun v ->
-                ignore
-                  (Ocsigen_base.Cache.Dlist.set_maxsize
-                     sitedata.Common.group_of_groups v))
-            , (fun v -> sitedata.Common.secure_cookies <- v)
-            , (fun v -> sitedata.Common.ipv4mask <- Some v, true)
-            , (fun v -> sitedata.Common.ipv6mask <- Some v, true)
-            , (fun v -> sitedata.Common.application_script <- v)
-            , (fun v -> sitedata.Common.enable_wasm <- v)
-            , (fun v -> sitedata.Common.cache_global_data <- v)
-            , (fun v -> sitedata.Common.html_content_type <- Some v)
-            , (fun regexp ->
-                sitedata.Common.ignored_get_params <-
-                  regexp :: sitedata.Common.ignored_get_params)
-            , (fun regexp ->
-                sitedata.Common.ignored_post_params <-
-                  regexp :: sitedata.Common.ignored_post_params)
-            , fun v -> sitedata.Common.omitpersistentstorage <- v )
+                  try
+                    let dlist =
+                      Common.find_dlist_ip_table
+                        ~mask4:(Common.get_mask4 sitedata)
+                        ~mask6:oldipv6mask sitedata.Common.dlist_ip_table
+                        Ipaddr.(V6 V6.localhost)
+                    in
+                    ignore (Ocsigen_base.Cache.Dlist.set_maxsize dlist v)
+                  with Not_found -> ()
+                  (* should not occur *))
+            ; set_max_volatile_groups_per_site =
+                (fun v ->
+                  ignore
+                    (Ocsigen_base.Cache.Dlist.set_maxsize
+                       sitedata.Common.group_of_groups v))
+            ; set_secure_cookies =
+                (fun v -> sitedata.Common.secure_cookies <- v)
+            ; set_ipv4mask =
+                (fun v ->
+                  sitedata.Common.ipv4mask <-
+                    {Common.cf_value = Some v; cf_from_config = true})
+            ; set_ipv6mask =
+                (fun v ->
+                  sitedata.Common.ipv6mask <-
+                    {Common.cf_value = Some v; cf_from_config = true})
+            ; set_application_script =
+                (fun v -> sitedata.Common.application_script <- v)
+            ; set_enable_wasm = (fun v -> sitedata.Common.enable_wasm <- v)
+            ; set_global_data_caching =
+                (fun v -> sitedata.Common.cache_global_data <- v)
+            ; set_html_content_type =
+                (fun v -> sitedata.Common.html_content_type <- Some v)
+            ; set_ignored_get_params =
+                (fun regexp ->
+                  sitedata.Common.ignored_get_params <-
+                    regexp :: sitedata.Common.ignored_get_params)
+            ; set_ignored_post_params =
+                (fun regexp ->
+                  sitedata.Common.ignored_post_params <-
+                    regexp :: sitedata.Common.ignored_post_params)
+            ; set_omitpersistentstorage =
+                (fun v -> sitedata.Common.omitpersistentstorage <- v) }
             content
         in
         let default_links_xhr, atts = parse_default_links_xhr [] None atts in

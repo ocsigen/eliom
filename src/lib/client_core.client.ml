@@ -1,5 +1,3 @@
-open Lwt.Syntax
-
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2010 Vincent Balat
@@ -21,6 +19,7 @@ open Lwt.Syntax
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Lwt.Syntax
 open Js_of_ocaml
 open Lib
 module Xml = Content_core.Xml
@@ -30,24 +29,21 @@ let section = Logs.Src.create "eliom:client"
 
 (* == Auxiliaries *)
 
+(* A buffer of elements: [get] returns them in the order they were added,
+   [flush] also empties the buffer *)
+type 'a buffer =
+  {add : 'a -> unit; get : unit -> 'a list; flush : unit -> 'a list}
+
 let create_buffer () =
-  let stack = ref [] in
   let elts = ref [] in
-  let add x = elts := x :: !elts and get () = List.rev !elts in
-  let push () =
-    stack := !elts :: !stack;
-    elts := []
-  in
-  let flush () =
-    let res = get () in
-    (match !stack with
-    | l :: r ->
-        elts := l;
-        stack := r
-    | [] -> elts := []);
-    res
-  in
-  add, get, flush, push
+  let get () = List.rev !elts in
+  { add = (fun x -> elts := x :: !elts)
+  ; get
+  ; flush =
+      (fun () ->
+        let res = get () in
+        elts := [];
+        res) }
 
 (* == Closure *)
 
@@ -285,12 +281,13 @@ let in_onload, broadcast_load_end, wait_load_end, set_loading_phase =
 
 (* forward declaration... *)
 let change_page_uri_ :
-  (?cookies_info:bool * string list -> ?tmpl:string -> string -> unit) ref
+  (?cookies_info:Runtime.RawXML.cookie_info -> ?tmpl:string -> string -> unit)
+    ref
   =
   ref (fun ?cookies_info:_ ?tmpl:_ _href -> assert false)
 
 let change_page_get_form_ :
-  (?cookies_info:bool * string list
+  (?cookies_info:Runtime.RawXML.cookie_info
    -> ?tmpl:string
    -> Dom_html.formElement Js.t
    -> string
@@ -304,14 +301,16 @@ let change_page_post_form_ =
 
 type client_form_handler = Dom_html.event Js.t -> bool Lwt.t
 
+(* Whether [https] asks for another protocol than the one of the current page *)
+let changes_protocol https =
+  match https with Some https -> https <> Request_info.ssl_ | None -> false
+
 let raw_a_handler node cookies_info tmpl ev =
   let href = (Js.Unsafe.coerce node : Dom_html.anchorElement Js.t)##.href in
   let https = Url.get_ssl (Js.to_string href) in
   (* Returns true when the default link behaviour is to be kept: *)
   middleClick ev
-  || (not !Common.is_client_app)
-     && ((https = Some true && not Request_info.ssl_)
-        || (https = Some false && Request_info.ssl_))
+  || ((not !Common.is_client_app) && changes_protocol https)
   ||
   ((* If a link is clicked, we do not want to continue propagation
        (for example if the link is in a wider clickable area)  *)
@@ -333,10 +332,7 @@ let raw_form_handler form kind cookies_info tmpl ev client_form_handler =
     if not b then change_page_form ?cookies_info ?tmpl form action;
     Lwt.return_unit
   in
-  (not !Common.is_client_app)
-  && ((https = Some true && not Request_info.ssl_)
-     || (https = Some false && Request_info.ssl_))
-  || (f (); false)
+  ((not !Common.is_client_app) && changes_protocol https) || (f (); false)
 
 let raw_event_handler value =
   let handler =
@@ -386,7 +382,7 @@ let reify_caml_event name node ce =
         let len = String.length name in
         if
           len > closure_name_prefix_len
-          && String.sub name 0 closure_name_prefix_len = closure_name_prefix
+          && String.starts_with ~prefix:closure_name_prefix name
         then
           String.sub name closure_name_prefix_len (len - closure_name_prefix_len)
         else name
@@ -394,7 +390,7 @@ let reify_caml_event name node ce =
       name, `Other (raw_event_handler cv)
 
 let register_event_handler, flush_load_script =
-  let add, _, flush, _ = create_buffer () in
+  let {add; flush; _} = create_buffer () in
   let register node (name, ev) =
     match reify_caml_event name node ev with
     | "onload", `Other f -> add f
@@ -437,14 +433,12 @@ let class_list_of_racontent_o = function
   | Some c -> class_list_of_racontent c
   | None -> []
 
-let rebuild_class_list l1 l2 l3 =
-  let f s =
-    (not (List.exists (( = ) s) l2)) && not (List.exists (( = ) s) l3)
-  in
-  l3 @ List.filter f l1
+let rebuild_class_list ~current ~removed ~added =
+  let keep s = not (List.mem s removed || List.mem s added) in
+  added @ List.filter keep current
 
-let rebuild_class_string l1 l2 l3 =
-  rebuild_class_list l1 l2 l3 |> String.concat " " |> Js.string
+let rebuild_class_string ~current ~removed ~added =
+  rebuild_class_list ~current ~removed ~added |> String.concat " " |> Js.string
 
 (* html attributes and dom properties use different names
    **example**: maxlength vs maxLenght (case sensitive).
@@ -492,10 +486,10 @@ let rebuild_reactive_class_rattrib node s =
   let name = Js.string "class" in
   let e = React.S.diff (fun v v' -> v', v) s
   and f (v, v') =
-    let l1 = current_classes node
-    and l2 = class_list_of_racontent_o v
-    and l3 = class_list_of_racontent_o v' in
-    let s = rebuild_class_string l1 l2 l3 in
+    let current = current_classes node
+    and removed = class_list_of_racontent_o v
+    and added = class_list_of_racontent_o v' in
+    let s = rebuild_class_string ~current ~removed ~added in
     node##(setAttribute name s);
     iter_prop node name (fun name -> Js.Unsafe.set node name s)
   in
@@ -505,8 +499,10 @@ let rebuild_reactive_class_rattrib node s =
 let rec rebuild_rattrib node ra =
   match Xml.racontent ra with
   | Xml.RA a when Xml.aname ra = "class" ->
-      let l1 = current_classes node and l2 = class_list_of_racontent a in
-      let name = Js.string "class" and s = rebuild_class_string l1 l2 l2 in
+      let current = current_classes node
+      and added = class_list_of_racontent a in
+      let name = Js.string "class"
+      and s = rebuild_class_string ~current ~removed:[] ~added in
       node##(setAttribute name s)
   | Xml.RA a ->
       let name = Js.string (Xml.aname ra) in
@@ -553,9 +549,6 @@ let rec rebuild_rattrib node ra =
    http://www.webkit.org/blog/516/webkit-page-cache-ii-the-unload-event/
 
    and the function [Mod_dom.test_pageshow_pagehide]. *)
-
-let delay f =
-  Lwt.ignore_result (Lwt.pause () >>= fun () -> f (); Lwt.return_unit)
 
 module ReactState : sig
   type t
@@ -691,7 +684,7 @@ and raw_rebuild_node ns = function
       let node = Dom_html.document##(createElement (Js.string name)) in
       List.iter (rebuild_rattrib node) attribs;
       (node :> Dom.node Js.t)
-  | Xml.Node (name, attribs, childrens) ->
+  | Xml.Node (name, attribs, children) ->
       let ns = if name = "svg" then `SVG else ns in
       let node =
         match ns with
@@ -702,7 +695,7 @@ and raw_rebuild_node ns = function
                                   (Js.string name))
       in
       List.iter (rebuild_rattrib node) attribs;
-      List.iter (fun c -> Dom.appendChild node (rebuild_node' ns c)) childrens;
+      List.iter (fun c -> Dom.appendChild node (rebuild_node' ns c)) children;
       (node :> Dom.node Js.t)
 
 (* [is_before_initial_load] tests whether it is executed before the

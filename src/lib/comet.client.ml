@@ -1,5 +1,3 @@
-open Lwt.Syntax
-
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2010-2011
@@ -23,18 +21,28 @@ open Lwt.Syntax
 
 (* This file is for client-side comet-programming. *)
 
+open Lwt.Syntax
 open Js_of_ocaml
 open Lib
 module Ecb = Comet_base
 
 let section = Logs.Src.create "eliom:comet"
 
+(* The current time, in milliseconds *)
+let now_ms () = Js.to_float (new%js Js.date_now)##getTime
+
 module Configuration = struct
+  (* The time between two requests when idle, [slope * t + offset] seconds
+     after [t] seconds of idleness, at most [cap] *)
+  type idle_policy = {slope : float; offset : float; cap : float}
+
+  let idle_delay {slope; offset; cap} t = min ((slope *. t) +. offset) cap
+  let always_active = [{slope = 0.; offset = 0.; cap = 0.}]
+
   type configuration_data =
     { active_until_timeout : bool
-    ; time_between_request_unfocused : (float * float * float) list option
-    ; (* (a, b) for a * t + b
-           (0, 0) means always active
+    ; time_between_request_unfocused : idle_policy list option
+    ; (* [always_active] means always active
            None means: no request
            The list is here if there are several configurations
            (we take the min of all values, for a given t)
@@ -44,7 +52,8 @@ module Configuration = struct
 
   let default_configuration =
     { active_until_timeout = false
-    ; time_between_request_unfocused = Some [0.5, 60., 600.]
+    ; time_between_request_unfocused =
+        Some [{slope = 0.5; offset = 60.; cap = 600.}]
     ; time_after_unfocus = 180.
     ; time_between_request = 0. }
 
@@ -66,22 +75,12 @@ module Configuration = struct
     ; time_between_request = min c1.time_between_request c2.time_between_request
     }
 
-  exception C of configuration_data
-
-  let first_conf c =
-    try
-      ignore (Hashtbl.fold (fun _ v -> raise (C v)) c ());
-      assert false
-    with C v -> v
-
   let get_configuration () =
-    if Hashtbl.length configuration_table = 0
-    then default_configuration
-    else
-      Hashtbl.fold
-        (fun _ -> config_min)
-        configuration_table
-        (first_conf configuration_table)
+    Hashtbl.fold
+      (fun _ c acc ->
+         Some (match acc with None -> c | Some acc -> config_min c acc))
+      configuration_table None
+    |> Option.value ~default:default_configuration
 
   let update_configuration_waiter, update_configuration_waker =
     let t, u = Lwt.wait () in
@@ -119,8 +118,8 @@ module Configuration = struct
   let set_always_active conf v =
     set_fun conf (fun c ->
       { c with
-        time_between_request_unfocused = (if v then Some [0., 0., 0.] else None)
-      })
+        time_between_request_unfocused =
+          (if v then Some always_active else None) })
 
   let set_timeout conf v =
     set_fun conf (fun c -> {c with time_after_unfocus = v})
@@ -131,8 +130,9 @@ module Configuration = struct
   let set_time_between_requests conf v =
     set_fun conf (fun c -> {c with time_between_request = v})
 
-  let set_time_between_requests_when_idle conf v =
-    set_fun conf (fun c -> {c with time_between_request_unfocused = Some [v]})
+  let set_time_between_requests_when_idle conf (slope, offset, cap) =
+    set_fun conf (fun c ->
+      {c with time_between_request_unfocused = Some [{slope; offset; cap}]})
 
   let sleep_before_next_request focused is_idle active_waiter =
     let time = Sys.time () in
@@ -140,19 +140,15 @@ module Configuration = struct
       if is_idle ()
       then
         match (get ()).time_between_request_unfocused, focused () with
-        | Some ((a, b, c) :: l), Some start ->
-            let now = Js.to_float (new%js Js.date_now)##getTime in
+        | Some (p :: l), Some start ->
+            let now = now_ms () in
             (* time from idle start *)
             let t =
               max 0. (((now -. start) *. 0.001) -. (get ()).time_after_unfocus)
             in
-            let v = min ((a *. t) +. b) c in
-            let v =
-              List.fold_left
-                (fun v (a, b, c) -> min v (min ((a *. t) +. b) c))
-                v l
-            in
-            v
+            List.fold_left
+              (fun v p -> min v (idle_delay p t))
+              (idle_delay p t) l
         | _ -> 0.
         (* Configuration changed.
                      We do not sleep and we'll see later. (?) *)
@@ -201,6 +197,13 @@ let handle_exn, set_handle_exn_function =
 type chan_id = string
 type stateless_message = (chan_id * (string * int) Ecb.channel_data) list
 
+(* A message received on a channel, with its index in the channel for
+   stateless channels *)
+type message =
+  { msg_chan_id : chan_id
+  ; msg_index : int option
+  ; msg_data : string Ecb.channel_data }
+
 module Service_handler : sig
   type 'a t
   type 'a kind
@@ -211,11 +214,9 @@ module Service_handler : sig
   val stateful : stateful kind
   val make : Ecb.comet_service -> 'a kind -> 'a t
 
-  val wait_data :
-     'a t
-    -> (chan_id * int option * string Ecb.channel_data) list Lwt.t
+  val wait_data : 'a t -> message list Lwt.t
   (** Returns the messages received in the last request. If the
-      channel is stateless, it also returns the message number in the [int option] *)
+      channel is stateless, it also returns the message number in [msg_index] *)
 
   val activate : 'a t -> unit
   val is_active : 'a t -> [`Active | `Inactive | `Idle]
@@ -313,9 +314,7 @@ end = struct
     in
     let suspend_activity () =
       if handler.hd_activity.focused = None
-      then
-        handler.hd_activity.focused <-
-          Some (Js.to_float (new%js Js.date_now)##getTime)
+      then handler.hd_activity.focused <- Some (now_ms ())
     in
     let visibility_change_callback () =
       if document_hidden () then suspend_activity () else resume_activity ()
@@ -329,10 +328,10 @@ end = struct
         let tbru =
           (Configuration.get ()).Configuration.time_between_request_unfocused
         in
-        if tbru = Some [0., 0., 0.] (* Always active *)
+        if tbru = Some Configuration.always_active
         then `Active
         else
-          let now = Js.to_float (new%js Js.date_now)##getTime in
+          let now = now_ms () in
           if
             now -. t
             < (Configuration.get ()).Configuration.time_after_unfocus *. 1000.
@@ -349,7 +348,7 @@ end = struct
       then
         hd.hd_activity.focused <-
           Some
-            (Js.to_float (new%js Js.date_now)##getTime
+            (now_ms ()
             -. ((Configuration.get ()).Configuration.time_after_unfocus *. 1000.)
             ))
     else hd.hd_activity.focused <- None;
@@ -436,7 +435,10 @@ end = struct
   let close_all_channels hd =
     let s = hd.hd_activity.active_channels in
     Lib.String.Set.iter (fun chan_id -> stop_waiting hd chan_id) s;
-    Lib.String.Set.fold (fun chan_id l -> (chan_id, None, Ecb.Closed) :: l) s []
+    Lib.String.Set.fold
+      (fun chan_id l ->
+         {msg_chan_id = chan_id; msg_index = None; msg_data = Ecb.Closed} :: l)
+      s []
 
   let update_stateless_state hd (message : stateless_message) =
     match hd.hd_state with
@@ -481,19 +483,16 @@ end = struct
 
   let drop_message_index =
     let aux = function
-      | chan, Ecb.Data (m, i) -> chan, Some i, Ecb.Data m
-      | chan, (Ecb.Closed as m) | chan, (Ecb.Full as m) -> chan, None, m
+      | chan, Ecb.Data (m, i) ->
+          {msg_chan_id = chan; msg_index = Some i; msg_data = Ecb.Data m}
+      | chan, ((Ecb.Closed | Ecb.Full) as m) ->
+          {msg_chan_id = chan; msg_index = None; msg_data = m}
     in
     List.map aux
 
   let add_no_index =
-    let aux = function
-      | chan, (Ecb.Data _ as m)
-      | chan, (Ecb.Closed as m)
-      | chan, (Ecb.Full as m) ->
-          chan, None, m
-    in
-    List.map aux
+    List.map (fun (chan, m) ->
+      {msg_chan_id = chan; msg_index = None; msg_data = m})
 
   let update_activity ?(timeout = false) hd =
     if
@@ -502,7 +501,7 @@ end = struct
          || not (Configuration.get ()).Configuration.active_until_timeout)
     then set_activity hd (expected_activity hd)
 
-  let wait_data hd : (string * int option * string Ecb.channel_data) list Lwt.t =
+  let wait_data hd : message list Lwt.t =
     let rec aux retries =
       if hd.hd_activity.active = `Inactive
       then
@@ -542,9 +541,7 @@ end = struct
                  aux 0
              | exn ->
                  Logs.app ~src:section (fun fmt ->
-                   fmt
-                     ("connection failure" ^^ "@\n%s")
-                     (Printexc.to_string exn));
+                   fmt "connection failure@\n%s" (Printexc.to_string exn));
                  let* () = handle_exn ~exn () in
                  Lwt.fail exn)
     in
@@ -558,7 +555,7 @@ end = struct
               (false, Ecb.Stateful (Ecb.Commands command)))
          (fun exn ->
             Logs.app ~src:section (fun fmt ->
-              fmt ("request failed" ^^ "@\n%s") (Printexc.to_string exn));
+              fmt "request failed@\n%s" (Printexc.to_string exn));
             Lwt.return ""))
 
   let close hd chan_id =
@@ -637,12 +634,10 @@ end = struct
 end
 
 type 'a handler =
-  { hd_service_handler : 'a Service_handler.t
-  ; hd_stream : (string * int option * string Ecb.channel_data) Lwt_stream.t }
+  {hd_service_handler : 'a Service_handler.t; hd_stream : message Lwt_stream.t}
 
 let handler_stream hd =
-  Lwt_stream.map_list
-    (fun x -> x)
+  Lwt_stream.flatten
     (Lwt_stream.from (fun () ->
        Lwt.try_bind
          (fun () -> Service_handler.wait_data hd)
@@ -748,7 +743,7 @@ let register' hd position (_ : Ecb.comet_service) (chan_id : 'a Ecb.chan_id) =
   let stream =
     Lwt_stream.filter_map_s
       (function
-        | id, pos, data
+        | {msg_chan_id = id; msg_index = pos; msg_data = data}
           when id = chan_id && check_and_update_position position pos data -> (
           match data with
           | Ecb.Full -> Lwt.fail Channel_full

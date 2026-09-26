@@ -141,7 +141,7 @@ let copy_file ?(env = []) ?(preds = []) src_name dst_name =
                      (Printf.sprintf
                         "Cannot match %%%%endif%%%% in line %i in file %S"
                         !line_counter src_name))
-          else List.for_all (fun x -> x) !ifdef_stack
+          else List.for_all Fun.id !ifdef_stack
   in
   let replace_in_line =
     let replacers =
@@ -253,7 +253,7 @@ let get_templates () =
       else aux ((f, path) :: rl) (path, dir)
     with End_of_file -> Unix.closedir dir; rl
   in
-  List.concat (List.map (aux []) dirs)
+  List.concat_map (aux []) dirs
 
 (* ------------------------------------------ *)
 (* ---------- Reserve project name ---------- *)
@@ -336,7 +336,7 @@ let main () =
     let template, name, dest_dir =
       match !template, !name with
       | template, Some name ->
-          let dir = match !dest_dir with Some dir -> dir | None -> name in
+          let dir = Option.value !dest_dir ~default:name in
           template, name, dir
       | _ -> Arg.usage spec usage_msg; exit 1
     in

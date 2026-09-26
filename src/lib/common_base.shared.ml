@@ -98,25 +98,40 @@ module Full_state_name_table = Map.Make (struct
     let compare = compare
   end)
 
+(* The state cookies sent by a request, for each kind of state. The keys of
+   the tables are the full state names. *)
+type state_cookies =
+  { service_cookies : string Full_state_name_table.t
+  ; data_cookies : string Full_state_name_table.t
+  ; persistent_cookies : string Full_state_name_table.t }
+
+let no_state_cookies =
+  { service_cookies = Full_state_name_table.empty
+  ; data_cookies = Full_state_name_table.empty
+  ; persistent_cookies = Full_state_name_table.empty }
+
 (******************************************************************)
 (* Service kinds: *)
+(* A CSRF-safe coservice, whose registration is delayed until a link or a
+   form to it is created *)
+type csrf_info =
+  { csrf_id : int  (** Unique id *)
+  ; csrf_scope : user_scope
+    (** Scope of the delayed registration, if the service is registered
+            in the global table *)
+  ; csrf_secure : bool option
+    (** [?secure] parameter of the delayed registration, likewise *) }
+
 type att_key_serv =
   | SAtt_no (* regular service *)
   | SAtt_named of string (* named coservice *)
   | SAtt_anon of string (* anonymous coservice *)
-  | SAtt_csrf_safe of (int * user_scope * bool option)
-  (* CSRF safe anonymous coservice *)
-  (* CSRF safe service registration delayed until form/link creation *)
-  (* the int is an unique id,
-         the user_scope is used for delayed registration
-         (if the service is registered in the global table),
-         the bool option is the ?secure parameter for delayed registration
-         (if the service is registered in the global table) *)
+  | SAtt_csrf_safe of csrf_info (* CSRF safe anonymous coservice *)
   (* The following three are for non-attached coservices
      that have been attached on a service afterwards *)
   | SAtt_na_named of string
   | SAtt_na_anon of string
-  | SAtt_na_csrf_safe of (int * user_scope * bool option)
+  | SAtt_na_csrf_safe of csrf_info
 
 type na_key_serv =
   | SNa_no (* no na information *)
@@ -126,9 +141,9 @@ type na_key_serv =
   | SNa_post_ of string (* named *)
   | SNa_get' of string (* anonymous *)
   | SNa_post' of string (* anonymous *)
-  | SNa_get_csrf_safe of (int * user_scope * bool option)
+  | SNa_get_csrf_safe of csrf_info
   (* CSRF safe anonymous coservice *)
-  | SNa_post_csrf_safe of (int * user_scope * bool option)
+  | SNa_post_csrf_safe of csrf_info
 (* CSRF safe anonymous coservice *)
 
 (* the same, for incoming requests: *)
@@ -214,28 +229,10 @@ type sess_info =
   ; si_all_get_params : (string * string) list
   ; si_all_post_params : (string * string) list option
   ; si_all_file_params : (string * file_info) list option
-  ; si_service_session_cookies : string Full_state_name_table.t
-  ; (* the session service cookies sent by the request *)
-    (* the key is the cookie name (or site dir) *)
-    si_data_session_cookies : string Full_state_name_table.t
-  ; (* the session data cookies sent by the request *)
-    (* the key is the cookie name (or site dir) *)
-    si_persistent_session_cookies : string Full_state_name_table.t
-  ; (* the persistent session cookies sent by the request *)
-    (* the key is the cookie name (or site dir) *)
-    si_secure_cookie_info :
-      string Full_state_name_table.t
-      * string Full_state_name_table.t
-      * string Full_state_name_table.t
-    (* the same, but for secure cookies *)
-  ; (* now for tab cookies: *)
-    si_service_session_cookies_tab : string Full_state_name_table.t
-  ; si_data_session_cookies_tab : string Full_state_name_table.t
-  ; si_persistent_session_cookies_tab : string Full_state_name_table.t
-  ; si_secure_cookie_info_tab :
-      string Full_state_name_table.t
-      * string Full_state_name_table.t
-      * string Full_state_name_table.t
+  ; si_state_cookies : state_cookies (* the state cookies sent by the request *)
+  ; si_secure_state_cookies : state_cookies (* the same, for secure cookies *)
+  ; si_state_cookies_tab : state_cookies (* the same, for tab cookies *)
+  ; si_secure_state_cookies_tab : state_cookies
   ; si_tab_cookies : string Ocsigen_cookie_map.Map_inner.t
   ; si_nonatt_info : na_key_req
   ; si_state_info : att_key_req * att_key_req
@@ -251,8 +248,7 @@ type sess_info =
   ; si_ignored_get_params : (string * string) list
   ; si_ignored_post_params : (string * string) list
   ; si_client_process_info : client_process_info option
-  ; si_expect_process_data : bool Lazy.t
-    (*204FORMS*     si_internal_form: bool; *) }
+  ; si_expect_process_data : bool Lazy.t }
 
 type eliom_js_page_data =
   { ejs_global_data : (Runtime.global_data * Wrap.unwrapper) option
@@ -338,22 +334,11 @@ let split_nl_prefix_param l =
 
 (* Split parameter list, removing those whose name starts with pref *)
 let split_prefix_param pref l =
-  let len = String.length pref in
-  List.partition
-    (fun (n, _) ->
-       try String.sub n 0 len = pref with Invalid_argument _ -> false)
-    l
+  List.partition (fun (n, _) -> String.starts_with ~prefix:pref n) l
 
 (* Remove all parameters whose name starts with pref *)
 let remove_prefixed_param pref l =
-  let len = String.length pref in
-  let rec aux = function
-    | [] -> []
-    | ((n, _) as a) :: l -> (
-      try if String.sub n 0 len = pref then aux l else a :: aux l
-      with Invalid_argument _ -> a :: aux l)
-  in
-  aux l
+  List.filter (fun (n, _) -> not (String.starts_with ~prefix:pref n)) l
 
 let remove_na_prefix_params l =
   remove_prefixed_param na_co_param_prefix l
@@ -361,14 +346,11 @@ let remove_na_prefix_params l =
   |> List.remove_assoc naservice_num
 
 let filter_na_get_params =
-  let len = String.length na_co_param_prefix in
   List.filter @@ fun (s, (_ : string)) ->
   s = naservice_name || s = naservice_num
-  || (String.length s >= len && String.sub s 0 len = na_co_param_prefix)
+  || String.starts_with ~prefix:na_co_param_prefix s
 
 exception Eliom_404
-
-type ('a, 'b) foundornot = Found of 'a | Notfound of 'b
 
 (** Service called with wrong parameter names *)
 
@@ -376,10 +358,15 @@ exception Eliom_Wrong_parameter
 exception Eliom_duplicate_registration of string
 exception Eliom_page_erasing of string
 
-type 'a dircontent = Vide | Table of 'a direlt ref String.Table.t
+type 'a dircontent = Empty | Table of 'a direlt ref String.Table.t
 and 'a direlt = Dir of 'a dircontent ref | File of 'a ref
 
-let empty_dircontent () = Vide
+let empty_dircontent () = Empty
+
+(* The services of a site registered during one reload of the site, with one
+   priority *)
+type 'a service_table =
+  {st_generation : int; st_priority : int; st_content : 'a dircontent ref}
 
 type meth = [`Get | `Post | `Put | `Delete | `Other]
 type page_table_key = {key_state : att_key_serv * att_key_serv; key_meth : meth}

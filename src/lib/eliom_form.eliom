@@ -84,10 +84,7 @@ module type Html = sig
 
   val attrib_of_service :
      string
-    -> ([`A | `Form_get | `Form_post]
-       * (bool * string list) option
-       * string option
-       * Lib.poly)
+    -> Runtime.RawXML.call_service_info
          option
          Eliom_lazy.request
     -> Html_types.form_attrib attrib
@@ -325,7 +322,7 @@ module Make (Html : Html) = struct
     =
     get_form_
       (fun x f -> f x)
-      (fun x -> x)
+      Fun.id
       ?absolute ?absolute_path ?https ?a ~service ?keep_nl_params ?nl_params
       ?hostname ?port ?fragment f
 
@@ -390,15 +387,14 @@ module Make (Html : Html) = struct
     =
     post_form_
       (fun x f -> f x)
-      (fun x -> x)
+      Fun.id
       ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
       ?keep_get_na_params ?keep_nl_params ?nl_params f getparams
 
-  let option_map f = function Some x -> Some (f x) | None -> None
 
   let gen_input ?a ~input_type ?value ?src ?name string_of =
-    let name = option_map Parameter.string_of_param_name name
-    and value = option_map string_of value in
+    let name = Option.map Parameter.string_of_param_name name
+    and value = Option.map string_of value in
     make_input ?a ?value ~typ:input_type ?name ?src ()
 
   let input ?a ~input_type ?name ?value y =

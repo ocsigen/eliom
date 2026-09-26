@@ -38,15 +38,16 @@ let default_protocol_is_https () = Url.Current.protocol = "https"
 
 let get_default_links_xhr () = true (*BBB take from server? !!!!!!!!!! *)
 let debug_timings = ref false
+
+let debug_time name =
+  if !debug_timings then Console.console##(time (Js.string name))
+
+let debug_time_end name =
+  if !debug_timings then Console.console##(timeEnd (Js.string name))
+
 let is_tracing = ref false
 let set_tracing value = is_tracing := value
 let get_tracing () = !is_tracing
-
-(* let () = *)
-(*   if Js.to_string Dom_html.window##location##hash = "#__trace" then *)
-(*     set_tracing true; *)
-(*   if Js.to_string Dom_html.window##location##hash = "#__timings" then *)
-(*     debug_timings := true *)
 
 let get_debugmode () =
   try Js.to_bool Js.Unsafe.global##.___eliom_debug_mode_ with _ -> false

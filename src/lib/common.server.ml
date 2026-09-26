@@ -1,5 +1,3 @@
-open Lwt.Syntax
-
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2007 Vincent Balat
@@ -19,6 +17,7 @@ open Lwt.Syntax
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Lwt.Syntax
 open Lib
 include Common_base
 
@@ -109,6 +108,12 @@ type timeout =
 
 [@@@warning "+39"]
 
+let timeout_of_option = function None -> TNone | Some t -> TSome t
+
+(* A table of state data, with the scope and security of its states *)
+type 'table state_table =
+  {table_scope : user_scope; table_secure : bool; table : 'table}
+
 (* The table of tables for each session. Keys are hashes of cookies or group names *)
 module SessionCookies = Hashtbl.Make (struct
     type t = string
@@ -140,21 +145,27 @@ end = struct
   let to_string x = x
 end
 
-(* session groups *)
-type 'a sessgrp = string * cookie_level * (string, Ipaddr.t) Either.t
+(* The group of a session: a named group or, for sessions that are not in a
+   group, the subnet of the client (to limit the number of sessions by IP
+   address) *)
+type session_group = Group_name of string | Subnet of Ipaddr.t
 
-(* The full session group is the triple
-   (site_dir_string, scope, session group name).
-   The scope is the scope of group members (`Session by default).
-   If there is no session group,
-   we limit the number of sessions by IP address. *)
+(* A full session group: the site, the cookie level of the group members
+   (`Session by default) and the group *)
+type full_session_group =
+  {sg_site_dir : string; sg_level : cookie_level; sg_group : session_group}
+
+(* The parameter only documents the level of the group *)
+type 'a sessgrp = full_session_group
+
 [@@@warning "-39"]
 
-type perssessgrp = string (* same triple, JSON-encoded *) [@@deriving json]
+type perssessgrp = string
+(* the same information, JSON-encoded *) [@@deriving json]
 
 (* Persistent representation of a session group. Stored on disk through
    {!perssessgrp}: a JSON-encoded value of this record. The triple form is
-   {!sessgrp} but always with [Either.Left g] for persistent groups, hence the
+   {!sessgrp} but always with a [Group_name] for persistent groups, hence the
    simpler representation here. *)
 type perssessgrp_payload =
   {p_site_dir_str : string; p_cookie_level : cookie_level; p_group : string}
@@ -174,7 +185,9 @@ let make_persistent_full_group_name ~cookie_level site_dir_string = function
 let getperssessgrp a : 'a sessgrp =
   match Deriving_Json.from_string [%json: perssessgrp_payload] a with
   | {p_site_dir_str; p_cookie_level; p_group} ->
-      p_site_dir_str, p_cookie_level, Either.Left p_group
+      { sg_site_dir = p_site_dir_str
+      ; sg_level = p_cookie_level
+      ; sg_group = Group_name p_group }
   | exception Failure msg ->
       (* Old (pre-Eliom-13, Marshal-encoded) or corrupt persistent
          session-group cookie: treat it as an expired session instead of
@@ -245,64 +258,47 @@ type one_persistent_cookie_info =
   ; pc_cookie_exp : cookie_exp ref (* cookie expiration date to set *)
   ; pc_session_group : perssessgrp option ref (* session group *) }
 
-(*VVV heavy *)
-type 'a cookie_info1 =
-  (* service sessions: *)
-  (string option
-  (* value sent by the browser *)
-  (* None = new cookie
-      (not sent by the browser) *)
-  * 'a one_service_cookie_info session_cookie ref)
-    (* SCNo_data = the session has been closed
-      SCData_session_expired = the cookie has not been found in the table.
-      For both of them, ask the browser to remove the cookie.
-    *)
-    (* This one is not lazy because we must check all service sessions
-       at each request to find the services *)
-    Full_state_name_table.t
-    ref
-  (* The key is the full session name *)
-  * (* in memory data sessions: *)
-  (string option
-  (* value sent by the browser *)
-  (* None = new cookie
-      (not sent by the browser) *)
-  * one_data_cookie_info session_cookie ref)
-    (* SCNo_data = the session has been closed
-      SCData_session_expired = the cookie has not been found in the table.
-      For both of them, ask the browser to remove the cookie.
-    *)
-    Lazy.t
-    (* Lazy because we do not want to ask the browser to unset the cookie
-       if the cookie has not been used, otherwise it is impossible to
-       write a message "Your session has expired" *)
-    Full_state_name_table.t
-    ref
-  (* The key is the full session name *)
-  * (* persistent sessions: *)
-  ((string (* value sent by the browser *)
-   * timeout (* timeout at the beginning of the request *)
-   * float option
-   (* (server side) expdate
-                               at the beginning of the request
-                               None = no exp *)
-   * perssessgrp option)
-     (* session group at beginning of request *)
-     option
-  (* None = new cookie
-      (not sent by the browser) *)
-  * one_persistent_cookie_info session_cookie ref)
-    (* SCNo_data = the session has been closed
-      SCData_session_expired = the cookie has not been found in the table.
-      For both of them, ask the browser to remove the cookie.
-    *)
-    Lwt.t
-    Lazy.t
-    Full_state_name_table.t
-    ref
+(* A persistent cookie sent by the browser, with the state of its session at
+   the beginning of the request *)
+type persistent_cookie_sent =
+  { ps_value : string
+  ; ps_timeout : timeout (* user timeout *)
+  ; ps_expiry : float option (* server side expiration date, if any *)
+  ; ps_group : perssessgrp option (* session group *) }
 
-type 'a cookie_info = 'a cookie_info1 (* unsecure *) * 'a cookie_info1
-(* secure *)
+(* The state cookies of a request, for one security level. In each table,
+   the key is the full state name, and the value is:
+   - what the browser sent: None for a new cookie (not sent by the browser),
+     the value of the cookie otherwise, with, for persistent states, the
+     timeout, the (server side) expiration date and the session group at the
+     beginning of the request;
+   - the new state: SCNo_data means that the state has been closed,
+     SCData_session_expired that the cookie has not been found in the table;
+     for both, the browser is asked to remove the cookie. *)
+type 'a cookie_info1 =
+  { ci_service :
+      (string option * 'a one_service_cookie_info session_cookie ref)
+        Full_state_name_table.t
+        ref
+    (* Not lazy because we must check all service states at each request to
+       find the services *)
+  ; ci_data :
+      (string option * one_data_cookie_info session_cookie ref) Lazy.t
+        Full_state_name_table.t
+        ref
+    (* Lazy because we do not want to ask the browser to unset the cookie if
+       the cookie has not been used, otherwise it is impossible to write a
+       message "Your session has expired" *)
+  ; ci_persistent :
+      (persistent_cookie_sent option
+      * one_persistent_cookie_info session_cookie ref)
+        Lwt.t
+        Lazy.t
+        Full_state_name_table.t
+        ref }
+
+type 'a cookie_info =
+  {ci_unsecure : 'a cookie_info1; ci_secure : 'a cookie_info1}
 
 module Service_cookie = struct
   (* non persistent cookies for services *)
@@ -340,8 +336,6 @@ end
 (*****************************************************************************)
 let ipv4mask = ref 16
 let ipv6mask = ref 56
-let get_mask4 m = match fst m with Some m -> m | None -> !ipv4mask
-let get_mask6 m = match fst m with Some m -> m | None -> !ipv6mask
 
 let network_of_ip k mask4 mask6 =
   match k with
@@ -358,9 +352,9 @@ module Net_addr_Hashtbl : sig
   type 'a t
 
   val create : int -> 'a t
-  val add : int option * 'bb -> int option * 'bb -> 'a t -> key -> 'a -> unit
-  val remove : int option * 'bb -> int option * 'bb -> 'a t -> key -> unit
-  val find : int option * 'bb -> int option * 'bb -> 'a t -> key -> 'a
+  val add : mask4:int -> mask6:int -> 'a t -> key -> 'a -> unit
+  val remove : mask4:int -> mask6:int -> 'a t -> key -> unit
+  val find : mask4:int -> mask6:int -> 'a t -> key -> 'a
 end =
 (* keys are IP address modulo "network equivalence" *)
 struct
@@ -371,12 +365,9 @@ struct
       let hash = Hashtbl.hash
     end)
 
-  let add m4 m6 t k v = add t (network_of_ip k (get_mask4 m4) (get_mask6 m6)) v
-
-  let remove m4 m6 t k =
-    remove t (network_of_ip k (get_mask4 m4) (get_mask6 m6))
-
-  let find m4 m6 t k = find t (network_of_ip k (get_mask4 m4) (get_mask6 m6))
+  let add ~mask4 ~mask6 t k v = add t (network_of_ip k mask4 mask6) v
+  let remove ~mask4 ~mask6 t k = remove t (network_of_ip k mask4 mask6)
+  let find ~mask4 ~mask6 t k = find t (network_of_ip k mask4 mask6)
 end
 
 module Serv_Table = Map.Make (struct
@@ -397,6 +388,30 @@ module Hier_set = String.Set
 
 type omitpersistentstorage_rule =
   | HeaderRule of Ocsigen_http.Header.Name.t * Re.re
+
+(* A setting, with whether it was set by the configuration file (the program
+   only overrides such a setting when asked to) *)
+type 'a configured = {cf_value : 'a; cf_from_config : bool}
+
+(* [c] set to [v], unless [c] was set by the configuration file and
+   [override] is false *)
+let set_configured ~override c v =
+  if override || not c.cf_from_config then {c with cf_value = v} else c
+
+let configured_of_pair (cf_value, cf_from_config) = {cf_value; cf_from_config}
+
+(* The global timeouts of a site for one kind of state: the defaults for
+   browser sessions and for tabs, and the timeouts of given states *)
+type site_timeouts =
+  { browser_default : float option configured option
+  ; tab_default : float option configured option
+  ; per_state : (full_state_name * float option configured) list }
+
+let no_site_timeouts =
+  {browser_default = None; tab_default = None; per_state = []}
+
+(* The attributes of the script tag loading the client program *)
+type application_script = {defer : bool; async : bool}
 
 type server_params =
   { sp_request : Ocsigen.Extensions.request
@@ -427,25 +442,23 @@ and page_table_content =
       * (server_params, Ocsigen.Response.t) service list ]
 
 and naservice_table_content =
-  int
-  (* generation (= number of reloads of sites
-          after which that service has been created) *)
-  * int ref option
-  (* max_use *)
-  * (float * float ref) option
-  (* timeout and expiration date *)
-  * (server_params -> Ocsigen.Response.t Lwt.t)
-  * (page_table ref * page_table_key, na_key_serv) Either.t
-      Ocsigen_base.Cache.Dlist.node
-      option
-(* for limitation of number of dynamic coservices *)
+  { na_generation : int
+    (** Number of reloads of sites after which the service was created *)
+  ; na_max_use : int ref option
+  ; na_expiry : (float * float ref) option  (** Timeout and expiration date *)
+  ; na_handler : server_params -> Ocsigen.Response.t Lwt.t
+  ; na_node :
+      (page_table ref * page_table_key, na_key_serv) Either.t
+        Ocsigen_base.Cache.Dlist.node
+        option
+    (** For the limitation of the number of dynamic coservices *) }
 
-and naservice_table = AVide | ATable of naservice_table_content NAserv_Table.t
+and naservice_table =
+  | AEmpty
+  | ATable of naservice_table_content NAserv_Table.t
 
 and tables =
-  { mutable table_services :
-      (int (* generation *) * int (* priority *) * page_table dircontent ref)
-        list
+  { mutable table_services : page_table service_table list
   ; table_naservices : naservice_table ref
   ; (* ref, and not mutable field because it simpler to use
         recursively with Dir of dircontent ref *)
@@ -493,18 +506,9 @@ and sitedata =
        - then default for each full session name
       The booleans means "has been set from config file"
     *)
-    mutable servtimeout :
-      (float option * bool) option
-      * (float option * bool) option
-      * (full_state_name * (float option * bool)) list
-  ; mutable datatimeout :
-      (float option * bool) option
-      * (float option * bool) option
-      * (full_state_name * (float option * bool)) list
-  ; mutable perstimeout :
-      (float option * bool) option
-      * (float option * bool) option
-      * (full_state_name * (float option * bool)) list
+    mutable servtimeout : site_timeouts
+  ; mutable datatimeout : site_timeouts
+  ; mutable perstimeout : site_timeouts
   ; site_value_table : Polytables.t
   ; (* table containing evaluated
                                        lazy site values *)
@@ -528,21 +532,21 @@ and sitedata =
   ; mutable exn_handler : exn -> Ocsigen.Response.t Lwt.t
   ; mutable unregistered_services : Url.path list
   ; mutable unregistered_na_services : na_key_serv list
-  ; mutable max_volatile_data_sessions_per_group : int * bool
-  ; mutable max_volatile_data_sessions_per_subnet : int * bool
-  ; mutable max_volatile_data_tab_sessions_per_group : int * bool
-  ; mutable max_service_sessions_per_group : int * bool
-  ; mutable max_service_sessions_per_subnet : int * bool
-  ; mutable max_service_tab_sessions_per_group : int * bool
-  ; mutable max_persistent_data_sessions_per_group : int option * bool
-  ; mutable max_persistent_data_tab_sessions_per_group : int option * bool
-  ; mutable max_anonymous_services_per_session : int * bool
-  ; mutable max_anonymous_services_per_subnet : int * bool
+  ; mutable max_volatile_data_sessions_per_group : int configured
+  ; mutable max_volatile_data_sessions_per_subnet : int configured
+  ; mutable max_volatile_data_tab_sessions_per_group : int configured
+  ; mutable max_service_sessions_per_group : int configured
+  ; mutable max_service_sessions_per_subnet : int configured
+  ; mutable max_service_tab_sessions_per_group : int configured
+  ; mutable max_persistent_data_sessions_per_group : int option configured
+  ; mutable max_persistent_data_tab_sessions_per_group : int option configured
+  ; mutable max_anonymous_services_per_session : int configured
+  ; mutable max_anonymous_services_per_subnet : int configured
   ; mutable secure_cookies : bool
   ; dlist_ip_table : dlist_ip_table
-  ; mutable ipv4mask : int option * bool
-  ; mutable ipv6mask : int option * bool
-  ; mutable application_script : bool (* defer *) * bool
+  ; mutable ipv4mask : int option configured
+  ; mutable ipv6mask : int option configured
+  ; mutable application_script : application_script
   ; (* async *)
     mutable enable_wasm : bool
   ; mutable cache_global_data : (string list * int) option
@@ -564,11 +568,18 @@ let check_initialised field =
 let get_site_dir sitedata = check_initialised sitedata.site_dir
 let get_site_dir_string sitedata = check_initialised sitedata.site_dir_string
 let get_config_info sitedata = check_initialised sitedata.config_info
+
+let get_mask4 sitedata =
+  Option.value sitedata.ipv4mask.cf_value ~default:!ipv4mask
+
+let get_mask6 sitedata =
+  Option.value sitedata.ipv6mask.cf_value ~default:!ipv6mask
+
 let create_dlist_ip_table = Net_addr_Hashtbl.create
 
 let find_dlist_ip_table :
-   int option * 'b
-  -> int option * 'b
+   mask4:int
+  -> mask6:int
   -> dlist_ip_table
   -> Ipaddr.t
   -> (page_table ref * page_table_key, na_key_serv) Either.t
@@ -590,14 +601,16 @@ let make_full_cookie_name cookieprefix {user_scope; secure; site_dir_str} =
   in
   String.concat "" [cookieprefix; secure; site_dir_str; hier1; hiername]
 
-let make_full_state_name2 site_dir_str secure ~(scope : [< user_scope]) :
-  full_state_name
+let make_full_state_name_of_sitedata ~sitedata ~secure ~(scope : [< user_scope])
+  : full_state_name
   =
   (* The information in the cookie name, without the kind of session *)
-  {user_scope = (scope :> user_scope); secure; site_dir_str}
+  { user_scope = (scope :> user_scope)
+  ; secure
+  ; site_dir_str = get_site_dir_string sitedata }
 
 let make_full_state_name ~sp ~secure ~(scope : [< user_scope]) =
-  make_full_state_name2 (get_site_dir_string sp.sp_sitedata) secure ~scope
+  make_full_state_name_of_sitedata ~sitedata:sp.sp_sitedata ~secure ~scope
 
 let get_cookie_info sp = function
   | `Session -> sp.sp_cookie_info
@@ -724,21 +737,20 @@ let list_scope_hierarchies () =
 
 (*****************************************************************************)
 (* The current registration directory *)
-let ( absolute_change_sitedata
-    , get_current_sitedata
-    , end_current_sitedata
-    , has_current_sitedata )
-  =
-  let f2 : sitedata list ref = ref [] in
-  let popf2 () = match !f2 with _ :: t -> f2 := t | [] -> f2 := [] in
-  ( (fun sitedata -> f2 := sitedata :: !f2) (* absolute_change_sitedata *)
-  , (fun () ->
-      match !f2 with
-      | [] -> raise (Site_information_not_available "get_current_sitedata")
-      | sd :: _ -> sd)
-    (* get_current_sitedata *)
-  , (fun () -> popf2 ()) (* end_current_sitedata *)
-  , fun () -> !f2 <> [] (* has_current_sitedata *) )
+let sitedata_stack : sitedata list ref = ref []
+
+let absolute_change_sitedata sitedata =
+  sitedata_stack := sitedata :: !sitedata_stack
+
+let get_current_sitedata () =
+  match !sitedata_stack with
+  | [] -> raise (Site_information_not_available "get_current_sitedata")
+  | sd :: _ -> sd
+
+let end_current_sitedata () =
+  match !sitedata_stack with _ :: t -> sitedata_stack := t | [] -> ()
+
+let has_current_sitedata () = !sitedata_stack <> []
 (* Warning: these functions are used only during the initialisation
    phase, which is not threaded ... That's why it works, but ...
    it is not really clean ... public registration relies on this
@@ -814,16 +826,18 @@ let lazy_site_value_from_fun f =
     or a table of "answers" (functions that will generate the page) *)
 
 let empty_page_table () = Serv_Table.empty
-let empty_naservice_table () = AVide
+let empty_naservice_table () = AEmpty
 
 let service_tables_are_empty t =
-  !(t.table_naservices) = AVide
+  !(t.table_naservices) = AEmpty
   &&
   (* !(t.table_services) = [] <---- probably enough? *)
-  List.for_all (fun (_, _, r) -> !r = Vide) t.table_services
+  List.for_all (fun {st_content; _} -> !st_content = Empty) t.table_services
 
 let remove_naservice_table at k =
-  match at with AVide -> AVide | ATable t -> ATable (NAserv_Table.remove k t)
+  match at with
+  | AEmpty -> AEmpty
+  | ATable t -> ATable (NAserv_Table.remove k t)
 
 let dlist_finaliser na_table_ref node =
   (* If the node disappears from the dlist,
@@ -841,8 +855,8 @@ let dlist_finaliser_ip sitedata ip na_table_ref node =
       if Ocsigen_base.Cache.Dlist.size cl = 1
       then
         try
-          Net_addr_Hashtbl.remove sitedata.ipv4mask sitedata.ipv6mask
-            sitedata.dlist_ip_table ip
+          Net_addr_Hashtbl.remove ~mask4:(get_mask4 sitedata)
+            ~mask6:(get_mask6 sitedata) sitedata.dlist_ip_table ip
         with Not_found -> ())
   | None -> ()
 
@@ -891,17 +905,17 @@ let empty_tables max forsession =
                    | _ -> default_ip_table_key
                  in
                  ( ip
-                 , fst sp.sp_sitedata.max_anonymous_services_per_subnet
+                 , sp.sp_sitedata.max_anonymous_services_per_subnet.cf_value
                  , sp.sp_sitedata )
            in
            let dlist =
              try
-               Net_addr_Hashtbl.find sitedata.ipv4mask sitedata.ipv6mask
-                 sitedata.dlist_ip_table ip
+               Net_addr_Hashtbl.find ~mask4:(get_mask4 sitedata)
+                 ~mask6:(get_mask6 sitedata) sitedata.dlist_ip_table ip
              with Not_found ->
                let dlist = Ocsigen_base.Cache.Dlist.create max in
-               Net_addr_Hashtbl.add sitedata.ipv4mask sitedata.ipv6mask
-                 sitedata.dlist_ip_table ip dlist;
+               Net_addr_Hashtbl.add ~mask4:(get_mask4 sitedata)
+                 ~mask6:(get_mask6 sitedata) sitedata.dlist_ip_table ip dlist;
                Ocsigen_base.Cache.Dlist.set_finaliser_before
                  (dlist_finaliser_ip sitedata ip t2)
                  dlist;
@@ -910,13 +924,9 @@ let empty_tables max forsession =
            add_dlist_ dlist v) }
 
 let new_service_session_tables sitedata =
-  empty_tables (fst sitedata.max_anonymous_services_per_session) true
-
-let get_mask4 sitedata = get_mask4 sitedata.ipv4mask
-let get_mask6 sitedata = get_mask6 sitedata.ipv6mask
+  empty_tables sitedata.max_anonymous_services_per_session.cf_value true
 
 (*****************************************************************************)
-open Lwt
 
 (* The cookie name is
 
@@ -959,9 +969,28 @@ let getcookies secure cookie_level cookienamepref cookies =
        else beg)
     cookies Full_state_name_table.empty
 
+(* The state cookies of the given security and cookie level in [cookies] *)
+let get_state_cookies secure cookie_level cookies =
+  { service_cookies = getcookies secure cookie_level servicecookiename cookies
+  ; data_cookies = getcookies secure cookie_level datacookiename cookies
+  ; persistent_cookies =
+      getcookies secure cookie_level persistentcookiename cookies }
+
 (* After an action, we do not take into account actual get params,
    but these ones: *)
-let eliom_params_after_action = Polytables.make_key ()
+type params_after_action =
+  { pa_all_get_params : (string * string) list
+  ; pa_all_post_params : (string * string) list option
+  ; pa_all_file_params : (string * file_info) list option
+  ; pa_nl_get_params : (string * string) list String.Table.t
+  ; pa_nl_post_params : (string * string) list String.Table.t
+  ; pa_nl_file_params : (string * file_info) list String.Table.t
+  ; pa_all_get_but_nl : (string * string) list
+  ; pa_ignored_get_params : (string * string) list
+  ; pa_ignored_post_params : (string * string) list }
+
+let eliom_params_after_action : params_after_action Polytables.key =
+  Polytables.make_key ()
 
 (* After an action, we get tab_cookies info from rc: *)
 let tab_cookie_action_info_key = Polytables.make_key ()
@@ -977,14 +1006,221 @@ type cpi = client_process_info =
 
 [@@@warning "+39"]
 
-let matches_regexp name (_, re) =
-  try
-    let _ = Re.exec re name in
-    true
-  with Not_found -> false
+let matches_regexp name (_, re) = Re.execp re name
 
 let matches_regexps regexps (name, _) =
   List.exists (matches_regexp name) regexps
+
+(* Decode a JSON list of (name, value) pairs into a cookie map *)
+let cookie_map_of_json ~what s =
+  of_json_or_default ~what ~default:[] [%of_json: (string * string) list] s
+  |> List.fold_left
+       (fun t (k, v) -> Ocsigen_cookie_map.Map_inner.add k v t)
+       Ocsigen_cookie_map.Map_inner.empty
+
+(* The tab cookies of a request, and its POST parameters without the one
+   that may carry them. After an action, they are taken from the request
+   cache, together with the tab cookies info of the action. *)
+let get_tab_cookies ri rc post_params =
+  try
+    let tci, utc, tc =
+      Polytables.get ~table:rc ~key:tab_cookie_action_info_key
+    in
+    Polytables.remove ~table:rc ~key:tab_cookie_action_info_key;
+    Some (tci, utc), tc, post_params
+  with Not_found ->
+    let tab_cookies, post_params =
+      try
+        (* Tab cookies are found in HTTP headers,
+   but also sometimes in POST params (when we do not want to do an XHR
+   because we want to stop the client side process).
+   It should never be both.
+          *)
+        let tc, pp = List.assoc_remove tab_cookies_param_name post_params in
+        cookie_map_of_json ~what:"tab cookies" tc, pp
+      with Not_found -> (
+        match
+          Ocsigen.Request.header ri
+            (Ocsigen_http.Header.Name.of_string tab_cookies_header_name)
+        with
+        | Some tc -> cookie_map_of_json ~what:"tab cookies" tc, post_params
+        | None -> Ocsigen_cookie_map.Map_inner.empty, post_params)
+    in
+    None, tab_cookies, post_params
+
+(* The client process info sent by a client-side program *)
+let get_client_process_info ri =
+  match
+    Ocsigen.Request.header ri
+      (Ocsigen_http.Header.Name.of_string tab_cpi_header_name)
+  with
+  | Some cpi ->
+      of_json_or_default ~what:"client process info" ~default:None
+        (fun s -> Some ([%of_json: cpi] s))
+        cpi
+  | None -> None
+
+(* Whether the client expects a page for its process *)
+let get_expecting_process_page ri =
+  match
+    Ocsigen.Request.header ri
+      (Ocsigen_http.Header.Name.of_string expecting_process_page_name)
+  with
+  | Some epd ->
+      of_json_or_default ~what:"expecting-process-page flag" ~default:false
+        [%of_json: bool] epd
+  | None -> false
+
+(* The cookies of the browser, or the substitutes sent by a client-side
+   program that cannot use them *)
+let get_browser_cookies ri =
+  match
+    Ocsigen.Request.header ri
+      (Ocsigen_http.Header.Name.of_string cookie_substitutes_header_name)
+  with
+  | Some tc -> cookie_map_of_json ~what:"cookie substitutes" tc
+  | None -> Ocsigen.Request.cookies ri
+
+(* The GET, POST and file parameters of a request without the non-localised
+   and ignored ones, together with all its parameters. After an action, the
+   latter are the ones saved by the action. *)
+let split_request_params
+      ~sitedata
+      rc
+      ~no_post_param
+      ~no_file_param
+      get_params0
+      post_params0
+      file_params0
+  =
+  try
+    ( get_params0
+    , post_params0
+    , file_params0
+    , Polytables.get ~table:rc ~key:eliom_params_after_action )
+  with Not_found ->
+    let nl_get_params, get_params = split_nl_prefix_param get_params0 in
+    let nl_post_params, post_params = split_nl_prefix_param post_params0 in
+    let nl_file_params, file_params = split_nl_prefix_param file_params0 in
+    let ignored_get, get_params =
+      List.partition (matches_regexps sitedata.ignored_get_params) get_params
+    in
+    let ignored_post, post_params =
+      List.partition (matches_regexps sitedata.ignored_post_params) post_params
+    in
+    let all_get_but_nl = get_params in
+    ( get_params
+    , post_params
+    , file_params
+    , { pa_all_get_params = get_params0
+      ; pa_all_post_params = (if no_post_param then None else Some post_params0)
+      ; pa_all_file_params = (if no_file_param then None else Some file_params0)
+      ; pa_nl_get_params = nl_get_params
+      ; pa_nl_post_params = nl_post_params
+      ; pa_nl_file_params = nl_file_params
+      ; pa_all_get_but_nl = all_get_but_nl
+      ; pa_ignored_get_params = ignored_get
+      ; pa_ignored_post_params = ignored_post } )
+
+(* The parameters of a request that identify its service *)
+type service_params =
+  { svc_nonatt_info : na_key_req
+  ; svc_state_info : att_key_req * att_key_req  (** GET and POST states *)
+  ; svc_get_params : (string * string) list
+  ; svc_other_get_params : (string * string) list
+  ; svc_na_get_params : (string * string) list Lazy.t
+  ; svc_post_params : (string * string) list }
+
+(* Removes from the GET and POST parameters of a request the ones that
+   identify its non-attached service or its state *)
+let get_service_params get_params post_params =
+  let post_naservice_name, na_post_params =
+    try
+      let n, pp = List.assoc_remove naservice_num post_params in
+      RNa_post' n, pp
+    with Not_found -> (
+      try
+        let n, pp = List.assoc_remove naservice_name post_params in
+        RNa_post_ n, pp
+      with Not_found -> RNa_no, [])
+  in
+  match post_naservice_name with
+  | RNa_post_ _ | RNa_post' _ ->
+      (* POST non attached coservice *)
+      { svc_nonatt_info = post_naservice_name
+      ; svc_state_info = RAtt_no, RAtt_no
+      ; svc_get_params = []
+      ; svc_other_get_params = get_params
+      ; svc_na_get_params =
+          lazy
+            (try
+               (try naservice_name, List.assoc naservice_name get_params
+                with Not_found ->
+                  naservice_num, List.assoc naservice_num get_params)
+               :: fst (split_prefix_param na_co_param_prefix get_params)
+             with Not_found -> [])
+      ; svc_post_params = na_post_params }
+  | _ -> (
+      let get_naservice_name, na_name_num, (na_get_params, other_get_params) =
+        try
+          let n, gp = List.assoc_remove naservice_num get_params in
+          ( RNa_get' n
+          , [naservice_num, n]
+          , split_prefix_param na_co_param_prefix gp )
+        with Not_found -> (
+          try
+            let n, gp = List.assoc_remove naservice_name get_params in
+            ( RNa_get_ n
+            , [naservice_name, n]
+            , split_prefix_param na_co_param_prefix gp )
+          with Not_found -> RNa_no, [], ([], get_params))
+      in
+      match get_naservice_name with
+      | RNa_get_ _ | RNa_get' _ ->
+          (* GET non attached coservice *)
+          { svc_nonatt_info = get_naservice_name
+          ; svc_state_info = RAtt_no, RAtt_no
+          ; svc_get_params = na_get_params
+          ; svc_other_get_params = other_get_params
+          ; svc_na_get_params = lazy (na_name_num @ na_get_params)
+          ; svc_post_params = [] }
+          (* Not possible to have POST parameters
+                     without naservice_num
+                     if there is a GET naservice_num
+            *)
+      | _ ->
+          let post_state, post_params =
+            try
+              let s, pp =
+                List.assoc_remove post_numstate_param_name post_params
+              in
+              RAtt_anon s, pp
+            with Not_found -> (
+              try
+                let s, pp =
+                  List.assoc_remove post_state_param_name post_params
+                in
+                RAtt_named s, pp
+              with Not_found -> RAtt_no, post_params)
+          in
+          let get_state, (get_params, other_get_params) =
+            try
+              let s, gp =
+                List.assoc_remove get_numstate_param_name get_params
+              in
+              RAtt_anon s, split_prefix_param co_param_prefix gp
+            with Not_found -> (
+              try
+                let s, gp = List.assoc_remove get_state_param_name get_params in
+                RAtt_named s, split_prefix_param co_param_prefix gp
+              with Not_found -> RAtt_no, (get_params, []))
+          in
+          { svc_nonatt_info = RNa_no
+          ; svc_state_info = get_state, post_state
+          ; svc_get_params = get_params
+          ; svc_other_get_params = other_get_params
+          ; svc_na_get_params = lazy (na_name_num @ na_get_params)
+          ; svc_post_params = post_params })
 
 let get_session_info ~sitedata ~req previous_extension_err =
   let req_whole = req
@@ -1009,69 +1245,10 @@ let get_session_info ~sitedata ~req previous_extension_err =
   in
   let* post_params = p in
   let previous_tab_cookies_info, tab_cookies, post_params =
-    try
-      let tci, utc, tc =
-        Polytables.get ~table:rc ~key:tab_cookie_action_info_key
-      in
-      Polytables.remove ~table:rc ~key:tab_cookie_action_info_key;
-      Some (tci, utc), tc, post_params
-    with Not_found ->
-      let tab_cookies, post_params =
-        try
-          (* Tab cookies are found in HTTP headers,
-   but also sometimes in POST params (when we do not want to do an XHR
-   because we want to stop the client side process).
-   It should never be both.
-          *)
-          let tc, pp = List.assoc_remove tab_cookies_param_name post_params in
-          let tc =
-            of_json_or_default ~what:"tab cookies" ~default:[]
-              [%of_json: (string * string) list] tc
-          in
-          ( List.fold_left
-              (fun t (k, v) -> Ocsigen_cookie_map.Map_inner.add k v t)
-              Ocsigen_cookie_map.Map_inner.empty tc
-          , pp )
-        with Not_found -> (
-          match
-            Ocsigen.Request.header ri
-              (Ocsigen_http.Header.Name.of_string tab_cookies_header_name)
-          with
-          | Some tc ->
-              let tc =
-                of_json_or_default ~what:"tab cookies" ~default:[]
-                  [%of_json: (string * string) list] tc
-              in
-              ( List.fold_left
-                  (fun t (k, v) -> Ocsigen_cookie_map.Map_inner.add k v t)
-                  Ocsigen_cookie_map.Map_inner.empty tc
-              , post_params )
-          | None -> Ocsigen_cookie_map.Map_inner.empty, post_params)
-      in
-      None, tab_cookies, post_params
+    get_tab_cookies ri rc post_params
   in
-  let cpi =
-    match
-      Ocsigen.Request.header ri
-        (Ocsigen_http.Header.Name.of_string tab_cpi_header_name)
-    with
-    | Some cpi ->
-        of_json_or_default ~what:"client process info" ~default:None
-          (fun s -> Some ([%of_json: cpi] s))
-          cpi
-    | None -> None
-  in
-  let epd =
-    lazy
-      (match
-         Ocsigen.Request.header ri
-           (Ocsigen_http.Header.Name.of_string expecting_process_page_name)
-       with
-      | Some epd ->
-          of_json_or_default ~what:"expecting-process-page flag" ~default:false
-            [%of_json: bool] epd
-      | None -> false)
-  in
+  let cpi = get_client_process_info ri in
+  let epd = lazy (get_expecting_process_page ri) in
   let post_params, get_params, to_be_considered_as_get =
     let g = Ocsigen.Request.get_params_flat ri in
     try
@@ -1082,187 +1259,34 @@ let get_session_info ~sitedata ~req previous_extension_err =
       (* It was a POST request to be considered as GET *)
     with Not_found -> post_params, g, false
   in
-  (*204FORMS* old implementation of forms with 204 and change_page_event
-
-  let get_params, internal_form =
-    try
-      (snd (List.assoc_remove internal_form_full_name get_params),
-       true)
-    with Not_found -> (get_params, false)
-  in
-  *)
-  let get_params0 = get_params in
-  let post_params0 = post_params in
-  let* file_params0 = file_params in
+  let* file_params = file_params in
   let ( get_params
       , post_params
       , file_params
-      , ( all_get_params
-        , all_post_params
-        , all_file_params
-        , nl_get_params
-        , nl_post_params
-        , nl_file_params
-        , all_get_but_nl (*204FORMS*, internal_form *)
-        , ignored_get
-        , ignored_post ) )
+      , { pa_all_get_params = all_get_params
+        ; pa_all_post_params = all_post_params
+        ; pa_all_file_params = all_file_params
+        ; pa_nl_get_params = nl_get_params
+        ; pa_nl_post_params = nl_post_params
+        ; pa_nl_file_params = nl_file_params
+        ; pa_all_get_but_nl = all_get_but_nl
+        ; pa_ignored_get_params = ignored_get
+        ; pa_ignored_post_params = ignored_post } )
     =
-    try
-      ( get_params
-      , post_params
-      , file_params0
-      , Polytables.get
-          ~table:(Ocsigen.Request.request_cache ri)
-          ~key:eliom_params_after_action )
-    with Not_found ->
-      let nl_get_params, get_params = split_nl_prefix_param get_params0 in
-      let nl_post_params, post_params = split_nl_prefix_param post_params0 in
-      let nl_file_params, file_params = split_nl_prefix_param file_params0 in
-      let ignored_get, get_params =
-        List.partition (matches_regexps sitedata.ignored_get_params) get_params
-      in
-      let ignored_post, post_params =
-        List.partition
-          (matches_regexps sitedata.ignored_post_params)
-          post_params
-      in
-      let all_get_but_nl = get_params in
-      ( get_params
-      , post_params
-      , file_params
-      , ( get_params0
-        , (if no_post_param then None else Some post_params0)
-        , (if no_file_param then None else Some file_params0)
-        , nl_get_params
-        , nl_post_params
-        , nl_file_params
-        , all_get_but_nl (*204FORMS*, internal_form *)
-        , ignored_get
-        , ignored_post ) )
+    split_request_params ~sitedata rc ~no_post_param ~no_file_param get_params
+      post_params file_params
   in
-  let browser_cookies =
-    match
-      Ocsigen.Request.header ri
-        (Ocsigen_http.Header.Name.of_string cookie_substitutes_header_name)
-    with
-    | Some tc ->
-        List.fold_left
-          (fun t (k, v) -> Ocsigen_cookie_map.Map_inner.add k v t)
-          Ocsigen_cookie_map.Map_inner.empty
-          (of_json_or_default ~what:"cookie substitutes" ~default:[]
-             [%of_json: (string * string) list] tc)
-    | None -> Ocsigen.Request.cookies ri
-  in
-  let data_cookies = getcookies false `Session datacookiename browser_cookies in
-  let service_cookies =
-    getcookies false `Session servicecookiename browser_cookies
-  in
-  let persistent_cookies =
-    getcookies false `Session persistentcookiename browser_cookies
-  in
-  let secure_cookie_info =
-    let sdata_cookies =
-      getcookies true `Session datacookiename browser_cookies
-    in
-    let sservice_cookies =
-      getcookies true `Session servicecookiename browser_cookies
-    in
-    let spersistent_cookies =
-      getcookies true `Session persistentcookiename browser_cookies
-    in
-    sservice_cookies, sdata_cookies, spersistent_cookies
-  in
-  let ( naservice_info
-      , (get_state, post_state)
-      , (get_params, other_get_params)
-      , na_get_params
-      , post_params )
+  let browser_cookies = get_browser_cookies ri in
+  let state_cookies = get_state_cookies false `Session browser_cookies in
+  let secure_state_cookies = get_state_cookies true `Session browser_cookies in
+  let { svc_nonatt_info = naservice_info
+      ; svc_state_info = get_state, post_state
+      ; svc_get_params = get_params
+      ; svc_other_get_params = other_get_params
+      ; svc_na_get_params = na_get_params
+      ; svc_post_params = post_params }
     =
-    let post_naservice_name, na_post_params =
-      try
-        let n, pp = List.assoc_remove naservice_num post_params in
-        RNa_post' n, pp
-      with Not_found -> (
-        try
-          let n, pp = List.assoc_remove naservice_name post_params in
-          RNa_post_ n, pp
-        with Not_found -> RNa_no, [])
-    in
-    match post_naservice_name with
-    | RNa_post_ _ | RNa_post' _ ->
-        (* POST non attached coservice *)
-        ( post_naservice_name
-        , (RAtt_no, RAtt_no)
-        , ([], get_params)
-        , lazy
-            (try
-               (try naservice_name, List.assoc naservice_name get_params
-                with Not_found ->
-                  naservice_num, List.assoc naservice_num get_params)
-               :: fst (split_prefix_param na_co_param_prefix get_params)
-             with Not_found -> [])
-        , na_post_params )
-    | _ -> (
-        let get_naservice_name, na_name_num, (na_get_params, other_get_params) =
-          try
-            let n, gp = List.assoc_remove naservice_num get_params in
-            ( RNa_get' n
-            , [naservice_num, n]
-            , split_prefix_param na_co_param_prefix gp )
-          with Not_found -> (
-            try
-              let n, gp = List.assoc_remove naservice_name get_params in
-              ( RNa_get_ n
-              , [naservice_name, n]
-              , split_prefix_param na_co_param_prefix gp )
-            with Not_found -> RNa_no, [], ([], get_params))
-        in
-        match get_naservice_name with
-        | RNa_get_ _ | RNa_get' _ ->
-            (* GET non attached coservice *)
-            ( get_naservice_name
-            , (RAtt_no, RAtt_no)
-            , (na_get_params, other_get_params)
-            , lazy (na_name_num @ na_get_params)
-            , [] )
-            (* Not possible to have POST parameters
-                     without naservice_num
-                     if there is a GET naservice_num
-            *)
-        | _ ->
-            let post_state, post_params =
-              try
-                let s, pp =
-                  List.assoc_remove post_numstate_param_name post_params
-                in
-                RAtt_anon s, pp
-              with Not_found -> (
-                try
-                  let s, pp =
-                    List.assoc_remove post_state_param_name post_params
-                  in
-                  RAtt_named s, pp
-                with Not_found -> RAtt_no, post_params)
-            in
-            let get_state, (get_params, other_get_params) =
-              try
-                let s, gp =
-                  List.assoc_remove get_numstate_param_name get_params
-                in
-                RAtt_anon s, split_prefix_param co_param_prefix gp
-              with Not_found -> (
-                try
-                  let s, gp =
-                    List.assoc_remove get_state_param_name get_params
-                  in
-                  RAtt_named s, split_prefix_param co_param_prefix gp
-                with Not_found -> RAtt_no, (get_params, []))
-            in
-            ( RNa_no
-            , (get_state, post_state)
-            , (get_params, other_get_params)
-            , lazy (na_name_num @ na_get_params)
-            , post_params ))
+    get_service_params get_params post_params
   in
   let persistent_nl_get_params =
     lazy
@@ -1270,26 +1294,9 @@ let get_session_info ~sitedata ~req previous_extension_err =
          (fun k a t -> if nl_is_persistent k then String.Table.add k a t else t)
          nl_get_params String.Table.empty)
   in
-  let data_cookies_tab =
-    getcookies false `Client_process datacookiename tab_cookies
-  in
-  let service_cookies_tab =
-    getcookies false `Client_process servicecookiename tab_cookies
-  in
-  let persistent_cookies_tab =
-    getcookies false `Client_process persistentcookiename tab_cookies
-  in
-  let secure_cookie_info_tab =
-    let sdata_cookies =
-      getcookies true `Client_process datacookiename tab_cookies
-    in
-    let sservice_cookies =
-      getcookies true `Client_process servicecookiename tab_cookies
-    in
-    let spersistent_cookies =
-      getcookies true `Client_process persistentcookiename tab_cookies
-    in
-    sservice_cookies, sdata_cookies, spersistent_cookies
+  let state_cookies_tab = get_state_cookies false `Client_process tab_cookies in
+  let secure_state_cookies_tab =
+    get_state_cookies true `Client_process tab_cookies
   in
   let ri, sess =
     (*VVV 2011/02/15 TODO: I think we'd better not change ri here.
@@ -1310,14 +1317,10 @@ let get_session_info ~sitedata ~req previous_extension_err =
           (if no_post_param
            then None
            else Some (Some (post_params, file_params)))
-    , { si_service_session_cookies = service_cookies
-      ; si_data_session_cookies = data_cookies
-      ; si_persistent_session_cookies = persistent_cookies
-      ; si_secure_cookie_info = secure_cookie_info
-      ; si_service_session_cookies_tab = service_cookies_tab
-      ; si_data_session_cookies_tab = data_cookies_tab
-      ; si_persistent_session_cookies_tab = persistent_cookies_tab
-      ; si_secure_cookie_info_tab = secure_cookie_info_tab
+    , { si_state_cookies = state_cookies
+      ; si_secure_state_cookies = secure_state_cookies
+      ; si_state_cookies_tab = state_cookies_tab
+      ; si_secure_state_cookies_tab = secure_state_cookies_tab
       ; si_tab_cookies = tab_cookies
       ; si_nonatt_info = naservice_info
       ; si_state_info = get_state, post_state
@@ -1336,8 +1339,7 @@ let get_session_info ~sitedata ~req previous_extension_err =
       ; si_ignored_get_params = ignored_get
       ; si_ignored_post_params = ignored_post
       ; si_client_process_info = cpi
-      ; si_expect_process_data =
-          epd (*204FORMS*     si_internal_form= internal_form; *) } )
+      ; si_expect_process_data = epd } )
   in
   Lwt.return
     ( {req_whole with Ocsigen.Extensions.request_info = ri}
@@ -1461,7 +1463,8 @@ module Persistent_tables = struct
   let number_of_table_elements () =
     Lwt_list.map_s
       (fun (module T : Ocsipersist.TABLE with type key = string) ->
-         T.length () >>= fun n -> Lwt.return (T.name, n))
+         let* n = T.length () in
+         Lwt.return (T.name, n))
       !functorial_tables
 end
 
@@ -1502,8 +1505,8 @@ let patch_request_info ({Ocsigen.Extensions.request_info; _} as r) =
   | None -> r
 
 (* Returns if we want secure cookie *)
-let get_secure ~secure_o ~sitedata () =
-  match secure_o with None -> sitedata.secure_cookies | Some s -> s
+let get_secure ~secure_o ~sitedata =
+  Option.value secure_o ~default:sitedata.secure_cookies
 
 module To_and_of_shared = struct
   (* FIXME : work-around for weak polymorphism in create :( *)

@@ -25,10 +25,12 @@ let sequence ?loc ?attrs = function
 let str ?loc ?attrs s = Exp.constant ?loc ?attrs (Const.string s)
 let int ?loc ?attrs s = Exp.constant ?loc ?attrs (Const.int s)
 
+let str_option ~loc = function
+  | None -> [%expr None]
+  | Some s -> [%expr Some [%e str s]]
+
 let punit ?loc ?attrs () =
   Pat.construct ?loc ?attrs (mkloc_opt ?loc (Longident.Lident "()")) None
-
-let flatmap f l = List.flatten @@ List.map f l
 
 let get_extension = function
   | {pexp_desc = Pexp_extension ({txt; _}, _); _} -> txt
@@ -209,7 +211,7 @@ module Mli = struct
         Filename.chop_extension !Ocaml_common.Location.input_name ^ ".type_mli"
     | Some f -> f
 
-  let exists () = match !type_file with Some _ -> true | _ -> false
+  let exists () = Option.is_some !type_file
 
   let suppress_underscore =
     let rename =
@@ -217,18 +219,12 @@ module Mli = struct
       fun s ->
         incr c;
         Printf.sprintf "an_%s_%d" s !c
-    and has_pfix =
-      let len = String.length inferred_type_prefix in
-      fun s ->
-        String.length s >= len && String.sub s 0 len = inferred_type_prefix
-    in
+    and has_pfix = fun s -> String.starts_with ~prefix:inferred_type_prefix s in
     object
       inherit Ppxlib.Ast_traverse.map as super
 
       method! core_type ty =
         match ty.ptyp_desc with
-        (* | Ptyp_constr  (_, Ast.TyAny _, ty) *)
-        (* | Ptyp_constr (_, ty, Ast.TyAny _) -> ty *)
         | Ptyp_var var when has_pfix var ->
             super#core_type {ty with ptyp_desc = Ptyp_var (rename var)}
         | _ -> super#core_type ty
@@ -1002,19 +998,19 @@ module Make (Pass : Pass) = struct
                       txt txt) ]
           else
             let c = Context.of_string txt in
-            let l = flatmap (dispatch_str c) strs in
+            let l = List.concat_map (dispatch_str c) strs in
             maybe_reset_injected_idents c;
             l
       | Pstr_include
           { pincl_mod = {pmod_desc = Pmod_structure l; pmod_attributes = []; _}
           ; pincl_attributes = []
           ; _ } ->
-          flatmap f l
+          List.concat_map f l
       | _ -> dispatch_str !context pstr
     in
     let loc = {(file_position structs) with loc_ghost = true} in
     (module_hash_declaration loc :: Pass.prelude loc)
-    @ flatmap f structs @ Pass.postlude loc
+    @ List.concat_map f structs @ Pass.postlude loc
 
   let toplevel_signature context sigs =
     let f psig =
@@ -1035,10 +1031,10 @@ module Make (Pass : Pass) = struct
       | Psig_extension (({txt; _}, PSig sigs), _)
         when is_annotation txt ["shared"; "client"; "server"] ->
           let c = Context.of_string txt in
-          flatmap (dispatch_sig c) sigs
+          List.concat_map (dispatch_sig c) sigs
       | _ -> dispatch_sig !context psig
     in
-    flatmap f sigs
+    List.concat_map f sigs
 
   let mapper =
     let c = ref `Server in

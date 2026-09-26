@@ -84,9 +84,9 @@ external raw_unmarshal_and_unwrap :
   = "caml_unwrap_value_from_string"
 
 let unwrap s i =
-  if !Config.debug_timings then Console.console##(time (Js.string "unwrap"));
+  Config.debug_time "unwrap";
   let res = raw_unmarshal_and_unwrap apply_unwrapper s i in
-  if !Config.debug_timings then Console.console##(timeEnd (Js.string "unwrap"));
+  Config.debug_time_end "unwrap";
   res
 
 let unwrap_js s = unwrap (Js.to_bytestring s) 0

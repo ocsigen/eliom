@@ -31,10 +31,6 @@ let usage () =
   create_filter !compiler ["-help"] (help_filter 2 "STANDARD OPTIONS:");
   exit 1
 
-(* We use inode for eliom include directories, it's the easier way to
- * detect if two directories are the same *)
-let inode_of_dir d = (Unix.stat d).Unix.st_ino
-
 (** Context *)
 
 let do_dump = ref false
@@ -101,11 +97,7 @@ let compile_impl file =
     @ ["-impl"; file])
     (on_each_line add_build_dirs)
 
-let server_pp_opt impl_intf =
-  let l = ["-notype"] @ !ppopt in
-  match !pp_mode with `Ppx -> l | _ -> l @ [impl_intf_opt impl_intf]
-
-let client_pp_opt impl_intf =
+let pp_opt impl_intf =
   let l = ["-notype"] @ !ppopt in
   match !pp_mode with `Ppx -> l | _ -> l @ [impl_intf_opt impl_intf]
 
@@ -116,7 +108,7 @@ let compile_server_eliom ~impl_intf file =
   if !do_dump
   then (
     let camlp4, ppopt =
-      get_pp_dump [] (("-printer" :: "o" :: server_pp_opt impl_intf) @ [file])
+      get_pp_dump [] (("-printer" :: "o" :: pp_opt impl_intf) @ [file])
     in
     ignore (create_process camlp4 ppopt);
     exit 0);
@@ -124,7 +116,7 @@ let compile_server_eliom ~impl_intf file =
     (eliom_synonyms @ !args
     @ map_include !eliom_inc_dirs
     @ get_common_ppx ~kind:`Server ()
-    @ preprocess_opt ~kind:`Server (server_pp_opt impl_intf)
+    @ preprocess_opt ~kind:`Server (pp_opt impl_intf)
     @ [impl_intf_opt impl_intf; file])
     (on_each_line add_build_dirs)
 
@@ -149,7 +141,7 @@ let compile_client_eliom ~impl_intf file =
   if !do_dump
   then (
     let camlp4, ppopt =
-      get_pp_dump [] (("-printer" :: "o" :: client_pp_opt impl_intf) @ [file])
+      get_pp_dump [] (("-printer" :: "o" :: pp_opt impl_intf) @ [file])
     in
     ignore (create_process camlp4 ppopt);
     exit 0);
@@ -157,7 +149,7 @@ let compile_client_eliom ~impl_intf file =
     (eliom_synonyms @ !args
     @ map_include !eliom_inc_dirs
     @ get_common_ppx ~kind:`Client ()
-    @ preprocess_opt ~kind:`Client (client_pp_opt impl_intf)
+    @ preprocess_opt ~kind:`Client (pp_opt impl_intf)
     @ [impl_intf_opt impl_intf; file])
     (on_each_line add_build_dirs)
 
@@ -177,8 +169,8 @@ let compile_eliom ~impl_intf file =
 let sort () =
   let ppopt =
     match !kind with
-    | `Server | `ServerOpt -> server_pp_opt `Impl
-    | `Client -> client_pp_opt `Impl
+    | `Server | `ServerOpt -> pp_opt `Impl
+    | `Client -> pp_opt `Impl
   in
   wait
     (create_process !compiler

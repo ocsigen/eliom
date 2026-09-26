@@ -217,11 +217,11 @@ let get_cookies ?(cookie_level = `Session) () =
 
 let get_data_cookies () =
   let sp = Common.get_sp () in
-  sp.Common.sp_si.Common.si_data_session_cookies
+  sp.Common.sp_si.Common.si_state_cookies.Common.data_cookies
 
 let get_persistent_cookies () =
   let sp = Common.get_sp () in
-  sp.Common.sp_si.Common.si_persistent_session_cookies
+  sp.Common.sp_si.Common.si_state_cookies.Common.persistent_cookies
 
 let get_previous_extension_error_code () =
   let sp = Common.get_sp () in
@@ -322,7 +322,7 @@ let get_sitedata_sp ~sp = sp.Common.sp_sitedata
 
 (***)
 
-(*VVV ici ? pour des raisons de typage... *)
+(*VVV Here? For typing reasons... *)
 let set_site_handler sitedata handler = sitedata.Common.exn_handler <- handler
 
 type raw_post_data =

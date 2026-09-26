@@ -35,76 +35,62 @@ let scan_mli_only dir =
          then Hashtbl.replace mli_only_client modname true)
     files
 
-let handle_file_client nm =
-  let subdir_copy src dst =
-    pf "(subdir Eliom\n (rule (copy# ../../%s %s)))\n" src dst
-  in
-  let copy_file extension =
-    subdir_copy nm (Filename.chop_suffix nm extension ^ Filename.extension nm)
-  in
-  if Filename.check_suffix nm ".client.ml"
-  then copy_file ".client.ml"
-  else if Filename.check_suffix nm ".shared.ml"
-  then copy_file ".shared.ml"
-  else if Filename.check_suffix nm ".client.mli"
-  then (
-    copy_file ".client.mli";
-    let modname = module_name nm in
-    if Hashtbl.mem mli_only_client modname then subdir_copy nm (modname ^ ".ml"))
-  else if Filename.check_suffix nm ".shared.mli"
-  then (
-    copy_file ".shared.mli";
-    let modname = module_name nm in
-    if Hashtbl.mem mli_only_client modname then subdir_copy nm (modname ^ ".ml"))
-  else if Filename.check_suffix nm ".eliom"
-  then
-    let nm = Filename.chop_suffix nm ".eliom" in
-    pf
-      "(subdir Eliom\n\ (rule (target %s.ml)\n\  (deps ../../%s.eliom (file ../../server/.eliom_server.objs/byte/eliom__%s.cmo))\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir ../.. (run ppx_eliom_client --as-pp -internal -server-cmo server/.eliom_server.objs/byte/eliom__%s.cmo --impl %s.eliom))))))\n"
-      nm nm
-      (String.capitalize_ascii nm)
-      (String.capitalize_ascii nm)
-      nm
-  else if Filename.check_suffix nm ".eliomi"
-  then
-    let nm = Filename.chop_suffix nm ".eliomi" in
-    pf
-      "(subdir Eliom\n\ (rule (target %s.mli) (deps ../../%s.eliomi)\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir ../.. (run ppx_eliom_client --as-pp -internal --intf %s.eliomi))))))\n"
-      nm nm nm
+let subdir_copy src dst =
+  pf "(subdir Eliom\n (rule (copy# ../../%s %s)))\n" src dst
 
-let handle_file_server nm =
-  let subdir_copy src dst =
-    pf "(subdir Eliom\n (rule (copy# ../../%s %s)))\n" src dst
-  in
-  let copy_file extension =
-    subdir_copy nm (Filename.chop_suffix nm extension ^ Filename.extension nm)
-  in
-  if Filename.check_suffix nm ".server.ml"
-  then copy_file ".server.ml"
-  else if Filename.check_suffix nm ".shared.ml"
-  then copy_file ".shared.ml"
-  else if Filename.check_suffix nm ".server.mli"
-  then (
-    copy_file ".server.mli";
-    let modname = module_name nm in
-    if Hashtbl.mem mli_only_server modname then subdir_copy nm (modname ^ ".ml"))
-  else if Filename.check_suffix nm ".shared.mli"
-  then (
-    copy_file ".shared.mli";
-    let modname = module_name nm in
-    if Hashtbl.mem mli_only_server modname then subdir_copy nm (modname ^ ".ml"))
-  else if Filename.check_suffix nm ".eliom"
-  then
-    let nm = Filename.chop_suffix nm ".eliom" in
-    pf
-      "(subdir Eliom\n\ (rule (target %s.ml) (deps ../../%s.eliom)\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir ../.. (run ppx_eliom_server --as-pp -internal --impl %s.eliom))))))\n"
-      nm nm nm
-  else if Filename.check_suffix nm ".eliomi"
-  then
-    let nm = Filename.chop_suffix nm ".eliomi" in
-    pf
-      "(subdir Eliom\n\ (rule (target %s.mli) (deps ../../%s.eliomi)\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir ../.. (run ppx_eliom_server --as-pp -internal --intf %s.eliomi))))))\n"
-      nm nm nm
+(* Copy [nm] to Eliom/, without the [extension] side suffix *)
+let copy_file nm extension =
+  subdir_copy nm (Filename.chop_suffix nm extension ^ Filename.extension nm)
+
+(* Copy an interface to Eliom/, and also use it as implementation if the
+   module has no implementation on this side *)
+let copy_interface ~mli_only nm extension =
+  copy_file nm extension;
+  let modname = module_name nm in
+  if Hashtbl.mem mli_only modname then subdir_copy nm (modname ^ ".ml")
+
+let client_eliom_rule nm =
+  pf
+    "(subdir Eliom\n\ (rule (target %s.ml)\n\  (deps ../../%s.eliom (file ../../server/.eliom_server.objs/byte/eliom__%s.cmo))\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir ../.. (run ppx_eliom_client --as-pp -internal -server-cmo server/.eliom_server.objs/byte/eliom__%s.cmo --impl %s.eliom))))))\n"
+    nm nm
+    (String.capitalize_ascii nm)
+    (String.capitalize_ascii nm)
+    nm
+
+let server_eliom_rule nm =
+  pf
+    "(subdir Eliom\n\ (rule (target %s.ml) (deps ../../%s.eliom)\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir ../.. (run ppx_eliom_server --as-pp -internal --impl %s.eliom))))))\n"
+    nm nm nm
+
+let eliomi_rule ~side nm =
+  pf
+    "(subdir Eliom\n\ (rule (target %s.mli) (deps ../../%s.eliomi)\n\  (action\n\    (with-stdout-to %%{target}\n\      (chdir ../.. (run ppx_eliom_%s --as-pp -internal --intf %s.eliomi))))))\n"
+    nm nm side nm
+
+(* Print the rules for file [nm] on the given side ("client" or "server") *)
+let handle_file ~side ~mli_only ~eliom_rule nm =
+  let side_ml = "." ^ side ^ ".ml" and side_mli = "." ^ side ^ ".mli" in
+  let is extension = Filename.check_suffix nm extension in
+  if is side_ml
+  then copy_file nm side_ml
+  else if is ".shared.ml"
+  then copy_file nm ".shared.ml"
+  else if is side_mli
+  then copy_interface ~mli_only nm side_mli
+  else if is ".shared.mli"
+  then copy_interface ~mli_only nm ".shared.mli"
+  else if is ".eliom"
+  then eliom_rule (Filename.chop_suffix nm ".eliom")
+  else if is ".eliomi"
+  then eliomi_rule ~side (Filename.chop_suffix nm ".eliomi")
+
+let handle_file_client =
+  handle_file ~side:"client" ~mli_only:mli_only_client
+    ~eliom_rule:client_eliom_rule
+
+let handle_file_server =
+  handle_file ~side:"server" ~mli_only:mli_only_server
+    ~eliom_rule:server_eliom_rule
 
 let () =
   let dir = Sys.argv.(2) in

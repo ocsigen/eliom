@@ -19,7 +19,7 @@
  *)
 
 open Lib
-open Lwt
+open Lwt.Syntax
 
 let section = Logs.Src.create "eliom:service"
 
@@ -80,8 +80,8 @@ module type PARAM = sig
       -> (Table.t ref * Common.page_table_key, Common.na_key_serv) Either.t
       -> Node.t
 
-    val get : t -> (int * int * Table.t Common.dircontent ref) list
-    val set : t -> (int * int * Table.t Common.dircontent ref) list -> unit
+    val get : t -> Table.t Common.service_table list
+    val set : t -> Table.t Common.service_table list -> unit
   end
 end
 
@@ -97,24 +97,26 @@ module Make (P : PARAM) = struct
         k : P.result Lwt.t
     =
     let sp = P.make_params site_data info urlsuffix fullsessname in
-    Lwt.catch
-      (fun () -> Lwt.return (P.Table.find k !pagetableref))
-      (function Not_found -> fail Common.Eliom_404 | e -> fail e)
-    >>= fun (node, l) ->
+    let* node, l =
+      Lwt.catch
+        (fun () -> Lwt.return (P.Table.find k !pagetableref))
+        (function Not_found -> Lwt.fail Common.Eliom_404 | e -> Lwt.fail e)
+    in
     let rec aux toremove = function
-      | [] -> Lwt.return (Common.Notfound Common.Eliom_Wrong_parameter, [])
+      | [] -> Lwt.return (Error Common.Eliom_Wrong_parameter, [])
       | ({Common.s_max_use; s_expire; s_f; _} as a) :: l -> (
         match s_expire with
         | Some (_, e) when !e < now ->
             (* Service expired. Removing it. *)
             Logs.info ~src:section (fun fmt ->
               fmt "Service expired. Removing it");
-            aux toremove l >>= fun (r, toremove) -> Lwt.return (r, a :: toremove)
+            let* r, toremove = aux toremove l in
+            Lwt.return (r, a :: toremove)
         | _ ->
-            catch
+            Lwt.catch
               (fun () ->
                  Logs.info ~src:section (fun fmt -> fmt "Trying a service");
-                 s_f nosuffixversion sp >>= fun p ->
+                 let* p = s_f nosuffixversion sp in
                  (* warning: the list ll may change during funct
                   if funct register something on the same URL!! *)
                  Logs.info ~src:section (fun fmt ->
@@ -139,14 +141,14 @@ module Make (P : PARAM) = struct
                          toremove)
                    | _ -> toremove
                  in
-                 Lwt.return (Common.Found p, newtoremove))
+                 Lwt.return (Ok p, newtoremove))
               (function
                 | Common.Eliom_Wrong_parameter ->
-                    aux toremove l >>= fun (r, toremove) ->
+                    let* r, toremove = aux toremove l in
                     Lwt.return (r, toremove)
-                | e -> Lwt.return (Common.Notfound e, toremove)))
+                | e -> Lwt.return (Error e, toremove)))
     in
-    aux [] l >>= fun (r, toremove) ->
+    let* r, toremove = aux [] l in
     (match node, toremove with
     | _, [] -> ()
     | Some node, _ ->
@@ -175,9 +177,7 @@ module Make (P : PARAM) = struct
           | [] -> newptr
           | newlist -> P.Table.add k (None, newlist) newptr
       with Not_found -> ()));
-    match r with
-    | Common.Found r -> Lwt.return (r : P.result)
-    | Common.Notfound e -> fail e
+    match r with Ok r -> Lwt.return (r : P.result) | Error e -> Lwt.fail e
 
   let remove_id services id =
     List.filter (fun {Common.s_id; _} -> s_id <> id) services
@@ -273,12 +273,12 @@ module Make (P : PARAM) = struct
 
   let add_dircontent dc (key, (elt : P.Table.t Common.direlt ref)) =
     match dc with
-    | Common.Vide -> Common.Table (String.Table.add key elt String.Table.empty)
+    | Common.Empty -> Common.Table (String.Table.add key elt String.Table.empty)
     | Common.Table t -> Common.Table (String.Table.add key elt t)
 
   let find_dircontent dc k =
     match dc with
-    | Common.Vide -> raise Not_found
+    | Common.Empty -> raise Not_found
     | Common.Table t -> String.Table.find k t
 
   let add_or_remove_service f tables table url_act page_table_key va =
@@ -317,12 +317,23 @@ module Make (P : PARAM) = struct
     let rec find_table = function
       | [] ->
           let t = ref (Common.empty_dircontent ()) in
-          t, [generation, priority, t]
-      | (g, p, t) :: _ as l when g = generation && p = priority -> t, l
-      | (g, p, _) :: _ as l when g < generation || p < priority ->
+          ( t
+          , [ { Common.st_generation = generation
+              ; st_priority = priority
+              ; st_content = t } ] )
+      | {Common.st_generation = g; st_priority = p; st_content = t} :: _ as l
+        when g = generation && p = priority ->
+          t, l
+      | {Common.st_generation = g; st_priority = p; _} :: _ as l
+        when g < generation || p < priority ->
           let t = ref (Common.empty_dircontent ()) in
-          t, (generation, priority, t) :: l
-      | ((g, p, _) as a) :: l when g = generation && p > priority ->
+          ( t
+          , { Common.st_generation = generation
+            ; st_priority = priority
+            ; st_content = t }
+            :: l )
+      | ({Common.st_generation = g; st_priority = p; _} as a) :: l
+        when g = generation && p > priority ->
           let t, ll = find_table l in
           t, a :: ll
       | _ -> assert false
@@ -334,7 +345,7 @@ module Make (P : PARAM) = struct
   let remove_service tables path k unique_id =
     let rec aux = function
       | [] -> ()
-      | (_, _, table) :: l -> (
+      | {Common.st_content = table; _} :: l -> (
         try
           add_or_remove_service remove_page_table tables table path k unique_id
         with Not_found -> aux l)
@@ -404,23 +415,21 @@ module Make (P : PARAM) = struct
           | Common.Dir _ -> Lwt.fail Exn1
           | Common.File page_table_ref -> find true page_table_ref None
         with e -> Lwt.fail e)
-      (*      | ""::l -> search_page_table dircontent l *)
-      (* We do not remove "//" any more
-           because of optional suffixes *)
+      (* We do not remove "//" any more because of optional suffixes *)
       | a :: l -> aux (Some a) l
     in
     let search_by_priority_generation tables path =
       (* New in 1.91: There is now one table for each pair
          (generation, priority) *)
       List.fold_left
-        (fun prev (_prio, _gen, table) ->
+        (fun prev {Common.st_content = table; _} ->
            Lwt.catch
              (fun () -> prev)
              (function
                | Exn1 | Common.Eliom_404 | Common.Eliom_Wrong_parameter ->
                    search_page_table !table path
-               | e -> fail e))
-        (fail Exn1) tables
+               | e -> Lwt.fail e))
+        (Lwt.fail Exn1) tables
     in
     Lwt.catch
       (fun () ->

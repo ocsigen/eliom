@@ -288,7 +288,7 @@ module FakeReact = struct
     let const ?(synced = false) x = x, synced
     let synced (_, b) = b
     let map (f : 'a -> 'b) ((x, b) : 'a t) : 'b t = f x, b
-    let fmap f i (s, b) = (match f s with Some v -> v | None -> i), b
+    let fmap f i (s, b) = Option.value (f s) ~default:i, b
 
     let merge f acc l =
       let f (acc, acc_b) (x, b) = f acc x, acc_b && b in
@@ -719,9 +719,7 @@ module ReactiveData = struct
 
     let signal ?eq (s : 'a FakeReactiveData.RList.t Value.t) =
       let sv =
-        let eq =
-          match eq with Some eq -> Some (Value.local eq) | None -> None
-        in
+        let eq = Option.map Value.local eq in
         FakeReactiveData.RList.signal ?eq (Value.local s)
       and cv =
         [%client.unsafe
@@ -739,9 +737,7 @@ module ReactiveData = struct
 
     let from_signal ?eq (s : 'a list React.S.t) : 'a t =
       let sv =
-        let eq =
-          match eq with Some eq -> Some (Value.local eq) | None -> None
-        in
+        let eq = Option.map Value.local eq in
         FakeReactiveData.RList.from_signal ?eq (Value.local s)
       and cv =
         [%client.unsafe

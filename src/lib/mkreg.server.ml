@@ -1,5 +1,3 @@
-open Lwt.Syntax
-
 (* Ocsigen
  * http://www.ocsigen.org
  * Module Mkreg
@@ -20,8 +18,8 @@ open Lwt.Syntax
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Lwt.Syntax
 module S = Service
-open Lwt.Infix
 
 let suffix_redir_uri_key = Polytables.make_key ()
 
@@ -153,6 +151,12 @@ let send_with_cookies
   in
   Lwt.return (Ocsigen.Response.update result ~cookies ~response)
 
+(* Where a service is registered: the global table of a site, or the table
+   of a session *)
+type registration_table =
+  | Global_table of Common.tables
+  | Session_table of Common.server_params * Common.user_scope * bool option
+
 let register_aux
       pages
       ?options
@@ -166,6 +170,34 @@ let register_aux
       ?(error_handler = fun l -> raise (Common.Eliom_Typing_Error l))
       page_generator
   =
+  (* The table where the service is registered *)
+  let registration_table () =
+    match table with
+    | Global_table globtbl -> globtbl
+    | Session_table (sp, scope, secure_session) ->
+        !(State.get_session_service_table ?secure:secure_session ~scope ~sp ())
+  in
+  (* For a CSRF-safe coservice: the table that stores the delayed
+     registration function, and the function giving the table where each
+     new coservice is registered *)
+  let csrf_safe_tables ~scope ~secure_session =
+    match table with
+    | Global_table globtbl ->
+        ( globtbl
+        , fun ~sp ->
+            (* we do not register in global table,
+               but in the table specified while creating
+               the csrf safe service *)
+            !(State.get_session_service_table ?secure:secure_session ~scope ~sp
+                ()) )
+    | Session_table (sp, ct, sec) ->
+        if secure_session <> sec || ct <> scope
+        then raise S.Wrong_session_table_for_CSRF_safe_coservice;
+        let tablereg =
+          !(State.get_session_service_table ?secure:secure_session ~scope ~sp ())
+        in
+        tablereg, fun ~sp:_ -> tablereg
+  in
   S.set_send_appl_content service pages.send_appl_content;
   match S.info service with
   | S.Attached attser -> (
@@ -197,249 +229,185 @@ let register_aux
                 Lwt.with_value Common.sp_key (Some sp) (fun () ->
                   let ri = Request_info.get_ri_sp sp
                   and suff = Request_info.get_suffix_sp sp in
-                  Lwt.catch
-                    (fun () ->
-                       Parameter.reconstruct_params ~sp sgpt
-                         (Some (Lwt.return (Ocsigen.Request.get_params_flat ri)))
-                         (Some (Lwt.return []))
-                         nosuffixversion suff
-                       >>= fun g ->
-                       let post_params = Request_info.get_post_params_sp sp in
-                       let files = Request_info.get_files_sp sp in
-                       Parameter.reconstruct_params ~sp sppt post_params files
-                         false None
-                       >>= fun p ->
-                       (* GRGR TODO: avoid
+                  let* content =
+                    Lwt.catch
+                      (fun () ->
+                         let* g =
+                           Parameter.reconstruct_params ~sp sgpt
+                             (Some
+                                (Lwt.return
+                                   (Ocsigen.Request.get_params_flat ri)))
+                             (Some (Lwt.return []))
+                             nosuffixversion suff
+                         in
+                         let post_params = Request_info.get_post_params_sp sp in
+                         let files = Request_info.get_files_sp sp in
+                         let* p =
+                           Parameter.reconstruct_params ~sp sppt post_params
+                             files false None
+                         in
+                         (* GRGR TODO: avoid
                            Eliom_uri.make_string_uri_. But we need to
                            "downcast" the type of service to the
                            correct "get service". *)
-                       (if
-                          Request_info.get_http_method () = `GET
-                          && nosuffixversion && suffix_with_redirect
-                        then (
-                          if
-                            (* it is a suffix service in version
+                         let* () =
+                           if
+                             Request_info.get_http_method () = `GET
+                             && nosuffixversion && suffix_with_redirect
+                           then (
+                             if
+                               (* it is a suffix service in version
                                without suffix. We redirect. *)
-                            not (Request_info.expecting_process_page ())
-                          then
-                            let redir_uri =
-                              Eliom_uri.make_string_uri_ ~absolute:true
-                                ~service:
-                                  (service
-                                    : ( 'a
-                                        , 'b
-                                        , _
-                                        , _
-                                        , _
-                                        , S.non_ext
-                                        , S.reg
-                                        , _
-                                        , 'c
-                                        , 'd
-                                        , 'return )
-                                        S.t
-                                    :> ( 'a
-                                         , 'b
-                                         , _
-                                         , _
-                                         , _
-                                         , _
-                                         , _
-                                         , _
-                                         , 'c
-                                         , 'd
-                                         , 'return )
-                                         S.t)
-                                g
-                            in
-                            Lwt.fail (Common.Do_redirection redir_uri)
-                          else
-                            (* It is an internal application form.
+                               not (Request_info.expecting_process_page ())
+                             then
+                               let redir_uri =
+                                 Eliom_uri.make_string_uri_ ~absolute:true
+                                   ~service:
+                                     (service
+                                       : ( 'a
+                                           , 'b
+                                           , _
+                                           , _
+                                           , _
+                                           , S.non_ext
+                                           , S.reg
+                                           , _
+                                           , 'c
+                                           , 'd
+                                           , 'return )
+                                           S.t
+                                       :> ( 'a
+                                            , 'b
+                                            , _
+                                            , _
+                                            , _
+                                            , _
+                                            , _
+                                            , _
+                                            , 'c
+                                            , 'd
+                                            , 'return )
+                                            S.t)
+                                   g
+                               in
+                               Lwt.fail (Common.Do_redirection redir_uri)
+                             else
+                               (* It is an internal application form.
                                We don't redirect but we set this
                                special information for url to be displayed
                                by the browser
                                (see Request_info.rebuild_uri_without_iternal_form_info_)
                             *)
-                            let redir_uri =
-                              Eliom_uri.make_string_uri_ ~service g
-                            in
-                            let rc = Request_info.get_request_cache_sp sp in
-                            Polytables.set ~table:rc ~key:suffix_redir_uri_key
-                              ~value:redir_uri;
-                            Lwt.return_unit)
-                        else Lwt.return_unit)
-                       >>= fun () ->
-                       check_process_redir sp check_before service >>= fun () ->
-                       page_generator g p)
-                    (function
-                      | Common.Eliom_Typing_Error l -> error_handler l
-                      | e -> Lwt.fail e)
-                  >>= fun content ->
+                               let redir_uri =
+                                 Eliom_uri.make_string_uri_ ~service g
+                               in
+                               let rc = Request_info.get_request_cache_sp sp in
+                               Polytables.set ~table:rc
+                                 ~key:suffix_redir_uri_key ~value:redir_uri;
+                               Lwt.return_unit)
+                           else Lwt.return_unit
+                         in
+                         let* () =
+                           check_process_redir sp check_before service
+                         in
+                         page_generator g p)
+                      (function
+                        | Common.Eliom_Typing_Error l -> error_handler l
+                        | e -> Lwt.fail e)
+                  in
                   send_with_cookies sp pages ?options ?charset ?code
                     ?content_type ?headers content)) }
       in
       match key_meth, attserget, attserpost with
       | ( (`Post | `Put | `Delete)
         , _
-        , Common.SAtt_csrf_safe (id, scope, secure_session) ) ->
-          let tablereg, forsession =
-            match table with
-            | Either.Left globtbl -> globtbl, false
-            | Either.Right (sp, ct, sec) ->
-                if secure_session <> sec || scope <> ct
-                then raise S.Wrong_session_table_for_CSRF_safe_coservice;
-                ( !(State.get_session_service_table ?secure:secure_session
-                      ~scope ~sp ())
-                , true )
-          in
+        , Common.SAtt_csrf_safe
+            { Common.csrf_id = id
+            ; csrf_scope = scope
+            ; csrf_secure = secure_session } ) ->
+          let tablereg, table_for = csrf_safe_tables ~scope ~secure_session in
           S.set_delayed_post_registration_function tablereg id
             (fun ~sp attserget ->
                let n = S.new_state () in
                let attserpost = Common.SAtt_anon n in
-               let table =
-                 if forsession
-                 then tablereg
-                 else
-                   (* we do not register in global table,
-                         but in the table specified while creating
-                         the csrf safe service *)
-                   !(State.get_session_service_table ?secure:secure_session
-                       ~scope ~sp ())
-               in
+               let table = table_for ~sp in
                f table (attserget, attserpost);
                n)
-      | `Get, Common.SAtt_csrf_safe (id, scope, secure_session), _ ->
-          let tablereg, forsession =
-            match table with
-            | Either.Left globtbl -> globtbl, false
-            | Either.Right (sp, ct, sec) ->
-                if secure_session <> sec || ct <> scope
-                then raise S.Wrong_session_table_for_CSRF_safe_coservice;
-                ( !(State.get_session_service_table ?secure:secure_session
-                      ~scope ~sp ())
-                , true )
-          in
+      | ( `Get
+        , Common.SAtt_csrf_safe
+            { Common.csrf_id = id
+            ; csrf_scope = scope
+            ; csrf_secure = secure_session }
+        , _ ) ->
+          let tablereg, table_for = csrf_safe_tables ~scope ~secure_session in
           S.set_delayed_get_or_na_registration_function tablereg id (fun ~sp ->
             let n = S.new_state () in
             let attserget = Common.SAtt_anon n in
-            let table =
-              if forsession
-              then tablereg
-              else
-                (* we do not register in global table,
-                         but in the table specified while creating
-                         the csrf safe service *)
-                !(State.get_session_service_table ?secure:secure_session ~scope
-                    ~sp ())
-            in
+            let table = table_for ~sp in
             f table (attserget, attserpost);
             n)
       | _ ->
-          let tablereg =
-            match table with
-            | Either.Left globtbl -> globtbl
-            | Either.Right (sp, scope, secure_session) ->
-                !(State.get_session_service_table ?secure:secure_session ~scope
-                    ~sp ())
-          in
+          let tablereg = registration_table () in
           f tablereg (attserget, attserpost))
   | S.Nonattached naser -> (
       let na_name = S.na_name naser in
       let f table na_name =
         Route.add_naservice table na_name
-          ( (match S.max_use service with
-            | None -> None
-            | Some i -> Some (ref i))
-          , (match S.timeout service with
-            | None -> None
-            | Some t -> Some (t, ref (t +. Unix.time ())))
+          ( Option.map ref (S.max_use service)
+          , Option.map (fun t -> t, ref (t +. Unix.time ())) (S.timeout service)
           , fun sp ->
               Lwt.with_value Common.sp_key (Some sp) (fun () ->
                 let ri = Request_info.get_ri_sp sp in
-                Lwt.catch
-                  (fun () ->
-                     Parameter.reconstruct_params ~sp
-                       (S.get_params_type service)
-                       (Some (Lwt.return (Ocsigen.Request.get_params_flat ri)))
-                       (Some (Lwt.return []))
-                       false None
-                     >>= fun g ->
-                     let post_params = Request_info.get_post_params_sp sp in
-                     let files = Request_info.get_files_sp sp in
-                     Parameter.reconstruct_params ~sp
-                       (S.post_params_type service)
-                       post_params files false None
-                     >>= fun p ->
-                     check_process_redir sp check_before service >>= fun () ->
-                     page_generator g p)
-                  (function
-                    | Common.Eliom_Typing_Error l -> error_handler l
-                    | e -> Lwt.fail e)
-                >>= fun content ->
+                let* content =
+                  Lwt.catch
+                    (fun () ->
+                       let* g =
+                         Parameter.reconstruct_params ~sp
+                           (S.get_params_type service)
+                           (Some
+                              (Lwt.return (Ocsigen.Request.get_params_flat ri)))
+                           (Some (Lwt.return []))
+                           false None
+                       in
+                       let post_params = Request_info.get_post_params_sp sp in
+                       let files = Request_info.get_files_sp sp in
+                       let* p =
+                         Parameter.reconstruct_params ~sp
+                           (S.post_params_type service)
+                           post_params files false None
+                       in
+                       let* () = check_process_redir sp check_before service in
+                       page_generator g p)
+                    (function
+                      | Common.Eliom_Typing_Error l -> error_handler l
+                      | e -> Lwt.fail e)
+                in
                 send_with_cookies sp pages ?options ?charset ?code ?content_type
                   ?headers content) )
       in
       match na_name with
-      | Common.SNa_get_csrf_safe (id, scope, secure_session) ->
+      | Common.SNa_get_csrf_safe
+          {Common.csrf_id = id; csrf_scope = scope; csrf_secure = secure_session}
+        ->
           (* CSRF safe coservice: we'll do the registration later *)
-          let tablereg, forsession =
-            match table with
-            | Either.Left globtbl -> globtbl, false
-            | Either.Right (sp, ct, sec) ->
-                if secure_session <> sec || ct <> scope
-                then raise S.Wrong_session_table_for_CSRF_safe_coservice;
-                ( !(State.get_session_service_table ?secure:secure_session
-                      ~scope ~sp ())
-                , true )
-          in
+          let tablereg, table_for = csrf_safe_tables ~scope ~secure_session in
           S.set_delayed_get_or_na_registration_function tablereg id (fun ~sp ->
             let n = S.new_state () in
             let na_name = Common.SNa_get' n in
-            let table =
-              if forsession
-              then tablereg
-              else
-                (* we do not register in global table,
-                         but in the table specified while creating
-                         the csrf safe service *)
-                !(State.get_session_service_table ?secure:secure_session ~scope
-                    ~sp ())
-            in
+            let table = table_for ~sp in
             f table na_name; n)
-      | Common.SNa_post_csrf_safe (id, scope, secure_session) ->
+      | Common.SNa_post_csrf_safe
+          {Common.csrf_id = id; csrf_scope = scope; csrf_secure = secure_session}
+        ->
           (* CSRF safe coservice: we'll do the registration later *)
-          let tablereg, forsession =
-            match table with
-            | Either.Left globtbl -> globtbl, false
-            | Either.Right (sp, ct, sec) ->
-                if secure_session <> sec || ct <> scope
-                then raise S.Wrong_session_table_for_CSRF_safe_coservice;
-                ( !(State.get_session_service_table ?secure:secure_session
-                      ~scope ~sp ())
-                , true )
-          in
+          let tablereg, table_for = csrf_safe_tables ~scope ~secure_session in
           S.set_delayed_get_or_na_registration_function tablereg id (fun ~sp ->
             let n = S.new_state () in
             let na_name = Common.SNa_post' n in
-            let table =
-              if forsession
-              then tablereg
-              else
-                (* we do not register in global table,
-                         but in the table specified while creating
-                         the csrf safe service *)
-                !(State.get_session_service_table ?secure:secure_session ~scope
-                    ~sp ())
-            in
+            let table = table_for ~sp in
             f table na_name; n)
       | _ ->
-          let tablereg =
-            match table with
-            | Either.Left globtbl -> globtbl
-            | Either.Right (sp, scope, secure_session) ->
-                !(State.get_session_service_table ?secure:secure_session ~scope
-                    ~sp ())
-          in
+          let tablereg = registration_table () in
           f tablereg na_name)
 
 let send pages ?options ?charset ?code ?content_type ?headers content =
@@ -473,7 +441,7 @@ let register
         | S.Nonattached naser ->
             Common.remove_unregistered_na sitedata (S.na_name naser));
         register_aux pages ?options ?charset ?code ?content_type ?headers
-          (Either.Left sitedata.Common.global_services) ~service ?error_handler
+          (Global_table sitedata.Common.global_services) ~service ?error_handler
           page_gen
       in
       match Common.global_register_allowed () with
@@ -491,13 +459,13 @@ let register
   | None, Some _ | Some `Site, Some _ ->
       register_aux pages ?options ?charset ?code ?content_type ?headers
         ?error_handler
-        (Either.Left (State.get_global_table ()))
+        (Global_table (State.get_global_table ()))
         ~service page_gen
-  | _, None -> raise (failwith "Missing sp while registering service")
+  | _, None -> failwith "Missing sp while registering service"
   | Some (#Common.user_scope as scope), Some sp ->
       register_aux pages ?options ?charset ?code ?content_type ?headers
         ?error_handler
-        (Either.Right (sp, scope, secure_session))
+        (Session_table (sp, scope, secure_session))
         ~service page_gen
 
 (* WARNING: if we create a new service without registering it,
@@ -630,7 +598,7 @@ struct
   let pages =
     { send = Pages.send
     ; send_appl_content = Pages.send_appl_content
-    ; result_of_http_result = (fun x -> x) }
+    ; result_of_http_result = Fun.id }
 
   let register ?app = register pages ?app
   let create ?app = create pages ?app

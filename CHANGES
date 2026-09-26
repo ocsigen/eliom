@@ -1,7 +1,7 @@
 ===== 13.0~dev =====
 * Dependencies
-** Requires Ocsigen Server >= 8.0 (wrapped module names), TyXML >= 5.0,
-   ocsipersist >= 3.1 (JSON frontends with the Decoding_error
+** Requires OCaml >= 4.14, Ocsigen Server >= 8.0 (wrapped module names),
+   TyXML >= 5.0, ocsipersist >= 3.1 (JSON frontends with the Decoding_error
    exception) and js_of_ocaml >= 6.4. BREAKING: TyXML 5 changes some
    element and attribute types; see TyXML's own changelog.
 * PPX: the Eliom syntax extension is now a no-op on plain .ml/.mli files;
@@ -111,6 +111,13 @@
 ** The internal client exception
    Request_info.Eliom_no_raw_post_data_on_client was renamed to
    No_raw_post_data_on_client (no alias kept, as it was not exposed).
+* Browser support
+** The client side of Eliom applications now requires a browser with
+   the History API, querySelectorAll, compareDocumentPosition,
+   document.createEvent and addEventListener, that is any browser
+   since Internet Explorer 10. The fallbacks for older browsers (URLs
+   encoded in the fragment, DOM walks, Internet Explorer 8 workarounds)
+   are removed.
 * Bug fixes
 ** Syntax.is_site_available now checks that the sitedata stack is
    actually non-empty during initialisation, instead of just
