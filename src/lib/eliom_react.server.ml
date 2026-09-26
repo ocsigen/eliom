@@ -1,5 +1,3 @@
-open Lwt.Syntax
-
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2010
@@ -22,6 +20,7 @@ open Lwt.Syntax
 
 (* Module for event wrapping and related functions *)
 
+open Lwt.Syntax
 open Lwt_react
 
 module Down = struct

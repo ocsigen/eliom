@@ -1,5 +1,3 @@
-open Lwt.Syntax
-
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2010-2011
@@ -21,6 +19,7 @@ open Lwt.Syntax
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Lwt.Syntax
 open Lib
 
 let section = Logs.Src.create "eliom:bus"

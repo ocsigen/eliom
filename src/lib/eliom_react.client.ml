@@ -1,5 +1,3 @@
-open Lwt.Syntax
-
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2010-2011
@@ -22,6 +20,7 @@ open Lwt.Syntax
  *)
 
 (* Module for event unwrapping *)
+open Lwt.Syntax
 open Lwt_react
 open Lwt.Infix
 

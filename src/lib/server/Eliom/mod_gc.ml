@@ -1,5 +1,3 @@
-open Lwt.Syntax
-
 (* Ocsigen
  * http://www.ocsigen.org
  * Module eliommod_gc.ml
@@ -21,6 +19,8 @@ open Lwt.Syntax
  *)
 
 (** Garbage collection of services and session data *)
+
+open Lwt.Syntax
 
 let section = Logs.Src.create "eliom:gc"
 

@@ -1,5 +1,3 @@
-open Lwt.Syntax
-
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2010-2011
@@ -23,6 +21,7 @@ open Lwt.Syntax
 
 (* This file is for client-side comet-programming. *)
 
+open Lwt.Syntax
 open Js_of_ocaml
 open Lib
 module Ecb = Comet_base

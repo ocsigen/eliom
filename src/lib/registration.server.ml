@@ -1,5 +1,3 @@
-open Lwt.Syntax
-
 (* Ocsigen
  * http://www.ocsigen.org
  * Module Registration
@@ -20,6 +18,7 @@ open Lwt.Syntax
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Lwt.Syntax
 open Lwt.Infix
 
 let headers_with_content_type ?charset ?content_type headers =
