@@ -333,7 +333,7 @@ end = struct
         { queue : string Comet_base.channel_data Queue.t
         ; (* Reference to the event stream, so that it does not
              get garbage collected *)
-          mutable events : Obj.t option }
+          retained_events : bool React.event option ref }
     | Stream of
         { mutable stream : string Comet_base.channel_data Lwt_stream.t
         ; mutable waiter : waiter }
@@ -640,30 +640,27 @@ end = struct
     let name = name_of_scope (scope :> Common.user_scope) ^ name in
     let handler = get_handler scope in
     Logs.info ~src:section (fun fmt -> fmt "create channel %s" name);
-    let channel = Events {queue = Queue.create (); events = None} in
-    (match channel with
-    | Stream _ -> assert false
-    | Events channel ->
-        channel.events <-
-          Some
-            (Obj.repr
-               (React.E.fold
-                  (fun full x ->
-                     let queue = channel.queue in
-                     full
-                     ||
-                     if Queue.length queue > size
-                     then (
-                       channel.events <- None;
-                       Queue.clear queue;
-                       Queue.push Comet_base.Full queue;
-                       signal_update handler `Data;
-                       true)
-                     else (
-                       Queue.push (Comet_base.Data (marshal x)) queue;
-                       signal_update handler `Data;
-                       false))
-                  false events)));
+    let queue = Queue.create () in
+    let retained_events = ref None in
+    retained_events :=
+      Some
+        (React.E.fold
+           (fun full x ->
+              full
+              ||
+              if Queue.length queue > size
+              then (
+                retained_events := None;
+                Queue.clear queue;
+                Queue.push Comet_base.Full queue;
+                signal_update handler `Data;
+                true)
+              else (
+                Queue.push (Comet_base.Data (marshal x)) queue;
+                signal_update handler `Data;
+                false))
+           false events);
+    let channel = Events {queue; retained_events} in
     if List.mem name handler.hd_registered_chan_id
     then (
       handler.hd_registered_chan_id <-
