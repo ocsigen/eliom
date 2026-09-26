@@ -210,40 +210,47 @@ let rec make_suffix : type a c. (a, 'b, c) params_type -> a -> string list =
       [to_json ?typ params]
   | _ -> raise (Eliom_Internal_Error "Bad parameter type in suffix")
 
-let rec aux : type a c.
+let rec construct_params_aux : type a c.
   (a, 'b, c) params_type
   -> string list option
   -> 'y
   -> a
-  -> string
-  -> string
+  -> pref:string
+  -> suff:string
   -> 'z
   -> 'x * 'y * (string * Mod_parameters.field) list
   =
- fun typ psuff nlp params pref suff l ->
+ fun typ psuff nlp params ~pref ~suff l ->
   let open Mod_parameters in
   match typ with
   | TNLParams {name; param = t; _} ->
-      let psuff, nlp, nl = aux t psuff nlp params pref suff [] in
+      let psuff, nlp, nl =
+        construct_params_aux t psuff nlp params ~pref ~suff []
+      in
       psuff, String.Table.add name nl nlp, l
   | TProd (t1, t2) ->
-      let psuff, nlp, l1 = aux t1 psuff nlp (fst params) pref suff l in
-      aux t2 psuff nlp (snd params) pref suff l1
+      let psuff, nlp, l1 =
+        construct_params_aux t1 psuff nlp (fst params) ~pref ~suff l
+      in
+      construct_params_aux t2 psuff nlp (snd params) ~pref ~suff l1
   | TOption (t, _) -> (
     match params with
     | None -> psuff, nlp, l
-    | Some v -> aux t psuff nlp v pref suff l)
+    | Some v -> construct_params_aux t psuff nlp v ~pref ~suff l)
   | TList (list_name, t) ->
       let pref2 = pref ^ list_name ^ suff ^ "." in
       fst
         (List.fold_left
            (fun ((psuff, nlp, s), i) p ->
-              aux t psuff nlp p pref2 (make_list_suffix i) s, i + 1)
+              ( construct_params_aux t psuff nlp p ~pref:pref2
+                  ~suff:(make_list_suffix i) s
+              , i + 1 ))
            ((psuff, nlp, l), 0)
            params)
   | TSet t ->
       List.fold_left
-        (fun (psuff, nlp, l) v -> aux t psuff nlp v pref suff l)
+        (fun (psuff, nlp, l) v ->
+           construct_params_aux t psuff nlp v ~pref ~suff l)
         (psuff, nlp, l) params
   | TAtom (name, TBool) ->
       ( psuff
@@ -263,8 +270,8 @@ let rec aux : type a c.
         :: l )
   | TSum (t1, t2) -> (
     match params with
-    | Inj1 v -> aux t1 psuff nlp v pref suff l
-    | Inj2 v -> aux t2 psuff nlp v pref suff l)
+    | Inj1 v -> construct_params_aux t1 psuff nlp v ~pref ~suff l
+    | Inj2 v -> construct_params_aux t2 psuff nlp v ~pref ~suff l)
   | TFile name -> psuff, nlp, (pref ^ name ^ suff, insert_file params) :: l
   | TUserType (name, tao) ->
       ( psuff
@@ -272,7 +279,8 @@ let rec aux : type a c.
       , ( pref ^ name ^ suff
         , insert_string (Common.To_and_of_shared.to_string tao params) )
         :: l )
-  | TTypeFilter (t, _check) -> aux t psuff nlp params pref suff l
+  | TTypeFilter (t, _check) ->
+      construct_params_aux t psuff nlp params ~pref ~suff l
   | TUnit -> psuff, nlp, l
   | TAny -> psuff, nlp, l @ List.map (fun (x, v) -> x, insert_string v) params
   | TConst _ -> psuff, nlp, l
@@ -290,7 +298,8 @@ let rec aux : type a c.
 (* The following function takes a 'a params_type and a 'a and
    constructs the list of parameters (GET or POST)
    (This is a marshalling function towards HTTP parameters format) *)
-let construct_params_list_raw nlp typ params = aux typ None nlp params "" "" []
+let construct_params_list_raw nlp typ params =
+  construct_params_aux typ None nlp params ~pref:"" ~suff:"" []
 
 (** Given a parameter type, get the two functions
     that converts from and to strings. You should
