@@ -1359,8 +1359,8 @@ let set_current_uri, get_current_uri =
 let current_pseudo_fragment = ref ""
 let url_fragment_prefix = "!"
 let url_fragment_prefix_with_sharp = "#!"
-let reload_function = ref None
-let set_reload_function f = reload_function := Some f
+let current_reload_function = ref None
+let set_reload_function f = current_reload_function := Some f
 
 let set_max_dist_history_doms limit =
   History.max_num_doms := limit;
@@ -1459,7 +1459,7 @@ let change_url_string ~replace uri =
     let this_page = get_this_page () in
     if replace
     then (
-      Option.iter stash_reload_function !reload_function;
+      Option.iter stash_reload_function !current_reload_function;
       Dom_html.window##.history##replaceState
         (Js.Opt.return
            (Js.string
@@ -1470,7 +1470,7 @@ let change_url_string ~replace uri =
          else Js.Opt.return (Js.string uri)))
     else (
       update_state ();
-      Option.iter stash_reload_function !reload_function;
+      Option.iter stash_reload_function !current_reload_function;
       Dom_html.window##.history##pushState
         (Js.Opt.return
            (Js.string
@@ -1504,7 +1504,7 @@ let change_url
       params
   =
   Logs.debug ~src:section_page (fun fmt -> fmt "Change url");
-  (reload_function :=
+  (current_reload_function :=
      match Service.xhr_with_cookies service with
      | None
        when (https = Some true && not Request_info.ssl_)
@@ -1521,7 +1521,7 @@ let change_url
 
 let set_template_content ~replace ~uri ?fragment =
   let really_set content () =
-    reload_function := None;
+    current_reload_function := None;
     (match fragment with
     | None -> change_url_string ~replace uri
     | Some fragment -> change_url_string ~replace (uri ^ "#" ^ fragment));
@@ -1637,7 +1637,7 @@ let set_content ~replace ~uri ?offset ?fragment content =
   | Some content ->
       let locked = ref true in
       let really_set () =
-        reload_function := None;
+        current_reload_function := None;
         set_uri ~replace ?fragment uri;
         (* Convert the DOM nodes from XML elements to HTML elements. *)
         let fake_page =
@@ -1904,7 +1904,8 @@ and change_page :
               We do not make the request *)
             (* I record the function to be used for void coservices: *)
             Option.iter
-              (fun rf -> reload_function := Some (fun () -> rf get_params))
+              (fun rf ->
+                 current_reload_function := Some (fun () -> rf get_params))
               (Service.reload_fun service);
             let uri, l, l' =
               match
@@ -1949,7 +1950,7 @@ and change_page :
                    ignore_client_fun);
             (* No client-side implementation *)
             with_new_page ~replace () @@ fun () ->
-            reload_function := None;
+            current_reload_function := None;
             let cookies_info = Eliom_uri.make_cookies_info (https, service) in
             let* uri, content =
               match
@@ -2207,7 +2208,7 @@ let () =
             match rf with
             | None -> raise Not_found
             | Some f ->
-                reload_function := rf;
+                current_reload_function := rf;
                 let* () = run_lwt_callbacks ev (flush_onchangepage ()) in
                 with_new_page ~state_id ?old_page ~replace:false () @@ fun () ->
                 set_current_uri uri;
