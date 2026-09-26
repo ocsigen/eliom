@@ -172,8 +172,8 @@ val set_timeout :
    (?full_st_name:Common.full_state_name
     -> ?cookie_level:([< Common.cookie_level] as 'a)
     -> recompute_expdates:bool
-    -> bool
-    -> bool
+    -> override_configfile:bool
+    -> from_configfile:bool
     -> Common.sitedata
     -> float option
     -> unit)

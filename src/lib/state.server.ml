@@ -62,8 +62,8 @@ let set_default_global_service_state_timeout
       timeout
   =
   let sitedata = Request_info.find_sitedata "set_global_service_timeout" in
-  Mod_timeouts.set_default_global `Service cookie_level override_configfile
-    false sitedata timeout
+  Mod_timeouts.set_default_global `Service cookie_level ~override_configfile
+    ~from_configfile:false sitedata timeout
 
 let set_global_service_state_timeout
       ~cookie_scope
@@ -75,7 +75,7 @@ let set_global_service_state_timeout
   let sitedata = Request_info.find_sitedata "set_global_service_timeout" in
   let secure = Common.get_secure ~secure_o:secure ~sitedata in
   Mod_timeouts.set_global ~kind:`Service ~cookie_scope ~secure
-    ~recompute_expdates override_configfile sitedata timeout
+    ~recompute_expdates ~override_configfile sitedata timeout
 
 let set_default_global_volatile_data_state_timeout
       ~cookie_level
@@ -83,8 +83,8 @@ let set_default_global_volatile_data_state_timeout
       timeout
   =
   let sitedata = Request_info.find_sitedata "set_global_data_timeout" in
-  Mod_timeouts.set_default_global `Data cookie_level override_configfile false
-    sitedata timeout
+  Mod_timeouts.set_default_global `Data cookie_level ~override_configfile
+    ~from_configfile:false sitedata timeout
 
 let set_global_volatile_data_state_timeout
       ~cookie_scope
@@ -96,7 +96,7 @@ let set_global_volatile_data_state_timeout
   let sitedata = Request_info.find_sitedata "set_global_data_timeout" in
   let secure = Common.get_secure ~secure_o:secure ~sitedata in
   Mod_timeouts.set_global ~kind:`Data ~cookie_scope ~secure ~recompute_expdates
-    override_configfile sitedata timeout
+    ~override_configfile sitedata timeout
 
 let set_global_volatile_state_timeout
       ~cookie_scope
@@ -108,9 +108,9 @@ let set_global_volatile_state_timeout
   let sitedata = Request_info.find_sitedata "set_global_volatile_timeouts" in
   let secure = Common.get_secure ~secure_o:secure ~sitedata in
   Mod_timeouts.set_global ~kind:`Service ~cookie_scope ~secure
-    ~recompute_expdates override_configfile sitedata timeout;
+    ~recompute_expdates ~override_configfile sitedata timeout;
   Mod_timeouts.set_global ~kind:`Data ~cookie_scope ~secure ~recompute_expdates
-    override_configfile sitedata timeout
+    ~override_configfile sitedata timeout
 
 let set_default_global_persistent_data_state_timeout
       ~cookie_level
@@ -118,8 +118,8 @@ let set_default_global_persistent_data_state_timeout
       timeout
   =
   let sitedata = Request_info.find_sitedata "set_global_persistent_timeout" in
-  Mod_timeouts.set_default_global `Persistent cookie_level override_configfile
-    false sitedata timeout
+  Mod_timeouts.set_default_global `Persistent cookie_level ~override_configfile
+    ~from_configfile:false sitedata timeout
 
 let set_global_persistent_data_state_timeout
       ~cookie_scope
@@ -131,7 +131,7 @@ let set_global_persistent_data_state_timeout
   let sitedata = Request_info.find_sitedata "set_global_persistent_timeout" in
   let secure = Common.get_secure ~secure_o:secure ~sitedata in
   Mod_timeouts.set_global ~kind:`Persistent ~cookie_scope ~secure
-    ~recompute_expdates override_configfile sitedata timeout
+    ~recompute_expdates ~override_configfile sitedata timeout
 
 let get_global_service_state_timeout ?secure ~cookie_scope () =
   let sitedata = Request_info.find_sitedata "get_global_timeout" in

@@ -76,8 +76,8 @@ let set_timeout_
       ?full_st_name
       ?cookie_level
       ~recompute_expdates
-      override_configfile
-      fromconfigfile
+      ~override_configfile
+      ~from_configfile
       sitedata
       t
   =
@@ -96,9 +96,10 @@ let set_timeout_
         ()
         (* if it has been set by config file
                   and we do not ask to override, we do nothing *)
-    | _, _, Some `Session -> set sitedata (Some (t, fromconfigfile), def_tab, tl)
+    | _, _, Some `Session ->
+        set sitedata (Some (t, from_configfile), def_tab, tl)
     | _, _, Some `Client_process ->
-        set sitedata (def_bro, Some (t, fromconfigfile), tl)
+        set sitedata (def_bro, Some (t, from_configfile), tl)
     | _, _, None -> failwith "set_timeout_")
   | Some ({Common.user_scope; _} as full_st_name) ->
       (* recompute_expdates works only if full_st_name is present *)
@@ -108,11 +109,11 @@ let set_timeout_
           if override_configfile || not wasfromconf
           then
             set sitedata
-              (def_bro, def_tab, (full_st_name, (t, fromconfigfile)) :: newtl);
+              (def_bro, def_tab, (full_st_name, (t, from_configfile)) :: newtl);
           Some oldt
         with Not_found ->
           set sitedata
-            (def_bro, def_tab, (full_st_name, (t, fromconfigfile)) :: tl);
+            (def_bro, def_tab, (full_st_name, (t, from_configfile)) :: tl);
           None
       in
       if recompute_expdates
@@ -165,11 +166,20 @@ let find_global kind full_st_name sitedata =
     | _, Some (t, _), `Client_process _ -> t
     | _, _, ct -> get_default kind ct)
 
-let set_global_ ?full_st_name ?cookie_level ~kind ~recompute_expdates a =
+let set_global_
+      ?full_st_name
+      ?cookie_level
+      ~kind
+      ~recompute_expdates
+      ~override_configfile
+      ~from_configfile
+      sitedata
+      t
+  =
   set_timeout_ (sitedata_timeout kind)
     (set_sitedata_timeout kind)
     (get_default kind) (update_exp kind) ?full_st_name ?cookie_level
-    ~recompute_expdates a
+    ~recompute_expdates ~override_configfile ~from_configfile sitedata t
 
 let get_global ~kind ~cookie_scope ~secure sitedata =
   let full_st_name =
@@ -183,7 +193,7 @@ let set_global
       ~cookie_scope
       ~secure
       ~recompute_expdates
-      override_configfile
+      ~override_configfile
       sitedata
       timeout
   =
@@ -191,16 +201,16 @@ let set_global
     Common.make_full_state_name_of_sitedata ~sitedata ~secure
       ~scope:cookie_scope
   in
-  set_global_ ~kind ~full_st_name ~recompute_expdates override_configfile false
-    sitedata timeout
+  set_global_ ~kind ~full_st_name ~recompute_expdates ~override_configfile
+    ~from_configfile:false sitedata timeout
 
 let set_default_global
       kind
       cookie_level
-      override_configfile
-      fromconfigfile
+      ~override_configfile
+      ~from_configfile
       sitedata
       timeout
   =
-  set_global_ ~kind ~cookie_level ~recompute_expdates:false override_configfile
-    fromconfigfile sitedata timeout
+  set_global_ ~kind ~cookie_level ~recompute_expdates:false ~override_configfile
+    ~from_configfile sitedata timeout
