@@ -46,7 +46,6 @@ let iter_attrList
 (* Dummy type used in the following "test_*" functions to test the
    presence of methods in various browsers. *)
 class type dom_tester = object
-  method compareDocumentPosition : unit Js.optdef Js.prop
   method querySelectorAll : unit Js.optdef Js.prop
   method classList : unit Js.optdef Js.prop
   method createEvent : unit Js.optdef Js.prop
@@ -58,10 +57,6 @@ end
 let test_querySelectorAll () =
   Js.Optdef.test
     (Js.Unsafe.coerce Dom_html.document : dom_tester Js.t)##.querySelectorAll
-
-let test_compareDocumentPosition () =
-  Js.Optdef.test
-    (Js.Unsafe.coerce Dom_html.document : dom_tester Js.t)##.compareDocumentPosition
 
 let test_classList () =
   Js.Optdef.test
@@ -79,23 +74,9 @@ let test_onhashchange () =
   Js.Optdef.test
     (Js.Unsafe.coerce Dom_html.window : dom_tester Js.t)##.onhashchange
 
-let fast_ancestor (elt1 : #Dom.node Js.t) (elt2 : #Dom.node Js.t) =
+let ancestor (elt1 : #Dom.node Js.t) (elt2 : #Dom.node Js.t) =
   let open Dom.DocumentPosition in
   has elt1##(compareDocumentPosition (elt2 :> Dom.node Js.t)) contained_by
-
-let slow_ancestor (elt1 : #Dom.node Js.t) (elt2 : #Dom.node Js.t) =
-  let rec check_parent n =
-    if Js.strict_equals n (elt1 :> Dom.node Js.t)
-    then true
-    else
-      match Js.Opt.to_option n##.parentNode with
-      | None -> false
-      | Some p -> check_parent p
-  in
-  check_parent (elt2 :> Dom.node Js.t)
-
-let ancestor =
-  if test_compareDocumentPosition () then fast_ancestor else slow_ancestor
 
 let fast_select_request_nodes root =
   root##(querySelectorAll (Js.string ("." ^ Runtime.RawXML.request_node_class)))
