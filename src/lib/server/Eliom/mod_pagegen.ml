@@ -45,6 +45,14 @@ let def_handler e = Lwt.fail e
 (* Update cookie tables *)
 let update_cookie_table ?now sitedata (ci, sci) =
   let now = match now with Some n -> n | None -> Unix.gettimeofday () in
+  let expiry kind name = function
+    | Common.TGlobal ->
+        Option.map
+          (fun t -> t +. now)
+          (Mod_timeouts.find_global kind name sitedata)
+    | Common.TNone -> None
+    | Common.TSome t -> Some (t +. now)
+  in
   let update_exp (service_cookies_info, data_cookies_info, pers_cookies_info) =
     (* Update service expiration date and value *)
     Common.Full_state_name_table.iter
@@ -52,18 +60,9 @@ let update_cookie_table ?now sitedata (ci, sci) =
          match !newr with
          | Common.SCData_session_expired | Common.SCNo_data ->
              () (* The cookie has been removed *)
-         | Common.SC newc -> (
+         | Common.SC newc ->
              newc.Common.sc_exp :=
-               match !(newc.Common.sc_timeout) with
-               | Common.TGlobal -> (
-                   let globaltimeout =
-                     Mod_timeouts.find_global `Service name sitedata
-                   in
-                   match globaltimeout with
-                   | None -> None
-                   | Some t -> Some (t +. now))
-               | Common.TNone -> None
-               | Common.TSome t -> Some (t +. now)))
+               expiry `Service name !(newc.Common.sc_timeout))
       !service_cookies_info;
     (* Update "in memory data" expiration date and value *)
     Common.Full_state_name_table.iter
@@ -79,18 +78,8 @@ let update_cookie_table ?now sitedata (ci, sci) =
          match !newr with
          | Common.SCData_session_expired | Common.SCNo_data ->
              () (* The cookie has been removed *)
-         | Common.SC newc -> (
-             newc.Common.dc_exp :=
-               match !(newc.Common.dc_timeout) with
-               | Common.TGlobal -> (
-                   let globaltimeout =
-                     Mod_timeouts.find_global `Data name sitedata
-                   in
-                   match globaltimeout with
-                   | None -> None
-                   | Some t -> Some (t +. now))
-               | Common.TNone -> None
-               | Common.TSome t -> Some (t +. now)))
+         | Common.SC newc ->
+             newc.Common.dc_exp := expiry `Data name !(newc.Common.dc_timeout))
       !data_cookies_info;
     let module Expiry_tolerance = struct
       (* Avoid cookie updates that only change the cookie
@@ -125,16 +114,7 @@ let update_cookie_table ?now sitedata (ci, sci) =
                  Lwt.return ()
              | Common.SC newc -> (
                  let newexp =
-                   match !(newc.Common.pc_timeout) with
-                   | Common.TGlobal -> (
-                       let globaltimeout =
-                         Mod_timeouts.find_global `Persistent name sitedata
-                       in
-                       match globaltimeout with
-                       | None -> None
-                       | Some t -> Some (t +. now))
-                   | Common.TNone -> None
-                   | Common.TSome t -> Some (t +. now)
+                   expiry `Persistent name !(newc.Common.pc_timeout)
                  in
                  match oldvalue with
                  | Some (_, oldti, oldexp, oldgrp)
