@@ -1240,7 +1240,7 @@ module Ext = struct
                 Mod_sessiongroups.Pers.close_persistent_session2 ~cookie_level
                   sitedata session_group cookie)
           (function Not_found -> Lwt.return_unit | exc -> Lwt.fail exc)
-  (*VVV!!! est-ce que session_group est fullsessgrp ? *)
+  (*VVV!!! Is session_group a full session group name (fullsessgrp)? *)
 
   let fold_sub_states_aux_aux
         ?(sitedata = Request_info.find_sitedata "State (state iterator)")

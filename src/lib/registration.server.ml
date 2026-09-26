@@ -1183,8 +1183,8 @@ module App_base (App_param : Registration_sigs.APP_PARAM) = struct
         content
     =
     let sp = Common.get_sp () in
-    (* GRGR FIXME et si le nom de l'application diffère ?? Il faut
-       renvoyer un full_redirect... TODO *)
+    (* GRGR FIXME What if the application name differs? We should send
+       a full_redirect... TODO *)
     if sp.Common.sp_client_appl_name <> Some App_param.application_name
     then
       State.set_cookie ~cookie_level:`Client_process

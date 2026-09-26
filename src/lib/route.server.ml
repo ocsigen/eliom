@@ -131,7 +131,7 @@ let get_page now ({Common.request = ri; session_info = si; _} as info) sitedata
                  info)
             (function
               | (Common.Eliom_404 | Common.Eliom_Wrong_parameter) as exn -> (
-                (* si pas trouvé avec, on essaie sans l'état *)
+                (* If not found with the state, try without it *)
                 match si.Common.si_state_info with
                 | Common.RAtt_no, Common.RAtt_no -> fail exn
                 | g, Common.RAtt_anon _ | g, Common.RAtt_named _ ->
