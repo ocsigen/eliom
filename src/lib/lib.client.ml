@@ -98,7 +98,7 @@ let trace fmts =
   then Printf.ksprintf (fun msg -> Logs.info (fun fmt -> fmt ">> %s" msg)) fmts
   else Printf.ksprintf ignore fmts
 
-(* Debbuging *)
+(* Debugging *)
 let jsalert a = Dom_html.window##(alert a)
 let alert fmt = Printf.ksprintf (fun s -> jsalert (Js.string s)) fmt
 

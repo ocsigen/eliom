@@ -47,8 +47,8 @@ val select_request_nodes :
     in the page annotated to be:
     * request unique nodes *)
 
-val ancessor : #Dom.node Js.t -> #Dom.node Js.t -> bool
-(** [ancessor n1 n2] is true if [n1] is an ancessor of [n2] *)
+val ancestor : #Dom.node Js.t -> #Dom.node Js.t -> bool
+(** [ancestor n1 n2] is true if [n1] is an ancestor of [n2] *)
 
 val createEvent : Js.js_string Js.t -> #Dom_html.event Js.t
 
