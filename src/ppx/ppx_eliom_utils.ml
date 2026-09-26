@@ -209,7 +209,7 @@ module Mli = struct
         Filename.chop_extension !Ocaml_common.Location.input_name ^ ".type_mli"
     | Some f -> f
 
-  let exists () = match !type_file with Some _ -> true | _ -> false
+  let exists () = Option.is_some !type_file
 
   let suppress_underscore =
     let rename =

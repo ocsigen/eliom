@@ -72,9 +72,7 @@ let wrap service att f _ suffix =
   and pp = Service.post_params_type service
   and l = (Request_info.get_sess_info ()).si_all_get_but_nl
   and l' =
-    match (Request_info.get_sess_info ()).si_all_post_params with
-    | Some l -> l
-    | None -> []
+    Option.value (Request_info.get_sess_info ()).si_all_post_params ~default:[]
   in
   match Service.get_name att with
   | Common.SAtt_named s | Common.SAtt_anon s -> (

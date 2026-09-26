@@ -303,10 +303,7 @@ let send
              match r.XmlHttpRequest.headers Common.half_xhr_redir_header with
              | None | Some "" -> Lwt.return (r.XmlHttpRequest.url, None)
              | Some _uri ->
-                 redirect_post url
-                   (match post_args with
-                   | Some post_args -> post_args
-                   | None -> []);
+                 redirect_post url (Option.value post_args ~default:[]);
                  Lwt.fail Program_terminated)
            | Some uri ->
                if i < max_redirection_level
