@@ -692,8 +692,6 @@ let createDocumentScroll () =
 let current_position = ref top_position
 
 let _ =
-  (* HACK: Remove this when js_of_ocaml 1.1.2 or greater is released... *)
-  (* window##onscroll <- *)
   ignore
     (Dom.addEventListener Dom_html.document (Dom.Event.make "scroll")
        (Dom_html.handler (fun _event ->
