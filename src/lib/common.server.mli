@@ -757,7 +757,7 @@ type eliom_js_page_data =
 val get_site_dir : sitedata -> Url.path
 val get_site_dir_string : sitedata -> string
 val get_config_info : sitedata -> Ocsigen.Extensions.config_info
-val get_secure : secure_o:bool option -> sitedata:sitedata -> unit -> bool
+val get_secure : secure_o:bool option -> sitedata:sitedata -> bool
 val is_client_app : bool ref
 val make_actual_path : string list -> string list
 
