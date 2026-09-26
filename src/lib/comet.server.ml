@@ -1,5 +1,3 @@
-open Lwt.Syntax
-
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2010-2011
@@ -23,6 +21,7 @@ open Lwt.Syntax
 
 (* TODO: handle ended stream ( and on client side too ) *)
 
+open Lwt.Syntax
 module Ecb = Comet_base
 
 let section = Logs.Src.create "eliom:comet"
