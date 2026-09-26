@@ -46,21 +46,11 @@ let iter_attrList
 (* Dummy type used in the following "test_*" functions to test the
    presence of methods in various browsers. *)
 class type dom_tester = object
-  method querySelectorAll : unit Js.optdef Js.prop
-  method classList : unit Js.optdef Js.prop
   method createEvent : unit Js.optdef Js.prop
   method onpageshow : unit Js.optdef Js.prop
   method onpagehide : unit Js.optdef Js.prop
   method onhashchange : unit Js.optdef Js.prop
 end
-
-let test_querySelectorAll () =
-  Js.Optdef.test
-    (Js.Unsafe.coerce Dom_html.document : dom_tester Js.t)##.querySelectorAll
-
-let test_classList () =
-  Js.Optdef.test
-    (Js.Unsafe.coerce Dom_html.document##.documentElement : dom_tester Js.t)##.classList
 
 let test_createEvent () =
   Js.Optdef.test
@@ -78,11 +68,11 @@ let ancestor (elt1 : #Dom.node Js.t) (elt2 : #Dom.node Js.t) =
   let open Dom.DocumentPosition in
   has elt1##(compareDocumentPosition (elt2 :> Dom.node Js.t)) contained_by
 
-let fast_select_request_nodes root =
+let select_request_nodes root =
   root##(querySelectorAll (Js.string ("." ^ Runtime.RawXML.request_node_class)))
 
-let fast_select_nodes root =
-  Config.debug_time "fast_select_nodes";
+let select_nodes root =
+  Config.debug_time "select_nodes";
   let a_nodeList : Dom_html.element Dom.nodeList Js.t =
     root##(querySelectorAll
              (Js.string ("a." ^ Runtime.RawXML.ce_call_service_class)))
@@ -109,138 +99,12 @@ let fast_select_nodes root =
     root##(querySelectorAll
              (Js.string ("." ^ Runtime.RawXML.ce_registered_attr_class)))
   in
-  Config.debug_time_end "fast_select_nodes";
+  Config.debug_time_end "select_nodes";
   ( a_nodeList
   , form_nodeList
   , process_node_nodeList
   , closure_nodeList
   , attrib_nodeList )
-
-let slow_has_classes (node : Dom_html.element Js.t) =
-  let classes =
-    (* IE<9: className is not set after change_page; getAttribute("class")
-       does not work for the initial document *)
-    let str =
-      if node##.className = Js.string ""
-      then
-        Js.Opt.get
-          node##(getAttribute (Js.string "class"))
-          (fun () -> Js.string "")
-      else node##.className
-    in
-    Js.str_array str##(split (Js.string " "))
-  in
-  let found_call_service = ref false in
-  let found_process_node = ref false in
-  let found_closure = ref false in
-  let found_attrib = ref false in
-  for i = 0 to classes##.length - 1 do
-    found_call_service :=
-      Js.Optdef.strict_equals (Js.array_get classes i)
-        (Js.def (Js.string Runtime.RawXML.ce_call_service_class))
-      || !found_call_service;
-    found_process_node :=
-      Js.Optdef.strict_equals (Js.array_get classes i)
-        (Js.def (Js.string Runtime.RawXML.process_node_class))
-      || !found_process_node;
-    found_closure :=
-      Js.Optdef.strict_equals (Js.array_get classes i)
-        (Js.def (Js.string Runtime.RawXML.ce_registered_closure_class))
-      || !found_closure;
-    found_attrib :=
-      Js.Optdef.strict_equals (Js.array_get classes i)
-        (Js.def (Js.string Runtime.RawXML.ce_registered_attr_class))
-      || !found_attrib
-  done;
-  !found_call_service, !found_process_node, !found_closure, !found_attrib
-
-let slow_has_request_class (node : Dom_html.element Js.t) =
-  let classes = Js.str_array node##.className##(split (Js.string " ")) in
-  let found_request_node = ref false in
-  for i = 0 to classes##.length - 1 do
-    found_request_node :=
-      Js.Optdef.strict_equals (Js.array_get classes i)
-        (Js.def (Js.string Runtime.RawXML.request_node_class))
-      || !found_request_node
-  done;
-  !found_request_node
-
-let fast_has_classes (node : Dom_html.element Js.t) =
-  ( Js.to_bool
-      node##.classList##(contains
-                           (Js.string Runtime.RawXML.ce_call_service_class))
-  , Js.to_bool
-      node##.classList##(contains (Js.string Runtime.RawXML.process_node_class))
-  , Js.to_bool
-      node##.classList##(contains
-                           (Js.string Runtime.RawXML.ce_registered_closure_class))
-  , Js.to_bool
-      node##.classList##(contains
-                           (Js.string Runtime.RawXML.ce_registered_attr_class))
-  )
-
-let fast_has_request_class (node : Dom_html.element Js.t) =
-  Js.to_bool
-    node##.classList##(contains (Js.string Runtime.RawXML.request_node_class))
-
-let has_classes : Dom_html.element Js.t -> bool * bool * bool * bool =
-  if test_classList () then fast_has_classes else slow_has_classes
-
-let has_request_class : Dom_html.element Js.t -> bool =
-  if test_classList () then fast_has_request_class else slow_has_request_class
-
-let slow_select_request_nodes (root : Dom_html.element Js.t) =
-  let node_array = new%js Js.array_empty in
-  let rec traverse (node : Dom.node Js.t) =
-    match node##.nodeType with
-    | Dom.ELEMENT ->
-        let node = (Js.Unsafe.coerce node : Dom_html.element Js.t) in
-        if has_request_class node then ignore node_array##(push node);
-        iter_nodeList node##.childNodes traverse
-    | _ -> ()
-  in
-  traverse (root :> Dom.node Js.t);
-  (Js.Unsafe.coerce node_array : Dom_html.element Dom.nodeList Js.t)
-
-let slow_select_nodes (root : Dom_html.element Js.t) =
-  let a_array = new%js Js.array_empty in
-  let form_array = new%js Js.array_empty in
-  let node_array = new%js Js.array_empty in
-  let closure_array = new%js Js.array_empty in
-  let attrib_array = new%js Js.array_empty in
-  let rec traverse (node : Dom.node Js.t) =
-    match node##.nodeType with
-    | Dom.ELEMENT ->
-        let node = (Js.Unsafe.coerce node : Dom_html.element Js.t) in
-        let call_service, process_node, closure, attrib = has_classes node in
-        (if call_service
-         then
-           match Dom_html.tagged node with
-           | Dom_html.A e -> ignore a_array##(push e)
-           | Dom_html.Form e -> ignore form_array##(push e)
-           | _ ->
-               raise_error ~section "%s element tagged as eliom link"
-                 (Js.to_string node##.tagName));
-        if process_node then ignore node_array##(push node);
-        if closure then ignore closure_array##(push node);
-        if attrib then ignore attrib_array##(push node);
-        iter_nodeList node##.childNodes traverse
-    | _ -> ()
-  in
-  traverse (root :> Dom.node Js.t);
-  ( (Js.Unsafe.coerce a_array : Dom_html.anchorElement Dom.nodeList Js.t)
-  , (Js.Unsafe.coerce form_array : Dom_html.formElement Dom.nodeList Js.t)
-  , (Js.Unsafe.coerce node_array : Dom_html.element Dom.nodeList Js.t)
-  , (Js.Unsafe.coerce closure_array : Dom_html.element Dom.nodeList Js.t)
-  , (Js.Unsafe.coerce attrib_array : Dom_html.element Dom.nodeList Js.t) )
-
-let select_nodes =
-  if test_querySelectorAll () then fast_select_nodes else slow_select_nodes
-
-let select_request_nodes =
-  if test_querySelectorAll ()
-  then fast_select_request_nodes
-  else slow_select_request_nodes
 
 (* createEvent for ie < 9 *)
 
