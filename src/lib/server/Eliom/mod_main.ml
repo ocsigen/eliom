@@ -178,20 +178,21 @@ let create_sitedata_aux site_dir config_info =
   Mod_gc.persistent_session_gc sitedata;
   sitedata
 
+(* We want to keep the old site data even if we reload the server.
+   To do that, we keep the site data in a table *)
+let sitedata_table = S.create 5
+
 (** We associate to each service a function server_params -> page *)
-let create_sitedata, update_sitedata =
-  (* We want to keep the old site data even if we reload the server.
-     To do that, we keep the site data in a table *)
-  let t = S.create 5 in
-  ( (fun host site_dir config_info ->
-      let key = host, site_dir in
-      try S.find t key
-      with Not_found ->
-        let sitedata = create_sitedata_aux (Some site_dir) (Some config_info) in
-        S.add t key sitedata; sitedata)
-  , fun host site_dir sitedata ->
-      let key = host, site_dir in
-      S.replace t key sitedata )
+let create_sitedata host site_dir config_info =
+  let key = host, site_dir in
+  try S.find sitedata_table key
+  with Not_found ->
+    let sitedata = create_sitedata_aux (Some site_dir) (Some config_info) in
+    S.add sitedata_table key sitedata;
+    sitedata
+
+let replace_sitedata host site_dir sitedata =
+  S.replace sitedata_table (host, site_dir) sitedata
 
 (*****************************************************************************)
 (* Session service table *)
@@ -699,7 +700,7 @@ let update_sitedata app vh site_dir conf_info =
   sitedata.Common.site_dir_string <-
     Some (Lib.Url.string_of_url_path ~encode:false site_dir);
   sitedata.Common.config_info <- Some conf_info;
-  update_sitedata vh site_dir sitedata;
+  replace_sitedata vh site_dir sitedata;
   sitedata
 
 let _ = Common.absolute_change_sitedata (get_sitedata (Common.get_app_name ()))
