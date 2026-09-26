@@ -25,6 +25,10 @@ let sequence ?loc ?attrs = function
 let str ?loc ?attrs s = Exp.constant ?loc ?attrs (Const.string s)
 let int ?loc ?attrs s = Exp.constant ?loc ?attrs (Const.int s)
 
+let str_option ~loc = function
+  | None -> [%expr None]
+  | Some s -> [%expr Some [%e str s]]
+
 let punit ?loc ?attrs () =
   Pat.construct ?loc ?attrs (mkloc_opt ?loc (Longident.Lident "()")) None
 

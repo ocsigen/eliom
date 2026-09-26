@@ -74,26 +74,22 @@ module Pass = struct
     in
     push, flush
 
-  let find_escaped_ident loc id =
+  (* The type inferred on the server, read from the type_mli file or from
+     the server cmo, whichever is given *)
+  let find_type ~mli ~cmo loc id =
     if Mli.exists ()
-    then Mli.find_escaped_ident id
+    then mli id
     else if Cmo.exists ()
-    then Cmo.find_escaped_ident loc
+    then cmo loc
     else [%type: _]
 
-  let find_injected_ident loc id =
-    if Mli.exists ()
-    then Mli.find_injected_ident id
-    else if Cmo.exists ()
-    then Cmo.find_injected_ident loc
-    else [%type: _]
+  let find_escaped_ident =
+    find_type ~mli:Mli.find_escaped_ident ~cmo:Cmo.find_escaped_ident
 
-  let find_fragment loc id =
-    if Mli.exists ()
-    then Mli.find_fragment id
-    else if Cmo.exists ()
-    then Cmo.find_fragment loc
-    else [%type: _]
+  let find_injected_ident =
+    find_type ~mli:Mli.find_injected_ident ~cmo:Cmo.find_injected_ident
+
+  let find_fragment = find_type ~mli:Mli.find_fragment ~cmo:Cmo.find_fragment
 
   let register_client_closures client_value_datas =
     let registrations =
@@ -251,11 +247,7 @@ module Pass = struct
         mark_injection ();
         let typ = find_injected_ident loc0 id in
         let typ = assert_no_variables typ in
-        let ident =
-          match ident with
-          | None -> [%expr None]
-          | Some i -> [%expr Some [%e str i]]
-        in
+        let ident = str_option ~loc ident in
         let u, d = Mli.get_injected_ident_info id.txt in
         let es = str ~loc:id.loc (Printf.sprintf "%s%d" u d) in
         [%expr
