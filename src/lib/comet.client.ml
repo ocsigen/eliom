@@ -32,11 +32,17 @@ let section = Logs.Src.create "eliom:comet"
 let now_ms () = Js.to_float (new%js Js.date_now)##getTime
 
 module Configuration = struct
+  (* The time between two requests when idle, [slope * t + offset] seconds
+     after [t] seconds of idleness, at most [cap] *)
+  type idle_policy = {slope : float; offset : float; cap : float}
+
+  let idle_delay {slope; offset; cap} t = min ((slope *. t) +. offset) cap
+  let always_active = [{slope = 0.; offset = 0.; cap = 0.}]
+
   type configuration_data =
     { active_until_timeout : bool
-    ; time_between_request_unfocused : (float * float * float) list option
-    ; (* (a, b) for a * t + b
-           (0, 0) means always active
+    ; time_between_request_unfocused : idle_policy list option
+    ; (* [always_active] means always active
            None means: no request
            The list is here if there are several configurations
            (we take the min of all values, for a given t)
@@ -46,7 +52,8 @@ module Configuration = struct
 
   let default_configuration =
     { active_until_timeout = false
-    ; time_between_request_unfocused = Some [0.5, 60., 600.]
+    ; time_between_request_unfocused =
+        Some [{slope = 0.5; offset = 60.; cap = 600.}]
     ; time_after_unfocus = 180.
     ; time_between_request = 0. }
 
@@ -111,8 +118,8 @@ module Configuration = struct
   let set_always_active conf v =
     set_fun conf (fun c ->
       { c with
-        time_between_request_unfocused = (if v then Some [0., 0., 0.] else None)
-      })
+        time_between_request_unfocused =
+          (if v then Some always_active else None) })
 
   let set_timeout conf v =
     set_fun conf (fun c -> {c with time_after_unfocus = v})
@@ -123,8 +130,9 @@ module Configuration = struct
   let set_time_between_requests conf v =
     set_fun conf (fun c -> {c with time_between_request = v})
 
-  let set_time_between_requests_when_idle conf v =
-    set_fun conf (fun c -> {c with time_between_request_unfocused = Some [v]})
+  let set_time_between_requests_when_idle conf (slope, offset, cap) =
+    set_fun conf (fun c ->
+      {c with time_between_request_unfocused = Some [{slope; offset; cap}]})
 
   let sleep_before_next_request focused is_idle active_waiter =
     let time = Sys.time () in
@@ -132,19 +140,15 @@ module Configuration = struct
       if is_idle ()
       then
         match (get ()).time_between_request_unfocused, focused () with
-        | Some ((a, b, c) :: l), Some start ->
+        | Some (p :: l), Some start ->
             let now = now_ms () in
             (* time from idle start *)
             let t =
               max 0. (((now -. start) *. 0.001) -. (get ()).time_after_unfocus)
             in
-            let v = min ((a *. t) +. b) c in
-            let v =
-              List.fold_left
-                (fun v (a, b, c) -> min v (min ((a *. t) +. b) c))
-                v l
-            in
-            v
+            List.fold_left
+              (fun v p -> min v (idle_delay p t))
+              (idle_delay p t) l
         | _ -> 0.
         (* Configuration changed.
                      We do not sleep and we'll see later. (?) *)
@@ -324,7 +328,7 @@ end = struct
         let tbru =
           (Configuration.get ()).Configuration.time_between_request_unfocused
         in
-        if tbru = Some [0., 0., 0.] (* Always active *)
+        if tbru = Some Configuration.always_active
         then `Active
         else
           let now = now_ms () in
