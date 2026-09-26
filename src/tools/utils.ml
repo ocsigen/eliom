@@ -368,9 +368,3 @@ let help_filter skip msg ch =
   done
 
 let fail fmt = Printf.ksprintf (fun msg -> prerr_endline msg; exit 1) fmt
-
-(** *)
-
-(** *)
-
-let todo () : unit = Printf.eprintf "TODO\n%!"; exit 1

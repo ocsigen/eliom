@@ -31,10 +31,7 @@ let _ =
     in
     let _ =
       [%client
-        (Process.set_ignored_params ~%ignored_get_params
-           ~%ignored_post_params;
-         Process.set_ignored_params ~%ignored_get_params
-           ~%ignored_post_params
+        (Process.set_ignored_params ~%ignored_get_params ~%ignored_post_params
          : unit)]
     in
     ())

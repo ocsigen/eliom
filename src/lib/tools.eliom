@@ -279,7 +279,6 @@ module Make (DorF : Content.Html.T) : HTML5_TOOLS = struct
       | [] -> []
       | [(url, text)] ->
           let classe = [last_class] in
-          let _ = li [a ~service:url text ()] in
           if same_service_opt url current
           then [li ~a:[a_class (current_class :: classe)] text]
           else [li ~a:[a_class classe] [a ~service:url text ()]]
