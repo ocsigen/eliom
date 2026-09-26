@@ -35,12 +35,6 @@ val get_cookie_info :
 val new_service_cookie_table : unit -> Common.tables Common.Service_cookie.table
 val new_data_cookie_table : unit -> Common.Data_cookie.table
 
-val compute_session_cookies_to_send :
-   Common.sitedata
-  -> Common.tables Common.cookie_info
-  -> Ocsigen_cookie_map.t
-  -> Ocsigen_cookie_map.t Lwt.t
-
 val compute_cookies_to_send :
    Common.sitedata
   -> Common.tables Common.cookie_info

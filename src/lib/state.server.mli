@@ -1216,9 +1216,3 @@ val get_session_service_table_if_exists :
   -> ?secure:bool
   -> unit
   -> Common.tables ref
-
-val create_volatile_table_during_session_ :
-   scope:Common.user_scope
-  -> secure:bool
-  -> Common.sitedata
-  -> 'a volatile_table

@@ -25,7 +25,6 @@ let section = Client_core.section
 
 open Js_of_ocaml
 open Lib
-module Opt = Option
 module Xml = Content_core.Xml
 
 (* == Callbacks for onload, onbeforeunload, and onunload *)
@@ -1460,7 +1459,7 @@ let change_url_string ~replace uri =
     let this_page = get_this_page () in
     if replace
     then (
-      Opt.iter stash_reload_function !reload_function;
+      Option.iter stash_reload_function !reload_function;
       Dom_html.window##.history##replaceState
         (Js.Opt.return
            (Js.string
@@ -1471,7 +1470,7 @@ let change_url_string ~replace uri =
          else Js.Opt.return (Js.string uri)))
     else (
       update_state ();
-      Opt.iter stash_reload_function !reload_function;
+      Option.iter stash_reload_function !reload_function;
       Dom_html.window##.history##pushState
         (Js.Opt.return
            (Js.string

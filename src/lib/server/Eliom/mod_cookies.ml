@@ -378,7 +378,7 @@ let new_data_cookie_table () : Common.Data_cookie.table =
 (* Create the table of cookies to send to the browser or to unset            *)
 (* (from cookie_info)                                                        *)
 
-let compute_session_cookies_to_send
+let compute_cookies_to_send
       sitedata
       ((service_cookie_info, data_cookie_info, pers_cookies_info), secure_ci)
       (endlist : Ocsigen_cookie_map.t)
@@ -488,8 +488,6 @@ let compute_session_cookies_to_send
              (aux getdatavexp Common.datacookiename true !data_cookie_info
                 (aux getservvexp Common.servicecookiename true
                    !service_cookie_info (return endlist))))))
-
-let compute_cookies_to_send = compute_session_cookies_to_send
 
 let compute_new_ri_cookies' now ripath ricookies cookies_set_by_page =
   Ocsigen_cookie_map.Map_path.fold

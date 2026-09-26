@@ -899,9 +899,6 @@ let remove_persistent_data (type a) ~(table : a persistent_table) () =
 
 type 'a volatile_table = Common.user_scope * bool * 'a Common.SessionCookies.t
 
-let create_volatile_table_during_session_ =
-  Mod_datasess.create_volatile_table_during_session
-
 let create_volatile_table ~scope ?secure () =
   match Common.get_sp_option () with
   | None -> (
@@ -915,7 +912,7 @@ let create_volatile_table ~scope ?secure () =
   | Some sp ->
       let sitedata = Request_info.get_sitedata_sp ~sp in
       let secure = Common.get_secure ~secure_o:secure ~sitedata () in
-      create_volatile_table_during_session_ ~scope ~secure sitedata
+      Mod_datasess.create_volatile_table_during_session ~scope ~secure sitedata
 
 let get_table_key_
       ~table:(scope, secure, table)
