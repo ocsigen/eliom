@@ -80,8 +80,8 @@ module type PARAM = sig
       -> (Table.t ref * Common.page_table_key, Common.na_key_serv) Either.t
       -> Node.t
 
-    val get : t -> (int * int * Table.t Common.dircontent ref) list
-    val set : t -> (int * int * Table.t Common.dircontent ref) list -> unit
+    val get : t -> Table.t Common.service_table list
+    val set : t -> Table.t Common.service_table list -> unit
   end
 end
 
@@ -315,12 +315,23 @@ module Make (P : PARAM) = struct
     let rec find_table = function
       | [] ->
           let t = ref (Common.empty_dircontent ()) in
-          t, [generation, priority, t]
-      | (g, p, t) :: _ as l when g = generation && p = priority -> t, l
-      | (g, p, _) :: _ as l when g < generation || p < priority ->
+          ( t
+          , [ { Common.st_generation = generation
+              ; st_priority = priority
+              ; st_content = t } ] )
+      | {Common.st_generation = g; st_priority = p; st_content = t} :: _ as l
+        when g = generation && p = priority ->
+          t, l
+      | {Common.st_generation = g; st_priority = p; _} :: _ as l
+        when g < generation || p < priority ->
           let t = ref (Common.empty_dircontent ()) in
-          t, (generation, priority, t) :: l
-      | ((g, p, _) as a) :: l when g = generation && p > priority ->
+          ( t
+          , { Common.st_generation = generation
+            ; st_priority = priority
+            ; st_content = t }
+            :: l )
+      | ({Common.st_generation = g; st_priority = p; _} as a) :: l
+        when g = generation && p > priority ->
           let t, ll = find_table l in
           t, a :: ll
       | _ -> assert false
@@ -332,7 +343,7 @@ module Make (P : PARAM) = struct
   let remove_service tables path k unique_id =
     let rec aux = function
       | [] -> ()
-      | (_, _, table) :: l -> (
+      | {Common.st_content = table; _} :: l -> (
         try
           add_or_remove_service remove_page_table tables table path k unique_id
         with Not_found -> aux l)
@@ -409,7 +420,7 @@ module Make (P : PARAM) = struct
       (* New in 1.91: There is now one table for each pair
          (generation, priority) *)
       List.fold_left
-        (fun prev (_prio, _gen, table) ->
+        (fun prev {Common.st_content = table; _} ->
            Lwt.catch
              (fun () -> prev)
              (function

@@ -378,6 +378,11 @@ and 'a direlt = Dir of 'a dircontent ref | File of 'a ref
 
 let empty_dircontent () = Empty
 
+(* The services of a site registered during one reload of the site, with one
+   priority *)
+type 'a service_table =
+  {st_generation : int; st_priority : int; st_content : 'a dircontent ref}
+
 type meth = [`Get | `Post | `Put | `Delete | `Other]
 type page_table_key = {key_state : att_key_serv * att_key_serv; key_meth : meth}
 type anon_params_type = int

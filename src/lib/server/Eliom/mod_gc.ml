@@ -127,12 +127,12 @@ let gc_timeouted_services now tables =
               Lwt.return_unit)
   in
   Lwt_list.iter_s
-    (fun (_, _prio, t) -> empty_one t)
+    (fun {Common.st_content = t; _} -> empty_one t)
     tables.Common.table_services
   >>= fun () ->
   tables.Common.table_services <-
     List.filter
-      (fun r -> !(Tuple3.thd r) <> Common.Empty)
+      (fun r -> !(r.Common.st_content) <> Common.Empty)
       tables.Common.table_services;
   Lwt.return_unit
 

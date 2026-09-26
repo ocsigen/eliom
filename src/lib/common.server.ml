@@ -443,9 +443,7 @@ and naservice_table =
   | ATable of naservice_table_content NAserv_Table.t
 
 and tables =
-  { mutable table_services :
-      (int (* generation *) * int (* priority *) * page_table dircontent ref)
-        list
+  { mutable table_services : page_table service_table list
   ; table_naservices : naservice_table ref
   ; (* ref, and not mutable field because it simpler to use
         recursively with Dir of dircontent ref *)
@@ -823,7 +821,7 @@ let service_tables_are_empty t =
   !(t.table_naservices) = AEmpty
   &&
   (* !(t.table_services) = [] <---- probably enough? *)
-  List.for_all (fun (_, _, r) -> !r = Empty) t.table_services
+  List.for_all (fun {st_content; _} -> !st_content = Empty) t.table_services
 
 let remove_naservice_table at k =
   match at with
