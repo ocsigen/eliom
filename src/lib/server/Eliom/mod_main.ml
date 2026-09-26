@@ -869,7 +869,7 @@ let parse_config _ hostpattern conf_info site_dir =
   browsers manage cookies (one cookie for one site).
   Thus we can have one site in several cmo (with one session).
         *)
-        let oldipv6mask = sitedata.Common.ipv6mask in
+        let oldipv6mask = Common.get_mask6 sitedata in
         let content =
           parse_eliom_options
             ( (fun ct snoo v ->
@@ -911,8 +911,9 @@ let parse_config _ hostpattern conf_info site_dir =
                    for this table: *)
                 try
                   let dlist =
-                    Common.find_dlist_ip_table sitedata.Common.ipv4mask
-                      (* unused *) oldipv6mask sitedata.Common.dlist_ip_table
+                    Common.find_dlist_ip_table
+                      ~mask4:(Common.get_mask4 sitedata)
+                      ~mask6:oldipv6mask sitedata.Common.dlist_ip_table
                       Ipaddr.(V6 V6.localhost)
                   in
                   ignore (Ocsigen_base.Cache.Dlist.set_maxsize dlist v)
