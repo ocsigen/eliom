@@ -281,12 +281,13 @@ let in_onload, broadcast_load_end, wait_load_end, set_loading_phase =
 
 (* forward declaration... *)
 let change_page_uri_ :
-  (?cookies_info:bool * string list -> ?tmpl:string -> string -> unit) ref
+  (?cookies_info:Runtime.RawXML.cookie_info -> ?tmpl:string -> string -> unit)
+    ref
   =
   ref (fun ?cookies_info:_ ?tmpl:_ _href -> assert false)
 
 let change_page_get_form_ :
-  (?cookies_info:bool * string list
+  (?cookies_info:Runtime.RawXML.cookie_info
    -> ?tmpl:string
    -> Dom_html.formElement Js.t
    -> string

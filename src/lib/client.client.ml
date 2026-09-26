@@ -162,7 +162,7 @@ let get_element_cookies_info elt =
   Js.Opt.to_option
     (Js.Opt.map
        elt##(getAttribute (Js.string Runtime.RawXML.ce_call_service_attrib))
-       (fun s -> of_json ~typ:[%json: bool * string list] (Js.to_string s)))
+       (fun s -> of_json ~typ:Runtime.RawXML.cookie_info_json (Js.to_string s)))
 
 let get_element_template elt =
   Js.Opt.to_option
