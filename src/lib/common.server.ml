@@ -1081,6 +1081,47 @@ let get_browser_cookies ri =
   | Some tc -> cookie_map_of_json ~what:"cookie substitutes" tc
   | None -> Ocsigen.Request.cookies ri
 
+(* The GET, POST and file parameters of a request without the non-localised
+   and ignored ones, together with all its parameters. After an action, the
+   latter are the ones saved by the action. *)
+let split_request_params
+      ~sitedata
+      rc
+      ~no_post_param
+      ~no_file_param
+      get_params0
+      post_params0
+      file_params0
+  =
+  try
+    ( get_params0
+    , post_params0
+    , file_params0
+    , Polytables.get ~table:rc ~key:eliom_params_after_action )
+  with Not_found ->
+    let nl_get_params, get_params = split_nl_prefix_param get_params0 in
+    let nl_post_params, post_params = split_nl_prefix_param post_params0 in
+    let nl_file_params, file_params = split_nl_prefix_param file_params0 in
+    let ignored_get, get_params =
+      List.partition (matches_regexps sitedata.ignored_get_params) get_params
+    in
+    let ignored_post, post_params =
+      List.partition (matches_regexps sitedata.ignored_post_params) post_params
+    in
+    let all_get_but_nl = get_params in
+    ( get_params
+    , post_params
+    , file_params
+    , { pa_all_get_params = get_params0
+      ; pa_all_post_params = (if no_post_param then None else Some post_params0)
+      ; pa_all_file_params = (if no_file_param then None else Some file_params0)
+      ; pa_nl_get_params = nl_get_params
+      ; pa_nl_post_params = nl_post_params
+      ; pa_nl_file_params = nl_file_params
+      ; pa_all_get_but_nl = all_get_but_nl
+      ; pa_ignored_get_params = ignored_get
+      ; pa_ignored_post_params = ignored_post } )
+
 let get_session_info ~sitedata ~req previous_extension_err =
   let req_whole = req
   and ri = req.Ocsigen.Extensions.request_info
@@ -1118,9 +1159,7 @@ let get_session_info ~sitedata ~req previous_extension_err =
       (* It was a POST request to be considered as GET *)
     with Not_found -> post_params, g, false
   in
-  let get_params0 = get_params in
-  let post_params0 = post_params in
-  let* file_params0 = file_params in
+  let* file_params = file_params in
   let ( get_params
       , post_params
       , file_params
@@ -1134,40 +1173,8 @@ let get_session_info ~sitedata ~req previous_extension_err =
         ; pa_ignored_get_params = ignored_get
         ; pa_ignored_post_params = ignored_post } )
     =
-    try
-      ( get_params
-      , post_params
-      , file_params0
-      , Polytables.get
-          ~table:(Ocsigen.Request.request_cache ri)
-          ~key:eliom_params_after_action )
-    with Not_found ->
-      let nl_get_params, get_params = split_nl_prefix_param get_params0 in
-      let nl_post_params, post_params = split_nl_prefix_param post_params0 in
-      let nl_file_params, file_params = split_nl_prefix_param file_params0 in
-      let ignored_get, get_params =
-        List.partition (matches_regexps sitedata.ignored_get_params) get_params
-      in
-      let ignored_post, post_params =
-        List.partition
-          (matches_regexps sitedata.ignored_post_params)
-          post_params
-      in
-      let all_get_but_nl = get_params in
-      ( get_params
-      , post_params
-      , file_params
-      , { pa_all_get_params = get_params0
-        ; pa_all_post_params =
-            (if no_post_param then None else Some post_params0)
-        ; pa_all_file_params =
-            (if no_file_param then None else Some file_params0)
-        ; pa_nl_get_params = nl_get_params
-        ; pa_nl_post_params = nl_post_params
-        ; pa_nl_file_params = nl_file_params
-        ; pa_all_get_but_nl = all_get_but_nl
-        ; pa_ignored_get_params = ignored_get
-        ; pa_ignored_post_params = ignored_post } )
+    split_request_params ~sitedata rc ~no_post_param ~no_file_param get_params
+      post_params file_params
   in
   let browser_cookies = get_browser_cookies ri in
   let state_cookies = get_state_cookies false `Session browser_cookies in
