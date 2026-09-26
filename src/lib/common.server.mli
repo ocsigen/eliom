@@ -700,8 +700,8 @@ val ipv6mask : int ref
 val create_dlist_ip_table : int -> dlist_ip_table
 
 val find_dlist_ip_table :
-   int option * 'a
-  -> int option * 'a
+   mask4:int
+  -> mask6:int
   -> dlist_ip_table
   -> Ipaddr.t
   -> (page_table ref * page_table_key, na_key_serv) Either.t

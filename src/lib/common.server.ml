@@ -339,8 +339,6 @@ end
 (*****************************************************************************)
 let ipv4mask = ref 16
 let ipv6mask = ref 56
-let get_mask4 m = match fst m with Some m -> m | None -> !ipv4mask
-let get_mask6 m = match fst m with Some m -> m | None -> !ipv6mask
 
 let network_of_ip k mask4 mask6 =
   match k with
@@ -357,9 +355,9 @@ module Net_addr_Hashtbl : sig
   type 'a t
 
   val create : int -> 'a t
-  val add : int option * 'bb -> int option * 'bb -> 'a t -> key -> 'a -> unit
-  val remove : int option * 'bb -> int option * 'bb -> 'a t -> key -> unit
-  val find : int option * 'bb -> int option * 'bb -> 'a t -> key -> 'a
+  val add : mask4:int -> mask6:int -> 'a t -> key -> 'a -> unit
+  val remove : mask4:int -> mask6:int -> 'a t -> key -> unit
+  val find : mask4:int -> mask6:int -> 'a t -> key -> 'a
 end =
 (* keys are IP address modulo "network equivalence" *)
 struct
@@ -370,12 +368,9 @@ struct
       let hash = Hashtbl.hash
     end)
 
-  let add m4 m6 t k v = add t (network_of_ip k (get_mask4 m4) (get_mask6 m6)) v
-
-  let remove m4 m6 t k =
-    remove t (network_of_ip k (get_mask4 m4) (get_mask6 m6))
-
-  let find m4 m6 t k = find t (network_of_ip k (get_mask4 m4) (get_mask6 m6))
+  let add ~mask4 ~mask6 t k v = add t (network_of_ip k mask4 mask6) v
+  let remove ~mask4 ~mask6 t k = remove t (network_of_ip k mask4 mask6)
+  let find ~mask4 ~mask6 t k = find t (network_of_ip k mask4 mask6)
 end
 
 module Serv_Table = Map.Make (struct
@@ -565,11 +560,13 @@ let check_initialised field =
 let get_site_dir sitedata = check_initialised sitedata.site_dir
 let get_site_dir_string sitedata = check_initialised sitedata.site_dir_string
 let get_config_info sitedata = check_initialised sitedata.config_info
+let get_mask4 sitedata = Option.value (fst sitedata.ipv4mask) ~default:!ipv4mask
+let get_mask6 sitedata = Option.value (fst sitedata.ipv6mask) ~default:!ipv6mask
 let create_dlist_ip_table = Net_addr_Hashtbl.create
 
 let find_dlist_ip_table :
-   int option * 'b
-  -> int option * 'b
+   mask4:int
+  -> mask6:int
   -> dlist_ip_table
   -> Ipaddr.t
   -> (page_table ref * page_table_key, na_key_serv) Either.t
@@ -846,8 +843,8 @@ let dlist_finaliser_ip sitedata ip na_table_ref node =
       if Ocsigen_base.Cache.Dlist.size cl = 1
       then
         try
-          Net_addr_Hashtbl.remove sitedata.ipv4mask sitedata.ipv6mask
-            sitedata.dlist_ip_table ip
+          Net_addr_Hashtbl.remove ~mask4:(get_mask4 sitedata)
+            ~mask6:(get_mask6 sitedata) sitedata.dlist_ip_table ip
         with Not_found -> ())
   | None -> ()
 
@@ -901,12 +898,12 @@ let empty_tables max forsession =
            in
            let dlist =
              try
-               Net_addr_Hashtbl.find sitedata.ipv4mask sitedata.ipv6mask
-                 sitedata.dlist_ip_table ip
+               Net_addr_Hashtbl.find ~mask4:(get_mask4 sitedata)
+                 ~mask6:(get_mask6 sitedata) sitedata.dlist_ip_table ip
              with Not_found ->
                let dlist = Ocsigen_base.Cache.Dlist.create max in
-               Net_addr_Hashtbl.add sitedata.ipv4mask sitedata.ipv6mask
-                 sitedata.dlist_ip_table ip dlist;
+               Net_addr_Hashtbl.add ~mask4:(get_mask4 sitedata)
+                 ~mask6:(get_mask6 sitedata) sitedata.dlist_ip_table ip dlist;
                Ocsigen_base.Cache.Dlist.set_finaliser_before
                  (dlist_finaliser_ip sitedata ip t2)
                  dlist;
@@ -916,9 +913,6 @@ let empty_tables max forsession =
 
 let new_service_session_tables sitedata =
   empty_tables (fst sitedata.max_anonymous_services_per_session) true
-
-let get_mask4 sitedata = get_mask4 sitedata.ipv4mask
-let get_mask6 sitedata = get_mask6 sitedata.ipv6mask
 
 (*****************************************************************************)
 open Lwt
