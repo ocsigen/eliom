@@ -1615,20 +1615,22 @@ let set_content_local ?offset ?fragment new_page =
          fmt "set_content_local@\n%s" (Printexc.to_string exn));
        Lwt.fail exn)
 
+(* Run the onchangepage handlers before leaving the current page for a new
+   page at [target_uri] *)
+let run_onchangepage_for_new_page target_uri =
+  run_lwt_callbacks
+    { in_cache = is_in_cache !active_page.page_id
+    ; origin_uri = get_current_uri ()
+    ; target_uri
+    ; origin_id = !active_page.page_id.state_index
+    ; target_id = None }
+    (flush_onchangepage ())
+
 (* Function to be called for server side services: *)
 let set_content ~replace ~uri ?offset ?fragment content =
   Logs.debug ~src:section_page (fun fmt -> fmt "Set content");
   (* TODO: too early? *)
-  let target_uri = uri in
-  let* () =
-    run_lwt_callbacks
-      { in_cache = is_in_cache !active_page.page_id
-      ; origin_uri = get_current_uri ()
-      ; target_uri
-      ; origin_id = !active_page.page_id.state_index
-      ; target_id = None }
-      (flush_onchangepage ())
-  in
+  let* () = run_onchangepage_for_new_page uri in
   match content with
   | None -> Lwt.return_unit
   | Some content ->
@@ -1918,15 +1920,7 @@ and change_page :
               ~path:(Url.path_of_url_string uri)
               ~all_get_params:l ~all_post_params:l'
             @@ fun () ->
-            let* () =
-              run_lwt_callbacks
-                { in_cache = is_in_cache !active_page.page_id
-                ; origin_uri = get_current_uri ()
-                ; target_uri = uri
-                ; origin_id = !active_page.page_id.state_index
-                ; target_id = None }
-                (flush_onchangepage ())
-            in
+            let* () = run_onchangepage_for_new_page uri in
             with_new_page ~replace () @@ fun () ->
             handle_result ~replace ~uri (f get_params post_params)
         | None when is_client_app () ->
