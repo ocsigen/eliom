@@ -55,6 +55,11 @@ module type PARAM = sig
 end
 
 let typed_apply ~service f gp pp l l' suffix =
+  (* The parameters are already available, so the promises below are
+     resolved and Lwt runs the rest, including the handler [f], at once:
+     without this catch, an exception raised synchronously by [f] would
+     escape instead of rejecting the promise (and a Not_found would be
+     taken by [wrap] for a wrong parameter). *)
   Lwt.catch
     (fun () ->
        let* g =
@@ -68,9 +73,7 @@ let typed_apply ~service f gp pp l l' suffix =
        | Some _ -> Client.set_reload_function (fun () () -> f g p)
        | None -> ());
        f g p)
-    (function
-      | Common.Eliom_Wrong_parameter -> Lwt.fail Common.Eliom_Wrong_parameter
-      | exc -> Lwt.fail exc)
+    Lwt.fail
 
 let wrap service att f _ suffix =
   let gp = Service.get_params_type service
