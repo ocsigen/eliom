@@ -322,7 +322,7 @@ let get_sitedata_sp ~sp = sp.Common.sp_sitedata
 
 (***)
 
-(*VVV ici ? pour des raisons de typage... *)
+(*VVV Here? For typing reasons... *)
 let set_site_handler sitedata handler = sitedata.Common.exn_handler <- handler
 
 type raw_post_data =

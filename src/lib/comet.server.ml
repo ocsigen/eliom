@@ -340,8 +340,7 @@ end = struct
 
   type handler =
     { hd_scope : Common.client_process_scope
-    ; (* id : int; pour tester que ce sont des service differents... *)
-      mutable hd_active_channels : (chan_id * channel) list
+    ; mutable hd_active_channels : (chan_id * channel) list
       (** streams that are currently sent to client *)
     ; mutable hd_unregistered_channels : (chan_id * channel) list
       (** streams that are created on the server side, but client did not register *)
@@ -591,7 +590,7 @@ end = struct
     | None ->
         let hd_service =
           Comet_base.Internal_comet_service
-            (* CCC ajouter possibilité d'https *)
+            (* CCC Make https possible *)
             ( Service.create_attached_post (*VVV Why is it attached? --Vincent *)
                 ~post_params:
                   Parameter.(bool "idle" ** Comet_base.comet_request_param)
