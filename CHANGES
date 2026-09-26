@@ -153,6 +153,10 @@
 ** Client-side error messages about client values and injections now show
    the whole source range of the expression instead of its first
    character only.
+** The PPX now builds with any supported ppxlib on any supported OCaml
+   version. It selected the shape of Pexp_fun and Typ.alias from the
+   compiler version instead of the ppxlib AST version, and failed to
+   build, for instance, on OCaml 4.14 with ppxlib >= 0.36.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
