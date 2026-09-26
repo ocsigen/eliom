@@ -619,8 +619,6 @@ val get_session_info :
      * (tables cookie_info * Ocsigen_cookie_map.t) option)
        Lwt.t
 
-type ('a, 'b) foundornot = Found of 'a | Notfound of 'b
-
 val make_full_cookie_name : string -> full_state_name -> string
 
 val make_full_state_name :

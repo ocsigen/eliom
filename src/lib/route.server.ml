@@ -277,22 +277,22 @@ let make_naservice
       Common.Full_state_name_table.fold
         (fun fullsessname (_, r) beg ->
            match beg with
-           | Common.Found _ -> beg
-           | Common.Notfound _ -> (
+           | Some _ -> beg
+           | None -> (
              match !r with
              | Common.SCNo_data | Common.SCData_session_expired -> beg
              | Common.SC c -> (
                try
-                 Common.Found
+                 Some
                    ( find_naservice now !(c.Common.sc_table)
                        (Common.na_key_serv_of_req si.Common.si_nonatt_info)
                    , !(c.Common.sc_table)
                    , Some fullsessname )
                with Not_found -> beg)))
-        sci (Common.Notfound ())
+        sci None
     with
-    | Common.Found v -> v
-    | Common.Notfound _ -> raise Not_found
+    | Some v -> v
+    | None -> raise Not_found
   in
   let tables = session_tables info in
   (try
