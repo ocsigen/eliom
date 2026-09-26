@@ -90,7 +90,6 @@ val setDocumentScroll : position -> unit
 
 (* Test if the "pageshow" and "pagehide" event exists. *)
 val test_pageshow_pagehide : unit -> bool
-val onhashchange : (Js.js_string Js.t -> unit) -> unit
 
 (**/**)
 
