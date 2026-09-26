@@ -81,14 +81,28 @@ module Pass = struct
 
   module SSet = Set.Make (String)
 
+  (* An injection of [inj_expr], bound to the identifier [inj_id] *)
+  type injection =
+    { inj_loc : Location.t
+    ; inj_id : string
+    ; inj_expr : expression
+    ; inj_ident : string option
+    ; inj_unsafe : bool }
+
   let push_injection, flush_injections =
-    let buffer : (_ * _ * _ * _ * _) list ref = ref [] in
+    let buffer : injection list ref = ref [] in
     let gen_ids = ref SSet.empty in
     let push loc ?ident id ~unsafe orig_expr =
       if not (SSet.mem id !gen_ids)
       then (
         gen_ids := SSet.add id !gen_ids;
-        buffer := (loc, id, orig_expr, ident, unsafe) :: !buffer)
+        buffer :=
+          { inj_loc = loc
+          ; inj_id = id
+          ; inj_expr = orig_expr
+          ; inj_ident = ident
+          ; inj_unsafe = unsafe }
+          :: !buffer)
     in
     let flush () =
       let res = List.rev !buffer in
@@ -105,7 +119,7 @@ module Pass = struct
     assert (injections <> []);
     let bindings =
       List.map
-        (fun (_, txt, expr, _, _) ->
+        (fun {inj_id = txt; inj_expr = expr; _} ->
            let loc = expr.pexp_loc in
            Vb.mk ~loc (Pat.var ~loc {txt; loc}) expr)
         injections
@@ -125,7 +139,12 @@ module Pass = struct
     assert (injections <> []);
     let injection_list =
       List.fold_right
-        (fun (loc0, txt, expr, ident, unsafe) sofar ->
+        (fun { inj_loc = loc0
+             ; inj_id = txt
+             ; inj_expr = expr
+             ; inj_ident = ident
+             ; inj_unsafe = unsafe }
+          sofar ->
            let loc = expr.pexp_loc in
            let loc_expr = position loc in
            let frag_eid = eid {txt; loc} in
