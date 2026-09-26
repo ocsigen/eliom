@@ -305,7 +305,7 @@ let set_send_appl_content s n = s.send_appl_content <- n
 let rec append_suffix l m =
   match l with
   | [] -> m
-  | [_eliom_suffix_internal_name] -> m
+  | [a] when a = Common.eliom_suffix_internal_name -> m
   | a :: ll -> a :: append_suffix ll m
 
 let preapply ~service getparams =
