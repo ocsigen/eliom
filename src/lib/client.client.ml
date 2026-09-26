@@ -600,6 +600,10 @@ type saved_state = state_id * string [@@deriving json]
 
 [@@@warning "+39"]
 
+(* The history.state value of the page [page_id] at [uri] *)
+let history_state page_id uri =
+  Js.Opt.return (Js.string (to_json ~typ:[%json: saved_state] (page_id, uri)))
+
 module Page_status_t = struct
   type t = Generating | Active | Cached | Dead
 
@@ -1449,9 +1453,7 @@ let change_url_string ~replace uri =
     then (
       Option.iter stash_reload_function !current_reload_function;
       Dom_html.window##.history##replaceState
-        (Js.Opt.return
-           (Js.string
-              (to_json ~typ:[%json: saved_state] (this_page.page_id, full_uri))))
+        (history_state this_page.page_id full_uri)
         (Js.string "")
         (if !Common.is_client_app
          then Js.null
@@ -1460,9 +1462,7 @@ let change_url_string ~replace uri =
       update_state ();
       Option.iter stash_reload_function !current_reload_function;
       Dom_html.window##.history##pushState
-        (Js.Opt.return
-           (Js.string
-              (to_json ~typ:[%json: saved_state] (this_page.page_id, full_uri))))
+        (history_state this_page.page_id full_uri)
         (Js.string "")
         (if !Common.is_client_app
          then Js.null
@@ -2246,13 +2246,9 @@ let () =
        Logs.debug ~src:section_page (fun fmt ->
          fmt "revisit_wrapper: replaceState");
        Dom_html.window##.history##(replaceState
-                                     (Js.Opt.return
-                                        (Js.string
-                                           (to_json ~typ:[%json: saved_state]
-                                              ( !active_page.page_id
-                                              , Js.to_string
-                                                  Dom_html.window##.location##.href
-                                              ))))
+                                     (history_state !active_page.page_id
+                                        (Js.to_string
+                                           Dom_html.window##.location##.href))
                                      (Js.string "") Js.null);
        Lwt.return_unit);
     Dom_html.window##.onpopstate
