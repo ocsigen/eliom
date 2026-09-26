@@ -164,6 +164,9 @@
    change_page...) now sends a PUT or DELETE request. Request.http_put and
    http_delete used to send a POST request. Request.send takes a new
    optional ~override_method parameter.
+** Content.Html.Id.get_element and Content.Svg.Id.get_element now return
+   None when no element has the given id, as documented. They used to
+   raise Not_found.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type

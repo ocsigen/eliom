@@ -339,7 +339,8 @@ module Svg = struct
         (fun x -> x)
 
     let get_element id =
-      try Some (Of_dom.of_element (get_element' id)) with Failure _ -> None
+      try Some (Of_dom.of_element (get_element' id))
+      with Failure _ | Not_found -> None
   end
 
   module Manip = struct
@@ -455,7 +456,8 @@ module Html = struct
         (fun x -> x)
 
     let get_element id =
-      try Some (Of_dom.of_element (get_element' id)) with Failure _ -> None
+      try Some (Of_dom.of_element (get_element' id))
+      with Failure _ | Not_found -> None
   end
 
   module Manip = struct
