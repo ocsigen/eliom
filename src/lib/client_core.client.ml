@@ -436,14 +436,12 @@ let class_list_of_racontent_o = function
   | Some c -> class_list_of_racontent c
   | None -> []
 
-let rebuild_class_list l1 l2 l3 =
-  let f s =
-    (not (List.exists (( = ) s) l2)) && not (List.exists (( = ) s) l3)
-  in
-  l3 @ List.filter f l1
+let rebuild_class_list ~current ~removed ~added =
+  let keep s = not (List.mem s removed || List.mem s added) in
+  added @ List.filter keep current
 
-let rebuild_class_string l1 l2 l3 =
-  rebuild_class_list l1 l2 l3 |> String.concat " " |> Js.string
+let rebuild_class_string ~current ~removed ~added =
+  rebuild_class_list ~current ~removed ~added |> String.concat " " |> Js.string
 
 (* html attributes and dom properties use different names
    **example**: maxlength vs maxLenght (case sensitive).
@@ -491,10 +489,10 @@ let rebuild_reactive_class_rattrib node s =
   let name = Js.string "class" in
   let e = React.S.diff (fun v v' -> v', v) s
   and f (v, v') =
-    let l1 = current_classes node
-    and l2 = class_list_of_racontent_o v
-    and l3 = class_list_of_racontent_o v' in
-    let s = rebuild_class_string l1 l2 l3 in
+    let current = current_classes node
+    and removed = class_list_of_racontent_o v
+    and added = class_list_of_racontent_o v' in
+    let s = rebuild_class_string ~current ~removed ~added in
     node##(setAttribute name s);
     iter_prop node name (fun name -> Js.Unsafe.set node name s)
   in
@@ -504,8 +502,10 @@ let rebuild_reactive_class_rattrib node s =
 let rec rebuild_rattrib node ra =
   match Xml.racontent ra with
   | Xml.RA a when Xml.aname ra = "class" ->
-      let l1 = current_classes node and l2 = class_list_of_racontent a in
-      let name = Js.string "class" and s = rebuild_class_string l1 l2 l2 in
+      let current = current_classes node
+      and added = class_list_of_racontent a in
+      let name = Js.string "class"
+      and s = rebuild_class_string ~current ~removed:[] ~added in
       node##(setAttribute name s)
   | Xml.RA a ->
       let name = Js.string (Xml.aname ra) in
