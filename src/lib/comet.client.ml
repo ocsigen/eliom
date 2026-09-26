@@ -193,6 +193,13 @@ let handle_exn, set_handle_exn_function =
 type chan_id = string
 type stateless_message = (chan_id * (string * int) Ecb.channel_data) list
 
+(* A message received on a channel, with its index in the channel for
+   stateless channels *)
+type message =
+  { msg_chan_id : chan_id
+  ; msg_index : int option
+  ; msg_data : string Ecb.channel_data }
+
 module Service_handler : sig
   type 'a t
   type 'a kind
@@ -203,11 +210,9 @@ module Service_handler : sig
   val stateful : stateful kind
   val make : Ecb.comet_service -> 'a kind -> 'a t
 
-  val wait_data :
-     'a t
-    -> (chan_id * int option * string Ecb.channel_data) list Lwt.t
+  val wait_data : 'a t -> message list Lwt.t
   (** Returns the messages received in the last request. If the
-      channel is stateless, it also returns the message number in the [int option] *)
+      channel is stateless, it also returns the message number in [msg_index] *)
 
   val activate : 'a t -> unit
   val is_active : 'a t -> [`Active | `Inactive | `Idle]
@@ -426,7 +431,10 @@ end = struct
   let close_all_channels hd =
     let s = hd.hd_activity.active_channels in
     Lib.String.Set.iter (fun chan_id -> stop_waiting hd chan_id) s;
-    Lib.String.Set.fold (fun chan_id l -> (chan_id, None, Ecb.Closed) :: l) s []
+    Lib.String.Set.fold
+      (fun chan_id l ->
+         {msg_chan_id = chan_id; msg_index = None; msg_data = Ecb.Closed} :: l)
+      s []
 
   let update_stateless_state hd (message : stateless_message) =
     match hd.hd_state with
@@ -471,19 +479,16 @@ end = struct
 
   let drop_message_index =
     let aux = function
-      | chan, Ecb.Data (m, i) -> chan, Some i, Ecb.Data m
-      | chan, (Ecb.Closed as m) | chan, (Ecb.Full as m) -> chan, None, m
+      | chan, Ecb.Data (m, i) ->
+          {msg_chan_id = chan; msg_index = Some i; msg_data = Ecb.Data m}
+      | chan, ((Ecb.Closed | Ecb.Full) as m) ->
+          {msg_chan_id = chan; msg_index = None; msg_data = m}
     in
     List.map aux
 
   let add_no_index =
-    let aux = function
-      | chan, (Ecb.Data _ as m)
-      | chan, (Ecb.Closed as m)
-      | chan, (Ecb.Full as m) ->
-          chan, None, m
-    in
-    List.map aux
+    List.map (fun (chan, m) ->
+      {msg_chan_id = chan; msg_index = None; msg_data = m})
 
   let update_activity ?(timeout = false) hd =
     if
@@ -492,7 +497,7 @@ end = struct
          || not (Configuration.get ()).Configuration.active_until_timeout)
     then set_activity hd (expected_activity hd)
 
-  let wait_data hd : (string * int option * string Ecb.channel_data) list Lwt.t =
+  let wait_data hd : message list Lwt.t =
     let rec aux retries =
       if hd.hd_activity.active = `Inactive
       then
@@ -625,8 +630,7 @@ end = struct
 end
 
 type 'a handler =
-  { hd_service_handler : 'a Service_handler.t
-  ; hd_stream : (string * int option * string Ecb.channel_data) Lwt_stream.t }
+  {hd_service_handler : 'a Service_handler.t; hd_stream : message Lwt_stream.t}
 
 let handler_stream hd =
   Lwt_stream.flatten
@@ -735,7 +739,7 @@ let register' hd position (_ : Ecb.comet_service) (chan_id : 'a Ecb.chan_id) =
   let stream =
     Lwt_stream.filter_map_s
       (function
-        | id, pos, data
+        | {msg_chan_id = id; msg_index = pos; msg_data = data}
           when id = chan_id && check_and_update_position position pos data -> (
           match data with
           | Ecb.Full -> Lwt.fail Channel_full
