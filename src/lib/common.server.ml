@@ -976,11 +976,7 @@ type cpi = client_process_info =
 
 [@@@warning "+39"]
 
-let matches_regexp name (_, re) =
-  try
-    let _ = Re.exec re name in
-    true
-  with Not_found -> false
+let matches_regexp name (_, re) = Re.execp re name
 
 let matches_regexps regexps (name, _) =
   List.exists (matches_regexp name) regexps

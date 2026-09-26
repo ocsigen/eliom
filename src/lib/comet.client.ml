@@ -640,8 +640,7 @@ type 'a handler =
   ; hd_stream : (string * int option * string Ecb.channel_data) Lwt_stream.t }
 
 let handler_stream hd =
-  Lwt_stream.map_list
-    (fun x -> x)
+  Lwt_stream.flatten
     (Lwt_stream.from (fun () ->
        Lwt.try_bind
          (fun () -> Service_handler.wait_data hd)

@@ -78,8 +78,7 @@ module Xml = struct
       | Node (_, _, children) -> List.iter collect_node_ids children
     in
     collect_node_ids page;
-    node_ids_in_content :=
-      List.fold_right Node_id_set.add !node_ids Node_id_set.empty;
+    node_ids_in_content := Node_id_set.of_list !node_ids;
     let res = Wrap.wrap value in
     node_ids_in_content := Node_id_set.empty;
     res

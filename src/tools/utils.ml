@@ -49,16 +49,16 @@ type pp_mode = [`Camlp4 | `Ppx]
 let pp_mode : pp_mode ref = ref `Camlp4
 
 let default_server_dir =
-  try Sys.getenv "ELIOM_SERVER_DIR" with Not_found -> "_server"
+  Option.value (Sys.getenv_opt "ELIOM_SERVER_DIR") ~default:"_server"
 
 let default_client_dir =
-  try Sys.getenv "ELIOM_CLIENT_DIR" with Not_found -> "_client"
+  Option.value (Sys.getenv_opt "ELIOM_CLIENT_DIR") ~default:"_client"
 
 let default_type_dir =
-  try Sys.getenv "ELIOM_TYPE_DIR" with Not_found -> default_server_dir
+  Option.value (Sys.getenv_opt "ELIOM_TYPE_DIR") ~default:default_server_dir
 
 let default_server_types_ext =
-  try Sys.getenv "ELIOM_SERVER_TYPES_EXT" with Not_found -> ".type_mli"
+  Option.value (Sys.getenv_opt "ELIOM_SERVER_TYPES_EXT") ~default:".type_mli"
 
 let build_dir : string ref = ref ""
 let type_dir : string ref = ref default_type_dir

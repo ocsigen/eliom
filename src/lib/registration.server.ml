@@ -835,7 +835,7 @@ let get_global_data ~keep_debug =
   in
   data, global_data_unwrapper
 
-let transform_global_app_uri = ref (fun x -> x)
+let transform_global_app_uri = ref Fun.id
 
 module type APP = sig
   val application_script :
