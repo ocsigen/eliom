@@ -29,8 +29,6 @@ open Lwt.Syntax
 (*****************************************************************************)
 (*****************************************************************************)
 
-open Lwt
-
 let section = Logs.Src.create "eliom:admin"
 
 let close_all_service_states_of_name full_st_name sitedata =
@@ -42,7 +40,7 @@ let close_all_service_states_of_name full_st_name sitedata =
        if full_st_name = full_state_name && !timeout = Common.TGlobal
        then Mod_sessiongroups.Serv.remove session_group_node;
        Lwt.pause ())
-    sitedata.Common.session_services return_unit
+    sitedata.Common.session_services Lwt.return_unit
 
 (** Close all service states for one session name.
     If the optional parameter [?state_name] (session name) is not present,
@@ -64,11 +62,11 @@ let close_all_data_states_of_name full_st_name sitedata =
     (fun _
       {Common.Data_cookie.full_state_name; timeout; session_group_node; _}
       thr ->
-       thr >>= fun () ->
+       let* () = thr in
        if full_st_name = full_state_name && !timeout = Common.TGlobal
        then Mod_sessiongroups.Data.remove session_group_node;
        Lwt.pause ())
-    sitedata.Common.session_data return_unit
+    sitedata.Common.session_data Lwt.return_unit
 
 (** Close all in memory data sessions for one session name.
     If the optional parameter [?state_name] (session name) is not present,
@@ -91,10 +89,12 @@ let close_all_persistent_states_of_name full_st_name sitedata =
        let scope = full_state_name.Common.user_scope in
        if full_st_name = full_state_name && old_t = Common.TGlobal
        then
-         Mod_persess.close_persistent_state_of_cookie ~scope sitedata
-           session_group k
-         >>= Lwt.pause
-       else return_unit)
+         let* () =
+           Mod_persess.close_persistent_state_of_cookie ~scope sitedata
+             session_group k
+         in
+         Lwt.pause ()
+       else Lwt.return_unit)
 
 (** Close all persistent sessions for one session name.
     If the optional parameter [?state_name] (session name) is not present,
@@ -149,7 +149,7 @@ let update_serv_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
                   Mod_sessiongroups.Serv.remove session_group_node
               | _ -> expiry := newexp);
            Lwt.pause ())
-        sitedata.Common.session_services return_unit
+        sitedata.Common.session_services Lwt.return_unit
 
 (* Update the expiration date for all in memory data sessions                *)
 let update_data_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
@@ -169,7 +169,7 @@ let update_data_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
           ; session_group_node
           ; _ }
           thr ->
-           thr >>= fun () ->
+           let* () = thr in
            (if full_st_name = full_state_name && !timeout = Common.TGlobal
             then
               let newexp =
@@ -181,7 +181,7 @@ let update_data_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
                   Mod_sessiongroups.Data.remove session_group_node
               | _ -> expiry := newexp);
            Lwt.pause ())
-        sitedata.Common.session_data return_unit
+        sitedata.Common.session_data Lwt.return_unit
 
 (* Update the expiration date for all sessions                               *)
 let update_pers_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
@@ -219,7 +219,9 @@ let update_pers_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
                      ; timeout = Common.TGlobal
                      ; session_group }
                  in
-                 Mod_cookies.Persistent_cookies.Expiry_dates.remove_cookie
-                   old_exp k
-                 >>= Lwt.pause
-           else return_unit)
+                 let* () =
+                   Mod_cookies.Persistent_cookies.Expiry_dates.remove_cookie
+                     old_exp k
+                 in
+                 Lwt.pause ()
+           else Lwt.return_unit)
