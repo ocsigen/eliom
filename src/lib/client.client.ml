@@ -1986,22 +1986,24 @@ and change_page_unknown
   in
   handle_result ~replace ~uri (Lwt.return result)
 
-and reload ~replace ~uri ~fallback =
-  Logs.debug ~src:section_page (fun fmt -> fmt "reload");
-  let path, args = path_and_args_of_uri uri in
+(* Load the page at [path] with GET parameters [args], or the [fallback]
+   service if that fails *)
+and reload_path ~replace ~fallback path args =
   Lwt.catch
     (fun () -> change_page_unknown ~replace path args [])
     (fun _ ->
        change_page ~replace ~ignore_client_fun:true ~service:fallback () ())
 
+and reload ~replace ~uri ~fallback =
+  Logs.debug ~src:section_page (fun fmt -> fmt "reload");
+  let path, args = path_and_args_of_uri uri in
+  reload_path ~replace ~fallback path args
+
 and reload_without_na_params ~replace ~uri ~fallback =
   let path, args = path_and_args_of_uri uri in
   let args = Common.remove_na_prefix_params args in
   Logs.debug ~src:section_page (fun fmt -> fmt "reload_without_na_params");
-  Lwt.catch
-    (fun () -> change_page_unknown ~replace path args [])
-    (fun _ ->
-       change_page ~replace ~ignore_client_fun:true ~service:fallback () ())
+  reload_path ~replace ~fallback path args
 
 (* Function used in "onclick" event handler of <a>.  *)
 let change_page_uri_a ?cookies_info ?tmpl ?(get_params = []) full_uri =
