@@ -54,11 +54,7 @@ let set_session_info ~uri si f =
   default_ri := ri;
   Lwt.with_value ri_key ri f
 
-let matches_regexp name re =
-  try
-    let _ = Re.exec re name in
-    true
-  with Not_found -> false
+let matches_regexp name re = Re.execp re name
 
 let matches_regexps regexps (name, _) =
   List.exists (matches_regexp name) regexps

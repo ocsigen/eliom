@@ -336,7 +336,7 @@ module Svg = struct
       Js.Opt.case
         (Dom_html.CoerceTo.element node)
         (fun () -> failwith (Printf.sprintf "Non element node (%s)" id))
-        (fun x -> x)
+        Fun.id
 
     let get_element id =
       try Some (Of_dom.of_element (get_element' id))
@@ -453,7 +453,7 @@ module Html = struct
       Js.Opt.case
         (Dom_html.CoerceTo.element node)
         (fun () -> failwith (Printf.sprintf "Non element node (%s)" id))
-        (fun x -> x)
+        Fun.id
 
     let get_element id =
       try Some (Of_dom.of_element (get_element' id))

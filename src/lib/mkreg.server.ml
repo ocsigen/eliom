@@ -625,7 +625,7 @@ struct
   let pages =
     { send = Pages.send
     ; send_appl_content = Pages.send_appl_content
-    ; result_of_http_result = (fun x -> x) }
+    ; result_of_http_result = Fun.id }
 
   let register ?app = register pages ?app
   let create ?app = create pages ?app

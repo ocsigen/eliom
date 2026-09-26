@@ -141,7 +141,7 @@ let copy_file ?(env = []) ?(preds = []) src_name dst_name =
                      (Printf.sprintf
                         "Cannot match %%%%endif%%%% in line %i in file %S"
                         !line_counter src_name))
-          else List.for_all (fun x -> x) !ifdef_stack
+          else List.for_all Fun.id !ifdef_stack
   in
   let replace_in_line =
     let replacers =

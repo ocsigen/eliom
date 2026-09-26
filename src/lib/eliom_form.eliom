@@ -325,7 +325,7 @@ module Make (Html : Html) = struct
     =
     get_form_
       (fun x f -> f x)
-      (fun x -> x)
+      Fun.id
       ?absolute ?absolute_path ?https ?a ~service ?keep_nl_params ?nl_params
       ?hostname ?port ?fragment f
 
@@ -390,7 +390,7 @@ module Make (Html : Html) = struct
     =
     post_form_
       (fun x f -> f x)
-      (fun x -> x)
+      Fun.id
       ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
       ?keep_get_na_params ?keep_nl_params ?nl_params f getparams
 
