@@ -1065,7 +1065,9 @@ module Ext = struct
     | TSome of float  (** timeout duration in seconds *)
 
   type (+'a (* scope *), +'b (* `Data, `Service or `Pers *)) state =
-    Common.user_scope * [`Data | `Service | `Pers] * string
+    { state_scope : Common.user_scope
+    ; state_kind : [`Data | `Service | `Pers]
+    ; state_id : string  (** The cookie value or the group name *) }
 
   type service_cookie_info =
     string (* cookie value *) * Common.tables Common.Service_cookie.t
@@ -1073,20 +1075,27 @@ module Ext = struct
   type data_cookie_info = string (* cookie value *) * Common.Data_cookie.t
   type persistent_cookie_info = string (* cookie value *) * Mod_cookies.cookie
 
-  let untype_state state = state
+  (* The same state with other phantom types *)
+  let untype_state state = {state with state_id = state.state_id}
 
   let volatile_data_group_state ?(scope = Common.default_group_scope) group_name
     =
-    (scope :> Common.user_scope), `Data, group_name
+    { state_scope = (scope :> Common.user_scope)
+    ; state_kind = `Data
+    ; state_id = group_name }
 
   let persistent_data_group_state
         ?(scope = Common.default_group_scope)
         group_name
     =
-    (scope :> Common.user_scope), `Pers, group_name
+    { state_scope = (scope :> Common.user_scope)
+    ; state_kind = `Pers
+    ; state_id = group_name }
 
   let service_group_state ?(scope = Common.default_group_scope) group_name =
-    (scope :> Common.user_scope), `Service, group_name
+    { state_scope = (scope :> Common.user_scope)
+    ; state_kind = `Service
+    ; state_id = group_name }
 
   let current_volatile_data_state
         ?secure
@@ -1104,7 +1113,9 @@ module Ext = struct
           Mod_datasess.find_or_create_data_cookie ~secure_o:secure ~cookie_scope
             ()
         in
-        ((scope, `Data, Common.(Hashed_cookies.to_string cookie.dc_hvalue))
+        ({ state_scope = scope
+         ; state_kind = `Data
+         ; state_id = Common.(Hashed_cookies.to_string cookie.dc_hvalue) }
          : ('a, 'b) state)
 
   let current_persistent_data_state
@@ -1127,7 +1138,9 @@ module Ext = struct
           ~cookie_scope ()
         >>= fun cookie ->
         Lwt.return
-          (scope, `Pers, Common.(Hashed_cookies.to_string cookie.pc_hvalue))
+          { state_scope = scope
+          ; state_kind = `Pers
+          ; state_id = Common.(Hashed_cookies.to_string cookie.pc_hvalue) }
 
   let current_service_state
         ?secure
@@ -1145,23 +1158,25 @@ module Ext = struct
           Mod_sersess.find_or_create_service_cookie ~secure_o:secure
             ~cookie_scope ()
         in
-        scope, `Service, Common.(Hashed_cookies.to_string cookie.sc_hvalue)
+        { state_scope = scope
+        ; state_kind = `Service
+        ; state_id = Common.(Hashed_cookies.to_string cookie.sc_hvalue) }
 
   let get_service_cookie_info
         ?(sitedata = Request_info.find_sitedata "State.get_service_cookie_info")
-        ((_, _, cookie) : ([< Common.cookie_level], [`Service]) state)
+        ({state_id = cookie; _} : ([< Common.cookie_level], [< `Service]) state)
     =
     cookie, Common.SessionCookies.find sitedata.Common.session_services cookie
 
   let get_volatile_data_cookie_info
         ?(sitedata =
           Request_info.find_sitedata "State.get_volatile_data_cookie_info")
-        ((_, _, cookie) : ([< Common.cookie_level], [`Data]) state)
+        ({state_id = cookie; _} : ([< Common.cookie_level], [< `Data]) state)
     =
     cookie, Common.SessionCookies.find sitedata.Common.session_data cookie
 
   let get_persistent_cookie_info
-        ((_, _, cookie) : ([< Common.cookie_level], [`Pers]) state)
+        ({state_id = cookie; _} : ([< Common.cookie_level], [< `Pers]) state)
     =
     Mod_cookies.Persistent_cookies.Cookies.find cookie >>= fun v ->
     Lwt.return (cookie, v)
@@ -1175,7 +1190,8 @@ module Ext = struct
       Common.get_site_dir_string sitedata, `Session, Either.Left n
     in
     match state with
-    | `Session_group _, `Data, group_name ->
+    | {state_scope = `Session_group _; state_kind = `Data; state_id = group_name}
+      ->
         (match
            Mod_sessiongroups.Data.find_node_in_group_of_groups
              (make_sessgrp group_name)
@@ -1183,7 +1199,9 @@ module Ext = struct
         | Some node -> Mod_sessiongroups.Data.remove node
         | None -> ());
         Lwt.return_unit
-    | `Session_group _, `Service, group_name ->
+    | { state_scope = `Session_group _
+      ; state_kind = `Service
+      ; state_id = group_name } ->
         (match
            Mod_sessiongroups.Serv.find_node_in_group_of_groups
              (make_sessgrp group_name)
@@ -1191,7 +1209,8 @@ module Ext = struct
         | Some (_, node) -> Mod_sessiongroups.Serv.remove node
         | None -> ());
         Lwt.return_unit
-    | `Session_group _, `Pers, group_name ->
+    | {state_scope = `Session_group _; state_kind = `Pers; state_id = group_name}
+      ->
         let sgr_o =
           Common.make_persistent_full_group_name ~cookie_level:`Session
             (Common.get_site_dir_string sitedata)
@@ -1199,25 +1218,30 @@ module Ext = struct
         in
         Mod_sessiongroups.Pers.remove_group ~cookie_level:`Session sitedata
           sgr_o
-    | _, `Service, (_cookie : string) ->
+    | {state_kind = `Service; _} ->
         let () =
-          match get_service_cookie_info ~sitedata state with
+          match
+            get_service_cookie_info ~sitedata {state with state_kind = `Service}
+          with
           | exception Not_found -> ()
           | _, {Common.Service_cookie.session_group_node; _} ->
               Mod_sessiongroups.Serv.remove session_group_node
         in
         Lwt.return_unit
-    | _, `Data, _cookie ->
+    | {state_kind = `Data; _} ->
         let () =
-          match get_volatile_data_cookie_info ~sitedata state with
+          match
+            get_volatile_data_cookie_info ~sitedata
+              {state with state_kind = `Data}
+          with
           | exception Not_found -> ()
           | _, {Common.Data_cookie.session_group_node; _} ->
               Mod_sessiongroups.Data.remove session_group_node
         in
         Lwt.return_unit
-    | _, `Pers, _cookie ->
+    | {state_kind = `Pers; _} ->
         Lwt.try_bind
-          (fun () -> get_persistent_cookie_info state)
+          (fun () -> get_persistent_cookie_info {state with state_kind = `Pers})
           (function
             | cookie, {Mod_cookies.full_state_name; session_group; _} ->
                 let scope = full_state_name.Common.user_scope in
@@ -1230,8 +1254,8 @@ module Ext = struct
   let prepare_sub_states_fold
         ?(sitedata = Request_info.find_sitedata "State (state iterator)")
         ~state:
-          ((s, k, id) :
-            ([< `Session_group | `Session], [< `Pers | `Data | `Service]) state)
+          ({state_scope = s; state_kind = k; state_id = id} :
+            ([< `Session_group | `Session], 'k) state)
         f
     =
     (* id is the session cookie value or the group name *)
@@ -1247,12 +1271,16 @@ module Ext = struct
     in
     let sub_states_level = reduce_level s in
     let sub_states_scope = reduce_scope s in
-    let f a v = f a (sub_states_scope, k, v) in
+    let f a v =
+      f a
+        ({state_scope = sub_states_scope; state_kind = k; state_id = v}
+         : (_, 'k) state)
+    in
     sitedata, sub_states_level, id, f
 
   let fold_sub_states_aux fold return (sitedata, sub_states_level, id, f) e
     = function
-    | _, `Data, _ -> (
+    | {state_kind = `Data; _} -> (
       try
         let dl =
           Mod_sessiongroups.Data.find
@@ -1262,7 +1290,7 @@ module Ext = struct
         in
         fold f e dl
       with Not_found -> return e)
-    | _, `Service, _ -> (
+    | {state_kind = `Service; _} -> (
       try
         let dl =
           Mod_sessiongroups.Serv.find
@@ -1274,14 +1302,8 @@ module Ext = struct
       with Not_found -> return e)
     | _ -> failwith "fold_sub_states_aux"
 
-  let fold_volatile_sub_states
-        ?sitedata
-        ~(state : Common.user_scope * [> `Data | `Service] * string)
-        f
-        e
-    =
-    let state' = (state :> ('aa, 'bb) state) in
-    let a = prepare_sub_states_fold ?sitedata ~state:state' f in
+  let fold_volatile_sub_states ?sitedata ~state f e =
+    let a = prepare_sub_states_fold ?sitedata ~state f in
     fold_sub_states_aux Ocsigen_base.Cache.Dlist.fold Fun.id a e state
 
   (** Fold over the snapshot of a Dlist. *)
@@ -1294,7 +1316,7 @@ module Ext = struct
       prepare_sub_states_fold ?sitedata ~state f
     in
     match state with
-    | _, `Pers, _ ->
+    | {state_kind = `Pers; _} ->
         Mod_sessiongroups.Pers.find
           (Common.make_persistent_full_group_name ~cookie_level:sub_states_level
              (Common.get_site_dir_string sitedata)
@@ -1324,7 +1346,7 @@ module Ext = struct
 
     (*VVV Does not work with volatile group data *)
     let get_volatile_data
-          ~state:((state_scope, _, cookie) : ('s, [`Data]) state)
+          ~state:({state_scope; state_id = cookie; _} : ('s, [< `Data]) state)
           ~table:({Common.table_scope; table = t; _} : 'a volatile_table)
       =
       check_scopes table_scope state_scope;
@@ -1332,7 +1354,7 @@ module Ext = struct
 
     let get_persistent_data
           (type a)
-          ~state:((state_scope, _, cookie) : ('s, [`Pers]) state)
+          ~state:({state_scope; state_id = cookie; _} : ('s, [< `Pers]) state)
           ~table:({Common.table_scope; table = t; _} : a persistent_table)
       =
       lwt_check_scopes table_scope state_scope >>= fun () ->
@@ -1343,7 +1365,7 @@ module Ext = struct
       T.find cookie
 
     let set_volatile_data
-          ~state:((state_scope, _, cookie) : ('s, [`Data]) state)
+          ~state:({state_scope; state_id = cookie; _} : ('s, [< `Data]) state)
           ~table:({Common.table_scope; table = t; _} : 'a volatile_table)
           value
       =
@@ -1352,7 +1374,7 @@ module Ext = struct
 
     let set_persistent_data
           (type a)
-          ~state:((state_scope, _, cookie) : ('s, [`Pers]) state)
+          ~state:({state_scope; state_id = cookie; _} : ('s, [< `Pers]) state)
           ~table:({Common.table_scope; table = t; _} : a persistent_table)
           (value : a)
       =
@@ -1364,7 +1386,7 @@ module Ext = struct
       T.add cookie value
 
     let remove_volatile_data
-          ~state:((state_scope, _, cookie) : ('s, [`Data]) state)
+          ~state:({state_scope; state_id = cookie; _} : ('s, [< `Data]) state)
           ~table:({Common.table_scope; table = t; _} : 'a volatile_table)
       =
       check_scopes table_scope state_scope;
@@ -1372,7 +1394,7 @@ module Ext = struct
 
     let remove_persistent_data
           (type a)
-          ~state:((state_scope, _, cookie) : ('s, [`Pers]) state)
+          ~state:({state_scope; state_id = cookie; _} : ('s, [< `Pers]) state)
           ~table:({Common.table_scope; table = t; _} : a persistent_table)
       =
       lwt_check_scopes table_scope state_scope >>= fun () ->
