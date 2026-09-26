@@ -46,7 +46,7 @@ let consume (t, u) s =
          (match Lwt.state t with Lwt.Sleep -> Lwt.wakeup_exn u e | _ -> ());
          Lwt.fail e)
   in
-  Lwt.choose [Lwt.bind t (fun _ -> Lwt.return_unit); t']
+  Lwt.choose [Lwt.map ignore t; t']
 
 let clone_exn (t, u) s =
   let s' = Lwt_stream.clone s in
@@ -139,7 +139,10 @@ let try_flush t =
   else
     let th = Lwt.protected (t.waiter ()) in
     t.last_wait <- th;
-    let _ = th >>= fun () -> flush t in
+    let _ =
+      let* () = th in
+      flush t
+    in
     Lwt.return_unit
 
 let write t v = Queue.add v t.queue; try_flush t
