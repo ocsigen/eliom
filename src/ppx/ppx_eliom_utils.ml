@@ -28,8 +28,6 @@ let int ?loc ?attrs s = Exp.constant ?loc ?attrs (Const.int s)
 let punit ?loc ?attrs () =
   Pat.construct ?loc ?attrs (mkloc_opt ?loc (Longident.Lident "()")) None
 
-let flatmap f l = List.flatten @@ List.map f l
-
 let get_extension = function
   | {pexp_desc = Pexp_extension ({txt; _}, _); _} -> txt
   | _ -> invalid_arg "Eliom ppx: Should be an extension."
@@ -1000,19 +998,19 @@ module Make (Pass : Pass) = struct
                       txt txt) ]
           else
             let c = Context.of_string txt in
-            let l = flatmap (dispatch_str c) strs in
+            let l = List.concat_map (dispatch_str c) strs in
             maybe_reset_injected_idents c;
             l
       | Pstr_include
           { pincl_mod = {pmod_desc = Pmod_structure l; pmod_attributes = []; _}
           ; pincl_attributes = []
           ; _ } ->
-          flatmap f l
+          List.concat_map f l
       | _ -> dispatch_str !context pstr
     in
     let loc = {(file_position structs) with loc_ghost = true} in
     (module_hash_declaration loc :: Pass.prelude loc)
-    @ flatmap f structs @ Pass.postlude loc
+    @ List.concat_map f structs @ Pass.postlude loc
 
   let toplevel_signature context sigs =
     let f psig =
@@ -1033,10 +1031,10 @@ module Make (Pass : Pass) = struct
       | Psig_extension (({txt; _}, PSig sigs), _)
         when is_annotation txt ["shared"; "client"; "server"] ->
           let c = Context.of_string txt in
-          flatmap (dispatch_sig c) sigs
+          List.concat_map (dispatch_sig c) sigs
       | _ -> dispatch_sig !context psig
     in
-    flatmap f sigs
+    List.concat_map f sigs
 
   let mapper =
     let c = ref `Server in
