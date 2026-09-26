@@ -1,29 +1,29 @@
 (** String *)
 
-let remove_spaces s beg endd =
+let remove_spaces s start stop =
   let rec find_not_space s i step =
-    if i > endd || beg > i
+    if i > stop || start > i
     then i
     else if s.[i] = ' '
     then find_not_space s (i + step) step
     else i
   in
-  let first = find_not_space s beg 1 in
-  let last = find_not_space s endd (-1) in
+  let first = find_not_space s start 1 in
+  let last = find_not_space s stop (-1) in
   if last >= first then String.sub s first (1 + last - first) else ""
 
 let split c s =
-  let longueur = String.length s in
-  let rec aux deb =
-    if deb >= longueur
+  let len = String.length s in
+  let rec aux start =
+    if start >= len
     then []
     else
       try
-        let firstsep = String.index_from s deb c in
-        if firstsep = deb
-        then aux (deb + 1)
-        else remove_spaces s deb (firstsep - 1) :: aux (firstsep + 1)
-      with Not_found -> [remove_spaces s deb (longueur - 1)]
+        let firstsep = String.index_from s start c in
+        if firstsep = start
+        then aux (start + 1)
+        else remove_spaces s start (firstsep - 1) :: aux (firstsep + 1)
+      with Not_found -> [remove_spaces s start (len - 1)]
   in
   aux 0
 

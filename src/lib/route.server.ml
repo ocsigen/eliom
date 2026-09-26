@@ -186,13 +186,13 @@ let get_page now ({Common.request = ri; session_info = si; _} as info) sitedata
 
 let add_naservice_table at (key, elt) =
   match at with
-  | Common.AVide ->
+  | Common.AEmpty ->
       Common.ATable (Common.NAserv_Table.add key elt Common.NAserv_Table.empty)
   | Common.ATable t -> Common.ATable (Common.NAserv_Table.add key elt t)
 
 let find_naservice_table at k =
   match at with
-  | Common.AVide -> raise Not_found
+  | Common.AEmpty -> raise Not_found
   | Common.ATable t -> Common.NAserv_Table.find k t
 
 let add_naservice tables name (max_use, expdate, naservice) =

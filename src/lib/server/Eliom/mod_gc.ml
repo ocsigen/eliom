@@ -47,13 +47,13 @@ let gc_timeouted_services now tables =
     | Common.Dir r ->
         empty_one r >>= fun () ->
         (match !r with
-        | Common.Vide -> (
+        | Common.Empty -> (
           match !t with
-          | Common.Vide -> ()
+          | Common.Empty -> ()
           | Common.Table tr ->
               let newr = String.Table.remove filename tr in
               if String.Table.is_empty newr
-              then t := Common.Vide
+              then t := Common.Empty
               else t := Common.Table newr)
         | _ -> ());
         Lwt.return_unit
@@ -102,28 +102,28 @@ let gc_timeouted_services now tables =
         (if Common.Serv_Table.is_empty !ptr
          then
            match !t with
-           | Common.Vide -> ()
+           | Common.Empty -> ()
            | Common.Table tr ->
                let newr = String.Table.remove filename tr in
                if String.Table.is_empty newr
-               then t := Common.Vide
+               then t := Common.Empty
                else t := Common.Table newr);
         Lwt.return_unit
   and empty_one t =
     match !t with
-    | Common.Vide -> Lwt.return_unit
+    | Common.Empty -> Lwt.return_unit
     | Common.Table r -> (
         if String.Table.is_empty r
         then (
-          t := Common.Vide;
+          t := Common.Empty;
           Lwt.return_unit)
         else
           String.Table.fold (aux t) r Lwt.return_unit >>= fun () ->
           match !t with
           (* !t has probably changed *)
-          | Common.Vide -> Lwt.return_unit
+          | Common.Empty -> Lwt.return_unit
           | Common.Table r ->
-              if String.Table.is_empty r then t := Common.Vide;
+              if String.Table.is_empty r then t := Common.Empty;
               Lwt.return_unit)
   in
   Lwt_list.iter_s
@@ -132,17 +132,17 @@ let gc_timeouted_services now tables =
   >>= fun () ->
   tables.Common.table_services <-
     List.filter
-      (fun r -> !(Tuple3.thd r) <> Common.Vide)
+      (fun r -> !(Tuple3.thd r) <> Common.Empty)
       tables.Common.table_services;
   Lwt.return_unit
 
 let gc_timeouted_naservices now tr =
   match !tr with
-  | Common.AVide -> return_unit
+  | Common.AEmpty -> return_unit
   | Common.ATable t ->
       if Common.NAserv_Table.is_empty t
       then (
-        tr := Common.AVide;
+        tr := Common.AEmpty;
         Lwt.return_unit)
       else
         Common.NAserv_Table.fold

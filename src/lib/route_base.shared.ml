@@ -271,12 +271,12 @@ module Make (P : PARAM) = struct
 
   let add_dircontent dc (key, (elt : P.Table.t Common.direlt ref)) =
     match dc with
-    | Common.Vide -> Common.Table (String.Table.add key elt String.Table.empty)
+    | Common.Empty -> Common.Table (String.Table.add key elt String.Table.empty)
     | Common.Table t -> Common.Table (String.Table.add key elt t)
 
   let find_dircontent dc k =
     match dc with
-    | Common.Vide -> raise Not_found
+    | Common.Empty -> raise Not_found
     | Common.Table t -> String.Table.find k t
 
   let add_or_remove_service f tables table url_act page_table_key va =

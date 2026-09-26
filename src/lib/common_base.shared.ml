@@ -373,10 +373,10 @@ exception Eliom_Wrong_parameter
 exception Eliom_duplicate_registration of string
 exception Eliom_page_erasing of string
 
-type 'a dircontent = Vide | Table of 'a direlt ref String.Table.t
+type 'a dircontent = Empty | Table of 'a direlt ref String.Table.t
 and 'a direlt = Dir of 'a dircontent ref | File of 'a ref
 
-let empty_dircontent () = Vide
+let empty_dircontent () = Empty
 
 type meth = [`Get | `Post | `Put | `Delete | `Other]
 type page_table_key = {key_state : att_key_serv * att_key_serv; key_meth : meth}
