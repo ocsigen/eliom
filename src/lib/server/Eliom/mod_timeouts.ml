@@ -26,7 +26,6 @@
 (*****************************************************************************)
 
 open Lib
-open Lwt
 
 type kind = [`Service | `Data | `Persistent]
 
@@ -137,7 +136,7 @@ let set_timeout_
           | None -> default_timeout get_default timeouts user_scope
         in
         ignore
-          (catch
+          (Lwt.catch
              (fun () -> update full_st_name sitedata oldt t)
              (function
                | exn ->
