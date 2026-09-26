@@ -69,6 +69,8 @@ val send :
   ?cookies_info:(bool * string list) ->
   ?get_args:(string * string) list ->
   ?post_args:(string * Mod_parameters.param) list ->
+  ?override_method:
+    [ `GET | `POST | `HEAD | `PUT | `DELETE | `OPTIONS | `PATCH ] ->
   ?progress:(int -> int -> unit) ->
   ?upload_progress:(int -> int -> unit) ->
   ?override_mime_type:string ->

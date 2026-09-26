@@ -116092,6 +116092,8 @@ val send :
   ?cookies_info:(bool * string list) ->
   ?get_args:(string * string) list ->
   ?post_args:(string * Mod_parameters.param) list ->
+  ?override_method:
+    [ `GET | `POST | `HEAD | `PUT | `DELETE | `OPTIONS | `PATCH ] ->
   ?progress:(int -> int -> unit) ->
   ?upload_progress:(int -> int -> unit) ->
   ?override_mime_type:string ->
@@ -118056,7 +118058,7 @@ val set_send_appl_content :
   unit
 ```
 ```ocaml
-val append_suffix : 'a list -> 'a list -> 'a list
+val append_suffix : string list -> string list -> string list
 ```
 ```ocaml
 val _eliom_fragment_2xPKAs2 : 
@@ -232258,7 +232260,7 @@ val set_send_appl_content :
   unit
 ```
 ```ocaml
-val append_suffix : 'a list -> 'a list -> 'a list
+val append_suffix : string list -> string list -> string list
 ```
 ```ocaml
 val preapply : 

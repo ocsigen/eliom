@@ -498,7 +498,7 @@ val set_send_appl_content :
   unit
 ```
 ```ocaml
-val append_suffix : 'a list -> 'a list -> 'a list
+val append_suffix : string list -> string list -> string list
 ```
 ```ocaml
 val _eliom_fragment_2xPKAs2 : 
