@@ -145,21 +145,27 @@ end = struct
   let to_string x = x
 end
 
-(* session groups *)
-type 'a sessgrp = string * cookie_level * (string, Ipaddr.t) Either.t
+(* The group of a session: a named group or, for sessions that are not in a
+   group, the subnet of the client (to limit the number of sessions by IP
+   address) *)
+type session_group = Group_name of string | Subnet of Ipaddr.t
 
-(* The full session group is the triple
-   (site_dir_string, scope, session group name).
-   The scope is the scope of group members (`Session by default).
-   If there is no session group,
-   we limit the number of sessions by IP address. *)
+(* A full session group: the site, the cookie level of the group members
+   (`Session by default) and the group *)
+type full_session_group =
+  {sg_site_dir : string; sg_level : cookie_level; sg_group : session_group}
+
+(* The parameter only documents the level of the group *)
+type 'a sessgrp = full_session_group
+
 [@@@warning "-39"]
 
-type perssessgrp = string (* same triple, JSON-encoded *) [@@deriving json]
+type perssessgrp = string
+(* the same information, JSON-encoded *) [@@deriving json]
 
 (* Persistent representation of a session group. Stored on disk through
    {!perssessgrp}: a JSON-encoded value of this record. The triple form is
-   {!sessgrp} but always with [Either.Left g] for persistent groups, hence the
+   {!sessgrp} but always with a [Group_name] for persistent groups, hence the
    simpler representation here. *)
 type perssessgrp_payload =
   {p_site_dir_str : string; p_cookie_level : cookie_level; p_group : string}
@@ -179,7 +185,9 @@ let make_persistent_full_group_name ~cookie_level site_dir_string = function
 let getperssessgrp a : 'a sessgrp =
   match Deriving_Json.from_string [%json: perssessgrp_payload] a with
   | {p_site_dir_str; p_cookie_level; p_group} ->
-      p_site_dir_str, p_cookie_level, Either.Left p_group
+      { sg_site_dir = p_site_dir_str
+      ; sg_level = p_cookie_level
+      ; sg_group = Group_name p_group }
   | exception Failure msg ->
       (* Old (pre-Eliom-13, Marshal-encoded) or corrupt persistent
          session-group cookie: treat it as an expired session instead of

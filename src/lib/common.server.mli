@@ -289,14 +289,26 @@ type sess_info =
 module SessionCookies : Hashtbl.S with type key = string
 
 (* session groups *)
-type 'a sessgrp = string * cookie_level * (string, Ipaddr.t) Either.t
+type session_group =
+  | Group_name of string
+  | Subnet of Ipaddr.t
+  (** The group of a session: a named group or, for sessions that are not in a
+    group, the subnet of the client. *)
+
+type full_session_group =
+  {sg_site_dir : string; sg_level : cookie_level; sg_group : session_group}
+(** A full session group: the site, the cookie level of the group members
+    and the group. *)
+
+type 'a sessgrp = full_session_group
+(** The parameter only documents the level of the group. *)
 
 (* The full session group is the triple
        (site_dir_string, scope, session group name).
        The scope is the scope of group members (`Session by default).
        If there is no session group,
        we limit the number of sessions by IP address. *)
-type perssessgrp (* the same triple, JSON-encoded *) [@@deriving json]
+type perssessgrp (* the same information, JSON-encoded *) [@@deriving json]
 
 val make_persistent_full_group_name :
    cookie_level:cookie_level

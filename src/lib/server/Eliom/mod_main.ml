@@ -162,8 +162,8 @@ let create_sitedata_aux site_dir config_info =
           removing the group from its dlist: *)
        Mod_sessiongroups.Data.remove_group fullbrowsersessgrp;
        (* Then we remove data from group tables: *)
-       match Tuple3.thd fullbrowsersessgrp with
-       | Either.Left key ->
+       match fullbrowsersessgrp.Common.sg_group with
+       | Common.Group_name key ->
            (* iterate on all session data tables: *)
            sitedata.Common.remove_session_data key
        | _ ->
