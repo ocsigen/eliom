@@ -259,7 +259,7 @@ end = struct
                let* () = wait_data requests in
                Lwt.return (List.flatten (List.map get_available_data requests)))
             (function
-              | Lwt_unix.Timeout -> Lwt.return_nil | exc -> Lwt.reraise exc)
+              | Lwt_unix.Timeout -> Lwt.return_nil | exc -> Lwt.fail exc)
         in
         Lwt.return (encode_global_downgoing res)
 

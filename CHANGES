@@ -185,6 +185,8 @@
 ** Getting a persistent Eliom reference now returns a rejected promise on a
    storage error. With a synchronous storage backend, the error was raised
    synchronously instead.
+** A stateless Comet request whose wait fails immediately now gets a
+   rejected promise instead of a synchronous exception.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
