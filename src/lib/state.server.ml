@@ -56,26 +56,6 @@ let persistent_data_state_status ~scope ?secure () =
       | e -> fail e)
 
 (************)
-(*
-   let get_default_service_session_timeout = Mod_timeouts.get_default_service_timeout
-let set_default_service_session_timeout = Mod_timeouts.set_default_service_timeout
-
-let get_default_volatile_data_session_timeout =
-  Mod_timeouts.get_default_data_timeout
-
-let set_default_volatile_data_session_timeout =
-  Mod_timeouts.set_default_data_timeout
-
-let set_default_volatile_session_timeout =
-  Mod_timeouts.set_default_volatile_timeout
-
-let get_default_persistent_data_session_timeout =
-  Mod_timeouts.get_default_persistent_timeout
-
-let set_default_persistent_data_session_timeout =
-  Mod_timeouts.set_default_persistent_timeout
-*)
-
 let set_default_global_service_state_timeout
       ~cookie_level
       ?(override_configfile = false)
@@ -302,9 +282,6 @@ let rec close_service_state_if_empty ~scope ?secure () =
     in
     match scope with
     | `Session _ ->
-        (*VVV ???        (match !(c.Common.sc_session_group) with
-          | (_, _, Either.Right _) (* no group *)
-              when *)
         if
           Mod_sessiongroups.Serv.group_size
             ( Common.get_site_dir_string sitedata
@@ -352,12 +329,8 @@ let rec close_volatile_state_if_empty ~scope ?secure () =
           Mod_sessiongroups.Data.remove c.Common.dc_session_group_node
       | _ -> ())
     | `Client_process _ -> ()
-    (* This should never occur, because we always have tab session data
-   when we have a tab session (at least the change_page_event).
-        if (sitedata.Common.not_bound_in_data_tables
-              c.Common.dc_hvalue)
-        then Mod_sessiongroups.Data.remove
-          c.Common.dc_session_group_node *)
+    (* Nothing to close: we always have tab session data when we have a tab
+       session (at least the change_page_event). *)
     | `Session_group scope_hierarchy ->
         (* There is a browser session, we do not close the group,
            but we may close the browser session (this will close
@@ -775,15 +748,6 @@ let set_service_cookie_exp_date ~cookie_scope ?secure t =
   | None -> exp := Common.CEBrowser
   | Some t -> exp := Common.CESome t
 
-(*
-   let get_service_cookie_exp_date ?state_name ?(cookie_level = `Session) ?secure () =
-  try
-    let (_, _, _, _, exp) = find_service_cookie_only ?state_name ~cookie_level ~secure () in
-  let exp = c.Common.sc_cookie_exp in
-    !exp
-  with Not_found | Common.Eliom_Session_expired -> Common.CEBrowser
-*)
-
 let set_volatile_data_cookie_exp_date ~cookie_scope ?secure t =
   let c =
     Mod_datasess.find_or_create_data_cookie ~cookie_scope ~secure_o:secure ()
@@ -1125,20 +1089,6 @@ module Ext = struct
   type persistent_cookie_info = string (* cookie value *) * Mod_cookies.cookie
 
   let untype_state state = state
-
-  (*VVV Do we need this? + check
-
-  (* The following function returns the group to which belongs
-     a session or client process state: *)
-  let group_of ~state:(_cookie, (_, _, _, _, sgr, _sgrnode)) =
-    match Mod_sessiongroups.Serv.find_node_in_group_of_groups !sgr with
-      | Some a -> a
-      | None -> (* the group of a tab session,
-                   that is, the browser session associated. *)
-        Mod_sessiongroups.make_full_named_group_name_
-          ~cookie_level:`Client_process sitedata cookie
-        (*VVV à vérifier *)
-  *)
 
   let volatile_data_group_state ?(scope = Common.default_group_scope) group_name
     =

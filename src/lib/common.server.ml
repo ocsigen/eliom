@@ -1081,15 +1081,6 @@ let get_session_info ~sitedata ~req previous_extension_err =
       (* It was a POST request to be considered as GET *)
     with Not_found -> post_params, g, false
   in
-  (*204FORMS* old implementation of forms with 204 and change_page_event
-
-  let get_params, internal_form =
-    try
-      (snd (List.assoc_remove internal_form_full_name get_params),
-       true)
-    with Not_found -> (get_params, false)
-  in
-  *)
   let get_params0 = get_params in
   let post_params0 = post_params in
   let* file_params0 = file_params in
@@ -1102,7 +1093,7 @@ let get_session_info ~sitedata ~req previous_extension_err =
         , nl_get_params
         , nl_post_params
         , nl_file_params
-        , all_get_but_nl (*204FORMS*, internal_form *)
+        , all_get_but_nl
         , ignored_get
         , ignored_post ) )
     =
@@ -1135,7 +1126,7 @@ let get_session_info ~sitedata ~req previous_extension_err =
         , nl_get_params
         , nl_post_params
         , nl_file_params
-        , all_get_but_nl (*204FORMS*, internal_form *)
+        , all_get_but_nl
         , ignored_get
         , ignored_post ) )
   in
@@ -1335,8 +1326,7 @@ let get_session_info ~sitedata ~req previous_extension_err =
       ; si_ignored_get_params = ignored_get
       ; si_ignored_post_params = ignored_post
       ; si_client_process_info = cpi
-      ; si_expect_process_data =
-          epd (*204FORMS*     si_internal_form= internal_form; *) } )
+      ; si_expect_process_data = epd } )
   in
   Lwt.return
     ( {req_whole with Ocsigen.Extensions.request_info = ri}

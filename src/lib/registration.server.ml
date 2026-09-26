@@ -364,7 +364,6 @@ module Any_base = struct
   type options = unit
   type 'a return = Service.non_ocaml
 
-  (* let send_appl_content = Service.XNever *)
   let send_appl_content = Service.XAlways
 
   let send

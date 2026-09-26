@@ -38,8 +38,6 @@ let make_response ?headers ~status body =
   in
   Lwt.return (Ocsigen.Response.make ~body response)
 
-(* module Html_content = Ocsigen_senders.Make_XML_Content(Xml)(Html.F) *)
-
 (* Exception handler for the site *)
 
 let def_handler e = Lwt.fail e
@@ -51,7 +49,6 @@ let update_cookie_table ?now sitedata (ci, sci) =
     (* Update service expiration date and value *)
     Common.Full_state_name_table.iter
       (fun name (_oldvalue, newr) ->
-         (* catch fun () -> *)
          match !newr with
          | Common.SCData_session_expired | Common.SCNo_data ->
              () (* The cookie has been removed *)

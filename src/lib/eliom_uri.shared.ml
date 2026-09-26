@@ -47,11 +47,7 @@ let reconstruct_relative_url_path current_url u =
     | _ :: l, m -> l, m
     | [], m -> [], m
   in
-  let rec makedotdot = function
-    | [] -> []
-    (*    | [a] -> "" *)
-    | _ :: l -> ".." :: makedotdot l
-  in
+  let rec makedotdot = function [] -> [] | _ :: l -> ".." :: makedotdot l in
   let aremonter, aaller = drop current_url u in
   makedotdot aremonter @ aaller
 

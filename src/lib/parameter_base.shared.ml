@@ -203,7 +203,6 @@ let rec make_suffix : type a c. (a, 'b, c) params_type -> a -> string list =
   | TSum (t1, t2) -> (
     match params with Inj1 p -> make_suffix t1 p | Inj2 p -> make_suffix t2 p)
   | TESuffixs _ -> [params]
-  (* | TAny ->       (match params with [] -> [""] | p -> p) *)
   | TESuffix _ -> ( match params with [] -> [""] | p -> p)
   | TESuffixu (_, tao) -> [Common.To_and_of_shared.to_string tao params]
   | TJson (_, typ) ->

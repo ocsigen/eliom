@@ -596,7 +596,6 @@ end = struct
                 ~post_params:
                   Parameter.(bool "idle" ** Comet_base.comet_request_param)
                 ~fallback:(Common.force_lazy_site_value fallback_service)
-                (*~name:"comet" (* CCC faut il mettre un nom ? *)*)
                 ()
             , ref [] )
         in
