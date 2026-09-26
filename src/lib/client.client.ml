@@ -685,6 +685,65 @@ let with_new_page ?state_id ?old_page ~replace () f =
   let page = mk_page ?state_id ?url ?previous_page ~status:Generating () in
   Lwt.with_value this_page (Some page) f
 
+module Page_status = struct
+  include Page_status_t
+
+  let signal () =
+    let p = get_this_page () in
+    p.page_status
+
+  module Events = struct
+    let changes () = React.S.changes (signal ())
+
+    let active () =
+      changes () |> React.E.fmap @@ function Active -> Some () | _ -> None
+
+    let cached () =
+      changes () |> React.E.fmap @@ function Cached -> Some () | _ -> None
+
+    let dead () =
+      changes () |> React.E.fmap @@ function Dead -> Some () | _ -> None
+
+    let inactive () = React.E.select [cached (); dead ()]
+  end
+
+  let maybe_just_once ~once e = if once then React.E.once e else e
+
+  let stop_event ?(stop = React.E.never) e =
+    Dom_reference.retain_generic (get_this_page ()) ~keep:e;
+    Dom_reference.retain_generic e
+      ~keep:(React.E.map (fun () -> React.E.stop ~strong:true e) stop)
+
+  let onactive ?(now = true) ?(once = false) ?stop action =
+    let on_event () =
+      stop_event ?stop @@ React.E.map action @@ maybe_just_once ~once
+      @@ Events.active ()
+    in
+    if now && React.S.value (signal ()) = Active
+    then (
+      action ();
+      if not once then on_event ())
+    else on_event ()
+
+  let oncached ?(once = false) ?stop action =
+    stop_event ?stop @@ React.E.map action @@ maybe_just_once ~once
+    @@ Events.cached ()
+
+  let ondead ?stop action =
+    stop_event ?stop @@ React.E.map action (Events.dead ())
+
+  let oninactive ?(once = false) ?stop action =
+    stop_event ?stop @@ React.E.map action @@ maybe_just_once ~once
+    @@ Events.inactive ()
+
+  let while_active ?now ?(stop = React.E.never) action =
+    let thread = ref Lwt.return_unit in
+    onactive ?now ~stop (fun () -> thread := action ());
+    oninactive ~stop (fun () -> Lwt.cancel !thread);
+    Dom_reference.retain_generic (get_this_page ())
+      ~keep:(React.E.map (fun () -> Lwt.cancel !thread) stop)
+end
+
 module History = struct
   let section = Logs.Src.create "eliom:client:history"
 
@@ -1342,65 +1401,6 @@ let push_history_dom () =
     in
     page.dom <- Some dom;
     History.garbage_collect_doms ())
-
-module Page_status = struct
-  include Page_status_t
-
-  let signal () =
-    let p = get_this_page () in
-    p.page_status
-
-  module Events = struct
-    let changes () = React.S.changes (signal ())
-
-    let active () =
-      changes () |> React.E.fmap @@ function Active -> Some () | _ -> None
-
-    let cached () =
-      changes () |> React.E.fmap @@ function Cached -> Some () | _ -> None
-
-    let dead () =
-      changes () |> React.E.fmap @@ function Dead -> Some () | _ -> None
-
-    let inactive () = React.E.select [cached (); dead ()]
-  end
-
-  let maybe_just_once ~once e = if once then React.E.once e else e
-
-  let stop_event ?(stop = React.E.never) e =
-    Dom_reference.retain_generic (get_this_page ()) ~keep:e;
-    Dom_reference.retain_generic e
-      ~keep:(React.E.map (fun () -> React.E.stop ~strong:true e) stop)
-
-  let onactive ?(now = true) ?(once = false) ?stop action =
-    let on_event () =
-      stop_event ?stop @@ React.E.map action @@ maybe_just_once ~once
-      @@ Events.active ()
-    in
-    if now && React.S.value (signal ()) = Active
-    then (
-      action ();
-      if not once then on_event ())
-    else on_event ()
-
-  let oncached ?(once = false) ?stop action =
-    stop_event ?stop @@ React.E.map action @@ maybe_just_once ~once
-    @@ Events.cached ()
-
-  let ondead ?stop action =
-    stop_event ?stop @@ React.E.map action (Events.dead ())
-
-  let oninactive ?(once = false) ?stop action =
-    stop_event ?stop @@ React.E.map action @@ maybe_just_once ~once
-    @@ Events.inactive ()
-
-  let while_active ?now ?(stop = React.E.never) action =
-    let thread = ref Lwt.return_unit in
-    onactive ?now ~stop (fun () -> thread := action ());
-    oninactive ~stop (fun () -> Lwt.cancel !thread);
-    Dom_reference.retain_generic (get_this_page ())
-      ~keep:(React.E.map (fun () -> Lwt.cancel !thread) stop)
-end
 
 let is_in_cache state_id =
   match History.find_by_state_index state_id.state_index with
