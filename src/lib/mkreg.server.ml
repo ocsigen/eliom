@@ -152,6 +152,12 @@ let send_with_cookies
   in
   Lwt.return (Ocsigen.Response.update result ~cookies ~response)
 
+(* Where a service is registered: the global table of a site, or the table
+   of a session *)
+type registration_table =
+  | Global_table of Common.tables
+  | Session_table of Common.server_params * Common.user_scope * bool option
+
 let register_aux
       pages
       ?options
@@ -168,8 +174,8 @@ let register_aux
   (* The table where the service is registered *)
   let registration_table () =
     match table with
-    | Either.Left globtbl -> globtbl
-    | Either.Right (sp, scope, secure_session) ->
+    | Global_table globtbl -> globtbl
+    | Session_table (sp, scope, secure_session) ->
         !(State.get_session_service_table ?secure:secure_session ~scope ~sp ())
   in
   (* For a CSRF-safe coservice: the table that stores the delayed
@@ -177,7 +183,7 @@ let register_aux
      new coservice is registered *)
   let csrf_safe_tables ~scope ~secure_session =
     match table with
-    | Either.Left globtbl ->
+    | Global_table globtbl ->
         ( globtbl
         , fun ~sp ->
             (* we do not register in global table,
@@ -185,7 +191,7 @@ let register_aux
                the csrf safe service *)
             !(State.get_session_service_table ?secure:secure_session ~scope ~sp
                 ()) )
-    | Either.Right (sp, ct, sec) ->
+    | Session_table (sp, ct, sec) ->
         if secure_session <> sec || ct <> scope
         then raise S.Wrong_session_table_for_CSRF_safe_coservice;
         let tablereg =
@@ -412,7 +418,7 @@ let register
         | S.Nonattached naser ->
             Common.remove_unregistered_na sitedata (S.na_name naser));
         register_aux pages ?options ?charset ?code ?content_type ?headers
-          (Either.Left sitedata.Common.global_services) ~service ?error_handler
+          (Global_table sitedata.Common.global_services) ~service ?error_handler
           page_gen
       in
       match Common.global_register_allowed () with
@@ -430,13 +436,13 @@ let register
   | None, Some _ | Some `Site, Some _ ->
       register_aux pages ?options ?charset ?code ?content_type ?headers
         ?error_handler
-        (Either.Left (State.get_global_table ()))
+        (Global_table (State.get_global_table ()))
         ~service page_gen
   | _, None -> failwith "Missing sp while registering service"
   | Some (#Common.user_scope as scope), Some sp ->
       register_aux pages ?options ?charset ?code ?content_type ?headers
         ?error_handler
-        (Either.Right (sp, scope, secure_session))
+        (Session_table (sp, scope, secure_session))
         ~service page_gen
 
 (* WARNING: if we create a new service without registering it,
