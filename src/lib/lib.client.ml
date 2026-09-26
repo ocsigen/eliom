@@ -124,10 +124,6 @@ end
 
 (*****************************************************************************)
 
-(* let () =
-  (Js.Unsafe.coerce Dom_html.window)##set_tracing <-
-    Js.wrap_callback (fun v -> set_tracing (Js.to_bool v)) *)
-
 (* We do not use the deriving (un)marshaling even if typ is available
    because direct jsn (un)marshaling is very fast client side
 *)
@@ -147,10 +143,6 @@ let of_json ?typ v =
     | Some typ -> Deriving_Json.from_string typ v
     | None -> assert false)
 
-(* Url.urlencode ~with_plus:true (Marshal.to_string x [])
-    (* I encode the data because it seems that multipart does not
-       like \0 character ... *)
-*)
 let encode_header_value ~typ x =
   (* We remove end of lines *)
   String.remove_eols (to_json ~typ x)

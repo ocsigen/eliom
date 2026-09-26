@@ -631,7 +631,6 @@ let max_preload_depth = ref 4
 
 let build_style (e, css) =
   let* css = rewrite_css ~max:!max_preload_depth css in
-  (* lwt css = *)
   Lwt_list.map_p
     (fun (media, css) ->
        let style = Dom_html.createStyle Dom_html.document in
@@ -645,14 +644,6 @@ let build_style (e, css) =
        else style##.innerHTML := Js.string css;
        Lwt.return (e, (style :> Dom.node Js.t)))
     css
-
-(* IE8 doesn't allow appendChild on noscript-elements *)
-(* (\* Noscript is used to group style. It's ignored by the parser when *)
-(*    scripting is enabled, but does not seems to be ignore when *)
-(*    inserted as a DOM element. *\) *)
-(* let node = Dom_html.createNoscript Dom_html.document in *)
-(* List.iteri (fun i x -> debug "HOC 3.%i" i; Dom.appendChild node x) css; *)
-(* Lwt.return (e, node )*)
 
 let preload_css (doc : Dom_html.element Js.t) =
   if !Config.debug_timings
