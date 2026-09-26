@@ -1122,6 +1122,106 @@ let split_request_params
       ; pa_ignored_get_params = ignored_get
       ; pa_ignored_post_params = ignored_post } )
 
+(* The parameters of a request that identify its service *)
+type service_params =
+  { svc_nonatt_info : na_key_req
+  ; svc_state_info : att_key_req * att_key_req  (** GET and POST states *)
+  ; svc_get_params : (string * string) list
+  ; svc_other_get_params : (string * string) list
+  ; svc_na_get_params : (string * string) list Lazy.t
+  ; svc_post_params : (string * string) list }
+
+(* Removes from the GET and POST parameters of a request the ones that
+   identify its non-attached service or its state *)
+let get_service_params get_params post_params =
+  let post_naservice_name, na_post_params =
+    try
+      let n, pp = List.assoc_remove naservice_num post_params in
+      RNa_post' n, pp
+    with Not_found -> (
+      try
+        let n, pp = List.assoc_remove naservice_name post_params in
+        RNa_post_ n, pp
+      with Not_found -> RNa_no, [])
+  in
+  match post_naservice_name with
+  | RNa_post_ _ | RNa_post' _ ->
+      (* POST non attached coservice *)
+      { svc_nonatt_info = post_naservice_name
+      ; svc_state_info = RAtt_no, RAtt_no
+      ; svc_get_params = []
+      ; svc_other_get_params = get_params
+      ; svc_na_get_params =
+          lazy
+            (try
+               (try naservice_name, List.assoc naservice_name get_params
+                with Not_found ->
+                  naservice_num, List.assoc naservice_num get_params)
+               :: fst (split_prefix_param na_co_param_prefix get_params)
+             with Not_found -> [])
+      ; svc_post_params = na_post_params }
+  | _ -> (
+      let get_naservice_name, na_name_num, (na_get_params, other_get_params) =
+        try
+          let n, gp = List.assoc_remove naservice_num get_params in
+          ( RNa_get' n
+          , [naservice_num, n]
+          , split_prefix_param na_co_param_prefix gp )
+        with Not_found -> (
+          try
+            let n, gp = List.assoc_remove naservice_name get_params in
+            ( RNa_get_ n
+            , [naservice_name, n]
+            , split_prefix_param na_co_param_prefix gp )
+          with Not_found -> RNa_no, [], ([], get_params))
+      in
+      match get_naservice_name with
+      | RNa_get_ _ | RNa_get' _ ->
+          (* GET non attached coservice *)
+          { svc_nonatt_info = get_naservice_name
+          ; svc_state_info = RAtt_no, RAtt_no
+          ; svc_get_params = na_get_params
+          ; svc_other_get_params = other_get_params
+          ; svc_na_get_params = lazy (na_name_num @ na_get_params)
+          ; svc_post_params = [] }
+          (* Not possible to have POST parameters
+                     without naservice_num
+                     if there is a GET naservice_num
+            *)
+      | _ ->
+          let post_state, post_params =
+            try
+              let s, pp =
+                List.assoc_remove post_numstate_param_name post_params
+              in
+              RAtt_anon s, pp
+            with Not_found -> (
+              try
+                let s, pp =
+                  List.assoc_remove post_state_param_name post_params
+                in
+                RAtt_named s, pp
+              with Not_found -> RAtt_no, post_params)
+          in
+          let get_state, (get_params, other_get_params) =
+            try
+              let s, gp =
+                List.assoc_remove get_numstate_param_name get_params
+              in
+              RAtt_anon s, split_prefix_param co_param_prefix gp
+            with Not_found -> (
+              try
+                let s, gp = List.assoc_remove get_state_param_name get_params in
+                RAtt_named s, split_prefix_param co_param_prefix gp
+              with Not_found -> RAtt_no, (get_params, []))
+          in
+          { svc_nonatt_info = RNa_no
+          ; svc_state_info = get_state, post_state
+          ; svc_get_params = get_params
+          ; svc_other_get_params = other_get_params
+          ; svc_na_get_params = lazy (na_name_num @ na_get_params)
+          ; svc_post_params = post_params })
+
 let get_session_info ~sitedata ~req previous_extension_err =
   let req_whole = req
   and ri = req.Ocsigen.Extensions.request_info
@@ -1179,97 +1279,14 @@ let get_session_info ~sitedata ~req previous_extension_err =
   let browser_cookies = get_browser_cookies ri in
   let state_cookies = get_state_cookies false `Session browser_cookies in
   let secure_state_cookies = get_state_cookies true `Session browser_cookies in
-  let ( naservice_info
-      , (get_state, post_state)
-      , (get_params, other_get_params)
-      , na_get_params
-      , post_params )
+  let { svc_nonatt_info = naservice_info
+      ; svc_state_info = get_state, post_state
+      ; svc_get_params = get_params
+      ; svc_other_get_params = other_get_params
+      ; svc_na_get_params = na_get_params
+      ; svc_post_params = post_params }
     =
-    let post_naservice_name, na_post_params =
-      try
-        let n, pp = List.assoc_remove naservice_num post_params in
-        RNa_post' n, pp
-      with Not_found -> (
-        try
-          let n, pp = List.assoc_remove naservice_name post_params in
-          RNa_post_ n, pp
-        with Not_found -> RNa_no, [])
-    in
-    match post_naservice_name with
-    | RNa_post_ _ | RNa_post' _ ->
-        (* POST non attached coservice *)
-        ( post_naservice_name
-        , (RAtt_no, RAtt_no)
-        , ([], get_params)
-        , lazy
-            (try
-               (try naservice_name, List.assoc naservice_name get_params
-                with Not_found ->
-                  naservice_num, List.assoc naservice_num get_params)
-               :: fst (split_prefix_param na_co_param_prefix get_params)
-             with Not_found -> [])
-        , na_post_params )
-    | _ -> (
-        let get_naservice_name, na_name_num, (na_get_params, other_get_params) =
-          try
-            let n, gp = List.assoc_remove naservice_num get_params in
-            ( RNa_get' n
-            , [naservice_num, n]
-            , split_prefix_param na_co_param_prefix gp )
-          with Not_found -> (
-            try
-              let n, gp = List.assoc_remove naservice_name get_params in
-              ( RNa_get_ n
-              , [naservice_name, n]
-              , split_prefix_param na_co_param_prefix gp )
-            with Not_found -> RNa_no, [], ([], get_params))
-        in
-        match get_naservice_name with
-        | RNa_get_ _ | RNa_get' _ ->
-            (* GET non attached coservice *)
-            ( get_naservice_name
-            , (RAtt_no, RAtt_no)
-            , (na_get_params, other_get_params)
-            , lazy (na_name_num @ na_get_params)
-            , [] )
-            (* Not possible to have POST parameters
-                     without naservice_num
-                     if there is a GET naservice_num
-            *)
-        | _ ->
-            let post_state, post_params =
-              try
-                let s, pp =
-                  List.assoc_remove post_numstate_param_name post_params
-                in
-                RAtt_anon s, pp
-              with Not_found -> (
-                try
-                  let s, pp =
-                    List.assoc_remove post_state_param_name post_params
-                  in
-                  RAtt_named s, pp
-                with Not_found -> RAtt_no, post_params)
-            in
-            let get_state, (get_params, other_get_params) =
-              try
-                let s, gp =
-                  List.assoc_remove get_numstate_param_name get_params
-                in
-                RAtt_anon s, split_prefix_param co_param_prefix gp
-              with Not_found -> (
-                try
-                  let s, gp =
-                    List.assoc_remove get_state_param_name get_params
-                  in
-                  RAtt_named s, split_prefix_param co_param_prefix gp
-                with Not_found -> RAtt_no, (get_params, []))
-            in
-            ( RNa_no
-            , (get_state, post_state)
-            , (get_params, other_get_params)
-            , lazy (na_name_num @ na_get_params)
-            , post_params ))
+    get_service_params get_params post_params
   in
   let persistent_nl_get_params =
     lazy
