@@ -48,6 +48,14 @@ module RawXML = struct
 
   type cookie_info = bool * string list [@@deriving json]
 
+  (* The kind of a link or form to a service, its cookie information, its
+     template, and its client-side handler (an (event -> bool) client value) *)
+  type call_service_info =
+    [`A | `Form_get | `Form_post]
+    * cookie_info option
+    * string option
+    * Ocsigen_lib_base.poly
+
   [@@@warning "+39"]
 
   type caml_event_handler =
@@ -60,14 +68,7 @@ module RawXML = struct
       (* Client side-only *)
     | CE_client_closure_touch of (Dom_html.touchEvent Js.t -> unit)
       (* Client side-only *)
-    | CE_call_service of
-        ([`A | `Form_get | `Form_post]
-        * cookie_info option
-        * string option
-        * Ocsigen_lib_base.poly)
-          (* (event -> bool) client_value *)
-          option
-          Eliom_lazy.request
+    | CE_call_service of call_service_info option Eliom_lazy.request
 
   type internal_event_handler = Raw of string | Caml of caml_event_handler
   type uri = string Eliom_lazy.request
