@@ -389,6 +389,20 @@ module Hier_set = String.Set
 type omitpersistentstorage_rule =
   | HeaderRule of Ocsigen_http.Header.Name.t * Re.re
 
+(* A setting, with whether it was set by the configuration file (the program
+   only overrides such a setting when asked to) *)
+type 'a configured = {cf_value : 'a; cf_from_config : bool}
+
+(* The global timeouts of a site for one kind of state: the defaults for
+   browser sessions and for tabs, and the timeouts of given states *)
+type site_timeouts =
+  { browser_default : float option configured option
+  ; tab_default : float option configured option
+  ; per_state : (full_state_name * float option configured) list }
+
+let no_site_timeouts =
+  {browser_default = None; tab_default = None; per_state = []}
+
 type server_params =
   { sp_request : Ocsigen.Extensions.request
   ; sp_si : sess_info
@@ -482,18 +496,9 @@ and sitedata =
        - then default for each full session name
       The booleans means "has been set from config file"
     *)
-    mutable servtimeout :
-      (float option * bool) option
-      * (float option * bool) option
-      * (full_state_name * (float option * bool)) list
-  ; mutable datatimeout :
-      (float option * bool) option
-      * (float option * bool) option
-      * (full_state_name * (float option * bool)) list
-  ; mutable perstimeout :
-      (float option * bool) option
-      * (float option * bool) option
-      * (full_state_name * (float option * bool)) list
+    mutable servtimeout : site_timeouts
+  ; mutable datatimeout : site_timeouts
+  ; mutable perstimeout : site_timeouts
   ; site_value_table : Polytables.t
   ; (* table containing evaluated
                                        lazy site values *)
