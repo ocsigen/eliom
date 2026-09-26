@@ -48,11 +48,7 @@ module Url = struct
     a##.href := Js.string s;
     Js.to_string a##.href
 
-  let has_get_args url =
-    try
-      ignore (String.index url '?');
-      true
-    with Not_found -> false
+  let has_get_args url = String.contains url '?'
 
   let add_get_args url get_args =
     if get_args = []
