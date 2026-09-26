@@ -37,9 +37,7 @@ val make_persistent_full_group_name :
   -> string option
   -> Common.perssessgrp option
 
-val getperssessgrp :
-   Common.perssessgrp
-  -> string * Common.cookie_level * (string, Ipaddr.t) Either.t
+val getperssessgrp : Common.perssessgrp -> Common.full_session_group
 
 module type MEMTAB = sig
   type group_of_group_data

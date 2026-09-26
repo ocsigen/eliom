@@ -21,20 +21,26 @@
 open Lib
 
 let make_full_named_group_name_ ~cookie_level sitedata g =
-  Common.get_site_dir_string sitedata, cookie_level, Either.Left g
+  { Common.sg_site_dir = Common.get_site_dir_string sitedata
+  ; sg_level = cookie_level
+  ; sg_group = Common.Group_name g }
 
 let make_full_group_name ~cookie_level ~sitedata ri =
   let site_dir_string = Common.get_site_dir_string sitedata in
   function
   (* The scope is the scope of group members (`Session by default). *)
   | None ->
-      ( site_dir_string
-      , cookie_level
-      , Either.Right
-          (Common.network_of_request ri
-             ~mask4:(Common.get_mask4 sitedata)
-             ~mask6:(Common.get_mask6 sitedata)) )
-  | Some g -> site_dir_string, cookie_level, Either.Left g
+      { Common.sg_site_dir = site_dir_string
+      ; sg_level = cookie_level
+      ; sg_group =
+          Common.Subnet
+            (Common.network_of_request ri
+               ~mask4:(Common.get_mask4 sitedata)
+               ~mask6:(Common.get_mask6 sitedata)) }
+  | Some g ->
+      { Common.sg_site_dir = site_dir_string
+      ; sg_level = cookie_level
+      ; sg_group = Common.Group_name g }
 
 let make_persistent_full_group_name = Common.make_persistent_full_group_name
 let getperssessgrp = Common.getperssessgrp
@@ -155,14 +161,20 @@ module Make (A : sig
       (* We create a group *)
       let size =
         match set_max, sess_grp with
-        | None, (_, `Session, Either.Left _) -> A.max_session_per_group sitedata
-        | None, (_, `Client_process, Either.Left _) ->
+        | None, {Common.sg_level = `Session; sg_group = Common.Group_name _; _}
+          ->
+            A.max_session_per_group sitedata
+        | ( None
+          , { Common.sg_level = `Client_process
+            ; sg_group = Common.Group_name _
+            ; _ } ) ->
             A.max_tab_per_session sitedata
-        | None, (_, `Session, Either.Right _) -> A.max_session_per_ip sitedata
+        | None, {Common.sg_level = `Session; sg_group = Common.Subnet _; _} ->
+            A.max_session_per_ip sitedata
         | None, _ -> assert false
         | Some v, _ -> v
       in
-      let cookie_level = Tuple3.snd sess_grp in
+      let cookie_level = sess_grp.Common.sg_level in
       let cl = Ocsigen_base.Cache.Dlist.create size in
       Ocsigen_base.Cache.Dlist.set_finaliser_after
         (fun node ->
@@ -301,19 +313,21 @@ Besides, volatile sessions are (hopefully) going to disappear soon.
       *)
       (*VVV remove is not polymorphic enough -> remove1 remove2 *)
       match (sess_grp : GroupTable.key) with
-      | _, `Client_process, Either.Left sess_id -> (
+      | { Common.sg_level = `Client_process
+        ; sg_group = Common.Group_name sess_id
+        ; _ } -> (
         try
           let {Common.Data_cookie.session_group; session_group_node; _} =
             Common.SessionCookies.find sitedata.Common.session_data sess_id
           in
           match !session_group with
-          | _, `Session, Either.Right _
+          | {Common.sg_level = `Session; sg_group = Common.Subnet _; _}
           (* no group *)
             when sitedata.Common.not_bound_in_data_tables sess_id ->
               remove1 session_group_node
           | _ -> ()
         with Not_found -> ())
-      | _, `Session, _ -> (
+      | {Common.sg_level = `Session; _} -> (
         match find_node_in_group_of_groups sess_grp with
         | Some node -> remove2 node
         | None -> ())
@@ -374,7 +388,9 @@ Besides, volatile sessions are (hopefully) going to disappear soon.
       *)
       (*VVV remove is not polymorphic enough -> remove1 remove2 *)
       match (sess_grp : GroupTable.key) with
-      | _, `Client_process, Either.Left sess_id -> (
+      | { Common.sg_level = `Client_process
+        ; sg_group = Common.Group_name sess_id
+        ; _ } -> (
         try
           let { Common.Service_cookie.session_table = tables
               ; session_group_node
@@ -385,7 +401,7 @@ Besides, volatile sessions are (hopefully) going to disappear soon.
           if Common.service_tables_are_empty tables
           then remove1 session_group_node
         with Not_found -> ())
-      | _, `Session, _ -> (
+      | {Common.sg_level = `Session; _} -> (
         match find_node_in_group_of_groups sess_grp with
         | Some node -> remove2 node
         | None -> ())
@@ -502,12 +518,12 @@ module Pers = struct
            | None -> Lwt.return_unit
            | Some sg -> (
              match Common.getperssessgrp sg with
-             | _, _, Either.Right _ ->
+             | {Common.sg_group = Common.Subnet _; _} ->
                  (* No group has been set. No group table.
                  Data associated to default (automatic) groups
                  is removed when closing associated sessions. *)
                  Lwt.return_unit
-             | _, _, Either.Left group_name -> (
+             | {Common.sg_group = Common.Group_name group_name; _} -> (
                  Common.Persistent_tables.remove_key_from_all_tables group_name
                  >>= fun () ->
                  (* If it is associated to a session,

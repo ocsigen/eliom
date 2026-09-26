@@ -204,13 +204,14 @@ let service_session_gc sitedata =
                     else return_unit)
                    >>= fun () ->
                    (match !session_group with
-                   | _, _scope, Either.Right _
+                   | {Common.sg_group = Common.Subnet _; _}
                    (* no group *)
                    (*VVV check this *)
                      when Mod_sessiongroups.Serv.group_size
-                            ( Common.get_site_dir_string sitedata
-                            , `Client_process
-                            , Either.Left k )
+                            { Common.sg_site_dir =
+                                Common.get_site_dir_string sitedata
+                            ; sg_level = `Client_process
+                            ; sg_group = Common.Group_name k }
                           = 0
                           (* no tab sessions *)
                           && Common.service_tables_are_empty tables ->
@@ -254,12 +255,13 @@ let data_session_gc sitedata =
                    return_unit
                | _ -> (
                  match !session_group with
-                 | _, scope, Either.Right _
+                 | {Common.sg_level = scope; sg_group = Common.Subnet _; _}
                  (* no group *)
                    when Mod_sessiongroups.Data.group_size
-                          ( Common.get_site_dir_string sitedata
-                          , `Client_process
-                          , Either.Left k )
+                          { Common.sg_site_dir =
+                              Common.get_site_dir_string sitedata
+                          ; sg_level = `Client_process
+                          ; sg_group = Common.Group_name k }
                         = 0
                         (* no tab sessions *)
                         && not_bound_in_data_tables k ->
