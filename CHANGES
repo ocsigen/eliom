@@ -119,6 +119,8 @@
    encoded in the fragment, DOM walks, Internet Explorer 8 workarounds)
    are removed.
 ** Mod_dom.onhashchange, which served the fragment fallback, is removed.
+** Mod_dom.select_nodes returns a selected_nodes record instead of a
+   5-tuple of node lists.
 * Bug fixes
 ** Syntax.is_site_available now checks that the sitedata stack is
    actually non-empty during initialisation, instead of just

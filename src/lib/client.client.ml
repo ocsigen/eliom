@@ -261,19 +261,12 @@ let relink_request_nodes root =
 *)
 let relink_page_but_client_values (root : Dom_html.element Js.t) =
   Logs.debug ~src:section (fun fmt -> fmt "Relink page");
-  let ( a_nodeList
-      , form_nodeList
-      , process_nodeList
-      , closure_nodeList
-      , attrib_nodeList )
-    =
-    Mod_dom.select_nodes root
-  in
-  Mod_dom.iter_nodeList a_nodeList (fun node -> node##.onclick := a_handler);
-  Mod_dom.iter_nodeList form_nodeList (fun node ->
+  let nodes = Mod_dom.select_nodes root in
+  Mod_dom.iter_nodeList nodes.links (fun node -> node##.onclick := a_handler);
+  Mod_dom.iter_nodeList nodes.forms (fun node ->
     node##.onsubmit := form_handler);
-  Mod_dom.iter_nodeList process_nodeList relink_process_node;
-  closure_nodeList, attrib_nodeList
+  Mod_dom.iter_nodeList nodes.process_nodes relink_process_node;
+  nodes
 
 (* == Rebuild event handlers
 
@@ -998,20 +991,18 @@ let init () =
       (* Ordering matters. See [Client.set_content] for explanations *)
       relink_request_nodes Dom_html.document##.documentElement;
       let root = Dom_html.document##.documentElement in
-      let closure_nodeList, attrib_nodeList =
-        relink_page_but_client_values root
-      in
+      let nodes = relink_page_but_client_values root in
       do_request_data js_data.Common.ejs_request_data;
       (* XXX One should check that all values have been unwrapped.
             In fact, client values should be special and all other values
             should be eagerly unwrapped. *)
       let () =
         relink_attribs root js_data.Common.ejs_client_attrib_table
-          attrib_nodeList
+          nodes.Mod_dom.attrib_nodes
       in
       let onload_closure_nodes =
         relink_closure_nodes root js_data.Common.ejs_event_handler_table
-          closure_nodeList
+          nodes.Mod_dom.closure_nodes
       in
       Client_core.reset_request_nodes ();
       Mod_dom.add_formdata_hack_onclick_handler ();
@@ -1629,9 +1620,7 @@ let set_content ~replace ~uri ?offset ?fragment content =
         (* Bind unique node (request and global) and register event
          handler.  Relinking closure nodes must take place after
          initializing the client values *)
-        let closure_nodeList, attrib_nodeList =
-          relink_page_but_client_values fake_page
-        in
+        let nodes = relink_page_but_client_values fake_page in
         Request_info.set_session_info ~uri js_data.Common.ejs_sess_info
         @@ fun () ->
         (* Really change page contents *)
@@ -1644,12 +1633,12 @@ let set_content ~replace ~uri ?offset ?fragment content =
         let () =
           relink_attribs
             Dom_html.document##.documentElement
-            js_data.Common.ejs_client_attrib_table attrib_nodeList
+            js_data.Common.ejs_client_attrib_table nodes.Mod_dom.attrib_nodes
         in
         let onload_closure_nodes =
           relink_closure_nodes
             Dom_html.document##.documentElement
-            js_data.Common.ejs_event_handler_table closure_nodeList
+            js_data.Common.ejs_event_handler_table nodes.Mod_dom.closure_nodes
         in
         (* The request node table must be empty when nodes received via
          call_ocaml_service are unwrapped. *)

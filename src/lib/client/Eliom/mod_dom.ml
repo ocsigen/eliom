@@ -58,6 +58,13 @@ let ancestor (elt1 : #Dom.node Js.t) (elt2 : #Dom.node Js.t) =
   let open Dom.DocumentPosition in
   has elt1##(compareDocumentPosition (elt2 :> Dom.node Js.t)) contained_by
 
+type selected_nodes =
+  { links : Dom_html.anchorElement Dom.nodeList Js.t
+  ; forms : Dom_html.formElement Dom.nodeList Js.t
+  ; process_nodes : Dom_html.element Dom.nodeList Js.t
+  ; closure_nodes : Dom_html.element Dom.nodeList Js.t
+  ; attrib_nodes : Dom_html.element Dom.nodeList Js.t }
+
 let select_request_nodes root =
   root##(querySelectorAll (Js.string ("." ^ Runtime.RawXML.request_node_class)))
 
@@ -90,11 +97,11 @@ let select_nodes root =
              (Js.string ("." ^ Runtime.RawXML.ce_registered_attr_class)))
   in
   Config.debug_time_end "select_nodes";
-  ( a_nodeList
-  , form_nodeList
-  , process_node_nodeList
-  , closure_nodeList
-  , attrib_nodeList )
+  { links = a_nodeList
+  ; forms = form_nodeList
+  ; process_nodes = process_node_nodeList
+  ; closure_nodes = closure_nodeList
+  ; attrib_nodes = attrib_nodeList }
 
 let createEvent ev_type =
   let evt : #Dom_html.event Js.t =
