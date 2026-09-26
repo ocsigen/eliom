@@ -24,21 +24,18 @@ open Js_of_ocaml
 val get_body : #Dom.element Js.t -> Dom.element Js.t
 val get_head : #Dom.element Js.t -> Dom.element Js.t
 
-(** [select_nodes root] finds the nodes below [root]
-    in the page annotated to be:
-    * eliom links
-    * eliom forms
-    * process unique nodes
-    * nodes with closures ( events )
-    * nodes with attributes *)
+type selected_nodes =
+  { links : Dom_html.anchorElement Dom.nodeList Js.t  (** Eliom links *)
+  ; forms : Dom_html.formElement Dom.nodeList Js.t  (** Eliom forms *)
+  ; process_nodes : Dom_html.element Dom.nodeList Js.t
+    (** Process unique nodes *)
+  ; closure_nodes : Dom_html.element Dom.nodeList Js.t
+    (** Nodes with closures (events) *)
+  ; attrib_nodes : Dom_html.element Dom.nodeList Js.t
+    (** Nodes with client attributes *) }
 
-val select_nodes :
-   Dom_html.element Js.t
-  -> Dom_html.anchorElement Dom.nodeList Js.t
-     * Dom_html.formElement Dom.nodeList Js.t
-     * Dom_html.element Dom.nodeList Js.t
-     * Dom_html.element Dom.nodeList Js.t
-     * Dom_html.element Dom.nodeList Js.t
+val select_nodes : Dom_html.element Js.t -> selected_nodes
+(** [select_nodes root] finds the nodes below [root] annotated by Eliom. *)
 
 val select_request_nodes :
    Dom_html.element Js.t
