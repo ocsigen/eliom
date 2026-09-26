@@ -111,6 +111,14 @@ let close_all_persistent_states ~scope ~secure sitedata =
    - close all groups (but closing sessions will close the groups (?))
 *)
 
+(* The expiry date of a state after the global timeout changed from
+   [old_glob_timeout] to [new_glob_timeout] *)
+let recompute_expiry ~now ~old_glob_timeout ~new_glob_timeout exp =
+  match exp, old_glob_timeout, new_glob_timeout with
+  | _, _, None -> None
+  | None, _, Some t | Some _, None, Some t -> Some (now +. t)
+  | Some oldexp, Some oldt, Some t -> Some (oldexp -. oldt +. t)
+
 (* Update the expiration date for all service sessions                      *)
 let update_serv_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
   Logs.app ~src:section (fun fmt ->
@@ -133,10 +141,8 @@ let update_serv_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
            (if full_st_name = full_state_name && !timeout = Common.TGlobal
             then
               let newexp =
-                match !expiry, old_glob_timeout, new_glob_timeout with
-                | _, _, None -> None
-                | None, _, Some t | Some _, None, Some t -> Some (now +. t)
-                | Some oldexp, Some oldt, Some t -> Some (oldexp -. oldt +. t)
+                recompute_expiry ~now ~old_glob_timeout ~new_glob_timeout
+                  !expiry
               in
               match newexp with
               | Some t when t <= now ->
@@ -167,10 +173,8 @@ let update_data_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
            (if full_st_name = full_state_name && !timeout = Common.TGlobal
             then
               let newexp =
-                match !expiry, old_glob_timeout, new_glob_timeout with
-                | _, _, None -> None
-                | None, _, Some t | Some _, None, Some t -> Some (now +. t)
-                | Some oldexp, Some oldt, Some t -> Some (oldexp -. oldt +. t)
+                recompute_expiry ~now ~old_glob_timeout ~new_glob_timeout
+                  !expiry
               in
               match newexp with
               | Some t when t <= now ->
@@ -201,10 +205,7 @@ let update_pers_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
            if full_st_name = full_state_name && old_t = Common.TGlobal
            then
              let newexp =
-               match old_exp, old_glob_timeout, new_glob_timeout with
-               | _, _, None -> None
-               | None, _, Some t | Some _, None, Some t -> Some (now +. t)
-               | Some oldexp, Some oldt, Some t -> Some (oldexp -. oldt +. t)
+               recompute_expiry ~now ~old_glob_timeout ~new_glob_timeout old_exp
              in
              match newexp with
              | Some t when t <= now ->
