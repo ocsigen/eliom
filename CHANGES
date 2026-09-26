@@ -137,6 +137,11 @@
 ** State.set_default_global_persistent_data_state_timeout now sets the
    default timeout of persistent states. It used to set the default
    timeout of service states.
+** State.set_max_service_states_for_group_or_subnet and
+   set_max_volatile_data_states_for_group_or_subnet with a session group
+   scope now change the limit of the right group. They used to look the
+   group up in each other's table, so the limit was applied to the wrong
+   group, or not at all.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type

@@ -738,12 +738,12 @@ let set_max_service_states_for_group_or_subnet ~scope ?secure m =
   match scope with
   | `Session_group _ -> (
     match
-      Mod_sessiongroups.Data.find_node_in_group_of_groups
+      Mod_sessiongroups.Serv.find_node_in_group_of_groups
         !(c.Common.sc_session_group)
     with
-    | Some node -> Mod_sessiongroups.Data.set_max node m
+    | Some (_, node) -> Mod_sessiongroups.Serv.set_max node m
     | _ -> ())
-  | _ -> Mod_sessiongroups.Data.set_max c.Common.sc_session_group_node m
+  | _ -> Mod_sessiongroups.Serv.set_max c.Common.sc_session_group_node m
 
 let set_max_volatile_data_states_for_group_or_subnet ~scope ?secure m =
   let cookie_scope = Common.cookie_scope_of_user_scope scope in
@@ -753,10 +753,10 @@ let set_max_volatile_data_states_for_group_or_subnet ~scope ?secure m =
   match scope with
   | `Session_group _ -> (
     match
-      Mod_sessiongroups.Serv.find_node_in_group_of_groups
+      Mod_sessiongroups.Data.find_node_in_group_of_groups
         !(c.Common.dc_session_group)
     with
-    | Some (_, node) -> Mod_sessiongroups.Data.set_max node m
+    | Some node -> Mod_sessiongroups.Data.set_max node m
     | _ -> ())
   | _ -> Mod_sessiongroups.Data.set_max c.Common.dc_session_group_node m
 
