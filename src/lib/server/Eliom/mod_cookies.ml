@@ -360,9 +360,15 @@ let get_cookie_info
     let servoktable, servfailedlist = f_serv sc in
     let dataoktable = f_data dc in
     let persoktable = f_pers pc in
-    (ref servoktable, ref dataoktable, ref persoktable), servfailedlist
+    ( { Common.ci_service = ref servoktable
+      ; ci_data = ref dataoktable
+      ; ci_persistent = ref persoktable }
+    , servfailedlist )
   in
-  ( ((ref servoktable, ref dataoktable, ref persoktable), sec)
+  ( ( { Common.ci_service = ref servoktable
+      ; ci_data = ref dataoktable
+      ; ci_persistent = ref persoktable }
+    , sec )
   , sservfailedlist @ servfailedlist )
 
 (*****************************************************************************)
@@ -380,7 +386,10 @@ let new_data_cookie_table () : Common.Data_cookie.table =
 
 let compute_cookies_to_send
       sitedata
-      ((service_cookie_info, data_cookie_info, pers_cookies_info), secure_ci)
+      ( { Common.ci_service = service_cookie_info
+        ; ci_data = data_cookie_info
+        ; ci_persistent = pers_cookies_info }
+      , secure_ci )
       (endlist : Ocsigen_cookie_map.t)
   =
   let getservvexp (old, newi) =
@@ -481,7 +490,10 @@ let compute_cookies_to_send
   aux getpersvexp Common.persistentcookiename false !pers_cookies_info
     (aux getdatavexp Common.datacookiename false !data_cookie_info
        (aux getservvexp Common.servicecookiename false !service_cookie_info
-          (let service_cookie_info, data_cookie_info, pers_cookies_info =
+          (let { Common.ci_service = service_cookie_info
+               ; ci_data = data_cookie_info
+               ; ci_persistent = pers_cookies_info }
+             =
              secure_ci
            in
            aux getpersvexp Common.persistentcookiename true !pers_cookies_info
@@ -528,7 +540,13 @@ let compute_new_ri_cookies
   (* first we add cookies set by page: *)
   let ric = compute_new_ri_cookies' now ripath ricookies cookies_set_by_page in
   (* then session cookies: *)
-  let f _secure (service_cookie_info, data_cookie_info, pers_cookie_info) ric =
+  let f
+        _secure
+        { Common.ci_service = service_cookie_info
+        ; ci_data = data_cookie_info
+        ; ci_persistent = pers_cookie_info }
+        ric
+    =
     let ric =
       Common.Full_state_name_table.fold
         (fun ({Common.user_scope = sc; _} as full_st_name) (_, v) beg ->

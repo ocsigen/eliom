@@ -250,61 +250,36 @@ type one_persistent_cookie_info =
   ; pc_cookie_exp : cookie_exp ref (* cookie expiration date to set *)
   ; pc_session_group : perssessgrp option ref (* session group *) }
 
-(*VVV heavy *)
+(* The state cookies of a request, for one security level. In each table,
+   the key is the full state name, and the value is:
+   - what the browser sent: None for a new cookie (not sent by the browser),
+     the value of the cookie otherwise, with, for persistent states, the
+     timeout, the (server side) expiration date and the session group at the
+     beginning of the request;
+   - the new state: SCNo_data means that the state has been closed,
+     SCData_session_expired that the cookie has not been found in the table;
+     for both, the browser is asked to remove the cookie. *)
 type 'a cookie_info1 =
-  (* service sessions: *)
-  (string option
-  (* value sent by the browser *)
-  (* None = new cookie
-      (not sent by the browser) *)
-  * 'a one_service_cookie_info session_cookie ref)
-    (* SCNo_data = the session has been closed
-      SCData_session_expired = the cookie has not been found in the table.
-      For both of them, ask the browser to remove the cookie.
-    *)
-    (* This one is not lazy because we must check all service sessions
-       at each request to find the services *)
-    Full_state_name_table.t
-    ref
-  (* The key is the full session name *)
-  * (* in memory data sessions: *)
-  (string option
-  (* value sent by the browser *)
-  (* None = new cookie
-      (not sent by the browser) *)
-  * one_data_cookie_info session_cookie ref)
-    (* SCNo_data = the session has been closed
-      SCData_session_expired = the cookie has not been found in the table.
-      For both of them, ask the browser to remove the cookie.
-    *)
-    Lazy.t
-    (* Lazy because we do not want to ask the browser to unset the cookie
-       if the cookie has not been used, otherwise it is impossible to
-       write a message "Your session has expired" *)
-    Full_state_name_table.t
-    ref
-  (* The key is the full session name *)
-  * (* persistent sessions: *)
-  ((string (* value sent by the browser *)
-   * timeout (* timeout at the beginning of the request *)
-   * float option
-   (* (server side) expdate
-                               at the beginning of the request
-                               None = no exp *)
-   * perssessgrp option)
-     (* session group at beginning of request *)
-     option
-  (* None = new cookie
-      (not sent by the browser) *)
-  * one_persistent_cookie_info session_cookie ref)
-    (* SCNo_data = the session has been closed
-      SCData_session_expired = the cookie has not been found in the table.
-      For both of them, ask the browser to remove the cookie.
-    *)
-    Lwt.t
-    Lazy.t
-    Full_state_name_table.t
-    ref
+  { ci_service :
+      (string option * 'a one_service_cookie_info session_cookie ref)
+        Full_state_name_table.t
+        ref
+    (* Not lazy because we must check all service states at each request to
+       find the services *)
+  ; ci_data :
+      (string option * one_data_cookie_info session_cookie ref) Lazy.t
+        Full_state_name_table.t
+        ref
+    (* Lazy because we do not want to ask the browser to unset the cookie if
+       the cookie has not been used, otherwise it is impossible to write a
+       message "Your session has expired" *)
+  ; ci_persistent :
+      ((string * timeout * float option * perssessgrp option) option
+      * one_persistent_cookie_info session_cookie ref)
+        Lwt.t
+        Lazy.t
+        Full_state_name_table.t
+        ref }
 
 type 'a cookie_info = 'a cookie_info1 (* unsecure *) * 'a cookie_info1
 (* secure *)

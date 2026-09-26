@@ -367,18 +367,23 @@ type one_persistent_cookie_info =
   ; pc_session_group : perssessgrp option ref }
 
 type 'a cookie_info1 =
-  (string option * 'a one_service_cookie_info session_cookie ref)
-    Full_state_name_table.t
-    ref
-  * (string option * one_data_cookie_info session_cookie ref) Lazy.t
-      Full_state_name_table.t
-      ref
-  * ((string * timeout * float option * perssessgrp option) option
-    * one_persistent_cookie_info session_cookie ref)
-      Lwt.t
-      Lazy.t
-      Full_state_name_table.t
-      ref
+  { ci_service :
+      (string option * 'a one_service_cookie_info session_cookie ref)
+        Full_state_name_table.t
+        ref
+  ; ci_data :
+      (string option * one_data_cookie_info session_cookie ref) Lazy.t
+        Full_state_name_table.t
+        ref
+  ; ci_persistent :
+      ((string * timeout * float option * perssessgrp option) option
+      * one_persistent_cookie_info session_cookie ref)
+        Lwt.t
+        Lazy.t
+        Full_state_name_table.t
+        ref }
+(** The state cookies of a request, for one security level, for each kind
+    of state *)
 
 type 'a cookie_info = 'a cookie_info1 (* unsecure *) * 'a cookie_info1
 (* secure *)
