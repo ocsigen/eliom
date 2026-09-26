@@ -629,9 +629,9 @@ val make_full_state_name :
   -> scope:[< user_scope]
   -> full_state_name
 
-val make_full_state_name2 :
-   string
-  -> bool
+val make_full_state_name_of_sitedata :
+   sitedata:sitedata
+  -> secure:bool
   -> scope:[< user_scope]
   -> full_state_name
 

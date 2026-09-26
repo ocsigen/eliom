@@ -485,7 +485,7 @@ module Pers = struct
          (* First we close all sessions in the group *)
          find sess_grp >>= fun cl ->
          Lwt_list.iter_p
-           (close_persistent_session2
+           (close_persistent_session
               ~cookie_level:
                 (match cookie_level with
                 | `Client_process _ -> `Client_process
@@ -528,7 +528,7 @@ module Pers = struct
 
   (* close a persistent session (tab or browser)
      and the associated group (if browser session) by cookie value *)
-  and close_persistent_session2 ~cookie_level sitedata fullsessgrp cookie =
+  and close_persistent_session ~cookie_level sitedata fullsessgrp cookie =
     (*VVV Check this carefully!!!! *)
     (*VVV Optimize the number of marshal/unmarshal (getperssessgrp) *)
     Lwt.catch

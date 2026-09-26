@@ -125,7 +125,7 @@ module Pers : sig
   val up : string -> Common.perssessgrp option -> unit Lwt.t
   val nb_of_groups : unit -> int Lwt.t
 
-  val close_persistent_session2 :
+  val close_persistent_session :
      cookie_level:Common.cookie_level
     -> Common.sitedata
     -> Common.perssessgrp option

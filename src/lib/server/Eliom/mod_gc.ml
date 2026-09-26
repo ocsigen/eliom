@@ -300,8 +300,8 @@ let persistent_session_gc sitedata =
       | Some exp when exp <= now ->
           Logs.info ~src:section (fun fmt ->
             fmt "remove expired cookie %s" (log_hash cookie));
-          Mod_persess.close_persistent_state2 ~scope sitedata session_group
-            cookie
+          Mod_persess.close_persistent_state_of_cookie ~scope sitedata
+            session_group cookie
       | _ ->
           Logs.info ~src:section (fun fmt ->
             fmt "cookie not expired: %s" (log_hash cookie));
