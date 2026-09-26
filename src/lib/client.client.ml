@@ -223,7 +223,7 @@ let relink_process_node (node : Dom_html.element Js.t) =
        Js.Opt.iter node##.parentNode (fun parent ->
          Dom.replaceChild parent pnode node);
        let id = Js.to_bytestring id in
-       if not (String.length id >= 7 && String.sub id 0 7 = "global_")
+       if not (String.starts_with ~prefix:"global_" id)
        then (
          let children = Dom.list_of_nodeList pnode##.childNodes in
          List.iter (fun c -> ignore pnode##(removeChild c)) children;

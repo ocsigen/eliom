@@ -334,22 +334,11 @@ let split_nl_prefix_param l =
 
 (* Split parameter list, removing those whose name starts with pref *)
 let split_prefix_param pref l =
-  let len = String.length pref in
-  List.partition
-    (fun (n, _) ->
-       try String.sub n 0 len = pref with Invalid_argument _ -> false)
-    l
+  List.partition (fun (n, _) -> String.starts_with ~prefix:pref n) l
 
 (* Remove all parameters whose name starts with pref *)
 let remove_prefixed_param pref l =
-  let len = String.length pref in
-  let rec aux = function
-    | [] -> []
-    | ((n, _) as a) :: l -> (
-      try if String.sub n 0 len = pref then aux l else a :: aux l
-      with Invalid_argument _ -> a :: aux l)
-  in
-  aux l
+  List.filter (fun (n, _) -> not (String.starts_with ~prefix:pref n)) l
 
 let remove_na_prefix_params l =
   remove_prefixed_param na_co_param_prefix l
@@ -357,10 +346,9 @@ let remove_na_prefix_params l =
   |> List.remove_assoc naservice_num
 
 let filter_na_get_params =
-  let len = String.length na_co_param_prefix in
   List.filter @@ fun (s, (_ : string)) ->
   s = naservice_name || s = naservice_num
-  || (String.length s >= len && String.sub s 0 len = na_co_param_prefix)
+  || String.starts_with ~prefix:na_co_param_prefix s
 
 exception Eliom_404
 

@@ -28,12 +28,9 @@ let headers_with_content_type ?charset ?content_type headers =
         then charset
         else if
           String.length content_type >= 5
-          && (String.sub content_type 0 5 = "text/"
-             ||
-             let suffix =
-               String.sub content_type (String.length content_type - 4) 4
-             in
-             suffix = "/xml" || suffix = "=xml")
+          && (String.starts_with ~prefix:"text/" content_type
+             || String.ends_with ~suffix:"/xml" content_type
+             || String.ends_with ~suffix:"=xml" content_type)
         then Some (Config.get_config_default_charset ())
         else None
       in
