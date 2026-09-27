@@ -121658,7 +121658,7 @@ val structure_links :
   unit ->
   [> `Link ] Content.Html.elt list
 ```
-The function `structure_links site ()` returns the tags `<link rel="subsection" ...>` and `<link rev="subsection" ...>` for the given hierarchical `site`.
+The function `structure_links site ()` returns the tags `<link rel="up" ...>` towards the main page of the section of the current service, if any, and `<link rel="subsection" ...>` towards the main pages of its subsections, in the order of the hierarchical `site`.
 
 By default the current service correspond to the current url. The optional parameter `service` allow to override the current service.
 
@@ -121809,7 +121809,7 @@ val structure_links :
   unit ->
   [> `Link ] Content.Html.elt list
 ```
-The function `structure_links site ()` returns the tags `<link rel="subsection" ...>` and `<link rev="subsection" ...>` for the given hierarchical `site`.
+The function `structure_links site ()` returns the tags `<link rel="up" ...>` towards the main page of the section of the current service, if any, and `<link rel="subsection" ...>` towards the main pages of its subsections, in the order of the hierarchical `site`.
 
 By default the current service correspond to the current url. The optional parameter `service` allow to override the current service.
 
@@ -121958,7 +121958,7 @@ val structure_links :
   unit ->
   [> `Link ] Content.Html.elt list
 ```
-The function `structure_links site ()` returns the tags `<link rel="subsection" ...>` and `<link rev="subsection" ...>` for the given hierarchical `site`.
+The function `structure_links site ()` returns the tags `<link rel="up" ...>` towards the main page of the section of the current service, if any, and `<link rel="subsection" ...>` towards the main pages of its subsections, in the order of the hierarchical `site`.
 
 By default the current service correspond to the current url. The optional parameter `service` allow to override the current service.
 
@@ -240280,7 +240280,7 @@ val structure_links :
   unit ->
   [> `Link ] Content.Html.elt list
 ```
-The function `structure_links site ()` returns the tags `<link rel="subsection" ...>` and `<link rev="subsection" ...>` for the given hierarchical `site`.
+The function `structure_links site ()` returns the tags `<link rel="up" ...>` towards the main page of the section of the current service, if any, and `<link rel="subsection" ...>` towards the main pages of its subsections, in the order of the hierarchical `site`.
 
 By default the current service correspond to the current url. The optional parameter `service` allow to override the current service.
 
@@ -240431,7 +240431,7 @@ val structure_links :
   unit ->
   [> `Link ] Content.Html.elt list
 ```
-The function `structure_links site ()` returns the tags `<link rel="subsection" ...>` and `<link rev="subsection" ...>` for the given hierarchical `site`.
+The function `structure_links site ()` returns the tags `<link rel="up" ...>` towards the main page of the section of the current service, if any, and `<link rel="subsection" ...>` towards the main pages of its subsections, in the order of the hierarchical `site`.
 
 By default the current service correspond to the current url. The optional parameter `service` allow to override the current service.
 
@@ -240580,7 +240580,7 @@ val structure_links :
   unit ->
   [> `Link ] Content.Html.elt list
 ```
-The function `structure_links site ()` returns the tags `<link rel="subsection" ...>` and `<link rev="subsection" ...>` for the given hierarchical `site`.
+The function `structure_links site ()` returns the tags `<link rel="up" ...>` towards the main page of the section of the current service, if any, and `<link rel="subsection" ...>` towards the main pages of its subsections, in the order of the hierarchical `site`.
 
 By default the current service correspond to the current url. The optional parameter `service` allow to override the current service.
 
