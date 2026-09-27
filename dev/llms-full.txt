@@ -122779,6 +122779,8 @@ val run :
 ```
 `run ?app ()` run Eliom application `app` under current site. Use this to build a static executable without configuration file. Default value of `?app` is `default_app_name`. Other optional values correspond to Eliom configuration for this site.
 
+As for a site of a configuration file, the services with a path created during the initialisation of the application must be registered by then: otherwise `run` raises [`Common.Eliom_there_are_unregistered_services`](./Eliom-Common.md#exception-Eliom_there_are_unregistered_services), and the server does not start. Unregistered non-attached coservices are reported by a warning.
+
 When `?enable_wasm` is set to `true`, the server will generate a detection script that loads the WASM version of your client code if the browser supports WebAssembly, with automatic fallback to JavaScript otherwise. If not specified, the global default is used (see [`Config.set_enable_wasm`](./Eliom-Config.md#val-set_enable_wasm)), which is `false`.
 
 
