@@ -9,4 +9,5 @@ let () =
          [ Test_services.suite
          ; Test_registration.suite
          ; Test_references.suite
-         ; Test_persistent_references.suite ])
+         ; Test_persistent_references.suite
+         ; Test_app_options.suite ])

@@ -10,5 +10,6 @@
   eliom.server
   ocsipersist-sqlite
   ocsipersist-sqlite.settings
+  re
   logs
   alcotest))
