@@ -242,7 +242,44 @@ let outputs server =
         Alcotest.(check (option string))
           "text content type" (Some "text/plain") (content_type r)) ] )
 
+(* [body b url] is the body of the page [url], answered with 200 *)
+let body b url =
+  let+ r = Browser.get b url in
+  check_response url ~status:200 r;
+  r.body
+
+let non_localized server =
+  let case = case server in
+  (* A link given by /nl/link?keep= during a request that has the two
+     non-localized parameters *)
+  let link b keep =
+    let* url = body b "/nl/link" in
+    let query =
+      Option.value ~default:"" (Uri.verbatim_query (Uri.of_string url))
+    in
+    body b ("/nl/link?keep=" ^ keep ^ "&" ^ query)
+  in
+  ( "non-localized parameters"
+  , [ case "read by a service" (fun b ->
+        let* url = body b "/nl/link" in
+        let+ r = Browser.get b url in
+        check_response "values" ~status:200 ~body:"persistent=p transient=t" r)
+    ; case "kept in links" (fun b ->
+        Lwt_list.iter_s
+          (fun (keep, expected) ->
+             let* url = link b keep in
+             let+ r = Browser.get b url in
+             check_response keep ~status:200 ~body:expected r)
+          [ "default", "persistent=p transient=none"
+          ; "persistent", "persistent=p transient=none"
+          ; "all", "persistent=p transient=t"
+          ; "none", "persistent=none transient=none" ]) ] )
+
 let () =
   Server_harness.with_server "./server.exe" (fun server ->
     Alcotest.run ~and_exit:false "eliom-server-services"
-      [dispatch server; parameters server; suffixes server; outputs server])
+      [ dispatch server
+      ; parameters server
+      ; suffixes server
+      ; outputs server
+      ; non_localized server ])
