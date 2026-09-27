@@ -1,0 +1,18 @@
+(executable
+ (name server)
+ (modules server)
+ (libraries eliom.server ocsipersist-sqlite eliom_test_server))
+
+(test
+ (name test)
+ (modules test)
+ (package eliom)
+ (deps server.exe)
+ (preprocess
+  (pps js_of_ocaml-ppx_deriving_json))
+ (libraries
+  eliom.server
+  ocsipersist-sqlite
+  eliom_test_server
+  cohttp
+  alcotest))
