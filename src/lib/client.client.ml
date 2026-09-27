@@ -522,6 +522,7 @@ let init () =
       Some
         (Dom.addEventListener Dom_html.window (Dom.Event.make "load")
            (Dom.handler onload) Js._true);
+  Request.track_image_button_clicks ();
   add_string_event_listener Dom_html.window "beforeunload" onbeforeunload_fun
     false;
   ignore
