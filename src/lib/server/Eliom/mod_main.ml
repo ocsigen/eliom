@@ -188,10 +188,15 @@ let create_sitedata_aux site_dir config_info =
                *)
                ()))
     group_of_groups;
+  sitedata
+
+(* The garbage collectors of the sessions of a site are started when the site
+   is initialised, with the frequencies set by then: by the configuration
+   file, or by the code of a statically linked application before App.run. *)
+let start_session_gcs sitedata =
   Mod_gc.service_session_gc sitedata;
   Mod_gc.data_session_gc sitedata;
-  Mod_gc.persistent_session_gc sitedata;
-  sitedata
+  Mod_gc.persistent_session_gc sitedata
 
 (* We want to keep the old site data even if we reload the server.
    To do that, we keep the site data in a table *)
@@ -204,6 +209,7 @@ let create_sitedata host site_dir config_info =
   with Not_found ->
     let sitedata = create_sitedata_aux (Some site_dir) (Some config_info) in
     S.add sitedata_table key sitedata;
+    start_session_gcs sitedata;
     sitedata
 
 let replace_sitedata host site_dir sitedata =
@@ -666,8 +672,15 @@ let get_sitedata =
       r := String_map.add name sitedata !r;
       sitedata
 
+(* The applications whose session garbage collectors have been started *)
+let session_gcs_started = Hashtbl.create 5
+
 let update_sitedata app vh site_dir conf_info =
   let sitedata = get_sitedata app in
+  if not (Hashtbl.mem session_gcs_started app)
+  then (
+    Hashtbl.add session_gcs_started app ();
+    start_session_gcs sitedata);
   sitedata.Common.site_dir <- Some site_dir;
   sitedata.Common.site_dir_string <-
     Some (Lib.Url.string_of_url_path ~encode:false site_dir);
