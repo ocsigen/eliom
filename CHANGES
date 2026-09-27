@@ -140,6 +140,12 @@
    logged with Logs.err (source eliom), followed by the JavaScript stack
    when the exception carries a JavaScript error, instead of being written
    with console.error.
+* Non-attached coservices created during the initialisation of a site and
+  not registered then are reported by a warning in the logs. Services with
+  a path still prevent the server from starting; non-attached coservices
+  only warn, since libraries create some that applications may not use.
+  Service.registered_later tells that a service is registered later, during
+  requests, as the service of a bus of client processes is.
 * Bug fixes
 ** Syntax.is_site_available now checks that the sitedata stack is
    actually non-empty during initialisation, instead of just

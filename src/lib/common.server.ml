@@ -803,6 +803,13 @@ let describe_unregistered_na = function
 let verify_all_registered sitedata =
   match sitedata.unregistered_services, sitedata.unregistered_na_services with
   | [], [] -> ()
+  | [], l ->
+      (* Libraries create non-attached coservices that applications may not
+         use: they are only reported. *)
+      Logs.warn ~src:eliom_logs_src (fun fmt ->
+        fmt "In site /%s - %s"
+          (Url.string_of_url_path ~encode:false (get_site_dir sitedata))
+          (describe_unregistered_na l))
   | l1, l2 ->
       raise
         (Eliom_there_are_unregistered_services (get_site_dir sitedata, l1, l2))

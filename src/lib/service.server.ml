@@ -144,6 +144,33 @@ let coservice'
   let get_params, post_params = params_of_meth meth in
   let meth = which_meth_internal meth and is_post = is_post meth in
   let csrf_scope = default_csrf_scope csrf_scope in
+  let na_name =
+    if csrf_safe
+    then
+      if is_post
+      then
+        Common.SNa_post_csrf_safe
+          { Common.csrf_id = uniqueid ()
+          ; csrf_scope :> Common.user_scope
+          ; csrf_secure }
+      else
+        Common.SNa_get_csrf_safe
+          { Common.csrf_id = uniqueid ()
+          ; csrf_scope :> Common.user_scope
+          ; csrf_secure }
+    else
+      match name, is_post with
+      | None, true -> Common.SNa_post' (new_state ())
+      | None, false -> Common.SNa_get' (new_state ())
+      | Some name, true -> Common.SNa_post_ name
+      | Some name, false -> Common.SNa_get_ name
+  in
+  (* Coservices created during the initialisation of a site must be
+     registered then, like services with a path. *)
+  (match Common.get_sp_option (), Common.global_register_allowed () with
+  | None, Some current_site_data ->
+      Common.add_unregistered_na (current_site_data ()) na_name
+  | _ -> ());
   { max_use
   ; timeout
   ; pre_applied_parameters = Lib.String.Table.empty, []
@@ -152,29 +179,7 @@ let coservice'
   ; post_params_type = post_params
   ; meth
   ; kind = `NonattachedCoservice
-  ; info =
-      Nonattached
-        { na_name =
-            (if csrf_safe
-             then
-               if is_post
-               then
-                 Common.SNa_post_csrf_safe
-                   { Common.csrf_id = uniqueid ()
-                   ; csrf_scope :> Common.user_scope
-                   ; csrf_secure }
-               else
-                 Common.SNa_get_csrf_safe
-                   { Common.csrf_id = uniqueid ()
-                   ; csrf_scope :> Common.user_scope
-                   ; csrf_secure }
-             else
-               match name, is_post with
-               | None, true -> Common.SNa_post' (new_state ())
-               | None, false -> Common.SNa_get' (new_state ())
-               | Some name, true -> Common.SNa_post_ name
-               | Some name, false -> Common.SNa_get_ name)
-        ; keep_get_na_params = true }
+  ; info = Nonattached {na_name; keep_get_na_params = true}
   ; https
   ; keep_nl_params
   ; send_appl_content = XNever
@@ -384,6 +389,16 @@ let unregister
     | Some sp ->
         let table = !(State.get_session_service_table ~sp ?secure ~scope ()) in
         remove_service table service)
+
+let registered_later (type a) (service : (_, _, _, a, _, _, _, _, _, _, _) t) =
+  match Common.get_sp_option (), Common.global_register_allowed () with
+  | None, Some current_site_data -> (
+      let sitedata = current_site_data () in
+      match info service with
+      | Attached attser -> Common.remove_unregistered sitedata (sub_path attser)
+      | Nonattached naser ->
+          Common.remove_unregistered_na sitedata (na_name naser))
+  | _ -> ()
 
 let client_fun _ = None
 let has_client_fun _ = false

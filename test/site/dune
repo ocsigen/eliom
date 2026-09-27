@@ -4,4 +4,6 @@
 (test
  (name test_site)
  (package eliom)
- (libraries eliom.server ocsipersist-sqlite alcotest))
+ (preprocess
+  (pps js_of_ocaml-ppx_deriving_json))
+ (libraries eliom.server ocsipersist-sqlite logs alcotest))

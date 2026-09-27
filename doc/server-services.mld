@@ -445,8 +445,11 @@ order):
 
 - All services created during initialization must be registered (with
   {e "site"} scope) during the initialization phase of your module.
-  If not, the server will not start, and an appropriate error message
-  will appear in the logs. This prevents broken links.
+  If a service with a path is not, the server will not start, and an
+  appropriate error message will appear in the logs. This prevents
+  broken links. A non-attached coservice that is not registered is only
+  reported by a warning in the logs, since libraries create some that
+  applications may not use.
 - Services may be registered only during the server's initialization
   phase (while reading the site configuration) or while processing a
   request, because Eliom must know the information about the site. Be
