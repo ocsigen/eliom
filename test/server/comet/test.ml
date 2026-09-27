@@ -151,6 +151,12 @@ let stateless server =
             in
             Alcotest.(check (list (option string))) "next" [Some "w"] (values m)
         | _ -> Alcotest.fail "last message expected")
+    ; case "last messages" (fun _ ->
+        let* a, tab, info = site "stateless" in
+        let* _ = text tab "/stateless/push?v=p" in
+        let* _ = text tab "/stateless/push?v=q" in
+        let+ m = C.request_stateless a info (Eliom.Comet_base.Last (Some 1)) in
+        Alcotest.(check (list (option string))) "last" [Some "q"] (values m))
     ; case "newest" (fun _ ->
         (* Only the last message is kept. *)
         let* a, tab, info = site "newest" in

@@ -103,7 +103,11 @@ end = struct
     ; (* the number of messages already added to the channel *)
       ch_content : (string * int) Dlist.t
     ; ch_wakeup : unit Lwt_condition.t
-      (* condition broadcasted when there is a new message *) }
+    ; (* condition broadcasted when there is a new message *)
+      ch_stream : string Lwt_stream.t
+      (* the source of the messages: the channel keeps it alive, as nothing
+         else may, for instance for a stream made from a React event *)
+    }
 
   module Channel_hash = struct
     type t = channel
@@ -121,7 +125,8 @@ end = struct
       { ch_id = ""
       ; ch_index = 0
       ; ch_content = Dlist.create 1
-      ; ch_wakeup = Lwt_condition.create () }
+      ; ch_wakeup = Lwt_condition.create ()
+      ; ch_stream = Lwt_stream.of_list [] }
     in
     fun ch_id ->
       let dummy = {dummy_channel with ch_id} in
@@ -130,7 +135,8 @@ end = struct
   let wakeup_waiters channel = Lwt_condition.broadcast channel.ch_wakeup ()
 
   (* fill the channel with messages from the stream *)
-  let run_channel channel stream =
+  let run_channel channel =
+    let stream = channel.ch_stream in
     let channel' = Weak.create 1 in
     Weak.set channel' 0 (Some channel);
     let channel = channel' in
@@ -160,9 +166,10 @@ end = struct
       { ch_id = name
       ; ch_index = 0
       ; ch_content = Dlist.create size
-      ; ch_wakeup = Lwt_condition.create () }
+      ; ch_wakeup = Lwt_condition.create ()
+      ; ch_stream = stream }
     in
-    run_channel channel stream;
+    run_channel channel;
     match find_channel name with
     | Some _ ->
         failwith
@@ -214,7 +221,9 @@ end = struct
           [channel.ch_id, Comet_base.Full]
       | Comet_base.After i -> queue_take channel i
       | Comet_base.Last (Some n) ->
-          let i = channel.ch_index - min (Dlist.size channel.ch_content) n in
+          let i =
+            channel.ch_index - min (Dlist.size channel.ch_content) n + 1
+          in
           queue_take channel i)
 
   let has_data = function
