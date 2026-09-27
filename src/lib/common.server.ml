@@ -825,7 +825,7 @@ let get_site_data () =
   | None ->
       if Ocsigen.Extensions.during_initialisation ()
       then get_current_sitedata ()
-      else failwith "get_site_data"
+      else raise (Site_information_not_available "get_site_data")
 
 (*****************************************************************************)
 (* Lazy site value: each site have a different value *)

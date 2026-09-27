@@ -752,7 +752,8 @@ val global_register_allowed : unit -> (unit -> sitedata) option
 
 val get_site_data : unit -> sitedata
 (** Get the site data, which is only available {e during the loading of eliom
-    modules, and during a request.} *)
+    modules, and during a request.} Otherwise, raises
+    {!Site_information_not_available}. *)
 
 type params_after_action =
   { pa_all_get_params : (string * string) list
