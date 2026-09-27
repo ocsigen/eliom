@@ -24,17 +24,24 @@ external to_poly : 'a -> poly = "%identity"
 
 type 'a wrapped_value = poly * 'a
 
+(* The traversal indexes blocks by their addresses, and only detects the
+   minor collections that move them (see Tbl). A compaction also moves the
+   blocks of the major heap. OCaml 4 compacts the heap automatically, so
+   automatic compaction is disabled during the traversal. OCaml 5 only
+   compacts on an explicit call to Gc.compact, and ignores max_overhead. *)
 let with_no_heap_compaction f v =
-  let gc_control = Gc.get () in
-  (* disable heap compaction *)
-  Gc.set {gc_control with Gc.max_overhead = max_int};
-  match f v with
-  | v ->
-      (* reset gc settings *)
-      Gc.set gc_control; v
-  | exception e ->
-      (* reset gc settings *)
-      Gc.set gc_control; raise e
+  if Sys.ocaml_release.major >= 5
+  then f v
+  else
+    let gc_control = Gc.get () in
+    Gc.set {gc_control with Gc.max_overhead = max_int};
+    match f v with
+    | v ->
+        (* reset gc settings *)
+        Gc.set gc_control; v
+    | exception e ->
+        (* reset gc settings *)
+        Gc.set gc_control; raise e
 
 module Mark : sig
   type t
@@ -91,7 +98,11 @@ let bits = 8
    allocations) and resizable arrays. The initial size of the hash
    table is 2 ** bits; the initial size of arrays is half this *)
 
-let none = Obj.repr 0 (* Unallocated entry in an array or in a hash-table *)
+(* The markers stored in the arrays and in the hash-table are blocks
+   allocated here and compared physically. An immediate value would be
+   confused with the result of a wrapper, such as 0, None or []. *)
+let marker () = Obj.repr (ref ())
+let none = marker () (* Unallocated entry in an array or in a hash-table *)
 
 module DynArray = struct
   let rec check_size a i =
@@ -239,12 +250,6 @@ module Tbl = struct
     else (
       rehash tbl;
       let idx = get_index_no_retry tbl x in
-      if idx = -1
-      then (
-        for i = 0 to Array.length tbl.obj - 1 do
-          assert (tbl.obj.(i) != x)
-        done;
-        Format.eprintf "%b@." (is_marked x));
       assert (idx <> -1);
       idx)
 
@@ -282,11 +287,11 @@ let obj_kind v =
 
 let unchanged =
   (* This block and its descendants can be left unchanged *)
-  Obj.repr 1
+  marker ()
 
 let modified =
   (* This block or its descendants may need to be modified *)
-  Obj.repr 2
+  marker ()
 
 let iteration_count = ref 0
 let wrap_count = ref 0
