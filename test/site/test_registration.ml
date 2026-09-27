@@ -124,6 +124,16 @@ let test_duplicates () =
     in
     register (anonymous ());
     register (anonymous ()));
+  check "attached coservices with the same name" (Some "a (coservice n)")
+    (fun () ->
+       let fallback = service ["a"] in
+       let named () =
+         Service.create_attached_get ~name:"n" ~fallback
+           ~get_params:Parameter.unit ()
+       in
+       register fallback;
+       register (named ());
+       register (named ()));
   check "anonymous attached coservices" None (fun () ->
     let fallback = service ["a"] in
     let anonymous () =

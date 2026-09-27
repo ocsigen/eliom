@@ -244,13 +244,26 @@ module Make (P : PARAM) = struct
             tref := P.Table.add key (None, oldl @ [service]) newt
         with Not_found -> tref := P.Table.add key (None, l @ [service]) newt
       with Not_found -> tref := P.Table.add key (None, [service]) !tref)
-    | _ -> (
+    | {Common.key_state; _} -> (
       try
         let _nodeopt, l = P.Table.find key !tref
         and newt = P.Table.remove key !tref in
         let _, oldl = find_and_remove_id l s_id in
-        (* if there was an old version with the same id, we remove it *)
-        tref := P.Table.add key (None, oldl @ [service]) newt
+        if sp = None
+        then
+          (* As for services without state, during the initialisation *)
+          let name =
+            match key_state with
+            | Common.SAtt_named n, _ | _, Common.SAtt_named n ->
+                " (coservice " ^ n ^ ")"
+            | _ -> " (coservice)"
+          in
+          raise
+            (Common.Eliom_duplicate_registration
+               (Url.string_of_url_path ~encode:false url_act ^ name))
+        else
+          (* if there was an old version with the same id, we remove it *)
+          tref := P.Table.add key (None, oldl @ [service]) newt
       with Not_found -> tref := P.Table.add key (None, [service]) !tref)
 
   let remove_page_table _ _ tref key id =
