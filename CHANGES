@@ -269,6 +269,9 @@
    leaves a service with a path unregistered no longer starts. Ocsigen
    Server checks the sites of a configuration file only, so statically
    linked applications were never checked.
+** Using an Eliom reference of site scope outside a request and outside the
+   initialisation of a site now raises Common.Site_information_not_available,
+   as documented, instead of Failure "get_site_data".
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
