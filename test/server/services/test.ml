@@ -189,6 +189,10 @@ let outputs server =
         Alcotest.(check (option string))
           "content type" (Some "text/css") (content_type r);
         check_header "cache" "cache-control" (Some "max-age=3600") r)
+    ; case "no default charset" (fun b ->
+        (* The test server has no default charset. *)
+        let+ r = Browser.get b "/hello" in
+        check_header "content type" "content-type" (Some "text/plain") r)
     ; case "no cache" (fun b ->
         let+ r = Browser.get b "/no_cache" in
         check_header "cache" "cache-control" (Some "no-cache") r)
