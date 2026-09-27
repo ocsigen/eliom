@@ -1256,13 +1256,16 @@ let change_page_post_form ?cookies_info ?tmpl form full_uri =
 let _ =
   (Client_core.change_page_uri_ :=
      fun ?cookies_info ?tmpl href ->
+       (* Not Lwt.async: an immediate failure must escape the link handler
+          (Client_core.raw_a_handler), which then does not prevent the
+          default action, so that the browser follows the link itself. *)
        Lwt.ignore_result (change_page_uri_a ?cookies_info ?tmpl href));
   (Client_core.change_page_get_form_ :=
      fun ?cookies_info ?tmpl form href ->
-       Lwt.ignore_result (change_page_get_form ?cookies_info ?tmpl form href));
+       Lwt.async (fun () -> change_page_get_form ?cookies_info ?tmpl form href));
   Client_core.change_page_post_form_ :=
     fun ?cookies_info ?tmpl form href ->
-      Lwt.ignore_result (change_page_post_form ?cookies_info ?tmpl form href)
+      Lwt.async (fun () -> change_page_post_form ?cookies_info ?tmpl form href)
 
 (* == Navigating through the history... *)
 
@@ -1303,7 +1306,8 @@ let revisit full_uri state_id =
     ; target_id = Some target_id }
   in
   let tmpl = state.template in
-  Lwt.ignore_result @@ with_progress_cursor
+  Lwt.async @@ fun () ->
+  with_progress_cursor
   @@
   let uri, fragment = Url.split_fragment full_uri in
   if uri = get_current_uri ()
@@ -1412,16 +1416,16 @@ let revisit_wrapper full_uri state_id =
   run_onunload_wrapper f cancel
 
 let () =
-  Lwt.ignore_result
-    (let* () = Client_core.wait_load_end () in
-     Logs.debug ~src:section_page (fun fmt ->
-       fmt "revisit_wrapper: replaceState");
-     Dom_html.window##.history##(replaceState
-                                   (history_state !active_page.page_id
-                                      (Js.to_string
-                                         Dom_html.window##.location##.href))
-                                   (Js.string "") Js.null);
-     Lwt.return_unit);
+  Lwt.async (fun () ->
+    let* () = Client_core.wait_load_end () in
+    Logs.debug ~src:section_page (fun fmt ->
+      fmt "revisit_wrapper: replaceState");
+    Dom_html.window##.history##(replaceState
+                                  (history_state !active_page.page_id
+                                     (Js.to_string
+                                        Dom_html.window##.location##.href))
+                                  (Js.string "") Js.null);
+    Lwt.return_unit);
   Dom_html.window##.onpopstate
   := Dom_html.handler (fun event ->
     Logs.debug ~src:section_page (fun fmt -> fmt "revisit_wrapper: onpopstate");
