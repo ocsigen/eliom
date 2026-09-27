@@ -1,4 +1,5 @@
-(* Tests of actions that reload the page. *)
+(* Tests of actions that reload the page, and of services sending OCaml
+   values. *)
 
 open Eliom_test_server
 open Lwt.Syntax
@@ -47,6 +48,38 @@ let actions server =
         let+ r = Browser.get b "/page" in
         check_response "done" ~status:200 ~body:"page x=none value=path" r) ] )
 
+(* The answer of a service sending an OCaml value to the client-side
+   program *)
+let ocaml_value (r : Browser.response) =
+  Alcotest.(check (option string))
+    "content type" (Some "application/x-eliom")
+    (Browser.header r "content-type");
+  let _, data =
+    (Marshal.from_string (Eliom.Lib.Url.decode r.body) 0
+     : _
+       * [`Success of int | `Failure of string]
+           Eliom.Runtime.eliom_caml_service_data)
+  in
+  data.Eliom.Runtime.ecs_data
+
+let ocaml server =
+  let case = case server in
+  ( "Ocaml"
+  , [ case "value" (fun b ->
+        let+ r = Browser.get b "/ocaml?i=1" in
+        check_response "answer" ~status:200 r;
+        match ocaml_value r with
+        | `Success n -> Alcotest.(check int) "value" 2 n
+        | `Failure _ -> Alcotest.fail "failure")
+    ; case "exception" (fun b ->
+        (* The client gets the code of the error, which the server logs. *)
+        let+ r = Browser.get b "/ocaml?i=-1" in
+        check_response "answer" ~status:200 r;
+        match ocaml_value r with
+        | `Failure code -> Alcotest.(check int) "code" 6 (String.length code)
+        | `Success _ -> Alcotest.fail "success") ] )
+
 let () =
   Server_harness.with_server "./server.exe" (fun server ->
-    Alcotest.run ~and_exit:false "eliom-server-outputs" [actions server])
+    Alcotest.run ~and_exit:false "eliom-server-outputs"
+      [actions server; ocaml server])

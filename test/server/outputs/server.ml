@@ -1,4 +1,5 @@
-(* The test server of test.ml: actions that reload the page. *)
+(* The test server of test.ml: actions that reload the page, and services
+   sending OCaml values. *)
 
 open Eliom
 module P = Parameter
@@ -42,6 +43,16 @@ let attached_action =
 
 let () = action attached_action "attached"
 let () = action (get ["path_action"] P.unit) "path"
+
+(* Services sending OCaml values *)
+
+let () =
+  Registration.Ocaml.register
+    ~service:
+      (Service.create_ocaml ~path:(Service.Path ["ocaml"])
+         ~meth:(Service.Get P.(int "i"))
+         ())
+    (fun i () -> if i < 0 then failwith "negative" else Lwt.return (i + 1))
 
 (* Links to the actions *)
 
