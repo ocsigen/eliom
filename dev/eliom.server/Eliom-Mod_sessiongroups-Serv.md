@@ -2,7 +2,8 @@
 
 ```ocaml
 type group_of_group_data =
-  Common.tables ref * [ `Session ] Common.sessgrp Ocsigen_base.Cache.Dlist.node
+  Common.tables ref
+  * Common.group_of_groups_entry Ocsigen_base.Cache.Dlist.node
 ```
 ```ocaml
 val add : 

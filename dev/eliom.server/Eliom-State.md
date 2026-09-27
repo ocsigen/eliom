@@ -358,7 +358,12 @@ val set_max_service_states_for_group_or_subnet :
   int ->
   unit
 ```
-Sets the maximum number of service sessions in the current session group (or for the client sub network, if there is no group).
+`set_max_service_states_for_group_or_subnet ~scope n` sets to `n` the maximum number of service states of the level of `scope` in the state that contains the current one:
+
+- with a client process scope, the number of tab sessions in the current browser session;
+- with a session scope, the number of browser sessions in the current session group (or for the client sub network, if there is no group);
+- with a session group scope, the number of session groups of the site. This limit is shared by service and data states: a group with both counts twice.
+If there are more, the oldest ones are closed.
 
 ```ocaml
 val set_max_volatile_data_states_for_group_or_subnet : 
@@ -367,7 +372,7 @@ val set_max_volatile_data_states_for_group_or_subnet :
   int ->
   unit
 ```
-Sets the maximum number of volatile data sessions in the current session group (or for the client sub network, if there is no group).
+Like [`set_max_service_states_for_group_or_subnet`](./#val-set_max_service_states_for_group_or_subnet), for volatile data states.
 
 ```ocaml
 val set_max_volatile_states_for_group_or_subnet : 
@@ -376,7 +381,7 @@ val set_max_volatile_states_for_group_or_subnet :
   int ->
   unit
 ```
-Sets the maximum number of volatile sessions (both data and service sessions) in the current group (or for the client sub network, if there is no group).
+Like [`set_max_service_states_for_group_or_subnet`](./#val-set_max_service_states_for_group_or_subnet), for both service and volatile data states.
 
 ### Expiration of cookies and timeouts
 
