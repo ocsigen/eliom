@@ -14,6 +14,11 @@ val with_server : string -> (t -> 'a) -> 'a
 
     @raise Failure if the server does not start. *)
 
+val restart : t -> unit
+(** [restart s] stops [s] and starts its program again, in the same directory:
+    the files of the server, such as persistent data, are kept. The browsers
+    of [s] can still be used. *)
+
 val socket : t -> string
 (** [socket s] is the Unix-domain socket on which [s] listens. *)
 

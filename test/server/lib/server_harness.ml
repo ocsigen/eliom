@@ -1,9 +1,9 @@
-type t = {dir : string}
+type t = {exe : string; dir : string; mutable pid : int}
 
 let socket_name = "local.sock"
 let command_pipe = "local.cmd"
 let log_name = "server.log"
-let socket {dir} = Filename.concat dir socket_name
+let socket {dir; _} = Filename.concat dir socket_name
 
 let rec remove path =
   match Sys.is_directory path with
@@ -100,17 +100,18 @@ let accepts_connections server =
        | exception Unix.Unix_error ((Unix.ENOENT | Unix.ECONNREFUSED), _, _) ->
            false)
 
-let with_server exe f =
-  let dir = temp_dir 0 in
+(* [launch exe dir] starts [exe] in [dir] and returns its pid, once it accepts
+   connections. Its outputs are appended to the log. *)
+let launch exe dir =
   let log =
     Unix.openfile
       (Filename.concat dir log_name)
-      [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_TRUNC]
+      [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_APPEND]
       0o600
   in
   let pid = Unix.create_process exe [|exe; dir|] Unix.stdin log log in
   Unix.close log;
-  let server = {dir} in
+  let server = {exe; dir; pid} in
   if
     not
       (wait_for (fun () -> accepts_connections server || exited pid)
@@ -119,19 +120,33 @@ let with_server exe f =
     print_log dir;
     stop pid dir;
     failwith ("the test server " ^ exe ^ " did not start"));
+  pid
+
+let with_server exe f =
+  let dir = temp_dir 0 in
+  let server = {exe; dir; pid = launch exe dir} in
   match f server with
-  | r -> stop pid dir; remove dir; r
+  | r -> stop server.pid dir; remove dir; r
   | exception e ->
       let bt = Printexc.get_raw_backtrace () in
-      stop pid dir;
+      stop server.pid dir;
       print_log dir;
       Printexc.raise_with_backtrace e bt
+
+let restart server =
+  stop server.pid server.dir;
+  (* The files of the previous run that the server creates again *)
+  List.iter
+    (fun f -> remove (Filename.concat server.dir f))
+    [socket_name; command_pipe];
+  server.pid <- launch server.exe server.dir
 
 let start instructions =
   let dir = Sys.argv.(1) in
   Sys.chdir dir;
-  Sys.mkdir "log" 0o700;
-  Sys.mkdir "data" 0o700;
+  List.iter
+    (fun d -> if not (Sys.file_exists d) then Sys.mkdir d 0o700)
+    ["log"; "data"];
   Ocsigen.Server.start
     ~ports:[`Unix socket_name, 0]
     ~command_pipe ~logdir:"log" ~datadir:"data" ~debugmode:true
