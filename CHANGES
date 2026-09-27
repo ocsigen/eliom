@@ -227,6 +227,9 @@
    are set. The combined configuration repeated the idle policies, so the
    test for an always active configuration never matched, and the client
    went idle after the timeout, polling without delay.
+** On the client, Lib.Url.string_of_url_path ~encode:true now encodes
+   each path segment, like the server version. It used to ignore ~encode
+   and print a warning.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type

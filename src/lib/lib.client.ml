@@ -56,10 +56,8 @@ module Url = struct
     else
       url ^ (if has_get_args url then "&" else "?") ^ encode_arguments get_args
 
-  let string_of_url_path ~encode l =
-    if encode
-    then print_endline "Warning: Lib.string_of_url_path ignores ~encode";
-    String.concat "/" l
+  let string_of_url_path ~encode:enc l =
+    String.concat "/" (if enc then List.map (encode ~plus:false) l else l)
 
   let path_of_url = function
     | Url.Http {Url.hu_path = path; _}
