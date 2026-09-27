@@ -95,9 +95,8 @@ let test_minor_gc () =
 
 let test_exception () =
   (* A wrapper that raises: the exception is propagated and the GC
-     settings changed during the traversal are restored. (The traversal
-     changes max_overhead, which Gc.set ignores on OCaml 5, where the
-     second check is trivially true.) *)
+     settings changed during the traversal are restored. (Only OCaml 4
+     changes them, to disable compaction.) *)
   let control = Gc.get () in
   let v = boxed "a" (fun _ -> failwith "wrapper") in
   Alcotest.check_raises "propagated" (Failure "wrapper") (fun () ->

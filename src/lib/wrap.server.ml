@@ -24,17 +24,24 @@ external to_poly : 'a -> poly = "%identity"
 
 type 'a wrapped_value = poly * 'a
 
+(* The traversal indexes blocks by their addresses, and only detects the
+   minor collections that move them (see Tbl). A compaction also moves the
+   blocks of the major heap. OCaml 4 compacts the heap automatically, so
+   automatic compaction is disabled during the traversal. OCaml 5 only
+   compacts on an explicit call to Gc.compact, and ignores max_overhead. *)
 let with_no_heap_compaction f v =
-  let gc_control = Gc.get () in
-  (* disable heap compaction *)
-  Gc.set {gc_control with Gc.max_overhead = max_int};
-  match f v with
-  | v ->
-      (* reset gc settings *)
-      Gc.set gc_control; v
-  | exception e ->
-      (* reset gc settings *)
-      Gc.set gc_control; raise e
+  if Sys.ocaml_release.major >= 5
+  then f v
+  else
+    let gc_control = Gc.get () in
+    Gc.set {gc_control with Gc.max_overhead = max_int};
+    match f v with
+    | v ->
+        (* reset gc settings *)
+        Gc.set gc_control; v
+    | exception e ->
+        (* reset gc settings *)
+        Gc.set gc_control; raise e
 
 module Mark : sig
   type t
