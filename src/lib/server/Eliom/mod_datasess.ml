@@ -42,7 +42,12 @@ let close_data_state ~scope ~secure_o ?sp () =
     let cookie_info, secure =
       compute_cookie_info sitedata secure_o cookie_info
     in
-    let full_st_name = Common.make_full_state_name ~sp ~secure ~scope in
+    (* The states of a scope are found through the cookie of its level: a
+       session group has the cookie of its browser sessions. *)
+    let full_st_name =
+      Common.make_full_state_name ~sp ~secure
+        ~scope:(Common.cookie_scope_of_user_scope scope)
+    in
     let _, ior =
       Lazy.force (Common.Full_state_name_table.find full_st_name !cookie_info)
     in
@@ -54,16 +59,20 @@ let close_data_state ~scope ~secure_o ?sp () =
            and also the entry in the session table *)
         (match scope with
         | `Session_group _ -> (
-          (* If we want to close all the group of browser sessions,
-                   the node is found in the group table: *)
-          match
-            Mod_sessiongroups.Data.find_node_in_group_of_groups
-              !(c.Common.dc_session_group)
-          with
-          | None ->
-              Logs.err ~src:eliom_logs_src (fun fmt ->
-                fmt "No group of groups. Please report this problem.")
-          | Some g -> Mod_sessiongroups.Data.remove g)
+          match !(c.Common.dc_session_group) with
+          | {Common.sg_group = Common.Group_name _; _} as group -> (
+            (* If we want to close all the group of browser sessions,
+               the node is found in the group table: *)
+            match Mod_sessiongroups.Data.find_node_in_group_of_groups group with
+            | None ->
+                Logs.err ~src:eliom_logs_src (fun fmt ->
+                  fmt "No group of groups. Please report this problem.")
+            | Some g -> Mod_sessiongroups.Data.remove g)
+          | {Common.sg_group = Common.Subnet _; _} ->
+              (* Without a session group, the group of the session is its
+                 subnet, which holds the sessions of other users: the session
+                 is its own group, as for the data of the group scope. *)
+              Mod_sessiongroups.Data.remove c.Common.dc_session_group_node)
         | `Session _ | `Client_process _ ->
             (* If we want to close a (tab/browser) session, the node is found
                  in the cookie info: *)

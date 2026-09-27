@@ -299,6 +299,14 @@
 ** The ".." segments of a whole suffix (all_suffix, all_suffix_string,
    all_suffix_user) given as a parameter, in the version of a service
    without suffix, are now removed, as they are from a path.
+** State.discard, discard_data and discard_services with a session group
+   scope now close the group, with all its browser sessions, as documented.
+   They looked the state of the group up under a name that no cookie has, so
+   they did nothing: neither the data (volatile and persistent) nor the
+   services of the group and of its sessions were removed. A session that
+   is not in a session group is closed alone: it is its own group, as for the
+   data of the group scope (the automatic group of such sessions, their
+   subnet, holds the sessions of other users).
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
