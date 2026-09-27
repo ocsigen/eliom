@@ -17,10 +17,9 @@ let init ?(site_dir = []) ~app f =
       (fun () -> result := Some (f ())));
   Ocsigen.Extensions.start_initialisation ();
   Fun.protect ~finally:Ocsigen.Extensions.end_initialisation (fun () ->
-    let (_ : Ocsigen.Extensions.extension) =
-      Eliom.App.run ~app () [] config_info site_dir
-    in
-    Eliom.Mod_main.end_init ());
+    ignore
+      (Eliom.App.run ~app () [] config_info site_dir
+       : Ocsigen.Extensions.extension));
   match !result with
   | Some r -> r
   | None -> failwith ("Site.init: " ^ app ^ " was not initialised")

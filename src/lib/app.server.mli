@@ -45,6 +45,12 @@ val run :
     Default value of [?app] is [default_app_name].
     Other optional values correspond to Eliom configuration for this site.
 
+    As for a site of a configuration file, the services with a path created
+    during the initialisation of the application must be registered by then:
+    otherwise [run] raises {!Common.Eliom_there_are_unregistered_services},
+    and the server does not start. Unregistered non-attached coservices are
+    reported by a warning.
+
     When [?enable_wasm] is set to [true], the server will generate a detection
     script that loads the WASM version of your client code if the browser
     supports WebAssembly, with automatic fallback to JavaScript otherwise.
