@@ -663,8 +663,7 @@ let change_url_string ~replace uri =
     Dom_html.window##.history##pushState
       (history_state this_page.page_id full_uri)
       (Js.string "")
-      (if !Common.is_client_app then Js.null else Js.Opt.return (Js.string uri)));
-  Mod_dom.touch_base ()
+      (if !Common.is_client_app then Js.null else Js.Opt.return (Js.string uri)))
 
 (* == Function [change_url] changes the URL, without doing a request.
    It takes a GET (co-)service as parameter and its parameters.
@@ -1429,7 +1428,6 @@ let () =
   Dom_html.window##.onpopstate
   := Dom_html.handler (fun event ->
     Logs.debug ~src:section_page (fun fmt -> fmt "revisit_wrapper: onpopstate");
-    Mod_dom.touch_base ();
     Js.Opt.case
       ((Js.Unsafe.coerce event)##.state : _ Js.opt)
       (fun () -> () (* Ignore dummy popstate event fired by chromium. *))

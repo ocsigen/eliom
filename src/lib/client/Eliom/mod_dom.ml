@@ -476,18 +476,6 @@ let setDocumentScroll pos =
   Dom_html.document##.body##.scrollLeft := Js.float pos.body_left;
   current_position := pos
 
-(* UGLY HACK for Opera bug: Opera seem does not always take into
-   account the content of the base element. If we touch it like that,
-   it remember its presence... *)
-let touch_base () =
-  Js.Opt.iter
-    (Js.Opt.bind
-       Dom_html.document##(getElementById (Js.string Common_base.base_elt_id))
-       Dom_html.CoerceTo.base)
-    (fun e ->
-       let href = e##.href in
-       e##.href := href)
-
 (* BEGIN FORMDATA HACK: This is only needed if FormData is not available in the browser.
    When it will be commonly available, remove all sections marked by "FORMDATA HACK" !
    Notice: this hack is used to circumvent a limitation in FF4 implementation of formdata:
