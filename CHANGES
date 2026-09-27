@@ -234,6 +234,14 @@
 ** On the client, Lib.Url.string_of_url_path ~encode:true now encodes
    each path segment, like the server version. It used to ignore ~encode
    and print a warning.
+** Volatile session groups: the service sessions and the data sessions of
+   a group are now closed separately. Closing the last service session of
+   a group closed the data sessions of the group and removed its group
+   data. State.discard_services ~scope:(`Session_group _) closed the data
+   sessions of the group instead of its service sessions, so
+   State.discard with that scope left the service sessions open. Evicting
+   the service sessions of a group, when a site has too many groups, also
+   closed its data sessions instead.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type

@@ -494,6 +494,12 @@ and tables =
             coservice number for non-attached ones. *)
   }
 
+(* An entry of the group of groups of a site: a group of browser sessions of
+   one kind. The service sessions and the data sessions of a group are in
+   two distinct entries. *)
+and group_of_groups_entry =
+  {gg_kind : [`Service | `Data]; gg_group : [`Session_group] sessgrp}
+
 and sitedata =
   { mutable site_dir : Url.path option
     (* None when statically linked 
@@ -526,7 +532,7 @@ and sitedata =
                                       (tab and browser sessions)
                                       contains the information about the cookie
                                       (expiration, group ...). *)
-    group_of_groups : [`Session_group] sessgrp Ocsigen_base.Cache.Dlist.t
+    group_of_groups : group_of_groups_entry Ocsigen_base.Cache.Dlist.t
   ; (* Limitation of the number of groups per site *)
     mutable remove_session_data : string -> unit
   ; mutable not_bound_in_data_tables : string -> bool

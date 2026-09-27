@@ -1470,7 +1470,9 @@ module Ext = struct
     let dl = sitedata.Common.group_of_groups in
     Ocsigen_base.Cache.Dlist.fold
       (fun l -> function
-         | {Common.sg_level = `Session; sg_group = Common.Group_name s; _} ->
+         | { Common.gg_group =
+               {Common.sg_level = `Session; sg_group = Common.Group_name s; _}
+           ; _ } ->
              s :: l
          | _ -> l)
       [] dl
