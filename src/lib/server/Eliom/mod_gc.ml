@@ -160,189 +160,174 @@ let gc_timeouted_naservices now tr =
              Lwt.pause ())
           t Lwt.return_unit
 
-(* This is a thread that will work for example every hour. *)
-let service_session_gc sitedata =
+let collect_service_sessions sitedata =
   let tables = sitedata.Common.global_services in
-  match get_servicesessiongcfrequency () with
-  | None -> () (* No garbage collection *)
-  | Some t ->
-      let rec f () =
-        let* () = Lwt_unix.sleep t in
-        let service_cookie_table = sitedata.Common.session_services in
-        let now = Unix.time () in
-        Logs.info ~src:section (fun fmt -> fmt "GC of service sessions");
-        (* public continuation tables: *)
-        let* () =
-          if tables.Common.table_contains_services_with_timeout
-          then gc_timeouted_services now tables
-          else Lwt.return_unit
-        in
-        let* () =
-          if tables.Common.table_contains_naservices_with_timeout
-          then gc_timeouted_naservices now tables.Common.table_naservices
-          else Lwt.return_unit
-        in
-        (* private continuation tables: *)
-        let* () =
-          Common.SessionCookies.fold
-            (fun k
-              { Common.Service_cookie.session_table = tables
-              ; expiry
-              ; session_group
-              ; session_group_node
-              ; _ }
-              thr ->
-               let* () = thr in
-               let* () =
-                 match !expiry with
-                 | Some exp when exp < now ->
-                     Mod_sessiongroups.Serv.remove session_group_node;
-                     Lwt.return_unit
-                 | _ ->
-                     let* () =
-                       if tables.Common.table_contains_services_with_timeout
-                       then gc_timeouted_services now tables
-                       else Lwt.return_unit
-                     in
-                     let* () =
-                       if tables.Common.table_contains_naservices_with_timeout
-                       then
-                         gc_timeouted_naservices now
-                           tables.Common.table_naservices
-                       else Lwt.return_unit
-                     in
-                     (match !session_group with
-                     | {Common.sg_group = Common.Subnet _; _}
-                     (* no group *)
-                     (*VVV check this *)
-                       when Mod_sessiongroups.Serv.group_size
-                              { Common.sg_site_dir =
-                                  Common.get_site_dir_string sitedata
-                              ; sg_level = `Client_process
-                              ; sg_group = Common.Group_name k }
-                            = 0
-                            (* no tab sessions *)
-                            && Common.service_tables_are_empty tables ->
-                         (* The session is not used in any table
+  let service_cookie_table = sitedata.Common.session_services in
+  let now = Unix.gettimeofday () in
+  Logs.info ~src:section (fun fmt -> fmt "GC of service sessions");
+  (* public continuation tables: *)
+  let* () =
+    if tables.Common.table_contains_services_with_timeout
+    then gc_timeouted_services now tables
+    else Lwt.return_unit
+  in
+  let* () =
+    if tables.Common.table_contains_naservices_with_timeout
+    then gc_timeouted_naservices now tables.Common.table_naservices
+    else Lwt.return_unit
+  in
+  (* private continuation tables: *)
+  Common.SessionCookies.fold
+    (fun k
+      { Common.Service_cookie.session_table = tables
+      ; expiry
+      ; session_group
+      ; session_group_node
+      ; _ }
+      thr ->
+       let* () = thr in
+       let* () =
+         match !expiry with
+         | Some exp when exp < now ->
+             Mod_sessiongroups.Serv.remove session_group_node;
+             Lwt.return_unit
+         | _ ->
+             let* () =
+               if tables.Common.table_contains_services_with_timeout
+               then gc_timeouted_services now tables
+               else Lwt.return_unit
+             in
+             let* () =
+               if tables.Common.table_contains_naservices_with_timeout
+               then gc_timeouted_naservices now tables.Common.table_naservices
+               else Lwt.return_unit
+             in
+             (match !session_group with
+             | {Common.sg_group = Common.Subnet _; _}
+             (* no group *)
+             (*VVV check this *)
+               when Mod_sessiongroups.Serv.group_size
+                      { Common.sg_site_dir = Common.get_site_dir_string sitedata
+                      ; sg_level = `Client_process
+                      ; sg_group = Common.Group_name k }
+                    = 0
+                    (* no tab sessions *)
+                    && Common.service_tables_are_empty tables ->
+                 (* The session is not used in any table
                    and is not in a group
                    (scope must be `Session,
                    as all tab sessions are in a group),
                    and is not associated to any tab session.
                    We can remove it. *)
-                         Mod_sessiongroups.Serv.remove session_group_node
-                     | _ -> () (*VVV enough? *));
-                     Lwt.return_unit
-               in
-               Lwt.pause ())
-            service_cookie_table Lwt.return_unit
-        in
-        f ()
-      in
-      Lwt.async f
+                 Mod_sessiongroups.Serv.remove session_group_node
+             | _ -> () (*VVV enough? *));
+             Lwt.return_unit
+       in
+       Lwt.pause ())
+    service_cookie_table Lwt.return_unit
+
+(* [every t collect] runs [collect ()] every [t] seconds, for ever. *)
+let every t collect =
+  let rec f () =
+    let* () = Lwt_unix.sleep t in
+    let* () = collect () in
+    f ()
+  in
+  Lwt.async f
 
 (* This is a thread that will work for example every hour. *)
-let data_session_gc sitedata =
-  match get_datasessiongcfrequency () with
+let service_session_gc sitedata =
+  match get_servicesessiongcfrequency () with
   | None -> () (* No garbage collection *)
-  | Some t ->
-      let rec f () =
-        let* () = Lwt_unix.sleep t in
-        let data_cookie_table = sitedata.Common.session_data in
-        let not_bound_in_data_tables =
-          sitedata.Common.not_bound_in_data_tables
-        in
-        let now = Unix.time () in
-        Logs.info ~src:section (fun fmt -> fmt "GC of session data");
-        (* private continuation tables: *)
-        let* () =
-          Common.SessionCookies.fold
-            (fun k
-              {Common.Data_cookie.expiry; session_group; session_group_node; _}
-              thr ->
-               let* () = thr in
-               let* () =
-                 match !expiry with
-                 | Some exp when exp < now ->
-                     Mod_sessiongroups.Data.remove session_group_node;
-                     Lwt.return_unit
-                 | _ -> (
-                   match !session_group with
-                   | {Common.sg_level = scope; sg_group = Common.Subnet _; _}
-                   (* no group *)
-                     when Mod_sessiongroups.Data.group_size
-                            { Common.sg_site_dir =
-                                Common.get_site_dir_string sitedata
-                            ; sg_level = `Client_process
-                            ; sg_group = Common.Group_name k }
-                          = 0
-                          (* no tab sessions *)
-                          && not_bound_in_data_tables k ->
-                       (* The session is not used in any table
+  | Some t -> every t (fun () -> collect_service_sessions sitedata)
+
+let collect_data_sessions sitedata =
+  let data_cookie_table = sitedata.Common.session_data in
+  let not_bound_in_data_tables = sitedata.Common.not_bound_in_data_tables in
+  let now = Unix.gettimeofday () in
+  Logs.info ~src:section (fun fmt -> fmt "GC of session data");
+  (* private continuation tables: *)
+  Common.SessionCookies.fold
+    (fun k
+      {Common.Data_cookie.expiry; session_group; session_group_node; _}
+      thr ->
+       let* () = thr in
+       let* () =
+         match !expiry with
+         | Some exp when exp < now ->
+             Mod_sessiongroups.Data.remove session_group_node;
+             Lwt.return_unit
+         | _ -> (
+           match !session_group with
+           | {Common.sg_level = scope; sg_group = Common.Subnet _; _}
+           (* no group *)
+             when Mod_sessiongroups.Data.group_size
+                    { Common.sg_site_dir = Common.get_site_dir_string sitedata
+                    ; sg_level = `Client_process
+                    ; sg_group = Common.Group_name k }
+                  = 0
+                  (* no tab sessions *)
+                  && not_bound_in_data_tables k ->
+               (* The session is not used in any table
                           and is not in a group
                           (scope must be `Session,
                           as all tab sessions are in a group),
                           and is not associated to any tab session.
                           We can remove it. *)
-                       if scope <> `Session
-                       then
-                         Logs.err ~src:section (fun fmt ->
-                           fmt
-                             "Eliom: Group associated to IP has scope different from `Session. Please report the problem.");
-                       Mod_sessiongroups.Data.remove session_group_node;
-                       (* See also the finalisers in Mod_sessiongroups
+               if scope <> `Session
+               then
+                 Logs.err ~src:section (fun fmt ->
+                   fmt
+                     "Eliom: Group associated to IP has scope different from `Session. Please report the problem.");
+               Mod_sessiongroups.Data.remove session_group_node;
+               (* See also the finalisers in Mod_sessiongroups
                           and Mod_main.ml *)
-                       Lwt.return_unit
-                   | _ -> Lwt.return_unit)
-               in
-               Lwt.pause ())
-            data_cookie_table Lwt.return_unit
-        in
-        f ()
-      in
-      Lwt.async f
+               Lwt.return_unit
+           | _ -> Lwt.return_unit)
+       in
+       Lwt.pause ())
+    data_cookie_table Lwt.return_unit
+
+(* This is a thread that will work for example every hour. *)
+let data_session_gc sitedata =
+  match get_datasessiongcfrequency () with
+  | None -> () (* No garbage collection *)
+  | Some t -> every t (fun () -> collect_data_sessions sitedata)
 
 (* garbage collection of timeouted persistent sessions *)
+let collect_persistent_sessions sitedata =
+  let now = Unix.gettimeofday () in
+  let log_hash c = Common.Hashed_cookies.(sha256 c) in
+  let do_gc_cookie cookie {Mod_cookies.full_state_name; expiry; session_group; _}
+    =
+    let scope = full_state_name.Common.user_scope in
+    match expiry with
+    | Some exp when exp <= now ->
+        Logs.info ~src:section (fun fmt ->
+          fmt "remove expired cookie %s" (log_hash cookie));
+        Mod_persess.close_persistent_state_of_cookie ~scope sitedata
+          session_group cookie
+    | _ ->
+        Logs.info ~src:section (fun fmt ->
+          fmt "cookie not expired: %s" (log_hash cookie));
+        Lwt.return_unit
+  in
+  let gc_cookie c =
+    Lwt.try_bind
+      (fun () -> Mod_cookies.Persistent_cookies.Cookies.find c)
+      (do_gc_cookie c)
+      (function
+        | Not_found ->
+            Logs.info ~src:section (fun fmt ->
+              fmt "cookie does not exist: %s" (log_hash c));
+            Lwt.return_unit
+        | exn -> Lwt.fail exn)
+  in
+  Logs.info ~src:section (fun fmt -> fmt "GC of persistent sessions");
+  Mod_cookies.Persistent_cookies.garbage_collect ~section gc_cookie
+
 (* This is a thread that will work every hour/day *)
 let persistent_session_gc sitedata =
-  let gc () =
-    let now = Unix.time () in
-    let log_hash c = Common.Hashed_cookies.(sha256 c) in
-    let do_gc_cookie
-          cookie
-          {Mod_cookies.full_state_name; expiry; session_group; _}
-      =
-      let scope = full_state_name.Common.user_scope in
-      match expiry with
-      | Some exp when exp <= now ->
-          Logs.info ~src:section (fun fmt ->
-            fmt "remove expired cookie %s" (log_hash cookie));
-          Mod_persess.close_persistent_state_of_cookie ~scope sitedata
-            session_group cookie
-      | _ ->
-          Logs.info ~src:section (fun fmt ->
-            fmt "cookie not expired: %s" (log_hash cookie));
-          Lwt.return_unit
-    in
-    let gc_cookie c =
-      Lwt.try_bind
-        (fun () -> Mod_cookies.Persistent_cookies.Cookies.find c)
-        (do_gc_cookie c)
-        (function
-          | Not_found ->
-              Logs.info ~src:section (fun fmt ->
-                fmt "cookie does not exist: %s" (log_hash c));
-              Lwt.return_unit
-          | exn -> Lwt.fail exn)
-    in
-    Logs.info ~src:section (fun fmt -> fmt "GC of persistent sessions");
-    Mod_cookies.Persistent_cookies.garbage_collect ~section gc_cookie
-  in
   match get_persistentsessiongcfrequency () with
   | None -> () (* No garbage collection *)
-  | Some t ->
-      let rec f () =
-        let* () = Lwt_unix.sleep t in
-        let* () = gc () in
-        f ()
-      in
-      Lwt.async f
+  | Some t -> every t (fun () -> collect_persistent_sessions sitedata)
