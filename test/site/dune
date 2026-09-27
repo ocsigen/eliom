@@ -1,0 +1,9 @@
+; Tests with a site but no request: what an Eliom module does when it is
+; initialised, as Ocsigen Server does it when it starts an application.
+
+(test
+ (name test_site)
+ (package eliom)
+ (preprocess
+  (pps js_of_ocaml-ppx_deriving_json))
+ (libraries eliom.server ocsipersist-sqlite logs alcotest))
