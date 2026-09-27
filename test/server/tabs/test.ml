@@ -39,6 +39,14 @@ let tabs server =
         let* url = text t1 "/tab/coservice" in
         let* () = check "own tab" "coservice of the tab" t1 url in
         check "other tab" "fallback" t2 url)
+    ; case "leave a group of services" (fun browser ->
+        (* The service session of the browser has no service, but it is not
+           closed, as a tab has one. *)
+        let t = tab (browser ()) in
+        let* _ = text t "/group/join?name=leave-g" in
+        let* url = text t "/tab/coservice" in
+        let* _ = text t "/group/leave_services" in
+        check "tab coservice" "coservice of the tab" t url)
     ; case "tab cookies" (fun browser ->
         (* A tab is its tab cookies, as a session is its cookie: whoever
            sends them gets the tab, even from another browser. *)
