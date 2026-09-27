@@ -1,0 +1,6 @@
+; Tests of Html_form, the forms of a page
+
+(test
+ (name test)
+ (package eliom)
+ (libraries eliom_test_server alcotest))
