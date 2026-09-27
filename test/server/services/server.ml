@@ -217,25 +217,42 @@ let transient_nl =
 
 let nl_target = get ["nl"; "target"] P.unit
 
+(* A target whose links keep all the non-localized parameters by default *)
+let nl_target_all =
+  Service.create ~keep_nl_params:`All
+    ~path:(Service.Path ["nl"; "target_all"])
+    ~meth:(Service.Get P.unit) ()
+
 let () =
-  string nl_target (fun () () ->
-    let value nl =
-      Option.value ~default:"none" (P.get_non_localized_get_parameters nl)
-    in
-    text
-      (Printf.sprintf "persistent=%s transient=%s" (value persistent_nl)
-         (value transient_nl)))
+  List.iter
+    (fun service ->
+       string service (fun () () ->
+         let value nl =
+           Option.value ~default:"none" (P.get_non_localized_get_parameters nl)
+         in
+         text
+           (Printf.sprintf "persistent=%s transient=%s" (value persistent_nl)
+              (value transient_nl))))
+    [nl_target; nl_target_all]
 
 (* /nl/link is a link to /nl/target with both parameters; /nl/link?keep=
-   is a link to it without parameters, keeping those of the request as
-   [keep] says *)
+   is a link to a target without parameters, keeping those of the request as
+   [keep] says: to /nl/target, to /nl/target_all, or to /nl/target with the
+   persistent parameter preapplied *)
 let () =
   string
     (get ["nl"; "link"] P.(opt (string "keep")))
     (fun keep () ->
-       let uri ?keep_nl_params ?nl_params () =
+       let uri ?keep_nl_params ?nl_params service =
          Eliom_uri.make_string_uri ~absolute_path:true ?keep_nl_params
-           ?nl_params ~service:nl_target ()
+           ?nl_params ~service ()
+       in
+       let preapplied =
+         Service.preapply
+           ~service:
+             (Service.add_non_localized_get_parameters ~params:persistent_nl
+                ~service:nl_target)
+           ((), "q")
        in
        text
          (match keep with
@@ -246,11 +263,15 @@ let () =
                    add_nl_parameter
                      (add_nl_parameter empty_nl_params_set persistent_nl "p")
                      transient_nl "t")
-               ()
-         | Some "default" -> uri ()
-         | Some "all" -> uri ~keep_nl_params:`All ()
-         | Some "persistent" -> uri ~keep_nl_params:`Persistent ()
-         | Some "none" -> uri ~keep_nl_params:`None ()
+               nl_target
+         | Some "default" -> uri nl_target
+         | Some "all" -> uri ~keep_nl_params:`All nl_target
+         | Some "persistent" -> uri ~keep_nl_params:`Persistent nl_target
+         | Some "none" -> uri ~keep_nl_params:`None nl_target
+         | Some "service" -> uri nl_target_all
+         | Some "service_none" -> uri ~keep_nl_params:`None nl_target_all
+         | Some "preapplied" -> uri preapplied
+         | Some "preapplied_all" -> uri ~keep_nl_params:`All preapplied
          | Some k -> invalid_arg k))
 
 (* An action that sets a cookie of path /cookie_page/a, then reloads the
