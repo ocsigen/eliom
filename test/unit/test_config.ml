@@ -33,6 +33,20 @@ let test_gc_frequencies () =
   check_error "not a number" "Eliom: Wrong value for <sessiongcfrequency>"
     {|<sessiongcfrequency value="often"/>|}
 
+let test_comet_timeout () =
+  parse {|<comettimeout value="2.5"/>|};
+  Alcotest.(check (float 0.)) "set" 2.5 (Main.get_comet_timeout ());
+  List.iter
+    (fun v ->
+       check_error v "Eliom: Wrong value for <comettimeout>"
+         (Printf.sprintf {|<comettimeout value="%s"/>|} v))
+    ["soon"; "0"; "-1"; "infinity"; "nan"];
+  Alcotest.(check (float 0.)) "unchanged" 2.5 (Main.get_comet_timeout ());
+  Alcotest.check_raises "not positive"
+    (Invalid_argument "Eliom: the Comet timeout must be a positive number")
+    (fun () -> Main.set_comet_timeout 0.);
+  Main.set_comet_timeout 20.
+
 (* The limits, by name *)
 let limits =
   Main.
@@ -175,6 +189,7 @@ let test_unknown () =
 let suite =
   ( "config"
   , [ Alcotest.test_case "GC frequencies" `Quick test_gc_frequencies
+    ; Alcotest.test_case "Comet timeout" `Quick test_comet_timeout
     ; Alcotest.test_case "limits" `Quick test_limits
     ; Alcotest.test_case "cookies and subnets" `Quick test_cookies_and_subnets
     ; Alcotest.test_case "client program" `Quick test_client_program

@@ -25,10 +25,10 @@ let received_service name received =
     (get [name; "received"] P.unit)
     (fun () () -> text (String.concat "," (List.rev !received)))
 
-(* [bus name ~scope] is a bus of strings, with the services
+(* [bus ?size name ~scope] is a bus of strings, with the services
    /name/info, /name/write?v= and /name/received. *)
-let bus name ~scope =
-  let b = Bus.create ~scope [%json: string] in
+let bus ?size name ~scope =
+  let b = Bus.create ~scope ?size [%json: string] in
   let received = record (Bus.stream b) in
   string
     (get [name; "info"] P.unit)
@@ -40,7 +40,9 @@ let bus name ~scope =
 
 let () =
   bus "site_bus" ~scope:`Site;
-  bus "process_bus" ~scope:Common.comet_client_process_scope
+  bus "process_bus" ~scope:Common.comet_client_process_scope;
+  bus "small_site_bus" ~scope:`Site ~size:2;
+  bus "small_process_bus" ~scope:Common.comet_client_process_scope ~size:2
 
 (* Events from the server to the client *)
 
@@ -53,9 +55,41 @@ let down name ?scope () =
        text (Client.Comet_info.to_string (Client.React_info.of_down d)));
   string (get [name; "send"] P.(string "v")) (fun v () -> send v; text "sent")
 
+(* A scope of client processes of another hierarchy, with a service to
+   discard its states *)
+let other_scope = `Client_process (Common.create_scope_hierarchy "other")
+
+let () =
+  string
+    (get ["other"; "discard"] P.unit)
+    (fun () () ->
+       Lwt.bind (State.discard ~scope:other_scope ()) (fun () ->
+         text "discarded"))
+
 let () =
   down "down" ();
-  down "site_down" ~scope:`Site ()
+  down "site_down" ~scope:`Site ();
+  down "other_down" ~scope:other_scope ()
+
+(* Signals from the server to the client, with services /name/info and
+   /name/set?v= *)
+
+let signal name ?scope () =
+  let s, set = React.S.create "initial" in
+  let d = Eliom_react.S.Down.of_react ?scope s in
+  string
+    (get [name; "info"] P.unit)
+    (fun () () ->
+       let info, value = Client.React_info.of_signal_down d in
+       text
+         (Deriving_Json.to_string [%json: string * string]
+            (Client.Comet_info.to_string info, value)));
+  string (get [name; "set"] P.(string "v")) (fun v () -> set v; text "set")
+
+let () =
+  signal "signal" ();
+  signal "site_signal" ~scope:`Site ();
+  signal "other_signal" ~scope:other_scope ()
 
 (* Events from the client to the server *)
 

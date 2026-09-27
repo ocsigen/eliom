@@ -74,15 +74,13 @@ let fallback_global_service =
 
 let new_id = Lib.make_cryptographic_safe_string
 
-(* ocsigenserver needs to be modified for this to be configurable:
-   the connection is closed after a fixed amount of time
-   if the server does not send anything.
-   By default it is 20 seconds *)
-let timeout_base = 20.
+(* A request waiting for data is answered with no data after the time set
+   by Config.set_comet_timeout, give or take a jitter of 10%. *)
 let timeout_jitter = 0.1
 
 let timeout () =
-  timeout_base *. (1. +. (timeout_jitter *. (Random.float 2. -. 1.)))
+  Mod_main.get_comet_timeout ()
+  *. (1. +. (timeout_jitter *. (Random.float 2. -. 1.)))
 
 module Stateless : sig
   type channel
@@ -257,8 +255,9 @@ end = struct
   let handle_request () (_, req) =
     match req with
     | Comet_base.Stateful _ ->
-        failwith
-          "attempting to request data on stateless service with a stateful request"
+        Lwt.return
+          (error_msg
+             "attempting to request data on stateless service with a stateful request")
     | Comet_base.Stateless requests ->
         let requests = List.map get_channel (Array.to_list requests) in
         let* res =
@@ -271,12 +270,15 @@ end = struct
         in
         Lwt.return (encode_global_downgoing res)
 
+  (* A service on a known path, not a coservice, so that the external
+     channels of other servers (Channel.external_channel) can reach it *)
   let global_service =
     Common.lazy_site_value_from_fun @@ fun () ->
-    (*VVV Why isn't this a POST non-attached coservice? --Vincent *)
-    Comet.create_attached_post
-      ~post_params:Parameter.(bool "idle" ** Comet_base.comet_request_param)
-      ~fallback:(Common.force_lazy_site_value fallback_global_service)
+    Comet.create ~path:(Service.Path comet_global_path)
+      ~meth:
+        (Service.Post
+           ( Parameter.unit
+           , Parameter.(bool "idle" ** Comet_base.comet_request_param) ))
       handle_request
 
   let get_service =
@@ -530,8 +532,9 @@ end = struct
     let f () (idle, req) =
       match req with
       | Comet_base.Stateless _ ->
-          failwith
-            "attempting to request data on stateful service with a stateless request"
+          Lwt.return
+            (error_msg
+               "attempting to request data on stateful service with a stateless request")
       | Comet_base.Stateful (Comet_base.Request_data number) ->
           Logs.info ~src:section (fun fmt -> fmt "received request %i" number);
           (* if a new connection occurs for a service, we reply

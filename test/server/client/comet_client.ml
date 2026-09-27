@@ -14,13 +14,14 @@ let message decode = function
 
 exception State_closed
 exception Comet_error of string
+exception Timeout
 
 let answer (r : Browser.response) =
   if r.status <> 200 then Printf.ksprintf failwith "Comet: status %d" r.status;
   match Deriving_Json.from_string B.answer_json r.body with
   | B.State_closed -> raise State_closed
   | B.Comet_error e -> raise (Comet_error e)
-  | B.Timeout -> failwith "Comet: timeout of the server"
+  | B.Timeout -> raise Timeout
   | a -> a
 
 let params ?(idle = false) (c : Comet_info.t) request =

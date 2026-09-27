@@ -38,6 +38,12 @@ let write tab (bus : Bus_info.t) v =
   if r.status <> 200 && r.status <> 204
   then Alcotest.failf "write: status %d" r.status
 
+(* [writes tab name values] writes [values] on the bus [name] from the server *)
+let writes tab name values =
+  Lwt_list.iter_s
+    (fun v -> Lwt.map ignore (text tab ("/" ^ name ^ "/write?v=" ^ v)))
+    values
+
 let case server name f =
   Alcotest.test_case name `Quick (fun () -> Lwt_main.run (f server))
 
@@ -79,7 +85,32 @@ let buses server =
         let* mb = C.request tb ib.channel 2 in
         check "written by a" ["from-a"] mb;
         check_text "received by the server" "from-server,from-a" ta
-          "/process_bus/received") ] )
+          "/process_bus/received")
+    ; case "size, for the site" (fun server ->
+        let a, ta = new_tab server in
+        let* info = text ta "/small_site_bus/info" in
+        let info = Bus_info.of_string info in
+        let* () = writes ta "small_site_bus" ["1"; "2"; "3"] in
+        let* m =
+          C.request_stateless a info.channel (Eliom.Comet_base.After 1)
+        in
+        (match m with
+        | [(_, C.Full)] -> ()
+        | _ -> Alcotest.fail "full expected");
+        let+ m =
+          C.request_stateless a info.channel (Eliom.Comet_base.After 2)
+        in
+        Alcotest.(check (list string)) "kept" ["2"; "3"] (stateless_values m))
+    ; case "size, for client processes" (fun server ->
+        let _, tab = new_tab server in
+        let* info = text tab "/small_process_bus/info" in
+        let info = Bus_info.of_string info in
+        let* () = C.register tab info.channel in
+        let* () = writes tab "small_process_bus" ["1"; "2"; "3"] in
+        let+ m = C.request tab info.channel 1 in
+        match List.map snd m with
+        | [C.Full] -> ()
+        | _ -> Alcotest.fail "full expected") ] )
 
 let events server =
   let case = case server in
@@ -116,6 +147,69 @@ let events server =
         then Alcotest.failf "up: status %d" r.status;
         check_text "received by the server" "u" tab "/up/received") ] )
 
+(* [signal tab name] is the channel of the signal [name] and its value, as
+   sent to [tab] *)
+let signal tab name =
+  let+ s = text tab ("/" ^ name ^ "/info") in
+  let info, value = Deriving_Json.from_string [%json: string * string] s in
+  Comet_info.of_string info, value
+
+let set tab name v = Lwt.map ignore (text tab ("/" ^ name ^ "/set?v=" ^ v))
+
+let signals server =
+  let case = case server in
+  ( "signals"
+  , [ case "down" (fun server ->
+        (* The value sent with the page is sent again by the first request.
+           Values of the signal may then be skipped, but not the last one. *)
+        let _, tab = new_tab server in
+        let* () = set tab "signal" "a" in
+        let* info, value = signal tab "signal" in
+        Alcotest.(check string) "value" "a" value;
+        let* () = C.register tab info in
+        let* m = C.request tab info 1 in
+        check "first request" ["a"] m;
+        let* () = set tab "signal" "b" in
+        let* () = set tab "signal" "c" in
+        let+ m = C.request tab info 2 in
+        match List.rev (values m) with
+        | "c" :: _ -> ()
+        | _ -> Alcotest.fail "last value expected")
+    ; case "down, for the site" (fun server ->
+        let a, ta = new_tab server and b, _ = new_tab server in
+        let* () = set ta "site_signal" "a" in
+        let* info, value = signal ta "site_signal" in
+        Alcotest.(check string) "value" "a" value;
+        let* _ = text ta "/gc" in
+        let* () = set ta "site_signal" "b" in
+        let* () = set ta "site_signal" "c" in
+        let last = Eliom.Comet_base.Last None in
+        let* ma = C.request_stateless a info last in
+        let+ mb = C.request_stateless b info last in
+        Alcotest.(check (list string)) "a" ["c"] (stateless_values ma);
+        Alcotest.(check (list string)) "b" ["c"] (stateless_values mb)) ] )
+
+(* Channels of a scope of another hierarchy are closed with the client
+   process of this hierarchy. *)
+let scopes server =
+  let closed name info_of =
+    case server name (fun server ->
+      let _, tab = new_tab server in
+      let* info = info_of tab in
+      let* () = C.register tab info in
+      let* _ = text tab "/other/discard" in
+      Lwt.catch
+        (fun () ->
+           let+ _ = C.request ~idle:true tab info 1 in
+           Alcotest.fail "answered")
+        (function C.State_closed -> Lwt.return_unit | e -> Lwt.fail e))
+  in
+  ( "scopes"
+  , [ closed "down" (fun tab ->
+        Lwt.map Comet_info.of_string (text tab "/other_down/info"))
+    ; closed "signal" (fun tab -> Lwt.map fst (signal tab "other_signal")) ] )
+
 let () =
   Server_harness.with_server "./server.exe" (fun server ->
-    Alcotest.run ~and_exit:false "eliom-server-bus" [buses server; events server])
+    Alcotest.run ~and_exit:false "eliom-server-bus"
+      [buses server; events server; signals server; scopes server])

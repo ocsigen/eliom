@@ -10,6 +10,13 @@ val default_secure_cookies : bool ref
 val default_application_script : Common.application_script ref
 val default_enable_wasm : bool ref
 val default_cache_global_data : (Lib.Url.path * int) option ref
+
+val set_comet_timeout : float -> unit
+(** [set_comet_timeout t] sets the time after which a Comet request waiting
+    for data is answered with no data, in seconds.
+    @raise Invalid_argument if [t] is not a positive number. *)
+
+val get_comet_timeout : unit -> float
 val default_html_content_type : string option ref
 val default_ignored_get_params : (string * Re.re) list ref
 val default_ignored_post_params : (string * Re.re) list ref

@@ -7,3 +7,7 @@ val of_down : 'a Eliom.Eliom_react.Down.t -> Comet_info.t
 
 val of_up : 'a Eliom.Eliom_react.Up.t -> Service_info.t
 (** [of_up e] is the service triggering [e]. *)
+
+val of_signal_down : 'a Eliom.Eliom_react.S.Down.t -> Comet_info.t * 'a
+(** [of_signal_down s] is the Comet channel carrying the changes of [s], and
+    the value of [s] sent with it. *)
