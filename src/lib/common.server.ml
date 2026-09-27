@@ -778,9 +778,38 @@ let remove_unregistered_na sitedata a =
   sitedata.unregistered_na_services <-
     List.remove_first_if_any a sitedata.unregistered_na_services
 
+let describe_unregistered_na = function
+  | [] -> ""
+  | [SNa_get' _] -> "One non-attached GET coservice has not been registered."
+  | [SNa_post' _] -> "One non-attached POST coservice has not been registered."
+  | [SNa_get_ a] ->
+      "The non-attached GET service \"" ^ a ^ "\" has not been registered."
+  | [SNa_post_ a] ->
+      "The non-attached POST service \"" ^ a ^ "\" has not been registered."
+  | a :: ll ->
+      let string_of = function
+        | SNa_no | SNa_void_keep | SNa_void_dontkeep -> "<void coservice>"
+        | SNa_get' _ -> "<GET coservice>"
+        | SNa_get_ n -> n ^ " (GET)"
+        | SNa_post' _ -> "<POST coservice>"
+        | SNa_post_ n -> n ^ " (POST)"
+        | SNa_get_csrf_safe _ -> "<GET CSRF-safe coservice>"
+        | SNa_post_csrf_safe _ -> "<POST CSRF-safe coservice>"
+      in
+      "Some non-attached services or coservices have not been registered: "
+      ^ List.fold_left (fun beg v -> beg ^ ", " ^ string_of v) (string_of a) ll
+      ^ "."
+
 let verify_all_registered sitedata =
   match sitedata.unregistered_services, sitedata.unregistered_na_services with
   | [], [] -> ()
+  | [], l ->
+      (* Libraries create non-attached coservices that applications may not
+         use: they are only reported. *)
+      Logs.warn ~src:eliom_logs_src (fun fmt ->
+        fmt "In site /%s - %s"
+          (Url.string_of_url_path ~encode:false (get_site_dir sitedata))
+          (describe_unregistered_na l))
   | l1, l2 ->
       raise
         (Eliom_there_are_unregistered_services (get_site_dir sitedata, l1, l2))

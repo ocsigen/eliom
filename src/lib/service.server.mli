@@ -238,6 +238,11 @@ val is_external : (_, _, _, _, _, _, _, _, _, _, _) t -> bool
 
 (**/**)
 
+val registered_later : (_, _, _, _, _, _, _, _, _, _, _) t -> unit
+(** [registered_later service] tells that [service], created during the
+    initialisation of a site, is registered later, during requests: it is not
+    reported as unregistered at the end of the initialisation. *)
+
 val pre_applied_parameters :
    (_, _, _, _, _, _, _, _, _, _, _) t
   -> (string * string) list Lib.String.Table.t * (string * string) list

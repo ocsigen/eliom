@@ -641,35 +641,7 @@ let handle_init_exn = function
                 ("/" ^ string_of a)
                 ll
             ^ ". ")
-      ^ (match l2 with
-        | [] -> ""
-        | [Common.SNa_get' _] ->
-            "One non-attached GET coservice has not been registered."
-        | [Common.SNa_post' _] ->
-            "One non-attached POST coservice has not been registered."
-        | [Common.SNa_get_ a] ->
-            "The non-attached GET service \"" ^ a
-            ^ "\" has not been registered."
-        | [Common.SNa_post_ a] ->
-            "The non-attached POST service \"" ^ a
-            ^ "\" has not been registered."
-        | a :: ll ->
-            let string_of = function
-              | Common.SNa_void_keep | Common.SNa_void_dontkeep | Common.SNa_no
-                ->
-                  assert false
-              | Common.SNa_get' _ -> "<GET coservice>"
-              | Common.SNa_get_ n -> n ^ " (GET)"
-              | Common.SNa_post' _ -> "<POST coservice>"
-              | Common.SNa_post_ n -> n ^ " (POST)"
-              | Common.SNa_get_csrf_safe _ -> " <GET CSRF-safe coservice>"
-              | Common.SNa_post_csrf_safe _ -> "<POST CSRF-safe coservice>"
-            in
-            "Some non-attached services or coservices have not been registered: "
-            ^ List.fold_left
-                (fun beg v -> beg ^ ", " ^ string_of v)
-                (string_of a) ll
-            ^ ".")
+      ^ Common.describe_unregistered_na l2
       ^ "\nPlease correct your modules and make sure you have linked in all the modules..."
   | Common.Site_information_not_available f ->
       "Eliom: Bad use of function \"" ^ f

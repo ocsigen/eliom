@@ -726,7 +726,19 @@ val add_unregistered : sitedata -> Url.path -> unit
 val add_unregistered_na : sitedata -> na_key_serv -> unit
 val remove_unregistered : sitedata -> Url.path -> unit
 val remove_unregistered_na : sitedata -> na_key_serv -> unit
+
+val describe_unregistered_na : na_key_serv list -> string
+(** [describe_unregistered_na l] is a sentence telling that the non-attached
+    services of [l] are not registered, or [""] if [l] is empty. *)
+
 val verify_all_registered : sitedata -> unit
+(** [verify_all_registered sitedata] checks, at the end of the initialisation
+    of a site, that the services created during it are registered.
+
+    @raise Eliom_there_are_unregistered_services if a service with a path is
+    not registered. Unregistered non-attached coservices are only logged as a
+    warning: libraries create some that applications may not use. *)
+
 val global_register_allowed : unit -> (unit -> sitedata) option
 
 val get_site_data : unit -> sitedata

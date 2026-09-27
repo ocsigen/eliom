@@ -111,7 +111,11 @@ let create_filtered ?scope ?name ?size ~filter typ =
     | `Site ->
         register_sender scope distant_write push;
         None
-    | `Client_process _ as scope -> Some (State.create_volatile_table ~scope ())
+    | `Client_process _ as scope ->
+        (* The service is registered for each client process, when the bus is
+           wrapped. *)
+        Service.registered_later distant_write;
+        Some (State.create_volatile_table ~scope ())
   in
   (*The bus*)
   let bus =
