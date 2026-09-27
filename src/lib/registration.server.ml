@@ -31,7 +31,11 @@ let headers_with_content_type ?charset ?content_type headers =
           && (String.starts_with ~prefix:"text/" content_type
              || String.ends_with ~suffix:"/xml" content_type
              || String.ends_with ~suffix:"=xml" content_type)
-        then Some (Config.get_config_default_charset ())
+        then
+          (* No charset when the server has no default one *)
+          match Config.get_config_default_charset () with
+          | "" -> None
+          | charset -> Some charset
         else None
       in
       Cohttp.Header.replace headers
