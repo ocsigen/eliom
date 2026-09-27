@@ -270,12 +270,15 @@ end = struct
         in
         Lwt.return (encode_global_downgoing res)
 
+  (* A service on a known path, not a coservice, so that the external
+     channels of other servers (Channel.external_channel) can reach it *)
   let global_service =
     Common.lazy_site_value_from_fun @@ fun () ->
-    (*VVV Why isn't this a POST non-attached coservice? --Vincent *)
-    Comet.create_attached_post
-      ~post_params:Parameter.(bool "idle" ** Comet_base.comet_request_param)
-      ~fallback:(Common.force_lazy_site_value fallback_global_service)
+    Comet.create ~path:(Service.Path comet_global_path)
+      ~meth:
+        (Service.Post
+           ( Parameter.unit
+           , Parameter.(bool "idle" ** Comet_base.comet_request_param) ))
       handle_request
 
   let get_service =

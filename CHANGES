@@ -360,6 +360,11 @@
 ** Eliom_react.S.Down.of_react ~scope:(`Client_process h) now sends the
    signal on a channel of the client processes of the hierarchy h. It used
    the default scope of client processes, as when no scope is given.
+** Comet.Channel.external_channel works again. The service of stateless
+   channels is again a POST service on the path __eliom_comet_global__, as
+   external channels expect. It had become an attached coservice, whose
+   random name and prefixed parameters another server cannot know, and the
+   requests of external channels got 404.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
