@@ -726,6 +726,11 @@ val add_unregistered : sitedata -> Url.path -> unit
 val add_unregistered_na : sitedata -> na_key_serv -> unit
 val remove_unregistered : sitedata -> Url.path -> unit
 val remove_unregistered_na : sitedata -> na_key_serv -> unit
+
+val describe_unregistered_na : na_key_serv list -> string
+(** [describe_unregistered_na l] is a sentence telling that the non-attached
+    services of [l] are not registered, or [""] if [l] is empty. *)
+
 val verify_all_registered : sitedata -> unit
 val global_register_allowed : unit -> (unit -> sitedata) option
 
