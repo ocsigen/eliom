@@ -249,6 +249,9 @@
    collection moves the shared value while it is wrapped. The wrapper used
    to be applied again, for instance the data of Eliom_lazy values
    computed twice.
+** The Cache-Control header set by the ~options of Registration.String,
+   CssText, File and File_ct is now max-age=N. It was written max-age: N,
+   which caches do not understand.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
