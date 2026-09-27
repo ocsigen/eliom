@@ -12,7 +12,13 @@ let config_info =
    same name. *)
 let apps = Hashtbl.create 16
 
-let init ?(config_info = config_info) ?(site_dir = []) ~app f =
+let init
+      ?(config_info = config_info)
+      ?(site_dir = [])
+      ?(run = fun ~app -> Eliom.App.run ~app ())
+      ~app
+      f
+  =
   if Hashtbl.mem apps app
   then invalid_arg ("Site.init: application " ^ app ^ " already used");
   Hashtbl.add apps app ();
@@ -24,9 +30,7 @@ let init ?(config_info = config_info) ?(site_dir = []) ~app f =
       (fun () -> result := Some (f ())));
   Ocsigen.Extensions.start_initialisation ();
   Fun.protect ~finally:Ocsigen.Extensions.end_initialisation (fun () ->
-    ignore
-      (Eliom.App.run ~app () [] config_info site_dir
-       : Ocsigen.Extensions.extension));
+    ignore (run ~app [] config_info site_dir : Ocsigen.Extensions.extension));
   match !result with
   | Some r -> r
   | None -> failwith ("Site.init: " ^ app ^ " was not initialised")

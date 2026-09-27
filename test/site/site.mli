@@ -15,16 +15,18 @@ val config_info : Ocsigen.Extensions.config_info
 val init :
    ?config_info:Ocsigen.Extensions.config_info
   -> ?site_dir:string list
+  -> ?run:(app:string -> Ocsigen.Server.instruction)
   -> app:string
   -> (unit -> 'a)
   -> 'a
-(** [init ~config_info ~site_dir ~app f] is the result of [f ()], run as the
-    initialisation of the Eliom module [app] of a site at [site_dir] (default
-    [[]]) of a host of configuration [config_info] (default {!config_info}), as
-    Ocsigen Server does for an application linked statically
-    ({!Eliom.App.run}, which then checks that all the services of the site
-    are registered). As in the toplevel code of an Eliom module, the client
-    values created by [f] are global.
+(** [init ~config_info ~site_dir ~run ~app f] is the result of [f ()], run as
+    the initialisation of the Eliom module [app] of a site at [site_dir]
+    (default [[]]) of a host of configuration [config_info] (default
+    {!config_info}), as Ocsigen Server does for an application linked
+    statically: by [run ~app], default [Eliom.App.run ~app ()], which then
+    checks that all the services of the site are registered. As in the
+    toplevel code of an Eliom module, the client values created by [f] are
+    global.
 
     The exceptions raised by [f] or by the check are raised again.
 
