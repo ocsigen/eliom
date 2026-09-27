@@ -85,9 +85,6 @@ val top_position : position
 val getDocumentScroll : unit -> position
 val setDocumentScroll : position -> unit
 
-(* Test if the "pageshow" and "pagehide" event exists. *)
-val test_pageshow_pagehide : unit -> bool
-
 (**/**)
 
 val add_formdata_hack_onclick_handler : unit -> unit

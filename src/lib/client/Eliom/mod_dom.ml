@@ -43,17 +43,6 @@ let iter_attrList
     Js.Opt.iter v f
   done
 
-(* Dummy type used in the following "test_*" functions to test the
-   presence of methods in various browsers. *)
-class type dom_tester = object
-  method onpageshow : unit Js.optdef Js.prop
-  method onpagehide : unit Js.optdef Js.prop
-end
-
-let test_pageshow_pagehide () =
-  let tester = (Js.Unsafe.coerce Dom_html.window : dom_tester Js.t) in
-  Js.Optdef.test tester##.onpageshow && Js.Optdef.test tester##.onpagehide
-
 let ancestor (elt1 : #Dom.node Js.t) (elt2 : #Dom.node Js.t) =
   let open Dom.DocumentPosition in
   has elt1##(compareDocumentPosition (elt2 :> Dom.node Js.t)) contained_by
