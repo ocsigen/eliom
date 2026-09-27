@@ -3,6 +3,8 @@
 (executables
  (names timeouts_server subnet_server gc_server)
  (modules services timeouts_server subnet_server gc_server)
+ (preprocess
+  (pps js_of_ocaml-ppx_deriving_json))
  (libraries eliom.server ocsipersist-sqlite eliom_test_server))
 
 (test

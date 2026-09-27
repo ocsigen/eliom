@@ -28,34 +28,91 @@ let with_setting b set reset f =
   let* _ = text b set in
   Lwt.finalize f (fun () -> Lwt.map ignore (text b reset))
 
+(* [open_state kind b] opens a state of [kind] (data, service or persistent)
+   for [b]: it is a URL that reads it, and its answers when the state is
+   open and when it is closed. *)
+let open_state kind b =
+  match kind with
+  | "data" ->
+      let+ _ = text b "/set?v=d" in
+      "/get", "d", ""
+  | "service" ->
+      let+ url = text b "/coservice" in
+      url, "coservice", "fallback"
+  | "persistent" ->
+      let+ _ = text b "/persistent/set?v=p" in
+      "/persistent/get", "p", ""
+  | k -> failwith ("unknown kind " ^ k)
+
+let kinds = ["data"; "service"; "persistent"]
+
 let timeouts server =
   let case = case server in
+  let global_timeout kind =
+    case
+      ("global timeout of " ^ kind ^ " states")
+      (fun browser ->
+         let admin = browser () and b = browser () in
+         let setting = "/global_timeout?kind=" ^ kind in
+         with_setting admin (setting ^ "&t=1") setting (fun () ->
+           let* url, opened, closed = open_state kind b in
+           let* () = check "before" opened b url in
+           let* () = sleep 1.5 in
+           check "after" closed b url))
+  in
+  (* The expiration dates of the open states follow a new global timeout
+     only when they are recomputed. *)
+  let recompute ?(recompute = true) kind =
+    case
+      (Printf.sprintf "expiration dates of %s states%s" kind
+         (if recompute then ", recomputed" else ""))
+      (fun browser ->
+         let admin = browser () and b = browser () in
+         let setting = "/global_timeout?kind=" ^ kind in
+         with_setting admin (setting ^ "&t=10") setting (fun () ->
+           let* url, opened, closed = open_state kind b in
+           let* () = check "before" opened b url in
+           let* _ =
+             text admin
+               (setting ^ "&t=1" ^ if recompute then "&recompute=on" else "")
+           in
+           let* () = sleep 1.5 in
+           check "after" (if recompute then closed else opened) b url))
+  in
   ( "timeouts"
-  , [ case "global timeout" (fun browser ->
-        let admin = browser () and b = browser () in
-        with_setting admin "/global_timeout?t=1" "/global_timeout" (fun () ->
-          let* _ = text b "/set?v=a" in
-          let* () = check "before" "a" b "/get" in
-          let* () = sleep 1.5 in
-          check "after" "" b "/get"))
-    ; case "timeout of a user first" (fun browser ->
-        let admin = browser () and b = browser () and c = browser () in
-        with_setting admin "/global_timeout?t=1" "/global_timeout" (fun () ->
-          let* _ = text b "/set?v=b" in
-          let* _ = text b "/timeout" in
-          let* _ = text c "/set?v=c" in
-          let* _ = text c "/timeout?t=5" in
-          let* () = sleep 1.5 in
-          let* () = check "no timeout" "b" b "/get" in
-          check "longer timeout" "c" c "/get"))
-    ; case "default timeout" (fun browser ->
-        (* For all scope hierarchies *)
-        let admin = browser () and b = browser () in
-        with_setting admin "/default_timeout?t=1" "/default_timeout" (fun () ->
-          let* _ = text b "/other/set?v=o" in
-          let* () = check "before" "o" b "/other/get" in
-          let* () = sleep 1.5 in
-          check "after" "" b "/other/get")) ] )
+  , List.map global_timeout kinds
+    @ List.map recompute kinds
+    @ [ recompute ~recompute:false "data"
+      ; case "timeout of a user first" (fun browser ->
+          let admin = browser () and b = browser () and c = browser () in
+          with_setting admin "/global_timeout?kind=data&t=1"
+            "/global_timeout?kind=data" (fun () ->
+            let* _ = text b "/set?v=b" in
+            let* _ = text b "/timeout" in
+            let* _ = text c "/set?v=c" in
+            let* _ = text c "/timeout?t=5" in
+            let* () = sleep 1.5 in
+            let* () = check "no timeout" "b" b "/get" in
+            check "longer timeout" "c" c "/get"))
+      ; case "default timeout" (fun browser ->
+          (* For all scope hierarchies *)
+          let admin = browser () and b = browser () in
+          with_setting admin "/default_timeout?kind=data&t=1"
+            "/default_timeout?kind=data" (fun () ->
+            let* _ = text b "/other/set?v=o" in
+            let* () = check "before" "o" b "/other/get" in
+            let* () = sleep 1.5 in
+            check "after" "" b "/other/get"))
+      ; case "default timeout of persistent states" (fun browser ->
+          (* Of another hierarchy: the tests above set the global timeouts
+             of the default hierarchy, which come first. *)
+          let admin = browser () and b = browser () in
+          with_setting admin "/default_timeout?kind=persistent&t=1"
+            "/default_timeout?kind=persistent" (fun () ->
+            let* _ = text b "/other/persistent/set?v=o" in
+            let* () = check "before" "o" b "/other/persistent/get" in
+            let* () = sleep 1.5 in
+            check "after" "" b "/other/persistent/get")) ] )
 
 let hierarchies server =
   let case = case server in
