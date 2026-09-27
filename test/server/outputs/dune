@@ -1,0 +1,19 @@
+; Actions that reload the page, and the outputs Ocaml and App
+
+(executable
+ (name server)
+ (modules server)
+ (libraries eliom.server ocsipersist-sqlite eliom_test_server))
+
+(test
+ (name test)
+ (modules test)
+ (package eliom)
+ (deps server.exe)
+ (libraries
+  eliom.server
+  ocsipersist-sqlite
+  eliom_test_server
+  eliom_test_client
+  uri
+  alcotest))
