@@ -332,6 +332,11 @@
 ** The Last (Some n) position of a stateless Comet request, used by
    Comet.Channel.external_channel ~history:n, now returns the n last
    messages. It returned n + 1.
+** A stateless Comet channel (Comet.Channel.create and create_from_events
+   with ~scope:`Site, create_newest, Eliom_react.Down.of_react
+   ~scope:`Site) now keeps the stream of its messages alive as long as the
+   channel. A stream made from a React event was kept by nothing else, and
+   the channel stopped receiving messages after a garbage collection.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
