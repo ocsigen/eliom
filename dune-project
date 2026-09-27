@@ -46,7 +46,9 @@ The client-side code is compiled to JS using Ocsigen Js_of_ocaml or to Wasm usin
   (reactiveData (>= 0.2.1))
   base-bytes
   (ocsipersist (and (>= 3.1) (< 4.0)))
-  (xml-light (>= "2.5"))))
+  (xml-light (>= "2.5"))
+  (alcotest :with-test)
+  (ocsipersist-sqlite (and :with-test (>= 3.1) (< 4.0)))))
 
 (package
  (name eliom-compat)

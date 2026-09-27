@@ -37,6 +37,8 @@ depends: [
   "base-bytes"
   "ocsipersist" {>= "3.1" & < "4.0"}
   "xml-light" {>= "2.5"}
+  "alcotest" {with-test}
+  "ocsipersist-sqlite" {with-test & >= "3.1" & < "4.0"}
   "odoc" {with-doc}
 ]
 build: [
