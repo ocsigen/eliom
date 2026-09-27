@@ -432,6 +432,9 @@ type +'a res_reconstr_param =
 val end_of_list : (string * 'a) list -> string -> bool
 ```
 ```ocaml
+val split_suffix : string list -> Lib.Url.path
+```
+```ocaml
 val reconstruct_params_ : 
   ('a, [< suff ], 'b) params_type ->
   params' ->
