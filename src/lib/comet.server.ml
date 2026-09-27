@@ -255,8 +255,9 @@ end = struct
   let handle_request () (_, req) =
     match req with
     | Comet_base.Stateful _ ->
-        failwith
-          "attempting to request data on stateless service with a stateful request"
+        Lwt.return
+          (error_msg
+             "attempting to request data on stateless service with a stateful request")
     | Comet_base.Stateless requests ->
         let requests = List.map get_channel (Array.to_list requests) in
         let* res =
@@ -528,8 +529,9 @@ end = struct
     let f () (idle, req) =
       match req with
       | Comet_base.Stateless _ ->
-          failwith
-            "attempting to request data on stateful service with a stateless request"
+          Lwt.return
+            (error_msg
+               "attempting to request data on stateful service with a stateless request")
       | Comet_base.Stateful (Comet_base.Request_data number) ->
           Logs.info ~src:section (fun fmt -> fmt "received request %i" number);
           (* if a new connection occurs for a service, we reply

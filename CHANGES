@@ -354,6 +354,9 @@
    the parameters, as for the other types of parameters: the server answers
    400 or calls the error handler of the service. The Failure of the JSON
    decoder escaped, and the server answered 500 and logged an error.
+** A stateful Comet request sent to the service of stateless channels, or
+   a stateless one sent to the service of a client process, is now answered
+   with a Comet_error. The server raised Failure and answered 500.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
