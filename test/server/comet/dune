@@ -1,7 +1,11 @@
 (executable
  (name server)
  (modules server)
- (libraries eliom.server ocsipersist-sqlite eliom_test_server))
+ (libraries
+  eliom.server
+  ocsipersist-sqlite
+  eliom_test_server
+  eliom_test_client))
 
 (test
  (name test)
@@ -13,4 +17,5 @@
   ocsipersist-sqlite
   eliom_test_server
   eliom_test_client
+  lwt.unix
   alcotest))

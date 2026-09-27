@@ -661,7 +661,7 @@ end = struct
            (fun full x ->
               full
               ||
-              if Queue.length queue > size
+              if Queue.length queue >= size
               then (
                 retained_events := None;
                 Queue.clear queue;

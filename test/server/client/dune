@@ -1,0 +1,7 @@
+; Simulations of the client side of Eliom, for the tests that run a server.
+
+(library
+ (name eliom_test_client)
+ (preprocess
+  (pps js_of_ocaml-ppx_deriving_json))
+ (libraries eliom.server eliom_test_server lwt))

@@ -5,40 +5,10 @@
 open Eliom_test_server
 open Lwt.Syntax
 
-(* A tab of a browser, with its tab cookies *)
-type tab = {browser : Browser.t; mutable tab_cookies : (string * string) list}
-
-let tab browser = {browser; tab_cookies = []}
-
-(* The tab cookies set by a response, as by the client-side program *)
-let store_tab_cookies tab (r : Browser.response) =
-  match Browser.header r Eliom.Common_base.set_tab_cookies_header_name with
-  | None -> ()
-  | Some json ->
-      Ocsigen_cookie_map.Map_path.iter
-        (fun _path cookies ->
-           Ocsigen_cookie_map.Map_inner.iter
-             (fun name cookie ->
-                let others = List.remove_assoc name tab.tab_cookies in
-                tab.tab_cookies <-
-                  (match cookie with
-                  | Ocsigen_cookie_map.OSet (_, value, _) ->
-                      (name, value) :: others
-                  | Ocsigen_cookie_map.OUnset -> others))
-             cookies)
-        (Eliom.Cookies_base.cookieset_of_json json)
-
-let get tab url =
-  let headers =
-    [ ( Eliom.Common_base.tab_cookies_header_name
-      , Deriving_Json.to_string [%json: (string * string) list] tab.tab_cookies
-      ) ]
-  in
-  let+ r = Browser.get ~headers tab.browser url in
-  store_tab_cookies tab r; r
+let tab = Eliom_test_client.Tab.create
 
 let text tab url =
-  let+ r = get tab url in
+  let+ r = Eliom_test_client.Tab.get tab url in
   if r.status <> 200 then Alcotest.failf "%s: status %d" url r.status;
   r.body
 
@@ -74,7 +44,8 @@ let tabs server =
            sends them gets the tab, even from another browser. *)
         let t1 = tab (browser ()) and t2 = tab (browser ()) in
         let* _ = text t1 "/tab/set?v=1" in
-        t2.tab_cookies <- t1.tab_cookies;
+        Eliom_test_client.Tab.set_tab_cookies t2
+          (Eliom_test_client.Tab.tab_cookies t1);
         check "value of the tab cookies" "1" t2 "/tab/get") ] )
 
 let closing server =

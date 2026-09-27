@@ -326,6 +326,9 @@
    current time to a fraction of a second, as the checks done when a state
    is accessed. They used whole seconds, and collected a state up to one
    second after it had expired.
+** A Comet channel of a client process created with a size keeps at most
+   that number of messages before telling the client that messages were
+   lost (Full). It kept one more.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
