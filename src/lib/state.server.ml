@@ -1468,14 +1468,16 @@ module Ext = struct
   let get_session_group_list () =
     let sitedata = Request_info.find_sitedata "get_session_group_list" in
     let dl = sitedata.Common.group_of_groups in
-    Ocsigen_base.Cache.Dlist.fold
-      (fun l -> function
-         | { Common.gg_group =
-               {Common.sg_level = `Session; sg_group = Common.Group_name s; _}
-           ; _ } ->
-             s :: l
-         | _ -> l)
-      [] dl
+    (* A group with service and data sessions has an entry for each kind *)
+    List.sort_uniq String.compare
+      (Ocsigen_base.Cache.Dlist.fold
+         (fun l -> function
+            | { Common.gg_group =
+                  {Common.sg_level = `Session; sg_group = Common.Group_name s; _}
+              ; _ } ->
+                s :: l
+            | _ -> l)
+         [] dl)
 
   (** Iterator on service cookies *)
   let iter_service_cookies = Mod_sessexpl.iter_service_cookies

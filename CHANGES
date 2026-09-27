@@ -242,6 +242,8 @@
    State.discard with that scope left the service sessions open. Evicting
    the service sessions of a group, when a site has too many groups, also
    closed its data sessions instead.
+** State.Ext.get_session_group_list lists each session group once. It
+   listed twice a group with both service and data sessions.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
