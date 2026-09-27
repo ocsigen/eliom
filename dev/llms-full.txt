@@ -5081,6 +5081,11 @@ val reset_request_nodes : unit -> unit
 val load_mutex : Lwt_mutex.t
 ```
 ```ocaml
+val with_load_mutex : ((unit -> unit) -> 'a Lwt.t) -> 'a Lwt.t
+```
+`with_load_mutex f` takes `load_mutex` and runs `f unlock`. `f` calls `unlock` once the page is in place, before running the load callbacks. If `f` fails before that, the mutex is released anyway.
+
+```ocaml
 val in_onload : unit -> bool
 ```
 ```ocaml
