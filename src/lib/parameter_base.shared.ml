@@ -565,9 +565,9 @@ let end_of_list lp pref =
   in
   not (List.exists f lp)
 
-(* A whole suffix (all_suffix...) given as a parameter: the ".." segments are
-   removed, as from a path, so that joining the segments cannot walk up a
-   tree. *)
+(* The end of a path taken as a whole (all_suffix...): the segments are split
+   again on the slashes they contain after decoding, and the ".." segments are
+   removed, so that joining them cannot walk up a tree. *)
 let split_suffix l =
   Url.remove_dotdot (List.concat_map (String.split_on_char '/') l)
 
@@ -579,13 +579,13 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
     =
    fun typ suff ->
     match typ, suff with
-    | TESuffix _, l -> l, [] (*VVV encode=false? *)
-    | TESuffixs _, l -> Url.string_of_url_path ~encode:false l, []
+    | TESuffix _, l -> split_suffix l, []
+    | TESuffixs _, l ->
+        Url.string_of_url_path ~encode:false (split_suffix l), []
     | TESuffixu (_, tao), l -> (
       try
-        (*VVV encode=false? *)
         ( Common.To_and_of_shared.of_string tao
-            (Url.string_of_url_path ~encode:false l)
+            (Url.string_of_url_path ~encode:false (split_suffix l))
         , [] )
       with e -> raise (Common.Eliom_Typing_Error ["<suffix>", e]))
     | TOption (_, _), [] -> None, []

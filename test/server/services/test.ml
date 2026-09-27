@@ -129,6 +129,46 @@ let parameters server =
         let+ r = Browser.post b "/post_int?z=1" ["n", "7"] in
         check_response "unexpected GET parameter" ~status:400 r) ] )
 
+(* Values of suffix parameters containing slashes, written %2F *)
+let suffixes server =
+  let case = case server in
+  ( "suffixes"
+  , [ case "slash in a value" (fun b ->
+        let+ r = Browser.get b "/suffix/3/x%2Fy" in
+        check_response "decoded" ~status:200 ~body:"i=3 s=x/y" r)
+    ; case "generated URL" (fun b ->
+        let* r = Browser.get b "/suffix_link" in
+        check_response "URL" ~status:200 ~body:"/suffix/3/x%2Fy" r;
+        let+ r = Browser.get b r.body in
+        check_response "followed" ~status:200 ~body:"i=3 s=x/y" r)
+    ; case "whole suffix" (fun b ->
+        let* r = Browser.get b "/files/a/b%2Fc" in
+        check_response "split" ~status:200 ~body:"a|b|c" r;
+        let+ r = Browser.get b "/files/a/..%2F..%2Fsecret" in
+        check_response "no dot dot" ~status:200 ~body:"a|secret" r)
+    ; case "whole suffix as a string" (fun b ->
+        let+ r = Browser.get b "/tree/a/b%2Fc/..%2Fd" in
+        check_response "no dot dot" ~status:200 ~body:"a/b/c/d" r)
+    ; case "dot dot in a value" (fun b ->
+        (* Only the ".." segments of the path are removed. *)
+        let+ r = Browser.get b "/suffix/3/..%2Fetc" in
+        check_response "kept" ~status:200 ~body:"i=3 s=../etc" r)
+    ; case "malformed escape" (fun b ->
+        (* The segment is kept as it is, as by Ocsigen Server. *)
+        let+ r = Browser.get b "/suffix/3/%ZZ" in
+        check_response "kept" ~status:200 ~body:"i=3 s=%ZZ" r)
+    ; case "version without suffix" (fun b ->
+        let+ r = Browser.get b "/suffix/__eliom_suffix__?i=3&s=x%2Fy" in
+        check_response "redirection" ~status:307 r;
+        check_location "location" "/suffix/3/x%2Fy" r)
+    ; case "relative URL" (fun b ->
+        (* The browser sees two segments in /relative/a%2Fb. *)
+        let+ r = Browser.get b "/relative/a%2Fb" in
+        check_response "one level up" ~status:200 ~body:"../hello" r)
+    ; case "request information" (fun b ->
+        let+ r = Browser.get b "/info/a%2Fb" in
+        check_response "paths" ~status:200 ~body:"info|a/b info|a/b" r) ] )
+
 let outputs server =
   let case = case server in
   ( "outputs"
@@ -201,4 +241,4 @@ let outputs server =
 let () =
   Server_harness.with_server "./server.exe" (fun server ->
     Alcotest.run ~and_exit:false "eliom-server-services"
-      [dispatch server; parameters server; outputs server])
+      [dispatch server; parameters server; suffixes server; outputs server])

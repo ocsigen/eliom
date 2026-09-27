@@ -673,6 +673,16 @@ val split_prefix_param :
   -> (string * 'a) list
   -> (string * 'a) list * (string * 'a) list
 
+val sub_path : Ocsigen.Request.t -> Url.path
+(** [sub_path r] is the path of [r] in its site, decoded. Unlike
+    [Ocsigen.Request.sub_path], a segment whose decoding contains a slash is
+    kept whole: Eliom writes the slashes of the values of suffix parameters
+    [%2F]. The [..] segments are removed, as by Ocsigen Server. *)
+
+val original_full_path : Ocsigen.Request.t -> Url.path
+(** [original_full_path r] is the full path of [r], decoded as by
+    {!sub_path}. *)
+
 val get_session_info :
    sitedata:sitedata
   -> req:Ocsigen.Extensions.request
