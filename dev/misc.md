@@ -30,7 +30,7 @@ Eliom.Content.Html.F.js_script
 
 ### Basic menus
 
-To generate a context-aware menu on your Web page, you can use the function [`Eliom.Tools.HTML5_TOOLS.menu`](./eliom.server/Eliom-Tools-module-type-HTML5_TOOLS.md#val-menu). This function can be used from either of the modules `Eliom.Tools.Html.D` or `Eliom.Tools.Html.F`. (See [HTML element manipulation, by value and by reference](./clientserver-html.md#unique)).
+To generate a context-aware menu on your Web page, you can use the function [`Eliom.Tools.HTML5_TOOLS.menu`](./eliom.server/Eliom-Tools-module-type-HTML5_TOOLS.md#val-menu). This function can be used from either of the modules [`Eliom.Tools.D`](./eliom.server/Eliom-Tools-D.md) or [`Eliom.Tools.F`](./eliom.server/Eliom-Tools-F.md). (See [HTML element manipulation, by value and by reference](./clientserver-html.md#unique)).
 
 Here is a simple example:
 
@@ -41,16 +41,13 @@ let mymenu =
      (info,     [txt "More info"]);
      (tutorial, [txt "Documentation"])]
   in
-    Eliom.Tools.D.menu
-    ~classe:["menuprincipal"]
-    items
-    ~service:Eliom.Service.reload_action
+  Eliom.Tools.D.menu ~classe:["menuprincipal"] items
 ```
 `items` is a list of pairs correlating the services to be linked with the text to be displayed: `home`, `info`, and `tutorial` are our three services (generated, for example, by [`Eliom.Service.create`](./eliom.server/Eliom-Service.md#val-create) and registered with an application module made with [`Eliom.Registration.App`](./eliom.server/Eliom-Registration-App.md)).
 
 The argument to the optional parameter `classe` adds the class `menuprincipal` to the resulting menu element.
 
-The argument to the optional parameter `service` determines which menu item to highlight. In this case, we use [`Eliom.Service.reload_action`](./eliom.server/Eliom-Service.md#val-reload_action) to highlight whichever service is currently being visited.
+The item of the current page is highlighted. The optional parameter `service` highlights the item of another service instead.
 
 `mymenu ()`, when viewed on the home page, will generate the following HTML:
 
@@ -79,97 +76,76 @@ Note: [`Eliom.Tools.D.menu`](./eliom.server/Eliom-Tools-D.md#val-menu) takes a l
 
 ```ocaml
 (* Hierarchical menu *)
-open Eliom_tools_common
+open Eliom.Content.Html.F
+open Eliom.Tools
 
-let hier1 = service ~path:["hier1"] ~get_params:unit ()
-let hier2 = service ~path:["hier2"] ~get_params:unit ()
-let hier3 = service ~path:["hier3"] ~get_params:unit ()
-let hier4 = service ~path:["hier4"] ~get_params:unit ()
-let hier5 = service ~path:["hier5"] ~get_params:unit ()
-let hier6 = service ~path:["hier6"] ~get_params:unit ()
-let hier7 = service ~path:["hier7"] ~get_params:unit ()
-let hier8 = service ~path:["hier8"] ~get_params:unit ()
-let hier9 = service ~path:["hier9"] ~get_params:unit ()
-let hier10 = service ~path:["hier10"] ~get_params:unit ()
+let hier i =
+  Eliom.Service.create
+    ~path:(Eliom.Service.Path ["hier" ^ string_of_int i])
+    ~meth:(Eliom.Service.Get Eliom.Parameter.unit)
+    ()
+
+let hier1 = hier 1
+let hier2 = hier 2
+let hier3 = hier 3
+let hier4 = hier 4
+let hier5 = hier 5
+let hier6 = hier 6
+let hier7 = hier 7
+let hier8 = hier 8
+let hier9 = hier 9
+let hier10 = hier 10
 
 let mymenu =
-  (
-   (Main_page hier1),
+  ( Main_page (Srv hier1)
+  , [ [txt "page 1"], Site_tree (Main_page (Srv hier1), [])
+    ; [txt "page 2"], Site_tree (Main_page (Srv hier2), [])
+    ; ( [txt "submenu 4"]
+      , Site_tree
+          ( Default_page (Srv hier4)
+          , [ ( [txt "submenu 3"]
+              , Site_tree
+                  ( Not_clickable
+                  , [ [txt "page 3"], Site_tree (Main_page (Srv hier3), [])
+                    ; [txt "page 4"], Site_tree (Main_page (Srv hier4), [])
+                    ; [txt "page 5"], Site_tree (Main_page (Srv hier5), []) ]
+                  ) )
+            ; [txt "page 6"], Site_tree (Main_page (Srv hier6), []) ] ) )
+    ; [txt "page 7"], Site_tree (Main_page (Srv hier7), [])
+    ; [txt "disabled"], Disabled
+    ; ( [txt "submenu 8"]
+      , Site_tree
+          ( Main_page (Srv hier8)
+          , [ [txt "page 9"], Site_tree (Main_page (Srv hier9), [])
+            ; [txt "page 10"], Site_tree (Main_page (Srv hier10), []) ] ) ) ] )
 
-   [([txt "page 1"], Site_tree (Main_page hier1, []));
+let css =
+  {|li.eliomtools_current > a {color: blue;}
+.breadthmenu li {display: inline; padding: 0 1em; border-right: solid 1px black;}
+.breadthmenu li.eliomtools_last {border: none;}|}
 
-    ([txt "page 2"], Site_tree (Main_page hier2, []));
-
-    ([txt "submenu 4"],
-     Site_tree
-       (Default_page hier4,
-         [([txt "submenu 3"],
-          Site_tree
-             (Not_clickable,
-              [([txt "page 3"], Site_tree (Main_page hier3, []));
-               ([txt "page 4"], Site_tree (Main_page hier4, []));
-               ([txt "page 5"], Site_tree (Main_page hier5, []))]
-             )
-          );
-
-          ([txt "page 6"], Site_tree (Main_page hier6, []))]
-       )
-    );
-
-    ([txt "page 7"],
-     Site_tree (Main_page hier7, []));
-
-    ([txt "disabled"], Disabled);
-
-    ([txt "submenu 8"],
-     Site_tree
-       (Main_page hier8,
-        [([txt "page 9"], Site_tree (Main_page hier9, []));
-         ([txt "page 10"], Site_tree (Main_page hier10, []))]
-       )
-    )
-  ]
-  )
-
-let f i s () () =
-  return
+let page i service () () =
+  Lwt.return
     (html
-       (head (title (txt ""))
-          ((style ~contenttype:"text/css"
-             [cdata_style
- "a {color: red;}\n
-  li.eliomtools_current > a {color: blue;}\n
-  .breadthmenu li {\n
-    display: inline;\n
-    padding: 0px 1em;\n
-    margin: 0px;\n
-    border-right: solid 1px black;}\n
-  .breadthmenu li.eliomtools_last {border: none;}\n
-                "])::
-                Html_tools.F.structure_links mymenu ~service:s ())
-             )
-       (body [h1 [txt ("Page "^string_of_int i)];
-              h2 [txt "Depth first, whole tree:"];
-              div
-                (Html_tools.F.hierarchical_menu_depth_first
-                   ~whole_tree:true mymenu ~service:s ());
-              h2 [txt "Depth first, only current submenu:"];
-              div (Html_tools.F.hierarchical_menu_depth_first mymenu ~service:s ());
-              h2 [txt "Breadth first:"];
-              div
-                (Html_tools.F.hierarchical_menu_breadth_first
-                   ~classe:["breadthmenu"] mymenu ~service:s ())]))
+       (head
+          (title (txt ("Page " ^ string_of_int i)))
+          (style [txt css] :: F.structure_links mymenu ~service ()))
+       (body
+          [ h1 [txt ("Page " ^ string_of_int i)]
+          ; h2 [txt "Depth first, whole tree:"]
+          ; div
+              (F.hierarchical_menu_depth_first ~whole_tree:true mymenu ~service
+                 ())
+          ; h2 [txt "Depth first, only current submenu:"]
+          ; div (F.hierarchical_menu_depth_first mymenu ~service ())
+          ; h2 [txt "Breadth first:"]
+          ; div
+              (F.hierarchical_menu_breadth_first ~classe:["breadthmenu"] mymenu
+                 ~service ()) ]))
 
-
-let _ =
-  register hier1 (f 1 hier1);
-  register hier2 (f 2 hier2);
-  register hier3 (f 3 hier3);
-  register hier4 (f 4 hier4);
-  register hier5 (f 5 hier5);
-  register hier6 (f 6 hier6);
-  register hier7 (f 7 hier7);
-  register hier8 (f 8 hier8);
-  register hier9 (f 9 hier9);
-  register hier10 (f 10 hier10)
+let () =
+  List.iteri
+    (fun i service ->
+       Eliom.Registration.Html.register ~service (page (i + 1) service))
+    [hier1; hier2; hier3; hier4; hier5; hier6; hier7; hier8; hier9; hier10]
 ```
