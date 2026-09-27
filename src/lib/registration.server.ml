@@ -162,7 +162,7 @@ let add_cache_header cache headers =
   | Some duration ->
       headers
       <-< ( Ocsigen_http.Header.Name.cache_control
-          , "max-age: " ^ string_of_int duration )
+          , "max-age=" ^ string_of_int duration )
 
 module String_base = struct
   type page = string * string

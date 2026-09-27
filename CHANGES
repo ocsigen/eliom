@@ -272,6 +272,9 @@
 ** Using an Eliom reference of site scope outside a request and outside the
    initialisation of a site now raises Common.Site_information_not_available,
    as documented, instead of Failure "get_site_data".
+** The Cache-Control header set by the ~options of Registration.String,
+   CssText, File and File_ct is now max-age=N. It was written max-age: N,
+   which caches do not understand.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
