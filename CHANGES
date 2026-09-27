@@ -322,6 +322,10 @@
    (Config.set_session_gc_frequency and the like). They were started when
    Eliom was loaded, before the code of the application ran, with the
    default frequencies.
+** The garbage collectors of sessions compare expiration dates with the
+   current time to a fraction of a second, as the checks done when a state
+   is accessed. They used whole seconds, and collected a state up to one
+   second after it had expired.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type

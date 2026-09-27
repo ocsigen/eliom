@@ -126,7 +126,7 @@ module Persistent_cookies = struct
     Cookies.replace_if_exists cookie content
 
   let garbage_collect ~section gc_cookie =
-    let now = Unix.time () in
+    let now = Unix.gettimeofday () in
     Expiry_dates.iter ~lt:now @@ fun date cookies_str ->
     let cookies = String.split_on_char ',' cookies_str in
     let cookies_log =

@@ -163,7 +163,7 @@ let gc_timeouted_naservices now tr =
 let collect_service_sessions sitedata =
   let tables = sitedata.Common.global_services in
   let service_cookie_table = sitedata.Common.session_services in
-  let now = Unix.time () in
+  let now = Unix.gettimeofday () in
   Logs.info ~src:section (fun fmt -> fmt "GC of service sessions");
   (* public continuation tables: *)
   let* () =
@@ -244,7 +244,7 @@ let service_session_gc sitedata =
 let collect_data_sessions sitedata =
   let data_cookie_table = sitedata.Common.session_data in
   let not_bound_in_data_tables = sitedata.Common.not_bound_in_data_tables in
-  let now = Unix.time () in
+  let now = Unix.gettimeofday () in
   Logs.info ~src:section (fun fmt -> fmt "GC of session data");
   (* private continuation tables: *)
   Common.SessionCookies.fold
@@ -296,7 +296,7 @@ let data_session_gc sitedata =
 
 (* garbage collection of timeouted persistent sessions *)
 let collect_persistent_sessions sitedata =
-  let now = Unix.time () in
+  let now = Unix.gettimeofday () in
   let log_hash c = Common.Hashed_cookies.(sha256 c) in
   let do_gc_cookie cookie {Mod_cookies.full_state_name; expiry; session_group; _}
     =
