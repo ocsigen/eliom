@@ -82,6 +82,49 @@ let () = string na_once (fun () () -> text "na once")
 (* A non-attached coservice attached to the path of another service *)
 let na_attached = Service.attach ~fallback:other ~service:na_named ()
 
+(* CSRF-safe coservices, registered for the whole site: each link to one
+   registers a new coservice of the session of the request (the default
+   [~csrf_scope]), or of its client process *)
+
+let csrf =
+  Service.create_attached_get ~csrf_safe:true ~fallback:main ~get_params:P.unit
+    ()
+
+let () = string csrf (fun () () -> text "csrf")
+
+let csrf_once =
+  Service.create_attached_get ~csrf_safe:true ~max_use:1 ~fallback:main
+    ~get_params:P.unit ()
+
+let () = string csrf_once (fun () () -> text "csrf once")
+
+let csrf_post =
+  Service.create_attached_post ~csrf_safe:true ~fallback:main
+    ~post_params:P.(string "v")
+    ()
+
+let () = string csrf_post (fun () v -> text ("csrf post " ^ v))
+
+let na_csrf =
+  Service.create ~csrf_safe:true ~path:Service.No_path
+    ~meth:(Service.Get P.unit) ()
+
+let () = string na_csrf (fun () () -> text "na csrf")
+
+let na_csrf_post =
+  Service.create ~csrf_safe:true ~path:Service.No_path
+    ~meth:(Service.Post (P.unit, P.(string "v")))
+    ()
+
+let () = string na_csrf_post (fun () v -> text ("na csrf post " ^ v))
+
+let csrf_tab =
+  Service.create_attached_get ~csrf_safe:true
+    ~csrf_scope:Common.default_process_scope ~fallback:main ~get_params:P.unit
+    ()
+
+let () = string csrf_tab (fun () () -> text "csrf of the tab")
+
 (* Links to the coservices. The URL of a POST service is followed by its POST
    parameters, one per line, the name and the value separated by a tab. *)
 
@@ -126,6 +169,12 @@ let () =
          | "na_attached" -> get_uri na_attached 5
          | "created_once" -> create_coservice ~max_use:1 ()
          | "created_timeout" -> create_coservice ~timeout:1. ()
+         | "csrf" -> get_uri csrf ()
+         | "csrf_once" -> get_uri csrf_once ()
+         | "csrf_post" -> post_uri csrf_post "x"
+         | "na_csrf" -> get_uri na_csrf ()
+         | "na_csrf_post" -> post_uri na_csrf_post "y"
+         | "csrf_tab" -> get_uri csrf_tab ()
          | _ -> invalid_arg target))
 
 let () = Eliom_test_server.Server_harness.start [App.run ()]

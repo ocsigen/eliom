@@ -8,4 +8,9 @@
  (modules test)
  (package eliom)
  (deps server.exe)
- (libraries eliom_test_server uri alcotest))
+ (libraries
+  eliom_test_server
+  eliom_test_client
+  ocsipersist-sqlite
+  uri
+  alcotest))
