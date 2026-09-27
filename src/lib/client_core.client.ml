@@ -306,15 +306,16 @@ let change_page_uri_ :
 let change_page_get_form_ :
   (?cookies_info:Runtime.RawXML.cookie_info
    -> ?tmpl:string
+   -> ?submitter:Dom_html.element Js.t
    -> Dom_html.formElement Js.t
    -> string
    -> unit)
     ref
   =
-  ref (fun ?cookies_info:_ ?tmpl:_ _form _href -> assert false)
+  ref (fun ?cookies_info:_ ?tmpl:_ ?submitter:_ _form _href -> assert false)
 
 let change_page_post_form_ =
-  ref (fun ?cookies_info:_ ?tmpl:_ _form _href -> assert false)
+  ref (fun ?cookies_info:_ ?tmpl:_ ?submitter:_ _form _href -> assert false)
 
 type client_form_handler = Dom_html.event Js.t -> bool Lwt.t
 
@@ -343,10 +344,16 @@ let raw_form_handler form kind cookies_info tmpl ev client_form_handler =
     | `Form_get -> !change_page_get_form_
     | `Form_post -> !change_page_post_form_
   in
+  (* [ev] is the submit event of [form]. Its submitter is the button that
+     submitted the form, if any. *)
+  let submitter =
+    Js.Opt.to_option
+      (Js.Unsafe.coerce ev : Dom_html.submitEvent Js.t)##.submitter
+  in
   let f () =
     Lwt.async @@ fun () ->
     let* b = client_form_handler ev in
-    if not b then change_page_form ?cookies_info ?tmpl form action;
+    if not b then change_page_form ?cookies_info ?tmpl ?submitter form action;
     Lwt.return_unit
   in
   ((not !Common.is_client_app) && changes_protocol https) || (f (); false)
