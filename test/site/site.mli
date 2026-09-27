@@ -28,3 +28,19 @@ val init :
 
     Each [app] must be used once. The exceptions raised by [f] or by the
     check are raised again. *)
+
+val register :
+   ( 'get
+     , 'post
+     , _
+     , _
+     , _
+     , Eliom.Service.non_ext
+     , Eliom.Service.reg
+     , _
+     , _
+     , _
+     , Eliom.Service.non_ocaml )
+     Eliom.Service.t
+  -> unit
+(** [register service] registers an empty page as the handler of [service]. *)

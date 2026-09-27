@@ -8,8 +8,7 @@ let get ?https path params =
     Service.create ?https ~path:(Service.Path path) ~meth:(Service.Get params)
       ()
   in
-  Eliom.Registration.Html_text.register ~service (fun _ () -> Lwt.return "");
-  service
+  Site.register service; service
 
 let test_outside_a_site () =
   (* A program starts in the initialisation phase of Ocsigen Server, where
@@ -78,10 +77,6 @@ let test_coservice_urls () =
   let urls =
     Site.init ~app:"coservices" (fun () ->
       let fallback = get ["a"] Parameter.unit in
-      let register service =
-        Eliom.Registration.Html_text.register ~service (fun _ () ->
-          Lwt.return "")
-      in
       let anonymous =
         Service.create_attached_get ~fallback ~get_params:(Parameter.int "i") ()
       in
@@ -89,8 +84,8 @@ let test_coservice_urls () =
         Service.create_attached_get ~name:"named" ~fallback
           ~get_params:Parameter.unit ()
       in
-      register anonymous;
-      register named;
+      Site.register anonymous;
+      Site.register named;
       ( Uri.make_string_uri ~absolute_path:true ~service:anonymous 1
       , Uri.make_string_uri ~absolute_path:true ~service:named () ))
   in
@@ -130,8 +125,7 @@ let test_urls_needing_a_request () =
       Service.create ~name:"na" ~path:Service.No_path
         ~meth:(Service.Get Parameter.unit) ()
     in
-    Eliom.Registration.Html_text.register ~service:na (fun () () ->
-      Lwt.return "");
+    Site.register na;
     check "relative URL" (fun () -> Uri.make_string_uri ~service:s ());
     check "non-attached coservice" (fun () ->
       Uri.make_string_uri ~absolute:true ~service:na ()))

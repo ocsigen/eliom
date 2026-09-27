@@ -23,3 +23,6 @@ let init ?(config_info = config_info) ?(site_dir = []) ~app f =
   match !result with
   | Some r -> r
   | None -> failwith ("Site.init: " ^ app ^ " was not initialised")
+
+let register service =
+  Eliom.Registration.Html_text.register ~service (fun _ _ -> Lwt.return "")

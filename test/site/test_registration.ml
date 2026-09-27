@@ -9,8 +9,6 @@ let coservice name =
   Service.create ~name ~path:Service.No_path ~meth:(Service.Get Parameter.unit)
     ()
 
-let register service = Html_text.register ~service (fun _ _ -> Lwt.return "")
-
 (* [warnings f] is the result of [f ()] and the warnings logged meanwhile. *)
 let warnings f =
   let logged = ref [] in
@@ -35,16 +33,16 @@ let test_all_registered () =
   let (), logged =
     warnings (fun () ->
       Site.init ~site_dir:["s"] ~app:"registered" (fun () ->
-        register (service ["a"]);
-        register (service ["b"; "c"]);
-        register (coservice "na")))
+        Site.register (service ["a"]);
+        Site.register (service ["b"; "c"]);
+        Site.register (coservice "na")))
   in
   Alcotest.(check (list string)) "no warning" [] logged
 
 let test_unregistered () =
   match
     Site.init ~site_dir:["s"] ~app:"unregistered" (fun () ->
-      register (service ["a"]);
+      Site.register (service ["a"]);
       ignore (service ["b"; "c"]);
       ignore (coservice "na"))
   with
@@ -63,7 +61,7 @@ let test_unregistered_non_attached () =
   let (), logged =
     warnings (fun () ->
       Site.init ~site_dir:["s"] ~app:"unregistered-na" (fun () ->
-        register (coservice "used");
+        Site.register (coservice "used");
         ignore (coservice "unused")))
   in
   Alcotest.(check (list string))
@@ -89,7 +87,7 @@ let test_registered_twice () =
   match
     Site.init ~app:"twice" (fun () ->
       let s = service ["a"] in
-      register s; register s)
+      Site.register s; Site.register s)
   with
   | () -> Alcotest.fail "registered twice"
   | exception Eliom.Common.Eliom_duplicate_registration path ->
@@ -109,21 +107,21 @@ let test_duplicates () =
     Service.create ~path:(Service.Path path) ~meth:(Service.Get params) ()
   in
   check "same path and parameters" (Some "a") (fun () ->
-    register (service ["a"]);
-    register (service ["a"]));
+    Site.register (service ["a"]);
+    Site.register (service ["a"]));
   check "same path, other parameters" None (fun () ->
-    register (get ["a"] (Parameter.int "i"));
-    register (get ["a"] (Parameter.string "s")));
+    Site.register (get ["a"] (Parameter.int "i"));
+    Site.register (get ["a"] (Parameter.string "s")));
   check "non-attached coservices with the same name"
     (Some "GET non-attached service na") (fun () ->
-    register (coservice "na");
-    register (coservice "na"));
+    Site.register (coservice "na");
+    Site.register (coservice "na"));
   check "anonymous non-attached coservices" None (fun () ->
     let anonymous () =
       Service.create ~path:Service.No_path ~meth:(Service.Get Parameter.unit) ()
     in
-    register (anonymous ());
-    register (anonymous ()));
+    Site.register (anonymous ());
+    Site.register (anonymous ()));
   check "attached coservices with the same name" (Some "a (coservice n)")
     (fun () ->
        let fallback = service ["a"] in
@@ -131,25 +129,25 @@ let test_duplicates () =
          Service.create_attached_get ~name:"n" ~fallback
            ~get_params:Parameter.unit ()
        in
-       register fallback;
-       register (named ());
-       register (named ()));
+       Site.register fallback;
+       Site.register (named ());
+       Site.register (named ()));
   check "anonymous attached coservices" None (fun () ->
     let fallback = service ["a"] in
     let anonymous () =
       Service.create_attached_get ~fallback ~get_params:Parameter.unit ()
     in
-    register fallback;
-    register (anonymous ());
-    register (anonymous ()))
+    Site.register fallback;
+    Site.register (anonymous ());
+    Site.register (anonymous ()))
 
 let test_page_erasing () =
   (* A path cannot be both a page and a directory. *)
   let check msg first second =
     match
       Site.init ~app:("erasing, " ^ msg) (fun () ->
-        register (service first);
-        register (service second))
+        Site.register (service first);
+        Site.register (service second))
     with
     | () -> Alcotest.failf "%s: accepted" msg
     | exception Eliom.Common.Eliom_page_erasing s ->
@@ -179,7 +177,7 @@ let test_registration_after_the_initialisation () =
   let na, (_ : string list) =
     warnings (fun () -> Site.init ~app:"after" (fun () -> coservice "after"))
   in
-  match register na with
+  match Site.register na with
   | () -> Alcotest.fail "registered"
   | exception Eliom.Common.Site_information_not_available f ->
       Alcotest.(check string) "function" "register" f
