@@ -651,21 +651,15 @@ module Ocaml = struct
     let r = {Runtime.ecs_request_data; ecs_data = data} in
     Lwt.return (Types.encode_eliom_data r)
 
-  let make_eh = function
-    | None -> None
-    | Some eh ->
-        Some
-          (fun l ->
-            let* r = eh l in
-            prepare_data r)
-
   let string_regexp = Str.regexp "\"\\([^\\\"]\\|\\\\.\\)*\""
 
-  let make_service_handler ~name f g p =
+  (* The answer of a handler, run by [run ()]: its result, or the code of its
+     exception, which is logged *)
+  let answer ~name run =
     let* data =
       Lwt.catch
         (fun () ->
-           let* res = f g p in
+           let* res = run () in
            Lwt.return (`Success res))
         (fun exn ->
            let code = Printf.sprintf "%06x" (Random.int 0x1000000) in
@@ -691,6 +685,11 @@ module Ocaml = struct
            Lwt.return (`Failure code))
     in
     prepare_data data
+
+  let make_service_handler ~name f g p = answer ~name (fun () -> f g p)
+
+  (* The error handler, whose result is sent as the one of the service *)
+  let make_eh ~name = Option.map (fun eh l -> answer ~name (fun () -> eh l))
 
   let send ?options ?charset ?code ?content_type ?headers content =
     let* content = prepare_data content in
@@ -724,7 +723,7 @@ module Ocaml = struct
     =
     M.register ?app ?scope ?options ?charset ?code ?content_type ?headers
       ?secure_session ~service:(Service.untype service)
-      ?error_handler:(make_eh error_handler)
+      ?error_handler:(make_eh ~name:None error_handler)
       (make_service_handler ~name:None f)
 
   let create
@@ -751,7 +750,8 @@ module Ocaml = struct
     Service.untype
     @@ M.create ?app ?scope ?options ?charset ?code ?content_type ?headers
          ?secure_session ?https ?name ?csrf_safe ?csrf_scope ?csrf_secure
-         ?max_use ?timeout ~meth ~path ?error_handler:(make_eh error_handler)
+         ?max_use ?timeout ~meth ~path
+         ?error_handler:(make_eh ~name error_handler)
          (make_service_handler ~name f)
 
   let create_attached_get
@@ -779,7 +779,8 @@ module Ocaml = struct
     @@ M.create_attached_get ?app ?scope ?options ?charset ?code ?content_type
          ?headers ?secure_session ?https ?name ?csrf_safe ?csrf_scope
          ?csrf_secure ?max_use ?timeout ~fallback:(Service.untype fallback)
-         ~get_params ?error_handler:(make_eh error_handler)
+         ~get_params
+         ?error_handler:(make_eh ~name error_handler)
          (make_service_handler ~name f)
 
   let create_attached_post
@@ -807,7 +808,8 @@ module Ocaml = struct
     @@ M.create_attached_post ?app ?scope ?options ?charset ?code ?content_type
          ?headers ?secure_session ?https ?name ?csrf_safe ?csrf_scope
          ?csrf_secure ?max_use ?timeout ~fallback:(Service.untype fallback)
-         ~post_params ?error_handler:(make_eh error_handler)
+         ~post_params
+         ?error_handler:(make_eh ~name error_handler)
          (make_service_handler ~name f)
 end
 
