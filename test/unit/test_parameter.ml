@@ -233,6 +233,16 @@ let test_decode_suffix () =
     (decode ~nosuffix:true typ ["i", "3"; "s", "x"]);
   check_wrong_parameter "no suffix" (fun () -> decode typ ["i", "3"; "s", "x"])
 
+let test_decode_whole_suffix_parameter () =
+  (* In the version of a service without suffix, the whole suffix is a
+     parameter, without ".." segments as well. *)
+  Alcotest.(check (list string))
+    "list" ["a"; "b"]
+    (decode ~nosuffix:true (suffix (all_suffix "p")) ["p", "../a/../b"]);
+  Alcotest.(check string)
+    "string" "a/b"
+    (decode ~nosuffix:true (suffix (all_suffix_string "p")) ["p", "../a/b"])
+
 (* Names *)
 
 let test_names () =
@@ -287,5 +297,7 @@ let suite =
     ; Alcotest.test_case "decode optional" `Quick test_decode_optional
     ; Alcotest.test_case "decode errors" `Quick test_decode_errors
     ; Alcotest.test_case "decode suffix" `Quick test_decode_suffix
+    ; Alcotest.test_case "decode whole suffix parameter" `Quick
+        test_decode_whole_suffix_parameter
     ; Alcotest.test_case "names" `Quick test_names
     ; Alcotest.test_case "non-localized" `Quick test_non_localized ] )

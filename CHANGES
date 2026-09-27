@@ -252,6 +252,9 @@
 ** The Cache-Control header set by the ~options of Registration.String,
    CssText, File and File_ct is now max-age=N. It was written max-age: N,
    which caches do not understand.
+** The ".." segments of a whole suffix (all_suffix, all_suffix_string,
+   all_suffix_user) given as a parameter, in the version of a service
+   without suffix, are now removed, as they are from a path.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
