@@ -26,8 +26,9 @@ val init :
     are registered). As in the toplevel code of an Eliom module, the client
     values created by [f] are global.
 
-    Each [app] must be used once. The exceptions raised by [f] or by the
-    check are raised again. *)
+    The exceptions raised by [f] or by the check are raised again.
+
+    @raise Invalid_argument if [app] was already used. *)
 
 val register :
    ( 'get

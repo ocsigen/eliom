@@ -8,7 +8,14 @@ let config_info =
   ; default_httpport = http_port
   ; default_httpsport = https_port }
 
+(* The site data of an application are kept by Eliom for the next site of the
+   same name. *)
+let apps = Hashtbl.create 16
+
 let init ?(config_info = config_info) ?(site_dir = []) ~app f =
+  if Hashtbl.mem apps app
+  then invalid_arg ("Site.init: application " ^ app ^ " already used");
+  Hashtbl.add apps app ();
   let result = ref None in
   Eliom.Service.register_eliom_module app (fun () ->
     Eliom.Syntax.set_global true;

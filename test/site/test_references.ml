@@ -71,7 +71,7 @@ let test_scopes_needing_a_request () =
       | () -> Alcotest.failf "%s, %s: no error" msg name
       | exception Common.Request_information_not_available _ -> ()
     in
-    Site.init ~app:msg (fun () ->
+    Site.init ~app:("needing a request, " ^ msg) (fun () ->
       check_operation "get" (fun () -> ignore (Volatile.get r : int));
       check_operation "set" (fun () -> Volatile.set r 1);
       check_operation "modify" (fun () -> Volatile.modify r succ);
