@@ -1,0 +1,4 @@
+(test
+ (name test)
+ (package eliom)
+ (libraries eliom_test_server ocsigenserver alcotest))

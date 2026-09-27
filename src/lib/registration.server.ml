@@ -162,7 +162,7 @@ let add_cache_header cache headers =
   | Some duration ->
       headers
       <-< ( Ocsigen_http.Header.Name.cache_control
-          , "max-age: " ^ string_of_int duration )
+          , "max-age=" ^ string_of_int duration )
 
 module String_base = struct
   type page = string * string
@@ -280,7 +280,7 @@ module Action_base = struct
             let all_cookie_info = sp.Common.sp_cookie_info in
             let* ric =
               Mod_cookies.compute_new_ri_cookies (Unix.time ())
-                (Ocsigen.Request.sub_path ri.request_info)
+                (Common.sub_path ri.request_info)
                 (Ocsigen.Request.cookies ri.request_info)
                 all_cookie_info user_cookies
             in

@@ -632,6 +632,25 @@ type info =
 
 (*****************************************************************************)
 
+(* Request paths are decoded here rather than with Ocsigen.Request.sub_path and
+   original_full_path, which split again the segments whose decoding contains
+   a slash: Eliom writes the slashes of the values of suffix parameters %2F,
+   and the value must come back whole. *)
+
+let decode_path s =
+  (* As Ocsigen Server's Url.split_decoded_path, whose splitting is not
+     wanted here: a segment with a malformed escape sequence is left alone
+     rather than the whole request rejected, as browsers do. *)
+  let decode segment =
+    try Url.decode ~plus:false segment with Failure _ -> segment
+  in
+  Url.remove_dotdot (List.map decode (Url.split_path s))
+
+let sub_path ri = decode_path (Ocsigen.Request.sub_path_string ri)
+
+let original_full_path ri =
+  decode_path (Ocsigen.Request.original_full_path_string ri)
+
 (** Create server parameters record *)
 let make_server_params
       sitedata
@@ -655,8 +674,7 @@ let make_server_params
         { cpi_ssl = Ocsigen.Request.ssl request_info
         ; cpi_hostname = Ocsigen.Extensions.get_hostname ri
         ; cpi_server_port = Ocsigen.Extensions.get_port ri
-        ; cpi_original_full_path =
-            Ocsigen.Request.original_full_path request_info }
+        ; cpi_original_full_path = original_full_path request_info }
   in
   { sp_request = ri
   ; sp_si = si

@@ -232,18 +232,25 @@ module type S = sig
       regular parameters (without suffix) that will be used if you
       create a form towards a service with suffix.  If
       [redirect_if_not_suffix] is [true] (default), this service
-      without suffix will be redirected to the suffix version.  *)
+      without suffix will be redirected to the suffix version.
+
+      The value of a parameter of the suffix is a decoded segment of the
+      path, which may contain slashes (written [%2F] in URLs) and [../]:
+      only the [..] segments of the path are removed. Check it before using
+      it as a file name. *)
 
   val all_suffix :
      string
     -> (string list, [`Endsuffix], [`One of string list] param_name) params_type
   (** Takes the whole suffix, as long as possible, as a (slash
-      separated) string list *)
+      separated) string list. The slashes of the segments, even encoded ones
+      ([%2F]), separate the elements, and [..] segments are removed. *)
 
   val all_suffix_string :
      string
     -> (string, [`Endsuffix], [`One of string] param_name) params_type
-  (** Takes the whole suffix, as long as possible, as a string *)
+  (** Takes the whole suffix, as long as possible, as a string, without
+      [..] segments (see {!all_suffix}). *)
 
   val suffix_prod :
      ?redirect_if_not_suffix:bool

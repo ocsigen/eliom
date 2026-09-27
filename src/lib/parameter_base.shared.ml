@@ -565,6 +565,12 @@ let end_of_list lp pref =
   in
   not (List.exists f lp)
 
+(* The end of a path taken as a whole (all_suffix...): the segments are split
+   again on the slashes they contain after decoding, and the ".." segments are
+   removed, so that joining them cannot walk up a tree. *)
+let split_suffix l =
+  Url.remove_dotdot (List.concat_map (String.split_on_char '/') l)
+
 (* The following function reconstructs the value of parameters from
    expected type and GET or POST parameters *)
 let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
@@ -573,13 +579,13 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
     =
    fun typ suff ->
     match typ, suff with
-    | TESuffix _, l -> l, [] (*VVV encode=false? *)
-    | TESuffixs _, l -> Url.string_of_url_path ~encode:false l, []
+    | TESuffix _, l -> split_suffix l, []
+    | TESuffixs _, l ->
+        Url.string_of_url_path ~encode:false (split_suffix l), []
     | TESuffixu (_, tao), l -> (
       try
-        (*VVV encode=false? *)
         ( Common.To_and_of_shared.of_string tao
-            (Url.string_of_url_path ~encode:false l)
+            (Url.string_of_url_path ~encode:false (split_suffix l))
         , [] )
       with e -> raise (Common.Eliom_Typing_Error ["<suffix>", e]))
     | TOption (_, _), [] -> None, []
@@ -811,14 +817,21 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
     | TESuffix n ->
         let v, l = List.assoc_remove n params in
         (* cannot have prefix or suffix *)
-        Res_ (Lib.Url.split_path v, l, files)
+        Res_ (split_suffix (Url.split_path v), l, files)
     | TESuffixs n ->
         let v, l = List.assoc_remove n params in
         (* cannot have prefix or suffix *)
-        Res_ (v, l, files)
+        Res_
+          ( Url.string_of_url_path ~encode:false
+              (split_suffix (Url.split_path v))
+          , l
+          , files )
     | TESuffixu (n, tao) -> (
         let v, l = List.assoc_remove n params in
         (* cannot have prefix or suffix *)
+        let v =
+          Url.string_of_url_path ~encode:false (split_suffix (Url.split_path v))
+        in
         try Res_ (Common.To_and_of_shared.of_string tao v, l, files)
         with e -> Errors_ ([pref ^ n ^ suff, v, e], l, files))
     | TSuffix (_, s) -> (

@@ -101,7 +101,7 @@ let get_original_full_path_string () =
   get_original_full_path_string_sp sp
 
 let get_original_full_path_sp sp =
-  Ocsigen.Request.original_full_path sp.Common.sp_request.request_info
+  Common.original_full_path sp.Common.sp_request.request_info
 
 let get_original_full_path () =
   let sp = Common.get_sp () in
@@ -109,7 +109,7 @@ let get_original_full_path () =
 
 let get_current_sub_path () =
   let sp = Common.get_sp () in
-  Ocsigen.Request.sub_path sp.Common.sp_request.request_info
+  Common.sub_path sp.Common.sp_request.request_info
 
 let get_current_sub_path_string () =
   let sp = Common.get_sp () in

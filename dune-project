@@ -48,7 +48,9 @@ The client-side code is compiled to JS using Ocsigen Js_of_ocaml or to Wasm usin
   (ocsipersist (and (>= 3.1) (< 4.0)))
   (xml-light (>= "2.5"))
   (alcotest :with-test)
-  (ocsipersist-sqlite (and :with-test (>= 3.1) (< 4.0)))))
+  (ocsipersist-sqlite (and :with-test (>= 3.1) (< 4.0)))
+  (cohttp-lwt-unix :with-test)
+  (conduit-lwt-unix :with-test)))
 
 (package
  (name eliom-compat)
