@@ -96,10 +96,10 @@ let createEvent ev_type =
 
 (* DOM traversal *)
 
-(* We can't use Dom_html.document##head: it is not defined in ff3.6...
-   [getElementsByTagName] returns a [Dom.nodeList] on js_of_ocaml < 6.4 and a
-   [Dom.collection] since 6.4; both provide [item], so we just require a
-   [#Dom.element]. *)
+(* [get_head] and [get_body] operate on an arbitrary parsed element, not
+   necessarily [Dom_html.document], so we go through [getElementsByTagName].
+   It returns a [Dom.nodeList] on js_of_ocaml < 6.4 and a [Dom.collection]
+   since 6.4; both provide [item], so we just require a [#Dom.element]. *)
 let get_head (page : #Dom.element Js.t) : Dom.element Js.t =
   Js.Opt.get
     page##(getElementsByTagName (Js.string "head"))##(item 0)
@@ -125,9 +125,8 @@ let iter_dom_array
 
 let copy_text t = Dom_html.document##(createTextNode t##.data)
 
-(* ie, ff3.6 and safari does not like setting innerHTML on html and
-   head nodes: we need to rebuild the HTML dom tree from the XML dom
-   tree received in the xhr *)
+(* Rebuild the HTML dom tree from the XML dom tree received in the xhr,
+   when [html_document] can neither adopt nor import it. *)
 
 let copy_element
       (e : Dom.element Js.t)
