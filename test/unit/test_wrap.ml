@@ -104,6 +104,27 @@ let test_exception () =
     ignore (Wrap.wrap v));
   Alcotest.(check bool) "GC settings restored" true (Gc.get () = control)
 
+let test_immediate_results () =
+  (* An immediate result (an integer, a constant constructor, a boolean)
+     must not be confused with the markers of the traversal: the wrapper
+     of a shared value is applied once, and its result replaces the value
+     wherever it appears. *)
+  let check : type v. string -> v -> unit =
+   fun name r ->
+    let calls = ref 0 in
+    let b = boxed name (fun _ -> incr calls; r) in
+    let w : v * v list = unwrap (b, [b]) in
+    Alcotest.(check int) (name ^ " wrapped once") 1 !calls;
+    Alcotest.(check bool) (name ^ " replaced") true (w = (r, [r]))
+  in
+  check "0" 0;
+  check "1" 1;
+  check "2" 2;
+  check "-1" (-1);
+  check "None" None;
+  check "[]" [];
+  check "true" true
+
 let test_eliom_data () =
   let d = Eliom.Types.encode_eliom_data [boxed "a" upper; plain "b"] in
   let w : box list =
@@ -195,5 +216,6 @@ let suite =
     ; Alcotest.test_case "many values" `Quick test_many
     ; Alcotest.test_case "minor collections" `Quick test_minor_gc
     ; Alcotest.test_case "wrapper exception" `Quick test_exception
+    ; Alcotest.test_case "immediate results" `Quick test_immediate_results
     ; Alcotest.test_case "eliom data" `Quick test_eliom_data
     ; Alcotest.test_case "string escape" `Quick test_string_escape ] )

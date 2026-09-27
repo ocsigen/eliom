@@ -91,7 +91,11 @@ let bits = 8
    allocations) and resizable arrays. The initial size of the hash
    table is 2 ** bits; the initial size of arrays is half this *)
 
-let none = Obj.repr 0 (* Unallocated entry in an array or in a hash-table *)
+(* The markers stored in the arrays and in the hash-table are blocks
+   allocated here and compared physically. An immediate value would be
+   confused with the result of a wrapper, such as 0, None or []. *)
+let marker () = Obj.repr (ref ())
+let none = marker () (* Unallocated entry in an array or in a hash-table *)
 
 module DynArray = struct
   let rec check_size a i =
@@ -282,11 +286,11 @@ let obj_kind v =
 
 let unchanged =
   (* This block and its descendants can be left unchanged *)
-  Obj.repr 1
+  marker ()
 
 let modified =
   (* This block or its descendants may need to be modified *)
-  Obj.repr 2
+  marker ()
 
 let iteration_count = ref 0
 let wrap_count = ref 0

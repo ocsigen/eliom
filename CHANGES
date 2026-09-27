@@ -249,6 +249,12 @@
    collection moves the shared value while it is wrapped. The wrapper used
    to be applied again, for instance the data of Eliom_lazy values
    computed twice.
+** A wrapper whose result is an immediate value (an integer, a boolean, a
+   constant constructor such as None or []) is now applied once and its
+   result sent to the client, like any other result. The results 0, 1 and
+   2 were confused with the markers of the traversal: the wrapper of a
+   shared value ran again for 0, the value was sent unwrapped for 1, which
+   failed to marshal, and 2 failed an assertion.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
