@@ -242,7 +242,73 @@ let outputs server =
         Alcotest.(check (option string))
           "text content type" (Some "text/plain") (content_type r)) ] )
 
+(* [body b url] is the body of the page [url], answered with 200 *)
+let body b url =
+  let+ r = Browser.get b url in
+  check_response url ~status:200 r;
+  r.body
+
+let non_localized server =
+  let case = case server in
+  (* A link given by /nl/link?keep= during a request that has the two
+     non-localized parameters *)
+  let link b keep =
+    let* url = body b "/nl/link" in
+    let query =
+      Option.value ~default:"" (Uri.verbatim_query (Uri.of_string url))
+    in
+    body b ("/nl/link?keep=" ^ keep ^ "&" ^ query)
+  in
+  ( "non-localized parameters"
+  , [ case "read by a service" (fun b ->
+        let* url = body b "/nl/link" in
+        let+ r = Browser.get b url in
+        check_response "values" ~status:200 ~body:"persistent=p transient=t" r)
+    ; case "kept in links" (fun b ->
+        Lwt_list.iter_s
+          (fun (keep, expected) ->
+             let* url = link b keep in
+             let+ r = Browser.get b url in
+             check_response keep ~status:200 ~body:expected r)
+          [ "default", "persistent=p transient=none"
+          ; "persistent", "persistent=p transient=none"
+          ; "all", "persistent=p transient=t"
+          ; "none", "persistent=none transient=none" ]) ] )
+
+let actions server =
+  let case = case server in
+  (* [set_cookie b path] posts the action /set_cookie, which sets a cookie of
+     path /cookie_page/a, from the page [path] *)
+  let set_cookie b path =
+    let* params = body b "/set_cookie" in
+    let params =
+      List.map
+        (fun p ->
+           match String.index_opt p '\t' with
+           | Some i ->
+               String.sub p 0 i, String.sub p (i + 1) (String.length p - i - 1)
+           | None -> Alcotest.failf "wrong POST parameter %S" p)
+        (String.split_on_char '\n' params)
+    in
+    Browser.post b path params
+  in
+  ( "actions"
+  , [ case "reload" (fun b ->
+        (* The page is generated again, with the cookies set by the action *)
+        let+ r = set_cookie b "/cookie_page/a/b" in
+        check_response "page" ~status:200 ~body:"cookie set" r)
+    ; case "cookie of a path, and a slash in a segment" (fun b ->
+        (* The segment a%2Fb is not a/b: the cookie of path /cookie_page/a is
+           not for the page, as a browser would not send it. *)
+        let+ r = set_cookie b "/cookie_page/a%2Fb" in
+        check_response "page" ~status:200 ~body:"no cookie" r) ] )
+
 let () =
   Server_harness.with_server "./server.exe" (fun server ->
     Alcotest.run ~and_exit:false "eliom-server-services"
-      [dispatch server; parameters server; suffixes server; outputs server])
+      [ dispatch server
+      ; parameters server
+      ; suffixes server
+      ; outputs server
+      ; non_localized server
+      ; actions server ])

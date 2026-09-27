@@ -202,6 +202,91 @@ let () =
          Lwt.map Registration.cast_unknown_content_kind
            (Registration.String.send ("any", "text/plain")))
 
+(* Non-localized parameters: [persistent_nl] is kept by default in the links
+   of the pages that receive it, [transient_nl] only with
+   [~keep_nl_params:`All] *)
+
+let persistent_nl =
+  P.make_non_localized_parameters ~prefix:"test" ~name:"persistent"
+    ~persistent:true
+    P.(string "v")
+
+let transient_nl =
+  P.make_non_localized_parameters ~prefix:"test" ~name:"transient"
+    P.(string "v")
+
+let nl_target = get ["nl"; "target"] P.unit
+
+let () =
+  string nl_target (fun () () ->
+    let value nl =
+      Option.value ~default:"none" (P.get_non_localized_get_parameters nl)
+    in
+    text
+      (Printf.sprintf "persistent=%s transient=%s" (value persistent_nl)
+         (value transient_nl)))
+
+(* /nl/link is a link to /nl/target with both parameters; /nl/link?keep=
+   is a link to it without parameters, keeping those of the request as
+   [keep] says *)
+let () =
+  string
+    (get ["nl"; "link"] P.(opt (string "keep")))
+    (fun keep () ->
+       let uri ?keep_nl_params ?nl_params () =
+         Eliom_uri.make_string_uri ~absolute_path:true ?keep_nl_params
+           ?nl_params ~service:nl_target ()
+       in
+       text
+         (match keep with
+         | None ->
+             uri
+               ~nl_params:
+                 P.(
+                   add_nl_parameter
+                     (add_nl_parameter empty_nl_params_set persistent_nl "p")
+                     transient_nl "t")
+               ()
+         | Some "default" -> uri ()
+         | Some "all" -> uri ~keep_nl_params:`All ()
+         | Some "persistent" -> uri ~keep_nl_params:`Persistent ()
+         | Some "none" -> uri ~keep_nl_params:`None ()
+         | Some k -> invalid_arg k))
+
+(* An action that sets a cookie of path /cookie_page/a, then reloads the
+   page, which tells whether the request has the cookie *)
+
+let cookie_page = get ["cookie_page"] P.(suffix (all_suffix "s"))
+
+let () =
+  string cookie_page (fun _ () ->
+    text
+      (match
+         Ocsigen_cookie_map.Map_inner.find_opt "test_action"
+           (Request_info.get_cookies ())
+       with
+      | Some v -> "cookie " ^ v
+      | None -> "no cookie"))
+
+let set_cookie =
+  Service.create ~path:Service.No_path ~meth:(Service.Post (P.unit, P.unit)) ()
+
+let () =
+  Registration.Action.register ~options:`Reload ~service:set_cookie
+    (fun () () ->
+       State.set_cookie ~path:["cookie_page"; "a"] ~name:"test_action"
+         ~value:"set" ();
+       Lwt.return_unit)
+
+(* The POST parameters of the action, one per line, the name and the value
+   separated by a tab *)
+let () =
+  string (get ["set_cookie"] P.unit) (fun () () ->
+    let _, _, _, params =
+      Eliom_uri.make_post_uri_components ~service:set_cookie () ()
+    in
+    text (String.concat "\n" (List.map (fun (n, v) -> n ^ "\t" ^ v) params)))
+
 (* The file served by /file, in the directory of the server *)
 let () =
   Out_channel.with_open_bin

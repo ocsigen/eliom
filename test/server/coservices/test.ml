@@ -173,7 +173,55 @@ let limits server =
         let* () = Lwt_unix.sleep 1.5 in
         calls b url ["main, link too old"]) ] )
 
+(* Each link to a CSRF-safe coservice is a new coservice of the session of the
+   request, which an attacker cannot know nor use from another browser. *)
+let csrf_safe server =
+  let case = case server in
+  let too_old = "main, link too old" in
+  ( "CSRF-safe"
+  , [ case "a coservice for each link" (fun b ->
+        let* first = get_link b "csrf" in
+        let* second = get_link b "csrf" in
+        Alcotest.(check bool) "new coservice" true (first <> second);
+        let* () = calls b first ["csrf"] in
+        calls b second ["csrf"])
+    ; case "of the session of the link" (fun b ->
+        let* url = get_link b "csrf" in
+        let* () = calls (Browser.create server) url [too_old] in
+        calls b url ["csrf"])
+    ; case "max_use" (fun b ->
+        let* url = get_link b "csrf_once" in
+        calls b url ["csrf once"; too_old])
+    ; case "POST" (fun b ->
+        let* url, params = link b "csrf_post" in
+        let* r = Browser.post (Browser.create server) url params in
+        check_response "other browser" ~status:200 ~body:too_old r;
+        let+ r = Browser.post b url params in
+        check_response "own browser" ~status:200 ~body:"csrf post x" r)
+    ; case "non-attached" (fun b ->
+        let* url = get_link b "na_csrf" in
+        let url = on_path "/main" url in
+        let* () = calls (Browser.create server) url [too_old] in
+        calls b url ["na csrf"])
+    ; case "non-attached, POST" (fun b ->
+        let* url, params = link b "na_csrf_post" in
+        let url = on_path "/main" url in
+        let* r = Browser.post (Browser.create server) url params in
+        check_response "other browser" ~status:200 ~body:too_old r;
+        let+ r = Browser.post b url params in
+        check_response "own browser" ~status:200 ~body:"na csrf post y" r)
+    ; case "of a client process" (fun b ->
+        let tab = Eliom_test_client.Tab.create b in
+        let* r = Eliom_test_client.Tab.get tab "/link?to=csrf_tab" in
+        let url = r.body in
+        let* r =
+          Eliom_test_client.Tab.get (Eliom_test_client.Tab.create b) url
+        in
+        check_response "other tab" ~status:200 ~body:too_old r;
+        let+ r = Eliom_test_client.Tab.get tab url in
+        check_response "own tab" ~status:200 ~body:"csrf of the tab" r) ] )
+
 let () =
   Server_harness.with_server "./server.exe" (fun server ->
     Alcotest.run ~and_exit:false "eliom-server-coservices"
-      [attached server; non_attached server; limits server])
+      [attached server; non_attached server; limits server; csrf_safe server])
