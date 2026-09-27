@@ -292,7 +292,7 @@ let send
                 Mod_cookies.update_cookie_table ~in_local_storage:true host
                   (Mod_cookies.cookieset_of_json cookie_substitutes));
          (match r.XmlHttpRequest.headers Common.set_tab_cookies_header_name with
-         | None | Some "" -> () (* Empty tab_cookies for IE compat *)
+         | None | Some "" -> () (* No tab_cookies header *)
          | Some tab_cookies ->
              let tab_cookies = Mod_cookies.cookieset_of_json tab_cookies in
              Mod_cookies.update_cookie_table host tab_cookies);
@@ -331,7 +331,7 @@ let send
            us that the answer is not application content *)
           match headers Common.appl_name_header_name with
           | None | Some "" ->
-              (* Empty appl_name for IE compat. *)
+              (* No application name header. *)
               (match post_args with
               | None -> redirect_get url
               | _ ->

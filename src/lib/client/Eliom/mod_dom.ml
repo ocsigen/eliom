@@ -34,25 +34,9 @@ let iter_attrList
       (f : Dom.attr Js.t -> unit)
   =
   for i = 0 to attrList##.length - 1 do
-    (* Unsafe.get is ten time faster than nodeList##item.
-       Is it the same for attrList ? *)
-    (* let v = attrList##item(i) in *)
-    let v = Js.Unsafe.get attrList i in
-    (* IE8 provides [null] in node##attributes;
-       so we wrap v to be a Js.opt *)
-    Js.Opt.iter v f
+    (* Unsafe.get is ten times faster than nodeList##item. *)
+    f (Js.Unsafe.get attrList i)
   done
-
-(* Dummy type used in the following "test_*" functions to test the
-   presence of methods in various browsers. *)
-class type dom_tester = object
-  method onpageshow : unit Js.optdef Js.prop
-  method onpagehide : unit Js.optdef Js.prop
-end
-
-let test_pageshow_pagehide () =
-  let tester = (Js.Unsafe.coerce Dom_html.window : dom_tester Js.t) in
-  Js.Optdef.test tester##.onpageshow && Js.Optdef.test tester##.onpagehide
 
 let ancestor (elt1 : #Dom.node Js.t) (elt2 : #Dom.node Js.t) =
   let open Dom.DocumentPosition in
@@ -112,10 +96,10 @@ let createEvent ev_type =
 
 (* DOM traversal *)
 
-(* We can't use Dom_html.document##head: it is not defined in ff3.6...
-   [getElementsByTagName] returns a [Dom.nodeList] on js_of_ocaml < 6.4 and a
-   [Dom.collection] since 6.4; both provide [item], so we just require a
-   [#Dom.element]. *)
+(* [get_head] and [get_body] operate on an arbitrary parsed element, not
+   necessarily [Dom_html.document], so we go through [getElementsByTagName].
+   It returns a [Dom.nodeList] on js_of_ocaml < 6.4 and a [Dom.collection]
+   since 6.4; both provide [item], so we just require a [#Dom.element]. *)
 let get_head (page : #Dom.element Js.t) : Dom.element Js.t =
   Js.Opt.get
     page##(getElementsByTagName (Js.string "head"))##(item 0)
@@ -141,9 +125,8 @@ let iter_dom_array
 
 let copy_text t = Dom_html.document##(createTextNode t##.data)
 
-(* ie, ff3.6 and safari does not like setting innerHTML on html and
-   head nodes: we need to rebuild the HTML dom tree from the XML dom
-   tree received in the xhr *)
+(* Rebuild the HTML dom tree from the XML dom tree received in the xhr,
+   when [html_document] can neither adopt nor import it. *)
 
 let copy_element
       (e : Dom.element Js.t)
@@ -476,32 +459,17 @@ let setDocumentScroll pos =
   Dom_html.document##.body##.scrollLeft := Js.float pos.body_left;
   current_position := pos
 
-(* UGLY HACK for Opera bug: Opera seem does not always take into
-   account the content of the base element. If we touch it like that,
-   it remember its presence... *)
-let touch_base () =
-  Js.Opt.iter
-    (Js.Opt.bind
-       Dom_html.document##(getElementById (Js.string Common_base.base_elt_id))
-       Dom_html.CoerceTo.base)
-    (fun e ->
-       let href = e##.href in
-       e##.href := href)
-
-(* BEGIN FORMDATA HACK: This is only needed if FormData is not available in the browser.
-   When it will be commonly available, remove all sections marked by "FORMDATA HACK" !
-   Notice: this hack is used to circumvent a limitation in FF4 implementation of formdata:
-     if the user click on a button in a form, formdatas created in the onsubmit callback normally contains the value of the button. ( it is the behaviour of chromium )
-     in FF4, it is not the case: we must do this hack to find which button was clicked.
-
-   NOTICE: this may not be corrected the way we want:
-     see https://bugzilla.mozilla.org/show_bug.cgi?id=647231
-     html5 will explicitly specify that chromium behaviour is wrong...
+(* BEGIN FORMDATA HACK:
+   Eliom submits forms through XHR rather than natively, serializing
+   their contents with [Form.get_form_contents]/[Form.form_elements].
+   Those functions read the form fields but cannot know which submit
+   button triggered the submission (the "submitter" only exists for a
+   native submit), so the clicked button's name/value would be lost.
+   We track the last clicked button here and add it back to the request.
 
    This is implemented in:
-   * this file -> here and called in load_eliom_data
-   * Request: in send_post_form
-   * in js_of_ocaml, module Form: the code to emulate FormData *)
+   * this file -> here, installed by Client on each page load
+   * Request: in send_get_form and send_post_form *)
 
 let onclick_on_body_handler event =
   (match Dom_html.tagged (Dom_html.eventTarget event) with
