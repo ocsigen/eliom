@@ -684,6 +684,15 @@ val get_session_info :
 
 val make_full_cookie_name : string -> full_state_name -> string
 
+val get_state_cookies :
+   bool
+  -> [< cookie_level]
+  -> string Ocsigen_cookie_map.Map_inner.t
+  -> state_cookies
+(** [get_state_cookies secure level cookies] are the state cookies of
+    [cookies] with security [secure] and cookie level [level], whose names were
+    built by {!make_full_cookie_name}. *)
+
 val make_full_state_name :
    sp:server_params
   -> secure:bool

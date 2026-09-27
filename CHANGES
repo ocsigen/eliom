@@ -244,6 +244,11 @@
    closed its data sessions instead.
 ** State.Ext.get_session_group_list lists each session group once. It
    listed twice a group with both service and data sessions.
+** Wrapping a value for the client now applies the wrapper of a value
+   shared inside it only once, and keeps the sharing, also when a garbage
+   collection moves the shared value while it is wrapped. The wrapper used
+   to be applied again, for instance the data of Eliom_lazy values
+   computed twice.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
