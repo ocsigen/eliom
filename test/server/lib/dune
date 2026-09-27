@@ -1,0 +1,13 @@
+; Helpers of the tests that run an Eliom server and send it requests.
+
+(library
+ (name eliom_test_server)
+ (libraries
+  unix
+  lwt
+  lwt.unix
+  ocsigenserver
+  cohttp
+  cohttp-lwt
+  cohttp-lwt-unix
+  conduit-lwt-unix))
