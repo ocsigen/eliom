@@ -7,6 +7,9 @@ exception State_closed
 exception Comet_error of string
 (** Raised when the server answers with an error. *)
 
+exception Timeout
+(** Raised when the server answers that no data came in time. *)
+
 type 'a message =
   | Data of 'a  (** A value sent on the channel *)
   | Full  (** Messages were lost: the buffer of the channel was full *)

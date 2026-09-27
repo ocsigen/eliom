@@ -23,3 +23,10 @@ let of_up up =
        * _)
   in
   Service_info.of_service service
+
+let of_signal_down signal =
+  (* The signal is sent as a channel of its changes, and its value. *)
+  let (channel, _), value, _ =
+    (Page.receive signal : (_ Eliom.Comet_base.wrapped_channel * _) * _ * _)
+  in
+  Comet_info.of_wrapped channel, value
