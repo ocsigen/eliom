@@ -106,6 +106,10 @@ module DynArray = struct
   let make () = ref (Array.make (1 lsl (bits - 1)) none)
   let get a i = !a.(i)
   let set a i v = !a.(i) <- v
+
+  (* When a block has two indices [drop] and [keep], what was computed for
+     [drop] is kept for [keep]. *)
+  let merge a ~keep ~drop = if get a keep == none then set a keep (get a drop)
 end
 
 let resize_count = ref 0
@@ -130,8 +134,10 @@ module Tbl = struct
       mutable gc : int
     ; (* Last minor GC cycle where the
                                     table was accurate *)
-      on_resize : (int -> unit) list }
-  (* Functions called on resize *)
+      on_resize : (int -> unit) list
+    ; (* Functions called on resize *)
+      on_merge : (keep:int -> drop:int -> unit) list }
+  (* Functions called when a block moved by the GC has two indices *)
 
   let cst =
     (* Fibonacci hash: 2 ^ Sys.int_size / phi *)
@@ -160,7 +166,12 @@ module Tbl = struct
         tbl.obj.(h) <- x;
         tbl.idx.(h) <- idx)
       else if y == x
-      then tbl.idx.(h) <- max idx tbl.idx.(h) (* Keep largest index *)
+      then (
+        (* Keep the largest index, with what was computed for the other *)
+        let keep = max idx tbl.idx.(h)
+        and drop = min idx tbl.idx.(h) in
+        tbl.idx.(h) <- keep;
+        List.iter (fun f -> f ~keep ~drop) tbl.on_merge)
       else insert tbl ((h + 1) land (tbl.size - 1)) x idx
     in
     for i = 0 to old_size - 1 do
@@ -176,8 +187,16 @@ module Tbl = struct
     let obj = Array.make size none in
     let idx = Array.make size (-1) in
     let on_resize = List.map DynArray.check_size tbls in
+    let on_merge = List.map DynArray.merge tbls in
     let gc = gc_count () in
-    {size; shift = Sys.int_size - bits; occupancy = 0; obj; idx; gc; on_resize}
+    { size
+    ; shift = Sys.int_size - bits
+    ; occupancy = 0
+    ; obj
+    ; idx
+    ; gc
+    ; on_resize
+    ; on_merge }
 
   let rec allocate_rec tbl x i =
     if tbl.obj.(i) == x
