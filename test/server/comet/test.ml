@@ -1,6 +1,6 @@
 (* Tests of Comet channels, requested by a native client as the client-side
-   program of Eliom does. Requests of data that expect none are idle: a
-   waiting request is answered after 20 s by the server. *)
+   program of Eliom does. Requests of data that expect none are idle: the
+   test server answers a waiting request after 1 s. *)
 
 open Eliom_test_server
 open Eliom_test_client
@@ -36,6 +36,14 @@ let channel ?size server =
   let info = Comet_info.of_string info in
   let+ () = C.register tab info in
   tab, info
+
+(* [raises msg exn p] checks that the request [p ()] fails with [exn]. *)
+let raises msg exn p =
+  Lwt.catch
+    (fun () ->
+       let+ _ = p () in
+       Alcotest.failf "%s: answered" msg)
+    (fun e -> if e = exn then Lwt.return_unit else Lwt.fail e)
 
 let push tab v = Lwt.map ignore (text tab ("/stateful/push?v=" ^ v))
 
@@ -99,21 +107,29 @@ let stateful server =
     ; case "closed client process" (fun server ->
         let* tab, info = channel server in
         let* _ = text tab "/discard" in
-        Lwt.catch
-          (fun () ->
-             let+ _ = C.request ~idle:true tab info 1 in
-             Alcotest.fail "answered")
-          (function C.State_closed -> Lwt.return_unit | e -> Lwt.fail e))
+        raises "request" C.State_closed (fun () ->
+          C.request ~idle:true tab info 1))
     ; case "other browser" (fun server ->
         (* The service of the channel is registered for its client process
            only. *)
         let* _, info = channel server in
         let other = Tab.create (Browser.create server) in
-        Lwt.catch
-          (fun () ->
-             let+ _ = C.request ~idle:true other info 1 in
-             Alcotest.fail "answered")
-          (function C.State_closed -> Lwt.return_unit | e -> Lwt.fail e)) ] )
+        raises "request" C.State_closed (fun () ->
+          C.request ~idle:true other info 1))
+    ; case "timeout" (fun server ->
+        let* tab, info = channel server in
+        let start = Unix.gettimeofday () in
+        let+ () = raises "request" C.Timeout (fun () -> C.request tab info 1) in
+        let d = Unix.gettimeofday () -. start in
+        (* The test server answers after 1 s. *)
+        if d < 0.8 || d > 5. then Alcotest.failf "answered after %.2f s" d)
+    ; case "unknown channel" (fun server ->
+        (* The channel may be created later: it is waited for. *)
+        let* tab, info = channel server in
+        let unknown = {info with channel = info.channel ^ "-unknown"} in
+        let* () = C.register tab unknown in
+        let+ m = C.request ~idle:true tab unknown 1 in
+        check "no data" [] m) ] )
 
 let stateless server =
   let site name =
@@ -163,10 +179,90 @@ let stateless server =
         let* _ = text tab "/newest/push?v=1" in
         let* _ = text tab "/newest/push?v=2" in
         let+ m = C.request_stateless a info (Eliom.Comet_base.Last (Some 5)) in
-        Alcotest.(check (list (option string))) "last" [Some "2"] (values m)) ]
+        Alcotest.(check (list (option string))) "last" [Some "2"] (values m))
+    ; case "timeout" (fun _ ->
+        (* No message comes after this index: answered with no data *)
+        let* a, _, info = site "stateless" in
+        let+ m = C.request_stateless a info (Eliom.Comet_base.After max_int) in
+        Alcotest.(check (list (option string))) "no data" [] (values m))
+    ; case "unknown channel" (fun _ ->
+        let* a, _, info = site "stateless" in
+        let unknown = {info with channel = info.channel ^ "-unknown"} in
+        let+ m =
+          C.request_stateless a unknown (Eliom.Comet_base.Last (Some 1))
+        in
+        match m with
+        | [(id, C.Closed)] when id = unknown.channel -> ()
+        | _ -> Alcotest.fail "closed expected")
+    ; case "external channel" (fun _ ->
+        (* The channel "stateless", declared as a channel of another server *)
+        let* a, tab, info = site "stateless" in
+        let* ext = text tab "/external/info" in
+        let ext = Comet_info.of_string ext in
+        Alcotest.(check string) "url" ("http://eliom-test" ^ info.url) ext.url;
+        Alcotest.(check (list (pair string string)))
+          "hidden parameters" info.post_params ext.post_params;
+        Alcotest.(check string) "idle" info.idle_param ext.idle_param;
+        Alcotest.(check string) "request" info.request_param ext.request_param;
+        Alcotest.(check string) "channel" info.channel ext.channel;
+        let* _ = text tab "/stateless/push?v=e" in
+        let+ m =
+          C.request_stateless a {ext with url = info.url}
+            (Eliom.Comet_base.Last (Some 1))
+        in
+        Alcotest.(check (list (option string))) "last" [Some "e"] (values m)) ]
   )
+
+(* Requests that the client-side program does not send *)
+let errors server =
+  let module B = Eliom.Comet_base in
+  let post tab (c : Comet_info.t) params =
+    Tab.post tab c.url (c.post_params @ params)
+  in
+  let request (c : Comet_info.t) r =
+    [c.request_param, Deriving_Json.to_string B.comet_request_json r]
+  in
+  let status msg expected (r : Browser.response) =
+    Alcotest.(check int) msg expected r.status
+  in
+  let comet_error msg (r : Browser.response) =
+    status msg 200 r;
+    match Deriving_Json.from_string B.answer_json r.body with
+    | B.Comet_error _ -> ()
+    | _ -> Alcotest.failf "%s: Comet_error expected" msg
+  in
+  let stateless tab =
+    let+ info = text tab "/stateless/info" in
+    Comet_info.of_string info
+  in
+  let case = case server in
+  ( "errors"
+  , [ case "stateless, without parameters" (fun server ->
+        let tab = Tab.create (Browser.create server) in
+        let* info = stateless tab in
+        let+ r = Tab.get tab info.url in
+        comet_error "answer" r)
+    ; case "stateless, malformed" (fun server ->
+        (* Typing error of the parameters *)
+        let tab = Tab.create (Browser.create server) in
+        let* info = stateless tab in
+        let+ r = post tab info [info.request_param, "garbage"] in
+        status "status" 400 r)
+    ; case "stateless, stateful request" (fun server ->
+        let tab = Tab.create (Browser.create server) in
+        let* info = stateless tab in
+        let+ r = post tab info (request info (B.Stateful (B.Request_data 1))) in
+        comet_error "answer" r)
+    ; case "stateful, malformed" (fun server ->
+        let* tab, info = channel server in
+        let+ r = post tab info [info.request_param, "garbage"] in
+        status "status" 400 r)
+    ; case "stateful, stateless request" (fun server ->
+        let* tab, info = channel server in
+        let+ r = post tab info (request info (B.Stateless [||])) in
+        comet_error "answer" r) ] )
 
 let () =
   Server_harness.with_server "./server.exe" (fun server ->
     Alcotest.run ~and_exit:false "eliom-server-comet"
-      [stateful server; stateless server])
+      [stateful server; stateless server; errors server])

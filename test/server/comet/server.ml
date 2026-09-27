@@ -16,6 +16,9 @@ let get path params =
 let string service f = Registration.String.register ~service f
 let tab_scope = Common.default_process_scope
 
+(* Requests waiting for data are answered after 1 s. *)
+let () = Config.set_comet_timeout 1.
+
 (* A channel of the client process of the request, whose stream is pushed by
    /stateful/push and ended by /stateful/end *)
 
@@ -64,5 +67,15 @@ let () =
   site_channel ~name:"stateless"
     (Comet.Channel.create ~scope:`Site ~name:"site");
   site_channel ~name:"newest" (Comet.Channel.create_newest ~name:"newest")
+
+(* The channel "site", declared as a channel of another server, here the
+   same one *)
+let () =
+  let channel =
+    Comet.Channel.external_channel ~prefix:"http://eliom-test" ~name:"site" ()
+  in
+  string
+    (get ["external"; "info"] P.unit)
+    (fun () () -> text (Info.to_string (Info.of_channel channel)))
 
 let () = Eliom_test_server.Server_harness.start [App.run ()]
