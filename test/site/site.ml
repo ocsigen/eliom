@@ -8,7 +8,7 @@ let config_info =
   ; default_httpport = http_port
   ; default_httpsport = https_port }
 
-let init ?(site_dir = []) ~app f =
+let init ?(config_info = config_info) ?(site_dir = []) ~app f =
   let result = ref None in
   Eliom.Service.register_eliom_module app (fun () ->
     Eliom.Syntax.set_global true;

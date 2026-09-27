@@ -219,10 +219,32 @@ let eref_from_fun ~scope ?secure ?persistent f : 'a eref =
 let eref ~scope ?secure ?persistent v =
   eref_from_fun_ ~ext:true ~scope ?secure ?persistent (fun () -> v)
 
-let get_site_id () =
-  let sd = Common.get_site_data () in
-  (Common.get_config_info sd).Ocsigen.Extensions.default_hostname ^ ":"
-  ^ Common.get_site_dir_string sd
+(* A site is identified by its directory, as in the names of the cookies of
+   its sessions, and not by a host name, which can change with the machine
+   or the configuration. *)
+let get_site_id () = Common.get_site_dir_string (Common.get_site_data ())
+
+(* The value of the site [site_id] in the table [t] of a persistent site
+   reference. The current site is known only until the end of its
+   initialisation: its id is computed before waiting. *)
+let get_site_value (type a) (t : a typed_table) default site_id : a Lwt.t =
+  let module T =
+    (val t : Common.Ocsipersist.TABLE with type key = string and type value = a)
+  in
+  let reset () =
+    let value = default () in
+    let* () = T.add site_id value in
+    Lwt.return value
+  in
+  Lwt.catch
+    (fun () -> T.find site_id)
+    (function Not_found -> reset () | exc -> reset_unreadable ~reset exc)
+
+let set_site_value (type a) (t : a typed_table) site_id (value : a) =
+  let module T =
+    (val t : Common.Ocsipersist.TABLE with type key = string and type value = a)
+  in
+  T.add site_id value
 
 let get (type a) ({default = f; kind = table; _} as eref) : a Lwt.t =
   match (table : a eref_kind) with
@@ -250,20 +272,7 @@ let get (type a) ({default = f; kind = table; _} as eref) : a Lwt.t =
            let* v = Store_json.get r in
            match v with Some v -> Lwt.return v | None -> reset ())
         (reset_unreadable ~reset)
-  | Ocsiper_sit t ->
-      let module T =
-        (val t
-          : Common.Ocsipersist.TABLE with type key = string and type value = a)
-      in
-      let site_id = get_site_id () in
-      let reset () =
-        let value = f () in
-        let* () = T.add site_id value in
-        Lwt.return value
-      in
-      Lwt.catch
-        (fun () -> T.find site_id)
-        (function Not_found -> reset () | exc -> reset_unreadable ~reset exc)
+  | Ocsiper_sit t -> get_site_value t f (get_site_id ())
   | _ -> Lwt.return (Volatile.get eref)
 
 let set (type a) ({kind = table; _} as eref) (value : a) =
@@ -274,17 +283,18 @@ let set (type a) ({kind = table; _} as eref) (value : a) =
   | Ocsiper r ->
       let* r = r in
       Store_json.set r (Some value)
-  | Ocsiper_sit t ->
-      let module T =
-        (val t
-          : Common.Ocsipersist.TABLE with type key = string and type value = a)
-      in
-      T.add (get_site_id ()) value
+  | Ocsiper_sit t -> set_site_value t (get_site_id ()) value
   | _ -> Lwt.return (Volatile.set eref value)
 
-let modify eref f =
-  let* x = get eref in
-  set eref (f x)
+let modify ({default; kind = table; _} as eref) f =
+  match table with
+  | Ocsiper_sit t ->
+      let site_id = get_site_id () in
+      let* x = get_site_value t default site_id in
+      set_site_value t site_id (f x)
+  | _ ->
+      let* x = get eref in
+      set eref (f x)
 
 let unset (type a) ({kind = table; _} as eref) =
   match (table : a eref_kind) with
