@@ -168,9 +168,9 @@
    timeout of service states.
 ** State.set_max_service_states_for_group_or_subnet and
    set_max_volatile_data_states_for_group_or_subnet with a session group
-   scope now change the limit of the right group. They used to look the
-   group up in each other's table, so the limit was applied to the wrong
-   group, or not at all.
+   scope now change the maximum number of session groups of the site also
+   when the group has no state of the other kind. They looked the group up
+   in each other's table, and did nothing in that case.
 ** State.unset_service_session_group now keeps a browser service session
    that still has tab service sessions. It used to count the tab data
    sessions instead, and could close a browser session in use.
