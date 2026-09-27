@@ -1,0 +1,11 @@
+(executable
+ (name server)
+ (modules server)
+ (libraries eliom.server ocsipersist-sqlite eliom_test_server))
+
+(test
+ (name test)
+ (modules test)
+ (package eliom)
+ (deps server.exe)
+ (libraries eliom_test_server uri alcotest))
