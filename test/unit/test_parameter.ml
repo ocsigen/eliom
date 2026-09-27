@@ -204,6 +204,8 @@ let test_decode_errors () =
   check_wrong_parameter "unit with a parameter" (fun () ->
     decode unit ["i", "1"]);
   check_typing_error "not an int" ["i"] (fun () -> decode (int "i") ["i", "x"]);
+  check_typing_error "not the JSON of an int" ["j"] (fun () ->
+    decode (ocaml "j" [%json: int]) ["j", "x"]);
   check_typing_error "all the errors of a product" ["a"; "b"] (fun () ->
     decode (int "a" ** float "b") ["a", "x"; "b", "y"]);
   check_typing_error "error in a list" ["l.x[1]"] (fun () ->

@@ -350,6 +350,10 @@
    values were lost when the machine or its name changed (a new container,
    for instance). Sites at the same path of different virtual hosts now
    share the values.
+** A malformed value of a Parameter.ocaml parameter is now a typing error of
+   the parameters, as for the other types of parameters: the server answers
+   400 or calls the error handler of the service. The Failure of the JSON
+   decoder escaped, and the server answered 500 and logged an error.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type

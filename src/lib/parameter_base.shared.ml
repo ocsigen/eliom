@@ -844,9 +844,11 @@ let reconstruct_params_ typ params files nosuffixversion urlsuffix : 'a =
         match parse_suffix s urlsuffix with
         | p, [] -> Res_ (p, params, files)
         | _ -> raise Common.Eliom_Wrong_parameter))
-    | TJson (name, Some typ) ->
-        let v, l = List.assoc_remove (pref ^ name ^ suff) params in
-        Res_ (of_json ~typ v, l, files)
+    | TJson (name, Some typ) -> (
+        let n = pref ^ name ^ suff in
+        let v, l = List.assoc_remove n params in
+        try Res_ (of_json ~typ v, l, files)
+        with Failure _ as e -> Errors_ ([n, v, e], l, files))
     | TJson (_name, None) -> assert false
     (* Never unmarshal server side without type! *)
     | TRaw_post_data -> raise Common.Eliom_Wrong_parameter
