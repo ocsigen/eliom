@@ -253,6 +253,40 @@ let () =
          | Some "none" -> uri ~keep_nl_params:`None ()
          | Some k -> invalid_arg k))
 
+(* An action that sets a cookie of path /cookie_page/a, then reloads the
+   page, which tells whether the request has the cookie *)
+
+let cookie_page = get ["cookie_page"] P.(suffix (all_suffix "s"))
+
+let () =
+  string cookie_page (fun _ () ->
+    text
+      (match
+         Ocsigen_cookie_map.Map_inner.find_opt "test_action"
+           (Request_info.get_cookies ())
+       with
+      | Some v -> "cookie " ^ v
+      | None -> "no cookie"))
+
+let set_cookie =
+  Service.create ~path:Service.No_path ~meth:(Service.Post (P.unit, P.unit)) ()
+
+let () =
+  Registration.Action.register ~options:`Reload ~service:set_cookie
+    (fun () () ->
+       State.set_cookie ~path:["cookie_page"; "a"] ~name:"test_action"
+         ~value:"set" ();
+       Lwt.return_unit)
+
+(* The POST parameters of the action, one per line, the name and the value
+   separated by a tab *)
+let () =
+  string (get ["set_cookie"] P.unit) (fun () () ->
+    let _, _, _, params =
+      Eliom_uri.make_post_uri_components ~service:set_cookie () ()
+    in
+    text (String.concat "\n" (List.map (fun (n, v) -> n ^ "\t" ^ v) params)))
+
 (* The file served by /file, in the directory of the server *)
 let () =
   Out_channel.with_open_bin

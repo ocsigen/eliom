@@ -275,6 +275,34 @@ let non_localized server =
           ; "all", "persistent=p transient=t"
           ; "none", "persistent=none transient=none" ]) ] )
 
+let actions server =
+  let case = case server in
+  (* [set_cookie b path] posts the action /set_cookie, which sets a cookie of
+     path /cookie_page/a, from the page [path] *)
+  let set_cookie b path =
+    let* params = body b "/set_cookie" in
+    let params =
+      List.map
+        (fun p ->
+           match String.index_opt p '\t' with
+           | Some i ->
+               String.sub p 0 i, String.sub p (i + 1) (String.length p - i - 1)
+           | None -> Alcotest.failf "wrong POST parameter %S" p)
+        (String.split_on_char '\n' params)
+    in
+    Browser.post b path params
+  in
+  ( "actions"
+  , [ case "reload" (fun b ->
+        (* The page is generated again, with the cookies set by the action *)
+        let+ r = set_cookie b "/cookie_page/a/b" in
+        check_response "page" ~status:200 ~body:"cookie set" r)
+    ; case "cookie of a path, and a slash in a segment" (fun b ->
+        (* The segment a%2Fb is not a/b: the cookie of path /cookie_page/a is
+           not for the page, as a browser would not send it. *)
+        let+ r = set_cookie b "/cookie_page/a%2Fb" in
+        check_response "page" ~status:200 ~body:"no cookie" r) ] )
+
 let () =
   Server_harness.with_server "./server.exe" (fun server ->
     Alcotest.run ~and_exit:false "eliom-server-services"
@@ -282,4 +310,5 @@ let () =
       ; parameters server
       ; suffixes server
       ; outputs server
-      ; non_localized server ])
+      ; non_localized server
+      ; actions server ])
