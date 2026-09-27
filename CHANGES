@@ -337,6 +337,10 @@
    ~scope:`Site) now keeps the stream of its messages alive as long as the
    channel. A stream made from a React event was kept by nothing else, and
    the channel stopped receiving messages after a garbage collection.
+** Reference.modify on a persistent reference of site scope, started during
+   the initialisation of a site, no longer fails with
+   Site_information_not_available when it ends after the initialisation
+   (for instance when run by Lwt.async).
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type

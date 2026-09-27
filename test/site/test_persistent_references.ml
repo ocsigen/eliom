@@ -38,6 +38,19 @@ let test_site_scope () =
   Alcotest.(check int) "same site" 2 kept;
   Alcotest.(check int) "unset" 0 unset
 
+let test_modify_later () =
+  (* A modification started during the initialisation of a site, for
+     instance by [Lwt.async], can end after it. *)
+  let r = site_eref "test_modify_later" 0 in
+  let modification =
+    Site.init ~site_dir:["m"] ~app:"modify-later" (fun () ->
+      Reference.modify r succ)
+  in
+  Lwt_main.run modification;
+  Alcotest.(check int)
+    "modified" 1
+    (on_site ~app:"modify-later-again" ["m"] (fun () -> Reference.get r))
+
 let test_site_identity () =
   (* A site is identified by its directory and the default host name of its
      host: sites of different hosts with the same default host name share
@@ -122,6 +135,8 @@ let test_unreadable () =
 let suite =
   ( "persistent references"
   , [ Alcotest.test_case "site scope" `Quick test_site_scope
+    ; Alcotest.test_case "modification ending after the initialisation" `Quick
+        test_modify_later
     ; Alcotest.test_case "site identity" `Quick test_site_identity
     ; Alcotest.test_case "default value stored" `Quick test_default_stored
     ; Alcotest.test_case "global scope" `Quick test_global_scope
