@@ -55,7 +55,9 @@ val eref :
     (typically [\[%json: t\]] when [t] has [\[@@deriving json\]]).
     Be very careful to use unique names, and to change the name if
     you change the type of the data. This parameter has no effect for
-    scope {!Common.request_scope}.
+    scope {!Common.request_scope}. With scope {!Common.site_scope}, a
+    site is identified by its directory, as for sessions: sites at the
+    same path of different virtual hosts share the value.
 
     Use the optional parameter [~secure:true] if you want the data to
     be available only using HTTPS. This parameter has no effect for

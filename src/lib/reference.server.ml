@@ -219,10 +219,10 @@ let eref_from_fun ~scope ?secure ?persistent f : 'a eref =
 let eref ~scope ?secure ?persistent v =
   eref_from_fun_ ~ext:true ~scope ?secure ?persistent (fun () -> v)
 
-let get_site_id () =
-  let sd = Common.get_site_data () in
-  (Common.get_config_info sd).Ocsigen.Extensions.default_hostname ^ ":"
-  ^ Common.get_site_dir_string sd
+(* A site is identified by its directory, as in the names of the cookies of
+   its sessions, and not by a host name, which can change with the machine
+   or the configuration. *)
+let get_site_id () = Common.get_site_dir_string (Common.get_site_data ())
 
 (* The value of the site [site_id] in the table [t] of a persistent site
    reference. The current site is known only until the end of its

@@ -52,24 +52,16 @@ let test_modify_later () =
     (on_site ~app:"modify-later-again" ["m"] (fun () -> Reference.get r))
 
 let test_site_identity () =
-  (* A site is identified by its directory and the default host name of its
-     host: sites of different hosts with the same default host name share
-     their values. *)
+  (* A site is identified by its directory only: its values are kept when the
+     default host name changes, with the machine or the configuration. *)
   let r = site_eref "test_site_identity" 0 in
   on_site ~app:"identity" ["s"] (fun () -> Reference.set r 1);
   let other_host =
     {Site.config_info with Ocsigen.Extensions.default_hostname = "example.com"}
   in
   Alcotest.(check int)
-    "other default host name" 0
+    "other default host name" 1
     (on_site ~config_info:other_host ~app:"identity-other-host" ["s"] (fun () ->
-       Reference.get r));
-  let same_name =
-    {Site.config_info with Ocsigen.Extensions.default_httpport = 8081}
-  in
-  Alcotest.(check int)
-    "same default host name" 1
-    (on_site ~config_info:same_name ~app:"identity-same-name" ["s"] (fun () ->
        Reference.get r))
 
 let test_default_stored () =

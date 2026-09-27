@@ -341,6 +341,12 @@
    the initialisation of a site, no longer fails with
    Site_information_not_available when it ends after the initialisation
    (for instance when run by Lwt.async).
+** A persistent Eliom reference of site scope identifies a site by its
+   directory only, as sessions do, and no longer by the default host name of
+   its host, which depends on the machine when it is not configured: the
+   values were lost when the machine or its name changed (a new container,
+   for instance). Sites at the same path of different virtual hosts now
+   share the values.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
