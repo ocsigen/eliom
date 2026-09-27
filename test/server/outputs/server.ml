@@ -1,5 +1,5 @@
-(* The test server of test.ml: actions that reload the page, and services
-   sending OCaml values. *)
+(* The test server of test.ml: actions that reload the page, services
+   sending OCaml values, and pages of an application. *)
 
 open Eliom
 module P = Parameter
@@ -53,6 +53,37 @@ let () =
          ~meth:(Service.Get P.(int "i"))
          ())
     (fun i () -> if i < 0 then failwith "negative" else Lwt.return (i + 1))
+
+(* Pages of an application. They tell whether the request is the first one
+   of the client process. *)
+
+module Test_app = Registration.App (struct
+    let application_name = "test_app"
+    let global_data_path = None
+  end)
+
+let app_page ?(scripts = []) () =
+  Lwt.return
+    Content.Html.F.(
+      html
+        (head (title (txt "app")) scripts)
+        (body
+           [ p
+               [ txt
+                   (if Test_app.is_initial_request ()
+                    then "initial request"
+                    else "request of the client process") ] ]))
+
+let () =
+  Test_app.register ~service:(get ["app"] P.unit) (fun () () -> app_page ())
+
+let () =
+  Test_app.register ~service:(get ["app_with_script"] P.unit) (fun () () ->
+    app_page ~scripts:[Test_app.application_script ()] ())
+
+let () =
+  Test_app.register ~options:{Registration.do_not_launch = true}
+    ~service:(get ["app_not_launched"] P.unit) (fun () () -> app_page ())
 
 (* Links to the actions *)
 

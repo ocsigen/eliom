@@ -1,5 +1,5 @@
-(* Tests of actions that reload the page, and of services sending OCaml
-   values. *)
+(* Tests of actions that reload the page, of services sending OCaml values,
+   and of the pages of an application. *)
 
 open Eliom_test_server
 open Lwt.Syntax
@@ -15,6 +15,21 @@ let body b url =
   let+ r = Browser.get b url in
   check_response url ~status:200 r;
   r.body
+
+(* The number of occurrences of [sub] in [s] *)
+let occurrences s sub =
+  let n = String.length sub in
+  let rec count i acc =
+    if i + n > String.length s
+    then acc
+    else if String.sub s i n = sub
+    then count (i + n) (acc + 1)
+    else count (i + 1) acc
+  in
+  count 0 0
+
+let check_occurrences msg expected s sub =
+  Alcotest.(check int) msg expected (occurrences s sub)
 
 (* [case server name f] is a test that runs [f b] with a new browser [b]. *)
 let case server name f =
@@ -79,7 +94,41 @@ let ocaml server =
         | `Failure code -> Alcotest.(check int) "code" 6 (String.length code)
         | `Success _ -> Alcotest.fail "success") ] )
 
+let app server =
+  let case = case server in
+  ( "App"
+  , [ case "page" (fun b ->
+        let+ r = Browser.get b "/app" in
+        check_response "page" ~status:200 r;
+        Alcotest.(check (option string))
+          "application" (Some "test_app")
+          (Browser.header r "x-eliom-application");
+        Alcotest.(check (option string))
+          "content type" (Some "text/html")
+          (Browser.header r "content-type");
+        check_occurrences "data of the site" 1 r.body "__eliom_appl_sitedata =";
+        check_occurrences "data of the request" 1 r.body
+          "__eliom_request_data =";
+        check_occurrences "program" 1 r.body {|src="./test_app.js"|};
+        check_occurrences "content" 1 r.body "<p>initial request</p>")
+    ; case "program given by the page" (fun b ->
+        let+ page = body b "/app_with_script" in
+        check_occurrences "program" 1 page {|src="./test_app.js"|})
+    ; case "not launched" (fun b ->
+        let+ page = body b "/app_not_launched" in
+        check_occurrences "program" 0 page "test_app.js";
+        check_occurrences "data of the request" 0 page "__eliom_request_data";
+        check_occurrences "content" 1 page "<p>initial request</p>")
+    ; case "request of the client process" (fun b ->
+        (* The tab cookies of the first page tell the application. *)
+        let tab = Eliom_test_client.Tab.create b in
+        let* r = Eliom_test_client.Tab.get tab "/app" in
+        check_occurrences "first" 1 r.body "<p>initial request</p>";
+        let+ r = Eliom_test_client.Tab.get tab "/app" in
+        check_occurrences "next" 1 r.body "<p>request of the client process</p>")
+    ] )
+
 let () =
   Server_harness.with_server "./server.exe" (fun server ->
     Alcotest.run ~and_exit:false "eliom-server-outputs"
-      [actions server; ocaml server])
+      [actions server; ocaml server; app server])
