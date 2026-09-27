@@ -1,3 +1,6 @@
 let () =
   Alcotest.run "eliom-unit"
-    [Test_parameter.suite; Test_uri.suite; Test_sessiongroups.suite]
+    [ Test_parameter.suite
+    ; Test_uri.suite
+    ; Test_sessiongroups.suite
+    ; Test_cookies.suite ]
