@@ -95,6 +95,23 @@ let test_registered_twice () =
   | exception Eliom.Common.Eliom_duplicate_registration path ->
       Alcotest.(check string) "path" "a" path
 
+let test_current_site_restored () =
+  (* Once a site is initialised, even when its check fails, the services
+     created afterwards go to the default site of the program again, which
+     has no directory, since the tests do not run the default application. *)
+  let current_site_dir () = (Eliom.Common.get_current_sitedata ()).site_dir in
+  Site.init ~site_dir:["ok"] ~app:"restored-ok" ignore;
+  Alcotest.(check (option (list string)))
+    "after a site" None (current_site_dir ());
+  (match
+     Site.init ~site_dir:["failed"] ~app:"restored-failed" (fun () ->
+       ignore (service ["a"]))
+   with
+  | () -> Alcotest.fail "unregistered service accepted"
+  | exception Eliom.Common.Eliom_there_are_unregistered_services _ -> ());
+  Alcotest.(check (option (list string)))
+    "after a failed site" None (current_site_dir ())
+
 let suite =
   ( "registration"
   , [ Alcotest.test_case "all registered" `Quick test_all_registered
@@ -102,4 +119,6 @@ let suite =
     ; Alcotest.test_case "unregistered non-attached coservice" `Quick
         test_unregistered_non_attached
     ; Alcotest.test_case "buses" `Quick test_buses
-    ; Alcotest.test_case "registered twice" `Quick test_registered_twice ] )
+    ; Alcotest.test_case "registered twice" `Quick test_registered_twice
+    ; Alcotest.test_case "current site restored" `Quick
+        test_current_site_restored ] )

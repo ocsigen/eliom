@@ -261,6 +261,14 @@
    2 were confused with the markers of the traversal: the wrapper of a
    shared value ran again for 0, the value was sent unwrapped for 1, which
    failed to marshal, and 2 failed an assertion.
+** App.run now checks that the services created during the initialisation
+   of the application are registered, as for a site of a configuration
+   file: it raises Common.Eliom_there_are_unregistered_services for services
+   with a path, so that the server does not start, and warns about
+   non-attached coservices. BREAKING: a statically linked executable that
+   leaves a service with a path unregistered no longer starts. Ocsigen
+   Server checks the sites of a configuration file only, so statically
+   linked applications were never checked.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type

@@ -104,7 +104,11 @@ let run
     omitpersistentstorage;
   (* end sitedata *)
   Common.absolute_change_sitedata sitedata;
-  Mod_main.site_init (ref true);
-  (* Load app: *)
-  Mod_main.load_eliom_module sitedata (Mod_main.Name app) "" [];
+  Fun.protect ~finally:Common.end_current_sitedata (fun () ->
+    Mod_main.site_init (ref true);
+    (* Load app: *)
+    Mod_main.load_eliom_module sitedata (Mod_main.Name app) "" [];
+    (* As at the end of a site of a configuration file (Mod_main.end_init),
+       which Ocsigen Server does not call for sites built by instructions *)
+    Common.verify_all_registered sitedata);
   Mod_pagegen.gen None sitedata
