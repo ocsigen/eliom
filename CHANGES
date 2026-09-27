@@ -136,6 +136,10 @@
    application message (Logs.app).
 ** Eliom_react (client) logs under its own source, eliom:react, instead of
    eliom:comet.
+** On the client, the exceptions passed to Lwt.async_exception_hook are
+   logged with Logs.err (source eliom), followed by the JavaScript stack
+   when the exception carries a JavaScript error, instead of being written
+   with console.error.
 * Bug fixes
 ** Syntax.is_site_available now checks that the sitedata stack is
    actually non-empty during initialisation, instead of just
