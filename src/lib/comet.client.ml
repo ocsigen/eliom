@@ -328,7 +328,12 @@ end = struct
         let tbru =
           (Configuration.get ()).Configuration.time_between_request_unfocused
         in
-        if tbru = Some [0., 0., 0.] (* Always active *)
+        (* The combined configuration holds the idle policies of all the
+           configurations, and the most active one applies *)
+        let always_active =
+          match tbru with Some l -> List.mem (0., 0., 0.) l | None -> false
+        in
+        if always_active
         then `Active
         else
           let now = Js.to_float (new%js Js.date_now)##getTime in

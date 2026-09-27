@@ -196,6 +196,12 @@
 ** On the client, a service handler whose parameters cannot be decoded now
    returns a rejected promise instead of raising the error synchronously
    when the decoding fails immediately.
+** On the client, Comet.Configuration.set_always_active c true now keeps
+   the Comet connection active when the page is hidden, as documented,
+   also when c is the only configuration or when several configurations
+   are set. The combined configuration repeated the idle policies, so the
+   test for an always active configuration never matched, and the client
+   went idle after the timeout, polling without delay.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
