@@ -14,11 +14,26 @@ Call server side services and change the current page.
 module Client_base : sig ... end
 ```
 ```ocaml
+module Client_call : sig ... end
+```
+Low-level calls to services: building the request, sending it, and leaving the application for another page. Internal module.
+
+```ocaml
 module Client_core : sig ... end
 ```
 ```ocaml
+module Client_history : sig ... end
+```
+Pages of the application, the navigation history, and the data associated to each state of the History API. Internal module.
+
+```ocaml
 module Client_main : sig ... end
 ```
+```ocaml
+module Client_relink : sig ... end
+```
+Relinking of a page received from the server: registration of the unique nodes, and binding of Eliom's links, forms, event handlers and client attributes. Internal module.
+
 ```ocaml
 module Client_value : sig ... end
 ```

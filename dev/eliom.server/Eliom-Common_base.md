@@ -166,14 +166,31 @@ val full_state_name_json : full_state_name Deriving_Json.t
 module Full_state_name_table : sig ... end
 ```
 ```ocaml
+type state_cookies = {
+  service_cookies : string Full_state_name_table.t;
+  data_cookies : string Full_state_name_table.t;
+  persistent_cookies : string Full_state_name_table.t;
+}
+```
+```ocaml
+val no_state_cookies : state_cookies
+```
+```ocaml
+type csrf_info = {
+  csrf_id : int; (* Unique id *)
+  csrf_scope : user_scope; (* Scope of the delayed registration, if the service is registered in the global table *)
+  csrf_secure : bool option; (* ?secure parameter of the delayed registration, likewise *)
+}
+```
+```ocaml
 type att_key_serv = 
   | SAtt_no
   | SAtt_named of string
   | SAtt_anon of string
-  | SAtt_csrf_safe of int * user_scope * bool option
+  | SAtt_csrf_safe of csrf_info
   | SAtt_na_named of string
   | SAtt_na_anon of string
-  | SAtt_na_csrf_safe of int * user_scope * bool option
+  | SAtt_na_csrf_safe of csrf_info
 ```
 ```ocaml
 type na_key_serv = 
@@ -184,8 +201,8 @@ type na_key_serv =
   | SNa_post_ of string
   | SNa_get' of string
   | SNa_post' of string
-  | SNa_get_csrf_safe of int * user_scope * bool option
-  | SNa_post_csrf_safe of int * user_scope * bool option
+  | SNa_get_csrf_safe of csrf_info
+  | SNa_post_csrf_safe of csrf_info
 ```
 ```ocaml
 type att_key_req = 
@@ -325,18 +342,10 @@ type sess_info = {
   si_all_get_params : (string * string) list;
   si_all_post_params : (string * string) list option;
   si_all_file_params : (string * Lib.file_info) list option;
-  si_service_session_cookies : string Full_state_name_table.t;
-  si_data_session_cookies : string Full_state_name_table.t;
-  si_persistent_session_cookies : string Full_state_name_table.t;
-  si_secure_cookie_info : string Full_state_name_table.t
-                        * string Full_state_name_table.t
-                        * string Full_state_name_table.t;
-  si_service_session_cookies_tab : string Full_state_name_table.t;
-  si_data_session_cookies_tab : string Full_state_name_table.t;
-  si_persistent_session_cookies_tab : string Full_state_name_table.t;
-  si_secure_cookie_info_tab : string Full_state_name_table.t
-                            * string Full_state_name_table.t
-                            * string Full_state_name_table.t;
+  si_state_cookies : state_cookies;
+  si_secure_state_cookies : state_cookies;
+  si_state_cookies_tab : state_cookies;
+  si_secure_state_cookies_tab : state_cookies;
   si_tab_cookies : string Ocsigen_cookie_map.Map_inner.t;
   si_nonatt_info : na_key_req;
   si_state_info : att_key_req * att_key_req;
@@ -434,11 +443,6 @@ val filter_na_get_params : (string * string) list -> (string * string) list
 ```ocaml
 exception Eliom_404
 ```
-```ocaml
-type ('a, 'b) foundornot = 
-  | Found of 'a
-  | Notfound of 'b
-```
 Service called with wrong parameter names
 
 ```ocaml
@@ -452,7 +456,7 @@ exception Eliom_page_erasing of string
 ```
 ```ocaml
 type 'a dircontent = 
-  | Vide
+  | Empty
   | Table of 'a direlt ref Lib.String.Table.t
 ```
 ```ocaml
@@ -462,6 +466,13 @@ and 'a direlt =
 ```
 ```ocaml
 val empty_dircontent : unit -> 'a dircontent
+```
+```ocaml
+type 'a service_table = {
+  st_generation : int;
+  st_priority : int;
+  st_content : 'a dircontent ref;
+}
 ```
 ```ocaml
 type meth = [ 

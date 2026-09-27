@@ -12,17 +12,27 @@ val get_head :
   Js_of_ocaml.Dom.element Js_of_ocaml.Js.t ->
   Js_of_ocaml.Dom.element Js_of_ocaml.Js.t
 ```
-`select_nodes root` finds the nodes below `root` in the page annotated to be: \* eliom links \* eliom forms \* process unique nodes \* nodes with closures ( events ) \* nodes with attributes
-
+```ocaml
+type selected_nodes = {
+  links : Js_of_ocaml.Dom_html.anchorElement Js_of_ocaml.Dom.nodeList
+          Js_of_ocaml.Js.t; (* Eliom links *)
+  forms : Js_of_ocaml.Dom_html.formElement Js_of_ocaml.Dom.nodeList
+          Js_of_ocaml.Js.t; (* Eliom forms *)
+  process_nodes : Js_of_ocaml.Dom_html.element Js_of_ocaml.Dom.nodeList
+                  Js_of_ocaml.Js.t; (* Process unique nodes *)
+  closure_nodes : Js_of_ocaml.Dom_html.element Js_of_ocaml.Dom.nodeList
+                  Js_of_ocaml.Js.t; (* Nodes with closures (events) *)
+  attrib_nodes : Js_of_ocaml.Dom_html.element Js_of_ocaml.Dom.nodeList
+                 Js_of_ocaml.Js.t; (* Nodes with client attributes *)
+}
+```
 ```ocaml
 val select_nodes : 
   Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t ->
-  Js_of_ocaml.Dom_html.anchorElement Js_of_ocaml.Dom.nodeList Js_of_ocaml.Js.t
-  * Js_of_ocaml.Dom_html.formElement Js_of_ocaml.Dom.nodeList Js_of_ocaml.Js.t
-  * Js_of_ocaml.Dom_html.element Js_of_ocaml.Dom.nodeList Js_of_ocaml.Js.t
-  * Js_of_ocaml.Dom_html.element Js_of_ocaml.Dom.nodeList Js_of_ocaml.Js.t
-  * Js_of_ocaml.Dom_html.element Js_of_ocaml.Dom.nodeList Js_of_ocaml.Js.t
+  selected_nodes
 ```
+`select_nodes root` finds the nodes below `root` annotated by Eliom.
+
 ```ocaml
 val select_request_nodes : 
   Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t ->
@@ -31,12 +41,12 @@ val select_request_nodes :
 `select_request_nodes root` finds the nodes below `root` in the page annotated to be: \* request unique nodes
 
 ```ocaml
-val ancessor : 
+val ancestor : 
   Js_of_ocaml.Dom.node Js_of_ocaml.Js.t ->
   Js_of_ocaml.Dom.node Js_of_ocaml.Js.t ->
   bool
 ```
-`ancessor n1 n2` is true if `n1` is an ancessor of `n2`
+`ancestor n1 n2` is true if `n1` is an ancestor of `n2`
 
 ```ocaml
 val createEvent : 
@@ -106,7 +116,4 @@ val setDocumentScroll : position -> unit
 ```
 ```ocaml
 val test_pageshow_pagehide : unit -> bool
-```
-```ocaml
-val onhashchange : (Js_of_ocaml.Js.js_string Js_of_ocaml.Js.t -> unit) -> unit
 ```

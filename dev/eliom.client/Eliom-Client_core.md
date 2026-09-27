@@ -7,9 +7,14 @@ module Xml = Content_core.Xml
 val section : Logs.src
 ```
 ```ocaml
-val create_buffer : 
-  unit ->
-  ('a -> unit) * (unit -> 'a list) * (unit -> 'a list) * (unit -> unit)
+type 'a buffer = {
+  add : 'a -> unit;
+  get : unit -> 'a list;
+  flush : unit -> 'a list;
+}
+```
+```ocaml
+val create_buffer : unit -> 'a buffer
 ```
 ```ocaml
 module Client_closure : sig ... end
@@ -122,6 +127,9 @@ type client_form_handler =
   bool Lwt.t
 ```
 ```ocaml
+val changes_protocol : bool option -> bool
+```
+```ocaml
 val raw_a_handler : 
   'a Js_of_ocaml__Js.t ->
   (bool * string list) option ->
@@ -183,13 +191,17 @@ val class_list_of_racontent : Xml.acontent -> string list
 val class_list_of_racontent_o : Xml.acontent option -> string list
 ```
 ```ocaml
-val rebuild_class_list : 'a list -> 'a list -> 'a list -> 'a list
+val rebuild_class_list : 
+  current:'a list ->
+  removed:'a list ->
+  added:'a list ->
+  'a list
 ```
 ```ocaml
 val rebuild_class_string : 
-  string list ->
-  string list ->
-  string list ->
+  current:string list ->
+  removed:string list ->
+  added:string list ->
   Js_of_ocaml.Js.js_string Js_of_ocaml.Js.t
 ```
 ```ocaml
@@ -232,9 +244,6 @@ val rebuild_rattrib :
   Js_of_ocaml__Dom_html.element Js_of_ocaml.Js.t ->
   Xml.attrib ->
   unit
-```
-```ocaml
-val delay : (unit -> 'a) -> unit
 ```
 ```ocaml
 module ReactState : sig ... end

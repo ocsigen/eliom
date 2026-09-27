@@ -30,14 +30,14 @@ val counttableelements : (unit -> int) list ref
 ```
 ```ocaml
 val create_volatile_table : 
-  scope:([< Common.user_scope ] as 'b) ->
+  scope:[< Common.user_scope ] ->
   secure:bool ->
-  'b * bool * 'a Common.SessionCookies.t
+  'a Common.SessionCookies.t Common.state_table
 ```
 ```ocaml
 val create_volatile_table_during_session : 
-  scope:([< Common.user_scope ] as 'b) ->
+  scope:[< Common.user_scope ] ->
   secure:bool ->
   Common.sitedata ->
-  'b * bool * 'a Common.SessionCookies.t
+  'a Common.SessionCookies.t Common.state_table
 ```

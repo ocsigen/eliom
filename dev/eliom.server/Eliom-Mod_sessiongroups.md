@@ -10,10 +10,8 @@ val make_full_named_group_name_ :
 ```ocaml
 val make_full_group_name : 
   cookie_level:Common.cookie_level ->
+  sitedata:Common.sitedata ->
   Ocsigen.Request.t ->
-  string ->
-  int ->
-  int ->
   string option ->
   Common.scope Common.sessgrp
 ```
@@ -25,14 +23,7 @@ val make_persistent_full_group_name :
   Common.perssessgrp option
 ```
 ```ocaml
-val getsessgrp : 
-  Common.scope Common.sessgrp ->
-  string * Common.cookie_level * (string, Ipaddr.t) Either.t
-```
-```ocaml
-val getperssessgrp : 
-  Common.perssessgrp ->
-  string * Common.cookie_level * (string, Ipaddr.t) Either.t
+val getperssessgrp : Common.perssessgrp -> Common.full_session_group
 ```
 ```ocaml
 module type MEMTAB = sig ... end

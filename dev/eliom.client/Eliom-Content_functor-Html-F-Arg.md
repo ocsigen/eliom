@@ -2180,7 +2180,7 @@ val attrib_of_service :
   ([ `A | `Form_get | `Form_post ]
    * (bool * string list) option
    * string option
-   * Lib.poly)
+   * Ocsigen_lib_base.poly)
     option
     Eliom_lazy.request ->
   'a Content_core.Html.F.attrib

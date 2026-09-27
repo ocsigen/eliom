@@ -86,6 +86,11 @@ val raw_replaceChildren :
   unit
 ```
 ```ocaml
+val elt_of_node_opt : 
+  Js_of_ocaml__Dom.node Js_of_ocaml.Js.t Js_of_ocaml.Js.Opt.t ->
+  'a F.elt Js_of_ocaml.Js.Opt.t
+```
+```ocaml
 val nth : 'a F.elt -> int -> 'b F.elt option
 ```
 ```ocaml
@@ -440,6 +445,13 @@ module Named : sig ... end
 ```
 ```ocaml
 val appendToBody : ?before:'a F.elt -> 'b F.elt -> unit
+```
+```ocaml
+val get_unique_elt_as : 
+  (Js_of_ocaml__Dom_html.element Js_of_ocaml.Js.t -> 'a Js_of_ocaml.Js.Opt.t) ->
+  string ->
+  'b F.elt ->
+  'a
 ```
 ```ocaml
 val get_unique_elt_input : 

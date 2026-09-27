@@ -277,13 +277,13 @@ val make_list_suffix : int -> string
 val make_suffix : 'a 'c. ('a, [< suff ], 'c) params_type -> 'a -> string list
 ```
 ```ocaml
-val aux : 
+val construct_params_aux : 
   'a 'c. ('a, [< suff ], 'c) params_type ->
   string list option ->
   (string * Mod_parameters.field) list Lib.String.Table.t ->
   'a ->
-  string ->
-  string ->
+  pref:string ->
+  suff:string ->
   (string * Mod_parameters.field) list ->
   string list option
   * (string * Mod_parameters.field) list Lib.String.Table.t

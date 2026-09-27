@@ -164,6 +164,13 @@ exception Eliom_site_information_not_available of string
 Backwards-compatible alias for [`Site_information_not_available`](./#exception-Site_information_not_available). The `Eliom_` prefix is redundant under the `Eliom.Common` namespace; new code should use [`Site_information_not_available`](./#exception-Site_information_not_available) directly.
 
 ```ocaml
+exception Request_information_not_available of string
+```
+That function needs the current request, and cannot be used outside a request, for instance during the initialisation phase of your Eliom module. The argument tells where the request was needed.
+
+This is the case of the functions that act on the session of the current user, such as registering a service with a session, session group or client process scope.
+
+```ocaml
 exception Cannot_call_this_function_before_app_is_linked_to_a_site
 ```
 Statically linked app: You cannot call this function before `App.run`.
@@ -187,6 +194,15 @@ val full_state_name_json : full_state_name Deriving_Json.t
 ```ocaml
 module Full_state_name_table : Map.S with type key = full_state_name
 ```
+```ocaml
+type state_cookies = {
+  service_cookies : string Full_state_name_table.t;
+  data_cookies : string Full_state_name_table.t;
+  persistent_cookies : string Full_state_name_table.t;
+}
+```
+The state cookies sent by a request, for each kind of state. The keys of the tables are the full state names.
+
 ```ocaml
 val eliom_link_too_old : bool Polytables.key
 ```

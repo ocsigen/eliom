@@ -24,6 +24,14 @@ val int :
   Ppxlib.Parsetree.expression
 ```
 ```ocaml
+val str_option : 
+  loc:Ppxlib.Location.t ->
+  string option ->
+  Ppxlib.Parsetree.expression
+```
+The expression `None` or `Some "s"`.
+
+```ocaml
 val id_file_hash : Ppxlib.Location.t -> string Ppxlib.Location.loc
 ```
 Name of the variable which holds the hash of the file.

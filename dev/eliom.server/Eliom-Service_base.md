@@ -584,9 +584,6 @@ val new_state : unit -> string
 val default_csrf_scope : [< Common.user_scope ] option -> Common.user_scope
 ```
 ```ocaml
-exception Unreachable_exn
-```
-```ocaml
 val attached_info : 
   ('a, 'b, 'c, att, 'd, 'e, 'f, [< suff ], 'g, 'h, 'i) t ->
   att

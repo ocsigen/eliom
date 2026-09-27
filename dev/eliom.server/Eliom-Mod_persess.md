@@ -1,7 +1,7 @@
 # Module `Eliom.Mod_persess`
 
 ```ocaml
-val close_persistent_state2 : 
+val close_persistent_state_of_cookie : 
   scope:Common.user_scope ->
   Common.sitedata ->
   Common.perssessgrp option ->

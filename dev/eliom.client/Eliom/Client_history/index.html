@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Module Eliom.Client_history — Eliom</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <link rel="stylesheet" href="/css/ocsigen-odoc.css"/>
+  <link rel="alternate" type="text/markdown" href="../../../eliom.client/Eliom-Client_history.md"/>
+  <script src="../../../highlight.pack.js"></script>
+  <script src="../../../wodoc-highlight.js"></script>
+</head>
+<body class="wodoc-page wodoc-doc wodoc-project-eliom wodoc-client">
+  <!-- Shared site menu — THE single source of truth for the header, top menu and
+     drawer of EVERY Ocsigen doc page (vitrine + all projects). Canonical copy
+     lives here in ocsigen.github.io; each project's build fetches it. Injected
+     by `wodoc assemble --menu`. Holes filled by the tool (braces omitted here so
+     this comment is not itself rewritten by the hole-filler):
+       subproject  the sub-project name shown next to the Ocsigen logo
+                   (empty on the vitrine), via --subproject
+       leftnav     the project's left navigation, expanded into BOTH the mobile
+                   drawer (below) and the left column (in the page template),
+                   via --leftnav
+     The current entry is highlighted by adding the `current` class to the
+     element carrying data-wodoc-page=<id>: --current on the vitrine (page id),
+     --menu-current in a project (the project id). Nothing is hardcoded here, so
+     this file is the ONLY place the menu is defined.
+
+     Links are the FINAL site paths (/<project>/, /<page>): the target layout
+     where each project is served at ocsigen.org/<project>/ — no transitional
+     /wodoc/ prefix. -->
+<div class="page-header">
+  <p class="logo-ocsigen"><a href="/"><img src="/img/ocsigen-white.svg" alt="Ocsigen"/></a></p>
+  <p class="logo-subproject">Eliom</p>
+
+  <div class="mainmenu">
+    <p class="mainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></p>
+    <p class="mainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></p>
+    <p class="mainmenu-blog" data-wodoc-page="blog"><a href="/blog/">Blog</a></p>
+    <p data-wodoc-page="eliom" class="current"><a href="/eliom/">Eliom</a></p>
+    <p data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></p>
+    <p data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></p>
+    <p data-wodoc-page="lwt"><a href="/lwt/">Lwt</a></p>
+    <p data-wodoc-page="tyxml"><a href="/tyxml/">Tyxml</a></p>
+    <p data-wodoc-page="ocsigen-start"><a href="/ocsigen-start/">Start</a></p>
+  </div>
+
+  <form id="googlesearch" action="https://google.com/search">
+    <input name="q" id="gsearch-box" placeholder="Search using Google"/>
+    <label for="gsearch-box"><img src="/img/search.svg" alt="" id="gsearch-icon"/></label>
+    <input type="submit" id="gsearch-submit" onclick="document.getElementById('gsearch-box').value += ' site:ocsigen.org';"/>
+  </form>
+
+  <aside class="how-drawer">
+    <input id="how-drawer-toggle" type="checkbox"/>
+    <label for="how-drawer-toggle" id="how-drawer-label"><span class="how-drawer-icon"></span></label>
+    <nav class="how-drawer-content">
+      <ul class="drawermainmenu">
+        <li class="drawermainmenu-home" data-wodoc-page="githubio"><a href="/">Home</a></li>
+        <li class="drawermainmenu-doc" data-wodoc-page="tuto"><a href="/tuto/">Doc</a></li>
+        <li class="drawermainmenu-project current" data-wodoc-page="eliom"><a href="/eliom/">Eliom</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="js_of_ocaml"><a href="/js_of_ocaml/">Js_of_ocaml</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigenserver"><a href="/ocsigenserver/">Server</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="lwt"><a href="/lwt/">Lwt</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="tyxml"><a href="/tyxml/">Tyxml</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-toolkit"><a href="/ocsigen-toolkit/">Toolkit</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-start"><a href="/ocsigen-start/">Start</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsipersist"><a href="/ocsipersist/">Ocsipersist</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="reactiveData"><a href="/reactiveData/">ReactiveData</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="ocsigen-i18n"><a href="/ocsigen-i18n/">i18n</a></li>
+        <li class="drawermainmenu-project" data-wodoc-page="wodoc"><a href="/wodoc/">Wodoc</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="projects"><a href="/projects">Other projects</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="papers"><a href="/papers">Research papers</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="credits"><a href="/credits">Who does Ocsigen?</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="contributing"><a href="/contributing">Contributing</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="blog"><a href="/blog/">Blog</a></li>
+        <li class="drawermainmenu-page" data-wodoc-page="install"><a href="/install">Installation</a></li>
+        <li class="drawermainmenu-page"><a href="https://github.com/ocsigen">Source code</a></li>
+      </ul>
+      <!-- On mobile the left column is hidden; its menu lives here in the burger
+           (.how-doctree, shown only on narrow screens), as the old site did.
+           Empty on the vitrine; the leftnav hole is filled (with the same
+           fragment as the left column) only on project pages. -->
+      <nav class="how-doctree"><div class="docversion">
+  <label>Version:
+    <select class="wodoc-version" onchange="wodocVersion(this.value)">
+      <option value="dev">dev</option>
+    </select>
+  </label>
+</div>
+<div class="cs-switch">
+  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
+  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+</div>
+<div class="page-toc">
+  <h3>On this page</h3>
+  <nav class="odoc-toc odoc-local-toc"><ul><li><a href="#history-states">History states</a></li><li><a href="#pages">Pages</a></li><li><a href="#history">History</a></li></ul></nav>
+</div>
+<nav class="api-nav manual-nav">
+<h3>Eliom&#x27;s Reference manual</h3>
+<ul class="api-section">
+<li class="ml3" data-wodoc-page="index.html"><a href="../../../index.html">Overview</a></li>
+<li class="ml3" data-wodoc-page="intro.html"><a href="../../../intro.html">Introduction</a></li>
+</ul>
+<h4 class="ml3">Server-side programming</h4>
+<h4 class="ml4">Services</h4>
+<ul class="api-section">
+<li class="ml5" data-wodoc-page="server-services.html"><a href="../../../server-services.html">The different types of services</a></li>
+<li class="ml5" data-wodoc-page="server-params.html"><a href="../../../server-params.html">Typing service parameters</a></li>
+<li class="ml5" data-wodoc-page="server-outputs.html"><a href="../../../server-outputs.html">Service handlers</a></li>
+<li class="ml5" data-wodoc-page="server-links.html"><a href="../../../server-links.html">Creating links and forms</a></li>
+</ul>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="server-state.html"><a href="../../../server-state.html">Sessions and server side state</a></li>
+<li class="ml4" data-wodoc-page="server-security.html"><a href="../../../server-security.html">Security</a></li>
+</ul>
+<h4 class="ml3">Client-server programming</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="clientserver-applications.html"><a href="../../../clientserver-applications.html">Eliom applications</a></li>
+<li class="ml4" data-wodoc-page="ppx-syntax.html"><a href="../../../ppx-syntax.html">Multi-tier programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-html.html"><a href="../../../clientserver-html.html">Generating HTML</a></li>
+<li class="ml4" data-wodoc-page="clientserver-communication.html"><a href="../../../clientserver-communication.html">Communication</a></li>
+<li class="ml4" data-wodoc-page="clientserver-services.html"><a href="../../../clientserver-services.html">Client-side services</a></li>
+<li class="ml4" data-wodoc-page="clientserver-react.html"><a href="../../../clientserver-react.html">Shared reactive programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-cache.html"><a href="../../../clientserver-cache.html">Caching data and off-line applications</a></li>
+<li class="ml4" data-wodoc-page="clientserver-wrapping.html"><a href="../../../clientserver-wrapping.html">Custom wrapping</a></li>
+</ul>
+<h4 class="ml3">Workflows</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="workflow-distillery.html"><a href="../../../workflow-distillery.html">Distillery</a></li>
+<li class="ml4" data-wodoc-page="mobile-apps.html"><a href="../../../mobile-apps.html">Mobile apps</a></li>
+<li class="ml4" data-wodoc-page="workflow-configuration.html"><a href="../../../workflow-configuration.html">Configuration &amp; running</a></li>
+<li class="ml4" data-wodoc-page="scalability.html"><a href="../../../scalability.html">Scalability</a></li>
+</ul>
+</nav>
+
+<nav class="api-nav">
+<h3>Client API</h3>
+<h4>Client API</h4>
+<ul class="api-section">
+<li data-wodoc-page="Lib"><a href="../../../eliom.client/Eliom/Lib/index.html">Lib</a></li>
+<li data-wodoc-page="Client"><a href="../../../eliom.client/Eliom/Client/index.html">Client</a></li>
+<li data-wodoc-page="Client_value"><a href="../../../eliom.client/Eliom/Client_value/index.html">Client_value</a></li>
+</ul>
+<h4>Content and form creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Content.Html"><a href="../../../eliom.client/Eliom/Content/Html/index.html">Content.Html</a></li>
+<li data-wodoc-page="Content.Html.Manip"><a href="../../../eliom.client/Eliom/Content/Html/Manip/index.html">Content.Html.Manip</a></li>
+<li data-wodoc-page="Content.Svg"><a href="../../../eliom.client/Eliom/Content/Svg/index.html">Content.Svg</a></li>
+<li data-wodoc-page="Content.Xml"><a href="../../../eliom.client/Eliom/Content/Xml/index.html">Content.Xml</a></li>
+</ul>
+<h4>Client/server communication</h4>
+<ul class="api-section">
+<li data-wodoc-page="Service"><a href="../../../eliom.client/Eliom/Service/index.html">Service</a></li>
+<li data-wodoc-page="Shared"><a href="../../../eliom.client/Eliom/Shared/index.html">Shared</a></li>
+<li data-wodoc-page="Cscache"><a href="../../../eliom.client/Eliom/Cscache/index.html">Cscache</a></li>
+<li data-wodoc-page="Bus"><a href="../../../eliom.client/Eliom/Bus/index.html">Bus</a></li>
+<li data-wodoc-page="Comet"><a href="../../../eliom.client/Eliom/Comet/index.html">Comet</a></li>
+<li data-wodoc-page="Eliom_react"><a href="../../../eliom.client/Eliom/Eliom_react/index.html">Eliom_react</a></li>
+</ul>
+</nav>
+</nav>
+    </nav>
+  </aside>
+</div>
+
+
+  <div class="project-page">
+    <div class="twocols">
+      <nav class="leftcol">
+        <div class="docversion">
+  <label>Version:
+    <select class="wodoc-version" onchange="wodocVersion(this.value)">
+      <option value="dev">dev</option>
+    </select>
+  </label>
+</div>
+<div class="cs-switch">
+  <button type="button" class="cs-server" onclick="wodocSwitch('server')">Server API</button>
+  <button type="button" class="cs-client" onclick="wodocSwitch('client')">Client API</button>
+</div>
+<div class="page-toc">
+  <h3>On this page</h3>
+  <nav class="odoc-toc odoc-local-toc"><ul><li><a href="#history-states">History states</a></li><li><a href="#pages">Pages</a></li><li><a href="#history">History</a></li></ul></nav>
+</div>
+<nav class="api-nav manual-nav">
+<h3>Eliom&#x27;s Reference manual</h3>
+<ul class="api-section">
+<li class="ml3" data-wodoc-page="index.html"><a href="../../../index.html">Overview</a></li>
+<li class="ml3" data-wodoc-page="intro.html"><a href="../../../intro.html">Introduction</a></li>
+</ul>
+<h4 class="ml3">Server-side programming</h4>
+<h4 class="ml4">Services</h4>
+<ul class="api-section">
+<li class="ml5" data-wodoc-page="server-services.html"><a href="../../../server-services.html">The different types of services</a></li>
+<li class="ml5" data-wodoc-page="server-params.html"><a href="../../../server-params.html">Typing service parameters</a></li>
+<li class="ml5" data-wodoc-page="server-outputs.html"><a href="../../../server-outputs.html">Service handlers</a></li>
+<li class="ml5" data-wodoc-page="server-links.html"><a href="../../../server-links.html">Creating links and forms</a></li>
+</ul>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="server-state.html"><a href="../../../server-state.html">Sessions and server side state</a></li>
+<li class="ml4" data-wodoc-page="server-security.html"><a href="../../../server-security.html">Security</a></li>
+</ul>
+<h4 class="ml3">Client-server programming</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="clientserver-applications.html"><a href="../../../clientserver-applications.html">Eliom applications</a></li>
+<li class="ml4" data-wodoc-page="ppx-syntax.html"><a href="../../../ppx-syntax.html">Multi-tier programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-html.html"><a href="../../../clientserver-html.html">Generating HTML</a></li>
+<li class="ml4" data-wodoc-page="clientserver-communication.html"><a href="../../../clientserver-communication.html">Communication</a></li>
+<li class="ml4" data-wodoc-page="clientserver-services.html"><a href="../../../clientserver-services.html">Client-side services</a></li>
+<li class="ml4" data-wodoc-page="clientserver-react.html"><a href="../../../clientserver-react.html">Shared reactive programming</a></li>
+<li class="ml4" data-wodoc-page="clientserver-cache.html"><a href="../../../clientserver-cache.html">Caching data and off-line applications</a></li>
+<li class="ml4" data-wodoc-page="clientserver-wrapping.html"><a href="../../../clientserver-wrapping.html">Custom wrapping</a></li>
+</ul>
+<h4 class="ml3">Workflows</h4>
+<ul class="api-section">
+<li class="ml4" data-wodoc-page="workflow-distillery.html"><a href="../../../workflow-distillery.html">Distillery</a></li>
+<li class="ml4" data-wodoc-page="mobile-apps.html"><a href="../../../mobile-apps.html">Mobile apps</a></li>
+<li class="ml4" data-wodoc-page="workflow-configuration.html"><a href="../../../workflow-configuration.html">Configuration &amp; running</a></li>
+<li class="ml4" data-wodoc-page="scalability.html"><a href="../../../scalability.html">Scalability</a></li>
+</ul>
+</nav>
+
+<nav class="api-nav">
+<h3>Client API</h3>
+<h4>Client API</h4>
+<ul class="api-section">
+<li data-wodoc-page="Lib"><a href="../../../eliom.client/Eliom/Lib/index.html">Lib</a></li>
+<li data-wodoc-page="Client"><a href="../../../eliom.client/Eliom/Client/index.html">Client</a></li>
+<li data-wodoc-page="Client_value"><a href="../../../eliom.client/Eliom/Client_value/index.html">Client_value</a></li>
+</ul>
+<h4>Content and form creation</h4>
+<ul class="api-section">
+<li data-wodoc-page="Content.Html"><a href="../../../eliom.client/Eliom/Content/Html/index.html">Content.Html</a></li>
+<li data-wodoc-page="Content.Html.Manip"><a href="../../../eliom.client/Eliom/Content/Html/Manip/index.html">Content.Html.Manip</a></li>
+<li data-wodoc-page="Content.Svg"><a href="../../../eliom.client/Eliom/Content/Svg/index.html">Content.Svg</a></li>
+<li data-wodoc-page="Content.Xml"><a href="../../../eliom.client/Eliom/Content/Xml/index.html">Content.Xml</a></li>
+</ul>
+<h4>Client/server communication</h4>
+<ul class="api-section">
+<li data-wodoc-page="Service"><a href="../../../eliom.client/Eliom/Service/index.html">Service</a></li>
+<li data-wodoc-page="Shared"><a href="../../../eliom.client/Eliom/Shared/index.html">Shared</a></li>
+<li data-wodoc-page="Cscache"><a href="../../../eliom.client/Eliom/Cscache/index.html">Cscache</a></li>
+<li data-wodoc-page="Bus"><a href="../../../eliom.client/Eliom/Bus/index.html">Bus</a></li>
+<li data-wodoc-page="Comet"><a href="../../../eliom.client/Eliom/Comet/index.html">Comet</a></li>
+<li data-wodoc-page="Eliom_react"><a href="../../../eliom.client/Eliom/Eliom_react/index.html">Eliom_react</a></li>
+</ul>
+</nav>
+
+      </nav>
+      <article class="rightcol">
+        <header class="odoc-preamble"><h1>Module <code><span>Eliom.Client_history</span></code></h1><p>Pages of the application, the navigation history, and the data associated to each state of the History API. Internal module.</p></header>
+        <div class="odoc-content"><h3 id="history-states">History states</h3><div class="odoc-spec"><div class="spec type anchored" id="type-state"><code><span><span class="keyword">type</span> state</span><span> = </span><span>{</span></code><ol><li id="type-state.template" class="def record field anchored"><code><span>template : <span>string option</span>;</span></code></li><li id="type-state.position" class="def record field anchored"><code><span>position : <a href="../Mod_dom/index.html#type-position">Mod_dom.position</a>;</span></code></li></ol><code><span>}</span></code></div><div class="spec-doc"><p>Data stored in the session storage for each state of the History API.</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-state_id"><code><span><span class="keyword">type</span> state_id</span><span> = </span><span>{</span></code><ol><li id="type-state_id.session_id" class="def record field anchored"><code><span>session_id : int;</span></code></li><li id="type-state_id.state_index" class="def record field anchored"><code><span>state_index : int;</span></code><div class="def-doc"><span class="comment-delim">(*</span><p>point in history</p><span class="comment-delim">*)</span></div></li></ol><code><span>}</span></code></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-saved_state"><code><span><span class="keyword">type</span> saved_state</span><span> = <a href="#type-state_id">state_id</a> * string</span></code></div><div class="spec-doc"><p>The value of <code>history.state</code>: the state id and the URL.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-saved_state_of_json"><code><span><span class="keyword">val</span> saved_state_of_json : <span><a href="../../../../../js_of_ocaml/dev/js_of_ocaml/Deriving_Json_lexer/index.html#type-lexbuf">Deriving_Json_lexer.lexbuf</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-saved_state">saved_state</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-saved_state_to_json"><code><span><span class="keyword">val</span> saved_state_to_json : <span><a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/Buffer/index.html#type-t">Buffer.t</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="#type-saved_state">saved_state</a> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-saved_state_json"><code><span><span class="keyword">val</span> saved_state_json : <span><a href="#type-saved_state">saved_state</a> <a href="../../../../../js_of_ocaml/dev/js_of_ocaml/Deriving_Json/index.html#type-t">Deriving_Json.t</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-session_id"><code><span><span class="keyword">val</span> session_id : int</span></code></div><div class="spec-doc"><p>A random number identifying the current session of the browser tab.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-history_state"><code><span><span class="keyword">val</span> history_state : 
+  <span><a href="#type-state_id">state_id</a> <span class="arrow">&#45;&gt;</span></span>
+  <span>string <span class="arrow">&#45;&gt;</span></span>
+  <span><span><a href="../../../../../js_of_ocaml/dev/js_of_ocaml/Js_of_ocaml/Js/class-type-js_string/index.html">Js_of_ocaml.Js.js_string</a> <a href="../../../../../js_of_ocaml/dev/js_of_ocaml/Js_of_ocaml/Js/index.html#type-t">Js_of_ocaml.Js.t</a></span> <a href="../../../../../js_of_ocaml/dev/js_of_ocaml/Js_of_ocaml/Js/Opt/index.html#type-t">Js_of_ocaml.Js.Opt.t</a></span></span></code></div><div class="spec-doc"><p><code>history_state id uri</code> is the <code>history.state</code> value of the page with state <code>id</code> at <code>uri</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_state"><code><span><span class="keyword">val</span> get_state : <span><a href="#type-state_id">state_id</a> <span class="arrow">&#45;&gt;</span></span> <a href="#type-state">state</a></span></code></div><div class="spec-doc"><p>Reads the data of a state from the session storage. Raises <code>Not_found</code> if there is none.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-update_state"><code><span><span class="keyword">val</span> update_state : <span>unit <span class="arrow">&#45;&gt;</span></span> unit</span></code></div><div class="spec-doc"><p>Saves the template and the scroll position of the active page in the session storage.</p></div></div><h3 id="pages">Pages</h3><div class="odoc-spec"><div class="spec value anchored" id="val-section_page"><code><span><span class="keyword">val</span> section_page : <a href="https://ocaml.org/p/logs/0.10.0/doc/Logs/index.html#type-src">Logs.src</a></span></code></div></div><div class="odoc-spec"><div class="spec module anchored" id="module-Page_status"><code><span><span class="keyword">module</span> <a href="Page_status/index.html">Page_status</a></span><span> : <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div><div class="spec-doc"><p>See <a href="../Client/Page_status/index.html"><code>Client.Page_status</code></a>.</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-page"><code><span><span class="keyword">type</span> page</span><span> = </span><span>{</span></code><ol><li id="type-page.page_unique_id" class="def record field anchored"><code><span>page_unique_id : int;</span></code></li><li id="type-page.page_id" class="def record field anchored"><code><span><span class="keyword">mutable</span> page_id : <a href="#type-state_id">state_id</a>;</span></code></li><li id="type-page.url" class="def record field anchored"><code><span><span class="keyword">mutable</span> url : string;</span></code></li><li id="type-page.page_status" class="def record field anchored"><code><span>page_status : <span><a href="Page_status/index.html#type-t">Page_status.t</a> <a href="https://ocaml.org/p/react/1.2.2/doc/React/S/index.html#type-t">React.S.t</a></span>;</span></code></li><li id="type-page.previous_page" class="def record field anchored"><code><span><span class="keyword">mutable</span> previous_page : <span>int option</span>;</span></code></li><li id="type-page.set_page_status" class="def record field anchored"><code><span>set_page_status : <span><span class="optlabel">?step</span>:<a href="https://ocaml.org/p/react/1.2.2/doc/React/index.html#type-step">React.step</a> <span class="arrow">&#45;&gt;</span></span> <span><a href="Page_status/index.html#type-t">Page_status.t</a> <span class="arrow">&#45;&gt;</span></span> unit;</span></code></li><li id="type-page.dom" class="def record field anchored"><code><span><span class="keyword">mutable</span> dom : <span><span><a href="../../../../../js_of_ocaml/dev/js_of_ocaml/Js_of_ocaml/Dom_html/class-type-bodyElement/index.html">Js_of_ocaml.Dom_html.bodyElement</a> <a href="../../../../../js_of_ocaml/dev/js_of_ocaml/Js_of_ocaml/Js/index.html#type-t">Js_of_ocaml.Js.t</a></span> option</span>;</span></code><div class="def-doc"><span class="comment-delim">(*</span><p>The DOM of the page, when it is cached</p><span class="comment-delim">*)</span></div></li><li id="type-page.reload_function" class="def record field anchored"><code><span><span class="keyword">mutable</span> reload_function : <span><span>(<span>unit <span class="arrow">&#45;&gt;</span></span> <span>unit <span class="arrow">&#45;&gt;</span></span> <span><a href="../Service/index.html#type-result">Service.result</a> <a href="../../../../../lwt/dev/lwt/Lwt/index.html#type-t">Lwt.t</a></span>)</span> option</span>;</span></code></li></ol><code><span>}</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-active_page"><code><span><span class="keyword">val</span> active_page : <span><a href="#type-page">page</a> <a href="https://ocaml.org/p/ocaml-compiler/5.4.0/doc/Stdlib/index.html#type-ref">ref</a></span></span></code></div><div class="spec-doc"><p>The page being displayed.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-set_active_page"><code><span><span class="keyword">val</span> set_active_page : <span><a href="#type-page">page</a> <span class="arrow">&#45;&gt;</span></span> unit</span></code></div><div class="spec-doc"><p>Makes a page the active one, and retires the previous one.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_this_page"><code><span><span class="keyword">val</span> get_this_page : <span>unit <span class="arrow">&#45;&gt;</span></span> <a href="#type-page">page</a></span></code></div><div class="spec-doc"><p>The page the running code is generating, or the active page outside of a page generation.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-with_new_page"><code><span><span class="keyword">val</span> with_new_page : 
+  <span><span class="optlabel">?state_id</span>:<a href="#type-state_id">state_id</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?old_page</span>:<a href="#type-page">page</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">replace</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span>unit <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'a</span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span class="type-var">'a</span></span></code></div><div class="spec-doc"><p><code>with_new_page ~replace () f</code> runs <code>f</code> in the context of a new page, which <code>get_this_page</code> returns. With <code>~replace:true</code>, the new page takes the state id of the active page.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-advance_page"><code><span><span class="keyword">val</span> advance_page : <span>unit <span class="arrow">&#45;&gt;</span></span> unit</span></code></div><div class="spec-doc"><p>Makes the page being generated the active one, and adds it to the history if it is not already there.</p></div></div><h3 id="history">History</h3><div class="odoc-spec"><div class="spec module anchored" id="module-History"><code><span><span class="keyword">module</span> <a href="History/index.html">History</a></span><span> : <span class="keyword">sig</span> ... <span class="keyword">end</span></span></code></div></div></div>
+      </article>
+    </div>
+  </div>
+
+  <script>
+    // Toggle between the server / client API of the same module.
+    function wodocSwitch(side) {
+      var w = { server: 'Eliom/', client: 'Eliom/' };
+      var p = location.pathname;
+      var np = p.replace(/\/eliom\.(server|client)\//, '/eliom.' + side + '/');
+      location.href = np !== p ? np
+        : '../../../eliom.' + side + '/' + (w[side] || '') + 'index.html';
+    }
+    var wodocPub = "/eliom";
+    // Switch version: keep the current page, swapping only the version segment,
+    // unless that page does not exist in the target version (a renamed module,
+    // a merged manual page): then go to that version's index.
+    function wodocVersion(v) {
+      if (!v) return;
+      var re = new RegExp('^(' + wodocPub + '/)[^/]+');
+      var p = location.pathname;
+      var home = wodocPub + '/' + v + '/index.html';
+      if (!re.test(p)) { location.href = home; return; }
+      var target = p.replace(re, '$1' + v);
+      fetch(target, { method: 'HEAD' })
+        .then(function (r) { location.href = r.ok ? target : home; })
+        .catch(function () { location.href = target; });
+    }
+    // Build the version <select> from the project's versions.json (the single
+    // source of truth, refreshed on every build/release), so even older frozen
+    // pages list the current set. Falls back to the baked <option>s on failure.
+    (function () {
+      var seg = (location.pathname.match(
+        new RegExp('^' + wodocPub + '/([^/]+)')) || [])[1];
+      function select(sel) {
+        var i;
+        for (i = 0; i < sel.options.length; i++)
+          if (sel.options[i].value === seg) { sel.selectedIndex = i; return; }
+        if (seg) {
+          var o = document.createElement('option');
+          o.value = seg; o.textContent = seg; o.selected = true;
+          sel.insertBefore(o, sel.firstChild);
+        }
+      }
+      fetch(wodocPub + '/versions.json')
+        .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(function (m) {
+          var list = m.list || [], latest = m.latest;
+          document.querySelectorAll('.wodoc-version').forEach(function (sel) {
+            sel.innerHTML = '';
+            list.forEach(function (v) {
+              var o = document.createElement('option');
+              if (v === latest) { o.value = 'latest'; o.textContent = v + ' (latest)'; }
+              else { o.value = v; o.textContent = v; }
+              sel.appendChild(o);
+            });
+            select(sel);
+          });
+        })
+        .catch(function () {
+          document.querySelectorAll('.wodoc-version').forEach(select);
+        });
+    })();
+  </script>
+</body>
+</html>

@@ -4786,6 +4786,134 @@ type ('a, 'b) server_function_service =
 
 ---
 
+# Module `Eliom.Client_call`
+
+Low-level calls to services: building the request, sending it, and leaving the application for another page. Internal module.
+
+```ocaml
+val create_request_ : 
+  ?absolute:bool ->
+  ?absolute_path:bool ->
+  ?https:bool ->
+  service:
+    ('a, 'b, _, _, _, _, _, [< `WithSuffix | `WithoutSuffix ], _, _, _)
+      Service.t ->
+  ?hostname:string ->
+  ?port:int ->
+  ?fragment:string ->
+  ?keep_nl_params:[ `All | `None | `Persistent ] ->
+  ?nl_params:Parameter.nl_params_set ->
+  ?keep_get_na_params:bool ->
+  'a ->
+  'b ->
+  [ `Get of string * (string * Mod_parameters.param) list
+  | `Post of
+    string
+    * (string * Mod_parameters.param) list
+    * (string * Mod_parameters.param) list
+  | `Put of
+    string
+    * (string * Mod_parameters.param) list
+    * (string * Mod_parameters.param) list
+  | `Delete of
+    string
+    * (string * Mod_parameters.param) list
+    * (string * Mod_parameters.param) list ]
+```
+The URI and the parameters of a request to a service, tagged with its HTTP method. For a ``Get`, the parameters are the GET ones; otherwise they are the GET and the POST ones.
+
+```ocaml
+val raw_call_service : 
+  ?absolute:bool ->
+  ?absolute_path:bool ->
+  ?https:bool ->
+  service:
+    ('a, 'b, _, _, _, _, _, [< `WithSuffix | `WithoutSuffix ], _, _, _)
+      Service.t ->
+  ?hostname:string ->
+  ?port:int ->
+  ?fragment:string ->
+  ?keep_nl_params:[ `All | `None | `Persistent ] ->
+  ?nl_params:Parameter.nl_params_set ->
+  ?keep_get_na_params:bool ->
+  ?progress:(int -> int -> unit) ->
+  ?upload_progress:(int -> int -> unit) ->
+  ?override_mime_type:string ->
+  'a ->
+  'b ->
+  (string * string) Lwt.t
+```
+Calls a service and returns the URI of the response and its content. Fails with `Request.Failed_request 204` if there is no content.
+
+```ocaml
+val call_service : 
+  ?absolute:bool ->
+  ?absolute_path:bool ->
+  ?https:bool ->
+  service:
+    ('a, 'b, _, _, _, _, _, [< `WithSuffix | `WithoutSuffix ], _, _, _)
+      Service.t ->
+  ?hostname:string ->
+  ?port:int ->
+  ?fragment:string ->
+  ?keep_nl_params:[ `All | `None | `Persistent ] ->
+  ?nl_params:Parameter.nl_params_set ->
+  ?keep_get_na_params:bool ->
+  ?progress:(int -> int -> unit) ->
+  ?upload_progress:(int -> int -> unit) ->
+  ?override_mime_type:string ->
+  'a ->
+  'b ->
+  string Lwt.t
+```
+See [`Client.call_service`](./Eliom-Client.md#val-call_service).
+
+```ocaml
+val exit_to : 
+  ?window_name:string ->
+  ?window_features:string ->
+  ?absolute:bool ->
+  ?absolute_path:bool ->
+  ?https:bool ->
+  service:
+    ('a, 'b, _, _, _, _, _, [< `WithSuffix | `WithoutSuffix ], _, _, _)
+      Service.t ->
+  ?hostname:string ->
+  ?port:int ->
+  ?fragment:string ->
+  ?keep_nl_params:[ `All | `None | `Persistent ] ->
+  ?nl_params:Parameter.nl_params_set ->
+  ?keep_get_na_params:bool ->
+  'a ->
+  'b ->
+  unit
+```
+See [`Client.exit_to`](./Eliom-Client.md#val-exit_to).
+
+```ocaml
+val window_open : 
+  window_name:Js_of_ocaml.Js.js_string Js_of_ocaml.Js.t ->
+  ?window_features:Js_of_ocaml.Js.js_string Js_of_ocaml.Js.t ->
+  ?absolute:bool ->
+  ?absolute_path:bool ->
+  ?https:bool ->
+  service:
+    ('a, unit, _, _, _, _, _, [< `WithSuffix | `WithoutSuffix ], _, _, _)
+      Service.t ->
+  ?hostname:string ->
+  ?port:int ->
+  ?fragment:string ->
+  ?keep_nl_params:[ `All | `None | `Persistent ] ->
+  ?nl_params:Parameter.nl_params_set ->
+  ?keep_get_na_params:bool ->
+  'a ->
+  Js_of_ocaml.Dom_html.window Js_of_ocaml.Js.t Js_of_ocaml.Js.opt
+```
+See [`Client.window_open`](./Eliom-Client.md#val-window_open).
+
+
+---
+
 # Module `Client_core.Client_closure`
 
 ```ocaml
@@ -4872,9 +5000,14 @@ module Xml = Content_core.Xml
 val section : Logs.src
 ```
 ```ocaml
-val create_buffer : 
-  unit ->
-  ('a -> unit) * (unit -> 'a list) * (unit -> 'a list) * (unit -> unit)
+type 'a buffer = {
+  add : 'a -> unit;
+  get : unit -> 'a list;
+  flush : unit -> 'a list;
+}
+```
+```ocaml
+val create_buffer : unit -> 'a buffer
 ```
 ```ocaml
 module Client_closure : sig ... end
@@ -4987,6 +5120,9 @@ type client_form_handler =
   bool Lwt.t
 ```
 ```ocaml
+val changes_protocol : bool option -> bool
+```
+```ocaml
 val raw_a_handler : 
   'a Js_of_ocaml__Js.t ->
   (bool * string list) option ->
@@ -5048,13 +5184,17 @@ val class_list_of_racontent : Xml.acontent -> string list
 val class_list_of_racontent_o : Xml.acontent option -> string list
 ```
 ```ocaml
-val rebuild_class_list : 'a list -> 'a list -> 'a list -> 'a list
+val rebuild_class_list : 
+  current:'a list ->
+  removed:'a list ->
+  added:'a list ->
+  'a list
 ```
 ```ocaml
 val rebuild_class_string : 
-  string list ->
-  string list ->
-  string list ->
+  current:string list ->
+  removed:string list ->
+  added:string list ->
   Js_of_ocaml.Js.js_string Js_of_ocaml.Js.t
 ```
 ```ocaml
@@ -5097,9 +5237,6 @@ val rebuild_rattrib :
   Js_of_ocaml__Dom_html.element Js_of_ocaml.Js.t ->
   Xml.attrib ->
   unit
-```
-```ocaml
-val delay : (unit -> 'a) -> unit
 ```
 ```ocaml
 module ReactState : sig ... end
@@ -5153,6 +5290,217 @@ module Syntax_helpers : sig ... end
 
 ---
 
+# Module `Client_history.History`
+
+```ocaml
+val find_by_state_index : int -> page option
+```
+```ocaml
+val replace : page -> unit
+```
+Replaces the page with the same state index.
+
+```ocaml
+val past : unit -> string list
+```
+```ocaml
+val future : unit -> string list
+```
+```ocaml
+val max_num_doms : int option ref
+```
+The maximum distance from the active page of the pages whose DOM is kept in the cache.
+
+```ocaml
+val garbage_collect_doms : unit -> unit
+```
+Removes the DOMs too far from the active page from the cache.
+
+
+---
+
+# Module `Page_status.Events`
+
+```ocaml
+val active : unit -> unit React.E.t
+```
+```ocaml
+val cached : unit -> unit React.E.t
+```
+```ocaml
+val dead : unit -> unit React.E.t
+```
+```ocaml
+val inactive : unit -> unit React.E.t
+```
+
+
+---
+
+# Module `Client_history.Page_status`
+
+See [`Client.Page_status`](./Eliom-Client-Page_status.md).
+
+```ocaml
+type t = 
+  | Generating
+  | Active
+  | Cached
+  | Dead
+```
+```ocaml
+val signal : unit -> t React.S.t
+```
+```ocaml
+module Events : sig ... end
+```
+```ocaml
+val onactive : 
+  ?now:bool ->
+  ?once:bool ->
+  ?stop:unit React.E.t ->
+  (unit -> unit) ->
+  unit
+```
+```ocaml
+val oncached : ?once:bool -> ?stop:unit React.E.t -> (unit -> unit) -> unit
+```
+```ocaml
+val ondead : ?stop:unit React.E.t -> (unit -> unit) -> unit
+```
+```ocaml
+val oninactive : ?once:bool -> ?stop:unit React.E.t -> (unit -> unit) -> unit
+```
+```ocaml
+val while_active : 
+  ?now:bool ->
+  ?stop:unit React.E.t ->
+  (unit -> unit Lwt.t) ->
+  unit
+```
+
+
+---
+
+# Module `Eliom.Client_history`
+
+Pages of the application, the navigation history, and the data associated to each state of the History API. Internal module.
+
+### History states
+
+```ocaml
+type state = {
+  template : string option;
+  position : Mod_dom.position;
+}
+```
+Data stored in the session storage for each state of the History API.
+
+```ocaml
+type state_id = {
+  session_id : int;
+  state_index : int; (* point in history *)
+}
+```
+```ocaml
+type saved_state = state_id * string
+```
+The value of `history.state`: the state id and the URL.
+
+```ocaml
+val saved_state_of_json : Deriving_Json_lexer.lexbuf -> saved_state
+```
+```ocaml
+val saved_state_to_json : Buffer.t -> saved_state -> unit
+```
+```ocaml
+val saved_state_json : saved_state Deriving_Json.t
+```
+```ocaml
+val session_id : int
+```
+A random number identifying the current session of the browser tab.
+
+```ocaml
+val history_state : 
+  state_id ->
+  string ->
+  Js_of_ocaml.Js.js_string Js_of_ocaml.Js.t Js_of_ocaml.Js.Opt.t
+```
+`history_state id uri` is the `history.state` value of the page with state `id` at `uri`.
+
+```ocaml
+val get_state : state_id -> state
+```
+Reads the data of a state from the session storage. Raises `Not_found` if there is none.
+
+```ocaml
+val update_state : unit -> unit
+```
+Saves the template and the scroll position of the active page in the session storage.
+
+### Pages
+
+```ocaml
+val section_page : Logs.src
+```
+```ocaml
+module Page_status : sig ... end
+```
+See [`Client.Page_status`](./Eliom-Client-Page_status.md).
+
+```ocaml
+type page = {
+  page_unique_id : int;
+  mutable page_id : state_id;
+  mutable url : string;
+  page_status : Page_status.t React.S.t;
+  mutable previous_page : int option;
+  set_page_status : ?step:React.step -> Page_status.t -> unit;
+  mutable dom : Js_of_ocaml.Dom_html.bodyElement Js_of_ocaml.Js.t option; (* The DOM of the page, when it is cached *)
+  mutable reload_function : (unit -> unit -> Service.result Lwt.t) option;
+}
+```
+```ocaml
+val active_page : page ref
+```
+The page being displayed.
+
+```ocaml
+val set_active_page : page -> unit
+```
+Makes a page the active one, and retires the previous one.
+
+```ocaml
+val get_this_page : unit -> page
+```
+The page the running code is generating, or the active page outside of a page generation.
+
+```ocaml
+val with_new_page : 
+  ?state_id:state_id ->
+  ?old_page:page ->
+  replace:bool ->
+  unit ->
+  (unit -> 'a) ->
+  'a
+```
+`with_new_page ~replace () f` runs `f` in the context of a new page, which `get_this_page` returns. With `~replace:true`, the new page takes the state id of the active page.
+
+```ocaml
+val advance_page : unit -> unit
+```
+Makes the page being generated the active one, and adds it to the history if it is not already there.
+
+### History
+
+```ocaml
+module History : sig ... end
+```
+
+
+---
+
 # Module `Eliom.Client_main`
 
 ```ocaml
@@ -5173,6 +5521,46 @@ val _eliom_fragment_DO'VGY4 : unit -> unit -> unit -> Service.result Lwt.t
 ```ocaml
 val _eliom_fragment_DO'VGY5 : unit -> unit -> unit -> Service.result Lwt.t
 ```
+
+
+---
+
+# Module `Eliom.Client_relink`
+
+Relinking of a page received from the server: registration of the unique nodes, and binding of Eliom's links, forms, event handlers and client attributes. Internal module.
+
+```ocaml
+val relink_request_nodes : 
+  Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t ->
+  unit
+```
+Registers the request nodes below the given root, or replaces them with the nodes already known under the same id.
+
+```ocaml
+val relink_page_but_client_values : 
+  Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t ->
+  Mod_dom.selected_nodes
+```
+Relinks the links, forms and process nodes below the given root. The selected nodes are returned, so that the closure and attribute nodes can be relinked once the client values are initialised.
+
+```ocaml
+val relink_closure_nodes : 
+  Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t ->
+  Ocsigen_lib_base.poly Runtime.RawXML.ClosureMap.t ->
+  Js_of_ocaml.Dom_html.element Js_of_ocaml.Dom.nodeList Js_of_ocaml.Js.t ->
+  unit ->
+  unit
+```
+`relink_closure_nodes root table nodes` binds the event handlers of `nodes`, taken from `table`. It returns a function running all the `onload` handlers found, which stops at the first one returning `false`.
+
+```ocaml
+val relink_attribs : 
+  Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t ->
+  Ocsigen_lib_base.poly Runtime.RawXML.ClosureMap.t ->
+  Js_of_ocaml.Dom_html.element Js_of_ocaml.Dom.nodeList Js_of_ocaml.Js.t ->
+  unit
+```
+`relink_attribs root table nodes` sets the client attributes of `nodes`, taken from `table`.
 
 
 ---
@@ -5693,14 +6081,31 @@ val full_state_name_json : full_state_name Deriving_Json.t
 module Full_state_name_table = Common_base.Full_state_name_table
 ```
 ```ocaml
+type state_cookies = Common_base.state_cookies = {
+  service_cookies : string Full_state_name_table.t;
+  data_cookies : string Full_state_name_table.t;
+  persistent_cookies : string Full_state_name_table.t;
+}
+```
+```ocaml
+val no_state_cookies : state_cookies
+```
+```ocaml
+type csrf_info = Common_base.csrf_info = {
+  csrf_id : int; (* Unique id *)
+  csrf_scope : user_scope; (* Scope of the delayed registration, if the service is registered in the global table *)
+  csrf_secure : bool option; (* ?secure parameter of the delayed registration, likewise *)
+}
+```
+```ocaml
 type att_key_serv = Common_base.att_key_serv = 
   | SAtt_no
   | SAtt_named of string
   | SAtt_anon of string
-  | SAtt_csrf_safe of int * user_scope * bool option
+  | SAtt_csrf_safe of csrf_info
   | SAtt_na_named of string
   | SAtt_na_anon of string
-  | SAtt_na_csrf_safe of int * user_scope * bool option
+  | SAtt_na_csrf_safe of csrf_info
 ```
 ```ocaml
 type na_key_serv = Common_base.na_key_serv = 
@@ -5711,8 +6116,8 @@ type na_key_serv = Common_base.na_key_serv =
   | SNa_post_ of string
   | SNa_get' of string
   | SNa_post' of string
-  | SNa_get_csrf_safe of int * user_scope * bool option
-  | SNa_post_csrf_safe of int * user_scope * bool option
+  | SNa_get_csrf_safe of csrf_info
+  | SNa_post_csrf_safe of csrf_info
 ```
 ```ocaml
 type att_key_req = Common_base.att_key_req = 
@@ -5852,18 +6257,10 @@ type sess_info = Common_base.sess_info = {
   si_all_get_params : (string * string) list;
   si_all_post_params : (string * string) list option;
   si_all_file_params : (string * Lib.file_info) list option;
-  si_service_session_cookies : string Full_state_name_table.t;
-  si_data_session_cookies : string Full_state_name_table.t;
-  si_persistent_session_cookies : string Full_state_name_table.t;
-  si_secure_cookie_info : string Full_state_name_table.t
-                        * string Full_state_name_table.t
-                        * string Full_state_name_table.t;
-  si_service_session_cookies_tab : string Full_state_name_table.t;
-  si_data_session_cookies_tab : string Full_state_name_table.t;
-  si_persistent_session_cookies_tab : string Full_state_name_table.t;
-  si_secure_cookie_info_tab : string Full_state_name_table.t
-                            * string Full_state_name_table.t
-                            * string Full_state_name_table.t;
+  si_state_cookies : state_cookies;
+  si_secure_state_cookies : state_cookies;
+  si_state_cookies_tab : state_cookies;
+  si_secure_state_cookies_tab : state_cookies;
   si_tab_cookies : string Ocsigen_cookie_map.Map_inner.t;
   si_nonatt_info : na_key_req;
   si_state_info : att_key_req * att_key_req;
@@ -5961,11 +6358,6 @@ val filter_na_get_params : (string * string) list -> (string * string) list
 ```ocaml
 exception Eliom_404
 ```
-```ocaml
-type ('a, 'b) foundornot = ('a, 'b) Common_base.foundornot = 
-  | Found of 'a
-  | Notfound of 'b
-```
 Service called with wrong parameter names
 
 ```ocaml
@@ -5979,7 +6371,7 @@ exception Eliom_page_erasing of string
 ```
 ```ocaml
 type 'a dircontent = 'a Common_base.dircontent = 
-  | Vide
+  | Empty
   | Table of 'a direlt ref Lib.String.Table.t
 ```
 ```ocaml
@@ -5989,6 +6381,13 @@ and 'a direlt = 'a Common_base.direlt =
 ```
 ```ocaml
 val empty_dircontent : unit -> 'a dircontent
+```
+```ocaml
+type 'a service_table = 'a Common_base.service_table = {
+  st_generation : int;
+  st_priority : int;
+  st_content : 'a dircontent ref;
+}
 ```
 ```ocaml
 type meth = [ 
@@ -6408,14 +6807,31 @@ val full_state_name_json : full_state_name Deriving_Json.t
 module Full_state_name_table : sig ... end
 ```
 ```ocaml
+type state_cookies = {
+  service_cookies : string Full_state_name_table.t;
+  data_cookies : string Full_state_name_table.t;
+  persistent_cookies : string Full_state_name_table.t;
+}
+```
+```ocaml
+val no_state_cookies : state_cookies
+```
+```ocaml
+type csrf_info = {
+  csrf_id : int; (* Unique id *)
+  csrf_scope : user_scope; (* Scope of the delayed registration, if the service is registered in the global table *)
+  csrf_secure : bool option; (* ?secure parameter of the delayed registration, likewise *)
+}
+```
+```ocaml
 type att_key_serv = 
   | SAtt_no
   | SAtt_named of string
   | SAtt_anon of string
-  | SAtt_csrf_safe of int * user_scope * bool option
+  | SAtt_csrf_safe of csrf_info
   | SAtt_na_named of string
   | SAtt_na_anon of string
-  | SAtt_na_csrf_safe of int * user_scope * bool option
+  | SAtt_na_csrf_safe of csrf_info
 ```
 ```ocaml
 type na_key_serv = 
@@ -6426,8 +6842,8 @@ type na_key_serv =
   | SNa_post_ of string
   | SNa_get' of string
   | SNa_post' of string
-  | SNa_get_csrf_safe of int * user_scope * bool option
-  | SNa_post_csrf_safe of int * user_scope * bool option
+  | SNa_get_csrf_safe of csrf_info
+  | SNa_post_csrf_safe of csrf_info
 ```
 ```ocaml
 type att_key_req = 
@@ -6567,18 +6983,10 @@ type sess_info = {
   si_all_get_params : (string * string) list;
   si_all_post_params : (string * string) list option;
   si_all_file_params : (string * Lib.file_info) list option;
-  si_service_session_cookies : string Full_state_name_table.t;
-  si_data_session_cookies : string Full_state_name_table.t;
-  si_persistent_session_cookies : string Full_state_name_table.t;
-  si_secure_cookie_info : string Full_state_name_table.t
-                        * string Full_state_name_table.t
-                        * string Full_state_name_table.t;
-  si_service_session_cookies_tab : string Full_state_name_table.t;
-  si_data_session_cookies_tab : string Full_state_name_table.t;
-  si_persistent_session_cookies_tab : string Full_state_name_table.t;
-  si_secure_cookie_info_tab : string Full_state_name_table.t
-                            * string Full_state_name_table.t
-                            * string Full_state_name_table.t;
+  si_state_cookies : state_cookies;
+  si_secure_state_cookies : state_cookies;
+  si_state_cookies_tab : state_cookies;
+  si_secure_state_cookies_tab : state_cookies;
   si_tab_cookies : string Ocsigen_cookie_map.Map_inner.t;
   si_nonatt_info : na_key_req;
   si_state_info : att_key_req * att_key_req;
@@ -6676,11 +7084,6 @@ val filter_na_get_params : (string * string) list -> (string * string) list
 ```ocaml
 exception Eliom_404
 ```
-```ocaml
-type ('a, 'b) foundornot = 
-  | Found of 'a
-  | Notfound of 'b
-```
 Service called with wrong parameter names
 
 ```ocaml
@@ -6694,7 +7097,7 @@ exception Eliom_page_erasing of string
 ```
 ```ocaml
 type 'a dircontent = 
-  | Vide
+  | Empty
   | Table of 'a direlt ref Lib.String.Table.t
 ```
 ```ocaml
@@ -6704,6 +7107,13 @@ and 'a direlt =
 ```
 ```ocaml
 val empty_dircontent : unit -> 'a dircontent
+```
+```ocaml
+type 'a service_table = {
+  st_generation : int;
+  st_priority : int;
+  st_content : 'a dircontent ref;
+}
 ```
 ```ocaml
 type meth = [ 
@@ -6767,6 +7177,16 @@ val get_default_links_xhr : unit -> bool
 ```ocaml
 val debug_timings : bool ref
 ```
+```ocaml
+val debug_time : string -> unit
+```
+`debug_time name` starts the browser timer `name` if `debug_timings` is set.
+
+```ocaml
+val debug_time_end : string -> unit
+```
+`debug_time_end name` stops the browser timer `name` if `debug_timings` is set.
+
 ```ocaml
 val set_tracing : bool -> unit
 ```
@@ -74622,7 +75042,7 @@ val attrib_of_service :
   ([ `A | `Form_get | `Form_post ]
    * (bool * string list) option
    * string option
-   * Lib.poly)
+   * Ocsigen_lib_base.poly)
     option
     Eliom_lazy.request ->
   'a Content_core.Html.D.attrib
@@ -79737,7 +80157,7 @@ val attrib_of_service :
   ([ `A | `Form_get | `Form_post ]
    * (bool * string list) option
    * string option
-   * Lib.poly)
+   * Ocsigen_lib_base.poly)
     option
     Eliom_lazy.request ->
   'a Content_core.Html.F.attrib
@@ -83534,6 +83954,11 @@ val raw_replaceChildren :
   unit
 ```
 ```ocaml
+val elt_of_node_opt : 
+  Js_of_ocaml__Dom.node Js_of_ocaml.Js.t Js_of_ocaml.Js.Opt.t ->
+  'a F.elt Js_of_ocaml.Js.Opt.t
+```
+```ocaml
 val nth : 'a F.elt -> int -> 'b F.elt option
 ```
 ```ocaml
@@ -83888,6 +84313,13 @@ module Named : sig ... end
 ```
 ```ocaml
 val appendToBody : ?before:'a F.elt -> 'b F.elt -> unit
+```
+```ocaml
+val get_unique_elt_as : 
+  (Js_of_ocaml__Dom_html.element Js_of_ocaml.Js.t -> 'a Js_of_ocaml.Js.Opt.t) ->
+  string ->
+  'b F.elt ->
+  'a
 ```
 ```ocaml
 val get_unique_elt_input : 
@@ -89835,6 +90267,11 @@ val raw_replaceChildren :
   unit
 ```
 ```ocaml
+val elt_of_node_opt : 
+  Js_of_ocaml__Dom.node Js_of_ocaml.Js.t Js_of_ocaml.Js.Opt.t ->
+  'a Kind.elt Js_of_ocaml.Js.Opt.t
+```
+```ocaml
 val nth : 'a Kind.elt -> int -> 'b Kind.elt option
 ```
 ```ocaml
@@ -90245,6 +90682,11 @@ val raw_replaceChildren :
     Js_of_ocaml.Js.t ->
   'c F.elt list ->
   unit
+```
+```ocaml
+val elt_of_node_opt : 
+  Js_of_ocaml__Dom.node Js_of_ocaml.Js.t Js_of_ocaml.Js.Opt.t ->
+  'a F.elt Js_of_ocaml.Js.Opt.t
 ```
 ```ocaml
 val nth : 'a F.elt -> int -> 'b F.elt option
@@ -95662,7 +96104,7 @@ val attrib_of_service :
   ([ `A | `Form_get | `Form_post ]
    * (bool * string list) option
    * string option
-   * Lib.poly)
+   * Ocsigen_lib_base.poly)
     option
     Eliom_lazy.request ->
   Html_types.form_attrib attrib
@@ -100697,7 +101139,7 @@ val attrib_of_service :
   ([ `A | `Form_get | `Form_post ]
    * (bool * string list) option
    * string option
-   * Lib.poly)
+   * Ocsigen_lib_base.poly)
     option
     Eliom_lazy.request ->
   Html_types.form_attrib attrib
@@ -105560,7 +106002,7 @@ val attrib_of_service :
   ([ `A | `Form_get | `Form_post ]
    * (bool * string list) option
    * string option
-   * Lib.poly)
+   * Ocsigen_lib_base.poly)
     option
     Eliom_lazy.request ->
   Html_types.form_attrib attrib
@@ -113313,17 +113755,27 @@ val get_head :
   Js_of_ocaml.Dom.element Js_of_ocaml.Js.t ->
   Js_of_ocaml.Dom.element Js_of_ocaml.Js.t
 ```
-`select_nodes root` finds the nodes below `root` in the page annotated to be: \* eliom links \* eliom forms \* process unique nodes \* nodes with closures ( events ) \* nodes with attributes
-
+```ocaml
+type selected_nodes = {
+  links : Js_of_ocaml.Dom_html.anchorElement Js_of_ocaml.Dom.nodeList
+          Js_of_ocaml.Js.t; (* Eliom links *)
+  forms : Js_of_ocaml.Dom_html.formElement Js_of_ocaml.Dom.nodeList
+          Js_of_ocaml.Js.t; (* Eliom forms *)
+  process_nodes : Js_of_ocaml.Dom_html.element Js_of_ocaml.Dom.nodeList
+                  Js_of_ocaml.Js.t; (* Process unique nodes *)
+  closure_nodes : Js_of_ocaml.Dom_html.element Js_of_ocaml.Dom.nodeList
+                  Js_of_ocaml.Js.t; (* Nodes with closures (events) *)
+  attrib_nodes : Js_of_ocaml.Dom_html.element Js_of_ocaml.Dom.nodeList
+                 Js_of_ocaml.Js.t; (* Nodes with client attributes *)
+}
+```
 ```ocaml
 val select_nodes : 
   Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t ->
-  Js_of_ocaml.Dom_html.anchorElement Js_of_ocaml.Dom.nodeList Js_of_ocaml.Js.t
-  * Js_of_ocaml.Dom_html.formElement Js_of_ocaml.Dom.nodeList Js_of_ocaml.Js.t
-  * Js_of_ocaml.Dom_html.element Js_of_ocaml.Dom.nodeList Js_of_ocaml.Js.t
-  * Js_of_ocaml.Dom_html.element Js_of_ocaml.Dom.nodeList Js_of_ocaml.Js.t
-  * Js_of_ocaml.Dom_html.element Js_of_ocaml.Dom.nodeList Js_of_ocaml.Js.t
+  selected_nodes
 ```
+`select_nodes root` finds the nodes below `root` annotated by Eliom.
+
 ```ocaml
 val select_request_nodes : 
   Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t ->
@@ -113332,12 +113784,12 @@ val select_request_nodes :
 `select_request_nodes root` finds the nodes below `root` in the page annotated to be: \* request unique nodes
 
 ```ocaml
-val ancessor : 
+val ancestor : 
   Js_of_ocaml.Dom.node Js_of_ocaml.Js.t ->
   Js_of_ocaml.Dom.node Js_of_ocaml.Js.t ->
   bool
 ```
-`ancessor n1 n2` is true if `n1` is an ancessor of `n2`
+`ancestor n1 n2` is true if `n1` is an ancestor of `n2`
 
 ```ocaml
 val createEvent : 
@@ -113407,9 +113859,6 @@ val setDocumentScroll : position -> unit
 ```
 ```ocaml
 val test_pageshow_pagehide : unit -> bool
-```
-```ocaml
-val onhashchange : (Js_of_ocaml.Js.js_string Js_of_ocaml.Js.t -> unit) -> unit
 ```
 
 
@@ -114103,13 +114552,13 @@ val make_list_suffix : int -> string
 val make_suffix : 'a 'c. ('a, [< suff ], 'c) params_type -> 'a -> string list
 ```
 ```ocaml
-val aux : 
+val construct_params_aux : 
   'a 'c. ('a, [< suff ], 'c) params_type ->
   string list option ->
   (string * Mod_parameters.field) list Lib.String.Table.t ->
   'a ->
-  string ->
-  string ->
+  pref:string ->
+  suff:string ->
   (string * Mod_parameters.field) list ->
   string list option
   * (string * Mod_parameters.field) list Lib.String.Table.t
@@ -114770,7 +115219,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
+The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope). On the server, registering with a session, session group or client process scope is possible only during a request; outside one, `register` raises `Common.Request_information_not_available`.
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -114907,7 +115356,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
+The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope). On the server, registering with a session, session group or client process scope is possible only during a request; outside one, `register` raises `Common.Request_information_not_available`.
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -114968,7 +115417,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
+The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope). On the server, registering with a session, session group or client process scope is possible only during a request; outside one, `register` raises `Common.Request_information_not_available`.
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -115083,7 +115532,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
+The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope). On the server, registering with a session, session group or client process scope is possible only during a request; outside one, `register` raises `Common.Request_information_not_available`.
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -115332,7 +115781,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
+The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope). On the server, registering with a session, session group or client process scope is possible only during a request; outside one, `register` raises `Common.Request_information_not_available`.
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -115817,7 +116266,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
+The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope). On the server, registering with a session, session group or client process scope is possible only during a request; outside one, `register` raises `Common.Request_information_not_available`.
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -116256,20 +116705,20 @@ returns true if https is used in the URL of the browser, false if http. If there
 
 ```ocaml
 type t = {
-  mutable t_services : (int * int * Table.t Common.dircontent ref) list;
+  mutable t_services : Table.t Common.service_table list;
   mutable t_contains_timeout : bool;
   mutable t_na_services : (Common.na_key_serv, bool -> params -> result Lwt.t)
                           Hashtbl.t;
 }
 ```
 ```ocaml
-val get : t -> (int * int * Table.t Common.dircontent ref) list
+val get : t -> Table.t Common.service_table list
 ```
 ```ocaml
 val set_contains_timeout : t -> bool -> unit
 ```
 ```ocaml
-val set : t -> (int * int * Table.t Common.dircontent ref) list -> unit
+val set : t -> Table.t Common.service_table list -> unit
 ```
 ```ocaml
 val dlist_add : ?sp:'a -> 'b -> 'c -> unit
@@ -116683,10 +117132,10 @@ val dlist_add :
   Node.t
 ```
 ```ocaml
-val get : t -> (int * int * Table.t Common.dircontent ref) list
+val get : t -> Table.t Common.service_table list
 ```
 ```ocaml
-val set : t -> (int * int * Table.t Common.dircontent ref) list -> unit
+val set : t -> Table.t Common.service_table list -> unit
 ```
 
 
@@ -116908,10 +117357,10 @@ val dlist_add :
   Node.t
 ```
 ```ocaml
-val get : t -> (int * int * Table.t Common.dircontent ref) list
+val get : t -> Table.t Common.service_table list
 ```
 ```ocaml
-val set : t -> (int * int * Table.t Common.dircontent ref) list -> unit
+val set : t -> Table.t Common.service_table list -> unit
 ```
 
 
@@ -118209,9 +118658,6 @@ val new_state : unit -> string
 ```
 ```ocaml
 val default_csrf_scope : [< Common.user_scope ] option -> Common.user_scope
-```
-```ocaml
-exception Unreachable_exn
 ```
 ```ocaml
 val attached_info : 
@@ -121697,11 +122143,26 @@ Call server side services and change the current page.
 module Client_base : sig ... end
 ```
 ```ocaml
+module Client_call : sig ... end
+```
+Low-level calls to services: building the request, sending it, and leaving the application for another page. Internal module.
+
+```ocaml
 module Client_core : sig ... end
 ```
 ```ocaml
+module Client_history : sig ... end
+```
+Pages of the application, the navigation history, and the data associated to each state of the History API. Internal module.
+
+```ocaml
 module Client_main : sig ... end
 ```
+```ocaml
+module Client_relink : sig ... end
+```
+Relinking of a page received from the server: registration of the unique nodes, and binding of Eliom's links, forms, event handlers and client attributes. Internal module.
+
 ```ocaml
 module Client_value : sig ... end
 ```
@@ -122167,6 +122628,14 @@ val int :
   int ->
   Ppxlib.Parsetree.expression
 ```
+```ocaml
+val str_option : 
+  loc:Ppxlib.Location.t ->
+  string option ->
+  Ppxlib.Parsetree.expression
+```
+The expression `None` or `Some "s"`.
+
 ```ocaml
 val id_file_hash : Ppxlib.Location.t -> string Ppxlib.Location.loc
 ```
@@ -123890,6 +124359,13 @@ exception Eliom_site_information_not_available of string
 Backwards-compatible alias for [`Site_information_not_available`](./#exception-Site_information_not_available). The `Eliom_` prefix is redundant under the `Eliom.Common` namespace; new code should use [`Site_information_not_available`](./#exception-Site_information_not_available) directly.
 
 ```ocaml
+exception Request_information_not_available of string
+```
+That function needs the current request, and cannot be used outside a request, for instance during the initialisation phase of your Eliom module. The argument tells where the request was needed.
+
+This is the case of the functions that act on the session of the current user, such as registering a service with a session, session group or client process scope.
+
+```ocaml
 exception Cannot_call_this_function_before_app_is_linked_to_a_site
 ```
 Statically linked app: You cannot call this function before `App.run`.
@@ -123913,6 +124389,15 @@ val full_state_name_json : full_state_name Deriving_Json.t
 ```ocaml
 module Full_state_name_table : Map.S with type key = full_state_name
 ```
+```ocaml
+type state_cookies = {
+  service_cookies : string Full_state_name_table.t;
+  data_cookies : string Full_state_name_table.t;
+  persistent_cookies : string Full_state_name_table.t;
+}
+```
+The state cookies sent by a request, for each kind of state. The keys of the tables are the full state names.
+
 ```ocaml
 val eliom_link_too_old : bool Polytables.key
 ```
@@ -124240,14 +124725,31 @@ val full_state_name_json : full_state_name Deriving_Json.t
 module Full_state_name_table : sig ... end
 ```
 ```ocaml
+type state_cookies = {
+  service_cookies : string Full_state_name_table.t;
+  data_cookies : string Full_state_name_table.t;
+  persistent_cookies : string Full_state_name_table.t;
+}
+```
+```ocaml
+val no_state_cookies : state_cookies
+```
+```ocaml
+type csrf_info = {
+  csrf_id : int; (* Unique id *)
+  csrf_scope : user_scope; (* Scope of the delayed registration, if the service is registered in the global table *)
+  csrf_secure : bool option; (* ?secure parameter of the delayed registration, likewise *)
+}
+```
+```ocaml
 type att_key_serv = 
   | SAtt_no
   | SAtt_named of string
   | SAtt_anon of string
-  | SAtt_csrf_safe of int * user_scope * bool option
+  | SAtt_csrf_safe of csrf_info
   | SAtt_na_named of string
   | SAtt_na_anon of string
-  | SAtt_na_csrf_safe of int * user_scope * bool option
+  | SAtt_na_csrf_safe of csrf_info
 ```
 ```ocaml
 type na_key_serv = 
@@ -124258,8 +124760,8 @@ type na_key_serv =
   | SNa_post_ of string
   | SNa_get' of string
   | SNa_post' of string
-  | SNa_get_csrf_safe of int * user_scope * bool option
-  | SNa_post_csrf_safe of int * user_scope * bool option
+  | SNa_get_csrf_safe of csrf_info
+  | SNa_post_csrf_safe of csrf_info
 ```
 ```ocaml
 type att_key_req = 
@@ -124399,18 +124901,10 @@ type sess_info = {
   si_all_get_params : (string * string) list;
   si_all_post_params : (string * string) list option;
   si_all_file_params : (string * Lib.file_info) list option;
-  si_service_session_cookies : string Full_state_name_table.t;
-  si_data_session_cookies : string Full_state_name_table.t;
-  si_persistent_session_cookies : string Full_state_name_table.t;
-  si_secure_cookie_info : string Full_state_name_table.t
-                        * string Full_state_name_table.t
-                        * string Full_state_name_table.t;
-  si_service_session_cookies_tab : string Full_state_name_table.t;
-  si_data_session_cookies_tab : string Full_state_name_table.t;
-  si_persistent_session_cookies_tab : string Full_state_name_table.t;
-  si_secure_cookie_info_tab : string Full_state_name_table.t
-                            * string Full_state_name_table.t
-                            * string Full_state_name_table.t;
+  si_state_cookies : state_cookies;
+  si_secure_state_cookies : state_cookies;
+  si_state_cookies_tab : state_cookies;
+  si_secure_state_cookies_tab : state_cookies;
   si_tab_cookies : string Ocsigen_cookie_map.Map_inner.t;
   si_nonatt_info : na_key_req;
   si_state_info : att_key_req * att_key_req;
@@ -124508,11 +125002,6 @@ val filter_na_get_params : (string * string) list -> (string * string) list
 ```ocaml
 exception Eliom_404
 ```
-```ocaml
-type ('a, 'b) foundornot = 
-  | Found of 'a
-  | Notfound of 'b
-```
 Service called with wrong parameter names
 
 ```ocaml
@@ -124526,7 +125015,7 @@ exception Eliom_page_erasing of string
 ```
 ```ocaml
 type 'a dircontent = 
-  | Vide
+  | Empty
   | Table of 'a direlt ref Lib.String.Table.t
 ```
 ```ocaml
@@ -124536,6 +125025,13 @@ and 'a direlt =
 ```
 ```ocaml
 val empty_dircontent : unit -> 'a dircontent
+```
+```ocaml
+type 'a service_table = {
+  st_generation : int;
+  st_priority : int;
+  st_content : 'a dircontent ref;
+}
 ```
 ```ocaml
 type meth = [ 
@@ -185806,7 +186302,7 @@ val attrib_of_service :
   ([ `A | `Form_get | `Form_post ]
    * (bool * string list) option
    * string option
-   * Lib.poly)
+   * Ocsigen_lib_base.poly)
     option
     Eliom_lazy.request ->
   'a Content_core.Html.D.attrib
@@ -190922,7 +191418,7 @@ val attrib_of_service :
   ([ `A | `Form_get | `Form_post ]
    * (bool * string list) option
    * string option
-   * Lib.poly)
+   * Ocsigen_lib_base.poly)
     option
     Eliom_lazy.request ->
   'a Content_core.Html.F.attrib
@@ -204125,7 +204621,7 @@ val attrib_of_service :
   ([ `A | `Form_get | `Form_post ]
    * (bool * string list) option
    * string option
-   * Lib.poly)
+   * Ocsigen_lib_base.poly)
     option
     Eliom_lazy.request ->
   Html_types.form_attrib attrib
@@ -209160,7 +209656,7 @@ val attrib_of_service :
   ([ `A | `Form_get | `Form_post ]
    * (bool * string list) option
    * string option
-   * Lib.poly)
+   * Ocsigen_lib_base.poly)
     option
     Eliom_lazy.request ->
   Html_types.form_attrib attrib
@@ -214023,7 +214519,7 @@ val attrib_of_service :
   ([ `A | `Form_get | `Form_post ]
    * (bool * string list) option
    * string option
-   * Lib.poly)
+   * Ocsigen_lib_base.poly)
     option
     Eliom_lazy.request ->
   Html_types.form_attrib attrib
@@ -221699,7 +222195,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
+The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope). On the server, registering with a session, session group or client process scope is possible only during a request; outside one, `register` raises `Common.Request_information_not_available`.
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -222334,12 +222830,8 @@ val make_new_session_id : unit -> string
 val get_cookie_info : 
   float ->
   Common.sitedata ->
-  string Common.Full_state_name_table.t ->
-  string Common.Full_state_name_table.t ->
-  string Common.Full_state_name_table.t ->
-  (string Common.Full_state_name_table.t
-   * string Common.Full_state_name_table.t
-   * string Common.Full_state_name_table.t) ->
+  Common.state_cookies ->
+  Common.state_cookies ->
   Common.tables Common.cookie_info * Common.Full_state_name_table.key list
 ```
 ```ocaml
@@ -222351,13 +222843,6 @@ val new_service_cookie_table :
 val new_data_cookie_table : 
   unit ->
   Common.Data_cookie.t Common.SessionCookies.t
-```
-```ocaml
-val compute_session_cookies_to_send : 
-  Common.sitedata ->
-  Common.tables Common.cookie_info ->
-  Ocsigen_cookie_map.t ->
-  Ocsigen_cookie_map.t Lwt.t
 ```
 ```ocaml
 val compute_cookies_to_send : 
@@ -222425,16 +222910,16 @@ val counttableelements : (unit -> int) list ref
 ```
 ```ocaml
 val create_volatile_table : 
-  scope:([< Common.user_scope ] as 'b) ->
+  scope:[< Common.user_scope ] ->
   secure:bool ->
-  'b * bool * 'a Common.SessionCookies.t
+  'a Common.SessionCookies.t Common.state_table
 ```
 ```ocaml
 val create_volatile_table_during_session : 
-  scope:([< Common.user_scope ] as 'b) ->
+  scope:[< Common.user_scope ] ->
   secure:bool ->
   Common.sitedata ->
-  'b * bool * 'a Common.SessionCookies.t
+  'a Common.SessionCookies.t Common.state_table
 ```
 
 
@@ -222593,7 +223078,7 @@ val default_max_volatile_data_tab_sessions_per_group : int ref
 val default_secure_cookies : bool ref
 ```
 ```ocaml
-val default_application_script : (bool * bool) ref
+val default_application_script : Common.application_script ref
 ```
 ```ocaml
 val default_enable_wasm : bool ref
@@ -222632,132 +223117,6 @@ val create_sitedata :
   Lib.Url.path ->
   Ocsigen.Extensions.config_info ->
   Common.sitedata
-```
-```ocaml
-val parse_eliom_option : 
-  (([> `Client_process | `Session ] ->
-   Common_base.scope_hierarchy option ->
-   float option ->
-   unit)
-   * ([> `Client_process | `Session ] ->
-   Common_base.scope_hierarchy option ->
-   float option ->
-   unit)
-   * ([> `Client_process | `Session ] ->
-   Common_base.scope_hierarchy option ->
-   float option ->
-   unit)
-   * ([> `Client_process | `Session ] ->
-   Common_base.scope_hierarchy option ->
-   float option ->
-   unit)
-   * (int ->
-   unit)
-   * (int ->
-   unit)
-   * (int ->
-   unit)
-   * (int ->
-   unit)
-   * (int ->
-   unit)
-   * (int ->
-   unit)
-   * (int ->
-   unit)
-   * (int ->
-   unit)
-   * (int ->
-   unit)
-   * (int ->
-   unit)
-   * (int ->
-   unit)
-   * (bool ->
-   unit)
-   * (int ->
-   unit)
-   * (int ->
-   unit)
-   * ((bool * bool) ->
-   unit)
-   * (bool ->
-   unit)
-   * ((Lib.Url.path * int) option ->
-   unit)
-   * (string ->
-   unit)
-   * ((string * Re.re) ->
-   unit)
-   * ((string * Re.re) ->
-   unit)
-   * (Common.omitpersistentstorage_rule list option ->
-   unit)) ->
-  Xml_light_types.xml ->
-  unit
-```
-```ocaml
-val parse_eliom_options : 
-  (([> `Client_process | `Session ] ->
-   Common_base.scope_hierarchy option ->
-   float option ->
-   unit)
-   * ([> `Client_process | `Session ] ->
-   Common_base.scope_hierarchy option ->
-   float option ->
-   unit)
-   * ([> `Client_process | `Session ] ->
-   Common_base.scope_hierarchy option ->
-   float option ->
-   unit)
-   * ([> `Client_process | `Session ] ->
-   Common_base.scope_hierarchy option ->
-   float option ->
-   unit)
-   * (int ->
-   unit)
-   * (int ->
-   unit)
-   * (int ->
-   unit)
-   * (int ->
-   unit)
-   * (int ->
-   unit)
-   * (int ->
-   unit)
-   * (int ->
-   unit)
-   * (int ->
-   unit)
-   * (int ->
-   unit)
-   * (int ->
-   unit)
-   * (int ->
-   unit)
-   * (bool ->
-   unit)
-   * (int ->
-   unit)
-   * (int ->
-   unit)
-   * ((bool * bool) ->
-   unit)
-   * (bool ->
-   unit)
-   * ((Lib.Url.path * int) option ->
-   unit)
-   * (string ->
-   unit)
-   * ((string * Re.re) ->
-   unit)
-   * ((string * Re.re) ->
-   unit)
-   * (Common.omitpersistentstorage_rule list option ->
-   unit)) ->
-  Xml_light_types.xml list ->
-  Xml_light_types.xml list
 ```
 ```ocaml
 val parse_global_config : Xml_light_types.xml list -> unit
@@ -222821,8 +223180,8 @@ val set_timeout :
   (?full_st_name:Common.full_state_name ->
     ?cookie_level:([< Common.cookie_level ] as 'a) ->
     recompute_expdates:bool ->
-    bool ->
-    bool ->
+    override_configfile:bool ->
+    from_configfile:bool ->
     Common.sitedata ->
     float option ->
     unit) ->
@@ -222915,7 +223274,7 @@ val string_of_param : 'a -> 'a
 # Module `Eliom.Mod_persess`
 
 ```ocaml
-val close_persistent_state2 : 
+val close_persistent_state_of_cookie : 
   scope:Common.user_scope ->
   Common.sitedata ->
   Common.perssessgrp option ->
@@ -223192,7 +223551,7 @@ val up : string -> Common.perssessgrp option -> unit Lwt.t
 val nb_of_groups : unit -> int Lwt.t
 ```
 ```ocaml
-val close_persistent_session2 : 
+val close_persistent_session : 
   cookie_level:Common.cookie_level ->
   Common.sitedata ->
   Common.perssessgrp option ->
@@ -223330,10 +223689,8 @@ val make_full_named_group_name_ :
 ```ocaml
 val make_full_group_name : 
   cookie_level:Common.cookie_level ->
+  sitedata:Common.sitedata ->
   Ocsigen.Request.t ->
-  string ->
-  int ->
-  int ->
   string option ->
   Common.scope Common.sessgrp
 ```
@@ -223345,14 +223702,7 @@ val make_persistent_full_group_name :
   Common.perssessgrp option
 ```
 ```ocaml
-val getsessgrp : 
-  Common.scope Common.sessgrp ->
-  string * Common.cookie_level * (string, Ipaddr.t) Either.t
-```
-```ocaml
-val getperssessgrp : 
-  Common.perssessgrp ->
-  string * Common.cookie_level * (string, Ipaddr.t) Either.t
+val getperssessgrp : Common.perssessgrp -> Common.full_session_group
 ```
 ```ocaml
 module type MEMTAB = sig ... end
@@ -223415,7 +223765,7 @@ val set_global :
   cookie_scope:[< Common.cookie_scope ] ->
   secure:bool ->
   recompute_expdates:bool ->
-  bool ->
+  override_configfile:bool ->
   Common.sitedata ->
   float option ->
   unit
@@ -223426,8 +223776,8 @@ val set_global_ :
   ?cookie_level:[< Common.cookie_level ] ->
   kind:[< kind ] ->
   recompute_expdates:bool ->
-  bool ->
-  bool ->
+  override_configfile:bool ->
+  from_configfile:bool ->
   Common.sitedata ->
   float option ->
   unit
@@ -223436,8 +223786,8 @@ val set_global_ :
 val set_default_global : 
   [< kind ] ->
   [< Common.cookie_level ] ->
-  bool ->
-  bool ->
+  override_configfile:bool ->
+  from_configfile:bool ->
   Common.sitedata ->
   float option ->
   unit
@@ -224628,13 +224978,13 @@ val make_list_suffix : int -> string
 val make_suffix : 'a 'c. ('a, [< suff ], 'c) params_type -> 'a -> string list
 ```
 ```ocaml
-val aux : 
+val construct_params_aux : 
   'a 'c. ('a, [< suff ], 'c) params_type ->
   string list option ->
   (string * Mod_parameters.field) list Lib.String.Table.t ->
   'a ->
-  string ->
-  string ->
+  pref:string ->
+  suff:string ->
   (string * Mod_parameters.field) list ->
   string list option
   * (string * Mod_parameters.field) list Lib.String.Table.t
@@ -225432,7 +225782,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
+The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope). On the server, registering with a session, session group or client process scope is possible only during a request; outside one, `register` raises `Common.Request_information_not_available`.
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -225878,7 +226228,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
+The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope). On the server, registering with a session, session group or client process scope is possible only during a request; outside one, `register` raises `Common.Request_information_not_available`.
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -226073,7 +226423,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
+The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope). On the server, registering with a session, session group or client process scope is possible only during a request; outside one, `register` raises `Common.Request_information_not_available`.
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -226266,7 +226616,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
+The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope). On the server, registering with a session, session group or client process scope is possible only during a request; outside one, `register` raises `Common.Request_information_not_available`.
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -226484,7 +226834,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
+The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope). On the server, registering with a session, session group or client process scope is possible only during a request; outside one, `register` raises `Common.Request_information_not_available`.
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -226724,7 +227074,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
+The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope). On the server, registering with a session, session group or client process scope is possible only during a request; outside one, `register` raises `Common.Request_information_not_available`.
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -226946,7 +227296,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
+The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope). On the server, registering with a session, session group or client process scope is possible only during a request; outside one, `register` raises `Common.Request_information_not_available`.
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -227146,7 +227496,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
+The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope). On the server, registering with a session, session group or client process scope is possible only during a request; outside one, `register` raises `Common.Request_information_not_available`.
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -227346,7 +227696,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
+The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope). On the server, registering with a session, session group or client process scope is possible only during a request; outside one, `register` raises `Common.Request_information_not_available`.
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -227543,7 +227893,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
+The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope). On the server, registering with a session, session group or client process scope is possible only during a request; outside one, `register` raises `Common.Request_information_not_available`.
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -227738,7 +228088,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
+The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope). On the server, registering with a session, session group or client process scope is possible only during a request; outside one, `register` raises `Common.Request_information_not_available`.
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -227933,7 +228283,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
+The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope). On the server, registering with a session, session group or client process scope is possible only during a request; outside one, `register` raises `Common.Request_information_not_available`.
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -228503,7 +228853,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
+The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope). On the server, registering with a session, session group or client process scope is possible only during a request; outside one, `register` raises `Common.Request_information_not_available`.
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -228707,7 +229057,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
+The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope). On the server, registering with a session, session group or client process scope is possible only during a request; outside one, `register` raises `Common.Request_information_not_available`.
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -228902,7 +229252,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
+The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope). On the server, registering with a session, session group or client process scope is possible only during a request; outside one, `register` raises `Common.Request_information_not_available`.
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -229142,7 +229492,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
+The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope). On the server, registering with a session, session group or client process scope is possible only during a request; outside one, `register` raises `Common.Request_information_not_available`.
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -229738,7 +230088,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
+The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope). On the server, registering with a session, session group or client process scope is possible only during a request; outside one, `register` raises `Common.Request_information_not_available`.
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -230223,7 +230573,7 @@ val register :
 ```
 The function `register ~service handler` associates the `service` to the function `handler`. The `handler` function takes two parameters, the GET and POST parameters of the current HTTP request, and should return the corresponding page.
 
-The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope).
+The optional parameter `~scope` is [`Common.global_scope`](./Eliom-Common.md#type-global_scope) by default. See the Eliom manual for detailed description [of different scopes](./../server-services.md#service_scope). On the server, registering with a session, session group or client process scope is possible only during a request; outside one, `register` raises `Common.Request_information_not_available`.
 
 The optional parameter `~options` is specific to each output module. See the type description for more information.
 
@@ -230759,10 +231109,10 @@ val dlist_add :
   Node.t
 ```
 ```ocaml
-val get : t -> (int * int * Table.t Common.dircontent ref) list
+val get : t -> Table.t Common.service_table list
 ```
 ```ocaml
-val set : t -> (int * int * Table.t Common.dircontent ref) list -> unit
+val set : t -> Table.t Common.service_table list -> unit
 ```
 
 
@@ -230984,10 +231334,10 @@ val dlist_add :
   Node.t
 ```
 ```ocaml
-val get : t -> (int * int * Table.t Common.dircontent ref) list
+val get : t -> Table.t Common.service_table list
 ```
 ```ocaml
-val set : t -> (int * int * Table.t Common.dircontent ref) list -> unit
+val set : t -> Table.t Common.service_table list -> unit
 ```
 
 
@@ -232354,9 +232704,6 @@ val new_state : unit -> string
 ```
 ```ocaml
 val default_csrf_scope : [< Common.user_scope ] option -> Common.user_scope
-```
-```ocaml
-exception Unreachable_exn
 ```
 ```ocaml
 val attached_info : 

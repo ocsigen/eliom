@@ -106,6 +106,11 @@ val raw_replaceChildren :
   unit
 ```
 ```ocaml
+val elt_of_node_opt : 
+  Js_of_ocaml__Dom.node Js_of_ocaml.Js.t Js_of_ocaml.Js.Opt.t ->
+  'a Kind.elt Js_of_ocaml.Js.Opt.t
+```
+```ocaml
 val nth : 'a Kind.elt -> int -> 'b Kind.elt option
 ```
 ```ocaml

@@ -14,8 +14,8 @@ val dlist_add :
   Node.t
 ```
 ```ocaml
-val get : t -> (int * int * Table.t Common.dircontent ref) list
+val get : t -> Table.t Common.service_table list
 ```
 ```ocaml
-val set : t -> (int * int * Table.t Common.dircontent ref) list -> unit
+val set : t -> Table.t Common.service_table list -> unit
 ```
