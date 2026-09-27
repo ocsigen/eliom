@@ -259,6 +259,23 @@ let register_request_node, find_request_node, reset_request_nodes =
 let load_mutex = Lwt_mutex.create ()
 let _ = ignore (Lwt_mutex.lock load_mutex)
 
+(** [with_load_mutex f] takes [load_mutex] and runs [f unlock]. [f] calls
+   [unlock] once the page is in place, before running the load callbacks.
+   If [f] fails before that, the mutex is released anyway. *)
+let with_load_mutex f =
+  let locked = ref true in
+  let unlock () =
+    if !locked
+    then (
+      locked := false;
+      Lwt_mutex.unlock load_mutex)
+  in
+  Lwt.catch
+    (fun () ->
+       let* () = Lwt_mutex.lock load_mutex in
+       f unlock)
+    (fun exn -> unlock (); Lwt.fail exn)
+
 let in_onload, broadcast_load_end, wait_load_end, set_loading_phase =
   let loading_phase = ref true in
   let load_end = Lwt_condition.create () in

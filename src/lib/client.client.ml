@@ -565,23 +565,17 @@ let call_ocaml_service
       ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
       ?progress ?upload_progress ?override_mime_type get_params post_params
   in
-  let locked = ref true in
-  let recover () = if !locked then Lwt_mutex.unlock Client_core.load_mutex in
-  Lwt.catch
-    (fun () ->
-       let* () = Lwt_mutex.lock Client_core.load_mutex in
-       Client_core.set_loading_phase ();
-       let* content, request_data = unwrap_caml_content content in
-       do_request_data request_data;
-       Client_core.reset_request_nodes ();
-       let load_callbacks = [Client_core.broadcast_load_end] in
-       locked := false;
-       Lwt_mutex.unlock Client_core.load_mutex;
-       run_callbacks load_callbacks;
-       match content with
-       | `Success result -> Lwt.return result
-       | `Failure msg -> Lwt.fail (Client_value.Exception_on_server msg))
-    (fun exn -> recover (); Lwt.fail exn)
+  Client_core.with_load_mutex (fun unlock ->
+    Client_core.set_loading_phase ();
+    let* content, request_data = unwrap_caml_content content in
+    do_request_data request_data;
+    Client_core.reset_request_nodes ();
+    let load_callbacks = [Client_core.broadcast_load_end] in
+    unlock ();
+    run_callbacks load_callbacks;
+    match content with
+    | `Success result -> Lwt.return result
+    | `Failure msg -> Lwt.fail (Client_value.Exception_on_server msg))
 
 (* == Current uri.
 
@@ -708,20 +702,14 @@ let set_template_content ~replace ~uri ?fragment =
     (match fragment with
     | None -> change_url_string ~replace uri
     | Some fragment -> change_url_string ~replace (uri ^ "#" ^ fragment));
-    let locked = ref true in
-    let recover () = if !locked then Lwt_mutex.unlock Client_core.load_mutex in
-    Lwt.catch
-      (fun () ->
-         let* () = Lwt_mutex.lock Client_core.load_mutex in
-         let* (), request_data = unwrap_caml_content content in
-         do_request_data request_data;
-         Client_core.reset_request_nodes ();
-         let load_callbacks = flush_onload () in
-         locked := false;
-         Lwt_mutex.unlock Client_core.load_mutex;
-         run_callbacks load_callbacks;
-         Lwt.return_unit)
-      (fun exn -> recover (); Lwt.fail exn)
+    Client_core.with_load_mutex (fun unlock ->
+      let* (), request_data = unwrap_caml_content content in
+      do_request_data request_data;
+      Client_core.reset_request_nodes ();
+      let load_callbacks = flush_onload () in
+      unlock ();
+      run_callbacks load_callbacks;
+      Lwt.return_unit)
   and cancel () = Lwt.return_unit in
   function
   | None -> Lwt.return_unit
@@ -754,47 +742,45 @@ let replace_page ~do_insert_base new_page =
 (* Function to be called for client side services: *)
 let set_content_local ?offset ?fragment new_page =
   Logs.debug ~src:section_page (fun fmt -> fmt "Set content local");
-  let locked = ref true in
-  let recover () =
-    if !locked then Lwt_mutex.unlock Client_core.load_mutex;
-    Config.debug_time_end "set_content_local"
-  and really_set () =
-    (* Inline CSS in the header to avoid the "flashing effect".
-       Otherwise, the browser start to display the page before
-       loading the CSS. *)
-    let preloaded_css =
-      if !only_replace_body
-      then Lwt.return_unit
-      else Mod_dom.preload_css new_page
+  Client_core.with_load_mutex (fun unlock ->
+    let recover () =
+      unlock ();
+      Config.debug_time_end "set_content_local"
+    and really_set () =
+      (* Inline CSS in the header to avoid the "flashing effect".
+         Otherwise, the browser start to display the page before
+         loading the CSS. *)
+      let preloaded_css =
+        if !only_replace_body
+        then Lwt.return_unit
+        else Mod_dom.preload_css new_page
+      in
+      (* Wait for CSS to be inlined before substituting global nodes: *)
+      let* () = preloaded_css in
+      (* Really change page contents *)
+      replace_page ~do_insert_base:true new_page;
+      Mod_dom.add_formdata_hack_onclick_handler ();
+      dom_history_ready := true;
+      let load_callbacks = flush_onload () @ [Client_core.broadcast_load_end] in
+      unlock ();
+      (* run callbacks upon page activation (or now), but just once *)
+      Page_status.onactive ~once:true (fun () -> run_callbacks load_callbacks);
+      scroll_to_fragment ?offset fragment;
+      advance_page ();
+      Config.debug_time_end "set_content_local";
+      Lwt.return_unit
     in
-    (* Wait for CSS to be inlined before substituting global nodes: *)
-    let* () = preloaded_css in
-    (* Really change page contents *)
-    replace_page ~do_insert_base:true new_page;
-    Mod_dom.add_formdata_hack_onclick_handler ();
-    dom_history_ready := true;
-    let load_callbacks = flush_onload () @ [Client_core.broadcast_load_end] in
-    locked := false;
-    Lwt_mutex.unlock Client_core.load_mutex;
-    (* run callbacks upon page activation (or now), but just once *)
-    Page_status.onactive ~once:true (fun () -> run_callbacks load_callbacks);
-    scroll_to_fragment ?offset fragment;
-    advance_page ();
-    Config.debug_time_end "set_content_local";
-    Lwt.return_unit
-  in
-  let cancel () = recover (); Lwt.return_unit in
-  Lwt.catch
-    (fun () ->
-       let* () = Lwt_mutex.lock Client_core.load_mutex in
-       Client_core.set_loading_phase ();
-       Config.debug_time "set_content_local";
-       run_onunload_wrapper really_set cancel)
-    (fun exn ->
-       recover ();
-       Logs.debug ~src:section (fun fmt ->
-         fmt "set_content_local@\n%s" (Printexc.to_string exn));
-       Lwt.fail exn)
+    let cancel () = recover (); Lwt.return_unit in
+    Lwt.catch
+      (fun () ->
+         Client_core.set_loading_phase ();
+         Config.debug_time "set_content_local";
+         run_onunload_wrapper really_set cancel)
+      (fun exn ->
+         recover ();
+         Logs.debug ~src:section (fun fmt ->
+           fmt "set_content_local@\n%s" (Printexc.to_string exn));
+         Lwt.fail exn))
 
 (* Run the onchangepage handlers before leaving the current page for a new
    page at [target_uri] *)
@@ -815,95 +801,93 @@ let set_content ~replace ~uri ?offset ?fragment content =
   match content with
   | None -> Lwt.return_unit
   | Some content ->
-      let locked = ref true in
-      let really_set () =
-        current_reload_function := None;
-        set_uri ~replace ?fragment uri;
-        (* Convert the DOM nodes from XML elements to HTML elements. *)
-        let fake_page =
-          Mod_dom.html_document content Client_core.registered_process_node
+      Client_core.with_load_mutex (fun unlock ->
+        let really_set () =
+          current_reload_function := None;
+          set_uri ~replace ?fragment uri;
+          (* Convert the DOM nodes from XML elements to HTML elements. *)
+          let fake_page =
+            Mod_dom.html_document content Client_core.registered_process_node
+          in
+          (* insert_base fake_page; Now done server side *)
+          (* Inline CSS in the header to avoid the "flashing effect".
+           Otherwise, the browser start to display the page before
+           loading the CSS. *)
+          let preloaded_css =
+            if !only_replace_body
+            then Lwt.return_unit
+            else Mod_dom.preload_css fake_page
+          in
+          (* Unique nodes of scope request must be bound before the
+           unmarshalling/unwrapping of page data. *)
+          Client_relink.relink_request_nodes fake_page;
+          (* Put the loaded data script in action *)
+          load_data_script fake_page;
+          (* Unmarshall page data. *)
+          let cookies = Request_info.get_request_cookies () in
+          let js_data = Request_info.get_request_data () in
+          (* Update tab-cookies: *)
+          let host =
+            match Url.url_of_string uri with
+            | Some (Url.Http url) | Some (Url.Https url) -> Some url.Url.hu_host
+            | _ -> None
+          in
+          Mod_cookies.update_cookie_table host cookies;
+          (* Wait for CSS to be inlined before substituting global nodes: *)
+          let* () = preloaded_css in
+          (* Bind unique node (request and global) and register event
+           handler.  Relinking closure nodes must take place after
+           initializing the client values *)
+          let nodes = Client_relink.relink_page_but_client_values fake_page in
+          Request_info.set_session_info ~uri js_data.Common.ejs_sess_info
+          @@ fun () ->
+          (* Really change page contents *)
+          replace_page ~do_insert_base:false fake_page;
+          (* Initialize and provide client values. May need to access to
+           new DOM. Necessary for relinking closure nodes *)
+          do_request_data js_data.Common.ejs_request_data;
+          (* Replace closure ids in document with event handlers
+           (from client values) *)
+          let () =
+            Client_relink.relink_attribs
+              Dom_html.document##.documentElement
+              js_data.Common.ejs_client_attrib_table nodes.Mod_dom.attrib_nodes
+          in
+          let onload_closure_nodes =
+            Client_relink.relink_closure_nodes
+              Dom_html.document##.documentElement
+              js_data.Common.ejs_event_handler_table nodes.Mod_dom.closure_nodes
+          in
+          (* The request node table must be empty when nodes received via
+           call_ocaml_service are unwrapped. *)
+          Client_core.reset_request_nodes ();
+          Mod_dom.add_formdata_hack_onclick_handler ();
+          dom_history_ready := true;
+          let load_callbacks =
+            flush_onload ()
+            @ [onload_closure_nodes; Client_core.broadcast_load_end]
+          in
+          unlock ();
+          run_callbacks load_callbacks;
+          scroll_to_fragment ?offset fragment;
+          advance_page ();
+          Config.debug_time_end "set_content";
+          Lwt.return_unit
+        and recover () =
+          unlock ();
+          Config.debug_time_end "set_content"
         in
-        (* insert_base fake_page; Now done server side *)
-        (* Inline CSS in the header to avoid the "flashing effect".
-         Otherwise, the browser start to display the page before
-         loading the CSS. *)
-        let preloaded_css =
-          if !only_replace_body
-          then Lwt.return_unit
-          else Mod_dom.preload_css fake_page
-        in
-        (* Unique nodes of scope request must be bound before the
-         unmarshalling/unwrapping of page data. *)
-        Client_relink.relink_request_nodes fake_page;
-        (* Put the loaded data script in action *)
-        load_data_script fake_page;
-        (* Unmarshall page data. *)
-        let cookies = Request_info.get_request_cookies () in
-        let js_data = Request_info.get_request_data () in
-        (* Update tab-cookies: *)
-        let host =
-          match Url.url_of_string uri with
-          | Some (Url.Http url) | Some (Url.Https url) -> Some url.Url.hu_host
-          | _ -> None
-        in
-        Mod_cookies.update_cookie_table host cookies;
-        (* Wait for CSS to be inlined before substituting global nodes: *)
-        let* () = preloaded_css in
-        (* Bind unique node (request and global) and register event
-         handler.  Relinking closure nodes must take place after
-         initializing the client values *)
-        let nodes = Client_relink.relink_page_but_client_values fake_page in
-        Request_info.set_session_info ~uri js_data.Common.ejs_sess_info
-        @@ fun () ->
-        (* Really change page contents *)
-        replace_page ~do_insert_base:false fake_page;
-        (* Initialize and provide client values. May need to access to
-         new DOM. Necessary for relinking closure nodes *)
-        do_request_data js_data.Common.ejs_request_data;
-        (* Replace closure ids in document with event handlers
-         (from client values) *)
-        let () =
-          Client_relink.relink_attribs
-            Dom_html.document##.documentElement
-            js_data.Common.ejs_client_attrib_table nodes.Mod_dom.attrib_nodes
-        in
-        let onload_closure_nodes =
-          Client_relink.relink_closure_nodes
-            Dom_html.document##.documentElement
-            js_data.Common.ejs_event_handler_table nodes.Mod_dom.closure_nodes
-        in
-        (* The request node table must be empty when nodes received via
-         call_ocaml_service are unwrapped. *)
-        Client_core.reset_request_nodes ();
-        Mod_dom.add_formdata_hack_onclick_handler ();
-        dom_history_ready := true;
-        locked := false;
-        let load_callbacks =
-          flush_onload ()
-          @ [onload_closure_nodes; Client_core.broadcast_load_end]
-        in
-        Lwt_mutex.unlock Client_core.load_mutex;
-        run_callbacks load_callbacks;
-        scroll_to_fragment ?offset fragment;
-        advance_page ();
-        Config.debug_time_end "set_content";
-        Lwt.return_unit
-      and recover () =
-        if !locked then Lwt_mutex.unlock Client_core.load_mutex;
-        Config.debug_time_end "set_content"
-      in
-      Lwt.catch
-        (fun () ->
-           let* () = Lwt_mutex.lock Client_core.load_mutex in
-           Client_core.set_loading_phase ();
-           Config.debug_time "set_content";
-           let g () = recover (); Lwt.return_unit in
-           run_onunload_wrapper really_set g)
-        (fun exn ->
-           recover ();
-           Logs.debug ~src:section (fun fmt ->
-             fmt "set_content@\n%s" (Printexc.to_string exn));
-           Lwt.fail exn)
+        Lwt.catch
+          (fun () ->
+             Client_core.set_loading_phase ();
+             Config.debug_time "set_content";
+             let g () = recover (); Lwt.return_unit in
+             run_onunload_wrapper really_set g)
+          (fun exn ->
+             recover ();
+             Logs.debug ~src:section (fun fmt ->
+               fmt "set_content@\n%s" (Printexc.to_string exn));
+             Lwt.fail exn))
 
 let ocamlify_params =
   List.map (function v, `String s -> v, Js.to_string s | _, _ -> assert false)
@@ -1272,13 +1256,16 @@ let change_page_post_form ?cookies_info ?tmpl form full_uri =
 let _ =
   (Client_core.change_page_uri_ :=
      fun ?cookies_info ?tmpl href ->
+       (* Not Lwt.async: an immediate failure must escape the link handler
+          (Client_core.raw_a_handler), which then does not prevent the
+          default action, so that the browser follows the link itself. *)
        Lwt.ignore_result (change_page_uri_a ?cookies_info ?tmpl href));
   (Client_core.change_page_get_form_ :=
      fun ?cookies_info ?tmpl form href ->
-       Lwt.ignore_result (change_page_get_form ?cookies_info ?tmpl form href));
+       Lwt.async (fun () -> change_page_get_form ?cookies_info ?tmpl form href));
   Client_core.change_page_post_form_ :=
     fun ?cookies_info ?tmpl form href ->
-      Lwt.ignore_result (change_page_post_form ?cookies_info ?tmpl form href)
+      Lwt.async (fun () -> change_page_post_form ?cookies_info ?tmpl form href)
 
 (* == Navigating through the history... *)
 
@@ -1319,7 +1306,8 @@ let revisit full_uri state_id =
     ; target_id = Some target_id }
   in
   let tmpl = state.template in
-  Lwt.ignore_result @@ with_progress_cursor
+  Lwt.async @@ fun () ->
+  with_progress_cursor
   @@
   let uri, fragment = Url.split_fragment full_uri in
   if uri = get_current_uri ()
@@ -1428,16 +1416,16 @@ let revisit_wrapper full_uri state_id =
   run_onunload_wrapper f cancel
 
 let () =
-  Lwt.ignore_result
-    (let* () = Client_core.wait_load_end () in
-     Logs.debug ~src:section_page (fun fmt ->
-       fmt "revisit_wrapper: replaceState");
-     Dom_html.window##.history##(replaceState
-                                   (history_state !active_page.page_id
-                                      (Js.to_string
-                                         Dom_html.window##.location##.href))
-                                   (Js.string "") Js.null);
-     Lwt.return_unit);
+  Lwt.async (fun () ->
+    let* () = Client_core.wait_load_end () in
+    Logs.debug ~src:section_page (fun fmt ->
+      fmt "revisit_wrapper: replaceState");
+    Dom_html.window##.history##(replaceState
+                                  (history_state !active_page.page_id
+                                     (Js.to_string
+                                        Dom_html.window##.location##.href))
+                                  (Js.string "") Js.null);
+    Lwt.return_unit);
   Dom_html.window##.onpopstate
   := Dom_html.handler (fun event ->
     Logs.debug ~src:section_page (fun fmt -> fmt "revisit_wrapper: onpopstate");

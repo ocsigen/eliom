@@ -127,6 +127,15 @@
 ** Mod_dom.onhashchange, which served the fragment fallback, is removed.
 ** Mod_dom.select_nodes returns a selected_nodes record instead of a
    5-tuple of node lists.
+* Logging
+** The Comet client logs its connection and request failures as
+   warnings (source eliom:comet) instead of application messages
+   (Logs.app), so that they can be filtered like the other Eliom logs.
+** The server logs the update of the expiry dates of all sessions after a
+   change of timeout at info level (source eliom:admin) instead of as an
+   application message (Logs.app).
+** Eliom_react (client) logs under its own source, eliom:react, instead of
+   eliom:comet.
 * Bug fixes
 ** Syntax.is_site_available now checks that the sitedata stack is
    actually non-empty during initialisation, instead of just

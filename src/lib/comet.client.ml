@@ -537,7 +537,7 @@ end = struct
              | Request.Failed_request (0 | 502 | 504) ->
                  if retries > max_retries
                  then (
-                   Logs.app ~src:section (fun fmt -> fmt "connection failure");
+                   Logs.warn ~src:section (fun fmt -> fmt "connection failure");
                    set_activity hd `Inactive;
                    aux 0)
                  else
@@ -547,7 +547,7 @@ end = struct
                  Logs.info ~src:section (fun fmt -> fmt "restart");
                  aux 0
              | exn ->
-                 Logs.app ~src:section (fun fmt ->
+                 Logs.warn ~src:section (fun fmt ->
                    fmt "connection failure@\n%s" (Printexc.to_string exn));
                  let* () = handle_exn ~exn () in
                  Lwt.fail exn)
@@ -561,7 +561,7 @@ end = struct
             call_service_after_load_end srv queue
               (false, Ecb.Stateful (Ecb.Commands command)))
          (fun exn ->
-            Logs.app ~src:section (fun fmt ->
+            Logs.warn ~src:section (fun fmt ->
               fmt "request failed@\n%s" (Printexc.to_string exn));
             Lwt.return ""))
 
