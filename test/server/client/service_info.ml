@@ -12,6 +12,14 @@ let of_service service =
   ; post_params
   ; param = Eliom.Parameter.string_of_param_name param }
 
+let of_server_function server_function =
+  (* The server function is sent as its service. *)
+  let service, _ =
+    (Page.receive server_function
+     : (_, _) Eliom.Client_base.server_function_service * _)
+  in
+  of_service service
+
 let post tab {url; post_params; param} v =
   Tab.post tab url (post_params @ [param, v])
 

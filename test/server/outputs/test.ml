@@ -65,17 +65,8 @@ let actions server =
 
 (* The answer of a service sending an OCaml value to the client-side
    program *)
-let ocaml_value (r : Browser.response) =
-  Alcotest.(check (option string))
-    "content type" (Some "application/x-eliom")
-    (Browser.header r "content-type");
-  let _, data =
-    (Marshal.from_string (Eliom.Lib.Url.decode r.body) 0
-     : _
-       * [`Success of int | `Failure of string]
-           Eliom.Runtime.eliom_caml_service_data)
-  in
-  data.Eliom.Runtime.ecs_data
+let ocaml_value r : [`Success of int | `Failure of string] =
+  Eliom_test_client.Ocaml_answer.decode r
 
 let ocaml server =
   let case = case server in

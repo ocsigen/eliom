@@ -24,6 +24,10 @@ val of_service :
   -> t
 (** [of_service s] is the information about [s]. *)
 
+val of_server_function : ('a, 'b) Eliom.Client.server_function -> t
+(** [of_server_function f] is the information about the service of [f], as
+    sent to the client. *)
+
 val post : Tab.t -> t -> string -> Eliom_test_server.Browser.response Lwt.t
 (** [post tab s v] sends the value [v] of the parameter of [s] from [tab]. *)
 
