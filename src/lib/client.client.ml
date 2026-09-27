@@ -500,7 +500,6 @@ let init () =
           js_data.Common.ejs_event_handler_table nodes.Mod_dom.closure_nodes
       in
       Client_core.reset_request_nodes ();
-      Mod_dom.add_formdata_hack_onclick_handler ();
       if not (is_client_app ()) then dom_history_ready := true;
       let load_callbacks =
         flush_onload () @ [onload_closure_nodes; Client_core.broadcast_load_end]
@@ -758,7 +757,6 @@ let set_content_local ?offset ?fragment new_page =
       let* () = preloaded_css in
       (* Really change page contents *)
       replace_page ~do_insert_base:true new_page;
-      Mod_dom.add_formdata_hack_onclick_handler ();
       dom_history_ready := true;
       let load_callbacks = flush_onload () @ [Client_core.broadcast_load_end] in
       unlock ();
@@ -860,7 +858,6 @@ let set_content ~replace ~uri ?offset ?fragment content =
           (* The request node table must be empty when nodes received via
            call_ocaml_service are unwrapped. *)
           Client_core.reset_request_nodes ();
-          Mod_dom.add_formdata_hack_onclick_handler ();
           dom_history_ready := true;
           let load_callbacks =
             flush_onload ()
@@ -1214,7 +1211,7 @@ let change_page_uri ?replace full_uri =
 
 (* Functions used in "onsubmit" event handler of <form>.  *)
 
-let change_page_get_form ?cookies_info ?tmpl form full_uri =
+let change_page_get_form ?cookies_info ?tmpl ?submitter form full_uri =
   with_progress_cursor
     (let form = Js.Unsafe.coerce form in
      let uri, fragment = Url.split_fragment full_uri in
@@ -1223,17 +1220,17 @@ let change_page_get_form ?cookies_info ?tmpl form full_uri =
          let* uri, content =
            Request.send_get_form
              ~get_args:[Request.nl_template_string, t]
-             ?cookies_info form uri Request.string_result
+             ?cookies_info ?submitter form uri Request.string_result
          in
          set_template_content ~replace:false ~uri ?fragment content
      | _ ->
          let* uri, content =
-           Request.send_get_form ~expecting_process_page:true ?cookies_info form
-             uri Request.xml_result
+           Request.send_get_form ~expecting_process_page:true ?cookies_info
+             ?submitter form uri Request.xml_result
          in
          set_content ~replace:false ~uri ?fragment content)
 
-let change_page_post_form ?cookies_info ?tmpl form full_uri =
+let change_page_post_form ?cookies_info ?tmpl ?submitter form full_uri =
   with_progress_cursor
     (let form = Js.Unsafe.coerce form in
      let uri, fragment = Url.split_fragment full_uri in
@@ -1242,13 +1239,13 @@ let change_page_post_form ?cookies_info ?tmpl form full_uri =
          let* uri, content =
            Request.send_post_form
              ~get_args:[Request.nl_template_string, t]
-             ?cookies_info form uri Request.string_result
+             ?cookies_info ?submitter form uri Request.string_result
          in
          set_template_content ~replace:false ~uri ?fragment content
      | _ ->
          let* uri, content =
            Request.send_post_form ~expecting_process_page:true ?cookies_info
-             form uri Request.xml_result
+             ?submitter form uri Request.xml_result
          in
          set_content ~replace:false ~uri ?fragment content)
 
@@ -1260,11 +1257,13 @@ let _ =
           default action, so that the browser follows the link itself. *)
        Lwt.ignore_result (change_page_uri_a ?cookies_info ?tmpl href));
   (Client_core.change_page_get_form_ :=
-     fun ?cookies_info ?tmpl form href ->
-       Lwt.async (fun () -> change_page_get_form ?cookies_info ?tmpl form href));
+     fun ?cookies_info ?tmpl ?submitter form href ->
+       Lwt.async (fun () ->
+         change_page_get_form ?cookies_info ?tmpl ?submitter form href));
   Client_core.change_page_post_form_ :=
-    fun ?cookies_info ?tmpl form href ->
-      Lwt.async (fun () -> change_page_post_form ?cookies_info ?tmpl form href)
+    fun ?cookies_info ?tmpl ?submitter form href ->
+      Lwt.async (fun () ->
+        change_page_post_form ?cookies_info ?tmpl ?submitter form href)
 
 (* == Navigating through the history... *)
 

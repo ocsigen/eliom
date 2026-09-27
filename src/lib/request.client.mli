@@ -84,10 +84,18 @@ val send_get_form :
   -> ?progress:(int -> int -> unit)
   -> ?upload_progress:(int -> int -> unit)
   -> ?override_mime_type:string
+  -> ?submitter:Dom_html.element Js.t
   -> Dom_html.formElement Js.t
   -> string
   -> 'a result
   -> (string * 'a option) Lwt.t
+(** [send_get_form form url result] sends the fields of [form] to [url]
+    through XHR, in the query string, after [~get_args]. With
+    [~post_args], the request is a POST whose body holds [~post_args],
+    the fields staying in the query string. [~submitter] is the button
+    that submitted [form], the [submitter] of its submit event: its name
+    and value are sent, before the fields, as a native submission sends
+    them. *)
 
 val send_post_form :
    ?with_credentials:bool
@@ -98,10 +106,14 @@ val send_post_form :
   -> ?progress:(int -> int -> unit)
   -> ?upload_progress:(int -> int -> unit)
   -> ?override_mime_type:string
+  -> ?submitter:Dom_html.element Js.t
   -> Dom_html.formElement Js.t
   -> string
   -> 'a result
   -> (string * 'a option) Lwt.t
+(** [send_post_form form url result] is like {!send_get_form} but sends
+    the fields of [form] in the body of a POST request, before
+    [~post_args]. [~get_args] go in the query string. *)
 
 val http_get :
    ?with_credentials:bool

@@ -369,33 +369,26 @@ let send
       | _ -> url)
     , content )
 
-(* BEGIN FORMDATA HACK *)
-let add_button_arg inj args form =
-  let button = Js.Unsafe.global##.eliomLastButton in
-  Js.Unsafe.global##.eliomLastButton := None;
-  match button with
-  | None -> args
-  | Some b ->
-      let name, value, b_form =
-        match Dom_html.tagged b with
-        | Dom_html.Button b -> b##.name, b##.value, b##.form
-        | Dom_html.Input b -> b##.name, b##.value, b##.form
-        | _ -> assert false
+(* The name and value of the button that submitted a form. Eliom sends
+   forms through XHR, serializing their fields with
+   [Form.get_form_contents] and [Form.form_elements], which cannot know
+   which button was used: a native submission sends it with the fields. *)
+let submitter_args inj = function
+  | None -> []
+  | Some submitter -> (
+      let name_value =
+        match Dom_html.tagged submitter with
+        | Dom_html.Button b -> Some (b##.name, b##.value)
+        | Dom_html.Input i when i##._type = Js.string "submit" ->
+            Some (i##.name, i##.value)
+        | _ -> None
       in
-      let name = Js.to_string name in
-      if name <> "" && b_form = Js.some form
-      then
-        match args with
-        | None -> Some [name, inj value]
-        | Some l -> Some ((name, inj value) :: l)
-      else args
-(* END FORMDATA HACK *)
+      match name_value with
+      | None -> []
+      | Some (name, value) ->
+          let name = Js.to_string name in
+          if name = "" then [] else [name, inj value])
 
-(** Send a GET form with tab cookies and half/full XHR.
-    If [~post_params] is present, the HTTP method will be POST,
-    with form data in the URL.
-    If [~get_params] is present, it will be appended to the form fields.
-*)
 let send_get_form
       ?with_credentials
       ?expecting_process_page
@@ -405,42 +398,37 @@ let send_get_form
       ?progress
       ?upload_progress
       ?override_mime_type
+      ?submitter
       form
       url
   =
-  let get_args = get_args @ Form.get_form_contents form in
-  (* BEGIN FORMDATA HACK *)
-  let get_args = add_button_arg Js.to_string (Some get_args) form in
-  (* END FORMDATA HACK *)
-  send ?with_credentials ?expecting_process_page ?cookies_info ?get_args
+  let get_args =
+    submitter_args Js.to_string submitter
+    @ get_args
+    @ Form.get_form_contents form
+  in
+  send ?with_credentials ?expecting_process_page ?cookies_info ~get_args
     ?post_args ?progress ?upload_progress ?override_mime_type url
 
-(** Send a POST form with tab cookies and half/full XHR. *)
 let send_post_form
       ?with_credentials
       ?expecting_process_page
       ?cookies_info
       ?get_args
-      ?post_args
+      ?(post_args = [])
       ?progress
       ?upload_progress
       ?override_mime_type
+      ?submitter
       form
       url
   =
-  (* BEGIN FORMDATA HACK *)
   let post_args =
-    match
-      ( add_button_arg (fun x -> `String x) (Some (Form.form_elements form)) form
-      , post_args )
-    with
-    | Some l, Some l' -> Some (l @ l')
-    | Some l, _ | _, Some l -> Some l
-    | None, None -> None
+    submitter_args (fun x -> `String x) submitter
+    @ Form.form_elements form @ post_args
   in
-  (* END FORMDATA HACK *)
   send ?with_credentials ?expecting_process_page ?cookies_info ?get_args
-    ?post_args ?progress ?upload_progress ?override_mime_type url
+    ~post_args ?progress ?upload_progress ?override_mime_type url
 
 let http_get
       ?with_credentials

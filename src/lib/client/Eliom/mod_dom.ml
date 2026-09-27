@@ -458,34 +458,3 @@ let setDocumentScroll pos =
   Dom_html.document##.body##.scrollTop := Js.float pos.body_top;
   Dom_html.document##.body##.scrollLeft := Js.float pos.body_left;
   current_position := pos
-
-(* BEGIN FORMDATA HACK:
-   Eliom submits forms through XHR rather than natively, serializing
-   their contents with [Form.get_form_contents]/[Form.form_elements].
-   Those functions read the form fields but cannot know which submit
-   button triggered the submission (the "submitter" only exists for a
-   native submit), so the clicked button's name/value would be lost.
-   We track the last clicked button here and add it back to the request.
-
-   This is implemented in:
-   * this file -> here, installed by Client on each page load
-   * Request: in send_get_form and send_post_form *)
-
-let onclick_on_body_handler event =
-  (match Dom_html.tagged (Dom_html.eventTarget event) with
-  | Dom_html.Button button -> Js.Unsafe.global##.eliomLastButton := Some button
-  | Dom_html.Input input when input##._type = Js.string "submit" ->
-      Js.Unsafe.global##.eliomLastButton := Some input
-  | _ -> Js.Unsafe.global##.eliomLastButton := None);
-  Js._true
-
-let add_formdata_hack_onclick_handler () =
-  ignore
-    (Dom_html.addEventListener
-       Dom_html.window##.document##.body
-       Dom_html.Event.click
-       (Dom_html.handler onclick_on_body_handler)
-       Js._true
-     : Dom_html.event_listener_id)
-
-(* END FORMDATA HACK *)

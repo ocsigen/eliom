@@ -127,6 +127,16 @@
 ** Mod_dom.onhashchange, which served the fragment fallback, is removed.
 ** Mod_dom.select_nodes returns a selected_nodes record instead of a
    5-tuple of node lists.
+** A form submitted through XHR sends the button that submitted it, as
+   given by SubmitEvent.submitter, instead of the target of the last
+   click in the page. Clicking an element inside a button (an icon, a
+   span) now sends the button, as a native submission does, and a form
+   submitted by a script (requestSubmit) no longer sends a button
+   clicked earlier. Browsers without SubmitEvent.submitter (Safari
+   before 15.4, Chrome before 81) send no button.
+   Request.send_get_form and Request.send_post_form take the button as a
+   new ?submitter argument. Mod_dom.add_formdata_hack_onclick_handler is
+   removed.
 * Logging
 ** The Comet client logs its connection and request failures as
    warnings (source eliom:comet) instead of application messages

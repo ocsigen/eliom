@@ -87,5 +87,4 @@ val setDocumentScroll : position -> unit
 
 (**/**)
 
-val add_formdata_hack_onclick_handler : unit -> unit
 val section : Logs.src
