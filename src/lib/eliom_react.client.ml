@@ -23,7 +23,7 @@
 open Lwt.Syntax
 open Lwt_react
 
-let section = Logs.Src.create "eliom:comet"
+let section = Logs.Src.create "eliom:react"
 
 module Down = struct
   type 'a t = 'a React.E.t

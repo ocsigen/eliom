@@ -134,6 +134,8 @@
 ** The server logs the update of the expiry dates of all sessions after a
    change of timeout at info level (source eliom:admin) instead of as an
    application message (Logs.app).
+** Eliom_react (client) logs under its own source, eliom:react, instead of
+   eliom:comet.
 * Bug fixes
 ** Syntax.is_site_available now checks that the sitedata stack is
    actually non-empty during initialisation, instead of just
