@@ -32,6 +32,24 @@ let test_paths () =
     ["/blog/a/b"; "/blog/dir/"; "/blog/"]
     paths
 
+let test_full_path () =
+  (* The path of a service from the root of the host, with the directory of
+     its site *)
+  let full_path s =
+    match Service.info s with
+    | Service.Attached att -> Service.full_path att
+    | Service.Nonattached _ -> Alcotest.fail "not attached"
+  in
+  let paths =
+    Site.init ~site_dir:["s"; "t"] ~app:"full path" (fun () ->
+      [ full_path (get ["a"; "b"] Parameter.unit)
+      ; full_path (get [] Parameter.unit) ])
+  in
+  Alcotest.(check (list (list string)))
+    "paths"
+    [["s"; "t"; "a"; "b"]; ["s"; "t"; ""]]
+    paths
+
 let test_path_escaping () =
   (* Each segment of the path of a service is escaped. *)
   let path =
@@ -295,6 +313,7 @@ let suite =
   ( "services"
   , [ Alcotest.test_case "outside a site" `Quick test_outside_a_site
     ; Alcotest.test_case "paths" `Quick test_paths
+    ; Alcotest.test_case "full path" `Quick test_full_path
     ; Alcotest.test_case "path escaping" `Quick test_path_escaping
     ; Alcotest.test_case "site on several levels" `Quick test_site_levels
     ; Alcotest.test_case "default protocol" `Quick test_default_protocol
