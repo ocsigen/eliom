@@ -62,17 +62,30 @@ let close_persistent_state ~scope ~secure_o ?sp () =
        let cookie_info, secure =
          compute_cookie_info sitedata secure_o cookie_info
        in
-       let full_st_name = Common.make_full_state_name ~sp ~secure ~scope in
+       (* The states of a scope are found through the cookie of its level: a
+       session group has the cookie of its browser sessions. *)
+       let full_st_name =
+         Common.make_full_state_name ~sp ~secure
+           ~scope:(Common.cookie_scope_of_user_scope scope)
+       in
        let* _, ior =
          Lazy.force
            (Common.Full_state_name_table.find full_st_name !cookie_info)
        in
        match !ior with
        | Common.SC c ->
+           let scope =
+             match
+               (scope :> Common.user_scope), !(c.Common.pc_session_group)
+             with
+             | (`Session_group _ as scope), None ->
+                 (* Without a session group, the session is its own group
+                    (see Mod_datasess.close_data_state). *)
+                 (Common.cookie_scope_of_user_scope scope :> Common.user_scope)
+             | scope, _ -> scope
+           in
            let* () =
-             close_persistent_state_of_cookie
-               ~scope:(scope :> Common.user_scope)
-               sp.Common.sp_sitedata
+             close_persistent_state_of_cookie ~scope sp.Common.sp_sitedata
                !(c.Common.pc_session_group)
                Common.(Hashed_cookies.to_string c.pc_hvalue)
            in
