@@ -365,6 +365,10 @@
    external channels expect. It had become an attached coservice, whose
    random name and prefixed parameters another server cannot know, and the
    requests of external channels got 404.
+** Two attached coservices with the same name, fallback and parameters,
+   registered during the initialisation of a site, now raise
+   Eliom_duplicate_registration, as services with a path and non-attached
+   coservices do. The second one silently replaced the first one.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type

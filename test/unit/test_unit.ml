@@ -6,4 +6,5 @@ let () =
     ; Test_cookies.suite
     ; Test_wrap.suite
     ; Test_content.suite
-    ; Test_config.suite ]
+    ; Test_config.suite
+    ; Test_init_errors.suite ]
