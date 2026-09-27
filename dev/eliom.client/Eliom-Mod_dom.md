@@ -114,6 +114,3 @@ val getDocumentScroll : unit -> position
 ```ocaml
 val setDocumentScroll : position -> unit
 ```
-```ocaml
-val test_pageshow_pagehide : unit -> bool
-```
