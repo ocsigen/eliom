@@ -26,10 +26,8 @@ val make_full_named_group_name_ :
 
 val make_full_group_name :
    cookie_level:Common.cookie_level
+  -> sitedata:Common.sitedata
   -> Ocsigen.Request.t
-  -> string
-  -> int
-  -> int
   -> string option
   -> Common.scope Common.sessgrp
 
@@ -39,13 +37,7 @@ val make_persistent_full_group_name :
   -> string option
   -> Common.perssessgrp option
 
-val getsessgrp :
-   Common.scope Common.sessgrp
-  -> string * Common.cookie_level * (string, Ipaddr.t) Either.t
-
-val getperssessgrp :
-   Common.perssessgrp
-  -> string * Common.cookie_level * (string, Ipaddr.t) Either.t
+val getperssessgrp : Common.perssessgrp -> Common.full_session_group
 
 module type MEMTAB = sig
   type group_of_group_data
@@ -129,7 +121,7 @@ module Pers : sig
   val up : string -> Common.perssessgrp option -> unit Lwt.t
   val nb_of_groups : unit -> int Lwt.t
 
-  val close_persistent_session2 :
+  val close_persistent_session :
      cookie_level:Common.cookie_level
     -> Common.sitedata
     -> Common.perssessgrp option

@@ -26,7 +26,6 @@
 (*****************************************************************************)
 
 open Lib
-open Lwt
 
 type kind = [`Service | `Data | `Persistent]
 
@@ -68,6 +67,13 @@ let get_default kind user_scope =
            ((kind :> kind), (level :> Common.cookie_level), None))
     with Not_found -> None)
 
+(* The default global timeout in [timeouts] for the states of scope [scope] *)
+let default_timeout get_default (timeouts : Common.site_timeouts) scope =
+  match timeouts, scope with
+  | {browser_default = Some {cf_value; _}; _}, `Session _ -> cf_value
+  | {tab_default = Some {cf_value; _}; _}, `Client_process _ -> cf_value
+  | _, ct -> get_default ct
+
 let set_timeout_
       get
       set
@@ -76,43 +82,50 @@ let set_timeout_
       ?full_st_name
       ?cookie_level
       ~recompute_expdates
-      override_configfile
-      fromconfigfile
+      ~override_configfile
+      ~from_configfile
       sitedata
       t
   =
   (* cookie_level is useful and mandatory
          only if full_st_name is not present *)
-  let def_bro, def_tab, tl = get sitedata in
+  let timeouts : Common.site_timeouts = get sitedata in
+  let configured = {Common.cf_value = t; cf_from_config = from_configfile} in
   match full_st_name with
   | None -> (
     (* means default timeout for all hierarchies *)
-    match def_bro, def_tab, cookie_level with
-    | Some (_, true), _, Some `Session when not override_configfile ->
+    match timeouts, cookie_level with
+    | {browser_default = Some {cf_from_config = true; _}; _}, Some `Session
+      when not override_configfile ->
         ()
         (* if it has been set by config file
                   and we do not ask to override, we do nothing *)
-    | _, Some (_, true), Some `Client_process when not override_configfile ->
+    | {tab_default = Some {cf_from_config = true; _}; _}, Some `Client_process
+      when not override_configfile ->
         ()
         (* if it has been set by config file
                   and we do not ask to override, we do nothing *)
-    | _, _, Some `Session -> set sitedata (Some (t, fromconfigfile), def_tab, tl)
-    | _, _, Some `Client_process ->
-        set sitedata (def_bro, Some (t, fromconfigfile), tl)
-    | _, _, None -> failwith "set_timeout_")
+    | _, Some `Session ->
+        set sitedata {timeouts with browser_default = Some configured}
+    | _, Some `Client_process ->
+        set sitedata {timeouts with tab_default = Some configured}
+    | _, None -> failwith "set_timeout_")
   | Some ({Common.user_scope; _} as full_st_name) ->
       (* recompute_expdates works only if full_st_name is present *)
       let oldtopt =
         try
-          let (oldt, wasfromconf), newtl = List.assoc_remove full_st_name tl in
+          let {Common.cf_value = oldt; cf_from_config = wasfromconf}, newtl =
+            List.assoc_remove full_st_name timeouts.per_state
+          in
           if override_configfile || not wasfromconf
           then
             set sitedata
-              (def_bro, def_tab, (full_st_name, (t, fromconfigfile)) :: newtl);
+              {timeouts with per_state = (full_st_name, configured) :: newtl};
           Some oldt
         with Not_found ->
           set sitedata
-            (def_bro, def_tab, (full_st_name, (t, fromconfigfile)) :: tl);
+            { timeouts with
+              per_state = (full_st_name, configured) :: timeouts.per_state };
           None
       in
       if recompute_expdates
@@ -120,20 +133,15 @@ let set_timeout_
         let oldt =
           match oldtopt with
           | Some o -> o
-          | None -> (
-            match def_bro, def_tab, user_scope with
-            | Some (t, _), _, `Session _ -> t
-            | _, Some (t, _), `Client_process _ -> t
-            | _, _, ct -> get_default ct)
+          | None -> default_timeout get_default timeouts user_scope
         in
         ignore
-          (catch
+          (Lwt.catch
              (fun () -> update full_st_name sitedata oldt t)
              (function
                | exn ->
                Logs.warn ~src:eliom_logs_src (fun fmt ->
-                 fmt
-                   ("Error while updating timeouts" ^^ "@\n%s")
+                 fmt "Error while updating timeouts@\n%s"
                    (Printexc.to_string exn));
                Lwt.return_unit))
 (*VVV Check possible exceptions raised *)
@@ -158,25 +166,30 @@ let update_exp = function
   | `Persistent -> Mod_sessadmin.update_pers_exp
 
 let find_global kind full_st_name sitedata =
-  let def_bro, def_tab, tl = sitedata_timeout kind sitedata in
-  try fst (List.assoc full_st_name tl)
-  with Not_found -> (
-    match def_bro, def_tab, full_st_name.Common.user_scope with
-    | Some (t, _), _, `Session _ -> t
-    | _, Some (t, _), `Client_process _ -> t
-    | _, _, ct -> get_default kind ct)
+  let timeouts = sitedata_timeout kind sitedata in
+  try (List.assoc full_st_name timeouts.Common.per_state).Common.cf_value
+  with Not_found ->
+    default_timeout (get_default kind) timeouts full_st_name.Common.user_scope
 
-let set_global_ ?full_st_name ?cookie_level ~kind ~recompute_expdates a =
+let set_global_
+      ?full_st_name
+      ?cookie_level
+      ~kind
+      ~recompute_expdates
+      ~override_configfile
+      ~from_configfile
+      sitedata
+      t
+  =
   set_timeout_ (sitedata_timeout kind)
     (set_sitedata_timeout kind)
     (get_default kind) (update_exp kind) ?full_st_name ?cookie_level
-    ~recompute_expdates a
+    ~recompute_expdates ~override_configfile ~from_configfile sitedata t
 
 let get_global ~kind ~cookie_scope ~secure sitedata =
   let full_st_name =
-    Common.make_full_state_name2
-      (Common.get_site_dir_string sitedata)
-      secure ~scope:cookie_scope
+    Common.make_full_state_name_of_sitedata ~sitedata ~secure
+      ~scope:cookie_scope
   in
   find_global kind full_st_name sitedata
 
@@ -185,25 +198,24 @@ let set_global
       ~cookie_scope
       ~secure
       ~recompute_expdates
-      override_configfile
+      ~override_configfile
       sitedata
       timeout
   =
   let full_st_name =
-    Common.make_full_state_name2
-      (Common.get_site_dir_string sitedata)
-      secure ~scope:cookie_scope
+    Common.make_full_state_name_of_sitedata ~sitedata ~secure
+      ~scope:cookie_scope
   in
-  set_global_ ~kind ~full_st_name ~recompute_expdates override_configfile false
-    sitedata timeout
+  set_global_ ~kind ~full_st_name ~recompute_expdates ~override_configfile
+    ~from_configfile:false sitedata timeout
 
 let set_default_global
       kind
       cookie_level
-      override_configfile
-      fromconfigfile
+      ~override_configfile
+      ~from_configfile
       sitedata
       timeout
   =
-  set_global_ ~kind ~cookie_level ~recompute_expdates:false override_configfile
-    fromconfigfile sitedata timeout
+  set_global_ ~kind ~cookie_level ~recompute_expdates:false ~override_configfile
+    ~from_configfile sitedata timeout

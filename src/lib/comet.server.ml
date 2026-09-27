@@ -1,5 +1,3 @@
-open Lwt.Syntax
-
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2010-2011
@@ -23,6 +21,7 @@ open Lwt.Syntax
 
 (* TODO: handle ended stream ( and on client side too ) *)
 
+open Lwt.Syntax
 module Ecb = Comet_base
 
 let section = Logs.Src.create "eliom:comet"
@@ -257,7 +256,7 @@ end = struct
           Lwt.catch
             (fun () ->
                let* () = wait_data requests in
-               Lwt.return (List.flatten (List.map get_available_data requests)))
+               Lwt.return (List.concat_map get_available_data requests))
             (function
               | Lwt_unix.Timeout -> Lwt.return_nil | exc -> Lwt.fail exc)
         in
@@ -334,15 +333,14 @@ end = struct
         { queue : string Comet_base.channel_data Queue.t
         ; (* Reference to the event stream, so that it does not
              get garbage collected *)
-          mutable events : Obj.t option }
+          retained_events : bool React.event option ref }
     | Stream of
         { mutable stream : string Comet_base.channel_data Lwt_stream.t
         ; mutable waiter : waiter }
 
   type handler =
     { hd_scope : Common.client_process_scope
-    ; (* id : int; pour tester que ce sont des service differents... *)
-      mutable hd_active_channels : (chan_id * channel) list
+    ; mutable hd_active_channels : (chan_id * channel) list
       (** streams that are currently sent to client *)
     ; mutable hd_unregistered_channels : (chan_id * channel) list
       (** streams that are created on the server side, but client did not register *)
@@ -461,16 +459,17 @@ end = struct
       handles new channels the server creates after that the client
       registered them *)
   let rec wait_data wait_closed_connection handler =
-    Lwt.bind
-      (let hd_update_streams, hd_update_streams_w = Lwt.task () in
-       handler.hd_update_streams_w <- Some hd_update_streams_w;
-       Lwt.choose
-         (wait_closed_connection :: hd_update_streams :: wait_channels handler))
-      (function
-        | `Data ->
-            handler.hd_update_streams_w <- None;
-            Lwt.return_unit
-        | `Update -> wait_data wait_closed_connection handler)
+    let hd_update_streams, hd_update_streams_w = Lwt.task () in
+    handler.hd_update_streams_w <- Some hd_update_streams_w;
+    let* event =
+      Lwt.choose
+        (wait_closed_connection :: hd_update_streams :: wait_channels handler)
+    in
+    match event with
+    | `Data ->
+        handler.hd_update_streams_w <- None;
+        Lwt.return_unit
+    | `Update -> wait_data wait_closed_connection handler
 
   let launch_channel handler chan_id channel =
     handler.hd_active_channels <-
@@ -491,6 +490,18 @@ end = struct
       with Not_found ->
         handler.hd_registered_chan_id <-
           chan_id :: handler.hd_registered_chan_id
+
+  (* Launch a new channel if the client already registered it, otherwise keep
+     it until the client does *)
+  let add_channel handler chan_id channel =
+    if List.mem chan_id handler.hd_registered_chan_id
+    then (
+      handler.hd_registered_chan_id <-
+        List.filter (( <> ) chan_id) handler.hd_registered_chan_id;
+      launch_channel handler chan_id channel)
+    else
+      handler.hd_unregistered_channels <-
+        (chan_id, channel) :: handler.hd_unregistered_channels
 
   let close_channel' handler chan_id =
     Logs.info ~src:section (fun fmt -> fmt "close channel %s" chan_id);
@@ -592,12 +603,11 @@ end = struct
     | None ->
         let hd_service =
           Comet_base.Internal_comet_service
-            (* CCC ajouter possibilité d'https *)
+            (* CCC Make https possible *)
             ( Service.create_attached_post (*VVV Why is it attached? --Vincent *)
                 ~post_params:
                   Parameter.(bool "idle" ** Comet_base.comet_request_param)
                 ~fallback:(Common.force_lazy_site_value fallback_service)
-                (*~name:"comet" (* CCC faut il mettre un nom ? *)*)
                 ()
             , ref [] )
         in
@@ -643,38 +653,28 @@ end = struct
     let name = name_of_scope (scope :> Common.user_scope) ^ name in
     let handler = get_handler scope in
     Logs.info ~src:section (fun fmt -> fmt "create channel %s" name);
-    let channel = Events {queue = Queue.create (); events = None} in
-    (match channel with
-    | Stream _ -> assert false
-    | Events channel ->
-        channel.events <-
-          Some
-            (Obj.repr
-               (React.E.fold
-                  (fun full x ->
-                     let queue = channel.queue in
-                     full
-                     ||
-                     if Queue.length queue > size
-                     then (
-                       channel.events <- None;
-                       Queue.clear queue;
-                       Queue.push Comet_base.Full queue;
-                       signal_update handler `Data;
-                       true)
-                     else (
-                       Queue.push (Comet_base.Data (marshal x)) queue;
-                       signal_update handler `Data;
-                       false))
-                  false events)));
-    if List.mem name handler.hd_registered_chan_id
-    then (
-      handler.hd_registered_chan_id <-
-        List.filter (( <> ) name) handler.hd_registered_chan_id;
-      launch_channel handler name channel)
-    else
-      handler.hd_unregistered_channels <-
-        (name, channel) :: handler.hd_unregistered_channels;
+    let queue = Queue.create () in
+    let retained_events = ref None in
+    retained_events :=
+      Some
+        (React.E.fold
+           (fun full x ->
+              full
+              ||
+              if Queue.length queue > size
+              then (
+                retained_events := None;
+                Queue.clear queue;
+                Queue.push Comet_base.Full queue;
+                signal_update handler `Data;
+                true)
+              else (
+                Queue.push (Comet_base.Data (marshal x)) queue;
+                signal_update handler `Data;
+                false))
+           false events);
+    let channel = Events {queue; retained_events} in
+    add_channel handler name channel;
     {ch_handler = handler; ch_id = name}
 
   let create_unlimited
@@ -690,14 +690,7 @@ end = struct
       Lwt_stream.map (fun x -> Comet_base.Data (marshal x)) stream
     in
     let channel = Stream {stream; waiter = stream_waiter stream} in
-    if List.mem name handler.hd_registered_chan_id
-    then (
-      handler.hd_registered_chan_id <-
-        List.filter (( <> ) name) handler.hd_registered_chan_id;
-      launch_channel handler name channel)
-    else
-      handler.hd_unregistered_channels <-
-        (name, channel) :: handler.hd_unregistered_channels;
+    add_channel handler name channel;
     {ch_handler = handler; ch_id = name}
 
   let get_id {ch_id; _} = ch_id

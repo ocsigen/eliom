@@ -1,5 +1,3 @@
-open Lwt.Syntax
-
 (* Ocsigen
  * http://www.ocsigen.org
  * Module eliommod_persess.ml
@@ -19,6 +17,9 @@ open Lwt.Syntax
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
+
+open Lwt.Syntax
+
 (*****************************************************************************)
 (*****************************************************************************)
 (** Internal functions used by Eliom:                                        *)
@@ -31,54 +32,54 @@ open Lwt.Syntax
 (*****************************************************************************)
 (* Persistent sessions: *)
 
-open Lwt
+let compute_cookie_info sitedata secure_o {Common.ci_unsecure; ci_secure} =
+  let secure = Common.get_secure ~secure_o ~sitedata in
+  (if secure then ci_secure else ci_unsecure).Common.ci_persistent, secure
 
-let compute_cookie_info sitedata secure_o secure_ci cookie_info =
-  let secure = Common.get_secure ~secure_o ~sitedata () in
-  if secure
-  then
-    let _, _, c = secure_ci in
-    c, true
-  else cookie_info, false
-
-let close_persistent_state2 ~(scope : [< Common.user_scope]) sitedata sg v =
+let close_persistent_state_of_cookie
+      ~(scope : [< Common.user_scope])
+      sitedata
+      sg
+      v
+  =
   (* check *)
   match scope with
   | `Session_group _ ->
       Mod_sessiongroups.Pers.remove_group ~cookie_level:`Session sitedata sg
   | _ ->
-      Mod_sessiongroups.Pers.close_persistent_session2
+      Mod_sessiongroups.Pers.close_persistent_session
         ~cookie_level:(Common.cookie_level_of_user_scope scope)
         sitedata sg v
 
 (* close current persistent session *)
 let close_persistent_state ~scope ~secure_o ?sp () =
   let sp = Common.sp_of_option sp in
-  catch
+  Lwt.catch
     (fun () ->
        let cookie_level = Common.cookie_level_of_user_scope scope in
-       let (_, _, cookie_info), secure_ci =
-         Common.get_cookie_info sp cookie_level
-       in
+       let cookie_info = Common.get_cookie_info sp cookie_level in
        let sitedata = Request_info.get_sitedata_sp ~sp in
        let cookie_info, secure =
-         compute_cookie_info sitedata secure_o secure_ci cookie_info
+         compute_cookie_info sitedata secure_o cookie_info
        in
        let full_st_name = Common.make_full_state_name ~sp ~secure ~scope in
-       Lazy.force (Common.Full_state_name_table.find full_st_name !cookie_info)
-       >>= fun (_, ior) ->
+       let* _, ior =
+         Lazy.force
+           (Common.Full_state_name_table.find full_st_name !cookie_info)
+       in
        match !ior with
        | Common.SC c ->
-           close_persistent_state2
-             ~scope:(scope :> Common.user_scope)
-             sp.Common.sp_sitedata
-             !(c.Common.pc_session_group)
-             Common.(Hashed_cookies.to_string c.pc_hvalue)
-           >>= fun () ->
+           let* () =
+             close_persistent_state_of_cookie
+               ~scope:(scope :> Common.user_scope)
+               sp.Common.sp_sitedata
+               !(c.Common.pc_session_group)
+               Common.(Hashed_cookies.to_string c.pc_hvalue)
+           in
            ior := Common.SCNo_data;
-           return_unit
-       | _ -> return_unit)
-    (function Not_found -> return_unit | e -> fail e)
+           Lwt.return_unit
+       | _ -> Lwt.return_unit)
+    (function Not_found -> Lwt.return_unit | e -> Lwt.fail e)
 
 let fullsessgrp ~cookie_level ~sp session_group =
   Mod_sessiongroups.make_persistent_full_group_name ~cookie_level
@@ -105,8 +106,8 @@ let rec find_or_create_persistent_cookie_
           let* r =
             find_or_create_persistent_cookie_
               ~set_max_in_group:
-                (fst sitedata.Common.max_persistent_data_tab_sessions_per_group)
-              ~cookie_scope:(`Session n) ~secure_o ~sp ()
+                sitedata.Common.max_persistent_data_tab_sessions_per_group
+                  .Common.cf_value ~cookie_scope:(`Session n) ~secure_o ~sp ()
           in
           Lwt.return_some Common.(Hashed_cookies.to_string r.pc_hvalue)
       | _ -> Lwt.return set_session_group
@@ -129,16 +130,18 @@ let rec find_or_create_persistent_cookie_
           timeout = Common.TGlobal
         ; session_group = fullsessgrp }
     in
-    Mod_sessiongroups.Pers.add ?set_max:set_max_in_group
-      (fst sitedata.Common.max_persistent_data_sessions_per_group)
-      hc_string fullsessgrp
-    >>= fun l ->
-    Lwt_list.iter_p
-      (close_persistent_state2
-         ~scope:(cookie_scope :> Common.user_scope)
-         sitedata None)
-      l
-    >>= fun () ->
+    let* l =
+      Mod_sessiongroups.Pers.add ?set_max:set_max_in_group
+        sitedata.Common.max_persistent_data_sessions_per_group.Common.cf_value
+        hc_string fullsessgrp
+    in
+    let* () =
+      Lwt_list.iter_p
+        (close_persistent_state_of_cookie
+           ~scope:(cookie_scope :> Common.user_scope)
+           sitedata None)
+        l
+    in
     Lwt.return
       { Common.pc_hvalue = hc
       ; Common.pc_set_value = Some c
@@ -147,36 +150,36 @@ let rec find_or_create_persistent_cookie_
           ref (Common.default_client_cookie_exp ()) (* exp on client *)
       ; Common.pc_session_group = ref fullsessgrp }
   in
-  let (_, _, cookie_info), secure_ci = Common.get_cookie_info sp cookie_level in
+  let cookie_info = Common.get_cookie_info sp cookie_level in
   let sitedata = Request_info.get_sitedata_sp ~sp in
-  let cookie_info, secure =
-    compute_cookie_info sitedata secure_o secure_ci cookie_info
-  in
+  let cookie_info, secure = compute_cookie_info sitedata secure_o cookie_info in
   let full_st_name =
     Common.make_full_state_name ~sp ~secure ~scope:cookie_scope
   in
-  catch
+  Lwt.catch
     (fun () ->
-       Lazy.force (Common.Full_state_name_table.find full_st_name !cookie_info)
-       >>= fun (_old, ior) ->
+       let* _old, ior =
+         Lazy.force
+           (Common.Full_state_name_table.find full_st_name !cookie_info)
+       in
        match !ior with
        | Common.SCData_session_expired
          (* We do not trust the value sent by the client,
              for security reasons *)
        | Common.SCNo_data ->
-           new_persistent_cookie sitedata full_st_name >>= fun v ->
+           let* v = new_persistent_cookie sitedata full_st_name in
            ior := Common.SC v;
-           return v
-       | Common.SC v -> return v)
+           Lwt.return v
+       | Common.SC v -> Lwt.return v)
     (function
       | Not_found ->
-          new_persistent_cookie sitedata full_st_name >>= fun v ->
+          let* v = new_persistent_cookie sitedata full_st_name in
           cookie_info :=
             Common.Full_state_name_table.add full_st_name
-              (Lazy.from_val (return (None, ref (Common.SC v))))
+              (Lazy.from_val (Lwt.return (None, ref (Common.SC v))))
               !cookie_info;
-          return v
-      | e -> fail e)
+          Lwt.return v
+      | e -> Lwt.fail e)
 
 let find_or_create_persistent_cookie
       ?set_session_group
@@ -209,17 +212,16 @@ let find_persistent_cookie_only ~cookie_scope ~secure_o ?sp () =
      Returns the cookie info for the cookie *)
   let sp = Common.sp_of_option sp in
   let cookie_level = Common.cookie_level_of_user_scope cookie_scope in
-  let (_, _, cookie_info), secure_ci = Common.get_cookie_info sp cookie_level in
+  let cookie_info = Common.get_cookie_info sp cookie_level in
   let sitedata = Request_info.get_sitedata_sp ~sp in
-  let cookie_info, secure =
-    compute_cookie_info sitedata secure_o secure_ci cookie_info
-  in
+  let cookie_info, secure = compute_cookie_info sitedata secure_o cookie_info in
   let full_st_name =
     Common.make_full_state_name ~sp ~secure ~scope:cookie_scope
   in
-  Lazy.force (Common.Full_state_name_table.find full_st_name !cookie_info)
-  >>= fun (_, ior) ->
+  let* _, ior =
+    Lazy.force (Common.Full_state_name_table.find full_st_name !cookie_info)
+  in
   match !ior with
   | Common.SCNo_data -> raise Not_found
   | Common.SCData_session_expired -> raise Common.Eliom_Session_expired
-  | Common.SC v -> return v
+  | Common.SC v -> Lwt.return v

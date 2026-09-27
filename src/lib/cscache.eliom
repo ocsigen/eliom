@@ -1,6 +1,6 @@
-open Lwt.Syntax
-
 (* Copyright Vincent Balat *)
+
+open Lwt.Syntax
 
 [%%shared.start]
 

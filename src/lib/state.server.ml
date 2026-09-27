@@ -1,5 +1,3 @@
-open Lwt.Syntax
-
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2007 Vincent Balat
@@ -19,8 +17,8 @@ open Lwt.Syntax
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Lwt.Syntax
 open Lib
-open Lwt
 
 (* Expired session? *)
 type state_status = Alive_state | Empty_state | Expired_state
@@ -47,44 +45,27 @@ let volatile_data_state_status ~scope ?secure () =
 
 let persistent_data_state_status ~scope ?secure () =
   let cookie_scope = Common.cookie_scope_of_user_scope scope in
-  catch
+  Lwt.catch
     (fun () ->
-       Mod_persess.find_persistent_cookie_only ~cookie_scope ~secure_o:secure ()
-       >>= fun _ -> return Alive_state)
+       let* _ =
+         Mod_persess.find_persistent_cookie_only ~cookie_scope ~secure_o:secure
+           ()
+       in
+       Lwt.return Alive_state)
     (function
       | Not_found -> Lwt.return Empty_state
       | Common.Eliom_Session_expired -> Lwt.return Expired_state
-      | e -> fail e)
+      | e -> Lwt.fail e)
 
 (************)
-(*
-   let get_default_service_session_timeout = Mod_timeouts.get_default_service_timeout
-let set_default_service_session_timeout = Mod_timeouts.set_default_service_timeout
-
-let get_default_volatile_data_session_timeout =
-  Mod_timeouts.get_default_data_timeout
-
-let set_default_volatile_data_session_timeout =
-  Mod_timeouts.set_default_data_timeout
-
-let set_default_volatile_session_timeout =
-  Mod_timeouts.set_default_volatile_timeout
-
-let get_default_persistent_data_session_timeout =
-  Mod_timeouts.get_default_persistent_timeout
-
-let set_default_persistent_data_session_timeout =
-  Mod_timeouts.set_default_persistent_timeout
-*)
-
 let set_default_global_service_state_timeout
       ~cookie_level
       ?(override_configfile = false)
       timeout
   =
   let sitedata = Request_info.find_sitedata "set_global_service_timeout" in
-  Mod_timeouts.set_default_global `Service cookie_level override_configfile
-    false sitedata timeout
+  Mod_timeouts.set_default_global `Service cookie_level ~override_configfile
+    ~from_configfile:false sitedata timeout
 
 let set_global_service_state_timeout
       ~cookie_scope
@@ -94,9 +75,9 @@ let set_global_service_state_timeout
       timeout
   =
   let sitedata = Request_info.find_sitedata "set_global_service_timeout" in
-  let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+  let secure = Common.get_secure ~secure_o:secure ~sitedata in
   Mod_timeouts.set_global ~kind:`Service ~cookie_scope ~secure
-    ~recompute_expdates override_configfile sitedata timeout
+    ~recompute_expdates ~override_configfile sitedata timeout
 
 let set_default_global_volatile_data_state_timeout
       ~cookie_level
@@ -104,8 +85,8 @@ let set_default_global_volatile_data_state_timeout
       timeout
   =
   let sitedata = Request_info.find_sitedata "set_global_data_timeout" in
-  Mod_timeouts.set_default_global `Data cookie_level override_configfile false
-    sitedata timeout
+  Mod_timeouts.set_default_global `Data cookie_level ~override_configfile
+    ~from_configfile:false sitedata timeout
 
 let set_global_volatile_data_state_timeout
       ~cookie_scope
@@ -115,9 +96,9 @@ let set_global_volatile_data_state_timeout
       timeout
   =
   let sitedata = Request_info.find_sitedata "set_global_data_timeout" in
-  let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+  let secure = Common.get_secure ~secure_o:secure ~sitedata in
   Mod_timeouts.set_global ~kind:`Data ~cookie_scope ~secure ~recompute_expdates
-    override_configfile sitedata timeout
+    ~override_configfile sitedata timeout
 
 let set_global_volatile_state_timeout
       ~cookie_scope
@@ -127,11 +108,11 @@ let set_global_volatile_state_timeout
       timeout
   =
   let sitedata = Request_info.find_sitedata "set_global_volatile_timeouts" in
-  let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+  let secure = Common.get_secure ~secure_o:secure ~sitedata in
   Mod_timeouts.set_global ~kind:`Service ~cookie_scope ~secure
-    ~recompute_expdates override_configfile sitedata timeout;
+    ~recompute_expdates ~override_configfile sitedata timeout;
   Mod_timeouts.set_global ~kind:`Data ~cookie_scope ~secure ~recompute_expdates
-    override_configfile sitedata timeout
+    ~override_configfile sitedata timeout
 
 let set_default_global_persistent_data_state_timeout
       ~cookie_level
@@ -139,8 +120,8 @@ let set_default_global_persistent_data_state_timeout
       timeout
   =
   let sitedata = Request_info.find_sitedata "set_global_persistent_timeout" in
-  Mod_timeouts.set_default_global `Persistent cookie_level override_configfile
-    false sitedata timeout
+  Mod_timeouts.set_default_global `Persistent cookie_level ~override_configfile
+    ~from_configfile:false sitedata timeout
 
 let set_global_persistent_data_state_timeout
       ~cookie_scope
@@ -150,23 +131,23 @@ let set_global_persistent_data_state_timeout
       timeout
   =
   let sitedata = Request_info.find_sitedata "set_global_persistent_timeout" in
-  let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+  let secure = Common.get_secure ~secure_o:secure ~sitedata in
   Mod_timeouts.set_global ~kind:`Persistent ~cookie_scope ~secure
-    ~recompute_expdates override_configfile sitedata timeout
+    ~recompute_expdates ~override_configfile sitedata timeout
 
 let get_global_service_state_timeout ?secure ~cookie_scope () =
   let sitedata = Request_info.find_sitedata "get_global_timeout" in
-  let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+  let secure = Common.get_secure ~secure_o:secure ~sitedata in
   Mod_timeouts.get_global ~kind:`Service ~cookie_scope ~secure sitedata
 
 let get_global_volatile_data_state_timeout ?secure ~cookie_scope () =
   let sitedata = Request_info.find_sitedata "get_global_timeout" in
-  let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+  let secure = Common.get_secure ~secure_o:secure ~sitedata in
   Mod_timeouts.get_global ~kind:`Data ~cookie_scope ~secure sitedata
 
 let get_global_persistent_data_state_timeout ?secure ~cookie_scope () =
   let sitedata = Request_info.find_sitedata "get_global_persistent_timeout" in
-  let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+  let secure = Common.get_secure ~secure_o:secure ~sitedata in
   Mod_timeouts.get_global ~kind:`Persistent ~cookie_scope ~secure sitedata
 
 (* Now for current session *)
@@ -175,14 +156,14 @@ let set_service_state_timeout ~cookie_scope ?secure t =
     Mod_sersess.find_or_create_service_cookie ~cookie_scope ~secure_o:secure ()
   in
   let tor = c.Common.sc_timeout in
-  match t with None -> tor := Common.TNone | Some t -> tor := Common.TSome t
+  tor := Common.timeout_of_option t
 
 let set_volatile_data_state_timeout ~cookie_scope ?secure t =
   let c =
     Mod_datasess.find_or_create_data_cookie ~cookie_scope ~secure_o:secure ()
   in
   let tor = c.Common.dc_timeout in
-  match t with None -> tor := Common.TNone | Some t -> tor := Common.TSome t
+  tor := Common.timeout_of_option t
 
 let unset_service_state_timeout ~cookie_scope ?secure () =
   try
@@ -205,7 +186,7 @@ let unset_volatile_data_state_timeout ~cookie_scope ?secure () =
 let get_service_state_timeout ~cookie_scope ?secure () =
   let sp = Common.get_sp () in
   let sitedata = Request_info.get_sitedata_sp ~sp in
-  let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+  let secure = Common.get_secure ~secure_o:secure ~sitedata in
   try
     let c =
       Mod_sersess.find_service_cookie_only ~cookie_scope ~secure_o:(Some secure)
@@ -223,7 +204,7 @@ let get_service_state_timeout ~cookie_scope ?secure () =
 let get_volatile_data_state_timeout ~cookie_scope ?secure () =
   let sp = Common.get_sp () in
   let sitedata = Request_info.get_sitedata_sp ~sp in
-  let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+  let secure = Common.get_secure ~secure_o:secure ~sitedata in
   try
     let c =
       Mod_datasess.find_data_cookie_only ~cookie_scope ~secure_o:(Some secure)
@@ -244,10 +225,7 @@ let set_persistent_data_state_timeout ~cookie_scope ?secure t =
       ()
   in
   let tor = c.Common.pc_timeout in
-  return
-    (match t with
-    | None -> tor := Common.TNone
-    | Some t -> tor := Common.TSome t)
+  Lwt.return (tor := Common.timeout_of_option t)
 
 let unset_persistent_data_state_timeout ~cookie_scope ?secure () =
   Lwt.catch
@@ -258,15 +236,15 @@ let unset_persistent_data_state_timeout ~cookie_scope ?secure () =
        in
        let tor = c.Common.pc_timeout in
        tor := Common.TGlobal;
-       return_unit)
+       Lwt.return_unit)
     (function
-      | Not_found | Common.Eliom_Session_expired -> return_unit
+      | Not_found | Common.Eliom_Session_expired -> Lwt.return_unit
       | exc -> Lwt.fail exc)
 
 let get_persistent_data_state_timeout ~cookie_scope ?secure () =
   let sp = Common.get_sp () in
   let sitedata = Request_info.get_sitedata_sp ~sp in
-  let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+  let secure = Common.get_secure ~secure_o:secure ~sitedata in
   Lwt.catch
     (fun () ->
        let* c =
@@ -274,7 +252,7 @@ let get_persistent_data_state_timeout ~cookie_scope ?secure () =
            ~secure_o:(Some secure) ~sp ()
        in
        let tor = c.Common.pc_timeout in
-       return
+       Lwt.return
          (match !tor with
          | Common.TGlobal ->
              Mod_timeouts.get_global ~kind:`Persistent ~cookie_scope ~secure
@@ -283,7 +261,7 @@ let get_persistent_data_state_timeout ~cookie_scope ?secure () =
          | Common.TSome t -> Some t))
     (function
       | Not_found | Common.Eliom_Session_expired ->
-          return
+          Lwt.return
             (Mod_timeouts.get_global ~kind:`Persistent ~cookie_scope ~secure
                sitedata)
       | exc -> Lwt.fail exc)
@@ -303,14 +281,13 @@ let rec close_service_state_if_empty ~scope ?secure () =
     in
     match scope with
     | `Session _ ->
-        (*VVV ???        (match !(c.Common.sc_session_group) with
-          | (_, _, Either.Right _) (* no group *)
-              when *)
         if
           Mod_sessiongroups.Serv.group_size
-            ( Common.get_site_dir_string sitedata
-            , `Client_process
-            , Either.Left Common.(Hashed_cookies.to_string c.sc_hvalue) )
+            { Common.sg_site_dir = Common.get_site_dir_string sitedata
+            ; sg_level = `Client_process
+            ; sg_group =
+                Common.Group_name Common.(Hashed_cookies.to_string c.sc_hvalue)
+            }
           = 0
           (* no tab sessions *)
           && Common.service_tables_are_empty !(c.Common.sc_table)
@@ -340,12 +317,14 @@ let rec close_volatile_state_if_empty ~scope ?secure () =
     match scope with
     | `Session _ -> (
       match !(c.Common.dc_session_group) with
-      | _, _, Either.Right _
+      | {Common.sg_group = Common.Subnet _; _}
       (* no group *)
         when Mod_sessiongroups.Data.group_size
-               ( Common.get_site_dir_string sitedata
-               , `Client_process
-               , Either.Left Common.(Hashed_cookies.to_string c.dc_hvalue) )
+               { Common.sg_site_dir = Common.get_site_dir_string sitedata
+               ; sg_level = `Client_process
+               ; sg_group =
+                   Common.Group_name
+                     Common.(Hashed_cookies.to_string c.dc_hvalue) }
              = 0
              (* no tab sessions *)
              && sitedata.Common.not_bound_in_data_tables
@@ -353,12 +332,8 @@ let rec close_volatile_state_if_empty ~scope ?secure () =
           Mod_sessiongroups.Data.remove c.Common.dc_session_group_node
       | _ -> ())
     | `Client_process _ -> ()
-    (* This should never occur, because we always have tab session data
-   when we have a tab session (at least the change_page_event).
-        if (sitedata.Common.not_bound_in_data_tables
-              c.Common.dc_hvalue)
-        then Mod_sessiongroups.Data.remove
-          c.Common.dc_session_group_node *)
+    (* Nothing to close: we always have tab session data when we have a tab
+       session (at least the change_page_event). *)
     | `Session_group scope_hierarchy ->
         (* There is a browser session, we do not close the group,
            but we may close the browser session (this will close
@@ -404,12 +379,8 @@ let unset_service_session_group
         ~secure_o:secure ~sp ()
     in
     let n =
-      Mod_sessiongroups.make_full_group_name ~cookie_level:`Session
-        (Request_info.get_request_sp sp).Ocsigen.Extensions.request_info
-        (Common.get_site_dir_string sitedata)
-        (Common.get_mask4 sitedata)
-        (Common.get_mask6 sitedata)
-        None
+      Mod_sessiongroups.make_full_group_name ~cookie_level:`Session ~sitedata
+        (Request_info.get_request_sp sp).Ocsigen.Extensions.request_info None
     in
     let node =
       Mod_sessiongroups.Serv.move ?set_max sitedata
@@ -431,8 +402,8 @@ let get_service_session_group ?(scope = Common.default_session_scope) ?secure ()
         ~secure_o:secure ()
     in
     match !(c.Common.sc_session_group) with
-    | _, _, Either.Right _ -> None
-    | _, _, Either.Left v -> Some v
+    | {Common.sg_group = Common.Subnet _; _} -> None
+    | {Common.sg_group = Common.Group_name v; _} -> Some v
   with Not_found | Common.Eliom_Session_expired -> None
 
 let get_service_session_group_size
@@ -447,8 +418,8 @@ let get_service_session_group_size
         ~secure_o:secure ()
     in
     match !(c.Common.sc_session_group) with
-    | _, _, Either.Right _ -> None
-    | _, _, Either.Left _ ->
+    | {Common.sg_group = Common.Subnet _; _} -> None
+    | {Common.sg_group = Common.Group_name _; _} ->
         Some (Mod_sessiongroups.Serv.group_size !(c.Common.sc_session_group))
   with Not_found | Common.Eliom_Session_expired -> None
 
@@ -482,12 +453,8 @@ let unset_volatile_data_session_group
         ~secure_o:secure ~sp ()
     in
     let n =
-      Mod_sessiongroups.make_full_group_name ~cookie_level:`Session
-        (Request_info.get_request_sp sp).Ocsigen.Extensions.request_info
-        (Common.get_site_dir_string sitedata)
-        (Common.get_mask4 sitedata)
-        (Common.get_mask6 sitedata)
-        None
+      Mod_sessiongroups.make_full_group_name ~cookie_level:`Session ~sitedata
+        (Request_info.get_request_sp sp).Ocsigen.Extensions.request_info None
     in
     let node =
       Mod_sessiongroups.Data.move ?set_max sitedata
@@ -512,8 +479,8 @@ let get_volatile_data_session_group
         ~secure_o:secure ()
     in
     match !(c.Common.dc_session_group) with
-    | _, _, Either.Right _ -> None
-    | _, _, Either.Left v -> Some v
+    | {Common.sg_group = Common.Subnet _; _} -> None
+    | {Common.sg_group = Common.Group_name v; _} -> Some v
   with Not_found | Common.Eliom_Session_expired -> None
 
 let get_volatile_data_session_group_size
@@ -528,8 +495,8 @@ let get_volatile_data_session_group_size
         ~secure_o:secure ()
     in
     match !(c.Common.dc_session_group) with
-    | _, _, Either.Right _ -> None
-    | _, _, Either.Left _ ->
+    | {Common.sg_group = Common.Subnet _; _} -> None
+    | {Common.sg_group = Common.Group_name _; _} ->
         Some (Mod_sessiongroups.Data.group_size !(c.Common.dc_session_group))
   with Not_found | Common.Eliom_Session_expired -> None
 
@@ -554,13 +521,13 @@ let set_persistent_data_session_group
   let grp = c.Common.pc_session_group in
   let* l =
     Mod_sessiongroups.Pers.move sitedata ?set_max
-      (fst sitedata.Common.max_persistent_data_sessions_per_group)
+      sitedata.Common.max_persistent_data_sessions_per_group.Common.cf_value
       Common.(Hashed_cookies.to_string c.pc_hvalue)
       !grp n
   in
   let* () =
     Lwt_list.iter_p
-      (Mod_persess.close_persistent_state2
+      (Mod_persess.close_persistent_state_of_cookie
          ~scope:(scope :> Common.user_scope)
          sitedata None)
       l
@@ -613,7 +580,7 @@ let get_persistent_data_session_group
          | None -> None
          | Some v -> (
            match Mod_sessiongroups.getperssessgrp v with
-           | _, _, Either.Left s -> Some s
+           | {Common.sg_group = Common.Group_name s; _} -> Some s
            | _ -> None)))
     (function
       | Not_found | Common.Eliom_Session_expired -> Lwt.return_none
@@ -624,9 +591,9 @@ let set_default_max_service_sessions_per_group ?(override_configfile = false) n 
   let sitedata =
     Request_info.find_sitedata "set_default_max_service_sessions_per_group"
   in
-  let b = snd sitedata.Common.max_service_sessions_per_group in
-  if override_configfile || not b
-  then sitedata.Common.max_service_sessions_per_group <- n, b
+  sitedata.Common.max_service_sessions_per_group <-
+    Common.set_configured ~override:override_configfile
+      sitedata.Common.max_service_sessions_per_group n
 
 let set_default_max_volatile_data_sessions_per_group
       ?(override_configfile = false)
@@ -636,9 +603,9 @@ let set_default_max_volatile_data_sessions_per_group
     Request_info.find_sitedata
       "set_default_max_volatile_data_sessions_per_group"
   in
-  let b = snd sitedata.Common.max_volatile_data_sessions_per_group in
-  if override_configfile || not b
-  then sitedata.Common.max_volatile_data_sessions_per_group <- n, b
+  sitedata.Common.max_volatile_data_sessions_per_group <-
+    Common.set_configured ~override:override_configfile
+      sitedata.Common.max_volatile_data_sessions_per_group n
 
 let set_default_max_persistent_data_sessions_per_group
       ?(override_configfile = false)
@@ -648,18 +615,18 @@ let set_default_max_persistent_data_sessions_per_group
     Request_info.find_sitedata
       "set_default_max_persistent_data_sessions_per_group"
   in
-  let b = snd sitedata.Common.max_persistent_data_sessions_per_group in
-  if override_configfile || not b
-  then sitedata.Common.max_persistent_data_sessions_per_group <- n, b
+  sitedata.Common.max_persistent_data_sessions_per_group <-
+    Common.set_configured ~override:override_configfile
+      sitedata.Common.max_persistent_data_sessions_per_group n
 
 let set_default_max_service_sessions_per_subnet ?(override_configfile = false) n
   =
   let sitedata =
     Request_info.find_sitedata "set_default_max_service_sessions_per_subnet"
   in
-  let b = snd sitedata.Common.max_service_sessions_per_subnet in
-  if override_configfile || not b
-  then sitedata.Common.max_service_sessions_per_subnet <- n, b
+  sitedata.Common.max_service_sessions_per_subnet <-
+    Common.set_configured ~override:override_configfile
+      sitedata.Common.max_service_sessions_per_subnet n
 
 let set_default_max_volatile_data_sessions_per_subnet
       ?(override_configfile = false)
@@ -669,9 +636,9 @@ let set_default_max_volatile_data_sessions_per_subnet
     Request_info.find_sitedata
       "set_default_max_volatile_data_sessions_per_subnet"
   in
-  let b = snd sitedata.Common.max_volatile_data_sessions_per_subnet in
-  if override_configfile || not b
-  then sitedata.Common.max_volatile_data_sessions_per_subnet <- n, b
+  sitedata.Common.max_volatile_data_sessions_per_subnet <-
+    Common.set_configured ~override:override_configfile
+      sitedata.Common.max_volatile_data_sessions_per_subnet n
 
 let set_default_max_volatile_sessions_per_group ?override_configfile n =
   set_default_max_service_sessions_per_group ?override_configfile n;
@@ -688,9 +655,9 @@ let set_default_max_service_tab_sessions_per_group
   let sitedata =
     Request_info.find_sitedata "set_default_max_service_tab_sessions_per_group"
   in
-  let b = snd sitedata.Common.max_service_tab_sessions_per_group in
-  if override_configfile || not b
-  then sitedata.Common.max_service_tab_sessions_per_group <- n, b
+  sitedata.Common.max_service_tab_sessions_per_group <-
+    Common.set_configured ~override:override_configfile
+      sitedata.Common.max_service_tab_sessions_per_group n
 
 let set_default_max_volatile_data_tab_sessions_per_group
       ?(override_configfile = false)
@@ -700,9 +667,9 @@ let set_default_max_volatile_data_tab_sessions_per_group
     Request_info.find_sitedata
       "set_default_max_volatile_data_tab_sessions_per_group"
   in
-  let b = snd sitedata.Common.max_volatile_data_tab_sessions_per_group in
-  if override_configfile || not b
-  then sitedata.Common.max_volatile_data_tab_sessions_per_group <- n, b
+  sitedata.Common.max_volatile_data_tab_sessions_per_group <-
+    Common.set_configured ~override:override_configfile
+      sitedata.Common.max_volatile_data_tab_sessions_per_group n
 
 let set_default_max_persistent_data_tab_sessions_per_group
       ?(override_configfile = false)
@@ -712,9 +679,9 @@ let set_default_max_persistent_data_tab_sessions_per_group
     Request_info.find_sitedata
       "set_default_max_persistent_data_tab_sessions_per_group"
   in
-  let b = snd sitedata.Common.max_persistent_data_tab_sessions_per_group in
-  if override_configfile || not b
-  then sitedata.Common.max_persistent_data_tab_sessions_per_group <- n, b
+  sitedata.Common.max_persistent_data_tab_sessions_per_group <-
+    Common.set_configured ~override:override_configfile
+      sitedata.Common.max_persistent_data_tab_sessions_per_group n
 
 let set_default_max_volatile_tab_sessions_per_group ?override_configfile n =
   set_default_max_service_tab_sessions_per_group ?override_configfile n;
@@ -722,13 +689,15 @@ let set_default_max_volatile_tab_sessions_per_group ?override_configfile n =
 
 let set_ipv4_subnet_mask ?(override_configfile = false) n =
   let sitedata = Request_info.find_sitedata "set_ipv4_subnet_mask" in
-  let b = snd sitedata.Common.ipv4mask in
-  if override_configfile || not b then sitedata.Common.ipv4mask <- Some n, b
+  sitedata.Common.ipv4mask <-
+    Common.set_configured ~override:override_configfile sitedata.Common.ipv4mask
+      (Some n)
 
 let set_ipv6_subnet_mask ?(override_configfile = false) n =
   let sitedata = Request_info.find_sitedata "set_ipv6_subnet_mask" in
-  let b = snd sitedata.Common.ipv6mask in
-  if override_configfile || not b then sitedata.Common.ipv6mask <- Some n, b
+  sitedata.Common.ipv6mask <-
+    Common.set_configured ~override:override_configfile sitedata.Common.ipv6mask
+      (Some n)
 
 let set_max_service_states_for_group_or_subnet ~scope ?secure m =
   let cookie_scope = Common.cookie_scope_of_user_scope scope in
@@ -776,15 +745,6 @@ let set_service_cookie_exp_date ~cookie_scope ?secure t =
   | None -> exp := Common.CEBrowser
   | Some t -> exp := Common.CESome t
 
-(*
-   let get_service_cookie_exp_date ?state_name ?(cookie_level = `Session) ?secure () =
-  try
-    let (_, _, _, _, exp) = find_service_cookie_only ?state_name ~cookie_level ~secure () in
-  let exp = c.Common.sc_cookie_exp in
-    !exp
-  with Not_found | Common.Eliom_Session_expired -> Common.CEBrowser
-*)
-
 let set_volatile_data_cookie_exp_date ~cookie_scope ?secure t =
   let c =
     Mod_datasess.find_or_create_data_cookie ~cookie_scope ~secure_o:secure ()
@@ -800,7 +760,7 @@ let set_persistent_data_cookie_exp_date ~cookie_scope ?secure t =
       ()
   in
   let exp = c.Common.pc_cookie_exp in
-  return
+  Lwt.return
     (match t with
     | None -> exp := Common.CEBrowser
     | Some t -> exp := Common.CESome t)
@@ -850,20 +810,19 @@ let get_session_service_table_if_exists ~sp ~scope ?secure () =
 (** {2 persistent sessions} *)
 
 type 'a persistent_table =
-  Common.user_scope
-  * bool
-  * (module Common.Ocsipersist.TABLE with type key = string and type value = 'a)
+  (module Common.Ocsipersist.TABLE with type key = string and type value = 'a)
+    Common.state_table
 
 let create_persistent_table ~scope ?secure ~json name :
   'a persistent_table Lwt.t
   =
   let sitedata = Request_info.find_sitedata "create_persistent_table" in
-  let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+  let secure = Common.get_secure ~secure_o:secure ~sitedata in
   let t = Common.Persistent_tables.create_json ~name json in
-  Lwt.return (scope, secure, t)
+  Lwt.return {Common.table_scope = scope; table_secure = secure; table = t}
 
 let get_p_table_key_
-      ~table:(scope, secure, table)
+      ~table:{Common.table_scope = scope; table_secure = secure; table}
       (find_cookie :
         cookie_scope:Common.cookie_scope
         -> secure_o:bool option
@@ -878,46 +837,49 @@ let get_p_table_key_
   in
   let* key =
     match scope with
-    | `Session_group state_name ->
-        Lwt.bind
-          (get_persistent_data_session_group ~scope:(`Session state_name)
-             ~secure ())
-          (function
-            | Some a -> Lwt.return a
-            | None ->
-                (* No session group. We use the session cookie as key. *)
-                get_cookie ())
+    | `Session_group state_name -> (
+        let* group =
+          get_persistent_data_session_group ~scope:(`Session state_name) ~secure
+            ()
+        in
+        match group with
+        | Some a -> Lwt.return a
+        | None ->
+            (* No session group. We use the session cookie as key. *)
+            get_cookie ())
     | _ -> get_cookie ()
   in
   Lwt.return (table, key)
 
 let get_persistent_data (type a) ~(table : a persistent_table) () =
-  catch
+  Lwt.catch
     (fun () ->
-       get_p_table_key_ ~table Mod_persess.find_persistent_cookie_only
-       >>= fun (table, key) ->
+       let* table, key =
+         get_p_table_key_ ~table Mod_persess.find_persistent_cookie_only
+       in
        let module T =
          (val table
            : Common.Ocsipersist.TABLE with type key = string and type value = a)
        in
-       T.find key >>= fun v -> Lwt.return (Data v))
+       let* v = T.find key in
+       Lwt.return (Data v))
     (function
-      | Common.Eliom_Session_expired -> return Data_session_expired
-      | Not_found -> return No_data
-      | e -> fail e)
+      | Common.Eliom_Session_expired -> Lwt.return Data_session_expired
+      | Not_found -> Lwt.return No_data
+      | e -> Lwt.fail e)
 
 let set_persistent_data (type a) ~(table : a persistent_table) (value : a) =
-  let f__ ~cookie_scope ~secure_o ?sp () =
+  let find_or_create_cookie ~cookie_scope ~secure_o ?sp () =
     Mod_persess.find_or_create_persistent_cookie ~cookie_scope ~secure_o ?sp ()
   in
-  get_p_table_key_ ~table f__ >>= fun (table, key) ->
+  let* table, key = get_p_table_key_ ~table find_or_create_cookie in
   let module T = (val table) in
   T.add key value
 
 let remove_persistent_data (type a) ~(table : a persistent_table) () =
   Lwt.catch
     (fun () ->
-       let scope, secure, _ = table in
+       let {Common.table_scope = scope; table_secure = secure; _} = table in
        let* table, key =
          get_p_table_key_ ~table Mod_persess.find_persistent_cookie_only
        in
@@ -928,16 +890,13 @@ let remove_persistent_data (type a) ~(table : a persistent_table) () =
        let* () = T.remove key in
        close_persistent_state_if_empty ~scope ~secure ())
     (function
-      | Not_found | Common.Eliom_Session_expired -> return_unit
+      | Not_found | Common.Eliom_Session_expired -> Lwt.return_unit
       | exc -> Lwt.fail exc)
 
 (*****************************************************************************)
 (** {2 session data in memory} *)
 
-type 'a volatile_table = Common.user_scope * bool * 'a Common.SessionCookies.t
-
-let create_volatile_table_during_session_ =
-  Mod_datasess.create_volatile_table_during_session
+type 'a volatile_table = 'a Common.SessionCookies.t Common.state_table
 
 let create_volatile_table ~scope ?secure () =
   match Common.get_sp_option () with
@@ -945,17 +904,17 @@ let create_volatile_table ~scope ?secure () =
     match Common.global_register_allowed () with
     | Some get_current_sitedata ->
         let sitedata = get_current_sitedata () in
-        let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+        let secure = Common.get_secure ~secure_o:secure ~sitedata in
         Mod_datasess.create_volatile_table ~scope ~secure
     | None ->
         raise (Common.Site_information_not_available "create_volatile_table"))
   | Some sp ->
       let sitedata = Request_info.get_sitedata_sp ~sp in
-      let secure = Common.get_secure ~secure_o:secure ~sitedata () in
-      create_volatile_table_during_session_ ~scope ~secure sitedata
+      let secure = Common.get_secure ~secure_o:secure ~sitedata in
+      Mod_datasess.create_volatile_table_during_session ~scope ~secure sitedata
 
 let get_table_key_
-      ~table:(scope, secure, table)
+      ~table:{Common.table_scope = scope; table_secure = secure; table}
       (find_cookie :
         cookie_scope:Common.cookie_scope
         -> secure_o:bool option
@@ -991,15 +950,15 @@ let get_volatile_data ~table () =
   | Common.Eliom_Session_expired -> Data_session_expired
 
 let set_volatile_data ~table value =
-  let f__ ~cookie_scope ~secure_o ?sp () =
+  let find_or_create_cookie ~cookie_scope ~secure_o ?sp () =
     Mod_datasess.find_or_create_data_cookie ~cookie_scope ~secure_o ?sp ()
   in
-  let table, key = get_table_key_ ~table f__ in
+  let table, key = get_table_key_ ~table find_or_create_cookie in
   Common.SessionCookies.replace table key value
 
 let remove_volatile_data ~table () =
   try
-    let scope, secure, _ = table in
+    let {Common.table_scope = scope; table_secure = secure; _} = table in
     let table, key = get_table_key_ ~table Mod_datasess.find_data_cookie_only in
     Common.SessionCookies.remove table key;
     (* Now we want to close the session if it has not data inside
@@ -1013,8 +972,9 @@ let remove_volatile_data ~table () =
 let discard_persistent_data ~scope ?secure () =
   match secure with
   | None ->
-      Mod_persess.close_persistent_state ~scope ~secure_o:(Some true) ()
-      >>= fun () ->
+      let* () =
+        Mod_persess.close_persistent_state ~scope ~secure_o:(Some true) ()
+      in
       Mod_persess.close_persistent_state ~scope ~secure_o:(Some false) ()
   | _ -> Mod_persess.close_persistent_state ~scope ~secure_o:secure ()
 
@@ -1066,13 +1026,13 @@ let discard_all_scopes ?secure () =
 
 let discard_all_volatile_data ~scope ?secure () =
   let sitedata = Request_info.find_sitedata "discard_all_volatile_data" in
-  let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+  let secure = Common.get_secure ~secure_o:secure ~sitedata in
   Mod_sessadmin.close_all_data_states ~scope ~secure sitedata
 (*VVV missing: scope group *)
 
 let discard_all_persistent_data ~scope ?secure () =
   let sitedata = Request_info.find_sitedata "discard_all_persistent_data" in
-  let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+  let secure = Common.get_secure ~secure_o:secure ~sitedata in
   Mod_sessadmin.close_all_persistent_states ~scope ~secure sitedata
 (*VVV missing: scope group *)
 
@@ -1088,7 +1048,7 @@ let discard_all_data ?persistent ~scope ?secure () =
 
 let discard_all_services ~scope ?secure () =
   let sitedata = Request_info.find_sitedata "close_all_service_sessions" in
-  let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+  let secure = Common.get_secure ~secure_o:secure ~sitedata in
   Mod_sessadmin.close_all_service_states ~scope ~secure sitedata
 (*VVV missing: scope group *)
 
@@ -1117,7 +1077,9 @@ module Ext = struct
     | TSome of float  (** timeout duration in seconds *)
 
   type (+'a (* scope *), +'b (* `Data, `Service or `Pers *)) state =
-    Common.user_scope * [`Data | `Service | `Pers] * string
+    { state_scope : Common.user_scope
+    ; state_kind : [`Data | `Service | `Pers]
+    ; state_id : string  (** The cookie value or the group name *) }
 
   type service_cookie_info =
     string (* cookie value *) * Common.tables Common.Service_cookie.t
@@ -1125,34 +1087,27 @@ module Ext = struct
   type data_cookie_info = string (* cookie value *) * Common.Data_cookie.t
   type persistent_cookie_info = string (* cookie value *) * Mod_cookies.cookie
 
-  let untype_state state = state
-
-  (*VVV Do we need this? + check
-
-  (* The following function returns the group to which belongs
-     a session or client process state: *)
-  let group_of ~state:(_cookie, (_, _, _, _, sgr, _sgrnode)) =
-    match Mod_sessiongroups.Serv.find_node_in_group_of_groups !sgr with
-      | Some a -> a
-      | None -> (* the group of a tab session,
-                   that is, the browser session associated. *)
-        Mod_sessiongroups.make_full_named_group_name_
-          ~cookie_level:`Client_process sitedata cookie
-        (*VVV à vérifier *)
-  *)
+  (* The same state with other phantom types *)
+  let untype_state state = {state with state_id = state.state_id}
 
   let volatile_data_group_state ?(scope = Common.default_group_scope) group_name
     =
-    (scope :> Common.user_scope), `Data, group_name
+    { state_scope = (scope :> Common.user_scope)
+    ; state_kind = `Data
+    ; state_id = group_name }
 
   let persistent_data_group_state
         ?(scope = Common.default_group_scope)
         group_name
     =
-    (scope :> Common.user_scope), `Pers, group_name
+    { state_scope = (scope :> Common.user_scope)
+    ; state_kind = `Pers
+    ; state_id = group_name }
 
   let service_group_state ?(scope = Common.default_group_scope) group_name =
-    (scope :> Common.user_scope), `Service, group_name
+    { state_scope = (scope :> Common.user_scope)
+    ; state_kind = `Service
+    ; state_id = group_name }
 
   let current_volatile_data_state
         ?secure
@@ -1170,7 +1125,9 @@ module Ext = struct
           Mod_datasess.find_or_create_data_cookie ~secure_o:secure ~cookie_scope
             ()
         in
-        ((scope, `Data, Common.(Hashed_cookies.to_string cookie.dc_hvalue))
+        ({ state_scope = scope
+         ; state_kind = `Data
+         ; state_id = Common.(Hashed_cookies.to_string cookie.dc_hvalue) }
          : ('a, 'b) state)
 
   let current_persistent_data_state
@@ -1180,20 +1137,23 @@ module Ext = struct
     =
     let scope = (scope :> Common.user_scope) in
     match scope with
-    | `Session_group h ->
-        Lwt.bind
-          (get_persistent_data_session_group ~scope:(`Session h) ?secure ())
-          (function
-            | Some g ->
-                persistent_data_group_state ~scope:(`Session_group h) g
-                |> Lwt.return
-            | None -> Lwt.fail Not_found)
+    | `Session_group h -> (
+        let* group =
+          get_persistent_data_session_group ~scope:(`Session h) ?secure ()
+        in
+        match group with
+        | Some g ->
+            Lwt.return (persistent_data_group_state ~scope:(`Session_group h) g)
+        | None -> Lwt.fail Not_found)
     | #Common.cookie_scope as cookie_scope ->
-        Mod_persess.find_or_create_persistent_cookie ~secure_o:secure
-          ~cookie_scope ()
-        >>= fun cookie ->
+        let* cookie =
+          Mod_persess.find_or_create_persistent_cookie ~secure_o:secure
+            ~cookie_scope ()
+        in
         Lwt.return
-          (scope, `Pers, Common.(Hashed_cookies.to_string cookie.pc_hvalue))
+          { state_scope = scope
+          ; state_kind = `Pers
+          ; state_id = Common.(Hashed_cookies.to_string cookie.pc_hvalue) }
 
   let current_service_state
         ?secure
@@ -1211,25 +1171,27 @@ module Ext = struct
           Mod_sersess.find_or_create_service_cookie ~secure_o:secure
             ~cookie_scope ()
         in
-        scope, `Service, Common.(Hashed_cookies.to_string cookie.sc_hvalue)
+        { state_scope = scope
+        ; state_kind = `Service
+        ; state_id = Common.(Hashed_cookies.to_string cookie.sc_hvalue) }
 
   let get_service_cookie_info
         ?(sitedata = Request_info.find_sitedata "State.get_service_cookie_info")
-        ((_, _, cookie) : ([< Common.cookie_level], [`Service]) state)
+        ({state_id = cookie; _} : ([< Common.cookie_level], [< `Service]) state)
     =
     cookie, Common.SessionCookies.find sitedata.Common.session_services cookie
 
   let get_volatile_data_cookie_info
         ?(sitedata =
           Request_info.find_sitedata "State.get_volatile_data_cookie_info")
-        ((_, _, cookie) : ([< Common.cookie_level], [`Data]) state)
+        ({state_id = cookie; _} : ([< Common.cookie_level], [< `Data]) state)
     =
     cookie, Common.SessionCookies.find sitedata.Common.session_data cookie
 
   let get_persistent_cookie_info
-        ((_, _, cookie) : ([< Common.cookie_level], [`Pers]) state)
+        ({state_id = cookie; _} : ([< Common.cookie_level], [< `Pers]) state)
     =
-    Mod_cookies.Persistent_cookies.Cookies.find cookie >>= fun v ->
+    let* v = Mod_cookies.Persistent_cookies.Cookies.find cookie in
     Lwt.return (cookie, v)
 
   let discard_state
@@ -1238,10 +1200,13 @@ module Ext = struct
         ()
     =
     let make_sessgrp n =
-      Common.get_site_dir_string sitedata, `Session, Either.Left n
+      { Common.sg_site_dir = Common.get_site_dir_string sitedata
+      ; sg_level = `Session
+      ; sg_group = Common.Group_name n }
     in
     match state with
-    | `Session_group _, `Data, group_name ->
+    | {state_scope = `Session_group _; state_kind = `Data; state_id = group_name}
+      ->
         (match
            Mod_sessiongroups.Data.find_node_in_group_of_groups
              (make_sessgrp group_name)
@@ -1249,7 +1214,9 @@ module Ext = struct
         | Some node -> Mod_sessiongroups.Data.remove node
         | None -> ());
         Lwt.return_unit
-    | `Session_group _, `Service, group_name ->
+    | { state_scope = `Session_group _
+      ; state_kind = `Service
+      ; state_id = group_name } ->
         (match
            Mod_sessiongroups.Serv.find_node_in_group_of_groups
              (make_sessgrp group_name)
@@ -1257,7 +1224,8 @@ module Ext = struct
         | Some (_, node) -> Mod_sessiongroups.Serv.remove node
         | None -> ());
         Lwt.return_unit
-    | `Session_group _, `Pers, group_name ->
+    | {state_scope = `Session_group _; state_kind = `Pers; state_id = group_name}
+      ->
         let sgr_o =
           Common.make_persistent_full_group_name ~cookie_level:`Session
             (Common.get_site_dir_string sitedata)
@@ -1265,39 +1233,44 @@ module Ext = struct
         in
         Mod_sessiongroups.Pers.remove_group ~cookie_level:`Session sitedata
           sgr_o
-    | _, `Service, (_cookie : string) ->
+    | {state_kind = `Service; _} ->
         let () =
-          match get_service_cookie_info ~sitedata state with
+          match
+            get_service_cookie_info ~sitedata {state with state_kind = `Service}
+          with
           | exception Not_found -> ()
           | _, {Common.Service_cookie.session_group_node; _} ->
               Mod_sessiongroups.Serv.remove session_group_node
         in
         Lwt.return_unit
-    | _, `Data, _cookie ->
+    | {state_kind = `Data; _} ->
         let () =
-          match get_volatile_data_cookie_info ~sitedata state with
+          match
+            get_volatile_data_cookie_info ~sitedata
+              {state with state_kind = `Data}
+          with
           | exception Not_found -> ()
           | _, {Common.Data_cookie.session_group_node; _} ->
               Mod_sessiongroups.Data.remove session_group_node
         in
         Lwt.return_unit
-    | _, `Pers, _cookie ->
+    | {state_kind = `Pers; _} ->
         Lwt.try_bind
-          (fun () -> get_persistent_cookie_info state)
+          (fun () -> get_persistent_cookie_info {state with state_kind = `Pers})
           (function
             | cookie, {Mod_cookies.full_state_name; session_group; _} ->
                 let scope = full_state_name.Common.user_scope in
                 let cookie_level = Common.cookie_level_of_user_scope scope in
-                Mod_sessiongroups.Pers.close_persistent_session2 ~cookie_level
+                Mod_sessiongroups.Pers.close_persistent_session ~cookie_level
                   sitedata session_group cookie)
           (function Not_found -> Lwt.return_unit | exc -> Lwt.fail exc)
-  (*VVV!!! est-ce que session_group est fullsessgrp ? *)
+  (*VVV!!! Is session_group a full session group name (fullsessgrp)? *)
 
-  let fold_sub_states_aux_aux
+  let prepare_sub_states_fold
         ?(sitedata = Request_info.find_sitedata "State (state iterator)")
         ~state:
-          ((s, k, id) :
-            ([< `Session_group | `Session], [< `Pers | `Data | `Service]) state)
+          ({state_scope = s; state_kind = k; state_id = id} :
+            ([< `Session_group | `Session], 'k) state)
         f
     =
     (* id is the session cookie value or the group name *)
@@ -1313,41 +1286,39 @@ module Ext = struct
     in
     let sub_states_level = reduce_level s in
     let sub_states_scope = reduce_scope s in
-    let f a v = f a (sub_states_scope, k, v) in
+    let f a v =
+      f a
+        ({state_scope = sub_states_scope; state_kind = k; state_id = v}
+         : (_, 'k) state)
+    in
     sitedata, sub_states_level, id, f
 
   let fold_sub_states_aux fold return (sitedata, sub_states_level, id, f) e
     = function
-    | _, `Data, _ -> (
+    | {state_kind = `Data; _} -> (
       try
         let dl =
           Mod_sessiongroups.Data.find
-            ( Common.get_site_dir_string sitedata
-            , sub_states_level
-            , Either.Left id )
+            { Common.sg_site_dir = Common.get_site_dir_string sitedata
+            ; sg_level = sub_states_level
+            ; sg_group = Common.Group_name id }
         in
         fold f e dl
       with Not_found -> return e)
-    | _, `Service, _ -> (
+    | {state_kind = `Service; _} -> (
       try
         let dl =
           Mod_sessiongroups.Serv.find
-            ( Common.get_site_dir_string sitedata
-            , sub_states_level
-            , Either.Left id )
+            { Common.sg_site_dir = Common.get_site_dir_string sitedata
+            ; sg_level = sub_states_level
+            ; sg_group = Common.Group_name id }
         in
         fold f e dl
       with Not_found -> return e)
     | _ -> failwith "fold_sub_states_aux"
 
-  let fold_volatile_sub_states
-        ?sitedata
-        ~(state : Common.user_scope * [> `Data | `Service] * string)
-        f
-        e
-    =
-    let state' = (state :> ('aa, 'bb) state) in
-    let a = fold_sub_states_aux_aux ?sitedata ~state:state' f in
+  let fold_volatile_sub_states ?sitedata ~state f e =
+    let a = prepare_sub_states_fold ?sitedata ~state f in
     fold_sub_states_aux Ocsigen_base.Cache.Dlist.fold Fun.id a e state
 
   (** Fold over the snapshot of a Dlist. *)
@@ -1357,15 +1328,18 @@ module Ext = struct
 
   let fold_sub_states ?sitedata ~state f e =
     let ((sitedata, sub_states_level, id, f) as a) =
-      fold_sub_states_aux_aux ?sitedata ~state f
+      prepare_sub_states_fold ?sitedata ~state f
     in
     match state with
-    | _, `Pers, _ ->
-        Mod_sessiongroups.Pers.find
-          (Common.make_persistent_full_group_name ~cookie_level:sub_states_level
-             (Common.get_site_dir_string sitedata)
-             (Some id))
-        >>= fun l -> Lwt_list.fold_left_s f e l
+    | {state_kind = `Pers; _} ->
+        let* l =
+          Mod_sessiongroups.Pers.find
+            (Common.make_persistent_full_group_name
+               ~cookie_level:sub_states_level
+               (Common.get_site_dir_string sitedata)
+               (Some id))
+        in
+        Lwt_list.fold_left_s f e l
     | _ -> fold_sub_states_aux dlist_lwt_fold Lwt.return a e state
 
   let iter_volatile_sub_states ?sitedata ~state f =
@@ -1386,23 +1360,22 @@ module Ext = struct
     let check_scopes table_scope state_scope =
       if table_scope <> state_scope then raise Wrong_scope
 
-    let lwt_check_scopes a b =
-      try check_scopes a b; Lwt.return_unit with e -> Lwt.fail e
+    let lwt_check_scopes a b = Lwt.wrap2 check_scopes a b
 
     (*VVV Does not work with volatile group data *)
     let get_volatile_data
-          ~state:((state_scope, _, cookie) : ('s, [`Data]) state)
-          ~table:((table_scope, _secure, t) : 'a volatile_table)
+          ~state:({state_scope; state_id = cookie; _} : ('s, [< `Data]) state)
+          ~table:({Common.table_scope; table = t; _} : 'a volatile_table)
       =
       check_scopes table_scope state_scope;
       Common.SessionCookies.find t cookie
 
     let get_persistent_data
           (type a)
-          ~state:((state_scope, _, cookie) : ('s, [`Pers]) state)
-          ~table:((table_scope, _, t) : a persistent_table)
+          ~state:({state_scope; state_id = cookie; _} : ('s, [< `Pers]) state)
+          ~table:({Common.table_scope; table = t; _} : a persistent_table)
       =
-      lwt_check_scopes table_scope state_scope >>= fun () ->
+      let* () = lwt_check_scopes table_scope state_scope in
       let module T =
         (val t
           : Common.Ocsipersist.TABLE with type key = string and type value = a)
@@ -1410,8 +1383,8 @@ module Ext = struct
       T.find cookie
 
     let set_volatile_data
-          ~state:((state_scope, _, cookie) : ('s, [`Data]) state)
-          ~table:((table_scope, _secure, t) : 'a volatile_table)
+          ~state:({state_scope; state_id = cookie; _} : ('s, [< `Data]) state)
+          ~table:({Common.table_scope; table = t; _} : 'a volatile_table)
           value
       =
       check_scopes table_scope state_scope;
@@ -1419,11 +1392,11 @@ module Ext = struct
 
     let set_persistent_data
           (type a)
-          ~state:((state_scope, _, cookie) : ('s, [`Pers]) state)
-          ~table:((table_scope, _, t) : a persistent_table)
+          ~state:({state_scope; state_id = cookie; _} : ('s, [< `Pers]) state)
+          ~table:({Common.table_scope; table = t; _} : a persistent_table)
           (value : a)
       =
-      lwt_check_scopes table_scope state_scope >>= fun () ->
+      let* () = lwt_check_scopes table_scope state_scope in
       let module T =
         (val t
           : Common.Ocsipersist.TABLE with type key = string and type value = a)
@@ -1431,18 +1404,18 @@ module Ext = struct
       T.add cookie value
 
     let remove_volatile_data
-          ~state:((state_scope, _, cookie) : ('s, [`Data]) state)
-          ~table:((table_scope, _, t) : 'a volatile_table)
+          ~state:({state_scope; state_id = cookie; _} : ('s, [< `Data]) state)
+          ~table:({Common.table_scope; table = t; _} : 'a volatile_table)
       =
       check_scopes table_scope state_scope;
       Common.SessionCookies.remove t cookie
 
     let remove_persistent_data
           (type a)
-          ~state:((state_scope, _, cookie) : ('s, [`Pers]) state)
-          ~table:((table_scope, _, t) : a persistent_table)
+          ~state:({state_scope; state_id = cookie; _} : ('s, [< `Pers]) state)
+          ~table:({Common.table_scope; table = t; _} : a persistent_table)
       =
-      lwt_check_scopes table_scope state_scope >>= fun () ->
+      let* () = lwt_check_scopes table_scope state_scope in
       let module T =
         (val t
           : Common.Ocsipersist.TABLE with type key = string and type value = a)
@@ -1460,15 +1433,13 @@ module Ext = struct
     cookie.Mod_cookies.full_state_name.Common.user_scope
 
   let set_service_cookie_timeout ~cookie:(_, cookie) t =
-    cookie.Common.Service_cookie.timeout :=
-      match t with None -> TNone | Some t -> TSome t
+    cookie.Common.Service_cookie.timeout := Common.timeout_of_option t
 
   let set_volatile_data_cookie_timeout ~cookie:(_, data_cookie) t =
-    data_cookie.Common.Data_cookie.timeout :=
-      match t with None -> TNone | Some t -> TSome t
+    data_cookie.Common.Data_cookie.timeout := Common.timeout_of_option t
 
   let set_persistent_data_cookie_timeout ~cookie:(c, cookie) t =
-    let ti = match t with None -> TNone | Some t -> TSome t in
+    let ti = Common.timeout_of_option t in
     Mod_cookies.Persistent_cookies.add c {cookie with Mod_cookies.timeout = ti}
 
   let get_service_cookie_timeout ~cookie:(_, cookie) =
@@ -1487,9 +1458,10 @@ module Ext = struct
     data_cookie.Common.Data_cookie.timeout := TGlobal
 
   let unset_persistent_data_cookie_timeout ~cookie:(c, cookie) =
-    Mod_cookies.Persistent_cookies.Cookies.add c
-      {cookie with Mod_cookies.timeout = TGlobal}
-    >>= fun () ->
+    let* () =
+      Mod_cookies.Persistent_cookies.Cookies.add c
+        {cookie with Mod_cookies.timeout = TGlobal}
+    in
     let {Mod_cookies.expiry; _} = cookie in
     Mod_cookies.Persistent_cookies.Expiry_dates.remove_cookie expiry c
 
@@ -1497,7 +1469,10 @@ module Ext = struct
     let sitedata = Request_info.find_sitedata "get_session_group_list" in
     let dl = sitedata.Common.group_of_groups in
     Ocsigen_base.Cache.Dlist.fold
-      (fun l -> function _, `Session, Either.Left s -> s :: l | _ -> l)
+      (fun l -> function
+         | {Common.sg_level = `Session; sg_group = Common.Group_name s; _} ->
+             s :: l
+         | _ -> l)
       [] dl
 
   (** Iterator on service cookies *)
@@ -1559,9 +1534,9 @@ let get_persistent_data_cookie ~cookie_scope ?secure () =
          Mod_persess.find_persistent_cookie_only ~cookie_scope ~secure_o:secure
            ()
        in
-       return_some c.Common.pc_hvalue)
+       Lwt.return_some c.Common.pc_hvalue)
     (function
-      | Not_found | Common.Eliom_Session_expired -> return_none
+      | Not_found | Common.Eliom_Session_expired -> Lwt.return_none
       | exc -> Lwt.fail exc)
 
 (*****************************************************************************)
@@ -1577,7 +1552,7 @@ let set_cookie ?(cookie_level = `Session) ?path ?exp ?secure ~name ~value () =
   let sp = Common.get_sp () in
   let path = change_pathopt_ sp path in
   let sitedata = Request_info.find_sitedata "set_cookie" in
-  let secure = Common.get_secure ~secure_o:secure ~sitedata () in
+  let secure = Common.get_secure ~secure_o:secure ~sitedata in
   match cookie_level with
   | `Session ->
       sp.Common.sp_user_cookies <-

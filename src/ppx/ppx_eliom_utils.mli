@@ -21,6 +21,9 @@ val int :
   -> int
   -> Parsetree.expression
 
+val str_option : loc:Location.t -> string option -> Parsetree.expression
+(** The expression [None] or [Some "s"]. *)
+
 val id_file_hash : Location.t -> string Location.loc
 (** Name of the variable which holds the hash of the file. *)
 

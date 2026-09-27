@@ -114,7 +114,10 @@ module type S = sig
 
       The optional parameter [~scope] is {!Common.global_scope}
       by default. See the Eliom manual for detailed description {{!page-"server-services".service_scope}of
-      different scopes}.
+      different scopes}. On the server, registering with a session,
+      session group or client process scope is possible only during a
+      request; outside one, [register] raises
+      [Common.Request_information_not_available].
 
       The optional parameter [~options] is specific to each output
       module. See the type description for more information.

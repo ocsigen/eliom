@@ -96,23 +96,22 @@ struct
     ignore node1##(replaceChild (get_node elt2) node3)
 
   let raw_removeChildren node =
-    let childrens = Dom.list_of_nodeList node##.childNodes in
-    List.iter (fun c -> ignore node##(removeChild c)) childrens
+    let children = Dom.list_of_nodeList node##.childNodes in
+    List.iter (fun c -> ignore node##(removeChild c)) children
 
   let raw_replaceChildren node elts =
     raw_removeChildren node;
     List.iter (fun elt -> ignore node##(appendChild (get_node elt))) elts
 
+  (* The node [node], if any, as an Eliom element, if it is an element *)
+  let elt_of_node_opt node =
+    Js.Opt.bind node (fun node ->
+      Js.Opt.map (Dom.CoerceTo.element node) (fun node ->
+        Of_dom.of_element (Dom_html.element node)))
+
   let nth elt n =
     let node = get_unique_node "nth" elt in
-    let res =
-      Js.Opt.bind
-        node##.childNodes##(item n)
-        (fun node ->
-           Js.Opt.map (Dom.CoerceTo.element node) (fun node ->
-             Of_dom.of_element (Dom_html.element node)))
-    in
-    Js.Opt.to_option res
+    Js.Opt.to_option (elt_of_node_opt node##.childNodes##(item n))
 
   let childLength elt =
     let node = get_unique_node "childLength" elt in
@@ -132,12 +131,7 @@ struct
 
   let removeSelf elt =
     let node = get_unique_node "removeSelf" elt in
-    let res =
-      Js.Opt.bind node##.parentNode (fun node ->
-        Js.Opt.map (Dom.CoerceTo.element node) (fun node ->
-          Of_dom.of_element (Dom_html.element node)))
-    in
-    Js.Opt.iter res (fun p -> removeChild p elt)
+    Js.Opt.iter (elt_of_node_opt node##.parentNode) (fun p -> removeChild p elt)
 
   let insertFirstChild p c =
     let before = nth p 0 in
@@ -159,12 +153,8 @@ struct
     let node = get_unique_node "childNodes" elt in
     Dom.list_of_nodeList node##.childNodes
 
-  let rec filterElements coerce nodes =
-    match nodes with
-    | [] -> []
-    | node :: nodes ->
-        let elts = filterElements coerce nodes in
-        Js.Opt.case (coerce node) (fun () -> elts) (fun elt -> elt :: elts)
+  let filterElements coerce nodes =
+    List.filter_map (fun node -> Js.Opt.to_option (coerce node)) nodes
 
   let childElements elt =
     let node = get_unique_node "childElements" elt in
@@ -178,30 +168,15 @@ struct
 
   let parentNode elt =
     let node = get_unique_node "parentNode" elt in
-    let res =
-      Js.Opt.bind node##.parentNode (fun node ->
-        Js.Opt.map (Dom.CoerceTo.element node) (fun node ->
-          Of_dom.of_element (Dom_html.element node)))
-    in
-    Js.Opt.to_option res
+    Js.Opt.to_option (elt_of_node_opt node##.parentNode)
 
   let nextSibling elt =
     let node = get_unique_node "nextSibling" elt in
-    let res =
-      Js.Opt.bind node##.nextSibling (fun node ->
-        Js.Opt.map (Dom.CoerceTo.element node) (fun node ->
-          Of_dom.of_element (Dom_html.element node)))
-    in
-    Js.Opt.to_option res
+    Js.Opt.to_option (elt_of_node_opt node##.nextSibling)
 
   let previousSibling elt =
     let node = get_unique_node "previousSibling" elt in
-    let res =
-      Js.Opt.bind node##.previousSibling (fun node ->
-        Js.Opt.map (Dom.CoerceTo.element node) (fun node ->
-          Of_dom.of_element (Dom_html.element node)))
-    in
-    Js.Opt.to_option res
+    Js.Opt.to_option (elt_of_node_opt node##.previousSibling)
 
   let insertBefore ~before elt =
     Option.iter
@@ -336,7 +311,7 @@ module Svg = struct
       Js.Opt.case
         (Dom_html.CoerceTo.element node)
         (fun () -> failwith (Printf.sprintf "Non element node (%s)" id))
-        (fun x -> x)
+        Fun.id
 
     let get_element id =
       try Some (Of_dom.of_element (get_element' id))
@@ -453,7 +428,7 @@ module Html = struct
       Js.Opt.case
         (Dom_html.CoerceTo.element node)
         (fun () -> failwith (Printf.sprintf "Non element node (%s)" id))
-        (fun x -> x)
+        Fun.id
 
     let get_element id =
       try Some (Of_dom.of_element (get_element' id))
@@ -494,37 +469,26 @@ module Html = struct
       let body = Of_dom.of_body Dom_html.window##.document##.body in
       appendChild ?before body elt2
 
-    let get_unique_elt_input name elt : Dom_html.inputElement Js.t =
+    (* The unique DOM element of [elt], coerced with [coerce] *)
+    let get_unique_elt_as coerce name elt =
       Js.Opt.case
         (Js.Opt.bind
            (Dom_html.CoerceTo.element (get_unique_node name elt))
-           Dom_html.CoerceTo.input)
+           coerce)
         (fun () -> failwith (Printf.sprintf "Non element node (%s)" name))
         Fun.id
+
+    let get_unique_elt_input name elt : Dom_html.inputElement Js.t =
+      get_unique_elt_as Dom_html.CoerceTo.input name elt
 
     let get_unique_elt_select name elt : Dom_html.selectElement Js.t =
-      Js.Opt.case
-        (Js.Opt.bind
-           (Dom_html.CoerceTo.element (get_unique_node name elt))
-           Dom_html.CoerceTo.select)
-        (fun () -> failwith (Printf.sprintf "Non element node (%s)" name))
-        Fun.id
+      get_unique_elt_as Dom_html.CoerceTo.select name elt
 
     let get_unique_elt_textarea name elt : Dom_html.textAreaElement Js.t =
-      Js.Opt.case
-        (Js.Opt.bind
-           (Dom_html.CoerceTo.element (get_unique_node name elt))
-           Dom_html.CoerceTo.textarea)
-        (fun () -> failwith (Printf.sprintf "Non element node (%s)" name))
-        Fun.id
+      get_unique_elt_as Dom_html.CoerceTo.textarea name elt
 
     let get_unique_elt_img name elt : Dom_html.imageElement Js.t =
-      Js.Opt.case
-        (Js.Opt.bind
-           (Dom_html.CoerceTo.element (get_unique_node name elt))
-           Dom_html.CoerceTo.img)
-        (fun () -> failwith (Printf.sprintf "Non element node (%s)" name))
-        Fun.id
+      get_unique_elt_as Dom_html.CoerceTo.img name elt
 
     let scrollIntoView ?(bottom = false) elt =
       let elt = get_unique_elt "scrollIntoView" elt in

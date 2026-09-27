@@ -1,5 +1,3 @@
-open Lwt.Syntax
-
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2010-2011
@@ -22,8 +20,8 @@ open Lwt.Syntax
  *)
 
 (* Module for event unwrapping *)
+open Lwt.Syntax
 open Lwt_react
-open Lwt.Infix
 
 let section = Logs.Src.create "eliom:comet"
 
@@ -68,7 +66,7 @@ module Up = struct
   type 'a t = 'a -> unit Lwt.t
 
   let internal_unwrap (service, _unwrapper) x =
-    Client.call_service ~service () x >|= fun _ -> ()
+    Lwt.map ignore (Client.call_service ~service () x)
 
   let () = Unwrap.register_unwrapper Common.react_up_unwrap_id internal_unwrap
 end

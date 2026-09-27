@@ -1,5 +1,3 @@
-open Lwt.Syntax
-
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2014 Hugo Heuzard
@@ -20,6 +18,8 @@ open Lwt.Syntax
  *)
 
 (* provides infos about the server (number of sessions, uptime...) *)
+
+open Lwt.Syntax
 
 let uptime =
   let launchtime = Unix.time () in

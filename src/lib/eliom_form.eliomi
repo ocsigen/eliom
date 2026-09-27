@@ -47,10 +47,7 @@ module type Html = sig
 
   val attrib_of_service :
      string
-    -> ([`A | `Form_get | `Form_post]
-       * (bool * string list) option
-       * string option
-       * Lib.poly)
+    -> Runtime.RawXML.call_service_info
          option
          Eliom_lazy.request
     -> Html_types.form_attrib attrib

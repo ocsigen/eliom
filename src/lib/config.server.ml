@@ -75,7 +75,10 @@ let set_max_volatile_groups_per_site v =
   Mod_main.default_max_volatile_groups_per_site := v
 
 let set_secure_cookies v = Mod_main.default_secure_cookies := v
-let set_application_script v = Mod_main.default_application_script := v
+
+let set_application_script (defer, async) =
+  Mod_main.default_application_script := {Common.defer; async}
+
 let set_enable_wasm v = Mod_main.default_enable_wasm := v
 let get_enable_wasm () = !Mod_main.default_enable_wasm
 let set_cache_global_data v = Mod_main.default_cache_global_data := v

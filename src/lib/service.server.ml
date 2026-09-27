@@ -86,7 +86,9 @@ let create_attached
          if csrf_safe
          then
            Common.SAtt_csrf_safe
-             (uniqueid (), (csrf_scope :> Common.user_scope), csrf_secure)
+             { Common.csrf_id = uniqueid ()
+             ; csrf_scope :> Common.user_scope
+             ; csrf_secure }
          else
            match name with
            | None -> Common.SAtt_anon (new_state ())
@@ -158,10 +160,14 @@ let coservice'
                if is_post
                then
                  Common.SNa_post_csrf_safe
-                   (uniqueid (), (csrf_scope :> Common.user_scope), csrf_secure)
+                   { Common.csrf_id = uniqueid ()
+                   ; csrf_scope :> Common.user_scope
+                   ; csrf_secure }
                else
                  Common.SNa_get_csrf_safe
-                   (uniqueid (), (csrf_scope :> Common.user_scope), csrf_secure)
+                   { Common.csrf_id = uniqueid ()
+                   ; csrf_scope :> Common.user_scope
+                   ; csrf_secure }
              else
                match name, is_post with
                | None, true -> Common.SNa_post' (new_state ())
@@ -280,7 +286,10 @@ let register_eliom_module name f =
 
 exception Unregistered_CSRF_safe_coservice
 
-let register_delayed_get_or_na_coservice ~sp (k, scope, secure) =
+let register_delayed_get_or_na_coservice
+      ~sp
+      {Common.csrf_id = k; csrf_scope = scope; csrf_secure = secure}
+  =
   let f =
     try
       let table =
@@ -297,7 +306,11 @@ let register_delayed_get_or_na_coservice ~sp (k, scope, secure) =
   in
   f ~sp
 
-let register_delayed_post_coservice ~sp (k, scope, secure) getname =
+let register_delayed_post_coservice
+      ~sp
+      {Common.csrf_id = k; csrf_scope = scope; csrf_secure = secure}
+      getname
+  =
   let f =
     try
       let table =

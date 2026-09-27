@@ -51,29 +51,43 @@ let run
          sitedata level hierarchyname v)
     persistent_timeout;
   Option.iter
-    (fun v -> sitedata.max_service_sessions_per_group <- v)
+    (fun v ->
+       sitedata.max_service_sessions_per_group <- Common.configured_of_pair v)
     max_service_sessions_per_group;
   Option.iter
-    (fun v -> sitedata.max_volatile_data_sessions_per_group <- v)
+    (fun v ->
+       sitedata.max_volatile_data_sessions_per_group <-
+         Common.configured_of_pair v)
     max_volatile_data_sessions_per_group;
   Option.iter
-    (fun v -> sitedata.max_persistent_data_sessions_per_group <- Some v, true)
+    (fun v ->
+       sitedata.max_persistent_data_sessions_per_group <-
+         {cf_value = Some v; cf_from_config = true})
     max_persistent_data_sessions_per_group;
   Option.iter
-    (fun v -> sitedata.max_service_tab_sessions_per_group <- v)
+    (fun v ->
+       sitedata.max_service_tab_sessions_per_group <-
+         Common.configured_of_pair v)
     max_service_tab_sessions_per_group;
   Option.iter
-    (fun v -> sitedata.max_volatile_data_tab_sessions_per_group <- v)
+    (fun v ->
+       sitedata.max_volatile_data_tab_sessions_per_group <-
+         Common.configured_of_pair v)
     max_volatile_data_tab_sessions_per_group;
   Option.iter
     (fun v ->
-       sitedata.max_persistent_data_tab_sessions_per_group <- Some v, true)
+       sitedata.max_persistent_data_tab_sessions_per_group <-
+         {cf_value = Some v; cf_from_config = true})
     max_persistent_data_tab_sessions_per_group;
   Option.iter
-    (fun v -> sitedata.max_anonymous_services_per_session <- v)
+    (fun v ->
+       sitedata.max_anonymous_services_per_session <-
+         Common.configured_of_pair v)
     max_anonymous_services_per_session;
   Option.iter (fun v -> sitedata.secure_cookies <- v) secure_cookies;
-  Option.iter (fun v -> sitedata.application_script <- v) application_script;
+  Option.iter
+    (fun (defer, async) -> sitedata.application_script <- {defer; async})
+    application_script;
   (* Always update enable_wasm: use provided value or current global default *)
   sitedata.enable_wasm <-
     Option.value enable_wasm ~default:!Mod_main.default_enable_wasm;

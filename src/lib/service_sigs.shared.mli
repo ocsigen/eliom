@@ -440,12 +440,12 @@ module type S = sig
      Eliom_uri *)
   val register_delayed_get_or_na_coservice :
      sp:Common.server_params
-    -> int * [< Common.user_scope] * bool option
+    -> Common.csrf_info
     -> string
 
   val register_delayed_post_coservice :
      sp:Common.server_params
-    -> int * [< Common.user_scope] * bool option
+    -> Common.csrf_info
     -> Common.att_key_serv
     -> string
 

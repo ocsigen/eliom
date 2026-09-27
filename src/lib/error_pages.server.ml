@@ -28,7 +28,7 @@ let page_error_param_type l =
     | (n, _) :: ll ->
         txt "Wrong type for parameters "
         :: List.fold_left
-             (fun deb (n, _) -> em [txt n] :: txt ", " :: deb)
+             (fun acc (n, _) -> em [txt n] :: txt ", " :: acc)
              [em [txt n]; txt "."]
              ll
   in

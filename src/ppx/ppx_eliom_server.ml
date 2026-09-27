@@ -81,35 +81,34 @@ module Pass = struct
 
   module SSet = Set.Make (String)
 
+  (* An injection of [inj_expr], bound to the identifier [inj_id] *)
+  type injection =
+    { inj_loc : Location.t
+    ; inj_id : string
+    ; inj_expr : expression
+    ; inj_ident : string option
+    ; inj_unsafe : bool }
+
   let push_injection, flush_injections =
-    let buffer : (_ * _ * _ * _ * _) list ref = ref [] in
+    let buffer : injection list ref = ref [] in
     let gen_ids = ref SSet.empty in
     let push loc ?ident id ~unsafe orig_expr =
       if not (SSet.mem id !gen_ids)
       then (
         gen_ids := SSet.add id !gen_ids;
-        buffer := (loc, id, orig_expr, ident, unsafe) :: !buffer)
+        buffer :=
+          { inj_loc = loc
+          ; inj_id = id
+          ; inj_expr = orig_expr
+          ; inj_ident = ident
+          ; inj_unsafe = unsafe }
+          :: !buffer)
     in
-    let flush_all () =
+    let flush () =
       let res = List.rev !buffer in
       gen_ids := SSet.empty;
       buffer := [];
       res
-    in
-    let global_known = ref SSet.empty in
-    let flush () =
-      let all = flush_all () in
-      let novel =
-        let is_fresh (_, gen_id, _, _, _) =
-          not (SSet.mem gen_id !global_known)
-        in
-        List.filter is_fresh all
-      in
-      List.iter
-        (function
-          | _, gen_id, _, _, _ -> global_known := SSet.add gen_id !global_known)
-        novel;
-      all
     in
     push, flush
 
@@ -120,7 +119,7 @@ module Pass = struct
     assert (injections <> []);
     let bindings =
       List.map
-        (fun (_, txt, expr, _, _) ->
+        (fun {inj_id = txt; inj_expr = expr; _} ->
            let loc = expr.pexp_loc in
            Vb.mk ~loc (Pat.var ~loc {txt; loc}) expr)
         injections
@@ -140,15 +139,16 @@ module Pass = struct
     assert (injections <> []);
     let injection_list =
       List.fold_right
-        (fun (loc0, txt, expr, ident, unsafe) sofar ->
+        (fun { inj_loc = loc0
+             ; inj_id = txt
+             ; inj_expr = expr
+             ; inj_ident = ident
+             ; inj_unsafe = unsafe }
+          sofar ->
            let loc = expr.pexp_loc in
            let loc_expr = position loc in
            let frag_eid = eid {txt; loc} in
-           let ident =
-             match ident with
-             | None -> [%expr None]
-             | Some i -> [%expr Some [%e str i]]
-           in
+           let ident = str_option ~loc ident in
            let _, num = Mli.get_injected_ident_info txt in
            let f_id = {txt = txt ^ "_f"; loc} in
            push_nongen_str_item ~fragment:false ~unsafe loc f_id;

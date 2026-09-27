@@ -44,7 +44,7 @@ val set_global :
   -> cookie_scope:[< Common.cookie_scope]
   -> secure:bool
   -> recompute_expdates:bool
-  -> bool
+  -> override_configfile:bool
   -> Common.sitedata
   -> float option
   -> unit
@@ -54,8 +54,8 @@ val set_global_ :
   -> ?cookie_level:[< Common.cookie_level]
   -> kind:[< kind]
   -> recompute_expdates:bool
-  -> bool
-  -> bool
+  -> override_configfile:bool
+  -> from_configfile:bool
   -> Common.sitedata
   -> float option
   -> unit
@@ -63,8 +63,8 @@ val set_global_ :
 val set_default_global :
    [< kind]
   -> [< Common.cookie_level]
-  -> bool
-  -> bool
+  -> override_configfile:bool
+  -> from_configfile:bool
   -> Common.sitedata
   -> float option
   -> unit

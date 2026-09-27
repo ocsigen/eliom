@@ -24,22 +24,12 @@ val make_new_session_id : unit -> string
 val get_cookie_info :
    float
   -> Common.sitedata
-  -> Common.SessionCookies.key Common.Full_state_name_table.t
-  -> Common.SessionCookies.key Common.Full_state_name_table.t
-  -> string Common.Full_state_name_table.t
-  -> Common.SessionCookies.key Common.Full_state_name_table.t
-     * Common.SessionCookies.key Common.Full_state_name_table.t
-     * string Common.Full_state_name_table.t
+  -> Common.state_cookies
+  -> Common.state_cookies
   -> Common.tables Common.cookie_info * Common.Full_state_name_table.key list
 
 val new_service_cookie_table : unit -> Common.tables Common.Service_cookie.table
 val new_data_cookie_table : unit -> Common.Data_cookie.table
-
-val compute_session_cookies_to_send :
-   Common.sitedata
-  -> Common.tables Common.cookie_info
-  -> Ocsigen_cookie_map.t
-  -> Ocsigen_cookie_map.t Lwt.t
 
 val compute_cookies_to_send :
    Common.sitedata

@@ -30,18 +30,21 @@ module Pass = struct
       #expression
       expr
 
+  (* An escaped value [eb_expr], bound to the identifier [eb_id] *)
+  type escaped_binding =
+    {eb_id : string Location.loc; eb_expr : expression; eb_type : core_type}
+
   let push_escaped_binding, flush_escaped_bindings =
     let server_arg_ids = ref [] in
     let push gen_id (expr : expression) get_type =
       match
-        List.find_opt
-          (fun (gen_id', _, _) -> gen_id.txt = gen_id'.txt)
-          !server_arg_ids
+        List.find_opt (fun {eb_id; _} -> gen_id.txt = eb_id.txt) !server_arg_ids
       with
-      | Some (_, _, typ) -> typ
+      | Some {eb_type; _} -> eb_type
       | None ->
           let typ = get_type () in
-          server_arg_ids := (gen_id, expr, typ) :: !server_arg_ids;
+          server_arg_ids :=
+            {eb_id = gen_id; eb_expr = expr; eb_type = typ} :: !server_arg_ids;
           typ
     in
     let flush () =
@@ -61,11 +64,25 @@ module Pass = struct
     in
     mark, flush
 
+  (* A client value [cv_expr], compiled to the closure number [cv_num] and to
+     the function [cv_id] of the escaped values [cv_args] *)
+  type client_value_data =
+    { cv_loc : Location.t
+    ; cv_num : string
+    ; cv_id : string Location.loc
+    ; cv_expr : expression
+    ; cv_args : string Location.loc list }
+
   let push_client_value_data, flush_client_value_datas =
     let client_value_datas = ref [] in
-    let push loc gen_num gen_id expr (args : string Location.loc list) =
+    let push loc gen_num gen_id expr args =
       client_value_datas :=
-        (loc, gen_num, gen_id, expr, args) :: !client_value_datas
+        { cv_loc = loc
+        ; cv_num = gen_num
+        ; cv_id = gen_id
+        ; cv_expr = expr
+        ; cv_args = args }
+        :: !client_value_datas
     in
     let flush () =
       let res = List.rev !client_value_datas in
@@ -74,31 +91,31 @@ module Pass = struct
     in
     push, flush
 
-  let find_escaped_ident loc id =
+  (* The type inferred on the server, read from the type_mli file or from
+     the server cmo, whichever is given *)
+  let find_type ~mli ~cmo loc id =
     if Mli.exists ()
-    then Mli.find_escaped_ident id
+    then mli id
     else if Cmo.exists ()
-    then Cmo.find_escaped_ident loc
+    then cmo loc
     else [%type: _]
 
-  let find_injected_ident loc id =
-    if Mli.exists ()
-    then Mli.find_injected_ident id
-    else if Cmo.exists ()
-    then Cmo.find_injected_ident loc
-    else [%type: _]
+  let find_escaped_ident =
+    find_type ~mli:Mli.find_escaped_ident ~cmo:Cmo.find_escaped_ident
 
-  let find_fragment loc id =
-    if Mli.exists ()
-    then Mli.find_fragment id
-    else if Cmo.exists ()
-    then Cmo.find_fragment loc
-    else [%type: _]
+  let find_injected_ident =
+    find_type ~mli:Mli.find_injected_ident ~cmo:Cmo.find_injected_ident
+
+  let find_fragment = find_type ~mli:Mli.find_fragment ~cmo:Cmo.find_fragment
 
   let register_client_closures client_value_datas =
     let registrations =
       List.map
-        (fun (loc, num, id, expr, args) ->
+        (fun { cv_loc = loc
+             ; cv_num = num
+             ; cv_id = id
+             ; cv_expr = expr
+             ; cv_args = args } ->
            let typ = find_fragment loc id in
            let args = List.map Pat.var args in
            let loc = expr.pexp_loc in
@@ -123,7 +140,7 @@ module Pass = struct
     | _ ->
         let bindings =
           List.map
-            (fun (loc, _num, id, expr, args) ->
+            (fun {cv_loc = loc; cv_id = id; cv_expr = expr; cv_args = args; _} ->
                let patt = Pat.var id in
                let typ = find_fragment loc id in
                let args = List.map Pat.var args in
@@ -188,7 +205,7 @@ module Pass = struct
             "The types of client values must be monomorphic from its usage or from its type annotation"
       | _ -> ()));
     push_client_value_data loc num id expr
-      (List.map (fun (gen_id, _, _) -> gen_id) escaped_bindings);
+      (List.map (fun {eb_id; _} -> eb_id) escaped_bindings);
     match context, escaped_bindings with
     | `Server, _ ->
         (* We are in a server fragment, this code should always be discarded. *)
@@ -198,12 +215,12 @@ module Pass = struct
     | `Shared, _ ->
         let bindings =
           List.map
-            (fun (gen_id, expr, _) ->
-               Vb.mk ~loc:expr.pexp_loc (Pat.var gen_id) expr)
+            (fun {eb_id; eb_expr; _} ->
+               Vb.mk ~loc:eb_expr.pexp_loc (Pat.var eb_id) eb_expr)
             escaped_bindings
         in
         let args =
-          format_args @@ List.map (fun (id, _, _) -> eid id) escaped_bindings
+          format_args @@ List.map (fun {eb_id; _} -> eid eb_id) escaped_bindings
         in
         Exp.let_ ~loc Nonrecursive bindings [%expr [%e frag_eid] [%e args]]
 
@@ -251,11 +268,7 @@ module Pass = struct
         mark_injection ();
         let typ = find_injected_ident loc0 id in
         let typ = assert_no_variables typ in
-        let ident =
-          match ident with
-          | None -> [%expr None]
-          | Some i -> [%expr Some [%e str i]]
-        in
+        let ident = str_option ~loc ident in
         let u, d = Mli.get_injected_ident_info id.txt in
         let es = str ~loc:id.loc (Printf.sprintf "%s%d" u d) in
         [%expr

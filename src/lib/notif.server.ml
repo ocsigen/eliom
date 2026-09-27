@@ -1,4 +1,4 @@
-open Lwt
+open Lwt.Syntax
 
 (* We use a hashtable associating resourceid to a weak set of
    (userid option, notif_ev) corresponding to each tab that want to
@@ -149,7 +149,8 @@ module Make (A : ARG) :
     Reference.Volatile.set identity_r (Some (identity, notif_e))
 
   let set_current_identity () =
-    A.get_identity () >>= fun identity -> set_identity identity; Lwt.return_unit
+    let* identity = A.get_identity () in
+    set_identity identity; Lwt.return_unit
 
   let init : unit -> unit Lwt.t = fun () -> set_current_identity ()
   let deinit () = Reference.Volatile.set identity_r None
@@ -182,7 +183,7 @@ module Make (A : ARG) :
       if blocked
       then Lwt.return_unit
       else
-        A.prepare identity content >>= fun content ->
+        let* content = A.prepare identity content in
         match content with
         | Some content ->
             send_e (key, content);

@@ -63,7 +63,7 @@ let reconstruct_atom ~f m name =
     | _ -> None
   with _ -> None
 
-let ( >>= ) x f = match x with Some x -> f x | None -> None
+let ( let* ) = Option.bind
 
 let rec reconstruct_set : type a c.
   a list * Form.form_elt M.t
@@ -89,8 +89,9 @@ and reconstruct_params_form : type a c.
   | TProd (TList _, _) -> failwith "Lists or sets in suffixes must be last"
   | TProd (TSet _, _) -> failwith "Lists or sets in suffixes must be last"
   | TProd (y1, y2) ->
-      reconstruct_params_form m y1 >>= fun (x1, m) ->
-      reconstruct_params_form m y2 >>= fun (x2, m) -> Some ((x1, x2), m)
+      let* x1, m = reconstruct_params_form m y1 in
+      let* x2, m = reconstruct_params_form m y2 in
+      Some ((x1, x2), m)
   | TUnit -> Some ((), m)
   | TOption ((TAtom (_, TString) as y), _) -> (
     match reconstruct_params_form m y with
@@ -102,16 +103,19 @@ and reconstruct_params_form : type a c.
     | Some (x, m) -> Some (Some x, m)
     | None -> Some (None, m))
   | TSet (TAtom (_, TBool) as y) ->
-      reconstruct_params_form m y >>= fun (x, m) -> Some ([x], m)
+      let* x, m = reconstruct_params_form m y in
+      Some ([x], m)
   | TSet y -> Some (reconstruct_set ([], m) y)
   | TSum (y1, y2) -> (
     match reconstruct_params_form m y1 with
     | Some (x, m) -> Some (Inj1 x, m)
-    | None -> reconstruct_params_form m y2 >>= fun (x, m) -> Some (Inj2 x, m))
+    | None ->
+        let* x, m = reconstruct_params_form m y2 in
+        Some (Inj2 x, m))
   | TCoord name ->
       let f = int_of_string in
-      reconstruct_atom ~f m (name ^ ".x") >>= fun (abscissa, m) ->
-      reconstruct_atom ~f m (name ^ ".y") >>= fun (ordinate, m) ->
+      let* abscissa, m = reconstruct_atom ~f m (name ^ ".x") in
+      let* ordinate, m = reconstruct_atom ~f m (name ^ ".y") in
       Some ({abscissa; ordinate}, m)
   | TUserType (name, {of_string = f; _}) -> reconstruct_atom ~f m name
   | _ -> None
@@ -122,7 +126,8 @@ let all_suffix_user ~of_string ~to_string n =
   TESuffixu (n, {of_string; to_string})
 
 let reconstruct_params_form l y =
-  reconstruct_params_form (M.of_assoc_list l) y >>= fun (v, _) -> Some v
+  let* v, _ = reconstruct_params_form (M.of_assoc_list l) y in
+  Some v
 
 let get_non_localized_get_parameters {name; param; _} =
   (* Simplified version of the server-side code that
