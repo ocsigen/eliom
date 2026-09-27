@@ -121,7 +121,7 @@ let recompute_expiry ~now ~old_glob_timeout ~new_glob_timeout exp =
 
 (* Update the expiration date for all service sessions                      *)
 let update_serv_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
-  Logs.app ~src:section (fun fmt ->
+  Logs.info ~src:section (fun fmt ->
     fmt "Updating expiration date for all service sessions");
   match new_glob_timeout with
   | Some t when t <= 0. ->
@@ -153,7 +153,7 @@ let update_serv_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
 
 (* Update the expiration date for all in memory data sessions                *)
 let update_data_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
-  Logs.app ~src:section (fun fmt ->
+  Logs.info ~src:section (fun fmt ->
     fmt "Updating expiration date for all data sessions");
   match new_glob_timeout with
   | Some t when t <= 0. ->
@@ -185,7 +185,7 @@ let update_data_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
 
 (* Update the expiration date for all sessions                               *)
 let update_pers_exp full_st_name sitedata old_glob_timeout new_glob_timeout =
-  Logs.app ~src:section (fun fmt ->
+  Logs.info ~src:section (fun fmt ->
     fmt "Updating expiration date for all persistent sessions");
   match new_glob_timeout with
   | Some t when t <= 0. ->
