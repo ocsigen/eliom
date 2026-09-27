@@ -233,6 +233,19 @@ let test_decode_suffix () =
     (decode ~nosuffix:true typ ["i", "3"; "s", "x"]);
   check_wrong_parameter "no suffix" (fun () -> decode typ ["i", "3"; "s", "x"])
 
+let test_decode_suffix_slashes () =
+  (* A value is one segment, even with a slash: Eliom writes it %2F. *)
+  Alcotest.(check (pair int string))
+    "slash in a value" (3, "x/y")
+    (decode ~suffix:["3"; "x/y"] (suffix (int "i" ** string "s")) []);
+  (* A whole suffix is split on slashes, without ".." segments. *)
+  Alcotest.(check (list string))
+    "whole suffix" ["a"; "b"; "c"; "d"; "e"]
+    (decode ~suffix:["a"; "b/c"; ".."; "d/../e"] (suffix (all_suffix "p")) []);
+  Alcotest.(check string)
+    "whole suffix as a string" "a/b"
+    (decode ~suffix:["a/.."; "b"] (suffix (all_suffix_string "p")) [])
+
 let test_decode_whole_suffix_parameter () =
   (* In the version of a service without suffix, the whole suffix is a
      parameter, without ".." segments as well. *)
@@ -297,6 +310,8 @@ let suite =
     ; Alcotest.test_case "decode optional" `Quick test_decode_optional
     ; Alcotest.test_case "decode errors" `Quick test_decode_errors
     ; Alcotest.test_case "decode suffix" `Quick test_decode_suffix
+    ; Alcotest.test_case "decode suffix with slashes" `Quick
+        test_decode_suffix_slashes
     ; Alcotest.test_case "decode whole suffix parameter" `Quick
         test_decode_whole_suffix_parameter
     ; Alcotest.test_case "names" `Quick test_names

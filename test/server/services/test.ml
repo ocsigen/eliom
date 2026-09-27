@@ -102,6 +102,28 @@ let parameters server =
         let+ r = Browser.get b "/params?i=1&s=a&z=2" in
         check_response "400" ~status:400 r) ] )
 
+(* Values of suffix parameters containing slashes, written %2F *)
+let suffixes server =
+  let case = case server in
+  ( "suffixes"
+  , [ case "slash in a value" (fun b ->
+        let+ r = Browser.get b "/suffix/3/x%2Fy" in
+        check_response "decoded" ~status:200 ~body:"i=3 s=x/y" r)
+    ; case "generated URL" (fun b ->
+        let* r = Browser.get b "/suffix_link" in
+        check_response "URL" ~status:200 ~body:"/suffix/3/x%2Fy" r;
+        let+ r = Browser.get b r.body in
+        check_response "followed" ~status:200 ~body:"i=3 s=x/y" r)
+    ; case "whole suffix" (fun b ->
+        let* r = Browser.get b "/files/a/b%2Fc" in
+        check_response "split" ~status:200 ~body:"a|b|c" r;
+        let+ r = Browser.get b "/files/a/..%2F..%2Fsecret" in
+        check_response "no dot dot" ~status:200 ~body:"a|secret" r)
+    ; case "relative URL" (fun b ->
+        (* The browser sees two segments in /relative/a%2Fb. *)
+        let+ r = Browser.get b "/relative/a%2Fb" in
+        check_response "one level up" ~status:200 ~body:"../hello" r) ] )
+
 let outputs server =
   let case = case server in
   ( "outputs"
@@ -167,4 +189,4 @@ let outputs server =
 let () =
   Server_harness.with_server "./server.exe" (fun server ->
     Alcotest.run ~and_exit:false "eliom-server-services"
-      [dispatch server; parameters server; outputs server])
+      [dispatch server; parameters server; suffixes server; outputs server])

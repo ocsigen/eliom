@@ -18,7 +18,7 @@ include Route_base.Make (struct
       | _ -> `Other
 
     let subpath_of_info {Common.request; _} =
-      Ocsigen.Request.sub_path request.request_info
+      Common.sub_path request.request_info
 
     module Container = struct
       type t = Common.tables
@@ -115,7 +115,7 @@ let get_page now ({Common.request = ri; session_info = si; _} as info) sitedata
                     Logs.info ~src:section (fun fmt ->
                       fmt "Looking for %s in the %s:"
                         (Url.string_of_url_path ~encode:true
-                           (Ocsigen.Request.sub_path ri.request_info))
+                           (Common.sub_path ri.request_info))
                         table_name);
                     find_aux now sitedata info Common.Eliom_404 table
                 | e -> Lwt.fail e))

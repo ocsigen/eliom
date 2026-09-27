@@ -30,11 +30,6 @@ let () =
 
 let () =
   string
-    (get ["suffix"] P.(suffix (int "i" ** string "s")))
-    (fun (i, s) () -> text (Printf.sprintf "i=%d s=%s" i s))
-
-let () =
-  string
     (get ["opt"] P.(opt (int "i")))
     (fun i () ->
        text (match i with None -> "none" | Some i -> string_of_int i))
@@ -49,6 +44,27 @@ let () =
     (get ["set"] P.(set int "i"))
     (fun l () ->
        text (String.concat "," (List.map string_of_int (List.sort compare l))))
+
+let suffix_service = get ["suffix"] P.(suffix (int "i" ** string "s"))
+
+let () =
+  string (get ["suffix_link"] P.unit) (fun () () ->
+    text
+      (Eliom_uri.make_string_uri ~absolute_path:true ~service:suffix_service
+         (3, "x/y")))
+
+let () =
+  string
+    (get ["files"] P.(suffix (all_suffix "path")))
+    (fun path () -> text (String.concat "|" path))
+
+let () =
+  string
+    (get ["relative"] P.(suffix (string "s")))
+    (fun _ () -> text (Eliom_uri.make_string_uri ~service:hello ()))
+
+let () =
+  string suffix_service (fun (i, s) () -> text (Printf.sprintf "i=%d s=%s" i s))
 
 let form = get ["form"] P.unit
 let () = string form (fun () () -> text "get")
