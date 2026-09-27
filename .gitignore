@@ -7,7 +7,6 @@ eliom.install
 
 src/**/*.mllib
 src/**/*.mldylib
-src/**/*.odocl
 
 # Generated odoc/wodoc documentation output
 _wodoc-html/
