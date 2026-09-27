@@ -163,26 +163,30 @@ let create_sitedata_aux site_dir config_info =
   Ocsigen_base.Cache.Dlist.set_finaliser_after
     (fun node ->
        (* Finaliser for the session groups *)
-       (* See in eliommod_sessiongroups for the finaliser of sessions *)
-       let fullbrowsersessgrp = Ocsigen_base.Cache.Dlist.value node in
+       (* See in Mod_sessiongroups for the finaliser of sessions *)
        (* When removing a group from the dlist, we must close it.
           Actually, it must be the only way to close a group. *)
        (* This finaliser is almost identical to the finaliser for
           other groups, defined in Mod_sessiongroups. *)
-       (* First we close all browser sessions in the group, by
-          removing the group from its dlist: *)
-       Mod_sessiongroups.Data.remove_group fullbrowsersessgrp;
-       (* Then we remove data from group tables: *)
-       match fullbrowsersessgrp.Common.sg_group with
-       | Common.Group_name key ->
-           (* iterate on all session data tables: *)
-           sitedata.Common.remove_session_data key
-       | _ ->
-           (* No group has been set. No group table.
+       (* First we close all browser sessions of this kind in the group, by
+          removing the group from its dlist. This does nothing when the
+          group is removed because it has become empty. *)
+       match Ocsigen_base.Cache.Dlist.value node with
+       | {Common.gg_kind = `Service; gg_group} ->
+           Mod_sessiongroups.Serv.remove_group gg_group
+       | {Common.gg_kind = `Data; gg_group} -> (
+           Mod_sessiongroups.Data.remove_group gg_group;
+           (* Then we remove data from group tables: *)
+           match gg_group.Common.sg_group with
+           | Common.Group_name key ->
+               (* iterate on all session data tables: *)
+               sitedata.Common.remove_session_data key
+           | _ ->
+               (* No group has been set. No group table.
                    Data associated to default (automatic) groups
                    is removed when closing associated sessions.
-           *)
-           ())
+               *)
+               ()))
     group_of_groups;
   Mod_gc.service_session_gc sitedata;
   Mod_gc.data_session_gc sitedata;

@@ -1,4 +1,4 @@
-; Unit tests of pure functions: no site, no request, no server.
+; Unit tests: no request, no running server. Some tests create a site.
 
 (test
  (name test_unit)

@@ -136,6 +136,10 @@
    application message (Logs.app).
 ** Eliom_react (client) logs under its own source, eliom:react, instead of
    eliom:comet.
+** On the client, the exceptions passed to Lwt.async_exception_hook are
+   logged with Logs.err (source eliom), followed by the JavaScript stack
+   when the exception carries a JavaScript error, instead of being written
+   with console.error.
 * Bug fixes
 ** Syntax.is_site_available now checks that the sitedata stack is
    actually non-empty during initialisation, instead of just
@@ -164,9 +168,9 @@
    timeout of service states.
 ** State.set_max_service_states_for_group_or_subnet and
    set_max_volatile_data_states_for_group_or_subnet with a session group
-   scope now change the limit of the right group. They used to look the
-   group up in each other's table, so the limit was applied to the wrong
-   group, or not at all.
+   scope now change the maximum number of session groups of the site also
+   when the group has no state of the other kind. They looked the group up
+   in each other's table, and did nothing in that case.
 ** State.unset_service_session_group now keeps a browser service session
    that still has tab service sessions. It used to count the tab data
    sessions instead, and could close a browser session in use.
@@ -227,6 +231,19 @@
    are set. The combined configuration repeated the idle policies, so the
    test for an always active configuration never matched, and the client
    went idle after the timeout, polling without delay.
+** On the client, Lib.Url.string_of_url_path ~encode:true now encodes
+   each path segment, like the server version. It used to ignore ~encode
+   and print a warning.
+** Volatile session groups: the service sessions and the data sessions of
+   a group are now closed separately. Closing the last service session of
+   a group closed the data sessions of the group and removed its group
+   data. State.discard_services ~scope:(`Session_group _) closed the data
+   sessions of the group instead of its service sessions, so
+   State.discard with that scope left the service sessions open. Evicting
+   the service sessions of a group, when a site has too many groups, also
+   closed its data sessions instead.
+** State.Ext.get_session_group_list lists each session group once. It
+   listed twice a group with both service and data sessions.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type

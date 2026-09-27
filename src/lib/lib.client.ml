@@ -56,10 +56,8 @@ module Url = struct
     else
       url ^ (if has_get_args url then "&" else "?") ^ encode_arguments get_args
 
-  let string_of_url_path ~encode l =
-    if encode
-    then print_endline "Warning: Lib.string_of_url_path ignores ~encode";
-    String.concat "/" l
+  let string_of_url_path ~encode:enc l =
+    String.concat "/" (if enc then List.map (encode ~plus:false) l else l)
 
   let path_of_url = function
     | Url.Http {Url.hu_path = path; _}
@@ -85,13 +83,18 @@ let raise_error ?exn ?section fmt =
 let log_inspect obj = Console.console##log (Obj.repr obj)
 let eliom_logs_src = Logs.Src.create "eliom"
 
+(* The JavaScript stack of the error attached to [exn], if any. *)
+let pp_js_stack ppf exn =
+  match Option.bind (Js_error.of_exn exn) Js_error.stack with
+  | Some stack -> Format.fprintf ppf "@\n%s" stack
+  | None -> ()
+
 let _ =
   Logs.set_reporter (Logs_browser.console_reporter ());
   Lwt.async_exception_hook :=
     fun exn ->
-      Console.console##error_3 (Js.string "Lwt.async:")
-        (Js.string (Printexc.to_string exn))
-        exn
+      Logs.err ~src:eliom_logs_src (fun fmt ->
+        fmt "Lwt.async: %s%a" (Printexc.to_string exn) pp_js_stack exn)
 
 let trace fmts =
   if Config.get_tracing ()

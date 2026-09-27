@@ -80,12 +80,13 @@ end
 module Serv :
   MEMTAB
   with type group_of_group_data =
-    Common.tables ref * [`Session] Common.sessgrp Ocsigen_base.Cache.Dlist.node
+    Common.tables ref
+    * Common.group_of_groups_entry Ocsigen_base.Cache.Dlist.node
 
 module Data :
   MEMTAB
   with type group_of_group_data =
-    [`Session] Common.sessgrp Ocsigen_base.Cache.Dlist.node
+    Common.group_of_groups_entry Ocsigen_base.Cache.Dlist.node
 
 module Pers : sig
   val find : Common.perssessgrp option -> string list Lwt.t

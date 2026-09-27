@@ -94,6 +94,9 @@ module GroupTable = Hashtbl.Make (struct
 module Make (A : sig
     type group_of_group_data
 
+    val kind : [`Service | `Data]
+    (** The kind of the sessions of the groups *)
+
     val table :
       (group_of_group_data option * string Ocsigen_base.Cache.Dlist.t)
         GroupTable.t
@@ -113,11 +116,11 @@ module Make (A : sig
 
     val node_of_group_of_group_data :
        group_of_group_data
-      -> [`Session] Common.sessgrp Ocsigen_base.Cache.Dlist.node
+      -> Common.group_of_groups_entry Ocsigen_base.Cache.Dlist.node
 
     val create_group_of_group_data :
        Common.sitedata
-      -> [`Session] Common.sessgrp Ocsigen_base.Cache.Dlist.node
+      -> Common.group_of_groups_entry Ocsigen_base.Cache.Dlist.node
       -> group_of_group_data
   end) : MEMTAB with type group_of_group_data = A.group_of_group_data = struct
   type group_of_group_data = A.group_of_group_data
@@ -206,7 +209,8 @@ module Make (A : sig
         match cookie_level with
         | `Session ->
             ignore
-              (Ocsigen_base.Cache.Dlist.add sess_grp
+              (Ocsigen_base.Cache.Dlist.add
+                 {Common.gg_kind = A.kind; gg_group = sess_grp}
                  sitedata.Common.group_of_groups);
             Ocsigen_base.Cache.Dlist.newest sitedata.Common.group_of_groups
         | _ -> None
@@ -250,8 +254,10 @@ module Make (A : sig
 end
 
 module Data = Make (struct
+    let kind = `Data
+
     type group_of_group_data =
-      [`Session] Common.sessgrp Ocsigen_base.Cache.Dlist.node
+      Common.group_of_groups_entry Ocsigen_base.Cache.Dlist.node
 
     let table :
       (group_of_group_data option * string Ocsigen_base.Cache.Dlist.t)
@@ -339,9 +345,11 @@ Besides, volatile sessions are (hopefully) going to disappear soon.
   end)
 
 module Serv = Make (struct
+    let kind = `Service
+
     type group_of_group_data =
       Common.tables ref
-      * [`Session] Common.sessgrp Ocsigen_base.Cache.Dlist.node
+      * Common.group_of_groups_entry Ocsigen_base.Cache.Dlist.node
 
     let table :
       (group_of_group_data option * string Ocsigen_base.Cache.Dlist.t)
