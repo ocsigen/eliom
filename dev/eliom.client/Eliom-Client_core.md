@@ -112,6 +112,7 @@ val change_page_uri_ :
 val change_page_get_form_ : 
   (?cookies_info:(bool * string list) ->
     ?tmpl:string ->
+    ?submitter:Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t ->
     Js_of_ocaml.Dom_html.formElement Js_of_ocaml.Js.t ->
     string ->
     unit)
@@ -121,6 +122,7 @@ val change_page_get_form_ :
 val change_page_post_form_ : 
   (?cookies_info:(bool * string list) ->
     ?tmpl:string ->
+    ?submitter:Js_of_ocaml.Dom_html.element Js_of_ocaml.Js.t ->
     Js_of_ocaml.Dom_html.formElement Js_of_ocaml.Js.t ->
     string ->
     unit)
@@ -148,8 +150,8 @@ val raw_form_handler :
   [< `Form_get | `Form_post ] ->
   (bool * string list) option ->
   string option ->
-  'a ->
-  ('a -> bool Lwt.t) ->
+  'a Js_of_ocaml__Js.t ->
+  ('a Js_of_ocaml__Js.t -> bool Lwt.t) ->
   bool
 ```
 ```ocaml
