@@ -1,2 +1,3 @@
 (cram
+ (package eliom)
  (deps %{bin:ppx_eliom_server}))
