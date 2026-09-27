@@ -61,6 +61,13 @@ let () =
        State.set_service_session_group ~scope:session_scope name;
        text "joined")
 
+let () =
+  string
+    (get ["group"; "leave_services"] P.unit)
+    (fun () () ->
+       State.unset_service_session_group ~scope:session_scope ();
+       text "left")
+
 let scope_of_string = function
   | "tab" -> (tab_scope :> Common.user_scope)
   | "session" -> (session_scope :> Common.user_scope)

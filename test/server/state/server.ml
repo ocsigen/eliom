@@ -157,4 +157,37 @@ let () =
          | Some n -> string_of_int n
          | None -> "none"))
 
+(* The sessions of a group, from outside the group, as
+   Os.Session.disconnect_all of Ocsigen Start closes them *)
+
+let () =
+  string
+    (get ["group"; "sessions"] P.(string "name"))
+    (fun name () ->
+       let state =
+         State.Ext.volatile_data_group_state ~scope:group_scope name
+       in
+       text
+         (string_of_int
+            (State.Ext.fold_volatile_sub_states ~state (fun n _ -> n + 1) 0)))
+
+let () =
+  string
+    (get ["group"; "close_sessions"] P.(string "name"))
+    (fun name () ->
+       let close state =
+         State.Ext.iter_sub_states ~state (fun state ->
+           State.Ext.discard_state ~state ())
+       in
+       let* () =
+         close (State.Ext.volatile_data_group_state ~scope:group_scope name)
+       in
+       let* () =
+         close (State.Ext.service_group_state ~scope:group_scope name)
+       in
+       let* () =
+         close (State.Ext.persistent_data_group_state ~scope:group_scope name)
+       in
+       text "closed")
+
 let () = Eliom_test_server.Server_harness.start [App.run ()]
