@@ -95,7 +95,10 @@ val send_get_form :
     the fields staying in the query string. [~submitter] is the button
     that submitted [form], the [submitter] of its submit event: its name
     and value are sent, before the fields, as a native submission sends
-    them. *)
+    them. An image button sends instead the point of the click in the
+    image, as [name.x] and [name.y], or [x] and [y] when it has no name.
+    This point is the one recorded by {!track_image_button_clicks} for
+    the last click on this button, (0, 0) if there is none. *)
 
 val send_post_form :
    ?with_credentials:bool
@@ -176,3 +179,8 @@ val nl_template :
 
 val nl_template_string : string
 val section : Logs.src
+
+val track_image_button_clicks : unit -> unit
+(** [track_image_button_clicks ()] records the point of each click on an
+    image button of the document, which the image button sends when it
+    submits a form. [Client] calls it once, when the program starts. *)

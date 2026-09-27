@@ -369,25 +369,85 @@ let send
       | _ -> url)
     , content )
 
+(* The image button last clicked, with the point of the click in the
+   image. The submit event gives the image button that submitted a form
+   but not this point, which a native submission sends. *)
+let image_button_click : (Dom_html.inputElement Js.t * (int * int)) option ref =
+  ref None
+
+class type clickEvent = object
+  inherit Dom_html.mouseEvent
+  method detail : int Js.readonly_prop
+end
+
+let track_image_button_clicks () =
+  let record (ev : Dom_html.mouseEvent Js.t) =
+    (* The target is not always an element: a script can dispatch a click
+       on the document. *)
+    let input =
+      Js.Opt.bind
+        (Dom_html.CoerceTo.element (Dom_html.eventTarget ev))
+        Dom_html.CoerceTo.input
+    in
+    Js.Opt.iter input (fun i ->
+      if i##._type = Js.string "image"
+      then
+        (* A click without a pointer, from the keyboard or from a script,
+           has a [detail] of 0: the image button then sends (0, 0), as
+           the HTML specification says. *)
+        let point =
+          if (Js.Unsafe.coerce ev : clickEvent Js.t)##.detail = 0
+          then 0, 0
+          else
+            ( int_of_float (Js.to_float ev##.offsetX)
+            , int_of_float (Js.to_float ev##.offsetY) )
+        in
+        image_button_click := Some (i, point));
+    Js._true
+  in
+  ignore
+    (Dom_html.addEventListener Dom_html.document Dom_html.Event.click
+       (Dom_html.handler record) Js._true
+     : Dom_html.event_listener_id)
+
+(* The point that [image] sends when it submits a form. The click is
+   forgotten once used, so that a later submission without a click sends
+   (0, 0), and the image button, maybe no longer in the page, is not kept
+   alive. *)
+let selected_point image =
+  let point =
+    match !image_button_click with
+    | Some (clicked, point) when clicked == image -> point
+    | _ -> 0, 0
+  in
+  image_button_click := None;
+  point
+
 (* The name and value of the button that submitted a form. Eliom sends
    forms through XHR, serializing their fields with
    [Form.get_form_contents] and [Form.form_elements], which cannot know
-   which button was used: a native submission sends it with the fields. *)
+   which button was used: a native submission sends it with the fields.
+   An image button sends the point of the click, as [name.x] and
+   [name.y], or [x] and [y] when it has no name. *)
 let submitter_args inj = function
   | None -> []
   | Some submitter -> (
-      let name_value =
-        match Dom_html.tagged submitter with
-        | Dom_html.Button b -> Some (b##.name, b##.value)
-        | Dom_html.Input i when i##._type = Js.string "submit" ->
-            Some (i##.name, i##.value)
-        | _ -> None
+      let named name value =
+        let name = Js.to_string name in
+        if name = "" then [] else [name, inj value]
       in
-      match name_value with
-      | None -> []
-      | Some (name, value) ->
-          let name = Js.to_string name in
-          if name = "" then [] else [name, inj value])
+      match Dom_html.tagged submitter with
+      | Dom_html.Button b -> named b##.name b##.value
+      | Dom_html.Input i when i##._type = Js.string "submit" ->
+          named i##.name i##.value
+      | Dom_html.Input i when i##._type = Js.string "image" ->
+          let x, y = selected_point i in
+          let prefix =
+            match Js.to_string i##.name with "" -> "" | name -> name ^ "."
+          in
+          let coordinate c = inj (Js.string (string_of_int c)) in
+          [prefix ^ "x", coordinate x; prefix ^ "y", coordinate y]
+      | _ -> [])
 
 let send_get_form
       ?with_credentials

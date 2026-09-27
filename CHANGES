@@ -312,6 +312,11 @@
    is not in a session group is closed alone: it is its own group, as for the
    data of the group scope (the automatic group of such sessions, their
    subnet, holds the sessions of other users).
+** A form submitted through XHR by an image button (Form.image_input)
+   sends the point of the click as name.x and name.y, as a native
+   submission does, so that the service receives its
+   Parameter.coordinates. The point was not sent, and the service
+   rejected the request.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
