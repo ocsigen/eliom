@@ -214,7 +214,9 @@ end = struct
           [channel.ch_id, Comet_base.Full]
       | Comet_base.After i -> queue_take channel i
       | Comet_base.Last (Some n) ->
-          let i = channel.ch_index - min (Dlist.size channel.ch_content) n in
+          let i =
+            channel.ch_index - min (Dlist.size channel.ch_content) n + 1
+          in
           queue_take channel i)
 
   let has_data = function

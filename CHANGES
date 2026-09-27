@@ -329,6 +329,9 @@
 ** A Comet channel of a client process created with a size keeps at most
    that number of messages before telling the client that messages were
    lost (Full). It kept one more.
+** The Last (Some n) position of a stateless Comet request, used by
+   Comet.Channel.external_channel ~history:n, now returns the n last
+   messages. It returned n + 1.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
