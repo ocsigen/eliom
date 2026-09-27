@@ -1,0 +1,6 @@
+; Unit tests of pure functions: no site, no request, no server.
+
+(test
+ (name test_unit)
+ (package eliom)
+ (libraries eliom.server ocsipersist-sqlite alcotest))
