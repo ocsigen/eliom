@@ -132,7 +132,6 @@ module S = struct
       ; scope : Common.client_process_scope option
       ; signal : 'a S.t
       ; name : string option }
-    [@@warning "-69"]
 
     type 'a stateless =
       { channel : 'a Comet.Channel.t
@@ -184,7 +183,7 @@ module S = struct
       in
       fun () -> Lwt.with_value Common.sp_key None @@ aux
 
-    let wrap_stateful {throttling = t; signal = s; name; _} =
+    let wrap_stateful {throttling = t; scope; signal = s; name} =
       let s : 'a S.t =
         match t with
         | None -> s
@@ -192,7 +191,7 @@ module S = struct
       in
       let store = make_store s in
       let stream = Lwt_stream.from (read_store store) in
-      let channel = Comet.Channel.create_unlimited ?name stream in
+      let channel = Comet.Channel.create_unlimited ?scope ?name stream in
       let value : 'a = S.value s in
       channel, value, Common.make_unwrapper Common.signal_down_unwrap_id
 

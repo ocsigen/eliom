@@ -357,6 +357,9 @@
 ** A stateful Comet request sent to the service of stateless channels, or
    a stateless one sent to the service of a client process, is now answered
    with a Comet_error. The server raised Failure and answered 500.
+** Eliom_react.S.Down.of_react ~scope:(`Client_process h) now sends the
+   signal on a channel of the client processes of the hierarchy h. It used
+   the default scope of client processes, as when no scope is given.
 ===== 12.1.0 =====
 * Compatibility with OCaml 5.5
   (Outcometree's Otyp_object replaced open_row with a row field, and out_type
