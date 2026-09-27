@@ -34,13 +34,8 @@ let iter_attrList
       (f : Dom.attr Js.t -> unit)
   =
   for i = 0 to attrList##.length - 1 do
-    (* Unsafe.get is ten time faster than nodeList##item.
-       Is it the same for attrList ? *)
-    (* let v = attrList##item(i) in *)
-    let v = Js.Unsafe.get attrList i in
-    (* IE8 provides [null] in node##attributes;
-       so we wrap v to be a Js.opt *)
-    Js.Opt.iter v f
+    (* Unsafe.get is ten times faster than nodeList##item. *)
+    f (Js.Unsafe.get attrList i)
   done
 
 let ancestor (elt1 : #Dom.node Js.t) (elt2 : #Dom.node Js.t) =
