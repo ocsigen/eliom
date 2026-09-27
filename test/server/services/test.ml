@@ -94,6 +94,12 @@ let parameters server =
     ; case "suffix and parameters" (fun b ->
         let+ r = Browser.get b "/prod/3?q=a" in
         check_response "decoded" ~status:200 ~body:"i=3 q=a" r)
+    ; case "whole suffix as a parameter" (fun b ->
+        (* The version of the service without suffix redirects to the one
+           with suffix, without ".." segments. *)
+        let+ r = Browser.get b "/files/__eliom_suffix__?path=../a/../b" in
+        check_response "redirection" ~status:307 r;
+        check_location "location" "/files/a/b" r)
     ; case "optional" (fun b ->
         let* r = Browser.get b "/opt" in
         check_response "absent" ~status:200 ~body:"none" r;

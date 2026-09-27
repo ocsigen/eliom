@@ -35,6 +35,11 @@ let () =
 
 let () =
   string
+    (get ["files"] P.(suffix (all_suffix "path")))
+    (fun path () -> text (String.concat "|" path))
+
+let () =
+  string
     (get ["opt"] P.(opt (int "i")))
     (fun i () ->
        text (match i with None -> "none" | Some i -> string_of_int i))
